@@ -13,6 +13,10 @@
 #include <vector>
 #include <string>
 
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#endif
+
 namespace ug
 {
 
@@ -22,32 +26,20 @@ namespace ug
 /**
  * extends the filename (add p000X extension in parallel) and writes a parallel pvec/pmat "header" file
  */
-static std::string GetParallelName(std::string name)
+std::string GetParallelName(std::string name, const pcl::ProcessCommunicator &pc, bool bWriteHeader=true);
+
+inline std::string GetParallelName(std::string name)
 {
-	char buf[20];
-	int rank = pcl::GetProcRank();
+	pcl::ProcessCommunicator pc;
+	return GetParallelName(name, pc);
 
-	size_t iExtPos = name.find_last_of(".");
-	std::string ext = name.substr(iExtPos+1);
-	name.resize(iExtPos);
-	if(rank == 0)
-	{
-		size_t iSlashPos = name.find_last_of("/");
-		if(iSlashPos == std::string::npos) iSlashPos = 0; else iSlashPos++;
-		std::string name2 = name.substr(iSlashPos);
-		std::fstream file((name+".p"+ext).c_str(), std::ios::out);
-		file << pcl::GetNumProcesses() << "\n";
-		for(int i=0; i<pcl::GetNumProcesses(); i++)
-		{
-			sprintf(buf, "_p%04d.%s", i, ext.c_str());
-			file << name2 << buf << "\n";
-		}
-	}
-
-	sprintf(buf, "_p%04d.%s", rank, ext.c_str());
-	name.append(buf);
-	return name;
 }
+template<typename T>
+inline std::string GetParallelName(T &t, std::string name)
+{
+	return GetParallelName(name, t.get_process_communicator());
+}
+
 #endif
 
 // WriteMatrixToConnectionViewer
@@ -63,7 +55,7 @@ template<typename Matrix_type, typename postype>
 void WriteMatrixToConnectionViewer(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
 {
 #ifdef UG_PARALLEL
-	filename = GetParallelName(filename);
+	filename = GetParallelName(A, filename);
 #endif
 
 	std::fstream file(filename.c_str(), std::ios::out);
@@ -107,7 +99,7 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 									std::vector<postype> &positionsFrom, std::vector<postype> &positionsTo, size_t dimensions)
 {
 #ifdef UG_PARALLEL
-	filename = GetParallelName(filename);
+	filename = GetParallelName(A, filename);
 #endif
 
 	/*const char * p = strstr(filename, ".mat");
@@ -264,7 +256,7 @@ void WriteVectorToConnectionViewer(std::string filename, const Matrix_type &A, c
 		return;
 	}
 #ifdef UG_PARALLEL
-	filename = GetParallelName(filename);
+	filename = GetParallelName(A, filename);
 #endif
 
 	std::fstream file(filename.c_str(), std::ios::out);

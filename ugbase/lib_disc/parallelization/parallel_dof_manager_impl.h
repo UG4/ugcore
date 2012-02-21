@@ -281,7 +281,7 @@ void ParallelMGDoFManager<TMGDoFManager>::create_surface_index_layouts()
 
 //	check
 //	pcl::ParallelCommunicator<IndexLayout> comTmp;
-//	pcl::PrintLayout(comTmp, distr.get_master_layout(), distr.get_slave_layout());
+//	pcl::PrintLayout(ProcessCommunicator needed, comTmp, distr.get_master_layout(), distr.get_slave_layout());
 
 //	on the surface view, there are no vertical layouts.
 	dd.get_vertical_master_layout().clear();

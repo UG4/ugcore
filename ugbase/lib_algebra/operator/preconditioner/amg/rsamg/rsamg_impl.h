@@ -159,8 +159,8 @@ bool _MakeFullRowsMatrix(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix
 	c.m_slaveDirichletLast = false;
 	bool b = c.calculate();
 
-	//PRINTLAYOUT(mat.get_communicator(), mat.get_master_layout(), mat.get_slave_layout());
-	//PRINTLAYOUT(mat.get_communicator(), vMasterLayouts[0], vSlaveLayouts[0]);
+	//PRINTLAYOUT(mat.get_process_communicator(), mat.get_communicator(), mat.get_master_layout(), mat.get_slave_layout());
+	//PRINTLAYOUT(mat.get_process_communicator(), mat.get_communicator(), vMasterLayouts[0], vSlaveLayouts[0]);
 
 	//overlapSize = c.m_overlapSize;
 	return b;
@@ -346,6 +346,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	/// create layouts
 
 #ifdef UG_PARALLEL
+	PoldIndices.set_process_communicator(A.get_process_communicator());
 	this->parallel_process_prolongation(PoldIndices, PnewIndices, m_dProlongationTr, level, nodes,
 			PN, true, AH.get_master_layout(), AH.get_slave_layout());
 #else

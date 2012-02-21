@@ -280,9 +280,9 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	}*/
 
 #ifdef UG_DEBUG
-	UG_ASSERT(TestLayout(PN.get_communicator(), A.get_master_layout(), A.get_slave_layout()) == true, "A layout wrong, level " << level);
-	UG_ASSERT(TestLayout(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
-	UG_ASSERT(TestLayout(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
+	UG_ASSERT(TestLayout(A.get_process_communicator(), PN.get_communicator(), A.get_master_layout(), A.get_slave_layout()) == true, "A layout wrong, level " << level);
+	UG_ASSERT(TestLayout(A.get_process_communicator(), PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
+	UG_ASSERT(TestLayout(A.get_process_communicator(), PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
 #endif
 
 	// create OLCoarseningSendLayout, OLCoarseningReceiveLayout

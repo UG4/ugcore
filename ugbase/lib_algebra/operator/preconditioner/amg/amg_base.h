@@ -36,7 +36,7 @@ std::string ToString(const T &t)
 	out << t;
 	return out.str();
 }
-#define PRINTLAYOUT(com, Layout1, Layout2) MyPrintLayout(com, (Layout1), (Layout2), #Layout1, #Layout2)
+#define PRINTLAYOUT(pc, com, Layout1, Layout2) MyPrintLayout(pc, com, (Layout1), (Layout2), #Layout1, #Layout2)
 
 namespace ug{
 #ifdef UG_PARALLEL
@@ -211,7 +211,7 @@ public:
 	bool check_fsmoothing();
 
 	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level=0);
-	bool add_correction_and_update_defect2(vector_type &c, vector_type &d, size_t level=0);
+	bool add_correction_and_update_defect2(vector_type &c, vector_type &d,  matrix_operator_type &A, size_t level=0);
 	bool get_correction(vector_type &c, const vector_type &d);
 
 	bool injection(vector_type &vH, const vector_type &v, size_t level);
@@ -332,6 +332,14 @@ public:
 		m_iNrOfPreiterationsCheck = i;
 	}
 
+	void set_Y_cycle(int maxIterations, double dYreduce, double dYabs)
+	{
+		m_dYreduce = dYreduce;
+		m_dYabs = dYabs;
+		m_iYCycle = maxIterations;
+	}
+
+
 protected:
 	void init_fsmoothing();
 	bool writevec(std::string filename, const vector_type &d, size_t level, const vector_type *solution=NULL);
@@ -394,8 +402,9 @@ protected:
 	double m_dTimingWholeSetupMS;
 	double m_dTimingCoarseSolverSetupMS;
 
-
-
+	size_t m_iYCycle;
+	double m_dYreduce;
+	double m_dYabs;
 
 	IPositionProvider<2> *m_pPositionProvider2d;
 	IPositionProvider<3> *m_pPositionProvider3d;
@@ -432,18 +441,22 @@ protected:
 #ifdef UG_PARALLEL
 		pcl::ParallelCommunicator<IndexLayout> com; ///< the communicator object on this level
 		IndexLayout slaveLayout, masterLayout;
+		IndexLayout slaveLayout2, masterLayout2;
 
 		stdvector< typename block_traits<typename matrix_type::value_type>::inverse_type > m_diagInv;
 
 		// agglomeration
 		bool bHasBeenMerged;
 		// level 0 - m_agglomerateLevel
-		pcl::ProcessCommunicator processCommunicator;
+		pcl::ProcessCommunicator *pProcessCommunicator;
+
 
 		// level 0 - m_agglomerateLevel-1
+		pcl::ProcessCommunicator agglomeratedPC;
 		IndexLayout agglomerateMasterLayout;
 		vector_type collC, collD;
 		matrix_operator_type collectedA;
+		matrix_operator_type *pAgglomeratedA;
 #endif
 
 

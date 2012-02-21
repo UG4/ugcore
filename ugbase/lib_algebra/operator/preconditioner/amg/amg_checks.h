@@ -127,7 +127,7 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 
 
 #ifdef UG_PARALLEL
-	name = GetParallelName2(name, true);
+	name = GetParallelName(name, levels[level]->pA->get_process_communicator(), true);
 	/*if(levels[level]->bHasBeenMerged && m_agglomerateLevel != level)
 		AMGWriteToFile(levels[level]->uncollectedA, level, level, name.c_str(), m_amghelper);
 	else*/
@@ -138,7 +138,7 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 
 	std::string name2 = (std::string("AMG_L") + ToString(level) + "_" + filename + "_p"+ ToString(pid) + ".values");
 #ifdef UG_PARALLEL
-	name2 = GetParallelName2(name2, false);
+	name2 = GetParallelName(name2, levels[level]->pA->get_process_communicator(), false);
 #endif
 	f << "v " << name2 << "\n";
 

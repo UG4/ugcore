@@ -118,7 +118,7 @@ void print_vector(const vector_type &vec, const char *p)
 namespace ug{
 
 #ifdef UG_PARALLEL
-void MyPrintLayout(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2)
+	void MyPrintLayout(pcl::ProcessCommunicator &pc, pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2)
 {
 	UG_LOG("\n========================================\n");
 	UG_LOG(name1<<"\n");
@@ -126,7 +126,7 @@ void MyPrintLayout(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLa
 	UG_LOG("\n"<<name2<<"\n");
 	PrintLayout(layout2);
 	UG_LOG("\n"<<name1 << "-" << name2 <<"\n");
-	PrintLayout(communicator, layout1, layout2);
+	PrintLayout(pc, communicator, layout1, layout2);
 	UG_LOG("\n\n");
 }
 #endif
@@ -517,7 +517,7 @@ public:
 #ifdef UG_PARALLEL
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{
-			PRINTLAYOUT(A_OL2.get_communicator(), AH.get_master_layout(), AH.get_slave_layout());
+			PRINTLAYOUT(A_OL2.get_process_communicator(), A_OL2.get_communicator(), AH.get_master_layout(), AH.get_slave_layout());
 		}
 #endif
 
@@ -537,9 +537,10 @@ private:
 		UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, m_famg.iDebugLevelCommunicateProlongation);
 
 #ifdef UG_PARALLEL
+		PoldIndices.set_process_communicator(A.get_process_communicator());
 		m_famg.parallel_process_prolongation(PoldIndices, PnewIndices, m_famg.m_dProlongationTruncation, level, rating,
 				PN, false, nextLevelMasterLayout, nextLevelSlaveLayout);
-		TESTLAYOUT(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
+		TESTLAYOUT(A_OL2.get_process_communicator(), A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
 #else
 		m_famg.serial_process_prolongation(PoldIndices, PnewIndices, m_famg.m_dProlongationTruncation, level, rating);
 #endif
@@ -657,33 +658,12 @@ void FAMG<CPUAlgebra>::get_testvectors(const matrix_type &A, stdvector<vector_ty
 	}
 }
 
-#ifdef UG_PARALLEL
-void eh( MPI_Comm *comm, int *err, ... )
-{
-	UG_LOG("MPI ERROR!\n");
-
-	char error_string[256];
-	int length_of_error_string=256, error_class;
-
-	MPI_Error_class(*err, &error_class);
-	MPI_Error_string(error_class, error_string, &length_of_error_string);
-	UG_ASSERT(0,"MPI Error: " << error_string << "\n" );
-	return;
-}
-#endif
 
 
 template<>
 void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
-#ifdef UG_PARALLEL
-    MPI_Errhandler newerr;
-
-	MPI_Comm_create_errhandler( eh, &newerr );
-	MPI_Comm_set_errhandler( MPI_COMM_WORLD, newerr );
-	  //MPI_Comm_call_errhandler( MPI_COMM_WORLD, MPI_ERR_OTHER );
-#endif
 
 
 	UG_ASSERT(m_testvectorsmoother != NULL, "please provide a testvector smoother.");
@@ -803,7 +783,7 @@ bool FAMG<CPUAlgebra>::check_testvector()
 		c.set(0.0);
 		checkResult res;
 
-		/*PRINTLAYOUT(A.get_communicator(), d.get_master_layout(), d.get_slave_layout());
+		/*PRINTLAYOUT(A.get_process_communicator(), A.get_communicator(), d.get_master_layout(), d.get_slave_layout());
 		d.change_storage_type(PST_CONSISTENT);
 
 		UG_LOG("\n\ntv level " << level << "\n");

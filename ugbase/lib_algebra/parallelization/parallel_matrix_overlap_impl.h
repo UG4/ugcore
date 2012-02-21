@@ -70,6 +70,8 @@ private:
 	ParallelNodes &PN;
 		//size_t m_overlapDepth;						///< overlap depth to be achieved
 
+	pcl::ProcessCommunicator &m_pc;
+
 public:
 	std::vector<size_t> m_overlapSize;
 	size_t m_overlapDepthMaster;
@@ -107,7 +109,7 @@ private:
 			PrintLayout(receivingLayout);
 			UG_LOG("\n\n");
 
-			UG_ASSERT(TestLayout(m_com, sendingLayout, receivingLayout), "layout corrupted");
+			UG_ASSERT(TestLayout(m_pc, m_com, sendingLayout, receivingLayout), "layout corrupted");
 		}
 
 		RowSendingScheme<matrix_type> rowSendingScheme(m_newMat, PN);
@@ -134,7 +136,7 @@ private:
 				PrintLayout(newSlavesLayout);
 				UG_LOG("\n\n");
 
-				UG_ASSERT(TestLayout(m_com, newMastersLayout, newSlavesLayout), "layout corrupted");
+				UG_ASSERT(TestLayout(m_pc, m_com, newMastersLayout, newSlavesLayout), "layout corrupted");
 			}
 
 
@@ -164,7 +166,7 @@ public:
 			ParallelNodes &pn) :
 		m_com(mat.get_communicator()), m_mat(mat), m_newMat(newMat), m_totalMasterLayout(totalMasterLayout), m_totalSlaveLayout(totalSlaveLayout),
 		m_vMasterLayouts(vMasterLayouts), m_vSlaveLayouts(vSlaveLayouts),
-		PN(pn)
+		PN(pn), m_pc(m_mat.get_process_communicator())
 	{
 
 	}
@@ -199,7 +201,7 @@ public:
 		PROFILE_END(); PROFILE_BEGIN(calculate_TestLayout);
 		IF_DEBUG(LIB_ALG_MATRIX, 1)
 		{
-			UG_ASSERT(TestLayout(m_com, masterLayout, slaveLayout), "layout corrupted");
+			UG_ASSERT(TestLayout(m_pc, m_com, masterLayout, slaveLayout), "layout corrupted");
 		}
 
 		PROFILE_END(); PROFILE_BEGIN(calculate1_2);
@@ -352,7 +354,7 @@ public:
 			PrintLayout(m_totalSlaveLayout);
 
 			UG_DLOG(LIB_ALG_MATRIX, 4, "OL Layout:\n");
-			PrintLayout(m_com, m_totalMasterLayout, m_totalSlaveLayout);
+			PrintLayout(m_pc, m_com, m_totalMasterLayout, m_totalSlaveLayout);
 		}
 
 		return true;

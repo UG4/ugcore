@@ -148,15 +148,15 @@ class FetiLayouts
 			{
 				pcl::ParallelCommunicator<IndexLayout> comTmp;
 				UG_LOG("STANDARD LAYOUTS:\n");
-				PrintLayout(comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout);
+				PrintLayout(m_stdProcessCom, comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout);
 				UG_LOG("INNER LAYOUTS:\n");
-				PrintLayout(comTmp, m_masterInnerLayout, m_slaveInnerLayout);
+				PrintLayout(m_stdProcessCom, comTmp, m_masterInnerLayout, m_slaveInnerLayout);
 				UG_LOG("PRIMAL LAYOUTS:\n");
-				PrintLayout(comTmp, m_masterPrimalLayout, m_slavePrimalLayout);
+				PrintLayout(m_stdProcessCom, comTmp, m_masterPrimalLayout, m_slavePrimalLayout);
 				UG_LOG("DUAL LAYOUTS:\n");
-				PrintLayout(comTmp, m_masterDualLayout, m_slaveDualLayout);
+				PrintLayout(m_stdProcessCom, comTmp, m_masterDualLayout, m_slaveDualLayout);
 				UG_LOG("DUAL NBR LAYOUTS:\n");
-				PrintLayout(comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout);
+				PrintLayout(m_stdProcessCom, comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout);
 			}
 		}
 
@@ -172,35 +172,35 @@ class FetiLayouts
 			pcl::ParallelCommunicator<IndexLayout> comTmp;
 
 			UG_LOG("TEST STANDARD LAYOUTS:\n");
-			if (TestLayout(comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout, print) != true) {
+			if (TestLayout(m_stdProcessCom, comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout, print) != true) {
 				UG_LOG("STANDARD LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("STANDARD LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST INNER LAYOUTS:\n");
-			if (TestLayout(comTmp, m_masterInnerLayout, m_slaveInnerLayout, print) != true) {
+			if (TestLayout(m_stdProcessCom, comTmp, m_masterInnerLayout, m_slaveInnerLayout, print) != true) {
 				UG_LOG("INNER LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("INNER LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST PRIMAL LAYOUTS:\n");
-			if (TestLayout(comTmp, m_masterPrimalLayout, m_slavePrimalLayout, print) != true) {
+			if (TestLayout(m_stdProcessCom, comTmp, m_masterPrimalLayout, m_slavePrimalLayout, print) != true) {
 				UG_LOG("PRIMAL LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("PRIMAL LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST DUAL LAYOUTS:\n");
-			if (TestLayout(comTmp, m_masterDualLayout, m_slaveDualLayout, print) != true) {
+			if (TestLayout(m_stdProcessCom, comTmp, m_masterDualLayout, m_slaveDualLayout, print) != true) {
 				UG_LOG("DUAL LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("DUAL LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST DUAL NBR LAYOUTS:\n");
-			if (TestLayout(comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout, print) != true) {
+			if (TestLayout(m_stdProcessCom, comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout, print) != true) {
 				UG_LOG("DUAL NBR LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("DUAL NBR LAYOUTS are consistent!\n");

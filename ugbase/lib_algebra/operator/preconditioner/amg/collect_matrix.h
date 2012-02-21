@@ -191,7 +191,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 	//UG_DLOG(LIB_ALG_AMG, 4, "\n");
 
 	//UG_LOG("COLLECTED LAYOUT:\n");
-	//PrintLayout(communicator, masterLayout, slaveLayout);
+	//PrintLayout(processCommunicator, communicator, masterLayout, slaveLayout);
 }
 
 template<typename matrix_type>

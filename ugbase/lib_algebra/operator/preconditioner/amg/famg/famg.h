@@ -231,7 +231,6 @@ private:
 	bool m_bTestvectorsFromMatrixRows;
 	bool m_bWriteFValues;
 
-
 	ILinearIterator<vector_type, vector_type> *m_testvectorsmoother;
 
 	friend class FAMGLevelCalculator<matrix_type, matrix_type, vector_type >;

@@ -30,7 +30,16 @@ TElem TrivialToValue(TElem e)
 {
 	return e;
 }
+inline void PrintPC(const pcl::ProcessCommunicator processCommunicator)
+{
+	UG_LOG(processCommunicator.size() << " involved procs: ");
+	for(size_t i=0; i<processCommunicator.size(); i++)
+	{	UG_LOG(processCommunicator.get_proc_id(i) << " "); }
+	UG_LOG("\n");
 
+}
+
+#define PRINTPC(com) UG_LOG(__FUNCTION__ << " : " << __LINE__ << "\n"); PrintPC(com)
 ////////////////////////////////////////////////////////////////////////
 //  TestLayoutIsDoubleEnded
 /// tests if masterLayouts proc id's find a match in correspoding slaveLayouts proc ids.
@@ -38,48 +47,61 @@ TElem TrivialToValue(TElem e)
  * that is, iff processor P1 has processor P2 in his masterLayout, then processor P2 needs to have P1 in his slaveLayout
  */
 template<typename TLayout>
-bool TestLayoutIsDoubleEnded(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout, TLayout &slaveLayout)
+bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
+		pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout, TLayout &slaveLayout)
 {
+	//PRINTPC(processCommunicator);
 //	check if connections are double-ended
-	std::vector<char> bMasterToProcess; bMasterToProcess.resize(pcl::GetNumProcesses(), 0x00);
-	std::vector<char> bSlaveToProcess; bSlaveToProcess.resize(pcl::GetNumProcesses(), 0x00);
+	std::vector<char> bMasterToProcess; bMasterToProcess.resize(processCommunicator.size(), 0x00);
+	std::vector<char> bSlaveToProcess; bSlaveToProcess.resize(processCommunicator.size(), 0x00);
 
 	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
-		bMasterToProcess[masterLayout.proc_id(iter)] = true;
-	for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
-		bSlaveToProcess[slaveLayout.proc_id(iter)] = true;
-
-	for(int i=0; i<pcl::GetNumProcesses(); i++)
 	{
-		com.send_raw(i, &bMasterToProcess[i], sizeof(char));
-		com.send_raw(i, &bSlaveToProcess[i], sizeof(char));
+		int id = processCommunicator.get_local_proc_id(masterLayout.proc_id(iter));
+		if(id == -1)
+			UG_LOG("Processor " << masterLayout.proc_id(iter) << " not in processCommunicator, but in MasterLayout\n")
+		else bMasterToProcess[id] = true;
+	}
+	for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
+	{
+		int id = processCommunicator.get_local_proc_id(slaveLayout.proc_id(iter));
+		if(id == -1)
+			UG_LOG("Processor " << slaveLayout.proc_id(iter) << " not in processCommunicator, but in SlaveLayout\n")
+		else bSlaveToProcess[id] = true;
 	}
 
-	std::vector<ug::BinaryBuffer> masterToThisProcessMap(pcl::GetNumProcesses());
-	std::vector<ug::BinaryBuffer> slaveToThisProcessMap(pcl::GetNumProcesses());
-	for(int i=0; i<pcl::GetNumProcesses(); i++)
+	for(size_t i=0; i<processCommunicator.size(); i++)
 	{
-		com.receive_raw(i, masterToThisProcessMap[i]);
-		com.receive_raw(i, slaveToThisProcessMap[i]);
+		com.send_raw(processCommunicator.get_proc_id(i), &bMasterToProcess[i], sizeof(char));
+		com.send_raw(processCommunicator.get_proc_id(i), &bSlaveToProcess[i], sizeof(char));
+	}
+
+	std::vector<ug::BinaryBuffer> masterToThisProcessMap(processCommunicator.size());
+	std::vector<ug::BinaryBuffer> slaveToThisProcessMap(processCommunicator.size());
+	for(size_t i=0; i < processCommunicator.size(); i++)
+	{
+		com.receive_raw(processCommunicator.get_proc_id(i), masterToThisProcessMap[i]);
+		com.receive_raw(processCommunicator.get_proc_id(i), slaveToThisProcessMap[i]);
 	}
 
 	com.communicate();
 
-	for(int i=0; i<pcl::GetNumProcesses(); i++)
+	for(size_t i=0; i<processCommunicator.size(); i++)
 	{
 		char bMasterToThisProcess, bSlaveToThisProcess;
 		ug::Deserialize(masterToThisProcessMap[i], bMasterToThisProcess);
 		ug::Deserialize(slaveToThisProcessMap[i], bSlaveToThisProcess);
 
+		int pid = processCommunicator.get_proc_id(i);
 		if(bMasterToThisProcess != bSlaveToProcess[i])
 		{
-			UG_LOG("Process " << std::setw(4) << i << " has " << (bMasterToThisProcess ? "a" : "no") << " master connection to this process (" << std::setw(4) << pcl::GetProcRank()
-				<< "), but we have " << (bSlaveToProcess[i] ? "a" : "no") << " slave connection to " << std::setw(4) << i << std::endl);
+			UG_LOG("Process " << std::setw(4) << pid << " has " << (bMasterToThisProcess ? "a" : "no") << " master connection to this process (" << std::setw(4) << pcl::GetProcRank()
+				<< "), but we have " << (bSlaveToProcess[i] ? "a" : "no") << " slave connection to " << std::setw(4) << pid << std::endl);
 			return false;
 		}
 		if(bSlaveToThisProcess != bMasterToProcess[i]){
-			UG_LOG("Process " << std::setw(4) << i << " has " << (bSlaveToThisProcess ? "a" : "no") << " slave connection to this process (" << pcl::GetProcRank()
-				<< "), but we have " << (bMasterToProcess[i] ? "a" : "no") << " master connection to " << std::setw(4) << i << std::endl);
+			UG_LOG("Process " << std::setw(4) << pid << " has " << (bSlaveToThisProcess ? "a" : "no") << " slave connection to this process (" << pcl::GetProcRank()
+				<< "), but we have " << (bMasterToProcess[i] ? "a" : "no") << " master connection to " << std::setw(4) << pid << std::endl);
 			return false;
 		}
 	}
@@ -186,7 +208,8 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::ParallelCommunicator<TLayout> &com,
  * values are consistent among all processes.
  */
 template<typename TLayout, typename TValue>
-bool TestLayout(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
+bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
+		pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
 				TLayout &slaveLayout, bool bPrint=false,
 				boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>)
@@ -203,44 +226,50 @@ bool TestLayout(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
 		}
 		UG_LOG("\n");
 	}
-	bool bDoubleEnded = TestLayoutIsDoubleEnded(com, masterLayout, slaveLayout);
-	if(!pcl::AllProcsTrue(bDoubleEnded))
+	bool bDoubleEnded = TestLayoutIsDoubleEnded(processCommunicator,
+			com, masterLayout, slaveLayout);
+	if(!pcl::AllProcsTrue(bDoubleEnded, processCommunicator))
 		return false;
 
 	bool bSuccess = TestSizeOfInterfacesInLayoutsMatch<TLayout, TValue>(com, masterLayout,
 															slaveLayout, bPrint, cbToValue);
-	return pcl::AllProcsTrue(bSuccess);
+	return pcl::AllProcsTrue(bSuccess, processCommunicator);
 }
 
 template<typename TLayout>
-bool TestLayout(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
+bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
+		pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
 				TLayout &slaveLayout, bool bPrint=false)
 {
-	return TestLayout<TLayout, typename TLayout::Element>(com, masterLayout, slaveLayout, bPrint);
+	return TestLayout<TLayout, typename TLayout::Element>(processCommunicator, com,
+			masterLayout, slaveLayout, bPrint);
 }
 
 template<typename TLayout, typename TValue>
-bool PrintLayout(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
+bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
+		pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
 				TLayout &slaveLayout,
 				boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>)
 {
-	return TestLayout(com, masterLayout, slaveLayout, true, cbToValue);
+	return TestLayout(processCommunicator, com, masterLayout, slaveLayout, true, cbToValue);
 }
 
 
 template<typename TLayout>
-bool PrintLayout(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
+bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
+		pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
 				TLayout &slaveLayout)
 {
-	return TestLayout(com, masterLayout, slaveLayout, true);
+	return TestLayout(processCommunicator, com, masterLayout, slaveLayout, true);
 }
 
 
 #ifndef NDEBUG
-	#define TESTLAYOUT(com, master, slave) { if(TestLayout(com, master, slave) == false) { PrintLayout(com, master, slave); UG_ASSERT(false, "layout broken"); } }
+	#define TESTLAYOUT(processCommunicator, com, master, slave) { if(TestLayout(processCommunicator,\
+		com, master, slave) == false) { PrintLayout(processCommunicator, com, master, slave); UG_ASSERT(false, "layout broken"); } }
 #else
-	#define TESTLAYOUT(com, master, slave)
+	#define TESTLAYOUT(processCommunicator, com, master, slave)
 #endif
 
 }

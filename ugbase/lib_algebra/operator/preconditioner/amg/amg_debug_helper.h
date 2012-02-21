@@ -87,6 +87,29 @@ struct cAMG_helper
 		communicator.receive_data(overlapSlave, copyPol);
 		communicator.communicate();
 	}
+
+	void receive_agglomerate_positions(int level,
+			pcl::ParallelCommunicator<IndexLayout> &communicator,
+			IndexLayout &agglomerateMaster, size_t newSize)
+	{
+		std::vector<MathVector<3> > &vec2 = positions[level];
+		vec2.resize(newSize);
+
+		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
+		communicator.receive_data(agglomerateMaster, copyPol);
+		communicator.communicate();
+	}
+
+	void send_agglomerate_positions(int level,
+			pcl::ParallelCommunicator<IndexLayout> &communicator,
+			IndexLayout &agglomerateSlave)
+	{
+		std::vector<MathVector<3> > &vec2 = positions[level];
+
+		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
+		communicator.send_data(agglomerateSlave, copyPol);
+		communicator.communicate();
+	}
 #endif
 
 	void make_coarse_level(size_t level, const stdvector<int> &parentIndex)

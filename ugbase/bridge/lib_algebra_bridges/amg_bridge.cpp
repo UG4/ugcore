@@ -137,6 +137,7 @@ struct RegisterAMGClass<CPUAlgebra>
 					(void(AMGBase<algebra_type>::*)(IPositionProvider<3> *))&AMGBase<algebra_type>::set_position_provider, "", "prov", "needed for connectionviewer output")
 			.add_method("write_interfaces", &AMGBase<algebra_type>::write_interfaces)
 			.add_method("set_checkLevel_post_iterations", &AMGBase<algebra_type>::set_checkLevel_post_iterations)
+			.add_method("set_Y_cycle", &AMGBase<algebra_type>::set_Y_cycle)
 			;
 		reg.add_class_to_group(string("AMGBase").append(algSuffix), "AMGBase", algTag);
 

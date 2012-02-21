@@ -116,6 +116,13 @@ class ParallelMatrix : public TMatrix
 			return *m_pCommunicator;
 		}
 
+		const pcl::ParallelCommunicator<IndexLayout>&
+		get_communicator() const
+		{
+			UG_ASSERT(m_pCommunicator != NULL, "No communicator set, but requested.");
+			return *m_pCommunicator;
+		}
+
 	///	sets a process communicator
 		void set_process_communicator(const pcl::ProcessCommunicator& pc)
 		{
@@ -125,6 +132,9 @@ class ParallelMatrix : public TMatrix
 	///	returns the process communicator
 		pcl::ProcessCommunicator&
 		get_process_communicator() {return m_processCommunicator;}
+
+		const pcl::ProcessCommunicator&
+		get_process_communicator() const {return m_processCommunicator;}
 
 		/////////////////////////
 		// Storage type handling
