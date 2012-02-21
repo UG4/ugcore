@@ -26,13 +26,12 @@ bool TriangleCircumcenter(vector2& centerOut, const vector2& p1,
 	number d12 = VecDistanceSq(p1, p2);
 	number d23 = VecDistanceSq(p2, p3);
 	number d13 = VecDistanceSq(p1, p3);
-
-//	if any of the sides is too short, then we'll simply calculate the center
+/*
+//	if any of the sides is too short, then we have to abort
 	if(d12 < SMALL || d23 < SMALL || d13 < SMALL){
-		centerOut = TriangleBarycenter(p1, p2, p3);
-		return true;
+		return false;
 	}
-
+*/
 //	centers of sides and side-normals
 	vector2 c1, c2, n1, n2;
 
@@ -81,8 +80,7 @@ bool TriangleCircumcenter(vector2& centerOut, const vector2& p1,
 bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
 						  const vector3& p2, const vector3& p3)
 {
-	using std::swap;
-
+/*
 	vector3 dir12, dir13, dir23;
 	VecSubtract(dir12, p2, p1);
 	VecSubtract(dir13, p3, p1);
@@ -91,12 +89,18 @@ bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
 	number d12 = VecLengthSq(dir12);
 	number d13 = VecLengthSq(dir13);
 	number d23 = VecLengthSq(dir23);
+*/
+	number d12 = VecDistanceSq(p1, p2);
+	number d23 = VecDistanceSq(p2, p3);
+	number d13 = VecDistanceSq(p1, p3);
 
 //	if any of the sides is too short, or if one is way shorter than the others,
-//	then we'll simply calculate the bary-center. This should be a good approximation.
-//\todo: This could be a little dangerous!!!
-	bool degTri = d12 < SMALL || d23 < SMALL || d13 < SMALL;
-
+//	then we have to abort
+/*
+	if(d12 < SMALL || d23 < SMALL || d13 < SMALL)
+		return false;
+*/
+/*
 	const number badRatio = SMALL;
 
 	if(d12 > 0){
@@ -116,7 +120,7 @@ bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
 		//centerOut = TriangleBarycenter(p1, p2, p3);
 		return false;
 	}
-
+*/
 //	centers of sides, direction of sides and side-normals
 	vector3 c1, c2, dir1, dir2, n1, n2;
 
@@ -158,6 +162,7 @@ bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
 		return false;
 	}
 
+//todo	rounding problems could occur if n, c1, c2, dir1 and dir2 have vastly differing scales,
 	VecCross(n1, n, dir1);
 	VecCross(n2, n, dir2);
 

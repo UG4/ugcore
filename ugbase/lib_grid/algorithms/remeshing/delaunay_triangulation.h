@@ -10,12 +10,28 @@
 
 namespace ug
 {
+/*
+class DelaunayInfo{
 
+	private:
+		Grid* m_pGrid;
+		AByte m_aCandidateMark;
+		Grid::AttachmentAccessor<EdgeBase, AByte>	m_aaMarkedEDGE;
+		Grid::AttachmentAccessor<Face, AByte>		m_aaMarkedFace;
+
+};
+*/
+/*
+template <class TAAPos>
+void MakeDelaunay(Grid& grid, std::queue<EdgeBase*>& edgeCandidates, TAAPos& aaPos,
+				  CB_ConsiderEdge cbConstrainedEdge = ConsiderNoEdge)
+{
+
+}
+*/
 ///	Transforms the given triangle-set into a delaunay set
 /**	THIS METHOD USES Grid::mark
- *
  */
-
 template <class TriIter, class TAAPos>
 bool MakeDelaunay(Grid& grid, TriIter trisBegin, TriIter trisEnd, TAAPos& aaPos,
 				  CB_ConsiderEdge cbConstrainedEdge = ConsiderNoEdge)
@@ -133,6 +149,21 @@ bool MakeDelaunay(Grid& grid, TriIter trisBegin, TriIter trisEnd, TAAPos& aaPos,
 	return true;
 }
 
+
+///	Inserts vertices to improve mesh quality, while maintaining the delaunay property
+/** (cf. "Guaranteed-Quality Mesh Generation for Curved Surfaces, by L. Paul Chew")
+ *
+ * This method currently only works reliably for triangulations, which lie in
+ * a plane. No guarantees on the output on curved surfaces.
+ */
+/*
+template <class TriIter, class TAAPos>
+void QualityMeshGeneration(Grid& g, TriIter trisBegin, TriIter trisEnd, TAAPos& aaPos,
+				  	  	   CB_ConsiderEdge cbConstrainedEdge = ConsiderNoEdge)
+{
+
+}
+*/
 }//	end of namespace
 
 #endif

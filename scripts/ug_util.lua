@@ -134,7 +134,8 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSub
 		end
 	end
 	
-	-- TODO: Delete the refiner
+	--clean up
+	delete(refiner)
 	
 	-- return the created domain
 	return dom
