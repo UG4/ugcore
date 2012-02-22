@@ -456,10 +456,8 @@ protected:
 		IndexLayout agglomerateMasterLayout;
 		vector_type collC, collD;
 		matrix_operator_type collectedA;
-		matrix_operator_type *pAgglomeratedA;
 #endif
-
-
+		matrix_operator_type *pAgglomeratedA;
 		LevelInformation m_levelInformation;
 	};
 

@@ -218,20 +218,22 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 			AMG_PROFILE_END();
 			break;
 		}
-		PRINTPC(L.pA->get_process_communicator());
+
 
 #ifdef UG_PARALLEL
+		//PRINTPC(L.pA->get_process_communicator());
 		agglomerate(level);
 		if(m_agglomerateLevel == level)
 		{
 			UG_LOG("Processor " << pcl::GetProcRank() << " got agglomerated at level " << level << ".\n");
 			break;
 		}
+		//PRINTPC(L.pAgglomeratedA->get_process_communicator());
 #else
 		L.pAgglomeratedA = L.pA;
 #endif
 
-		PRINTPC(L.pAgglomeratedA->get_process_communicator());
+
 		//smoothem_R[level].init(*m_A[level]);
 
 		levels.push_back(new AMGLevel(level+1));

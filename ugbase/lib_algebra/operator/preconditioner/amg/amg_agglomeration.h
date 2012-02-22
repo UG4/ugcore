@@ -68,7 +68,7 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 		return true;
 	}
 #else
-	return add_correction_and_update_defect2(c, d, level);
+	return add_correction_and_update_defect2(c, d, *levels[level]->pA, level);
 #endif
 
 }
