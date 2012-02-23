@@ -1,29 +1,39 @@
 -- creates a ugx file
 -- author: Martin Scherer
 
--- parameter fuer einheits tkd
-a = 10
-w = 3*a
-h = math.sqrt(6)*a 
-d_lipid = 5
+ug_load_script("ug_util.lua")
 
-rows = 4 
-cols = 2 
-high = 2 
+-- default parameter a, w, h are unit tkd 
+a = util.GetParamNumber("-a", 10)
+w = util.GetParamNumber("-w", 30)
+h = util.GetParamNumber("-h", math.sqrt(6)*a)
+d_lipid = util.GetParamNumber("-dl", 3)
 
---rows = 4
---cols = 2
---high = 2
+-- parameter for stacking the tkd's
+rows = util.GetParamNumber("-rows", 3)
+cols = util.GetParamNumber("-cols", 2)
+layers = util.GetParamNumber("-layers", 3)
 
---rows = 1
---cols = 1
---high = 1
+-- file name to write grid to
+filename = util.GetParam("-filename", "/tmp/tkd/tkdDomain.ugx")
+sh_name_corneocyte = util.GetParam("-sh_name_corneo", "corneocytes")
+sh_name_lipid = util.GetParam("-sh_name_lipid", "corneocytes")
 
-date = os.date("%d-%m-%y__%H-%M-%S")
-os.execute("mkdir -p /tmp/tkd")
-filename = "/tmp/tkd/tkd__" .. date .. ".ugx"
+-- init grid and its associated subset handler
+go = GridObject()
+grid = go:grid()
+sh = go:subset_handler()
 
--- calling testing method
-TestTKDGenerator(filename, h, a, w, d_lipid, rows, cols, high)
+-- set subset information
+green = MakeVec(0, 1, 0, 0)
+blue = MakeVec(0, 0, 1, 0)
+SetTKDSubsetInfos(sh, sh_name_corneocyte, sh_name_lipid, blue, green)
 
-print("Grid written to " .. filename)
+-- create the grid
+CreateTKDDomain(grid, sh, h, a, w, d_lipid, rows, cols, layers)
+
+if SaveGrid(grid, sh, filename) then
+	print("TKD Domain successfully written to " .. filename)
+else
+	print("Problem writing to given file: " .. filename)
+end
