@@ -278,6 +278,16 @@ void RegisterLibDiscDomain__Algebra_DoFDistribution_Domain(Registry& reg, string
 						 static_cast<fct_type>(&L2ErrorDraft<function_type>),
 						 grp);
 	}
+
+	//	L2Norm
+		{
+			typedef number (*fct_type)(function_type&, const char*, int, const char*);
+
+
+			reg.add_function("L2Norm",
+							 static_cast<fct_type>(&L2Norm<function_type>),
+							 grp);
+		}
 }
 
 template <typename TAlgebra, typename TDoFDistribution>
