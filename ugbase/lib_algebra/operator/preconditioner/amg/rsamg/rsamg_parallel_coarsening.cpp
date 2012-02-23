@@ -94,7 +94,7 @@ IParallelCoarsening *GetFullSubdomainBlockingCoarsening()
 
 
 class RSAMGCoarseningCommunicationScheme :
-	public CommunicationScheme<RSAMGCoarseningCommunicationScheme>
+	public CommunicationScheme<RSAMGCoarseningCommunicationScheme, char>
 {
 public:
 	typedef char value_type;
@@ -109,7 +109,8 @@ public:
 
 	void receive(int pid, int index, char b)
 	{
-		if(b == AMG_COARSE_RATING || b == AMG_FINE_RATING)
+		if(b == AMG_COARSE_RATING || b == AMG_FINE_RATING
+				|| b == AMG_DIRICHLET_RATING)
 		{
 			if((char) m_nodes[index].rating != b)
 				m_recv[index] = b;
@@ -137,6 +138,8 @@ public:
 				m_nodes.set_coarse(i);
 			else if(b == AMG_FINE_RATING)
 				m_nodes.set_fine(i);
+			else if(b == AMG_DIRICHLET_RATING)
+				m_nodes.set_dirichlet(i);
 			//UG_LOG("m_recv node " << i << " (" << PN.local_to_global(i) << ") = " << m_nodes[i] << "\n");
 		}
 	}
@@ -208,7 +211,7 @@ class SimpleParallelCoarsening : public IParallelCoarsening
 
 		std::map<size_t, char> recv;
 		StdArrayCommunicationScheme<AMGNodes> scheme(nodes);
-		CommunicateOnInterfaces(PN.get_communicator(), slaveOL1, masterOL1, scheme);
+		CommunicateOnInterfaces(PN.get_communicator(), masterOL1, slaveOL1, scheme);
 		PreventFFConnections(graphS, graphST, nodes);
 	}
 
@@ -312,11 +315,16 @@ class RS3Coarsening : public IParallelCoarsening
 			if(graphS.is_isolated(i))
 				nodes.set_coarse(i);
 		}*/
+		nodes.print();
 
 		Coarsen(graphS, graphST, PQ, nodes, bUnsymmetric, false);
 
+		nodes.print();
+
 		StdArrayCommunicationScheme<AMGNodes> scheme(nodes);
-		CommunicateOnInterfaces(PN.get_communicator(), slaveOL1, masterOL1, scheme);
+		CommunicateOnInterfaces(PN.get_communicator(), masterOL1, slaveOL1, scheme);
+
+		nodes.print();
 
 		// prevent strong FF-Connections
 
@@ -331,7 +339,7 @@ class RS3Coarsening : public IParallelCoarsening
 			if(b) nrOfFFCoarseNodes++;
 		}
 
-		CommunicateOnInterfaces(PN.get_communicator(), slaveOL1, masterOL1, scheme);
+		CommunicateOnInterfaces(PN.get_communicator(), masterOL1, slaveOL1, scheme);
 	}
 
 	int overlap_depth_master()

@@ -40,8 +40,6 @@ void AMGBase<TAlgebra>::create_fine_marks(int level, TAMGNodes &amgnodes, size_t
 		vFine[i] = amgnodes[i].is_fine();
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create_parent_index
 //------------------------------
@@ -303,7 +301,7 @@ void AMGBase<TAlgebra>::postset_coarse(ParallelNodes &PN, prolongation_matrix_ty
 			UG_ASSERT(PN.is_slave(i), i);
 
 			if(PoldIndices.num_connections(i) != 1 &&
-					amgnodes[i].is_fine() == false)
+					amgnodes[i].is_fine() == false && amgnodes[i].is_dirichlet() == false)
 			{
 				amgnodes.set_fine(i);
 				UG_DLOG(LIB_ALG_AMG, 4, "post-setted " << i << " fine.\n");
@@ -329,10 +327,9 @@ void AMGBase<TAlgebra>::postset_coarse(ParallelNodes &PN, prolongation_matrix_ty
 /** used to delete unused elements of interfaces on boths sides
  */
 class CreateMinimalLayoutCommunicationScheme
-	: public CommunicationScheme<CreateMinimalLayoutCommunicationScheme>
+	: public CommunicationScheme<CreateMinimalLayoutCommunicationScheme, bool>
 {
 public:
-	typedef char value_type;
 	CreateMinimalLayoutCommunicationScheme(stdvector<bool> &bUsedSlave) : m_bUsedSlave(bUsedSlave)
 	{
 		m_newMasterLayout.clear();
@@ -471,8 +468,9 @@ void AMGBase<TAlgebra>::create_minimal_layout_for_prolongation(ParallelNodes &PN
 	}*/
 
 	CreateMinimalLayoutCommunicationScheme cmlcs(bUsedSlave);
-	CommunicateOnInterfaces(PN.get_communicator(), PN.get_total_master_layout(),
-			PN.get_total_slave_layout(), cmlcs);
+	CommunicateOnInterfaces(PN.get_communicator(),
+			PN.get_total_slave_layout(), PN.get_total_master_layout(), cmlcs);
+	UG_LOG("hi\n");
 	cmlcs.get_new_layouts(newMasterLayout, newSlaveLayout);
 
 }

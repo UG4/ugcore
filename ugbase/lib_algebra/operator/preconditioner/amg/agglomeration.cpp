@@ -13,6 +13,12 @@ struct supernode
 	std::vector<int> connections;
 	int father;
 
+	supernode()
+	{
+		size = 0;
+		father = -1;
+	}
+
 	void print()
 	{
 		UG_DLOG(LIB_ALG_AMG, 4, " size: " << size << "\n components: ")
@@ -86,11 +92,13 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 
 	size_t cnt;
 	size_t nrAgglomerated=0;
+	size_t smallest;
 	do
 	{
 		UG_DLOG(LIB_ALG_AMG, 4, "========================\n");
 		// get smallest supernode
-		size_t smallest=0; size_t ismallest = 0;
+		size_t ismallest = 0;
+		smallest = 0;
 		cnt = 0;
 		for(size_t i=0; i<sizes.size(); i++)
 		{
@@ -128,6 +136,8 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 
 		UG_DLOG(LIB_ALG_AMG, 4, "\nagglomerating with node " << iAgglo << "\n");
 		supernodes[iAgglo].print(supernodes);
+
+		nrAgglomerated++;
 
 		// put all components of snSmallest in snAgglo
 		for(size_t i=0; i<snSmallest.components.size(); i++)
@@ -178,7 +188,8 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 	if(cnt==1)
 		{ UG_DLOG(LIB_ALG_AMG, 4, "\nOnly one node left. Result\n"); }
 	else
-		{ UG_DLOG(LIB_ALG_AMG, 4, "\nAll supernodes have more than " << preferredSize << " nodes. Result:\n"); }
+		{ UG_DLOG(LIB_ALG_AMG, 4, "\nSmallest supernode has size " << smallest << " < "
+				<< preferredSize << " nodes. Result:\n"); }
 	for(size_t i=0; i<sizes.size(); i++)
 	{
 		if(supernodes[i].size == -1) continue; // node deleted

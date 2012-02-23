@@ -81,10 +81,9 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 
 
 
-class FAMGCoarseningCommunicationScheme : public CommunicationScheme<FAMGCoarseningCommunicationScheme >
+class FAMGCoarseningCommunicationScheme : public CommunicationScheme<FAMGCoarseningCommunicationScheme, char>
 {
 public:
-	typedef char value_type;
 	FAMGCoarseningCommunicationScheme(FAMGNodes &r) : rating(r)
 	{
 

@@ -20,6 +20,7 @@
 #include "collect_matrix.h"
 #include "lib_algebra/parallelization/parallel_vector.h"
 #include "lib_algebra/parallelization/parallel_storage_type.h"
+#include "consistency_check.h"
 #endif
 
 #include "lib_algebra/common/connection_viewer_output.h"
@@ -286,6 +287,9 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 
 	#ifdef UG_PARALLEL
 	#ifdef UG_DEBUG
+		ConsistencyCheck(levels[level]->is_fine, L.pAgglomeratedA->get_communicator(),
+				L.pAgglomeratedA->get_process_communicator(),
+				L.pAgglomeratedA->get_master_layout(), L.pAgglomeratedA->get_slave_layout(), "fine marks");
 //			PrintLayoutIfBroken(AH.get_process_communicator(), nextL.com, nextL.masterLayout, nextL.slaveLayout);
 	#endif
 		SetParallelVectorAsMatrix(L.corr, *L.pAgglomeratedA, PST_CONSISTENT);
@@ -960,7 +964,7 @@ void AMGBase<TAlgebra>::write_debug_matrices(matrix_type &AH, prolongation_matri
 	}
 
 	//if(AH.num_rows() < AMG_WRITE_MATRICES_MAX)
-	std::string name = m_writeMatrixPath + std::string("AMG_A_L") + ToString(level+1) + ".mat";
+	std::string name = m_writeMatrixPath + std::string("AMG_Au_L") + ToString(level+1) + ".mat";
 #ifdef UG_PARALLEL
 	name = GetParallelName(name, AH.get_process_communicator(), true);
 #endif

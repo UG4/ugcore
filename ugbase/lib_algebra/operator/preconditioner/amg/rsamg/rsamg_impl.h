@@ -326,6 +326,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	// construct prolongation P = I_{2h->h}
 	/////////////////////////////////////////
 
+
 	UG_DLOG(LIB_ALG_AMG, 1, std::endl << "prolongation... ");
 
 
