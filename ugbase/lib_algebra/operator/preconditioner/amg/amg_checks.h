@@ -221,7 +221,9 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 		//levels[i]->R.apply(levels[i]->cH, c2); // other possiblity, think about that
 	}
 
+#ifdef UG_PARALLEL
 	const_c.get_process_communicator().barrier();
+#endif
 	return true;
 }
 
