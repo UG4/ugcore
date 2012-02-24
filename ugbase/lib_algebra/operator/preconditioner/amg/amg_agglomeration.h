@@ -5,6 +5,8 @@
 
 namespace ug
 {
+
+#ifdef UG_PARALLEL
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::gather_vertical(vector_type &vec, vector_type &collectedVec, size_t level,
 		ParallelStorageType type)
@@ -125,6 +127,7 @@ bool AMGBase<TAlgebra>::isNotMerging(size_t level)
 {
 	return levels[level]->bHasBeenMerged && m_agglomerateLevel != level;
 }
+#endif
 
 
 template<typename TAlgebra>

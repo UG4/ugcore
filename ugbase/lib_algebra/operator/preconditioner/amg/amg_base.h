@@ -204,9 +204,11 @@ protected:
 
 #endif
 
+#ifdef UG_PARALLEL
 private:
 	bool gather_vertical(vector_type &vec, vector_type &collectedVec, size_t level, ParallelStorageType type);
 	bool broadcast_vertical(vector_type &vec, vector_type &collectedVec, size_t level, ParallelStorageType type);
+#endif
 
 
 public:
@@ -481,11 +483,13 @@ protected:
 	// stuff from old level 0 agglomeration
 	pcl::ProcessCommunicator m_emptyPC;
 	IndexLayout m_emptyLayout;
-#endif
 
 	bool isMergingSlave(size_t level);
 	bool isMergingMaster(size_t level);
 	bool isNotMerging(size_t level);
+
+#endif
+
 	void calculate_level_information(size_t level, double createAMGlevelTiming);
 
 public:
