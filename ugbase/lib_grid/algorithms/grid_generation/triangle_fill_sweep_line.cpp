@@ -88,7 +88,7 @@ typedef SweepLineEdgeList::iterator	SweepLineEdgeIter;
 typedef multimap<number, SweepLineEdge*> MapEdgeCuts;
 
 
-inline bool cmp(const SweepLineVertex& v1, const SweepLineVertex& v2)
+inline bool cmp_slv(const SweepLineVertex& v1, const SweepLineVertex& v2)
 {
 	if(v1.vrtPtr->y > v2.vrtPtr->y)
 		return true;
@@ -161,7 +161,7 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 	}
 
 //	sort the sweeplinevertices
-	sort(vrtsOut.begin(), vrtsOut.end(), cmp);
+	sort(vrtsOut.begin(), vrtsOut.end(), cmp_slv);
 
 //	redirect all connection indices for the SweepLineVertices
 	{
@@ -260,7 +260,7 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 			//	regard it as a regular vertex.
 				if(lastVrt->m_status == SLVS_SPLIT){
 					for(size_t i = 0; i < lastVrt->connections.size(); ++i){
-						if(cmp(*lastVrt->connections[i]->get_connected(lastVrt), *lastVrt)){
+						if(cmp_slv(*lastVrt->connections[i]->get_connected(lastVrt), *lastVrt)){
 							lastVrt->m_status = SLVS_REGULAR;
 							break;
 						}
@@ -287,7 +287,7 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 			//	regard it as a regular vertex.
 				if(lastVrt->m_status == SLVS_MERGE){
 					for(size_t i = 0; i < lastVrt->connections.size(); ++i){
-						if(!cmp(*lastVrt->connections[i]->get_connected(lastVrt), *lastVrt)){
+						if(!cmp_slv(*lastVrt->connections[i]->get_connected(lastVrt), *lastVrt)){
 							lastVrt->m_status = SLVS_REGULAR;
 							break;
 						}
@@ -1045,12 +1045,12 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 			SweepLineVertex* vLeft = NULL;
 			SweepLineVertex* vRight = NULL;
 
-			if(cmp(*branch[0]->m_v1, *branch[0]->m_v2))
+			if(cmp_slv(*branch[0]->m_v1, *branch[0]->m_v2))
 				vLeft = branch[0]->m_v2;
 			else
 				vLeft = branch[0]->m_v1;
 
-			if(cmp(*branch[1]->m_v1, *branch[1]->m_v2))
+			if(cmp_slv(*branch[1]->m_v1, *branch[1]->m_v2))
 				vRight = branch[1]->m_v2;
 			else
 				vRight = branch[1]->m_v1;
@@ -1058,7 +1058,7 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 		//	the higher vertex is the next one to take
 			SweepLineVertex* cur;
 			int curBranchInd;
-			if(cmp(*vLeft, *vRight)){
+			if(cmp_slv(*vLeft, *vRight)){
 				cur = vLeft;
 				curBranchInd = 0;
 			}
