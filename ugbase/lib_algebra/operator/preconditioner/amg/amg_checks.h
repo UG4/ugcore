@@ -182,36 +182,46 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 	//UG_LOG("\nLEVEL 0\n\n");
 
 	std::vector<checkResult> checkRes(m_usedLevels-1);
-	check_level(c, d, 0, checkRes[0]);
-
-	if(m_usedLevels > 1)
+	for(size_t level=0; level<m_usedLevels-2; level++)
 	{
+		vector_type *pC, *pD;
 
-		//levels[0]->R.apply(levels[0]->dH, d);
-		levels[0]->cH.set(0.0);
-		levels[0]->R.apply(levels[0]->dH, const_d);
-		//levels[0]->R.apply(levels[0]->cH, c);
-
-		for(size_t i=0; i<m_usedLevels-2; i++)
+		if(level==0)
 		{
-			UG_LOG("\nLEVEL " << i+1 << "\n\n");
-			vector_type d2;
-			CloneVector(d2, levels[i]->dH);
-			d2 = levels[i]->dH;
-			check_level(levels[i]->cH, levels[i]->dH, i+1, checkRes[i+1]);
-
-
-			levels[i+1]->R.apply(levels[i+1]->dH, d2);
-			levels[i+1]->cH.set(0.0);
+			pC = &c;
+			pD = &d;
 		}
+		else
+		{
+			pC = &levels[level-1]->cH;
+			pD = &levels[level-1]->dH;
+			pC->set(0.0); // think about that
+		}
+
+#ifdef UG_PARALLEL
+		if(levels[level]->bLevelHasMergers)
+		{
+			gather_vertical(*pD, levels[level]->collD, 0, PST_ADDITIVE);
+			gather_vertical(*pC, levels[level]->collC, 0, PST_CONSISTENT);
+
+			if(isMergingSlave(level))
+				break;
+
+			check_level(levels[level]->collC, levels[level]->collD,
+				levels[level]->collectedA, level, checkRes[level]);
+		}
+		else
+#endif
+		check_level(*pC, *pD, *levels[level]->pA, level, checkRes[level]);
+
+		vector_type d2;
+		CloneVector(d2, *pD);
+		d2 = *pD;
+		levels[level]->R.apply(levels[level]->dH, d2);
+		//levels[i]->R.apply(levels[i]->cH, c2); // other possiblity, think about that
 	}
 
-	UG_LOG("finished check.\n"); // results:\n");
-	/*for(size_t i=0; i<checkRes.size(); i++)
-	{
-		if(checkRes[i].reduction < 0.1)
-		UG_LOG("results level " << i << "";
-	}*/
+	const_c.get_process_communicator().barrier();
 	return true;
 }
 
@@ -249,10 +259,10 @@ double ConstTwoNorm(const TVector &const_d)
  * \param	level
  */
 template<typename TAlgebra>
-bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level, checkResult &res, const vector_type *solution)
+bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type &A,
+		size_t level, checkResult &res, const vector_type *solution)
 {
 	AMGLevel &L = *levels[level];
-	const matrix_operator_type &A = *L.pA;
 
 	UG_ASSERT(c.size() == d.size() && c.size() == A.num_rows(),
 			"c.size = " << c.size() << ", d.size = " << d.size() << ", A.size = " << A.num_rows() << ": not matching");

@@ -104,11 +104,13 @@ public:
 
 	char send(int pid, int index) const
 	{
+		UG_LOG("node " << index << " sending rating " << m_nodes[index].rating << " to " << pid << "\n");
 		return (char) m_nodes[index].rating;
 	}
 
 	void receive(int pid, int index, char b)
 	{
+		UG_LOG("node " << index << " received rating " << (int)b << " from " << pid << "\n");
 		if(b == AMG_COARSE_RATING || b == AMG_FINE_RATING
 				|| b == AMG_DIRICHLET_RATING)
 		{
@@ -315,16 +317,13 @@ class RS3Coarsening : public IParallelCoarsening
 			if(graphS.is_isolated(i))
 				nodes.set_coarse(i);
 		}*/
-		nodes.print();
 
 		Coarsen(graphS, graphST, PQ, nodes, bUnsymmetric, false);
 
-		nodes.print();
 
 		StdArrayCommunicationScheme<AMGNodes> scheme(nodes);
 		CommunicateOnInterfaces(PN.get_communicator(), masterOL1, slaveOL1, scheme);
 
-		nodes.print();
 
 		// prevent strong FF-Connections
 

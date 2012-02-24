@@ -300,11 +300,10 @@ void AMGBase<TAlgebra>::postset_coarse(ParallelNodes &PN, prolongation_matrix_ty
 			size_t i = interface.get_element(iter);
 			UG_ASSERT(PN.is_slave(i), i);
 
-			if(PoldIndices.num_connections(i) != 1 &&
-					amgnodes[i].is_fine() == false && amgnodes[i].is_dirichlet() == false)
+			if(!PoldIndices.is_isolated(i) && amgnodes[i].is_fine() == false && amgnodes[i].is_dirichlet() == false)
 			{
 				amgnodes.set_fine(i);
-				UG_DLOG(LIB_ALG_AMG, 4, "post-setted " << i << " fine.\n");
+				UG_DLOG(LIB_ALG_AMG, 0, "post-setted " << i << " fine.\n");
 			}
 
 			for(typename prolongation_matrix_type::row_iterator it = PoldIndices.begin_row(i);

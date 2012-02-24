@@ -204,6 +204,11 @@ protected:
 
 #endif
 
+private:
+	bool gather_vertical(vector_type &vec, vector_type &collectedVec, size_t level, ParallelStorageType type);
+	bool broadcast_vertical(vector_type &vec, vector_type &collectedVec, size_t level, ParallelStorageType type);
+
+
 public:
 	void write_interfaces();
 	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level, size_t exactLevel);
@@ -224,7 +229,8 @@ public:
 */
 	size_t get_used_levels() const { return m_usedLevels; }
 
-	bool check_level(vector_type &c, vector_type &d, size_t level, checkResult &res, const vector_type *solution=NULL);
+	bool check_level(vector_type &c, vector_type &d, matrix_type &A, size_t level,
+			checkResult &res, const vector_type *solution=NULL);
 //	bool check(IMatrixOperator const vector_type &const_c, const vector_type &const_d);
 	bool check(const vector_type &const_c, const vector_type &const_d);
 //  data
@@ -454,10 +460,14 @@ protected:
 		// level 0 - m_agglomerateLevel-1
 		pcl::ProcessCommunicator agglomeratedPC;
 		IndexLayout agglomerateMasterLayout;
+
 		vector_type collC, collD;
 		matrix_operator_type collectedA;
+		bool bLevelHasMergers;
 #endif
+		// in contrast to collC, collD, and collectedA, this can also point to other vectors.
 		matrix_operator_type *pAgglomeratedA;
+
 		LevelInformation m_levelInformation;
 	};
 
@@ -473,6 +483,9 @@ protected:
 	IndexLayout m_emptyLayout;
 #endif
 
+	bool isMergingSlave(size_t level);
+	bool isMergingMaster(size_t level);
+	bool isNotMerging(size_t level);
 	void calculate_level_information(size_t level, double createAMGlevelTiming);
 
 public:

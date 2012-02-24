@@ -293,7 +293,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 //			PrintLayoutIfBroken(AH.get_process_communicator(), nextL.com, nextL.masterLayout, nextL.slaveLayout);
 	#endif
 		SetParallelVectorAsMatrix(L.corr, *L.pAgglomeratedA, PST_CONSISTENT);
-		SetParallelVectorAsMatrix(L.cH, AH, PST_ADDITIVE);
+		SetParallelVectorAsMatrix(L.cH, AH, PST_CONSISTENT);
 		SetParallelVectorAsMatrix(L.dH, AH, PST_ADDITIVE);
 		/*UG_LOG("nextLevel Layouts:\n");
 				PrintLayout(nextL.pA->get_process_communicator(), nextL.pA->get_communicator(), nextL.masterLayout, nextL.slaveLayout);*/
@@ -361,6 +361,7 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 	if(pc.size()>1)
 	{
 		L.bHasBeenMerged = true;
+		L.bLevelHasMergers=true;
 		// create basesolver
 		collect_matrix(A, L.collectedA, L.agglomerateMasterLayout, agglomerateSlaveLayout);
 
@@ -400,7 +401,10 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 		}
 	}
 	else
+	{
+		L.bLevelHasMergers=false;
 		m_basesolver->init(A);
+	}
 #else
 	m_basesolver->init(A);
 #endif
@@ -492,10 +496,6 @@ void AMGBase<TAlgebra>::init_fsmoothing()
 		levels[k]->m_diagInv.resize(size);
 		m_diag.resize(size);
 
-		UG_LOG("mat.get_master_layout()");
-		PrintLayout(mat.get_master_layout());
-		UG_LOG("mat.get_slave_layout()");
-		PrintLayout(mat.get_slave_layout());
 		m_diag.set_layouts(mat.get_master_layout(), mat.get_slave_layout());
 		m_diag.set_communicator(mat.get_communicator());
 
