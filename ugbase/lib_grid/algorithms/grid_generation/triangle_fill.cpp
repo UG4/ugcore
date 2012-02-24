@@ -7,6 +7,7 @@
 #include "triangle_fill.h"
 #include "common/math/ugmath.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/algorithms/polychain_util.h"
 
 using namespace std;
 
@@ -245,64 +246,6 @@ bool TriangleFill(std::vector<int>& vTriIndsOut, vector2* polyChain,
 	}
 */
 //	done. return true
-	return true;
-}
-
-bool CreatePolyChain(std::vector<VertexBase*>& polyChainOut, Grid& grid,
-					EdgeBaseIterator edgesBegin, EdgeBaseIterator edgesEnd)
-{
-	polyChainOut.clear();
-//	collect the chain.
-//	do the trivial projection
-//TODO: replace the trivial projection by a matrix transformation + projection
-
-	grid.begin_marking();
-	
-//	mark and count edges
-	int numEdges = 0;
-	for(EdgeBaseIterator iter = edgesBegin; iter != edgesEnd; ++iter){
-		grid.mark(*iter);
-		++numEdges;
-	}
-	
-//TODO: handle open chains.
-	EdgeBase* actEdge = *edgesBegin;
-	VertexBase* actVrt = actEdge->vertex(1);
-	polyChainOut.push_back(actEdge->vertex(0));
-	grid.mark(actEdge->vertex(0));
-	polyChainOut.push_back(actEdge->vertex(1));
-	grid.mark(actEdge->vertex(1));
-	
-	bool bRunning = true;
-	while(bRunning){
-		bRunning = false;
-	//	find a connected  unmarked vertex
-		Grid::AssociatedEdgeIterator assEdgesEnd = grid.associated_edges_end(actVrt);
-		for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(actVrt);
-			eIter != assEdgesEnd; ++eIter)
-		{
-			EdgeBase* e = *eIter;
-			if(grid.is_marked(e)){
-			//	check whether the connected vertex is unmarked
-				VertexBase* cv = GetConnectedVertex(e, actVrt);
-				if(!grid.is_marked(cv)){
-				//	push it to the chain and mark it.
-					grid.mark(cv);
-					polyChainOut.push_back(cv);
-				//	we're done with actVrt. cv will be the new actVrt
-					actVrt = cv;
-					bRunning = true;
-					break;
-				}
-			}
-		}
-	}
-
-	grid.end_marking();
-/*
-	if(polyChainOut.size() != numEdges)
-		return false;
-*/
 	return true;
 }
 

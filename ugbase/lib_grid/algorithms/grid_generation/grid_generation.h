@@ -7,5 +7,6 @@
 
 #include "tetrahedralization.h"
 #include "triangle_fill.h"
+#include "triangle_fill_sweep_line.h"
 
 #endif

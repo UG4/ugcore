@@ -91,6 +91,16 @@ GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSect
  */
 bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex);
 
+
+////////////////////////////////////////////////////////////////////////
+///	given a list of edges, this method collects associated vertices in a polychain
+/**	This method uses Grid::mark.
+ * edges between edgesBegin and edgesEnd should build a closed regular polygon.
+ * \todo	add support for open chains.*/
+template <class TEdgeIter>
+bool CreatePolyChain(std::vector<VertexBase*>& polyChainOut, Grid& grid,
+					TEdgeIter edgesBegin, TEdgeIter edgesEnd);
+
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace

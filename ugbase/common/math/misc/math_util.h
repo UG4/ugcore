@@ -18,6 +18,7 @@ namespace ug
 {
 
 const number SMALL = 1.0e-12;
+const number SMALL_SQ = SMALL * SMALL;
 const number PI = 3.14159265;
 
 ////////////////////////////////////////////////////////////////////////
