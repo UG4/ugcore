@@ -141,14 +141,17 @@ for _, fileName in ipairs(inFiles) do
 						printedInfo = true
 					end
 				end
-			else
+			else -- (i.e. 'readingProfilerOutput == true')
 			--	get entries for each line through pattern matching
 				local 	spaces, name, hits, selfTime, selfUnit, selfPerc,
 						totalTime, totalUnit, totalPerc
-					--	todo: support big numbers containing e+ for hits
-						= string.match(line, "(%s*)(<*%a[_%w]+>*)%s+([%.%w]+)%s+"	-- name and hits
-										   .."([%.%w]+)%s+(%a+)%s+(%d+)%%%s+"		-- self
-										   .."([%.%w]+)%s+(%a+)%s+(%d+)%%")			-- total
+						-- Note: support for large and small numbers containing e+ and e- is only achieved
+						--       by adding those characters to the corresp. capture patterns.
+						--       The actual conversion of strings to numbers is delegated to 'tonumber()'!
+						--       (No '-' in the 'hit' capture pattern since we always expect that #hits is an integer ...)
+						= string.match(line, "(%s*)(<*%a[_%w]+>*)%s+([%.%deE+]+)%s+"	-- leading spaces, name and hits
+								   .."([%.%deE+-]+)%s+(%a+)%s+(%d+)%%%s+"	-- self:  time, unit, percent
+								   .."([%.%deE+-]+)%s+(%a+)%s+(%d+)%%")		-- total: time, unit, percent
 										   
 				if name == nil then
 				--	we reached the end of the profiler output
@@ -164,8 +167,8 @@ for _, fileName in ipairs(inFiles) do
 					fileTimings[counter] = entry
 					counter = counter + 1
 				end
-			end
-		end
+			end -- (of "else" (i.e. 'readingProfilerOutput == true')
+		end -- iterate over all lines
 		
 	--	add an empty line if info has been printed
 		if printedInfo == true then
@@ -299,7 +302,7 @@ else
 		--	compare the next timings
 			timingInd1 = timingInd1 + 1
 			timingInd2 = timingInd2 + 1
-		end
+		end -- "while timings[timingInd2] ~= nil do"
 		
 		print(line)
 	end
