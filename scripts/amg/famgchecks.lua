@@ -125,7 +125,7 @@ end
 -- User Data Functions (begin)
 --------------------------------
 	function cbDirichletBnd2d(x, y, t)
-		return true, 0 -- 5.9991	
+		return true, 5.9991	
 	end
 	function cbDirichletBnd3d(x, y, z, t)
 		return true, 5.9991		
@@ -482,8 +482,8 @@ else
 	print ("create AMG... ")
 	amg = RSAMGPreconditioner()
 	-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
-	-- amg:set_parallel_coarsening(GetColorCoarsening())
-	amg:set_parallel_coarsening(GetRS3Coarsening())
+	amg:set_parallel_coarsening(GetColorCoarsening())
+	-- amg:set_parallel_coarsening(GetRS3Coarsening())
 	-- amg:set_parallel_coarsening(GetSimpleParallelCoarsening())
 	if bAggressiveCoarsening then
 		amg:enable_aggressive_coarsening_A(2)
@@ -511,8 +511,9 @@ amg:set_postsmoother(postsmoother)
 amg:set_base_solver(base)
 amg:set_max_levels(maxLevels)
 
-amg:set_min_nodes_on_one_processor(50000)
--- amg:set_preferred_nodes_on_one_processor(1000)
+amg:set_min_nodes_on_one_processor(util.GetParamNumber("-minNodes", 1000))
+-- amg:set_preferred_nodes_on_one_processor(100000)
+amg:set_preferred_nodes_on_one_processor(util.GetParamNumber("-preferredNodes", 1000))
 amg:set_max_nodes_for_base(maxBase)
 amg:set_max_fill_before_base(0.5)
 amg:set_fsmoothing(true)
@@ -568,7 +569,7 @@ linSolver:init(linOp)
 	steps = convCheck:step()
 
 ---------
-
+exit()
 	linSolver = CG()
 	linSolver:set_preconditioner(amg)
 	linSolver:set_convergence_check(convCheck)
