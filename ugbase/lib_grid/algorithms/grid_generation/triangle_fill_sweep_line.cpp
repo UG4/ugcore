@@ -7,6 +7,7 @@
 #include <cassert>
 #include <map>
 #include <stack>
+#include <algorithm>
 #include "lib_grid/lib_grid.h"
 using namespace std;
 
