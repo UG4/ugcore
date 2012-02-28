@@ -298,8 +298,8 @@ private:
 
 	#ifdef UG_PARALLEL
 		AH.set_storage_type(PST_ADDITIVE);
-		AH.set_communicator(A_OL2.get_communicator());
-		AH.set_process_communicator(A_OL2.get_process_communicator());
+		AH.set_communicator(A_OL2.communicator());
+		AH.set_process_communicator(A_OL2.process_communicator());
 		// AH.set_layouts(nextLevelMasterLayout, nextLevelSlaveLayout); // is already set
 	#endif
 
@@ -324,9 +324,9 @@ public:
 	: m_famg(f), AH(_AH), A(_A), Aorig(_Aorig), R(_R), PnewIndices(_P), level(_level),
 #ifdef UG_PARALLEL
 
-			PN(const_cast<matrix_type&>(A).get_communicator(), const_cast<matrix_type&>(A).get_master_layout(),
-						const_cast<matrix_type&>(A).get_slave_layout(), A.num_rows()),
-			nextLevelMasterLayout(AH.get_master_layout()), nextLevelSlaveLayout(AH.get_slave_layout()),
+			PN(const_cast<matrix_type&>(A).communicator(), const_cast<matrix_type&>(A).master_layout(),
+						const_cast<matrix_type&>(A).slave_layout(), A.num_rows()),
+			nextLevelMasterLayout(AH.master_layout()), nextLevelSlaveLayout(AH.slave_layout()),
 			rating(PoldIndices, _level, m_famg.m_amghelper, PN),
 #else
 			A_OL2(A),
@@ -459,11 +459,11 @@ public:
 
 			#ifdef UG_PARALLEL
 			/*{
-				pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).get_communicator();
+				pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
 
 				ParallelNodes PN(OL2MasterLayout, OL2SlaveLayout, A_OL2.num_rows());
 
-				communicate_prolongation(communicator, A.get_master_layout(), A.get_slave_layout(),
+				communicate_prolongation(communicator, A.master_layout(), A.slave_layout(),
 						nextLevelMasterLayout, nextLevelSlaveLayout, PN, rating);
 			}*/
 			#endif
@@ -517,7 +517,7 @@ public:
 #ifdef UG_PARALLEL
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{
-			PRINTLAYOUT(A_OL2.get_process_communicator(), A_OL2.get_communicator(), AH.get_master_layout(), AH.get_slave_layout());
+			PRINTLAYOUT(A_OL2.process_communicator(), A_OL2.communicator(), AH.master_layout(), AH.slave_layout());
 		}
 #endif
 
@@ -537,10 +537,10 @@ private:
 		UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, m_famg.iDebugLevelCommunicateProlongation);
 
 #ifdef UG_PARALLEL
-		PoldIndices.set_process_communicator(A.get_process_communicator());
+		PoldIndices.set_process_communicator(A.process_communicator());
 		m_famg.parallel_process_prolongation(PoldIndices, PnewIndices, m_famg.m_dProlongationTruncation, level, rating,
 				PN, false, nextLevelMasterLayout, nextLevelSlaveLayout);
-		TESTLAYOUT(A_OL2.get_process_communicator(), A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
+		TESTLAYOUT(A_OL2.process_communicator(), A_OL2.communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
 #else
 		m_famg.serial_process_prolongation(PoldIndices, PnewIndices, m_famg.m_dProlongationTruncation, level, rating);
 #endif

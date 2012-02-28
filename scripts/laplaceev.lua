@@ -210,9 +210,7 @@ approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
 
 -- lets order indices using Cuthill-McKee
-if OrderCuthillMcKee(approxSpace, true) == false then
-	print("ERROR when ordering Cuthill-McKee"); exit();
-end
+OrderCuthillMcKee(approxSpace, true);
 
 --------------------------------------------------------------------------------
 --  Setup User Functions
@@ -298,15 +296,13 @@ print ("Setting up Algebra Solver")
 -- create operator from discretization
 linOp = AssembledLinearOperator()
 linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- get grid function
 u = GridFunction(approxSpace)
 b = GridFunction(approxSpace)
 
 -- debug writer
-dbgWriter = GridFunctionDebugWriter()
-dbgWriter:set_reference_grid_function(u)
+dbgWriter = GridFunctionDebugWriter(approxSpace)
 dbgWriter:set_vtk_output(false)
 
 -- create algebraic Preconditioner
@@ -333,11 +329,6 @@ ilut = ILUT()
 	base:set_convergence_check(baseConvCheck)
 	base:set_preconditioner(jac)
 	
-	-- Transfer and Projection
-	transfer = P1Prolongation(approxSpace)
-	transfer:set_dirichlet_post_process(dirichletBND)
-	projection = P1Projection(approxSpace)
-	
 	-- Geometric Multi Grid
 	gmg = GeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
@@ -348,8 +339,6 @@ ilut = ILUT()
 	gmg:set_cycle_type(1)
 	gmg:set_num_presmooth(3)
 	gmg:set_num_postsmooth(3)
-	gmg:set_prolongation(transfer)
-	gmg:set_projection(projection)
 	if activateDbgWriter >= 1 then
 		gmg:set_debug(dbgWriter)
 	end
@@ -378,9 +367,9 @@ convCheck:set_reduction(1e-12)
 linOp:init_op_and_rhs(b)
 
 B = MatrixOperator()
--- domainDisc:assemble_stiffness_matrix(A, v, approxSpace:surface_dof_distribution())
+-- domainDisc:assemble_stiffness_matrix(A, v)
 v = GridFunction(approxSpace)
-domainDisc:assemble_mass_matrix(B, v, approxSpace:surface_dof_distribution())
+domainDisc:assemble_mass_matrix(B, v)
 SaveMatrixForConnectionViewer(v, B, "B.mat") 
 SaveMatrixForConnectionViewer(v, linOp, "A.mat")
 v:set(1.0)

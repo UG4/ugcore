@@ -25,15 +25,11 @@ namespace ug{
 /// @{
 
 /// multi step time stepping scheme
-template <	typename TDoFDistribution,
-			typename TAlgebra>
+template <typename TAlgebra>
 class MultiStepTimeDiscretization
-	: public ITimeDiscretization<TDoFDistribution, TAlgebra>
+	: public ITimeDiscretization<TAlgebra>
 {
 	public:
-	///	DoF Distribution Type
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
-
 	/// Type of algebra
 		typedef TAlgebra algebra_type;
 
@@ -44,13 +40,12 @@ class MultiStepTimeDiscretization
 		typedef typename algebra_type::vector_type vector_type;
 
 	/// Domain Discretization type
-		typedef IDomainDiscretization<TDoFDistribution, algebra_type>
-			domain_discretization_type;
+		typedef IDomainDiscretization<algebra_type>	domain_discretization_type;
 
 	public:
 	/// constructor
 		MultiStepTimeDiscretization(domain_discretization_type& sd)
-			: ITimeDiscretization<TDoFDistribution, TAlgebra>(sd),
+			: ITimeDiscretization<TAlgebra>(sd),
 			  m_pPrevSol(NULL)
 		{}
 
@@ -63,26 +58,22 @@ class MultiStepTimeDiscretization
 
 	///	\copydoc ITimeDiscretization::prepare_step_elem()
 		virtual void prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
-		                          number dt, const dof_distribution_type& dd);
+		                               number dt, GridLevel gl);
 
 	///	\copydoc ITimeDiscretization::finish_step_elem()
 		virtual void finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
-		                          number dt, const dof_distribution_type& dd);
+		                              number dt, GridLevel gl);
 
 		virtual number future_time() const {return m_futureTime;}
 
 	public:
-		void assemble_jacobian(matrix_type& J, const vector_type& u,
-		                       const dof_distribution_type& dd);
+		void assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl);
 
-		void assemble_defect(vector_type& d, const vector_type& u,
-		                     const dof_distribution_type& dd);
+		void assemble_defect(vector_type& d, const vector_type& u, GridLevel gl);
 
-		void assemble_linear(matrix_type& A, vector_type& b,
-		                     const dof_distribution_type& dd);
+		void assemble_linear(matrix_type& A, vector_type& b, GridLevel gl);
 
-		void adjust_solution(vector_type& u,
-		                       const dof_distribution_type& dd);
+		void adjust_solution(vector_type& u, GridLevel gl);
 
 	protected:
 	///	updates the scaling factors, returns the future time
@@ -114,20 +105,18 @@ class MultiStepTimeDiscretization
  *
  * Thus, for \f$\theta = 1 \f$ this is the Backward-Euler time stepping.
  */
-template <	typename TDoFDistribution,
-			typename TAlgebra>
+template <typename TAlgebra>
 class ThetaTimeStep
-	: public MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>
+	: public MultiStepTimeDiscretization<TAlgebra>
 {
 	public:
 	///	Domain Discretization type
-		typedef IDomainDiscretization<TDoFDistribution, TAlgebra>
-			domain_discretization_type;
+		typedef IDomainDiscretization<TAlgebra> domain_discretization_type;
 
 	public:
 	/// default constructor (implicit Euler)
 		ThetaTimeStep(domain_discretization_type& sd)
-			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd),
+			: MultiStepTimeDiscretization<TAlgebra>(sd),
 			  m_stage(1), m_scheme("Theta")
 		{
 			set_theta(1.0);
@@ -136,7 +125,7 @@ class ThetaTimeStep
 
 	/// theta = 1.0 -> Implicit Euler, 0.0 -> Explicit Euler
 		ThetaTimeStep(domain_discretization_type& sd, number theta)
-			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd),
+			: MultiStepTimeDiscretization<TAlgebra>(sd),
 			  m_stage(1), m_scheme("Theta")
 		{
 			set_theta(theta);
@@ -145,7 +134,7 @@ class ThetaTimeStep
 
 	/// theta = 1.0 -> Implicit Euler, 0.0 -> Explicit Euler
 		ThetaTimeStep(domain_discretization_type& sd, const char* scheme)
-			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd),
+			: MultiStepTimeDiscretization<TAlgebra>(sd),
 			  m_stage(1), m_scheme(scheme)
 		{
 			set_theta(1.0);
@@ -240,27 +229,25 @@ class ThetaTimeStep
 };
 
 
-template <	typename TDoFDistribution,
-			typename TAlgebra>
+template <typename TAlgebra>
 class BDF
-	: public MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>
+	: public MultiStepTimeDiscretization<TAlgebra>
 {
 	public:
 	///	Domain Discretization type
-		typedef IDomainDiscretization<TDoFDistribution, TAlgebra>
-			domain_discretization_type;
+		typedef IDomainDiscretization<TAlgebra>	domain_discretization_type;
 
 	public:
 	/// constructor
 		BDF(domain_discretization_type& sd)
-			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd)
+			: MultiStepTimeDiscretization<TAlgebra>(sd)
 		{
 			set_order(2);
 		}
 
 	/// theta = 0 -> Backward Euler
 		BDF(domain_discretization_type& sd, size_t order)
-			: MultiStepTimeDiscretization<TDoFDistribution, TAlgebra>(sd)
+			: MultiStepTimeDiscretization<TAlgebra>(sd)
 		{
 			set_order(order);
 		}

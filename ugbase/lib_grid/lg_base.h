@@ -21,7 +21,7 @@
 #include "selector.h"
 #include "subset_handler.h"
 #include "tools/marker_points.h"
-#include "tools/surface_view.h"
+#include "tools/bool_marker.h"
 #include "lib_grid_messages.h"
 
 #endif

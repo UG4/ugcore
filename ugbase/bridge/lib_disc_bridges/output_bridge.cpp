@@ -22,8 +22,6 @@
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/function_spaces/approximation_space.h"
-#include "lib_disc/dof_manager/conform/conform.h"
-#include "lib_disc/dof_manager/p1conform/p1conform.h"
 
 #include "lib_disc/io/vtkoutput.h"
 
@@ -40,19 +38,19 @@ void WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
 	out.print(filename, u, true); // TODO: setting of last argument (intended to skip "make consistent", for writing of "raw" data; see (grid_function_util.h')
 }
 
-template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
-static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string parentGroup)
+template <typename TDomain, typename TAlgebra>
+static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 {
 //	typedef
 	static const int dim = TDomain::dim;
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
-	typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> approximation_space_type;
+	typedef ApproximationSpace<TDomain> approximation_space_type;
 
 #ifdef UG_PARALLEL
-		typedef ParallelGridFunction<GridFunction<TDomain, TDoFDistribution, TAlgebra> > function_type;
+		typedef ParallelGridFunction<GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> > function_type;
 #else
-		typedef GridFunction<TDomain, TDoFDistribution, TAlgebra> function_type;
+		typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> function_type;
 #endif
 
 //	group string
@@ -60,18 +58,16 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 	string grp = grpSS.str();
 
 //	suffix and tag
-	string dimAlgDDSuffix = GetDomainSuffix<TDomain>();
-	dimAlgDDSuffix.append(GetAlgebraSuffix<TAlgebra>());
-	dimAlgDDSuffix.append(GetDoFDistributionSuffix<TDoFDistribution>());
+	string dimAlgSuffix = GetDomainSuffix<TDomain>();
+	dimAlgSuffix.append(GetAlgebraSuffix<TAlgebra>());
 
-	string dimAlgDDTag = GetDomainTag<TDomain>();
-	dimAlgDDTag.append(GetAlgebraTag<TAlgebra>());
-	dimAlgDDTag.append(GetDoFDistributionTag<TDoFDistribution>());
+	string dimAlgTag = GetDomainTag<TDomain>();
+	dimAlgTag.append(GetAlgebraTag<TAlgebra>());
 
 //	VTK Output
 	{
 		typedef VTKOutput<function_type> T;
-		string name = string("VTKOutput").append(dimAlgDDSuffix);
+		string name = string("VTKOutput").append(dimAlgSuffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("write_time_pvd", &T::write_time_pvd)
@@ -83,33 +79,33 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, int, number)>(&T::print))
 			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, bool)>(&T::print))
 			.add_method("print", static_cast<bool (T::*)(const char*, function_type&)>(&T::print));
-		reg.add_class_to_group(name, "VTKOutput", dimAlgDDTag);
+		reg.add_class_to_group(name, "VTKOutput", dimAlgTag);
 	}
 
 
 //	GridFunctionDebugWriter
 	{
-		typedef GridFunctionDebugWriter<function_type> T;
+		typedef GridFunctionDebugWriter<TDomain, TAlgebra> T;
 		typedef IDebugWriter<TAlgebra> TBase;
-		string name = string("GridFunctionDebugWriter").append(dimAlgDDSuffix);
+		string name = string("GridFunctionDebugWriter").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
+			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("")
+			.add_method("reset", &T::reset, "", "")
 			.add_method("set_vtk_output", &T::set_vtk_output, "", "vtkOutput")
 			.add_method("set_conn_viewer_output", &T::set_conn_viewer_output, "", "cvOutput")
 			.add_method("set_print_consistent",  &T::set_print_consistent, "", "printConsistent");
-		reg.add_class_to_group(name, "GridFunctionDebugWriter", dimAlgDDTag);
+		reg.add_class_to_group(name, "GridFunctionDebugWriter", dimAlgTag);
 	}
 
 //	GridFunctionPositionProvider
 	{
 		typedef GridFunctionPositionProvider<function_type> T;
 		typedef IPositionProvider<dim> TBase;
-		string name = string("GridFunctionPositionProvider").append(dimAlgDDSuffix);
+		string name = string("GridFunctionPositionProvider").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction");
-		reg.add_class_to_group(name, "GridFunctionPositionProvider", dimAlgDDTag);
+		reg.add_class_to_group(name, "GridFunctionPositionProvider", dimAlgTag);
 	}
 
 
@@ -117,24 +113,24 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 	{
 		typedef GridFunctionVectorWriter<function_type, vector_type> T;
 		typedef IVectorWriter<vector_type> TBase;
-		string name = string("GridFunctionVectorWriter").append(dimAlgDDSuffix);
+		string name = string("GridFunctionVectorWriter").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
 			.add_method("set_user_data", &T::set_user_data, "", "userData");
-		reg.add_class_to_group(name, "GridFunctionVectorWriter", dimAlgDDTag);
+		reg.add_class_to_group(name, "GridFunctionVectorWriter", dimAlgTag);
 	}
 
 	// GridFunctionVectorWriterDirichlet0
 	{
 		typedef GridFunctionVectorWriterDirichlet0<function_type> T;
 		typedef IVectorWriter<vector_type> TBase;
-		string name = string("GridFunctionVectorWriterDirichlet0").append(dimAlgDDSuffix);
+		string name = string("GridFunctionVectorWriterDirichlet0").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("init", &T::init, "", "postProcess#approxSpace#level")
 			.add_method("set_level", &T::set_level, "", "level");
-		reg.add_class_to_group(name, "GridFunctionVectorWriterDirichlet0", dimAlgDDTag);
+		reg.add_class_to_group(name, "GridFunctionVectorWriterDirichlet0", dimAlgTag);
 	}
 
 //	WriteGridToVTK
@@ -156,9 +152,9 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 		typedef MatrixOperator<vector_type,	vector_type, matrix_type> matOp;
 
 		reg.add_function("SaveVectorForConnectionViewer",
-						 (bool (*)(function_type& ,const char*)) &SaveVectorForConnectionViewer<function_type>, grp);
-		reg.add_function("SaveVectorForConnectionViewer", (bool (*)(function_type& , matOp&, const char*))&SaveVectorForConnectionViewer<function_type>, grp);
-		reg.add_function("SaveVectorForConnectionViewer", (bool (*)(function_type& , function_type& , matOp&, const char*))&SaveVectorForConnectionViewer<function_type>, grp);
+						 static_cast<void (*)(function_type& ,const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
+		reg.add_function("SaveVectorForConnectionViewer", static_cast<bool (*)(function_type& , matOp&, const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
+		reg.add_function("SaveVectorForConnectionViewer", static_cast<bool (*)(function_type& , function_type& , matOp&, const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
 	}
 
 //	SaveVectorCSV
@@ -168,8 +164,8 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 	}
 }
 
-template <typename TAlgebra, typename TDoFDistribution>
-static bool Register__Algebra_DoFDistribution(Registry& reg, string parentGroup)
+template <typename TAlgebra>
+static bool Register__Algebra(Registry& reg, string parentGroup)
 {
 //	get group string
 	string grp = parentGroup; grp.append("/Discretization");
@@ -178,27 +174,15 @@ static bool Register__Algebra_DoFDistribution(Registry& reg, string parentGroup)
 	{
 
 #ifdef UG_DIM_1
-//	Domain dependent part 1D
-	{
-		typedef Domain<1, MultiGrid, MGSubsetHandler> domain_type;
-		Register__Algebra_DoFDistribution_Domain<domain_type, TAlgebra, TDoFDistribution>(reg, grp);
-	}
+		Register__Algebra_Domain<Domain1d, TAlgebra>(reg, grp);
 #endif
 
 #ifdef UG_DIM_2
-//	Domain dependent part 2D
-	{
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-		Register__Algebra_DoFDistribution_Domain<domain_type, TAlgebra, TDoFDistribution>(reg, grp);
-	}
+		Register__Algebra_Domain<Domain2d, TAlgebra>(reg, grp);
 #endif
 
 #ifdef UG_DIM_3
-//	Domain dependent part 3D
-	{
-		typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
-		Register__Algebra_DoFDistribution_Domain<domain_type, TAlgebra, TDoFDistribution>(reg, grp);
-	}
+		Register__Algebra_Domain<Domain3d, TAlgebra>(reg, grp);
 #endif
 
 	}
@@ -210,20 +194,6 @@ static bool Register__Algebra_DoFDistribution(Registry& reg, string parentGroup)
 	}
 
 	return true;
-}
-
-template <typename TAlgebra>
-static bool Register__Algebra(Registry& reg, string parentGroup)
-{
-	bool bReturn = true;
-#ifdef DOF_P1
-	bReturn &= Register__Algebra_DoFDistribution<TAlgebra, P1DoFDistribution>(reg, parentGroup);
-#endif
-#ifdef DOF_GEN
-	bReturn &= Register__Algebra_DoFDistribution<TAlgebra, DoFDistribution >(reg, parentGroup);
-#endif
-
-	return bReturn;
 }
 
 bool RegisterOutput(Registry& reg, string grp)

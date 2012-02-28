@@ -52,6 +52,9 @@ class ConstGenericGeometricObjectIterator : public TConstBaseIterator
 		ConstGenericGeometricObjectIterator(const ConstGenericGeometricObjectIterator& iter) :
 			TConstBaseIterator(iter)	{}
 
+		ConstGenericGeometricObjectIterator(const GenericGeometricObjectIterator<TValue, TBaseIterator>& iter) :
+			TConstBaseIterator(iter)	{}
+
 	///	note that the * operator is read only.
 		inline TValue operator* () const	{return static_cast<TValue>(TConstBaseIterator::operator*());}
 

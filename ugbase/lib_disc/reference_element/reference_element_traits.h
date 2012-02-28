@@ -8,6 +8,7 @@
 #ifndef __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__
 #define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__
 
+#include "reference_element.h"
 #include "reference_vertex.h"
 #include "reference_edge.h"
 #include "reference_triangle.h"

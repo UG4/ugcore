@@ -1103,9 +1103,15 @@ static int LuaProxyGroupCreate(lua_State* L)
 		}
 
 		try{
-		//	correct parameterlist found, create
-			CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
-							  c->get_delete_function(), false);
+			if(c->construct_as_smart_pointer()){
+				CreateNewUserData(L,
+					SmartPtr<void>(constr.create(paramsIn), c->get_delete_function()),
+					c->name().c_str());
+			}
+			else{
+				CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
+								  c->get_delete_function(), false);
+			}
 		}
 		catch(UGError& err)
 		{

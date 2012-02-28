@@ -137,12 +137,7 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			vector_type& r = b;
 
 		// 	Build defect:  r := b - J(u)*x
-			if(!m_A->apply_sub(r, x))
-			{
-				UG_LOG("ERROR in 'CG::apply_return_defect': "
-						"Unable to build defect. Aborting.\n");
-				return false;
-			}
+			m_A->apply_sub(r, x);
 
 		// 	create help vector (h will be consistent r)
 		//	todo: 	It would be sufficient to copy only the pattern and
@@ -189,12 +184,7 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			while(!m_pConvCheck->iteration_ended())
 			{
 			// 	Build q = A*p (q is additive afterwards)
-				if(!m_A->apply(q, p))
-				{
-					UG_LOG("ERROR in 'CG::apply_return_defect': Unable "
-								"to build t = A*p. Aborting.\n");
-					return false;
-				}
+				m_A->apply(q, p);
 
 			// 	lambda = (q,p)
 				const number lambda = VecProd(q, p);

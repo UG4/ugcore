@@ -30,7 +30,7 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 		SubsetGroup subsetGroup;
 
 	//	convert strings
-		if(!ConvertStringToSubsetGroup(subsetGroup, this->get_fct_pattern(),
+		if(!ConvertStringToSubsetGroup(subsetGroup, this->get_fct_pattern().subset_handler(),
 		                               vScheduledUserData[i].ssName.c_str()))
 		{
 			UG_LOG("ERROR in 'FV1NeumannBoundaryElemDisc:extract_scheduled_data':"
@@ -84,7 +84,7 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 		fctNames.append(vScheduledUserData[i].fctName.c_str());
 
 	//	get subsethandler
-		const ISubsetHandler& rSH = this->get_fct_pattern().subset_handler();
+		const ISubsetHandler& rSH = *this->get_fct_pattern().subset_handler();
 
 	// 	loop subsets
 		for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)

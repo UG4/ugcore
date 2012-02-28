@@ -116,7 +116,6 @@ function AssembleLaplace(dom, innerSubsets, boundarySubsets, b,
 --	create the linear operator
 	local linOp = AssembledLinearOperator()
 	linOp:set_discretization(domainDisc)
-	linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 	linOp:init_op_and_rhs(b)
 

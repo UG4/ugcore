@@ -159,8 +159,8 @@ bool _MakeFullRowsMatrix(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix
 	c.m_slaveDirichletLast = false;
 	bool b = c.calculate();
 
-	//PRINTLAYOUT(mat.get_process_communicator(), mat.get_communicator(), mat.get_master_layout(), mat.get_slave_layout());
-	//PRINTLAYOUT(mat.get_process_communicator(), mat.get_communicator(), vMasterLayouts[0], vSlaveLayouts[0]);
+	//PRINTLAYOUT(mat.process_communicator(), mat.communicator(), mat.master_layout(), mat.slave_layout());
+	//PRINTLAYOUT(mat.process_communicator(), mat.communicator(), vMasterLayouts[0], vSlaveLayouts[0]);
 
 	//overlapSize = c.m_overlapSize;
 	return b;
@@ -191,7 +191,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 
 	matrix_type AOL1;
 	matrix_type &A_ = const_cast<matrix_type&> (A);
-	ParallelNodes PN(A_.get_communicator(), A_.get_master_layout(), A_.get_slave_layout(), A_.num_rows());
+	ParallelNodes PN(A_.communicator(), A_.master_layout(), A_.slave_layout(), A_.num_rows());
 	UG_ASSERT(m_pParallelCoarsening!=NULL, "please set the Parallel Coarsening type");
 
 	stdvector<IndexLayout> vMasterLayouts, vSlaveLayouts;
@@ -347,9 +347,9 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 	/// create layouts
 
 #ifdef UG_PARALLEL
-	PoldIndices.set_process_communicator(A.get_process_communicator());
+	PoldIndices.set_process_communicator(A.process_communicator());
 	this->parallel_process_prolongation(PoldIndices, PnewIndices, m_dProlongationTr, level, nodes,
-			PN, true, AH.get_master_layout(), AH.get_slave_layout());
+			PN, true, AH.master_layout(), AH.slave_layout());
 #else
 	this->serial_process_prolongation(PoldIndices, PnewIndices, m_dProlongationTr, level, nodes);
 #endif

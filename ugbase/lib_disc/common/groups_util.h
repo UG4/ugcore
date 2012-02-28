@@ -24,7 +24,7 @@ class FunctionPattern;
  * a subset group containing the subsets.
  */
 bool
-ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const ISubsetHandler& sh,
+ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& sh,
                            const char* subsets, const char separator = ',');
 
 /**
@@ -32,7 +32,7 @@ ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const ISubsetHandler& sh,
  * a subset group containing the subsets.
  */
 bool ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
-                                	const ISubsetHandler& sh,
+                                	ConstSmartPtr<ISubsetHandler> pSH,
 									const std::vector<std::string>& vSS);
 
 /**
@@ -40,7 +40,7 @@ bool ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
  * a subset group containing the subsets.
  */
 bool
-ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
+ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetHandler> pSH,
                            const char* subsets, const char separator = ',');
 
 /**

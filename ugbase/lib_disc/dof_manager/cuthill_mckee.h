@@ -9,8 +9,6 @@
 #define __H__UG__LIB_DISC__DOF_MANAGER__CUTHILL_MCKEE__
 
 #include <vector>
-#include "dof_distribution.h"
-#include "mg_dof_manager.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 
 namespace ug{
@@ -28,67 +26,39 @@ namespace ug{
  * \param[in]	bReverse		flag if "reverse Cuthill-McKee" is used
  * \returns		flag if ordering was successful
  */
-bool ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
+void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               std::vector<std::vector<size_t> >& vvNeighbour,
                               bool bReverse = true);
 
 /// orders the dof distribution using Cuthill-McKee
-template <typename TDoFImpl>
-bool OrderCuthillMcKee(IDoFDistribution<TDoFImpl>& dofDistr,
+template <typename TDD>
+void OrderCuthillMcKee(TDD& dofDistr,
                        bool bReverse)
 {
 //	get adjacency graph
 	std::vector<std::vector<size_t> > vvConnection;
 	if(!dofDistr.get_connections(vvConnection))
-		return false;
+		UG_THROW_FATAL("OrderCuthillMcKee: No adjacency graph available.");
 
 //	get mapping for cuthill-mckee order
 	std::vector<size_t> vNewIndex;
-	if(!ComputeCuthillMcKeeOrder(vNewIndex, vvConnection, bReverse))
-		return false;
+	ComputeCuthillMcKeeOrder(vNewIndex, vvConnection, bReverse);
 
 //	reorder indices
-	if(!dofDistr.permute_indices(vNewIndex))
-		return false;
-
-//	we're done
-	return true;
-}
-
-/// orders the all DofDistributions of the MGDoFManager using Cuthill-McKee
-template <typename TDoFImpl>
-bool OrderCuthillMcKee(MGDoFManager<TDoFImpl>& mgDoFManager,
-                       bool bReverse)
-{
-//	order levels
-	for(size_t lev = 0; lev < mgDoFManager.num_levels(); ++lev)
-		if(!OrderCuthillMcKee(*mgDoFManager.level_dof_distribution(lev), bReverse))
-			return false;
-
-//	order surface
-	if(!OrderCuthillMcKee(*mgDoFManager.surface_dof_distribution(), bReverse))
-		return false;
-
-//	we're done
-	return true;
+	dofDistr.permute_indices(vNewIndex);
 }
 
 /// orders the all DofDistributions of the ApproximationSpace using Cuthill-McKee
-template <typename TDomain, typename TDoFImpl, typename TAlgebra>
-bool OrderCuthillMcKee(ApproximationSpace<TDomain, TDoFImpl, TAlgebra>& approxSpace,
+template <typename TDomain>
+void OrderCuthillMcKee(ApproximationSpace<TDomain>& approxSpace,
                        bool bReverse)
 {
 //	order levels
 	for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
-		if(!OrderCuthillMcKee(approxSpace.level_dof_distribution(lev), bReverse))
-			return false;
+		OrderCuthillMcKee(*approxSpace.level_dof_distribution(lev), bReverse);
 
 //	order surface
-	if(!OrderCuthillMcKee(approxSpace.surface_dof_distribution(), bReverse))
-		return false;
-
-//	we're done
-	return true;
+	OrderCuthillMcKee(*approxSpace.surface_dof_distribution(), bReverse);
 }
 
 } // end namespace ug

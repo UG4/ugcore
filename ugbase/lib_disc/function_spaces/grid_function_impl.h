@@ -8,6 +8,7 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_IMPL__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_IMPL__
 
+#include "lib_algebra/algebra_type.h"
 #include "grid_function.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
@@ -20,7 +21,8 @@ namespace ug{
 
 template <typename TElem, typename TDomain>
 bool
-InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDomain& domain, LFEID lfeID)
+InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
+                 TElem* elem, TDomain& domain, LFEID lfeID)
 {
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -267,74 +269,70 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDo
 	throw(UGFatalError("Volume type not found."));
 }
 
-
-
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
-//	IGridFunction
 ////////////////////////////////////////////////////////////////////////////////
-
-
-template <typename TDoFDistribution>
+template <typename TDomain, typename TDD, typename TAlgebra>
 void
-IGridFunction<TDoFDistribution>::
-set_dof_distribution(typename IGridFunction<TDoFDistribution>::dof_distribution_type& DoFDistr, bool adapt)
+GridFunction<TDomain, TDD, TAlgebra>::check_algebra()
 {
-//	unregister from dof distribution iff already dd set
-	if(m_pDD != NULL)
-		m_pDD->unmanage_grid_function(*this);
+//	get blocksize of algebra
+	const int blockSize = algebra_type::blockSize;
 
-//	remember new dof distribution
-	m_pDD = &DoFDistr;
-
-//	schedule for adaption
-	if(adapt)
-		m_pDD->manage_grid_function(*this);
-
-//	resize the vector
-	resize_values(num_indices());
+//	a)	If blocksize fixed and > 1, we need grouping.
+	if(blockSize > 1 && !this->m_spDD->grouped())
+	{
+		UG_THROW_FATAL("Fixed block algebra needs grouped dofs.");
+	}
+//	b) 	If blocksize flexible, we group
+	else if (blockSize == AlgebraType::VariableBlockSize
+			&& !this->m_spDD->grouped())
+	{
+		UG_THROW_FATAL("Variable block algebra needs grouped dofs.");
+	}
+//	c)	If blocksize == 1, we do not group. This will allow us to handle
+//		this case for any problem.
+	else if (blockSize == 1 && this->m_spDD->grouped())
+	{
+		UG_THROW_FATAL("block 1x1 algebra needs non-grouped dofs.");
+	}
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TDomain, typename TDD, typename TAlgebra>
 template <typename TElem>
 bool
-GridFunction<TDomain, TDoFDistribution, TAlgebra>::
+GridFunction<TDomain, TDD, TAlgebra>::
 dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
 {
-	return DoFPosition(vPos, elem, domain(), this->local_finite_element_id(fct));
+	return DoFPosition(vPos, elem, *domain(), this->local_finite_element_id(fct));
 };
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TDomain, typename TDD, typename TAlgebra>
 template <typename TElem>
 bool
-GridFunction<TDomain, TDoFDistribution, TAlgebra>::
+GridFunction<TDomain, TDD, TAlgebra>::
 inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
 {
-	return InnerDoFPosition(vPos, elem, domain(), this->local_finite_element_id(fct));
+	return InnerDoFPosition(vPos, elem, *domain(), this->local_finite_element_id(fct));
 };
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TDomain, typename TDD, typename TAlgebra>
 void
-GridFunction<TDomain, TDoFDistribution, TAlgebra>::
+GridFunction<TDomain, TDD, TAlgebra>::
 clone_pattern(const this_type& v)
 {
 // 	copy approximation space
-	m_pApproxSpace = v.m_pApproxSpace;
+	m_spDomain = v.m_spDomain;
 
 //	assign dof distribution (resizes vector)
-	set_dof_distribution(*v.m_pDD);
+	this->m_spDD = v.m_spDD;
+
+//	resize the vector
+	resize_values(num_indices());
 };
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TDomain, typename TDD, typename TAlgebra>
 void
-GridFunction<TDomain, TDoFDistribution, TAlgebra>::
+GridFunction<TDomain, TDD, TAlgebra>::
 resize_values(size_t s, number defaultValue)
 {
 //	remember old values
@@ -348,18 +346,15 @@ resize_values(size_t s, number defaultValue)
 		this->operator[](i) = defaultValue;
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-GridFunction<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDD, typename TAlgebra>
+void
+GridFunction<TDomain, TDD, TAlgebra>::
 permute_values(const std::vector<size_t>& vIndNew)
 {
 //	check sizes
 	if(vIndNew.size() != this->size())
-	{
-		UG_LOG("ERROR in GridFunction::swap_values: For a permutation the"
-				" index set must have same cardinality as vector.\n");
-		return false;
-	}
+		UG_THROW_FATAL("GridFunction::permute_values: For a permutation the"
+				" index set must have same cardinality as vector.");
 
 // \todo: avoid tmp vector, only copy values into new vector and use that one
 //	create tmp vector
@@ -370,15 +365,12 @@ permute_values(const std::vector<size_t>& vIndNew)
 		vecTmp[vIndNew[i]] = this->operator[](i);
 
 //	copy tmp vector into this vector
-	if(!this->assign(vecTmp)) return false;
-
-//	we're done
-	return true;
+	this->assign(vecTmp);
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-GridFunction<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TDD, typename TAlgebra>
+void
+GridFunction<TDomain, TDD, TAlgebra>::
 copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,bool bDisjunct)
 {
 //	disjunct case
@@ -386,49 +378,36 @@ copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,bool bDisju
 		for(size_t i = 0; i < vIndexMap.size(); ++i)
 			this->operator[](vIndexMap[i].second)
 				= this->operator[](vIndexMap[i].first);
-//	other case not implemented
-	else return false;
 
-//	we're done
-	return true;
+//	other case not implemented
+	else UG_THROW_FATAL("Not implemented.");
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-assign(const vector_type& v)
+template <typename TDomain, typename TDD, typename TAlgebra>
+void GridFunction<TDomain, TDD, TAlgebra>::assign(const vector_type& v)
 {
 //	check size
 	if(v.size() != vector_type::size())
-	{
-		UG_LOG("ERROR in GridFunction::assign:"
-				"Assigned vector has incorrect size.\n");
-		return false;
-	}
+		UG_THROW_FATAL("GridFunction: Assigned vector has incorrect size.");
 
 //	assign vector
 	*(dynamic_cast<vector_type*>(this)) = v;
-
-//	we're done
-	return true;
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool
-GridFunction<TDomain, TDoFDistribution, TAlgebra>::
-assign(const this_type& v)
+template <typename TDomain, typename TDD, typename TAlgebra>
+void GridFunction<TDomain, TDD, TAlgebra>::assign(const this_type& v)
 {
 // 	copy approximation space
-	m_pApproxSpace = v.m_pApproxSpace;
+	m_spDomain = v.m_spDomain;
 
 //	assign dof distribution (resizes vector)
-	set_dof_distribution(*v.m_pDD);
+	this->m_spDD = v.m_spDD;
+
+//	resize the vector
+	resize_values(num_indices());
 
 //  copy values
 	*(dynamic_cast<vector_type*>(this)) = *dynamic_cast<const vector_type*>(&v);
-
-//	we're done
-	return true;
 }
 
 } // end namespace ug

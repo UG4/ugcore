@@ -28,12 +28,8 @@ add_fct(const char* name, LFEID lfeID, int dim)
 						<<lfeID<< " is not a valid space. "
 						"[use e.g. (Lagrange, p), (DG, p), ...].\n");
 
-	if(!supports_trial_space(lfeID))
-		UG_THROW_FATAL("FunctionPattern: Specified Local Finite Element Space "
-					<<lfeID<< " is not supported.\n");
-
 //	if no dimension passed, try to get dimension
-	if(dim == -1) dim = DimensionOfSubsets(m_rSH);
+	if(dim == -1) dim = DimensionOfSubsets(*m_spSH);
 
 #ifdef UG_PARALLEL
 //	some processes may not have an element of the subset at all. They can not
@@ -47,7 +43,7 @@ add_fct(const char* name, LFEID lfeID, int dim)
 
 //	create temporary subset group
 	SubsetGroup tmpSSGrp;
-	tmpSSGrp.set_subset_handler(m_rSH);
+	tmpSSGrp.set_subset_handler(m_spSH);
 	tmpSSGrp.add_all();
 
 // 	add to function list, everywhere = true, copy SubsetGroup
@@ -71,13 +67,8 @@ void FunctionPattern::add_fct(const char* name, LFEID lfeID,
 				" Specified Local Finite Element Space "<<lfeID<< " is not "
 				" a valid space. [use e.g. (Lagrange, p), (DG, p), ...].\n");
 
-	if(!supports_trial_space(lfeID))
-		UG_THROW_FATAL("FunctionPattern: "
-				" Specified Local Finite Element Space "<<lfeID<< " is not "
-				" a supported.\n");
-
 //	check that subset handler are equal
-	if(&m_rSH != ssGrp.subset_handler())
+	if(m_spSH.get_impl() != ssGrp.subset_handler().get_impl())
 		UG_THROW_FATAL("FunctionPattern: "
 				"SubsetHandler of SubsetGroup does "
 				"not match SubsetHandler of FunctionPattern.\n");
@@ -117,7 +108,7 @@ void FunctionPattern::add_fct(const char* name, LFEID lfeID,
 	SubsetGroup ssGrp;
 
 //	convert string to subset group
-	if(!ConvertStringToSubsetGroup(ssGrp, m_rSH, subsets))
+	if(!ConvertStringToSubsetGroup(ssGrp, m_spSH, subsets))
 		UG_THROW_FATAL("FunctionPattern: ERROR while parsing Subsets.\n");
 
 //	forward request

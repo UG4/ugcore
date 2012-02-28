@@ -46,13 +46,10 @@ enum ConstraintType
  * \tparam	TDoFDistribution	type of DoF Distribution
  * \tparam	TAlgebra			type of Algebra
  */
-template <	typename TDoFDistribution,
-			typename TAlgebra>
-class IConstraint{
+template <typename TAlgebra>
+class IConstraint
+{
 	public:
-	///	DoF Distribution Type
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
-
 	///	Algebra type
 		typedef TAlgebra algebra_type;
 
@@ -64,28 +61,23 @@ class IConstraint{
 
 	public:
 	///	adapts jacobian to enforce constraints
-		virtual bool adjust_jacobian(matrix_type& J, const vector_type& u,
-		                             const dof_distribution_type& dofDistr,
-		                             number time = 0.0) = 0;
+		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
+		                             GridLevel gl, number time = 0.0) = 0;
 
 	///	adapts defect to enforce constraints
-		virtual bool adjust_defect(vector_type& d, const vector_type& u,
-		                           const dof_distribution_type& dofDistr,
-		                           number time = 0.0) = 0;
+		virtual void adjust_defect(vector_type& d, const vector_type& u,
+		                           GridLevel gl, number time = 0.0) = 0;
 
 	///	adapts matrix and rhs (linear case) to enforce constraints
-		virtual bool adjust_linear(matrix_type& mat, vector_type& rhs,
-		                           const dof_distribution_type& dofDistr,
-		                           number time = 0.0) = 0;
+		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
+		                           GridLevel gl, number time = 0.0) = 0;
 
 	///	adapts a rhs to enforce constraints
-		virtual bool adjust_rhs(vector_type& rhs, const vector_type& u,
-		                        const dof_distribution_type& dofDistr,
-		                        number time = 0.0) = 0;
+		virtual void adjust_rhs(vector_type& rhs, const vector_type& u,
+		                        GridLevel gl, number time = 0.0) = 0;
 
 	///	sets the constraints in a solution vector
-		virtual bool adjust_solution(vector_type& u,
-		                             const dof_distribution_type& dofDistr,
+		virtual void adjust_solution(vector_type& u, GridLevel gl,
 		                             number time = 0.0) = 0;
 
 	///	returns the type of constraints
@@ -96,13 +88,10 @@ class IConstraint{
 };
 
 // predeclaration
-template <typename TDomain> class IApproximationSpace;
+template <typename TDomain> class ApproximationSpace;
 
-template <	typename TDomain,
-			typename TDoFDistribution,
-			typename TAlgebra>
-class IDomainConstraint
-	: public IConstraint<TDoFDistribution, TAlgebra>
+template <typename TDomain, typename TAlgebra>
+class IDomainConstraint : public IConstraint<TAlgebra>
 {
 	public:
 	///	Domain Type
@@ -110,7 +99,7 @@ class IDomainConstraint
 
 	public:
 	///	sets the approximation space
-		virtual void set_approximation_space(IApproximationSpace<TDomain>& approxSpace) = 0;
+		virtual void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace) = 0;
 
 };
 

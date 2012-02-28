@@ -10,6 +10,7 @@
 
 namespace ug{
 
+
 bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
 								const char* subsets, const char separator)
 {
@@ -19,14 +20,15 @@ bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern&
 	                                  subsets, separator);
 }
 
-bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const ISubsetHandler& sh,
+
+bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetHandler> pSH,
 								const char* subsets, const char separator)
 {
 //	get strings
 	std::string subsetString = std::string(subsets);
 
 //	set underlying subsethandler Subset Group
-	subsetGroup.set_subset_handler(sh);
+	subsetGroup.set_subset_handler(pSH);
 
 //	tokenize strings and select subsets
 	std::vector<std::string> tokens;
@@ -48,11 +50,11 @@ bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const ISubsetHandler& 
 }
 
 bool ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
-                                	const ISubsetHandler& sh,
+                                	ConstSmartPtr<ISubsetHandler> pSH,
 									const std::vector<std::string>& vSS)
 {
 //	create Function Group and Subset Group
-	subsetGroup.set_subset_handler(sh);
+	subsetGroup.set_subset_handler(pSH);
 
 //	tokenize strings and select functions
 	for(size_t i = 0; i < vSS.size(); ++i)

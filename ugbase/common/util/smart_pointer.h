@@ -80,7 +80,7 @@ class SmartPtr
 	 *	to T*.*/
 		template <class TPtr>
 		SmartPtr(const SmartPtr<TPtr>& sp) :
-			m_ptr(static_cast<T*>(sp.get_impl())),
+			m_ptr(static_cast<T*>(sp.get_nonconst_impl())),
 			m_refCount(sp.get_refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
@@ -95,9 +95,11 @@ class SmartPtr
 								in.get_refcount_ptr());
 		}
 */
-		T* operator->() const		{return m_ptr;}
+		T* operator->() 			{return m_ptr;}
+		const T* operator->() const	{return m_ptr;}
 
-		T& operator*()	const		{return *m_ptr;}
+		T& operator*()				{return *m_ptr;}
+		const T& operator*() const	{return *m_ptr;}
 
 		SmartPtr<T>& operator=(const SmartPtr& sp)	{
 			if(m_ptr)
@@ -113,14 +115,15 @@ class SmartPtr
 		SmartPtr<T>& operator=(const SmartPtr<TIn>& sp)	{
 			if(m_ptr)
 				release();
-			m_ptr = sp.get_impl();
+			m_ptr = sp.get_nonconst_impl();
 			m_refCount = sp.get_refcount_ptr();
 			if(m_refCount)
 				(*m_refCount)++;
 			return *this;
 		}
 
-		T* get_impl() const			{return m_ptr;}
+		T* get_impl()				{return m_ptr;}
+		const T* get_impl() const	{return m_ptr;}
 
 		int get_refcount() const {if(m_refCount) return *m_refCount; return 0;}
 
@@ -134,6 +137,8 @@ class SmartPtr
 	 *	that casts element-pointers of a smart pointer.
 	 *	\{*/
 		int* get_refcount_ptr() const 	{return m_refCount;}
+
+		T* get_nonconst_impl() const	{return m_ptr;}
 	/**	\}	*/
 
 	private:
@@ -189,7 +194,7 @@ class ConstSmartPtr
 	 *	to T*.*/
 		template <class TPtr>
 		ConstSmartPtr(const SmartPtr<TPtr>& sp) :
-			m_ptr(static_cast<T*>(sp.get_impl())),
+			m_ptr(static_cast<const T*>(sp.get_impl())),
 			m_refCount(sp.get_refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
@@ -404,7 +409,8 @@ class SmartPtr<void>
 		inline bool is_valid() const	{return m_ptr != NULL;}
 		void invalidate()				{if(is_valid())	release(); m_ptr = NULL;}
 
-		void* get_impl() const			{return m_ptr;}
+		void* get_impl()				{return m_ptr;}
+		const void* get_impl() const	{return m_ptr;}
 
 		int get_refcount() const {if(m_refCountPtr) return *m_refCountPtr; return 0;}
 

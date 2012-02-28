@@ -46,7 +46,7 @@ namespace ug {
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Stiffness matrix
@@ -54,24 +54,24 @@ namespace ug {
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
-                        	const IDoFDistribution<TDoFDistribution>& dofDistr,
+                        	ConstSmartPtr<TDD> dd,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
                         	const typename TAlgebra::vector_type& u,
                         	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dofDistr.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	create data evaluator
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid))
 	{
 		UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -92,9 +92,9 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dofDistr.template begin<TElem>(si);
-	iterEnd = dofDistr.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -106,7 +106,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dofDistr.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locU.resize(ind); locA.resize(ind);
@@ -174,7 +174,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	M				Mass matrix
@@ -182,24 +182,24 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
-					const IDoFDistribution<TDoFDistribution>& dofDistr,
+					ConstSmartPtr<TDD> dd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
 					const typename TAlgebra::vector_type& u,
                 	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dofDistr.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	create data evaluator
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
 	{
 		UG_LOG("ERROR in 'AssembleMassMatrix': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -220,9 +220,9 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dofDistr.template begin<TElem>(si);
-	iterEnd = dofDistr.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -234,7 +234,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dofDistr.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locU.resize(ind); locM.resize(ind);
@@ -303,24 +303,24 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in]		vSol			current and previous solutions
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
-               	const IDoFDistribution<TDoFDistribution>& dofDistr,
+               	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                 const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
             	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dofDistr.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	get current time and vector
 	const number time = vSol.time(0);
@@ -330,7 +330,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
 	{
 		UG_LOG("ERROR in '(instationary) PrepareTimestep': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -353,9 +353,9 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dofDistr.template begin<TElem>(si);
-	iterEnd = dofDistr.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 	// 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -367,7 +367,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dofDistr.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locU.resize(ind);
@@ -405,7 +405,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	J				jacobian
@@ -413,24 +413,24 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
-					const IDoFDistribution<TDoFDistribution>& dofDistr,
+					ConstSmartPtr<TDD> dd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
                 	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dofDistr.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	create data evaluator
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid))
 	{
 		UG_LOG("ERROR in '(stationary) AssembleJacobian': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -451,9 +451,9 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dofDistr.template begin<TElem>(si);
-	iterEnd = dofDistr.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -465,7 +465,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dofDistr.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locU.resize(ind); locJ.resize(ind);
@@ -535,7 +535,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * Note, that it is assumed	to have s_m0 == 1
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	J				jacobian
@@ -544,11 +544,11 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
-					const IDoFDistribution<TDoFDistribution>& dofDistr,
+					ConstSmartPtr<TDD> dd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
@@ -556,7 +556,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
                 	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dofDistr.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	get current time and vector
 	const number time = vSol.time(0);
@@ -566,7 +566,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
 	{
 		UG_LOG("ERROR in '(instationary) AssembleJacobian': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -589,9 +589,9 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dofDistr.template begin<TElem>(si);
-	iterEnd = dofDistr.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -603,7 +603,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dofDistr.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locU.resize(ind); locJ.resize(ind);
@@ -701,7 +701,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	d				defect
@@ -709,24 +709,24 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
-               	const IDoFDistribution<TDoFDistribution>& dofDistr,
+               	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u,
             	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dofDistr.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	create data evaluator
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid))
 	{
 		UG_LOG("ERROR in '(stationary) AssembleDefect': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -748,9 +748,9 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dofDistr.template begin<TElem>(si);
-	iterEnd = dofDistr.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -762,7 +762,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dofDistr.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locU.resize(ind); locD.resize(ind); tmpLocD.resize(ind);
@@ -830,7 +830,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	d				defect
@@ -840,11 +840,11 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
-               	const IDoFDistribution<TDoFDistribution>& dofDistr,
+               	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                 const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
@@ -853,7 +853,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
             	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dofDistr.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	create data evaluator
 	DataEvaluator Eval;
@@ -862,7 +862,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	const number time = vSol.time(0);
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
 	{
 		UG_LOG("ERROR in '(instationary) AssembleDefect': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -885,9 +885,9 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dofDistr.template begin<TElem>(si);
-	iterEnd = dofDistr.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 //	read time points
 	locTimeSeries.read_times(vSol);
@@ -902,7 +902,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dofDistr.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locD.resize(ind); tmpLocD.resize(ind);
@@ -994,7 +994,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * for all passed element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Matrix
@@ -1002,24 +1002,24 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
-               	const IDoFDistribution<TDoFDistribution>& dd,
+               	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
             	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dd.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	create data evaluator
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd.get_function_pattern(), bNonRegularGrid))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid))
 	{
 		UG_LOG("ERROR in '(stationary) AssembleLinear': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -1041,9 +1041,9 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd.template begin<TElem>(si);
-	iterEnd = dd.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -1055,7 +1055,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dd.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locRhs.resize(ind); locA.resize(ind);
@@ -1122,7 +1122,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * for all passed element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Matrix
@@ -1133,11 +1133,11 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
-               	const IDoFDistribution<TDoFDistribution>& dd,
+               	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
@@ -1147,7 +1147,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
             	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dd.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	create data evaluator
 	DataEvaluator Eval;
@@ -1156,7 +1156,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	const number time = vSol.time(0);
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd.get_function_pattern(), bNonRegularGrid, true))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
 	{
 		UG_LOG("ERROR in '(instationary) AssembleLinear': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -1179,9 +1179,9 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd.template begin<TElem>(si);
-	iterEnd = dd.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 //	get time points
 	locTimeSeries.read_times(vSol);
@@ -1196,7 +1196,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dd.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locRhs.resize(ind); tmpLocRhs.resize(ind);
@@ -1344,7 +1344,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * for all passed element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	rhs				Right-hand side
@@ -1352,24 +1352,24 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
-               	const IDoFDistribution<TDoFDistribution>& dofDistr,
+               	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u,
             	ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dofDistr.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	create data evaluator
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid))
 	{
 		UG_LOG("ERROR in 'AssembleRhs': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -1391,9 +1391,9 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dofDistr.template begin<TElem>(si);
-	iterEnd = dofDistr.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -1405,7 +1405,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dofDistr.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locU.resize(ind); locRhs.resize(ind);
@@ -1463,24 +1463,24 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		dd		DoF Distribution
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in]		vSol			current and previous solutions
  * \param[in]		sel				Selector
  */
 template <	typename TElem,
-			typename TDoFDistribution,
+			typename TDD,
 			typename TAlgebra>
 bool
 FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
-               	const IDoFDistribution<TDoFDistribution>& dofDistr,
-               	int si, bool bNonRegularGrid,
-                const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
-            	ISelector* sel = NULL)
+               ConstSmartPtr<TDD> dd,
+               int si, bool bNonRegularGrid,
+               const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
+               ISelector* sel = NULL)
 {
 // 	check if at least on element exist, else return
-	if(dofDistr.template num<TElem>(si) == 0) return true;
+	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	get current time and vector
 	const number time = vSol.time(0);
@@ -1490,7 +1490,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dofDistr.get_function_pattern(), bNonRegularGrid, true))
+	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
 	{
 		UG_LOG("ERROR in '(instationary) FinishTimestep': "
 				"Cannot init DataEvaluator with IElemDiscs.\n");
@@ -1513,9 +1513,9 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	get element iterator
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dofDistr.template begin<TElem>(si);
-	iterEnd = dofDistr.template end<TElem>(si);
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
 
 	// 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -1527,7 +1527,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		if(sel) if(!sel->is_selected(elem)) continue;
 
 	// 	get global indices
-		dofDistr.indices(elem, ind, Eval.use_hanging());
+		dd->indices(elem, ind, Eval.use_hanging());
 
 	// 	adapt local algebra
 		locU.resize(ind);

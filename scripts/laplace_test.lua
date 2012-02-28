@@ -50,8 +50,7 @@ approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:print_statistic()
 
 -- lets order indices using Cuthill-McKee
-test.require(OrderCuthillMcKee(approxSpace, true), 
-	"ordering Cuthill-McKee");
+OrderCuthillMcKee(approxSpace, true);
 
 --------------------------------------------------------------------------------
 -- User Data Setup
@@ -127,11 +126,6 @@ base = LinearSolver()
 base:set_convergence_check(baseConvCheck)
 base:set_preconditioner(jac)
 
--- Transfer and Projection
-transfer = P1Prolongation(approxSpace)
-transfer:set_dirichlet_post_process(dirichletBND)
-projection = P1Projection(approxSpace)
-
 -- Gemoetric Multi Grid
 gmg = GeometricMultiGrid(approxSpace)
 gmg:set_discretization(domainDisc)
@@ -141,8 +135,6 @@ gmg:set_smoother(jac)
 gmg:set_cycle_type(1)
 gmg:set_num_presmooth(3)
 gmg:set_num_postsmooth(3)
-gmg:set_prolongation(transfer)
-gmg:set_projection(projection)
 
 
 -- create Convergence Check

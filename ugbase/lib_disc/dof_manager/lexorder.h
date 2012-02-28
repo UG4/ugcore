@@ -11,8 +11,6 @@
 #include <vector>
 #include <utility> // for pair
 
-#include "dof_distribution.h"
-#include "mg_dof_manager.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 
 namespace ug{
@@ -65,7 +63,7 @@ inline bool ComparePosDim(const std::pair<MathVector<3>, size_t> &p1,
 	// computes ordering using Cuthill-McKee algorithm
 
 template<class MVT>
-bool ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
+void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
 					std::vector<std::pair<MVT, size_t> >& vPos,
                     int order, int sign)
 {
@@ -83,8 +81,6 @@ bool ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
 		//UG_LOG("Mapping: (" << vPos[i].first << ", " << vPos[i].second << ") ->" << i << "\n");
 
 	}
-//	we're done
-	return true;
 }
 
 
@@ -109,8 +105,8 @@ bool ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
   //           int order, int sign);
 
 ///	writes positions of vertex dofs into a std::vector
-template <typename TDoFImpl, typename TDomain>
-void ExtractPositions(	const IDoFDistribution<TDoFImpl>& dofDistr,
+template <typename TDD, typename TDomain>
+void ExtractPos(	const TDD& dofDistr,
 						typename TDomain::position_accessor_type& aaPos,
 						std::vector<std::pair<MathVector<TDomain::dim>, size_t> >& vPositions)
 {
@@ -120,19 +116,22 @@ void ExtractPositions(	const IDoFDistribution<TDoFImpl>& dofDistr,
 //	resize positions
 	vPositions.resize(nr);
 
+	typedef typename TDD::template traits<VertexBase>::const_iterator const_iterator;
+
 //	loop all subsets
 	for(int si = 0; si < dofDistr.num_subsets(); ++si)
 	{
 	//	loop all vertices
-		geometry_traits<VertexBase>::const_iterator iter
-											= dofDistr.template begin<VertexBase>(si);
-		for(;iter != dofDistr.template end<VertexBase>(si); ++iter)
+		const_iterator iter = dofDistr.template begin<VertexBase>(si);
+		const_iterator iterEnd = dofDistr.template begin<VertexBase>(si);
+
+		for(;iter != iterEnd; ++iter)
 		{
 		//	get vertex
 			VertexBase* v = *iter;
 
 		//	algebra indices vector
-			typename TDoFImpl::algebra_index_vector_type ind;
+			std::vector<size_t> ind;
 
 		//	load indices associated with vertex
 			dofDistr.inner_algebra_indices(v, ind);
@@ -149,8 +148,8 @@ void ExtractPositions(	const IDoFDistribution<TDoFImpl>& dofDistr,
 }
 
 /// orders the dof distribution using Cuthill-McKee
-template <typename TDoFImpl, typename TDomain>
-bool OrderLexForDofDist(IDoFDistribution<TDoFImpl>& dofDistr,
+template <typename TDD, typename TDomain>
+void OrderLexForDofDist(TDD& dofDistr,
 						typename TDomain::position_accessor_type& aaPos,
 						int orderflag)
 {
@@ -159,26 +158,21 @@ bool OrderLexForDofDist(IDoFDistribution<TDoFImpl>& dofDistr,
 	typedef typename std::pair<MathVector<TDomain::dim>, size_t> pos_type;
 
 	std::vector<pos_type> vPositions;
-	ExtractPositions<TDoFImpl,TDomain>(dofDistr, aaPos, vPositions);
+	ExtractPos<TDD, TDomain>(dofDistr, aaPos, vPositions);
 
 	//	get mapping: old -> new index
 	std::vector<size_t> vNewIndex(dofDistr.num_indices());
-	if(!ComputeLexicographicOrder<vec_type>(vNewIndex, vPositions, orderflag, 0))
-		return false;
+	ComputeLexicographicOrder<vec_type>(vNewIndex, vPositions, orderflag, 0);
 
 	//	reorder indices
-	if(!dofDistr.permute_indices(vNewIndex))
-		return false;
-
-	//	we're done
-	return true;
+	dofDistr.permute_indices(vNewIndex);
 }
 
 
 /// orders the all DofDistributions of the ApproximationSpace using lexicographic order
-template <typename TDomain, typename TDoFImpl, typename TAlgebra>
-bool OrderLex(ApproximationSpace<TDomain, TDoFImpl, TAlgebra>& approxSpace,
-                       const char *order)
+template <typename TDomain>
+void OrderLex(ApproximationSpace<TDomain>& approxSpace,
+              const char *order)
 {
 	// TODO: decode input
 	int flag= 0;
@@ -186,19 +180,14 @@ bool OrderLex(ApproximationSpace<TDomain, TDoFImpl, TAlgebra>& approxSpace,
 	//	get position attachment
 	typedef TDomain domain_type;
 	typename domain_type::position_accessor_type& aaPos
-			= approxSpace.domain().position_accessor();
+			= approxSpace.domain()->position_accessor();
 
 	//	order levels
 	for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
-		if(!OrderLexForDofDist<TDoFImpl,TDomain>(approxSpace.level_dof_distribution(lev), aaPos, flag))
-			return false;
+		OrderLexForDofDist<LevelDoFDistribution, TDomain>(*approxSpace.level_dof_distribution(lev), aaPos, flag);
 
 	//	order surface
-	if(!OrderLexForDofDist<TDoFImpl,TDomain>(approxSpace.surface_dof_distribution(), aaPos, flag))
-		return false;
-
-//	we're done
-	return true;
+	OrderLexForDofDist<SurfaceDoFDistribution, TDomain>(*approxSpace.surface_dof_distribution(), aaPos, flag);
 }
 
 } // end namespace ug

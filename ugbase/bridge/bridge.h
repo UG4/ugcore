@@ -9,7 +9,6 @@
 #include <sstream>
 #include "registry/registry.h"
 #include "lib_algebra/algebra_type.h"
-#include "lib_disc/dof_manager/dof_distribution_type.h"
 #include "common/ug_config.h"
 
 namespace ug
@@ -22,10 +21,6 @@ UG_API Registry & GetUGRegistry();
 
 ///	Sets the default classes of class-groups based on a tags using default DoFManager
 UG_API void InitUG(int dim, const AlgebraType& algebraType);
-
-///	Sets the default classes of class-groups based on a tags
-UG_API void InitUG(int dim, const AlgebraType& algebraType, const char* ddType);
-
 
 /// calls RegisterStandardInterfaces and LoadPlugins if UG_PLUGINS is defined
 UG_API bool InitBridge();
@@ -188,36 +183,6 @@ inline std::string GetAlgebraTag(const AlgebraType& algType)
 	else ss << algType.blocksize() << ";";
 
 	return ss.str();
-}
-
-/// returns the DoFDistribution-suffix (e.g. "P1Conform", "Conform")
-inline std::string GetDoFDistributionSuffix(DofDistributionType type)
-{
-	if(type == DDT_CONFORM) return "Conform";
-	else if(type == DDT_P1CONFORM) return "P1Conform";
-	else throw(UGFatalError("Unknown dof distribution type."));
-}
-
-/// returns the DoFDistribution-suffix (e.g. "dd=P1Conform", "dd=Conform")
-inline std::string GetDoFDistributionTag(DofDistributionType type)
-{
-	if(type == DDT_CONFORM) return "dd=Conform;";
-	else if(type == DDT_P1CONFORM) return "dd=P1Conform;";
-	else throw(UGFatalError("Unknown dof distribution type."));
-}
-
-/// returns the DoFDistribution-suffix (e.g. "P1Conform", "Conform")
-template <typename TDoFDistribution>
-std::string GetDoFDistributionSuffix()
-{
-	return GetDoFDistributionSuffix(TDoFDistribution::type);
-}
-
-/// returns the DoFDistribution-suffix (e.g. "dd=P1Conform", "dd=Conform")
-template <typename TDoFDistribution>
-std::string GetDoFDistributionTag()
-{
-	return GetDoFDistributionTag(TDoFDistribution::type);
 }
 
 }//	end of namespace 

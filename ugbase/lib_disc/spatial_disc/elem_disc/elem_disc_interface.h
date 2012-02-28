@@ -458,16 +458,16 @@ class IDomainElemDisc : public IElemDisc
 
 	public:
 		IDomainElemDisc(const char* functions = NULL, const char* subsets = NULL)
-			: IElemDisc(functions, subsets), m_pDomain(NULL), m_pApproxSpace(NULL) {};
+			: IElemDisc(functions, subsets), m_pDomain(NULL), m_spApproxSpace(NULL) {};
 
 	///	sets the approximation space
-		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
+		void set_approximation_space(SmartPtr<ApproximationSpace<domain_type> > approxSpace)
 		{
 		//	remember approx space
-			m_pApproxSpace = &approxSpace;
+			m_spApproxSpace = approxSpace;
 
 		//	remember domain
-			set_domain(approxSpace.domain());
+			set_domain(approxSpace->domain());
 
 		//	invoke callback
 			approximation_space_changed();
@@ -477,10 +477,13 @@ class IDomainElemDisc : public IElemDisc
 		virtual void approximation_space_changed() {}
 
 	///	sets the domain
-		void set_domain(domain_type& domain)
+		void set_domain(SmartPtr<domain_type> domain)
 		{
+		//	remember smart ptr
+			m_spDomain = domain;
+
 		//	remember domain
-			m_pDomain = &domain;
+			m_pDomain = m_spDomain.get_impl();
 
 		//	remember position accessor
 			m_aaPos = m_pDomain->position_accessor();
@@ -501,23 +504,23 @@ class IDomainElemDisc : public IElemDisc
 		}
 
 	///	returns the function pattern
-		const FunctionPattern& get_fct_pattern() const {return *m_pApproxSpace;}
+		const FunctionPattern& get_fct_pattern() const {return *m_spApproxSpace->function_pattern();}
 
 	///	returns if function pattern set
-		bool fct_pattern_set() const {return m_pApproxSpace != NULL;}
+		bool fct_pattern_set() const {return m_spApproxSpace.is_valid();}
 
 	///	returns the subset handler
 		typename domain_type::subset_handler_type& subset_handler()
 		{
 			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
-			return m_pDomain->subset_handler();
+			return *m_pDomain->subset_handler();
 		}
 
 	///	returns the subset handler
 		const typename domain_type::subset_handler_type& subset_handler() const
 		{
 			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
-			return m_pDomain->subset_handler();
+			return *m_pDomain->subset_handler();
 		}
 
 	///	returns the corner coordinates of an Element in a C++-array
@@ -548,6 +551,9 @@ class IDomainElemDisc : public IElemDisc
 	///	Domain
 		TDomain* m_pDomain;
 
+	///	Domain
+		SmartPtr<TDomain> m_spDomain;
+
 	///	Position access
 		typename TDomain::position_accessor_type m_aaPos;
 
@@ -555,7 +561,7 @@ class IDomainElemDisc : public IElemDisc
 		std::vector<position_type> m_vCornerCoords;
 
 	///	Approximation Space
-		IApproximationSpace<domain_type>* m_pApproxSpace;
+		SmartPtr<ApproximationSpace<domain_type> > m_spApproxSpace;
 };
 /// @}
 

@@ -126,18 +126,8 @@ class StandardLineSearch : public ILineSearch<TVector>
 				VecScaleAdd(u, 1.0, u, (-1)*lambda, p);
 
 			// 	compute new Defect
-				if(!Op.prepare(d, u))
-				{
-					UG_LOG("ERROR in 'StandardLineSearch::search': Cannot "
-							"prepare Non-linear Operator for defect computation.\n");
-					return false;
-				}
-				if(!Op.apply(d, u))
-				{
-					UG_LOG("ERROR in 'StandardLineSearch::search': Cannot apply"
-							" Non-linear Operator to compute defect.\n");
-					return false;
-				}
+				Op.prepare(d, u);
+				Op.apply(d, u);
 
 			//	compute new Residuum
 				norm = d.two_norm();
@@ -200,18 +190,8 @@ class StandardLineSearch : public ILineSearch<TVector>
 					VecScaleAdd(u, 1.0, u, (-1)*lambda*std::pow(m_lambdaReduce, (number)best), p);
 
 				// 	compute new Defect
-					if(!Op.prepare(d, u))
-					{
-						UG_LOG("ERROR in 'StandardLineSearch::search': Cannot "
-								"prepare Non-linear Operator for defect computation.\n");
-						return false;
-					}
-					if(!Op.apply(d, u))
-					{
-						UG_LOG("ERROR in 'StandardLineSearch::search': Cannot apply"
-								" Non-linear Operator to compute defect.\n");
-						return false;
-					}
+					Op.prepare(d, u);
+					Op.apply(d, u);
 
 					// compute new Residuum
 					norm = d.two_norm();

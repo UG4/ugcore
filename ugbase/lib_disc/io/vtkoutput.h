@@ -14,6 +14,7 @@
 // other ug modules
 #include "lib_grid/lg_base.h"
 #include "common/util/string_util.h"
+#include "lib_disc/common/function_group.h"
 
 namespace ug{
 

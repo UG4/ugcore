@@ -6,6 +6,7 @@
 #define __H__UG__domain_distribution_impl__
 
 #include "domain_distribution.h"
+#include "lib_grid/algorithms/attachment_util.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
@@ -20,8 +21,8 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 									  int firstAxisToCut)
 {
 
-	MultiGrid& mg = domain.grid();
-	partitionMap.assign_grid(mg);
+	SmartPtr<MultiGrid> pMG = domain.grid();
+	partitionMap.assign_grid(*pMG);
 	#ifdef UG_PARALLEL
 	//	we need a process to which elements which are not considered will be send.
 	//	Those elements should stay on the current process.
@@ -32,46 +33,46 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 		if(bucketSubset == -1)
 			bucketSubset = (int)partitionMap.num_target_procs();
 
-		if(mg.num<Volume>() > 0){
+		if(pMG->num<Volume>() > 0){
 			partitionMap.get_partition_handler().assign_subset(
-							mg.begin<Volume>(), mg.end<Volume>(), bucketSubset);
+							pMG->begin<Volume>(), pMG->end<Volume>(), bucketSubset);
 
 			PartitionElementsByRepeatedIntersection<Volume, TDomain::dim>(
 												partitionMap.get_partition_handler(),
-												mg, mg.num_levels() - 1,
+												*pMG, pMG->num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.position_attachment(),
 												firstAxisToCut);
 		}
-		else if(mg.num<Face>() > 0){
+		else if(pMG->num<Face>() > 0){
 			partitionMap.get_partition_handler().assign_subset(
-							mg.begin<Face>(), mg.end<Face>(), bucketSubset);
+							pMG->begin<Face>(), pMG->end<Face>(), bucketSubset);
 
 			PartitionElementsByRepeatedIntersection<Face, TDomain::dim>(
 												partitionMap.get_partition_handler(),
-												mg, mg.num_levels() - 1,
+												*pMG, pMG->num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.position_attachment(),
 												firstAxisToCut);
 		}
-		else if(mg.num<EdgeBase>() > 0){
+		else if(pMG->num<EdgeBase>() > 0){
 			partitionMap.get_partition_handler().assign_subset(
-							mg.begin<EdgeBase>(), mg.end<EdgeBase>(), bucketSubset);
+							pMG->begin<EdgeBase>(), pMG->end<EdgeBase>(), bucketSubset);
 
 			PartitionElementsByRepeatedIntersection<EdgeBase, TDomain::dim>(
 												partitionMap.get_partition_handler(),
-												mg, mg.num_levels() - 1,
+												*pMG, pMG->num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.position_attachment(),
 												firstAxisToCut);
 		}
-		else if(mg.num<VertexBase>() > 0){
+		else if(pMG->num<VertexBase>() > 0){
 			partitionMap.get_partition_handler().assign_subset(
-							mg.begin<VertexBase>(), mg.end<VertexBase>(), bucketSubset);
+							pMG->begin<VertexBase>(), pMG->end<VertexBase>(), bucketSubset);
 
 			PartitionElementsByRepeatedIntersection<VertexBase, TDomain::dim>(
 												partitionMap.get_partition_handler(),
-												mg, mg.num_levels() - 1,
+												*pMG, pMG->num_levels() - 1,
 												partitionMap.num_target_procs(),
 												domain.position_attachment(),
 												firstAxisToCut);
@@ -87,14 +88,14 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 
 //	Assign all elements to partition 0
 	UG_LOG("WARNING: Serial fallback implementation of PartitionDomain_Bisection is used.\n");
-	partitionMap.get_partition_handler().assign_subset(mg.begin<VertexBase>(),
-													   mg.end<VertexBase>(), 0);
-	partitionMap.get_partition_handler().assign_subset(mg.begin<EdgeBase>(),
-													   mg.end<EdgeBase>(), 0);
-	partitionMap.get_partition_handler().assign_subset(mg.begin<Face>(),
-													   mg.end<Face>(), 0);
-	partitionMap.get_partition_handler().assign_subset(mg.begin<Volume>(),
-													   mg.end<Volume>(), 0);
+	partitionMap.get_partition_handler().assign_subset(pMG->begin<VertexBase>(),
+													   pMG->end<VertexBase>(), 0);
+	partitionMap.get_partition_handler().assign_subset(pMG->begin<EdgeBase>(),
+													   pMG->end<EdgeBase>(), 0);
+	partitionMap.get_partition_handler().assign_subset(pMG->begin<Face>(),
+													   pMG->end<Face>(), 0);
+	partitionMap.get_partition_handler().assign_subset(pMG->begin<Volume>(),
+													   pMG->end<Volume>(), 0);
 	return true;
 }
 
@@ -105,8 +106,8 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 										bool surfaceOnly)
 {
 //	prepare the partition map and a vertex position attachment accessor
-	MultiGrid& mg = domain.grid();
-	partitionMap.assign_grid(mg);
+	SmartPtr<MultiGrid> pMG = domain.grid();
+	partitionMap.assign_grid(*pMG);
 
 	#ifdef UG_PARALLEL
 	//	a distributed grid manager is required
@@ -116,7 +117,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 		}
 
 		typedef typename TDomain::position_attachment_type TAPos;
-		Grid::AttachmentAccessor<VertexBase, TAPos> aaPos(mg,
+		Grid::AttachmentAccessor<VertexBase, TAPos> aaPos(*pMG,
 												domain.position_attachment());
 
 	//	this callback allows us to only distribute surface elements, which are no ghosts
@@ -132,59 +133,59 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 			bucketSubset = (int)partitionMap.num_target_procs();
 
 	//	partition the grid
-		if(mg.num<Volume>() > 0){
+		if(pMG->num<Volume>() > 0){
 			if(!surfaceOnly)
 				PartitionElements_RegularGrid<Volume>(
 											partitionMap.get_partition_handler(),
-											mg.begin<Volume>(), mg.end<Volume>(),
+											pMG->begin<Volume>(), pMG->end<Volume>(),
 											numCellsX, numCellsY, aaPos,
 											(bool(*)(Volume*))ConsiderAll, bucketSubset);
 			else
 				PartitionElements_RegularGrid<Volume>(
 											partitionMap.get_partition_handler(),
-											mg.begin<Volume>(), mg.end<Volume>(),
+											pMG->begin<Volume>(), pMG->end<Volume>(),
 											numCellsX, numCellsY, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
-		else if(mg.num<Face>() > 0){
+		else if(pMG->num<Face>() > 0){
 			if(!surfaceOnly)
 				PartitionElements_RegularGrid<Face>(
 											partitionMap.get_partition_handler(),
-											mg.begin<Face>(), mg.end<Face>(),
+											pMG->begin<Face>(), pMG->end<Face>(),
 											numCellsX, numCellsY, aaPos,
 											(bool(*)(Face*))ConsiderAll, bucketSubset);
 			else
 				PartitionElements_RegularGrid<Face>(
 											partitionMap.get_partition_handler(),
-											mg.begin<Face>(), mg.end<Face>(),
+											pMG->begin<Face>(), pMG->end<Face>(),
 											numCellsX, numCellsY, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
-		else if(mg.num<EdgeBase>() > 0){
+		else if(pMG->num<EdgeBase>() > 0){
 			if(!surfaceOnly)
 				PartitionElements_RegularGrid<EdgeBase>(
 											partitionMap.get_partition_handler(),
-											mg.begin<EdgeBase>(), mg.end<EdgeBase>(),
+											pMG->begin<EdgeBase>(), pMG->end<EdgeBase>(),
 											numCellsX, numCellsY, aaPos,
 											(bool(*)(EdgeBase*))ConsiderAll, bucketSubset);
 			else
 				PartitionElements_RegularGrid<EdgeBase>(
 											partitionMap.get_partition_handler(),
-											mg.begin<EdgeBase>(), mg.end<EdgeBase>(),
+											pMG->begin<EdgeBase>(), pMG->end<EdgeBase>(),
 											numCellsX, numCellsY, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
-		else if(mg.num<VertexBase>() > 0){
+		else if(pMG->num<VertexBase>() > 0){
 			if(!surfaceOnly)
 				PartitionElements_RegularGrid<VertexBase>(
 											partitionMap.get_partition_handler(),
-											mg.begin<VertexBase>(), mg.end<VertexBase>(),
+											pMG->begin<VertexBase>(), pMG->end<VertexBase>(),
 											numCellsX, numCellsY, aaPos,
 											(bool(*)(VertexBase*))ConsiderAll, bucketSubset);
 			else
 				PartitionElements_RegularGrid<VertexBase>(
 											partitionMap.get_partition_handler(),
-											mg.begin<VertexBase>(), mg.end<VertexBase>(),
+											pMG->begin<VertexBase>(), pMG->end<VertexBase>(),
 											numCellsX, numCellsY, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
@@ -216,8 +217,8 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 						  int hWeight, int vWeight)
 {
 //	prepare the partition map
-	MultiGrid& mg = domain.grid();
-	partitionMap.assign_grid(mg);
+	SmartPtr<MultiGrid> pMG = domain.grid();
+	partitionMap.assign_grid(*pMG);
 
 #ifdef UG_PARALLEL
 //	we need a process to which elements which are not considered will be send.
@@ -231,28 +232,28 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 
 	SubsetHandler& shPart = partitionMap.get_partition_handler();
 //	call the actual partitioning routine
-	if(mg.num<Volume>() > 0){
-		PartitionMultiGrid_MetisKway<Volume>(shPart, mg, numPartitions,
+	if(pMG->num<Volume>() > 0){
+		PartitionMultiGrid_MetisKway<Volume>(shPart, *pMG, numPartitions,
 											baseLevel, hWeight, vWeight);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(mg.begin<Volume>(lvl), mg.end<Volume>(lvl),
+			shPart.assign_subset(pMG->begin<Volume>(lvl), pMG->end<Volume>(lvl),
 								 bucketSubset);
 	}
-	else if(mg.num<Face>() > 0){
-		PartitionMultiGrid_MetisKway<Face>(shPart, mg, numPartitions,
+	else if(pMG->num<Face>() > 0){
+		PartitionMultiGrid_MetisKway<Face>(shPart, *pMG, numPartitions,
 											baseLevel, hWeight, vWeight);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(mg.begin<Face>(lvl), mg.end<Face>(lvl),
+			shPart.assign_subset(pMG->begin<Face>(lvl), pMG->end<Face>(lvl),
 								 bucketSubset);
 	}
-	else if(mg.num<EdgeBase>() > 0){
-		PartitionMultiGrid_MetisKway<EdgeBase>(shPart, mg, numPartitions,
+	else if(pMG->num<EdgeBase>() > 0){
+		PartitionMultiGrid_MetisKway<EdgeBase>(shPart, *pMG, numPartitions,
 												baseLevel, hWeight, vWeight);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(mg.begin<EdgeBase>(lvl), mg.end<EdgeBase>(lvl),
+			shPart.assign_subset(pMG->begin<EdgeBase>(lvl), pMG->end<EdgeBase>(lvl),
 								 bucketSubset);
 	}
 
@@ -279,11 +280,12 @@ static bool RedistributeDomain(TDomain& domainOut,
 
 	typedef typename TDomain::position_attachment_type	position_attachment_type;
 //	make sure that the input is fine
-	typename TDomain::grid_type& grid = domainOut.grid();
+	typedef typename TDomain::grid_type GridType;
+	SmartPtr<GridType> pGrid = domainOut.grid();
 	SubsetHandler& shPart = partitionMap.get_partition_handler();
 
-	if(shPart.grid() != &grid){
-		partitionMap.assign_grid(grid);
+	if(shPart.grid() != pGrid.get_impl()){
+		partitionMap.assign_grid(*pGrid);
 	}
 
 //	used to check whether all processes are correctly prepared for redistribution
@@ -307,8 +309,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 	PCL_PROFILE(RedistributeDomain);
 
 //	make sure that manager exists
-	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
-	distributed_grid_manager_type* pDistGridMgr = domainOut.distributed_grid_manager();
+	DistributedGridManager* pDistGridMgr = domainOut.distributed_grid_manager();
 	if(!pDistGridMgr)
 	{
 		UG_LOG("ERROR in RedistibuteDomain: Domain has to feature a Distributed Grid Manager.\n");
@@ -319,12 +320,12 @@ static bool RedistributeDomain(TDomain& domainOut,
 	if(!pcl::AllProcsTrue(performDistribution))
 		return false;
 
-	distributed_grid_manager_type& distGridMgr = *pDistGridMgr;
+	DistributedGridManager& distGridMgr = *pDistGridMgr;
 
 //	data serialization
 	GeomObjAttachmentSerializer<VertexBase, position_attachment_type>
-		posSerializer(grid, domainOut.position_attachment());
-	SubsetHandlerSerializer shSerializer(domainOut.subset_handler());
+		posSerializer(*pGrid, domainOut.position_attachment());
+	SubsetHandlerSerializer shSerializer(*domainOut.subset_handler());
 
 	GridDataSerializationHandler serializer;
 	serializer.add(&posSerializer);
@@ -349,10 +350,9 @@ static bool DistributeDomain(TDomain& domainOut)
 #ifdef UG_PARALLEL
 //	typedefs
 	typedef typename TDomain::subset_handler_type subset_handler_type;
-	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
 
 //	get distributed grid manager
-	distributed_grid_manager_type* pDistGridMgr = domainOut.distributed_grid_manager();
+	DistributedGridManager* pDistGridMgr = domainOut.distributed_grid_manager();
 
 //	check that manager exists
 	if(!pDistGridMgr)
@@ -360,10 +360,10 @@ static bool DistributeDomain(TDomain& domainOut)
 		UG_LOG("DistibuteDomain: Cannot find Distributed Grid Manager.\n");
 		return false;
 	}
-	distributed_grid_manager_type& distGridMgrOut = *pDistGridMgr;
+	DistributedGridManager& distGridMgrOut = *pDistGridMgr;
 
 //	get subset handler
-	subset_handler_type& sh = domainOut.subset_handler();
+	SmartPtr<subset_handler_type> pSH = domainOut.subset_handler();
 
 //	get number of processes
 	const int numProcs = pcl::GetNumProcesses();
@@ -402,7 +402,7 @@ static bool DistributeDomain(TDomain& domainOut)
 	FuncPartitionGrid funcPartitionGrid = PartitionGrid_Bisection;
 
 //	perform distribution
-	AdjustAndDistributeGrid(distGridMgrOut, sh, mg, sh, numProcs, true,
+	AdjustAndDistributeGrid(distGridMgrOut, *pSH, mg, *pSH, numProcs, true,
 							funcAdjustGrid, funcPartitionGrid);
 
 	if(tmpPosAttachment)
@@ -426,10 +426,9 @@ static bool DistributeDomain(TDomain& domainOut, PartitionMap& partitionMap)
 #ifdef UG_PARALLEL
 //	typedefs
 	typedef typename TDomain::subset_handler_type subset_handler_type;
-	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
 
 //	get distributed grid manager
-	distributed_grid_manager_type* pDistGridMgr = domainOut.distributed_grid_manager();
+	DistributedGridManager* pDistGridMgr = domainOut.distributed_grid_manager();
 
 //	check that manager exists
 	if(!pDistGridMgr)
@@ -437,10 +436,10 @@ static bool DistributeDomain(TDomain& domainOut, PartitionMap& partitionMap)
 		UG_LOG("DistibuteDomain: Cannot find Distributed Grid Manager.\n");
 		return false;
 	}
-	distributed_grid_manager_type& distGridMgrOut = *pDistGridMgr;
+	DistributedGridManager& distGridMgrOut = *pDistGridMgr;
 
 //	get subset handler
-	subset_handler_type& sh = domainOut.subset_handler();
+	SmartPtr<subset_handler_type> pSH = domainOut.subset_handler();
 
 //	get number of processes
 	const int numProcs = pcl::GetNumProcesses();
@@ -474,13 +473,13 @@ static bool DistributeDomain(TDomain& domainOut, PartitionMap& partitionMap)
 	}
 
 	if(pcl::GetProcRank() == 0){
-		DistributeGrid_KeepSrcGrid(mg, sh, glmOut,
+		DistributeGrid_KeepSrcGrid(mg, *pSH, glmOut,
 								   partitionMap.get_partition_handler(),
 								   0, false);
 	}
 	else{
 		UG_LOG("receiving grid...\n");
-			ReceiveGrid(mg, sh, glmOut, 0, true);
+			ReceiveGrid(mg, *pSH, glmOut, 0, true);
 		UG_LOG("receive done.\n");
 	}
 

@@ -20,6 +20,7 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	attachment-types
+typedef Attachment<bool>		ABool;
 typedef Attachment<byte>		AByte;
 typedef Attachment<int>			AInt;
 typedef Attachment<uint>		AUInt;

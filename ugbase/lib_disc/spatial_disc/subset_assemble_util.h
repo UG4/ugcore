@@ -33,7 +33,7 @@ inline
 bool CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
                         SubsetGroup& unionSSGrp,
                         std::vector<IElemDisc* > vElemDisc,
-                        const ISubsetHandler& sh)
+                        ConstSmartPtr<ISubsetHandler> pSH)
 {
 //	resize subset group vector
 	vSSGrp.resize(vElemDisc.size());
@@ -45,8 +45,8 @@ bool CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
 	for(size_t i = 0; i < vSSGrp.size(); ++i)
 	{
 	//	create subset group for elem disc i
-		if(!ConvertStringToSubsetGroup(vSSGrp[i], sh,
-		                           vElemDisc[i]->symb_subsets()))
+		if(!ConvertStringToSubsetGroup(vSSGrp[i], pSH,
+		                               vElemDisc[i]->symb_subsets()))
 		{
 			UG_LOG("ERROR in 'CreateUnionOfSubsets': Cannot find symbolic "
 					" subset name for IElemDisc "<<i<<".\n");
@@ -55,7 +55,7 @@ bool CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
 	}
 
 //	set underlying subsetHandler
-	unionSSGrp.set_subset_handler(sh);
+	unionSSGrp.set_subset_handler(pSH);
 
 //	add all Subset groups of the element discs
 	for(size_t i = 0; i < vSSGrp.size(); ++i)

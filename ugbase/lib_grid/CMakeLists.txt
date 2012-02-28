@@ -65,7 +65,8 @@ set(srcFileIO	file_io/file_io_art.cpp
 				file_io/file_io_stl.cpp
 				file_io/file_io.cpp)
 								
-set(srcLibGrid	tools/subset_handler_interface.cpp
+set(srcLibGrid	tools/bool_marker.cpp
+				tools/subset_handler_interface.cpp
 				tools/subset_handler_grid.cpp
 				tools/subset_handler_multi_grid.cpp
 				tools/selector_interface.cpp
@@ -74,7 +75,6 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 				tools/marker_points.cpp
 				tools/surface_view.cpp
 				tools/partition_map.cpp
-				tools/tmp_dev/surface_view.cpp
 				geometric_objects/geometric_objects_1d.cpp
 				geometric_objects/geometric_objects_2d.cpp
 				geometric_objects/geometric_objects_3d.cpp

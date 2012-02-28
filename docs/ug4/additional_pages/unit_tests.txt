@@ -123,7 +123,7 @@ approxSpace:add_fct("c", "Lagrange", 1)
 approxSpace:print_statistic()
 
 -- lets order indices using Cuthill-McKee
-test.require(OrderCuthillMcKee(approxSpace, true), "ordering Cuthill-McKee")
+OrderCuthillMcKee(approxSpace, true);
 \endcode
 
 */

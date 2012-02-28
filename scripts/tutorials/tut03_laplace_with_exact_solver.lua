@@ -245,10 +245,6 @@ domainDisc:add(dirichletBnd)
 linOp = AssembledLinearOperator()
 -- the discretization object from which the operator is assembled
 linOp:set_discretization(domainDisc)
--- since we do not use a multi-grid method here, we want to operate on the
--- unknowns (degrees of freedom - dofs) of the surface grid. Since we
--- didn't refine in this example, this of course is the same as the base grid.
-linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- Now lets solve the problem. Create a vector of unknowns and a vector
 -- which contains the right hand side. We will use the approximation space

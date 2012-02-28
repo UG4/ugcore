@@ -93,20 +93,20 @@ create_level_index_layouts(serial_dd_type& dd, size_t lev)
 	if(lev < TMGDoFManager::num_levels())
 	{
 	//	create horizontal index layouts
-		bRet &= AddEntriesToLevelIndexLayout(dd.get_master_layout(), dd,
+		bRet &= AddEntriesToLevelIndexLayout(dd.master_layout(), dd,
 							  layoutMap.get_layout<TElem>(INT_H_MASTER).
 								  layout_on_level(lev));
 
-		bRet &= AddEntriesToLevelIndexLayout(dd.get_slave_layout(), dd,
+		bRet &= AddEntriesToLevelIndexLayout(dd.slave_layout(), dd,
 							  layoutMap.get_layout<TElem>(INT_H_SLAVE).
 								  layout_on_level(lev));
 
 	//	create vertical layouts
-		bRet &= AddEntriesToLevelIndexLayout(dd.get_vertical_master_layout(),
+		bRet &= AddEntriesToLevelIndexLayout(dd.vertical_master_layout(),
 							dd, layoutMap.get_layout<TElem>(INT_V_MASTER).
 										layout_on_level(lev));
 
-		bRet &= AddEntriesToLevelIndexLayout(dd.get_vertical_slave_layout(),
+		bRet &= AddEntriesToLevelIndexLayout(dd.vertical_slave_layout(),
 							dd, layoutMap.get_layout<TElem>(INT_V_SLAVE).
 										layout_on_level(lev));
 
@@ -165,17 +165,17 @@ create_level_index_layouts(size_t numGlobalLevels)
 						  ",!empty=" << !commWorld.empty() << ").\n");
 
 	//	create process communicator for interprocess layouts
-		dd.get_process_communicator()
+		dd.process_communicator()
 				= commWorld.create_sub_communicator(participate);
 
 	//  -----------------------------------
 	//	CREATE INDEX LAYOUTS ON LEVEL
 	//  -----------------------------------
 	//	clear all Index Layouts
-		dd.get_master_layout().clear();
-		dd.get_slave_layout().clear();
-		dd.get_vertical_master_layout().clear();
-		dd.get_vertical_slave_layout().clear();
+		dd.master_layout().clear();
+		dd.slave_layout().clear();
+		dd.vertical_master_layout().clear();
+		dd.vertical_slave_layout().clear();
 
 	//	create the index layouts
 		try{
@@ -266,26 +266,26 @@ void ParallelMGDoFManager<TMGDoFManager>::create_surface_index_layouts()
 	bool bRet = true;
 
 //	create index layouts
-	dd.get_master_layout().clear();
-	dd.get_slave_layout().clear();
+	dd.master_layout().clear();
+	dd.slave_layout().clear();
 
 //	create surface index layouts
-	bRet &= CreateSurfaceIndexLayout(dd.get_master_layout(),
+	bRet &= CreateSurfaceIndexLayout(dd.master_layout(),
 	                                 dd, *m_pLayoutMap, INT_H_MASTER,
 									 *this->m_pMultiGrid,
 									 *m_pDistGridManager);
-	bRet &= CreateSurfaceIndexLayout(dd.get_slave_layout(),
+	bRet &= CreateSurfaceIndexLayout(dd.slave_layout(),
 	                                 dd, *m_pLayoutMap, INT_H_SLAVE,
 	                                 *this->m_pMultiGrid,
 	                                 *m_pDistGridManager);
 
 //	check
 //	pcl::ParallelCommunicator<IndexLayout> comTmp;
-//	pcl::PrintLayout(ProcessCommunicator needed, comTmp, distr.get_master_layout(), distr.get_slave_layout());
+//	pcl::PrintLayout(comTmp, distr.master_layout(), distr.slave_layout());
 
 //	on the surface view, there are no vertical layouts.
-	dd.get_vertical_master_layout().clear();
-	dd.get_vertical_slave_layout().clear();
+	dd.vertical_master_layout().clear();
+	dd.vertical_slave_layout().clear();
 
 //	TODO:	this communicator should be specified from the application
 	pcl::ProcessCommunicator commWorld;
@@ -295,7 +295,7 @@ void ParallelMGDoFManager<TMGDoFManager>::create_surface_index_layouts()
 	if(dd.num_indices() == 0) participate = false;
 
 //	create communicator
-	dd.get_process_communicator() = commWorld.create_sub_communicator(participate);
+	dd.process_communicator() = commWorld.create_sub_communicator(participate);
 
 //	we're done
 	if(!bRet)
@@ -344,7 +344,7 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd,
                 int verboseLev) const
 {
 //	Get Process communicator;
-	pcl::ProcessCommunicator pCom = dd.get_process_communicator();
+	pcl::ProcessCommunicator pCom = dd.process_communicator();
 
 //	compute local dof numbers of all masters; this the number of all dofs
 //	minus the number of all slave dofs (double counting of slaves can not
@@ -361,8 +361,8 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd,
 	//	not reguarded as masters on the dd. All others are masters. (Especially,
 	//	also vertical slaves are masters w.r.t. computing like smoothing !!)
 		std::vector<IndexLayout::Element> vIndex;
-		CollectElements(vIndex, dd.get_vertical_master_layout());
-		CollectElements(vIndex, dd.get_slave_layout(), false);
+		CollectElements(vIndex, dd.vertical_master_layout());
+		CollectElements(vIndex, dd.slave_layout(), false);
 
 	//	sort vector and remove doubles
 		std::sort(vIndex.begin(), vIndex.end());
@@ -372,7 +372,7 @@ print_statistic(typename TMGDoFManager::dof_distribution_type& dd,
 	//	now remove all horizontal masters, since they are still master though
 	//	in the vert master interface
 		std::vector<IndexLayout::Element> vIndex2;
-		CollectElements(vIndex2, dd.get_master_layout());
+		CollectElements(vIndex2, dd.master_layout());
 		for(size_t i = 0; i < vIndex2.size(); ++i)
 			vIndex.erase(std::remove(vIndex.begin(), vIndex.end(), vIndex2[i]),
 			             vIndex.end());

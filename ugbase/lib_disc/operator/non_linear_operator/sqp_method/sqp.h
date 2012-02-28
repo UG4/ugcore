@@ -27,98 +27,46 @@
 
 namespace ug {
 
-template <	typename TDomain,
-			typename TDoFDistribution,
-			typename TAlgebra>
-class SQPMethod : public DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>
+template <typename TDomain, typename TAlgebra>
+class SQPMethod : public DomainDiscretization<TDomain, TAlgebra>
 {
 	private:
 	/// Base class type
-		typedef DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>
-				base_type;
+		typedef DomainDiscretization<TDomain, TAlgebra>	base_type;
+
 	public:
-	///	Type of Domain Disc
-	/*	typedef DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>
-						domain_disc_type;*/
-
-	///	Type of Domain
-		//typedef TDomain domain_type;
-
-	//	Algebra type
-	//	typedef TAlgebra algebra_type;
-
 	//	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
-	//	DoFDistribution Type
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
-		//typedef TDoFDistribution dof_distribution_type;
-
 	///	Type of approximation space
-		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>
-					approx_space_type;
+		typedef ApproximationSpace<TDomain> approx_space_type;
 
 	public:
-		SQPMethod(approx_space_type& pApproxSpace): DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>(pApproxSpace),
+		SQPMethod(SmartPtr<approx_space_type> spApproxSpace)
+			: DomainDiscretization<TDomain, TAlgebra>(spApproxSpace),
 			m_toleranceCheck(0.0)
 			{};
-		/*SQPMethod():
-			m_toleranceCheck(0.0)
-			{};*/
 
 		void set_tolerance_check(number TolCheck) {m_toleranceCheck = TolCheck;}
 
-		//void set_discretization(domain_disc_type& domDisc) {m_domDisc = domDisc;}
-
 	// init Operator
-		//virtual bool init();
 		bool init();
 
 	// prepare Operator
-		//virtual bool prepare();
 		bool prepare();
 
 	// tolerance_check Operator: this operator checks,
 	// if the linearized constraint is fulfilled sufficiently
-		//virtual bool check_tolerance(const vector_type& u, const dof_distribution_type& dd); // const domain_disc_type& domDisc);
-		bool check_tolerance(const vector_type& u, const dof_distribution_type& dd, base_type& domDisc);
+		bool check_tolerance(const vector_type& u, const SurfaceDoFDistribution& dd, base_type& domDisc);
 
 	// update Operator: this operator updates the SQP-variables
-		//virtual bool update_variables(const vector_type& u, const dof_distribution_type& dd);
-		bool update_variables(const vector_type& u, const dof_distribution_type& dd, base_type& domDisc);
+		bool update_variables(const vector_type& u, const SurfaceDoFDistribution& dd, base_type& domDisc);
 
-		//~SQPMethod();
 		virtual ~SQPMethod(){};
-
-	/*protected:
-	///	set the approximation space in the elem discs and extract IElemDiscs
-		bool update_elem_discs();
-		bool update_constraints();
-		bool update_disc_items();*/
-
 
 	private:
 	// 	Tolerance Check
 		number m_toleranceCheck;
-
-	// 	domain disc
-	//	domain_disc_type m_domDisc;
-
-	///	vector holding all registered elem discs
-	//	std::vector<IElemDisc*> m_vElemDisc;
-
-	/// forces the assembling to regard the grid as regular
-	//	bool m_bForceRegGrid;
-
-	//	vector holding all registered constraints
-	//	std::vector<IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
-
-	///	current approximation space
-	//	approx_space_type* m_pApproxSpace;
-
-	///	vector holding all registered elem discs
-	//	std::vector<IDomainElemDisc<domain_type>*> m_vDomainElemDisc;
-
 };
 
 }

@@ -89,14 +89,14 @@ class ParallelMatrix : public TMatrix
 		}
 
 	///	returns the slave layout
-		IndexLayout& get_slave_layout() const
+		IndexLayout& slave_layout() const
 		{
 			UG_ASSERT(m_pSlaveLayout != NULL, "No Slave Layout set, but requested.");
 			return *m_pSlaveLayout;
 		}
 
 	///	returns the master layout
-		IndexLayout& get_master_layout() const
+		IndexLayout& master_layout() const
 		{
 			UG_ASSERT(m_pMasterLayout != NULL, "No Slave Layout set, but requested.");
 			return *m_pMasterLayout;
@@ -110,14 +110,14 @@ class ParallelMatrix : public TMatrix
 
 	///	returns the communicator
 		pcl::ParallelCommunicator<IndexLayout>&
-		get_communicator()
+		communicator()
 		{
 			UG_ASSERT(m_pCommunicator != NULL, "No communicator set, but requested.");
 			return *m_pCommunicator;
 		}
 
 		const pcl::ParallelCommunicator<IndexLayout>&
-		get_communicator() const
+		communicator() const
 		{
 			UG_ASSERT(m_pCommunicator != NULL, "No communicator set, but requested.");
 			return *m_pCommunicator;
@@ -131,10 +131,10 @@ class ParallelMatrix : public TMatrix
 
 	///	returns the process communicator
 		pcl::ProcessCommunicator&
-		get_process_communicator() {return m_processCommunicator;}
+		process_communicator() {return m_processCommunicator;}
 
 		const pcl::ProcessCommunicator&
-		get_process_communicator() const {return m_processCommunicator;}
+		process_communicator() const {return m_processCommunicator;}
 
 		/////////////////////////
 		// Storage type handling

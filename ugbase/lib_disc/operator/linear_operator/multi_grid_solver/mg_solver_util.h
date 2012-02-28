@@ -14,7 +14,6 @@
 // library intern headers
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
-#include "lib_disc/dof_manager/dof_distribution.h"
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/distributed_grid.h"
 #endif
@@ -22,6 +21,7 @@
 #include "lib_algebra/operator/operator_inverse_interface.h"
 #include "lib_algebra/operator/operator_interface.h"
 
+#include "lib_disc/dof_manager/mg_dof_distribution.h"
 
 namespace ug{
 
@@ -29,85 +29,9 @@ namespace ug{
 // SurfaceToToplevelMap
 ////////////////////////////////////////////////////////////////////////////////
 
-/// creates a mapping levIndex = vMap[surfIndex];
-template <typename TElem, typename TDoFDistribution>
-bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
-                                const IDoFDistribution<TDoFDistribution>& surfDD,
-                                const IDoFDistribution<TDoFDistribution>& topDD)
-{
-//	type of element iterator
-	typedef typename geometry_traits<TElem>::const_iterator iter_type;
-
-//	vector of indices
-	typedef typename IDoFDistribution<TDoFDistribution>::algebra_index_vector_type ind_vec_type;
-	ind_vec_type surfaceInd, levelInd;
-
-	for(int si = 0; si < surfDD.num_subsets(); ++si)
-	{
-	//	iterators for subset
-		iter_type iter = surfDD.template begin<TElem>(si);
-		iter_type iterEnd = surfDD.template end<TElem>(si);
-
-	//	loop all elements of type
-		for( ; iter != iterEnd; ++iter)
-		{
-		//	get elem
-			TElem* elem = *iter;
-
-		//	extract all algebra indices for the element on surface
-			surfDD.inner_algebra_indices(elem, surfaceInd);
-
-		//	extract all algebra indices for the element on level
-			topDD.inner_algebra_indices(elem, levelInd);
-
-		//	check that index sets have same cardinality
-			UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
-
-		//	copy all elements of the vector
-			for(size_t i = 0; i < surfaceInd.size(); ++i)
-			{
-			//	copy entries into level vector
-				vMap[surfaceInd[i]] = levelInd[i];
-			}
-		}
-	}
-
-//	we're done
-	return true;
-}
-
-template <typename TDoFDistribution>
-bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
-                                const IDoFDistribution<TDoFDistribution>& surfDD,
-                                const IDoFDistribution<TDoFDistribution>& topDD)
-{
-//	check full refinement
-	if(surfDD.num_indices() != topDD.num_indices())
-	{
-		UG_LOG("ERROR in 'CreateSurfaceToToplevelMap': This function can only"
-				" be applied to a full refined grid, where the surface is the "
-				" top level.\n");
-		return false;
-	}
-
-//	success flag
-	bool bRetVal = true;
-
-//	resize mapping
-	vMap.resize(surfDD.num_indices(), 10000555);
-
-// 	add dofs on elements
-	if(surfDD.has_indices_on(VERTEX))
-		bRetVal &= CreateSurfaceToToplevelMap<VertexBase, TDoFDistribution>(vMap, surfDD, topDD);
-	if(surfDD.has_indices_on(EDGE))
-		bRetVal &= CreateSurfaceToToplevelMap<EdgeBase, TDoFDistribution>(vMap, surfDD, topDD);
-	if(surfDD.has_indices_on(FACE))
-		bRetVal &= CreateSurfaceToToplevelMap<Face, TDoFDistribution>(vMap, surfDD, topDD);
-	if(surfDD.has_indices_on(VOLUME))
-		bRetVal &= CreateSurfaceToToplevelMap<Volume, TDoFDistribution>(vMap, surfDD, topDD);
-
-	return bRetVal;
-}
+void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
+                                ConstSmartPtr<SurfaceDoFDistribution> surfDD,
+                                ConstSmartPtr<LevelDoFDistribution> topDD);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Projections
@@ -130,26 +54,25 @@ bool CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
  * \tparam		TVector					vector type
  * \tparam		TDoFDistributionImpl	type of DoF distribution
  */
-template <typename TElem, typename TVector, typename TDoFDistributionImpl>
-bool ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
-                           const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD,
+template <typename TElem, typename TVector>
+void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
+                           std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
                            const TVector& surfaceVector,
-                           const IDoFDistribution<TDoFDistributionImpl>& surfaceDD,
+                           ConstSmartPtr<SurfaceDoFDistribution> surfaceDD,
                            const SurfaceView& surfaceView)
 {
 //	type of element iterator
-	typedef typename geometry_traits<TElem>::const_iterator iter_type;
+	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
 
 //	vector of indices
-	typedef typename IDoFDistribution<TDoFDistributionImpl>::algebra_index_vector_type ind_vec_type;
-	ind_vec_type surfaceInd, levelInd;
+	std::vector<size_t> surfaceInd, levelInd;
 
 //	loop all elements of type
-	for(int si = 0; si < surfaceDD.num_subsets(); ++si)
+	for(int si = 0; si < surfaceDD->num_subsets(); ++si)
 	{
 	//	iterators for subset
-		iter_type iter = surfaceDD.template begin<TElem>(si);
-		iter_type iterEnd = surfaceDD.template end<TElem>(si);
+		iter_type iter = surfaceDD->begin<TElem>(si);
+		iter_type iterEnd = surfaceDD->end<TElem>(si);
 
 		for( ; iter != iterEnd; ++iter)
 		{
@@ -157,7 +80,7 @@ bool ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 			TElem* elem = *iter;
 
 		//	extract all algebra indices for the element on surface
-			surfaceDD.inner_algebra_indices(elem, surfaceInd);
+			surfaceDD->inner_algebra_indices(elem, surfaceInd);
 
 		//	get level of element in hierarchy
 			int level = surfaceView.get_level(elem);
@@ -170,7 +93,7 @@ bool ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
 
 		//	extract all algebra indices for the element on level
-			UG_ASSERT(vLevelDD[level] != NULL, "DoF Distribution missing");
+			UG_ASSERT(vLevelDD[level].is_valid(), "DoF Distribution missing");
 			vLevelDD[level]->inner_algebra_indices(elem, levelInd);
 
 		//	check that index sets have same cardinality
@@ -184,43 +107,34 @@ bool ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 			}
 		}
 	}
-
-//	we're done
-	return true;
 }
 
 /// projects surface function to level functions
-template <typename TVector, typename TDoFDistributionImpl>
-bool ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
-                           const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD,
+template <typename TVector>
+void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
+                           std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
                            const TVector& surfVector,
-                           const IDoFDistribution<TDoFDistributionImpl>& surfDD,
+                           ConstSmartPtr<SurfaceDoFDistribution> surfDD,
                            const SurfaceView& surfView)
 {
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
-	{
-		UG_LOG("In ProjectSurfaceToLevel: Number of level Vectors ("
+		UG_THROW_FATAL("ProjectSurfaceToLevel: Number of level Vectors ("
 				<< vLevelVector.size() <<") and level DoF Distributions ("
 				<< vLevelDD.size() << ") does not match. Aborting.\n");
-		return false;
-	}
-
-//	return flag
-	bool bRet = true;
 
 //	forward for all BaseObject types
-	if(surfDD.has_indices_on(VERTEX))
-		bRet &= ProjectSurfaceToLevel<VertexBase, TVector, TDoFDistributionImpl>
+	if(surfDD->has_indices_on(VERTEX))
+		ProjectSurfaceToLevel<VertexBase, TVector>
 					(vLevelVector, vLevelDD, surfVector, surfDD, surfView);
-	if(surfDD.has_indices_on(EDGE))
-		bRet &= ProjectSurfaceToLevel<EdgeBase, TVector, TDoFDistributionImpl>
+	if(surfDD->has_indices_on(EDGE))
+		ProjectSurfaceToLevel<EdgeBase, TVector>
 					(vLevelVector, vLevelDD, surfVector, surfDD, surfView);
-	if(surfDD.has_indices_on(FACE))
-		bRet &= ProjectSurfaceToLevel<Face, TVector, TDoFDistributionImpl>
+	if(surfDD->has_indices_on(FACE))
+		ProjectSurfaceToLevel<Face, TVector>
 					(vLevelVector, vLevelDD, surfVector, surfDD, surfView);
-	if(surfDD.has_indices_on(VOLUME))
-		bRet &= ProjectSurfaceToLevel<Volume, TVector, TDoFDistributionImpl>
+	if(surfDD->has_indices_on(VOLUME))
+		ProjectSurfaceToLevel<Volume, TVector>
 					(vLevelVector, vLevelDD, surfVector, surfDD, surfView);
 
 #ifdef UG_PARALLEL
@@ -229,33 +143,29 @@ bool ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 		if(vLevelVector[lev] != NULL)
 			vLevelVector[lev]->copy_storage_type(surfVector);
 #endif
-
-//	we're done
-	return bRet;
 }
 
 /// projects surface function to level functions
-template <typename TElem, typename TVector, typename TDoFDistributionImpl>
-bool ProjectLevelToSurface(TVector& surfaceVector,
-                           const IDoFDistribution<TDoFDistributionImpl>& surfaceDD,
+template <typename TElem, typename TVector>
+void ProjectLevelToSurface(TVector& surfaceVector,
+                           ConstSmartPtr<SurfaceDoFDistribution> surfaceDD,
                            const SurfaceView& surfaceView,
 						   const std::vector<const TVector*>& vLevelVector,
-                           const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD,
+						   std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
                            const int baseLevel)
 {
 //	type of element iterator
-	typedef typename geometry_traits<TElem>::const_iterator iter_type;
+	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
 
 //	vector of indices
-	typedef typename IDoFDistribution<TDoFDistributionImpl>::algebra_index_vector_type ind_vec_type;
-	ind_vec_type surfaceInd, levelInd;
+	std::vector<size_t> surfaceInd, levelInd;
 
 //	loop all elements of type
-	for(int si = 0; si < surfaceDD.num_subsets(); ++si)
+	for(int si = 0; si < surfaceDD->num_subsets(); ++si)
 	{
 	//	iterators for subset
-		iter_type iter = surfaceDD.template begin<TElem>(si);
-		iter_type iterEnd = surfaceDD.template end<TElem>(si);
+		iter_type iter = surfaceDD->begin<TElem>(si);
+		iter_type iterEnd = surfaceDD->end<TElem>(si);
 
 		for( ; iter != iterEnd; ++iter)
 		{
@@ -263,23 +173,22 @@ bool ProjectLevelToSurface(TVector& surfaceVector,
 			TElem* elem = *iter;
 
 		//	skip shadows
-			if(surfaceView.is_shadow(elem)) continue;
+			if(surfaceView.is_shadowed(elem)) continue;
 
 		//	extract all algebra indices for the element on surface
-			surfaceDD.inner_algebra_indices(elem, surfaceInd);
+			surfaceDD->inner_algebra_indices(elem, surfaceInd);
 
 		//	get level of element in hierarchy
 			int level = surfaceView.get_level(elem);
 
 		//	get corresponding level vector for element
-			UG_ASSERT(vLevelVector[level] != NULL, "Vector missing");
 			const TVector& levelVector = *(vLevelVector[level]);
 
 		//	check that level is correct
 			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
 
 		//	extract all algebra indices for the element on level
-			UG_ASSERT(vLevelDD[level] != NULL, "DoF Distribution missing");
+			UG_ASSERT(vLevelDD[level].is_valid(), "DoF Distribution missing");
 			vLevelDD[level]->inner_algebra_indices(elem, levelInd);
 
 		//	check that index sets have same cardinality
@@ -293,44 +202,35 @@ bool ProjectLevelToSurface(TVector& surfaceVector,
 			}
 		}
 	}
-
-//	we're done
-	return true;
 }
 
 /// projects surface function to level functions
-template <typename TVector, typename TDoFDistributionImpl>
-bool ProjectLevelToSurface(TVector& surfVector,
-                           const IDoFDistribution<TDoFDistributionImpl>& surfDD,
+template <typename TVector>
+void ProjectLevelToSurface(TVector& surfVector,
+                           ConstSmartPtr<SurfaceDoFDistribution> surfDD,
                            const SurfaceView& surfView,
                            const std::vector<const TVector*>& vLevelVector,
-                           const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD,
+                           std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
                            const int baseLevel)
 {
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
-	{
-		UG_LOG("In ProjectLevelToSurface: Number of level Vectors ("
+		UG_THROW_FATAL("ProjectLevelToSurface: Number of level Vectors ("
 				<< vLevelVector.size() <<") and level DoF Distributions ("
 				<< vLevelDD.size() << ") does not match. Aborting.\n");
-		return false;
-	}
-
-//	return flag
-	bool bRet = true;
 
 //	forward for all BaseObject types
-	if(surfDD.has_indices_on(VERTEX))
-		bRet &= ProjectLevelToSurface<VertexBase, TVector, TDoFDistributionImpl>
+	if(surfDD->has_indices_on(VERTEX))
+		ProjectLevelToSurface<VertexBase, TVector>
 					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-	if(surfDD.has_indices_on(EDGE))
-		bRet &= ProjectLevelToSurface<EdgeBase, TVector, TDoFDistributionImpl>
+	if(surfDD->has_indices_on(EDGE))
+		ProjectLevelToSurface<EdgeBase, TVector>
 					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-	if(surfDD.has_indices_on(FACE))
-		bRet &= ProjectLevelToSurface<Face, TVector, TDoFDistributionImpl>
+	if(surfDD->has_indices_on(FACE))
+		ProjectLevelToSurface<Face, TVector>
 					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-	if(surfDD.has_indices_on(VOLUME))
-		bRet &= ProjectLevelToSurface<Volume, TVector, TDoFDistributionImpl>
+	if(surfDD->has_indices_on(VOLUME))
+		ProjectLevelToSurface<Volume, TVector>
 					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
 
 #ifdef UG_PARALLEL
@@ -364,16 +264,13 @@ bool ProjectLevelToSurface(TVector& surfVector,
  			for(size_t lev = baseLevel; lev < vLevelVector.size(); ++lev)
 				if(vLevelVector[lev] != NULL)
 					UG_LOG("  lev "<<lev<<": "<<vLevelVector[lev]->get_storage_mask()<<"\n");
-			return false;
+ 			UG_THROW_FATAL("Cannot Project Level to Surface.")
 		}
 
 	//	set type of surface vector to common base
 		surfVector.set_storage_type(type);
 	}
 #endif
-
-//	we're done
-	return bRet;
 }
 
 
@@ -392,25 +289,26 @@ bool ProjectLevelToSurface(TVector& surfVector,
  * \param[in] 	ddCoarse		dof distribution on coarse space
  * \param[in]	surfView		surface view
  */
-template <typename TBaseElem, typename TVector, typename TDoFDistributionImpl>
-bool AddProjectionOfShadows(TVector& fineVec, const TVector& coarseVec,
-                           const number scale,
-                           const IDoFDistribution<TDoFDistributionImpl>& ddFine,
-                           const IDoFDistribution<TDoFDistributionImpl>& ddCoarse,
-                           const SurfaceView& surfView)
+template <typename TBaseElem, typename TVector>
+void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
+                            std::vector<ConstSmartPtr<LevelDoFDistribution> > vDDFine,
+                            const TVector& coarseVec,
+                            ConstSmartPtr<LevelDoFDistribution> ddCoarse,
+                            const int level,
+                            const number scale,
+                            const SurfaceView& surfView)
 {
-
-	typename TDoFDistributionImpl::algebra_index_vector_type fineInd;
-	typename TDoFDistributionImpl::algebra_index_vector_type coarseInd;
+	std::vector<size_t> fineInd, coarseInd;
 
 // 	iterators
-	typename geometry_traits<TBaseElem>::const_iterator iter, iterEnd;
+	typedef typename LevelDoFDistribution::traits<TBaseElem>::const_iterator const_iterator;
+	const_iterator iter, iterEnd;
 
 // 	loop subsets of fine level
-	for(int si = 0; si < ddCoarse.num_subsets(); ++si)
+	for(int si = 0; si < ddCoarse->num_subsets(); ++si)
 	{
-		iter = ddCoarse.template begin<TBaseElem>(si);
-		iterEnd = ddCoarse.template end<TBaseElem>(si);
+		iter = ddCoarse->begin<TBaseElem>(si);
+		iterEnd = ddCoarse->end<TBaseElem>(si);
 
 	// 	loop elements of coarse subset
 		for(; iter != iterEnd; ++iter)
@@ -419,58 +317,63 @@ bool AddProjectionOfShadows(TVector& fineVec, const TVector& coarseVec,
 			TBaseElem* pElem = *iter;
 
 		//	skip non-shadows
-			if(!surfView.is_shadow(pElem)) continue;
+			if(!surfView.is_shadowed(pElem)) continue;
 
 		// 	get child (i.e. shadow)
-			TBaseElem* pShadowing = surfView.get_shadow_child(pElem);
-			UG_ASSERT(pShadowing != NULL, "Shadow child does not exist. Error.");
+			TBaseElem* pShadowing = surfView.child_if_copy(pElem);
+
+		//	offset to count which child currently handling
+			int offset = 0;
 
 		// 	get global indices
-			ddCoarse.inner_algebra_indices(pElem, coarseInd);
+			ddCoarse->inner_algebra_indices(pElem, coarseInd);
 
-		// 	get global indices
-			ddFine.inner_algebra_indices(pShadowing, fineInd);
+		//	skip if not a copy
+			while(pShadowing){
+			//	increase offset
+				++offset;
 
-		//	add coarse vector entries to fine vector entries
-			for(size_t i = 0; i < coarseInd.size(); ++i)
-			{
-				VecScaleAdd(fineVec[fineInd[i]],
-				            1.0, fineVec[fineInd[i]],
-				            scale, coarseVec[coarseInd[i]]);
+			// 	get global indices
+				vDDFine[level+offset]->inner_algebra_indices(pShadowing, fineInd);
+
+			//	add coarse vector entries to fine vector entries
+				for(size_t i = 0; i < coarseInd.size(); ++i)
+				{
+					VecScaleAdd((*vFineVector[level+offset])[fineInd[i]],
+								1.0, (*vFineVector[level+offset])[fineInd[i]],
+								scale, coarseVec[coarseInd[i]]);
+				}
+
+			//	next child
+				pElem = pShadowing;
+				pShadowing = surfView.child_if_copy(pElem);
 			}
 		}
 	}
-
-//	we're done
-	return true;
 }
 
-template <typename TVector, typename TDoFDistributionImpl>
-bool AddProjectionOfShadows(TVector& fineVec, const TVector& coarseVec,
-                           const number scale,
-                           const IDoFDistribution<TDoFDistributionImpl>& ddFine,
-                           const IDoFDistribution<TDoFDistributionImpl>& ddCoarse,
-                           const SurfaceView& surfView)
+template <typename TVector>
+void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
+                            std::vector<ConstSmartPtr<LevelDoFDistribution> > vDDFine,
+                            const TVector& coarseVec,
+                            ConstSmartPtr<LevelDoFDistribution> ddCoarse,
+                            const int level,
+                            const number scale,
+                            const SurfaceView& surfView)
 {
-//	return flag
-	bool bRet = true;
-
 //	forward for all BaseObject types
-	if(ddFine.has_indices_on(VERTEX))
-		bRet &= AddProjectionOfShadows<VertexBase, TVector, TDoFDistributionImpl>
-					(fineVec, coarseVec, scale, ddFine, ddCoarse, surfView);
-	if(ddFine.has_indices_on(EDGE))
-		bRet &= AddProjectionOfShadows<EdgeBase, TVector, TDoFDistributionImpl>
-					(fineVec, coarseVec, scale, ddFine, ddCoarse, surfView);
-	if(ddFine.has_indices_on(FACE))
-		bRet &= AddProjectionOfShadows<Face, TVector, TDoFDistributionImpl>
-					(fineVec, coarseVec, scale, ddFine, ddCoarse, surfView);
-	if(ddFine.has_indices_on(VOLUME))
-		bRet &= AddProjectionOfShadows<Volume, TVector, TDoFDistributionImpl>
-					(fineVec, coarseVec, scale, ddFine, ddCoarse, surfView);
-
-//	return success
-	return bRet;
+	if(ddCoarse->has_indices_on(VERTEX))
+		AddProjectionOfShadows<VertexBase, TVector>
+					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
+	if(ddCoarse->has_indices_on(EDGE))
+		AddProjectionOfShadows<EdgeBase, TVector>
+					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
+	if(ddCoarse->has_indices_on(FACE))
+		AddProjectionOfShadows<Face, TVector>
+					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
+	if(ddCoarse->has_indices_on(VOLUME))
+		AddProjectionOfShadows<Volume, TVector>
+					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
 }
 
 
@@ -483,22 +386,23 @@ bool AddProjectionOfShadows(TVector& fineVec, const TVector& coarseVec,
  * \param[in] 	dd				DoFDistribution
  * \param[in]	surfView		SurfaceView
  */
-template <typename TBaseElem, typename TVector, typename TDoFDistributionImpl>
-bool SetZeroOnShadowing(TVector& vec,
-                        const IDoFDistribution<TDoFDistributionImpl>& dd,
+template <typename TBaseElem, typename TVector>
+void SetZeroOnShadowing(TVector& vec,
+                        ConstSmartPtr<LevelDoFDistribution> dd,
                         const SurfaceView& surfView)
 {
 //	indices
-	typename TDoFDistributionImpl::algebra_index_vector_type ind;
+	std::vector<size_t> ind;
 
 // 	Vertex iterators
-	typename geometry_traits<TBaseElem>::const_iterator iter, iterEnd;
+	typedef typename LevelDoFDistribution::traits<TBaseElem>::const_iterator const_iterator;
+	const_iterator iter, iterEnd;
 
 // 	loop subsets of fine level
-	for(int si = 0; si < dd.num_subsets(); ++si)
+	for(int si = 0; si < dd->num_subsets(); ++si)
 	{
-		iter = dd.template begin<TBaseElem>(si);
-		iterEnd = dd.template end<TBaseElem>(si);
+		iter = dd->begin<TBaseElem>(si);
+		iterEnd = dd->end<TBaseElem>(si);
 
 	// 	loop nodes of fine subset
 		for(; iter != iterEnd; ++iter)
@@ -507,10 +411,13 @@ bool SetZeroOnShadowing(TVector& vec,
 			TBaseElem* vrt = *iter;
 
 		//	skip non-shadowing vertices
-			if(!surfView.shadows(vrt)) continue;
+			GeometricObject* parent = surfView.parent_if_copy(vrt);
+
+			if(parent == NULL) continue;
+			if(!surfView.is_shadowed(parent)) continue;
 
 		// 	get global indices
-			dd.inner_algebra_indices(vrt, ind);
+			dd->inner_algebra_indices(vrt, ind);
 
 		//	set vector entries to zero
 			for(size_t i = 0; i < ind.size(); ++i)
@@ -519,9 +426,6 @@ bool SetZeroOnShadowing(TVector& vec,
 			}
 		}
 	}
-
-//	we're done
-	return true;
 }
 
 /**
@@ -533,30 +437,20 @@ bool SetZeroOnShadowing(TVector& vec,
  * \param[in] 	dd				DoFDistribution
  * \param[in]	surfView		SurfaceView
  */
-template <typename TVector, typename TDoFDistributionImpl>
-bool SetZeroOnShadowing(TVector& vec,
-                        const IDoFDistribution<TDoFDistributionImpl>& dd,
+template <typename TVector>
+void SetZeroOnShadowing(TVector& vec,
+                        ConstSmartPtr<LevelDoFDistribution> dd,
                         const SurfaceView& surfView)
 {
-//	return flag
-	bool bRet = true;
-
 //	forward for all BaseObject types
-	if(dd.has_indices_on(VERTEX))
-		bRet &= SetZeroOnShadowing<VertexBase, TVector, TDoFDistributionImpl>
-					(vec, dd, surfView);
-	if(dd.has_indices_on(EDGE))
-		bRet &= SetZeroOnShadowing<EdgeBase, TVector, TDoFDistributionImpl>
-					(vec, dd, surfView);
-	if(dd.has_indices_on(FACE))
-		bRet &= SetZeroOnShadowing<Face, TVector, TDoFDistributionImpl>
-					(vec, dd, surfView);
-	if(dd.has_indices_on(VOLUME))
-		bRet &= SetZeroOnShadowing<Volume, TVector, TDoFDistributionImpl>
-					(vec, dd, surfView);
-
-//	return success
-	return bRet;
+	if(dd->has_indices_on(VERTEX))
+		SetZeroOnShadowing<VertexBase, TVector>(vec, dd, surfView);
+	if(dd->has_indices_on(EDGE))
+		SetZeroOnShadowing<EdgeBase, TVector>(vec, dd, surfView);
+	if(dd->has_indices_on(FACE))
+		SetZeroOnShadowing<Face, TVector>(vec, dd, surfView);
+	if(dd->has_indices_on(VOLUME))
+		SetZeroOnShadowing<Volume, TVector>(vec, dd, surfView);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -564,10 +458,10 @@ bool SetZeroOnShadowing(TVector& vec,
 ////////////////////////////////////////////////////////////////////////////////
 
 /// selects all non-shadows, that are adjacent to a shadow in the multigrid
-bool SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView);
+void SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView);
 
 /// selects all non-shadows, that are adjacent to a shadow on a grid levels
-bool SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
+void SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
                                               const SurfaceView& surfView,
                                               int level);
 

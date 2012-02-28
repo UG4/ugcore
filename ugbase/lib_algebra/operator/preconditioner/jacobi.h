@@ -81,8 +81,8 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			diag.resize(size);
 
 		//	copy the layouts+communicator into the vector
-			diag.set_layouts(mat.get_master_layout(), mat.get_slave_layout());
-			diag.set_communicator(mat.get_communicator());
+			diag.set_layouts(mat.master_layout(), mat.slave_layout());
+			diag.set_communicator(mat.communicator());
 
 		// 	copy diagonal
 			for(size_t i = 0; i < diag.size(); ++i){

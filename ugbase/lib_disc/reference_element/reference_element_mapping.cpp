@@ -9,6 +9,7 @@
 
 #include "reference_element_mapping.h"
 
+#include "reference_element.h"
 #include "reference_edge.h"
 #include "reference_triangle.h"
 #include "reference_quadrilateral.h"

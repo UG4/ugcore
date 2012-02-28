@@ -10,19 +10,16 @@
 
 #include "lib_disc/assemble_interface.h"
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
+#include "lib_disc/spatial_disc/constraints/constraint_base.h"
 
 namespace ug {
 
-template <	typename TDomain,
-			typename TDoFDistribution,
-			typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class SymP1ConstraintsPostProcess
-	: public IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>
+	: public ConstraintBase<TDomain, TAlgebra,
+	  	  	  	  	  	  	  SymP1ConstraintsPostProcess<TDomain, TAlgebra> >
 {
 	public:
-	// 	DoF Distribution Type
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
-
 	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
@@ -32,64 +29,56 @@ class SymP1ConstraintsPostProcess
 	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
-	// 	Type of algebra index vector
-		typedef typename dof_distribution_type::algebra_index_vector_type algebra_index_vector_type;
-
 	public:
 		virtual int type() {return CT_CONSTRAINTS;}
 
-	///	sets the approximation space
-		virtual void set_approximation_space(IApproximationSpace<TDomain>& approxSpace) {}
-
-		virtual bool adjust_defect(vector_type& d, const vector_type& u,
-		                           const dof_distribution_type& dofDistr,
-		                           number time = 0.0)
+		template <typename TDD>
+		void adjust_defect(vector_type& d, const vector_type& u,
+		                   ConstSmartPtr<TDD> dd, number time = 0.0)
 		{
-		//	not implemented
-			return false;
+			UG_THROW_FATAL("not implemented.");
 		}
 
-		virtual bool adjust_rhs(vector_type& rhs, const vector_type& u,
-		                        const dof_distribution_type& dofDistr,
-		                        number time = 0.0)
+		template <typename TDD>
+		void adjust_rhs(vector_type& rhs, const vector_type& u,
+		                ConstSmartPtr<TDD> dd, number time = 0.0)
 		{
-		//	not implemented
-			return false;
+			UG_THROW_FATAL("not implemented.");
 		}
 
-		virtual bool adjust_jacobian(matrix_type& J, const vector_type& u,
-		                             const dof_distribution_type& dofDistr,
-		                             number time = 0.0)
+		template <typename TDD>
+		void adjust_jacobian(matrix_type& J, const vector_type& u,
+		                     ConstSmartPtr<TDD> dd, number time = 0.0)
 		{
 		//  \todo: Implement correctly
 		//	dummy for rhs
 			vector_type rhsDummy; rhsDummy.resize(u.size());
 
-
-			return adjust_linear(J, rhsDummy, dofDistr, time);
+			adjust_linear(J, rhsDummy, dd, time);
 		}
 
-		virtual bool adjust_linear(matrix_type& mat, vector_type& rhs,
-		                           const dof_distribution_type& dofDistr, number time = 0.0)
+		template <typename TDD>
+		void adjust_linear(matrix_type& mat, vector_type& rhs,
+		                   ConstSmartPtr<TDD> dd, number time)
 		{
 		//	algebra indices of constraining vertex
-			std::vector<algebra_index_vector_type> vConstrainingInd;
+			std::vector<std::vector<size_t> > vConstrainingInd;
 
 		//	algebra indices of constrained vertex
-			algebra_index_vector_type constrainedInd;
+			std::vector<size_t>  constrainedInd;
 
 		//	vector of constraining vertices
 			std::vector<VertexBase*> vConstrainingVrt;
 
 		//	iterators for hanging vertices
-			typename geometry_traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
+			typename TDD::template traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
 
 		//	loop subsets
-			for(int si = 0; si < dofDistr.num_subsets(); ++si)
+			for(int si = 0; si < dd->num_subsets(); ++si)
 			{
 			//	get begin end of hanging vertices
-				iterBegin = dofDistr.template begin<HangingVertex>(si);
-				iterEnd = dofDistr.template end<HangingVertex>(si);
+				iterBegin = dd->template begin<HangingVertex>(si);
+				iterEnd = dd->template end<HangingVertex>(si);
 
 			//	loop constraining edges
 				for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -112,11 +101,8 @@ class SymP1ConstraintsPostProcess
 
 					//	check that edge is correct
 						if(constrainingEdge == NULL)
-						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element should be constraining edge, but is not.\n");
-							return false;
-						}
+							UG_THROW_FATAL("Parent element should be "
+										"constraining edge, but is not.");
 
 					//	get constraining vertices
 						for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
@@ -127,11 +113,8 @@ class SymP1ConstraintsPostProcess
 
 						//	check
 							if(constrainedEdge == NULL)
-							{
-								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-										" Child element should be constrained edge, but is not.\n");
-								return false;
-							}
+								UG_THROW_FATAL("Child element should be "
+											"constrained edge, but is not.");
 
 						//	get non-hanging vertex
 							VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
@@ -149,11 +132,8 @@ class SymP1ConstraintsPostProcess
 
 					//	check that quad is correct
 						if(bigQuad == NULL)
-						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element should be constraining quad, but is not.\n");
-							return false;
-						}
+							UG_THROW_FATAL("Parent element should be "
+											"constraining quad, but is not.");
 
 					//	get constraining vertices
 					//	\todo: This is only valid for a surface grid!!!
@@ -169,15 +149,14 @@ class SymP1ConstraintsPostProcess
 								if(hgVrt != vrt && dynamic_cast<HangingVertex*>(vrt) == NULL)
 									break;
 							}
-							if(i_vrt == face->num_vertices()) {UG_LOG("ERROR: Vertex not detected.\n"); return false;}
+							if(i_vrt == face->num_vertices())
+								UG_THROW_FATAL("ERROR: Vertex not detected.\n");
 
 							vConstrainingVrt.push_back(vrt);
 						}
 					}
 						break;
-					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element of hang. vertex wrong.\n");
-							return false;
+					default: UG_THROW_FATAL("Parent element of hang. vertex wrong.");
 					}
 
 				//	resize constraining indices
@@ -185,24 +164,16 @@ class SymP1ConstraintsPostProcess
 
 				// 	get algebra indices for constraining vertices
 					for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-						dofDistr.inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+						dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
 				// 	get algebra indices constrained vertices
-					dofDistr.inner_algebra_indices(hgVrt, constrainedInd);
+					dd->inner_algebra_indices(hgVrt, constrainedInd);
 
 				// 	Split using indices
-					if(!SplitAddRow(mat, constrainedInd, vConstrainingInd))
-					{
-						UG_LOG("ERROR while splitting rows. Aborting.\n");
-						return false;
-					}
+					SplitAddRow(mat, constrainedInd, vConstrainingInd);
 
 				//	adapt rhs
-					if(!HandleRhs(rhs, constrainedInd, vConstrainingInd))
-					{
-						UG_LOG("ERROR while setting interpolation. Aborting.\n");
-						return false;
-					}
+					HandleRhs(rhs, constrainedInd, vConstrainingInd);
 				}
 
 			//	second loop to set the constraints
@@ -227,11 +198,8 @@ class SymP1ConstraintsPostProcess
 
 					//	check that edge is correct
 						if(constrainingEdge == NULL)
-						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element should be constraining edge, but is not.\n");
-							return false;
-						}
+							UG_THROW_FATAL("Parent element should be "
+											"constraining edge, but is not.");
 
 					//	get constraining vertices
 						for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
@@ -242,11 +210,8 @@ class SymP1ConstraintsPostProcess
 
 						//	check
 							if(constrainedEdge == NULL)
-							{
-								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-										" Child element should be constrained edge, but is not.\n");
-								return false;
-							}
+								UG_THROW_FATAL("Child element should be "
+											"constrained edge, but is not.");
 
 						//	get non-hanging vertex
 							VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
@@ -264,11 +229,8 @@ class SymP1ConstraintsPostProcess
 
 					//	check that quad is correct
 						if(bigQuad == NULL)
-						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element should be constraining quad, but is not.\n");
-							return false;
-						}
+							UG_THROW_FATAL("Parent element should be "
+											"constraining quad, but is not.");
 
 					//	get constraining vertices
 					//	\todo: This is only valid for a surface grid!!!
@@ -287,15 +249,14 @@ class SymP1ConstraintsPostProcess
 								if(hgVrt != vrt && dynamic_cast<HangingVertex*>(vrt) == NULL)
 									break;
 							}
-							if(i_vrt == face->num_vertices()) {UG_LOG("ERROR: Vertex not detected.\n"); return false;}
+							if(i_vrt == face->num_vertices())
+								UG_THROW_FATAL("ERROR: Vertex not detected.");
 
 							vConstrainingVrt.push_back(vrt);
 						}
 					}
 						break;
-					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element of hang. vertex wrong.\n");
-							return false;
+					default: UG_THROW_FATAL("Parent element of hang. vertex wrong.");
 					}
 
 				//	resize constraining indices
@@ -303,46 +264,39 @@ class SymP1ConstraintsPostProcess
 
 				// 	get algebra indices for constraining vertices
 					for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-						dofDistr.inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+						dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
 				// 	get algebra indices constrained vertices
-					dofDistr.inner_algebra_indices(hgVrt, constrainedInd);
+					dd->inner_algebra_indices(hgVrt, constrainedInd);
 
 				//	Set interpolation
-					if(!SetInterpolation(mat, constrainedInd, vConstrainingInd))
-					{
-						UG_LOG("ERROR while setting interpolation. Aborting.\n");
-						return false;
-					}
+					SetInterpolation(mat, constrainedInd, vConstrainingInd);
 				}
 			}
-
-		//  we're done
-			return true;
 		}
 
-		virtual bool adjust_solution(vector_type& u,
-		                             const dof_distribution_type& dofDistr,
-		                             number time = 0.0)
+		template <typename TDD>
+		void adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
+		                     number time)
 		{
 		//	algebra indices of constraining vertex
-			std::vector<algebra_index_vector_type> vConstrainingInd;
+			std::vector<std::vector<size_t> > vConstrainingInd;
 
 		//	algebra indices of constrained vertex
-			algebra_index_vector_type constrainedInd;
+			std::vector<size_t>  constrainedInd;
 
 		//	vector of constraining vertices
 			std::vector<VertexBase*> vConstrainingVrt;
 
 		//	iterators for hanging vertices
-			typename geometry_traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
+			typename TDD::template traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
 
 		//	loop subsets
-			for(int si = 0; si < dofDistr.num_subsets(); ++si)
+			for(int si = 0; si < dd->num_subsets(); ++si)
 			{
 			//	get begin end of hanging vertices
-				iterBegin = dofDistr.template begin<HangingVertex>(si);
-				iterEnd = dofDistr.template end<HangingVertex>(si);
+				iterBegin = dd->template begin<HangingVertex>(si);
+				iterEnd = dd->template end<HangingVertex>(si);
 
 			//	loop constraining edges
 				for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -365,11 +319,8 @@ class SymP1ConstraintsPostProcess
 
 					//	check that edge is correct
 						if(constrainingEdge == NULL)
-						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element should be constraining edge, but is not.\n");
-							return false;
-						}
+							UG_THROW_FATAL("Parent element should be "
+											"constraining edge, but is not.");
 
 					//	get constraining vertices
 						for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
@@ -380,11 +331,8 @@ class SymP1ConstraintsPostProcess
 
 						//	check
 							if(constrainedEdge == NULL)
-							{
-								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-										" Child element should be constrained edge, but is not.\n");
-								return false;
-							}
+								UG_THROW_FATAL("Child element should be "
+												"constrained edge, but is not.");
 
 						//	get non-hanging vertex
 							VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
@@ -402,11 +350,8 @@ class SymP1ConstraintsPostProcess
 
 					//	check that quad is correct
 						if(bigQuad == NULL)
-						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element should be constraining quad, but is not.\n");
-							return false;
-						}
+							UG_THROW_FATAL("Parent element should be "
+											"constraining quad, but is not.");
 
 					//	get constraining vertices
 					//	\todo: This is only valid for a surface grid!!!
@@ -414,9 +359,7 @@ class SymP1ConstraintsPostProcess
 							vConstrainingVrt.push_back(bigQuad->vertex(i));
 					}
 						break;
-					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element of hang. vertex wrong.\n");
-							return false;
+					default: UG_THROW_FATAL("Parent element of hang. vertex wrong.");
 					}
 
 				//	resize constraining indices
@@ -424,38 +367,26 @@ class SymP1ConstraintsPostProcess
 
 				// 	get algebra indices for constraining vertices
 					for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-						dofDistr.inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+						dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
 				// 	get algebra indices constrained vertices
-					dofDistr.inner_algebra_indices(hgVrt, constrainedInd);
+					dd->inner_algebra_indices(hgVrt, constrainedInd);
 
 				// 	Interpolate values
-					if(!InterpolateValues(u, constrainedInd, vConstrainingInd))
-					{
-						UG_LOG("ERROR while interpolating values rows. Aborting.\n");
-						return false;
-					}
+					InterpolateValues(u, constrainedInd, vConstrainingInd);
 				}
 			}
-
-		//  we're done
-			return true;
 		}
 
 	protected:
-		bool SplitAddRow(matrix_type& A	,
-		                 algebra_index_vector_type& constrainedIndex,
-		                 std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		void SplitAddRow(matrix_type& A	,
+		                 std::vector<size_t> & constrainedIndex,
+		                 std::vector<std::vector<size_t> >& vConstrainingIndices)
 		{
 		//	check number of indices passed
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
-				{
-					UG_LOG("Wrong number of indices. Cannot split row.\n");
-					return false;
-				}
-			}
+					UG_THROW_FATAL("Wrong number of indices. Cannot split row.");
 
 		//	handle each contrained index
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
@@ -512,24 +443,16 @@ class SymP1ConstraintsPostProcess
 					A(j, constrainedIndex[i]) = 0.0;
 				}
 			}
-
-		//	we're done
-			return true;
 		}
 
-		bool SetInterpolation(matrix_type& A,
-		                      algebra_index_vector_type& constrainedIndex,
-		                      std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		void SetInterpolation(matrix_type& A,
+		                      std::vector<size_t> & constrainedIndex,
+		                      std::vector<std::vector<size_t> >& vConstrainingIndices)
 		{
 		//	check number of indices passed
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
-				{
-					UG_LOG("Wrong number of indices. Cannot split row.\n");
-					return false;
-				}
-			}
+					UG_THROW_FATAL("Wrong number of indices. Cannot split row.\n");
 
 		//	loop all constrained dofs
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
@@ -550,24 +473,16 @@ class SymP1ConstraintsPostProcess
 				for(size_t j=0; j < vConstrainingIndices.size();++j)
 					A(constrainedIndex[i], vConstrainingIndices[j][i]) = frac;
 			}
-
-		//	we're done
-			return true;
 		}
 
-		bool HandleRhs(vector_type& rhs,
-		               algebra_index_vector_type& constrainedIndex,
-		               std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		void HandleRhs(vector_type& rhs,
+		               std::vector<size_t> & constrainedIndex,
+		               std::vector<std::vector<size_t> >& vConstrainingIndices)
 		{
 		//	check number of indices passed
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
-				{
-					UG_LOG("Wrong number of indices. Cannot split row.\n");
-					return false;
-				}
-			}
+					UG_THROW_FATAL("Wrong number of indices. Cannot split row.");
 
 		//	loop constrained indices
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
@@ -583,22 +498,16 @@ class SymP1ConstraintsPostProcess
 			//	set rhs to zero for contrained index
 				val = 0.0;
 			}
-			return true;
 		}
 
-		bool InterpolateValues(vector_type& u,
-		                       algebra_index_vector_type& constrainedIndex,
-		                       std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		void InterpolateValues(vector_type& u,
+		                       std::vector<size_t> & constrainedIndex,
+		                       std::vector<std::vector<size_t> >& vConstrainingIndices)
 		{
 		//	check number of indices passed
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
-				{
-					UG_LOG("Wrong number of indices. Cannot split row.\n");
-					return false;
-				}
-			}
+					UG_THROW_FATAL("Wrong number of indices. Cannot split row.\n");
 
 		//	loop constrained indices
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
@@ -617,23 +526,18 @@ class SymP1ConstraintsPostProcess
 					val += entry;
 				}
 			}
-			return true;
 		}
 
 };
 
 
 
-template <	typename TDomain,
-			typename TDoFDistribution,
-			typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class OneSideP1ConstraintsPostProcess
-	: public IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>
+	: public ConstraintBase<TDomain, TAlgebra,
+	  	  	  	  	  	  OneSideP1ConstraintsPostProcess<TDomain, TAlgebra> >
 {
 	public:
-	// 	DoF Distribution Type
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
-
 	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
@@ -643,74 +547,66 @@ class OneSideP1ConstraintsPostProcess
 	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
-	// 	Type of algebra index vector
-		typedef typename dof_distribution_type::algebra_index_vector_type algebra_index_vector_type;
-
 	public:
 		virtual int type() {return CT_CONSTRAINTS;}
 
-	///	sets the approximation space
-		virtual void set_approximation_space(IApproximationSpace<TDomain>& approxSpace) {}
-
-		virtual bool adjust_jacobian(matrix_type& J,
-		                                              const vector_type& u,
-		                                              const dof_distribution_type& dofDistr,
-		                                              number time = 0.0)
+		template <typename TDD>
+		void adjust_jacobian(matrix_type& J,
+		                     const vector_type& u,
+		                     ConstSmartPtr<TDD> dd,
+		                     number time = 0.0)
 		{
 		//  \todo: Implement correctly
 		//	dummy for rhs
 			vector_type rhsDummy; rhsDummy.resize(u.size());
 
-
-			return adjust_linear(J, rhsDummy, dofDistr, time);
+			adjust_linear(J, rhsDummy, dd, time);
 		}
 
-		virtual bool adjust_defect(vector_type& d, const vector_type& u,
-		                           const dof_distribution_type& dofDistr,
-		                           number time = 0.0)
+		template <typename TDD>
+		void adjust_defect(vector_type& d, const vector_type& u,
+		                   ConstSmartPtr<TDD> dd, number time = 0.0)
 		{
-		//	not implemented
-			return false;
+			UG_THROW_FATAL("not implemented.");
 		}
 
-		virtual bool adjust_rhs(vector_type& rhs, const vector_type& u,
-		                        const dof_distribution_type& dofDistr,
-		                        number time = 0.0)
+		template <typename TDD>
+		void adjust_rhs(vector_type& rhs, const vector_type& u,
+		                ConstSmartPtr<TDD> dd, number time = 0.0)
 		{
-		//	not implemented
-			return false;
+			UG_THROW_FATAL("not implemented.");
 		}
 
-		virtual bool adjust_solution(vector_type& u,
-		                                   const dof_distribution_type& dofDistr,
-		                                   number time = 0.0)
+		template <typename TDD>
+		void adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
+		                     number time = 0.0)
 		{
-		//	not implemented
-			return false;
+			UG_THROW_FATAL("not implemented.");
 		}
 
-		virtual bool adjust_linear(matrix_type& mat, vector_type& rhs,
-		                           const dof_distribution_type& dofDistr, number time = 0.0)
+		template <typename TDD>
+		void adjust_linear(matrix_type& mat, vector_type& rhs,
+		                   ConstSmartPtr<TDD> dd, number time)
 		{
 		//	algebra indices of constraining vertex
-			std::vector<algebra_index_vector_type> vConstrainingInd;
+			std::vector<std::vector<size_t> > vConstrainingInd;
 
 		//	algebra indices of constrained vertex
-			algebra_index_vector_type constrainedInd;
+			std::vector<size_t>  constrainedInd;
 
 		//	vector of constraining vertices
 			std::vector<VertexBase*> vConstrainingVrt;
 
 		//	iterators for hanging vertices
-			typename geometry_traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
+			typename TDD::template traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
 
 		//	loop subsets
-			for(int si = 0; si < dofDistr.num_subsets(); ++si)
+			for(int si = 0; si < dd->num_subsets(); ++si)
 			{
 
 			//	get begin end of hanging vertices
-				iterBegin = dofDistr.template begin<HangingVertex>(si);
-				iterEnd = dofDistr.template end<HangingVertex>(si);
+				iterBegin = dd->template begin<HangingVertex>(si);
+				iterEnd = dd->template end<HangingVertex>(si);
 
 			//	loop constraining edges
 				for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -733,11 +629,8 @@ class OneSideP1ConstraintsPostProcess
 
 					//	check that edge is correct
 						if(constrainingEdge == NULL)
-						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element should be constraining edge, but is not.\n");
-							return false;
-						}
+							UG_THROW_FATAL("Parent element should be "
+										"constraining edge, but is not.");
 
 					//	get constraining vertices
 						for(size_t i_cde = 0; i_cde != constrainingEdge->num_constrained_edges(); ++i_cde)
@@ -748,11 +641,8 @@ class OneSideP1ConstraintsPostProcess
 
 						//	check
 							if(constrainedEdge == NULL)
-							{
-								UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-										" Child element should be constrained edge, but is not.\n");
-								return false;
-							}
+								UG_THROW_FATAL("Child element should be "
+											"constrained edge, but is not.");
 
 						//	get non-hanging vertex
 							VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
@@ -770,11 +660,8 @@ class OneSideP1ConstraintsPostProcess
 
 					//	check that quad is correct
 						if(bigQuad == NULL)
-						{
-							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element should be constraining quad, but is not.\n");
-							return false;
-						}
+							UG_THROW_FATAL("Parent element should be "
+										"constraining quad, but is not.");
 
 					//	get constraining vertices
 					//	\todo: This is only valid for a surface grid!!!
@@ -782,9 +669,7 @@ class OneSideP1ConstraintsPostProcess
 							vConstrainingVrt.push_back(bigQuad->vertex(i));
 					}
 						break;
-					default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::adjust_linear:'"
-									" Parent element of hang. vertex wrong.\n");
-							return false;
+					default: UG_THROW_FATAL("Parent element of hang. vertex wrong.");
 					}
 
 				//	resize constraining indices
@@ -792,50 +677,31 @@ class OneSideP1ConstraintsPostProcess
 
 				// 	get algebra indices for constraining vertices
 					for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-						dofDistr.inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+						dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
 				// 	get algebra indices constrained vertices
-					dofDistr.inner_algebra_indices(hgVrt, constrainedInd);
+					dd->inner_algebra_indices(hgVrt, constrainedInd);
 
 				// 	Split using indices
-					if(!SplitAddRow(mat, constrainedInd, vConstrainingInd))
-					{
-						UG_LOG("ERROR while splitting rows. Aborting.\n");
-						return false;
-					}
+					SplitAddRow(mat, constrainedInd, vConstrainingInd);
 
 				//	Set interpolation
-					if(!SetInterpolation(mat, constrainedInd, vConstrainingInd))
-					{
-						UG_LOG("ERROR while setting interpolation. Aborting.\n");
-						return false;
-					}
+					SetInterpolation(mat, constrainedInd, vConstrainingInd);
 
 				//	adapt rhs
-					if(!HandleRhs(rhs, constrainedInd, vConstrainingInd))
-					{
-						UG_LOG("ERROR while setting interpolation. Aborting.\n");
-						return false;
-					}
+					HandleRhs(rhs, constrainedInd, vConstrainingInd);
 				}
 			}
-		//  we're done
-			return true;
 		}
 
 	protected:
-		bool SplitAddRow(matrix_type& A,
-		                 algebra_index_vector_type& constrainedIndex,
-		                 std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		void SplitAddRow(matrix_type& A,
+		                 std::vector<size_t> & constrainedIndex,
+		                 std::vector<std::vector<size_t> >& vConstrainingIndices)
 		{
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
-				{
-					UG_LOG("Wring number of indices. Cannot split row.\n");
-					return false;
-				}
-			}
+					UG_THROW_FATAL("Wring number of indices. Cannot split row.");
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
@@ -850,21 +716,15 @@ class OneSideP1ConstraintsPostProcess
 					A(constrainedIndex[i], j) = 0.0;
 				}
 			}
-			return true;
 		}
 
-		bool SetInterpolation(matrix_type& A,
-		                      algebra_index_vector_type& constrainedIndex,
-		                      std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		void SetInterpolation(matrix_type& A,
+		                      std::vector<size_t> & constrainedIndex,
+		                      std::vector<std::vector<size_t> >& vConstrainingIndices)
 		{
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
-				{
-					UG_LOG("Wring number of indices. Cannot split row.\n");
-					return false;
-				}
-			}
+					UG_THROW_FATAL("Wrong number of indices. Cannot split row.");
 
 			const number scale = -1./(vConstrainingIndices.size());
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
@@ -875,21 +735,15 @@ class OneSideP1ConstraintsPostProcess
 						A(constrainedIndex[i], vConstrainingIndices[j][i]) = scale;
 					}
 			}
-			return true;
 		}
 
-		bool HandleRhs(vector_type& rhs,
-		               algebra_index_vector_type& constrainedIndex,
-		               std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		void HandleRhs(vector_type& rhs,
+		               std::vector<size_t> & constrainedIndex,
+		               std::vector<std::vector<size_t> >& vConstrainingIndices)
 		{
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
-				{
-					UG_LOG("Wrong number of indices. Cannot split row.\n");
-					return false;
-				}
-			}
+					UG_THROW_FATAL("Wrong number of indices. Cannot split row.");
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
@@ -899,10 +753,7 @@ class OneSideP1ConstraintsPostProcess
 				rhs[vConstrainingIndices[0][i]] += val;
 				val = 0.0;
 			}
-			return true;
 		}
-
-
 };
 
 

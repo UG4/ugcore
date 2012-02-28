@@ -32,18 +32,13 @@ namespace ug{
  * IAssemble interface.
  *
  * After the method prepare step has been called, Jacobian/Defect can be computed.
- * \tparam 	TDoFDistribution	DoF Distribution Type
+ *
  * \tparam	TAlgebra			Algebra Type
  */
-template <	typename TDoFDistribution,
-			typename TAlgebra>
-class ITimeDiscretization
-	: public IAssemble<TDoFDistribution, TAlgebra>
+template <typename TAlgebra>
+class ITimeDiscretization : public IAssemble<TAlgebra>
 {
 	public:
-	///	DoF Distribution type
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
-
 	///	Algebra type
 		typedef TAlgebra algebra_type;
 
@@ -51,8 +46,7 @@ class ITimeDiscretization
 		typedef typename algebra_type::vector_type vector_type;
 
 	///	Domain Discretization type
-		typedef IDomainDiscretization<TDoFDistribution, algebra_type>
-			domain_discretization_type;
+		typedef IDomainDiscretization<algebra_type>	domain_discretization_type;
 
 	public:
 	/// create and set domain discretization
@@ -85,8 +79,10 @@ class ITimeDiscretization
 	 * \param[in] dt		size of time step
 	 * \param[in] dd		DoF Distribution
 	 */
+	/// \{
 		virtual void prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
-		                          number dt, const dof_distribution_type& dd) = 0;
+		                               number dt, GridLevel gl) = 0;
+	/// \}
 
 	/// finishes the assembling of Defect/Jacobian for a time step
 	/**
@@ -99,8 +95,10 @@ class ITimeDiscretization
 	 * \param[in] dt		size of time step
 	 * \param[in] dd		DoF Distribution
 	 */
+	///	\{
 		virtual void finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
-		                         number dt, const dof_distribution_type& dd) = 0;
+									  number dt, GridLevel gl) = 0;
+	///	\}
 
 	///	returns the future time point (i.e. the one that will be computed)
 		virtual number future_time() const = 0;
@@ -120,6 +118,12 @@ class ITimeDiscretization
 			m_rDomDisc.force_regular_grid(bForce);
 		}
 
+	///	enables constraints
+		virtual void enable_constraints(bool bEnable)
+		{
+			m_rDomDisc.enable_constraints(bEnable);
+		}
+
 	///	sets a selector to exclude elements from assembling
 	/**
 	 * This methods sets a selector. Only elements that are selected will be
@@ -131,6 +135,18 @@ class ITimeDiscretization
 		virtual void set_selector(ISelector* sel = NULL)
 		{
 			m_pSelector = sel; forward_selector();
+		}
+
+	///	returns the number of post processes
+		virtual size_t num_dirichlet_constraints() const
+		{
+			return m_rDomDisc.num_dirichlet_constraints();
+		}
+
+	///	returns the i'th post process
+		virtual IConstraint<TAlgebra>* get_dirichlet_constraint(size_t i)
+		{
+			return m_rDomDisc.get_dirichlet_constraint(i);
 		}
 
 	protected:

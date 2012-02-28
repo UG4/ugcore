@@ -126,7 +126,7 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef ILinearOperator<vector_type, vector_type> T;
 		string name = string("ILinearOperator").append(algSuffix);
 		reg.add_class_<T>(name, grp)
-			.add_method("init", (bool(T::*)())&T::init)
+			.add_method("init", static_cast<void (T::*)()>(&T::init))
 			.add_method("apply", &T::apply);
 		reg.add_class_to_group(name, "ILinearOperator", algTag);
 	}
@@ -196,22 +196,6 @@ static bool reg(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "IOperatorInverse", algTag);
 	}
 
-//	IProlongationOperator
-	{
-		typedef IProlongationOperator<vector_type, vector_type> T;
-		string name = string("IProlongationOperator").append(algSuffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, "IProlongationOperator", algTag);
-	}
-
-//	IProjectionOperator
-	{
-		typedef IProjectionOperator<vector_type, vector_type> T;
-		string name = string("IProjectionOperator").append(algSuffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, "IProjectionOperator", algTag);
-	}
-
 //////////////////////
 // Preconditioner
 //////////////////////
@@ -226,7 +210,8 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("Jacobi").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp2, "Jacobi Preconditioner")
 			.add_constructor()
-			.add_method("set_damp", &T::set_damp, "", "damp");
+			.add_method("set_damp", &T::set_damp, "", "damp")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Jacobi", algTag);
 	}
 
@@ -236,7 +221,8 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("GaussSeidel").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp2, "Gauss-Seidel Preconditioner")
-		.add_constructor();
+		.add_constructor()
+		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GaussSeidel", algTag);
 	}
 
@@ -246,7 +232,8 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("SymmetricGaussSeidel").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp2)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SymmetricGaussSeidel", algTag);
 	}
 
@@ -256,7 +243,8 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("BackwardGaussSeidel").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp2)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BackwardGaussSeidel", algTag);
 	}
 
@@ -267,7 +255,8 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("ILU").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp2, "Incomplete LU Decomposition")
 			.add_constructor()
-			.add_method("set_beta", &T::set_beta, "", "beta");
+			.add_method("set_beta", &T::set_beta, "", "beta")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILU", algTag);
 	}
 
@@ -279,7 +268,8 @@ static bool reg(Registry& reg, string parentGroup)
 		reg.add_class_<T,TBase>(name, grp2, "Incomplete LU Decomposition with threshold")
 			.add_constructor()
 			.add_method("set_threshold", &T::set_threshold,
-						"", "threshold", "sets threshold of incomplete LU factorisation");
+						"", "threshold", "sets threshold of incomplete LU factorisation")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILUT", algTag);
 	}
 
@@ -392,7 +382,7 @@ static bool reg(Registry& reg, string parentGroup)
 					"", "Dirichlet Solver")
 		.add_method("set_debug", &T::set_debug, "", "d")
 		// the following functions would normally not be executed from script
-		.add_method("init", (bool (T::*)())&T::init)
+		.add_method("init", static_cast<void (T::*)()>(&T::init))
 		.add_method("apply", &T::apply,
 					"Success", "local SC times Vector#Vector");
 		reg.add_class_to_group(name, "LocalSchurComplement", algTag);

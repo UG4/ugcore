@@ -50,9 +50,9 @@ void MatCopySlaveRowsToMasterRowOverlap0(TMatrix& mat)
 {
 	using namespace std;
 	vector<AlgebraID> globalIDs;
-	IndexLayout& masters = mat.get_master_layout();
-	IndexLayout& slaves = mat.get_slave_layout();
-	pcl::ParallelCommunicator<IndexLayout>& comm = mat.get_communicator();
+	IndexLayout& masters = mat.master_layout();
+	IndexLayout& slaves = mat.slave_layout();
+	pcl::ParallelCommunicator<IndexLayout>& comm = mat.communicator();
 
 	GenerateGlobalAlgebraIDs(comm, globalIDs, mat.num_rows(), masters, slaves);
 

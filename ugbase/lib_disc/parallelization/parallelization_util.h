@@ -33,9 +33,9 @@ namespace ug
  *
  *  \todo: replace IndexLayout with TDoFManager::IndexLayout.
  */
-template <class TDoFDistr, class TLayout>
+template <class TDD, class TLayout>
 bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
-					  TDoFDistr& dofDistr, TLayout& elemLayout,
+					  TDD& dofDistr, TLayout& elemLayout,
 					  const std::map<int, std::vector<bool> >* pIgnoreMap = NULL)
 {
 //	iterator for grid element interfaces
@@ -84,7 +84,7 @@ bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
 
 			//	get the algebraic indices on the grid element
-				typename TDoFDistr::algebra_index_vector_type indices;
+				std::vector<size_t> indices;
 				dofDistr.inner_algebra_indices(elem, indices);
 
 			//	add the indices to the interface
@@ -101,7 +101,7 @@ bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
 
 			//	get the algebraic indices on the grid element
-				typename TDoFDistr::algebra_index_vector_type indices;
+				std::vector<size_t> indices;
 				dofDistr.inner_algebra_indices(elem, indices);
 
 			//	add the indices to the interface
@@ -134,9 +134,9 @@ bool AddEntriesToLevelIndexLayout(IndexLayout& indexLayoutOut,
  * \param[in]		level			level, where layouts should be build
  *
  */
-template <class TDoFDistribution>
+template <class TDD>
 bool CreateLevelIndexLayout(	IndexLayout& layoutOut,
-                            	TDoFDistribution& dofDistr,
+                            	TDD& dofDistr,
                             	GridLayoutMap& layoutMap,
                             	int keyType, int level)
 {
@@ -189,9 +189,9 @@ bool CreateLevelIndexLayout(	IndexLayout& layoutOut,
  *
  * \param[in]		mg				underlying MultiGrid
  */
-template <class TDoFDistr, class TLayout>
+template <class TDD, class TLayout>
 bool AddEntriesToSurfaceIndexLayout(IndexLayout& indexLayoutOut,
-                                    TDoFDistr& dofDistr,
+                                    TDD& dofDistr,
                                     TLayout& elemLayout,
                                     MultiGrid& mg,
                                     DistributedGridManager& dGrMgr)
@@ -238,7 +238,7 @@ bool AddEntriesToSurfaceIndexLayout(IndexLayout& indexLayoutOut,
 			if(dGrMgr.is_ghost(elem)) {continue;}
 
 		//	get the algebraic indices on the grid element
-			typename TDoFDistr::algebra_index_vector_type indices;
+			std::vector<size_t> indices;
 			dofDistr.inner_algebra_indices(elem, indices);
 
 		//	add the indices to the interface
@@ -272,9 +272,9 @@ bool AddEntriesToSurfaceIndexLayout(IndexLayout& indexLayoutOut,
  * \param[in]		mg				underlying MultiGrid
  * \param[in]		dGrMgr			distributed Grid Manager
  */
-template <class TDoFDistribution>
+template <class TDD>
 bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
-                            	TDoFDistribution& dofDistr,
+                            	TDD& dofDistr,
                             	GridLayoutMap& layoutMap,
                             	int keyType,
                             	MultiGrid& mg, DistributedGridManager& dGrMgr)
@@ -330,14 +330,14 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
  *
  * \tparam	TMatrix 	Sequential Matrix type
  */
-template <typename TMatrix, typename TDoFDistr>
+template <typename TMatrix, typename TDD>
 void CopyLayoutsAndCommunicatorIntoMatrix(ParallelMatrix<TMatrix>& mat,
-                                          TDoFDistr& dd)
+                                          TDD& dd)
 {
-	mat.set_layouts(dd.get_master_layout(), dd.get_slave_layout());
+	mat.set_layouts(dd.master_layout(), dd.slave_layout());
 
-	mat.set_communicator(dd.get_communicator());
-	mat.set_process_communicator(dd.get_process_communicator());
+	mat.set_communicator(dd.communicator());
+	mat.set_process_communicator(dd.process_communicator());
 }
 
 /// copies all needed parallel informations into a parallel vector
@@ -350,31 +350,31 @@ void CopyLayoutsAndCommunicatorIntoMatrix(ParallelMatrix<TMatrix>& mat,
  *
  * \tparam 	TVector		Sequential vector type
  */
-template <typename TVector, typename TDoFDistr>
+template <typename TVector, typename TDD>
 void CopyLayoutsAndCommunicatorIntoVector(ParallelVector<TVector>& vec,
-                                          TDoFDistr& dd)
+                                          TDD& dd)
 {
 	//	copy all horizontal layouts (for all domain decomps)
-		vec.set_layouts(dd.get_master_layout(), dd.get_slave_layout());
+		vec.set_layouts(dd.master_layout(), dd.slave_layout());
 
 	//	copy vertical layouts
-		vec.set_vertical_layouts(dd.get_vertical_master_layout(),
-		                         dd.get_vertical_slave_layout());
+		vec.set_vertical_layouts(dd.vertical_master_layout(),
+		                         dd.vertical_slave_layout());
 
 	//	copy communicator
-		vec.set_communicator(dd.get_communicator());
-		vec.set_process_communicator(dd.get_process_communicator());
+		vec.set_communicator(dd.communicator());
+		vec.set_process_communicator(dd.process_communicator());
 }
 
 
 /**
  *
  */
-template <class TDoFDistr, class TLayout>
+template <class TDD, class TLayout>
 bool AddEntriesToIndexLayout_DomainDecomposition(
 							IndexLayout& processLayoutOut,
 							IndexLayout& subdomainLayoutOut,
-							TDoFDistr& dofDistr,
+							TDD& dofDistr,
 							TLayout& elemLayout,
 							pcl::IDomainDecompositionInfo* ddInfoIn)
 {
@@ -405,7 +405,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 				eIter != elemInterface.end(); ++eIter)
 			{
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
-				typename TDoFDistr::algebra_index_vector_type indices;
+				std::vector<size_t> indices;
 				dofDistr.inner_algebra_indices(elem, indices);
 				for(size_t i = 0; i < indices.size(); ++i)
 				{
@@ -423,7 +423,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 				eIter != elemInterface.end(); ++eIter)
 			{
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
-				typename TDoFDistr::algebra_index_vector_type indices;
+				std::vector<size_t> indices;
 				dofDistr.inner_algebra_indices(elem, indices);
 				for(size_t i = 0; i < indices.size(); ++i)
 				{
@@ -436,11 +436,11 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 }
 
 
-template <class TDoFDistribution>
+template <class TDD>
 bool CreateIndexLayouts_DomainDecomposition(
 						IndexLayout& processLayoutOut,
 						IndexLayout& subdomainLayoutOut,
-						TDoFDistribution& dofDistr,
+						TDD& dofDistr,
 						GridLayoutMap& layoutMap,
 						int keyType, int level,
 						pcl::IDomainDecompositionInfo* ddInfoIn)

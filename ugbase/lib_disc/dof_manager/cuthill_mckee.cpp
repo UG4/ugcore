@@ -37,7 +37,7 @@ private:
 };
 
 // computes ordering using Cuthill-McKee algorithm
-bool ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
+void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               std::vector<std::vector<size_t> >& vvConnection,
                               bool bReverse)
 {
@@ -88,7 +88,8 @@ bool ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	//	Find node with smallest degree for all remaining indices
 		for(size_t i = start; i < vHandled.size(); ++i)
 		{
-			if(vHandled[i] == false && vvConnection[i].size() < vvConnection[start].size())
+			if(vHandled[i] == false &&
+				vvConnection[i].size() < vvConnection[start].size())
 				start = i;
 		}
 
@@ -137,11 +138,8 @@ bool ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 
 //	check, that number of sorted indices is correct
 	if(numSorted != numToSort)
-	{
-		UG_LOG("ERROR in OrderCuthillMcKee: Must sort "<<numToSort<<" indices,"
+		UG_THROW_FATAL("OrderCuthillMcKee: Must sort "<<numToSort<<" indices,"
 				" but "<<numSorted<<" indices sorted.\n");
-		return false;
-	}
 
 // 	Create list of mapping
 	vNewIndex.clear(); vNewIndex.resize(vvConnection.size(), (size_t)-1);
@@ -179,14 +177,14 @@ bool ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 
 //	check if all ordered indices have been written
 	if(cnt != vNewOrder.size())
-	{
-		UG_LOG("ERROR in OrderCuthillMcKee: "
-				"Not all ordered indices written back.\n");
-		return false;
-	}
+		UG_THROW_FATAL("OrderCuthillMcKee: "
+					   "Not all ordered indices written back.\n");
 
-//	we're done
-	return true;
+//	fill non-sorted indices
+	for(size_t i = 1; i < vNewIndex.size(); ++i)
+	{
+		if(vNewIndex[i] == (size_t)-1) vNewIndex[i] = vNewIndex[i-1] + 1;
+	}
 }
 
 

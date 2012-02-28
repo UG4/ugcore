@@ -35,11 +35,11 @@ class IDebugWriter
 		IDebugWriter() : m_currentDim(-1) {}
 
 	///	write vector
-		virtual bool write_vector(const vector_type& vec,
+		virtual void write_vector(const vector_type& vec,
 		                          const char* name) = 0;
 
 	///	write matrix
-		virtual bool write_matrix(const matrix_type& mat,
+		virtual void write_matrix(const matrix_type& mat,
 		                          const char* name) = 0;
 
 	///	returns the current dimension
@@ -118,24 +118,18 @@ class AlgebraDebugWriter
 		}
 
 	///	write vector
-		virtual bool write_vector(const vector_type& vec,
+		virtual void write_vector(const vector_type& vec,
 		                          const char* filename)
 		{
 		//	check
 			if(m_pPositions == NULL)
-			{
-				UG_LOG("ERROR in 'AlgebraDebugWriter::write_vector':"
+				UG_THROW_FATAL("'AlgebraDebugWriter::write_vector':"
 						" No reference positions set.\n");
-				return false;
-			}
 
 		//	check number of positions
 			if(vec.size() != (size_t)m_numPos)
-			{
-				UG_LOG("ERROR in 'AlgebraDebugWriter::write_vector':"
+				UG_THROW_FATAL("'AlgebraDebugWriter::write_vector':"
 						" Number of positions does not match.\n");
-				return false;
-			}
 
 		//	get fresh name
 			std::string name(filename);
@@ -158,30 +152,21 @@ class AlgebraDebugWriter
 		//	write to file
 			WriteVectorToConnectionViewer<vector_type, position_type>
 				(name.c_str(), vec, m_pPositions, dim);
-
-		//	we're done
-			return true;
 		}
 
 	///	write matrix
-		virtual bool write_matrix(const matrix_type& mat,
+		virtual void write_matrix(const matrix_type& mat,
 		                          const char* filename)
 		{
 		//	check
 			if(m_pPositions == NULL)
-			{
-				UG_LOG("ERROR in 'AlgebraDebugWriter::write_matrix':"
+				UG_THROW_FATAL("'AlgebraDebugWriter::write_matrix':"
 						" No reference positions set.\n");
-				return false;
-			}
 
 		//	check number of positions
 			if(mat.num_rows() != (size_t)m_numPos || mat.num_cols() != (size_t)m_numPos)
-			{
-				UG_LOG("ERROR in 'AlgebraDebugWriter::write_matrix':"
+				UG_THROW_FATAL("'AlgebraDebugWriter::write_matrix':"
 						" Number of positions does not match.\n");
-				return false;
-			}
 
 		//	get fresh name
 			std::string name(filename);
@@ -204,9 +189,6 @@ class AlgebraDebugWriter
 		//	write to file
 			WriteMatrixToConnectionViewer<matrix_type, position_type>
 				(name.c_str(), mat, m_pPositions, dim);
-
-		//  we're done
-			return true;
 		}
 
 	protected:

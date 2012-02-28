@@ -295,17 +295,17 @@ public:
 		return totalSlaveLayout;
 	}
 
-	IndexLayout &get_master_layout()
+	IndexLayout &master_layout()
 	{
 		return m_masterLayout;
 	}
 
-	IndexLayout &get_slave_layout()
+	IndexLayout &slave_layout()
 	{
 		return m_slaveLayout;
 	}
 
-	pcl::ParallelCommunicator<IndexLayout> &get_communicator()
+	pcl::ParallelCommunicator<IndexLayout> &communicator()
 	{
 		return m_communicator;
 	}

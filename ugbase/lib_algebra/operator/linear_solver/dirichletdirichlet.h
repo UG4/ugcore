@@ -374,8 +374,8 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 				scale = -1.0;
 
 		// TODO: Implement Bnd-Layout
-		//	VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.get_slave_layout(1));
-		//	VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.get_master_layout(1));
+		//	VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.slave_layout(1));
+		//	VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.master_layout(1));
 		}
 
 	//	subtract solution on other processes from own value on gamma
@@ -383,9 +383,9 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 		{
 		// TODO: Implement Bnd-Layout
 		/* VecSubtractOnLayout(&x,
-								x.get_master_layout(1),
-								x.get_slave_layout(1),
-								&x.get_communicator(1));*/
+								x.master_layout(1),
+								x.slave_layout(1),
+								&x.communicator(1));*/
 			number scale = 1.0;
 			if(pcl::GetProcRank() != 0) // TODO: generalize to more than one process per FETI subdomain
 				scale = -1.0;
@@ -397,19 +397,19 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 		{
 			ModRhs.set(0.0);
 		//	todo: implement Bnd-Layout
-		//	VecScaleAddOnLayout(&ModRhs, &r, 1.0, ModRhs.get_slave_layout(1));
-		//	VecScaleAddOnLayout(&ModRhs, &r, 1.0, ModRhs.get_master_layout(1));
+		//	VecScaleAddOnLayout(&ModRhs, &r, 1.0, ModRhs.slave_layout(1));
+		//	VecScaleAddOnLayout(&ModRhs, &r, 1.0, ModRhs.master_layout(1));
 		}
 
 		void set_dirichlet_rows_on_gamma(matrix_type& mat)
 		{
 		//	todo: implement Bnd-Layout
-		//	MatSetDirichletOnLayout(&mat, mat.get_slave_layout(1));
-		//	MatSetDirichletOnLayout(&mat, mat.get_master_layout(1));
+		//	MatSetDirichletOnLayout(&mat, mat.slave_layout(1));
+		//	MatSetDirichletOnLayout(&mat, mat.master_layout(1));
 		}
 
 	protected:
-		bool write_debug(const vector_type& vec, const char* filename)
+		void write_debug(const vector_type& vec, const char* filename)
 		{
 		//	add iter count to name
 			std::string name(filename);
@@ -417,10 +417,10 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 			name.append(ext);
 
 		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return true;
+			if(m_pDebugWriter == NULL) return;
 
 		//	write
-			return m_pDebugWriter->write_vector(vec, name.c_str());
+			m_pDebugWriter->write_vector(vec, name.c_str());
 		}
 
 		int m_iterCnt;

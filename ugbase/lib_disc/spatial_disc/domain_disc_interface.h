@@ -27,16 +27,13 @@ namespace ug {
  * Stiffness-Matrix. Then the time-independent member functions can call only
  * the Stiffness-Matrix assembling, while the time-dependent part can call Mass-
  * and Stiffness-Matrix assembling.
- * \tparam		TDoFDistribution 	DoF Distribution Type
+ *
  * \tparam		TAlgebra			Algebra Type
  */
-template <	typename TDoFDistribution,
-			typename TAlgebra>
-class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
+template <typename TAlgebra>
+class IDomainDiscretization : public IAssemble<TAlgebra>
+{
 	public:
-	///	DoF Distribution Type
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
-
 	/// Algebra type
 		typedef TAlgebra algebra_type;
 
@@ -55,8 +52,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		 * \param[in]  	u 	Current iterate
 		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual void assemble_jacobian(matrix_type& J, const vector_type& u,
-		                               const dof_distribution_type& dd) = 0;
+		virtual void assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl) = 0;
 
 		/// assembles Defect
 		/**
@@ -66,8 +62,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		 * \param[in] 	u 	Current iterate
 		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual void assemble_defect(vector_type& d, const vector_type& u,
-		                             const dof_distribution_type& dd) = 0;
+		virtual void assemble_defect(vector_type& d, const vector_type& u, GridLevel gl) = 0;
 
 		/// Assembles Matrix and Right-Hand-Side for a linear problem
 		/**
@@ -80,8 +75,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		 * \return 	true 		if problem is linear and assembling successful
 		 * 			false 		if problem is non-linear or an error occurred during assembling
 		 */
-		virtual void assemble_linear(matrix_type& A, vector_type& b,
-		                             const dof_distribution_type& dd) = 0;
+		virtual void assemble_linear(matrix_type& A, vector_type& b, GridLevel gl) = 0;
 
 		/// sets dirichlet values in solution vector
 		/**
@@ -95,8 +89,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		 * 			false 	if function has not been implemented
 		 * 			false 			if function is implemented and an error occurred during assembling
 		 */
-		virtual void adjust_solution(vector_type& u,
-		                             const dof_distribution_type& dd) = 0;
+		virtual void adjust_solution(vector_type& u, GridLevel gl) = 0;
 
 
 	public:
@@ -110,8 +103,11 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \return 	true  				if time dependent and successful
 	 * 			false 				if an error occurred
 	 */
-	virtual	void prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
-								 const dof_distribution_type& dd) = 0;
+	virtual	void prepare_timestep(const VectorTimeSeries<vector_type>& vSol, GridLevel gl) = 0;
+
+	///	prepares timestep on surface level
+	void prepare_timestep(const VectorTimeSeries<vector_type>& vSol)
+		{prepare_timestep(vSol, GridLevel());}
 
 	/// assembles Jacobian (or Approximation of Jacobian)
 	/**
@@ -127,8 +123,14 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 */
 		virtual void assemble_jacobian(matrix_type& J,
 		                               const VectorTimeSeries<vector_type>& vSol,
-		                               const number s_a,
-		                               const dof_distribution_type& dd) = 0;
+		                               const number s_a, GridLevel gl) = 0;
+
+	///	assembles jacobian on surface level
+		void assemble_jacobian(matrix_type& J,
+		                       const VectorTimeSeries<vector_type>& vSol,
+		                       const number s_a)
+		{assemble_jacobian(J, vSol, s_a, GridLevel());}
+
 
 	/// assembles Defect
 	/**
@@ -147,7 +149,14 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		       	                     const VectorTimeSeries<vector_type>& vSol,
 		       	                     const std::vector<number>& vScaleMass,
 		       	                     const std::vector<number>& vScaleStiff,
-		       	                     const dof_distribution_type& dd) = 0;
+		       	                     GridLevel gl) = 0;
+
+	///	assembles defect on surface level
+		void assemble_defect(vector_type& d,
+		                     const VectorTimeSeries<vector_type>& vSol,
+		                     const std::vector<number>& vScaleMass,
+		                     const std::vector<number>& vScaleStiff)
+		{assemble_defect(d, vSol, vScaleMass, vScaleStiff, GridLevel());}
 
 	/// Assembles matrix_type and Right-Hand-Side for a linear problem
 	/**
@@ -167,7 +176,15 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		                             const VectorTimeSeries<vector_type>& vSol,
 		                             const std::vector<number>& vScaleMass,
 		                             const std::vector<number>& vScaleStiff,
-		                             const dof_distribution_type& dd) = 0;
+		                             GridLevel gl) = 0;
+
+	///	assembles linear on surface level
+		void assemble_linear(matrix_type& A, vector_type& b,
+		                     const VectorTimeSeries<vector_type>& vSol,
+		                     const std::vector<number>& vScaleMass,
+		                     const std::vector<number>& vScaleStiff)
+		{assemble_linear(A,b,vSol,vScaleMass,vScaleStiff, GridLevel());}
+
 
 	/// sets dirichlet values in solution vector
 	/**
@@ -181,8 +198,11 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * 			false 			if function has not been implemented
 	 * 			false 			if implemented but error occurred
 	 */
-		virtual void adjust_solution(vector_type& u, number time,
-		                               const dof_distribution_type& dd) = 0;
+		virtual void adjust_solution(vector_type& u, number time, GridLevel gl) = 0;
+
+	///	adjust solution on surface level
+		void adjust_solution(vector_type& u, number time)
+		{adjust_solution(u,time, GridLevel());}
 
 	/// finishes timestep
 	/**
@@ -194,14 +214,17 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	 * \return 	true  				if time dependent and successful
 	 * 			false 				if an error occurred
 	 */
-		virtual	void finish_timestep(const VectorTimeSeries<vector_type>& vSol,
-									 const dof_distribution_type& dd) = 0;
+		virtual	void finish_timestep(const VectorTimeSeries<vector_type>& vSol, GridLevel gl) = 0;
+
+	///	prepares timestep on surface level
+		void finish_timestep(const VectorTimeSeries<vector_type>& vSol)
+			{finish_timestep(vSol, GridLevel());}
 
 	///	returns the number of post processes
 		virtual size_t num_dirichlet_constraints() const = 0;
 
 	///	returns the i'th post process
-		virtual IConstraint<TDoFDistribution, TAlgebra>* get_dirichlet_constraint(size_t i) = 0;
+		virtual IConstraint<TAlgebra>* get_dirichlet_constraint(size_t i) = 0;
 };
 
 /// @}

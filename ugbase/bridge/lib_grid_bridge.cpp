@@ -7,6 +7,7 @@
 #include "registry/registry.h"
 #include "bridge.h"
 #include "lib_grid/lib_grid.h"
+#include "lib_grid/tools/surface_view.h"
 #include "common/profiler/profiler.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/tools/partition_map.h"
@@ -329,16 +330,6 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 	UG_LOG("grid element numbers:\n");
 	PrintGridElementNumbers(mg);
 
-//	create a surface view
-	SurfaceView surfView(mg);
-
-	CreateSurfaceView(surfView, mg, sh);
-
-	SaveGridToFile(mg, surfView, "surface_view.ugx");
-
-	UG_LOG("surface view element numbers:\n");
-	PrintGridElementNumbers(surfView);
-
 	return true;
 }
 
@@ -612,11 +603,7 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_method("assign_grid", &MGSubsetHandler::assign_grid);
 
 	//	SurfaceView
-		reg.add_class_<SurfaceView, SubsetHandler>("SurfaceView", grp)
-			.add_constructor()
-			.add_method("assign_grid", static_cast<void (SurfaceView::*)(MultiGrid&)>(&SurfaceView::assign_grid));
-
-		reg.add_function("CheckSurfaceView", &CheckSurfaceView, grp);
+		reg.add_class_<SurfaceView>("SurfaceView", grp);
 
 
 	////////////////////////

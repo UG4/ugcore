@@ -39,8 +39,8 @@ void AMGBase<TAlgebra>::write_interfaces()
 
 		file << 1 << std::endl;
 
-		IndexLayout &masterLayout = levels[level]->pA->get_master_layout();
-		IndexLayout &slaveLayout = levels[level]->pA->get_slave_layout();
+		IndexLayout &masterLayout = levels[level]->pA->master_layout();
+		IndexLayout &slaveLayout = levels[level]->pA->slave_layout();
 		std::vector<std::string> v;
 		v.resize(h.positions[level].size());
 
@@ -127,7 +127,7 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 
 
 #ifdef UG_PARALLEL
-	name = GetParallelName(name, levels[level]->pA->get_process_communicator(), true);
+	name = GetParallelName(name, levels[level]->pA->process_communicator(), true);
 	/*if(levels[level]->bHasBeenMerged && m_agglomerateLevel != level)
 		AMGWriteToFile(levels[level]->uncollectedA, level, level, name.c_str(), m_amghelper);
 	else*/
@@ -138,7 +138,7 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 
 	std::string name2 = (std::string("AMG_L") + ToString(level) + "_" + filename + "_p"+ ToString(pid) + ".values");
 #ifdef UG_PARALLEL
-	name2 = GetParallelName(name2, levels[level]->pA->get_process_communicator(), false);
+	name2 = GetParallelName(name2, levels[level]->pA->process_communicator(), false);
 #endif
 	f << "v " << name2 << "\n";
 
@@ -222,7 +222,7 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 	}
 
 #ifdef UG_PARALLEL
-	const_c.get_process_communicator().barrier();
+	const_c.process_communicator().barrier();
 #endif
 	return true;
 }

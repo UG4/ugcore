@@ -38,37 +38,20 @@ namespace ug{
  * between needed types and parameters. It mainly has a grid and a subset
  * handler for the grid to define different physical subsets. In addition
  * to a grid, that may only contain topological informations a domain always
- * has a Position Attachment holding the physical coodinates.
- * \tparam	d				World Dimension
+ * has a Position Attachment holding the physical coordinates.
+ *
  * \tparam	TGrid			Grid type
  * \tparam	TSubsetHandler	Subset Handler type
  */
-template <int d, typename TGrid, typename TSubsetHandler>
-class Domain {
+template <typename TGrid, typename TSubsetHandler>
+class IDomain
+{
 	public:
-	// 	World dimension
-		static const int dim = d;
-
-	// 	Type of position coordinates
-		typedef MathVector<dim> position_type;
-
 	// 	Grid type
 		typedef TGrid grid_type;
 
 	// 	Subset Handler type
 		typedef TSubsetHandler subset_handler_type;
-
-	// 	Type of Position Attachment
-		typedef Attachment<position_type> position_attachment_type;
-
-	// 	Type of Accessor to the Position Data Attachment
-		typedef Grid::VertexAttachmentAccessor<position_attachment_type>
-					position_accessor_type;
-
-	//	Distributed Grid Manager (for parallel case)
-#ifdef UG_PARALLEL
-		typedef DistributedGridManager distributed_grid_manager_type;
-#endif
 
 	public:
 	///	Default constructor
@@ -77,49 +60,22 @@ class Domain {
 	 * Distributed Grid Manager is set in the parallel case.
 	 * \param[in]	options		Grid Options (optinal)
 	 */
-		Domain() :
-			m_grid(GRIDOPT_NONE), m_sh(m_grid)
+		IDomain(bool isAdaptive = true) :
+			m_spGrid(new TGrid(GRIDOPT_NONE)),
+			m_spSH(new TSubsetHandler(*m_spGrid)),
+			m_isAdaptive(isAdaptive)
 #ifdef UG_PARALLEL
-		, m_distGridMgr(NULL)
+			, m_distGridMgr(NULL)
 #endif
 			{
-			//	Depending on the dimesion, we'll activeate different options.
-			//	Otherwise we probably would waste memory...
-			//	In any case, sides of elements should always be present
-				uint gridOpts = GRIDOPT_AUTOGENERATE_SIDES;
-
-			//	Furthermore vertices should store associated elements.
-			//	This option depends on the dimension of the domain
-				if(dim > 0)
-					gridOpts |= VRTOPT_STORE_ASSOCIATED_EDGES;
-				if(dim > 1)
-					gridOpts |= VRTOPT_STORE_ASSOCIATED_FACES;
-				if(dim > 2)
-					gridOpts |= VRTOPT_STORE_ASSOCIATED_VOLUMES;
-
-			//	thats it for now. One could think about enabling
-			//	FACEOPT_STORE_ASSOCIATED_EDGES, VOLOPT_STORE_ASSOCIATED_EDGES
-			//	and VOLOPT_STORE_ASSOCIATED_FACES. However this costs considerably
-			//	more memory compared to the performance benefits.
-			//	Now set the options
-				m_grid.set_options(gridOpts);
-
-			//	get position attachment
-				m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
-
-			// 	let position accessor access Vertex Coordinates
-				if(!m_grid.template has_attachment<VertexBase>(m_aPos))
-					m_grid.template attach_to<VertexBase>(m_aPos);
-				m_aaPos.access(m_grid, m_aPos);
-
 #ifdef UG_PARALLEL
 			//	create Distributed Grid Manager
-				m_distGridMgr = new DistributedGridManager(m_grid);
+				m_distGridMgr = new DistributedGridManager(*m_spGrid);
 #endif
 			}
 
 	///	Destructor
-		~Domain()
+		virtual ~IDomain()
 		{
 #ifdef UG_PARALLEL
 			if(m_distGridMgr)
@@ -128,19 +84,113 @@ class Domain {
 		}
 
 	///	World Dimension
-		inline int get_dim() const {return dim;}
+		virtual int get_dim() const = 0;
 		
 	///	returns Grid
-		inline TGrid& grid() {return m_grid;};
+		inline SmartPtr<TGrid> grid() {return m_spGrid;};
 
 	///	const access to Grid
-		inline const TGrid& grid() const {return m_grid;};
+		inline const ConstSmartPtr<TGrid> grid() const {return m_spGrid;};
 
 	///	returns Subset Handler
-		inline TSubsetHandler& subset_handler() {return m_sh;};
+		inline SmartPtr<TSubsetHandler> subset_handler() {return m_spSH;};
 
 	///	const access to Subset Handler
-		inline const TSubsetHandler& subset_handler() const {return m_sh;};
+		inline const ConstSmartPtr<TSubsetHandler> subset_handler() const {return m_spSH;};
+
+#ifdef UG_PARALLEL
+	///	returns Distributed Grid Manager
+		inline DistributedGridManager* distributed_grid_manager(){return m_distGridMgr;}
+#endif
+
+	///	returns the message hub of the grid
+		SPMessageHub message_hub() const {return m_spGrid.message_hub();}
+
+	///	returns whether the domain may be used for adaptive refinement
+		bool is_adaptive() const		{return m_isAdaptive;}
+
+	protected:
+		SmartPtr<TGrid> m_spGrid;			///< Grid
+		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
+
+		bool	m_isAdaptive;
+
+	//	for parallelization only. NULL in serial mode.
+#ifdef UG_PARALLEL
+		DistributedGridManager*	m_distGridMgr;	///< Parallel Grid Manager
+#endif
+};
+
+
+template <int d, typename TGrid, typename TSubsetHandler>
+class Domain : public IDomain<TGrid, TSubsetHandler>
+{
+	private:
+	/// base type
+		typedef IDomain<TGrid, TSubsetHandler> base_type;
+
+	public:
+	///	World dimension
+		static const int dim = d;
+
+	///	Type of position coordinates
+		typedef MathVector<dim> position_type;
+
+	///	Type of Position Attachment
+		typedef Attachment<position_type> position_attachment_type;
+
+	///	Type of Accessor to the Position Data Attachment
+		typedef Grid::VertexAttachmentAccessor<position_attachment_type>
+					position_accessor_type;
+
+	public:
+	///	Grid type
+		typedef typename base_type::grid_type grid_type;
+
+	///	Subset Handler type
+		typedef typename base_type::subset_handler_type subset_handler_type;
+
+	public:
+	///	Default constructor
+	/**
+	 * creates an empty domain. Grid and Subset Handler are set up. The
+	 * Distributed Grid Manager is set in the parallel case.
+	 * \param[in]	options		Grid Options (optinal)
+	 */
+		Domain(bool isAdaptive = true) : IDomain<TGrid, TSubsetHandler>(isAdaptive)
+		{
+		//	Depending on the dimesion, we'll activeate different options.
+		//	Otherwise we probably would waste memory...
+		//	In any case, sides of elements should always be present
+			uint gridOpts = GRIDOPT_AUTOGENERATE_SIDES;
+
+		//	Furthermore vertices should store associated elements.
+		//	This option depends on the dimension of the domain
+			if(dim > 0)
+				gridOpts |= VRTOPT_STORE_ASSOCIATED_EDGES;
+			if(dim > 1)
+				gridOpts |= VRTOPT_STORE_ASSOCIATED_FACES;
+			if(dim > 2)
+				gridOpts |= VRTOPT_STORE_ASSOCIATED_VOLUMES;
+
+		//	thats it for now. One could think about enabling
+		//	FACEOPT_STORE_ASSOCIATED_EDGES, VOLOPT_STORE_ASSOCIATED_EDGES
+		//	and VOLOPT_STORE_ASSOCIATED_FACES. However this costs considerably
+		//	more memory compared to the performance benefits.
+		//	Now set the options
+			this->grid()->set_options(gridOpts);
+
+		//	get position attachment
+			m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
+
+		// 	let position accessor access Vertex Coordinates
+			if(!this->grid()->template has_attachment<VertexBase>(m_aPos))
+				this->grid()->template attach_to<VertexBase>(m_aPos);
+			m_aaPos.access(*(this->grid()), m_aPos);
+		}
+
+	///	World Dimension
+		virtual int get_dim() const {return dim;}
 
 	///	returns Position Attachment
 		inline position_attachment_type& position_attachment(){return m_aPos;}
@@ -154,14 +204,6 @@ class Domain {
 	///	const access to Position Accessor
 		inline const position_accessor_type& position_accessor() const{return m_aaPos;}
 
-#ifdef UG_PARALLEL
-	///	returns Distributed Grid Manager
-		inline DistributedGridManager* distributed_grid_manager(){return m_distGridMgr;}
-#endif
-
-	///	returns the message hub of the grid
-		SPMessageHub message_hub() const {return m_grid.message_hub();}
-
 	///	updates the subsets dimension property "dim" (integer) locally.
 	/** This method normally only has to be called after the subset-handler
 	 * has been changed. In most cases a call after the domain has been loaded
@@ -169,7 +211,7 @@ class Domain {
 	 *
 	 * \todo	calling this method after coarsening could be useful.
 	 * 			Think about registering a callback at the message-hub.*/
-		void update_local_subset_dim_property()	{UpdateMaxDimensionOfSubset(m_sh, "dim");}
+		void update_local_subset_dim_property()	{UpdateMaxDimensionOfSubset(*this->m_spSH, "dim");}
 
 #ifdef UG_PARALLEL
 	///	updates the subsets dimension property "dim" (integer) globally.
@@ -184,21 +226,13 @@ class Domain {
 	 * 			Think about registering a callback at the message-hub.*/
 		void update_global_subset_dim_property(pcl::ProcessCommunicator procCom =
 													pcl::ProcessCommunicator())
-		{UpdateGlobalMaxDimensionOfSubset(m_sh, "dim", procCom);}
+		{UpdateGlobalMaxDimensionOfSubset(*this->m_spSH, "dim", procCom);}
 #endif
 
 
 	protected:
-		TGrid m_grid;			///< Grid
-		TSubsetHandler m_sh;	///< Subset Handler
-
 		position_attachment_type m_aPos;	///<Position Attachment
 		position_accessor_type m_aaPos;		///<Accessor
-
-	//	for parallelization only. NULL in serial mode.
-#ifdef UG_PARALLEL
-		DistributedGridManager*	m_distGridMgr;	///< Parallel Grid Manager
-#endif
 };
 
 typedef Domain<1, MultiGrid, MGSubsetHandler> Domain1d;

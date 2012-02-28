@@ -656,8 +656,7 @@ function SetupFETISolver(str_problem,
 	if activateDbgWriter >= 1 then
 		print("    Setting debug writer for 'fetiSolver' (no make consistent (former: 'raw data')")
 		-- debug writer
-		fetidbgWriter = GridFunctionDebugWriter()
-		fetidbgWriter:set_reference_grid_function(u)
+		fetidbgWriter = GridFunctionDebugWriter(approxSpace)
 		fetidbgWriter:set_vtk_output(true)
 		-- alt:fetidbgWriter:set_print_raw_data(true) -- if 'true' print "raw" data (no "make consistent" before printing): for checking temporary results in FETI
 		fetidbgWriter:set_print_consistent(false) -- if 'false' print "raw" data (no "make consistent" before printing): for checking temporary results in FETI

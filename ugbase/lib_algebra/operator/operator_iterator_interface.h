@@ -456,23 +456,43 @@ class IPreconditioner :
 
 	protected:
 	///	writing debug output for a vector (if debug writer set)
-		bool write_debug_vector(const vector_type& vec, const char* filename)
+		void write_debug_vector(const vector_type& vec, const char* filename)
 		{
 		//	if no debug writer set, we're done
-			if(!m_pDebugWriter) return true;
+			if(!m_pDebugWriter) return;
+
+		//	check ending
+			std::string name(filename);
+			size_t iExtPos = name.find_last_of(".");
+			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".vec") != 0)
+				UG_THROW_FATAL("Only '.vec' format supported for vectors, but"
+								" filename is '"<<name<<"'.");
+
+			if(iExtPos == std::string::npos)
+				name.append(".vec");
 
 		//	write
-			return m_pDebugWriter->write_vector(vec, filename);
+			m_pDebugWriter->write_vector(vec, name.c_str());
 		}
 
 	///	write debug output for a matrix (if debug writer set)
-		bool write_debug_matrix(const matrix_type& mat, const char* filename)
+		void write_debug_matrix(const matrix_type& mat, const char* filename)
 		{
 		//	if no debug writer set, we're done
-			if(!m_pDebugWriter) return true;
+			if(!m_pDebugWriter) return;
+
+		//	check ending
+			std::string name(filename);
+			size_t iExtPos = name.find_last_of(".");
+			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".mat") != 0)
+				UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
+								" filename is '"<<name<<"'.");
+
+			if(iExtPos == std::string::npos)
+				name.append(".mat");
 
 		//	write
-			return m_pDebugWriter->write_matrix(mat, filename);
+			m_pDebugWriter->write_matrix(mat, name.c_str());
 		}
 
 	protected:

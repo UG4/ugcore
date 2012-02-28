@@ -34,7 +34,7 @@ namespace ug{
 template <typename TDomain>
 static void MinimizeMemoryFootprint(TDomain& dom)
 {
-	dom.grid().set_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION
+	dom.grid()->set_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION
 							 | GRIDOPT_AUTOGENERATE_SIDES);
 }
 
@@ -45,7 +45,7 @@ static bool LoadAndRefineDomain(TDomain& domain, const char* filename,
 	if(!LoadDomain(domain, filename))
 		return false;
 
-	GlobalMultiGridRefiner ref(domain.grid());
+	GlobalMultiGridRefiner ref(*domain.grid());
 	for(int i = 0; i < numRefs; ++i)
 		ref.refine();
 
@@ -56,7 +56,7 @@ template <typename TDomain>
 static bool SavePartitionMap(PartitionMap& pmap, TDomain& domain,
 							 const char* filename)
 {
-	if(&domain.grid() != pmap.get_partition_handler().grid())
+	if(domain.grid().get_impl() != pmap.get_partition_handler().grid())
 	{
 		UG_LOG("WARNING in SavePartitionMap: The given partition map was not"
 				" created for the given domain. Aborting...\n");
@@ -71,7 +71,7 @@ template <typename TDomain>
 static bool TestDomainInterfaces(TDomain* dom)
 {
 	#ifdef UG_PARALLEL
-		return TestGridLayoutMap(dom->grid(),
+		return TestGridLayoutMap(*dom->grid(),
 					dom->distributed_grid_manager()->grid_layout_map());
 	#endif
 	return true;
@@ -82,7 +82,7 @@ template <typename TDomain>
 static void TestDomainVisualization(TDomain& dom)
 {
 	GridVisualization<number, int, typename TDomain::position_attachment_type> gridVis;
-	gridVis.set_grid(dom.grid(), dom.position_attachment());
+	gridVis.set_grid(*dom.grid(), dom.position_attachment());
 	gridVis.update_visuals();
 
 //	log vertex positions
@@ -133,9 +133,10 @@ static bool RegisterDomainInterface_(Registry& reg, string grp)
 		string name = string("Domain").append(dimSuffix);
 		reg.add_class_<TDomain>(name, grp)
 			.add_constructor()
-			.add_method("subset_handler", static_cast<MGSubsetHandler& (TDomain::*)()>(&TDomain::subset_handler))
-			.add_method("grid", static_cast<MultiGrid& (TDomain::*)()>(&TDomain::grid))
-			.add_method("get_dim|hide=true", static_cast<int (TDomain::*)() const>(&TDomain::get_dim));
+			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (TDomain::*)()>(&TDomain::subset_handler))
+			.add_method("grid", static_cast<SmartPtr<MultiGrid> (TDomain::*)()>(&TDomain::grid))
+			.add_method("get_dim", static_cast<int (TDomain::*)() const>(&TDomain::get_dim))
+			.set_construct_as_smart_pointer(true);
 
 		reg.add_class_to_group(name, "Domain", dimTag);
 	}

@@ -27,12 +27,12 @@
 
 namespace ug{
 
-template <typename TDoFDistribution, typename TAlgebra>
+template <typename TAlgebra>
 bool
-NewtonSolver<TDoFDistribution, TAlgebra>::
+NewtonSolver<TAlgebra>::
 init(IOperator<vector_type, vector_type>& N)
 {
-	m_N = dynamic_cast<AssembledOperator<dof_distribution_type, algebra_type>* >(&N);
+	m_N = dynamic_cast<AssembledOperator<TAlgebra>* >(&N);
 	if(m_N == NULL)
 	{
 		UG_LOG("NewtonSolver currently only works for AssembledDiscreteOperator.\n");
@@ -44,14 +44,12 @@ init(IOperator<vector_type, vector_type>& N)
 }
 
 
-template <typename TDoFDistribution, typename TAlgebra>
-bool
-NewtonSolver<TDoFDistribution, TAlgebra>::
-allocate_memory(const vector_type& u)
+template <typename TAlgebra>
+bool NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
 {
 	// Jacobian
-	m_J = new AssembledLinearOperator<dof_distribution_type, algebra_type>(*m_pAss);
-	m_J->set_dof_distribution(*m_N->dof_distribution());
+	m_J = new AssembledLinearOperator<TAlgebra>(*m_pAss);
+	m_J->set_level(m_N->level());
 
 	// defect
 	m_d.resize(u.size()); m_d = u;
@@ -60,19 +58,14 @@ allocate_memory(const vector_type& u)
 	m_c.resize(u.size()); m_c = u;
 
 	if(m_J == NULL)
-	{
-		UG_ASSERT(0, "Cannot allocate memory.");
-		return false;
-	}
+		UG_THROW_FATAL("Cannot allocate memory.");
 
 	m_allocated = true;
 	return true;
 }
 
-template <typename TDoFDistribution, typename TAlgebra>
-bool
-NewtonSolver<TDoFDistribution, TAlgebra>::
-deallocate_memory()
+template <typename TAlgebra>
+bool NewtonSolver<TAlgebra>::deallocate_memory()
 {
 	if(m_allocated)
 		delete m_J;
@@ -81,10 +74,8 @@ deallocate_memory()
 }
 
 
-template <typename TDoFDistribution, typename TAlgebra>
-bool
-NewtonSolver<TDoFDistribution, TAlgebra>::
-prepare(vector_type& u)
+template <typename TAlgebra>
+bool NewtonSolver<TAlgebra>::prepare(vector_type& u)
 {
 	if(!m_allocated)
 	{
@@ -110,20 +101,14 @@ prepare(vector_type& u)
 	}
 
 //	Set dirichlet values
-	if(m_N->prepare(m_d, u) != true)
-	{
-		UG_LOG("ERROR in 'NewtonSolver::prepare':"
-				" Cannot prepare Non-linear Operator.\n");
-		return false;
-	}
+	m_N->prepare(m_d, u);
 
 	return true;
 }
 
 
-template <typename TDoFDistribution, typename TAlgebra>
-NewtonSolver<TDoFDistribution, TAlgebra>::
-~NewtonSolver()
+template <typename TAlgebra>
+NewtonSolver<TAlgebra>::~NewtonSolver()
 {
 	if(m_allocated)
 	{
@@ -134,22 +119,15 @@ NewtonSolver<TDoFDistribution, TAlgebra>::
 }
 
 
-template <typename TDoFDistribution, typename TAlgebra>
-bool
-NewtonSolver<TDoFDistribution, TAlgebra>::
-apply(vector_type& u)
+template <typename TAlgebra>
+bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 {
 //	increase call count
 	m_dgbCall++;
 
 // 	Compute first Defect
 	NEWTON_PROFILE_BEGIN(NewtonComputeDefect1);
-	if(m_N->apply(m_d, u) != true)
-	{
-		UG_LOG("ERROR in 'NewtonSolver::apply': Cannot apply Non-linear"
-				" Operator to compute start defect.\n");
-		return false;
-	}
+	m_N->apply(m_d, u);
 	NEWTON_PROFILE_END();
 
 //	write start defect for debug
@@ -194,12 +172,7 @@ apply(vector_type& u)
 
 	// 	Compute Jacobian
 		NEWTON_PROFILE_BEGIN(NewtonComputeJacobian);
-		if(!m_J->init(u))
-		{
-			UG_LOG("ERROR in 'NewtonSolver::apply':"
-					" Cannot prepare Jacobi Operator.\n");
-			return false;
-		}
+		m_J->init(u);
 		NEWTON_PROFILE_END();
 
 	//	Write Jacobian for debug
@@ -256,18 +229,8 @@ apply(vector_type& u)
 
 		// 	compute new Defect
 			NEWTON_PROFILE_BEGIN(NewtonComputeDefect);
-			if(!m_N->prepare(m_d, u))
-			{
-				UG_LOG("ERROR in 'NewtonSolver::apply': Cannot prepare Non-linear"
-						" Operator for defect computation.\n");
-				return false;
-			}
-			if(!m_N->apply(m_d, u))
-			{
-				UG_LOG("ERROR in 'NewtonSolver::apply': Cannot apply Non-linear "
-						"Operator to compute defect.\n");
-				return false;
-			}
+			m_N->prepare(m_d, u);
+			m_N->apply(m_d, u);
 			NEWTON_PROFILE_END();
 		}
 
@@ -294,9 +257,9 @@ apply(vector_type& u)
 	return m_pConvCheck->post();
 }
 
-template <typename TDoFDistribution, typename TAlgebra>
+template <typename TAlgebra>
 void
-NewtonSolver<TDoFDistribution, TAlgebra>::
+NewtonSolver<TAlgebra>::
 print_average_convergence() const
 {
 	UG_LOG("\nNewton solver convergence history:\n");
@@ -319,9 +282,9 @@ print_average_convergence() const
 	UG_LOG("\n");
 }
 
-template <typename TDoFDistribution, typename TAlgebra>
+template <typename TAlgebra>
 void
-NewtonSolver<TDoFDistribution, TAlgebra>::
+NewtonSolver<TAlgebra>::
 clear_average_convergence()
 {
 	m_vLinSolverCalls.clear();

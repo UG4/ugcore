@@ -73,24 +73,16 @@ LocalSchurComplement() :
 }
 
 template <typename TAlgebra>
-bool LocalSchurComplement<TAlgebra>::
+void LocalSchurComplement<TAlgebra>::
 init()
 {
 //	check that operator has been set
 	if(m_pOperator == NULL)
-	{
-		UG_LOG("ERROR in 'LocalSchurComplement::init': No Operator A"
-				" set.\n");
-		return false;
-	}
+		UG_THROW_FATAL("LocalSchurComplement::init: No Operator A set.");
 
 //	check Feti layouts have been set
 	if(m_pFetiLayouts == NULL)
-	{
-		UG_LOG("ERROR in 'LocalSchurComplement::init': FETI "
-				" layouts not set.\n");
-		return false;
-	}
+		UG_THROW_FATAL("LocalSchurComplement::init: FETI layouts not set.");
 
 //	save matrix from which we build the Schur complement
 	m_pMatrix = &m_pOperator->get_matrix();
@@ -113,10 +105,8 @@ init()
 //	init sequential solver for Dirichlet problem
 	if(m_pDirichletSolver != NULL)
 		if(!m_pDirichletSolver->init(m_DirichletOperator))
-		{
-			UG_LOG("ERROR in 'LocalSchurComplement::init': Cannot init "
-					"Sequential Dirichlet Solver for Operator A.\n");return false;
-		}
+			UG_THROW_FATAL("LocalSchurComplement::init: Cannot init "
+					"Sequential Dirichlet Solver for Operator A.");
 
 //	Debug output of matrices
 	if(m_pDebugWriter != NULL)
@@ -130,54 +120,30 @@ init()
 //	reset apply counter
 	m_applyCnt = 0;
 
-//	we're done
-	return true;
 } /* end 'LocalSchurComplement::init()' */
 
 template <typename TAlgebra>
-bool LocalSchurComplement<TAlgebra>::
+void LocalSchurComplement<TAlgebra>::
 apply(vector_type& f, const vector_type& u)
 {
 //	check that matrix has been set
 	if(m_pOperator == NULL)
-	{
-		UG_LOG("ERROR: In 'LocalSchurComplement::apply': "
-						"Matrix A not set.\n");
-		return false;
-	}
+		UG_THROW_FATAL("LocalSchurComplement::apply: Matrix A not set.");
 
 //	check Dirichlet solver
 	if(m_pDirichletSolver == NULL)
-	{
-		UG_LOG("ERROR: In 'LocalSchurComplement::apply':"
-						" No sequential Dirichlet Solver set.\n");
-		return false;
-	}
+		UG_THROW_FATAL("LocalSchurComplement::apply: No sequential Dirichlet Solver set.");
 
 //	Check parallel storage type of matrix
 	if(!m_pDirichletMatrix->has_storage_type(PST_ADDITIVE))
-	{
-		UG_LOG("ERROR: In 'LocalSchurComplement::apply': "
-						"Inadequate storage format of matrix.\n");
-		return false;
-	}
+		UG_THROW_FATAL("LocalSchurComplement::apply: Inadequate storage format of matrix.");
 
 //	Check parallel storage type of vectors
 	if (!u.has_storage_type(PST_CONSISTENT))
-	{
-		UG_LOG("ERROR: In 'LocalSchurComplement::apply': "
-						"Inadequate storage format of Vector 'u' (should be consistent).\n");
-		return false;
-	}
-	if(!f.has_storage_type(PST_ADDITIVE))
-	{
-		UG_LOG("ERROR: In 'LocalSchurComplement::apply': "
-						"Inadequate storage format of Vector 'f' (should be additive).\n");
-		return false;
-	}
+		UG_THROW_FATAL("LocalSchurComplement::apply: Inadequate storage format of Vector 'u' (should be consistent).");
 
-//	success flag
-	bool bSuccess = true;
+	if(!f.has_storage_type(PST_ADDITIVE))
+		UG_THROW_FATAL("LocalSchurComplement::apply: Inadequate storage format of Vector 'f' (should be additive).");
 
 //	Help vector
 //	\todo: it would be sufficient to copy only the layouts without copying the values
@@ -192,13 +158,8 @@ apply(vector_type& f, const vector_type& u)
 
 //	2. Compute rhs f_{I} = A_{I \Delta} u_{\Delta}
 //	f is additive afterwards
-	if(!m_DirichletOperator.apply(f, uTmp))
-	{
-		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
-						 "Could not compute Rhs for Dirichlet problem (step 2) on "
-						 "Proc " << pcl::GetProcRank() << ".\n");
-		bSuccess = false;
-	}
+	m_DirichletOperator.apply(f, uTmp);
+
 	// set values to zero on \Delta (values are already zero on primal after
 	// application of DirichletOperator!)
 	m_pFetiLayouts->vec_set_on_dual(f, 0.0);
@@ -233,7 +194,8 @@ apply(vector_type& f, const vector_type& u)
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply':"
 						" Last defect was " << convCheck->defect() <<
 						" after " << convCheck->step() << " steps.\n");
-		bSuccess = false;
+
+		UG_THROW_FATAL("Cannot solve Local Schur Complement.");
 	} /* else {
 		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
 		UG_LOG_ALL_PROCS("'LocalSchurComplement::apply':"
@@ -262,13 +224,7 @@ apply(vector_type& f, const vector_type& u)
 
 	// (c) Multiply with full matrix
 	//	f is additive afterwards
-	if(!m_pOperator->apply(f, uTmp))
-	{
-		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
-						 "Could not apply full matrix (step 4.c) on "
-						 "Proc " << pcl::GetProcRank() << ".\n");
-		bSuccess = false;
-	}
+	m_pOperator->apply(f, uTmp);
 
 	// make f consistent (on delta is sufficient)
 	f.change_storage_type(PST_CONSISTENT);
@@ -278,36 +234,22 @@ apply(vector_type& f, const vector_type& u)
 	f.set(0.0);
 	m_pFetiLayouts->vec_scale_append_on_dual(f, uTmp, 1.0);
 
-//	check all procs
-	if(!pcl::AllProcsTrue(bSuccess))
-	{
-		UG_LOG("ERROR in 'LocalSchurComplement::apply': "
-				"Some processes could not apply local Schur complement.\n");
-		return false;
-	}
-
 //	increase apply counter
 	m_applyCnt++;
-
-//	we're done
-	return true;
 } /* end 'LocalSchurComplement::apply()' */
 
 template <typename TAlgebra>
-bool LocalSchurComplement<TAlgebra>::
+void LocalSchurComplement<TAlgebra>::
 apply_sub(vector_type& f, const vector_type& u)
 {
 //	create new rhs
 	vector_type d; d.resize(f.size());
 
 //	solve
-	if(!apply(d, u)) return false;
+	apply(d, u);
 
 //	subtract from vector
 	f -= d;
-
-//	we're done
-	return true;
 }
 
 template <typename TAlgebra>
@@ -495,7 +437,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	if (m_bTestOneToManyLayouts == true) {
 		UG_LOG("     %  - TEST ONE TO MANY LAYOUTS:\n");
 		pcl::ParallelCommunicator<IndexLayout> comTmp;
-		if (TestLayout(m_pOperator->get_process_communicator(),
+		if (TestLayout(m_pOperator->process_communicator(),
 				comTmp, m_masterAllToOneLayout, m_slaveAllToOneLayout, true) != true) {
 			UG_LOG("     %  - ONE TO MANY LAYOUTS inconsistent!\n");
 		} else {
@@ -1282,9 +1224,9 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 //	1. create FETI Layouts
 	UG_LOG("\n%   - Create FETI layouts ... ");
 	FETI_PROFILE_BEGIN(FETISolverInit_Create_Layouts);
-	m_fetiLayouts.create_layouts(m_pMatrix->get_master_layout(),
-	                             m_pMatrix->get_slave_layout(),
-	                             m_pMatrix->get_process_communicator(),
+	m_fetiLayouts.create_layouts(m_pMatrix->master_layout(),
+	                             m_pMatrix->slave_layout(),
+	                             m_pMatrix->process_communicator(),
 	                             m_pMatrix->num_rows(),
 	                             *m_pDDInfo,
 	                             debugLayouts);
@@ -1314,12 +1256,7 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 //	2.3 init local Schur complement
 	UG_LOG("\n%   - Init Local Schur Complement ... ");
 	FETI_PROFILE_BEGIN(FETISolverInit_InitLocalSchurComplement);
-	if(m_LocalSchurComplement.init() != true)
-	{
-		UG_LOG("ERROR in FETISolver::init: Can not init local Schur "
-				"complement.\n");
-		bSuccess = false;
-	}
+	m_LocalSchurComplement.init();
 	UG_LOG("done.\n");
 
 //	2.4 check all procs
@@ -1755,13 +1692,7 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 	zTmp.set_storage_type(PST_CONSISTENT);
 //	3.3. solve
 	FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement);
-	if(!m_LocalSchurComplement.apply(z, zTmp))
-	{
-		UG_LOG("ERROR in FETISolver::apply_M_inverse: Could not apply"
-				" local Schur complement. \n");
-		FETI_PROFILE_END();	// additional end 'FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' aufgerufen wird.
-		return false;
-	}
+	m_LocalSchurComplement.apply(z, zTmp);
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' aufgerufen wird.
 								// ('m_pOperator->apply' allein synchronisiert *nicht*!)
 //  4. Apply jump operator:  zTmp :=  B_{\Delta} * z

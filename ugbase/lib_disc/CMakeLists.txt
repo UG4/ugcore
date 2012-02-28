@@ -18,9 +18,13 @@ set(srcDiscretization	common/function_group.cpp
 						dof_manager/function_pattern.cpp
 						dof_manager/cuthill_mckee.cpp
 						dof_manager/lexorder.cpp
-						dof_manager/dof_storage_manager.cpp
-						dof_manager/p1conform/p1conform.cpp
-						dof_manager/conform/conform.cpp
+						dof_manager/mg_dof_distribution.cpp
+						dof_manager/level_dof_distribution.cpp
+						dof_manager/surface_dof_distribution.cpp
+						dof_manager/managing_dof_distribution.cpp
+
+                        function_spaces/approximation_space.cpp
+                        function_spaces/grid_function_util.cpp
 
 						reference_element/reference_element.cpp
 			            reference_element/reference_element_init.cpp

@@ -164,9 +164,9 @@ public:
 	GenerateOverlapClass(matrix_type &mat, matrix_type &newMat, IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout,
 			std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts,
 			ParallelNodes &pn) :
-		m_com(mat.get_communicator()), m_mat(mat), m_newMat(newMat), m_totalMasterLayout(totalMasterLayout), m_totalSlaveLayout(totalSlaveLayout),
+		m_com(mat.communicator()), m_mat(mat), m_newMat(newMat), m_totalMasterLayout(totalMasterLayout), m_totalSlaveLayout(totalSlaveLayout),
 		m_vMasterLayouts(vMasterLayouts), m_vSlaveLayouts(vSlaveLayouts),
-		PN(pn), m_pc(m_mat.get_process_communicator())
+		PN(pn), m_pc(m_mat.process_communicator())
 	{
 
 	}
@@ -186,17 +186,17 @@ public:
 			m_mat.print();
 
 			UG_LOG("\nmaster layout:\n");
-			PrintLayout(m_mat.get_master_layout());
+			PrintLayout(m_mat.master_layout());
 			UG_LOG("slave layout:\n");
-			PrintLayout(m_mat.get_slave_layout());
+			PrintLayout(m_mat.slave_layout());
 			UG_LOG("\n\n");
 		}
 		UG_ASSERT(m_mat.num_rows() == m_mat.num_cols(), "atm only for square matrices");
 
 		PROFILE_END(); PROFILE_BEGIN(calculate1);
 
-		IndexLayout &masterLayout = m_mat.get_master_layout();
-		IndexLayout &slaveLayout = m_mat.get_slave_layout();
+		IndexLayout &masterLayout = m_mat.master_layout();
+		IndexLayout &slaveLayout = m_mat.slave_layout();
 
 		PROFILE_END(); PROFILE_BEGIN(calculate_TestLayout);
 		IF_DEBUG(LIB_ALG_MATRIX, 1)
@@ -337,8 +337,8 @@ public:
 
 		PROFILE_END(); PROFILE_BEGIN(calculate4);
 		m_newMat.set_layouts(m_totalMasterLayout, m_totalSlaveLayout);
-		m_newMat.set_communicator(m_mat.get_communicator());
-		m_newMat.set_process_communicator(m_mat.get_process_communicator());
+		m_newMat.set_communicator(m_mat.communicator());
+		m_newMat.set_process_communicator(m_mat.process_communicator());
 		m_newMat.copy_storage_type(m_mat);
 
 
@@ -394,7 +394,7 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
 	// pcl does not use const much
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
 	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
-	PN(mat.get_communicator(), mat.get_master_layout(), mat.get_slave_layout(), mat.num_rows())
+	PN(mat.communicator(), mat.master_layout(), mat.slave_layout(), mat.num_rows())
 
 	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts,
 		PN);
@@ -416,7 +416,7 @@ bool MakeConsistent(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matr
 	// pcl does not use const much
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
 	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
-	ParallelNodes PN(mat.get_communicator(), mat.get_master_layout(), mat.get_slave_layout(), mat.num_rows());
+	ParallelNodes PN(mat.communicator(), mat.master_layout(), mat.slave_layout(), mat.num_rows());
 	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts,
 			PN);
 	c.m_overlapDepthMaster = 0;
@@ -424,7 +424,7 @@ bool MakeConsistent(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matr
 	c.m_masterDirichletLast = false;
 	c.m_slaveDirichletLast = false;
 	bool b = c.calculate();
-	newMat.set_layouts(mat.get_master_layout(), mat.get_slave_layout());
+	newMat.set_layouts(mat.master_layout(), mat.slave_layout());
 	return b;
 }
 

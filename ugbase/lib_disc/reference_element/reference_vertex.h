@@ -14,7 +14,7 @@
 
 namespace ug{
 
-class ReferenceVertex
+class ReferenceVertex : public DimReferenceElement<1>
 {
 	public:
 	///	type of reference element
@@ -47,44 +47,6 @@ class ReferenceVertex
 
 	/// \copydoc ug::ReferenceElement::size()
 		number size() const	{return 1.0;}
-
-	/// \copydoc ug::ReferenceElement::num(int)
-		size_t num(int dim) const	{return m_vNum[dim];}
-
-	/// \copydoc ug::ReferenceElement::num(int, size_t, int)
-		size_t num(int dim_i, size_t i, int dim_j) const
-			{return m_vSubNum[dim_i][i][dim_j];}
-
-	/// \copydoc ug::ReferenceElement::id()
-		int id(int dim_i, size_t i, int dim_j, size_t j) const
-			{return m_id[dim_i][i][dim_j][j];}
-
-	/// \copydoc ug::ReferenceElement::num_ref_elem()
-		size_t num_ref_elem(ReferenceObjectID type) const {return m_vNumRefElem[type];}
-
-	/// \copydoc ug::ReferenceElement::ref_elem_type()
-		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const{	return m_vRefElemType[dim_i][i];}
-
-	private:
-	/// to make it more readable
-		enum{POINT = 0, EDGE = 1};
-		enum{MAXOBJECTS = 1};
-
-	/// number of Geometric Objects of a dimension
-	
-		size_t m_vNum[dim+1];
-
-	/// number of Geometric Objects contained in a (Sub-)Geometric Object of the Element
-		size_t m_vSubNum[dim+1][MAXOBJECTS][dim+1];
-
-	/// indices of GeomObjects
-		int m_id[dim+1][MAXOBJECTS][dim+1][MAXOBJECTS];
-
-	///	number of reference elements
-		size_t m_vNumRefElem[NUM_REFERENCE_OBJECTS];
-
-	///	type of reference elements
-		ReferenceObjectID m_vRefElemType[dim+1][MAXOBJECTS];
 };
 
 } // end namespace ug

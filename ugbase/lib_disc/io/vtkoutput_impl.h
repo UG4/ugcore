@@ -20,6 +20,11 @@
 #include "common/util/string_util.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
+#include "lib_disc/common/multi_index.h"
+
+#ifdef UG_PARALLEL
+#include "lib_algebra/parallelization/parallel_storage_type.h"
+#endif
 
 // own interface
 #include "vtkoutput.h"
@@ -177,7 +182,7 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 #endif
 
 //	get the grid associated to the solution
-	m_pGrid = dynamic_cast<Grid*>(&u.approximation_space().domain().grid());
+	m_pGrid = dynamic_cast<Grid*>(u.domain()->grid().get_impl());
 
 //	check grid
 	if(!m_pGrid)
@@ -238,8 +243,8 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 
 // 	get dimension of grid-piece
 	int dim = -1;
-	if(si >= 0) dim = DimensionOfDomainSubset(u.domain(), si);
-	else dim = DimensionOfDomain(u.domain());
+	if(si >= 0) dim = DimensionOfDomainSubset(*u.domain(), si);
+	else dim = DimensionOfDomain(*u.domain());
 
 //	write piece of grid
 	if(dim >= 0){
@@ -254,7 +259,7 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 	{
 	//	if dim < 0, some is wrong with grid, except no element is in the grid
 		if( ((si < 0) && m_pGrid->num<VertexBase>() != 0) ||
-			((si >=0) && u.domain().subset_handler().template num<VertexBase>(si) != 0))
+			((si >=0) && u.domain()->subset_handler()->template num<VertexBase>(si) != 0))
 		{
 			UG_LOG("ERROR in 'VTK::print_subset': Dimension of grid/subset not"
 					" detected correctly although grid objects present.\n");
@@ -352,7 +357,7 @@ write_piece(FILE* File, function_type& u, int si, int dim)
 	fprintf(File, "      <PointData>\n");
 
 //	get function pattern
-	const FunctionPattern& fctPatt = u.dof_distribution().get_function_pattern();
+	const FunctionPattern& fctPatt = u.function_pattern();
 
 //	add all components if 'selectAll' chosen
 	if(m_bSelectAll)
@@ -415,11 +420,15 @@ count_piece_sizes(function_type& u, int si, int dim,
 //	switch dimension
 	switch(dim)
 	{
-		case 0: if(si>=0) numVert = u.template num<VertexBase>(si);
+		case 0: if(si>=0) count_sizes<VertexBase>(u, si, numVert, numElem, numConn);
 				else {
 					numVert = 0;
 					for(si = 0; si < u.num_subsets(); ++si)
-						numVert += u.template num<VertexBase>(si);
+					{
+						int numVertSi = 0;
+						count_sizes<VertexBase>(u, si, numVertSi, numElem, numConn);
+						numVert += numVertSi;
+					}
 				}
 				break;
 		case 1: count_sizes<Edge>(u, si, numVert, numElem, numConn);
@@ -673,7 +682,7 @@ count_sizes(function_type& u, int si,
 																ref_elem_type;
 
 //	iterator for the elements
-	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
+	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	reset all marks
 	m_pGrid->begin_marking();
@@ -687,21 +696,21 @@ count_sizes(function_type& u, int si,
 		iterBegin = u.template begin<TElem>(si);
 		iterEnd = u.template end<TElem>(si);
 
-	//	count number of elements and number of connections
-		numElem += u.template num<TElem>(si);
-		numConn += u.template num<TElem>(si) * ref_elem_type::num_corners;
-
 	//	loop over elements of this subset
 		for( ; iterBegin != iterEnd; ++iterBegin)
 		{
 		//	get the element
 			TElem *elem = *iterBegin;
 
+		//	count number of elements and number of connections
+			++numElem ;
+			numConn += ref_elem_type::num_corners;
+
 		//	loop vertices of the element
 			for(size_t i = 0; i < (size_t) ref_elem_type::num_corners; ++i)
 			{
 			//	get vertex of the element
-				VertexBase* v = elem->vertex(i);
+				VertexBase* v = GetVertex(elem,i);
 
 			//	if this vertex has already been counted, skip it
 				if(m_pGrid->is_marked(v)) continue;
@@ -733,7 +742,7 @@ write_points_elementwise(FILE* File, function_type& u, int si, int& n)
 
 //	get position attachment
 	typename domain_type::position_accessor_type& aaPos =
-				u.approximation_space().domain().position_accessor();
+				u.domain()->position_accessor();
 
 // 	write points and remember numbering
 	UG_ASSERT(m_aaDOFIndexVRT.valid(), "Missing attachment");
@@ -745,7 +754,7 @@ write_points_elementwise(FILE* File, function_type& u, int si, int& n)
 	float co;
 
 //	get iterators
-	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
+	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	start marking of vertices
 	m_pGrid->begin_marking();
@@ -831,7 +840,7 @@ write_cell_connectivity(FILE* File, function_type& u, int si)
 	UG_ASSERT(m_aaDOFIndexVRT.valid(), "ID access invalid");
 
 //	get iterators
-	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
+	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	loop all subsets for whole domain, only the given subset if si >= 0
 	int sistart = si, siend = si+1;
@@ -882,7 +891,7 @@ write_cell_offsets(	FILE* File, function_type& u, int si, int& n)
 																ref_elem_type;
 
 //	get iterators
-	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
+	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	loop all subsets for whole domain, only the given subset if si >= 0
 	int sistart = si, siend = si+1;
@@ -939,7 +948,7 @@ write_cell_types(FILE* File, function_type& u, int si)
 	BStream.size = sizeof(char);
 
 //	get iterators
-	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
+	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	loop all subsets for whole domain, only the given subset if si >= 0
 	int sistart = si, siend = si+1;
@@ -974,13 +983,13 @@ write_nodal_values_elementwise(FILE* File, function_type& u,
 	BStream.size = sizeof(float);
 
 //	index vector
-	typename TDiscreteFunction::multi_index_vector_type vMultInd;
+	std::vector<MultiIndex<2> > vMultInd;
 
 //	start marking of grid
 	m_pGrid->begin_marking();
 
 //	get iterators
-	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd;
+	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	loop all subsets for whole domain, only the given subset if si >= 0
 	int sistart = si, siend = si+1;

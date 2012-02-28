@@ -35,9 +35,9 @@ namespace ug{
 template<typename TMatrix, typename TVector>
 void SetParallelVectorAsMatrix(TVector &v, TMatrix &m, ParallelStorageType t)
 {
-	v.set_communicator(m.get_communicator());
-	v.set_process_communicator(m.get_process_communicator());
-	v.set_layouts(m.get_master_layout(), m.get_slave_layout());
+	v.set_communicator(m.communicator());
+	v.set_process_communicator(m.process_communicator());
+	v.set_layouts(m.master_layout(), m.slave_layout());
 	v.set_storage_type(t);
 }
 #endif
@@ -84,12 +84,12 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 	size_t maxConnections = GetMaxConnections(A);
 	li.m_dCreationTimeMS = createAMGlevelTiming;
 #ifdef UG_PARALLEL
-	pcl::ProcessCommunicator &pc = A.get_process_communicator(); //!
-	size_t N = A.num_rows() - A.get_slave_layout().num_interface_elements();
+	pcl::ProcessCommunicator &pc = A.process_communicator(); //!
+	size_t N = A.num_rows() - A.slave_layout().num_interface_elements();
 	li.set_nr_of_nodes(pc.allreduce(N, PCL_RO_MIN),	pc.allreduce(N, PCL_RO_MAX), pc.allreduce(N, PCL_RO_SUM));
 	li.set_nnz(	pc.allreduce(nnz, PCL_RO_MIN), pc.allreduce(nnz, PCL_RO_MAX), pc.allreduce(nnz, PCL_RO_SUM));
 	li.set_max_connections(pc.allreduce(maxConnections, PCL_RO_MAX));
-	size_t localInterfaceElements = A.get_master_layout().num_interface_elements();
+	size_t localInterfaceElements = A.master_layout().num_interface_elements();
 	li.m_iInterfaceElements = pc.allreduce(localInterfaceElements, PCL_RO_SUM);
 #else
 	size_t N = A.num_rows();
@@ -198,7 +198,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 	AMGLevel *pL = new AMGLevel(0);
 	pL->pA = &mat;
 #ifdef UG_PARALLEL
-	pL->com = mat.get_communicator();
+	pL->com = mat.communicator();
 	pL->bHasBeenMerged = false;
 #endif
 	levels.push_back(pL);
@@ -222,7 +222,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 
 
 #ifdef UG_PARALLEL
-		//PRINTPC(L.pA->get_process_communicator());
+		//PRINTPC(L.pA->process_communicator());
 		agglomerate(level);
 		if(m_agglomerateLevel == level)
 		{
@@ -266,9 +266,9 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 
 		AH.set_layouts(nextL.masterLayout, nextL.slaveLayout);
 		AH.set_communicator(nextL.com);
-		AH.set_process_communicator(L.pAgglomeratedA->get_process_communicator());
-		P.set_process_communicator(L.pAgglomeratedA->get_process_communicator());
-		R.set_process_communicator(L.pAgglomeratedA->get_process_communicator());
+		AH.set_process_communicator(L.pAgglomeratedA->process_communicator());
+		P.set_process_communicator(L.pAgglomeratedA->process_communicator());
+		R.set_process_communicator(L.pAgglomeratedA->process_communicator());
 #endif
 
 		stopwatch SW; SW.start();
@@ -287,16 +287,16 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 
 	#ifdef UG_PARALLEL
 	#ifdef UG_DEBUG
-		ConsistencyCheck(levels[level]->is_fine, L.pAgglomeratedA->get_communicator(),
-				L.pAgglomeratedA->get_process_communicator(),
-				L.pAgglomeratedA->get_master_layout(), L.pAgglomeratedA->get_slave_layout(), "fine marks");
+		ConsistencyCheck(levels[level]->is_fine, L.pAgglomeratedA->communicator(),
+				L.pAgglomeratedA->process_communicator(),
+				L.pAgglomeratedA->master_layout(), L.pAgglomeratedA->slave_layout(), "fine marks");
 //			PrintLayoutIfBroken(AH.get_process_communicator(), nextL.com, nextL.masterLayout, nextL.slaveLayout);
 	#endif
 		SetParallelVectorAsMatrix(L.corr, *L.pAgglomeratedA, PST_CONSISTENT);
 		SetParallelVectorAsMatrix(L.cH, AH, PST_CONSISTENT);
 		SetParallelVectorAsMatrix(L.dH, AH, PST_ADDITIVE);
 		/*UG_LOG("nextLevel Layouts:\n");
-				PrintLayout(nextL.pA->get_process_communicator(), nextL.pA->get_communicator(), nextL.masterLayout, nextL.slaveLayout);*/
+				PrintLayout(nextL.pA->process_communicator(), nextL.pA->communicator(), nextL.masterLayout, nextL.slaveLayout);*/
 	#endif
 
 		// todo: set size for variable sized blockvectors
@@ -357,7 +357,7 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 	UG_LOG("creating direct solver on level " << level << "\n");
 
 #ifdef UG_PARALLEL
-	pcl::ProcessCommunicator &pc = A.get_process_communicator(); //!
+	pcl::ProcessCommunicator &pc = A.process_communicator(); //!
 	if(pc.size()>1)
 	{
 		L.bHasBeenMerged = true;
@@ -370,7 +370,7 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 			std::vector<MathVector<3> > vec = m_amghelper.positions[level];
 			vec.resize(L.collectedA.num_rows());
 			ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec);
-			pcl::ParallelCommunicator<IndexLayout> &communicator = A.get_communicator();
+			pcl::ParallelCommunicator<IndexLayout> &communicator = A.communicator();
 			communicator.send_data(agglomerateSlaveLayout, copyPol);
 			communicator.receive_data(L.agglomerateMasterLayout, copyPol);
 			communicator.communicate();
@@ -496,8 +496,8 @@ void AMGBase<TAlgebra>::init_fsmoothing()
 		levels[k]->m_diagInv.resize(size);
 		m_diag.resize(size);
 
-		m_diag.set_layouts(mat.get_master_layout(), mat.get_slave_layout());
-		m_diag.set_communicator(mat.get_communicator());
+		m_diag.set_layouts(mat.master_layout(), mat.slave_layout());
+		m_diag.set_communicator(mat.communicator());
 
 		// copy diagonal
 		for(size_t i = 0; i < m_diag.size(); ++i){
@@ -555,7 +555,7 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 	AMGLevel &L = *levels[level];
 	matrix_operator_type &A = *L.pA;
 #ifdef UG_PARALLEL
-	if(A.get_process_communicator().size()>1)
+	if(A.process_communicator().size()>1)
 	{
 		vector_type collC;
 		vector_type collD;
@@ -584,8 +584,14 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 		}
 		// send d -> collD
 		ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
+<<<<<<< .working
+		pcl::ParallelCommunicator<IndexLayout> &com = A.communicator();
+		com.send_data(slaveColl, compolAdd);
+		com.receive_data(masterColl, compolAdd);
+=======
 		com.receive_data(L.agglomerateMasterLayout, compolAdd);
 		com.send_data(agglomerateSlaveLayout, compolAdd);
+>>>>>>> .merge-right.r4682
 		com.communicate();
 
 
@@ -798,7 +804,7 @@ bool AMGBase<TAlgebra>::get_correction(vector_type &c, const vector_type &const_
 
 	m_vec4->resize(const_d.size());
 #ifdef UG_PARALLEL
-	m_vec4->set_layouts(c.get_master_layout(), c.get_slave_layout());
+	m_vec4->set_layouts(c.master_layout(), c.slave_layout());
 	m_vec4->set_storage_type(PST_ADDITIVE);
 #endif
 	vector_type &d = *m_vec4;
@@ -885,7 +891,7 @@ static std::string GetAMGFilename(const matrix_type &m, std::string name, int le
 
 #ifdef UG_PARALLEL
 	return GetParallelName(std::string("AMG_") + name + "_L" + ToString(level) + extension,
-			m.get_process_communicator(), bWriteHeader);
+			m.process_communicator(), bWriteHeader);
 #else
 	return std::string("AMG_") + name + "_L" + ToString(level) + extension;
 #endif
@@ -935,7 +941,7 @@ void AMGBase<TAlgebra>::
 		AMG_PROFILE_FUNC();
 		std::string filename = m_writeMatrixPath + name + ToString(fromlevel) + ".mat";
 #ifdef UG_PARALLEL
-		filename = GetParallelName(filename, mat.get_process_communicator(), true);
+		filename = GetParallelName(filename, mat.process_communicator(), true);
 #endif
 
 		int level = std::min(fromlevel, tolevel);
@@ -966,7 +972,7 @@ void AMGBase<TAlgebra>::write_debug_matrices(matrix_type &AH, prolongation_matri
 	//if(AH.num_rows() < AMG_WRITE_MATRICES_MAX)
 	std::string name = m_writeMatrixPath + std::string("AMG_Au_L") + ToString(level+1) + ".mat";
 #ifdef UG_PARALLEL
-	name = GetParallelName(name, AH.get_process_communicator(), true);
+	name = GetParallelName(name, AH.process_communicator(), true);
 #endif
 	AMGWriteToFile(AH, level+1, level+1, name.c_str(), m_amghelper);
 

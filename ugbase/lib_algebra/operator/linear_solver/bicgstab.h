@@ -135,12 +135,7 @@ class BiCGStab :
 			#endif
 
 		// 	build defect:  b := b - A*x
-			if(!m_A->apply_sub(b, x))
-			{
-				UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-						"Unable to build defect. Aborting.\n");
-				return false;
-			}
+			m_A->apply_sub(b, x);
 
 			// create start r_0^* vector
 		//	todo: 	It would be sufficient to copy only the pattern and
@@ -257,12 +252,7 @@ class BiCGStab :
 				}
 
 			// 	compute v := A*q
-				if(!m_A->apply(v, q))
-				{
-					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-							"Cannot apply Operator A. Aborting.\n");
-					return false;
-				}
+				m_A->apply(v, q);
 
 			// 	make v unique
 				#ifdef UG_PARALLEL
@@ -334,12 +324,7 @@ class BiCGStab :
 				}
 
 			// 	compute t := A*q
-				if(!m_A->apply(t, q))
-				{
-						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-								"Cannot apply Operator A. Aborting.\n");
-						return false;
-				}
+				m_A->apply(t, q);
 
 			// 	make t unique
 				#ifdef UG_PARALLEL

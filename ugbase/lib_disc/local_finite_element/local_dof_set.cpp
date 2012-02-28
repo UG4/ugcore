@@ -29,7 +29,7 @@ void LocalDoFSetProvider::create_lagrange_set(size_t order)
 
 //	register the set
 	if(!register_set(LFEID(LFEID::LAGRANGE, order), *setLagrange))
-		throw(UGFatalError("Unable to register LagrangeLDS"));
+		UG_THROW_FATAL("Unable to register LagrangeLDS");
 }
 
 void LocalDoFSetProvider::create_lagrange_sets(size_t order)

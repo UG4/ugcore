@@ -118,8 +118,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 	vector_type d; d.resize(A.num_rows());
 	vector_type c; c.resize(A.num_rows());
 #ifdef UG_PARALLEL
-	c.set_layouts(A.get_master_layout(), A.get_slave_layout());
-	d.set_layouts(A.get_master_layout(), A.get_slave_layout());
+	c.set_layouts(A.master_layout(), A.slave_layout());
+	d.set_layouts(A.master_layout(), A.slave_layout());
 #endif
 
 	for(size_t i=0; i<m_testvectors.size(); i++)
@@ -163,10 +163,10 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ge
 #ifdef UG_PARALLEL
 	for(size_t i=0; i<m_testvectors.size(); i++)
 	{
-		SetLayoutValues(&m_testvectors[i], A.get_slave_layout(), 0.0);
+		SetLayoutValues(&m_testvectors[i], A.slave_layout(), 0.0);
 		m_testvectors[i].resize(A_OL2.num_rows());
-		m_testvectors[i].set_master_layout(A_OL2.get_master_layout());
-		m_testvectors[i].set_slave_layout(A_OL2.get_slave_layout());
+		m_testvectors[i].set_master_layout(A_OL2.master_layout());
+		m_testvectors[i].set_slave_layout(A_OL2.slave_layout());
 		for(size_t j=A.num_rows(); j<A_OL2.num_rows(); j++)
 			m_testvectors[i][j]=0.0;
 

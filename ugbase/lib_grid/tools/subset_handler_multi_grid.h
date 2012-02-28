@@ -32,6 +32,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 				
 		void assign_grid(MultiGrid& mg);
 		inline MultiGrid* multi_grid()	{return m_pMG;}
+		inline const MultiGrid* multi_grid() const {return m_pMG;}
 		
 	///	Makes sure that the subset with the given index exists.
 	/**	If required the subsets between num_subsets() and index will be created.*/

@@ -12,76 +12,42 @@
 
 namespace ug{
 
-template <typename TDoFDistribution, typename TAlgebra>
-bool
-AssembledOperator<TDoFDistribution, TAlgebra>::
-init()
+template <typename TAlgebra>
+void AssembledOperator<TAlgebra>::init()
 {
-	if(m_pDoFDistribution == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledOperator::init':"
-				" DoF Distribution not set.\n");
-		return false;
-	}
 	if(m_pAss == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledOperator::init': "
-				"Discretization not set.\n");
-		return false;
-	}
+		UG_THROW_FATAL("Discretization not set.");
 
 //	remember that operator has been init
 	m_bInit = true;
-
-	return true;
 }
 
 //	Prepare functions
-template <typename TDoFDistribution, typename TAlgebra>
-bool
-AssembledOperator<TDoFDistribution, TAlgebra>::
-prepare(vector_type& dOut, vector_type& uIn)
+template <typename TAlgebra>
+void
+AssembledOperator<TAlgebra>::prepare(vector_type& dOut, vector_type& uIn)
 {
-	if(!m_bInit)
-	{
-		UG_LOG("ERROR in 'AssembledOperator::prepare': "
-				"Operator not initialized.\n");
-		return false;
-	}
+	if(!m_bInit) UG_THROW_FATAL("Operator not initialized.");
 
 // 	Set Dirichlet - Nodes to exact values
 	try{
-	m_pAss->adjust_solution(uIn, *m_pDoFDistribution);
+		m_pAss->adjust_solution(uIn, m_gridLevel);
 	}
-	UG_CATCH_THROW("ERROR in 'AssembledOperator::prepare': "
-				"Cannot set dirichlet values in solution.\n");
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("Cannot set dirichlet values in solution.");
 }
 
 // 	Compute d = L(u)
-template <typename TDoFDistribution, typename TAlgebra>
-bool
-AssembledOperator<TDoFDistribution, TAlgebra>::
-apply(vector_type& dOut, const vector_type& uIn)
+template <typename TAlgebra>
+void
+AssembledOperator<TAlgebra>::apply(vector_type& dOut, const vector_type& uIn)
 {
-	if(!m_bInit)
-	{
-		UG_LOG("ERROR in 'AssembledOperator::apply':"
-				" Operator not initialized.\n");
-		return false;
-	}
+	if(!m_bInit) UG_THROW_FATAL("Operator not initialized.");
 
 //  assemble defect
 	try{
-	m_pAss->assemble_defect(dOut, uIn, *m_pDoFDistribution);
+		m_pAss->assemble_defect(dOut, uIn, m_gridLevel);
 	}
-	UG_CATCH_THROW("ERROR in 'AssembledOperator::apply': Could not "
-				"assemble defect. Aborting.\n");
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("Could not assemble defect. Aborting.");
 }
 
 } // end namepace ug

@@ -254,14 +254,14 @@ print("NumProcs is " .. numProcs .. ", numPreRefs = " .. numPreRefs .. ", numRef
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
+approxSpace:init_level()
+approxSpace:init_surface()
 approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
 
 -- lets order indices using Cuthill-McKee
---if OrderCuthillMcKee(approxSpace, true) == false then
---	print("ERROR when ordering Cuthill-McKee"); exit();
---end
+OrderCuthillMcKee(approxSpace, true);
 
 --------------------------------------------------------------------------------
 --  Setup User Functions
@@ -352,16 +352,14 @@ print ("Setting up Algebra Solver")
 -- create operator from discretization
 linOp = AssembledLinearOperator()
 linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- get grid function
 u = GridFunction(approxSpace)
 b = GridFunction(approxSpace)
 
 -- debug writer
-dbgWriter = GridFunctionDebugWriter()
-dbgWriter:set_reference_grid_function(u)
-dbgWriter:set_vtk_output(false)
+dbgWriter = GridFunctionDebugWriter(approxSpace)
+dbgWriter:set_vtk_output(true)
 
 -- create algebraic Preconditioner
 jac = Jacobi()
@@ -386,12 +384,7 @@ ilut = ILUT()
 	base = LinearSolver()
 	base:set_convergence_check(baseConvCheck)
 	base:set_preconditioner(jac)
-	
-	-- Transfer and Projection
-	transfer = P1Prolongation(approxSpace)
-	transfer:set_dirichlet_post_process(dirichletBND)
-	projection = P1Projection(approxSpace)
-	
+
 	-- Geometric Multi Grid
 	gmg = GeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
@@ -402,8 +395,6 @@ ilut = ILUT()
 	gmg:set_cycle_type(1)
 	gmg:set_num_presmooth(3)
 	gmg:set_num_postsmooth(3)
-	gmg:set_prolongation(transfer)
-	gmg:set_projection(projection)
 	if activateDbgWriter >= 1 then
 		gmg:set_debug(dbgWriter)
 	end
@@ -436,7 +427,7 @@ linSolver:set_convergence_check(convCheck)
 
 -- create ILU Solver
 iluSolver = LinearSolver()
-iluSolver:set_preconditioner(ilu)
+iluSolver:set_preconditioner(jac)
 iluSolver:set_convergence_check(convCheck)
 
 -- create CG Solver

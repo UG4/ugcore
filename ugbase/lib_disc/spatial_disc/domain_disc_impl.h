@@ -10,15 +10,15 @@
 
 #include "domain_disc.h"
 #include "lib_disc/common/groups_util.h"
+#include "lib_disc/spatial_disc/elem_disc/elem_disc_assemble_util.h"
 
 namespace ug{
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
-update_elem_discs()
+template <typename TDomain, typename TAlgebra>
+bool DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
 {
 //	check Approximation space
-	if(m_pApproxSpace == NULL)
+	if(!m_spApproxSpace.is_valid())
 	{
 		UG_LOG("ERROR in DomainDiscretization: Before using the "
 				"DomainDiscretization an ApproximationSpace must be set to it. "
@@ -31,7 +31,7 @@ update_elem_discs()
 	m_vElemDisc.clear();
 	for(size_t i = 0; i < m_vDomainElemDisc.size(); ++i)
 	{
-		m_vDomainElemDisc[i]->set_approximation_space(*m_pApproxSpace);
+		m_vDomainElemDisc[i]->set_approximation_space(m_spApproxSpace);
 		m_vElemDisc.push_back(m_vDomainElemDisc[i]);
 	}
 
@@ -39,12 +39,11 @@ update_elem_discs()
 	return true;
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
-update_constraints()
+template <typename TDomain, typename TAlgebra>
+bool DomainDiscretization<TDomain, TAlgebra>::update_constraints()
 {
 //	check Approximation space
-	if(m_pApproxSpace == NULL)
+	if(!m_spApproxSpace.is_valid())
 	{
 		UG_LOG("ERROR in DomainDiscretization: Before using the "
 				"DomainDiscretization an ApproximationSpace must be set to it. "
@@ -58,7 +57,7 @@ update_constraints()
 	{
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
-			m_vvConstraints[type][i]->set_approximation_space(*m_pApproxSpace);
+			m_vvConstraints[type][i]->set_approximation_space(m_spApproxSpace);
 		}
 	}
 
@@ -66,9 +65,8 @@ update_constraints()
 	return true;
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
-update_disc_items()
+template <typename TDomain, typename TAlgebra>
+bool DomainDiscretization<TDomain, TAlgebra>::update_disc_items()
 {
 //	return flag
 	bool bRet = true;
@@ -80,39 +78,22 @@ update_disc_items()
 	return bRet;
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-typename DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::dof_distribution_type&
-DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
-get_surface_dd()
-{
-//	check Approximation space
-	if(m_pApproxSpace == NULL)
-	{
-		UG_LOG("ERROR in DomainDiscretization: Before using the "
-				"DomainDiscretization an ApproximationSpace must be set to it. "
-				"Please use DomainDiscretization:set_approximation_space to "
-				"set an appropriate Space.\n");
-		throw(UGFatalError("ApproximationSpace missing in DomainDiscretization."));
-	}
-
-	return m_pApproxSpace->surface_dof_distribution();
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Mass Matrix
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 assemble_mass_matrix(matrix_type& M, const vector_type& u,
-                     const dof_distribution_type& dd)
+                     ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
 		UG_THROW_FATAL("DomainDisc: Cannot update disc items.")
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd.num_indices();
+	const size_t numIndex = dd->num_indices();
 	M.resize(0,0);
 	M.resize(numIndex, numIndex);
 	M.set(0.0);
@@ -122,8 +103,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
 					   " Can not Subset Groups and union.\n");
 
@@ -134,7 +114,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -155,23 +135,23 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleMassMatrix<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleMassMatrix<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
 			break;
 		case 2:
-			bSuc &= AssembleMassMatrix<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleMassMatrix<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
-			bSuc &= AssembleMassMatrix<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleMassMatrix<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
 			break;
 		case 3:
-			bSuc &= AssembleMassMatrix<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleMassMatrix<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
-			bSuc &= AssembleMassMatrix<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleMassMatrix<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
-			bSuc &= AssembleMassMatrix<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleMassMatrix<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
-			bSuc &= AssembleMassMatrix<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleMassMatrix<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
 			break;
 		default:
@@ -189,6 +169,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 //	post process
 	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
+		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_jacobian(M, u, dd))
@@ -199,7 +180,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	M.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dd);
+	TDD* dist = const_cast<TDD*>(&dd);
 	CopyLayoutsAndCommunicatorIntoMatrix(M, *dist);
 #endif
 }
@@ -208,17 +189,18 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 // Stiffness Matrix
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
-                          const dof_distribution_type& dd)
+                          ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
 		UG_THROW_FATAL("Cannot update disc items.");
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd.num_indices();
+	const size_t numIndex = dd->num_indices();
 	A.resize(0,0);
 	A.resize(numIndex, numIndex);
 	A.set(0.0);
@@ -228,8 +210,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
 						" Can not Subset Groups and union.\n");
 
@@ -240,7 +221,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -261,23 +242,23 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleStiffnessMatrix<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleStiffnessMatrix<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
 			break;
 		case 2:
-			bSuc &= AssembleStiffnessMatrix<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleStiffnessMatrix<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
-			bSuc &= AssembleStiffnessMatrix<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleStiffnessMatrix<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
 			break;
 		case 3:
-			bSuc &= AssembleStiffnessMatrix<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleStiffnessMatrix<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
-			bSuc &= AssembleStiffnessMatrix<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleStiffnessMatrix<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
-			bSuc &= AssembleStiffnessMatrix<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleStiffnessMatrix<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
-			bSuc &= AssembleStiffnessMatrix<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleStiffnessMatrix<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
 			break;
 		default:
@@ -295,6 +276,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 //	post process
 	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
+		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_jacobian(A, u, dd))
@@ -305,7 +287,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	A.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dd);
+	TDD* dist = const_cast<TDD*>(&dd);
 	CopyLayoutsAndCommunicatorIntoMatrix(A, *dist);
 #endif
 }
@@ -320,18 +302,19 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 ///////////////////////////////////////////////////////////////////////////////
 // Jacobian (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 assemble_jacobian(matrix_type& J,
                   const vector_type& u,
-                  const dof_distribution_type& dd)
+                  ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
 		UG_THROW_FATAL("Cannot update disc items.");
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd.num_indices();
+	const size_t numIndex = dd->num_indices();
 	J.resize(0,0);
 	J.resize(numIndex, numIndex);
 	J.set(0.0);
@@ -341,8 +324,7 @@ assemble_jacobian(matrix_type& J,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
 						" Can not Subset Groups and union.\n");
 
@@ -353,7 +335,7 @@ assemble_jacobian(matrix_type& J,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -374,23 +356,23 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleJacobian<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
 			break;
 		case 2:
-			bSuc &= AssembleJacobian<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
-			bSuc &= AssembleJacobian<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
 			break;
 		case 3:
-			bSuc &= AssembleJacobian<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
-			bSuc &= AssembleJacobian<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
-			bSuc &= AssembleJacobian<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
-			bSuc &= AssembleJacobian<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
 			break;
 		default:
@@ -406,21 +388,20 @@ assemble_jacobian(matrix_type& J,
 	}
 
 //	post process
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
+	try{
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
+		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			if(!m_vvConstraints[type][i]->adjust_jacobian(J, u, dd))
-				UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian':"
-								" Cannot execute post process " << i << ".\n");
-		}
+			m_vvConstraints[type][i]->adjust_jacobian(J, u, dd->grid_level());
 	}
+	}UG_CATCH_THROW("DomainDiscretization::assemble_jacobian:"
+					" Cannot execute post process.");
 
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dd);
-	CopyLayoutsAndCommunicatorIntoMatrix(J, *dist);
+	TDD* pDD = const_cast<TDD*>(dd.get_impl());
+	CopyLayoutsAndCommunicatorIntoMatrix(J, *pDD);
 #endif
 }
 
@@ -428,18 +409,19 @@ assemble_jacobian(matrix_type& J,
 ///////////////////////////////////////////////////////////////////////////////
 // Defect (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 assemble_defect(vector_type& d,
                 const vector_type& u,
-                const dof_distribution_type& dd)
+                ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
 		UG_THROW_FATAL("Cannot update disc items.");
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd.num_indices();
+	const size_t numIndex = dd->num_indices();
 	d.resize(numIndex);
 	d.set(0.0);
 
@@ -448,8 +430,7 @@ assemble_defect(vector_type& d,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
 						" Can not Subset Groups and union.\n");
 
@@ -460,7 +441,7 @@ assemble_defect(vector_type& d,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -481,23 +462,23 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleDefect<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
 			break;
 		case 2:
-			bSuc &= AssembleDefect<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
-			bSuc &= AssembleDefect<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
 			break;
 		case 3:
-			bSuc &= AssembleDefect<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
-			bSuc &= AssembleDefect<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
-			bSuc &= AssembleDefect<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
-			bSuc &= AssembleDefect<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
 			break;
 		default:
@@ -513,14 +494,13 @@ assemble_defect(vector_type& d,
 	}
 
 //	post process
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
+	try{
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
+		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			if(!m_vvConstraints[type][i]->adjust_defect(d, u, dd))
-				UG_THROW_FATAL("Cannot adjust defect.");
-		}
+			m_vvConstraints[type][i]->adjust_defect(d, u, dd->grid_level());
 	}
+	} UG_CATCH_THROW("Cannot adjust defect.");
 
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
@@ -531,17 +511,18 @@ assemble_defect(vector_type& d,
 ///////////////////////////////////////////////////////////////////////////////
 // Matrix and RHS (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
-                const dof_distribution_type& dd)
+                ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
 		UG_THROW_FATAL("Cannot update disc items.");
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd.num_indices();
+	const size_t numIndex = dd->num_indices();
 	mat.resize(0,0);
 	mat.resize(numIndex, numIndex);
 	mat.set(0.0);
@@ -554,8 +535,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
 						" Can not Subset Groups and union.\n");
 
@@ -566,7 +546,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -587,23 +567,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleLinear<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			break;
 		case 2:
-			bSuc &= AssembleLinear<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
-			bSuc &= AssembleLinear<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			break;
 		case 3:
-			bSuc &= AssembleLinear<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
-			bSuc &= AssembleLinear<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
-			bSuc &= AssembleLinear<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
-			bSuc &= AssembleLinear<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
 			break;
 		default:
@@ -619,22 +599,19 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	}
 
 //	post process
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
+	try{
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
+		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			if(!m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd))
-				UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear':"
-						" Cannot post process.\n");
-		}
+			m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd->grid_level());
 	}
+	}UG_CATCH_THROW("DomainDiscretization::assemble_linear: Cannot post process.");
 
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	mat.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dd);
-	CopyLayoutsAndCommunicatorIntoMatrix(mat, *dist);
-
+	TDD* pDD = const_cast<TDD*>(dd.get_impl());
+	CopyLayoutsAndCommunicatorIntoMatrix(mat, *pDD);
 	rhs.set_storage_type(PST_ADDITIVE);
 #endif
 }
@@ -642,18 +619,19 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 ///////////////////////////////////////////////////////////////////////////////
 // RHS (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 assemble_rhs(vector_type& rhs,
 			const vector_type& u,
-			const dof_distribution_type& dd)
+			ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
 		UG_THROW_FATAL("Cannot update disc items.");
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd.num_indices();
+	const size_t numIndex = dd->num_indices();
 	rhs.resize(numIndex);
 	rhs.set(0.0);
 
@@ -662,8 +640,7 @@ assemble_rhs(vector_type& rhs,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
 						" Can not Subset Groups and union.\n");
 
@@ -674,7 +651,7 @@ assemble_rhs(vector_type& rhs,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -695,23 +672,23 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleRhs<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleRhs<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
 			break;
 		case 2:
-			bSuc &= AssembleRhs<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleRhs<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
-			bSuc &= AssembleRhs<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleRhs<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
 			break;
 		case 3:
-			bSuc &= AssembleRhs<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleRhs<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
-			bSuc &= AssembleRhs<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleRhs<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
-			bSuc &= AssembleRhs<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleRhs<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
-			bSuc &= AssembleRhs<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleRhs<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
 			break;
 		default:
@@ -729,6 +706,7 @@ assemble_rhs(vector_type& rhs,
 //	post process
 	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
 	{
+		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_rhs(rhs, u, dd))
@@ -746,26 +724,24 @@ assemble_rhs(vector_type& rhs,
 ///////////////////////////////////////////////////////////////////////////////
 // set constraints (stationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
-adjust_solution(vector_type& u, const dof_distribution_type& dd)
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
+adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd)
 {
 	if(!update_constraints())
 		UG_THROW_FATAL("Cannot update constraints.");
 
+	try{
 //	post process dirichlet
 	for(size_t i = 0; i < m_vvConstraints[CT_DIRICHLET].size(); ++i)
-	{
-		if(!m_vvConstraints[CT_DIRICHLET][i]->adjust_solution(u, dd))
-			UG_THROW_FATAL("Cannot adjust solution.");
-	}
+		m_vvConstraints[CT_DIRICHLET][i]->adjust_solution(u, dd->grid_level());
 
 //	post process constraints
 	for(size_t i = 0; i < m_vvConstraints[CT_CONSTRAINTS].size(); ++i)
-	{
-		if(!m_vvConstraints[CT_CONSTRAINTS][i]->adjust_solution(u, dd))
-			UG_THROW_FATAL("Cannot adjust solution.");
-	}
+		m_vvConstraints[CT_CONSTRAINTS][i]->adjust_solution(u, dd->grid_level());
+
+	} UG_CATCH_THROW("Cannot adjust solution.");
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -777,10 +753,11 @@ adjust_solution(vector_type& u, const dof_distribution_type& dd)
 ///////////////////////////////////////////////////////////////////////////////
 // Prepare Timestep (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
-                const dof_distribution_type& dd)
+                ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
@@ -791,10 +768,9 @@ prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
+						" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -803,7 +779,7 @@ prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -824,23 +800,23 @@ prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= PrepareTimestep<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= PrepareTimestep<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
 			break;
 		case 2:
-			bSuc &= PrepareTimestep<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= PrepareTimestep<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
-			bSuc &= PrepareTimestep<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= PrepareTimestep<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
 			break;
 		case 3:
-			bSuc &= PrepareTimestep<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= PrepareTimestep<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
-			bSuc &= PrepareTimestep<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= PrepareTimestep<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
-			bSuc &= PrepareTimestep<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= PrepareTimestep<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
-			bSuc &= PrepareTimestep<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= PrepareTimestep<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
 			break;
 		default:
@@ -862,16 +838,23 @@ prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
 ///////////////////////////////////////////////////////////////////////////////
 // Jacobian (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 assemble_jacobian(matrix_type& J,
                   const VectorTimeSeries<vector_type>& vSol,
                   const number s_a0,
-                  const dof_distribution_type& dd)
+                  ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
 		UG_THROW_FATAL("Cannot update disc items.");
+
+//	reset matrix to zero and resize
+	const size_t numIndex = dd->num_indices();
+	J.resize(0,0);
+	J.resize(numIndex, numIndex);
+	J.set(0.0);
 
 //	get current time
 	const number time = vSol.time(0);
@@ -881,10 +864,9 @@ assemble_jacobian(matrix_type& J,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-					" Can not Subset Groups and union.\n");
+						" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -893,7 +875,7 @@ assemble_jacobian(matrix_type& J,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -914,23 +896,23 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleJacobian<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			break;
 		case 2:
-			bSuc &= AssembleJacobian<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
-			bSuc &= AssembleJacobian<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			break;
 		case 3:
-			bSuc &= AssembleJacobian<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
-			bSuc &= AssembleJacobian<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
-			bSuc &= AssembleJacobian<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
-			bSuc &= AssembleJacobian<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleJacobian<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
 			break;
 		default:
@@ -946,47 +928,51 @@ assemble_jacobian(matrix_type& J,
 	}
 
 //	post process
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
+	try{
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
+		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			if(!m_vvConstraints[type][i]->adjust_jacobian(J, vSol.solution(0), dd, time))
-				UG_THROW_FATAL("Cannot adjust jacobian.");
-		}
+			m_vvConstraints[type][i]->adjust_jacobian(J, vSol.solution(0), dd->grid_level(), time);
 	}
+	}UG_CATCH_THROW("Cannot adjust jacobian.");
 
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dd);
-	CopyLayoutsAndCommunicatorIntoMatrix(J, *dist);
+	TDD* pDD = const_cast<TDD*>(dd.get_impl());
+	CopyLayoutsAndCommunicatorIntoMatrix(J, *pDD);
 #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Defect (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 assemble_defect(vector_type& d,
                 const VectorTimeSeries<vector_type>& vSol,
                 const std::vector<number>& vScaleMass,
                 const std::vector<number>& vScaleStiff,
-                const dof_distribution_type& dd)
+                ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
 		UG_THROW_FATAL("Cannot update disc items.");
+
+//	reset matrix to zero and resize
+	const size_t numIndex = dd->num_indices();
+	d.resize(numIndex);
+	d.set(0.0);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
+						" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -995,7 +981,7 @@ assemble_defect(vector_type& d,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -1016,23 +1002,23 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleDefect<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		case 2:
-			bSuc &= AssembleDefect<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
-			bSuc &= AssembleDefect<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		case 3:
-			bSuc &= AssembleDefect<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
-			bSuc &= AssembleDefect<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
-			bSuc &= AssembleDefect<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
-			bSuc &= AssembleDefect<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleDefect<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		default:
@@ -1048,14 +1034,13 @@ assemble_defect(vector_type& d,
 	}
 
 //	post process
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
+	try{
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
+		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			if(!m_vvConstraints[type][i]->adjust_defect(d, vSol.solution(0), dd, vSol.time(0)))
-				UG_THROW_FATAL("Cannot adjust defect.");
-		}
+			m_vvConstraints[type][i]->adjust_defect(d, vSol.solution(0), dd->grid_level(), vSol.time(0));
 	}
+	} UG_CATCH_THROW("Cannot adjust defect.");
 
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
@@ -1066,13 +1051,14 @@ assemble_defect(vector_type& d,
 ///////////////////////////////////////////////////////////////////////////////
 // Matrix and RHS (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
                 const VectorTimeSeries<vector_type>& vSol,
                 const std::vector<number>& vScaleMass,
                 const std::vector<number>& vScaleStiff,
-                const dof_distribution_type& dd)
+                ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
@@ -1083,8 +1069,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
 						" Can not Subset Groups and union.\n");
 
@@ -1095,7 +1080,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -1116,23 +1101,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleLinear<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		case 2:
-			bSuc &= AssembleLinear<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
-			bSuc &= AssembleLinear<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		case 3:
-			bSuc &= AssembleLinear<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
-			bSuc &= AssembleLinear<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
-			bSuc &= AssembleLinear<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
-			bSuc &= AssembleLinear<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= AssembleLinear<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
 			break;
 		default:
@@ -1149,20 +1134,19 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 
 
 //	post process
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
+	try{
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
+		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			if(!m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd, vSol.time(0)))
-				UG_THROW_FATAL("Cannot adjust linear.");
-		}
+			m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd->grid_level(), vSol.time(0));
 	}
+	} UG_CATCH_THROW("Cannot adjust linear.");
 
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	mat.set_storage_type(PST_ADDITIVE);
-	dof_distribution_type* dist = const_cast<dof_distribution_type*>(&dd);
-	CopyLayoutsAndCommunicatorIntoMatrix(mat, *dist);
+	TDD* pDD = const_cast<TDD*>(dd.get_impl());
+	CopyLayoutsAndCommunicatorIntoMatrix(mat, *pDD);
 
 	rhs.set_storage_type(PST_ADDITIVE);
 #endif
@@ -1171,35 +1155,35 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 ///////////////////////////////////////////////////////////////////////////////
 // set constraint values (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
-adjust_solution(vector_type& u, number time, const dof_distribution_type& dd)
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
+adjust_solution(vector_type& u, number time, ConstSmartPtr<TDD> dd)
 {
 	if(!update_constraints())
 		UG_THROW_FATAL("Cannot update constraints.");
 
+	try{
+
 //	dirichlet
 	for(size_t i = 0; i < m_vvConstraints[CT_DIRICHLET].size(); ++i)
-	{
-		if(!m_vvConstraints[CT_DIRICHLET][i]->adjust_solution(u, dd, time))
-			UG_THROW_FATAL("Cannot adjust solution.");
-	}
+		m_vvConstraints[CT_DIRICHLET][i]->adjust_solution(u, dd->grid_level(), time);
 
 //	constraints
 	for(size_t i = 0; i < m_vvConstraints[CT_CONSTRAINTS].size(); ++i)
-	{
-		if(!m_vvConstraints[CT_CONSTRAINTS][i]->adjust_solution(u, dd, time))
-			UG_THROW_FATAL("Cannot adjust solution.");
-	}
+		m_vvConstraints[CT_CONSTRAINTS][i]->adjust_solution(u, dd->grid_level(), time);
+
+	} UG_CATCH_THROW(" Cannot adjust solution.");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Finish Timestep (instationary)
 ///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-void DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
 finish_timestep(const VectorTimeSeries<vector_type>& vSol,
-                const dof_distribution_type& dd)
+                ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
 	if(!update_disc_items())
@@ -1210,10 +1194,9 @@ finish_timestep(const VectorTimeSeries<vector_type>& vSol,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, sh))
+	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
 		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-				" Can not Subset Groups and union.\n");
+						" Can not Subset Groups and union.\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -1222,7 +1205,7 @@ finish_timestep(const VectorTimeSeries<vector_type>& vSol,
 		const int si = unionSubsets[i];
 
 	//	get dimension of the subset
-		const int dim = subset_dim(sh, si);
+		const int dim = subset_dim(*dd->subset_handler(), si);
 
 	//	request if subset is regular grid
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
@@ -1243,23 +1226,23 @@ finish_timestep(const VectorTimeSeries<vector_type>& vSol,
 		switch(dim)
 		{
 		case 1:
-			bSuc &= FinishTimestep<Edge,TDoFDistribution,TAlgebra>
+			bSuc &= FinishTimestep<Edge, TDD, TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
 			break;
 		case 2:
-			bSuc &= FinishTimestep<Triangle,TDoFDistribution,TAlgebra>
+			bSuc &= FinishTimestep<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
-			bSuc &= FinishTimestep<Quadrilateral,TDoFDistribution,TAlgebra>
+			bSuc &= FinishTimestep<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
 			break;
 		case 3:
-			bSuc &= FinishTimestep<Tetrahedron,TDoFDistribution,TAlgebra>
+			bSuc &= FinishTimestep<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
-			bSuc &= FinishTimestep<Pyramid,TDoFDistribution,TAlgebra>
+			bSuc &= FinishTimestep<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
-			bSuc &= FinishTimestep<Prism,TDoFDistribution,TAlgebra>
+			bSuc &= FinishTimestep<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
-			bSuc &= FinishTimestep<Hexahedron,TDoFDistribution,TAlgebra>
+			bSuc &= FinishTimestep<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
 			break;
 		default:
@@ -1276,8 +1259,8 @@ finish_timestep(const VectorTimeSeries<vector_type>& vSol,
 
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-int DomainDiscretization<TDomain, TDoFDistribution, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+int DomainDiscretization<TDomain, TAlgebra>::
 subset_dim(const ISubsetHandler& sh, int subsetIndex)
 {
 //	return the "dim" property of the associated subset-handler
@@ -1291,6 +1274,6 @@ subset_dim(const ISubsetHandler& sh, int subsetIndex)
 			"UpdateMaxDimensionOfSubset or UpdateGlobalMaxDimensionOfSubset.");
 }
 
-}
+} // end namespace ug
 
 #endif /*__H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_IMPL__*/

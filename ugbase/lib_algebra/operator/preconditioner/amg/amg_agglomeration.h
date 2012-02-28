@@ -13,7 +13,7 @@ bool AMGBase<TAlgebra>::gather_vertical(vector_type &vec, vector_type &collected
 {
 	AMGLevel &L = *levels[level];
 	matrix_operator_type &A = *L.pA;
-	pcl::ParallelCommunicator<IndexLayout> &com = A.get_communicator();
+	pcl::ParallelCommunicator<IndexLayout> &com = A.communicator();
 
 	if(!levels[level]->bHasBeenMerged)
 	{
@@ -67,7 +67,7 @@ bool AMGBase<TAlgebra>::broadcast_vertical(vector_type &vec, vector_type &collec
 {
 	AMGLevel &L = *levels[level];
 	matrix_operator_type &A = *L.pA;
-	pcl::ParallelCommunicator<IndexLayout> &com = A.get_communicator();
+	pcl::ParallelCommunicator<IndexLayout> &com = A.communicator();
 
 	if(!levels[level]->bHasBeenMerged)
 	{
@@ -225,7 +225,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 	matrix_operator_type &A = *L.pA;
 
 	if(L.m_levelInformation.get_nr_of_nodes_min() > m_minNodesOnOneProcessor
-			|| A.get_process_communicator().size() == 1)
+			|| A.process_communicator().size() == 1)
 	{
 		L.bHasBeenMerged = false;
 		L.pAgglomeratedA = L.pA;
@@ -237,10 +237,10 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 
 	// 1. create global Algebra IDs
 
-	pcl::ParallelCommunicator<IndexLayout> &communicator = A.get_communicator();
-	pcl::ProcessCommunicator &pc = A.get_process_communicator();
+	pcl::ParallelCommunicator<IndexLayout> &communicator = A.communicator();
+	pcl::ProcessCommunicator &pc = A.process_communicator();
 
-	ParallelNodes PN(A.get_communicator(), A.get_master_layout(), A.get_slave_layout(), A.num_rows());
+	ParallelNodes PN(A.communicator(), A.master_layout(), A.slave_layout(), A.num_rows());
 
 	// 1. ein prozessor erhält alle daten
 	// 2. ein maß definiert, wie leicht man agglomerieren kann:
@@ -284,10 +284,10 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		connections.resize(pc.size());
 
 		sizes[0] = A.num_rows();
-		for(IndexLayout::iterator iter = A.get_master_layout().begin(); iter != A.get_master_layout().end(); ++iter)
+		for(IndexLayout::iterator iter = A.master_layout().begin(); iter != A.master_layout().end(); ++iter)
 		{
-			size_t s = A.get_master_layout().interface(iter).size();
-			int pid = A.get_master_layout().proc_id(iter);
+			size_t s = A.master_layout().interface(iter).size();
+			int pid = A.master_layout().proc_id(iter);
 			int localID = globalToLocalPID[pid];
 			connections[0][localID] += s;
 			connections[localID][0] += s;
@@ -367,10 +367,10 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		//UG_LOG("Sending interface information.\n");
 		BinaryBuffer sstream;
 		Serialize(sstream, A.num_rows());
-		for(IndexLayout::iterator iter = A.get_master_layout().begin(); iter != A.get_master_layout().end(); ++iter)
+		for(IndexLayout::iterator iter = A.master_layout().begin(); iter != A.master_layout().end(); ++iter)
 		{
-			int pid = A.get_master_layout().proc_id(iter);
-			size_t s = A.get_master_layout().interface(iter).size();
+			int pid = A.master_layout().proc_id(iter);
+			size_t s = A.master_layout().interface(iter).size();
 			Serialize(sstream, pid);
 			Serialize(sstream, s);
 		}
@@ -400,8 +400,8 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 	UG_LOG("\n");*/
 
 	GlobalLayout globalMasterLayout, globalSlaveLayout;
-	CreateGlobalLayout(globalMasterLayout, A.get_master_layout(), PN);
-	CreateGlobalLayout(globalSlaveLayout, A.get_slave_layout(), PN);
+	CreateGlobalLayout(globalMasterLayout, A.master_layout(), PN);
+	CreateGlobalLayout(globalSlaveLayout, A.slave_layout(), PN);
 
 	if(mergeWith.size() > 1)
 	{
@@ -420,7 +420,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		CreateLayoutFromGlobalLayout(L.masterLayout2, globalMasterLayout, PN);
 		CreateLayoutFromGlobalLayout(L.slaveLayout2, globalSlaveLayout, PN);
 
-		L.agglomeratedPC = A.get_process_communicator().create_sub_communicator(true);
+		L.agglomeratedPC = A.process_communicator().create_sub_communicator(true);
 
 		L.collectedA.set_layouts(L.masterLayout2, L.slaveLayout2);
 		L.collectedA.set_process_communicator(L.agglomeratedPC);
@@ -439,7 +439,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		UG_LOG("level = " << level << ". old size of matrix at this level: " <<L.collectedA.num_rows() << "\n");*/
 
 		if(m_amghelper.has_positions())
-			m_amghelper.receive_agglomerate_positions(level, A.get_communicator(), L.agglomerateMasterLayout,
+			m_amghelper.receive_agglomerate_positions(level, A.communicator(), L.agglomerateMasterLayout,
 				L.collectedA.num_rows());
 		//merging_as_master(L);
 	}
@@ -450,7 +450,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		{
 			L.bHasBeenMerged = false;
 			//UG_LOG("Not merging.\n");
-			L.agglomeratedPC = A.get_process_communicator().create_sub_communicator(true);
+			L.agglomeratedPC = A.process_communicator().create_sub_communicator(true);
 
 			MergeGlobalLayout(globalMasterLayout, merge);
 			MergeGlobalLayout(globalSlaveLayout, merge);
@@ -492,7 +492,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 
 			SendGlobalLayout(communicator, globalMasterLayout, globalSlaveLayout, pid);
 
-			L.agglomeratedPC = A.get_process_communicator().create_sub_communicator(false);
+			L.agglomeratedPC = A.process_communicator().create_sub_communicator(false);
 			/*PRINTPC(L.agglomeratedPC);
 			UG_LOG("agglomerateSlaveLayout\n");
 			PrintLayout(agglomerateSlaveLayout);
@@ -505,7 +505,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 			m_agglomerateLevel = level;
 
 			if(m_amghelper.has_positions())
-				m_amghelper.send_agglomerate_positions(level, A.get_communicator(), agglomerateSlaveLayout);
+				m_amghelper.send_agglomerate_positions(level, A.communicator(), agglomerateSlaveLayout);
 			//merging_as_slave(L);
 		}
 	}

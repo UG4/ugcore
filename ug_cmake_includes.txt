@@ -48,10 +48,6 @@ set(dimDefault "ALL")
 set(cpuOptions "1, 2, 3, 4, VAR, ALL, \"2\;4\", \"1\;3\;4\" , ..." )
 set(cpuDefault "ALL")
 
-# Values for the DOF option
-set(dofOptions "GEN, P1")
-set(dofDefault "P1")
-
 # Values for the blas / lapack option
 set(blasDefault ON)
 set(lapackDefault ON)
@@ -99,7 +95,6 @@ set(linkLibraries)
 option(TARGET "Set the target of this build process. Valid options are: "${targetOptions})
 # option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
 option(CPU "Set block sizes for which ug4 is build. Valid options are: "${cpuOptions})
-option(DOF "Set the dof-handler. Valid options are: "${dofOptions})
 option(PRECISION "Set the precision of the number type. Valid options are: "${precisionOptions})
 
 # the following options too are pseudo cmake-options. However, they should
@@ -141,10 +136,6 @@ if(NOT CPU)
 	set(CPU ${cpuDefault})
 endif(NOT CPU)
 
-if(NOT DOF)
-	set(DOF ${dofDefault})
-endif(NOT DOF)
-
 if(NOT PRECISION)
 	set(PRECISION ${precisionDefault})
 endif(NOT PRECISION)
@@ -177,7 +168,6 @@ message(STATUS "Info: Current options:")
 message(STATUS "Info: TARGET:            "${TARGET}" (options are: "${targetOptions}")")
 message(STATUS "Info: DIM:               "${DIMReadable}" (options are: "${dimOptions}")")
 message(STATUS "Info: CPU:               "${CPUReadable}" (options are: "${cpuOptions}")")
-message(STATUS "Info: DOF:               "${DOF}" (options are: "${dofOptions}")")
 message(STATUS "Info: PRECISION:         "${PRECISION}" (options are: "${precisionOptions}")")
 message(STATUS "Info: STATIC:            "${STATIC}" (options are: ON, OFF)")
 message(STATUS "Info: DEBUG:             "${DEBUG}" (options are: ON, OFF)")
@@ -349,20 +339,6 @@ else("${CPU}" STREQUAL "ALL")
 		add_definitions(-DUG_CPU_${d})
 	endforeach(d)
 endif("${CPU}" STREQUAL "ALL")
-
-########################################
-# DoFManager
-if("${DOF}" STREQUAL "GEN")
-	# if DOF is "GEN"
-	add_definitions(-DDOF_GEN)
-
-elseif("${DOF}" STREQUAL "P1")
-	# if DOF is "P1"
-	add_definitions(-DDOF_P1)
-else("${DOF}" STREQUAL "GEN")
-	message(FATAL_ERROR "ERROR: Invalid DoFManager specified. Valid options are: "${dofOptions})
-endif("${DOF}" STREQUAL "GEN")
-
 
 ########################################
 # DEBUG

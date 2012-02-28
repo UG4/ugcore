@@ -12,23 +12,21 @@ namespace ug{
 
 
 /// projects surface function to level functions
-template <typename TElem, typename TDoFDistributionImpl>
-bool CreateSurfaceToLevelMapping(int si,
-                                 std::vector<std::vector<int> >& vSurfLevelMapping,
-                                 const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD,
-                                 const IDoFDistribution<TDoFDistributionImpl>& surfaceDD,
+template <typename TElem>
+void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMapping,
+                                 const std::vector<ConstSmartPtr<LevelDoFDistribution> >& vLevelDD,
+                                 ConstSmartPtr<SurfaceDoFDistribution> surfaceDD,
                                  const SurfaceView& surfaceView)
 {
 //	type of element iterator
-	typedef typename geometry_traits<TElem>::const_iterator iter_type;
+	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
 
 //	iterators for subset
-	iter_type iter = surfaceDD.template begin<TElem>(si);
-	iter_type iterEnd = surfaceDD.template end<TElem>(si);
+	iter_type iter = surfaceDD->begin<TElem>();
+	iter_type iterEnd = surfaceDD->end<TElem>();
 
 //	vector of indices
-	typedef typename IDoFDistribution<TDoFDistributionImpl>::algebra_index_vector_type ind_vec_type;
-	ind_vec_type surfaceInd, levelInd;
+	std::vector<size_t> surfaceInd, levelInd;
 
 //	loop all elements of type
 	for( ; iter != iterEnd; ++iter)
@@ -37,7 +35,7 @@ bool CreateSurfaceToLevelMapping(int si,
 		TElem* elem = *iter;
 
 	//	extract all algebra indices for the element on surface
-		surfaceDD.algebra_indices(elem, surfaceInd);
+		surfaceDD->inner_algebra_indices(elem, surfaceInd);
 
 	//	get level of element in hierarchy
 		int level = surfaceView.get_level(elem);
@@ -51,8 +49,8 @@ bool CreateSurfaceToLevelMapping(int si,
 				"									that is not passed.");
 
 	//	extract all algebra indices for the element on level
-		UG_ASSERT(vLevelDD[level] != NULL, "DoF Distribution missing");
-		vLevelDD[level]->algebra_indices(elem, levelInd);
+		UG_ASSERT(vLevelDD[level].is_valid(), "DoF Distribution missing");
+		vLevelDD[level]->inner_algebra_indices(elem, levelInd);
 
 	//	check that index sets have same cardinality
 		UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
@@ -63,73 +61,64 @@ bool CreateSurfaceToLevelMapping(int si,
 			UG_ASSERT(surfaceInd[i] < levelMapping.size(), "Index to large.");
 			levelMapping[surfaceInd[i]] = levelInd[i];
 		}
-	}
 
-//	we're done
-	return true;
+	//	same for shadows
+		TElem* parent = surfaceView.parent_if_copy(elem);
+		while(parent && surfaceView.is_shadowed(parent))
+		{
+		//	get level of element in hierarchy
+			int level = surfaceView.get_level(parent);
+
+		//	get corresponding level matrix for element
+			UG_ASSERT(level < (int)vSurfLevelMapping.size(), "Level missing");
+			std::vector<int>& levelMapping = vSurfLevelMapping[level];
+
+		//	check that level is correct
+			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, "
+					"									that is not passed.");
+
+		//	extract all algebra indices for the element on level
+			UG_ASSERT(vLevelDD[level].is_valid(), "DoF Distribution missing");
+			vLevelDD[level]->inner_algebra_indices(parent, levelInd);
+
+		//	check that index sets have same cardinality
+			UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
+
+		//	copy all elements of the matrix
+			for(size_t i = 0; i < surfaceInd.size(); ++i)
+			{
+				UG_ASSERT(surfaceInd[i] < levelMapping.size(), "Index to large.");
+				levelMapping[surfaceInd[i]] = levelInd[i];
+			}
+
+		//	next shadow
+			elem = parent;
+			parent = surfaceView.parent_if_copy(elem);
+		}
+
+	}
 }
 
 /// creates a mapping of indices from the surface dof distribution to the level dof distribution
-template <typename TDoFDistributionImpl>
-bool CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMapping,
-                                 const std::vector<const IDoFDistribution<TDoFDistributionImpl>*>& vLevelDD,
-                                 const IDoFDistribution<TDoFDistributionImpl>& surfDD,
-                                 const SurfaceView& surfView)
+inline void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMapping,
+                                        const std::vector<ConstSmartPtr<LevelDoFDistribution> >& vLevelDD,
+                                        ConstSmartPtr<SurfaceDoFDistribution> surfDD,
+                                        const SurfaceView& surfView)
 {
 //	resize the mapping
 	vSurfLevelMapping.clear();
 	vSurfLevelMapping.resize(vLevelDD.size());
 	for(size_t lev = 0; lev < vSurfLevelMapping.size(); ++lev)
-		vSurfLevelMapping[lev].resize(surfDD.num_indices(), -1);
+		vSurfLevelMapping[lev].resize(surfDD->num_indices(), -1);
 
-//	return flag
-	bool bRet = true;
-
-//	loop all subsets
-	for(int si = 0; si < (int)surfDD.num_subsets(); ++si)
-	{
-	//	skip empty subsets (they have no dimension)
-		if(	surfDD.template num<VertexBase>(si) == 0 &&
-			surfDD.template num<EdgeBase>(si) == 0 &&
-			surfDD.template num<Face>(si) == 0 &&
-			surfDD.template num<Volume>(si) == 0 ) continue;
-
-	//	switch dimension of subset
-		switch(surfDD.dim_subset(si))
-		{
-			case 0:
-				bRet &= CreateSurfaceToLevelMapping<VertexBase, TDoFDistributionImpl>
-							(si, vSurfLevelMapping, vLevelDD, surfDD, surfView);
-				break;
-			case 1:
-				bRet &= CreateSurfaceToLevelMapping<Edge, TDoFDistributionImpl>
-							(si, vSurfLevelMapping, vLevelDD, surfDD, surfView);
-				break;
-			case 2:
-				bRet &= CreateSurfaceToLevelMapping<Triangle, TDoFDistributionImpl>
-							(si, vSurfLevelMapping, vLevelDD, surfDD, surfView);
-				bRet &= CreateSurfaceToLevelMapping<Quadrilateral, TDoFDistributionImpl>
-							(si, vSurfLevelMapping, vLevelDD, surfDD, surfView);
-				break;
-			case 3:
-				bRet &= CreateSurfaceToLevelMapping<Tetrahedron, TDoFDistributionImpl>
-							(si, vSurfLevelMapping, vLevelDD, surfDD, surfView);
-				bRet &= CreateSurfaceToLevelMapping<Pyramid, TDoFDistributionImpl>
-							(si, vSurfLevelMapping, vLevelDD, surfDD, surfView);
-				bRet &= CreateSurfaceToLevelMapping<Prism, TDoFDistributionImpl>
-							(si, vSurfLevelMapping, vLevelDD, surfDD, surfView);
-				bRet &= CreateSurfaceToLevelMapping<Hexahedron, TDoFDistributionImpl>
-							(si, vSurfLevelMapping, vLevelDD, surfDD, surfView);
-				break;
-			default:
-				UG_LOG("ERROR in 'CreateSurfaceToLevelMapping': Dimension of subset ("
-						<< surfDD.dim_subset(si) << ") not supported.\n");
-				return false;
-		}
-	}
-
-//	we're done
-	return bRet;
+	if(surfDD->has_indices_on(VERTEX))
+		CreateSurfaceToLevelMapping<VertexBase>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
+	if(surfDD->has_indices_on(EDGE))
+		CreateSurfaceToLevelMapping<EdgeBase>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
+	if(surfDD->has_indices_on(FACE))
+		CreateSurfaceToLevelMapping<Face>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
+	if(surfDD->has_indices_on(VOLUME))
+		CreateSurfaceToLevelMapping<Volume>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
 }
 
 /// projects surface function to level functions

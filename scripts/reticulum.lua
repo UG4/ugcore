@@ -244,7 +244,6 @@ timeDisc:set_theta(1.0) -- 1.0 is implicit euler
 -- create operator from discretization
 op = AssembledOperator()
 op:set_discretization(timeDisc)
-op:set_dof_distribution(approxSpace:surface_dof_distribution())
 op:init()
 
 -------------------------------------------
@@ -278,11 +277,6 @@ exactSolver = LU()
 	--base:set_convergence_check(baseConvCheck)
 	--base:set_preconditioner(jac)
 	
-	-- Transfer and Projection
-	transfer = P1Prolongation(approxSpace)
-	--transfer:set_dirichlet_post_process(dirichletBND)
-	projection = P1Projection(approxSpace)
-	
 	-- Gemoetric Multi Grid
 	gmg = GeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
@@ -293,8 +287,6 @@ exactSolver = LU()
 	gmg:set_cycle_type(1)
 	gmg:set_num_presmooth(3)
 	gmg:set_num_postsmooth(3)
-	gmg:set_prolongation(transfer)
-	gmg:set_projection(projection)
 
 -- create AMG ---
 -----------------

@@ -60,6 +60,19 @@ class AlgebraType
 /// writes the Identifier to the output stream
 std::ostream& operator<<(std::ostream& out,	const AlgebraType& v);
 
+
+/// Singleton, providing the current default algebra.
+class DefaultAlgebra
+{
+	public:
+		static AlgebraType get() {return m_default;}
+		static void set(AlgebraType& defaultType) {m_default = defaultType;}
+
+	protected:
+		static AlgebraType m_default;
+};
+
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_ALGEBRA__ALGEBRA_TYPE__ */

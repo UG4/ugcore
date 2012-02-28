@@ -21,6 +21,7 @@
 #include "lib_algebra/operator/operator_iterator_interface.h"
 #include "lib_algebra/operator/operator_inverse_interface.h"
 #include "lib_algebra/operator/operator_interface.h"
+#include "lib_algebra/operator/preconditioner/jacobi.h"
 
 // library intern headers
 #include "lib_disc/function_spaces/grid_function_util.h"
@@ -41,26 +42,20 @@ namespace ug{
  * \tparam		TApproximationSpace		Type of Approximation Space
  * \tparam		TAlgebra				Type of Algebra
  */
-template <typename TApproximationSpace, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class AssembledMultiGridCycle :
 	virtual public ILinearIterator<	typename TAlgebra::vector_type,
 									typename TAlgebra::vector_type>
 {
 	public:
-	///	Approximation Space
-		typedef TApproximationSpace approximation_space_type;
-
-	///	DoFDistribution Type
-		typedef typename TApproximationSpace::dof_distribution_type dof_distribution_type;
-
-	/// Implementation type of DoFDistribution
-		typedef typename dof_distribution_type::implementation_type dof_distribution_impl_type;
+	///	Domain
+		typedef TDomain domain_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
 
 	///	type of assembling
-		typedef IAssemble<dof_distribution_impl_type, algebra_type> assemble_type;
+		typedef IAssemble<TAlgebra> assemble_type;
 
 	///	Vector type
 		typedef typename algebra_type::vector_type vector_type;
@@ -69,7 +64,7 @@ class AssembledMultiGridCycle :
 		typedef typename algebra_type::matrix_type matrix_type;
 
 	///	Prolongation Operator
-		typedef IProlongationOperator<vector_type, vector_type> prolongation_operator_type;
+		typedef IProlongationOperator<TAlgebra> prolongation_operator_type;
 
 	///	Projection Operator
 		typedef IProjectionOperator<vector_type, vector_type> projection_operator_type;
@@ -85,13 +80,14 @@ class AssembledMultiGridCycle :
 
 	public:
 	/// constructor setting approximation space
-		AssembledMultiGridCycle(approximation_space_type& approxSpace) :
-			m_pAss(NULL), m_pApproxSpace(&approxSpace),
+		AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
+			m_pAss(NULL), m_spApproxSpace(approxSpace),
 			m_topLev(0), m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
-			m_numPreSmooth(1), m_numPostSmooth(1),
+			m_numPreSmooth(2), m_numPostSmooth(2),
 			m_bAdaptive(true),
-			m_pSmootherPrototype(NULL),
-			m_pProjectionPrototype(NULL), m_pProlongationPrototype(NULL),
+			m_spSmootherPrototype(new Jacobi<TAlgebra>()),
+			m_spProjectionPrototype(new P1Projection<TDomain,TAlgebra>(m_spApproxSpace)),
+			m_spProlongationPrototype(new P1Prolongation<TDomain,TAlgebra>(m_spApproxSpace)),
 			m_pBaseSolver(NULL),
 			m_pDebugWriter(NULL), m_dbgIterCnt(0)
 		{};
@@ -124,16 +120,16 @@ class AssembledMultiGridCycle :
 		void set_num_postsmooth(int num) {m_numPostSmooth = num;}
 
 	///	sets the smoother that is used
-		void set_smoother(smoother_type& smoother)
-			{m_pSmootherPrototype = & smoother;}
+		void set_smoother(SmartPtr<smoother_type> smoother)
+			{m_spSmootherPrototype = smoother;}
 
 	///	sets the prolongation operator
-		void set_prolongation_operator(IProlongationOperator<vector_type, vector_type>& P)
-			{m_pProlongationPrototype = &P;}
+		void set_prolongation_operator(SmartPtr<prolongation_operator_type> P)
+			{m_spProlongationPrototype = P;}
 
 	///	sets the projection operator
-		void set_projection_operator(IProjectionOperator<vector_type, vector_type>& P)
-			{m_pProjectionPrototype = &P;}
+		void set_projection_operator(SmartPtr<IProjectionOperator<vector_type, vector_type> > P)
+			{m_spProjectionPrototype = P;}
 
 	///////////////////////////////////////////////////////////////////////////
 	//	Linear Solver interface methods
@@ -244,7 +240,7 @@ class AssembledMultiGridCycle :
 		assemble_type* m_pAss;
 
 	///	approximation space for level and surface grid
-		approximation_space_type* m_pApproxSpace;
+		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 	///	top level (i.e. highest level in hierarchy. This is the surface level
 	///	in case of non-adaptive refinement)
@@ -272,13 +268,13 @@ class AssembledMultiGridCycle :
 		std::vector<size_t> m_vSurfToTopMap;
 
 	///	prototype for smoother
-		smoother_type* m_pSmootherPrototype;
+		SmartPtr<smoother_type> m_spSmootherPrototype;
 
 	///	prototype for projection operator
-		projection_operator_type* m_pProjectionPrototype;
+		SmartPtr<projection_operator_type> m_spProjectionPrototype;
 
 	///	prototype for prolongation operator
-		prolongation_operator_type* m_pProlongationPrototype;
+		SmartPtr<prolongation_operator_type> m_spProlongationPrototype;
 
 		////////////////////////////////////
 		// Storage for each grid level
@@ -287,11 +283,12 @@ class AssembledMultiGridCycle :
 		struct LevData
 		{
 		//	constructor
-			LevData() : pLevDD(0), Smoother(0), Projection(0), Prolongation(0){};
+			LevData() : spLevDD(0), Smoother(0), Projection(0), Prolongation(0){};
 
 		//	prepares the grid level data for appication
 			void update(size_t lev,
-			            approximation_space_type& approxSpace,
+			            SmartPtr<LevelDoFDistribution> levelDD,
+			            SmartPtr<ApproximationSpace<TDomain> > approxSpace,
 			            assemble_type& ass,
 			            smoother_type& smoother,
 			            projection_operator_type& projection,
@@ -305,7 +302,7 @@ class AssembledMultiGridCycle :
 
 		//	number of indices on whole level
 			size_t num_indices() const
-				{UG_ASSERT(pLevDD, "Missing LevDD"); return pLevDD->num_indices();}
+				{UG_ASSERT(spLevDD.is_valid(), "Missing LevDD"); return spLevDD->num_indices();}
 
 		//	returns the smoothing matrix (depends if smooth patch needed or not)
 			MatrixOperator<vector_type, vector_type, matrix_type>&
@@ -375,7 +372,10 @@ class AssembledMultiGridCycle :
 
 			public:
 		//	level DoF Distribution
-			dof_distribution_type* pLevDD;
+			SmartPtr<LevelDoFDistribution> spLevDD;
+
+		//	Approximation Space
+			SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 		//	matrix operator for whole grid level
 			MatrixOperator<vector_type, vector_type, matrix_type> LevMat;
@@ -522,7 +522,7 @@ class AssembledMultiGridCycle :
 	 * \param[in]		filename	Filename
 	 * \param[in]		level		grid level corresponding to the vector
 	 */
-		bool write_level_debug(const vector_type& vec, const char* filename, size_t lev);
+		void write_level_debug(const vector_type& vec, const char* filename, size_t lev);
 
 	///	writes debug output for a level matrix
 	/**
@@ -533,7 +533,7 @@ class AssembledMultiGridCycle :
 	 * \param[in]		filename	Filename
 	 * \param[in]		level		grid level corresponding to the matrix
 	 */
-		bool write_level_debug(const matrix_type& mat, const char* filename, size_t lev);
+		void write_level_debug(const matrix_type& mat, const char* filename, size_t lev);
 
 	///	writes debug output for a surface vector
 	/**
@@ -543,7 +543,7 @@ class AssembledMultiGridCycle :
 	 * \param[in]		vec			Level Vector to write for debug purpose
 	 * \param[in]		filename	Filename
 	 */
-		bool write_surface_debug(const vector_type& vec, const char* filename);
+		void write_surface_debug(const vector_type& vec, const char* filename);
 
 	///	writes debug output for a surface matrix
 	/**
@@ -553,7 +553,7 @@ class AssembledMultiGridCycle :
 	 * \param[in]		mat			Level Matrix to write for debug purpose
 	 * \param[in]		filename	Filename
 	 */
-		bool write_surface_debug(const matrix_type& mat, const char* filename);
+		void write_surface_debug(const matrix_type& mat, const char* filename);
 
 	///	logs a level-data-struct to the terminal
 		void log_level_data(size_t lvl);

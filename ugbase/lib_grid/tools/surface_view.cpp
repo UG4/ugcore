@@ -1,326 +1,294 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m03 d24
-
-#include <cassert>
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// 24.11.2011 (m,d,y)
+ 
 #include "surface_view.h"
+#include "common/assert.h"
+#include "lib_grid/parallelization/util/compol_boolmarker.h"
 
-#define NOTIFY_OBSERVERS(observerContainer, callback)	{for(ObserverContainer::iterator iter = observerContainer.begin(); iter != observerContainer.end(); iter++) (*iter)->callback;}
+namespace ug{
 
-namespace ug
-{
-////////////////////////////////////////////////////////////////////////
-SurfaceView::SurfaceView() : SubsetHandler()
-{
-//	enable_subset_attachments(true);
-	enable_subset_inheritance(false);
-}
-
-SurfaceView::SurfaceView(MultiGrid& mg) : SubsetHandler(mg)
-{
-	m_pMG = &mg;
-//	enable_subset_attachments(true);
-	enable_subset_inheritance(false);
-}
-
-SurfaceView::~SurfaceView()
-{
-//	tell registered grid-observers that the SurfaceView is to be destroyed.
-	for(ObserverContainer::iterator iter = m_gridObservers.begin();
-		iter != m_gridObservers.end(); ++iter)
-	{
-	//	we have to pass the underlying grid here, since SurfaceViews are
-	//	not directly supported by GridObservers.
-		(*iter)->grid_to_be_destroyed(m_pGrid);
-	}
-	
-//	unregister all observers
-	while(!m_gridObservers.empty())
-	{
-		unregister_observer(m_gridObservers.back());
-	}
-}
-
-void SurfaceView::grid_to_be_destroyed(Grid* grid)
-{
-//	notify all observers that the underlying grid is to be destroyed.
-	SubsetHandler::grid_to_be_destroyed(grid);
-}
 
 ////////////////////////////////////////////////////////////////////////
-void SurfaceView::assign_grid(MultiGrid& mg)
+template <class TElem, class TSideElem>
+void MarkAssociated(BoolMarker& boolMarker)
 {
-	m_pMG = &mg;
-	SubsetHandler::assign_grid(mg);
-}
+	typedef typename geometry_traits<TElem>::const_iterator iterator;
 
-////////////////////////////////////////////////////////////////////////
-void SurfaceView::assign_subset(VertexBase* elem, int subsetIndex)
-{
-	int oldInd = get_subset_index(elem);
-	if(oldInd >= 0 && subsetIndex == -1){
-		NOTIFY_OBSERVERS(m_vertexObservers, vertex_to_be_erased(m_pGrid, elem));
-	}
-		
-	SubsetHandler::assign_subset(elem, subsetIndex);
-	
-	if(oldInd == -1 && subsetIndex >= 0){
-		NOTIFY_OBSERVERS(m_vertexObservers, vertex_created(m_pGrid, elem, NULL));
-	}
-}
+	std::vector<TSideElem*> vSide;
+	Grid& grid = *boolMarker.grid();
 
-void SurfaceView::assign_subset(EdgeBase* elem, int subsetIndex)
-{
-	int oldInd = get_subset_index(elem);
-	if(oldInd >= 0 && subsetIndex == -1){
-		NOTIFY_OBSERVERS(m_edgeObservers, edge_to_be_erased(m_pGrid, elem));
-	}
-		
-	SubsetHandler::assign_subset(elem, subsetIndex);
-	
-	if(oldInd == -1 && subsetIndex >= 0){
-		NOTIFY_OBSERVERS(m_edgeObservers, edge_created(m_pGrid, elem, NULL));
+	iterator iterEnd = grid.end<TElem>();
+	for(iterator iter = grid.begin<TElem>(); iter != iterEnd; ++iter)
+	{
+		TElem* elem = *iter;
+		if(!boolMarker.is_marked(elem)) continue;
+
+		CollectAssociated(vSide, *boolMarker.grid(), elem);
+
+		for(size_t i = 0; i < vSide.size(); ++i)
+			boolMarker.mark(vSide[i]);
 	}
 }
 
-void SurfaceView::assign_subset(Face* elem, int subsetIndex)
+///	helper with with dummy-param for compile-time function selection.
+template <class TElem>
+void MarkAssociatedLowerDimElems(BoolMarker& boolMarker,
+                                 const Volume&)
 {
-	int oldInd = get_subset_index(elem);
-	if(oldInd >= 0 && subsetIndex == -1){
-		NOTIFY_OBSERVERS(m_faceObservers, face_to_be_erased(m_pGrid, elem));
-	}
-		
-	SubsetHandler::assign_subset(elem, subsetIndex);
-	
-	if(oldInd == -1 && subsetIndex >= 0){
-		NOTIFY_OBSERVERS(m_faceObservers, face_created(m_pGrid, elem, NULL));
+//	we have to find all associated elements of lower dimension.
+	MarkAssociated<TElem, Face>(boolMarker);
+	MarkAssociated<TElem, EdgeBase>(boolMarker);
+	MarkAssociated<TElem, VertexBase>(boolMarker);
+}
+
+///	helper with with dummy-param for compile-time function selection.
+template <class TElem>
+void MarkAssociatedLowerDimElems(BoolMarker& boolMarker,
+                                 const Face&)
+{
+//	we have to find all associated elements of lower dimension.
+	MarkAssociated<TElem, EdgeBase>(boolMarker);
+	MarkAssociated<TElem, VertexBase>(boolMarker);
+}
+
+///	helper with with dummy-param for compile-time function selection.
+template <class TElem>
+void MarkAssociatedLowerDimElems(BoolMarker& boolMarker,
+                                 const EdgeBase&)
+{
+//	we have to find all associated elements of lower dimension.
+	MarkAssociated<TElem, VertexBase>(boolMarker);
+}
+
+template <class TElem>
+void MarkAssociatedLowerDimElems(BoolMarker& boolMarker)
+{
+	MarkAssociatedLowerDimElems<TElem>(boolMarker, TElem());
+}
+
+template <class TElem>
+void MarkAssociatedSides(BoolMarker& boolMarker)
+{
+	typedef typename geometry_traits<TElem>::const_iterator iterator;
+	typedef typename TElem::lower_dim_base_object Side;
+	std::vector<Side*> vSides;
+	Grid& grid = *boolMarker.grid();
+
+	iterator iterEnd = grid.end<TElem>();
+	for(iterator iter = grid.begin<TElem>(); iter != iterEnd; ++iter)
+	{
+		TElem* elem = *iter;
+		if(!boolMarker.is_marked(elem)) continue;
+
+		CollectAssociated(vSides, grid, elem);
+
+		for(size_t i = 0; i < vSides.size(); ++i)
+			boolMarker.mark(vSides[i]);
 	}
 }
 
-void SurfaceView::assign_subset(Volume* elem, int subsetIndex)
+////////////////////////////////////////////////////////////////////////////////
+//	Create Surface View
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TElem>
+void SetSurfaceViewMarks(BoolMarker& boolMarker,
+                         DistributedGridManager& distGridMgr)
 {
-	int oldInd = get_subset_index(elem);
-	if(oldInd >= 0 && subsetIndex == -1){
-		NOTIFY_OBSERVERS(m_volumeObservers, volume_to_be_erased(m_pGrid, elem));
-	}
-		
-	SubsetHandler::assign_subset(elem, subsetIndex);
-	
-	if(oldInd == -1 && subsetIndex >= 0){
-		NOTIFY_OBSERVERS(m_volumeObservers, volume_created(m_pGrid, elem, NULL));
-	}
-}
+//	get multigrid
+	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
+	if(!pMG) UG_THROW_FATAL("Can't mark surface-view. A Multigrid is required.");
 
-////////////////////////////////////////////////////////////////////////
-void SurfaceView::register_observer(GridObserver* observer, uint observerType)
-{
-//	check which elements have to be observed and store pointers to the observers.
-//	avoid double-registration!
-	if((observerType & OT_GRID_OBSERVER) == OT_GRID_OBSERVER)
-	{
-		ObserverContainer::iterator iter = find(m_gridObservers.begin(),
-												m_gridObservers.end(), observer);
-		if(iter == m_gridObservers.end())
-			m_gridObservers.push_back(observer);
-	}
+//	some typedefs
+	typedef typename geometry_traits<TElem>::iterator ElemIter;
 
-	if((observerType & OT_VERTEX_OBSERVER) == OT_VERTEX_OBSERVER)
-	{
-		ObserverContainer::iterator iter = find(m_vertexObservers.begin(),
-												m_vertexObservers.end(), observer);
-		if(iter == m_vertexObservers.end())
-			m_vertexObservers.push_back(observer);
-	}
+//	iterate through all levels of the mgsh
+	for(size_t level = 0; level < pMG->num_levels(); ++level){
 
-	if((observerType & OT_EDGE_OBSERVER) == OT_EDGE_OBSERVER)
-	{
-		ObserverContainer::iterator iter = find(m_edgeObservers.begin(),
-												m_edgeObservers.end(), observer);
-		if(iter == m_edgeObservers.end())
-			m_edgeObservers.push_back(observer);
-	}
-
-	if((observerType & OT_FACE_OBSERVER) == OT_FACE_OBSERVER)
-	{
-		ObserverContainer::iterator iter = find(m_faceObservers.begin(),
-												m_faceObservers.end(), observer);
-		if(iter == m_faceObservers.end())
-			m_faceObservers.push_back(observer);
-	}
-
-	if((observerType & OT_VOLUME_OBSERVER) == OT_VOLUME_OBSERVER)
-	{
-		ObserverContainer::iterator iter = find(m_volumeObservers.begin(),
-												m_volumeObservers.end(), observer);
-		if(iter == m_volumeObservers.end())
-			m_volumeObservers.push_back(observer);
-	}
-}
-
-void SurfaceView::unregister_observer(GridObserver* observer)
-{
-//	check where the observer has been registered and erase the corresponding entries.
-
-	{
-		ObserverContainer::iterator iter = find(m_gridObservers.begin(),
-												m_gridObservers.end(), observer);
-		if(iter != m_gridObservers.end())
-			m_gridObservers.erase(iter);
-	}
-
-	{
-		ObserverContainer::iterator iter = find(m_vertexObservers.begin(),
-												m_vertexObservers.end(), observer);
-		if(iter != m_vertexObservers.end())
-			m_vertexObservers.erase(iter);
-	}
-
-	{
-		ObserverContainer::iterator iter = find(m_edgeObservers.begin(),
-												m_edgeObservers.end(), observer);
-		if(iter != m_edgeObservers.end())
-			m_edgeObservers.erase(iter);
-	}
-
-	{
-		ObserverContainer::iterator iter = find(m_faceObservers.begin(),
-												m_faceObservers.end(), observer);
-		if(iter != m_faceObservers.end())
-			m_faceObservers.erase(iter);
-	}
-
-	{
-		ObserverContainer::iterator iter = find(m_volumeObservers.begin(),
-												m_volumeObservers.end(), observer);
-		if(iter != m_volumeObservers.end())
-			m_volumeObservers.erase(iter);
-	}
-}
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-// Check Surface Grid
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-
-/// check if all elements are assigned correctly to the surface view
-template <typename TElem>
-bool CheckSurfaceViewElements(const SurfaceView& surfView,
-                                     const MultiGrid& mg)
-{
-	typename geometry_traits<TElem>::const_iterator iter;
-
-	std::vector<EdgeBase*> vEdge;
-	std::vector<Face*> vFace;
-	std::vector<Volume*> vVolume;
-
-	for(size_t lev = 0; lev < mg.num_levels(); ++lev)
-		for(iter = mg.begin<TElem>(lev); iter != mg.end<TElem>(lev); ++iter)
+	//	iterate through all elements in the subset on that level
+		for(ElemIter iter = pMG->begin<TElem>(level);
+			iter != pMG->end<TElem>(level); ++iter)
 		{
-		//	get element
 			TElem* elem = *iter;
 
-		//	get subset index
-			const int si = surfView.get_subset_index(elem);
+		//	check whether the element has children
+			if(distGridMgr.is_ghost(elem)) continue;
+			if(pMG->has_children(elem)) continue;
 
-		//	check if in surface view
-			bool inSurfView = (si >= 0);
-
-			if(!mg.has_children(elem))
-			{
-				if(!inSurfView)
-				{
-					UG_LOG("ERROR in CheckSurfaceView: Element on level "
-							<< lev << " without child is"
-							" not contained in SurfaceView.\n");
-					return false;
-				}
-			}
-			else
-			{
-			//	collect all associated elements
-				CollectAssociated(vEdge, *const_cast<MultiGrid*>(&mg), elem);
-				CollectAssociated(vFace, *const_cast<MultiGrid*>(&mg), elem);
-				CollectAssociated(vVolume, *const_cast<MultiGrid*>(&mg), elem);
-
-				bool bIsShadow = false;
-
-			//	search for associated surface grid edge
-				for(size_t i = 0; i < vEdge.size(); ++i)
-					if(!mg.has_children(vEdge[i]))
-						bIsShadow = true;
-
-			//	search for associated surface grid face
-				for(size_t i = 0; i < vFace.size(); ++i)
-					if(!mg.has_children(vFace[i]))
-						bIsShadow = true;
-
-			//	search for associated surface grid volume
-				for(size_t i = 0; i < vVolume.size(); ++i)
-					if(!mg.has_children(vVolume[i]))
-						bIsShadow = true;
-
-				if(bIsShadow && !inSurfView)
-				{
-					UG_LOG("ERROR in CheckSurfaceView: Shadow element on level "
-							<< lev << " is not contained in SurfaceView.\n");
-					return false;
-				}
-
-				if(!bIsShadow && inSurfView)
-				{
-					UG_LOG("ERROR in CheckSurfaceView: Element in Surface view "
-							"on level "	<< lev <<
-							" though has children and is no shadow.\n");
-					return false;
-				}
-			}
+			boolMarker.mark(elem);
 		}
-
-//	all fine
-	return true;
+	}
 }
 
-/// checks if surface view is correct
-bool CheckSurfaceView(const SurfaceView& surfView)
+template <class TElem>
+void RemoveSurfaceViewMarks(BoolMarker& boolMarker,
+                            DistributedGridManager& distGridMgr)
 {
-//	get underlying grid
-	Grid* grid = surfView.grid();
+//	get multigrid
+	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
+	if(!pMG) UG_THROW_FATAL("Can't mark surface-view. A Multigrid is required.");
 
-//	check that grid is a MultiGrid
-	MultiGrid* pMG = dynamic_cast<MultiGrid*>(grid);
-	if(pMG == NULL)
-	{
-		UG_LOG("ERROR in CheckSurfaceView: underlying grid not a Multigrid.\n");
-		return false;
+//	some typedefs
+	typedef typename geometry_traits<TElem>::iterator ElemIter;
+
+//	iterate through all levels of the mgsh
+	for(size_t level = 0; level < pMG->num_levels(); ++level){
+
+	//	iterate through all elements in the subset on that level
+		for(ElemIter iter = pMG->begin<TElem>(level);
+			iter != pMG->end<TElem>(level); ++iter)
+		{
+			TElem* elem = *iter;
+
+		//	check whether the element has children
+			if(distGridMgr.is_ghost(elem)) continue;
+			if(pMG->has_children(elem)) continue;
+
+			boolMarker.unmark(elem);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+//	CreateSurfaceView
+void MarkShadows(BoolMarker& boolMarker,
+                 DistributedGridManager& distGridMgr)
+{
+//	get multigrid
+	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
+	if(!pMG){
+		throw(UGFatalError("  Can't create surface-view. A Multigrid is required.\n"));
 	}
 
-//	check all elements
-	if(!CheckSurfaceViewElements<VertexBase>(surfView, *pMG))
-	{
-		UG_LOG("ERROR in CheckSurfaceView: wrong VertexBase found.\n");
-		return false;
+//	Marks all elements, that do not have children and are non-ghosts
+	boolMarker.clear();
+	SetSurfaceViewMarks<VertexBase>(boolMarker, distGridMgr);
+	SetSurfaceViewMarks<EdgeBase>(boolMarker, distGridMgr);
+	SetSurfaceViewMarks<Face>(boolMarker, distGridMgr);
+	SetSurfaceViewMarks<Volume>(boolMarker, distGridMgr);
+
+//	assign associated elements of lower dimension to the surface view
+	bool assignSidesOnly = true;
+	if(pMG->num<Volume>() > 0 && !pMG->option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
+		assignSidesOnly = false;
+	else if(pMG->num<Volume>() > 0 && !pMG->option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
+		assignSidesOnly = false;
+	else if(pMG->num<Face>() > 0 && !pMG->option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+		assignSidesOnly = false;
+
+	if(assignSidesOnly){
+		MarkAssociatedSides<Volume>(boolMarker);
+		MarkAssociatedSides<Face>(boolMarker);
+		MarkAssociatedSides<EdgeBase>(boolMarker);
 	}
-	if(!CheckSurfaceViewElements<EdgeBase>(surfView, *pMG))
+	else
 	{
-		UG_LOG("ERROR in CheckSurfaceView: wrong EdgeBase found.\n");
-		return false;
-	}
-	if(!CheckSurfaceViewElements<Face>(surfView, *pMG))
-	{
-		UG_LOG("ERROR in CheckSurfaceView: wrong Face found.\n");
-		return false;
-	}
-	if(!CheckSurfaceViewElements<Volume>(surfView, *pMG))
-	{
-		UG_LOG("ERROR in CheckSurfaceView: wrong Volume found.\n");
-		return false;
+		UG_LOG("INFO in MarkShadows: Performing AssignAssociatedLowerDimElemsToSubsets ");
+		UG_LOG("for all elements (Small Performance drawback).\n");
+
+		MarkAssociatedLowerDimElems<Volume>(boolMarker);
+		MarkAssociatedLowerDimElems<Face>(boolMarker);
+		MarkAssociatedLowerDimElems<EdgeBase>(boolMarker);
 	}
 
-//	everything ok
-	return true;
+	RemoveSurfaceViewMarks<VertexBase>(boolMarker, distGridMgr);
+	RemoveSurfaceViewMarks<EdgeBase>(boolMarker, distGridMgr);
+	RemoveSurfaceViewMarks<Face>(boolMarker, distGridMgr);
+	RemoveSurfaceViewMarks<Volume>(boolMarker, distGridMgr);
+
+//	for a parallel subset handler we have to copy the subset-indices to
+//	avoid problems at interfaces.
+//	This happens e.g. in 2d, where a triangle is an element of the surface view only
+//	on one process. Associated vertices on other processes wouldn't know that
+//	they are surface view element, too. This has to be communicated.
+	ComPol_BoolMarker_AddMarks<VertexLayout> cpSubsetVRT(boolMarker);
+	ComPol_BoolMarker_AddMarks<EdgeLayout> cpSubsetEDGE(boolMarker);
+	ComPol_BoolMarker_AddMarks<FaceLayout> cpSubsetFACE(boolMarker);
+	ComPol_BoolMarker_AddMarks<VolumeLayout> cpSubsetVOL(boolMarker);
+	pcl::ParallelCommunicator<VertexLayout> comVRT;
+	pcl::ParallelCommunicator<EdgeLayout> comEDGE;
+	pcl::ParallelCommunicator<FaceLayout> comFACE;
+	pcl::ParallelCommunicator<VolumeLayout> comVOL;
+
+	comVRT.send_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
+	comEDGE.send_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
+	comFACE.send_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
+	comVOL.send_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
+
+	comVRT.receive_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
+	comEDGE.receive_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
+	comFACE.receive_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
+	comVOL.receive_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
+
+	comVRT.communicate();
+	comEDGE.communicate();
+	comFACE.communicate();
+	comVOL.communicate();
+
+	comVRT.send_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
+	comEDGE.send_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
+	comFACE.send_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
+	comVOL.send_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
+
+	comVRT.receive_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
+	comEDGE.receive_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
+	comFACE.receive_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
+	comVOL.receive_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
+
+	comVRT.communicate();
+	comEDGE.communicate();
+	comFACE.communicate();
+	comVOL.communicate();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// SurfaceView
+////////////////////////////////////////////////////////////////////////////////
+
+SurfaceView::SurfaceView(SmartPtr<MGSubsetHandler> spMGSH,
+#ifdef UG_PARALLEL
+                         DistributedGridManager* pDistGridMgr,
+#endif
+                         bool adaptiveMG) :
+	m_spMGSH(spMGSH),
+	m_adaptiveMG(adaptiveMG)
+#ifdef UG_PARALLEL
+	,m_pDistGridMgr(pDistGridMgr)
+#endif
+{
+	m_pMG = m_spMGSH->multi_grid();
+	UG_ASSERT(m_pMG, "A MultiGrid has to be assigned to the given subset handler");
+
+	m_Marker.assign_grid(m_pMG);
+
+	mark_shadows();
 }
 
 
-}//	end of namespace
+SurfaceLevelView::
+SurfaceLevelView(SmartPtr<SurfaceView> spSV, int topLvl) :
+	m_spSV(spSV),
+	m_topLvl(topLvl)
+{
+}
 
+template <>
+bool SurfaceView::is_shadowed(GeometricObject* obj) const
+{
+	switch(obj->base_object_type_id())
+	{
+		case VERTEX: return is_shadowed(static_cast<VertexBase*>(obj));
+		case EDGE: return is_shadowed(static_cast<EdgeBase*>(obj));
+		case FACE: return is_shadowed(static_cast<Face*>(obj));
+		case VOLUME: return is_shadowed(static_cast<Volume*>(obj));
+		default: UG_THROW_FATAL("Base Object type not found.");
+	}
+}
+
+void SurfaceView::mark_shadows()
+{
+	MarkShadows(m_Marker, *m_pDistGridMgr);
+}
+
+}// end of namespace

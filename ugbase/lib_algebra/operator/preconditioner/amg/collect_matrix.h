@@ -48,15 +48,15 @@ void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int dest
 {
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
 
-	pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).get_communicator();
+	pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
 	BinaryBuffer stream;
 
 	Serialize(stream, A.num_rows());
 	for(size_t i=0; i<A.num_rows(); i++)
 		SerializeRow(stream, A, i, PN);
 
-	SerializeLayout(stream, A.get_master_layout(), PN);
-	SerializeLayout(stream, A.get_slave_layout(), PN);
+	SerializeLayout(stream, A.master_layout(), PN);
+	SerializeLayout(stream, A.slave_layout(), PN);
 
 	IndexLayout::Interface &verticalInterface = verticalSlaveLayout.interface(destproc);
 	for(size_t i=0; i<A.num_rows(); i++)
@@ -113,7 +113,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 		ParallelNodes &PN)
 {
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** ReceiveMatrix ************\n\n");
-	pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).get_communicator();
+	pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
 
 	M = A;
 	IndexLayout *pNull=NULL;
@@ -199,9 +199,9 @@ void collect_matrix(matrix_type &A, matrix_type &M, IndexLayout &masterLayout, I
 {
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
 	std::vector<int> srcprocs;
-	pcl::ProcessCommunicator &pc = A.get_process_communicator();
+	pcl::ProcessCommunicator &pc = A.process_communicator();
 
-	ParallelNodes PN(A.get_communicator(), A.get_master_layout(), A.get_slave_layout(), A.num_rows());
+	ParallelNodes PN(A.communicator(), A.master_layout(), A.slave_layout(), A.num_rows());
 
 	if(pcl::GetProcRank() == pc.get_proc_id(0))
 	{

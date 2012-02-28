@@ -75,7 +75,7 @@ class IOperator
 	 *
 	 * \returns 	bool	success flag
 	 */
-		virtual bool init() = 0;
+		virtual void init() = 0;
 
 	/// prepares domain and codomain functions for application
 	/**
@@ -87,7 +87,7 @@ class IOperator
 	 * \param[out]	d		codomain function
 	 * \returns 	bool	flag if preparation successful
 	 */
-		virtual bool prepare(Y& d, X& u) = 0;
+		virtual void prepare(Y& d, X& u) = 0;
 
 	///	computes the nonlinear mapping d := N(u)
 	/**
@@ -100,7 +100,7 @@ class IOperator
 	 * \param[out]	d		codomain function
 	 * \returns 	bool	flag if application successful
 	 */
-		virtual bool apply(Y& d, const X& u) = 0;
+		virtual void apply(Y& d, const X& u) = 0;
 
 	///	virtual destructor
 		virtual ~IOperator() {};
@@ -167,7 +167,7 @@ class ILinearOperator
 	 * \param[in]	u		function (linearization point)
 	 * \returns 	bool	success flag
 	 */
-		virtual bool init(const X& u) = 0;
+		virtual void init(const X& u) = 0;
 
 	///	init operator
 	/**
@@ -177,7 +177,7 @@ class ILinearOperator
 	 *
 	 * \returns 	bool	success flag
 	 */
-		virtual bool init() = 0;
+		virtual void init() = 0;
 
 	// 	applies the operator
 	/**
@@ -189,7 +189,7 @@ class ILinearOperator
 	 * \param[out]	f		codomain function
 	 * \returns		bool	success flag
 	 */
-		virtual bool apply(Y& f, const X& u) = 0;
+		virtual void apply(Y& f, const X& u) = 0;
 
 	// 	applies the operator and subtracts the result from the input
 	/**
@@ -202,7 +202,7 @@ class ILinearOperator
 	 * \param[in,out]	f		codomain function
 	 * \returns			bool	success flag
 	 */
-		virtual bool apply_sub(Y& f, const X& u) = 0;
+		virtual void apply_sub(Y& f, const X& u) = 0;
 
 	/// virtual	destructor
 		virtual ~ILinearOperator() {};
@@ -229,70 +229,19 @@ class MatrixOperator :	public virtual ILinearOperator<X,Y>,
 
 	public:
 	// 	Init Operator J(u)
-		virtual bool init(const X& u) {return true;}
+		virtual void init(const X& u) {}
 
 	// 	Init Operator L
-		virtual bool init() {return true;}
+		virtual void init() {}
 
 	// 	Apply Operator f = L*u (e.g. d = J(u)*c in iterative scheme)
-		virtual bool apply(Y& f, const X& u) {return matrix_type::apply(f,u);}
+		virtual void apply(Y& f, const X& u) {matrix_type::apply(f,u);}
 
 	// 	Apply Operator, i.e. f = f - L*u;
-		virtual bool apply_sub(Y& f, const X& u) {return matrix_type::matmul_minus(f,u);}
+		virtual void apply_sub(Y& f, const X& u) {matrix_type::matmul_minus(f,u);}
 
 	// 	Access to matrix
 		virtual M& get_matrix() {return *this;};
-};
-
-
-///////////////////////////////////////////////////////////
-// Prolongation Operator
-///////////////////////////////////////////////////////////
-
-template <typename X, typename Y>
-class IProlongationOperator :	public virtual ILinearOperator<X,Y>
-{
-	public:
-	// 	Domain space
-		typedef X domain_function_type;
-
-	// 	Range space
-		typedef Y codomain_function_type;
-
-	public:
-	// 	Apply Transposed Operator u = L^T*f
-		virtual bool apply_transposed(X& u, const Y& f) = 0;
-
-	// 	Set Levels for Prolongation coarse -> fine
-		virtual bool set_levels(size_t coarseLevel, size_t fineLevel) = 0;
-
-	//	Clone
-		virtual IProlongationOperator<X,Y>* clone() = 0;
-};
-
-///////////////////////////////////////////////////////////
-// Projection Operator
-///////////////////////////////////////////////////////////
-
-template <typename X, typename Y>
-class IProjectionOperator :	public virtual ILinearOperator<X,Y>
-{
-	public:
-	// 	Domain space
-		typedef X domain_function_type;
-
-	// 	Range space
-		typedef Y codomain_function_type;
-
-	public:
-	// 	Apply Transposed Operator u = L^T*f
-		virtual bool apply_transposed(X& u, const Y& f) = 0;
-
-	// 	Set Levels for Prolongation coarse -> fine
-		virtual bool set_levels(size_t coarseLevel, size_t fineLevel) = 0;
-
-	//	Clone
-		virtual IProjectionOperator<X,Y>* clone() = 0;
 };
 
 } // end namespace ug

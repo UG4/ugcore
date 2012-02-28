@@ -7,10 +7,15 @@
 #ifndef __H__UG__LIB_DISC__ASSEMBLE__
 #define __H__UG__LIB_DISC__ASSEMBLE__
 
-#include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_grid/tools/selector_interface.h"
+#include "lib_disc/dof_manager/grid_level.h"
 
 namespace ug{
+
+//predeclaration
+template <typename TAlgebra>
+class IConstraint;
+
 
 /**
  * \brief Assemblings.
@@ -75,9 +80,9 @@ namespace ug{
  *	\tparam		TDoFDistribution		DoF Distribution
  *	\tparam		TAlgebra				Algebra type
  */
-template <	typename TDoFDistribution,
-			typename TAlgebra>
-class IAssemble {
+template <typename TAlgebra>
+class IAssemble
+{
 	public:
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -87,9 +92,6 @@ class IAssemble {
 
 	///	Type of algebra vector
 		typedef typename TAlgebra::vector_type vector_type;
-
-	///	Type of DoF Distribution
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	public:
 		/// assembles Jacobian (or Approximation of Jacobian)
@@ -101,7 +103,11 @@ class IAssemble {
 		 * \param[in]	dd	DoF Distribution
 		 */
 		virtual void assemble_jacobian(matrix_type& J, const vector_type& u,
-		                               const dof_distribution_type& dd) = 0;
+		                               GridLevel gl) = 0;
+
+		///	assembles jacobian on surface grid
+		void assemble_jacobian(matrix_type& J, const vector_type& u)
+			{assemble_jacobian(J,u,GridLevel());}
 
 		/// assembles Defect
 		/**
@@ -112,7 +118,11 @@ class IAssemble {
 		 * \param[in]	dd	DoF Distribution
 		 */
 		virtual void assemble_defect(vector_type& d, const vector_type& u,
-		                             const dof_distribution_type& dd) = 0;
+		                             GridLevel gl) = 0;
+
+		/// assembles jacobian on surface grid
+		void assemble_defect(vector_type& d, const vector_type& u)
+			{assemble_defect(d,u, GridLevel());}
 
 		/// Assembles Matrix and Right-Hand-Side for a linear problem
 		/**
@@ -126,7 +136,11 @@ class IAssemble {
 		 * 			false 		if problem is non-linear or an error occurred during assembling
 		 */
 		virtual void assemble_linear(matrix_type& A, vector_type& b,
-		                             const dof_distribution_type& dd) = 0;
+		                             GridLevel gl) = 0;
+
+		/// assembles linear on the surface grid
+		void assemble_linear(matrix_type& A, vector_type& b)
+			{assemble_linear(A,b, GridLevel());}
 
 		/// sets dirichlet values in solution vector
 		/**
@@ -141,11 +155,18 @@ class IAssemble {
 		 * 			false 			if function is implemented and an error occurred during assembling
 		 */
 		virtual void adjust_solution(vector_type& u,
-		                             const dof_distribution_type& dd) = 0;
+		                             GridLevel gl) = 0;
+
+		/// adjust solution on surface grid
+		void adjust_solution(vector_type& u)
+			{adjust_solution(u, GridLevel());}
 
 
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce) = 0;
+
+	///	enables constraints
+		virtual void enable_constraints(bool bEnable) = 0;
 
 	///	sets a selector to exclude elements from assembling
 	/**
@@ -156,6 +177,12 @@ class IAssemble {
 	 * \param[in]	sel		Selector
 	 */
 		virtual void set_selector(ISelector* sel = NULL) = 0;
+
+	///	returns the number of post processes
+		virtual size_t num_dirichlet_constraints() const = 0;
+
+	///	returns the i'th post process
+		virtual IConstraint<TAlgebra>* get_dirichlet_constraint(size_t i) = 0;
 
 	/// Virtual Destructor
 		virtual ~IAssemble(){};

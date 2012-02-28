@@ -20,7 +20,7 @@
 
 namespace ug {
 
-template <typename TDoFDistribution, typename TAlgebra>
+template <typename TAlgebra>
 class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 												typename TAlgebra::vector_type>
 {
@@ -33,9 +33,6 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
-
-	//	DoFDistribution Type
-		typedef TDoFDistribution dof_distribution_type;
 
 	public:
 		NewtonSolver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver,
@@ -91,32 +88,32 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 		bool allocate_memory(const vector_type& u);
 		bool deallocate_memory();
 
-		bool write_debug(const vector_type& vec, const char* filename)
+		void write_debug(const vector_type& vec, const char* filename)
 		{
 		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return true;
+			if(m_pDebugWriter == NULL) return;
 
 		//	add iter count to name
 			std::string name(filename);
 			char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
-			name.append(ext);
+			name.append(ext).append(".vec");
 
 		//	write
-			return m_pDebugWriter->write_vector(vec, name.c_str());
+			m_pDebugWriter->write_vector(vec, name.c_str());
 		}
 
-		bool write_debug(const matrix_type& mat, const char* filename)
+		void write_debug(const matrix_type& mat, const char* filename)
 		{
 		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return true;
+			if(m_pDebugWriter == NULL) return;
 
 		//	add iter count to name
 			std::string name(filename);
 			char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
-			name.append(ext);
+			name.append(ext).append(".mat");
 
 		//	write
-			return m_pDebugWriter->write_matrix(mat, name.c_str());
+			m_pDebugWriter->write_matrix(mat, name.c_str());
 		}
 
 	private:
@@ -131,9 +128,9 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 		vector_type m_d;
 		vector_type m_c;
 
-		AssembledOperator<dof_distribution_type, algebra_type>* m_N;
-		AssembledLinearOperator<dof_distribution_type, algebra_type>* m_J;
-		IAssemble<dof_distribution_type, algebra_type>* m_pAss;
+		AssembledOperator<algebra_type>* m_N;
+		AssembledLinearOperator<algebra_type>* m_J;
+		IAssemble<algebra_type>* m_pAss;
 
 		// line search parameters
 		int m_maxLineSearch;

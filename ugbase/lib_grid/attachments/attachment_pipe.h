@@ -78,7 +78,22 @@ class UG_API IAttachmentDataContainer
 		virtual size_t occupied_memory() = 0;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+///	define reference and const reference types for attachment values.
+/**	The default traits should be fine in all cases. A specialization for bool exists.
+ */
+template <class TValue>
+struct attachment_value_traits{
+	typedef TValue&			reference;
+	typedef const TValue&	const_reference;
+};
 
+///	specialization of attachment_value_traits for the bool type
+template <>
+struct attachment_value_traits<bool>{
+	typedef std::vector<bool>::reference		reference;
+	typedef const std::vector<bool>::reference	const_reference;
+};
 
 /* THOUGHTS
 *	AttachmentDataContainer<T> should probably be defined in another header, since it is somehow specialised for libGrid.
@@ -98,6 +113,8 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 		typedef AttachmentDataContainer<T>	ClassType;
 		//typedef PageContainer<T>			DataContainer;
 		typedef std::vector<T>				DataContainer;
+		typedef typename attachment_value_traits<T>::reference			TRef;
+		typedef typename attachment_value_traits<T>::const_reference	TConstRef;
 
 	public:
 		typedef T	ValueType;
@@ -176,10 +193,10 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 			return m_vData.capacity() * sizeof(T);
 		}
 
-		inline const T& get_elem(size_t index) const      {return m_vData[index];}
-		inline T& get_elem(size_t index)                  {return m_vData[index];}
-		inline const T& operator[] (size_t index) const	{return m_vData[index];}
-		inline T& operator[] (size_t index)				{return m_vData[index];}
+		inline TConstRef get_elem(size_t index) const		{return m_vData[index];}
+		inline TRef get_elem(size_t index)					{return m_vData[index];}
+		inline TConstRef operator[] (size_t index) const	{return m_vData[index];}
+		inline TRef operator[] (size_t index)				{return m_vData[index];}
 
 	///	swaps the buffer content of associated data
 		void swap(AttachmentDataContainer<T>& container)	{m_vData.swap(container.m_vData);}
@@ -288,7 +305,6 @@ class attachment_traits
 		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{return INVALID_ATTACHMENT_INDEX;/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, size_t index)	{/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	AttachmentPipe
@@ -465,7 +481,8 @@ class UG_API AttachmentPipe
 ///	Used to access data that has been attached to an attachment pipe.
 /**
  * Once initialized (use the constructor), an AttachmentAccessor can be used to access
- * the data stored in the given AttachmentPipe
+ * the data stored in the given AttachmentPipe. The reference type of the associated value
+ * is taken from attachment_value_traits. By default this is the standard reference type.
  */
 template <class TElem, class TAttachment, class TElemHandler>
 class UG_API AttachmentAccessor
@@ -483,7 +500,7 @@ class UG_API AttachmentAccessor
 
 		void access(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment);
 
-		inline ValueType&
+		inline typename attachment_value_traits<ValueType>::reference
 		operator[](typename atraits::ConstElemPtr elem)
 			{
 				assert((attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem) != INVALID_ATTACHMENT_INDEX) &&
@@ -492,7 +509,7 @@ class UG_API AttachmentAccessor
 				return m_pContainer->get_elem(attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem));
 			}
 			
-		inline const ValueType&
+		inline typename attachment_value_traits<ValueType>::const_reference
 		operator[](typename atraits::ConstElemPtr elem) const
 			{
 				assert((attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem) != INVALID_ATTACHMENT_INDEX) &&

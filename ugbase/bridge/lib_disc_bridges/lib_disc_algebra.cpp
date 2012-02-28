@@ -18,11 +18,6 @@
 #include "lib_algebra/cpu_algebra_types.h"
 #include "lib_algebra/operator/matrix_operator_functions.h"
 
-// lib_discretization part
-#include "lib_disc/dof_manager/dof_distribution.h"
-#include "lib_disc/dof_manager/p1conform/p1conform.h"
-#include "lib_disc/dof_manager/conform/conform.h"
-
 // discretization interfaces
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
@@ -47,8 +42,8 @@ namespace ug
 namespace bridge
 {
 
-template <typename TAlgebra, typename TDoFDistribution>
-static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, string parentGroup)
+template <typename TAlgebra>
+static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 {
 //	typedefs for Vector and Matrix
 	typedef typename TAlgebra::vector_type vector_type;
@@ -58,70 +53,67 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 	string grp = parentGroup; grp.append("/Discretization");
 
 //	suffix and tag
-	string algDDSuffix = GetAlgebraSuffix<TAlgebra>();
-	algDDSuffix.append(GetDoFDistributionSuffix<TDoFDistribution>());
-	string algDDTag = GetAlgebraTag<TAlgebra>();
-	algDDTag.append(GetDoFDistributionTag<TDoFDistribution>());
+	string algSuffix = GetAlgebraSuffix<TAlgebra>();
+	string algTag = GetAlgebraTag<TAlgebra>();
 
 	try{
-
 //	IConstraint
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef IConstraint<TDoFDistribution, TAlgebra> T;
-		string name = string("IConstraint").append(algDDSuffix);
+		typedef IConstraint<TAlgebra> T;
+		string name = string("IConstraint").append(algSuffix);
 		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, "IConstraint", algDDTag);
+		reg.add_class_to_group(name, "IConstraint", algTag);
 	}
 
 //	IAssemble
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef IAssemble<TDoFDistribution, TAlgebra> T;
-		string name = string("IAssemble").append(algDDSuffix);
+		typedef IAssemble<TAlgebra> T;
+		string name = string("IAssemble").append(algSuffix);
 		reg.add_class_<T>(name, grp)
-			.add_method("assemble_jacobian", static_cast<void (T::*)(matrix_type&, const vector_type&,
-								const IDoFDistribution<TDoFDistribution>&)>(&T::assemble_jacobian));
-		reg.add_class_to_group(name, "IAssemble", algDDTag);
+			.add_method("assemble_jacobian", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_jacobian))
+			.add_method("assemble_defect", static_cast<void (T::*)(vector_type&, const vector_type&)>(&T::assemble_defect))
+			.add_method("assemble_linear", static_cast<void (T::*)(matrix_type&, vector_type&)>(&T::assemble_linear))
+			.add_method("adjust_solution", static_cast<void (T::*)(vector_type&)>(&T::adjust_solution));
+		reg.add_class_to_group(name, "IAssemble", algTag);
 	}
 
 //	IDomainDiscretization
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef IAssemble<TDoFDistribution, TAlgebra> TBase;
-		typedef IDomainDiscretization<TDoFDistribution, TAlgebra> T;
-		string name = string("IDomainDiscretization").append(algDDSuffix);
+		typedef IAssemble<TAlgebra> TBase;
+		typedef IDomainDiscretization<TAlgebra> T;
+		string name = string("IDomainDiscretization").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("assemble_jacobian", static_cast<void (T::*)
 			            (matrix_type&, const VectorTimeSeries<vector_type>&,
-			             number, const IDoFDistribution<TDoFDistribution>&)>(&T::assemble_jacobian));
-		reg.add_class_to_group(name, "IDomainDiscretization", algDDTag);
+			             number)>(&T::assemble_jacobian));
+		reg.add_class_to_group(name, "IDomainDiscretization", algTag);
 	}
 
 //	ITimeDiscretization
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
-		typedef IAssemble<TDoFDistribution, TAlgebra>  TBase;
-		typedef ITimeDiscretization<TDoFDistribution, TAlgebra> T;
-		string name = string("ITimeDiscretization").append(algDDSuffix);
+		typedef IAssemble<TAlgebra>  TBase;
+		typedef ITimeDiscretization<TAlgebra> T;
+		string name = string("ITimeDiscretization").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_method("prepare_step", &T::prepare_step)
-			.add_method("prepare_step_elem", &T::prepare_step_elem)
-			.add_method("finish_step_elem", &T::finish_step_elem)
 			.add_method("num_stages", &T::num_stages)
 			.add_method("set_stage", &T::set_stage)
 			.add_method("future_time", &T::future_time)
 			.add_method("num_prev_steps", &T::num_prev_steps);
-		reg.add_class_to_group(name, "ITimeDiscretization", algDDTag);
+		reg.add_class_to_group(name, "ITimeDiscretization", algTag);
 	}
 
 //	ThetaTimeStep
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
-		typedef ITimeDiscretization<TDoFDistribution, TAlgebra> TBase;
-		typedef ThetaTimeStep<TDoFDistribution, TAlgebra> T;
-		typedef IDomainDiscretization<TDoFDistribution, TAlgebra> domain_discretization_type;
-		string name = string("ThetaTimeStep").append(algDDSuffix);
+		typedef ITimeDiscretization<TAlgebra> TBase;
+		typedef ThetaTimeStep<TAlgebra> T;
+		typedef IDomainDiscretization<TAlgebra> domain_discretization_type;
+		string name = string("ThetaTimeStep").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(domain_discretization_type&)>("Domain Discretization")
 				.template add_constructor<void (*)(domain_discretization_type&,number)>("Domain Discretization#Theta")
@@ -129,43 +121,43 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 				.add_method("set_theta", &T::set_theta, "", "Theta (1 = Impl; 0 = Expl)")
 				.add_method("set_scheme", &T::set_scheme, "", "Scheme|selection|value=[\"Theta\",\"Alexander\",\"FracStep\"]")
 				.add_method("set_stage", &T::set_stage, "", "Stage");
-		reg.add_class_to_group(name, "ThetaTimeStep", algDDTag);
+		reg.add_class_to_group(name, "ThetaTimeStep", algTag);
 	}
 
 //	BDF
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
-		typedef ITimeDiscretization<TDoFDistribution, TAlgebra> TBase;
-		typedef BDF<TDoFDistribution, TAlgebra> T;
-		typedef IDomainDiscretization<TDoFDistribution, TAlgebra> domain_discretization_type;
-		string name = string("BDF").append(algDDSuffix);
+		typedef ITimeDiscretization<TAlgebra> TBase;
+		typedef BDF<TAlgebra> T;
+		typedef IDomainDiscretization<TAlgebra> domain_discretization_type;
+		string name = string("BDF").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 				.template add_constructor<void (*)(domain_discretization_type&)>("Domain Discretization")
 				.template add_constructor<void (*)(domain_discretization_type&,int)>("Domain Discretization#Order")
 				.add_method("set_order", &T::set_order, "", "Order");
-		reg.add_class_to_group(name, "BDF", algDDTag);
+		reg.add_class_to_group(name, "BDF", algTag);
 	}
 
 //	AssembledLinearOperator
 	{
-		typedef AssembledLinearOperator<TDoFDistribution, TAlgebra> T;
+		typedef AssembledLinearOperator<TAlgebra> T;
 		typedef MatrixOperator<vector_type, vector_type, matrix_type> TBase;
-		string name = string("AssembledLinearOperator").append(algDDSuffix);
+		string name = string("AssembledLinearOperator").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_discretization", &T::set_discretization)
-			.add_method("set_dof_distribution", &T::set_dof_distribution)
+			.add_method("set_level", &T::set_level)
 			.add_method("set_dirichlet_values", &T::set_dirichlet_values)
 			.add_method("init_op_and_rhs", &T::init_op_and_rhs);
-		reg.add_class_to_group(name, "AssembledLinearOperator", algDDTag);
+		reg.add_class_to_group(name, "AssembledLinearOperator", algTag);
 	}
 
 //	NewtonSolver
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
-		typedef NewtonSolver<TDoFDistribution, TAlgebra> T;
+		typedef NewtonSolver<TAlgebra> T;
 		typedef IOperatorInverse<vector_type, vector_type> TBase;
-		string name = string("NewtonSolver").append(algDDSuffix);
+		string name = string("NewtonSolver").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_linear_solver", &T::set_linear_solver)
@@ -177,66 +169,29 @@ static bool RegisterLibDiscAlgebra__Algebra_DoFDistribution(Registry& reg, strin
 			.add_method("set_debug", &T::set_debug)
 			.add_method("print_average_convergence", &T::print_average_convergence)
 			.add_method("clear_average_convergence", &T::clear_average_convergence);
-		reg.add_class_to_group(name, "NewtonSolver", algDDTag);
+		reg.add_class_to_group(name, "NewtonSolver", algTag);
 	}
 
 //	AssembledOperator
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
-		typedef AssembledOperator<TDoFDistribution, TAlgebra> T;
+		typedef AssembledOperator<TAlgebra> T;
 		typedef IOperator<vector_type, vector_type> TBase;
-		string name = string("AssembledOperator").append(algDDSuffix);
+		string name = string("AssembledOperator").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
+			.template add_constructor<void (*)(IAssemble<TAlgebra>&)>("Assembling Routine")
 			.add_method("set_discretization", &T::set_discretization)
-			.add_method("set_dof_distribution", &T::set_dof_distribution)
+			.add_method("set_level", &T::set_level)
 			.add_method("init", &T::init);
-		reg.add_class_to_group(name, "AssembledOperator", algDDTag);
+		reg.add_class_to_group(name, "AssembledOperator", algTag);
 	}
 
 //	some functions
 	{
 		reg.add_function("AssembleLinearOperatorRhsAndSolution",
-						 &AssembleLinearOperatorRhsAndSolution<TDoFDistribution, TAlgebra>, grp);
+						 &ug::AssembleLinearOperatorRhsAndSolution<TAlgebra>, grp);
 	}
-
-	} catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterLibDiscAlgebra__Algebra_DoFDistribution: "
-				"Registration failed (using name " << ex.name << ").\n");
-		return false;
-	}
-
-	return true;
-}
-
-template <typename TDoFDistribution>
-static bool RegisterLibDiscAlgebra__DoFDistribution(Registry& reg, string parentGroup)
-{
-//	get group string
-	std::string grp = parentGroup; grp.append("/Discretization");
-
-//	TDoFDistribution
-	{
-		typedef IDoFDistribution<TDoFDistribution> T;
-		reg.add_class_<T>(GetDoFDistributionSuffix<TDoFDistribution>(), grp);
-	}
-
-	return true;
-}
-
-template <typename TAlgebra>
-static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
-{
-//	typedefs for Vector and Matrix
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
-
-//	suffix and tag
-	string algSuffix = GetAlgebraSuffix<TAlgebra>();
-	string algTag = GetAlgebraTag<TAlgebra>();
-
-	try{
 
 //	some functions
 	{
@@ -297,15 +252,7 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 		return false;
 	}
 
-//	add DoFDistributionType
-	bool bReturn = true;
-#ifdef DOF_P1
-	bReturn &= RegisterLibDiscAlgebra__Algebra_DoFDistribution<TAlgebra, P1DoFDistribution>(reg, parentGroup);
-#endif
-#ifdef DOF_GEN
-	bReturn &= RegisterLibDiscAlgebra__Algebra_DoFDistribution<TAlgebra, DoFDistribution >(reg, parentGroup);
-#endif
-	return bReturn;
+	return true;
 }
 
 bool RegisterLibDisc_Algebra(Registry& reg, string parentGroup)

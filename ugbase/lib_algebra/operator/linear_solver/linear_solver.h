@@ -153,12 +153,7 @@ class LinearSolver
 
 		// 	build defect:  d := b - J(u)*x
 			LS_PROFILE_BEGIN(LS_BuildDefect);
-			if(!m_A->apply_sub(d, x))
-			{
-				UG_LOG("ERROR in 'LinearSolver::apply':"
-						" Unable to build defect. Aborting.\n");
-				return false;
-			}
+			m_A->apply_sub(d, x);
 			LS_PROFILE_END(); //LS_BuildDefect
 
 		// 	create correction
@@ -188,6 +183,8 @@ class LinearSolver
 					}
 					LS_PROFILE_END(); //LS_ApplyPrecond
 				}
+				write_debug_vector(d, "Defect.vec");
+				write_debug_vector(c, "Correction.vec");
 
 			// 	add correction to solution: x += c
 				LS_PROFILE_BEGIN(LS_AddCorrection);
@@ -224,23 +221,18 @@ class LinearSolver
 		//	solve on copy of defect
 			bool bRes = apply_return_defect(x, b2);
 
-			write_debug_vector(b2, "LS_UpdatedDefectEnd");
+			write_debug_vector(b2, "LS_UpdatedDefectEnd.vec");
 
 		//	compute defect again, for debug purpose
 			if(m_bRecomputeDefectWhenFinished)
 			{
 				b2 = b;
-				if(!m_A->apply_sub(b2, x))
-				{
-					UG_LOG("ERROR in 'LinearSolver::apply':"
-							" Unable to build defect. Aborting.\n");
-					return false;
-				}
+				m_A->apply_sub(b2, x);
 
 				number norm = b2.two_norm();
 				UG_LOG("%%%% DEBUG: (Re)computed defect has norm: "<<norm<<"\n");
 
-				write_debug_vector(b2, "LS_TrueDefectEnd");
+				write_debug_vector(b2, "LS_TrueDefectEnd.vec");
 			}
 
 		//	return
@@ -277,13 +269,13 @@ class LinearSolver
 		}
 
 	///	writing debug output for a vector (if debug writer set)
-		bool write_debug_vector(const vector_type& vec, const char* filename)
+		void write_debug_vector(const vector_type& vec, const char* filename)
 		{
 		//	if no debug writer set, we're done
-			if(!m_pDebugWriter) return true;
+			if(!m_pDebugWriter) return;
 
 		//	write
-			return m_pDebugWriter->write_vector(vec, filename);
+			m_pDebugWriter->write_vector(vec, filename);
 		}
 
 	protected:

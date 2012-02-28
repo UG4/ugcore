@@ -54,4 +54,6 @@ inline std::ostream& operator<<(std::ostream& out,	const AlgebraType& v)
 	return out;
 }
 
+AlgebraType DefaultAlgebra::m_default = AlgebraType(AlgebraType::CPU, 1);
+
 } // end namespace ug

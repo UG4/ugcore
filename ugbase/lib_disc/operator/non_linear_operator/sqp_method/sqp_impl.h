@@ -31,85 +31,18 @@
 
 namespace ug{
 
-/*template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool SQPMethod<TDomain, TDoFDistribution, TAlgebra>::
-update_elem_discs()
-{
-//	check Approximation space
-	if(m_pApproxSpace == NULL)
-	{
-		UG_LOG("ERROR in DomainDiscretization: Before using the "
-				"DomainDiscretization an ApproximationSpace must be set to it. "
-				"Please use DomainDiscretization:set_approximation_space to "
-				"set an appropriate Space.\n");
-		return false;
-	}
-
-//	set approximation space and extract IElemDiscs
-	m_vElemDisc.clear();
-	for(size_t i = 0; i < m_vDomainElemDisc.size(); ++i)
-	{
-		m_vDomainElemDisc[i]->set_approximation_space(*m_pApproxSpace);
-		m_vElemDisc.push_back(m_vDomainElemDisc[i]);
-	}
-
-//	ok
-	return true;
-}
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool SQPMethod<TDomain, TDoFDistribution, TAlgebra>::
-update_constraints()
-{
-//	check Approximation space
-	if(m_pApproxSpace == NULL)
-	{
-		UG_LOG("ERROR in DomainDiscretization: Before using the "
-				"DomainDiscretization an ApproximationSpace must be set to it. "
-				"Please use DomainDiscretization:set_approximation_space to "
-				"set an appropriate Space.\n");
-		return false;
-	}
-
-
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			m_vvConstraints[type][i]->set_approximation_space(*m_pApproxSpace);
-		}
-	}
-
-//	ok
-	return true;
-}
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-bool SQPMethod<TDomain, TDoFDistribution, TAlgebra>::
-update_disc_items()
-{
-//	return flag
-	bool bRet = true;
-
-	bRet &= update_elem_discs();
-	bRet &= update_constraints();
-
-//	ok
-	return bRet;
-}*/
-
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 bool
-SQPMethod<TDomain,TDoFDistribution, TAlgebra>::
+SQPMethod<TDomain, TAlgebra>::
 init()
 {
 	return true;
 }
 
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 bool
-SQPMethod<TDomain,TDoFDistribution, TAlgebra>::
+SQPMethod<TDomain, TAlgebra>::
 prepare()
 {
 //	Check if Tolerance Check has been set
@@ -123,10 +56,10 @@ prepare()
 	return true;
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 bool
-SQPMethod<TDomain,TDoFDistribution, TAlgebra>::
-check_tolerance(const vector_type& u, const dof_distribution_type& dd, base_type& domDisc)
+SQPMethod<TDomain, TAlgebra>::
+check_tolerance(const vector_type& u, const SurfaceDoFDistribution& dd, base_type& domDisc)
 {
 
 	//soll auf ElemDisc (FE1NonlinearElasticity) - Methode zugreifen,
@@ -146,7 +79,7 @@ check_tolerance(const vector_type& u, const dof_distribution_type& dd, base_type
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	const ISubsetHandler& sh = dd.get_function_pattern().subset_handler();
+	const ISubsetHandler& sh = dd.function_pattern().subset_handler();
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, domDisc.m_vElemDisc, sh))
 			UG_THROW_FATAL("ERROR in 'SQPMethod':"
 				" Can not Subset Groups and union.\n");
@@ -213,10 +146,10 @@ check_tolerance(const vector_type& u, const dof_distribution_type& dd, base_type
 	return true;
 }
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 bool
-SQPMethod<TDomain,TDoFDistribution, TAlgebra>::
-update_variables(const vector_type& u, const dof_distribution_type& dd, base_type& domDisc)
+SQPMethod<TDomain, TAlgebra>::
+update_variables(const vector_type& u, const SurfaceDoFDistribution& dd, base_type& domDisc)
 {
 
 //soll auf ElemDisc (FE1NonlinearElasticity) - Methode zugreifen,

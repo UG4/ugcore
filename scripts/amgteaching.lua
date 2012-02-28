@@ -331,14 +331,11 @@ approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
 
 --  Order indices using Cuthill-McKee
--- if OrderCuthillMcKee(approxSpace, true) == false then
---	print("ERROR when ordering Cuthill-McKee"); exit();
---end
+-- OrderCuthillMcKee(approxSpace, true);
+
 
 --Order indices lexicographically
-if OrderLex(approxSpace, "ul") == false then
-print("ERROR when ordering lexicographically"); exit();
-end
+OrderLex(approxSpace, "ul");
 
 -- create algebraic Preconditioner
 jac = Jacobi()
@@ -419,11 +416,6 @@ base:set_preconditioner(ilu)
 
 -- create GMG ---
 -----------------
--- Transfer and Projection
-transfer = P1Prolongation(approxSpace)
---transfer:set_dirichlet_post_process(dirichletBND)
-projection = P1Projection(approxSpace)
-
 
 -- Geometric Multi Grid
 gmg = GeometricMultiGrid(approxSpace)
@@ -435,8 +427,6 @@ gmg:set_smoother(smoother.pre)
 gmg:set_cycle_type(1)
 gmg:set_num_presmooth(1)
 gmg:set_num_postsmooth(1)
-gmg:set_prolongation(transfer)
-gmg:set_projection(projection)
 if activateDbgWriter >= 1 then
 gmg:set_debug(dbgWriter)
 end
@@ -695,22 +685,19 @@ for myname,myproblem in pairs(problem) do
 		-- create operator from discretization
 		linOp = AssembledLinearOperator()
 		linOp:set_discretization(domainDisc)
-		linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 		
 		-- get grid function
 		u = GridFunction(approxSpace)
 		b = GridFunction(approxSpace)
 		
 		-- debug writer
-		dbgWriter = GridFunctionDebugWriter()
-		dbgWriter:set_reference_grid_function(u)
+		dbgWriter = GridFunctionDebugWriter(approxSpace)
 		dbgWriter:set_vtk_output(false)
 		
 
 		-- update GMG ---
 		-----------------
 		gmg:set_discretization(domainDisc)	
-		transfer:set_dirichlet_post_process(dirichletBND)
 		
 		--------------------------------------------------------------------------------
 		--  Apply solver - using method defined in 'operator_util.h',

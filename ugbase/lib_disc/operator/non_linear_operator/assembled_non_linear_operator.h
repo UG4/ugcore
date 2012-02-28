@@ -12,7 +12,7 @@
 
 namespace ug{
 
-template <typename TDoFDistribution, typename TAlgebra>
+template <typename TAlgebra>
 class AssembledOperator : public IOperator<	typename TAlgebra::vector_type,
 											typename TAlgebra::vector_type>
 {
@@ -26,55 +26,45 @@ public:
 	///	Type of Vector
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-	///	Type of DoFDistribution
-		typedef TDoFDistribution dof_distribution_type;
-
 	public:
 	///	default constructor
-		AssembledOperator() :
-			m_bInit(false), m_pAss(NULL), m_pDoFDistribution(NULL)
-		{};
+		AssembledOperator()
+			: m_bInit(false), m_pAss(NULL), m_gridLevel() {};
 
 	///	constructor
-		AssembledOperator(IAssemble<dof_distribution_type, algebra_type>& ass) :
-			m_bInit(false), m_pAss(&ass), m_pDoFDistribution(NULL)
-		{};
+		AssembledOperator(IAssemble<TAlgebra>& ass)
+			: m_bInit(false), m_pAss(&ass), m_gridLevel(){};
 
 	///	sets discretization for assembling
-		void set_discretization(IAssemble<TDoFDistribution, algebra_type>& ass) {m_pAss = &ass;}
+		void set_discretization(IAssemble<TAlgebra>& ass) {m_pAss = &ass;}
 
-	///	sets dof distribution
-		bool set_dof_distribution(const IDoFDistribution<TDoFDistribution>& dofDistr)
-		{
-			m_pDoFDistribution = &dofDistr;
-			return true;
-		}
+	///	sets the level used for assembling
+		void set_level(const GridLevel& gl) {m_gridLevel = gl;}
 
-	///	returns dof distribution
-		const IDoFDistribution<TDoFDistribution>* dof_distribution()
-				{return m_pDoFDistribution;}
+	///	returns the level used for assembling
+		const GridLevel& level() const {return m_gridLevel;}
 
 	///	Init
-		virtual bool init();
+		virtual void init();
 
 	///	Prepare for apply
-		virtual bool prepare(vector_type& d, vector_type& u);
+		virtual void prepare(vector_type& d, vector_type& u);
 
 	/// Compute d = L(u)
-		virtual bool apply(vector_type& d, const vector_type& u);
+		virtual void apply(vector_type& d, const vector_type& u);
 
 	/// return assembling
-		IAssemble<TDoFDistribution, algebra_type>* get_assemble(){return m_pAss;}
+		IAssemble<TAlgebra>* get_assemble() {return m_pAss;}
 
 	protected:
 		// init flag
 		bool m_bInit;
 
 		// assembling procedure
-		IAssemble<dof_distribution_type, algebra_type>* m_pAss;
+		IAssemble<TAlgebra>* m_pAss;
 
-		// DoF Distribution used
-		const IDoFDistribution<TDoFDistribution>* m_pDoFDistribution;
+		// used grid level
+		GridLevel m_gridLevel;
 };
 
 } // end namepace ug

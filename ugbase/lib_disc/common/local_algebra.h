@@ -98,8 +98,22 @@ class LocalIndices
 			return m_vvIndex[fct][dof][0];
 		}
 
+	/// global algebra index for (fct, dof)
+		index_type& index(size_t fct, size_t dof)
+		{
+			check_dof(fct, dof);
+			return m_vvIndex[fct][dof][0];
+		}
+
 	/// algebra comp for (fct, dof)
 		comp_type comp(size_t fct, size_t dof) const
+		{
+			check_dof(fct, dof);
+			return m_vvIndex[fct][dof][1];
+		}
+
+	/// algebra comp for (fct, dof)
+		comp_type& comp(size_t fct, size_t dof)
 		{
 			check_dof(fct, dof);
 			return m_vvIndex[fct][dof][1];

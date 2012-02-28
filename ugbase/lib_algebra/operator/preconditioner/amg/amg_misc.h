@@ -22,9 +22,9 @@ void ReduceToStrongConnections(TMatrix &m1, const TMatrix &const_m2, double thet
 	m1.resize(m2.num_rows(), m2.num_cols());
 
 #ifdef UG_PARALLEL
-	m1.set_layouts(m2.get_master_layout(), m2.get_slave_layout());
-	m1.set_communicator(m2.get_communicator());
-	m1.set_process_communicator(m2.get_process_communicator());
+	m1.set_layouts(m2.master_layout(), m2.slave_layout());
+	m1.set_communicator(m2.communicator());
+	m1.set_process_communicator(m2.process_communicator());
 	m1.copy_storage_type(m2);
 #endif
 

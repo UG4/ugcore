@@ -12,48 +12,12 @@
 	#include "lib_disc/parallelization/parallelization.h"
 #endif
 
-#include "lib_disc/dof_manager/mg_dof_manager.h"
-#include "./grid_function.h"
+#include "lib_disc/dof_manager/mg_dof_distribution.h"
+#include "lib_disc/dof_manager/level_dof_distribution.h"
+#include "lib_disc/dof_manager/surface_dof_distribution.h"
+#include "grid_function.h"
 
 namespace ug{
-
-/// base class for approximation spaces without type of algebra or dof distribution
-template <typename TDomain>
-class IApproximationSpace : public FunctionPattern
-{
-	public:
-	///	Domain type
-		typedef TDomain domain_type;
-
-	///	World Dimension
-		static const int dim = domain_type::dim;
-
-	///	Subset Handler type
-		typedef typename domain_type::subset_handler_type subset_handler_type;
-
-	public:
-	/// constructor
-		IApproximationSpace(domain_type& domain)
-			: FunctionPattern(domain.subset_handler()),
-			  m_pDomain(&domain), m_pMGSH(&domain.subset_handler())
-		{};
-
-	/// Return the domain
-		const domain_type& domain() const {return *m_pDomain;}
-
-	///	Return the domain
-		domain_type& domain() {return *m_pDomain;}
-
-	///	virtual destructor
-		virtual ~IApproximationSpace()	{}
-
-	protected:
-	///	Domain, where solution lives
-		domain_type* m_pDomain;
-
-	/// grid or multigrid or subsethandler, where elements are stored
-		subset_handler_type* m_pMGSH;
-};
 
 /// describes the ansatz spaces on a domain
 /**
@@ -71,140 +35,189 @@ class IApproximationSpace : public FunctionPattern
  *  (NOTE: 	For a fully refined Multigrid a level grid covers the whole domain.
  *  		However for a locally/adaptively refined MultiGrid the level grid
  *  		solution is only living on a part of the domain)
- *
- * The user is responsible to free the memory of grid functions.
- *
- * \tparam		TDomain				Domain type
- * \tparam		TDoFDistribution	DoF Distribution type
- * \tparam		TAlgebra			Algebra type
  */
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-class ApproximationSpace : public IApproximationSpace<TDomain>{
-	private:
-	//	 to make it more readable
-		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> this_type;
-
+class IApproximationSpace
+{
 	public:
-	///	Type of Domain, where DoFs are defined
-		typedef TDomain domain_type;
-
-	///	Type of Grid, where DoFs are defined
-		typedef typename domain_type::grid_type grid_type;
-
-	///	Type of Subset Handler, where DoFs are defined
-		typedef typename domain_type::subset_handler_type subset_handler_type;
-
-	///	Type of Algebra used
-		typedef TAlgebra algebra_type;
-
-	///	Type of DoF Distribution
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
-
-	///	Type of DoF Manager used
-		#ifdef UG_PARALLEL
-			typedef ParallelMGDoFManager<MGDoFManager<TDoFDistribution> > dof_manager_type;
-		#else
-			typedef MGDoFManager<TDoFDistribution> dof_manager_type;
-		#endif
-
-	///	Type of Grid function used
-		#ifdef UG_PARALLEL
-			typedef ParallelGridFunction<GridFunction<TDomain, TDoFDistribution, TAlgebra> > function_type;
-		#else
-			typedef GridFunction<TDomain, TDoFDistribution, TAlgebra> function_type;
-		#endif
+	///	Type of Subset Handler
+		typedef MGSubsetHandler subset_handler_type;
 
 	public:
 	///	Constructor
-		ApproximationSpace(domain_type& domain);
+		IApproximationSpace(SmartPtr<subset_handler_type> spMGSH);
 
-	///	Destructor
-		~ApproximationSpace(){}
+	///	Constructor setting the grouping flag
+		IApproximationSpace(SmartPtr<subset_handler_type> spMGSH, bool bGroup);
 
-	///	returns if ansatz space is supported
-		virtual bool supports_trial_space(LFEID& id) const
-			{return TDoFDistribution::supports_trial_space(id);}
+	///	clears all functions
+		void clear() {m_spFunctionPattern->clear();}
 
-	///	sets the grouping of indices on the same object
-		void set_grouping(bool bGrouped)
-		{
-			if(m_bInit)
-				UG_THROW_FATAL("ApproximationSpace: cannot change grouping "
-								"strategy after initialization.");
-			m_MGDoFManager.set_grouping(bGrouped);
-		}
+	///	adds function using string to indicate finite element type
+		void add_fct(const char* name, const char* type, int order)
+			{m_spFunctionPattern->add_fct(name, type, order);}
 
-	///	prints statistic about DoF Distribution
-		void print_statistic(int verboseLev)
-			{init(true); m_MGDoFManager.print_statistic(verboseLev);}
+	///	adds function using string to indicate finite element type
+		void add_fct(const char* name, const char* type,
+							 int order, const char* subsets)
+			{m_spFunctionPattern->add_fct(name, type, order, subsets);}
 
-	///	prints statistic about DoF Distribution
-		void print_statistic() {print_statistic(1);}
+	/// get underlying subset handler
+		ConstSmartPtr<MGSubsetHandler> subset_handler() const {return m_spMGSH;}
 
-	///	prints statistic on layouts
-		void print_layout_statistic(int verboseLev = 1)
-			{init(true); m_MGDoFManager.print_layout_statistic(verboseLev);}
-
-	///	prints statistic on layouts
-		void print_layout_statistic() {print_layout_statistic(1);}
-
-	///	prints statistic on local dof distribution
-		void print_local_dof_statistic(int verboseLev = 1)
-			{init(true); m_MGDoFManager.print_local_dof_statistic(verboseLev);}
-
-	///	prints statistic on local dof distribution
-		void print_local_dof_statistic() {print_local_dof_statistic(1);}
-
-	///	defragments the index set of the DoF Distribution
-		void defragment() {m_MGDoFManager.defragment();}
-
-	/// create a new grid function of this approximation space
-		function_type* create_level_function(size_t level);
-
-	/// create a new grid function of this approximation space
-		function_type* create_surface_function();
-
-	///	returns the surface dof distribution
-		dof_distribution_type& surface_dof_distribution();
-
-	///	returns the surface dof distribution
-		const dof_distribution_type& surface_dof_distribution() const;
-
-	///	returns the surface view
-		const SurfaceView* surface_view() const {return m_MGDoFManager.surface_view();}
-
-	///	returns the level dof distributions
-		std::vector<const dof_distribution_type*> level_dof_distributions() const
-				{return m_MGDoFManager.level_dof_distributions();}
-
-	///	returns the level dof distribution
-		dof_distribution_type& level_dof_distribution(size_t level);
-
-	///	returns the level dof distribution
-		const dof_distribution_type& level_dof_distribution(size_t level) const;
+	///	returns the function pattern
+		ConstSmartPtr<FunctionPattern> function_pattern() const {return m_spFunctionPattern;}
 
 	///	returns the number of level
-		size_t num_levels() const {return m_MGDoFManager.num_levels();}
+		size_t num_levels() const {return m_spMGSH->num_levels();}
+
+	///	returns if dofs are grouped
+		bool grouped() const {return m_bGrouped;}
+
+	///	returns the level dof distributions
+		std::vector<ConstSmartPtr<SurfaceDoFDistribution> >	surface_dof_distributions() const;
+
+	///	returns the level dof distribution
+		SmartPtr<SurfaceDoFDistribution> surface_dof_distribution(int level = GridLevel::TOPLEVEL);
+
+	///	returns the level dof distribution
+		ConstSmartPtr<SurfaceDoFDistribution> surface_dof_distribution(int level = GridLevel::TOPLEVEL) const;
+
+	///	returns the surface view
+		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfaceView;}
+
+	///	returns the level dof distributions
+		std::vector<ConstSmartPtr<LevelDoFDistribution> > level_dof_distributions() const;
+
+	///	returns the level dof distribution
+		SmartPtr<LevelDoFDistribution> level_dof_distribution(int level);
+
+	///	returns the level dof distribution
+		ConstSmartPtr<LevelDoFDistribution> level_dof_distribution(int level) const;
+
+	///	prints statistic about DoF Distribution
+		void print_statistic(int verboseLev = 1) const;
+
+	///	prints statistic about DoF Distribution
+		void print_statistic() const {print_statistic(1);}
+
+	///	prints statistic on layouts
+		void print_layout_statistic(int verboseLev = 1) const;
+
+	///	prints statistic on layouts
+		void print_layout_statistic() const {print_layout_statistic(1);}
+
+	///	prints statistic on local dof distribution
+		void print_local_dof_statistic(int verboseLev = 1) const;
+
+	///	prints statistic on local dof distribution
+		void print_local_dof_statistic() const {print_local_dof_statistic(1);}
+
+	///	initializes all level dof distributions
+		void init_level();
+
+	///	initializes all surface dof distributions
+		void init_surface();
+
+		// \todo: should be removed an handled automatically
+	///	defragments the index set of the DoF Distribution
+		void defragment();
 
 	protected:
-	///	initializes the Approximation Space
-		void init(bool bInitDoFs = false);
+	///	creates level DoFDistribution if needed
+		void level_dd_required(size_t fromLevel, size_t toLevel);
+
+	///	creates surface DoFDistribution if needed
+		void surf_dd_required(size_t fromLevel, size_t toLevel);
+
+	///	creates surface DoFDistribution if needed
+		void top_surf_dd_required();
+
+	///	creates the surface view and the surface level views requested
+		void surface_level_view_required(size_t fromLevel, size_t toLevel);
+
+	///	creates the surface view and the surface level views requested
+		void top_surface_level_view_required();
 
 	protected:
-	///	Init flag
-		bool m_bInit;
+	///	print info about local dof statistic for a DoFDistribution
+		void print_local_dof_statistic(ConstSmartPtr<MGDoFDistribution> dd, int verboseLev) const;
 
-	///	Init flag
-		bool m_bLevelDoFInit;
-		bool m_bSurfDoFInit;
+	///	prints number of dofs
+		template <typename TDD>
+		void print_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const;
 
-	/// Dof manager used for this Approximation Space
-		dof_manager_type m_MGDoFManager;
+	///	sets the distributed grid manager
+#ifdef UG_PARALLEL
+		void set_dist_grid_mgr(DistributedGridManager* pDistGrdMgr) {m_pDistGridMgr = pDistGrdMgr;}
+#endif
+
+	protected:
+	/// grid or multigrid or subsethandler, where elements are stored
+		SmartPtr<MGSubsetHandler> m_spMGSH;
+
+	///	function pattern
+		SmartPtr<FunctionPattern> m_spFunctionPattern;
+
+	///	flag if DoFs should be grouped
+		bool m_bGrouped;
+
+	///	MG Level DoF Distribution
+		SmartPtr<LevelMGDoFDistribution> m_spLevMGDD;
+
+	///	all Level DoF Distributions
+		std::vector<SmartPtr<LevelDoFDistribution> > m_vLevDD;
+
+	///	all Surface DoF Distributions
+		std::vector<SmartPtr<SurfaceDoFDistribution> > m_vSurfDD;
+
+	///	top Surface DoF Distributions
+		SmartPtr<SurfaceDoFDistribution> m_spTopSurfDD;
+
+	///	Surface View
+		SmartPtr<SurfaceView> m_spSurfaceView;
+
+	///	all Surface Level Views
+		std::vector<SmartPtr<SurfaceLevelView> > m_vSurfLevView;
+
+	///	top surface level view
+		SmartPtr<SurfaceLevelView> m_spTopSurfLevView;
+
+#ifdef UG_PARALLEL
+	///	Pointer to GridManager
+		DistributedGridManager* m_pDistGridMgr;
+#endif
 };
 
-} // end namespace ug
+/// base class for approximation spaces without type of algebra or dof distribution
+template <typename TDomain>
+class ApproximationSpace : public IApproximationSpace
+{
+	public:
+	///	Domain type
+		typedef TDomain domain_type;
 
-// include implementation
-#include "approximation_space_impl.h"
+	///	World Dimension
+		static const int dim = domain_type::dim;
+
+	///	Subset Handler type
+		typedef typename domain_type::subset_handler_type subset_handler_type;
+
+	public:
+	/// constructor
+		ApproximationSpace(SmartPtr<TDomain> domain);
+
+	/// Return the domain
+		ConstSmartPtr<TDomain> domain() const {return m_spDomain;}
+
+	///	Return the domain
+		SmartPtr<TDomain> domain() {return m_spDomain;}
+
+	protected:
+	///	Domain, where solution lives
+		SmartPtr<TDomain> m_spDomain;
+};
+
+
+} // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__APPROXIMATION_SPACE__ */

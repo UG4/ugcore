@@ -43,10 +43,10 @@ class SubsetGroup
 		SubsetGroup() : m_pSH(NULL) {clear();}
 
 	/// set an underlying subset handler
-		void set_subset_handler(const ISubsetHandler& sh) {m_pSH = &sh; clear();}
+		void set_subset_handler(ConstSmartPtr<ISubsetHandler> sh) {m_pSH = sh; clear();}
 
 	/// get underlying subset handler
-		const ISubsetHandler* subset_handler() const {return m_pSH;}
+		ConstSmartPtr<ISubsetHandler> subset_handler() const {return m_pSH;}
 
 	/// adds a subset by number to this group
 		bool add(int si);
@@ -92,7 +92,7 @@ class SubsetGroup
 	/// number of subsets in this group
 		inline size_t num_subsets() const
 		{
-			if (m_pSH==NULL) return 0;
+			if (!m_pSH.is_valid()) return 0;
 			return m_vSubset.size();
 		}
 
@@ -144,10 +144,10 @@ class SubsetGroup
 
 	protected:
 	// returns if SubsetGroup is ready for use
-		bool is_init() const {return m_pSH != NULL;}
+		bool is_init() const {return m_pSH.is_valid();}
 
 	protected:
-		const ISubsetHandler* m_pSH; ///< underlying SubsetHandler
+		ConstSmartPtr<ISubsetHandler> m_pSH; ///< underlying SubsetHandler
 		std::vector<int> m_vSubset; ///< selected Subset Indices
 };
 

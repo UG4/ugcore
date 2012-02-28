@@ -35,7 +35,7 @@ namespace ug{
  * element and methods of this function provide the number of constructing
  * sub-geometric objects and the relationship between those.
  */
-class ReferenceElement
+class IReferenceElement
 {
 	public:
 	/// returns the reference object id
@@ -97,10 +97,78 @@ class ReferenceElement
 		virtual ReferenceObjectID ref_elem_type(int dim_i, size_t i) const = 0;
 
 	/// virtual destructor
-		virtual ~ReferenceElement() {}
+		virtual ~IReferenceElement() {}
 
 	/// print informations about the reference element
 		virtual void print_info() const;
+};
+
+///	reference element with fixed arrays as base for all provided reference elems
+class ReferenceElement{
+
+	public:
+	///	Constructor filling the arrays
+		ReferenceElement();
+
+	/// \copydoc ug::IReferenceElement::reference_object_id()
+		ReferenceObjectID reference_object_id() const {return m_vRefElemType[m_dim][0];}
+
+	/// \copydoc ug::IReferenceElement::dimension()
+		int dimension() const {return m_dim;}
+
+	/// \copydoc ug::IReferenceElement::size()
+		number size() const	{return m_size;}
+
+	/// \copydoc ug::IReferenceElement::num(int)
+		size_t num(int dim) const	{return m_vNum[dim];}
+
+	/// \copydoc ug::IReferenceElement::num(int, size_t, int)
+		size_t num(int dim_i, size_t i, int dim_j) const
+			{return m_vSubNum[dim_i][i][dim_j];}
+
+	/// \copydoc ug::IReferenceElement::id()
+		int id(int dim_i, size_t i, int dim_j, size_t j) const
+			{return m_id[dim_i][i][dim_j][j];}
+
+	/// \copydoc ug::IReferenceElement::num_ref_elem()
+		size_t num_ref_elem(ReferenceObjectID type) const {return m_vNumRefElem[type];}
+
+	/// \copydoc ug::IReferenceElement::ref_elem_type()
+		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const{	return m_vRefElemType[dim_i][i];}
+
+	/// \copydoc ug::IReferenceElement::print_info()
+		void print_info() const;
+
+	protected:
+	/// to make it more readable
+		enum{POINT = 0, EDGE = 1, FACE = 2, VOLUME= 3};
+
+	///	maximum number of Objects in all dimensions
+		enum{MAXOBJECTS = 12};
+
+	///	maximum dimension
+		enum{MAXDIM = 3};
+
+	///	dimension of the reference world
+		int m_dim;
+
+	///	size of reference element
+		number m_size;
+
+	/// number of Geometric Objects of a dimension
+		size_t m_vNum[MAXDIM+1];
+
+	/// number of Geometric Objects contained in a (Sub-)Geometric Object of the Element
+		size_t m_vSubNum[MAXDIM+1][MAXOBJECTS][MAXDIM+1];
+
+	/// indices of GeomObjects
+		int m_id[MAXDIM+1][MAXOBJECTS][MAXDIM+1][MAXOBJECTS];
+
+	///	number of reference elements
+		size_t m_vNumRefElem[NUM_REFERENCE_OBJECTS];
+
+	///	type of reference elements
+		ReferenceObjectID m_vRefElemType[MAXDIM+1][MAXOBJECTS];
 };
 
 //\todo: Instead of having a virtual base class for the reference elements it
@@ -117,7 +185,7 @@ class ReferenceElement
  * \tparam 		d		dimension, where reference element lives
  */
 template <int d>
-class DimReferenceElement : public ReferenceElement
+class IDimReferenceElement : public IReferenceElement
 {
 	public:
 	///	dimension, where the reference element is defined
@@ -137,6 +205,32 @@ class DimReferenceElement : public ReferenceElement
 		virtual void check_position(const MathVector<dim>& pos) const = 0;
 };
 
+template <int d>
+class DimReferenceElement : public ReferenceElement
+{
+	public:
+	///	dimension, where the reference element is defined
+		static const int dim = d;
+
+	public:
+	/// \copydoc ug::IDimReferenceElement::corner()
+		const MathVector<dim>& corner(size_t i) const {return m_vCorner[i];}
+
+	/// \copydoc ug::IDimReferenceElement::corner()
+		const MathVector<dim,int>* corner() const {return m_vCoInt;}
+
+	/// \copydoc ug::IDimReferenceElement::print_info()
+		void print_info() const;
+
+	protected:
+	///	maximum number of corners for fixed reference elements
+		enum{MAXCORNERS = 8};
+
+	///	coordinates of Reference Corner
+		MathVector<dim> m_vCorner[MAXCORNERS];
+		MathVector<dim, int> m_vCoInt[MAXCORNERS];
+};
+
 /// wrapper class for reference elements
 /**
  * This class wraps a reference element into the ReferenceElement-interface to
@@ -146,7 +240,7 @@ class DimReferenceElement : public ReferenceElement
  */
 template <typename TRefElem>
 class ReferenceElementWrapper
-	: public ReferenceElement, protected TRefElem
+	: public IReferenceElement, protected TRefElem
 {
 	public:
 	/// \copydoc ug::ReferenceElement::reference_object_id()
@@ -188,7 +282,7 @@ class ReferenceElementWrapper
  */
 template <typename TRefElem>
 class DimReferenceElementWrapper
-	: public DimReferenceElement<TRefElem::dim>, protected TRefElem
+	: public IDimReferenceElement<TRefElem::dim>, protected TRefElem
 {
 	public:
 	///	\copydoc ug::DimReferenceElement<d>::dim

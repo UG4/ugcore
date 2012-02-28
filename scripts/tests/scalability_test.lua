@@ -363,9 +363,7 @@ approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
 
 -- lets order indices using Cuthill-McKee
-if OrderCuthillMcKee(approxSpace, true) == false then
-	print("ERROR when ordering Cuthill-McKee"); exit();
-end
+OrderCuthillMcKee(approxSpace, true);
 
 --------------------------------------------------------------------------------
 --  Setup User Functions
@@ -447,15 +445,13 @@ print ("Setting up Algebra Solver")
 -- create operator from discretization
 linOp = AssembledLinearOperator()
 linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- get grid function
 u = GridFunction(approxSpace)
 b = GridFunction(approxSpace)
 
 -- debug writer
-dbgWriter = GridFunctionDebugWriter()
-dbgWriter:set_reference_grid_function(u)
+dbgWriter = GridFunctionDebugWriter(approxSpace)
 dbgWriter:set_vtk_output(false)
 
 -- create algebraic Preconditioner
@@ -496,11 +492,6 @@ else
 end
 	base:set_convergence_check(baseConvCheck)
 	
-	-- Transfer and Projection
-	transfer = P1Prolongation(approxSpace)
-	transfer:set_dirichlet_post_process(dirichletBND)
-	projection = P1Projection(approxSpace)
-	
 	-- Geometric Multi Grid
 	gmg = GeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
@@ -514,8 +505,6 @@ end
 	gmg:set_cycle_type(gmg_gamma)
 	gmg:set_num_presmooth(gmg_nu1)
 	gmg:set_num_postsmooth(gmg_nu2)
-	gmg:set_prolongation(transfer)
-	gmg:set_projection(projection)
 	if activateDbgWriter >= 1 then
 		gmg:set_debug(dbgWriter)
 	end

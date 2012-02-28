@@ -10,20 +10,15 @@
 
 namespace ug{
 
-template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class IDomainConstraint;
 
-template <	typename TDomain,
-			typename TDoFDistribution,
-			typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class IDiscretizationItem
 {
 	public:
 	///	Type of Domain
 		typedef TDomain domain_type;
-
-	///	Type of DoF Distribution
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	///	Type of algebra
 		typedef TAlgebra algebra_type;
@@ -39,7 +34,7 @@ class IDiscretizationItem
 		virtual size_t num_constraint() const = 0;
 
 	///	returns an element disc
-		virtual IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>* get_constraint(size_t i) = 0;
+		virtual IDomainConstraint<TDomain, TAlgebra>* get_constraint(size_t i) = 0;
 
 	///	virtual destructor
 		virtual ~IDiscretizationItem() {}

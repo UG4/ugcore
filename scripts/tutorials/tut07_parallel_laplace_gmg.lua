@@ -232,11 +232,6 @@ jac:set_damp(0.8)
 -- create Base Solver
 base = LU()
 	
--- create Transfer and Projection
-transfer = P1Prolongation(approxSpace)
-transfer:set_dirichlet_post_process(dirichletBnd)
-projection = P1Projection(approxSpace)
-	
 -- create Geometric Multi Grid
 gmg = GeometricMultiGrid(approxSpace)
 gmg:set_discretization(domainDisc)
@@ -246,8 +241,6 @@ gmg:set_smoother(jac)
 gmg:set_cycle_type(1)
 gmg:set_num_presmooth(3)
 gmg:set_num_postsmooth(3)
-gmg:set_prolongation(transfer)
-gmg:set_projection(projection)
 
 
 -- create Convergence Check

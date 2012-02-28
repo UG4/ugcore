@@ -20,13 +20,12 @@ namespace ug{
 /**
  * This operator implements the MatrixOperator interface, thus is basically a
  * matrix that can be applied to vectors. In addition the class allows to set
- * an IAssemble object and an IDoFDistribution. Invoking the init method the
- * matrix is created using the IAssemble routine on the given DoFDistribution.
+ * an IAssemble object and an the GridLevel. Invoking the init method the
+ * matrix is created using the IAssemble routine on the given GridLevel.
  *
- * \tparam	TDoFDistribution	dof distribution type
  * \tparam	TAlgebra			algebra type
  */
-template <typename TDoFDistribution, typename TAlgebra>
+template <typename TAlgebra>
 class AssembledLinearOperator :
 	public virtual MatrixOperator<	typename TAlgebra::vector_type,
 									typename TAlgebra::vector_type,
@@ -42,48 +41,39 @@ class AssembledLinearOperator :
 	///	Type of Matrix
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-	///	Type of DoFDistribution
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
-
 	///	Type of base class
 		typedef MatrixOperator<vector_type,vector_type,matrix_type> base_type;
 
 	public:
 	///	Default Constructor
-		AssembledLinearOperator() :
-			m_pAss(NULL), m_pDoFDistribution(NULL)
-			{};
+		AssembledLinearOperator() :	m_pAss(NULL) {};
 
 	///	Constructor
-		AssembledLinearOperator(IAssemble<TDoFDistribution, algebra_type>& ass)
-			:	m_pAss(&ass), m_pDoFDistribution(NULL)
-		{};
+		AssembledLinearOperator(IAssemble<TAlgebra>& ass) : m_pAss(&ass) {};
 
 	///	sets the discretization to be used
-		void set_discretization(IAssemble<TDoFDistribution, algebra_type>& ass)
-			{m_pAss = &ass;}
+		void set_discretization(IAssemble<TAlgebra>& ass) {m_pAss = &ass;}
 
-	///	sets the dof distribution used for assembling
-		void set_dof_distribution(const dof_distribution_type& dofDistr)
-			{m_pDoFDistribution = &dofDistr;}
+	///	sets the level used for assembling
+		void set_level(const GridLevel& gl) {m_gridLevel = gl;}
 
 	///	initializes the operator that may depend on the current solution
-		virtual bool init(const vector_type& u);
+		virtual void init(const vector_type& u);
 
 	///	initialize the operator
-		virtual bool init();
+		virtual void init();
 
 	///	initializes the operator and assembles the passed rhs vector
-		bool init_op_and_rhs(vector_type& b);
+		void init_op_and_rhs(vector_type& b);
 
 	///	compute d = J(u)*c (here, J(u) is a Matrix)
-		virtual bool apply(vector_type& d, const vector_type& c);
+		virtual void apply(vector_type& d, const vector_type& c);
 
 	///	Compute d := d - J(u)*c
-		virtual bool apply_sub(vector_type& d, const vector_type& c);
+		virtual void apply_sub(vector_type& d, const vector_type& c);
 
 	///	Set Dirichlet values
-		bool set_dirichlet_values(vector_type& u);
+		void set_dirichlet_values(vector_type& u);
 
 	/// forces the disc to consider the grid as regular
 		void force_regular_grid(bool bForce)
@@ -94,10 +84,10 @@ class AssembledLinearOperator :
 
 	protected:
 	// 	assembling procedure
-		IAssemble<TDoFDistribution, algebra_type>* m_pAss;
+		IAssemble<TAlgebra>* m_pAss;
 
 	// 	DoF Distribution used
-		const dof_distribution_type* m_pDoFDistribution;
+		GridLevel m_gridLevel;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -112,12 +102,11 @@ class AssembledLinearOperator :
  * \param[out]	u		Solution
  * \param[out]	b		Rigth-Hand side vector
  *
- * \tparam	TDoFDistribution	dof distribution type
  * \tparam	TAlgebra			algebra type
  */
-template <typename TDoFDistribution, typename TAlgebra>
-bool AssembleLinearOperatorRhsAndSolution
-		(AssembledLinearOperator<TDoFDistribution, TAlgebra>& op,
+template <typename TAlgebra>
+void AssembleLinearOperatorRhsAndSolution
+		(AssembledLinearOperator<TAlgebra>& op,
 		 typename TAlgebra::vector_type& u,
 		 typename TAlgebra::vector_type& b);
 

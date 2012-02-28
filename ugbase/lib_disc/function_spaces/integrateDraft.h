@@ -68,10 +68,10 @@ class IIntegrand
  * \param[in]		quadOrder	order of quadrature rule
  * \returns			value of the integral
  */
-template <int WorldDim, int dim>
-number Integrate(typename domain_traits<dim>::const_iterator iterBegin,
-                 typename domain_traits<dim>::const_iterator iterEnd,
-                 typename domain_traits<WorldDim>::position_accessor_type aaPos,
+template <int WorldDim, int dim, typename TConstIterator>
+number Integrate(TConstIterator iterBegin,
+                 TConstIterator iterEnd,
+                 typename domain_traits<WorldDim>::position_accessor_type& aaPos,
                  IIntegrand<WorldDim,dim>& integrand,
                  int quadOrder)
 {
@@ -80,7 +80,7 @@ number Integrate(typename domain_traits<dim>::const_iterator iterBegin,
 
 //	note: this iterator is for the base elements, e.g. Face and not
 //			for the special type, e.g. Triangle, Quadrilateral
-	typename domain_traits<dim>::const_iterator iter = iterBegin;
+	TConstIterator iter = iterBegin;
 
 //	this is the base element type (e.g. Face). This is the type when the
 //	iterators above are dereferenciated.
@@ -229,7 +229,7 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 		//	get multiindices of element
 
-			typename TGridFunction::multi_index_vector_type ind;  // 	aux. index array
+			std::vector<MultiIndex<2> > ind;  // 	aux. index array
 			m_rGridFct.multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
@@ -430,12 +430,8 @@ number L2ErrorDraft(
 	const boost::function<void (number& res, const MathVector<TGridFunction::dim>& x, number m_time)>& ExactSol,
 	TGridFunction& u, const char* name, number time, int quadOrder, const char* subsets)
 {
-//	get Function Pattern
-	const typename TGridFunction::approximation_space_type& approxSpace
-				= u.approximation_space();
-
 //	get function id of name
-	const size_t fct = approxSpace.fct_id_by_name(name);
+	const size_t fct = u.fct_id_by_name(name);
 
 //	check that function exists
 	if(fct >= u.num_fct())
@@ -446,11 +442,11 @@ number L2ErrorDraft(
 	}
 
 //	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(approxSpace.subset_handler());
+	SubsetGroup ssGrp; ssGrp.set_subset_handler(u.domain()->subset_handler());
 
 //	read subsets
 	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, approxSpace.subset_handler(), subsets);
+		ConvertStringToSubsetGroup(ssGrp, u.domain()->subset_handler(), subsets);
 	else // add all if no subset specified
 		ssGrp.add_all();
 
@@ -481,7 +477,7 @@ number L2ErrorDraft(
 		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
 		l2norm2 += Integrate(u.template begin<geometric_base_object>(si),
 							 u.template end<geometric_base_object>(si),
-							 u.domain().position_accessor(),
+							 u.domain()->position_accessor(),
 							 integrandKernel,
 							 quadOrder);
 	}
@@ -546,7 +542,7 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 		//	get multiindices of element
 
-			typename TGridFunction::multi_index_vector_type ind;  // 	aux. index array
+			std::vector<MultiIndex<2> > ind;  // 	aux. index array
 			m_rGridFct.multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
@@ -608,12 +604,8 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 template <typename TGridFunction>
 number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* subsets)
 {
-//	get function pattern
-	const typename TGridFunction::approximation_space_type&
-		approxSpace = u.approximation_space();
-
 //	get function id of name
-	const size_t fct = approxSpace.fct_id_by_name(name);
+	const size_t fct = u.fct_id_by_name(name);
 
 //	check that function exists
 	if(fct >= u.num_fct())
@@ -624,11 +616,11 @@ number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* sub
 	}
 
 //	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(approxSpace.subset_handler());
+	SubsetGroup ssGrp; ssGrp.set_subset_handler(u.domain()->subset_handler());
 
 //	read subsets
 	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, approxSpace.subset_handler(), subsets);
+		ConvertStringToSubsetGroup(ssGrp, u.domain()->subset_handler(), subsets);
 	else // add all if no subset specified
 		ssGrp.add_all();
 
@@ -659,7 +651,7 @@ number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* sub
 		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
 		l2norm2 += Integrate(u.template begin<geometric_base_object>(si),
 							 u.template end<geometric_base_object>(si),
-							 u.domain().position_accessor(),
+							 u.domain()->position_accessor(),
 							 integrand,
 							 quadOrder);
 	}

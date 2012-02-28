@@ -106,7 +106,6 @@ print ("Setting up Algebra Solver")
 -- create operator from discretization
 op = AssembledOperator()
 op:set_discretization(timeDisc)
-op:set_dof_distribution(approxSpace:surface_dof_distribution())
 op:init()
 
 -- get grid function

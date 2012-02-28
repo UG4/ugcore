@@ -165,7 +165,6 @@ domainDisc:add(dirichletBND)
 -- create operator from discretization
 linOp = AssembledLinearOperator()
 linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- get grid function
 u = GridFunction(approxSpace)
@@ -205,11 +204,6 @@ base = LinearSolver()
 base:set_convergence_check(baseConvCheck)
 base:set_preconditioner(jac)
 
-transfer = P1ProlongationOperator(approxSpace)
-transfer:set_dirichlet_post_process(dirichletBND)
-
-projection = P1ProjectionOperator(approxSpace)
-
 gmg = GeometricMultiGrid(approxSpace)
 gmg:set_discretization(domainDisc)
 gmg:set_surface_level(numRefs)
@@ -219,8 +213,6 @@ gmg:set_smoother(jac)
 gmg:set_cycle_type(1)
 gmg:set_num_presmooth(3)
 gmg:set_num_postsmooth(3)
-gmg:set_prolongation(transfer)
-gmg:set_projection(projection)
 
 amg = AMGPreconditioner()
 amg:set_nu1(2)

@@ -35,7 +35,7 @@ bool ComputeGradient(TFunction& u,
 
 //	get position accessor
 	typename TFunction::domain_type::position_accessor_type& aaPos
-			= u.approximation_space().domain().position_accessor();
+			= u.domain()->position_accessor();
 
 //	get trial space
 	const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
@@ -67,14 +67,17 @@ bool ComputeGradient(TFunction& u,
 //	evaluate reference gradient at local midpoint
 	TrialSpace.grads(&localGrad[0], localIP);
 
+	typedef typename TFunction::template traits<TElem>::const_iterator const_iterator;
+
 //	loop subsets
 	for(int si = 0; si < u.num_subsets(); ++si)
 	{
 	//	get iterator over elements
-		typename geometry_traits<TElem>::const_iterator iter = u.template begin<TElem>(si);
+		const_iterator iter = u.template begin<TElem>(si);
+		const_iterator iterEnd = u.template end<TElem>(si);
 
 	//	loop elements
-		for(; iter != u.template end<TElem>(si); ++iter)
+		for(; iter != iterEnd; ++iter)
 		{
 		//	get the element
 			TElem* elem = *iter;
@@ -103,7 +106,7 @@ bool ComputeGradient(TFunction& u,
 
 			//	get of of vertex
 				//\todo: this is for fct=0 only
-				typename TFunction::multi_index_vector_type ind;
+				std::vector<MultiIndex<2> > ind;
 				u.inner_multi_indices(vert, 0, ind);
 
 			//	scale global gradient
@@ -146,16 +149,17 @@ bool MarkElements(IRefiner& refiner,
 //	reset maximum of error
 	number max = 0.0;
 
-	typename geometry_traits<TElemBase>::const_iterator iter;
+	typedef typename TFunction::template traits<TElemBase>::const_iterator const_iterator;
 
 //	loop subsets
 	for(int si = 0; si < u.num_subsets(); ++si)
 	{
 	//	get element iterator
-		iter = u.template begin<TElemBase>(si);
+		const_iterator iter = u.template begin<TElemBase>(si);
+		const_iterator iterEnd = u.template end<TElemBase>(si);
 
 	//	loop all elements to find the maximum of the error
-		for( ;iter != u.template end<TElemBase>(si); ++iter)
+		for( ;iter != iterEnd; ++iter)
 		{
 		//	get element
 			TElemBase* elem = *iter;
@@ -190,8 +194,11 @@ bool MarkElements(IRefiner& refiner,
 //	loop subsets
 	for(int si = 0; si < u.num_subsets(); ++si)
 	{
+		const_iterator iter = u.template begin<TElemBase>(si);
+		const_iterator iterEnd = u.template end<TElemBase>(si);
+
 	//	loop elements for marking
-		for(iter = u.template begin<TElemBase>(si); iter != u.template end<TElemBase>(si); ++iter)
+		for(; iter != iterEnd; ++iter)
 		{
 		//	get element
 			TElemBase* elem = *iter;
@@ -255,16 +262,16 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
                                              Int2Type<2>)
 {
 //	get domain
-	typename TFunction::domain_type& domain = u.approximation_space().domain();
+	SmartPtr<typename TFunction::domain_type> domain = u.domain();
 
 //	get multigrid
-	typename TFunction::domain_type::grid_type& mg = domain.grid();
+	SmartPtr<typename TFunction::domain_type::grid_type> pMG = domain->grid();
 
 // 	attach error field
 	typedef Attachment<number> ANumber;
 	ANumber aError;
-	mg.attach_to_faces(aError);
-	MultiGrid::FaceAttachmentAccessor<ANumber> aaError(mg, aError);
+	pMG->attach_to_faces(aError);
+	MultiGrid::FaceAttachmentAccessor<ANumber> aaError(*pMG, aError);
 
 // 	Compute error on elements
 	ComputeGradient<Triangle, TFunction>(u, aaError);
@@ -275,7 +282,7 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
 		UG_LOG("No element marked. Not refining the grid.\n");
 
 // 	detach error field
-	mg.detach_from_faces(aError);
+	pMG->detach_from_faces(aError);
 };
 
 template <typename TFunction>

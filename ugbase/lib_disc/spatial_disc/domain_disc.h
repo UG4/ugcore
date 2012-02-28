@@ -19,6 +19,7 @@
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_assemble_util.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "disc_item.h"
+#include "lib_disc/spatial_disc/domain_disc_base.h"
 
 namespace ug {
 
@@ -28,21 +29,17 @@ namespace ug {
 /// domain discretization implementing the interface
 /**
  * This class is an implementation of the IDomainDiscretization interface. It
- * is designed to simply group several discretizations on different subsets and
- * perform element based assemblings and constraints in the same order.
+ * is designed to simply group several discreizations on different subsets and
+ * perform element based assemblings and costraints in the same order.
  */
-template <	typename TDomain,
-			typename TDoFDistribution,
-			typename TAlgebra>
-class DomainDiscretization :
-	public IDomainDiscretization<TDoFDistribution, TAlgebra>
+template <typename TDomain, typename TAlgebra>
+class DomainDiscretization
+ :	public DomainDiscBase<TDomain,TAlgebra,
+  							DomainDiscretization<TDomain, TAlgebra> >
 {
 	public:
 	///	Type of Domain
 		typedef TDomain domain_type;
-
-	///	Type of DoF Distribution
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	///	Type of algebra
 		typedef TAlgebra algebra_type;
@@ -54,138 +51,118 @@ class DomainDiscretization :
 		typedef typename algebra_type::vector_type vector_type;
 
 	///	Type of approximation space
-		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>
-					approx_space_type;
+		typedef ApproximationSpace<TDomain>	approx_space_type;
 
 	public:
 	///	default Constructor
-		DomainDiscretization(approx_space_type& pApproxSpace) :
-			m_pApproxSpace(&pApproxSpace), m_bForceRegGrid(false), m_pSelector(NULL) {};
+		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
+			m_spApproxSpace(pApproxSpace), m_bForceRegGrid(false),
+			m_bConstraintsEnabled(true), m_pSelector(NULL)
+		{
+			this->set_approximation_space(pApproxSpace);
+		};
 
 	///////////////////////////
 	// Time independent part
 	///////////////////////////
 
 	/// \copydoc IAssemble::assemble_jacobian()
-		void assemble_jacobian(matrix_type& J, const vector_type& u,
-	                           const dof_distribution_type& dd);
-
-		void assemble_jacobian(matrix_type& J, const vector_type& u)
-			{assemble_jacobian(J, u, get_surface_dd());}
+		template <typename TDD>
+		void assemble_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<TDD> dd);
 
 	/// \copydoc IAssemble::assemble_defect()
-		void assemble_defect(vector_type& d, const vector_type& u,
-		                     const dof_distribution_type& dd);
-
-		void assemble_defect(vector_type& d, const vector_type& u)
-			{assemble_defect(d, u, get_surface_dd());}
+		template <typename TDD>
+		void assemble_defect(vector_type& d, const vector_type& u, ConstSmartPtr<TDD> dd);
 
 	/// \copydoc IAssemble::assemble_linear()
-		void assemble_linear(matrix_type& A, vector_type& b,
-		                     const dof_distribution_type& dd);
-
-		void assemble_linear(matrix_type& A, vector_type& b)
-			{assemble_linear(A, b, get_surface_dd());}
+		template <typename TDD>
+		void assemble_linear(matrix_type& A, vector_type& b, ConstSmartPtr<TDD> dd);
 
 	/// \copydoc IAssemble::adjust_solution()
-		void adjust_solution(vector_type& u,
-		                       const dof_distribution_type& dd);
-
-		void adjust_solution(vector_type& u)
-			{adjust_solution(u, get_surface_dd());}
+		template <typename TDD>
+		void adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd);
 
 	///////////////////////
 	// Time dependent part
 	///////////////////////
 
 	/// \copydoc IDomainDiscretization::prepare_timestep()
+		template <typename TDD>
 		void prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
-			                 const dof_distribution_type& dd);
-
-		void prepare_timestep(const VectorTimeSeries<vector_type>& vSol)
-				{prepare_timestep(vSol, get_surface_dd());}
+		                      ConstSmartPtr<TDD> dd);
 
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
+		template <typename TDD>
 		void assemble_jacobian(matrix_type& J,
 		                       const VectorTimeSeries<vector_type>& vSol,
 		                       const number s_a0,
-		                       const dof_distribution_type& dd);
-
-		void assemble_jacobian(matrix_type& J,
-		                       const VectorTimeSeries<vector_type>& vSol,
-		                       const number s_a0)
-			{assemble_jacobian(J, vSol, s_a0, get_surface_dd());}
+		                       ConstSmartPtr<TDD> dd);
 
 	/// \copydoc IDomainDiscretization::assemble_defect()
+		template <typename TDD>
 		void assemble_defect(vector_type& d,
 		                     const VectorTimeSeries<vector_type>& vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff,
-		                     const dof_distribution_type& dd);
-
-		void assemble_defect(vector_type& d,
-		                     const VectorTimeSeries<vector_type>& vSol,
-		                     const std::vector<number>& vScaleMass,
-		                     const std::vector<number>& vScaleStiff)
-			{assemble_defect(d, vSol, vScaleMass, vScaleStiff, get_surface_dd());}
+		                     ConstSmartPtr<TDD> dd);
 
 	/// \copydoc IDomainDiscretization::assemble_linear()
+		template <typename TDD>
 		void assemble_linear(matrix_type& A, vector_type& b,
 		                     const VectorTimeSeries<vector_type>& vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff,
-		                     const dof_distribution_type& dd);
-
-		void assemble_linear(matrix_type& A, vector_type& b,
-		                     const VectorTimeSeries<vector_type>& vSol,
-		                     const std::vector<number>& vScaleMass,
-		                     const std::vector<number>& vScaleStiff)
-			{assemble_linear(A, b, vSol, vScaleMass, vScaleStiff, get_surface_dd());}
+		                     ConstSmartPtr<TDD> dd);
 
 	/// \copydoc IDomainDiscretization::adjust_solution()
+		template <typename TDD>
 		void adjust_solution(vector_type& u, number time,
-		                       const dof_distribution_type& dd);
-
-		void adjust_solution(vector_type& u, number time)
-			{adjust_solution(u, time, get_surface_dd());}
+		                       ConstSmartPtr<TDD> dd);
 
 	/// \copydoc IDomainDiscretization::finish_timestep()
+		template <typename TDD>
 		void finish_timestep(const VectorTimeSeries<vector_type>& vSol,
-							 const dof_distribution_type& dd);
-
-		void finish_timestep(const VectorTimeSeries<vector_type>& vSol)
-			{finish_timestep(vSol, get_surface_dd());}
+							 ConstSmartPtr<TDD> dd);
 
 	///////////////////////////
 	// Mass and Stiffness Matrix
 	///////////////////////////
 
 	/// assembles the mass matrix
+		template <typename TDD>
 		void assemble_mass_matrix(matrix_type& M, const vector_type& u,
-		                          const dof_distribution_type& dd);
+		                          ConstSmartPtr<TDD> dd);
 
+		template <typename TDD>
 		void assemble_mass_matrix(matrix_type& M, const vector_type& u)
-			{assemble_mass_matrix(M, u, get_surface_dd());}
+			{assemble_mass_matrix(M, u, GridLevel());}
 
 	/// assembles the stiffness matrix
+		template <typename TDD>
 		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
-		                               const dof_distribution_type& dd);
+		                               ConstSmartPtr<TDD> dd);
 
+		template <typename TDD>
 		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
-			{assemble_stiffness_matrix(A, u, get_surface_dd());}
+			{assemble_stiffness_matrix(A, u, GridLevel());}
 
 	/// assembles the stiffness matrix
+		template <typename TDD>
 		void assemble_rhs(vector_type& rhs, const vector_type& u,
-		                  const dof_distribution_type& dd);
+		                  ConstSmartPtr<TDD> dd);
 
+		template <typename TDD>
 		void assemble_rhs(vector_type& rhs, const vector_type& u)
-			{assemble_rhs(rhs, u, get_surface_dd());}
+			{assemble_rhs(rhs, u, GridLevel());}
 
 	public:
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
 
-	///	sets a selector to exclude elements from assembling
+	///	enables constraints
+		void enable_constraints(bool bEnable) {m_bConstraintsEnabled = bEnable;}
+
+	///	sets a selector to exlude elements from assembling
 	/**
 	 * This methods sets a selector. Only elements that are selected will be
 	 * assembled during assembling process. If no selector is set, this
@@ -214,7 +191,7 @@ class DomainDiscretization :
 					return;
 
 		//	set approximation space
-			elem.set_approximation_space(*m_pApproxSpace);
+			elem.set_approximation_space(m_spApproxSpace);
 
 		//	add it
 			m_vDomainElemDisc.push_back(&elem);
@@ -228,7 +205,7 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	pp		Constraint to be added
 	 */
-		void add(IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>& pp)
+		void add(IDomainConstraint<TDomain, TAlgebra>& pp)
 		{
 		// 	get type of constraint
 			const int type = pp.type();
@@ -250,7 +227,7 @@ class DomainDiscretization :
 	 *
 	 * \param[in] 	di		Disc Item
 	 */
-		void add(IDiscretizationItem<TDomain, TDoFDistribution, TAlgebra>& di)
+		void add(IDiscretizationItem<TDomain, TAlgebra>& di)
 		{
 		//	add elem discs
 			for(size_t i = 0; i < di.num_elem_disc(); ++i)
@@ -261,14 +238,6 @@ class DomainDiscretization :
 				add(*di.get_constraint(i));
 		}
 
-		bool update_elem_discs();
-		bool update_constraints();
-		bool update_disc_items();
-
-		std::vector<IElemDisc*> m_vElemDisc;
-		approx_space_type* m_pApproxSpace;
-		bool m_bForceRegGrid;
-
 	protected:
 	///	returns number of registered dirichlet constraints
 		virtual size_t num_dirichlet_constraints() const
@@ -277,19 +246,17 @@ class DomainDiscretization :
 		}
 
 	///	returns the i'th dirichlet constraint
-		virtual IConstraint<TDoFDistribution, TAlgebra>* get_dirichlet_constraint(size_t i)
+		virtual IConstraint<TAlgebra>* get_dirichlet_constraint(size_t i)
 		{
 			return m_vvConstraints[CT_DIRICHLET].at(i);
 		}
 
 	///	set the approximation space in the elem discs and extract IElemDiscs
-		/*bool update_elem_discs();
+		bool update_elem_discs();
 		bool update_constraints();
-		bool update_disc_items();*/
+		bool update_disc_items();
 
-	///	returns the surface dof distribution
-		dof_distribution_type& get_surface_dd();
-
+	///	subset dimension
 		int subset_dim(const ISubsetHandler& sh, int subsetIndex);
 
 	protected:
@@ -297,16 +264,19 @@ class DomainDiscretization :
 		std::vector<IDomainElemDisc<domain_type>*> m_vDomainElemDisc;
 
 	///	vector holding all registered elem discs
-		//std::vector<IElemDisc*> m_vElemDisc;
+		std::vector<IElemDisc*> m_vElemDisc;
 
 	//	vector holding all registered constraints
-		std::vector<IDomainConstraint<TDomain, TDoFDistribution, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
+		std::vector<IDomainConstraint<TDomain, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
 
 	///	current approximation space
-		//approx_space_type* m_pApproxSpace;
+		SmartPtr<approx_space_type> m_spApproxSpace;
 
 	/// forces the assembling to regard the grid as regular
-		//bool m_bForceRegGrid;
+		bool m_bForceRegGrid;
+
+	///	disables the constraints
+		bool m_bConstraintsEnabled;
 
 	///	selector used to skip elements
 		ISelector* m_pSelector;

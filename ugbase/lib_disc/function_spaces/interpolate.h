@@ -35,7 +35,7 @@ bool InterpolateFunctionOnElem(
 	typedef typename domain_type::position_type position_type;
 
 //	get iterators
-	typename geometry_traits<TElem>::const_iterator iterEnd, iter;
+	typename TGridFunction::template traits<TElem>::const_iterator iterEnd, iter;
 	iterEnd = u.template end<TElem>(si);
 	iter = u.template begin<TElem>(si);
 
@@ -73,13 +73,13 @@ bool InterpolateFunctionOnElem(
 
 	//	get all corner coordinates
 		std::vector<position_type> vCorner;
-		CollectCornerCoordinates(vCorner, *elem, u.domain());
+		CollectCornerCoordinates(vCorner, *elem, *u.domain());
 
 	//	update the reference mapping for the corners
 		mapping.update(&vCorner[0]);
 
 	//	get multiindices of element
-		typename TGridFunction::multi_index_vector_type ind;
+		std::vector<MultiIndex<2> > ind;
 		u.multi_indices(elem, fct, ind);
 
 	//	check multi indices
@@ -141,7 +141,7 @@ static number invoke(	boost::function<void (
 	//	switch dimensions
 		bool bRes = true;
 #ifdef UG_PARALLEL
-		const int dim = ssGrp.dim(i, &u.get_process_communicator());
+		const int dim = ssGrp.dim(i, &u.process_communicator());
 #else
 		const int dim = ssGrp.dim(i);
 #endif
@@ -209,7 +209,7 @@ static number invoke(	boost::function<void (
 	//	switch dimensions
 		bool bRes = true;
 #ifdef UG_PARALLEL
-		const int dim = ssGrp.dim(i, &u.get_process_communicator());
+		const int dim = ssGrp.dim(i, &u.process_communicator());
 #else
 		const int dim = ssGrp.dim(i);
 #endif
@@ -271,7 +271,7 @@ static number invoke(	boost::function<void (
 	//	switch dimensions
 		bool bRes = true;
 #ifdef UG_PARALLEL
-		const int dim = ssGrp.dim(i, &u.get_process_communicator());
+		const int dim = ssGrp.dim(i, &u.process_communicator());
 #else
 		const int dim = ssGrp.dim(i);
 #endif
@@ -321,34 +321,24 @@ bool InterpolateFunction(
 		const boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)>& InterpolFunction,
 		TGridFunction& u, const char* name, number time, const char* subsets)
 {
-//	get Function Pattern
-	const typename TGridFunction::approximation_space_type& approxSpace
-				= u.approximation_space();
-
 //	get function id of name
-	const size_t fct = approxSpace.fct_id_by_name(name);
+	const size_t fct = u.fct_id_by_name(name);
 
 //	check that function found
 	if(fct == (size_t)-1)
-	{
-		UG_LOG("ERROR in InterpolateFunction: Name of function not found.\n");
-		return false;
-	}
+		UG_THROW_FATAL("ERROR in InterpolateFunction: Name of function not found.");
 
 //	check that function exists
 	if(fct >= u.num_fct())
-	{
-		UG_LOG("ERROR in InterpolateFunction: Function space does not contain"
-				" a function with index " << fct << ".\n");
-		return false;
-	}
+		UG_THROW_FATAL("ERROR in InterpolateFunction: Function space does not contain"
+						" a function with index " << fct);
 
 //	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(approxSpace.subset_handler());
+	SubsetGroup ssGrp; ssGrp.set_subset_handler(u.domain()->subset_handler());
 
 //	read subsets
 	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, approxSpace.subset_handler(), subsets);
+		ConvertStringToSubsetGroup(ssGrp, u.domain()->subset_handler(), subsets);
 	else // add all if no subset specified
 		ssGrp.add_all();
 

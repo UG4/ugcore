@@ -37,7 +37,7 @@ bool LoadDomain(TDomain& domain, const char* filename, int procId)
 		return true;
 #endif
 
-	if(!LoadGridFromFile(domain.grid(), domain.subset_handler(),
+	if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
 						 filename, domain.position_attachment()))
 	{
 		return false;
@@ -52,7 +52,7 @@ bool LoadDomain(TDomain& domain, const char* filename, int procId)
 template <typename TDomain>
 bool SaveDomain(TDomain& domain, const char* filename)
 {
-	return SaveGridToFile(domain.grid(), domain.subset_handler(),
+	return SaveGridToFile(*domain.grid(), *domain.subset_handler(),
 						  filename, domain.position_attachment());
 }
 
@@ -173,13 +173,10 @@ inline int DimensionOfDomainSubset(const TDomain& domain, int si
 #endif
 )
 {
-	// extract subset handler
-	const typename TDomain::subset_handler_type& sh = domain.subset_handler();
-
 #ifdef UG_PARALLEL
-	return DimensionOfSubset(sh, si, pProcCom);
+	return DimensionOfSubset(*domain.subset_handler(), si, pProcCom);
 #else
-	return DimensionOfSubset(sh, si);
+	return DimensionOfSubset(*domain.subset_handler(), si);
 #endif
 }
 
@@ -191,15 +188,12 @@ inline int DimensionOfDomain(const TDomain& domain
 #endif
 							)
 {
-//	get grid
-	const typename TDomain::grid_type& grid = domain.grid();
-
 // 	get local dimension of subset
 	int locDim = DIM_SUBSET_EMPTY_GRID;
-	if(grid.template num<VertexBase>() > 0) locDim = 0;
-	if(grid.template num<EdgeBase>() > 0) locDim = 1;
-	if(grid.template num<Face>() > 0) locDim = 2;
-	if(grid.template num<Volume>() > 0) locDim = 3;
+	if(domain.grid()->template num<VertexBase>() > 0) locDim = 0;
+	if(domain.grid()->template num<EdgeBase>() > 0) locDim = 1;
+	if(domain.grid()->template num<Face>() > 0) locDim = 2;
+	if(domain.grid()->template num<Volume>() > 0) locDim = 3;
 
 //	in parallel, we have to check if another proc has a higher dimension
 #ifdef UG_PARALLEL

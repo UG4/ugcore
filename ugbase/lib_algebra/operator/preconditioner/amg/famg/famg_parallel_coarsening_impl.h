@@ -63,7 +63,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 			pidsOL.insert(OLCoarseningReceiveLayout.proc_id(iter));
 	}
 
-	m_myColor = ColorProcessorGraph(PN.get_communicator(), pidsOL, processesWithLowerColor, processesWithHigherColor);
+	m_myColor = ColorProcessorGraph(PN.communicator(), pidsOL, processesWithLowerColor, processesWithHigherColor);
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
 	UG_DLOG(LIB_ALG_AMG, 0, "\nmy color is " << m_myColor);
 	UG_DLOG(LIB_ALG_AMG, 1, "i am connected to");
@@ -157,12 +157,12 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	}
 
 	FAMGCoarseningCommunicationScheme scheme(rating);
-	ReceiveOnInterfaces(PN.get_communicator(), processesWithLowerColor, OLCoarseningReceiveLayout, scheme);
+	ReceiveOnInterfaces(PN.communicator(), processesWithLowerColor, OLCoarseningReceiveLayout, scheme);
 
 	// issue receive of coarsening data from processes with lower color
 	/*IF_DEBUG(LIB_ALG_AMG, 11)
 	{
-		pcl::ProcessCommunicator lowerPC = A_OL2.get_process_communicator().create_sub_communicator(processesWithLowerColor);
+		pcl::ProcessCommunicator lowerPC = A_OL2.process_communicator().create_sub_communicator(processesWithLowerColor);
 		communicator.enable_communication_debugging(lowerPC);
 	}*/
 
@@ -193,13 +193,13 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 
 
 	FAMGCoarseningCommunicationScheme scheme(rating);
-	SendOnInterfaces(PN.get_communicator(), processesWithHigherColor, OLCoarseningSendLayout, scheme);
+	SendOnInterfaces(PN.communicator(), processesWithHigherColor, OLCoarseningSendLayout, scheme);
 
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
 
 	/*IF_DEBUG(LIB_ALG_AMG, 11)
 	{
-		pcl::ProcessCommunicator higherPC = A_OL2.get_process_communicator().create_sub_communicator(processesWithHigherColor);
+		pcl::ProcessCommunicator higherPC = A_OL2.process_communicator().create_sub_communicator(processesWithHigherColor);
 		communicator.enable_communication_debugging(higherPC);
 	}*/
 }
@@ -255,8 +255,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 	//GenerateOverlap(A_OL1, A_OL2, OL2MasterLayout, OL2SlaveLayout, 1, 0, true, true);
 
-	AddLayout(OL2MasterLayout, A.get_master_layout());
-	AddLayout(OL2SlaveLayout, A.get_slave_layout());
+	AddLayout(OL2MasterLayout, A.master_layout());
+	AddLayout(OL2SlaveLayout, A.slave_layout());
 
 	GenerateOverlap2(A, A_OL2, OL2MasterLayout, OL2SlaveLayout, masterLayouts, slaveLayouts,
 			2, 1, overlapSize, false, false, PN);
@@ -268,20 +268,20 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 
 	/*
-	PRINTLAYOUT(PN.get_communicator(), A.get_master_layout(), A.get_slave_layout());
-	PRINTLAYOUT(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout);
-	PRINTLAYOUT(PN.get_communicator(), OL2MasterLayout, OL2SlaveLayout);
+	PRINTLAYOUT(PN.communicator(), A.master_layout(), A.slave_layout());
+	PRINTLAYOUT(PN.communicator(), OL1MasterLayout, OL1SlaveLayout);
+	PRINTLAYOUT(PN.communicator(), OL2MasterLayout, OL2SlaveLayout);
 */
 /*	for(int i=0; i<3; i++)
  	{
 		UG_LOG("\n\n\noverlap[" << i << "] layout, level " << level << ":\n");
-		PRINTLAYOUT(PN.get_communicator(), masterLayouts[i], slaveLayouts[i]);
+		PRINTLAYOUT(PN.communicator(), masterLayouts[i], slaveLayouts[i]);
 	}*/
 
 #ifdef UG_DEBUG
-	UG_ASSERT(TestLayout(A.get_process_communicator(), PN.get_communicator(), A.get_master_layout(), A.get_slave_layout()) == true, "A layout wrong, level " << level);
-	UG_ASSERT(TestLayout(A.get_process_communicator(), PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
-	UG_ASSERT(TestLayout(A.get_process_communicator(), PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
+	UG_ASSERT(TestLayout(A.process_communicator(), PN.communicator(), A.master_layout(), A.slave_layout()) == true, "A layout wrong, level " << level);
+	UG_ASSERT(TestLayout(A.process_communicator(), PN.communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
+	UG_ASSERT(TestLayout(A.process_communicator(), PN.communicator(), OL1MasterLayout, OL1SlaveLayout) == true, "A layout wrong, level " << level);
 #endif
 
 	// create OLCoarseningSendLayout, OLCoarseningReceiveLayout
@@ -312,10 +312,10 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AddLayout(OLCoarseningReceiveLayout, slaveLayouts[1]);
 	AddLayout(OLCoarseningReceiveLayout, masterLayouts[1]);
 
-	AddConnectionsBetweenSlaves(PN.get_communicator(), OL1MasterLayout, OL1SlaveLayout, OLCoarseningSendLayout, OLCoarseningReceiveLayout);
+	AddConnectionsBetweenSlaves(PN.communicator(), OL1MasterLayout, OL1SlaveLayout, OLCoarseningSendLayout, OLCoarseningReceiveLayout);
 
 	//UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningLayout :\n")
-	//PrintLayout(PN.get_communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
+	//PrintLayout(PN.communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
 
 
 	size_t N = A_OL2.num_rows();
@@ -357,7 +357,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 
 	if(pcl::GetNumProcesses() > 1 && m_famg.m_amghelper.has_positions())
 	{
-		m_famg.m_amghelper.update_overlap_positions(level, PN.get_communicator(), OL2MasterLayout, OL2SlaveLayout, A_OL2.num_rows());
+		m_famg.m_amghelper.update_overlap_positions(level, PN.communicator(), OL2MasterLayout, OL2SlaveLayout, A_OL2.num_rows());
 
 		AMG_PROFILE_NEXT(create_OL2_matrix_debug_output);
 		if(m_famg.m_writeMatrices)

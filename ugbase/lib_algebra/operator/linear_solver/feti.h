@@ -590,7 +590,7 @@ class LocalSchurComplement
 		}
 
 	/// implementation of the operator for the solution dependent initialization.
-		bool init(const vector_type& u) {return init();}
+		void init(const vector_type& u) {init();}
 
 	///	initializes the solver for operator A
 	/**
@@ -600,14 +600,14 @@ class LocalSchurComplement
 	 * to the \f$\Delta\f$ and \f$\Pi\f$ unknowns are set to identity rows. This
 	 * matrix is used in the solution of the local dirichlet problem.
 	 */
-		virtual bool init();
+		virtual void init();
 
 	///	applies the Schur complement built from matrix operator set via 'set_matrix()'
 	/// to 'u' and returns the result 'f := S times u'
-		virtual bool apply(vector_type& f, const vector_type& u);
+		virtual void apply(vector_type& f, const vector_type& u);
 
 	///	solves the system
-		virtual bool apply_sub(vector_type& f, const vector_type& u);
+		virtual void apply_sub(vector_type& f, const vector_type& u);
 
 	///	sets statistic slot where next iterate should be counted
 		void set_statistic_type(std::string type) {m_statType = type;}
@@ -619,13 +619,13 @@ class LocalSchurComplement
 		virtual ~LocalSchurComplement() {};
 
 	protected:
-		bool write_debug(const vector_type& vec, const char* filename)
+		void write_debug(const vector_type& vec, const char* filename)
 		{
 		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return true;
+			if(m_pDebugWriter == NULL) return;
 
 		//	write
-			return m_pDebugWriter->write_vector(vec, filename);
+			m_pDebugWriter->write_vector(vec, filename);
 		}
 
 	protected:
@@ -760,13 +760,13 @@ class PrimalSubassembledMatrixInverse
 		virtual ~PrimalSubassembledMatrixInverse() {};
 
 	protected:
-		bool write_debug(const vector_type& vec, const char* filename)
+		void write_debug(const vector_type& vec, const char* filename)
 		{
 		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return true;
+			if(m_pDebugWriter == NULL) return;
 
 		//	write
-			return m_pDebugWriter->write_vector(vec, filename);
+			m_pDebugWriter->write_vector(vec, filename);
 		}
 
 	protected:
@@ -995,7 +995,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	}
 
 	protected:
-		bool write_debug(const vector_type& vec, const char* filename)
+		void write_debug(const vector_type& vec, const char* filename)
 		{
 		//	add iter count to name
 			std::string name(filename);
@@ -1003,10 +1003,10 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			name.append(ext);
 
 		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return true;
+			if(m_pDebugWriter == NULL) return;
 
 		//	write
-			return m_pDebugWriter->write_vector(vec, name.c_str());
+			m_pDebugWriter->write_vector(vec, name.c_str());
 		}
 
 		int m_iterCnt;

@@ -4,7 +4,6 @@
 
 #include "bridge.h"
 #include "lib_algebra/algebra_type.h"
-#include "lib_disc/dof_manager/dof_distribution_type.h"
 #include "common/util/path_provider.h"
 
 using namespace std;
@@ -36,7 +35,7 @@ bool InitBridge()
 /**	If a class has a tag (e.g. "dim=1d", "dim=2d" or "dim=3d") then it will be set
  * as default - depending on the given tags.
  */
-void InitUG(int dim, const AlgebraType& algType, DofDistributionType ddType)
+void InitUG(int dim, const AlgebraType& algType)
 {
 //	get tag of algebra type
 	std::string algTag = GetAlgebraTag(algType);
@@ -56,17 +55,6 @@ void InitUG(int dim, const AlgebraType& algType, DofDistributionType ddType)
 #ifndef UG_DIM_3
 	if(dim == 3)
 		UG_THROW_FATAL("ERROR in InitUG: Requested Dimension '3d' is not compiled into binary.");
-#endif
-
-//	get DoFDistribution tag
-	std::string ddTag = GetDoFDistributionTag(ddType);
-#ifndef DOF_P1
-	if(ddType == DDT_P1CONFORM)
-		UG_THROW_FATAL("ERROR in InitUG: Requested DoFManager 'P1' is not compiled into binary.");
-#endif
-#ifndef DOF_GEN
-	if(ddType == DDT_CONFORM)
-		UG_THROW_FATAL("ERROR in InitUG: Requested DoFManager 'GEN' is not compiled into binary.");
 #endif
 
 	bridge::Registry& reg = bridge::GetUGRegistry();
@@ -101,7 +89,6 @@ void InitUG(int dim, const AlgebraType& algType, DofDistributionType ddType)
 			int found = 0;
 			if(tag.find(dimTag) != string::npos) ++found;
 			if(tag.find(algTag) != string::npos) ++found;
-			if(tag.find(ddTag) != string::npos) ++found;
 
 		//	if exactly as many matches as tags, set this class
 			if(found == numTag)
@@ -112,27 +99,10 @@ void InitUG(int dim, const AlgebraType& algType, DofDistributionType ddType)
 	}
 
 	UG_LOG("INFO: InitUG successful. Setting is: ");
-	UG_LOG(dimTag << " " << algTag << " " << ddTag << "\n");
+	UG_LOG(dimTag << " " << algTag << "\n");
 #ifdef UG_PARALLEL
 	UG_LOG("      Parallel Environment: Num Procs="<<pcl::GetNumProcesses()<<"\n");
 #endif
-}
-
-///	Sets the default classes of class-groups based on a tags using default DoFManager
-void InitUG(int dim, const AlgebraType& algType)
-{
-//	use default dof distribution
-	InitUG(dim, algType, DDT_P1CONFORM);
-}
-
-///	Sets the default classes of class-groups based on a tags
-void InitUG(int dim, const AlgebraType& algType, const char* ddType)
-{
-	std::string dd = ddType;
-	if(dd == "P1") {InitUG(dim, algType, DDT_P1CONFORM); return;}
-	if(dd == "GEN")  {InitUG(dim, algType, DDT_CONFORM); return;}
-	UG_LOG("ERROR in 'InitUG': For DofManager choose one within ['P1', 'GEN'].\n");
-	throw(UGFatalError("DoFManager not recognized."));
 }
 
 bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
@@ -193,10 +163,6 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 #endif
 
 #ifdef UG_ALGEBRA
-		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&, const char *)>(&InitUG), "/ug4/Init",
-		                 "", string("Dimension|selection|value=[").append(availDims.str()).
-		                 	 append("]#Algebra Type#DoFManager|selection|value=[").
-		                 	 append(availDofManager.str()).append("]"));
 		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&)>(&InitUG), "/ug4/Init",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
 		                 	 append("]#Algebra Type"));

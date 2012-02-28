@@ -14,6 +14,30 @@ namespace ug{
 ///////////////////////////////////////////////////////////////////////////////
 // Reference Element
 ///////////////////////////////////////////////////////////////////////////////
+ReferenceElement::ReferenceElement()
+{
+	for(size_t d = 0; d < MAXDIM+1; ++d)
+	{
+		m_vNum[d] = 0;
+
+		for(size_t obj = 0; obj < MAXOBJECTS; ++obj)
+		{
+			m_vRefElemType[d][obj] = ROID_UNKNOWN;
+			for(size_t d2 = 0; d2 < MAXDIM+1; ++d2)
+				m_vSubNum[d][obj][d2] = 0;
+		}
+	}
+
+	for(size_t d = 0; d < MAXDIM+1; ++d)
+		for(size_t obj = 0; obj < MAXOBJECTS; ++obj)
+			for(size_t d2 = 0; d2 < MAXDIM+1; ++d2)
+				for(size_t obj2 = 0; obj2 < MAXOBJECTS; ++obj2)
+					m_id[d][obj][d2][obj2] = -1;
+
+	for(size_t roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
+		m_vNumRefElem[roid] = 0;
+}
+
 void ReferenceElement::print_info() const
 {
 	using namespace std;
@@ -78,26 +102,26 @@ ReferenceElementProvider()
 	{
 		bInit = true;
 		bool bRes = true;
-		bRes &= add_elem(Provider<ReferenceElementWrapper<ReferenceVertex> >::get());
+		bRes &= add_elem(Provider<ReferenceVertex>::get());
 		// not adding for reference vertex
 
-		bRes &= add_elem(Provider<ReferenceElementWrapper<ReferenceTriangle> >::get());
-		bRes &= add_dim_elem<2>(Provider<DimReferenceElementWrapper<ReferenceTriangle> >::get());
+		bRes &= add_elem(Provider<ReferenceTriangle>::get());
+		bRes &= add_dim_elem<2>(Provider<ReferenceTriangle>::get());
 
-		bRes &= add_elem(Provider<ReferenceElementWrapper<ReferenceQuadrilateral> >::get());
-		bRes &= add_dim_elem<2>(Provider<DimReferenceElementWrapper<ReferenceQuadrilateral> >::get());
+		bRes &= add_elem(Provider<ReferenceQuadrilateral>::get());
+		bRes &= add_dim_elem<2>(Provider<ReferenceQuadrilateral>::get());
 
-		bRes &= add_elem(Provider<ReferenceElementWrapper<ReferenceTetrahedron> >::get());
-		bRes &= add_dim_elem<3>(Provider<DimReferenceElementWrapper<ReferenceTetrahedron> >::get());
+		bRes &= add_elem(Provider<ReferenceTetrahedron>::get());
+		bRes &= add_dim_elem<3>(Provider<ReferenceTetrahedron>::get());
 
-		bRes &= add_elem(Provider<ReferenceElementWrapper<ReferencePrism> >::get());
-		bRes &= add_dim_elem<3>(Provider<DimReferenceElementWrapper<ReferencePrism> >::get());
+		bRes &= add_elem(Provider<ReferencePrism>::get());
+		bRes &= add_dim_elem<3>(Provider<ReferencePrism>::get());
 
-		bRes &= add_elem(Provider<ReferenceElementWrapper<ReferencePyramid > >::get());
-		bRes &= add_dim_elem<3>(Provider<DimReferenceElementWrapper<ReferencePyramid> >::get());
+		bRes &= add_elem(Provider<ReferencePyramid>::get());
+		bRes &= add_dim_elem<3>(Provider<ReferencePyramid>::get());
 
-		bRes &= add_elem(Provider<ReferenceElementWrapper<ReferenceHexahedron> >::get());
-		bRes &= add_dim_elem<3>(Provider<DimReferenceElementWrapper<ReferenceHexahedron> >::get());
+		bRes &= add_elem(Provider<ReferenceHexahedron>::get());
+		bRes &= add_dim_elem<3>(Provider<ReferenceHexahedron>::get());
 
 		if(!bRes) throw(UGFatalError("Error while registering Reference Elements"));
 	}

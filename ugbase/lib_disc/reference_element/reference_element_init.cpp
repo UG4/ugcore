@@ -5,6 +5,7 @@
  *      Author: andreasvogel
  */
 
+#include "reference_element.h"
 #include "reference_vertex.h"
 #include "reference_edge.h"
 #include "reference_triangle.h"
@@ -21,6 +22,12 @@ namespace ug{
 ///////////////////////////////////////////////////////////////////////////////
 ReferenceVertex::ReferenceVertex()
 {
+	// dimension
+	m_dim = 0;
+
+	// size
+	m_size = 1.0;
+
 	//number of Geometric Objects
 	m_vNum[POINT] = 1;
 
@@ -59,6 +66,12 @@ ReferenceVertex::ReferenceVertex()
 
 ReferenceEdge::ReferenceEdge()
 {
+	// dimension
+	m_dim = 1;
+
+	// size
+	m_size = 1.0;
+
 	//number of Geometric Objects
 	m_vNum[POINT] = 2;
 	m_vNum[EDGE] = 1;
@@ -122,6 +135,12 @@ ReferenceEdge::ReferenceEdge()
 
 ReferenceTriangle::ReferenceTriangle()
 {
+	// dimension
+	m_dim = 2;
+
+	// size
+	m_size = 0.5;
+
 	//number of Geometric Objects
  	m_vNum[POINT] = 3;
  	m_vNum[EDGE] = 3;
@@ -229,6 +248,12 @@ ReferenceTriangle::ReferenceTriangle()
 
 ReferenceQuadrilateral::ReferenceQuadrilateral()
 {
+	// dimension
+	m_dim = 2;
+
+	// size
+	m_size = 1.0;
+
 	//number of Geometric Objects
  	m_vNum[POINT] = 4;
  	m_vNum[EDGE] = 4;
@@ -342,6 +367,12 @@ ReferenceQuadrilateral::ReferenceQuadrilateral()
 
 ReferenceTetrahedron::ReferenceTetrahedron()
 {
+	// dimension
+	m_dim = 3;
+
+	// size
+	m_size = 1.0/6.0;
+
 	//number of Geometric Objects
  	m_vNum[POINT] = 4;
  	m_vNum[EDGE] = 6;
@@ -557,6 +588,12 @@ ReferenceTetrahedron::ReferenceTetrahedron()
 
 ReferencePyramid::ReferencePyramid()
 {
+	// dimension
+	m_dim = 3;
+
+	// size
+	m_size = 1.0/3.0;
+
 	//number of Geometric Objects
  	m_vNum[POINT] = 5;
  	m_vNum[EDGE] = 8;
@@ -817,6 +854,12 @@ ReferencePyramid::ReferencePyramid()
 
 ReferencePrism::ReferencePrism()
 {
+	// dimension
+	m_dim = 3;
+
+	// size
+	m_size = 0.5;
+
 	//number of Geometric Objects
  	m_vNum[POINT] = 6;
  	m_vNum[EDGE] = 9;
@@ -1104,6 +1147,12 @@ ReferencePrism::ReferencePrism()
 
 ReferenceHexahedron::ReferenceHexahedron()
 {
+	// dimension
+	m_dim = 3;
+
+	// size
+	m_size = 1.0;
+
 	//number of Geometric Objects
  	m_vNum[POINT] = 8;
  	m_vNum[EDGE] = 12;
@@ -1407,12 +1456,12 @@ ReferenceHexahedron::ReferenceHexahedron()
  	// Reference Element Types
  	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
  	{
-		m_vRefElem[i] = 0;
+		m_vNumRefElem[i] = 0;
  	}
- 	m_vRefElem[ROID_VERTEX] = 8;
- 	m_vRefElem[ROID_EDGE] = 12;
- 	m_vRefElem[ROID_QUADRILATERAL] = 6;
- 	m_vRefElem[ROID_HEXAHEDRON] = 1;
+ 	m_vNumRefElem[ROID_VERTEX] = 8;
+ 	m_vNumRefElem[ROID_EDGE] = 12;
+ 	m_vNumRefElem[ROID_QUADRILATERAL] = 6;
+ 	m_vNumRefElem[ROID_HEXAHEDRON] = 1;
 }
 
 

@@ -102,7 +102,7 @@ class ParallelVector : public TVector
 		}
 
 	///	returns the slave layout
-		IndexLayout& get_slave_layout() const
+		IndexLayout& slave_layout() const
 		{
 			UG_ASSERT(m_pSlaveLayout != NULL,
 			          "No Horizontal Slave Layout set, but requested.");
@@ -110,7 +110,7 @@ class ParallelVector : public TVector
 		}
 
 	///	returns the master layout
-		IndexLayout& get_master_layout() const
+		IndexLayout& master_layout() const
 		{
 			UG_ASSERT(m_pMasterLayout != NULL,
 			          "No Horizontal Master Layout set, but requested.");
@@ -118,7 +118,7 @@ class ParallelVector : public TVector
 		}
 
 	///	returns the vertical slave layout
-		IndexLayout& get_vertical_slave_layout()
+		IndexLayout& vertical_slave_layout() const
 		{
 			UG_ASSERT(m_pVerticalSlaveLayout != NULL,
 			          "No Vertical Slave Layout set, but requested.");
@@ -126,7 +126,7 @@ class ParallelVector : public TVector
 		}
 
 	///	returns the vertical slave layout
-		IndexLayout& get_vertical_master_layout()
+		IndexLayout& vertical_master_layout() const
 		{
 			UG_ASSERT(m_pVerticalMasterLayout != NULL,
 			          "No Vertical Master Layout set, but requested.");
@@ -140,7 +140,7 @@ class ParallelVector : public TVector
 		}
 
 	///	returns the communicator
-		pcl::ParallelCommunicator<IndexLayout>& get_communicator()
+		pcl::ParallelCommunicator<IndexLayout>& communicator() const
 		{
 			UG_ASSERT(m_pCommunicator != NULL,
 			          "No Parallel Communicator set, but requested.");
@@ -148,18 +148,19 @@ class ParallelVector : public TVector
 		}
 
 	///	sets a process communicator
-		void set_process_communicator(const pcl::ProcessCommunicator& pc)
+		void set_process_communicator(pcl::ProcessCommunicator& pc)
 		{
 			m_processCommunicator = pc;
 		}
 
 	///	returns the process communicator
 		pcl::ProcessCommunicator&
-		get_process_communicator() {return m_processCommunicator;}
+		process_communicator() {return m_processCommunicator;}
 
 	///	returns the process communicator
 		const pcl::ProcessCommunicator&
-		get_process_communicator() const {return m_processCommunicator;}
+		process_communicator() const {return m_processCommunicator;}
+
 
 		/////////////////////////
 		// Storage type handling

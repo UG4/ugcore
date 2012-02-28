@@ -21,8 +21,6 @@
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/approximation_space.h"
-#include "lib_disc/dof_manager/conform/conform.h"
-#include "lib_disc/dof_manager/p1conform/p1conform.h"
 
 #include "lib_disc/operator/linear_operator/projection_operator.h"
 #include "lib_disc/operator/linear_operator/prolongation_operator.h"
@@ -33,65 +31,59 @@ using namespace std;
 namespace ug {
 namespace bridge {
 
-template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
-static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string parentGroup)
+template <typename TDomain, typename TAlgebra>
+static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 {
 //	typedef
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
-	typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> approximation_space_type;
-
-#ifdef UG_PARALLEL
-		typedef ParallelGridFunction<GridFunction<TDomain, TDoFDistribution, TAlgebra> > function_type;
-#else
-		typedef GridFunction<TDomain, TDoFDistribution, TAlgebra> function_type;
-#endif
+	typedef ApproximationSpace<TDomain> approximation_space_type;
 
 //	group string
 	stringstream grpSS; grpSS << parentGroup << "/MultiGrid";
 	string grp = grpSS.str();
 
 //	suffix and tag
-	string dimAlgDDSuffix = GetDomainSuffix<TDomain>();
-	dimAlgDDSuffix.append(GetAlgebraSuffix<TAlgebra>());
-	dimAlgDDSuffix.append(GetDoFDistributionSuffix<TDoFDistribution>());
+	string dimAlgSuffix = GetDomainSuffix<TDomain>();
+	dimAlgSuffix.append(GetAlgebraSuffix<TAlgebra>());
 
-	string dimAlgDDTag = GetDomainTag<TDomain>();
-	dimAlgDDTag.append(GetAlgebraTag<TAlgebra>());
-	dimAlgDDTag.append(GetDoFDistributionTag<TDoFDistribution>());
+	string dimAlgTag = GetDomainTag<TDomain>();
+	dimAlgTag.append(GetAlgebraTag<TAlgebra>());
 
 
 //	ProlongationOperator
 	{
-		typedef P1Prolongation<approximation_space_type, TAlgebra> T;
-		typedef IProlongationOperator<vector_type, vector_type> TBase;
-		string name = string("P1Prolongation").append(dimAlgDDSuffix);
+		typedef P1Prolongation<TDomain, TAlgebra> T;
+		typedef IProlongationOperator<TAlgebra> TBase;
+		string name = string("P1Prolongation").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.template add_constructor<void (*)(approximation_space_type&)>("Approximation Space")
+			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
-			.add_method("set_dirichlet_post_process", &T::set_dirichlet_post_process);
-		reg.add_class_to_group(name, "P1Prolongation", dimAlgDDTag);
+			.add_method("add_constraint", &T::add_constraint)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "P1Prolongation", dimAlgTag);
 	}
 
 //	ProjectionOperator
 	{
-		typedef P1Projection<approximation_space_type, TAlgebra> T;
+		typedef P1Projection<TDomain, TAlgebra> T;
 		typedef IProjectionOperator<vector_type, vector_type> TBase;
-		string name = string("P1Projection").append(dimAlgDDSuffix);
+		string name = string("P1Projection").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.template add_constructor<void (*)(approximation_space_type&)>("Approximation Space");
-		reg.add_class_to_group(name, "P1Projection", dimAlgDDTag);
+			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "P1Projection", dimAlgTag);
 	}
 
 //	AssembledMultiGridCycle
 	{
-		typedef AssembledMultiGridCycle<approximation_space_type, TAlgebra> T;
+		typedef AssembledMultiGridCycle<TDomain, TAlgebra> T;
 		typedef ILinearIterator<vector_type, vector_type> TBase;
-		string name = string("GeometricMultiGrid").append(dimAlgDDSuffix);
+		string name = string("GeometricMultiGrid").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.template add_constructor<void (*)(approximation_space_type&)>("Approximation Space")
+			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
 			.add_method("set_discretization", &T::set_discretization, "", "Discretization")
 			.add_method("set_base_level", &T::set_base_level, "", "Base Level")
 			.add_method("set_parallel_base_solver", &T::set_parallel_base_solver,"", "Specifies if base solver works in parallel")
@@ -103,12 +95,12 @@ static void Register__Algebra_DoFDistribution_Domain(Registry& reg, string paren
 			.add_method("set_prolongation", &T::set_prolongation_operator,"", "Prolongation")
 			.add_method("set_projection", &T::set_projection_operator,"", "Projection")
 			.add_method("set_debug", &T::set_debug);
-		reg.add_class_to_group(name, "GeometricMultiGrid", dimAlgDDTag);
+		reg.add_class_to_group(name, "GeometricMultiGrid", dimAlgTag);
 	}
 }
 
-template <typename TAlgebra, typename TDoFDistribution>
-static bool Register__Algebra_DoFDistribution(Registry& reg, string parentGroup)
+template <typename TAlgebra>
+static bool Register__Algebra(Registry& reg, string parentGroup)
 {
 //	get group string
 	string grp = parentGroup; grp.append("/Discretization");
@@ -117,28 +109,36 @@ static bool Register__Algebra_DoFDistribution(Registry& reg, string parentGroup)
 	{
 
 #ifdef UG_DIM_1
-//	Domain dependent part 1D
-	{
-		typedef Domain<1, MultiGrid, MGSubsetHandler> domain_type;
-		Register__Algebra_DoFDistribution_Domain<domain_type, TAlgebra, TDoFDistribution>(reg, grp);
-	}
+		Register__Algebra_Domain<Domain1d, TAlgebra>(reg, grp);
 #endif
-
 #ifdef UG_DIM_2
-//	Domain dependent part 2D
-	{
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-		Register__Algebra_DoFDistribution_Domain<domain_type, TAlgebra, TDoFDistribution>(reg, grp);
-	}
+		Register__Algebra_Domain<Domain2d, TAlgebra>(reg, grp);
+#endif
+#ifdef UG_DIM_3
+		Register__Algebra_Domain<Domain3d, TAlgebra>(reg, grp);
 #endif
 
-#ifdef UG_DIM_3
-//	Domain dependent part 3D
-	{
-		typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
-		Register__Algebra_DoFDistribution_Domain<domain_type, TAlgebra, TDoFDistribution>(reg, grp);
-	}
-#endif
+
+		typedef typename TAlgebra::vector_type vector_type;
+	//	suffix and tag
+		string algSuffix = GetAlgebraSuffix<TAlgebra>();
+		string algTag = GetAlgebraTag<TAlgebra>();
+
+	//	IProlongationOperator
+		{
+			typedef IProlongationOperator<TAlgebra> T;
+			string name = string("IProlongationOperator").append(algSuffix);
+			reg.add_class_<T>(name, grp);
+			reg.add_class_to_group(name, "IProlongationOperator", algTag);
+		}
+
+	//	IProjectionOperator
+		{
+			typedef IProjectionOperator<vector_type, vector_type> T;
+			string name = string("IProjectionOperator").append(algSuffix);
+			reg.add_class_<T>(name, grp);
+			reg.add_class_to_group(name, "IProjectionOperator", algTag);
+		}
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
@@ -149,20 +149,6 @@ static bool Register__Algebra_DoFDistribution(Registry& reg, string parentGroup)
 	}
 
 	return true;
-}
-
-template <typename TAlgebra>
-static bool Register__Algebra(Registry& reg, string parentGroup)
-{
-	bool bReturn = true;
-#ifdef DOF_P1
-	bReturn &= Register__Algebra_DoFDistribution<TAlgebra, P1DoFDistribution>(reg, parentGroup);
-#endif
-#ifdef DOF_GEN
-	bReturn &= Register__Algebra_DoFDistribution<TAlgebra, DoFDistribution >(reg, parentGroup);
-#endif
-
-	return bReturn;
 }
 
 bool RegisterMultiGrid(Registry& reg, string grp)

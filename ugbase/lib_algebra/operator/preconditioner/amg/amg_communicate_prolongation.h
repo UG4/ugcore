@@ -219,8 +219,8 @@ void AMGBase<TAlgebra>::parallel_process_prolongation(prolongation_matrix_type &
 {
 
 	AMG_PROFILE_FUNC();
-	PRINTPC(PoldIndices.get_process_communicator());
-	PRINTPC(PnewIndices.get_process_communicator());
+	PRINTPC(PoldIndices.process_communicator());
+	PRINTPC(PnewIndices.process_communicator());
 	communicate_prolongation(PN, PoldIndices, bCreateNewNodes);
 	PoldIndices.set_storage_type(PST_CONSISTENT);
 	amgnodes.resize(PoldIndices.num_cols());
@@ -238,13 +238,13 @@ void AMGBase<TAlgebra>::parallel_process_prolongation(prolongation_matrix_type &
 	ReplaceIndicesInLayout(nextLevelMasterLayout, newIndex);
 	ReplaceIndicesInLayout(nextLevelSlaveLayout, newIndex);
 
-	TESTLAYOUT(PoldIndices.get_process_communicator(), PN.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
+	TESTLAYOUT(PoldIndices.process_communicator(), PN.communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
 
 	create_parent_index(level, newIndex, PnewIndices.num_cols());
 
 	if(m_writeMatrices)
 	{
-		m_amghelper.update_overlap_positions(level, PN.get_communicator(), PN.get_total_master_layout(), PN.get_total_slave_layout(), PN.local_size());
+		m_amghelper.update_overlap_positions(level, PN.communicator(), PN.get_total_master_layout(), PN.get_total_slave_layout(), PN.local_size());
 		m_amghelper.make_coarse_level(level+1, m_parentIndex[level+1]);
 	}
 	create_fine_marks(level, amgnodes, PN.get_original_size());
@@ -267,10 +267,10 @@ void AMGBase<TAlgebra>::communicate_prolongation(ParallelNodes &PN, prolongation
 	RowSendingScheme<prolongation_matrix_type> rowSendingScheme(PoldIndices, PN);
 
 	rowSendingScheme.set_create_new_nodes(bCreateNewNodes);
-	rowSendingScheme.issue_send(PN.get_communicator(), PN.get_master_layout(), PN.get_slave_layout());
-	PN.get_communicator().communicate();
+	rowSendingScheme.issue_send(PN.communicator(), PN.master_layout(), PN.slave_layout());
+	PN.communicator().communicate();
 
-	rowSendingScheme.process(PN.get_slave_layout());
+	rowSendingScheme.process(PN.slave_layout());
 	rowSendingScheme.set_rows_in_matrix(PoldIndices);
 
 }
@@ -291,10 +291,10 @@ void AMGBase<TAlgebra>::postset_coarse(ParallelNodes &PN, prolongation_matrix_ty
 {
 	AMG_PROFILE_FUNC();
 	// set coarse flags of new rows
-	for(IndexLayout::iterator iter = PN.get_slave_layout().begin();
-			iter != PN.get_slave_layout().end(); ++iter)
+	for(IndexLayout::iterator iter = PN.slave_layout().begin();
+			iter != PN.slave_layout().end(); ++iter)
 	{
-		IndexLayout::Interface &interface = PN.get_slave_layout().interface(iter);
+		IndexLayout::Interface &interface = PN.slave_layout().interface(iter);
 		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			size_t i = interface.get_element(iter);
@@ -410,10 +410,10 @@ void CheckMatrixLayout(ParallelNodes &PN, const TMatrix &mat, IndexLayout &maste
 		}
 	}
 
-	PRINTPC(mat.get_process_communicator());
+	PRINTPC(mat.process_communicator());
 	if(!bEverySlaveIsInLayout)
 	{
-		PrintLayout(mat.get_process_communicator(), PN.get_communicator(), masterLayout, slaveLayout);
+		PrintLayout(mat.process_communicator(), PN.communicator(), masterLayout, slaveLayout);
 		mat.print();
 	}
 	UG_ASSERT(bEverySlaveIsInLayout, "Error in Interfaces.");
@@ -425,7 +425,7 @@ void CheckMatrixLayout(ParallelNodes &PN, const TMatrix &mat, IndexLayout &maste
 	PrintLayout(slaveLayout);
 
 	// check if slave interfaces match the master interfaces.
-	TESTLAYOUT(mat.get_process_communicator(), PN.get_communicator(), masterLayout, slaveLayout);
+	TESTLAYOUT(mat.process_communicator(), PN.communicator(), masterLayout, slaveLayout);
 #endif
 }
 
@@ -467,7 +467,7 @@ void AMGBase<TAlgebra>::create_minimal_layout_for_prolongation(ParallelNodes &PN
 	}*/
 
 	CreateMinimalLayoutCommunicationScheme cmlcs(bUsedSlave);
-	CommunicateOnInterfaces(PN.get_communicator(),
+	CommunicateOnInterfaces(PN.communicator(),
 			PN.get_total_slave_layout(), PN.get_total_master_layout(), cmlcs);
 	UG_LOG("hi\n");
 	cmlcs.get_new_layouts(newMasterLayout, newSlaveLayout);

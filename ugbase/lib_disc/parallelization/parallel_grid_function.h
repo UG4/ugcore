@@ -32,47 +32,33 @@ class ParallelGridFunction : public TGridFunction
 		// vector type used to store dof values
 		typedef typename TGridFunction::vector_type vector_type;
 
-		// dof distribution
+		// dof distribution type
 		typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
 
 		using TGridFunction::clone_pattern;
 
 	public:
 	/// Default Constructor
-		ParallelGridFunction(approximation_space_type& approxSpace)
+		ParallelGridFunction(SmartPtr<approximation_space_type> approxSpace)
 			: TGridFunction(approxSpace)
 		{
 			copy_layouts_into_vector();
-			set_storage_type(PST_UNDEFINED);
+			this->set_storage_type(PST_UNDEFINED);
 		};
 
 	/// Initializing Constructor
-		ParallelGridFunction(approximation_space_type& approxSpace,
-		                     dof_distribution_type& DoFDistr)
+		ParallelGridFunction(SmartPtr<approximation_space_type> approxSpace,
+		                     SmartPtr<dof_distribution_type> DoFDistr)
 			: TGridFunction(approxSpace, DoFDistr)
 		{
 			copy_layouts_into_vector();
-			set_storage_type(PST_UNDEFINED);
+			this->set_storage_type(PST_UNDEFINED);
 		};
 
 
 		///////////////////////////////
 		// overloaded functions
 		///////////////////////////////
-
-	///	assign dof distribution
-		void set_dof_distribution(dof_distribution_type& DoFDistr)
-		{
-		//	assign distribution
-			TGridFunction::set_dof_distribution(DoFDistr);
-
-		//	copy layouts into vector
-			copy_layouts_into_vector();
-
-		//	set storage type to undefined
-			set_storage_type(PST_UNDEFINED);
-		}
-
 		virtual void clone_pattern(const this_type& v)
 		{
 		//	clone process local grid function
@@ -82,14 +68,14 @@ class ParallelGridFunction : public TGridFunction
 			copy_layouts_into_vector();
 
 		//	set storage type to undefined
-			set_storage_type(PST_UNDEFINED);
+			this->set_storage_type(PST_UNDEFINED);
 		}
 
 	/// clone
 		this_type& clone() {return *(new this_type(*this));}
 
 	///	assigns a vector
-		bool assign(const vector_type& v)
+		void assign(const vector_type& v)
 		{
 		//	assign values on own process
 			TGridFunction::assign(v);
@@ -98,29 +84,19 @@ class ParallelGridFunction : public TGridFunction
 			copy_layouts_into_vector();
 
 		//	copy storage type
-			get_vector().copy_storage_type(v);
-
-		//	we're done
-			return true;
+			vector_type::copy_storage_type(v);
 		}
 
-		bool assign(const this_type& v)
+		void assign(const this_type& v)
 		{
 		//	assign own grid function
-			if(!TGridFunction::assign(v))
-			{
-				UG_ASSERT(0, "Assigning failed.");
-				return false;
-			}
+			TGridFunction::assign(v);
 
 		//	copy layouts
 			copy_layouts_into_vector();
 
 		//	copy storage type
 			copy_storage_type(v);
-
-		//	we're done
-			return true;
 		}
 
 		// sets grid function
@@ -131,93 +107,24 @@ class ParallelGridFunction : public TGridFunction
 		// Storage type
 		////////////////////////////
 
-	///	changes storage type
-		bool change_storage_type_by_string(std::string type)
-		{
-			if(type == "consistent")
-				return change_storage_type(PST_CONSISTENT);
-			else if(type == "additive")
-				return change_storage_type(PST_ADDITIVE);
-			else if(type == "unique")
-				return change_storage_type(PST_UNIQUE);
-			else
-			{
-				UG_LOG("Could not change storage type by name.\n");
-			}
-			return false;
-		}
-
-	///	sets the storage type
-		void set_storage_type_by_string(std::string type)
-		{
-			if(type == "consistent")
-				{set_storage_type(PST_CONSISTENT); return;}
-			else if(type == "additive")
-				{set_storage_type(PST_ADDITIVE); return;}
-			else if(type == "unique")
-				{set_storage_type(PST_UNIQUE); return;}
-			else
-			{
-				UG_LOG("Could not set storage type by name.\n");
-			}
-			return;
-		}
-
-	/// changes to the requested storage type if possible
-		bool change_storage_type(ParallelStorageType type)
-			{return get_vector().change_storage_type(type);}
-
-	/// returns if the current storage type has a given representation
-		bool has_storage_type(uint type) const
-			{return get_vector().has_storage_type(type);}
-
-	/// returns storage type mask
-		uint get_storage_mask() const
-			{return get_vector().get_storage_mask(); }
-
-	/// sets the storage type
-		void set_storage_type(uint type)
-			{get_vector().set_storage_type(type);}
-
-	/// adds the storage type
-		void add_storage_type(uint type)
-			{get_vector().add_storage_type(type);}
-
-	/// removes the storage type
-		void remove_storage_type(uint type)
-			{get_vector().remove_storage_type(type);}
-
 	/// copies the storage type from another vector
 		void copy_storage_type(const this_type& v)
-			{get_vector().copy_storage_type((v.get_vector()));}
-
-		///////////////////////////////
-		// index layouts
-		///////////////////////////////
-
-		IndexLayout& get_slave_layout()	{return this->dof_distribution().get_slave_layout();}
-		IndexLayout& get_master_layout()	{return this->dof_distribution().get_master_layout();}
-
-		IndexLayout& get_vertical_slave_layout()		{return this->dof_distribution().get_vertical_slave_layout();}
-		IndexLayout& get_vertical_master_layout()	{return this->dof_distribution().get_vertical_master_layout();}
-
-		pcl::ParallelCommunicator<IndexLayout>& get_communicator() 				{return this->dof_distribution().get_communicator();}
-		pcl::ProcessCommunicator& get_process_communicator()				{return this->dof_distribution().get_process_communicator();}
+			{vector_type::copy_storage_type((v.get_vector()));}
 
 	protected:
 	///	copies references of the layouts from the underlying dof distribution into the vector
 		void copy_layouts_into_vector()
 		{
 		//	copy all horizontal layouts (for all domain decomps)
-			get_vector().set_layouts(get_master_layout(), get_slave_layout());
+			vector_type::set_layouts(this->m_spDD->master_layout(), this->m_spDD->slave_layout());
 
 		//	copy vertical layouts
-			get_vector().set_vertical_layouts(get_vertical_master_layout(),
-			                                 get_vertical_slave_layout());
+			vector_type::set_vertical_layouts(this->m_spDD->vertical_master_layout(),
+			                                  this->m_spDD->vertical_slave_layout());
 
 		//	copy communicator
-			get_vector().set_communicator(get_communicator());
-			get_vector().set_process_communicator(get_process_communicator());
+			vector_type::set_communicator(this->m_spDD->communicator());
+			vector_type::set_process_communicator(this->m_spDD->process_communicator());
 		}
 
 	/// get own vector
