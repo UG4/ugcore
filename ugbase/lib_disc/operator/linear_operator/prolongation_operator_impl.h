@@ -218,9 +218,9 @@ void P1Prolongation<TDomain, TAlgebra>::apply(vector_type& uFineOut, const vecto
 	if(!m_matrix.apply(uFineOut, uCoarseIn))
 	{
 		UG_THROW_FATAL("P1Prolongation<TDomain, TAlgebra>::apply: " <<
-					"Cannot apply matrix. " <<
+					"Cannot apply matrix. "
 #ifdef UG_PARALLEL
-				"(Type uCoarse = " <<uCoarseIn.get_storage_mask()
+					<< "(Type uCoarse = " <<uCoarseIn.get_storage_mask()
 #endif
 		);
 	}

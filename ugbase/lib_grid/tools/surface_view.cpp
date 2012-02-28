@@ -94,12 +94,12 @@ void MarkAssociatedSides(BoolMarker& boolMarker)
 
 template <class TElem>
 void SetSurfaceViewMarks(BoolMarker& boolMarker,
-                         DistributedGridManager& distGridMgr)
+                         MultiGrid* pMG
+#ifdef UG_PARALLEL
+                         ,DistributedGridManager* pDistGridMgr = NULL
+#endif
+                         )
 {
-//	get multigrid
-	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
-	if(!pMG) UG_THROW_FATAL("Can't mark surface-view. A Multigrid is required.");
-
 //	some typedefs
 	typedef typename geometry_traits<TElem>::iterator ElemIter;
 
@@ -113,7 +113,9 @@ void SetSurfaceViewMarks(BoolMarker& boolMarker,
 			TElem* elem = *iter;
 
 		//	check whether the element has children
+#ifdef UG_PARALLEL
 			if(distGridMgr.is_ghost(elem)) continue;
+#endif
 			if(pMG->has_children(elem)) continue;
 
 			boolMarker.mark(elem);
@@ -123,12 +125,12 @@ void SetSurfaceViewMarks(BoolMarker& boolMarker,
 
 template <class TElem>
 void RemoveSurfaceViewMarks(BoolMarker& boolMarker,
-                            DistributedGridManager& distGridMgr)
+                            MultiGrid* pMG
+#ifdef UG_PARALLEL
+                            ,DistributedGridManager& distGridMgr
+#endif
+                            )
 {
-//	get multigrid
-	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
-	if(!pMG) UG_THROW_FATAL("Can't mark surface-view. A Multigrid is required.");
-
 //	some typedefs
 	typedef typename geometry_traits<TElem>::iterator ElemIter;
 
@@ -142,7 +144,9 @@ void RemoveSurfaceViewMarks(BoolMarker& boolMarker,
 			TElem* elem = *iter;
 
 		//	check whether the element has children
+#ifdef UG_PARALLEL
 			if(distGridMgr.is_ghost(elem)) continue;
+#endif
 			if(pMG->has_children(elem)) continue;
 
 			boolMarker.unmark(elem);
@@ -153,20 +157,25 @@ void RemoveSurfaceViewMarks(BoolMarker& boolMarker,
 ////////////////////////////////////////////////////////////////////////
 //	CreateSurfaceView
 void MarkShadows(BoolMarker& boolMarker,
-                 DistributedGridManager& distGridMgr)
+                 MultiGrid* pMG
+#ifdef UG_PARALLEL
+                 ,DistributedGridManager& distGridMgr
+#endif
+				)
 {
-//	get multigrid
-	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
-	if(!pMG){
-		throw(UGFatalError("  Can't create surface-view. A Multigrid is required.\n"));
-	}
-
 //	Marks all elements, that do not have children and are non-ghosts
 	boolMarker.clear();
-	SetSurfaceViewMarks<VertexBase>(boolMarker, distGridMgr);
-	SetSurfaceViewMarks<EdgeBase>(boolMarker, distGridMgr);
-	SetSurfaceViewMarks<Face>(boolMarker, distGridMgr);
-	SetSurfaceViewMarks<Volume>(boolMarker, distGridMgr);
+#ifdef UG_PARALLEL
+	SetSurfaceViewMarks<VertexBase>(boolMarker, pMG, distGridMgr);
+	SetSurfaceViewMarks<EdgeBase>(boolMarker, pMG, distGridMgr);
+	SetSurfaceViewMarks<Face>(boolMarker, pMG, distGridMgr);
+	SetSurfaceViewMarks<Volume>(boolMarker, pMG, distGridMgr);
+#else
+	SetSurfaceViewMarks<VertexBase>(boolMarker, pMG);
+	SetSurfaceViewMarks<EdgeBase>(boolMarker, pMG);
+	SetSurfaceViewMarks<Face>(boolMarker, pMG);
+	SetSurfaceViewMarks<Volume>(boolMarker, pMG);
+#endif
 
 //	assign associated elements of lower dimension to the surface view
 	bool assignSidesOnly = true;
@@ -192,11 +201,19 @@ void MarkShadows(BoolMarker& boolMarker,
 		MarkAssociatedLowerDimElems<EdgeBase>(boolMarker);
 	}
 
-	RemoveSurfaceViewMarks<VertexBase>(boolMarker, distGridMgr);
-	RemoveSurfaceViewMarks<EdgeBase>(boolMarker, distGridMgr);
-	RemoveSurfaceViewMarks<Face>(boolMarker, distGridMgr);
-	RemoveSurfaceViewMarks<Volume>(boolMarker, distGridMgr);
+#ifdef UG_PARALLEL
+	RemoveSurfaceViewMarks<VertexBase>(boolMarker, pMG, distGridMgr);
+	RemoveSurfaceViewMarks<EdgeBase>(boolMarker, pMG, distGridMgr);
+	RemoveSurfaceViewMarks<Face>(boolMarker, pMG, distGridMgr);
+	RemoveSurfaceViewMarks<Volume>(boolMarker, pMG, distGridMgr);
+#else
+	RemoveSurfaceViewMarks<VertexBase>(boolMarker, pMG);
+	RemoveSurfaceViewMarks<EdgeBase>(boolMarker, pMG);
+	RemoveSurfaceViewMarks<Face>(boolMarker, pMG);
+	RemoveSurfaceViewMarks<Volume>(boolMarker, pMG);
+#endif
 
+#ifdef UG_PARALLEL
 //	for a parallel subset handler we have to copy the subset-indices to
 //	avoid problems at interfaces.
 //	This happens e.g. in 2d, where a triangle is an element of the surface view only
@@ -240,6 +257,7 @@ void MarkShadows(BoolMarker& boolMarker,
 	comEDGE.communicate();
 	comFACE.communicate();
 	comVOL.communicate();
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -288,7 +306,15 @@ bool SurfaceView::is_shadowed(GeometricObject* obj) const
 
 void SurfaceView::mark_shadows()
 {
-	MarkShadows(m_Marker, *m_pDistGridMgr);
+#ifdef UG_PARALLEL
+//	get multigrid
+	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
+	if(!pMG) throw(UGFatalError("  Can't create surface-view. A Multigrid is required.\n"));
+
+	MarkShadows(m_Marker, pMG, *m_pDistGridMgr);
+#else
+	MarkShadows(m_Marker, m_pMG);
+#endif
 }
 
 }// end of namespace

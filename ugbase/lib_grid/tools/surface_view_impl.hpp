@@ -109,7 +109,9 @@ increment()
 //	we search the next non-shadowed element
 	do
 	{
+#ifdef UG_PARALLEL
 		next:
+#endif
 
 	//	increase iterator
 		++m_elemIter;
@@ -277,7 +279,9 @@ increment()
 //	we search the next non-shadowed element
 	do
 	{
+#ifdef UG_PARALLEL
 		next:
+#endif
 
 	//	increase iterator
 		++m_elemIter;

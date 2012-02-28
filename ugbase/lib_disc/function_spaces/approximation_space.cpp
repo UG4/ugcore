@@ -284,6 +284,7 @@ void IApproximationSpace::print_local_dof_statistic(int verboseLev) const
 	UG_LOG(" not avaible .\n");
 }
 
+#ifdef UG_PARALLEL
 static size_t NumIndices(const IndexLayout& Layout)
 {
 	size_t sum = 0;
@@ -301,6 +302,7 @@ static void PrintLayoutStatistic(ConstSmartPtr<TDD> dd)
 	UG_LOG(std::setw(12) << NumIndices(dd->vertical_master_layout()) <<" | ");
 	UG_LOG(std::setw(12) << NumIndices(dd->vertical_slave_layout()));
 }
+#endif
 
 void IApproximationSpace::print_layout_statistic(int verboseLev) const
 {
