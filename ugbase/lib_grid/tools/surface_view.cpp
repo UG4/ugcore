@@ -96,7 +96,7 @@ template <class TElem>
 void SetSurfaceViewMarks(BoolMarker& boolMarker,
                          MultiGrid* pMG
 #ifdef UG_PARALLEL
-                         ,DistributedGridManager* pDistGridMgr = NULL
+                         ,DistributedGridManager& distGridMgr
 #endif
                          )
 {
@@ -308,7 +308,7 @@ void SurfaceView::mark_shadows()
 {
 #ifdef UG_PARALLEL
 //	get multigrid
-	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
+	MultiGrid* pMG = dynamic_cast<MultiGrid*>(m_pDistGridMgr->get_assigned_grid());
 	if(!pMG) throw(UGFatalError("  Can't create surface-view. A Multigrid is required.\n"));
 
 	MarkShadows(m_Marker, pMG, *m_pDistGridMgr);
