@@ -233,13 +233,13 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
                                              Int2Type<1>)
 {
 //	get multigrid
-	typename TFunction::domain_type::grid_type& mg = u.domain()->grid();
+	SmartPtr<typename TFunction::domain_type::grid_type> pMG = u.domain()->grid();
 
 // 	attach error field
 	typedef Attachment<number> ANumber;
 	ANumber aError;
-	mg.attach_to_edges(aError);
-	MultiGrid::EdgeAttachmentAccessor<ANumber> aaError(mg, aError);
+	pMG->attach_to_edges(aError);
+	MultiGrid::EdgeAttachmentAccessor<ANumber> aaError(*pMG, aError);
 
 // 	Compute error on elements
 	ComputeGradient<Edge, TFunction>(u, aaError);
@@ -249,7 +249,7 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
 		UG_LOG("No element marked. Not refining the grid.\n");
 
 // 	detach error field
-	mg.detach_from_edges(aError);
+	pMG->detach_from_edges(aError);
 };
 
 template <typename TFunction>
