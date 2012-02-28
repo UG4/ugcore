@@ -285,17 +285,14 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
                                              number TOL, number scale,
                                              Int2Type<3>)
 {
-//	get domain
-	typename TFunction::domain_type& domain = u.approximation_space().domain();
-
 //	get multigrid
-	typename TFunction::domain_type::grid_type& mg = domain.grid();
+	SmartPtr<typename TFunction::domain_type::grid_type> pMG = u.domain->grid();
 
 // 	attach error field
 	typedef Attachment<number> ANumber;
 	ANumber aError;
-	mg.attach_to_volumes(aError);
-	MultiGrid::VolumeAttachmentAccessor<ANumber> aaError(mg, aError);
+	pMG->attach_to_volumes(aError);
+	MultiGrid::VolumeAttachmentAccessor<ANumber> aaError(*pMG, aError);
 
 // 	Compute error on elements
 	ComputeGradient<Tetrahedron, TFunction>(u, aaError);
@@ -306,7 +303,7 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
 		UG_LOG("No element marked. Not refining the grid.\n");
 
 // 	detach error field
-	mg.detach_from_faces(aError);
+	pMG->detach_from_faces(aError);
 };
 
 template <typename TFunction>
