@@ -232,11 +232,8 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
                                              number TOL, number scale,
                                              Int2Type<1>)
 {
-//	get domain
-	typename TFunction::domain_type& domain = u.approximation_space().domain();
-
 //	get multigrid
-	typename TFunction::domain_type::grid_type& mg = domain.grid();
+	typename TFunction::domain_type::grid_type& mg = u.domain()->grid();
 
 // 	attach error field
 	typedef Attachment<number> ANumber;
@@ -261,11 +258,8 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
                                              number TOL, number scale,
                                              Int2Type<2>)
 {
-//	get domain
-	SmartPtr<typename TFunction::domain_type> domain = u.domain();
-
 //	get multigrid
-	SmartPtr<typename TFunction::domain_type::grid_type> pMG = domain->grid();
+	SmartPtr<typename TFunction::domain_type::grid_type> pMG = u.domain()->grid();
 
 // 	attach error field
 	typedef Attachment<number> ANumber;
