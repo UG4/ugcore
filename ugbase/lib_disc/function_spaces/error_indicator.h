@@ -286,7 +286,7 @@ void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
                                              Int2Type<3>)
 {
 //	get multigrid
-	SmartPtr<typename TFunction::domain_type::grid_type> pMG = u.domain->grid();
+	SmartPtr<typename TFunction::domain_type::grid_type> pMG = u.domain()->grid();
 
 // 	attach error field
 	typedef Attachment<number> ANumber;
