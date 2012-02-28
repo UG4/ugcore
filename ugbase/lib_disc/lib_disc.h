@@ -30,10 +30,7 @@
 #include "common/subset_group.h"
 
 // DoF Manager
-#include "dof_manager/dof_distribution.h"
 #include "dof_manager/function_pattern.h"
-#include "dof_manager/mg_dof_manager.h"
-#include "dof_manager/p1conform/p1conform.h"
 
 // Function Spaces
 #include "function_spaces/approximation_space.h"
