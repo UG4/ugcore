@@ -141,6 +141,8 @@ class DoFDistributionBase
 			: m_spMGDD(mgDD), m_level(level)
 		{}
 
+		virtual ~DoFDistributionBase() {}
+
 	///	returns if dofs are grouped
 		bool grouped() const {return m_spMGDD->grouped();}
 
