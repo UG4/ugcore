@@ -67,18 +67,6 @@ void RegisterLibDiscDomain__Algebra_Domain(Registry& reg, string parentGroup)
 	string dimAlgTag = GetDomainTag<TDomain>();
 	dimAlgTag.append(GetAlgebraTag<TAlgebra>());
 
-
-//	Order Cuthill-McKee
-	{
-		reg.add_function("OrderCuthillMcKee", static_cast<void (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee), approxGrp);
-	}
-
-//	Order lexicographically
-	{
-		typedef ApproximationSpace<TDomain> T;
-		reg.add_function("OrderLex", static_cast<void (*)(T&, const char*)>(&OrderLex<TDomain>), approxGrp);
-	}
-
 	string domDiscGrp = parentGroup; domDiscGrp.append("/SpatialDisc");
 
 //	DomainDiscretization
@@ -303,12 +291,37 @@ static bool RegisterLibDiscDomain__Algebra(Registry& reg, string parentGroup)
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in RegisterLibDiscDomain__Algebra_DoFDistribution: "
+		UG_LOG("### ERROR in RegisterLibDiscDomain__Algebra: "
 				"Registration failed (using name " << ex.name << ").\n");
 		return false;
 	}
 
 	return true;
+}
+
+template <typename TDomain>
+void RegisterLibDiscDomain__Domain(Registry& reg, string parentGroup)
+{
+//	typedef
+//	static const int dim = TDomain::dim;
+	typedef ApproximationSpace<TDomain> approximation_space_type;
+
+//	group string
+	string approxGrp = parentGroup; approxGrp.append("/ApproximationSpace");
+
+//	suffix and tag
+	string dimSuffix = GetDomainSuffix<TDomain>();
+	string dimTag = GetDomainTag<TDomain>();
+
+//	Order Cuthill-McKee
+	{
+		reg.add_function("OrderCuthillMcKee", static_cast<void (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee), approxGrp);
+	}
+
+//	Order lexicographically
+	{
+		reg.add_function("OrderLex", static_cast<void (*)(approximation_space_type&, const char*)>(&OrderLex<TDomain>), approxGrp);
+	}
 }
 
 bool RegisterLibDisc_Domain(Registry& reg, string parentGroup)
@@ -332,6 +345,26 @@ bool RegisterLibDisc_Domain(Registry& reg, string parentGroup)
 #ifdef UG_CPU_VAR
 	bReturn &= RegisterLibDiscDomain__Algebra<CPUVariableBlockAlgebra >(reg, parentGroup);
 #endif
+
+	try
+	{
+#ifdef UG_DIM_1
+	RegisterLibDiscDomain__Domain<Domain1d>(reg, parentGroup);
+#endif
+#ifdef UG_DIM_2
+	RegisterLibDiscDomain__Domain<Domain2d>(reg, parentGroup);
+#endif
+#ifdef UG_DIM_3
+	RegisterLibDiscDomain__Domain<Domain3d>(reg, parentGroup);
+#endif
+	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("### ERROR in RegisterLibDiscDomain__Domain: "
+				"Registration failed (using name " << ex.name << ").\n");
+		return false;
+	}
+
 	return bReturn;
 }
 
