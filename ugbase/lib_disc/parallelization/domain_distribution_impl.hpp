@@ -288,6 +288,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 		partitionMap.assign_grid(*pGrid);
 	}
 
+#ifdef UG_PARALLEL
 //	used to check whether all processes are correctly prepared for redistribution
 	bool performDistribution = true;
 
@@ -305,7 +306,6 @@ static bool RedistributeDomain(TDomain& domainOut,
 
 //todo:	check whether all target-processes in partitionMap are in the valid range.
 
-#ifdef UG_PARALLEL
 	PCL_PROFILE(RedistributeDomain);
 
 //	make sure that manager exists
