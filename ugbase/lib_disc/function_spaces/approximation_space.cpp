@@ -150,9 +150,11 @@ print_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 //	Total number of DoFs
 	UG_LOG(std::setw(10) << ConvertNumber(dd->num_indices(),10,6) << " | ");
 
+	const int blockSize = DefaultAlgebra::get().blocksize();
+
 //	Overall block size
-//	if(dd->blocksize() != AlgebraType::VariableBlockSize) {UG_LOG(std::setw(8)  << dd->blocksize());}
-//	else {UG_LOG("variable");}
+	if(blockSize != AlgebraType::VariableBlockSize) {UG_LOG(std::setw(8)  << blockSize);}
+	else {UG_LOG("variable");}
 	UG_LOG("  | " );
 
 //	Subset informations
@@ -161,8 +163,6 @@ print_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 		for(int si = 0; si < dd->num_subsets(); ++si)
 		{
 			UG_LOG( " (" << dd->subset_name(si) << ",");
-//			if(dd->blocksize(si) != AlgebraType::VariableBlockSize) {UG_LOG(std::setw(8)  << dd->blocksize(si));}
-//			else {UG_LOG("variable");}
 			UG_LOG(std::setw(8) << ConvertNumber(dd->num_indices(si),8,4) << ") ");
 
 		}
@@ -179,11 +179,12 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 	UG_LOG(":\n");
 
 //	Write header line
-	UG_LOG("  Level  |   Total   | BlockSize | ");
-	if(verboseLev >= 1) UG_LOG("(Subset, BlockSize, DoFs) ");
+	UG_LOG("         |   Total   | BlockSize | ");
+	if(verboseLev >= 1) UG_LOG("(Subset, DoFs) ");
 	UG_LOG("\n");
 
 //	Write Infos for Levels
+	UG_LOG("  Level  |\n");
 	for(size_t l = 0; l < m_vLevDD.size(); ++l)
 	{
 		UG_LOG("  " << std::setw(5) << l << "  |");
