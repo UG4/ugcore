@@ -16,4 +16,5 @@
 	- \ref pageTutorials "Tutorials"
 	- \ref pageExternalLibraries "External Libraries"
 	- \ref pageUnitTests "Unit Tests"
+	- \ref pageSetupUG4 "Setting up UG on Clusters"
  */

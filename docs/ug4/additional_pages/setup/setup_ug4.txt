@@ -1,0 +1,46 @@
+//	created by Martin Rupp
+//	martin.rupp@gcsc.uni-frankfurt.de
+//	y12 m02 d29
+
+/**	\page pageSetupUG4 Setting up UG on Clusters
+
+	- \ref general "General Notes"
+	- \ref secMacOSX "MacOSX"
+	- \ref secCekon	"Cekon"
+	- \ref secHermit "Hermit"
+
+<hr>
+\section general General Notes
+<hr>
+All examples are for running ug in parallel with $NP processors and $UGARGS as arguments.<br>
+Except for your own Computer/Workstation, do NOT EVER use mpirun -np $NP ugshell to start your job on a cluster! The node you are logging into is only a login node, and you don't want to run your job on these. 
+Be aware that by running mpirun -np $NP ugshell on a login node might crash the login node and make the administrator very angry with you :P.
+
+<hr>
+\section secWindows Windows
+<hr>
+
+
+<hr>
+\section secMacOSX MacOSX
+<hr>
+You can use 
+\verbatim
+mpirun -np $NP ugshell $UGARGS
+\endverbatim
+to run ug.
+
+
+<hr>
+\section secCekon Cekon
+<hr>
+Cekon is the in-house cluster of the G-CSC. It uses <a href="https://computing.llnl.gov/linux/slurm/"> SLURM </a> as a job control (<a href="https://computing.llnl.gov/linux/slurm/quickstart.html">Quickstart</a>).<br>
+ Start your job with
+\verbatim
+salloc -n $NP mpirun ugshell $UGARGS
+\endverbatim
+
+DDT: ?
+<hr>
+
+*/
