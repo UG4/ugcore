@@ -34,7 +34,7 @@ if(PARALLEL)
 						parallelization/parallelization_util.cpp
 						parallelization/parallel_coloring.cpp
 						operator/preconditioner/amg/rsamg/rsamg_parallel_coarsening.cpp
-						operator/preconditioner/amg/global_layout.cpp
+						parallelization/global_layout.cpp
 						common/connection_viewer_output.cpp						
 						 )
 endif(PARALLEL)
