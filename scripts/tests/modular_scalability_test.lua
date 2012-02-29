@@ -9,6 +9,18 @@
 --   Authors: Ingo Heppner, Sebastian Reiter, Andreas Vogel
 --
 --------------------------------------------------------------------------------
+-- Some usage infos:
+-- * For an automatic (re)naming of logfile after simulation run
+--   add the following parameters / options:
+--
+--      '-logtofile bla -rlf'
+--
+--   'bla' is a temporary dummy name, '-rlf' ("Rename Log File")
+--   does the job. The New name is (gradually through the script)
+--   assembled by concatenating some significant parameter values,
+--   e.g. problem, dimension, startgrid, refinements, solver ...
+--   Note: Not tested on JuGene (there a logfile is created by
+--   default and named by the load leveler)!
 
 --------------------------------------------------------------------------------
 -- Execute on cekon via e.g.
@@ -24,6 +36,9 @@ PrintBuildConfiguration()
 
 ug_load_script("ug_util.lua")
 ug_load_script("domain_distribution_util.lua")
+
+-- get number of processes of this run
+numProcs = GetNumProcesses()
 
 -- some parameters for renaming of logfiles (in the moment only used for FETI)
 str_problem = "scaltest-laplace"
@@ -99,9 +114,12 @@ activateDbgWriter = util.GetParamNumber("-dbgw", 0) -- set to 0 i.e. for time me
 						    -- >= 1 for debug output: call 'set_debug(dbgWriter)'
 						    -- for the main solver ('gmg', 'fetiSolver')
 
-renameLogfileAfterRun = 0
-renameLogfileAfterRun = util.GetParamNumber("-rlf", 0)
-logfileName = "" -- empty at start; will be built by concatenating some parameters
+if util.HasParamOption("-rlf") then
+	renameLogfileAfterRun = true
+else
+	renameLogfileAfterRun = false
+end
+logfileName = "" -- empty at start; will be built by concatenating some relevant parameters
 
 
 -- Here all parameters related to refinement and distribution are parsed.
@@ -138,10 +156,8 @@ if lsIterator == "gmg" then
 end
 
 print(" Parallelisation related parameters chosen:")
-numProcs = GetNumProcesses() -- TODO: Wenn das hier "Display of parameters" ist, sollte das weiter oben schon eingelesen worden sein!
 print("    numProcs   = " .. numProcs)
-ddu.PrintParameters("    ") -- numRefs and numPreRefs already displayed above!
-
+ddu.PrintParameters("    ") -- displays also 'numRefs' and 'numPreRefs', already displayed above!
 
 --------------------------------------------------------------------------------
 -- Checking for parameters (end)
@@ -206,13 +222,13 @@ print("#ANALYZER INFO: grid = " .. gridName)
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
+--approxSpace:init_level() 
+approxSpace:init_surface() -- init surface for DoF statistic before execution of solver
 approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
 
 -- lets order indices using Cuthill-McKee (last arg: flag if "reverse Cuthill-McKee" is used)
-if OrderCuthillMcKee(approxSpace, true) == false then
-	print("ERROR when ordering Cuthill-McKee"); exit();
-end
+OrderCuthillMcKee(approxSpace, true);
 
 --------------------------------------------------------------------------------
 --  Setup User Functions
@@ -295,15 +311,13 @@ print ("Setting up Algebra Solver")
 -- create operator from discretization
 linOp = AssembledLinearOperator()
 linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
 
 -- get grid function
 u = GridFunction(approxSpace)
 b = GridFunction(approxSpace)
 
 -- debug writer
-dbgWriter = GridFunctionDebugWriter()
-dbgWriter:set_reference_grid_function(u)
+dbgWriter = GridFunctionDebugWriter(approxSpace)
 dbgWriter:set_vtk_output(false)
 
 -- create algebraic Preconditioner
@@ -347,11 +361,6 @@ else
 end
 	base:set_convergence_check(baseConvCheck)
 	
-	-- Transfer and Projection
-	transfer = P1Prolongation(approxSpace)
-	transfer:set_dirichlet_post_process(dirichletBND)
-	projection = P1Projection(approxSpace)
-	
 	-- Geometric Multi Grid
 	gmg = GeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
@@ -365,8 +374,6 @@ end
 	gmg:set_cycle_type(gmg_gamma)
 	gmg:set_num_presmooth(gmg_nu1)
 	gmg:set_num_postsmooth(gmg_nu2)
-	gmg:set_prolongation(transfer)
-	gmg:set_projection(projection)
 	if activateDbgWriter >= 1 then
 		gmg:set_debug(dbgWriter)
 	end
@@ -432,6 +439,7 @@ if lsType == "feti" then
 					      dim,
 					      lsMaxIter,
 					      numProcs,
+					      dirichletBND, approxSpace, -- for testvector writer for FAMG
 					      activateDbgWriter,
 					      verbosity, logfileName_tmp)
 
@@ -458,6 +466,7 @@ logfileName = logfileName .. "_" .. str_pe
 logfileName = logfileName .. logpostfix
 
 print("logfileName = '" .. logfileName .."'")
+-- Creation of logfile name END
 
 --------------------------------------------------------------------------------
 --  Apply Solver - using method defined in 'operator_util.h',
@@ -472,7 +481,7 @@ end
 u:set(0.0)
 
 -- 1. init operator
-print("Init operator (i.e. assemble matrix).")
+print("Init operator (i.e. assemble matrix) ...")
 if AssembleLinearOperatorRhsAndSolution(linOp, u, b) == false then 
 	print("Could not assemble operator"); exit(); 
 end
@@ -489,6 +498,8 @@ print("Apply solver.")
 if ApplyLinearSolver(linOp, u, b, solver) == false then
 	print("Could not apply linear solver.");
 end
+--approxSpace:print_layout_statistic()
+--approxSpace:print_statistic()
 
 if lsType == "feti" then
 	solver:print_statistic_of_inner_solver()
@@ -504,7 +515,7 @@ end
 --------------------------------------------------------------------------------
 --  Output of computed solution
 --------------------------------------------------------------------------------
-if verbosity >= 1 or printSol >= 1 then
+if printSol >= 1 then
 	print("Write vtk file for solution ...")
 	WriteGridFunctionToVTK(u, "Solution")
 end
@@ -532,7 +543,7 @@ end
 --------------------------------------------------------------------------------
 --  Rename logfile
 --------------------------------------------------------------------------------
-if renameLogfileAfterRun > 0 then
+if renameLogfileAfterRun == true then
 	print("Renaming logfile to '" .. logfileName .. "' ...")
 	if GetLogAssistant():rename_log_file(logfileName) == true then
 		print(".. done!")
