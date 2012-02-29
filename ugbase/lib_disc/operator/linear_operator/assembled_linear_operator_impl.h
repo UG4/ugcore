@@ -51,7 +51,7 @@ AssembledLinearOperator<TAlgebra>::init()
 
 //	assemble only matrix
 	try{
-		m_pAss->assemble_jacobian(*this, dummy, m_gridLevel);
+		m_pAss->assemble_linear(*this, dummy, m_gridLevel);
 	}
 	UG_CATCH_THROW("ERROR in AssembledLinearOperator::init:"
 				" Cannot assemble Matrix.\n");

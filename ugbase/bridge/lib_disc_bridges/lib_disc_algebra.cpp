@@ -145,6 +145,7 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 		string name = string("AssembledLinearOperator").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
+			.template add_constructor<void (*)(IAssemble<TAlgebra>&)>("Assembling Routine")
 			.add_method("set_discretization", &T::set_discretization)
 			.add_method("set_level", &T::set_level)
 			.add_method("set_dirichlet_values", &T::set_dirichlet_values)

@@ -350,8 +350,7 @@ domainDisc:add(dirichletBND)
 print ("Setting up Algebra Solver")
 
 -- create operator from discretization
-linOp = AssembledLinearOperator()
-linOp:set_discretization(domainDisc)
+linOp = AssembledLinearOperator(domainDisc)
 
 -- get grid function
 u = GridFunction(approxSpace)
