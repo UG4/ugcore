@@ -105,6 +105,9 @@ ReferenceElementProvider()
 		bRes &= add_elem(Provider<ReferenceVertex>::get());
 		// not adding for reference vertex
 
+		bRes &= add_elem(Provider<ReferenceEdge>::get());
+		bRes &= add_dim_elem<1>(Provider<ReferenceEdge>::get());
+
 		bRes &= add_elem(Provider<ReferenceTriangle>::get());
 		bRes &= add_dim_elem<2>(Provider<ReferenceTriangle>::get());
 
