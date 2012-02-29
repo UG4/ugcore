@@ -533,7 +533,17 @@ inline bool SurfaceView::has_children(TBaseElem* obj) const
 template <typename TBaseElem>
 TBaseElem* SurfaceView::parent_if_copy(TBaseElem* elem) const
 {
-	GeometricObject* pParent = m_spMGSH->multi_grid()->get_parent(elem);
+	GeometricObject* pParent = m_pMG->get_parent(elem);
+	TBaseElem* parent = dynamic_cast<TBaseElem*>(pParent);
+	if(parent != NULL &&
+		m_pMG->num_children<TBaseElem>(parent) == 1) return parent;
+	else return NULL;
+}
+
+template <typename TBaseElem>
+TBaseElem* SurfaceView::parent_if_same_type(TBaseElem* elem) const
+{
+	GeometricObject* pParent = m_pMG->get_parent(elem);
 	return dynamic_cast<TBaseElem*>(pParent);
 }
 
@@ -541,8 +551,8 @@ TBaseElem* SurfaceView::parent_if_copy(TBaseElem* elem) const
 template <typename TBaseElem>
 TBaseElem* SurfaceView::child_if_copy(TBaseElem* elem) const
 {
-	if(m_spMGSH->multi_grid()->num_children<TBaseElem>(elem) != 1) return NULL;
-	return m_spMGSH->multi_grid()->get_child<TBaseElem>(elem, 0);
+	if(m_pMG->num_children<TBaseElem>(elem) != 1) return NULL;
+	return m_pMG->get_child<TBaseElem>(elem, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

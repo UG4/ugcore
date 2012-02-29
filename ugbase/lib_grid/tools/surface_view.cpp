@@ -270,12 +270,12 @@ SurfaceView::SurfaceView(SmartPtr<MGSubsetHandler> spMGSH,
 #endif
                          bool adaptiveMG) :
 	m_spMGSH(spMGSH),
-	m_adaptiveMG(adaptiveMG)
+	m_adaptiveMG(adaptiveMG),
+	m_pMG(m_spMGSH->multi_grid())
 #ifdef UG_PARALLEL
 	,m_pDistGridMgr(pDistGridMgr)
 #endif
 {
-	m_pMG = m_spMGSH->multi_grid();
 	UG_ASSERT(m_pMG, "A MultiGrid has to be assigned to the given subset handler");
 
 	m_Marker.assign_grid(m_pMG);

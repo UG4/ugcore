@@ -83,6 +83,10 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 		template <typename TBaseElem>
 		TBaseElem* parent_if_copy(TBaseElem* elem);
 
+	///	returns parent != NULL, if of same base object type
+		template <typename TBaseElem>
+		TBaseElem* parent_if_same_type(TBaseElem* elem);
+
 	///	returns child != NULL, if is copy in sense of Multigrid
 		template <typename TBaseElem>
 		TBaseElem* child_if_copy(TBaseElem* elem);

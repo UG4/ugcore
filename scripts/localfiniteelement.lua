@@ -33,7 +33,7 @@ print("    grid       = " .. gridName)
 print("    numRefs    = " .. numRefs)
 
 -- choose algebra
-InitUG(dim, AlgebraType("CPU", 1), "GEN");
+InitUG(dim, AlgebraType("CPU", 1));
 	
 -- Create, Load, Refine and Distribute Domain
 neededSubsets = {"Inner", "Boundary"}
@@ -43,6 +43,8 @@ dom = util.CreateAndDistributeDomain(gridName, numRefs, 0, neededSubsets)
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", trialOrder)
+approxSpace:init_level()
+approxSpace:init_surface()
 approxSpace:print_local_dof_statistic(2)
 approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
@@ -52,13 +54,13 @@ approxSpace:print_statistic()
 --------------------------------------------------------------------------------
 
 function Rhs2d(x, y, t)
---	return	-12.0 *x*x
-	return 0
+	return	-12.0 *x*x
+--	return 0
 end
 
 function ExactSolution2d(x, y, t)
---	return x*x*x*x
-	return x*y
+	return x*x*x*x
+--	return x*y
 end
 
 function Rhs3d(x, y, z, t)
@@ -91,7 +93,8 @@ upwind = WeightedUpwind(); upwind:set_weight(0.0)
 --upwind = PartialUpwind()
 
 elemDisc = ConvectionDiffusion("c", "Inner")
-elemDisc:set_disc_scheme("fv1")
+if discType ~= "fe" and discType ~= "fv" then print("type of discretization not found"); exit(); end
+
 if elemDisc:set_upwind(upwind) == false then exit() end
 elemDisc:set_disc_scheme(discType)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
@@ -117,8 +120,7 @@ domainDisc:add(dirichletBND)
 --------------------------------------------------------------------------------
 
 -- create operator from discretization
-linOp = AssembledLinearOperator()
-linOp:set_discretization(domainDisc)
+linOp = AssembledLinearOperator(domainDisc)
 
 -- get grid function
 u = GridFunction(approxSpace)
@@ -206,7 +208,7 @@ for i=1, numLoop do
 	u:set(0.0)
 	linOp:set_dirichlet_values(u)
 	
-	InterpolateFunction(exactSolution, u, "c", 0.0)
+	--InterpolateFunction(exactSolution, u, "c", 0.0)
 	
 	-- write matrix for test purpose
 	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")

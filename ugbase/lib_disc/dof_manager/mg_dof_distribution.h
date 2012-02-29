@@ -404,8 +404,8 @@ class MGDoFDistribution : public GridObserver
 	///	local dof sets
 		std::vector<const ILocalDoFSet*> m_vLocalDoFSet[NUM_REFERENCE_OBJECTS];
 
-	///	maximum dimensions with dofs
-		std::vector<int> m_vMaxDimWithDoFs;
+	///	maximum dimensions where dofs must be ordered
+		std::vector<int> m_vMaxDimToOrderDoFs;
 
 	///	number Dofs for local DoF set and subelement of element
 		std::vector<MathMatrix<NUM_REFERENCE_OBJECTS,NUM_REFERENCE_OBJECTS> > m_vNumDoFOnSubelem;

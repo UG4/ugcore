@@ -144,6 +144,10 @@ class SurfaceView
 		template <typename TBaseElem>
 		inline TBaseElem* parent_if_copy(TBaseElem* elem) const;
 
+	///	returns parent != NULL if of same base object type
+		template <typename TBaseElem>
+		inline TBaseElem* parent_if_same_type(TBaseElem* elem) const;
+
 	///	returns child != NULL if copy
 		template <typename TBaseElem>
 		inline TBaseElem* child_if_copy(TBaseElem* elem) const;

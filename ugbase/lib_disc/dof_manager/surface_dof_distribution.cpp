@@ -226,6 +226,16 @@ template <typename TBaseElem>
 TBaseElem* SurfaceDoFDistribution::parent_if_copy(TBaseElem* elem)
 {
 	GeometricObject* pParent = m_rMultiGrid.get_parent(elem);
+	TBaseElem* parent = dynamic_cast<TBaseElem*>(pParent);
+	if(parent != NULL &&
+		m_rMultiGrid.num_children<TBaseElem>(parent) == 1) return parent;
+	else return NULL;
+}
+
+template <typename TBaseElem>
+TBaseElem* SurfaceDoFDistribution::parent_if_same_type(TBaseElem* elem)
+{
+	GeometricObject* pParent = m_rMultiGrid.get_parent(elem);
 	return dynamic_cast<TBaseElem*>(pParent);
 }
 
@@ -301,11 +311,11 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 {
 //	case 1: A real insertion in the multigrid: add indices
 	if(!replacesParent){
-		TBaseElem* objParent = dynamic_cast<TBaseElem*>(pParent);
+		TBaseElem* copyParent = parent_if_copy(obj);
 
 		// a) Is a copy of underlying object, simply copy indices (i.e. reuse them)
-		if(objParent != NULL) {
-			copy(obj, pParent);
+		if(copyParent != NULL) {
+			copy(obj, copyParent);
 		}
 		// b) Cannot copy from parent, create new indices.
 		else {

@@ -279,7 +279,9 @@ void MGDoFDistribution::create_offsets(ReferenceObjectID roid)
 		//	get number of DoFs on the reference element need for the space
 			const int numDoF = clds.num_dof(roid);
 
-			m_vMaxDimWithDoFs[fct] = ReferenceElementDimension((ReferenceObjectID)roid);
+		//	overwrite max dim with dofs (if subset has that dimension)
+			if(dim > ReferenceElementDimension((ReferenceObjectID)roid))
+				m_vMaxDimToOrderDoFs[fct] = ReferenceElementDimension((ReferenceObjectID)roid);
 
 		//	check that numDoFs specified by this roid
 			if(numDoF == -1) continue;
@@ -299,7 +301,7 @@ void MGDoFDistribution::create_offsets(ReferenceObjectID roid)
 void MGDoFDistribution::create_offsets()
 {
 //	function infos
-	m_vMaxDimWithDoFs.resize(num_fct(), 0);
+	m_vMaxDimToOrderDoFs.resize(num_fct(), 0);
 	m_vvFctDefInSubset.resize(num_fct());
 	m_vNumDoFOnSubelem.resize(num_fct());
 	m_vLFEID.resize(num_fct());
@@ -602,7 +604,7 @@ multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 		const size_t numDoFsOnSub = num_dofs(fct, roid, subRoid);
 
 	//	a) Orientation required
-		if(d < m_vMaxDimWithDoFs[fct] && numDoFsOnSub > 1)
+		if(d < m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
 		{
 			std::vector<size_t> vOrientOffset(numDoFsOnSub);
 
@@ -684,7 +686,7 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 	const size_t numDoFsOnSub = num_dofs(fct,roid,roid);
 
 //	a) Orientation required:
-	if(d < m_vMaxDimWithDoFs[fct] && numDoFsOnSub > 1)
+	if(d < m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
 	{
 	//	get corners
 		std::vector<VertexBase*> vCorner;
@@ -894,7 +896,7 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 		//		This is also not needed for the highest dimension of a finite
 		//		element, since the dofs on this geometric object must not be
 		//		identified with other dofs.
-			if(d < m_vMaxDimWithDoFs[fct] && numDoFsOnSub > 1)
+			if(d < m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
 			{
 			//	vector storing the computed offsets. If in correct order,
 			//	this would be: [0, 1, 2, ...]. But this is usually not the
