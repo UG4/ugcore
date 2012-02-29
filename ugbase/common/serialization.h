@@ -17,6 +17,7 @@
 namespace ug
 {
 
+
 ///	writes data to a binary stream
 /**	This template method is used in ug when it comes to writing data to
  * a binary stream.
@@ -42,6 +43,15 @@ void Deserialize(TIStream& buf, T& valOut)
 {
 	assert(!buf.eof() && "End of buf reached.");
 	buf.read((char*)&valOut, sizeof(T));
+}
+
+/// method returning value directly
+template<typename T, class TIStream>
+T Deserialize(TIStream &stream)
+{
+	T t;
+	Deserialize(stream, t);
+	return t;
 }
 
 
@@ -97,10 +107,9 @@ void Deserialize(TIStream& buf, std::map<Key, T>& m);
 template <class T, class TOStream>
 void Serialize(TOStream& buf, const std::set<T>& m)
 {
-	size_t size = m.size();
-	buf.write((char*)&size, sizeof(size_t));
+	Serialize<size_t>(buf, m.size());
 	for(typename std::set<T>::const_iterator it = m.begin(); it != m.end(); ++it)
-		Serialize(buf, *it);
+		Serialize<T>(buf, *it);
 }
 
 ///	deserializes data from a binary stream into a set
@@ -108,13 +117,11 @@ template <class T, class TIStream>
 void Deserialize(TIStream& buf, std::set<T>& myset)
 {
 	myset.clear();
-
-	size_t size = 0;
-	buf.read((char*)&size, sizeof(size_t));
+	size_t size = Deserialize<size_t>(buf);
+	T t;
 	for(size_t i = 0; i < size; ++i)
 	{
-		T t;
-		Deserialize(buf, t);
+		Deserialize<T>(buf, t);
 		// using myset.end() because data t is sorted.
 		myset.insert (myset.end(), t);
 	}
@@ -126,8 +133,7 @@ template <class TOStream>
 void Serialize(TOStream& buf, const std::string& str)
 {
 	size_t len = str.length();
-
-	buf.write((char*)&len, sizeof(size_t));
+	Serialize<size_t>(buf, len);
 	if(len > 0)
 		buf.write(str.c_str(), sizeof(char) * len);
 }
@@ -142,8 +148,7 @@ void Deserialize(TIStream& buf, std::string& str)
 	char* flexBuf = NULL;
 	char* tBuf = staticBuf;
 
-	size_t len = 0;
-	buf.read((char*)&len, sizeof(size_t));
+	size_t len = Deserialize<size_t>(buf);
 
 //	check whether we have to allocate memory
 //	don't forget that we have to append a zero at the end
@@ -175,7 +180,7 @@ void Deserialize(TIStream& buf, std::string& str)
 template <class TOStream>
 void Serialize(TOStream& buf, const Variant& v)
 {
-	Serialize(buf, uint32(v.type()));
+	Serialize<uint32, TOStream>(buf, uint32(v.type()));
 	switch(v.type()){
 		case Variant::VT_INVALID:	break;
 		case Variant::VT_BOOL:		Serialize(buf, v.to_bool()); break;
@@ -199,36 +204,16 @@ void Serialize(TOStream& buf, const Variant& v)
 template <class TIStream>
 void Deserialize(TIStream& buf, Variant& v)
 {
-	uint32 type;
-	Deserialize(buf, type);
+	uint32 type = Deserialize<uint32, TIStream>(buf);
 	switch(type){
-		case Variant::VT_INVALID:	v = Variant();
-		case Variant::VT_BOOL:{
-			bool val;
-			Deserialize(buf, val);
-			v = Variant(val);
-		} break;
-		case Variant::VT_INT:{
-			int val;
-			Deserialize(buf, val);
-			v = Variant(val);
-		} break;
-		case Variant::VT_FLOAT:{
-			float val;
-			Deserialize(buf, val);
-			v = Variant(val);
-		} break;
-		case Variant::VT_DOUBLE:{
-			double val;
-			Deserialize(buf, val);
-			v = Variant(val);
-		} break;
-		case Variant::VT_CSTRING:
-		case Variant::VT_STDSTRING:{
-			std::string val;
-			Deserialize(buf, val);
-			v = Variant(val);
-		} break;
+		case Variant::VT_INVALID:	v = Variant(); break;
+		case Variant::VT_BOOL:		v = Variant(Deserialize<bool>(buf)); break;
+		case Variant::VT_INT:		v = Variant(Deserialize<int>(buf)); break;
+		case Variant::VT_FLOAT:		v = Variant(Deserialize<float>(buf)); break;
+		case Variant::VT_DOUBLE:	v = Variant(Deserialize<double>(buf)); break;
+		case Variant::VT_CSTRING:	// fallthrough
+		case Variant::VT_STDSTRING: v = Variant(Deserialize<std::string>(buf)); break;
+
 		case Variant::VT_POINTER:{
 			void* val = NULL;
 			v = Variant(val);
@@ -250,7 +235,7 @@ template <class T, class TOStream>
 void Serialize(TOStream& buf, const std::vector<T>& vec)
 {
 	size_t size = vec.size();
-	buf.write((char*)&size, sizeof(size_t));
+	Serialize<size_t>(buf, size);
 	for(size_t i = 0; i < size; ++i){
 		Serialize(buf, vec[i]);
 	}
@@ -260,11 +245,52 @@ void Serialize(TOStream& buf, const std::vector<T>& vec)
 template <class T, class TIStream>
 void Deserialize(TIStream& buf, std::vector<T>& vec)
 {
-	size_t size = 0;
-	buf.read((char*)&size, sizeof(size_t));
+	vec.clear();
+	size_t size = Deserialize<size_t>(buf);
 	vec.resize(size);
 	for(size_t i = 0; i < size; ++i){
 		Deserialize(buf, vec[i]);
+	}
+}
+
+
+template<class TIStream>
+void Serialize(TIStream &buf, const std::vector<bool> &vec)
+{
+	size_t size=vec.size();
+	Serialize<size_t>(buf, size);
+	int j=0;
+	char a=0;
+	for(size_t i = 0; i < size; ++i)
+	{
+		if(vec[i]) a |= (1 << j);
+		if(++j == 8)
+		{
+			Serialize<char>(buf, a);
+			a = 0;
+			j = 0;
+		}
+	}
+	if(j) Serialize<char>(buf, a);
+}
+
+template<class TIStream>
+void Deserialize(TIStream &buf, std::vector<bool> &vec)
+{
+	vec.clear();
+	size_t size = Deserialize<size_t>(buf);
+	vec.resize(size);
+	int j=8;
+	char a=0;
+	for(size_t i = 0; i < size; ++i, ++j)
+	{
+		if(j==8)
+		{
+			Deserialize<char>(buf, a);
+			j=0;
+		}
+		vec[i] = a & (1 << j);
+		j++;
 	}
 }
 
@@ -302,8 +328,8 @@ inline void Deserialize(TIStream& buf, std::vector<bool>::reference boolRef)
 template <class Key, class T, class TOStream>
 void Serialize(TOStream& buf, const std::map<Key, T>& m)
 {
-	size_t size = m.size();
-	buf.write((char*)&size, sizeof(size_t));
+	Serialize<size_t>(buf, m.size());
+
 	for(typename std::map<Key, T>::const_iterator it = m.begin(); it != m.end(); ++it)
 	{
 		Serialize(buf, it->first);
@@ -316,8 +342,7 @@ template <class Key, class T, class TIStream>
 void Deserialize(TIStream& buf, std::map<Key, T>& m)
 {
 	m.clear();
-	size_t size = 0;
-	buf.read((char*)&size, sizeof(size_t));
+	size_t size = Deserialize<size_t>(buf);
 	for(size_t i = 0; i < size; ++i)
 	{
 		Key k;
