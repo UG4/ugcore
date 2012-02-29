@@ -57,7 +57,7 @@ ddu.hRedistStepSize = 1
 -- include initial redistribution)
 ddu.hRedistMaxSteps = 1000000000
 
--- tells whehter horizontal redistribution is enabled or not (will be set during
+-- tells whether hierarchical redistribution is enabled or not (will be set during
 -- parameter initialization)
 ddu.hRedistEnabled = false
 
@@ -124,7 +124,7 @@ function ddu.SetAndInitializeParameters(numPreRefs, numRefs, distType,
 	if ddu.hRedistFirstLevel ~= -1 then
 	--	make sure that all parameters are valid
 		if ddu.hRedistFirstLevel <= ddu.numPreRefs or ddu.hRedistFirstLevel >= ddu.numRefs then
-			print("HORIZONTAL REDISTRIBUTION ERROR:")
+			print("HIERARCHICAL REDISTRIBUTION ERROR:")
 			print("  Make sure that numPreRefs < hRedistFirstLevel < numRefs")
 			return false
 		end
@@ -132,7 +132,7 @@ function ddu.SetAndInitializeParameters(numPreRefs, numRefs, distType,
 	--	make sure that distribution type grid2d is not used (the util-script is
 	--	not suited for hierarchical redistribution)
 		if ddu.distributionType == "grid2d" then
-			print("HORIZONTAL REDISTRIBUTION ERROR:")
+			print("HIERARCHICAL REDISTRIBUTION ERROR:")
 			print("  distributionType 'grid2d' is not supported for hierarchical"
 				  .. " redistribution.")
 			return false
@@ -213,6 +213,7 @@ function ddu.RefineAndDistributeDomain(dom, verbosity)
 	local partitionMap = PartitionMap()
 
 	while numDistProcs > 0 do
+		print("Redistribute domain to '" .. numDistProcs .. "' distProcs, using 'distributionType' = '" .. ddu.distributionType .. "' ...")
 		partitionMap:clear()
 		if GetProcessRank() < numProcsWithGrid then
 		--	add target procs. Make sure to keep a portion on the local process
@@ -248,7 +249,7 @@ function ddu.RefineAndDistributeDomain(dom, verbosity)
 			end
 		end
 		
-		print("Redistribute domain with 'distributionType' = '" .. ddu.distributionType .. "' ...")
+		--print("Redistribute domain with 'distributionType' = '" .. ddu.distributionType .. "' ...")
 		if RedistributeDomain(dom, partitionMap, true) == false then
 			print("Redistribution failed. Please check your partitionMap.")
 			exit()
@@ -287,7 +288,7 @@ function ddu.RefineAndDistributeDomain(dom, verbosity)
 			print( " done.")
 		end
 		numCurRefs = maxRefsInThisStep
-	end
+	end -- 'while numDistProcs > 0 do'
 	
 	-- clean up
 	delete(partitionMap)
@@ -308,7 +309,7 @@ function ddu.PrintSteps()
 	local numCurRefs = ddu.numPreRefs
 
 	while numDistProcs > 0 do
-		print("redistributing to " .. numDistProcs .. " processes")
+		print("Redistribute domain to '" .. numDistProcs .. "' distProcs, using 'distributionType' = '" .. ddu.distributionType .. "' ...")
 		numProcsWithGrid = numProcsWithGrid * numDistProcs
 		numDistProcs = 0
 		
