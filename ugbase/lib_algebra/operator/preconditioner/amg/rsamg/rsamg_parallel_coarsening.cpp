@@ -24,7 +24,7 @@ using namespace std;
 
 
 #include "lib_algebra/parallelization/parallel_coloring.h"
-#include "../send_interface.h"
+#include "lib_algebra/parallelization/communication_scheme.h"
 #include "rsamg_coarsening.h"
 
 namespace ug{

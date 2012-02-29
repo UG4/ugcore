@@ -33,10 +33,17 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 	UG_LOG(std::scientific);
 
 	for(size_t i=0; i<A.num_rows(); i++)
+		if(A.is_isolated(i))
+		{
+			rating.set_dirichlet(i);
+			continue;
+		}
+
+
+	for(size_t i=0; i<A.num_rows(); i++)
 	{
 		if(rating.i_must_assign(i) == false) continue;
 		if(rating[i].is_valid_rating() == false) continue; // could be set coarse from others
-
 		calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
 		prolongation_calculated[i] = true;
 	}
@@ -94,13 +101,16 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::pr
 			if(!rating[node].is_coarse())
 			{
 				heap.remove(node);
-				rating.set_coarse(node);
-				UpdateNeighbors(SymmNeighGraph, node, possible_parents, rating, heap);
+				if(!rating[node].is_dirichlet())
+				{
+					rating.set_coarse(node);
+					UpdateNeighbors(SymmNeighGraph, node, possible_parents, rating, heap);
+				}
 			}
-			PoldIndices(i, node) = n.parents[j].value;
+			if(!rating[node].is_dirichlet())
+				PoldIndices(i, node) = n.parents[j].value;
 		}
 	}
-
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms.");
 }
 

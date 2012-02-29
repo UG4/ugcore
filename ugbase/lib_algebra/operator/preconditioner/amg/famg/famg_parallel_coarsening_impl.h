@@ -21,9 +21,10 @@
 
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #include "lib_algebra/parallelization/parallel_coloring.h"
+#include "lib_algebra/parallelization/communication_scheme.h"
+
 #include "../stopwatch.h"
 #include "lib_algebra/common/connection_viewer_output.h"
-#include "../send_interface.h"
 #include "../rsamg/rsamg_impl.h"
 
 namespace ug
@@ -97,6 +98,8 @@ public:
 			return 1;
 		else if(state == 0.0)
 			return 2;
+		else if(state == FAMG_DIRICHLET_RATING)
+			return 3;
 		else
 		{
 			UG_ASSERT(0, "state is " << state << "?");
@@ -112,6 +115,10 @@ public:
 		}
 		else if(state == 1)
 			rating.external_set_coarse(index);
+		else if(state == 3)
+		{
+			rating.set_dirichlet(index);
+		}
 		// else ; // nothing
 
 	}
@@ -312,10 +319,17 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AddLayout(OLCoarseningReceiveLayout, slaveLayouts[1]);
 	AddLayout(OLCoarseningReceiveLayout, masterLayouts[1]);
 
-	AddConnectionsBetweenSlaves(PN.communicator(), OL1MasterLayout, OL1SlaveLayout, OLCoarseningSendLayout, OLCoarseningReceiveLayout);
+	UG_LOG("\n======================================\n");
+	UG_LOG("         LEVEL " << level << " \n");
+	UG_LOG("\n======================================\n");
+	PRINTPC(A.process_communicator());
+	UG_LOG("\n======================================\n");
 
 	//UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningLayout :\n")
-	//PrintLayout(PN.communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
+	//PrintLayout(A.get_process_communicator(), PN.get_communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
+
+	AddConnectionsBetweenSlaves(PN.communicator(), OL1MasterLayout, OL1SlaveLayout, OLCoarseningSendLayout, OLCoarseningReceiveLayout);
+
 
 
 	size_t N = A_OL2.num_rows();

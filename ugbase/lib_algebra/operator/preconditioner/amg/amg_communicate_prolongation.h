@@ -11,7 +11,7 @@
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #include "lib_algebra/parallelization/row_sending_scheme.h"
-#include "send_interface.h"
+#include "lib_algebra/parallelization/communication_scheme.h"
 #endif
 
 namespace ug

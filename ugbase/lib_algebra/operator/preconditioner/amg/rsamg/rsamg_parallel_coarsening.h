@@ -13,7 +13,7 @@
 #ifndef RSAMG_PARALLEL_COARSENING_H_
 #define RSAMG_PARALLEL_COARSENING_H_
 
-#include "../graph.h"
+#include "lib_algebra/common/graph/graph.h"
 #include "rsamg_nodeinfo.h"
 
 #include "pcl/pcl.h"

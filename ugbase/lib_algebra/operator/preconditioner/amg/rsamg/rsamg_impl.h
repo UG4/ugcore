@@ -23,7 +23,7 @@ template<typename T> inline double amg_offdiag_value(const T &d) { return -Block
 //#include "sparsematrix_util.h"
 
 #include "rsamg.h"
-#include "../graph.h"
+#include "lib_algebra/common/graph/graph.h"
 
 #include "rsamg_prolongation.h"
 #include "rsamg_debug.h"

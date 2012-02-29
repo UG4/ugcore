@@ -15,7 +15,7 @@
 
 #include <fstream>
 #include "amg_debug_helper.h"
-#include "graph.h"
+#include "lib_algebra/common/graph/graph.h"
 #include "lib_algebra/lib_algebra.h"
 #include "amg_profiling.h"
 #include "postscript.h"

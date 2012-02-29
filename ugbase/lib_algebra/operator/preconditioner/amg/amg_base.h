@@ -205,7 +205,7 @@ protected:
 #endif
 
 #ifdef UG_PARALLEL
-private:
+public:
 	bool gather_vertical(vector_type &vec, vector_type &collectedVec, size_t level, ParallelStorageType type);
 	bool broadcast_vertical(vector_type &vec, vector_type &collectedVec, size_t level, ParallelStorageType type);
 #endif
@@ -317,18 +317,7 @@ public:
 		m_dbgDimension = 3;
 	}
 
-
 	virtual void tostring() const;
-
-public:
-	void write_debug_matrices(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
-			prolongation_matrix_type &P, size_t level);
-
-	template<typename TMatrix>
-	void write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name);
-
-	template<typename TNodeType>
-	void write_debug_matrix_markers(size_t level, const TNodeType &nodes);
 
 	void set_one_init(bool b)
 	{
@@ -347,23 +336,67 @@ public:
 		m_iYCycle = maxIterations;
 	}
 
+	//! \return c_A = total nnz of all matrices divided by nnz of matrix A
+	double get_operator_complexity() const { return m_dOperatorComplexity; }
+
+	//! \return c_G = total number of nodes of all levels divided by number of nodes on level 0
+	double get_grid_complexity() const { return m_dGridComplexity; }
+
+	//! \return the time spent on the whole setup in ms
+	double get_timing_whole_setup_ms() const { return m_dTimingWholeSetupMS; }
+
+	//! \return the time spent in the coarse solver setup in ms
+	double get_timing_coarse_solver_setup_ms() const { return m_dTimingCoarseSolverSetupMS; }
+
+	void print_level_information() const
+	{
+		std::cout.setf(std::ios::fixed);
+		UG_LOG("Operator Complexity: " << get_operator_complexity() << ", grid complexity: " << get_grid_complexity() << ".\n");
+		UG_LOG("Whole setup took " << get_timing_whole_setup_ms() << " ms, coarse solver setup took " << get_timing_coarse_solver_setup_ms() << " ms.\n");
+		/*for(int i = 0; i<get_used_levels(); i++)
+			UG_LOG(get_level_information(i)->tostring() << "\n");*/
+
+	}
+
+	const LevelInformation *get_level_information(size_t i) const
+	{
+		if(i < levels.size())
+			return &levels[i]->m_levelInformation;
+		else return NULL;
+	}
+
+
 
 protected:
+	void write_debug_matrices(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+			prolongation_matrix_type &P, size_t level);
+
+	template<typename TMatrix>
+	void write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name);
+
+	template<typename TNodeType>
+	void write_debug_matrix_markers(size_t level, const TNodeType &nodes);
+
 	void init_fsmoothing();
 	bool writevec(std::string filename, const vector_type &d, size_t level, const vector_type *solution=NULL);
 	void update_positions();
 
 	bool create_level_vectors(size_t level);
-	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
-			prolongation_matrix_type &P, size_t level) = 0;
+
 	bool f_smoothing(vector_type &corr, vector_type &d, size_t level);
 
+// pure virtual functions
+	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+				prolongation_matrix_type &P, size_t level) = 0;
+	virtual void precalc_level(size_t level) = 0;
 
 
+private:
 #ifdef UG_PARALLEL
 	bool agglomerate(size_t level);
 #endif
 
+protected:
 // data
 	size_t 	m_numPreSmooth;						///< nu_1 : nr. of pre-smoothing steps
 	size_t 	m_numPostSmooth;					///< nu_2: nr. of post-smoothing steps
@@ -491,38 +524,6 @@ protected:
 #endif
 
 	void calculate_level_information(size_t level, double createAMGlevelTiming);
-
-public:
-	//! \return c_A = total nnz of all matrices divided by nnz of matrix A
-	double get_operator_complexity() const { return m_dOperatorComplexity; }
-
-	//! \return c_G = total number of nodes of all levels divided by number of nodes on level 0
-	double get_grid_complexity() const { return m_dGridComplexity; }
-
-	//! \return the time spent on the whole setup in ms
-	double get_timing_whole_setup_ms() const { return m_dTimingWholeSetupMS; }
-
-	//! \return the time spent in the coarse solver setup in ms
-	double get_timing_coarse_solver_setup_ms() const { return m_dTimingCoarseSolverSetupMS; }
-
-	void print_level_information() const
-	{
-		std::cout.setf(std::ios::fixed);
-		UG_LOG("Operator Complexity: " << get_operator_complexity() << ", grid complexity: " << get_grid_complexity() << ".\n");
-		UG_LOG("Whole setup took " << get_timing_whole_setup_ms() << " ms, coarse solver setup took " << get_timing_coarse_solver_setup_ms() << " ms.\n");
-		/*for(int i = 0; i<get_used_levels(); i++)
-			UG_LOG(get_level_information(i)->tostring() << "\n");*/
-
-	}
-
-	const LevelInformation *get_level_information(size_t i) const
-	{
-		if(i < levels.size())
-			return &levels[i]->m_levelInformation;
-		else return NULL;
-	}
-
-
 };
 
 

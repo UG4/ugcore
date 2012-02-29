@@ -12,12 +12,13 @@
 #ifndef __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_NODEINFO_H__
 #define __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_NODEINFO_H__
 
-#include "../maxheap.h"
+#include "lib_algebra/common/heap/maxheap.h"
 //#include "../boxsort.h"
 #include "../amg_debug_helper.h"
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallel_nodes.h"
 #endif
+
 
 
 namespace ug {

@@ -15,14 +15,14 @@
 
 using namespace std;
 
-#include "../graph.h"
+#include "lib_algebra/common/graph/graph.h"
 #include "rsamg_nodeinfo.h"
-#include "../maxheap.h"
 
 #include "lib_algebra/common/stl_debug.h"
 #include "../amg_profiling.h"
-#include "../boxsort.h"
 //#define AMG_PRINT_COARSEN
+
+#include "lib_algebra/common/heap/boxsort.h"
 
 
 namespace ug

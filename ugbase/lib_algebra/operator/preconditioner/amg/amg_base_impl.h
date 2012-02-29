@@ -17,10 +17,10 @@
 #include "stopwatch.h"
 #include "amg_debug.h"
 #ifdef UG_PARALLEL
-#include "collect_matrix.h"
+#include "lib_algebra/parallelization/collect_matrix.h"
 #include "lib_algebra/parallelization/parallel_vector.h"
 #include "lib_algebra/parallelization/parallel_storage_type.h"
-#include "consistency_check.h"
+#include "lib_algebra/parallelization/consistency_check.h"
 #endif
 
 #include "lib_algebra/common/connection_viewer_output.h"
@@ -224,16 +224,26 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 #ifdef UG_PARALLEL
 		//PRINTPC(L.pA->process_communicator());
 		agglomerate(level);
+		precalc_level(level);
 		if(m_agglomerateLevel == level)
 		{
 			UG_LOG("Processor " << pcl::GetProcRank() << " got agglomerated at level " << level << ".\n");
 			break;
 		}
-		//PRINTPC(L.pAgglomeratedA->get_process_communicator());
 #else
+		precalc_level(level);
 		L.pAgglomeratedA = L.pA;
 #endif
 
+		if(m_writeMatrices && m_amghelper.has_positions())
+		{
+			std::string name = m_writeMatrixPath + std::string("AMG_A_L") + ToString(level) + ".mat";
+		#ifdef UG_PARALLEL
+			name = GetParallelName(name, L.pAgglomeratedA->process_communicator(), true);
+		#endif
+			AMGWriteToFile(*L.pAgglomeratedA, level, level, name.c_str(), m_amghelper);
+			//PRINTPC(L.pAgglomeratedA->get_process_communicator());
+		}
 
 		//smoothem_R[level].init(*m_A[level]);
 
@@ -506,6 +516,10 @@ void AMGBase<TAlgebra>::init_fsmoothing()
 
 		//	make diagonal consistent
 		m_diag.set_storage_type(PST_ADDITIVE);
+
+		/*UG_LOG("______________________________________________\n");
+		PrintLayout(mat.get_process_communicator(), mat.get_communicator(),
+						mat.get_master_layout(), mat.get_slave_layout());*/
 		m_diag.change_storage_type(PST_CONSISTENT);
 
 		for(size_t i = 0; i < m_diag.size(); ++i)
@@ -584,14 +598,9 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 		}
 		// send d -> collD
 		ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
-<<<<<<< .working
 		pcl::ParallelCommunicator<IndexLayout> &com = A.communicator();
-		com.send_data(slaveColl, compolAdd);
-		com.receive_data(masterColl, compolAdd);
-=======
 		com.receive_data(L.agglomerateMasterLayout, compolAdd);
 		com.send_data(agglomerateSlaveLayout, compolAdd);
->>>>>>> .merge-right.r4682
 		com.communicate();
 
 

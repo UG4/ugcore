@@ -57,6 +57,7 @@ public:
 	using super::m_parentIndex;
 	using super::m_writeMatrices;
 	using super::m_writeMatrixPath;
+	using super::levels;
 
 
 public:
@@ -203,7 +204,12 @@ private:
 	void c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 			prolongation_matrix_type &P, size_t level);
 
+	virtual void precalc_level(size_t level);
+
 	void get_testvectors(const matrix_type &A, stdvector<vector_type> &testvectors, stdvector<double> &omega);
+	void get_testvectors(stdvector<vector_type> &testvectors, stdvector<double> &omega);
+	void get_testvectors_from_matrix_rows
+			(const matrix_type &A, stdvector<vector_type> &testvectors, stdvector<double> &omega);
 
 private:
 // data

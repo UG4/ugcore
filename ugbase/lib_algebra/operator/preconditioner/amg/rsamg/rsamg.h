@@ -95,6 +95,7 @@ public:
 	void 	set_prolongation_truncation(double prolongationTr) 	{ m_dProlongationTr = prolongationTr; }
 	double 	get_prolongation_truncation() const				{ return m_dProlongationTr; }
 
+	virtual void precalc_level(size_t level) { }
 
 	/**
 	 * enables Aggressive Coarsening on the first level

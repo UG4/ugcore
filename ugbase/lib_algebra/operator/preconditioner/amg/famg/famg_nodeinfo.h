@@ -23,7 +23,7 @@ namespace ug {
 
 #define FAMG_UNINTERPOLATEABLE			(-10)
 #define FAMG_COARSE_RATING				(-11)
-#define FAMG_DIRICHLET_RATING			(-11)
+#define FAMG_DIRICHLET_RATING			(-12)
 // those are border-nodes which are fine on another processor. we need to calculate ratings for them
 
 
@@ -405,6 +405,13 @@ public:
 				m_iUnassigned--;
 			P(index, index) = 1.0;
 		}
+	}
+
+	void set_dirichlet(size_t index)
+	{
+		if(nodes[index].is_dirichlet() == false && i_must_assign(index))
+			m_iUnassigned--;
+		nodes[index].set_dirichlet();
 	}
 
 	void set_coarse(size_t index)

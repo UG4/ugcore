@@ -94,6 +94,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::rs
 			rating.external_set_coarse(i);
 		else if(nodes[i].is_fine_direct() || nodes[i].is_fine())
 			rating.set_fine(i);
+		else if(nodes[i].is_dirichlet())
+			rating.set_dirichlet(i);
 		else
 		{
 			//UG_LOG("nodes " << i << " = " << nodes[i] << "\n");

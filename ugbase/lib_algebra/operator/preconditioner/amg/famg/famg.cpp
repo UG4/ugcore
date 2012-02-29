@@ -29,7 +29,7 @@
 
 #include "../stopwatch.h"
 #include "common/assert.h"
-#include "../maxheap.h"
+#include "lib_algebra/common/heap/maxheap.h"
 #include "famg.h"
 #include <set>
 #include <string>
@@ -38,7 +38,7 @@
 
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
-#include "../send_interface.h"
+#include "lib_algebra/parallelization/communication_scheme.h"
 #include "pcl/pcl_layout_tests.h"
 #endif
 
@@ -619,61 +619,92 @@ public:
 
 
 template<>
-void FAMG<CPUAlgebra>::get_testvectors(const matrix_type &A, stdvector<vector_type> &testvectors, stdvector<double> &omega)
+void FAMG<CPUAlgebra>::get_testvectors(stdvector<vector_type> &testvectors, stdvector<double> &omega)
 {
 	AMG_PROFILE_FUNC();
 
-	if(m_bTestvectorsFromMatrixRows)
+	testvectors.resize(m_vVectorWriters.size() + m_testvectors.size());
+	omega.resize(m_vVectorWriters.size() + m_testvectors.size());
+
+	for(size_t i=0; i<m_testvectors.size(); i++)
 	{
-		testvectors.resize(1);
-		omega.resize(1);
-		vector_type &v = testvectors[0];
-		v.resize(A.num_rows());
-		for(size_t i=0; i<A.num_rows(); i++)
-		{
-			if(A.is_isolated(i))
-				v[i] = 0.0;
-			else
-				v[i] = 1.0;
-		}
+		testvectors[i] = m_testvectors[i];
+		omega[i] = m_omegaVectors[i];
 	}
-	else
+
+	for(size_t i=0; i<m_vVectorWriters.size(); i++)
 	{
-		testvectors.resize(m_vVectorWriters.size() + m_testvectors.size());
-		omega.resize(m_vVectorWriters.size() + m_testvectors.size());
+		size_t index = i+m_testvectors.size();
+		m_vVectorWriters[i]->update(testvectors[index]);
+		omega[index] = m_omegaVectorWriters[i];
 
-		for(size_t i=0; i<m_testvectors.size(); i++)
-		{
-			testvectors[i] = m_testvectors[i];
-			omega[i] = m_omegaVectors[i];
-		}
+	}
+}
 
-		for(size_t i=0; i<m_vVectorWriters.size(); i++)
-		{
-			size_t index = i+m_testvectors.size();
-			m_vVectorWriters[i]->update(testvectors[index]);
-			omega[index] = m_omegaVectorWriters[i];
+template<>
+void FAMG<CPUAlgebra>::get_testvectors_from_matrix_rows
+	(const matrix_type &A, stdvector<vector_type> &testvectors, stdvector<double> &omega)
+{
+	AMG_PROFILE_FUNC();
 
-		}
+	testvectors.resize(1);
+	omega.resize(1);
+	vector_type &v = testvectors[0];
+	v.resize(A.num_rows());
+	for(size_t i=0; i<A.num_rows(); i++)
+	{
+		if(A.is_isolated(i))
+			v[i] = 0.0;
+		else
+			v[i] = 1.0;
 	}
 }
 
 
+template<>
+void FAMG<CPUAlgebra>::precalc_level(size_t level)
+{
+
+	UG_LOG("\n\n\nprecalc!\n\n\n");
+	UG_ASSERT(m_testvectorsmoother != NULL, "please provide a testvector smoother.");
+
+
+	if(level == 0)
+	{
+		testvectors.clear();
+		if(m_bTestvectorsFromMatrixRows)
+			get_testvectors_from_matrix_rows(*levels[level]->pAgglomeratedA, testvectors, omega);
+		else
+			get_testvectors(testvectors, omega);
+	}
+
+#ifdef UG_PARALLEL
+	if((level != 0 || m_bTestvectorsFromMatrixRows == false)
+			&& levels[level]->bHasBeenMerged)
+	{
+		vector_type t;
+		if(AMGBase<CPUAlgebra>::isMergingMaster(level))
+			t.resize(levels[level]->pAgglomeratedA->num_rows());
+		for(size_t i=0; i<testvectors.size(); i++)
+		{
+			t.set_storage_type(PST_CONSISTENT);
+			testvectors[i].set_storage_type(PST_CONSISTENT);
+			gather_vertical(testvectors[i], t, level, PST_CONSISTENT);
+			testvectors[i] = t;
+		}
+	}
+#endif
+}
 
 template<>
 void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
 
-
 	UG_ASSERT(m_testvectorsmoother != NULL, "please provide a testvector smoother.");
 
-	if(level == 0)
-	{
-		testvectors.clear();
-		get_testvectors(A, testvectors, omega);
-	}
-
+	UG_ASSERT(testvectors.size() != 0, "testvectors?");
+	UG_ASSERT(testvectors[0].size() == A.num_rows(), "testvectorsize = " << testvectors[0].size() << " != A.num_rows() = " << A.num_rows() << " ?");
 
 	if(m_writeMatrices && m_writeTestvectors)
 	{
@@ -741,27 +772,26 @@ bool FAMG<CPUAlgebra>::check_testvector()
 	AMGBase<CPUAlgebra>::set_num_postsmooth(get_testvector_smooths());
 
 
-	matrix_type &A0 = *AMGBase<CPUAlgebra>::levels[0]->pA;
-	get_testvectors(A0, testvectors, omega);
+
+
+
 
 	for(size_t level=0; ; level++)
 	{
+		// get testvectors, get agglomerated tv
+		precalc_level(level);
+#ifdef UG_PARALLEL
+		if(AMGBase<CPUAlgebra>::isMergingSlave(level))
+		{
+			UG_LOG("merged.\n");
+			break;
+		}
+#endif
 		UG_LOG("Check Level " << level << "\n-----------------------------------\n")
 
 		matrix_type *pA, *pAH;
-#ifdef UG_PARALLEL
-/*		if(AMGBase<CPUAlgebra>::levels[level]->bHasBeenMerged && AMGBase<CPUAlgebra>::m_agglomerateLevel != level)
-			pA = &AMGBase<CPUAlgebra>::levels[level]->uncollectedA;
-		else*/
-#endif
-			pA = AMGBase<CPUAlgebra>::levels[level]->pA;
-
-#if UG_PARALLEL
-		/*if(AMGBase<CPUAlgebra>::levels[level+1]->bHasBeenMerged && AMGBase<CPUAlgebra>::m_agglomerateLevel != level+1)
-			pAH = &AMGBase<CPUAlgebra>::levels[level+1]->uncollectedA;
-		else*/
-#endif
-			pAH = AMGBase<CPUAlgebra>::levels[level+1]->pA;
+		pA = AMGBase<CPUAlgebra>::levels[level]->pAgglomeratedA;
+		pAH = AMGBase<CPUAlgebra>::levels[level+1]->pAgglomeratedA;
 
 		matrix_type &A = *pA;
 		matrix_type &AH = *pAH;

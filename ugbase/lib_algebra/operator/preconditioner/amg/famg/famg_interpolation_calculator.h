@@ -15,7 +15,7 @@
 #include "famg_nodeinfo.h"
 #include "../rsamg/rsamg.h"
 
-
+#define FAMG_USE_DIRCHLET_AS_PARENTS 1
 namespace ug {
 
 
@@ -123,6 +123,15 @@ public:
 		}
 	}
 
+	bool asParent(FAMGNodes &rating, size_t i)
+	{
+		return rating.i_can_set_coarse(i)
+#ifdef FAMG_USE_DIRCHLET_AS_PARENTS
+				|| rating[i].is_dirichlet()
+#endif
+				;
+	}
+
 	// get_possible_parent_pairs:
 	//---------------------------------------
 	/** calculates of an index i a list of interpolating parent pairs.
@@ -187,11 +196,11 @@ public:
 		const double &aii = A_OL2(i,i);
 		for(size_t n=0; n < onlyN1.size(); n++)
 		{
-			if(!rating.i_can_set_coarse(onlyN1[n])) // || A.is_isolated(onlyN1[n]))
+			if(!asParent(rating, onlyN1[n]))
 				continue;
 			for(size_t m=n+1; m < onlyN1.size(); m++)
 			{
-				if(!rating.i_can_set_coarse(onlyN1[m])) // || A.is_isolated(onlyN1[m]))
+				if(!asParent(rating, onlyN1[m]))
 					continue;
 				// set KKT matrix
 				/*
