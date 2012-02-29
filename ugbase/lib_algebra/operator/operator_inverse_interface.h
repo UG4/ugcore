@@ -19,7 +19,7 @@ namespace ug{
 
 // \todo: The prepare methods seems obsolet, since it could be handled in the
 //		  apply method. It depends on how expensive the prepare is, and how
-//		  often we would apply the operator to an already apply one (??)
+//		  often we would apply the operator to an already apply one (?)
 /// describes an inverse mapping X->Y
 /**
  * This class is the base class for the inversion of the operator given in form
