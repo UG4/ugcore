@@ -85,7 +85,7 @@ class ConvectionShapesNoUpwind
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			this->template register_update_func<TGeom, TFunc>(&this_type::template update<FV1Geometry, TElem>);
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<FV1Geometry, TElem>); // <TGeom, TFunc>
 
 			typedef HFV1Geometry<TElem, dim> THGeom;
 			typedef bool (this_type::*THFunc)
@@ -94,7 +94,7 @@ class ConvectionShapesNoUpwind
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			this->template register_update_func<THGeom, THFunc>(&this_type::template update<HFV1Geometry, TElem>);
+			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<HFV1Geometry, TElem>);
 		}
 };
 
@@ -208,7 +208,7 @@ class ConvectionShapesFullUpwind
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			this->template register_update_func<TGeom, TFunc>(&this_type::template update<FV1Geometry, TElem>);
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<FV1Geometry, TElem>);
 
 			typedef HFV1Geometry<TElem, dim> THGeom;
 			typedef bool (this_type::*THFunc)
@@ -217,7 +217,7 @@ class ConvectionShapesFullUpwind
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			this->template register_update_func<THGeom, THFunc>(&this_type::template update<HFV1Geometry, TElem>);
+			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<HFV1Geometry, TElem>);
 		}
 };
 
@@ -341,7 +341,7 @@ class ConvectionShapesWeightedUpwind
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			this->template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
 		}
 };
 
@@ -465,7 +465,7 @@ class ConvectionShapesPartialUpwind
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			this->template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
 		}
 };
 
