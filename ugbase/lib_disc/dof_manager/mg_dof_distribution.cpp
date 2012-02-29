@@ -604,12 +604,12 @@ multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 		const size_t numDoFsOnSub = num_dofs(fct, roid, subRoid);
 
 	//	a) Orientation required
-		if(d < m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
+		if(d <= m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
 		{
 			std::vector<size_t> vOrientOffset(numDoFsOnSub);
 
 		//	get the orientation for this subelement
-			ComputeOrientationOffset<TBaseElem>
+			ComputeOrientationOffset<TSubBaseElem>
 				(vOrientOffset, m_vLFEID[fct].order(),
 				 ReferenceElementProvider::get(roid),
 				 	 i, numDoFsOnSub, vCorner);
@@ -686,7 +686,7 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 	const size_t numDoFsOnSub = num_dofs(fct,roid,roid);
 
 //	a) Orientation required:
-	if(d < m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
+	if(d <= m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
 	{
 	//	get corners
 		std::vector<VertexBase*> vCorner;
@@ -896,14 +896,14 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 		//		This is also not needed for the highest dimension of a finite
 		//		element, since the dofs on this geometric object must not be
 		//		identified with other dofs.
-			if(d < m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
+			if(d <= m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
 			{
 			//	vector storing the computed offsets. If in correct order,
 			//	this would be: [0, 1, 2, ...]. But this is usually not the
 			// 	case and the numbers 0 to numDoFsOnSub-1 are permuted
 				std::vector<size_t> vOrientOffset(numDoFsOnSub);
 
-				ComputeOrientationOffset<TBaseElem>
+				ComputeOrientationOffset<TSubBaseElem>
 					(vOrientOffset, m_vLFEID[fct].order(),
 					 ReferenceElementProvider::get(roid),
 					 i, numDoFsOnSub, vCorner);

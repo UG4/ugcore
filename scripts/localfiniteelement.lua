@@ -9,28 +9,38 @@
 ug_load_script("ug_util.lua")
 
 dim = util.GetParamNumber("-dim", 2)
-
-if dim == 2 then
-	gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_tri_2x2.ugx")
-	--gridName = util.GetParam("-grid", "unit_square_01/unit_square_01_quads_2x2.ugx")
-end
-if dim == 3 then
-	--gridName = util.GetParam("-grid", "unit_square_01/unit_cube_01_hex_1x1x1.ugx")
-	--gridName = util.GetParam("-grid", "unit_square_01/unit_cube_01_tets.ugx")
-	gridName = util.GetParam("-grid", "unit_square_01/unit_cube_01_prism_2x2x2.ugx")
-end
-
--- refinements:
 numRefs    = util.GetParamNumber("-numRefs",    0)
 numLoop    = util.GetParamNumber("-numLoop",    0)
 trialOrder = util.GetParamNumber("-order",    1)
 discType   = util.GetParam("-type", "fe")
+elemType   = util.GetParam("-elem", "simplex")
+
+if dim == 2 then
+	if elemType == "simplex" then 
+	  gridName = "unit_square_01/unit_square_01_tri_2x2.ugx"
+	elseif elemType == "cube" then
+	  gridName = "unit_square_01/unit_square_01_quads_2x2.ugx"
+	else print("elemType not found"); exit(); end
+end
+if dim == 3 then
+	if elemType == "simplex" then 
+	  	gridName = "unit_square_01/unit_cube_01_tets.ugx"
+	elseif elemType == "cube" then
+	  	gridName = "unit_square_01/unit_cube_01_hex_1x1x1.ugx"
+	elseif elemType == "prism" then
+	 	gridName = "unit_square_01/unit_cube_01_prism_2x2x2.ugx"
+	else print("elemType not found"); exit(); end
+end
 
 -- Display parameters (or defaults):
 print(" General parameters chosen:")
 print("    dim        = " .. dim)
 print("    grid       = " .. gridName)
 print("    numRefs    = " .. numRefs)
+print("    numLoop    = " .. numLoop)
+print("    order      = " .. trialOrder)
+print("    type       = " .. discType)
+print("    elem       = " .. elemType)
 
 -- choose algebra
 InitUG(dim, AlgebraType("CPU", 1));
@@ -54,12 +64,14 @@ approxSpace:print_statistic()
 --------------------------------------------------------------------------------
 
 function Rhs2d(x, y, t)
-	return	-12.0 *x*x
+--	return -12.0 *x*x
+	return 10*10*(math.sin(10*x) + math.sin(10*y))
 --	return 0
 end
 
 function ExactSolution2d(x, y, t)
-	return x*x*x*x
+--	return x*x*x*x
+	return math.sin(10*x) + math.sin(10*y)
 --	return x*y
 end
 
@@ -138,7 +150,7 @@ convCheck:set_reduction(1e-12)
 --convCheck:set_verbose_level(true)
 
 -- create CG Solver
-solver = BiCGStab()
+solver = CG()
 ilu = ILU()
 solver:set_preconditioner(ilu)
 solver:set_convergence_check(convCheck)
