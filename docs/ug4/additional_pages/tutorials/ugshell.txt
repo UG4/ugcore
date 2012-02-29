@@ -42,7 +42,7 @@ gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
 
 If there is no commandline argument "-grid", then the second argument is returned by util.GetParam.
 Otherwise, the argument after "-grid" in the commandline is returned.
-Notice that omitted parameters to lua-functions a treated as nil, so util.GetParam("-grid") is
+Notice that omitted parameters to lua-functions are treated as nil, so util.GetParam("-grid") is
 the same as util.GetParam("-grid", nil). If you want your argument to be casted
 to a number, use util.GetParamNumber:
 \code
