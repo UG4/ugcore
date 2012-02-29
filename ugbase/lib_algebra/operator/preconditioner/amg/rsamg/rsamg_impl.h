@@ -404,8 +404,7 @@ void RSAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type
 
 	if(m_writeMatrices)
 	{
-		AMGBase<TAlgebra> *t = this;
-		t->write_debug_matrix_markers(level, nodes);
+		AMGBase<TAlgebra>::write_debug_matrix_markers(level, nodes);
 		this->write_debug_matrices(AH, R, AOL1, PnewIndices, level);
 	}
 }
