@@ -383,7 +383,7 @@ void PrintBuildConfiguration()
 	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
 
 	aux_str = "";
-	//aux_str.append("???:               ").append( (IsDefinedUG_???() ? "ON " : "OFF") );
+	//aux_str.append("?:               ").append( (IsDefinedUG_?() ? "ON " : "OFF") );
 	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
 
 /* TODO: If the compact form above is considered "d'accord",
