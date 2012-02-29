@@ -344,7 +344,7 @@ void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
 {
 //	check correct arguments
 	if(fromLevel > toLevel)
-		UG_THROW_FATAL("fromLevel must be small than toLevel");
+		UG_THROW_FATAL("fromLevel must be smaller than toLevel");
 
 //	check level
 	if(toLevel >= this->num_levels())
@@ -377,7 +377,7 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 {
 //	check correct arguments
 	if(fromLevel > toLevel)
-		UG_THROW_FATAL("fromLevel must be small than toLevel");
+		UG_THROW_FATAL("fromLevel must be smaller than toLevel");
 
 //	resize level
 	if(m_vSurfDD.size() < toLevel+1) m_vSurfDD.resize(toLevel+1, NULL);
@@ -434,7 +434,7 @@ void IApproximationSpace::surface_level_view_required(size_t fromLevel, size_t t
 {
 //	check correct arguments
 	if(fromLevel > toLevel)
-		UG_THROW_FATAL("fromLevel must be small than toLevel");
+		UG_THROW_FATAL("fromLevel must be smaller than toLevel");
 
 //	allocate surface view if needed
 	if(!m_spSurfaceView.is_valid())
