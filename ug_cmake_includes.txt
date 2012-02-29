@@ -286,7 +286,15 @@ endif("${PRECISION}" STREQUAL "single")
 # STATIC
 # If STATIC is enabled, then a static ug-lib will be built. This will add a
 # _s suffix to the resulting lib name.
-# Note that no plugins are built if STATIC is enabled. 
+# Note that no plugins are built if STATIC is enabled.
+
+if(CRAY)	
+	if(STATIC)
+		SET(STATIC OFF)
+		message("Cray does not support STATIC option. Disabling STATIC now.")
+	endif(STATIC)
+endif(CRAY)
+ 
 if(STATIC)
 	set(buildDynamicLib OFF)
 	set(buildPluginSystem OFF)
@@ -342,8 +350,17 @@ endif("${CPU}" STREQUAL "ALL")
 
 ########################################
 # DEBUG
+
+if(NOT CRAY)
+	add_definitions(-Wall)
+else(NOT CRAY)
+	# add support for gnu extensions
+	add_definitions(-h gnu)
+endif(NOT CRAY)
+
+
 if(DEBUG)
-	add_definitions(-g -Wall)
+	add_definitions(-g)
 	add_definitions(-DUG_DEBUG)
 	
 	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
@@ -352,7 +369,10 @@ if(DEBUG)
 	# -D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1
 
 else(DEBUG)
-	add_definitions(-O3 -Wall -funroll-loops -ftree-vectorize)
+	add_definitions(-O3)
+	if(NOT CRAY)
+		add_definitions(-funroll-loops -ftree-vectorize)
+	endif(NOT CRAY)
 	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
 endif(DEBUG)
 
@@ -408,6 +428,9 @@ if(buildAlgebra)
 				endif(BLAS_INCLUDE_PATH)
 			endif(BLAS)
 			
+		elseif(CRAY)
+			set(BUILTIN_BLAS YES)
+			set(BUILTIN_LAPACK YES)			
 		else(APPLE)
 			# a fortran compiler is required to find the packages
 			# Sadly there seems to be a cmake-bug, hence the following workaround.
@@ -437,6 +460,9 @@ if(buildAlgebra)
 			include_directories (${LAPACK_INCLUDE_PATH})
 			set(linkLibraries ${linkLibraries} ${LAPACK_LIBRARIES})
 			add_definitions(-DLAPACK_AVAILABLE)
+		elseif(BUILTIN_LAPACK)
+			message(STATUS "Info: Using Builtin Lapack")
+			add_definitions(-DLAPACK_AVAILABLE)
 		else(LAPACK_FOUND)	
 			message(STATUS "Info: Not using Lapack. No package found.")
 		endif(LAPACK_FOUND)
@@ -445,6 +471,9 @@ if(buildAlgebra)
 			message(STATUS "Info: Using Blas")
 			include_directories (${BLAS_INCLUDE_PATH})
 			set(linkLibraries ${linkLibraries} ${BLAS_LIBRARIES})
+			add_definitions(-DBLAS_AVAILABLE)
+		elseif(BUILTIN_BLAS)
+			message(STATUS "Info: Using Builtin Blas")
 			add_definitions(-DBLAS_AVAILABLE)
 		else(BLAS_FOUND)	
 			message(STATUS "Info: Not using Blas. No package found.")
@@ -567,18 +596,29 @@ endif(UNIX)
 ########################################
 # MPI
 if(PARALLEL)
-	# search mpi
-	find_package(MPI)
-	# MPI is required for parallel builds
-	if(MPI_FOUND)
+	if(BUILTIN_MPI)
 		add_definitions(-DUG_PARALLEL)
-		include_directories(${MPI_INCLUDE_PATH})
-		set(linkLibraries ${linkLibraries} ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
-	else(MPI_FOUND)
-		message(FATAL_ERROR "MPI not found. Please set PARALLEL to OFF (run cmake -DPARALLEL=OFF ...)")
-	endif(MPI_FOUND)
+		set(MPI_FOUND YES)
+	else(BUILTIN_MPI)
+		# search mpi
+		find_package(MPI)
+		# MPI is required for parallel builds
+		if(MPI_FOUND)
+			add_definitions(-DUG_PARALLEL)
+			include_directories(${MPI_INCLUDE_PATH})
+			set(linkLibraries ${linkLibraries} ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
+		else(MPI_FOUND)
+			message(FATAL_ERROR "MPI not found. Please set PARALLEL to OFF (run cmake -DPARALLEL=OFF ...)")
+		endif(MPI_FOUND)
+	endif(BUILTIN_MPI)
 endif(PARALLEL)
 
+if(HERMIT_EXPERIMENTAL)
+	add_definitions(-DUG_PARALLEL)
+	add_definitions(-DBLAS_AVAILABLE)
+	add_definitions(-DLAPACK_AVAILABLE)
+	message(STATUS "Info: Using experimental stuff on Hermit.")
+endif(HERMIT_EXPERIMENTAL)
 
 ########################################
 # JNI
