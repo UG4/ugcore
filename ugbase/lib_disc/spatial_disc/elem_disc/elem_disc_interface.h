@@ -323,26 +323,6 @@ class IElemDisc
 		bool ass_rhs_elem(LocalVector& rhs)
 			{return (this->*(m_vElemRHSFct[m_id]))(rhs);}
 
-	/// checks the SQP tolerance for an element
-	/**
-	 * This function checks if the linearized constraint within
-	 * a SQP-method is fulfilled for a given tolerance.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
-	 */
-		template <typename TElem>
-		bool sqp_check_tolerance_elem(TElem* elem, const LocalVector& u); // number& sqp_error);
-
-	/// updates the SQP variables for an element
-	/**
-	 * This function updates the variables due to the linearized
-	 * constraint within a SQP-method.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
-	 */
-		template <typename TElem>
-		bool sqp_variables_update_elem(TElem* elem, const LocalVector& u);
-
 	/// Virtual destructor
 		virtual ~IElemDisc() {}
 
@@ -387,10 +367,6 @@ class IElemDisc
 	// 	types of right hand side assemble functions
 		typedef bool (T::*ElemRHSFct)(LocalVector& d);
 
-	// 	types of sqp function pointers
-		typedef bool (T::*SQPCheckToleranceElemFct)(const LocalVector& u);
-		typedef bool (T::*SQPVariablesUpdateElemFct)(const LocalVector& u);
-
 	protected:
 	// 	register the functions
 		template <typename TAssFunc> void set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func);
@@ -405,9 +381,6 @@ class IElemDisc
 		template <typename TAssFunc> void set_ass_dA_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_ass_dM_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
-
-		template <typename TAssFunc> void set_sqp_check_tolerance_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_sqp_variables_update_elem_fct(ReferenceObjectID id, TAssFunc func);
 
 	private:
 	// 	timestep function pointers
@@ -429,10 +402,6 @@ class IElemDisc
 
 	// 	Rhs function pointers
 		ElemRHSFct 	m_vElemRHSFct[NUM_REFERENCE_OBJECTS];
-
-	// 	SQP function pointers
-		SQPCheckToleranceElemFct	m_vSQPCheckToleranceElemFct[NUM_REFERENCE_OBJECTS];
-		SQPVariablesUpdateElemFct	m_vSQPVariablesUpdateElemFct[NUM_REFERENCE_OBJECTS];
 
 	protected:
 	/// current Geometric Object

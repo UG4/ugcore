@@ -133,24 +133,6 @@ void RegisterLibDiscDomain__Algebra_Domain(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "DirichletBoundary", dimAlgTag);
 	}
 
-/*
-//	SQPMethod
-	{
-		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef DomainDiscretization<TDomain, TAlgebra> TBase;
-		typedef SQPMethod<TDomain, TAlgebra> T;
-		string name = string("SQPMethod").append(dimAlgSuffix);
-		reg.add_class_<T,TBase>(name, grp)
-			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("ApproximationSpace")
-			.add_method("set_tolerance_check", &T::set_tolerance_check)
-			.add_method("init", &T::init)
-			.add_method("prepare", &T::prepare)
-			.add_method("check_tolerance", &T::check_tolerance)
-			.add_method("update_variables", &T::update_variables);
-		reg.add_class_to_group(name, "SQPMethod", dimAlgSuffix);
-	}
-*/
-
 //	IDiscretizationItem
 	{
 		typedef IDiscretizationItem<TDomain, TAlgebra> T;
