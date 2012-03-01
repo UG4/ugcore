@@ -113,10 +113,13 @@ class IApproximationSpace
 		void print_local_dof_statistic() const {print_local_dof_statistic(1);}
 
 	///	initializes all level dof distributions
-		void init_level();
+		void init_levels();
 
 	///	initializes all surface dof distributions
-		void init_surface();
+		void init_surfaces();
+
+	///	initializes all top surface dof distributions
+		void init_top_surface();
 
 		// \todo: should be removed an handled automatically
 	///	defragments the index set of the DoF Distribution

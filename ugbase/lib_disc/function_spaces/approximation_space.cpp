@@ -100,13 +100,13 @@ IApproximationSpace::level_dof_distribution(int level) const
 	return m_vLevDD[level];
 }
 
-void IApproximationSpace::init_level()
+void IApproximationSpace::init_levels()
 {
 	if(num_levels() > 0)
 		level_dd_required(0, num_levels()-1);
 }
 
-void IApproximationSpace::init_surface()
+void IApproximationSpace::init_surfaces()
 {
 	int numLevGlobal = num_levels();
 #ifdef UG_PARALLEL
@@ -119,6 +119,11 @@ void IApproximationSpace::init_surface()
 		surf_dd_required(0, numLevGlobal-1);
 		top_surf_dd_required();
 	}
+}
+
+void IApproximationSpace::init_top_surface()
+{
+		top_surf_dd_required();
 }
 
 void IApproximationSpace::defragment()
@@ -299,7 +304,7 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 	UG_LOG(":\n");
 
 //	check, what to print
-	bool bPrintSurface = !m_vSurfDD.empty() && m_spTopSurfDD.is_valid();
+	bool bPrintSurface = !m_vSurfDD.empty() || m_spTopSurfDD.is_valid();
 	bool bPrintLevel = !m_vLevDD.empty();
 
 //	Write header line
@@ -349,8 +354,8 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 	{
 		UG_LOG(	"   No DoFs distributed yet (done automatically). \n"
 				"   In order to force DoF creation use \n"
-				"   ApproximationSpace::init_level() or "
-				"ApproximationSpace::init_surface().\n\n");
+				"   ApproximationSpace::init_levels() or "
+				"ApproximationSpace::init_surfaces().\n\n");
 	}
 
 #ifdef UG_PARALLEL

@@ -222,8 +222,8 @@ print("#ANALYZER INFO: grid = " .. gridName)
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
---approxSpace:init_level() 
-approxSpace:init_surface() -- init surface for DoF statistic before execution of solver
+--approxSpace:init_levels() 
+approxSpace:init_surfaces() -- init surface for DoF statistic before execution of solver
 approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
 
