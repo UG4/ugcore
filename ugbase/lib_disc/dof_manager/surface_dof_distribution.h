@@ -21,7 +21,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 	///	constructor
 		SurfaceDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPatt,
 		                       SmartPtr<SurfaceLevelView> spSurfLevelView,
-		                       int level
+		                       int level, bool bGrouped
 #ifdef UG_PARALLEL
 		                       , DistributedGridManager* pDistGridMgr
 #endif

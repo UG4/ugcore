@@ -17,12 +17,12 @@ namespace ug{
 SurfaceDoFDistribution::
 SurfaceDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPatt,
                        SmartPtr<SurfaceLevelView> spSurfLevelView,
-                       int level
+                       int level, bool bGrouped
 #ifdef UG_PARALLEL
                        , DistributedGridManager* pDistGridMgr
 #endif
 			)
-		:	MGDoFDistribution(spMGSH, fctPatt), m_spSurfLevelView(spSurfLevelView),
+		:	MGDoFDistribution(spMGSH, fctPatt, bGrouped), m_spSurfLevelView(spSurfLevelView),
 		 	m_level(level)
 #ifdef UG_PARALLEL
 			, m_pDistGridMgr(pDistGridMgr)

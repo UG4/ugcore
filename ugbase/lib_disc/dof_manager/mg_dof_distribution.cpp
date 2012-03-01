@@ -237,8 +237,9 @@ void ComputeOrientationOffset<Face>
 ////////////////////////////////////////////////////////////////////////////////
 
 MGDoFDistribution::
-MGDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPatt)
-	: m_bGrouped(false), m_spMGSH(spMGSH),
+MGDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPatt,
+                  bool bGrouped)
+	: m_bGrouped(bGrouped), m_spMGSH(spMGSH),
 	  m_rFctPatt(fctPatt), m_rMultiGrid(*m_spMGSH->multi_grid())
 {
 	check_subsets();

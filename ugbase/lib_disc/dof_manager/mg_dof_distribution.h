@@ -70,7 +70,9 @@ class MGDoFDistribution : public GridObserver
 		typedef MultiIndex<2> multi_index_type;
 
 	public:
-		MGDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPatt);
+		MGDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH,
+		                  FunctionPattern& fctPatt,
+		                  bool bGrouped);
 
 		///	returns the multigrid
 		const MultiGrid& multi_grid() const {return m_rMultiGrid;}
@@ -111,9 +113,6 @@ class MGDoFDistribution : public GridObserver
 
 		/// returns true if the discrete function nr_fct is defined everywhere
 		bool is_def_everywhere(size_t fct) const {return m_rFctPatt.is_def_everywhere(fct);}
-
-		///	set grouped
-		void set_grouping(bool bGrouped) {m_bGrouped = bGrouped;}
 
 		///	returns if dofs are grouped
 		bool grouped() const {return m_bGrouped;}
