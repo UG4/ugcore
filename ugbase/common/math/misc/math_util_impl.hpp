@@ -273,15 +273,27 @@ number DistancePointToTriangle(vector_t& vOut, number& bc1Out, number& bc2Out,
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
+number DistancePointToPlane(const vector_t& v, const vector_t& p,
+							const vector_t& n)
+{
+	vector_t vTmp;
+	ProjectPointToPlane(vTmp, v, p, n);
+	return VecDistance(vTmp, v);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
 void ProjectPointToPlane(vector_t& vOut, const vector_t& v,
 						const vector_t& p, const vector_t& n)
 {
 //	the vector from p to v
-	vector_t t;
+	vector_t t, norm;
 	VecSubtract(t, v, p);
 
+	VecNormalize(norm, n);
+
 //	scale the normal with the dot-product with the direction
-	VecScale(t, n, VecDot(n, t));
+	VecScale(t, norm, VecDot(norm, t));
 
 //	subtract the scaled normal from the original point
 	VecSubtract(vOut, v, t);
@@ -295,7 +307,7 @@ bool RayPlaneIntersection(vector_t& vOut, number& tOut,
 {
 //	solve: t = (p-rayFrom)*n / rayDir*n
 	number denom = VecDot(rayDir, n);
-	if(fabs(denom) < SMALL)
+	if(fabs(denom) < SMALL_SQ)
 		return false;
 	
 //	calculate intersection parameter

@@ -17,25 +17,48 @@
 
 namespace ug
 {
-/*
-bool DEBUG_SAVE_ENABLED = false;
+
+class DelaunayDebugSaver
+{
+	public:
+		static DelaunayDebugSaver& inst()
+		{
+			static DelaunayDebugSaver dds;
+			return dds;
+		}
+
+		void save(Grid& g, const char* msg)
+		{
+			if(m_saveEnabled){
+				std::stringstream ss;
+				ss << "dbg" << m_counter++ << ".ugx";
+
+				UG_LOG(msg << ": debug-save to " << ss.str() << std::endl);
+				SubsetHandler sh(g);
+				AssignGridToSubset(g, sh, 0);
+				SaveGridToFile(g, sh, ss.str().c_str());
+			}
+		}
+
+		void enable_save(bool enable = true)	{m_saveEnabled = enable;}
+
+	private:
+		DelaunayDebugSaver() : m_saveEnabled(false), m_counter(0) {}
+
+		bool	m_saveEnabled;
+		int		m_counter;
+};
+
+inline void EnableDelaunayDebugSave(bool enable = true)
+{
+	DelaunayDebugSaver::inst().enable_save(enable);
+}
 
 inline void DelaunayDebugSave(Grid& g, const char* msg)
 {
-
-	static int counter = 0;
-
-	if(DEBUG_SAVE_ENABLED){
-		std::stringstream ss;
-		ss << "dbg" << counter ++ << ".ugx";
-
-		UG_LOG(msg << ": debug-save to " << ss.str() << std::endl);
-		SubsetHandler sh(g);
-		AssignGridToSubset(g, sh, 0);
-		SaveGridToFile(g, sh, ss.str().c_str());
-	}
+	DelaunayDebugSaver::inst().save(g, msg);
 }
-*/
+
 
 /** This class intended for internal use in delaunay related algorithms.
  *
@@ -271,11 +294,10 @@ class DelaunayInfo : public GridObserver
 		{
 			m_aaMarkedEDGE[e] = 0;
 
-		//	new vertices created on constrained edges shall not be marked
 			if(pParent){
 				if(pParent->base_object_type_id() == EDGE){
-					if(m_aaMarkedEDGE[static_cast<EdgeBase*>(pParent)])
-						m_aaMarkedEDGE[e] = 2;
+					if(is_constrained(static_cast<EdgeBase*>(pParent)))
+						mark_as_constrained(e);
 				}
 			}
 		}
@@ -284,8 +306,15 @@ class DelaunayInfo : public GridObserver
 									GeometricObject* pParent,
 									bool replacesParent)
 		{
-		//	newly created faces are automatically marked,
-			mark(f);
+		//	if the new face has a parent (it should always have one if a split
+		//	was performed), and if that parent is marked, then we'll mark the new
+		//	face.
+			if(pParent){
+				if(pParent->base_object_type_id() == FACE){
+					if(is_marked(static_cast<Face*>(pParent)))
+						mark(f);
+				}
+			}
 		}
 
 		virtual void face_to_be_erased(Grid* grid, Face* f, Face* replacedBy)
@@ -432,7 +461,7 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 	Face* nbrFaces[2];
 	vector<EdgeBase*> edges;
 
-
+//UG_LOG("MakeDelaunay...\n");
 	TAAPos& aaPos = info.position_accessor();
 
 	while(info.candidates_left()){
@@ -460,9 +489,9 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 
 			number r1Sq = VecDistanceSq(cc1, v0);
 			number r2Sq = VecDistanceSq(cc2, v0);
-/*
-			UG_LOG("checking edge: " << CalculateCenter(e, aaPos) << ": "
-					<< "cc1_ok: " << cc1_ok << ", cc2_ok: " << cc2_ok
+
+//			UG_LOG("  checking edge: " << CalculateCenter(e, aaPos) << "\n");
+/*					<< "cc1_ok: " << cc1_ok << ", cc2_ok: " << cc2_ok
 					<< ", cc1: " << cc1 << ", cc2: " << cc2
 					<< ", r1: " << sqrt(r1Sq) << ", r2: " << sqrt(r2Sq) << endl);
 */
@@ -524,7 +553,7 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 
 			e = eNew;
 
-			//DelaunayDebugSave(grid, "Edge Swapped");
+			DelaunayDebugSave(grid, "Edge Swapped");
 
 		//	all edges of associated triangles are candidates again (except e)
 			GetAssociatedFaces(nbrFaces, grid, e, 2);
@@ -541,6 +570,28 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 		}
 	}
 	return true;
+}
+
+inline
+bool DelaunayLineLineIntersection(vector3& vOut,
+								const vector3& lineFrom, const vector3& lineTo,
+								const vector3& edgeVrt1, const vector3& edgeVrt2,
+								vector3 areaNormal)
+{
+	number t;
+
+	vector3 lineDir, edgeDir, planeNormal;
+	VecSubtract(lineDir, lineTo, lineFrom);
+	VecNormalize(lineDir, lineDir);
+	VecSubtract(edgeDir, edgeVrt2, edgeVrt1);
+	VecNormalize(edgeDir, edgeDir);
+	VecCross(planeNormal, edgeDir, areaNormal);
+	if(RayPlaneIntersection(vOut, t, lineFrom, lineDir, edgeVrt1, planeNormal)){
+		if(t > 0 && VecDistanceSq(lineFrom, vOut) < VecDistanceSq(lineFrom, lineTo) + SMALL_SQ){
+			return true;
+		}
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -625,13 +676,25 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 
 	//	while there are faces left which have to be improved
 		while(info.classified_faces_left()){
-			/*if(stepCount == 12417){
-				DEBUG_SAVE_ENABLED = true;
+			++stepCount;
+			/*if(stepCount == 488){
+				EnableDelaunayDebugSave();
 			}*/
 
 			Face* f = info.pop_classified_face();
 			if(f->num_vertices() != 3)
 				continue;
+
+		//todo: the normal is only required for 3d-types. indeed this will crash
+		//		for 2d. This should be moved to a Ray-Line_Intersection3d test.
+			vector3 faceNormal;
+			CalculateNormal(faceNormal, f, aaPos);
+		//	we can't operate on degenerated faces. Let's hope, that this face
+		//	will improve during improvement of some non-degenerated face.
+			if(VecLengthSq(faceNormal) < SMALL)
+				return false;
+
+			vector_t faceCenter = CalculateCenter(f, aaPos);
 
 		//	if two or more edges of this triangle are constrained, we'll ignore
 		//	it to avoid infinite recursion.
@@ -652,7 +715,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 
 			if(!TriangleCircumcenter(cc, v0, v1, v2)){
 				UG_LOG("Couldn't calculate triangle-circumcenter. Expect unexpected results!\n");
-				UG_LOG("triangle: " << CalculateCenter(f, aaPos) << "\n");
+				UG_LOG("triangle: " << faceCenter << "\n");
 				//SaveGridToFile(grid, "delaunay_debug.ugx");
 				return false;
 				//continue;
@@ -663,7 +726,9 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 		//	traversing edges in a circle, which does not contain any vertices.
 			EdgeBase* lastTraversedEdge = NULL;
 			Face* curFace = f;
-			vector_t startPos = CalculateCenter(f, aaPos);
+			//vector_t startPos = CalculateCenter(f, aaPos);
+			vector_t rayDir;
+			VecSubtract(rayDir, cc, faceCenter);
 			VertexBase* pointInserted = NULL;
 
 			while(pointInserted == NULL){
@@ -679,19 +744,25 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 					if(e == lastTraversedEdge)
 						continue;
 
-					vector_t a, b;
-				//todo:	add a wrapper LineLineIntersection for 2d and 3d!
-					LineLineIntersection3d(a, b, startPos, cc,
-									aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
-
-					if(VecDistanceSq(a, b) < SMALL_SQ)
+					vector_t a;
+					if(DelaunayLineLineIntersection(a, faceCenter, cc,
+							aaPos[e->vertex(0)], aaPos[e->vertex(1)], faceNormal))
 					{
 					//	this edge will be traversed next.
 						nextEdge = e;
 					//	check whether e has to be split, to avoid bad aspect ratios
-						split = (VecDistanceSq(startPos, cc) < VecDistanceSq(startPos, b) + SMALL_SQ);
+						split = (VecDistanceSq(faceCenter, a) > VecDistanceSq(faceCenter, cc) - SMALL_SQ);
 						break;
-					}
+					}/*
+					// This else-condition is not necessary - if they are parallel, that's not a problem...
+					else{
+						UG_LOG("Ray-Plane intersection failed in step " << stepCount << "... aborting.\n");
+						UG_LOG("  curTri: " << CalculateCenter(curFace, aaPos)
+								<< ", curEdge: " << CalculateCenter(e, aaPos) << endl);
+						UG_LOG("  face-normal: " << faceNormal << ", plane-normal: " << planeNormal
+								<< "  ray-dir: " << rayDir << endl);
+						return false;
+					}*/
 				}
 
 				if(nextEdge){
@@ -720,6 +791,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 						VertexBase* vrt0 = nextEdge->vertex(0);
 						VertexBase* vrt1 = nextEdge->vertex(1);
 						number radiusSq = VecDistanceSq(center, aaPos[vrt0]);
+						number radius = sqrt(radiusSq);
 						pointInserted = SplitEdge<Vertex>(grid, nextEdge, false);
 
 						if(isConstrained){
@@ -804,8 +876,9 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 								for(size_t i_edge = 0; i_edge < closeEdges.size(); ++i_edge){
 									vector_t& ev0 = aaPos[closeEdges[i_edge]->vertex(0)];
 									vector_t& ev1 = aaPos[closeEdges[i_edge]->vertex(1)];
-									vector_t a, b;
-									if(LineLineIntersection3d(a, b, center, v, ev0, ev1)){
+									vector_t a;
+									if(DelaunayLineLineIntersection(a, faceCenter, v, ev0, ev1, faceNormal)){
+									//if(LineLineIntersection3d(a, b, center, v, ev0, ev1)){
 										//UG_LOG("  intersection!\n");
 										intersects = true;
 										break;
@@ -866,6 +939,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 
 								if(!TriangleFill_SweepLine(faceIndices, posPolyChain, edgeChain)){
 									UG_LOG("Sweepline failed in step " << stepCount << "... aborting\n");
+									UG_LOG("  While examining face " << faceCenter << endl);
 									return false;
 								}
 								//UG_LOG("5");
@@ -883,7 +957,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 							//	now erase vrt
 								grid.erase(vrt);
 
-								//DelaunayDebugSave(grid, "After TriangleFill");
+								DelaunayDebugSave(grid, "After TriangleFill");
 							}
 
 							//UG_LOG("adding new candidates\n");
@@ -903,11 +977,20 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 									if(!grid.is_marked(e)){
 									//	check whether the edge intersects the critical circle
 										if(DistancePointToLine(center, aaPos[e->vertex(0)], aaPos[e->vertex(1)])
-											< radiusSq)
+											< radius)
 										{
 										//	if the edge is not a constrained edge, we'll make it a candidate
-											if(!info.is_constrained(e))
-												info.push_candidate(e);
+											if(!info.is_constrained(e)){
+											//	we'l only mark it, if both associated faces are marked.
+												Face* nbrs[2];
+												if(GetAssociatedFaces(nbrs, grid, e, 2) == 2){
+													if(info.is_marked(nbrs[0])
+													   && info.is_marked(nbrs[1]))
+													{
+														info.push_candidate(e);
+													}
+												}
+											}
 
 											grid.mark(e);
 
@@ -946,7 +1029,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 				//UG_LOG("erasing old face\n");
 					grid.erase(curFace);
 
-					//DelaunayDebugSave(grid, "After InsertPoint");
+					DelaunayDebugSave(grid, "After InsertPoint");
 
 					pointInserted = vrt;
 				}
@@ -971,14 +1054,13 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 					//UG_LOG("redelaunaylizing\n");
 						if(!MakeDelaunay(info)){
 							UG_LOG("Make Delaunay failed in step " << stepCount << ".\n");
+							UG_LOG("  While examining face " << faceCenter << endl);
 							return false;
 						}
 					//UG_LOG("adaption step completed!\n");
 				}
 			}
 
-
-			++stepCount;
 /*
 		//	check whether an illegal triangle has been inserted
 			for(TriangleIterator iter = grid.begin<Triangle>();

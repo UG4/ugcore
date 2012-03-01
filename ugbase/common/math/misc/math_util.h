@@ -211,6 +211,12 @@ number DistancePointToTriangle(vector_t& vOut, number& bc1Out, number& bc2Out,
 							const vector_t& v3, const vector_t& n);
 
 ////////////////////////////////////////////////////////////////////////
+///	Calculates the distance between the specified point and the plane.
+template <class vector_t>
+number DistancePointToPlane(const vector_t& v, const vector_t& p,
+							const vector_t& n);
+
+////////////////////////////////////////////////////////////////////////
 ///	projects v onto the plane defined by the point p and the planes normal n.
 /**	The result is written to vOut.*/
 template <class vector_t>

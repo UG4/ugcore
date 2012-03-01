@@ -32,6 +32,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/geom_obj_util/misc_util.cpp
 					algorithms/geom_obj_util/vertex_util.cpp
 					algorithms/geom_obj_util/volume_util.cpp
+					algorithms/grid_generation/icosahedron.cpp
 					algorithms/grid_generation/tetrahedralization.cpp
 					algorithms/grid_generation/triangle_fill.cpp
 					algorithms/grid_generation/triangle_fill_sweep_line.cpp

@@ -42,7 +42,7 @@ class IRefinementCallback
 
 ////////////////////////////////////////////////////////////////////////
 ///	calculates new positions of vertices through linear interpolation.
-/**	Make sure to initialise the callback correctly. Use the same grid
+/**	Make sure to initialize the callback correctly. Use the same grid
  *	on which the refinement-operations will be performed. Make sure
  *	that aPos (given in the constructor) is attached to the vertices
  *	of the grid.
@@ -71,6 +71,48 @@ class RefinementCallbackLinear : public IRefinementCallback
 		Grid* 										m_pGrid;
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
 };
+
+
+////////////////////////////////////////////////////////////////////////
+///	calculates new positions of vertices by projecting on a sphere
+/**	Make sure to initialize the callback correctly. Use the same grid
+ *	on which the refinement-operations will be performed. Make sure
+ *	that aPos (given in the constructor) is attached to the vertices
+ *	of the grid.
+ *
+ *	An uninitialized refinement-callback may not be used during refinement.
+ */
+template <class TAPosition>
+class RefinementCallbackSphere : public IRefinementCallback
+{
+	public:
+		RefinementCallbackSphere();
+
+	///	make sure that aPos is attached to the vertices of the grid.
+		RefinementCallbackSphere(Grid& grid, TAPosition& aPos,
+								 const typename TAPosition::ValueType& center,
+								 number radius);
+
+		virtual ~RefinementCallbackSphere();
+
+		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
+		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
+		virtual void new_vertex(VertexBase* vrt, Face* parent);
+		virtual void new_vertex(VertexBase* vrt, Volume* parent);
+
+	protected:
+		template <class TElem>
+		void perform_projection(VertexBase* vrt, TElem* parent);
+
+	protected:
+		typedef typename TAPosition::ValueType		pos_type;
+
+		Grid* 										m_pGrid;
+		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
+		pos_type									m_center;
+		number										m_radius;
+};
+
 
 ////////////////////////////////////////////////////////////////////////
 ///	calculates new positions by cutting parent edges with a plane

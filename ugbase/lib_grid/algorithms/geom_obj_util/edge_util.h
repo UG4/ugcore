@@ -75,8 +75,6 @@ UG_API bool LiesOnBoundary(Grid& grid, EdgeBase* e);
 //	GetAssociatedFaces
 ///	writes associated faces of e to facesOut.
 /**
- * This method uses ug::Grid::mark.
- *
  * Associated faces of e are written to facesOut.
  * facesOut has to be an array of size maxNumFaces.
  * If there are more then maxNumFaces associated faces, they are not

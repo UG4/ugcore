@@ -171,24 +171,27 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 	else
 	{
 	//	we're using grid::mark for maximal speed.
-		grid.begin_marking();
+		//grid.begin_marking();
 	//	mark the end-points of the edge
-		grid.mark(e->vertex(0));
-		grid.mark(e->vertex(1));
+		//grid.mark(e->vertex(0));
+		//grid.mark(e->vertex(1));
+
+		VertexBase* v0 = e->vertex(0);
+		VertexBase* v1 = e->vertex(1);
 
 	//	we have to find the triangles 'by hand'
 	//	iterate over all associated faces of vertex 0
 		int counter = 0;
-		VertexBase* v = e->vertex(0);
-		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v);
-		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
+		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v0);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v0);
 			iter != iterEnd; ++iter)
 		{
 			Face* tf = *iter;
 			uint numVrts = tf->num_vertices();
 			int numMarked = 0;
 			for(uint i = 0; i < numVrts; ++i){
-				if(grid.is_marked(tf->vertex(i)))
+				VertexBase* v = tf->vertex(i);
+				if((v == v0) || (v == v1))
 					numMarked++;
 			}
 			
@@ -201,7 +204,7 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 			}
 		}
 	//	done with marking
-		grid.end_marking();
+		//grid.end_marking();
 
 		return counter;
 	}

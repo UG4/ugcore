@@ -1075,7 +1075,9 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 				UG_LOG("exiting since current vertex was already on the stack: " << *cur->vrtPtr);
 				UG_LOG(" with index: " << cur->vrtInd << "\n");
 				UG_LOG("branchIndex: " << branchInd << "\n");
-				UG_LOG("ERROR in TriangleFill_SweepLine: Algorithm failed. Please contact the developer.\n");
+				UG_LOG("ERROR in TriangleFill_SweepLine: Algorithm failed."
+						" Make sure that your geometry does not contain multiple vertices"
+						" at the same position (invoke RemoveDoubles on the whole selection)!\n");
 				return false;
 				break;
 			}
@@ -1133,12 +1135,14 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 						vector2 dir;
 						VecSubtract(dir, *v1->vrtPtr, *cur->vrtPtr);
 						vector2 norm(dir.y, -dir.x);
+						VecNormalize(norm, norm);
 						VecSubtract(dir, *v2->vrtPtr, *v1->vrtPtr);
+						VecNormalize(dir, dir);
 						number dot = VecDot(dir, norm);
 
 					//	the result has to be interpreted depending on the branch
 						if(curBranchInd == 0){
-							if(dot > 0){
+							if(dot > 0.0001){
 							//	create the triangle
 								facesOut.push_back(cur->vrtInd);
 								facesOut.push_back(v2->vrtInd);
@@ -1153,7 +1157,7 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 							}
 						}
 						else{
-							if(dot < 0){
+							if(dot < -0.0001){
 							//	create the triangle
 								facesOut.push_back(cur->vrtInd);
 								facesOut.push_back(v1->vrtInd);

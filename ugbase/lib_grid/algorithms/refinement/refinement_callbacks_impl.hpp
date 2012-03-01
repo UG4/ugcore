@@ -84,6 +84,88 @@ new_vertex(VertexBase* vrt, Volume* parent)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
+RefinementCallbackSphere<TAPosition>::
+RefinementCallbackSphere() :
+	m_pGrid(NULL)
+{
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+RefinementCallbackSphere<TAPosition>::
+RefinementCallbackSphere(Grid& grid, TAPosition& aPos,
+						 const typename TAPosition::ValueType& center,
+						 number radius) :
+	m_pGrid(&grid),
+	m_center(center),
+	m_radius(radius)
+{
+//	we have to make sure that aPos is attached at the grid.
+//	This is important to avoid crashes later on.
+	if(!grid.has_vertex_attachment(aPos))
+		grid.attach_to_vertices(aPos);
+	m_aaPos.access(grid, aPos);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+RefinementCallbackSphere<TAPosition>::
+~RefinementCallbackSphere()
+{
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+void RefinementCallbackSphere<TAPosition>::
+new_vertex(VertexBase* vrt, VertexBase* parent)
+{
+	perform_projection(vrt, parent);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+void RefinementCallbackSphere<TAPosition>::
+new_vertex(VertexBase* vrt, EdgeBase* parent)
+{
+	perform_projection(vrt, parent);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+void RefinementCallbackSphere<TAPosition>::
+new_vertex(VertexBase* vrt, Face* parent)
+{
+	perform_projection(vrt, parent);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+void RefinementCallbackSphere<TAPosition>::
+new_vertex(VertexBase* vrt, Volume* parent)
+{
+	perform_projection(vrt, parent);
+}
+
+template <class TAPosition>
+template <class TElem>
+void RefinementCallbackSphere<TAPosition>::
+perform_projection(VertexBase* vrt, TElem* parent)
+{
+	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+
+//	calculate the new position by linear interpolation and project that point
+//	onto the sphere.
+	pos_type v;
+	VecSubtract(v, CalculateCenter(parent, m_aaPos), m_center);
+	VecNormalize(v, v);
+	VecScale(v, v, m_radius);
+	VecAdd(m_aaPos[vrt], m_center, v);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
 RefinementCallbackSubdivBoundary<TAPosition>::
 RefinementCallbackSubdivBoundary()
 {
