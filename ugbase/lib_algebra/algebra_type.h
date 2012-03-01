@@ -66,7 +66,7 @@ class DefaultAlgebra
 {
 	public:
 		static AlgebraType get() {return m_default;}
-		static void set(AlgebraType& defaultType) {m_default = defaultType;}
+		static void set(const AlgebraType& defaultType) {m_default = defaultType;}
 
 	protected:
 		static AlgebraType m_default;
