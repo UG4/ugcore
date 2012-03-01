@@ -146,6 +146,10 @@ class IApproximationSpace
 		template <typename TDD>
 		void print_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const;
 
+	///	prints statistic about DoF Distribution
+		template <typename TDD>
+		void print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const;
+
 	///	sets the distributed grid manager
 #ifdef UG_PARALLEL
 		void set_dist_grid_mgr(DistributedGridManager* pDistGrdMgr) {m_pDistGridMgr = pDistGrdMgr;}

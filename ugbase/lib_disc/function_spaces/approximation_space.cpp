@@ -169,52 +169,239 @@ print_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 	}
 }
 
+#ifdef UG_PARALLEL
+static size_t NumIndices(const IndexLayout& Layout)
+{
+	size_t sum = 0;
+	for(IndexLayout::const_iterator iter = Layout.begin();
+			iter != Layout.end(); ++iter)
+		sum += Layout.interface(iter).size();
+	return sum;
+}
+#endif
+
+template <typename TDD>
+void IApproximationSpace::
+print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
+{
+//	Get Process communicator;
+	pcl::ProcessCommunicator pCom = dd->process_communicator();
+
+//	hack since pcl does not support much constness
+	TDD* nonconstDD = const_cast<TDD*>(dd.get_impl());
+
+//	compute local dof numbers of all masters; this the number of all dofs
+//	minus the number of all slave dofs (double counting of slaves can not
+//	occur, since each slave is only slave of one master), minus the number of
+//	all vertical master dofs (double counting can occure, since a vertical master
+//	can be in a horizontal slave interface.
+//	Therefore: 	if there are no vert. master dofs, we can simply calculate the
+//				number of DoFs by counting. If there are vert. master dofs
+//				we need to remove doubles when counting.
+	int numMasterDoF;
+	if(NumIndices(dd->vertical_master_layout()) > 0)
+	{
+	//	create vector of vertical masters and horiz. slaves, since those are
+	//	not reguarded as masters on the dd. All others are masters. (Especially,
+	//	also vertical slaves are masters w.r.t. computing like smoothing !!)
+		std::vector<IndexLayout::Element> vIndex;
+		CollectElements(vIndex, nonconstDD->vertical_master_layout());
+		CollectElements(vIndex, nonconstDD->slave_layout(), false);
+
+	//	sort vector and remove doubles
+		std::sort(vIndex.begin(), vIndex.end());
+		vIndex.erase(std::unique(vIndex.begin(), vIndex.end()),
+		                         vIndex.end());
+
+	//	now remove all horizontal masters, since they are still master though
+	//	in the vert master interface
+		std::vector<IndexLayout::Element> vIndex2;
+		CollectElements(vIndex2, nonconstDD->master_layout());
+		for(size_t i = 0; i < vIndex2.size(); ++i)
+			vIndex.erase(std::remove(vIndex.begin(), vIndex.end(), vIndex2[i]),
+			             vIndex.end());
+
+	//	the remaining DoFs are the "slaves"
+		numMasterDoF = dd->num_indices() - vIndex.size();
+	}
+	else
+	{
+	//	easy case: only subtract masters from slaves
+		numMasterDoF = dd->num_indices() - NumIndices(dd->slave_layout());
+	}
+
+//	global and local values
+//	we use unsigned long int here instead of size_t since the communication via
+//	mpi does not support the usage of size_t.
+	std::vector<unsigned long int> tNumGlobal, tNumLocal;
+
+//	write number of Masters on this process
+	tNumLocal.push_back(numMasterDoF);
+
+//	write local number of dof in a subset for all subsets. For simplicity, we
+//	only communicate the total number of dofs (i.e. master+slave)
+//	\todo: count slaves in subset and subtract them to get only masters
+	for(int si = 0; si < dd->num_subsets(); ++si)
+		tNumLocal.push_back(dd->num_indices(si));
+
+//	resize receive array
+	tNumGlobal.resize(tNumLocal.size());
+
+//	sum up over processes
+	if(!pCom.empty())
+	{
+		pCom.allreduce(&tNumLocal[0], &tNumGlobal[0], tNumGlobal.size(),
+		               PCL_DT_UNSIGNED_LONG, PCL_RO_SUM);
+	}
+	else if (pcl::GetNumProcesses() == 1)
+	{
+		for(size_t i = 0; i < tNumGlobal.size(); ++i)
+		{
+			tNumGlobal[i] = tNumLocal[i];
+		}
+	}
+	else
+	{
+		UG_LOG(" Unable to compute informations.");
+		return;
+	}
+
+//	Total number of DoFs (last arg of 'ConvertNumber()' ("precision") is total
+//  width - 4 (two for binary prefix, two for space and decimal point)
+	UG_LOG(std::setw(10) << ConvertNumber(tNumGlobal[0],10,6) <<" | ");
+
+//	Overall block size
+	const int blockSize = DefaultAlgebra::get().blocksize();
+	if(blockSize != AlgebraType::VariableBlockSize) {UG_LOG(std::setw(8)  << blockSize);}
+	else {UG_LOG("variable");}
+	UG_LOG("  | " );
+
+//	Subset informations
+	if(verboseLev>=1)
+	{
+		for(int si = 0; si < dd->num_subsets(); ++si)
+		{
+			UG_LOG( " (" << dd->subset_name(si) << ",");
+			UG_LOG(std::setw(8) << ConvertNumber(tNumGlobal[si+1],8,4) << ") ");
+		}
+	}
+}
+
+
 void IApproximationSpace::print_statistic(int verboseLev) const
 {
 //	Write info
-	UG_LOG("DoFDistribution");
+	UG_LOG("Statistic on DoF-Distribution");
 #ifdef UG_PARALLEL
-	UG_LOG(" on Process " << pcl::GetProcRank());
+	UG_LOG(" on process " << pcl::GetProcRank() <<
+	       " of " << pcl::GetNumProcesses() << " processes");
 #endif
 	UG_LOG(":\n");
 
-//	Write header line
-	UG_LOG("         |   Total   | BlockSize | ");
-	if(verboseLev >= 1) UG_LOG("(Subset, DoFs) ");
-	UG_LOG("\n");
+//	check, what to print
+	bool bPrintSurface = !m_vSurfDD.empty() && m_spTopSurfDD.is_valid();
+	bool bPrintLevel = !m_vLevDD.empty();
 
-//	Write Infos for Levels
-	UG_LOG("  Level  |\n");
-	for(size_t l = 0; l < m_vLevDD.size(); ++l)
+//	Write header line
+	if(bPrintLevel || bPrintSurface)
 	{
-		UG_LOG("  " << std::setw(5) << l << "  |");
-		print_statistic(level_dof_distribution(l), verboseLev);
-		UG_LOG(std::endl);
+		UG_LOG("         |   Total   | BlockSize | ");
+		if(verboseLev >= 1) UG_LOG("(Subset, DoFs) ");
+		UG_LOG("\n");
 	}
 
-//	done ?!
-	if(m_vSurfDD.empty() && !m_spTopSurfDD.is_valid()) return;
-
-//	Write Infos for Surface Grid
-	UG_LOG(" Surface |\n");
-
-	if(!m_vSurfDD.empty())
+//	Write Infos for Levels
+	if(bPrintLevel)
 	{
-		for(size_t l = 0; l < m_vSurfDD.size(); ++l)
+		UG_LOG("  Level  |\n");
+		for(size_t l = 0; l < m_vLevDD.size(); ++l)
 		{
 			UG_LOG("  " << std::setw(5) << l << "  |");
-			print_statistic(surface_dof_distribution(l), verboseLev);
+			print_statistic(level_dof_distribution(l), verboseLev);
 			UG_LOG(std::endl);
 		}
 	}
 
-	if(m_spTopSurfDD.is_valid())
+//	Write Infos for Surface Grid
+	if(bPrintSurface)
 	{
-		UG_LOG("     top |");
-		print_statistic(surface_dof_distribution(GridLevel::TOPLEVEL), verboseLev);
-		UG_LOG(std::endl);
+		UG_LOG(" Surface |\n");
+		if(!m_vSurfDD.empty())
+		{
+			for(size_t l = 0; l < m_vSurfDD.size(); ++l)
+			{
+				UG_LOG("  " << std::setw(5) << l << "  |");
+				print_statistic(surface_dof_distribution(l), verboseLev);
+				UG_LOG(std::endl);
+			}
+		}
+
+		if(m_spTopSurfDD.is_valid())
+		{
+			UG_LOG("     top |");
+			print_statistic(surface_dof_distribution(GridLevel::TOPLEVEL), verboseLev);
+			UG_LOG(std::endl);
+		}
 	}
 
+//	if nothing printed
+	if(!bPrintLevel && ! bPrintSurface)
+	{
+		UG_LOG(	"   No DoFs distributed yet (done automatically). \n"
+				"   In order to force DoF creation use \n"
+				"   ApproximationSpace::init_level() or "
+				"ApproximationSpace::init_surface().\n\n");
+	}
+
+#ifdef UG_PARALLEL
+//	only in case of more than 1 proc
+	if(pcl::GetNumProcesses() < 2) return;
+
+//	header
+	UG_LOG("Statistic on DoFDistribution on all Processes (m= master, s=slave):\n");
+
+//	Write header line
+	if(bPrintLevel || bPrintSurface)
+	{
+		UG_LOG("         |   Total   | BlockSize | ");
+		if(verboseLev >= 1) UG_LOG("(Subset, DoFs) ");
+		UG_LOG("\n");
+	}
+
+//	Write Infos for Levels
+	if(bPrintLevel)
+	{
+		UG_LOG("  Level  |\n");
+		for(size_t l = 0; l < m_vLevDD.size(); ++l)
+		{
+			UG_LOG("  " << std::setw(5) << l << "  |");
+			print_parallel_statistic(level_dof_distribution(l), verboseLev);
+			UG_LOG(std::endl);
+		}
+	}
+
+//	Write Infos for Surface Grid
+	if(bPrintSurface)
+	{
+		UG_LOG(" Surface |\n");
+		if(!m_vSurfDD.empty())
+		{
+			for(size_t l = 0; l < m_vSurfDD.size(); ++l)
+			{
+				UG_LOG("  " << std::setw(5) << l << "  |");
+				print_parallel_statistic(surface_dof_distribution(l), verboseLev);
+				UG_LOG(std::endl);
+			}
+		}
+
+		if(m_spTopSurfDD.is_valid())
+		{
+			UG_LOG("     top |");
+			print_parallel_statistic(surface_dof_distribution(GridLevel::TOPLEVEL), verboseLev);
+			UG_LOG(std::endl);
+		}
+	}
+#endif
 }
 
 void IApproximationSpace::
@@ -286,15 +473,6 @@ void IApproximationSpace::print_local_dof_statistic(int verboseLev) const
 }
 
 #ifdef UG_PARALLEL
-static size_t NumIndices(const IndexLayout& Layout)
-{
-	size_t sum = 0;
-	for(IndexLayout::const_iterator iter = Layout.begin();
-			iter != Layout.end(); ++iter)
-		sum += Layout.interface(iter).size();
-	return sum;
-}
-
 template <typename TDD>
 static void PrintLayoutStatistic(ConstSmartPtr<TDD> dd)
 {
