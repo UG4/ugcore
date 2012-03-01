@@ -265,8 +265,17 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 		template <typename TElem>
 		struct traits
 		{
+			typedef TElem geometric_object;
 			typedef typename geometry_traits<TElem>::iterator iterator;
 			typedef typename geometry_traits<TElem>::const_iterator const_iterator;
+		};
+
+		template <int dim>
+		struct dim_traits
+		{
+			typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+			typedef typename geometry_traits<geometric_base_object>::iterator iterator;
+			typedef typename geometry_traits<geometric_base_object>::const_iterator const_iterator;
 		};
 
 	public:

@@ -81,8 +81,17 @@ class IDDGridFunction : public IGridFunction
 		template <typename TElem>
 		struct traits
 		{
+			typedef typename TDD::template traits<TElem>::geometric_object geometric_object;
 			typedef typename TDD::template traits<TElem>::iterator iterator;
 			typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+		};
+
+		template <int dim>
+		struct dim_traits
+		{
+			typedef typename TDD::template dim_traits<dim>::geometric_base_object geometric_base_object;
+			typedef typename TDD::template dim_traits<dim>::iterator iterator;
+			typedef typename TDD::template dim_traits<dim>::const_iterator const_iterator;
 		};
 
 	///	type of multi indices
@@ -215,8 +224,17 @@ class GridFunction
 		template <typename TElem>
 		struct traits
 		{
+			typedef typename IDDGridFunction<TDD>::template traits<TElem>::geometric_object geometric_object;
 			typedef typename IDDGridFunction<TDD>::template traits<TElem>::iterator iterator;
 			typedef typename IDDGridFunction<TDD>::template traits<TElem>::const_iterator const_iterator;
+		};
+
+		template <int dim>
+		struct dim_traits
+		{
+			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::geometric_base_object geometric_base_object;
+			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::iterator iterator;
+			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::const_iterator const_iterator;
 		};
 
 	public:
