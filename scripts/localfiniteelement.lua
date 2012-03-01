@@ -150,7 +150,7 @@ convCheck:set_reduction(1e-12)
 --convCheck:set_verbose_level(true)
 
 -- create CG Solver
-solver = CG()
+solver = BiCGStab()
 ilu = ILU()
 solver:set_preconditioner(ilu)
 solver:set_convergence_check(convCheck)
