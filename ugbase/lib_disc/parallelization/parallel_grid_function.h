@@ -20,6 +20,13 @@ class ParallelGridFunction : public TGridFunction
 	public:
 		typedef ParallelGridFunction<TGridFunction> this_type;
 
+		template <typename TElem>
+		struct traits
+		{
+			typedef typename TGridFunction::template traits<TElem>::iterator iterator;
+			typedef typename TGridFunction::template traits<TElem>::const_iterator const_iterator;
+		};
+
 		// approximation space type
 		typedef typename TGridFunction::approximation_space_type approximation_space_type;
 

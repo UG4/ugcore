@@ -552,8 +552,8 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 		const int si = (*iter).first;
 		const std::vector<BNDNumberData>& userData = (*iter).second;
 
-		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dd->template begin<VertexBase>(si);
-		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dd->template end<VertexBase>(si);
+		typename TDD::template traits<VertexBase>::const_iterator iterBegin 	= dd->template begin<VertexBase>(si);
+		typename TDD::template traits<VertexBase>::const_iterator iterEnd 	= dd->template end<VertexBase>(si);
 
 	//	create Multiindex
 		std::vector<MultiIndex<2> >  multInd;
@@ -563,7 +563,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 		position_type corner;
 
 	//	loop vertices
-		for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
+		for(typename TDD::template traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
 		{
 		//	get vertex
 			VertexBase* vertex = *iter;
@@ -581,7 +581,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 				const size_t fct = userData[i].fct[0];
 
 			//	get multi indices
-				if(dd->template inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
+				if(dd->inner_multi_indices(vertex, fct, multInd) != 1)
 					return;
 
 				const size_t index = multInd[0][0];

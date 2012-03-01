@@ -540,13 +540,15 @@ void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
 					   this->num_levels()<<" in the MultiGrid.");
 
 //	if not yet MGLevelDD allocated
-	if(!m_spLevMGDD.is_valid())
+	if(!m_spLevMGDD.is_valid()){
 		m_spLevMGDD = SmartPtr<LevelMGDoFDistribution>
 					(new LevelMGDoFDistribution(this->m_spMGSH, *m_spFunctionPattern
 #ifdef UG_PARALLEL
 					                              ,m_pDistGridMgr
 #endif
 					));
+		m_spLevMGDD->set_grouping(m_bGrouped);
+	}
 
 //	resize level
 	if(m_vLevDD.size() < toLevel+1) m_vLevDD.resize(toLevel+1, NULL);
@@ -575,7 +577,7 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 //	allocate Level DD if needed
 	for(size_t lvl = fromLevel; lvl <= toLevel; ++lvl)
 	{
-		if(!m_vSurfDD[lvl].is_valid())
+		if(!m_vSurfDD[lvl].is_valid()){
 			m_vSurfDD[lvl] = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(
 									this->m_spMGSH, *m_spFunctionPattern, m_vSurfLevView[lvl], lvl
@@ -583,6 +585,8 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 					                              ,m_pDistGridMgr
 #endif
 									));
+			m_vSurfDD[lvl]->set_grouping(m_bGrouped);
+		}
 	}
 }
 
@@ -591,7 +595,7 @@ void IApproximationSpace::top_surf_dd_required()
 	top_surface_level_view_required();
 
 //	allocate Level DD if needed
-	if(!m_spTopSurfDD.is_valid())
+	if(!m_spTopSurfDD.is_valid()){
 		m_spTopSurfDD = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(
 									this->m_spMGSH, *m_spFunctionPattern, m_spTopSurfLevView, GridLevel::TOPLEVEL
@@ -599,6 +603,8 @@ void IApproximationSpace::top_surf_dd_required()
 					                              ,m_pDistGridMgr
 #endif
 									));
+		m_spTopSurfDD->set_grouping(m_bGrouped);
+	}
 }
 
 void IApproximationSpace::top_surface_level_view_required()
