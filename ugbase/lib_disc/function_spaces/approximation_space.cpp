@@ -7,6 +7,9 @@
 
 #include "approximation_space.h"
 #include "lib_disc/domain.h"
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#endif
 
 namespace ug{
 
@@ -189,6 +192,7 @@ template <typename TDD>
 void IApproximationSpace::
 print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 {
+#ifdef UG_PARALLEL
 //	Get Process communicator;
 	pcl::ProcessCommunicator pCom = dd->process_communicator();
 
@@ -290,6 +294,7 @@ print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 			UG_LOG(std::setw(8) << ConvertNumber(tNumGlobal[si+1],8,4) << ") ");
 		}
 	}
+#endif
 }
 
 
