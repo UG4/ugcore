@@ -103,6 +103,8 @@ void InitUG(int dim, const AlgebraType& algType)
 #ifdef UG_PARALLEL
 	UG_LOG("      Parallel Environment: Num Procs="<<pcl::GetNumProcesses()<<"\n");
 #endif
+
+	DefaultAlgebra::set(algType);
 }
 
 bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
