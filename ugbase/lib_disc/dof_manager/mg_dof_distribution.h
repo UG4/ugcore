@@ -407,7 +407,7 @@ class MGDoFDistribution : public GridObserver
 		std::vector<int> m_vMaxDimToOrderDoFs;
 
 	///	number Dofs for local DoF set and subelement of element
-		std::vector<MathMatrix<NUM_REFERENCE_OBJECTS,NUM_REFERENCE_OBJECTS> > m_vNumDoFOnSubelem;
+		std::vector<MathMatrix<NUM_REFERENCE_OBJECTS,NUM_REFERENCE_OBJECTS, int> > m_vNumDoFOnSubelem;
 
 	///	definition of function on subset
 		std::vector<std::vector<bool> > m_vvFctDefInSubset;
