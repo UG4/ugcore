@@ -119,8 +119,8 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 			.add_method("set_velocity", &T::set_velocity)
 			.add_method("set_source", &T::set_source)
 			.add_method("set_mass_scale", &T::set_mass_scale)
-			.add_method("get_concentration", &T::get_concentration)
-			.add_method("get_concentration_grad", &T::get_concentration_grad);
+			.add_method("value", &T::value)
+			.add_method("gradient", &T::gradient);
 		reg.add_class_to_group(name, "FV1ConstantEquation", dimTag);
 	}
 
@@ -137,12 +137,12 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 			.add_method("set_quad_order_scv", &T::set_quad_order_scv)
 			.add_method("set_diffusion_tensor", &T::set_diffusion, "", "Diffusion")
 			.add_method("set_velocity_field", &T::set_velocity, "", "Velocity Field")
-			.add_method("set_reaction", &T::set_reaction, "", "Reaction")
+			.add_method("set_reaction_rate", &T::set_reaction_rate, "", "Reaction Rate")
 			.add_method("set_source", &T::set_source, "", "Source")
 			.add_method("set_mass_scale", &T::set_mass_scale, "", "Mass Scale")
 			.add_method("set_upwind", &T::set_upwind)
-			.add_method("get_concentration", &T::get_concentration)
-			.add_method("get_concentration_grad", &T::get_concentration_grad);
+			.add_method("value", &T::value)
+			.add_method("gradient", &T::gradient);
 		reg.add_class_to_group(name, "ConvectionDiffusion", dimTag);
 	}
 

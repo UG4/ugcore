@@ -275,7 +275,7 @@ elemDisc:set_disc_scheme("fv1")
 -- and its derivative. We decide to use the concentration value as an input
 -- for the linker, that we have set up for the Diffusion matrix above. Since
 -- our linker has only one input, we set the 0'th input to the concentration.
-linkedDiffTensor:set_input(0, elemDisc:get_concentration())
+linkedDiffTensor:set_input(0, elemDisc:value())
 
 -- Now we have to choose, which coefficients to use. Out of the created 
 -- data objects we can choose. E.g. for the Diffusion matrix, we have 

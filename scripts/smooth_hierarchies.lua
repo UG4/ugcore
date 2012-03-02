@@ -111,7 +111,7 @@ elemDisc:set_disc_scheme("fv1")
 if elemDisc:set_upwind(upwind) == false then exit() end
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
-elemDisc:set_reaction(reaction)
+elemDisc:set_reaction_rate(reaction)
 elemDisc:set_source(rhs)
 
 print("creating dirichlet boundary...")

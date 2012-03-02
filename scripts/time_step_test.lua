@@ -70,7 +70,7 @@ reactionValue = LuaUserNumber("reaction")
 elemDisc = ConvectionDiffusion("c", "Inner")
 elemDisc:set_upwind(NoUpwind())
 elemDisc:set_disc_scheme("fv1")
-elemDisc:set_reaction(reactionValue)
+elemDisc:set_reaction_rate(reactionValue)
 --elemDisc:set_source(sourceValue)
 
 dirichletBND = DirichletBoundary()

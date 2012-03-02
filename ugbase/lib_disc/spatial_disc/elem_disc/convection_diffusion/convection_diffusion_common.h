@@ -27,7 +27,7 @@ set_velocity(IPData<MathVector<dim>, dim>& user) {m_imVelocity.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
-set_reaction(IPData<number, dim>& user) {m_imReaction.set_data(user);}
+set_reaction_rate(IPData<number, dim>& user) {m_imReactionRate.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
@@ -45,7 +45,7 @@ time_point_changed(number time)
 	m_imDiffusion.set_time(time);
 	m_imVelocity.set_time(time);
 	m_imSource.set_time(time);
-	m_imReaction.set_time(time);
+	m_imReactionRate.set_time(time);
 	m_imMassScale.set_time(time);
 
 //	this disc does not need the old time solutions, thus, return false
@@ -55,13 +55,13 @@ time_point_changed(number time)
 template <typename TDomain>
 typename ConvectionDiffusionElemDisc<TDomain>::NumberExport &
 ConvectionDiffusionElemDisc<TDomain>::
-get_concentration() {return m_exConcentration;}
+value() {return m_exConcentration;}
 
 
 template <typename TDomain>
 typename ConvectionDiffusionElemDisc<TDomain>::GradExport &
 ConvectionDiffusionElemDisc<TDomain>::
-get_concentration_grad() {return m_exConcentrationGrad;}
+gradient() {return m_exConcentrationGrad;}
 
 ////////////////////////////////////////////////////////////////////////////////
 //	general
@@ -84,7 +84,7 @@ ConvectionDiffusionElemDisc(const char* functions, const char* subsets)
 //	register imports
 	this->register_import(m_imDiffusion);
 	this->register_import(m_imVelocity);
-	this->register_import(m_imReaction);
+	this->register_import(m_imReactionRate);
 	this->register_import(m_imSource);
 	this->register_import(m_imMassScale);
 

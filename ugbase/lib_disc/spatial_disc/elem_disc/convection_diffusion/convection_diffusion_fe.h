@@ -40,7 +40,7 @@ elem_loop_prepare_fe()
 	m_imDiffusion.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
 	m_imVelocity.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
 	m_imSource.template    set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
-	m_imReaction.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
+	m_imReactionRate.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
 	m_imMassScale.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
 
 //	done
@@ -78,7 +78,7 @@ elem_prepare_fe(TElem* elem, const LocalVector& u)
 	m_imDiffusion.set_global_ips(geo.global_ips(), geo.num_ip());
 	m_imVelocity. set_global_ips(geo.global_ips(), geo.num_ip());
 	m_imSource.   set_global_ips(geo.global_ips(), geo.num_ip());
-	m_imReaction. set_global_ips(geo.global_ips(), geo.num_ip());
+	m_imReactionRate. set_global_ips(geo.global_ips(), geo.num_ip());
 	m_imMassScale.set_global_ips(geo.global_ips(), geo.num_ip());
 
 //	done
@@ -118,8 +118,8 @@ elem_JA_fe(LocalMatrix& J, const LocalVector& u)
 				number integrand = VecDot(Dgrad, geo.global_grad(ip, i));
 
 			// 	Reaction
-				if(m_imReaction.data_given())
-					integrand += m_imReaction[ip] * geo.shape(ip, j) * geo.shape(ip, i);
+				if(m_imReactionRate.data_given())
+					integrand += m_imReactionRate[ip] * geo.shape(ip, j) * geo.shape(ip, i);
 
 			//	multiply by weight
 				integrand *= geo.weight(ip);
@@ -211,8 +211,8 @@ elem_dA_fe(LocalVector& d, const LocalVector& u)
 			integrand = VecDot(Dgrad_u, geo.global_grad(ip, i));
 
 		// 	add Reaction
-			if(m_imReaction.data_given())
-				integrand += m_imReaction[ip] * shape_u * geo.shape(ip, i);
+			if(m_imReactionRate.data_given())
+				integrand += m_imReactionRate[ip] * shape_u * geo.shape(ip, i);
 
 		//	multiply by integration weight
 			integrand *= geo.weight(ip);
@@ -454,7 +454,7 @@ lin_def_mass_scale_fe(const LocalVector& u,
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-ex_concentration_fe(const LocalVector& u,
+ex_value_fe(const LocalVector& u,
                      const MathVector<dim> vGlobIP[],
                      const MathVector<TGeomProvider::Type::dim> vLocIP[],
                      const size_t nip,
@@ -522,7 +522,7 @@ ex_concentration_fe(const LocalVector& u,
 		}
 
 		}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
-			UG_LOG("ERROR in ConvectionDiffusionElemDisc::ex_concentration_fe: "
+			UG_LOG("ERROR in ConvectionDiffusionElemDisc::ex_value_fe: "
 					<< ex.get_msg() << ".\n");
 			return false;
 		}
@@ -535,7 +535,7 @@ ex_concentration_fe(const LocalVector& u,
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-ex_concentration_grad_fe(const LocalVector& u,
+ex_grad_fe(const LocalVector& u,
                           const MathVector<dim> vGlobIP[],
                           const MathVector<TGeomProvider::Type::dim> vLocIP[],
                           const size_t nip,
@@ -612,7 +612,7 @@ ex_concentration_grad_fe(const LocalVector& u,
 		}
 
 		}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
-			UG_LOG("ERROR in ConvectionDiffusionElemDisc::ex_concentration_grad_fe: "
+			UG_LOG("ERROR in ConvectionDiffusionElemDisc::ex_grad_fe: "
 					<< ex.get_msg() << ".\n");
 			return false;
 		}
@@ -746,13 +746,13 @@ void ConvectionDiffusionElemDisc<TDomain>::register_fe_func()
 //	set computation of linearized defect w.r.t velocity
 	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity_fe<TElem, TGeomProvider>);
 	m_imDiffusion.set_fct(id, this, &T::template lin_def_diffusion_fe<TElem, TGeomProvider>);
-	m_imReaction. set_fct(id, this, &T::template lin_def_reaction_fe<TElem, TGeomProvider>);
+	m_imReactionRate. set_fct(id, this, &T::template lin_def_reaction_fe<TElem, TGeomProvider>);
 	m_imSource.	  set_fct(id, this, &T::template lin_def_source_fe<TElem, TGeomProvider>);
 	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale_fe<TElem, TGeomProvider>);
 
 //	exports
-	m_exConcentration.	  template set_fct<T,refDim>(id, this, &T::template ex_concentration_fe<TElem, TGeomProvider>);
-	m_exConcentrationGrad.template set_fct<T,refDim>(id, this, &T::template ex_concentration_grad_fe<TElem, TGeomProvider>);
+	m_exConcentration.	  template set_fct<T,refDim>(id, this, &T::template ex_value_fe<TElem, TGeomProvider>);
+	m_exConcentrationGrad.template set_fct<T,refDim>(id, this, &T::template ex_grad_fe<TElem, TGeomProvider>);
 }
 
 } // namespace ug

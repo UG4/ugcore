@@ -41,7 +41,7 @@ namespace ug{
  * <li>	\f$ m \equiv m(\vec{x},t) \f$ is the Mass Scaling Term
  * <li>	\f$ D \equiv D(\vec{x},t) \f$ is the Diffusion Tensor
  * <li>	\f$ v \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
- * <li>	\f$ r \equiv r(\vec{x},t) \f$ is the Reaction Term
+ * <li>	\f$ r \equiv r(\vec{x},t) \f$ is the Reaction Rate
  * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
  * </ul>
  *
@@ -95,11 +95,11 @@ class ConvectionDiffusionElemDisc
 	 */
 		void set_velocity(IPData<MathVector<dim>, dim>& user);
 
-	///	sets the reaction
+	///	sets the reaction rate
 	/**
-	 * This method sets the Reaction. A zero value is assumed as default.
+	 * This method sets the Reaction Rate. A zero value is assumed as default.
 	 */
-		void set_reaction(IPData<number, dim>& user);
+		void set_reaction_rate(IPData<number, dim>& user);
 
 	///	sets the source / sink term
 	/**
@@ -404,7 +404,7 @@ class ConvectionDiffusionElemDisc
 		DataImport<MathVector<dim>, dim > m_imVelocity;
 
 	///	Data import for the reaction term
-		DataImport<number, dim> m_imReaction;
+		DataImport<number, dim> m_imReactionRate;
 
 	///	Data import for the right-hand side
 		DataImport<number, dim> m_imSource;
@@ -416,11 +416,11 @@ class ConvectionDiffusionElemDisc
 		typedef IPData<number, dim> NumberExport;
 		typedef IPData<MathVector<dim>, dim> GradExport;
 
-	///	returns the export of the concentration
-		IPData<number, dim>& get_concentration();
+	///	returns the export of the value of associated unknown function
+		IPData<number, dim>& value();
 
-	///	returns the export of gradient of the concentration
-		IPData<MathVector<dim>, dim>& get_concentration_grad();
+	///	returns the export of the gradient of associated unknown function
+		IPData<MathVector<dim>, dim>& gradient();
 
 	protected:
 		typedef IConvectionShapes<dim> conv_shape_type;
@@ -430,7 +430,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the concentration
 		template <typename TElem, typename TFVGeom>
-		bool ex_concentration_fv1(const LocalVector& u,
+		bool ex_value_fv1(const LocalVector& u,
 		                          const MathVector<dim> vGlobIP[],
 		                          const MathVector<TFVGeom::dim> vLocIP[],
 		                          const size_t nip,
@@ -440,7 +440,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the gradient of the concentration
 		template <typename TElem, typename TFVGeom>
-		bool ex_concentration_grad_fv1(const LocalVector& u,
+		bool ex_grad_fv1(const LocalVector& u,
 		                               const MathVector<dim> vGlobIP[],
 		                               const MathVector<TFVGeom::dim> vLocIP[],
 		                               const size_t nip,
@@ -450,7 +450,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the concentration
 		template <typename TElem, typename TGeomProvider>
-		bool ex_concentration_fvho(const LocalVector& u,
+		bool ex_value_fvho(const LocalVector& u,
 								  const MathVector<dim> vGlobIP[],
 								  const MathVector<TGeomProvider::Type::dim> vLocIP[],
 								  const size_t nip,
@@ -460,7 +460,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the gradient of the concentration
 		template <typename TElem, typename TGeomProvider>
-		bool ex_concentration_grad_fvho(const LocalVector& u,
+		bool ex_grad_fvho(const LocalVector& u,
 									   const MathVector<dim> vGlobIP[],
 									   const MathVector<TGeomProvider::Type::dim> vLocIP[],
 									   const size_t nip,
@@ -470,7 +470,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the concentration
 		template <typename TElem, typename TGeomProvider>
-		bool ex_concentration_fe(const LocalVector& u,
+		bool ex_value_fe(const LocalVector& u,
 								  const MathVector<dim> vGlobIP[],
 								  const MathVector<TGeomProvider::Type::dim> vLocIP[],
 								  const size_t nip,
@@ -480,7 +480,7 @@ class ConvectionDiffusionElemDisc
 
 	///	computes the gradient of the concentration
 		template <typename TElem, typename TGeomProvider>
-		bool ex_concentration_grad_fe(const LocalVector& u,
+		bool ex_grad_fe(const LocalVector& u,
 									   const MathVector<dim> vGlobIP[],
 									   const MathVector<TGeomProvider::Type::dim> vLocIP[],
 									   const size_t nip,

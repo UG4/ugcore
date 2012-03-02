@@ -170,7 +170,7 @@ elemDisc:set_disc_scheme("fv1")
 my_assert(elemDisc:set_upwind(upwind), "could not set upwind")
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
-elemDisc:set_reaction(reaction)
+elemDisc:set_reaction_rate(reaction)
 elemDisc:set_source(rhs)
 
 -----------------------------------------------------------------

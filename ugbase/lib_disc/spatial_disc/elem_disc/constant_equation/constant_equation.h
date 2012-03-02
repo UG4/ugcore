@@ -198,10 +198,10 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 
 	public:
 	///	returns the export of the concentration
-		IPData<number, dim>& get_concentration() {return m_exConcentration;}
+		IPData<number, dim>& value() {return m_exConcentration;}
 
 	///	returns the export of gradient of the concentration
-		IPData<MathVector<dim>, dim>& get_concentration_grad() {return m_exConcentrationGrad;}
+		IPData<MathVector<dim>, dim>& gradient() {return m_exConcentrationGrad;}
 
 	protected:
 	///	computes the concentration
