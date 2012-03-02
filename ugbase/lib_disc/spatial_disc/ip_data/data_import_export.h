@@ -314,7 +314,7 @@ template <typename TData, int dim>
 class DataExport : 	public DependentIPData<TData, dim>,
 					public IDataExport
 {
-	using IDependentIPData::compute;
+  using DependentIPData<TData, dim>::compute;
 
 	public:
 	///	default constructor
