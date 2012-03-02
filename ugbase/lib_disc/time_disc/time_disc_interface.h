@@ -82,6 +82,9 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	/// \{
 		virtual void prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
 		                               number dt, GridLevel gl) = 0;
+		void prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		                       number dt)
+		{prepare_step_elem(prevSol, dt, GridLevel());}
 	/// \}
 
 	/// finishes the assembling of Defect/Jacobian for a time step
@@ -98,6 +101,9 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	///	\{
 		virtual void finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
 									  number dt, GridLevel gl) = 0;
+		void finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		                       number dt)
+		{finish_step_elem(prevSol, dt, GridLevel());}
 	///	\}
 
 	///	returns the future time point (i.e. the one that will be computed)
