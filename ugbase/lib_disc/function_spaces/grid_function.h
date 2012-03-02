@@ -169,7 +169,7 @@ class IDDGridFunction : public IGridFunction
 	/// \}
 
 	/////////////////////////////
-	// DoF acccess
+	// DoF access
 	/////////////////////////////
 
 	/// return the number of dofs distributed
@@ -256,7 +256,7 @@ class GridFunction
 	///	Vector type used to store dof values
 		typedef typename algebra_type::vector_type vector_type;
 
-	///	Type of DoFDistributin
+	///	Type of DoFDistribution
 		typedef TDD dof_distribution_type;
 
 	public:
