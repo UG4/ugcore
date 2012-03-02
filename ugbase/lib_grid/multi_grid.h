@@ -285,7 +285,11 @@ class MultiGrid : public Grid, public GridObserver
 										 const VolumeVertices& vv,
 										 int level);
 
+	///	number of levels
 		inline size_t num_levels() const	{return (size_t)m_hierarchy.num_subsets();}
+
+	///	creates new (empty) levels until num_levels() == lvl+1
+		inline void level_required(int lvl) {m_hierarchy.subset_required((int)lvl);}
 
 		template <class TElem> inline
 		size_t num(int level) const		{return m_hierarchy.num<TElem>(level);}
