@@ -288,13 +288,7 @@ endif("${PRECISION}" STREQUAL "single")
 # _s suffix to the resulting lib name.
 # Note that no plugins are built if STATIC is enabled.
 
-if(CRAY)	
-	if(STATIC)
-		SET(STATIC OFF)
-		message("Cray does not support STATIC option. Disabling STATIC now.")
-	endif(STATIC)
-endif(CRAY)
- 
+
 if(STATIC)
 	set(buildDynamicLib OFF)
 	set(buildPluginSystem OFF)
