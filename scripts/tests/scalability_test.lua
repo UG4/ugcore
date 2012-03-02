@@ -359,6 +359,8 @@ print("#ANALYZER INFO: NumProcs is " .. numProcs .. ", numPreRefs = " .. numPreR
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
+approxSpace:init_levels()
+approxSpace:init_top_surface()
 approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
 
