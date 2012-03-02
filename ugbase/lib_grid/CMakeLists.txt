@@ -86,6 +86,7 @@ set(srcLibGrid	tools/bool_marker.cpp
 				geometric_objects/rule_util.cpp
 				common_attachments.cpp
 				multi_grid.cpp
+				lib_grid_messages.cpp
 				)
 
 

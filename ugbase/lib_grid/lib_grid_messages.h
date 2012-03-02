@@ -13,6 +13,10 @@ namespace ug
 ///	constants which indicate the adaption type in a grid refinement message.
 enum GridMessageAdaptionType{
 	GMAT_UNKNOWN = 0,
+	GMAT_GLOBAL_ADAPTION_BEGINS,
+	GMAT_HNODE_ADAPTION_BEGINS,
+	GMAT_GLOBAL_ADAPTION_ENDS,
+	GMAT_HNODE_ADAPTION_ENDS,
 	GMAT_GLOBAL_REFINEMENT_BEGINS,
 	GMAT_HNODE_REFINEMENT_BEGINS,
 	GMAT_GLOBAL_REFINEMENT_ENDS,
@@ -30,7 +34,36 @@ class GridMessage_Adaption : public MessageHub::IMessage
 		GridMessage_Adaption(GridMessageAdaptionType adaptionType) :
 			m_adaptionType(adaptionType)	{}
 
-		GridMessageAdaptionType refinement_type()		{return m_adaptionType;}
+		GridMessageAdaptionType refinement_type() const	{return m_adaptionType;}
+
+	///	tells whether grid adaption has just been started or has been finished.
+	/**	Note that begins and ends may both be false. An adaption consists of
+	 * multiple steps.
+	 * \{ */
+		bool adaption_begins() const;
+		bool adaption_ends() const;
+	/** \} */
+
+	///	tells whether an adaption step has just been started or has been finished.
+	/**	Note that both may be false. An adaption consists of multiple adaption steps.
+	 * \{ */
+		bool step_begins() const;
+		bool step_ends() const;
+	/** \} */
+
+	///	tells whether refinement / coarsening is adaptive (adaptive() == !global())
+		bool adaptive() const;
+
+	///	tells whether refinement / coarsening is global (global() == !adaptive())
+		bool global() const;
+
+	///	tells whether a step is a refinement step.
+	/**	This is always false if adaption_begins() or adaption_ends() returns true*/
+		bool refinement() const;
+
+	///	tells whether a step is a coarsen step
+	/**	This is always false if adaption_begins() or adaption_ends() returns true*/
+		bool coarsening() const;
 
 	protected:
 		GridMessageAdaptionType	m_adaptionType;
