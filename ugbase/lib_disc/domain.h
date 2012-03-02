@@ -104,6 +104,12 @@ class IDomain
 		bool	m_isAdaptive;
 		bool	m_adaptionIsActive;
 
+	/**	this callback is called by the message hub, when a grid change has been
+	 * performed. It will call all necessary actions in order to keep the grid
+	 * correct for computations.
+	 */
+		void grid_changed_callback(int, const GridMessage_Adaption* msg);
+
 #ifdef UG_PARALLEL
 	public:
 	///	returns Distributed Grid Manager
@@ -133,12 +139,6 @@ class IDomain
 	 * number of levels, when invoking num_levels().
 	 */
 		void update_local_multi_grid();
-
-	/**	this callback is called by the message hub, when a grid change has been
-	 * performed. It will call all necessary actions in order to keep the grid
-	 * correct for computations.
-	 */
-		void grid_changed_callback(int, const GridMessage_Adaption* msg);
 
 	protected:
 	///	for parallelization only. NULL in serial mode.
