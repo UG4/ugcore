@@ -49,13 +49,13 @@ template <typename TGrid, typename TSubsetHandler>
 void IDomain<TGrid,TSubsetHandler>::
 grid_changed_callback(int, const GridMessage_Adaption* msg)
 {
-/*	if(msg->adaption_ends())
+	if(msg->adaption_ends())
 		m_adaptionIsActive = false;
 
 	else if(msg->adaption_begins())
 		m_adaptionIsActive = true;
 
-	else if(m_adaptionIsActive){*/
+	else if(m_adaptionIsActive){
 		if(msg->adaptive()){
 			if(msg->adaption_ends())
 			{
@@ -66,14 +66,14 @@ grid_changed_callback(int, const GridMessage_Adaption* msg)
 				#endif
 			}
 		}
-	/*}
+	}
 
 	else{
 		UG_THROW("Before any grid-adaption may be performed, the domain "
 				"has to be informed that grid-adaption shall begin. "
 				"You may use IRefiner::grid_adaption_begins() or schedule "
 				"an appropriate message to the associated grids message-hub.");
-	}*/
+	}
 }
 
 #ifdef UG_PARALLEL

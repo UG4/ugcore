@@ -33,12 +33,14 @@ class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 
 		virtual Grid* get_associated_grid()		{return m_pMG;}
 
-	////////////////////////////////
-	//	refine
-	///	performs refinement on the marked elements.
-		virtual void refine();
+		virtual bool adaptivity_supported() const	{return false;}
+		virtual bool coarsening_supported() const	{return false;}
 
 	protected:
+	////////////////////////////////
+	///	performs refinement on the marked elements.
+		virtual void perform_refinement();
+
 	///	a callback that allows to deny refinement of special vertices
 		virtual bool refinement_is_allowed(VertexBase* elem)	{return true;}
 	///	a callback that allows to deny refinement of special edges
@@ -64,7 +66,6 @@ class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 		
 	protected:
 		MultiGrid*	m_pMG;
-		int			m_msgIdAdaption;
 };
 
 /// @}

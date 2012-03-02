@@ -40,6 +40,9 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase
 		void assign_grid(Grid& grid);
 		virtual Grid* get_associated_grid()		{return m_pGrid;}
 
+		virtual bool adaptivity_supported() const	{return true;}
+		virtual bool coarsening_supported() const	{return false;}
+
 	///	Marks a vertex for refinement (ignores RM_COARSEN).
 		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
 

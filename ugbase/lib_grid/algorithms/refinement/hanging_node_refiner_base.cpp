@@ -67,6 +67,7 @@ set_grid(Grid* grid)
 		m_selMarkedElements.enable_autoselection(false);
 		m_selMarkedElements.enable_selection_inheritance(false);
 		m_msgIdAdaption = GridMessageId_Adaption(grid->message_hub());
+		set_message_hub(grid->message_hub());
 	}
 }
 
@@ -151,7 +152,7 @@ get_mark(Volume* v)
 }
 
 
-void HangingNodeRefinerBase::refine()
+void HangingNodeRefinerBase::perform_refinement()
 {
 	HNODE_PROFILE_FUNC();
 

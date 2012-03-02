@@ -50,6 +50,10 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 		void assign_grid(MultiGrid& mg);
 		virtual Grid* get_associated_grid()		{return m_pMG;}
 
+		virtual bool adaptivity_supported() const	{return true;}
+		virtual bool coarsening_supported() const	{return true;}
+
+	protected:
 	///	performs coarsening on the elements marked with RM_COARSEN.
 	/**
 	 * The grid's message hub is informed using a "GridAdaption" message,
@@ -72,9 +76,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 * coarsen returns false, if no elements have been coarsened, true if at
 	 * least one has been coarsened.
 	 */
-		virtual bool coarsen();
+		virtual bool perform_coarsening();
 
-	protected:
 		void debug_save(Selector& sel, const char* filename);
 
 		enum HNodeCoarsenMarks{

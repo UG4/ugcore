@@ -31,7 +31,7 @@ class IRefiner
 {
 	public:
 		IRefiner(IRefinementCallback* refCallback = NULL) :
-			m_refCallback(refCallback)	{}
+			m_refCallback(refCallback), m_adaptionIsActive(false)	{}
 
 		virtual ~IRefiner()	{}
 
@@ -46,6 +46,14 @@ class IRefiner
 
 	///	clears all marks. Default implementation is empty
 		virtual void clear_marks()	{}
+
+	///	returns whether the refiner is able to perform adaptive refinement
+	/**	pure virtual!*/
+		virtual bool adaptivity_supported() const = 0;
+
+	///	returns true, if the refiner supports coarsening.
+	/**	pure virtual!*/
+		virtual bool coarsening_supported() const = 0;
 
 	///	Marks a element for refinement. Default implementation is empty
 	/**	\{ */
@@ -77,8 +85,18 @@ class IRefiner
 				}
 			}
 
-	/// Performs refinement on the marked elements. Pure virtual.
-		virtual void refine() = 0;
+
+	///	notifies all listeners of the associated message-hub, that adaption begins / ends.
+	/**	While this message is not important to the refiner itself, it may be important
+	 * to listeners of the associated grid's message-hub.
+	 * \{ */
+		void adaption_begins();
+		void adaption_ends();
+	/**	\} */
+
+	/// Performs refinement on the marked elements.
+	/**	internally calls the virtual method 'perform_refinement'*/
+		void refine();
 
 	///	Performs coarsening on the elements marked RM_COARSEN.
 	/**	Note that coarsening is not supported by all refiners. Normally only
@@ -87,12 +105,28 @@ class IRefiner
 	 * coarsen returns false, if no elements have been coarsened, true if at
 	 * least one has been coarsened.
 	 *
-	 * Since the default implementation does not perform coarsening, it returns false.
+	 * Internally calls the virtual method 'perform_coarsening'
 	 */
-		virtual bool coarsen()		{return false;}
+		bool coarsen();
 
 	protected:
+	///	sets the message hub.
+	/**	A message hub is required, since it is used transmit messages regarding
+	 * adaption, refinement and coarsening.*/
+		void set_message_hub(SPMessageHub msgHub);
+
+	///	called by refine(). Derived classes should implement their refinement algorithm here.
+		virtual void perform_refinement() = 0;
+
+	///	Called by coarsen(). Derived classes sould implement their coarsen algorithm here.
+	/** Since the default implementation does not perform coarsening, it returns false.*/
+		virtual bool perform_coarsening()		{return false;}
+
+	protected:
+		SPMessageHub			m_messageHub;
+		int						m_msgIdAdaption;
 		IRefinementCallback*	m_refCallback;
+		bool					m_adaptionIsActive;
 };
 
 /// @}	// end of add_to_group command

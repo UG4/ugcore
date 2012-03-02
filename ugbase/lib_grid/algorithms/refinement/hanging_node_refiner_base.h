@@ -107,6 +107,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	/**	\} */
 
 
+	protected:
 	///	performs refinement on the marked elements.
 	/**
 	 * The grid's message hub is informed using a "GridAdaption" message,
@@ -129,9 +130,8 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * are called in the given order. During element refinement further
 	 * virtual methods are called, which perform the actual element refinement.
 	 */
-		void refine();
+		void perform_refinement();
 
-	protected:
 	/**	additional mark to RefinementMarks. Used to flag whether an element
 	 * will be refined with constraining.*/
 		enum HNodeRefMarks{

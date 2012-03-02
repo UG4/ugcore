@@ -1017,7 +1017,7 @@ debug_save(sel, "debug_save_2_restricted_to_coarsen_families.ugx");
 }
 
 bool HangingNodeRefiner_MultiGrid::
-coarsen()
+perform_coarsening()
 {
 /*
 We have to handle elements as follows:
