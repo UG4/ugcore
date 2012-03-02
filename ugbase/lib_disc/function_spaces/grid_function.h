@@ -178,6 +178,11 @@ class IDDGridFunction : public IGridFunction
 	/// return the number of dofs distributed on subset si
 		size_t num_indices(int si) const {return m_spDD->num_indices(si);}
 
+	/// get all indices of the element
+		template <typename TElem>
+		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const
+			{m_spDD->indices(elem, ind, bHang);}
+
 	/// get multi indices on an finite element in canonical order
 		template <typename TElem>
 		size_t multi_indices(TElem* elem, size_t fct, std::vector<multi_index_type>& ind) const
