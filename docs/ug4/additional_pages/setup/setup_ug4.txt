@@ -4,32 +4,110 @@
 
 /**	\page pageSetupUG4 Setting up UG on Clusters
 
-	- \ref general "General Notes"
+	- \ref secGeneral_Notes "General Notes"
 	- \ref secCMake "CMake, Toolchains, Compilers"
+	- \ref secInstallation_of_additional_software "Installation of additional software"
 	- \ref secMacOSX "MacOSX"
 	- \ref secCekon	"Cekon"
+	- \ref secJuGene "JuGene"
 	- \ref secHermit "Hermit"
 
 <hr>
-\section general General Notes
+\section secGeneral_Notes General Notes
 <hr>
-All examples are for running ug in parallel with $NP processors and $UGARGS as arguments.<br>
-Except for your own Computer/Workstation or explicitely stated, do NOT EVER use mpirun -np $NP ugshell 
+All examples are for running ug in parallel with <tt><NP></tt> processors and <tt>$UGARGS</tt> as arguments,
+where <tt>$UGARGS</tt> is a environment variable which for example is defined by (Bash):
+
+\verbatim
+UGARGS=UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx"
+\endverbatim
+
+Except for your own Computer/Workstation or explicitely stated, do NOT EVER use <tt>mpirun -np <NP> ugshell $UGARGS</tt>
 to start your job on a cluster! The node you are logging into is only a login node, and you don't 
 want to run your job on these.
 
 <hr>
 \section secCMake CMake, Toolchains, Compilers
 <hr>
-On some systems you might need a toolchain file. Run CMake like this
+On systems where login nodes and compute nodes run different OSes it is necessary to "cross compile".
+The necessary information is provided by a so called "toolchain file"
+(cf. for example <a href="http://www.vtk.org/Wiki/CMake_Cross_Compiling">CMake Cross Compiling</a>).
+
+In this case run CMake like this
 \verbatim
-cmake -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAINFILE ..
+cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..
 \endverbatim
-You can specify other compilers from the command line with
+You can specify other compilers than detected by CMake from the command line with
 \verbatim
 cmake -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC ..
 \endverbatim
 
+<hr>
+\section secInstallation_of_additional_software Installation of additional software
+</hr>
+
+TODO: The following information for additional software can possibly be placed in a more general context.
+
+In case a software needed for a certain tasks is not available on the system
+(or has the wrong version number) one has to install it locally (unless you
+have administrator privileges - congratulations ...)
+We propose the following procedures for which we assume that all additional
+software is installed in a directory <tt>local</tt> directly in your home directory.
+
+Versions are the most recent (stable) versions as of Nov 2011.
+
+<ul>
+    <li> CMake:
+
+    \verbatim
+    wget http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz
+    tar xvzf cmake-2.8.6.tar.gz
+    cd cmake-2.8.6/
+    ./bootstrap --prefix=$HOME/local
+    make
+    make install
+    \endverbatim
+
+    Shortcut for executing:
+    \verbatim
+    alias cmake='$HOME/local/bin/cmake'
+    \endverbatim
+    </li>
+
+    <li> Boost (no longer necessary with "internal boost"):
+
+    \verbatim
+    wget http://sourceforge.net/projects/boost/files/boost/1.48.0/boost_1_48_0.tar.gz
+    \endverbatim
+
+    Unpack (no build necessary!) and add boost root directory to search path!
+    </li>
+
+    <li> LUA, i.e to be able to execute LUA scripts "stand alone":
+    \verbatim
+    cd ~/local
+    wget http://www.lua.org/ftp/lua-5.1.4.tar.gz
+    tar xvzf lua-5.1.4.tar.gz
+    cd lua-5.1.4/
+    \endverbatim
+
+    Build and install (cf. <tt>INSTALL</tt>):
+    \verbatim
+    make linux
+    make local
+    \endverbatim
+
+    Shortcut for executing LUA:
+    \verbatim
+    alias lua='$HOME/local/lua-5.1.4/bin/lua'
+    \endverbatim
+
+    Example for usage (executing (local copy of analyzer script):
+    \verbatim
+    lua my_scaling_analyzer.lua > jugene_ug4-static_laplace-2d_gmg_weak-scaling_pe4-256k_rev4354.txt
+    \endverbatim
+    </li>
+</ul>
 
 <hr>
 \section secWindows Windows
@@ -41,7 +119,7 @@ cmake -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC ..
 <hr>
 You can use 
 \verbatim
-mpirun -np $NP ugshell $UGARGS
+mpirun -np <NP> ugshell $UGARGS
 \endverbatim
 to run ug.
 
@@ -49,13 +127,241 @@ to run ug.
 <hr>
 \section secCekon Cekon
 <hr>
-Cekon is the in-house cluster of the G-CSC. It uses <a href="https://computing.llnl.gov/linux/slurm/"> SLURM </a> as a job control (<a href="https://computing.llnl.gov/linux/slurm/quickstart.html">Quickstart</a>).<br>
+Cekon is the in-house cluster of the G-CSC.
+By now it consists of 23 compute nodes with 4 cores per node.
+
+It uses <a href="https://computing.llnl.gov/linux/slurm/">SLURM</a> as a job control (<a href="https://computing.llnl.gov/linux/slurm/quickstart.html">Quickstart</a>).<br>
 Start your job with
 \verbatim
-salloc -n $NP mpirun ugshell $UGARGS
+salloc -n <NP> mpirun ugshell $UGARGS
 \endverbatim
 
-DDT: ?
+DDT: ? TODO: Maybe we should place information to DDT in an extra section about debugging!
+
+<hr>
+\section secJuGene JuGene
+</hr>
+
+JuGene - the 72 racks Blue Gene/P system at FZ J&uuml;lich.
+
+<hr>
+\subsection secGeneral_info_to_JuGene General information about JuGene
+</hr>
+
+The whole machine consists of 9x8 = 72 racks.
+
+Each rack consists of 2 midplanes,
+each midplane of 16 nodeboards,
+each nodeboard of 32 compute nodes (CN), and
+each CN of 4 cores (1 Power PC 450, 32-bit, 850 MHz with 4 cores).
+
+In other words,
+one midplane provides 2048 cores,
+one rack 4096 cores,
+and JuGene in total provides 294.912 cores (organised on 73728 compute nodes).
+
+Amount of RAM: 144 Tbyte, 2 Gbyte per CN.
+
+TODO: Execution modes: SMP- DUAL and Quad-mode (a.k.a. VN-mode).
+
+<p>
+For more informations to JuGene see <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/JUGENE_node.html">Forschungszentrum J&uuml;lich JuGene</a>.
+
+<p>
+Note that the login nodes have another architecture than the BlueGene compute nodes:
+Both are PPC-based, but
+<ul>
+<li> the login nodes are running under "SuSE Linux Enterprise Server 10" (SLES 10), while</li>
+<li> the CNs are running a "limited version of Linux" called "Compute Node Kernel" (CNK).</li>
+</ul>
+
+Therefore its necessary to cross-compile for BlueGene (cf \sec. \ref secCMake; see sec. \ref secConfiguration_of_ug4_for_JuGene).
+
+
+<hr>
+\subsection secAccess_to_JuGenes_login_nodes Access to JuGene's login nodes:
+</hr>
+Its necessary to upload the SSH key of the machine from which to connect to one of JuGenes login nodes.
+
+To be able to connect from different machines maybe you find it useful to define one of GCSCs machines (e.g. speedo, quadruped, ...) as "springboard" to one of JuGenes login nodes.
+
+See <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/Logon.html">Logging on to JUGENE</a>.
+
+<hr>
+\subsection Environment
+</hr>
+By default the Bash is used.
+
+See example <tt>.bashrc</tt>.
+
+TODO: Minimales .bashrc hinterlegen.
+
+<hr>
+\subsection secConfiguration_of_ug4_for_JuGene Configuration of ug4 for JuGene cross compile
+</hr>
+
+For JuGene you have to use a different toolchain file. Start cmake like this
+\verbatim
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_jugene.cmake ..
+\endverbatim
+or, for static builds which is the configuration of joice if you want to execute very large jobs,
+
+\verbatim
+cmake -DSTATIC=ON -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_jugene_static.cmake ..
+\endverbatim
+
+Note: A "static build" where also all system libraries are linked statically need some additional "hand work" by now:
+After configuration with CMake edit the following files by replacing all occurences of <tt>libXXXXXXX.so</tt> by <tt>libXXXXXXX.a</tt>:
+   CMakeCache.txt,                                                                                                                                
+   ugbase/ug_shell/CMakeFiles/ugshell.dir/link.txt,                                                                                               
+   ugbase/ug_shell/CMakeFiles/ugshell.dir/build.make                                                                                              
+
+TODO: Automate this process!
+
+<hr>
+\subsection secWorking_with_ug4_on_JuGene Working with ug4 on JuGene
+</hr>
+
+<hr>
+\subsubsection secBasic_job_handling Basic job handling
+</hr>
+
+<ul>
+    <li> Display system informations - especially to see if JuGene is actually present:
+
+    \verbatim
+    llstatus
+    \endverbatim
+
+    <li> Submitting a batch job, defined by comandfile <tt><cmdfile></tt>:
+
+    \verbatim
+    llsubmit <cmdfile>
+    \endverbatim
+
+    See sec. \ref secMore_on_Batch_Jobs_on_JuGene for more details.
+    </li>
+
+    <li> Display job status:
+
+    \verbatim
+    llq [-u  <userid>]
+    \endverbatim
+
+    Detailed status of one job:
+
+    \verbatim
+    llq -l  <jobid>
+    \endverbatim
+
+    Detailed information on queue status:
+    \verbatim
+    llqx
+    \endverbatim
+
+    Typically you want to combine this command with <tt>grep</tt> to filter its output for your own jobs, e.g. <tt>llqx | grep <userid></tt>.
+    </li>
+
+    <li> There also exists a tool with a graphical user interface for displaying system status
+    (this is an extension by FZJ, written by W. Frings; needs an X11 connection):
+
+    \verbatim
+    llview
+    \endverbatim
+
+    Maybe its necessary to add the following lines to <tt>~/.ssh/config</tt> on your local machine
+    (cf. <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/Logon.html">Logging on to JUGENE</a>):
+
+    \verbatim
+    PubkeyAuthentication yes 
+    ForwardAgent yes 
+    ForwardX11 yes
+    \endverbatim
+
+    To quit <tt>llview</tt> choose Menu "File - Exit (all)".
+    </li>
+
+    <li> Cancel a job (<tt><jobname></tt> as displayed by <tt>llstatus</tt>):
+
+    \verbatim
+    llcancel <jobname>
+    \endverbatim
+    </li>
+
+    <li> Running interactive jobs:
+    
+    \verbatim
+    llrun [llrun_options] <mpirun_options>
+    \endverbatim
+
+    Examples:
+    \verbatim
+    llrun -np      4 -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "-ex ../scripts/laplace.lua"
+
+    UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsIterator gmg -lsMaxIter 100 -verb 0 -numPreRefs 3"
+    llrun -np      4 -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "$UGARGS -numRefs  6"
+    \endverbatim
+
+    Please note that <tt>llrun</tt> only allows jobs up to 256 (SMP-mode) / 512 (DUAL-mode) / 1024 (VN-mode) tasks!
+    </li>
+
+    <li> Querying Quota Status:
+
+    \verbatim
+    q_cpuquota <options>
+    \endverbatim
+
+    Useful Options: 
+    \arg <tt>-?</tt>             usage information and all options 
+    \arg <tt>-j <jobstepid></tt> for a single job 
+    \arg <tt>-t <time></tt>      for all jobs in the specified time, e.g.
+    <tt>q_cpuquota -t 23.11.2011 01.12.2011</tt>
+    \arg <tt>-d <number></tt> for last number of days (positive integer)
+    </li>
+
+
+    <li> List of available classes:
+    \verbatim
+    llclass.
+    \endverbatim
+    </li>
+<ul>
+
+<hr>
+\subsubsection secMore_on_Batch_Jobs_on_JuGene More on Batch Jobs on JuGene
+</hr>
+
+Batch Jobs are submitted by <tt>llsubmit</tt>:
+
+\verbatim
+llsubmit <cmdfile>
+\endverbatim
+
+where <tt><cmdfile></tt> is a shell script file containing job definitions.
+
+See <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerSamples.html">Job File Samples</a>.
+
+
+For an example of loadleveler scripts used with ug4 see ...
+
+See <tt>~/ug4/bin/ll_template.x</tt> for some documentation.
+
+TODO: LoadLeveler script etc. hinterlegen.
+
+<hr>
+\subsubsection secVery_large_jobs_on_JuGene Very large jobs on JuGene
+</hr>
+
+For very large jobs be sure to have ug4 built as a completely static executable (c.f. above)!
+
+In general: Large jobs (e.g. jobs larger than 32 racks normally run on Tuesday only.
+
+Jutta Docter, j.docter@fz-juelich.de: "Wir versuchen die Anforderungen zu buendeln.
+Wenn jedoch Jobs in der Queue sind, laufen die in der Regel Dienstags.
+Wenn man viele grosse Jobs und z.B. eine Deadline hat, dann muessten wir verhandeln."
+
+
+
 
 <hr>
 \section secHermit Hermit
