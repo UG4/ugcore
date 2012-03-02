@@ -5,6 +5,7 @@
 /**	\page pageSetupUG4 Setting up UG on Clusters
 
 	- \ref general "General Notes"
+	- \ref secCMake "CMake, Toolchains, Compilers"
 	- \ref secMacOSX "MacOSX"
 	- \ref secCekon	"Cekon"
 	- \ref secHermit "Hermit"
@@ -13,8 +14,22 @@
 \section general General Notes
 <hr>
 All examples are for running ug in parallel with $NP processors and $UGARGS as arguments.<br>
-Except for your own Computer/Workstation, do NOT EVER use mpirun -np $NP ugshell to start your job on a cluster! The node you are logging into is only a login node, and you don't want to run your job on these. 
-Be aware that by running mpirun -np $NP ugshell on a login node might crash the login node and make the administrator very angry with you :P.
+Except for your own Computer/Workstation or explicitely stated, do NOT EVER use mpirun -np $NP ugshell 
+to start your job on a cluster! The node you are logging into is only a login node, and you don't 
+want to run your job on these.
+
+<hr>
+\section secCMake CMake, Toolchains, Compilers
+<hr>
+On some systems you might need a toolchain file. Run CMake like this
+\verbatim
+cmake -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAINFILE ..
+\endverbatim
+You can specify other compilers from the command line with
+\verbatim
+cmake -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC ..
+\endverbatim
+
 
 <hr>
 \section secWindows Windows
@@ -35,12 +50,21 @@ to run ug.
 \section secCekon Cekon
 <hr>
 Cekon is the in-house cluster of the G-CSC. It uses <a href="https://computing.llnl.gov/linux/slurm/"> SLURM </a> as a job control (<a href="https://computing.llnl.gov/linux/slurm/quickstart.html">Quickstart</a>).<br>
- Start your job with
+Start your job with
 \verbatim
 salloc -n $NP mpirun ugshell $UGARGS
 \endverbatim
 
 DDT: ?
+
+<hr>
+\section secHermit Hermit
+<hr>
+For Hermit, you have to use a different toolchain file. Start cmake like this
+\verbatim
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake ..
+\endverbatim
+
 <hr>
 
 */
