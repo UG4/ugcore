@@ -86,14 +86,6 @@ class IDomain
 	///	returns whether the domain may be used for adaptive refinement
 		bool is_adaptive() const		{return m_isAdaptive;}
 
-	protected:
-		SmartPtr<TGrid> m_spGrid;			///< Grid
-		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
-		MessageHub::SPCallbackId m_spGridAdaptionCallbackID; ///< SmartPointer to grid adaption callback id
-
-		bool	m_isAdaptive;
-
-	public:
 	///	updates the subsets dimension property "dim" (integer) locally.
 	/** This method normally only has to be called after the subset-handler
 	 * has been changed. In most cases a call after the domain has been loaded
@@ -102,6 +94,15 @@ class IDomain
 	 * \todo	calling this method after coarsening could be useful.
 	 * 			Think about registering a callback at the message-hub.*/
 		void update_local_subset_dim_property()	{UpdateMaxDimensionOfSubset(*this->m_spSH, "dim");}
+
+
+	protected:
+		SmartPtr<TGrid> m_spGrid;			///< Grid
+		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
+		MessageHub::SPCallbackId m_spGridAdaptionCallbackID; ///< SmartPointer to grid adaption callback id
+
+		bool	m_isAdaptive;
+		bool	m_adaptionIsActive;
 
 #ifdef UG_PARALLEL
 	public:

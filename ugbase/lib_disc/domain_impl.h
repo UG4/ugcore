@@ -21,13 +21,12 @@ IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
 	:
 	m_spGrid(new TGrid(GRIDOPT_NONE)),
 	m_spSH(new TSubsetHandler(*m_spGrid)),
-	m_isAdaptive(isAdaptive)
+	m_isAdaptive(isAdaptive),
+	m_adaptionIsActive(false)
 {
 #ifdef UG_PARALLEL
 //	create Distributed Grid Manager
 	m_distGridMgr = new DistributedGridManager(*m_spGrid);
-#else
-	m_dim_distGridMgr = NULL;
 #endif
 
 //	register function for grid adaption
@@ -50,15 +49,31 @@ template <typename TGrid, typename TSubsetHandler>
 void IDomain<TGrid,TSubsetHandler>::
 grid_changed_callback(int, const GridMessage_Adaption* msg)
 {
-	if(msg->adaptive())
-		if(msg->adaption_ends())
-		{
-			update_local_subset_dim_property();
-			#ifdef UG_PARALLEL
-			update_local_multi_grid();
-			update_global_subset_dim_property();
-			#endif
+/*	if(msg->adaption_ends())
+		m_adaptionIsActive = false;
+
+	else if(msg->adaption_begins())
+		m_adaptionIsActive = true;
+
+	else if(m_adaptionIsActive){*/
+		if(msg->adaptive()){
+			if(msg->adaption_ends())
+			{
+				update_local_subset_dim_property();
+				#ifdef UG_PARALLEL
+				update_local_multi_grid();
+				update_global_subset_dim_property();
+				#endif
+			}
 		}
+	/*}
+
+	else{
+		UG_THROW("Before any grid-adaption may be performed, the domain "
+				"has to be informed that grid-adaption shall begin. "
+				"You may use IRefiner::grid_adaption_begins() or schedule "
+				"an appropriate message to the associated grids message-hub.");
+	}*/
 }
 
 #ifdef UG_PARALLEL
