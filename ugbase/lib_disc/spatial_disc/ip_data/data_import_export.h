@@ -27,7 +27,8 @@ class IDataImport
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
 			: m_pIDependentIPData(NULL),
-			 m_bInMassPart(false),  m_bCompLinDefect(compLinDefect)
+			 m_bInMassPart(false), m_bInRhsPart(false),
+			 m_bCompLinDefect(compLinDefect)
 		{}
 
 		virtual ~IDataImport()	{}
@@ -37,6 +38,12 @@ class IDataImport
 
 	///	returns if import is located in mass part (for time dependent problems)
 		bool in_mass_part() const {return m_bInMassPart;}
+
+	///	sets if import is located in rhs part
+		void set_rhs_part(bool bInRhsPart) {m_bInRhsPart = bInRhsPart;}
+
+	///	returns if import is located in rhs part
+		bool in_rhs_part() const {return m_bInRhsPart;}
 
 	/// returns if data is set
 		virtual bool data_given() const = 0;
@@ -92,6 +99,9 @@ class IDataImport
 	protected:
 	///	flag to indicate if import is located in mass part
 		bool m_bInMassPart;
+
+	///	flag to indicate if import is located in rhs part
+		bool m_bInRhsPart;
 
 	///	indicates iff lin defect should be computed
 		bool m_bCompLinDefect;

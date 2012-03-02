@@ -527,6 +527,7 @@ FVConstantEquationElemDisc(const char* functions, const char* subsets)
 	this->register_import(m_imMassScale);
 
 	m_imMassScale.set_mass_part(true);
+	m_imSource.set_rhs_part(true);
 }
 
 
