@@ -240,9 +240,9 @@ print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 	}
 
 //	global and local values
-//	we use unsigned long int here instead of size_t since the communication via
+//	we use uint64 here instead of size_t since the communication via
 //	mpi does not support the usage of size_t.
-	std::vector<unsigned long int> tNumGlobal, tNumLocal;
+	std::vector<uint64> tNumGlobal, tNumLocal;
 
 //	write number of Masters on this process
 	tNumLocal.push_back(numMasterDoF);
@@ -260,7 +260,7 @@ print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 	if(!pCom.empty())
 	{
 		pCom.allreduce(&tNumLocal[0], &tNumGlobal[0], tNumGlobal.size(),
-		               PCL_DT_UNSIGNED_LONG, PCL_RO_SUM);
+		               PCL_DT_UNSIGNED_LONG_LONG, PCL_RO_SUM);
 	}
 	else if (pcl::GetNumProcesses() == 1)
 	{
