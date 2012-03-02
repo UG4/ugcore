@@ -47,10 +47,10 @@ template <typename TGrid, typename TSubsetHandler>
 class IDomain
 {
 	public:
-	// 	Grid type
+	///	Grid type
 		typedef TGrid grid_type;
 
-	// 	Subset Handler type
+	///	Subset Handler type
 		typedef TSubsetHandler subset_handler_type;
 
 	public:
@@ -60,28 +60,10 @@ class IDomain
 	 * Distributed Grid Manager is set in the parallel case.
 	 * \param[in]	options		Grid Options (optinal)
 	 */
-		IDomain(bool isAdaptive = true) :
-			m_spGrid(new TGrid(GRIDOPT_NONE)),
-			m_spSH(new TSubsetHandler(*m_spGrid)),
-			m_isAdaptive(isAdaptive)
-#ifdef UG_PARALLEL
-			, m_distGridMgr(NULL)
-#endif
-			{
-#ifdef UG_PARALLEL
-			//	create Distributed Grid Manager
-				m_distGridMgr = new DistributedGridManager(*m_spGrid);
-#endif
-			}
+		IDomain(bool isAdaptive = true);
 
 	///	Destructor
-		virtual ~IDomain()
-		{
-#ifdef UG_PARALLEL
-			if(m_distGridMgr)
-				delete m_distGridMgr;
-#endif
-		}
+		virtual ~IDomain();
 
 	///	World Dimension
 		virtual int get_dim() const = 0;
@@ -98,13 +80,8 @@ class IDomain
 	///	const access to Subset Handler
 		inline const ConstSmartPtr<TSubsetHandler> subset_handler() const {return m_spSH;};
 
-#ifdef UG_PARALLEL
-	///	returns Distributed Grid Manager
-		inline DistributedGridManager* distributed_grid_manager(){return m_distGridMgr;}
-#endif
-
 	///	returns the message hub of the grid
-		SPMessageHub message_hub() const {return m_spGrid.message_hub();}
+		SPMessageHub message_hub() {return m_spGrid->message_hub();}
 
 	///	returns whether the domain may be used for adaptive refinement
 		bool is_adaptive() const		{return m_isAdaptive;}
@@ -112,11 +89,58 @@ class IDomain
 	protected:
 		SmartPtr<TGrid> m_spGrid;			///< Grid
 		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
+		MessageHub::SPCallbackId m_spGridAdaptionCallbackID; ///< SmartPointer to grid adaption callback id
 
 		bool	m_isAdaptive;
 
-	//	for parallelization only. NULL in serial mode.
+	public:
+	///	updates the subsets dimension property "dim" (integer) locally.
+	/** This method normally only has to be called after the subset-handler
+	 * has been changed. In most cases a call after the domain has been loaded
+	 * should be enough. This is done automatically by e.g. LoadDomain.
+	 *
+	 * \todo	calling this method after coarsening could be useful.
+	 * 			Think about registering a callback at the message-hub.*/
+		void update_local_subset_dim_property()	{UpdateMaxDimensionOfSubset(*this->m_spSH, "dim");}
+
 #ifdef UG_PARALLEL
+	public:
+	///	returns Distributed Grid Manager
+		inline DistributedGridManager* distributed_grid_manager(){return m_distGridMgr;}
+
+	///	updates the subsets dimension property "dim" (integer) globally.
+	/** This method normally only has to be called after the subset-handler
+	 * has been changed. In most cases a call after the domain has been loaded
+	 * should be enough. This is done automatically by e.g. LoadDomain.
+	 *
+	 * You may optionally specify a process communicator, which will be used
+	 * to perform the communication involved.
+	 *
+	 * \todo	calling this method after coarsening could be useful.
+	 * 			Think about registering a callback at the message-hub.*/
+		void update_global_subset_dim_property(pcl::ProcessCommunicator procCom =
+													pcl::ProcessCommunicator())
+		{UpdateGlobalMaxDimensionOfSubset(*this->m_spSH, "dim", procCom);}
+
+	protected:
+	///	updates the number of levels on each block to global maximum
+	/**	This method must be invoked when the grid has been changed and there
+	 * might be diffent numbers of levels on different processors. This method
+	 * will compute the global maximum of levels (involving an allreduce) and
+	 * adapt all local grids to the maximum number by inserting empty levels.
+	 * After this method has been invoked, all local grids will return the same
+	 * number of levels, when invoking num_levels().
+	 */
+		void update_local_multi_grid();
+
+	/**	this callback is called by the message hub, when a grid change has been
+	 * performed. It will call all necessary actions in order to keep the grid
+	 * correct for computations.
+	 */
+		void grid_changed_callback(int, const GridMessage_Adaption* msg);
+
+	protected:
+	///	for parallelization only. NULL in serial mode.
 		DistributedGridManager*	m_distGridMgr;	///< Parallel Grid Manager
 #endif
 };
@@ -157,37 +181,7 @@ class Domain : public IDomain<TGrid, TSubsetHandler>
 	 * Distributed Grid Manager is set in the parallel case.
 	 * \param[in]	options		Grid Options (optinal)
 	 */
-		Domain(bool isAdaptive = true) : IDomain<TGrid, TSubsetHandler>(isAdaptive)
-		{
-		//	Depending on the dimesion, we'll activeate different options.
-		//	Otherwise we probably would waste memory...
-		//	In any case, sides of elements should always be present
-			uint gridOpts = GRIDOPT_AUTOGENERATE_SIDES;
-
-		//	Furthermore vertices should store associated elements.
-		//	This option depends on the dimension of the domain
-			if(dim > 0)
-				gridOpts |= VRTOPT_STORE_ASSOCIATED_EDGES;
-			if(dim > 1)
-				gridOpts |= VRTOPT_STORE_ASSOCIATED_FACES;
-			if(dim > 2)
-				gridOpts |= VRTOPT_STORE_ASSOCIATED_VOLUMES;
-
-		//	thats it for now. One could think about enabling
-		//	FACEOPT_STORE_ASSOCIATED_EDGES, VOLOPT_STORE_ASSOCIATED_EDGES
-		//	and VOLOPT_STORE_ASSOCIATED_FACES. However this costs considerably
-		//	more memory compared to the performance benefits.
-		//	Now set the options
-			this->grid()->set_options(gridOpts);
-
-		//	get position attachment
-			m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
-
-		// 	let position accessor access Vertex Coordinates
-			if(!this->grid()->template has_attachment<VertexBase>(m_aPos))
-				this->grid()->template attach_to<VertexBase>(m_aPos);
-			m_aaPos.access(*(this->grid()), m_aPos);
-		}
+		Domain(bool isAdaptive = true);
 
 	///	World Dimension
 		virtual int get_dim() const {return dim;}
@@ -203,32 +197,6 @@ class Domain : public IDomain<TGrid, TSubsetHandler>
 
 	///	const access to Position Accessor
 		inline const position_accessor_type& position_accessor() const{return m_aaPos;}
-
-	///	updates the subsets dimension property "dim" (integer) locally.
-	/** This method normally only has to be called after the subset-handler
-	 * has been changed. In most cases a call after the domain has been loaded
-	 * should be enough. This is done automatically by e.g. LoadDomain.
-	 *
-	 * \todo	calling this method after coarsening could be useful.
-	 * 			Think about registering a callback at the message-hub.*/
-		void update_local_subset_dim_property()	{UpdateMaxDimensionOfSubset(*this->m_spSH, "dim");}
-
-#ifdef UG_PARALLEL
-	///	updates the subsets dimension property "dim" (integer) globally.
-	/** This method normally only has to be called after the subset-handler
-	 * has been changed. In most cases a call after the domain has been loaded
-	 * should be enough. This is done automatically by e.g. LoadDomain.
-	 *
-	 * You may optionally specify a process communicator, which will be used
-	 * to perform the communication involved.
-	 *
-	 * \todo	calling this method after coarsening could be useful.
-	 * 			Think about registering a callback at the message-hub.*/
-		void update_global_subset_dim_property(pcl::ProcessCommunicator procCom =
-													pcl::ProcessCommunicator())
-		{UpdateGlobalMaxDimensionOfSubset(*this->m_spSH, "dim", procCom);}
-#endif
-
 
 	protected:
 		position_attachment_type m_aPos;	///<Position Attachment
@@ -328,5 +296,8 @@ typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_access
 } // end namespace ug
 
 /// @}
+
+// include implementation
+#include "domain_impl.h"
 
 #endif /* __H__UG__LIB_DISC__DOMAIN__ */
