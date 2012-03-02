@@ -50,7 +50,11 @@ elem_loop_prepare_fvho()
 		                    	                      geo.num_scv_ips());
 		m_imReactionRate.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips());
+		m_imReaction.template 	set_local_ips<refDim>(geo.scv_local_ips(),
+		                      	                      geo.num_scv_ips());
 		m_imMassScale.template 	set_local_ips<refDim>(geo.scv_local_ips(),
+		                       	                      geo.num_scv_ips());
+		m_imMass.template	 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                       	                      geo.num_scv_ips());
 	}
 
@@ -98,7 +102,11 @@ elem_prepare_fvho(TElem* elem, const LocalVector& u)
 		                    	                      geo.num_scv_ips());
 		m_imReactionRate.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips());
+		m_imReaction.template 	set_local_ips<refDim>(geo.scv_local_ips(),
+		                      	                      geo.num_scv_ips());
 		m_imMassScale.template 	set_local_ips<refDim>(geo.scv_local_ips(),
+		                       	                      geo.num_scv_ips());
+		m_imMass.template 		set_local_ips<refDim>(geo.scv_local_ips(),
 		                       	                      geo.num_scv_ips());
 	}
 
@@ -107,7 +115,9 @@ elem_prepare_fvho(TElem* elem, const LocalVector& u)
 	m_imVelocity.	set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
 	m_imSource.		set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imReactionRate.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
+	m_imReaction.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imMassScale.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
+	m_imMass.		set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 
 //	we're done
 	return true;
@@ -214,6 +224,8 @@ elem_JA_fvho(LocalMatrix& J, const LocalVector& u)
 		ipOffset += scv.num_ip();
 	}
 
+//	no explicit dependency in m_imReaction
+
 // 	we're done
 	return true;
 }
@@ -249,6 +261,8 @@ elem_JM_fvho(LocalMatrix& J, const LocalVector& u)
 					integral += scv.shape(ip, sh) * scv.weight(ip) * m_imMassScale[ipOffset+ip];
 				else
 					integral += scv.shape(ip, sh) * scv.weight(ip);
+
+				//	no explicit dependency in m_imMass
 			}
 
 		// 	Add to local matrix
@@ -336,35 +350,63 @@ elem_dA_fvho(LocalVector& d, const LocalVector& u)
 		} // end loop scvf
 	} // end data switch
 
-//	if no reaction data given, return
-	if(!m_imReactionRate.data_given()) return true;
-
-// 	loop Sub Control Volumes (SCV)
-	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
+//	reaction rate
+	if(m_imReactionRate.data_given())
 	{
-	// 	get current SCV
-		const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
-
-	//	reset integral
-		number integral = 0;
-
-	//	loop integration points
-		for(size_t ip = 0; ip < scv.num_ip(); ++ip)
+	// 	loop Sub Control Volumes (SCV)
+		for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
 		{
-		//	compute solution at ip
-			number solIP = 0;
-			for(size_t sh = 0; sh < scv.num_sh(); ++sh)
-				solIP += u(_C_, sh) * scv.shape(ip, sh);
+		// 	get current SCV
+			const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
 
-		//	add to integral-sum
-			integral += m_imReactionRate[ipCnt++] * solIP * scv.weight(ip);
+		//	reset integral
+			number integral = 0;
+
+		//	loop integration points
+			for(size_t ip = 0; ip < scv.num_ip(); ++ip)
+			{
+			//	compute solution at ip
+				number solIP = 0;
+				for(size_t sh = 0; sh < scv.num_sh(); ++sh)
+					solIP += u(_C_, sh) * scv.shape(ip, sh);
+
+			//	add to integral-sum
+				integral += m_imReactionRate[ipCnt++] * solIP * scv.weight(ip);
+			}
+
+		// 	get associated node
+			const int co = scv.node_id();
+
+		// 	Add to local defect
+			d(_C_, co) += integral * scv.volume();
 		}
+	}
 
-	// 	get associated node
-		const int co = scv.node_id();
+//	reaction rate
+	if(m_imReaction.data_given())
+	{
+	// 	loop Sub Control Volumes (SCV)
+		for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
+		{
+		// 	get current SCV
+			const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
 
-	// 	Add to local defect
-		d(_C_, co) += integral * scv.volume();
+		//	reset integral
+			number integral = 0;
+
+		//	loop integration points
+			for(size_t ip = 0; ip < scv.num_ip(); ++ip)
+			{
+			//	add to integral-sum
+				integral += m_imReaction[ipCnt++] * scv.weight(ip);
+			}
+
+		// 	get associated node
+			const int co = scv.node_id();
+
+		// 	Add to local defect
+			d(_C_, co) += integral * scv.volume();
+		}
 	}
 
 // 	we're done
@@ -397,12 +439,22 @@ elem_dM_fvho(LocalVector& d, const LocalVector& u)
 			for(size_t sh = 0; sh < scv.num_sh(); ++sh)
 				solIP += u(_C_, sh) * scv.shape(ip, sh);
 
+		//	compute value
+			number val = solIP;
+
 		//	multiply by scaling
 			if(m_imMassScale.data_given())
-				solIP *= m_imMassScale[ipCnt++];
+				val *= m_imMassScale[ipCnt];
+
+		//	add mass
+			if(m_imMass.data_given())
+				val += m_imMass[ipCnt];
+
+		//	next ip
+			ipCnt++;
 
 		//	add to integral-sum
-			integral += solIP * scv.weight(ip);
+			integral += val * scv.weight(ip);
 		}
 
 	// 	get associated node
@@ -546,13 +598,13 @@ lin_def_diffusion_fvho(const LocalVector& u,
 	return true;
 }
 
-//	computes the linearized defect w.r.t to the reaction
+//	computes the linearized defect w.r.t to the reaction rate
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
-lin_def_reaction_fvho(const LocalVector& u,
-                     std::vector<std::vector<number> > vvvLinDef[],
-                     const size_t nip)
+lin_def_reaction_rate_fvho(const LocalVector& u,
+                           std::vector<std::vector<number> > vvvLinDef[],
+                           const size_t nip)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -576,6 +628,38 @@ lin_def_reaction_fvho(const LocalVector& u,
 
 		// 	set lin defect
 			vvvLinDef[ipCnt++][_C_][co] = solIP * scv.weight(ip) * scv.volume();
+		}
+	}
+
+//	we're done
+	return true;
+}
+
+//	computes the linearized defect w.r.t to the reaction
+template<typename TDomain>
+template <typename TElem, typename TGeomProvider>
+bool ConvectionDiffusionElemDisc<TDomain>::
+lin_def_reaction_fvho(const LocalVector& u,
+                     std::vector<std::vector<number> > vvvLinDef[],
+                     const size_t nip)
+{
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+
+// 	loop Sub Control Volumes (SCV)
+	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
+	{
+	// 	get current SCV
+		const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
+
+	// 	get associated node
+		const int co = scv.node_id();
+
+	//	loop integration points
+		for(size_t ip = 0; ip < scv.num_ip(); ++ip)
+		{
+		// 	set lin defect
+			vvvLinDef[ipCnt++][_C_][co] = scv.weight(ip) * scv.volume();
 		}
 	}
 
@@ -652,6 +736,37 @@ lin_def_mass_scale_fvho(const LocalVector& u,
 	return true;
 }
 
+//	computes the linearized defect w.r.t to the mass scale
+template<typename TDomain>
+template <typename TElem, typename TGeomProvider>
+bool ConvectionDiffusionElemDisc<TDomain>::
+lin_def_mass_fvho(const LocalVector& u,
+                  std::vector<std::vector<number> > vvvLinDef[],
+                  const size_t nip)
+{
+//	request geometry
+	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+
+// 	loop Sub Control Volumes (SCV)
+	for(size_t i = 0, ipCnt = 0; i < geo.num_scv(); ++i)
+	{
+	// 	get current SCV
+		const typename TGeomProvider::Type::SCV& scv = geo.scv(i);
+
+	// 	get associated node
+		const int co = scv.node_id();
+
+	//	loop integration points
+		for(size_t ip = 0; ip < scv.num_ip(); ++ip)
+		{
+		// 	set lin defect
+			vvvLinDef[ipCnt++][_C_][co] = scv.weight(ip) * scv.volume();
+		}
+	}
+
+//	we're done
+	return true;
+}
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
@@ -774,12 +889,12 @@ template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 bool ConvectionDiffusionElemDisc<TDomain>::
 ex_grad_fvho(const LocalVector& u,
-                          const MathVector<dim> vGlobIP[],
-                          const MathVector<TGeomProvider::Type::dim> vLocIP[],
-                          const size_t nip,
-                          MathVector<dim> vValue[],
-                          bool bDeriv,
-                          std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
+             const MathVector<dim> vGlobIP[],
+             const MathVector<TGeomProvider::Type::dim> vLocIP[],
+             const size_t nip,
+             MathVector<dim> vValue[],
+             bool bDeriv,
+             std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -1003,9 +1118,11 @@ register_fvho_func()
 //	set computation of linearized defect w.r.t velocity
 	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity_fvho<TElem, TGeomProvider>);
 	m_imDiffusion.set_fct(id, this, &T::template lin_def_diffusion_fvho<TElem, TGeomProvider>);
-	m_imReactionRate. set_fct(id, this, &T::template lin_def_reaction_fvho<TElem, TGeomProvider>);
+	m_imReactionRate. set_fct(id, this, &T::template lin_def_reaction_rate_fvho<TElem, TGeomProvider>);
+	m_imReaction. set_fct(id, this, &T::template lin_def_reaction_fvho<TElem, TGeomProvider>);
 	m_imSource.	  set_fct(id, this, &T::template lin_def_source_fvho<TElem, TGeomProvider>);
 	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale_fvho<TElem, TGeomProvider>);
+	m_imMass.	  set_fct(id, this, &T::template lin_def_mass_fvho<TElem, TGeomProvider>);
 
 //	exports
 	m_exConcentration.	  template set_fct<T,refDim>(id, this, &T::template ex_value_fvho<TElem, TGeomProvider>);

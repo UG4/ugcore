@@ -31,11 +31,19 @@ set_reaction_rate(IPData<number, dim>& user) {m_imReactionRate.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
+set_reaction(IPData<number, dim>& user) {m_imReaction.set_data(user);}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
 set_source(IPData<number, dim>& user)	{m_imSource.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_mass_scale(IPData<number, dim>& user)	{m_imMassScale.set_data(user);}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_mass(IPData<number, dim>& user)	{m_imMass.set_data(user);}
 
 template<typename TDomain>
 bool ConvectionDiffusionElemDisc<TDomain>::
@@ -46,7 +54,9 @@ time_point_changed(number time)
 	m_imVelocity.set_time(time);
 	m_imSource.set_time(time);
 	m_imReactionRate.set_time(time);
+	m_imReaction.set_time(time);
 	m_imMassScale.set_time(time);
+	m_imMass.set_time(time);
 
 //	this disc does not need the old time solutions, thus, return false
 	return false;
@@ -85,10 +95,13 @@ ConvectionDiffusionElemDisc(const char* functions, const char* subsets)
 	this->register_import(m_imDiffusion);
 	this->register_import(m_imVelocity);
 	this->register_import(m_imReactionRate);
+	this->register_import(m_imReaction);
 	this->register_import(m_imSource);
 	this->register_import(m_imMassScale);
+	this->register_import(m_imMass);
 
 	m_imMassScale.set_mass_part(true);
+	m_imMass.set_mass_part(true);
 	m_imSource.set_rhs_part(true);
 
 //	set defaults
