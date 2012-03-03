@@ -74,20 +74,8 @@ void LevelMGDoFDistribution::init()
 	if(max_dofs(2) > 0) init<Face>();
 	if(max_dofs(3) > 0) init<Volume>();
 
-
 #ifdef UG_PARALLEL
-//	proc local number of level
-	int numLevLocal = num_levels();
-
-//	storage for global number of levels
-	int numLevGlobal;
-
-//	\todo: This is MPI World, should only be a subgroup if not all
-//			processes carry the grid.
-	pcl::ProcessCommunicator commWorld;
-	commWorld.allreduce(&numLevLocal, &numLevGlobal, 1, PCL_DT_INT, PCL_RO_MAX);
-
-	for(int l = 0; l < numLevGlobal; ++l)
+	for(int l = 0; l < num_levels(); ++l)
 		create_layouts_and_communicator(l);
 #endif
 }
@@ -96,14 +84,6 @@ void LevelMGDoFDistribution::init()
 void LevelMGDoFDistribution::create_layouts_and_communicator(int l)
 {
 	pcl::ProcessCommunicator commWorld;
-
-//	no grid level present, therefore no dof distribution.
-//	just vote false in participate
-	if(l >= num_levels())
-	{
-		commWorld.create_sub_communicator(false);
-		return;
-	}
 
 //  -----------------------------------
 //	CREATE PROCESS COMMUNICATOR
@@ -484,10 +464,15 @@ defragment()
 	m_spMGDD->defragment(vReplaced, m_level);
 
 //	adapt managed vectors
-	copy_values(vReplaced, true);
+	if(!vReplaced.empty())
+		copy_values(vReplaced, true);
 
 //	num indices may have changed
 	resize_values(num_indices());
+
+#ifdef UG_PARALLEL
+	m_spMGDD->create_layouts_and_communicator(m_level);
+#endif
 }
 
 

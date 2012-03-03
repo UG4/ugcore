@@ -153,6 +153,15 @@ class IApproximationSpace
 		template <typename TDD>
 		void print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const;
 
+	///	registers at message hub for grid adaption
+		void register_at_adaption_msg_hub();
+
+	/**	this callback is called by the message hub, when a grid change has been
+	 * performed. It will call all necessary actions in order to keep the grid
+	 * correct for computations.
+	 */
+		void grid_changed_callback(int, const GridMessage_Adaption* msg);
+
 	///	sets the distributed grid manager
 #ifdef UG_PARALLEL
 		void set_dist_grid_mgr(DistributedGridManager* pDistGrdMgr) {m_pDistGridMgr = pDistGrdMgr;}
@@ -188,6 +197,10 @@ class IApproximationSpace
 
 	///	top surface level view
 		SmartPtr<SurfaceLevelView> m_spTopSurfLevView;
+
+	///	message hub id
+		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
+		bool m_bAdaptionIsActive;
 
 #ifdef UG_PARALLEL
 	///	Pointer to GridManager

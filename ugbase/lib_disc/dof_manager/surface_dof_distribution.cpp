@@ -79,7 +79,6 @@ void SurfaceDoFDistribution::init()
 	if(max_dofs(FACE) > 0)   init<Face>();
 	if(max_dofs(VOLUME) > 0) init<Volume>();
 
-
 #ifdef UG_PARALLEL
 	create_layouts_and_communicator();
 #endif
@@ -89,14 +88,6 @@ void SurfaceDoFDistribution::init()
 void SurfaceDoFDistribution::create_layouts_and_communicator()
 {
 	pcl::ProcessCommunicator commWorld;
-
-//	no grid level present, therefore no dof distribution.
-//	just vote false in participate
-	if(m_level >= num_levels())
-	{
-		commWorld.create_sub_communicator(false);
-		return;
-	}
 
 //  -----------------------------------
 //	CREATE PROCESS COMMUNICATOR
@@ -281,16 +272,6 @@ void SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 
 void SurfaceDoFDistribution::defragment()
 {
-//	check, if holes exist. If not, we're done
-	if(lev_info().vFreeIndex.empty())
-	{
-	//	the index set might have been increased. Thus resize grid functions
-		ManagingDoFDistribution::resize_values(num_indices());
-
-	//	we're done
-		return;
-	}
-
 //	defragment
 	std::vector<std::pair<size_t,size_t> > vReplaced;
 	if(max_dofs(VERTEX) > 0) defragment<VertexBase>(vReplaced);
@@ -299,10 +280,15 @@ void SurfaceDoFDistribution::defragment()
 	if(max_dofs(VOLUME) > 0) defragment<Volume>(vReplaced);
 
 //	adapt managed vectors
-	copy_values(vReplaced, true);
+	if(!vReplaced.empty())
+		copy_values(vReplaced, true);
 
 //	num indices may have changed
 	resize_values(num_indices());
+
+#ifdef UG_PARALLEL
+	create_layouts_and_communicator();
+#endif
 }
 
 template <typename TBaseElem>

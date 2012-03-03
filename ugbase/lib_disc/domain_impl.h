@@ -46,13 +46,11 @@ IDomain<TGrid,TSubsetHandler>::~IDomain()
 }
 
 template <typename TGrid, typename TSubsetHandler>
+inline
 void IDomain<TGrid,TSubsetHandler>::
 grid_changed_callback(int, const GridMessage_Adaption* msg)
 {
-	if(msg->adaption_ends())
-		m_adaptionIsActive = false;
-
-	else if(msg->adaption_begins())
+	if(msg->adaption_begins())
 		m_adaptionIsActive = true;
 
 	else if(m_adaptionIsActive){
@@ -64,6 +62,7 @@ grid_changed_callback(int, const GridMessage_Adaption* msg)
 				update_local_multi_grid();
 				update_global_subset_dim_property();
 				#endif
+				m_adaptionIsActive = false;
 			}
 		}
 	}

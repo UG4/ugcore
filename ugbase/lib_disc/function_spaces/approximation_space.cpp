@@ -16,15 +16,18 @@ namespace ug{
 IApproximationSpace::
 IApproximationSpace(SmartPtr<subset_handler_type> spMGSH, bool bGroup)
 	: m_spMGSH(spMGSH), m_spFunctionPattern(new FunctionPattern(spMGSH)),
-	  m_bGrouped(bGroup)
+	  m_bGrouped(bGroup), m_bAdaptionIsActive(false)
 #ifdef UG_PARALLEL
 	, m_pDistGridMgr(NULL)
 #endif
-{}
+{
+	register_at_adaption_msg_hub();
+}
 
 IApproximationSpace::
 IApproximationSpace(SmartPtr<subset_handler_type> spMGSH)
-	: m_spMGSH(spMGSH),  m_spFunctionPattern(new FunctionPattern(spMGSH))
+	: m_spMGSH(spMGSH),  m_spFunctionPattern(new FunctionPattern(spMGSH)),
+	  m_bAdaptionIsActive(false)
 #ifdef UG_PARALLEL
 	, m_pDistGridMgr(NULL)
 #endif
@@ -43,6 +46,42 @@ IApproximationSpace(SmartPtr<subset_handler_type> spMGSH)
 	else if (blockSize == 1) m_bGrouped = false;
 	else
 		UG_THROW_FATAL("Cannot determine blocksize of Algebra.");
+
+	register_at_adaption_msg_hub();
+}
+
+void IApproximationSpace::register_at_adaption_msg_hub()
+{
+//	register function for grid adaption
+	SPMessageHub msgHub = m_spMGSH->multi_grid()->message_hub();
+	int msgID = GridMessageId_Adaption(msgHub);
+	m_spGridAdaptionCallbackID =
+		msgHub->register_class_callback(msgID, this,
+		&ug::IApproximationSpace::grid_changed_callback);
+}
+
+void IApproximationSpace::
+grid_changed_callback(int, const GridMessage_Adaption* msg)
+{
+	if(msg->adaption_begins())
+		m_bAdaptionIsActive = true;
+
+	else if(m_bAdaptionIsActive){
+		if(msg->adaptive()){
+			if(msg->adaption_ends())
+			{
+				defragment();
+				m_bAdaptionIsActive = false;
+			}
+		}
+	}
+
+	else{
+		UG_THROW("Before any grid-adaption may be performed, the approximation space "
+				"has to be informed that grid-adaption shall begin. "
+				"You may use IRefiner::grid_adaption_begins() or schedule "
+				"an appropriate message to the associated grids message-hub.");
+	}
 }
 
 std::vector<ConstSmartPtr<SurfaceDoFDistribution> >
@@ -111,22 +150,15 @@ void IApproximationSpace::init_levels()
 
 void IApproximationSpace::init_surfaces()
 {
-	int numLevGlobal = num_levels();
-#ifdef UG_PARALLEL
-	int numLevLocal = num_levels();
-	pcl::ProcessCommunicator commWorld;
-	commWorld.allreduce(&numLevLocal, &numLevGlobal, 1, PCL_DT_INT, PCL_RO_MAX);
-#endif
-
-	if(numLevGlobal > 0){
-		surf_dd_required(0, numLevGlobal-1);
+	if(num_levels() > 0){
+		surf_dd_required(0, num_levels()-1);
 		top_surf_dd_required();
 	}
 }
 
 void IApproximationSpace::init_top_surface()
 {
-		top_surf_dd_required();
+	top_surf_dd_required();
 }
 
 void IApproximationSpace::defragment()
@@ -136,8 +168,9 @@ void IApproximationSpace::defragment()
 		m_spSurfaceView->mark_shadows();
 
 //	defragment level dd
-	if(num_levels() > m_vLevDD.size())
-		level_dd_required(m_vLevDD.size(), num_levels()-1);
+	if(m_spLevMGDD.is_valid())
+		if(num_levels() > m_vLevDD.size())
+			level_dd_required(m_vLevDD.size(), num_levels()-1);
 
 	for(size_t lev = 0; lev < m_vLevDD.size(); ++lev)
 		if(m_vLevDD[lev].is_valid()) m_vLevDD[lev]->defragment();
@@ -194,7 +227,7 @@ print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 {
 #ifdef UG_PARALLEL
 //	Get Process communicator;
-	pcl::ProcessCommunicator pCom = dd->process_communicator();
+	const pcl::ProcessCommunicator& pCom = dd->process_communicator();
 
 //	hack since pcl does not support much constness
 	TDD* nonconstDD = const_cast<TDD*>(dd.get_impl());

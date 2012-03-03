@@ -108,7 +108,7 @@ class IDomain
 	 * performed. It will call all necessary actions in order to keep the grid
 	 * correct for computations.
 	 */
-		void grid_changed_callback(int, const GridMessage_Adaption* msg);
+		inline void grid_changed_callback(int, const GridMessage_Adaption* msg);
 
 #ifdef UG_PARALLEL
 	public:
