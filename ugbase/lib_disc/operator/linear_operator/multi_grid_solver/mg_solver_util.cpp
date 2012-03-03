@@ -82,7 +82,6 @@ void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 }
 
 
-template <typename TElemBase>
 void SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
                                               const SurfaceView& surfView,
                                               int level)
@@ -110,24 +109,35 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
 						"level "<<level<<" does not exist in Multigrid.");
 
 //	iterator type
-	typename geometry_traits<TElemBase>::const_iterator iter, iterEnd;
+	geometry_traits<VertexBase>::const_iterator iter, iterEnd;
 
-	iterEnd = mg.end<TElemBase>(level);
+	iterEnd = mg.end<VertexBase>(level);
 
 //	loop all base elems
-	for(iter = mg.begin<TElemBase>(level); iter != iterEnd; ++iter)
+	for(iter = mg.begin<VertexBase>(level); iter != iterEnd; ++iter)
 	{
 	//	get element
-		TElemBase* shadow = *iter;
+		VertexBase* shadow = *iter;
 
 	//	check if element is a shadow
 		if(!surfView.is_shadowed(shadow)) continue;
 
 	//	get adjacent elements
-		CollectAssociated(vAssVertex, grid, shadow);
 		CollectAssociated(vAssEdge, grid, shadow);
-		CollectAssociated(vAssFace, grid, shadow);
-		CollectAssociated(vAssVolume, grid, shadow);
+
+		vAssVertex.clear();
+		for(size_t i = 0; i < vAssEdge.size(); ++i)
+			CollectAssociated(vAssVertex, grid, vAssEdge[i], false);
+
+		vAssEdge.clear();
+		vAssFace.clear();
+		vAssVolume.clear();
+		for(size_t i = 0; i < vAssVertex.size(); ++i)
+		{
+			CollectAssociated(vAssEdge, grid, vAssVertex[i], false);
+			CollectAssociated(vAssFace, grid, vAssVertex[i], false);
+			CollectAssociated(vAssVolume, grid, vAssVertex[i], false);
+		}
 
 	//	select associated elements
 		for(size_t i = 0; i < vAssVertex.size(); ++i)
@@ -145,41 +155,6 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
 	}
 }
 
-
-
-void SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
-                                              const SurfaceView& surfView,
-                                              int level)
-{
-//	clear all marks
-	sel.clear();
-
-//	get grid
-	Grid& grid = *sel.grid();
-
-//	get multigrid
-	MultiGrid& mg = *dynamic_cast<MultiGrid*>(&grid);
-
-//	check multigrid
-	if(&mg == NULL)
-		UG_THROW_FATAL("SelectNonShadowsAdjacentToShadowsOnLevel: No "
-				"Multigrid given, selection ob level not possible.");
-
-//	if level does not exist in multigrid, no element can be selected and we're done
-	if(level >= (int) mg.num_levels()) return;
-
-//	check level
-	if(level < 0)
-		UG_THROW_FATAL("SelectNonShadowsAdjacentToShadowsOnLevel: Requested "
-				"level "<<level<<" does not exist in Multigrid.");
-
-//	No loops on Edges/Faces/Volumes are needed, since if an edge/face is in the
-//	surface view, then also its vertices. Thus, the adjacend element is marked
-//	already by the loop over VertexBase.
-
-//	select elements
-	SelectNonShadowsAdjacentToShadowsOnLevel<VertexBase>(sel, surfView, level);
-}
 
 template <typename TElemBase>
 void SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView)
