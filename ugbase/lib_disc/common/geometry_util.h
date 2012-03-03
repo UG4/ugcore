@@ -299,6 +299,47 @@ inline number ElementSize<ReferenceHexahedron, 3>(const MathVector<3>* vCornerCo
 }
 
 ///////////////////////////////////////////////////////////////
+//	run-time size of element
+///////////////////////////////////////////////////////////////
+
+template <int dim>
+inline number ElementSize(ReferenceObjectID roid, const MathVector<dim>* vCornerCoords);
+
+template <>
+inline number ElementSize<1>(ReferenceObjectID roid, const MathVector<1>* vCornerCoords)
+{
+	switch(roid)
+	{
+		case ROID_EDGE: return ElementSize<ReferenceEdge, 1>(vCornerCoords);
+		default: UG_THROW_FATAL("ReferenceObject "<<roid<<" not found in dim 1.");
+	}
+}
+
+template <>
+inline number ElementSize<2>(ReferenceObjectID roid, const MathVector<2>* vCornerCoords)
+{
+	switch(roid)
+	{
+		case ROID_TRIANGLE: return ElementSize<ReferenceTriangle, 2>(vCornerCoords);
+		case ROID_QUADRILATERAL: return ElementSize<ReferenceQuadrilateral, 2>(vCornerCoords);
+		default: UG_THROW_FATAL("ReferenceObject "<<roid<<" not found in dim 2.");
+	}
+}
+
+template <>
+inline number ElementSize<3>(ReferenceObjectID roid, const MathVector<3>* vCornerCoords)
+{
+	switch(roid)
+	{
+		case ROID_TETRAHEDRON: return ElementSize<ReferenceTetrahedron, 3>(vCornerCoords);
+		case ROID_PYRAMID: return ElementSize<ReferencePyramid, 3>(vCornerCoords);
+		case ROID_PRISM: return ElementSize<ReferencePrism, 3>(vCornerCoords);
+		case ROID_HEXAHEDRON: return ElementSize<ReferenceHexahedron, 3>(vCornerCoords);
+		default: UG_THROW_FATAL("ReferenceObject "<<roid<<" not found in dim 3.");
+	}
+}
+
+///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 // Normals on Elements
 ///////////////////////////////////////////////////////////////

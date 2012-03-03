@@ -20,23 +20,6 @@
 
 namespace ug{
 
-/// returns the reference element dimension at run-time
-inline int ReferenceElementDimension(ReferenceObjectID roid)
-{
-	switch(roid)
-	{
-		case ROID_VERTEX: return 0;
-		case ROID_EDGE: return 1;
-		case ROID_TRIANGLE: return 2;
-		case ROID_QUADRILATERAL: return 2;
-		case ROID_TETRAHEDRON: return 3;
-		case ROID_PYRAMID: return 3;
-		case ROID_PRISM: return 3;
-		case ROID_HEXAHEDRON: return 3;
-		default: throw(UGFatalError("ReferenceObjectId not found."));
-	}
-}
-
 /// traits for reference elements
 /**
  * The traits class provides for a Grid-element type the corresponding

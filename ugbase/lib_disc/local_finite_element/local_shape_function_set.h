@@ -168,7 +168,14 @@ class DimLocalShapeFunctionSet
 	 * \param[out]	sOut	Vector of Shapes
 	 * \param[in]	x		Position on reference element (evaluation point)
 	 */
+	///	\{
 		virtual void shapes(shape_type* sOut, const position_type& x) const = 0;
+
+		inline void shapes(std::vector<shape_type>& vShapeOut, const position_type& x) const
+		{
+			vShapeOut.resize(num_sh()); shapes(&vShapeOut[0], x);
+		}
+	///	\}
 
 	/// evaluates the gradient of the shape function
 	/** This function returns the gradient of Shape Function i at
@@ -186,7 +193,14 @@ class DimLocalShapeFunctionSet
 	 * \param[out]	gOut	Vector of gradients
 	 * \param[in]	x		Position on reference element (evaluation point)
 	 */
+	///	\{
 		virtual void grads(grad_type* gOut, const position_type& x) const = 0;
+
+		inline void grads(std::vector<grad_type>& vGradOut, const position_type& x) const
+		{
+			vGradOut.resize(num_sh()); grads(&vGradOut[0], x);
+		}
+	///	\}
 
 	///	virtual destructor
 		virtual ~DimLocalShapeFunctionSet() {};

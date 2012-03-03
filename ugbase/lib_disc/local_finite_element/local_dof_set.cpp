@@ -7,6 +7,7 @@
 
 #include "local_dof_set.h"
 #include "lagrange/lagrange_local_dof.h"
+#include "lib_disc/reference_element/reference_element_util.h"
 
 namespace ug{
 

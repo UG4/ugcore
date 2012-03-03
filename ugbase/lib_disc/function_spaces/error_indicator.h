@@ -14,115 +14,98 @@
 #include "common/util/provider.h"
 #include "lib_grid/algorithms/refinement/refiner_interface.h"
 #include "lib_disc/common/geometry_util.h"
+#include "lib_disc/reference_element/reference_element_util.h"
 
 namespace ug{
 
-template <typename TElem, typename TFunction>
-bool ComputeGradient(TFunction& u,
+template <typename TFunction>
+void ComputeGradient(TFunction& u,
                      MultiGrid::AttachmentAccessor<
-                     	 typename geometry_traits<TElem>::geometric_base_object,
-                     	 ug::Attachment<number> >& aaError)
+                     typename TFunction::element_type,
+                     ug::Attachment<number> >& aaError)
 {
-//	get reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-	const ref_elem_type& refElem = Provider<ref_elem_type>::get();
-
-//	get reference dimension
-	static const int dim = ref_elem_type::dim;
-
-//	get world dimension
-	static const int worldDim = TFunction::domain_type::dim;
+	static const int dim = TFunction::dim;
+	typedef typename TFunction::const_element_iterator const_iterator;
+	typedef typename TFunction::element_type element_type;
 
 //	get position accessor
 	typename TFunction::domain_type::position_accessor_type& aaPos
 			= u.domain()->position_accessor();
 
-//	get trial space
-	const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-			LocalShapeFunctionSetProvider::
-				get<ref_elem_type>
-				(LFEID(LFEID::LAGRANGE, 1));
-
-//	create a reference mapping
-	ReferenceMapping<ref_elem_type, worldDim> mapping;
-
-//	number of shape functions
-	size_t num_sh = (size_t)ref_elem_type::num_corners;
-
-//	local IP
-	MathVector<dim> localIP;
-
 //	some storage
-	std::vector<MathVector<dim> > localGrad(num_sh);
-	std::vector<MathVector<worldDim> > globalGrad(num_sh);
-	std::vector<MathVector<worldDim> > vCorner(num_sh);
 	MathMatrix<dim, dim> JTInv;
+	std::vector<MathVector<dim> > vLocalGrad;
+	std::vector<MathVector<dim> > vGlobalGrad;
+	std::vector<MathVector<dim> > vCorner;
 
-//	compute local midpoint
-	VecSet(localIP, 0.0);
-	for(size_t i = 0; i < num_sh; ++i)
-		localIP += refElem.corner(i);
-	localIP *= 1./(num_sh);
+//	get iterator over elements
+	const_iterator iter = u.template begin<element_type>();
+	const_iterator iterEnd = u.template end<element_type>();
 
-//	evaluate reference gradient at local midpoint
-	TrialSpace.grads(&localGrad[0], localIP);
-
-	typedef typename TFunction::template traits<TElem>::const_iterator const_iterator;
-
-//	loop subsets
-	for(int si = 0; si < u.num_subsets(); ++si)
+//	loop elements
+	for(; iter != iterEnd; ++iter)
 	{
-	//	get iterator over elements
-		const_iterator iter = u.template begin<TElem>(si);
-		const_iterator iterEnd = u.template end<TElem>(si);
+	//	get the element
+		element_type* elem = *iter;
 
-	//	loop elements
-		for(; iter != iterEnd; ++iter)
+	//	reference object type
+		ReferenceObjectID roid = elem->reference_object_id();
+
+	//	get trial space
+		const DimLocalShapeFunctionSet<dim>& lsfs =
+				LocalShapeFunctionSetProvider::get<dim>(roid, LFEID(LFEID::LAGRANGE, 1));
+
+	//	create a reference mapping
+		DimReferenceMapping<dim, dim>& map
+			= ReferenceMappingProvider::get<dim, dim>(roid);
+
+	//	get local Mid Point
+		MathVector<dim> localIP = ReferenceElementCenter<dim>(roid);
+
+	//	number of shape functions
+		const size_t numSH = lsfs.num_sh();
+		vLocalGrad.resize(numSH);
+		vGlobalGrad.resize(numSH);
+
+	//	evaluate reference gradient at local midpoint
+		lsfs.grads(&vLocalGrad[0], localIP);
+
+	//	get corners of element
+		CollectCornerCoordinates(vCorner, *elem, aaPos);
+
+	//	update mapping
+		map.update(&vCorner[0]);
+
+	//	compute jacobian
+		map.jacobian_transposed_inverse(JTInv, localIP);
+
+	//	compute size (volume) of element
+		const number elemSize = ElementSize<dim>(roid, &vCorner[0]);
+
+	//	compute gradient at mid point by summing contributions of all shape fct
+		MathVector<dim> MidGrad; VecSet(MidGrad, 0.0);
+		for(size_t sh = 0 ; sh < numSH; ++sh)
 		{
-		//	get the element
-			TElem* elem = *iter;
+		//	get global Gradient
+			MatVecMult(vGlobalGrad[sh], JTInv, vLocalGrad[sh]);
 
-		//	get corners of element
-			CollectCornerCoordinates(vCorner, *elem, aaPos);
+		//	get vertex
+			VertexBase* vert = elem->vertex(sh);
 
-		//	update mapping
-			mapping.update(&vCorner[0]);
+		//	get of of vertex
+			std::vector<MultiIndex<2> > ind;
+			u.inner_multi_indices(vert, 0, ind);
 
-		//	compute jacobian
-			mapping.jacobian_transposed_inverse(JTInv, localIP);
+		//	scale global gradient
+			vGlobalGrad[sh] *= (u.get_dof_value(ind[0][0], ind[0][1]));
 
-		//	compute size (volume) of element
-			const number elemSize = ElementSize<ref_elem_type, dim>(&vCorner[0]);
-
-		//	compute gradient at mid point by summing contributions of all shape fct
-			MathVector<dim> MidGrad; VecSet(MidGrad, 0.0);
-			for(size_t sh = 0 ; sh < num_sh; ++sh)
-			{
-			//	get global Gradient
-				MatVecMult(globalGrad[sh], JTInv,localGrad[sh]);
-
-			//	get vertex
-				VertexBase* vert = elem->vertex(sh);
-
-			//	get of of vertex
-				//\todo: this is for fct=0 only
-				std::vector<MultiIndex<2> > ind;
-				u.inner_multi_indices(vert, 0, ind);
-
-			//	scale global gradient
-				globalGrad[sh] *= (u.get_dof_value(ind[0][0], ind[0][1]));
-
-			//	sum up
-				MidGrad += globalGrad[sh];
-			}
-
-		//	write result in array storage
-			aaError[elem] = VecTwoNorm(MidGrad) * pow(elemSize, 2./dim);
+		//	sum up
+			MidGrad += vGlobalGrad[sh];
 		}
-	}
 
-//	we're done
-	return true;
+	//	write result in array storage
+		aaError[elem] = VecTwoNorm(MidGrad) * pow(elemSize, 2./dim);
+	}
 }
 
 /// marks elements according to an attached error value field
@@ -140,180 +123,116 @@ bool ComputeGradient(TFunction& u,
  * \param[in]		scale		scaling factor indicating lower bound for marking
  * \param[in]		aaError		Error value attachment to elements
  */
-template <typename TElemBase, typename TFunction>
-bool MarkElements(IRefiner& refiner,
+template <typename TFunction>
+void MarkElements(IRefiner& refiner,
                   TFunction& u,
                   number TOL, number scale,
-                  MultiGrid::AttachmentAccessor<TElemBase, ug::Attachment<number> >& aaError)
+                  MultiGrid::AttachmentAccessor<typename TFunction::element_type,
+                  	  	  	  	  	  	  	    ug::Attachment<number> >& aaError)
 {
+	typedef typename TFunction::element_type element_type;
+	typedef typename TFunction::const_element_iterator const_iterator;
+
 //	reset maximum of error
 	number max = 0.0;
 
-	typedef typename TFunction::template traits<TElemBase>::const_iterator const_iterator;
+//	get element iterator
+	const_iterator iter = u.template begin<element_type>();
+	const_iterator iterEnd = u.template end<element_type>();
 
-//	loop subsets
-	for(int si = 0; si < u.num_subsets(); ++si)
+//	loop all elements to find the maximum of the error
+	for( ;iter != iterEnd; ++iter)
 	{
-	//	get element iterator
-		const_iterator iter = u.template begin<TElemBase>(si);
-		const_iterator iterEnd = u.template end<TElemBase>(si);
+	//	get element
+		element_type* elem = *iter;
 
-	//	loop all elements to find the maximum of the error
-		for( ;iter != iterEnd; ++iter)
-		{
-		//	get element
-			TElemBase* elem = *iter;
-
-		//	search for maximum
-			if(aaError[elem] > max)
-				max = aaError[elem];
-		}
+	//	search for maximum
+		if(aaError[elem] > max)
+			max = aaError[elem];
 	}
 
+	UG_LOG("  +++  Gradient Error Indicator  +++\n");
 #ifdef UG_PARALLEL
-	pcl::ProcessCommunicator com;
-	number maxLocal = max;
-	com.allreduce(&maxLocal, &max, 1, PCL_DT_DOUBLE, PCL_RO_MAX);
-	UG_LOG("Max Error on Proc " << pcl::GetProcRank() << " is " << maxLocal << ".");
+	if(pcl::GetNumProcesses() > 1){
+		pcl::ProcessCommunicator com;
+		number maxLocal = max;
+		com.allreduce(&maxLocal, &max, 1, PCL_DT_DOUBLE, PCL_RO_MAX);
+		UG_LOG("  +++ Max Error on Proc " << pcl::GetProcRank() <<
+			   " is " << maxLocal << ".\n");
+	}
 #endif
 
-	UG_LOG("Max Error is " << max << ". ");
+	UG_LOG("  +++ Max Error is " << max << ".\n");
 
 //	check if something to do
-	if(max <= TOL) return false;
+	if(max <= TOL) return;
 
 //	Compute minimum
 	number min = max*scale;
 	if(min < TOL) min = TOL;
 
-	UG_LOG("Refining all elements with error >= " << min << ". ");
+	UG_LOG("  +++ Refining all elements with error >= " << min << ".\n");
 
 //	reset counter
 	int numMarked = 0;
 
-//	loop subsets
-	for(int si = 0; si < u.num_subsets(); ++si)
+	iter = u.template begin<element_type>();
+	iterEnd = u.template end<element_type>();
+
+//	loop elements for marking
+	for(; iter != iterEnd; ++iter)
 	{
-		const_iterator iter = u.template begin<TElemBase>(si);
-		const_iterator iterEnd = u.template end<TElemBase>(si);
+	//	get element
+		element_type* elem = *iter;
 
-	//	loop elements for marking
-		for(; iter != iterEnd; ++iter)
+	//	check if element error is in range
+		if(aaError[elem] >= min)
 		{
-		//	get element
-			TElemBase* elem = *iter;
-
-		//	check if element error is in range
-			if(aaError[elem] >= min)
-			{
-			//	mark element and increase counter
-				refiner.mark(elem);
-				numMarked++;
-			}
+		//	mark element and increase counter
+			refiner.mark(elem);
+			numMarked++;
 		}
 	}
 
 #ifdef UG_PARALLEL
-	int numMarkedLocal = numMarked;
-	com.allreduce(&numMarkedLocal, &numMarked, 1, PCL_DT_INT, PCL_RO_SUM);
-	UG_LOG(numMarkedLocal << " Elements marked on Proc " << pcl::GetProcRank() << ".");
+	if(pcl::GetNumProcesses() > 1){
+		pcl::ProcessCommunicator com;
+		int numMarkedLocal = numMarked;
+		com.allreduce(&numMarkedLocal, &numMarked, 1, PCL_DT_INT, PCL_RO_SUM);
+		UG_LOG("  +++ " << numMarkedLocal << " Elements marked on Proc "
+			   << pcl::GetProcRank() << ".\n");
+	}
 #endif
 
-	UG_LOG(numMarked << " Elements marked for refinement.\n");
-
-//	we're done
-	return true;
+	UG_LOG("  +++ " << numMarked << " Elements marked for refinement.\n");
 }
-
-
-template <typename TFunction>
-void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
-                                             TFunction& u,
-                                             number TOL, number scale,
-                                             Int2Type<1>)
-{
-//	get multigrid
-	SmartPtr<typename TFunction::domain_type::grid_type> pMG = u.domain()->grid();
-
-// 	attach error field
-	typedef Attachment<number> ANumber;
-	ANumber aError;
-	pMG->attach_to_edges(aError);
-	MultiGrid::EdgeAttachmentAccessor<ANumber> aaError(*pMG, aError);
-
-// 	Compute error on elements
-	ComputeGradient<Edge, TFunction>(u, aaError);
-
-// 	Mark elements for refinement
-	if(!MarkElements<EdgeBase, TFunction>(refiner, u, TOL, scale, aaError))
-		UG_LOG("No element marked. Not refining the grid.\n");
-
-// 	detach error field
-	pMG->detach_from_edges(aError);
-};
-
-template <typename TFunction>
-void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
-                                             TFunction& u,
-                                             number TOL, number scale,
-                                             Int2Type<2>)
-{
-//	get multigrid
-	SmartPtr<typename TFunction::domain_type::grid_type> pMG = u.domain()->grid();
-
-// 	attach error field
-	typedef Attachment<number> ANumber;
-	ANumber aError;
-	pMG->attach_to_faces(aError);
-	MultiGrid::FaceAttachmentAccessor<ANumber> aaError(*pMG, aError);
-
-// 	Compute error on elements
-	ComputeGradient<Triangle, TFunction>(u, aaError);
-	ComputeGradient<Quadrilateral, TFunction>(u, aaError);
-
-// 	Mark elements for refinement
-	if(!MarkElements<Face, TFunction>(refiner, u, TOL, scale, aaError))
-		UG_LOG("No element marked. Not refining the grid.\n");
-
-// 	detach error field
-	pMG->detach_from_faces(aError);
-};
-
-template <typename TFunction>
-void MarkForRefinement_GradientIndicator_DIM(IRefiner& refiner,
-                                             TFunction& u,
-                                             number TOL, number scale,
-                                             Int2Type<3>)
-{
-//	get multigrid
-	SmartPtr<typename TFunction::domain_type::grid_type> pMG = u.domain()->grid();
-
-// 	attach error field
-	typedef Attachment<number> ANumber;
-	ANumber aError;
-	pMG->attach_to_volumes(aError);
-	MultiGrid::VolumeAttachmentAccessor<ANumber> aaError(*pMG, aError);
-
-// 	Compute error on elements
-	ComputeGradient<Tetrahedron, TFunction>(u, aaError);
-	ComputeGradient<Hexahedron, TFunction>(u, aaError);
-
-// 	Mark elements for refinement
-	if(!MarkElements<Volume, TFunction>(refiner, u, TOL, scale, aaError))
-		UG_LOG("No element marked. Not refining the grid.\n");
-
-// 	detach error field
-	pMG->detach_from_faces(aError);
-};
 
 template <typename TFunction>
 void MarkForRefinement_GradientIndicator(IRefiner& refiner,
                                          TFunction& u,
                                          number TOL, number scale)
 {
-	MarkForRefinement_GradientIndicator_DIM(refiner, u, TOL, scale,
-	                                    Int2Type<TFunction::domain_type::dim>());
-}
+	typedef typename TFunction::domain_type::grid_type grid_type;
+	typedef typename TFunction::element_type element_type;
+
+//	get multigrid
+	SmartPtr<grid_type> pMG = u.domain()->grid();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	pMG->template attach_to<element_type>(aError);
+	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
+
+// 	Compute error on elements
+	ComputeGradient(u, aaError);
+
+// 	Mark elements for refinement
+	MarkElements<TFunction>(refiner, u, TOL, scale, aaError);
+
+// 	detach error field
+	pMG->template detach_from<element_type>(aError);
+};
 
 } // end namespace ug
 

@@ -227,23 +227,6 @@ class GridFunction
 	  	public IDDGridFunction<TDD>
 {
 	public:
-		template <typename TElem>
-		struct traits
-		{
-			typedef typename IDDGridFunction<TDD>::template traits<TElem>::geometric_object geometric_object;
-			typedef typename IDDGridFunction<TDD>::template traits<TElem>::iterator iterator;
-			typedef typename IDDGridFunction<TDD>::template traits<TElem>::const_iterator const_iterator;
-		};
-
-		template <int dim>
-		struct dim_traits
-		{
-			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::geometric_base_object geometric_base_object;
-			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::iterator iterator;
-			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::const_iterator const_iterator;
-		};
-
-	public:
 	///	This type
 		typedef GridFunction<TDomain, TDD, TAlgebra> this_type;
 
@@ -264,6 +247,28 @@ class GridFunction
 
 	///	Type of DoFDistribution
 		typedef TDD dof_distribution_type;
+
+	public:
+		template <typename TElem>
+		struct traits
+		{
+			typedef typename IDDGridFunction<TDD>::template traits<TElem>::geometric_object geometric_object;
+			typedef typename IDDGridFunction<TDD>::template traits<TElem>::iterator iterator;
+			typedef typename IDDGridFunction<TDD>::template traits<TElem>::const_iterator const_iterator;
+		};
+
+		template <int dim>
+		struct dim_traits
+		{
+			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::geometric_base_object geometric_base_object;
+			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::iterator iterator;
+			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::const_iterator const_iterator;
+		};
+
+		typedef typename dim_traits<dim>::geometric_base_object element_type;
+		typedef typename dim_traits<dim>::iterator element_iterator;
+		typedef typename dim_traits<dim>::const_iterator const_element_iterator;
+
 
 	public:
 		using IDDGridFunction<TDD>::num_indices;
