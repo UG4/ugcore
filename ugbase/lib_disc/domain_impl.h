@@ -89,7 +89,10 @@ update_local_multi_grid()
 	pcl::ProcessCommunicator commWorld;
 	commWorld.allreduce(&numLevLocal, &numLevGlobal, 1, PCL_DT_INT, PCL_RO_MAX);
 
-	m_spGrid->level_required(numLevGlobal);
+	if(numLevGlobal > 0){
+		m_spGrid->level_required(numLevGlobal-1);
+		m_spSH->level_required(numLevGlobal-1);
+	}
 }
 #endif
 

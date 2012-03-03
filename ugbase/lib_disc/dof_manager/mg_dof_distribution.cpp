@@ -1134,7 +1134,7 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	if(oldIndex < li.numIndex) return;
 
 //	must have holes in the index set
-	UG_ASSERT(li.vFreeIndex.empty(), "Hole in index set, but no free index.");
+	UG_ASSERT(!li.vFreeIndex.empty(), "Hole in index set, but no free index.");
 
 //	get new index from stack
 	while(!li.vFreeIndex.empty())

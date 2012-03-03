@@ -103,6 +103,7 @@ void LevelMGDoFDistribution::create_layouts_and_communicator(int l)
 					  ",!empty=" << !commWorld.empty() << ").\n");
 
 //	create process communicator for interprocess layouts
+	level_required(l);
 	lev_info(l).processCommunicator	= commWorld.create_sub_communicator(participate);
 
 //  -----------------------------------

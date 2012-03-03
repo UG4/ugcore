@@ -41,6 +41,9 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	///	The const version of subset_required throws an error if the subset does not exist.
 		inline void subset_required(int index) const;
 
+	///	creates the required levels, if they do not yet exist
+		inline void level_required(size_t level);
+
 	///	returns the number of levels
 		inline uint num_levels() const	{return (uint)m_levels.size();}
 		
@@ -225,8 +228,6 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		template<class TElem>
 		void change_elem_subset_indices(int indOld, int indNew);
 		
-	///	creates the required levels, if they do not yet exist
-		inline void level_required(size_t level);
 	///	Throws an error if the required level does not yet exist
 		inline void level_required(size_t level) const;
 
