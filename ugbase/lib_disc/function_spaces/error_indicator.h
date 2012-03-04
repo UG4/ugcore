@@ -209,7 +209,12 @@ void MarkElements(IRefiner& refiner,
 
 template <typename TDomain, typename TDD, typename TAlgebra>
 void MarkForRefinement_GradientIndicator(IRefiner& refiner,
-                                         GridFunction<TDomain, TDD, TAlgebra>& u, const char* fctName,
+#ifdef UG_PARALLEL
+                                         ParallelGridFunction<GridFunction<TDomain, TDD, TAlgebra> >& u,
+#else
+                                         GridFunction<TDomain, TDD, TAlgebra>& u,
+#endif
+                                         const char* fctName,
                                          number TOL, number scale)
 {
 //	types
