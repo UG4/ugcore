@@ -141,6 +141,13 @@ void RegisterLibDiscDomain__Algebra_Domain(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "IDiscretizationItem", dimAlgTag);
 	}
 
+
+//	MarkForRefinement_GradientIndicator
+	{
+		string grp("ug4/Refinement/");
+		reg.add_function("MarkForRefinement_GradientIndicator",
+						 &MarkForRefinement_GradientIndicator<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
+	}
 }
 
 
@@ -179,14 +186,6 @@ typedef TGridFct TFct;
 						"Success", "Vector")
 			.add_method("clone", &TFct::clone);
 		reg.add_class_to_group(name, "GridFunction", dimAlgTag);
-	}
-
-
-//	MarkForRefinement_GradientIndicator
-	{
-		string grp("ug4/Refinement/");
-		reg.add_function("MarkForRefinement_GradientIndicator",
-						 &MarkForRefinement_GradientIndicator<TFct>, grp);
 	}
 
 	string grp = parentGroup; grp.append("");

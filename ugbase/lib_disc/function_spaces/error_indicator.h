@@ -19,7 +19,7 @@
 namespace ug{
 
 template <typename TFunction>
-void ComputeGradient(TFunction& u,
+void ComputeGradient(TFunction& u, size_t fct,
                      MultiGrid::AttachmentAccessor<
                      typename TFunction::element_type,
                      ug::Attachment<number> >& aaError)
@@ -94,10 +94,10 @@ void ComputeGradient(TFunction& u,
 
 		//	get of of vertex
 			std::vector<MultiIndex<2> > ind;
-			u.inner_multi_indices(vert, 0, ind);
+			u.inner_multi_indices(vert, fct, ind);
 
 		//	scale global gradient
-			vGlobalGrad[sh] *= (u.get_dof_value(ind[0][0], ind[0][1]));
+			vGlobalGrad[sh] *= BlockRef(u[ind[0][0]], ind[0][1]);
 
 		//	sum up
 			MidGrad += vGlobalGrad[sh];
@@ -207,13 +207,18 @@ void MarkElements(IRefiner& refiner,
 	UG_LOG("  +++ " << numMarked << " Elements marked for refinement.\n");
 }
 
-template <typename TFunction>
+template <typename TDomain, typename TDD, typename TAlgebra>
 void MarkForRefinement_GradientIndicator(IRefiner& refiner,
-                                         TFunction& u,
+                                         GridFunction<TDomain, TDD, TAlgebra>& u, const char* fctName,
                                          number TOL, number scale)
 {
+//	types
+	typedef GridFunction<TDomain, TDD, TAlgebra> TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_type;
 	typedef typename TFunction::element_type element_type;
+
+//	function id
+	const size_t fct = u.fct_id_by_name(fctName);
 
 //	get multigrid
 	SmartPtr<grid_type> pMG = u.domain()->grid();
@@ -225,10 +230,10 @@ void MarkForRefinement_GradientIndicator(IRefiner& refiner,
 	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
 
 // 	Compute error on elements
-	ComputeGradient(u, aaError);
+	ComputeGradient(u, fct, aaError);
 
 // 	Mark elements for refinement
-	MarkElements<TFunction>(refiner, u, TOL, scale, aaError);
+	MarkElements(refiner, u, TOL, scale, aaError);
 
 // 	detach error field
 	pMG->template detach_from<element_type>(aError);
