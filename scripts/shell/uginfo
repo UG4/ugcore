@@ -1,0 +1,77 @@
+#!/bin/bash
+# created by Martin Rupp 05.03.2012
+
+echo "ugjobinfo"
+echo "-------------------------------------------------"
+echo "(c) Goethe-Center for Scientific Computing 2012"
+
+function usage 
+{
+	echo ""
+    exit 0;
+}
+
+# check that at least 3 args given, else print usage
+if [ $# -lt 3 ]; then
+   usage
+fi
+
+# read args
+nnodes=$1;            # number of nodes
+shift
+
+while [ true ]
+do
+	#echo $1
+	#echo $2
+	if [ $1 = "-so" ]; then
+		scheduleroptions=$2
+		shift 2
+	elif [ $1 = "-cluster" ]; then
+		UGSUBMIT_TYPE=$2
+		shift 2
+	else
+		cont=false
+		break
+	fi
+	if [ $# -eq 0 ]; then
+		break
+	fi
+done
+
+##############################################
+if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
+	echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
+echo "Using NecNehalem"
+qstat | sed -n 1p
+qstat | grep $USER	
+
+elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
+echo "Using Hermit"
+qstat | sed -n 1p
+qstat | grep $USER
+
+##############################################
+elif [ $UGSUBMIT_TYPE = "Jugene" ]
+echo "Using Jugene"
+
+##############################################
+elif [ $UGSUBMIT_TYPE = "mpi" ]; then
+echo "Using MPI"
+ps aux | sed -n 1p
+ps aux | grep $USER | grep mpirun
+
+##############################################
+elif [ $UGSUBMIT_TYPE = "cekon" ]; 
+echo "Using SLURM on cekon"
+squeue | sed -n 1p
+squeue | grep $USER
+
+##############################################
+else
+	echo "" 
+	echo "ERROR: cluster "$UGSUBMIT_TYPE" is not supported."
+fi
+
+
+

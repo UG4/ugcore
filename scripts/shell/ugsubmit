@@ -1,0 +1,335 @@
+#!/bin/bash
+# created by Martin Rupp 05.03.2012
+# authors: Martin Rupp, Andreas Vogel, Arne Naegel.
+
+##### 1. read parameters, set cpus (or exit) ########
+#####################################################
+
+# set default values
+test=false;
+nppn=1;
+walltime="00:10:00";  # walltime
+jobname="job";
+scriptname=$0;		  # name of script
+execpath=`pwd`;       # execution path of script
+execdate=`date`;      # date of execution
+
+# Jugene Options
+JugeneMode="VN"
+JugeneMapfile="TXYZ"
+JugeneVerbose=2
+
+# todo: vielleicht sowas wie --mail-type
+# todo: vielleicht scripts fuer die scheduler auslagern
+# todo: vielleicht total cores angeben, und dann nnodes = totalcores/nppn
+echo "  ugsubmit"
+echo "-------------------------------------------------"
+echo "(c) Goethe-Center for Scientific Computing 2012"
+
+function usage 
+{
+	echo ""
+    echo " usage:  "$scriptname" <nnodes> [optional Parameters] <binary> <arg1> <arg2> ..."
+	echo " "
+	echo "        <nnodes>               : number of nnodes"
+	echo "        <binary>               : the binary"
+	echo "        <args>                 : arguments for execution of binary"
+	echo ""
+	echo " optional Parameters are:"
+	echo "        -test                  : do not actually execute, only write scripts"
+	echo "        -email <emailadress>   : emailadress. you can also use the environment variable UGSUBMIT_EMAIL."
+	echo "        -nppn <nppn>           : number of processes per node (optional, default "$nppn")"
+	echo "        -name <jobname>        : a jobname to be used (optional, default "$jobname ")"
+	echo "        -walltime <hh:mm:ss>   : max walltime for job to run (optional; default is "$walltime")"
+#	echo "        -so <scheduleroptions> : additional options passed to the scheduler (enclose in )"
+	echo "        -cluster <type>        : type can be NecNehalem, Hermit, Jugene, mpi, cekon"
+	echo " "
+	echo " Jugene Parameters:"
+	echo "        -Jugene-mode            : VN, DUAL or SMP. Default "$JugeneMode
+	echo "        -Jugene-mapfile         : Mapfile. Default "$JugeneMapfile
+	echo "        -Jugene-verbose         : Verbose Level. Default "$JugeneVerbose
+	echo ""
+    exit 0;
+}
+
+# check that at least 3 args given, else print usage
+if [ $# -lt 3 ]; then
+   usage
+fi
+
+# read args
+nnodes=$1;            # number of nodes
+shift
+
+while [ true ]
+do
+	#echo $1
+	#echo $2
+	if [ $1 = "-nppn" ]; then
+		nppn=$2		   
+		shift 2
+	elif [ $1 = "-walltime" ]; then
+		walltime=$2
+		shift 2
+	elif [ $1 = "-name" ]; then
+		jobname=$2
+		shift 2
+	elif [ $1 = "-so" ]; then
+		scheduleroptions=$2
+		shift 2
+	elif [ $1 = "-test" ]; then
+		test=true
+		shift 1
+	elif [ $1 = "-email" ]; then
+		UGSUBMIT_EMAIL=$2
+		shift 2
+	elif [ $1 = "-cluster" ]; then
+		UGSUBMIT_TYPE=$2
+		shift 2
+	elif [ $1 = "-Jugene-mode" ]; then
+		JugeneMode=$2
+		shift 2
+	elif [ $1 = "-Jugene-mapfile" ]; then
+		JugeneMapfile=$2
+		shift 2
+	elif [ $1 = "-Jugene-verbose" ]; then
+		JugeneVerbose=$2
+		shift 2
+	else
+		cont=false
+		break
+	fi
+	if [ $# -eq 0 ]; then
+		echo "missing binary!"
+		usage
+	fi
+done
+
+binary=$1
+shift
+args=$*
+
+npe=$((nnodes*nppn)); # number of process entities (i.e. num processes)
+mydate=$(date "+.%F.%T");
+jobname=$jobname.$npe$mydate;
+
+if [ -z "$UGSUBMIT_TYPE" ]; then
+   	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+   	exit
+fi	 
+
+# save processnumber of shell to get a unique ticket
+ticket=$$
+
+# absolut path to executable
+executable=$execpath/$binary
+
+#create output directory
+outdir=$execpath/$jobname
+if [ -d $outdir ]; then
+    echo "Output directory $outdir already exist. Remove directory or choose other jobname"
+    exit 0;
+else
+    mkdir $outdir
+fi
+rm lastRun
+ln -s $outdir lastRun
+
+#create info file in output directory
+if [ ! -e $outdir/info.txt ]; then
+    touch $outdir/info.txt
+fi
+
+# info about args read
+echo " ------------" >> $outdir/info.txt
+echo "  Executing:" >> $outdir/info.txt
+echo " ------------" >> $outdir/info.txt
+echo " cluster type: "$UGSUBMIT_TYPE >> $outdir/info.txt
+echo " script:       "$execpath/$scriptname >> $outdir/info.txt
+echo " exec path:    "$execpath >> $outdir/info.txt
+echo " date:         "$execdate >> $outdir/info.txt
+#echo "" >> $outdir/info.txt
+echo " jobname:      "$jobname >> $outdir/info.txt
+echo " nnodes:       "$nnodes >> $outdir/info.txt
+echo " nppn:         "$nppn >> $outdir/info.txt
+echo " npe:          "$npe >> $outdir/info.txt
+echo " walltime:     "$walltime >> $outdir/info.txt
+echo " executable:   "$executable >> $outdir/info.txt
+echo " arguments:    "$args >> $outdir/info.txt
+echo " email:        "$UGSUBMIT_EMAIL >> $outdir/info.txt
+echo "" >> $outdir/info.txt
+echo " output will be written to: "$outdir/ >> $outdir/info.txt
+echo "" >> $outdir/info.txt
+
+echo "Job '$jobname' submitted on `date`" >> $outdir/info.txt
+echo "Output to:      '$outdir'" >> $outdir/info.txt
+
+cat $outdir/info.txt
+#ugjob $UGSUBMIT_EMAIL $jobname $outdir $nnodes $nppn $walltime $executable $args
+
+##############################################
+if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
+	echo ""; echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
+	
+	if [ -z "$UGSUBMIT_EMAIL" ]; then
+		echo "please set UGSUBMIT_EMAIL or specify email with -email".
+		exit
+	fi	 
+	function nehalem_submit
+	{
+		#echo "1 = $1"
+		#echo "2 = $2"
+		#echo "3 = $3"
+# creating script file
+		cat > $outdir/$jobname.sh << EOF
+#!/bin/bash
+#PBS -M $UGSUBMIT_EMAIL
+#PBS -m abe
+#PBS -N $jobname 
+#PBS -o $outdir/
+#PBS -j oe 
+#PBS -S /bin/bash 
+#PBS -l nodes=$nnodes:nehalem:ppn=$nppn
+#PBS -l walltime=$walltime
+# Configure modules and call mpiexec
+#. /etc/profile.d/modules.sh 
+cd $outdir
+mpirun -np $npe $executable $args
+EOF
+
+		echo qsub -q user $outdir/$jobname.sh
+		
+		if [ $test = true ]; then
+			echo ""
+			echo "test. not executing."
+			echo ""
+			echo $outdir/$jobname.sh ":"
+			cat $outdir/$jobname.sh
+			exit
+		fi
+#submitting batch job
+		echo "Submitting batch job to queue ..."
+		echo "Recieved PBSid: "
+		echo "Recieved PBSid: " >> $outdir/info.txt
+		qsub -q user $outdir/$jobname.sh | tee -a $outdir/info.txt
+	}
+	nehalem_submit $scheduleroptions
+	
+
+elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
+	echo ""; echo "Using qsub on Hermit/Cray XE6"
+	
+	if [ -z "$UGSUBMIT_EMAIL" ]; then
+		echo "please set UGSUBMIT_EMAIL or specify email with -email".
+		exit
+	fi	 
+	
+# creating script file
+	cat > $outdir/$jobname.sh << EOF
+#!/bin/bash
+#PBS -M $UGSUBMIT_EMAIL
+#PBS -m abe
+#PBS -N $jobname 
+#PBS -o $outdir/
+#PBS -j oe 
+#PBS -S /bin/bash 
+#PBS -l walltime=$walltime
+#PBS -l mppwidth=$npe
+#PBS -l mppnppn=$nppn
+# Configure modules and call mpiexec
+#. /etc/profile.d/modules.sh 
+cd $outdir
+aprun -n $nodes -N $npe $executable $args
+EOF
+
+	echo qsub -V $outdir/$jobname.sh
+
+	if [ $test = true ]; then
+		echo ""
+		echo "test. not executing."
+		echo ""
+		echo $outdir/$jobname.sh ":"
+		cat $outdir/$jobname.sh
+		rm -rf $outdir/
+		exit
+	fi
+#submitting batch job
+	echo "Submitting batch job to queue ..."
+	echo "Recieved PBSid: "
+	echo "Recieved PBSid: " >> $outdir/info.txt
+	qsub -V $outdir/$jobname.sh | tee -a $outdir/info.txt
+##############################################
+elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
+	cat > $outdir/$jobname.sh << EOF
+# @ job_name = $jobname
+# @ comment = $jobname
+# @ error = $outdir/job.err
+# @ output = $outdir/job.out
+# @ environment = COPY_ALL
+# @ wall_clock_limit = $walltime
+# @ notification = error
+# @ notify_user = $UGSUBMIT_EMAIL
+# @ job_type = bluegene
+# @ bg_connection = TORUS
+# @ bg_size = $npe
+# @ queue
+EOF
+
+	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
+	cd $outdir
+	echo cd $outdir
+	echo mpirun -np $npe -exe $executable -mode $JugeneMode -mapfile $JugeneMapfile -verbose $JugeneVerbose -env LD_LIBRARY_PATH=$MYLDLPATH -args $args
+	if [ $test = true ]; then
+		echo "test. not executing."
+		echo $outdir/$jobname.sh ":"
+		cat $outdir/$jobname.sh
+		rm -rf $outdir/
+		exit
+	fi
+	
+#todo: uncomment next line
+#mpirun -np $npe -exe $executable -mode $JugeneMode -mapfile $JugeneMapfile -verbose $JugeneVerbose -env LD_LIBRARY_PATH=$MYLDLPATH -args $args
+
+##############################################
+elif [ $UGSUBMIT_TYPE = "mpi" ]; then
+
+	echo ""; echo "Using MPI"
+	if [ $nppn -ne 1 ]; then
+		echo "pure mpi does not support nppn > 1"
+		exit
+	fi
+	cd $outdir
+	echo cd $outdir
+	echo mpirun -np $npe $executable $args
+	if [ $test = true ]; then
+		echo "test. not executing."
+		rm -rf $outdir/
+		exit
+	fi
+	mpirun -np $npe $executable $args
+	
+##############################################
+elif [ $UGSUBMIT_TYPE = "cekon" ]; then
+	echo ""; echo "Using SLURM on cekon"
+	if [ $nppn -ne 1 ]; then
+		echo "cekon does not support nppn > 1"
+		exit
+	fi
+	cd $outdir
+	echo cd $outdir
+	echo salloc -n $npe mpirun $executable $args
+	if [ $test = true ]; then
+		echo "test. not executing."
+		rm -rf $outdir/
+		exit
+	fi
+	salloc -n $npe mpirun $executable $args
+
+##############################################
+else
+	echo "" 
+	echo "ERROR: cluster "$UGSUBMIT_TYPE" is not supported."
+fi
+
+
+
