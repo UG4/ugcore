@@ -279,7 +279,7 @@ void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst, const 
 	if(classname)
 		UG_LOG(classname << ":");
 
-	UG_LOG(thefunc.name() << " ");
+	UG_LOG(thefunc.name());
 
 	PrintParametersIn(thefunc, highlightclassname);
 

@@ -499,7 +499,7 @@ static void PrintError(UGError &err)
 {
 	for(size_t i=0;i<err.num_msg();++i)
 	{
-		UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
+		UG_LOG(errSymb<<" "<<i<<": "<<err.get_msg(i)<<endl);
 		UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
 		       ", line "<<err.get_line(i)<<"]\n");
 	}
@@ -533,17 +533,17 @@ static int LuaProxyFunction(lua_State* L)
 				func->execute(paramsIn, paramsOut);
 			}
 			catch(UGError& err){
-				UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << " in function ")
-				PrintFunctionInfo(*func);
-				UG_LOG(". Error traceback:\n");
+				UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
+				UG_LOG(errSymb<<"UGError thrown in call to function '");
+				PrintFunctionInfo(*func); UG_LOG("'.\n");
+				UG_LOG(errSymb<<"Error traceback:\n");
 				PrintError(err);
 				if(err.terminate())
 				{
 					UG_LOG(errSymb<<"Call stack:\n");
 					lua_stacktrace(L);
 					UG_LOG(errSymb<<"Terminating..." << endl);
-					lua_pushstring (L, err.get_msg().c_str());
-					bLuaError=true;
+					exit(0);
 				}
 				else
 				{
@@ -552,19 +552,22 @@ static int LuaProxyFunction(lua_State* L)
 			}
 			catch(bad_alloc& ba)
 			{
-				UG_LOG("ERROR: bad_alloc: " << ba.what() << endl);
-				UG_LOG("Call stack:\n");
+				UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
+				UG_LOG(errSymb<<"std::bad_alloc thrown in call to function '");
+				PrintFunctionInfo(*func); UG_LOG("'.\n");
+				UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
+				UG_LOG(errSymb<<"Call stack:\n");
 				lua_stacktrace(L);
-				UG_LOG("terminating..." << endl);
+				UG_LOG(errSymb<<"Terminating..." << endl);
 				exit(0);
 			}
 			catch(...)
 			{
-				UG_LOG(GetLuaFileAndLine(L) << ":\nunknown exception occured in call to ")
-				PrintFunctionInfo(*func);
-				UG_LOG("terminating..." << endl);
-				lua_pushstring (L, "Unknown exception.");
-				bLuaError=true;
+				UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
+				UG_LOG(errSymb<<"Unknown Exception thrown in call to function '");
+				PrintFunctionInfo(*func); UG_LOG("'.\n");
+				UG_LOG(errSymb<<"Terminating..." << endl);
+				exit(0);
 			}
 	
 		//	if we reach this point, then the method was successfully executed.
@@ -574,22 +577,22 @@ static int LuaProxyFunction(lua_State* L)
 
 		if(!bLuaError && badParam != 0)
 		{
-			UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during trying to call "
-					<< funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
-			UG_LOG("No matching overload found! Candidates are:\n");
+			UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n");
+			UG_LOG(errSymb<<"ERROR occured when trying to call '"
+			       << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):'\n");
+			UG_LOG(errSymb<<"No matching overload found! Candidates are:\n");
 			for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
 			{
 				const ExportedFunction* func = funcGrp->get_overload(i);
 				ParameterStack paramsIn;
 				badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
-				UG_LOG("- ");
+				UG_LOG(errSymb<<" - ");
 				PrintFunctionInfo(*func);
 				UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
 			}
-			UG_LOG("Call stack:\n"); lua_stacktrace(L);
-
-			lua_pushstring (L, "Unknown member function overload.");
-			bLuaError=true;
+			UG_LOG(errSymb<<"Call stack:\n"); lua_stacktrace(L);
+			UG_LOG(errSymb<<"Terminating..." << endl);
+			exit(0);
 		}
 	}
 	
@@ -637,9 +640,10 @@ static int LuaProxyConstructor(lua_State* L)
 		}
 		catch(UGError& err)
 		{
-			UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << " while ");
-			UG_LOG("creating class "<<c->name());
-			UG_LOG(". Error traceback:\n");
+			UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L));
+			UG_LOG(errSymb<<"UGError thrown while creating class '"<<c->name());
+			UG_LOG("'.\n");
+			UG_LOG(errSymb<<"Error traceback:\n");
 			PrintError(err);
 			if(err.terminate())
 			{
@@ -665,10 +669,10 @@ static int LuaProxyConstructor(lua_State* L)
 	if(badParam < 0)
 	{
 		UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << ": ");
-		UG_LOG("Cannot find constructor for class "<< c->name()  <<".\n");
+		UG_LOG(errSymb<<"Cannot find constructor for class '"<< c->name()  <<"'.\n");
 	}
 
-	UG_LOG("Call stack:\n"); lua_stacktrace(L);
+	UG_LOG(errSymb<<"Call stack:\n"); lua_stacktrace(L);
 	lua_pushstring (L, "Unknown constructor overload.");
 
 //	If we reach this point, an error has occured. Force lua to stop execution.
@@ -746,15 +750,10 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 			catch(UGError& err)
 			{
 				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG(errSymb << "UGError thrown in call to method ");
-				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG(".\n");
+				UG_LOG(errSymb << "UGError thrown in call to method '");
+				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
 				UG_LOG(errSymb << " Error traceback:\n");
-				for(size_t i=0;i<err.num_msg();++i)
-				{
-					UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
-					UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
-					       ", line "<<err.get_line(i)<<"]\n");
-				}
+				PrintError(err);
 				if(err.terminate())
 				{
 					UG_LOG(errSymb<<"Terminating..." << endl);
@@ -762,24 +761,22 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				}
 				UG_LOG(errSymb<<" Continuing execution ...\n");
 			}
-			catch(std::bad_alloc& err)
+			catch(std::bad_alloc& ba)
 			{
 				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG(errSymb << "std::bad_alloc thrown in call to ");
-				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("\n");
+				UG_LOG(errSymb << "std::bad_alloc thrown in call to '");
+				UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
+				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG(".'\n");
 				UG_LOG(errSymb<<"Terminating..." << endl);
 				exit(0);
 			}
 			catch(...)
 			{
 				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG(errSymb << "Unknown Exception thrown in call to ");
-				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("\n");
+				UG_LOG(errSymb << "Unknown Exception thrown in call to '");
+				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
 				UG_LOG(errSymb<<"Terminating..." << endl);
 				exit(0);
-
-				lua_pushstring (L, "Unknown exception.");
-				bLuaError=true;
 			}
 
 			if(!bLuaError)
@@ -909,9 +906,10 @@ static int LuaProxyMethod(lua_State* L)
 
 	if(!lua_isuserdata(L, 1))
 	{
-		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR in call to LuaProxyMethod: No object specified in call to ");
+		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n")
+		UG_LOG(errSymb<<"Error in call to LuaProxyMethod: No object specified in call to '");
 		PrintLuaClassMethodInfo(L, 1, *methodGrp->get_overload(0));
-		UG_LOG(".\n");
+		UG_LOG("'.\n");
 		return 0;
 	}
 
@@ -934,18 +932,19 @@ static int LuaProxyMethod(lua_State* L)
 	if(classNameNode != NULL)
 		classname = classNameNode->name().c_str();
 
-	UG_LOG(GetLuaFileAndLine(L) << ":\nERROR: There is no member function "
+	UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n");
+	UG_LOG(errSymb<<"There is no member function '"
 		   << classname << ":" << methodGrp->name() << "(" <<
-		   GetLuaParametersString(L, 1) << "):\n");
+		   GetLuaParametersString(L, 1) << ")':\n");
 
-	UG_LOG("No matching overload found! Candidates in class "
+	UG_LOG(errSymb<<"No matching overload found! Candidates in class "
 			<< classname << " are:\n");
 
 //	since no matching method was found, we'll run ExecuteMethod again, this
 //	time outputting the errors
 	ExecuteMethod(L, methodGrp, self, classNameNode, true);
 
-	UG_LOG("Call stack:\n"); lua_stacktrace(L);
+	UG_LOG(errSymb<<"Call stack:\n"); lua_stacktrace(L);
 	lua_pushstring (L, "Unknown member function overload.");
 
 //	If we reach this point, an error has occured. Force lua to stop execution.
@@ -1081,8 +1080,9 @@ static int LuaProxyGroupCreate(lua_State* L)
 	const ClassGroupDesc* group = (ClassGroupDesc*)lua_touserdata(L, lua_upvalueindex(1));
 
 	if(group->empty()){
-		UG_LOG("ERROR: Can't create default instance of group " << group->name());
-		UG_LOG(": Group is empty!\n");
+		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n")
+		UG_LOG(errSymb<<"Can't create default instance of group '" << group->name());
+		UG_LOG("': Group is empty!\n");
 		lua_pushnil(L);
 		return 1;
 	}
@@ -1091,8 +1091,9 @@ static int LuaProxyGroupCreate(lua_State* L)
 	IExportedClass* c = group->get_default_class();
 
 	if(!c){
-		UG_LOG("ERROR: Can't create default instance of group " << group->name());
-		UG_LOG(": No default class set!\n");
+		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n")
+		UG_LOG(errSymb<<"Can't create default instance of group '" << group->name());
+		UG_LOG("': No default class set!\n");
 		lua_pushnil(L);
 		return 1;
 	}
@@ -1127,15 +1128,10 @@ static int LuaProxyGroupCreate(lua_State* L)
 		}
 		catch(UGError& err)
 		{
-			UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << " while ");
-			UG_LOG("creating class "<<c->name());
-			UG_LOG(". Error traceback:\n");
-			for(size_t i=0;i<err.num_msg();++i)
-			{
-				UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
-				UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
-				       ", line "<<err.get_line(i)<<"]\n");
-			}
+			UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L) <<":\n");
+			UG_LOG(errSymb<<"UGError thrown while creating class '"<<c->name());
+			UG_LOG("'.\n"); UG_LOG(errSymb<<"Error traceback:\n");
+			PrintError(err);
 			if(err.terminate())
 			{
 				UG_LOG(errSymb<<"Call stack:\n");
@@ -1159,11 +1155,11 @@ static int LuaProxyGroupCreate(lua_State* L)
 //	no matching overload found
 	if(badParam < 0)
 	{
-		UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << ": ");
-		UG_LOG("Cannot find constructor for class "<< c->name()  <<".\n");
+		UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L) <<":\n");
+		UG_LOG(errSymb<<"Cannot find constructor for class "<< c->name() <<".\n");
 	}
 
-	UG_LOG("Call stack:\n"); lua_stacktrace(L);
+	UG_LOG(errSymb<<"Call stack:\n"); lua_stacktrace(L);
 	lua_pushstring (L, "Unknown constructor overload.");
 
 //	If we reach this point, an error has occured. Force lua to stop execution.
