@@ -276,21 +276,10 @@ class GridFunction
 	public:
 	/// Initializing Constructor
 		GridFunction(SmartPtr<approximation_space_type> approxSpace,
-		             SmartPtr<TDD> spDoFDistr)
-			: IDDGridFunction<TDD>(spDoFDistr), m_spDomain(approxSpace->domain())
-		{
-			check_algebra();
-			resize_values(num_indices());
-		};
+		             SmartPtr<TDD> spDoFDistr);
 
 	/// Initializing Constructor using surface dof distribution
-		GridFunction(SmartPtr<approximation_space_type> approxSpace)
-			: IDDGridFunction<TDD>(approxSpace->surface_dof_distribution()),
-			  m_spDomain(approxSpace->domain())
-		{
-			check_algebra();
-			resize_values(num_indices());
-		};
+		GridFunction(SmartPtr<approximation_space_type> approxSpace);
 
 	///	checks the algebra
 		void check_algebra();
@@ -348,6 +337,30 @@ class GridFunction
 	protected:
 	/// Approximation Space
 		SmartPtr<domain_type> m_spDomain;
+
+#ifdef UG_PARALLEL
+	protected:
+	///	copies references of the layouts from the underlying dof distribution into the vector
+		void copy_layouts_into_vector()
+		{
+		//	copy all horizontal layouts (for all domain decomps)
+			vector_type::set_layouts(this->m_spDD->master_layout(), this->m_spDD->slave_layout());
+
+		//	copy vertical layouts
+			vector_type::set_vertical_layouts(this->m_spDD->vertical_master_layout(),
+			                                  this->m_spDD->vertical_slave_layout());
+
+		//	copy communicator
+			vector_type::set_communicator(this->m_spDD->communicator());
+			vector_type::set_process_communicator(this->m_spDD->process_communicator());
+		}
+
+	/// copies the storage type from another vector
+		void copy_storage_type(const this_type& v)
+		{
+			vector_type::copy_storage_type(v);
+		}
+#endif
 };
 
 template <typename TDomain, typename TDD, typename TAlgebra>

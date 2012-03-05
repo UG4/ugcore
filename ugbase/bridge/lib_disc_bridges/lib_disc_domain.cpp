@@ -161,11 +161,7 @@ void RegisterLibDiscDomain__GridFunction(Registry& reg, string parentGroup)
 	typedef typename algebra_type::matrix_type matrix_type;
 	typedef typename TGridFct::approximation_space_type approximation_space_type;
 
-#ifdef UG_PARALLEL
-typedef ParallelGridFunction<TGridFct> TFct;
-#else
-typedef TGridFct TFct;
-#endif
+	typedef TGridFct TFct;
 
 //	group string
 	string approxGrp = parentGroup; approxGrp.append("/ApproximationSpace");

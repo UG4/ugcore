@@ -47,11 +47,7 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef ApproximationSpace<TDomain> approximation_space_type;
 
-#ifdef UG_PARALLEL
-		typedef ParallelGridFunction<GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> > function_type;
-#else
-		typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> function_type;
-#endif
+	typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> function_type;
 
 //	group string
 	stringstream grpSS; grpSS << parentGroup << "/Output";

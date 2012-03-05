@@ -13,6 +13,11 @@
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 
+#ifdef UG_PARALLEL
+	#include "pcl/pcl.h"
+	#include "lib_algebra/parallelization/parallelization.h"
+#endif
+
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -271,6 +276,41 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDo
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TDD, typename TAlgebra>
+GridFunction<TDomain, TDD, TAlgebra>::
+GridFunction(SmartPtr<approximation_space_type> approxSpace,
+             SmartPtr<TDD> spDoFDistr)
+ : IDDGridFunction<TDD>(spDoFDistr), m_spDomain(approxSpace->domain())
+{
+	check_algebra();
+	resize_values(num_indices());
+#ifdef UG_PARALLEL
+//	set layouts
+	copy_layouts_into_vector();
+
+//	set storage type
+	this->set_storage_type(PST_UNDEFINED);
+#endif
+};
+
+template <typename TDomain, typename TDD, typename TAlgebra>
+GridFunction<TDomain, TDD, TAlgebra>::
+GridFunction(SmartPtr<approximation_space_type> approxSpace)
+	: IDDGridFunction<TDD>(approxSpace->surface_dof_distribution()),
+	  m_spDomain(approxSpace->domain())
+{
+	check_algebra();
+	resize_values(num_indices());
+#ifdef UG_PARALLEL
+//	set layouts
+	copy_layouts_into_vector();
+
+//	set storage type
+	this->set_storage_type(PST_UNDEFINED);
+#endif
+};
+
 template <typename TDomain, typename TDD, typename TAlgebra>
 void
 GridFunction<TDomain, TDD, TAlgebra>::check_algebra()
@@ -328,6 +368,14 @@ clone_pattern(const this_type& v)
 
 //	resize the vector
 	resize_values(num_indices());
+
+#ifdef UG_PARALLEL
+//	set layouts
+	copy_layouts_into_vector();
+
+//	copy storage type
+	vector_type::copy_storage_type(v);
+#endif
 };
 
 template <typename TDomain, typename TDD, typename TAlgebra>
@@ -392,6 +440,14 @@ void GridFunction<TDomain, TDD, TAlgebra>::assign(const vector_type& v)
 
 //	assign vector
 	*(dynamic_cast<vector_type*>(this)) = v;
+
+#ifdef UG_PARALLEL
+//	set layouts
+	copy_layouts_into_vector();
+
+//	copy storage type
+	vector_type::copy_storage_type(v);
+#endif
 }
 
 template <typename TDomain, typename TDD, typename TAlgebra>
@@ -408,6 +464,14 @@ void GridFunction<TDomain, TDD, TAlgebra>::assign(const this_type& v)
 
 //  copy values
 	*(dynamic_cast<vector_type*>(this)) = *dynamic_cast<const vector_type*>(&v);
+
+#ifdef UG_PARALLEL
+//	set layouts
+	copy_layouts_into_vector();
+
+//	copy storage type
+	vector_type::copy_storage_type(v);
+#endif
 }
 
 } // end namespace ug
