@@ -46,6 +46,7 @@
 --          'dim',
 --          'linMaxIterations'
 --          'numProcs'
+--          'dirichletBND', 'approxSpace',
 --          'activateDbgWriter', 'verbosity', logfileName.
 --          Return value:
 --          Reference of the fully configured FETI solver object.
@@ -61,6 +62,7 @@
 --				 dim
 --				 linMaxIterations,
 --				 numProcs,
+--				 dirichletBND, approxSpace, -- for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()')
 --				 activateDbgWriter,
 --				 verbosity, logfileName)
 --
@@ -248,6 +250,15 @@ grep "Could not solve Dirichlet problem " ug4_laplace_feti.204720.out_feti-sd1_8
   Level 14 ==> (2^3 * 2^{14} + 1)^2 nodes = (2^{17} + 1)^2 nodes =  17'180'131'329 nodes
   Level 15 ==> (2^3 * 2^{15} + 1)^2 nodes = (2^{18} + 1)^2 nodes =  68'720'001'025 nodes
 
+
+# -numPPSD 4 with FAMG (once again - next try 05032012):
+UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -numPPSD 4"
+
+salloc -n 64 ./ugshell $UGARGS -numRefs  7 -ds famg -ns famg
+salloc -n 64 ./ugshell $UGARGS -numRefs  8 -ds famg -ns famg
+salloc -n 64 ./ugshell $UGARGS -numRefs  9 -ds famg -ns famg
+salloc -n 64 ./ugshell $UGARGS -numRefs 10 -ds famg -ns famg
+
 ]]
 
 
@@ -365,7 +376,7 @@ function SetupFETISolver(str_problem,
 	
 	if not util.IsPowerOfTwo(numProcsPerSubdomain) then
 		print("WARNING: numPPSD = '" .. numProcsPerSubdomain .. "' is not a power of 2!" )
-	--	return
+	--	exit()
 	end
 	
 	print("    Check if numPPSD = '" .. numProcsPerSubdomain .. "' process(es) per subdomain makes sense ..." )
@@ -376,18 +387,18 @@ function SetupFETISolver(str_problem,
 	-- check that numSubdomains is greater 1 && \in \N && a power of 2.
 	if numSubdomains < 2 then
 		print("ERROR:   numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is smaller than 2!? Aborting!" )
-		return
+		exit()
 	end
 
 	if not util.IsNaturalNumber(numSubdomains) then
 		print("ERROR:   numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is NOT a natural number!? Aborting!" )
-		return
+		exit()
 	end
 	
 	if not util.IsPowerOfTwo(numSubdomains) then
 		print("WARNING: numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is not a power of 2! Continuing ..." )
 	-- TODO: Maybe switch to a default value then
-	--	return -- in this case the partition can be quite erratic (at least on small (triangular) grids)..
+	--	exit() -- in this case the partition can be quite erratic (at least on small (triangular) grids)..
 	end
 	
 	print("    NumProcs is " .. numProcs .. ", NumSubDomains is " .. numSubdomains )
