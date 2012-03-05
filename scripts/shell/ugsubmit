@@ -239,7 +239,7 @@ elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
 # Configure modules and call mpiexec
 #. /etc/profile.d/modules.sh 
 cd $outdir
-aprun -n $nodes -N $npe $executable $args
+aprun -n $nnodes -N $npe $executable $args
 EOF
 
 	echo qsub -V $outdir/$jobname.sh
