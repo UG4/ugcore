@@ -140,7 +140,10 @@ After configuration with CMake edit the following files by replacing all occuren
    ugbase/ug_shell/CMakeFiles/ugshell.dir/link.txt,                                                                                               
    ugbase/ug_shell/CMakeFiles/ugshell.dir/build.make                                                                                              
 
-TODO: Automate this process!
+Or use this sed line:
+\verbatim
+sed -i '' 's/\([[:alnum:]]*\).so/\1.a/g' CMakeCache.txt ugbase/ug_shell/CMakeFiles/ugshell.dir/link.txt ugbase/ug_shell/CMakeFiles/ugshell.dir/build.make 
+\endverbatim
 
 <hr>
 \subsection secWorking_with_ug4_on_JuGene Working with ug4 on JuGene
