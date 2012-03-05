@@ -62,7 +62,6 @@
 
 // Parallelization
 #ifdef UG_PARALLEL
-#include "parallelization/parallel_dof_manager.h"
 #include "parallelization/parallel_grid_function.h"
 #include "parallelization/parallelization_util.h"
 #endif
