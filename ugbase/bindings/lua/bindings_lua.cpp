@@ -745,9 +745,10 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 			}
 			catch(UGError& err)
 			{
-				UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << " in function ")
-				PrintLuaClassMethodInfo(L, 1, *m);
-				UG_LOG(". Error traceback:\n");
+				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
+				UG_LOG(errSymb << "UGError thrown in call to method ");
+				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG(".\n");
+				UG_LOG(errSymb << " Error traceback:\n");
 				for(size_t i=0;i<err.num_msg();++i)
 				{
 					UG_LOG(errSymb<<" "<<i<<":"<<err.get_msg(i)<<endl);
@@ -764,7 +765,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 			catch(std::bad_alloc& err)
 			{
 				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG("std::bad_alloc thrown in call to ");
+				UG_LOG(errSymb << "std::bad_alloc thrown in call to ");
 				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("\n");
 				UG_LOG(errSymb<<"Terminating..." << endl);
 				exit(0);
@@ -772,7 +773,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 			catch(...)
 			{
 				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG("Unknown Exception thrown in call to ");
+				UG_LOG(errSymb << "Unknown Exception thrown in call to ");
 				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("\n");
 				UG_LOG(errSymb<<"Terminating..." << endl);
 				exit(0);
