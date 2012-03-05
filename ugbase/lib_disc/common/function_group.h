@@ -16,18 +16,16 @@
 
 namespace ug{
 
-////////////////////////////////////////////////////////////////////////
-//	ERROR_BadIndexInFunctionGroup
-struct ERROR_BadIndexInFunctionGroup{
-	ERROR_BadIndexInFunctionGroup(int index) : m_index(index)	{}
-	int m_index;
-};
-
 // FunctionGroup is just a group of size_t, representing some functions
 class FunctionGroup
 {
 	public:
+	///	Default Constructor
 		FunctionGroup() : m_pFunctionPattern(NULL) {clear();}
+
+	///	Constructor setting function pattern
+		FunctionGroup(const FunctionPattern& funcPattern)
+			: m_pFunctionPattern(&funcPattern) {clear();}
 
 	/// set underlying function pattern
 		void set_function_pattern(const FunctionPattern& funcPattern)
@@ -38,7 +36,7 @@ class FunctionGroup
 			{return m_pFunctionPattern;}
 
 	/// adds a function by id to this group
-		bool add(size_t fct);
+		void add(size_t fct);
 
 	/// adds all functions with a given name to this group
 	/** adds all functions with a given name to this group
@@ -47,16 +45,16 @@ class FunctionGroup
 	 * \return 		true	if at least one function added
 	 * 				false	if no function found with this name
 	 */
-		bool add(const char* name);
+		void add(const char* name);
 
 	/// adds all functions of a function group
-		bool add(const FunctionGroup& fctGroup);
+		void add(const FunctionGroup& fctGroup);
 
 	/// selects all subsets in the order of the underlying pattern
-		bool add_all();
+		void add_all();
 
 	/// removes a function by id from this group
-		bool remove(size_t fct);
+		void remove(size_t fct);
 
 	/// removes all functions with a given name from this group
 	/** removes all functions with a given name to this group
@@ -65,7 +63,7 @@ class FunctionGroup
 	 * \return 		true	if at least one function removed
 	 * 				false	if no function found with this name
 	 */
-		bool remove(const char* name);
+		void remove(const char* name);
 
 	/// clear all subsets
 		void clear() {m_vFunction.clear();}

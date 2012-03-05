@@ -10,9 +10,6 @@
 
 #include <vector>
 #include "lib_grid/tools/subset_handler_interface.h"
-#ifdef UG_PARALLEL
-#include "pcl/pcl_process_communicator.h"
-#endif
 
 namespace ug{
 
@@ -29,6 +26,9 @@ class SubsetGroup
 	public:
 	///	Default Constructor
 		SubsetGroup() : m_pSH(NULL) {clear();}
+
+	///	Constructor setting subset handler
+		SubsetGroup(ConstSmartPtr<ISubsetHandler> sh) : m_pSH(sh) {clear();}
 
 	/// set an underlying subset handler
 		void set_subset_handler(ConstSmartPtr<ISubsetHandler> sh) {m_pSH = sh; clear();}

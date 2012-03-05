@@ -85,12 +85,10 @@ bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionP
 	{
 		RemoveWhitespaceFromString(tokens[i]);
 
-		if(!functionGroup.add(tokens[i].c_str()))
-		{
-			UG_LOG("Name of function ('" << tokens[i] << "') not found in"
-					" Function Pattern.\n");
-			return false;
-		}
+		try{
+			functionGroup.add(tokens[i].c_str());
+		}UG_CATCH_THROW("Name of function ('" << tokens[i] << "') not found in"
+					" Function Pattern.");
 	}
 
 	return true;
@@ -105,12 +103,12 @@ bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
 
 //	tokenize strings and select functions
 	for(size_t i = 0; i < vFct.size(); ++i)
-		if(!functionGroup.add(vFct[i].c_str()))
-		{
-			UG_LOG("ERROR in 'ConvertStringToFunctionGroup': Name of function ('"
-					<< vFct[i] << "') not found in Function Pattern.\n");
-			return false;
-		}
+	{
+		try{
+			functionGroup.add(vFct[i].c_str());
+		}UG_CATCH_THROW("Name of function ('" << vFct[i] << "') not found "
+		                "in Function Pattern.");
+	}
 
 //	done
 	return true;
@@ -220,12 +218,11 @@ bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 	{
 	//	add subset group of elem disc
 		if(vFctGrp[i] != NULL)
-			if(!fctGrp.add(*vFctGrp[i]))
-			{
-				UG_LOG("ERROR in 'CreateUnionOfFunctionGroups': Cannot add "
-						"functions of the Function Group "<< i << ".\n");
-				return false;
-			}
+		{
+			try{
+				fctGrp.add(*vFctGrp[i]);
+			}UG_CATCH_THROW("Cannot add functions of the Function Group "<< i << ".");
+		}
 	}
 
 //	sort iff required
