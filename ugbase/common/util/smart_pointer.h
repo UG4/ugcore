@@ -43,8 +43,8 @@ class FreeRelease
 
 ////////////////////////////////////////////////////////////////////////
 //	PREDECLARATIONS
-template <class T, template <class T> class FreePolicy = FreeDelete> class SmartPtr;
-template <class T, template <class T> class FreePolicy = FreeDelete> class ConstSmartPtr;
+template <class T, template <class TT> class FreePolicy = FreeDelete> class SmartPtr;
+template <class T, template <class TT> class FreePolicy = FreeDelete> class ConstSmartPtr;
 
 ////////////////////////////////////////////////////////////////////////
 //	SmartPtr
@@ -60,7 +60,7 @@ template <class T, template <class T> class FreePolicy = FreeDelete> class Const
  * If a const smart pointer is required, use ConstSmartPtr
  * \{
  */
-template <typename T, template <class T> class FreePolicy>
+template <typename T, template <class TT> class FreePolicy>
 class SmartPtr
 {
 	friend class ConstSmartPtr<T, FreePolicy>;
@@ -176,7 +176,7 @@ class SmartPtr
 		int*	m_refCount;
 };
 
-template <typename T, template <class T> class FreePolicy>
+template <typename T, template <class TT> class FreePolicy>
 class ConstSmartPtr
 {
 	friend class ConstSmartPtr<void>;
