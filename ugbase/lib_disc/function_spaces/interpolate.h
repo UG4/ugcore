@@ -11,7 +11,6 @@
 #include "common/common.h"
 
 #include "lib_disc/common/subset_group.h"
-#include "lib_disc/domain_util.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include <boost/function.hpp>
 

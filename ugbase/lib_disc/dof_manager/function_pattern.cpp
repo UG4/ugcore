@@ -6,7 +6,7 @@
  */
 
 #include "function_pattern.h"
-#include "lib_disc/domain_util.h"
+#include "lib_disc/common/subset_util.h"
 #include "lib_disc/common/groups_util.h"
 
 #ifdef UG_PARALLEL
