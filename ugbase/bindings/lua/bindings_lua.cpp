@@ -761,11 +761,22 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				}
 				UG_LOG(errSymb<<" Continuing execution ...\n");
 			}
+			catch(std::bad_alloc& err)
+			{
+				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
+				UG_LOG("std::bad_alloc thrown in call to ");
+				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("\n");
+				UG_LOG(errSymb<<"Terminating..." << endl);
+				exit(0);
+			}
 			catch(...)
 			{
-				UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ");
-				PrintLuaClassMethodInfo(L, 1, *m);
-				UG_LOG("terminating script..." << endl);
+				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
+				UG_LOG("Unknown Exception thrown in call to ");
+				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("\n");
+				UG_LOG(errSymb<<"Terminating..." << endl);
+				exit(0);
+
 				lua_pushstring (L, "Unknown exception.");
 				bLuaError=true;
 			}
