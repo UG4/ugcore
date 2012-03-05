@@ -43,8 +43,8 @@ class FreeRelease
 
 ////////////////////////////////////////////////////////////////////////
 //	PREDECLARATIONS
-template <class T, class FreePolicy = FreeDelete<T> > class SmartPtr;
-template <class T, class FreePolicy = FreeDelete<T> > class ConstSmartPtr;
+template <class T, template <class T> class FreePolicy = FreeDelete> class SmartPtr;
+template <class T, template <class T> class FreePolicy = FreeDelete> class ConstSmartPtr;
 
 ////////////////////////////////////////////////////////////////////////
 //	SmartPtr
@@ -60,7 +60,7 @@ template <class T, class FreePolicy = FreeDelete<T> > class ConstSmartPtr;
  * If a const smart pointer is required, use ConstSmartPtr
  * \{
  */
-template <typename T, class FreePolicy>
+template <typename T, template <class T> class FreePolicy>
 class SmartPtr
 {
 	friend class ConstSmartPtr<T, FreePolicy>;
@@ -70,7 +70,7 @@ class SmartPtr
 	public:
 		SmartPtr() : m_ptr(0), m_refCount(0)	{}
 		SmartPtr(T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
-		SmartPtr(const SmartPtr<T>& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
+		SmartPtr(const SmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
 		{
 			if(m_refCount) (*m_refCount)++;
 		}
@@ -78,8 +78,8 @@ class SmartPtr
 	/**	this template method allows to assign smart-pointers that encapsulate
 	 *	derivates of T. Make sure that the pointer-type of TSmartPtr is castable
 	 *	to T*.*/
-		template <class TPtr>
-		SmartPtr(const SmartPtr<TPtr>& sp) :
+		template <class TPtr, template <class TT> class TFreePolicy>
+		SmartPtr(const SmartPtr<TPtr, TFreePolicy>& sp) :
 			m_ptr(static_cast<T*>(sp.get_nonconst_impl())),
 			m_refCount(sp.get_refcount_ptr())
 		{
@@ -101,7 +101,7 @@ class SmartPtr
 		T& operator*()				{return *m_ptr;}
 		const T& operator*() const	{return *m_ptr;}
 
-		SmartPtr<T>& operator=(const SmartPtr& sp)	{
+		SmartPtr& operator=(const SmartPtr& sp)	{
 			if(m_ptr)
 				release();
 			m_ptr = sp.m_ptr;
@@ -111,8 +111,8 @@ class SmartPtr
 			return *this;
 		}
 
-		template <class TIn>
-		SmartPtr<T>& operator=(const SmartPtr<TIn>& sp)	{
+		template <class TIn, template <class TT> class TFreePolicy>
+		SmartPtr<T, TFreePolicy>& operator=(const SmartPtr<TIn, TFreePolicy>& sp)	{
 			if(m_ptr)
 				release();
 			m_ptr = sp.get_nonconst_impl();
@@ -151,7 +151,7 @@ class SmartPtr
 				{
 					delete m_refCount;
 					//delete m_ptr;
-					FreePolicy::free(m_ptr);
+					FreePolicy<T>::free(m_ptr);
 				}
 			}
 		}
@@ -168,7 +168,7 @@ class SmartPtr
 	///	this release method is required by SmartPtr<void>
 	/**	const void is not really correct here, of course...*/
 		static void free_void_ptr(const void* ptr){
-			FreePolicy::free(reinterpret_cast<const T*>(ptr));
+			FreePolicy<T>::free(reinterpret_cast<const T*>(ptr));
 		}
 
 	private:
@@ -176,7 +176,7 @@ class SmartPtr
 		int*	m_refCount;
 };
 
-template <typename T, class FreePolicy>
+template <typename T, template <class T> class FreePolicy>
 class ConstSmartPtr
 {
 	friend class ConstSmartPtr<void>;
@@ -184,7 +184,7 @@ class ConstSmartPtr
 	public:
 		ConstSmartPtr() : m_ptr(0), m_refCount(0)	{}
 		ConstSmartPtr(const T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
-		ConstSmartPtr(const ConstSmartPtr<T>& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
+		ConstSmartPtr(const ConstSmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
 		{
 			if(m_refCount) (*m_refCount)++;
 		}
@@ -192,16 +192,16 @@ class ConstSmartPtr
 	/**	this template method allows to assign smart-pointers that encapsulate
 	 *	derivates of T. Make sure that the pointer-type of TSmartPtr is castable
 	 *	to T*.*/
-		template <class TPtr>
-		ConstSmartPtr(const SmartPtr<TPtr>& sp) :
+		template <class TPtr, template <class TT> class TFreePolicy>
+		ConstSmartPtr(const SmartPtr<TPtr, TFreePolicy>& sp) :
 			m_ptr(static_cast<const T*>(sp.get_impl())),
 			m_refCount(sp.get_refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
 		}
 
-		template <class TPtr>
-		ConstSmartPtr(const ConstSmartPtr<TPtr>& sp) :
+		template <class TPtr, template <class TT> class TFreePolicy>
+		ConstSmartPtr(const ConstSmartPtr<TPtr, TFreePolicy>& sp) :
 			m_ptr(static_cast<const T*>(sp.get_impl())),
 			m_refCount(sp.get_refcount_ptr())
 		{
@@ -221,7 +221,7 @@ class ConstSmartPtr
 
 		const T& operator*() const	{return *m_ptr;}
 
-		ConstSmartPtr<T>& operator=(const SmartPtr<T>& sp)	{
+		ConstSmartPtr& operator=(const SmartPtr<T, FreePolicy>& sp)	{
 			if(m_ptr)
 				release();
 			m_ptr = sp.m_ptr;
@@ -231,8 +231,8 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		template <class TIn>
-		ConstSmartPtr<T>& operator=(const SmartPtr<TIn>& sp)	{
+		template <class TIn, template <class TT> class TFreePolicy>
+		ConstSmartPtr<T, TFreePolicy>& operator=(const SmartPtr<TIn, TFreePolicy>& sp)	{
 			if(m_ptr)
 				release();
 			m_ptr = sp.get_impl();
@@ -242,7 +242,7 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		ConstSmartPtr<T>& operator=(const ConstSmartPtr& sp)	{
+		ConstSmartPtr& operator=(const ConstSmartPtr& sp)	{
 			if(m_ptr)
 				release();
 			m_ptr = sp.m_ptr;
@@ -252,8 +252,8 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		template <class TIn>
-		ConstSmartPtr<T>& operator=(const ConstSmartPtr<TIn>& sp)	{
+		template <class TIn, template <class TT> class TFreePolicy>
+		ConstSmartPtr<T, TFreePolicy>& operator=(const ConstSmartPtr<TIn, TFreePolicy>& sp)	{
 			if(m_ptr)
 				release();
 			m_ptr = sp.get_impl();
@@ -287,7 +287,7 @@ class ConstSmartPtr
 				{
 					delete m_refCount;
 					//delete m_ptr;
-					FreePolicy::free(m_ptr);
+					FreePolicy<T>::free(m_ptr);
 				}
 			}
 		}
@@ -303,7 +303,7 @@ class ConstSmartPtr
 
 	//	this release method is required by SmartPtr<void>
 		static void free_void_ptr(void* ptr){
-			FreePolicy::free(reinterpret_cast<T*>(ptr));
+			FreePolicy<T>::free(reinterpret_cast<T*>(ptr));
 		}
 
 	private:
@@ -390,20 +390,20 @@ class SmartPtr<void>
 
 	///	Returns a SmartPtr with the specified type and shared reference counting.
 	/**	USE WITH CARE! ONLY COMPATIBLE TYPES SHOULD BE USED*/
-		template <class T>
-		SmartPtr<T> to_smart_pointer_reinterpret(){
-			return SmartPtr<T>(reinterpret_cast<T*>(m_ptr), m_refCountPtr);
+		template <class T,  template <class TPtr> class TFreePolicy>
+		SmartPtr<T, TFreePolicy> to_smart_pointer_reinterpret(){
+			return SmartPtr<T, TFreePolicy>(reinterpret_cast<T*>(m_ptr), m_refCountPtr);
 		}
 
 	///	sets the void* to a different location correspoding to a cast to a new type T
 	/**	!!! WARNING: THIS METHOD IS DANDGEROUS: DO NOT USE IT UNLESS YOU REALLY
 	 *               KNOW WHAT YOU ARE DOING !!!
 	 */
-		template <class T>
+		template <class T, template <class TPtr> class TFreePolicy>
 		void set_impl(void* ptr)
 		{
 			m_ptr = ptr;
-			m_freeFunc = &SmartPtr<T>::free_void_ptr;
+			m_freeFunc = &SmartPtr<T, TFreePolicy>::free_void_ptr;
 		}
 
 		inline bool is_valid() const	{return m_ptr != NULL;}
@@ -462,20 +462,20 @@ class ConstSmartPtr<void>
 			if(m_refCountPtr) (*m_refCountPtr)++;
 		}
 
-		template <class T>
-		ConstSmartPtr(const SmartPtr<T>& sp) :
+		template <class T, template <class TPtr> class TFreePolicy>
+		ConstSmartPtr(const SmartPtr<T, TFreePolicy>& sp) :
 			m_ptr((void*)sp.m_ptr),
 			m_refCountPtr(sp.m_refCount),
-			m_freeFunc(&SmartPtr<T>::free_void_ptr)
+			m_freeFunc(&SmartPtr<T, TFreePolicy>::free_void_ptr)
 		{
 			if(m_refCountPtr) (*m_refCountPtr)++;
 		}
 
-		template <class T>
-		ConstSmartPtr(const ConstSmartPtr<T>& sp) :
+		template <class T, template <class TPtr> class TFreePolicy>
+		ConstSmartPtr(const ConstSmartPtr<T, TFreePolicy>& sp) :
 			m_ptr((void*)sp.m_ptr),
 			m_refCountPtr(sp.m_refCount),
-			m_freeFunc(&SmartPtr<T>::free_void_ptr)
+			m_freeFunc(&SmartPtr<T, TFreePolicy>::free_void_ptr)
 		{
 			if(m_refCountPtr) (*m_refCountPtr)++;
 		}
@@ -506,8 +506,8 @@ class ConstSmartPtr<void>
 			return *this;
 		}
 
-		template <class T>
-		ConstSmartPtr<void>& operator=(const SmartPtr<T>& sp)
+		template <class T, template <class TPtr> class TFreePolicy>
+		ConstSmartPtr<void>& operator=(const SmartPtr<T, TFreePolicy>& sp)
 		{
 			if(m_ptr)
 				release();
@@ -515,12 +515,12 @@ class ConstSmartPtr<void>
 			m_refCountPtr = sp.m_refCount;
 			if(m_refCountPtr)
 				(*m_refCountPtr)++;
-			m_freeFunc = &SmartPtr<T>::free_void_ptr;
+			m_freeFunc = &SmartPtr<T, TFreePolicy>::free_void_ptr;
 			return *this;
 		}
 
-		template <class T>
-		ConstSmartPtr<void>& operator=(const ConstSmartPtr<T>& sp)
+		template <class T, template <class TPtr> class TFreePolicy>
+		ConstSmartPtr<void>& operator=(const ConstSmartPtr<T, TFreePolicy>& sp)
 		{
 			if(m_ptr)
 				release();
@@ -528,26 +528,26 @@ class ConstSmartPtr<void>
 			m_refCountPtr = sp.m_refCount;
 			if(m_refCountPtr)
 				(*m_refCountPtr)++;
-			m_freeFunc = &SmartPtr<T>::free_void_ptr;
+			m_freeFunc = &SmartPtr<T, TFreePolicy>::free_void_ptr;
 			return *this;
 		}
 
 	///	Returns a SmartPtr with the specified type and shared reference counting.
 	/**	USE WITH CARE! ONLY COMPATIBLE TYPES SHOULD BE USED*/
-		template <class T>
-		ConstSmartPtr<T> to_smart_pointer_reinterpret() const{
-			return ConstSmartPtr<T>(reinterpret_cast<const T*>(m_ptr), m_refCountPtr);
+		template <class T, template <class TPtr> class TFreePolicy>
+		ConstSmartPtr<T, TFreePolicy> to_smart_pointer_reinterpret() const{
+			return ConstSmartPtr<T, TFreePolicy>(reinterpret_cast<const T*>(m_ptr), m_refCountPtr);
 		}
 
 	///	sets the void* to a different location correspoding to a cast to a new type T
 	/**	!!! WARNING: THIS METHOD IS DANDGEROUS: DO NOT USE IT UNLESS YOU REALLY
 	 *               KNOW WHAT YOU ARE DOING !!!
 	 */
-		template <class T>
+		template <class T, template <class TPtr> class TFreePolicy>
 		void set_impl(const void* ptr)
 		{
 			m_ptr = ptr;
-			m_freeFunc = &SmartPtr<T>::free_void_ptr;
+			m_freeFunc = &SmartPtr<T, TFreePolicy>::free_void_ptr;
 		}
 
 		inline bool is_valid() const	{return m_ptr != NULL;}
@@ -578,10 +578,12 @@ class ConstSmartPtr<void>
 
 namespace std
 {
-	template <class T>
-	struct less<SmartPtr<T> > : public binary_function<SmartPtr<T>, SmartPtr<T>, bool>
+	template <class T, template <class TPtr> class TFreePolicy>
+	struct less<SmartPtr<T, TFreePolicy> > :
+		public binary_function<SmartPtr<T, TFreePolicy>, SmartPtr<T, TFreePolicy>, bool>
 	{
-		bool operator()(const SmartPtr<T>& lhs, const SmartPtr<T>& rhs) const
+		bool operator()(const SmartPtr<T, TFreePolicy>& lhs,
+						const SmartPtr<T, TFreePolicy>& rhs) const
 		{
 			return less<T*>()(lhs.get_impl(), rhs.get_impl());
 		}

@@ -416,6 +416,7 @@ class ParameterStack
 		}
 
 	///	return element in param stack casted to user defined type in SmartPtr
+	/**	\todo	currently only works for FreePolicy FreeDelete...*/
 		template <class T>
 		SmartPtr<T> to_smart_pointer(int index) const
 		{
@@ -438,10 +439,10 @@ class ParameterStack
 						rawPtr, pClassNameNode, ClassNameProvider<T>::name());
 
 			//	set raw ptr into smart pointer
-				smartPtr.set_impl<T>(rawPtr);
+				smartPtr.set_impl<T, FreeDelete>(rawPtr);
 
 				if(rawPtr != NULL)
-					return smartPtr.to_smart_pointer_reinterpret<T>();
+					return smartPtr.to_smart_pointer_reinterpret<T, FreeDelete>();
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index),
 					                                ClassNameProvider<T>::name()));
@@ -463,6 +464,7 @@ class ParameterStack
 		}
 
 	///	return element in param stack casted to user defined type in SmartPtr
+	/**	\todo	currently only works for FreePolicy FreeDelete...*/
 		template <class T>
 		ConstSmartPtr<T> to_const_smart_pointer(int index) const
 		{
@@ -486,10 +488,10 @@ class ParameterStack
 						rawPtr, pClassNameNode, ClassNameProvider<T>::name());
 
 			//	set raw ptr into smart pointer
-				smartPtr.set_impl<T>(const_cast<const void*>(rawPtr));
+				smartPtr.set_impl<T, FreeDelete>(const_cast<const void*>(rawPtr));
 
 				if(rawPtr != NULL)
-					return smartPtr.to_smart_pointer_reinterpret<T>();
+					return smartPtr.to_smart_pointer_reinterpret<T, FreeDelete>();
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index),
 					                                ClassNameProvider<T>::name()));
