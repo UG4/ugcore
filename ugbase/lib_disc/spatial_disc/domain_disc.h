@@ -256,9 +256,6 @@ class DomainDiscretization
 		bool update_constraints();
 		bool update_disc_items();
 
-	///	subset dimension
-		int subset_dim(const ISubsetHandler& sh, int subsetIndex);
-
 	protected:
 	///	vector holding all registered elem discs
 		std::vector<IDomainElemDisc<domain_type>*> m_vDomainElemDisc;

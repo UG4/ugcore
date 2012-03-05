@@ -114,15 +114,9 @@ class SubsetGroup
 	/**
 	 * Returns the dimension of the subset. The dimension of the subset
 	 * is defined as the highest dimension of geometric objects contained in
-	 * the subset.
-	 * If a ProcessCommunicator is passed, the maximum among all procs
-	 * is returned.
+	 * the subset. This maximum is taken over all procs in parallel.
 	 */
-		int dim(size_t i
-#ifdef UG_PARALLEL
-                     , const pcl::ProcessCommunicator* pProcCom =NULL
-#endif
-				) const;
+		int dim(size_t i) const;
 
 	/// highest dimension of all subset
 	/**

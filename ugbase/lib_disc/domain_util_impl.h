@@ -109,35 +109,19 @@ inline bool SubsetIsRegularGrid(const ISubsetHandler& ish, int si)
 }
 
 ///	returns the current dimension of the subset
-inline int DimensionOfSubset(const ISubsetHandler& ish, int si
-#ifdef UG_PARALLEL
-                             , const pcl::ProcessCommunicator* pProcCom
-#endif
-							)
+inline int DimensionOfSubset(const ISubsetHandler& sh, int si)
 {
-	int dim = DIM_SUBSET_EMPTY_GRID;
-	if(ish.contains_volumes(si))
-		dim = 3;
-	else if(ish.contains_faces(si))
-		dim = 2;
-	else if(ish.contains_edges(si))
-		dim = 1;
-	else if(ish.contains_vertices(si))
-		dim = 0;
-
-//	in parallel, we have to check if another proc has a higher dimension
-	#ifdef UG_PARALLEL
-		if(pProcCom) dim = pProcCom->allreduce(dim, PCL_RO_MAX);
-	#endif
-
-	return dim;
+	try{
+		return sh.subset_info(si).get_property("dim").to_int();
+	}
+	UG_CATCH_THROW("Make sure to properly set the dim-property of each subset "
+					"before calling DimensionOfSubset! Use e.g. "
+					"Domain::update_local_subset_dim_property, "
+					"Domain::update_global_subset_dim_property, "
+					"UpdateMaxDimensionOfSubset or UpdateGlobalMaxDimensionOfSubset.");
 }
 
-inline int DimensionOfSubsets(const ISubsetHandler& sh
-#ifdef UG_PARALLEL
-                             , const pcl::ProcessCommunicator* pProcCom
-#endif
-							)
+inline int DimensionOfSubsets(const ISubsetHandler& sh)
 {
 //	dimension to be computed
 	int dim = DIM_SUBSET_EMPTY_GRID;
@@ -156,52 +140,8 @@ inline int DimensionOfSubsets(const ISubsetHandler& sh
 			dim = siDim;
 	}
 
-//	get globally highest subset
-#ifdef UG_PARALLEL
-	if(pProcCom) dim = pProcCom->allreduce(dim, PCL_RO_MAX);
-#endif
-
 //	return computed domain
 	return dim;
-}
-
-///	returns the current dimension of the subset
-template <typename TDomain>
-inline int DimensionOfDomainSubset(const TDomain& domain, int si
-#ifdef UG_PARALLEL
-                             , const pcl::ProcessCommunicator* pProcCom
-#endif
-)
-{
-#ifdef UG_PARALLEL
-	return DimensionOfSubset(*domain.subset_handler(), si, pProcCom);
-#else
-	return DimensionOfSubset(*domain.subset_handler(), si);
-#endif
-}
-
-///	returns the current dimension of the domain
-template <typename TDomain>
-inline int DimensionOfDomain(const TDomain& domain
-#ifdef UG_PARALLEL
-                             , const pcl::ProcessCommunicator* pProcCom
-#endif
-							)
-{
-// 	get local dimension of subset
-	int locDim = DIM_SUBSET_EMPTY_GRID;
-	if(domain.grid()->template num<VertexBase>() > 0) locDim = 0;
-	if(domain.grid()->template num<EdgeBase>() > 0) locDim = 1;
-	if(domain.grid()->template num<Face>() > 0) locDim = 2;
-	if(domain.grid()->template num<Volume>() > 0) locDim = 3;
-
-//	in parallel, we have to check if another proc has a higher dimension
-#ifdef UG_PARALLEL
-	if(pProcCom) locDim = pProcCom->allreduce(locDim, PCL_RO_MAX);
-#endif
-
-//	return result
-	return locDim;
 }
 
 //	returns the corner coordinates of a geometric object

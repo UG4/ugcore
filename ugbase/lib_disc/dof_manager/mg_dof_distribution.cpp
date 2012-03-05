@@ -260,6 +260,13 @@ void MGDoFDistribution::create_offsets(ReferenceObjectID roid)
 	//	get dimension of subset
 		int dim = m_rFctPatt.dim_subset(si);
 
+	//	check dimension
+		if(dim < 0) UG_THROW_FATAL("Dimension of subset "<<si<<" is not valid."
+		                           " This may indicate, that the subset is empty, "
+		                           " or empty on some process and the subset "
+		                           "dimensions have not been computed correctly "
+		                           " in parallel.");
+
 	//	reset
 		m_vvNumDoFsOnROID[roid][si] = 0;
 

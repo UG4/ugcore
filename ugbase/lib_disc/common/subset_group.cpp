@@ -211,11 +211,7 @@ bool SubsetGroup::regular_grid(size_t i) const
 }
 
 
-int SubsetGroup::dim(size_t i
-#ifdef UG_PARALLEL
-                     , const pcl::ProcessCommunicator* pProcCom
-#endif
-                     ) const
+int SubsetGroup::dim(size_t i) const
 {
 	if(!is_init())
 	{
@@ -228,11 +224,7 @@ int SubsetGroup::dim(size_t i
 	if(i >= num_subsets())
 		throw(ERROR_BadIndexInSubsetGroup(i));
 
-#ifdef UG_PARALLEL
-	return DimensionOfSubset(*m_pSH, m_vSubset[i], pProcCom);
-#else
 	return DimensionOfSubset(*m_pSH, m_vSubset[i]);
-#endif
 }
 
 int SubsetGroup::get_local_highest_subset_dimension() const
