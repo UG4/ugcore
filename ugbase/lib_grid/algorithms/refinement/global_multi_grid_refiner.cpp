@@ -48,8 +48,7 @@ GlobalMultiGridRefiner::~GlobalMultiGridRefiner()
 
 void GlobalMultiGridRefiner::grid_to_be_destroyed(Grid* grid)
 {
-	if(m_pMG)
-		assign_grid(NULL);
+	m_pMG = NULL;
 }
 
 void GlobalMultiGridRefiner::assign_grid(MultiGrid& mg)

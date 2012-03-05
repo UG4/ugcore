@@ -53,6 +53,12 @@ HangingNodeRefiner_MultiGrid::
 }
 
 void HangingNodeRefiner_MultiGrid::
+grid_to_be_destroyed(Grid* grid)
+{
+	set_grid(NULL);
+}
+
+void HangingNodeRefiner_MultiGrid::
 assign_grid(MultiGrid& mg)
 {
 	set_grid(&mg);

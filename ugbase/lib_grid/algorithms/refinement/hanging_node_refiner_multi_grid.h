@@ -47,6 +47,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 
 		virtual ~HangingNodeRefiner_MultiGrid();
 
+		virtual void grid_to_be_destroyed(Grid* grid);
+
 		void assign_grid(MultiGrid& mg);
 		virtual Grid* get_associated_grid()		{return m_pMG;}
 
