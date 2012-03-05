@@ -19,7 +19,13 @@ JugeneMode="VN"
 JugeneMapfile="TXYZ"
 JugeneVerbose=2
 
-# todo: vielleicht sowas wie --mail-type
+mailStart=false
+mailEnd=false
+mailError=false
+
+#PBS
+pbsMailtype=""
+
 # todo: vielleicht scripts fuer die scheduler auslagern
 # todo: vielleicht total cores angeben, und dann nnodes = totalcores/nppn
 echo "  ugsubmit"
@@ -95,6 +101,18 @@ do
 	elif [ $1 = "-Jugene-verbose" ]; then
 		JugeneVerbose=$2
 		shift 2
+	elif [ $1 = "-mail-error" ]; then
+		mailError=true
+		pbsMailtype=${pbsMailtype}a
+		shift 1
+	elif [ $1 = "-mail-end" ]; then
+		mailEnd=true
+		pbsMailtype=${pbsMailtype}e
+		shift 1
+	elif [ $1 = "-mail-start" ]; then
+		mailStart=true
+		pbsMailtype=${pbsMailtype}b		
+		shift 1
 	else
 		break
 	fi
@@ -183,9 +201,10 @@ if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
 		cat > $outdir/$jobname.sh << EOF
 #!/bin/bash
 #PBS -M $UGSUBMIT_EMAIL
-#PBS -m abe
+#PBS -m $pbsMailtype
 #PBS -N $jobname 
-#PBS -o $outdir/
+#PBS -o $outdir/job.output
+#PBS -e $outdir/job.error
 #PBS -j oe 
 #PBS -S /bin/bash 
 #PBS -l nodes=$nnodes:nehalem:ppn=$nppn
@@ -224,12 +243,13 @@ elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
 	fi	 
 	
 # creating script file
-	cat > $outdir/$jobname.sh << EOF
+	cat > $outdir/job.sh << EOF
 #!/bin/bash
 #PBS -M $UGSUBMIT_EMAIL
-#PBS -m abe
+#PBS -m $pbsMailtype
 #PBS -N $jobname 
-#PBS -o $outdir/
+#PBS -o $outdir/job.output
+#PBS -e $outdir/job.error
 #PBS -j oe 
 #PBS -S /bin/bash 
 #PBS -l walltime=$walltime
@@ -241,14 +261,14 @@ cd $outdir
 aprun -n $npe -N $nppn $executable $args
 EOF
 
-	echo qsub -V $outdir/$jobname.sh
+	echo qsub -V $outdir/job.sh
 
 	if [ $test = true ]; then
 		echo ""
 		echo "test. not executing."
 		echo ""
-		echo $outdir/$jobname.sh ":"
-		cat $outdir/$jobname.sh
+		echo $outdir/job.sh ":"
+		cat $outdir/job.sh
 		rm -rf $outdir/
 		exit
 	fi
@@ -256,10 +276,12 @@ EOF
 	echo "Submitting batch job to queue ..."
 	echo "Recieved PBSid: "
 	echo "Recieved PBSid: " >> $outdir/info.txt
-	qsub -V $outdir/$jobname.sh | tee -a $outdir/info.txt
+	qsub -V $outdir/job.sh | tee -a $outdir/info.txt
 ##############################################
 elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
-	cat > $outdir/$jobname.sh << EOF
+#http://www.lrz.de/services/compute/supermuc/loadleveler/
+#todo: add notification email stuff: always|error|start|never|complete
+	cat > $outdir/job.sh << EOF
 # @ job_name = $jobname
 # @ comment = $jobname
 # @ error = $outdir/job.err
@@ -272,12 +294,13 @@ elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
 # @ bg_connection = TORUS
 # @ bg_size = $npe
 # @ queue
+mpirun -np $npe -exe $executable -mode $JugeneMode -mapfile $JugeneMapfile -verbose $JugeneVerbose -env LD_LIBRARY_PATH=$MYLDLPATH -args $args
 EOF
 
 	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 	cd $outdir
 	echo cd $outdir
-	echo mpirun -np $npe -exe $executable -mode $JugeneMode -mapfile $JugeneMapfile -verbose $JugeneVerbose -env LD_LIBRARY_PATH=$MYLDLPATH -args $args
+	echo $outdir/job.sh
 	if [ $test = true ]; then
 		echo "test. not executing."
 		echo $outdir/$jobname.sh ":"
@@ -287,7 +310,7 @@ EOF
 	fi
 	
 #todo: uncomment next line
-#mpirun -np $npe -exe $executable -mode $JugeneMode -mapfile $JugeneMapfile -verbose $JugeneVerbose -env LD_LIBRARY_PATH=$MYLDLPATH -args $args
+# ll_submit $outdir/job.sh
 
 ##############################################
 elif [ $UGSUBMIT_TYPE = "mpi" ]; then
