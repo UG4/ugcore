@@ -57,7 +57,7 @@ void FunctionGroup::add(const FunctionGroup& fctGroup)
 	if(!is_init())
 		UG_THROW_FATAL("Cannot use FunctionGroup without FunctionPattern.");
 
-	if(m_pFunctionPattern != fctGroup.get_function_pattern())
+	if(m_pFunctionPattern != fctGroup.function_pattern())
 		UG_THROW_FATAL("Underlying function pattern does not match. Cannot"
 				" add function group.");
 

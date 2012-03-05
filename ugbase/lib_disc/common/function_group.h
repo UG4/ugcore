@@ -32,7 +32,7 @@ class FunctionGroup
 			{m_pFunctionPattern = &funcPattern; clear();}
 
 	/// get underlying function pattern
-		const FunctionPattern* get_function_pattern() const
+		const FunctionPattern* function_pattern() const
 			{return m_pFunctionPattern;}
 
 	/// adds a function by id to this group

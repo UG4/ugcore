@@ -201,7 +201,7 @@ bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 	{
 		if(vFctGrp[grp] == NULL) continue;
 
-		const FunctionPattern* pFctPat = vFctGrp[grp]->get_function_pattern();
+		const FunctionPattern* pFctPat = vFctGrp[grp]->function_pattern();
 		if(pFctPat == NULL)
 			UG_THROW_FATAL("CreateUnionOfFunctionGroups: Function group "
 					<<grp<<" has NULL as underlying FunctionPattern.");
