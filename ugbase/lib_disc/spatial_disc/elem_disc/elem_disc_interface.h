@@ -427,7 +427,7 @@ class IDomainElemDisc : public IElemDisc
 
 	public:
 		IDomainElemDisc(const char* functions = NULL, const char* subsets = NULL)
-			: IElemDisc(functions, subsets), m_pDomain(NULL), m_spApproxSpace(NULL) {};
+			: IElemDisc(functions, subsets), m_spApproxSpace(NULL) {};
 
 	///	sets the approximation space
 		void set_approximation_space(SmartPtr<ApproximationSpace<domain_type> > approxSpace)
@@ -435,8 +435,8 @@ class IDomainElemDisc : public IElemDisc
 		//	remember approx space
 			m_spApproxSpace = approxSpace;
 
-		//	remember domain
-			set_domain(approxSpace->domain());
+		//	remember position accessor
+			m_aaPos = m_spApproxSpace->domain()->position_accessor();
 
 		//	invoke callback
 			approximation_space_changed();
@@ -445,31 +445,18 @@ class IDomainElemDisc : public IElemDisc
 	///	callback invoked, when approximation space is changed
 		virtual void approximation_space_changed() {}
 
-	///	sets the domain
-		void set_domain(SmartPtr<domain_type> domain)
-		{
-		//	remember smart ptr
-			m_spDomain = domain;
-
-		//	remember domain
-			m_pDomain = m_spDomain.get_impl();
-
-		//	remember position accessor
-			m_aaPos = m_pDomain->position_accessor();
-		}
-
 	///	returns the domain
 		domain_type& domain()
 		{
-			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
-			return *m_pDomain;
+			UG_ASSERT(m_spApproxSpace.is_valid(), "ApproxSpace not set.");
+			return *m_spApproxSpace->domain();
 		}
 
 	///	returns the domain
 		const domain_type& domain() const
 		{
-			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
-			return *m_pDomain;
+			UG_ASSERT(m_spApproxSpace.is_valid(), "ApproxSpace not set.");
+			return *m_spApproxSpace->domain();
 		}
 
 	///	returns the function pattern
@@ -481,15 +468,15 @@ class IDomainElemDisc : public IElemDisc
 	///	returns the subset handler
 		typename domain_type::subset_handler_type& subset_handler()
 		{
-			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
-			return *m_pDomain->subset_handler();
+			UG_ASSERT(m_spApproxSpace.is_valid(), "ApproxSpace not set.");
+			return *m_spApproxSpace->domain()->subset_handler();
 		}
 
 	///	returns the subset handler
 		const typename domain_type::subset_handler_type& subset_handler() const
 		{
-			UG_ASSERT(m_pDomain != NULL, "Domain not set.");
-			return *m_pDomain->subset_handler();
+			UG_ASSERT(m_spApproxSpace.is_valid(), "ApproxSpace not set.");
+			return *m_spApproxSpace->domain()->subset_handler();
 		}
 
 	///	returns the corner coordinates of an Element in a C++-array
@@ -503,7 +490,7 @@ class IDomainElemDisc : public IElemDisc
 			m_vCornerCoords.resize(ref_elem_type::num_corners);
 
 		//	check domain
-			UG_ASSERT(m_pDomain != NULL, "Domain not set");
+			UG_ASSERT(m_spApproxSpace.is_valid(), "ApproxSpace not set");
 
 		//	extract corner coordinates
 			for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
@@ -517,12 +504,6 @@ class IDomainElemDisc : public IElemDisc
 		}
 
 	protected:
-	///	Domain
-		TDomain* m_pDomain;
-
-	///	Domain
-		SmartPtr<TDomain> m_spDomain;
-
 	///	Position access
 		typename TDomain::position_accessor_type m_aaPos;
 
