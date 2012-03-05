@@ -13,6 +13,8 @@
 #include "common/common.h"
 #include "info_commands.h"
 
+#define __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
+
 using namespace std;
 
 //	a symbol preceding error messages
@@ -561,6 +563,7 @@ static int LuaProxyFunction(lua_State* L)
 				UG_LOG(errSymb<<"Terminating..." << endl);
 				exit(0);
 			}
+#ifdef __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 			catch(...)
 			{
 				UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
@@ -569,7 +572,8 @@ static int LuaProxyFunction(lua_State* L)
 				UG_LOG(errSymb<<"Terminating..." << endl);
 				exit(0);
 			}
-	
+#endif
+
 		//	if we reach this point, then the method was successfully executed.
 			if(!bLuaError)
 				return ParamsToLuaStack(paramsOut, L);
@@ -770,6 +774,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				UG_LOG(errSymb<<"Terminating..." << endl);
 				exit(0);
 			}
+#ifdef 	__UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 			catch(...)
 			{
 				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
@@ -778,6 +783,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				UG_LOG(errSymb<<"Terminating..." << endl);
 				exit(0);
 			}
+#endif
 
 			if(!bLuaError)
 		//	if we reach this point, then the method was successfully executed.
