@@ -16,14 +16,15 @@ For any questions, contact martin.rupp@gcsc.uni-frankfurt.de or sebastian.reiter
 \section secEnableProfiling Enable Profiling in UG4
 <hr>
 
-You enable profiling in UG4 by setting the CMake flag -DUG_PROFILER=ON. So if have a shell open in your subdirectory build_debug 
+You enable profiling in UG4 by setting the CMake flag <tt>-DPROFILER=ON</tt>. So if have a shell open in your subdirectory build_debug 
 (as explained \ref pageInstallUG4 "here" or \ref secInstallEcpliseUseMakefiles "here"), you enter
 \code
-cmake -DUG_PROFILER=ON ..
+cmake -DPROFILER=ON ..
 make
 \endcode
 Note that cmake "remembers" the flags you set. You can see the flags set in the output (for not changing any flags just enter "cmake .."). 
-To enable profiling of the PCL (Parallel Communication Layer), set -DPROFILE_PCL=ON. Check the output of "cmake .." for changes and additional flags.
+To enable profiling of the PCL (Parallel Communication Layer), set <tt>-DPROFILE_PCL=ON</tt>.
+Check the output of </tt>cmake ..</tt> for changes and additional flags.
 Keep in mind that you have to do a make when changing cmake flags.
 
 
