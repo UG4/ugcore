@@ -62,7 +62,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
                         	const typename TAlgebra::vector_type& u,
-                        	ISelector* sel = NULL)
+                        	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -103,7 +103,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -190,7 +190,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
 					const typename TAlgebra::vector_type& u,
-                	ISelector* sel = NULL)
+                	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -231,7 +231,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -317,7 +317,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                 const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
-            	ISelector* sel = NULL)
+            	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -364,7 +364,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -421,7 +421,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-                	ISelector* sel = NULL)
+                	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -462,7 +462,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -553,7 +553,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					typename TAlgebra::matrix_type& J,
 					const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
 					number s_a0,
-                	ISelector* sel = NULL)
+                	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -600,7 +600,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -717,7 +717,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u,
-            	ISelector* sel = NULL)
+            	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -759,7 +759,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -850,7 +850,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                 const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
 				const std::vector<number>& vScaleMass,
 				const std::vector<number>& vScaleStiff,
-            	ISelector* sel = NULL)
+            	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -899,7 +899,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1010,7 +1010,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-            	ISelector* sel = NULL)
+            	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -1052,7 +1052,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1144,7 +1144,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                 const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-            	ISelector* sel = NULL)
+            	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -1193,7 +1193,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1360,7 +1360,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u,
-            	ISelector* sel = NULL)
+            	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -1402,7 +1402,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1477,7 +1477,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
                ConstSmartPtr<TDD> dd,
                int si, bool bNonRegularGrid,
                const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
-               ISelector* sel = NULL)
+               BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
@@ -1524,7 +1524,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_selected(elem)) continue;
+		if(sel) if(!sel->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());

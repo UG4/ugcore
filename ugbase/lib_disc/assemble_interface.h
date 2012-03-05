@@ -7,7 +7,7 @@
 #ifndef __H__UG__LIB_DISC__ASSEMBLE__
 #define __H__UG__LIB_DISC__ASSEMBLE__
 
-#include "lib_grid/tools/selector_interface.h"
+#include "lib_grid/tools/bool_marker.h"
 #include "lib_disc/dof_manager/grid_level.h"
 
 namespace ug{
@@ -176,7 +176,7 @@ class IAssemble
 	 *
 	 * \param[in]	sel		Selector
 	 */
-		virtual void set_selector(ISelector* sel = NULL) = 0;
+		virtual void set_selector(BoolMarker* sel = NULL) = 0;
 
 	///	returns the number of post processes
 		virtual size_t num_dirichlet_constraints() const = 0;

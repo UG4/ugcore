@@ -57,7 +57,7 @@ class DomainDiscretization
 	///	default Constructor
 		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
 			m_spApproxSpace(pApproxSpace), m_bForceRegGrid(false),
-			m_bConstraintsEnabled(true), m_pSelector(NULL)
+			m_bConstraintsEnabled(true), m_pBoolMarker(NULL)
 		{
 			this->set_approximation_space(pApproxSpace);
 		};
@@ -170,7 +170,7 @@ class DomainDiscretization
 	 *
 	 * \param[in]	sel		Selector
 	 */
-	virtual void set_selector(ISelector* sel = NULL){m_pSelector = sel;}
+	virtual void set_selector(BoolMarker* sel = NULL){m_pBoolMarker = sel;}
 
 	public:
 	/// adds an element discretization to the assembling process
@@ -279,7 +279,7 @@ class DomainDiscretization
 		bool m_bConstraintsEnabled;
 
 	///	selector used to skip elements
-		ISelector* m_pSelector;
+		BoolMarker* m_pBoolMarker;
 };
 
 /// @}

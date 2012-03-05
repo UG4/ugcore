@@ -88,6 +88,7 @@ class AssembledMultiGridCycle :
 			m_spSmootherPrototype(new Jacobi<TAlgebra>()),
 			m_spProjectionPrototype(new P1Projection<TDomain,TAlgebra>(m_spApproxSpace)),
 			m_spProlongationPrototype(new P1Prolongation<TDomain,TAlgebra>(m_spApproxSpace)),
+			m_NonGhostMarker(*m_spApproxSpace->domain()->grid()),
 			m_pBaseSolver(NULL),
 			m_pDebugWriter(NULL), m_dbgIterCnt(0)
 		{};
@@ -292,7 +293,8 @@ class AssembledMultiGridCycle :
 			            assemble_type& ass,
 			            smoother_type& smoother,
 			            projection_operator_type& projection,
-			            prolongation_operator_type& prolongation);
+			            prolongation_operator_type& prolongation,
+			            BoolMarker& nonGhostMarker);
 
 		//	returns if ghosts are present on the level
 			bool has_ghosts() const {return num_smooth_indices() != num_indices();}
@@ -401,9 +403,6 @@ class AssembledMultiGridCycle :
 		//	missing coarse grid correction
 			matrix_type CoarseGridContribution;
 
-		//	selector for smoothing elements
-			Selector sel;
-
 		//	map for smoothing
 			std::vector<size_t> vMap;
 			std::vector<int> vMapFlag;
@@ -419,6 +418,9 @@ class AssembledMultiGridCycle :
 
 	///	storage for all level
 		std::vector<LevData*> m_vLevData;
+
+	///	bool marker of non-ghosts
+		BoolMarker m_NonGhostMarker;
 
 	///	base solver for the coarse problem
 		base_solver_type* m_pBaseSolver;

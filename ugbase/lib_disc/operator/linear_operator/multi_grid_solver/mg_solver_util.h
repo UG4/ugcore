@@ -458,16 +458,16 @@ void SetZeroOnShadowing(TVector& vec,
 ////////////////////////////////////////////////////////////////////////////////
 
 /// selects all non-shadows, that are adjacent to a shadow in the multigrid
-void SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView);
+void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfView);
 
 /// selects all non-shadows, that are adjacent to a shadow on a grid levels
-void SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
+void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
                                               const SurfaceView& surfView,
                                               int level);
 
 #ifdef UG_PARALLEL
 template <typename TElemBase>
-void SelectNonGhosts(ISelector& sel,
+void SelectNonGhosts(BoolMarker& sel,
                      DistributedGridManager& dstGrMgr,
                      typename geometry_traits<TElemBase>::iterator iter,
                      typename geometry_traits<TElemBase>::iterator iterEnd)
@@ -479,7 +479,7 @@ void SelectNonGhosts(ISelector& sel,
 		TElemBase* elem = *iter;
 
 	//	select ghosts
-		if(!dstGrMgr.is_ghost(elem)) sel.select(elem);
+		if(!dstGrMgr.is_ghost(elem)) sel.mark(elem);
 	}
 }
 #endif

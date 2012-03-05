@@ -82,7 +82,7 @@ void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 }
 
 
-void SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
+void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
                                               const SurfaceView& surfView,
                                               int level)
 {
@@ -142,22 +142,22 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(ISelector& sel,
 	//	select associated elements
 		for(size_t i = 0; i < vAssVertex.size(); ++i)
 			if(surfView.is_contained(vAssVertex[i]))
-				sel.select(vAssVertex[i]);
+				sel.mark(vAssVertex[i]);
 		for(size_t i = 0; i < vAssEdge.size(); ++i)
 			if(surfView.is_contained(vAssEdge[i]))
-				sel.select(vAssEdge[i]);
+				sel.mark(vAssEdge[i]);
 		for(size_t i = 0; i < vAssFace.size(); ++i)
 			if(surfView.is_contained(vAssFace[i]))
-				sel.select(vAssFace[i]);
+				sel.mark(vAssFace[i]);
 		for(size_t i = 0; i < vAssVolume.size(); ++i)
 			if(surfView.is_contained(vAssVolume[i]))
-				sel.select(vAssVolume[i]);
+				sel.mark(vAssVolume[i]);
 	}
 }
 
 
 template <typename TElemBase>
-void SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView)
+void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfView)
 {
 //	vectors for associated elements
 	std::vector<VertexBase*> vAssVertex;
@@ -189,20 +189,20 @@ void SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfVi
 	//	select associated elements
 		for(size_t i = 0; i < vAssVertex.size(); ++i)
 			if(surfView.is_contained(vAssVertex[i]))
-				sel.select(vAssVertex[i]);
+				sel.mark(vAssVertex[i]);
 		for(size_t i = 0; i < vAssEdge.size(); ++i)
 			if(surfView.is_contained(vAssEdge[i]))
-				sel.select(vAssEdge[i]);
+				sel.mark(vAssEdge[i]);
 		for(size_t i = 0; i < vAssFace.size(); ++i)
 			if(surfView.is_contained(vAssFace[i]))
-				sel.select(vAssFace[i]);
+				sel.mark(vAssFace[i]);
 		for(size_t i = 0; i < vAssVolume.size(); ++i)
 			if(surfView.is_contained(vAssVolume[i]))
-				sel.select(vAssVolume[i]);
+				sel.mark(vAssVolume[i]);
 	}
 }
 
-void SelectNonShadowsAdjacentToShadows(ISelector& sel, const SurfaceView& surfView)
+void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfView)
 {
 //	clear all marks
 	sel.clear();

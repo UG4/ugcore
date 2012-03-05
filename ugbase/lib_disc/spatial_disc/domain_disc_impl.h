@@ -139,23 +139,23 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		{
 		case 1:
 			bSuc &= AssembleMassMatrix<Edge,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= AssembleMassMatrix<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			bSuc &= AssembleMassMatrix<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= AssembleMassMatrix<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			bSuc &= AssembleMassMatrix<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			bSuc &= AssembleMassMatrix<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			bSuc &= AssembleMassMatrix<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
@@ -246,23 +246,23 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		{
 		case 1:
 			bSuc &= AssembleStiffnessMatrix<Edge,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= AssembleStiffnessMatrix<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			bSuc &= AssembleStiffnessMatrix<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= AssembleStiffnessMatrix<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			bSuc &= AssembleStiffnessMatrix<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			bSuc &= AssembleStiffnessMatrix<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			bSuc &= AssembleStiffnessMatrix<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
@@ -360,23 +360,23 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 1:
 			bSuc &= AssembleJacobian<Edge,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= AssembleJacobian<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			bSuc &= AssembleJacobian<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= AssembleJacobian<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			bSuc &= AssembleJacobian<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			bSuc &= AssembleJacobian<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			bSuc &= AssembleJacobian<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian (stationary)':"
@@ -466,23 +466,23 @@ assemble_defect(vector_type& d,
 		{
 		case 1:
 			bSuc &= AssembleDefect<Edge,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= AssembleDefect<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			bSuc &= AssembleDefect<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= AssembleDefect<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			bSuc &= AssembleDefect<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			bSuc &= AssembleDefect<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			bSuc &= AssembleDefect<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_defect (stationary)':"
@@ -571,23 +571,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		case 1:
 			bSuc &= AssembleLinear<Edge,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= AssembleLinear<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			bSuc &= AssembleLinear<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= AssembleLinear<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			bSuc &= AssembleLinear<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			bSuc &= AssembleLinear<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			bSuc &= AssembleLinear<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear (stationary)':"
@@ -676,23 +676,23 @@ assemble_rhs(vector_type& rhs,
 		{
 		case 1:
 			bSuc &= AssembleRhs<Edge,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= AssembleRhs<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			bSuc &= AssembleRhs<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= AssembleRhs<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			bSuc &= AssembleRhs<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			bSuc &= AssembleRhs<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			bSuc &= AssembleRhs<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_rhs (stationary)':"
@@ -804,23 +804,23 @@ prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
 		{
 		case 1:
 			bSuc &= PrepareTimestep<Edge,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= PrepareTimestep<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			bSuc &= PrepareTimestep<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= PrepareTimestep<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			bSuc &= PrepareTimestep<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			bSuc &= PrepareTimestep<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			bSuc &= PrepareTimestep<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::prepare_timestep (instationary)':"
@@ -900,23 +900,23 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 1:
 			bSuc &= AssembleJacobian<Edge,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= AssembleJacobian<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			bSuc &= AssembleJacobian<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= AssembleJacobian<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			bSuc &= AssembleJacobian<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			bSuc &= AssembleJacobian<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			bSuc &= AssembleJacobian<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian (instationary)':"
@@ -1006,23 +1006,23 @@ assemble_defect(vector_type& d,
 		{
 		case 1:
 			bSuc &= AssembleDefect<Edge,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= AssembleDefect<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			bSuc &= AssembleDefect<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= AssembleDefect<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			bSuc &= AssembleDefect<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			bSuc &= AssembleDefect<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			bSuc &= AssembleDefect<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_defect (instationary)':"
@@ -1105,23 +1105,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		case 1:
 			bSuc &= AssembleLinear<Edge,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= AssembleLinear<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			bSuc &= AssembleLinear<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= AssembleLinear<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			bSuc &= AssembleLinear<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			bSuc &= AssembleLinear<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			bSuc &= AssembleLinear<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear (instationary)':"
@@ -1230,23 +1230,23 @@ finish_timestep(const VectorTimeSeries<vector_type>& vSol,
 		{
 		case 1:
 			bSuc &= FinishTimestep<Edge, TDD, TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		case 2:
 			bSuc &= FinishTimestep<Triangle,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			bSuc &= FinishTimestep<Quadrilateral,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		case 3:
 			bSuc &= FinishTimestep<Tetrahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			bSuc &= FinishTimestep<Pyramid,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			bSuc &= FinishTimestep<Prism,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			bSuc &= FinishTimestep<Hexahedron,TDD,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pSelector);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		default:
 			UG_THROW_FATAL("ERROR in 'DomainDiscretization::finish_timestep (instationary)':"

@@ -138,9 +138,9 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 *
 	 * \param[in]	sel		Selector
 	 */
-		virtual void set_selector(ISelector* sel = NULL)
+		virtual void set_selector(BoolMarker* sel = NULL)
 		{
-			m_pSelector = sel; forward_selector();
+			m_pBoolMarker = sel; forward_selector();
 		}
 
 	///	returns the number of post processes
@@ -158,12 +158,12 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	protected:
 		void forward_selector()
 		{
-			m_rDomDisc.set_selector(m_pSelector);
+			m_rDomDisc.set_selector(m_pBoolMarker);
 		}
 
 		domain_discretization_type& m_rDomDisc; ///< Domain Discretization
 
-		ISelector* m_pSelector;
+		BoolMarker* m_pBoolMarker;
 };
 
 /// @}

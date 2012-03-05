@@ -964,7 +964,7 @@ init_linear_level_operator()
 		{
 		//	set this selector to the assembling, such that only those elements
 		//	will be assembled and force grid to be considered as regular
-			if(m_vLevData[lev]->has_ghosts()) m_pAss->set_selector(&m_vLevData[lev]->sel);
+			if(m_vLevData[lev]->has_ghosts()) m_pAss->set_selector(&m_NonGhostMarker);
 			else m_pAss->set_selector(NULL);
 			m_pAss->force_regular_grid(true);
 
@@ -1046,7 +1046,7 @@ init_non_linear_level_operator()
 		GMG_PROFILE_BEGIN(GMG_AssLevelMat);
 	//	set this selector to the assembling, such that only those elements
 	//	will be assembled and force grid to be considered as regular
-		if(m_vLevData[lev]->has_ghosts()) m_pAss->set_selector(&m_vLevData[lev]->sel);
+		if(m_vLevData[lev]->has_ghosts()) m_pAss->set_selector(&m_NonGhostMarker);
 		else m_pAss->set_selector(NULL);
 		m_pAss->force_regular_grid(true);
 
@@ -1557,8 +1557,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 ///////////////////////////////////////
 
 //	loop all levels to compute the missing contribution
-//	\todo: this is implemented very resource consuming, re-think arrangement
-	Selector sel(*m_spApproxSpace->domain()->grid());
+	BoolMarker sel(*m_spApproxSpace->domain()->grid());
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 	{
 	//	select all elements, that have a shadow as a subelement, but are not itself
@@ -1707,6 +1706,7 @@ top_level_required(size_t topLevel)
 	}
 
 //	reinit all levels
+	m_NonGhostMarker.clear();
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
 		m_vLevData[lev]->update(lev,
@@ -1715,7 +1715,8 @@ top_level_required(size_t topLevel)
 		                       *m_pAss,
 		                       *m_spSmootherPrototype,
 		                       *m_spProjectionPrototype,
-		                       *m_spProlongationPrototype);
+		                       *m_spProlongationPrototype,
+		                       m_NonGhostMarker);
 	}
 
 //	we're done
@@ -1732,7 +1733,8 @@ update(size_t lev,
        assemble_type& ass,
        smoother_type& smoother,
        projection_operator_type& projection,
-       prolongation_operator_type& prolongation)
+       prolongation_operator_type& prolongation,
+       BoolMarker& nonGhostMarker)
 {
 //	get dof distribution
 	spLevDD = levDD;
@@ -1864,20 +1866,18 @@ update(size_t lev,
 		= m_spApproxSpace->domain()->distributed_grid_manager();
 
 //	select all ghost geometric objects
-	sel.clear();
-	sel.assign_grid(*approxSpace->domain()->grid());
 	for(int si = 0; si < spLevDD->num_subsets(); ++si)
 	{
-		SelectNonGhosts<VertexBase>(sel, *pDstGrdMgr,
+		SelectNonGhosts<VertexBase>(nonGhostMarker, *pDstGrdMgr,
 								 spLevDD->template begin<VertexBase>(si),
 								 spLevDD->template end<VertexBase>(si));
-		SelectNonGhosts<EdgeBase>(sel, *pDstGrdMgr,
+		SelectNonGhosts<EdgeBase>(nonGhostMarker, *pDstGrdMgr,
 								 spLevDD->template begin<EdgeBase>(si),
 								 spLevDD->template end<EdgeBase>(si));
-		SelectNonGhosts<Face>(sel, *pDstGrdMgr,
+		SelectNonGhosts<Face>(nonGhostMarker, *pDstGrdMgr,
 								 spLevDD->template begin<Face>(si),
 								 spLevDD->template end<Face>(si));
-		SelectNonGhosts<Volume>(sel, *pDstGrdMgr,
+		SelectNonGhosts<Volume>(nonGhostMarker, *pDstGrdMgr,
 								 spLevDD->template begin<Volume>(si),
 								 spLevDD->template end<Volume>(si));
 	}
