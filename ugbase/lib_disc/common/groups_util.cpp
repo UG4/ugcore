@@ -38,11 +38,10 @@ bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetH
 	{
 		RemoveWhitespaceFromString(tokens[i]);
 
-		if(!subsetGroup.add(tokens[i].c_str()))
-		{
-			UG_LOG("Name of subset ('" << tokens[i] << "') not found in Subset Handler.\n");
-			return false;
-		}
+		try{
+			subsetGroup.add(tokens[i].c_str());
+		}UG_CATCH_THROW("Name of subset ('" << tokens[i] <<
+		                "') not found in Subset Handler.");
 	}
 
 //	we're done
@@ -57,13 +56,12 @@ bool ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
 	subsetGroup.set_subset_handler(pSH);
 
 //	tokenize strings and select functions
-	for(size_t i = 0; i < vSS.size(); ++i)
-		if(!subsetGroup.add(vSS[i].c_str()))
-		{
-			UG_LOG("ERROR in 'ConvertStringToSubsetGroup': Name of subset ('"
-					<< vSS[i] << "') not found in Subset Handler.\n");
-			return false;
-		}
+	for(size_t i = 0; i < vSS.size(); ++i){
+		try{
+			subsetGroup.add(vSS[i].c_str());
+		}UG_CATCH_THROW("Name of subset ('" << vSS[i] <<
+		                "') not found in Subset Handler.");
+	}
 
 //	done
 	return true;
@@ -129,12 +127,9 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
 
 //	check that from group is contained in to group
 	if(!grpToLarge.contains(grpFromSmall))
-	{
-		UG_LOG("ERROR in 'CreateFunctionIndexMapping': smaller FunctionGroup "
+		UG_THROW_FATAL("CreateFunctionIndexMapping: smaller FunctionGroup "
 				<< grpFromSmall << " is not contained in larger Group " <<
-				grpToLarge<<". Cannot create Mapping.\n");
-		return false;
-	}
+				grpToLarge<<". Cannot create Mapping.");
 
 //	loop all functions on grpFrom
 	for(size_t from = 0; from < grpFromSmall.num_fct(); ++from)
@@ -162,7 +157,10 @@ CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
 	map.clear();
 
 //	check that from group is contained in to group
-	if(!grpFromLarge.contains(grpToSmall)) return false;
+	if(!grpFromLarge.contains(grpToSmall))
+		UG_THROW_FATAL("CreateFunctionIndexMapping: smaller FunctionGroup "
+				<< grpToSmall << " is not contained in larger Group " <<
+				grpFromLarge<<". Cannot create Mapping.");
 
 //	loop all functions on grpFrom
 	for(size_t to = 0; to < grpToSmall.num_fct(); ++to)
@@ -207,11 +205,9 @@ bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 
 		const FunctionPattern* pFctPat = vFctGrp[grp]->get_function_pattern();
 		if(pFctPat == NULL)
-		{
-			UG_LOG("ERROR in 'CreateUnionOfFunctionGroups': Function group "
-					<<grp<<" has NULL as underlying FunctionPattern.\n");
-			return false;
-		}
+			UG_THROW_FATAL("CreateUnionOfFunctionGroups: Function group "
+					<<grp<<" has NULL as underlying FunctionPattern.");
+
 		fctGrp.set_function_pattern(*pFctPat);
 		break;
 	}

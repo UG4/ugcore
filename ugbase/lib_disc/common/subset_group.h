@@ -16,18 +16,6 @@
 
 namespace ug{
 
-////////////////////////////////////////////////////////////////////////
-//	ERROR_BadIndexInSubsetGroup
-struct ERROR_BadIndexInSubsetGroup{
-	ERROR_BadIndexInSubsetGroup(int subsetIndex) : m_subsetIndex(subsetIndex)	{}
-	int m_subsetIndex;
-};
-
-////////////////////////////////////////////////////////////////////////
-//	ERROR_SubsetGroupHasNoSubsetHandler
-struct ERROR_SubsetGroupHasNoSubsetHandler{};
-
-
 /// Group of subsets
 /**
  * A SubsetGroup is used to describe a group of Subsets. Therefore, it has an
@@ -49,39 +37,33 @@ class SubsetGroup
 		ConstSmartPtr<ISubsetHandler> subset_handler() const {return m_pSH;}
 
 	/// adds a subset by number to this group
-		bool add(int si);
+		void add(int si);
 
 	/// adds all subset with by name to this group
 	/**
 	 * This function adds all subset with by name to this group.
-	 *
 	 * \param[in]	name	Name of Subset(s) to be added
-	 * \return 		true	if at least one subset added
-	 * 				false	if no subset found with this name
 	 */
-		bool add(const char* name);
+		void add(const char* name);
 
 	/// adds all subsets of another subset to the group
-		bool add(const SubsetGroup& ssGroup);
+		void add(const SubsetGroup& ssGroup);
 
 	/// select all subsets of underlying subset
-		bool add_all();
+		void add_all();
 
 	/// removes a subset from this group
-		bool remove(int si);
+		void remove(int si);
 
 	/// removes all subset with a given name from this group
 	/**
 	 * This function removes all subsets by name from this group
-	 *
 	 * \param[in]	name	Name of Subset(s) to be removed
-	 * \return 		true	if at least one subset removed
-	 * 				false	if no subset found with this name
 	 */
-		bool remove(const char* name);
+		void remove(const char* name);
 
 	/// removes all subsets of another subset from the group
-		bool remove(const SubsetGroup& ssGroup);
+		void remove(const SubsetGroup& ssGroup);
 
 	/// clear all subsets
 		void clear() {m_vSubset.clear();}

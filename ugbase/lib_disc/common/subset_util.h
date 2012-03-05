@@ -29,7 +29,7 @@ namespace ug{
  * \return		true		if subset is regular grid
  * 				false 		if subset is non-regular grid
  */
-inline bool SubsetIsRegularGrid(const SubsetHandler& sh, int si);
+bool SubsetIsRegularGrid(const SubsetHandler& sh, int si);
 
 ////////////////////////////////////////////////////////////////////////
 /// returns if a subset is a regular grid
@@ -45,7 +45,7 @@ inline bool SubsetIsRegularGrid(const SubsetHandler& sh, int si);
  * \return		true		if subset is regular grid
  * 				false 		if subset is non-regular grid
  */
-inline bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si);
+bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si);
 
 ////////////////////////////////////////////////////////////////////////
 /// returns if a subset is a regular grid
@@ -61,7 +61,7 @@ inline bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si);
  * \return		true		if subset is regular grid
  * 				false 		if subset is non-regular grid
  */
-inline bool SubsetIsRegularGrid(const ISubsetHandler& sh, int si);
+bool SubsetIsRegularGrid(const ISubsetHandler& sh, int si);
 
 /// abbreviations for return types
 enum {DIM_SUBSET_EMPTY_GRID = -1};
@@ -81,7 +81,7 @@ enum {DIM_SUBSET_EMPTY_GRID = -1};
  * \return		dimension					Dimension of Subset
  * 				DIM_SUBSET_EMPTY_GRID		if empty Grid given
  */
-inline int DimensionOfSubset(const ISubsetHandler& sh, int si);
+int DimensionOfSubset(const ISubsetHandler& sh, int si);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Returns the dimension of geometric objects, that are contained in the subset handler
@@ -97,11 +97,9 @@ inline int DimensionOfSubset(const ISubsetHandler& sh, int si);
  * \return		dimension					Dimension of Subset
  * 				DIM_SUBSET_EMPTY_GRID		if empty Grid given
  */
-inline int DimensionOfSubsets(const ISubsetHandler& sh);
+int DimensionOfSubsets(const ISubsetHandler& sh);
 
 
 } // end namespace ug
-
-#include "subset_util_impl.h"
 
 #endif /* __H__UG__LIB_DISC__COMMON__SUBSET_UTIL__ */

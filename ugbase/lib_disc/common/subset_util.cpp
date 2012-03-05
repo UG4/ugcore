@@ -1,22 +1,17 @@
 /*
- * subset_util_impl.h
+ * subset_util.cpp
  *
  *  Created on: 05.03.2012
  *      Author: andreasvogel
  */
-
-#ifndef __H__UG__LIB_DISC__COMMON__SUBSET_UTIL_IMPL__
-#define __H__UG__LIB_DISC__COMMON__SUBSET_UTIL_IMPL__
 
 #include "subset_util.h"
 #include "lib_grid/lg_base.h"
 
 namespace ug{
 
-
-
 /// returns if a subset is a regular grid
-inline bool SubsetIsRegularGrid(const SubsetHandler& sh, int si)
+bool SubsetIsRegularGrid(const SubsetHandler& sh, int si)
 {
 //	check for constraining/constrained elements
 	if(sh.num<HangingVertex>(si) > 0) return false;
@@ -32,7 +27,7 @@ inline bool SubsetIsRegularGrid(const SubsetHandler& sh, int si)
 }
 
 /// returns if a subset is a regular grid
-inline bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si)
+bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si)
 {
 //	check for constraining/constrained elements
 	if(sh.num<HangingVertex>(si) > 0) return false;
@@ -48,7 +43,7 @@ inline bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si)
 }
 
 /// returns if a subset is a regular grid
-inline bool SubsetIsRegularGrid(const ISubsetHandler& ish, int si)
+bool SubsetIsRegularGrid(const ISubsetHandler& ish, int si)
 {
 //	test SubsetHandler
 	const SubsetHandler* sh = dynamic_cast<const SubsetHandler*>(&ish);
@@ -61,12 +56,12 @@ inline bool SubsetIsRegularGrid(const ISubsetHandler& ish, int si)
 		return SubsetIsRegularGrid(*mgsh, si);
 
 //	unknown type of subset handler
-	throw(UGFatalError("Unknown SubsetHandler type."));
+	UG_THROW_FATAL("Unknown SubsetHandler type.");
 	return false;
 }
 
 ///	returns the current dimension of the subset
-inline int DimensionOfSubset(const ISubsetHandler& sh, int si)
+int DimensionOfSubset(const ISubsetHandler& sh, int si)
 {
 	try{
 		return sh.subset_info(si).get_property("dim").to_int();
@@ -78,7 +73,7 @@ inline int DimensionOfSubset(const ISubsetHandler& sh, int si)
 					"UpdateMaxDimensionOfSubset or UpdateGlobalMaxDimensionOfSubset.");
 }
 
-inline int DimensionOfSubsets(const ISubsetHandler& sh)
+int DimensionOfSubsets(const ISubsetHandler& sh)
 {
 //	dimension to be computed
 	int dim = DIM_SUBSET_EMPTY_GRID;
@@ -102,5 +97,3 @@ inline int DimensionOfSubsets(const ISubsetHandler& sh)
 }
 
 } // end namespace ug
-
-#endif /* __H__UG__LIB_DISC__COMMON__SUBSET_UTIL_IMPL__ */

@@ -60,13 +60,10 @@ bool CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
 //	add all Subset groups of the element discs
 	for(size_t i = 0; i < vSSGrp.size(); ++i)
 	{
-	//	add subset group of elem disc
-		if(!unionSSGrp.add(vSSGrp[i]))
-		{
-			UG_LOG("ERROR in 'CreateUnionOfSubsets': Cannot add subsets of the "
-				   "Elem Disc "<< i << " to union of Subsets.\n");
-			return false;
-		}
+		//	add subset group of elem disc
+		try{
+			unionSSGrp.add(vSSGrp[i]);
+		}UG_CATCH_THROW("Cannot add subsets of the Elem Disc "<<i<<" to union of Subsets.");
 	}
 
 //	we're done
