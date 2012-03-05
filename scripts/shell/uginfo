@@ -11,19 +11,8 @@ function usage
     exit 0;
 }
 
-# check that at least 3 args given, else print usage
-if [ $# -lt 3 ]; then
-   usage
-fi
-
-# read args
-nnodes=$1;            # number of nodes
-shift
-
-while [ true ]
+while [ $# -gt 0 ]
 do
-	#echo $1
-	#echo $2
 	if [ $1 = "-so" ]; then
 		scheduleroptions=$2
 		shift 2
@@ -32,9 +21,6 @@ do
 		shift 2
 	else
 		cont=false
-		break
-	fi
-	if [ $# -eq 0 ]; then
 		break
 	fi
 done
@@ -52,7 +38,7 @@ qstat | sed -n 1p
 qstat | grep $USER
 
 ##############################################
-elif [ $UGSUBMIT_TYPE = "Jugene" ]
+elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
 echo "Using Jugene"
 
 ##############################################
@@ -62,7 +48,7 @@ ps aux | sed -n 1p
 ps aux | grep $USER | grep mpirun
 
 ##############################################
-elif [ $UGSUBMIT_TYPE = "cekon" ]; 
+elif [ $UGSUBMIT_TYPE = "cekon" ]; then
 echo "Using SLURM on cekon"
 squeue | sed -n 1p
 squeue | grep $USER

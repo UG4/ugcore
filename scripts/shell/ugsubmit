@@ -61,7 +61,7 @@ fi
 nnodes=$1;            # number of nodes
 shift
 
-while [ true ]
+while [ $# -eq 0 ]
 do
 	#echo $1
 	#echo $2

@@ -20,23 +20,19 @@ function usage
 }
 
 # check that at least 2 args given, else print usage
-if [ $# -lt 2 ]; then
+if [ $# -lt 1 ]; then
    usage
 fi
 
-$jobid=$1;            # number of nodes
+jobid=$1;            # number of nodes
 shift
 
-while [ true ]
+while [  $# -gt 0 ]
 do
 	if [ $1 = "-cluster" ]; then
 		UGSUBMIT_TYPE=$2
 		shift 2
 	else
-		cont=false
-		break
-	fi
-	if [ $# -eq 0 ]; then
 		break
 	fi
 done
@@ -51,7 +47,7 @@ echo "Using Hermit"
 qdel $jobid
 
 ##############################################
-elif [ $UGSUBMIT_TYPE = "Jugene" ]
+elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
 echo "Using Jugene"
 
 ##############################################
@@ -60,7 +56,7 @@ echo "Using MPI"
 kill $jobid
 
 ##############################################
-elif [ $UGSUBMIT_TYPE = "cekon" ]; 
+elif [ $UGSUBMIT_TYPE = "cekon" ]; then
 echo "Using SLURM on cekon"
 scancel $jobid
 
