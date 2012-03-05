@@ -10,6 +10,7 @@
 
 #include "mg_dof_distribution.h"
 #include "managing_dof_distribution.h"
+#include "lib_disc/domain_traits.h"
 
 namespace ug{
 

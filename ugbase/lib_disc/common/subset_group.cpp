@@ -7,7 +7,7 @@
 
 #include "./subset_group.h"
 #include "common/common.h"
-#include "lib_disc/domain_util.h"
+#include "lib_disc/common/subset_util.h"
 #include <algorithm>
 #include <cstring>
 

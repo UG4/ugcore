@@ -8,6 +8,7 @@
 #include "grid_function_util.h"
 #include "grid_function_impl.h"
 #include "approximation_space.h"
+#include "lib_disc/domain.h"
 
 namespace ug{
 

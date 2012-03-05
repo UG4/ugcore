@@ -3,146 +3,20 @@
 #ifndef __H__UG__LIB_DISC__DOMAIN_UTIL_GENERAL_IMPL__
 #define __H__UG__LIB_DISC__DOMAIN_UTIL_GENERAL_IMPL__
 
+#include "domain_util.h"
+
 #include <string>
 #include <sstream>
-#include "lib_grid/tools/subset_handler_interface.h"
-#include "lib_grid/tools/subset_handler_multi_grid.h"
-#include "lib_grid/tools/subset_handler_grid.h"
-#include "lib_grid/lg_base.h"
-#include "lib_grid/algorithms/attachment_util.h"
 
-#include "domain_util.h"
 #include "lib_disc/reference_element/reference_element.h"
-
-#ifdef UG_PARALLEL
-#include "lib_grid/parallelization/distributed_grid.h"
-#include "lib_grid/parallelization/parallelization_util.h"
-#include "lib_grid/parallelization/parallelization.h"
-#endif
 
 namespace ug{
 
-template <typename TDomain>
-bool LoadDomain(TDomain& domain, const char* filename)
-{
-	return LoadDomain(domain, filename, 0);
-}
-
-
-template <typename TDomain>
-bool LoadDomain(TDomain& domain, const char* filename, int procId)
-{
-#ifdef UG_PARALLEL
-	if((procId >= 0 ) && (pcl::GetProcRank() != procId))
-		return true;
-#endif
-
-	if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
-						 filename, domain.position_attachment()))
-	{
-		return false;
-	}
-
-	domain.update_local_subset_dim_property();
-
-	return true;
-}
-
-
-template <typename TDomain>
-bool SaveDomain(TDomain& domain, const char* filename)
-{
-	return SaveGridToFile(*domain.grid(), *domain.subset_handler(),
-						  filename, domain.position_attachment());
-}
-
-
-
-/// returns if a subset is a regular grid
-inline bool SubsetIsRegularGrid(const SubsetHandler& sh, int si)
-{
-//	check for constraining/constrained elements
-	if(sh.num<HangingVertex>(si) > 0) return false;
-	if(sh.num<ConstrainedEdge>(si) > 0) return false;
-	if(sh.num<ConstrainingEdge>(si) > 0) return false;
-	if(sh.num<ConstrainedTriangle>(si) > 0) return false;
-	if(sh.num<ConstrainingTriangle>(si) > 0) return false;
-	if(sh.num<ConstrainedQuadrilateral>(si) > 0) return false;
-	if(sh.num<ConstrainingQuadrilateral>(si) > 0) return false;
-
-//	if not found, subset describes a regular grid
-	return true;
-}
-
-/// returns if a subset is a regular grid
-inline bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si)
-{
-//	check for constraining/constrained elements
-	if(sh.num<HangingVertex>(si) > 0) return false;
-	if(sh.num<ConstrainedEdge>(si) > 0) return false;
-	if(sh.num<ConstrainingEdge>(si) > 0) return false;
-	if(sh.num<ConstrainedTriangle>(si) > 0) return false;
-	if(sh.num<ConstrainingTriangle>(si) > 0) return false;
-	if(sh.num<ConstrainedQuadrilateral>(si) > 0) return false;
-	if(sh.num<ConstrainingQuadrilateral>(si) > 0) return false;
-
-//	if not found, subset describes a regular grid
-	return true;
-}
-
-/// returns if a subset is a regular grid
-inline bool SubsetIsRegularGrid(const ISubsetHandler& ish, int si)
-{
-//	test SubsetHandler
-	const SubsetHandler* sh = dynamic_cast<const SubsetHandler*>(&ish);
-	if(sh != NULL)
-		return SubsetIsRegularGrid(*sh, si);
-
-//	test MGSubsetHandler
-	const MGSubsetHandler* mgsh = dynamic_cast<const MGSubsetHandler*>(&ish);
-	if(mgsh != NULL)
-		return SubsetIsRegularGrid(*mgsh, si);
-
-//	unknown type of subset handler
-	throw(UGFatalError("Unknown SubsetHandler type."));
-	return false;
-}
-
-///	returns the current dimension of the subset
-inline int DimensionOfSubset(const ISubsetHandler& sh, int si)
-{
-	try{
-		return sh.subset_info(si).get_property("dim").to_int();
-	}
-	UG_CATCH_THROW("Make sure to properly set the dim-property of each subset "
-					"before calling DimensionOfSubset! Use e.g. "
-					"Domain::update_local_subset_dim_property, "
-					"Domain::update_global_subset_dim_property, "
-					"UpdateMaxDimensionOfSubset or UpdateGlobalMaxDimensionOfSubset.");
-}
-
-inline int DimensionOfSubsets(const ISubsetHandler& sh)
-{
-//	dimension to be computed
-	int dim = DIM_SUBSET_EMPTY_GRID;
-
-//	loop subsets
-	for(int si = 0; si < sh.num_subsets(); ++si)
-	{
-	//	get dimension of subset
-		int siDim = DimensionOfSubset(sh, si);
-
-	//	if empty grid given, skip
-		if(siDim == DIM_SUBSET_EMPTY_GRID) continue;
-
-	//	check if dimension is higher than already checked subsets
-		if(dim < siDim)
-			dim = siDim;
-	}
-
-//	return computed domain
-	return dim;
-}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// CollectCornerCoordinates
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 //	returns the corner coordinates of a geometric object
 template <typename TElem, typename TAAPos>
@@ -218,46 +92,6 @@ number ElementSize(const TElem& elem, const TDomain& domain)
 	const typename TDomain::position_accessor_type& aaPos = domain.position_accessor();
 
 	return ElementSize(elem, aaPos);
-}
-
-// writes domain to *.ugx file
-template <typename TDomain>
-bool WriteDomainToUGX(const char* filename, const TDomain& domain)
-{
-	// filename
-	std::string strName = filename;
-
-	// check filename
-	if(strName.find(" ") != std::string::npos)
-		{UG_LOG("Filename must not include spaces. Cannot write domain."); return false;}
-
-	// check if filename has already ending (if not add it)
-	if(strName.find(".ugx") == std::string::npos)
-	{
-		if(strName.find(".") != std::string::npos)
-		{
-			UG_LOG("Filename must not include dots. Cannot write domain.");
-			return false;
-		}
-		else
-		{
-			strName = strName + ".ugx";
-		}
-	}
-
-	// types
-	typedef typename TDomain::grid_type GridType;
-	typedef typename TDomain::subset_handler_type SubsetHandlerType ;
-
-	// extract grid and subset handler
-	GridType& grid = *const_cast<GridType*>(&domain.grid());
-	SubsetHandlerType& sh = *const_cast<SubsetHandlerType*>(&domain.subset_handler());
-
-	// save grid
-	if(!SaveGridToUGX(grid, sh, strName.c_str()))
-		{UG_LOG("WriteDomainToUGX: Cannot save grid.\n"); return false;}
-
-	return true;
 }
 
 } // end namespace ug

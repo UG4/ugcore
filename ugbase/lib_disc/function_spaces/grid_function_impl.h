@@ -8,10 +8,12 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_IMPL__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_IMPL__
 
-#include "lib_algebra/algebra_type.h"
 #include "grid_function.h"
+
+#include "lib_algebra/algebra_type.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
+#include "lib_disc/domain_util.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"

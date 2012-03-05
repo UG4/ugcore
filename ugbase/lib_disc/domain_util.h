@@ -5,18 +5,8 @@
 #ifndef __H__UG__LIB_DISC__DOMAIN_UTIL__
 #define __H__UG__LIB_DISC__DOMAIN_UTIL__
 
-// extern libraries
-#include <vector>
-
-// other ug4 libraries
-#include "lib_grid/lg_base.h"
-
 // other lib_discretization headers
 #include "domain.h"
-
-#ifdef UG_PARALLEL
-	#include "pcl/pcl_process_communicator.h"
-#endif
 
 namespace ug{
 
@@ -39,88 +29,19 @@ bool SaveDomain(TDomain& domain, const char* filename);
 
 
 ////////////////////////////////////////////////////////////////////////
-/// returns if a subset is a regular grid
-/**
- * This function returns if a subset contains constrained/constraining elements
- * such as hanging vertices, contrained edges/faces. In this case, the subset
- * does not form a regular grid.
+/// writes domain to *.ugx file
+/** Writes a domain to *.ugx format
  *
+ * This function writes a domain to a ugx-file.
  *
- * \param[in]	sh			SubsetHandler
- * \param[in]	si			Subset Index
- *
- * \return		true		if subset is regular grid
- * 				false 		if subset is non-regular grid
+ * \param[in] 	filename		Filename
+ * \param[in]	domain			Domain that is written to file
+ * \return 		true			if successful
+ * 				false			if error occurred
  */
-inline bool SubsetIsRegularGrid(const SubsetHandler& sh, int si);
+template <typename TDomain>
+bool WriteDomainToUGX(const char* filename, const TDomain& domain);
 
-////////////////////////////////////////////////////////////////////////
-/// returns if a subset is a regular grid
-/**
- * This function returns if a subset contains constrained/constraining elements
- * such as hanging vertices, contrained edges/faces. In this case, the subset
- * does not form a regular grid.
- *
- *
- * \param[in]	sh			SubsetHandler
- * \param[in]	si			Subset Index
- *
- * \return		true		if subset is regular grid
- * 				false 		if subset is non-regular grid
- */
-inline bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si);
-
-////////////////////////////////////////////////////////////////////////
-/// returns if a subset is a regular grid
-/**
- * This function returns if a subset contains constrained/constraining elements
- * such as hanging vertices, contrained edges/faces. In this case, the subset
- * does not form a regular grid.
- *
- *
- * \param[in]	sh			SubsetHandler
- * \param[in]	si			Subset Index
- *
- * \return		true		if subset is regular grid
- * 				false 		if subset is non-regular grid
- */
-inline bool SubsetIsRegularGrid(const ISubsetHandler& sh, int si);
-
-/// abbreviations for return types
-enum {DIM_SUBSET_EMPTY_GRID = -1};
-
-////////////////////////////////////////////////////////////////////////
-///	Returns the dimension of geometric objects, that are contained in the subset
-/**
- * This function returns the dimension of the subset. The dimension is simply
- * defined to be the highest reference dimension of all geometric objects
- * contained in the subset
- * If a ParallelCommunicator is passed, the highest dimension within all
- * procs in the ProcessCommunicator is returned.
- *
- * \param[in]	sh			ISubsetHandler
- * \param[in]	si			Subset Index
- *
- * \return		dimension					Dimension of Subset
- * 				DIM_SUBSET_EMPTY_GRID		if empty Grid given
- */
-inline int DimensionOfSubset(const ISubsetHandler& sh, int si);
-
-////////////////////////////////////////////////////////////////////////
-///	Returns the dimension of geometric objects, that are contained in the subset handler
-/**
- * This function returns the dimension of the subsets. The dimension is simply
- * defined to be the highest reference dimension of all geometric objects
- * contained the union of all subset
- * If a ParallelCommunicator is passed, the highest dimension within all
- * procs in the ProcessCommunicator is returned.
- *
- * \param[in]	sh			ISubsetHandler
- *
- * \return		dimension					Dimension of Subset
- * 				DIM_SUBSET_EMPTY_GRID		if empty Grid given
- */
-inline int DimensionOfSubsets(const ISubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the corner coordinates of a geometric object
@@ -183,20 +104,6 @@ number ElementSize(const TElem& elem,
  */
 template <typename TElem, typename TDomain>
 number ElementSize(const TElem& elem, const TDomain& domain);
-
-////////////////////////////////////////////////////////////////////////
-/// writes domain to *.ugx file
-/** Writes a domain to *.ugx format
- *
- * This function writes a domain to a ugx-file.
- *
- * \param[in] 	filename		Filename
- * \param[in]	domain			Domain that is written to file
- * \return 		true			if successful
- * 				false			if error occurred
- */
-template <typename TDomain>
-bool WriteDomainToUGX(const char* filename, const TDomain& domain);
 
 } // end namespace ug
 
