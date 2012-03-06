@@ -31,6 +31,7 @@ pbsMailtype=""
 
 # todo: vielleicht scripts fuer die scheduler auslagern
 # todo: different default nppn for clusters
+# todo: option -nodir
 echo "ugsubmit 0.1. (c) Goethe-Center for Scientific Computing 2012"
 
 function usage 
@@ -45,7 +46,7 @@ function usage
 	echo " optional Parameters are:"
 	echo "        -test                  : do not actually execute, only write scripts (also sets -verbose)"
 	echo "        -nppn <nppn>           : number of processes per node (optional, default "$nppn")"
-	echo "        -cluster <type>        : type can be NecNehalem, Hermit, Jugene, mpi, cekon. (or use env. variable UGSUBMIT_TYPE)"
+	echo "        -cluster <type>        : cluster to use. see below (or use env. variable UGSUBMIT_TYPE)"
 	echo "        -name <jobname>        : a jobname to be used (optional, default \""$jobname"\")"
 	echo "        -walltime <hh:mm:ss>   : max walltime for job to run (optional; default is "$walltime")"
 	echo "        -email <emailadress>   : emailadress. you can also use the environment variable UGSUBMIT_EMAIL."
@@ -55,11 +56,18 @@ function usage
 	echo "        -mail-all              : "
 	echo "        -verbose               : enable verbose mode"
 	echo " "
-	echo " Jugene Parameters:"
+	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon."
+	echo " "
+	echo " Jugene Parameters"
 	echo "        -Jugene-mode            : VN, DUAL or SMP. Default "$JugeneMode
 	echo "        -Jugene-mapfile         : Mapfile. Default "$JugeneMapfile
 	echo "        -Jugene-verbose         : Verbose Level. Default "$JugeneVerbose
 	echo ""
+	echo " descr: The script creates a new folder relative to the current path with the name"
+	echo "        '<jobname>.<npe>' (where <npe> is the number of processes. In this new directory"
+	echo "        a file names 'info.txt' is created, to identify the job. Then, depending"
+	echo "        on the selected cluster type, a shell script is created and submitted to the"
+	echo "        job scheduling system."
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
    	echo "UGSUBMIT_TYPE is not set!"
