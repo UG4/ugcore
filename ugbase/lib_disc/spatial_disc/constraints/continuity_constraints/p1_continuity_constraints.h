@@ -14,6 +14,12 @@
 
 namespace ug {
 
+/// returns the vertices of the object constraining a hanging vertex
+void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
+                         HangingVertex* hgVrt,
+                         bool bClearContainer = true);
+
+
 template <typename TDomain, typename TAlgebra>
 class SymP1Constraints
 	: public ConstraintBase<TDomain, TAlgebra,
@@ -64,23 +70,6 @@ class SymP1Constraints
 		template <typename TDD>
 		void adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
 		                     number time);
-
-	protected:
-		void SplitAddRow(matrix_type& A	,
-		                 std::vector<size_t> & constrainedIndex,
-		                 std::vector<std::vector<size_t> >& vConstrainingIndices);
-
-		void SetInterpolation(matrix_type& A,
-		                      std::vector<size_t> & constrainedIndex,
-		                      std::vector<std::vector<size_t> >& vConstrainingIndices);
-
-		void HandleRhs(vector_type& rhs,
-		               std::vector<size_t> & constrainedIndex,
-		               std::vector<std::vector<size_t> >& vConstrainingIndices);
-
-		void InterpolateValues(vector_type& u,
-		                       std::vector<size_t> & constrainedIndex,
-		                       std::vector<std::vector<size_t> >& vConstrainingIndices);
 };
 
 
@@ -140,19 +129,6 @@ class OneSideP1Constraints
 		template <typename TDD>
 		void adjust_linear(matrix_type& mat, vector_type& rhs,
 		                   ConstSmartPtr<TDD> dd, number time);
-
-	protected:
-		void SplitAddRow(matrix_type& A,
-		                 std::vector<size_t> & constrainedIndex,
-		                 std::vector<std::vector<size_t> >& vConstrainingIndices);
-
-		void SetInterpolation(matrix_type& A,
-		                      std::vector<size_t> & constrainedIndex,
-		                      std::vector<std::vector<size_t> >& vConstrainingIndices);
-
-		void HandleRhs(vector_type& rhs,
-		               std::vector<size_t> & constrainedIndex,
-		               std::vector<std::vector<size_t> >& vConstrainingIndices);
 };
 
 }; // namespace ug

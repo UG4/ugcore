@@ -55,6 +55,8 @@ set(srcDiscretization	domain_util.cpp
 						spatial_disc/disc_util/hanging_finite_volume_geometry.cpp
 						spatial_disc/ip_data/data_evaluator.cpp
 						
+						spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.cpp
+						
 						spatial_disc/elem_disc/constant_equation/constant_equation_fv1.cpp
 						spatial_disc/elem_disc/convection_diffusion/convection_diffusion.cpp
 						spatial_disc/elem_disc/density_driven_flow/density_driven_flow_fv1.cpp
