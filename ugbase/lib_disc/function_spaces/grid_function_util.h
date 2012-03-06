@@ -56,16 +56,6 @@ void WriteMatrixToConnectionViewer(const char *filename,
 		UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
 						" filename is '"<<name<<"'.");
 
-//	extended filename
-//	add p000X extension in parallel
-#ifdef UG_PARALLEL
-	name.resize(iExtPos);
-	int rank = pcl::GetProcRank();
-	char ext[20];
-	sprintf(ext, "_p%04d.mat", rank);
-	name.append(ext);
-#endif
-
 //	position array
 	const static int dim = TFunction::domain_type::dim;
 	std::vector<MathVector<dim> > vPos;
@@ -98,16 +88,6 @@ void WriteVectorToConnectionViewer(const char *filename,
 	if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".vec") != 0)
 		UG_THROW_FATAL("Only '.vec' format supported for vectors, but"
 						" filename is '"<<name<<"'.");
-
-//	extended filename
-//	add p000X extension in parallel
-#ifdef UG_PARALLEL
-	name.resize(iExtPos);
-	int rank = pcl::GetProcRank();
-	char ext[20];
-	sprintf(ext, "_p%04d.vec", rank);
-	name.append(ext);
-#endif
 
 // 	get positions of vertices
 	const static int dim = TFunction::domain_type::dim;
@@ -326,16 +306,6 @@ class GridFunctionDebugWriter
 				UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
 								" filename is '"<<name<<"'.");
 
-		//	extended filename
-		//	add p000X extension in parallel
-		#ifdef UG_PARALLEL
-			name.resize(iExtPos);
-			int rank = pcl::GetProcRank();
-			char ext[20];
-			sprintf(ext, "_p%04d.mat", rank);
-			name.append(ext);
-		#endif
-
 		//	write to file
 			std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
 			WriteMatrixToConnectionViewer(name.c_str(), mat, &vPos[0], dim);
@@ -352,16 +322,6 @@ class GridFunctionDebugWriter
 			if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".vec") != 0)
 				UG_THROW_FATAL("Only '.vec' format supported for vectors, but"
 								" filename is '"<<name<<"'.");
-
-		//	extended filename
-		//	add p000X extension in parallel
-		#ifdef UG_PARALLEL
-			name.resize(iExtPos);
-			int rank = pcl::GetProcRank();
-			char ext[20];
-			sprintf(ext, "_p%04d.vec", rank);
-			name.append(ext);
-		#endif
 
 		//	write
 			std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
