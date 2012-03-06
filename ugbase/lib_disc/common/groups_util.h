@@ -10,9 +10,9 @@
 
 #include <vector>
 #include <string>
-#include "./subset_group.h"
-#include "./function_group.h"
-#include "../dof_manager/function_pattern.h"
+#include "lib_disc/common/subset_group.h"
+#include "lib_disc/common/function_group.h"
+#include "lib_disc/dof_manager/function_pattern.h"
 
 namespace ug{
 
@@ -23,7 +23,7 @@ class FunctionPattern;
  * Passing a string of subset names separated by ',' this function returns
  * a subset group containing the subsets.
  */
-bool
+void
 ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& sh,
                            const char* subsets, const char separator = ',');
 
@@ -31,7 +31,7 @@ ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& sh,
  * Passing a vector of subset names this function returns
  * a subset group containing the subsets.
  */
-bool ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
+void ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
                                 	ConstSmartPtr<ISubsetHandler> pSH,
 									const std::vector<std::string>& vSS);
 
@@ -39,7 +39,7 @@ bool ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
  * Passing a string of subset names separated by ',' this function returns
  * a subset group containing the subsets.
  */
-bool
+void
 ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetHandler> pSH,
                            const char* subsets, const char separator = ',');
 
@@ -47,7 +47,7 @@ ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetHandle
  * Passing a string of function names separated by ',' this function returns
  * a function group containing the functions.
  */
-bool
+void
 ConvertStringToFunctionGroup(FunctionGroup&functionGroup, const FunctionPattern& pattern,
                              const char* functions, const char separator = ',');
 
@@ -55,7 +55,7 @@ ConvertStringToFunctionGroup(FunctionGroup&functionGroup, const FunctionPattern&
  * Passing a vector of function names this function returns
  * a function group containing the functions.
  */
-bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
+void ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
                                   	const FunctionPattern& pattern,
 									const std::vector<std::string>& vFct);
 
@@ -64,7 +64,7 @@ bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
  * Function Group to the other. This is only possible if the first
  * Function Group is contained in the second.
  */
-bool
+void
 CreateFunctionIndexMapping(FunctionIndexMapping& map,
                            const FunctionGroup& grpFrom,
                            const FunctionGroup& grpTo);
@@ -75,7 +75,7 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
  * the first, thus not all mappings are defined, but only those where the index
  * of the first group is contained in the range of the second.
  */
-bool
+void
 CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
                                   const FunctionGroup& grpFromLarge,
                                   const FunctionGroup& grpToSmall);
@@ -88,7 +88,7 @@ CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
  * \param[in]		vFctGrp		Vector of function group (may contain NULL)
  * \param[in]		sortFct		flag if group should be sorted after adding
  */
-bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
+void CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
                                  const std::vector<const FunctionGroup*>& vFctGrp,
                                  bool sortFct = false);
 

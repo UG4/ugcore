@@ -108,8 +108,9 @@ void FunctionPattern::add_fct(const char* name, LFEID lfeID,
 	SubsetGroup ssGrp;
 
 //	convert string to subset group
-	if(!ConvertStringToSubsetGroup(ssGrp, m_spSH, subsets))
-		UG_THROW_FATAL("FunctionPattern: ERROR while parsing Subsets.\n");
+	try{
+		ConvertStringToSubsetGroup(ssGrp, m_spSH, subsets);
+	}UG_CATCH_THROW("FunctionPattern: ERROR while parsing Subsets.");
 
 //	forward request
 	add_fct(name, lfeID, ssGrp, dim);
@@ -126,6 +127,25 @@ void FunctionPattern::add_fct(const char* name, const char* fetype,
 {
 //	convert type to LFEID and forward
 	add_fct(name, ConvertStringToLFEID(fetype, order), subsets);
+}
+
+size_t FunctionPattern::fct_id_by_name(const char* name) const
+{
+	for(size_t i = 0; i < m_vFunction.size(); ++i)
+	{
+		if(m_vFunction[i].name == name)
+			return i;
+	}
+
+	UG_THROW_FATAL("Function name "<<name<<" not found in pattern.");
+}
+
+///	returns function group by name
+FunctionGroup FunctionPattern::fct_grp_by_name(const char* names) const
+{
+	FunctionGroup fctGrp(*this);
+	ConvertStringToFunctionGroup(fctGrp, *this, names);
+	return fctGrp;
 }
 
 

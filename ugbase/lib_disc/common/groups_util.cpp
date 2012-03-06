@@ -11,17 +11,17 @@
 namespace ug{
 
 
-bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
+void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
 								const char* subsets, const char separator)
 {
 //	forward request
-	return ConvertStringToSubsetGroup(subsetGroup,
-	                                  pattern.subset_handler(),
-	                                  subsets, separator);
+	ConvertStringToSubsetGroup(subsetGroup,
+	                           pattern.subset_handler(),
+	                           subsets, separator);
 }
 
 
-bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetHandler> pSH,
+void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetHandler> pSH,
 								const char* subsets, const char separator)
 {
 //	get strings
@@ -43,12 +43,9 @@ bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetH
 		}UG_CATCH_THROW("Name of subset ('" << tokens[i] <<
 		                "') not found in Subset Handler.");
 	}
-
-//	we're done
-	return true;
 }
 
-bool ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
+void ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
                                 	ConstSmartPtr<ISubsetHandler> pSH,
 									const std::vector<std::string>& vSS)
 {
@@ -62,13 +59,10 @@ bool ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
 		}UG_CATCH_THROW("Name of subset ('" << vSS[i] <<
 		                "') not found in Subset Handler.");
 	}
-
-//	done
-	return true;
 }
 
 
-bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionPattern& pattern,
+void ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionPattern& pattern,
 									const char* functions, const char separator)
 {
 //	get strings
@@ -90,11 +84,9 @@ bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionP
 		}UG_CATCH_THROW("Name of function ('" << tokens[i] << "') not found in"
 					" Function Pattern.");
 	}
-
-	return true;
 }
 
-bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
+void ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
                                   	const FunctionPattern& pattern,
 									const std::vector<std::string>& vFct)
 {
@@ -109,13 +101,10 @@ bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
 		}UG_CATCH_THROW("Name of function ('" << vFct[i] << "') not found "
 		                "in Function Pattern.");
 	}
-
-//	done
-	return true;
 }
 
 
-bool
+void
 CreateFunctionIndexMapping(FunctionIndexMapping& map,
                            const FunctionGroup& grpFromSmall,
                            const FunctionGroup& grpToLarge)
@@ -141,12 +130,9 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
 	//	set mapping
 		map.add(from, locIndex);
 	}
-
-//	we're done
-	return true;
 }
 
-bool
+void
 CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
                                   const FunctionGroup& grpFromLarge,
                                   const FunctionGroup& grpToSmall)
@@ -172,9 +158,6 @@ CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
 	//	set mapping
 		map.add(locIndex, to);
 	}
-
-//	we're done
-	return true;
 }
 
 
@@ -185,7 +168,7 @@ CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
  * \param[in]		vFctGrp		Vector of function group (may contain NULL)
  * \param[in]		sortFct		flag if group should be sorted after adding
  */
-bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
+void CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
                                  const std::vector<const FunctionGroup*>& vFctGrp,
                                  bool sortFct)
 {
@@ -193,7 +176,7 @@ bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 	fctGrp.clear();
 
 //	if empty, nothing to do
-	if(vFctGrp.empty()) return true;
+	if(vFctGrp.empty()) return;
 
 //	set underlying subsetHandler
 	size_t grp = 0;
@@ -211,7 +194,7 @@ bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 	}
 
 //	if no function group given
-	if(grp == vFctGrp.size()) return true;
+	if(grp == vFctGrp.size()) return;
 
 //	add all Subset groups of the element discs
 	for(size_t i = 0; i < vFctGrp.size(); ++i)
@@ -227,9 +210,6 @@ bool CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 
 //	sort iff required
 	if(sortFct) fctGrp.sort();
-
-//	we're done
-	return true;
 }
 
 

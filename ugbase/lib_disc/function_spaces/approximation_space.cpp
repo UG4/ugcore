@@ -7,8 +7,9 @@
 
 #include "approximation_space.h"
 #include "lib_disc/domain.h"
+#include "lib_disc/common/groups_util.h"
 #ifdef UG_PARALLEL
-#include "pcl/pcl.h"
+	#include "pcl/pcl.h"
 #endif
 
 namespace ug{
@@ -49,6 +50,14 @@ IApproximationSpace(SmartPtr<subset_handler_type> spMGSH)
 
 	register_at_adaption_msg_hub();
 }
+
+SubsetGroup IApproximationSpace::subset_grp_by_name(const char* names) const
+{
+	SubsetGroup ssGrp;
+	ConvertStringToSubsetGroup(ssGrp, subset_handler(), names);
+	return ssGrp;
+}
+
 
 void IApproximationSpace::register_at_adaption_msg_hub()
 {

@@ -11,6 +11,7 @@
 #include "lib_grid/lg_base.h"
 #include "lib_grid/tools/surface_view.h"
 #include "function_pattern.h"
+#include "lib_disc/common/function_group.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/common/local_algebra.h"
@@ -104,8 +105,14 @@ class MGDoFDistribution : public GridObserver
 		///	returns the local finite element id of a function
 		const LFEID& local_finite_element_id(size_t fct) const {return m_vLFEID[fct];}
 
+		///	returns subset group by name
+		SubsetGroup subset_grp_by_name(const char* names) const;
+
 		/// returns fct id by name
 		size_t fct_id_by_name(const char* name) const{return m_rFctPatt.fct_id_by_name(name);}
+
+		///	returns a function group to a string of functions
+		FunctionGroup fct_grp_by_name(const char* names) const {return m_rFctPatt.fct_grp_by_name(names);}
 
 		///	retruns if a function is defined on a subset
 		//	\todo cache

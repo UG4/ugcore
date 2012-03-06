@@ -132,8 +132,14 @@ class IDDGridFunction : public IGridFunction
 	/// returns the name of the discrete function nr_fct
 		std::string name(size_t fct) const {return m_spDD->name(fct);}
 
+	///	returns subset group by name
+		SubsetGroup subset_grp_by_name(const char* names) const {return m_spDD->subset_grp_by_name(names);}
+
 	/// returns fct id by name
 		size_t fct_id_by_name(const char* name) const{return m_spDD->fct_id_by_name(name);}
+
+	///	returns a function group to a string of functions
+		FunctionGroup fct_grp_by_name(const char* names) const {return m_spDD->fct_grp_by_name(names);}
 
 	/// returns the dimension in which solution lives
 		int dim(size_t fct) const {return m_spDD->dim(fct);}

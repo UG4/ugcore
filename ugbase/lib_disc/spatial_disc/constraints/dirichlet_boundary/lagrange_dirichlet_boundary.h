@@ -473,26 +473,17 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 	for(size_t i = 0; i < vScheduledUserData.size(); ++i)
 	{
 	//	create Function Group and Subset Group
-		FunctionGroup fctGrp;
 		SubsetGroup ssGrp;
+		try{
+			ssGrp = m_spApproxSpace->subset_grp_by_name(vScheduledUserData[i].ssName.c_str());
+		}UG_CATCH_THROW(" Subsets '"<<vScheduledUserData[i].ssName<<"' not"
+		                " all contained in ApproximationSpace.");
 
-	//	convert strings
-		if(!ConvertStringToSubsetGroup(ssGrp, m_spApproxSpace->subset_handler(),
-		                               vScheduledUserData[i].ssName.c_str()))
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Subsets '"<<vScheduledUserData[i].ssName<<"' not"
-					" all contained in ApproximationSpace.\n");
-			return false;
-		}
-		if(!ConvertStringToFunctionGroup(fctGrp, *m_spApproxSpace->function_pattern(),
-		                                 vScheduledUserData[i].fctName.c_str()))
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Functions '"<<vScheduledUserData[i].fctName<<"' not"
-					" all contained in ApproximationSpace.\n");
-			return false;
-		}
+		FunctionGroup fctGrp;
+		try{
+			fctGrp = m_spApproxSpace->fct_grp_by_name(vScheduledUserData[i].fctName.c_str());
+		}UG_CATCH_THROW(" Functions '"<<vScheduledUserData[i].fctName<<"' not"
+		                " all contained in ApproximationSpace.");
 
 	//	check functions and subsets
 		if(!check_functions_and_subsets(fctGrp, ssGrp, TUserData::numFct)) return false;

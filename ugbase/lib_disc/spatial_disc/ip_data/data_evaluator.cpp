@@ -34,38 +34,19 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		FunctionGroup discFctGrp;
 
 	//	create function group of this elem disc
-		if(!ConvertStringToFunctionGroup(discFctGrp, fctPat,
-		                                 (*m_pvElemDisc)[i]->symb_fcts()))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Cannot find "
-					"some symbolic Function Name for disc "<<i<<". (Incorrect"
-					" function specification in: '");
-			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
-			{
-				if(f > 0) UG_LOG(", ");
-				UG_LOG((*m_pvElemDisc)[i]->symb_fcts()[f]);
-			}
-			UG_LOG("').\n");
-			return false;
-		}
+		try{
+			ConvertStringToFunctionGroup(discFctGrp, fctPat,
+		                                 (*m_pvElemDisc)[i]->symb_fcts());
+		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
+					"some symbolic Function Name for disc "<<i<<".");
 
 	//	check that all functions are defined on chosen subsets
 		SubsetGroup discSubsetGrp;
-		if(!ConvertStringToSubsetGroup(discSubsetGrp, fctPat.subset_handler(),
-		                                 (*m_pvElemDisc)[i]->symb_subsets()))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Cannot find "
-					"some symbolic Subset Name for disc "<<i<<". (Incorrect"
-					" subset specification in: '");
-			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_subsets().size(); ++f)
-			{
-				if(f > 0) UG_LOG(", ");
-				UG_LOG((*m_pvElemDisc)[i]->symb_subsets()[f]);
-			}
-			UG_LOG("').\n");
-			return false;
-
-		}
+		try{
+			ConvertStringToSubsetGroup(discSubsetGrp, fctPat.subset_handler(),
+		                                 (*m_pvElemDisc)[i]->symb_subsets());
+		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
+						"some symbolic Subset Name for disc "<<i<<".");
 
 		for(size_t fct = 0; fct < discFctGrp.num_fct(); ++fct)
 		{
@@ -120,13 +101,11 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 
 	//	create a mapping between all functions and the function group of this
 	//	element disc.
-		if(!CreateFunctionIndexMapping(m_vElemDiscMap[i], discFctGrp,
-		                               	   	   	   	   	   	   m_commonFctGroup))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Cannot create "
-					"Function Index Mapping for disc "<<i<<".\n");
-			return false;
-		}
+		try{
+			CreateFunctionIndexMapping(m_vElemDiscMap[i], discFctGrp,
+		                               	   	   	   	   	   	   m_commonFctGroup);
+		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot create "
+						"Function Index Mapping for disc "<<i<<".");
 	}
 
 //	setup for non-regular grid
@@ -346,14 +325,12 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 
 	//	create FuncMap
 		FunctionIndexMapping map;
-		if(!CreateFunctionIndexMapping(map,
+		try{
+			CreateFunctionIndexMapping(map,
 		                               dependData->get_function_group(),
-									   m_commonFctGroup))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
-					"Cannot create Function Index Mapping for IDependData.\n");
-			return false;
-		}
+									   m_commonFctGroup);
+		}UG_CATCH_THROW("'DataEvaluator::extract_imports_and_ipdata':"
+						"Cannot create Function Index Mapping for IDependData.");
 
 	//	now we have to remember the mapping and schedule the dependent ipdata for
 	//	evaluation at the correct queue
@@ -428,14 +405,12 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 		//	this is ok, since the function group has been updated in the
 		//	previous loop over all needed data
 			FunctionIndexMapping map;
-			if(!CreateFunctionIndexMapping(map,
+			try{
+				CreateFunctionIndexMapping(map,
 										   dependData->get_function_group(),
-										   m_commonFctGroup))
-			{
-				UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
-						"Cannot create Function Index Mapping for DependentData.\n");
-				return false;
-			}
+										   m_commonFctGroup);
+			}UG_CATCH_THROW("'DataEvaluator::extract_imports_and_ipdata':"
+							"Cannot create Function Index Mapping for DependentData.");
 
 		//	check if data is located in mass part or stiffness part
 			if(iimp->in_mass_part())

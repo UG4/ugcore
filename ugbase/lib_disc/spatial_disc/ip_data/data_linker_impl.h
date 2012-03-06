@@ -60,25 +60,22 @@ bool DataLinker<TData,dim>::update_function_group()
 			vFctGrp[i] = &(m_vpIDependData[i]->get_function_group());
 
 //	create union of all function groups
-	if(!CreateUnionOfFunctionGroups(m_commonFctGroup, vFctGrp, true))
-	{
-		UG_LOG("ERROR in 'DataLinker::update_function_group': Cannot create"
-				" common function group.\n");
-		return false;
-	}
+	try{
+		CreateUnionOfFunctionGroups(m_commonFctGroup, vFctGrp, true);
+	}UG_CATCH_THROW("'DataLinker::update_function_group': Cannot create"
+					" common function group.");
 
 //	create FunctionIndexMapping for each Disc
 	m_vMap.resize(vFctGrp.size());
 	for(size_t i = 0; i < vFctGrp.size(); ++i)
 	{
 		if(vFctGrp[i] != NULL)
-			if(!CreateFunctionIndexMapping(m_vMap[i], *vFctGrp[i],
-										   m_commonFctGroup))
-			{
-				UG_LOG("ERROR in 'DataLinker::update_function_group':"
-						"Cannot create Function Index Mapping for input "<<i<<".\n");
-				return false;
-			}
+		{
+			try{
+				CreateFunctionIndexMapping(m_vMap[i], *vFctGrp[i], m_commonFctGroup);
+			}UG_CATCH_THROW("'DataLinker::update_function_group':"
+							"Cannot create Function Index Mapping for input "<<i<<".");
+		}
 	}
 
 //	set common function group as the function group the data depends on

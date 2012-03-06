@@ -356,9 +356,6 @@ write_piece(FILE* File, function_type& u, int si, int dim)
 //	write opening tag to indicate point data
 	fprintf(File, "      <PointData>\n");
 
-//	get function pattern
-	const FunctionPattern& fctPatt = u.function_pattern();
-
 //	add all components if 'selectAll' chosen
 	if(m_bSelectAll)
 		for(size_t fct = 0; fct < u.num_fct(); ++fct)
@@ -367,16 +364,12 @@ write_piece(FILE* File, function_type& u, int si, int dim)
 //	loop all selected symbolic names
 	for(size_t sym = 0; sym < m_vSymbFct.size(); ++sym)
 	{
-	//	create function group
-		FunctionGroup fctGrp;
-
 	//	get symb function
 		const std::string& symbNames = m_vSymbFct[sym].first;
 		const std::string& vtkName = m_vSymbFct[sym].second;
 
-	//	extract names
-		if(!ConvertStringToFunctionGroup(fctGrp, fctPatt, symbNames.c_str()))
-			return false;
+	//	create function group
+		FunctionGroup fctGrp = u.fct_grp_by_name(symbNames.c_str());
 
 	//	check that all functions are contained in subset
 		bool bContained = true;

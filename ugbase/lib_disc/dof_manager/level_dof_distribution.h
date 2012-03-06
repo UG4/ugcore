@@ -175,8 +175,14 @@ class DoFDistributionBase
 		LFEID local_finite_element_id(size_t fct) const
 			{return m_spMGDD->local_finite_element_id(fct);}
 
+	///	returns subset group by name
+		SubsetGroup subset_grp_by_name(const char* names) const {return m_spMGDD->subset_grp_by_name(names);}
+
 	/// returns fct id by name
 		size_t fct_id_by_name(const char* name) const{return m_spMGDD->fct_id_by_name(name);}
+
+	///	return function group of names
+		FunctionGroup fct_grp_by_name(const char* names) const {return m_spMGDD->fct_grp_by_name(names);}
 
 	/// returns the name of the discrete function nr_fct
 		std::string name(size_t fct) const {return m_spMGDD->name(fct);}

@@ -442,6 +442,12 @@ class IDomainElemDisc : public IElemDisc
 			approximation_space_changed();
 		}
 
+	///	returns approximation space
+		SmartPtr<ApproximationSpace<domain_type> > approx_space() {return m_spApproxSpace;}
+
+	///	returns approximation space
+		ConstSmartPtr<ApproximationSpace<domain_type> > approx_space() const {return m_spApproxSpace;}
+
 	///	callback invoked, when approximation space is changed
 		virtual void approximation_space_changed() {}
 

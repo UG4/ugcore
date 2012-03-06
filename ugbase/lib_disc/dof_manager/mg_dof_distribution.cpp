@@ -10,6 +10,7 @@
 #include "lib_disc/domain.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/reference_element/reference_element_util.h"
+#include "lib_disc/common/groups_util.h"
 
 using namespace std;
 
@@ -248,6 +249,14 @@ MGDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPatt,
 	init_attachments();
 	register_observer();
 };
+
+SubsetGroup MGDoFDistribution::subset_grp_by_name(const char* names) const
+{
+	SubsetGroup ssGrp;
+	ConvertStringToSubsetGroup(ssGrp, subset_handler(), names);
+	return ssGrp;
+}
+
 
 void MGDoFDistribution::create_offsets(ReferenceObjectID roid)
 {

@@ -30,22 +30,17 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 		SubsetGroup subsetGroup;
 
 	//	convert strings
-		if(!ConvertStringToSubsetGroup(subsetGroup, this->get_fct_pattern().subset_handler(),
-		                               vScheduledUserData[i].ssName.c_str()))
-		{
-			UG_LOG("ERROR in 'FV1NeumannBoundaryElemDisc:extract_scheduled_data':"
-					" Subsets '"<<vScheduledUserData[i].ssName<<"' not"
-					" all contained in ApproximationSpace.\n");
-		}
+		try{
+			subsetGroup = this->approx_space()->subset_grp_by_name(vScheduledUserData[i].ssName.c_str());
+		}UG_CATCH_THROW("'FV1NeumannBoundaryElemDisc:extract_scheduled_data':"
+						" Subsets '"<<vScheduledUserData[i].ssName<<"' not"
+						" all contained in ApproximationSpace.");
 
-		if(!ConvertStringToFunctionGroup(functionGroup, this->get_fct_pattern(),
-		                                 vScheduledUserData[i].fctName.c_str()))
-		{
-			UG_LOG("ERROR in 'FV1NeumannBoundaryElemDisc:extract_scheduled_data':"
-					" Functions '"<<vScheduledUserData[i].fctName<<"' not"
-					" all contained in ApproximationSpace.\n");
-			return false;
-		}
+		try{
+			functionGroup = this->approx_space()->fct_grp_by_name(vScheduledUserData[i].fctName.c_str());
+		}UG_CATCH_THROW("'FV1NeumannBoundaryElemDisc:extract_scheduled_data':"
+						" Functions '"<<vScheduledUserData[i].fctName<<"' not"
+						" all contained in ApproximationSpace.");
 
 	//	check that only one function given
 		if(functionGroup.num_fct() != 1)

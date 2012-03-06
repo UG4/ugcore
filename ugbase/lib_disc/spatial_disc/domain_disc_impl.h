@@ -327,9 +327,9 @@ assemble_jacobian(matrix_type& J,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-						" Can not Subset Groups and union.\n");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -433,9 +433,9 @@ assemble_defect(vector_type& d,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-						" Can not Subset Groups and union.\n");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -538,9 +538,9 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-						" Can not Subset Groups and union.\n");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -771,9 +771,9 @@ prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-						" Can not Subset Groups and union.\n");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -867,9 +867,9 @@ assemble_jacobian(matrix_type& J,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-						" Can not Subset Groups and union.\n");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -973,9 +973,9 @@ assemble_defect(vector_type& d,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-						" Can not Subset Groups and union.\n");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -1072,9 +1072,9 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-						" Can not Subset Groups and union.\n");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -1197,9 +1197,9 @@ finish_timestep(const VectorTimeSeries<vector_type>& vSol,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-						" Can not Subset Groups and union.\n");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)

@@ -19,9 +19,8 @@
 
 namespace ug{
 
-////////////////////////////////////////////////////////////////////////
-//	ERROR_FunctionPatternLocked
-struct ERROR_FunctionPatternLocked{};
+// predeclaration
+class FunctionGroup;
 
 /// Describes the setup of discrete functions on a SubsetHandler
 /**
@@ -86,7 +85,7 @@ class FunctionPattern
 	/// clear all functions
 		void clear()
 		{
-			if(is_locked()) throw(ERROR_FunctionPatternLocked());
+			if(is_locked()) UG_THROW_FATAL("Pattern locked.");
 			m_vFunction.clear();
 		}
 
@@ -138,17 +137,11 @@ class FunctionPattern
 			return fct;
 		}
 
-	/// returns the function id if function with given name found in pattern, -1 else
-		size_t fct_id_by_name(const char* name) const
-		{
-			for(size_t i = 0; i < m_vFunction.size(); ++i)
-			{
-				if(m_vFunction[i].name == name)
-					return i;
-			}
+	/// returns the function id if function with given name found in pattern, exception else
+		size_t fct_id_by_name(const char* name) const;
 
-			return (size_t) -1;
-		}
+	///	returns function group by name
+		FunctionGroup fct_grp_by_name(const char* names) const;
 
 	/// returns the dimension in which solution lives
 		int dim(size_t fct) const

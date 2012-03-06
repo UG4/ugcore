@@ -29,46 +29,10 @@ namespace ug {
  * \param[in]		vElemDisc	Vector of element discs, defined for subsets
  * \param[in]		clearGroup	flag if group should be cleared
  */
-inline
-bool CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
+void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
                         SubsetGroup& unionSSGrp,
                         std::vector<IElemDisc* > vElemDisc,
-                        ConstSmartPtr<ISubsetHandler> pSH)
-{
-//	resize subset group vector
-	vSSGrp.resize(vElemDisc.size());
-
-//	if empty, nothing to do
-	if(vSSGrp.empty()) {unionSSGrp.clear(); return true;}
-
-//	create subset group for each elem disc
-	for(size_t i = 0; i < vSSGrp.size(); ++i)
-	{
-	//	create subset group for elem disc i
-		if(!ConvertStringToSubsetGroup(vSSGrp[i], pSH,
-		                               vElemDisc[i]->symb_subsets()))
-		{
-			UG_LOG("ERROR in 'CreateUnionOfSubsets': Cannot find symbolic "
-					" subset name for IElemDisc "<<i<<".\n");
-			return false;
-		}
-	}
-
-//	set underlying subsetHandler
-	unionSSGrp.set_subset_handler(pSH);
-
-//	add all Subset groups of the element discs
-	for(size_t i = 0; i < vSSGrp.size(); ++i)
-	{
-		//	add subset group of elem disc
-		try{
-			unionSSGrp.add(vSSGrp[i]);
-		}UG_CATCH_THROW("Cannot add subsets of the Elem Disc "<<i<<" to union of Subsets.");
-	}
-
-//	we're done
-	return true;
-}
+                        ConstSmartPtr<ISubsetHandler> pSH);
 
 /**
  * This function selects from a given set of element discretizations those
@@ -79,26 +43,10 @@ bool CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
  * \param[in]		si					Subset index
  * \param[in]		clearVec			flag if vector should be cleared
  */
-inline
-bool GetElemDiscOnSubset(std::vector<IElemDisc*>& vSubsetElemDisc,
+void GetElemDiscOnSubset(std::vector<IElemDisc*>& vSubsetElemDisc,
                          const std::vector<IElemDisc*>& vElemDisc,
                          const std::vector<SubsetGroup>& vSSGrp,
-                         int si, bool clearVec = true)
-{
-//	clear Vector
-	if(clearVec) vSubsetElemDisc.clear();
-
-//	loop elem discs
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
-	{
-	//	if subset is used, add elem disc to Subset Elem Discs
-		if(vSSGrp[i].contains(si))
-			vSubsetElemDisc.push_back(vElemDisc[i]);
-	}
-
-//	we're done
-	return true;
-}
+                         int si, bool clearVec = true);
 
 } // end namespace ug
 

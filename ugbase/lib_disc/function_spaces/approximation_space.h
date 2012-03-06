@@ -63,6 +63,15 @@ class IApproximationSpace
 	///	returns the function pattern
 		ConstSmartPtr<FunctionPattern> function_pattern() const {return m_spFunctionPattern;}
 
+	///	returns subset group by name
+		SubsetGroup subset_grp_by_name(const char* names) const;
+
+	/// returns fct id by name
+		size_t fct_id_by_name(const char* name) const{return m_spFunctionPattern->fct_id_by_name(name);}
+
+	///	returns function group by name
+		FunctionGroup fct_grp_by_name(const char* names) const {return m_spFunctionPattern->fct_grp_by_name(names);}
+
 	///	returns the number of level
 		size_t num_levels() const {return m_spMGSH->num_levels();}
 
