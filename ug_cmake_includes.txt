@@ -31,6 +31,23 @@ link_directories(${UG_ROOT_PATH}/lib)
 set(BUILD_ONE_LIB ON)
 
 
+# Those variables control the build process. They are later modified depending
+# on the value of TARGET.
+set(buildUGShell OFF)
+set(buildForVRL OFF)
+set(buildAlgebra OFF)
+set(buildPluginSystem OFF)
+set(buildCorePlugins OFF)
+set(buildSharedLib OFF)
+set(buildGrid OFF)
+set(buildDisc OFF)
+set(buildBridge OFF)
+set(buildBindings OFF)
+set(buildRegistry OFF)
+
+# Here we'll store libs, if we find and need them
+set(linkLibraries)
+
 ################################################################################
 # In this section we'll define default variables
 	
@@ -62,48 +79,21 @@ set(svnDefault OFF)
 set(precisionDefault "double")
 set(precisionOptions "single, double")
 
-# If we run the script the first time, search for MPI to determine the default value
-if(NOT mpiHasBeenSearched)
+# If we run the script the first time, search for MPI to determine the default valuei
+if(BUILTIN_MPI)
+  set(MPI_FOUND YES)
+else(BUILTIN_MPI)
+ if(NOT mpiHasBeenSearched)
 	find_package(MPI)
 	set(mpiHasBeenSearched ON CACHE BOOL "This var is set to true after mpi has been searched the first time.")
-endif(NOT mpiHasBeenSearched)
+  endif(NOT mpiHasBeenSearched)
+endif(BUILTIN_MPI)
 
-
-# Those variables control the build process. They are later modified depending
-# on the value of TARGET.
-set(buildUGShell OFF)
-set(buildForVRL OFF)
-set(buildAlgebra OFF)
-set(buildPluginSystem OFF)
-set(buildCorePlugins OFF)
-set(buildSharedLib OFF)
-set(buildGrid OFF)
-set(buildDisc OFF)
-set(buildBridge OFF)
-set(buildBindings OFF)
-set(buildRegistry OFF)
-
-# Here we'll store libs, if we find and need them
-set(linkLibraries)
 
 ################################################################################
 # All available options should be defined here:
 # cmake-options can either be on or off.
-
-# the following options are pseudo cmake-options (normal options only support ON and OFF).
-# Their default values are defined in the section below.
-option(TARGET "Set the target of this build process. Valid options are: "${targetOptions})
-# option(DIM "Set the dimension for which ug4 is build. Valid options are: "${dimOptions})
-option(CPU "Set block sizes for which ug4 is build. Valid options are: "${cpuOptions})
-option(PRECISION "Set the precision of the number type. Valid options are: "${precisionOptions})
-
-# the following options too are pseudo cmake-options. However, they should
-# contains pathes, if set.
-option(METIS "Sets the path in which metis shall be searched.")
-option(PARMETIS "Sets the path in which parmetis shall be searched.")
-option(TETGEN "Sets the path in which tetgen shall be searched.")
-option(HYPRE "Sets the path in which hypre shall be searched.")
-option(HLIBPRO "Sets the path in which hlibpro shall be searched.")
+# note: none-on/off-variables are set below, and the docstring is set at the end of this file
 
 # the following options are real cmake-options
 option(STATIC "Enables static linking. Valid options are: ON, OFF" OFF)
@@ -116,9 +106,12 @@ option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid optio
 option(LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" ${lapackDefault})
 option(BLAS "Blas won't be used, even if available. Valid options are ON, OFF" ${blasDefault})
 option(INTERNAL_BOOST "If enabled, the boost version found in the externals directory will be used. Valid options are ON, OFF" ${internalBoostDefault})
-
+option(BUILTIN_BLAS "BLAS is built into compiler" OFF)
+option(BUILTIN_LAPACK "LAPACK is built into compiler" OFF)
+option(BUILTIN_MPI "MPI is built into compiler" OFF)
 option(EMBED_SVN_REV "Enables output of SVN head revision, compile date and build host. Valid options are ON, OFF" ${svnDefault})
 
+################################################################################
 # set default values for pseudo-options
 if(NOT TARGET)
 	if(BUILDING_PLUGIN)
@@ -159,7 +152,6 @@ foreach(d ${CPU})
 		set(CPUReadable "${CPUReadable}" "\;" ${d})
 	endif("${CPUReadable}" STREQUAL "")
 endforeach(d)
-
 
 ################################################################################
 # We'll output the current options-setting in this section
@@ -592,7 +584,6 @@ endif(UNIX)
 if(PARALLEL)
 	if(BUILTIN_MPI)
 		add_definitions(-DUG_PARALLEL)
-		set(MPI_FOUND YES)
 	else(BUILTIN_MPI)
 		# search mpi
 		find_package(MPI)
@@ -729,5 +720,44 @@ function(ExportSources prefix sources)
     endforeach(l)
 endfunction(ExportSources)
 
+
+######################################################################################################################
+# the following options are pseudo cmake-options (normal options only support ON and OFF).
+# Their default values are defined in the section above.
+# we need to put this here so we only have to set the doc string and the type once.
+# note: do not change the variables after this
+
+set(TARGET ${TARGET} CACHE STRING "Set the target of this build process. Valid options are: ${targetOptions}")
+set(DIM ${DIM} CACHE STRING "Set the dimension for which ug4 is build. Valid options are: ${dimOptions}")
+set(CPU ${CPU} CACHE STRING "Set block sizes for which ug4 is build. Valid options are: ${cpuOptions}")
+set(PRECISION ${PRECISION} CACHE STRING "Set the precision of the number type. Valid options are: ${precisionOptions}")
+
+# the following options too are pseudo cmake-options. However, they should
+# contains pathes, if set.
+set(METIS ${METIS} CACHE PATH "Sets the path in which metis shall be searched.")
+set(PARMETIS ${PARMETIS} CACHE PATH "Sets the path in which parmetis shall be searched.")
+set(TETGEN ${TETGEN} CACHE PATH "Sets the path in which tetgen shall be searched.")
+set(HYPRE ${HYPRE} CACHE PATH "Sets the path in which hypre shall be searched.")
+set(HLIBPRO ${HLIBPRO} CACHE PATH "Sets the path in which hlibpro shall be searched.")
+
+
+# mark some stuff as advanced, so it won't show up in ccmake / CMakeSetup.exe
+mark_as_advanced(CMAKE_INSTALL_PREFIX)
+IF(APPLE)
+	mark_as_advanced(CMAKE_OSX_ARCHITECTURES)
+	mark_as_advanced(CMAKE_OSX_DEPLOYMENT_TARGET)
+	mark_as_advanced(CMAKE_OSX_SYSROOT)
+ENDIF(APPLE)
+mark_as_advanced(LAPACK_INCLUDE_PATH)
+mark_as_advanced(LAPACK_LIBRARIES)
+mark_as_advanced(libReadline)
+mark_as_advanced(mpiHasBeenSearched)
+mark_as_advanced(BLAS_INCLUDE_PATH)
+mark_as_advanced(BLAS_LIBRARIES)
+mark_as_advanced(CMAKE_BUILD_TYPE)
+
+mark_as_advanced(BUILTIN_LAPACK)
+mark_as_advanced(BUILTIN_BLAS)
+mark_as_advanced(BUILTIN_MPI)
 
 endif(NOT UG_CMAKE_INCLUDES_INCLUDED)

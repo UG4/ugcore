@@ -8,8 +8,8 @@
 
 # change programming environment
 # this does not work 100%, you might have to change it yourself with 
-# module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray
-EXECUTE_PROCESS(COMMAND "module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray")
+# module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu
+EXECUTE_PROCESS(COMMAND "module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu")
 
 # on the cray compiler:
 # https://fs.hlrs.de/projects/craydoc/docs_merged/books/S-2179-74/html-S-2179-74/lymwlrwh.html#z862002021malz
