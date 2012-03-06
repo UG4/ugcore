@@ -82,6 +82,9 @@ void SplitAddRow_Symmetric(TMatrix& A,
 		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
 				  "Wrong number of indices.");
 
+//	scaling factor
+	const number frac = 1./(vConstrainingIndex.size());
+
 //	handle each contrained index
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
@@ -91,8 +94,7 @@ void SplitAddRow_Symmetric(TMatrix& A,
 				= A(constrainedIndex[i], constrainedIndex[i]);
 
 	//	scale by weight
-		block *= (1./(vConstrainingIndex.size()))*
-					(1./(vConstrainingIndex.size()));
+		block *= frac*frac;
 
 	//	add coupling
 		for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
@@ -101,9 +103,6 @@ void SplitAddRow_Symmetric(TMatrix& A,
 			A(vConstrainingIndex[k][i],
 			  vConstrainingIndex[m][i]) += block;
 		}
-
-	//	reset block
-		 A(constrainedIndex[i], constrainedIndex[i]) = 0.0;
 
 	//	loop coupling between constrained dof -> constraining dof
 		for(typename TMatrix::row_iterator conn = A.begin_row(constrainedIndex[i]);
@@ -121,19 +120,19 @@ void SplitAddRow_Symmetric(TMatrix& A,
 
 		//	multiply the cpl value by the inverse number of constraining
 		//	indices
-			block *= 1./(vConstrainingIndex.size());
-			blockT *= 1./(vConstrainingIndex.size());
+			block *= frac;
+			blockT *= frac;
 
 		//	add the coupling to the constraining indices rows
 			for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
 			{
 				A(vConstrainingIndex[k][i], j) += block;
-
 				A(j, vConstrainingIndex[k][i]) += blockT;
 			}
 
 		//	set the splitted coupling to zero
-			conn.value() = 0.0;
+		//	this must only be done in columns, since the row associated to
+		//	the contrained index will be set to an interpolation.
 			A(j, constrainedIndex[i]) = 0.0;
 		}
 	}
@@ -223,19 +222,13 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
               ConstSmartPtr<TDD> dd, number time)
 {
-//	algebra indices of constraining vertex
+//	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
-
-//	algebra indices of constrained vertex
 	std::vector<size_t>  constrainedInd;
-
-//	vector of constraining vertices
 	std::vector<VertexBase*> vConstrainingVrt;
 
-//	iterators for hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-
 //	get begin end of hanging vertices
+	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
 	iter = dd->template begin<HangingVertex>();
 	iterEnd = dd->template end<HangingVertex>();
 
@@ -262,36 +255,11 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	// 	Split using indices
 		SplitAddRow_Symmetric(mat, constrainedInd, vConstrainingInd);
 
-	//	adapt rhs
-		SplitAddRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
-	}
-
-//	get begin end of hanging vertices
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
-
-//	second loop to set the constraints
-	for(; iter != iterEnd; ++iter)
-	{
-	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
-
-	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, hgVrt);
-
-	//	resize constraining indices
-		vConstrainingInd.clear();
-		vConstrainingInd.resize(vConstrainingVrt.size());
-
-	// 	get algebra indices for constraining vertices
-		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-	// 	get algebra indices constrained vertices
-		dd->inner_algebra_indices(hgVrt, constrainedInd);
-
 	//	set interpolation
 		SetInterpolation(mat, constrainedInd, vConstrainingInd);
+
+	//	adapt rhs
+		SplitAddRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
 	}
 }
 
@@ -302,19 +270,13 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
                 number time)
 {
-//	algebra indices of constraining vertex
+//	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
-
-//	algebra indices of constrained vertex
 	std::vector<size_t>  constrainedInd;
-
-//	vector of constraining vertices
 	std::vector<VertexBase*> vConstrainingVrt;
 
-//	iterators for hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-
 //	get begin end of hanging vertices
+	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
 	iter = dd->template begin<HangingVertex>();
 	iterEnd = dd->template end<HangingVertex>();
 
@@ -357,19 +319,13 @@ OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
               ConstSmartPtr<TDD> dd, number time)
 {
-//	algebra indices of constraining vertex
+//	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
-
-//	algebra indices of constrained vertex
 	std::vector<size_t>  constrainedInd;
-
-//	vector of constraining vertices
 	std::vector<VertexBase*> vConstrainingVrt;
 
-//	iterators for hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-
 //	get begin end of hanging vertices
+	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
 	iter = dd->template begin<HangingVertex>();
 	iterEnd = dd->template end<HangingVertex>();
 
