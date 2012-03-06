@@ -306,7 +306,7 @@ void MGSelector::
 multigrid_changed(int msgId, const GridMessage_MultiGridChanged* gm)
 {
 	if(gm->message_type() == GMMGCT_LEVEL_ADDED)
-		level_required(gm->num_levels_in_grid());
+		level_required(gm->num_levels_in_grid() - 1);
 }
 
 }//	end of namespace

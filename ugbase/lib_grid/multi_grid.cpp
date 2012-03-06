@@ -93,8 +93,10 @@ create_by_cloning(VertexBase* pCloneMe, int level)
 	VertexBaseIterator iter = Grid::create_by_cloning(pCloneMe);
 //	put the element into the hierarchy
 //	(by default it already was assigned to level 0)
-	if(level > 0)
+	if(level > 0){
+		level_required(level);
 		m_hierarchy.assign_subset(*iter, level);
+	}
 	return iter;
 }
 
@@ -104,8 +106,10 @@ create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, int level)
 	EdgeBaseIterator iter = Grid::create_by_cloning(pCloneMe, ev);
 //	put the element into the hierarchy
 //	(by default it already was assigned to level 0)
-	if(level > 0)
+	if(level > 0){
+		level_required(level);
 		m_hierarchy.assign_subset(*iter, level);
+	}
 	return iter;
 }
 
@@ -115,8 +119,10 @@ create_by_cloning(Face* pCloneMe, const FaceVertices& fv, int level)
 	FaceIterator iter = Grid::create_by_cloning(pCloneMe, fv);
 //	put the element into the hierarchy
 //	(by default it already was assigned to level 0)
-	if(level > 0)
+	if(level > 0){
+		level_required(level);
 		m_hierarchy.assign_subset(*iter, level);
+	}
 	return iter;
 }
 
@@ -126,8 +132,10 @@ create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, int level)
 	VolumeIterator iter = Grid::create_by_cloning(pCloneMe, vv);
 //	put the element into the hierarchy
 //	(by default it already was assigned to level 0)
-	if(level > 0)
+	if(level > 0){
+		level_required(level);
 		m_hierarchy.assign_subset(*iter, level);
+	}
 	return iter;
 }
 

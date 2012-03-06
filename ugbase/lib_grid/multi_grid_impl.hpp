@@ -61,8 +61,10 @@ MultiGrid::create(size_t level)
 										Grid::create<TGeomObj>();
 //	put the element into the hierarchy
 //	(by default it already was assigned to level 0)
-	if(level > 0)
+	if(level > 0){
+		level_required(level);
 		m_hierarchy.assign_subset(*iter, level);
+	}
 	return iter;
 }
 
@@ -75,8 +77,10 @@ MultiGrid::create(const typename geometry_traits<TGeomObj>::Descriptor& descript
 										Grid::create<TGeomObj>(descriptor);
 //	put the element into the hierarchy
 //	(by default it already was assigned to level 0)
-	if(level > 0)
+	if(level > 0){
+		level_required(level);
 		m_hierarchy.assign_subset(*iter, level);
+	}
 	return iter;
 }
 
@@ -168,6 +172,7 @@ void MultiGrid::element_created(TElem* elem, TParent* pParent)
 	}
 
 //	put the element into the hierarchy
+	level_required(level);
 	m_hierarchy.assign_subset(elem, level);
 }
 
@@ -197,6 +202,7 @@ void MultiGrid::element_created(TElem* elem, TParent* pParent,
 	}
 
 //	put the element into the hierarchy
+	level_required(level);
 	m_hierarchy.assign_subset(elem, level);
 }
 
