@@ -39,29 +39,16 @@ class SymP1Constraints
 		virtual int type() {return CT_CONSTRAINTS;}
 
 		template <typename TDD>
+		void adjust_jacobian(matrix_type& J, const vector_type& u,
+		                     ConstSmartPtr<TDD> dd, number time = 0.0);
+
+		template <typename TDD>
 		void adjust_defect(vector_type& d, const vector_type& u,
-		                   ConstSmartPtr<TDD> dd, number time = 0.0)
-		{
-			UG_THROW_FATAL("not implemented.");
-		}
+		                   ConstSmartPtr<TDD> dd, number time = 0.0);
 
 		template <typename TDD>
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
-		                ConstSmartPtr<TDD> dd, number time = 0.0)
-		{
-			UG_THROW_FATAL("not implemented.");
-		}
-
-		template <typename TDD>
-		void adjust_jacobian(matrix_type& J, const vector_type& u,
-		                     ConstSmartPtr<TDD> dd, number time = 0.0)
-		{
-		//  \todo: Implement correctly
-		//	dummy for rhs
-			vector_type rhsDummy; rhsDummy.resize(u.size());
-
-			adjust_linear(J, rhsDummy, dd, time);
-		}
+		                ConstSmartPtr<TDD> dd, number time = 0.0);
 
 		template <typename TDD>
 		void adjust_linear(matrix_type& mat, vector_type& rhs,
