@@ -62,7 +62,7 @@
 --				 dim
 --				 linMaxIterations,
 --				 numProcs,
---				 dirichletBND, approxSpace, -- for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()')
+--				 dirichletBND, approxSpace, -- for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()'); 'approxSpace' also for 'GridFunctionDebugWriter()'
 --				 activateDbgWriter,
 --				 verbosity, logfileName)
 --
@@ -794,15 +794,15 @@ print("          'Dirichlet 0, constant 1 else' testvector for FAMG created (TMP
 	----------------------------------------------------------
 -- add feti specific name parts to new logfile name
 	str_spsolvers = "spss" -- "sub problem solvers"
-	str_nppsd     = "nppsd" -- "nun of processes per Subdomain"
+	str_nppsd     = "nppsd" -- "number of processes per Subdomain"
 
-	str_nppsd = str_nppsd .. "-" .. numProcsPerSubdomain
-	logfileName = logfileName .. "_" .. lsType .. "_" .. str_nppsd
+	str_nppsd     = str_nppsd     .. "-" .. numProcsPerSubdomain
+	logfileName   = logfileName   .. "_" .. str_nppsd
 
 	str_spsolvers = str_spsolvers .. "-" .. dirichletProblemSolverType
                                       .. "-" .. neumannProblemSolverType
                                       .. "-" .. coarseProblemSolverType
-	logfileName = logfileName .. "_" .. str_spsolvers
+	logfileName   = logfileName   .. "_" .. str_spsolvers
 
 	print("    'setup_fetisolver.lua': returning FETI solver 'fetiSolver', ready for application!")
 	return fetiSolver, logfileName

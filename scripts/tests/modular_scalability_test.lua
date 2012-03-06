@@ -223,7 +223,7 @@ print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
 --approxSpace:init_levels() 
-approxSpace:init_surfaces() -- init surface for DoF statistic before execution of solver
+approxSpace:init_top_surface() -- init top surface for DoF statistic before execution of solver
 approxSpace:print_layout_statistic()
 approxSpace:print_statistic()
 
@@ -430,6 +430,7 @@ logfileName_tmp = str_problem .. "_" .. str_startgrid
 
 str_refs = "refs-" .. ddu.numPreRefs .. "-" .. ddu.numRefs
 logfileName_tmp = logfileName_tmp .. "_" .. str_refs
+logfileName_tmp = logfileName_tmp .. "_" .. lsType
 
 if lsType == "feti" then
 	print("Loading FETI solver setup ...")
@@ -446,15 +447,15 @@ if lsType == "feti" then
 elseif lsType == "hlib" then
 	print("Loading HLIB solver setup ...")
 	ug_load_script("setup_hlibsolver.lua")
-	solver = SetupHLIBSolver(str_problem,
-				 dim,
-				 lsMaxIter,
-				 activateDbgWriter,
-				 dbgWriter,
-				 verbosity)
+	solver, logfileName = SetupHLIBSolver(str_problem,
+					      dim,
+					      lsMaxIter,
+					      activateDbgWriter,
+					      dbgWriter,
+					      verbosity, logfileName_tmp)
 
 	-- maybe one would like to improve naming in this case ...
-	logfileName = logfileName_tmp .. "_" .. lsType
+	logfileName = logfileName_tmp
 else -- (lsType == "gmg")
 	-- maybe one would like to improve naming in this case ...
 	cycle_type  = "-gamma-" .. gmg_gamma .. "-nu1-" .. gmg_nu1 .. "-nu2-" .. gmg_nu2
@@ -498,8 +499,8 @@ print("Apply solver.")
 if ApplyLinearSolver(linOp, u, b, solver) == false then
 	print("Could not apply linear solver.");
 end
---approxSpace:print_layout_statistic()
---approxSpace:print_statistic()
+--approxSpace:print_layout_statistic() -- TMP
+--approxSpace:print_statistic() -- TMP
 
 if lsType == "feti" then
 	solver:print_statistic_of_inner_solver()

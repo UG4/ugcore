@@ -53,7 +53,7 @@ function SetupHLIBSolver(str_problem,
 			 linMaxIterations,
 			 activateDbgWriter,
 			 dbgWriter,
-			 verbosity)
+			 verbosity, logfileName)
 
 	print("    'setup_hlibsolver.lua': Setting up HLIB solver...")
 
@@ -109,6 +109,11 @@ function SetupHLIBSolver(str_problem,
 	end
 
 	----------------------------------------------------------
+-- add feti specific name parts to new logfile name - this might be improved / extended some times
+	str_clustering = "cl" -- "clustering method"
+	str_clustering = str_clustering .. "_" .. clustering
+	logfileName    = logfileName    .. "_" .. str_clustering
+	----------------------------------------------------------
 	print("    'setup_hlibsolver.lua': returning HLIB solver 'hlibSolver', ready for application!")
-	return hlibSolver
+	return hlibSolver, logfileName
 end
