@@ -319,7 +319,7 @@ bool RegisterElemDiscs(Registry& reg, string parentGroup)
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in RegisterLibDisc_ElemDisc: "
+		UG_LOG("### ERROR in RegisterElemDiscs: "
 				"Registration failed (using name " << ex.name << ").\n");
 		UG_THROW_FATAL("Registration failed.");
 	}

@@ -30,6 +30,7 @@ if(buildAlgebra)
 					lib_algebra_bridges/amg_bridge.cpp
 					lib_algebra_bridges/eigensolver_bridge.cpp
 					
+					lib_disc_bridges/adaptive_tools_bridge.cpp
 					lib_disc_bridges/common_bridge.cpp
 					lib_disc_bridges/algebra_bridge.cpp
 					lib_disc_bridges/domain_bridge.cpp

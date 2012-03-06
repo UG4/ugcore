@@ -1,5 +1,5 @@
 /*
- * constraints_bridge.cpp
+ * adaptive_tools_bridge.cpp
  *
  *  Created on: 06.03.2012
  *      Author: andreasvogel
@@ -21,12 +21,7 @@
 #include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/approximation_space.h"
-
-#include "lib_disc/spatial_disc/domain_disc.h"
-#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
-#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
-#include "lib_disc/spatial_disc/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
-#include "lib_disc/spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.h"
+#include "lib_disc/function_spaces/error_indicator.h"
 
 using namespace std;
 
@@ -37,10 +32,10 @@ template <typename TDomain, typename TAlgebra>
 static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 {
 //	typedef
-	static const int dim = TDomain::dim;
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef ApproximationSpace<TDomain> approximation_space_type;
+	typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
 
 //	suffix and tag
 	string dimAlgSuffix = GetDomainSuffix<TDomain>();
@@ -53,57 +48,14 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 	string approxGrp = parentGroup; approxGrp.append("/ApproximationSpace");
 	string domDiscGrp = parentGroup; domDiscGrp.append("/SpatialDisc");
 
-//	IDomainConstraint
+//	MarkForRefinement_GradientIndicator
 	{
-		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef IConstraint<TAlgebra> TBase;
-		typedef IDomainConstraint<TDomain, TAlgebra> T;
-		string name = string("IDomainConstraint").append(dimAlgSuffix);
-		reg.add_class_<T, TBase>(name, grp);
-		reg.add_class_to_group(name, "IDomainConstraint", dimAlgTag);
-	}
-
-//	OneSideP1ConstraintsPostProcess
-	{
-		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef OneSideP1ConstraintsPostProcess<TDomain, TAlgebra> T;
-		typedef IDomainConstraint<TDomain, TAlgebra> baseT;
-		string name = string("OneSideP1Constraints").append(dimAlgSuffix);
-		reg.add_class_<T, baseT>(name, grp)
-			.add_constructor();
-		reg.add_class_to_group(name, "OneSideP1Constraints", dimAlgTag);
-	}
-
-//	SymP1ConstraintsPostProcess
-	{
-		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef SymP1ConstraintsPostProcess<TDomain, TAlgebra> T;
-		typedef IDomainConstraint<TDomain, TAlgebra> baseT;
-		string name = string("SymP1Constraints").append(dimAlgSuffix);
-		reg.add_class_<T, baseT>(name, grp)
-			.add_constructor();
-		reg.add_class_to_group(name, "SymP1Constraints", dimAlgTag);
-	}
-
-//	LagrangeDirichletBoundary
-	{
-		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
-		typedef boost::function<void (number& value, const MathVector<dim>& x, number time)> NumberFunctor;
-		typedef LagrangeDirichletBoundary<TDomain, TAlgebra> T;
-		typedef IDomainConstraint<TDomain, TAlgebra> TBase;
-		string name = string("DirichletBoundary").append(dimAlgSuffix);
-		reg.add_class_<T, TBase>(name, domDiscGrp)
-			.add_constructor()
-			.add_method("add", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add),
-						"Success", "Value#Function#Subsets")
-			.add_method("add", static_cast<void (T::*)(NumberFunctor&, const char*, const char*)>(&T::add),
-						"Success", "Value#Function#Subsets")
-			.add_method("add",static_cast<void (T::*)(number, const char*, const char*)>(&T::add),
-						"Success", "Constant Value#Function#Subsets")
-			.add_method("clear", &T::clear);
-		reg.add_class_to_group(name, "DirichletBoundary", dimAlgTag);
+		string grp("ug4/Refinement/");
+		reg.add_function("MarkForRefinement_GradientIndicator",
+						 &MarkForRefinement_GradientIndicator<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
 	}
 }
+
 
 template <typename TAlgebra>
 static void Register__Algebra(Registry& reg, string parentGroup)
@@ -124,7 +76,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in RegisterConstraints: "
+		UG_LOG("### ERROR in RegisterAdaptiveTools: "
 				"Registration failed (using name " << ex.name << ").\n");
 		UG_THROW_FATAL("Registration failed.");
 	}
@@ -138,7 +90,7 @@ static void Register__Domain(Registry& reg, string parentGroup)
 	string dimTag = GetDomainTag<TDomain>();
 }
 
-bool RegisterConstraints(Registry& reg, string parentGroup)
+bool RegisterAdaptiveTools(Registry& reg, string parentGroup)
 {
 	try{
 #ifdef UG_CPU_1
@@ -169,7 +121,7 @@ bool RegisterConstraints(Registry& reg, string parentGroup)
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in RegisterConstraints: "
+		UG_LOG("### ERROR in RegisterAdaptiveTools: "
 				"Registration failed (using name " << ex.name << ").\n");
 		UG_THROW_FATAL("Registration failed.");
 	}

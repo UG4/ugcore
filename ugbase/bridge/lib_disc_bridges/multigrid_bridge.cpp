@@ -100,7 +100,7 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 }
 
 template <typename TAlgebra>
-static bool Register__Algebra(Registry& reg, string parentGroup)
+static void Register__Algebra(Registry& reg, string parentGroup)
 {
 //	get group string
 	string grp = parentGroup; grp.append("/Discretization");
@@ -145,31 +145,28 @@ static bool Register__Algebra(Registry& reg, string parentGroup)
 	{
 		UG_LOG("### ERROR in Register__Algebra_DoFDistribution: "
 				"Registration failed (using name " << ex.name << ").\n");
-		return false;
+		UG_THROW_FATAL("Registration failed.");
 	}
-
-	return true;
 }
 
 bool RegisterMultiGrid(Registry& reg, string grp)
 {
-	bool bReturn = true;
 #ifdef UG_CPU_1
-	bReturn &= Register__Algebra<CPUAlgebra>(reg, grp);
+	Register__Algebra<CPUAlgebra>(reg, grp);
 #endif
 #ifdef UG_CPU_2
-	bReturn &= Register__Algebra<CPUBlockAlgebra<2> >(reg, grp);
+	Register__Algebra<CPUBlockAlgebra<2> >(reg, grp);
 #endif
 #ifdef UG_CPU_3
-	bReturn &= Register__Algebra<CPUBlockAlgebra<3> >(reg, grp);
+	Register__Algebra<CPUBlockAlgebra<3> >(reg, grp);
 #endif
 #ifdef UG_CPU_4
-	bReturn &= Register__Algebra<CPUBlockAlgebra<4> >(reg, grp);
+	Register__Algebra<CPUBlockAlgebra<4> >(reg, grp);
 #endif
 #ifdef UG_CPU_VAR
-	bReturn &= Register__Algebra<CPUVariableBlockAlgebra >(reg, grp);
+	Register__Algebra<CPUVariableBlockAlgebra >(reg, grp);
 #endif
-	return bReturn;
+	return true;
 }
 
 }//	end of namespace ug

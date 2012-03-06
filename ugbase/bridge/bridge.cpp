@@ -159,6 +159,7 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		bResult &= RegisterConstraints(reg, parentGroup);
 		bResult &= RegisterMultiGrid(reg, parentGroup);
 		bResult &= RegisterOutput(reg, parentGroup);
+		bResult &= RegisterAdaptiveTools(reg, parentGroup);
 		#endif
 
 

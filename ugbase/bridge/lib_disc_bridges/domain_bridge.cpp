@@ -29,7 +29,6 @@
 #include "lib_disc/function_spaces/interpolate.h"
 #include "lib_disc/function_spaces/integrate.h"
 #include "lib_disc/function_spaces/integrateDraft.h"
-#include "lib_disc/function_spaces/error_indicator.h"
 #include "lib_disc/dof_manager/cuthill_mckee.h"
 #include "lib_disc/dof_manager/lexorder.h"
 
@@ -39,7 +38,7 @@ namespace ug{
 namespace bridge{
 
 template <typename TDomain, typename TAlgebra>
-void Register__Algebra_Domain(Registry& reg, string parentGroup)
+static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 {
 //	typedef
 	static const int dim = TDomain::dim;
@@ -140,18 +139,9 @@ void Register__Algebra_Domain(Registry& reg, string parentGroup)
 //	L2Norm
 	{
 		typedef number (*fct_type)(TFct&, const char*, int, const char*);
-
-
 		reg.add_function("L2Norm",
 						 static_cast<fct_type>(&L2Norm<TFct>),
 						 grp);
-	}
-
-//	MarkForRefinement_GradientIndicator
-	{
-		string grp("ug4/Refinement/");
-		reg.add_function("MarkForRefinement_GradientIndicator",
-						 &MarkForRefinement_GradientIndicator<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
 	}
 }
 
@@ -175,14 +165,14 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in Register__Algebra: "
+		UG_LOG("### ERROR in RegisterLibDisc_Domain: "
 				"Registration failed (using name " << ex.name << ").\n");
 		UG_THROW_FATAL("Registration failed.");
 	}
 }
 
 template <typename TDomain>
-void RegisterLibDiscDomain__Domain(Registry& reg, string parentGroup)
+static void Register__Domain(Registry& reg, string parentGroup)
 {
 //	typedef
 //	static const int dim = TDomain::dim;
@@ -229,18 +219,18 @@ bool RegisterLibDisc_Domain(Registry& reg, string parentGroup)
 #endif
 
 #ifdef UG_DIM_1
-	RegisterLibDiscDomain__Domain<Domain1d>(reg, parentGroup);
+	Register__Domain<Domain1d>(reg, parentGroup);
 #endif
 #ifdef UG_DIM_2
-	RegisterLibDiscDomain__Domain<Domain2d>(reg, parentGroup);
+	Register__Domain<Domain2d>(reg, parentGroup);
 #endif
 #ifdef UG_DIM_3
-	RegisterLibDiscDomain__Domain<Domain3d>(reg, parentGroup);
+	Register__Domain<Domain3d>(reg, parentGroup);
 #endif
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in RegisterLibDiscDomain__Domain: "
+		UG_LOG("### ERROR in RegisterLibDisc_Domain: "
 				"Registration failed (using name " << ex.name << ").\n");
 		UG_THROW_FATAL("Registration failed.");
 	}

@@ -78,6 +78,7 @@ bool RegisterLibDisc_Domain(Registry& reg, std::string parentGroup = "/ug4");
 bool RegisterConstraints(Registry& reg, std::string parentGroup = "/ug4");
 bool RegisterMultiGrid(Registry& reg, std::string parentGroup = "/ug4");
 bool RegisterOutput(Registry& reg, std::string parentGroup = "/ug4");
+bool RegisterAdaptiveTools(Registry& reg, std::string parentGroup = "/ug4");
 #endif
 
 
