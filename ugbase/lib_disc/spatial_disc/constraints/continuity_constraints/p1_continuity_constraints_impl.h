@@ -12,15 +12,75 @@
 
 namespace ug {
 
+///	sets a matrix row corresponding to averaging the constrained index
+template <typename TMatrix>
+void SetInterpolation(TMatrix& A,
+                      std::vector<size_t> & constrainedIndex,
+                      std::vector<std::vector<size_t> >& vConstrainingIndex)
+{
+	//	check number of indices passed
+	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
+		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
+				  "Wrong number of indices.");
+
+//	loop all constrained dofs
+	for(size_t i = 0; i < constrainedIndex.size(); ++i)
+	{
+	//	remove all couplings
+		for(typename TMatrix::row_iterator conn = A.begin_row(constrainedIndex[i]);
+									conn != A.end_row(constrainedIndex[i]); ++conn)
+			conn.value() = 0.0;
+
+	//	set diag of row to identity
+		A(constrainedIndex[i], constrainedIndex[i]) = 1.0;
+
+	//	set coupling to all contraining dofs the inverse of the
+	//	number of contraining dofs
+		const number frac = -1.0/(vConstrainingIndex.size());
+		for(size_t j=0; j < vConstrainingIndex.size();++j)
+			A(constrainedIndex[i], vConstrainingIndex[j][i]) = frac;
+	}
+}
+
+template <typename TVector>
+void InterpolateValues(TVector& u,
+                       std::vector<size_t> & constrainedIndex,
+                       std::vector<std::vector<size_t> >& vConstrainingIndex)
+{
+	//	check number of indices passed
+	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
+		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
+				  "Wrong number of indices.");
+
+//	loop constrained indices
+	for(size_t i = 0; i < constrainedIndex.size(); ++i)
+	{
+	//	get value to be interpolated
+		typename TVector::value_type& val = u[constrainedIndex[i]];
+
+	//	scaling factor
+		const number frac = 1./(vConstrainingIndex.size());
+
+	//	reset value
+		val = 0.0;
+
+	// 	add equally from all constraining indices
+		for(size_t j=0; j < vConstrainingIndex.size(); ++j)
+			VecScaleAdd(val, 1.0, val, frac, u[vConstrainingIndex[j][i]]);
+	}
+}
+
+
+
 template <typename TMatrix>
 void SplitAddRow_Symmetric(TMatrix& A,
                            std::vector<size_t> & constrainedIndex,
-                           std::vector<std::vector<size_t> >& vConstrainingIndices)
+                           std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
-//	check number of indices passed
-	for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-		if(vConstrainingIndices[i].size() != constrainedIndex.size())
-			UG_THROW_FATAL("Wrong number of indices. Cannot split row.");
+	//	check number of indices passed
+	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
+		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
+				  "Wrong number of indices.");
 
 //	handle each contrained index
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
@@ -31,15 +91,15 @@ void SplitAddRow_Symmetric(TMatrix& A,
 				= A(constrainedIndex[i], constrainedIndex[i]);
 
 	//	scale by weight
-		block *= (1./(vConstrainingIndices.size()))*
-					(1./(vConstrainingIndices.size()));
+		block *= (1./(vConstrainingIndex.size()))*
+					(1./(vConstrainingIndex.size()));
 
 	//	add coupling
-		for(size_t k = 0; k < vConstrainingIndices.size(); ++k)
-			for(size_t m = 0; m < vConstrainingIndices.size(); ++m)
+		for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
+			for(size_t m = 0; m < vConstrainingIndex.size(); ++m)
 		{
-			A(vConstrainingIndices[k][i],
-			  vConstrainingIndices[m][i]) += block;
+			A(vConstrainingIndex[k][i],
+			  vConstrainingIndex[m][i]) += block;
 		}
 
 	//	reset block
@@ -61,15 +121,15 @@ void SplitAddRow_Symmetric(TMatrix& A,
 
 		//	multiply the cpl value by the inverse number of constraining
 		//	indices
-			block *= 1./(vConstrainingIndices.size());
-			blockT *= 1./(vConstrainingIndices.size());
+			block *= 1./(vConstrainingIndex.size());
+			blockT *= 1./(vConstrainingIndex.size());
 
 		//	add the coupling to the constraining indices rows
-			for(size_t k = 0; k < vConstrainingIndices.size(); ++k)
+			for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
 			{
-				A(vConstrainingIndices[k][i], j) += block;
+				A(vConstrainingIndex[k][i], j) += block;
 
-				A(j, vConstrainingIndices[k][i]) += blockT;
+				A(j, vConstrainingIndex[k][i]) += blockT;
 			}
 
 		//	set the splitted coupling to zero
@@ -79,102 +139,15 @@ void SplitAddRow_Symmetric(TMatrix& A,
 	}
 }
 
-///	sets a matrix row corresponding to averaging the constrained index
-template <typename TMatrix>
-void SetInterpolation(TMatrix& A,
-                      std::vector<size_t> & constrainedIndex,
-                      std::vector<std::vector<size_t> >& vConstrainingIndex)
-{
-//	check number of indices passed
-	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
-		if(vConstrainingIndex[i].size() != constrainedIndex.size())
-			UG_THROW_FATAL("Wrong number of indices. Cannot split row.\n");
-
-//	loop all constrained dofs
-	for(size_t i = 0; i < constrainedIndex.size(); ++i)
-	{
-	//	remove all couplings
-		for(typename TMatrix::row_iterator conn = A.begin_row(constrainedIndex[i]);
-				conn != A.end_row(constrainedIndex[i]); ++conn)
-		{
-			conn.value() = 0.0;
-		}
-
-	//	set diag of row to identity
-		A(constrainedIndex[i], constrainedIndex[i]) = 1.0;
-
-	//	set coupling to all contraining dofs the inverse of the
-	//	number of contraining dofs
-		number frac = -1.0/(vConstrainingIndex.size());
-		for(size_t j=0; j < vConstrainingIndex.size();++j)
-			A(constrainedIndex[i], vConstrainingIndex[j][i]) = frac;
-	}
-}
-
-template <typename TVector>
-void HandleRhs_Symmetric(TVector& rhs,
-                         std::vector<size_t> & constrainedIndex,
-                         std::vector<std::vector<size_t> >& vConstrainingIndices)
-{
-//	check number of indices passed
-	for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-		if(vConstrainingIndices[i].size() != constrainedIndex.size())
-			UG_THROW_FATAL("Wrong number of indices. Cannot split row.");
-
-//	loop constrained indices
-	for(size_t i = 0; i < constrainedIndex.size(); ++i)
-	{
-	//	get constrained rhs
-		typename TVector::value_type& val = rhs[constrainedIndex[i]];
-		val *= 1./(vConstrainingIndices.size());
-
-	// 	split equally on all constraining indices
-		for(size_t j=0; j < vConstrainingIndices.size(); ++j)
-			rhs[vConstrainingIndices[j][i]] += val;
-
-	//	set rhs to zero for contrained index
-		val = 0.0;
-	}
-}
-
-template <typename TVector>
-void InterpolateValues_Symmetric(TVector& u,
-                                 std::vector<size_t> & constrainedIndex,
-                                 std::vector<std::vector<size_t> >& vConstrainingIndices)
-{
-//	check number of indices passed
-	for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-		if(vConstrainingIndices[i].size() != constrainedIndex.size())
-			UG_THROW_FATAL("Wrong number of indices. Cannot split row.\n");
-
-//	loop constrained indices
-	for(size_t i = 0; i < constrainedIndex.size(); ++i)
-	{
-	//	get constrained rhs
-		typename TVector::value_type& val = u[constrainedIndex[i]];
-		const number scale = 1./(vConstrainingIndices.size());
-
-		val = 0.0;
-
-	// 	split equally on all constraining indices
-		for(size_t j=0; j < vConstrainingIndices.size(); ++j)
-		{
-			typename TVector::value_type entry = u[vConstrainingIndices[j][i]];
-			entry *= scale;
-			val += entry;
-		}
-	}
-}
-
-
 template <typename TMatrix>
 void SplitAddRow_OneSide(TMatrix& A,
                          std::vector<size_t> & constrainedIndex,
-                         std::vector<std::vector<size_t> >& vConstrainingIndices)
+                         std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
-	for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-		if(vConstrainingIndices[i].size() != constrainedIndex.size())
-			UG_THROW_FATAL("Wring number of indices. Cannot split row.");
+	//	check number of indices passed
+	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
+		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
+				  "Wrong number of indices.");
 
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
@@ -185,32 +158,57 @@ void SplitAddRow_OneSide(TMatrix& A,
 			const size_t j = conn.index();
 
 			// choose randomly the first dof to add whole row
-			A(vConstrainingIndices[0][i], j) += block;
+			A(vConstrainingIndex[0][i], j) += block;
 			A(constrainedIndex[i], j) = 0.0;
 		}
 	}
 }
 
 template <typename TVector>
-void HandleRhs_OneSide(TVector& rhs,
-                       std::vector<size_t> & constrainedIndex,
-                       std::vector<std::vector<size_t> >& vConstrainingIndices)
+void SplitAddRhs_Symmetric(TVector& rhs,
+                         std::vector<size_t> & constrainedIndex,
+                         std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
-	for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
-		if(vConstrainingIndices[i].size() != constrainedIndex.size())
-			UG_THROW_FATAL("Wrong number of indices. Cannot split row.");
+	//	check number of indices passed
+	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
+		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
+				  "Wrong number of indices.");
+
+//	loop constrained indices
+	for(size_t i = 0; i < constrainedIndex.size(); ++i)
+	{
+	//	get constrained rhs
+		typename TVector::value_type& val = rhs[constrainedIndex[i]];
+		val *= 1./(vConstrainingIndex.size());
+
+	// 	split equally on all constraining indices
+		for(size_t j=0; j < vConstrainingIndex.size(); ++j)
+			rhs[vConstrainingIndex[j][i]] += val;
+
+	//	set rhs to zero for contrained index
+		val = 0.0;
+	}
+}
+
+template <typename TVector>
+void SplitAddRhs_OneSide(TVector& rhs,
+                       std::vector<size_t> & constrainedIndex,
+                       std::vector<std::vector<size_t> >& vConstrainingIndex)
+{
+	//	check number of indices passed
+	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
+		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
+				  "Wrong number of indices.");
 
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
 		typename TVector::value_type& val = rhs[constrainedIndex[i]];
 
 		// choose randomly the first dof to add whole rhs (must be the same as for row)
-		rhs[vConstrainingIndices[0][i]] += val;
+		rhs[vConstrainingIndex[0][i]] += val;
 		val = 0.0;
 	}
 }
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -265,7 +263,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 		SplitAddRow_Symmetric(mat, constrainedInd, vConstrainingInd);
 
 	//	adapt rhs
-		HandleRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
+		SplitAddRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
 	}
 
 //	get begin end of hanging vertices
@@ -341,7 +339,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
 		dd->inner_algebra_indices(hgVrt, constrainedInd);
 
 	// 	Interpolate values
-		InterpolateValues_Symmetric(u, constrainedInd, vConstrainingInd);
+		InterpolateValues(u, constrainedInd, vConstrainingInd);
 	}
 }
 
@@ -402,7 +400,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 		SetInterpolation(mat, constrainedInd, vConstrainingInd);
 
 	//	adapt rhs
-		HandleRhs_OneSide(rhs, constrainedInd, vConstrainingInd);
+		SplitAddRhs_OneSide(rhs, constrainedInd, vConstrainingInd);
 	}
 }
 
