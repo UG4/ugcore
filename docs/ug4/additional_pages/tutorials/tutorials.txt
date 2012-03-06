@@ -15,5 +15,6 @@ are aimed primarily at developers - e.g. the 'install eclipse' and
 	- \ref pageUG4Profiling "Profiling"
 	
 	- \ref pageInstallEclipse "Install Eclipse"
+	- \ref pageAdditionalSoftware "Additional software that might be useful"
 	- \ref pageInstallUG4 "Compile ug4"
  */

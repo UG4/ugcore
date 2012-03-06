@@ -1,0 +1,154 @@
+//	created by Ingo Heppner
+//	ingo.heppner@gcsc.uni-frankfurt.de
+//	y12 m03 d05
+
+/** \page pageAdditionalSoftware - Additional software that might be useful
+
+	- \ref secInstallCMake "Install CMake"
+	- \ref secInstallBoost "Install Boost"
+	- \ref secInstallLUA   "Install LUA"
+
+On this page you'll find short installation instructions for additional software
+that might be useful - or is even necessary - for working with ug4 (especially on
+clusters).
+
+So, in case a software needed for a certain task is not available on the system
+(or has the wrong version number) one has to install it locally (unless you have
+administrator privileges - congratulations ...)
+
+We propose the following procedures for which we assume that all additional
+software is installed in a directory <tt>local</tt> directly in your home directory
+(version numbers are those of the most recent (stable) versions as of Nov 2011).
+
+A basic understanding of the used unix tools (wget, tar, ...) is useful but not necessary
+(instructions should work "out of the box"- except for the version numbers - check for the version most appropriate for you before installation).
+
+<hr>
+\section secInstallCMake CMake
+<hr>
+A version of the <a href="http://www.cmake.org">CMake build tool</a> ... blabla
+
+<ol>
+<li>Download tar ball:
+    \verbatim
+    cd ~/local
+    wget http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz
+    \endverbatim
+    </li>
+
+<li> Unpack:
+    \verbatim
+    tar xvzf cmake-2.8.6.tar.gz
+    \endverbatim
+    </li>
+
+<li>Configure and build:
+    \verbatim
+    cd cmake-2.8.6/
+    ./bootstrap --prefix=$HOME/local
+    make
+    make install
+    \endverbatim
+    </li>
+
+<li> Shortcut for executing CMake (i.e., add a line like the
+     following in your <tt>.bashrc</tt> (for Bash):
+    \verbatim
+    alias cmake='$HOME/local/bin/cmake'
+    \endverbatim
+    or (for Tcsh):
+    \verbatim
+    alias cmake '$HOME/local/bin/cmake'
+    \endverbatim
+    </li>
+</ol>
+
+<hr>
+\section secInstallBoost Boost
+<hr>
+
+A version of the <a href="http://www.boost.org">Boost library</a> is automatically checked out
+and available in the <tt>externals/</tt> sub directory of your trunk (since Jan 2012),
+so a local install is usually no longer necessary (cf. \ref pageInstallUG4, \ref secInstallUG4Boost).
+But if you need a special (e.g. newer) version, you can get one this way:
+
+<ol>
+<li>Download tar ball:
+    \verbatim
+    cd ~/local
+    wget http://sourceforge.net/projects/boost/files/boost/1.48.0/boost_1_48_0.tar.gz
+    \endverbatim
+    </li>
+
+<li> Unpack (no build necessary!) into a directory which has to be contained in your search path (see next step):
+    \verbatim
+    tar xzf boost_1_48_0.tar.gz
+    \endverbatim
+    </li>
+
+<li> and add boost root directory to search path (i.e., add a line like the
+     following in your <tt>.profile</tt> (for Bash):
+    \verbatim
+    export PATH=$PATH:$HOME/local/boost_1_48_0
+    \endverbatim
+    or (for Tcsh):
+    \verbatim
+    set PATH = ($PATH $HOME/local/boost_1_48_0)
+    \endverbatim
+    </li>
+
+<li>Instruct CMake to use your own copy of Boost when configuring ug4 (cf. \ref pageInstallUG4, \ref secInstallUG4CMake):
+    \verbatim
+    cmake -DINTERNAL_BOOST=ON <further cmake parameters> ..
+    \endverbatim
+    </li>
+</ol>
+
+<hr>
+\section secInstallLUA LUA
+<hr>
+
+A version of the <a href="http://www.lua.org">LUA interpreter</a> ... blabla
+... to be able to execute LUA scripts "stand alone" ...
+
+<ol>
+<li>Download tar ball:
+    \verbatim
+    cd ~/local
+    wget http://www.lua.org/ftp/lua-5.1.4.tar.gz
+    \endverbatim
+    </li>
+
+<li> Unpack:
+    \verbatim
+    tar xvzf lua-5.1.4.tar.gz
+    \endverbatim
+    </li>
+
+<li> Build and install (cf. <tt>INSTALL</tt>):
+    \verbatim
+    cd lua-5.1.4/
+    make linux
+    make local
+    \endverbatim
+    </li>
+
+<li> Shortcut for executing LUA (i.e., add a line like the
+     following in your <tt>.bashrc</tt> (for Bash):
+    \verbatim
+    alias lua='$HOME/local/lua-5.1.4/bin/lua'
+    \endverbatim
+    or (for Tcsh):
+    \verbatim
+    alias lua '$HOME/local/lua-5.1.4/bin/lua'
+    \endverbatim
+    </li>
+
+<li>Usage example (executing a (local) copy of analyzer script):
+    \verbatim
+    lua my_scaling_analyzer.lua > jugene_ug4-static_laplace-2d_gmg_weak-scaling_pe4-256k_rev4354.txt
+    \endverbatim
+    </li>
+</ol>
+
+ */
