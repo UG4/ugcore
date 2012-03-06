@@ -1,5 +1,5 @@
 /*
- * thermohaline_flow_bridge.cpp
+ * elem_discs_bridge.cpp
  *
  *  Created on: 20.05.2011
  *      Author: andreasvogel
@@ -43,7 +43,7 @@ namespace bridge
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
-void RegisterIElemDiscs(Registry& reg, string grp)
+void Register__Domain(Registry& reg, string grp)
 {
 //	dimension of domain
 	static const int dim = TDomain::dim;
@@ -278,7 +278,7 @@ void RegisterIElemDiscs(Registry& reg, string grp)
 }
 
 
-bool RegisterLibDisc_ElemDisc(Registry& reg, string parentGroup)
+bool RegisterElemDiscs(Registry& reg, string parentGroup)
 {
 	{
 		typedef IApproximationSpace T;
@@ -303,31 +303,25 @@ bool RegisterLibDisc_ElemDisc(Registry& reg, string parentGroup)
 
 	}
 
+//	get group string
+	string grp = parentGroup; grp.append("/Discretization");
 	try
 	{
-	//	get group string
-		string grp = parentGroup; grp.append("/Discretization");
-
 #ifdef UG_DIM_1
-	//	Domain dependend part 1D
-			RegisterIElemDiscs<Domain1d>(reg, grp);
+		Register__Domain<Domain1d>(reg, grp);
 #endif
-
 #ifdef UG_DIM_2
-	//	Domain dependend part 2D
-			RegisterIElemDiscs<Domain2d>(reg, grp);
+			Register__Domain<Domain2d>(reg, grp);
 #endif
-
 #ifdef UG_DIM_3
-	//	Domain dependend part 3D
-			RegisterIElemDiscs<Domain3d>(reg, grp);
+			Register__Domain<Domain3d>(reg, grp);
 #endif
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
 		UG_LOG("### ERROR in RegisterLibDisc_ElemDisc: "
 				"Registration failed (using name " << ex.name << ").\n");
-		return false;
+		UG_THROW_FATAL("Registration failed.");
 	}
 
 	return true;

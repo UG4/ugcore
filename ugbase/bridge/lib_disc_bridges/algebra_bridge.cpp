@@ -1,5 +1,5 @@
 /*
- * lib_disc_bridge_domain_independent.cpp
+ * algebra_bridge.cpp
  *
  *  Created on: 22.09.2010
  *      Author: andreasvogel
@@ -43,7 +43,7 @@ namespace bridge
 {
 
 template <typename TAlgebra>
-static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
+static void Register__Algebra(Registry& reg, string parentGroup)
 {
 //	typedefs for Vector and Matrix
 	typedef typename TAlgebra::vector_type vector_type;
@@ -250,41 +250,31 @@ static bool RegisterLibDiscAlgebra__Algebra(Registry& reg, string parentGroup)
 
 	} catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in RegisterLibDiscAlgebra__Algebra: "
+		UG_LOG("### ERROR in Register__Algebra: "
 				"Registration failed (using name " << ex.name << ").\n");
-		return false;
+		UG_THROW_FATAL("Registration failed.");
 	}
-
-	return true;
 }
 
 bool RegisterLibDisc_Algebra(Registry& reg, string parentGroup)
 {
-	bool bReturn = true;
 #ifdef UG_CPU_1	
-	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUAlgebra>(reg, parentGroup);
+	Register__Algebra<CPUAlgebra>(reg, parentGroup);
 #endif
 #ifdef UG_CPU_2
-	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
+	Register__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
 #endif
 #ifdef UG_CPU_3
-	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUBlockAlgebra<3> >(reg, parentGroup);
+	Register__Algebra<CPUBlockAlgebra<3> >(reg, parentGroup);
 #endif
 #ifdef UG_CPU_4
-	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
+	Register__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
 #endif
 #ifdef UG_CPU_VAR
-	bReturn &= RegisterLibDiscAlgebra__Algebra<CPUVariableBlockAlgebra>(reg, parentGroup);
+	Register__Algebra<CPUVariableBlockAlgebra>(reg, parentGroup);
 #endif
 
-#ifdef DOF_P1
-	bReturn &= RegisterLibDiscAlgebra__DoFDistribution<P1DoFDistribution>(reg, parentGroup);
-#endif
-#ifdef DOF_GEN
-	bReturn &= RegisterLibDiscAlgebra__DoFDistribution<DoFDistribution >(reg, parentGroup);
-#endif
-
-	return bReturn;
+	return true;
 }
 
 } // end namespace ug

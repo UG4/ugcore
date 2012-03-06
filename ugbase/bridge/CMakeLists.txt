@@ -30,13 +30,14 @@ if(buildAlgebra)
 					lib_algebra_bridges/amg_bridge.cpp
 					lib_algebra_bridges/eigensolver_bridge.cpp
 					
-					lib_disc_bridges/lib_disc_common.cpp
-					lib_disc_bridges/lib_disc_algebra.cpp
-					lib_disc_bridges/lib_disc_domain.cpp
-					lib_disc_bridges/lib_disc_disc.cpp
+					lib_disc_bridges/common_bridge.cpp
+					lib_disc_bridges/algebra_bridge.cpp
+					lib_disc_bridges/domain_bridge.cpp
+					lib_disc_bridges/elem_discs_bridge.cpp
+					lib_disc_bridges/constraints_bridge.cpp
 					lib_disc_bridges/multigrid_bridge.cpp
 					lib_disc_bridges/output_bridge.cpp
-					lib_disc_bridges/lib_disc_user_data.cpp)
+					lib_disc_bridges/user_data_bridge.cpp)
 else(buildAlgebra)
 
 endif(buildAlgebra)

@@ -1,5 +1,5 @@
 /*
- * lib_disc_bridge_algebra_independent.cpp
+ * common_bridge.cpp
  *
  *  Created on: 14.02.2011
  *      Author: andreasvogel

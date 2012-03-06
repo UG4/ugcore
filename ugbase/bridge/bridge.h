@@ -60,13 +60,13 @@ bool RegisterDomainInterface(Registry& reg, std::string parentGroup = "/ug4");
 bool RegisterRefinementBridge(Registry& reg, std::string parentGroup = "/ug4");
 
 /// Registers the element discretizations
-bool RegisterLibDisc_ElemDisc(Registry& reg, std::string parentGroup = "/ug4");
+bool RegisterElemDiscs(Registry& reg, std::string parentGroup = "/ug4");
 
 ///	Registers the common part of lib_discretization
 bool RegisterLibDisc_Common(Registry& reg, std::string parentGroup = "/ug4");
 
 /// registers user data
-bool RegisterLibDisc_UserData(Registry& reg, std::string parentGroup = "/ug4");
+bool RegisterUserData(Registry& reg, std::string parentGroup = "/ug4");
 
 #ifdef UG_ALGEBRA
 ///	registers lib-algebra interface methods at the registry.
@@ -75,6 +75,7 @@ bool RegisterLibAlgebra(Registry& reg, std::string parentGroup = "/ug4");
 ///	registers lib-discretization interface methods at the registry.
 bool RegisterLibDisc_Algebra(Registry& reg, std::string parentGroup = "/ug4");
 bool RegisterLibDisc_Domain(Registry& reg, std::string parentGroup = "/ug4");
+bool RegisterConstraints(Registry& reg, std::string parentGroup = "/ug4");
 bool RegisterMultiGrid(Registry& reg, std::string parentGroup = "/ug4");
 bool RegisterOutput(Registry& reg, std::string parentGroup = "/ug4");
 #endif

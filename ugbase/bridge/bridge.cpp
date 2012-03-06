@@ -149,13 +149,14 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		#ifdef UG_ALGEBRA
 	//	depends on lib_disc
 		bResult &= RegisterLibDisc_Common(reg, parentGroup);
-		bResult &= RegisterLibDisc_ElemDisc(reg, parentGroup);
+		bResult &= RegisterElemDiscs(reg, parentGroup);
 
 	//	depends on lib_algebra
 		bResult &= RegisterLibAlgebra(reg, parentGroup);
 		bResult &= RegisterLibDisc_Algebra(reg, parentGroup);
 		bResult &= RegisterLibDisc_Domain(reg, parentGroup);
-		bResult &= RegisterLibDisc_UserData(reg, parentGroup);
+		bResult &= RegisterUserData(reg, parentGroup);
+		bResult &= RegisterConstraints(reg, parentGroup);
 		bResult &= RegisterMultiGrid(reg, parentGroup);
 		bResult &= RegisterOutput(reg, parentGroup);
 		#endif

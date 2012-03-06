@@ -658,7 +658,7 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 	return true;
 }
 
-bool RegisterLibDisc_UserData(Registry& reg, string parentGroup)
+bool RegisterUserData(Registry& reg, string parentGroup)
 {
 //	get group string
 	std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc/UserData");
