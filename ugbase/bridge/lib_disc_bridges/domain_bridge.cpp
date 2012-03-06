@@ -185,6 +185,20 @@ static void Register__Domain(Registry& reg, string parentGroup)
 	string dimSuffix = GetDomainSuffix<TDomain>();
 	string dimTag = GetDomainTag<TDomain>();
 
+
+//  ApproximationSpace
+	{
+		typedef ApproximationSpace<TDomain> T;
+		typedef IApproximationSpace TBase;
+		string name = string("ApproximationSpace").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, approxGrp)
+			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
+			.add_method("domain", static_cast<SmartPtr<TDomain> (T::*)()>(&T::domain))
+			.add_method("surface_view", static_cast<ConstSmartPtr<SurfaceView> (T::*)() const>(&T::surface_view))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ApproximationSpace", dimTag);
+	}
+
 //	Order Cuthill-McKee
 	{
 		reg.add_function("OrderCuthillMcKee", static_cast<void (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee), approxGrp);
@@ -198,8 +212,34 @@ static void Register__Domain(Registry& reg, string parentGroup)
 
 bool RegisterLibDisc_Domain(Registry& reg, string parentGroup)
 {
+//	GridLevel
 	reg.add_class_<GridLevel>("GridLevel")
 		.add_constructor();
+
+//	IApproximationSpace
+	{
+	typedef IApproximationSpace T;
+	reg.add_class_<T>("IApproximationSpace")
+		.add_method("print_statistic", static_cast<void (T::*)(int) const>(&T::print_statistic))
+		.add_method("print_statistic", static_cast<void (T::*)() const>(&T::print_statistic))
+		.add_method("print_layout_statistic", static_cast<void (T::*)(int) const>(&T::print_layout_statistic))
+		.add_method("print_layout_statistic", static_cast<void (T::*)() const>(&T::print_layout_statistic))
+		.add_method("print_local_dof_statistic", static_cast<void (T::*)(int) const>(&T::print_local_dof_statistic))
+		.add_method("print_local_dof_statistic", static_cast<void (T::*)() const>(&T::print_local_dof_statistic))
+		.add_method("num_levels", &T::num_levels)
+		.add_method("init_levels", &T::init_levels)
+		.add_method("init_surfaces", &T::init_surfaces)
+		.add_method("init_top_surface", &T::init_top_surface)
+		.add_method("defragment", &T::defragment)
+		.add_method("clear", &T::clear)
+		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int, const char*)>(&T::add_fct),
+					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order # Subsets", "Adds a function to the Function Pattern",
+					"currently no help available")
+		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int)>(&T::add_fct),
+					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
+					"currently no help available");
+
+	}
 
 	try{
 #ifdef UG_CPU_1

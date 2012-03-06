@@ -22,6 +22,7 @@
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/function_spaces/error_indicator.h"
+#include "lib_disc/function_spaces/level_transfer.h"
 
 using namespace std;
 
@@ -53,6 +54,13 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		string grp("ug4/Refinement/");
 		reg.add_function("MarkForRefinement_GradientIndicator",
 						 &MarkForRefinement_GradientIndicator<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
+	}
+
+//	Prolongate
+	{
+		string grp("ug4/");
+		reg.add_function("Prolongate",
+						 &Prolongate<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
 	}
 }
 

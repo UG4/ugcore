@@ -53,20 +53,6 @@ void Register__Domain(Registry& reg, string grp)
 	string dimTag = GetDomainTag<dim>();
 
 	string approxGrp = grp; approxGrp.append("/ApproximationSpace");
-
-//  ApproximationSpace
-	{
-		typedef ApproximationSpace<TDomain> T;
-		typedef IApproximationSpace TBase;
-		string name = string("ApproximationSpace").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, approxGrp)
-			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
-			.add_method("domain", static_cast<SmartPtr<TDomain> (T::*)()>(&T::domain))
-			.add_method("surface_view", static_cast<ConstSmartPtr<SurfaceView> (T::*)() const>(&T::surface_view))
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ApproximationSpace", dimTag);
-	}
-
 	string elemGrp = grp; elemGrp.append("/SpatialDisc/ElemDisc");
 
 //	DomainElemDisc base class
@@ -280,31 +266,16 @@ void Register__Domain(Registry& reg, string grp)
 
 bool RegisterElemDiscs(Registry& reg, string parentGroup)
 {
-	{
-		typedef IApproximationSpace T;
-	reg.add_class_<T>("IApproximationSpace")
-		.add_method("print_statistic", static_cast<void (T::*)(int) const>(&T::print_statistic))
-		.add_method("print_statistic", static_cast<void (T::*)() const>(&T::print_statistic))
-		.add_method("print_layout_statistic", static_cast<void (T::*)(int) const>(&T::print_layout_statistic))
-		.add_method("print_layout_statistic", static_cast<void (T::*)() const>(&T::print_layout_statistic))
-		.add_method("print_local_dof_statistic", static_cast<void (T::*)(int) const>(&T::print_local_dof_statistic))
-		.add_method("print_local_dof_statistic", static_cast<void (T::*)() const>(&T::print_local_dof_statistic))
-		.add_method("init_levels", &T::init_levels)
-		.add_method("init_surfaces", &T::init_surfaces)
-		.add_method("init_top_surface", &T::init_top_surface)
-		.add_method("defragment", &T::defragment)
-		.add_method("clear", &T::clear)
-		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int, const char*)>(&T::add_fct),
-					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order # Subsets", "Adds a function to the Function Pattern",
-					"currently no help available")
-		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int)>(&T::add_fct),
-					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
-					"currently no help available");
-
-	}
-
 //	get group string
 	string grp = parentGroup; grp.append("/Discretization");
+
+//	Elem Discs
+	{
+		string elemGrp = grp; elemGrp.append("/ElemDisc");
+		typedef IElemDisc T;
+		reg.add_class_<T>("IElemDisc", elemGrp);
+	}
+
 	try
 	{
 #ifdef UG_DIM_1

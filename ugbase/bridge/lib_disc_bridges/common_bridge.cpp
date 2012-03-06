@@ -30,13 +30,6 @@ bool RegisterLibDisc_Common(Registry& reg, string parentGroup)
 	try
 	{
 
-//	Elem Discs
-	{
-		string elemGrp = grp; elemGrp.append("/ElemDisc");
-		typedef IElemDisc T;
-		reg.add_class_<T>("IElemDisc", grp);
-	}
-
 #ifdef UG_PARALLEL
 //	IDomainDecompositionInfo, StandardDomainDecompositionInfo
 	{
