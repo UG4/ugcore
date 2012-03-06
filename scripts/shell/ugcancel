@@ -8,6 +8,7 @@
 # set default values
 scriptname=$0;		  # name of script
 
+echo "ugcancel 0.1. (c) Goethe-Center for Scientific Computing 2012"
 
 function usage 
 {
@@ -36,6 +37,11 @@ do
 		break
 	fi
 done
+
+if [ -z "$UGSUBMIT_TYPE" ]; then
+   	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+   	exit
+fi	 
 
 ##############################################
 if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then

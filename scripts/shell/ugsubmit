@@ -13,48 +13,62 @@ jobname="job";
 scriptname=$0;		  # name of script
 execpath=`pwd`;       # execution path of script
 execdate=`date`;      # date of execution
+verbose=false;
+
+mailStart=false
+mailEnd=false
+mailError=false
 
 # Jugene Options
 JugeneMode="VN"
 JugeneMapfile="TXYZ"
 JugeneVerbose=2
 
-mailStart=false
-mailEnd=false
-mailError=false
-
-#PBS
+# general PBS Options
 pbsMailtype=""
 
 # todo: vielleicht scripts fuer die scheduler auslagern
-# todo: vielleicht total cores angeben, und dann nnodes = totalcores/nppn
-echo "  ugsubmit"
-echo "-------------------------------------------------"
-echo "(c) Goethe-Center for Scientific Computing 2012"
+# todo: different default nppn for clusters
+echo "ugsubmit 0.1. (c) Goethe-Center for Scientific Computing 2012"
 
 function usage 
 {
 	echo ""
-    echo " usage:  "$scriptname" <nnodes> [optional Parameters] <binary> <arg1> <arg2> ..."
+    echo " usage:  "$scriptname" <npe> [optional Parameters] --- <binary> <arg1> <arg2> ..."
 	echo " "
-	echo "        <nnodes>               : number of nnodes"
+	echo "        <npe>                  : number of processes"
 	echo "        <binary>               : the binary"
 	echo "        <args>                 : arguments for execution of binary"
 	echo ""
 	echo " optional Parameters are:"
-	echo "        -test                  : do not actually execute, only write scripts"
-	echo "        -email <emailadress>   : emailadress. you can also use the environment variable UGSUBMIT_EMAIL."
+	echo "        -test                  : do not actually execute, only write scripts (also sets -verbose)"
 	echo "        -nppn <nppn>           : number of processes per node (optional, default "$nppn")"
-	echo "        -name <jobname>        : a jobname to be used (optional, default "$jobname ")"
+	echo "        -cluster <type>        : type can be NecNehalem, Hermit, Jugene, mpi, cekon. (or use env. variable UGSUBMIT_TYPE)"
+	echo "        -name <jobname>        : a jobname to be used (optional, default \""$jobname"\")"
 	echo "        -walltime <hh:mm:ss>   : max walltime for job to run (optional; default is "$walltime")"
-#	echo "        -so <scheduleroptions> : additional options passed to the scheduler (enclose in )"
-	echo "        -cluster <type>        : type can be NecNehalem, Hermit, Jugene, mpi, cekon"
+	echo "        -email <emailadress>   : emailadress. you can also use the environment variable UGSUBMIT_EMAIL."
+	echo "        -mail-start            : mail when job starts"
+	echo "        -mail-stop             : mail when job stops"
+	echo "        -mail-error            : mail on error"
+	echo "        -verbose               : enable verbose mode"
 	echo " "
 	echo " Jugene Parameters:"
 	echo "        -Jugene-mode            : VN, DUAL or SMP. Default "$JugeneMode
 	echo "        -Jugene-mapfile         : Mapfile. Default "$JugeneMapfile
 	echo "        -Jugene-verbose         : Verbose Level. Default "$JugeneVerbose
 	echo ""
+
+if [ -z "$UGSUBMIT_TYPE" ]; then
+   	echo "UGSUBMIT_TYPE is not set!"
+else
+	echo "UGSUBMIT_TYPE  = "$UGSUBMIT_TYPE 
+fi
+if [ -z "$UGSUBMIT_EMAIL" ]; then
+	echo "UGSUBMIT_EMAIL is not set!"
+else
+   	echo "UGSUBMIT_EMAIL = "$UGSUBMIT_EMAIL
+fi
+
     exit 0;
 }
 
@@ -64,13 +78,17 @@ if [ $# -lt 3 ]; then
 fi
 
 # read args
-nnodes=$1;            # number of nodes
+npe=$1;            # number of nodes
 shift
 
 while [ true ]
 do
 	#echo $1
 	#echo $2
+	if [ $# -eq 0 ]; then
+		echo "missing -ex <binary>!"
+        exit
+	fi
 	if [ $1 = "-nppn" ]; then
 		nppn=$2		   
 		shift 2
@@ -85,6 +103,7 @@ do
 		shift 2
 	elif [ $1 = "-test" ]; then
 		test=true
+		verbose=true
 		shift 1
 	elif [ $1 = "-email" ]; then
 		UGSUBMIT_EMAIL=$2
@@ -113,23 +132,43 @@ do
 		mailStart=true
 		pbsMailtype=${pbsMailtype}b		
 		shift 1
-	else
+	elif [ $1 = "-verbose" ]; then
+		verbose=true
+		shift 1
+	elif [ $1 = "---" ]; then
+		shift
 		break
-	fi
-	if [ $# -eq 0 ]; then
-		echo "missing binary!"
-		usage
+	else
+		echo "undefined option $1"
+		exit
 	fi
 done
 
+if [ $# -eq 0 ]; then
+	echo "missing binary!"
+	exit
+fi
 binary=$1
 shift
 args=$*
 
-npe=$((nnodes*nppn)); # number of process entities (i.e. num processes)
+if [ $((npe%nppn)) -ne 0 ]; then
+	echo "npe=$npe is not dividable by nppn=$nppn"
+	exit
+fi
+
+# get path to executable
+executable=`which $binary`
+if [ ${executable:0:1} = "." ]; then
+	executable=$execpath/$binary
+fi
+nnodes=$((npe/nppn))
+#npe=$((nnodes*nppn)); # number of process entities (i.e. num processes)
 mydate=$(date "+.%F.%T");
 jobname=$jobname.$npe$mydate;
 
+
+# UGSUBMIT_TYPE
 if [ -z "$UGSUBMIT_TYPE" ]; then
    	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
    	exit
@@ -137,9 +176,6 @@ fi
 
 # save processnumber of shell to get a unique ticket
 ticket=$$
-
-# absolut path to executable
-executable=$execpath/$binary
 
 #create output directory
 outdir=$execpath/$jobname
@@ -181,7 +217,9 @@ echo "" >> $outdir/info.txt
 echo "Job '$jobname' submitted on `date`" >> $outdir/info.txt
 echo "Output to:      '$outdir'" >> $outdir/info.txt
 
-cat $outdir/info.txt
+if [ $verbose = true ]; then
+	cat $outdir/info.txt
+fi
 #ugjob $UGSUBMIT_EMAIL $jobname $outdir $nnodes $nppn $walltime $executable $args
 
 ##############################################
