@@ -80,7 +80,7 @@ elem_prepare_fvho(TElem* elem, const LocalVector& u)
 	static const int refDim = reference_element_traits<TElem>::dim;
 
 //	get corners
-	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
+	m_vCornerCoords = this->template element_corners<TElem>(elem);
 
 //	request geometry
 	static typename TGeomProvider::Type& geo = TGeomProvider::get();

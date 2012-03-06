@@ -64,7 +64,7 @@ bool ConvectionDiffusionElemDisc<TDomain>::
 elem_prepare_fe(TElem* elem, const LocalVector& u)
 {
 //	get corners
-	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
+	m_vCornerCoords = this->template element_corners<TElem>(elem);
 
 //	request geometry
 	static typename TGeomProvider::Type& geo = TGeomProvider::get();

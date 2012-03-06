@@ -87,7 +87,7 @@ elem_prepare_fv1(TElem* elem, const LocalVector& u)
 	static const int refDim = reference_element_traits<TElem>::dim;
 
 //	get corners
-	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
+	m_vCornerCoords = this->template element_corners<TElem>(elem);
 
 // 	Update Geometry for this element
 	static TFVGeom& geo = Provider<TFVGeom>::get();

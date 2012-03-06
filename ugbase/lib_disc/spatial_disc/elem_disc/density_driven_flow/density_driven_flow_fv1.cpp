@@ -651,7 +651,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
 //	get corners
-	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
+	m_vCornerCoords = this->template element_corners<TElem>(elem);
 
 // 	Update Geometry for this element
 	static FV1Geometry<TElem, dim>& geo = Provider<FV1Geometry<TElem,dim> >::get();

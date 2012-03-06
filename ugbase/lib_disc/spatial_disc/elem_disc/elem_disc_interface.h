@@ -466,7 +466,7 @@ class IDomainElemDisc : public IElemDisc
 		}
 
 	///	returns the function pattern
-		const FunctionPattern& get_fct_pattern() const {return *m_spApproxSpace->function_pattern();}
+		const FunctionPattern& function_pattern() const {return *m_spApproxSpace->function_pattern();}
 
 	///	returns if function pattern set
 		bool fct_pattern_set() const {return m_spApproxSpace.is_valid();}
@@ -487,7 +487,7 @@ class IDomainElemDisc : public IElemDisc
 
 	///	returns the corner coordinates of an Element in a C++-array
 		template<typename TElem>
-		const position_type* get_element_corners(TElem* elem)
+		const position_type* element_corners(TElem* elem)
 		{
 			typedef typename reference_element_traits<TElem>::reference_element_type
 							ref_elem_type;

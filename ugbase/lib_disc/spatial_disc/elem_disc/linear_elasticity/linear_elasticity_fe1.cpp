@@ -76,7 +76,7 @@ FE1LinearElasticityElemDisc<TDomain>::
 prepare_element(TElem* elem, const LocalVector& u)
 {
 //	get corners
-	m_corners = this->template get_element_corners<TElem>(elem);
+	m_corners = this->template element_corners<TElem>(elem);
 
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;

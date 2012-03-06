@@ -54,7 +54,7 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 		const size_t fct = functionGroup[0];
 
 	// 	check if function exist
-		if(fct >= this->get_fct_pattern().num_fct())
+		if(fct >= this->function_pattern().num_fct())
 		{
 			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
 					" Function "<< fct << " does not exist in pattern.\n");
@@ -79,7 +79,7 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 		fctNames.append(vScheduledUserData[i].fctName.c_str());
 
 	//	get subsethandler
-		const ISubsetHandler& rSH = *this->get_fct_pattern().subset_handler();
+		const ISubsetHandler& rSH = *this->function_pattern().subset_handler();
 
 	// 	loop subsets
 		for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)
@@ -88,7 +88,7 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 			const int subsetIndex = subsetGroup[si];
 
 		// 	check that function is defined for segment
-			if(!this->get_fct_pattern().is_def_in_subset(fct, subsetIndex))
+			if(!this->function_pattern().is_def_in_subset(fct, subsetIndex))
 			{
 				UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
 					" Function "<<fct<<" not defined on subset "<<subsetIndex<<".\n");
@@ -122,7 +122,7 @@ extract_scheduled_data()
 {
 //	a common function group
 	FunctionGroup commonFctGrp;
-	commonFctGrp.set_function_pattern(this->get_fct_pattern());
+	commonFctGrp.set_function_pattern(this->function_pattern());
 
 //	string of functions
 	std::string fctNames;
@@ -248,7 +248,7 @@ FV1NeumannBoundaryElemDisc<TDomain>::
 prepare_element(TElem* elem, const LocalVector& u)
 {
 //	get corners
-	m_vCornerCoords = this->template get_element_corners<TElem>(elem);
+	m_vCornerCoords = this->template element_corners<TElem>(elem);
 
 //  update Geometry for this element
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
