@@ -9,8 +9,6 @@
 #include "parallel_global_refiner_t.h"
 #include "pcl/pcl.h"
 
-using namespace std;
-
 namespace ug
 {
 

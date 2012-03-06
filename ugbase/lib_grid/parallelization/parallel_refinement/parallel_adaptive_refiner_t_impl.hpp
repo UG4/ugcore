@@ -8,8 +8,6 @@
 #include "parallel_adaptive_refiner_t.h"
 #include "../util/compol_selection.h"
 
-using namespace std;
-
 namespace ug{
 
 template <class TRefiner>
