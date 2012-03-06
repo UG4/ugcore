@@ -18,6 +18,7 @@ verbose=false;
 mailStart=false
 mailEnd=false
 mailError=false
+mail=false
 
 # Jugene Options
 JugeneMode="VN"
@@ -26,6 +27,7 @@ JugeneVerbose=2
 
 # general PBS Options
 pbsMailtype=""
+
 
 # todo: vielleicht scripts fuer die scheduler auslagern
 # todo: different default nppn for clusters
@@ -48,8 +50,9 @@ function usage
 	echo "        -walltime <hh:mm:ss>   : max walltime for job to run (optional; default is "$walltime")"
 	echo "        -email <emailadress>   : emailadress. you can also use the environment variable UGSUBMIT_EMAIL."
 	echo "        -mail-start            : mail when job starts"
-	echo "        -mail-stop             : mail when job stops"
+	echo "        -mail-end              : mail when job ends"
 	echo "        -mail-error            : mail on error"
+	echo "        -mail-all              : "
 	echo "        -verbose               : enable verbose mode"
 	echo " "
 	echo " Jugene Parameters:"
@@ -122,16 +125,26 @@ do
 		shift 2
 	elif [ $1 = "-mail-error" ]; then
 		mailError=true
+		mail=true
 		pbsMailtype=${pbsMailtype}a
 		shift 1
 	elif [ $1 = "-mail-end" ]; then
 		mailEnd=true
+		mail=true
 		pbsMailtype=${pbsMailtype}e
 		shift 1
 	elif [ $1 = "-mail-start" ]; then
 		mailStart=true
+		mail=true
 		pbsMailtype=${pbsMailtype}b		
 		shift 1
+	elif [ $1 = "-mail-all" ]; then
+		mailStart=true
+		mailStop=true
+		mailError=true
+		mail=true
+		pbsMailtype="abe"
+		shift
 	elif [ $1 = "-verbose" ]; then
 		verbose=true
 		shift 1
@@ -226,7 +239,7 @@ fi
 if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
 	echo ""; echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
 	
-	if [ -z "$UGSUBMIT_EMAIL" ]; then
+	if [ $mail == true ] && [ -z "$UGSUBMIT_EMAIL" ]; then
 		echo "please set UGSUBMIT_EMAIL or specify email with -email".
 		exit
 	fi	 
@@ -238,8 +251,6 @@ if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
 # creating script file
 		cat > $outdir/$jobname.sh << EOF
 #!/bin/bash
-#PBS -M $UGSUBMIT_EMAIL
-#PBS -m $pbsMailtype
 #PBS -N $jobname 
 #PBS -o $outdir/job.output
 #PBS -e $outdir/job.error
@@ -247,6 +258,19 @@ if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
 #PBS -S /bin/bash 
 #PBS -l nodes=$nnodes:nehalem:ppn=$nppn
 #PBS -l walltime=$walltime
+EOF
+
+	if [ $mail == true ]; then 
+		if [ -z "$UGSUBMIT_EMAIL" ]; then
+			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			exit
+		fi	 
+		cat >> $outdir/job.sh << EOF
+#PBS -M $UGSUBMIT_EMAIL
+#PBS -m $pbsMailtype
+EOF
+	fi
+	cat >> $outdir/job.sh << EOF
 # Configure modules and call mpiexec
 #. /etc/profile.d/modules.sh 
 cd $outdir
@@ -275,16 +299,11 @@ EOF
 elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
 	echo ""; echo "Using qsub on Hermit/Cray XE6"
 	
-	if [ -z "$UGSUBMIT_EMAIL" ]; then
-		echo "please set UGSUBMIT_EMAIL or specify email with -email".
-		exit
-	fi	 
+
 	
 # creating script file
 	cat > $outdir/job.sh << EOF
 #!/bin/bash
-#PBS -M $UGSUBMIT_EMAIL
-#PBS -m $pbsMailtype
 #PBS -N $jobname 
 #PBS -o $outdir/job.output
 #PBS -e $outdir/job.error
@@ -293,7 +312,19 @@ elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
 #PBS -l walltime=$walltime
 #PBS -l mppwidth=$npe
 #PBS -l mppnppn=$nppn
-# Configure modules and call mpiexec
+EOF
+	if [ $mail == true ]; then 
+		if [ -z "$UGSUBMIT_EMAIL" ]; then
+			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			exit
+		fi	 
+		cat >> $outdir/job.sh << EOF
+#PBS -M $UGSUBMIT_EMAIL
+#PBS -m $pbsMailtype
+EOF
+	fi
+	cat >> $outdir/job.sh << EOF
+# Configure modules and call aprun
 #. /etc/profile.d/modules.sh 
 cd $outdir
 aprun -n $npe -N $nppn $executable $args
@@ -315,19 +346,50 @@ EOF
 	echo "Recieved PBSid: "
 	echo "Recieved PBSid: " >> $outdir/info.txt
 	qsub -V $outdir/job.sh | tee -a $outdir/info.txt
+	
 ##############################################
 elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
 #http://www.lrz.de/services/compute/supermuc/loadleveler/
 #todo: add notification email stuff: always|error|start|never|complete
 	cat > $outdir/job.sh << EOF
 # @ job_name = $jobname
-# @ comment = $jobname
+# @ comment = $executable $args
 # @ error = $outdir/job.err
 # @ output = $outdir/job.out
 # @ environment = COPY_ALL
 # @ wall_clock_limit = $walltime
-# @ notification = error
+EOF
+	if [ $mail == true ]; then 
+		if [ -z "$UGSUBMIT_EMAIL" ]; then
+			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			exit
+		fi
+
+		JugeneNotification="never"
+		if [ $mailStart == true ]; then
+			JugeneNotification="start"
+		fi
+		if [ $mailEnd == true ]; then
+			if [ $JugeneNotification == "never" ]; then
+				JugeneNotification="stop"
+			else
+				JugeneNotification="always"
+			fi
+		fi
+		if [ $mailError == true ]; then
+			if [ $JugeneNotification == "never" ]; then
+				JugeneNotification="error"
+			else
+				JugeneNotification="always"
+			fi
+		fi	 
+		
+		cat >> $outdir/job.sh << EOF
+# @ notification = $JugeneNotification
 # @ notify_user = $UGSUBMIT_EMAIL
+EOF
+	fi
+	cat >> $outdir/job.sh << EOF
 # @ job_type = bluegene
 # @ bg_connection = TORUS
 # @ bg_size = $npe
@@ -341,8 +403,8 @@ EOF
 	echo $outdir/job.sh
 	if [ $test = true ]; then
 		echo "test. not executing."
-		echo $outdir/$jobname.sh ":"
-		cat $outdir/$jobname.sh
+		echo $outdir/job.sh ":"
+		cat $outdir/job.sh
 		rm -rf $outdir/
 		exit
 	fi
@@ -375,15 +437,44 @@ elif [ $UGSUBMIT_TYPE = "cekon" ]; then
 		echo "cekon does not support nppn > 1"
 		exit
 	fi
+
+	SlurmMail=""
+	if [ $mail == true ]; then 
+		if [ -z "$UGSUBMIT_EMAIL" ]; then
+			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			exit
+		fi
+
+		SlurmNotification="never"
+		if [ $mailStart == true ]; then
+			SlurmNotification="BEGIN"
+		fi
+		if [ $mailEnd == true ]; then
+			if [ $SlurmNotification == "never" ]; then
+				SlurmNotification="END"
+			else
+				SlurmNotification="ALL"
+			fi
+		fi
+		if [ $mailError == true ]; then
+			if [ $SlurmNotification == "never" ]; then
+				SlurmNotification="FAIL"
+			else
+				SlurmNotification="ALL"
+			fi
+		fi	 
+		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
+	fi
 	cd $outdir
 	echo cd $outdir
-	echo salloc -n $npe mpirun $executable $args
+	echo salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args
 	if [ $test = true ]; then
 		echo "test. not executing."
 		rm -rf $outdir/
 		exit
 	fi
-	salloc -n $npe mpirun $executable $args
+
+	salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args
 
 ##############################################
 else
