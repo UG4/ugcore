@@ -524,6 +524,7 @@ function SetupFETISolver(str_problem,
 			npAMG:set_theta(0.95)
 			npAMG:set_aggressive_coarsening(bAggressiveCoarsening)
 
+--[[
 ---- {
 			-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
 			testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
@@ -534,7 +535,7 @@ print("          (2)")
 print("          'Dirichlet 0, constant 1 else' testvector for FAMG created (TMP)!")
 			npAMG:add_testvector(testvectorwriter, 1.0)
 ---- }
-				
+   ]]				
 			local FAMGtestvectorSmoother = Jacobi()
 			FAMGtestvectorSmoother:set_damp(0.66)
 				
@@ -655,6 +656,7 @@ print("          'Dirichlet 0, constant 1 else' testvector for FAMG created (TMP
 			dpAMG:set_theta(0.95)
 			dpAMG:set_aggressive_coarsening(bAggressiveCoarsening)
 				
+--[[
 ---- {
 			-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
 			testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
@@ -665,7 +667,7 @@ print("          (2)")
 print("          'Dirichlet 0, constant 1 else' testvector for FAMG created (TMP)!")
 			dpAMG:add_testvector(testvectorwriter, 1.0)
 ---- }
-
+]]
 			if bWriteMat then
 				dpAMG:write_testvectors(true)
 			end
