@@ -10,6 +10,51 @@
 namespace ug
 {
 
+////////////////////////////////////////////////////////////////////////////////
+enum GridMessageMultiGridChangedType{
+	GMMGCT_LEVEL_ADDED = 1,
+	GMMGCT_REMOVED = 2
+};
+
+///	A message sent by the MultiGrid, if something special happened.
+class GridMessage_MultiGridChanged : public MessageHub::IMessage
+{
+	public:
+		GridMessage_MultiGridChanged(GridMessageMultiGridChangedType msgType,
+									 int numLevels) :
+			m_msgType(msgType),
+			m_numLevels(numLevels)
+		{}
+
+	///	returns the type of the message
+		GridMessageMultiGridChangedType message_type() const	{return m_msgType;}
+
+	///	returns the current number of levels in the multigrid, which did send the message.
+		int num_levels_in_grid() const		{return m_numLevels;}
+
+	private:
+		GridMessageMultiGridChangedType	m_msgType;
+		int		m_numLevels;
+};
+
+///	Returns the message id for grid adaption messages.
+/**	The associated type is GridMessage_MultiGridChanged.
+ * The associated messageIdName is "MultiGridChanged".
+ *
+ * Note: This method shouldn't be called on a regular basis. Instead the returned
+ * message-id should be cached and used directly in calls to the message-hub.
+ * The id will be determined on the first call with a given hub and then stay the
+ * same in subsequent calls with the same hub.
+ *
+ * Note: Message-ids are not necessarily the same for different hubs.
+ */
+inline int GridMessageId_MultiGridChanged(SPMessageHub hub)
+{
+	return hub->get_message_id<GridMessage_MultiGridChanged>("MultiGridChanged");
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 ///	constants which indicate the adaption type in a grid refinement message.
 enum GridMessageAdaptionType{
 	GMAT_UNKNOWN = 0,

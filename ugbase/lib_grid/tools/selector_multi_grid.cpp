@@ -46,6 +46,9 @@ void MGSelector::cleanup()
 //	detach shared entry-attachments of section containers
 	if(m_pMultiGrid){
 		disable_element_support(m_supportedElements);
+	//	unregister the previously registered callback
+		m_callbackId = MessageHub::SPCallbackId(NULL);
+
 		m_pMultiGrid = NULL;
 	}
 
@@ -72,6 +75,11 @@ void MGSelector::assign_grid(MultiGrid* grid)
 	//	attach shared entry-attachments to section containers
 		if(m_pMultiGrid){
 			enable_element_support(elementSupport);
+		//	register the callback
+			m_callbackId = m_pMultiGrid->message_hub()->register_class_callback(
+								GridMessageId_MultiGridChanged(m_pMultiGrid->message_hub()),
+								this, &ug::MGSelector::multigrid_changed);
+			level_required(m_pMultiGrid->num_levels());
 		}
 		m_supportedElements = elementSupport;
 	}
@@ -292,6 +300,13 @@ void MGSelector::grid_to_be_destroyed(Grid* grid)
 	ISelector::grid_to_be_destroyed(grid);
 	m_pMultiGrid = NULL;
 	clear_lists();
+}
+
+void MGSelector::
+multigrid_changed(int msgId, const GridMessage_MultiGridChanged* gm)
+{
+	if(gm->message_type() == GMMGCT_LEVEL_ADDED)
+		level_required(gm->num_levels_in_grid());
 }
 
 }//	end of namespace

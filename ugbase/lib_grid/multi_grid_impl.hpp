@@ -80,6 +80,12 @@ MultiGrid::create(const typename geometry_traits<TGeomObj>::Descriptor& descript
 	return iter;
 }
 
+inline void MultiGrid::level_required(int lvl)
+{
+	if(m_hierarchy.num_subsets() <= lvl){
+		create_levels(lvl - m_hierarchy.num_subsets() + 1);
+	}
+}
 
 //	info-access
 inline MultiGrid::VertexInfo& MultiGrid::get_info(VertexBase* v)

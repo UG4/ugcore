@@ -13,6 +13,7 @@
 #include <cassert>
 #include "selector_interface.h"
 #include "../multi_grid.h"
+#include "../lib_grid_messages.h"
 
 namespace ug
 {
@@ -44,6 +45,10 @@ class MultiGrid;
  * The following methods are the most used:
  *	- select, deselect, is_selected (see ISelector)
  *	- begin, end, num, clear.
+ *
+ * Note that the number of levels in the MGSelector always matches the number
+ * of levels in the associated multigrid. This is guaranteed through a callback
+ * mechanism.
  *
  * You may specify the element-type on which begin, end, num and clear
  * operate via a template parameter, and the level via a
@@ -275,6 +280,10 @@ class UG_API MGSelector : public ISelector
 				get_container().get_iterator(o);
 		}
 	/**	\}	*/
+
+	///	callback for multigrid messages
+		void multigrid_changed(int msgId, const GridMessage_MultiGridChanged* gm);
+
 	private:
 		MGSelector(const MGSelector& sel){};///<	Copy Constructor not yet implemented!
 
@@ -283,6 +292,9 @@ class UG_API MGSelector : public ISelector
 		LevelVec 	m_levels;
 		VertexBaseIterator m_tmpVBegin;
 		VertexBaseIterator m_tmpVEnd;
+
+	//	callback-id (automatically unregisters callback, when the selector is deleted).
+		MessageHub::SPCallbackId	m_callbackId;
 
 	//	we use a shared attachment for the entry-lists of all section containers
 		AttachedVertexList::AEntry	m_aSharedEntryVRT;

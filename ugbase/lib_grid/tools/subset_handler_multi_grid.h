@@ -10,13 +10,23 @@
 #include "lib_grid/multi_grid.h"
 #include "common/util/section_container.h"
 #include "subset_handler_interface.h"
+#include "../lib_grid_messages.h"
 
 namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-//	MultiGridSubsetHandlerBase
-/// \ingroup lib_grid
+//	MultiGridSubsetHandler
+/// Handles subsets on a per level basis.
+/** The MultiGridSubsetHandler is a specialization of ISubsetHandler for
+ * MultiGrids. It allows to access elements given a subset-index and a level index.
+ *
+ * Note that the number of levels in the MultiGridSubsetHandler always matches
+ * the number of levels in the associated multigrid. This is guaranteed through
+ * a callback mechanism.
+ *
+ * \ingroup lib_grid
+ */
 class UG_API MultiGridSubsetHandler : public ISubsetHandler
 {
 	public:
@@ -316,10 +326,17 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		const typename Grid::traits<TElem>::SectionContainer&
 		section_container(int si, int lvl) const;
 
+	///	callback for multigrid messages
+		void multigrid_changed(int msgId, const GridMessage_MultiGridChanged* gm);
+
 	protected:
 		MultiGrid*		m_pMG;
 		LevelVec		m_levels;
 		int				m_numSubsets;
+
+	//	callback-id (automatically unregisters callback, when the selector is deleted).
+		MessageHub::SPCallbackId	m_callbackId;
+
 		AttachedVertexList::AEntry	m_aSharedEntryVRT;
 		AttachedEdgeList::AEntry	m_aSharedEntryEDGE;
 		AttachedFaceList::AEntry	m_aSharedEntryFACE;

@@ -82,6 +82,9 @@ void MultiGridSubsetHandler::cleanup()
 		if(elements_are_supported(SHE_VOLUME))
 			m_pMG->detach_from_volumes(m_aSharedEntryVOL);
 
+	//	unregister the previously registered callback
+		m_callbackId = MessageHub::SPCallbackId(NULL);
+
 		m_pMG = NULL;
 	}
 
@@ -107,6 +110,13 @@ void MultiGridSubsetHandler::assign_grid(MultiGrid& mg)
 		m_pGrid->attach_to_faces(m_aSharedEntryFACE);
 	if(elements_are_supported(SHE_VOLUME))
 		m_pGrid->attach_to_volumes(m_aSharedEntryVOL);
+
+//	register the callback
+	m_callbackId = m_pMG->message_hub()->register_class_callback(
+						GridMessageId_MultiGridChanged(m_pMG->message_hub()),
+						this, &ug::MultiGridSubsetHandler::multigrid_changed);
+
+	level_required(m_pMG->num_levels());
 }
 
 void MultiGridSubsetHandler::erase_subset_lists()
@@ -375,6 +385,14 @@ void MultiGridSubsetHandler::add_subset_to_all_levels()
 
 	m_numSubsets++;
 }
+
+void MultiGridSubsetHandler::
+multigrid_changed(int msgId, const GridMessage_MultiGridChanged* gm)
+{
+	if(gm->message_type() == GMMGCT_LEVEL_ADDED)
+		level_required(gm->num_levels_in_grid());
+}
+
 /*
 size_t MultiGridSubsetHandler::
 collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const

@@ -206,6 +206,12 @@ template <> class mginfo_traits<Volume>
  * new elements are added one layer higher than their parents.
  * (NULL indicates base-level).
  *
+ * Whenever a a level is added or removed, a message is posted at the
+ * associated MessageHub (MultiGrid::message_hub()). The message has the type
+ * GridMessage_MultiGridChanged (defined in "lib_grid/lib_grid_messages.h").
+ * You may register a callback at the grids message-hub if you want to react
+ * on such a message.
+ *
  * In order to make state-assignment as effective as possible, one should
  * assign the status of the parent before creating its children.
  *
@@ -289,7 +295,7 @@ class MultiGrid : public Grid, public GridObserver
 		inline size_t num_levels() const	{return (size_t)m_hierarchy.num_subsets();}
 
 	///	creates new (empty) levels until num_levels() == lvl+1
-		inline void level_required(int lvl) {m_hierarchy.subset_required((int)lvl);}
+		inline void level_required(int lvl);
 
 		template <class TElem> inline
 		size_t num(int level) const		{return m_hierarchy.num<TElem>(level);}
@@ -503,6 +509,9 @@ class MultiGrid : public Grid, public GridObserver
 	//	initialization
 		void init();
 		
+	//	create levels
+		void create_levels(int numLevels);
+
 	//	info-access
 		inline VertexInfo& get_info(VertexBase* v);
 		inline EdgeInfo& get_info(EdgeBase* e);
@@ -604,6 +613,9 @@ class MultiGrid : public Grid, public GridObserver
 	//	hierarchy
 		SubsetHandler	m_hierarchy;
 		bool m_bHierarchicalInsertion;
+
+	//	message-id for changed-messages
+		int			m_msgId;
 
 	//	parent attachment
 		AParent		m_aParent;
