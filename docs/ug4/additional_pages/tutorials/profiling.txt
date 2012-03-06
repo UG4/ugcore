@@ -24,7 +24,7 @@ make
 \endcode
 Note that cmake "remembers" the flags you set. You can see the flags set in the output (for not changing any flags just enter "cmake .."). 
 To enable profiling of the PCL (Parallel Communication Layer), set <tt>-DPROFILE_PCL=ON</tt>.
-Check the output of </tt>cmake ..</tt> for changes and additional flags.
+Check the output of <tt>cmake ..</tt> for changes and additional flags.
 Keep in mind that you have to do a make when changing cmake flags.
 
 

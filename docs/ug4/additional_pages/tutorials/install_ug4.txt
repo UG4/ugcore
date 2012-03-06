@@ -37,44 +37,44 @@ Create a ug4 directory and perform a svn checkout on the trunk.
 
 <ol>
 <li> Open a terminal/shell window
-<li> move to ug4/trunk/
-<li> "mkdir build_debug"
-<li> "cd build_debug"
-<li> "cmake -DDEBUG=ON .." --> Makefiles are generated
+<li> move to <tt>ug4/trunk/</tt>
+<li> <tt>mkdir build_debug</tt>
+<li> <tt>cd build_debug</tt>
+<li> <tt>cmake -DDEBUG=ON ..</tt> --> Makefiles are generated
 </ol>
 
 Note, that there are several options, that can be passed to cmake to change
 the build behaviour. You see always the current chosen setup when runnig cmake
 and you should see a list of options which you can change. In order to change
-an option run cmake again with the parameter -D<option>=<val>, where <option>
-is one of the enumerated options and <val> is one of the possible values for
-that option ('<' and '>' should of course not be typed). The last argument to
-cmake always has to be the path which you used when you called cmake the first time.
+an option run cmake again with the parameter <tt>-D&lt;option&gt;=&lt;val&gt;</tt>, where <tt>&lt;option&gt;</tt>
+is one of the enumerated options and <tt>&lt;val&gt;</tt> is one of the possible values for
+that option (<tt>&lt;</tt> and <tt>&gt;</tt> should of course not be typed). The last argument to
+<tt>cmake</tt> always has to be the path which you used when you called cmake the first time.
 
 Note that you only have to specify the variables which you want to change. All other
 variables will keep their values.
 
 As default ug is build for all supported world dimensions (Dim = 1,2,3). If 
 you only need a special dimension (e.g. for code development) and you want to 
-save compilation time, use the -DDIM option. Examples:
+save compilation time, use the <tt>-DDIM</tt> option. Examples:
 
 <ul>
-<li> "cmake -DDIM=ALL .." -> Builds all dimensions
-<li> "cmake -DDIM=2 .." -> Builds only dimension 2
-<li> "cmake -DDIM="2;3" .." -> Builds dimension 2 and 3, but not 1
+<li> <tt>cmake -DDIM=ALL ..</tt> -> Builds all dimensions
+<li> <tt>cmake -DDIM=2 ..</tt> -> Builds only dimension 2
+<li> <tt>cmake -DDIM="2;3" ..</tt> -> Builds dimension 2 and 3, but not 1
 </ul>
 
-For cmake Versions old than 2.8 yo may be forced to explicitly specify, that
+For cmake Versions older than 2.8 yo may be forced to explicitly specify, that
 the option DIM is passed as a string. So, please use:
-"cmake -DDIM:STRING=2 .." etc.
+<tt>cmake -DDIM:STRING=2 ..</tt> etc.
 
 <hr>
 \section secInstallUG4Make Make
 <hr>
 
 <ol>
-<li> move to ug4/trunk/build_debug
-<li> "make" --> ug4 is build
+<li> move to <tt>ug4/trunk/build_debug</tt>
+<li> <tt>make</tt> --> ug4 is build
 </ol>
 
 
@@ -87,12 +87,12 @@ the option DIM is passed as a string. So, please use:
 Note: Boost-Headers are now automatically checked out with UG4 into the folder /externals. You have to download boost only if you want to use a different version of boost. <br>
 Download latest release of Boost from <a href="http://www.boost.org/users/download/">http://www.boost.org/users/download/</a> .
 <li> Extract/Copy the library to some folder on your computer. The folder is arbitrary. 
-	(e.g. home/lib/boost_1_46_0)
+	(e.g. <tt>$HOME/lib/boost_1_46_0</tt>)<li>
 <li> Add the path of the folder, where boost is located, to the environment 
 	variable <a href="http://www.linuxheadquarters.com/howto/basic/path.shtml">PATH</a>, e.g.: 
 	<ul>
-	<li> in bash: add <i>PATH=$PATH:$HOME/lib/boost_1_46_0</i> to the end of the file ~/.bashrc 
-	<li> in tcsh/csh: add <i>set PATH = ($PATH $HOME/lib/boost_1_46_0)</i> to the end of the file ~/.tcshrc
+	<li> in bash: add <tt>PATH=$PATH:$HOME/lib/boost_1_46_0</tt> to the end of the file <tt>~/.bashrc</tt></li>
+	<li> in tcsh/csh: add <tt>set PATH = ($PATH $HOME/lib/boost_1_46_0)</tt> to the end of the file <tt>~/.tcshrc</tt></li>
 	</ul>
 </ul> 
 

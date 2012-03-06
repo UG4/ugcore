@@ -38,6 +38,7 @@ Please note that those licenses only apply to the respective libraries.
 
 <br>
 	\subsection subLinenoise Linenoise
+\verbatim
 		* Copyright (c) 2010, Salvatore Sanfilippo <antirez at gmail dot com>
 		* All rights reserved.
 		*
@@ -66,9 +67,11 @@ Please note that those licenses only apply to the respective libraries.
 		* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 		* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 		* POSSIBILITY OF SUCH DAMAGE.
+\endverbatim
 
 <br>
 	\subsection subLua Lua
+\verbatim
 		* Copyright (C) 1994-2008 Lua.org, PUC-Rio.  All rights reserved.
 		*
 		* Permission is hereby granted, free of charge, to any person obtaining
@@ -89,9 +92,11 @@ Please note that those licenses only apply to the respective libraries.
 		* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 		* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 		* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+\endverbatim
 
 <br>
 	\subsection subRapidXML	RapidXML
+\verbatim
 		Boost Software License - Version 1.0 - August 17th, 2003
 		
 		Copyright (c) 2006, 2007 Marcin Kalicinski
@@ -117,9 +122,11 @@ Please note that those licenses only apply to the respective libraries.
 		FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 		ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 		DEALINGS IN THE SOFTWARE.
+\endverbatim
 		
 <br>
 	\subsection subShinyProfiler Shiny Profiler
+\verbatim
 		The zlib/libpng License
 
 		Copyright (c) 2007 Aidin Abedi (www.*)
@@ -140,9 +147,11 @@ Please note that those licenses only apply to the respective libraries.
 		       misrepresented as being the original software.
 		
 		    3. This notice may not be removed or altered from any source distribution.
+\endverbatim
 
 <br>
 	\subsection subLineintersectUtils lineintersect_utils
+\verbatim
 		 * Copyright (C) Graham Rhodes, 2001. 
 		 * All rights reserved worldwide.
 		 *
@@ -152,9 +161,11 @@ Please note that those licenses only apply to the respective libraries.
 		 * below is included in the resulting source code, for example:
 		 * "Portions Copyright (C) Graham Rhodes, 2001"
 		 *
+\endverbatim
 	
 <br>
 	\subsection subTribox tribox
+\verbatim
 		 * Copyright (C) Dan Ginsburg, 2000. 
 		 * All rights reserved worldwide.
 		 *
@@ -163,11 +174,14 @@ Please note that those licenses only apply to the respective libraries.
 		 * applications you distribute provided that the copyright text
 		 * below is included in the resulting source code, for example:
 		 * "Portions Copyright (C) Dan Ginsburg, 2000"
+\endverbatim
 		 
 <br>
 	\subsection subTritri tritri
+\verbatim
 		 * Triangle/triangle intersection test routine,
 		 * by Tomas Moller, 1997.
 		 * See article "A Fast Triangle-Triangle Intersection Test",
 		 * Journal of Graphics Tools, 2(2), 1997
+\endverbatim
 */
