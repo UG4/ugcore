@@ -20,6 +20,8 @@ mailEnd=false
 mailError=false
 mail=false
 
+tail=false
+
 # Jugene Options
 JugeneMode="VN"
 JugeneMapfile="TXYZ"
@@ -32,6 +34,7 @@ pbsMailtype=""
 # todo: vielleicht scripts fuer die scheduler auslagern
 # todo: different default nppn for clusters
 # todo: option -nodir
+# todo: interactive mode
 echo "ugsubmit 0.1. (c) Goethe-Center for Scientific Computing 2012"
 
 function usage 
@@ -55,6 +58,7 @@ function usage
 	echo "        -mail-error            : mail on error"
 	echo "        -mail-all              : "
 	echo "        -verbose               : enable verbose mode"
+	echo "        -tail                  : display the output (as tail -f. job runs even if you hit Ctrl-C)"
 	echo " "
 	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon."
 	echo " "
@@ -156,6 +160,9 @@ do
 	elif [ $1 = "-verbose" ]; then
 		verbose=true
 		shift 1
+	elif [ $1 = "-tail" ]; then
+		tail=true
+		shift 1
 	elif [ $1 = "---" ]; then
 		shift
 		break
@@ -251,13 +258,8 @@ if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
 		echo "please set UGSUBMIT_EMAIL or specify email with -email".
 		exit
 	fi	 
-	function nehalem_submit
-	{
-		#echo "1 = $1"
-		#echo "2 = $2"
-		#echo "3 = $3"
 # creating script file
-		cat > $outdir/$jobname.sh << EOF
+	cat > $outdir/$jobname.sh << EOF
 #!/bin/bash
 #PBS -N $jobname 
 #PBS -o $outdir/job.output
@@ -285,25 +287,26 @@ cd $outdir
 mpirun -np $npe $executable $args
 EOF
 
-		echo qsub -q user $outdir/$jobname.sh
+	echo qsub -q user $outdir/$jobname.sh
 		
-		if [ $test = true ]; then
-			echo ""
-			echo "test. not executing."
-			echo ""
-			echo $outdir/$jobname.sh ":"
-			cat $outdir/$jobname.sh
-			exit
-		fi
+	if [ $test = true ]; then
+		echo ""
+		echo "test. not executing."
+		echo ""
+		echo $outdir/$jobname.sh ":"
+		cat $outdir/$jobname.sh
+		exit
+	fi
 #submitting batch job
-		echo "Submitting batch job to queue ..."
-		echo "Recieved PBSid: "
-		echo "Recieved PBSid: " >> $outdir/info.txt
-		qsub -q user $outdir/$jobname.sh | tee -a $outdir/info.txt
-	}
-	nehalem_submit $scheduleroptions
-	
+	echo "Submitting batch job to queue ..."
+	echo "Recieved PBSid: "
+	echo "Recieved PBSid: " >> $outdir/info.txt
+	qsub -q user $outdir/$jobname.sh | tee -a $outdir/info.txt	
 
+	if [ $tail == true ]; then
+		tail -f $outdir/job.output
+	fi
+	
 elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
 	echo ""; echo "Using qsub on Hermit/Cray XE6"
 	
@@ -354,6 +357,10 @@ EOF
 	echo "Recieved PBSid: "
 	echo "Recieved PBSid: " >> $outdir/info.txt
 	qsub -V $outdir/job.sh | tee -a $outdir/info.txt
+	
+	if [ $tail == true ]; then
+		tail -f $outdir/job.output
+	fi
 	
 ##############################################
 elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
@@ -420,6 +427,11 @@ EOF
 #todo: uncomment next line
 # ll_submit $outdir/job.sh
 
+	if [ $tail == true ]; then
+		tail -f $outdir/job.out
+	fi
+
+
 ##############################################
 elif [ $UGSUBMIT_TYPE = "mpi" ]; then
 
@@ -436,8 +448,11 @@ elif [ $UGSUBMIT_TYPE = "mpi" ]; then
 		rm -rf $outdir/
 		exit
 	fi
-	mpirun -np $npe $executable $args
-	
+	nohup mpirun -np $npe $executable $args > $outdir/job.out &
+	if [ $tail == true ]; then
+		tail -f $outdir/job.out
+	fi
+
 ##############################################
 elif [ $UGSUBMIT_TYPE = "cekon" ]; then
 	echo ""; echo "Using SLURM on cekon"
@@ -482,7 +497,10 @@ elif [ $UGSUBMIT_TYPE = "cekon" ]; then
 		exit
 	fi
 
-	salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args
+	nohup salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args > $outdir/job.out &
+	if [ $tail == true ]; then
+		tail -f $outdir/job.out
+	fi
 
 ##############################################
 else
