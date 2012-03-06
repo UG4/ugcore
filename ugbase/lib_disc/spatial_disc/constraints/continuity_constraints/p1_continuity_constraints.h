@@ -15,9 +15,9 @@
 namespace ug {
 
 template <typename TDomain, typename TAlgebra>
-class SymP1ConstraintsPostProcess
+class SymP1Constraints
 	: public ConstraintBase<TDomain, TAlgebra,
-	  	  	  	  	  	  	  SymP1ConstraintsPostProcess<TDomain, TAlgebra> >
+	  	  	  	  	  	  	  SymP1Constraints<TDomain, TAlgebra> >
 {
 	public:
 	// 	Algebra type
@@ -86,9 +86,9 @@ class SymP1ConstraintsPostProcess
 
 
 template <typename TDomain, typename TAlgebra>
-class OneSideP1ConstraintsPostProcess
+class OneSideP1Constraints
 	: public ConstraintBase<TDomain, TAlgebra,
-	  	  	  	  	  	  OneSideP1ConstraintsPostProcess<TDomain, TAlgebra> >
+	  	  	  	  	  	  OneSideP1Constraints<TDomain, TAlgebra> >
 {
 	public:
 	// 	Algebra type

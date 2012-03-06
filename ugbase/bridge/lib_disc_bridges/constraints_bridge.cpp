@@ -63,10 +63,10 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "IDomainConstraint", dimAlgTag);
 	}
 
-//	OneSideP1ConstraintsPostProcess
+//	OneSideP1Constraints
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef OneSideP1ConstraintsPostProcess<TDomain, TAlgebra> T;
+		typedef OneSideP1Constraints<TDomain, TAlgebra> T;
 		typedef IDomainConstraint<TDomain, TAlgebra> baseT;
 		string name = string("OneSideP1Constraints").append(dimAlgSuffix);
 		reg.add_class_<T, baseT>(name, grp)
@@ -74,10 +74,10 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "OneSideP1Constraints", dimAlgTag);
 	}
 
-//	SymP1ConstraintsPostProcess
+//	SymP1Constraints
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
-		typedef SymP1ConstraintsPostProcess<TDomain, TAlgebra> T;
+		typedef SymP1Constraints<TDomain, TAlgebra> T;
 		typedef IDomainConstraint<TDomain, TAlgebra> baseT;
 		string name = string("SymP1Constraints").append(dimAlgSuffix);
 		reg.add_class_<T, baseT>(name, grp)

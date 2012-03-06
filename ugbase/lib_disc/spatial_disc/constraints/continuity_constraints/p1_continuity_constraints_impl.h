@@ -12,10 +12,94 @@
 
 namespace ug {
 
+/// returns the vertices of the object constraining a hanging vertex
+void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
+                         HangingVertex* hgVrt,
+                         bool bClearContainer = true)
+{
+//	clear container
+	if(bClearContainer) vConstrainingVrt.clear();
+
+//	switch constraining parent
+	switch(hgVrt->get_parent_base_object_type_id())
+	{
+	case EDGE:
+	{
+	//	cast to constraining edge
+		ConstrainingEdge* constrainingEdge =
+				dynamic_cast<ConstrainingEdge*>(hgVrt->get_parent());
+
+	//	check that edge is correct
+		if(constrainingEdge == NULL)
+			UG_THROW_FATAL("Parent element should be "
+						"constraining edge, but is not.");
+
+	//	get constraining vertices
+		for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
+		{
+		//	get constrained edge
+			ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(
+												constrainingEdge->constrained_edge(i_cde));
+
+		//	check
+			if(constrainedEdge == NULL)
+				UG_THROW_FATAL("Child element should be "
+							"constrained edge, but is not.");
+
+		//	get non-hanging vertex
+			VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
+
+		//	push back in list of interpolation vertices
+			vConstrainingVrt.push_back(vrt);
+		}
+	}
+		break;
+	case FACE:
+	{
+	//	cast to constraining quadrilateral
+		ConstrainingQuadrilateral* bigQuad =
+				dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_parent());
+
+	//	check that quad is correct
+		if(bigQuad == NULL)
+			UG_THROW_FATAL("Parent element should be "
+							"constraining quad, but is not.");
+
+	//	get constraining vertices
+	//	\todo: This is only valid for a surface grid!!!
+		for(size_t i_cf=0; i_cf < bigQuad->num_constrained_faces(); ++i_cf)
+		{
+			Face* face = bigQuad->constrained_face(i_cf);
+
+			VertexBase* vrt = NULL;
+			size_t i_vrt = 0;
+			for(i_vrt = 0; i_vrt < face->num_vertices(); ++i_vrt)
+			{
+				vrt = face->vertex(i_vrt);
+				if(hgVrt != vrt && dynamic_cast<HangingVertex*>(vrt) == NULL)
+					break;
+			}
+			if(i_vrt == face->num_vertices())
+				UG_THROW_FATAL("ERROR: Vertex not detected.\n");
+
+			vConstrainingVrt.push_back(vrt);
+		}
+	}
+		break;
+	default: UG_THROW_FATAL("Parent element of hang. vertex wrong.");
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//	Sym P1 Constraints
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
 void
-SymP1ConstraintsPostProcess<TDomain,TAlgebra>::
+SymP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
               ConstSmartPtr<TDD> dd, number time)
 {
@@ -29,214 +113,72 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	iterators for hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
+	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
 
-//	loop subsets
-	for(int si = 0; si < dd->num_subsets(); ++si)
+//	get begin end of hanging vertices
+	iter = dd->template begin<HangingVertex>();
+	iterEnd = dd->template end<HangingVertex>();
+
+//	loop constraining edges
+	for(; iter != iterEnd; ++iter)
 	{
-	//	get begin end of hanging vertices
-		iterBegin = dd->template begin<HangingVertex>(si);
-		iterEnd = dd->template end<HangingVertex>(si);
+	//	get hanging vert
+		HangingVertex* hgVrt = *iter;
 
-	//	loop constraining edges
-		for(iter = iterBegin; iter != iterEnd; ++iter)
-		{
-		//	resize tmp arrays
-			vConstrainingInd.clear();
-			vConstrainingVrt.clear();
+	//	get constraining vertices
+		CollectConstraining(vConstrainingVrt, hgVrt);
 
-		//	get hanging vert
-			HangingVertex* hgVrt = *iter;
+	//	resize constraining indices
+		vConstrainingInd.clear();
+		vConstrainingInd.resize(vConstrainingVrt.size());
 
-		//	switch constraining parent
-			switch(hgVrt->get_parent_base_object_type_id())
-			{
-			case EDGE:
-			{
-			//	cast to constraining edge
-				ConstrainingEdge* constrainingEdge =
-						dynamic_cast<ConstrainingEdge*>(hgVrt->get_parent());
+	// 	get algebra indices for constraining vertices
+		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
-			//	check that edge is correct
-				if(constrainingEdge == NULL)
-					UG_THROW_FATAL("Parent element should be "
-								"constraining edge, but is not.");
+	// 	get algebra indices constrained vertices
+		dd->inner_algebra_indices(hgVrt, constrainedInd);
 
-			//	get constraining vertices
-				for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
-				{
-				//	get constrained edge
-					ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(
-														constrainingEdge->constrained_edge(i_cde));
+	// 	Split using indices
+		SplitAddRow(mat, constrainedInd, vConstrainingInd);
 
-				//	check
-					if(constrainedEdge == NULL)
-						UG_THROW_FATAL("Child element should be "
-									"constrained edge, but is not.");
+	//	adapt rhs
+		HandleRhs(rhs, constrainedInd, vConstrainingInd);
+	}
 
-				//	get non-hanging vertex
-					VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
+//	get begin end of hanging vertices
+	iter = dd->template begin<HangingVertex>();
+	iterEnd = dd->template end<HangingVertex>();
 
-				//	push back in list of interpolation vertices
-					vConstrainingVrt.push_back(vrt);
-				}
-			}
-				break;
-			case FACE:
-			{
-			//	cast to constraining quadrilateral
-				ConstrainingQuadrilateral* bigQuad =
-						dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_parent());
+//	second loop to set the constraints
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get hanging vert
+		HangingVertex* hgVrt = *iter;
 
-			//	check that quad is correct
-				if(bigQuad == NULL)
-					UG_THROW_FATAL("Parent element should be "
-									"constraining quad, but is not.");
+	//	get constraining vertices
+		CollectConstraining(vConstrainingVrt, hgVrt);
 
-			//	get constraining vertices
-			//	\todo: This is only valid for a surface grid!!!
-				for(size_t i_cf=0; i_cf < bigQuad->num_constrained_faces(); ++i_cf)
-				{
-					Face* face = bigQuad->constrained_face(i_cf);
+	//	resize constraining indices
+		vConstrainingInd.clear();
+		vConstrainingInd.resize(vConstrainingVrt.size());
 
-					VertexBase* vrt = NULL;
-					size_t i_vrt = 0;
-					for(i_vrt = 0; i_vrt < face->num_vertices(); ++i_vrt)
-					{
-						vrt = face->vertex(i_vrt);
-						if(hgVrt != vrt && dynamic_cast<HangingVertex*>(vrt) == NULL)
-							break;
-					}
-					if(i_vrt == face->num_vertices())
-						UG_THROW_FATAL("ERROR: Vertex not detected.\n");
+	// 	get algebra indices for constraining vertices
+		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
-					vConstrainingVrt.push_back(vrt);
-				}
-			}
-				break;
-			default: UG_THROW_FATAL("Parent element of hang. vertex wrong.");
-			}
+	// 	get algebra indices constrained vertices
+		dd->inner_algebra_indices(hgVrt, constrainedInd);
 
-		//	resize constraining indices
-			vConstrainingInd.resize(vConstrainingVrt.size());
-
-		// 	get algebra indices for constraining vertices
-			for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-				dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-		// 	get algebra indices constrained vertices
-			dd->inner_algebra_indices(hgVrt, constrainedInd);
-
-		// 	Split using indices
-			SplitAddRow(mat, constrainedInd, vConstrainingInd);
-
-		//	adapt rhs
-			HandleRhs(rhs, constrainedInd, vConstrainingInd);
-		}
-
-	//	second loop to set the constraints
-	//	loop constraining edges
-		for(iter = iterBegin; iter != iterEnd; ++iter)
-		{
-		//	resize tmp arrays
-			vConstrainingInd.clear();
-			vConstrainingVrt.clear();
-
-		//	get hanging vert
-			HangingVertex* hgVrt = *iter;
-
-		//	switch constraining parent
-			switch(hgVrt->get_parent_base_object_type_id())
-			{
-			case EDGE:
-			{
-			//	cast to constraining edge
-				ConstrainingEdge* constrainingEdge =
-						dynamic_cast<ConstrainingEdge*>(hgVrt->get_parent());
-
-			//	check that edge is correct
-				if(constrainingEdge == NULL)
-					UG_THROW_FATAL("Parent element should be "
-									"constraining edge, but is not.");
-
-			//	get constraining vertices
-				for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
-				{
-				//	get constrained edge
-					ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(
-														constrainingEdge->constrained_edge(i_cde));
-
-				//	check
-					if(constrainedEdge == NULL)
-						UG_THROW_FATAL("Child element should be "
-									"constrained edge, but is not.");
-
-				//	get non-hanging vertex
-					VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
-
-				//	push back in list of interpolation vertices
-					vConstrainingVrt.push_back(vrt);
-				}
-			}
-				break;
-			case FACE:
-			{
-			//	cast to constraining quadrilateral
-				ConstrainingQuadrilateral* bigQuad =
-						dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_parent());
-
-			//	check that quad is correct
-				if(bigQuad == NULL)
-					UG_THROW_FATAL("Parent element should be "
-									"constraining quad, but is not.");
-
-			//	get constraining vertices
-			//	\todo: This is only valid for a surface grid!!!
-			//	since then the indices in shadowing vertex and shadow are
-			//	the same. In general, on a level, we will get the wrong
-			//	vertex from the coarser level
-				for(size_t i_cf=0; i_cf < bigQuad->num_constrained_faces(); ++i_cf)
-				{
-					Face* face = bigQuad->constrained_face(i_cf);
-
-					VertexBase* vrt = NULL;
-					size_t i_vrt = 0;
-					for(i_vrt = 0; i_vrt < face->num_vertices(); ++i_vrt)
-					{
-						vrt = face->vertex(i_vrt);
-						if(hgVrt != vrt && dynamic_cast<HangingVertex*>(vrt) == NULL)
-							break;
-					}
-					if(i_vrt == face->num_vertices())
-						UG_THROW_FATAL("ERROR: Vertex not detected.");
-
-					vConstrainingVrt.push_back(vrt);
-				}
-			}
-				break;
-			default: UG_THROW_FATAL("Parent element of hang. vertex wrong.");
-			}
-
-		//	resize constraining indices
-			vConstrainingInd.resize(vConstrainingVrt.size());
-
-		// 	get algebra indices for constraining vertices
-			for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-				dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-		// 	get algebra indices constrained vertices
-			dd->inner_algebra_indices(hgVrt, constrainedInd);
-
-		//	Set interpolation
-			SetInterpolation(mat, constrainedInd, vConstrainingInd);
-		}
+	//	set interpolation
+		SetInterpolation(mat, constrainedInd, vConstrainingInd);
 	}
 }
 
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
 void
-SymP1ConstraintsPostProcess<TDomain,TAlgebra>::
+SymP1Constraints<TDomain,TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
                 number time)
 {
@@ -250,98 +192,40 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	iterators for hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
+	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
 
-//	loop subsets
-	for(int si = 0; si < dd->num_subsets(); ++si)
+//	get begin end of hanging vertices
+	iter = dd->template begin<HangingVertex>();
+	iterEnd = dd->template end<HangingVertex>();
+
+//	loop constraining edges
+	for(; iter != iterEnd; ++iter)
 	{
-	//	get begin end of hanging vertices
-		iterBegin = dd->template begin<HangingVertex>(si);
-		iterEnd = dd->template end<HangingVertex>(si);
+	//	get hanging vert
+		HangingVertex* hgVrt = *iter;
 
-	//	loop constraining edges
-		for(iter = iterBegin; iter != iterEnd; ++iter)
-		{
-		//	resize tmp arrays
-			vConstrainingInd.clear();
-			vConstrainingVrt.clear();
+	//	get constraining vertices
+		CollectConstraining(vConstrainingVrt, hgVrt);
 
-		//	get hanging vert
-			HangingVertex* hgVrt = *iter;
+	//	resize constraining indices
+		vConstrainingInd.clear();
+		vConstrainingInd.resize(vConstrainingVrt.size());
 
-		//	switch constraining parent
-			switch(hgVrt->get_parent_base_object_type_id())
-			{
-			case EDGE:
-			{
-			//	cast to constraining edge
-				ConstrainingEdge* constrainingEdge =
-						dynamic_cast<ConstrainingEdge*>(hgVrt->get_parent());
+	// 	get algebra indices for constraining vertices
+		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
-			//	check that edge is correct
-				if(constrainingEdge == NULL)
-					UG_THROW_FATAL("Parent element should be "
-									"constraining edge, but is not.");
+	// 	get algebra indices constrained vertices
+		dd->inner_algebra_indices(hgVrt, constrainedInd);
 
-			//	get constraining vertices
-				for(size_t i_cde = 0; i_cde < constrainingEdge->num_constrained_edges(); ++i_cde)
-				{
-				//	get constrained edge
-					ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(
-														constrainingEdge->constrained_edge(i_cde));
-
-				//	check
-					if(constrainedEdge == NULL)
-						UG_THROW_FATAL("Child element should be "
-										"constrained edge, but is not.");
-
-				//	get non-hanging vertex
-					VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
-
-				//	push back in list of interpolation vertices
-					vConstrainingVrt.push_back(vrt);
-				}
-			}
-				break;
-			case FACE:
-			{
-			//	cast to constraining quadrilateral
-				ConstrainingQuadrilateral* bigQuad =
-						dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_parent());
-
-			//	check that quad is correct
-				if(bigQuad == NULL)
-					UG_THROW_FATAL("Parent element should be "
-									"constraining quad, but is not.");
-
-			//	get constraining vertices
-			//	\todo: This is only valid for a surface grid!!!
-				for(size_t i=0; i < bigQuad->num_vertices(); ++i)
-					vConstrainingVrt.push_back(bigQuad->vertex(i));
-			}
-				break;
-			default: UG_THROW_FATAL("Parent element of hang. vertex wrong.");
-			}
-
-		//	resize constraining indices
-			vConstrainingInd.resize(vConstrainingVrt.size());
-
-		// 	get algebra indices for constraining vertices
-			for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-				dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-		// 	get algebra indices constrained vertices
-			dd->inner_algebra_indices(hgVrt, constrainedInd);
-
-		// 	Interpolate values
-			InterpolateValues(u, constrainedInd, vConstrainingInd);
-		}
+	// 	Interpolate values
+		InterpolateValues(u, constrainedInd, vConstrainingInd);
 	}
 }
 
 template <typename TDomain, typename TAlgebra>
 void
-SymP1ConstraintsPostProcess<TDomain,TAlgebra>::
+SymP1Constraints<TDomain,TAlgebra>::
 SplitAddRow(matrix_type& A	,
             std::vector<size_t> & constrainedIndex,
             std::vector<std::vector<size_t> >& vConstrainingIndices)
@@ -410,7 +294,7 @@ SplitAddRow(matrix_type& A	,
 
 template <typename TDomain, typename TAlgebra>
 void
-SymP1ConstraintsPostProcess<TDomain,TAlgebra>::
+SymP1Constraints<TDomain,TAlgebra>::
 SetInterpolation(matrix_type& A,
                  std::vector<size_t> & constrainedIndex,
                  std::vector<std::vector<size_t> >& vConstrainingIndices)
@@ -443,7 +327,7 @@ SetInterpolation(matrix_type& A,
 
 template <typename TDomain, typename TAlgebra>
 void
-SymP1ConstraintsPostProcess<TDomain,TAlgebra>::
+SymP1Constraints<TDomain,TAlgebra>::
 HandleRhs(vector_type& rhs,
           std::vector<size_t> & constrainedIndex,
           std::vector<std::vector<size_t> >& vConstrainingIndices)
@@ -471,7 +355,7 @@ HandleRhs(vector_type& rhs,
 
 template <typename TDomain, typename TAlgebra>
 void
-SymP1ConstraintsPostProcess<TDomain,TAlgebra>::
+SymP1Constraints<TDomain,TAlgebra>::
 InterpolateValues(vector_type& u,
                   std::vector<size_t> & constrainedIndex,
                   std::vector<std::vector<size_t> >& vConstrainingIndices)
@@ -509,7 +393,7 @@ InterpolateValues(vector_type& u,
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
 void
-OneSideP1ConstraintsPostProcess<TDomain,TAlgebra>::
+OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
               ConstSmartPtr<TDD> dd, number time)
 {
@@ -523,105 +407,46 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	iterators for hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
+	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
 
-//	loop subsets
-	for(int si = 0; si < dd->num_subsets(); ++si)
+//	get begin end of hanging vertices
+	iter = dd->template begin<HangingVertex>();
+	iterEnd = dd->template end<HangingVertex>();
+
+//	loop constraining edges
+	for(; iter != iterEnd; ++iter)
 	{
+	//	get hanging vert
+		HangingVertex* hgVrt = *iter;
 
-	//	get begin end of hanging vertices
-		iterBegin = dd->template begin<HangingVertex>(si);
-		iterEnd = dd->template end<HangingVertex>(si);
+	//	get constraining vertices
+		CollectConstraining(vConstrainingVrt, hgVrt);
 
-	//	loop constraining edges
-		for(iter = iterBegin; iter != iterEnd; ++iter)
-		{
-		//	resize tmp arrays
-			vConstrainingInd.clear();
-			vConstrainingVrt.clear();
+	//	resize constraining indices
+		vConstrainingInd.clear();
+		vConstrainingInd.resize(vConstrainingVrt.size());
 
-		//	get hanging vert
-			HangingVertex* hgVrt = *iter;
+	// 	get algebra indices for constraining vertices
+		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
-		//	switch constraining parent
-			switch(hgVrt->get_parent_base_object_type_id())
-			{
-			case EDGE:
-			{
-			//	cast to constraining edge
-				ConstrainingEdge* constrainingEdge =
-						dynamic_cast<ConstrainingEdge*>(hgVrt->get_parent());
+	// 	get algebra indices constrained vertices
+		dd->inner_algebra_indices(hgVrt, constrainedInd);
 
-			//	check that edge is correct
-				if(constrainingEdge == NULL)
-					UG_THROW_FATAL("Parent element should be "
-								"constraining edge, but is not.");
+	// 	Split using indices
+		SplitAddRow(mat, constrainedInd, vConstrainingInd);
 
-			//	get constraining vertices
-				for(size_t i_cde = 0; i_cde != constrainingEdge->num_constrained_edges(); ++i_cde)
-				{
-				//	get constrained edge
-					ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(
-															constrainingEdge->constrained_edge(i_cde));
+	//	Set interpolation
+		SetInterpolation(mat, constrainedInd, vConstrainingInd);
 
-				//	check
-					if(constrainedEdge == NULL)
-						UG_THROW_FATAL("Child element should be "
-									"constrained edge, but is not.");
-
-				//	get non-hanging vertex
-					VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
-
-				//	push back in list of interpolation vertices
-					vConstrainingVrt.push_back(vrt);
-				}
-			}
-				break;
-			case FACE:
-			{
-			//	cast to constraining quadrilateral
-				ConstrainingQuadrilateral* bigQuad =
-						dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_parent());
-
-			//	check that quad is correct
-				if(bigQuad == NULL)
-					UG_THROW_FATAL("Parent element should be "
-								"constraining quad, but is not.");
-
-			//	get constraining vertices
-			//	\todo: This is only valid for a surface grid!!!
-				for(size_t i=0; i < bigQuad->num_vertices(); ++i)
-					vConstrainingVrt.push_back(bigQuad->vertex(i));
-			}
-				break;
-			default: UG_THROW_FATAL("Parent element of hang. vertex wrong.");
-			}
-
-		//	resize constraining indices
-			vConstrainingInd.resize(vConstrainingVrt.size());
-
-		// 	get algebra indices for constraining vertices
-			for(size_t i=0; i < vConstrainingVrt.size(); ++i)
-				dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
-
-		// 	get algebra indices constrained vertices
-			dd->inner_algebra_indices(hgVrt, constrainedInd);
-
-		// 	Split using indices
-			SplitAddRow(mat, constrainedInd, vConstrainingInd);
-
-		//	Set interpolation
-			SetInterpolation(mat, constrainedInd, vConstrainingInd);
-
-		//	adapt rhs
-			HandleRhs(rhs, constrainedInd, vConstrainingInd);
-		}
+	//	adapt rhs
+		HandleRhs(rhs, constrainedInd, vConstrainingInd);
 	}
 }
 
 template <typename TDomain, typename TAlgebra>
 void
-OneSideP1ConstraintsPostProcess<TDomain,TAlgebra>::
+OneSideP1Constraints<TDomain,TAlgebra>::
 SplitAddRow(matrix_type& A,
             std::vector<size_t> & constrainedIndex,
             std::vector<std::vector<size_t> >& vConstrainingIndices)
@@ -647,7 +472,7 @@ SplitAddRow(matrix_type& A,
 
 template <typename TDomain, typename TAlgebra>
 void
-OneSideP1ConstraintsPostProcess<TDomain,TAlgebra>::
+OneSideP1Constraints<TDomain,TAlgebra>::
 SetInterpolation(matrix_type& A,
                  std::vector<size_t> & constrainedIndex,
                  std::vector<std::vector<size_t> >& vConstrainingIndices)
@@ -669,7 +494,7 @@ SetInterpolation(matrix_type& A,
 
 template <typename TDomain, typename TAlgebra>
 void
-OneSideP1ConstraintsPostProcess<TDomain,TAlgebra>::
+OneSideP1Constraints<TDomain,TAlgebra>::
 HandleRhs(vector_type& rhs,
           std::vector<size_t> & constrainedIndex,
           std::vector<std::vector<size_t> >& vConstrainingIndices)
