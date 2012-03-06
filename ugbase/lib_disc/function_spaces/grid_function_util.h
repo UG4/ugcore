@@ -236,32 +236,7 @@ class GridFunctionDebugWriter
 		}
 
 	///	sets the function
-		void set_grid_level(const GridLevel& gridLevel)
-		{
-		//	extract positions for this grid function
-			std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
-
-			vPos.clear();
-
-			if(gridLevel.type() == GridLevel::SURFACE){
-				ExtractPositions<TDomain, SurfaceDoFDistribution>
-								(m_spApproxSpace->domain(),
-				                 m_spApproxSpace->surface_dof_distribution(gridLevel.level()),
-				                 vPos);
-			}
-			else if(gridLevel.type() == GridLevel::LEVEL){
-				ExtractPositions<TDomain, LevelDoFDistribution>
-								(m_spApproxSpace->domain(),
-				                 m_spApproxSpace->level_dof_distribution(gridLevel.level()),
-				                 vPos);
-			}
-			else{
-				UG_THROW_FATAL("Cannot find grid level");
-			}
-
-		//	remember
-			m_gridLevel = gridLevel;
-		}
+		void set_grid_level(const GridLevel& gridLevel)	{m_gridLevel = gridLevel;}
 
 	///	returns current grid level
 		GridLevel grid_level() const {return m_gridLevel;}
@@ -307,11 +282,37 @@ class GridFunctionDebugWriter
 								" filename is '"<<name<<"'.");
 
 		//	write to file
+			extract_positions(m_gridLevel);
 			std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
 			WriteMatrixToConnectionViewer(name.c_str(), mat, &vPos[0], dim);
 		}
 
 	protected:
+	///	reads the positions
+		void extract_positions(const GridLevel& gridLevel)
+		{
+		//	extract positions for this grid function
+			std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
+
+			vPos.clear();
+
+			if(gridLevel.type() == GridLevel::SURFACE){
+				ExtractPositions<TDomain, SurfaceDoFDistribution>
+								(m_spApproxSpace->domain(),
+								 m_spApproxSpace->surface_dof_distribution(gridLevel.level()),
+								 vPos);
+			}
+			else if(gridLevel.type() == GridLevel::LEVEL){
+				ExtractPositions<TDomain, LevelDoFDistribution>
+								(m_spApproxSpace->domain(),
+								 m_spApproxSpace->level_dof_distribution(gridLevel.level()),
+								 vPos);
+			}
+			else{
+				UG_THROW_FATAL("Cannot find grid level");
+			}
+		}
+
 	///	write vector
 		virtual void write_vector_to_conn_viewer(const vector_type& vec,
 		                                         const char* filename)
@@ -324,6 +325,7 @@ class GridFunctionDebugWriter
 								" filename is '"<<name<<"'.");
 
 		//	write
+			extract_positions(m_gridLevel);
 			std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
 			WriteVectorToConnectionViewer(name.c_str(), vec, &vPos[0], dim);
 		}
