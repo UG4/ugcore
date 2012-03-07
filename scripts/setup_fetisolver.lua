@@ -28,9 +28,32 @@
    nirgends aufgerufen wird!
 
    Dies wird aber durch 'linOp:init_op_and_rhs(b)', das ich in 'scalability_test.lua' mal testweise, statt 'AssembleLinearOperatorRhsAndSolution(linOp, u, b)', aufrufe -
-   und siehe da, kein Absturz mehr!
-   Der obige Fehler aber nicht, dazu muesste die Reihenfolge umgedreht werden: Erst Assemblieren, dann Aufsetzen FAMG mit Testvektoren!
+   und siehe da, kein Absturz mehr! - Auf cekon aber schon!????
+   Der obige Fehler aber nicht, dazu muesste die Reihenfolge umgedreht werden: Erst Assemblieren, dann Aufsetzen FAMG mit Testvektoren!?
 
+   Update (05032012): Laeuft nicht mehr!? Sieht auch so aus, als ob 'init_op_and_rhs()' mittlerweile auch in 'AssembleLinearOperatorRhsAndSolution()' steckt ...
+
+   # -numPPSD 4 with FAMG (once again - next try 05032012):
+   UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -numPPSD 4"
+
+   salloc -n 64 ./ugshell $UGARGS -numRefs  7 -ds famg -ns famg
+   salloc -n 64 ./ugshell $UGARGS -numRefs  8 -ds famg -ns famg
+   salloc -n 64 ./ugshell $UGARGS -numRefs  9 -ds famg -ns famg
+   salloc -n 64 ./ugshell $UGARGS -numRefs 10 -ds famg -ns famg
+
+
+   Neuer Versuch, ohne und mit Testvektoren:
+   UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -lsType feti -numPPSD 4"
+   local: openmpirun -np 16   ugshell $UGARGS -numPreRefs 2 -numRefs 4 -ds famg -ns famg
+   cekon: salloc -n 16 mpirun ugshell $UGARGS -numPreRefs 2 -numRefs 3 -ds famg -ns famg
+   ==> auf cekon Absturz, in FAMG:do_calculation(), beim Schreiben von VTK-Output!?
+
+   Lag daran, dass 'm_famg.m_bWriteFValues' nicht initialisiert wird - die gcc's auf cekon scheinen es auf true zu setzen,
+   der gcc auf dem MBP auf false (allerdings scheint hier der Absturz an einer anderen Stelle zu passieren, wenn man es explizit auf true setzt!?)
+
+   ==> npAMG:set_write_f_values(false), dpAMG:set_write_f_values(false) ergaenzt ==> voila!
+
+   Wenn Testvektoren per 'CreateAMGTestvectorDirichlet0()' erzeugt werden, gibt es aber so oder Absturz ...
    ]]
 ----------------------------------------------------------
 --
@@ -250,15 +273,6 @@ grep "Could not solve Dirichlet problem " ug4_laplace_feti.204720.out_feti-sd1_8
   Level 14 ==> (2^3 * 2^{14} + 1)^2 nodes = (2^{17} + 1)^2 nodes =  17'180'131'329 nodes
   Level 15 ==> (2^3 * 2^{15} + 1)^2 nodes = (2^{18} + 1)^2 nodes =  68'720'001'025 nodes
 
-
-# -numPPSD 4 with FAMG (once again - next try 05032012):
-UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -numPPSD 4"
-
-salloc -n 64 ./ugshell $UGARGS -numRefs  7 -ds famg -ns famg
-salloc -n 64 ./ugshell $UGARGS -numRefs  8 -ds famg -ns famg
-salloc -n 64 ./ugshell $UGARGS -numRefs  9 -ds famg -ns famg
-salloc -n 64 ./ugshell $UGARGS -numRefs 10 -ds famg -ns famg
-
 ]]
 
 
@@ -266,6 +280,28 @@ salloc -n 64 ./ugshell $UGARGS -numRefs 10 -ds famg -ns famg
 -- auxiliary functions for FAMG
 -- Testvectors for FAMG ---
 ----------------------------------------------------------
+function ourTestvector2d_0_0(x, y, t)
+	return 0
+end
+
+function ourTestvector2d_1_1(x, y, t)
+	return math.sin(math.pi*x)*math.sin(math.pi*y)
+end
+
+function ourTestvector2d_2_1(x, y, t)
+	return math.sin(2*math.pi*x)*math.sin(math.pi*y)
+end
+
+
+function ourTestvector2d_1_2(x, y, t)
+	return math.sin(math.pi*x)*math.sin(2*math.pi*y)
+end
+
+
+function ourTestvector2d_2_2(x, y, t)
+	return math.sin(2*math.pi*x)*math.sin(2*math.pi*y)
+end
+
 function CreateAMGTestvector(gridfunction, luaCallbackName, dim)
 	local amgTestvector;
 	print("          Create writer for testvector via grid function for FAMG ...")
@@ -290,6 +326,7 @@ function SetupFETISolver(str_problem,
 			 dim,
 			 linMaxIterations,
 			 numProcs,
+			 u,                         -- for testvector writer for FAMG (created by 'CreateAMGTestvector()')
 			 dirichletBND, approxSpace, -- for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()')
 			 activateDbgWriter,
 			 verbosity, logfileName)
@@ -523,11 +560,14 @@ function SetupFETISolver(str_problem,
 			npAMG:set_delta(0.5)
 			npAMG:set_theta(0.95)
 			npAMG:set_aggressive_coarsening(bAggressiveCoarsening)
+			npAMG:set_write_f_values(false)
 
 --[[
+   ]]				
 ---- {
 			-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
-			testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+			--testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+			testvectorwriter = CreateAMGTestvector(u, "ourTestvector2d_1_1", dim)
 print("          (1)")
 			testvector = GridFunction(approxSpace)
 print("          (2)")
@@ -535,7 +575,7 @@ print("          (2)")
 print("          'Dirichlet 0, constant 1 else' testvector for FAMG created (TMP)!")
 			npAMG:add_testvector(testvectorwriter, 1.0)
 ---- }
-   ]]				
+
 			local FAMGtestvectorSmoother = Jacobi()
 			FAMGtestvectorSmoother:set_damp(0.66)
 				
@@ -655,11 +695,14 @@ print("          'Dirichlet 0, constant 1 else' testvector for FAMG created (TMP
 			dpAMG:set_delta(0.5)
 			dpAMG:set_theta(0.95)
 			dpAMG:set_aggressive_coarsening(bAggressiveCoarsening)
+			dpAMG:set_write_f_values(false)
 				
 --[[
+]]
 ---- {
 			-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
-			testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+			--testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+			testvectorwriter = CreateAMGTestvector(u, "ourTestvector2d_0_0", dim)
 print("          (1)")
 			testvector = GridFunction(approxSpace)
 print("          (2)")
@@ -667,7 +710,7 @@ print("          (2)")
 print("          'Dirichlet 0, constant 1 else' testvector for FAMG created (TMP)!")
 			dpAMG:add_testvector(testvectorwriter, 1.0)
 ---- }
-]]
+
 			if bWriteMat then
 				dpAMG:write_testvectors(true)
 			end
