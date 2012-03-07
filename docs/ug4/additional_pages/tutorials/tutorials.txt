@@ -17,4 +17,6 @@ are aimed primarily at developers - e.g. the 'install eclipse' and
 	- \ref pageInstallEclipse "Install Eclipse"
 	- \ref pageAdditionalSoftware "Additional software that might be useful"
 	- \ref pageInstallUG4 "Compile ug4"
+	
+	- \ref pageugsubmit "Job Scheduling on Clusters"
  */
