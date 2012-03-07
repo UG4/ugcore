@@ -274,7 +274,7 @@ class LocalVector
 		}
 
 	/// const access to dof of currently accessible function fct
-		const number operator()(size_t fct, size_t dof) const
+		number operator()(size_t fct, size_t dof) const
 		{
 			check_dof(fct,dof);
 			return m_vvValueAcc[fct][dof];
@@ -525,7 +525,7 @@ class LocalMatrix
 		}
 
 	/// const access to (restricted) coupling (rowFct, rowDoF) x (colFct, colDoF)
-		const number operator()(size_t rowFct, size_t rowDoF,
+		number operator()(size_t rowFct, size_t rowDoF,
 		                        size_t colFct, size_t colDoF) const
 		{
 			check_dof(rowFct, rowDoF, colFct, colDoF);
@@ -557,7 +557,7 @@ class LocalMatrix
 		}
 
 	/// const access to coupling (rowFct, rowDoF) x (colFct, colDoF)
-		const number value(size_t rowFct, size_t rowDoF,
+		number value(size_t rowFct, size_t rowDoF,
 		                   size_t colFct, size_t colDoF) const
 		{
 			check_all_dof(rowFct, rowDoF, colFct, colDoF);
