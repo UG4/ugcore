@@ -228,7 +228,7 @@ fi
 
 # get path to executable
 executable=`which $binary`
-if [ ${executable:0:1} == "." ]; then
+if [ ${executable:0:1} = "." ]; then
 	executable=$execpath/$binary
 fi
 nnodes=$((npe/nppn))
