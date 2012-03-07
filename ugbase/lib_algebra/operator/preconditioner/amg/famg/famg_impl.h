@@ -50,6 +50,7 @@ FAMG<TAlgebra>::FAMG() : AMGBase<TAlgebra>()
 	m_bAggressiveCoarsening = false;
 	m_writeTestvectors = false;
 	m_bTestvectorsFromMatrixRows = false;
+	m_bWriteFValues = false;
 
 	m_dProlongationTruncation = 0.0;
 	m_dHReduceInterpolationNodesParameter = 0.0;
@@ -66,6 +67,7 @@ FAMG<TAlgebra>::FAMG() : AMGBase<TAlgebra>()
 	iDebugLevelCalculateParentPairs = iDebugLevelColoring = iDebugLevelRecvCoarsening = iDebugLevelGetRatings = iDebugLevelPrecalculateCoarsening =
 				iDebugLevelAggressiveCoarsening = iDebugLevelSendCoarsening = iDebugLevelCommunicateProlongation = iDebugLevelAfterCommunicateProlongation = 0;
 
+	m_bWriteFValues = false;
 #ifdef UG_PARALLEL
 	m_pParallelCoarsening = NULL;
 #endif
