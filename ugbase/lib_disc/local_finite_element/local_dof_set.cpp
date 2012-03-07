@@ -115,7 +115,7 @@ const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id, bool bCreat
 	}
 
 //	get dimension
-	const std::vector<CommonLocalDoFSet> vCommonDoFSet = iter->second;
+	const std::vector<CommonLocalDoFSet>& vCommonDoFSet = iter->second;
 
 //	return the common set
 	return vCommonDoFSet.at(dim);
