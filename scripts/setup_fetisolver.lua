@@ -562,26 +562,20 @@ function SetupFETISolver(str_problem,
 			npAMG:set_aggressive_coarsening(bAggressiveCoarsening)
 			npAMG:set_write_f_values(false)
 
---[[
-   ]]				
----- {
-			-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
-			--testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
-			testvectorwriter = CreateAMGTestvector(u, "ourTestvector2d_1_1", dim)
-print("          (1)")
-			testvector = GridFunction(approxSpace)
-print("          (2)")
-			testvectorwriter:update(testvector)	
-print("          'Dirichlet 0, constant 1 else' testvector for FAMG created (TMP)!")
-			npAMG:add_testvector(testvectorwriter, 1.0)
----- }
-
 			local FAMGtestvectorSmoother = Jacobi()
 			FAMGtestvectorSmoother:set_damp(0.66)
 				
-			npAMG:set_testvector_smooths(1) -- was: 'set_testvector_damps(1)' (17022012ih)
+			npAMG:set_testvector_smooths(1)
 			npAMG:set_damping_for_smoother_in_interpolation_calculation(0.66)
-			npAMG:set_testvector_smoother(FAMGtestvectorSmoother) -- was: 'set_testvectorsmoother_damps(1)' (17022012ih)
+			npAMG:set_testvector_smoother(FAMGtestvectorSmoother)
+--[[
+			-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
+			--testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+			testvectorwriter = CreateAMGTestvector(u, "ourTestvector2d_1_1", dim)
+			testvector = GridFunction(approxSpace)
+			testvectorwriter:update(testvector)	
+			npAMG:add_testvector(testvectorwriter, 1.0)
+   ]]				
 			npAMG:set_testvector_from_matrix_rows(true)
 				
 			if bExternalCoarsening then
@@ -697,29 +691,24 @@ print("          'Dirichlet 0, constant 1 else' testvector for FAMG created (TMP
 			dpAMG:set_aggressive_coarsening(bAggressiveCoarsening)
 			dpAMG:set_write_f_values(false)
 				
---[[
-]]
----- {
-			-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
-			--testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
-			testvectorwriter = CreateAMGTestvector(u, "ourTestvector2d_0_0", dim)
-print("          (1)")
-			testvector = GridFunction(approxSpace)
-print("          (2)")
-			testvectorwriter:update(testvector)	
-print("          'Dirichlet 0, constant 1 else' testvector for FAMG created (TMP)!")
-			dpAMG:add_testvector(testvectorwriter, 1.0)
----- }
-
 			if bWriteMat then
 				dpAMG:write_testvectors(true)
 			end
 			local FAMGtestvectorSmoother = Jacobi()
 			FAMGtestvectorSmoother:set_damp(0.66)
 				
-			dpAMG:set_testvector_smooths(1) -- was: 'set_testvector_damps(1)' (17022012ih)
+			dpAMG:set_testvector_smooths(1)
 			dpAMG:set_damping_for_smoother_in_interpolation_calculation(0.66)
-			dpAMG:set_testvector_smoother(FAMGtestvectorSmoother) -- was: 'set_testvectorsmoother_damps(1)' (17022012ih)
+			dpAMG:set_testvector_smoother(FAMGtestvectorSmoother)
+			
+	--[[
+			-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
+			--testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
+			testvectorwriter = CreateAMGTestvector(u, "ourTestvector2d_1_1", dim)
+			testvector = GridFunction(approxSpace)
+			testvectorwriter:update(testvector)	
+			dpAMG:add_testvector(testvectorwriter, 1.0)
+   ]]	
 			dpAMG:set_testvector_from_matrix_rows(true)
 				
 			if bExternalCoarsening then
