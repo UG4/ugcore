@@ -430,8 +430,14 @@ class IDomainElemDisc : public IElemDisc
 			: IElemDisc(functions, subsets), m_spApproxSpace(NULL) {};
 
 	///	sets the approximation space
+	/**	Calls protected virtual 'approximation_space_changed', when a new approximation space
+	 * has been set. Note that 'approximation_space_changed' is only called once if the
+	 * same approximation space is set multiple times.*/
 		void set_approximation_space(SmartPtr<ApproximationSpace<domain_type> > approxSpace)
 		{
+		//	check whether the approximation space has already been set
+			bool newApproxSpace = (m_spApproxSpace.get_impl() != approxSpace.get_impl());
+
 		//	remember approx space
 			m_spApproxSpace = approxSpace;
 
@@ -439,7 +445,8 @@ class IDomainElemDisc : public IElemDisc
 			m_aaPos = m_spApproxSpace->domain()->position_accessor();
 
 		//	invoke callback
-			approximation_space_changed();
+			if(newApproxSpace)
+				approximation_space_changed();
 		}
 
 	///	returns approximation space
@@ -447,9 +454,6 @@ class IDomainElemDisc : public IElemDisc
 
 	///	returns approximation space
 		ConstSmartPtr<ApproximationSpace<domain_type> > approx_space() const {return m_spApproxSpace;}
-
-	///	callback invoked, when approximation space is changed
-		virtual void approximation_space_changed() {}
 
 	///	returns the domain
 		domain_type& domain()
@@ -510,6 +514,10 @@ class IDomainElemDisc : public IElemDisc
 		}
 
 	protected:
+	///	callback invoked, when approximation space is changed
+		virtual void approximation_space_changed() {}
+
+	protected:
 	///	Position access
 		typename TDomain::position_accessor_type m_aaPos;
 
@@ -518,6 +526,7 @@ class IDomainElemDisc : public IElemDisc
 
 	///	Approximation Space
 		SmartPtr<ApproximationSpace<domain_type> > m_spApproxSpace;
+
 };
 /// @}
 
