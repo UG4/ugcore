@@ -138,8 +138,8 @@ end
 print(" General parameters chosen:")
 print("    dim        = " .. dim)
 print("    grid       = " .. gridName)
-print("    numRefs    = " .. numRefs)
 print("    numPreRefs = " .. numPreRefs)
+print("    numRefs    = " .. numRefs)
 
 print("    verb (verbosity)         = " .. verbosity)
 print("    printSol (ps)            = " .. printSol)
@@ -440,7 +440,8 @@ if lsType == "feti" then
 					      dim,
 					      lsMaxIter,
 					      numProcs,
-					      dirichletBND, approxSpace, -- for testvector writer for FAMG
+					      u,                         -- for testvector writer for FAMG (created by 'CreateAMGTestvector()')
+					      dirichletBND, approxSpace, -- for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()')
 					      activateDbgWriter,
 					      verbosity, logfileName_tmp)
 
