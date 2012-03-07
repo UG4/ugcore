@@ -122,6 +122,14 @@ class SmartPtr
 			return *this;
 		}
 
+		bool operator==(const SmartPtr& sp){
+			return (this->get_impl() == sp.get_impl());
+		}
+
+		bool operator!=(const SmartPtr& sp){
+			return !(this->operator==(sp));
+		}
+
 		T* get_impl()				{return m_ptr;}
 		const T* get_impl() const	{return m_ptr;}
 
@@ -261,6 +269,14 @@ class ConstSmartPtr
 			if(m_refCount)
 				(*m_refCount)++;
 			return *this;
+		}
+
+		bool operator==(const ConstSmartPtr& sp){
+			return (this->get_impl() == sp.get_impl());
+		}
+
+		bool operator!=(const ConstSmartPtr& sp){
+			return !(this->operator==(sp));
 		}
 
 		const T* get_impl() const	{return m_ptr;}
