@@ -34,6 +34,14 @@ class ManagingDoFDistribution
 
 	protected:
 	///	managed grid functions
+	/**
+	 * This vector holds a pointer to all grid functions, that should be
+	 * managed (i.e. adapted), when the dof distribution is changed.
+	 * NOTE:	No SmartPtr is used here on purpose. The GridFunction stores a
+	 * 			SmartPtr to the DoFDistribution. If we would use a SmartPtr
+	 * 			here those objects would reference each other and would never
+	 * 			be deleted.
+	 */
 		std::vector<IGridFunction*> m_vpGridFunction;
 };
 
