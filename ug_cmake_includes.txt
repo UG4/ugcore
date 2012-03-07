@@ -95,6 +95,7 @@ endif(BUILTIN_MPI)
 # cmake-options can either be on or off.
 # note: none-on/off-variables are set below, and the docstring is set at the end of this file
 
+
 # the following options are real cmake-options
 option(STATIC "Enables static linking. Valid options are: ON, OFF" OFF)
 option(DEBUG "Enables debugging. Valid options are: ON, OFF" OFF)
@@ -179,6 +180,8 @@ message(STATUS "Info: PARMETIS: "${PARMETIS})
 message(STATUS "Info: TETGEN:   "${TETGEN})
 message(STATUS "Info: HYPRE:    "${HYPRE})
 message(STATUS "Info: HLIBPRO:  "${HLIBPRO})
+message(STATUS "")
+message(STATUS "Info: C Compiler ID: ${CMAKE_C_COMPILER_ID}, C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}") 
 message(STATUS "")
 
 ################################################################################
@@ -352,11 +355,13 @@ if(DEBUG)
 	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
 	# however, GLIBCXX_DEBUG and strstream don't work together on mac (bug: http://bit.ly/cH78bC). 
 	# when this bug is fixed, one could set those flags (or similar) depending on the compiler.
-	# -D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1
+	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
+		add_definitions(-D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1)
+	ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
 
 else(DEBUG)
 	add_definitions(-O3)
-	if(NOT CRAY)
+	if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 		add_definitions(-funroll-loops -ftree-vectorize)
 	endif(NOT CRAY)
 	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
