@@ -64,7 +64,7 @@ class PathProvider
 	 * 					or a used defined constant starting from
 	 * 					MAX_PATH_CONSTANT + 1.
 	 */
-		static inline const has_path(int pathType)
+		static inline bool has_path(int pathType)
 		{return inst().m_map.find(pathType) != inst().m_map.end();}
 
 	///	returns the current path
