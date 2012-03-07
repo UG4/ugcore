@@ -363,7 +363,7 @@ else(DEBUG)
 	add_definitions(-O3)
 	if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 		add_definitions(-funroll-loops -ftree-vectorize)
-	endif(NOT CRAY)
+	endif("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
 endif(DEBUG)
 
