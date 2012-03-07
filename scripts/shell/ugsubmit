@@ -1,10 +1,34 @@
 #!/bin/bash
+######################################################################
+# ugsubmit 0.1
+#-------------------------------------------------------------------
 # created by Martin Rupp 05.03.2012
+# mail: martin.rupp@gcsc.uni-frankfurt.de
 # authors: Martin Rupp, Andreas Vogel, Arne Naegel.
+#
+# ugsubmit is a job submitting script to unify the job schedulers
+# on different clusters. Supported Clusters are:
+# - cekon , G-CSC Frankfurt (SLURM, salloc)
+# - Jugene, Forschungszentrum Jülich (ll_submit)
+# - Hermit, HLRS Stuttgart (qsub, aprun)
+# - NecNehalem, HLRS Stuttgart (qsub, mpirun)
+# 
+# feel free to add more!
+#
+# usage: see function usage(). quick manual:
+# use environment variables e.g. 
+# export UGSUBMIT_TYPE=cekon 
+# export UGSUBMIT_EMAIL=martin.rupp@gcsc.uni-frankfurt.de
+# to start a script running 64 processes:
+# ugsubmit 64 --- ugshell -ex laplace.lua -numPreRefs 5 -numRefs 9
+# output is then written to ./job.64.(current date)/job.out
+# the current job dir is linked to by lastRun
+######################################################################
 
-##### 1. read parameters, set cpus (or exit) ########
-#####################################################
 
+
+
+######################################################################
 # set default values
 test=false;
 nppn=1;
@@ -30,13 +54,15 @@ JugeneVerbose=2
 # general PBS Options
 pbsMailtype=""
 
-
+######################################################################
 # todo: vielleicht scripts fuer die scheduler auslagern
 # todo: different default nppn for clusters
 # todo: option -nodir
 # todo: interactive mode
+
 echo "ugsubmit 0.1. (c) Goethe-Center for Scientific Computing 2012"
 
+######################################################################
 function usage 
 {
 	echo ""
@@ -71,7 +97,8 @@ function usage
 	echo "        '<jobname>.<npe>' (where <npe> is the number of processes. In this new directory"
 	echo "        a file names 'info.txt' is created, to identify the job. Then, depending"
 	echo "        on the selected cluster type, a shell script is created and submitted to the"
-	echo "        job scheduling system."
+	echo "        job scheduling system. ugsubmit also sets a symbolic link lastRun to the newly"
+    echo "        created directory"
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
    	echo "UGSUBMIT_TYPE is not set!"
@@ -87,12 +114,14 @@ fi
     exit 0;
 }
 
+######################################################################
+# read args
+
 # check that at least 3 args given, else print usage
 if [ $# -lt 3 ]; then
    usage
 fi
 
-# read args
 npe=$1;            # number of nodes
 shift
 
@@ -185,6 +214,8 @@ if [ $((npe%nppn)) -ne 0 ]; then
 	exit
 fi
 
+######################################################################
+
 # get path to executable
 executable=`which $binary`
 if [ ${executable:0:1} = "." ]; then
@@ -221,6 +252,7 @@ if [ ! -e $outdir/info.txt ]; then
     touch $outdir/info.txt
 fi
 
+######################################################################
 # info about args read
 echo " ------------" >> $outdir/info.txt
 echo "  Executing:" >> $outdir/info.txt
@@ -250,7 +282,12 @@ if [ $verbose = true ]; then
 fi
 #ugjob $UGSUBMIT_EMAIL $jobname $outdir $nnodes $nppn $walltime $executable $args
 
-##############################################
+# now call job schedulers
+
+######################################################################
+#        qsub on NecNehalem / NEC Nehalem Cluster / HLRS
+#-------------------------------------------------------------------
+######################################################################
 if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
 	echo ""; echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
 	
@@ -307,6 +344,10 @@ EOF
 		tail -f $outdir/job.output
 	fi
 	
+######################################################################
+#                     qsub on Hermit / HLRS
+#-------------------------------------------------------------------
+######################################################################
 elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
 	echo ""; echo "Using qsub on Hermit/Cray XE6"
 	
@@ -362,15 +403,17 @@ EOF
 		tail -f $outdir/job.output
 	fi
 	
-##############################################
+######################################################################
+#                            Jugene
+#-------------------------------------------------------------------
+# http://www.lrz.de/services/compute/supermuc/loadleveler/
+######################################################################
 elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
-#http://www.lrz.de/services/compute/supermuc/loadleveler/
-#todo: add notification email stuff: always|error|start|never|complete
 	cat > $outdir/job.sh << EOF
 # @ job_name = $jobname
 # @ comment = $executable $args
-# @ error = $outdir/job.err
-# @ output = $outdir/job.out
+# @ error = $outdir/job.error
+# @ output = $outdir/job.output
 # @ environment = COPY_ALL
 # @ wall_clock_limit = $walltime
 EOF
@@ -428,11 +471,16 @@ EOF
 # ll_submit $outdir/job.sh
 
 	if [ $tail == true ]; then
-		tail -f $outdir/job.out
+		tail -f $outdir/job.output
 	fi
 
 
-##############################################
+######################################################################
+#                            mpi
+#-------------------------------------------------------------------
+# not a real job scheduler, just for completeness and tests
+# todo: wait for completion of "jobs"...
+######################################################################
 elif [ $UGSUBMIT_TYPE = "mpi" ]; then
 
 	echo ""; echo "Using MPI"
@@ -448,12 +496,16 @@ elif [ $UGSUBMIT_TYPE = "mpi" ]; then
 		rm -rf $outdir/
 		exit
 	fi
-	nohup mpirun -np $npe $executable $args > $outdir/job.out &
+	nohup mpirun -np $npe $executable $args > $outdir/job.output &
 	if [ $tail == true ]; then
-		tail -f $outdir/job.out
+		tail -f $outdir/job.output
 	fi
 
-##############################################
+######################################################################
+#                           cekon
+#-------------------------------------------------------------------
+# using SLURM
+######################################################################
 elif [ $UGSUBMIT_TYPE = "cekon" ]; then
 	echo ""; echo "Using SLURM on cekon"
 	if [ $nppn -ne 1 ]; then
@@ -497,12 +549,12 @@ elif [ $UGSUBMIT_TYPE = "cekon" ]; then
 		exit
 	fi
 
-	nohup salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args > $outdir/job.out &
+	nohup salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args > $outdir/job.output &
 	if [ $tail == true ]; then
-		tail -f $outdir/job.out
+		tail -f $outdir/job.output
 	fi
 
-##############################################
+######################################################################
 else
 	echo "" 
 	echo "ERROR: cluster "$UGSUBMIT_TYPE" is not supported."
