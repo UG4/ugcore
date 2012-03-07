@@ -30,7 +30,7 @@ TElem TrivialToValue(TElem e)
 {
 	return e;
 }
-inline void PrintPC(const pcl::ProcessCommunicator processCommunicator)
+inline void PrintPC(const pcl::ProcessCommunicator &processCommunicator)
 {
 	UG_LOG(processCommunicator.size() << " involved procs: ");
 	for(size_t i=0; i<processCommunicator.size(); i++)
