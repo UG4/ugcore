@@ -140,69 +140,69 @@ do
 		echo "missing -ex <binary>!"
         exit
 	fi
-	if [ $1 = "-nppn" ]; then
+	if [ $1 == "-nppn" ]; then
 		nppn=$2		   
 		shift 2
-	elif [ $1 = "-walltime" ]; then
+	elif [ $1 == "-walltime" ]; then
 		walltime=$2
 		shift 2
-	elif [ $1 = "-name" ]; then
+	elif [ $1 == "-name" ]; then
 		jobname=$2
 		shift 2
-	elif [ $1 = "-so" ]; then
+	elif [ $1 == "-so" ]; then
 		scheduleroptions=$2
 		shift 2
-	elif [ $1 = "-test" ]; then
+	elif [ $1 == "-test" ]; then
 		test=true
 		verbose=true
 		shift 1
-	elif [ $1 = "-email" ]; then
+	elif [ $1 == "-email" ]; then
 		UGSUBMIT_EMAIL=$2
 		shift 2
-	elif [ $1 = "-cluster" ]; then
+	elif [ $1 == "-cluster" ]; then
 		UGSUBMIT_TYPE=$2
 		shift 2
-	elif [ $1 = "-Jugene-mode" ]; then
+	elif [ $1 == "-Jugene-mode" ]; then
 		JugeneMode=$2
 		shift 2
-	elif [ $1 = "-Jugene-mapfile" ]; then
+	elif [ $1 == "-Jugene-mapfile" ]; then
 		JugeneMapfile=$2
 		shift 2
-	elif [ $1 = "-Jugene-verbose" ]; then
+	elif [ $1 == "-Jugene-verbose" ]; then
 		JugeneVerbose=$2
 		shift 2
-	elif [ $1 = "-mail-error" ]; then
+	elif [ $1 == "-mail-error" ]; then
 		mailError=true
 		mail=true
 		pbsMailtype=${pbsMailtype}a
 		shift 1
-	elif [ $1 = "-mail-end" ]; then
+	elif [ $1 == "-mail-end" ]; then
 		mailEnd=true
 		mail=true
 		pbsMailtype=${pbsMailtype}e
 		shift 1
-	elif [ $1 = "-mail-start" ]; then
+	elif [ $1 == "-mail-start" ]; then
 		mailStart=true
 		mail=true
 		pbsMailtype=${pbsMailtype}b		
 		shift 1
-	elif [ $1 = "-mail-all" ]; then
+	elif [ $1 == "-mail-all" ]; then
 		mailStart=true
 		mailStop=true
 		mailError=true
 		mail=true
 		pbsMailtype="abe"
 		shift
-	elif [ $1 = "-verbose" ]; then
+	elif [ $1 == "-verbose" ]; then
 		verbose=true
 		shift 1
-	elif [ $1 = "-tail" ]; then
+	elif [ $1 == "-tail" ]; then
 		tail=true
 		shift 1
-	elif [ $1 = "-Hermit-workspace" ]
+	elif [ $1 == "-Hermit-workspace" ]; then
 		HermitWorkspace=true
 		shift 1
-	elif [ $1 = "---" ]; then
+	elif [ $1 == "---" ]; then
 		shift
 		break
 	else
@@ -228,7 +228,7 @@ fi
 
 # get path to executable
 executable=`which $binary`
-if [ ${executable:0:1} = "." ]; then
+if [ ${executable:0:1} == "." ]; then
 	executable=$execpath/$binary
 fi
 nnodes=$((npe/nppn))
@@ -247,7 +247,7 @@ fi
 ticket=$$
 
 #create output directory
-if [ $HermitWorkspace == true ]
+if [ $HermitWorkspace == true ]; then
 	if [ $UGSUBMIT_TYPE == "Hermit" ]; then
 		outdir=`ws_allocate $jobname 31`
 	else
@@ -296,7 +296,7 @@ echo "" >> $outdir/info.txt
 echo "Job '$jobname' submitted on `date`" >> $outdir/info.txt
 echo "Output to:      '$outdir'" >> $outdir/info.txt
 
-if [ $verbose = true ]; then
+if [ $verbose == true ]; then
 	cat $outdir/info.txt
 fi
 #ugjob $UGSUBMIT_EMAIL $jobname $outdir $nnodes $nppn $walltime $executable $args
@@ -307,7 +307,7 @@ fi
 #        qsub on NecNehalem / NEC Nehalem Cluster / HLRS
 #-------------------------------------------------------------------
 ######################################################################
-if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
+if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
 	echo ""; echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
 	
 	if [ $mail == true ] && [ -z "$UGSUBMIT_EMAIL" ]; then
@@ -345,7 +345,7 @@ EOF
 
 	echo qsub -q user $outdir/$jobname.sh
 		
-	if [ $test = true ]; then
+	if [ $test == true ]; then
 		echo ""
 		echo "test. not executing."
 		echo ""
@@ -367,7 +367,7 @@ EOF
 #                     qsub on Hermit / HLRS
 #-------------------------------------------------------------------
 ######################################################################
-elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
+elif [ $UGSUBMIT_TYPE == "Hermit" ]; then
 	echo ""; echo "Using qsub on Hermit/Cray XE6"
 	
 
@@ -403,7 +403,7 @@ EOF
 
 	echo qsub -V $outdir/job.sh
 
-	if [ $test = true ]; then
+	if [ $test == true ]; then
 		echo ""
 		echo "test. not executing."
 		echo ""
@@ -427,7 +427,7 @@ EOF
 #-------------------------------------------------------------------
 # http://www.lrz.de/services/compute/supermuc/loadleveler/
 ######################################################################
-elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
+elif [ $UGSUBMIT_TYPE == "Jugene" ]; then
 	cat > $outdir/job.sh << EOF
 # @ job_name = $jobname
 # @ comment = $executable $args
@@ -478,7 +478,7 @@ EOF
 	cd $outdir
 	echo cd $outdir
 	echo $outdir/job.sh
-	if [ $test = true ]; then
+	if [ $test == true ]; then
 		echo "test. not executing."
 		echo $outdir/job.sh ":"
 		cat $outdir/job.sh
@@ -500,7 +500,7 @@ EOF
 # not a real job scheduler, just for completeness and tests
 # todo: wait for completion of "jobs"...
 ######################################################################
-elif [ $UGSUBMIT_TYPE = "mpi" ]; then
+elif [ $UGSUBMIT_TYPE == "mpi" ]; then
 
 	echo ""; echo "Using MPI"
 	if [ $nppn -ne 1 ]; then
@@ -510,7 +510,7 @@ elif [ $UGSUBMIT_TYPE = "mpi" ]; then
 	cd $outdir
 	echo cd $outdir
 	echo mpirun -np $npe $executable $args
-	if [ $test = true ]; then
+	if [ $test == true ]; then
 		echo "test. not executing."
 		rm -rf $outdir/
 		exit
@@ -525,7 +525,7 @@ elif [ $UGSUBMIT_TYPE = "mpi" ]; then
 #-------------------------------------------------------------------
 # using SLURM
 ######################################################################
-elif [ $UGSUBMIT_TYPE = "cekon" ]; then
+elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 	echo ""; echo "Using SLURM on cekon"
 	if [ $nppn -ne 1 ]; then
 		echo "cekon does not support nppn > 1"
@@ -562,7 +562,7 @@ elif [ $UGSUBMIT_TYPE = "cekon" ]; then
 	cd $outdir
 	echo cd $outdir
 	echo salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args
-	if [ $test = true ]; then
+	if [ $test == true ]; then
 		echo "test. not executing."
 		rm -rf $outdir/
 		exit
