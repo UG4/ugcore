@@ -64,7 +64,7 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 			{
 				case ROID_VERTEX:
 				{
-					VertexBase* pParent = dynamic_cast<VertexBase*>(parent);
+					VertexBase* pParent = static_cast<VertexBase*>(parent);
 					uFine.inner_algebra_indices(vrt, vFineMI);
 					uCoarse.inner_algebra_indices(pParent, vCoarseMI);
 
@@ -78,7 +78,7 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 					for(size_t i = 0; i < vFineMI.size(); ++i)
 						uFine[ vFineMI[i] ] = 0.0;
 
-					EdgeBase* pParent = dynamic_cast<EdgeBase*>(parent);
+					EdgeBase* pParent = static_cast<EdgeBase*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						VertexBase* edgeVrt = pParent->vertex(i);
@@ -97,7 +97,7 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 					for(size_t i = 0; i < vFineMI.size(); ++i)
 						uFine[ vFineMI[i] ] = 0.0;
 
-					Face* pParent = dynamic_cast<Face*>(parent);
+					Face* pParent = static_cast<Face*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						VertexBase* faceVrt = pParent->vertex(i);
@@ -116,7 +116,7 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 					for(size_t i = 0; i < vFineMI.size(); ++i)
 						uFine[ vFineMI[i] ] = 0.0;
 
-					Volume* pParent = dynamic_cast<Volume*>(parent);
+					Volume* pParent = static_cast<Volume*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						VertexBase* hexVrt = pParent->vertex(i);
