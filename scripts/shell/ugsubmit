@@ -51,6 +51,9 @@ JugeneMode="VN"
 JugeneMapfile="TXYZ"
 JugeneVerbose=2
 
+# Hermit Options
+HermitWorkspace=false
+
 # general PBS Options
 pbsMailtype=""
 
@@ -92,6 +95,10 @@ function usage
 	echo "        -Jugene-mode            : VN, DUAL or SMP. Default "$JugeneMode
 	echo "        -Jugene-mapfile         : Mapfile. Default "$JugeneMapfile
 	echo "        -Jugene-verbose         : Verbose Level. Default "$JugeneVerbose
+	echo ""
+	echo " Hermit Parameters"
+	echo "        -Hermit-workspace       : Use the Hermit Workspace mechanism for I/O."
+	echo "                                  https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism"
 	echo ""
 	echo " descr: The script creates a new folder relative to the current path with the name"
 	echo "        '<jobname>.<npe>' (where <npe> is the number of processes. In this new directory"
@@ -192,6 +199,9 @@ do
 	elif [ $1 = "-tail" ]; then
 		tail=true
 		shift 1
+	elif [ $1 = "-Hermit-workspace" ]
+		HermitWorkspace=true
+		shift 1
 	elif [ $1 = "---" ]; then
 		shift
 		break
@@ -237,12 +247,21 @@ fi
 ticket=$$
 
 #create output directory
-outdir=$execpath/$jobname
-if [ -d $outdir ]; then
-    echo "Output directory $outdir already exist. Remove directory or choose other jobname"
-    exit 0;
+if [ $HermitWorkspace == true ]
+	if [ $UGSUBMIT_TYPE == "Hermit" ]; then
+		outdir=`ws_allocate $jobname 31`
+	else
+		echo "Hermit Workspace only on Cluster Hermit, not on cluster=" $UGSUBMIT_TYPE " !"
+		exit
+	fi
 else
-    mkdir $outdir
+	outdir=$execpath/$jobname
+	if [ -d $outdir ]; then
+		echo "Output directory $outdir already exist. Remove directory or choose other jobname"
+		exit 0;
+	else
+		mkdir $outdir
+	fi
 fi
 rm lastRun
 ln -s $outdir lastRun
