@@ -82,7 +82,7 @@ class UGError
 		const std::string& get_file(size_t i) const	{return m_vFile.at(i);}
 
 	///	returns the line where a message occured
-		const unsigned long get_line(size_t i) const{return m_vLine.at(i);}
+		unsigned long get_line(size_t i) const{return m_vLine.at(i);}
 
 	///	returns if program should terminate
 		bool terminate() const						{return m_bTerminate;}
