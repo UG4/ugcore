@@ -125,6 +125,10 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 //	increase call count
 	m_dgbCall++;
 
+//	resize
+	m_d.resize(u.size());
+	m_c.resize(u.size());
+
 // 	Compute first Defect
 	NEWTON_PROFILE_BEGIN(NewtonComputeDefect1);
 	m_N->apply(m_d, u);
