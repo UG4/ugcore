@@ -15,14 +15,14 @@
 <hr>
 \section secGeneral_Notes General Notes
 <hr>
-All examples are for running ug in parallel with <tt><NP></tt> processors and <tt>$UGARGS</tt> as arguments,
-where <tt>$UGARGS</tt> is a environment variable which for example is defined by (Bash):
+All examples are for running ug in parallel with <tt>NP</tt> processors and <tt>$UGARGS</tt> as arguments,
+where <tt>$UGARGS</tt> is an environment variable which for example is defined by (Bash syntax; just to shorten command lines):
 
 \verbatim
-UGARGS=UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx"
+UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx"
 \endverbatim
 
-Except for your own Computer/Workstation or explicitly stated, do NOT EVER use <tt>mpirun -np <NP> ugshell $UGARGS</tt>
+Except for your own Computer/Workstation or explicitly stated, do NOT EVER use <tt>mpirun -np NP ugshell $UGARGS</tt>
 to start your job on a cluster! The node you are logging into is only a login node, and you don't 
 want to run your job on these.
 
@@ -37,40 +37,35 @@ In this case run CMake like this
 \verbatim
 cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..
 \endverbatim
+
 You can specify other compilers than detected by CMake from the command line with
 \verbatim
 cmake -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC ..
 \endverbatim
 
+For example on cekon the default compiler, GCC v. 4.1.2, is not able to compile a debug build
+(i.e. configured with <tt>cmake -DDEBUG=ON ..</tt>) because of an internal compiler error
+(<tt>internal compiler error: in force_type_die, at dwarf2out.c</tt>).
+In this case it is possible to configure ug4 by specifying an alternative compiler:
+\verbatim
+cmake -DCMAKE_CXX_COMPILER=/usr/bin/g++44 ..
+\endverbatim
+
+Alternatively one can instruct the (default) compiler to produce the debug infos in another format
+(STABS instead of the default format DWARF2).
+To do so, edit <tt>ug_cmake_includes.txt</tt> by changing the line defining the corresponding flag,
+<tt>add_definitions(-g)</tt> to
+<tt>add_definitions(-gstabs)</tt>.
+
 <hr>
 \section secInstallation_of_additional_software Installation of additional software
-</hr>
+<hr>
 
-TODO: The following information for additional software can possibly be placed in a more general context.
-
-In case a software needed for a certain tasks is not available on the system
-(or has the wrong version number) one has to install it locally (unless you
-have administrator privileges - congratulations ...)
-We propose the following procedures for which we assume that all additional
-software is installed in a directory <tt>local</tt> directly in your home directory.
-
-<ul>
-    <li> CMake:
-    \verbatim
-    wget http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz
-    tar xvzf cmake-2.8.6.tar.gz
-    cd cmake-2.8.6/
-    ./bootstrap --prefix=$HOME/local
-    make
-    make install
-    \endverbatim
-
-    Shortcut for executing:
-    \verbatim
-    alias cmake='$HOME/local/bin/cmake'
-    \endverbatim
-    </li>
-</ul>
+Unfortunately on some systems it turned out that especially the build tool CMake,
+absolutely necessary to configure ug4 (cf. \ref pageInstallUG4, \ref secInstallUG4CMake),
+was not available. In such cases you have to install the required software yourself
+(typically locally). For some installation instructions - including those for CMake -
+see \ref pageAdditionalSoftware.
 
 <hr>
 \section secWindows Windows
@@ -82,7 +77,7 @@ software is installed in a directory <tt>local</tt> directly in your home direct
 <hr>
 You can use 
 \verbatim
-mpirun -np <NP> ugshell $UGARGS
+mpirun -np NP ugshell $UGARGS
 \endverbatim
 to run ug.
 
@@ -95,36 +90,37 @@ By now it consists of 23 compute nodes with 4 cores per node, that is 92 computi
 
 Start your job with
 \verbatim
-salloc -n <NP> mpirun ugshell $UGARGS
+salloc -n NP mpirun ugshell $UGARGS
 \endverbatim
 
 DDT: Todo: Is DDT installed, and can it be used.
 
 <hr>
 \section secJuGene JuGene
-</hr>
+<hr>
 
 <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/JUGENE_node.html">JuGene</a> - the 
-<a href="www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/Configuration/Configuration_node.html">72 racks Blue Gene/P </a> system at FZ J&uuml;lich in total provides 
+<a href="www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/Configuration/Configuration_node.html">72 racks Blue Gene/P </a> system at J&uuml;lich Supercomputing Centre (JSC)
+(FZ J&uuml;lich) in total provides 
 294.912 cores and 144 Tbyte RAM. The 73.728 compute nodes each have a quadcore Power 32-bit PC 450 running at 850 MHz, with 2 Gbyte of RAM. 
 See more on the Architecture of Jugene <a href="http://www.fz-juelich.de/SharedDocs/Downloads/IAS/JSC/EN/JUGENE/SlidesBGPArchitecture.pdf"> here </a>.
 
 <p>
 Note that the login nodes are running under "SuSE Linux Enterprise Server 10" (SLES 10), while the CNs are running a limited version of Linux called "Compute Node Kernel" (CNK),
-Therefore its necessary to cross-compile for BlueGene (cf \sec. \ref secCMake; see sec. \ref secConfiguration_of_ug4_for_JuGene).
+Therefore its necessary to cross-compile for BlueGene (cf. sec. \ref secCMake; sec. \ref secConfiguration_of_ug4_for_JuGene).
 
 <hr>
 \subsection secAccess_to_JuGenes_login_nodes Access to JuGene's login nodes:
-</hr>
-Its necessary to upload the SSH key of the machine from which to connect to one of JuGenes login nodes.
+<hr>
+Its necessary to <b>upload the SSH key</b> of the machine from which to connect to one of JuGenes login nodes.
 To be able to connect from different machines maybe you find it useful to define one of GCSCs machines (e.g. speedo, quadruped, ...) as "springboard" to one of JuGenes login nodes.
 See <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/Logon.html">Logging on to JUGENE</a> (also for X11 problems).
 
 <hr>
 \subsection secConfiguration_of_ug4_for_JuGene Configuration of ug4 for JuGene cross compile
-</hr>
+<hr>
 
-For JuGene you have to use a different toolchain file. Start cmake like this
+For JuGene you have to use a <b>toolchain file</b>. Start CMake like this
 \verbatim
 cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_jugene.cmake ..
 \endverbatim
@@ -136,9 +132,11 @@ cmake -DSTATIC=ON -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_jugene_static.cmake .
 
 Note: A "static build" where also all system libraries are linked statically need some additional "hand work" by now:
 After configuration with CMake edit the following files by replacing all occurences of <tt>libXXXXXXX.so</tt> by <tt>libXXXXXXX.a</tt>:
+\verbatim
    CMakeCache.txt,                                                                                                                                
    ugbase/ug_shell/CMakeFiles/ugshell.dir/link.txt,                                                                                               
    ugbase/ug_shell/CMakeFiles/ugshell.dir/build.make                                                                                              
+\endverbatim
 
 Or use this sed line:
 \verbatim
@@ -147,67 +145,137 @@ sed -i '' 's/\([[:alnum:]]*\).so/\1.a/g' CMakeCache.txt ugbase/ug_shell/CMakeFil
 
 <hr>
 \subsection secWorking_with_ug4_on_JuGene Working with ug4 on JuGene
-</hr>
-
-
+<hr>
 
 <hr>
 \subsubsection secBasic_job_handling Basic job handling
-</hr>
+<hr>
 
+See <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/QuickIntroduction.html">Quick Introduction</a> to job handling.
+Also look at <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/mpirun.html">job/mpirun options</a>.
+
+Here we only introduce some important details:
 <ul>
-	<li> There are different computing modes:
-	<ul>
-	<li> Quad Mode: All four cores run one MPI process. Memory/MPI Process = 1/4 CN RAM. (-mode VN)
-	<li> Dual Mode: Two cores run one MPI process. (hybrid MPI/OpenMP). Memory/MPI Process = 1/2 CN RAM. (-mode DUAL)
-	<li> SMP Mode: All four cores run one MPI process. (hybrid MPI/OpenMP). Memory/MPI Process = CN RAM. (-mode SMP)
-	</ul>
-	Note that in quad mode (using all 4 processors of a computing node) this means each core has 512 MByte of RAM.
-	<li> <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/QuickIntroduction.html">Quick Introduction</a> to job handling.
-	<li> Also look at <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/mpirun.html"> job/mpirun options </a>
-	<li> 
-	<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/llview.html"> llview </a> is a tool with a graphical X11 user interface for displaying system status.
+<li> <b>Network topology</b>:
+     The 3-D torus is the preferred topology - TODO: Explicate this! Might be placed in the first explanatory section above!
+</li>
+
+<li> There are different <b>execution modes</b> which can be specified by the <tt>mpirun</tt> parameter
+     <tt>-mode {VN | DUAL | SMP}</tt>:
+
+     <ul>
+     <li> <b>Quad Mode</b> (a.k.a. "Virtual Mode"):
+	All four cores run one MPI process. Memory/MPI Process = 1/4 CN RAM (<tt>-mode VN</tt>).
+     </li>
+
+     <li> <b>Dual Mode</b>:
+	Two cores run one MPI process (hybrid MPI/OpenMP). Memory/MPI Process = 1/2 CN RAM (<tt>-mode DUAL</tt>)
+     </li>
+
+     <li> <b>SMP Mode</b> ("Symmetrical Multi Processing Mode"):
+	All four cores run one MPI process (hybrid MPI/OpenMP). Memory/MPI Process = CN RAM (<tt>-mode SMP</tt>)
+     </li>
+     </ul>
+     Note that in quad mode (using all 4 processors of a computing node) this means each core has around 512 MByte of RAM
+     (474 MByte to be more specific, since the CNK also needs some memory).
+     </br>
+
+     Obviously "VN" is the preferred execution mode if large numbers of processes should be achieved -
+     and ug4 works with VN mode (at least up to ~64 Ki DoFs per process)! :-)
+</li>
+
+<li> The <b><tt>mapfile</tt> parameter</b> specifies an order in which the MPI processes are mapped to the CNs / the cores of the BG/P partition reserved for the run:
+     <tt>-mapfile {&lt;mapfile&gt;|&lt;mapping&gt;}</tt>:
+
+     <ul>
+     <li> <tt>&lt;mapping&gt;</tt> is a permutation of XYZT.
+
+     	  The standard mapping on JuGene is to place the tasks in "XYZT" order,
+	  where X, Y, and Z are the torus coordinates of the nodes in the partition and T is the number of the cores within each node (T=0,1,2,3).
+
+	  When the tasks are distributed across the nodes the first dimension is increased first,
+	  i.e. for XYZT the first three tasks would be executed by the nodes with the torus coordinates
+	  <tt>&lt;0,0,0,0&gt;</tt>, <tt>&lt;1,0,0,0&gt;</tt> and <tt>&lt;2,0,0,0&gt;</tt>,
+	  which obviously is not what we want for our simulation runs.
+     </li>
+
+     <li> <tt>&lt;mapfile&gt;</tt> contains a user specified MPI topology,
+     	  <tt>mapfile</tt> can either be a permutation of X,Y,Z and T or the name of a mapfile in which the distribution of the tasks is specified.
+     </li>
+     </ul>
+     For now we recommend <tt>-mapfile TXYZ</tt> which fills up a CN before going to the next so that MPI processes working on adjacent subdomains
+     are placed closely in the 3-D torus
+</li>
+
+<li> <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/llview.html"> llview </a>
+     is a <b>tool with a graphical X11 user interface</b> for displaying system status, running jobs,
+     scheduling and prediction of the start time of jobs
+     (to our knowledge this is the only possibility to get informations on estimated start times).
+</li>
 		
-    <li> Running interactive jobs ( <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerInteractive.html"> llrun </a> )
+<li> Running <b>interactive jobs</b> ( <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerInteractive.html"> llrun </a> )
 	
-    Example:
-    \verbatim
-    llrun -np  <NP> -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ $UGARGS
-    \endverbatim
+     Example:
+     \verbatim
+     llrun -np  NP -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ $UGARGS
+     \endverbatim
 
-    Please note that <tt>llrun</tt> only allows jobs up to 256 (-mode SMP) / 512 (-mode DUAL) / 1024 (-mode VN) tasks!
-    </li>
+     Please note that <tt>llrun</tt> only allows jobs up to 256 (<tt>-mode SMP</tt>) / 512 (<tt>-mode DUAL</tt>) / 1024 (<tt>-mode VN</tt>) tasks!
+</li>
 
-    <li> Querying Quota Status:
+<li> <b>Batch Jobs</b> are submitted by the <a href="http://www2.fz-juelich.de/jsc/jugene/usage/loadl/llsubmit/"> llsubmit</a> command
+     to the "IBM Tivoli Workload Scheduler LoadLeveler" (TWS LoadLeveler):
 
-    \verbatim
-    q_cpuquota <options>
-    \endverbatim
+     \verbatim
+     llsubmit <cmdfile>
+     \endverbatim
 
-    Useful Options: 
-    \arg <tt>-?</tt>             usage information and all options 
-    \arg <tt>-j <jobstepid></tt> for a single job 
-    \arg <tt>-t <time></tt>      for all jobs in the specified time, e.g.
-    <tt>q_cpuquota -t 23.11.2011 01.12.2011</tt>
-    \arg <tt>-d <number></tt> for last number of days (positive integer)
-    </li>
+     where <tt>&lt;cmdfile&gt;</tt> is a shell script file containing job definitions.
 
-	<li> Batch Jobs are submitted by <a href="http://www2.fz-juelich.de/jsc/jugene/usage/loadl/llsubmit/"> llsubmit</a>:
+     For some example loadleveler scripts used with ug4 see subdirectory <tt>scripts/shell/</tt>:
 
-	\verbatim
-	llsubmit <cmdfile>
-	\endverbatim
+     <ul>
+     <li>
+	<tt>ll_scale_gmg.x</tt> contains job definitions for a complete scalability study for GMG in 2- and 3-D.
+     </li>
+     <li>
+	<tt>ll_template.x</tt> also contains some documentation of loadleveler and mpirun parameters.
+     </li>
+     </ul>
 
-	where <tt><cmdfile></tt> is a shell script file containing job definitions.
-	See <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerSamples.html">Job File Samples</a>.
-	TODO: LoadLeveler script etc. hinterlegen.
+     See also <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerSamples.html">Job File Samples</a>
+     for more details.
+
+<li> Querying <b>Quota Status<b/>:
+
+     \verbatim
+     q_cpuquota <options>
+     \endverbatim
+
+     Useful Options: 
+     \arg <tt>-?</tt>             usage information and all options 
+     \arg <tt>-j &lt;jobstepid&gt;</tt> for a single job 
+     \arg <tt>-t &lt;time&gt;</tt>      for all jobs in the specified time, e.g.
+     <tt>q_cpuquota -t 23.11.2011 01.12.2011</tt>
+     \arg <tt>-d &lt;number&gt;</tt> for last number of days (positive integer)
+     </li>
+
+</ul>
+	
+
 <hr>
 \subsubsection secVery_large_jobs_on_JuGene Very large jobs on JuGene
-</hr>
+<hr>
 
-For very large jobs be sure to have ug4 built as a completely static executable (c.f. above)!
-In general: Large jobs (e.g. jobs larger than 32 racks normally run on Tuesday only.
+For <b>very large jobs</b> be sure to have ug4 built as a <b>completely static executable</b> (c.f. above)
+since otherwise loading of libraries consumes too much wall time!
 
+In general: <b>Large jobs</b> (e.g. jobs larger than 32 racks) normally run on <b>Tuesday</b> only.
+Exceptions to this rule are possible in urgent cases
+(please contact the SC Support under <a href="sc@fz-juelich.de">sc@fz-juelich.de</a>).
+
+</br>
+</br>
 More information <a href="mailto:ingo.heppner@gcsc.uni-frankfurt.de">ingo.heppner@gcsc.uni-frankfurt.de</a>
 
 
