@@ -349,7 +349,13 @@ endif(NOT CRAY)
 
 
 if(DEBUG)
-	add_definitions(-g)
+	
+	if(DEBUG_FORMAT)	
+		add_definitions(${DEBUG_FORMAT})
+		message(STATUS "Info: Debug Information is ${DEBUG_FORMAT}") 
+	else(DEBUG_FORMAT)
+		add_definitions(-g)
+	endif(DEBUG_FORMAT)
 	add_definitions(-DUG_DEBUG)
 	
 	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
@@ -744,6 +750,8 @@ set(PARMETIS ${PARMETIS} CACHE PATH "Sets the path in which parmetis shall be se
 set(TETGEN ${TETGEN} CACHE PATH "Sets the path in which tetgen shall be searched.")
 set(HYPRE ${HYPRE} CACHE PATH "Sets the path in which hypre shall be searched.")
 set(HLIBPRO ${HLIBPRO} CACHE PATH "Sets the path in which hlibpro shall be searched.")
+
+set(DEBUG_FORMAT ${DEBUG_FORMAT} CACHE STRING "Debug format options like -g, -gstabs, -ggbd. If not set, debug format is -g.")
 
 
 # mark some stuff as advanced, so it won't show up in ccmake / CMakeSetup.exe
