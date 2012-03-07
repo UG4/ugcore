@@ -382,6 +382,22 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 			locTimeSeries.read_times(vSol);
 		}
 
+	// 	prepare element
+		if(!Eval.prepare_elem(elem, locU, ind, true, true))
+		{
+			UG_LOG("ERROR in '(instationary) PrepareTimestep': "
+					"Cannot prepare element.\n");
+			return false;
+		}
+
+	//	Compute element data
+		if(!Eval.compute_elem_data(locU, true))
+		{
+			UG_LOG("ERROR in '(instationary) PrepareTimestep': "
+					"Cannot compute element data.\n");
+			return false;
+		}
+
 	// 	prepare timestep
 		if(!Eval.prepare_timestep_elem(elem, locU)) //anstatt locU auf read_values(vSol,ind) zurückgreifen?!
 		{
@@ -1540,6 +1556,22 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		{
 			locTimeSeries.read_values(vSol, ind);
 			locTimeSeries.read_times(vSol);
+		}
+
+	// 	prepare element
+		if(!Eval.prepare_elem(elem, locU, ind, true, true))
+		{
+			UG_LOG("ERROR in '(instationary) FinishTimestep': "
+					"Cannot prepare element.\n");
+			return false;
+		}
+
+	//	Compute element data
+		if(!Eval.compute_elem_data(locU, true))
+		{
+			UG_LOG("ERROR in '(instationary) FinishTimestep': "
+					"Cannot compute element data.\n");
+			return false;
 		}
 
 	// 	finish timestep
