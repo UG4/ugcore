@@ -4,11 +4,13 @@
 # toolchain file for Hermit/XE6 HLRS Stuttgart with Cray Compiler
 
 # use this file with
-# cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake -DSTATIC=ON ..
+# cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake ..
 
 # change programming environment
-# this does not work 100%, you might have to change it yourself with 
+# !!!
 # module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray
+
+# this does not work 10 
 EXECUTE_PROCESS(COMMAND "module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray")
 
 # on the cray compiler:
@@ -34,3 +36,4 @@ SET(BUILTIN_BLAS YES CACHE FORCE "")
 SET(BUILTIN_MPI YES CACHE FORCE "")
 
 SET(STATIC ON CACHE FORCE "")
+SET(CRAY ON CACHE FORCE "")
