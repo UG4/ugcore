@@ -29,8 +29,10 @@ want to run your job on these.
 <hr>
 \section secCMake CMake, Toolchains, Compilers
 <hr>
-On systems where login nodes and compute nodes run different OSes it is necessary to "cross compile".
-The necessary information is provided by a so called "toolchain file"
+\subsection secCMake_ToolchainFiles Toolchain files
+
+On some systems it is necessary to change the cmake configuration like compilers or flags
+by a so called "toolchain file"
 (cf. for example <a href="http://www.vtk.org/Wiki/CMake_Cross_Compiling">CMake Cross Compiling</a>).
 
 In this case run CMake like this
@@ -38,24 +40,31 @@ In this case run CMake like this
 cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..
 \endverbatim
 
+\subsection secCMake_OtherCompilers Setting compilers to use
+
 You can specify other compilers than detected by CMake from the command line with
 \verbatim
 cmake -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC ..
 \endverbatim
 
-For example on cekon the default compiler, GCC v. 4.1.2, is not able to compile a debug build
-(i.e. configured with <tt>cmake -DDEBUG=ON ..</tt>) because of an internal compiler error
-(<tt>internal compiler error: in force_type_die, at dwarf2out.c</tt>).
+\subsection secCMake_GCC412 GCC 4.1.2
+
+GCC v. 4.1.2, like it is default on cekon, is not able to compile a debug build
+(i.e. configured with <tt>cmake -DDEBUG=ON ..</tt>) because of an internal compiler error.
 In this case it is possible to configure ug4 by specifying an alternative compiler:
 \verbatim
 cmake -DCMAKE_CXX_COMPILER=/usr/bin/g++44 ..
 \endverbatim
 
-Alternatively one can instruct the (default) compiler to produce the debug infos in another format
-(STABS instead of the default format DWARF2).
-To do so, edit <tt>ug_cmake_includes.txt</tt> by changing the line defining the corresponding flag,
-<tt>add_definitions(-g)</tt> to
-<tt>add_definitions(-gstabs)</tt>.
+Alternatively one can instruct the (default) compiler to produce the debug infos in <a href="http://gcc.gnu.org/ml/gcc/2001-04/msg01028.html">another format</a>. 
+To do so, call cmake with
+\verbatim
+cmake -DDEBUG_FORMAT=-gstabs ..
+\endverbatim
+This sets -gstabs as debug format.
+<br>
+<hr>
+If you need to choose another compiler, please consider writing your own toolchain file, so others can benefit from your knowledge. 
 
 <hr>
 \section secInstallation_of_additional_software Installation of additional software
@@ -93,6 +102,8 @@ Start your job with
 salloc -n NP mpirun ugshell $UGARGS
 \endverbatim
 
+There are some problems with the pre-installed GCC 4.1.2, see \ref secCMake_GCC412 . You can also use <tt>icc</tt> as compiler.
+<br>
 DDT: Todo: Is DDT installed, and can it be used.
 
 <hr>
@@ -246,7 +257,7 @@ Here we only introduce some important details:
      See also <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerSamples.html">Job File Samples</a>
      for more details.
 
-<li> Querying <b>Quota Status<b/>:
+<li> Querying <b>Quota Status</b>:
 
      \verbatim
      q_cpuquota <options>
