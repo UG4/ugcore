@@ -145,7 +145,7 @@ class IOperator
  * \tparam	Y	Range space function
  */
 template <typename X, typename Y>
-class ILinearOperator
+class ILinearOperator : public IOperator<X,Y>
 {
 	public:
 	///	Domain space
@@ -178,6 +178,9 @@ class ILinearOperator
 	 * \returns 	bool	success flag
 	 */
 		virtual void init() = 0;
+
+	///	default implementation for IOperator interface
+		virtual void prepare(Y& d, X& u) {}
 
 	// 	applies the operator
 	/**
