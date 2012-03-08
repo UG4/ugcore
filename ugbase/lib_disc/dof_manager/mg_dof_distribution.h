@@ -170,6 +170,7 @@ class MGDoFDistribution : public GridObserver
 		 */
 		template <typename TBaseElem>
 		void indices(TBaseElem* elem, LocalIndices& ind, bool bHang = false) const;
+		void indices(GeometricObject* elem, LocalIndices& ind, bool bHang = false) const;
 
 		/// extracts all multiindices for a function (sorted)
 		/**
@@ -213,6 +214,9 @@ class MGDoFDistribution : public GridObserver
 		size_t inner_multi_indices(TBaseElem* elem, size_t fct,
 		                           std::vector<multi_index_type>& ind,
 		                           bool bClear = true) const;
+		size_t inner_multi_indices(GeometricObject* elem, size_t fct,
+		                           std::vector<multi_index_type>& ind,
+		                           bool bClear = true) const;
 
 		/// extracts all algebra indices of an element (not sorted)
 		/**
@@ -228,6 +232,8 @@ class MGDoFDistribution : public GridObserver
 		template<typename TBaseElem>
 		size_t algebra_indices(TBaseElem* elem,	std::vector<size_t>& ind,
 		                       bool bClear = true) const;
+		size_t algebra_indices(GeometricObject* elem,	std::vector<size_t>& ind,
+		                       bool bClear = true) const;
 
 		/// extracts all algebra indices in the inner of the element (not sorted)
 		/**
@@ -242,6 +248,8 @@ class MGDoFDistribution : public GridObserver
 		 */
 		template<typename TBaseElem>
 		size_t inner_algebra_indices(TBaseElem* elem, std::vector<size_t>& ind,
+		                             bool bClear = true) const;
+		size_t inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind,
 		                             bool bClear = true) const;
 
 
@@ -302,6 +310,22 @@ class MGDoFDistribution : public GridObserver
 		template <typename TBaseObject>
 		void add(TBaseObject* obj, const ReferenceObjectID roid,
 		         const int si, LevInfo& li);
+		void add(GeometricObject* obj, const ReferenceObjectID roid,
+		         const int si, LevInfo& li);
+
+		/**
+		 * adds indices to a geometric object. Tries to reuse free indices.
+		 *
+		 * \param[in]		obj			Geometric Object
+		 * \param[in]		roid		Reference Object id
+		 * \param[in]		si			Subset of Geometric Object
+		 * \param[in,out]	li			Level Information about Indices
+		 */
+		template <typename TBaseObject>
+		void add_from_free(TBaseObject* obj, const ReferenceObjectID roid,
+		                   const int si, LevInfo& li);
+		void add_from_free(GeometricObject* obj, const ReferenceObjectID roid,
+		                   const int si, LevInfo& li);
 
 		/**
 		 * removes indices from the geometric object. The freed index (the
@@ -314,6 +338,8 @@ class MGDoFDistribution : public GridObserver
 		 */
 		template <typename TBaseObject>
 		void erase(TBaseObject* obj, const ReferenceObjectID roid,
+		           const int si, LevInfo& li);
+		void erase(GeometricObject* obj, const ReferenceObjectID roid,
 		           const int si, LevInfo& li);
 
 		/**

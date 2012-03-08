@@ -761,20 +761,6 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 	return ind.size();
 }
 
-size_t MGDoFDistribution::multi_indices(GeometricObject* elem, size_t fct,
-                                        std::vector<multi_index_type>& ind,
-                                        bool bHang, bool bClear) const
-{
-	switch(elem->base_object_type_id())
-	{
-		case VERTEX: return multi_indices(static_cast<VertexBase*>(elem), fct, ind, bHang, bClear);
-		case EDGE: return multi_indices(static_cast<EdgeBase*>(elem), fct, ind, bHang, bClear);
-		case FACE: return multi_indices(static_cast<Face*>(elem), fct, ind, bHang, bClear);
-		case VOLUME: return multi_indices(static_cast<Volume*>(elem), fct, ind, bHang, bClear);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
-	}
-}
-
 template<typename TBaseElem>
 size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
                                         std::vector<multi_index_type>& ind,
@@ -1115,6 +1101,32 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	size_t numNewIndex = 1;
 	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
 
+// 	set first available index to the object. The first available index is the
+//	first managed index plus the size of the index set. (If holes are in the
+//	index set, this is not treated here, wholes remain)
+	obj_index(obj) = li.sizeIndexSet;
+
+//	the size of the index set has changed. adjust counter
+	li.sizeIndexSet += numNewIndex;
+
+//	number of managed indices and the number of managed indices on the subset has
+//	changed. Thus, increase the counters.
+	li.numIndex += numNewIndex;
+	li.vNumIndexOnSubset[si] += numNewIndex;
+}
+
+template <typename TBaseObject>
+void MGDoFDistribution::
+add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
+              LevInfo& li)
+{
+//	if no dofs on this subset for the roid, do nothing
+	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
+
+//	compute the number of indices needed on the Geometric object
+	size_t numNewIndex = 1;
+	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
+
 //	a) 	if no holes are in the index set,
 	if(li.vFreeIndex.empty())
 	{
@@ -1154,7 +1166,7 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	UG_ASSERT(!li.vFreeIndex.empty(), "Hole in index set, but no free index.");
 
 //	get new index from stack
-	while(!li.vFreeIndex.empty())
+	while(1)
 	{
 	//	get a free index (a hole) and use it
 		const size_t newIndex = li.vFreeIndex.back(); li.vFreeIndex.pop_back();
@@ -1172,6 +1184,8 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 			break;
 		}
 	//	else try next
+		if(li.vFreeIndex.empty())
+			UG_THROW_FATAL("No more free index, but still need to defragment.");
 	}
 
 //	compute the number of indices needed on the Geometric object
@@ -1278,6 +1292,113 @@ const size_t& MGDoFDistribution::obj_index(GeometricObject* obj) const
 	}
 };
 
+void MGDoFDistribution::indices(GeometricObject* elem, LocalIndices& ind, bool bHang) const
+{
+	switch(elem->base_object_type_id())
+	{
+		case VERTEX: return indices(static_cast<VertexBase*>(elem), ind, bHang);
+		case EDGE: return indices(static_cast<EdgeBase*>(elem), ind, bHang);
+		case FACE: return indices(static_cast<Face*>(elem), ind, bHang);
+		case VOLUME: return indices(static_cast<Volume*>(elem), ind, bHang);
+		default: UG_THROW_FATAL("Geometric Base element not found.");
+	}
+}
+
+size_t MGDoFDistribution::multi_indices(GeometricObject* elem, size_t fct,
+                                        std::vector<multi_index_type>& ind,
+                                        bool bHang, bool bClear) const
+{
+	switch(elem->base_object_type_id())
+	{
+		case VERTEX: return multi_indices(static_cast<VertexBase*>(elem), fct, ind, bHang, bClear);
+		case EDGE: return multi_indices(static_cast<EdgeBase*>(elem), fct, ind, bHang, bClear);
+		case FACE: return multi_indices(static_cast<Face*>(elem), fct, ind, bHang, bClear);
+		case VOLUME: return multi_indices(static_cast<Volume*>(elem), fct, ind, bHang, bClear);
+		default: UG_THROW_FATAL("Geometric Base element not found.");
+	}
+}
+
+size_t MGDoFDistribution::inner_multi_indices(GeometricObject* elem, size_t fct,
+                                              std::vector<multi_index_type>& ind,
+                                              bool bClear) const
+{
+	switch(elem->base_object_type_id())
+	{
+		case VERTEX: return inner_multi_indices(static_cast<VertexBase*>(elem), fct, ind, bClear);
+		case EDGE: return inner_multi_indices(static_cast<EdgeBase*>(elem), fct, ind, bClear);
+		case FACE: return inner_multi_indices(static_cast<Face*>(elem), fct, ind, bClear);
+		case VOLUME: return inner_multi_indices(static_cast<Volume*>(elem), fct, ind, bClear);
+		default: UG_THROW_FATAL("Geometric Base element not found.");
+	}
+}
+
+size_t MGDoFDistribution::algebra_indices(GeometricObject* elem,	std::vector<size_t>& ind,
+                                          bool bClear) const
+{
+	switch(elem->base_object_type_id())
+	{
+		case VERTEX: return algebra_indices(static_cast<VertexBase*>(elem), ind, bClear);
+		case EDGE: return algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
+		case FACE: return algebra_indices(static_cast<Face*>(elem), ind, bClear);
+		case VOLUME: return algebra_indices(static_cast<Volume*>(elem), ind, bClear);
+		default: UG_THROW_FATAL("Geometric Base element not found.");
+	}
+}
+
+size_t MGDoFDistribution::inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind,
+                                                bool bClear) const
+{
+	switch(elem->base_object_type_id())
+	{
+		case VERTEX: return inner_algebra_indices(static_cast<VertexBase*>(elem), ind, bClear);
+		case EDGE: return inner_algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
+		case FACE: return inner_algebra_indices(static_cast<Face*>(elem), ind, bClear);
+		case VOLUME: return inner_algebra_indices(static_cast<Volume*>(elem), ind, bClear);
+		default: UG_THROW_FATAL("Geometric Base element not found.");
+	}
+}
+
+void MGDoFDistribution::add_from_free(GeometricObject* elem, const ReferenceObjectID roid,
+                                      const int si, LevInfo& li)
+{
+	switch(elem->base_object_type_id())
+	{
+		case VERTEX: return add_from_free(static_cast<VertexBase*>(elem), roid, si, li);
+		case EDGE: return add_from_free(static_cast<EdgeBase*>(elem), roid, si, li);
+		case FACE: return add_from_free(static_cast<Face*>(elem), roid, si, li);
+		case VOLUME: return add_from_free(static_cast<Volume*>(elem), roid, si, li);
+		default: UG_THROW_FATAL("Geometric Base element not found.");
+	}
+}
+
+void MGDoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
+                            const int si, LevInfo& li)
+{
+	switch(elem->base_object_type_id())
+	{
+		case VERTEX: return add(static_cast<VertexBase*>(elem), roid, si, li);
+		case EDGE: return add(static_cast<EdgeBase*>(elem), roid, si, li);
+		case FACE: return add(static_cast<Face*>(elem), roid, si, li);
+		case VOLUME: return add(static_cast<Volume*>(elem), roid, si, li);
+		default: UG_THROW_FATAL("Geometric Base element not found.");
+	}
+}
+
+void MGDoFDistribution::erase(GeometricObject* elem, const ReferenceObjectID roid,
+                              const int si, LevInfo& li)
+{
+	switch(elem->base_object_type_id())
+	{
+		case VERTEX: return erase(static_cast<VertexBase*>(elem), roid, si, li);
+		case EDGE: return erase(static_cast<EdgeBase*>(elem), roid, si, li);
+		case FACE: return erase(static_cast<Face*>(elem), roid, si, li);
+		case VOLUME: return erase(static_cast<Volume*>(elem), roid, si, li);
+		default: UG_THROW_FATAL("Geometric Base element not found.");
+	}
+}
+
+
+
 void MGDoFDistribution::register_observer()
 {
 	int type = OT_GRID_OBSERVER;
@@ -1332,6 +1453,11 @@ template void MGDoFDistribution::add<VertexBase>(VertexBase* obj, const Referenc
 template void MGDoFDistribution::add<EdgeBase>(EdgeBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
 template void MGDoFDistribution::add<Face>(Face* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
 template void MGDoFDistribution::add<Volume>(Volume* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
+
+template void MGDoFDistribution::add_from_free<VertexBase>(VertexBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
+template void MGDoFDistribution::add_from_free<EdgeBase>(EdgeBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
+template void MGDoFDistribution::add_from_free<Face>(Face* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
+template void MGDoFDistribution::add_from_free<Volume>(Volume* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
 
 template void MGDoFDistribution::erase<VertexBase>(VertexBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
 template void MGDoFDistribution::erase<EdgeBase>(EdgeBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);

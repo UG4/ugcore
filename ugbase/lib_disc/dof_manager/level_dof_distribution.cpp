@@ -246,10 +246,10 @@ inline void LevelMGDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 	level_required(lev);
 
 //	add indices
-	add(obj,
-	    obj->reference_object_id(),
-	    m_spMGSH->get_subset_index(obj),
-	    m_vLev[lev]);
+	add_from_free(obj,
+	              obj->reference_object_id(),
+	              m_spMGSH->get_subset_index(obj),
+	              m_vLev[lev]);
 }
 
 template <typename TBaseElem>
