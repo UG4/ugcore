@@ -17,6 +17,7 @@
 #include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
+#include "lib_disc/reference_element/reference_element_traits.h"
 
 namespace ug{
 
