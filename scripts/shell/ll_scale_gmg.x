@@ -103,8 +103,11 @@ env | grep LOADL_
 ### Please note that this file is a "cleaned up" and slightly modified/improved
 ### version!
 ###
-### Raw analysis of these jobs:
+### Raw timing analysis of these jobs:
 ### egrep 'NumProcs|main   |unknown|MPI_Init| ASS_AssembleLinearOperatorRhsAndSolution| ALS_InitLinearSolver| ALS_ApplyLinearSolver' ug4_fullystatic_laplace*
+###
+### Check number of iterations:
+### grep " reached after " ug4_fullystatic_laplace*
 ################################################################################
 ################################################################################
 

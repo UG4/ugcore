@@ -90,7 +90,7 @@ After installation of a MPI implementation (e.g. <a href="http://www.open-mpi.or
 for example via <a href="http://www.macports.org">MacPorts</a>: <tt>sudo port install openmpi</tt>)
 you can use
 \verbatim
-mpirun -np &lt;NP&gt; ugshell $UGARGS
+mpirun -np <NP> ugshell $UGARGS
 \endverbatim
 to run ug4.
 
@@ -103,7 +103,7 @@ By now it consists of 23 compute nodes with 4 cores per node, that is 92 computi
 
 Start your job with
 \verbatim
-salloc -n &lt;NP&gt; mpirun ugshell $UGARGS
+salloc -n <NP> mpirun ugshell $UGARGS
 \endverbatim
 
 There are some problems with the pre-installed GCC 4.1.2, see \ref secCMake_GCC412 . You can also use <tt>icc</tt> as compiler.
