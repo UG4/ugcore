@@ -24,9 +24,9 @@ A basic understanding of the used unix tools (wget, tar, ...) is useful but not 
 (instructions should work "out of the box"- except for the version numbers - check for the version most appropriate for you before installation).
 
 <hr>
-\section secInstallCMake CMake
+\section secInstallCMake Install CMake
 <hr>
-A version of the <a href="http://www.cmake.org">CMake build tool</a> ... blabla
+You can install a local version of the <a href="http://www.cmake.org">CMake build tool</a> by doing the following steps:
 
 <ol>
 <li>Download tar ball:
@@ -64,7 +64,7 @@ A version of the <a href="http://www.cmake.org">CMake build tool</a> ... blabla
 </ol>
 
 <hr>
-\section secInstallBoost Boost
+\section secInstallBoost Install Boost
 <hr>
 
 A version of the <a href="http://www.boost.org">Boost library</a> is automatically checked out
@@ -105,11 +105,11 @@ But if you need a special (e.g. newer) version, you can get one this way:
 </ol>
 
 <hr>
-\section secInstallLUA LUA
+\section secInstallLUA Install LUA
 <hr>
 
-A version of the <a href="http://www.lua.org">LUA interpreter</a> ... blabla
-... to be able to execute LUA scripts "stand alone" ...
+You can install a local version of the <a href="http://www.lua.org">LUA interpreter</a> by performing the following steps,
+so that you are able to execute LUA scripts "stand alone" (i.e. without utilising ug4's LUA capabilities):
 
 <ol>
 <li>Download tar ball:
@@ -134,7 +134,7 @@ A version of the <a href="http://www.lua.org">LUA interpreter</a> ... blabla
     </li>
 
 <li> Shortcut for executing LUA (i.e., add a line like the
-     following in your <tt>.bashrc</tt> (for Bash):
+     following in your <tt>.bashrc</tt> (for Bash)):
     \verbatim
     alias lua='$HOME/local/lua-5.1.4/bin/lua'
     \endverbatim
@@ -144,9 +144,9 @@ A version of the <a href="http://www.lua.org">LUA interpreter</a> ... blabla
     \endverbatim
     </li>
 
-<li>Usage example (executing a (local) copy of analyzer script):
+<li>Usage example, executing (a local copy of) the "analyser script" described in \ref secScalabilityTestsSpecific :
     \verbatim
-    lua my_scaling_analyzer.lua > jugene_ug4-static_laplace-2d_gmg_weak-scaling_pe4-256k_rev4354.txt
+    lua my_scaling_analyzer.lua
     \endverbatim
     </li>
 </ol>

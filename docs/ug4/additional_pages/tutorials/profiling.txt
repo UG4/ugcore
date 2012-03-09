@@ -9,7 +9,9 @@
 	- \ref secProfilingYourCode "Adding profiling to your code"
 	- \ref secViewProfilingNodes "View profiling statistics"
 
-For any questions, contact martin.rupp@gcsc.uni-frankfurt.de or sebastian.reiter@gcsc.uni-frankfurt.de .
+For any questions, contact <a href="mailto:martin.rupp@gcsc.uni-frankfurt.de">martin.rupp@gcsc.uni-frankfurt.de</a>
+or
+<a href="mailto:sebastian.reiter@gcsc.uni-frankfurt.de">sebastian.reiter@gcsc.uni-frankfurt.de</a>.
 
 
 <hr>
