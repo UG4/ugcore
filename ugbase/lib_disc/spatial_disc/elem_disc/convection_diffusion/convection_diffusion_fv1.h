@@ -115,6 +115,14 @@ elem_prepare_fv1(TElem* elem, const LocalVector& u)
 		                       	                      geo.num_scv_ips());
 		m_imMass.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                       	                      geo.num_scv_ips());
+
+		if(m_pConvShape != NULL)
+			if(!m_pConvShape->template set_geometry_type<TFVGeom>())
+			{
+				UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::prepare_element_loop':"
+						" Cannot init upwind for element type.\n");
+				return false;
+			}
 	}
 
 //	set global positions
