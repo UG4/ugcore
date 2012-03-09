@@ -1,0 +1,54 @@
+//	created by Ingo Heppner
+//	Ingo.Heppner@gcsc.uni-frankfurt.de
+//	y12 m03 d09
+
+/**	\page pageUG4ParallelComputing Parallel computing
+
+	- \ref secParallelComputingGeneral           "General informations about parallel computing"
+	- \ref secParallelComputingSpecific          "Specific informations about parallel computing"
+	- \ref secParallelComputingAvailableMachines "Available parallel computers"
+
+<hr>
+\section secParallelComputingGeneral General informations about parallel computing
+<hr>
+
+<ul>
+<li>Perform enough prerefinement steps (typically controlled by LUA script variable <tt>numPreRefs</tt>) that each MPI process gets at least one element of the start grid.
+</li>
+
+<li> Filesystems on clusters are typically slower than usual. After changing scripts one should therefore wait a while before submitting jobs
+     to be sure that the changes have an effect.
+</li>
+
+<li> ...
+</li>
+
+</ul>
+See also \ref pageSetupUG4.
+
+<hr>
+\section secParallelComputingSpecific Specific informations about  parallel computing
+<hr>
+
+<ul>
+<li> ...
+</li>
+
+</ul>
+
+<hr>
+\section secParallelComputingAvailableMachines Available parallel computers
+<hr>
+
+<ul>
+<li> Your multi core desktop / laptop,
+</li>
+<li>dedicated parallel machines like cekon, cizeta (in-house clusters),
+</li>
+<li>dedicated parallel machines of the BW-Grid, JuGene (JSC), Hermit (HLRS), HLRB-II, SuperMUC (LRZ Garching), ...
+</li>
+
+</ul>
+TODO/Proposal: Should we start a collection of information about parallel machines available to us (basic performance parameters; accounting informations, ...)?
+
+*/

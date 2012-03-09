@@ -1,0 +1,97 @@
+//	created by Ingo Heppner
+//	Ingo.Heppner@gcsc.uni-frankfurt.de
+//	y12 m03 d08
+
+/**	\page pageUG4ScalabilityTests Scalability Tests
+
+	- \ref secScalabilityTestsGeneral  "General informations about scalability tests"
+	- \ref secScalabilityTestsSpecific "Specific informations about scalability tests"
+
+For any questions, contact <a href="mailto:Ingo.Heppner@gcsc.uni-frankfurt.de">Ingo.Heppner@gcsc.uni-frankfurt.de</a>
+
+<hr>
+\section secScalabilityTestsGeneral General practical informations about scalability tests
+<hr>
+
+<ul>
+<li>First of all you have to <b>enable profiling</b> by configuring your build with CMake (cf. \ref secEnableProfiling):
+	\code
+	cmake -DPROFILER=ON [-DPROFILE_PCL=ON] ..
+	\endcode
+</li>
+
+<li>Then, to get "clean" timing measurements, you should do a <b>release build</b>, i.e.
+	\code
+	cmake -DEBUG=OFF ..
+	\endcode
+
+	(Obviously the above <tt>cmake</tt> commands can be performed in one step.)
+</li>
+
+<li>Furthermore, since output can be very time consuming for jobs with a very large number of MPI processes
+	its highly recommended to <b>turn off any output</b>,
+	by disabling debug writers and any other print/write operations for saving large data to files
+	(vectors and matrices, refined grids, partition maps, solutions ...).
+</li>
+
+<li>Timing measurements are only useful at points where processes are synchronised,
+	   e.g. after computing of global norms, after performing <tt>pcl::Synchronize()</tt>, <tt>pcl::AllProcsTrue()</tt> ...
+</li>
+
+<li>Number of DoFs should be maximal ...
+</li>
+
+<li>For weak scalability e.g. of GMG: Check if the number of iterations is constant over all problem sizes.
+</li>
+
+<li>Infos about how to distribute the levels of a multigrid hierarchy when performing a multi grid solver (i.e. especially how to avoid too much work for the root proc) - TODO.
+</li>
+
+<li>Mappings, Hierarchical redistribution - see <tt>ll_scale_gmg.x</tt> for examples. TODO: Explicate!
+</li>
+
+</ul>
+
+<hr>
+\section secScalabilityTestsSpecific Specific informations about scalability tests
+<hr>
+
+<ul>
+<li>There exist some LUA scripts specifically tuned for timing measurements (pathes relavtive to ug4's main directory):
+
+     <ul>
+     <li>For the Laplace problem: <tt>scripts/tests/modular_scalability_test.lua</tt>
+     </li>
+     <li>For the Elder problem: <tt>apps/d3f/elder_scalability_test.lua</tt>
+     </li>
+     </ul>
+</li>
+
+<li>For a (quiet convenient) <b>analysis</b> of the profiling results of several simulation runs
+     there also exist a special <b>analyzer script</b>:
+     <tt>scripts/utility_scripts/scaling_analyzer.lua</tt>.
+
+     <ol>
+     <li>To get log files of your simulation runs use the <tt>-ugshell</tt> parameter <tt>-logtofile</tt>.
+         This is of course not necessary if logfiles are automatically created by the resource manager (e.g., on \ref secJuGene).
+     </li>
+
+     <li>In the list variable <tt>inFiles</tt> of the analyzer script enter the names of the logfiles
+         of all runs which profiling results should be analysed (edit a local copy).
+     </li>
+
+     <li>Then execute (stand-alone LUA interpreter necessary; see \ref secInstallLUA):
+     \code
+     lua my_scaling_analyzer.lua
+     \endcode
+     or, redirecting the output to a file :
+    \verbatim
+    lua my_scaling_analyzer.lua > jugene_ug4-static_laplace-2d_gmg_weak-scaling_pe4-256k_rev4354.txt
+    \endverbatim
+     </li>
+     </ol>
+
+</ul>
+
+
+*/
