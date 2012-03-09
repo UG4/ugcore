@@ -442,6 +442,143 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//	Sym P1 Constraints
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void
+OneSideP1Constraints<TDomain,TAlgebra>::
+adjust_defect(vector_type& d, const vector_type& u,
+              ConstSmartPtr<TDD> dd, number time)
+{
+//	storage for indices and vertices
+	std::vector<std::vector<size_t> > vConstrainingInd;
+	std::vector<size_t>  constrainedInd;
+	std::vector<VertexBase*> vConstrainingVrt;
+
+//	get begin end of hanging vertices
+	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<HangingVertex>();
+	iterEnd = dd->template end<HangingVertex>();
+
+//	loop constrained vertices
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get hanging vert
+		HangingVertex* hgVrt = *iter;
+
+	//	get constraining vertices
+		CollectConstraining(vConstrainingVrt, hgVrt);
+
+	//	resize constraining indices
+		vConstrainingInd.clear();
+		vConstrainingInd.resize(vConstrainingVrt.size());
+
+	// 	get algebra indices for constraining vertices
+		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+
+	// 	get algebra indices constrained vertices
+		dd->inner_algebra_indices(hgVrt, constrainedInd);
+
+	//	adapt rhs
+		SplitAddRhs_OneSide(d, constrainedInd, vConstrainingInd);
+	}
+}
+
+
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void
+OneSideP1Constraints<TDomain,TAlgebra>::
+adjust_rhs(vector_type& rhs, const vector_type& u,
+           ConstSmartPtr<TDD> dd, number time)
+{
+//	storage for indices and vertices
+	std::vector<std::vector<size_t> > vConstrainingInd;
+	std::vector<size_t>  constrainedInd;
+	std::vector<VertexBase*> vConstrainingVrt;
+
+//	get begin end of hanging vertices
+	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<HangingVertex>();
+	iterEnd = dd->template end<HangingVertex>();
+
+//	loop constrained vertices
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get hanging vert
+		HangingVertex* hgVrt = *iter;
+
+	//	get constraining vertices
+		CollectConstraining(vConstrainingVrt, hgVrt);
+
+	//	resize constraining indices
+		vConstrainingInd.clear();
+		vConstrainingInd.resize(vConstrainingVrt.size());
+
+	// 	get algebra indices for constraining vertices
+		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+
+	// 	get algebra indices constrained vertices
+		dd->inner_algebra_indices(hgVrt, constrainedInd);
+
+	//	adapt rhs
+		SplitAddRhs_OneSide(rhs, constrainedInd, vConstrainingInd);
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void
+OneSideP1Constraints<TDomain,TAlgebra>::
+adjust_jacobian(matrix_type& J, const vector_type& u,
+                ConstSmartPtr<TDD> dd, number time)
+{
+//	storage for indices and vertices
+	std::vector<std::vector<size_t> > vConstrainingInd;
+	std::vector<size_t>  constrainedInd;
+	std::vector<VertexBase*> vConstrainingVrt;
+
+//	get begin end of hanging vertices
+	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<HangingVertex>();
+	iterEnd = dd->template end<HangingVertex>();
+
+//	loop constrained vertices
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get hanging vert
+		HangingVertex* hgVrt = *iter;
+
+	//	get constraining vertices
+		CollectConstraining(vConstrainingVrt, hgVrt);
+
+	//	resize constraining indices
+		vConstrainingInd.clear();
+		vConstrainingInd.resize(vConstrainingVrt.size());
+
+	// 	get algebra indices for constraining vertices
+		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+
+	// 	get algebra indices constrained vertices
+		dd->inner_algebra_indices(hgVrt, constrainedInd);
+
+	// 	Split using indices
+		SplitAddRow_OneSide(J, constrainedInd, vConstrainingInd);
+
+	//	set interpolation
+		SetInterpolation(J, constrainedInd, vConstrainingInd);
+	}
+}
+
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
 void
@@ -489,6 +626,49 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 		SplitAddRhs_OneSide(rhs, constrainedInd, vConstrainingInd);
 	}
 }
+
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void
+OneSideP1Constraints<TDomain,TAlgebra>::
+adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
+                number time)
+{
+//	storage for indices and vertices
+	std::vector<std::vector<size_t> > vConstrainingInd;
+	std::vector<size_t>  constrainedInd;
+	std::vector<VertexBase*> vConstrainingVrt;
+
+//	get begin end of hanging vertices
+	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<HangingVertex>();
+	iterEnd = dd->template end<HangingVertex>();
+
+//	loop constraining edges
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get hanging vert
+		HangingVertex* hgVrt = *iter;
+
+	//	get constraining vertices
+		CollectConstraining(vConstrainingVrt, hgVrt);
+
+	//	resize constraining indices
+		vConstrainingInd.clear();
+		vConstrainingInd.resize(vConstrainingVrt.size());
+
+	// 	get algebra indices for constraining vertices
+		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+			dd->inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+
+	// 	get algebra indices constrained vertices
+		dd->inner_algebra_indices(hgVrt, constrainedInd);
+
+	// 	Interpolate values
+		InterpolateValues(u, constrainedInd, vConstrainingInd);
+	}
+}
+
 
 }; // namespace ug
 
