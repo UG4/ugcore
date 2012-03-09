@@ -112,10 +112,10 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 		void level_required(int level);
 
 	///	informations for each level
-		std::vector<LevInfo> m_vLev;
+		std::vector<LevInfo<> > m_vLev;
 
-		LevInfo& lev_info(int lev) {return m_vLev[lev];}
-		const LevInfo& lev_info(int lev) const {return m_vLev[lev];}
+		LevInfo<>& lev_info(int lev) {return m_vLev[lev];}
+		const LevInfo<>& lev_info(int lev) const {return m_vLev[lev];}
 
 
 #ifdef UG_PARALLEL
@@ -361,8 +361,8 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 		template <typename TBaseElem>
 		void get_connections(std::vector<std::vector<size_t> >& vvConnection) const;
 
-		LevInfo& lev_info() {return m_spMGDD->lev_info(m_level);}
-		const LevInfo& lev_info() const {return m_spMGDD->lev_info(m_level);}
+		LevInfo<>& lev_info() {return m_spMGDD->lev_info(m_level);}
+		const LevInfo<>& lev_info() const {return m_spMGDD->lev_info(m_level);}
 
 #ifdef UG_PARALLEL
 	public:

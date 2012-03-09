@@ -80,18 +80,6 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 		template <typename TBaseElem>
 		void init();
 
-	///	returns parent != NULL, if is copy in sense of Multigrid
-		template <typename TBaseElem>
-		TBaseElem* parent_if_copy(TBaseElem* elem);
-
-	///	returns parent != NULL, if of same base object type
-		template <typename TBaseElem>
-		TBaseElem* parent_if_same_type(TBaseElem* elem);
-
-	///	returns child != NULL, if is copy in sense of Multigrid
-		template <typename TBaseElem>
-		TBaseElem* child_if_copy(TBaseElem* elem);
-
 	///	removes holes in the index set
 	/**
 	 * This method removes holes in the index set such that the index set is
@@ -222,18 +210,21 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 		template <typename TBaseElem>
 		void get_connections(std::vector<std::vector<size_t> >& vvConnection) const;
 
-		LevInfo& lev_info() {return m_levInfo;}
-		const LevInfo& lev_info() const {return m_levInfo;}
+		LevInfo<std::set<size_t> >& lev_info() {return m_levInfo;}
+		const LevInfo<std::set<size_t> >& lev_info() const {return m_levInfo;}
 
 	protected:
 	///	MultiGrid Subset Handler
 		SmartPtr<SurfaceLevelView> m_spSurfLevelView;
 
 	///	DoF Info
-		LevInfo m_levInfo;
+		LevInfo<std::set<size_t> > m_levInfo;
 
 	///	level
 		int m_level;
+
+	///	set of invalid indices, still contained in index set
+		std::set<size_t> m_sFreeIndex;
 
 	protected:
 #ifdef UG_PARALLEL

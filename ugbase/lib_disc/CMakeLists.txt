@@ -28,6 +28,7 @@ set(srcDiscretization	domain_util.cpp
 
                         function_spaces/approximation_space.cpp
                         function_spaces/grid_function_util.cpp
+                        function_spaces/grid_function.cpp
 
 						reference_element/reference_element.cpp
 			            reference_element/reference_element_init.cpp

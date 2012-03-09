@@ -203,7 +203,7 @@ void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 		UG_THROW_FATAL("Level does not exist.");
 
 //	if nothing to do, continue
-	if(m_vLev[l].vFreeIndex.empty()) return;
+	if(!m_vLev[l].free_index_available()) return;
 
 	for(int si = 0; si < num_subsets(); ++si)
 	{

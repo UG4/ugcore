@@ -8,9 +8,10 @@
 #ifndef MANAGING_DOF_DISTRIBUTION_H_
 #define MANAGING_DOF_DISTRIBUTION_H_
 
-#include "lib_disc/function_spaces/grid_function.h"
-
 namespace ug{
+
+///	predeclaration
+class IGridFunction;
 
 class ManagingDoFDistribution
 {

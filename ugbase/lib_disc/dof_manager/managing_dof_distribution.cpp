@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "managing_dof_distribution.h"
+#include "lib_disc/function_spaces/grid_function.h"
 
 namespace ug{
 

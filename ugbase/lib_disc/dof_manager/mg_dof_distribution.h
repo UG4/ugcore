@@ -24,10 +24,16 @@
 
 namespace ug{
 
-struct LevInfo
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// Lev Info
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+struct LevInfoBase
 {
 ///	constructor
-	LevInfo() : numIndex(0), sizeIndexSet(0) {}
+	LevInfoBase() : numIndex(0), sizeIndexSet(0) {}
 
 /// number of distributed indices on whole domain
 	size_t numIndex;
@@ -39,10 +45,8 @@ struct LevInfo
 ///	but maybe some indices are not used
 	size_t sizeIndexSet;
 
-///	vector to store free algebraic indices
-	std::vector<size_t> vFreeIndex;
-
 #ifdef UG_PARALLEL
+	public:
 ///	(horizontal) master index layout
 	IndexLayout masterLayout;
 
@@ -63,6 +67,24 @@ struct LevInfo
 #endif
 };
 
+template <typename TContainer = std::vector<size_t> >
+struct LevInfo : public LevInfoBase
+{
+///	returns if free index avaiable
+	inline bool free_index_available() const;
+
+///	returns a free index
+	inline size_t pop_free_index();
+
+///	adds a free index
+	inline void push_free_index(size_t index);
+};
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// MGDoFDistribution
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 class MGDoFDistribution : public GridObserver
 {
@@ -76,6 +98,7 @@ class MGDoFDistribution : public GridObserver
 		                  bool bGrouped);
 
 		///	returns the multigrid
+		MultiGrid& multi_grid() {return m_rMultiGrid;}
 		const MultiGrid& multi_grid() const {return m_rMultiGrid;}
 
 		///	returns the subset handler
@@ -258,6 +281,22 @@ class MGDoFDistribution : public GridObserver
 		void changable_indices(std::vector<size_t>& vIndex,
 		                       const std::vector<TBaseElem*>& vElem) const;
 
+	///	returns parent != NULL, if available
+		template <typename TBaseElem>
+		GeometricObject* get_parent(TBaseElem* elem) const;
+
+	///	returns parent != NULL, if is copy in sense of Multigrid
+		template <typename TBaseElem>
+		TBaseElem* parent_if_copy(TBaseElem* elem) const;
+
+	///	returns parent != NULL, if of same base object type
+		template <typename TBaseElem>
+		TBaseElem* parent_if_same_type(TBaseElem* elem) const;
+
+	///	returns child != NULL, if is copy in sense of Multigrid
+		template <typename TBaseElem>
+		TBaseElem* child_if_copy(TBaseElem* elem) const;
+
 	protected:
 		///	returns the offset for reference element, subset and function
 		size_t offset(const ReferenceObjectID roid, const int si, const size_t fct) const {return m_vvvOffsets[roid][si][fct];}
@@ -307,11 +346,12 @@ class MGDoFDistribution : public GridObserver
 		 * \param[in]		si			Subset of Geometric Object
 		 * \param[in,out]	li			Level Information about Indices
 		 */
-		template <typename TBaseObject>
+		template <typename TBaseObject, typename T>
 		void add(TBaseObject* obj, const ReferenceObjectID roid,
-		         const int si, LevInfo& li);
+		         const int si, LevInfo<T>& li);
+		template <typename T>
 		void add(GeometricObject* obj, const ReferenceObjectID roid,
-		         const int si, LevInfo& li);
+		         const int si, LevInfo<T>& li);
 
 		/**
 		 * adds indices to a geometric object. Tries to reuse free indices.
@@ -321,11 +361,12 @@ class MGDoFDistribution : public GridObserver
 		 * \param[in]		si			Subset of Geometric Object
 		 * \param[in,out]	li			Level Information about Indices
 		 */
-		template <typename TBaseObject>
+		template <typename TBaseObject, typename T>
 		void add_from_free(TBaseObject* obj, const ReferenceObjectID roid,
-		                   const int si, LevInfo& li);
+		                   const int si, LevInfo<T>& li);
+		template <typename T>
 		void add_from_free(GeometricObject* obj, const ReferenceObjectID roid,
-		                   const int si, LevInfo& li);
+		                   const int si, LevInfo<T>& li);
 
 		/**
 		 * removes indices from the geometric object. The freed index (the
@@ -336,11 +377,12 @@ class MGDoFDistribution : public GridObserver
 		 * \param[in]		si					Subset of Geometric Object
 		 * \param[in,out]	li			Level Information about Indices
 		 */
-		template <typename TBaseObject>
+		template <typename TBaseObject, typename T>
 		void erase(TBaseObject* obj, const ReferenceObjectID roid,
-		           const int si, LevInfo& li);
+		           const int si, LevInfo<T>& li);
+		template <typename T>
 		void erase(GeometricObject* obj, const ReferenceObjectID roid,
-		           const int si, LevInfo& li);
+		           const int si, LevInfo<T>& li);
 
 		/**
 		 * checks if the indices on the geometric object are in the range of the
@@ -356,16 +398,19 @@ class MGDoFDistribution : public GridObserver
 		 *
 		 * \returns true if index has been replaced, false else
 		 */
-		template <typename TBaseObject>
+		template <typename TBaseObject, typename T>
 		void defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
-		                LevInfo& li, std::vector<std::pair<size_t, size_t> >& vReplaced);
+		                LevInfo<T>& li, std::vector<std::pair<size_t, size_t> >& vReplaced);
+		template <typename T>
+		void defragment(GeometricObject* obj, const ReferenceObjectID roid, const int si,
+		                LevInfo<T>& li, std::vector<std::pair<size_t, size_t> >& vReplaced);
 
 		/**
 		 * copies the indices from one geometric object to another one. This
 		 * method is usually called, if an object of the grid is replaced by a
 		 * similar one.
 		 */
-		void copy(GeometricObject* objNew, GeometricObject* objOld);
+		inline void copy(GeometricObject* objNew, GeometricObject* objOld);
 
 		///	checks that subset assigment is ok
 		void check_subsets();
@@ -388,20 +433,20 @@ class MGDoFDistribution : public GridObserver
 
 		///	returns first algebra index of a geometric object
 		/// \{
-		size_t& obj_index(GeometricObject* obj);
-		size_t& obj_index(VertexBase* vrt) 	{return m_aaIndexVRT[vrt];}
-		size_t& obj_index(EdgeBase* ed) 	{return m_aaIndexEDGE[ed];}
-		size_t& obj_index(Face* face)     	{return m_aaIndexFACE[face];}
-		size_t& obj_index(Volume* vol)     	{return m_aaIndexVOL[vol];}
+		inline size_t& obj_index(GeometricObject* obj);
+		inline size_t& obj_index(VertexBase* vrt) 	{return m_aaIndexVRT[vrt];}
+		inline size_t& obj_index(EdgeBase* ed) 		{return m_aaIndexEDGE[ed];}
+		inline size_t& obj_index(Face* face)     	{return m_aaIndexFACE[face];}
+		inline size_t& obj_index(Volume* vol)     	{return m_aaIndexVOL[vol];}
 		/// \}
 
 		///	const access to first algebra index of a geometric object
 		/// \{
-		const size_t& obj_index(GeometricObject* obj) const;
-		const size_t& obj_index(VertexBase* vrt) const {return m_aaIndexVRT[vrt];}
-		const size_t& obj_index(EdgeBase* ed)    const {return m_aaIndexEDGE[ed];}
-		const size_t& obj_index(Face* face)      const {return m_aaIndexFACE[face];}
-		const size_t& obj_index(Volume* vol)     const {return m_aaIndexVOL[vol];}
+		inline const size_t& obj_index(GeometricObject* obj) const;
+		inline const size_t& obj_index(VertexBase* vrt) const {return m_aaIndexVRT[vrt];}
+		inline const size_t& obj_index(EdgeBase* ed)    const {return m_aaIndexEDGE[ed];}
+		inline const size_t& obj_index(Face* face)      const {return m_aaIndexFACE[face];}
+		inline const size_t& obj_index(Volume* vol)     const {return m_aaIndexVOL[vol];}
 		/// \}
 
 	///	returns the associated grid
@@ -477,6 +522,8 @@ class MGDoFDistribution : public GridObserver
 
 } // end namespace ug
 
+#include "mg_dof_distribution_impl.h"
 #include "level_dof_distribution.h"
 #include "surface_dof_distribution.h"
+
 #endif /* __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_DISTRIBUTION__ */

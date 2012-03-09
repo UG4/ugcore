@@ -214,37 +214,13 @@ void SurfaceDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 #endif
 
 template <typename TBaseElem>
-TBaseElem* SurfaceDoFDistribution::parent_if_copy(TBaseElem* elem)
-{
-	GeometricObject* pParent = m_rMultiGrid.get_parent(elem);
-	TBaseElem* parent = dynamic_cast<TBaseElem*>(pParent);
-	if(parent != NULL &&
-		m_rMultiGrid.num_children<TBaseElem>(parent) == 1) return parent;
-	else return NULL;
-}
-
-template <typename TBaseElem>
-TBaseElem* SurfaceDoFDistribution::parent_if_same_type(TBaseElem* elem)
-{
-	GeometricObject* pParent = m_rMultiGrid.get_parent(elem);
-	return dynamic_cast<TBaseElem*>(pParent);
-}
-
-template <typename TBaseElem>
-TBaseElem* SurfaceDoFDistribution::child_if_copy(TBaseElem* elem)
-{
-	if(m_rMultiGrid.num_children<TBaseElem>(elem) != 1) return NULL;
-	return m_rMultiGrid.get_child<TBaseElem>(elem, 0);
-}
-
-template <typename TBaseElem>
 void SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& vReplaced)
 {
 	typedef typename traits<TBaseElem>::iterator iterator;
 	static const int dim = TBaseElem::dim;
 
 //	if nothing to do, return
-	if(lev_info().vFreeIndex.empty()) return;
+	if(!lev_info().free_index_available()) return;
 
 //	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
@@ -266,6 +242,15 @@ void SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 
 		//	check correct index and replace if needed
 			MGDoFDistribution::defragment(elem, roid, si, lev_info(), vReplaced);
+
+		//	if copy exists, copy also to parent and grand-parents and ... etc.
+			//\todo: save this execution in non-adaptive case
+			TBaseElem* parent = parent_if_copy(elem);
+			while(parent){
+				copy(parent, elem);
+				elem = parent;
+				parent = parent_if_copy(elem);
+			}
 		}
 	}
 }
@@ -295,27 +280,39 @@ template <typename TBaseElem>
 inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject* pParent,
                         bool replacesParent)
 {
-//	case 1: A real insertion in the multigrid: add indices
-	if(!replacesParent){
-		TBaseElem* copyParent = parent_if_copy(obj);
-
-		// a) Is a copy of underlying object, simply copy indices (i.e. reuse them)
-		if(copyParent != NULL) {
-			copy(obj, copyParent);
-		}
-		// b) Cannot copy from parent, create new indices.
-		else {
-			add(obj,
-			    obj->reference_object_id(),
-			    m_spMGSH->get_subset_index(obj),
-			    m_levInfo);
-		}
-	}
-
-//	case 2: if replacesParent == false, only an obj (e.g. HangingVertex)
+//	case 1: if replacesParent == true, only an obj (e.g. HangingVertex)
 //			is replaced by a similar obj (e.g. Vertex). This case is
 //			handled in obj_to_be_erased(), that will be called in addition
 //			to this callback with replacedBy != NULL.
+	if(replacesParent) return;
+
+//	case 2: A real insertion in the multigrid: add indices
+	add(obj,
+		obj->reference_object_id(),
+		m_spMGSH->get_subset_index(obj),
+		m_levInfo);
+
+//	the insertion changed the size of the index range. Thus, we have to
+//	resize the managed vectors. We do this now, since a transfer callback
+//	may be listen to the object creation and will interpolate the values. Thus,
+//	the vector entries must already be valid.
+	resize_values(lev_info().sizeIndexSet);
+
+//	the parent, that will be covered after the creation, will no longer be part
+//	of the surface. But we still need the values for the transfer callbacks.
+//	Therefore, we leave the "old" indices attached and valid for the moment.
+//	But we remember that the indices on the parent object must be removed when
+//	defragmentation is called. We do this only, if the parent is of same
+//	base element type. This is possible, since for each refined element, there
+//	is at least one "finer" element, that will be inserted, of same base type.
+	TBaseElem* parent = parent_if_same_type(obj);
+	if(parent)
+	{
+		erase(parent,
+		      parent->reference_object_id(),
+		      m_spMGSH->get_subset_index(parent),
+		      m_levInfo);
+	}
 }
 
 template <typename TBaseElem>
@@ -323,13 +320,13 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
                              TBaseElem* replacedBy)
 {
 //	case 1: Only replacement. Just copy indices from one obj to the other
-	if(replacedBy != NULL) {copy(replacedBy, obj); return;}
+	if(replacedBy) {copy(replacedBy, obj); return;}
 
 //	case 2: Element disappears, but parent is identical. Thus, the parent
 //			has the same indices attached. All indices remain valid on
 //			every surface level. No resizement in the index set must be
 //			performed.
-	if(parent_if_copy(obj) != NULL) return;
+	if(parent_if_copy(obj)) return;
 
 //	case 3: The object that will be erased has no identical parent on the
 //			coarser grid. In this case we have to remove the index from

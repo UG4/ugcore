@@ -23,6 +23,8 @@
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/function_spaces/error_indicator.h"
 #include "lib_disc/function_spaces/level_transfer.h"
+#include "lib_disc/function_spaces/local_transfer.h"
+
 
 using namespace std;
 
@@ -71,6 +73,22 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 //	get group string
 	string grp = parentGroup; grp.append("/Discretization");
 
+//	suffix and tag
+	string algSuffix = GetAlgebraSuffix<TAlgebra>();
+	string algTag = GetAlgebraTag<TAlgebra>();
+
+//	P1LocalTransfer
+	{
+		typedef P1LocalTransfer<TAlgebra> T;
+		typedef ILocalTransfer TBase;
+		string name = string("P1LocalTransfer").append(algSuffix);
+		reg.add_class_<T, TBase>("P1LocalTransfer")
+			.template add_constructor<void (*)(typename TAlgebra::vector_type&, size_t)>("Vector, fct")
+			.set_construct_as_smart_pointer(true);
+
+		reg.add_class_to_group(name, "P1LocalTransfer", algTag);
+	}
+
 	try{
 #ifdef UG_DIM_1
 		Register__Algebra_Domain<Domain1d, TAlgebra>(reg, grp);
@@ -100,6 +118,11 @@ static void Register__Domain(Registry& reg, string parentGroup)
 
 bool RegisterAdaptiveTools(Registry& reg, string parentGroup)
 {
+//	ILocalTransfer
+	{
+		reg.add_class_<ILocalTransfer>("ILocalTransfer");
+	}
+
 	try{
 #ifdef UG_CPU_1
 	Register__Algebra<CPUAlgebra>(reg, parentGroup);

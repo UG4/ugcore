@@ -11,6 +11,7 @@
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/dof_manager/function_pattern.h"
 #include "lib_disc/common/local_algebra.h"
+#include "local_transfer_interface.h"
 
 namespace ug{
 
@@ -210,9 +211,25 @@ class IDDGridFunction : public IGridFunction
 		size_t inner_algebra_indices(TElem* elem, std::vector<size_t>& ind) const
 			{return m_spDD->inner_algebra_indices(elem, ind);}
 
+		/////////////////////////////
+		// Transfer callbacks
+		/////////////////////////////
+
+	///	add a transfer callback
+		void add_transfer(SmartPtr<ILocalTransfer> transfer);
+
+	///	add a transfer callback
+		void remove_transfer(SmartPtr<ILocalTransfer> transfer);
+
+	///	add a transfer callback
+		void clear_transfers();
+
 	protected:
 	///	DoF Distribution this GridFunction relies on
 		SmartPtr<TDD> m_spDD;
+
+	///	registered transfers
+		std::vector<SmartPtr<ILocalTransfer> > m_vTransfer;
 };
 
 /// represents numerical solutions on a grid using an algebraic vector

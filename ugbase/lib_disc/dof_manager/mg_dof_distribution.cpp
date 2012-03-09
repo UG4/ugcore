@@ -1089,149 +1089,6 @@ changable_indices(std::vector<size_t>& vIndex,
 ////////////////////////////////////////////////////////////////////////////////
 // MGDoFDistribution: DoF Handling
 
-template <typename TBaseObject>
-void MGDoFDistribution::
-add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
-    LevInfo& li)
-{
-//	if no dofs on this subset for the roid, do nothing
-	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
-
-//	compute the number of indices needed on the Geometric object
-	size_t numNewIndex = 1;
-	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
-
-// 	set first available index to the object. The first available index is the
-//	first managed index plus the size of the index set. (If holes are in the
-//	index set, this is not treated here, wholes remain)
-	obj_index(obj) = li.sizeIndexSet;
-
-//	the size of the index set has changed. adjust counter
-	li.sizeIndexSet += numNewIndex;
-
-//	number of managed indices and the number of managed indices on the subset has
-//	changed. Thus, increase the counters.
-	li.numIndex += numNewIndex;
-	li.vNumIndexOnSubset[si] += numNewIndex;
-}
-
-template <typename TBaseObject>
-void MGDoFDistribution::
-add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
-              LevInfo& li)
-{
-//	if no dofs on this subset for the roid, do nothing
-	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
-
-//	compute the number of indices needed on the Geometric object
-	size_t numNewIndex = 1;
-	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
-
-//	a) 	if no holes are in the index set,
-	if(li.vFreeIndex.empty())
-	{
-	// 	set first available index to the object. The first available index is the
-	//	first managed index plus the size of the index set. (If holes are in the
-	//	index set, this is not treated here, wholes remain)
-		obj_index(obj) = li.sizeIndexSet;
-
-	//	the size of the index set has changed. adjust counter
-		li.sizeIndexSet += numNewIndex;
-	}
-	else
-	{
-	//	get a free index (a hole) and use it
-		obj_index(obj) = li.vFreeIndex.back();
-		li.vFreeIndex.pop_back();
-	}
-
-//	number of managed indices and the number of managed indices on the subset has
-//	changed. Thus, increase the counters.
-	li.numIndex += numNewIndex;
-	li.vNumIndexOnSubset[si] += numNewIndex;
-}
-
-template <typename TBaseObject>
-void MGDoFDistribution::
-defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
-           LevInfo& li, std::vector<std::pair<size_t, size_t> >& vReplaced)
-{
-//	get old (current) index
-	const size_t oldIndex = obj_index(obj);
-
-// 	check if index must be replaced by lower one
-	if(oldIndex < li.numIndex) return;
-
-//	must have holes in the index set
-	UG_ASSERT(!li.vFreeIndex.empty(), "Hole in index set, but no free index.");
-
-//	get new index from stack
-	while(1)
-	{
-	//	get a free index (a hole) and use it
-		const size_t newIndex = li.vFreeIndex.back(); li.vFreeIndex.pop_back();
-
-	//	check that index is admissible
-		if(newIndex < li.numIndex)
-		{
-		//	set new index
-			obj_index(obj) = newIndex;
-
-		//	remember replacement
-			vReplaced.push_back(std::pair<size_t,size_t>(oldIndex,newIndex));
-
-		//	done
-			break;
-		}
-	//	else try next
-		if(li.vFreeIndex.empty())
-			UG_THROW_FATAL("No more free index, but still need to defragment.");
-	}
-
-//	compute the number of indices needed on the Geometric object
-	size_t numNewIndex = 1;
-	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
-
-//	number of Indices stays the same, but size of index set is changed.
-	li.sizeIndexSet -= numNewIndex;
-}
-
-
-template <typename TBaseObject>
-void MGDoFDistribution::
-erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
-      LevInfo& li)
-{
-//	if no indices needed, we do nothing
-	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
-
-//	store the index of the object, that will be erased as a available hole of the
-//	index set
-	li.vFreeIndex.push_back(obj_index(obj));
-
-//	compute number of indices on the geometric object
-	size_t numNewIndex = 1;
-	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
-
-//	number of managed indices has changed, thus decrease counter. Note, that the
-//	size of the index set remains unchanged.
-	li.numIndex -= numNewIndex;
-	li.vNumIndexOnSubset[si] -= numNewIndex;
-}
-
-void MGDoFDistribution::
-copy(GeometricObject* objNew, GeometricObject* objOld)
-{
-//	check subsets
-	UG_ASSERT(m_spMGSH->get_subset_index(objNew) ==
-			  m_spMGSH->get_subset_index(objOld),
-			  "Subset index "<<m_spMGSH->get_subset_index(objNew)<<
-			  "of replacing obj must match the one of replaced obj "
-			  <<m_spMGSH->get_subset_index(objOld));
-
-//	simply copy the index
-	obj_index(objNew) = obj_index(objOld);
-}
 
 void MGDoFDistribution::init_attachments()
 {
@@ -1267,30 +1124,6 @@ void MGDoFDistribution::clear_attachments()
 	m_aaIndexFACE.invalidate();
 	m_aaIndexVOL.invalidate();
 }
-
-size_t& MGDoFDistribution::obj_index(GeometricObject* obj)
-{
-	switch(obj->base_object_type_id())
-	{
-		case VERTEX: return obj_index(static_cast<VertexBase*>(obj));
-		case EDGE:   return obj_index(static_cast<EdgeBase*>(obj));
-		case FACE:   return obj_index(static_cast<Face*>(obj));
-		case VOLUME: return obj_index(static_cast<Volume*>(obj));
-		default: UG_THROW_FATAL("Base Object type not found.");
-	}
-}
-
-const size_t& MGDoFDistribution::obj_index(GeometricObject* obj) const
-{
-	switch(obj->base_object_type_id())
-	{
-		case VERTEX: return obj_index(static_cast<VertexBase*>(obj));
-		case EDGE:   return obj_index(static_cast<EdgeBase*>(obj));
-		case FACE:   return obj_index(static_cast<Face*>(obj));
-		case VOLUME: return obj_index(static_cast<Volume*>(obj));
-		default: UG_THROW_FATAL("Base Object type not found.");
-	}
-};
 
 void MGDoFDistribution::indices(GeometricObject* elem, LocalIndices& ind, bool bHang) const
 {
@@ -1358,47 +1191,6 @@ size_t MGDoFDistribution::inner_algebra_indices(GeometricObject* elem, std::vect
 	}
 }
 
-void MGDoFDistribution::add_from_free(GeometricObject* elem, const ReferenceObjectID roid,
-                                      const int si, LevInfo& li)
-{
-	switch(elem->base_object_type_id())
-	{
-		case VERTEX: return add_from_free(static_cast<VertexBase*>(elem), roid, si, li);
-		case EDGE: return add_from_free(static_cast<EdgeBase*>(elem), roid, si, li);
-		case FACE: return add_from_free(static_cast<Face*>(elem), roid, si, li);
-		case VOLUME: return add_from_free(static_cast<Volume*>(elem), roid, si, li);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
-	}
-}
-
-void MGDoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
-                            const int si, LevInfo& li)
-{
-	switch(elem->base_object_type_id())
-	{
-		case VERTEX: return add(static_cast<VertexBase*>(elem), roid, si, li);
-		case EDGE: return add(static_cast<EdgeBase*>(elem), roid, si, li);
-		case FACE: return add(static_cast<Face*>(elem), roid, si, li);
-		case VOLUME: return add(static_cast<Volume*>(elem), roid, si, li);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
-	}
-}
-
-void MGDoFDistribution::erase(GeometricObject* elem, const ReferenceObjectID roid,
-                              const int si, LevInfo& li)
-{
-	switch(elem->base_object_type_id())
-	{
-		case VERTEX: return erase(static_cast<VertexBase*>(elem), roid, si, li);
-		case EDGE: return erase(static_cast<EdgeBase*>(elem), roid, si, li);
-		case FACE: return erase(static_cast<Face*>(elem), roid, si, li);
-		case VOLUME: return erase(static_cast<Volume*>(elem), roid, si, li);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
-	}
-}
-
-
-
 void MGDoFDistribution::register_observer()
 {
 	int type = OT_GRID_OBSERVER;
@@ -1448,25 +1240,5 @@ template void MGDoFDistribution::changable_indices<VertexBase>(std::vector<size_
 template void MGDoFDistribution::changable_indices<EdgeBase>(std::vector<size_t>& vIndex, const std::vector<EdgeBase*>& vElem) const;
 template void MGDoFDistribution::changable_indices<Face>(std::vector<size_t>& vIndex, const std::vector<Face*>& vElem) const;
 template void MGDoFDistribution::changable_indices<Volume>(std::vector<size_t>& vIndex, const std::vector<Volume*>& vElem) const;
-
-template void MGDoFDistribution::add<VertexBase>(VertexBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-template void MGDoFDistribution::add<EdgeBase>(EdgeBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-template void MGDoFDistribution::add<Face>(Face* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-template void MGDoFDistribution::add<Volume>(Volume* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-
-template void MGDoFDistribution::add_from_free<VertexBase>(VertexBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-template void MGDoFDistribution::add_from_free<EdgeBase>(EdgeBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-template void MGDoFDistribution::add_from_free<Face>(Face* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-template void MGDoFDistribution::add_from_free<Volume>(Volume* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-
-template void MGDoFDistribution::erase<VertexBase>(VertexBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-template void MGDoFDistribution::erase<EdgeBase>(EdgeBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-template void MGDoFDistribution::erase<Face>(Face* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-template void MGDoFDistribution::erase<Volume>(Volume* obj, const ReferenceObjectID roid, const int si, LevInfo& li);
-
-template void MGDoFDistribution::defragment<VertexBase>(VertexBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li, std::vector<std::pair<size_t,size_t> >& vReplaced);
-template void MGDoFDistribution::defragment<EdgeBase>(EdgeBase* obj, const ReferenceObjectID roid, const int si, LevInfo& li, std::vector<std::pair<size_t,size_t> >& vReplaced);
-template void MGDoFDistribution::defragment<Face>(Face* obj, const ReferenceObjectID roid, const int si, LevInfo& li, std::vector<std::pair<size_t,size_t> >& vReplaced);
-template void MGDoFDistribution::defragment<Volume>(Volume* obj, const ReferenceObjectID roid, const int si, LevInfo& li, std::vector<std::pair<size_t,size_t> >& vReplaced);
 
 } // end namespace ug

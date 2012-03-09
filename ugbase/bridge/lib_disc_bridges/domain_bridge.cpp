@@ -86,7 +86,10 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("ApproximationSpace")
 			.add_method("assign", static_cast<void (TFct::*)(const vector_type&)>(&TFct::assign),
 						"Success", "Vector")
-			.add_method("clone", &TFct::clone);
+			.add_method("clone", &TFct::clone)
+			.add_method("add_transfer", &TFct::add_transfer)
+			.add_method("remove_transfer", &TFct::remove_transfer)
+			.add_method("clear_transfers", &TFct::clear_transfers);
 		reg.add_class_to_group(name, "GridFunction", dimAlgTag);
 	}
 
