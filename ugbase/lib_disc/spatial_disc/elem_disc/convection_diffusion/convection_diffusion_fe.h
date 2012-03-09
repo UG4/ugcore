@@ -260,7 +260,7 @@ elem_dM_fe(LocalVector& d, const LocalVector& u)
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
 		//	compute contribution
-			number val = shape_u * geo.shape(ip, i) * geo.weight(ip);
+			number val = shape_u;
 
 		//	add MassScaling
 			if(m_imMassScale.data_given())
@@ -271,7 +271,7 @@ elem_dM_fe(LocalVector& d, const LocalVector& u)
 				val += m_imMass[ip];
 
 		//	add to local defect
-			d(_C_, i) +=  val;
+			d(_C_, i) +=  val * geo.shape(ip, i) * geo.weight(ip);
 		}
 	}
 

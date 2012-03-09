@@ -390,7 +390,7 @@ elem_dM_fv1(LocalVector& d, const LocalVector& u)
 			const int co = scv.node_id();
 
 		//	mass value
-			number val = u(_C_, co) * scv.volume();
+			number val = u(_C_, co);
 
 		//	multiply by scaling
 			if(m_imMassScale.data_given())
@@ -401,7 +401,7 @@ elem_dM_fv1(LocalVector& d, const LocalVector& u)
 				val += m_imMass[ip];
 
 		// 	Add to local defect
-			d(_C_, co) += val;
+			d(_C_, co) += val * scv.volume();
 		}
 	}
 
