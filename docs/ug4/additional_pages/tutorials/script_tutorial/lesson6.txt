@@ -10,6 +10,6 @@ it in a call to RedistributeDomain.
 Below you'll find the scripts sources. They are the same as in
 scripts/tutorials/tut06_flexible_grid_distribution.lua
 
-\include tut06_flexible_grid_distribution.lua
+\include tut06_flexible_domain_distribution.lua
 
 */
