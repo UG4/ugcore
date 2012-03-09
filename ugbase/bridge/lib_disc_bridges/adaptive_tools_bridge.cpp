@@ -82,10 +82,9 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 		typedef P1LocalTransfer<TAlgebra> T;
 		typedef ILocalTransfer TBase;
 		string name = string("P1LocalTransfer").append(algSuffix);
-		reg.add_class_<T, TBase>("P1LocalTransfer")
+		reg.add_class_<T, TBase>(name)
 			.template add_constructor<void (*)(typename TAlgebra::vector_type&, size_t)>("Vector, fct")
 			.set_construct_as_smart_pointer(true);
-
 		reg.add_class_to_group(name, "P1LocalTransfer", algTag);
 	}
 
