@@ -1,0 +1,44 @@
+//	created by Ingo Heppner
+//	Ingo.Heppner@gcsc.uni-frankfurt.de
+//	y12 m03 d10
+
+/**	\page pageParallelRendering Parallel Rendering
+
+	- \ref secParallelRenderingGeneral           "General informations about parallel rendering"
+	- \ref secParallelRenderingWithParaView      "Parallel rendering with ParaView"
+
+<hr>
+\section secParallelRenderingGeneral General informations about parallel rendering
+<hr>
+
+TODO!
+
+<ul>
+<li>...
+</li>
+
+<li> ...
+</li>
+
+</ul>
+
+
+<hr>
+\section secParallelRenderingWithParaView Parallel rendering with ParaView
+<hr>
+
+Installation of <a href="http://paraview.org/">ParaView</a> (client) on the local host ... TODO: Explicate!
+
+<ul>
+<li> See e.g.
+     http://www.fz-juelich.de/ias/jsc/EN/Expertise/Support/Visualization/ScientificVisualization/JUVIS/_node.html,
+     http://www.fz-juelich.de/ias/jsc/EN/Expertise/Support/Visualization/ScientificVisualization/JUVIS/SampleSessionLocalRender.html.
+</li>
+
+<li> ...
+</li>
+</ul>
+
+TODO: Explicate!
+
+*/

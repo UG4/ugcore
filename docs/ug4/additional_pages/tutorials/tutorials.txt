@@ -9,14 +9,15 @@ all users of ug, like the scripting tutorials or the ugshell tutorial, others
 are aimed primarily at developers - e.g. the 'install eclipse' and
 'compile ug4' tutorials. Some are aimed at both - e.g. the profiling tutorial.
 
+	- \ref pageInstallUG4 "Compile ug4"
 	- \ref pageUG4Shell "ugshell"
 	- \ref pageScriptTutorial "Script Tutorial"
+	- \ref pageInstallEclipse "Install Eclipse"
 	- \ref pageUG4Profiling "Profiling"
 	- \ref pageUG4ParallelComputing "Parallel computing"
+	- \ref pageParallelRendering "Parallel Rendering"
 	- \ref pageUG4ScalabilityTests "Scalability Tests"
-	- \ref pageInstallEclipse "Install Eclipse"
 	- \ref pageAdditionalSoftware "Additional software that might be useful"
-	- \ref pageInstallUG4 "Compile ug4"
 	
 	- \ref pageugsubmit "Job Scheduling on Clusters"
  */
