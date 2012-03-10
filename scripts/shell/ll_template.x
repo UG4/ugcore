@@ -5,6 +5,9 @@
 #          command file and 'mpirun' syntax.
 # Usage:   Submit it (after careful editing to specify your job ...) via
 #          'llsubmit ll_template' in ug4's 'bin/' directory.
+#
+# Please do not modify this file for submitting your jobs - work on your own copy!
+#
 ################################################################################
 
 ################################################################################
@@ -294,10 +297,12 @@ env | grep LOADL_
 # Set ug executable, arguments and load path (to shorten the lengthy commands):
 ##########################################
 UGSHELL=ugshell
-MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
-
 UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsIterator gmg -lsMaxIter 100 -verb 0 -numPreRefs 3"
 
+##########################################
+# load path - only necessary (in my experience) for dynamically linked executables:
+# 'mpirun' parameter '-env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/'
+##########################################
 
 ##########################################
 ##########################################
@@ -309,16 +314,16 @@ UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/g
 ##########################################
 #### Until 1024 PE 'bg_size = 512'!   ####
 # job "jugene4b.292614":
-#mpirun -np      4 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS -numRefs  6"
+#mpirun -np      4 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS -numRefs  6"
 # job "jugene4b.292615":
-#mpirun -np     16 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS -numRefs  7"
+#mpirun -np     16 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS -numRefs  7"
 # job "jugene4b.292616":
-#mpirun -np     64 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS -numRefs  8"
+#mpirun -np     64 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS -numRefs  8"
 # job "jugene4b.292617":
-#mpirun -np    256 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS -numRefs  9"
+#mpirun -np    256 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS -numRefs  9"
 # job "jugene4b.292618":
 # Hierarchical redistribution: Last stage from 64 to 1 Ki, first from 1 to 64:
-#mpirun -np   1024 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS -numRefs 10 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep  16"
+#mpirun -np   1024 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS -numRefs 10 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep  16"
 #### Up to this with 'bg_size = 512'! ####
 ##########################################
 

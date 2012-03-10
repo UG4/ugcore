@@ -1,14 +1,18 @@
 #!/bin/bash
 ################################################################################
-# Begin: 06022012ih, copied from 'll_scale_gmg_hfu023_copy.x'
-# Purpose: Loadleveler command file for scalability test of GMG iterator
+# Begin:   06022012ih
+# Purpose: Loadleveler command file for scalability test of GMG iterator.
 # Usage:   Submit it (after careful editing to specify your job ...) via
 #          'llsubmit ll_scale_gmg.x' in your 'bin/' directory.
 #
-# I.  For further infos about IBMs LoadLeveler syntax see 'll_template.x'!
+# Please do not modify this file for submitting your jobs - work on your own copy!
+#
 ################################################################################
 
 ################################################################################
+# I.  For further infos about IBMs LoadLeveler syntax see 'll_template.x'!
+################################################################################
+
 ################################################################################
 # II. What we are interested in:
 #
@@ -35,7 +39,7 @@
 ################################################################################
 
 ################################################################################
-# III. Job definitions (note that comments must be on a separate line):
+# III. Job definitions (note that keywords must not be followed by comments ==> put them on separate lines):
 ################################################################################
 # TO CHECK: Job-Name and comment:
 # @ job_name = ug4_fullystatic_laplace_3d
@@ -46,24 +50,31 @@
 ########################################
 # TO CHECK: Minimal 'wall_clock_limit' depends obviously on job size:
 #           Up to 'bg_size =  16384' (nec. for  64k PE) 30 min are enough,
-#           for   'bg_size =  65536' (nec. for 256k PE) minimum is 45 min (acc. to error message of LoadLeveler which refuses to submit the job)
+#           for   'bg_size =  65536' (nec. for 256k PE) minimum is 45 min (acc. to error message of LoadLeveler which refuses to submit the job with only 30 min wall_clock_limit)
 # @ wall_clock_limit = 00:30:00
 ########################################
 # @ notification = error
 # @ notify_user = ingo.heppner@gcsc.uni-frankfurt.de
 # @ job_type = bluegene
-# Connection type in [TORUS| MESH | PREFER_TORUS] - default: MESH; for TORUS 'bg_size' must be >= 512
+
+########################################
+# Connection type in [TORUS| MESH | PREFER_TORUS] - default: 'bg_connection=MESH'.
+# For 'bg_connection=TORUS' 'bg_size' must be >= 512 (i.e. one midplane)
+# http://www.prace-ri.eu/IMG/pdf/Best-practise-guide-JUGENE-v0-3.pdf states on p. 8:
+# A midplane is the smallest building block for the TORUS network.
+# And on p. 9:
+# "A three- dimensional torus topology is available to the user application only if
+# the assigned partition of the machine is a multiple of the [a] midplane (16 node cards, half of a rack)."
 # @ bg_connection = TORUS
 ########################################
-# IMPORTANT: Specification of 'bg_size':
+# IMPORTANT: Specification of 'bg_size'! Statement given by JuGene-Support-Team:
 #    "Durch das Batch-Script wird die in bg_size angegebene Partitionsgroesse
 #    angefordert. Diese muss dann daher auch vom Scheduler reserviert werden,
-#    bestimmt die Klasse des Jobs und wird auch anschliessend abgerechnet"
-#    (statement by JuGene-Support-Team).
+#    bestimmt die Klasse des Jobs und wird auch anschliessend abgerechnet".
 #
 #    Best-practise-guide-JUGENE-v0-3.pdf, p. 32:
 #    'bg_size' is the size of the Blue Gene job in *number of compute nodes* to be used.
-#    'bg_size = 32' is the minimum on JUGENE [sc.: if 'connection_type' != 'TORUS'].
+#    'bg_size = 32' (= one node board) is the minimum on JUGENE [sc.: if 'connection_type' != 'TORUS'].
 #
 # Examples for 'bg_size' (for 2-D scalability test):
 #    'bg_size =    512': enough for 0.5 Ki*4 =   2'048 PE, i.e. for 4, 16, 64, 256, 1024 PE
@@ -106,21 +117,28 @@ env | grep LOADL_
 ### Raw timing analysis of these jobs:
 ### egrep 'NumProcs|main   |unknown|MPI_Init| ASS_AssembleLinearOperatorRhsAndSolution| ALS_InitLinearSolver| ALS_ApplyLinearSolver' ug4_fullystatic_laplace*
 ###
-### Check number of iterations:
-### grep " reached after " ug4_fullystatic_laplace*
+### Check start and end norms of residuum, if solver converged and number of iterations:
+### grep -A3 " Iterative Linear Solver "  ug4_fullystatic_laplace*
+### grep -B1 " Iteration not successful " ug4_fullystatic_laplace*
+### grep -B1 " reached after "            ug4_fullystatic_laplace*
+### egrep '-A3 " Iterative Linear Solver "|-B1 " reached after "'  ug4_fullystatic_laplace*
 ################################################################################
 ################################################################################
 
 ##########################################
-# Set ug executable, arguments and load path (to shorten the lengthy commands):
+# Set ug executable, arguments (to shorten the lengthy commands):
 ##########################################
 UGSHELL=ugshell_rev4354_fully_static
-MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 
-# 2-D:
+# 2-D arguments:
 UGARGS2D="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsIterator gmg -lsMaxIter 100 -verb 0 -numPreRefs 3"
-# 3-D:
+# 3-D arguments:
 UGARGS3D="-ex ../scripts/tests/modular_scalability_test.lua -dim 3 -grid ../data/grids/unit_square_01/unit_cube_01_hex_2x2x2.ugx -lsIterator gmg -lsMaxIter 100 -verb 0 -numPreRefs 2"
+
+##########################################
+# load path - only necessary (in my experience) for dynamically linked executables:
+# 'mpirun' parameter '-env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/'
+##########################################
 
 ##########################################
 ##########################################
@@ -132,16 +150,16 @@ UGARGS3D="-ex ../scripts/tests/modular_scalability_test.lua -dim 3 -grid ../data
 ##########################################
 #### Until 1024 PE 'bg_size = 512'!   ####
 # job "jugene4b.292614":
-#mpirun -np      4 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS2D -numRefs  6"
+#mpirun -np      4 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS2D -numRefs  6"
 # job "jugene4b.292615":
-#mpirun -np     16 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS2D -numRefs  7"
+#mpirun -np     16 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS2D -numRefs  7"
 # job "jugene4b.292616":
-#mpirun -np     64 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS2D -numRefs  8"
+#mpirun -np     64 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS2D -numRefs  8"
 # job "jugene4b.292617":
-#mpirun -np    256 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS2D -numRefs  9"
+#mpirun -np    256 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS2D -numRefs  9"
 # job "jugene4b.292618":
 # Hierarchische Nachverteilung: Letzter Schritt von 64 auf 1k, erster von 1 auf 64:
-#mpirun -np   1024 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS2D -numRefs 10 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep  16"
+#mpirun -np   1024 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS2D -numRefs 10 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep  16"
 #### Up to this with 'bg_size = 512'! ####
 ##########################################
 
@@ -149,17 +167,17 @@ UGARGS3D="-ex ../scripts/tests/modular_scalability_test.lua -dim 3 -grid ../data
 #### For this job 'bg_size =   1024'! ####
 # job "jugene4b.292619":
 # Hierarchische Nachverteilung: Letzter Schritt von 64 auf 4k, erster von 1 auf 64:
-#mpirun -np   4096 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS2D -numRefs 11 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep  64"
+#mpirun -np   4096 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS2D -numRefs 11 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep  64"
 
 #### For this job 'bg_size =   4096'! ####
 # job "jugene4b.292621":
 # Hierarchische Nachverteilung: Letzter Schritt von 64 auf 16k, erster von 1 auf 64:
-#mpirun -np  16384 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS2D -numRefs 12 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep 256"
+#mpirun -np  16384 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS2D -numRefs 12 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep 256"
 
 #### For this job 'bg_size =  16384'! ####
 # job "jugene4b.292622":
 # Hierarchische Nachverteilung: Letzter Schritt von 256 auf 64k, erster von 1 auf 256:
-#mpirun -np  65536 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS2D -numRefs 13 -hRedistFirstLevel 6 -hRedistStepSize 100 -hRedistNewProcsPerStep 256"
+#mpirun -np  65536 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS2D -numRefs 13 -hRedistFirstLevel 6 -hRedistStepSize 100 -hRedistNewProcsPerStep 256"
 
 ##########################################
 # And now ... the next big step (sadly the last step on JuGene also ...), with 256 Ki PE:
@@ -167,7 +185,7 @@ UGARGS3D="-ex ../scripts/tests/modular_scalability_test.lua -dim 3 -grid ../data
 
 #### For this job 'bg_size = 65536' - and wall_time 45 min!  ####
 # job "jugene4b.289331.0":
-#mpirun -np 262144 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS2D -numRefs 14 -hRedistFirstLevel 6 -hRedistStepSize 3 -hRedistNewProcsPerStep 64 -hRedistMaxSteps 2"
+#mpirun -np 262144 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS2D -numRefs 14 -hRedistFirstLevel 6 -hRedistStepSize 3 -hRedistNewProcsPerStep 64 -hRedistMaxSteps 2"
 
 
 ################################################################################
@@ -182,28 +200,28 @@ UGARGS3D="-ex ../scripts/tests/modular_scalability_test.lua -dim 3 -grid ../data
 
 #### Until  512 PE 'bg_size = 512'!   ####
 # job "jugene3b.289034":
-#mpirun -np      1 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS3D -numRefs  4"
+#mpirun -np      1 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS3D -numRefs  4"
 
 # job "jugene3b.289035":
-#mpirun -np      8 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS3D -numRefs  5"
+#mpirun -np      8 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS3D -numRefs  5"
 
 # job "jugene3b.289036":
-#mpirun -np     64 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS3D -numRefs  6 -hRedistFirstLevel 4 -hRedistStepSize 100 -hRedistNewProcsPerStep   8"
+#mpirun -np     64 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS3D -numRefs  6 -hRedistFirstLevel 4 -hRedistStepSize 100 -hRedistNewProcsPerStep   8"
 
 # job "jugene3b.289037":
-#mpirun -np    512 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS3D -numRefs  7 -hRedistFirstLevel 4 -hRedistStepSize 100 -hRedistNewProcsPerStep  32"
+#mpirun -np    512 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS3D -numRefs  7 -hRedistFirstLevel 4 -hRedistStepSize 100 -hRedistNewProcsPerStep  32"
 #### Up to this with 'bg_size = 512'! ####
 ##########################################
 
 ##########################################
 #### For this job 'bg_size =   1024'! ####
 # job "jugene3b.289038":
-#mpirun -np   4096 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS3D -numRefs  8 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep  64"
+#mpirun -np   4096 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS3D -numRefs  8 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep  64"
 
 
 #### For this job 'bg_size =   8192'! ####
 # job "jugene4b.289733":
-#mpirun -np  32768 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS3D -numRefs 9 -hRedistFirstLevel 4 -hRedistStepSize 2 -hRedistNewProcsPerStep  64 -hRedistMaxSteps 2"
+#mpirun -np  32768 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS3D -numRefs 9 -hRedistFirstLevel 4 -hRedistStepSize 2 -hRedistNewProcsPerStep  64 -hRedistMaxSteps 2"
 
 
 ##########################################
@@ -212,7 +230,7 @@ UGARGS3D="-ex ../scripts/tests/modular_scalability_test.lua -dim 3 -grid ../data
 
 #### For this job 'bg_size =   65536' - and wall_time 45 min! ####
 # job "jugene4b.289332.0":
-#mpirun -np 262144 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=$MYLDLPATH -args "$UGARGS3D -numRefs 10 -hRedistFirstLevel 4 -hRedistStepSize   2 -hRedistNewProcsPerStep  64 -hRedistMaxSteps 2" 
+#mpirun -np 262144 -exe ./$UGSHELL -mode VN -mapfile TXYZ -verbose 2 -args "$UGARGS3D -numRefs 10 -hRedistFirstLevel 4 -hRedistStepSize   2 -hRedistNewProcsPerStep  64 -hRedistMaxSteps 2" 
 
 
 
