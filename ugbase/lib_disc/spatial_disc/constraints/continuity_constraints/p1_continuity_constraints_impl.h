@@ -18,6 +18,8 @@ void SetInterpolation(TMatrix& A,
                       std::vector<size_t> & constrainedIndex,
                       std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
+	typedef typename TMatrix::row_iterator row_iterator;
+
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
 		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
@@ -27,8 +29,8 @@ void SetInterpolation(TMatrix& A,
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
 	//	remove all couplings
-		for(typename TMatrix::row_iterator conn = A.begin_row(constrainedIndex[i]);
-									conn != A.end_row(constrainedIndex[i]); ++conn)
+		const row_iterator iterEnd = A.end_row(constrainedIndex[i]);
+		for(row_iterator conn = A.begin_row(constrainedIndex[i]); conn != iterEnd; ++conn)
 			conn.value() = 0.0;
 
 	//	set diag of row to identity
@@ -47,19 +49,21 @@ void InterpolateValues(TVector& u,
                        std::vector<size_t> & constrainedIndex,
                        std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
+	typedef typename TVector::value_type block_type;
+
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
 		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
 				  "Wrong number of indices.");
 
+//	scaling factor
+	const number frac = 1./(vConstrainingIndex.size());
+
 //	loop constrained indices
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
 	//	get value to be interpolated
-		typename TVector::value_type& val = u[constrainedIndex[i]];
-
-	//	scaling factor
-		const number frac = 1./(vConstrainingIndex.size());
+		block_type& val = u[constrainedIndex[i]];
 
 	//	reset value
 		val = 0.0;
@@ -77,6 +81,9 @@ void SplitAddRow_Symmetric(TMatrix& A,
                            std::vector<size_t> & constrainedIndex,
                            std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
+	typedef typename TMatrix::value_type block_type;
+	typedef typename TMatrix::row_iterator row_iterator;
+
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
 		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
@@ -89,9 +96,9 @@ void SplitAddRow_Symmetric(TMatrix& A,
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
 	//	add coupling constrained dof -> constrained dof
-	//	get entry
-		typename TMatrix::value_type& block
-				= A(constrainedIndex[i], constrainedIndex[i]);
+	//	we can work directly on the entry (modifying it) since row of
+	//	constraints will be set to interpolation afterwards
+		block_type& block = A(constrainedIndex[i], constrainedIndex[i]);
 
 	//	scale by weight
 		block *= frac*frac;
@@ -105,21 +112,18 @@ void SplitAddRow_Symmetric(TMatrix& A,
 		}
 
 	//	loop coupling between constrained dof -> constraining dof
-		for(typename TMatrix::row_iterator conn = A.begin_row(constrainedIndex[i]);
-				conn != A.end_row(constrainedIndex[i]); ++conn)
+		for(row_iterator conn = A.begin_row(constrainedIndex[i]);
+							conn != A.end_row(constrainedIndex[i]); ++conn)
 		{
 		//	skip self-coupling (already handled)
 			const size_t j = conn.index();
 			if(j == constrainedIndex[i]) continue;
 
 		//	get coupling entry
-			typename TMatrix::value_type block = conn.value();
-
-		//	get transposed coupling entry
-			typename TMatrix::value_type blockT = A(j, constrainedIndex[i]);
+			block_type block = conn.value();
+			block_type blockT = A(j, constrainedIndex[i]);
 
 		//	multiply the cpl value by the inverse number of constraining
-		//	indices
 			block *= frac;
 			blockT *= frac;
 
@@ -143,22 +147,54 @@ void SplitAddRow_OneSide(TMatrix& A,
                          std::vector<size_t> & constrainedIndex,
                          std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
+	typedef typename TMatrix::row_iterator row_iterator;
+	typedef typename TMatrix::value_type block_type;
+
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
 		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
 				  "Wrong number of indices.");
 
+//	scaling factor
+	const number frac = 1./(vConstrainingIndex.size());
+
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
-		for(typename TMatrix::row_iterator conn = A.begin_row(constrainedIndex[i]);
+	// choose randomly the first dof to add whole row
+		const size_t addTo = vConstrainingIndex[0][i];
+
+		block_type block = A(constrainedIndex[i], constrainedIndex[i]);
+
+	//	scale by weight
+		block *= frac;
+
+	//	add coupling
+		for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
+			A(addTo, vConstrainingIndex[k][i]) += block;
+
+		for(row_iterator conn = A.begin_row(constrainedIndex[i]);
 				conn != A.end_row(constrainedIndex[i]); ++conn)
 		{
-			typename TMatrix::value_type block = conn.value();
+		//	skip self-coupling (already handled)
 			const size_t j = conn.index();
+			if(j == constrainedIndex[i]) continue;
 
-			// choose randomly the first dof to add whole row
-			A(vConstrainingIndex[0][i], j) += block;
-			A(constrainedIndex[i], j) = 0.0;
+		//	get transposed coupling entry
+			block_type blockT = A(j, constrainedIndex[i]);
+			blockT *= frac;
+
+		//	add the coupling to the constraining indices rows
+			for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
+				A(j, vConstrainingIndex[k][i]) += blockT;
+
+		//	coupling due to one side adding
+			const block_type& block = conn.value();
+			A(addTo, j) += block;
+
+		//	set the splitted coupling to zero
+		//	this must only be done in columns, since the row associated to
+		//	the contrained index will be set to an interpolation.
+			A(j, constrainedIndex[i]) = 0.0;
 		}
 	}
 }
@@ -168,17 +204,23 @@ void SplitAddRhs_Symmetric(TVector& rhs,
                          std::vector<size_t> & constrainedIndex,
                          std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
+	typedef typename TVector::value_type block_type;
+
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
 		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
 				  "Wrong number of indices.");
 
+//	scaling factor
+	const number frac = 1./(vConstrainingIndex.size());
+
 //	loop constrained indices
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
 	//	get constrained rhs
-		typename TVector::value_type& val = rhs[constrainedIndex[i]];
-		val *= 1./(vConstrainingIndex.size());
+	//	modify block directly since set to zero afterwards
+		block_type& val = rhs[constrainedIndex[i]];
+		val *= frac;
 
 	// 	split equally on all constraining indices
 		for(size_t j=0; j < vConstrainingIndex.size(); ++j)
@@ -194,6 +236,8 @@ void SplitAddRhs_OneSide(TVector& rhs,
                        std::vector<size_t> & constrainedIndex,
                        std::vector<std::vector<size_t> >& vConstrainingIndex)
 {
+	typedef typename TVector::value_type block_type;
+
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
 		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
@@ -201,10 +245,12 @@ void SplitAddRhs_OneSide(TVector& rhs,
 
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
-		typename TVector::value_type& val = rhs[constrainedIndex[i]];
+		// choose randomly the first dof to add whole
+		// (must be the same as for row)
+		const size_t addTo = vConstrainingIndex[0][i];
 
-		// choose randomly the first dof to add whole rhs (must be the same as for row)
-		rhs[vConstrainingIndex[0][i]] += val;
+		block_type& val = rhs[constrainedIndex[i]];
+		rhs[addTo] += val;
 		val = 0.0;
 	}
 }
@@ -439,13 +485,6 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //	OneSide P1 Constraints
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-//	Sym P1 Constraints
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
