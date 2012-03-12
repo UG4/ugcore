@@ -41,6 +41,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               std::vector<std::vector<size_t> >& vvConnection,
                               bool bReverse)
 {
+	PROFILE_FUNC();
 //	list of sorted (will be filled later)
 	std::vector<size_t> vNewOrder; vNewOrder.clear();
 
