@@ -289,5 +289,16 @@ FuncationA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 
 Here we see that FunctionA_bad takes six times as long as FunctionA, even though they both perform the same task. This is because the small overhead of PROFILE_BEGIN accumulated to a 
 measureable time when it was executed two million times.
 
+<li><b>Explanations</b>:
+    <ul>
+    <li>The <tt> self time</tt> of a method is the time spent in this method, without the time spent in all methods called from the first one -
+    	if they also use the profiler.
+	To make it clear: If a called method doesn't use the profiler the time spent for it accounts for the <tt> self time</tt> of the calling method!
+    </li>
+    </ul>
+</li>
+
+<li>Utilities for the <b>analysis of profiling results</b> (automatic comparison of several simulation runs etc.) see \ref pageUG4ScalabilityTests .
+</li>
 </ul>
 */
