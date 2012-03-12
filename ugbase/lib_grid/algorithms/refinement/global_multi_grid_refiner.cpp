@@ -381,5 +381,29 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 	UG_DLOG(LIB_GRID, 1, "  refinement done.");
 }
+
+bool GlobalMultiGridRefiner::save_marks_to_file(const char* filename)
+{
+	if(!m_pMG){
+		UG_THROW("ERROR in GlobalMultiGridRefiner::save_marks_to_file: No grid assigned!");
+	}
+
+	MultiGrid& mg = *m_pMG;
+	SubsetHandler sh(mg);
+
+	AssignGridToSubset(mg, sh, 2);
+	int lvl = mg.num_levels();
+	sh.assign_subset(mg.begin<VertexBase>(lvl), mg.end<VertexBase>(lvl), 0);
+	sh.assign_subset(mg.begin<EdgeBase>(lvl), mg.end<EdgeBase>(lvl), 0);
+	sh.assign_subset(mg.begin<Face>(lvl), mg.end<Face>(lvl), 0);
+	sh.assign_subset(mg.begin<Volume>(lvl), mg.end<Volume>(lvl), 0);
 	
+	sh.subset_info(0).name = "refine";
+	sh.subset_info(1).name = "no marks";
+
+	AssignSubsetColors(sh);
+
+	return SaveGridToFile(mg, sh, filename);
+}
+
 }//	end of namespace

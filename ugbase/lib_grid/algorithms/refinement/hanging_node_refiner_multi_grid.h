@@ -40,6 +40,12 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	public:
 		using HangingNodeRefinerBase::mark;
 
+		enum HNodeCoarsenMarks{
+			HNCM_ALL_NBRS_SELECTED = RM_MAX + 1,
+			HNCM_SOME_NBRS_SELECTED,
+			HNCM_NO_NBRS_SELECTED
+		};
+
 	public:
 		HangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback = NULL);
 		HangingNodeRefiner_MultiGrid(MultiGrid& mg,
@@ -82,12 +88,6 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 
 		void debug_save(Selector& sel, const char* filename);
 
-		enum HNodeCoarsenMarks{
-			HNCM_ALL_NBRS_SELECTED = RM_MAX + 1,
-			HNCM_SOME_NBRS_SELECTED,
-			HNCM_NO_NBRS_SELECTED
-		};
-
 	///	a callback that allows to deny refinement of special vertices
 		virtual bool refinement_is_allowed(VertexBase* elem);
 	///	a callback that allows to deny refinement of special edges
@@ -114,6 +114,15 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 
 	///	creates required vertices in higher levels.
 		virtual void pre_refine();
+
+	///	called before elements are removed in coarsening
+	/**	Default implementation is emtpy */
+		virtual void pre_coarsen()	{};
+
+	///	called after elements have been removed in coarsening
+	/**	Default implementation is emtpy */
+		virtual void post_coarsen()	{};
+
 
 	/**	Calls the base implementation and passes the mg-child vertices as
 	 *  newCornerVrts. If newCornerVrts were passed to this method, they
@@ -210,6 +219,41 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 * a side, which is not a sub-surface element, then the element may not be
 	 * coarsened.*/
 		virtual void collect_objects_for_coarsen();
+
+
+	////////////////////////////////////////
+	//	Callbacks for PARALLELIZATION
+
+	///	called to check, whether another iteration of collect_objects_for_coarsen has to be performed.
+	/**	This method is especially useful if coarsening shall be applied in a
+	 * parallel environment. Each process calls this method and basses a boolean,
+	 * which indicates if it requires the continuation of collect_objects_for_coarsen.
+	 * If one process does require continuation, then all processes have to continue.
+	 * The default implementation simply returns the local status.*/
+		virtual bool continue_collect_objects_for_coarsen(bool continueRequired)
+		{return continueRequired;}
+
+	///	called during collect_objects_for_coarsen when coarsen-marks shall be distributed
+	/**	This method is especially useful if coarsening shall be applied in a
+	 * parallel environment. A derived class can implement this method to schedule
+	 * communication. The default implementation does nothing.
+	 * \{ */
+		virtual void broadcast_vertex_coarsen_marks()	{}
+		virtual void broadcast_edge_coarsen_marks()		{}
+		virtual void broadcast_face_coarsen_marks()		{}
+	/** \} */
+
+	///	allows to check whether a distributed grid contains edges
+	/**	The default implementation returns whether the local grid contains edges.*/
+		virtual bool contains_edges()			{return m_pMG->num<EdgeBase>() > 0;}
+
+	///	allows to check whether a distributed grid contains faces
+	/**	The default implementation returns whether the local grid contains faces.*/
+		virtual bool contains_faces()			{return m_pMG->num<Face>() > 0;}
+
+	///	allows to check whether a distributed grid contains volumes
+	/**	The default implementation returns whether the local grid contains volumes.*/
+		virtual bool contains_volumes()			{return m_pMG->num<Volume>() > 0;}
 
 	private:
 		MultiGrid*	m_pMG;

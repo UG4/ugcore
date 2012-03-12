@@ -6,6 +6,8 @@
 #include "hanging_node_refiner_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/debug_util.h"
+#include "lib_grid/algorithms/subset_util.h"
+#include "lib_grid/file_io/file_io.h"
 
 //define PROFILE_HANGING_NODE_REFINER if you want to profile
 //the refinement code.
@@ -149,6 +151,66 @@ get_mark(Volume* v)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
 							& ~HNRM_CONSTRAINED);
+}
+
+
+bool HangingNodeRefinerBase::save_marks_to_file(const char* filename)
+{
+	if(!m_pGrid){
+		UG_THROW("ERROR in HangingNodeRefinerBase::save_marks_to_file: No grid assigned!");
+	}
+
+	Grid& g = *m_pGrid;
+	SubsetHandler sh(g);
+
+	AssignGridToSubset(g, sh, 3);
+
+	Selector& sel = get_refmark_selector();
+
+	for(VertexBaseIterator iter = g.vertices_begin(); iter != g.vertices_end(); ++iter){
+		Selector::status_t status = sel.get_selection_status(*iter);
+		switch(status){
+			case RM_REGULAR: sh.assign_subset(*iter, 0); break;
+			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
+		}
+	}
+
+	for(EdgeBaseIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
+		Selector::status_t status = sel.get_selection_status(*iter);
+		switch(status){
+			case RM_REGULAR: sh.assign_subset(*iter, 0); break;
+			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
+		}
+	}
+
+	for(FaceIterator iter = g.faces_begin(); iter != g.faces_end(); ++iter){
+		Selector::status_t status = sel.get_selection_status(*iter);
+		switch(status){
+			case RM_REGULAR: sh.assign_subset(*iter, 0); break;
+			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
+		}
+	}
+
+	for(VolumeIterator iter = g.volumes_begin(); iter != g.volumes_end(); ++iter){
+		Selector::status_t status = sel.get_selection_status(*iter);
+		switch(status){
+			case RM_REGULAR: sh.assign_subset(*iter, 0); break;
+			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
+		}
+	}
+
+	sh.subset_info(0).name = "refine regular";
+	sh.subset_info(1).name = "refine anisotropic";
+	sh.subset_info(2).name = "coarsen";
+	sh.subset_info(3).name = "no marks";
+
+	AssignSubsetColors(sh);
+
+	return SaveGridToFile(g, sh, filename);
 }
 
 

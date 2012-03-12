@@ -36,6 +36,8 @@ class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 		virtual bool adaptivity_supported() const	{return false;}
 		virtual bool coarsening_supported() const	{return false;}
 
+		virtual bool save_marks_to_file(const char* filename);
+
 	protected:
 	////////////////////////////////
 	///	performs refinement on the marked elements.

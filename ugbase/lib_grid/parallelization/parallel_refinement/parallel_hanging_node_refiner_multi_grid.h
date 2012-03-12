@@ -1,9 +1,10 @@
 // created by Sebastian Reiter
 // s.b.reiter@googlemail.com
-// 09.02.2011 (m,d,y)
+// 08.03.2012 (m,d,y)
 
-#ifndef __H__UG__parallel_adaptive_refiner_t__
-#define __H__UG__parallel_adaptive_refiner_t__
+#ifndef __H__UG__parallel_hanging_node_refiner_multi_grid__
+#define __H__UG__parallel_hanging_node_refiner_multi_grid__
+
 
 #include "lib_grid/lg_base.h"
 #include "lib_grid/multi_grid.h"
@@ -20,24 +21,20 @@ namespace ug
 /**	This is a template class that allows to use a refiner in a parallel
  * environment.
  * Make sure that you initialize it with a valid DistributedGridManager.
- *
- * \todo	This refiner currently only works for multi-grids.
  */
-template <class TRefiner>
-class TParallelAdaptiveRefiner:
-	public TRefiner
+class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 {
-	typedef TRefiner BaseClass;
+	typedef HangingNodeRefiner_MultiGrid BaseClass;
 	using BaseClass::mark;
 
 	public:
-		TParallelAdaptiveRefiner(IRefinementCallback* refCallback = NULL);
+		ParallelHangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback = NULL);
 
-		TParallelAdaptiveRefiner(
+		ParallelHangingNodeRefiner_MultiGrid(
 				DistributedGridManager& distGridMgr,
 				IRefinementCallback* refCallback = NULL);
 
-		virtual ~TParallelAdaptiveRefiner();
+		virtual ~ParallelHangingNodeRefiner_MultiGrid();
 
 		void set_distributed_grid_manager(DistributedGridManager& distGridMgr);
 
@@ -63,14 +60,6 @@ class TParallelAdaptiveRefiner:
 	 *	one can set the involved processes here. By default
 	 *	all processes are involved.*/
 		void set_involved_processes(pcl::ProcessCommunicator com);
-
-	///	performs parallel refinement
-	/**	Checks that everything was initialized correctly and calls the
-	 * base implementation.
-	 * Throws an instance of UGError if something went wrong.
-	 *
-	 * Parallelization is mainly performed in collect_objects_for_refine.*/
-		virtual void refine();
 
 	protected:
 	///	a callback that allows to deny refinement of special vertices
@@ -105,6 +94,31 @@ class TParallelAdaptiveRefiner:
 	 * have been created.*/
 		virtual void post_refine();
 
+	/**	Notifies the associated distGridMgr that elements will be erased*/
+		virtual void pre_coarsen();
+
+	/**	Notifies the associated distGridMgr that elements have been erased.*/
+		virtual void post_coarsen();
+
+	///	called to check, whether another iteration of collect_objects_for_coarsen has to be performed.
+		virtual bool continue_collect_objects_for_coarsen(bool continueRequired);
+
+	///	called during collect_objects_for_coarsen when coarsen-marks shall be distributed
+	/** \{ */
+		virtual void broadcast_vertex_coarsen_marks();
+		virtual void broadcast_edge_coarsen_marks();
+		virtual void broadcast_face_coarsen_marks();
+	/** \} */
+
+	///	allows to check whether a distributed grid contains edges
+		virtual bool contains_edges();
+
+	///	allows to check whether a distributed grid contains faces
+		virtual bool contains_faces();
+
+	///	allows to check whether a distributed grid contains volumes
+		virtual bool contains_volumes();
+
 	private:
 		DistributedGridManager* m_pDistGridMgr;
 		MultiGrid*				m_pMG;
@@ -125,6 +139,5 @@ class TParallelAdaptiveRefiner:
 
 ////////////////////////////////
 //	include implementation
-#include "parallel_adaptive_refiner_t_impl.hpp"
 
 #endif

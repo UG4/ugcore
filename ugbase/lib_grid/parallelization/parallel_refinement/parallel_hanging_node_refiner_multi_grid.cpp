@@ -1,18 +1,14 @@
 // created by Sebastian Reiter
 // s.b.reiter@googlemail.com
 // 09.02.2011 (m,d,y)
-
-#ifndef __H__UG__parallel_adaptive_refiner_t_impl__
-#define __H__UG__parallel_adaptive_refiner_t_impl__
-
-#include "parallel_adaptive_refiner_t.h"
+ 
+#include "parallel_hanging_node_refiner_multi_grid.h"
 #include "../util/compol_selection.h"
 
 namespace ug{
 
-template <class TRefiner>
-TParallelAdaptiveRefiner<TRefiner>::
-TParallelAdaptiveRefiner(
+ParallelHangingNodeRefiner_MultiGrid::
+ParallelHangingNodeRefiner_MultiGrid(
 		IRefinementCallback* refCallback) :
 	BaseClass(refCallback),
 	m_pDistGridMgr(NULL),
@@ -24,9 +20,8 @@ TParallelAdaptiveRefiner(
 {
 }
 
-template <class TRefiner>
-TParallelAdaptiveRefiner<TRefiner>::
-TParallelAdaptiveRefiner(
+ParallelHangingNodeRefiner_MultiGrid::
+ParallelHangingNodeRefiner_MultiGrid(
 		DistributedGridManager& distGridMgr,
 		IRefinementCallback* refCallback) :
 	BaseClass(*distGridMgr.get_assigned_grid(), refCallback),
@@ -39,25 +34,22 @@ TParallelAdaptiveRefiner(
 {
 }
 
-template <class TRefiner>
-TParallelAdaptiveRefiner<TRefiner>::
-~TParallelAdaptiveRefiner()
+ParallelHangingNodeRefiner_MultiGrid::
+~ParallelHangingNodeRefiner_MultiGrid()
 {
 
 }
 
-template <class TRefiner>
 void
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 set_distributed_grid_manager(DistributedGridManager& distGridMgr)
 {
 	m_pDistGridMgr = &distGridMgr;
 	m_pMG = distGridMgr.get_assigned_grid();
 }
 
-template <class TRefiner>
 void
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 clear_marks()
 {
 	BaseClass::clear_marks();
@@ -67,9 +59,8 @@ clear_marks()
 	m_bNewInterfaceVolumesMarked = false;
 }
 
-template <class TRefiner>
 bool
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 mark(VertexBase* v, RefinementMark refMark)
 {
 	RefinementMark oldMark = BaseClass::get_mark(v);
@@ -83,9 +74,8 @@ mark(VertexBase* v, RefinementMark refMark)
 	return false;
 }
 
-template <class TRefiner>
 bool
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 mark(EdgeBase* e, RefinementMark refMark)
 {
 	RefinementMark oldMark = BaseClass::get_mark(e);
@@ -99,9 +89,8 @@ mark(EdgeBase* e, RefinementMark refMark)
 	return false;
 }
 
-template <class TRefiner>
 bool
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 mark(Face* f, RefinementMark refMark)
 {
 	RefinementMark oldMark = BaseClass::get_mark(f);
@@ -115,9 +104,8 @@ mark(Face* f, RefinementMark refMark)
 	return false;
 }
 
-template <class TRefiner>
 bool
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 mark(Volume* v, RefinementMark refMark)
 {
 	RefinementMark oldMark = BaseClass::get_mark(v);
@@ -131,9 +119,8 @@ mark(Volume* v, RefinementMark refMark)
 	return false;
 }
 
-template <class TRefiner>
 void
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 collect_objects_for_refine()
 {
 //todo: This method could be improved.
@@ -213,12 +200,11 @@ collect_objects_for_refine()
 	}
 }
 
-template <class TRefiner>
-void TParallelAdaptiveRefiner<TRefiner>::
+void ParallelHangingNodeRefiner_MultiGrid::
 assign_hnode_marks()
 {
 //	call base implementation
-	TRefiner::assign_hnode_marks();
+	BaseClass::assign_hnode_marks();
 
 //	copy the hnode mark.
 //	note that we're enabling the mark, but never disable it.
@@ -250,79 +236,241 @@ assign_hnode_marks()
 	m_intfComFACE.communicate();
 }
 
-template <class TRefiner>
 bool
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 refinement_is_allowed(VertexBase* elem)
 {
 	return (!m_pDistGridMgr->is_ghost(elem))
 			&& BaseClass::refinement_is_allowed(elem);
 }
 
-template <class TRefiner>
 bool
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 refinement_is_allowed(EdgeBase* elem)
 {
 	return (!m_pDistGridMgr->is_ghost(elem))
 			&& BaseClass::refinement_is_allowed(elem);
 }
 
-template <class TRefiner>
 bool
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 refinement_is_allowed(Face* elem)
 {
 	return (!m_pDistGridMgr->is_ghost(elem))
 			&& BaseClass::refinement_is_allowed(elem);
 }
 
-template <class TRefiner>
 bool
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 refinement_is_allowed(Volume* elem)
 {
 	return (!m_pDistGridMgr->is_ghost(elem))
 			&& BaseClass::refinement_is_allowed(elem);
 }
 
-template <class TRefiner>
 void
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 pre_refine()
 {
 	m_pDistGridMgr->begin_ordered_element_insertion();
 	BaseClass::pre_refine();
 }
 
-template <class TRefiner>
 void
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
 post_refine()
 {
 	BaseClass::post_refine();
 	m_pDistGridMgr->end_ordered_element_insertion();
 }
 
-template <class TRefiner>
 void
-TParallelAdaptiveRefiner<TRefiner>::
+ParallelHangingNodeRefiner_MultiGrid::
+pre_coarsen()
+{
+	m_pDistGridMgr->begin_element_deletion();
+	BaseClass::pre_coarsen();
+}
+
+void
+ParallelHangingNodeRefiner_MultiGrid::
+post_coarsen()
+{
+	BaseClass::post_coarsen();
+	m_pDistGridMgr->end_element_deletion();
+}
+
+void
+ParallelHangingNodeRefiner_MultiGrid::
 set_involved_processes(pcl::ProcessCommunicator com)
 {
 	m_procCom = com;
 }
 
-template <class TRefiner>
-void
-TParallelAdaptiveRefiner<TRefiner>::
-refine()
-{
-	UG_ASSERT(m_pDistGridMgr, "a distributed grid manager has to be assigned");
-	if(!m_pDistGridMgr){
-		throw(UGError("No distributed grid manager assigned."));
-	}
 
-	BaseClass::refine();
+bool
+ParallelHangingNodeRefiner_MultiGrid::
+continue_collect_objects_for_coarsen(bool continueRequired)
+{
+	return (bool)m_procCom.allreduce((int)continueRequired, PCL_RO_LOR);
+}
+
+
+template <class TLayout>
+class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
+{
+	public:
+		typedef TLayout							Layout;
+		typedef typename Layout::Type			GeomObj;
+		typedef typename Layout::Element		Element;
+		typedef typename Layout::Interface		Interface;
+		typedef typename Interface::iterator	InterfaceIter;
+
+		ComPol_BroadcastCoarsenMarks(Selector& sel)
+			 :	m_sel(sel)
+		{}
+
+		virtual int
+		get_required_buffer_size(Interface& interface)		{return interface.size() * sizeof(byte);}
+
+	///	writes writes the selection states of the interface entries
+		virtual bool
+		collect(ug::BinaryBuffer& buff, Interface& interface)
+		{
+		//	write the entry indices of marked elements.
+			for(InterfaceIter iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+				Element elem = interface.get_element(iter);
+				byte refMark = m_sel.get_selection_status(elem);
+				buff.write((char*)&refMark, sizeof(byte));
+			}
+
+			return true;
+		}
+
+	///	reads marks from the given stream
+		virtual bool
+		extract(ug::BinaryBuffer& buff, Interface& interface)
+		{
+			byte val;
+			for(InterfaceIter iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+				Element elem = interface.get_element(iter);
+				buff.read((char*)&val, sizeof(byte));
+
+			//	check the current status and adjust the mark accordingly
+				byte curVal = m_sel.get_selection_status(elem);
+
+				if(curVal != val)
+					m_sel.select(elem, ParallelHangingNodeRefiner_MultiGrid::
+													HNCM_SOME_NBRS_SELECTED);
+			}
+			return true;
+		}
+
+		Selector& m_sel;
+};
+
+void
+ParallelHangingNodeRefiner_MultiGrid::
+broadcast_vertex_coarsen_marks()
+{
+//	the broadcast has to be performed with some special operations on the
+//	marks:
+//	- if one mark equals HNCM_SOME_NBRS_SELECTED then all have to be set to
+//		HNCM_SOME_NBRS_SELECTED.
+//	- if on contains HNCM_ALL_NBRS_SELECTED and another contains another mark,
+//		then all have to be set to HNCM_SOME_NBRS_SELECTED.
+//	- else the mark stays as it is.
+//
+//	we'll collect the marks at the master-nodes, adjust the and distribute them
+//	to the associated slaves afterwards.
+	ComPol_BroadcastCoarsenMarks<VertexLayout>	comPol(get_refmark_selector());
+
+	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
+
+	m_intfComVRT.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
+	m_intfComVRT.communicate();
+
+	m_intfComVRT.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
+	m_intfComVRT.communicate();
+}
+
+void
+ParallelHangingNodeRefiner_MultiGrid::
+broadcast_edge_coarsen_marks()
+{
+//	the broadcast has to be performed with some special operations on the
+//	marks:
+//	- if one mark equals HNCM_SOME_NBRS_SELECTED then all have to be set to
+//		HNCM_SOME_NBRS_SELECTED.
+//	- if on contains HNCM_ALL_NBRS_SELECTED and another contains another mark,
+//		then all have to be set to HNCM_SOME_NBRS_SELECTED.
+//	- else the mark stays as it is.
+//
+//	we'll collect the marks at the master-nodes, adjust the and distribute them
+//	to the associated slaves afterwards.
+	ComPol_BroadcastCoarsenMarks<EdgeLayout>	comPol(get_refmark_selector());
+
+	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
+
+	m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
+	m_intfComEDGE.communicate();
+
+	m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
+	m_intfComEDGE.communicate();
+}
+
+void
+ParallelHangingNodeRefiner_MultiGrid::
+broadcast_face_coarsen_marks()
+{
+//	the broadcast has to be performed with some special operations on the
+//	marks:
+//	- if one mark equals HNCM_SOME_NBRS_SELECTED then all have to be set to
+//		HNCM_SOME_NBRS_SELECTED.
+//	- if on contains HNCM_ALL_NBRS_SELECTED and another contains another mark,
+//		then all have to be set to HNCM_SOME_NBRS_SELECTED.
+//	- else the mark stays as it is.
+//
+//	we'll collect the marks at the master-nodes, adjust the and distribute them
+//	to the associated slaves afterwards.
+	ComPol_BroadcastCoarsenMarks<FaceLayout>	comPol(get_refmark_selector());
+
+	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
+
+	m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
+	m_intfComFACE.communicate();
+
+	m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
+	m_intfComFACE.communicate();
+}
+
+bool
+ParallelHangingNodeRefiner_MultiGrid::
+contains_edges()
+{
+	bool containsEdges = m_pMG->num<EdgeBase>() > 0;
+	return (bool)m_procCom.allreduce((int)containsEdges, PCL_RO_LOR);
+}
+
+bool
+ParallelHangingNodeRefiner_MultiGrid::
+contains_faces()
+{
+	bool containsFaces = m_pMG->num<Face>() > 0;
+	return (bool)m_procCom.allreduce((int)containsFaces, PCL_RO_LOR);
+}
+
+bool
+ParallelHangingNodeRefiner_MultiGrid::
+contains_volumes()
+{
+	bool containsVolume = m_pMG->num<Volume>() > 0;
+	return (bool)m_procCom.allreduce((int)containsVolume, PCL_RO_LOR);
+}
 
 /*
 //	DEBUG ONLY
@@ -363,8 +511,5 @@ refine()
 		}
 	}
 */
-}
 
 }// end of namespace
-
-#endif

@@ -106,6 +106,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		virtual RefinementMark get_mark(Volume* v);
 	/**	\} */
 
+		virtual bool save_marks_to_file(const char* filename);
 
 	protected:
 	///	performs refinement on the marked elements.

@@ -612,6 +612,8 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 	//	IRefiner
 		reg.add_class_<IRefiner>("IRefiner", grp)
 			.add_method("refine", &IRefiner::refine)
+			.add_method("coarsen", &IRefiner::refine)
+			.add_method("save_marks_to_file", &IRefiner::save_marks_to_file)
 			.add_method("clear_marks", &IRefiner::clear_marks);
 
 	//	HangingNodeRefiner

@@ -11,6 +11,7 @@
 #include "pcl_methods.h"
 #include "common/util/smart_pointer.h"
 #include "common/util/binary_stream.h"
+#include "common/error.h"
 
 namespace pcl
 {
@@ -297,13 +298,16 @@ class ProcessCommunicator
 	 * \return the PCL-DataType for a given C-Type.
 	 * \note this might be better in a different place (e.g. global function)
 	 */
-		static DataType get_data_type(const unsigned long &) 	{ return PCL_DT_UNSIGNED_LONG; }
-		static DataType get_data_type(const long &)				{ return PCL_DT_LONG; }
-		static DataType get_data_type(const int &) 				{ return PCL_DT_INT; }
-		static DataType get_data_type(const float &)			{ return PCL_DT_FLOAT; }
-		static DataType get_data_type(const double &)			{ return PCL_DT_DOUBLE; }
-		static DataType get_data_type(const char &) 			{ return PCL_DT_CHAR; }
-		static DataType get_data_type(const unsigned char &) 	{ return PCL_DT_UNSIGNED_CHAR; }
+		template <class T>
+		static DataType get_data_type(const T&)					{UG_THROW("Unknown data-type used in ProcessCommunicator."); return MPI_INT;}
+
+		static DataType get_data_type(const unsigned long &) 	{return PCL_DT_UNSIGNED_LONG; }
+		static DataType get_data_type(const long &)				{return PCL_DT_LONG; }
+		static DataType get_data_type(const int &) 				{return PCL_DT_INT; }
+		static DataType get_data_type(const float &)			{return PCL_DT_FLOAT; }
+		static DataType get_data_type(const double &)			{return PCL_DT_DOUBLE; }
+		static DataType get_data_type(const char &) 			{return PCL_DT_CHAR; }
+		static DataType get_data_type(const unsigned char &) 	{return PCL_DT_UNSIGNED_CHAR; }
 		/** \} */
 
 	private:

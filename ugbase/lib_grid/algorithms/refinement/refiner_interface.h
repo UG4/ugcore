@@ -109,6 +109,12 @@ class IRefiner
 	 */
 		bool coarsen();
 
+
+	///	Writes the associated grid and marks to a file. Pure virtual.
+	/**	Elements should be assigned to subsets depending on their current
+	 * refinement-mark.*/
+		virtual bool save_marks_to_file(const char* filename) = 0;
+
 	protected:
 	///	sets the message hub.
 	/**	A message hub is required, since it is used transmit messages regarding

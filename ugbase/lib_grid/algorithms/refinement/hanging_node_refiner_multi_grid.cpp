@@ -883,9 +883,14 @@ collect_objects_for_coarsen()
  * - Deselect coarsen families which have missing sides (first
  */
 
-	MultiGrid& mg = *m_pMG;
 //	this selector holds all refmarks
 	Selector& sel = get_refmark_selector();
+
+//	store whether the grid contains edges, faces or volumes.
+//	we explicitly do this, since a parallel version might have to communicate...
+	bool containsEdges = contains_edges();
+	bool containsFaces = contains_faces();
+	bool containsVolumes = contains_volumes();
 
 debug_save(sel, "debug_save_0_initial_selection.ugx");
 
@@ -928,8 +933,11 @@ debug_save(sel, "debug_save_2_restricted_to_coarsen_families.ugx");
 	//	we then deselect elements which do not have selected associated elements of
 	//	the next higher dimension.
 	//	note that we do this for faces first, then for edges and finally for vertices.
-		if(mg.num<Volume>() > 0){
+		if(containsVolumes){
 			classify_selection<Face>();
+		//	broadcast face marks
+			broadcast_face_coarsen_marks();
+
 			deselect_isolated_sides<Face>();
 			deselect_uncoarsenable_parents<Face>();
 
@@ -962,8 +970,10 @@ debug_save(sel, "debug_save_2_restricted_to_coarsen_families.ugx");
 		}
 
 	//	handle edges
-		if(mg.num<Face>() > 0){
+		if(containsFaces){
 			classify_selection<EdgeBase>();
+			broadcast_edge_coarsen_marks();
+
 			debug_save(sel, "debug_save_3a_classified_selection.ugx");
 			deselect_isolated_sides<EdgeBase>();
 			debug_save(sel, "debug_save_3b_deleted_isolated_sides.ugx");
@@ -983,8 +993,10 @@ debug_save(sel, "debug_save_2_restricted_to_coarsen_families.ugx");
 		}
 
 	//	handle vertices
-		if(mg.num<EdgeBase>() > 0){
+		if(containsEdges){
 			classify_selection<VertexBase>();
+			broadcast_vertex_coarsen_marks();
+
 			deselect_isolated_sides<VertexBase>();
 			deselect_uncoarsenable_parents<VertexBase>();
 		}
@@ -1017,7 +1029,9 @@ debug_save(sel, "debug_save_2_restricted_to_coarsen_families.ugx");
 			debug_save(sel, ss.str().c_str());
 		}
 
-		bRunning = deselectedFamilies;
+	//	this allows us to check whether another iteration is enforced by
+	//	this or by any other process (important in a parallel environment).
+		bRunning = continue_collect_objects_for_coarsen(deselectedFamilies);
 	}
 	debug_save(sel, "debug_save_7_final_selection.ugx");
 }
@@ -1064,6 +1078,9 @@ We have to handle elements as follows:
 //	if the selector is empty, we'll return false
 	if(sel.empty())
 		return false;
+
+//	inform derived classes that coarsening begins
+	pre_coarsen();
 
 ////////////////////
 //	VOLUMES
@@ -1361,6 +1378,9 @@ We have to handle elements as follows:
 				break;
 		}
 	}
+
+//	inform derived classes that coarsening is done
+	post_coarsen();
 
 	return true;
 }

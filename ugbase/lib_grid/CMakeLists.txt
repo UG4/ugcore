@@ -99,7 +99,7 @@ if(PARALLEL)
 							parallelization/parallelization_util.cpp
 							parallelization/parallel_grid_layout.cpp
 							parallelization/load_balancing.cpp
-							# (unmaintained) parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
+							parallelization/parallel_refinement/parallel_hanging_node_refiner_multi_grid.cpp
 							parallelization/util/distribution_util.cpp
 							parallelization/util/parallel_subset_util.cpp
 							parallelization/util/redistribution_util.cpp)	
