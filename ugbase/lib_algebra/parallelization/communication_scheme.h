@@ -70,8 +70,9 @@ namespace ug
  * inline int get_element_size() const
  *
  */
+
 template<typename TDerived, typename TValue>
-class CommunicationScheme
+class CommunicationScheme : public pcl::ICommunicationPolicy<IndexLayout>
 {
 public:
 	//! get the derived class
@@ -79,50 +80,53 @@ public:
 	       return static_cast<TDerived&>(*this);
 	}
 
-	/** send_on_interface
+	/** collect
 	 * \brief send data on the interface based on TDerived::send
-	 * \param	communicator	ParallelCommunicator used to send
-	 * \param	pid				where to send data
+	 * \param	buff			BinaryBuffer to write data to
 	 * \param	interface		interface to pid over which to send
 	 * This function does the following
 	 * - loop through the interface. serialize each item we get from TDerived::send(pid, index) to a buffer
 	 * - send the buffer to process pid over ParallelCommunicator com.
 	*/
-	void send_on_interface(pcl::ParallelCommunicator<IndexLayout> &communicator, int pid, IndexLayout::Interface &interface)
-	{
-		BinaryBuffer s;
-		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
-			Serialize(s, derived().send(pid, interface.get_element(iter)));
+	virtual bool
+	collect(ug::BinaryBuffer& buff, Interface& interface)
 
-		communicator.send_raw(interface.get_target_proc(), s.buffer(), s.write_pos(), get_size(interface) != -1);
+	{
+		int pid = interface.get_target_proc();
+		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+			Serialize(buff, derived().send(pid, interface.get_element(iter)));
+		return true;
 	}
 
 
-	/** receive_on_interface
+	/** extract
 	 * \brief receive data on the interface and hand it over to TDerived::receive
-	 * \param	s			BinaryBuffer with the data we received from processor pid.
-	 * \param	pid			processor we got s from
+	 * \param	buff		BinaryBuffer with the data we received from processor pid.
 	 * \param	interface	interface to processor pid
-	 * This function does the following
+	 * This function does the following	 *
 	 * - loop through the interface. deserialize each item from s, and hand it to TDerived::receive(pid, index, item)
 	*/
-	void receive_on_interface(BinaryBuffer &s, int pid,	IndexLayout::Interface &interface)
+	virtual bool
+	extract(ug::BinaryBuffer& buff, Interface& interface)
 	{
+		int pid = interface.get_target_proc();
+		TValue val;
 		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
-			TValue val;
-			Deserialize(s, val);
+			Deserialize(buff, val);
 			derived().receive(pid, interface.get_element(iter), val);
 		}
+		return true;
 	}
 
-	/** get_size
+	/** get_required_buffer_size
 	 * \brief get the size of the required buffer for an interface
 	 * \param	interface	The interface so we can calculate the size
 	 * If TDerived can specify an exact size for each item it serializes, we can calculate the size of the buffer
 	 * otherwise, it returns -1, and we return -1 -> Buffer size is sent.
 	*/
-	int get_size(IndexLayout::Interface &interface)
+	virtual int
+	get_required_buffer_size(Interface& interface)
 	{
 		int s = derived().get_element_size();
 		if(s == -1)
@@ -141,14 +145,15 @@ public:
  * \sa CommunicationScheme<TDerived, TValue>
  */
 template<typename TDerived>
-class CommunicationScheme<TDerived, bool>
+class CommunicationScheme<TDerived, bool> : public pcl::ICommunicationPolicy<IndexLayout>
 {
 public:
 	TDerived& derived() { return static_cast<TDerived&>(*this); }
 
-	void send_on_interface(pcl::ParallelCommunicator<IndexLayout> &communicator, int pid, IndexLayout::Interface &interface)
+	virtual bool
+	collect(ug::BinaryBuffer& buff, Interface& interface)
 	{
-		BinaryBuffer s;
+		int pid = interface.get_target_proc();
 		int j=0;
 		char a=0;
 		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
@@ -158,16 +163,19 @@ public:
 			j++;
 			if(j == 8)
 			{
-				Serialize(s, a);
+				Serialize(buff, a);
 				a = 0;
 				j = 0;
 			}
 		}
-		if(j) Serialize(s, a);
-		communicator.send_raw(interface.get_target_proc(), s.buffer(), s.write_pos(), true);
+		if(j) Serialize(buff, a);
+		return true;
 	}
-	void receive_on_interface(BinaryBuffer &s, int pid, IndexLayout::Interface &interface)
+
+	virtual bool
+	extract(ug::BinaryBuffer& buff, Interface& interface)
 	{
+		int pid = interface.get_target_proc();
 		int j=8;
 		char a=0;
 		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
@@ -175,16 +183,18 @@ public:
 			size_t index = interface.get_element(iter);
 			if(j==8)
 			{
-				Deserialize(s, a);
+				Deserialize(buff, a);
 				j=0;
 			}
 			bool b = a & (1 << j);
 			j++;
 			derived().receive(pid, index, b);
 		}
+		return true;
 	}
 
-	int get_size(IndexLayout::Interface &interface)
+	virtual int
+	get_required_buffer_size(Interface& interface)
 	{
 		return sizeof(char) * (interface.size()/8 + (interface.size()%8==0?0:1) );
 	}
@@ -255,21 +265,32 @@ void CommunicateOnInterfaces(pcl::ParallelCommunicator<IndexLayout> &communicato
 {
 	AMG_PROFILE_FUNC();
 	int i=0;
+
 	for(IndexLayout::iterator it = sendingLayout.begin(); it != sendingLayout.end(); ++it, ++i)
-		scheme.send_on_interface(communicator, sendingLayout.proc_id(it), sendingLayout.interface(it));
+	{
+		BinaryBuffer buff;
+		IndexLayout::Interface &interface = sendingLayout.interface(it);
+		scheme.collect(buff, interface);
+		// todo: don't use parallelcommunicator send_raw
+		// todo: reserve and reuse buff
+		communicator.send_raw(interface.get_target_proc(), buff.buffer(), buff.write_pos(),
+				scheme.get_required_buffer_size(interface) != -1);
+	}
 
 	int receivingLayoutSize=0;
-	for(IndexLayout::iterator it = receivingLayout.begin(); it != receivingLayout.end(); ++it) receivingLayoutSize++;
+	for(IndexLayout::iterator it = receivingLayout.begin(); it != receivingLayout.end(); ++it)
+		receivingLayoutSize++;
 
 	stdvector< BinaryBuffer > bufs(receivingLayoutSize);
 	i=0;
 	for(IndexLayout::iterator it = receivingLayout.begin(); it != receivingLayout.end(); ++it, ++i)
-		communicator.receive_raw(receivingLayout.proc_id(it), bufs[i], scheme.get_size(receivingLayout.interface(it)));
+		communicator.receive_raw(receivingLayout.proc_id(it), bufs[i],
+				scheme.get_required_buffer_size(receivingLayout.interface(it)));
 
 	communicator.communicate();
 	i=0;
 	for(IndexLayout::iterator it = receivingLayout.begin(); it != receivingLayout.end(); ++it, ++i)
-		scheme.receive_on_interface(bufs[i], receivingLayout.proc_id(it), receivingLayout.interface(it));
+		scheme.extract(bufs[i], receivingLayout.interface(it));
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -292,7 +313,13 @@ void SendOnInterfaces(pcl::ParallelCommunicator<IndexLayout> &communicator, TPID
 	{
 		int pid = pids[i];
 		IndexLayout::Interface &interface = layout.interface(pid);
-		sender.send_on_interface(communicator, pid, interface);
+
+		BinaryBuffer buff;
+		sender.collect(buff, interface);
+		// todo: don't use parallelcommunicator send_raw
+		// todo: reserve and reuse buff
+		communicator.send_raw(pid, buff.buffer(), buff.write_pos(),
+				sender.get_required_buffer_size(interface) != -1);
 	}
 	communicator.communicate();
 
@@ -313,12 +340,12 @@ void ReceiveOnInterfaces(pcl::ParallelCommunicator<IndexLayout> &communicator, T
 {
 	stdvector< BinaryBuffer > bufs(pids.size());
 	for(size_t i=0; i<pids.size(); i++)
-		communicator.receive_raw(pids[i], bufs[i], receiver.get_size(layout.interface(pids[i])));
+		communicator.receive_raw(pids[i], bufs[i], receiver.get_required_buffer_size(layout.interface(pids[i])));
 
 	communicator.communicate();
 
 	for(size_t i=0; i<pids.size(); i++)
-		receiver.receive_on_interface(bufs[i], pids[i], layout.interface(pids[i]));
+		receiver.extract(bufs[i], layout.interface(pids[i]));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,7 +354,82 @@ void ReceiveOnInterfaces(pcl::ParallelCommunicator<IndexLayout> &communicator, T
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// send sparse data on interface?
+#if 0
+template<typename TDerived, typename TValue>
+class SparseCommunicationScheme : public pcl::ICommunicationPolicy<IndexLayout>
+{
+public:
+	//! get the derived class
+	TDerived& derived() {
+	       return static_cast<TDerived&>(*this);
+	}
+
+	/** collect
+	 * \brief send data on the interface based on TDerived::send
+	 * \param	buff			BinaryBuffer to write data to
+	 * \param	interface		interface to pid over which to send
+	 * This function does the following
+	 * - loop through the interface. serialize each item we get from TDerived::send(pid, index) to a buffer
+	 * - send the buffer to process pid over ParallelCommunicator com.
+	*/
+	virtual bool
+	collect(ug::BinaryBuffer& buff, Interface& interface)
+
+	{
+		int pid = interface.get_target_proc();
+		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		{
+			int index;
+			char a = 0;
+			if(derived().need_send(pid, index))
+				a = 1;
+			Serialize(buff, a);
+			if(a) Serialize(buff, derived().send(pid, index);
+		}
+	}
+
+
+	/** extract
+	 * \brief receive data on the interface and hand it over to TDerived::receive
+	 * \param	buff		BinaryBuffer with the data we received from processor pid.
+	 * \param	interface	interface to processor pid
+	 * This function does the following	 *
+	 * - loop through the interface. deserialize each item from s, and hand it to TDerived::receive(pid, index, item)
+	*/
+	virtual bool
+	extract(ug::BinaryBuffer& buff, Interface& interface)
+	{
+		int pid = interface.get_target_proc();
+		TValue val;
+		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		{
+			char a;
+			Deserialize(buff, a);
+			if(a)
+			{
+				Deserialize(buff, val);
+				derived().receive(pid, interface.get_element(iter), val);
+			}
+		}
+	}
+
+	/** get_required_buffer_size
+	 * \brief get the size of the required buffer for an interface
+	 * \param	interface	The interface so we can calculate the size
+	 * If TDerived can specify an exact size for each item it serializes, we can calculate the size of the buffer
+	 * otherwise, it returns -1, and we return -1 -> Buffer size is sent.
+	*/
+	virtual int
+	get_required_buffer_size(Interface& interface)
+	{
+		int s = derived().get_element_size();
+		if(s == -1)
+			return -1;
+		else
+			return s * interface.size();
+	}
+};
+#endif
 
 } // namespace ug
 #endif /* SEND_INTERFACE_H_ */
