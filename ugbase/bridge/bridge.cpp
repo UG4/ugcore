@@ -5,6 +5,7 @@
 #include "bridge.h"
 #include "lib_algebra/algebra_type.h"
 #include "common/util/path_provider.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 
@@ -22,6 +23,7 @@ Registry & GetUGRegistry()
 /// calls RegisterStandardInterfaces and LoadPlugins if UG_PLUGINS is defined
 bool InitBridge()
 {
+	PROFILE_FUNC();
 	//	initialize ug-interfaces
 	if(!RegisterStandardInterfaces(bridge::GetUGRegistry()))
 	{
@@ -37,6 +39,7 @@ bool InitBridge()
  */
 void InitUG(int dim, const AlgebraType& algType)
 {
+	PROFILE_FUNC();
 //	get tag of algebra type
 	std::string algTag = GetAlgebraTag(algType);
 	int blocksize = algType.blocksize();
