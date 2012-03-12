@@ -38,24 +38,22 @@ enum ElementStatusTypes
 
 
 ///	manages the layouts and interfaces which are associated with a distributed grid.
-/**
- * This class is work in progress. It not yet works in all situations.
- * The following things can be performed on a distributed grid:
- * 	- New elements can be created. If a vertex, an edge or a face is created as
- * 		a child of an element that lies in an interface, it will be
- *		added to the corresponding interfaces.
- *		Note that you have to call begin_ordered_element_insertion() before
- *		and end_ordered_element_insertion() after you add elements.
- *	- Elements can be replaced. Interface entries are updated on the fly.
+/** The DistributedGridManager is a grid observer, which manages the GridLayoutMap
+ * of a distributed grid. New elements are automatically added to interfaces as
+ * required and erased elements are automatically removed from interfaces.
  *
- * The following things do not yet work properly:
- *	- When you erase elements, interfaces and layouts are not updated.
- *		That means if an interface element is deleted, a dangling pointer
- *		will remain in the interfaces - this may lead to bad errors later on.
- *		Methods that allow correct element removal have to be added somewhen soon.
- *		Until then you will have to update the grid_layout_map manually
- *		and inform the DistributedGridManager about changes by calling
- *		DistributedGridManager::grid_layouts_changed(false). 
+ * Note that while a DistributedGridManager observes a grid, one may only
+ * create new elements in the associated grid between calls to
+ * begin_ordered_element_insertion() and end_ordered_element_insertion().
+ *
+ * Similarly elements of the associated grid may only be erased during calls to
+ * begin_element_deletion() and end_element_deletion().
+ *
+ * Those barriers are important, so that distributed grid managers can insert
+ * associated elements on different processes in the same order without communicating.
+ *
+ * Note that only one layer of elements may be created / erased between calls to
+ * begin_ordered_element_insertion / end_ordered_... etc...
  */
 class DistributedGridManager : public GridObserver
 {	

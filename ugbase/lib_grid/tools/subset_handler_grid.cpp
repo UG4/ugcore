@@ -80,6 +80,9 @@ void GridSubsetHandler::cleanup()
 
 void GridSubsetHandler::assign_grid(Grid& grid)
 {
+	if(m_pGrid == &grid)
+		return;
+
 	if(m_pGrid)
 		cleanup();
 

@@ -94,6 +94,9 @@ void MultiGridSubsetHandler::cleanup()
 
 void MultiGridSubsetHandler::assign_grid(MultiGrid& mg)
 {
+	if(m_pMG == &mg)
+		return;
+
 	if(m_pMG)
 		cleanup();
 
