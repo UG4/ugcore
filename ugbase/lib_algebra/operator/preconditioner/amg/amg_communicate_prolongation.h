@@ -469,7 +469,6 @@ void AMGBase<TAlgebra>::create_minimal_layout_for_prolongation(ParallelNodes &PN
 	CreateMinimalLayoutCommunicationScheme cmlcs(bUsedSlave);
 	CommunicateOnInterfaces(PN.communicator(),
 			PN.get_total_slave_layout(), PN.get_total_master_layout(), cmlcs);
-	UG_LOG("hi\n");
 	cmlcs.get_new_layouts(newMasterLayout, newSlaveLayout);
 
 }
