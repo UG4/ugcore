@@ -424,7 +424,7 @@ elif [ $UGSUBMIT_TYPE == "Hermit" ]; then
 	echo $jobid >> $outdir/jobid
 	echo $jobid
 	
-	if [ ! -e ugjobs ]; then
+	if [ ! -e $execpath/ugjobs ]; then
     	echo "JOBID EXECDATE DIRECTORY" > $execpath/ugjobs
 	fi	
 	echo "$jobid $mydate $outdir" >> $execpath/ugjobs 
@@ -501,10 +501,10 @@ EOF
 #todo: uncomment next line, get jobid
 # ll_submit $outdir/job.sh
 
-	if [ ! -e ugjobs ]; then
+	if [ ! -e $execpath/ugjobs ]; then
     	echo "JOBID EXECDATE DIRECTORY" > $execpath/ugjobs
 	fi	
-	echo "$jobid $execdate $outdir" >> $execpathugjobs
+	echo "$jobid $execdate $outdir" >> $execpath/ugjobs
 	
 	if [ $tail == true ]; then
 		touch $outdir/job.output
@@ -590,7 +590,7 @@ elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 	nohup salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args > $outdir/job.output &
 	sleep 1
 	jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
-	if [ ! -e ugjobs ]; then
+	if [ ! -e $execpath/ugjobs ]; then
     	echo "JOBID EXECDATE DIRECTORY" > $execpath/ugjobs
 	fi	
 	echo "$jobid $mydate $outdir" >> $execpath/ugjobs
