@@ -416,9 +416,9 @@ elif [ $UGSUBMIT_TYPE == "Hermit" ]; then
 	echo "Recieved PBSid: "
 	echo "Recieved PBSid: " >> $outdir/info.txt
 		
-	pbsId=echo "aprun $aprunargs" | qsub $qsubargs
+	pbsId=`echo "aprun $aprunargs" | qsub $qsubargs`
 	echo $pbsId >> $outdir/info.txt
-	pbsId=echo $pbsId | sed 's/\([0-9]*\).*/\1/' 
+	pbsId=`echo $pbsId | sed 's/\([0-9]*\).*/\1/'` 
 	echo $pbsId >> $outdir/jobid
 	echo $pbsId
 
