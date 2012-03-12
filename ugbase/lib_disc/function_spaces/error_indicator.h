@@ -113,7 +113,7 @@ void ComputeGradient(TFunction& u, size_t fct,
  * This function marks elements for refinement. The passed error attachment
  * is used as a weight for the amount of the error an each element. All elements
  * that have an indicated error with s* max <= err <= max are marked for refinement.
- * Here, max is the maximum error measured, s is a scaling quantity choosen by
+ * Here, max is the maximum error measured, s is a scaling quantity chosen by
  * the user. In addition, all elements with an error smaller than TOL
  * (user defined) are not refined.
  *
@@ -124,17 +124,21 @@ void ComputeGradient(TFunction& u, size_t fct,
  * \param[in]		aaError		Error value attachment to elements
  */
 template <typename TFunction>
-void MarkElements(IRefiner& refiner,
+void MarkElements(MultiGrid::AttachmentAccessor<typename TFunction::element_type,
+                  ug::Attachment<number> >& aaError,
+                  IRefiner& refiner,
                   TFunction& u,
-                  number TOL, number scale,
-                  MultiGrid::AttachmentAccessor<typename TFunction::element_type,
-                  	  	  	  	  	  	  	    ug::Attachment<number> >& aaError)
+                  number TOL,
+                  number refineFrac, number coarseFrac,
+				  int maxLevel)
 {
 	typedef typename TFunction::element_type element_type;
 	typedef typename TFunction::const_element_iterator const_iterator;
 
 //	reset maximum of error
-	number max = 0.0;
+	number max = 0.0, min = std::numeric_limits<number>::max();
+	number totalErr = 0.0;
+	int numElem = 0;
 
 //	get element iterator
 	const_iterator iter = u.template begin<element_type>();
@@ -146,35 +150,49 @@ void MarkElements(IRefiner& refiner,
 	//	get element
 		element_type* elem = *iter;
 
-	//	search for maximum
-		if(aaError[elem] > max)
-			max = aaError[elem];
+	//	search for maximum and minimum
+		if(aaError[elem] > max)	max = aaError[elem];
+		if(aaError[elem] < min)	min = aaError[elem];
+
+	//	sum up total error
+		totalErr += aaError[elem];
+		numElem += 1;
 	}
 
-	UG_LOG("  +++  Gradient Error Indicator  +++\n");
+	UG_LOG("  +++++  Gradient Error Indicator on "<<numElem<<" Elements +++++\n");
 #ifdef UG_PARALLEL
 	if(pcl::GetNumProcesses() > 1){
+		UG_LOG("  +++ Element Errors on Proc " << pcl::GetProcRank() <<
+			   ": maximum=" << max << ", minimum="<<min<<", sum="<<totalErr<<".\n");
 		pcl::ProcessCommunicator com;
-		number maxLocal = max;
+		number maxLocal = max, minLocal = min, totalErrLocal = totalErr;
+		int numElemLocal = numElem;
 		com.allreduce(&maxLocal, &max, 1, PCL_DT_DOUBLE, PCL_RO_MAX);
-		UG_LOG("  +++ Max Error on Proc " << pcl::GetProcRank() <<
-			   " is " << maxLocal << ".\n");
+		com.allreduce(&minLocal, &min, 1, PCL_DT_DOUBLE, PCL_RO_MIN);
+		com.allreduce(&totalErrLocal, &totalErr, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+		com.allreduce(&numElemLocal, &numElem, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
 	}
 #endif
+	UG_LOG("  +++ Element Errors: maximum=" << max << ", minimum="<<min<<
+	       ", sum="<<totalErr<<".\n");
 
-	UG_LOG("  +++ Max Error is " << max << ".\n");
-
-//	check if something to do
-	if(max <= TOL) return;
+//	check if total error is smaller than tolerance. If that is the case we're done
+	if(totalErr < TOL)
+	{
+		UG_LOG("  +++ Total error "<<totalErr<<" < TOL ("<<TOL<<"). done.");
+		return;
+	}
 
 //	Compute minimum
-	number min = max*scale;
-	if(min < TOL) min = TOL;
-
-	UG_LOG("  +++ Refining all elements with error >= " << min << ".\n");
+	number minErrToRefine = max * refineFrac;
+	UG_LOG("  +++ Refining elements if error >= " << refineFrac << "*" <<max<<
+			" = "<< minErrToRefine << ".\n");
+	number maxErrToCoarse = min * (1+coarseFrac);
+	if(maxErrToCoarse < TOL/numElem) maxErrToCoarse = TOL/numElem;
+	UG_LOG("  +++ Coarsening elements if error <= "<< maxErrToCoarse << ".\n");
 
 //	reset counter
-	int numMarked = 0;
+	int numMarkedRefine = 0, numMarkedCoarse = 0;
 
 	iter = u.template begin<element_type>();
 	iterEnd = u.template end<element_type>();
@@ -185,33 +203,44 @@ void MarkElements(IRefiner& refiner,
 	//	get element
 		element_type* elem = *iter;
 
-	//	check if element error is in range
-		if(aaError[elem] >= min)
+	//	marks for refinement
+		if(aaError[elem] >= minErrToRefine)
+			if(u.domain()->grid()->get_level(elem) <= maxLevel)
+			{
+				refiner.mark(elem, RM_REGULAR);
+				numMarkedRefine++;
+			}
+
+	//	marks for coarsening
+		if(aaError[elem] <= maxErrToCoarse)
 		{
-		//	mark element and increase counter
-			refiner.mark(elem);
-			numMarked++;
+			refiner.mark(elem, RM_COARSEN);
+			numMarkedCoarse++;
 		}
 	}
 
 #ifdef UG_PARALLEL
 	if(pcl::GetNumProcesses() > 1){
+		UG_LOG("  +++ Marked for refinement on Proc "<<pcl::GetProcRank()<<": " << numMarkedRefine << " Elements.\n");
+		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::GetProcRank()<<": " << numMarkedCoarse << " Elements.\n");
 		pcl::ProcessCommunicator com;
-		int numMarkedLocal = numMarked;
-		com.allreduce(&numMarkedLocal, &numMarked, 1, PCL_DT_INT, PCL_RO_SUM);
-		UG_LOG("  +++ " << numMarkedLocal << " Elements marked on Proc "
-			   << pcl::GetProcRank() << ".\n");
+		int numMarkedRefineLocal = numMarkedRefine, numMarkedCoarseLocal = numMarkedCoarse;
+		com.allreduce(&numMarkedRefineLocal, &numMarkedRefine, 1, PCL_DT_INT, PCL_RO_SUM);
+		com.allreduce(&numMarkedCoarseLocal, &numMarkedCoarse, 1, PCL_DT_INT, PCL_RO_SUM);
 	}
 #endif
 
-	UG_LOG("  +++ " << numMarked << " Elements marked for refinement.\n");
+	UG_LOG("  +++ Marked for refinement: " << numMarkedRefine << " Elements.\n");
+	UG_LOG("  +++ Marked for coarsening: " << numMarkedCoarse << " Elements.\n");
 }
 
 template <typename TDomain, typename TDD, typename TAlgebra>
 void MarkForRefinement_GradientIndicator(IRefiner& refiner,
                                          GridFunction<TDomain, TDD, TAlgebra>& u,
                                          const char* fctName,
-                                         number TOL, number scale)
+                                         number TOL,
+                                         number refineFrac, number coarseFrac,
+                                         int maxLevel)
 {
 //	types
 	typedef GridFunction<TDomain, TDD, TAlgebra> TFunction;
@@ -234,7 +263,7 @@ void MarkForRefinement_GradientIndicator(IRefiner& refiner,
 	ComputeGradient(u, fct, aaError);
 
 // 	Mark elements for refinement
-	MarkElements(refiner, u, TOL, scale, aaError);
+	MarkElements(aaError, refiner, u, TOL, refineFrac, coarseFrac, maxLevel);
 
 // 	detach error field
 	pMG->template detach_from<element_type>(aError);
