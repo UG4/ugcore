@@ -587,9 +587,9 @@ elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 	sleep 1
 	jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
 	touch ugjobs
-	echo "$jobid $execdate $outdir"
+	echo "$jobid $execdate $outdir" >> ugjobs
 	echo "Received job id: $jobid" >> $outdir/info.txt
-	echo "Received job id: $jobid" >> $outdir/info.txt
+	echo "Received job id: $jobid"
 	
 	
 	if [ $tail == true ]; then
