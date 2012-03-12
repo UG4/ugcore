@@ -10,6 +10,7 @@
 
 #include <vector>
 #include "lib_disc/function_spaces/approximation_space.h"
+#include "common/profiler/profiler.h"
 
 namespace ug{
 
@@ -35,6 +36,7 @@ template <typename TDD>
 void OrderCuthillMcKee(TDD& dofDistr,
                        bool bReverse)
 {
+	PROFILE_FUNC();
 //	get adjacency graph
 	std::vector<std::vector<size_t> > vvConnection;
 	if(!dofDistr.get_connections(vvConnection))
