@@ -390,56 +390,7 @@ EOF
 elif [ $UGSUBMIT_TYPE == "Hermit" ]; then
 	echo ""; echo "Using qsub on Hermit/Cray XE6"
 	
-
-	
-# creating script file
-	cat > $outdir/job.sh << EOF
-#!/bin/bash
-#PBS -N $jobname 
-#PBS -o $outdir/job.output
-#PBS -e $outdir/job.error
-#PBS -j oe 
-#PBS -S /bin/bash 
-#PBS -l walltime=$walltime
-#PBS -l mppwidth=$npe
-#PBS -l mppnppn=$nppn
-EOF
-	if [ $mail == true ]; then 
-		if [ -z "$UGSUBMIT_EMAIL" ]; then
-			echo "please set UGSUBMIT_EMAIL or specify email with -email".
-			exit
-		fi	 
-		cat >> $outdir/job.sh << EOF
-#PBS -M $UGSUBMIT_EMAIL
-#PBS -m $pbsMailtype
-EOF
-	fi
-	cat >> $outdir/job.sh << EOF
-# Configure modules and call aprun
-#. /etc/profile.d/modules.sh 
-cd $outdir
-aprun -n $npe -N $nppn $executable $args
-EOF
-
-	echo qsub -V $outdir/job.sh
-
-	if [ $test == true ]; then
-		echo ""
-		echo "test. not executing."
-		echo ""
-		echo $outdir/job.sh ":"
-		cat $outdir/job.sh
-		rm -rf $outdir/
-		exit
-	fi
-#submitting batch job
-	echo "Submitting batch job to queue ..."
-	echo "Recieved PBSid: "
-	echo "Recieved PBSid: " >> $outdir/info.txt
-#	qsub -V $outdir/job.sh | tee -a $outdir/info.txt
-
-	
-	$pbsMail=""
+	pbsMail=""
 	if [ $mail == true ]; then 
 		if [ -z "$UGSUBMIT_EMAIL" ]; then
 			echo "please set UGSUBMIT_EMAIL or specify email with -email".
@@ -448,7 +399,24 @@ EOF
 		$pbsMail="-M $UGSUBMIT_EMAIL -m $pbsMailtype"
 	fi
 	
-	qsub -V -B -N $jobname -o $outdir/job.output -e $outdir/job.error -j oe -S /bin/bash -l walltime=$walltime -l mppwidth=$npe -l mppnppn=$nppn $pbsMail aprun -n $npe -N $nppn $executable $args
+	qsubargs="-V -N $jobname -o $outdir/job.output -e $outdir/job.error -j oe -S /bin/bash -l walltime=$walltime -l mppwidth=$npe -l mppnppn=$nppn $pbsMail"
+	aprunargs="-n $npe -N $nppn $executable $args"
+	
+	if [ $test == true ]; then
+		echo ""
+		echo "test. not executing."
+		echo "aprun $aprunargs"
+		echo "qsub $qsubargs"
+		rm -rf $outdir/
+		exit
+	fi
+
+#submitting batch job
+	echo "Submitting batch job to queue ..."
+	echo "Recieved PBSid: "
+	echo "Recieved PBSid: " >> $outdir/info.txt
+		
+	echo "aprun $aprunargs" | qsub $qsubargs  | tee -a $outdir/info.txt
 
 	if [ $tail == true ]; then
 		touch $outdir/job.output
