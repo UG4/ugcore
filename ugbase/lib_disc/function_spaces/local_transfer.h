@@ -121,6 +121,8 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 
 		void restrict_values(VertexBase* vrt, GeometricObject* parent) const
 		{
+			static int cnt = 0;
+			UG_LOG("RESTRICTING call "<<++cnt<<"\n");
 			std::vector<MultiIndex<2> > vFineMI;
 			std::vector<MultiIndex<2> > vCoarseMI;
 			switch(parent->reference_object_id())
@@ -136,6 +138,13 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 								BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]);
 				}
 				break;
+				case ROID_EDGE:
+				case ROID_TRIANGLE:
+				case ROID_QUADRILATERAL:
+				case ROID_TETRAHEDRON:
+				case ROID_PRISM:
+				case ROID_PYRAMID:
+				case ROID_HEXAHEDRON: /*nothing to do in those cases */ break;
 				default: UG_THROW_FATAL("Reference Object type not found.");
 			}
 		}
