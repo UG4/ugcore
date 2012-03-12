@@ -421,8 +421,6 @@ elif [ $UGSUBMIT_TYPE == "Hermit" ]; then
 	
 	echo $jobid >> $outdir/info.txt
 	jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
-	
-	| sed 's/*\([0-9]*\).*/\1/'` 
 	echo $jobid >> $outdir/jobid
 	echo $jobid
 	
