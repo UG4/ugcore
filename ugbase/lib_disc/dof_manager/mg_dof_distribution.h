@@ -73,6 +73,9 @@ struct LevInfo : public LevInfoBase
 ///	returns if free index avaiable
 	inline bool free_index_available() const;
 
+///	returns number of free index avaiable
+	inline size_t num_free_index() const;
+
 ///	returns a free index
 	inline size_t pop_free_index();
 

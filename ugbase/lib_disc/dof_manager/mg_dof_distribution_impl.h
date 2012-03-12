@@ -23,10 +23,19 @@ namespace ug{
 template <>
 struct LevInfo<std::vector<size_t> > : public LevInfoBase
 {
+	typedef std::vector<size_t>::iterator iterator;
+	typedef std::vector<size_t>::const_iterator const_iterator;
+
 ///	returns if free index avaiable
 	inline bool free_index_available() const
 	{
 		return !vFreeIndex.empty();
+	}
+
+///	returns number of free index avaiable
+	inline size_t num_free_index() const
+	{
+		return vFreeIndex.size();
 	}
 
 ///	returns a free index
@@ -43,6 +52,17 @@ struct LevInfo<std::vector<size_t> > : public LevInfoBase
 		vFreeIndex.push_back(index); return true;
 	}
 
+///	returns iterators
+///	\{
+	inline iterator begin() {return vFreeIndex.begin();}
+	inline iterator end() {return vFreeIndex.end();}
+	inline const_iterator begin() const {return vFreeIndex.begin();}
+	inline const_iterator end() const {return vFreeIndex.end();}
+///	\}
+
+///	clear container
+	void clear() {vFreeIndex.clear();}
+
 	protected:
 	std::vector<size_t> vFreeIndex;
 };
@@ -50,10 +70,19 @@ struct LevInfo<std::vector<size_t> > : public LevInfoBase
 template <>
 struct LevInfo<std::set<size_t> > : public LevInfoBase
 {
+	typedef std::set<size_t>::iterator iterator;
+	typedef std::set<size_t>::const_iterator const_iterator;
+
 ///	returns if free index avaiable
 	inline bool free_index_available() const
 	{
 		return !vFreeIndex.empty();
+	}
+
+///	returns number of free index avaiable
+	inline size_t num_free_index() const
+	{
+		return vFreeIndex.size();
 	}
 
 ///	returns a free index
@@ -72,6 +101,17 @@ struct LevInfo<std::set<size_t> > : public LevInfoBase
 
 		vFreeIndex.insert(index); return true;
 	}
+
+///	returns iterators
+///	\{
+	inline iterator begin() {return vFreeIndex.begin();}
+	inline iterator end() {return vFreeIndex.end();}
+	inline const_iterator begin() const {return vFreeIndex.begin();}
+	inline const_iterator end() const {return vFreeIndex.end();}
+///	\}
+
+///	clear container
+	void clear() {vFreeIndex.clear();}
 
 	protected:
 	std::set<size_t> vFreeIndex;
@@ -233,6 +273,9 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 		//	done
 			break;
 		}
+	//	one free index less
+		li.sizeIndexSet -= 1;
+
 	//	else try next
 		if(!li.free_index_available())
 			UG_THROW_FATAL("No more free index, but still need to defragment.");

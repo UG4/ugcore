@@ -235,6 +235,25 @@ void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 	if(max_dofs(1) > 0) defragment<EdgeBase>(vReplaced, lev);
 	if(max_dofs(2) > 0) defragment<Face>(vReplaced, lev);
 	if(max_dofs(3) > 0) defragment<Volume>(vReplaced, lev);
+
+//	check that only invalid indices left
+	for(LevInfo<std::vector<size_t> >::iterator it = lev_info(lev).begin(); it != lev_info(lev).end(); ++it)
+		UG_ASSERT(*it >= lev_info(lev).numIndex, "After defragment still index in "
+								  "valid range present in free index container.");
+
+//	clear container
+	lev_info(lev).sizeIndexSet -= lev_info(lev).num_free_index();
+	lev_info(lev).clear();
+
+	if(lev_info(lev).free_index_available())
+		UG_THROW_FATAL("Internal error: Still free indices available after "
+						"defragment: " <<  lev_info(lev).num_free_index());
+
+	if(lev_info(lev).numIndex != lev_info(lev).sizeIndexSet)
+		UG_THROW_FATAL("Internal error: numIndex and sizeIndexSet must be "
+						"equal after defragment, since the index set does not "
+						"contain holes anymore. But numIndex = "<<lev_info(lev).numIndex
+						<<", sizeIndexSet = "<<lev_info(lev).sizeIndexSet);
 }
 
 template <typename TBaseElem>

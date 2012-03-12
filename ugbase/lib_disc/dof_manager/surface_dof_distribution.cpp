@@ -260,6 +260,7 @@ void SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 //	if nothing to do, return
 	if(!lev_info().free_index_available()) return;
 
+	int numElem = 0.0;
 //	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
@@ -274,6 +275,8 @@ void SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 		{
 		// 	get element
 			TBaseElem* elem = *iter;
+
+			numElem++;
 
 		//	get roid
 			const ReferenceObjectID roid = elem->reference_object_id();
@@ -301,6 +304,25 @@ void SurfaceDoFDistribution::defragment()
 	if(max_dofs(EDGE) > 0) defragment<EdgeBase>(vReplaced);
 	if(max_dofs(FACE) > 0) defragment<Face>(vReplaced);
 	if(max_dofs(VOLUME) > 0) defragment<Volume>(vReplaced);
+
+//	check that only invalid indices left
+	for(LevInfo<std::set<size_t> >::iterator it = lev_info().begin(); it != lev_info().end(); ++it)
+		UG_ASSERT(*it >= lev_info().numIndex, "After defragment still index in "
+		          	  	  	  	  "valid range present in free index container.");
+
+//	clear container
+	lev_info().sizeIndexSet -= lev_info().num_free_index();
+	lev_info().clear();
+
+	if(lev_info().free_index_available())
+		UG_THROW_FATAL("Internal error: Still free indices available after "
+						"defragment: " <<  lev_info().num_free_index());
+
+	if(lev_info().numIndex != lev_info().sizeIndexSet)
+		UG_THROW_FATAL("Internal error: numIndex and sizeIndexSet must be "
+						"equal after defragment, since the index set does not "
+						"contain holes anymore. But numIndex = "<<lev_info().numIndex
+						<<", sizeIndexSet = "<<lev_info().sizeIndexSet);
 
 //	adapt managed vectors
 	if(!vReplaced.empty())
@@ -372,8 +394,11 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
 //			has the same indices attached. All indices remain valid on
 //			every surface level. No resizement in the index set must be
 //			performed.
-	if(parent_if_copy(obj)) return;
-
+	if(parent_if_copy(obj)) {
+		if(obj_index(obj) != obj_index(get_parent(obj)))
+			UG_THROW_FATAL("Must have same index in parent");
+		return;
+	}
 
 //	case 3: The object that will be erased has no identical parent on the
 //			coarser grid. In this case we have to remove the index from
