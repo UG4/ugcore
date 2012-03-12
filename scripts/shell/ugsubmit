@@ -106,6 +106,13 @@ function usage
 	echo "        on the selected cluster type, a shell script is created and submitted to the"
 	echo "        job scheduling system. ugsubmit also sets a symbolic link lastRun to the newly"
     echo "        created directory"
+	echo " "
+	echo " exported environment variables:"
+	echo "        UGS_JOBNAME              : job name"
+    echo "        UGS_OUTDIR               : output directory"
+    echo "        UGS_NP                   : see <npe>"
+    echo "        UGS_NPPN                 : see -nppn"
+	echo "        UGS_MYDIR                : the directory ugsubmit is started from"
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
    	echo "UGSUBMIT_TYPE is not set!"
@@ -215,6 +222,7 @@ if [ $# -eq 0 ]; then
 	echo "missing binary!"
 	exit
 fi
+
 binary=$1
 shift
 args=$*
@@ -228,6 +236,11 @@ fi
 
 # get path to executable
 executable=`which $binary`
+if [ -z $executable ]; then
+	echo "The binary \"$binary\" could not be found.".
+	executable=`which ./$binary`
+	exit
+fi
 if [ ${executable:0:1} = "." ]; then
 	executable=$execpath/$binary
 fi
@@ -301,6 +314,12 @@ if [ $verbose == true ]; then
 fi
 #ugjob $UGSUBMIT_EMAIL $jobname $outdir $nnodes $nppn $walltime $executable $args
 
+export UGS_JOBNAME=$jobname
+export UGS_OUTDIR=$outdir
+export UGS_NP=$npe
+export UGS_NPPN=$nppn
+export UGS_MYDIR=$execpath
+
 # now call job schedulers
 
 ######################################################################
@@ -360,7 +379,8 @@ EOF
 	qsub -q user $outdir/$jobname.sh | tee -a $outdir/info.txt	
 
 	if [ $tail == true ]; then
-		tail -f $outdir/job.output
+		touch $outdir/job.output
+		sleep 1; tail -f $outdir/job.output
 	fi
 	
 ######################################################################
@@ -416,10 +436,23 @@ EOF
 	echo "Submitting batch job to queue ..."
 	echo "Recieved PBSid: "
 	echo "Recieved PBSid: " >> $outdir/info.txt
-	qsub -V $outdir/job.sh | tee -a $outdir/info.txt
+#	qsub -V $outdir/job.sh | tee -a $outdir/info.txt
+
 	
+	$pbsMail=""
+	if [ $mail == true ]; then 
+		if [ -z "$UGSUBMIT_EMAIL" ]; then
+			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			exit
+		fi	 
+		$pbsMail="-M $UGSUBMIT_EMAIL -m $pbsMailtype"
+	fi
+	
+	qsub -V -B -N $jobname -o $outdir/job.output -e $outdir/job.error -j oe -S /bin/bash -l walltime=$walltime -l mppwidth=$npe -l mppnppn=$nppn $pbsMail aprun -n $npe -N $nppn $executable $args
+
 	if [ $tail == true ]; then
-		tail -f $outdir/job.output
+		touch $outdir/job.output
+		sleep 1; tail -f $outdir/job.output
 	fi
 	
 ######################################################################
@@ -490,7 +523,8 @@ EOF
 # ll_submit $outdir/job.sh
 
 	if [ $tail == true ]; then
-		tail -f $outdir/job.output
+		touch $outdir/job.output
+		sleep 1; tail -f $outdir/job.output
 	fi
 
 
@@ -517,7 +551,8 @@ elif [ $UGSUBMIT_TYPE == "mpi" ]; then
 	fi
 	nohup mpirun -np $npe $executable $args > $outdir/job.output &
 	if [ $tail == true ]; then
-		tail -f $outdir/job.output
+		touch $outdir/job.output
+		sleep 1; tail -f $outdir/job.output
 	fi
 
 ######################################################################
@@ -570,7 +605,8 @@ elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 
 	nohup salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args > $outdir/job.output &
 	if [ $tail == true ]; then
-		tail -f $outdir/job.output
+		touch $outdir/job.output
+		sleep 1; tail -f $outdir/job.output
 	fi
 
 ######################################################################
