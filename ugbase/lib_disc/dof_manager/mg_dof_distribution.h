@@ -76,8 +76,8 @@ struct LevInfo : public LevInfoBase
 ///	returns a free index
 	inline size_t pop_free_index();
 
-///	adds a free index
-	inline void push_free_index(size_t index);
+///	adds a free index, returns if index has not been contained before
+	inline bool push_free_index(size_t index);
 };
 
 ///////////////////////////////////////////////////////////////////////////////

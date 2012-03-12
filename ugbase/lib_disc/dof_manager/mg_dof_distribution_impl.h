@@ -37,10 +37,10 @@ struct LevInfo<std::vector<size_t> > : public LevInfoBase
 		return index;
 	}
 
-///	adds a free index
-	inline void push_free_index(size_t index)
+///	adds a free index, returns if index has not been contained before
+	inline bool push_free_index(size_t index)
 	{
-		vFreeIndex.push_back(index);
+		vFreeIndex.push_back(index); return true;
 	}
 
 	protected:
@@ -64,10 +64,13 @@ struct LevInfo<std::set<size_t> > : public LevInfoBase
 		return index;
 	}
 
-///	adds a free index
-	inline void push_free_index(size_t index)
+///	adds a free index, returns if index has not been contained before
+	inline bool push_free_index(size_t index)
 	{
-		vFreeIndex.insert(index);
+	//	already contained, just return flag
+		if(vFreeIndex.find(index) != vFreeIndex.end()) return false;
+
+		vFreeIndex.insert(index); return true;
 	}
 
 	protected:
@@ -254,7 +257,8 @@ erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 //	store the index of the object, that will be erased as a available hole of the
 //	index set
-	li.push_free_index(obj_index(obj));
+	bool bNonContained = li.push_free_index(obj_index(obj));
+	if(!bNonContained) return;
 
 //	compute number of indices on the geometric object
 	size_t numNewIndex = 1;
