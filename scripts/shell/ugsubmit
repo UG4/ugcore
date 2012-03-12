@@ -425,9 +425,9 @@ elif [ $UGSUBMIT_TYPE == "Hermit" ]; then
 	echo $jobid
 	
 	if [ ! -e ugjobs ]; then
-    	echo "JOBID EXECDATE DIRECTORY" > ugjobs
+    	echo "JOBID EXECDATE DIRECTORY" > $execpath/ugjobs
 	fi	
-	echo "$jobid $execdate $outdir" >> ugjobs 
+	echo "$jobid $mydate $outdir" >> $execpath/ugjobs 
 
 	if [ $tail == true ]; then
 		touch $outdir/job.output
@@ -501,8 +501,10 @@ EOF
 #todo: uncomment next line, get jobid
 # ll_submit $outdir/job.sh
 
-	touch ugjobs
-	echo "$jobid $execdate $outdir"
+	if [ ! -e ugjobs ]; then
+    	echo "JOBID EXECDATE DIRECTORY" > $execpath/ugjobs
+	fi	
+	echo "$jobid $execdate $outdir" >> $execpathugjobs
 	
 	if [ $tail == true ]; then
 		touch $outdir/job.output
@@ -589,9 +591,9 @@ elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 	sleep 1
 	jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
 	if [ ! -e ugjobs ]; then
-    	echo "JOBID EXECDATE DIRECTORY" > ugjobs
+    	echo "JOBID EXECDATE DIRECTORY" > $execpath/ugjobs
 	fi	
-	echo "$jobid $execdate $outdir" >> ugjobs
+	echo "$jobid $execdate $outdir" >> $execpath/ugjobs
 	echo "Received job id: $jobid" >> $outdir/info.txt
 	echo "Received job id: $jobid"
 	
