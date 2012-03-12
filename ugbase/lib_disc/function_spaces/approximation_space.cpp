@@ -159,12 +159,14 @@ IApproximationSpace::level_dof_distribution(int level) const
 
 void IApproximationSpace::init_levels()
 {
+	PROFILE_FUNC();
 	if(num_levels() > 0)
 		level_dd_required(0, num_levels()-1);
 }
 
 void IApproximationSpace::init_surfaces()
 {
+	PROFILE_FUNC();
 	if(num_levels() > 0){
 		surf_dd_required(0, num_levels()-1);
 		top_surf_dd_required();
@@ -173,11 +175,13 @@ void IApproximationSpace::init_surfaces()
 
 void IApproximationSpace::init_top_surface()
 {
+	PROFILE_FUNC();
 	top_surf_dd_required();
 }
 
 void IApproximationSpace::defragment()
 {
+	PROFILE_FUNC();
 //	update surface view
 	if(m_spSurfaceView.is_valid())
 		m_spSurfaceView->mark_shadows();
