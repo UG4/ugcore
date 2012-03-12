@@ -7,13 +7,16 @@ namespace ug
 
 std::string GetParallelName(std::string name, const pcl::ProcessCommunicator &pc, bool bWriteHeader)
 {
+	if(pcl::GetNumProcesses() == 1)
+		return name;
+
 	char buf[20];
 	int rank = pcl::GetProcRank();
 
 	size_t iExtPos = name.find_last_of(".");
 	std::string ext = name.substr(iExtPos+1);
 	name.resize(iExtPos);
-	if(bWriteHeader && rank == pc.get_proc_id(0))
+	if(bWriteHeader && pc.size() > 1 && rank == pc.get_proc_id(0))
 	{
 		size_t iSlashPos = name.find_last_of("/");
 		if(iSlashPos == std::string::npos) iSlashPos = 0; else iSlashPos++;

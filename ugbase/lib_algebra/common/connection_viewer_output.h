@@ -55,8 +55,7 @@ template<typename Matrix_type, typename postype>
 void WriteMatrixToConnectionViewer(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
 {
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1)
-		filename = GetParallelName(A, filename);
+	filename = GetParallelName(A, filename);
 #endif
 
 	std::fstream file(filename.c_str(), std::ios::out);
@@ -100,8 +99,7 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 									std::vector<postype> &positionsFrom, std::vector<postype> &positionsTo, size_t dimensions)
 {
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1)
-		filename = GetParallelName(A, filename);
+	filename = GetParallelName(A, filename);
 #endif
 
 	/*const char * p = strstr(filename, ".mat");
@@ -219,8 +217,7 @@ template<typename Vector_type, typename postype>
 void WriteVectorToConnectionViewer(std::string filename, const Vector_type &b, postype *positions, int dimensions)
 {
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1)
-		filename = GetParallelName(filename);
+	filename = GetParallelName(filename);
 #endif
 	std::fstream file(filename.c_str(), std::ios::out);
 	file << CONNECTION_VIEWER_VERSION << std::endl;
@@ -259,8 +256,7 @@ void WriteVectorToConnectionViewer(std::string filename, const Matrix_type &A, c
 		return;
 	}
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1)
-		filename = GetParallelName(A, filename);
+	filename = GetParallelName(A, filename);
 #endif
 
 	std::fstream file(filename.c_str(), std::ios::out);
@@ -318,8 +314,7 @@ template<typename Vector_type, typename postype>
 void WriteVectorToConnectionViewerNEW(std::string filename, const Vector_type &b, postype *positions, int dimensions)
 {
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1)
-		filename = GetParallelName(filename);
+	filename = GetParallelName(filename);
 #endif
 
 	std::fstream file(filename.c_str(), std::ios::out);
