@@ -212,14 +212,12 @@ int main(int argc, char* argv[])
 	if(scriptName)
 	{
 		try{
-			PROFILE_BEGIN(LoadScript);
 			if(!LoadUGScript(scriptName))
 			{
 				UG_LOG("Can not find specified script ('" << scriptName << "'). Aborting.\n");
 				UGFinalize();
 				return 1;
 			}
-			PROFILE_END();
 		}
 		catch(LuaError& err) {
 			UG_LOG("PARSE ERROR: \n");
