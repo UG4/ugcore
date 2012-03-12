@@ -718,11 +718,10 @@ template <class TElem>
 void DistributedGridManager::
 element_to_be_erased(TElem* elem)
 {
-	assert(m_bElementDeletionMode);
-
 	ElementInfo<TElem>& elemInfo = elem_info(elem);
 
 	if(elemInfo.is_interface_element()){
+		assert(m_bElementDeletionMode);
 	//	erase the element from all associated interfaces
 		for(typename ElementInfo<TElem>::EntryIterator iter = elemInfo.entries_begin();
 			iter != elemInfo.entries_end(); ++iter)
