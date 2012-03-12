@@ -31,6 +31,44 @@ SurfaceDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPat
 	init();
 }
 
+void SurfaceDoFDistribution::add_transfer(SmartPtr<ILocalTransfer> spTransfer)
+{
+	for(int gbo = 0; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo)
+	{
+		if(spTransfer->prolongation_needed((GeometricBaseObject)gbo))
+			m_vProlongation[gbo].push_back(spTransfer);
+
+		if(spTransfer->restriction_needed((GeometricBaseObject)gbo))
+			m_vRestriction[gbo].push_back(spTransfer);
+	}
+}
+
+void SurfaceDoFDistribution::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
+{
+	for(int gbo = 0; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo)
+	{
+		m_vProlongation[gbo].erase(std::remove(m_vProlongation[gbo].begin(),
+		                                       m_vProlongation[gbo].end(),
+		                                       spTransfer),
+		                                       m_vProlongation[gbo].end());
+		m_vRestriction[gbo].erase(std::remove(m_vRestriction[gbo].begin(),
+		                                      m_vRestriction[gbo].end(),
+		                                       spTransfer),
+		                                       m_vRestriction[gbo].end());
+	}
+}
+
+void SurfaceDoFDistribution::clear_transfers()
+{
+	for(int gbo = 0; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo)
+	{
+		m_vProlongation[gbo].clear();
+		m_vRestriction[gbo].clear();
+	}
+}
+
+
+
 template <typename TBaseElem>
 void SurfaceDoFDistribution::init()
 {
@@ -280,6 +318,8 @@ template <typename TBaseElem>
 inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject* pParent,
                         bool replacesParent)
 {
+	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID;
+
 //	case 1: if replacesParent == true, only an obj (e.g. HangingVertex)
 //			is replaced by a similar obj (e.g. Vertex). This case is
 //			handled in obj_to_be_erased(), that will be called in addition
@@ -301,7 +341,11 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 //	the parent, that will be covered after the creation, will no longer be part
 //	of the surface. But we still need the values for the transfer callbacks.
 //	Therefore, we leave the "old" indices attached and valid for the moment.
-//	But we remember that the indices on the parent object must be removed when
+//	All prolongation callbacks are invoked now
+	for(size_t i = 0; i < m_vProlongation[gbo].size(); ++i)
+		m_vProlongation[gbo][i]->prolongate_values(obj, pParent, *this);
+
+//	Now we remember that the indices on the parent object must be removed when
 //	defragmentation is called. We do this only, if the parent is of same
 //	base element type. This is possible, since for each refined element, there
 //	is at least one "finer" element, that will be inserted, of same base type.
@@ -319,6 +363,8 @@ template <typename TBaseElem>
 inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
                              TBaseElem* replacedBy)
 {
+	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID;
+
 //	case 1: Only replacement. Just copy indices from one obj to the other
 	if(replacedBy) {copy(replacedBy, obj); return;}
 
@@ -328,9 +374,16 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
 //			performed.
 	if(parent_if_copy(obj)) return;
 
+
 //	case 3: The object that will be erased has no identical parent on the
 //			coarser grid. In this case we have to remove the index from
 //			the index set.
+
+//	All prolongation callbacks are invoked now
+	for(size_t i = 0; i < m_vRestriction[gbo].size(); ++i)
+		m_vRestriction[gbo][i]->restrict_values(obj, get_parent(obj), *this);
+
+//	remember that index from object is now no longer in index set
 	erase(obj,
 	      obj->reference_object_id(),
 	      m_spMGSH->get_subset_index(obj),

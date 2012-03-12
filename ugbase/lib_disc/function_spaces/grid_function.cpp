@@ -15,23 +15,19 @@ namespace ug{
 template <>
 void IDDGridFunction<SurfaceDoFDistribution>::add_transfer(SmartPtr<ILocalTransfer> spTransfer)
 {
-	spTransfer->set_dof_distribution(m_spDD);
-	m_vTransfer.push_back(spTransfer);
+	m_spDD->add_transfer(spTransfer);
 }
 
 template <>
 void IDDGridFunction<SurfaceDoFDistribution>::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
 {
-	m_vTransfer.erase(std::remove(m_vTransfer.begin(),
-	                              m_vTransfer.end(),
-	                              spTransfer),
-	                              m_vTransfer.end());
+	m_spDD->remove_transfer(spTransfer);
 }
 
 template <>
 void IDDGridFunction<SurfaceDoFDistribution>::clear_transfers()
 {
-	m_vTransfer.clear();
+	m_spDD->clear_transfers();
 }
 
 template <>

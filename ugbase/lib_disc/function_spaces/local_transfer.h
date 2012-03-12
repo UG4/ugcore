@@ -13,10 +13,8 @@
 namespace ug{
 
 template <typename TAlgebra>
-class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
+class P1LocalTransfer : public ILocalTransfer
 {
-	using ILocalTransferImpl<P1LocalTransfer<TAlgebra> >::m_spMGDD;
-
 	public:
 		typedef typename TAlgebra::vector_type vector_type;
 
@@ -37,7 +35,7 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 			return (gbo == VERTEX);
 		}
 
-		void prolongate_values(VertexBase* vrt, GeometricObject* parent) const
+		void prolongate_values(VertexBase* vrt, GeometricObject* parent, const MGDoFDistribution& mgDD) const
 		{
 			std::vector<MultiIndex<2> > vFineMI;
 			std::vector<MultiIndex<2> > vCoarseMI;
@@ -46,8 +44,8 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 				case ROID_VERTEX:
 				{
 					VertexBase* pParent = static_cast<VertexBase*>(parent);
-					m_spMGDD->inner_multi_indices(vrt, m_fct, vFineMI);
-					m_spMGDD->inner_multi_indices(pParent, m_fct, vCoarseMI);
+					mgDD.inner_multi_indices(vrt, m_fct, vFineMI);
+					mgDD.inner_multi_indices(pParent, m_fct, vCoarseMI);
 
 					for(size_t i = 0; i < vFineMI.size(); ++i)
 						BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]) =
@@ -56,7 +54,7 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 				break;
 				case ROID_EDGE:
 				{
-					m_spMGDD->inner_multi_indices(vrt, m_fct, vFineMI);
+					mgDD.inner_multi_indices(vrt, m_fct, vFineMI);
 					for(size_t i = 0; i < vFineMI.size(); ++i)
 						BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]) = 0.0;
 
@@ -64,7 +62,7 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						VertexBase* edgeVrt = pParent->vertex(i);
-						m_spMGDD->inner_multi_indices(edgeVrt, m_fct, vCoarseMI);
+						mgDD.inner_multi_indices(edgeVrt, m_fct, vCoarseMI);
 
 						for(size_t i = 0; i < vFineMI.size(); ++i)
 							BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1])
@@ -74,7 +72,7 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 				break;
 				case ROID_QUADRILATERAL:
 				{
-					m_spMGDD->inner_multi_indices(vrt, m_fct, vFineMI);
+					mgDD.inner_multi_indices(vrt, m_fct, vFineMI);
 					for(size_t i = 0; i < vFineMI.size(); ++i)
 						BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]) = 0.0;
 
@@ -82,7 +80,7 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						VertexBase* faceVrt = pParent->vertex(i);
-						m_spMGDD->inner_multi_indices(faceVrt, m_fct, vCoarseMI);
+						mgDD.inner_multi_indices(faceVrt, m_fct, vCoarseMI);
 
 						for(size_t i = 0; i < vFineMI.size(); ++i)
 							BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1])
@@ -92,7 +90,7 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 				break;
 				case ROID_HEXAHEDRON:
 				{
-					m_spMGDD->inner_multi_indices(vrt, m_fct, vFineMI);
+					mgDD.inner_multi_indices(vrt, m_fct, vFineMI);
 					for(size_t i = 0; i < vFineMI.size(); ++i)
 						BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]) = 0.0;
 
@@ -100,7 +98,7 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						VertexBase* hexVrt = pParent->vertex(i);
-						m_spMGDD->inner_multi_indices(hexVrt, m_fct, vCoarseMI);
+						mgDD.inner_multi_indices(hexVrt, m_fct, vCoarseMI);
 
 						for(size_t i = 0; i < vFineMI.size(); ++i)
 							BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1])
@@ -115,14 +113,14 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 				default: UG_THROW_FATAL("Reference Object type not found.");
 			}
 		}
-		void prolongate_values(EdgeBase* elem, GeometricObject* parent) const {}
-		void prolongate_values(Face* elem, GeometricObject* parent) const {}
-		void prolongate_values(Volume* elem, GeometricObject* parent) const {}
+		void prolongate_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
+		void prolongate_values(Face* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
+		void prolongate_values(Volume* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
 
-		void restrict_values(VertexBase* vrt, GeometricObject* parent) const
+		void restrict_values(VertexBase* vrt, GeometricObject* parent, const MGDoFDistribution& mgDD) const
 		{
-			static int cnt = 0;
-			UG_LOG("RESTRICTING call "<<++cnt<<"\n");
+//			static int cnt = 0;
+//			UG_LOG("RESTRICTING call "<<++cnt<<"\n");
 			std::vector<MultiIndex<2> > vFineMI;
 			std::vector<MultiIndex<2> > vCoarseMI;
 			switch(parent->reference_object_id())
@@ -130,8 +128,8 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 				case ROID_VERTEX:
 				{
 					VertexBase* pParent = static_cast<VertexBase*>(parent);
-					m_spMGDD->inner_multi_indices(vrt, m_fct, vFineMI);
-					m_spMGDD->inner_multi_indices(pParent, m_fct, vCoarseMI);
+					mgDD.inner_multi_indices(vrt, m_fct, vFineMI);
+					mgDD.inner_multi_indices(pParent, m_fct, vCoarseMI);
 
 					for(size_t i = 0; i < vFineMI.size(); ++i)
 						BlockRef((*m_pVec)[ vCoarseMI[i][0] ], vCoarseMI[i][1]) =
@@ -148,9 +146,9 @@ class P1LocalTransfer : public ILocalTransferImpl<P1LocalTransfer<TAlgebra> >
 				default: UG_THROW_FATAL("Reference Object type not found.");
 			}
 		}
-		void restrict_values(EdgeBase* elem, GeometricObject* parent) const {}
-		void restrict_values(Face* elem, GeometricObject* parent) const {}
-		void restrict_values(Volume* elem, GeometricObject* parent) const {}
+		void restrict_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
+		void restrict_values(Face* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
+		void restrict_values(Volume* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
 
 	protected:
 		vector_type* m_pVec;

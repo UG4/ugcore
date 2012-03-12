@@ -11,6 +11,7 @@
 #include "mg_dof_distribution.h"
 #include "managing_dof_distribution.h"
 #include "lib_disc/domain_traits.h"
+#include "lib_disc/function_spaces/local_transfer_interface.h"
 
 namespace ug{
 
@@ -202,6 +203,15 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 	///	renames the indices
 		void permute_indices(const std::vector<size_t>& vIndNew);
 
+	///	add a transfer callback
+		void add_transfer(SmartPtr<ILocalTransfer> transfer);
+
+	///	add a transfer callback
+		void remove_transfer(SmartPtr<ILocalTransfer> transfer);
+
+	///	add a transfer callback
+		void clear_transfers();
+
 	protected:
 		/// permutes the indices for an base element type
 		template <typename TBaseElem>
@@ -225,6 +235,10 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 
 	///	set of invalid indices, still contained in index set
 		std::set<size_t> m_sFreeIndex;
+
+	///	list of prolongations
+		std::vector<SmartPtr<ILocalTransfer> >m_vProlongation[NUM_GEOMETRIC_BASE_OBJECTS];
+		std::vector<SmartPtr<ILocalTransfer> >m_vRestriction[NUM_GEOMETRIC_BASE_OBJECTS];
 
 	protected:
 #ifdef UG_PARALLEL
