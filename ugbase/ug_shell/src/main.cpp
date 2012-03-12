@@ -75,6 +75,9 @@ char* ReadlinePseudo(const char* prompt)
 int main(int argc, char* argv[])
 {
 	PROFILE_FUNC();
+
+	PROFILE_BEGIN(ugshellInit);
+
 //	check if an output-process has been specified
 	int outputProc = 0;
 //	if "-outproc" is not found, outputProc won't be changed.
@@ -202,17 +205,21 @@ int main(int argc, char* argv[])
 	lua_register(L, "print", UGLuaPrint );
 	lua_register(L, "write", UGLuaWrite );
 
+	PROFILE_END(); // ugshellInit
+
 //	if a script has been specified, then execute it now
 //	if a script is executed, we won't execute the interactive shell.
 	if(scriptName)
 	{
 		try{
+			PROFILE_BEGIN(LoadScript);
 			if(!LoadUGScript(scriptName))
 			{
 				UG_LOG("Can not find specified script ('" << scriptName << "'). Aborting.\n");
 				UGFinalize();
 				return 1;
 			}
+			PROFILE_END();
 		}
 		catch(LuaError& err) {
 			UG_LOG("PARSE ERROR: \n");
@@ -245,6 +252,7 @@ int main(int argc, char* argv[])
 				UG_LOG("Parallel environment detected. Disabling interactive shell.\n");
 				runInteractiveShell = false;
 			}
+
 		}
 	#endif
 	
@@ -295,6 +303,7 @@ int main(int argc, char* argv[])
 				ug_freeline(buffer);
 			}
 		}
+		PROFILE_END();
 	//todo:	clear the history (add ug_freelinecache)
 	}
 
