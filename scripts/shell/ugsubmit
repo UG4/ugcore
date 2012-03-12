@@ -276,6 +276,7 @@ else
 		mkdir $outdir
 	fi
 fi
+echo "Output dir is $outdir"
 rm lastRun
 ln -s $outdir lastRun
 
@@ -374,8 +375,8 @@ EOF
 	fi
 #submitting batch job
 	echo "Submitting batch job to queue ..."
-	echo "Recieved PBSid: "
-	echo "Recieved PBSid: " >> $outdir/info.txt
+	echo "Received PBSid: "
+	echo "Received PBSid: " >> $outdir/info.txt
 	qsub -q user $outdir/$jobname.sh | tee -a $outdir/info.txt	
 
 	if [ $tail == true ]; then
@@ -416,11 +417,17 @@ elif [ $UGSUBMIT_TYPE == "Hermit" ]; then
 	echo "Recieved PBSid: "
 	echo "Recieved PBSid: " >> $outdir/info.txt
 		
-	pbsId=`echo "aprun $aprunargs" | qsub $qsubargs`
-	echo $pbsId >> $outdir/info.txt
-	pbsId=`echo $pbsId | sed 's/\([0-9]*\).*/\1/'` 
-	echo $pbsId >> $outdir/jobid
-	echo $pbsId
+	jobid=`echo "aprun $aprunargs" | qsub $qsubargs`
+	
+	echo $jobid >> $outdir/info.txt
+	jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
+	
+	| sed 's/*\([0-9]*\).*/\1/'` 
+	echo $jobid >> $outdir/jobid
+	echo $jobid
+	
+	touch ugjobs
+	echo "$jobid $execdate $outdir" 
 
 	if [ $tail == true ]; then
 		touch $outdir/job.output
@@ -491,9 +498,12 @@ EOF
 		exit
 	fi
 	
-#todo: uncomment next line
+#todo: uncomment next line, get jobid
 # ll_submit $outdir/job.sh
 
+	touch ugjobs
+	echo "$jobid $execdate $outdir"
+	
 	if [ $tail == true ]; then
 		touch $outdir/job.output
 		sleep 1; tail -f $outdir/job.output
@@ -576,6 +586,14 @@ elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 	fi
 
 	nohup salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args > $outdir/job.output &
+	sleep 1
+	jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
+	touch ugjobs
+	echo "$jobid $execdate $outdir"
+	echo "Received job id: $jobid" >> $outdir/info.txt
+	echo "Received job id: $jobid" >> $outdir/info.txt
+	
+	
 	if [ $tail == true ]; then
 		touch $outdir/job.output
 		sleep 1; tail -f $outdir/job.output
