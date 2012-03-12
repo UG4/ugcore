@@ -593,7 +593,7 @@ elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 	if [ ! -e ugjobs ]; then
     	echo "JOBID EXECDATE DIRECTORY" > $execpath/ugjobs
 	fi	
-	echo "$jobid $execdate $outdir" >> $execpath/ugjobs
+	echo "$jobid $mydate $outdir" >> $execpath/ugjobs
 	echo "Received job id: $jobid" >> $outdir/info.txt
 	echo "Received job id: $jobid"
 	
