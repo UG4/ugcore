@@ -473,12 +473,12 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit_gcc.cmake ..
 \endverbatim
 
 \subsection secHermit_Cray Cray CC
-You could also use the Cray C Compiler, but there is a internal compiler error in release mode
-Toolchain file is ../toolchain_file_hermit.cmake, and the module is PrgEnv-cray.
+The Cray C Compiler is not working at the moment because there is a internal compiler error in release mode.
 
+Toolchain file is ../toolchain_file_hermit.cmake, and the module is PrgEnv-cray.
 \verbatim
 module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray
-cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit_gcc.cmake ..
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake ..
 \endverbatim
 
 <hr>
