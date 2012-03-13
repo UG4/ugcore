@@ -72,6 +72,8 @@ bool RegisterUtilInterface(Registry& reg, string parentGroup)
 		.add_function("ug_file_exists", &FileExists, grp,
 				 "exists", "", "Returns true if a path exists, false if not.")
 		.add_function("exit", &UGForceExit, grp,
+				 "", "", "Immediatly terminates the application.")
+		.add_function("quit", &UGForceExit, grp,
 				 "", "", "Immediatly terminates the application.");
 
 	return true;
