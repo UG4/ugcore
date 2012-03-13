@@ -491,6 +491,11 @@ bool DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 
 bool DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 {
+//	evaluate constant data (only in case of hanging nodes, size may have changed.)
+	if(m_bUseHanging)
+		for(size_t i = 0; i < m_vConstData.size(); ++i)
+			m_vConstData[i]->compute();
+
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
 		m_vPosData[i]->compute();
