@@ -125,7 +125,7 @@ end
 -- User Data Functions (begin)
 --------------------------------
 	function cbDirichletBnd2d(x, y, t)
-		return true, 5.9991	
+		return true, 0 -- 5.9991	
 	end
 	function cbDirichletBnd3d(x, y, z, t)
 		return true, 5.9991		
@@ -284,7 +284,9 @@ sh:set_subset_name("DirichletBoundary", 1)
 -- create Approximation Space
 approxSpace = ApproximationSpace(dom)
 approxSpace:add_fct("c", "Lagrange", 1)
-
+approxSpace:init_levels()
+approxSpace:init_top_surface()
+approxSpace:print_statistic()
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
@@ -333,30 +335,30 @@ domainDisc:add(dirichletBND)
 -------------------------------------------
 print ("Setting up Algebra Solver")
 
--- create operator from discretization
-linOp = AssembledLinearOperator()
-linOp:set_discretization(domainDisc)
-linOp:set_dof_distribution(approxSpace:surface_dof_distribution())
-
-
--- get grid function
+-- matrix and vectors
+A = MatrixOperator()
 u = GridFunction(approxSpace)
 b = GridFunction(approxSpace)
+b2 = GridFunction(approxSpace)
+
+
+
+
 
 -- set initial value
 
 
 -- init Operator and set dirichlet values in start iterate
-print ("Assemble Operator and dirichlet ... ")
-linOp:init_op_and_rhs(b)
-linOp:set_dirichlet_values(u)
-
+print("Assemble A and b...")
+tBefore = os.clock()
+domainDisc:assemble_linear(A, b)
+tAssemble = os.clock()-tBefore
 print ("done")
 
 
 -- write matrix for test purpose
-if bMatOutput then
-	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+if true then
+	SaveMatrixForConnectionViewer(u, A, "Stiffness.mat")
 	SaveVectorForConnectionViewer(b, "Rhs.vec")
 end
 
@@ -512,8 +514,9 @@ amg:set_base_solver(base)
 amg:set_max_levels(maxLevels)
 
 amg:set_min_nodes_on_one_processor(util.GetParamNumber("-minNodes", 1000))
--- amg:set_preferred_nodes_on_one_processor(100000)
 amg:set_preferred_nodes_on_one_processor(util.GetParamNumber("-preferredNodes", 1000))
+-- amg:set_preferred_nodes_on_one_processor(100000)
+
 amg:set_max_nodes_for_base(maxBase)
 amg:set_max_fill_before_base(0.5)
 amg:set_fsmoothing(true)
@@ -542,26 +545,23 @@ b2:assign(b)
 --  Apply Solver
 -------------------------------------------
 -- 1. init operator
-print("Init operator (i.e. assemble matrix).")
-tBefore = os.clock()
-linOp:init()
-tAssemble = os.clock()-tBefore
+
 
 amg:set_one_init(true)
 
 -- 2. init solver for linear Operator
 print("Init solver for operator.")
-linSolver = LinearSolver()
-linSolver:set_preconditioner(amg)
-linSolver:set_convergence_check(convCheck)
-linSolver:init(linOp)
+	linSolver = LinearSolver()
+	linSolver:set_preconditioner(amg)
+	linSolver:set_convergence_check(convCheck)
+	linSolver:init(A)
 
 	print("Apply solver: LINEAR SOLVER.")
 	srand(iSeed)
 	u:set_random(-1.0, 1.0)
-	domainDisc:assemble_rhs(b, u)
+	domainDisc:adjust_solution(u)
 	tBefore = os.clock()
-	linSolver:apply_return_defect(u,b)
+	linSolver:apply_return_defect(u,b)	
 	tSolve = os.clock()-tBefore
 	print("done")
 	
@@ -569,16 +569,16 @@ linSolver:init(linOp)
 	steps = convCheck:step()
 
 ---------
-exit()
 	linSolver = CG()
 	linSolver:set_preconditioner(amg)
 	linSolver:set_convergence_check(convCheck)
-	linSolver:init(linOp)
+	linSolver:init(A)
 	
 	print("Apply solver: CG.")
 	srand(iSeed)
 	u:set_random(-1.0, 1.0)
-	domainDisc:assemble_rhs(b, u)
+	domainDisc:adjust_solution(u)
+	b:assign(b2)
 	tBefore = os.clock()
 	linSolver:apply_return_defect(u,b)
 	tSolveCG = os.clock()-tBefore
@@ -596,18 +596,18 @@ if util.HasParamOption("-bCheck") then
 	linSolver = LinearSolver()	
 	linSolver:set_preconditioner(amg)
 	linSolver:set_convergence_check(convCheck)
-	linSolver:init(linOp)
+	linSolver:init(A)
 	srand(iSeed)
 	u:set_random(-1.0, 1.0)
-	domainDisc:assemble_rhs(b, u)
+	
 
 	convCheck:set_maximum_steps(2)
 	linSolver:apply_return_defect(u,b)
 	
 	if bWriteMat then
-		SaveVectorForConnectionViewer(b, linOp, "b.vec")
-		SaveVectorForConnectionViewer(solution, linOp, "solution.vec")
-		SaveVectorForConnectionViewer(u, solution, linOp, "u-solution.vec")
+		SaveVectorForConnectionViewer(b, A, "b.vec")
+		SaveVectorForConnectionViewer(solution, A, "solution.vec")
+		SaveVectorForConnectionViewer(u, solution, A, "u-solution.vec")
 		amg:write_interfaces()
 	end
 	print("amg:check(u, b)")
