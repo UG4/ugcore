@@ -3,15 +3,13 @@
 
 # toolchain file for Hermit/XE6 HLRS Stuttgart with Cray Compiler
 
-# use this file with
-# cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake ..
 
-# change programming environment
-# !!!
-# module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray
+# USAGE
+# first change programming environment
+#    module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray
+# then start cmake
+#    cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake ..
 
-# this does not work 10 
-EXECUTE_PROCESS(COMMAND "module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray")
 
 # on the cray compiler:
 # https://fs.hlrs.de/projects/craydoc/docs_merged/books/S-2179-74/html-S-2179-74/lymwlrwh.html#z862002021malz
@@ -26,6 +24,7 @@ EXECUTE_PROCESS(COMMAND "module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}'
 # see also $CRAY_* environment variables
 # $CRAY_UGNI_POST_LINK_OPTS
 
+# this is needed to get rid of -rdynamic flag...
 SET(CMAKE_SYSTEM_NAME Catamount)
 SET(CMAKE_Fortran_COMPILER ftn)
 
