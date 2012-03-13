@@ -179,17 +179,17 @@ void MarkElements(MultiGrid::AttachmentAccessor<typename TFunction::element_type
 //	check if total error is smaller than tolerance. If that is the case we're done
 	if(totalErr < TOL)
 	{
-		UG_LOG("  +++ Total error "<<totalErr<<" < TOL ("<<TOL<<"). done.");
+		UG_LOG("  +++ Total error "<<totalErr<<" smaller than TOL ("<<TOL<<"). done.");
 		return;
 	}
 
 //	Compute minimum
 	number minErrToRefine = max * refineFrac;
-	UG_LOG("  +++ Refining elements if error >= " << refineFrac << "*" <<max<<
+	UG_LOG("  +++ Refining elements if error greater " << refineFrac << "*" <<max<<
 			" = "<< minErrToRefine << ".\n");
 	number maxErrToCoarse = min * (1+coarseFrac);
 	if(maxErrToCoarse < TOL/numElem) maxErrToCoarse = TOL/numElem;
-	UG_LOG("  +++ Coarsening elements if error <= "<< maxErrToCoarse << ".\n");
+	UG_LOG("  +++ Coarsening elements if error smaller "<< maxErrToCoarse << ".\n");
 
 //	reset counter
 	int numMarkedRefine = 0, numMarkedCoarse = 0;
