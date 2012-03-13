@@ -248,7 +248,8 @@ void Register__Domain(Registry& reg, string grp)
 		string name = string("WeightedUpwind").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_method("set_weight", &T::set_weight)
-			.add_constructor();
+			.add_constructor()
+			.template add_constructor<void (*)(number)>("weight");
 		reg.add_class_to_group(name, "WeightedUpwind", dimTag);
 	}
 

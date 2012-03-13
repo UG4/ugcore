@@ -110,6 +110,9 @@ update(const TFVGeom<TElem, dim>* geo,
 	UG_ASSERT(geo != NULL, "Null pointer");
 	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
 
+//	\todo: think about: this should be something like scvf.num_sh()
+	const size_t numSH = geo->num_scv();
+
 //	loop subcontrol volume faces
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
 	{
@@ -123,11 +126,23 @@ update(const TFVGeom<TElem, dim>* geo,
 		for(size_t sh = 0; sh < scvf.num_sh(); sh++)
 			conv_shape(ip, sh) = flux * scvf.shape(sh);
 
+	//	this is introduced here, hopefully temporarily: The problem is, that
+	//	for hanging nodes the number of shape function is not the number of
+	//	corners, but scvf.num_sh() currently returns the number of corners.
+	//	this is actually enough to interpolate the function, but still we
+	//	should reset the interpolation adding for hanging dofs to zero
+		for(size_t sh = scvf.num_sh(); sh < numSH; sh++)
+			conv_shape(ip, sh) = 0.0;
+
 	//	Write Derivatives if wanted
-		if(computeDeriv)
+		if(computeDeriv){
 			for (size_t sh = 0; sh < scvf.num_sh(); sh++)
-				VecScale(D_vel(ip, sh),
-				         scvf.normal(), scvf.shape(sh));
+				VecScale(D_vel(ip, sh), scvf.normal(), scvf.shape(sh));
+
+			// temporary, see above
+			for(size_t sh = scvf.num_sh(); sh < numSH; sh++)
+				VecSet(D_vel(ip, sh), 0.0);
+		}
 
 	//	The shapes do not depend of the diffusion tensor
 	}
@@ -304,12 +319,25 @@ class ConvectionShapesWeightedUpwind
 			register_func(Int2Type<dim>());
 		}
 
+	///	constructor
+		ConvectionShapesWeightedUpwind(number weight)
+		{
+			set_weight(weight);
+
+		//	the shapes do not depend on the DiffDisp. Thus, we can set the
+		//	derivative to be always zero w.r.t. the DiffDisp for all shapes
+			set_non_zero_deriv_diffusion_flag(false);
+
+		//	register evaluation function
+			register_func(Int2Type<dim>());
+		}
+
 	///	set weighting between full upwind (1.0) and no upwind (0.0)
 		void set_weight(number weight) {m_weight = weight;}
 
 	///	update of values for FV1Geometry
-		template <typename TElem>
-		bool update(const FV1Geometry<TElem, dim>* geo,
+		template <template <typename T, int dim> class TFVGeom, typename TElem>
+		bool update(const TFVGeom<TElem, dim>* geo,
 					const MathVector<dim>* DarcyVelocity,
 					const MathMatrix<dim, dim>* DiffDisp,
 		            bool computeDeriv);
@@ -343,15 +371,23 @@ class ConvectionShapesWeightedUpwind
 					   const MathMatrix<dim, dim>* DiffDisp,
 					   bool computeDeriv);
 
-			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<TElem>);
+			base_type::template register_update_func<TGeom, TFunc>(&this_type::template update<FV1Geometry, TElem>); // <TGeom, TFunc>
+
+			typedef HFV1Geometry<TElem, dim> THGeom;
+			typedef bool (this_type::*THFunc)
+					(  const THGeom* geo,
+					   const MathVector<dim>* DarcyVelocity,
+					   const MathMatrix<dim, dim>* DiffDisp,
+					   bool computeDeriv);
+
+			base_type::template register_update_func<THGeom, THFunc>(&this_type::template update<HFV1Geometry, TElem>);
 		}
 };
 
 template <int TDim>
-template <typename TElem>
-bool
-ConvectionShapesWeightedUpwind<TDim>::
-update(const FV1Geometry<TElem, dim>* geo,
+template <template <typename T, int dim> class TFVGeom, typename TElem>
+bool ConvectionShapesWeightedUpwind<TDim>::
+update(const TFVGeom<TElem, dim>* geo,
        const MathVector<dim>* DarcyVelocity,
        const MathMatrix<dim, dim>* DiffDisp,
        bool computeDeriv)
@@ -359,11 +395,14 @@ update(const FV1Geometry<TElem, dim>* geo,
 	UG_ASSERT(geo != NULL, "Null pointer");
 	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
 
+//	\todo: think about: this should be something like scvf.num_sh()
+	const size_t numSH = geo->num_scv();
+
 //	loop subcontrol volume faces
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
 	{
 	//	get subcontrol volume face
-		const typename FV1Geometry<TElem, dim>::SCVF& scvf = geo->scvf(ip);
+		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo->scvf(ip);
 
 	//	Compute flux
 		const number flux = VecDot(scvf.normal(), DarcyVelocity[ip]);
@@ -375,6 +414,13 @@ update(const FV1Geometry<TElem, dim>* geo,
 		const number noUpFlux = (1.-m_weight)*flux;
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 			conv_shape(ip, sh) = noUpFlux * scvf.shape(sh);
+	//	this is introduced here, hopefully temporarily: The problem is, that
+	//	for hanging nodes the number of shape function is not the number of
+	//	corners, but scvf.num_sh() currently returns the number of corners.
+	//	this is actually enough to interpolate the function, but still we
+	//	should reset the interpolation adding for hanging dofs to zero
+		for(size_t sh = scvf.num_sh(); sh < numSH; sh++)
+			conv_shape(ip, sh) = 0.0;
 
 	//	add full upwind part of shapes
 		conv_shape(ip, up) += m_weight * flux;
@@ -386,6 +432,9 @@ update(const FV1Geometry<TElem, dim>* geo,
 			for (size_t sh = 0; sh < scvf.num_sh(); sh++)
 				VecScale(D_vel(ip, sh), scvf.normal(),
 				         	 	 	 	 	 (1.-m_weight)*scvf.shape(sh));
+		//	see comment above
+			for(size_t sh = scvf.num_sh(); sh < numSH; sh++)
+				VecSet(D_vel(ip, sh), 0.0);
 
 		//	add full upwind part of derivatives
 			VecScaleAppend(D_vel(ip, up), m_weight, scvf.normal());
