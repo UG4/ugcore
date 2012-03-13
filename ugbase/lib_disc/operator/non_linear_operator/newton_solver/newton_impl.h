@@ -200,11 +200,11 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		m_vLinSolverCalls[loopCnt] += 1;
 
 	// 	Line Search
-		if(m_pLineSearch != NULL)
+		if(m_spLineSearch.is_valid())
 		{
-			m_pLineSearch->set_offset("   #  ");
+			m_spLineSearch->set_offset("   #  ");
 			NEWTON_PROFILE_BEGIN(NewtonLineSearch);
-			if(!m_pLineSearch->search(*m_N, u, m_c, m_d, m_spConvCheck->defect()))
+			if(!m_spLineSearch->search(*m_N, u, m_c, m_d, m_spConvCheck->defect()))
 			{
 				UG_LOG("ERROR in 'NewtonSolver::apply': "
 						"Newton Solver did not converge.\n");

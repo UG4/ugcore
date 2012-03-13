@@ -36,11 +36,11 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 
 	public:
 		NewtonSolver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver,
-					SmartPtr<IConvergenceCheck> ConvCheck,
-					ILineSearch<vector_type>* LineSearch, bool reallocate) :
+					SmartPtr<IConvergenceCheck> spConvCheck,
+					SmartPtr<ILineSearch<vector_type> > spLineSearch, bool reallocate) :
 					m_pLinearSolver(&LinearSolver),
-					m_spConvCheck(&ConvCheck),
-					m_pLineSearch(LineSearch),
+					m_spConvCheck(spConvCheck),
+					m_spLineSearch(spLineSearch),
 					m_reallocate(reallocate), m_allocated(false),
 					m_pDebugWriter(NULL), m_dgbCall(0)
 			{};
@@ -48,7 +48,7 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 		NewtonSolver() :
 			m_pLinearSolver(NULL),
 			m_spConvCheck(new StandardConvCheck(10, 1e-8, 1e-10, true)),
-			m_pLineSearch(NULL),
+			m_spLineSearch(NULL),
 			m_reallocate(false), m_allocated(false), m_pDebugWriter(NULL),
 			m_dgbCall(0)
 			{};
@@ -61,7 +61,7 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 			m_spConvCheck->set_symbol('#');
 			m_spConvCheck->set_name("Newton Solver");
 		}
-		void set_line_search(ILineSearch<vector_type>& LineSearch) {m_pLineSearch = &LineSearch;}
+		void set_line_search(SmartPtr<ILineSearch<vector_type> > spLineSearch) {m_spLineSearch = spLineSearch;}
 
 	///	set debug output
 		void set_debug(IDebugWriter<algebra_type>* debugWriter)
@@ -125,7 +125,7 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 		SmartPtr<IConvergenceCheck> m_spConvCheck;
 
 		// LineSearch
-		ILineSearch<vector_type>* m_pLineSearch;
+		SmartPtr<ILineSearch<vector_type> > m_spLineSearch;
 
 		vector_type m_d;
 		vector_type m_c;

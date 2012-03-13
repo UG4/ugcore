@@ -227,7 +227,8 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 			.add_method("set_accept_best", &T::set_accept_best)
 			.add_method("set_maximum_defect", &T::set_maximum_defect)
 			.add_method("set_verbose", &T::set_verbose)
-			.add_method("set_offset", &T::set_offset);
+			.add_method("set_offset", &T::set_offset)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "StandardLineSearch", algTag);
 	}
 
