@@ -342,12 +342,12 @@ if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
 		echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
 		PBSnodes="-l nodes=$nnodes:nehalem:ppn=$nppn"
 		qsubrun="mpirun -np $npe $executable $args"
-		qsubqueue=""
+		qsubqueue="-q user"
 	else
 		echo "Using qsub on Hermit/Cray XE6"
 		PBSnodes="-l mppwidth=$npe -l mppnppn=$nppn"
 		qsubrun="aprun -n $npe -N $nppn $executable $args"
-		qsubqueue="-q user"
+		qsubqueue=""
 	fi
 	if [ $interactive == true ]; then
 		echo "interactive mode is not supported at the moment"
