@@ -385,7 +385,9 @@ if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
 ######################################################################
 elif [ $UGSUBMIT_TYPE == "Jugene" ]; then
 	echo ""; echo "On Jugene, using ll_submit"
-
+	
+	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
+	
 	if [ $interactive == true ]; then
 		echo "interactive mode is not supported at the moment"
 	fi
@@ -436,7 +438,6 @@ EOF
 mpirun -np $npe -exe $executable -mode $JugeneMode -mapfile $JugeneMapfile -verbose $JugeneVerbose -env LD_LIBRARY_PATH=$MYLDLPATH -args $args
 EOF
 
-	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 	cd $outdir
 	echo $outdir/job.sh
 	if [ $test == true ]; then
