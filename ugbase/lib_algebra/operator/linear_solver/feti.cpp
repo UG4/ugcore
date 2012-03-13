@@ -112,9 +112,9 @@ init()
 	if(m_pDebugWriter != NULL)
 	{
 		m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
-									 "FetiDirichletMatrix.mat");
+									 "FetiDirichletMatrix");
 		m_pDebugWriter->write_matrix(m_pOperator->get_matrix(),
-									 "FetiOriginalMatrix.mat");
+									 "FetiOriginalMatrix");
 	}
 
 //	reset apply counter
@@ -169,7 +169,7 @@ apply(vector_type& f, const vector_type& u)
 	{
 	//	add iter count to name
 		std::string name("FetiDirichletRhs");
-		char ext[20]; sprintf(ext, "_apply%03d.vec", m_applyCnt);
+		char ext[20]; sprintf(ext, "_apply%03d", m_applyCnt);
 		//name.append(m_statType);
 		name.append(ext);
 
@@ -402,7 +402,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	if(m_pDebugWriter != NULL)
 	{
 		m_pDebugWriter->write_matrix(m_NeumannOperator.get_matrix(),
-									 "FetiNeumannMatrix.mat");
+									 "FetiNeumannMatrix");
 	}
 
 //	Choose root process, where Schur complement w.r.t. Primal unknowns
@@ -833,12 +833,12 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 		//	write matrix
 			dbgWriter2d.write_matrix(m_RootSchurComplementOp.get_matrix(),
-										 "RootSchurComplementMatrix.mat");
+										 "RootSchurComplementMatrix");
 		}
 	}
 
 
-	(void) bSucess; // removes unused variable-warning
+	(void) bSuccess; // removes unused variable-warning
 //	we're done
 	return true;
 }
