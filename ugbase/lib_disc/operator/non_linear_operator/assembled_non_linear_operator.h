@@ -29,11 +29,11 @@ public:
 	public:
 	///	default constructor
 		AssembledOperator()
-			: m_bInit(false), m_pAss(NULL), m_gridLevel() {};
+			: m_pAss(NULL), m_gridLevel() {};
 
 	///	constructor
 		AssembledOperator(IAssemble<TAlgebra>& ass)
-			: m_bInit(false), m_pAss(&ass), m_gridLevel(){};
+			: m_pAss(&ass), m_gridLevel(){};
 
 	///	sets discretization for assembling
 		void set_discretization(IAssemble<TAlgebra>& ass) {m_pAss = &ass;}
@@ -45,7 +45,7 @@ public:
 		const GridLevel& level() const {return m_gridLevel;}
 
 	///	Init
-		virtual void init();
+		virtual void init() {}
 
 	///	Prepare for apply
 		virtual void prepare(vector_type& d, vector_type& u);
@@ -57,13 +57,10 @@ public:
 		IAssemble<TAlgebra>* get_assemble() {return m_pAss;}
 
 	protected:
-		// init flag
-		bool m_bInit;
-
-		// assembling procedure
+	///	assembling procedure
 		IAssemble<TAlgebra>* m_pAss;
 
-		// used grid level
+	///	used grid level
 		GridLevel m_gridLevel;
 };
 

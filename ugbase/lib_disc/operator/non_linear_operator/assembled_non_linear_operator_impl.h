@@ -12,22 +12,13 @@
 
 namespace ug{
 
-template <typename TAlgebra>
-void AssembledOperator<TAlgebra>::init()
-{
-	if(m_pAss == NULL)
-		UG_THROW_FATAL("Discretization not set.");
-
-//	remember that operator has been init
-	m_bInit = true;
-}
-
 //	Prepare functions
 template <typename TAlgebra>
 void
 AssembledOperator<TAlgebra>::prepare(vector_type& dOut, vector_type& uIn)
 {
-	if(!m_bInit) UG_THROW_FATAL("Operator not initialized.");
+	if(m_pAss == NULL)
+		UG_THROW_FATAL("Discretization not set.");
 
 // 	Set Dirichlet - Nodes to exact values
 	try{
@@ -41,7 +32,8 @@ template <typename TAlgebra>
 void
 AssembledOperator<TAlgebra>::apply(vector_type& dOut, const vector_type& uIn)
 {
-	if(!m_bInit) UG_THROW_FATAL("Operator not initialized.");
+	if(m_pAss == NULL)
+		UG_THROW_FATAL("Discretization not set.");
 
 //  assemble defect
 	try{
