@@ -187,17 +187,19 @@ elem_JA_fv1(LocalMatrix& J, const LocalVector& u)
 			if(m_imVelocity.data_given())
 			{
 			//	Add Flux contribution
-				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+				for(size_t sh = 0; sh < convShape.num_sh(); ++sh)
 				{
 					const number D_conv_flux = convShape(ip, sh);
 
-				//	Add fkux term to local matrix
+				//	Add flux term to local matrix
 					J(_C_, scvf.from(), _C_, sh) += D_conv_flux;
 					J(_C_, scvf.to(),   _C_, sh) -= D_conv_flux;
 				}
 			}
 		}
 	}
+
+//	UG_LOG("Local Matrix is: \n"<<J<<"\n");
 
 ////////////////////////////////////////////////////
 // Reaction Term (using lumping)
@@ -311,7 +313,7 @@ elem_dA_fv1(LocalVector& d, const LocalVector& u)
 			{
 			//	sum up convective flux using convection shapes
 				number conv_flux = 0.0;
-				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+				for(size_t sh = 0; sh < convShape.num_sh(); ++sh)
 					conv_flux += u(_C_, sh) * convShape(ip, sh);
 
 			//  add to local defect
