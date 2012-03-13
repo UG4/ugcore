@@ -30,7 +30,7 @@ want to run your job on these.
 <hr>
 \section secCMake CMake, Toolchains, Compilers
 <hr>
-\subsection secCMake_ToolchainFiles Toolchain files
+\subsection secCMake_ToolchainFiles Toolchain file
 
 On some systems (especially when the software is built for a different system than the one which does the build)
 it is necessary to change some configuration settings done by CMake (like compilers or flags to use)
@@ -103,12 +103,15 @@ Cekon is the in-house cluster of the G-CSC.
 By now it consists of 23 compute nodes with 4 cores per node, that is 92 computing cores.
 
 <ul>
-<li>Konfiguration: Normally a run of CMake with "standard" parameters should do the job.
+<li>Configuration: Normally a run of CMake with "standard" parameters should do the job.
 
     There are some problems with the pre-installed GCC 4.1.2, see \ref secCMake_GCC412 .
     You can also use <tt>icc</tt> as compiler.
 </li>
 
+The Job Scheduler on Cekon is supported by ugsubmit/uginfo/ugcancel (\ref pageugsubmit).<br>
+
+If you want to do job scheduling manually:
 <li>Start your job with
 \verbatim
 salloc -n <NP> mpirun ugshell $UGARGS
@@ -171,7 +174,7 @@ machine first, then to JuGene).
 \subsection secConfiguration_of_ug4_for_JuGene Configuration of ug4 for JuGene
 <hr>
 
-For JuGene you have to "<b>cross compile</b>" and to do so use a specific <b>toolchain file</b>. Start CMake like this
+For JuGene you have to "<b>cross compile</b>" and to do so use a specific \ref secCMake_ToolchainFiles. Start CMake like this
 \verbatim
 cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_jugene.cmake ..
 \endverbatim
@@ -201,7 +204,7 @@ You can check your executable by running the <tt>ldd</tt> command on it:
 \verbatim
 ldd ugshell
 \endverbatim
-Answer should by <tt>not a dynamic executable</tt> for a completely static build!
+Answer should be <tt>not a dynamic executable</tt> for a completely static build!
 
 <hr>
 \subsection secWorking_with_ug4_on_JuGene Working with ug4 on JuGene
@@ -210,7 +213,8 @@ Answer should by <tt>not a dynamic executable</tt> for a completely static build
 <hr>
 \subsubsection secBasic_job_handling Basic job handling
 <hr>
-
+Please take the time and fill out the details in ugsubmit/uginfo/ugcancel (\ref pageugsubmit).
+<hr>
 See <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/QuickIntroduction.html">Quick Introduction</a> to job handling.
 Also look at <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/mpirun.html">job/mpirun options</a>.
 
@@ -435,9 +439,46 @@ More information <a href="mailto:Ingo.Heppner@gcsc.uni-frankfurt.de">Ingo.Heppne
 <hr>
 \section secHermit Hermit
 <hr>
-For Hermit you have to "<b>cross compile</b>" and to do so use a specific <b>toolchain file</b>. Start CMake like this
+\subsection secHermit_Architecture Architecture
+The <a href="https://wickie.hlrs.de/platforms/index.php/Cray_XE6">Cray XE6 ("Hermit")</a>. In Installation step 1, the XE6 is a 3552 node cluster. Each node is
+a Dual Socket AMD Interlagos @ 2.3GHz 16 cores each, which results in 113.664 cores in total. Normal nodes have 32 GB RAM, 480 special nodes have 64 GB (total 126 TB). (<a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Hardware_and_Architecture"> Architecture</a>)
+That is 1 GB RAM for each process when running the maximum of 32 processes on a node.
+
+\subsection secHermit_General General 
+Using the <a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Using_the_Batch_System"> Batch system </a> and the <a href="https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism"> Workspace mechanism </a>.
+<br>
+The Job Scheduler on Hermit is supported by ugsubmit/uginfo/ugcancel (\ref pageugsubmit). You might want to use -Hermit-workspace . <br>
+Note that you have to choose modules every time you log in (you might want to add you module load/swap into .bashrc or similar).
+
+\subsection secHermit_GCC GCC
+
+First, look what modules are loaded
 \verbatim
-cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake ..
+module list
+\endverbatim
+
+There is one which is named PrgEnv-cray or PrgEnv-*. Now you swap that to PrgEnv-gnu:
+\verbatim
+module swap PrgEnv-cray PrgEnv-gnu
+\endverbatim
+
+There's a one-liner for this task:
+\verbatim
+module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu
+\endverbatim
+
+Then you start cmake with a \ref secCMake_ToolchainFiles :
+\verbatim
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit_gcc.cmake ..
+\endverbatim
+
+\subsection secHermit_Cray Cray CC
+You could also use the Cray C Compiler, but there is a internal compiler error in release mode
+Toolchain file is ../toolchain_file_hermit.cmake, and the module is PrgEnv-cray.
+
+\verbatim
+module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit_gcc.cmake ..
 \endverbatim
 
 <hr>
