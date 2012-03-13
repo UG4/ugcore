@@ -232,6 +232,9 @@ update(const TFVGeom<TElem, dim>* geo,
 	UG_ASSERT(geo != NULL, "Null pointer");
 	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
 
+//	\todo: think about: this should be something like scvf.num_sh()
+	const size_t numSH = geo->num_scv();
+
 //	loop subcontrol volume faces
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
 	{
@@ -245,14 +248,13 @@ update(const TFVGeom<TElem, dim>* geo,
 		const size_t up = (flux >= 0) ? scvf.from() : scvf.to();
 
 	//	Write Shapes
-		for(size_t sh = 0; sh < scvf.num_sh(); ++sh) conv_shape(ip, sh) = 0.0;
+		for(size_t sh = 0; sh < numSH; ++sh) conv_shape(ip, sh) = 0.0;
 		conv_shape(ip, up) = flux;
 
 	//	Write Derivatives if wanted
 		if(computeDeriv)
 		{
-			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				VecSet(D_vel(ip, sh), 0.0);
+			for(size_t sh = 0; sh < numSH; ++sh) VecSet(D_vel(ip, sh), 0.0);
 			D_vel(ip, up) = scvf.normal();
 		}
 
