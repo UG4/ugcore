@@ -287,8 +287,10 @@ send_data(void* pBuffer, int* pBufferSegSizes,
 	}
 	
 //	wait until data has been received
-	std::vector<MPI_Status> vSendStates(numRecProcs);
-	MPI_Waitall(numRecProcs, &vSendRequests.front(), &vSendStates.front());
+	if(numRecProcs > 0){
+		std::vector<MPI_Status> vSendStates(numRecProcs);
+		MPI_Waitall(numRecProcs, &vSendRequests.front(), &vSendStates.front());
+	}
 }
 
 void
@@ -352,8 +354,10 @@ distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
 		pBuffer = (byte*)pBuffer + pBufferSegSizes[i];
 	}
 
-	MPI_Waitall(numSenderProcs, &vReceiveRequests.front(), &vReceiveStates.front());
-	MPI_Waitall(numRecvProcs, &vSendRequests.front(), &vSendStates.front());
+	if(numSenderProcs > 0)
+		MPI_Waitall(numSenderProcs, &vReceiveRequests.front(), &vReceiveStates.front());
+	if(numRecvProcs > 0)
+		MPI_Waitall(numRecvProcs, &vSendRequests.front(), &vSendStates.front());
 }
 
 void ProcessCommunicator::
@@ -372,9 +376,21 @@ distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
 	vector<int> bufferSizes(numRecvFroms);
 
 //	exchange buffer sizes (use an arbitrary tag)
-	distribute_data(&bufferSizes.front(), &tmpRecvSegSizes.front(),
+	int* ptmpRecvSegSizes = NULL;
+	int* ptmpSendSegSizes = NULL;
+	int* pbufferSizes = NULL;
+
+	if(numRecvFroms){
+		ptmpRecvSegSizes = &tmpRecvSegSizes.front();
+		pbufferSizes = &bufferSizes.front();
+	}
+
+	if(numSendTos)
+		ptmpSendSegSizes = &tmpSendSegSizes.front();
+
+	distribute_data(pbufferSizes, ptmpRecvSegSizes,
 					recvFromRanks, numRecvFroms,
-					sendSegSizes, &tmpSendSegSizes.front(),
+					sendSegSizes, ptmpSendSegSizes,
 					sendToRanks, numSendTos, 89347);
 
 //	calculate buffer sizes and resize the binary stream
@@ -386,10 +402,18 @@ distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
 	recvBufOut.resize(totalSize);
 
 //	now exchange the buffers
-	distribute_data(recvBufOut.buffer(), &bufferSizes.front(),
-					recvFromRanks, numRecvFroms,
-					sendBuf, sendSegSizes,
-					sendToRanks, numSendTos, 3458);
+	if(totalSize > 0){
+		distribute_data(recvBufOut.buffer(), pbufferSizes,
+						recvFromRanks, numRecvFroms,
+						sendBuf, sendSegSizes,
+						sendToRanks, numSendTos, 3458);
+	}
+	else{
+		distribute_data(NULL, pbufferSizes,
+						recvFromRanks, numRecvFroms,
+						sendBuf, sendSegSizes,
+						sendToRanks, numSendTos, 3458);
+	}
 }
 
 void ProcessCommunicator::
