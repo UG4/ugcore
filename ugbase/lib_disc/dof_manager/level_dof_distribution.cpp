@@ -231,6 +231,8 @@ void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 
 void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& vReplaced, int lev)
 {
+	level_required(lev);
+
 	if(max_dofs(0) > 0) defragment<VertexBase>(vReplaced, lev);
 	if(max_dofs(1) > 0) defragment<EdgeBase>(vReplaced, lev);
 	if(max_dofs(2) > 0) defragment<Face>(vReplaced, lev);
