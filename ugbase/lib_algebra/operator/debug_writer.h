@@ -168,23 +168,12 @@ class AlgebraDebugWriter
 				UG_THROW_FATAL("'AlgebraDebugWriter::write_matrix':"
 						" Number of positions does not match.\n");
 
-		//	get fresh name
+		//	check name
 			std::string name(filename);
-
-		//	search for ending and remove
-			size_t found = name.find_first_of(".");
-			if(found != std::string::npos) name.resize(found);
-
-		#ifdef UG_PARALLEL
-		//	add process number
-			int rank = pcl::GetProcRank();
-			char ext[20];
-			sprintf(ext, "_p%04d", rank);
-			name.append(ext);
-		#endif
-
-		//	add ending
-			name.append(".mat");
+			size_t iExtPos = name.find_last_of(".");
+			if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".mat") != 0)
+				UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
+								" filename is '"<<name<<"'.");
 
 		//	write to file
 			WriteMatrixToConnectionViewer<matrix_type, position_type>
