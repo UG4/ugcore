@@ -362,6 +362,9 @@ if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
 	
 	qsubargs="-V -N $jobname -o $outdir/job.output -e $outdir/job.error -j oe -S /bin/bash -l walltime=$walltime $PBSnodes $pbsMail"
 	
+	echo "$qsubrun" >> $outdir/job.output
+	echo "qsub -q user $qsubargs" >> $outdir/job.output	
+	
 	if [ $test == true ]; then
 		echo ""
 		echo "test. not executing."
@@ -370,12 +373,17 @@ if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
 		rm -rf $outdir/
 		exit
 	fi
+	
+# creating script file
+	cat > $outdir/$jobname.sh << EOF
+#!/bin/bash
+$qsubrun
+EOF
 
-	echo "$qsubrun | qsub $qsubargs" >> $outdir/job.output
-
+	
 #submitting batch job
-	cd $outdir
-	jobid=`$qsubrun | qsub $qsubargs`
+	cd $outdir	
+	jobid=`qsub -q user $qsubargs $outdir/$jobname.sh`
 	jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
 		
 ######################################################################
