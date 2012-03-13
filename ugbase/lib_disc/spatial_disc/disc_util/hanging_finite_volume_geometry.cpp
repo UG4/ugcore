@@ -506,7 +506,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 	}
 
 
-	//print();
+//	print();
 	return true;
 }
 
@@ -516,14 +516,14 @@ void
 HFV1Geometry<TElem, TWorldDim>::
 print()
 {
-/*	UG_LOG("\nFVG hanging debug output\n");
+	UG_LOG("\nFVG hanging debug output\n");
 	UG_LOG("LocalCenter=" << m_locMid << ", globalCenter="<<m_gloMid<<"\n");
 	for(size_t i = 0; i < m_vSCV.size(); ++i)
 	{
 		UG_LOG(i<<" SCV: ");
 		UG_LOG("node_id=" << m_vSCV[i].node_id());
-		UG_LOG(", local_pos="<< m_vSCV[i].local_ip(0));
-		UG_LOG(", global_pos="<< m_vSCV[i].global_ip(0));
+		UG_LOG(", local_pos="<< m_vSCV[i].local_ip());
+		UG_LOG(", global_pos="<< m_vSCV[i].global_ip());
 		UG_LOG(", vol=" << m_vSCV[i].volume());
 		UG_LOG("\n    localCorner=" << m_vSCV[i].m_vLocPos[0]);
 		UG_LOG(", localSide1=" << m_vSCV[i].m_vLocPos[1]);
@@ -541,19 +541,19 @@ print()
 	{
 		UG_LOG(i<<" SCVF: ");
 		UG_LOG("from=" << m_vSCVF[i].from()<<", to="<<m_vSCVF[i].to());
-		UG_LOG(", local_pos="<< m_vSCVF[i].local_ip(0));
-		UG_LOG(", global_pos="<< m_vSCVF[i].global_ip(0));
+		UG_LOG(", local_pos="<< m_vSCVF[i].local_ip());
+		UG_LOG(", global_pos="<< m_vSCVF[i].global_ip());
 		UG_LOG(", normal=" << m_vSCVF[i].normal());
 		UG_LOG("\n    Shapes:\n");
 		for(size_t sh=0; sh < m_vSCVF[i].num_sh(); ++sh)
 		{
-			UG_LOG("         " <<sh << ": shape="<<m_vSCVF[i].shape(sh, 0));
-			UG_LOG(", global_grad="<<m_vSCVF[i].global_grad(sh, 0));
-			UG_LOG(", local_grad="<<m_vSCVF[i].local_grad(sh, 0));
+			UG_LOG("         " <<sh << ": shape="<<m_vSCVF[i].shape(sh));
+			UG_LOG(", global_grad="<<m_vSCVF[i].global_grad(sh));
+			UG_LOG(", local_grad="<<m_vSCVF[i].local_grad(sh));
 			UG_LOG("\n");
 		}
 	}
-	UG_LOG("\n");*/
+	UG_LOG("\n");
 }
 
 template class HFV1Geometry<Edge, 1>;
