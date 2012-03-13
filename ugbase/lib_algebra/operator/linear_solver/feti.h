@@ -999,7 +999,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		{
 		//	add iter count to name
 			std::string name(filename);
-			char ext[20]; sprintf(ext, "_iter%03d", m_iterCnt);
+			char ext[20]; sprintf(ext, "_iter%03d.vec", m_iterCnt);
 			name.append(ext);
 
 		//	if no debug writer set, we're done
