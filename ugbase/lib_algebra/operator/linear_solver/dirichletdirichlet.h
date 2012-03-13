@@ -369,11 +369,14 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 	//	add lambda on the Gamma Boundary
 		void add_flux_to_rhs(vector_type& ModRhs, const vector_type& lambda)
 		{
+			/* mrupp: removed warning unused variable scale
 			number scale = 1.0;
 			if(pcl::GetProcRank() != 0) // TODO: generalize to more than one process per FETI subdomain 
-				scale = -1.0;
+					scale = -1.0;
+			*/
 
 		// TODO: Implement Bnd-Layout
+
 		//	VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.slave_layout(1));
 		//	VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.master_layout(1));
 		}

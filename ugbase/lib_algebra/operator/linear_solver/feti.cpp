@@ -838,6 +838,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	}
 
 
+	(void) bSucess; // removes unused variable-warning
 //	we're done
 	return true;
 }
