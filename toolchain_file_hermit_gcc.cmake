@@ -1,18 +1,13 @@
 # created by Martin Rupp
 # martin.rupp@gcsc.uni-frankfurt.de
 
-# toolchain file for Hermit/XE6 HLRS Stuttgart with Cray Compiler
+# toolchain file for Hermit/XE6 HLRS Stuttgart with GNU C Compiler
 
-# use this file with
-# cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake -DSTATIC=ON ..
-
-# change programming environment
-# this does not work 100%, you might have to change it yourself with 
-# module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu
-EXECUTE_PROCESS(COMMAND "module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu")
-
-# on the cray compiler:
-# https://fs.hlrs.de/projects/craydoc/docs_merged/books/S-2179-74/html-S-2179-74/lymwlrwh.html#z862002021malz
+# USAGE:
+# first, change programming environment:
+#   module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu
+# then execute cmake
+#   cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit_gcc.cmake ..
 
 # check modules:
 # module list
@@ -24,7 +19,10 @@ EXECUTE_PROCESS(COMMAND "module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}'
 # see also $CRAY_* environment variables
 # $CRAY_UGNI_POST_LINK_OPTS
 
+# this seems to be not necessary for GCC
+# we leave it in since it could be that -rdynamic is slower
 SET(CMAKE_SYSTEM_NAME Catamount)
+
 SET(CMAKE_Fortran_COMPILER ftn)
 
 SET(CMAKE_C_COMPILER cc CACHE FORCE "")
@@ -34,3 +32,11 @@ SET(BUILTIN_BLAS YES CACHE FORCE "")
 SET(BUILTIN_MPI YES CACHE FORCE "")
 
 SET(STATIC ON CACHE FORCE "")
+
+
+# Khabi stuff
+#SET(MPI_INCLUDE_PATH $(MPICH_DIR)/include)
+#SET(MPI_LIBRARY -L$(MPICH_DIR)/lib)
+#set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
+#set(CMAKE_FIND_LIBRARY_PREFIXES "lib")
+#set(CMAKE_FIND_LIBRARY_SUFFIXES ".so" ".a")
