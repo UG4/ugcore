@@ -77,13 +77,23 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	string algSuffix = GetAlgebraSuffix<TAlgebra>();
 	string algTag = GetAlgebraTag<TAlgebra>();
 
+//	ILocalTransferAlgebra
+	{
+		typedef ILocalTransferAlgebra<TAlgebra> T;
+		typedef ILocalTransfer TBase;
+		string name = string("ILocalTransferAlgebra").append(algSuffix);
+		reg.add_class_<T, TBase>(name)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ILocalTransferAlgebra", algTag);
+	}
+
 //	P1LocalTransfer
 	{
 		typedef P1LocalTransfer<TAlgebra> T;
-		typedef ILocalTransfer TBase;
+		typedef ILocalTransferAlgebra<TAlgebra> TBase;
 		string name = string("P1LocalTransfer").append(algSuffix);
 		reg.add_class_<T, TBase>(name)
-			.template add_constructor<void (*)(typename TAlgebra::vector_type&, size_t)>("Vector, fct")
+			.template add_constructor<void (*)(size_t)>("fct")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "P1LocalTransfer", algTag);
 	}

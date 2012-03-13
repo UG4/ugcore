@@ -13,15 +13,15 @@
 namespace ug{
 
 template <typename TAlgebra>
-class P1LocalTransfer : public ILocalTransfer
+class P1LocalTransfer : public ILocalTransferAlgebra<TAlgebra>
 {
 	public:
 		typedef typename TAlgebra::vector_type vector_type;
+		using ILocalTransferAlgebra<TAlgebra>::m_pVec;
 
 	public:
-		P1LocalTransfer(vector_type& u, size_t fct)
-			: m_pVec(&u), m_fct(fct)
-		{}
+	///	Constructor, indicating to transfer only one component
+		P1LocalTransfer(size_t fct) : m_fct(fct) {}
 
 	///	returns if prolongation is performed on type
 		virtual bool prolongation_needed(GeometricBaseObject gbo) const
@@ -119,8 +119,6 @@ class P1LocalTransfer : public ILocalTransfer
 
 		void restrict_values(VertexBase* vrt, GeometricObject* parent, const MGDoFDistribution& mgDD) const
 		{
-//			static int cnt = 0;
-//			UG_LOG("RESTRICTING call "<<++cnt<<"\n");
 			std::vector<MultiIndex<2> > vFineMI;
 			std::vector<MultiIndex<2> > vCoarseMI;
 			switch(parent->reference_object_id())
@@ -151,7 +149,6 @@ class P1LocalTransfer : public ILocalTransfer
 		void restrict_values(Volume* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
 
 	protected:
-		vector_type* m_pVec;
 		size_t m_fct;
 };
 

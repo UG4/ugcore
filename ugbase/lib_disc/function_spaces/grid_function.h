@@ -357,6 +357,9 @@ class GridFunction
 		bool inner_dof_positions(TElem* elem, size_t fct,
 		                         std::vector<MathVector<dim> >& vPos) const;
 
+	///	add a transfer callback
+		void add_transfer(SmartPtr<ILocalTransferAlgebra<TAlgebra> > transfer);
+
 	protected:
 	/// Approximation Space
 		SmartPtr<domain_type> m_spDomain;

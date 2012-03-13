@@ -476,6 +476,15 @@ void GridFunction<TDomain, TDD, TAlgebra>::assign(const this_type& v)
 #endif
 }
 
+template <typename TDomain, typename TDD, typename TAlgebra>
+void GridFunction<TDomain, TDD, TAlgebra>::
+add_transfer(SmartPtr<ILocalTransferAlgebra<TAlgebra> > transfer)
+{
+	transfer->set_vector(this);
+	IDDGridFunction<TDD>::add_transfer(transfer);
+}
+
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_IMPL__ */
