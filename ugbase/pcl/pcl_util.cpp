@@ -50,6 +50,9 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 
 	vReceiveFromRanksOut.clear();
 
+	if(!procComm.size())
+		return;
+
 	const int localProcRank = GetProcRank();
 
 //	we'll use an array in which we'll store the number of
@@ -73,18 +76,32 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 		listSize += vNumAssProcs[i];
 	}
 
+	if(!listSize)
+		return;
+
 //	perform allgather with proc-lists
 //	this list will later on contain an adjacency-list for each proc.
 //	adjacency in this case means, that processes want to communicate.
 	vector<int> vGlobalProcList(listSize);
 
-	procComm.allgatherv(&vSendToRanks.front(),
-						procCount,
-						PCL_DT_INT,
-						&vGlobalProcList.front(),
-						&vNumAssProcs.front(),
-						&vDisplacements.front(),
-						PCL_DT_INT);
+	if(procCount > 0){
+		procComm.allgatherv(&vSendToRanks.front(),
+							procCount,
+							PCL_DT_INT,
+							&vGlobalProcList.front(),
+							&vNumAssProcs.front(),
+							&vDisplacements.front(),
+							PCL_DT_INT);
+	}
+	else{
+		procComm.allgatherv(NULL,
+							0,
+							PCL_DT_INT,
+							&vGlobalProcList.front(),
+							&vNumAssProcs.front(),
+							&vDisplacements.front(),
+							PCL_DT_INT);
+	}
 
 //	we can now check for each process whether it wants to
 //	communicate with this process. Simply iterate over
