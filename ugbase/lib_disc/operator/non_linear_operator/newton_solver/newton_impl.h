@@ -93,13 +93,6 @@ bool NewtonSolver<TAlgebra>::prepare(vector_type& u)
 		return false;
 	}
 
-//	Check if ConvCheck has been set
-	if(m_pConvCheck == NULL)
-	{
-		UG_LOG("ERROR in 'NewtonSolver::prepare': Convergence Check not set.\n");
-		return false;
-	}
-
 //	Set dirichlet values
 	m_N->prepare(m_d, u);
 
@@ -143,26 +136,21 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	write_debug(u, "NEWTON_StartSolution");
 
 // 	increase offset of output for linear solver
-	IConvergenceCheck* pLinConvCheck = m_pLinearSolver->get_convergence_check();
-	int iLinSolverOffset = 0;
-	if(pLinConvCheck != NULL)
-	{
-		iLinSolverOffset = pLinConvCheck->get_offset();
-		pLinConvCheck->set_offset( m_pConvCheck->get_offset() + 3);
-	}
+	const int stdLinOffset = m_pLinearSolver->standard_offset();
+	m_pLinearSolver->convergence_check()->set_offset(stdLinOffset + 3);
 
 // 	set info string indicating the used linear solver
 	std::stringstream ss; ss << "(Linear Solver: " << m_pLinearSolver->name() << ")";
-	m_pConvCheck->set_info(ss.str());
+	m_spConvCheck->set_info(ss.str());
 
 // 	copy pattern
 	vector_type s; s.resize(u.size()); s = u;
 
 // 	start convergence check
-	m_pConvCheck->start(m_d);
+	m_spConvCheck->start(m_d);
 
 //	loop iteration
-	while(!m_pConvCheck->iteration_ended())
+	while(!m_spConvCheck->iteration_ended())
 	{
 	// 	set c = 0
 		NEWTON_PROFILE_BEGIN(NewtonSetCorretionZero);
@@ -205,8 +193,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		NEWTON_PROFILE_END();
 
 	//	store convergence history
-		IConvergenceCheck* pLinConvCheck = m_pLinearSolver->get_convergence_check();
-		const int numSteps = pLinConvCheck->step();
+		const int numSteps = m_pLinearSolver->step();
 		if(loopCnt >= (int)m_vTotalLinSolverSteps.size()) m_vTotalLinSolverSteps.resize(loopCnt+1);
 		if(loopCnt >= (int)m_vLinSolverCalls.size()) m_vLinSolverCalls.resize(loopCnt+1, 0);
 		m_vTotalLinSolverSteps[loopCnt] += numSteps;
@@ -217,7 +204,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		{
 			m_pLineSearch->set_offset("   #  ");
 			NEWTON_PROFILE_BEGIN(NewtonLineSearch);
-			if(!m_pLineSearch->search(*m_N, u, m_c, m_d, m_pConvCheck->defect()))
+			if(!m_pLineSearch->search(*m_N, u, m_c, m_d, m_spConvCheck->defect()))
 			{
 				UG_LOG("ERROR in 'NewtonSolver::apply': "
 						"Newton Solver did not converge.\n");
@@ -249,16 +236,13 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		write_debug(m_c, name2.c_str());
 
 	// 	check convergence
-		m_pConvCheck->update(m_d);
+		m_spConvCheck->update(m_d);
 	}
 
 	// reset offset of output for linear solver to previous value
-	if(pLinConvCheck != NULL)
-	{
-		pLinConvCheck->set_offset(iLinSolverOffset);
-	}
+	m_pLinearSolver->convergence_check()->set_offset(stdLinOffset);
 
-	return m_pConvCheck->post();
+	return m_spConvCheck->post();
 }
 
 template <typename TAlgebra>

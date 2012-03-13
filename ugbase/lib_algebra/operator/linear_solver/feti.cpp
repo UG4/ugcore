@@ -190,26 +190,23 @@ apply(vector_type& f, const vector_type& u)
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
 						 "Could not solve Dirichlet problem (step 3.b) on Proc "
 							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
-		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply':"
-						" Last defect was " << convCheck->defect() <<
-						" after " << convCheck->step() << " steps.\n");
+						" Last defect was " << m_pDirichletSolver->defect() <<
+						" after " << m_pDirichletSolver->step() << " steps.\n");
 
 		UG_THROW_FATAL("Cannot solve Local Schur Complement.");
 	} /* else {
-		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
 		UG_LOG_ALL_PROCS("'LocalSchurComplement::apply':"
-						" Last defect after applying Dirichlet solver (step 3.b) was " << convCheck->defect() <<
-						" after " << convCheck->step() << " steps.\n");
+						" Last defect after applying Dirichlet solver (step 3.b) was " << m_pDirichletSolver->defect() <<
+						" after " << m_pDirichletSolver->step() << " steps.\n");
 	}*/
 
 //	remember for statistic
 	StepConv stepConv;
 	if(!m_statType.empty())
 	{
-		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
-		stepConv.lastDef3b = convCheck->defect();
-		stepConv.numIter3b = convCheck->step();
+		stepConv.lastDef3b = m_pDirichletSolver->defect();
+		stepConv.numIter3b = m_pDirichletSolver->step();
 
 		m_mvStepConv[m_statType].push_back(stepConv);
 	}
@@ -323,7 +320,6 @@ PrimalSubassembledMatrixInverse() :
 	m_pCoarseProblemSolver(NULL),
 	m_primalRootProc(-1),
 	m_pRootSchurComplementMatrix(NULL),
-	m_pConvCheck(NULL),
 	m_statType(""),
 	m_bTestOneToManyLayouts(false),
 	m_pDebugWriter(NULL)
@@ -628,10 +624,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 						" complement w.r.t. primal unknowns: "
 								 << procInFetiSD << ", " << pvTo_j << ".\n"); // TODO: info about current repetition of loop? (28102011ih)
 
-				IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
 				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
-								" Last defect was " << convCheck->defect() <<
-								" after " << convCheck->step() << " steps.\n");
+								" Last defect was " << m_pNeumannSolver->defect() <<
+								" after " << m_pNeumannSolver->step() << " steps.\n");
 
 				return false;
 			}
@@ -917,10 +912,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 						 "Could not solve Neumann problem (step 2.a) on Proc "
 							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
 
-		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
-						" Last defect was " << convCheck->defect() <<
-						" after " << convCheck->step() << " steps.\n");
+						" Last defect was " << m_pNeumannSolver->defect() <<
+						" after " << m_pNeumannSolver->step() << " steps.\n");
 		bSuccess = false;
 	}
 	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_2a)'
@@ -929,9 +923,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 	StepConv stepConv;
 	if(!m_statType.empty())
 	{
-		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
-		stepConv.lastDef2a = convCheck->defect();
-		stepConv.numIter2a = convCheck->step();
+		stepConv.lastDef2a = m_pNeumannSolver->defect();
+		stepConv.numIter2a = m_pNeumannSolver->step();
 	}
 
 //	save current solution - 'u' is overwritten by broadcasting \f$u_{\Pi}\f$ after solving (21022011ih)
@@ -991,11 +984,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 				bSuccess = false;
 			} /*
 			else {			// TMP
-				IConvergenceCheck* convCheck = m_pCoarseProblemSolver->get_convergence_check();
-				if(convCheck != NULL)
 					UG_LOG("'PrimalSubassembledMatrixInverse::apply':"
-						   " Last defect after applying coarse problem solver (step 4  ) was " << convCheck->defect() <<
-						   " after " << convCheck->step() << " steps.\n");
+						   " Last defect after applying coarse problem solver (step 4  ) was " << m_pCoarseProblemSolver->defect() <<
+						   " after " << m_pCoarseProblemSolver->step() << " steps.\n");
 			}*/
 
 			FETI_PROFILE_END();	// end 'FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem)' - Messpunkt ok, da nur auf einem Proc
@@ -1043,10 +1034,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 						 "Could not solve Neumann problem (step 7) on Proc "
 							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
 
-		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
-						" Last defect was " << convCheck->defect() <<
-						" after " << convCheck->step() << " steps.\n");
+						" Last defect was " << m_pNeumannSolver->defect() <<
+						" after " << m_pNeumannSolver->step() << " steps.\n");
 		bSuccess = false;
 	}
 	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_7)'
@@ -1054,9 +1044,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	remember for statistic
 	if(!m_statType.empty())
 	{
-		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
-		stepConv.lastDef7 = convCheck->defect();
-		stepConv.numIter7 = convCheck->step();
+		stepConv.lastDef7 = m_pNeumannSolver->defect();
+		stepConv.numIter7 = m_pNeumannSolver->step();
 
 		m_mvStepConv[m_statType].push_back(stepConv);
 	}
@@ -1191,7 +1180,6 @@ FETISolver() :
 	m_pMatrix(NULL),
 	m_pDirichletSolver(NULL),
 	m_pNeumannSolver(NULL),
-	m_pConvCheck(NULL),
 	m_pDebugWriter(NULL)
 {
 
@@ -1341,13 +1329,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	be used for the computation of the defect (Once the defect is computed the
 //	right-hand side is not needed anymore).
 
-//	check, that convergence check has been set
-	if(m_pConvCheck == NULL)
-	{
-		UG_LOG("ERROR: In 'FETISolver::apply': Convergence check not set.\n");
-		return false;
-	}
-
 //	check storage type
 	if(!f.has_storage_type(PST_ADDITIVE) || !u.has_storage_type(PST_CONSISTENT))
 	{
@@ -1435,7 +1416,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	prepare_conv_check();
 
 //	compute and set start defect
-	m_pConvCheck->start_defect(m_fetiLayouts.vec_norm_on_identified_dual(r));
+	convergence_check()->start_defect(m_fetiLayouts.vec_norm_on_identified_dual(r));
 
 // 	Precondition the start defect: apply z = M^-1 * r
 	FETI_PROFILE_BEGIN(FETISolverApply_Apply_M_inverse);
@@ -1463,7 +1444,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 // 	"lambda iteration" loop
 	FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop);
-	while(!m_pConvCheck->iteration_ended())
+	while(!convergence_check()->iteration_ended())
 	{
 	//	increase iteration count
 		m_iterCnt++;
@@ -1497,8 +1478,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 		m_fetiLayouts.vec_scale_add_on_dual(r, 1.0, r, -alpha, t);
 
 	// 	Compute new defect
-		m_pConvCheck->update_defect(m_fetiLayouts.vec_norm_on_identified_dual(r));
-		if(m_pConvCheck->iteration_ended())
+		convergence_check()->update_defect(m_fetiLayouts.vec_norm_on_identified_dual(r));
+		if(convergence_check()->iteration_ended())
 		{
 			break;
 			FETI_PROFILE_END();	// additional end 'FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop)' - Messpunkt ok, da Konvergenz-Check ausgefuehrt
@@ -1569,7 +1550,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolver_Backsolve)' - Messpunkt ok!
 
-	return m_pConvCheck->post();
+	return convergence_check()->post();
 	//FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApplyReturnDefect)' - complete method
 
 //	call this for output.

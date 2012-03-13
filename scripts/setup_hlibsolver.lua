@@ -99,7 +99,7 @@ function SetupHLIBSolver(str_problem,
 	hlibConvCheck:set_maximum_steps(linMaxIterations)
 	hlibConvCheck:set_minimum_defect(linAbsLimit)
 	hlibConvCheck:set_reduction(linReduction)
-	--hlibConvCheck:set_verbose_level(false)
+	--hlibConvCheck:set_verbose(false)
 
 	hlibSolver:set_convergence_check(hlibConvCheck)
 

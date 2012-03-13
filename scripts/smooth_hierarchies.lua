@@ -161,7 +161,7 @@ baseConvCheck = StandardConvergenceCheck()
 baseConvCheck:set_maximum_steps(500)
 baseConvCheck:set_minimum_defect(1e-8)
 baseConvCheck:set_reduction(1e-30)
-baseConvCheck:set_verbose_level(false)
+baseConvCheck:set_verbose(false)
 
 -- base = LU()
 base = LinearSolver()

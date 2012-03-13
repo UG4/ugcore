@@ -90,7 +90,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 		void set_maximum_defect(number maxDef) {m_maxDefect = maxDef;}
 
 	///	sets if info should be printed
-		void set_verbose_level(bool level) {m_verbose = level;}
+		void set_verbose(bool level) {m_verbose = level;}
 
 	///	\copydoc ILineSearch::set_offset
 		virtual void set_offset(std::string offset) {m_offset = offset;};

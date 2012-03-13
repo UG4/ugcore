@@ -46,28 +46,24 @@ class BiCGStab :
 	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
+	///	Base type
+		typedef ILinearOperatorInverse<vector_type,vector_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
 	public:
 	///	default constructor
-		BiCGStab() : m_pPrecond(NULL), m_pConvCheck(NULL){};
+		BiCGStab() : m_pPrecond(NULL) {};
 
 	///	constructor setting the preconditioner and the convergence check
-		BiCGStab	( 	ILinearIterator<vector_type,vector_type>* Precond,
-							IConvergenceCheck& ConvCheck) :
-							m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
+		BiCGStab(ILinearIterator<vector_type,vector_type>* Precond,
+		         SmartPtr<IConvergenceCheck> spConvCheck) :
+			base_type(spConvCheck), m_pPrecond(Precond)
 		{};
 
 	///	name of solver
 		virtual const char* name() const {return "BiCGStab";}
-
-	///	set the convergence check
-		void set_convergence_check(IConvergenceCheck& convCheck)
-		{
-			m_pConvCheck = &convCheck;
-			m_pConvCheck->set_offset(3);
-		}
-
-	///	returns the convergence check
-		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 	///	sets the preconditioner
 		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
@@ -116,14 +112,6 @@ class BiCGStab :
 	// 	Solve J(u)*x = b, such that x = J(u)^{-1} b
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
-		//	convergence check is required
-			if(m_pConvCheck == NULL)
-			{
-				UG_LOG("ERROR: In 'BiCGStabSolver::apply_return_defect': "
-						"Convergence check not set.\n");
-				return false;
-			}
-
 		//	check correct storage type in parallel
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
@@ -151,7 +139,7 @@ class BiCGStab :
 			prepare_conv_check();
 
 		//	compute start defect norm
-			m_pConvCheck->start(b);
+			convergence_check()->start(b);
 
 		//	convert b to unique (should already be unique due to norm calculation)
 			#ifdef UG_PARALLEL
@@ -167,16 +155,16 @@ class BiCGStab :
 			number rhoOld=1,rho=1,alpha=1, omega=1;
 
 		// 	Iteration loop
-			while(!m_pConvCheck->iteration_ended())
+			while(!convergence_check()->iteration_ended())
 			{
 			//	check if start values have to be set
-				if(m_pConvCheck->step() == 0 /*or restart*/)
+				if(convergence_check()->step() == 0 /*or restart*/)
 				{
 				//	if at restart recompute start defect
-					if(m_pConvCheck->step() != 0)
+					if(convergence_check()->step() != 0)
 					{
-						m_pConvCheck->update(b);
-						if(m_pConvCheck->iteration_ended()) break;
+						convergence_check()->update(b);
+						if(convergence_check()->iteration_ended()) break;
 					}
 
 				// 	reset vectors
@@ -289,8 +277,8 @@ class BiCGStab :
 				VecScaleAppend(s, v, (-1)*alpha);
 
 			// 	check convergence
-				m_pConvCheck->update(s);
-				if(m_pConvCheck->iteration_ended())
+				convergence_check()->update(s);
+				if(convergence_check()->iteration_ended())
 				{
 				//	set output to last defect
 					b = s; break;
@@ -364,14 +352,14 @@ class BiCGStab :
 				VecScaleAppend(b, t, (-1)*omega);
 
 			// 	check convergence
-				m_pConvCheck->update(b);
+				convergence_check()->update(b);
 
 			// 	remember current rho
 				rhoOld = rho;
 			}
 
 		//	print ending output
-			return m_pConvCheck->post();
+			return convergence_check()->post();
 		}
 
 	///	apply the solver
@@ -393,15 +381,15 @@ class BiCGStab :
 		void prepare_conv_check()
 		{
 		//	set iteration symbol an name
-			m_pConvCheck->set_name(name());
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name(name());
+			convergence_check()->set_name(name());
+			convergence_check()->set_symbol('%');
+			convergence_check()->set_name(name());
 
 		//	set preconditioner string
 			std::stringstream ss;
 			if(m_pPrecond) ss<<" (Precond: "<<m_pPrecond->name()<<")";
 			else ss << " (No Preconditioner) ";
-			m_pConvCheck->set_info(ss.str());
+			convergence_check()->set_info(ss.str());
 		}
 
 	protected:
@@ -439,9 +427,6 @@ class BiCGStab :
 
 	/// Preconditioner
 		ILinearIterator<vector_type,vector_type>* m_pPrecond;
-
-	/// Convergence Check
-		IConvergenceCheck* m_pConvCheck;
 };
 
 } // end namespace ug

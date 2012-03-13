@@ -34,24 +34,18 @@ class LU
 	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Base type
+		typedef IMatrixOperatorInverse<vector_type,vector_type,matrix_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
 	public:
 	///	constructor
-		LU() : m_pOperator(NULL), m_mat(), m_pConvCheck(NULL) {};
+		LU() : m_pOperator(NULL), m_mat() {};
 
 	///	returns name of solver
 		virtual const char* name() const {return "LU";}
-
-	///	sets the convergence check
-		void set_convergence_check(IConvergenceCheck& convCheck)
-		{
-			m_pConvCheck = &convCheck;
-			m_pConvCheck->set_offset(3);
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name("LU Solver");
-		}
-
-	///	returns the convergence check
-		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 	///	initializes the solver for a matrix A
 		bool init_lu(const matrix_type &A)
@@ -182,6 +176,9 @@ class LU
 	///	Compute u = L^{-1} * f
 		virtual bool apply(vector_type& u, const vector_type& f)
 		{
+			convergence_check()->set_symbol('%');
+			convergence_check()->set_name("LU Solver");
+
 #ifdef UG_PARALLEL
 			if(!f.has_storage_type(PST_ADDITIVE))
 			{
@@ -249,9 +246,6 @@ class LU
 		DenseMatrixInverse<DenseMatrix<VariableArray2<double> > > m_mat;
 		DenseVector<VariableArray1<double> > m_tmp;
 		size_t m_size;
-
-	/// Convergence Check
-		IConvergenceCheck* m_pConvCheck;
 };
 
 } // end namespace ug

@@ -686,6 +686,12 @@ class PrimalSubassembledMatrixInverse
 	// 	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Base type
+		typedef ILinearOperatorInverse<vector_type,vector_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
 	public:
 	///	constructor
 		PrimalSubassembledMatrixInverse();
@@ -736,16 +742,6 @@ class PrimalSubassembledMatrixInverse
 	// 	This is done by iterating: u := u + B(f - A*u)
 	// 	In f the last defect f := f - A*u is returned
 		virtual bool apply_return_defect(vector_type& u, vector_type& f);
-
-	///	sets a convergence check
-		void set_convergence_check(IConvergenceCheck& convCheck)
-		{
-			m_pConvCheck = &convCheck;
-			m_pConvCheck->set_offset(3);
-		}
-
-	/// returns the convergence check
-		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 	///	sets statistic slot where next iterate should be counted
 		void set_statistic_type(std::string type) {m_statType = type;}
@@ -805,9 +801,6 @@ class PrimalSubassembledMatrixInverse
 	//	Matrix for one proc Schur complement
 		matrix_type* m_pRootSchurComplementMatrix;
 
-	// 	Convergence Check
-		IConvergenceCheck* m_pConvCheck;
-
 	//	Convergence history
 		std::string m_statType;
 
@@ -849,22 +842,18 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	// 	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Base type
+		typedef ILinearOperatorInverse<vector_type,vector_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
 	public:
 	///	constructor
 		FETISolver();
 
 	///	name of solver
 		virtual const char* name() const {return "FETI Solver";}
-
-	///	sets a convergence check
-		void set_convergence_check(IConvergenceCheck& convCheck)
-		{
-			m_pConvCheck = &convCheck;
-			m_pConvCheck->set_offset(3);
-		}
-
-	/// returns the convergence check
-		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 	///	sets the Dirichlet solver
 		void set_dirichlet_solver(ILinearOperatorInverse<vector_type, vector_type>& dirichletSolver)
@@ -989,9 +978,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	Prepare the convergence check
 		void prepare_conv_check()
 		{
-			m_pConvCheck->set_name(name());
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name(name());
+			convergence_check()->set_name(name());
+			convergence_check()->set_symbol('%');
+			convergence_check()->set_name(name());
 	}
 
 	protected:
@@ -1037,9 +1026,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	Solver used in solving coarse problem on root.
 	// 	It solves \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ 
 		ILinearOperatorInverse<vector_type, vector_type>* m_pCoarseProblemSolver;
-
-	// 	Convergence Check
-		IConvergenceCheck* m_pConvCheck;
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;

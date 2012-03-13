@@ -86,21 +86,18 @@ class ParallelLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vecto
 	// 	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Base type
+		typedef IMatrixOperatorInverse<vector_type,vector_type,matrix_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
 	public:
 		LUSolver() :
-			m_pOperator(NULL), m_mat(), m_pConvCheck(NULL)
+			m_pOperator(NULL), m_mat()
 		{};
 
 		virtual const char* name() const {return "LUSolver";}
-
-		void set_convergence_check(IConvergenceCheck& convCheck)
-		{
-			m_pConvCheck = &convCheck;
-			m_pConvCheck->set_offset(3);
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name("LU Solver");
-		}
-		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 		bool init_lu(const matrix_type &A)
 		{
@@ -146,6 +143,9 @@ class ParallelLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vecto
 	// 	Compute u = L^{-1} * f
 		virtual bool apply(vector_type& u, const vector_type& f)
 		{
+			convergence_check()->set_symbol('%');
+			convergence_check()->set_name("LU Solver");
+
 			UG_ASSERT(f.size() == m_pMatrix->num_rows(), "Vector and Row sizes have to match!");
 			UG_ASSERT(u.size() == m_pMatrix->num_cols(), "Vector and Column sizes have to match!");
 			UG_ASSERT(f.size() == u.size(), "Vector sizes have to match!");
@@ -191,9 +191,6 @@ class ParallelLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vecto
 
 		// matrix to invert
 		matrix_type* m_pMatrix;
-
-		// Convergence Check
-		IConvergenceCheck* m_pConvCheck;
 };
 
 } // end namespace ug

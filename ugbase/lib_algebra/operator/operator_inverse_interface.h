@@ -10,6 +10,7 @@
 
 #include "operator_interface.h"
 #include "convergence_check.h"
+#include "common/util/smart_pointer.h"
 
 namespace ug{
 
@@ -138,6 +139,19 @@ class ILinearOperatorInverse
 		typedef Y codomain_function_type;
 
 	public:
+	///	constructor setting convergence check to (100, 1e-12, 1e-12, true)
+		ILinearOperatorInverse()
+			: m_spConvCheck(new StandardConvCheck(100, 1e-12, 1e-12, true))
+		{}
+
+	///	Default constructor
+		ILinearOperatorInverse(SmartPtr<IConvergenceCheck> spConvCheck)
+			: m_spConvCheck(spConvCheck)
+		{}
+
+	/// virtual destructor
+		virtual ~ILinearOperatorInverse() {};
+
 	///	returns the name of the operator inverse
 	/**
 	 * This method returns the name of the inverse operator. This function is
@@ -201,14 +215,34 @@ class ILinearOperatorInverse
 	 */
 		virtual bool apply_return_defect(Y& u, X& f) = 0;
 
-	///	set the convergence check
-		virtual void set_convergence_check(IConvergenceCheck& convCheck) = 0;
+	///	returns the convergence check
+		ConstSmartPtr<IConvergenceCheck> convergence_check() const {return m_spConvCheck;}
 
 	///	returns the convergence check
-		virtual IConvergenceCheck* get_convergence_check() = 0;
+		SmartPtr<IConvergenceCheck> convergence_check() {return m_spConvCheck;}
 
-	/// virtual destructor
-		virtual ~ILinearOperatorInverse() {};
+	/// returns the current defect
+		number defect() const {return convergence_check()->defect();}
+
+	/// returns the current number of steps
+		int step() const {return convergence_check()->step();}
+
+	/// returns the current relative reduction
+		number reduction() const {return convergence_check()->reduction();}
+
+	///	returns the standard offset for output
+		virtual int standard_offset() const {return 3;}
+
+	///	set the convergence check
+		void set_convergence_check(SmartPtr<IConvergenceCheck> spConvCheck)
+		{
+			m_spConvCheck = spConvCheck;
+			m_spConvCheck->set_offset(standard_offset());
+		};
+
+	protected:
+	///	smart pointer holding the convergence check
+		SmartPtr<IConvergenceCheck> m_spConvCheck;
 };
 
 

@@ -57,26 +57,22 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 	// 	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Base type
+		typedef IMatrixOperatorInverse<vector_type,vector_type,matrix_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
 	public:
 	///	constructor
 		DirichletDirichletSolver() :
 			m_theta(1.0), m_pOperator(NULL), m_pNeumannSolver(NULL),
-			m_pDirichletSolver(NULL), m_pConvCheck(NULL),
+			m_pDirichletSolver(NULL),
 			m_pDebugWriter(NULL)
 		{}
 
 	///	name of solver
 		virtual const char* name() const {return "Dirichlet-Dirichlet Solver";}
-
-	///	sets a convergence check
-		void set_convergence_check(IConvergenceCheck& convCheck)
-		{
-			m_pConvCheck = &convCheck;
-			m_pConvCheck->set_offset(3);
-		}
-
-	/// returns the convergence check
-		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 	///	sets a sequential Neumann solver
 		void set_neumann_solver(ILinearOperatorInverse<vector_type, vector_type>& neumannSolver)
@@ -179,14 +175,6 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 				return false;
 			}
 
-		//	check that convergence check is set
-			if(m_pConvCheck == NULL)
-			{
-				UG_LOG("ERROR: In 'DirichletDirichletSolver::apply_return_defect':"
-						" Convergence check not set.\n");
-				return false;
-			}
-
 		//	Check parallel storage type of vectors
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
 			{
@@ -274,17 +262,17 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 				if(first)
 				{
 				//	Compute first defect
-					m_pConvCheck->start(ModRhsCopy);
+					convergence_check()->start(ModRhsCopy);
 					first = false;
 				}
 				else
 				{
 				// 	compute new defect (in parallel)
-					m_pConvCheck->update(ModRhsCopy);
+					convergence_check()->update(ModRhsCopy);
 				}
 
 			//	check if iteration ended
-				if(m_pConvCheck->iteration_ended())
+				if(convergence_check()->iteration_ended())
 					break;
 
 			//	set intra subdomain communication
@@ -320,7 +308,7 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 			} /* end of iteration loop */
 
 		//	Post Output
-			if(!m_pConvCheck->post())
+			if(!convergence_check()->post())
 			{
 				UG_LOG("ERROR in 'DirichletDirichletSolver::apply_return_defect': "
 						"post-convergence-check signaled failure. Aborting.\n");
@@ -349,19 +337,19 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 	//	Prepare the convergence check
 		void prepare_conv_check()
 		{
-			m_pConvCheck->set_name(name());
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name(name());
+			convergence_check()->set_name(name());
+			convergence_check()->set_symbol('%');
+			convergence_check()->set_name(name());
 
 			if(m_pNeumannSolver != NULL && m_pDirichletSolver != NULL)
 			{
 				std::stringstream ss; ss <<  " (Seq. Solver: " << m_pNeumannSolver->name() << ","
 									<< m_pDirichletSolver->name() << ")";
-				m_pConvCheck->set_info(ss.str());
+				convergence_check()->set_info(ss.str());
 			}
 			else
 			{
-				m_pConvCheck->set_info(" (No Seq. Solver) ");
+				convergence_check()->set_info(" (No Seq. Solver) ");
 			}
 		}
 
@@ -446,9 +434,6 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 
 	// 	Linear Solver to invert the local Dirichlet problems
 		ILinearOperatorInverse<vector_type,vector_type>* m_pDirichletSolver;
-
-	// 	Convergence Check
-		IConvergenceCheck* m_pConvCheck;
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;

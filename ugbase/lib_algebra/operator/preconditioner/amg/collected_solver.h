@@ -30,11 +30,16 @@ class CollectSolver: public IMatrixOperatorInverse<	typename TAlgebra::vector_ty
 
 		typedef IMatrixOperatorInverse<	typename TAlgebra::vector_type, typename TAlgebra::vector_type, typename TAlgebra::matrix_type> moi_type;
 
+	///	Base type
+		typedef IMatrixOperatorInverse<vector_type,vector_type,matrix_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
 	public:
-		LUSolver() :
-			m_pConvCheck(NULL)
+		CollectSolver()
 		{
-			sName = "CollectedSolver(uninitialized)"
+			sName = "CollectedSolver(uninitialized)";
 		};
 
 		virtual const char* name() const {return name.c_str();}
@@ -44,10 +49,10 @@ class CollectSolver: public IMatrixOperatorInverse<	typename TAlgebra::vector_ty
 			UG_ASSERT(m_pInverse != NULL, "needs Inverse first");
 			m_pInverse->set_convergence_check(convCheck);
 		}
-		IConvergenceCheck* get_convergence_check()
+		IConvergenceCheck* convergence_check()
 		{
 			UG_ASSERT(m_pInverse != NULL, "needs Inverse first");
-			return m_pInverse->get_convergence_check(convCheck);
+			return m_pInverse->convergence_check(convCheck);
 		}
 
 		void set_inverse(moi_type *inverse)

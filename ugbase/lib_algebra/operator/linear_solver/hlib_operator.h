@@ -320,9 +320,15 @@ class HLIBSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	// 	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Base type
+		typedef IMatrixOperatorInverse<vector_type,vector_type,matrix_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
 	public:
 		HLIBSolver() :
-			m_pOperator(NULL), m_pConvCheck(NULL),
+			m_pOperator(NULL),
 			m_pDebugWriter(NULL),
 			m_bIsExecutable(true),
 			m_nMin(20),
@@ -335,15 +341,6 @@ class HLIBSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			};
 
 		virtual const char* name() const {return "HLIBSolver";}
-
-		void set_convergence_check(IConvergenceCheck& convCheck)
-		{
-			m_pConvCheck = &convCheck;
-			m_pConvCheck->set_offset(3);
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name("HLIB Solver");
-		}
-		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 	//	sets nmin
 		void set_hlib_nmin(size_t nmin)
@@ -667,6 +664,9 @@ class HLIBSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	// 	Compute u = L^{-1} * f
 		virtual bool apply(vector_type& u, const vector_type& f)
 		{
+			convergence_check()->set_symbol('%');
+			convergence_check()->set_name("HLIB Solver");
+
 			size_t A_num_rows;    // number of rows of blocks
 			int info = 0;
 
@@ -844,9 +844,6 @@ class HLIBSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 		// CRS matrix to import into HLIB
 		CRSMatrix m_CRSMatrix;
-
-		// Convergence Check
-		IConvergenceCheck* m_pConvCheck;
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;

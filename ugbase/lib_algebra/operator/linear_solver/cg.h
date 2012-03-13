@@ -45,28 +45,24 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
+	///	Base type
+		typedef ILinearOperatorInverse<vector_type,vector_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
 	public:
 	///	default constructor
-		CG() : m_pPrecond(NULL), m_pConvCheck(NULL){}
+		CG() : m_pPrecond(NULL) {}
 
 	///	constructor setting preconditioner and convergence check
 		CG( ILinearIterator<vector_type,vector_type>* Precond,
-		    IConvergenceCheck& ConvCheck) :
-		m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
+		    SmartPtr<IConvergenceCheck> spConvCheck) :
+		    base_type(spConvCheck), m_pPrecond(Precond)
 		{};
 
 	///	name of solver
 		virtual const char* name() const {return "CG";}
-
-	///	sets the convergence check
-		void set_convergence_check(IConvergenceCheck& convCheck)
-		{
-			m_pConvCheck = &convCheck;
-			m_pConvCheck->set_offset(3);
-		}
-
-	///	returns the convergence check
-		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 	///	sets the preconditioner
 		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
@@ -115,14 +111,6 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 	///	Solve J(u)*x = b, such that x = J(u)^{-1} b
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
-		//	convergence check required
-			if(m_pConvCheck == NULL)
-			{
-				UG_LOG("ERROR: In 'CG::apply_return_defect': "
-						"Convergence check not set.\n");
-				return false;
-			}
-
 		//	check parallel storage types
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
@@ -172,7 +160,7 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 
 		//	compute start defect
 			prepare_conv_check();
-			m_pConvCheck->start(r);
+			convergence_check()->start(r);
 
 		// 	start search direction
 			p = z;
@@ -181,7 +169,7 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			number rhoOld = VecProd(z, r), rho;
 
 		// 	Iteration loop
-			while(!m_pConvCheck->iteration_ended())
+			while(!convergence_check()->iteration_ended())
 			{
 			// 	Build q = A*p (q is additive afterwards)
 				m_A->apply(q, p);
@@ -207,8 +195,8 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 				VecScaleAdd(r, 1.0, r, -alpha, q);
 
 			// 	Check convergence
-				m_pConvCheck->update(r);
-				if(m_pConvCheck->iteration_ended()) break;
+				convergence_check()->update(r);
+				if(convergence_check()->iteration_ended()) break;
 
 			// 	Preconditioning
 				if(m_pPrecond)
@@ -247,7 +235,7 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			}
 
 		//	post output
-			return m_pConvCheck->post();
+			return convergence_check()->post();
 		}
 
 	///	solves J(u)*x = b
@@ -269,15 +257,15 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 		void prepare_conv_check()
 		{
 		//	set iteration symbol an name
-			m_pConvCheck->set_name(name());
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name(name());
+			convergence_check()->set_name(name());
+			convergence_check()->set_symbol('%');
+			convergence_check()->set_name(name());
 
 		//	set preconditioner string
 			std::stringstream ss;
 			if(m_pPrecond) ss<<" (Precond: "<<m_pPrecond->name()<<")";
 			else ss << " (No Preconditioner) ";
-			m_pConvCheck->set_info(ss.str());
+			convergence_check()->set_info(ss.str());
 		}
 
 	protected:
@@ -292,9 +280,6 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 
 	///	Preconditioner
 		ILinearIterator<vector_type,vector_type>* m_pPrecond;
-
-	/// Convergence Check
-		IConvergenceCheck* m_pConvCheck;
 };
 
 } // end namespace ug

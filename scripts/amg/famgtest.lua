@@ -294,7 +294,7 @@ baseConvCheck = StandardConvergenceCheck()
 baseConvCheck:set_maximum_steps(500)
 baseConvCheck:set_minimum_defect(1e-16)
 baseConvCheck:set_reduction(1e-16)
-baseConvCheck:set_verbose_level(false)
+baseConvCheck:set_verbose(false)
 
 if false then
 	base = LinearSolver()
@@ -395,7 +395,7 @@ if bUseNestedAMG then
 	convCheck2:set_maximum_steps(30)
 	convCheck2:set_minimum_defect(1e-11)
 	convCheck2:set_reduction(1e-12)
-	convCheck2:set_verbose_level(false)
+	convCheck2:set_verbose(false)
 	linSolver2 = LinearSolver()
 	linSolver2:set_preconditioner(amg2)
 	linSolver2:set_convergence_check(convCheck2)

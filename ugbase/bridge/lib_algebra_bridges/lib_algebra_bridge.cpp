@@ -165,10 +165,15 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef ILinearOperatorInverse<vector_type, vector_type> T;
 		string name = string("ILinearOperatorInverse").append(algSuffix);
 		reg.add_class_<T>(name, grp)
-				.add_method("init", (bool(T::*)(ILinearOperator<vector_type,vector_type>&))(&T::init))
+			.add_method("init", (bool(T::*)(ILinearOperator<vector_type,vector_type>&))(&T::init))
 			.add_method("apply_return_defect", &T::apply_return_defect, "Success", "u#f",
 					"Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u),  f := f - A*u becomes new defect")
-			.add_method("apply", &T::apply, "Success", "u#f", "Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u), f remains constant");
+			.add_method("apply", &T::apply, "Success", "u#f", "Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u), f remains constant")
+			.add_method("set_convergence_check", &T::set_convergence_check)
+			.add_method("convergence_check", static_cast<ConstSmartPtr<IConvergenceCheck> (T::*)() const>(&T::convergence_check))
+			.add_method("defect", &T::defect)
+			.add_method("step", &T::step)
+			.add_method("reduction", &T::reduction);
 		reg.add_class_to_group(name, "ILinearOperatorInverse", algTag);
 	}
 
@@ -303,8 +308,6 @@ static bool reg(Registry& reg, string parentGroup)
 			.add_constructor()
 			.add_method("set_preconditioner", &T::set_preconditioner,
 						"", "Preconditioner")
-			.add_method("set_convergence_check", &T::set_convergence_check,
-						"", "Check")
 			.add_method("set_compute_fresh_defect_when_finished", &T::set_compute_fresh_defect_when_finished)
 			.add_method("set_debug", &T::set_debug);
 		reg.add_class_to_group(name, "LinearSolver", algTag);
@@ -318,9 +321,7 @@ static bool reg(Registry& reg, string parentGroup)
 		reg.add_class_<T,TBase>(name, grp3, "Conjugate Gradient")
 			.add_constructor()
 			.add_method("set_preconditioner", &T::set_preconditioner,
-						"", "Preconditioner")
-			.add_method("set_convergence_check", &T::set_convergence_check,
-						"", "Check");
+						"", "Preconditioner");
 		reg.add_class_to_group(name, "CG", algTag);
 	}
 
@@ -332,9 +333,7 @@ static bool reg(Registry& reg, string parentGroup)
 		reg.add_class_<T,TBase>(name, grp3)
 			.add_constructor()
 			.add_method("set_preconditioner", &T::set_preconditioner,
-						"", "Preconditioner")
-			.add_method("set_convergence_check", &T::set_convergence_check,
-						"", "Check");
+						"", "Preconditioner");
 		reg.add_class_to_group(name, "BiCGStab", algTag);
 	}
 
@@ -344,9 +343,7 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
 		string name = string("LU").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3, "LU-Decomposition exact solver")
-			.add_constructor()
-			.add_method("set_convergence_check", &T::set_convergence_check,
-						"", "Check");
+			.add_constructor();
 		reg.add_class_to_group(name, "LU", algTag);
 	}
 
@@ -358,8 +355,6 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("DirichletDirichlet").append(algSuffix);
 		reg.add_class_<	T, BaseT >(name, grp3, "Dirichlet-Dirichlet Domain Decomposition Algorithm")
 		.add_constructor()
-		.add_method("set_convergence_check", &T::set_convergence_check,
-					"", "Check")
 		.add_method("set_theta", &T::set_theta,
 					"", "Theta", "set damping factor theta")
 		.add_method("set_neumann_solver", &T::set_neumann_solver,
@@ -396,8 +391,6 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("FETI").append(algSuffix);
 		reg.add_class_<	T, BaseT >(name, grp3, "FETI Domain Decomposition Solver")
 		.add_constructor()
-		.add_method("set_convergence_check", &T::set_convergence_check,
-					"", "Check")
 		.add_method("set_neumann_solver", &T::set_neumann_solver,
 					"", "Neumann Solver")
 		.add_method("set_dirichlet_solver", &T::set_dirichlet_solver,
@@ -421,8 +414,6 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("HLIBSolver").append(algSuffix);
 		reg.add_class_<	T, TBase>(name, grp3)
 		.add_constructor()
-		.add_method("set_convergence_check", &T::set_convergence_check,
-					"", "Check")
 		.add_method("set_hlib_nmin",         &T::set_hlib_nmin,
 					"", "HLIB nmin")
 		.add_method("set_hlib_accuracy_H",   &T::set_hlib_accuracy_H,
@@ -472,12 +463,13 @@ static bool RegisterLibAlgebra__Common(Registry& reg, string parentGroup)
 			.add_method("set_maximum_steps", &T::set_maximum_steps, "", "Maximum Steps|default|min=0;value=100")
 			.add_method("set_minimum_defect", &T::set_minimum_defect, "", "Minimum Defect|default|min=0D;value=1e-10")
 			.add_method("set_reduction", &T::set_reduction,	"", "Relative Reduction|default|min=0D;value=1e-12")
-			.add_method("set_verbose_level", &T::set_verbose_level,	"", "Verbosity")
+			.add_method("set_verbose", &T::set_verbose,	"", "Verbosity")
 			.add_method("defect", &T::defect, "defect", "", "returns the current defect")
 			.add_method("step", &T::step, "step", "", "returns the current number of steps")
 			.add_method("reduction", &T::reduction, "reduction", "", "returns the current relative reduction")
 			.add_method("iteration_ended", &T::iteration_ended)
-			.add_method("previous_defect", &T::previous_defect);
+			.add_method("previous_defect", &T::previous_defect)
+			.set_construct_as_smart_pointer(true);
 	}
 // IPositionProvider (abstract base class)
 	{

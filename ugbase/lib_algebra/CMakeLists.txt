@@ -22,6 +22,7 @@ set(src_Algebra)
 
 set(src_Algebra	 ${src_Algebra}
 	algebra_type.cpp
+	operator/convergence_check.cpp
 	operator/preconditioner/amg/rsamg/rsamg_coarsening.cpp	
 	operator/preconditioner/amg/famg/famg.cpp
 	operator/preconditioner/amg/agglomeration.cpp			

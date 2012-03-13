@@ -357,7 +357,7 @@ newtonConvCheck = StandardConvergenceCheck()
 newtonConvCheck:set_maximum_steps(10)
 newtonConvCheck:set_minimum_defect(5e-8)
 newtonConvCheck:set_reduction(1e-10)
-newtonConvCheck:set_verbose_level(true)
+newtonConvCheck:set_verbose(true)
 
 -- Within each newton step a line search can be applied. In order to do so an
 -- implementation of the ILineSearch-Interface can be passed to the newton

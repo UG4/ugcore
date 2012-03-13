@@ -47,10 +47,16 @@ class LinearSolver
 	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
+	///	Base type
+		typedef ILinearOperatorInverse<vector_type,vector_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
 	public:
 	///	Default constructor
 		LinearSolver() :
-			m_A(NULL), m_pPrecond(NULL), m_pConvCheck(NULL),
+			m_A(NULL), m_pPrecond(NULL),
 			m_bRecomputeDefectWhenFinished(false),
 			m_pDebugWriter(NULL)
 		{}
@@ -64,15 +70,7 @@ class LinearSolver
 			m_bRecomputeDefectWhenFinished = bRecomputeDefectWhenFinished;
 		}
 
-	///	sets the convergence check
-		void set_convergence_check(IConvergenceCheck& convCheck)
-		{
-			m_pConvCheck = &convCheck;
-			m_pConvCheck->set_offset(3);
-		}
-
-	///	returns the convergence check
-		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
+	///	sets the preconditioner
 		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
 		{
 			m_pPrecond = &precond;
@@ -132,13 +130,6 @@ class LinearSolver
 				return false;
 			}
 
-			if(m_pConvCheck == NULL)
-			{
-				UG_LOG("ERROR in 'LinearSolver::apply': "
-						"Convergence check not set.\n");
-				return false;
-			}
-
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
 				{
@@ -165,11 +156,11 @@ class LinearSolver
 
 			LS_PROFILE_BEGIN(LS_ComputeStartDefect);
 			prepare_conv_check();
-			m_pConvCheck->start(d);
+			convergence_check()->start(d);
 			LS_PROFILE_END();
 
 		// 	Iteration loop
-			while(!m_pConvCheck->iteration_ended())
+			while(!convergence_check()->iteration_ended())
 			{
 			// 	Compute a correction c := B*d using one iterative step
 			// 	Internally the defect is updated d := d - A*c = d - A*(x+c)
@@ -193,12 +184,12 @@ class LinearSolver
 
 			// 	compute new defect (in parallel) d := d - A*c
 				LS_PROFILE_BEGIN(LS_ComputeNewDefect);
-				m_pConvCheck->update(d);
+				convergence_check()->update(d);
 				LS_PROFILE_END(); //LS_ComputeNewDefect
 			}
 
 		//	write some information when ending the iteration
-			if(!m_pConvCheck->post())
+			if(!convergence_check()->post())
 			{
 				UG_LOG("ERROR in 'LinearSolver::apply': post-convergence-check "
 						"signaled failure. Aborting.\n");
@@ -255,16 +246,16 @@ class LinearSolver
 	///	prepares the convergence check output
 		void prepare_conv_check()
 		{
-			m_pConvCheck->set_name(name());
-			m_pConvCheck->set_symbol('%');
+			convergence_check()->set_name(name());
+			convergence_check()->set_symbol('%');
 			if(m_pPrecond != NULL)
 			{
 				std::stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_info(ss.str());
+				convergence_check()->set_info(ss.str());
 			}
 			else
 			{
-				m_pConvCheck->set_info(" (No Preconditioner) ");
+				convergence_check()->set_info(" (No Preconditioner) ");
 			}
 		}
 
@@ -284,9 +275,6 @@ class LinearSolver
 
 	// 	Iterator used in the iterative scheme to compute the correction and update the defect
 		ILinearIterator<vector_type,vector_type>* m_pPrecond;
-
-	// 	Convergence Check
-		IConvergenceCheck* m_pConvCheck;
 
 	//	flag if fresh defect should be computed when finish for debug purpose
 		bool m_bRecomputeDefectWhenFinished;

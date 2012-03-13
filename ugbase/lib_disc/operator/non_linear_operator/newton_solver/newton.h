@@ -36,28 +36,30 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 
 	public:
 		NewtonSolver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver,
-					IConvergenceCheck& ConvCheck,
+					SmartPtr<IConvergenceCheck> ConvCheck,
 					ILineSearch<vector_type>* LineSearch, bool reallocate) :
 					m_pLinearSolver(&LinearSolver),
-					m_pConvCheck(&ConvCheck),
+					m_spConvCheck(&ConvCheck),
 					m_pLineSearch(LineSearch),
 					m_reallocate(reallocate), m_allocated(false),
 					m_pDebugWriter(NULL), m_dgbCall(0)
 			{};
 
 		NewtonSolver() :
-			m_pLinearSolver(NULL), m_pConvCheck(NULL), m_pLineSearch(NULL),
+			m_pLinearSolver(NULL),
+			m_spConvCheck(new StandardConvCheck(10, 1e-8, 1e-10, true)),
+			m_pLineSearch(NULL),
 			m_reallocate(false), m_allocated(false), m_pDebugWriter(NULL),
 			m_dgbCall(0)
 			{};
 
 		void set_linear_solver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver) {m_pLinearSolver = &LinearSolver;}
-		void set_convergence_check(IConvergenceCheck& ConvCheck)
+		void set_convergence_check(SmartPtr<IConvergenceCheck> spConvCheck)
 		{
-			m_pConvCheck = &ConvCheck;
-			m_pConvCheck->set_offset(3);
-			m_pConvCheck->set_symbol('#');
-			m_pConvCheck->set_name("Newton Solver");
+			m_spConvCheck = spConvCheck;
+			m_spConvCheck->set_offset(3);
+			m_spConvCheck->set_symbol('#');
+			m_spConvCheck->set_name("Newton Solver");
 		}
 		void set_line_search(ILineSearch<vector_type>& LineSearch) {m_pLineSearch = &LineSearch;}
 
@@ -120,7 +122,7 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 		ILinearOperatorInverse<vector_type, vector_type>* m_pLinearSolver;
 
 		// Convergence Check
-		IConvergenceCheck* m_pConvCheck;
+		SmartPtr<IConvergenceCheck> m_spConvCheck;
 
 		// LineSearch
 		ILineSearch<vector_type>* m_pLineSearch;

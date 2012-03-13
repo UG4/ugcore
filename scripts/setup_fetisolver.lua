@@ -514,7 +514,7 @@ function SetupFETISolver(str_problem,
 	cpConvCheck:set_maximum_steps(20)
 	cpConvCheck:set_minimum_defect(1e-10)
 	cpConvCheck:set_reduction(1e-16)
-	cpConvCheck:set_verbose_level(false)
+	cpConvCheck:set_verbose(false)
 	
 	coarseproblemSolver:set_convergence_check(cpConvCheck)
 	
@@ -649,7 +649,7 @@ function SetupFETISolver(str_problem,
 	neumannConvCheck:set_maximum_steps(2000)
 	neumannConvCheck:set_minimum_defect(1e-10)
 	neumannConvCheck:set_reduction(1e-16)
-	neumannConvCheck:set_verbose_level(false)
+	neumannConvCheck:set_verbose(false)
 	
 	neumannSolver:set_convergence_check(neumannConvCheck)
 	
@@ -778,7 +778,7 @@ function SetupFETISolver(str_problem,
 	dirichletConvCheck:set_maximum_steps(2000)
 	dirichletConvCheck:set_minimum_defect(1e-10)
 	dirichletConvCheck:set_reduction(1e-16)
-	dirichletConvCheck:set_verbose_level(false)
+	dirichletConvCheck:set_verbose(false)
 	
 	dirichletSolver:set_convergence_check(dirichletConvCheck)
 	

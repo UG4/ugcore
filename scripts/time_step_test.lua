@@ -134,7 +134,7 @@ newtonConvCheck = StandardConvergenceCheck()
 newtonConvCheck:set_maximum_steps(10)
 newtonConvCheck:set_minimum_defect(5e-8)
 newtonConvCheck:set_reduction(1e-10000)
-newtonConvCheck:set_verbose_level(true)
+newtonConvCheck:set_verbose(true)
 
 newtonLineSearch = StandardLineSearch()
 
