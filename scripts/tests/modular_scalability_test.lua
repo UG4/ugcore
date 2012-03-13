@@ -34,6 +34,8 @@
 --------------------------------------------------------------------------------
 PrintBuildConfiguration()
 
+
+
 ug_load_script("ug_util.lua")
 ug_load_script("domain_distribution_util.lua")
 
@@ -54,7 +56,6 @@ print(line)
 if PclDebugBarrierEnabled() then
 	print("#ANALYZER INFO: PCLDebugBarrier is enabled. Expect slowdowns.")
 end
-
 --------------------------------------------------------------------------------
 -- Checking for parameters (begin)
 --------------------------------------------------------------------------------
@@ -88,6 +89,7 @@ if numPreRefs > numRefs then
 	print("It must be choosen: numPreRefs <= numRefs");
 	exit();
 end
+
 
 -- parameters concerning the linear solver:
 lsType     = util.GetParam("-lsType",         "gmg") -- choose one in ["gmg" | "feti" | "hlib"]
@@ -132,7 +134,6 @@ if(ddu.ParseAndInitializeParameters(dim) == false) then
 	exit()
 end
 
-
 --------------------------------------------------------------------------------
 -- Display parameters (or defaults):
 print(" General parameters chosen:")
@@ -176,7 +177,6 @@ if LoadDomain(dom, gridName) == false then
    print("Loading Domain failed.")
    exit()
 end
-
 --------------------------------------------------------------------------------
 -- refine, partition and distribute the domain.
 -- Parameters were initialized above.
@@ -217,6 +217,8 @@ end
 
 ddu.PrintAnalyzerInfo()
 print("#ANALYZER INFO: grid = " .. gridName)
+
+
 
 -- create Approximation Space
 print("Create ApproximationSpace")
@@ -552,4 +554,36 @@ if renameLogfileAfterRun == true then
 	else
 		print(".. could not rename - no logfile open! Try again with '-logtofile <name>'!")
 	end
+end
+
+if util.HasParamOption("-stats") then
+	if GetProcessRank() == 0 then
+		stats = {			
+			{ "procs", GetNumProcesses() },
+			{ "numPreRefs", numPreRefs},
+			{ "numRefs", numRefs },
+			{ "lastReduction", convCheck:defect()/convCheck:previous_defect()},
+			{ "steps", convCheck:step()},
+			{ "main [ms]", GetProfileNode("main"):get_avg_total_time_ms()},
+			{ "perform_refinement [ms]", GetProfileNode("perform_refinement"):get_avg_total_time_ms()},
+			{ "AssembleLinearOperatorRhsAndSolution [ms]", GetProfileNode("ASS_AssembleLinearOperatorRhsAndSolution"):get_avg_total_time_ms()},
+			{ "InitLinearSolver [ms]", GetProfileNode("ALS_InitLinearSolver"):get_avg_total_time_ms()},
+			{ "ApplyLinearSolver [ms]", GetProfileNode("ALS_ApplyLinearSolver"):get_avg_total_time_ms()},
+			{ "lsType", lsType},
+			{ "lsIterator", lsIterator},
+			{ "lsMaxIter", lsMaxIter},
+			{ "dim", dim},
+			{ "gridName", gridName},
+			{ "baseSolverType", baseSolverType},
+			{ "baseLevel", baseLevel},
+			{ "date", os.date("y%Ym%md%d") },
+			{ "SVN Revision", GetSVNRevision()},
+			{"host",GetBuildHostname()},
+			{"logfileName", logfileName},
+			{"commandline", util.GetCommandLine() }
+		} 
+			
+		util.printStats(stats)
+		util.writeFileStats(stats, util.GetParam("-stats", "").."/modular_scalability_test.txt")
+	end 
 end
