@@ -258,10 +258,24 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	BinaryStream in;
 	vector<int> inSegSizes(recvFromRanks.size());
 
-	procComm.distribute_data(in, &inSegSizes.front(),
-							&recvFromRanks.front(), (int)recvFromRanks.size(),
-							out.buffer(), &outSegSizes.front(),
-							&sendToRanks.front(), (int)sendToRanks.size());
+	int* pinSegSizes = NULL;
+	int* precvFromRanks = NULL;
+	if(!recvFromRanks.empty()){
+		pinSegSizes = &inSegSizes.front();
+		precvFromRanks = &recvFromRanks.front();
+	}
+
+	int* poutSegSizes = NULL;
+	int* psendToRanks = NULL;
+	if(!sendToRanks.empty()){
+		poutSegSizes = &outSegSizes.front();
+		psendToRanks = &sendToRanks.front();
+	}
+
+	procComm.distribute_data(in, pinSegSizes,
+							precvFromRanks, (int)recvFromRanks.size(),
+							out.buffer(), poutSegSizes,
+							psendToRanks, (int)sendToRanks.size());
 
 	PCL_PROFILE_END();
 	//UG_LOG("Size of in buffer: " << in.size() << endl);
