@@ -2,8 +2,8 @@
 //	s.b.reiter@googlemail.com
 //	y09 m12 d05
 
-#ifndef __H__PCL__PCL_COMMUNICATOR__
-#define __H__PCL__PCL_COMMUNICATOR__
+#ifndef __H__PCL__PCL_INTERFACE_COMMUNICATOR__
+#define __H__PCL__PCL_INTERFACE_COMMUNICATOR__
 
 #include <map>
 #include <set>
@@ -325,6 +325,6 @@ class InterfaceCommunicator
 
 ////////////////////////////////////////
 //	include implementation
-#include "pcl_communicator_impl.hpp"
+#include "pcl_interface_communicator_impl.hpp"
 
 #endif

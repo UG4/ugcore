@@ -2,14 +2,14 @@
 //	s.b.reiter@googlemail.com
 //	y09 m12 d05
 
-#ifndef __H__PCL__PCL_COMMUNICATOR_IMPL__
-#define __H__PCL__PCL_COMMUNICATOR_IMPL__
+#ifndef __H__PCL__PCL_INTERFACE_COMMUNICATOR_IMPL__
+#define __H__PCL__PCL_INTERFACE_COMMUNICATOR_IMPL__
 
 #include <cassert>
 #include "mpi.h"
 #include "pcl_methods.h"
 #include "pcl_communication_structs.h"
-#include "pcl_communicator.h"
+#include "pcl_interface_communicator.h"
 #include "pcl_profiling.h"
 #include "pcl_util.h"
 #include "common/log.h"
