@@ -219,8 +219,8 @@ void AMGBase<TAlgebra>::parallel_process_prolongation(prolongation_matrix_type &
 {
 
 	AMG_PROFILE_FUNC();
-	PRINTPC(PoldIndices.process_communicator());
-	PRINTPC(PnewIndices.process_communicator());
+	//PRINTPC(PoldIndices.process_communicator());
+	//PRINTPC(PnewIndices.process_communicator());
 	communicate_prolongation(PN, PoldIndices, bCreateNewNodes);
 	PoldIndices.set_storage_type(PST_CONSISTENT);
 	amgnodes.resize(PoldIndices.num_cols());
@@ -410,19 +410,19 @@ void CheckMatrixLayout(ParallelNodes &PN, const TMatrix &mat, IndexLayout &maste
 		}
 	}
 
-	PRINTPC(mat.process_communicator());
 	if(!bEverySlaveIsInLayout)
 	{
+		PRINTPC(mat.process_communicator());
 		PrintLayout(mat.process_communicator(), PN.communicator(), masterLayout, slaveLayout);
 		mat.print();
 	}
 	UG_ASSERT(bEverySlaveIsInLayout, "Error in Interfaces.");
 
 
-	UG_LOG("masterLayout\n");
-	PrintLayout(masterLayout);
-	UG_LOG("slaveLayout\n");
-	PrintLayout(slaveLayout);
+	//UG_LOG("masterLayout\n");
+	//PrintLayout(masterLayout);
+	//UG_LOG("slaveLayout\n");
+	//PrintLayout(slaveLayout);
 
 	// check if slave interfaces match the master interfaces.
 	TESTLAYOUT(mat.process_communicator(), PN.communicator(), masterLayout, slaveLayout);

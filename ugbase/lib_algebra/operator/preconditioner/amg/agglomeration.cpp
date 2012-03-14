@@ -38,7 +38,7 @@ struct supernode
 				UG_DLOG(LIB_ALG_AMG, 4, supernodes[j].components[k] << " ");
 			UG_DLOG(LIB_ALG_AMG, 4, "} ");
 		}
-		UG_LOG("\n");
+		UG_DLOG(LIB_ALG_AMG, 4, "\n");
 	}
 };
 
@@ -184,7 +184,7 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 	} while (1);
 
 
-	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 4);
+	//UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 4);
 	if(cnt==1)
 		{ UG_DLOG(LIB_ALG_AMG, 4, "\nOnly one node left. Result\n"); }
 	else
@@ -195,7 +195,7 @@ void EasyAgglomeration(const std::vector<size_t> sizes,
 		if(supernodes[i].size == -1) continue; // node deleted
 		supernodes[i].print();
 	}
-	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 0);
+	//UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 0);
 
 	mergeWith.resize(sizes.size());
 	for(size_t i=0; i<mergeWith.size(); i++)

@@ -409,25 +409,25 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 	if(mergeWith.size() > 1)
 	{
 		L.bHasBeenMerged = true;
-		UG_LOG("I am the merging father for pids ");
-		for(size_t i=1; i<mergeWith.size(); i++) UG_LOG(mergeWith[i] << " ");
-		UG_LOG("\n");
+		//UG_LOG("I am the merging father for pids ");
+		/*for(size_t i=1; i<mergeWith.size(); i++) UG_LOG(mergeWith[i] << " ");
+		UG_LOG("\n");*/
 		mergeWith.erase(mergeWith.begin());
 
-		PrintGlobalLayout(globalMasterLayout, "globalmasterLayout before");
-		PrintGlobalLayout(globalSlaveLayout, "globalSlaveLayout before");
+		//PrintGlobalLayout(globalMasterLayout, "globalmasterLayout before");
+		//PrintGlobalLayout(globalSlaveLayout, "globalSlaveLayout before");
 
 		ReceiveMatrix(A, L.collectedA, L.agglomerateMasterLayout, mergeWith, PN);
 		ReceiveGlobalLayout(communicator, mergeWith, globalMasterLayout, globalSlaveLayout);
 
-		PrintGlobalLayout(globalMasterLayout, "received globalmasterLayout");
-		PrintGlobalLayout(globalSlaveLayout, "received globalSlaveLayout");
+		//PrintGlobalLayout(globalMasterLayout, "received globalmasterLayout");
+		//PrintGlobalLayout(globalSlaveLayout, "received globalSlaveLayout");
 
 		MergeGlobalLayout(globalMasterLayout, merge);
 		MergeGlobalLayout(globalSlaveLayout, merge);
 
-		PrintGlobalLayout(globalMasterLayout, "AM globalmasterLayout");
-		PrintGlobalLayout(globalSlaveLayout, "AM globalSlaveLayout");
+		//PrintGlobalLayout(globalMasterLayout, "AM globalmasterLayout");
+		//PrintGlobalLayout(globalSlaveLayout, "AM globalSlaveLayout");
 
 		CreateLayoutFromGlobalLayout(L.masterLayout2, globalMasterLayout, PN);
 		CreateLayoutFromGlobalLayout(L.slaveLayout2, globalSlaveLayout, PN);
@@ -469,8 +469,8 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 			CreateLayoutFromGlobalLayout(L.masterLayout2, globalMasterLayout, PN);
 			CreateLayoutFromGlobalLayout(L.slaveLayout2, globalSlaveLayout, PN);
 
-			PrintGlobalLayout(globalMasterLayout, "AM globalmasterLayout");
-					PrintGlobalLayout(globalSlaveLayout, "AM globalSlaveLayout");
+			//PrintGlobalLayout(globalMasterLayout, "AM globalmasterLayout");
+			//PrintGlobalLayout(globalSlaveLayout, "AM globalSlaveLayout");
 
 			//PRINTPC(L.agglomeratedPC);
 			/*UG_LOG("others merged, might have to change Layouts:");
@@ -494,7 +494,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		else
 		{
 			L.bHasBeenMerged = true;
-			UG_LOG("MERGING to " << pid << "\n");
+			//UG_LOG("MERGING to " << pid << "\n");
 
 			SendMatrix(A, agglomerateSlaveLayout, pid, PN);
 
@@ -505,8 +505,8 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 			globalMasterLayout.erase(pid);
 			globalSlaveLayout.erase(pid);
 
-			PrintGlobalLayout(globalMasterLayout, "send globalmasterLayout");
-			PrintGlobalLayout(globalSlaveLayout, "send globalSlaveLayout");
+			//PrintGlobalLayout(globalMasterLayout, "send globalmasterLayout");
+			//PrintGlobalLayout(globalSlaveLayout, "send globalSlaveLayout");
 			SendGlobalLayout(communicator, globalMasterLayout, globalSlaveLayout, pid);
 
 			L.agglomeratedPC = A.process_communicator().create_sub_communicator(false);
