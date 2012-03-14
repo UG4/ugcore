@@ -404,7 +404,7 @@ ilut = ILUT()
 	if false then
 	amg = RSAMGPreconditioner()
 	amg:set_num_presmooth(2)
-	amg:set_num_postmooth(2)
+	amg:set_num_postsmooth(2)
 	amg:set_cycle_type(1)
 	amg:set_presmoother(jac)
 	amg:set_postsmoother(jac)
