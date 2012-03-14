@@ -6,6 +6,8 @@
  */
 
 #include "convection_diffusion.h"
+#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "bindings/lua/lua_user_data.h"
 
 namespace ug{
 
@@ -20,6 +22,22 @@ set_upwind(IConvectionShapes<dim>& shapes) {m_pConvShape = &shapes;}
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user) {m_imDiffusion.set_data(user);}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_diffusion(number user)
+{
+	set_diffusion(SmartPtr<ConstUserMatrix<dim> >(new ConstUserMatrix<dim>(user)));
+}
+
+#ifndef FOR_VRL
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_diffusion(const char* fctName)
+{
+	set_diffusion(SmartPtr<LuaUserData<MathMatrix<dim,dim>, dim> >(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
+}
+#endif
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::

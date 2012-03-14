@@ -15,11 +15,8 @@
 // library intern headers
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/ip_data/data_import_export.h"
-
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
-
 #include "lib_disc/spatial_disc/disc_util/finite_element_geometry.h"
-
 
 namespace ug{
 
@@ -89,6 +86,10 @@ class ConvectionDiffusionElemDisc
 	 * Tensor is set, a zero value is assumed.
 	 */
 		void set_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
+		void set_diffusion(number user);
+#ifndef FOR_VRL
+		void set_diffusion(const char* fctName);
+#endif
 
 	///	sets the velocity field
 	/**

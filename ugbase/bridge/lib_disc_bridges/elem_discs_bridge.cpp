@@ -121,7 +121,11 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("set_quad_order", &T::set_quad_order)
 			.add_method("set_quad_order_scvf", &T::set_quad_order_scvf)
 			.add_method("set_quad_order_scv", &T::set_quad_order_scv)
-			.add_method("set_diffusion_tensor", &T::set_diffusion, "", "Diffusion")
+			.add_method("set_diffusion_tensor", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
+			.add_method("set_diffusion_tensor", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diffusion")
+#ifndef FOR_VRL
+			.add_method("set_diffusion_tensor", static_cast<void (T::*)(const char*)>(&T::set_diffusion), "", "Diffusion")
+#endif
 			.add_method("set_velocity_field", &T::set_velocity, "", "Velocity Field")
 			.add_method("set_reaction_rate", &T::set_reaction_rate, "", "Reaction Rate")
 			.add_method("set_source", &T::set_source, "", "Source")
