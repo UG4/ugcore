@@ -159,8 +159,8 @@ void Register__Domain(Registry& reg, string grp)
 						"", "Density")
 			.add_method("set_consistent_gravity", &T2::set_consistent_gravity,
 						"", "Consistent Gravity")
-			.add_method("get_darcy_velocity", &T2::get_darcy_velocity)
-			.add_method("get_brine", &T2::get_brine);
+			.add_method("darcy_velocity", &T2::darcy_velocity)
+			.add_method("brine", &T2::brine);
 		reg.add_class_to_group(name, "DensityDrivenFlow", dimTag);
 	}
 
@@ -200,10 +200,10 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("set_heat_capacity_fluid", &T2::set_heat_capacity_fluid)
 			.add_method("set_heat_capacity_solid", &T2::set_heat_capacity_solid)
 			.add_method("set_mass_density_solid", &T2::set_mass_density_solid)
-			.add_method("get_darcy_velocity", &T2::get_darcy_velocity)
-			.add_method("get_pressure_grad", &T2::get_pressure_grad)
+			.add_method("darcy_velocity", &T2::darcy_velocity)
+			.add_method("pressure_grad", &T2::pressure_grad)
 			.add_method("get_temperature", &T2::get_temperature)
-			.add_method("get_brine", &T2::get_brine);
+			.add_method("brine", &T2::brine);
 		reg.add_class_to_group(name, "FV1ThermohalineFlow", dimTag);
 	}
 

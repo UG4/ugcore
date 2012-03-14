@@ -295,16 +295,16 @@ class DensityDrivenFlowElemDisc
 
 	public:
 	///	returns the export of the darcy velocity
-		SmartPtr<IPData<MathVector<dim>, dim> > get_darcy_velocity() {return m_exDarcyVel;}
+		SmartPtr<IPData<MathVector<dim>, dim> > darcy_velocity() {return m_exDarcyVel;}
 
 	///	returns the export of brine mass fracture
-		SmartPtr<IPData<number, dim> > get_brine() {return m_exBrine;}
+		SmartPtr<IPData<number, dim> > brine() {return m_exBrine;}
 
 	///	returns the export of brine mass fracture
-		SmartPtr<IPData<MathVector<dim>, dim> > get_brine_grad() {return m_exBrineGrad;}
+		SmartPtr<IPData<MathVector<dim>, dim> > brine_grad() {return m_exBrineGrad;}
 
 	///	returns the export of brine mass fracture
-		SmartPtr<IPData<MathVector<dim>, dim> > get_pressure_grad() {return m_exPressureGrad;}
+		SmartPtr<IPData<MathVector<dim>, dim> > pressure_grad() {return m_exPressureGrad;}
 
 	protected:
 	///	compute darcy velocity at one ip
