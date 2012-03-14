@@ -78,8 +78,8 @@ class SmartPtr
 	/**	this template method allows to assign smart-pointers that encapsulate
 	 *	derivates of T. Make sure that the pointer-type of TSmartPtr is castable
 	 *	to T*.*/
-		template <class TPtr, template <class TT> class TFreePolicy>
-		SmartPtr(const SmartPtr<TPtr, TFreePolicy>& sp) :
+		template <class TPtr>
+		SmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
 			m_ptr(static_cast<T*>(sp.get_nonconst_impl())),
 			m_refCount(sp.get_refcount_ptr())
 		{
@@ -111,8 +111,8 @@ class SmartPtr
 			return *this;
 		}
 
-		template <class TIn, template <class TT> class TFreePolicy>
-		SmartPtr<T, TFreePolicy>& operator=(const SmartPtr<TIn, TFreePolicy>& sp)	{
+		template <class TIn>
+		SmartPtr<T, FreePolicy>& operator=(const SmartPtr<TIn, FreePolicy>& sp)	{
 			if(m_ptr)
 				release();
 			m_ptr = sp.get_nonconst_impl();
@@ -150,27 +150,27 @@ class SmartPtr
 	/**	\}	*/
 
 	///	preforms a dynamic cast
-		template <class TDest,  template <class TPtr> class TFreePolicy>
-		SmartPtr<TDest, TFreePolicy> cast_dynamic() const{
+		template <class TDest>
+		SmartPtr<TDest, FreePolicy> cast_dynamic() const{
 			TDest* p = dynamic_cast<TDest*>(m_ptr);
-			if(p) return SmartPtr<TDest, TFreePolicy>(p, m_refCount);
-			else return SmartPtr<TDest, TFreePolicy>(NULL);
+			if(p) return SmartPtr<TDest, FreePolicy>(p, m_refCount);
+			else return SmartPtr<TDest, FreePolicy>(NULL);
 		}
 
 	///	performs a static cast
-		template <class TDest,  template <class TPtr> class TFreePolicy>
-		SmartPtr<TDest, TFreePolicy> cast_static() const{
+		template <class TDest>
+		SmartPtr<TDest, FreePolicy> cast_static() const{
 			TDest* p = static_cast<TDest*>(m_ptr);
-			if(p) return SmartPtr<TDest, TFreePolicy>(p, m_refCount);
-			else return SmartPtr<TDest, TFreePolicy>(NULL);
+			if(p) return SmartPtr<TDest, FreePolicy>(p, m_refCount);
+			else return SmartPtr<TDest, FreePolicy>(NULL);
 		}
 
-	///	performs a static cast
-		template <class TDest,  template <class TPtr> class TFreePolicy>
-		SmartPtr<TDest, TFreePolicy> cast_reinterpret() const{
+	///	performs a reinterpret cast
+		template <class TDest>
+		SmartPtr<TDest, FreePolicy> cast_reinterpret() const{
 			TDest* p = reinterpret_cast<TDest*>(m_ptr);
-			if(p) return SmartPtr<TDest, TFreePolicy>(p, m_refCount);
-			else return SmartPtr<TDest, TFreePolicy>(NULL);
+			if(p) return SmartPtr<TDest, FreePolicy>(p, m_refCount);
+			else return SmartPtr<TDest, FreePolicy>(NULL);
 		}
 
 	///	performs a const cast
@@ -226,16 +226,16 @@ class ConstSmartPtr
 	/**	this template method allows to assign smart-pointers that encapsulate
 	 *	derivates of T. Make sure that the pointer-type of TSmartPtr is castable
 	 *	to T*.*/
-		template <class TPtr, template <class TT> class TFreePolicy>
-		ConstSmartPtr(const SmartPtr<TPtr, TFreePolicy>& sp) :
+		template <class TPtr>
+		ConstSmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
 			m_ptr(static_cast<const T*>(sp.get_impl())),
 			m_refCount(sp.get_refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
 		}
 
-		template <class TPtr, template <class TT> class TFreePolicy>
-		ConstSmartPtr(const ConstSmartPtr<TPtr, TFreePolicy>& sp) :
+		template <class TPtr>
+		ConstSmartPtr(const ConstSmartPtr<TPtr, FreePolicy>& sp) :
 			m_ptr(static_cast<const T*>(sp.get_impl())),
 			m_refCount(sp.get_refcount_ptr())
 		{
@@ -265,8 +265,8 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		template <class TIn, template <class TT> class TFreePolicy>
-		ConstSmartPtr<T, TFreePolicy>& operator=(const SmartPtr<TIn, TFreePolicy>& sp)	{
+		template <class TIn>
+		ConstSmartPtr<T, FreePolicy>& operator=(const SmartPtr<TIn, FreePolicy>& sp)	{
 			if(m_ptr)
 				release();
 			m_ptr = sp.get_impl();
@@ -286,8 +286,8 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		template <class TIn, template <class TT> class TFreePolicy>
-		ConstSmartPtr<T, TFreePolicy>& operator=(const ConstSmartPtr<TIn, TFreePolicy>& sp)	{
+		template <class TIn>
+		ConstSmartPtr<T, FreePolicy>& operator=(const ConstSmartPtr<TIn, FreePolicy>& sp)	{
 			if(m_ptr)
 				release();
 			m_ptr = sp.get_impl();
@@ -321,27 +321,27 @@ class ConstSmartPtr
 
 
 	///	preforms a dynamic cast
-		template <class TDest,  template <class TPtr> class TFreePolicy>
-		ConstSmartPtr<TDest, TFreePolicy> cast_dynamic() const{
+		template <class TDest>
+		ConstSmartPtr<TDest, FreePolicy> cast_dynamic() const{
 			const TDest* p = dynamic_cast<const TDest*>(m_ptr);
-			if(p) return ConstSmartPtr<TDest, TFreePolicy>(p, m_refCount);
-			else return ConstSmartPtr<TDest, TFreePolicy>(NULL);
+			if(p) return ConstSmartPtr<TDest, FreePolicy>(p, m_refCount);
+			else return ConstSmartPtr<TDest, FreePolicy>(NULL);
 		}
 
 	///	performs a static cast
-		template <class TDest,  template <class TPtr> class TFreePolicy>
-		ConstSmartPtr<TDest, TFreePolicy> cast_static() const{
+		template <class TDest>
+		ConstSmartPtr<TDest, FreePolicy> cast_static() const{
 			const TDest* p = static_cast<const TDest*>(m_ptr);
-			if(p) return ConstSmartPtr<TDest, TFreePolicy>(p, m_refCount);
-			else return ConstSmartPtr<TDest, TFreePolicy>(NULL);
+			if(p) return ConstSmartPtr<TDest, FreePolicy>(p, m_refCount);
+			else return ConstSmartPtr<TDest, FreePolicy>(NULL);
 		}
 
 	///	performs a static cast
-		template <class TDest,  template <class TPtr> class TFreePolicy>
-		ConstSmartPtr<TDest, TFreePolicy> cast_reinterpret() const{
+		template <class TDest>
+		ConstSmartPtr<TDest, FreePolicy> cast_reinterpret() const{
 			const TDest* p = reinterpret_cast<const TDest*>(m_ptr);
-			if(p) return ConstSmartPtr<TDest, TFreePolicy>(p, m_refCount);
-			else return ConstSmartPtr<TDest, TFreePolicy>(NULL);
+			if(p) return ConstSmartPtr<TDest, FreePolicy>(p, m_refCount);
+			else return ConstSmartPtr<TDest, FreePolicy>(NULL);
 		}
 
 	///	performs a const cast
