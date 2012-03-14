@@ -141,8 +141,13 @@ class DistributedGridManager : public GridObserver
 						TElem* elem);
 
 
-	///ONLY FOR DEBUG PURPOSES
-		void enable_ordered_element_insertion(bool bEnable)	{m_bOrderedInsertionEnabled = bEnable;}
+	///	Enables or disables interface managment. Use with care!
+	/**	Interface managment is enabled by default. If you intend to completly
+	 * restructure the grid and its interfaces, it may be beneficial to
+	 * disable interface management before doing so. You should then use the method
+	 * grid_layouts_changed to inform the DistributedGridManager that you
+	 * modified the interfaces externally.*/
+		void enable_interface_management(bool bEnable)	{m_interfaceManagementEnabled = bEnable;}
 		
 	////////////////////////////////
 	//	grid callbacks
@@ -381,7 +386,7 @@ class DistributedGridManager : public GridObserver
 		MultiGrid*		m_pGrid;
 		GridLayoutMap	m_gridLayoutMap;
 		
-		bool m_bOrderedInsertionEnabled;///<only for debug purposes
+		bool m_interfaceManagementEnabled;///<only for debug purposes
 		
 		bool m_bOrderedInsertionMode;
 		bool m_bElementDeletionMode;

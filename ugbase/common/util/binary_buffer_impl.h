@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <cstring>
+#include "vector_util.h"
 
 namespace ug
 {
@@ -33,7 +34,7 @@ inline void BinaryBuffer::read(char* buf, size_t size)
 	assert(m_readPos + size <= m_writePos);
 
 //	copy the data
-	memcpy(buf, buffer() + m_readPos, size);
+	memcpy(buf, &m_data.front() + m_readPos, size);
 
 //	adjust read-pos
 	m_readPos += size;
@@ -56,7 +57,7 @@ inline void BinaryBuffer::write(const char* buf, size_t size)
 	}
 
 //	copy the data
-	memcpy(buffer() + m_writePos, buf, size);
+	memcpy(&m_data.front() + m_writePos, buf, size);
 
 //	adjust write pos
 	m_writePos += size;
@@ -64,7 +65,7 @@ inline void BinaryBuffer::write(const char* buf, size_t size)
 
 inline char* BinaryBuffer::buffer()
 {
-	return &m_data.front();
+	return GetDataPtr(m_data);
 }
 
 inline bool BinaryBuffer::eof()

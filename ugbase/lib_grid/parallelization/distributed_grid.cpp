@@ -18,7 +18,7 @@ DistributedGridManager() :
 	m_aElemInfoFace("DistributedGridManager_ElemInfoFace", false),
 	m_aElemInfoVol("DistributedGridManager_ElemInfoVol", false)
 {
-	m_bOrderedInsertionEnabled = true;
+	m_interfaceManagementEnabled = true;
 	m_bOrderedInsertionMode = false;
 	m_bElementDeletionMode = false;
 	m_pGrid = NULL;
@@ -31,7 +31,7 @@ DistributedGridManager(MultiGrid& grid) :
 	m_aElemInfoFace("DistributedGridManager_ElemInfoFace", false),
 	m_aElemInfoVol("DistributedGridManager_ElemInfoVol", false)
 {
-	m_bOrderedInsertionEnabled = true;
+	m_interfaceManagementEnabled = true;
 	m_bOrderedInsertionMode = false;
 	m_bElementDeletionMode = false;
 	m_pGrid = NULL;
@@ -458,7 +458,7 @@ void
 DistributedGridManager::
 end_ordered_element_insertion()
 {
-	if(m_bOrderedInsertionMode && m_bOrderedInsertionEnabled){
+	if(m_bOrderedInsertionMode && m_interfaceManagementEnabled){
 	//TODO: support all elements
 		perform_ordered_element_insertion(m_vrtMap);
 		perform_ordered_element_insertion(m_edgeMap);
@@ -556,8 +556,7 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 
 	elem_info(pElem).set_status(ES_NONE);
 	
-//	only for debug purposes
-	if(!m_bOrderedInsertionEnabled)
+	if(!m_interfaceManagementEnabled)
 		return;
 		
 //	if there is no parent, we can immediatly leave.
@@ -718,6 +717,9 @@ template <class TElem>
 void DistributedGridManager::
 element_to_be_erased(TElem* elem)
 {
+	if(!m_interfaceManagementEnabled)
+		return;
+
 	ElementInfo<TElem>& elemInfo = elem_info(elem);
 
 	if(elemInfo.is_interface_element()){

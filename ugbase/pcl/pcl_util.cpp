@@ -8,6 +8,7 @@
 #include "common/log.h"
 
 using namespace std;
+using namespace ug;
 
 namespace pcl{
 
@@ -63,7 +64,7 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 	int procCount = (int)vSendToRanks.size();
 
 	procComm.allgather(&procCount, 1, PCL_DT_INT,
-					   &vNumAssProcs.front(),
+					   GetDataPtr(vNumAssProcs),
 					   1,
 					   PCL_DT_INT);
 
@@ -84,24 +85,13 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 //	adjacency in this case means, that processes want to communicate.
 	vector<int> vGlobalProcList(listSize);
 
-	if(procCount > 0){
-		procComm.allgatherv(&vSendToRanks.front(),
-							procCount,
-							PCL_DT_INT,
-							&vGlobalProcList.front(),
-							&vNumAssProcs.front(),
-							&vDisplacements.front(),
-							PCL_DT_INT);
-	}
-	else{
-		procComm.allgatherv(NULL,
-							0,
-							PCL_DT_INT,
-							&vGlobalProcList.front(),
-							&vNumAssProcs.front(),
-							&vDisplacements.front(),
-							PCL_DT_INT);
-	}
+	procComm.allgatherv(GetDataPtr(vSendToRanks),
+						procCount,
+						PCL_DT_INT,
+						GetDataPtr(vGlobalProcList),
+						GetDataPtr(vNumAssProcs),
+						GetDataPtr(vDisplacements),
+						PCL_DT_INT);
 
 //	we can now check for each process whether it wants to
 //	communicate with this process. Simply iterate over

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <vector>
+#include "vector_util.h"
 
 namespace ug
 {
@@ -44,8 +45,8 @@ class BinaryStreamBuffer : public std::streambuf
 		inline void reset() //< set read- and write-positions to the start of the buffer.
 			{m_readPos = 0; m_writePos = 0;}
 
-		inline void* buffer() //< returns a pointer to the front of the buffer.
-			{return &m_dataBuf.front();}
+		inline void* buffer() //< returns a pointer to the front of the buffer or NULL if the buffer is empty.
+			{return GetDataPtr(m_dataBuf);}
 
 		inline int size() const //< returns the size of the buffer in bytes.
 			{return m_dataBuf.size();}

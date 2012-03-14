@@ -9,9 +9,11 @@
 #include "pcl_process_communicator.h"
 #include "common/log.h"
 #include "common/assert.h"
+#include "common/util/vector_util.h"
 #include "pcl_profiling.h"
 
 using namespace std;
+using namespace ug;
 
 namespace pcl
 {
@@ -376,21 +378,9 @@ distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
 	vector<int> bufferSizes(numRecvFroms);
 
 //	exchange buffer sizes (use an arbitrary tag)
-	int* ptmpRecvSegSizes = NULL;
-	int* ptmpSendSegSizes = NULL;
-	int* pbufferSizes = NULL;
-
-	if(numRecvFroms){
-		ptmpRecvSegSizes = &tmpRecvSegSizes.front();
-		pbufferSizes = &bufferSizes.front();
-	}
-
-	if(numSendTos)
-		ptmpSendSegSizes = &tmpSendSegSizes.front();
-
-	distribute_data(pbufferSizes, ptmpRecvSegSizes,
+	distribute_data(GetDataPtr(bufferSizes), GetDataPtr(tmpRecvSegSizes),
 					recvFromRanks, numRecvFroms,
-					sendSegSizes, ptmpSendSegSizes,
+					sendSegSizes, GetDataPtr(tmpSendSegSizes),
 					sendToRanks, numSendTos, 89347);
 
 //	calculate buffer sizes and resize the binary stream
@@ -402,18 +392,10 @@ distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
 	recvBufOut.resize(totalSize);
 
 //	now exchange the buffers
-	if(totalSize > 0){
-		distribute_data(recvBufOut.buffer(), pbufferSizes,
-						recvFromRanks, numRecvFroms,
-						sendBuf, sendSegSizes,
-						sendToRanks, numSendTos, 3458);
-	}
-	else{
-		distribute_data(NULL, pbufferSizes,
-						recvFromRanks, numRecvFroms,
-						sendBuf, sendSegSizes,
-						sendToRanks, numSendTos, 3458);
-	}
+	distribute_data(recvBufOut.buffer(), GetDataPtr(bufferSizes),
+					recvFromRanks, numRecvFroms,
+					sendBuf, sendSegSizes,
+					sendToRanks, numSendTos, 3458);
 }
 
 void ProcessCommunicator::

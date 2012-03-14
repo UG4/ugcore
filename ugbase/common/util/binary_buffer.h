@@ -58,7 +58,7 @@ class BinaryBuffer
 	/**	This automatically advances the write position.*/
 		inline void write(const char* buf, size_t size);
 
-	///	returns the raw buffer pointer
+	///	returns the raw buffer pointer or NULL if the buffer is empty (capacity() == 0)
 		inline char* buffer();
 
 	///	returns true if the read-position reached the write-position

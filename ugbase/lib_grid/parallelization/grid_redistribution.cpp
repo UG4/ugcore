@@ -107,8 +107,8 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	Since we will change huge parts of the underlying grid and the grid-layout-map,
 //	we'll disable auto-insertion of elements in the distributed-grid-manager.
 //	This means we carefully have to take care of all interface changes.
-	distGridMgrInOut.enable_ordered_element_insertion(false);
-	UG_LOG("1 ");
+	distGridMgrInOut.enable_interface_management(false);
+
 ////////////////////////////////
 //	GLOBAL IDS
 	PCL_PROFILE(redist_CreateGlobalIDs);
@@ -146,7 +146,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	each process has to know with which other processes it
 //	has to communicate.
 	vector<int> sendToRanks, recvFromRanks, sendPartitionInds;
-	UG_LOG("2 ");
+
 //	for each subset which is not emtpy we'll have to send data to
 //	the associated process.
 	for(int si = 0; si < shPartition.num_subsets(); ++si){
@@ -195,7 +195,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	the magic number is used for debugging to make sure that the stream is read correctly
 	int magicNumber1 = 75234587;
 	int magicNumber2 = 560245;
-	UG_LOG("3 ");
+
 	for(size_t i_to = 0; i_to < sendToRanks.size(); ++i_to){
 		int partInd = sendPartitionInds[i_to];
 
@@ -252,39 +252,20 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		outSegSizes.push_back((int)(out.size() - oldSize));
 	}
 	PCL_PROFILE_END();
-	UG_LOG("4 ");
+
 	PCL_PROFILE(redist_SendSerializedData);
 //	now distribute the packs between involved processes
 	BinaryStream in;
 	vector<int> inSegSizes(recvFromRanks.size());
 
-	int* pinSegSizes = NULL;
-	int* precvFromRanks = NULL;
-	if(!recvFromRanks.empty()){
-		pinSegSizes = &inSegSizes.front();
-		precvFromRanks = &recvFromRanks.front();
-	}
-
-	int* poutSegSizes = NULL;
-	int* psendToRanks = NULL;
-	if(!sendToRanks.empty()){
-		poutSegSizes = &outSegSizes.front();
-		psendToRanks = &sendToRanks.front();
-	}
-
-	void* poutBuffer = NULL;
-	if(out.size())
-		poutBuffer = out.buffer();
-
-	UG_LOG("4.1 ");
-	procComm.distribute_data(in, pinSegSizes,
-							precvFromRanks, (int)recvFromRanks.size(),
-							poutBuffer, poutSegSizes,
-							psendToRanks, (int)sendToRanks.size());
+	procComm.distribute_data(in, GetDataPtr(inSegSizes),
+							GetDataPtr(recvFromRanks), (int)recvFromRanks.size(),
+							out.buffer(), GetDataPtr(outSegSizes),
+							GetDataPtr(sendToRanks), (int)sendToRanks.size());
 
 	PCL_PROFILE_END();
 	//UG_LOG("Size of in buffer: " << in.size() << endl);
-	UG_LOG("5 ");
+
 ////////////////////////////////
 //	INTERMEDIATE CLEANUP
 	PCL_PROFILE(redist_ClearLocalGrid);
@@ -300,12 +281,12 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	DeserializeRedistributedGrid(mg, glm, in, recvFromRanks, deserializer);
 	//UG_LOG("deserialization done\n\n");
 	PCL_PROFILE_END();
-	UG_LOG("6 ");
+
 ////////////////////////////////
 //	UPDATE THE DISTRIBUTED GRID MANAGER
 	PCL_PROFILE(redist_UpdateDistGridManager);
 	glm.remove_empty_interfaces();
-	distGridMgrInOut.enable_ordered_element_insertion(true);
+	distGridMgrInOut.enable_interface_management(true);
 	distGridMgrInOut.grid_layouts_changed(false);
 	PCL_PROFILE_END();
 

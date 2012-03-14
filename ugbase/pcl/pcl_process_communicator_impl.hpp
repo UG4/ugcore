@@ -5,6 +5,8 @@
 #ifndef __H__PCL__pcl_process_communicator_impl__
 #define __H__PCL__pcl_process_communicator_impl__
 
+#include "common/util/vector_util.h"
+
 namespace pcl
 {
 
@@ -14,6 +16,8 @@ gatherv(std::vector<TValue>& recBufOut,
 		 std::vector<TValue>& sendBuf, int root,
 		 std::vector<int>* pSizesOut, std::vector<int>* pOffsetsOut) const
 {
+	using namespace ug;
+
 //todo: One could declare a special MPI_Datatype and could thus
 //	directly work on pSizesOut and pOffsetsOut.
 	std::vector<int> sizes(this->size(), 0);
@@ -22,7 +26,7 @@ gatherv(std::vector<TValue>& recBufOut,
 //	gather the sizes on root. Note that we send the actual data
 //	in bytes later on.
 	int localSize = (int)sendBuf.size() * sizeof(TValue);
-	gather(&localSize, 1, PCL_DT_INT, &sizes.front(),
+	gather(&localSize, 1, PCL_DT_INT, GetDataPtr(sizes),
 			1, PCL_DT_INT, root);
 
 	int totalSize = 0;
@@ -33,12 +37,12 @@ gatherv(std::vector<TValue>& recBufOut,
 
 	//	root now knows all sizes. We can now gather the connections on root.
 	recBufOut.resize(totalSize / sizeof(TValue));
-	gatherv(&sendBuf.front(),
+	gatherv(GetDataPtr(sendBuf),
 			 localSize,
 			 PCL_DT_BYTE,
-			 &recBufOut.front(),
-			 &sizes.front(),
-			 &offsets.front(),
+			 GetDataPtr(recBufOut),
+			 GetDataPtr(sizes),
+			 GetDataPtr(offsets),
 			 PCL_DT_BYTE,
 			 root);
 
@@ -68,6 +72,8 @@ allgatherv(std::vector<TValue>& recBufOut,
 			std::vector<int>* pSizesOut,
 			std::vector<int>* pOffsetsOut) const
 {
+	using namespace ug;
+
 //todo: One could declare a special MPI_Datatype and could thus
 //	directly work on pSizesOut and pOffsetsOut.
 	std::vector<int> sizes(this->size(), 0);
@@ -87,9 +93,9 @@ allgatherv(std::vector<TValue>& recBufOut,
 
 	//	all procs now know all sizes. We can now gather the connections.
 	recBufOut.resize(totalSize / sizeof(TValue));
-	allgatherv(&sendBuf.front(), localSize, PCL_DT_BYTE,
-				&recBufOut.front(), &sizes.front(),
-				&offsets.front(), PCL_DT_BYTE);
+	allgatherv(GetDataPtr(sendBuf), localSize, PCL_DT_BYTE,
+				GetDataPtr(recBufOut), GetDataPtr(sizes),
+				GetDataPtr(offsets), PCL_DT_BYTE);
 
 //	send is complete now. If pSizesOut or pOffsetsOut was specified, we
 //	fill them now.
