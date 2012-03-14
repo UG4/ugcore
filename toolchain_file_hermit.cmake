@@ -41,6 +41,7 @@ ELSE()
     # emulating Hermit.cmake
     # this is needed to get rid of -rdynamic flag...
     SET(CMAKE_SYSTEM_NAME Catamount)
+    
     SET(MPI_Fortran_NO_INTERROGATE CMAKE_Fortran_COMPILER)
     SET(MPI_LIBRARY -L$(MPICH_DIR)/lib)
     SET(MPI_EXTRA_LIBRARY -L$(MPICH_DIR)/lib)
@@ -49,6 +50,28 @@ ELSE()
     SET(BLAS_FIND_QUIETLY ON)
     SET(LAPACK_FIND_QUIETLY ON)
     SET(LAPACK_LIBRARIES "/opt/xt-libsci/11.0.05/cray/74/interlagos/lib/libsci_cray.a")
+    
+    # Cray is not recognized by Cmake < 2.8.7
+    EXECUTE_PROCESS(
+	        COMMAND "CC" "-V"
+	        OUTPUT_VARIABLE cxx_compiler_string
+	        ERROR_VARIABLE cxx_compiler_string
+     )
+	IF(${cxx_compiler_string} MATCHES ".*\nCray.*")
+		SET(CMAKE_CXX_COMPILER_ID "Cray")
+		SET(CMAKE_CXX_COMPILER_ID_RUN 1)
+	ENDIF()
+	
+	EXECUTE_PROCESS(
+	        COMMAND "cc" "-V"
+	        OUTPUT_VARIABLE c_compiler_string
+	        ERROR_VARIABLE c_compiler_string
+     )
+	IF(${c_compiler_string} MATCHES ".*\nCray.*")
+		SET(CMAKE_C_COMPILER_ID "Cray")
+		SET(CMAKE_C_COMPILER_ID_RUN 1)
+	ENDIF()
+    
 ENDIF()
 
 
