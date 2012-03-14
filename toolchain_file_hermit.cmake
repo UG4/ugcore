@@ -1,12 +1,15 @@
 # created by Martin Rupp
 # martin.rupp@gcsc.uni-frankfurt.de
 
-# toolchain file for Hermit/XE6 HLRS Stuttgart with Cray Compiler
+# toolchain file for Hermit/XE6 HLRS Stuttgart
 
 
 # USAGE
-# first change programming environment
+# first change programming environment for your compiler of choice
+# for Cray compiler:
 #    module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray
+# for GCC:
+#    module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu
 # then start cmake
 #    cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake ..
 
