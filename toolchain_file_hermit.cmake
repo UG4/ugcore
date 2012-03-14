@@ -24,12 +24,32 @@
 # see also $CRAY_* environment variables
 # $CRAY_UGNI_POST_LINK_OPTS
 
+# to use cmake 2.8.7:
+# module load tools/cmake/2.8.7
 # this is needed to get rid of -rdynamic flag...
-SET(CMAKE_SYSTEM_NAME Catamount)
+IF(${CMAKE_VERSION} STRLESS "2.8.7")
+	# emulating Hermit.cmake
+	SET(CMAKE_SYSTEM_NAME Catamount)
+	SET(MPI_Fortran_NO_INTERROGATE CMAKE_Fortran_COMPILER)
+	SET(MPI_LIBRARY -L$(MPICH_DIR)/lib)
+	SET(MPI_EXTRA_LIBRARY -L$(MPICH_DIR)/lib)
+	SET(BLA_STATIC ON)
+	SET(BLA_VENDOR All)
+	SET(BLAS_FIND_QUIETLY ON)
+	SET(LAPACK_FIND_QUIETLY ON)
+	SET(LAPACK_LIBRARIES "/opt/xt-libsci/11.0.05/cray/74/interlagos/lib/libsci_cray.a")
+ELSE()
+	# cmake >= 2.8.7 has Hermit.cmake
+	SET(CMAKE_SYSTEM_NAME Hermit)
+ENDIF()
+
+
 SET(CMAKE_Fortran_COMPILER ftn)
 
 SET(CMAKE_C_COMPILER cc CACHE FORCE "")
 SET(CMAKE_CXX_COMPILER CC CACHE FORCE "")
+
+# be sure that module xt-libsci is loaded
 SET(BUILTIN_LAPACK YES CACHE FORCE "")
 SET(BUILTIN_BLAS YES CACHE FORCE "")
 SET(BUILTIN_MPI YES CACHE FORCE "")
