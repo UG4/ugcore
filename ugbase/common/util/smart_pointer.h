@@ -149,6 +149,32 @@ class SmartPtr
 		T* get_nonconst_impl() const	{return m_ptr;}
 	/**	\}	*/
 
+	///	preforms a dynamic cast
+		template <class TDest,  template <class TPtr> class TFreePolicy>
+		SmartPtr<TDest, TFreePolicy> cast_dynamic() const{
+			TDest* p = dynamic_cast<TDest*>(m_ptr);
+			if(p) return SmartPtr<TDest, TFreePolicy>(p, m_refCount);
+			else return SmartPtr<TDest, TFreePolicy>(NULL);
+		}
+
+	///	performs a static cast
+		template <class TDest,  template <class TPtr> class TFreePolicy>
+		SmartPtr<TDest, TFreePolicy> cast_static() const{
+			TDest* p = static_cast<TDest*>(m_ptr);
+			if(p) return SmartPtr<TDest, TFreePolicy>(p, m_refCount);
+			else return SmartPtr<TDest, TFreePolicy>(NULL);
+		}
+
+	///	performs a static cast
+		template <class TDest,  template <class TPtr> class TFreePolicy>
+		SmartPtr<TDest, TFreePolicy> cast_reinterpret() const{
+			TDest* p = reinterpret_cast<TDest*>(m_ptr);
+			if(p) return SmartPtr<TDest, TFreePolicy>(p, m_refCount);
+			else return SmartPtr<TDest, TFreePolicy>(NULL);
+		}
+
+	///	performs a const cast
+		ConstSmartPtr<T, FreePolicy> cast_const() const;
 	private:
 	///	decrements the refCount and frees the encapsulated pointer if required.
 		void release() {
@@ -293,6 +319,36 @@ class ConstSmartPtr
 	 *	that casts element-pointers of a smart pointer.*/
 		int* get_refcount_ptr() const {return m_refCount;}
 
+
+	///	preforms a dynamic cast
+		template <class TDest,  template <class TPtr> class TFreePolicy>
+		ConstSmartPtr<TDest, TFreePolicy> cast_dynamic() const{
+			const TDest* p = dynamic_cast<const TDest*>(m_ptr);
+			if(p) return ConstSmartPtr<TDest, TFreePolicy>(p, m_refCount);
+			else return ConstSmartPtr<TDest, TFreePolicy>(NULL);
+		}
+
+	///	performs a static cast
+		template <class TDest,  template <class TPtr> class TFreePolicy>
+		ConstSmartPtr<TDest, TFreePolicy> cast_static() const{
+			const TDest* p = static_cast<const TDest*>(m_ptr);
+			if(p) return ConstSmartPtr<TDest, TFreePolicy>(p, m_refCount);
+			else return ConstSmartPtr<TDest, TFreePolicy>(NULL);
+		}
+
+	///	performs a static cast
+		template <class TDest,  template <class TPtr> class TFreePolicy>
+		ConstSmartPtr<TDest, TFreePolicy> cast_reinterpret() const{
+			const TDest* p = reinterpret_cast<const TDest*>(m_ptr);
+			if(p) return ConstSmartPtr<TDest, TFreePolicy>(p, m_refCount);
+			else return ConstSmartPtr<TDest, TFreePolicy>(NULL);
+		}
+
+	///	performs a const cast
+		SmartPtr<T, FreePolicy> cast_const() const{
+			return SmartPtr<T, FreePolicy>(const_cast<T*>(m_ptr), m_refCount);
+		}
+
 	private:
 	///	decrements the refCount and frees the encapsulated pointer if required.
 		void release() {
@@ -327,6 +383,14 @@ class ConstSmartPtr
 		int*		m_refCount;
 };
 /**	\} */
+
+
+///	performs a const cast
+
+template <typename T, template <class TT> class FreePolicy>
+inline ConstSmartPtr<T, FreePolicy> SmartPtr<T, FreePolicy>::cast_const() const{
+	return ConstSmartPtr<T, FreePolicy>(*this);
+}
 
 
 /**	The SmartPtr<void> is a specialization of the SmartPtr class.
@@ -407,7 +471,7 @@ class SmartPtr<void>
 	///	Returns a SmartPtr with the specified type and shared reference counting.
 	/**	USE WITH CARE! ONLY COMPATIBLE TYPES SHOULD BE USED*/
 		template <class T,  template <class TPtr> class TFreePolicy>
-		SmartPtr<T, TFreePolicy> to_smart_pointer_reinterpret(){
+		SmartPtr<T, TFreePolicy> cast_reinterpret() const {
 			return SmartPtr<T, TFreePolicy>(reinterpret_cast<T*>(m_ptr), m_refCountPtr);
 		}
 
@@ -551,7 +615,7 @@ class ConstSmartPtr<void>
 	///	Returns a SmartPtr with the specified type and shared reference counting.
 	/**	USE WITH CARE! ONLY COMPATIBLE TYPES SHOULD BE USED*/
 		template <class T, template <class TPtr> class TFreePolicy>
-		ConstSmartPtr<T, TFreePolicy> to_smart_pointer_reinterpret() const{
+		ConstSmartPtr<T, TFreePolicy> cast_reinterpret() const{
 			return ConstSmartPtr<T, TFreePolicy>(reinterpret_cast<const T*>(m_ptr), m_refCountPtr);
 		}
 
@@ -590,6 +654,7 @@ class ConstSmartPtr<void>
 		int* m_refCountPtr;
 		void (*m_freeFunc)(const void*);
 };
+
 
 
 namespace std

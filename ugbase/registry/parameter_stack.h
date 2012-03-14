@@ -442,7 +442,7 @@ class ParameterStack
 				smartPtr.set_impl<T, FreeDelete>(rawPtr);
 
 				if(rawPtr != NULL)
-					return smartPtr.to_smart_pointer_reinterpret<T, FreeDelete>();
+					return smartPtr.cast_reinterpret<T, FreeDelete>();
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index),
 					                                ClassNameProvider<T>::name()));
@@ -491,7 +491,7 @@ class ParameterStack
 				smartPtr.set_impl<T, FreeDelete>(const_cast<const void*>(rawPtr));
 
 				if(rawPtr != NULL)
-					return smartPtr.to_smart_pointer_reinterpret<T, FreeDelete>();
+					return smartPtr.cast_reinterpret<T, FreeDelete>();
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index),
 					                                ClassNameProvider<T>::name()));
