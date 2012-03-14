@@ -51,7 +51,7 @@ class DataLinker
 	///	returns if the derivative of the i'th input is zero
 		bool zero_derivative(size_t i) const
 		{
-			if(m_vpIIPData[i] == NULL) return true;
+			if(!m_vpIIPData[i].is_valid()) return true;
 			return m_vpIIPData[i]->zero_derivative();
 		}
 
@@ -63,11 +63,11 @@ class DataLinker
 		}
 
 	///	sets an input
-		void set_input(size_t i, IIPDimData<dim>* input)
+		void set_input(size_t i, SmartPtr<IIPDimData<dim> > input)
 		{
 			UG_ASSERT(i < m_vpIIPData.size(), "invalid index");
 			m_vpIIPData[i] = input;
-			m_vpIDependData[i] = dynamic_cast<IDependentIPData*>(input);
+			m_vpIDependData[i] = input.template cast_dynamic<IDependentIPData>();
 		}
 
 	///	number of inputs
@@ -77,10 +77,10 @@ class DataLinker
 		virtual size_t num_needed_data() const {return m_vpIIPData.size();}
 
 	///	return needed data
-		virtual IIPData* needed_data(size_t i)
+		virtual SmartPtr<IIPData> needed_data(size_t i)
 		{
 			UG_ASSERT(i < m_vpIIPData.size(), "Input not needed");
-			UG_ASSERT(m_vpIIPData[i] != NULL, "Data input not valid");
+			UG_ASSERT(m_vpIIPData[i].is_valid(), "Data input not valid");
 			return m_vpIIPData[i];
 		}
 
@@ -95,7 +95,7 @@ class DataLinker
 		size_t input_num_fct(size_t i) const
 		{
 			UG_ASSERT(i < m_vpIDependData.size(), "Input invalid");
-			if(m_vpIDependData[i] == NULL) return 0;
+			if(!m_vpIDependData[i].is_valid()) return 0;
 			return m_vpIDependData[i]->num_fct();
 		}
 
@@ -123,10 +123,10 @@ class DataLinker
 
 	protected:
 	///	data input
-		std::vector<IIPDimData<dim>*> m_vpIIPData;
+		std::vector<SmartPtr<IIPDimData<dim> > > m_vpIIPData;
 
 	///	data input casted to IDependend data
-		std::vector<IDependentIPData*> m_vpIDependData;
+		std::vector<SmartPtr<IDependentIPData> > m_vpIDependData;
 
 	///	common functions the data depends on
 		FunctionGroup m_commonFctGroup;
@@ -192,7 +192,7 @@ class DataLinkerEqualData
 		const TDataIn& input_value(size_t i, size_t s, size_t ip) const
 		{
 			UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
-			UG_ASSERT(m_vpIPData[i] != NULL, "Input invalid");
+			UG_ASSERT(m_vpIPData[i].is_valid(), "Input invalid");
 			return m_vpIPData[i]->value(series_id(i,s), ip);
 		}
 
@@ -200,7 +200,7 @@ class DataLinkerEqualData
 		TDataIn& input_value(size_t i, size_t s, size_t ip)
 		{
 			UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
-			UG_ASSERT(m_vpIPData[i] != NULL, "Input invalid");
+			UG_ASSERT(m_vpIPData[i].is_valid(), "Input invalid");
 			return m_vpIPData[i]->value(series_id(i,s), ip);
 		}
 
@@ -208,7 +208,7 @@ class DataLinkerEqualData
 		const TDataIn& input_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof) const
 		{
 			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
-			UG_ASSERT(m_vpDependData[i] != NULL, "Input invalid");
+			UG_ASSERT(m_vpDependData[i].is_valid(), "Input invalid");
 			return m_vpDependData[i]->deriv(series_id(i,s), ip, fct, dof);
 		}
 
@@ -216,16 +216,16 @@ class DataLinkerEqualData
 		TDataIn& input_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof)
 		{
 			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
-			UG_ASSERT(m_vpDependData[i] != NULL, "Input invalid");
+			UG_ASSERT(m_vpDependData[i].is_valid(), "Input invalid");
 			return m_vpDependData[i]->deriv(series_id(i,s), ip, fct, dof);
 		}
 
 	protected:
 	///	data input
-		std::vector<IPData<TDataIn, dim>*> m_vpIPData;
+		std::vector<SmartPtr<IPData<TDataIn, dim> > > m_vpIPData;
 
 	///	data input casted to dependend data
-		std::vector<DependentIPData<TDataIn, dim>*> m_vpDependData;
+		std::vector<SmartPtr<DependentIPData<TDataIn, dim> > > m_vpDependData;
 };
 
 /////////////////////////////////////////////////
@@ -363,7 +363,7 @@ class ScaleAddLinker
 		const TData& input_value(size_t i, size_t s, size_t ip) const
 		{
 			UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
-			UG_ASSERT(m_vpIPData[i] != NULL, "Input invalid");
+			UG_ASSERT(m_vpIPData[i].is_valid(), "Input invalid");
 			return m_vpIPData[i]->value(series_id(2*i,s), ip);
 		}
 
@@ -371,7 +371,7 @@ class ScaleAddLinker
 		const TData& input_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof) const
 		{
 			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
-			UG_ASSERT(m_vpDependData[i] != NULL, "Input invalid");
+			UG_ASSERT(m_vpDependData[i].is_valid(), "Input invalid");
 			return m_vpDependData[i]->deriv(series_id(2*i,s), ip, fct, dof);
 		}
 
@@ -379,7 +379,7 @@ class ScaleAddLinker
 		const TDataScale& scale_value(size_t i, size_t s, size_t ip) const
 		{
 			UG_ASSERT(i < m_vpScaleData.size(), "Input not needed");
-			UG_ASSERT(m_vpScaleData[i] != NULL, "Input invalid");
+			UG_ASSERT(m_vpScaleData[i].is_valid(), "Input invalid");
 			return m_vpScaleData[i]->value(series_id(2*i+1,s), ip);
 		}
 
@@ -387,7 +387,7 @@ class ScaleAddLinker
 		const TDataScale& scale_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof) const
 		{
 			UG_ASSERT(i < m_vpScaleDependData.size(), "Input not needed");
-			UG_ASSERT(m_vpScaleDependData[i] != NULL, "Input invalid");
+			UG_ASSERT(m_vpScaleDependData[i].is_valid(), "Input invalid");
 			return m_vpScaleDependData[i]->deriv(series_id(2*i+1,s), ip, fct, dof);
 		}
 
@@ -417,16 +417,16 @@ class ScaleAddLinker
 
 	protected:
 	///	data input
-		std::vector<IPData<TDataScale, dim>*> m_vpScaleData;
+		std::vector<SmartPtr<IPData<TDataScale, dim> > > m_vpScaleData;
 
 	///	data input casted to dependend data
-		std::vector<DependentIPData<TDataScale, dim>*> m_vpScaleDependData;
+		std::vector<SmartPtr<DependentIPData<TDataScale, dim> > > m_vpScaleDependData;
 
 	///	data input
-		std::vector<IPData<TData, dim>*> m_vpIPData;
+		std::vector<SmartPtr<IPData<TData, dim> > > m_vpIPData;
 
 	///	data input casted to dependend data
-		std::vector<DependentIPData<TData, dim>*> m_vpDependData;
+		std::vector<SmartPtr<DependentIPData<TData, dim> > > m_vpDependData;
 };
 
 } // end namespace ug

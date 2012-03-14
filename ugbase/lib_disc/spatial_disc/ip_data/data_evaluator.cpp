@@ -97,7 +97,7 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 			(*m_pvElemDisc)[i]->get_import(imp).set_function_group(discFctGrp);
 
 		for(size_t exp = 0; exp < (*m_pvElemDisc)[i]->num_exports(); ++exp)
-			(*m_pvElemDisc)[i]->get_export(exp).set_function_group(discFctGrp);
+			(*m_pvElemDisc)[i]->get_export(exp)->set_function_group(discFctGrp);
 
 	//	create a mapping between all functions and the function group of this
 	//	element disc.
@@ -147,14 +147,14 @@ clear_extracted_data_and_mappings()
 	m_vDataLinker.clear();
 }
 
-bool DataEvaluator::add_data_to_eval_data(std::vector<IIPData*>& vEvalData,
-                                          std::vector<IIPData*>& vTryingToAdd)
+bool DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEvalData,
+                                          std::vector<SmartPtr<IIPData> >& vTryingToAdd)
 {
 //	if empty, we're done
 	if(vTryingToAdd.empty()) return true;
 
 //	search for element in already scheduled data
-	std::vector<IIPData*>::iterator it, itEnd;
+	std::vector<SmartPtr<IIPData> >::iterator it, itEnd;
 	it = find(vEvalData.begin(), vEvalData.end(), vTryingToAdd.back());
 
 //	if found, skip this data
@@ -179,7 +179,7 @@ bool DataEvaluator::add_data_to_eval_data(std::vector<IIPData*>& vEvalData,
 	}
 
 //	add all dependent datas
-	IIPData* data = vTryingToAdd.back();
+	SmartPtr<IIPData> data = vTryingToAdd.back();
 	for(size_t i = 0; i < data->num_needed_data(); ++i)
 	{
 	//	add each data separately
@@ -212,8 +212,8 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 	clear_extracted_data_and_mappings();
 
 //	queue for all ip data needed
-	std::vector<IIPData*> vEvalData;
-	std::vector<IIPData*> vTryingToAdd;
+	std::vector<SmartPtr<IIPData> > vEvalData;
+	std::vector<SmartPtr<IIPData> > vTryingToAdd;
 
 //	In the next loop we extract all need IPData:
 //	We only process the DataImport if there has been set data to the import
@@ -285,7 +285,7 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 	for(size_t i = 0; i < vEvalData.size(); ++i)
 	{
 	//	get the ip data
-		IIPData* ipData = vEvalData[i];
+		SmartPtr<IIPData> ipData = vEvalData[i];
 
 	//	detect constant import
 		if(ipData->constant_data())
@@ -304,11 +304,11 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 		}
 
 	//	cast to dependent data
-		IDependentIPData* dependData =
-				dynamic_cast<IDependentIPData*>(ipData);
+		SmartPtr<IDependentIPData> dependData =
+				ipData.cast_dynamic<IDependentIPData>();
 
 	//	check success
-		if(dependData == NULL)
+		if(!dependData.is_valid())
 		{
 			UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
 					" Data seems dependent, but cast failed.\n");
@@ -340,10 +340,10 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 		m_vDependentMap.push_back(map);
 
 	//	cast to data export
-		IDataExport* exp = dynamic_cast<IDataExport*>(ipData);
+		SmartPtr<IDataExport> exp = ipData.cast_dynamic<IDataExport>();
 
 	//	Data Export case
-		if(exp != NULL)
+		if(exp.is_valid())
 		{
 		//	schedule for evaluation of IDataExports
 			m_vDataExport.push_back(exp);
@@ -390,11 +390,10 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			if(iimp->zero_derivative()) continue;
 
 		//	get and cast dependent data
-			IDependentIPData* dependData =
-								dynamic_cast<IDependentIPData*>(iimp->get_data());
+			SmartPtr<IDependentIPData> dependData = iimp->get_data().cast_dynamic<IDependentIPData>();
 
 		//	check success
-			if(dependData == NULL)
+			if(!dependData.is_valid())
 			{
 				UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
 						" Data seems dependent, but cast failed.\n");

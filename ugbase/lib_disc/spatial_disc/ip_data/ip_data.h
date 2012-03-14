@@ -11,7 +11,6 @@
 #include <vector>
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/common/function_group.h"
-#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 
 namespace ug{
 
@@ -70,7 +69,7 @@ class IIPData
 		virtual size_t num_needed_data() const {return 0;}
 
 	///	return needed data
-		virtual IIPData* needed_data(size_t i) {return NULL;}
+		virtual SmartPtr<IIPData> needed_data(size_t i) {return NULL;}
 
 	/// compute values (and derivatives iff compDeriv == true)
 		virtual bool compute(bool bDeriv = false) = 0;

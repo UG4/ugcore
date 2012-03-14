@@ -218,11 +218,15 @@ string ParameterToString(const ParameterStack &par, int i)
 
 	case PT_POINTER:
 		return string(par.class_name(i)).append("*");
-		break;
 
 	case PT_CONST_POINTER:
 		return string("const ").append(par.class_name(i)).append("*");
-		break;
+
+	case PT_SMART_POINTER:
+		return string("SmartPtr<").append(par.class_name(i)).append(">");
+
+	case PT_CONST_SMART_POINTER:
+		return string("ConstSmartPtr<").append(par.class_name(i)).append(">");
 	}
 }
 

@@ -1125,8 +1125,8 @@ register_fvho_func()
 	m_imMass.	  set_fct(id, this, &T::template lin_def_mass_fvho<TElem, TGeomProvider>);
 
 //	exports
-	m_exConcentration.	  template set_fct<T,refDim>(id, this, &T::template ex_value_fvho<TElem, TGeomProvider>);
-	m_exConcentrationGrad.template set_fct<T,refDim>(id, this, &T::template ex_grad_fvho<TElem, TGeomProvider>);
+	m_exConcentration->	   template set_fct<T,refDim>(id, this, &T::template ex_value_fvho<TElem, TGeomProvider>);
+	m_exConcentrationGrad->template set_fct<T,refDim>(id, this, &T::template ex_grad_fvho<TElem, TGeomProvider>);
 }
 
 } // namespace ug

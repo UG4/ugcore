@@ -552,7 +552,8 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 		string name = string("ScaleAddLinker").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("add", &T::add)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, string("ScaleAddLinker").append(type), dimTag);
 	}
 
@@ -582,7 +583,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("Value")
 			.add_method("set", &T::set, "", "Value")
-			.add_method("print", &T::print);
+			.add_method("print", &T::print)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConstUserNumber", dimTag);
 	}
 
@@ -597,7 +599,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 			.template add_constructor<void (*)(number)>("Values")
 			.add_method("set_all_entries", &T::set_all_entries)
 			.add_method("set_entry", &T::set_entry)
-			.add_method("print", &T::print);
+			.add_method("print", &T::print)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConstUserVector", dimTag);
 	}
 
@@ -613,7 +616,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 			.add_method("set_diag_tensor", &T::set_diag_tensor)
 			.add_method("set_all_entries", &T::set_all_entries)
 			.add_method("set_entry", &T::set_entry)
-			.add_method("print", &T::print);
+			.add_method("print", &T::print)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConstUserMatrix", dimTag);
 	}
 
@@ -626,7 +630,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("Value")
 			.add_method("set", &T::set)
-			.add_method("print", &T::print);
+			.add_method("print", &T::print)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConstBoundaryNumber", dimTag);
 	}
 
@@ -636,7 +641,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 		typedef DataLinkerEqualData<number, dim, number> TBase;
 		string name = string("ElderDensityLinker").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ElderDensityLinker", dimTag);
 	}
 
@@ -651,7 +657,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 			.add_method("set_permeability", &T::set_permeability)
 			.add_method("set_pressure_gradient", &T::set_pressure_gradient)
 			.add_method("set_viscosity", &T::set_viscosity)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);
 	}
 

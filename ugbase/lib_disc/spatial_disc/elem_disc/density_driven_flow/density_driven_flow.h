@@ -113,7 +113,7 @@ class DensityDrivenFlowElemDisc
 	/**
 	 * This method sets the Porosity. (Dimensionless)
 	 */
-		void set_porosity(IPData<number, dim>& user)
+		void set_porosity(SmartPtr<IPData<number, dim> > user)
 		{
 			m_imPorosityScv.set_data(user);
 			m_imPorosityScvf.set_data(user);
@@ -123,7 +123,7 @@ class DensityDrivenFlowElemDisc
 	/**
 	 * This method sets the Gravity. (Unit is \f$ \frac{m}{s^2} \f$)
 	 */
-		void set_gravity(IPData<MathVector<dim>, dim>& user)
+		void set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > user)
 		{
 			m_imConstGravity.set_data(user);
 		}
@@ -132,7 +132,7 @@ class DensityDrivenFlowElemDisc
 	/**
 	 * This method sets the molecular Diffusion tensor.
 	 */
-		void set_molecular_diffusion(IPData<MathMatrix<dim, dim>, dim>& user)
+		void set_molecular_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
 		{
 			m_imMolDiffusionScvf.set_data(user);
 		}
@@ -141,7 +141,7 @@ class DensityDrivenFlowElemDisc
 	/**
 	 * This method sets the Permeability tensor.
 	 */
-		void set_permeability(IPData<MathMatrix<dim, dim>, dim>& user)
+		void set_permeability(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
 		{
 			m_imPermeabilityScvf.set_data(user);
 		}
@@ -150,28 +150,28 @@ class DensityDrivenFlowElemDisc
 	/**
 	 * This method sets the Viscosity.
 	 */
-		void set_viscosity(IPData<number, dim>& user)
+		void set_viscosity(SmartPtr<IPData<number, dim> > user)
 		{
 			m_imViscosityScvf.set_data(user);
 		}
 
 	///	set density
-		void set_density(IPData<number,dim>& data)
+		void set_density(SmartPtr<IPData<number,dim> > data)
 		{
 		//	remove old data
-			IIPData* oldData = m_imDensityScv.get_data();
-			if (oldData != NULL)
-				m_exDarcyVel.remove_needed_data(*oldData);
+			SmartPtr<IIPData> oldData = m_imDensityScv.get_data();
+			if (oldData.is_valid())
+				m_exDarcyVel->remove_needed_data(oldData);
 			oldData = m_imDensityScvf.get_data();
-			if (oldData != NULL)
-				m_exDarcyVel.remove_needed_data(*oldData);
+			if (oldData.is_valid())
+				m_exDarcyVel->remove_needed_data(oldData);
 
 		//	connect to import
 			m_imDensityScv.set_data(data);
 			m_imDensityScvf.set_data(data);
 
 		//	darcy velocity depends on density
-			m_exDarcyVel.add_needed_data(data);
+			m_exDarcyVel->add_needed_data(data);
 		}
 
 	public:
@@ -295,16 +295,16 @@ class DensityDrivenFlowElemDisc
 
 	public:
 	///	returns the export of the darcy velocity
-		IPData<MathVector<dim>, dim>& get_darcy_velocity() {return m_exDarcyVel;}
+		SmartPtr<IPData<MathVector<dim>, dim> > get_darcy_velocity() {return m_exDarcyVel;}
 
 	///	returns the export of brine mass fracture
-		IPData<number, dim>& get_brine() {return m_exBrine;}
+		SmartPtr<IPData<number, dim> > get_brine() {return m_exBrine;}
 
 	///	returns the export of brine mass fracture
-		IPData<MathVector<dim>, dim>& get_brine_grad() {return m_exBrineGrad;}
+		SmartPtr<IPData<MathVector<dim>, dim> > get_brine_grad() {return m_exBrineGrad;}
 
 	///	returns the export of brine mass fracture
-		IPData<MathVector<dim>, dim>& get_pressure_grad() {return m_exPressureGrad;}
+		SmartPtr<IPData<MathVector<dim>, dim> > get_pressure_grad() {return m_exPressureGrad;}
 
 	protected:
 	///	compute darcy velocity at one ip
@@ -372,16 +372,16 @@ class DensityDrivenFlowElemDisc
 		                      std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);
 
 	///	Export for the Darcy velocity
-		DataExport<MathVector<dim>, dim> m_exDarcyVel;
+		SmartPtr<DataExport<MathVector<dim>, dim> > m_exDarcyVel;
 
 	///	Export for the brine mass fraction
-		DataExport<number, dim> m_exBrine;
+		SmartPtr<DataExport<number, dim> > m_exBrine;
 
 	///	Export for the gradient of brine mass fraction
-		DataExport<MathVector<dim>, dim> m_exBrineGrad;
+		SmartPtr<DataExport<MathVector<dim>, dim> > m_exBrineGrad;
 
 	///	Export for the gradient of brine mass fraction
-		DataExport<MathVector<dim>, dim> m_exPressureGrad;
+		SmartPtr<DataExport<MathVector<dim>, dim> > m_exPressureGrad;
 
 	private:
 		void register_all_fv1_funcs();

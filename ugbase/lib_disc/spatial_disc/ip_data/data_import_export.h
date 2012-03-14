@@ -9,9 +9,12 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_IMPORT_EXPORT__
 
 #include "ip_data.h"
-#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
+//#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 
 namespace ug{
+
+// predeclaration
+class IElemDisc;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Data Import
@@ -26,7 +29,7 @@ class IDataImport
 	public:
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
-			: m_pIDependentIPData(NULL),
+			: m_spIDependentIPData(NULL),
 			 m_bInMassPart(false), m_bInRhsPart(false),
 			 m_bCompLinDefect(compLinDefect)
 		{}
@@ -60,12 +63,12 @@ class IDataImport
 	 */
 		bool zero_derivative() const
 		{
-			if(m_pIDependentIPData == NULL) return true;
+			if(!m_spIDependentIPData.is_valid()) return true;
 			else return !m_bCompLinDefect;
 		}
 
 	/// returns the connected ip data
-		virtual IIPData* get_data() = 0;
+		virtual SmartPtr<IIPData> get_data() = 0;
 
 	///	set function group for linearization of defect
 		void set_function_group(const FunctionGroup& fctGrp){m_fctGrp = fctGrp;}
@@ -91,7 +94,7 @@ class IDataImport
 
 	protected:
 	/// connected iexport
-		IDependentIPData* m_pIDependentIPData;
+		SmartPtr<IDependentIPData> m_spIDependentIPData;
 
 	///	function group for linear defect
 		FunctionGroup m_fctGrp;
@@ -120,21 +123,21 @@ class DataImport : public IDataImport
 	/// Constructor
 		DataImport(bool bLinDefect = true) : IDataImport(bLinDefect),
 			m_id(ROID_UNKNOWN), m_pObj(NULL),
-			m_seriesID(-1),	m_pIPData(NULL), m_vValue(NULL),
-			m_numIP(0), m_pDependentIPData(NULL)
+			m_seriesID(-1),	m_spIPData(NULL), m_vValue(NULL),
+			m_numIP(0), m_spDependentIPData(NULL)
 		{clear_fct();}
 
 	///	set the user data
-		void set_data(IPData<TData, dim>& data);
+		void set_data(SmartPtr<IPData<TData, dim> > spData);
 
 	/// returns the connected IIPData
-		IIPData* get_data(){return m_pIPData;}
+		SmartPtr<IIPData> get_data(){return m_spIPData.template cast_dynamic<IIPData>();}
 
 	///	returns true if data given
-		virtual bool data_given() const {return !(m_pIPData == NULL);}
+		virtual bool data_given() const {return m_spIPData.is_valid();}
 
 	///	sets the evaluation time point
-		void set_time(number time) {if(m_pIPData) m_pIPData->set_time(time);}
+		void set_time(number time) {if(data_given()) m_spIPData->set_time(time);}
 
 
 	/////////////////////////////////////////
@@ -144,7 +147,7 @@ class DataImport : public IDataImport
 	/// \copydoc IDataImport::constant_data()
 		virtual bool constant_data() const
 		{
-			if(m_pIPData) return m_pIPData->constant_data();
+			if(data_given()) return m_spIPData->constant_data();
 			else return false;
 		}
 
@@ -157,17 +160,17 @@ class DataImport : public IDataImport
 	///	return the derivative w.r.t to local function at ip
 		const TData* deriv(size_t ip, size_t fct) const
 		{
-			UG_ASSERT(m_pDependentIPData != NULL, "No Dependent Data set");
+			UG_ASSERT(m_spDependentIPData.is_valid(), "No Dependent Data set");
 			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
-			return m_pDependentIPData->deriv(m_seriesID, ip, fct);
+			return m_spDependentIPData->deriv(m_seriesID, ip, fct);
 		}
 
 	///	return the derivative w.r.t to local function and dof at ip
 		const TData& deriv(size_t ip, size_t fct, size_t dof) const
 		{
-			UG_ASSERT(m_pDependentIPData != NULL, "No Dependent Data set");
+			UG_ASSERT(m_spDependentIPData.is_valid(), "No Dependent Data set");
 			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
-			return m_pDependentIPData->deriv(m_seriesID, ip, fct, dof);
+			return m_spDependentIPData->deriv(m_seriesID, ip, fct, dof);
 		}
 
 	/////////////////////////////////////////
@@ -187,9 +190,9 @@ class DataImport : public IDataImport
 	///	position of ip
 		const MathVector<dim>& position(size_t i) const
 		{
-			if(m_pIPData) return m_pIPData->ip(m_seriesID, i);
-			 throw(UGFatalError("ERROR in DataLinker::position: "
-					 	 	 	 "No Data set, but positions requested."));
+			if(data_given()) return m_spIPData->ip(m_seriesID, i);
+			 UG_THROW_FATAL("DataLinker::position: "
+					 	 	 "No Data set, but positions requested.");
 		}
 
 	/////////////////////////////////////////
@@ -276,7 +279,7 @@ class DataImport : public IDataImport
 		int m_seriesID;
 
 	/// connected IP Data
-		IPData<TData, dim>* m_pIPData;
+		SmartPtr<IPData<TData, dim> > m_spIPData;
 
 	///	cached access to the IPData field
 		const TData* m_vValue;
@@ -285,7 +288,7 @@ class DataImport : public IDataImport
 		size_t m_numIP;
 
 	/// connected export (if depended data)
-		DependentIPData<TData, dim>* m_pDependentIPData;
+		SmartPtr<DependentIPData<TData, dim> > m_spDependentIPData;
 
 	/// linearized defect (num_ip) x (num_fct) x (num_dofs(i))
 		std::vector<std::vector<std::vector<TData> > > m_vvvLinDefect;
@@ -360,18 +363,19 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		void clear() {m_vDependData.clear();}
 
 	///	add data dependency
-		void add_needed_data(IIPData& data) {m_vDependData.push_back(&data);}
+		void add_needed_data(SmartPtr<IIPData> data) {m_vDependData.push_back(data);}
 
 	///	remove needed data
-		void remove_needed_data(IIPData& data) {remove(m_vDependData.begin(),
-		                                               m_vDependData.end(),
-		                                               &data);}
+		void remove_needed_data(SmartPtr<IIPData> data) {m_vDependData.erase(remove(m_vDependData.begin(),
+		                                                                            m_vDependData.end(),
+		                                                                            data),
+		                                                                            m_vDependData.end());}
 
 	///	number of other Data this data depends on
 		virtual size_t num_needed_data() const {return m_vDependData.size();}
 
 	///	return needed data
-		virtual IIPData* needed_data(size_t i) {return m_vDependData.at(i);}
+		virtual SmartPtr<IIPData> needed_data(size_t i) {return m_vDependData.at(i);}
 
 	///	returns if the dependent data is ready for evaluation
 		virtual bool is_ready() const;
@@ -398,7 +402,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		CompFct m_vCompFct[NUM_REFERENCE_OBJECTS];
 
 	///	data the export depends on
-		std::vector<IIPData*> m_vDependData;
+		std::vector<SmartPtr<IIPData> > m_vDependData;
 };
 
 } // end namespace ug

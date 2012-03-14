@@ -69,21 +69,21 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	 * This method sets the Velocity field. If no field is provided a zero
 	 * value is assumed.
 	 */
-		void set_velocity(IPData<MathVector<dim>, dim>& user) {m_imVelocity.set_data(user);}
+		void set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user) {m_imVelocity.set_data(user);}
 
 	///	sets the source / sink term
 	/**
 	 * This method sets the source/sink value. A zero value is assumed as
 	 * default.
 	 */
-		void set_source(IPData<number, dim>& user)	{m_imSource.set_data(user);}
+		void set_source(SmartPtr<IPData<number, dim> > user)	{m_imSource.set_data(user);}
 
 	///	sets mass scale
 	/**
 	 * This method sets the mass scale value. A value of 1.0 is assumed as
 	 * default.
 	 */
-		void set_mass_scale(IPData<number, dim>& user)	{m_imMassScale.set_data(user);}
+		void set_mass_scale(SmartPtr<IPData<number, dim> > user)	{m_imMassScale.set_data(user);}
 
 	public:
 	///	type of trial space for each function used
@@ -198,10 +198,10 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 
 	public:
 	///	returns the export of the concentration
-		IPData<number, dim>& value() {return m_exConcentration;}
+		SmartPtr<IPData<number, dim> > value() {return m_exConcentration;}
 
 	///	returns the export of gradient of the concentration
-		IPData<MathVector<dim>, dim>& gradient() {return m_exConcentrationGrad;}
+		SmartPtr<IPData<MathVector<dim>, dim> > gradient() {return m_exConcentrationGrad;}
 
 	protected:
 	///	computes the concentration
@@ -225,10 +225,10 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 								  std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);
 
 	///	Export for the concentration
-		DataExport<number, dim> m_exConcentration;
+		SmartPtr<DataExport<number, dim> > m_exConcentration;
 
 	///	Export for the gradient of concentration
-		DataExport<MathVector<dim>, dim> m_exConcentrationGrad;
+		SmartPtr<DataExport<MathVector<dim>, dim> > m_exConcentrationGrad;
 
 	private:
 		void register_all_fv1_funcs(bool bHang);

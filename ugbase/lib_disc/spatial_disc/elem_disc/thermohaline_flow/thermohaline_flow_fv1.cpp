@@ -742,11 +742,11 @@ prepare_element_loop()
 	if(m_imConstGravity.constant_data())
 	{
 	//	cast gravity export
-		ConstUserVector<dim>* pGrav
-			= dynamic_cast<ConstUserVector<dim>*>(m_imConstGravity.get_data());
+		SmartPtr<ConstUserVector<dim> > pGrav
+			= m_imConstGravity.get_data().template cast_dynamic<ConstUserVector<dim> >();
 
 	//	check success
-		if(pGrav == NULL)
+		if(!pGrav.is_valid())
 		{
 			UG_LOG("ERROR in prepare_element_loop: Cannot cast constant gravity.\n");
 			return false;
@@ -1369,13 +1369,22 @@ template<typename TDomain>
 ThermohalineFlowElemDisc<TDomain>::ThermohalineFlowElemDisc(const char* functions, const char* subsets) :
 	IDomainElemDisc<TDomain>(functions,subsets),
 	m_pUpwind(NULL), m_pUpwindEnergy(NULL), m_bConsGravity(true),
-	m_BoussinesqTransport(true), m_BoussinesqFlow(true),
+	m_BoussinesqTransport(true),
+	m_BoussinesqFlow(true),
 	m_BoussinesqEnergy(false),
-	m_imBrineScvf(false), m_imBrineGradScvf(false),
+	m_imBrineScvf(false),
+	m_imBrineGradScvf(false),
 	m_imPressureGradScvf(false),
 	m_imTemperatureGradScvf(false),
-	m_imDensityScv(false), m_imDensityScvf(false),
-	m_imDarcyVelScvf(false)
+	m_imDensityScv(false),
+	m_imDensityScvf(false),
+	m_imDarcyVelScvf(false),
+	m_exDarcyVel(new DataExport<MathVector<dim>, dim>),
+	m_exBrine(new DataExport<number, dim>),
+	m_exBrineGrad(new DataExport<MathVector<dim>, dim>),
+	m_exPressureGrad(new DataExport<MathVector<dim>, dim>),
+	m_exTemperature(new DataExport<number, dim>),
+	m_exTemperatureGrad(new DataExport<MathVector<dim>, dim>)
 {
 //	check number of functions
 	if(this->num_fct() != 3)
@@ -1386,7 +1395,7 @@ ThermohalineFlowElemDisc<TDomain>::ThermohalineFlowElemDisc(const char* function
 	register_all_fv1_funcs();
 
 //	register export
-	m_exDarcyVel.add_needed_data(m_exBrine);
+	m_exDarcyVel->add_needed_data(m_exBrine);
 	this->register_export(m_exDarcyVel);
 	this->register_export(m_exBrine);
 	this->register_export(m_exBrineGrad);
@@ -1455,15 +1464,15 @@ register_fv1_func()
 	this->set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem>);
 
 	if(m_bConsGravity)
-		m_exDarcyVel.template set_fct<T,refDim>(id, this, &T::template ex_darcy_cons_grav<TElem>);
+		m_exDarcyVel->template set_fct<T,refDim>(id, this, &T::template ex_darcy_cons_grav<TElem>);
 	else
-		m_exDarcyVel.template set_fct<T,refDim>(id, this, &T::template ex_darcy_std<TElem>);
+		m_exDarcyVel->template set_fct<T,refDim>(id, this, &T::template ex_darcy_std<TElem>);
 
-	m_exBrine.		 	template set_fct<T,refDim>(id, this, &T::template ex_brine<TElem>);
-	m_exBrineGrad.		template set_fct<T,refDim>(id, this, &T::template ex_brine_grad<TElem>);
-	m_exPressureGrad.	template set_fct<T,refDim>(id, this, &T::template ex_pressure_grad<TElem>);
-	m_exTemperature.	template set_fct<T,refDim>(id, this, &T::template ex_temperature<TElem>);
-	m_exTemperatureGrad.template set_fct<T,refDim>(id, this, &T::template ex_temperature_grad<TElem>);
+	m_exBrine->		 	template set_fct<T,refDim>(id, this, &T::template ex_brine<TElem>);
+	m_exBrineGrad->		template set_fct<T,refDim>(id, this, &T::template ex_brine_grad<TElem>);
+	m_exPressureGrad->	template set_fct<T,refDim>(id, this, &T::template ex_pressure_grad<TElem>);
+	m_exTemperature->	template set_fct<T,refDim>(id, this, &T::template ex_temperature<TElem>);
+	m_exTemperatureGrad->template set_fct<T,refDim>(id, this, &T::template ex_temperature_grad<TElem>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

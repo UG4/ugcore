@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "registry/registry.h"
 #include "bridge/bridge.h"
 #include "common/common.h"
 #include "common/math/ugmath.h"
@@ -842,7 +843,8 @@ bool RegisterLuaUserDataType(Registry& reg, string type, const char* parentGroup
 		typedef boost::function<void (TData& res, const MathVector<dim>& x,number time)> TBase2;
 		string name = string("LuaUser").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
-			.template add_constructor<void (*)(const char*)>("Callback");
+			.template add_constructor<void (*)(const char*)>("Callback")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, string("LuaUser").append(type), dimTag);
 	}
 
@@ -852,7 +854,8 @@ bool RegisterLuaUserDataType(Registry& reg, string type, const char* parentGroup
 		typedef boost::function<bool (TData& res, const MathVector<dim>& x,number time)> TBase;
 		string name = string("LuaBoundary").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.template add_constructor<void (*)(const char*)>("Callback");
+			.template add_constructor<void (*)(const char*)>("Callback")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, string("LuaBoundary").append(type), dimTag);
 	}
 
@@ -860,7 +863,7 @@ bool RegisterLuaUserDataType(Registry& reg, string type, const char* parentGroup
 }
 
 template <int dim>
-void RegisterLuaUserData(Registry& reg, const char* parentGroup)
+void RegisterLuaUserData(ug::bridge::Registry& reg, const char* parentGroup)
 {
 	string grp = std::string(parentGroup);
 
@@ -879,7 +882,8 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_lua_value_callback", &T::set_lua_value_callback)
-			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback);
+			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LuaUserFunctionNumber", dimTag);
 	}
 
@@ -891,7 +895,8 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_lua_value_callback", &T::set_lua_value_callback)
-			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback);
+			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LuaUserFunctionMatrixNumber", dimTag);
 	}
 

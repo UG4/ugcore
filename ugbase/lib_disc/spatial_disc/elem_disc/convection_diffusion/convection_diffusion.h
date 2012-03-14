@@ -88,47 +88,47 @@ class ConvectionDiffusionElemDisc
 	 * This method sets the Diffusion tensor used in computations. If no
 	 * Tensor is set, a zero value is assumed.
 	 */
-		void set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user);
+		void set_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
 
 	///	sets the velocity field
 	/**
 	 * This method sets the Velocity field. If no field is provided a zero
 	 * value is assumed.
 	 */
-		void set_velocity(IPData<MathVector<dim>, dim>& user);
+		void set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user);
 
 	///	sets the reaction rate
 	/**
 	 * This method sets the Reaction Rate. A zero value is assumed as default.
 	 */
-		void set_reaction_rate(IPData<number, dim>& user);
+		void set_reaction_rate(SmartPtr<IPData<number, dim> > user);
 
 	///	sets the reaction
 	/**
 	 * This method sets the Reaction. A zero value is assumed as default.
 	 */
-		void set_reaction(IPData<number, dim>& user);
+		void set_reaction(SmartPtr<IPData<number, dim> > user);
 
 	///	sets the source / sink term
 	/**
 	 * This method sets the source/sink value. A zero value is assumed as
 	 * default.
 	 */
-		void set_source(IPData<number, dim>& user);
+		void set_source(SmartPtr<IPData<number, dim> > user);
 
 	///	sets mass scale
 	/**
 	 * This method sets the mass scale value. A value of 1.0 is assumed as
 	 * default.
 	 */
-		void set_mass_scale(IPData<number, dim>& user);
+		void set_mass_scale(SmartPtr<IPData<number, dim> > user);
 
 	///	sets mass
 	/**
 	 * This method sets the mass value. A value of 0.0 is assumed as
 	 * default.
 	 */
-		void set_mass(IPData<number, dim>& user);
+		void set_mass(SmartPtr<IPData<number, dim> > user);
 
 	public:
 	///	type of trial space for each function used
@@ -470,14 +470,14 @@ class ConvectionDiffusionElemDisc
 		DataImport<number, dim> m_imMass;
 
 	public:
-		typedef IPData<number, dim> NumberExport;
-		typedef IPData<MathVector<dim>, dim> GradExport;
+		typedef SmartPtr<IPData<number, dim> > NumberExport;
+		typedef SmartPtr<IPData<MathVector<dim>, dim> > GradExport;
 
 	///	returns the export of the value of associated unknown function
-		IPData<number, dim>& value();
+		SmartPtr<IPData<number, dim> > value();
 
 	///	returns the export of the gradient of associated unknown function
-		IPData<MathVector<dim>, dim>& gradient();
+		SmartPtr<IPData<MathVector<dim>, dim> > gradient();
 
 	protected:
 		typedef IConvectionShapes<dim> conv_shape_type;
@@ -546,10 +546,10 @@ class ConvectionDiffusionElemDisc
 		                std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);
 
 	///	Export for the concentration
-		DataExport<number, dim> m_exConcentration;
+		SmartPtr<DataExport<number, dim> > m_exConcentration;
 
 	///	Export for the gradient of concentration
-		DataExport<MathVector<dim>, dim> m_exConcentrationGrad;
+		SmartPtr<DataExport<MathVector<dim>, dim> > m_exConcentrationGrad;
 
 	protected:
 	// 	FV1 Assemblings

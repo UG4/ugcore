@@ -18,12 +18,9 @@
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/reference_element/reference_element_traits.h"
+#include "lib_disc/spatial_disc/ip_data/data_import_export.h"
 
 namespace ug{
-
-// predeclaration
-class IDataExport;
-class IDataImport;
 
 /**
  * Element Discretizations
@@ -84,7 +81,7 @@ class IElemDisc
 		void register_import(IDataImport& Imp);
 
 	///	registers a data export
-		void register_export(IDataExport& Exp);
+		void register_export(SmartPtr<IDataExport> Exp);
 
 	///	returns number of imports
 		size_t num_imports() const {return m_vIImport.size();}
@@ -96,14 +93,14 @@ class IElemDisc
 		size_t num_exports() const {return m_vIExport.size();}
 
 	/// returns an export
-		IDataExport& get_export(size_t i);
+		SmartPtr<IDataExport> get_export(size_t i);
 
 	protected:
 	/// data imports
 		std::vector<IDataImport*> m_vIImport;
 
 	///	data exports
-		std::vector<IDataExport*> m_vIExport;
+		std::vector<SmartPtr<IDataExport> > m_vIExport;
 
 	public:
 	////////////////////////////

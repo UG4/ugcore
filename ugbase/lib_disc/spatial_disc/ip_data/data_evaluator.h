@@ -116,8 +116,8 @@ class DataEvaluator
 		void clear_extracted_data_and_mappings();
 
 	///	tries to add the last entry of vTryingToAdd to the eval data
-		bool add_data_to_eval_data(std::vector<IIPData*>& vEvalData,
-								   std::vector<IIPData*>& vTryingToAdd);
+		bool add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEvalData,
+								   std::vector<SmartPtr<IIPData> >& vTryingToAdd);
 
 	///	extracts imports and ipdata from IElemDiscs
 		bool extract_imports_and_ipdata(bool bMassPart = false);
@@ -165,21 +165,21 @@ class DataEvaluator
 	////////////////////////////////
 
 	///	constant data
-		std::vector<IIPData*> m_vConstData;
+		std::vector<SmartPtr<IIPData> > m_vConstData;
 
 	///	position dependent data
-		std::vector<IIPData*> m_vPosData;
+		std::vector<SmartPtr<IIPData> > m_vPosData;
 
 	///	dependent data
-		std::vector<IDependentIPData*> m_vDependentIPData;
+		std::vector<SmartPtr<IDependentIPData> > m_vDependentIPData;
 		std::vector<FunctionIndexMapping> m_vDependentMap;
 
 	///	exports
-		std::vector<IDataExport*> m_vDataExport;
+		std::vector<SmartPtr<IDataExport > > m_vDataExport;
 		std::vector<FunctionIndexMapping> m_vExpMap;
 
 	///	data linker
-		std::vector<IDependentIPData*> m_vDataLinker;
+		std::vector<SmartPtr<IDependentIPData> > m_vDataLinker;
 		std::vector<FunctionIndexMapping> m_vLinkerMap;
 };
 

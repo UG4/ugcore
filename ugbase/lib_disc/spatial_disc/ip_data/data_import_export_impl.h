@@ -56,16 +56,16 @@ void DataImport<TData,dim>::clear_fct()
 
 
 template <typename TData, int dim>
-void DataImport<TData,dim>::set_data(IPData<TData, dim>& data)
+void DataImport<TData,dim>::set_data(SmartPtr<IPData<TData, dim> > spData)
 {
 //	remember IPData
-	m_pIPData = &data;
+	m_spIPData = spData;
 
 //	remember iexport
-	this->m_pIDependentIPData = dynamic_cast<IDependentIPData*>(&data);
+	this->m_spIDependentIPData = m_spIPData.template cast_dynamic<IDependentIPData>();
 
 //	remember dependent data (i.e. is NULL iff no dependent data given)
-	m_pDependentIPData = dynamic_cast<DependentIPData<TData, dim>*>(&data);
+	m_spDependentIPData = m_spIPData.template cast_dynamic<DependentIPData<TData, dim> >();
 }
 
 template <typename TData, int dim>
@@ -73,10 +73,10 @@ template <int ldim>
 void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t numIP)
 {
 //	if no data set, skip
-	if(m_pIPData == NULL) return;
+	if(!data_given()) return;
 
 //	request series
-	m_seriesID = m_pIPData->template
+	m_seriesID = m_spIPData->template
 				register_local_ip_series<ldim>(vPos,numIP);
 
 //	cache the pointer to the data field. This is possible, since once a
@@ -84,10 +84,10 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 //	way the memory storage is not changed but always only increased. Therefore,
 //	we can request the data now and it will remain valid until IIPData::clear()
 //	is called.
-	m_vValue = m_pIPData->values(m_seriesID);
+	m_vValue = m_spIPData->values(m_seriesID);
 
 //	in addition we cache the number of ips
-	m_numIP = m_pIPData->num_ip(m_seriesID);
+	m_numIP = m_spIPData->num_ip(m_seriesID);
 
 //	resize ips
 	m_vvvLinDefect.resize(num_ip());
@@ -100,17 +100,17 @@ template <typename TData, int dim>
 void DataImport<TData,dim>::set_global_ips(const MathVector<dim>* vPos, size_t numIP)
 {
 //  if no data set, skip
-	if(m_pIPData == NULL) return;
+	if(!data_given()) return;
 
 //	set global ips for series ID
 	UG_ASSERT(m_seriesID >= 0, "Wrong series id.");
-	m_pIPData->set_global_ips(m_seriesID,vPos,numIP);
+	m_spIPData->set_global_ips(m_seriesID,vPos,numIP);
 }
 
 template <typename TData, int dim>
 void DataImport<TData,dim>::assemble_jacobian(LocalMatrix& J)
 {
-	UG_ASSERT(m_pDependentIPData != NULL, "No Export set.");
+	UG_ASSERT(m_spDependentIPData.is_valid(), "No Export set.");
 
 	if(m_bInRhsPart){
 	//	loop integration points
@@ -118,15 +118,15 @@ void DataImport<TData,dim>::assemble_jacobian(LocalMatrix& J)
 		{
 	//	loop all functions
 		for(size_t fct1 = 0; fct1 < num_fct(); ++fct1)
-			for(size_t fct2 = 0; fct2 < m_pDependentIPData->num_fct(); ++fct2)
+			for(size_t fct2 = 0; fct2 < m_spDependentIPData->num_fct(); ++fct2)
 			{
 	//	get array of linearized defect and derivative
 		const TData* LinDef = lin_defect(ip, fct1);
-		const TData* Deriv = m_pDependentIPData->deriv(m_seriesID, ip, fct2);
+		const TData* Deriv = m_spDependentIPData->deriv(m_seriesID, ip, fct2);
 
 	//	loop shapes of functions
 		for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
-			for(size_t sh2 = 0; sh2 < m_pDependentIPData->num_sh(m_seriesID, fct2); ++sh2)
+			for(size_t sh2 = 0; sh2 < m_spDependentIPData->num_sh(m_seriesID, fct2); ++sh2)
 			{
 				J(fct1, sh1, fct2, sh2) -= LinDef[sh1]*Deriv[sh2];
 			}
@@ -139,15 +139,15 @@ void DataImport<TData,dim>::assemble_jacobian(LocalMatrix& J)
 		{
 	//	loop all functions
 		for(size_t fct1 = 0; fct1 < num_fct(); ++fct1)
-			for(size_t fct2 = 0; fct2 < m_pDependentIPData->num_fct(); ++fct2)
+			for(size_t fct2 = 0; fct2 < m_spDependentIPData->num_fct(); ++fct2)
 			{
 	//	get array of linearized defect and derivative
 		const TData* LinDef = lin_defect(ip, fct1);
-		const TData* Deriv = m_pDependentIPData->deriv(m_seriesID, ip, fct2);
+		const TData* Deriv = m_spDependentIPData->deriv(m_seriesID, ip, fct2);
 
 	//	loop shapes of functions
 		for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
-			for(size_t sh2 = 0; sh2 < m_pDependentIPData->num_sh(m_seriesID, fct2); ++sh2)
+			for(size_t sh2 = 0; sh2 < m_spDependentIPData->num_sh(m_seriesID, fct2); ++sh2)
 			{
 				J(fct1, sh1, fct2, sh2) += LinDef[sh1]*Deriv[sh2];
 			}

@@ -22,6 +22,34 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
+FVConstantEquationElemDisc<TDomain>::
+FVConstantEquationElemDisc(const char* functions, const char* subsets)
+:IDomainElemDisc<TDomain>(functions,subsets),
+ m_exConcentration(new DataExport<number, dim>),
+ m_exConcentrationGrad(new DataExport<MathVector<dim>, dim>)
+{
+//	check number of functions
+	if(this->num_fct() != 1)
+		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'ConstantEquation'"
+					   " needs exactly "<<1<<" symbolic function.");
+
+//	register assemling functions
+	register_all_fv1_funcs(false);
+
+//	register exports
+	this->register_export(m_exConcentration);
+	this->register_export(m_exConcentrationGrad);
+
+//	register imports
+	this->register_import(m_imVelocity);
+	this->register_import(m_imSource);
+	this->register_import(m_imMassScale);
+
+	m_imMassScale.set_mass_part(true);
+	m_imSource.set_rhs_part(true);
+}
+
+template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
@@ -500,36 +528,6 @@ ex_concentration_grad(const LocalVector& u,
 	return true;
 };
 
-////////////////////////////////////////////////////////////////////////////////
-//	Constructor
-////////////////////////////////////////////////////////////////////////////////
-
-template<typename TDomain>
-FVConstantEquationElemDisc<TDomain>::
-FVConstantEquationElemDisc(const char* functions, const char* subsets)
-:IDomainElemDisc<TDomain>(functions,subsets)
-{
-//	check number of functions
-	if(this->num_fct() != 1)
-		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'ConstantEquation'"
-					   " needs exactly "<<1<<" symbolic function.");
-
-//	register assemling functions
-	register_all_fv1_funcs(false);
-
-//	register exports
-	this->register_export(m_exConcentration);
-	this->register_export(m_exConcentrationGrad);
-
-//	register imports
-	this->register_import(m_imVelocity);
-	this->register_import(m_imSource);
-	this->register_import(m_imMassScale);
-
-	m_imMassScale.set_mass_part(true);
-	m_imSource.set_rhs_part(true);
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //	register assemble functions
@@ -574,8 +572,8 @@ register_fv1_func()
 	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale<TElem, TFVGeom>);
 
 //	exports
-	m_exConcentration.	  template set_fct<T,refDim>(id, this, &T::template ex_concentration<TElem, TFVGeom>);
-	m_exConcentrationGrad.template set_fct<T,refDim>(id, this, &T::template ex_concentration_grad<TElem, TFVGeom>);
+	m_exConcentration->	   template set_fct<T,refDim>(id, this, &T::template ex_concentration<TElem, TFVGeom>);
+	m_exConcentrationGrad->template set_fct<T,refDim>(id, this, &T::template ex_concentration_grad<TElem, TFVGeom>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

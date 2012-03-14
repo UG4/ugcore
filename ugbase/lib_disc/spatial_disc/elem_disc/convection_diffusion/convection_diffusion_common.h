@@ -19,31 +19,31 @@ set_upwind(IConvectionShapes<dim>& shapes) {m_pConvShape = &shapes;}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
-set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user) {m_imDiffusion.set_data(user);}
+set_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user) {m_imDiffusion.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
-set_velocity(IPData<MathVector<dim>, dim>& user) {m_imVelocity.set_data(user);}
+set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user) {m_imVelocity.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
-set_reaction_rate(IPData<number, dim>& user) {m_imReactionRate.set_data(user);}
+set_reaction_rate(SmartPtr<IPData<number, dim> > user) {m_imReactionRate.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
-set_reaction(IPData<number, dim>& user) {m_imReaction.set_data(user);}
+set_reaction(SmartPtr<IPData<number, dim> > user) {m_imReaction.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
-set_source(IPData<number, dim>& user)	{m_imSource.set_data(user);}
+set_source(SmartPtr<IPData<number, dim> > user)	{m_imSource.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
-set_mass_scale(IPData<number, dim>& user)	{m_imMassScale.set_data(user);}
+set_mass_scale(SmartPtr<IPData<number, dim> > user)	{m_imMassScale.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
-set_mass(IPData<number, dim>& user)	{m_imMass.set_data(user);}
+set_mass(SmartPtr<IPData<number, dim> > user)	{m_imMass.set_data(user);}
 
 template<typename TDomain>
 bool ConvectionDiffusionElemDisc<TDomain>::
@@ -63,13 +63,13 @@ time_point_changed(number time)
 }
 
 template <typename TDomain>
-typename ConvectionDiffusionElemDisc<TDomain>::NumberExport &
+typename ConvectionDiffusionElemDisc<TDomain>::NumberExport
 ConvectionDiffusionElemDisc<TDomain>::
 value() {return m_exConcentration;}
 
 
 template <typename TDomain>
-typename ConvectionDiffusionElemDisc<TDomain>::GradExport &
+typename ConvectionDiffusionElemDisc<TDomain>::GradExport
 ConvectionDiffusionElemDisc<TDomain>::
 gradient() {return m_exConcentrationGrad;}
 
@@ -80,7 +80,9 @@ gradient() {return m_exConcentrationGrad;}
 template<typename TDomain>
 ConvectionDiffusionElemDisc<TDomain>::
 ConvectionDiffusionElemDisc(const char* functions, const char* subsets)
- : IDomainElemDisc<TDomain>(functions,subsets), m_pConvShape(NULL)
+ : IDomainElemDisc<TDomain>(functions,subsets), m_pConvShape(NULL),
+   m_exConcentration(new DataExport<number, dim>),
+   m_exConcentrationGrad(new DataExport<MathVector<dim>, dim>)
 {
 //	check number of functions
 	if(this->num_fct() != 1)

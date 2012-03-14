@@ -25,7 +25,7 @@ bool DataLinker<TData,dim>::zero_derivative() const
 	for(size_t i = 0; i < m_vpIIPData.size(); ++i)
 	{
 	//	skip unset data ( null as default )
-		if(m_vpIIPData[i] == NULL) continue;
+		if(!m_vpIIPData[i].is_valid()) continue;
 
 	//	flag iff ipdata is dependent
 		bRet = bRet && m_vpIIPData[i]->zero_derivative();
@@ -39,7 +39,7 @@ bool DataLinker<TData,dim>::is_ready() const
 {
 //	check, that all inputs are set
 	for(size_t i = 0; i < num_input(); ++i)
-		if(m_vpIIPData[i] == NULL)
+		if(!m_vpIIPData[i].is_valid())
 		{
 			UG_LOG("ERROR in 'DataLinker::is_ready': Input number "<<
 					i << " missing.\n");
@@ -56,7 +56,7 @@ bool DataLinker<TData,dim>::update_function_group()
 //	collect all function groups
 	std::vector<const FunctionGroup*> vFctGrp(num_input(), NULL);
 	for(size_t i = 0; i < m_vpIDependData.size(); ++i)
-		if(m_vpIDependData[i] != NULL)
+		if(m_vpIDependData[i].is_valid())
 			vFctGrp[i] = &(m_vpIDependData[i]->get_function_group());
 
 //	create union of all function groups
@@ -99,7 +99,7 @@ local_ips_added()
 		m_vvSeriesID[i].resize(this->num_series());
 
 	//	skip unset data
-		UG_ASSERT(m_vpIIPData[i] != NULL, "No Input set, but requested.");
+		UG_ASSERT(m_vpIIPData[i].is_valid(), "No Input set, but requested.");
 
 	//	request local ips for all series at input data
 		for(size_t s = 0; s < m_vvSeriesID[i].size(); ++s)
@@ -138,7 +138,7 @@ global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP)
 	for(size_t i = 0; i < m_vpIIPData.size(); ++i)
 	{
 	//	skip unset data
-		UG_ASSERT(m_vpIIPData[i] != NULL, "No Input set, but requested.");
+		UG_ASSERT(m_vpIIPData[i].is_valid(), "No Input set, but requested.");
 
 	//	adjust global ids of imported data
 		m_vpIIPData[i]->set_global_ips(m_vvSeriesID[i][s], vPos, numIP);
@@ -205,12 +205,12 @@ add(IPData<TDataScale, dim>& scale, IPData<TData, dim>& data)
 
 //	remember ipdata
 	m_vpIPData[numInput] = &data;
-	UG_ASSERT(m_vpIPData[numInput] != NULL, "Null Pointer as Input set.");
+	UG_ASSERT(m_vpIPData[numInput].is_valid(), "Null Pointer as Input set.");
 	m_vpDependData[numInput] = dynamic_cast<DependentIPData<TData, dim>*>(&data);
 
 //	remember ipdata
 	m_vpScaleData[numInput] = &scale;
-	UG_ASSERT(m_vpScaleData[numInput] != NULL, "Null Pointer as Scale set.");
+	UG_ASSERT(m_vpScaleData[numInput].is_valid(), "Null Pointer as Scale set.");
 	m_vpScaleDependData[numInput]
 	              = dynamic_cast<DependentIPData<TDataScale, dim>*>(&scale);
 

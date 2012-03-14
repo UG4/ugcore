@@ -70,21 +70,21 @@ void IElemDisc::register_import(IDataImport& Imp)
 //	check that not already registered
 	for(size_t i = 0; i < m_vIImport.size(); ++i)
 		if(m_vIImport[i] == &Imp)
-			throw(UGFatalError("Trying to register import twice."));
+			UG_THROW_FATAL("Trying to register import twice.");
 
 //	add it
 	m_vIImport.push_back(&Imp);
 }
 
-void IElemDisc::register_export(IDataExport& Exp)
+void IElemDisc::register_export(SmartPtr<IDataExport> Exp)
 {
 //	check that not already registered
 	for(size_t i = 0; i < m_vIExport.size(); ++i)
-		if(m_vIExport[i] == &Exp)
-			throw(UGFatalError("Trying to register export twice."));
+		if(m_vIExport[i] == Exp)
+			UG_THROW_FATAL("Trying to register export twice.");
 
 //	add it
-	m_vIExport.push_back(&Exp);
+	m_vIExport.push_back(Exp);
 }
 
 IDataImport& IElemDisc::get_import(size_t i)
@@ -93,10 +93,10 @@ IDataImport& IElemDisc::get_import(size_t i)
 	return *m_vIImport[i];
 }
 
-IDataExport& IElemDisc::get_export(size_t i)
+SmartPtr<IDataExport> IElemDisc::get_export(size_t i)
 {
 	UG_ASSERT(i < num_exports(), "Invalid index");
-	return *m_vIExport[i];
+	return m_vIExport[i];
 }
 
 bool IElemDisc::set_roid(ReferenceObjectID id)
