@@ -560,21 +560,20 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 				number approxSolIP = 0.0;
 				for(size_t sh = 0; sh < num_sh; ++sh)
 				{
-				//	get value at shape point (e.g. corner for P1 fct)
+					//	get value at shape point (e.g. corner for P1 fct)
+					//	and add shape fct at ip * value at shape
 					const number valSH = BlockRef(m_rGridFct[ind[sh][0]], ind[sh][1]);
-
-				//	add shape fct at ip * value at shape
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
 				}
 
-			//	get squared of difference
+				//	get square
 				value[ip] = approxSolIP*approxSolIP;
 
 			}
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_LOG("ERROR in 'L2ErrorIntegrand::getValues': "<<ex.get_msg()<<"\n");
+				UG_LOG("ERROR in 'L2ErrorIntegrand::values': "<<ex.get_msg()<<"\n");
 				return false;
 			}
 
@@ -582,6 +581,95 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		};
 };
 
+
+template <typename TGridFunction, int TDim = TGridFunction::dim>
+class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
+{
+	public:
+	//	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+
+	//	reference element dimension
+		static const int elemDim = TDim;
+
+	private:
+	// grid function
+		TGridFunction& m_rGridFct;
+
+	//	component of function
+		const size_t m_fct;
+
+
+
+	public:
+
+	/// constructor
+		StdFuncIntegrand(TGridFunction& gridFct, size_t cmp)
+		: m_rGridFct(gridFct), m_fct(cmp)
+		{};
+
+	/// \copydoc IIntegrand::getValues
+		virtual bool values(GeometricObject* pElem,
+		                    const MathVector<elemDim> vLocIP[],
+		                    const MathVector<worldDim> vGlobIP[],
+		                    const MathMatrix<worldDim, elemDim> vJT[],
+		                    const size_t numIP,
+		                    number value[])
+		{
+		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
+
+			const LFEID m_id = m_rGridFct.local_finite_element_id(m_fct);
+
+			try{
+		//	get trial space
+			const DimLocalShapeFunctionSet<elemDim>& rTrialSpace =
+							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
+
+		//	number of dofs on element
+			const size_t num_sh = rTrialSpace.num_sh();
+
+		//	get multiindices of element
+
+			std::vector<MultiIndex<2> > ind;  // 	aux. index array
+			m_rGridFct.multi_indices(pElem, m_fct, ind);
+
+		//	check multi indices
+			if(ind.size() != num_sh)
+			{
+				UG_LOG("ERROR in 'StdFuncIntegrand::values': Wrong number of"
+						" multi indices.\n");
+				return false;
+			}
+
+		//	loop all integration points
+			for(size_t ip = 0; ip < numIP; ++ip)
+			{
+
+			// 	compute approximated solution at integration point
+				number approxSolIP = 0.0;
+				for(size_t sh = 0; sh < num_sh; ++sh)
+				{
+					//	get value at shape point (e.g. corner for P1 fct)
+					//	and add shape fct at ip * value at shape
+					const number valSH = BlockRef(m_rGridFct[ind[sh][0]], ind[sh][1]);
+					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
+				}
+
+				//	get squared of difference
+				value[ip] = approxSolIP;
+
+			}
+
+			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+			{
+				UG_LOG("ERROR in 'StdFuncIntegrand::values': "<<ex.get_msg()<<"\n");
+				return false;
+			}
+
+			return true;
+		};
+};
 
 /// interpolates a function on the whole domain or on some subsets
 
@@ -657,6 +745,65 @@ number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* sub
 
 //	return the sqrt of the result
 	return sqrt(l2norm2);
+}
+
+template <typename TGridFunction>
+number StdFuncIntegral(TGridFunction& u, const char* name, int quadOrder, const char* subsets)
+{
+//	get function id of name
+	const size_t fct = u.fct_id_by_name(name);
+
+//	check that function exists
+	if(fct >= u.num_fct())
+	{
+		UG_LOG("ERROR in StdIntegral: Function space does not contain"
+				" a function with name " << name << ".\n");
+		return false;
+	}
+
+//	create subset group
+	SubsetGroup ssGrp; ssGrp.set_subset_handler(u.domain()->subset_handler());
+
+//	read subsets
+	if(subsets != NULL)
+		ConvertStringToSubsetGroup(ssGrp, u.domain()->subset_handler(), subsets);
+	else // add all if no subset specified
+		ssGrp.add_all();
+
+//	reset value
+	number value = 0;
+
+//	loop subsets
+	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	{
+	//	get subset index
+		const int si = ssGrp[i];
+
+	//	skip if function is not defined in subset
+		if(!u.is_def_in_subset(fct, si)) continue;
+
+
+		if (ssGrp.dim(i) != TGridFunction::dim)  {
+			UG_LOG("ERROR in StdIntegral: Element dimension does not match world dimension!\n");
+			return false;
+		}
+
+
+	//	create integration kernel
+		static const int dim = TGridFunction::dim;
+		StdFuncIntegrand<TGridFunction, dim> integrand(u, fct);
+
+	//	integrate elements of subset
+		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+		value += Integrate(u.template begin<geometric_base_object>(si),
+							 u.template end<geometric_base_object>(si),
+							 u.domain()->position_accessor(),
+							 integrand,
+							 quadOrder);
+	}
+
+//	return the sqrt of the result
+	return value;
 }
 
 } // namespace ug

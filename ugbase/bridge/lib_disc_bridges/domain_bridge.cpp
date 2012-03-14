@@ -146,6 +146,15 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 						 static_cast<fct_type>(&L2Norm<TFct>),
 						 grp);
 	}
+
+	//	StdFuncIntegral
+		{
+			typedef number (*fct_type)(TFct&, const char*, int, const char*);
+			reg.add_function("StdFuncIntegral",
+							 static_cast<fct_type>(&StdFuncIntegral<TFct>),
+							 grp);
+		}
+
 }
 
 
