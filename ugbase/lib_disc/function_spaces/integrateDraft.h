@@ -743,6 +743,15 @@ number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* sub
 							 quadOrder);
 	}
 
+#ifdef UG_PARALLEL
+	// sum over all processes
+	if(pcl::GetNumProcesses() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		number local = l2norm2;
+		com.allreduce(&local, &l2norm2, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+	}
+#endif
 //	return the sqrt of the result
 	return sqrt(l2norm2);
 }
@@ -802,7 +811,16 @@ number StdFuncIntegral(TGridFunction& u, const char* name, int quadOrder, const 
 							 quadOrder);
 	}
 
-//	return the sqrt of the result
+#ifdef UG_PARALLEL
+	// sum over processes
+	if(pcl::GetNumProcesses() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		number local = value;
+		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+	}
+#endif
+//	return the result
 	return value;
 }
 
