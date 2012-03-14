@@ -47,6 +47,61 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user) {m_imVelocity.set_data(user);}
 
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_velocity(number vel_x)
+{
+	UG_THROW_FATAL("ConvectionDiffusion: Setting velocity vector of dimension 1"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void ConvectionDiffusionElemDisc<Domain1d>::
+set_velocity(number vel_x)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	set_velocity(vel);
+}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_velocity(number vel_x, number vel_y)
+{
+	UG_THROW_FATAL("ConvectionDiffusion: Setting velocity vector of dimension 2"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void ConvectionDiffusionElemDisc<Domain2d>::
+set_velocity(number vel_x, number vel_y)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	vel->set_entry(1, vel_y);
+	set_velocity(vel);
+}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_velocity(number vel_x, number vel_y, number vel_z)
+{
+	UG_THROW_FATAL("ConvectionDiffusion: Setting velocity vector of dimension 3"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void ConvectionDiffusionElemDisc<Domain3d>::
+set_velocity(number vel_x, number vel_y, number vel_z)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	vel->set_entry(1, vel_y);
+	vel->set_entry(2, vel_z);
+	set_velocity(vel);
+}
+
+
 #ifndef FOR_VRL
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::

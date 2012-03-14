@@ -123,12 +123,15 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("set_quad_order_scv", &T::set_quad_order_scv)
 
 			.add_method("set_diffusion_tensor", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
-			.add_method("set_diffusion_tensor", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diffusion")
+			.add_method("set_diffusion_tensor", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diagonal Diffusion")
 #ifndef FOR_VRL
 			.add_method("set_diffusion_tensor", static_cast<void (T::*)(const char*)>(&T::set_diffusion), "", "Diffusion")
 #endif
 
 			.add_method("set_velocity_field", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >)>(&T::set_velocity), "", "Velocity Field")
+			.add_method("set_velocity_field", static_cast<void (T::*)(number)>(&T::set_velocity), "", "Vel_x")
+			.add_method("set_velocity_field", static_cast<void (T::*)(number,number)>(&T::set_velocity), "", "Vel_x, Vel_y")
+			.add_method("set_velocity_field", static_cast<void (T::*)(number,number,number)>(&T::set_velocity), "", "Vel_x, Vel_y, Vel_z")
 #ifndef FOR_VRL
 			.add_method("set_velocity_field", static_cast<void (T::*)(const char*)>(&T::set_velocity), "", "Velocity Field")
 #endif

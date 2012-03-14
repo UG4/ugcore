@@ -100,6 +100,9 @@ class ConvectionDiffusionElemDisc
 	 */
 	/// \{
 		void set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user);
+		void set_velocity(number vel_x);
+		void set_velocity(number vel_x, number vel_y);
+		void set_velocity(number vel_x, number vel_y, number vel_z);
 #ifndef FOR_VRL
 		void set_velocity(const char* fctName);
 #endif
