@@ -86,7 +86,7 @@ bool AddExtraProcessEntriesToSubdomainLayout(
 //	Communicate flagged vector to slaves
 	ComPol_VecCopy<std::vector<int> >	copyPol(&vMultiplicity);
 
-	pcl::ParallelCommunicator<IndexLayout> communicator;
+	pcl::InterfaceCommunicator<IndexLayout> communicator;
 	communicator.send_data(processMasterLayoutIn, copyPol);
 	communicator.receive_data(processSlaveLayoutIn, copyPol);
 	communicator.communicate();

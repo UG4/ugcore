@@ -498,7 +498,7 @@ class AssembledMultiGridCycle :
 		void broadcast_vertical(vector_type& t);
 
 	/// communicator
-		pcl::ParallelCommunicator<IndexLayout> m_Com;
+		pcl::InterfaceCommunicator<IndexLayout> m_Com;
 #endif
 
 	public:

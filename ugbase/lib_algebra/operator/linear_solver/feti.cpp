@@ -432,7 +432,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 	if (m_bTestOneToManyLayouts == true) {
 		UG_LOG("     %  - TEST ONE TO MANY LAYOUTS:\n");
-		pcl::ParallelCommunicator<IndexLayout> comTmp;
+		pcl::InterfaceCommunicator<IndexLayout> comTmp;
 		if (TestLayout(m_pOperator->process_communicator(),
 				comTmp, m_masterAllToOneLayout, m_slaveAllToOneLayout, true) != true) {
 			UG_LOG("     %  - ONE TO MANY LAYOUTS inconsistent!\n");

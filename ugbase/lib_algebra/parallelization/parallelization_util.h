@@ -52,7 +52,7 @@ void MatCopySlaveRowsToMasterRowOverlap0(TMatrix& mat)
 	vector<AlgebraID> globalIDs;
 	IndexLayout& masters = mat.master_layout();
 	IndexLayout& slaves = mat.slave_layout();
-	pcl::ParallelCommunicator<IndexLayout>& comm = mat.communicator();
+	pcl::InterfaceCommunicator<IndexLayout>& comm = mat.communicator();
 
 	GenerateGlobalAlgebraIDs(comm, globalIDs, mat.num_rows(), masters, slaves);
 
@@ -66,7 +66,7 @@ void MatCopySlaveRowsToMasterRowOverlap0(TMatrix& mat)
 /// changes parallel storage type from additive to consistent
 /**
  * This function changes the storage type of a parallel vector from additive
- * to consistent. A ParallelCommunicator is created iff no communicator passed.
+ * to consistent. A InterfaceCommunicator is created iff no communicator passed.
  *
  * \param[in,out]		pVec			Parallel Vector
  * \param[in]			masterLayout	Master Layout
@@ -76,13 +76,13 @@ void MatCopySlaveRowsToMasterRowOverlap0(TMatrix& mat)
 template <typename TVector>
 void AdditiveToConsistent(	TVector* pVec,
 							IndexLayout& masterLayout, IndexLayout& slaveLayout,
-							pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	//	create a new communicator if required.
-		pcl::ParallelCommunicator<IndexLayout> tCom;
+		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
 			pCom = &tCom;
-		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+		pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
 
 	//	step 1: add slave values to master
 	//	create the required communication policies
@@ -110,7 +110,7 @@ void AdditiveToConsistent(	TVector* pVec,
 /// changes parallel storage type from unique to consistent
 /**
  * This function changes the storage type of a parallel vector from unique
- * to consistent. A ParallelCommunicator is created iff no communicator passed.
+ * to consistent. A InterfaceCommunicator is created iff no communicator passed.
  *
  * \param[in,out]		pVec			Parallel Vector
  * \param[in]			masterLayout	Master Layout
@@ -120,13 +120,13 @@ void AdditiveToConsistent(	TVector* pVec,
 template <typename TVector>
 void UniqueToConsistent(	TVector* pVec,
 							IndexLayout& masterLayout, IndexLayout& slaveLayout,
-							pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	//	create a new communicator if required.
-		pcl::ParallelCommunicator<IndexLayout> tCom;
+		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
 			pCom = &tCom;
-		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+		pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
 
 	//	step 1: copy master values to slaves
 	//	create the required communication policies
@@ -142,7 +142,7 @@ void UniqueToConsistent(	TVector* pVec,
 /// changes parallel storage type from additive to unique
 /**
  * This function changes the storage type of a parallel vector from additive
- * to unique. A ParallelCommunicator is created iff no communicator passed.
+ * to unique. A InterfaceCommunicator is created iff no communicator passed.
  *
  * \param[in,out]		pVec			Parallel Vector
  * \param[in]			masterLayout	Master Layout
@@ -152,13 +152,13 @@ void UniqueToConsistent(	TVector* pVec,
 template <typename TVector>
 void AdditiveToUnique(	TVector* pVec,
 						IndexLayout& masterLayout, IndexLayout& slaveLayout,
-						pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+						pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	//	create a new communicator if required.
-		pcl::ParallelCommunicator<IndexLayout> tCom;
+		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
 			pCom = &tCom;
-		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+		pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
 
 	//	step 1: add slave values to master and set slave values to zero
 	//	create the required communication policies
@@ -266,13 +266,13 @@ void ConsistentToUnique(	TVector* pVec,
 template <typename TVector>
 void VecSubtractOnLayout(	TVector* pVec,
 							IndexLayout& masterLayout, IndexLayout& slaveLayout,
-							pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	//	create a new communicator if required.
-		pcl::ParallelCommunicator<IndexLayout> tCom;
+		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
 			pCom = &tCom;
-		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+		pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
 
 	//	step 1: subtract slave values from master
 	//	create the required communication policies
@@ -305,13 +305,13 @@ template <typename TVector>
 void VecSubtractOneSlaveFromMaster(	TVector* pVec,
                                    	IndexLayout& masterLayout,
                                    	IndexLayout& slaveLayout,
-                                   	pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+                                   	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	//	create a new communicator if required.
-		pcl::ParallelCommunicator<IndexLayout> tCom;
+		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
 			pCom = &tCom;
-		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+		pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
 
 	//	create the required communication policies
 		ComPol_VecSubtractOnlyOneSlave<TVector> cpVecSubtractOOS(pVec);
@@ -340,13 +340,13 @@ void VecSubtractOneSlaveFromMaster(	TVector* pVec,
 template <typename TVector>
 void VecCopy(	TVector* pVec,
 						IndexLayout& masterLayout, IndexLayout& slaveLayout,
-						pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+						pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	//	create a new communicator if required.
-		pcl::ParallelCommunicator<IndexLayout> tCom;
+		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
 			pCom = &tCom;
-		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+		pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
 
 	//	copy master values to slaves
 	//	create the required communication policies
@@ -514,7 +514,7 @@ void MatWriteDiagOnLayout(	TMatrix* pMatrix,
 /// changes parallel storage type from additive to consistent on diagonal of a matrix
 /**
  * This function changes the storage type of a matrix from additive
- * to consistent on the diagonal. A ParallelCommunicator is created iff no communicator passed.
+ * to consistent on the diagonal. A InterfaceCommunicator is created iff no communicator passed.
  *
  * \param[in,out]		pVec			Parallel Vector
  * \param[in]			masterLayout	Master Layout
@@ -524,7 +524,7 @@ void MatWriteDiagOnLayout(	TMatrix* pMatrix,
 template <typename TAlgebra>
 void MatAdditiveToConsistentOnDiag(	typename TAlgebra::matrix_type* pMat,
                                    	IndexLayout& masterLayout, IndexLayout& slaveLayout,
-                                   	pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+                                   	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 //	\todo: We could work on the matrix directly here, without temporary vector
 
@@ -550,7 +550,7 @@ void MatAdditiveToConsistentOnDiag(	typename TAlgebra::matrix_type* pMat,
 /**
  * This function gathers the slave values from a source vector in the master
  * values of a second vector. Slave values are added to the current master values.
- * A ParallelCommunicator is created iff no communicator passed.
+ * A InterfaceCommunicator is created iff no communicator passed.
  *
  * \param[out]			pVecDest		destination Parallel Vector
  * \param[in]			pVecSrc			source Parallel Vector
@@ -561,13 +561,13 @@ void MatAdditiveToConsistentOnDiag(	typename TAlgebra::matrix_type* pMat,
 template <typename TVector>
 void VecGather(	TVector* pVecDest, const TVector* pVecSrc,
 				IndexLayout& masterLayoutDest, IndexLayout& slaveLayoutSrc,
-				pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+				pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	//	create a new communicator if required.
-		pcl::ParallelCommunicator<IndexLayout> tCom;
+		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
 			pCom = &tCom;
-		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+		pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
 
 	//	step 1: add slave values to master
 	//	create the required communication policies
@@ -583,7 +583,7 @@ void VecGather(	TVector* pVecDest, const TVector* pVecSrc,
 /**
  * This function broadcasts the master values from a source vector to the slave
  * values of a second vector. Slave values are overwritten.
- * A ParallelCommunicator is created iff no communicator passed.
+ * A InterfaceCommunicator is created iff no communicator passed.
  *
  * \param[out]			pVecDest		destination Parallel Vector
  * \param[in]			pVecSrc			source Parallel Vector
@@ -594,13 +594,13 @@ void VecGather(	TVector* pVecDest, const TVector* pVecSrc,
 template <typename TVector>
 void VecBroadcast(	TVector* pVecDest, const TVector* pVecSrc,
                   	IndexLayout& slaveLayoutDest, IndexLayout& masterLayoutSrc,
-                  	pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+                  	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	//	create a new communicator if required.
-		pcl::ParallelCommunicator<IndexLayout> tCom;
+		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
 			pCom = &tCom;
-		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+		pcl::InterfaceCommunicator<IndexLayout>& com = *pCom;
 
 	//	step 1: copy master values to slaves
 	//	create the required communication policies

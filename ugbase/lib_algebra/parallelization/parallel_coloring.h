@@ -31,12 +31,12 @@ public:
 	{
 		pids = pids_;
 	}
-	/*void set_connections(pcl::ParallelCommunicator<IndexLayout> &master,
-			pcl::ParallelCommunicator<IndexLayout> &slave, bool bAddSlaveSlave)
+	/*void set_connections(pcl::InterfaceCommunicator<IndexLayout> &master,
+			pcl::InterfaceCommunicator<IndexLayout> &slave, bool bAddSlaveSlave)
 	{
 	}*/
 
-	int color(pcl::ParallelCommunicator<IndexLayout> &com);
+	int color(pcl::InterfaceCommunicator<IndexLayout> &com);
 
 	void save_processes_with_lower_color_in(std::vector<int> *p)
 	{
@@ -60,7 +60,7 @@ private:
 	std::set<int> pids;
 };
 
-int ColorProcessorGraph(pcl::ParallelCommunicator<IndexLayout> &com, std::set<int> &pids,
+int ColorProcessorGraph(pcl::InterfaceCommunicator<IndexLayout> &com, std::set<int> &pids,
 		std::vector<int> &processesWithLowerColor,
 		std::vector<int> &processesWithHigherColor);
 

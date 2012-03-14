@@ -381,7 +381,7 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 	bool bSuccess = true;
 
 //	check the interfaces
-	pcl::ParallelCommunicator<VertexLayout::LevelLayout> com;
+	pcl::InterfaceCommunicator<VertexLayout::LevelLayout> com;
 	pcl::ProcessCommunicator procCom;
 
 	ToElementPosition<VertexBase, TAPos> toPos(mg, aPos);

@@ -40,7 +40,7 @@ std::string ToString(const T &t)
 
 namespace ug{
 #ifdef UG_PARALLEL
-void MyPrintLayout(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2);
+void MyPrintLayout(pcl::InterfaceCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2);
 #endif
 
 
@@ -437,7 +437,7 @@ protected:
 	ILinearOperatorInverse<vector_type, vector_type> *m_basesolver; ///< the base solver
 
 
-	bool m_bInited;					///< true if inited. needed since preprocess doesnt give us a ParallelCommunicator atm.
+	bool m_bInited;					///< true if inited. needed since preprocess doesnt give us a InterfaceCommunicator atm.
 	double m_dOperatorComplexity;
 	double m_dGridComplexity;
 	double m_dTimingWholeSetupMS;
@@ -480,7 +480,7 @@ protected:
 		matrix_operator_type *pA;				///< A Matrices
 
 #ifdef UG_PARALLEL
-		pcl::ParallelCommunicator<IndexLayout> com; ///< the communicator object on this level
+		pcl::InterfaceCommunicator<IndexLayout> com; ///< the communicator object on this level
 		IndexLayout slaveLayout, masterLayout;
 		IndexLayout slaveLayout2, masterLayout2;
 

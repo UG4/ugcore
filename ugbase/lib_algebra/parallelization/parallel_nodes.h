@@ -81,7 +81,7 @@ private:
 public:
 	ParallelNodes();
 	ParallelNodes(const ParallelNodes &);
-	ParallelNodes(pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &masterLayout, IndexLayout &slaveLayout, size_t s)
+	ParallelNodes(pcl::InterfaceCommunicator<IndexLayout> &communicator, IndexLayout &masterLayout, IndexLayout &slaveLayout, size_t s)
 	: m_communicator(communicator), m_masterLayout(masterLayout), m_slaveLayout(slaveLayout)
 	{
 		GenerateGlobalAlgebraIDs(communicator, m_localToGlobal, s, masterLayout, slaveLayout);
@@ -276,7 +276,7 @@ public:
 			sort_interface(layout.interface(iter));
 	}
 
-	pcl::ParallelCommunicator<IndexLayout> &m_communicator;
+	pcl::InterfaceCommunicator<IndexLayout> &m_communicator;
 
 	std::map<AlgebraID, size_t> m_globalToLocal;
 	std::vector<AlgebraID> m_localToGlobal;
@@ -305,7 +305,7 @@ public:
 		return m_slaveLayout;
 	}
 
-	pcl::ParallelCommunicator<IndexLayout> &communicator()
+	pcl::InterfaceCommunicator<IndexLayout> &communicator()
 	{
 		return m_communicator;
 	}
@@ -565,7 +565,7 @@ public:
 		}
 	}
 
-	/*void check_new_nodes(pcl::ParallelCommunicator<IndexLayout> &communicator,
+	/*void check_new_nodes(pcl::InterfaceCommunicator<IndexLayout> &communicator,
 				IndexLayout &sendingLayout, IndexLayout &receivingLayout)
 	{
 		std::set<int> sendingPIDs;
@@ -594,7 +594,7 @@ public:
 		communicator.communicate();
 	}*/
 
-	void issue(pcl::ParallelCommunicator<IndexLayout> &communicator)
+	void issue(pcl::InterfaceCommunicator<IndexLayout> &communicator)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "NewLayoutCreator::issue\n");
 		// notifications for new Master Nodes

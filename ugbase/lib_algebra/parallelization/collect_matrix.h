@@ -48,7 +48,7 @@ void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int dest
 {
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
 
-	pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
+	pcl::InterfaceCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
 	BinaryBuffer stream;
 
 	Serialize(stream, A.num_rows());
@@ -113,7 +113,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 		ParallelNodes &PN)
 {
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** ReceiveMatrix ************\n\n");
-	pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
+	pcl::InterfaceCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
 
 	M = A;
 	IndexLayout *pNull=NULL;

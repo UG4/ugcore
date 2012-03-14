@@ -29,7 +29,7 @@ using namespace std;
 
 namespace ug{
 
-void CreateAllToAllFromMasterSlave(pcl::ParallelCommunicator<IndexLayout> &communicator,
+void CreateAllToAllFromMasterSlave(pcl::InterfaceCommunicator<IndexLayout> &communicator,
 		IndexLayout &OLCoarseningSendLayout, IndexLayout &OLCoarseningReceiveLayout,
 		IndexLayout &OL1MasterLayout, IndexLayout &OL1SlaveLayout);
 

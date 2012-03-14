@@ -50,7 +50,7 @@ void PrintGlobalLayout(const GlobalLayout &globalLayout, const char *name)
 	}
 }
 
-void ReceiveGlobalLayout(pcl::ParallelCommunicator<IndexLayout> &comm, std::vector<int> &srcprocs,
+void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, std::vector<int> &srcprocs,
 		GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout)
 {
 	typedef std::map<int, BinaryBuffer> BufferMap;
@@ -85,7 +85,7 @@ void SerializeGlobalLayout(BinaryBuffer &stream, GlobalLayout &globalLayout)
 	}
 }
 
-void SendGlobalLayout(pcl::ParallelCommunicator<IndexLayout> &comm, GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout, int pid)
+void SendGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout, int pid)
 {
 	UG_DLOG(LIB_ALG_AMG, 4, "sending to " << pid << "\n");
 	BinaryBuffer stream;

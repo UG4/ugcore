@@ -29,7 +29,7 @@
 
 namespace ug
 {
-void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communicator,
+void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &communicator,
 		IndexLayout &masterLayout, IndexLayout &slaveLayout, IndexLayout &allToAllSend,
 		IndexLayout &allToAllReceive);
 

@@ -63,7 +63,7 @@ struct LevInfoBase
 	pcl::ProcessCommunicator processCommunicator;
 
 ///	communicator
-	pcl::ParallelCommunicator<IndexLayout> communicator;
+	pcl::InterfaceCommunicator<IndexLayout> communicator;
 #endif
 };
 

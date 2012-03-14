@@ -56,7 +56,7 @@ private:
 	typedef IndexLayout::Interface Interface;
 	typedef std::map<int, BinaryBuffer>	BufferMap;
 
-	pcl::ParallelCommunicator<IndexLayout> &m_com; ///< communicator
+	pcl::InterfaceCommunicator<IndexLayout> &m_com; ///< communicator
 
 
 	matrix_type &m_mat;		///< the original matrix (should be const)

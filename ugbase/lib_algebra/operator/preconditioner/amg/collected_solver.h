@@ -111,7 +111,7 @@ class CollectSolver: public IMatrixOperatorInverse<	typename TAlgebra::vector_ty
 
 			// send d -> collD
 			ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
-			pcl::ParallelCommunicator<IndexLayout> &com = m_A[level]->communicator();
+			pcl::InterfaceCommunicator<IndexLayout> &com = m_A[level]->communicator();
 			com.send_data(slaveColl, compolAdd);
 			com.receive_data(masterColl, compolAdd);
 			com.communicate();

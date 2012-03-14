@@ -123,9 +123,9 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 		DistributedGridManager* m_pDistGridMgr;
 		MultiGrid*				m_pMG;
 		pcl::ProcessCommunicator m_procCom;
-		pcl::ParallelCommunicator<VertexLayout> m_intfComVRT;
-		pcl::ParallelCommunicator<EdgeLayout> m_intfComEDGE;
-		pcl::ParallelCommunicator<FaceLayout> m_intfComFACE;
+		pcl::InterfaceCommunicator<VertexLayout> m_intfComVRT;
+		pcl::InterfaceCommunicator<EdgeLayout> m_intfComEDGE;
+		pcl::InterfaceCommunicator<FaceLayout> m_intfComFACE;
 
 		bool m_bNewInterfaceVerticesMarked;
 		bool m_bNewInterfaceEdgesMarked;

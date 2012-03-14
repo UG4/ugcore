@@ -72,7 +72,7 @@ enum {DIM_SUBSET_EMPTY_GRID = -1};
  * This function returns the dimension of the subset. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained in the subset
- * If a ParallelCommunicator is passed, the highest dimension within all
+ * If a InterfaceCommunicator is passed, the highest dimension within all
  * procs in the ProcessCommunicator is returned.
  *
  * \param[in]	sh			ISubsetHandler
@@ -89,7 +89,7 @@ int DimensionOfSubset(const ISubsetHandler& sh, int si);
  * This function returns the dimension of the subsets. The dimension is simply
  * defined to be the highest reference dimension of all geometric objects
  * contained the union of all subset
- * If a ParallelCommunicator is passed, the highest dimension within all
+ * If a InterfaceCommunicator is passed, the highest dimension within all
  * procs in the ProcessCommunicator is returned.
  *
  * \param[in]	sh			ISubsetHandler

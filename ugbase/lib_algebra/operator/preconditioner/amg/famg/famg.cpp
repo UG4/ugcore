@@ -118,7 +118,7 @@ void print_vector(const vector_type &vec, const char *p)
 namespace ug{
 
 #ifdef UG_PARALLEL
-	void MyPrintLayout(pcl::ProcessCommunicator &pc, pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2)
+	void MyPrintLayout(pcl::ProcessCommunicator &pc, pcl::InterfaceCommunicator<IndexLayout> &communicator, IndexLayout &layout1, IndexLayout &layout2, const char *name1, const char *name2)
 {
 	UG_LOG("\n========================================\n");
 	UG_LOG(name1<<"\n");
@@ -459,7 +459,7 @@ public:
 
 			#ifdef UG_PARALLEL
 			/*{
-				pcl::ParallelCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
+				pcl::InterfaceCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
 
 				ParallelNodes PN(OL2MasterLayout, OL2SlaveLayout, A_OL2.num_rows());
 

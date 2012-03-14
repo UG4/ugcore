@@ -155,7 +155,7 @@ public:
 		}
 	}
 
-	/*void check_new_nodes(pcl::ParallelCommunicator<IndexLayout> &communicator,
+	/*void check_new_nodes(pcl::InterfaceCommunicator<IndexLayout> &communicator,
 				IndexLayout &sendingLayout, IndexLayout &receivingLayout)
 	{
 		std::set<int> sendingPIDs;
@@ -184,7 +184,7 @@ public:
 		communicator.communicate();
 	}*/
 
-	void issue(pcl::ParallelCommunicator<IndexLayout> &communicator)
+	void issue(pcl::InterfaceCommunicator<IndexLayout> &communicator)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "NewLayoutCreator::issue\n");
 		// notifications for new Master Nodes

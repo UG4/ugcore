@@ -75,7 +75,7 @@ struct cAMG_helper
 
 #ifdef UG_PARALLEL
 	void update_overlap_positions(int level,
-			pcl::ParallelCommunicator<IndexLayout> &communicator, IndexLayout &overlapMaster, IndexLayout &overlapSlave,
+			pcl::InterfaceCommunicator<IndexLayout> &communicator, IndexLayout &overlapMaster, IndexLayout &overlapSlave,
 			size_t newSize)
 	{
 		//AMG_PROFILE_FUNC();
@@ -89,7 +89,7 @@ struct cAMG_helper
 	}
 
 	void receive_agglomerate_positions(int level,
-			pcl::ParallelCommunicator<IndexLayout> &communicator,
+			pcl::InterfaceCommunicator<IndexLayout> &communicator,
 			IndexLayout &agglomerateMaster, size_t newSize)
 	{
 		std::vector<MathVector<3> > &vec2 = positions[level];
@@ -101,7 +101,7 @@ struct cAMG_helper
 	}
 
 	void send_agglomerate_positions(int level,
-			pcl::ParallelCommunicator<IndexLayout> &communicator,
+			pcl::InterfaceCommunicator<IndexLayout> &communicator,
 			IndexLayout &agglomerateSlave)
 	{
 		std::vector<MathVector<3> > &vec2 = positions[level];

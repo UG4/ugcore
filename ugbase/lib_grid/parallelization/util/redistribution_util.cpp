@@ -281,7 +281,7 @@ class ComPol_SynchronizeNodeTransfer : public pcl::ICommunicationPolicy<TLayout>
 template <class TGeomObj, class TAAIntVec, class TAATransferInfoVec>
 static void
 SynchronizeHNodeTransfer(DistributedGridManager& distGridMgr,
-						pcl::ParallelCommunicator<typename GridLayoutMap::Types<TGeomObj>::Layout> & comm,
+						pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TGeomObj>::Layout> & comm,
 						TAAIntVec& aaIntVec,
 						TAATransferInfoVec& aaTransInfoVec,
 						int localLayoutIndex,
@@ -304,7 +304,7 @@ SynchronizeHNodeTransfer(DistributedGridManager& distGridMgr,
 template <class TGeomObj, class TAAIntVec, class TAATransferInfoVec>
 static void
 SynchronizeVNodeTransfer(DistributedGridManager& distGridMgr,
-						pcl::ParallelCommunicator<typename GridLayoutMap::Types<TGeomObj>::Layout> & comm,
+						pcl::InterfaceCommunicator<typename GridLayoutMap::Types<TGeomObj>::Layout> & comm,
 						TAAIntVec& aaIntVec,
 						TAATransferInfoVec& aaTransInfoVec,
 						int localLayoutIndex,
@@ -838,10 +838,10 @@ if(mg.num_levels() > 0){
 //	the synchronization is performed in SynchronizeNodeTransfer.
 //	It fills data associated with aTransferInfoVec.
 //todo: the communicators could also be declared in SynchronizeNodeTransfer.
-	pcl::ParallelCommunicator<VertexLayout> commVRT;
-	pcl::ParallelCommunicator<EdgeLayout> commEDGE;
-	pcl::ParallelCommunicator<FaceLayout> commFACE;
-	pcl::ParallelCommunicator<VolumeLayout> commVOL;
+	pcl::InterfaceCommunicator<VertexLayout> commVRT;
+	pcl::InterfaceCommunicator<EdgeLayout> commEDGE;
+	pcl::InterfaceCommunicator<FaceLayout> commFACE;
+	pcl::InterfaceCommunicator<VolumeLayout> commVOL;
 
 ////////////////////////////////
 //	BUILD HORIZONTAL INTERFACES

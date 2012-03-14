@@ -20,7 +20,7 @@
 namespace ug
 {
 
-int ParallelColoring::color(pcl::ParallelCommunicator<IndexLayout> &com)
+int ParallelColoring::color(pcl::InterfaceCommunicator<IndexLayout> &com)
 {
 	// 1. send all neighbors our number of neighbors
 	size_t myDegree = pids.size();
@@ -192,7 +192,7 @@ int ParallelColoring::color(pcl::ParallelCommunicator<IndexLayout> &com)
 }
 
 
-int ColorProcessorGraph(pcl::ParallelCommunicator<IndexLayout> &com, std::set<int> &pids,
+int ColorProcessorGraph(pcl::InterfaceCommunicator<IndexLayout> &com, std::set<int> &pids,
 		std::vector<int> &processesWithLowerColor,
 		std::vector<int> &processesWithHigherColor)
 {

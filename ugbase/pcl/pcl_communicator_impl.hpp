@@ -18,8 +18,8 @@ namespace pcl
 {
 
 template <class TLayout>
-ParallelCommunicator<TLayout>::
-ParallelCommunicator() :
+InterfaceCommunicator<TLayout>::
+InterfaceCommunicator() :
 	m_bDebugCommunication(false),
 	m_bSendBuffersFixed(true)
 {
@@ -27,7 +27,7 @@ ParallelCommunicator() :
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 send_raw(int targetProc, void* pBuff, int bufferSize,
 	     bool bSizeKnownAtTarget)
 {
@@ -46,7 +46,7 @@ send_raw(int targetProc, void* pBuff, int bufferSize,
 			   
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 send_data(int targetProc, Interface& interface,
 			  ICommunicationPolicy<TLayout>& commPol)
 {
@@ -64,7 +64,7 @@ send_data(int targetProc, Interface& interface,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 send_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
 PCL_PROFILE(pcl_IntCom_send_layout_data);
@@ -74,7 +74,7 @@ PCL_PROFILE(pcl_IntCom_send_layout_data);
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 send_data(Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
 		  const layout_tags::single_level_layout_tag&)
@@ -101,7 +101,7 @@ send_data(Layout& layout,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 send_data(Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
 		  const layout_tags::multi_level_layout_tag&)
@@ -129,7 +129,7 @@ send_data(Layout& layout,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 receive_raw(int srcProc, ug::BinaryBuffer& bufOut, int bufSize)
 {
 	m_extractorInfos.push_back(ExtractorInfo(srcProc, NULL,
@@ -140,7 +140,7 @@ receive_raw(int srcProc, ug::BinaryBuffer& bufOut, int bufSize)
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 receive_raw(int srcProc, void* bufOut, int bufSize)
 {
 	m_extractorInfos.push_back(ExtractorInfo(srcProc, NULL,
@@ -151,7 +151,7 @@ receive_raw(int srcProc, void* bufOut, int bufSize)
 			
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 receive_data(int srcProc, Interface& interface,
 			ICommunicationPolicy<TLayout>& commPol)
 {
@@ -164,7 +164,7 @@ receive_data(int srcProc, Interface& interface,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
 	m_extractorInfos.push_back(ExtractorInfo(-1, &commPol,
@@ -174,7 +174,7 @@ receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 
 template <class TLayout>
 template <class TLayoutMap>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 exchange_data(TLayoutMap& layoutMap,
 				const typename TLayoutMap::Key& keyFrom,
 				const typename TLayoutMap::Key& keyTo,
@@ -191,7 +191,7 @@ exchange_data(TLayoutMap& layoutMap,
 							
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
 							TLayout& layout)
@@ -202,7 +202,7 @@ prepare_receiver_buffer_map(BufferMap& bufMap,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
 							TLayout& layout,
@@ -221,7 +221,7 @@ prepare_receiver_buffer_map(BufferMap& bufMap,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
 							TLayout& layout,
@@ -243,7 +243,7 @@ prepare_receiver_buffer_map(BufferMap& bufMap,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-bool ParallelCommunicator<TLayout>::
+bool InterfaceCommunicator<TLayout>::
 collect_layout_buffer_sizes(TLayout& layout,
 							ICommunicationPolicy<TLayout>& commPol,
 							std::map<int, int>* pMapBuffSizesOut,
@@ -275,7 +275,7 @@ collect_layout_buffer_sizes(TLayout& layout,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-bool ParallelCommunicator<TLayout>::
+bool InterfaceCommunicator<TLayout>::
 collect_layout_buffer_sizes(TLayout& layout,
 							ICommunicationPolicy<TLayout>& commPol,
 							std::map<int, int>* pMapBuffSizesOut,
@@ -311,7 +311,7 @@ PCL_PROFILE_FUNC();
 										
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor)
 {
 PCL_PROFILE_FUNC();
@@ -322,7 +322,7 @@ PCL_PROFILE_FUNC();
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 				const layout_tags::single_level_layout_tag&)
 {
@@ -344,7 +344,7 @@ extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 				const layout_tags::multi_level_layout_tag&)
 {
@@ -369,7 +369,7 @@ extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 				
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-bool ParallelCommunicator<TLayout>::
+bool InterfaceCommunicator<TLayout>::
 communicate()
 {
 	PCL_PROFILE(pcl_IntCom_communicate);
@@ -420,7 +420,7 @@ communicate()
 			dbgSendTo.push_back(*iter);
 			
 		if(!SendRecvListsMatch(dbgRecvFrom, dbgSendTo, m_debugProcComm)){
-			UG_LOG("ERROR in ParallelCommunicator::communicate(): send / receive mismatch. Aborting.\n");
+			UG_LOG("ERROR in InterfaceCommunicator::communicate(): send / receive mismatch. Aborting.\n");
 			retVal = false;
 		}
 	}
@@ -569,7 +569,7 @@ communicate()
 		if(!SendRecvBuffersMatch(dbgRecvFrom, recvBufSizes,
 								 dbgSendTo, sendBufSizes, m_debugProcComm))
 		{
-			UG_LOG("ERROR in ParallelCommunicator::communicate(): "
+			UG_LOG("ERROR in InterfaceCommunicator::communicate(): "
 					"send / receive buffer size mismatch. Aborting.\n");
 			retVal = false;
 		}
@@ -645,7 +645,7 @@ communicate()
 				binBuf.read((char*)info.m_buffer, info.m_rawSize);
 			}
 			else{
-				assert(info.m_binBuffer && "ERROR in ParallelCommunicator::communicate: No valid receiver specified.");
+				assert(info.m_binBuffer && "ERROR in InterfaceCommunicator::communicate: No valid receiver specified.");
 				
 				int rawSize = info.m_rawSize;
 				if(rawSize < 0){
@@ -694,12 +694,12 @@ communicate()
 }
 
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 enable_communication_debugging(const ProcessCommunicator& involvedProcs)
 {
 	static bool bFirstTime = true;
 	if(bFirstTime){
-		UG_LOG("WARNING: Communication debugging enabled in ParallelCommunicator.");
+		UG_LOG("WARNING: Communication debugging enabled in InterfaceCommunicator.");
 		UG_LOG(" Expect performance penalty!\n");
 		bFirstTime = false;
 	}
@@ -709,14 +709,14 @@ enable_communication_debugging(const ProcessCommunicator& involvedProcs)
 }
 	 
 template <class TLayout>
-void ParallelCommunicator<TLayout>::
+void InterfaceCommunicator<TLayout>::
 disable_communication_debugging()
 {
 	m_bDebugCommunication = false;
 }
 
 template <class TLayout>
-bool ParallelCommunicator<TLayout>::
+bool InterfaceCommunicator<TLayout>::
 communication_debugging_enabled()
 {
 	return m_bDebugCommunication;

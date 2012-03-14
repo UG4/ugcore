@@ -15,7 +15,7 @@
 namespace pcl
 {
 ////////////////////////////////////////////////////////////////////////
-//	There should be two types of communicators:
+//	There are two types of communicators:
 //	- InterfaceCommunicator: Data is exchanged between elements of
 //				interfaces / layouts. CommunicationPolicies are used to
 //				collect and to extract interface-data.
@@ -29,10 +29,10 @@ namespace pcl
 
 
 ////////////////////////////////////////////////////////////////////////
-//	ParallelCommunicator
+//	InterfaceCommunicator
 ///	Performs communication between interfaces on different processes.
 template <class TLayout>
-class ParallelCommunicator
+class InterfaceCommunicator
 {
 	public:
 	//	typedefs
@@ -44,7 +44,7 @@ class ParallelCommunicator
 		typedef ICommunicationPolicy<Layout>	CommPol;
 		
 	public:
-		ParallelCommunicator();
+		InterfaceCommunicator();
 		
 	////////////////////////////////
 	//	SEND
@@ -156,7 +156,7 @@ class ParallelCommunicator
 	 *	TLayout& get_layout(const TLayoutMap::Key& key);
 	 *	\endcode
 	 *
-	 *	The methods will only be called with type ParallelCommunicator::Type. 
+	 *	The methods will only be called with type InterfaceCommunicator::Type. 
 	 *
 	 *	This method is particularily useful if you categorize layouts on a
 	 *	process. If you separate your layouts into master and slave layouts,

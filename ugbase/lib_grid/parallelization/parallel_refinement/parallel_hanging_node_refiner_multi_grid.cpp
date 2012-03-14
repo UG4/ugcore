@@ -475,7 +475,7 @@ contains_volumes()
 /*
 //	DEBUG ONLY
 //	Make sure that the interfaces and layouts are fine.
-	pcl::ParallelCommunicator<VertexLayout::LevelLayout> com;
+	pcl::InterfaceCommunicator<VertexLayout::LevelLayout> com;
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 
 	UG_LOG("\nTesting horizontal layouts...\n");

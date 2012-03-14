@@ -13,7 +13,7 @@ bool AMGBase<TAlgebra>::gather_vertical(vector_type &vec, vector_type &collected
 {
 	AMGLevel &L = *levels[level];
 	matrix_operator_type &A = *L.pA;
-	pcl::ParallelCommunicator<IndexLayout> &com = A.communicator();
+	pcl::InterfaceCommunicator<IndexLayout> &com = A.communicator();
 
 	if(!levels[level]->bHasBeenMerged)
 	{
@@ -67,7 +67,7 @@ bool AMGBase<TAlgebra>::broadcast_vertical(vector_type &vec, vector_type &collec
 {
 	AMGLevel &L = *levels[level];
 	matrix_operator_type &A = *L.pA;
-	pcl::ParallelCommunicator<IndexLayout> &com = A.communicator();
+	pcl::InterfaceCommunicator<IndexLayout> &com = A.communicator();
 
 	if(!levels[level]->bHasBeenMerged)
 	{
@@ -240,7 +240,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 
 	// 1. create global Algebra IDs
 
-	pcl::ParallelCommunicator<IndexLayout> &communicator = A.communicator();
+	pcl::InterfaceCommunicator<IndexLayout> &communicator = A.communicator();
 	pcl::ProcessCommunicator &pc = A.process_communicator();
 
 	ParallelNodes PN(A.communicator(), A.master_layout(), A.slave_layout(), A.num_rows());

@@ -86,14 +86,14 @@ private:
  * \brief receives data over a interface based on a CommunicationScheme on a subgroup of processes
  * \tparam 	TVec			vector type to check
  * \param 	vec				vec to check
- * \param	com				ParallelCommunicator used to send data
+ * \param	com				InterfaceCommunicator used to send data
  * \param	pc				ProcessCommunicator used for AllProcsTrue
  * \param	masterLayout	layout to send data
  * \param	slaveLayout		layout to receive data and check if equal
  * \param	name			name to be given out if not consistent. default ""
  */
 template<typename TVec>
-void ConsistencyCheck(const TVec &vec, pcl::ParallelCommunicator<IndexLayout> &com,
+void ConsistencyCheck(const TVec &vec, pcl::InterfaceCommunicator<IndexLayout> &com,
 		const pcl::ProcessCommunicator &pc, IndexLayout &masterLayout,
 		IndexLayout &slaveLayout, std::string name="")
 {

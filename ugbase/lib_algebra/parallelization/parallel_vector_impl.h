@@ -34,9 +34,9 @@ ParallelVector<TVector>::
 change_storage_type(ParallelStorageType type)
 {
 //	choose communicator to use
-	pcl::ParallelCommunicator<IndexLayout>* pCommunicator;
+	pcl::InterfaceCommunicator<IndexLayout>* pCommunicator;
 	if(m_pCommunicator == NULL)
-		pCommunicator = const_cast<pcl::ParallelCommunicator<IndexLayout>*>(m_pCommunicator);
+		pCommunicator = const_cast<pcl::InterfaceCommunicator<IndexLayout>*>(m_pCommunicator);
 	else
 		pCommunicator = NULL;
 

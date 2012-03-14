@@ -872,7 +872,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
  * indices >= numIDs.
  */
 template <class TLayout>
-void GenerateGlobalAlgebraIDs(pcl::ParallelCommunicator<TLayout>& communicator,
+void GenerateGlobalAlgebraIDs(pcl::InterfaceCommunicator<TLayout>& communicator,
 		std::vector<AlgebraID>& idsOut,
 		size_t numIDs,
 		TLayout& masterLayout,

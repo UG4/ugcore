@@ -36,7 +36,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 
 //	distribute the ids master->slave
 	typedef typename GridLayoutMap::Types<TGeomObj>::Layout Layout;
-	pcl::ParallelCommunicator<Layout> com;
+	pcl::InterfaceCommunicator<Layout> com;
 	CopyPolicy<Layout, AGeomObjID> compolCopy(g, aID);
 
 	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopy);

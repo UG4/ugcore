@@ -269,8 +269,8 @@ it is clear that those vectors always hold valid and existing elements.
 												*this,
 												m_vNewlyMarkedInterfaceEdges);
 												
-	pcl::ParallelCommunicator<VertexLayout>	vertexCommunicator;	
-	pcl::ParallelCommunicator<EdgeLayout>	edgeCommunicator;
+	pcl::InterfaceCommunicator<VertexLayout>	vertexCommunicator;	
+	pcl::InterfaceCommunicator<EdgeLayout>	edgeCommunicator;
 	
 	//GridLayoutMap& layoutMap = m_distGridMgr.grid_layout_map();
 	

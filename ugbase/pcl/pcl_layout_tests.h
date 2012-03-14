@@ -48,7 +48,7 @@ inline void PrintPC(const pcl::ProcessCommunicator &processCommunicator)
  */
 template<typename TLayout>
 bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
-		pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout, TLayout &slaveLayout)
+		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout, TLayout &slaveLayout)
 {
 	//PRINTPC(processCommunicator);
 //	check if connections are double-ended
@@ -118,7 +118,7 @@ bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
  * return a value of type TValue (TValue = TLayout::Element by default).
  */
 template<typename TLayout, typename TValue>
-bool TestSizeOfInterfacesInLayoutsMatch(pcl::ParallelCommunicator<TLayout> &com,
+bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com,
 					TLayout &masterLayout, TLayout &slaveLayout, bool bPrint=false,
 					boost::function<TValue (typename TLayout::Element)> cbToValue
 						= TrivialToValue<typename TLayout::Element>)
@@ -209,7 +209,7 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::ParallelCommunicator<TLayout> &com,
  */
 template<typename TLayout, typename TValue>
 bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
-		pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
+		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
 				TLayout &slaveLayout, bool bPrint=false,
 				boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>)
@@ -238,7 +238,7 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 
 template<typename TLayout>
 bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
-		pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
+		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
 				TLayout &slaveLayout, bool bPrint=false)
 {
 	return TestLayout<TLayout, typename TLayout::Element>(processCommunicator, com,
@@ -247,7 +247,7 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 
 template<typename TLayout, typename TValue>
 bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
-		pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
+		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
 				TLayout &slaveLayout,
 				boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>)
@@ -258,7 +258,7 @@ bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
 
 template<typename TLayout>
 bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
-		pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout,
+		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
 				TLayout &slaveLayout)
 {
 	return TestLayout(processCommunicator, com, masterLayout, slaveLayout, true);

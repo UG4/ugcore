@@ -21,8 +21,8 @@ namespace ug
 
 typedef std::map<int, std::vector<AlgebraID> > GlobalLayout;
 
-void ReceiveGlobalLayout(pcl::ParallelCommunicator<IndexLayout> &comm, std::vector<int> &srcprocs, GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout);
-void SendGlobalLayout(pcl::ParallelCommunicator<IndexLayout> &comm, GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout, int pid);
+void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, std::vector<int> &srcprocs, GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout);
+void SendGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout, int pid);
 void MergeGlobalLayout(GlobalLayout &globalLayout, std::map<int, int> &merge);
 
 

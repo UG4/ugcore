@@ -223,10 +223,10 @@ void MarkShadows(BoolMarker& boolMarker,
 	ComPol_BoolMarker_AddMarks<EdgeLayout> cpSubsetEDGE(boolMarker);
 	ComPol_BoolMarker_AddMarks<FaceLayout> cpSubsetFACE(boolMarker);
 	ComPol_BoolMarker_AddMarks<VolumeLayout> cpSubsetVOL(boolMarker);
-	pcl::ParallelCommunicator<VertexLayout> comVRT;
-	pcl::ParallelCommunicator<EdgeLayout> comEDGE;
-	pcl::ParallelCommunicator<FaceLayout> comFACE;
-	pcl::ParallelCommunicator<VolumeLayout> comVOL;
+	pcl::InterfaceCommunicator<VertexLayout> comVRT;
+	pcl::InterfaceCommunicator<EdgeLayout> comEDGE;
+	pcl::InterfaceCommunicator<FaceLayout> comFACE;
+	pcl::InterfaceCommunicator<VolumeLayout> comVOL;
 
 	comVRT.send_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
 	comEDGE.send_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);

@@ -103,20 +103,20 @@ class ParallelMatrix : public TMatrix
 		}
 
 	///	sets a communicator
-		void set_communicator(pcl::ParallelCommunicator<IndexLayout>& pc)
+		void set_communicator(pcl::InterfaceCommunicator<IndexLayout>& pc)
 		{
 			m_pCommunicator = &pc;
 		}
 
 	///	returns the communicator
-		pcl::ParallelCommunicator<IndexLayout>&
+		pcl::InterfaceCommunicator<IndexLayout>&
 		communicator()
 		{
 			UG_ASSERT(m_pCommunicator != NULL, "No communicator set, but requested.");
 			return *m_pCommunicator;
 		}
 
-		const pcl::ParallelCommunicator<IndexLayout>&
+		const pcl::InterfaceCommunicator<IndexLayout>&
 		communicator() const
 		{
 			UG_ASSERT(m_pCommunicator != NULL, "No communicator set, but requested.");
@@ -217,7 +217,7 @@ class ParallelMatrix : public TMatrix
 		IndexLayout* m_pMasterLayout;
 
 	// 	communicator for direct neighbor communication
-		pcl::ParallelCommunicator<IndexLayout>* m_pCommunicator;
+		pcl::InterfaceCommunicator<IndexLayout>* m_pCommunicator;
 
 	// 	process communicator (world by default)
 		pcl::ProcessCommunicator m_processCommunicator;

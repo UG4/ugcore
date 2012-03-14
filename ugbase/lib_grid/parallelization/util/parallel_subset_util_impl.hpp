@@ -111,10 +111,10 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 	ComPol_Subset<EdgeLayout> cpSubsetEDGE(surfaceViewOut);
 	ComPol_Subset<FaceLayout> cpSubsetFACE(surfaceViewOut);
 	ComPol_Subset<VolumeLayout> cpSubsetVOL(surfaceViewOut);
-	pcl::ParallelCommunicator<VertexLayout> comVRT;
-	pcl::ParallelCommunicator<EdgeLayout> comEDGE;
-	pcl::ParallelCommunicator<FaceLayout> comFACE;
-	pcl::ParallelCommunicator<VolumeLayout> comVOL;
+	pcl::InterfaceCommunicator<VertexLayout> comVRT;
+	pcl::InterfaceCommunicator<EdgeLayout> comEDGE;
+	pcl::InterfaceCommunicator<FaceLayout> comFACE;
+	pcl::InterfaceCommunicator<VolumeLayout> comVOL;
 
 	comVRT.send_data(distGridMgr.grid_layout_map().template get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
 	comEDGE.send_data(distGridMgr.grid_layout_map().template get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);

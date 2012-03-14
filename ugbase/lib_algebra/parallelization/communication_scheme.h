@@ -86,7 +86,7 @@ public:
 	 * \param	interface		interface to pid over which to send
 	 * This function does the following
 	 * - loop through the interface. serialize each item we get from TDerived::send(pid, index) to a buffer
-	 * - send the buffer to process pid over ParallelCommunicator com.
+	 * - send the buffer to process pid over InterfaceCommunicator com.
 	*/
 	virtual bool
 	collect(ug::BinaryBuffer& buff, Interface& interface)
@@ -254,13 +254,13 @@ private:
 /** CommunicateOnInterfaces
  * \brief sends data over a CommunicationScheme from a sendingLayout to a receivingLayout
  * \tparam 	TCommunicationScheme	type of the sending/receiving CommunicationScheme
- * \param	communicator			ParallelCommunicator used to send data
+ * \param	communicator			InterfaceCommunicator used to send data
  * \param	sendingLayout			layout to send data from
  * \param	receivingLayout			layout to receive data from
  * \param	scheme					CommunicationScheme to use
  */
 template<typename TCommunicationScheme>
-void CommunicateOnInterfaces(pcl::ParallelCommunicator<IndexLayout> &communicator,
+void CommunicateOnInterfaces(pcl::InterfaceCommunicator<IndexLayout> &communicator,
 		IndexLayout &sendingLayout, IndexLayout &receivingLayout, TCommunicationScheme &scheme)
 {
 	AMG_PROFILE_FUNC();
@@ -298,13 +298,13 @@ void CommunicateOnInterfaces(pcl::ParallelCommunicator<IndexLayout> &communicato
  * \brief sends data over a interface based on a CommunicationScheme to a subgroup of processes
  * \tparam 	TSendingScheme	type of the sending CommunicationScheme
  * \tparam 	TPIDs			type of the container of the pids
- * \param	communicator	ParallelCommunicator used to send data
+ * \param	communicator	InterfaceCommunicator used to send data
  * \param	pids			pids to send to
  * \param	layout			layout to use to send
  * \param	sender			sending CommunicationScheme
  */
 template<typename TSendingScheme, typename TPIDs>
-void SendOnInterfaces(pcl::ParallelCommunicator<IndexLayout> &communicator, TPIDs &pids,
+void SendOnInterfaces(pcl::InterfaceCommunicator<IndexLayout> &communicator, TPIDs &pids,
 		IndexLayout &layout, TSendingScheme &sender)
 {
 	AMG_PROFILE_FUNC();
@@ -329,13 +329,13 @@ void SendOnInterfaces(pcl::ParallelCommunicator<IndexLayout> &communicator, TPID
  * \brief receives data over a interface based on a CommunicationScheme on a subgroup of processes
  * \tparam 	TReceiveScheme	type of the receiving CommunicationScheme
  * \tparam 	TPIDs			type of the container of the pids
- * \param	communicator	ParallelCommunicator used to send data
+ * \param	communicator	InterfaceCommunicator used to send data
  * \param	pids			pids to receive from
  * \param	layout			layout to use to receive
  * \param	receiver		receiving CommunicationScheme
  */
 template<typename TPIDs, typename TReceiveScheme>
-void ReceiveOnInterfaces(pcl::ParallelCommunicator<IndexLayout> &communicator, TPIDs &pids,
+void ReceiveOnInterfaces(pcl::InterfaceCommunicator<IndexLayout> &communicator, TPIDs &pids,
 		IndexLayout &layout, TReceiveScheme &receiver)
 {
 	stdvector< BinaryBuffer > bufs(pids.size());
@@ -370,7 +370,7 @@ public:
 	 * \param	interface		interface to pid over which to send
 	 * This function does the following
 	 * - loop through the interface. serialize each item we get from TDerived::send(pid, index) to a buffer
-	 * - send the buffer to process pid over ParallelCommunicator com.
+	 * - send the buffer to process pid over InterfaceCommunicator com.
 	*/
 	virtual bool
 	collect(ug::BinaryBuffer& buff, Interface& interface)

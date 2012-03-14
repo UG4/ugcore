@@ -490,7 +490,7 @@ SweepLineEdge* GetEdgeOnTheLeft(MapEdgeCuts& edgeCuts, SweepLineVertex& v)
 	for(MapEdgeCuts::iterator iter = edgeCuts.begin();
 		iter != edgeCuts.end(); ++iter)
 	{
-		if(iter->first < v.vrtPtr->x)
+		if(iter->first < v.vrtPtr->x){
 			if(!iter->second->contains(&v)){
 				bool takeNew = true;
 			//	if a second edge with identical cut exists (this can happen
@@ -519,6 +519,7 @@ SweepLineEdge* GetEdgeOnTheLeft(MapEdgeCuts& edgeCuts, SweepLineVertex& v)
 					leftEdgeVal = iter->first;
 				}
 			}
+		}
 		else
 			break;
 	}

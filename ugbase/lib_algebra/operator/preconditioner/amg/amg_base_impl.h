@@ -380,7 +380,7 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 			std::vector<MathVector<3> > vec = m_amghelper.positions[level];
 			vec.resize(L.collectedA.num_rows());
 			ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec);
-			pcl::ParallelCommunicator<IndexLayout> &communicator = A.communicator();
+			pcl::InterfaceCommunicator<IndexLayout> &communicator = A.communicator();
 			communicator.send_data(agglomerateSlaveLayout, copyPol);
 			communicator.receive_data(L.agglomerateMasterLayout, copyPol);
 			communicator.communicate();
@@ -573,7 +573,7 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 	{
 		vector_type collC;
 		vector_type collD;
-		pcl::ParallelCommunicator<IndexLayout> &com = A.get_communicator();
+		pcl::InterfaceCommunicator<IndexLayout> &com = A.get_communicator();
 		if(pcl::GetProcRank() == 0)
 		{
 			size_t N = L.collectedA.num_rows();
@@ -598,7 +598,7 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 		}
 		// send d -> collD
 		ComPol_VecAdd<vector_type > compolAdd(&collD, &d);
-		pcl::ParallelCommunicator<IndexLayout> &com = A.communicator();
+		pcl::InterfaceCommunicator<IndexLayout> &com = A.communicator();
 		com.receive_data(L.agglomerateMasterLayout, compolAdd);
 		com.send_data(agglomerateSlaveLayout, compolAdd);
 		com.communicate();

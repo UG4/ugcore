@@ -267,7 +267,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 
 	///	returns communicator
 	/// \{
-		const pcl::ParallelCommunicator<IndexLayout>& communicator() const  {return lev_info().communicator;}
+		const pcl::InterfaceCommunicator<IndexLayout>& communicator() const  {return lev_info().communicator;}
 		const pcl::ProcessCommunicator& process_communicator() const {return lev_info().processCommunicator;}
 	/// \}
 
@@ -287,7 +287,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 
 	///	returns communicator
 	/// \{
-		pcl::ParallelCommunicator<IndexLayout>& communicator() {return lev_info().communicator;}
+		pcl::InterfaceCommunicator<IndexLayout>& communicator() {return lev_info().communicator;}
 		pcl::ProcessCommunicator& process_communicator()	{return lev_info().processCommunicator;}
 	/// \}
 #endif

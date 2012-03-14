@@ -42,7 +42,7 @@ public:
 		m_bCreateNewNodes = bCreateNewNodes;
 	}
 
-	void issue_send(pcl::ParallelCommunicator<IndexLayout> &communicator,
+	void issue_send(pcl::InterfaceCommunicator<IndexLayout> &communicator,
 			IndexLayout &sendLayout, IndexLayout &receiveLayout)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "*** RowSendingScheme::issue_send: ***\n");

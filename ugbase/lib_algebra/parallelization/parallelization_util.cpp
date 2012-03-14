@@ -78,7 +78,7 @@ void CommunicateConnections(vector<vector<int> >& connectionsOut,
 	}
 
 //	now communicate the connections to the slaves
-	pcl::ParallelCommunicator<IndexLayout> interfaceComm;
+	pcl::InterfaceCommunicator<IndexLayout> interfaceComm;
 	ComPol_VecCopy<vector<vector<int> > > compolCopy(&connectionsOut);
 	interfaceComm.send_data(masterLayout, compolCopy);
 	interfaceComm.receive_data(slaveLayout, compolCopy);
@@ -120,7 +120,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 	//int localRank = procComm.get_local_proc_id();
 	vector<IndexLayout::Element> oldMasterNodes;
 	vector<IndexLayout::Element> oldSlaveNodes;
-	pcl::ParallelCommunicator<IndexLayout> interfaceComm;
+	pcl::InterfaceCommunicator<IndexLayout> interfaceComm;
 
 	int highestReferencedIndex = max(GetHighestReferencedIndex(masterLayout),
 									 GetHighestReferencedIndex(slaveLayout));
@@ -506,7 +506,7 @@ void BuildDomainDecompositionLayouts(
 //		between different subdomains.
 	vector<int> masterFlags(connections.size(), -1);
 	ComPol_VecCopy<vector<int> > compolCopy(&masterFlags, &flags);
-	ParallelCommunicator<IndexLayout> com;
+	InterfaceCommunicator<IndexLayout> com;
 	com.send_data(standardMasters, compolCopy);
 	com.receive_data(standardSlaves, compolCopy);
 	com.communicate();
@@ -614,7 +614,7 @@ void BuildDomainDecompositionLayouts(
 	if(flagVecSize < 0)
 		flagVecSize = 0;
 
-	pcl::ParallelCommunicator<IndexLayout> interfaceComm;
+	pcl::InterfaceCommunicator<IndexLayout> interfaceComm;
 
 ////////////////////////
 //	this vector will contain an integer
@@ -674,7 +674,7 @@ void BuildDomainDecompositionLayouts(
  * adds connections between slave nodes to the interfaces/layouts
  * when a master node has 2 slave nodes, this function adds a connection between these nodes
  *
- * \param communicator used ParallelCommunicator
+ * \param communicator used InterfaceCommunicator
  * \param masterLayout master layout
  * \param slaveLayout slave layout
  * \param allToAllSend layout with slave-slave connections at the end of this function
@@ -692,7 +692,7 @@ void BuildDomainDecompositionLayouts(
  *
  * \note because the order in the interfaces is important, this function is more complicate that one would expect.
  */
-void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communicator,
+void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &communicator,
 		IndexLayout &masterLayout, IndexLayout &slaveLayout, IndexLayout &allToAllSend,
 		IndexLayout &allToAllReceive)
 {
@@ -856,7 +856,7 @@ void AddConnectionsBetweenSlaves(pcl::ParallelCommunicator<IndexLayout> &communi
 
 }
 
-void CreateAllToAllFromMasterSlave(pcl::ParallelCommunicator<IndexLayout> &communicator,
+void CreateAllToAllFromMasterSlave(pcl::InterfaceCommunicator<IndexLayout> &communicator,
 		IndexLayout &OLCoarseningSendLayout, IndexLayout &OLCoarseningReceiveLayout,
 		IndexLayout &OL1MasterLayout, IndexLayout &OL1SlaveLayout)
 {

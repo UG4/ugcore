@@ -146,7 +146,7 @@ class FetiLayouts
 		//	test output
 			if(bDebug && false)
 			{
-				pcl::ParallelCommunicator<IndexLayout> comTmp;
+				pcl::InterfaceCommunicator<IndexLayout> comTmp;
 				UG_LOG("STANDARD LAYOUTS:\n");
 				PrintLayout(m_stdProcessCom, comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout);
 				UG_LOG("INNER LAYOUTS:\n");
@@ -169,7 +169,7 @@ class FetiLayouts
 				UG_LOG("LAYOUTS not yet created!\n");
 				return;
 			}
-			pcl::ParallelCommunicator<IndexLayout> comTmp;
+			pcl::InterfaceCommunicator<IndexLayout> comTmp;
 
 			UG_LOG("TEST STANDARD LAYOUTS:\n");
 			if (TestLayout(m_stdProcessCom, comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout, print) != true) {

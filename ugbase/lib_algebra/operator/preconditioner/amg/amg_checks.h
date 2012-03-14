@@ -376,7 +376,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 
 				AMGLevel &L = *levels[level+1];
 				matrix_operator_type &A = *L.pA;
-				pcl::ParallelCommunicator<IndexLayout> &com = A.get_communicator();
+				pcl::InterfaceCommunicator<IndexLayout> &com = A.get_communicator();
 
 				if(m_agglomerateLevel == level+1)
 				{

@@ -134,13 +134,13 @@ class ParallelVector : public TVector
 		}
 
 	///	sets a communicator
-		void set_communicator(pcl::ParallelCommunicator<IndexLayout>& pc)
+		void set_communicator(pcl::InterfaceCommunicator<IndexLayout>& pc)
 		{
 			m_pCommunicator = &pc;
 		}
 
 	///	returns the communicator
-		pcl::ParallelCommunicator<IndexLayout>& communicator() const
+		pcl::InterfaceCommunicator<IndexLayout>& communicator() const
 		{
 			UG_ASSERT(m_pCommunicator != NULL,
 			          "No Parallel Communicator set, but requested.");
@@ -318,7 +318,7 @@ class ParallelVector : public TVector
 		IndexLayout* m_pVerticalMasterLayout;
 
 	// 	communicator for direct neighbor communication
-		pcl::ParallelCommunicator<IndexLayout>* m_pCommunicator;
+		pcl::InterfaceCommunicator<IndexLayout>* m_pCommunicator;
 
 	// 	process communicator (world by default)
 		pcl::ProcessCommunicator m_processCommunicator;
