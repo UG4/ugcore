@@ -130,25 +130,18 @@ class SmartPtr
 			return !(this->operator==(sp));
 		}
 
+	///	returns encapsulated pointer
 		T* get_impl()				{return m_ptr;}
+
+	///	returns encapsulated pointer
 		const T* get_impl() const	{return m_ptr;}
 
+	///	returns refcount
 		int get_refcount() const {if(m_refCount) return *m_refCount; return 0;}
 
 	///	returns true if the pointer is valid, false if not.
 		inline bool is_valid() const	{return m_ptr != NULL;}
 		
-	///	WARNING: this method is dangerous!
-	/**	This method should never be used since it may be removed in future
-	 *	versions of the SmartPtr class.
-	 *	It is featured in order to allow to implement a template-constructor
-	 *	that casts element-pointers of a smart pointer.
-	 *	\{*/
-		int* get_refcount_ptr() const 	{return m_refCount;}
-
-		T* get_nonconst_impl() const	{return m_ptr;}
-	/**	\}	*/
-
 	///	preforms a dynamic cast
 		template <class TDest>
 		SmartPtr<TDest, FreePolicy> cast_dynamic() const{
@@ -175,6 +168,27 @@ class SmartPtr
 
 	///	performs a const cast
 		ConstSmartPtr<T, FreePolicy> cast_const() const;
+
+	///	WARNING: this method is DANGEROUS!
+	/**	You should only use this constructor if you really know what you're doing!
+	 *	The following methods are required for SmartPtr<void> and casts */
+		SmartPtr(T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
+		{
+			if(m_refCount)
+				(*m_refCount)++;
+		}
+
+	///	WARNING: this method is DANGEROUS!
+	/**	This method should never be used since it may be removed in future
+	 *	versions of the SmartPtr class.
+	 *	It is featured in order to allow to implement a template-constructor
+	 *	that casts element-pointers of a smart pointer.
+	 *	\{*/
+		int* get_refcount_ptr() const 	{return m_refCount;}
+
+		T* get_nonconst_impl() const	{return m_ptr;}
+	/**	\}	*/
+
 	private:
 	///	decrements the refCount and frees the encapsulated pointer if required.
 		void release() {
@@ -188,15 +202,6 @@ class SmartPtr
 					FreePolicy<T>::free(m_ptr);
 				}
 			}
-		}
-
-	////////////////////////////////
-	//	The following methods are required for SmartPtr<void>
-	///	you should only use this constructor if you really know what you're doing!
-		SmartPtr(T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
-		{
-			if(m_refCount)
-				(*m_refCount)++;
 		}
 
 	///	this release method is required by SmartPtr<void>
@@ -312,14 +317,6 @@ class ConstSmartPtr
 	///	returns true if the pointer is valid, false if not.
 		inline bool is_valid() const	{return m_ptr != NULL;}
 
-	///	WARNING: this method is dangerous!
-	/**	This method should never be used since it may be removed in future
-	 *	versions of the SmartPtr class.
-	 *	It is featured in order to allow to implement a template-constructor
-	 *	that casts element-pointers of a smart pointer.*/
-		int* get_refcount_ptr() const {return m_refCount;}
-
-
 	///	preforms a dynamic cast
 		template <class TDest>
 		ConstSmartPtr<TDest, FreePolicy> cast_dynamic() const{
@@ -349,6 +346,22 @@ class ConstSmartPtr
 			return SmartPtr<T, FreePolicy>(const_cast<T*>(m_ptr), m_refCount);
 		}
 
+	///	WARNING: this method is DANGEROUS!
+	/**	You should only use this constructor if you really know what you're doing!
+	 *	The following methods are required for SmartPtr<void> and casts */
+		ConstSmartPtr(const T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
+		{
+			if(m_refCount)
+				(*m_refCount)++;
+		}
+
+	///	WARNING: this method is dangerous!
+	/**	This method should never be used since it may be removed in future
+	 *	versions of the SmartPtr class.
+	 *	It is featured in order to allow to implement a template-constructor
+	 *	that casts element-pointers of a smart pointer.*/
+		int* get_refcount_ptr() const {return m_refCount;}
+
 	private:
 	///	decrements the refCount and frees the encapsulated pointer if required.
 		void release() {
@@ -362,15 +375,6 @@ class ConstSmartPtr
 					FreePolicy<T>::free(m_ptr);
 				}
 			}
-		}
-
-	////////////////////////////////
-	//	The following methods are required for SmartPtr<void>
-	///	you should only use this constructor if you really know what you're doing!
-		ConstSmartPtr(const T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
-		{
-			if(m_refCount)
-				(*m_refCount)++;
 		}
 
 	//	this release method is required by SmartPtr<void>
