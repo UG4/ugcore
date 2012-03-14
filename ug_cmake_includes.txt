@@ -340,12 +340,14 @@ endif("${CPU}" STREQUAL "ALL")
 ########################################
 # DEBUG
 
-if(NOT CRAY)
-	add_definitions(-Wall)
-else(NOT CRAY)
-	# add support for gnu extensions
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
+	# Cray Compiler: add support for gnu extensions
 	add_definitions(-h gnu)
-endif(NOT CRAY)
+	# remove warning "The controlling expression is constant"
+	add_definitions(-hnomessage=236)
+else()
+	add_definitions(-Wall)	
+endif()
 
 
 if(DEBUG)
@@ -367,9 +369,11 @@ if(DEBUG)
 
 else(DEBUG)
 	add_definitions(-O3)
-	if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 		add_definitions(-funroll-loops -ftree-vectorize)
-	endif("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
+		add_definitions(-hipa5  -hunroll2)
+	endif()
 	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
 endif(DEBUG)
 
@@ -425,10 +429,7 @@ if(buildAlgebra)
 				endif(BLAS_INCLUDE_PATH)
 			endif(BLAS)
 			
-		elseif(CRAY)
-			set(BUILTIN_BLAS YES)
-			set(BUILTIN_LAPACK YES)			
-		else(APPLE)
+		elseif(NOT BUILTIN_BLAS AND NOT BUILTIN_LAPACK)			
 			# a fortran compiler is required to find the packages
 			# Sadly there seems to be a cmake-bug, hence the following workaround.
 			# ENABLE_LANGUAGE workaround begin (issue 0009220)
