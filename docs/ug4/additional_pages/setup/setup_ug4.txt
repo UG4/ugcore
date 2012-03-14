@@ -113,9 +113,11 @@ The Job Scheduler on Cekon is supported by ugsubmit/uginfo/ugcancel (\ref pageug
 
 If you want to do job scheduling manually:
 <li>Start your job with
-\verbatim
-salloc -n <NP> mpirun ugshell $UGARGS
-\endverbatim
+    \verbatim
+    salloc -n <NP> mpirun ugshell $UGARGS
+    \endverbatim
+    Please note that ony the <tt>salloc</tt> parameter <tt>-n</tt> reserves a number of processes / cores of a job,
+    while <tt>-N</tt> (capital N) a number of nodes. See the <tt>salloc</tt> manual page for further details
 </li>
 
 <li>To display information about jobs already running (located in the SLURM scheduling queue) use the <tt>squeue</tt> command.
