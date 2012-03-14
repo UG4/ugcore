@@ -85,51 +85,88 @@ class ConvectionDiffusionElemDisc
 	 * This method sets the Diffusion tensor used in computations. If no
 	 * Tensor is set, a zero value is assumed.
 	 */
+	///	\{
 		void set_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
-		void set_diffusion(number user);
+		void set_diffusion(number val);
 #ifndef FOR_VRL
 		void set_diffusion(const char* fctName);
 #endif
+	///	\}
 
 	///	sets the velocity field
 	/**
 	 * This method sets the Velocity field. If no field is provided a zero
 	 * value is assumed.
 	 */
+	/// \{
 		void set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user);
+#ifndef FOR_VRL
+		void set_velocity(const char* fctName);
+#endif
+	/// \}
 
 	///	sets the reaction rate
 	/**
 	 * This method sets the Reaction Rate. A zero value is assumed as default.
 	 */
+	///	\{
 		void set_reaction_rate(SmartPtr<IPData<number, dim> > user);
+		void set_reaction_rate(number val);
+#ifndef FOR_VRL
+		void set_reaction_rate(const char* fctName);
+#endif
+	///	\}
 
 	///	sets the reaction
 	/**
 	 * This method sets the Reaction. A zero value is assumed as default.
 	 */
+	///	\{
 		void set_reaction(SmartPtr<IPData<number, dim> > user);
+		void set_reaction(number val);
+#ifndef FOR_VRL
+		void set_reaction(const char* fctName);
+#endif
+	///	\}
 
 	///	sets the source / sink term
 	/**
 	 * This method sets the source/sink value. A zero value is assumed as
 	 * default.
 	 */
+	///	\{
 		void set_source(SmartPtr<IPData<number, dim> > user);
+		void set_source(number val);
+#ifndef FOR_VRL
+		void set_source(const char* fctName);
+#endif
+	///	\}
 
 	///	sets mass scale
 	/**
 	 * This method sets the mass scale value. A value of 1.0 is assumed as
 	 * default.
 	 */
+	///	\{
 		void set_mass_scale(SmartPtr<IPData<number, dim> > user);
+		void set_mass_scale(number val);
+#ifndef FOR_VRL
+		void set_mass_scale(const char* fctName);
+#endif
+	///	\}
 
 	///	sets mass
 	/**
 	 * This method sets the mass value. A value of 0.0 is assumed as
 	 * default.
 	 */
+	///	\{
 		void set_mass(SmartPtr<IPData<number, dim> > user);
+		void set_mass(number val);
+#ifndef FOR_VRL
+		void set_mass(const char* fctName);
+#endif
+	///	\}
 
 	public:
 	///	type of trial space for each function used

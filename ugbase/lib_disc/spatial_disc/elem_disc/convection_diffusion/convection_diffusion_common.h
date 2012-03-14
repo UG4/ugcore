@@ -19,15 +19,17 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_upwind(IConvectionShapes<dim>& shapes) {m_pConvShape = &shapes;}
 
+//////// Diffusion
+
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user) {m_imDiffusion.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
-set_diffusion(number user)
+set_diffusion(number val)
 {
-	set_diffusion(SmartPtr<ConstUserMatrix<dim> >(new ConstUserMatrix<dim>(user)));
+	set_diffusion(SmartPtr<ConstUserMatrix<dim> >(new ConstUserMatrix<dim>(val)));
 }
 
 #ifndef FOR_VRL
@@ -39,9 +41,22 @@ set_diffusion(const char* fctName)
 }
 #endif
 
+//////// Velocity
+
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user) {m_imVelocity.set_data(user);}
+
+#ifndef FOR_VRL
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_velocity(const char* fctName)
+{
+	set_velocity(SmartPtr<LuaUserData<MathVector<dim>, dim> >(new LuaUserData<MathVector<dim>, dim>(fctName)));
+}
+#endif
+
+//////// Reaction Rate
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
@@ -49,7 +64,43 @@ set_reaction_rate(SmartPtr<IPData<number, dim> > user) {m_imReactionRate.set_dat
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
+set_reaction_rate(number val)
+{
+	set_reaction_rate(SmartPtr<ConstUserNumber<dim> >(new ConstUserNumber<dim>(val)));
+}
+
+#ifndef FOR_VRL
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_reaction_rate(const char* fctName)
+{
+	set_reaction_rate(SmartPtr<LuaUserData<number, dim> >(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+//////// Reaction
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
 set_reaction(SmartPtr<IPData<number, dim> > user) {m_imReaction.set_data(user);}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_reaction(number val)
+{
+	set_reaction(SmartPtr<ConstUserNumber<dim> >(new ConstUserNumber<dim>(val)));
+}
+
+#ifndef FOR_VRL
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_reaction(const char* fctName)
+{
+	set_reaction(SmartPtr<LuaUserData<number, dim> >(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+//////// Source
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
@@ -57,11 +108,65 @@ set_source(SmartPtr<IPData<number, dim> > user)	{m_imSource.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
+set_source(number val)
+{
+	set_source(SmartPtr<ConstUserNumber<dim> >(new ConstUserNumber<dim>(val)));
+}
+
+#ifndef FOR_VRL
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_source(const char* fctName)
+{
+	set_source(SmartPtr<LuaUserData<number, dim> >(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+//////// Mass Scale
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
 set_mass_scale(SmartPtr<IPData<number, dim> > user)	{m_imMassScale.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
+set_mass_scale(number val)
+{
+	set_mass_scale(SmartPtr<ConstUserNumber<dim> >(new ConstUserNumber<dim>(val)));
+}
+
+#ifndef FOR_VRL
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_mass_scale(const char* fctName)
+{
+	set_mass_scale(SmartPtr<LuaUserData<number, dim> >(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+//////// Mass
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
 set_mass(SmartPtr<IPData<number, dim> > user)	{m_imMass.set_data(user);}
+
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_mass(number val)
+{
+	set_mass(SmartPtr<ConstUserNumber<dim> >(new ConstUserNumber<dim>(val)));
+}
+
+#ifndef FOR_VRL
+template<typename TDomain>
+void ConvectionDiffusionElemDisc<TDomain>::
+set_mass(const char* fctName)
+{
+	set_mass(SmartPtr<LuaUserData<number, dim> >(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+
 
 template<typename TDomain>
 bool ConvectionDiffusionElemDisc<TDomain>::

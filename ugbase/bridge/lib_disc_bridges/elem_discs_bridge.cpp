@@ -121,15 +121,48 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("set_quad_order", &T::set_quad_order)
 			.add_method("set_quad_order_scvf", &T::set_quad_order_scvf)
 			.add_method("set_quad_order_scv", &T::set_quad_order_scv)
+
 			.add_method("set_diffusion_tensor", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
 			.add_method("set_diffusion_tensor", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diffusion")
 #ifndef FOR_VRL
 			.add_method("set_diffusion_tensor", static_cast<void (T::*)(const char*)>(&T::set_diffusion), "", "Diffusion")
 #endif
-			.add_method("set_velocity_field", &T::set_velocity, "", "Velocity Field")
-			.add_method("set_reaction_rate", &T::set_reaction_rate, "", "Reaction Rate")
-			.add_method("set_source", &T::set_source, "", "Source")
-			.add_method("set_mass_scale", &T::set_mass_scale, "", "Mass Scale")
+
+			.add_method("set_velocity_field", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >)>(&T::set_velocity), "", "Velocity Field")
+#ifndef FOR_VRL
+			.add_method("set_velocity_field", static_cast<void (T::*)(const char*)>(&T::set_velocity), "", "Velocity Field")
+#endif
+
+			.add_method("set_reaction_rate", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_reaction_rate), "", "Reaction Rate")
+			.add_method("set_reaction_rate", static_cast<void (T::*)(number)>(&T::set_reaction_rate), "", "Reaction Rate")
+#ifndef FOR_VRL
+			.add_method("set_reaction_rate", static_cast<void (T::*)(const char*)>(&T::set_reaction_rate), "", "Reaction Rate")
+#endif
+
+			.add_method("set_reaction", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_reaction), "", "Reaction")
+			.add_method("set_reaction", static_cast<void (T::*)(number)>(&T::set_reaction), "", "Reaction")
+#ifndef FOR_VRL
+			.add_method("set_reaction", static_cast<void (T::*)(const char*)>(&T::set_reaction), "", "Reaction")
+#endif
+
+			.add_method("set_source", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_source), "", "Source")
+			.add_method("set_source", static_cast<void (T::*)(number)>(&T::set_source), "", "Source")
+#ifndef FOR_VRL
+			.add_method("set_source", static_cast<void (T::*)(const char*)>(&T::set_source), "", "Source")
+#endif
+
+			.add_method("set_mass_scale", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_mass_scale), "", "Mass Scale")
+			.add_method("set_mass_scale", static_cast<void (T::*)(number)>(&T::set_mass_scale), "", "Mass Scale")
+#ifndef FOR_VRL
+			.add_method("set_mass_scale", static_cast<void (T::*)(const char*)>(&T::set_mass_scale), "", "Mass Scale")
+#endif
+
+			.add_method("set_mass", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_mass), "", "Mass")
+			.add_method("set_mass", static_cast<void (T::*)(number)>(&T::set_mass), "", "Mass")
+#ifndef FOR_VRL
+			.add_method("set_mass", static_cast<void (T::*)(const char*)>(&T::set_mass), "", "Mass")
+#endif
+
 			.add_method("set_upwind", &T::set_upwind)
 			.add_method("value", &T::value)
 			.add_method("gradient", &T::gradient);
