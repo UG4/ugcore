@@ -227,7 +227,7 @@ class IPData : public IIPDimData<dim>
 
 	protected:
 	/// data at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
-		std::vector<TData*> m_vvValue;
+		std::vector<std::vector<TData> > m_vvValue;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -252,14 +252,14 @@ class IDependentIPData : virtual public IIPData
 	///	computation of data depending on current solution
 		virtual bool compute(bool bDeriv = false)
 		{
-			UG_LOG("ERROR in 'IDependentIPData::compute': No implementation found.\n");
+			UG_THROW_FATAL("IDependentIPData::compute: No implementation found.");
 			return false;
 		}
 
 	///	computation of data depending on current solution
 		virtual bool compute_with_sol(const LocalVector& u, bool bDeriv)
 		{
-			UG_LOG("ERROR in 'IDependentIPData::compute': No implementation found.\n");
+			UG_THROW_FATAL("IDependentIPData::compute: No implementation found.");
 			return false;
 		}
 

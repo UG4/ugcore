@@ -282,7 +282,7 @@ comp(const LocalVector& u, bool bDeriv)
 				 this->ips(s),
 				 this->template local_ips<refDim>(s),
 				 this->num_ip(s),
-				 this->m_vvValue[s],
+				 this->values(s),
 				 bDeriv,
 				 &this->m_vvvvDeriv[s][0]);
 	}

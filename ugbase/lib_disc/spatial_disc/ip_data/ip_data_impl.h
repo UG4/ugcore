@@ -159,17 +159,15 @@ void IPData<TData,dim>::local_ips_added()
 //	check, that only increasing the data, this is important to guarantee,
 //	that the allocated memory pointer remain valid. They are used outside of
 //	the class as well to allow fast access to the data.
-	UG_ASSERT(num_series() >= numOldSeries, "Decrease is not implemented.");
+	if(num_series() < numOldSeries)
+		UG_THROW_FATAL("Decrease is not implemented.");
 
 //	increase number of series if needed
-	m_vvValue.resize(num_series(), NULL);
+	m_vvValue.resize(num_series());
 
 //	allocate new storage
 	for(size_t s = numOldSeries; s < m_vvValue.size(); ++s)
-	{
-		if(num_ip(s) > 0)
-			m_vvValue[s] = new TData[num_ip(s)];
-	}
+			m_vvValue[s].resize(num_ip(s));
 
 //	call base class callback
 	base_type::local_ips_added();
@@ -179,12 +177,6 @@ template <typename TData, int dim>
 void IPData<TData,dim>::local_ips_to_be_cleared()
 {
 //	free the memory
-	for(size_t s = 0; s < m_vvValue.size(); ++s)
-	{
-		if(num_ip(s) > 0 && m_vvValue[s] != NULL)
-			delete[] m_vvValue[s];
-	}
-
 //	clear all series
 	m_vvValue.clear();
 
