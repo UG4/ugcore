@@ -21,21 +21,31 @@
 
 # to use cmake 2.8.7:
 # module load tools/cmake/2.8.7
-IF(${CMAKE_VERSION} STRLESS "2.8.7")
-	# emulating Hermit.cmake
-	SET(CMAKE_SYSTEM_NAME Catamount)
-	SET(MPI_Fortran_NO_INTERROGATE CMAKE_Fortran_COMPILER)
-	SET(MPI_LIBRARY -L$(MPICH_DIR)/lib)
-	SET(MPI_EXTRA_LIBRARY -L$(MPICH_DIR)/lib)
-	SET(BLA_STATIC ON)
-	SET(BLA_VENDOR All)
-	SET(BLAS_FIND_QUIETLY ON)
-	SET(LAPACK_FIND_QUIETLY ON)
-	SET(LAPACK_LIBRARIES "/opt/xt-libsci/11.0.05/cray/74/interlagos/lib/libsci_cray.a")
-ELSE()
-	# cmake >= 2.8.7 has Hermit.cmake
-	SET(CMAKE_SYSTEM_NAME Hermit)
+SET(HERMIT_CMAKE OFF)
+IF(CMAKE_VERSION)
+ SET(HERMIT_CMAKE ON)
+ IF(${CMAKE_VERSION} STRLESS "2.8.7")
+  SET(HERMIT_CMAKE OFF)
+  ENDIF()
 ENDIF()
+
+IF(HERMIT_CMAKE)
+    # cmake >= 2.8.7 has Hermit.cmake
+    SET(CMAKE_SYSTEM_NAME Hermit)
+ELSE()
+    # emulating Hermit.cmake
+    # this is needed to get rid of -rdynamic flag...
+    SET(CMAKE_SYSTEM_NAME Catamount)
+    SET(MPI_Fortran_NO_INTERROGATE CMAKE_Fortran_COMPILER)
+    SET(MPI_LIBRARY -L$(MPICH_DIR)/lib)
+    SET(MPI_EXTRA_LIBRARY -L$(MPICH_DIR)/lib)
+    SET(BLA_STATIC ON)
+    SET(BLA_VENDOR All)
+    SET(BLAS_FIND_QUIETLY ON)
+    SET(LAPACK_FIND_QUIETLY ON)
+    SET(LAPACK_LIBRARIES "/opt/xt-libsci/11.0.05/cray/74/interlagos/lib/libsci_cray.a")
+ENDIF()
+
 
 
 SET(CMAKE_Fortran_COMPILER ftn)
