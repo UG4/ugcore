@@ -722,7 +722,8 @@ void RegisterUserData(ug::bridge::Registry& reg,
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("userNumber", &T::set_vrl_callback, "",
-				options.str().c_str());
+				options.str().c_str()).
+		set_construct_as_smart_pointer(true);
 	}
 
 	//	VRLUserVector
@@ -748,7 +749,8 @@ void RegisterUserData(ug::bridge::Registry& reg,
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("userVector", &T::set_vrl_callback, "",
-				options.str().c_str());
+				options.str().c_str()).
+		set_construct_as_smart_pointer(true);
 	}
 
 	//	VRLBoundaryUserVector
@@ -773,7 +775,8 @@ void RegisterUserData(ug::bridge::Registry& reg,
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("boundaryNumber", &T::set_vrl_callback, "",
-				options.str().c_str());
+				options.str().c_str()).
+		set_construct_as_smart_pointer(true);
 	}
 
 }
@@ -796,19 +799,22 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup) {
 	reg.add_class_<T > ("PrintUserNumber2d", parentGroup)
 			.add_constructor()
 			.add_method("set_user_number", &T::set_user_number, "", "NumberProvider")
-			.add_method("print", &T::print, "Result", "x#y");
+			.add_method("print", &T::print, "Result", "x#y").
+			set_construct_as_smart_pointer(true);
 
 	typedef PrintUserVector2d T2;
 	reg.add_class_<T2 > ("PrintUserVector2d", parentGroup)
 			.add_constructor()
 			.add_method("set_user_vector", &T2::set_user_vector, "", "NumberProvider")
-			.add_method("print", &T2::print, "Result", "x#y");
+			.add_method("print", &T2::print, "Result", "x#y").
+			set_construct_as_smart_pointer(true);
 
 	typedef PrintBoundaryNumber2d T3;
 	reg.add_class_<T3 > ("PrintBoundaryNumber2d", parentGroup)
 			.add_constructor()
 			.add_method("set_user_number", &T3::set_user_number, "", "BoundaryNumber")
-			.add_method("print", &T3::print, "Result", "x#y");
+			.add_method("print", &T3::print, "Result", "x#y").
+			set_construct_as_smart_pointer(true);
 
 
 #endif
