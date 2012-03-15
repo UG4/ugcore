@@ -142,8 +142,8 @@ print("    grid       = " .. gridName)
 print("    numPreRefs = " .. numPreRefs)
 print("    numRefs    = " .. numRefs)
 
-print("    verb (verbosity)         = " .. verbosity)
-print("    printSol (ps)            = " .. printSol)
+print("    verbosity (verb)         = " .. verbosity)
+print("    ps (printSol)            = " .. printSol)
 print("    dbgw (activateDbgWriter) = " .. activateDbgWriter)
 
 print(" Linear solver related parameters chosen:")
