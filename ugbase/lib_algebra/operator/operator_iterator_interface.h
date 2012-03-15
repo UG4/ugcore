@@ -207,8 +207,7 @@ class IPreconditioner :
 		typedef MatrixOperator<vector_type, vector_type, matrix_type> matrix_operator_type;
 
 	protected:
-		using DebugWritingObject<TAlgebra>::write_debug_vector;
-		using DebugWritingObject<TAlgebra>::write_debug_matrix;
+		using DebugWritingObject<TAlgebra>::write_debug;
 
 	public:
 	///	default constructor

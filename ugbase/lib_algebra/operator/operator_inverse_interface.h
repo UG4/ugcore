@@ -308,7 +308,7 @@ class IPreconditionedLinearOperatorInverse
 	protected:
 		using base_type::name;
 		using base_type::linear_operator;
-		using VectorDebugWritingObject<X>::write_debug_vector;
+		using VectorDebugWritingObject<X>::write_debug;
 
 	public:
 	///	Empty constructor
@@ -371,7 +371,7 @@ class IPreconditionedLinearOperatorInverse
 		//	solve on copy of defect
 			bool bRes = apply_return_defect(x, bTmp);
 
-			write_debug_vector(bTmp, "LS_UpdatedDefectEnd.vec");
+			write_debug(bTmp, "LS_UpdatedDefectEnd.vec");
 
 		//	compute defect again, for debug purpose
 			if(m_bRecomputeDefectWhenFinished)
@@ -382,7 +382,7 @@ class IPreconditionedLinearOperatorInverse
 				number norm = bTmp.two_norm();
 				UG_LOG("%%%% DEBUG "<<name()<<": (Re)computed defect has norm: "<<norm<<"\n");
 
-				write_debug_vector(bTmp, "LS_TrueDefectEnd.vec");
+				write_debug(bTmp, "LS_TrueDefectEnd.vec");
 			}
 
 		//	return

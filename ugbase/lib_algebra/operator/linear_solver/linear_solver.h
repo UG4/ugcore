@@ -39,7 +39,7 @@ class LinearSolver
 		using base_type::convergence_check;
 		using base_type::linear_operator;
 		using base_type::preconditioner;
-		using base_type::write_debug_vector;
+		using base_type::write_debug;
 
 	public:
 	///	returns the name of the solver
@@ -94,8 +94,8 @@ class LinearSolver
 					}
 					LS_PROFILE_END(); //LS_ApplyPrecond
 				}
-				write_debug_vector(d, "Defect.vec");
-				write_debug_vector(c, "Correction.vec");
+				write_debug(d, "Defect.vec");
+				write_debug(c, "Correction.vec");
 
 			// 	add correction to solution: x += c
 				LS_PROFILE_BEGIN(LS_AddCorrection);

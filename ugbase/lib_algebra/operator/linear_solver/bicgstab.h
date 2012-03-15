@@ -49,7 +49,7 @@ class BiCGStab
 		using base_type::convergence_check;
 		using base_type::linear_operator;
 		using base_type::preconditioner;
-		using base_type::write_debug_vector;
+		using base_type::write_debug;
 
 	public:
 	///	default constructor

@@ -125,7 +125,7 @@ class VectorDebugWritingObject
 
 	protected:
 	///	writing debug output for a vector (if debug writer set)
-		void write_debug_vector(const vector_type& vec, const char* filename)
+		void write_debug(const vector_type& vec, const char* filename)
 		{
 		//	if no debug writer set, we're done
 			if(!m_pVectorDebugWriter) return;
@@ -163,7 +163,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	protected:
-		using VectorDebugWritingObject<vector_type>::write_debug_vector;
+		using VectorDebugWritingObject<vector_type>::write_debug;
 
 	public:
 		DebugWritingObject() : m_pDebugWriter(NULL) {}
@@ -182,7 +182,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 
 	protected:
 	///	write debug output for a matrix (if debug writer set)
-		void write_debug_matrix(const matrix_type& mat, const char* filename)
+		void write_debug(const matrix_type& mat, const char* filename)
 		{
 		//	if no debug writer set, we're done
 			if(!m_pDebugWriter) return;

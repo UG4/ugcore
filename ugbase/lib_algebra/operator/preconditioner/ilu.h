@@ -251,8 +251,7 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
-		using IPreconditioner<TAlgebra>::write_debug_vector;
-		using IPreconditioner<TAlgebra>::write_debug_matrix;
+		using IPreconditioner<TAlgebra>::write_debug;
 
 	public:
 	//	Constructor
@@ -283,7 +282,7 @@ class ILU : public IPreconditioner<TAlgebra>
 		virtual bool preprocess(matrix_operator_type& mat)
 		{
 		//	Debug output of matrices
-			write_debug_matrix(mat, "ILU_BeforeMakeConsistent");
+			write_debug(mat, "ILU_BeforeMakeConsistent");
 
 #ifdef 	UG_PARALLEL
 		//	copy original matrix
@@ -304,7 +303,7 @@ class ILU : public IPreconditioner<TAlgebra>
 #endif
 
 		//	Debug output of matrices
-			write_debug_matrix(m_ILU, "ILU_BeforeFactorize");
+			write_debug(m_ILU, "ILU_BeforeFactorize");
 
 		//	resize help vector
 			m_h.resize(mat.num_cols());
@@ -316,7 +315,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			else FactorizeILU(m_ILU);
 
 		//	Debug output of matrices
-			write_debug_matrix(m_ILU, "ILU_AfterFactorize");
+			write_debug(m_ILU, "ILU_AfterFactorize");
 
 		//	we're done
 			return true;
@@ -339,14 +338,14 @@ class ILU : public IPreconditioner<TAlgebra>
 			invert_U(m_ILU, c, m_h); // c := U^-1 h = (LU)^-1 d
 
 		//	write debug
-			if(first) write_debug_vector(c, "ILU_c");
+			if(first) write_debug(c, "ILU_c");
 
 		//	Correction is always consistent
 			c.set_storage_type(PST_ADDITIVE);
 			c.change_storage_type(PST_CONSISTENT);
 
 		//	write debug
-			if(first) {write_debug_vector(c, "ILU_cConsistent"); first = false;}
+			if(first) {write_debug(c, "ILU_cConsistent"); first = false;}
 
 #else
 		// 	apply iterator: c = LU^{-1}*d
