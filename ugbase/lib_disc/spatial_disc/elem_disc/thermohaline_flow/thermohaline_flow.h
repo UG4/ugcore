@@ -192,10 +192,10 @@ class ThermohalineFlowElemDisc
 		void set_density(SmartPtr<IPData<number, dim> > data)
 		{
 		//	remove old data
-			SmartPtr<IIPData> oldData = m_imDensityScv.get_data();
+			SmartPtr<IIPData> oldData = m_imDensityScv.data();
 			if (oldData.valid())
 				m_exDarcyVel->remove_needed_data(oldData);
-			oldData = m_imDensityScvf.get_data();
+			oldData = m_imDensityScvf.data();
 			if (oldData.valid())
 				m_exDarcyVel->remove_needed_data(oldData);
 

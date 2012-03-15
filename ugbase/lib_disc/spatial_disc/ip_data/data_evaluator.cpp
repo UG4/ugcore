@@ -240,7 +240,7 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			if(!iimp->data_given()) continue;
 
 		//	push export on stack of needed data
-			vTryingToAdd.push_back(iimp->get_data());
+			vTryingToAdd.push_back(iimp->data());
 
 		//	add data and all dependency to evaluation list
 			if(!add_data_to_eval_data(vEvalData, vTryingToAdd))
@@ -327,7 +327,7 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 		FunctionIndexMapping map;
 		try{
 			CreateFunctionIndexMapping(map,
-		                               dependData->get_function_group(),
+		                               dependData->function_group(),
 									   m_commonFctGroup);
 		}UG_CATCH_THROW("'DataEvaluator::extract_imports_and_ipdata':"
 						"Cannot create Function Index Mapping for IDependData.");
@@ -390,7 +390,7 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			if(iimp->zero_derivative()) continue;
 
 		//	get and cast dependent data
-			SmartPtr<IDependentIPData> dependData = iimp->get_data().cast_dynamic<IDependentIPData>();
+			SmartPtr<IDependentIPData> dependData = iimp->data().cast_dynamic<IDependentIPData>();
 
 		//	check success
 			if(!dependData.valid())
@@ -406,7 +406,7 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			FunctionIndexMapping map;
 			try{
 				CreateFunctionIndexMapping(map,
-										   dependData->get_function_group(),
+										   dependData->function_group(),
 										   m_commonFctGroup);
 			}UG_CATCH_THROW("'DataEvaluator::extract_imports_and_ipdata':"
 							"Cannot create Function Index Mapping for DependentData.");

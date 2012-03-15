@@ -110,7 +110,7 @@ class DataEvaluator
 		}
 
 	///	returns common function group of all needed functions
-		const FunctionGroup& fct_group() const {return m_commonFctGroup;}
+		const FunctionGroup& function_group() const {return m_commonFctGroup;}
 
 	///	clears imports and ip data and mappings betweem commonFctGrp and local
 		void clear_extracted_data_and_mappings();

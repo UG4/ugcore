@@ -744,7 +744,7 @@ prepare_element_loop()
 	{
 	//	cast gravity export
 		SmartPtr<ConstUserVector<dim> > pGrav
-			= m_imConstGravity.get_data().template cast_dynamic<ConstUserVector<dim> >();
+			= m_imConstGravity.data().template cast_dynamic<ConstUserVector<dim> >();
 
 	//	check success
 		if(!pGrav.valid())

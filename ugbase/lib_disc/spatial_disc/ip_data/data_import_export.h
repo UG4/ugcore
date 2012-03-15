@@ -68,13 +68,13 @@ class IDataImport
 		}
 
 	/// returns the connected ip data
-		virtual SmartPtr<IIPData> get_data() = 0;
+		virtual SmartPtr<IIPData> data() = 0;
 
 	///	set function group for linearization of defect
 		void set_function_group(const FunctionGroup& fctGrp){m_fctGrp = fctGrp;}
 
 	///	get funtion group
-		const FunctionGroup& get_function_group() const{return m_fctGrp;}
+		const FunctionGroup& function_group() const{return m_fctGrp;}
 
 	/// number of functions
 		size_t num_fct() const {return m_fctGrp.num_fct();}
@@ -131,7 +131,7 @@ class DataImport : public IDataImport
 		void set_data(SmartPtr<IPData<TData, dim> > spData);
 
 	/// returns the connected IIPData
-		SmartPtr<IIPData> get_data(){return m_spIPData.template cast_dynamic<IIPData>();}
+		SmartPtr<IIPData> data(){return m_spIPData.template cast_dynamic<IIPData>();}
 
 	///	returns true if data given
 		virtual bool data_given() const {return m_spIPData.valid();}

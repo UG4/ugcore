@@ -272,7 +272,7 @@ class IDependentIPData : virtual public IIPData
 		void set_function_group(const FunctionGroup& fctGrp) {m_fctGrp = fctGrp;}
 
 	///	Function Group of functions
-		const FunctionGroup& get_function_group() const {return m_fctGrp;}
+		const FunctionGroup& function_group() const {return m_fctGrp;}
 
 	///	number of fuctions this export depends on
 		size_t num_fct() const {return m_fctGrp.num_fct();}

@@ -57,7 +57,7 @@ bool DataLinker<TData,dim>::update_function_group()
 	std::vector<const FunctionGroup*> vFctGrp(num_input(), NULL);
 	for(size_t i = 0; i < m_vpIDependData.size(); ++i)
 		if(m_vpIDependData[i].valid())
-			vFctGrp[i] = &(m_vpIDependData[i]->get_function_group());
+			vFctGrp[i] = &(m_vpIDependData[i]->function_group());
 
 //	create union of all function groups
 	try{
