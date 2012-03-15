@@ -19,6 +19,7 @@
 
 // algebra types
 #include "lib_algebra/cpu_algebra_types.h"
+#include "lib_algebra/operator/algebra_debug_writer.h"
 
 // additions for profiling
 #include "common/profiler/profiler.h"

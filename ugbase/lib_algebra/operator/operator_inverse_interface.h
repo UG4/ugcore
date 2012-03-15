@@ -11,6 +11,20 @@
 #include "operator_interface.h"
 #include "convergence_check.h"
 #include "common/util/smart_pointer.h"
+#include "debug_writer.h"
+#include "operator_base_interface.h"
+#include "operator_iterator_interface.h"
+
+#define PROFILE_LS
+#ifdef PROFILE_LS
+	#define LS_PROFILE_FUNC()		PROFILE_FUNC()
+	#define LS_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define LS_PROFILE_END()		PROFILE_END()
+#else
+	#define LS_PROFILE_FUNC()
+	#define LS_PROFILE_BEGIN(name)
+	#define LS_PROFILE_END()
+#endif
 
 namespace ug{
 
@@ -141,12 +155,14 @@ class ILinearOperatorInverse
 	public:
 	///	constructor setting convergence check to (100, 1e-12, 1e-12, true)
 		ILinearOperatorInverse()
-			: m_spConvCheck(new StandardConvCheck(100, 1e-12, 1e-12, true))
+			: m_A(NULL),
+			  m_spConvCheck(new StandardConvCheck(100, 1e-12, 1e-12, true))
 		{}
 
 	///	Default constructor
 		ILinearOperatorInverse(SmartPtr<IConvergenceCheck> spConvCheck)
-			: m_spConvCheck(spConvCheck)
+			: m_A(NULL),
+			  m_spConvCheck(spConvCheck)
 		{}
 
 	/// virtual destructor
@@ -170,7 +186,12 @@ class ILinearOperatorInverse
 	 * \param[in]	L		linear operator to invert
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(ILinearOperator<Y,X>& L) = 0;
+		virtual bool init(ILinearOperator<Y,X>& L)
+		{
+		//	remember operator
+			m_A = &L;
+			return true;
+		}
 
 	/// initializes for the inverse for a linearized operator at linearization point u
 	/**
@@ -184,7 +205,12 @@ class ILinearOperatorInverse
 	 * \param[in]	u		linearization point
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(ILinearOperator<Y,X>& J, const Y& u) = 0;
+		virtual bool init(ILinearOperator<Y,X>& J, const Y& u)
+		{
+		//	remember operator
+			m_A = &J;
+			return true;
+		}
 
 	///	applies inverse operator, i.e. returns u = A^{-1} f
 	/**
@@ -240,11 +266,143 @@ class ILinearOperatorInverse
 			m_spConvCheck->set_offset(standard_offset());
 		};
 
+	///	returns the current Operator this Inverse Operator is initialized for
+		ILinearOperator<Y,X>* linear_operator() {return m_A;}
+
 	protected:
+	/// Operator that is inverted by this Inverse Operator
+		ILinearOperator<Y,X>* m_A;
+
 	///	smart pointer holding the convergence check
 		SmartPtr<IConvergenceCheck> m_spConvCheck;
 };
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Inverse of a Linear Operator using a ILinearIterator as preconditioner
+///////////////////////////////////////////////////////////////////////////////
+
+/// describes an inverse linear mapping X->X
+/**
+ * This a useful derived class from ILinearOperatorInverse, that uses a
+ * ILinearIterator in order to precondition the solution process. This is
+ * used e.g. in LinearSolver, CG and BiCGStab.
+ *
+ * \tparam	X		domain and range space
+ */
+template <typename X>
+class IPreconditionedLinearOperatorInverse
+	: public ILinearOperatorInverse<X,X>,
+	  public VectorDebugWritingObject<X>
+{
+	public:
+	///	Domain space
+		typedef X domain_function_type;
+
+	///	Range space
+		typedef X codomain_function_type;
+
+	///	Base class
+		typedef ILinearOperatorInverse<X,X> base_type;
+
+	protected:
+		using base_type::name;
+		using base_type::linear_operator;
+		using VectorDebugWritingObject<X>::write_debug_vector;
+
+	public:
+	///	Empty constructor
+		IPreconditionedLinearOperatorInverse()
+			: m_bRecomputeDefectWhenFinished(false), m_spPrecond(NULL)
+		{}
+
+	///	constructor setting the preconditioner
+		IPreconditionedLinearOperatorInverse(SmartPtr<ILinearIterator<X,X> > spPrecond)
+			: m_bRecomputeDefectWhenFinished(false), m_spPrecond(spPrecond)
+		{}
+
+	///	constructor setting the preconditioner
+		IPreconditionedLinearOperatorInverse(SmartPtr<ILinearIterator<X,X> > spPrecond,
+		                                     SmartPtr<IConvergenceCheck> spConvCheck)
+			: 	base_type(spConvCheck),
+				m_bRecomputeDefectWhenFinished(false), m_spPrecond(spPrecond)
+		{}
+
+	///	sets the preconditioner
+		void set_preconditioner(SmartPtr<ILinearIterator<X, X> > spPrecond)
+		{
+			m_spPrecond = spPrecond;
+		}
+
+	///	returns the preconditioner
+		SmartPtr<ILinearIterator<X, X> > preconditioner(){return m_spPrecond;}
+
+	///	initializes the solver for an operator
+		virtual bool init(ILinearOperator<X,X>& J, const X& u)
+		{
+			LS_PROFILE_BEGIN(LS_InitPrecond);
+			if(m_spPrecond.valid())
+				if(!m_spPrecond->init(J, u))
+					UG_THROW_FATAL(name() << "::init: Cannot init Preconditioner "
+													"Operator for Operator J.");
+			LS_PROFILE_END();
+
+			return base_type::init(J, u);
+		}
+
+	///	initializes the solver for an operator
+		virtual bool init(ILinearOperator<X, X>& L)
+		{
+			LS_PROFILE_BEGIN(LS_InitPrecond);
+			if(m_spPrecond.valid())
+				if(!m_spPrecond->init(L))
+					UG_THROW_FATAL(name() <<"::prepare: Cannot init Preconditioner "
+														"Operator for Operator L.");
+			LS_PROFILE_END();
+
+			return base_type::init(L);
+		}
+
+		virtual bool apply(X& x, const X& b)
+		{
+		//	copy defect
+			X bTmp; bTmp.resize(b.size()); bTmp = b;
+
+		//	solve on copy of defect
+			bool bRes = apply_return_defect(x, bTmp);
+
+			write_debug_vector(bTmp, "LS_UpdatedDefectEnd.vec");
+
+		//	compute defect again, for debug purpose
+			if(m_bRecomputeDefectWhenFinished)
+			{
+				bTmp = b;
+				linear_operator()->apply_sub(bTmp, x);
+
+				number norm = bTmp.two_norm();
+				UG_LOG("%%%% DEBUG "<<name()<<": (Re)computed defect has norm: "<<norm<<"\n");
+
+				write_debug_vector(bTmp, "LS_TrueDefectEnd.vec");
+			}
+
+		//	return
+			return bRes;
+		}
+
+	///	for debug: computes norm again after whole calculation of apply
+		void set_compute_fresh_defect_when_finished(bool bRecomputeDefectWhenFinished)
+		{
+			m_bRecomputeDefectWhenFinished = bRecomputeDefectWhenFinished;
+		}
+
+	protected:
+	///	flag if fresh defect should be computed when finish for debug purpose
+		bool m_bRecomputeDefectWhenFinished;
+
+	///	Iterator used in the iterative scheme to compute the correction and update the defect
+		SmartPtr<ILinearIterator<X,X> > m_spPrecond;
+
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Inverse of a Matrix-based Linear Operator

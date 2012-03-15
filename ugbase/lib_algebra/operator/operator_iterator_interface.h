@@ -190,7 +190,8 @@ class ILinearIterator
 template <typename TAlgebra>
 class IPreconditioner :
 	public virtual ILinearIterator<	typename TAlgebra::vector_type,
-									typename TAlgebra::vector_type>
+									typename TAlgebra::vector_type>,
+	public DebugWritingObject<TAlgebra>
 {
 	public:
 	///	Algebra type
@@ -205,15 +206,20 @@ class IPreconditioner :
 	///	Matrix Operator type
 		typedef MatrixOperator<vector_type, vector_type, matrix_type> matrix_operator_type;
 
+	protected:
+		using DebugWritingObject<TAlgebra>::write_debug_vector;
+		using DebugWritingObject<TAlgebra>::write_debug_matrix;
+
 	public:
 	///	default constructor
 		IPreconditioner() :
-			m_pOperator(NULL), m_bInit(false), m_pDebugWriter(NULL)
+			m_pOperator(NULL), m_bInit(false)
 		{};
 
 	///	constructor setting debug writer
 		IPreconditioner(IDebugWriter<algebra_type>* pDebugWriter) :
-			m_pOperator(NULL), m_bInit(false), m_pDebugWriter(pDebugWriter)
+			DebugWritingObject<TAlgebra>(pDebugWriter),
+			m_pOperator(NULL), m_bInit(false)
 		{};
 
 	protected:
@@ -445,65 +451,12 @@ class IPreconditioner :
 	/// virtual destructor
 		virtual ~IPreconditioner() {};
 
-	///	set debug writer
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
-		{
-			m_pDebugWriter = debugWriter;
-		}
-
-	///	returns the debug writer
-		IDebugWriter<algebra_type>* debug_writer() {return m_pDebugWriter;}
-
-	protected:
-	///	writing debug output for a vector (if debug writer set)
-		void write_debug_vector(const vector_type& vec, const char* filename)
-		{
-		//	if no debug writer set, we're done
-			if(!m_pDebugWriter) return;
-
-		//	check ending
-			std::string name(filename);
-			size_t iExtPos = name.find_last_of(".");
-			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".vec") != 0)
-				UG_THROW_FATAL("Only '.vec' format supported for vectors, but"
-								" filename is '"<<name<<"'.");
-
-			if(iExtPos == std::string::npos)
-				name.append(".vec");
-
-		//	write
-			m_pDebugWriter->write_vector(vec, name.c_str());
-		}
-
-	///	write debug output for a matrix (if debug writer set)
-		void write_debug_matrix(const matrix_type& mat, const char* filename)
-		{
-		//	if no debug writer set, we're done
-			if(!m_pDebugWriter) return;
-
-		//	check ending
-			std::string name(filename);
-			size_t iExtPos = name.find_last_of(".");
-			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".mat") != 0)
-				UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
-								" filename is '"<<name<<"'.");
-
-			if(iExtPos == std::string::npos)
-				name.append(".mat");
-
-		//	write
-			m_pDebugWriter->write_matrix(mat, name.c_str());
-		}
-
 	protected:
 	///	underlying matrix based operator
 		matrix_operator_type* m_pOperator;
 
 	/// init flag indicating if init has been called
 		bool m_bInit;
-
-	///	Debug Writer
-		IDebugWriter<algebra_type>* m_pDebugWriter;
 };
 
 } // end namespace ug

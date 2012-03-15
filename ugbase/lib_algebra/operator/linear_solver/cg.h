@@ -32,81 +32,37 @@ namespace ug{
  *
  * - Saad, "Iterative Methods For Sparse Linear Systems", p277, Alg. 9.1
  *
- * \tparam 	TAlgebra		algebra type
+ * \tparam 	TVector		vector type
  */
-template <typename TAlgebra>
-class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
-													typename TAlgebra::vector_type>
+template <typename TVector>
+class CG
+	: public IPreconditionedLinearOperatorInverse<TVector>
 {
 	public:
-	///	Algebra type
-		typedef TAlgebra algebra_type;
-
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		typedef TVector vector_type;
 
 	///	Base type
-		typedef ILinearOperatorInverse<vector_type,vector_type> base_type;
+		typedef IPreconditionedLinearOperatorInverse<vector_type> base_type;
 
 	protected:
 		using base_type::convergence_check;
+		using base_type::linear_operator;
+		using base_type::preconditioner;
+		using base_type::write_debug_vector;
 
 	public:
 	///	default constructor
-		CG() : m_pPrecond(NULL) {}
+		CG() {}
 
 	///	constructor setting preconditioner and convergence check
-		CG( ILinearIterator<vector_type,vector_type>* Precond,
+		CG( SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond,
 		    SmartPtr<IConvergenceCheck> spConvCheck) :
-		    base_type(spConvCheck), m_pPrecond(Precond)
+		    base_type(spPrecond, spConvCheck)
 		{};
 
 	///	name of solver
 		virtual const char* name() const {return "CG";}
-
-	///	sets the preconditioner
-		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
-		{
-			m_pPrecond = &precond;
-		}
-
-	///	initializes the solver
-		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
-		{
-		//	remember operator
-			m_A = &J;
-
-		// 	init Preconditioner for operator A
-			if(m_pPrecond)
-				if(!m_pPrecond->init(J, u))
-				{
-					UG_LOG("ERROR in 'CG::init': "
-							"Cannot init Iterator Operator for Operator A.\n");
-					return false;
-				}
-
-		//	done
-			return true;
-		}
-
-	///	initializes the solver
-		virtual bool init(ILinearOperator<vector_type, vector_type>& L)
-		{
-		//	remember operator
-			m_A = &L;
-
-		// 	init Preconditioner for operator A
-			if(m_pPrecond)
-				if(!m_pPrecond->init(L))
-				{
-					UG_LOG("ERROR in 'CG::init': "
-							"Cannot init Iterator Operator for Operator A.\n");
-					return false;
-				}
-
-		//	done
-			return true;
-		}
 
 	///	Solve J(u)*x = b, such that x = J(u)^{-1} b
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
@@ -114,18 +70,15 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 		//	check parallel storage types
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				{
-					UG_LOG("ERROR: In 'CG::apply_return_defect':"
-							"Inadequate storage format of Vectors.\n");
-					return false;
-				}
+				UG_THROW_FATAL("CG::apply_return_defect:"
+								"Inadequate storage format of Vectors.");
 			#endif
 
 		// 	rename r as b (for convenience)
 			vector_type& r = b;
 
 		// 	Build defect:  r := b - J(u)*x
-			m_A->apply_sub(r, x);
+			linear_operator()->apply_sub(r, x);
 
 		// 	create help vector (h will be consistent r)
 		//	todo: 	It would be sufficient to copy only the pattern and
@@ -135,10 +88,10 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			vector_type p; p.create(x.size()); p = x;
 
 		// 	Preconditioning
-			if(m_pPrecond)
+			if(preconditioner().valid())
 			{
 				// apply z = M^-1 * s
-				if(!m_pPrecond->apply(z, r))
+				if(!preconditioner()->apply(z, r))
 				{
 					UG_LOG("ERROR in 'CG::apply_return_defect': "
 							"Cannot apply preconditioner. Aborting.\n");
@@ -151,11 +104,8 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 		// 	make z consistent
 			#ifdef UG_PARALLEL
 			if(!z.change_storage_type(PST_CONSISTENT))
-			{
-				UG_LOG("ERROR in 'CG::apply_return_defect': "
-						"Cannot convert z to consistent vector.\n");
-				return false;
-			}
+				UG_THROW_FATAL("CG::apply_return_defect: "
+								"Cannot convert z to consistent vector.");
 			#endif
 
 		//	compute start defect
@@ -172,7 +122,7 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			while(!convergence_check()->iteration_ended())
 			{
 			// 	Build q = A*p (q is additive afterwards)
-				m_A->apply(q, p);
+				linear_operator()->apply(q, p);
 
 			// 	lambda = (q,p)
 				const number lambda = VecProd(q, p);
@@ -199,10 +149,10 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 				if(convergence_check()->iteration_ended()) break;
 
 			// 	Preconditioning
-				if(m_pPrecond)
+				if(preconditioner().valid())
 				{
 				// 	apply z = M^-1 * r
-					if(!m_pPrecond->apply(z, r))
+					if(!preconditioner()->apply(z, r))
 					{
 						UG_LOG("ERROR in 'CG::apply_return_defect': "
 								"Cannot apply preconditioner. Aborting.\n");
@@ -214,11 +164,8 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 				#ifdef UG_PARALLEL
 			// 	make z consistent
 				if(!z.change_storage_type(PST_CONSISTENT))
-				{
-					UG_LOG("ERROR in 'CG::apply_return_defect': "
-							"Cannot convert z to consistent vector.\n");
-					return false;
-				}
+					UG_THROW_FATAL("CG::apply_return_defect': "
+									"Cannot convert z to consistent vector.");
 				#endif
 
 			// 	new rho = (z,r)
@@ -238,20 +185,6 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			return convergence_check()->post();
 		}
 
-	///	solves J(u)*x = b
-		virtual bool apply(vector_type& x, const vector_type& b)
-		{
-		//	copy defect
-			vector_type bTmp; bTmp.create(b.size());
-			bTmp = b;
-
-		//	solve on copy of defect
-			return apply_return_defect(x, bTmp);
-		}
-
-	/// destructor
-		virtual ~CG() {};
-
 	protected:
 	///	adjust output of convergence check
 		void prepare_conv_check()
@@ -263,8 +196,10 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 
 		//	set preconditioner string
 			std::stringstream ss;
-			if(m_pPrecond) ss<<" (Precond: "<<m_pPrecond->name()<<")";
-			else ss << " (No Preconditioner) ";
+			if(preconditioner().valid())
+				ss<<" (Precond: "<<preconditioner()->name()<<")";
+			else
+				ss << " (No Preconditioner) ";
 			convergence_check()->set_info(ss.str());
 		}
 
@@ -273,13 +208,6 @@ class CG : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 		{
 			return a.dotprod(b);
 		}
-
-	protected:
-	/// Operator that is inverted by this Inverse Operator
-		ILinearOperator<vector_type,vector_type>* m_A;
-
-	///	Preconditioner
-		ILinearIterator<vector_type,vector_type>* m_pPrecond;
 };
 
 } // end namespace ug

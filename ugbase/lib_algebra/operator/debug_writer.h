@@ -9,38 +9,26 @@
 #define __H__LIB_ALGEBRA__OPERATOR__DEBUG_WRITER__
 
 #include "common/math/ugmath.h"
-#include "lib_algebra/common/connection_viewer_output.h"
 
 namespace ug{
 
-/// base class for all debug writer
+/// base class for all vetor debug writer
 /**
- * This is the base class for debug output of algebraic vectors and matrices.
+ * This is the base class for debug output of algebraic vectors
  */
-template <typename TAlgebra>
-class IDebugWriter
+template <typename TVector>
+class IVectorDebugWriter
 {
 	public:
-	///	type of algebra
-		typedef TAlgebra algebra_type;
-
 	///	type of vector
-		typedef typename TAlgebra::vector_type vector_type;
-
-	///	type of matrix
-		typedef typename TAlgebra::matrix_type matrix_type;
+		typedef TVector vector_type;
 
 	public:
 	///	Constructor
-		IDebugWriter() : m_currentDim(-1) {}
+		IVectorDebugWriter() : m_currentDim(-1) {}
 
 	///	write vector
-		virtual void write_vector(const vector_type& vec,
-		                          const char* name) = 0;
-
-	///	write matrix
-		virtual void write_matrix(const matrix_type& mat,
-		                          const char* name) = 0;
+		virtual void write_vector(const vector_type& vec, const char* name) = 0;
 
 	///	returns the current dimension
 		int current_dimension() const {return m_currentDim;}
@@ -61,7 +49,7 @@ class IDebugWriter
 		}
 
 	/// virtual destructor
-		virtual ~IDebugWriter(){}
+		virtual ~IVectorDebugWriter(){}
 
 	protected:
 	///	returns the positions and sets the current dim
@@ -88,106 +76,135 @@ class IDebugWriter
 		const std::vector<MathVector<3> >& get_pos(Int2Type<3>) const {return m_vPos3d;}
 };
 
-template <typename TAlgebra, int dim>
-class AlgebraDebugWriter
-	: public IDebugWriter<TAlgebra>
+/// base class for all debug writer
+/**
+ * This is the base class for debug output of algebraic vectors and matrices.
+ */
+template <typename TAlgebra>
+class IDebugWriter : public IVectorDebugWriter<typename TAlgebra::vector_type>
 {
 	public:
-	///	type of matrix
+	///	type of algebra
 		typedef TAlgebra algebra_type;
 
 	///	type of vector
-		typedef typename algebra_type::vector_type vector_type;
+		typedef typename TAlgebra::vector_type vector_type;
 
 	///	type of matrix
-		typedef typename algebra_type::matrix_type matrix_type;
-
-	///	type of positions
-		typedef MathVector<dim> position_type;
+		typedef typename TAlgebra::matrix_type matrix_type;
 
 	public:
-	///	Constructor
-		AlgebraDebugWriter() : m_pPositions(NULL),  m_numPos(-1)
-		{}
-
-	///	sets the function
-		void set_positions(position_type* pos, int n)
-		{
-			m_pPositions = pos;
-			m_numPos = n;
-		}
-
 	///	write vector
-		virtual void write_vector(const vector_type& vec,
-		                          const char* filename)
-		{
-		//	check
-			if(m_pPositions == NULL)
-				UG_THROW_FATAL("'AlgebraDebugWriter::write_vector':"
-						" No reference positions set.\n");
-
-		//	check number of positions
-			if(vec.size() != (size_t)m_numPos)
-				UG_THROW_FATAL("'AlgebraDebugWriter::write_vector':"
-						" Number of positions does not match.\n");
-
-		//	get fresh name
-			std::string name(filename);
-
-		//	search for ending and remove
-			size_t found = name.find_first_of(".");
-			if(found != std::string::npos) name.resize(found);
-
-		#ifdef UG_PARALLEL
-		//	add process number
-			int rank = pcl::GetProcRank();
-			char ext[20];
-			sprintf(ext, "_p%04d", rank);
-			name.append(ext);
-		#endif
-
-		//	add ending
-			name.append(".vec");
-
-		//	write to file
-			WriteVectorToConnectionViewer<vector_type, position_type>
-				(name.c_str(), vec, m_pPositions, dim);
-		}
+		virtual void write_vector(const vector_type& vec, const char* name) = 0;
 
 	///	write matrix
-		virtual void write_matrix(const matrix_type& mat,
-		                          const char* filename)
+		virtual void write_matrix(const matrix_type& mat, const char* name) = 0;
+};
+
+
+template <typename TVector>
+class VectorDebugWritingObject
+{
+	public:
+	///	type of vector
+		typedef TVector vector_type;
+
+	public:
+		VectorDebugWritingObject() : m_pVectorDebugWriter(NULL) {}
+		VectorDebugWritingObject(IVectorDebugWriter<vector_type>* pDebugWriter)
+			: m_pVectorDebugWriter(pDebugWriter) {}
+
+	///	set debug writer
+		void set_debug(IVectorDebugWriter<vector_type>* debugWriter)
 		{
-		//	check
-			if(m_pPositions == NULL)
-				UG_THROW_FATAL("'AlgebraDebugWriter::write_matrix':"
-						" No reference positions set.\n");
+			m_pVectorDebugWriter = debugWriter;
+		}
 
-		//	check number of positions
-			if(mat.num_rows() != (size_t)m_numPos || mat.num_cols() != (size_t)m_numPos)
-				UG_THROW_FATAL("'AlgebraDebugWriter::write_matrix':"
-						" Number of positions does not match.\n");
+	///	returns the debug writer
+		IVectorDebugWriter<vector_type>* debug_writer() {return m_pVectorDebugWriter;}
 
-		//	check name
+	protected:
+	///	writing debug output for a vector (if debug writer set)
+		void write_debug_vector(const vector_type& vec, const char* filename)
+		{
+		//	if no debug writer set, we're done
+			if(!m_pVectorDebugWriter) return;
+
+		//	check ending
 			std::string name(filename);
 			size_t iExtPos = name.find_last_of(".");
-			if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".mat") != 0)
-				UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
+			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".vec") != 0)
+				UG_THROW_FATAL("Only '.vec' format supported for vectors, but"
 								" filename is '"<<name<<"'.");
 
-		//	write to file
-			WriteMatrixToConnectionViewer<matrix_type, position_type>
-				(name.c_str(), mat, m_pPositions, dim);
+			if(iExtPos == std::string::npos)
+				name.append(".vec");
+
+		//	write
+			m_pVectorDebugWriter->write_vector(vec, name.c_str());
 		}
 
 	protected:
-	//	Positions used in output
-		position_type* m_pPositions;
-
-	//	number of positions
-		int m_numPos;
+	///	Debug Writer
+		IVectorDebugWriter<vector_type>* m_pVectorDebugWriter;
 };
 
+template <typename TAlgebra>
+class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::vector_type>
+{
+	public:
+	///	type of algebra
+		typedef TAlgebra algebra_type;
+
+	///	type of vector
+		typedef typename TAlgebra::vector_type vector_type;
+
+	///	type of matrix
+		typedef typename TAlgebra::matrix_type matrix_type;
+
+	protected:
+		using VectorDebugWritingObject<vector_type>::write_debug_vector;
+
+	public:
+		DebugWritingObject() : m_pDebugWriter(NULL) {}
+		DebugWritingObject(IDebugWriter<algebra_type>* pDebugWriter)
+			: 	VectorDebugWritingObject<vector_type>(pDebugWriter),
+				m_pDebugWriter(pDebugWriter) {}
+
+	///	set debug writer
+		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		{
+			m_pDebugWriter = debugWriter;
+		}
+
+	///	returns the debug writer
+		IDebugWriter<algebra_type>* debug_writer() {return m_pDebugWriter;}
+
+	protected:
+	///	write debug output for a matrix (if debug writer set)
+		void write_debug_matrix(const matrix_type& mat, const char* filename)
+		{
+		//	if no debug writer set, we're done
+			if(!m_pDebugWriter) return;
+
+		//	check ending
+			std::string name(filename);
+			size_t iExtPos = name.find_last_of(".");
+			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".mat") != 0)
+				UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
+								" filename is '"<<name<<"'.");
+
+			if(iExtPos == std::string::npos)
+				name.append(".mat");
+
+		//	write
+			m_pDebugWriter->write_matrix(mat, name.c_str());
+		}
+
+	protected:
+	///	Debug Writer
+		IDebugWriter<algebra_type>* m_pDebugWriter;
+};
 
 } // end namespace ug
 

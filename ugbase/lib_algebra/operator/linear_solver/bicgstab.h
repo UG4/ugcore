@@ -32,82 +32,37 @@ namespace ug{
  *
  * - Saad, "Iterative Methods For Sparse Linear Systems", p246, Alg. 7.7
  *
- * \tparam 	TAlgebra		algebra type
+ * \tparam 	TVector		vector type
  */
-template <typename TAlgebra>
-class BiCGStab :
-	public ILinearOperatorInverse< 	typename TAlgebra::vector_type,
-									typename TAlgebra::vector_type>
+template <typename TVector>
+class BiCGStab
+	: public IPreconditionedLinearOperatorInverse<TVector>
 {
 	public:
-	///	Algebra type
-		typedef TAlgebra algebra_type;
-
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		typedef TVector vector_type;
 
 	///	Base type
-		typedef ILinearOperatorInverse<vector_type,vector_type> base_type;
+		typedef IPreconditionedLinearOperatorInverse<vector_type> base_type;
 
 	protected:
 		using base_type::convergence_check;
+		using base_type::linear_operator;
+		using base_type::preconditioner;
+		using base_type::write_debug_vector;
 
 	public:
 	///	default constructor
-		BiCGStab() : m_pPrecond(NULL) {};
+		BiCGStab() {};
 
 	///	constructor setting the preconditioner and the convergence check
-		BiCGStab(ILinearIterator<vector_type,vector_type>* Precond,
-		         SmartPtr<IConvergenceCheck> spConvCheck) :
-			base_type(spConvCheck), m_pPrecond(Precond)
+		BiCGStab( SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond,
+		          SmartPtr<IConvergenceCheck> spConvCheck)
+			: base_type(spPrecond, spConvCheck)
 		{};
 
 	///	name of solver
 		virtual const char* name() const {return "BiCGStab";}
-
-	///	sets the preconditioner
-		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
-		{
-			m_pPrecond = &precond;
-		}
-
-	///	initializes the solver
-		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
-		{
-		//	remember operator
-			m_A = &J;
-
-		// 	init Preconditioner for operator J
-			if(m_pPrecond != NULL)
-				if(!m_pPrecond->init(J, u))
-				{
-					UG_LOG("ERROR in 'BiCGStabSolver::prepare': Cannot init "
-							"Iterator Operator for Operator J.\n");
-					return false;
-				}
-
-		//	done
-			return true;
-		}
-
-	///	initializes the solver
-		virtual bool init(ILinearOperator<vector_type, vector_type>& L)
-		{
-		//	remember operator
-			m_A = &L;
-
-		// 	init Preconditioner for operator L
-			if(m_pPrecond != NULL)
-				if(!m_pPrecond->init(L))
-				{
-					UG_LOG("ERROR in 'BiCGStabSolver::prepare': "
-							"Cannot init Iterator Operator for Operator L.\n");
-					return false;
-				}
-
-		//	done
-			return true;
-		}
 
 	// 	Solve J(u)*x = b, such that x = J(u)^{-1} b
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
@@ -115,15 +70,12 @@ class BiCGStab :
 		//	check correct storage type in parallel
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				{
-					UG_LOG("ERROR: In 'BiCGStabSolver::apply_return_defect':"
-							"Inadequate storage format of Vectors.\n");
-					return false;
-				}
+				UG_THROW_FATAL("BiCGStabSolver::apply_return_defect:"
+								"Inadequate storage format of Vectors.");
 			#endif
 
 		// 	build defect:  b := b - A*x
-			m_A->apply_sub(b, x);
+			linear_operator()->apply_sub(b, x);
 
 			// create start r_0^* vector
 		//	todo: 	It would be sufficient to copy only the pattern and
@@ -144,11 +96,8 @@ class BiCGStab :
 		//	convert b to unique (should already be unique due to norm calculation)
 			#ifdef UG_PARALLEL
 			if(!b.change_storage_type(PST_UNIQUE))
-			{
-				UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-						"Cannot convert b to unique vector.\n");
-				return false;
-			}
+				UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+								"Cannot convert b to unique vector.");
 			#endif
 
 		//	needed variables
@@ -173,11 +122,8 @@ class BiCGStab :
 				// 	make r additive unique
 					#ifdef UG_PARALLEL
 					if(!r.change_storage_type(PST_UNIQUE))
-					{
-						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-								"Cannot convert r to unique vector.\n");
-						return false;
-					}
+						UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+										"Cannot convert r to unique vector.");
 					#endif
 
 				//	set start vectors
@@ -194,7 +140,7 @@ class BiCGStab :
 			//	check values
 				if(rhoOld == 0.0 || omega == 0.0)
 				{
-					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+					UG_LOG("BiCGStab::apply_return_defect: "
 							"rho= "<<rhoOld<<" and omega= "<<omega<<" are invalid "
 							"values. Aborting iteration.\n");
 					return false;
@@ -213,12 +159,12 @@ class BiCGStab :
 				VecScaleAppend(p, v, (-1)*beta*omega);
 
 			// 	Precondition
-				if(m_pPrecond)
+				if(preconditioner().valid())
 				{
 				// 	apply q = M^-1 * p
-					if(!m_pPrecond->apply(q, p))
+					if(!preconditioner()->apply(q, p))
 					{
-						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+						UG_LOG("ERROR in 'BiCGStab::apply_return_defect': "
 								"Cannot apply preconditioner. Aborting.\n");
 						return false;
 					}
@@ -231,25 +177,19 @@ class BiCGStab :
 				// 	make q consistent
 					#ifdef UG_PARALLEL
 					if(!q.change_storage_type(PST_CONSISTENT))
-					{
-						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-								"Cannot convert q to consistent vector.\n");
-						return false;
-					}
+						UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+										"Cannot convert q to consistent vector.");
 					#endif
 				}
 
 			// 	compute v := A*q
-				m_A->apply(v, q);
+				linear_operator()->apply(v, q);
 
 			// 	make v unique
 				#ifdef UG_PARALLEL
 				if(!v.change_storage_type(PST_UNIQUE))
-				{
-					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-							"Cannot convert v to unique vector.\n");
-					return false;
-				}
+					UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+									"Cannot convert v to unique vector.");
 				#endif
 
 			//	alpha = (v,r)
@@ -258,7 +198,7 @@ class BiCGStab :
 			//	check validity of alpha
 				if(alpha == 0.0)
 				{
-					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+					UG_LOG("ERROR in 'BiCGStab::apply_return_defect': "
 							"alpha= "<<alpha<<" is an invalid value."
 							" Aborting iteration.\n");
 					return false;
@@ -285,12 +225,12 @@ class BiCGStab :
 				}
 
 			//	apply preconditioner
-				if(m_pPrecond)
+				if(preconditioner().valid())
 				{
 				// 	apply q = M^-1 * t
-					if(!m_pPrecond->apply(q, s))
+					if(!preconditioner()->apply(q, s))
 					{
-						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+						UG_LOG("ERROR in 'BiCGStab::apply_return_defect': "
 								"Cannot apply preconditioner. Aborting.\n");
 						return false;
 					}
@@ -303,25 +243,19 @@ class BiCGStab :
 				// 	make q consistent
 					#ifdef UG_PARALLEL
 					if(!q.change_storage_type(PST_CONSISTENT))
-					{
-						UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-								"Cannot convert q to consistent vector.\n");
-						return false;
-					}
+						UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+										"Cannot convert q to consistent vector.");
 					#endif
 				}
 
 			// 	compute t := A*q
-				m_A->apply(t, q);
+				linear_operator()->apply(t, q);
 
 			// 	make t unique
 				#ifdef UG_PARALLEL
 				if(!t.change_storage_type(PST_UNIQUE))
-				{
-					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-							"Cannot convert t to unique vector.\n");
-					return false;
-				}
+					UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+									"Cannot convert t to unique vector.");
 				#endif
 
 			// 	tt = (t,t)
@@ -333,7 +267,7 @@ class BiCGStab :
 			//	check tt
 				if(tt == 0.0)
 				{
-					UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
+					UG_LOG("ERROR in 'BiCGStab::apply_return_defect': "
 							"tt= "<<tt<<" is an invalid value. "
 							"Aborting iteration.\n");
 					return false;
@@ -362,20 +296,6 @@ class BiCGStab :
 			return convergence_check()->post();
 		}
 
-	///	apply the solver
-		virtual bool apply(vector_type& x, const vector_type& b)
-		{
-		//	copy defect
-			vector_type bTmp; bTmp.resize(b.size()); bTmp = b;
-
-		//	solve on copy of defect
-			return apply_return_defect(x, bTmp);
-		}
-
-
-	/// destructor
-		virtual ~BiCGStab() {};
-
 	protected:
 	///	prepares the output of the convergence check
 		void prepare_conv_check()
@@ -387,8 +307,10 @@ class BiCGStab :
 
 		//	set preconditioner string
 			std::stringstream ss;
-			if(m_pPrecond) ss<<" (Precond: "<<m_pPrecond->name()<<")";
-			else ss << " (No Preconditioner) ";
+			if(preconditioner().valid())
+				ss<<" (Precond: "<<preconditioner()->name()<<")";
+			else
+				ss << " (No Preconditioner) ";
 			convergence_check()->set_info(ss.str());
 		}
 
@@ -420,13 +342,6 @@ class BiCGStab :
 		{
 			return a.dotprod(b);
 		}
-
-	protected:
-	/// Operator that is inverted by this Inverse Operator
-		ILinearOperator<vector_type,vector_type>* m_A;
-
-	/// Preconditioner
-		ILinearIterator<vector_type,vector_type>* m_pPrecond;
 };
 
 } // end namespace ug

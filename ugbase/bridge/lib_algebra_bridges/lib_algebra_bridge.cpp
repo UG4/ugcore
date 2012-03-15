@@ -100,12 +100,42 @@ static bool reg(Registry& reg, string parentGroup)
 						  &ApplyLinearSolver<vector_type>, grp);
 	}
 
+//  Vector Debug Writer (abstract base class)
+	{
+		typedef IVectorDebugWriter<vector_type> T;
+		string name = string("IVectorDebugWriter").append(algSuffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "IVectorDebugWriter", algTag);
+	}
+
 // Debug Writer (abstract base class)
 	{
 		typedef IDebugWriter<TAlgebra> T;
+		typedef IVectorDebugWriter<vector_type> TBase;
 		string name = string("IDebugWriter").append(algSuffix);
-		reg.add_class_<T>(name, grp);
+		reg.add_class_<T, TBase>(name, grp);
 		reg.add_class_to_group(name, "IDebugWriter", algTag);
+	}
+
+//  VectorDebugWritingObject
+	{
+		typedef VectorDebugWritingObject<vector_type> T;
+		string name = string("VectorDebugWritingObject").append(algSuffix);
+		reg.add_class_<T>(name, grp)
+			.add_method("set_debug", &T::set_debug, "sets a debug writer", "d")
+			.add_method("debug_writer", &T::debug_writer);
+		reg.add_class_to_group(name, "VectorDebugWritingObject", algTag);
+	}
+
+//  DebugWritingObject
+	{
+		typedef DebugWritingObject<TAlgebra> T;
+		typedef VectorDebugWritingObject<vector_type> TBase;
+		string name = string("DebugWritingObject").append(algSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_method("set_debug", &T::set_debug, "sets a debug writer", "d")
+			.add_method("debug_writer", &T::debug_writer);
+		reg.add_class_to_group(name, "DebugWritingObject", algTag);
 	}
 
 // IVectorWriter (abstract base class)
@@ -154,9 +184,9 @@ static bool reg(Registry& reg, string parentGroup)
 	{
 		typedef IPreconditioner<TAlgebra> T;
 		typedef ILinearIterator<vector_type, vector_type>  TBase;
+		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("IPreconditioner").append(algSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_method("set_debug", &T::set_debug, "sets a debug writer", "d");
+		reg.add_class_<T, TBase, TBase2>(name, grp);
 		reg.add_class_to_group(name, "IPreconditioner", algTag);
 	}
 
@@ -174,6 +204,18 @@ static bool reg(Registry& reg, string parentGroup)
 			.add_method("defect", &T::defect)
 			.add_method("step", &T::step)
 			.add_method("reduction", &T::reduction);
+		reg.add_class_to_group(name, "ILinearOperatorInverse", algTag);
+	}
+
+//	IPreconditionedLinearOperatorInverse
+	{
+		typedef IPreconditionedLinearOperatorInverse<vector_type> T;
+		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+		string name = string("IPreconditionedLinearOperatorInverse").append(algSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_method("set_preconditioner", &T::set_preconditioner,
+						"", "Preconditioner")
+			.add_method("set_compute_fresh_defect_when_finished", &T::set_compute_fresh_defect_when_finished);
 		reg.add_class_to_group(name, "ILinearOperatorInverse", algTag);
 	}
 
@@ -302,39 +344,31 @@ static bool reg(Registry& reg, string parentGroup)
 
 // 	LinearSolver
 	{
-		typedef LinearSolver<TAlgebra> T;
-		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+		typedef LinearSolver<vector_type> T;
+		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("LinearSolver").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3)
-			.add_constructor()
-			.add_method("set_preconditioner", &T::set_preconditioner,
-						"", "Preconditioner")
-			.add_method("set_compute_fresh_defect_when_finished", &T::set_compute_fresh_defect_when_finished)
-			.add_method("set_debug", &T::set_debug);
+			.add_constructor();
 		reg.add_class_to_group(name, "LinearSolver", algTag);
 	}
 
 // 	CG Solver
 	{
-		typedef CG<TAlgebra> T;
-		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+		typedef CG<vector_type> T;
+		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("CG").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3, "Conjugate Gradient")
-			.add_constructor()
-			.add_method("set_preconditioner", &T::set_preconditioner,
-						"", "Preconditioner");
+			.add_constructor();
 		reg.add_class_to_group(name, "CG", algTag);
 	}
 
 // 	BiCGStab Solver
 	{
-		typedef BiCGStab<TAlgebra> T;
-		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+		typedef BiCGStab<vector_type> T;
+		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("BiCGStab").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3)
-			.add_constructor()
-			.add_method("set_preconditioner", &T::set_preconditioner,
-						"", "Preconditioner");
+			.add_constructor();
 		reg.add_class_to_group(name, "BiCGStab", algTag);
 	}
 
