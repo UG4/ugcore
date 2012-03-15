@@ -9,7 +9,7 @@
 #include "bridge.h"
 #include "common/profiler/profiler.h"
 #include <iomanip>
-#include <cmath> // für floor
+#include <cmath> // for floor
 #include "ug.h" // Required for UGOutputProfileStatsOnExit.
 #include <string>
 
@@ -336,7 +336,7 @@ bool RegisterProfileFunctions(Registry &reg, string parentGroup)
 				"time in milliseconds spend in this node excluding subnodes", "")
 		.add_method("get_avg_total_time_ms", &UGProfilerNode::get_avg_total_time_ms,
 				"time in milliseconds spend in this node including subnodes", "")
-		.add_method("is_valid", &UGProfilerNode::is_valid, "true if node has been found", "")
+		.add_method("is_valid", &UGProfilerNode::valid, "true if node has been found", "")
 
 		;
 		/*.add_method("__tostring", &UGProfilerNode::tostring, "tostring")
