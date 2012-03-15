@@ -56,7 +56,7 @@ class LinearSolver
 	public:
 	///	Default constructor
 		LinearSolver() :
-			m_A(NULL), m_pPrecond(NULL),
+			m_A(NULL), m_spPrecond(NULL),
 			m_bRecomputeDefectWhenFinished(false),
 			m_pDebugWriter(NULL)
 		{}
@@ -71,9 +71,9 @@ class LinearSolver
 		}
 
 	///	sets the preconditioner
-		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
+		void set_preconditioner(SmartPtr<ILinearIterator<vector_type, vector_type> > precond)
 		{
-			m_pPrecond = &precond;
+			m_spPrecond = precond;
 		}
 
 	///	initializes the solver for an operator
@@ -84,13 +84,11 @@ class LinearSolver
 
 		//	init the preconditioner
 			LS_PROFILE_BEGIN(LS_InitPrecond);
-			if(m_pPrecond != NULL)
-				if(!m_pPrecond->init(J, u))
-				{
-					UG_LOG("ERROR in 'LinearSolver::prepare': Cannot init "
-							"Iterator Operator for Operator J.\n");
-					return false;
-				}
+			if(m_spPrecond.valid())
+				if(!m_spPrecond->init(J, u))
+					UG_THROW_FATAL("LinearSolver::prepare: Cannot init Iterator "
+									"Operator for Operator J.");
+
 			LS_PROFILE_END();
 
 		//	we're done
@@ -105,13 +103,10 @@ class LinearSolver
 
 		// 	init Preconditioner for operator A
 			LS_PROFILE_BEGIN(LS_InitPrecond);
-			if(m_pPrecond != NULL)
-				if(!m_pPrecond->init(L))
-				{
-					UG_LOG("ERROR in 'LinearSolver::prepare': "
-							"Cannot init Iterator Operator for Operator L.\n");
-					return false;
-				}
+			if(m_spPrecond.valid())
+				if(!m_spPrecond->init(L))
+					UG_THROW_FATAL("LinearSolver::prepare: Cannot init Iterator "
+									"Operator for Operator L.");
 			LS_PROFILE_END();
 
 		//	we're done
@@ -132,11 +127,7 @@ class LinearSolver
 
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				{
-					UG_LOG("ERROR in 'LinearSolver::apply': "
-							"Inadequate storage format of Vectors.\n");
-					return false;
-				}
+				UG_THROW_FATAL("LinearSolver::apply: Inadequate storage format of Vectors.");
 			#endif
 
 		// 	rename b as d (for convenience)
@@ -164,9 +155,9 @@ class LinearSolver
 			{
 			// 	Compute a correction c := B*d using one iterative step
 			// 	Internally the defect is updated d := d - A*c = d - A*(x+c)
-				if(m_pPrecond != NULL) {
+				if(m_spPrecond.valid()) {
 					LS_PROFILE_BEGIN(LS_ApplyPrecond);
-					if(!m_pPrecond->apply_update_defect(c, d))
+					if(!m_spPrecond->apply_update_defect(c, d))
 					{
 						UG_LOG("ERROR in 'LinearSolver::apply': Iterator "
 								"Operator applied incorrectly. Aborting.\n");
@@ -248,9 +239,9 @@ class LinearSolver
 		{
 			convergence_check()->set_name(name());
 			convergence_check()->set_symbol('%');
-			if(m_pPrecond != NULL)
+			if(m_spPrecond.valid())
 			{
-				std::stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
+				std::stringstream ss; ss <<  " (Precond: " << m_spPrecond->name() << ")";
 				convergence_check()->set_info(ss.str());
 			}
 			else
@@ -274,7 +265,7 @@ class LinearSolver
 		ILinearOperator<vector_type,vector_type>* m_A;
 
 	// 	Iterator used in the iterative scheme to compute the correction and update the defect
-		ILinearIterator<vector_type,vector_type>* m_pPrecond;
+		SmartPtr<ILinearIterator<vector_type,vector_type> > m_spPrecond;
 
 	//	flag if fresh defect should be computed when finish for debug purpose
 		bool m_bRecomputeDefectWhenFinished;

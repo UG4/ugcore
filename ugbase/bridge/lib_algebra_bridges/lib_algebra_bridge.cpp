@@ -287,7 +287,8 @@ static bool reg(Registry& reg, string parentGroup)
 		reg.add_class_<T,TBase>(name, grp,
 						"Linear Iterator consisting of several LinearIterations")
 				.add_constructor()
-				.add_method("add_iteration", &T::add_iterator, "Add an iterator");
+				.add_method("add_iteration", &T::add_iterator, "Add an iterator")
+				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearIteratorProduct", algTag);
 	}
 

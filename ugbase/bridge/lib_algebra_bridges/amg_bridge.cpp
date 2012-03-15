@@ -156,6 +156,7 @@ struct RegisterAMGClass<CPUAlgebra>
 #ifdef UG_PARALLEL
 			.add_method("set_parallel_coarsening", &RSAMG<algebra_type>::set_parallel_coarsening)
 #endif
+			.set_construct_as_smart_pointer(true)
 			;
 
 		reg.add_class_to_group(string("RSAMGPreconditioner").append(algSuffix), "RSAMGPreconditioner", algTag);
@@ -221,6 +222,7 @@ struct RegisterAMGClass<CPUAlgebra>
 			.add_method("set_write_f_values", &FAMG<algebra_type>::set_write_f_values)
 
 			.add_method("check_testvector", &FAMG<algebra_type>::check_testvector)
+			.set_construct_as_smart_pointer(true)
 			;
 		reg.add_class_to_group(string("FAMGPreconditioner").append(algSuffix), "FAMGPreconditioner", algTag);
 
