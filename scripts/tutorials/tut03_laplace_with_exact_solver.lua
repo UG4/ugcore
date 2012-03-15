@@ -179,17 +179,6 @@ approxSpace:add_fct("c", "Lagrange", 1)          -- adds one function
 -- a default convection of 0 - the convection / diffusion equation thus
 -- simplifies to a pure diffusion equation - the laplace problem.
 
--- first we create objects that encapsulate our callbacks. Those can then
--- be registered at the discretization object. Note that we use the .. operator
--- to concatenate strings and numbers. This saves us from a lot of if dim == 2 ... else ...
--- Since the diffusion tensor returns a matrix we use utilCreateLuaUserMatrix,
--- whereas we use utilCreateLuaUserNumber if only a number is returned.
--- For the dirichlet callback we use utilCreateLuaBoundaryNumber, since here
--- a boolean and a number are returned.
-diffMatrixCallback = LuaUserMatrix("ourDiffTensor" .. dim .. "d")
-rhsCallback = LuaUserNumber("ourRhs" .. dim .."d")
-dirichletCallback = LuaBoundaryNumber("ourDirichletBnd" .. dim .. "d")
-
 -- The element discretization
 -- Here we create a new instance of a convection diffusion equation.
 -- We furthermore tell it that it shall operate on the unknowns associated
@@ -197,24 +186,18 @@ dirichletCallback = LuaBoundaryNumber("ourDirichletBnd" .. dim .. "d")
 -- and that the discretization shall only operate on elements in the subset
 -- "Inner". Note that one could specify multiple subsets here by enumerating
 -- them all in the subsets-string separated by , (i.e. "Inner1, Inner2").
+
 -- Select upwind
-if dim == 2 then 
---upwind = NoUpwind2d()
---upwind = FullUpwind2d()
+--upwind = NoUpwind()
+--upwind = FullUpwind()
 upwind = WeightedUpwind(); upwind:set_weight(0.0)
---upwind = PartialUpwind2d()
-elseif dim == 3 then 
---upwind = NoUpwind3d()
---upwind = FullUpwind3d()
-upwind = WeightedUpwind3d(); upwind:set_weight(0.0)
---upwind = PartialUpwind3d()
-else print("Dim not supported for upwind"); exit() end
+--upwind = PartialUpwind()
  
 elemDisc = ConvectionDiffusion("c", "Inner")
 elemDisc:set_disc_scheme("fv1")
 if elemDisc:set_upwind(upwind) == false then exit() end
-elemDisc:set_diffusion_tensor(diffMatrixCallback)	-- set the diffusion matrix
-elemDisc:set_source(rhsCallback)						-- set the right hand side
+elemDisc:set_diffusion_tensor("ourDiffTensor"..dim.."d")	-- set the diffusion matrix
+elemDisc:set_source("ourRhs"..dim.."d")						-- set the right hand side
 
 -- Note that the dirichlet boundary callback was not registered at the
 -- element discretization. This is important since the concept of
@@ -224,6 +207,13 @@ elemDisc:set_source(rhsCallback)						-- set the right hand side
 -- the elements of the given subset. The boundary conditions are then
 -- enforced either by other discretization objects (neumann) or through
 -- a post-process (dirichlet).
+
+-- first we create objects that encapsulate our callbacks. Those can then
+-- be registered at the discretization object. Note that we use the .. operator
+-- to concatenate strings and numbers. This saves us from a lot of if dim == 2 ... else ...
+-- For the dirichlet callback we use utilCreateLuaBoundaryNumber, since here
+-- a boolean and a number are returned.
+dirichletCallback = LuaBoundaryNumber("ourDirichletBnd" .. dim .. "d")
 
 -- Here we set up such a dirichlet boundary condition. We explicitly
 -- add subsets on which the boundary callback defined above shall be
