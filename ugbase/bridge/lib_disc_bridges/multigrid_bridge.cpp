@@ -94,7 +94,8 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 			.add_method("set_num_postsmooth", &T::set_num_postsmooth,"", "Number PostSmooth Steps")
 			.add_method("set_prolongation", &T::set_prolongation_operator,"", "Prolongation")
 			.add_method("set_projection", &T::set_projection_operator,"", "Projection")
-			.add_method("set_debug", &T::set_debug);
+			.add_method("set_debug", &T::set_debug)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GeometricMultiGrid", dimAlgTag);
 	}
 }
