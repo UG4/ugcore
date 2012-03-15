@@ -1,60 +1,3 @@
---[[
-   TODO:
-   * Resultate von Martin Rupp mit "famg" als Neumann- und Dirichlet-Problem-Solver in 'numrefs?.txt' reproduzieren:
-
-   UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -numPPSD 4"
-
-   salloc -n 64 mpirun ugshell $UGARGS -numRefs  7 -ds famg -ns famg -logtofile bla -rlf
-   salloc -n 64 mpirun ugshell $UGARGS -numRefs  8 -ds famg -ns famg -logtofile bla -rlf - haengt!?
-
-   Noch nicht probiert:
-   salloc -n 64 mpirun ugshell $UGARGS -numRefs  9 -ds famg -ns famg -logtofile bla -rlf
-   salloc -n 64 mpirun ugshell $UGARGS -numRefs 10 -ds rsamg -ns rsamg -logtofile bla -rlf
-
-
-   Testweise der hierzu kleinste sinnvolle Job - alles andere stuerzt ab:
-   cekon:
-   salloc -n 16 mpirun ugshell $UGARGS -numRefs  5 -ds famg -ns famg -logtofile bla -rlf
-
-   local:
-   openmpirun -np 16   ugshell $UGARGS -numRefs  5 -ds famg -ns famg -logtofile bla -rlf
-
-   ==> ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data': Approximation Space not set.
-
-   falls 'CreateAMGTestvectorDirichlet0()' zur Erzeugung der Testvektoren verwendet wird?
-
-   Ursache fuer den Fehler ist offenbar, dass die Methode 'LagrangeDirichletBoundary::set_approximation_space()'
-   (ugbase/lib_disc/spatial_disc/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h)
-   nirgends aufgerufen wird!
-
-   Dies wird aber durch 'linOp:init_op_and_rhs(b)', das ich in 'scalability_test.lua' mal testweise, statt 'AssembleLinearOperatorRhsAndSolution(linOp, u, b)', aufrufe -
-   und siehe da, kein Absturz mehr! - Auf cekon aber schon!????
-   Der obige Fehler aber nicht, dazu muesste die Reihenfolge umgedreht werden: Erst Assemblieren, dann Aufsetzen FAMG mit Testvektoren!?
-
-   Update (05032012): Laeuft nicht mehr!? Sieht auch so aus, als ob 'init_op_and_rhs()' mittlerweile auch in 'AssembleLinearOperatorRhsAndSolution()' steckt ...
-
-   # -numPPSD 4 with FAMG (once again - next try 05032012):
-   UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -numPPSD 4"
-
-   salloc -n 64 ./ugshell $UGARGS -numRefs  7 -ds famg -ns famg
-   salloc -n 64 ./ugshell $UGARGS -numRefs  8 -ds famg -ns famg
-   salloc -n 64 ./ugshell $UGARGS -numRefs  9 -ds famg -ns famg
-   salloc -n 64 ./ugshell $UGARGS -numRefs 10 -ds famg -ns famg
-
-
-   Neuer Versuch, ohne und mit Testvektoren:
-   UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -lsType feti -numPPSD 4"
-   local: openmpirun -np 16   ugshell $UGARGS -numPreRefs 2 -numRefs 4 -ds famg -ns famg
-   cekon: salloc -n 16 mpirun ugshell $UGARGS -numPreRefs 2 -numRefs 3 -ds famg -ns famg
-   ==> auf cekon Absturz, in FAMG:do_calculation(), beim Schreiben von VTK-Output!?
-
-   Lag daran, dass 'm_famg.m_bWriteFValues' nicht initialisiert wird - die gcc's auf cekon scheinen es auf true zu setzen,
-   der gcc auf dem MBP auf false (allerdings scheint hier der Absturz an einer anderen Stelle zu passieren, wenn man es explizit auf true setzt!?)
-
-   ==> npAMG:set_write_f_values(false), dpAMG:set_write_f_values(false) ergaenzt ==> voila!
-
-   Wenn Testvektoren per 'CreateAMGTestvectorDirichlet0()' erzeugt werden, gibt es aber so oder Absturz ...
-   ]]
 ----------------------------------------------------------
 --
 --   Lua - Script which creates and configures a FETI solver (linear solver).
@@ -69,6 +12,7 @@
 --          'dim',
 --          'linMaxIterations'
 --          'numProcs'
+--          'u'
 --          'dirichletBND', 'approxSpace',
 --          'activateDbgWriter', 'verbosity', logfileName.
 --          Return value:
@@ -85,7 +29,8 @@
 --				 dim
 --				 linMaxIterations,
 --				 numProcs,
---				 dirichletBND, approxSpace, -- for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()'); 'approxSpace' also for 'GridFunctionDebugWriter()'
+--				 u,
+--				 dirichletBND, approxSpace,
 --				 activateDbgWriter,
 --				 verbosity, logfileName)
 --
@@ -100,133 +45,24 @@
 --	2. Execution of the calling LUA script:
 --[[
 
+UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
+
 # Local:
 ########
-setenv UGARGS "-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 0 -lsType feti -numPPSD 1"
-openmpirun -np 4 ugshell $UGARGS -numRefs 5 # etc.
-openmpirun -np 4 ugshell $UGARGS -numRefs 5 -dbgw 1 # with debug writer
+openmpirun -np 4 ugshell $UGARGS -numPPSD 1 -numRefs 5 # etc.
+openmpirun -np 4 ugshell $UGARGS -numPPSD 1 -numRefs 5 -dbgw 1 # with debug writer
+openmpirun -np 4 ugshell $UGARGS -numPPSD 1 -numRefs 5 -logtofile bla -rlf # with logfile and automatic naming
 	
 # cekon:
 ########
-UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -numPPSD 1"
-
-salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 5 -logtofile feti-sd1_8x8-quad_prerefs3-refs5_pe04.txt - geht!
-salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 6 -logtofile feti-sd1_8x8-quad_prerefs3-refs6_pe04.txt - geht, zumindest mit 2000 Schritten Dirichlet-Solver!
-salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -logtofile feti-sd1_8x8-quad_prerefs3-refs7_pe04.txt - "Could not solve Dirichlet problem (step 3.b)", auf allen 4 Procs!
-salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -ds rsamg - works!
-salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 8 -ds rsamg - nun Ausstieg des Neumann-Solvers!
-
--- Test of solvers:
-UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -numPPSD 1"
--- Default solvers:
-salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -ds cg    -ns cg    -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-cg_nps-cg_cps-exact_pe04.txt
--- RSAMG for Dirichlet problem:
-salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -ds rsamg -ns cg    -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-rsamg_nps-cg_cps-exact_pe04.txt
--- RSAMG for Dirichlet+Neumann problem:
-salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -ds rsamg -ns rsamg -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-rsamg_nps-rsamg_cps-exact_pe04.txt
-
--- exact for Dirichlet problem - only for one process per subdomain since 'exact' isn't parallelized:
-salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -ds exact -ns cg    -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-exact_nps-cg_cps-exact_pe04.txt
--- exact for Dirichlet+Neumann problem - only for one process per subdomain since 'exact' isn't parallelized:
-salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 7 -ds exact -ns exact -cps exact -logtofile laplace_feti-sd1_8x8-quads_prerefs3-refs7_dps-exact_nps-exact_cps-exact_pe04.txt
-
-
-salloc -n 16 mpirun ./ugshell $UGARGS -numRefs 6 -logtofile feti-sd1_8x8-quad_prerefs3-refs6_pe16.txt - geht!
-salloc -n 16 mpirun ./ugshell $UGARGS -numRefs 7 -logtofile feti-sd1_8x8-quad_prerefs3-refs7_pe16.txt - "Could not solve Dirichlet problem (step 3.b)", nur auf Proc 8!? <-- #DoF's wie bei Klawonn
-
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 7 -logtofile feti-sd1_8x8-quad_prerefs3-refs7_pe64.txt - geht!
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 8 -logtofile feti-sd1_8x8-quad_prerefs3-refs8_pe64.txt - "Could not solve Dirichlet problem (step 3.b)", auf Proc 53, 55, 61, 4, 5, 1 und 16
-(Das sind in der Tat alle, bei denen es schief geht - keine weiteren durch Auskommentieren des "return(false)" in der entsprechenden Bedingung!)
-
-#Mit '-distType grid2d':
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 8 -distType grid2d -logtofile feti-sd1_8x8-quad_prerefs3-refs8_grid2d_pe64.txt - jetzt geht "step 3.b" auf folgenden Procs nicht:
-39, 47, 31, 55, 60, 61, 62, 3, 1, 2
-
-
-################################################################################
-# With new naming scheme (27102011):
-################################################################################
-UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
-#  -nPPSD 1:
-############
-salloc          -n   4 mpirun                            ./ugshell $UGARGS -numRefs 5 -dps exact -nps cg -cps exact -logtofile bla -rlf
-salloc          -n   4 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps exact -nps cg -cps exact -logtofile bla -rlf - Absturz, wohl wegen Speicherbedarf fuer exact-Solvers
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps exact -nps cg -cps exact -logtofile bla -rlf
-salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps exact -nps cg -cps exact -logtofile bla -rlf
-
-# Auswertung auf Anzahl FETI-Schritte:
-grep " Relative reduction 1" scaltest-laplace-2d_8x8-quads_refs-3-?_feti_nppsd-1_spss-exact-cg-exact_pe-*.txt
-
-salloc          -n   4 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps cg    -nps cg -cps exact -logtofile bla -rlf
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps cg    -nps cg -cps exact -logtofile bla -rlf
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg -cps exact -logtofile bla -rlf -- step 3.b failed nur auf Proc 8 (wie bisher)
-salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg -cps exact -logtofile bla -rlf
-salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 8 -dps cg    -nps cg -cps exact -logtofile bla -rlf -- TODO! Duerfte wohl ebenfalls an 3.b failen!?
-salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg -cps exact -logtofile bla -rlf
-salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 8 -dps cg    -nps cg -cps exact -logtofile bla -rlf
-salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 9 -dps cg    -nps cg -cps exact -logtofile bla -rlf -- TODO!
-
-# Auswertung auf Anzahl FETI-Schritte:
-grep " Relative reduction 1" scaltest-laplace-2d_8x8-quads_refs-3-?_feti_nppsd-1_spss-cg-cg-exact_pe-*.txt
-
-#  -nPPSD 4:
-############
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 4 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf -- Solve Neumann problem failed
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 5 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf -- Solve Neumann problem failed
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf -- Solve Neumann problem failed
-
-# Da mit diesen Parameter schon 16 PE nicht laufen, das folgende noch gar nicht probiert ...
-salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf
-salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 7 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf
-salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 8 -dps cg    -nps cg    -cps exact -nPPSD 4 -logtofile bla -rlf
-
-# ... leider geht das folgende, Neumann-Solver 'exact', nicht, da dieser Loeser nicht parallel ...:
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf -- step 3.b failed
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 5 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf -- step 3.b failed, mit 'nans' als last defect! 
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 4 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf -- step 3.b failed
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 3 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf -- step 3.b failed, mit 'nans' als last defect!
-salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf -- TODO!
-salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 8 -dps cg    -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf -- TODO!
-# ... stattdessen sowohl fuer Dirichlet- als auch fuer Neumann-Solver 'exact' gewaehlt:
-salloc          -n  16 mpirun                            ./ugshell $UGARGS -numRefs 6 -dps exact -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf -- abgebrochen nach 2 1/2 Schritten (6h)
-salloc          -n  64 mpirun                            ./ugshell $UGARGS -numRefs 7 -dps exact -nps exact -cps exact -nPPSD 4 -logtofile bla -rlf -- abgebrochen nach 1 1/2 Schritten ...
-
-################################################################################
-# Test, ob S_PiPi identisch fuer konstante Anzahl Subdomains:
-################################################################################
-UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
-salloc        -n  16 mpirun ./ugshell $UGARGS -numRefs 3 -ds rsamg -verb 2 -dbgw 1 -numPPSD 1
-salloc        -n  64 mpirun ./ugshell $UGARGS -numRefs 3 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4
-# mit Overcommit:
-salloc -N 4 -O -n 64 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 3 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4
-
-salloc -N 16 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 8 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4
-salloc -N 23 -O -n 256 mpirun -mca mpi_yield_when_idle 1 ./ugshell $UGARGS -numRefs 2 -ds bicg  -verb 2 -dbgw 1 -numPPSD 16
-==> alle drei Schurkomplement-Matrizen identisch (umbenannt):
-RootSchurComplementMatrix_p0000_pe256_sd16_coords.mat RootSchurComplementMatrix_p0000_pe64_sd16_coords.mat RootSchurComplementMatrix_p0000_pe16_sd16_coords.mat
-
-
-# Vergleich und Test der Ausgaben beim Erzeugen von S_PiPi - identisches Problem, unterschiedliche outprocs:
-UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4 -outproc  0 -logtofile feti_pe64_sd16_p00.txt
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4 -outproc  1 -logtofile feti_pe64_sd16_p01.txt
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4 -outproc  2 -logtofile feti_pe64_sd16_p02.txt
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4 -outproc  3 -logtofile feti_pe64_sd16_p03.txt
-
-
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4 -outproc 12 -logtofile feti_pe64_sd16_p12.txt
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4 -outproc 13 -logtofile feti_pe64_sd16_p13.txt
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4 -outproc 14 -logtofile feti_pe64_sd16_p14.txt
-salloc -n 64 mpirun ./ugshell $UGARGS -numRefs 3 -ds bicg  -verb 2 -dbgw 1 -numPPSD 4 -outproc 15 -logtofile feti_pe64_sd16_p15.txt
-
+salloc -n  4 mpirun ./ugshell $UGARGS -numPPSD 1 -numRefs 5
 
 # JuGene:
 #########
-Interaktiv - Job lief jedoch nicht mehr (01092011):
-UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
+# Interactive - Job lief jedoch nicht mehr (01092011):
 llrun -v  -np 16 -exe ./ugshell -mode VN -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args $UGARGS -numPPSD 1 -outproc 0
 
-
+# Batch:
 UGARGS="-ex ../scripts/tests/scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -numPPSD 1"
 mpirun -np  64 -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ \
                        -args "$UGARGS -numRefs 8 -logtofile jugene_feti-sd1_8x8-quad_prerefs3-refs8_pe64.txt"
@@ -327,7 +163,7 @@ function SetupFETISolver(str_problem,
 			 linMaxIterations,
 			 numProcs,
 			 u,                         -- for testvector writer for FAMG (created by 'CreateAMGTestvector()')
-			 dirichletBND, approxSpace, -- for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()')
+			 dirichletBND, approxSpace, -- for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()'); 'approxSpace' also for 'GridFunctionDebugWriter()'
 			 activateDbgWriter,
 			 verbosity, logfileName)
 
@@ -562,6 +398,9 @@ function SetupFETISolver(str_problem,
 			npAMG:set_aggressive_coarsening(bAggressiveCoarsening)
 			npAMG:set_write_f_values(false)
 
+			if bWriteMat then
+				npAMG:write_testvectors(true)
+			end
 			local FAMGtestvectorSmoother = Jacobi()
 			FAMGtestvectorSmoother:set_damp(0.66)
 				
@@ -590,9 +429,9 @@ function SetupFETISolver(str_problem,
 				end				
 			end
 			
-			if bWriteMat then
-				npAMG:write_testvectors(true)
-			end
+			--if bWriteMat then
+			--	npAMG:write_testvectors(true)
+			--end
 			npAMG:set_galerkin_truncation(1e-9)
 			npAMG:set_H_reduce_interpolation_nodes_parameter(0.1)
 			npAMG:set_prereduce_A_parameter(0.01)
@@ -700,7 +539,6 @@ function SetupFETISolver(str_problem,
 			dpAMG:set_testvector_smooths(1)
 			dpAMG:set_damping_for_smoother_in_interpolation_calculation(0.66)
 			dpAMG:set_testvector_smoother(FAMGtestvectorSmoother)
-			
 	--[[
 			-- add testvector which is 1 everywhere and only 0 on the dirichlet Boundary.
 			--testvectorwriter = CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
@@ -723,6 +561,9 @@ function SetupFETISolver(str_problem,
 				end				
 			end
 			
+			--if bWriteMat then
+			--	dpAMG:write_testvectors(true)
+			--end
 			dpAMG:set_galerkin_truncation(1e-9)
 			dpAMG:set_H_reduce_interpolation_nodes_parameter(0.1)
 			dpAMG:set_prereduce_A_parameter(0.01)
@@ -778,8 +619,11 @@ function SetupFETISolver(str_problem,
 	dirichletConvCheck:set_maximum_steps(2000)
 	dirichletConvCheck:set_minimum_defect(1e-10)
 	dirichletConvCheck:set_reduction(1e-16)
+if dirichletProblemSolverType == "famg" then -- TMP
+	dirichletConvCheck:set_verbose(true) -- TMP
+else -- TMP
 	dirichletConvCheck:set_verbose(false)
-	
+end -- TMP
 	dirichletSolver:set_convergence_check(dirichletConvCheck)
 	
 	----------------------------------------------------------
