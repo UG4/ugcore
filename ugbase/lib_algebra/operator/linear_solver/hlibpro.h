@@ -1,5 +1,5 @@
 /*
- * hlib_operator.h
+ * hlibpro.h
  *
  *  Created on: 10.02.2011
  *      Author: iheppner, based on the coupling of ug 3.8 with HLibpro introduced

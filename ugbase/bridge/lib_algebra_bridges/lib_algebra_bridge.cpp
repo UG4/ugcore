@@ -348,24 +348,7 @@ static bool reg(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "LU", algTag);
 	}
 
-	// 	DirichletDirichletSolver
 #ifdef UG_PARALLEL
-	{
-		typedef DirichletDirichletSolver<TAlgebra> T;
-		typedef ILinearOperatorInverse<vector_type, vector_type> BaseT;
-		string name = string("DirichletDirichlet").append(algSuffix);
-		reg.add_class_<	T, BaseT >(name, grp3, "Dirichlet-Dirichlet Domain Decomposition Algorithm")
-		.add_constructor()
-		.add_method("set_theta", &T::set_theta,
-					"", "Theta", "set damping factor theta")
-		.add_method("set_neumann_solver", &T::set_neumann_solver,
-					"", "Neumann Solver")
-		.add_method("set_dirichlet_solver", &T::set_dirichlet_solver,
-					"", "Dirichlet Solver")
-		.add_method("set_debug", &T::set_debug);
-		reg.add_class_to_group(name, "DirichletDirichlet", algTag);
-	}
-
 // 	LocalSchurComplement
 	{
 		typedef LocalSchurComplement<TAlgebra> T;

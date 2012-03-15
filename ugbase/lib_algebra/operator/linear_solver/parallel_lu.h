@@ -1,5 +1,5 @@
 /*
- * lu_operator.h
+ * parallel_lu.h
  *
  *  Created on: 16.06.2010
  *      Author: mrupp

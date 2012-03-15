@@ -37,12 +37,11 @@
 #endif
 
 // feti solver
-#include "linear_solver/dirichletdirichlet.h"
 #include "linear_solver/feti.h"
 
 // HLIBpro based solver
 #ifdef UG_HLIBPRO
-#include "linear_solver/hlib_operator.h"
+#include "linear_solver/hlibpro.h"
 #endif
 
 

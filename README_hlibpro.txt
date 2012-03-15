@@ -19,11 +19,11 @@ II.  Short description of HLibPro functionality provided in ug4 so far:
 #######################################################################
 Some functionality of HLibPro is used to define a sparse matrix solver (type
 'IMatrixOperatorInverse'), based on the functions of the HLibPro C interface.
-See 'ugbase/lib_algebra/operator/linear_solver/hlib_operator.h'.
+See 'ugbase/lib_algebra/operator/linear_solver/hlibpro.h'.
 
 For importing the system matrix assembled by UG to HLibPro a sparse matrix format
 is used. This format is implemented by a class 'CRSMatrix', which is also defined
-in 'hlib_operator.h'.
+in 'hlibpro.h'.
 
 The solver is registered as 'HLIBSolver' in 'lib_algebra_bridge.cpp'.
 
