@@ -116,7 +116,7 @@ CreateOctree(vector3* points, size_t numPoints,
 	spRootNode->set_box(boxMin, boxMax);
 	
 //	create the sub-trees
-	CreateSubOctrees(spRootNode.get_impl(), points, numPoints, elemInds,
+	CreateSubOctrees(spRootNode.get(), points, numPoints, elemInds,
 					numElemInds, numIndsPerElem, elemIDs, maxDepth,
 					elemThreshold, bLoose);
 
@@ -273,11 +273,11 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 			parentNode->add_child(spSubNode);
 
 			if(elemIDs)
-				CreateSubOctrees(spSubNode.get_impl(), points, numPoints,
+				CreateSubOctrees(spSubNode.get(), points, numPoints,
 								&vNewElems.front(), vNewElems.size(), numIndsPerElem,
 								&vNewIDs.front(), maxDepth - 1, elemThreshold, bLoose);
 			else
-				CreateSubOctrees(spSubNode.get_impl(), points, numPoints,
+				CreateSubOctrees(spSubNode.get(), points, numPoints,
 								&vNewElems.front(), vNewElems.size(), numIndsPerElem,
 								NULL, maxDepth - 1, elemThreshold, bLoose);
 		}

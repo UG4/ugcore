@@ -76,7 +76,7 @@ int SmartTestFunction(SmartPtr<TestClass> test) {
 
 	test->print2();
 
-	return test.get_refcount();
+	return test.refcount();
 }
 
 int ConstSmartTestFunction(ConstSmartPtr<TestClass> test) {
@@ -84,7 +84,7 @@ int ConstSmartTestFunction(ConstSmartPtr<TestClass> test) {
 
 	test->print2();
 
-	return test.get_refcount();
+	return test.refcount();
 }
 
 void TestSmartPtr2ConstPtr(const TestClass* t) {

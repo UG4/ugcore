@@ -110,7 +110,7 @@ void DataImport<TData,dim>::set_global_ips(const MathVector<dim>* vPos, size_t n
 template <typename TData, int dim>
 void DataImport<TData,dim>::assemble_jacobian(LocalMatrix& J)
 {
-	UG_ASSERT(m_spDependentIPData.is_valid(), "No Export set.");
+	UG_ASSERT(m_spDependentIPData.valid(), "No Export set.");
 
 	if(m_bInRhsPart){
 	//	loop integration points

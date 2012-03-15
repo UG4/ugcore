@@ -938,7 +938,7 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 									10, 30, false, aPos);
 
 		//PROFILE_END();
-		if(!octree.is_valid()){
+		if(!octree.valid()){
 			UG_LOG("  Octree creation failed in AdjustEdgeLength. Aborting.\n");
 			return false;
 		}

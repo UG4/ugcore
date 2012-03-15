@@ -160,10 +160,10 @@ class DensityDrivenFlowElemDisc
 		{
 		//	remove old data
 			SmartPtr<IIPData> oldData = m_imDensityScv.get_data();
-			if (oldData.is_valid())
+			if (oldData.valid())
 				m_exDarcyVel->remove_needed_data(oldData);
 			oldData = m_imDensityScvf.get_data();
-			if (oldData.is_valid())
+			if (oldData.valid())
 				m_exDarcyVel->remove_needed_data(oldData);
 
 		//	connect to import

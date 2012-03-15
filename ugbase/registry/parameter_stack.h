@@ -432,7 +432,7 @@ class ParameterStack
 				SmartPtr<void> smartPtr =  *(e.param.m_smartPtrWrapper);
 
 			//	cast raw pointer
-				void* rawPtr = smartPtr.get_impl();
+				void* rawPtr = smartPtr.get();
 
 			// 	cast raw pointer to desired class
 				rawPtr = ClassCastProvider::cast_to_base_class(
@@ -480,7 +480,7 @@ class ParameterStack
 				ConstSmartPtr<void> smartPtr =  *(e.param.m_constSmartPtrWrapper);
 
 			//	cast raw pointer
-				const void* rawPtrConst = smartPtr.get_impl();
+				const void* rawPtrConst = smartPtr.get();
 				void* rawPtr = const_cast<void*>(rawPtrConst);
 
 			// 	cast raw pointer to desired class

@@ -57,7 +57,7 @@ void SubsetGroup::add(const SubsetGroup& ssGroup)
 		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
 
 //	check that underlying subset handlers are equal
-	if(m_pSH.get_impl() != ssGroup.subset_handler().get_impl())
+	if(m_pSH.get() != ssGroup.subset_handler().get())
 		UG_THROW_FATAL("Underlying subset handler does not match. Cannot add"
 						" subsets to subset group.");
 
@@ -120,7 +120,7 @@ void SubsetGroup::remove(const SubsetGroup& ssGroup)
 		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
 
 //	check that underlying subset handlers are equal
-	if(m_pSH.get_impl() != ssGroup.subset_handler().get_impl())
+	if(m_pSH.get() != ssGroup.subset_handler().get())
 		UG_THROW_FATAL("Underlying subset handler does not match. Cannot add"
 						" subsets to subset group.\n");
 

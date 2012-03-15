@@ -304,7 +304,7 @@ class AssembledMultiGridCycle :
 
 		//	number of indices on whole level
 			size_t num_indices() const
-				{UG_ASSERT(spLevDD.is_valid(), "Missing LevDD"); return spLevDD->num_indices();}
+				{UG_ASSERT(spLevDD.valid(), "Missing LevDD"); return spLevDD->num_indices();}
 
 		//	returns the smoothing matrix (depends if smooth patch needed or not)
 			MatrixOperator<vector_type, vector_type, matrix_type>&

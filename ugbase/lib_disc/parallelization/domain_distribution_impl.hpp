@@ -284,7 +284,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 	SmartPtr<GridType> pGrid = domainOut.grid();
 	SubsetHandler& shPart = partitionMap.get_partition_handler();
 
-	if(shPart.grid() != pGrid.get_impl()){
+	if(shPart.grid() != pGrid.get()){
 		partitionMap.assign_grid(*pGrid);
 	}
 

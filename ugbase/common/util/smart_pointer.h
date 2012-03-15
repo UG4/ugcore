@@ -80,21 +80,14 @@ class SmartPtr
 	 *	to T*.*/
 		template <class TPtr>
 		SmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
-			m_ptr(static_cast<T*>(sp.get_nonconst_impl())),
-			m_refCount(sp.get_refcount_ptr())
+			m_ptr(static_cast<T*>(sp.get_nonconst())),
+			m_refCount(sp.refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
 		}
 
 		~SmartPtr() {release();}
-/*
-	///	copies a SmartPtr and applies a reinterpret_cast on its impl.
-		template <class TIn>
-		static SmartPtr<T> from_reinterpret_cast(SmartPtr<TIn>& in)	{
-			return SmartPtr<T>(reinterpret_cast<T*>(in.m_ptr),
-								in.get_refcount_ptr());
-		}
-*/
+
 		T* operator->() 			{return m_ptr;}
 		const T* operator->() const	{return m_ptr;}
 
@@ -115,15 +108,15 @@ class SmartPtr
 		SmartPtr<T, FreePolicy>& operator=(const SmartPtr<TIn, FreePolicy>& sp)	{
 			if(m_ptr)
 				release();
-			m_ptr = sp.get_nonconst_impl();
-			m_refCount = sp.get_refcount_ptr();
+			m_ptr = sp.get_nonconst();
+			m_refCount = sp.refcount_ptr();
 			if(m_refCount)
 				(*m_refCount)++;
 			return *this;
 		}
 
 		bool operator==(const SmartPtr& sp){
-			return (this->get_impl() == sp.get_impl());
+			return (this->get() == sp.get());
 		}
 
 		bool operator!=(const SmartPtr& sp){
@@ -131,17 +124,20 @@ class SmartPtr
 		}
 
 	///	returns encapsulated pointer
-		T* get_impl()				{return m_ptr;}
+		T* get()				{return m_ptr;}
 
 	///	returns encapsulated pointer
-		const T* get_impl() const	{return m_ptr;}
+		const T* get() const	{return m_ptr;}
 
 	///	returns refcount
-		int get_refcount() const {if(m_refCount) return *m_refCount; return 0;}
+		int refcount() const {if(m_refCount) return *m_refCount; return 0;}
 
 	///	returns true if the pointer is valid, false if not.
-		inline bool is_valid() const	{return m_ptr != NULL;}
-		
+		inline bool valid() const	{return m_ptr != NULL;}
+
+	///	returns true if the pointer is invalid, false if not.
+		inline bool invalid() const	{return m_ptr == NULL;}
+
 	///	preforms a dynamic cast
 		template <class TDest>
 		SmartPtr<TDest, FreePolicy> cast_dynamic() const{
@@ -184,9 +180,9 @@ class SmartPtr
 	 *	It is featured in order to allow to implement a template-constructor
 	 *	that casts element-pointers of a smart pointer.
 	 *	\{*/
-		int* get_refcount_ptr() const 	{return m_refCount;}
+		int* refcount_ptr() const 	{return m_refCount;}
 
-		T* get_nonconst_impl() const	{return m_ptr;}
+		T* get_nonconst() const	{return m_ptr;}
 	/**	\}	*/
 
 	private:
@@ -233,29 +229,22 @@ class ConstSmartPtr
 	 *	to T*.*/
 		template <class TPtr>
 		ConstSmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
-			m_ptr(static_cast<const T*>(sp.get_impl())),
-			m_refCount(sp.get_refcount_ptr())
+			m_ptr(static_cast<const T*>(sp.get())),
+			m_refCount(sp.refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
 		}
 
 		template <class TPtr>
 		ConstSmartPtr(const ConstSmartPtr<TPtr, FreePolicy>& sp) :
-			m_ptr(static_cast<const T*>(sp.get_impl())),
-			m_refCount(sp.get_refcount_ptr())
+			m_ptr(static_cast<const T*>(sp.get())),
+			m_refCount(sp.refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
 		}
 
 		~ConstSmartPtr() {release();}
-/*
-	///	copies a SmartPtr and applies a reinterpret_cast on its impl.
-		template <class TIn>
-		static SmartPtr<T> from_reinterpret_cast(SmartPtr<TIn>& in)	{
-			return SmartPtr<T>(reinterpret_cast<T*>(in.m_ptr),
-								in.get_refcount_ptr());
-		}
-*/
+
 		const T* operator->() const	{return m_ptr;}
 
 		const T& operator*() const	{return *m_ptr;}
@@ -274,8 +263,8 @@ class ConstSmartPtr
 		ConstSmartPtr<T, FreePolicy>& operator=(const SmartPtr<TIn, FreePolicy>& sp)	{
 			if(m_ptr)
 				release();
-			m_ptr = sp.get_impl();
-			m_refCount = sp.get_refcount_ptr();
+			m_ptr = sp.get();
+			m_refCount = sp.refcount_ptr();
 			if(m_refCount)
 				(*m_refCount)++;
 			return *this;
@@ -295,27 +284,30 @@ class ConstSmartPtr
 		ConstSmartPtr<T, FreePolicy>& operator=(const ConstSmartPtr<TIn, FreePolicy>& sp)	{
 			if(m_ptr)
 				release();
-			m_ptr = sp.get_impl();
-			m_refCount = sp.get_refcount_ptr();
+			m_ptr = sp.get();
+			m_refCount = sp.refcount_ptr();
 			if(m_refCount)
 				(*m_refCount)++;
 			return *this;
 		}
 
 		bool operator==(const ConstSmartPtr& sp){
-			return (this->get_impl() == sp.get_impl());
+			return (this->get() == sp.get());
 		}
 
 		bool operator!=(const ConstSmartPtr& sp){
 			return !(this->operator==(sp));
 		}
 
-		const T* get_impl() const	{return m_ptr;}
+		const T* get() const	{return m_ptr;}
 
-		int get_refcount() const {if(m_refCount) return *m_refCount; return 0;}
+		int refcount() const {if(m_refCount) return *m_refCount; return 0;}
 
 	///	returns true if the pointer is valid, false if not.
-		inline bool is_valid() const	{return m_ptr != NULL;}
+		inline bool valid() const	{return m_ptr != NULL;}
+
+	///	returns true if the pointer is invalid, false if not.
+		inline bool invalid() const	{return m_ptr == NULL;}
 
 	///	preforms a dynamic cast
 		template <class TDest>
@@ -360,7 +352,7 @@ class ConstSmartPtr
 	 *	versions of the SmartPtr class.
 	 *	It is featured in order to allow to implement a template-constructor
 	 *	that casts element-pointers of a smart pointer.*/
-		int* get_refcount_ptr() const {return m_refCount;}
+		int* refcount_ptr() const {return m_refCount;}
 
 	private:
 	///	decrements the refCount and frees the encapsulated pointer if required.
@@ -490,13 +482,18 @@ class SmartPtr<void>
 			m_freeFunc = &SmartPtr<T, TFreePolicy>::free_void_ptr;
 		}
 
-		inline bool is_valid() const	{return m_ptr != NULL;}
-		void invalidate()				{if(is_valid())	release(); m_ptr = NULL;}
+	///	returns true if the pointer is valid, false if not.
+		inline bool valid() const {return m_ptr != NULL;}
 
-		void* get_impl()				{return m_ptr;}
-		const void* get_impl() const	{return m_ptr;}
+	///	returns true if the pointer is invalid, false if not.
+		inline bool invalid() const	{return m_ptr == NULL;}
 
-		int get_refcount() const {if(m_refCountPtr) return *m_refCountPtr; return 0;}
+		void invalidate()				{if(valid())	release(); m_ptr = NULL;}
+
+		void* get()				{return m_ptr;}
+		const void* get() const	{return m_ptr;}
+
+		int refcount() const {if(m_refCountPtr) return *m_refCountPtr; return 0;}
 
 	private:
 		void release() {
@@ -634,12 +631,17 @@ class ConstSmartPtr<void>
 			m_freeFunc = &SmartPtr<T, TFreePolicy>::free_void_ptr;
 		}
 
-		inline bool is_valid() const	{return m_ptr != NULL;}
-		void invalidate()				{if(is_valid())	release(); m_ptr = NULL;}
+	///	returns true if the pointer is valid, false if not.
+		inline bool valid() const {return m_ptr != NULL;}
 
-		const void* get_impl() const	{return m_ptr;}
+	///	returns true if the pointer is invalid, false if not.
+		inline bool invalid() const	{return m_ptr == NULL;}
 
-		int get_refcount() const {if(m_refCountPtr) return *m_refCountPtr; return 0;}
+		void invalidate()				{if(valid())	release(); m_ptr = NULL;}
+
+		const void* get() const	{return m_ptr;}
+
+		int refcount() const {if(m_refCountPtr) return *m_refCountPtr; return 0;}
 
 	private:
 		void release() {
@@ -670,9 +672,29 @@ namespace std
 		bool operator()(const SmartPtr<T, TFreePolicy>& lhs,
 						const SmartPtr<T, TFreePolicy>& rhs) const
 		{
-			return less<T*>()(lhs.get_impl(), rhs.get_impl());
+			return less<T*>()(lhs.get(), rhs.get());
 		}
 	};
 }
+
+
+////////////////////////////////////////////////////////////////////////
+//	Creation helper for SmartPtr
+////////////////////////////////////////////////////////////////////////
+
+/// returns a SmartPtr for the passed raw pointer
+template <typename T, template <class TT> class FreePolicy>
+SmartPtr<T, FreePolicy> CreateSmartPtr(T* inst)
+{
+	return SmartPtr<T, FreePolicy>(inst);
+}
+
+/// returns a SmartPtr for the passed raw pointer
+template <typename T>
+SmartPtr<T> CreateSmartPtr(T* inst)
+{
+	return SmartPtr<T>(inst);
+}
+
 
 #endif

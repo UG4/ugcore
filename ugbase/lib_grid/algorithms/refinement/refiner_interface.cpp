@@ -9,7 +9,7 @@ namespace ug{
 
 void IRefiner::adaption_begins()
 {
-	if(!m_messageHub.is_valid()){
+	if(!m_messageHub.valid()){
 		UG_THROW("A message-hub has to be assigned to IRefiner before adaption_begins may be called. "
 				"Make sure that you assigned a grid to the refiner you're using.");
 	}
@@ -27,7 +27,7 @@ void IRefiner::adaption_begins()
 
 void IRefiner::adaption_ends()
 {
-	if(!m_messageHub.is_valid()){
+	if(!m_messageHub.valid()){
 		UG_THROW("A message-hub has to be assigned to IRefiner before adaption_ends may be called. "
 				"Make sure that you assigned a grid to the refiner you're using.");
 	}
@@ -44,7 +44,7 @@ void IRefiner::adaption_ends()
 
 void IRefiner::refine()
 {
-	if(!m_messageHub.is_valid()){
+	if(!m_messageHub.valid()){
 		UG_THROW("A message-hub has to be assigned to IRefiner before refine may be called. "
 				"Make sure that you assigned a grid to the refiner you're using.");
 	}
@@ -88,7 +88,7 @@ bool IRefiner::coarsen()
 	if(!coarsening_supported())
 		return false;
 
-	if(!m_messageHub.is_valid()){
+	if(!m_messageHub.valid()){
 		UG_THROW("A message-hub has to be assigned to IRefiner before coarsen may be called. "
 				"Make sure that you assigned a grid to the refiner you're using.");
 	}

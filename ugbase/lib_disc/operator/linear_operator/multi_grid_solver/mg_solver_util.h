@@ -93,7 +93,7 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
 
 		//	extract all algebra indices for the element on level
-			UG_ASSERT(vLevelDD[level].is_valid(), "DoF Distribution missing");
+			UG_ASSERT(vLevelDD[level].valid(), "DoF Distribution missing");
 			vLevelDD[level]->inner_algebra_indices(elem, levelInd);
 
 		//	check that index sets have same cardinality
@@ -188,7 +188,7 @@ void ProjectLevelToSurface(TVector& surfaceVector,
 			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
 
 		//	extract all algebra indices for the element on level
-			UG_ASSERT(vLevelDD[level].is_valid(), "DoF Distribution missing");
+			UG_ASSERT(vLevelDD[level].valid(), "DoF Distribution missing");
 			vLevelDD[level]->inner_algebra_indices(elem, levelInd);
 
 		//	check that index sets have same cardinality

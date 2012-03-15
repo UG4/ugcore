@@ -49,7 +49,7 @@ void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMappi
 				"									that is not passed.");
 
 	//	extract all algebra indices for the element on level
-		UG_ASSERT(vLevelDD[level].is_valid(), "DoF Distribution missing");
+		UG_ASSERT(vLevelDD[level].valid(), "DoF Distribution missing");
 		vLevelDD[level]->inner_algebra_indices(elem, levelInd);
 
 	//	check that index sets have same cardinality
@@ -78,7 +78,7 @@ void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMappi
 					"									that is not passed.");
 
 		//	extract all algebra indices for the element on level
-			UG_ASSERT(vLevelDD[level].is_valid(), "DoF Distribution missing");
+			UG_ASSERT(vLevelDD[level].valid(), "DoF Distribution missing");
 			vLevelDD[level]->inner_algebra_indices(parent, levelInd);
 
 		//	check that index sets have same cardinality

@@ -73,7 +73,7 @@ MessageHub::~MessageHub()
 void MessageHub::
 unregister_callback(MessageHub::SPCallbackId cbId)
 {
-	unregister_callback_impl(cbId.get_impl());
+	unregister_callback_impl(cbId.get());
 }
 
 void MessageHub::

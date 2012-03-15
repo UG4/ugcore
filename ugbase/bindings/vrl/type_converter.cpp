@@ -353,7 +353,7 @@ namespace ug {
 
 			jclass cls = env->FindClass("edu/gcsc/vrl/ug/SmartPointer");
 			jmethodID methodID = env->GetMethodID(cls, "<init>", "(J[BZ)V");
-			jobject result = env->NewObject(cls, methodID, (jlong) value.get_impl(),
+			jobject result = env->NewObject(cls, methodID, (jlong) value.get(),
 					mem, boolC2J(false));
 
 			return result;
@@ -376,7 +376,7 @@ namespace ug {
 
 			jclass cls = env->FindClass("edu/gcsc/vrl/ug/SmartPointer");
 			jmethodID methodID = env->GetMethodID(cls, "<init>", "(J[BZ)V");
-			jobject result = env->NewObject(cls, methodID, (jlong) value.get_impl(),
+			jobject result = env->NewObject(cls, methodID, (jlong) value.get(),
 					mem, boolC2J(true));
 
 			return result;
@@ -738,12 +738,12 @@ namespace ug {
 						//				if (java_value_type == PT_CONST_SMART_POINTER) {
 						//					paramsOut.push_const_pointer(
 						//							(void*) jObject2ConstSmartPointer(
-						//							env, value).get_impl(), node);
+						//							env, value).get(), node);
 						//				} else
 						//					if (java_value_type == PT_SMART_POINTER) {
 						//					paramsOut.push_const_pointer(
 						//							(void*) jObject2SmartPointer(
-						//							env, value).get_impl(), node);
+						//							env, value).get(), node);
 						//				} else {
 						//					paramsOut.push_const_pointer(
 						//							jObject2Pointer(env, value), node);

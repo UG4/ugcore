@@ -80,7 +80,7 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner->get_associated_grid() != dom.grid().get_impl()){
+	if(refiner->get_associated_grid() != dom.grid().get()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInSphere: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
@@ -126,7 +126,7 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 	typedef typename geometry_traits<TElem>::iterator	ElemIter;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner->get_associated_grid() != dom.grid().get_impl()){
+	if(refiner->get_associated_grid() != dom.grid().get()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
@@ -179,7 +179,7 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner->get_associated_grid() != dom.grid().get_impl()){
+	if(refiner->get_associated_grid() != dom.grid().get()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}
@@ -252,7 +252,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
 //	make sure that the refiner was created for the given domain
-	if(refiner->get_associated_grid() != dom.grid().get_impl()){
+	if(refiner->get_associated_grid() != dom.grid().get()){
 		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
 					"Refiner was not created for the specified domain. Aborting."));
 	}

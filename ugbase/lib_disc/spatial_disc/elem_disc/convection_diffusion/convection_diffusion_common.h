@@ -29,7 +29,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_diffusion(number val)
 {
-	set_diffusion(SmartPtr<ConstUserMatrix<dim> >(new ConstUserMatrix<dim>(val)));
+	set_diffusion(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
 }
 
 #ifndef FOR_VRL
@@ -37,7 +37,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_diffusion(const char* fctName)
 {
-	set_diffusion(SmartPtr<LuaUserData<MathMatrix<dim,dim>, dim> >(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
+	set_diffusion(CreateSmartPtr(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
 }
 #endif
 
@@ -107,7 +107,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_velocity(const char* fctName)
 {
-	set_velocity(SmartPtr<LuaUserData<MathVector<dim>, dim> >(new LuaUserData<MathVector<dim>, dim>(fctName)));
+	set_velocity(CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(fctName)));
 }
 #endif
 
@@ -121,7 +121,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_reaction_rate(number val)
 {
-	set_reaction_rate(SmartPtr<ConstUserNumber<dim> >(new ConstUserNumber<dim>(val)));
+	set_reaction_rate(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifndef FOR_VRL
@@ -129,7 +129,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_reaction_rate(const char* fctName)
 {
-	set_reaction_rate(SmartPtr<LuaUserData<number, dim> >(new LuaUserData<number, dim>(fctName)));
+	set_reaction_rate(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
 }
 #endif
 
@@ -143,7 +143,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_reaction(number val)
 {
-	set_reaction(SmartPtr<ConstUserNumber<dim> >(new ConstUserNumber<dim>(val)));
+	set_reaction(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifndef FOR_VRL
@@ -151,7 +151,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_reaction(const char* fctName)
 {
-	set_reaction(SmartPtr<LuaUserData<number, dim> >(new LuaUserData<number, dim>(fctName)));
+	set_reaction(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
 }
 #endif
 
@@ -165,7 +165,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_source(number val)
 {
-	set_source(SmartPtr<ConstUserNumber<dim> >(new ConstUserNumber<dim>(val)));
+	set_source(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifndef FOR_VRL
@@ -173,7 +173,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_source(const char* fctName)
 {
-	set_source(SmartPtr<LuaUserData<number, dim> >(new LuaUserData<number, dim>(fctName)));
+	set_source(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
 }
 #endif
 
@@ -187,7 +187,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_mass_scale(number val)
 {
-	set_mass_scale(SmartPtr<ConstUserNumber<dim> >(new ConstUserNumber<dim>(val)));
+	set_mass_scale(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifndef FOR_VRL
@@ -195,7 +195,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_mass_scale(const char* fctName)
 {
-	set_mass_scale(SmartPtr<LuaUserData<number, dim> >(new LuaUserData<number, dim>(fctName)));
+	set_mass_scale(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
 }
 #endif
 
@@ -209,7 +209,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_mass(number val)
 {
-	set_mass(SmartPtr<ConstUserNumber<dim> >(new ConstUserNumber<dim>(val)));
+	set_mass(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifndef FOR_VRL
@@ -217,7 +217,7 @@ template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
 set_mass(const char* fctName)
 {
-	set_mass(SmartPtr<LuaUserData<number, dim> >(new LuaUserData<number, dim>(fctName)));
+	set_mass(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
 }
 #endif
 

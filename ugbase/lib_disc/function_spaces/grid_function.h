@@ -104,7 +104,7 @@ class IDDGridFunction : public IGridFunction
 		IDDGridFunction(SmartPtr<TDD> spDoFDistribution)
 			: m_spDD(spDoFDistribution)
 		{
-			if(!m_spDD.is_valid()) UG_THROW_FATAL("DoF Distribution is null.");
+			if(!m_spDD.valid()) UG_THROW_FATAL("DoF Distribution is null.");
 			m_spDD->manage_grid_function(*this);
 		}
 

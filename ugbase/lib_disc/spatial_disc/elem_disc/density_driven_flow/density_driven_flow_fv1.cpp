@@ -567,7 +567,7 @@ prepare_element_loop()
 			= m_imConstGravity.get_data().template cast_dynamic<ConstUserVector<dim> >();
 
 	//	check success
-		if(!pGrav.is_valid())
+		if(!pGrav.valid())
 		{
 			UG_LOG("ERROR in prepare_element_loop: Cannot cast constant gravity.\n");
 			return false;

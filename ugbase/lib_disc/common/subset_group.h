@@ -74,7 +74,7 @@ class SubsetGroup
 	/// number of subsets in this group
 		inline size_t num_subsets() const
 		{
-			if (!m_pSH.is_valid()) return 0;
+			if (!m_pSH.valid()) return 0;
 			return m_vSubset.size();
 		}
 
@@ -120,7 +120,7 @@ class SubsetGroup
 
 	protected:
 	// returns if SubsetGroup is ready for use
-		bool is_init() const {return m_pSH.is_valid();}
+		bool is_init() const {return m_pSH.valid();}
 
 	protected:
 		ConstSmartPtr<ISubsetHandler> m_pSH; ///< underlying SubsetHandler

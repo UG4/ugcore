@@ -511,7 +511,7 @@ bool LagrangeDirichletBoundary<TDomain, TAlgebra>::
 extract_scheduled_data()
 {
 //	check that function pattern exists
-	if(!m_spApproxSpace.is_valid())
+	if(!m_spApproxSpace.valid())
 		UG_THROW_FATAL("LagrangeDirichletBoundary:extract_scheduled_data: "
 				" Approximation Space not set.");
 

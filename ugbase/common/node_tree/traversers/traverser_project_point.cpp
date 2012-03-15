@@ -76,7 +76,7 @@ void Traverser_ProjectPoint::handle_group(GroupNode* group)
 
 				for(int i = 0; i < numChildren; ++i)
 				{
-					traverse_object(group->get_child(i).get_impl());
+					traverse_object(group->get_child(i).get());
 				
 				//	check whether the state changed during traversal of
 				//	the i-th subnode
@@ -88,7 +88,7 @@ void Traverser_ProjectPoint::handle_group(GroupNode* group)
 						for(int j = 0; j < numChildren; ++j)
 						{
 							if(j != i)
-								traverse_object(group->get_child(j).get_impl());
+								traverse_object(group->get_child(j).get());
 						}
 					//	all children have been traversed. We're done in here.
 						break;

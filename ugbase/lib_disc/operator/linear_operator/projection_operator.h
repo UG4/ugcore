@@ -144,7 +144,7 @@ class P1Projection :
 	//	Init operator
 		virtual void init()
 		{
-			if(!m_spApproxSpace.is_valid())
+			if(!m_spApproxSpace.valid())
 				UG_THROW_FATAL("P1Projection::init: "
 						"Approximation Space not set. Cannot init Projection.");
 

@@ -89,7 +89,7 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 				dd->inner_multi_indices(elem, fct, ind);
 
 			//	load positions associated with element and function
-				InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get_impl())), dd->local_finite_element_id(fct));
+				InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())), dd->local_finite_element_id(fct));
 
 			//	check correct size
 				UG_ASSERT(ind.size() == vElemPos.size(), "Num MultiIndex ("<<ind.size()

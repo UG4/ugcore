@@ -53,7 +53,7 @@ public:
 	/// \return number of entries in this profiler node
 	double get_avg_entry_count() const
 	{
-		if(!is_valid()) return 0.0;
+		if(!valid()) return 0.0;
 		return data.entryCount.avg; // * SHINY_DAMPING_FACTOR;
 	}
 
@@ -73,14 +73,14 @@ public:
 	/// \return time in seconds spend in this node excluding subnodes
 	double get_avg_self_time() const
 	{
-		if(!is_valid()) return 0.0;
+		if(!valid()) return 0.0;
 		return data.selfTicks.avg * SHINY_DAMPING_FACTOR;
 	}
 
 	/// \return time in seconds spend in this node including subnodes
 	double get_avg_total_time() const
 	{
-		if(!is_valid()) return 0.0;
+		if(!valid()) return 0.0;
 		return data.totalTicksAvg() * SHINY_DAMPING_FACTOR;
 	}
 
@@ -89,7 +89,7 @@ public:
 
 	string print_node(double full, size_t offset=0) const
 	{
-		if(!is_valid()) return "";
+		if(!valid()) return "";
 		double totalTicksAvg = get_avg_total_time();
 		const Shiny::TimeUnit *selfUnit = Shiny::GetTimeUnit(get_avg_self_time());
 		const Shiny::TimeUnit *totalUnit = Shiny::GetTimeUnit(totalTicksAvg);
@@ -123,7 +123,7 @@ public:
 
 	string call_tree() const
 	{
-		if(!is_valid()) return "Profile Node not valid!";
+		if(!valid()) return "Profile Node not valid!";
 
 		stringstream s;
 		UGProfilerNode::log_header(s, "call tree");
@@ -149,7 +149,7 @@ public:
 	}
 
 	// \return true if node has been found
-	bool is_valid() const
+	bool valid() const
 	{
 		return this != NULL;
 	}
@@ -157,7 +157,7 @@ public:
 private:
 	void rec_print(double full, stringstream &s, size_t offset=0) const
 	{
-		if(!is_valid()) return;
+		if(!valid()) return;
 		s << print_node(full, offset) << "\n";
 		for(const UGProfilerNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 		{
@@ -180,7 +180,7 @@ private:
 
 	string child_sorted(const char *name, bool sortFunction(const UGProfilerNode *a, const UGProfilerNode *b)) const
 	{
-		if(!is_valid()) return "";
+		if(!valid()) return "";
 		stringstream s;
 		vector<const UGProfilerNode*> nodes;
 		add_nodes(nodes);

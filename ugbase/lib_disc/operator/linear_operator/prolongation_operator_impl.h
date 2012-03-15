@@ -177,7 +177,7 @@ void P1Prolongation<TDomain, TAlgebra>::set_levels(GridLevel coarseLevel, GridLe
 template <typename TDomain, typename TAlgebra>
 void P1Prolongation<TDomain, TAlgebra>::init()
 {
-	if(!m_spApproxSpace.is_valid())
+	if(!m_spApproxSpace.valid())
 		UG_THROW_FATAL("P1Prolongation<TDomain, TAlgebra>::init: "
 				"Approximation Space not set. Cannot init Projection.");
 

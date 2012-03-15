@@ -56,7 +56,7 @@ template <typename TDomain>
 static bool SavePartitionMap(PartitionMap& pmap, TDomain& domain,
 							 const char* filename)
 {
-	if(domain.grid().get_impl() != pmap.get_partition_handler().grid())
+	if(domain.grid().get() != pmap.get_partition_handler().grid())
 	{
 		UG_LOG("WARNING in SavePartitionMap: The given partition map was not"
 				" created for the given domain. Aborting...\n");

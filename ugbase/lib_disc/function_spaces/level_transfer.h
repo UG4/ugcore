@@ -145,7 +145,7 @@ void Prolongate(GridFunction<TDomain, TDD, TAlgebra>& uFine,
                 GridFunction<TDomain, TDD, TAlgebra>& uCoarse)
 {
 //	grid functions must be from same Domain
-	if(uFine.domain().get_impl() != uCoarse.domain().get_impl())
+	if(uFine.domain() != uCoarse.domain())
 		UG_THROW_FATAL("Prolongate: GridFunctions must have same Domain.");
 
 //	grid functions must have same function pattern

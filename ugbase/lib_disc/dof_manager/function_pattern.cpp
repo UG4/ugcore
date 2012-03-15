@@ -68,7 +68,7 @@ void FunctionPattern::add_fct(const char* name, LFEID lfeID,
 				" a valid space. [use e.g. (Lagrange, p), (DG, p), ...].\n");
 
 //	check that subset handler are equal
-	if(m_spSH.get_impl() != ssGrp.subset_handler().get_impl())
+	if(m_spSH.get() != ssGrp.subset_handler().get())
 		UG_THROW_FATAL("FunctionPattern: "
 				"SubsetHandler of SubsetGroup does "
 				"not match SubsetHandler of FunctionPattern.\n");

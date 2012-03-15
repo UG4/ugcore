@@ -675,7 +675,7 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 		return false;
 	}
 
-	if(!m_spProjectionPrototype.is_valid())
+	if(!m_spProjectionPrototype.valid())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
 				"Projection not set, although problem nonlinear.\n");
@@ -818,7 +818,7 @@ init_common(bool nonlinear)
 				"Discretization not set.\n");
 		return false;
 	}
-	if(!m_spApproxSpace.is_valid())
+	if(!m_spApproxSpace.valid())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
 				"Approximation Space not set.\n");
@@ -830,13 +830,13 @@ init_common(bool nonlinear)
 				"Base Solver not set.\n");
 		return false;
 	}
-	if(!m_spSmootherPrototype.is_valid())
+	if(!m_spSmootherPrototype.valid())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
 				"Smoother not set.\n");
 		return false;
 	}
-	if(!m_spProlongationPrototype.is_valid())
+	if(!m_spProlongationPrototype.valid())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
 				"Prolongation not set.\n");
@@ -1749,7 +1749,7 @@ update(size_t lev,
 
 //	prepare level operator
 #ifdef UG_PARALLEL
-	LevelDoFDistribution* pDD = const_cast<LevelDoFDistribution*>(spLevDD.get_impl());
+	LevelDoFDistribution* pDD = const_cast<LevelDoFDistribution*>(spLevDD.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(LevMat, *pDD);
 #endif
 

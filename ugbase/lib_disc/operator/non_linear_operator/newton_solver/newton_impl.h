@@ -200,7 +200,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		m_vLinSolverCalls[loopCnt] += 1;
 
 	// 	Line Search
-		if(m_spLineSearch.is_valid())
+		if(m_spLineSearch.valid())
 		{
 			m_spLineSearch->set_offset("   #  ");
 			NEWTON_PROFILE_BEGIN(NewtonLineSearch);

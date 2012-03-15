@@ -308,7 +308,7 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 				ipData.cast_dynamic<IDependentIPData>();
 
 	//	check success
-		if(!dependData.is_valid())
+		if(!dependData.valid())
 		{
 			UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
 					" Data seems dependent, but cast failed.\n");
@@ -343,7 +343,7 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 		SmartPtr<IDataExport> exp = ipData.cast_dynamic<IDataExport>();
 
 	//	Data Export case
-		if(exp.is_valid())
+		if(exp.valid())
 		{
 		//	schedule for evaluation of IDataExports
 			m_vDataExport.push_back(exp);
@@ -393,7 +393,7 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			SmartPtr<IDependentIPData> dependData = iimp->get_data().cast_dynamic<IDependentIPData>();
 
 		//	check success
-			if(!dependData.is_valid())
+			if(!dependData.valid())
 			{
 				UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
 						" Data seems dependent, but cast failed.\n");

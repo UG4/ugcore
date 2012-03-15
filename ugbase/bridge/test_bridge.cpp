@@ -450,7 +450,7 @@ class MessageHubTest
 		}
 
 		void post_message(const char* message){
-			if(m_msgHub.is_valid()){
+			if(m_msgHub.valid()){
 				TestMessage msg;
 				msg.m_strMsg = message;
 				m_msgHub->post_message(m_msgId, msg);

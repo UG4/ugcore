@@ -21,7 +21,7 @@ template <typename TDomain, typename TAlgebra>
 bool DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
 {
 //	check Approximation space
-	if(!m_spApproxSpace.is_valid())
+	if(!m_spApproxSpace.valid())
 	{
 		UG_LOG("ERROR in DomainDiscretization: Before using the "
 				"DomainDiscretization an ApproximationSpace must be set to it. "
@@ -46,7 +46,7 @@ template <typename TDomain, typename TAlgebra>
 bool DomainDiscretization<TDomain, TAlgebra>::update_constraints()
 {
 //	check Approximation space
-	if(!m_spApproxSpace.is_valid())
+	if(!m_spApproxSpace.valid())
 	{
 		UG_LOG("ERROR in DomainDiscretization: Before using the "
 				"DomainDiscretization an ApproximationSpace must be set to it. "
@@ -403,7 +403,7 @@ assemble_jacobian(matrix_type& J,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
-	TDD* pDD = const_cast<TDD*>(dd.get_impl());
+	TDD* pDD = const_cast<TDD*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(J, *pDD);
 #endif
 }
@@ -613,7 +613,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	mat.set_storage_type(PST_ADDITIVE);
-	TDD* pDD = const_cast<TDD*>(dd.get_impl());
+	TDD* pDD = const_cast<TDD*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(mat, *pDD);
 	rhs.set_storage_type(PST_ADDITIVE);
 #endif
@@ -942,7 +942,7 @@ assemble_jacobian(matrix_type& J,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
-	TDD* pDD = const_cast<TDD*>(dd.get_impl());
+	TDD* pDD = const_cast<TDD*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(J, *pDD);
 #endif
 }
@@ -1148,7 +1148,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	mat.set_storage_type(PST_ADDITIVE);
-	TDD* pDD = const_cast<TDD*>(dd.get_impl());
+	TDD* pDD = const_cast<TDD*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(mat, *pDD);
 
 	rhs.set_storage_type(PST_ADDITIVE);

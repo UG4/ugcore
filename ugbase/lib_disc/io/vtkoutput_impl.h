@@ -182,7 +182,7 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 #endif
 
 //	get the grid associated to the solution
-	m_pGrid = dynamic_cast<Grid*>(u.domain()->grid().get_impl());
+	m_pGrid = dynamic_cast<Grid*>(u.domain()->grid().get());
 
 //	check grid
 	if(!m_pGrid)

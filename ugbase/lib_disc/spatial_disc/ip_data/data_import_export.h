@@ -63,7 +63,7 @@ class IDataImport
 	 */
 		bool zero_derivative() const
 		{
-			if(!m_spIDependentIPData.is_valid()) return true;
+			if(!m_spIDependentIPData.valid()) return true;
 			else return !m_bCompLinDefect;
 		}
 
@@ -134,7 +134,7 @@ class DataImport : public IDataImport
 		SmartPtr<IIPData> get_data(){return m_spIPData.template cast_dynamic<IIPData>();}
 
 	///	returns true if data given
-		virtual bool data_given() const {return m_spIPData.is_valid();}
+		virtual bool data_given() const {return m_spIPData.valid();}
 
 	///	sets the evaluation time point
 		void set_time(number time) {if(data_given()) m_spIPData->set_time(time);}
@@ -160,7 +160,7 @@ class DataImport : public IDataImport
 	///	return the derivative w.r.t to local function at ip
 		const TData* deriv(size_t ip, size_t fct) const
 		{
-			UG_ASSERT(m_spDependentIPData.is_valid(), "No Dependent Data set");
+			UG_ASSERT(m_spDependentIPData.valid(), "No Dependent Data set");
 			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
 			return m_spDependentIPData->deriv(m_seriesID, ip, fct);
 		}
@@ -168,7 +168,7 @@ class DataImport : public IDataImport
 	///	return the derivative w.r.t to local function and dof at ip
 		const TData& deriv(size_t ip, size_t fct, size_t dof) const
 		{
-			UG_ASSERT(m_spDependentIPData.is_valid(), "No Dependent Data set");
+			UG_ASSERT(m_spDependentIPData.valid(), "No Dependent Data set");
 			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
 			return m_spDependentIPData->deriv(m_seriesID, ip, fct, dof);
 		}

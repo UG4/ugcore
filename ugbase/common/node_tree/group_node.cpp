@@ -39,7 +39,7 @@ void GroupNode::remove_child(SPNode node)
 		iter != vChildren.end(); iter++)
 	{
 		SPNode& spNode = *iter;
-		if(spNode.get_impl() == node.get_impl())
+		if(spNode == node)
 		{
 			vChildren.erase(iter);
 			break;

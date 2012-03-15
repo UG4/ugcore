@@ -183,23 +183,23 @@ void IApproximationSpace::defragment()
 {
 	PROFILE_FUNC();
 //	update surface view
-	if(m_spSurfaceView.is_valid())
+	if(m_spSurfaceView.valid())
 		m_spSurfaceView->mark_shadows();
 
 //	defragment level dd
-	if(m_spLevMGDD.is_valid())
+	if(m_spLevMGDD.valid())
 		if(num_levels() > m_vLevDD.size())
 			level_dd_required(m_vLevDD.size(), num_levels()-1);
 
 	for(size_t lev = 0; lev < m_vLevDD.size(); ++lev)
-		if(m_vLevDD[lev].is_valid()) m_vLevDD[lev]->defragment();
+		if(m_vLevDD[lev].valid()) m_vLevDD[lev]->defragment();
 
 //	defragment top dd
-	if(m_spTopSurfDD.is_valid()) m_spTopSurfDD->defragment();
+	if(m_spTopSurfDD.valid()) m_spTopSurfDD->defragment();
 
 //	defragment surface dd
 	for(size_t lev = 0; lev < m_vSurfDD.size(); ++lev)
-		if(m_vSurfDD[lev].is_valid()) m_vSurfDD[lev]->defragment();
+		if(m_vSurfDD[lev].valid()) m_vSurfDD[lev]->defragment();
 }
 
 template <typename TDD>
@@ -249,7 +249,7 @@ print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 	const pcl::ProcessCommunicator& pCom = dd->process_communicator();
 
 //	hack since pcl does not support much constness
-	TDD* nonconstDD = const_cast<TDD*>(dd.get_impl());
+	TDD* nonconstDD = const_cast<TDD*>(dd.get());
 
 //	compute local dof numbers of all masters; this the number of all dofs
 //	minus the number of all slave dofs (double counting of slaves can not
@@ -361,7 +361,7 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 	UG_LOG(":\n");
 
 //	check, what to print
-	bool bPrintSurface = !m_vSurfDD.empty() || m_spTopSurfDD.is_valid();
+	bool bPrintSurface = !m_vSurfDD.empty() || m_spTopSurfDD.valid();
 	bool bPrintLevel = !m_vLevDD.empty();
 
 //	Write header line
@@ -398,7 +398,7 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 			}
 		}
 
-		if(m_spTopSurfDD.is_valid())
+		if(m_spTopSurfDD.valid())
 		{
 			UG_LOG("     top |");
 			print_statistic(surface_dof_distribution(GridLevel::TOPLEVEL), verboseLev);
@@ -456,7 +456,7 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 			}
 		}
 
-		if(m_spTopSurfDD.is_valid())
+		if(m_spTopSurfDD.valid())
 		{
 			UG_LOG("     top |");
 			print_parallel_statistic(surface_dof_distribution(GridLevel::TOPLEVEL), verboseLev);
@@ -515,7 +515,7 @@ void IApproximationSpace::print_local_dof_statistic(int verboseLev) const
 	UG_LOG("\nLocal DoF Statistic for DoFDistribution:");
 	UG_LOG("\n-----------------------------------------------\n");
 
-	if(m_spLevMGDD.is_valid())
+	if(m_spLevMGDD.valid())
 	{
 		print_local_dof_statistic(m_spLevMGDD, verboseLev);
 		return;
@@ -525,7 +525,7 @@ void IApproximationSpace::print_local_dof_statistic(int verboseLev) const
 		print_local_dof_statistic(m_vSurfDD[0], verboseLev);
 		return;
 	}
-	if(m_spTopSurfDD.is_valid())
+	if(m_spTopSurfDD.valid())
 	{
 		print_local_dof_statistic(m_spTopSurfDD, verboseLev);
 		return;
@@ -592,7 +592,7 @@ void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
 					   this->num_levels()<<" in the MultiGrid.");
 
 //	if not yet MGLevelDD allocated
-	if(!m_spLevMGDD.is_valid()){
+	if(!m_spLevMGDD.valid()){
 		m_spLevMGDD = SmartPtr<LevelMGDoFDistribution>
 					(new LevelMGDoFDistribution(this->m_spMGSH, *m_spFunctionPattern,
 					                            m_bGrouped
@@ -608,7 +608,7 @@ void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
 //	allocate Level DD if needed
 	for(size_t lvl = fromLevel; lvl <= toLevel; ++lvl)
 	{
-		if(!m_vLevDD[lvl].is_valid()){
+		if(!m_vLevDD[lvl].valid()){
 			m_vLevDD[lvl] = SmartPtr<LevelDoFDistribution>
 							(new LevelDoFDistribution(m_spLevMGDD, m_spMGSH, lvl));
 		}
@@ -629,7 +629,7 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 //	allocate Level DD if needed
 	for(size_t lvl = fromLevel; lvl <= toLevel; ++lvl)
 	{
-		if(!m_vSurfDD[lvl].is_valid()){
+		if(!m_vSurfDD[lvl].valid()){
 			m_vSurfDD[lvl] = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(
 									this->m_spMGSH, *m_spFunctionPattern,
@@ -647,7 +647,7 @@ void IApproximationSpace::top_surf_dd_required()
 	top_surface_level_view_required();
 
 //	allocate Level DD if needed
-	if(!m_spTopSurfDD.is_valid()){
+	if(!m_spTopSurfDD.valid()){
 		m_spTopSurfDD = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(
 									this->m_spMGSH, *m_spFunctionPattern,
@@ -662,7 +662,7 @@ void IApproximationSpace::top_surf_dd_required()
 void IApproximationSpace::top_surface_level_view_required()
 {
 //	allocate surface view if needed
-	if(!m_spSurfaceView.is_valid())
+	if(!m_spSurfaceView.valid())
 		m_spSurfaceView = SmartPtr<SurfaceView>
 						 (new SurfaceView(m_spMGSH
 #ifdef UG_PARALLEL
@@ -671,7 +671,7 @@ void IApproximationSpace::top_surface_level_view_required()
 						                       ));
 
 //	allocate Level DD if needed
-	if(!m_spTopSurfLevView.is_valid())
+	if(!m_spTopSurfLevView.valid())
 		m_spTopSurfLevView = SmartPtr<SurfaceLevelView>
 							(new SurfaceLevelView(m_spSurfaceView, GridLevel::TOPLEVEL));
 }
@@ -683,7 +683,7 @@ void IApproximationSpace::surface_level_view_required(size_t fromLevel, size_t t
 		UG_THROW_FATAL("fromLevel must be smaller than toLevel");
 
 //	allocate surface view if needed
-	if(!m_spSurfaceView.is_valid())
+	if(!m_spSurfaceView.valid())
 		m_spSurfaceView = SmartPtr<SurfaceView>
 						 (new SurfaceView(m_spMGSH
 #ifdef UG_PARALLEL
@@ -697,7 +697,7 @@ void IApproximationSpace::surface_level_view_required(size_t fromLevel, size_t t
 //	allocate Level DD if needed
 	for(size_t lvl = fromLevel; lvl <= toLevel; ++lvl)
 	{
-		if(!m_vSurfLevView[lvl].is_valid())
+		if(!m_vSurfLevView[lvl].valid())
 			m_vSurfLevView[lvl] = SmartPtr<SurfaceLevelView>
 							(new SurfaceLevelView(m_spSurfaceView, lvl));
 	}
@@ -710,9 +710,9 @@ ApproximationSpace(SmartPtr<domain_type> domain)
 	: IApproximationSpace(domain->subset_handler()),
 	  m_spDomain(domain)
 {
-	if(!m_spDomain.is_valid())
+	if(!m_spDomain.valid())
 		UG_THROW_FATAL("Domain, passed to ApproximationSpace, is invalid.");
-	if(!m_spMGSH.is_valid())
+	if(!m_spMGSH.valid())
 		UG_THROW_FATAL("SubsetHandler, passed to ApproximationSpace, is invalid.");
 
 #ifdef UG_PARALLEL

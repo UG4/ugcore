@@ -37,7 +37,7 @@ bool Traverser::handler_function_registered(unsigned int oc)
 
 void Traverser::apply(SPNode& node)
 {
-	traverse_object(node.get_impl());
+	traverse_object(node.get());
 }
 
 void Traverser::traverse_object(Object* obj)
@@ -56,7 +56,7 @@ void Traverser::handle_group(GroupNode* group)
 //	traverse all children of the group
 	int numChildren = group->num_children();
 	for(int i = 0; i < numChildren; ++i)
-		traverse_object(group->get_child(i).get_impl());
+		traverse_object(group->get_child(i).get());
 }
 
 void Traverser::handle_boxed_group(BoxedGroupNode* boxedGroup)

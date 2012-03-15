@@ -233,7 +233,7 @@ static int LuaStackToParams(ParameterStack& params,
 					if(udata->is_raw_ptr())
 						obj = static_cast<RawUserDataWrapper*>(udata)->obj;
 					else if(udata->is_smart_ptr())
-						obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get_impl();
+						obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get();
 					else{
 						badParam = (int)i + 1;
 						break;
@@ -288,9 +288,9 @@ static int LuaStackToParams(ParameterStack& params,
 					else if(udata->is_smart_ptr()){
 					//	we have to distinguish between const and non-const smart pointers.
 						if(udata->is_const())
-							obj = static_cast<ConstSmartUserDataWrapper*>(udata)->smartPtr.get_impl();
+							obj = static_cast<ConstSmartUserDataWrapper*>(udata)->smartPtr.get();
 						else
-							obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get_impl();
+							obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get();
 					}
 					else{
 						badParam = (int)i + 1;
@@ -735,7 +735,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 					{
 					//	cast to the needed base class
 						void* objPtr = ClassCastProvider::cast_to_base_class(
-													(void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get_impl(),
+													(void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get(),
 													classNameNode, m->class_name().c_str());
 
 						m->execute(objPtr, paramsIn, paramsOut);
@@ -744,7 +744,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 					{
 					//	cast to the needed base class
 						void* objPtr = ClassCastProvider::cast_to_base_class(
-													((SmartUserDataWrapper*)self)->smartPtr.get_impl(),
+													((SmartUserDataWrapper*)self)->smartPtr.get(),
 													classNameNode, m->class_name().c_str());
 
 						m->execute(objPtr, paramsIn, paramsOut);

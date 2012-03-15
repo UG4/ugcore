@@ -434,7 +434,7 @@ class IDomainElemDisc : public IElemDisc
 		void set_approximation_space(SmartPtr<ApproximationSpace<domain_type> > approxSpace)
 		{
 		//	check whether the approximation space has already been set
-			bool newApproxSpace = (m_spApproxSpace.get_impl() != approxSpace.get_impl());
+			bool newApproxSpace = (m_spApproxSpace != approxSpace);
 
 		//	remember approx space
 			m_spApproxSpace = approxSpace;
@@ -456,14 +456,14 @@ class IDomainElemDisc : public IElemDisc
 	///	returns the domain
 		domain_type& domain()
 		{
-			UG_ASSERT(m_spApproxSpace.is_valid(), "ApproxSpace not set.");
+			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain();
 		}
 
 	///	returns the domain
 		const domain_type& domain() const
 		{
-			UG_ASSERT(m_spApproxSpace.is_valid(), "ApproxSpace not set.");
+			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain();
 		}
 
@@ -471,19 +471,19 @@ class IDomainElemDisc : public IElemDisc
 		const FunctionPattern& function_pattern() const {return *m_spApproxSpace->function_pattern();}
 
 	///	returns if function pattern set
-		bool fct_pattern_set() const {return m_spApproxSpace.is_valid();}
+		bool fct_pattern_set() const {return m_spApproxSpace.valid();}
 
 	///	returns the subset handler
 		typename domain_type::subset_handler_type& subset_handler()
 		{
-			UG_ASSERT(m_spApproxSpace.is_valid(), "ApproxSpace not set.");
+			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain()->subset_handler();
 		}
 
 	///	returns the subset handler
 		const typename domain_type::subset_handler_type& subset_handler() const
 		{
-			UG_ASSERT(m_spApproxSpace.is_valid(), "ApproxSpace not set.");
+			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain()->subset_handler();
 		}
 
@@ -498,7 +498,7 @@ class IDomainElemDisc : public IElemDisc
 			m_vCornerCoords.resize(ref_elem_type::num_corners);
 
 		//	check domain
-			UG_ASSERT(m_spApproxSpace.is_valid(), "ApproxSpace not set");
+			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set");
 
 		//	extract corner coordinates
 			for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
