@@ -185,19 +185,19 @@ elemDiscER = ConvectionDiffusion("ca_er", "er")
 elemDiscER:set_disc_scheme("fv1")
 elemDiscER:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscER:set_source(rhs)
-if elemDiscER:set_upwind(upwind) == false then exit() end
+elemDiscER:set_upwind(upwind)
 
 elemDiscCYT = ConvectionDiffusion("ca_cyt", "cyt")
 elemDiscCYT:set_disc_scheme("fv1")
 elemDiscCYT:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscCYT:set_source(rhs)
-if elemDiscCYT:set_upwind(upwind) == false then exit() end
+elemDiscCYT:set_upwind(upwind)
 
 elemDiscIP3 = ConvectionDiffusion("ip3", "cyt")
 elemDiscIP3:set_disc_scheme("fv1")
 elemDiscIP3:set_diffusion_tensor(diffusionMatrixIP3)
 elemDiscIP3:set_source(rhs)
-if elemDiscIP3:set_upwind(upwind) == false then exit() end
+elemDiscIP3:set_upwind(upwind)
 
 -----------------------------------------------------------------
 --  Setup Neumann Boundary

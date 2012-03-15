@@ -249,17 +249,14 @@ dirichlet = LuaBoundaryNumber("ourDirichletBnd"..dim.."d")
 --------------------------------------------------------------------------------
 
 -- Select upwind
-if dim == 2 then 
---upwind = NoUpwind2d()
---upwind = FullUpwind2d()
-upwind = WeightedUpwind2d(); upwind:set_weight(0.0)
---upwind = PartialUpwind2d()
-else print("Dim not supported for upwind"); exit() end
-
+--upwind = NoUpwind()
+--upwind = FullUpwind()
+upwind = WeightedUpwind(); upwind:set_weight(0.0)
+--upwind = PartialUpwind()
 
 elemDisc = ConvectionDiffusion("c", "Inner")
 elemDisc:set_disc_scheme("fv1")
-if elemDisc:set_upwind(upwind) == false then exit() end
+elemDisc:set_upwind(upwind)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction_rate(reaction)

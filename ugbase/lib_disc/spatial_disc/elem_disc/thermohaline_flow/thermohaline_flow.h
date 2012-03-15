@@ -119,18 +119,18 @@ class ThermohalineFlowElemDisc
 	/**
 	 * This method sets the procedure that compute the upwinded flux.
 	 */
-		void set_upwind(IConvectionShapes<dim>& shape)
+		void set_upwind(SmartPtr<IConvectionShapes<dim> > shape)
 		{
-			m_pUpwind = &shape;
+			m_spUpwind = shape;
 		}
 
 	///	sets the type of upwind for the energy equation
 	/**
 	 * This method sets the procedure that compute the upwinded flux.
 	 */
-		void set_upwind_energy(IConvectionShapes<dim>& shape)
+		void set_upwind_energy(SmartPtr<IConvectionShapes<dim> > shape)
 		{
-			m_pUpwindEnergy = &shape;
+			m_spUpwindEnergy = shape;
 		}
 
 	///	sets the porosity
@@ -299,10 +299,10 @@ class ThermohalineFlowElemDisc
 
 	private:
 	///	strategy to compute the upwind shapes
-		IConvectionShapes<dim>* m_pUpwind;
+		SmartPtr<IConvectionShapes<dim> > m_spUpwind;
 
 	///	strategy to compute the upwind shapes
-		IConvectionShapes<dim>* m_pUpwindEnergy;
+		SmartPtr<IConvectionShapes<dim> > m_spUpwindEnergy;
 
 	///	flag if using Consistent Gravity
 		bool m_bConsGravity;

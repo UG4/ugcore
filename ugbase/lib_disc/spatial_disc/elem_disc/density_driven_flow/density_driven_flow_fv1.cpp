@@ -8,6 +8,7 @@
 #include "density_driven_flow.h"
 #include "common/util/provider.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 
 //#define PROFILE_D3F
 #ifdef PROFILE_D3F
@@ -478,7 +479,7 @@ prepare_element_loop()
 	static const int refDim = ref_elem_type::dim;
 
 //	check, that upwind has been set
-	if(m_pUpwind == NULL)
+	if(m_spUpwind.invalid())
 	{
 		UG_LOG("ERROR in 'DensityDrivenFlowElemDisc::prepare_element_loop':"
 				" Upwind has not been set.\n");
@@ -486,7 +487,7 @@ prepare_element_loop()
 	}
 
 //	init upwind for element type
-	if(!m_pUpwind->template set_geometry_type<FV1Geometry<TElem, dim> >())
+	if(!m_spUpwind->template set_geometry_type<FV1Geometry<TElem, dim> >())
 	{
 		UG_LOG("ERROR in 'DensityDrivenFlowElemDisc::prepare_element_loop':"
 				" Cannot init upwind for element type.\n");
@@ -711,7 +712,7 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 	// todo: Compute Dispersion
 
 //	compute upwind shapes for transport equation
-	if(!m_pUpwind->update(&geo, m_imDarcyVelScvf.values(), Diffusion, true))
+	if(!m_spUpwind->update(&geo, m_imDarcyVelScvf.values(), Diffusion, true))
 	{
 		UG_LOG("ERROR in 'DensityDrivenFlowElemDisc::assemble_JA': "
 				"Cannot compute convection shapes.\n");
@@ -720,7 +721,7 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 
 //	get a const (!!) reference to the upwind
 	const IConvectionShapes<dim>& convShape
-		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwind);
+		= *const_cast<const IConvectionShapes<dim>*>(m_spUpwind.get());
 
 //	Loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -851,7 +852,7 @@ assemble_A(LocalVector& d, const LocalVector& u)
 	// todo: Use DiffDisp = Diffusion + Dispersion
 
 //	compute upwind shapes for transport equation
-	if(!m_pUpwind->update(&geo, m_imDarcyVelScvf.values(), Diffusion, false))
+	if(!m_spUpwind->update(&geo, m_imDarcyVelScvf.values(), Diffusion, false))
 	{
 		UG_LOG("ERROR in 'DensityDrivenFlowElemDisc::assemble_JA': "
 				"Cannot compute convection shapes.\n");
@@ -860,7 +861,7 @@ assemble_A(LocalVector& d, const LocalVector& u)
 
 //	get a const (!!) reference to the upwind
 	const IConvectionShapes<dim>& convShape
-		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwind);
+		= *const_cast<const IConvectionShapes<dim>*>(m_spUpwind.get());
 
 // 	Loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -1005,7 +1006,7 @@ template<typename TDomain>
 DensityDrivenFlowElemDisc<TDomain>::
 DensityDrivenFlowElemDisc(const char* functions, const char* subsets) :
 	IDomainElemDisc<TDomain>(functions,subsets),
-	m_pUpwind(NULL), m_bConsGravity(true),
+	m_spUpwind(new ConvectionShapesNoUpwind<dim>), m_bConsGravity(true),
 	m_BoussinesqTransport(true), m_BoussinesqFlow(true),
 	m_imBrineScvf(false),
 	m_imBrineGradScvf(false),

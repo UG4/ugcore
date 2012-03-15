@@ -78,7 +78,7 @@ class ConvectionDiffusionElemDisc
 	 *
 	 * \param	shapes		upwind method
 	 */
-		void set_upwind(IConvectionShapes<dim>& shapes);
+		void set_upwind(SmartPtr<IConvectionShapes<dim> > shapes);
 
 	///	sets the diffusion tensor
 	/**
@@ -487,7 +487,7 @@ class ConvectionDiffusionElemDisc
 		static const size_t _C_ = 0;
 
 	/// method to compute the upwind shapes
-		IConvectionShapes<dim>* m_pConvShape;
+		SmartPtr<IConvectionShapes<dim> > m_spConvShape;
 
 	///	Data import for Diffusion
 		DataImport<MathMatrix<dim,dim>, dim> m_imDiffusion;

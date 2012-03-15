@@ -19,6 +19,7 @@
 #include "thermohaline_flow.h"
 #include "common/util/provider.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 
 namespace ug{
 
@@ -650,7 +651,7 @@ prepare_element_loop()
 	static const int refDim = ref_elem_type::dim;
 
 //	check, that upwind has been set
-	if(m_pUpwind == NULL || m_pUpwindEnergy == NULL)
+	if(m_spUpwind.invalid() || m_spUpwindEnergy.invalid())
 	{
 		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::prepare_element_loop':"
 				" Upwind has not been set.\n");
@@ -658,8 +659,8 @@ prepare_element_loop()
 	}
 
 //	init upwind for element type
-	if(!m_pUpwind->template set_geometry_type<FV1Geometry<TElem, dim> >() ||
-		!m_pUpwindEnergy->template set_geometry_type<FV1Geometry<TElem, dim> >())
+	if(!m_spUpwind->template set_geometry_type<FV1Geometry<TElem, dim> >() ||
+		!m_spUpwindEnergy->template set_geometry_type<FV1Geometry<TElem, dim> >())
 	{
 		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::prepare_element_loop':"
 				" Cannot init upwind for element type.\n");
@@ -890,7 +891,7 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 	// todo: Compute Dispersion
 
 //	compute upwind shapes for transport equation
-	if(!m_pUpwind->update(&geo, m_imDarcyVelScvf.values(),
+	if(!m_spUpwind->update(&geo, m_imDarcyVelScvf.values(),
 	                      	    m_imMolDiffusionScvf.values(), true))
 	{
 		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::assemble_JA': "
@@ -899,7 +900,7 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 	}
 
 //	compute upwind shapes for energy equation
-	if(!m_pUpwindEnergy->update(&geo, m_imDarcyVelScvf.values(),
+	if(!m_spUpwindEnergy->update(&geo, m_imDarcyVelScvf.values(),
 	                            	  m_imThermalCondictivityScvf.values(), true))
 	{
 		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::assemble_JA': "
@@ -909,11 +910,11 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 
 //	get a const (!!) reference to the upwind
 	const IConvectionShapes<dim>& convShape
-		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwind);
+		= *const_cast<const IConvectionShapes<dim>*>(m_spUpwind.get());
 
 //	get a const (!!) reference to the upwind
 	const IConvectionShapes<dim>& convShapeT
-		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwindEnergy);
+		= *const_cast<const IConvectionShapes<dim>*>(m_spUpwindEnergy.get());
 
 //	Loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -1132,7 +1133,7 @@ assemble_A(LocalVector& d, const LocalVector& u)
 	// todo: Use DiffDisp = Diffusion + Dispersion
 
 //	compute upwind shapes for transport equation
-	if(!m_pUpwind->update(&geo, m_imDarcyVelScvf.values(),
+	if(!m_spUpwind->update(&geo, m_imDarcyVelScvf.values(),
 	                      	  	m_imMolDiffusionScvf.values(), false))
 	{
 		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::assemble_JA': "
@@ -1141,7 +1142,7 @@ assemble_A(LocalVector& d, const LocalVector& u)
 	}
 
 //	compute upwind shapes for energy equation
-	if(!m_pUpwindEnergy->update(&geo, m_imDarcyVelScvf.values(),
+	if(!m_spUpwindEnergy->update(&geo, m_imDarcyVelScvf.values(),
 	                            	  m_imThermalCondictivityScvf.values(), false))
 	{
 		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::assemble_JA': "
@@ -1151,11 +1152,11 @@ assemble_A(LocalVector& d, const LocalVector& u)
 
 //	get a const (!!) reference to the upwind
 	const IConvectionShapes<dim>& convShape
-		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwind);
+		= *const_cast<const IConvectionShapes<dim>*>(m_spUpwind.get());
 
 //	get a const (!!) reference to the upwind
 	const IConvectionShapes<dim>& convShapeT
-		= *const_cast<const IConvectionShapes<dim>*>(m_pUpwindEnergy);
+		= *const_cast<const IConvectionShapes<dim>*>(m_spUpwindEnergy.get());
 
 // 	Loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -1368,7 +1369,9 @@ assemble_f(LocalVector& d)
 template<typename TDomain>
 ThermohalineFlowElemDisc<TDomain>::ThermohalineFlowElemDisc(const char* functions, const char* subsets) :
 	IDomainElemDisc<TDomain>(functions,subsets),
-	m_pUpwind(NULL), m_pUpwindEnergy(NULL), m_bConsGravity(true),
+	m_spUpwind(new ConvectionShapesNoUpwind<dim>),
+	m_spUpwindEnergy(new ConvectionShapesNoUpwind<dim>),
+	m_bConsGravity(true),
 	m_BoussinesqTransport(true),
 	m_BoussinesqFlow(true),
 	m_BoussinesqEnergy(false),

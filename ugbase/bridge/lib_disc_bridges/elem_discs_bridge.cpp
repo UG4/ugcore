@@ -267,7 +267,8 @@ void Register__Domain(Registry& reg, string grp)
 		typedef IConvectionShapes<dim> TBase;
 		string name = string("NoUpwind").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, upGrp)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NoUpwind", dimTag);
 	}
 
@@ -277,7 +278,8 @@ void Register__Domain(Registry& reg, string grp)
 		typedef IConvectionShapes<dim> TBase;
 		string name = string("FullUpwind").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, upGrp)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "FullUpwind", dimTag);
 	}
 
@@ -289,7 +291,8 @@ void Register__Domain(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_method("set_weight", &T::set_weight)
 			.add_constructor()
-			.template add_constructor<void (*)(number)>("weight");
+			.template add_constructor<void (*)(number)>("weight")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "WeightedUpwind", dimTag);
 	}
 
@@ -299,7 +302,8 @@ void Register__Domain(Registry& reg, string grp)
 		typedef IConvectionShapes<dim> TBase;
 		string name = string("PartialUpwind").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, upGrp)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "PartialUpwind", dimTag);
 	}
 }

@@ -104,9 +104,9 @@ class DensityDrivenFlowElemDisc
 	/**
 	 * This method sets the procedure that compute the upwinded flux.
 	 */
-		void set_upwind(IConvectionShapes<dim>& shape)
+		void set_upwind(SmartPtr<IConvectionShapes<dim> > shape)
 		{
-			m_pUpwind = &shape;
+			m_spUpwind = shape;
 		}
 
 	///	sets the porosity
@@ -239,7 +239,7 @@ class DensityDrivenFlowElemDisc
 
 	private:
 	///	strategy to compute the upwind shapes
-		IConvectionShapes<dim>* m_pUpwind;
+		SmartPtr<IConvectionShapes<dim> > m_spUpwind;
 
 	///	flag if using Consistent Gravity
 		bool m_bConsGravity;

@@ -231,7 +231,7 @@ dirichlet = LuaBoundaryNumber("ourDirichletBnd"..dim.."d")
 upwind = WeightedUpwind2d(); upwind:set_weight(0.0)
 elemDisc = ConvectionDiffusion("c", "Inner")
 elemDisc:set_disc_scheme("fv1")
-if elemDisc:set_upwind(upwind) == false then exit() end
+elemDisc:set_upwind(upwind)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction_rate(reaction)

@@ -7,6 +7,7 @@
 
 #include "convection_diffusion.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 #include "bindings/lua/lua_user_data.h"
 
 namespace ug{
@@ -17,7 +18,7 @@ namespace ug{
 
 template<typename TDomain>
 void ConvectionDiffusionElemDisc<TDomain>::
-set_upwind(IConvectionShapes<dim>& shapes) {m_pConvShape = &shapes;}
+set_upwind(SmartPtr<IConvectionShapes<dim> > shapes) {m_spConvShape = shapes;}
 
 //////// Diffusion
 
@@ -258,7 +259,7 @@ gradient() {return m_exConcentrationGrad;}
 template<typename TDomain>
 ConvectionDiffusionElemDisc<TDomain>::
 ConvectionDiffusionElemDisc(const char* functions, const char* subsets)
- : IDomainElemDisc<TDomain>(functions,subsets), m_pConvShape(NULL),
+ : IDomainElemDisc<TDomain>(functions,subsets), m_spConvShape(new ConvectionShapesNoUpwind<dim>),
    m_exConcentration(new DataExport<number, dim>),
    m_exConcentrationGrad(new DataExport<MathVector<dim>, dim>)
 {

@@ -50,7 +50,7 @@ elem_loop_prepare_fv1()
 	}
 
 //	check, that upwind has been set
-	if(m_pConvShape == NULL)
+	if(m_spConvShape.invalid())
 	{
 		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::prepare_element_loop':"
 				" Upwind has not been set.\n");
@@ -58,7 +58,7 @@ elem_loop_prepare_fv1()
 	}
 
 //	init upwind for element type
-	if(!m_pConvShape->template set_geometry_type<TFVGeom>())
+	if(!m_spConvShape->template set_geometry_type<TFVGeom>())
 	{
 		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::prepare_element_loop':"
 				" Cannot init upwind for element type.\n");
@@ -116,8 +116,8 @@ elem_prepare_fv1(TElem* elem, const LocalVector& u)
 		m_imMass.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                       	                      geo.num_scv_ips());
 
-		if(m_pConvShape != NULL)
-			if(!m_pConvShape->template set_geometry_type<TFVGeom>())
+		if(m_spConvShape.valid())
+			if(!m_spConvShape->template set_geometry_type<TFVGeom>())
 			{
 				UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::prepare_element_loop':"
 						" Cannot init upwind for element type.\n");
@@ -869,7 +869,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 		if(m_imDiffusion.data_given()) vDiffusion = m_imDiffusion.values();
 
 	//	update convection shapes
-		if(!m_pConvShape->update(&geo, m_imVelocity.values(), vDiffusion, true))
+		if(!m_spConvShape->update(&geo, m_imVelocity.values(), vDiffusion, true))
 		{
 			UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::assemble_JA': "
 					"Cannot compute convection shapes.\n");
@@ -877,7 +877,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 	}
 
 //	return a const (!!) reference to the upwind
-	return *const_cast<const IConvectionShapes<dim>*>(m_pConvShape);
+	return *const_cast<const IConvectionShapes<dim>*>(m_spConvShape.get());
 }
 
 

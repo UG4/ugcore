@@ -107,7 +107,7 @@ upwind = WeightedUpwind(); upwind:set_weight(0.0)
 elemDisc = ConvectionDiffusion("c", "Inner")
 if discType ~= "fe" and discType ~= "fv" then print("type of discretization not found"); exit(); end
 
-if elemDisc:set_upwind(upwind) == false then exit() end
+elemDisc:set_upwind(upwind)
 elemDisc:set_disc_scheme(discType)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_source(rhs)

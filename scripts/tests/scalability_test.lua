@@ -424,7 +424,7 @@ else print("Dim not supported for upwind"); exit() end
 
 elemDisc = ConvectionDiffusion("c", "Inner")
 elemDisc:set_disc_scheme("fv1")
-if elemDisc:set_upwind(upwind) == false then exit() end
+elemDisc:set_upwind(upwind)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_source(rhs)
 
