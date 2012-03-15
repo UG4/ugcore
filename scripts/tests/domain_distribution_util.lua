@@ -199,8 +199,10 @@ function ddu.RefineAndDistributeDomain(dom, verbosity)
 	print("Performing (non parallel) pre-refinements")
 	for i=1,ddu.numPreRefs do
 		write( "PreRefinement step " .. i .. " ...")
+		tBefore = os.clock()
 		refiner:refine()
-		print( " done.")
+		tAfter = os.clock()
+		print(" done (took " .. tAfter-tBefore .. " seconds).")
 	end
 
 	local numProcs = ddu.numProcesses
@@ -213,7 +215,8 @@ function ddu.RefineAndDistributeDomain(dom, verbosity)
 	local partitionMap = PartitionMap()
 
 	while numDistProcs > 0 do
-		print("Redistribute domain to '" .. numDistProcs .. "' distProcs, using 'distributionType' = '" .. ddu.distributionType .. "' ...")
+		--if ddu.hRedistEnabled == true then write("Redistribute") else write("Distribute") end
+		print("(Re)distribute domain to '" .. numDistProcs .. "' distProcs, using 'distributionType' = '" .. ddu.distributionType .. "' ...")
 		partitionMap:clear()
 		if GetProcessRank() < numProcsWithGrid then
 		--	add target procs. Make sure to keep a portion on the local process
@@ -284,8 +287,10 @@ function ddu.RefineAndDistributeDomain(dom, verbosity)
 		print("Refine Parallel Grid")
 		for i = numCurRefs + 1, maxRefsInThisStep do
 			write( "Refinement step " .. i .. " ...")
+			tBefore = os.clock()
 			refiner:refine()
-			print( " done.")
+			tAfter = os.clock()
+			print(" done (took " .. tAfter-tBefore .. " seconds).")
 		end
 		numCurRefs = maxRefsInThisStep
 	end -- 'while numDistProcs > 0 do'
@@ -309,7 +314,8 @@ function ddu.PrintSteps()
 	local numCurRefs = ddu.numPreRefs
 
 	while numDistProcs > 0 do
-		print("Redistribute domain to '" .. numDistProcs .. "' distProcs, using 'distributionType' = '" .. ddu.distributionType .. "' ...")
+		--if ddu.hRedistEnabled == true then write("Redistribute") else write("Distribute") end
+		print("(Re)distribute domain to '" .. numDistProcs .. "' distProcs, using 'distributionType' = '" .. ddu.distributionType .. "' ...")
 		numProcsWithGrid = numProcsWithGrid * numDistProcs
 		numDistProcs = 0
 		
