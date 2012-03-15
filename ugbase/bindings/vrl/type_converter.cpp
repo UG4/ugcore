@@ -614,23 +614,23 @@ namespace ug {
 				}
 
 				// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) 
-						// allow non-const-smart* to non const*
-						if (paramType == ug::bridge::PT_SMART_POINTER &&
-								paramStack.get_type(i) == ug::bridge::PT_POINTER) {
-							paramType = ug::bridge::PT_POINTER;
-						}
-				
-						// allow non-const-smart* to const*
-						if (paramType == ug::bridge::PT_SMART_POINTER &&
-								paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
-							paramType = ug::bridge::PT_CONST_POINTER;
-						}
-				
-						// allow const smart* to const*
-						if (paramType == ug::bridge::PT_CONST_SMART_POINTER &&
-								paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
-							paramType = ug::bridge::PT_CONST_POINTER;
-						}
+				//		// allow non-const-smart* to non const*
+				//		if (paramType == ug::bridge::PT_SMART_POINTER &&
+				//				paramStack.get_type(i) == ug::bridge::PT_POINTER) {
+				//			paramType = ug::bridge::PT_POINTER;
+				//		}
+				//
+				//		// allow non-const-smart* to const*
+				//		if (paramType == ug::bridge::PT_SMART_POINTER &&
+				//				paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
+				//			paramType = ug::bridge::PT_CONST_POINTER;
+				//		}
+				//
+				//		// allow const smart* to const*
+				//		if (paramType == ug::bridge::PT_CONST_SMART_POINTER &&
+				//				paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
+				//			paramType = ug::bridge::PT_CONST_POINTER;
+				//		}
 
 				if (paramType != paramStack.get_type(i)) {
 					//#ifdef UG_DEBUG
@@ -681,7 +681,7 @@ namespace ug {
 
 				// only used for
 				// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) 
-						uint java_value_type = paramClass2ParamType(env, value);
+				//		uint java_value_type = paramClass2ParamType(env, value);
 
 				// we don't allow null values
 				if (value == NULL) {
@@ -735,19 +735,19 @@ namespace ug {
 								jPointerGetName(env, value));
 
 						// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) 
-										if (java_value_type == PT_CONST_SMART_POINTER) {
-											paramsOut.push_const_pointer(
-													(void*) jObject2ConstSmartPointer(
-													env, value).get(), node);
-										} else
-											if (java_value_type == PT_SMART_POINTER) {
-											paramsOut.push_const_pointer(
-													(void*) jObject2SmartPointer(
-													env, value).get(), node);
-										} else {
-											paramsOut.push_const_pointer(
-													jObject2Pointer(env, value), node);
-										}
+						//				if (java_value_type == PT_CONST_SMART_POINTER) {
+						//					paramsOut.push_const_pointer(
+						//							(void*) jObject2ConstSmartPointer(
+						//							env, value).get(), node);
+						//				} else
+						//					if (java_value_type == PT_SMART_POINTER) {
+						//					paramsOut.push_const_pointer(
+						//							(void*) jObject2SmartPointer(
+						//							env, value).get(), node);
+						//				} else {
+						//					paramsOut.push_const_pointer(
+						//							jObject2Pointer(env, value), node);
+						//				}
 
 						paramsOut.push_const_pointer(
 								jObject2Pointer(env, value), node);
