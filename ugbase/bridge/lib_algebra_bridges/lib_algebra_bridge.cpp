@@ -158,7 +158,7 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef VectorDebugWritingObject<vector_type> TBase;
 		string name = string("DebugWritingObject").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_method("set_debug", &T::set_debug, "sets a debug writer", "d")
+			.add_method("set_debug", static_cast<void (T::*)(SmartPtr<IDebugWriter<TAlgebra> >)>(&T::set_debug), "sets a debug writer", "d")
 			.add_method("debug_writer", static_cast<SmartPtr<IDebugWriter<TAlgebra> > (T::*)()>(&T::debug_writer))
 			.add_method("debug_writer", static_cast<ConstSmartPtr<IDebugWriter<TAlgebra> > (T::*)() const>(&T::debug_writer));
 		reg.add_class_to_group(name, "DebugWritingObject", algTag);
