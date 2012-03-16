@@ -788,7 +788,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 		//	get position of local index
 			MathVector<2> vPos =
-					(const_cast<const IDebugWriter<TAlgebra>*>(debug_writer())->
+					(const_cast<const IDebugWriter<TAlgebra>*>(&(*debug_writer()))->
 							template get_positions<2>())[localPrimalIndex];
 
 		//	read root index

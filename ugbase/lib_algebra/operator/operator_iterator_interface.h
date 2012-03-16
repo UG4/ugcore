@@ -218,8 +218,8 @@ class IPreconditioner :
 		{};
 
 	///	constructor setting debug writer
-		IPreconditioner(IDebugWriter<algebra_type>* pDebugWriter) :
-			DebugWritingObject<TAlgebra>(pDebugWriter),
+		IPreconditioner(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) :
+			DebugWritingObject<TAlgebra>(spDebugWriter),
 			m_pOperator(NULL), m_bInit(false)
 		{};
 

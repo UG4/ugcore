@@ -849,11 +849,11 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		}
 
 	//	set debug output
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
 		{
-			m_LocalSchurComplement.set_debug(debugWriter);
-			m_PrimalSubassembledMatrixInverse.set_debug(debugWriter);
-			VectorDebugWritingObject<vector_type>::set_debug(debugWriter);
+			m_LocalSchurComplement.set_debug(spDebugWriter);
+			m_PrimalSubassembledMatrixInverse.set_debug(spDebugWriter);
+			VectorDebugWritingObject<vector_type>::set_debug(spDebugWriter);
 		}
 
 	///	initializes the solver for operator A

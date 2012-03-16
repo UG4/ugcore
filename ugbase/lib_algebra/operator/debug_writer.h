@@ -110,25 +110,26 @@ class VectorDebugWritingObject
 		typedef TVector vector_type;
 
 	public:
-		VectorDebugWritingObject() : m_pVectorDebugWriter(NULL) {}
-		VectorDebugWritingObject(IVectorDebugWriter<vector_type>* pDebugWriter)
-			: m_pVectorDebugWriter(pDebugWriter) {}
+		VectorDebugWritingObject() : m_spVectorDebugWriter(NULL) {}
+		VectorDebugWritingObject(SmartPtr<IVectorDebugWriter<vector_type> > spDebugWriter)
+			: m_spVectorDebugWriter(spDebugWriter) {}
 
 	///	set debug writer
-		virtual void set_debug(IVectorDebugWriter<vector_type>* debugWriter)
+		virtual void set_debug(SmartPtr<IVectorDebugWriter<vector_type> > spDebugWriter)
 		{
-			m_pVectorDebugWriter = debugWriter;
+			m_spVectorDebugWriter = spDebugWriter;
 		}
 
 	///	returns the debug writer
-		IVectorDebugWriter<vector_type>* debug_writer() {return m_pVectorDebugWriter;}
+		SmartPtr<IVectorDebugWriter<vector_type> > debug_writer() {return m_spVectorDebugWriter;}
+		ConstSmartPtr<IVectorDebugWriter<vector_type> > debug_writer() const {return m_spVectorDebugWriter;}
 
 	protected:
 	///	writing debug output for a vector (if debug writer set)
 		virtual void write_debug(const vector_type& vec, const char* filename)
 		{
 		//	if no debug writer set, we're done
-			if(!m_pVectorDebugWriter) return;
+			if(m_spVectorDebugWriter.invalid()) return;
 
 		//	check ending
 			std::string name(filename);
@@ -141,12 +142,12 @@ class VectorDebugWritingObject
 				name.append(".vec");
 
 		//	write
-			m_pVectorDebugWriter->write_vector(vec, name.c_str());
+			m_spVectorDebugWriter->write_vector(vec, name.c_str());
 		}
 
 	protected:
 	///	Debug Writer
-		IVectorDebugWriter<vector_type>* m_pVectorDebugWriter;
+		SmartPtr<IVectorDebugWriter<vector_type> > m_spVectorDebugWriter;
 };
 
 template <typename TAlgebra>
@@ -166,26 +167,28 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 		using VectorDebugWritingObject<vector_type>::write_debug;
 
 	public:
-		DebugWritingObject() : m_pDebugWriter(NULL) {}
-		DebugWritingObject(IDebugWriter<algebra_type>* pDebugWriter)
-			: 	VectorDebugWritingObject<vector_type>(pDebugWriter),
-				m_pDebugWriter(pDebugWriter) {}
+		DebugWritingObject() : m_spDebugWriter(NULL) {}
+		DebugWritingObject(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
+			: 	VectorDebugWritingObject<vector_type>(spDebugWriter),
+				m_spDebugWriter(spDebugWriter) {}
 
 	///	set debug writer
-		virtual void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		virtual void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
 		{
-			m_pDebugWriter = debugWriter;
+			m_spDebugWriter = spDebugWriter;
+			VectorDebugWritingObject<vector_type>::set_debug(m_spDebugWriter);
 		}
 
 	///	returns the debug writer
-		IDebugWriter<algebra_type>* debug_writer() {return m_pDebugWriter;}
+		SmartPtr<IDebugWriter<algebra_type> > debug_writer() {return m_spDebugWriter;}
+		ConstSmartPtr<IDebugWriter<algebra_type> > debug_writer() const {return m_spDebugWriter;}
 
 	protected:
 	///	write debug output for a matrix (if debug writer set)
 		virtual void write_debug(const matrix_type& mat, const char* filename)
 		{
 		//	if no debug writer set, we're done
-			if(!m_pDebugWriter) return;
+			if(m_spDebugWriter.invalid()) return;
 
 		//	check ending
 			std::string name(filename);
@@ -198,12 +201,12 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 				name.append(".mat");
 
 		//	write
-			m_pDebugWriter->write_matrix(mat, name.c_str());
+			m_spDebugWriter->write_matrix(mat, name.c_str());
 		}
 
 	protected:
 	///	Debug Writer
-		IDebugWriter<algebra_type>* m_pDebugWriter;
+		SmartPtr<IDebugWriter<algebra_type> > m_spDebugWriter;
 };
 
 } // end namespace ug

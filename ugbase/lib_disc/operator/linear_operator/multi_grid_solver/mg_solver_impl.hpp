@@ -132,7 +132,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
 
 //	increase dbg counter
-	if(m_pDebugWriter) m_dbgIterCnt++;
+	if(m_spDebugWriter.valid()) m_dbgIterCnt++;
 
 	} UG_CATCH_THROW("AssembledMultiGridCycle: Application failed.");
 
@@ -1331,14 +1331,14 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_level_debug(const vector_type& vec, const char* filename, size_t lev)
 {
 //	if no debug writer set, we're done
-	if(m_pDebugWriter == NULL) return;
+	if(m_spDebugWriter.invalid()) return;
 
 //	cast dbg writer
-	GridFunctionDebugWriter<TDomain, TAlgebra>* dbgWriter =
-		dynamic_cast<GridFunctionDebugWriter<TDomain, TAlgebra>*>(m_pDebugWriter);
+	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
+			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter == NULL) UG_THROW_FATAL("Cannot write debug on level "<< lev);
+	if(dbgWriter.valid()) UG_THROW_FATAL("Cannot write debug on surface");
 
 //	add iter count to name
 	std::string name(filename);
@@ -1358,14 +1358,14 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_level_debug(const matrix_type& mat, const char* filename, size_t lev)
 {
 //	if no debug writer set, we're done
-	if(m_pDebugWriter == NULL) return;
+	if(m_spDebugWriter.invalid()) return;
 
 //	cast dbg writer
-	GridFunctionDebugWriter<TDomain, TAlgebra>* dbgWriter =
-		dynamic_cast<GridFunctionDebugWriter<TDomain, TAlgebra>*>(m_pDebugWriter);
+	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
+			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter == NULL) UG_THROW_FATAL("Cannot write debug on level "<< lev);
+	if(dbgWriter.valid()) UG_THROW_FATAL("Cannot write debug on surface");
 
 //	add iter count to name
 	std::string name(filename);
@@ -1385,14 +1385,14 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_surface_debug(const vector_type& vec, const char* filename)
 {
 //	if no debug writer set, we're done
-	if(m_pDebugWriter == NULL) return;
+	if(m_spDebugWriter.invalid()) return;
 
 //	cast dbg writer
-	GridFunctionDebugWriter<TDomain, TAlgebra>* dbgWriter =
-		dynamic_cast<GridFunctionDebugWriter<TDomain, TAlgebra>*>(m_pDebugWriter);
+	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
+			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter == NULL) UG_THROW_FATAL("Cannot write debug on surface");
+	if(dbgWriter.valid()) UG_THROW_FATAL("Cannot write debug on surface");
 
 //	add iter count to name
 	std::string name(filename);
@@ -1413,14 +1413,14 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_surface_debug(const matrix_type& mat, const char* filename)
 {
 //	if no debug writer set, we're done
-	if(m_pDebugWriter == NULL) return;
+	if(m_spDebugWriter.invalid()) return;
 
 //	cast dbg writer
-	GridFunctionDebugWriter<TDomain, TAlgebra>* dbgWriter =
-		dynamic_cast<GridFunctionDebugWriter<TDomain, TAlgebra>*>(m_pDebugWriter);
+	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
+			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter == NULL) UG_THROW_FATAL("Cannot write debug on surface");
+	if(dbgWriter.valid()) UG_THROW_FATAL("Cannot write debug on surface");
 
 //	add iter count to name
 	std::string name(filename);
@@ -1495,7 +1495,7 @@ clone()
 	clone->set_base_level(m_baseLev);
 	clone->set_base_solver(*m_pBaseSolver);
 	clone->set_cycle_type(m_cycleType);
-	clone->set_debug(m_pDebugWriter);
+	clone->set_debug(m_spDebugWriter);
 	clone->set_discretization(*m_pAss);
 	clone->set_num_postsmooth(m_numPostSmooth);
 	clone->set_num_presmooth(m_numPreSmooth);

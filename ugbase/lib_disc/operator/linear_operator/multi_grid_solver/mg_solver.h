@@ -90,7 +90,7 @@ class AssembledMultiGridCycle :
 			m_spProlongationPrototype(new P1Prolongation<TDomain,TAlgebra>(m_spApproxSpace)),
 			m_NonGhostMarker(*m_spApproxSpace->domain()->grid()),
 			m_pBaseSolver(NULL),
-			m_pDebugWriter(NULL), m_dbgIterCnt(0)
+			m_spDebugWriter(NULL), m_dbgIterCnt(0)
 		{};
 
 	///////////////////////////////////////////////////////////////////////////
@@ -509,9 +509,9 @@ class AssembledMultiGridCycle :
 	 *
 	 * \param[in]	debugWriter		Debug Writer to use
 	 */
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
 		{
-			m_pDebugWriter = debugWriter;
+			m_spDebugWriter = spDebugWriter;
 		}
 
 	protected:
@@ -561,7 +561,7 @@ class AssembledMultiGridCycle :
 		void log_level_data(size_t lvl);
 
 	///	Debug Writer
-		IDebugWriter<algebra_type>* m_pDebugWriter;
+		SmartPtr<IDebugWriter<algebra_type> > m_spDebugWriter;
 
 	///	counter for debug, to distinguish the iterations
 		int m_dbgIterCnt;
