@@ -101,6 +101,7 @@ static ug::bridge::Registry* g_pRegistry = NULL;
 
 static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 {
+	PROFILE_FUNC();
 	UG_ASSERT(pReg == g_pRegistry, "static g_pRegistry does not match parameter pReg, someone messed up the registries!");
 	
 //	this can be called since CreateBindings automatically avoids
@@ -117,6 +118,7 @@ lua_State* GetDefaultLuaState()
 //	if the state has not already been opened then do it now.
 	if(!L)
 	{
+		PROFILE_BEGIN(CreateLUARegistry);
 		if(!g_pRegistry){
 		//	store a pointer to the registry and avoid multiple callback registration
 			g_pRegistry = &ug::bridge::GetUGRegistry();
@@ -140,7 +142,6 @@ lua_State* GetDefaultLuaState()
 	//	Register user functions
 		RegisterLuaUserData(*g_pRegistry, "/ug4");
 
-		ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
 		#endif
 
 		if(!g_pRegistry->check_consistency())
@@ -148,6 +149,7 @@ lua_State* GetDefaultLuaState()
 
 	//	create lua bindings for registered functions and objects
 		ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
+		PROFILE_END();
 	}
 	
 	return L;
@@ -226,6 +228,7 @@ int UGLuaPrint(lua_State *L)
 /// UGLuaWrite. Redirects LUA prints to UG_LOG without adding newline at the end
 int UGLuaWrite(lua_State *L)
 {
+	PROFILE_FUNC();
 #ifdef UG_PARALLEL
 	if(!pcl::IsOutputProc())
 		return false;
