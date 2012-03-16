@@ -114,6 +114,9 @@ class VectorDebugWritingObject
 		VectorDebugWritingObject(SmartPtr<IVectorDebugWriter<vector_type> > spDebugWriter)
 			: m_spVectorDebugWriter(spDebugWriter) {}
 
+	///	virtual destructor
+		virtual ~VectorDebugWritingObject() {}
+
 	///	set debug writer
 		virtual void set_debug(SmartPtr<IVectorDebugWriter<vector_type> > spDebugWriter)
 		{
@@ -172,6 +175,9 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 		DebugWritingObject(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
 			: 	VectorDebugWritingObject<vector_type>(spDebugWriter),
 				m_spDebugWriter(spDebugWriter) {}
+
+	///	virtual destructor
+		virtual ~DebugWritingObject() {}
 
 	///	set debug writer
 		virtual void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
