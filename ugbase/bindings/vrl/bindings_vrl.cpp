@@ -284,8 +284,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
 
 		std::stringstream ss;
-		ss << "Incompatible Conversion from " <<
-				ex.m_from << " to " << ex.m_to;
+
+		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+						ex.m_from << " to " << ex.m_to;
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -293,9 +294,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 
 		std::stringstream ss;
 
-		ss << "Incompatible Conversion from " <<
-				ug::vrl::getParamTypeAsString(ex.m_from)
-		   << " to " << ug::vrl::getParamTypeAsString(ex.m_to);
+		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+						ug::vrl::getParamTypeAsString(ex.m_from) << " to "
+						<< ug::vrl::getParamTypeAsString(ex.m_to);
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -432,8 +433,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
 
 		std::stringstream ss;
-		ss << "Incompatible Conversion from " <<
-				ex.m_from << " to " << ex.m_to;
+
+		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+						ex.m_from << " to " << ex.m_to;
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -441,8 +443,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 
 		std::stringstream ss;
 
-		ss << "Incompatible Conversion from " <<
-				ex.m_from << " to " << ex.m_to;
+		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+						ug::vrl::getParamTypeAsString(ex.m_from) << " to "
+						<< ug::vrl::getParamTypeAsString(ex.m_to);
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -501,7 +504,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
 		std::stringstream ss;
-		ss << "Incompatible Conversion from " <<
+		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
 				ex.m_from << " to " << ex.m_to;
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
@@ -509,8 +512,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 
 	} catch (ug::bridge::ERROR_BadConversion ex) {
 		std::stringstream ss;
-		ss << "Incompatible Conversion from " <<
-				ex.m_from << " to " << ex.m_to;
+		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+				ug::vrl::getParamTypeAsString(ex.m_from) << " to "
+				<< ug::vrl::getParamTypeAsString(ex.m_to);
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
