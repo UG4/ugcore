@@ -165,6 +165,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 
 	protected:
 		using VectorDebugWritingObject<vector_type>::write_debug;
+		using VectorDebugWritingObject<vector_type>::set_debug;
 
 	public:
 		DebugWritingObject() : m_spDebugWriter(NULL) {}
