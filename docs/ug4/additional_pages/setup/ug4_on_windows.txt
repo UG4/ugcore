@@ -5,13 +5,15 @@
 /**	\page pageUG4OnWindows Setting up UG on windows
 
 ug4 supports windows through the MinGW gcc-compilers. MinGW can be downloaded
-together with MSYS at [REF]. MSYS is a 'minimal shell', which mimics some
-of the features of unix shells. You should install MSYS and MinGW to a rather
-simple path which does not contain spaces or special characters (e.g. C:\msys)
+together with MSYS at
+<a href="http://www.mingw.org/wiki/MSYS"> http://www.mingw.org/wiki/MSYS</a>.
+MSYS is a 'minimal shell', which mimics some of the features of unix shells.
+You should install MSYS and MinGW to a rather simple path which does not contain
+spaces or special characters (e.g. C:\msys)
 
 Compiliation of ug4 furthermore requires the installation of cmake, which can be
 obtained from here
-(cf. <a href="http://www.cmake.org/cmake/resources/software.html">
+<a href="http://www.cmake.org/cmake/resources/software.html">
 http://www.cmake.org/cmake/resources/software.html</a>
 (min Release 2.6).
 
@@ -21,8 +23,9 @@ systems PATH variable.
 
 In order to checkout ug4 from its svn repository you'll either have to follow the
 instructions on how to setup eclipse with svn capabilities
-or you'll have to install tortoise svn ([REF]), depending on whether you want to
-develop with ug or just compile it.
+or you'll have to install tortoise svn
+<a href="http://tortoisesvn.net/"> http://tortoisesvn.net/</a>.,
+depending on whether you want to develop with ug or just compile it.
 Tortoise svn is an extension to the windows explorer and
 allows to perform checkouts and commits through the right-click-menu directly
 in the explorer.
