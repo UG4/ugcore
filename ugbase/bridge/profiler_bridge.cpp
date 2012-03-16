@@ -121,31 +121,31 @@ public:
 		return reinterpret_cast<const UGProfilerNode*>(nextSibling);
 	}
 
-	string call_tree() const
+	string call_tree(double dSkipMarginal=0.0) const
 	{
 		if(!valid()) return "Profile Node not valid!";
 
 		stringstream s;
 		UGProfilerNode::log_header(s, "call tree");
 
-		rec_print(get_avg_total_time(), s);
+		rec_print(get_avg_total_time(), s, 0, dSkipMarginal);
 
 		return s.str();
 	}
 
-	string child_self_time_sorted() const
+	string child_self_time_sorted(double dSkipMarginal=0.0) const
 	{
-		return child_sorted("self time sorted", UGProfilerNode::self_time_sort);
+		return child_sorted("self time sorted", UGProfilerNode::self_time_sort, dSkipMarginal);
 	}
 
-	string total_time_sorted() const
+	string total_time_sorted(double dSkipMarginal=0.0) const
 	{
-		return child_sorted("total time sorted", UGProfilerNode::total_time_sort);
+		return child_sorted("total time sorted", UGProfilerNode::total_time_sort, dSkipMarginal);
 	}
 
-	string entry_count_sorted() const
+	string entry_count_sorted(double dSkipMarginal=0.0) const
 	{
-		return child_sorted("entry count sorted", UGProfilerNode::entry_count_sort);
+		return child_sorted("entry count sorted", UGProfilerNode::entry_count_sort, dSkipMarginal);
 	}
 
 	// \return true if node has been found
@@ -155,15 +155,18 @@ public:
 	}
 
 private:
-	void rec_print(double full, stringstream &s, size_t offset=0) const
+	void rec_print(double full, stringstream &s, size_t offset, double dSkipMarginal) const
 	{
 		if(!valid()) return;
-		s << print_node(full, offset) << "\n";
-		for(const UGProfilerNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
+		if(dSkipMarginal==0.0 || full*dSkipMarginal < get_avg_total_time())
 		{
-			p->rec_print(full, s, offset+1);
-			if(p==get_last_child())
-				break;
+			s << print_node(full, offset) << "\n";
+			for(const UGProfilerNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
+			{
+				p->rec_print(full, s, offset+1, dSkipMarginal);
+				if(p==get_last_child())
+					break;
+			}
 		}
 	}
 
@@ -178,7 +181,8 @@ private:
 		}
 	}
 
-	string child_sorted(const char *name, bool sortFunction(const UGProfilerNode *a, const UGProfilerNode *b)) const
+	string child_sorted(const char *name, bool sortFunction(const UGProfilerNode *a, const UGProfilerNode *b),
+			double dSkipMarginal) const
 	{
 		if(!valid()) return "";
 		stringstream s;
@@ -187,8 +191,12 @@ private:
 		sort(nodes.begin(), nodes.end(), sortFunction);
 
 		UGProfilerNode::log_header(s, name);
+		double full = get_avg_total_time();
 		for(size_t i=0; i<nodes.size(); i++)
-			s << nodes[i]->print_node(get_avg_total_time()) << "\n";
+		{
+			if(dSkipMarginal==0.0 || full*dSkipMarginal < nodes[i]->get_avg_total_time())
+				s << nodes[i]->print_node(full) << "\n";
+		}
 		return s.str();
 	}
 
@@ -326,10 +334,25 @@ bool RegisterProfileFunctions(Registry &reg, string parentGroup)
 	string grp = ss.str();
 
 	reg.add_class_<UGProfilerNode>("UGProfilerNode", grp)
-		.add_method("call_tree", &UGProfilerNode::call_tree, "string with call tree")
-		.add_method("child_self_time_sorted", &UGProfilerNode::child_self_time_sorted, "string with sorted childs", "", "childs are sorted by self time")
-		.add_method("total_time_sorted", &UGProfilerNode::total_time_sorted, "string with sorted childs", "", "childs are sorted by total time")
-		.add_method("entry_count_sorted", &UGProfilerNode::entry_count_sorted, "string with sorted childs", "", "childs are sorted by entry count")
+		.add_method("call_tree", (string(UGProfilerNode::*)() const)&UGProfilerNode::call_tree, "string with call tree")
+		.add_method("call_tree", (string(UGProfilerNode::*)(double dSkipMarginal) const) &UGProfilerNode::call_tree, "string with call tree",
+				"dSkipMarginal")
+
+		.add_method("child_self_time_sorted", (string(UGProfilerNode::*)() const)&UGProfilerNode::child_self_time_sorted,
+				"string with sorted childs", "", "childs are sorted by self time")
+		.add_method("child_self_time_sorted", (string(UGProfilerNode::*)(double dSkipMarginal) const)&UGProfilerNode::child_self_time_sorted,
+				"string with sorted childs", "dSkipMarginal", "childs are sorted by self time")
+
+		.add_method("total_time_sorted", (string(UGProfilerNode::*)() const)&UGProfilerNode::total_time_sorted,
+				"string with sorted childs", "", "childs are sorted by total time")
+		.add_method("total_time_sorted", (string(UGProfilerNode::*)(double dSkipMarginal) const)&UGProfilerNode::total_time_sorted,
+				"string with sorted childs", "dSkipMarginal", "childs are sorted by total time")
+
+		.add_method("entry_count_sorted", (string(UGProfilerNode::*)() const)&UGProfilerNode::entry_count_sorted,
+				"string with sorted childs", "", "childs are sorted by entry count")
+		.add_method("entry_count_sorted", (string(UGProfilerNode::*)(double dSkipMarginal) const)&UGProfilerNode::entry_count_sorted,
+				"string with sorted childs", "dSkipMarginal", "childs are sorted by entry count")
+
 		.add_method("get_avg_entry_count", &UGProfilerNode::get_avg_entry_count,
 				"number of entries in this profiler node", "")
 		.add_method("get_avg_self_time_ms", &UGProfilerNode::get_avg_self_time_ms,
