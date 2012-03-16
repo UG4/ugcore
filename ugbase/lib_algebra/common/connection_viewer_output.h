@@ -54,6 +54,7 @@ inline std::string GetParallelName(T &t, std::string name)
 template<typename Matrix_type, typename postype>
 void WriteMatrixToConnectionViewer(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
 {
+	PROFILE_FUNC();
 #ifdef UG_PARALLEL
 	filename = GetParallelName(A, filename);
 #endif
@@ -98,6 +99,7 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 									const Matrix_type &A,
 									std::vector<postype> &positionsFrom, std::vector<postype> &positionsTo, size_t dimensions)
 {
+	PROFILE_FUNC();
 #ifdef UG_PARALLEL
 	filename = GetParallelName(A, filename);
 #endif
@@ -216,6 +218,7 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 template<typename Vector_type, typename postype>
 void WriteVectorToConnectionViewer(std::string filename, const Vector_type &b, postype *positions, int dimensions)
 {
+	PROFILE_FUNC();
 #ifdef UG_PARALLEL
 	filename = GetParallelName(filename);
 #endif
@@ -250,6 +253,7 @@ template<typename Matrix_type, typename Vector_type, typename postype>
 void WriteVectorToConnectionViewer(std::string filename, const Matrix_type &A, const Vector_type &v,
 		postype *positions, int dimensions, const Vector_type *compareVec=NULL)
 {
+	PROFILE_FUNC();
 	if(dimensions != 2)
 	{
 		UG_LOG(__FILE__ << ":" << __LINE__ << " WriteVectorToConnectionViewer: only dimension=2 supported");
@@ -313,6 +317,7 @@ void WriteVectorToConnectionViewer(std::string filename, const Matrix_type &A, c
 template<typename Vector_type, typename postype>
 void WriteVectorToConnectionViewerNEW(std::string filename, const Vector_type &b, postype *positions, int dimensions)
 {
+	PROFILE_FUNC();
 #ifdef UG_PARALLEL
 	filename = GetParallelName(filename);
 #endif
