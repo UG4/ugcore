@@ -55,7 +55,7 @@ namespace ug{
  * \tparam	X 	Domain space function
  * \tparam	Y	Range space function
  */
-template <typename X, typename Y>
+template <typename X, typename Y = X>
 class ILinearIterator
 {
 	public:
@@ -189,8 +189,7 @@ class ILinearIterator
  */
 template <typename TAlgebra>
 class IPreconditioner :
-	public virtual ILinearIterator<	typename TAlgebra::vector_type,
-									typename TAlgebra::vector_type>,
+	public virtual ILinearIterator<typename TAlgebra::vector_type>,
 	public DebugWritingObject<TAlgebra>
 {
 	public:
@@ -204,7 +203,7 @@ class IPreconditioner :
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	///	Matrix Operator type
-		typedef MatrixOperator<vector_type, vector_type, matrix_type> matrix_operator_type;
+		typedef MatrixOperator<matrix_type, vector_type> matrix_operator_type;
 
 	protected:
 		using DebugWritingObject<TAlgebra>::set_debug;
@@ -277,8 +276,8 @@ class IPreconditioner :
 		                  const vector_type& u)
 		{
 		//	cast to matrix based operator
-			MatrixOperator<vector_type, vector_type, matrix_type>* pOp =
-			dynamic_cast<MatrixOperator<vector_type, vector_type, matrix_type>*>(&J);
+			MatrixOperator<matrix_type, vector_type>* pOp =
+			dynamic_cast<MatrixOperator<matrix_type, vector_type>*>(&J);
 
 		//	Check that matrix if of correct type
 			if(pOp == NULL)
@@ -306,8 +305,8 @@ class IPreconditioner :
 		virtual bool init(ILinearOperator<vector_type, vector_type>& L)
 		{
 		//	cast to matrix based operator
-			MatrixOperator<vector_type, vector_type, matrix_type>* pOp =
-			dynamic_cast<MatrixOperator<vector_type, vector_type, matrix_type>*>(&L);
+			MatrixOperator<matrix_type, vector_type>* pOp =
+			dynamic_cast<MatrixOperator<matrix_type, vector_type>*>(&L);
 
 		//	Check that matrix if of correct type
 			if(pOp == NULL)
@@ -331,7 +330,7 @@ class IPreconditioner :
 	 * \param[in]	Op		matrix based operator
 	 * \returns		bool	success flag
 	 */
-		bool init(MatrixOperator<vector_type, vector_type, matrix_type>& Op)
+		bool init(MatrixOperator<matrix_type, vector_type>& Op)
 		{
 		// 	Remember operator
 			m_pOperator = &Op;

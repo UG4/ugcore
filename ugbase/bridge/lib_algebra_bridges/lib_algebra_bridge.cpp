@@ -167,7 +167,7 @@ static bool reg(Registry& reg, string parentGroup)
 // 	MatrixOperator
 	{
 		typedef ILinearOperator<vector_type, vector_type> TBase;
-		typedef MatrixOperator<vector_type, vector_type, matrix_type> T;
+		typedef MatrixOperator<matrix_type, vector_type> T;
 		string name = string("MatrixOperator").append(algSuffix);
 		reg.add_class_<T, TBase, matrix_type>(name, grp)
 			.add_constructor();
@@ -224,7 +224,7 @@ static bool reg(Registry& reg, string parentGroup)
 //	IMatrixOperatorInverse
 	{
 		typedef ILinearOperatorInverse<vector_type, vector_type>  TBase;
-		typedef IMatrixOperatorInverse<vector_type, vector_type, matrix_type> T;
+		typedef IMatrixOperatorInverse<matrix_type, vector_type> T;
 		string name = string("IMatrixOperatorInverse").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp);
 		reg.add_class_to_group(name, "IMatrixOperatorInverse", algTag);
@@ -407,7 +407,7 @@ static bool reg(Registry& reg, string parentGroup)
 // 	FETISolver
 	{
 		typedef FETISolver<TAlgebra> T;
-		typedef IMatrixOperatorInverse<vector_type, vector_type, matrix_type> BaseT;
+		typedef IMatrixOperatorInverse<matrix_type, vector_type> BaseT;
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("FETI").append(algSuffix);
 		reg.add_class_<	T, BaseT,TBase2>(name, grp3, "FETI Domain Decomposition Solver")

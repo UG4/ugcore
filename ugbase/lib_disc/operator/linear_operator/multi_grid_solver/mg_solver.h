@@ -187,7 +187,7 @@ class AssembledMultiGridCycle :
 
 	/// performs smoothing on level l, nu times
 		bool smooth(vector_type& c, vector_type& d, vector_type& t,
-		            MatrixOperator<vector_type, vector_type, matrix_type>& A,
+		            MatrixOperator<matrix_type, vector_type>& A,
 		            smoother_type& S, size_t lev, int nu);
 
 	///	returns the number of allocated levels
@@ -307,7 +307,7 @@ class AssembledMultiGridCycle :
 				{UG_ASSERT(spLevDD.valid(), "Missing LevDD"); return spLevDD->num_indices();}
 
 		//	returns the smoothing matrix (depends if smooth patch needed or not)
-			MatrixOperator<vector_type, vector_type, matrix_type>&
+			MatrixOperator<matrix_type, vector_type>&
 			get_smooth_mat()
 			{
 				if(has_ghosts()) return SmoothMat;
@@ -380,10 +380,10 @@ class AssembledMultiGridCycle :
 			SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 		//	matrix operator for whole grid level
-			MatrixOperator<vector_type, vector_type, matrix_type> LevMat;
+			MatrixOperator<matrix_type, vector_type> LevMat;
 
 		//	matrix for smoothing on smoothing patch of grid level
-			MatrixOperator<vector_type, vector_type, matrix_type> SmoothMat;
+			MatrixOperator<matrix_type, vector_type> SmoothMat;
 
 		//	smoother
 			smoother_type* Smoother;

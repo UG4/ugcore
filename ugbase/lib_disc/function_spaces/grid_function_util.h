@@ -68,9 +68,8 @@ void WriteMatrixToConnectionViewer(const char *filename,
 
 template <typename TGridFunction>
 void SaveMatrixForConnectionViewer(	TGridFunction& u,
-									MatrixOperator<typename TGridFunction::vector_type,
-									typename TGridFunction::vector_type,
-									typename TGridFunction::algebra_type::matrix_type>& A,
+									MatrixOperator<	typename TGridFunction::algebra_type::matrix_type,
+													typename TGridFunction::vector_type>& A,
 									const char* filename)
 {
 //	forward
@@ -140,9 +139,8 @@ void SaveVectorForConnectionViewer(	TGridFunction& b,
 
 template <typename TGridFunction>
 bool SaveVectorForConnectionViewer(	TGridFunction& u,
-									MatrixOperator<typename TGridFunction::vector_type,
-									typename TGridFunction::vector_type,
-									typename TGridFunction::algebra_type::matrix_type>& A,
+									MatrixOperator<	typename TGridFunction::algebra_type::matrix_type,
+													typename TGridFunction::vector_type>& A,
 									const char* filename)
 {
 	return WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u);
@@ -151,9 +149,8 @@ bool SaveVectorForConnectionViewer(	TGridFunction& u,
 template <typename TGridFunction>
 bool SaveVectorForConnectionViewer(	TGridFunction& u,
 									TGridFunction& compareVec,
-									MatrixOperator<typename TGridFunction::vector_type,
-									typename TGridFunction::vector_type,
-									typename TGridFunction::algebra_type::matrix_type>& A,
+									MatrixOperator<	typename TGridFunction::algebra_type::matrix_type,
+													typename TGridFunction::vector_type>& A,
 									const char* filename)
 {
 //	forward

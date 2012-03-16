@@ -145,7 +145,7 @@ template <typename TDomain, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 smooth(vector_type& c, vector_type& d, vector_type& tmp,
-       MatrixOperator<vector_type, vector_type, matrix_type>& A,
+       MatrixOperator<matrix_type, vector_type>& A,
        smoother_type& S,
        size_t lev, int nu)
 {
@@ -219,7 +219,7 @@ presmooth(size_t lev)
 
 //	get smoother on this level and corresponding operator
 	smoother_type& Smoother = m_vLevData[lev]->get_smoother();
-	MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat =
+	MatrixOperator<matrix_type, vector_type>& SmoothMat =
 		m_vLevData[lev]->get_smooth_mat();
 
 // 	reset correction to zero on this level
@@ -327,7 +327,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 	vector_type& cTmp = m_vLevData[lev-1]->t;
 
 //	get smoothing operator on this level
-	MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat =
+	MatrixOperator<matrix_type, vector_type>& SmoothMat =
 		m_vLevData[lev]->get_smooth_mat();
 
 //	## INTERPOLATE CORRECTION
@@ -409,7 +409,7 @@ postsmooth(size_t lev)
 
 //	get smoother on this level and corresponding operator
 	smoother_type& Smoother = m_vLevData[lev]->get_smoother();
-	MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat =
+	MatrixOperator<matrix_type, vector_type>& SmoothMat =
 		m_vLevData[lev]->get_smooth_mat();
 
 
@@ -487,7 +487,7 @@ base_solve(size_t lev)
 		if(m_baseLev == m_topLev || m_bAdaptive)
 		{
 		//	get smoothing matrix
-			MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat
+			MatrixOperator<matrix_type, vector_type>& SmoothMat
 				= m_vLevData[lev]->get_smooth_mat();
 
 		//	UPDATE DEFECT
@@ -1146,7 +1146,7 @@ init_smoother()
 
 	//	get smooth matrix and vector
 		vector_type& u = m_vLevData[lev]->get_smooth_solution();
-		MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat =
+		MatrixOperator<matrix_type, vector_type>& SmoothMat =
 				m_vLevData[lev]->get_smooth_mat();
 
 		if(!m_vLevData[lev]->Smoother->init(SmoothMat, u))
@@ -1210,7 +1210,7 @@ init_base_solver()
 	{
 	//	get smooth matrix and vector
 		vector_type& u = m_vLevData[m_baseLev]->get_smooth_solution();
-		MatrixOperator<vector_type, vector_type, matrix_type>& SmoothMat =
+		MatrixOperator<matrix_type, vector_type>& SmoothMat =
 				m_vLevData[m_baseLev]->get_smooth_mat();
 
 		if(!m_pBaseSolver->init(SmoothMat, u))

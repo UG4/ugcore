@@ -565,7 +565,7 @@ class LocalSchurComplement
 	 * \begin{pmatrix} A_{I \Delta} \\ A_{\Pi \Delta} \end{pmatrix}	 *
 	 * \f}
 	 */
-		void set_matrix(MatrixOperator<vector_type, vector_type, matrix_type>& A)
+		void set_matrix(MatrixOperator<matrix_type, vector_type>& A)
 		{
 		//	save current operator
 			m_pOperator = &A;
@@ -619,7 +619,7 @@ class LocalSchurComplement
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator
-		MatrixOperator<vector_type,vector_type,matrix_type>* m_pOperator;
+		MatrixOperator<matrix_type,vector_type>* m_pOperator;
 
 	// 	Parallel Matrix
 		matrix_type* m_pMatrix;
@@ -628,7 +628,7 @@ class LocalSchurComplement
 		FetiLayouts<algebra_type>* m_pFetiLayouts;
 
 	//	Copy of matrix
-		MatrixOperator<vector_type, vector_type, matrix_type> m_DirichletOperator;
+		MatrixOperator<matrix_type, vector_type> m_DirichletOperator;
 
 	// 	Parallel Dirichlet Matrix
 		matrix_type* m_pDirichletMatrix;
@@ -739,7 +739,7 @@ class PrimalSubassembledMatrixInverse
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator ==> from which SC is built (05022011)
-		MatrixOperator<vector_type,vector_type,matrix_type>* m_pOperator;
+		MatrixOperator<matrix_type,vector_type>* m_pOperator;
 
 	// 	Parallel Matrix to invert ==> from which SC is built (05022011)
 		matrix_type* m_pMatrix;
@@ -748,7 +748,7 @@ class PrimalSubassembledMatrixInverse
 		FetiLayouts<algebra_type>* m_pFetiLayouts;
 
 	//	Copy of matrix
-		MatrixOperator<vector_type, vector_type, matrix_type> m_NeumannOperator;
+		MatrixOperator<matrix_type, vector_type> m_NeumannOperator;
 
 	// 	Parallel Neumann Matrix
 		matrix_type* m_pNeumannMatrix;
@@ -768,7 +768,7 @@ class PrimalSubassembledMatrixInverse
 		pcl::ProcessCommunicator m_allToOneProcessComm;
 
 	//	Schur Complement operator for gathered matrix
-		MatrixOperator<vector_type, vector_type, matrix_type> m_RootSchurComplementOp;
+		MatrixOperator<matrix_type, vector_type> m_RootSchurComplementOp;
 
 	//	Matrix for one proc Schur complement
 		matrix_type* m_pRootSchurComplementMatrix;
@@ -797,9 +797,8 @@ class PrimalSubassembledMatrixInverse
  * A. Toselli, O. Widlund, Springer 2004, sec. 1.3.5, p. 12ff.
  */
 template <typename TAlgebra>
-class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
-													typename TAlgebra::vector_type,
-													typename TAlgebra::matrix_type>,
+class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type,
+													typename TAlgebra::vector_type>,
 	public DebugWritingObject<TAlgebra>
 {
 	public:
@@ -857,7 +856,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		}
 
 	///	initializes the solver for operator A
-		virtual bool init(MatrixOperator<vector_type, vector_type, matrix_type>& A);
+		virtual bool init(MatrixOperator<matrix_type, vector_type>& A);
 
 	///	function which applies matrix \f$F\f$ of the reduced system ("Delta system") to a vector \f$v\f$
 	/**
@@ -974,7 +973,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator
-		MatrixOperator<vector_type,vector_type,matrix_type>* m_pOperator;
+		MatrixOperator<matrix_type,vector_type>* m_pOperator;
 
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;

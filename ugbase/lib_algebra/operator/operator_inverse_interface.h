@@ -64,7 +64,7 @@ namespace ug{
  * applied several times on the same vectors, those have only to be prepared
  * once and the init of the operator is only needed once.
  */
-template <typename X, typename Y>
+template <typename X, typename Y = X>
 class IOperatorInverse
 {
 	public:
@@ -143,7 +143,7 @@ class IOperatorInverse
  * \tparam	X		domain space
  * \tparam	Y		range space
  */
-template <typename X, typename Y>
+template <typename X, typename Y = X>
 class ILinearOperatorInverse
 {
 	public:
@@ -293,7 +293,7 @@ class ILinearOperatorInverse
  */
 template <typename X>
 class IPreconditionedLinearOperatorInverse
-	: public ILinearOperatorInverse<X,X>,
+	: public ILinearOperatorInverse<X>,
 	  public VectorDebugWritingObject<X>
 {
 	public:
@@ -424,7 +424,7 @@ class IPreconditionedLinearOperatorInverse
  * \tparam	Y		range space (i.e. a vector corresponding to the matrix)
  * \tparam	M		matrix type used to represent linear mapping
  */
-template <typename X, typename Y, typename M>
+template <typename M, typename X, typename Y = X>
 class IMatrixOperatorInverse
 	: public virtual ILinearOperatorInverse<X,Y>
 {
@@ -447,7 +447,7 @@ class IMatrixOperatorInverse
 	 * \param[in]	A		linear matrix-basewd operator to invert
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(MatrixOperator<Y,X,M>& A) = 0;
+		virtual bool init(MatrixOperator<M,Y,X>& A) = 0;
 
 	/// applies the inverse operator, i.e. returns u = A^{-1} * f
 	/**
@@ -504,7 +504,7 @@ class IMatrixOperatorInverse
 		virtual bool init(ILinearOperator<Y,X>& A)
 		{
 		//	cast operator
-			MatrixOperator<Y,X,M>* op = dynamic_cast<MatrixOperator<Y,X,M>*>(&A);
+			MatrixOperator<M,Y,X>* op = dynamic_cast<MatrixOperator<M,Y,X>*>(&A);
 
 		//	check if correct types are present
 			if(op == NULL)

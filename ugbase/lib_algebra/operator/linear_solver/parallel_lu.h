@@ -72,9 +72,8 @@ bool GetCompleteMatrixOnProcessor0(TMatrix &matrix, TMatrix &completeMatrix)
 namespace ug{
 
 template <typename TAlgebra>
-class ParallelLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
-														typename TAlgebra::vector_type,
-														typename TAlgebra::matrix_type>
+class ParallelLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type,
+														typename TAlgebra::vector_type>
 {
 	public:
 	// 	Algebra type
@@ -87,7 +86,7 @@ class ParallelLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vecto
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	///	Base type
-		typedef IMatrixOperatorInverse<vector_type,vector_type,matrix_type> base_type;
+		typedef IMatrixOperatorInverse<matrix_type,vector_type> base_type;
 
 	protected:
 		using base_type::convergence_check;
@@ -120,7 +119,7 @@ class ParallelLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vecto
 		}
 
 	//	set operator L, that will be inverted
-		virtual bool init(IMatrixOperator<vector_type, vector_type, matrix_type>& Op)
+		virtual bool init(IMatrixOperator<matrix_type, vector_type>& Op)
 		{
 		// 	remember operator
 			m_pOperator = &Op;
@@ -187,7 +186,7 @@ class ParallelLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vecto
 	protected:
 		LUSolver<TAlgebra> m_lu;
 		// Operator to invert
-		IMatrixOperator<vector_type, vector_type, matrix_type>* m_pOperator;
+		IMatrixOperator<matrix_type, vector_type>* m_pOperator;
 
 		// matrix to invert
 		matrix_type* m_pMatrix;

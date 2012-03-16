@@ -14,9 +14,8 @@
 
 
 template <typename TAlgebra>
-class CollectSolver: public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
-														typename TAlgebra::vector_type,
-														typename TAlgebra::matrix_type>
+class CollectSolver: public IMatrixOperatorInverse<	typename TAlgebra::matrix_type,
+														typename TAlgebra::vector_type>
 {
 	public:
 	// 	Algebra type
@@ -28,10 +27,10 @@ class CollectSolver: public IMatrixOperatorInverse<	typename TAlgebra::vector_ty
 	// 	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-		typedef IMatrixOperatorInverse<	typename TAlgebra::vector_type, typename TAlgebra::vector_type, typename TAlgebra::matrix_type> moi_type;
+		typedef IMatrixOperatorInverse<	typename TAlgebra::matrix_type, typename TAlgebra::vector_type> moi_type;
 
 	///	Base type
-		typedef IMatrixOperatorInverse<vector_type,vector_type,matrix_type> base_type;
+		typedef IMatrixOperatorInverse<matrix_type,vector_type> base_type;
 
 	protected:
 		using base_type::convergence_check;
@@ -70,7 +69,7 @@ class CollectSolver: public IMatrixOperatorInverse<	typename TAlgebra::vector_ty
 
 
 		//	set operator L, that will be inverted
-		virtual bool init(MatrixOperator<vector_type, vector_type, matrix_type>& Op)
+		virtual bool init(MatrixOperator<matrix_type, vector_type>& Op)
 		{
 		// 	remember operator
 			m_pOperator = &Op;

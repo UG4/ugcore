@@ -27,9 +27,8 @@ namespace ug{
  */
 template <typename TAlgebra>
 class AssembledLinearOperator :
-	public virtual MatrixOperator<	typename TAlgebra::vector_type,
-									typename TAlgebra::vector_type,
-									typename TAlgebra::matrix_type>
+	public virtual MatrixOperator<	typename TAlgebra::matrix_type,
+									typename TAlgebra::vector_type>
 {
 	public:
 	///	Type of Algebra
@@ -42,7 +41,7 @@ class AssembledLinearOperator :
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	///	Type of base class
-		typedef MatrixOperator<vector_type,vector_type,matrix_type> base_type;
+		typedef MatrixOperator<matrix_type,vector_type> base_type;
 
 	public:
 	///	Default Constructor

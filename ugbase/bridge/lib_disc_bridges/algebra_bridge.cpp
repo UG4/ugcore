@@ -143,7 +143,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 //	AssembledLinearOperator
 	{
 		typedef AssembledLinearOperator<TAlgebra> T;
-		typedef MatrixOperator<vector_type, vector_type, matrix_type> TBase;
+		typedef MatrixOperator<matrix_type, vector_type> TBase;
 		string name = string("AssembledLinearOperator").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()

@@ -12,11 +12,11 @@ namespace ug
 {
 /*
 template <typename X, typename Y, typename M>
-void MatAdd(	IMatrixOperator<X, Y, M>& opOut,
-				IMatrixOperator<X, Y, M>& op1,
-				IMatrixOperator<X, Y, M>& op2)
+void MatAdd(	IMatrixOperator<M, X, Y>& opOut,
+				IMatrixOperator<M, X, Y>& op1,
+				IMatrixOperator<M, X, Y>& op2)
 {
-	typedef IMatrixOperator<X, Y, M> MatrixOperator;
+	typedef IMatrixOperator<M, X, Y> MatrixOperator;
 
 	typedef typename MatrixOperator::matrix_type Matrix;
 
@@ -30,9 +30,9 @@ void MatAdd(	IMatrixOperator<X, Y, M>& opOut,
 */
 
 template <typename X, typename Y, typename M>
-void MatIdentity(	MatrixOperator<X, Y, M>& opOut)
+void MatIdentity(	MatrixOperator<M, X, Y>& opOut)
 {
-	typedef MatrixOperator<X, Y, M> MatrixOperator;
+	typedef MatrixOperator<M, X, Y> MatrixOperator;
 
 	typedef typename MatrixOperator::matrix_type Matrix;
 
@@ -49,9 +49,9 @@ void MatIdentity(	MatrixOperator<X, Y, M>& opOut)
 
 
 template <typename X, typename Y, typename M>
-void MatAdd( MatrixOperator<X, Y, M>& res, number alpha1, MatrixOperator<X, Y, M>& A1, number alpha2, MatrixOperator<X, Y, M>& A2)
+void MatAdd( MatrixOperator<M, X, Y>& res, number alpha1, MatrixOperator<M, X, Y>& A1, number alpha2, MatrixOperator<M, X, Y>& A2)
 {
-	typedef MatrixOperator<X, Y, M> MatrixOperator;
+	typedef MatrixOperator<M, X, Y> MatrixOperator;
 
 	typedef typename MatrixOperator::matrix_type Matrix;
 
@@ -62,9 +62,9 @@ void MatAdd( MatrixOperator<X, Y, M>& res, number alpha1, MatrixOperator<X, Y, M
 }
 
 template <typename X, typename Y, typename M>
-void MatScale( MatrixOperator<X, Y, M>& A, number alpha)
+void MatScale( MatrixOperator<M, X, Y>& A, number alpha)
 {
-	typedef MatrixOperator<X, Y, M> MatrixOperator;
+	typedef MatrixOperator<M, X, Y> MatrixOperator;
 	typedef typename MatrixOperator::matrix_type Matrix;
 	Matrix& matA = A.get_matrix();
 

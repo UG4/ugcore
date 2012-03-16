@@ -331,7 +331,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	bool bSuccess = true;
 
 //	remember operator
-	m_pOperator = dynamic_cast<MatrixOperator<vector_type, vector_type, matrix_type>*>(&L);
+	m_pOperator = dynamic_cast<MatrixOperator<matrix_type, vector_type>*>(&L);
 
 //	check, that operator is correct
 	if(m_pOperator == NULL)
@@ -1175,7 +1175,7 @@ FETISolver() :
 
 template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
-init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
+init(MatrixOperator<matrix_type, vector_type>& A)
 {
 //	status
 	UG_LOG("\n% Initializing FETI Solver: \n");

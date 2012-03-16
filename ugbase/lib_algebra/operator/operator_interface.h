@@ -57,7 +57,7 @@ namespace ug{
  * \tparam	X 	Domain space function
  * \tparam	Y	Range space function
  */
-template <typename X, typename Y>
+template <typename X, typename Y = X>
 class IOperator
 {
 	public:
@@ -144,7 +144,7 @@ class IOperator
  * \tparam	X 	Domain space function
  * \tparam	Y	Range space function
  */
-template <typename X, typename Y>
+template <typename X, typename Y = X>
 class ILinearOperator : public IOperator<X,Y>
 {
 	public:
@@ -216,7 +216,7 @@ class ILinearOperator : public IOperator<X,Y>
 // Matrix based linear operator
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename X, typename Y, typename M>
+template <typename M, typename X, typename Y = X>
 class MatrixOperator :	public virtual ILinearOperator<X,Y>,
 						public M
 {

@@ -20,9 +20,8 @@ namespace ug{
 
 template <typename TAlgebra>
 class LU
-	: public IMatrixOperatorInverse<typename TAlgebra::vector_type,
-	  	  	  	  	  	  	  	    typename TAlgebra::vector_type,
-	  	  	  	  	  	  	  	    typename TAlgebra::matrix_type>
+	: public IMatrixOperatorInverse<typename TAlgebra::matrix_type,
+	  	  	  	  	  	  	  	    typename TAlgebra::vector_type>
 {
 	public:
 	///	Algebra type
@@ -35,7 +34,7 @@ class LU
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	///	Base type
-		typedef IMatrixOperatorInverse<vector_type,vector_type,matrix_type> base_type;
+		typedef IMatrixOperatorInverse<matrix_type,vector_type> base_type;
 
 	protected:
 		using base_type::convergence_check;
@@ -147,7 +146,7 @@ class LU
 		}
 
 	///	set operator L, that will be inverted
-		virtual bool init(MatrixOperator<vector_type, vector_type, matrix_type>& Op)
+		virtual bool init(MatrixOperator<matrix_type, vector_type>& Op)
 		{
 		// 	remember operator
 			m_pOperator = &Op;
@@ -237,7 +236,7 @@ class LU
 
 	protected:
 	/// Operator to invert
-		MatrixOperator<vector_type, vector_type, matrix_type>* m_pOperator;
+		MatrixOperator<matrix_type, vector_type>* m_pOperator;
 
 	/// matrix to invert
 		matrix_type* m_pMatrix;
