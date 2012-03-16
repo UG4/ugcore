@@ -58,6 +58,7 @@ static SmartPtr<IRefiner> HangingNodeDomainRefiner(TDomain* dom)
  */
 static void MarkForRefinement_All(SmartPtr<IRefiner> ref)
 {
+	PROFILE_FUNC();
 	Grid* g = ref->get_associated_grid();
 	if(!g){
 		UG_LOG("Refiner is not registered at a grid. Aborting.\n");
@@ -76,6 +77,7 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 									const typename TDomain::position_type& center,
 									number radius)
 {
+	PROFILE_FUNC();
 	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
@@ -121,6 +123,7 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 									const typename TDomain::position_type& center,
 									number radius)
 {
+	PROFILE_FUNC();
 	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 	typedef typename geometry_traits<TElem>::iterator	ElemIter;
@@ -175,6 +178,7 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 									const typename TDomain::position_type& min,
 									const typename TDomain::position_type& max)
 {
+	PROFILE_FUNC();
 	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
@@ -248,6 +252,7 @@ template <class TDomain>
 void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refiner,
 											number sizeRatio)
 {
+	PROFILE_FUNC();
 	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
 
