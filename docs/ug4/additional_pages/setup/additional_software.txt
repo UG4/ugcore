@@ -4,9 +4,10 @@
 
 /** \page pageAdditionalSoftware - Additional software that might be useful
 
-	- \ref secInstallCMake "Install CMake"
-	- \ref secInstallBoost "Install Boost"
-	- \ref secInstallLUA   "Install LUA"
+	- \ref secInstallCMake "Installation of CMake"
+	- \ref secInstallBoost "Installation of Boost"
+	- \ref secInstallLUA   "Installation of LUA"
+	- \ref secInstallParaView "Installation of ParaView"
 
 On this page you'll find short installation instructions for additional software
 that might be useful - or is even necessary - for working with ug4 (especially on
@@ -18,13 +19,14 @@ administrator privileges - congratulations ...)
 
 We propose the following procedures for which we assume that all additional
 software is installed in a directory <tt>local</tt> directly in your home directory
-(version numbers are those of the most recent (stable) versions as of Nov 2011).
+(version numbers are those of the most recent (stable) versions at the time this documentation was written).
 
 A basic understanding of the used unix tools (wget, tar, ...) is useful but not necessary
-(instructions should work "out of the box"- except for the version numbers - check for the version most appropriate for you before installation).
+(instructions should work "out of the box"- except for the version numbers -
+check for a version that is appropriate for you and adapt the respective file name).
 
 <hr>
-\section secInstallCMake Install CMake
+\section secInstallCMake Installation of CMake
 <hr>
 You can install a local version of the <a href="http://www.cmake.org">CMake build tool</a> by doing the following steps:
 
@@ -51,7 +53,7 @@ You can install a local version of the <a href="http://www.cmake.org">CMake buil
     \endverbatim
     </li>
 
-<li> Shortcut for executing CMake (i.e., add a line like the
+<li> Shortcut for executing CMake from command-line (i.e., add a line like the
      following in your <tt>.bashrc</tt> (for Bash):
     \verbatim
     alias cmake='$HOME/local/bin/cmake'
@@ -64,12 +66,12 @@ You can install a local version of the <a href="http://www.cmake.org">CMake buil
 </ol>
 
 <hr>
-\section secInstallBoost Install Boost
+\section secInstallBoost Installation of Boost
 <hr>
 
 A version of the <a href="http://www.boost.org">Boost library</a> is automatically checked out
 and available in the <tt>externals/</tt> sub directory of your trunk (since Jan 2012),
-so a local install is usually no longer necessary (cf. \ref pageInstallUG4, \ref secInstallUG4Boost).
+so a local installation is usually no longer necessary for building ug4 (cf. \ref pageInstallUG4, \ref secInstallUG4Boost).
 But if you need a special (e.g. newer) version, you can get one this way:
 
 <ol>
@@ -105,7 +107,7 @@ But if you need a special (e.g. newer) version, you can get one this way:
 </ol>
 
 <hr>
-\section secInstallLUA Install LUA
+\section secInstallLUA Installation of LUA
 <hr>
 
 You can install a local version of the <a href="http://www.lua.org">LUA interpreter</a> by performing the following steps,
@@ -133,7 +135,7 @@ so that you are able to execute LUA scripts "stand alone" (i.e. without utilisin
     \endverbatim
     </li>
 
-<li> Shortcut for executing LUA (i.e., add a line like the
+<li> Shortcut for executing LUA from command-line (i.e., add a line like the
      following in your <tt>.bashrc</tt> (for Bash)):
     \verbatim
     alias lua='$HOME/local/lua-5.1.4/bin/lua'
@@ -149,6 +151,76 @@ so that you are able to execute LUA scripts "stand alone" (i.e. without utilisin
     lua my_scaling_analyzer.lua
     \endverbatim
     </li>
+
+</ol>
+
+<hr>
+\section secInstallParaView Installation of ParaView
+<hr>
+
+You can install a local version of <a href="http://paraview.org/">ParaView</a>
+by performing the following steps (only described for installation of a "precompiled binary"
+which usually will be the preferred way):
+
+<ol>
+<li> Download tar ball:
+     Go to http://www.paraview.org/paraview/resources/software.php and choose the version,
+     type (e.g. "ParaView Binary Installer") and OS,
+     and download the tar ball and move it in the directory where you want to install ParaView:
+     \verbatim
+     mv ParaView-3.14.0-Linux-64bit.tar.gz ~/local
+     \endverbatim
+     </li>
+
+<li> Unpack:
+     \verbatim
+     cd ~/local
+     tar xvzf ParaView-3.14.0-Linux-64bit.tar.gz 
+     \endverbatim
+     </li>
+
+<li> After unpacking a binary installer the executables reside in e.g.
+     \verbatim
+     ParaView-3.14.0-Linux-64bit/
+     \endverbatim
+     </li>
+     See the documentation (e.g. http://paraview.org/Wiki/The_ParaView_Tutorial)
+     for how to build ParaView from sources (CMake and a compiler (of course)
+     necessary - and a bit time).
+
+<li> Shortcuts for executing the ParaView client and server from command-line
+     (i.e., add lines like the following in your <tt>.bashrc</tt> (for Bash)):
+     \verbatim
+     alias paraview='$HOME/local/ParaView-3.14.0-Linux-64bit/bin/paraview'
+     alias pvserver='$HOME/local/ParaView-3.14.0-Linux-64bit/bin/pvserver'
+     \endverbatim
+     or (for Tcsh):
+     \verbatim
+     alias paraview '$HOME/local/ParaView-3.14.0-Linux-64bit/bin/paraview'
+     alias pvserver '$HOME/local/ParaView-3.14.0-Linux-64bit/bin/pvserver'
+     \endverbatim
+     </li>
+
+<li> Basic usage (using the shortcut mentioned above):
+
+     <ul>
+     <li> Start an instance of ParaView and load a datafile:
+          \verbatim
+	  paraview --data=<VTK-File>
+	  \endverbatim
+	  </li>
+
+     <li> Start an instance of ParaView and load a (previously saved)
+          state file (with ending <tt>.pvsm</tt>):
+          \verbatim
+	  paraview --state=<state file>
+	  \endverbatim
+	  </li>
+
+     </ul>
+     </li>
+
+     For parallel rendering see e.g. \ref pageParallelRendering.
 </ol>
 
  */

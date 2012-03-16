@@ -24,7 +24,7 @@
 </li>
 
 </ul>
-See also \ref pageSetupUG4.
+See also \ref pageUG4SetupParallel.
 
 <hr>
 \section secParallelComputingSpecific Specific informations about  parallel computing

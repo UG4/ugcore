@@ -9,7 +9,7 @@ together with MSYS at
 <a href="http://www.mingw.org/wiki/MSYS"> http://www.mingw.org/wiki/MSYS</a>.
 MSYS is a 'minimal shell', which mimics some of the features of unix shells.
 You should install MSYS and MinGW to a rather simple path which does not contain
-spaces or special characters (e.g. C:\msys)
+spaces or special characters (e.g. C:\\msys)
 
 Compiliation of ug4 furthermore requires the installation of cmake, which can be
 obtained from here

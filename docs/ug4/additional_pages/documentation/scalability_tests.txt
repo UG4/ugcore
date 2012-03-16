@@ -25,7 +25,7 @@ For any questions, contact <a href="mailto:Ingo.Heppner@gcsc.uni-frankfurt.de">I
 	cmake -DEBUG=OFF ..
 	\endcode
 
-	(Obviously the above <tt>cmake</tt> commands can be performed in one step.)
+	(Obviously the above configurations can be performed by only one <tt>cmake</tt> command.)
 </li>
 
 <li>Furthermore, since output can be very time consuming for jobs with a very large number of MPI processes
