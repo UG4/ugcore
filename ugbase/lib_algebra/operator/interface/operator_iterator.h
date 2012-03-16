@@ -330,7 +330,7 @@ class IPreconditioner :
 			m_pOperator = &Op;
 
 		//	Check that matrix exists
-			if(pOp == NULL)
+			if(m_pOperator == NULL)
 				UG_THROW_FATAL(name() << "::init': Passed Operator is "
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
