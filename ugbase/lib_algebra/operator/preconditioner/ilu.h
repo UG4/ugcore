@@ -251,21 +251,24 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
-		using IPreconditioner<TAlgebra>::write_debug;
+	///	Base type
+		typedef IPreconditioner<TAlgebra> base_type;
+
+	protected:
+		using base_type::set_debug;
+		using base_type::debug_writer;
+		using base_type::write_debug;
 
 	public:
 	//	Constructor
 		ILU(double beta=0.0) : m_beta(beta) {};
 
-	//	Constructor setting debug writer
-		ILU(IDebugWriter<algebra_type>* pDebugWriter, double beta=0.0) :
-			IPreconditioner<algebra_type>(pDebugWriter), m_beta(beta)
-		{};
-
 	///	Clone
 		ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new ILU<algebra_type>(this->debug_writer(), m_beta);
+			ILU<algebra_type>* newInst = new ILU<algebra_type>(m_beta);
+			newInst->set_debug(debug_writer());
+			return newInst;
 		}
 
 	///	Destructor

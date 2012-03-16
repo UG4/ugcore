@@ -32,19 +32,24 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
+	///	Base type
+		typedef IPreconditioner<TAlgebra> base_type;
+
+	protected:
+		using base_type::set_debug;
+		using base_type::debug_writer;
+		using base_type::write_debug;
+
 	public:
 	//	Constructor
 		GaussSeidel() {};
 
-	//	Constructor setting debug writer
-		GaussSeidel(IDebugWriter<algebra_type>* pDebugWriter) :
-			IPreconditioner<algebra_type>(pDebugWriter)
-		{};
-
 	// 	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new GaussSeidel<algebra_type>(this->debug_writer());
+			GaussSeidel<algebra_type>* newInst = new GaussSeidel<algebra_type>();
+			newInst->set_debug(debug_writer());
+			return newInst;
 		}
 
 	protected:
@@ -121,19 +126,24 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
+	///	Base type
+		typedef IPreconditioner<TAlgebra> base_type;
+
+	protected:
+		using base_type::set_debug;
+		using base_type::debug_writer;
+		using base_type::write_debug;
+
 	public:
 	//	Constructor
 		BackwardGaussSeidel() {};
 
-	//	Constructor setting debug writer
-		BackwardGaussSeidel(IDebugWriter<algebra_type>* pDebugWriter) :
-			IPreconditioner<algebra_type>(pDebugWriter)
-		{};
-
 	// 	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new BackwardGaussSeidel<algebra_type>(this->debug_writer());
+			BackwardGaussSeidel<algebra_type>* newInst = new BackwardGaussSeidel<algebra_type>();
+			newInst->set_debug(debug_writer());
+			return newInst;
 		}
 
 	protected:
@@ -209,19 +219,24 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
+	///	Base type
+		typedef IPreconditioner<TAlgebra> base_type;
+
+	protected:
+		using base_type::set_debug;
+		using base_type::debug_writer;
+		using base_type::write_debug;
+
 	public:
 	//	Constructor
 		SymmetricGaussSeidel() {};
 
-	//	Constructor setting debug writer
-		SymmetricGaussSeidel(IDebugWriter<algebra_type>* pDebugWriter) :
-			IPreconditioner<algebra_type>(pDebugWriter)
-		{};
-
 	// 	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new SymmetricGaussSeidel<algebra_type>(this->debug_writer());
+			SymmetricGaussSeidel<algebra_type>* newInst = new SymmetricGaussSeidel<algebra_type>();
+			newInst->set_debug(debug_writer());
+			return newInst;
 		}
 
 	protected:

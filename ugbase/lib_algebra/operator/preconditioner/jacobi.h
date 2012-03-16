@@ -32,6 +32,14 @@ class Jacobi : public IPreconditioner<TAlgebra>
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
+	///	Base type
+		typedef IPreconditioner<TAlgebra> base_type;
+
+	protected:
+		using base_type::set_debug;
+		using base_type::debug_writer;
+		using base_type::write_debug;
+
 	public:
 	///	default constructor
 		Jacobi() : m_damp(1.0) {};
@@ -39,18 +47,15 @@ class Jacobi : public IPreconditioner<TAlgebra>
 	///	constructor setting the damping parameter
 		Jacobi(number damp) :	m_damp(damp){};
 
-	//	Constructor setting debug writer
-		Jacobi(IDebugWriter<algebra_type>* pDebugWriter, number damp) :
-			IPreconditioner<algebra_type>(pDebugWriter), m_damp(damp)
-		{};
-
 	///	sets the damping parameter
 		void set_damp(number damp) {m_damp = damp;}
 
 	///	Clone
 		virtual ILinearIterator<vector_type,vector_type>* clone()
 		{
-			return new Jacobi<TAlgebra>(this->debug_writer(), m_damp);
+			Jacobi<algebra_type>* newInst = new Jacobi<algebra_type>(m_damp);
+			newInst->set_debug(debug_writer());
+			return newInst;
 		}
 
 	///	Destructor
