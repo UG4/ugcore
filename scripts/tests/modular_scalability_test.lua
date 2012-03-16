@@ -469,7 +469,7 @@ str_pe = "pe-" .. numProcs
 logfileName = logfileName .. "_" .. str_pe
 logfileName = logfileName .. logpostfix
 
-print("logfileName = '" .. logfileName .."'")
+print("logfileName = '" .. logfileName .."' (automatically renamed if '-rlf' option was set)")
 -- Creation of logfile name END
 
 --------------------------------------------------------------------------------
@@ -584,6 +584,6 @@ if util.HasParamOption("-stats") then
 		} 
 			
 		util.printStats(stats)
-		util.writeFileStats(stats, util.GetParam("-stats", "").."/modular_scalability_test.txt")
+		util.writeFileStats(stats, util.GetParam("-stats", ".").."/modular_scalability_test.txt")
 	end 
 end
