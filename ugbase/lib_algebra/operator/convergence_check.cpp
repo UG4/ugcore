@@ -58,6 +58,8 @@ void StandardConvCheck::start_defect(number initialDefect)
 			UG_LOG("  "<< m_info << "  ");
 			for(int i = m_info.length(); i < max_length; ++i) UG_LOG(" ");
 			for(int i = 0; i < space_left; ++i) UG_LOG(m_symbol); UG_LOG("\n");
+		} else {
+			UG_LOG("\n");
 		}
 
 	//	start iteration output

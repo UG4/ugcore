@@ -951,8 +951,12 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		{
 			convergence_check()->set_name(name());
 			convergence_check()->set_symbol('%');
-			convergence_check()->set_name(name());
-	}
+
+			//	set preconditioner string
+			std::stringstream ss;
+			ss << " (Inherent Preconditioner) ";
+			convergence_check()->set_info(ss.str());
+		}
 
 	protected:
 		virtual void write_debug(const vector_type& vec, const char* filename)
