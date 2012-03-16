@@ -32,16 +32,19 @@ class GridObject : public Grid
 
 bool LoadGridObject(GridObject& go, const char* filename)
 {
+	PROFILE_FUNC();
 	return LoadGridFromFile(go.grid(), go.subset_handler(), filename);
 }
 
 bool SaveGridObject(GridObject& go, const char* filename)
 {
+	PROFILE_FUNC();
 	return SaveGridToFile(go.grid(), go.subset_handler(), filename);
 }
 
 GridObject* CreateGridObject(const char* filename)
 {
+	PROFILE_FUNC();
 	GridObject* go = new GridObject;
 	if(!LoadGridObject(*go, filename)){
 		delete go;
@@ -142,37 +145,44 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename, number of
 
 bool LoadGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
 {
+	PROFILE_FUNC();
 	return LoadGridFromFile(grid, sh, filename);
 }
 
 bool LoadGrid(Grid& grid, const char* filename)
 {
+	PROFILE_FUNC();
 	return LoadGridFromFile(grid, filename);
 }
 
 bool SaveGrid(Grid& grid, const char* filename)
 {
+	PROFILE_FUNC();
 	return SaveGridToFile(grid, filename);
 }
 
 bool SaveGrid(Grid& grid, SubsetHandler& sh, const char* filename)
 {
+	PROFILE_FUNC();
 	return SaveGridToFile(grid, sh, filename);
 }
 
 bool SaveGrid(Grid& grid, const SubsetHandler& sh, const char* filename)
 {
+	PROFILE_FUNC();
 	return SaveGridToFile(grid, *const_cast<SubsetHandler*>(&sh), filename);
 }
 
 bool SaveGridHierarchy(MultiGrid& mg, const char* filename)
 {
+	PROFILE_FUNC();
 	return SaveGridToFile(mg, mg.get_hierarchy_handler(), filename);
 }
 
 
 void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 {
+	PROFILE_FUNC();
 //todo: Callbacks have to make sure that their attachment is accessible in the grid.
 //		even if they were initialized before the attachment was attached to the grid.
 	MultiGrid mg;
@@ -196,6 +206,7 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 
 bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 {
+	PROFILE_FUNC();
 	IRefinementCallback* refCallback = NULL;
 //	we're only checking for the main attachments here.
 //todo: improve this - add a domain-based hierarchy creator.
@@ -230,6 +241,7 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 
 bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 {
+	PROFILE_FUNC();
 	IRefinementCallback* refCallback = NULL;
 //	we're only checking for the main attachments here.
 //todo: improve this - add a domain-based hierarchy creator.
@@ -267,7 +279,7 @@ void MarkForRefinement(MultiGrid& mg,
 					  IRefiner& refiner,
 					  float percentage)
 {
-
+	PROFILE_FUNC();
 	typedef typename geometry_traits<TElem>::iterator iterator;
 	for(iterator iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter)
 	{
@@ -297,6 +309,7 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 									  int numIterations,
 									  float percentage)
 {
+	PROFILE_FUNC();
 	MultiGrid mg;
 	MGSubsetHandler sh(mg);
 	HangingNodeRefiner_MultiGrid refiner(mg);
@@ -344,6 +357,7 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
  */
 void TestGridRedistribution(const char* filename)
 {
+	PROFILE_FUNC();
 #ifndef UG_PARALLEL
 	UG_LOG("WARNING in TestGridRedistribution: ");
 	UG_LOG("This method only works in a parallel environment.\n");
