@@ -213,8 +213,9 @@ static bool reg(Registry& reg, string parentGroup)
 	{
 		typedef IPreconditionedLinearOperatorInverse<vector_type> T;
 		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+		typedef VectorDebugWritingObject<vector_type> TBase2;
 		string name = string("IPreconditionedLinearOperatorInverse").append(algSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_method("set_preconditioner", &T::set_preconditioner,
 						"", "Preconditioner")
 			.add_method("set_compute_fresh_defect_when_finished", &T::set_compute_fresh_defect_when_finished);

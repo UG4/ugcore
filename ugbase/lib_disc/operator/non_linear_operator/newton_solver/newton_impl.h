@@ -229,14 +229,15 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		loopCnt++;
 		sprintf(ext, "_iter%03d", loopCnt);
 
+	// 	check convergence
+		m_spConvCheck->update(m_d);
+
+
 	//	write defect for debug
 		std::string name("NEWTON_Defect"); name.append(ext);
 		write_debug(m_d, name.c_str());
 		std::string name2("NEWTON_Correction"); name2.append(ext);
 		write_debug(m_c, name2.c_str());
-
-	// 	check convergence
-		m_spConvCheck->update(m_d);
 	}
 
 	// reset offset of output for linear solver to previous value
