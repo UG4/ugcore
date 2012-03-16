@@ -189,15 +189,14 @@ class CG
 	///	adjust output of convergence check
 		void prepare_conv_check()
 		{
-		//	set iteration symbol an name
+		//	set iteration symbol and name
 			convergence_check()->set_name(name());
 			convergence_check()->set_symbol('%');
-			convergence_check()->set_name(name());
 
 		//	set preconditioner string
 			std::stringstream ss;
 			if(preconditioner().valid())
-				ss<<" (Precond: "<<preconditioner()->name()<<")";
+				ss <<" (Precond: "<<preconditioner()->name()<<")";
 			else
 				ss << " (No Preconditioner) ";
 			convergence_check()->set_info(ss.str());
