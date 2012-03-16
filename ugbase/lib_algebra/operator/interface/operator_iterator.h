@@ -382,7 +382,7 @@ class IPreconditioner :
 			if(c.size() != m_pOperator->num_cols())
 				UG_THROW_FATAL("Vector [size= "<<c.size()<<"] and Column [size= "
 				               <<m_pOperator->num_cols()<<"] sizes have to match!");
-			if(d.size() == c.size())
+			if(d.size() != c.size())
 				UG_THROW_FATAL("Vector [d size= "<<d.size()<<", c size = "
 				               << c.size() << "] sizes have to match!");
 
