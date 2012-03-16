@@ -281,12 +281,9 @@ class IPreconditioner :
 
 		//	Check that matrix if of correct type
 			if(pOp == NULL)
-			{
-				UG_LOG("ERROR in '" << name() << "::init': Passed Operator is "
+				UG_THROW_FATAL(name() << "::init': Passed Operator is "
 						"not based on matrix. This Preconditioner can only "
-						"handle matrix-based operators. Aborting.\n");
-				return false;
-			}
+						"handle matrix-based operators.");
 
 		//	forward request to matrix based implementation
 			return init(*pOp);
@@ -310,12 +307,9 @@ class IPreconditioner :
 
 		//	Check that matrix if of correct type
 			if(pOp == NULL)
-			{
-				UG_LOG("ERROR in '" << name() << "::init': Passed Operator is"
-						" not based on matrix. This Preconditioner can only "
-						"handle matrix-based operators. Aborting.\n");
-				return false;
-			}
+				UG_THROW_FATAL(name() << "::init': Passed Operator is "
+						"not based on matrix. This Preconditioner can only "
+						"handle matrix-based operators.");
 
 		//	forward request to matrix based implementation
 			return init(*pOp);
@@ -336,17 +330,15 @@ class IPreconditioner :
 			m_pOperator = &Op;
 
 		//	Check that matrix exists
-			if(m_pOperator == NULL)
-			{
-				UG_LOG("ERROR in '"<< name() << "::init': Matrix not found, "
-						"though matrix-based operator given.\n");
-				return false;
-			}
+			if(pOp == NULL)
+				UG_THROW_FATAL(name() << "::init': Passed Operator is "
+						"not based on matrix. This Preconditioner can only "
+						"handle matrix-based operators.");
 
 		//	Preprocess
 			if(!preprocess(*m_pOperator))
 			{
-				UG_LOG("ERROR in '"<< name() << "::init': Preprocess failed.\n");
+				UG_LOG("ERROR in '"<<name()<<"::init': Preprocess failed.\n");
 				return false;
 			}
 
@@ -372,50 +364,41 @@ class IPreconditioner :
 		//	Check that operator is initialized
 			if(!m_bInit)
 			{
-				UG_LOG("ERROR in '" << name() << "::apply': "
-						"Iterator not initialized.\n");
+				UG_LOG("ERROR in '"<<name()<<"::apply': Iterator not initialized.\n");
 				return false;
 			}
 
 		//	Check parallel status
-#ifdef UG_PARALLEL
+			#ifdef UG_PARALLEL
 			if(!d.has_storage_type(PST_ADDITIVE))
-			{
-				UG_LOG("ERROR in '" << name() << "::apply': Wrong parallel "
-						"storage format. Defect must be additive.\n");
-				return false;
-			}
-#endif
+				UG_THROW_FATAL(name() << "::apply: Wrong parallel "
+				               "storage format. Defect must be additive.");
+			#endif
 
-		//	Some Assertions
-		//  \todo: (optinal) Should we always perform this check (using if(...))
-		//			since it it not very expensive and in the outer loop?
-			UG_ASSERT(d.size() == m_pOperator->num_rows(), "Vector [size= " <<
-			          d.size() << "] and Row [size= " << m_pOperator->num_rows()
-			          <<"] sizes have to match!");
-			UG_ASSERT(c.size() == m_pOperator->num_cols(), "Vector [size= " <<
-			          c.size() << "] and Column [size= " << m_pOperator->num_cols()
-			          <<"] sizes have to match!");
-			UG_ASSERT(d.size() == c.size(), "Vector [d size= " << d.size() <<
-			          ", c size = " << c.size() << "] sizes have to match!");
+		//	Check sizes
+			if(d.size() != m_pOperator->num_rows())
+				UG_THROW_FATAL("Vector [size= "<<d.size()<<"] and Row [size= "
+				               <<m_pOperator->num_rows()<<"] sizes have to match!");
+			if(c.size() != m_pOperator->num_cols())
+				UG_THROW_FATAL("Vector [size= "<<c.size()<<"] and Column [size= "
+				               <<m_pOperator->num_cols()<<"] sizes have to match!");
+			if(d.size() == c.size())
+				UG_THROW_FATAL("Vector [d size= "<<d.size()<<", c size = "
+				               << c.size() << "] sizes have to match!");
 
 		// 	apply iterator: c = B*d
 			if(!step(*m_pOperator, c, d))
 			{
-				UG_LOG("ERROR in '" << name() << "::apply': "
-						"Step Routine failed.\n");
+				UG_LOG("ERROR in '"<<name()<<"::apply': Step Routine failed.\n");
 				return false;
 			}
 
-#ifdef 	UG_PARALLEL
 		//	Correction is always consistent
+			#ifdef 	UG_PARALLEL
 			if(!c.change_storage_type(PST_CONSISTENT))
-			{
-				UG_LOG("ERROR in '" << name() << "::apply': Cannot change "
-						"parallel storage type of correction to consistent.\n");
-				return false;
-			}
-#endif
+				UG_THROW_FATAL(name() << "::apply': Cannot change "
+						"parallel storage type of correction to consistent.");
+			#endif
 
 		//	we're done
 			return true;
@@ -439,7 +422,7 @@ class IPreconditioner :
 		// 	update defect d := d - A*c
 			if(!m_pOperator->matmul_minus(d, c))
 			{
-				UG_LOG("ERROR in 'IPreconditioner::apply_update_defect': "
+				UG_LOG("ERROR in '"<<name()<<"::apply_update_defect': "
 						"Cannot execute matmul_minus to compute d:=d-A*c.\n");
 				return false;
 			}

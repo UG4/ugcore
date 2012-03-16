@@ -317,19 +317,19 @@ class IPreconditionedLinearOperatorInverse
 	public:
 	///	Empty constructor
 		IPreconditionedLinearOperatorInverse()
-			: m_bRecomputeDefectWhenFinished(false), m_spPrecond(NULL)
+			: m_bRecompute(false), m_spPrecond(NULL)
 		{}
 
 	///	constructor setting the preconditioner
 		IPreconditionedLinearOperatorInverse(SmartPtr<ILinearIterator<X,X> > spPrecond)
-			: m_bRecomputeDefectWhenFinished(false), m_spPrecond(spPrecond)
+			: m_bRecompute(false), m_spPrecond(spPrecond)
 		{}
 
 	///	constructor setting the preconditioner
 		IPreconditionedLinearOperatorInverse(SmartPtr<ILinearIterator<X,X> > spPrecond,
 		                                     SmartPtr<IConvergenceCheck> spConvCheck)
 			: 	base_type(spConvCheck),
-				m_bRecomputeDefectWhenFinished(false), m_spPrecond(spPrecond)
+				m_bRecompute(false), m_spPrecond(spPrecond)
 		{}
 
 	///	sets the preconditioner
@@ -375,17 +375,20 @@ class IPreconditionedLinearOperatorInverse
 		//	solve on copy of defect
 			bool bRes = apply_return_defect(x, bTmp);
 
+		//	write updated defect
 			write_debug(bTmp, "LS_UpdatedDefectEnd.vec");
 
 		//	compute defect again, for debug purpose
-			if(m_bRecomputeDefectWhenFinished)
+			if(m_bRecompute)
 			{
-				bTmp = b;
-				linear_operator()->apply_sub(bTmp, x);
+			//	recompute defect
+				bTmp = b; linear_operator()->apply_sub(bTmp, x);
 
-				number norm = bTmp.two_norm();
-				UG_LOG("%%%% DEBUG "<<name()<<": (Re)computed defect has norm: "<<norm<<"\n");
+			//	print norm of recomputed defect
+				UG_LOG("%%%% DEBUG "<<name()<<": (Re)computed defect has norm: "
+				       <<bTmp.two_norm()<<"\n");
 
+			//	write true end defect
 				write_debug(bTmp, "LS_TrueDefectEnd.vec");
 			}
 
@@ -394,14 +397,14 @@ class IPreconditionedLinearOperatorInverse
 		}
 
 	///	for debug: computes norm again after whole calculation of apply
-		void set_compute_fresh_defect_when_finished(bool bRecomputeDefectWhenFinished)
+		void set_compute_fresh_defect_when_finished(bool bRecompute)
 		{
-			m_bRecomputeDefectWhenFinished = bRecomputeDefectWhenFinished;
+			m_bRecompute = bRecompute;
 		}
 
 	protected:
 	///	flag if fresh defect should be computed when finish for debug purpose
-		bool m_bRecomputeDefectWhenFinished;
+		bool m_bRecompute;
 
 	///	Iterator used in the iterative scheme to compute the correction and update the defect
 		SmartPtr<ILinearIterator<X,X> > m_spPrecond;
