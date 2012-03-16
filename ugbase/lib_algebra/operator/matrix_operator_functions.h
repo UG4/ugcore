@@ -6,7 +6,7 @@
 #ifndef __H__LIB_ALGEBRA__MATRIX_OPERATOR_FUNCTIONS__
 #define __H__LIB_ALGEBRA__MATRIX_OPERATOR_FUNCTIONS__
 
-#include "operator_interface.h"
+#include "lib_algebra/operator/interface/operator.h"
 
 namespace ug
 {

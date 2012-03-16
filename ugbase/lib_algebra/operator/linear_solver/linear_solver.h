@@ -10,7 +10,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "lib_algebra/operator/operator_interface.h"
+#include "lib_algebra/operator/interface/operator.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif

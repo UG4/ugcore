@@ -12,7 +12,7 @@
 
 #include "../common/template_expressions.h"
 #include "../common/operations.h"
-#include "../operator/operator_base_interface.h"
+#include "lib_algebra/operator/interface/function_base.h"
 
 namespace ug{
 ///////////////////////////////////////////////////////////////////

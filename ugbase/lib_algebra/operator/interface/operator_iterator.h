@@ -8,8 +8,8 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__OPERATOR_ITERATOR_INTERFACE__
 #define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_ITERATOR_INTERFACE__
 
-#include "operator_interface.h"
-#include "debug_writer.h"
+#include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/debug_writer.h"
 
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"

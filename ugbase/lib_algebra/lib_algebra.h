@@ -38,10 +38,10 @@
 #include "small_algebra/small_algebra.h"
 
 // operator interfaces
-#include "lib_algebra/operator/operator_base_interface.h"
-#include "lib_algebra/operator/operator_interface.h"
-#include "lib_algebra/operator/operator_inverse_interface.h"
-#include "lib_algebra/operator/operator_iterator_interface.h"
+#include "lib_algebra/operator/interface/function_base.h"
+#include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/interface/operator_inverse.h"
+#include "lib_algebra/operator/interface/operator_iterator.h"
 
 // preconditioner
 #include "lib_algebra/operator/preconditioner/jacobi.h"
@@ -62,7 +62,7 @@
 #endif
 
 // operator util
-#include "lib_algebra/operator/operator_iterator_product.h"
+#include "lib_algebra/operator/preconditioner/iterator_product.h"
 #include "lib_algebra/operator/operator_util.h"
 #include "lib_algebra/operator/vector_writer.h"
 

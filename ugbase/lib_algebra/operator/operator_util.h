@@ -1,9 +1,10 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__OPERATOR_UTIL__
 #define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_UTIL__
 
-#include "operator_interface.h"
-#include "operator_inverse_interface.h"
+
 #include "common/profiler/profiler.h"
+#include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/interface/operator_inverse.h"
 
 namespace ug{
 

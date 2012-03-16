@@ -8,7 +8,7 @@
 #ifndef TRANSFER_INTERFACE_H_
 #define TRANSFER_INTERFACE_H_
 
-#include "lib_algebra/operator/operator_interface.h"
+#include "lib_algebra/operator/interface/operator.h"
 #include "lib_disc/dof_manager/grid_level.h"
 
 namespace ug{

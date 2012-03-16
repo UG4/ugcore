@@ -16,8 +16,8 @@
 
 #include "lib_algebra/lib_algebra.h"
 
-#include "lib_algebra/operator/operator_inverse_interface.h"
-#include "lib_algebra/operator/operator_iterator_interface.h"
+#include "lib_algebra/operator/interface/operator_inverse.h"
+#include "lib_algebra/operator/interface/operator_iterator.h"
 #include "lib_algebra/operator/vector_writer.h"
 #include <vector>
 #include <iostream>

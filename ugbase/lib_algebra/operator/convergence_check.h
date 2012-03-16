@@ -19,7 +19,7 @@
 #include <math.h>
 
 #include "common/common.h"
-#include "lib_algebra/operator/operator_base_interface.h"
+#include "lib_algebra/operator/interface/function_base.h"
 
 namespace ug{
 

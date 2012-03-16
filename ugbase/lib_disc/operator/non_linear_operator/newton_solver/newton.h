@@ -10,7 +10,7 @@
 
 #include <cmath>
 
-#include "lib_algebra/operator/operator_inverse_interface.h"
+#include "lib_algebra/operator/interface/operator_inverse.h"
 
 // modul intern headers
 #include "lib_disc/assemble_interface.h"

@@ -17,8 +17,8 @@
 // lib_algebra includes
 #include "lib_algebra/cpu_algebra_types.h"
 #include "lib_algebra/operator/operator_util.h"
-#include "lib_algebra/operator/operator_interface.h"
-#include "lib_algebra/operator/operator_inverse_interface.h"
+#include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/interface/operator_inverse.h"
 
 // lib_disc includes
 #include "lib_disc/domain.h"

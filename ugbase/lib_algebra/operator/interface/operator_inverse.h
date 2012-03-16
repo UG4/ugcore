@@ -8,13 +8,15 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__OPERATOR_INVERSE_INTERFACE__
 #define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_INVERSE_INTERFACE__
 
-#include "operator_interface.h"
-#include "convergence_check.h"
 #include "common/util/smart_pointer.h"
-#include "debug_writer.h"
-#include "operator_base_interface.h"
-#include "operator_iterator_interface.h"
 #include "common/profiler/profiler.h"
+
+#include "lib_algebra/operator/interface/function_base.h"
+#include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/interface/operator_iterator.h"
+
+#include "lib_algebra/operator/debug_writer.h"
+#include "lib_algebra/operator/convergence_check.h"
 
 #define PROFILE_LS
 #ifdef PROFILE_LS

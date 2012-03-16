@@ -18,7 +18,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "lib_algebra/operator/operator_inverse_interface.h"
+#include "lib_algebra/operator/interface/operator_inverse.h"
 #include "lib_algebra/parallelization/parallelization.h"
 #include "lib_algebra/operator/debug_writer.h"
 #include "pcl/pcl.h"

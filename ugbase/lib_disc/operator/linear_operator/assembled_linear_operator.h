@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
 
-#include "lib_algebra/operator/operator_interface.h"
+#include "lib_algebra/operator/interface/operator.h"
 
 #ifdef UG_PARALLEL
 #include "lib_disc/parallelization/parallelization_util.h"
