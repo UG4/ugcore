@@ -8,7 +8,8 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__JACOBI__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__JACOBI__
 
-#include "lib_algebra/operator/operator.h"
+#include "lib_algebra/operator/operator_iterator_interface.h"
+
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
