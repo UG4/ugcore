@@ -109,8 +109,8 @@ init()
 					"Sequential Dirichlet Solver for Operator A.");
 
 //	Debug output of matrices
-	write_debug(m_DirichletOperator.get_matrix(), "FetiDirichletMatrix");
-	write_debug(m_pOperator->get_matrix(), "FetiOriginalMatrix");
+	write_debug(m_DirichletOperator.get_matrix(), "FetiDirichletMatrix.mat");
+	write_debug(m_pOperator->get_matrix(), "FetiOriginalMatrix.mat");
 
 //	reset apply counter
 	m_applyCnt = 0;
@@ -164,7 +164,7 @@ apply(vector_type& f, const vector_type& u)
 	{
 	//	add iter count to name
 		std::string name("FetiDirichletRhs");
-		char ext[20]; sprintf(ext, "_apply%03d", m_applyCnt);
+		char ext[20]; sprintf(ext, "_apply%03d.vec", m_applyCnt);
 		//name.append(m_statType);
 		name.append(ext);
 
@@ -389,7 +389,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	UG_LOG("done.\n");
 
 //	Debug output of matrices
-	write_debug(m_NeumannOperator.get_matrix(), "FetiNeumannMatrix");
+	write_debug(m_NeumannOperator.get_matrix(), "FetiNeumannMatrix.mat");
 
 //	Choose root process, where Schur complement w.r.t. Primal unknowns
 //	is gathered.
@@ -817,7 +817,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 		//	write matrix
 			dbgWriter2d.write_matrix(m_RootSchurComplementOp.get_matrix(),
-										 "RootSchurComplementMatrix");
+										 "RootSchurComplementMatrix.mat");
 		}
 	}
 
