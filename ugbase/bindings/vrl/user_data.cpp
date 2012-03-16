@@ -722,7 +722,8 @@ void RegisterUserData(ug::bridge::Registry& reg,
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("userNumber", &T::set_vrl_callback, "",
-				options.str().c_str());
+				options.str().c_str())
+				.set_construct_as_smart_pointer(true);
 	}
 
 	//	VRLUserVector
@@ -748,7 +749,8 @@ void RegisterUserData(ug::bridge::Registry& reg,
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("userVector", &T::set_vrl_callback, "",
-				options.str().c_str());
+				options.str().c_str())
+				.set_construct_as_smart_pointer(true);
 	}
 
 	//	VRLBoundaryUserVector
@@ -773,7 +775,8 @@ void RegisterUserData(ug::bridge::Registry& reg,
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("boundaryNumber", &T::set_vrl_callback, "",
-				options.str().c_str());
+				options.str().c_str())
+				.set_construct_as_smart_pointer(true);
 	}
 
 }

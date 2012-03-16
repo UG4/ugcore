@@ -124,8 +124,8 @@ class VectorDebugWritingObject
 		}
 
 	///	returns the debug writer
-		SmartPtr<IVectorDebugWriter<vector_type> > debug_writer() {return m_spVectorDebugWriter;}
-		ConstSmartPtr<IVectorDebugWriter<vector_type> > debug_writer() const {return m_spVectorDebugWriter;}
+		SmartPtr<IVectorDebugWriter<vector_type> > vector_debug_writer() {return m_spVectorDebugWriter;}
+		ConstSmartPtr<IVectorDebugWriter<vector_type> > vector_debug_writer() const {return m_spVectorDebugWriter;}
 
 	protected:
 	///	writing debug output for a vector (if debug writer set)

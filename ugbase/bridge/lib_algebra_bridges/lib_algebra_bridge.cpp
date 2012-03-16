@@ -147,8 +147,8 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("VectorDebugWritingObject").append(algSuffix);
 		reg.add_class_<T>(name, grp)
 			.add_method("set_debug", &T::set_debug, "sets a debug writer", "d")
-			.add_method("debug_writer", static_cast<SmartPtr<IVectorDebugWriter<vector_type> > (T::*)()>(&T::debug_writer))
-			.add_method("debug_writer", static_cast<ConstSmartPtr<IVectorDebugWriter<vector_type> > (T::*)() const>(&T::debug_writer));
+			.add_method("vector_debug_writer", static_cast<SmartPtr<IVectorDebugWriter<vector_type> > (T::*)()>(&T::vector_debug_writer))
+			.add_method("vector_debug_writer", static_cast<ConstSmartPtr<IVectorDebugWriter<vector_type> > (T::*)() const>(&T::vector_debug_writer));
 		reg.add_class_to_group(name, "VectorDebugWritingObject", algTag);
 	}
 
@@ -243,7 +243,7 @@ static bool reg(Registry& reg, string parentGroup)
 			.add_method("set_preconditioner", &T::set_preconditioner,
 						"", "Preconditioner")
 			.add_method("set_compute_fresh_defect_when_finished", &T::set_compute_fresh_defect_when_finished);
-		reg.add_class_to_group(name, "ILinearOperatorInverse", algTag);
+		reg.add_class_to_group(name, "IPreconditionedLinearOperatorInverse", algTag);
 	}
 
 //	IMatrixOperatorInverse
