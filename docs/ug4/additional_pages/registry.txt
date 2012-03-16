@@ -233,7 +233,7 @@ style identifier: <code>default</code>
 
 possible options: min, max, value
 
-example string: <code>"Double|default|min=1D;max=10D,value=5D"</code>
+example string: <code>"Double|default|min=1D;max=100D;value=50D"</code>
 
 \image html img/vrl/double-default-01.png
 
@@ -246,7 +246,7 @@ style identifier: <code>default</code>
 
 possible options: min, max, value
 
-example string: <code>"Integer|default|min=1;max=10,value=50"</code>
+example string: <code>"Integer|default|min=1;max=100;value=50"</code>
 
 \image html img/vrl/integer-default-01.png
 <hr>
