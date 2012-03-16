@@ -525,7 +525,7 @@ print()
 		UG_LOG(", local_pos="<< m_vSCV[i].local_ip());
 		UG_LOG(", global_pos="<< m_vSCV[i].global_ip());
 		UG_LOG(", vol=" << m_vSCV[i].volume());
-		UG_LOG("\n    localCorner=" << m_vSCV[i].m_vLocPos[0]);
+/*		UG_LOG("\n    localCorner=" << m_vSCV[i].m_vLocPos[0]);
 		UG_LOG(", localSide1=" << m_vSCV[i].m_vLocPos[1]);
 		UG_LOG(", localCenter=" << m_vSCV[i].m_vLocPos[2]);
 		UG_LOG(", localSide2=" << m_vSCV[i].m_vLocPos[3]);
@@ -533,7 +533,7 @@ print()
 		UG_LOG(", globalSide1=" << m_vSCV[i].m_vGloPos[1]);
 		UG_LOG(", globalCenter=" << m_vSCV[i].m_vGloPos[2]);
 		UG_LOG(", globalSide2=" << m_vSCV[i].m_vGloPos[3]);
-
+*/
 		UG_LOG("\n");
 	}
 	UG_LOG("\n");
