@@ -387,14 +387,14 @@ static bool reg(Registry& reg, string parentGroup)
 	{
 		typedef LocalSchurComplement<TAlgebra> T;
 		typedef ILinearOperator<vector_type, vector_type> TBase;
+		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("LocalSchurComplement").append(algSuffix);
-		reg.add_class_<	T, TBase>(name, grp3)
+		reg.add_class_<	T, TBase, TBase2>(name, grp3)
 		.add_constructor()
 		.add_method("set_matrix", &T::set_matrix,
 					"", "Matrix")
 		.add_method("set_dirichlet_solver", &T::set_dirichlet_solver,
 					"", "Dirichlet Solver")
-		.add_method("set_debug", &T::set_debug, "", "d")
 		// the following functions would normally not be executed from script
 		.add_method("init", static_cast<void (T::*)()>(&T::init))
 		.add_method("apply", &T::apply,
@@ -406,8 +406,9 @@ static bool reg(Registry& reg, string parentGroup)
 	{
 		typedef FETISolver<TAlgebra> T;
 		typedef IMatrixOperatorInverse<vector_type, vector_type, matrix_type> BaseT;
+		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("FETI").append(algSuffix);
-		reg.add_class_<	T, BaseT >(name, grp3, "FETI Domain Decomposition Solver")
+		reg.add_class_<	T, BaseT,TBase2>(name, grp3, "FETI Domain Decomposition Solver")
 		.add_constructor()
 		.add_method("set_neumann_solver", &T::set_neumann_solver,
 					"", "Neumann Solver")
@@ -429,8 +430,9 @@ static bool reg(Registry& reg, string parentGroup)
 	{
 		typedef HLIBSolver<TAlgebra> T;
 		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("HLIBSolver").append(algSuffix);
-		reg.add_class_<	T, TBase>(name, grp3)
+		reg.add_class_<	T, TBase, TBase2>(name, grp3)
 		.add_constructor()
 		.add_method("set_hlib_nmin",         &T::set_hlib_nmin,
 					"", "HLIB nmin")
@@ -445,8 +447,7 @@ static bool reg(Registry& reg, string parentGroup)
 		.add_method("set_ps_basename",       &T::set_ps_basename,
 					"", "PostScript basename")
 		.add_method("check_crs_matrix",      &T::check_crs_matrix,
-					"", "Check CRS matrix")
-		.add_method("set_debug", &T::set_debug);
+					"", "Check CRS matrix");
 		reg.add_class_to_group(name, "HLIBSolver", algTag);
 	}
 #endif

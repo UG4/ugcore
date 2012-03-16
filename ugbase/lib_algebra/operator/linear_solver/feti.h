@@ -518,7 +518,8 @@ void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& diff,
 template <typename TAlgebra>
 class LocalSchurComplement
 	: public ILinearOperator<	typename TAlgebra::vector_type,
-	  	  	  	  	  	  	  	typename TAlgebra::vector_type>
+	  	  	  	  	  	  	  	typename TAlgebra::vector_type>,
+	  public DebugWritingObject<TAlgebra>
 {
 	public:
 	// 	Algebra type
@@ -529,6 +530,10 @@ class LocalSchurComplement
 
 	// 	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
+
+	protected:
+		using DebugWritingObject<TAlgebra>::write_debug;
+		using DebugWritingObject<TAlgebra>::debug_writer;
 
 	public:
 	///	constructor
@@ -583,12 +588,6 @@ class LocalSchurComplement
 			m_pFetiLayouts = &fetiLayouts;
 		}
 
-	///	set debug output
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
-		{
-			m_pDebugWriter = debugWriter;
-		}
-
 	/// implementation of the operator for the solution dependent initialization.
 		void init(const vector_type& u) {init();}
 
@@ -617,16 +616,6 @@ class LocalSchurComplement
 
 	// destructor
 		virtual ~LocalSchurComplement() {};
-
-	protected:
-		void write_debug(const vector_type& vec, const char* filename)
-		{
-		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return;
-
-		//	write
-			m_pDebugWriter->write_vector(vec, filename);
-		}
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator
@@ -659,10 +648,6 @@ class LocalSchurComplement
 		std::map<std::string, std::vector<StepConv> > m_mvStepConv;
 
 		int m_applyCnt;
-
-	//	Debug Writer
-		IDebugWriter<algebra_type>* m_pDebugWriter;
-
 }; /* end class 'LocalSchurComplement' */
 
 /* 1.7 Application of \f${\tilde{S}_{\Delta \Delta}}^{-1}\f$ */ 
@@ -674,7 +659,8 @@ class LocalSchurComplement
 template <typename TAlgebra>
 class PrimalSubassembledMatrixInverse
 	: public ILinearOperatorInverse<	typename TAlgebra::vector_type,
-	  	  	  	  	  	  	  			typename TAlgebra::vector_type>
+	  	  	  	  	  	  	  			typename TAlgebra::vector_type>,
+	  public DebugWritingObject<TAlgebra>
 {
 	public:
 	// 	Algebra type
@@ -691,6 +677,8 @@ class PrimalSubassembledMatrixInverse
 
 	protected:
 		using base_type::convergence_check;
+		using DebugWritingObject<TAlgebra>::write_debug;
+		using DebugWritingObject<TAlgebra>::debug_writer;
 
 	public:
 	///	constructor
@@ -717,12 +705,6 @@ class PrimalSubassembledMatrixInverse
 		void set_feti_layouts(FetiLayouts<algebra_type>& fetiLayouts)
 		{
 			m_pFetiLayouts = &fetiLayouts;
-		}
-
-	//	set debug output
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
-		{
-			m_pDebugWriter = debugWriter;
 		}
 
 	// 	Init for Linear Operator L
@@ -754,16 +736,6 @@ class PrimalSubassembledMatrixInverse
 
 	//  destructor
 		virtual ~PrimalSubassembledMatrixInverse() {};
-
-	protected:
-		void write_debug(const vector_type& vec, const char* filename)
-		{
-		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return;
-
-		//	write
-			m_pDebugWriter->write_vector(vec, filename);
-		}
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator ==> from which SC is built (05022011)
@@ -816,9 +788,6 @@ class PrimalSubassembledMatrixInverse
 
 	//	testing of 'one-to-many layouts'
 		bool m_bTestOneToManyLayouts;
-
-	//	Debug Writer
-		IDebugWriter<algebra_type>* m_pDebugWriter;
 }; /* end class 'PrimalSubassembledMatrixInverse' */
 
 /// operator implementation of the FETI-DP solver
@@ -830,7 +799,8 @@ class PrimalSubassembledMatrixInverse
 template <typename TAlgebra>
 class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 													typename TAlgebra::vector_type,
-													typename TAlgebra::matrix_type>
+													typename TAlgebra::matrix_type>,
+	public DebugWritingObject<TAlgebra>
 {
 	public:
 	// 	Algebra type
@@ -847,6 +817,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	protected:
 		using base_type::convergence_check;
+		using DebugWritingObject<TAlgebra>::write_debug;
+		using DebugWritingObject<TAlgebra>::debug_writer;
 
 	public:
 	///	constructor
@@ -879,9 +851,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	set debug output
 		void set_debug(IDebugWriter<algebra_type>* debugWriter)
 		{
-			m_pDebugWriter = debugWriter;
-			m_LocalSchurComplement.set_debug(m_pDebugWriter);
-			m_PrimalSubassembledMatrixInverse.set_debug(m_pDebugWriter);
+			m_LocalSchurComplement.set_debug(debugWriter);
+			m_PrimalSubassembledMatrixInverse.set_debug(debugWriter);
+			VectorDebugWritingObject<vector_type>::set_debug(debugWriter);
 		}
 
 	///	initializes the solver for operator A
@@ -984,7 +956,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	}
 
 	protected:
-		void write_debug(const vector_type& vec, const char* filename)
+		virtual void write_debug(const vector_type& vec, const char* filename)
 		{
 		//	add iter count to name
 			std::string name(filename);
@@ -992,10 +964,10 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			name.append(ext);
 
 		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return;
+			if(debug_writer() == NULL) return;
 
 		//	write
-			m_pDebugWriter->write_vector(vec, name.c_str());
+			debug_writer()->write_vector(vec, name.c_str());
 		}
 
 		int m_iterCnt;
@@ -1026,9 +998,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	Solver used in solving coarse problem on root.
 	// 	It solves \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ 
 		ILinearOperatorInverse<vector_type, vector_type>* m_pCoarseProblemSolver;
-
-	//	Debug Writer
-		IDebugWriter<algebra_type>* m_pDebugWriter;
 
 	public:
 		void set_domain_decomp_info(pcl::IDomainDecompositionInfo& ddInfo)

@@ -89,23 +89,6 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 				procsOut[i] = first + i;
 		}
 
-	///	set debug output - needed?
-		/*
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
-		{
-			m_pDebugWriter = debugWriter;
-		}
-	protected:
-		bool write_debug(const vector_type& vec, const char* filename)
-		{
-		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return true;
-
-		//	write
-			return m_pDebugWriter->write_vector(vec, filename);
-		}
-		*/
-
 	public:
 		// destructor
 		~StandardDomainDecompositionInfo() {};
@@ -117,11 +100,6 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 	// 	number of procs per subdomains
 		//std::vector<int> m_vnum_procs_per_subdomain; // as vector, for variable distribution of processors over subdomains
 		int m_num_procs_per_subdomain;
-
-	//	Debug Writer - needed?
-			/*
-		IDebugWriter<algebra_type>* m_pDebugWriter;
-			*/
 }; /* end class 'StandardDomainDecompositionInfo' */
 
 }//	end of namespace

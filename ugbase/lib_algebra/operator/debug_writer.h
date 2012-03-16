@@ -115,7 +115,7 @@ class VectorDebugWritingObject
 			: m_pVectorDebugWriter(pDebugWriter) {}
 
 	///	set debug writer
-		void set_debug(IVectorDebugWriter<vector_type>* debugWriter)
+		virtual void set_debug(IVectorDebugWriter<vector_type>* debugWriter)
 		{
 			m_pVectorDebugWriter = debugWriter;
 		}
@@ -125,7 +125,7 @@ class VectorDebugWritingObject
 
 	protected:
 	///	writing debug output for a vector (if debug writer set)
-		void write_debug(const vector_type& vec, const char* filename)
+		virtual void write_debug(const vector_type& vec, const char* filename)
 		{
 		//	if no debug writer set, we're done
 			if(!m_pVectorDebugWriter) return;
@@ -172,7 +172,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 				m_pDebugWriter(pDebugWriter) {}
 
 	///	set debug writer
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		virtual void set_debug(IDebugWriter<algebra_type>* debugWriter)
 		{
 			m_pDebugWriter = debugWriter;
 		}
@@ -182,7 +182,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 
 	protected:
 	///	write debug output for a matrix (if debug writer set)
-		void write_debug(const matrix_type& mat, const char* filename)
+		virtual void write_debug(const matrix_type& mat, const char* filename)
 		{
 		//	if no debug writer set, we're done
 			if(!m_pDebugWriter) return;

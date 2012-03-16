@@ -68,8 +68,7 @@ LocalSchurComplement() :
 	m_pMatrix(NULL),
 	m_pFetiLayouts(NULL),
 	m_pDirichletMatrix(NULL),
-	m_pDirichletSolver(NULL),
-	m_pDebugWriter(NULL)
+	m_pDirichletSolver(NULL)
 {
 }
 
@@ -110,13 +109,8 @@ init()
 					"Sequential Dirichlet Solver for Operator A.");
 
 //	Debug output of matrices
-	if(m_pDebugWriter != NULL)
-	{
-		m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
-									 "FetiDirichletMatrix");
-		m_pDebugWriter->write_matrix(m_pOperator->get_matrix(),
-									 "FetiOriginalMatrix");
-	}
+	write_debug(m_DirichletOperator.get_matrix(), "FetiDirichletMatrix");
+	write_debug(m_pOperator->get_matrix(), "FetiOriginalMatrix");
 
 //	reset apply counter
 	m_applyCnt = 0;
@@ -166,7 +160,7 @@ apply(vector_type& f, const vector_type& u)
 	m_pFetiLayouts->vec_set_on_dual(f, 0.0);
 
 //	Debug output of vector
-	if(m_pDebugWriter != NULL)
+	if(debug_writer() != NULL)
 	{
 	//	add iter count to name
 		std::string name("FetiDirichletRhs");
@@ -174,7 +168,7 @@ apply(vector_type& f, const vector_type& u)
 		//name.append(m_statType);
 		name.append(ext);
 
-		m_pDebugWriter->write_vector(f, name.c_str());
+		debug_writer()->write_vector(f, name.c_str());
 	}
 
 //	3. Invert on inner unknowns u_{I} = A_{II}^{-1} f_{I}
@@ -322,8 +316,7 @@ PrimalSubassembledMatrixInverse() :
 	m_primalRootProc(-1),
 	m_pRootSchurComplementMatrix(NULL),
 	m_statType(""),
-	m_bTestOneToManyLayouts(false),
-	m_pDebugWriter(NULL)
+	m_bTestOneToManyLayouts(false)
 {
 }
 
@@ -396,11 +389,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	UG_LOG("done.\n");
 
 //	Debug output of matrices
-	if(m_pDebugWriter != NULL)
-	{
-		m_pDebugWriter->write_matrix(m_NeumannOperator.get_matrix(),
-									 "FetiNeumannMatrix");
-	}
+	write_debug(m_NeumannOperator.get_matrix(), "FetiNeumannMatrix");
 
 //	Choose root process, where Schur complement w.r.t. Primal unknowns
 //	is gathered.
@@ -786,11 +775,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 //	Debug output of matrix
 //	this is 2d only debug output. \todo: generalize (i.e. copy+paste)
-	if(m_pDebugWriter != NULL && m_pDebugWriter->current_dimension() == 2)
+	if(debug_writer() != NULL && debug_writer()->current_dimension() == 2)
 	{
-	//	get const ref to debug writer
-		const IDebugWriter<algebra_type>& dbgWriter = *m_pDebugWriter;
-
 	//	vector of root index + pos
 		std::vector<PosAndIndex<2> > vProcLocPos;
 
@@ -801,7 +787,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			const IndexLayout::Element localPrimalIndex = vLocalPrimalLocalID[pqi];
 
 		//	get position of local index
-			MathVector<2> vPos = (dbgWriter.template get_positions<2>())[localPrimalIndex];
+			MathVector<2> vPos =
+					(const_cast<const IDebugWriter<TAlgebra>*>(debug_writer())->
+							template get_positions<2>())[localPrimalIndex];
 
 		//	read root index
 			int id = vPrimalRootIDLUT[localPrimalIndex];
@@ -1180,8 +1168,7 @@ FETISolver() :
 	m_pOperator(NULL),
 	m_pMatrix(NULL),
 	m_pDirichletSolver(NULL),
-	m_pNeumannSolver(NULL),
-	m_pDebugWriter(NULL)
+	m_pNeumannSolver(NULL)
 {
 
 }
@@ -1209,7 +1196,7 @@ init(MatrixOperator<vector_type, vector_type, matrix_type>& A)
 		return false;
 	}
 
-	bool debugLayouts = (m_pDebugWriter==NULL) ? false : true;
+	bool debugLayouts = (debug_writer()==NULL) ? false : true;
 
 //	1. create FETI Layouts
 	UG_LOG("\n%   - Create FETI layouts ... ");

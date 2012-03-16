@@ -306,9 +306,11 @@ if(0)
 }; /* end class 'CRSMatrix' */
 
 template <typename TAlgebra> //template <typename TAlgebra, int dim> // for dimension dependent handling of coordinates
-class HLIBSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
-													typename TAlgebra::vector_type,
-													typename TAlgebra::matrix_type>
+class HLIBSolver
+	: public IMatrixOperatorInverse<  typename TAlgebra::vector_type,
+	  	  	  	  	  	  	  	  	  typename TAlgebra::vector_type,
+	  	  	  	  	  	  	  	  	  typename TAlgebra::matrix_type>,
+	public DebugWritingObject<TAlgebra>
 {
 	public:
 	// 	Algebra type
@@ -325,11 +327,11 @@ class HLIBSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	protected:
 		using base_type::convergence_check;
+		using DebugWritingObject<TAlgebra>::write_debug;
 
 	public:
 		HLIBSolver() :
 			m_pOperator(NULL),
-			m_pDebugWriter(NULL),
 			m_bIsExecutable(true),
 			m_nMin(20),
 			m_hlib_accuracy_H(1.0e-4), m_hlib_accuracy_LU(1.0e-4),
@@ -816,24 +818,8 @@ class HLIBSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			m_CRSMatrix.print_crs_matrix();
 		}
 
-	//	set debug output
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
-		{
-			m_pDebugWriter = debugWriter;
-		}
-
 	// 	Destructor
 		virtual ~HLIBSolver() {};
-
-	protected:
-		bool write_debug(const vector_type& vec, const char* filename)
-		{
-		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return true;
-
-		//	write
-			return m_pDebugWriter->write_vector(vec, filename);
-		}
 
 	protected:
 		// Operator to invert
@@ -844,9 +830,6 @@ class HLIBSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 		// CRS matrix to import into HLIB
 		CRSMatrix m_CRSMatrix;
-
-	//	Debug Writer
-		IDebugWriter<algebra_type>* m_pDebugWriter;
 
 	//	execute this solver only if 'init()' has set this true
 		bool m_bIsExecutable;
