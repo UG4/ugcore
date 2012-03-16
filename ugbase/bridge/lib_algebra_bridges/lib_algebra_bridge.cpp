@@ -12,14 +12,38 @@
 
 // bridge
 #include "bridge/bridge.h"
-
-// algebra includes
+#include "lib_algebra/algebra_type.h"
+#include "lib_algebra/cpu_algebra_types.h"
 #include "lib_algebra_bridge.h"
 
-// \todo: extract only really needed includes
-// all parts of lib algebra
-#include "lib_algebra/lib_algebra.h"
-#include "lib_algebra/operator/operator_impl.h"
+// operator interfaces
+#include "lib_algebra/operator/operator_base_interface.h"
+#include "lib_algebra/operator/operator_interface.h"
+#include "lib_algebra/operator/operator_inverse_interface.h"
+#include "lib_algebra/operator/operator_iterator_interface.h"
+
+// preconditioner
+#include "lib_algebra/operator/preconditioner/jacobi.h"
+#include "lib_algebra/operator/preconditioner/gauss_seidel.h"
+#include "lib_algebra/operator/preconditioner/ilu.h"
+#include "lib_algebra/operator/preconditioner/ilut.h"
+
+// solver
+#include "lib_algebra/operator/linear_solver/linear_solver.h"
+#include "lib_algebra/operator/linear_solver/cg.h"
+#include "lib_algebra/operator/linear_solver/bicgstab.h"
+#include "lib_algebra/operator/linear_solver/lu.h"
+#ifdef UG_PARALLEL
+#include "lib_algebra/operator/linear_solver/feti.h"
+	#ifdef UG_HLIBPRO
+	#include "lib_algebra/operator/linear_solver/hlibpro.h"
+	#endif
+#endif
+
+// operator util
+#include "lib_algebra/operator/operator_iterator_product.h"
+#include "lib_algebra/operator/operator_util.h"
+#include "lib_algebra/operator/vector_writer.h"
 
 using namespace std;
 

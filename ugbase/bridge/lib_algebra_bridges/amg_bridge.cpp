@@ -15,7 +15,6 @@
 #include "lib_algebra_bridge.h"
 
 #include "lib_algebra/lib_algebra.h"
-#include "lib_algebra/operator/operator_impl.h"
 
 #include "lib_algebra/operator/preconditioner/amg/rsamg/rsamg.h"
 #include "lib_algebra/operator/preconditioner/amg/famg/famg.h"
