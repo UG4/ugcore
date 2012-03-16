@@ -294,7 +294,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 		std::stringstream ss;
 
 		ss << "Incompatible Conversion from " <<
-				ex.m_from << " to " << ex.m_to;
+				ug::vrl::getParamTypeAsString(ex.m_from)
+		   << " to " << ug::vrl::getParamTypeAsString(ex.m_to);
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());

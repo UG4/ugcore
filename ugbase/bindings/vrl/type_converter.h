@@ -329,6 +329,12 @@ jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg);
  */
 std::vector<const char*> getBaseClassNames(const ug::bridge::ClassNameNode* node);
 
+/**
+ * Returns the the name of the specified parameter type.
+ * @return the the name of the specified parameter type
+ */
+std::string getParamTypeAsString(const uint type);
+
 }// end vrl::
 }// end ug::
 
