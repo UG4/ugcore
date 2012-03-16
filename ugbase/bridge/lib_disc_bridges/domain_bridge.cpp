@@ -110,6 +110,7 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		reg.add_function("InterpolateFunction",
 						 static_cast<fct_type_subset>(&InterpolateFunction<TFct>),
 						 grp);
+
 	}
 
 //	L2Error

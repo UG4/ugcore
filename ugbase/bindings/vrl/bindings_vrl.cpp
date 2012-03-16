@@ -11,7 +11,7 @@
 #include "common/common.h"
 #include "lib_algebra/operator/convergence_check.h"
 #include "common/authors.h"
-
+#include "common/util/string_util.h"
 
 #include "type_converter.h"
 #include "messaging.h"
@@ -253,7 +253,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 			std::stringstream ss;
 
 			ss << "Method not found: " <<
-					EMPHASIZE_BEGIN << name <<
+					EMPHASIZE_BEGIN << clazz->name() << "."<< name <<
 					"()" << EMPHASIZE_END << ".";
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
@@ -285,7 +285,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 
 		std::stringstream ss;
 
-		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+		ss << "Incompatible conversion in method "
+				<< className << "." << methodName << "(), param " << ex.m_index << ": from " <<
 						ex.m_from << " to " << ex.m_to;
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
@@ -294,7 +295,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 
 		std::stringstream ss;
 
-		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+		ss << "Incompatible conversion in method "
+				<< className << "." << methodName << "(), param " << ex.m_index << ": from " <<
 						ug::vrl::getParamTypeAsString(ex.m_from) << " to "
 						<< ug::vrl::getParamTypeAsString(ex.m_to);
 
@@ -308,7 +310,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 		std::stringstream ss;
 
 		ss << "Unknown exception thrown while"
-				<< " trying to invoke method: " << name << "().";
+				<< " trying to invoke method: " << clazz->name() << "." << name << "().";
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -434,7 +436,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 
 		std::stringstream ss;
 
-		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+		ss << "Incompatible conversion in constructor of "
+				<< clazz->name() << ", param " << ex.m_index << ": from " <<
 						ex.m_from << " to " << ex.m_to;
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
@@ -443,7 +446,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 
 		std::stringstream ss;
 
-		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+		ss << "Incompatible conversion in constructor of "
+				<< clazz->name() << ", param " << ex.m_index << ": from " <<
 						ug::vrl::getParamTypeAsString(ex.m_from) << " to "
 						<< ug::vrl::getParamTypeAsString(ex.m_to);
 
@@ -504,7 +508,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
 		std::stringstream ss;
-		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+		ss << "Incompatible conversion in function "
+				<< func->name() << "(), param " << ex.m_index << ": from " <<
 				ex.m_from << " to " << ex.m_to;
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
@@ -512,7 +517,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 
 	} catch (ug::bridge::ERROR_BadConversion ex) {
 		std::stringstream ss;
-		ss << "Incompatible Conversion in param " << ex.m_index << ": from " <<
+		ss << "Incompatible conversion in function "
+				<< func->name() << "(), param " << ex.m_index << ": from " <<
 				ug::vrl::getParamTypeAsString(ex.m_from) << " to "
 				<< ug::vrl::getParamTypeAsString(ex.m_to);
 
@@ -570,7 +576,6 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDefaultClassNameFromGroup
 		return ug::vrl::stringC2J(env, "");
 	}
 
-	//\todo: @Michi: not using c_str()
 	return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name().c_str());
 }
 
