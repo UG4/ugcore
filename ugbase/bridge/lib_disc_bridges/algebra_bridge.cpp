@@ -160,8 +160,9 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 		typedef NewtonSolver<TAlgebra> T;
 		typedef IOperatorInverse<vector_type, vector_type> TBase;
+		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("NewtonSolver").append(algSuffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
 			.add_method("set_linear_solver", &T::set_linear_solver)
 			.add_method("set_convergence_check", &T::set_convergence_check)
@@ -169,7 +170,6 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 			.add_method("init", &T::init)
 			.add_method("prepare", &T::prepare)
 			.add_method("apply", &T::apply)
-			.add_method("set_debug", &T::set_debug)
 			.add_method("print_average_convergence", &T::print_average_convergence)
 			.add_method("clear_average_convergence", &T::clear_average_convergence);
 		reg.add_class_to_group(name, "NewtonSolver", algTag);

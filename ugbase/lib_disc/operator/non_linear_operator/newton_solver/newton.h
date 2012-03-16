@@ -21,8 +21,10 @@
 namespace ug {
 
 template <typename TAlgebra>
-class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
-												typename TAlgebra::vector_type>
+class NewtonSolver
+	: public IOperatorInverse<	typename TAlgebra::vector_type,
+	  	  	  	  	  	  	  	typename TAlgebra::vector_type>,
+	public DebugWritingObject<TAlgebra>
 {
 	public:
 	//	Algebra type
@@ -34,6 +36,10 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	protected:
+		typedef DebugWritingObject<TAlgebra> base_writer_type;
+		using base_writer_type::write_debug;
+
 	public:
 		NewtonSolver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver,
 					SmartPtr<IConvergenceCheck> spConvCheck,
@@ -42,14 +48,14 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 					m_spConvCheck(spConvCheck),
 					m_spLineSearch(spLineSearch),
 					m_reallocate(reallocate), m_allocated(false),
-					m_pDebugWriter(NULL), m_dgbCall(0)
+					m_dgbCall(0)
 			{};
 
 		NewtonSolver() :
 			m_pLinearSolver(NULL),
 			m_spConvCheck(new StandardConvCheck(10, 1e-8, 1e-10, true)),
 			m_spLineSearch(NULL),
-			m_reallocate(false), m_allocated(false), m_pDebugWriter(NULL),
+			m_reallocate(false), m_allocated(false),
 			m_dgbCall(0)
 			{};
 
@@ -61,13 +67,8 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 			m_spConvCheck->set_symbol('#');
 			m_spConvCheck->set_name("Newton Solver");
 		}
-		void set_line_search(SmartPtr<ILineSearch<vector_type> > spLineSearch) {m_spLineSearch = spLineSearch;}
 
-	///	set debug output
-		void set_debug(IDebugWriter<algebra_type>* debugWriter)
-		{
-			m_pDebugWriter = debugWriter;
-		}
+		void set_line_search(SmartPtr<ILineSearch<vector_type> > spLineSearch) {m_spLineSearch = spLineSearch;}
 
 		// init: This operator inverts the Operator N: Y -> X
 		virtual bool init(IOperator<vector_type, vector_type>& N);
@@ -92,30 +93,24 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 
 		void write_debug(const vector_type& vec, const char* filename)
 		{
-		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return;
-
 		//	add iter count to name
 			std::string name(filename);
 			char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
 			name.append(ext).append(".vec");
 
 		//	write
-			m_pDebugWriter->write_vector(vec, name.c_str());
+			base_writer_type::write_debug(vec, name.c_str());
 		}
 
 		void write_debug(const matrix_type& mat, const char* filename)
 		{
-		//	if no debug writer set, we're done
-			if(m_pDebugWriter == NULL) return;
-
 		//	add iter count to name
 			std::string name(filename);
 			char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
 			name.append(ext).append(".mat");
 
 		//	write
-			m_pDebugWriter->write_matrix(mat, name.c_str());
+			base_writer_type::write_debug(mat, name.c_str());
 		}
 
 	private:
@@ -141,9 +136,6 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 
 		bool m_reallocate;
 		bool m_allocated;
-
-	//	Debug Writer
-		IDebugWriter<algebra_type>* m_pDebugWriter;
 
 		int m_dgbCall;
 
