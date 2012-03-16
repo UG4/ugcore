@@ -285,7 +285,7 @@ public:
 	}
 
 	/// \return true if node has been found
-	bool is_valid() const
+	bool valid() const
 	{
 		return false;
 	}
