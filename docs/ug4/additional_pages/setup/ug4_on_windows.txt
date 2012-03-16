@@ -1,0 +1,50 @@
+//	created by Sebastian Reiter
+//	sreiter@gcsc.uni-frankfurt.de
+//	y12 m03 d16
+
+/**	\page pageUG4OnWindows Setting up UG on windows
+
+ug4 supports windows through the MinGW gcc-compilers. MinGW can be downloaded
+together with MSYS at [REF]. MSYS is a 'minimal shell', which mimics some
+of the features of unix shells. You should install MSYS and MinGW to a rather
+simple path which does not contain spaces or special characters (e.g. C:\msys)
+
+Compiliation of ug4 furthermore requires the installation of cmake, which can be
+obtained from here
+(cf. <a href="http://www.cmake.org/cmake/resources/software.html">
+http://www.cmake.org/cmake/resources/software.html</a>
+(min Release 2.6).
+
+You should be able to run cmake from your MSYS shell (simply type cmake and press enter).
+If cmake can't be found, then you should add the path to the cmake binary to your
+systems PATH variable.
+
+In order to checkout ug4 from its svn repository you'll either have to follow the
+instructions on how to setup eclipse with svn capabilities
+or you'll have to install tortoise svn ([REF]), depending on whether you want to
+develop with ug or just compile it.
+Tortoise svn is an extension to the windows explorer and
+allows to perform checkouts and commits through the right-click-menu directly
+in the explorer.
+
+If you're using tortoise svn, then open the explorer and navigate to the folder
+in which you want to install ug4. Create a new folder called 'ug4', perform
+a right click on it and choose 'svn checkout' from the menu. Enter the repository
+adress (e.g. svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk), your username and password.
+
+You should now have received a full checkout of ug4's sources. Now open the
+msys shell and navigate to the ug4 folder you just created. Note that folders
+in msys are specified in a unix way, e.g. 'cd /c/ug4')
+
+If you chose eclipse, then please follow the tutorial given in \ref pageInstallEclipse
+to set up eclipse and how to checkout ug4.
+
+Compilation and cmake calls are very similar to unix and to the description given
+in \ref pageInstallUG4. However one important thing to note is, that one has to
+explicitly specifiy the compiler, which shall be used by cmake. A call to cmake
+thus should start as follows:
+
+cmake -G"MSYS Makefiles"
+
+This is however only necessary when you invoke cmake the first time for a given folder.
+*/

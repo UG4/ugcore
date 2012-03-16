@@ -17,16 +17,19 @@
 
 using namespace std;
 
+
+namespace ug{
+namespace bridge{
+namespace lua{
+
+//	set this variable to true if smart-ptr arguments shall be automatically
+//	converted to raw-ptrs where required.
+const bool IMLPICIT_SMART_PTR_TO_PTR_CONVERSION = true;
+
+
 //	a symbol preceding error messages
 const char* errSymb = " % ";
 
-namespace ug
-{
-namespace bridge
-{
-	
-namespace lua
-{
 
 ///	creates a new UserDataWrapper and associates it with ptr in luas registry
 /**
@@ -128,19 +131,23 @@ static string GetLuaParametersString(lua_State* L, int offsetToFirstParam = 0)
  * \param badParamOneBased : return value as in LuaStackParams
  * \sa LuaStackToParams
  */
-static string GetTypeMismatchString(const ParameterStack& paramsTemplate, lua_State* L, int offsetToFirstParam,
-		int badParamOneBased)
+static string GetTypeMismatchString(const ParameterStack& paramsTemplate,
+									lua_State* L, int offsetToFirstParam,
+									int badParamOneBased)
 {
 	std::stringstream ss;
 
 	if(badParamOneBased == -1)
-		ss << "number of parameters did not match (got " << lua_gettop(L) - offsetToFirstParam << ", but needs " << paramsTemplate.size() << ").";
+		ss << "number of parameters did not match (got "
+			<< lua_gettop(L) - offsetToFirstParam
+			<< ", but needs " << paramsTemplate.size() << ").";
 	else
 	{
 		int i = badParamOneBased-1; // i is zero-based.
 		int index = (int)i + offsetToFirstParam + 1;
-		ss << "type mismatch in argument " << badParamOneBased << ": expected " << ParameterToString(paramsTemplate, i) <<
-				", but given " << GetLuaTypeString(L, index);
+		ss << "type mismatch in argument " << badParamOneBased
+			<< ": expected " << ParameterToString(paramsTemplate, i)
+			<< ", but given " << GetLuaTypeString(L, index);
 	}
 	return ss.str();
 }
@@ -153,7 +160,7 @@ static string GetTypeMismatchString(const ParameterStack& paramsTemplate, lua_St
 static int LuaStackToParams(ParameterStack& params,
 							const ParameterStack& paramsTemplate,
 							lua_State* L,
-							 int offsetToFirstParam = 0)
+							int offsetToFirstParam = 0)
 {
 //	I disabled all output, since we might have overloads (sreiter).
 
@@ -232,7 +239,7 @@ static int LuaStackToParams(ParameterStack& params,
 				//	udata is either a RawUserData or a SmartUserDataWrapper
 					if(udata->is_raw_ptr())
 						obj = static_cast<RawUserDataWrapper*>(udata)->obj;
-					else if(udata->is_smart_ptr())
+					else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION)
 						obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get();
 					else{
 						badParam = (int)i + 1;
@@ -285,7 +292,7 @@ static int LuaStackToParams(ParameterStack& params,
 
 					if(udata->is_raw_ptr())
 						obj = static_cast<RawUserDataWrapper*>(udata)->obj;
-					else if(udata->is_smart_ptr()){
+					else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION){
 					//	we have to distinguish between const and non-const smart pointers.
 						if(udata->is_const())
 							obj = static_cast<ConstSmartUserDataWrapper*>(udata)->smartPtr.get();

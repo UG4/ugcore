@@ -3,40 +3,8 @@
 //	y10 m07 d30
 
 /**	\page pageUG4Introduction ug4 - Introduction
-	
-	- \ref secAbout "About"
-	- \ref secWhatIsIt "What is ug4?"
-	- \ref secFeatures "Main features?"
-	
-<hr>
-\section secAbout About
-ug4 has been written and is still developed at the
-<i>Goethe Center for Scientific Computing at the University of Frankfurt, Germany </i>(http://www.g-csc.de).
- 
-Amongst others, the following people contributed to ug4:<br>
-Martin Rupp, Sebastian Reiter, Andreas Vogel
-
-<hr>
-\section secWhatIsIt What is ug4?
-ug4 is a simulation framework, targetted at the solution of
-differential equations on unstructured grids on massive parallel systems. ug4 is written
-in C++, striving for a flexible, yet fast and robust environment.
-
-The following main modules are the base of ug4:
-	- common
-	- \ref pageLAOverview "lib_algebra"
-	- \ref pageLDIntroduction "lib_discretization"
-	- \ref pageLGIntroduction "lib_grid"
-	- parallel communication layer (pcl)
-
-Other modules are:
-	- node_tree
-	- ug_script
-
-Here are some of the ug4 applications:
-	- ...
-
-<hr>
-\section secFeatures Main features
-...
+Below you find introductions to the main modules of ug4
+	- \ref pageLAOverview 		"lib_algebra"
+	- \ref pageLDIntroduction	"lib_discretization"
+	- \ref pageLGIntroduction	"lib_grid"
 */

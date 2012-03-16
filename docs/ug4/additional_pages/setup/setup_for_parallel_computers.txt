@@ -2,7 +2,7 @@
 //	martin.rupp@gcsc.uni-frankfurt.de
 //	y12 m02 d29
 
-/**	\page pageSetupUG4 Setting up UG on parallel computers / clusters
+/**	\page pageUG4SetupParallel Setting up UG on parallel computers / clusters
 
 	- \ref secGeneral_Notes "General Notes"
 	- \ref secCMake "CMake, Toolchains, Compilers"

@@ -19,9 +19,4 @@ of the script.
 	- \ref pageSTLesson5 "Lesson 5 - global refinement"
 	- \ref pageSTLesson6 "Lesson 6 - flexible domain distribution"
 
-
-	- \ref pageSTRegistry "Registry"
-
-
-
 */
