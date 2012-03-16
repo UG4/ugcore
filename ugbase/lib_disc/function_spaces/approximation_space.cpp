@@ -92,8 +92,8 @@ grid_changed_callback(int, const GridMessage_Adaption* msg)
 	}
 
 	else{
-		UG_THROW("Before any grid-adaption may be performed, the approximation space "
-				"has to be informed that grid-adaption shall begin. "
+		UG_THROW_FATAL("Before any grid-adaption may be performed, the approximation"
+				" space has to be informed that grid-adaption shall begin. "
 				"You may use IRefiner::grid_adaption_begins() or schedule "
 				"an appropriate message to the associated grids message-hub.");
 	}
