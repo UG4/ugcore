@@ -14,6 +14,7 @@
 #include "debug_writer.h"
 #include "operator_base_interface.h"
 #include "operator_iterator_interface.h"
+#include "common/profiler/profiler.h"
 
 #define PROFILE_LS
 #ifdef PROFILE_LS
@@ -308,6 +309,7 @@ class IPreconditionedLinearOperatorInverse
 	protected:
 		using base_type::name;
 		using base_type::linear_operator;
+		using base_type::apply_return_defect;
 		using VectorDebugWritingObject<X>::write_debug;
 
 	public:
