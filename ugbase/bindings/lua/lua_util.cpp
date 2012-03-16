@@ -19,6 +19,7 @@
 #include "registry/class_helper.h"
 #include "info_commands.h"
 #include "lua_user_data.h"
+#include "registry/registry.h"
 
 using namespace std;
 
@@ -110,6 +111,109 @@ static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 										*pReg);
 }
 
+// Lua Profiling (mrupp)
+#ifdef PROFILE_BRIDGE
+struct s_profileInformation
+{
+	s_profileInformation()
+	{
+		Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, NULL, { { 0, 0 }, { 0, 0 }, { 0, 0 } }};
+		profileInformation = pi;
+		profilerCache =	&Shiny::ProfileNode::_dummy;
+	}
+	Shiny::ProfileZone profileInformation;
+	Shiny::ProfileNodeCache profilerCache;
+	char m_name[255];
+
+	bool is_initialised()
+	{
+		return profileInformation.name != NULL;
+	}
+
+	void init(const char*name)
+	{
+		m_name[0]='@';
+		strcpy(m_name+1, name);
+		profileInformation.name = m_name;
+	}
+};
+
+typedef s_profileInformation* ps_profileInformation ;
+
+void LuaCallHook(lua_State *L, lua_Debug *ar)
+{
+	static std::map<const char *, std::map<int, ps_profileInformation> >pis;
+	if (ar->event == LUA_HOOKCALL || ar->event == LUA_HOOKRET)
+	{
+		//fill up the debug structure with information from the lua stack
+		 lua_getinfo(L, "Sln", ar);
+
+#if 0
+		 // this could be an alternative way of profiling registry calls
+		 // however it does not seem to work, some function calls are set to '?'
+		 // but might be interesting, since one could disable/enable this easily
+		 enum UserDataWrapperTypes{
+		 	RAW_POINTER = 1,
+		 	SMART_POINTER = 1 << 1,
+		 	IS_CONST = 1 << 2
+		 };
+		 struct UserDataWrapper{
+		 	byte type;
+
+		 	bool is_const()		{return (type & IS_CONST) == IS_CONST;}
+		 	bool is_raw_ptr()	{return (type & RAW_POINTER) == RAW_POINTER;}
+		 	bool is_smart_ptr()	{return (type & SMART_POINTER) == SMART_POINTER;}
+		 };
+
+		 if(ar->name && ar->what[0] == 'C')
+		 {
+			 	UG_LOG(ar->name << " " << ar->what << "\n");
+			 	 //UG_LOG(ar->linedefined << " " << ar->currentline << " " << ar->lastlinedefined  << "\n");
+
+			 //	get metatable of object and extract the class name node
+				if(lua_getmetatable(L, 1))
+				{
+					lua_pushstring(L, "class_name_node");
+					lua_rawget(L, -2);
+					const bridge::ClassNameNode* classNameNode = (const bridge::ClassNameNode*) lua_touserdata(L, -1);
+					lua_pop(L, 2);
+					if(classNameNode) UG_LOG(classNameNode->name() << ":" << ar->name << "\n");
+				}
+
+				// todo: we need to get the identifier of the function called, to get a hash key
+		 }
+#endif
+		 // only script calls and not the "file load" calls
+		 if(ar->linedefined >=0 && ar->what[0] == 'L')
+		 {
+			 if(ar->event == LUA_HOOKCALL)
+			 {
+				 ps_profileInformation &pi = pis[ar->source][ar->linedefined];
+				 if(pi == NULL)
+				 {
+					 pi = new s_profileInformation;
+					 if(ar->name)
+						 pi->init(ar->name);
+					 else
+					 {
+						 char buf[255];
+						 sprintf(buf, "%s:%d", ar->source, ar->linedefined);
+						 pi->init(buf);
+					 }
+				 }
+				 Shiny::ProfileManager::instance._beginNode(&pi->profilerCache, &pi->profileInformation);
+			 }
+			 else
+			 {
+				 //UG_ASSERT(Shiny::ProfileManager::instance._curNode == pis[ar->source][ar->linedefined]->profilerCache, "profiler nodes not matching. forgot a PROFILE_END?");
+				 Shiny::ProfileManager::instance._endCurNode();
+			 }
+		 }
+	 }
+}
+#endif
+
+
 
 lua_State* GetDefaultLuaState()
 {
@@ -133,6 +237,11 @@ lua_State* GetDefaultLuaState()
 		g_pRegistry->add_function("ug_load_script", &LoadUGScript, "/ug4/lua",
 					"success", "", "Loads and parses a script and returns whether it succeeded.");
 		
+#ifdef PROFILE_BRIDGE
+		lua_sethook (L, LuaCallHook, LUA_MASKCALL | LUA_MASKRET, 0);
+#endif
+
+
 	//	this define makes sure that no methods are referenced that
 	//	use the algebra, even if no algebra is included.
 		#ifdef UG_ALGEBRA

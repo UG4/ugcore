@@ -22,6 +22,14 @@ ExportedConstructor(ProxyFunc pf,
 : m_proxy_func(pf), m_className(className),
   m_options(options), m_paramInfos(paramInfos), m_tooltip(tooltip), m_help(help)
 {
+#ifdef PROFILE_BRIDGE
+	m_profname=m_className;
+	m_profname.append("(...)");
+	Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, m_profname.c_str(),{ { 0, 0 }, { 0, 0 }, { 0, 0 } }};
+	profileInformation = pi;
+	profilerCache =	&Shiny::ProfileNode::_dummy;
+#endif
+
 //	Tokenize string for parameters into infos per one parameter (separated by '#')
 	std::vector<std::string> vParamInfoTmp;
 	tokenize(m_paramInfos, vParamInfoTmp, '#');

@@ -12,6 +12,13 @@
 #include "common/ug_config.h"
 #include <iostream>
 
+#ifdef PROFILE_BRIDGE
+#ifndef UG_PROFILER
+	#error "You need to define UG_PROFILER to use PROFILE_BRIDGE"
+#endif
+#include "common/profiler/profiler.h"
+#endif
+
 namespace ug
 {
 namespace bridge
@@ -168,13 +175,26 @@ class UG_API ExportedFunction : public ExportedFunctionBase
 			                       paramInfos, tooltip, help),
 			  m_group(group), m_func((void*)f), m_proxy_func(pf)
 		{
+#ifdef PROFILE_BRIDGE
+			Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, ExportedFunctionBase::name().c_str(),{ { 0, 0 }, { 0, 0 }, { 0, 0 } }};
+			profileInformation = pi;
+			profilerCache =	&Shiny::ProfileNode::_dummy;
+#endif
 			create_parameter_stack<TFunc>();
 		}
 
 	/// executes the function
 		void execute(const ParameterStack& paramsIn, ParameterStack& paramsOut) const
 		{
+#ifdef PROFILE_BRIDGE
+			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
+#endif
 			m_proxy_func(m_func, paramsIn, paramsOut);
+
+#ifdef PROFILE_BRIDGE
+			Shiny::ProfileManager::instance._endCurNode();
+#endif
+
 		}
 
 	///	return groups
@@ -189,6 +209,11 @@ class UG_API ExportedFunction : public ExportedFunctionBase
 
 	/// proxy function
 		ProxyFunc m_proxy_func;
+
+#ifdef PROFILE_BRIDGE
+		mutable Shiny::ProfileZone profileInformation;
+		mutable Shiny::ProfileNodeCache profilerCache;
+#endif
 };
 
 ////////////////////////////////////////////////////////////////////////

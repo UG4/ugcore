@@ -103,6 +103,7 @@ option(DEBUG_LOGS "Enables debug output. Valid options are: ON, OFF" OFF)
 option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ${MPI_FOUND})
 option(PROFILER "Enables the internal profiler. Valid options are: ON, OFF" OFF)
 option(PROFILE_PCL "Enables profiling of the pcl-library. Valid options are ON, OFF" OFF)
+option(PROFILE_BRIDGE "Enables profiling of bridge objects. Valid options are ON, OFF" OFF)
 option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
 option(LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" ${lapackDefault})
 option(BLAS "Blas won't be used, even if available. Valid options are ON, OFF" ${blasDefault})
@@ -169,6 +170,7 @@ message(STATUS "Info: PARALLEL:          "${PARALLEL}" (options are: ON, OFF)")
 message(STATUS "Info: PCL_DEBUG_BARRIER: "${PCL_DEBUG_BARRIER}" (options are: ON, OFF)")
 message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: ON, OFF)")
 message(STATUS "Info: PROFILE_PCL:       "${PROFILE_PCL}" (options are: ON, OFF)")
+message(STATUS "Info: PROFILE_BRIDGE:    "${PROFILE_BRIDGE}" (options are: ON, OFF)")
 message(STATUS "Info: LAPACK:            "${LAPACK}" (options are: ON, OFF)")
 message(STATUS "Info: BLAS:              "${BLAS}" (options are: ON, OFF)")
 message(STATUS "Info: INTERNAL_BOOST:    "${INTERNAL_BOOST}" (options are: ON, OFF)")
@@ -393,6 +395,11 @@ endif(PROFILER)
 if(PROFILE_PCL)
 	add_definitions(-DPROFILE_PCL)
 endif(PROFILE_PCL)
+
+# PROFILE_BRIDGE
+if(PROFILE_BRIDGE)
+	add_definitions(-DPROFILE_BRIDGE)
+endif(PROFILE_BRIDGE)
 
 
 ########################################

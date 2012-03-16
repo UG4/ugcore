@@ -13,6 +13,14 @@
 #include "common/common.h"
 #include "registry_util.h"
 
+#ifdef PROFILE_BRIDGE
+#ifndef UG_PROFILER
+	#error "You need to define UG_PROFILER to use PROFILE_BRIDGE"
+#endif
+#include "common/profiler/profiler.h"
+#endif
+
+
 namespace ug
 {
 namespace bridge
@@ -76,12 +84,30 @@ class ExportedMethod : public ExportedFunctionBase
 						const std::string& tooltip, const std::string& help)
 		: ExportedFunctionBase(name, methodOptions, retValInfos, paramInfos, tooltip, help),
 		  m_ptrWrapper(m), m_proxy_func(pf), m_className(className)
-		{}
+		{
+#ifdef PROFILE_BRIDGE
+			m_profname=m_className;
+			m_profname.append(":");
+			m_profname.append(name);
+			Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, m_profname.c_str(),{ { 0, 0 }, { 0, 0 }, { 0, 0 } }};
+			profileInformation = pi;
+
+			profilerCache =	&Shiny::ProfileNode::_dummy;
+#endif
+		}
 
 	/// executes the function
 		void execute(void* obj, const ParameterStack& paramsIn, ParameterStack& paramsOut) const
 		{
+#ifdef PROFILE_BRIDGE
+			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
+#endif
+
 			m_proxy_func(m_ptrWrapper, obj, paramsIn, paramsOut);
+
+#ifdef PROFILE_BRIDGE
+			Shiny::ProfileManager::instance._endCurNode();
+#endif
 		}
 
 	/// \todo: replace this method with a better integrated way.
@@ -103,6 +129,12 @@ class ExportedMethod : public ExportedFunctionBase
 
 	/// name of class this method belongs to
 		std::string m_className;
+
+#ifdef PROFILE_BRIDGE
+		std::string m_profname;
+		mutable Shiny::ProfileZone profileInformation;
+		mutable Shiny::ProfileNodeCache profilerCache;
+#endif
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -276,7 +308,19 @@ class UG_API ExportedConstructor
 		                    const std::string& tooltip, const std::string& help);
 
 	/// executes the function
-		void* create(const ParameterStack& paramsIn) const {return m_proxy_func(paramsIn);}
+		void* create(const ParameterStack& paramsIn) const
+		{
+#ifdef PROFILE_BRIDGE
+			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
+#endif
+
+			void *pRet = m_proxy_func(paramsIn);
+
+#ifdef PROFILE_BRIDGE
+			Shiny::ProfileManager::instance._endCurNode();
+#endif
+			return pRet;
+		}
 
 	///	options
 		const std::string& options() const {return m_options;}
@@ -359,6 +403,12 @@ class UG_API ExportedConstructor
 		std::string m_help;
 
 		ParameterStack m_paramsIn;
+
+#ifdef PROFILE_BRIDGE
+		std::string m_profname;
+		mutable Shiny::ProfileZone profileInformation;
+		mutable Shiny::ProfileNodeCache profilerCache;
+#endif
 };
 
 template <typename TClass, typename TMethod>
