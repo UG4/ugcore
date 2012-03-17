@@ -263,7 +263,9 @@ int main(int argc, char* argv[])
 	//	run the shell
 		while(1)
 		{
-			char* buffer = ug_readline();
+			PROFILE_BEGIN(ug_readline);
+				char* buffer = ug_readline();
+			PROFILE_END();
 			if(buffer){
 				if(!(strcmp(buffer, "exit") && strcmp(buffer, "quit")))
 					break;
@@ -301,7 +303,6 @@ int main(int argc, char* argv[])
 				ug_freeline(buffer);
 			}
 		}
-		PROFILE_END();
 	//todo:	clear the history (add ug_freelinecache)
 	}
 
