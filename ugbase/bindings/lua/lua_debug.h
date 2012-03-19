@@ -27,7 +27,7 @@ enum debug_return
 int SetDebugShell(debug_return (*s)());
 
 bool RegisterLuaDebug(ug::bridge::Registry &reg);
-void ProfileLUA();
+void ProfileLUA(bool bProfile);
 void DebugList();
 void DebugBacktrace();
 void DebugDown();

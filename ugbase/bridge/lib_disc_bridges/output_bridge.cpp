@@ -24,6 +24,7 @@
 #include "lib_disc/function_spaces/approximation_space.h"
 
 #include "lib_disc/io/vtkoutput.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 
@@ -34,6 +35,7 @@ namespace bridge {
 template <typename TGridFunction>
 void WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
 {
+	PROFILE_FUNC();
 	VTKOutput<TGridFunction> out;
 	out.print(filename, u, true); // TODO: setting of last argument (intended to skip "make consistent", for writing of "raw" data; see (grid_function_util.h')
 }

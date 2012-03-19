@@ -750,17 +750,36 @@ string GetLuaTypeString(lua_State* L, int index)
 		return str.substr(0, str.size()-1);
 }
 
+void lua_getLastLine(lua_State* L, lua_Debug entry)
+{
+    for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
+	{
+    	int status = lua_getinfo(L, "Sln", &entry);
+    	if(!status || entry.currentline < 0) continue;
+    }
+}
+
+void lua_printCurrentLine(lua_State* L)
+{
+	lua_Debug entry;
+	lua_getLastLine(L, entry);
+	UG_LOG(entry.short_src << ":" << entry.currentline);
+	UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
+	UG_LOG("\n");
+
+}
 /// prints information about lua's call stack (file:line source).
 void lua_stacktrace(lua_State* L)
 {
     lua_Debug entry;
-    for(int depth = 1; lua_getstack(L, depth, &entry); depth++)
+    for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
 	{
     	int status = lua_getinfo(L, "Sln", &entry);
-    	if(!status || !entry.short_src || entry.currentline < 0) return;
-		UG_LOG(entry.short_src << ":" << entry.currentline);
-		UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
-		UG_LOG("\n");
+    	if(entry.currentline <0) continue;
+    	if(!status || !entry.short_src || entry.currentline < 0) continue;
+    	UG_LOG(entry.short_src << ":" << entry.currentline);
+    	UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
+    	UG_LOG("\n");
     }
 }
 

@@ -35,6 +35,9 @@ UG_API double LuaGetNumber(lua_State *L, const char *name, double notAvailable);
 UG_API std::string LuaGetString(lua_State *L, const char *name, const char *notAvailable);
 UG_API bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable);
 
+UG_API void lua_printCurrentLine(lua_State* L);
+UG_API void lua_getLastLine(lua_State* L, lua_Debug entry);
+
 
 /// returns a String describing the content of the lua stack at a given index
 std::string GetLuaTypeString(lua_State* L, int index);

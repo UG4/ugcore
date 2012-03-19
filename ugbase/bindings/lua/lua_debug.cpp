@@ -51,9 +51,13 @@ static bool bProfiling = false;
 static std::map<std::string, std::map<int, bool> > breakpoints;
 static debug_return (*pDebugShell)() = NULL;
 
+bool hookset = false;
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern stack<string> stkPathes;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+void LuaCallHook(lua_State *L, lua_Debug *ar);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 int SetDebugShell(debug_return (*s)())
@@ -62,20 +66,27 @@ int SetDebugShell(debug_return (*s)())
 	return 0;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-void LuaCallHook(lua_State *L, lua_Debug *ar);
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-inline void SetDebugHook()
+void CheckHook()
 {
-	static bool hookset = false;
-	if(!hookset)
+	if(bDebugging == false && bProfiling == false)
 	{
-		lua_sethook (GetDefaultLuaState(), LuaCallHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
-		hookset=true;
+		if(hookset)
+		{
+			lua_sethook (GetDefaultLuaState(), NULL, 0, 0);
+			hookset=false;
+		}
 	}
+	else
+	{
+		if(!hookset)
+		{
+			lua_sethook (GetDefaultLuaState(), LuaCallHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 0);
+			hookset=true;
+		}
+	}
+
 }
+
 
 // Lua Profiling (mrupp)
 #ifdef PROFILE_BRIDGE
@@ -101,10 +112,10 @@ struct s_profileInformation
 		if(id)
 		{
 			m_name[0]=id;
-			strcpy(m_name+1, name);
+			strncpy(m_name+1, name, 255);
 		}
 		else
-			strcpy(m_name, name);
+			strncpy(m_name, name, 255);
 		profileInformation.name = m_name;
 	}
 };
@@ -131,10 +142,10 @@ void AddBreakpoint(const char*source, int line)
 	if(FileExists(source)) s = source;
 	if(s)
 	{
-		SetDebugHook();
-		bDebugging=true;
-		UG_LOG("breakpoint at " << s << ":" << line << "\n")
 		breakpoints[s][line]=true;
+		bDebugging = true;
+		CheckHook();
+		UG_LOG("breakpoint at " << s << ":" << line << "\n")
 	}
 	else
 	{
@@ -162,8 +173,9 @@ static int level=0;
 static int numLevels=0;
 
 static std::string lastsource;
-static 	int lastline = -1;
+static int lastline = -1;
 static int currentDepth = -1;
+static bool bProfileLUALines=true;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void breakpoint()
@@ -174,16 +186,20 @@ void breakpoint()
 		return;
 	}
 	debug_return r=pDebugShell();
-	if(r == DEBUG_EXIT || r == DEBUG_CONTINUE)
+	if(r == DEBUG_EXIT)
+		UGForceExit();
+	else if(r == DEBUG_CONTINUE)
 	{
 		debugMode = DEBUG_CONTINUE;
+		bDebugging = breakpoints.size() > 0;
+		CheckHook();
 		return;
 	}
-	else if(r == DEBUG_NEXT || r == DEBUG_STEP)
+	else if(r == DEBUG_NEXT || r == DEBUG_STEP || r == DEBUG_FINISH)
 	{
-		bDebugging=true;
 		debugMode=r;
-		SetDebugHook();
+		bDebugging=true;
+		CheckHook();
 		return;
 	}
 }
@@ -285,102 +301,174 @@ void luaDebug(lua_State *L, const char *source, int line)
 
 	breakpoint();
 }
-
-
+static bool bEndProfiling=false;
+static int profilingDepth=0;
+static int profilingEndDepth=0;
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void LuaCallHook(lua_State *L, lua_Debug *ar)
 {
-
+#if 1
 	/*UG_LOG("------------------------\n");
 	{
-	lua_Debug entry;
-	for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
+	    lua_Debug entry;
+	    for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
 		{
 	    	int status = lua_getinfo(L, "Sln", &entry);
 	    	if(entry.currentline <0) continue;
-	    	if(!status || !entry.short_src || entry.currentline < 0) break;
-			UG_LOG(depth << ": " << entry.short_src << ":" << entry.currentline << " " << entry.what);
-			//UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
-			UG_LOG("\n");
+	    	if(entry.short_src && entry.currentline>0)
+	    	{
+				UG_LOG(entry.short_src << ":" << entry.currentline);
+				UG_LOG(" " << ug::bridge::GetFileLine(entry.short_src, entry.currentline));
+	    	}
+	    	if(entry.what)
+	    	{
+	    		UG_LOG(" " << entry.what);
+	    	}
+	    	if(entry.name)
+	    	{
+	    		UG_LOG(" " << entry.what);
+	    	}
+	    	UG_LOG(entry.event << "\n");
+	    	UG_LOG("\n");
 	    }
-	}/**/
+	}*/
+#endif
 	//fill up the debug structure with information from the lua stack
+	lua_Debug entry;
 	lua_getinfo(L, "Sln", ar);
 	//if(ar->what[0] == 'L' || ar->what[0] == 'C')
 	{
 		if(ar->event == LUA_HOOKCALL || (bDebugging && ar->event ==LUA_HOOKLINE))
 		{
-			lua_Debug entry;
-			const char *source = "unknown";
-			int line = 0;
-			bool found=false;
-			if(ar->currentline < 0)
+			if(bEndProfiling)
 			{
-				for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
+				profilingEndDepth++;
+				if(bDebugging==false)
+					return;
+			}
+			if(bDebugging)
+			{
+				const char *source = "unknown";
+				int line = 0;
+				bool found=false;
+				if(ar->currentline < 0)
 				{
-					lua_getinfo(L, "Sln", &entry);
-					if(entry.currentline >= 0)
+					for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
 					{
-						source = entry.source;
-						line = entry.currentline;
-						found = true;
-						break;
+						lua_getinfo(L, "Sln", &entry);
+						if(entry.currentline >= 0)
+						{
+							source = entry.source;
+							line = entry.currentline;
+							found = true;
+							break;
+						}
 					}
 				}
-			}
-			else
-			{
-				source = ar->source;
-				line = ar->currentline;
-			}
-
-			if(bDebugging)	luaDebug(L, source, line);
-			if(bProfiling)
-			if(ar->what[0] == 'L' || ar->what[0] == 'C')
-			{
-				static std::map<const char *, std::map<int, ps_profileInformation> >pis;
-
-				if(ar->event == LUA_HOOKCALL)
+				else
 				{
-					ps_profileInformation &pi = pis[source][line];
-					if(pi == NULL)
+					source = ar->source;
+					line = ar->currentline;
+					found =true;
+				}
+				luaDebug(L, source, line);
+			}
+			if(bProfiling && bEndProfiling==false && ar->event == LUA_HOOKCALL)
+			{
+				const char *source = ar->source;
+				int line = ar->currentline;
+
+				if(line < 0 && bProfileLUALines && lua_getstack(L, 1, &entry))
+				{
+					lua_getinfo(L, "Sln", &entry);
+					source = entry.source;
+					line = entry.currentline;
+				}
+				if(line >= 0)
+				if(ar->what[0] == 'L' || ar->what[0] == 'C')
+				{
+					// be sure that this is const char*
+					static std::map<const char*, std::map<int, ps_profileInformation> >pis;
+
+					if(ar->event == LUA_HOOKCALL)
 					{
-						pi = new s_profileInformation;
-
-						if(found)
+						if(profilingDepth==0)
 						{
-							char buf[255];
-							sprintf(buf, "%s:%d", source, line);
-							pi->init(buf, 0);
+							ps_profileInformation &pi = pis[source][line];
+							if(pi == NULL)
+							{
+								pi = new s_profileInformation;
+
+
+								char buf[255] = "LUAunknown ";
+								if(source[0]=='@') source++;
+								if(strncmp(source, "./../scripts/", 13)==0)
+									sprintf(buf, "!%s:%d ", source+13, line);
+								else
+									sprintf(buf, "@%s:%d ", source, line);
+								const char*p = ug::bridge::GetFileLine(source, line).c_str();
+								strncat(buf, p+strspn(p, " \t"), 254);
+								//UG_LOG(buf << "\n");
+								pi->init(buf, 0);
+							 }
+
+
+							 Shiny::ProfileManager::instance._beginNode(&pi->profilerCache, &pi->profileInformation);
+							 //UG_LOG(source << ":" << line << ". Profiling depth is " << profilingDepth << "\n");
 						}
-						else
-							pi->init("LUAunknown", '@');
-
-
-					 }
-					 Shiny::ProfileManager::instance._beginNode(&pi->profilerCache, &pi->profileInformation);
+						profilingDepth++;
+					}
 				}
 			}
 		}
 		else if(ar->event == LUA_HOOKRET)
 		{
-			if(bProfiling)
+			int line = ar->currentline;
+			if(line < 0 && bProfileLUALines && lua_getstack(L, 1, &entry))
 			{
+				lua_getinfo(L, "Sln", &entry);
+				line = entry.currentline;
+			}
+			if(bProfiling && line >= 0)
+			{
+				if(profilingEndDepth>0)
+					profilingEndDepth--;
 				//UG_ASSERT(Shiny::ProfileManager::instance._curNode == pis[ar->source][ar->linedefined]->profilerCache, "profiler nodes not matching. forgot a PROFILE_END?");
-				Shiny::ProfileManager::instance._endCurNode();
+				else
+				{
+					if(profilingDepth>0)
+					{
+						profilingDepth--;
+						if(profilingDepth==0)
+							Shiny::ProfileManager::instance._endCurNode();
+					}
+					if(bEndProfiling && profilingDepth==0)
+					{
+						UG_LOG("Profiling ended.\n");
+						bProfiling=false;
+						bEndProfiling=false;
+						CheckHook();
+					}
+				}
 			}
 		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-void ProfileLUA()
+void ProfileLUA(bool b)
 {
-	SetDebugHook();
-	bProfiling=true;
+	if(bProfiling==false && b==true)
+	{
+		bEndProfiling=false;
+		bProfiling=true;
+		CheckHook();
+	}
+	else if(bProfiling == true && b==false)
+	{
+		bEndProfiling=true;
+	}
 }
-
-
 
 void DebugList()
 {

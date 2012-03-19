@@ -74,7 +74,8 @@ set(srcLua	externals/lua/lapi.c
 
 set(srcUGScript		lua_util.cpp
 					info_commands.cpp
-					bindings_lua.cpp)
+					bindings_lua.cpp
+					lua_debug.cpp)
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
