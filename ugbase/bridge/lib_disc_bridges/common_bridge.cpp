@@ -40,7 +40,8 @@ bool RegisterLibDisc_Common(Registry& reg, string parentGroup)
 		.add_constructor()
 		.add_method("map_proc_id_to_subdomain_id", &T::map_proc_id_to_subdomain_id)
 		.add_method("set_num_subdomains",          &T::set_num_subdomains)
-		.add_method("get_num_subdomains",          &T::get_num_subdomains);
+		.add_method("get_num_subdomains",          &T::get_num_subdomains)
+		.set_construct_as_smart_pointer(true);
 	}
 #endif
 
