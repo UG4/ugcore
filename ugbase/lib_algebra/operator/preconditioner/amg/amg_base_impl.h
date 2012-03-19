@@ -416,7 +416,7 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 		m_basesolver->init(L.pA);
 	}
 #else
-	m_basesolver->init(A);
+	m_basesolver->init(L.pA);
 #endif
 
 	m_dTimingCoarseSolverSetupMS = SW.ms();
