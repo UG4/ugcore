@@ -496,22 +496,26 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 			.add_method("add", static_cast<string (Test::*)(const char*, const char*)>(&Test::add), "d", "a#b#c")
 			.add_method("print_name", &Test::print_name)
 			.add_method("print", static_cast<int(Test::*)()>(&Test::print))
-			.add_method("print", static_cast<int(Test::*)() const>(&Test::print));
+			.add_method("print", static_cast<int(Test::*)() const>(&Test::print))
+			.set_construct_as_smart_pointer(true);
 
 	//	registering base class (without constructor)
 		reg.add_class_<Base>("Base", grp)
 			.add_constructor()
-			.add_method("print", &Base::print);
+			.add_method("print", &Base::print)
+			.set_construct_as_smart_pointer(true);
 
 	//	registering derived class
 		reg.add_class_<Derived, Base>("Derived", grp)
 			.add_constructor()
-			.add_method("print", &Derived::print);
+			.add_method("print", &Derived::print)
+			.set_construct_as_smart_pointer(true);
 
 	//	registering derived class
 		reg.add_class_<FurtherDerived, Derived>("FurtherDerived", grp)
 			.add_constructor()
-			.add_method("print", &FurtherDerived::print);
+			.add_method("print", &FurtherDerived::print)
+			.set_construct_as_smart_pointer(true);
 
 		reg.add_function("CreateConstFurtherDerived", &CreateConstFurtherDerived, grp);
 
@@ -541,7 +545,8 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 
 		reg.add_class_<MultipleDerived, Intermediate0, Intermediate1>("MultipleDerived", grp)
 			.add_constructor()
-			.add_method("print_mulitple_derived", &MultipleDerived::print_mulitple_derived);
+			.add_method("print_mulitple_derived", &MultipleDerived::print_mulitple_derived)
+			.set_construct_as_smart_pointer(true);
 
 		reg.add_function("SmartMultipleDerivedImpl", SmartMultipleDerivedImpl, grp);
 
@@ -555,17 +560,20 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 
 		reg.add_class_<ConstClass>("ConstClass", grp)
 			.add_constructor()
-			.add_method("const_method", &ConstClass::const_method);
+			.add_method("const_method", &ConstClass::const_method)
+			.set_construct_as_smart_pointer(true);
 
 		reg.add_class_<Piece>("Piece", grp)
 			.add_constructor()
-			.add_method("size", &Piece::size);
+			.add_method("size", &Piece::size)
+			.set_construct_as_smart_pointer(true);
 
 		reg.add_class_<Cake>("Cake", grp)
 			.add_constructor()
 			.add_method("take_pieces", &Cake::take_pieces)
 			.add_method("add_pieces", &Cake::add_pieces)
-			.add_method("pieces_left", &Cake::pieces_left);
+			.add_method("pieces_left", &Cake::pieces_left)
+			.set_construct_as_smart_pointer(true);
 
 		reg.add_function("TestFunc", TestFunc, grp)
 			.add_function("SmartTestImpl", SmartTestImpl, grp)
@@ -593,7 +601,8 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 
 		reg.add_class_<MessageHubTest>("MessageHubTest", grp)
 			.add_constructor()
-			.add_method("post_message", &MessageHubTest::post_message);
+			.add_method("post_message", &MessageHubTest::post_message)
+			.set_construct_as_smart_pointer(true);
 
 
 	//	if the following registration is performed, the app should fail on startup,
