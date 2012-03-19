@@ -28,13 +28,13 @@ class IDiscretizationItem
 		virtual size_t num_elem_disc() const = 0;
 
 	///	returns the element disc
-		virtual IDomainElemDisc<TDomain>* get_elem_disc(size_t i) = 0;
+		virtual SmartPtr<IDomainElemDisc<TDomain> > elem_disc(size_t i) = 0;
 
 	///	returns the number of constraints
 		virtual size_t num_constraint() const = 0;
 
 	///	returns an element disc
-		virtual IDomainConstraint<TDomain, TAlgebra>* get_constraint(size_t i) = 0;
+		virtual SmartPtr<IDomainConstraint<TDomain, TAlgebra> > constraint(size_t i) = 0;
 
 	///	virtual destructor
 		virtual ~IDiscretizationItem() {}

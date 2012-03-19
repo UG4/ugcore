@@ -498,11 +498,10 @@ class GridFunctionVectorWriterDirichlet0
 		typedef typename algebra_type::vector_type vector_type;
 		typedef typename vector_type::value_type value_type;
 
-		typedef IConstraint<algebra_type> post_process_type;
 	public:
 	///	Constructor
 		GridFunctionVectorWriterDirichlet0() :
-			m_pApproxSpace(NULL), m_pPostProcess(NULL), m_level(-1)
+			m_pApproxSpace(NULL), m_spPostProcess(NULL), m_level(-1)
 		{}
 
 
@@ -511,9 +510,9 @@ class GridFunctionVectorWriterDirichlet0
 			m_level = level;
 		}
 
-		void init(post_process_type &pp, approximation_space_type& approxSpace)
+		void init(SmartPtr<IConstraint<algebra_type> > pp, approximation_space_type& approxSpace)
 		{
-			m_pPostProcess = &pp;
+			m_spPostProcess = pp;
 			m_pApproxSpace = &approxSpace;
 		}
 
@@ -524,7 +523,7 @@ class GridFunctionVectorWriterDirichlet0
 
 		virtual bool update(vector_type &vec)
 		{
-			UG_ASSERT(m_pPostProcess != NULL, "provide a post process with init");
+			UG_ASSERT(m_spPostProcess.valid(), "provide a post process with init");
 			UG_ASSERT(m_pApproxSpace != NULL, "provide approximation space init");
 
 			size_t numDoFs = 0;
@@ -540,14 +539,14 @@ class GridFunctionVectorWriterDirichlet0
 			vec.resize(numDoFs);
 			vec.set(1.0);
 
-			m_pPostProcess->adjust_defect(vec, vec, gl);
+			m_spPostProcess->adjust_defect(vec, vec, gl);
 
 			return true;
 		}
 
 	protected:
 		approximation_space_type * m_pApproxSpace;
-		post_process_type *m_pPostProcess;
+		SmartPtr<IConstraint<algebra_type> > m_spPostProcess;
 		size_t m_level;
 };
 

@@ -69,10 +69,10 @@ class P1Prolongation :
 		void clear_constraints() {m_vConstraint.clear();}
 
 	///	adds a dirichlet post process (not added if already registered)
-		void add_constraint(IConstraint<algebra_type>& pp);
+		void add_constraint(SmartPtr<IConstraint<algebra_type> > pp);
 
 	///	removes a post process
-		void remove_constraint(IConstraint<algebra_type>& pp);
+		void remove_constraint(SmartPtr<IConstraint<algebra_type> > pp);
 
 	///	Set approximation space
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
@@ -110,7 +110,7 @@ class P1Prolongation :
 		matrix_type m_matrix;
 
 	///	list of post processes
-		std::vector<IConstraint<algebra_type>*> m_vConstraint;
+		std::vector<SmartPtr<IConstraint<algebra_type> > > m_vConstraint;
 
 	///	approximation space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;

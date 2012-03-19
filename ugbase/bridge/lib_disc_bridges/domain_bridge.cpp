@@ -65,9 +65,9 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		string name = string("DomainDiscretization").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
-			.add_method("add", static_cast<void (T::*)(IDomainConstraint<TDomain, TAlgebra>&)>(&T::add), "", "Post Process")
-			.add_method("add", static_cast<void (T::*)(IDomainElemDisc<TDomain>&)>(&T::add), "", "Element Discretization")
-			.add_method("add", static_cast<void (T::*)(IDiscretizationItem<TDomain, TAlgebra>&)>(&T::add), "", "DiscItem");
+			.add_method("add", static_cast<void (T::*)(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >)>(&T::add), "", "Post Process")
+			.add_method("add", static_cast<void (T::*)(SmartPtr<IDomainElemDisc<TDomain> >)>(&T::add), "", "Element Discretization")
+			.add_method("add", static_cast<void (T::*)(SmartPtr<IDiscretizationItem<TDomain, TAlgebra> >)>(&T::add), "", "DiscItem");
 		reg.add_class_to_group(name, "DomainDiscretization", dimAlgTag);
 	}
 

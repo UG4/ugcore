@@ -74,7 +74,8 @@ void Register__Domain(Registry& reg, string grp)
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*)>("Function(s)")
 			.add_method("add", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add))
-			.add_method("add", static_cast<void (T::*)(VectorFunctor&, const char*, const char*)>(&T::add));
+			.add_method("add", static_cast<void (T::*)(VectorFunctor&, const char*, const char*)>(&T::add))
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "FV1NeumannBoundary", dimTag);
 	}
 
@@ -90,7 +91,8 @@ void Register__Domain(Registry& reg, string grp)
 		typedef FV1InnerBoundaryElemDisc<TDomain> TBase1;
 		name = string("FV1InnerBoundaryCalciumER").append(dimSuffix);
 		reg.add_class_<T1, TBase1>(name, elemGrp)
-			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)");
+			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "FV1InnerBoundaryCalciumER", dimTag);
 	
 	}
@@ -106,7 +108,8 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("set_source", &T::set_source)
 			.add_method("set_mass_scale", &T::set_mass_scale)
 			.add_method("value", &T::value)
-			.add_method("gradient", &T::gradient);
+			.add_method("gradient", &T::gradient)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "FV1ConstantEquation", dimTag);
 	}
 
@@ -168,7 +171,8 @@ void Register__Domain(Registry& reg, string grp)
 
 			.add_method("set_upwind", &T::set_upwind)
 			.add_method("value", &T::value)
-			.add_method("gradient", &T::gradient);
+			.add_method("gradient", &T::gradient)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusion", dimTag);
 	}
 
@@ -200,7 +204,8 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("set_consistent_gravity", &T2::set_consistent_gravity,
 						"", "Consistent Gravity")
 			.add_method("darcy_velocity", &T2::darcy_velocity)
-			.add_method("brine", &T2::brine);
+			.add_method("brine", &T2::brine)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DensityDrivenFlow", dimTag);
 	}
 
@@ -243,7 +248,8 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("darcy_velocity", &T2::darcy_velocity)
 			.add_method("pressure_grad", &T2::pressure_grad)
 			.add_method("get_temperature", &T2::get_temperature)
-			.add_method("brine", &T2::brine);
+			.add_method("brine", &T2::brine)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "FV1ThermohalineFlow", dimTag);
 	}
 

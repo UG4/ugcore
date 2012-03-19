@@ -126,7 +126,7 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		{return false;}
 
 		virtual size_t num_dirichlet_constraints() const = 0;
-		virtual IConstraint<TDoFDistribution, TAlgebra>* get_dirichlet_constraint(size_t i) = 0;
+		virtual IConstraint<TDoFDistribution, TAlgebra>* dirichlet_constraint(size_t i) = 0;
 };
 
 \endcode

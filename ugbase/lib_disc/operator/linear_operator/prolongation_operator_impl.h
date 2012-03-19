@@ -282,27 +282,27 @@ P1Prolongation<TDomain, TAlgebra>::clone()
 	SmartPtr<P1Prolongation> op(new P1Prolongation);
 	op->set_approximation_space(m_spApproxSpace);
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
-		op->add_constraint(*m_vConstraint[i]);
+		op->add_constraint(m_vConstraint[i]);
 	op->set_restriction_damping(m_dampRes);
 	return op;
 }
 
 template <typename TDomain, typename TAlgebra>
 void
-P1Prolongation<TDomain, TAlgebra>::add_constraint(IConstraint<algebra_type>& pp)
+P1Prolongation<TDomain, TAlgebra>::add_constraint(SmartPtr<IConstraint<algebra_type> > pp)
 {
 //	add only once
-	if(std::find(m_vConstraint.begin(), m_vConstraint.end(), &pp) !=
+	if(std::find(m_vConstraint.begin(), m_vConstraint.end(), pp) !=
 			m_vConstraint.end()) return;
-	m_vConstraint.push_back(&pp);
+	m_vConstraint.push_back(pp);
 }
 
 template <typename TDomain, typename TAlgebra>
 void
-P1Prolongation<TDomain, TAlgebra>::remove_constraint(IConstraint<algebra_type>& pp)
+P1Prolongation<TDomain, TAlgebra>::remove_constraint(SmartPtr<IConstraint<algebra_type> > pp)
 {
 	m_vConstraint.erase(m_vConstraint.begin(),
-	                     std::remove(m_vConstraint.begin(), m_vConstraint.end(), &pp));
+	                     std::remove(m_vConstraint.begin(), m_vConstraint.end(), pp));
 }
 
 

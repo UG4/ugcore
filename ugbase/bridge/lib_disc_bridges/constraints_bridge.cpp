@@ -70,7 +70,8 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		typedef IDomainConstraint<TDomain, TAlgebra> baseT;
 		string name = string("OneSideP1Constraints").append(dimAlgSuffix);
 		reg.add_class_<T, baseT>(name, grp)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "OneSideP1Constraints", dimAlgTag);
 	}
 
@@ -81,7 +82,8 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		typedef IDomainConstraint<TDomain, TAlgebra> baseT;
 		string name = string("SymP1Constraints").append(dimAlgSuffix);
 		reg.add_class_<T, baseT>(name, grp)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SymP1Constraints", dimAlgTag);
 	}
 
@@ -100,7 +102,8 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 						"Success", "Value#Function#Subsets")
 			.add_method("add",static_cast<void (T::*)(number, const char*, const char*)>(&T::add),
 						"Success", "Constant Value#Function#Subsets")
-			.add_method("clear", &T::clear);
+			.add_method("clear", &T::clear)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DirichletBoundary", dimAlgTag);
 	}
 }

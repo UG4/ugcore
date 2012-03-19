@@ -1089,8 +1089,8 @@ init_prolongation()
 	//	add all dirichlet post processes
 		m_vLevData[lev]->Prolongation->clear_constraints();
 		for(size_t i = 0; i < m_pAss->num_dirichlet_constraints(); ++i){
-			IConstraint<TAlgebra>* pp = m_pAss->get_dirichlet_constraint(i);
-			m_vLevData[lev]->Prolongation->add_constraint(*pp);
+			SmartPtr<IConstraint<TAlgebra> > pp = m_pAss->dirichlet_constraint(i);
+			m_vLevData[lev]->Prolongation->add_constraint(pp);
 		}
 
 	//	init prolongation

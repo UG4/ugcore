@@ -183,19 +183,18 @@ class DomainDiscretization
 	 *
 	 * \param[in] 	elem		Element Discretization to be added
 	 */
-		void add(IDomainElemDisc<TDomain>& elem)
+		void add(SmartPtr<IDomainElemDisc<TDomain> > elem)
 		{
 		//	check that not already registered
 			for(size_t i = 0; i < m_vDomainElemDisc.size(); ++i)
-				if(m_vDomainElemDisc[i] == &elem)
+				if(m_vDomainElemDisc[i] == elem)
 					return;
 
 		//	set approximation space
-			elem.set_approximation_space(m_spApproxSpace);
+			elem->set_approximation_space(m_spApproxSpace);
 
 		//	add it
-			m_vDomainElemDisc.push_back(&elem);
-			return;
+			m_vDomainElemDisc.push_back(elem);
 		}
 
 	/// adds a constraint to the assembling process
@@ -205,19 +204,18 @@ class DomainDiscretization
 	 *
 	 * \param[in] 	pp		Constraint to be added
 	 */
-		void add(IDomainConstraint<TDomain, TAlgebra>& pp)
+		void add(SmartPtr<IDomainConstraint<TDomain, TAlgebra> > pp)
 		{
 		// 	get type of constraint
-			const int type = pp.type();
+			const int type = pp->type();
 
 		//	check that not already registered
 			for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-				if(m_vvConstraints[type][i] == &pp)
+				if(m_vvConstraints[type][i] == pp)
 					return;
 
 		//	add constraint
-			m_vvConstraints[type].push_back(&pp);
-			return;
+			m_vvConstraints[type].push_back(pp);
 		}
 
 	/// adds a disc item to the assembling process
@@ -227,15 +225,15 @@ class DomainDiscretization
 	 *
 	 * \param[in] 	di		Disc Item
 	 */
-		void add(IDiscretizationItem<TDomain, TAlgebra>& di)
+		void add(SmartPtr<IDiscretizationItem<TDomain, TAlgebra> > di)
 		{
 		//	add elem discs
-			for(size_t i = 0; i < di.num_elem_disc(); ++i)
-				add(*di.get_elem_disc(i));
+			for(size_t i = 0; i < di->num_elem_disc(); ++i)
+				add(di->elem_disc(i));
 
 		//	add constraints
-			for(size_t i = 0; i < di.num_constraint(); ++i)
-				add(*di.get_constraint(i));
+			for(size_t i = 0; i < di->num_constraint(); ++i)
+				add(di->constraint(i));
 		}
 
 	protected:
@@ -246,7 +244,7 @@ class DomainDiscretization
 		}
 
 	///	returns the i'th dirichlet constraint
-		virtual IConstraint<TAlgebra>* get_dirichlet_constraint(size_t i)
+		virtual SmartPtr<IConstraint<TAlgebra> > dirichlet_constraint(size_t i)
 		{
 			return m_vvConstraints[CT_DIRICHLET].at(i);
 		}
@@ -258,13 +256,13 @@ class DomainDiscretization
 
 	protected:
 	///	vector holding all registered elem discs
-		std::vector<IDomainElemDisc<domain_type>*> m_vDomainElemDisc;
+		std::vector<SmartPtr<IDomainElemDisc<domain_type> > > m_vDomainElemDisc;
 
 	///	vector holding all registered elem discs
 		std::vector<IElemDisc*> m_vElemDisc;
 
 	//	vector holding all registered constraints
-		std::vector<IDomainConstraint<TDomain, TAlgebra>*> m_vvConstraints[NUM_CONSTRAINT_TYPES];
+		std::vector<SmartPtr<IDomainConstraint<TDomain, TAlgebra> > > m_vvConstraints[NUM_CONSTRAINT_TYPES];
 
 	///	current approximation space
 		SmartPtr<approx_space_type> m_spApproxSpace;

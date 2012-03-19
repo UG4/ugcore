@@ -150,9 +150,9 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 		}
 
 	///	returns the i'th post process
-		virtual IConstraint<TAlgebra>* get_dirichlet_constraint(size_t i)
+		virtual SmartPtr<IConstraint<TAlgebra> > dirichlet_constraint(size_t i)
 		{
-			return m_rDomDisc.get_dirichlet_constraint(i);
+			return m_rDomDisc.dirichlet_constraint(i);
 		}
 
 	protected:

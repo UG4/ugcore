@@ -48,10 +48,10 @@ class IProlongationOperator :
 		virtual void clear_constraints() = 0;
 
 	///	adds a dirichlet post process (not added if already registered)
-		virtual void add_constraint(IConstraint<TAlgebra>& pp) = 0;
+		virtual void add_constraint(SmartPtr<IConstraint<TAlgebra> > pp) = 0;
 
 	///	removes a post process
-		virtual void remove_constraint(IConstraint<TAlgebra>& pp) = 0;
+		virtual void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp) = 0;
 
 	//	Clone
 		virtual SmartPtr<IProlongationOperator<TAlgebra> > clone() = 0;

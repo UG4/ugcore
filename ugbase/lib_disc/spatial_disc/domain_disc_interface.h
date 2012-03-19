@@ -224,7 +224,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		virtual size_t num_dirichlet_constraints() const = 0;
 
 	///	returns the i'th post process
-		virtual IConstraint<TAlgebra>* get_dirichlet_constraint(size_t i) = 0;
+		virtual SmartPtr<IConstraint<TAlgebra> > dirichlet_constraint(size_t i) = 0;
 };
 
 /// @}
