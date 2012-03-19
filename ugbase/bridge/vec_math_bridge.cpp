@@ -53,13 +53,13 @@ static bool RegisterVecMathBridge(Registry& reg, string grp)
 		dimTag.append(dimSuffix);
 
 	//	register the class
-		string vecName = "Vector";
+		string vecName = "Vec";
 		vecName.append(dimSuffix);
 
 		reg.add_class_<vec_type>(vecName, grp)
 			.add_method("coord",
 					static_cast<const number& (vec_type::*)(size_t) const>(&vec_type::coord));
-		reg.add_class_to_group(vecName, "Vector_d", dimTag);
+		reg.add_class_to_group(vecName, "Vec", dimTag);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
