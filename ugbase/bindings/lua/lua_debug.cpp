@@ -340,12 +340,14 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 	{
 		if(ar->event == LUA_HOOKCALL || (bDebugging && ar->event ==LUA_HOOKLINE))
 		{
+#ifdef UG_PROFILER
 			if(bEndProfiling)
 			{
 				profilingEndDepth++;
 				if(bDebugging==false)
 					return;
 			}
+#endif
 			if(bDebugging)
 			{
 				const char *source = "unknown";
