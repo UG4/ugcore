@@ -576,7 +576,8 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_method("reserve_vertices", &Grid::reserve<VertexBase>)
 			.add_method("reserve_edges", &Grid::reserve<EdgeBase>)
 			.add_method("reserve_faces", &Grid::reserve<Face>)
-			.add_method("reserve_volumes", &Grid::reserve<Volume>);
+			.add_method("reserve_volumes", &Grid::reserve<Volume>)
+			.set_construct_as_smart_pointer(true);
 
 	//	MultiGrid
 		reg.add_class_<MultiGrid, Grid>("MultiGrid", grp)
@@ -592,7 +593,9 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_method("num_tetrahedrons", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Tetrahedron>)
 			.add_method("num_pyramids", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Pyramid>)
 			.add_method("num_prisms", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Prism>)
-			.add_method("num_hexahedrons", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Hexahedron>);
+			.add_method("num_hexahedrons", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Hexahedron>)
+			.set_construct_as_smart_pointer(true);
+
 
 
 	////////////////////////
@@ -609,12 +612,15 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 	//	SubsetHandler
 		reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp)
 			.add_constructor()
-			.add_method("assign_grid", &SubsetHandler::assign_grid);
+			.add_method("assign_grid", &SubsetHandler::assign_grid)
+			.set_construct_as_smart_pointer(true);
+
 
 	//	MGSubsetHandler
 		reg.add_class_<MGSubsetHandler, ISubsetHandler>("MGSubsetHandler", grp)
 			.add_constructor()
-			.add_method("assign_grid", &MGSubsetHandler::assign_grid);
+			.add_method("assign_grid", &MGSubsetHandler::assign_grid)
+			.set_construct_as_smart_pointer(true);
 
 	//	SurfaceView
 		reg.add_class_<SurfaceView>("SurfaceView", grp);
@@ -634,29 +640,34 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 	//	HangingNodeRefiner
 		reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp)
 			.add_constructor()
-			.add_method("assign_grid", &HangingNodeRefiner_Grid::assign_grid);
+			.add_method("assign_grid", &HangingNodeRefiner_Grid::assign_grid)
+			.set_construct_as_smart_pointer(true);
 
 		reg.add_class_<HangingNodeRefiner_MultiGrid, IRefiner>("HangingNodeRefiner_MultiGrid", grp)
 			.add_constructor()
-			.add_method("assign_grid", &HangingNodeRefiner_MultiGrid::assign_grid);
+			.add_method("assign_grid", &HangingNodeRefiner_MultiGrid::assign_grid)
+			.set_construct_as_smart_pointer(true);
 
 	//	GlobalMultiGridRefiner
 		reg.add_class_<GlobalMultiGridRefiner, IRefiner>("GlobalMultiGridRefiner", grp)
 			.add_constructor()
-			.add_method("assign_grid", static_cast<void (GlobalMultiGridRefiner::*)(MultiGrid&)>(&GlobalMultiGridRefiner::assign_grid));
+			.add_method("assign_grid", static_cast<void (GlobalMultiGridRefiner::*)(MultiGrid&)>(&GlobalMultiGridRefiner::assign_grid))
+			.set_construct_as_smart_pointer(true);
 	
 	//	parallel refinement
 	#ifdef UG_PARALLEL
 		reg.add_class_<ParallelHangingNodeRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>
 			("ParallelHangingNodeRefiner_MultiGrid", grp)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 	#endif
 
 	//	GridObject
 		reg.add_class_<GridObject, Grid>("GridObject", grp)
 			.add_constructor()
 			.add_method("grid", &GridObject::grid)
-			.add_method("subset_handler", &GridObject::subset_handler);
+			.add_method("subset_handler", &GridObject::subset_handler)
+			.set_construct_as_smart_pointer(true);
 
 	//	Grid functions
 		reg.add_function("CreateFractal", &CreateFractal, grp)
@@ -709,7 +720,8 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_method("add_target_procs", &PartitionMap::add_target_procs)
 			.add_method("num_target_procs", &PartitionMap::num_target_procs)
 			.add_method("get_target_proc", &PartitionMap::get_target_proc)
-			.add_method("shift_target_procs", &PartitionMap::shift_target_procs);
+			.add_method("shift_target_procs", &PartitionMap::shift_target_procs)
+			.set_construct_as_smart_pointer(true);
 
 	//	ExpandLayers
 		typedef std::vector<FractureInfo> FracInfoVec;
@@ -717,7 +729,8 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 
 		reg.add_class_<ExpandLayersDesc, FracInfoVec>("ExpandLayersDesc", grp)
 			.add_constructor()
-			.add_method("add_layer", &ExpandLayersDesc::add_layer);
+			.add_method("add_layer", &ExpandLayersDesc::add_layer)
+			.set_construct_as_smart_pointer(true);
 
 		reg.add_function("ExpandLayers2d", &ExpandFractures2d, grp)
 			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
