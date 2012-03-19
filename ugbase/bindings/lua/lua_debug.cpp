@@ -171,7 +171,6 @@ void PrintBreakpoints()
 static std::string lastsource;
 static int lastline = -1;
 static int currentDepth = -1;
-static bool bProfileLUALines=true;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void breakpoint()
@@ -297,13 +296,18 @@ void luaDebug(lua_State *L, const char *source, int line)
 
 	breakpoint();
 }
+
+#ifdef UG_PROFILER
 static bool bEndProfiling=false;
+static bool bProfileLUALines=true;
 static int profilingDepth=0;
 static int profilingEndDepth=0;
+#endif
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void LuaCallHook(lua_State *L, lua_Debug *ar)
 {
-#if 1
+#if 0
 	/*UG_LOG("------------------------\n");
 	{
 	    lua_Debug entry;
@@ -346,7 +350,6 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			{
 				const char *source = "unknown";
 				int line = 0;
-				bool found=false;
 				if(ar->currentline < 0)
 				{
 					for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
@@ -356,7 +359,6 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 						{
 							source = entry.source;
 							line = entry.currentline;
-							found = true;
 							break;
 						}
 					}
@@ -365,7 +367,6 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				{
 					source = ar->source;
 					line = ar->currentline;
-					found =true;
 				}
 				luaDebug(L, source, line);
 			}
