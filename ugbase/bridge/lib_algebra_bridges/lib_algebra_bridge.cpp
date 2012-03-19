@@ -432,7 +432,8 @@ static bool reg(Registry& reg, string parentGroup)
 		// the following functions would normally not be executed from script
 		.add_method("init", static_cast<void (T::*)()>(&T::init))
 		.add_method("apply", &T::apply,
-					"Success", "local SC times Vector#Vector");
+					"Success", "local SC times Vector#Vector")
+		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LocalSchurComplement", algTag);
 	}
 
