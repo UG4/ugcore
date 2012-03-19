@@ -89,7 +89,6 @@ void CheckHook()
 
 
 // Lua Profiling (mrupp)
-#ifdef PROFILE_BRIDGE
 struct s_profileInformation
 {
 	s_profileInformation()
@@ -121,7 +120,6 @@ struct s_profileInformation
 };
 
 typedef s_profileInformation* ps_profileInformation ;
-#endif
 
 void AddBreakpoint(const char*source, int line)
 {
