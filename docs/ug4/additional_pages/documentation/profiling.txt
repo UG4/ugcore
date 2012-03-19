@@ -6,7 +6,9 @@
 /**	\page pageUG4Profiling ug - Profiling
 
 	- \ref secEnableProfiling "Enable Profiling in UG4"
-	- \ref secProfilingYourCode "Adding profiling to your code"
+	- \ref secProfilingLUA "Profiling your LUA Script"
+	- \ref secProfilingRegistry "Profiling Registry"
+	- \ref secProfilingYourCode "Profiling your C/C++ code"
 	- \ref secViewProfilingNodes "View profiling statistics"
 
 For any questions, contact <a href="mailto:martin.rupp@gcsc.uni-frankfurt.de">martin.rupp@gcsc.uni-frankfurt.de</a>
@@ -29,9 +31,22 @@ To enable profiling of the PCL (Parallel Communication Layer), set <tt>-DPROFILE
 Check the output of <tt>cmake ..</tt> for changes and additional flags.
 Keep in mind that you have to do a make when changing cmake flags.
 
+<hr>
+\section secProfilingLUA Profiling your LUA Script
+<hr>
+To enable profiling of your LUA Script, simply add a ProfileLUA(true) at the beginning of your script. For the moment, we only profile the top-level calls, not all subroutine calls. 
+This has performance reasons. Expect a performance drawback when calling small functions very often.
 
 <hr>
-\section secProfilingYourCode Adding profiling to your code
+\section secProfilingRegistry Profiling Registry
+<hr>
+You can enable profiling all calls made through the ug4 registry/brige by calling cmake with
+\verbatim
+cmake -DPROFILE_BRIDGE=ON ..
+\endverbatim
+
+<hr>
+\section secProfilingYourCode Profiling your C/C++ code
 <hr>
 
 If you want measure the time spend in your functions or in sections of your code, you can use our profiling functions:
@@ -149,16 +164,23 @@ The UGProfilerNode has the following functions:
 \code
 class UGProfilerNode
 {
-	double get_avg_entry_count() const;	  	// number of entries in this profiler node
-	double get_avg_self_time_ms() const;  	// time in milliseconds spend in this node excluding subnodes
-	double get_avg_total_time_ms() const; 	// time in milliseconds spend in this node including subnodes
-	string call_tree() const;				// returns string with call tree
-	string child_self_time_sorted() const;	// string with sorted childs (sorted by self time)
-	string total_time_sorted() const;		// string with sorted childs (sorted by total time)
-	string entry_count_sorted() const;		// string with sorted childs (sorted by entry count)
-	bool is_valid() const; 					// true if this is a valid node (i.e. != NULL)
+	double get_avg_entry_count() const;	  						// number of entries in this profiler node
+	double get_avg_self_time_ms() const;  						// time in milliseconds spend in this node excluding subnodes
+	double get_avg_total_time_ms() const; 						// time in milliseconds spend in this node including subnodes
+	string call_tree(double dMarginal=0.0) const;				// returns string with call tree
+	string child_self_time_sorted(double dMarginal=0.0) const;	// string with sorted childs (sorted by self time)
+	string total_time_sorted(double dMarginal=0.0) const;		// string with sorted childs (sorted by total time)
+	string entry_count_sorted(double dMarginal=0.0) const;		// string with sorted childs (sorted by entry count)
+	bool is_valid() const; 										// true if this is a valid node (i.e. != NULL)
 }
 \endcode
+
+<li>
+If <tt>dMarginal</tt> != 0.0, only nodes which account for more than dMarginal*100 % of the total time are part of the output. So if you want to print the call tree, and want to
+display only nodes which account for more than 3% of the total time, you can write
+\verbatim
+GetProfileNode("main"):call_tree(0.03)
+\endverbatim
 
 <li>
 Example Code to be profiled:
