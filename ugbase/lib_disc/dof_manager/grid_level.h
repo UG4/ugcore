@@ -27,6 +27,17 @@ class GridLevel
 	///	constructor
 		GridLevel(int level, ViewType type) : m_level(level), m_type(type) {}
 
+	///	constructor
+		GridLevel(int level) : m_level(level), m_type(SURFACE) {}
+
+	///	constructor
+		GridLevel(int level, std::string type) : m_level(level)
+		{
+			if(type == "top") {m_type = LEVEL;}
+			else if(type == "surf") {m_type = SURFACE;}
+			else UG_THROW_FATAL("Grid Level Type not in ['top' |Ê'surf'].");
+		}
+
 	///	returns the level
 		int level() const {return m_level;}
 

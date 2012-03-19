@@ -228,7 +228,10 @@ bool RegisterLibDisc_Domain(Registry& reg, string parentGroup)
 {
 //	GridLevel
 	reg.add_class_<GridLevel>("GridLevel")
-		.add_constructor();
+		.add_constructor()
+		.add_constructor<void (*)(int)>("Level")
+		.add_constructor<void (*)(int, std::string)>("Level, Type")
+		.set_construct_as_smart_pointer(true);
 
 //	IApproximationSpace
 	{
