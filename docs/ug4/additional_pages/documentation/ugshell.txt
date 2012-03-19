@@ -216,46 +216,4 @@ The debug shell is like the normal ug4 shell (so it has \ref secAutoCompletion a
 Note that you don't have to define UG_DEBUG to use the debug shell. 
 There is a small performance drawback when using <tt>breakpoint(source, line)</tt> because we have to check for every line if it is a break line. 
 This is especially the case if you have lots of small calls in your lua script. However, there is no performance drawback in <tt>breakpoint()</tt>.
-
-<hr>
-\section secDebugging Debug Shell
-<hr>
-
-You can also debug your LUA Script using the shell. For this, you can use the script functions
-<ul>
-<li>
-\verbatim
-breakpoint()
-\endverbatim
-breakpoint() breaks the execution of the script at exactly the location it stands. This is the preferred method of setting a breakpoint.
-<li>
-\verbatim
-breakpoint(source, line)
-\endverbatim
-breakpoint("laplace.lua", 69) adds a breakpoint at the file "laplace.lua" (path relative to current script). print_breakpoints prints those. Note that only lines with code are "catched" by the compiler.
-</ul>
-
-When your breakpoint is reached, you are entering the ug4 debug shell:
-\verbatim
-./../scripts/laplace.lua:69 breakpoint()
-debug:> 
-\endverbatim
-
-The debug shell is like the normal ug4 shell (so it has \ref secAutoCompletion and \ref secRuntimeInformation), but you have some extra commands. Most of them have a similar function as in gdb:
-
-<ul>
-<li> <tt>continue, cont</tt> : Continues execution.
-<li> <tt>step</tt> : Continues execution until the next line is reached, steps into subroutines.
-<li> <tt>next</tt> : Continues execution until the next line is reached, does not step into subroutines (that is, we are skipping lines with greater function stack depth).
-<li> <tt>finish</tt> : Finishes subroutines/scripts (continues execution until a line is reached with lower function stack depth).
-<li> <tt>list</tt> : Lists the script surrounding the current statement.
-<li> <tt>backtrace, bt</tt> : Prints the function stack.
-<li> <tt>up, down</tt> : Goes up and down the function stack.
-<li> <tt>quit, exit</tt> : Like in normal shell, exits ug4 directly.
-<li> <tt>print VAL</tt> : Like <tt>VAL?</tt>
-</ul>
-
-Note that you don't have to define UG_DEBUG to use the debug shell. 
-There is a small performance drawback when using <tt>breakpoint(source, line)</tt> because we have to check for every line if it is a break line. 
-This is especially the case if you have lots of small calls in your lua script. However, there is no performance drawback in <tt>breakpoint()</tt>.
 */
