@@ -22,9 +22,8 @@ namespace ug {
 
 template <typename TAlgebra>
 class NewtonSolver
-	: public IOperatorInverse<	typename TAlgebra::vector_type,
-	  	  	  	  	  	  	  	typename TAlgebra::vector_type>,
-	public DebugWritingObject<TAlgebra>
+	: 	public IOperatorInverse<typename TAlgebra::vector_type>,
+		public DebugWritingObject<TAlgebra>
 {
 	public:
 	//	Algebra type
@@ -41,10 +40,10 @@ class NewtonSolver
 		using base_writer_type::write_debug;
 
 	public:
-		NewtonSolver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver,
+		NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 					SmartPtr<IConvergenceCheck> spConvCheck,
 					SmartPtr<ILineSearch<vector_type> > spLineSearch, bool reallocate) :
-					m_pLinearSolver(&LinearSolver),
+					m_spLinearSolver(LinearSolver),
 					m_spConvCheck(spConvCheck),
 					m_spLineSearch(spLineSearch),
 					m_reallocate(reallocate), m_allocated(false),
@@ -52,14 +51,14 @@ class NewtonSolver
 			{};
 
 		NewtonSolver() :
-			m_pLinearSolver(NULL),
+			m_spLinearSolver(NULL),
 			m_spConvCheck(new StandardConvCheck(10, 1e-8, 1e-10, true)),
 			m_spLineSearch(NULL),
 			m_reallocate(false), m_allocated(false),
 			m_dgbCall(0)
 			{};
 
-		void set_linear_solver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver) {m_pLinearSolver = &LinearSolver;}
+		void set_linear_solver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver) {m_spLinearSolver = LinearSolver;}
 		void set_convergence_check(SmartPtr<IConvergenceCheck> spConvCheck)
 		{
 			m_spConvCheck = spConvCheck;
@@ -71,7 +70,7 @@ class NewtonSolver
 		void set_line_search(SmartPtr<ILineSearch<vector_type> > spLineSearch) {m_spLineSearch = spLineSearch;}
 
 		// init: This operator inverts the Operator N: Y -> X
-		virtual bool init(IOperator<vector_type, vector_type>& N);
+		virtual bool init(SmartPtr<IOperator<vector_type> > N);
 
 		// prepare Operator
 		virtual bool prepare(vector_type& u);
@@ -89,7 +88,6 @@ class NewtonSolver
 
 	private:
 		bool allocate_memory(const vector_type& u);
-		bool deallocate_memory();
 
 		void write_debug(const vector_type& vec, const char* filename)
 		{
@@ -114,7 +112,7 @@ class NewtonSolver
 		}
 
 	private:
-		ILinearOperatorInverse<vector_type, vector_type>* m_pLinearSolver;
+		SmartPtr<ILinearOperatorInverse<vector_type> > m_spLinearSolver;
 
 		// Convergence Check
 		SmartPtr<IConvergenceCheck> m_spConvCheck;
@@ -125,8 +123,8 @@ class NewtonSolver
 		vector_type m_d;
 		vector_type m_c;
 
-		AssembledOperator<algebra_type>* m_N;
-		AssembledLinearOperator<algebra_type>* m_J;
+		SmartPtr<AssembledOperator<algebra_type> > m_N;
+		SmartPtr<AssembledLinearOperator<algebra_type> > m_J;
 		IAssemble<algebra_type>* m_pAss;
 
 		// line search parameters

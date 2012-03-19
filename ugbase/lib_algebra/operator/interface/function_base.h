@@ -1,12 +1,12 @@
 /*
- * operator_base_interface.h
+ * function_base.h
  *
  *  Created on: 30.09.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_ALGEBRA__OPERATOR__OPERATOR_BASE_INTERFACE__
-#define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_BASE_INTERFACE__
+#ifndef __H__LIB_ALGEBRA__OPERATOR__INTERFACE__FUNCTION_BASE__
+#define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__FUNCTION_BASE__
 
 #include "common/common.h"
 
@@ -31,4 +31,4 @@ class IFunctionBase
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__OPERATOR_BASE_INTERFACE__ */
+#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__FUNCTION_BASE__ */

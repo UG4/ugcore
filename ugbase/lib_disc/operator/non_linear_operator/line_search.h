@@ -51,7 +51,7 @@ class ILineSearch
 	 * \return 	true 		if line search successful
 	 * 			false 		if line search failed
 	 */
-		virtual bool search(IOperator<vector_type, vector_type>& Op,
+		virtual bool search(SmartPtr<IOperator<vector_type> > spOp,
 		                    vector_type& u, vector_type& p,
 		                    vector_type& d, number defect) = 0;
 
@@ -96,7 +96,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 		virtual void set_offset(std::string offset) {m_offset = offset;};
 
 	///	\copydoc ILineSearch::search
-		virtual bool search(IOperator<vector_type, vector_type>& Op,
+		virtual bool search(SmartPtr<IOperator<vector_type> > spOp,
 		                    vector_type& u, vector_type& p,
 		                    vector_type& d, number defect)
 		{
@@ -126,8 +126,8 @@ class StandardLineSearch : public ILineSearch<TVector>
 				VecScaleAdd(u, 1.0, u, (-1)*lambda, p);
 
 			// 	compute new Defect
-				Op.prepare(d, u);
-				Op.apply(d, u);
+				spOp->prepare(d, u);
+				spOp->apply(d, u);
 
 			//	compute new Residuum
 				norm = d.two_norm();
@@ -190,8 +190,8 @@ class StandardLineSearch : public ILineSearch<TVector>
 					VecScaleAdd(u, 1.0, u, (-1)*lambda*std::pow(m_lambdaReduce, (number)best), p);
 
 				// 	compute new Defect
-					Op.prepare(d, u);
-					Op.apply(d, u);
+					spOp->prepare(d, u);
+					spOp->apply(d, u);
 
 					// compute new Residuum
 					norm = d.two_norm();

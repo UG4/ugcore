@@ -13,8 +13,7 @@
 namespace ug{
 
 template <typename TAlgebra>
-class AssembledOperator : public IOperator<	typename TAlgebra::vector_type,
-											typename TAlgebra::vector_type>
+class AssembledOperator : public IOperator<typename TAlgebra::vector_type>
 {
 public:
 	/// Type of algebra

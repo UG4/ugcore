@@ -276,10 +276,10 @@ void P1Prolongation<TDomain, TAlgebra>::apply_transposed(vector_type& uCoarseOut
 }
 
 template <typename TDomain, typename TAlgebra>
-IProlongationOperator<TAlgebra>*
+SmartPtr<IProlongationOperator<TAlgebra> >
 P1Prolongation<TDomain, TAlgebra>::clone()
 {
-	P1Prolongation* op = new P1Prolongation;
+	SmartPtr<P1Prolongation> op(new P1Prolongation);
 	op->set_approximation_space(m_spApproxSpace);
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
 		op->add_constraint(*m_vConstraint[i]);

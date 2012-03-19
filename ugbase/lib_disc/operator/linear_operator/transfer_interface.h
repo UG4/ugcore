@@ -54,14 +54,14 @@ class IProlongationOperator :
 		virtual void remove_constraint(IConstraint<TAlgebra>& pp) = 0;
 
 	//	Clone
-		virtual IProlongationOperator<TAlgebra>* clone() = 0;
+		virtual SmartPtr<IProlongationOperator<TAlgebra> > clone() = 0;
 };
 
 ///////////////////////////////////////////////////////////
 // Projection Operator
 ///////////////////////////////////////////////////////////
 
-template <typename X, typename Y>
+template <typename X, typename Y = X>
 class IProjectionOperator :	public virtual ILinearOperator<X,Y>
 {
 	public:
@@ -79,7 +79,7 @@ class IProjectionOperator :	public virtual ILinearOperator<X,Y>
 		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) = 0;
 
 	//	Clone
-		virtual IProjectionOperator<X,Y>* clone() = 0;
+		virtual SmartPtr<IProjectionOperator<X,Y> > clone() = 0;
 };
 
 } // end namespace ug

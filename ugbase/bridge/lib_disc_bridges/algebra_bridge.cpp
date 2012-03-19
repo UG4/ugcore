@@ -151,7 +151,8 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 			.add_method("set_discretization", &T::set_discretization)
 			.add_method("set_level", &T::set_level)
 			.add_method("set_dirichlet_values", &T::set_dirichlet_values)
-			.add_method("init_op_and_rhs", &T::init_op_and_rhs);
+			.add_method("init_op_and_rhs", &T::init_op_and_rhs)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AssembledLinearOperator", algTag);
 	}
 
@@ -159,7 +160,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 		typedef NewtonSolver<TAlgebra> T;
-		typedef IOperatorInverse<vector_type, vector_type> TBase;
+		typedef IOperatorInverse<vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("NewtonSolver").append(algSuffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
@@ -171,7 +172,8 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 			.add_method("prepare", &T::prepare)
 			.add_method("apply", &T::apply)
 			.add_method("print_average_convergence", &T::print_average_convergence)
-			.add_method("clear_average_convergence", &T::clear_average_convergence);
+			.add_method("clear_average_convergence", &T::clear_average_convergence)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NewtonSolver", algTag);
 	}
 
@@ -179,14 +181,15 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
 		typedef AssembledOperator<TAlgebra> T;
-		typedef IOperator<vector_type, vector_type> TBase;
+		typedef IOperator<vector_type> TBase;
 		string name = string("AssembledOperator").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(IAssemble<TAlgebra>&)>("Assembling Routine")
 			.add_method("set_discretization", &T::set_discretization)
 			.add_method("set_level", &T::set_level)
-			.add_method("init", &T::init);
+			.add_method("init", &T::init)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AssembledOperator", algTag);
 	}
 

@@ -131,7 +131,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 		m_testvectors[i].set_storage_type(PST_CONSISTENT);
 #endif
 
-		m_famg.m_testvectorsmoother->init(*m_famg.levels[level]->pAgglomeratedA);
+		m_famg.m_testvectorsmoother->init(m_famg.levels[level]->pAgglomeratedA);
 
 		if(m_famg.m_writeMatrices && m_famg.m_writeTestvectors)
 					for(size_t i=0; i<m_testvectors.size(); i++)

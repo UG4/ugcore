@@ -56,7 +56,7 @@ class BiCGStab
 		BiCGStab() {};
 
 	///	constructor setting the preconditioner and the convergence check
-		BiCGStab( SmartPtr<ILinearIterator<vector_type,vector_type> > spPrecond,
+		BiCGStab( SmartPtr<ILinearIterator<vector_type> > spPrecond,
 		          SmartPtr<IConvergenceCheck> spConvCheck)
 			: base_type(spPrecond, spConvCheck)
 		{};

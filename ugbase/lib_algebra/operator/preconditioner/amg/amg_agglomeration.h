@@ -417,7 +417,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		//PrintGlobalLayout(globalMasterLayout, "globalmasterLayout before");
 		//PrintGlobalLayout(globalSlaveLayout, "globalSlaveLayout before");
 
-		ReceiveMatrix(A, L.collectedA, L.agglomerateMasterLayout, mergeWith, PN);
+		ReceiveMatrix(A, *L.collectedA, L.agglomerateMasterLayout, mergeWith, PN);
 		ReceiveGlobalLayout(communicator, mergeWith, globalMasterLayout, globalSlaveLayout);
 
 		//PrintGlobalLayout(globalMasterLayout, "received globalmasterLayout");
@@ -434,14 +434,14 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 
 		L.agglomeratedPC = A.process_communicator().create_sub_communicator(true);
 
-		L.collectedA.set_layouts(L.masterLayout2, L.slaveLayout2);
-		L.collectedA.set_process_communicator(L.agglomeratedPC);
-		L.pAgglomeratedA  = &L.collectedA;
+		L.collectedA->set_layouts(L.masterLayout2, L.slaveLayout2);
+		L.collectedA->set_process_communicator(L.agglomeratedPC);
+		L.pAgglomeratedA  = L.collectedA;
 
-		L.collC.resize(L.collectedA.num_rows());
-		SetParallelVectorAsMatrix(L.collC, L.collectedA, PST_CONSISTENT);
-		L.collD.resize(L.collectedA.num_rows());
-		SetParallelVectorAsMatrix(L.collD, L.collectedA, PST_ADDITIVE);
+		L.collC.resize(L.collectedA->num_rows());
+		SetParallelVectorAsMatrix(L.collC, *L.collectedA, PST_CONSISTENT);
+		L.collD.resize(L.collectedA->num_rows());
+		SetParallelVectorAsMatrix(L.collD, *L.collectedA, PST_ADDITIVE);
 
 		/*PRINTPC(L.agglomeratedPC);
 		UG_LOG("L.masterLayout2\n");
@@ -452,7 +452,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 
 		if(m_amghelper.has_positions())
 			m_amghelper.receive_agglomerate_positions(level, A.communicator(), L.agglomerateMasterLayout,
-				L.collectedA.num_rows());
+				L.collectedA->num_rows());
 		//merging_as_master(L);
 	}
 	else
@@ -481,15 +481,15 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 
 			// todo: this is some waste because we're just changing layouts.
 			// change vecs tooo....
-			L.collectedA = A;
-			L.collectedA.set_layouts(L.masterLayout2, L.slaveLayout2);
-			L.collectedA.set_process_communicator(L.agglomeratedPC);
-			L.pAgglomeratedA  = &L.collectedA;
+			*L.collectedA = A;
+			L.collectedA->set_layouts(L.masterLayout2, L.slaveLayout2);
+			L.collectedA->set_process_communicator(L.agglomeratedPC);
+			L.pAgglomeratedA  = L.collectedA;
 
-			L.collC.resize(L.collectedA.num_rows());
-			SetParallelVectorAsMatrix(L.collC, L.collectedA, PST_CONSISTENT);
-			L.collD.resize(L.collectedA.num_rows());
-			SetParallelVectorAsMatrix(L.collD, L.collectedA, PST_ADDITIVE);
+			L.collC.resize(L.collectedA->num_rows());
+			SetParallelVectorAsMatrix(L.collC, *L.collectedA, PST_CONSISTENT);
+			L.collD.resize(L.collectedA->num_rows());
+			SetParallelVectorAsMatrix(L.collD, *L.collectedA, PST_ADDITIVE);
 		}
 		else
 		{

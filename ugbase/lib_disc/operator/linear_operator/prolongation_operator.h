@@ -100,7 +100,7 @@ class P1Prolongation :
 		virtual void apply_sub(vector_type& u, const vector_type& v) {UG_THROW_FATAL("Not Implemented.");}
 
 	///	returns new instance with same setting
-		virtual IProlongationOperator<TAlgebra>* clone();
+		virtual SmartPtr<IProlongationOperator<TAlgebra> > clone();
 
 	///	Destructor
 		~P1Prolongation() {}

@@ -44,8 +44,7 @@ namespace ug{
  */
 template <typename TDomain, typename TAlgebra>
 class AssembledMultiGridCycle :
-	virtual public ILinearIterator<	typename TAlgebra::vector_type,
-									typename TAlgebra::vector_type>
+ public ILinearIterator<	typename TAlgebra::vector_type>
 {
 	public:
 	///	Domain
@@ -63,33 +62,18 @@ class AssembledMultiGridCycle :
 	///	Matrix type
 		typedef typename algebra_type::matrix_type matrix_type;
 
-	///	Prolongation Operator
-		typedef IProlongationOperator<TAlgebra> prolongation_operator_type;
-
-	///	Projection Operator
-		typedef IProjectionOperator<vector_type, vector_type> projection_operator_type;
-
-	///	Base Solver type
-		typedef ILinearOperatorInverse<vector_type, vector_type> base_solver_type;
-
-	///	Smoother type
-		typedef ILinearIterator<vector_type, vector_type> smoother_type;
-
-	///	Own type
-		typedef ILinearIterator<vector_type, vector_type> base_type;
-
 	public:
 	/// constructor setting approximation space
 		AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
-			m_pAss(NULL), m_spApproxSpace(approxSpace),
+			m_spSurfaceMat(NULL), m_pAss(NULL), m_spApproxSpace(approxSpace),
 			m_topLev(0), m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
 			m_numPreSmooth(2), m_numPostSmooth(2),
 			m_bAdaptive(true),
 			m_spSmootherPrototype(new Jacobi<TAlgebra>()),
 			m_spProjectionPrototype(new P1Projection<TDomain,TAlgebra>(m_spApproxSpace)),
 			m_spProlongationPrototype(new P1Prolongation<TDomain,TAlgebra>(m_spApproxSpace)),
+			m_spBaseSolver(NULL),
 			m_NonGhostMarker(*m_spApproxSpace->domain()->grid()),
-			m_pBaseSolver(NULL),
 			m_spDebugWriter(NULL), m_dbgIterCnt(0)
 		{};
 
@@ -105,8 +89,8 @@ class AssembledMultiGridCycle :
 		void set_base_level(int baseLevel) {m_baseLev = baseLevel;}
 
 	///	sets the base solver that is used
-		void set_base_solver(base_solver_type& baseSolver)
-			{m_pBaseSolver = &baseSolver;}
+		void set_base_solver(SmartPtr<ILinearOperatorInverse<vector_type> > baseSolver)
+			{m_spBaseSolver = baseSolver;}
 
 	///	sets if the base solver is applied in parallel
 		void set_parallel_base_solver(bool bParallel) {m_bBaseParallel = bParallel;}
@@ -121,15 +105,15 @@ class AssembledMultiGridCycle :
 		void set_num_postsmooth(int num) {m_numPostSmooth = num;}
 
 	///	sets the smoother that is used
-		void set_smoother(SmartPtr<smoother_type> smoother)
+		void set_smoother(SmartPtr<ILinearIterator<vector_type> > smoother)
 			{m_spSmootherPrototype = smoother;}
 
 	///	sets the prolongation operator
-		void set_prolongation_operator(SmartPtr<prolongation_operator_type> P)
+		void set_prolongation_operator(SmartPtr<IProlongationOperator<TAlgebra> > P)
 			{m_spProlongationPrototype = P;}
 
 	///	sets the projection operator
-		void set_projection_operator(SmartPtr<IProjectionOperator<vector_type, vector_type> > P)
+		void set_projection_operator(SmartPtr<IProjectionOperator<vector_type> > P)
 			{m_spProjectionPrototype = P;}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -140,10 +124,10 @@ class AssembledMultiGridCycle :
 		virtual const char* name() const {return "Geometric MultiGrid";}
 
 	/// Prepare for Operator J(u) and linearization point u (current solution)
-		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u);
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u);
 
 	///	Prepare for Linear Operartor L
-		virtual bool init(ILinearOperator<vector_type, vector_type>& L);
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L);
 
 	///	Compute new correction c = B*d
 		virtual bool apply(vector_type& c, const vector_type& d);
@@ -152,7 +136,7 @@ class AssembledMultiGridCycle :
 		virtual bool apply_update_defect(vector_type& c, vector_type& d);
 
 	///	Clone
-		base_type* clone();
+		SmartPtr<ILinearIterator<vector_type> > clone();
 
 	///	Destructor
 		~AssembledMultiGridCycle() {top_level_required(0);};
@@ -188,7 +172,7 @@ class AssembledMultiGridCycle :
 	/// performs smoothing on level l, nu times
 		bool smooth(vector_type& c, vector_type& d, vector_type& t,
 		            MatrixOperator<matrix_type, vector_type>& A,
-		            smoother_type& S, size_t lev, int nu);
+		            ILinearIterator<vector_type>& S, size_t lev, int nu);
 
 	///	returns the number of allocated levels
 		size_t num_levels() const {return m_vLevData.size();}
@@ -235,7 +219,7 @@ class AssembledMultiGridCycle :
 
 	protected:
 	/// operator to invert (surface grid)
-		matrix_type* m_pSurfaceMat;
+		SmartPtr<matrix_type> m_spSurfaceMat;
 
 	///	assembling routine for coarse grid matrices
 		assemble_type* m_pAss;
@@ -269,13 +253,16 @@ class AssembledMultiGridCycle :
 		std::vector<size_t> m_vSurfToTopMap;
 
 	///	prototype for smoother
-		SmartPtr<smoother_type> m_spSmootherPrototype;
+		SmartPtr<ILinearIterator<vector_type> > m_spSmootherPrototype;
 
 	///	prototype for projection operator
-		SmartPtr<projection_operator_type> m_spProjectionPrototype;
+		SmartPtr<IProjectionOperator<vector_type> > m_spProjectionPrototype;
 
 	///	prototype for prolongation operator
-		SmartPtr<prolongation_operator_type> m_spProlongationPrototype;
+		SmartPtr<IProlongationOperator<TAlgebra> > m_spProlongationPrototype;
+
+	///	base solver for the coarse problem
+		SmartPtr<ILinearOperatorInverse<vector_type> > m_spBaseSolver;
 
 		////////////////////////////////////
 		// Storage for each grid level
@@ -284,16 +271,20 @@ class AssembledMultiGridCycle :
 		struct LevData
 		{
 		//	constructor
-			LevData() : spLevDD(0), Smoother(0), Projection(0), Prolongation(0){};
+			LevData()
+			: spLevDD(0),
+			  spLevMat(new MatrixOperator<matrix_type, vector_type>),
+			  spSmoothMat(new MatrixOperator<matrix_type, vector_type>),
+			  Smoother(0), Projection(0), Prolongation(0){};
 
 		//	prepares the grid level data for appication
 			void update(size_t lev,
 			            SmartPtr<LevelDoFDistribution> levelDD,
 			            SmartPtr<ApproximationSpace<TDomain> > approxSpace,
 			            assemble_type& ass,
-			            smoother_type& smoother,
-			            projection_operator_type& projection,
-			            prolongation_operator_type& prolongation,
+			            ILinearIterator<vector_type>& smoother,
+			            IProjectionOperator<vector_type>& projection,
+			            IProlongationOperator<TAlgebra>& prolongation,
 			            BoolMarker& nonGhostMarker);
 
 		//	returns if ghosts are present on the level
@@ -307,15 +298,15 @@ class AssembledMultiGridCycle :
 				{UG_ASSERT(spLevDD.valid(), "Missing LevDD"); return spLevDD->num_indices();}
 
 		//	returns the smoothing matrix (depends if smooth patch needed or not)
-			MatrixOperator<matrix_type, vector_type>&
+			SmartPtr<MatrixOperator<matrix_type, vector_type> >
 			get_smooth_mat()
 			{
-				if(has_ghosts()) return SmoothMat;
-				else return LevMat;
+				if(has_ghosts()) return spSmoothMat;
+				else return spLevMat;
 			}
 
 		//	returns the smoother
-			smoother_type& get_smoother() {return *Smoother;}
+			ILinearIterator<vector_type>& get_smoother() {return *Smoother;}
 
 		//	returns the vectors used for smoothing (patch only vectors)
 			vector_type& get_smooth_solution() {if(has_ghosts()) return su; else return u;}
@@ -380,19 +371,19 @@ class AssembledMultiGridCycle :
 			SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 		//	matrix operator for whole grid level
-			MatrixOperator<matrix_type, vector_type> LevMat;
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > spLevMat;
 
 		//	matrix for smoothing on smoothing patch of grid level
-			MatrixOperator<matrix_type, vector_type> SmoothMat;
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat;
 
 		//	smoother
-			smoother_type* Smoother;
+			SmartPtr<ILinearIterator<vector_type> > Smoother;
 
 		//	projection operator
-			projection_operator_type* Projection;
+			SmartPtr<IProjectionOperator<vector_type> > Projection;
 
 		//	prolongation operator
-			prolongation_operator_type* Prolongation;
+			SmartPtr<IProlongationOperator<TAlgebra> > Prolongation;
 
 		//	vectors needed
 			vector_type u, c, d, t;
@@ -421,9 +412,6 @@ class AssembledMultiGridCycle :
 
 	///	bool marker of non-ghosts
 		BoolMarker m_NonGhostMarker;
-
-	///	base solver for the coarse problem
-		base_solver_type* m_pBaseSolver;
 
 		std::vector<vector_type*> level_defects()
 		{

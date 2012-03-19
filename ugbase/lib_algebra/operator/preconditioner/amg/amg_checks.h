@@ -208,7 +208,7 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 				break;
 
 			check_level(levels[level]->collC, levels[level]->collD,
-				levels[level]->collectedA, level, checkRes[level]);
+				*levels[level]->collectedA, level, checkRes[level]);
 		}
 		else
 #endif

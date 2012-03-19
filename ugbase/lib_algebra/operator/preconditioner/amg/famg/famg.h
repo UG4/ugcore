@@ -76,10 +76,10 @@ public:
 
 //  functions
 	FAMG() ;
-	virtual ILinearIterator<vector_type,vector_type>* clone()
+	virtual SmartPtr<ILinearIterator<vector_type> > clone()
 	{
-		FAMG<algebra_type>* clone = new FAMG<algebra_type>();
-		return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
+		SmartPtr<FAMG<algebra_type> > clone(new FAMG<algebra_type>);
+		return clone;
 	}
 	//	Name of preconditioner
 	virtual ~FAMG();
@@ -173,7 +173,7 @@ public:
 		m_bTestvectorsFromMatrixRows = bEnable;
 	}
 
-	void set_testvector_smoother(ILinearIterator<vector_type, vector_type> *testvectorsmoother) { m_testvectorsmoother = testvectorsmoother; }
+	void set_testvector_smoother(SmartPtr<ILinearIterator<vector_type> > testvectorsmoother) { m_testvectorsmoother = testvectorsmoother; }
 
 	//!		sets epsilon_trunction, used in truncation of the interpolation [AMGKS99] 7.2.4
 	//!		prolongation truncation: set all P(i,j) = 0 if they are too small compared to greatest P(i,.)
@@ -237,7 +237,7 @@ private:
 	bool m_bTestvectorsFromMatrixRows;
 	bool m_bWriteFValues;
 
-	ILinearIterator<vector_type, vector_type> *m_testvectorsmoother;
+	SmartPtr<ILinearIterator<vector_type> > m_testvectorsmoother;
 
 	friend class FAMGLevelCalculator<matrix_type, matrix_type, vector_type >;
 

@@ -76,10 +76,10 @@ public:
 	
 //  functions
 	RSAMG() ;
-	virtual ILinearIterator<vector_type,vector_type>* clone()
+	virtual SmartPtr<ILinearIterator<vector_type> > clone()
 	{
-		RSAMG<algebra_type>* clone = new RSAMG<algebra_type>();
-		return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
+		SmartPtr<RSAMG<algebra_type> > clone(new RSAMG<algebra_type>);
+		return clone;
 	}
 	virtual ~RSAMG() { }
 

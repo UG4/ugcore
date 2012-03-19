@@ -33,6 +33,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 	private:
 		typedef typename matrix_type::value_type block_type;
+		using IPreconditioner<TAlgebra>::debug_writer;
+		using IPreconditioner<TAlgebra>::set_debug;
 
 	public:
 	//	Constructor
@@ -41,9 +43,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		{};
 
 	// 	Clone
-		ILinearIterator<vector_type,vector_type>* clone()
+
+		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return new ILUTPreconditioner<algebra_type>(m_eps);
+			SmartPtr<ILUTPreconditioner<algebra_type> > newInst(new ILUTPreconditioner<algebra_type>(m_eps));
+			newInst->set_debug(debug_writer());
+			return newInst;
 		}
 
 	// 	Destructor

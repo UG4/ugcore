@@ -146,7 +146,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 smooth(vector_type& c, vector_type& d, vector_type& tmp,
        MatrixOperator<matrix_type, vector_type>& A,
-       smoother_type& S,
+       ILinearIterator<vector_type>& S,
        size_t lev, int nu)
 {
 // 	smooth nu times
@@ -218,8 +218,8 @@ presmooth(size_t lev)
 	vector_type& sTmp = m_vLevData[lev]->get_smooth_tmp();
 
 //	get smoother on this level and corresponding operator
-	smoother_type& Smoother = m_vLevData[lev]->get_smoother();
-	MatrixOperator<matrix_type, vector_type>& SmoothMat =
+	ILinearIterator<vector_type>& Smoother = m_vLevData[lev]->get_smoother();
+	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
 		m_vLevData[lev]->get_smooth_mat();
 
 // 	reset correction to zero on this level
@@ -234,7 +234,7 @@ presmooth(size_t lev)
 // 	pre-smoothing
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
 	GMG_PARALLEL_DEBUG_BARRIER(sd.process_communicator());
-	if(!smooth(sc, sd, sTmp, SmoothMat, Smoother, lev, m_numPreSmooth))
+	if(!smooth(sc, sd, sTmp, *spSmoothMat, Smoother, lev, m_numPreSmooth))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Pre-Smoothing on "
 				"level " << lev << " failed. "
@@ -327,7 +327,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 	vector_type& cTmp = m_vLevData[lev-1]->t;
 
 //	get smoothing operator on this level
-	MatrixOperator<matrix_type, vector_type>& SmoothMat =
+	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
 		m_vLevData[lev]->get_smooth_mat();
 
 //	## INTERPOLATE CORRECTION
@@ -362,7 +362,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 //	the correction has changed c := c + t. Thus, we also have to update
 //	the defect d := d - A*t
 	GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
-	SmoothMat.apply_sub(sd, sTmp);
+	spSmoothMat->apply_sub(sd, sTmp);
 	GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
 
 //	## ADAPTIVE CASE
@@ -408,8 +408,8 @@ postsmooth(size_t lev)
 	vector_type& sTmp = m_vLevData[lev]->get_smooth_tmp();
 
 //	get smoother on this level and corresponding operator
-	smoother_type& Smoother = m_vLevData[lev]->get_smoother();
-	MatrixOperator<matrix_type, vector_type>& SmoothMat =
+	ILinearIterator<vector_type>& Smoother = m_vLevData[lev]->get_smoother();
+	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
 		m_vLevData[lev]->get_smooth_mat();
 
 
@@ -418,7 +418,7 @@ postsmooth(size_t lev)
 //	correction c, such that the defect is "smoother".
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
 	GMG_PARALLEL_DEBUG_BARRIER(sd.process_communicator());
-	if(!smooth(sc, sd, sTmp, SmoothMat, Smoother, lev, m_numPostSmooth))
+	if(!smooth(sc, sd, sTmp, *spSmoothMat, Smoother, lev, m_numPostSmooth))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Post-Smoothing on"
 				" level " << lev << " failed. "
@@ -469,7 +469,7 @@ base_solve(size_t lev)
 
 		GMG_PROFILE_BEGIN(GMG_BaseSolver);
 		sc.set(0.0);
-		if(!m_pBaseSolver->apply(sc, sd))
+		if(!m_spBaseSolver->apply(sc, sd))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
 					" base level " << lev << " failed. "
@@ -487,11 +487,11 @@ base_solve(size_t lev)
 		if(m_baseLev == m_topLev || m_bAdaptive)
 		{
 		//	get smoothing matrix
-			MatrixOperator<matrix_type, vector_type>& SmoothMat
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat
 				= m_vLevData[lev]->get_smooth_mat();
 
 		//	UPDATE DEFECT
-			SmoothMat.apply_sub(sd, sc);
+			spSmoothMat->apply_sub(sd, sc);
 
 		//	copy back to whole grid
 			m_vLevData[lev]->copy_defect_from_smooth_patch(true);
@@ -524,7 +524,7 @@ base_solve(size_t lev)
 			c.set(0.0);
 
 		//	compute coarse correction
-			if(!m_pBaseSolver->apply(c, d))
+			if(!m_spBaseSolver->apply(c, d))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
 						" base level " << lev << " failed. "
@@ -535,7 +535,7 @@ base_solve(size_t lev)
 
 		//	update defect
 			if(m_baseLev == m_topLev || m_bAdaptive)
-				m_vLevData[m_baseLev]->LevMat.apply_sub(d, c);
+				m_vLevData[m_baseLev]->spLevMat->apply_sub(d, c);
 			GMG_PROFILE_END();
 			UG_DLOG(LIB_DISC_MULTIGRID, 2, " GMG Base solver done on 1 Proc.\n");
 		}
@@ -641,20 +641,16 @@ lmgc(size_t lev)
 template <typename TDomain, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
-init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
+init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 {
 	try{
 
 // 	Cast Operator
-	m_pSurfaceMat = dynamic_cast<matrix_type*>(&J);
+	m_spSurfaceMat = J.template cast_dynamic<matrix_type>();
 
 //	Check that Operator type is correct
-	if(m_pSurfaceMat == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"Can not cast Operator to Matrix.\n");
-		return false;
-	}
+	if(m_spSurfaceMat.invalid())
+		UG_THROW_FATAL("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
 
 //	check that grid given
 	if(m_spApproxSpace->num_levels() == 0)
@@ -743,20 +739,16 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 template <typename TDomain, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
-init(ILinearOperator<vector_type, vector_type>& L)
+init(SmartPtr<ILinearOperator<vector_type> > L)
 {
 	try{
 
 // 	Cast Operator
-	m_pSurfaceMat = dynamic_cast<matrix_type*>(&L);
+	m_spSurfaceMat = L.template cast_dynamic<matrix_type>();
 
 //	Check that Operator type is correct
-	if(m_pSurfaceMat == NULL)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"Can not cast Operator to Matrix.\n");
-		return false;
-	}
+	if(m_spSurfaceMat.invalid())
+		UG_THROW_FATAL("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
 
 //	check that grid given
 	if(m_spApproxSpace->num_levels() == 0)
@@ -824,7 +816,7 @@ init_common(bool nonlinear)
 				"Approximation Space not set.\n");
 		return false;
 	}
-	if(m_pBaseSolver == NULL)
+	if(m_spBaseSolver.invalid())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
 				"Base Solver not set.\n");
@@ -895,7 +887,7 @@ init_common(bool nonlinear)
 
 //	write computed level matrices for debug purpose
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
-		write_level_debug(m_vLevData[lev]->LevMat, "LevelMatrix", lev);
+		write_level_debug(*m_vLevData[lev]->spLevMat, "LevelMatrix", lev);
 
 //	Init smoother for coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_InitSmoother);
@@ -947,11 +939,11 @@ init_linear_level_operator()
 		if(lev == m_vLevData.size() - 1 && !m_bAdaptive)
 		{
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
-			matrix_type& levMat = m_vLevData[lev]->LevMat;
-			matrix_type& surfMat = *m_pSurfaceMat;
+			SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
+			SmartPtr<matrix_type> surfMat = m_spSurfaceMat;
 
-			levMat.resize( surfMat.num_rows(), surfMat.num_cols());
-			CopyMatrixByMapping(levMat, m_vSurfToTopMap, surfMat);
+			levMat->resize( surfMat->num_rows(), surfMat->num_cols());
+			CopyMatrixByMapping(*levMat, m_vSurfToTopMap, *surfMat);
 
 			GMG_PROFILE_END();
 			continue;
@@ -970,7 +962,7 @@ init_linear_level_operator()
 
 		//	init level operator
 			try{
-			m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
+			m_pAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
 			}
 			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
@@ -980,12 +972,12 @@ init_linear_level_operator()
 			m_pAss->set_selector(NULL);
 
 		//	copy the matrix into a new (smaller) one
-			matrix_type& mat = m_vLevData[lev]->LevMat;
-			matrix_type& smoothMat = m_vLevData[lev]->SmoothMat;
+			SmartPtr<matrix_type> mat = m_vLevData[lev]->spLevMat;
+			SmartPtr<matrix_type> smoothMat = m_vLevData[lev]->spSmoothMat;
 
 			const size_t numSmoothIndex = m_vLevData[lev]->num_smooth_indices();
-			smoothMat.resize(numSmoothIndex, numSmoothIndex);
-			CopyMatrixByMapping(smoothMat, m_vLevData[lev]->vMapFlag, mat);
+			smoothMat->resize(numSmoothIndex, numSmoothIndex);
+			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapFlag, *mat);
 		}
 
 	//	if no ghosts are present we can simply use the whole grid. If the base
@@ -998,7 +990,7 @@ init_linear_level_operator()
 		//	init level operator
 			m_pAss->force_regular_grid(true);
 			try{
-			m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
+			m_pAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
 			}
 			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
@@ -1008,7 +1000,7 @@ init_linear_level_operator()
 	//	smoothing matrix is stored in SmoothMat
 		else
 		{
-			m_vLevData[lev]->LevMat.resize(0,0);
+			m_vLevData[lev]->spLevMat->resize(0,0);
 		}
 
 		GMG_PROFILE_END();
@@ -1033,11 +1025,11 @@ init_non_linear_level_operator()
 		if(lev == m_vLevData.size() - 1 && !m_bAdaptive)
 		{
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
-			matrix_type& levMat = m_vLevData[lev]->LevMat;
-			matrix_type& surfMat = *m_pSurfaceMat;
+			SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
+			SmartPtr<matrix_type> surfMat = m_spSurfaceMat;
 
-			levMat.resize( surfMat.num_rows(), surfMat.num_cols());
-			CopyMatrixByMapping(levMat, m_vSurfToTopMap, surfMat);
+			levMat->resize( surfMat->num_rows(), surfMat->num_cols());
+			CopyMatrixByMapping(*levMat, m_vSurfToTopMap, *surfMat);
 
 			GMG_PROFILE_END();
 			continue;
@@ -1052,7 +1044,7 @@ init_non_linear_level_operator()
 
 	//	init level operator
 		try{
-		m_pAss->assemble_jacobian(m_vLevData[lev]->LevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
+		m_pAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
 		}
 		UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 					" Cannot init operator for level "<< lev << ".\n");
@@ -1065,12 +1057,12 @@ init_non_linear_level_operator()
 	//	if ghosts are present copy the matrix into a new (smaller) one
 		if(m_vLevData[lev]->has_ghosts())
 		{
-			matrix_type& mat = m_vLevData[lev]->LevMat;
-			matrix_type& smoothMat = m_vLevData[lev]->SmoothMat;
+			SmartPtr<matrix_type> mat = m_vLevData[lev]->spLevMat;
+			SmartPtr<matrix_type> smoothMat = m_vLevData[lev]->spSmoothMat;
 
 			const size_t numSmoothIndex = m_vLevData[lev]->num_smooth_indices();
-			smoothMat.resize(numSmoothIndex, numSmoothIndex);
-			CopyMatrixByMapping(smoothMat, m_vLevData[lev]->vMapFlag, mat);
+			smoothMat->resize(numSmoothIndex, numSmoothIndex);
+			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapFlag, *mat);
 		}
 	}
 
@@ -1146,10 +1138,10 @@ init_smoother()
 
 	//	get smooth matrix and vector
 		vector_type& u = m_vLevData[lev]->get_smooth_solution();
-		MatrixOperator<matrix_type, vector_type>& SmoothMat =
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
 				m_vLevData[lev]->get_smooth_mat();
 
-		if(!m_vLevData[lev]->Smoother->init(SmoothMat, u))
+		if(!m_vLevData[lev]->Smoother->init(spSmoothMat, u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother':"
 					" Cannot init smoother for level "<< lev << ".\n");
@@ -1192,7 +1184,7 @@ init_base_solver()
 		else
 		{
 		//	we init the base solver with the whole grid matrix
-			if(!m_pBaseSolver->init(m_vLevData[m_baseLev]->LevMat, m_vLevData[m_baseLev]->u))
+			if(!m_spBaseSolver->init(m_vLevData[m_baseLev]->spLevMat, m_vLevData[m_baseLev]->u))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
 						" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
@@ -1210,10 +1202,10 @@ init_base_solver()
 	{
 	//	get smooth matrix and vector
 		vector_type& u = m_vLevData[m_baseLev]->get_smooth_solution();
-		MatrixOperator<matrix_type, vector_type>& SmoothMat =
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
 				m_vLevData[m_baseLev]->get_smooth_mat();
 
-		if(!m_pBaseSolver->init(SmoothMat, u))
+		if(!m_spBaseSolver->init(spSmoothMat, u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
 					" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
@@ -1485,15 +1477,15 @@ log_level_data(size_t lvl)
 }
 
 template <typename TDomain, typename TAlgebra>
-typename AssembledMultiGridCycle<TDomain, TAlgebra>::base_type*
+SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 clone()
 {
-	AssembledMultiGridCycle<TDomain, TAlgebra>* clone =
-		new AssembledMultiGridCycle<TDomain, TAlgebra>(m_spApproxSpace);
+	SmartPtr<AssembledMultiGridCycle<TDomain, TAlgebra> > clone(
+		new AssembledMultiGridCycle<TDomain, TAlgebra>(m_spApproxSpace));
 
 	clone->set_base_level(m_baseLev);
-	clone->set_base_solver(*m_pBaseSolver);
+	clone->set_base_solver(m_spBaseSolver);
 	clone->set_cycle_type(m_cycleType);
 	clone->set_debug(m_spDebugWriter);
 	clone->set_discretization(*m_pAss);
@@ -1503,7 +1495,7 @@ clone()
 	clone->set_prolongation_operator(m_spProlongationPrototype);
 	clone->set_smoother(m_spSmootherPrototype);
 
-	return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
+	return clone;
 }
 
 
@@ -1731,9 +1723,9 @@ update(size_t lev,
        SmartPtr<LevelDoFDistribution> levDD,
        SmartPtr<ApproximationSpace<TDomain> > approxSpace,
        assemble_type& ass,
-       smoother_type& smoother,
-       projection_operator_type& projection,
-       prolongation_operator_type& prolongation,
+       ILinearIterator<vector_type>& smoother,
+       IProjectionOperator<vector_type>& projection,
+       IProlongationOperator<TAlgebra>& prolongation,
        BoolMarker& nonGhostMarker)
 {
 //	get dof distribution
@@ -1750,13 +1742,13 @@ update(size_t lev,
 //	prepare level operator
 #ifdef UG_PARALLEL
 	LevelDoFDistribution* pDD = const_cast<LevelDoFDistribution*>(spLevDD.get());
-	CopyLayoutsAndCommunicatorIntoMatrix(LevMat, *pDD);
+	CopyLayoutsAndCommunicatorIntoMatrix(*spLevMat, *pDD);
 #endif
 
 //	clone operators
-	if(!Smoother) Smoother = smoother.clone();
-	if(!Projection) Projection = projection.clone();
-	if(!Prolongation) Prolongation = prolongation.clone();
+	if(Smoother.invalid()) Smoother = smoother.clone();
+	if(Projection.invalid()) Projection = projection.clone();
+	if(Prolongation.invalid()) Prolongation = prolongation.clone();
 
 //	IN PARALLEL:
 //	In the parallel case one may have vertical slaves/masters. Those are needed
@@ -1853,10 +1845,10 @@ update(size_t lev,
 	st.set_process_communicator(spLevDD->process_communicator());
 
 //	set the layouts in the smooth matrix
-	SmoothMat.set_master_layout(SmoothMasterLayout);
-	SmoothMat.set_slave_layout(SmoothSlaveLayout);
-	SmoothMat.set_communicator(spLevDD->communicator());
-	SmoothMat.set_process_communicator(spLevDD->process_communicator());
+	spSmoothMat->set_master_layout(SmoothMasterLayout);
+	spSmoothMat->set_slave_layout(SmoothSlaveLayout);
+	spSmoothMat->set_communicator(spLevDD->communicator());
+	spSmoothMat->set_process_communicator(spLevDD->process_communicator());
 
 //	** 3. **: Since smoothing is only performed on non-ghost elements, the
 //	corresoding operator must be assembled only on those elements. So we
@@ -1893,12 +1885,7 @@ update(size_t lev,
 template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 LevData::~LevData()
-{
-//	free operators if allocated
-	if(Smoother) delete Smoother;
-	if(Projection) delete Projection;
-	if(Prolongation) delete Prolongation;
-}
+{}
 
 
 

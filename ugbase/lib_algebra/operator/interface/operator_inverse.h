@@ -1,12 +1,12 @@
 /*
- * operator_inverse_interface.h
+ * operator_inverse.h
  *
  *  Created on: 22.02.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_ALGEBRA__OPERATOR__OPERATOR_INVERSE_INTERFACE__
-#define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_INVERSE_INTERFACE__
+#ifndef __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR_INVERSE__
+#define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR_INVERSE__
 
 #include "common/util/smart_pointer.h"
 #include "common/profiler/profiler.h"
@@ -86,7 +86,7 @@ class IOperatorInverse
 	 * \param[in]	N		operator that is to be inverted
 	 * \returns 	bool	success flag
 	 */
-		virtual bool init(IOperator<Y,X>& N) = 0;
+		virtual bool init(SmartPtr<IOperator<Y,X> > N) = 0;
 
 	/// prepares the function u for application
 	/**
@@ -158,13 +158,13 @@ class ILinearOperatorInverse
 	public:
 	///	constructor setting convergence check to (100, 1e-12, 1e-12, true)
 		ILinearOperatorInverse()
-			: m_A(NULL),
+			: m_spLinearOperator(NULL),
 			  m_spConvCheck(new StandardConvCheck(100, 1e-12, 1e-12, true))
 		{}
 
 	///	Default constructor
 		ILinearOperatorInverse(SmartPtr<IConvergenceCheck> spConvCheck)
-			: m_A(NULL),
+			: m_spLinearOperator(NULL),
 			  m_spConvCheck(spConvCheck)
 		{}
 
@@ -189,10 +189,10 @@ class ILinearOperatorInverse
 	 * \param[in]	L		linear operator to invert
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(ILinearOperator<Y,X>& L)
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > L)
 		{
 		//	remember operator
-			m_A = &L;
+			m_spLinearOperator = L;
 			return true;
 		}
 
@@ -208,10 +208,10 @@ class ILinearOperatorInverse
 	 * \param[in]	u		linearization point
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(ILinearOperator<Y,X>& J, const Y& u)
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u)
 		{
 		//	remember operator
-			m_A = &J;
+			m_spLinearOperator = J;
 			return true;
 		}
 
@@ -270,11 +270,18 @@ class ILinearOperatorInverse
 		};
 
 	///	returns the current Operator this Inverse Operator is initialized for
-		ILinearOperator<Y,X>* linear_operator() {return m_A;}
+		SmartPtr<ILinearOperator<Y,X> > linear_operator()
+		{
+			if(m_spLinearOperator.invalid())
+				UG_THROW_FATAL(name() << ": Linear Operator that should be "
+				               	 "inverted has not been set.");
+
+			return m_spLinearOperator;
+		}
 
 	protected:
 	/// Operator that is inverted by this Inverse Operator
-		ILinearOperator<Y,X>* m_A;
+		SmartPtr<ILinearOperator<Y,X> > m_spLinearOperator;
 
 	///	smart pointer holding the convergence check
 		SmartPtr<IConvergenceCheck> m_spConvCheck;
@@ -342,8 +349,10 @@ class IPreconditionedLinearOperatorInverse
 		SmartPtr<ILinearIterator<X, X> > preconditioner(){return m_spPrecond;}
 
 	///	initializes the solver for an operator
-		virtual bool init(ILinearOperator<X,X>& J, const X& u)
+		virtual bool init(SmartPtr<ILinearOperator<X,X> > J, const X& u)
 		{
+			if(!base_type::init(J, u)) return false;
+
 			LS_PROFILE_BEGIN(LS_InitPrecond);
 			if(m_spPrecond.valid())
 				if(!m_spPrecond->init(J, u))
@@ -351,12 +360,14 @@ class IPreconditionedLinearOperatorInverse
 													"Operator for Operator J.");
 			LS_PROFILE_END();
 
-			return base_type::init(J, u);
+			return true;
 		}
 
 	///	initializes the solver for an operator
-		virtual bool init(ILinearOperator<X, X>& L)
+		virtual bool init(SmartPtr<ILinearOperator<X,X> > L)
 		{
+			if(!base_type::init(L)) return false;
+
 			LS_PROFILE_BEGIN(LS_InitPrecond);
 			if(m_spPrecond.valid())
 				if(!m_spPrecond->init(L))
@@ -364,7 +375,7 @@ class IPreconditionedLinearOperatorInverse
 														"Operator for Operator L.");
 			LS_PROFILE_END();
 
-			return base_type::init(L);
+			return true;
 		}
 
 		virtual bool apply(X& x, const X& b)
@@ -452,7 +463,7 @@ class IMatrixOperatorInverse
 	 * \param[in]	A		linear matrix-basewd operator to invert
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(MatrixOperator<M,Y,X>& A) = 0;
+		virtual bool init(SmartPtr<MatrixOperator<M,Y,X> > A) = 0;
 
 	/// applies the inverse operator, i.e. returns u = A^{-1} * f
 	/**
@@ -490,7 +501,7 @@ class IMatrixOperatorInverse
 	 * \param[in]	u		linearization point
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(ILinearOperator<Y,X>& A, const Y&u)
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > A, const Y&u)
 		{
 		//	forget about u and forward request.
 			return init(A);
@@ -506,25 +517,23 @@ class IMatrixOperatorInverse
 	 * \param[in]	A		linear matrix-based operator to invert
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(ILinearOperator<Y,X>& A)
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > A)
 		{
 		//	cast operator
-			MatrixOperator<M,Y,X>* op = dynamic_cast<MatrixOperator<M,Y,X>*>(&A);
+			SmartPtr<MatrixOperator<M,Y,X> > op =
+									A.template cast_dynamic<MatrixOperator<M,Y,X> >();
 
 		//	check if correct types are present
-			if(op == NULL)
-			{
-				UG_LOG("ERROR in 'IMatrixOperatorInverse::init':"
-						" Passed operator is not matrix-based.\n");
-				return false;
-			}
+			if(op.invalid())
+				UG_THROW_FATAL("IMatrixOperatorInverse::init:"
+						" Passed operator is not matrix-based.");
 
 		//	forward request
-			return init(*op);
+			return init(op);
 		}
 };
 
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__OPERATOR_INVERSE_INTERFACE__ */
+#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR_INVERSE__ */

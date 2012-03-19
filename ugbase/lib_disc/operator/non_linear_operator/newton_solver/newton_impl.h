@@ -30,14 +30,11 @@ namespace ug{
 template <typename TAlgebra>
 bool
 NewtonSolver<TAlgebra>::
-init(IOperator<vector_type, vector_type>& N)
+init(SmartPtr<IOperator<vector_type> > N)
 {
-	m_N = dynamic_cast<AssembledOperator<TAlgebra>* >(&N);
-	if(m_N == NULL)
-	{
-		UG_LOG("NewtonSolver currently only works for AssembledDiscreteOperator.\n");
-		return false;
-	}
+	m_N = N.template cast_dynamic<AssembledOperator<TAlgebra> >();
+	if(m_N.invalid())
+		UG_THROW_FATAL("NewtonSolver: currently only works for AssembledDiscreteOperator.");
 
 	m_pAss = m_N->get_assemble();
 	return true;
@@ -48,8 +45,9 @@ template <typename TAlgebra>
 bool NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
 {
 	// Jacobian
-	m_J = new AssembledLinearOperator<TAlgebra>(*m_pAss);
+	m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
 	m_J->set_level(m_N->level());
+	if(m_J.invalid()) UG_THROW_FATAL("Cannot allocate memory.");
 
 	// defect
 	m_d.resize(u.size()); m_d = u;
@@ -57,22 +55,9 @@ bool NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
 	// correction
 	m_c.resize(u.size()); m_c = u;
 
-	if(m_J == NULL)
-		UG_THROW_FATAL("Cannot allocate memory.");
-
 	m_allocated = true;
 	return true;
 }
-
-template <typename TAlgebra>
-bool NewtonSolver<TAlgebra>::deallocate_memory()
-{
-	if(m_allocated)
-		delete m_J;
-	m_allocated = false;
-	return true;
-}
-
 
 template <typename TAlgebra>
 bool NewtonSolver<TAlgebra>::prepare(vector_type& u)
@@ -87,7 +72,7 @@ bool NewtonSolver<TAlgebra>::prepare(vector_type& u)
 	}
 
 //	Check for linear solver
-	if(m_pLinearSolver == NULL)
+	if(m_spLinearSolver.invalid())
 	{
 		UG_LOG("ERROR in 'NewtonSolver::prepare': Linear Solver not set.\n");
 		return false;
@@ -102,14 +87,7 @@ bool NewtonSolver<TAlgebra>::prepare(vector_type& u)
 
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::~NewtonSolver()
-{
-	if(m_allocated)
-	{
-		if(!deallocate_memory())
-			UG_ASSERT(0, "Cannot deallocate memory");
-	}
-
-}
+{}
 
 
 template <typename TAlgebra>
@@ -136,11 +114,11 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	write_debug(u, "NEWTON_StartSolution");
 
 // 	increase offset of output for linear solver
-	const int stdLinOffset = m_pLinearSolver->standard_offset();
-	m_pLinearSolver->convergence_check()->set_offset(stdLinOffset + 3);
+	const int stdLinOffset = m_spLinearSolver->standard_offset();
+	m_spLinearSolver->convergence_check()->set_offset(stdLinOffset + 3);
 
 // 	set info string indicating the used linear solver
-	std::stringstream ss; ss << "(Linear Solver: " << m_pLinearSolver->name() << ")";
+	std::stringstream ss; ss << "(Linear Solver: " << m_spLinearSolver->name() << ")";
 	m_spConvCheck->set_info(ss.str());
 
 // 	copy pattern
@@ -174,7 +152,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 	// 	Init Jacobi Inverse
 		NEWTON_PROFILE_BEGIN(NewtonPrepareLinSolver);
-		if(!m_pLinearSolver->init(*m_J, u))
+		if(!m_spLinearSolver->init(m_J, u))
 		{
 			UG_LOG("ERROR in 'NewtonSolver::apply': Cannot init Inverse Linear "
 					"Operator for Jacobi-Operator.\n");
@@ -184,7 +162,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 	// 	Solve Linearized System
 		NEWTON_PROFILE_BEGIN(NewtonApplyLinSolver);
-		if(!m_pLinearSolver->apply(m_c, m_d))
+		if(!m_spLinearSolver->apply(m_c, m_d))
 		{
 			UG_LOG("ERROR in 'NewtonSolver::apply': Cannot apply Inverse Linear "
 					"Operator for Jacobi-Operator.\n");
@@ -193,7 +171,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		NEWTON_PROFILE_END();
 
 	//	store convergence history
-		const int numSteps = m_pLinearSolver->step();
+		const int numSteps = m_spLinearSolver->step();
 		if(loopCnt >= (int)m_vTotalLinSolverSteps.size()) m_vTotalLinSolverSteps.resize(loopCnt+1);
 		if(loopCnt >= (int)m_vLinSolverCalls.size()) m_vLinSolverCalls.resize(loopCnt+1, 0);
 		m_vTotalLinSolverSteps[loopCnt] += numSteps;
@@ -204,7 +182,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		{
 			m_spLineSearch->set_offset("   #  ");
 			NEWTON_PROFILE_BEGIN(NewtonLineSearch);
-			if(!m_spLineSearch->search(*m_N, u, m_c, m_d, m_spConvCheck->defect()))
+			if(!m_spLineSearch->search(m_N, u, m_c, m_d, m_spConvCheck->defect()))
 			{
 				UG_LOG("ERROR in 'NewtonSolver::apply': "
 						"Newton Solver did not converge.\n");
@@ -241,7 +219,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	}
 
 	// reset offset of output for linear solver to previous value
-	m_pLinearSolver->convergence_check()->set_offset(stdLinOffset);
+	m_spLinearSolver->convergence_check()->set_offset(stdLinOffset);
 
 	return m_spConvCheck->post();
 }

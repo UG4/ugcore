@@ -52,9 +52,9 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		void set_damp(number damp) {m_damp = damp;}
 
 	///	Clone
-		virtual ILinearIterator<vector_type,vector_type>* clone()
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			Jacobi<algebra_type>* newInst = new Jacobi<algebra_type>(m_damp);
+			SmartPtr<Jacobi<algebra_type> > newInst(new Jacobi<algebra_type>(m_damp));
 			newInst->set_debug(debug_writer());
 			return newInst;
 		}

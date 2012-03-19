@@ -1,12 +1,12 @@
 /*
- * operator_interface.h
+ * operator.h
  *
  *  Created on: 22.02.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_ALGEBRA__OPERATOR__OPERATOR_INTERFACE__
-#define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_INTERFACE__
+#ifndef __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR__
+#define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR__
 
 #include "function_base.h"
 
@@ -249,4 +249,4 @@ class MatrixOperator :	public virtual ILinearOperator<X,Y>,
 
 } // end namespace ug
 
-#endif
+#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR__ */

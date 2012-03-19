@@ -789,7 +789,7 @@ bool FAMG<CPUAlgebra>::check_testvector()
 #endif
 		UG_LOG("Check Level " << level << "\n-----------------------------------\n")
 
-		matrix_type *pA, *pAH;
+		SmartPtr<matrix_type> pA, pAH;
 		pA = AMGBase<CPUAlgebra>::levels[level]->pAgglomeratedA;
 		pAH = AMGBase<CPUAlgebra>::levels[level+1]->pAgglomeratedA;
 

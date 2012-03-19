@@ -163,17 +163,17 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 
 	UG_ASSERT(m_writeMatrices == false || m_dbgDimension != 0, "you need to provide position information for writing matrices");
 
-	if(m_basesolver==NULL)
+	if(m_basesolver.invalid())
 	{
 		UG_LOG("amg_base::preprocess(): No base solver selected. Call set_base_solver(basesolver) to set a base solver.\n");
 		return false;
 	}
-	if(m_presmoother==NULL)
+	if(m_presmoother.invalid())
 	{
 		UG_LOG("amg_base::preprocess(): No PreSmoother selected. Call set_presmoother(presmoother) to set a PreSmoother.\n");
 		return false;
 	}
-	if(m_postsmoother==NULL)
+	if(m_postsmoother.invalid())
 	{
 		UG_LOG("amg_base::preprocess(): No PostSmoother selected. Call set_postsmoother(postsmoother) to set a PostSmoother.\n");
 		return false;
@@ -253,13 +253,13 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		L.presmoother = m_presmoother->clone();
 
 		//PRINTPC(L.pAgglomeratedA->get_process_communicator());
-		L.presmoother->init(*L.pAgglomeratedA);
+		L.presmoother->init(L.pAgglomeratedA);
 		if(m_presmoother == m_postsmoother)
 			L.postsmoother = L.presmoother;
 		else
 		{
 			L.postsmoother = m_postsmoother->clone();
-			L.postsmoother->init(*L.pAgglomeratedA);
+			L.postsmoother->init(L.pAgglomeratedA);
 		}
 
 		nextL.pA = new matrix_operator_type;
@@ -373,12 +373,12 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 		L.bHasBeenMerged = true;
 		L.bLevelHasMergers=true;
 		// create basesolver
-		collect_matrix(A, L.collectedA, L.agglomerateMasterLayout, agglomerateSlaveLayout);
+		collect_matrix(A, *L.collectedA, L.agglomerateMasterLayout, agglomerateSlaveLayout);
 
 		if(m_writeMatrices && m_amghelper.has_positions())
 		{
 			std::vector<MathVector<3> > vec = m_amghelper.positions[level];
-			vec.resize(L.collectedA.num_rows());
+			vec.resize(L.collectedA->num_rows());
 			ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec);
 			pcl::InterfaceCommunicator<IndexLayout> &communicator = A.communicator();
 			communicator.send_data(agglomerateSlaveLayout, copyPol);
@@ -387,22 +387,22 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 			if(pcl::GetProcRank() == pc.get_proc_id(0))
 			{
 				std::string name = (std::string(m_writeMatrixPath) + "collectedA.mat");
-				WriteMatrixToConnectionViewer(name.c_str(), L.collectedA, &vec[0], m_amghelper.dimension);
+				WriteMatrixToConnectionViewer(name.c_str(), *L.collectedA, &vec[0], m_amghelper.dimension);
 			}
 		}
 		if(pcl::GetProcRank() == pc.get_proc_id(0))
 		{
 			L.agglomeratedPC = pc.create_sub_communicator(true);
-			L.collectedA.set_master_layout(m_emptyLayout);
-			L.collectedA.set_slave_layout(m_emptyLayout);
-			L.collectedA.set_process_communicator(m_emptyPC);
+			L.collectedA->set_master_layout(m_emptyLayout);
+			L.collectedA->set_slave_layout(m_emptyLayout);
+			L.collectedA->set_process_communicator(m_emptyPC);
 			m_basesolver->init(L.collectedA);
 
-			L.collectedA.set_layouts(m_emptyLayout, m_emptyLayout);
-			L.collC.resize(L.collectedA.num_rows());
-			L.collD.resize(L.collectedA.num_rows());
-			SetParallelVectorAsMatrix(L.collC, L.collectedA, PST_ADDITIVE);
-			SetParallelVectorAsMatrix(L.collD, L.collectedA, PST_ADDITIVE);
+			L.collectedA->set_layouts(m_emptyLayout, m_emptyLayout);
+			L.collC.resize(L.collectedA->num_rows());
+			L.collD.resize(L.collectedA->num_rows());
+			SetParallelVectorAsMatrix(L.collC, *L.collectedA, PST_ADDITIVE);
+			SetParallelVectorAsMatrix(L.collD, *L.collectedA, PST_ADDITIVE);
 		}
 		else
 		{
@@ -413,7 +413,7 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 	else
 	{
 		L.bLevelHasMergers=false;
-		m_basesolver->init(A);
+		m_basesolver->init(L.pA);
 	}
 #else
 	m_basesolver->init(A);
@@ -463,21 +463,6 @@ AMGBase<TAlgebra>::AMGBase() :
 template<typename TAlgebra>
 void AMGBase<TAlgebra>::cleanup()
 {
-	for(size_t i=1; i < levels.size(); i++)
-	{
-		if(levels[i]->pA) delete levels[i]->pA;
-		levels[i]->pA = NULL;
-	}
-
-	for(size_t i=0; i < levels.size(); i++)
-	{
-		if(levels[i]->postsmoother && levels[i]->postsmoother != levels[i]->presmoother)
-			delete levels[i]->postsmoother;
-		levels[i]->postsmoother = NULL;
-		if(levels[i]->presmoother)
-			delete levels[i]->presmoother;
-	}
-
 	m_usedLevels = 0;
 	m_bInited=false;
 }
@@ -576,7 +561,7 @@ bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t lev
 		pcl::InterfaceCommunicator<IndexLayout> &com = A.get_communicator();
 		if(pcl::GetProcRank() == 0)
 		{
-			size_t N = L.collectedA.num_rows();
+			size_t N = L.collectedA->num_rows();
 			collC.resize(N);
 			collC.set(0.0);
 			collC.set_master_layout(m_emptyLayout);
@@ -850,13 +835,13 @@ void AMGBase<TAlgebra>::tostring() const
 
 	UG_LOG(" max levels = " << m_maxLevels << std::endl);
 
-	if(m_presmoother) 	{UG_LOG(" presmoother is " << m_presmoother->name() << ".\n");}
-	else				{UG_LOG(" no presmoother set!\n");}
+	if(m_presmoother.valid()) 	{UG_LOG(" presmoother is " << m_presmoother->name() << ".\n");}
+	else						{UG_LOG(" no presmoother set!\n");}
 
-	if(m_postsmoother) 	{UG_LOG(" postsmoother is " << m_postsmoother->name() << ".\n");}
-	else				{UG_LOG(" no postsmoother set!\n");}
+	if(m_postsmoother.valid()) 	{UG_LOG(" postsmoother is " << m_postsmoother->name() << ".\n");}
+	else						{UG_LOG(" no postsmoother set!\n");}
 
-	if(m_basesolver)	{UG_LOG(" basesolver set\n");}
+	if(m_basesolver.valid())	{UG_LOG(" basesolver set\n");}
 	else				{UG_LOG(" no basesolver set!\n");}
 	UG_LOG("Using base solver for max. " << m_maxNodesForBase << " nodes or " << m_dMaxFillBeforeBase*100 << "% fill in.\n")
 

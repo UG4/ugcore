@@ -1,12 +1,12 @@
 /*
- * operator_iterator_interface.h
+ * operator_iterator.h
  *
  *  Created on: 22.02.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_ALGEBRA__OPERATOR__OPERATOR_ITERATOR_INTERFACE__
-#define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_ITERATOR_INTERFACE__
+#ifndef __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR_ITERATOR__
+#define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR_ITERATOR__
 
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/debug_writer.h"
@@ -86,7 +86,7 @@ class ILinearIterator
 	 * \param[in]	u		linearization point
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(ILinearOperator<Y,X>& J, const Y& u) = 0;
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) = 0;
 
 	///	initialize for linear operator L
 	/**
@@ -96,7 +96,7 @@ class ILinearIterator
 	 * \param[in]	L		linear operator to use as underlying
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(ILinearOperator<Y,X>& L) = 0;
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > L) = 0;
 
 	///	compute new correction c = B*d
 	/**
@@ -128,7 +128,7 @@ class ILinearIterator
 		virtual bool apply_update_defect(Y& c, X& d) = 0;
 
 	///	clone
-		virtual ILinearIterator<X,Y>* clone() = 0;
+		virtual SmartPtr<ILinearIterator<X,Y> > clone() = 0;
 
 	/// virtual destructor
 		virtual ~ILinearIterator() {};
@@ -213,13 +213,13 @@ class IPreconditioner :
 	public:
 	///	default constructor
 		IPreconditioner() :
-			m_pOperator(NULL), m_bInit(false)
+			m_spOperator(NULL), m_bInit(false)
 		{};
 
 	///	constructor setting debug writer
 		IPreconditioner(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) :
 			DebugWritingObject<TAlgebra>(spDebugWriter),
-			m_pOperator(NULL), m_bInit(false)
+			m_spOperator(NULL), m_bInit(false)
 		{};
 
 	protected:
@@ -243,7 +243,7 @@ class IPreconditioner :
 	 * \param[in]	mat			underlying matrix (i.e. L in L*u = f)
 	 * \returns		bool		success flag
 	 */
-		virtual bool preprocess(matrix_operator_type& mat) = 0;
+		virtual bool preprocess(MatrixOperator<matrix_type, vector_type>& mat) = 0;
 
 	///	computes a new correction c = B*d
 	/**
@@ -255,7 +255,7 @@ class IPreconditioner :
 	 * \param[in]	d			defect
 	 * \returns		bool		success flag
 	 */
-		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)  = 0;
+		virtual bool step(MatrixOperator<matrix_type, vector_type>& mat, vector_type& c, const vector_type& d)  = 0;
 
 	///	cleans the operator
 		virtual bool postprocess() = 0;
@@ -272,21 +272,21 @@ class IPreconditioner :
 	 * \param[in]	u		linearization point
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(ILinearOperator<vector_type, vector_type>& J,
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J,
 		                  const vector_type& u)
 		{
 		//	cast to matrix based operator
-			MatrixOperator<matrix_type, vector_type>* pOp =
-			dynamic_cast<MatrixOperator<matrix_type, vector_type>*>(&J);
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+					J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
 
 		//	Check that matrix if of correct type
-			if(pOp == NULL)
+			if(pOp.invalid())
 				UG_THROW_FATAL(name() << "::init': Passed Operator is "
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
 		//	forward request to matrix based implementation
-			return init(*pOp);
+			return init(pOp);
 		}
 
 	///	implements the ILinearIterator-interface for matrix based preconditioner
@@ -299,20 +299,20 @@ class IPreconditioner :
 	 * \param[in]	L		linear operator
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(ILinearOperator<vector_type, vector_type>& L)
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L)
 		{
 		//	cast to matrix based operator
-			MatrixOperator<matrix_type, vector_type>* pOp =
-			dynamic_cast<MatrixOperator<matrix_type, vector_type>*>(&L);
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
 
 		//	Check that matrix if of correct type
-			if(pOp == NULL)
+			if(pOp.invalid())
 				UG_THROW_FATAL(name() << "::init': Passed Operator is "
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
 		//	forward request to matrix based implementation
-			return init(*pOp);
+			return init(pOp);
 		}
 
 	///	initializes the preconditioner for a matrix based operator
@@ -324,19 +324,17 @@ class IPreconditioner :
 	 * \param[in]	Op		matrix based operator
 	 * \returns		bool	success flag
 	 */
-		bool init(MatrixOperator<matrix_type, vector_type>& Op)
+		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
 		// 	Remember operator
-			m_pOperator = &Op;
+			m_spOperator = Op;
 
 		//	Check that matrix exists
-			if(m_pOperator == NULL)
-				UG_THROW_FATAL(name() << "::init': Passed Operator is "
-						"not based on matrix. This Preconditioner can only "
-						"handle matrix-based operators.");
+			if(m_spOperator.invalid())
+				UG_THROW_FATAL(name() << "::init': Passed Operator is invalid.");
 
 		//	Preprocess
-			if(!preprocess(*m_pOperator))
+			if(!preprocess(*m_spOperator))
 			{
 				UG_LOG("ERROR in '"<<name()<<"::init': Preprocess failed.\n");
 				return false;
@@ -376,18 +374,18 @@ class IPreconditioner :
 			#endif
 
 		//	Check sizes
-			if(d.size() != m_pOperator->num_rows())
+			if(d.size() != m_spOperator->num_rows())
 				UG_THROW_FATAL("Vector [size= "<<d.size()<<"] and Row [size= "
-				               <<m_pOperator->num_rows()<<"] sizes have to match!");
-			if(c.size() != m_pOperator->num_cols())
+				               <<m_spOperator->num_rows()<<"] sizes have to match!");
+			if(c.size() != m_spOperator->num_cols())
 				UG_THROW_FATAL("Vector [size= "<<c.size()<<"] and Column [size= "
-				               <<m_pOperator->num_cols()<<"] sizes have to match!");
+				               <<m_spOperator->num_cols()<<"] sizes have to match!");
 			if(d.size() != c.size())
 				UG_THROW_FATAL("Vector [d size= "<<d.size()<<", c size = "
 				               << c.size() << "] sizes have to match!");
 
 		// 	apply iterator: c = B*d
-			if(!step(*m_pOperator, c, d))
+			if(!step(*m_spOperator, c, d))
 			{
 				UG_LOG("ERROR in '"<<name()<<"::apply': Step Routine failed.\n");
 				return false;
@@ -420,7 +418,7 @@ class IPreconditioner :
 			if(!apply(c, d)) return false;
 
 		// 	update defect d := d - A*c
-			if(!m_pOperator->matmul_minus(d, c))
+			if(!m_spOperator->matmul_minus(d, c))
 			{
 				UG_LOG("ERROR in '"<<name()<<"::apply_update_defect': "
 						"Cannot execute matmul_minus to compute d:=d-A*c.\n");
@@ -436,7 +434,7 @@ class IPreconditioner :
 
 	protected:
 	///	underlying matrix based operator
-		matrix_operator_type* m_pOperator;
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spOperator;
 
 	/// init flag indicating if init has been called
 		bool m_bInit;
@@ -444,5 +442,5 @@ class IPreconditioner :
 
 } // end namespace ug
 
-#endif /* __H__LIB_ALGEBRA__OPERATOR__OPERATOR_ITERATOR_INTERFACE__ */
+#endif /* __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR_ITERATOR__ */
 

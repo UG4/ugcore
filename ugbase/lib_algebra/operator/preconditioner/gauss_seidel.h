@@ -46,9 +46,9 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 		GaussSeidel() {};
 
 	// 	Clone
-		virtual ILinearIterator<vector_type,vector_type>* clone()
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			GaussSeidel<algebra_type>* newInst = new GaussSeidel<algebra_type>();
+			SmartPtr<GaussSeidel<algebra_type> > newInst(new GaussSeidel<algebra_type>());
 			newInst->set_debug(debug_writer());
 			return newInst;
 		}
@@ -140,9 +140,9 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 		BackwardGaussSeidel() {};
 
 	// 	Clone
-		virtual ILinearIterator<vector_type,vector_type>* clone()
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			BackwardGaussSeidel<algebra_type>* newInst = new BackwardGaussSeidel<algebra_type>();
+			SmartPtr<BackwardGaussSeidel<algebra_type> > newInst(new BackwardGaussSeidel<algebra_type>());
 			newInst->set_debug(debug_writer());
 			return newInst;
 		}
@@ -233,9 +233,9 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 		SymmetricGaussSeidel() {};
 
 	// 	Clone
-		virtual ILinearIterator<vector_type,vector_type>* clone()
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SymmetricGaussSeidel<algebra_type>* newInst = new SymmetricGaussSeidel<algebra_type>();
+			SmartPtr<SymmetricGaussSeidel<algebra_type> > newInst(new SymmetricGaussSeidel<algebra_type>());
 			newInst->set_debug(debug_writer());
 			return newInst;
 		}

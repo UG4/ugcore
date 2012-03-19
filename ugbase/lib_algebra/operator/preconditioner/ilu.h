@@ -264,9 +264,9 @@ class ILU : public IPreconditioner<TAlgebra>
 		ILU(double beta=0.0) : m_beta(beta) {};
 
 	///	Clone
-		ILinearIterator<vector_type,vector_type>* clone()
+		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			ILU<algebra_type>* newInst = new ILU<algebra_type>(m_beta);
+			SmartPtr<ILU<algebra_type> > newInst(new ILU<algebra_type>(m_beta));
 			newInst->set_debug(debug_writer());
 			return newInst;
 		}

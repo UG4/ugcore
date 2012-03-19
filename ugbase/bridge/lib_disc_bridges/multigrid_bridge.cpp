@@ -80,7 +80,7 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 //	AssembledMultiGridCycle
 	{
 		typedef AssembledMultiGridCycle<TDomain, TAlgebra> T;
-		typedef ILinearIterator<vector_type, vector_type> TBase;
+		typedef ILinearIterator<vector_type> TBase;
 		string name = string("GeometricMultiGrid").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")

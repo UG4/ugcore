@@ -50,10 +50,6 @@ class LinearSolver
 		{
 			LS_PROFILE_BEGIN(LS_ApplyReturnDefect);
 
-			if(linear_operator() == NULL)
-				UG_THROW_FATAL(name() << "::apply: "
-						"Operator that should be inverted has not been set.");
-
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
 				UG_THROW_FATAL("LinearSolver::apply: Inadequate storage format of Vectors.");

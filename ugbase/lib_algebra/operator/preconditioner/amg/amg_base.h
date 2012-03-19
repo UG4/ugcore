@@ -153,7 +153,7 @@ public:
 
 //  functions
 	AMGBase();
-	virtual ILinearIterator<vector_type,vector_type>* clone() = 0;
+	virtual SmartPtr<ILinearIterator<vector_type> > clone() = 0;
 
 	//	Name of preconditioner
 	virtual ~AMGBase();
@@ -277,9 +277,9 @@ public:
 	size_t	get_checkLevel_post_iterations() const					{ return m_checkLevelPostIterations; }
 
 
-	void 	set_presmoother(ILinearIterator<vector_type, vector_type> *presmoother) {	m_presmoother = presmoother; }
-	void 	set_postsmoother(ILinearIterator<vector_type, vector_type> *postsmoother) { m_postsmoother = postsmoother; }
-	void 	set_base_solver(ILinearOperatorInverse<vector_type, vector_type> *basesolver) { m_basesolver = basesolver; }
+	void 	set_presmoother(SmartPtr<ILinearIterator<vector_type> > presmoother) {	m_presmoother = presmoother; }
+	void 	set_postsmoother(SmartPtr<ILinearIterator<vector_type> > postsmoother) { m_postsmoother = postsmoother; }
+	void 	set_base_solver(SmartPtr<ILinearOperatorInverse<vector_type> > basesolver) { m_basesolver = basesolver; }
 
 
 	void set_position_provider(IPositionProvider<2> *ppp2d)
@@ -431,10 +431,10 @@ protected:
 	int m_dbgDimension;							///< dimension of geometric grid (optional)
 
 
-	ILinearIterator<vector_type, vector_type> *m_presmoother;	///< presmoother template
-	ILinearIterator<vector_type, vector_type> *m_postsmoother;	///< postsmoother template \note: may be pre=post, is optimized away.
+	SmartPtr<ILinearIterator<vector_type> > m_presmoother;	///< presmoother template
+	SmartPtr<ILinearIterator<vector_type> > m_postsmoother;	///< postsmoother template \note: may be pre=post, is optimized away.
 
-	ILinearOperatorInverse<vector_type, vector_type> *m_basesolver; ///< the base solver
+	SmartPtr<ILinearOperatorInverse<vector_type> > m_basesolver; ///< the base solver
 
 
 	bool m_bInited;					///< true if inited. needed since preprocess doesnt give us a InterfaceCommunicator atm.
@@ -454,11 +454,15 @@ protected:
 
 	struct AMGLevel
 	{
-		AMGLevel(int level) : m_levelInformation(level)
+		AMGLevel(int level)
+			: m_levelInformation(level),
+			  pA(NULL),
+			  presmoother(NULL),
+			  postsmoother(NULL)
+#ifdef UG_PARALLEL
+			  ,collectedA(new matrix_operator_type)
+#endif
 		{
-			pA = NULL;
-			presmoother = NULL;
-			postsmoother = NULL;
 #ifdef UG_PARALLEL
 			slaveLayout.clear();
 			masterLayout.clear();
@@ -466,18 +470,20 @@ protected:
 			bHasBeenMerged = false;
 #endif
 		}
+		LevelInformation m_levelInformation;
+
 		vector_type corr;					///< temporary Vector for storing the correction made on this level
 		vector_type cH;						///< temporary Vector for storing rH
 		vector_type dH; 					///< temporary Vector for storing eH
-
-		ILinearIterator<vector_type, vector_type> *presmoother;	///< presmoothers for each level
-		ILinearIterator<vector_type, vector_type> *postsmoother;	///< postsmoothers for each level
 
 		stdvector<bool> is_fine;
 
 		prolongation_matrix_type R; 	///< R Restriction Matrices
 		prolongation_matrix_type P; 	///< P Prolongation Matrices
-		matrix_operator_type *pA;				///< A Matrices
+		SmartPtr<matrix_operator_type> pA;				///< A Matrices
+
+		SmartPtr<ILinearIterator<vector_type> > presmoother;	///< presmoothers for each level
+		SmartPtr<ILinearIterator<vector_type> > postsmoother;	///< postsmoothers for each level
 
 #ifdef UG_PARALLEL
 		pcl::InterfaceCommunicator<IndexLayout> com; ///< the communicator object on this level
@@ -497,13 +503,11 @@ protected:
 		IndexLayout agglomerateMasterLayout;
 
 		vector_type collC, collD;
-		matrix_operator_type collectedA;
+		SmartPtr<matrix_operator_type> collectedA;
 		bool bLevelHasMergers;
 #endif
 		// in contrast to collC, collD, and collectedA, this can also point to other vectors.
-		matrix_operator_type *pAgglomeratedA;
-
-		LevelInformation m_levelInformation;
+		SmartPtr<matrix_operator_type> pAgglomeratedA;
 	};
 
 	stdvector<AMGLevel*> levels;

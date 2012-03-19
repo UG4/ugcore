@@ -9,13 +9,13 @@
 namespace ug{
 
 template <typename vector_type>
-bool ApplyLinearSolver(	ILinearOperator<vector_type, vector_type>& A,
+bool ApplyLinearSolver(	SmartPtr<ILinearOperator<vector_type> > A,
 						vector_type& u, vector_type& b,
-						ILinearOperatorInverse<vector_type, vector_type>& solver)
+						SmartPtr<ILinearOperatorInverse<vector_type> > solver)
 {
 // step 1: Init Linear Inverse Operator
 	PROFILE_BEGIN(ALS_InitLinearSolver);
-	if(!solver.init(A))
+	if(!solver->init(A))
 	{
 		UG_LOG("ApplyLinearSolver: Cannot init Inverse operator.\n");
 		return false;
@@ -24,7 +24,7 @@ bool ApplyLinearSolver(	ILinearOperator<vector_type, vector_type>& A,
 
 // step 2: Apply Operator
 	PROFILE_BEGIN(ALS_ApplyLinearSolver);
-	if(!solver.apply_return_defect(u,b))
+	if(!solver->apply_return_defect(u,b))
 	{
 		UG_LOG("ApplyLinearSolver: Cannot apply Inverse operator.\n");
 		return false;

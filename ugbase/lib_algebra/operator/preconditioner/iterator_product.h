@@ -26,8 +26,6 @@ public:
 	// 	Range space
 	typedef Y codomain_function_type;
 
-	typedef ILinearIterator<X,Y> iterator_type;
-
 public:
 
 	LinearIteratorProduct() {};
@@ -36,8 +34,8 @@ public:
 	virtual const char* name() const {return "IteratorProduct";}
 
 	// 	Prepare for Operator J(u) and linearization point u (current solution)
-	virtual bool init(ILinearOperator<Y,X>& J, const Y& u) {
-		m_op = &J;
+	virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) {
+		m_spOp = J;
 		const size_t max = m_vIterator.size();
 		for(size_t i=0; i<max; i++){
 			m_vIterator[i]->init(J,u);
@@ -47,9 +45,9 @@ public:
 	}
 
 	// Prepare for Linear Operator L
-	virtual bool init(ILinearOperator<Y,X>& L)
+	virtual bool init(SmartPtr<ILinearOperator<Y,X> > L)
 	{
-		m_op = &L;
+		m_spOp = L;
 		const size_t max = m_vIterator.size();
 		for(size_t i=0; i<max; i++) {
 			m_vIterator[i]->init(L);
@@ -83,20 +81,20 @@ public:
 		return true;
 	}
 
-	void add_iterator(iterator_type &I) {m_vIterator.push_back(&I);}
+	void add_iterator(SmartPtr<ILinearIterator<X,Y> > I) {m_vIterator.push_back(I);}
 
 	//	Clone
-	virtual ILinearIterator<X,Y>* clone() {UG_ASSERT(0,"Implement!"); return 0;}
+	virtual SmartPtr<ILinearIterator<X,Y> > clone() {UG_THROW_FATAL("Not Implemented!"); return 0;}
 
 	// 	Destructor
 	virtual ~LinearIteratorProduct() {};
 
 protected:
-	ILinearOperator<Y,X>* common_operator() {return m_op;}
+	SmartPtr<ILinearOperator<Y,X> > common_operator() {return m_spOp;}
 
 private:
-	std::vector<iterator_type*> m_vIterator;
-	ILinearOperator<Y,X>* m_op;
+	std::vector<SmartPtr<ILinearIterator<X,Y> > > m_vIterator;
+	SmartPtr<ILinearOperator<Y,X> > m_spOp;
 };
 
 /** This operator is a sum of ILinearIterator (additive composition). */

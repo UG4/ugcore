@@ -179,8 +179,8 @@ static bool reg(Registry& reg, string parentGroup)
 
 //	ILinearOperator
 	{
-		typedef ILinearOperator<vector_type, vector_type> T;
-		typedef IOperator<vector_type, vector_type> TBase;
+		typedef ILinearOperator<vector_type> T;
+		typedef IOperator<vector_type> TBase;
 		string name = string("ILinearOperator").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("init", static_cast<void (T::*)()>(&T::init))
@@ -190,17 +190,18 @@ static bool reg(Registry& reg, string parentGroup)
 
 // 	MatrixOperator
 	{
-		typedef ILinearOperator<vector_type, vector_type> TBase;
+		typedef ILinearOperator<vector_type> TBase;
 		typedef MatrixOperator<matrix_type, vector_type> T;
 		string name = string("MatrixOperator").append(algSuffix);
 		reg.add_class_<T, TBase, matrix_type>(name, grp)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "MatrixOperator", algTag);
 	}
 
 //	ILinearIterator
 	{
-		typedef ILinearIterator<vector_type, vector_type> T;
+		typedef ILinearIterator<vector_type> T;
 		string name = string("ILinearIterator").append(algSuffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "ILinearIterator", algTag);
@@ -209,7 +210,7 @@ static bool reg(Registry& reg, string parentGroup)
 //	IPreconditioner
 	{
 		typedef IPreconditioner<TAlgebra> T;
-		typedef ILinearIterator<vector_type, vector_type>  TBase;
+		typedef ILinearIterator<vector_type>  TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("IPreconditioner").append(algSuffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp);
@@ -218,10 +219,10 @@ static bool reg(Registry& reg, string parentGroup)
 
 //	ILinearOperatorInverse
 	{
-		typedef ILinearOperatorInverse<vector_type, vector_type> T;
+		typedef ILinearOperatorInverse<vector_type> T;
 		string name = string("ILinearOperatorInverse").append(algSuffix);
 		reg.add_class_<T>(name, grp)
-			.add_method("init", (bool(T::*)(ILinearOperator<vector_type,vector_type>&))(&T::init))
+			.add_method("init", static_cast<bool (T::*)(SmartPtr<ILinearOperator<vector_type> >)>(&T::init))
 			.add_method("apply_return_defect", &T::apply_return_defect, "Success", "u#f",
 					"Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u),  f := f - A*u becomes new defect")
 			.add_method("apply", &T::apply, "Success", "u#f", "Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u), f remains constant")
@@ -236,7 +237,7 @@ static bool reg(Registry& reg, string parentGroup)
 //	IPreconditionedLinearOperatorInverse
 	{
 		typedef IPreconditionedLinearOperatorInverse<vector_type> T;
-		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+		typedef ILinearOperatorInverse<vector_type> TBase;
 		typedef VectorDebugWritingObject<vector_type> TBase2;
 		string name = string("IPreconditionedLinearOperatorInverse").append(algSuffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
@@ -248,7 +249,7 @@ static bool reg(Registry& reg, string parentGroup)
 
 //	IMatrixOperatorInverse
 	{
-		typedef ILinearOperatorInverse<vector_type, vector_type>  TBase;
+		typedef ILinearOperatorInverse<vector_type>  TBase;
 		typedef IMatrixOperatorInverse<matrix_type, vector_type> T;
 		string name = string("IMatrixOperatorInverse").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp);
@@ -257,7 +258,7 @@ static bool reg(Registry& reg, string parentGroup)
 
 //	IOperator
 	{
-		typedef IOperator<vector_type, vector_type> T;
+		typedef IOperator<vector_type> T;
 		string name = string("IOperator").append(algSuffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "IOperator", algTag);
@@ -265,7 +266,7 @@ static bool reg(Registry& reg, string parentGroup)
 
 //	IOperatorInverse
 	{
-		typedef IOperatorInverse<vector_type, vector_type> T;
+		typedef IOperatorInverse<vector_type> T;
 		string name = string("IOperatorInverse").append(algSuffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "IOperatorInverse", algTag);
@@ -351,7 +352,7 @@ static bool reg(Registry& reg, string parentGroup)
 //	LinearIteratorProduct
 	{
 		typedef LinearIteratorProduct<vector_type, vector_type> T;
-		typedef ILinearIterator<vector_type, vector_type> TBase;
+		typedef ILinearIterator<vector_type> TBase;
 		string name = string("LinearIteratorProduct").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp,
 						"Linear Iterator consisting of several LinearIterations")
@@ -375,7 +376,8 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("LinearSolver").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearSolver", algTag);
 	}
 
@@ -385,7 +387,8 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("CG").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3, "Conjugate Gradient")
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "CG", algTag);
 	}
 
@@ -395,17 +398,19 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("BiCGStab").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3)
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BiCGStab", algTag);
 	}
 
 // 	LU Solver
 	{
 		typedef LU<TAlgebra> T;
-		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+		typedef ILinearOperatorInverse<vector_type> TBase;
 		string name = string("LU").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp3, "LU-Decomposition exact solver")
-			.add_constructor();
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LU", algTag);
 	}
 
@@ -413,7 +418,7 @@ static bool reg(Registry& reg, string parentGroup)
 // 	LocalSchurComplement
 	{
 		typedef LocalSchurComplement<TAlgebra> T;
-		typedef ILinearOperator<vector_type, vector_type> TBase;
+		typedef ILinearOperator<vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("LocalSchurComplement").append(algSuffix);
 		reg.add_class_<	T, TBase, TBase2>(name, grp3)
@@ -447,7 +452,8 @@ static bool reg(Registry& reg, string parentGroup)
 		.add_method("print_statistic_of_inner_solver", &T::print_statistic_of_inner_solver)
 		.add_method("set_debug", &T::set_debug)
 		.add_method("test_layouts", &T::test_layouts)
-		.add_method("set_test_one_to_many_layouts", &T::set_test_one_to_many_layouts);
+		.add_method("set_test_one_to_many_layouts", &T::set_test_one_to_many_layouts)
+		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "FETI", algTag);
 	}
 #endif
@@ -456,7 +462,7 @@ static bool reg(Registry& reg, string parentGroup)
 #ifdef UG_HLIBPRO
 	{
 		typedef HLIBSolver<TAlgebra> T;
-		typedef ILinearOperatorInverse<vector_type, vector_type> TBase;
+		typedef ILinearOperatorInverse<vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("HLIBSolver").append(algSuffix);
 		reg.add_class_<	T, TBase, TBase2>(name, grp3)
@@ -474,7 +480,8 @@ static bool reg(Registry& reg, string parentGroup)
 		.add_method("set_ps_basename",       &T::set_ps_basename,
 					"", "PostScript basename")
 		.add_method("check_crs_matrix",      &T::check_crs_matrix,
-					"", "Check CRS matrix");
+					"", "Check CRS matrix")
+		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "HLIBSolver", algTag);
 	}
 #endif

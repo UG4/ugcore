@@ -222,9 +222,9 @@ class P1Projection :
 		{
 		}
 
-		virtual IProjectionOperator<vector_type, vector_type>* clone()
+		virtual SmartPtr<IProjectionOperator<vector_type> > clone()
 		{
-			P1Projection* op = new P1Projection;
+			SmartPtr<P1Projection> op(new P1Projection);
 			op->set_approximation_space(m_spApproxSpace);
 			return op;
 		}

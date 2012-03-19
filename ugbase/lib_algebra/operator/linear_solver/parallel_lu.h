@@ -93,7 +93,7 @@ class ParallelLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::matri
 
 	public:
 		LUSolver() :
-			m_pOperator(NULL), m_mat()
+			m_spOperator(NULL), m_mat()
 		{};
 
 		virtual const char* name() const {return "LUSolver";}

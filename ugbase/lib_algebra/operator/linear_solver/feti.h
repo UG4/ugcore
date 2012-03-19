@@ -565,10 +565,10 @@ class LocalSchurComplement
 	 * \begin{pmatrix} A_{I \Delta} \\ A_{\Pi \Delta} \end{pmatrix}	 *
 	 * \f}
 	 */
-		void set_matrix(MatrixOperator<matrix_type, vector_type>& A)
+		void set_matrix(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 		{
 		//	save current operator
-			m_pOperator = &A;
+			m_spOperator = A;
 		}
 
 	///	sets a sequential Dirichlet solver
@@ -576,10 +576,10 @@ class LocalSchurComplement
 	 * This method sets the Dirichlet Solver that is used to invert the
 	 * inner matrix \f$A_{II}\f$
 	 */
-		void set_dirichlet_solver(ILinearOperatorInverse<vector_type, vector_type>& dirichletSolver)
+		void set_dirichlet_solver(SmartPtr<ILinearOperatorInverse<vector_type> > dirichletSolver)
 		{
 		//	remember the Dirichlet Solver
-			m_pDirichletSolver = &dirichletSolver;
+			m_spDirichletSolver = dirichletSolver;
 		}
 
 	///	sets the primal layouts
@@ -619,7 +619,7 @@ class LocalSchurComplement
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator
-		MatrixOperator<matrix_type,vector_type>* m_pOperator;
+		SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spOperator;
 
 	// 	Parallel Matrix
 		matrix_type* m_pMatrix;
@@ -628,13 +628,13 @@ class LocalSchurComplement
 		FetiLayouts<algebra_type>* m_pFetiLayouts;
 
 	//	Copy of matrix
-		MatrixOperator<matrix_type, vector_type> m_DirichletOperator;
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spDirichletOperator;
 
 	// 	Parallel Dirichlet Matrix
 		matrix_type* m_pDirichletMatrix;
 
 	// 	Linear Solver to invert the local Dirichlet problems
-		ILinearOperatorInverse<vector_type,vector_type>* m_pDirichletSolver;
+		SmartPtr<ILinearOperatorInverse<vector_type> > m_spDirichletSolver;
 
 	//	Convergence history
 		std::string m_statType;
@@ -673,7 +673,7 @@ class PrimalSubassembledMatrixInverse
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	///	Base type
-		typedef ILinearOperatorInverse<vector_type,vector_type> base_type;
+		typedef ILinearOperatorInverse<vector_type> base_type;
 
 	protected:
 		using base_type::convergence_check;
@@ -688,17 +688,17 @@ class PrimalSubassembledMatrixInverse
 		virtual const char* name() const {return "Schur Complement Inverse";}
 
 	///	sets the Neumann solver
-		void set_neumann_solver(ILinearOperatorInverse<vector_type, vector_type>& neumannSolver)
+		void set_neumann_solver(SmartPtr<ILinearOperatorInverse<vector_type> > neumannSolver)
 		{
 		//	remember the Dirichlet Solver
-			m_pNeumannSolver = &neumannSolver;
+			m_spNeumannSolver = neumannSolver;
 		}
 
 	///	sets the coarse problem solver
-		void set_coarse_problem_solver(ILinearOperatorInverse<vector_type, vector_type>& coarseProblemSolver)
+		void set_coarse_problem_solver(SmartPtr<ILinearOperatorInverse<vector_type> > coarseProblemSolver)
 		{
 		//	remember the coarse problem Solver
-			m_pCoarseProblemSolver = &coarseProblemSolver;
+			m_spCoarseProblemSolver = coarseProblemSolver;
 		}
 
 	///	sets the primal layouts
@@ -708,11 +708,11 @@ class PrimalSubassembledMatrixInverse
 		}
 
 	// 	Init for Linear Operator L
-		virtual bool init(ILinearOperator<vector_type, vector_type>& L);
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L);
 
 
 	// 	Init for Linear Operator J and Linearization point (current solution)
-		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		{
 			return init(J);
 		}
@@ -739,7 +739,7 @@ class PrimalSubassembledMatrixInverse
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator ==> from which SC is built (05022011)
-		MatrixOperator<matrix_type,vector_type>* m_pOperator;
+		SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spOperator;
 
 	// 	Parallel Matrix to invert ==> from which SC is built (05022011)
 		matrix_type* m_pMatrix;
@@ -748,16 +748,16 @@ class PrimalSubassembledMatrixInverse
 		FetiLayouts<algebra_type>* m_pFetiLayouts;
 
 	//	Copy of matrix
-		MatrixOperator<matrix_type, vector_type> m_NeumannOperator;
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spNeumannOperator;
 
 	// 	Parallel Neumann Matrix
 		matrix_type* m_pNeumannMatrix;
 
 	//	Neumann Solver
-		ILinearOperatorInverse<vector_type, vector_type>* m_pNeumannSolver;
+		SmartPtr<ILinearOperatorInverse<vector_type> > m_spNeumannSolver;
 
 	//	Coarse problem Solver on root.
-		ILinearOperatorInverse<vector_type, vector_type>* m_pCoarseProblemSolver;
+		SmartPtr<ILinearOperatorInverse<vector_type> > m_spCoarseProblemSolver;
 
 	//	Process gathering the Schur Complement w.r.t. Primal unknowns
 		int m_primalRootProc;
@@ -768,7 +768,7 @@ class PrimalSubassembledMatrixInverse
 		pcl::ProcessCommunicator m_allToOneProcessComm;
 
 	//	Schur Complement operator for gathered matrix
-		MatrixOperator<matrix_type, vector_type> m_RootSchurComplementOp;
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spRootSchurComplementOp;
 
 	//	Matrix for one proc Schur complement
 		matrix_type* m_pRootSchurComplementMatrix;
@@ -812,7 +812,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	///	Base type
-		typedef ILinearOperatorInverse<vector_type,vector_type> base_type;
+		typedef ILinearOperatorInverse<vector_type> base_type;
 
 	protected:
 		using base_type::convergence_check;
@@ -827,24 +827,24 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		virtual const char* name() const {return "FETI Solver";}
 
 	///	sets the Dirichlet solver
-		void set_dirichlet_solver(ILinearOperatorInverse<vector_type, vector_type>& dirichletSolver)
+		void set_dirichlet_solver(SmartPtr<ILinearOperatorInverse<vector_type> > dirichletSolver)
 		{
 		//	remember the Dirichlet Solver
-			m_pDirichletSolver = &dirichletSolver;
+			m_spDirichletSolver = dirichletSolver;
 		}
 
 	///	sets the Neumann solver
-		void set_neumann_solver(ILinearOperatorInverse<vector_type, vector_type>& neumannSolver)
+		void set_neumann_solver(SmartPtr<ILinearOperatorInverse<vector_type> > neumannSolver)
 		{
 		//	remember the Dirichlet Solver
-			m_pNeumannSolver = &neumannSolver;
+			m_spNeumannSolver = neumannSolver;
 		}
 
 	///	sets the coarse problem solver
-		void set_coarse_problem_solver(ILinearOperatorInverse<vector_type, vector_type>& coarseProblemSolver)
+		void set_coarse_problem_solver(SmartPtr<ILinearOperatorInverse<vector_type> > coarseProblemSolver)
 		{
 		//	remember the coarse problem Solver
-			m_pCoarseProblemSolver = &coarseProblemSolver;
+			m_spCoarseProblemSolver = coarseProblemSolver;
 		}
 
 	//	set debug output
@@ -856,7 +856,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		}
 
 	///	initializes the solver for operator A
-		virtual bool init(MatrixOperator<matrix_type, vector_type>& A);
+		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A);
 
 	///	function which applies matrix \f$F\f$ of the reduced system ("Delta system") to a vector \f$v\f$
 	/**
@@ -977,7 +977,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator
-		MatrixOperator<matrix_type,vector_type>* m_pOperator;
+		SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spOperator;
 
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
@@ -989,18 +989,18 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		LocalSchurComplement<algebra_type> m_LocalSchurComplement;
 
 	//	Dirichlet solver for inverse of \f$A_{II}\f$ in local Schur complement
-		ILinearOperatorInverse<vector_type, vector_type>* m_pDirichletSolver;
+		SmartPtr<ILinearOperatorInverse<vector_type> > m_spDirichletSolver;
 
 	//	PrimalSubassembledMatrixInverse
 		PrimalSubassembledMatrixInverse<algebra_type> m_PrimalSubassembledMatrixInverse;
 
 	//	Neumann solver for inverse of \f$A_{\{I,\Delta\}, \{I,\Delta\}}\f$ in the
 	//	creation of the S_{\Pi \Pi} Schur complement in PrimalSubassembledMatrixInverse
-		ILinearOperatorInverse<vector_type, vector_type>* m_pNeumannSolver;
+		SmartPtr<ILinearOperatorInverse<vector_type> > m_spNeumannSolver;
 
 	//	Solver used in solving coarse problem on root.
 	// 	It solves \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ 
-		ILinearOperatorInverse<vector_type, vector_type>* m_pCoarseProblemSolver;
+		SmartPtr<ILinearOperatorInverse<vector_type> > m_spCoarseProblemSolver;
 
 	public:
 		void set_domain_decomp_info(pcl::IDomainDecompositionInfo& ddInfo)

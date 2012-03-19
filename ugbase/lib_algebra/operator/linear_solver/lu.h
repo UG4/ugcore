@@ -41,7 +41,7 @@ class LU
 
 	public:
 	///	constructor
-		LU() : m_pOperator(NULL), m_mat() {};
+		LU() : m_spOperator(NULL), m_mat() {};
 
 	///	returns name of solver
 		virtual const char* name() const {return "LU";}
@@ -146,13 +146,13 @@ class LU
 		}
 
 	///	set operator L, that will be inverted
-		virtual bool init(MatrixOperator<matrix_type, vector_type>& Op)
+		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
 		// 	remember operator
-			m_pOperator = &Op;
+			m_spOperator = Op;
 
 		//	get matrix of Operator
-			m_pMatrix = &m_pOperator->get_matrix();
+			m_pMatrix = &m_spOperator->get_matrix();
 
 		//	check that matrix exist
 			if(m_pMatrix == NULL)
@@ -236,7 +236,7 @@ class LU
 
 	protected:
 	/// Operator to invert
-		MatrixOperator<matrix_type, vector_type>* m_pOperator;
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spOperator;
 
 	/// matrix to invert
 		matrix_type* m_pMatrix;

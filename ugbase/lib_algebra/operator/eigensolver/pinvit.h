@@ -180,7 +180,7 @@ public:
 private:
 	//ILinearOperator<vector_type,vector_type>* m_pA;
 	//ILinearOperator<vector_type,vector_type>* m_pB;
-	ILinearOperator<vector_type, vector_type> *m_pA;
+	SmartPtr<ILinearOperator<vector_type> > m_pA;
 
 	typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 	matrix_operator_type *m_pB;
@@ -188,7 +188,7 @@ private:
 
 
 	std::vector<vector_type*> px;
-	ILinearIterator<vector_type, vector_type> *m_pPrecond;
+	SmartPtr<ILinearIterator<vector_type> > m_spPrecond;
 
 	size_t m_maxIterations;
 	double m_dPrecision;
@@ -207,14 +207,14 @@ public:
 		px.push_back(&vec);
 	}
 
-	void set_preconditioner(ILinearIterator<vector_type, vector_type> &precond)
+	void set_preconditioner(SmartPtr<ILinearIterator<vector_type> > precond)
 	{
-		m_pPrecond = &precond;
+		m_spPrecond = precond;
 	}
 
-	bool set_linear_operator_A(ILinearOperator<vector_type, vector_type> &A)
+	bool set_linear_operator_A(SmartPtr<ILinearOperator<vector_type> > A)
 	{
-		m_pA = &A;
+		m_pA = A;
 		return true;
 	}
 
@@ -282,7 +282,7 @@ public:
 
 		std::vector<std::string> testVectorDescription;
 
-		m_pPrecond->init(*m_pA);
+		m_spPrecond->init(m_pA);
 		pcl::ProcessCommunicator pc;
 
 		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
@@ -362,7 +362,7 @@ public:
 				if(corrnorm[i] < 1e-12)
 					continue;
 				// 2d. apply preconditioner
-				m_pPrecond->apply(corr[i], defect);
+				m_spPrecond->apply(corr[i], defect);
 				corr[i] *= 1/ sqrt( EnergyProd(corr[i], B, corr[i]));
 #ifdef UG_PARALLEL
 				corr[i].change_storage_type(PST_UNIQUE);

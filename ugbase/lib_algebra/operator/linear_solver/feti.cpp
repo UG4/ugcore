@@ -67,8 +67,9 @@ LocalSchurComplement<TAlgebra>::
 LocalSchurComplement() :
 	m_pMatrix(NULL),
 	m_pFetiLayouts(NULL),
+	m_spDirichletOperator(new MatrixOperator<matrix_type, vector_type>),
 	m_pDirichletMatrix(NULL),
-	m_pDirichletSolver(NULL)
+	m_spDirichletSolver(NULL)
 {
 }
 
@@ -77,7 +78,7 @@ void LocalSchurComplement<TAlgebra>::
 init()
 {
 //	check that operator has been set
-	if(m_pOperator == NULL)
+	if(m_spOperator.invalid())
 		UG_THROW_FATAL("LocalSchurComplement::init: No Operator A set.");
 
 //	check Feti layouts have been set
@@ -85,10 +86,10 @@ init()
 		UG_THROW_FATAL("LocalSchurComplement::init: FETI layouts not set.");
 
 //	save matrix from which we build the Schur complement
-	m_pMatrix = &m_pOperator->get_matrix();
+	m_pMatrix = &m_spOperator->get_matrix();
 
 //	get matrix from dirichlet operator
-	m_pDirichletMatrix = &m_DirichletOperator.get_matrix();
+	m_pDirichletMatrix = &m_spDirichletOperator->get_matrix();
 
 //	Copy Matrix for Dirichlet Problem
 	*m_pDirichletMatrix = *m_pMatrix;
@@ -103,14 +104,14 @@ init()
 	m_pFetiLayouts->mat_use_intra_sd_communication(*m_pDirichletMatrix);
 
 //	init sequential solver for Dirichlet problem
-	if(m_pDirichletSolver != NULL)
-		if(!m_pDirichletSolver->init(m_DirichletOperator))
+	if(m_spDirichletSolver.valid())
+		if(!m_spDirichletSolver->init(m_spDirichletOperator))
 			UG_THROW_FATAL("LocalSchurComplement::init: Cannot init "
 					"Sequential Dirichlet Solver for Operator A.");
 
 //	Debug output of matrices
-	write_debug(m_DirichletOperator.get_matrix(), "FetiDirichletMatrix.mat");
-	write_debug(m_pOperator->get_matrix(), "FetiOriginalMatrix.mat");
+	write_debug(m_spDirichletOperator->get_matrix(), "FetiDirichletMatrix.mat");
+	write_debug(m_spOperator->get_matrix(), "FetiOriginalMatrix.mat");
 
 //	reset apply counter
 	m_applyCnt = 0;
@@ -122,11 +123,11 @@ void LocalSchurComplement<TAlgebra>::
 apply(vector_type& f, const vector_type& u)
 {
 //	check that matrix has been set
-	if(m_pOperator == NULL)
+	if(m_spOperator.invalid())
 		UG_THROW_FATAL("LocalSchurComplement::apply: Matrix A not set.");
 
 //	check Dirichlet solver
-	if(m_pDirichletSolver == NULL)
+	if(m_spDirichletSolver.invalid())
 		UG_THROW_FATAL("LocalSchurComplement::apply: No sequential Dirichlet Solver set.");
 
 //	Check parallel storage type of matrix
@@ -153,7 +154,7 @@ apply(vector_type& f, const vector_type& u)
 
 //	2. Compute rhs f_{I} = A_{I \Delta} u_{\Delta}
 //	f is additive afterwards
-	m_DirichletOperator.apply(f, uTmp);
+	m_spDirichletOperator->apply(f, uTmp);
 
 	// set values to zero on \Delta (values are already zero on primal after
 	// application of DirichletOperator!)
@@ -180,14 +181,14 @@ apply(vector_type& f, const vector_type& u)
 
 	// (b) invoke Dirichlet solver
 	//	uTmp is consistent afterwards
-	if(!m_pDirichletSolver->apply_return_defect(uTmp, f))
+	if(!m_spDirichletSolver->apply_return_defect(uTmp, f))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
 						 "Could not solve Dirichlet problem (step 3.b) on Proc "
 							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply':"
-						" Last defect was " << m_pDirichletSolver->defect() <<
-						" after " << m_pDirichletSolver->step() << " steps.\n");
+						" Last defect was " << m_spDirichletSolver->defect() <<
+						" after " << m_spDirichletSolver->step() << " steps.\n");
 
 		UG_THROW_FATAL("Cannot solve Local Schur Complement.");
 	} /* else {
@@ -200,8 +201,8 @@ apply(vector_type& f, const vector_type& u)
 	StepConv stepConv;
 	if(!m_statType.empty())
 	{
-		stepConv.lastDef3b = m_pDirichletSolver->defect();
-		stepConv.numIter3b = m_pDirichletSolver->step();
+		stepConv.lastDef3b = m_spDirichletSolver->defect();
+		stepConv.numIter3b = m_spDirichletSolver->step();
 
 		m_mvStepConv[m_statType].push_back(stepConv);
 	}
@@ -216,7 +217,7 @@ apply(vector_type& f, const vector_type& u)
 
 	// (c) Multiply with full matrix
 	//	f is additive afterwards
-	m_pOperator->apply(f, uTmp);
+	m_spOperator->apply(f, uTmp);
 
 	// make f consistent (on delta is sufficient)
 	f.change_storage_type(PST_CONSISTENT);
@@ -307,13 +308,15 @@ print_statistic_of_inner_solver() const
 template <typename TAlgebra>
 PrimalSubassembledMatrixInverse<TAlgebra>::
 PrimalSubassembledMatrixInverse() :
-	m_pOperator(NULL),
+	m_spOperator(NULL),
 	m_pMatrix(NULL),
 	m_pFetiLayouts(NULL),
+	m_spNeumannOperator(new MatrixOperator<matrix_type, vector_type>),
 	m_pNeumannMatrix(NULL),
-	m_pNeumannSolver(NULL),
-	m_pCoarseProblemSolver(NULL),
+	m_spNeumannSolver(NULL),
+	m_spCoarseProblemSolver(NULL),
 	m_primalRootProc(-1),
+	m_spRootSchurComplementOp(new MatrixOperator<matrix_type, vector_type>),
 	m_pRootSchurComplementMatrix(NULL),
 	m_statType(""),
 	m_bTestOneToManyLayouts(false)
@@ -322,7 +325,7 @@ PrimalSubassembledMatrixInverse() :
 
 template <typename TAlgebra>
 bool PrimalSubassembledMatrixInverse<TAlgebra>::
-init(ILinearOperator<vector_type, vector_type>& L)
+init(SmartPtr<ILinearOperator<vector_type> > L)
 {
 //	status output
 	UG_LOG("     % Initializing 'PrimalSubassembledMatrixInverse': \n");
@@ -331,10 +334,10 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	bool bSuccess = true;
 
 //	remember operator
-	m_pOperator = dynamic_cast<MatrixOperator<matrix_type, vector_type>*>(&L);
+	m_spOperator = L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
 
 //	check, that operator is correct
-	if(m_pOperator == NULL)
+	if(m_spOperator.invalid())
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
 				" Wrong type of operator passed for init.\n");
@@ -361,10 +364,10 @@ init(ILinearOperator<vector_type, vector_type>& L)
 */
 //	save matrix from which we build the Schur complement (same matrix as
 //  'm_pOperator->get_matrix()' in 'LocalSchurComplement::init()')
-	m_pMatrix = &m_pOperator->get_matrix();
+	m_pMatrix = &m_spOperator->get_matrix();
 
 //	get matrix from Neumann operator
-	m_pNeumannMatrix = &m_NeumannOperator.get_matrix();
+	m_pNeumannMatrix = &m_spNeumannOperator->get_matrix();
 
 //	Copy Matrix for Neumann Problem
 	*m_pNeumannMatrix = *m_pMatrix;
@@ -379,8 +382,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	UG_LOG("     %  - initializing 'NeumannSolver' ... ");
 
 //	init sequential solver for Dirichlet problem
-	if(m_pNeumannSolver != NULL)
-		if(!m_pNeumannSolver->init(m_NeumannOperator))
+	if(m_spNeumannSolver.valid())
+		if(!m_spNeumannSolver->init(m_spNeumannOperator))
 		{
 			UG_LOG("ERROR in 'PrimalSubassembledMatrixInverse::init': Cannot init "
 					"Sequential Neumann Solver for Operator A.\n");
@@ -389,7 +392,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	UG_LOG("done.\n");
 
 //	Debug output of matrices
-	write_debug(m_NeumannOperator.get_matrix(), "FetiNeumannMatrix.mat");
+	write_debug(m_spNeumannOperator->get_matrix(), "FetiNeumannMatrix.mat");
 
 //	Choose root process, where Schur complement w.r.t. Primal unknowns
 //	is gathered.
@@ -423,7 +426,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	if (m_bTestOneToManyLayouts == true) {
 		UG_LOG("     %  - TEST ONE TO MANY LAYOUTS:\n");
 		pcl::InterfaceCommunicator<IndexLayout> comTmp;
-		if (TestLayout(m_pOperator->process_communicator(),
+		if (TestLayout(m_spOperator->process_communicator(),
 				comTmp, m_masterAllToOneLayout, m_slaveAllToOneLayout, true) != true) {
 			UG_LOG("     %  - ONE TO MANY LAYOUTS inconsistent!\n");
 		} else {
@@ -586,7 +589,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		// 	2. Apply first matrix A_{\{I, \Delta\} \Pi} to unity vector e^{(p)}:
 		////////////////////////////////////////////////////////////////////////
 		//	build h1 = A_{\{I \Delta\} \Pi} e
-			m_pOperator->apply(h1, e);
+			m_spOperator->apply(h1, e);
 
 		///////////////////////////////////////////////////////////////////
 		//	3. Apply A_{\{I \Delta\}\{I\Delta\}}^{-1} by solving "I,\Delta"
@@ -607,7 +610,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			m_pFetiLayouts->vec_use_intra_sd_communication(h2);
 			h2.set_storage_type(PST_CONSISTENT);
 
-			if(!m_pNeumannSolver->apply(h2, h1))
+			if(!m_spNeumannSolver->apply(h2, h1))
 			{
 				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
 						" Could not solve local Neumann problem to compute Schur"
@@ -615,8 +618,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 								 << procInFetiSD << ", " << pvTo_j << ".\n"); // TODO: info about current repetition of loop? (28102011ih)
 
 				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
-								" Last defect was " << m_pNeumannSolver->defect() <<
-								" after " << m_pNeumannSolver->step() << " steps.\n");
+								" Last defect was " << m_spNeumannSolver->defect() <<
+								" after " << m_spNeumannSolver->step() << " steps.\n");
 
 				return false;
 			}
@@ -628,7 +631,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		//	(a) Set h2 zero on \Pi. This is enforced by neumann solver
 
 		//	(b) Apply third matrix: h1 = A h2
-			m_pOperator->apply(h1, h2);
+			m_spOperator->apply(h1, h2);
 
 		//	(c) Set entries to zero on I, \Delta (not needed, therefore skipped)
 
@@ -637,7 +640,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		///////////////////////////
 
 		//	(a) multiply unity vector with matrix h2 = A e
-			m_pOperator->apply(h2, e);
+			m_spOperator->apply(h2, e);
 
 		//	(b) Set entries to zero on I, \Delta (not needed, therefore skipped)
 
@@ -706,7 +709,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		UG_LOG("     %  - On primal root proc: building Schur complement matrix on primal root proc.\n");
 
 	//	get matrix
-		m_pRootSchurComplementMatrix = &m_RootSchurComplementOp.get_matrix();
+		m_pRootSchurComplementMatrix = &m_spRootSchurComplementOp->get_matrix();
 
 	//	check matrix
 		if(m_pRootSchurComplementMatrix == NULL)
@@ -749,9 +752,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	//	init sequential solver for coarse problem
 		if(newVecSize > 0)
 		{
-			if(m_pCoarseProblemSolver != NULL)
+			if(m_spCoarseProblemSolver.valid())
 			{
-				if(!m_pCoarseProblemSolver->init(m_RootSchurComplementOp))
+				if(!m_spCoarseProblemSolver->init(m_spRootSchurComplementOp))
 				{
 					UG_LOG("ERROR in 'PrimalSubassembledMatrixInverse::init': Cannot init "
 							"coarse problem Solver for Operator S_{Pi Pi}.\n");
@@ -816,7 +819,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			dbgWriter2d.set_positions(&vPosRootSchurSorted[0], newVecSize);
 
 		//	write matrix
-			dbgWriter2d.write_matrix(m_RootSchurComplementOp.get_matrix(),
+			dbgWriter2d.write_matrix(m_spRootSchurComplementOp->get_matrix(),
 										 "RootSchurComplementMatrix.mat");
 		}
 	}
@@ -841,7 +844,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 
 //	check Neumann solver
-	if(m_pNeumannSolver == NULL)
+	if(m_spNeumannSolver.invalid())
 	{
 		UG_LOG("ERROR: In 'PrimalSubassembledMatrixInverse::apply':"
 						" No sequential Neumann Solver set.\n");
@@ -895,15 +898,15 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	// (a) invoke Neumann solver to get \f$u_{\{I \Delta\}}^{(p)}\f$
 	FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_2a);
-	if(!m_pNeumannSolver->apply_return_defect(u, h))
+	if(!m_spNeumannSolver->apply_return_defect(u, h))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 2.a) on Proc "
 							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
 
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
-						" Last defect was " << m_pNeumannSolver->defect() <<
-						" after " << m_pNeumannSolver->step() << " steps.\n");
+						" Last defect was " << m_spNeumannSolver->defect() <<
+						" after " << m_spNeumannSolver->step() << " steps.\n");
 		bSuccess = false;
 	}
 	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_2a)'
@@ -912,8 +915,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 	StepConv stepConv;
 	if(!m_statType.empty())
 	{
-		stepConv.lastDef2a = m_pNeumannSolver->defect();
-		stepConv.numIter2a = m_pNeumannSolver->step();
+		stepConv.lastDef2a = m_spNeumannSolver->defect();
+		stepConv.numIter2a = m_spNeumannSolver->step();
 	}
 
 //	save current solution - 'u' is overwritten by broadcasting \f$u_{\Pi}\f$ after solving (21022011ih)
@@ -958,14 +961,14 @@ apply_return_defect(vector_type& u, vector_type& f)
 	if(m_primalRootProc == pcl::GetProcRank())
 	{
 	//	only if matrix is non-zero
-		if(m_RootSchurComplementOp.get_matrix().num_cols() != 0)
+		if(m_spRootSchurComplementOp->get_matrix().num_cols() != 0)
 		{
 		//	invert matrix
 			rootF.set_storage_type(PST_ADDITIVE);
 			rootU.set_storage_type(PST_CONSISTENT);
 
 			FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem);
-			if(!m_pCoarseProblemSolver->apply_return_defect(rootU, rootF))
+			if(!m_spCoarseProblemSolver->apply_return_defect(rootU, rootF))
 			{
 				std::cout << "ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 								 "Could not invert Schur complement 'S_PiPi' on root proc."
@@ -1017,15 +1020,15 @@ apply_return_defect(vector_type& u, vector_type& f)
 	uTmp2.set_storage_type(PST_CONSISTENT);
 
 	FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_7);
-	if(!m_pNeumannSolver->apply_return_defect(uTmp2, t)) // solve with Neumann matrix!
+	if(!m_spNeumannSolver->apply_return_defect(uTmp2, t)) // solve with Neumann matrix!
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
 							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
 
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
-						" Last defect was " << m_pNeumannSolver->defect() <<
-						" after " << m_pNeumannSolver->step() << " steps.\n");
+						" Last defect was " << m_spNeumannSolver->defect() <<
+						" after " << m_spNeumannSolver->step() << " steps.\n");
 		bSuccess = false;
 	}
 	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_7)'
@@ -1033,8 +1036,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	remember for statistic
 	if(!m_statType.empty())
 	{
-		stepConv.lastDef7 = m_pNeumannSolver->defect();
-		stepConv.numIter7 = m_pNeumannSolver->step();
+		stepConv.lastDef7 = m_spNeumannSolver->defect();
+		stepConv.numIter7 = m_spNeumannSolver->step();
 
 		m_mvStepConv[m_statType].push_back(stepConv);
 	}
@@ -1165,17 +1168,17 @@ print_statistic_of_inner_solver() const
 template <typename TAlgebra>
 FETISolver<TAlgebra>::
 FETISolver() :
-	m_pOperator(NULL),
+	m_spOperator(NULL),
 	m_pMatrix(NULL),
-	m_pDirichletSolver(NULL),
-	m_pNeumannSolver(NULL)
+	m_spDirichletSolver(NULL),
+	m_spNeumannSolver(NULL)
 {
 
 }
 
 template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
-init(MatrixOperator<matrix_type, vector_type>& A)
+init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 {
 //	status
 	UG_LOG("\n% Initializing FETI Solver: \n");
@@ -1184,10 +1187,10 @@ init(MatrixOperator<matrix_type, vector_type>& A)
 	bool bSuccess = true;
 
 //	remember A
-	m_pOperator = &A;
+	m_spOperator = A;
 
 //	0. get matrix
-	m_pMatrix = &m_pOperator->get_matrix();
+	m_pMatrix = &m_spOperator->get_matrix();
 
 //	check that DDInfo has been set
 	if(m_pDDInfo == NULL)
@@ -1217,7 +1220,7 @@ init(MatrixOperator<matrix_type, vector_type>& A)
 
 //	2.2 init Dirichlet system and solver
 //  check that dirichlet solver has been set
-	if(m_pDirichletSolver == NULL)
+	if(m_spDirichletSolver.invalid())
 	{
 		UG_LOG("ERROR in FETISolver::init: No dirichlet solver set "
 				" for inversion of A_{II} in Local Schur complement.\n");
@@ -1225,10 +1228,10 @@ init(MatrixOperator<matrix_type, vector_type>& A)
 	}
 
 //	set dirichlet solver for local Schur complement
-	m_LocalSchurComplement.set_dirichlet_solver(*m_pDirichletSolver);
+	m_LocalSchurComplement.set_dirichlet_solver(m_spDirichletSolver);
 
 //	set operator in local Schur complement
-	m_LocalSchurComplement.set_matrix(*m_pOperator);
+	m_LocalSchurComplement.set_matrix(m_spOperator);
 
 //	2.3 init local Schur complement
 	UG_LOG("\n%   - Init Local Schur Complement ... ");
@@ -1252,7 +1255,7 @@ init(MatrixOperator<matrix_type, vector_type>& A)
 
 //	3.2 init Neumann system and solver
 //	check that neumann solver has been set
-	if(m_pNeumannSolver == NULL)
+	if(m_spNeumannSolver.invalid())
 	{
 		UG_LOG("ERROR in FETISolver::init: No neumann solver set "
 				" for inversion of A_{I,Delta}{I,Delta} in PrimalSubassembledMatrixInverse.\n");
@@ -1260,11 +1263,11 @@ init(MatrixOperator<matrix_type, vector_type>& A)
 	}
 
 //	set neumann solver in PrimalSubassembledMatrixInverse
-	m_PrimalSubassembledMatrixInverse.set_neumann_solver(*m_pNeumannSolver);
+	m_PrimalSubassembledMatrixInverse.set_neumann_solver(m_spNeumannSolver);
 
 //  3.3 init coarse problem solver used in PrimalSubassembledMatrixInverse
 //	check that coarse problem solver has been set
-	if(m_pCoarseProblemSolver == NULL)
+	if(m_spCoarseProblemSolver.invalid())
 	{
 		UG_LOG("ERROR in FETISolver::init: No coarse problem solver set "
 				" for solving S_{Pi Pi} u_{Pi} = tilde{f}_{Pi}.\n");
@@ -1272,12 +1275,12 @@ init(MatrixOperator<matrix_type, vector_type>& A)
 	}
 
 //	set coarse problem solver in PrimalSubassembledMatrixInverse
-	m_PrimalSubassembledMatrixInverse.set_coarse_problem_solver(*m_pCoarseProblemSolver);
+	m_PrimalSubassembledMatrixInverse.set_coarse_problem_solver(m_spCoarseProblemSolver);
 
 //	3.4 init PrimalSubassembledMatrixInverse (operator - given as parameter here - is also set thereby)
 	FETI_PROFILE_BEGIN(FETISolverInit_InitPrimalSubassMatInv);
 	UG_LOG("\n%   - Init 'PrimalSubassembledMatrixInverse' ...\n");
-	if(m_PrimalSubassembledMatrixInverse.init(*m_pOperator) != true)
+	if(m_PrimalSubassembledMatrixInverse.init(m_spOperator) != true)
 	{
 		UG_LOG("ERROR in FETISolver::init: Can not init Schur "
 				"complement inverse.\n");
