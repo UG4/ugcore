@@ -7,11 +7,14 @@
 #include "registry.h"
 #include "registry_util.h"
 
+using namespace ug::bridge;
+
 namespace ug{
 namespace bridge
 {
 
 Registry::Registry()
+	:m_bForceConstructionWithSmartPtr(false)
 {
 //	register native types as provided in ParameterStack
 //	we use the c_ prefix to avoid clashes with java native types in java bindings.
@@ -25,6 +28,7 @@ Registry::Registry()
 }
 
 Registry::Registry(const Registry& reg)
+	: m_bForceConstructionWithSmartPtr(false)
 {
 }
 
@@ -127,6 +131,11 @@ IExportedClass* Registry::get_class(const std::string& name)
 	return NULL;
 }
 
+void Registry::set_force_construct_via_smart_pointer(bool bForceConstructionWithSmartPtr)
+{
+	m_bForceConstructionWithSmartPtr = bForceConstructionWithSmartPtr;
+}
+
 bool Registry::check_consistency()
 {
 
@@ -168,10 +177,13 @@ bool Registry::check_consistency()
 				" e.g., 'Func' and 'func' are equal.\n\n";
 	}
 
+	set_force_construct_via_smart_pointer(false);
+
 // 	check classes and their methods
 	size_t baseClassUndef = 0;
 	size_t methodUndef = 0;
 	size_t constructorUndef = 0;
+	size_t notConstructedAsSmartPtr = 0;
 	// list to check for duplicate classes.
 	// comparison is not case sensitive.
 	std::vector<std::string> classNames;
@@ -180,7 +192,18 @@ bool Registry::check_consistency()
 	//	get class
 		const bridge::IExportedClass &c = get_class(i);
 		
-		// add lower case name entry
+	//	check if class is constructed via smart pointer
+		if(m_bForceConstructionWithSmartPtr)
+		{
+			if(c.is_instantiable() && !c.construct_as_smart_pointer())
+			{
+				UG_LOG("#### Registry::check_consistency: Class " << c.name()<<" is "
+				       "instantiable, but not constructed as Smart Pointer.\n");
+				notConstructedAsSmartPtr++;
+			}
+		}
+
+	// 	add lower case name entry
 		classNames.push_back(ToLower(c.name()));
 
 	//	check class (e.g. that base classes have been named)
@@ -234,6 +257,9 @@ bool Registry::check_consistency()
 	if(constructorUndef > 0)
 		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<constructorUndef<<
 		       " Constructors are using undeclared Classes.\n");
+	if(notConstructedAsSmartPtr > 0)
+		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<notConstructedAsSmartPtr<<
+		       " Classes are not constructed as SmartPtr.\n");
 	if(globFuncDuplicatesExist) {
 		UG_LOG(duplicateFuncMsg);
 	}
@@ -246,6 +272,7 @@ bool Registry::check_consistency()
 	if(methodUndef > 0) return false;
 	if(baseClassUndef > 0) return false;
 	if(constructorUndef > 0) return false;
+	if(notConstructedAsSmartPtr > 0) return false;
 	if(globFuncDuplicatesExist) return false;
 	if(classDuplicatesExist) return false;
 

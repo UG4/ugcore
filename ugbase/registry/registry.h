@@ -107,6 +107,9 @@ class UG_API Registry {
 	///	destructor
 		~Registry();
 		
+	///	requires every constructable class to be constructed via Smart-Pointer
+		void set_force_construct_via_smart_pointer(bool bForceConstructionWithSmartPtr);
+
 	////////////////////////
 	//	callbacks
 	////////////////////////
@@ -243,6 +246,9 @@ class UG_API Registry {
 
 	///	Callback, that are called when registry changed is invoked
 		std::vector<FuncRegistryChanged> m_callbacksRegChanged;
+
+	///	flag if classes must be constructed via smart-pointer
+		bool m_bForceConstructionWithSmartPtr;
 };
 
 } // end namespace registry
