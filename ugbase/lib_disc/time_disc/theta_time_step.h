@@ -44,8 +44,8 @@ class MultiStepTimeDiscretization
 
 	public:
 	/// constructor
-		MultiStepTimeDiscretization(domain_discretization_type& sd)
-			: ITimeDiscretization<TAlgebra>(sd),
+		MultiStepTimeDiscretization(SmartPtr<IDomainDiscretization<algebra_type> > spDD)
+			: ITimeDiscretization<TAlgebra>(spDD),
 			  m_pPrevSol(NULL)
 		{}
 
@@ -115,8 +115,8 @@ class ThetaTimeStep
 
 	public:
 	/// default constructor (implicit Euler)
-		ThetaTimeStep(domain_discretization_type& sd)
-			: MultiStepTimeDiscretization<TAlgebra>(sd),
+		ThetaTimeStep(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
+			: MultiStepTimeDiscretization<TAlgebra>(spDD),
 			  m_stage(1), m_scheme("Theta")
 		{
 			set_theta(1.0);
@@ -124,8 +124,8 @@ class ThetaTimeStep
 		}
 
 	/// theta = 1.0 -> Implicit Euler, 0.0 -> Explicit Euler
-		ThetaTimeStep(domain_discretization_type& sd, number theta)
-			: MultiStepTimeDiscretization<TAlgebra>(sd),
+		ThetaTimeStep(SmartPtr<IDomainDiscretization<TAlgebra> > spDD, number theta)
+			: MultiStepTimeDiscretization<TAlgebra>(spDD),
 			  m_stage(1), m_scheme("Theta")
 		{
 			set_theta(theta);
@@ -133,8 +133,8 @@ class ThetaTimeStep
 		}
 
 	/// theta = 1.0 -> Implicit Euler, 0.0 -> Explicit Euler
-		ThetaTimeStep(domain_discretization_type& sd, const char* scheme)
-			: MultiStepTimeDiscretization<TAlgebra>(sd),
+		ThetaTimeStep(SmartPtr<IDomainDiscretization<TAlgebra> > spDD, const char* scheme)
+			: MultiStepTimeDiscretization<TAlgebra>(spDD),
 			  m_stage(1), m_scheme(scheme)
 		{
 			set_theta(1.0);
@@ -239,15 +239,15 @@ class BDF
 
 	public:
 	/// constructor
-		BDF(domain_discretization_type& sd)
-			: MultiStepTimeDiscretization<TAlgebra>(sd)
+		BDF(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
+			: MultiStepTimeDiscretization<TAlgebra>(spDD)
 		{
 			set_order(2);
 		}
 
 	/// theta = 0 -> Backward Euler
-		BDF(domain_discretization_type& sd, size_t order)
-			: MultiStepTimeDiscretization<TAlgebra>(sd)
+		BDF(SmartPtr<IDomainDiscretization<TAlgebra> > spDD, size_t order)
+			: MultiStepTimeDiscretization<TAlgebra>(spDD)
 		{
 			set_order(order);
 		}

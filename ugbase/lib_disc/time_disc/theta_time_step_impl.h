@@ -59,7 +59,7 @@ prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
 
 // 	prepare timestep
 	try{
-		this->m_rDomDisc.prepare_timestep(*m_pPrevSol, gl);
+		this->m_spDomDisc->prepare_timestep(*m_pPrevSol, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot prepare timestep.");
 }
 
@@ -82,7 +82,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl)
 
 //	assemble jacobian using current iterate
 	try{
-		this->m_rDomDisc.assemble_jacobian(J, *m_pPrevSol, m_vScaleStiff[0], gl);
+		this->m_spDomDisc->assemble_jacobian(J, *m_pPrevSol, m_vScaleStiff[0], gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
 
 //	pop unknown solution to solution time series
@@ -108,7 +108,7 @@ assemble_defect(vector_type& d, const vector_type& u, GridLevel gl)
 
 // 	future solution part
 	try{
-		this->m_rDomDisc.assemble_defect(d, *m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
+		this->m_spDomDisc->assemble_defect(d, *m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble defect.");
 
 //	pop unknown solution to solution time series
@@ -121,7 +121,7 @@ adjust_solution(vector_type& u, GridLevel gl)
 {
 //	assemble solution
 	try{
-		this->m_rDomDisc.adjust_solution(u, m_futureTime, gl);
+		this->m_spDomDisc->adjust_solution(u, m_futureTime, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot adjust solution.");
 }
 
@@ -148,7 +148,7 @@ finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
 
 // 	finish timestep
 	try{
-		this->m_rDomDisc.finish_timestep(*m_pPrevSol, gl);
+		this->m_spDomDisc->finish_timestep(*m_pPrevSol, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep.");
 }
 

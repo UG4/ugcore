@@ -46,15 +46,15 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 		typedef typename algebra_type::vector_type vector_type;
 
 	///	Domain Discretization type
-		typedef IDomainDiscretization<algebra_type>	domain_discretization_type;
+		typedef IDomainDiscretization<TAlgebra>	domain_discretization_type;
 
 	public:
 	/// create and set domain discretization
 	/**
 	 * \param[in] dd	Domain Discretization
 	 */
-		ITimeDiscretization(domain_discretization_type& dd)
-			: m_rDomDisc(dd)
+		ITimeDiscretization(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
+			: m_spDomDisc(spDD)
 		{}
 
 	/// prepares the assembling of Defect/Jacobian for a time step
@@ -121,13 +121,13 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce)
 		{
-			m_rDomDisc.force_regular_grid(bForce);
+			m_spDomDisc->force_regular_grid(bForce);
 		}
 
 	///	enables constraints
 		virtual void enable_constraints(bool bEnable)
 		{
-			m_rDomDisc.enable_constraints(bEnable);
+			m_spDomDisc->enable_constraints(bEnable);
 		}
 
 	///	sets a selector to exclude elements from assembling
@@ -146,22 +146,22 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	///	returns the number of post processes
 		virtual size_t num_dirichlet_constraints() const
 		{
-			return m_rDomDisc.num_dirichlet_constraints();
+			return m_spDomDisc->num_dirichlet_constraints();
 		}
 
 	///	returns the i'th post process
 		virtual SmartPtr<IConstraint<TAlgebra> > dirichlet_constraint(size_t i)
 		{
-			return m_rDomDisc.dirichlet_constraint(i);
+			return m_spDomDisc->dirichlet_constraint(i);
 		}
 
 	protected:
 		void forward_selector()
 		{
-			m_rDomDisc.set_selector(m_pBoolMarker);
+			m_spDomDisc->set_selector(m_pBoolMarker);
 		}
 
-		domain_discretization_type& m_rDomDisc; ///< Domain Discretization
+		SmartPtr<IDomainDiscretization<TAlgebra> > m_spDomDisc; ///< Domain Discretization
 
 		BoolMarker* m_pBoolMarker;
 };

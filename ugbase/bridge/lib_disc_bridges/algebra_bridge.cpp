@@ -114,15 +114,15 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
 		typedef ITimeDiscretization<TAlgebra> TBase;
 		typedef ThetaTimeStep<TAlgebra> T;
-		typedef IDomainDiscretization<TAlgebra> domain_discretization_type;
 		string name = string("ThetaTimeStep").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-				.template add_constructor<void (*)(domain_discretization_type&)>("Domain Discretization")
-				.template add_constructor<void (*)(domain_discretization_type&,number)>("Domain Discretization#Theta")
-				.template add_constructor<void (*)(domain_discretization_type&,const char*)>("Domain Discretization#Scheme")
+				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("Domain Discretization")
+				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >,number)>("Domain Discretization#Theta")
+				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >,const char*)>("Domain Discretization#Scheme")
 				.add_method("set_theta", &T::set_theta, "", "Theta (1 = Impl; 0 = Expl)")
 				.add_method("set_scheme", &T::set_scheme, "", "Scheme|selection|value=[\"Theta\",\"Alexander\",\"FracStep\"]")
-				.add_method("set_stage", &T::set_stage, "", "Stage");
+				.add_method("set_stage", &T::set_stage, "", "Stage")
+				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ThetaTimeStep", algTag);
 	}
 
@@ -131,12 +131,12 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 		std::string grp = parentGroup; grp.append("/Discretization/TimeDisc");
 		typedef ITimeDiscretization<TAlgebra> TBase;
 		typedef BDF<TAlgebra> T;
-		typedef IDomainDiscretization<TAlgebra> domain_discretization_type;
 		string name = string("BDF").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-				.template add_constructor<void (*)(domain_discretization_type&)>("Domain Discretization")
-				.template add_constructor<void (*)(domain_discretization_type&,int)>("Domain Discretization#Order")
-				.add_method("set_order", &T::set_order, "", "Order");
+				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("Domain Discretization")
+				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >,int)>("Domain Discretization#Order")
+				.add_method("set_order", &T::set_order, "", "Order")
+				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BDF", algTag);
 	}
 
