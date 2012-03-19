@@ -74,7 +74,8 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, int, number, bool)>(&T::print))
 			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, int, number)>(&T::print))
 			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, bool)>(&T::print))
-			.add_method("print", static_cast<bool (T::*)(const char*, function_type&)>(&T::print));
+			.add_method("print", static_cast<bool (T::*)(const char*, function_type&)>(&T::print))
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "VTKOutput", dimAlgTag);
 	}
 
@@ -101,7 +102,8 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		string name = string("GridFunctionPositionProvider").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction");
+			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionPositionProvider", dimAlgTag);
 	}
 
@@ -114,7 +116,8 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
-			.add_method("set_user_data", &T::set_user_data, "", "userData");
+			.add_method("set_user_data", &T::set_user_data, "", "userData")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionVectorWriter", dimAlgTag);
 	}
 
@@ -126,7 +129,8 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("init", &T::init, "", "postProcess#approxSpace#level")
-			.add_method("set_level", &T::set_level, "", "level");
+			.add_method("set_level", &T::set_level, "", "level")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionVectorWriterDirichlet0", dimAlgTag);
 	}
 
