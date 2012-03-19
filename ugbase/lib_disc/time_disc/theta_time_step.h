@@ -53,15 +53,15 @@ class MultiStepTimeDiscretization
 		virtual size_t num_prev_steps() const {return m_prevSteps;}
 
 	///	\copydoc ITimeDiscretization::prepare_step()
-		virtual void prepare_step(VectorTimeSeries<vector_type>& prevSol,
+		virtual void prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 		                          number dt);
 
 	///	\copydoc ITimeDiscretization::prepare_step_elem()
-		virtual void prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 		                               number dt, GridLevel gl);
 
 	///	\copydoc ITimeDiscretization::finish_step_elem()
-		virtual void finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 		                              number dt, GridLevel gl);
 
 		virtual number future_time() const {return m_futureTime;}
@@ -80,13 +80,13 @@ class MultiStepTimeDiscretization
 		virtual number update_scaling(std::vector<number>& vSM,
 		                              std::vector<number>& vSA,
 		                              number dt, number currentTime,
-		                              const VectorTimeSeries<vector_type>& prevSol) = 0;
+		                              ConstSmartPtr<VectorTimeSeries<vector_type> > prevSol) = 0;
 
 		size_t m_prevSteps;					///< number of previous steps needed.
 		std::vector<number> m_vScaleMass;	///< Scaling for mass part
 		std::vector<number> m_vScaleStiff;	///< Scaling for stiffness part
 
-		VectorTimeSeries<vector_type>* m_pPrevSol;	///< Previous solutions
+		SmartPtr<VectorTimeSeries<vector_type> > m_pPrevSol;	///< Previous solutions
 		number m_dt; 								///< Time Step size
 		number m_futureTime;						///< Future Time
 };
@@ -112,6 +112,15 @@ class ThetaTimeStep
 	public:
 	///	Domain Discretization type
 		typedef IDomainDiscretization<TAlgebra> domain_discretization_type;
+
+	/// Type of algebra
+		typedef TAlgebra algebra_type;
+
+	/// Type of algebra matrix
+		typedef typename algebra_type::matrix_type matrix_type;
+
+	/// Type of algebra vector
+		typedef typename algebra_type::vector_type vector_type;
 
 	public:
 	/// default constructor (implicit Euler)
@@ -163,7 +172,7 @@ class ThetaTimeStep
 		virtual number update_scaling(std::vector<number>& vSM,
 		                              std::vector<number>& vSA,
 		                              number dt, number currentTime,
-		                              const VectorTimeSeries<typename TAlgebra::vector_type>& prevSol)
+		                              ConstSmartPtr<VectorTimeSeries<vector_type> > prevSol)
 		{
 		//	resize scaling factors
 			vSM.resize(2);
@@ -237,6 +246,15 @@ class BDF
 	///	Domain Discretization type
 		typedef IDomainDiscretization<TAlgebra>	domain_discretization_type;
 
+	/// Type of algebra
+		typedef TAlgebra algebra_type;
+
+	/// Type of algebra matrix
+		typedef typename algebra_type::matrix_type matrix_type;
+
+	/// Type of algebra vector
+		typedef typename algebra_type::vector_type vector_type;
+
 	public:
 	/// constructor
 		BDF(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
@@ -268,7 +286,7 @@ class BDF
 		virtual number update_scaling(std::vector<number>& vSM,
 		                              std::vector<number>& vSA,
 		                              number dt, number currentTime,
-		                              const VectorTimeSeries<typename TAlgebra::vector_type>& prevSol)
+		                              ConstSmartPtr<VectorTimeSeries<vector_type> > prevSol)
 		{
 		//	resize scaling factors
 			vSM.resize(m_order+1);
@@ -278,14 +296,14 @@ class BDF
 			const number futureTime = currentTime + dt;
 
 		//	get time points
-			if(prevSol.size() < m_order)
+			if(prevSol->size() < m_order)
 				UG_THROW_FATAL("BDF("<<m_order<<") needs at least "<< m_order <<
-				               " previous solutions, but only "<<prevSol.size()<<"passed.");
+				               " previous solutions, but only "<<prevSol->size()<<"passed.");
 
 			std::vector<number> vTimePoint(m_order+1);
 			vTimePoint[0] = futureTime;
 			for(size_t i = 1; i <= m_order; ++i)
-				vTimePoint[i] = prevSol.time(i-1);
+				vTimePoint[i] = prevSol->time(i-1);
 
 		//	create Lagrange Polynoms with given time steps
 			for(size_t i = 0; i <= m_order; ++i)

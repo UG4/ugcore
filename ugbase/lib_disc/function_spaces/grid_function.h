@@ -314,7 +314,7 @@ class GridFunction
 		this_type& operator=(const this_type& v) {assign(v); return *this;}
 
 	/// clone
-		this_type& clone(){return *(new this_type(*this));}
+		SmartPtr<this_type> clone(){return SmartPtr<this_type>(new this_type(*this));}
 
 	/// copies the GridFunction v, except that the values are copied.
 		virtual void clone_pattern(const this_type& v);

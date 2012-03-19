@@ -65,7 +65,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 * \param[in] prevSol 	the solution at the previous time steps
 	 * \param[in] dt		size of time step
 	 */
-		virtual void prepare_step(VectorTimeSeries<vector_type>& prevSol,
+		virtual void prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 		                          number dt) = 0;
 
 	/// prepares the assembling of Defect/Jacobian for a time step
@@ -80,9 +80,9 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 * \param[in] dd		DoF Distribution
 	 */
 	/// \{
-		virtual void prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 		                               number dt, GridLevel gl) = 0;
-		void prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 		                       number dt)
 		{prepare_step_elem(prevSol, dt, GridLevel());}
 	/// \}
@@ -99,9 +99,9 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 * \param[in] dd		DoF Distribution
 	 */
 	///	\{
-		virtual void finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 									  number dt, GridLevel gl) = 0;
-		void finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
+		void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 		                       number dt)
 		{finish_step_elem(prevSol, dt, GridLevel());}
 	///	\}

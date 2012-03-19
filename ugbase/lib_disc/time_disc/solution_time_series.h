@@ -45,30 +45,30 @@ class VectorTimeSeries
 		number time(size_t i) const {return m_vTimeSol.at(i).time();}
 
 	///	returns solution
-		vector_type& solution(size_t i) {return *(m_vTimeSol.at(i).solution());}
+		SmartPtr<vector_type> solution(size_t i) {return m_vTimeSol.at(i).solution();}
 
 	///	returns solution
-		const vector_type& solution(size_t i) const {return *(m_vTimeSol.at(i).solution());}
+		ConstSmartPtr<vector_type> solution(size_t i) const {return m_vTimeSol.at(i).solution();}
 
 	///	returns oldest solution
-		vector_type& oldest() {return *(m_vTimeSol.back().solution());}
+		SmartPtr<vector_type> oldest() {return m_vTimeSol.back().solution();}
 
 	/// const access to oldest solution
-		const vector_type& oldest() const {return *(m_vTimeSol.back().solution());}
+		ConstSmartPtr<vector_type> oldest() const {return m_vTimeSol.back().solution();}
 
 	///	returns latest solution
-		vector_type& latest() {return *(m_vTimeSol.front().solution());}
+		SmartPtr<vector_type> latest() {return m_vTimeSol.front().solution();}
 
 	///	const access to latest solution
-		const vector_type& latest() const {return *(m_vTimeSol.front().solution());}
+		ConstSmartPtr<vector_type> latest() const {return m_vTimeSol.front().solution();}
 
 	///	adds new time point, not discarding the oldest
-		void push(vector_type& vec, number time) {m_vTimeSol.push_front(TimeSol(vec, time));}
+		void push(SmartPtr<vector_type> vec, number time) {m_vTimeSol.push_front(TimeSol(vec, time));}
 
 	///	adds new time point, oldest solution is discarded and returned
-		vector_type* push_discard_oldest(vector_type& vec, number time)
+		SmartPtr<vector_type> push_discard_oldest(SmartPtr<vector_type> vec, number time)
 		{
-			vector_type* discardVec = m_vTimeSol.back().solution();
+			SmartPtr<vector_type> discardVec = m_vTimeSol.back().solution();
 			remove_oldest(); push(vec, time);
 			return discardVec;
 		}
@@ -86,14 +86,14 @@ class VectorTimeSeries
 			public:
 				TimeSol() : vec(NULL), t(0.0) {}
 
-				TimeSol(vector_type& vec_, number t_)
-					: vec(&vec_), t(t_) {}
+				TimeSol(SmartPtr<vector_type> vec_, number t_)
+					: vec(vec_), t(t_) {}
 
 			///	access solution
-				vector_type* solution() {return vec;}
+				SmartPtr<vector_type> solution() {return vec;}
 
 			///	const access solution
-				const vector_type* solution() const {return vec;}
+				ConstSmartPtr<vector_type> solution() const {return vec;}
 
 			///	access time
 				number& time() {return t;}
@@ -103,7 +103,7 @@ class VectorTimeSeries
 
 			protected:
 			//	solution vector at time point
-				vector_type* vec;
+				SmartPtr<vector_type> vec;
 
 			//	point in time
 				number t;
@@ -134,23 +134,23 @@ class LocalVectorTimeSeries
 
 	/// extract local values from global vectors
 		template <typename TVector>
-		void read_values(const VectorTimeSeries<TVector>& vecTimeSeries, LocalIndices& ind)
+		void read_values(ConstSmartPtr<VectorTimeSeries<TVector> > vecTimeSeries, LocalIndices& ind)
 		{
-			m_vLocalVector.resize(vecTimeSeries.size());
+			m_vLocalVector.resize(vecTimeSeries->size());
 			for(size_t i = 0; i < m_vLocalVector.size(); ++i)
 			{
 				m_vLocalVector[i].resize(ind);
-				GetLocalVector(m_vLocalVector[i], vecTimeSeries.solution(i));
+				GetLocalVector(m_vLocalVector[i], *vecTimeSeries->solution(i));
 			}
 		}
 
 	///	extract time points
 		template <typename TVector>
-		void read_times(const VectorTimeSeries<TVector>& vecTimeSeries)
+		void read_times(ConstSmartPtr<VectorTimeSeries<TVector> > vecTimeSeries)
 		{
-			m_vTime.resize(vecTimeSeries.size());
+			m_vTime.resize(vecTimeSeries->size());
 			for(size_t i = 0; i < m_vTime.size(); ++i)
-				m_vTime[i] = vecTimeSeries.time(i);
+				m_vTime[i] = vecTimeSeries->time(i);
 		}
 
 	protected:

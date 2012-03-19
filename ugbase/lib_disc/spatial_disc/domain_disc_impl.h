@@ -759,7 +759,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd)
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
-prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
+prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
@@ -845,7 +845,7 @@ template <typename TDomain, typename TAlgebra>
 template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_jacobian(matrix_type& J,
-                  const VectorTimeSeries<vector_type>& vSol,
+                  ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                   const number s_a0,
                   ConstSmartPtr<TDD> dd)
 {
@@ -860,7 +860,7 @@ assemble_jacobian(matrix_type& J,
 	J.set(0.0);
 
 //	get current time
-	const number time = vSol.time(0);
+	const number time = vSol->time(0);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -935,7 +935,7 @@ assemble_jacobian(matrix_type& J,
 	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
 		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-			m_vvConstraints[type][i]->adjust_jacobian(J, vSol.solution(0), dd->grid_level(), time);
+			m_vvConstraints[type][i]->adjust_jacobian(J, *vSol->solution(0), dd->grid_level(), time);
 	}
 	}UG_CATCH_THROW("Cannot adjust jacobian.");
 
@@ -954,7 +954,7 @@ template <typename TDomain, typename TAlgebra>
 template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_defect(vector_type& d,
-                const VectorTimeSeries<vector_type>& vSol,
+                ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 const std::vector<number>& vScaleMass,
                 const std::vector<number>& vScaleStiff,
                 ConstSmartPtr<TDD> dd)
@@ -1041,7 +1041,7 @@ assemble_defect(vector_type& d,
 	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
 		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-			m_vvConstraints[type][i]->adjust_defect(d, vSol.solution(0), dd->grid_level(), vSol.time(0));
+			m_vvConstraints[type][i]->adjust_defect(d, *vSol->solution(0), dd->grid_level(), vSol->time(0));
 	}
 	} UG_CATCH_THROW("Cannot adjust defect.");
 
@@ -1058,7 +1058,7 @@ template <typename TDomain, typename TAlgebra>
 template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
-                const VectorTimeSeries<vector_type>& vSol,
+                ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 const std::vector<number>& vScaleMass,
                 const std::vector<number>& vScaleStiff,
                 ConstSmartPtr<TDD> dd)
@@ -1141,7 +1141,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
 		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-			m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd->grid_level(), vSol.time(0));
+			m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd->grid_level(), vSol->time(0));
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");
 
@@ -1185,7 +1185,7 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<TDD> dd)
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
-finish_timestep(const VectorTimeSeries<vector_type>& vSol,
+finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs

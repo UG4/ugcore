@@ -81,7 +81,7 @@ class DomainDiscBase
 
 		// time dependent
 
-		virtual	void prepare_timestep(const VectorTimeSeries<vector_type>& vSol, GridLevel gl)
+		virtual	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl)
 		{
 			if(gl.type() == GridLevel::LEVEL)
 				getImpl().template prepare_timestep<LevelDoFDistribution>(vSol, lev_dd(gl));
@@ -92,7 +92,7 @@ class DomainDiscBase
 		}
 
 		virtual void assemble_jacobian(matrix_type& J,
-		                               const VectorTimeSeries<vector_type>& vSol,
+		                               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                               const number s_a, GridLevel gl)
 		{
 			if(gl.type() == GridLevel::LEVEL)
@@ -104,7 +104,7 @@ class DomainDiscBase
 		}
 
 		virtual	void assemble_defect(vector_type& d,
-		       	                     const VectorTimeSeries<vector_type>& vSol,
+		       	                     ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		       	                     const std::vector<number>& vScaleMass,
 		       	                     const std::vector<number>& vScaleStiff,
 		       	                     GridLevel gl)
@@ -118,7 +118,7 @@ class DomainDiscBase
 		}
 
 		virtual void assemble_linear(matrix_type& A, vector_type& b,
-		                             const VectorTimeSeries<vector_type>& vSol,
+		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                             const std::vector<number>& vScaleMass,
 		                             const std::vector<number>& vScaleStiff,
 		                             GridLevel gl)
@@ -141,7 +141,7 @@ class DomainDiscBase
 				UG_THROW_FATAL("Grid Level not recognized.");
 		}
 
-		virtual	void finish_timestep(const VectorTimeSeries<vector_type>& vSol, GridLevel gl)
+		virtual	void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl)
 		{
 			if(gl.type() == GridLevel::LEVEL)
 				getImpl().template finish_timestep<LevelDoFDistribution>(vSol, lev_dd(gl));

@@ -87,7 +87,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 		string name = string("IDomainDiscretization").append(algSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("assemble_jacobian", static_cast<void (T::*)
-			            (matrix_type&, const VectorTimeSeries<vector_type>&,
+			            (matrix_type&, ConstSmartPtr<VectorTimeSeries<vector_type> >,
 			             number)>(&T::assemble_jacobian));
 		reg.add_class_to_group(name, "IDomainDiscretization", algTag);
 	}
@@ -100,8 +100,8 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 		string name = string("ITimeDiscretization").append(algSuffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_method("prepare_step", &T::prepare_step)
-			.add_method("prepare_step_elem", static_cast<void (T::*)(VectorTimeSeries<typename TAlgebra::vector_type>&, number)>(&T::prepare_step_elem))
-			.add_method("finish_step_elem", static_cast<void (T::*)(VectorTimeSeries<typename TAlgebra::vector_type>&, number)>(&T::finish_step_elem))
+			.add_method("prepare_step_elem", static_cast<void (T::*)(SmartPtr<VectorTimeSeries<vector_type> >, number)>(&T::prepare_step_elem))
+			.add_method("finish_step_elem", static_cast<void (T::*)(SmartPtr<VectorTimeSeries<vector_type> >, number)>(&T::finish_step_elem))
 			.add_method("num_stages", &T::num_stages)
 			.add_method("set_stage", &T::set_stage)
 			.add_method("future_time", &T::future_time)
@@ -245,10 +245,11 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 			.add_method("size", &T::size)
 			.add_method("push_discard_oldest", &T::push_discard_oldest)
 			.add_method("push", &T::push)
-			.add_method("solution", static_cast<const vector_type&(T::*)(size_t) const>(&T::solution))
-			.add_method("oldest", static_cast<vector_type& (T::*)()>(&T::oldest))
-			.add_method("latest", static_cast<vector_type& (T::*)()>(&T::latest))
-			.add_method("time", &T::time);
+			.add_method("solution", static_cast<ConstSmartPtr<vector_type> (T::*)(size_t) const>(&T::solution))
+			.add_method("oldest", static_cast<SmartPtr<vector_type> (T::*)()>(&T::oldest))
+			.add_method("latest", static_cast<SmartPtr<vector_type> (T::*)()>(&T::latest))
+			.add_method("time", &T::time)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SolutionTimeSeries", algTag);
 	}
 

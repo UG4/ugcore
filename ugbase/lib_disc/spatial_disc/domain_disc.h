@@ -88,20 +88,20 @@ class DomainDiscretization
 
 	/// \copydoc IDomainDiscretization::prepare_timestep()
 		template <typename TDD>
-		void prepare_timestep(const VectorTimeSeries<vector_type>& vSol,
+		void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                      ConstSmartPtr<TDD> dd);
 
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
 		template <typename TDD>
 		void assemble_jacobian(matrix_type& J,
-		                       const VectorTimeSeries<vector_type>& vSol,
+		                       ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                       const number s_a0,
 		                       ConstSmartPtr<TDD> dd);
 
 	/// \copydoc IDomainDiscretization::assemble_defect()
 		template <typename TDD>
 		void assemble_defect(vector_type& d,
-		                     const VectorTimeSeries<vector_type>& vSol,
+		                     ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff,
 		                     ConstSmartPtr<TDD> dd);
@@ -109,7 +109,7 @@ class DomainDiscretization
 	/// \copydoc IDomainDiscretization::assemble_linear()
 		template <typename TDD>
 		void assemble_linear(matrix_type& A, vector_type& b,
-		                     const VectorTimeSeries<vector_type>& vSol,
+		                     ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff,
 		                     ConstSmartPtr<TDD> dd);
@@ -121,7 +121,7 @@ class DomainDiscretization
 
 	/// \copydoc IDomainDiscretization::finish_timestep()
 		template <typename TDD>
-		void finish_timestep(const VectorTimeSeries<vector_type>& vSol,
+		void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 							 ConstSmartPtr<TDD> dd);
 
 	///////////////////////////

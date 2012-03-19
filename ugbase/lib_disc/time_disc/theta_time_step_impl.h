@@ -14,17 +14,17 @@ namespace ug{
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-prepare_step(VectorTimeSeries<vector_type>& prevSol,
+prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
              number dt)
 {
 //	perform checks
-	if(prevSol.size() < m_prevSteps)
+	if(prevSol->size() < m_prevSteps)
 		UG_THROW_FATAL("ThetaTimeStep::prepare_step:"
 						" Number of previous solutions must be at least "<<
-						m_prevSteps <<", but only "<< prevSol.size() << " passed.\n");
+						m_prevSteps <<", but only "<< prevSol->size() << " passed.\n");
 
 //	remember old values
-	m_pPrevSol = &prevSol;
+	m_pPrevSol = prevSol;
 
 //	remember time step size
 	m_dt = dt;
@@ -32,22 +32,22 @@ prepare_step(VectorTimeSeries<vector_type>& prevSol,
 //	update scalings
 	m_futureTime = update_scaling(m_vScaleMass, m_vScaleStiff,
 	                              m_dt, m_pPrevSol->time(0),
-	                              *m_pPrevSol);
+	                              m_pPrevSol);
 }
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
+prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
                   number dt, GridLevel gl)
 {
 //	perform checks
-	if(prevSol.size() < m_prevSteps)
+	if(prevSol->size() < m_prevSteps)
 		UG_THROW_FATAL("ThetaTimeStep::prepare_step:"
 						" Number of previous solutions must be at least "<<
-						m_prevSteps <<", but only "<< prevSol.size() << " passed.\n");
+						m_prevSteps <<", but only "<< prevSol->size() << " passed.\n");
 
 //	remember old values
-	m_pPrevSol = &prevSol;
+	m_pPrevSol = prevSol;
 
 //	remember time step size
 	m_dt = dt;
@@ -55,11 +55,11 @@ prepare_step_elem(VectorTimeSeries<vector_type>& prevSol,
 //	update scalings
 	m_futureTime = update_scaling(m_vScaleMass, m_vScaleStiff,
 	                              m_dt, m_pPrevSol->time(0),
-	                              *m_pPrevSol);
+	                              m_pPrevSol);
 
 // 	prepare timestep
 	try{
-		this->m_spDomDisc->prepare_timestep(*m_pPrevSol, gl);
+		this->m_spDomDisc->prepare_timestep(m_pPrevSol, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot prepare timestep.");
 }
 
@@ -78,11 +78,14 @@ assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl)
 //			   that we pass pPrevSol as a const object in assemble_... Thus,
 //			   the solution will not be changed there and we pop it from the
 //			   Solution list afterwards, such that nothing happens to u
-	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
+	// \todo: avoid this hack, use smart ptr properly
+	int DummyRefCount = 2;
+	SmartPtr<vector_type> pU(const_cast<vector_type*>(&u), &DummyRefCount);
+	m_pPrevSol->push(pU, m_futureTime);
 
 //	assemble jacobian using current iterate
 	try{
-		this->m_spDomDisc->assemble_jacobian(J, *m_pPrevSol, m_vScaleStiff[0], gl);
+		this->m_spDomDisc->assemble_jacobian(J, m_pPrevSol, m_vScaleStiff[0], gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
 
 //	pop unknown solution to solution time series
@@ -104,11 +107,14 @@ assemble_defect(vector_type& d, const vector_type& u, GridLevel gl)
 //			   that we pass pPrevSol as a const object in assemble_... Thus,
 //			   the solution will not be changed there and we pop it from the
 //			   Solution list afterwards, such that nothing happens to u
-	m_pPrevSol->push(*const_cast<vector_type*>(&u), m_futureTime);
+	// \todo: avoid this hack, use smart ptr properly
+	int DummyRefCount = 2;
+	SmartPtr<vector_type> pU(const_cast<vector_type*>(&u), &DummyRefCount);
+	m_pPrevSol->push(pU, m_futureTime);
 
 // 	future solution part
 	try{
-		this->m_spDomDisc->assemble_defect(d, *m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
+		this->m_spDomDisc->assemble_defect(d, m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble defect.");
 
 //	pop unknown solution to solution time series
@@ -134,21 +140,21 @@ assemble_linear(matrix_type& A, vector_type& b, GridLevel gl)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-finish_step_elem(VectorTimeSeries<vector_type>& prevSol,
+finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
                  number dt, GridLevel gl)
 {
 //	perform checks
-	if(prevSol.size() < m_prevSteps)
+	if(prevSol->size() < m_prevSteps)
 		UG_THROW_FATAL("ThetaTimeStep::prepare_step:"
 						" Number of previous solutions must be at least "<<
-						m_prevSteps <<", but only "<< prevSol.size() << " passed.\n");
+						m_prevSteps <<", but only "<< prevSol->size() << " passed.\n");
 
 //	remember old values and values of current timestep
-	m_pPrevSol = &prevSol;
+	m_pPrevSol = prevSol;
 
 // 	finish timestep
 	try{
-		this->m_spDomDisc->finish_timestep(*m_pPrevSol, gl);
+		this->m_spDomDisc->finish_timestep(m_pPrevSol, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep.");
 }
 

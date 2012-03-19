@@ -316,15 +316,15 @@ bool
 PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
-                const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
             	BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	get current time and vector
-	const number time = vSol.time(0);
-	const typename TAlgebra::vector_type& u = vSol.solution(0);
+	const number time = vSol->time(0);
+	const typename TAlgebra::vector_type& u = *vSol->solution(0);
 
 //	create data evaluator
 	DataEvaluator Eval;
@@ -567,7 +567,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					ConstSmartPtr<TDD> dd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
-					const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
+					ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 					number s_a0,
                 	BoolMarker* sel = NULL)
 {
@@ -575,8 +575,8 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	get current time and vector
-	const number time = vSol.time(0);
-	const typename TAlgebra::vector_type& u = vSol.solution(0);
+	const number time = vSol->time(0);
+	const typename TAlgebra::vector_type& u = *vSol->solution(0);
 
 //	create data evaluator
 	DataEvaluator Eval;
@@ -863,7 +863,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
-                const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 				const std::vector<number>& vScaleMass,
 				const std::vector<number>& vScaleStiff,
             	BoolMarker* sel = NULL)
@@ -875,7 +875,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	current time
-	const number time = vSol.time(0);
+	const number time = vSol->time(0);
 
 //	prepare for given elem discs
 	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
@@ -1157,7 +1157,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-                const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
             	BoolMarker* sel = NULL)
@@ -1169,7 +1169,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	get current time
-	const number time = vSol.time(0);
+	const number time = vSol->time(0);
 
 //	prepare for given elem discs
 	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
@@ -1492,15 +1492,15 @@ bool
 FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
                ConstSmartPtr<TDD> dd,
                int si, bool bNonRegularGrid,
-               const VectorTimeSeries<typename TAlgebra::vector_type>& vSol,
+               ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                BoolMarker* sel = NULL)
 {
 // 	check if at least on element exist, else return
 	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
 
 //	get current time and vector
-	const number time = vSol.time(0);
-	const typename TAlgebra::vector_type& u = vSol.solution(0);
+	const number time = vSol->time(0);
+	const typename TAlgebra::vector_type& u = *vSol->solution(0);
 
 //	create data evaluator
 	DataEvaluator Eval;

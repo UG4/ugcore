@@ -103,10 +103,10 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \return 	true  				if time dependent and successful
 	 * 			false 				if an error occurred
 	 */
-	virtual	void prepare_timestep(const VectorTimeSeries<vector_type>& vSol, GridLevel gl) = 0;
+	virtual	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl) = 0;
 
 	///	prepares timestep on surface level
-	void prepare_timestep(const VectorTimeSeries<vector_type>& vSol)
+	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
 		{prepare_timestep(vSol, GridLevel());}
 
 	/// assembles Jacobian (or Approximation of Jacobian)
@@ -122,12 +122,12 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * 			false 				if an error occurred
 	 */
 		virtual void assemble_jacobian(matrix_type& J,
-		                               const VectorTimeSeries<vector_type>& vSol,
+		                               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                               const number s_a, GridLevel gl) = 0;
 
 	///	assembles jacobian on surface level
 		void assemble_jacobian(matrix_type& J,
-		                       const VectorTimeSeries<vector_type>& vSol,
+		                       ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                       const number s_a)
 		{assemble_jacobian(J, vSol, s_a, GridLevel());}
 
@@ -146,14 +146,14 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * 			false 				if an error occurred
 	 */
 		virtual	void assemble_defect(vector_type& d,
-		       	                     const VectorTimeSeries<vector_type>& vSol,
+		       	                     ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		       	                     const std::vector<number>& vScaleMass,
 		       	                     const std::vector<number>& vScaleStiff,
 		       	                     GridLevel gl) = 0;
 
 	///	assembles defect on surface level
 		void assemble_defect(vector_type& d,
-		                     const VectorTimeSeries<vector_type>& vSol,
+		                     ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff)
 		{assemble_defect(d, vSol, vScaleMass, vScaleStiff, GridLevel());}
@@ -173,14 +173,14 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * 			false 				if an error occurred
 	 */
 		virtual void assemble_linear(matrix_type& A, vector_type& b,
-		                             const VectorTimeSeries<vector_type>& vSol,
+		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                             const std::vector<number>& vScaleMass,
 		                             const std::vector<number>& vScaleStiff,
 		                             GridLevel gl) = 0;
 
 	///	assembles linear on surface level
 		void assemble_linear(matrix_type& A, vector_type& b,
-		                     const VectorTimeSeries<vector_type>& vSol,
+		                     ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff)
 		{assemble_linear(A,b,vSol,vScaleMass,vScaleStiff, GridLevel());}
@@ -214,10 +214,10 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \return 	true  				if time dependent and successful
 	 * 			false 				if an error occurred
 	 */
-		virtual	void finish_timestep(const VectorTimeSeries<vector_type>& vSol, GridLevel gl) = 0;
+		virtual	void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl) = 0;
 
 	///	prepares timestep on surface level
-		void finish_timestep(const VectorTimeSeries<vector_type>& vSol)
+		void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
 			{finish_timestep(vSol, GridLevel());}
 
 	///	returns the number of post processes
