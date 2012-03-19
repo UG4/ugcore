@@ -87,7 +87,7 @@ void CheckHook()
 
 }
 
-
+#ifdef UG_PROFILER
 // Lua Profiling (mrupp)
 struct s_profileInformation
 {
@@ -120,6 +120,7 @@ struct s_profileInformation
 };
 
 typedef s_profileInformation* ps_profileInformation ;
+#endif
 
 void AddBreakpoint(const char*source, int line)
 {
@@ -166,9 +167,6 @@ void PrintBreakpoints()
 		}
 	}
 }
-
-static int level=0;
-static int numLevels=0;
 
 static std::string lastsource;
 static int lastline = -1;
@@ -371,6 +369,8 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				}
 				luaDebug(L, source, line);
 			}
+
+#ifdef UG_PROFILER
 			if(bProfiling && bEndProfiling==false && ar->event == LUA_HOOKCALL)
 			{
 				const char *source = ar->source;
@@ -418,9 +418,11 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 					}
 				}
 			}
+#endif
 		}
 		else if(ar->event == LUA_HOOKRET)
 		{
+#if UG_PROFILER
 			int line = ar->currentline;
 			if(line < 0 && bProfileLUALines && lua_getstack(L, 1, &entry))
 			{
@@ -449,13 +451,16 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 					}
 				}
 			}
+#endif
 		}
+
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void ProfileLUA(bool b)
 {
+#ifdef UG_PROFILER
 	if(bProfiling==false && b==true)
 	{
 		bEndProfiling=false;
@@ -466,6 +471,9 @@ void ProfileLUA(bool b)
 	{
 		bEndProfiling=true;
 	}
+#else
+	UG_LOG("No profiler available.\n");
+#endif
 }
 
 void DebugList()
@@ -475,7 +483,7 @@ void DebugList()
 	lua_State *L = GetDefaultLuaState();
 	for(int i = 0; lua_getstack(L, i, &entry); i++)
 	{
-		int status = lua_getinfo(L, "Sln", &entry);
+		lua_getinfo(L, "Sln", &entry);
 		if(entry.currentline <0) continue;
 		if(depth==currentDepth)
 		{
@@ -506,7 +514,7 @@ void UpdateDepth()
 	lua_State *L = GetDefaultLuaState();
 	for(int i = 0; lua_getstack(L, i, &entry); i++)
 	{
-		int status = lua_getinfo(L, "Sln", &entry);
+		lua_getinfo(L, "Sln", &entry);
 		if(entry.currentline <0) continue;
 		if(depth==currentDepth)
 		{
