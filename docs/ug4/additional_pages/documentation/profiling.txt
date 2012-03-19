@@ -35,7 +35,12 @@ Keep in mind that you have to do a make when changing cmake flags.
 \section secProfilingLUA Profiling your LUA Script
 <hr>
 To enable profiling of your LUA Script, simply add a ProfileLUA(true) at the beginning of your script. For the moment, we only profile the top-level calls, not all subroutine calls. 
-This has performance reasons. Expect a performance drawback when calling small functions very often.
+This has performance reasons. Expect a performance drawback when calling small functions very often. You can also disable the LUA compiler for these calls:
+\verbatim
+ProfileLUA(false)
+AssembleLinearOperatorRhsAndSolution(linOp, u, b)
+ProfileLUA(true)
+\endverbatim
 
 <hr>
 \section secProfilingRegistry Profiling Registry
@@ -145,10 +150,13 @@ Be aware that PROFILE_BEGIN has a small overhead, so dont use it in functions wh
 
 <ul>
 <li>
-Profiler statistics are output at the end of the execution of ugshell, there you will see the total call tree (from main on) and a flat list with timings.
+\verbatim
+SetOutputProfileStats(true)
+\endverbatim
+With this, profiler statistics are output at the end of the execution of ugshell., there you will see the total call tree (from main on) and a flat list with timings.
+<li>
 This can be pretty much information, and that is why there is also a direct way of accessing timing information for a specific Profiler Node 
 (Profiler Nodes are all nodes which got created with PROFILE_BEGIN or PROFILE_FUNC. Note that if that part of code never got executed, the profiler nodes in there do not exist).
-If you want to disable the standard profiler output at the end of ugshell's execution, you can use SetOutputProfileStats(false) at the beginning of your lua script.
 </ul>
 
 <ul>
@@ -176,7 +184,7 @@ class UGProfilerNode
 \endcode
 
 <li>
-If <tt>dMarginal</tt> != 0.0, only nodes which account for more than dMarginal*100 % of the total time are part of the output. So if you want to print the call tree, and want to
+IMPORTANT: If <tt>dMarginal</tt> != 0.0, only nodes which account for more than dMarginal*100 % of the total time are part of the output. So if you want to print the call tree, and want to
 display only nodes which account for more than 3% of the total time, you can write
 \verbatim
 GetProfileNode("main"):call_tree(0.03)
@@ -234,6 +242,7 @@ void MyFunction()
 Now we write a LUA Script:
 
 \code
+MyFunction()
 -- check if profiler is available
 if GetProfilerAvailable() == true then
 	-- get node
