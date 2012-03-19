@@ -394,10 +394,11 @@ class IPreconditionedLinearOperatorInverse
 			{
 			//	recompute defect
 				bTmp = b; linear_operator()->apply_sub(bTmp, x);
+				number norm = bTmp.two_norm();
 
 			//	print norm of recomputed defect
 				UG_LOG("%%%% DEBUG "<<name()<<": (Re)computed defect has norm: "
-				       <<bTmp.two_norm()<<"\n");
+				       <<norm<<"\n");
 
 			//	write true end defect
 				write_debug(bTmp, "LS_TrueDefectEnd.vec");
