@@ -162,7 +162,8 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 		typedef LuaUserNumberNumberFunction T;
 		reg.add_class_<T>("LuaUserNumberNumberFunction", parentGroup)
 			.add_constructor()
-			.add_method("set_lua_callback", &T::set_lua_callback);
+			.add_method("set_lua_callback", &T::set_lua_callback)
+			.set_construct_as_smart_pointer(true);
 	}
 
 //	LuaFunctionNumber
@@ -171,7 +172,8 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 		typedef IFunction<number, number> TBase;
 		reg.add_class_<T, TBase>("LuaFunctionNumber", parentGroup)
 			.add_constructor()
-			.add_method("set_lua_callback", &T::set_lua_callback);
+			.add_method("set_lua_callback", &T::set_lua_callback)
+			.set_construct_as_smart_pointer(true);
 	}
 
 #ifdef UG_DIM_1
