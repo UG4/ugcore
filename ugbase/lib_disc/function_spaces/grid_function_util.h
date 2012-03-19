@@ -49,6 +49,7 @@ void WriteMatrixToConnectionViewer(const char *filename,
                                    const typename TFunction::algebra_type::matrix_type &A,
                                    const TFunction &u)
 {
+	PROFILE_FUNC();
 //	check name
 	std::string name(filename);
 	size_t iExtPos = name.find_last_of(".");
@@ -72,6 +73,7 @@ void SaveMatrixForConnectionViewer(	TGridFunction& u,
 													typename TGridFunction::vector_type>& A,
 									const char* filename)
 {
+	PROFILE_FUNC();
 //	forward
 	WriteMatrixToConnectionViewer(filename, A.get_matrix(), u);
 }
@@ -81,6 +83,7 @@ void WriteVectorToConnectionViewer(const char *filename,
                                    const typename TFunction::algebra_type::vector_type &b,
                                    const TFunction &u)
 {
+	PROFILE_FUNC();
 //	check name
 	std::string name(filename);
 	size_t iExtPos = name.find_last_of(".");
@@ -104,6 +107,7 @@ bool WriteVectorToConnectionViewer(const char *filename,
                                    const TFunction &u,
                                    const typename TFunction::algebra_type::vector_type *pCompareVec=NULL)
 {
+	PROFILE_FUNC();
 //	get dimension
 	const static int dim = TFunction::domain_type::dim;
 
@@ -134,6 +138,7 @@ template <typename TGridFunction>
 void SaveVectorForConnectionViewer(	TGridFunction& b,
 									const char* filename)
 {
+	PROFILE_FUNC();
 	WriteVectorToConnectionViewer(filename, b, b);
 }
 
@@ -143,6 +148,7 @@ bool SaveVectorForConnectionViewer(	TGridFunction& u,
 													typename TGridFunction::vector_type>& A,
 									const char* filename)
 {
+	PROFILE_FUNC();
 	return WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u);
 }
 
@@ -154,6 +160,7 @@ bool SaveVectorForConnectionViewer(	TGridFunction& u,
 									const char* filename)
 {
 //	forward
+	PROFILE_FUNC();
 	return WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u, &compareVec);
 }
 
@@ -163,6 +170,7 @@ bool WriteVectorCSV(const char *filename,
                                    const typename TFunction::algebra_type::vector_type &b,
                                    const TFunction &u)
 {
+	PROFILE_FUNC();
 //	get dimension
 	const static int dim = TFunction::domain_type::dim;
 
@@ -200,6 +208,7 @@ template <typename TGridFunction>
 bool SaveVectorCSV(	TGridFunction& b,
 									const char* filename)
 {
+	PROFILE_FUNC();
 	return WriteVectorCSV(filename, b, b);
 }
 
