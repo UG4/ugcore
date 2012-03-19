@@ -76,6 +76,12 @@ class OneSideP1Constraints
 	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
+	protected:
+		typedef ConstraintBase<TDomain, TAlgebra,
+  	  	  	  	  OneSideP1Constraints<TDomain, TAlgebra> > base_type;
+
+		using base_type::approximation_space;
+
 	public:
 		virtual int type() {return CT_CONSTRAINTS;}
 

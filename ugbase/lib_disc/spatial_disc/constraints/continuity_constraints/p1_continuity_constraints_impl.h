@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__CONSTRAINTS__CONTINUITY_CONSTRAINTS__P1_CONTINUITY_CONSTRAINTS_IMPL__
 
 #include "lib_disc/spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.h"
+#include "lib_disc/domain.h"
 
 namespace ug {
 
@@ -488,6 +489,63 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+template<int dim>
+struct SortVertexPos {
+
+		SortVertexPos(SmartPtr<Domain<dim, MultiGrid, MGSubsetHandler> > spDomain)
+			: m_aaPos(spDomain->position_accessor())
+		{}
+
+		inline bool operator() (VertexBase* vrt1, VertexBase* vrt2)
+			{UG_THROW_FATAL(dim <<" not implemented.");}
+
+	protected:
+  	  typename Domain<dim, MultiGrid, MGSubsetHandler>::position_accessor_type& m_aaPos;
+};
+
+template<>
+inline bool SortVertexPos<1>::operator() (VertexBase* vrt1, VertexBase* vrt2)
+{
+	if(m_aaPos[vrt1][0] < m_aaPos[vrt2][0]) {
+		return true;
+	}
+	return false;
+}
+
+template<>
+inline bool SortVertexPos<2>::operator() (VertexBase* vrt1, VertexBase* vrt2)
+{
+	if(m_aaPos[vrt1][0] < m_aaPos[vrt2][0]) {
+		return true;
+	}
+	else if(m_aaPos[vrt1][0] == m_aaPos[vrt2][0]) {
+		if(m_aaPos[vrt1][1] < m_aaPos[vrt2][1])
+			return true;
+	}
+	return false;
+}
+
+template<>
+inline bool SortVertexPos<3>::operator() (VertexBase* vrt1, VertexBase* vrt2)
+{
+	if(m_aaPos[vrt1][0] < m_aaPos[vrt2][0]) {
+		return true;
+	}
+	else if(m_aaPos[vrt1][0] == m_aaPos[vrt2][0]) {
+		if(m_aaPos[vrt1][1] < m_aaPos[vrt2][1]){
+			return true;
+		}
+		else if(m_aaPos[vrt1][1] == m_aaPos[vrt2][1]){
+			if(m_aaPos[vrt1][2] < m_aaPos[vrt2][2])
+				return true;
+		}
+		return false;
+	}
+	return false;
+}
+
+
+
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
 void
@@ -499,6 +557,8 @@ adjust_defect(vector_type& d, const vector_type& u,
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
 	std::vector<VertexBase*> vConstrainingVrt;
+
+	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
 
 //	get begin end of hanging vertices
 	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
@@ -513,6 +573,10 @@ adjust_defect(vector_type& d, const vector_type& u,
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);
+
+#ifdef UG_PARALLEL
+		std::sort(vConstrainingVrt.begin(), vConstrainingVrt.end(), sortVertexPos);
+#endif
 
 	//	resize constraining indices
 		vConstrainingInd.clear();
@@ -543,6 +607,8 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 	std::vector<size_t>  constrainedInd;
 	std::vector<VertexBase*> vConstrainingVrt;
 
+	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+
 //	get begin end of hanging vertices
 	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
 	iter = dd->template begin<HangingVertex>();
@@ -560,6 +626,10 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 	//	resize constraining indices
 		vConstrainingInd.clear();
 		vConstrainingInd.resize(vConstrainingVrt.size());
+
+#ifdef UG_PARALLEL
+		std::sort(vConstrainingVrt.begin(), vConstrainingVrt.end(), sortVertexPos);
+#endif
 
 	// 	get algebra indices for constraining vertices
 		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
@@ -585,6 +655,8 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 	std::vector<size_t>  constrainedInd;
 	std::vector<VertexBase*> vConstrainingVrt;
 
+	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+
 //	get begin end of hanging vertices
 	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
 	iter = dd->template begin<HangingVertex>();
@@ -602,6 +674,10 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 	//	resize constraining indices
 		vConstrainingInd.clear();
 		vConstrainingInd.resize(vConstrainingVrt.size());
+
+#ifdef UG_PARALLEL
+		std::sort(vConstrainingVrt.begin(), vConstrainingVrt.end(), sortVertexPos);
+#endif
 
 	// 	get algebra indices for constraining vertices
 		for(size_t i=0; i < vConstrainingVrt.size(); ++i)
@@ -630,6 +706,8 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<size_t>  constrainedInd;
 	std::vector<VertexBase*> vConstrainingVrt;
 
+	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+
 //	get begin end of hanging vertices
 	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
 	iter = dd->template begin<HangingVertex>();
@@ -647,6 +725,10 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	//	resize constraining indices
 		vConstrainingInd.clear();
 		vConstrainingInd.resize(vConstrainingVrt.size());
+
+#ifdef UG_PARALLEL
+		std::sort(vConstrainingVrt.begin(), vConstrainingVrt.end(), sortVertexPos);
+#endif
 
 	// 	get algebra indices for constraining vertices
 		for(size_t i=0; i < vConstrainingVrt.size(); ++i)

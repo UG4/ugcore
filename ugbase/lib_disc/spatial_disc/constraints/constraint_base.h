@@ -38,6 +38,12 @@ class ConstraintBase
 			m_spApproxSpace = approxSpace;
 		}
 
+	///	returns approximation space
+		SmartPtr<ApproximationSpace<domain_type> > approximation_space()
+		{
+			return m_spApproxSpace;
+		}
+
 	///	adapts jacobian to enforce constraints
 		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                             GridLevel gl, number time = 0.0)
