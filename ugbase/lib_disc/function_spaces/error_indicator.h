@@ -159,20 +159,25 @@ void MarkElements(MultiGrid::AttachmentAccessor<typename TFunction::element_type
 		numElem += 1;
 	}
 
+#ifdef UG_PARALLEL
+	number maxLocal = max, minLocal = min, totalErrLocal = totalErr;
+	int numElemLocal = numElem;
+	if(pcl::GetNumProcesses() > 1){
+		pcl::ProcessCommunicator com;
+		com.allreduce(&maxLocal, &max, 1, PCL_DT_DOUBLE, PCL_RO_MAX);
+		com.allreduce(&minLocal, &min, 1, PCL_DT_DOUBLE, PCL_RO_MIN);
+		com.allreduce(&totalErrLocal, &totalErr, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+		com.allreduce(&numElemLocal, &numElem, 1, PCL_DT_INT, PCL_RO_SUM);
+	}
+#endif
 	UG_LOG("  +++++  Gradient Error Indicator on "<<numElem<<" Elements +++++\n");
 #ifdef UG_PARALLEL
 	if(pcl::GetNumProcesses() > 1){
 		UG_LOG("  +++ Element Errors on Proc " << pcl::GetProcRank() <<
 			   ": maximum=" << max << ", minimum="<<min<<", sum="<<totalErr<<".\n");
-		pcl::ProcessCommunicator com;
-		number maxLocal = max, minLocal = min, totalErrLocal = totalErr;
-		int numElemLocal = numElem;
-		com.allreduce(&maxLocal, &max, 1, PCL_DT_DOUBLE, PCL_RO_MAX);
-		com.allreduce(&minLocal, &min, 1, PCL_DT_DOUBLE, PCL_RO_MIN);
-		com.allreduce(&totalErrLocal, &totalErr, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-		com.allreduce(&numElemLocal, &numElem, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
 	}
 #endif
+
 	UG_LOG("  +++ Element Errors: maximum=" << max << ", minimum="<<min<<
 	       ", sum="<<totalErr<<".\n");
 
