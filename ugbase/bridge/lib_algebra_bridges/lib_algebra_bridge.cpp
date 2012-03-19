@@ -93,7 +93,8 @@ static bool reg(Registry& reg, string parentGroup)
 								"Size", "")
 		.add_method("set_random|hide=true", (bool (vector_type::*)(number, number))&vector_type::set_random,
 								"Success", "Number")
-		.add_method("print|hide=true", &vector_type::p);
+		.add_method("print|hide=true", &vector_type::p)
+		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Vector", algTag);
 
 		reg.add_function("VecScaleAssign",
@@ -114,7 +115,8 @@ static bool reg(Registry& reg, string parentGroup)
 		string name = string("Matrix").append(algSuffix);
 		reg.add_class_<matrix_type>(name, grp)
 			.add_constructor()
-			.add_method("print|hide=true", &matrix_type::p);
+			.add_method("print|hide=true", &matrix_type::p)
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Matrix", algTag);
 	}
 
