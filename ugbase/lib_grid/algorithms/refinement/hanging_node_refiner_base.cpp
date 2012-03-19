@@ -274,6 +274,10 @@ void HangingNodeRefinerBase::perform_refinement()
 //	assigns hnode marks
 	assign_hnode_marks();
 
+//	if a debug file was specified, we'll now save the marks to that file
+	if(!m_adjustedMarksDebugFilename.empty())
+		save_marks_to_file(m_adjustedMarksDebugFilename.c_str());
+
 //	call pre_refine to allow derived classes to perform some actions
 	pre_refine();
 

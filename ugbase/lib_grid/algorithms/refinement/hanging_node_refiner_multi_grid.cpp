@@ -85,7 +85,7 @@ HangingNodeRefiner_MultiGrid::
 refinement_is_allowed(EdgeBase* elem)
 {
 	return (!m_pMG->has_children(elem))
-			|| ConstrainingEdge::type_match(elem);
+			|| elem->is_constraining();
 }
 
 bool
@@ -93,7 +93,7 @@ HangingNodeRefiner_MultiGrid::
 refinement_is_allowed(Face* elem)
 {
 	return (!m_pMG->has_children(elem))
-			|| ConstrainingFace::type_match(elem);
+			|| elem->is_constraining();
 }
 
 bool
@@ -1074,6 +1074,10 @@ We have to handle elements as follows:
 	Selector& sel = get_refmark_selector();
 
 	collect_objects_for_coarsen();
+
+//	if a debug file was specified, we'll now save the marks to that file
+	if(!m_adjustedMarksDebugFilename.empty())
+		save_marks_to_file(m_adjustedMarksDebugFilename.c_str());
 
 //	if the selector is empty, we'll return false
 	if(sel.empty())

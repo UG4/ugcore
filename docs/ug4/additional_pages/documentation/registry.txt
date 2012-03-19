@@ -369,8 +369,8 @@ class Test
 \code
 //	register class "Test"
 	reg.add_class_<Test>("Test", grp)
-		.add_method("print", (int(Test::*)()) &Test::print)
-		.add_method("print", (int(Test::*)() const) &Test::print);
+		.add_method("print", static_cast<int(Test::*)()>(&Test::print))
+		.add_method("print", static_cast<int(Test::*)() const>(&Test::print));
 \endcode
 
 <hr>

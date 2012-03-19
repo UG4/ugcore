@@ -135,4 +135,12 @@ void IRefiner::set_message_hub(SPMessageHub msgHub)
 	m_msgIdAdaption = GridMessageId_Adaption(m_messageHub);
 }
 
+void IRefiner::set_adjusted_marks_debug_filename(const char* filename)
+{
+	if(!filename)
+		m_adjustedMarksDebugFilename = "";
+	else
+		m_adjustedMarksDebugFilename = filename;
+}
+
 }// end of namespace

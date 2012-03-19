@@ -5,6 +5,7 @@
 #ifndef __H__UG__REFINER_INTERFACE__
 #define __H__UG__REFINER_INTERFACE__
 
+#include <string>
 #include "refinement_callbacks.h"
 
 namespace ug
@@ -115,6 +116,11 @@ class IRefiner
 	 * refinement-mark.*/
 		virtual bool save_marks_to_file(const char* filename) = 0;
 
+	///	sets a filename to which adjusted marks are saved during refinement / coarsening
+	/**	If no filename is set, then no marks are being saved during refinement / coarsening.
+	 * If you want to unset the file, either pass a NULL pointer or an empty string.*/
+		void set_adjusted_marks_debug_filename(const char* filename);
+
 	protected:
 	///	sets the message hub.
 	/**	A message hub is required, since it is used transmit messages regarding
@@ -133,6 +139,7 @@ class IRefiner
 		int						m_msgIdAdaption;
 		IRefinementCallback*	m_refCallback;
 		bool					m_adaptionIsActive;
+		std::string				m_adjustedMarksDebugFilename;
 };
 
 /// @}	// end of add_to_group command

@@ -628,6 +628,7 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_method("refine", &IRefiner::refine)
 			.add_method("coarsen", &IRefiner::coarsen)
 			.add_method("save_marks_to_file", &IRefiner::save_marks_to_file)
+			.add_method("set_adjusted_marks_debug_filename", &IRefiner::set_adjusted_marks_debug_filename)
 			.add_method("clear_marks", &IRefiner::clear_marks);
 
 	//	HangingNodeRefiner
@@ -669,6 +670,7 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const char*)>(&SaveGrid), grp)
 			.add_function("LoadGridObject", &LoadGridObject, grp)
 			.add_function("SaveGridObject", &SaveGridObject, grp)
+			.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp)
 			.add_function("SaveGridHierarchyTransformed",
 						  static_cast<bool (*)(MultiGrid&, const SubsetHandler&, const char*, number)>(
 								  &SaveGridHierarchyTransformed),
@@ -686,7 +688,6 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_function("TestHangingNodeRefiner_MultiGrid", &TestHangingNodeRefiner_MultiGrid, grp)
 			.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp)
 			.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp)
-			.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp)
 			.add_function("TestGridRedistribution", &TestGridRedistribution, grp);
 		
 	//	subset util
@@ -695,7 +696,9 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 						&AdjustSubsetsForSimulation<SubsetHandler>), grp)
 			.add_function("AdjustSubsetsForSimulation",
 						static_cast<void (*)(MGSubsetHandler&, bool)>(
-						&AdjustSubsetsForSimulation<MGSubsetHandler>), grp);
+						&AdjustSubsetsForSimulation<MGSubsetHandler>), grp)
+			.add_function("AssignSubsetsByElementType", &AssignSubsetsByElementType)
+			.add_function("AssignSubsetColors", &AssignSubsetColors);
 
 	//	PartitionMap
 		reg.add_class_<PartitionMap>("PartitionMap", grp)

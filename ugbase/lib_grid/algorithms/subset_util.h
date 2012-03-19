@@ -441,6 +441,11 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 void UpdateMaxDimensionOfSubset(ISubsetHandler& sh,
 								const std::string propertyName);
 
+
+////////////////////////////////////////////////////////////////////////
+///	Assigns subset depending on the element type
+void AssignSubsetsByElementType(ISubsetHandler& sh);
+
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 

@@ -66,7 +66,6 @@ mark(VertexBase* v, RefinementMark refMark)
 	RefinementMark oldMark = BaseClass::get_mark(v);
 	if(BaseClass::mark(v, refMark)){
 		if((refMark != oldMark)
-		  && (!m_pMG->has_children(v))
 		  && m_pDistGridMgr->is_interface_element(v))
 			m_bNewInterfaceVerticesMarked = true;
 		return true;
@@ -81,7 +80,6 @@ mark(EdgeBase* e, RefinementMark refMark)
 	RefinementMark oldMark = BaseClass::get_mark(e);
 	if(BaseClass::mark(e, refMark)){
 		if((refMark != oldMark)
-		  && (!m_pMG->has_children(e))
 		  && m_pDistGridMgr->is_interface_element(e))
 			m_bNewInterfaceEdgesMarked = true;
 		return true;
@@ -96,7 +94,6 @@ mark(Face* f, RefinementMark refMark)
 	RefinementMark oldMark = BaseClass::get_mark(f);
 	if(BaseClass::mark(f, refMark)){
 		if((refMark != oldMark)
-		  && (!m_pMG->has_children(f))
 		  && m_pDistGridMgr->is_interface_element(f))
 			m_bNewInterfaceFacesMarked = true;
 		return true;
@@ -111,7 +108,6 @@ mark(Volume* v, RefinementMark refMark)
 	RefinementMark oldMark = BaseClass::get_mark(v);
 	if(BaseClass::mark(v, refMark)){
 		if((refMark != oldMark)
-		  && (!m_pMG->has_children(v))
 		  && m_pDistGridMgr->is_interface_element(v))
 			m_bNewInterfaceVolumesMarked = true;
 		return true;
@@ -132,6 +128,7 @@ collect_objects_for_refine()
 
 //	first we'll call the base implementation
 	while(1){
+UG_LOG(">>> entering parallel collect_objects loop\n");
 	//	we call collect_objects_for_refine in each iteration.
 	//	This might be a bit of an overkill, since only a few normally
 	//	have changed...
@@ -148,9 +145,7 @@ collect_objects_for_refine()
 			newlyMarkedElems = 1;
 		}
 
-		int exchangeFlag;
-		m_procCom.allreduce(&newlyMarkedElems, &exchangeFlag, 1,
-							PCL_DT_INT, PCL_RO_LOR);
+		int exchangeFlag = m_procCom.allreduce(newlyMarkedElems, PCL_RO_LOR);
 
 	//	before we continue we'll set all flags to false
 		m_bNewInterfaceVerticesMarked = false;
@@ -159,6 +154,7 @@ collect_objects_for_refine()
 		m_bNewInterfaceVolumesMarked = false;
 
 		if(exchangeFlag){
+UG_LOG(">>> marked new elements\n");
 		//	we have to communicate the marks.
 		//	do this by first gather selection at master nodes
 		//	and then distribute them to slaves.
@@ -193,6 +189,8 @@ collect_objects_for_refine()
 			m_intfComVRT.communicate();
 			m_intfComEDGE.communicate();
 			m_intfComFACE.communicate();
+
+UG_LOG(">>> num selected edges: " << get_refmark_selector().num<EdgeBase>() << std::endl);
 		}
 		else{
 			break;

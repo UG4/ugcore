@@ -1118,5 +1118,90 @@ void UpdateMaxDimensionOfSubset(ISubsetHandler& sh,
 	}
 }
 
+
+void AssignSubsetsByElementType(ISubsetHandler& sh)
+{
+	if(!sh.grid())
+		return;
+
+	Grid& g = *sh.grid();
+
+	int subsetInd = 0;
+
+	if(g.num<Vertex>() > 0){
+		sh.assign_subset(g.begin<Vertex>(), g.end<Vertex>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "Vertex";
+	}
+
+	if(g.num<HangingVertex>() > 0){
+		sh.assign_subset(g.begin<HangingVertex>(), g.end<HangingVertex>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "HangingVertex";
+	}
+
+	if(g.num<Edge>() > 0){
+		sh.assign_subset(g.begin<Edge>(), g.end<Edge>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "Edge";
+	}
+
+	if(g.num<ConstrainingEdge>() > 0){
+		sh.assign_subset(g.begin<ConstrainingEdge>(), g.end<ConstrainingEdge>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "ConstrainingEdge";
+	}
+
+	if(g.num<ConstrainedEdge>() > 0){
+		sh.assign_subset(g.begin<ConstrainedEdge>(), g.end<ConstrainedEdge>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "ConstrainedEdge";
+	}
+
+	if(g.num<Triangle>() > 0){
+		sh.assign_subset(g.begin<Triangle>(), g.end<Triangle>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "Triangle";
+	}
+
+	if(g.num<ConstrainingTriangle>() > 0){
+		sh.assign_subset(g.begin<ConstrainingTriangle>(), g.end<ConstrainingTriangle>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "ConstrainingTriangle";
+	}
+
+	if(g.num<ConstrainedTriangle>() > 0){
+		sh.assign_subset(g.begin<ConstrainedTriangle>(), g.end<ConstrainedTriangle>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "ConstrainedTriangle";
+	}
+
+	if(g.num<Quadrilateral>() > 0){
+		sh.assign_subset(g.begin<Quadrilateral>(), g.end<Quadrilateral>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "Quadrilateral";
+	}
+
+	if(g.num<ConstrainingQuadrilateral>() > 0){
+		sh.assign_subset(g.begin<ConstrainingQuadrilateral>(), g.end<ConstrainingQuadrilateral>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "ConstrainingQuadrilateral";
+	}
+
+	if(g.num<ConstrainedQuadrilateral>() > 0){
+		sh.assign_subset(g.begin<ConstrainedQuadrilateral>(), g.end<ConstrainedQuadrilateral>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "ConstrainedQuadrilateral";
+	}
+
+	if(g.num<Tetrahedron>() > 0){
+		sh.assign_subset(g.begin<Tetrahedron>(), g.end<Tetrahedron>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "Tetrahedron";
+	}
+
+	if(g.num<Pyramid>() > 0){
+		sh.assign_subset(g.begin<Pyramid>(), g.end<Pyramid>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "Pyramid";
+	}
+
+	if(g.num<Prism>() > 0){
+		sh.assign_subset(g.begin<Prism>(), g.end<Prism>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "Prism";
+	}
+
+	if(g.num<Hexahedron>() > 0){
+		sh.assign_subset(g.begin<Hexahedron>(), g.end<Hexahedron>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "Hexahedron";
+	}
+}
 }//	end of namespace
 
