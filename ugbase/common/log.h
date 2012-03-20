@@ -129,7 +129,7 @@ class UG_API LogAssistant
 	/**	This is always true, if the application is executed in a serial environment.*/
 		bool is_output_process();
 
-	///	returns the process rank underlying process
+	///	returns the process rank of the underlying process (same as pcl::GetProcRank)
 		int get_process_rank();
 
 	protected:
@@ -261,7 +261,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 #ifdef UG_ENABLE_WARNINGS
 	#define UG_WARNING(msg) {ug::GetLogAssistant().logger() << "UG_WARNING in "\
 								<< __FILE__ << " at line " << __LINE__ << ": " \
-								<< msg; ug::GetLogAssistant().logger().flush();}
+								<< msg << std::flush;}
 #else
 	#define UG_WARNING(msg) {}
 #endif

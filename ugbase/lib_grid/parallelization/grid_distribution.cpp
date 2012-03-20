@@ -554,11 +554,6 @@ UG_LOG("deserialization done...\n");
 											binaryStream))
 			return false;
 	}
-/*
-	if(pcl::IsOutputProc())
-		SaveGridToFile(mgOut, "tmpOutProcHierarchy.ugx",
-						mgOut.get_hierarchy_handler());
-*/
 //TODO:	allow the user to read his data.
 
 	return true;

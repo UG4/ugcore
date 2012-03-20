@@ -66,15 +66,6 @@ bool RegisterPCLInterface(Registry& reg, string parentGroup)
 	reg.add_function("GetProcessRank", &pcl::GetProcRank, grp,
 					"ProcRank", "", "Returns the rank of the current process.");
 
-	reg.add_function("GetOutputProcessRank", &pcl::GetOutputProcRank, grp,
-					"ProcRank", "", "Returns the rank of the process whose output is logged.");
-
-	reg.add_function("SetOutputProcessRank", &pcl::SetOutputProcRank, grp,
-					"", "ProcRank", "Sets the rank of the process whose output is logged.");
-
-	reg.add_function("IsOutputProcess", &pcl::IsOutputProc, grp,
-					"", "", "Returns true if the current process is the output process.");
-
 	reg.add_function("SynchronizeProcesses", &pcl::SynchronizeProcesses, grp,
 					"", "", "Waits until all active processes reached this point.");
 
@@ -100,15 +91,6 @@ static int GetNumProcessesDUMMY()	{return 1;}
 
 ///	Dummy method for serial compilation always returning 0
 static int GetProcRankDUMMY()				{return 0;}
-
-///	Dummy method for serial compilation always returning 0
-static int GetOutputProcRankDUMMY()		{return 0;}
-
-///	Dummy method for serial compilation doing nothing
-static void SetOutputProcRankDUMMY(int)			{}
-
-///	Dummy method for serial compilation always returning true
-static bool IsOutputProcDUMMY()			{return true;}
 
 ///	Dummy method for serial compilation doing nothing
 static void SynchronizeProcessesDUMMY()			{}
@@ -150,15 +132,6 @@ bool RegisterPCLInterface(Registry& reg, string parentGroup)
 
 	reg.add_function("GetProcessRank", &GetProcRankDUMMY, grp,
 					"ProcRank", "", "Returns the rank of the current process.");
-
-	reg.add_function("GetOutputProcessRank", &GetOutputProcRankDUMMY, grp,
-					"ProcRank", "", "Returns the rank of the process whose output is logged.");
-
-	reg.add_function("SetOutputProcessRank", &SetOutputProcRankDUMMY, grp,
-					"", "ProcRank", "Sets the rank of the process whose output is logged.");
-
-	reg.add_function("IsOutputProcess", &IsOutputProcDUMMY, grp,
-					"", "", "Returns true if the current process is the output process.");
 
 	reg.add_function("SynchronizeProcesses", &SynchronizeProcessesDUMMY, grp,
 					"", "", "Waits until all active processes reached this point.");

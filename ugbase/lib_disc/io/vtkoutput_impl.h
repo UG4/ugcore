@@ -1184,7 +1184,7 @@ write_pvtu(function_type& u, const std::string& filename,
 	if(numProcs == 1) return true;
 
 //	check if this proc is output proc
-	bool isOutputProc = pcl::IsOutputProc();
+	bool isOutputProc = GetLogAssistant().is_output_process();
 
 //	max subset
 	int maxSi = u.num_subsets() - 1;
@@ -1257,10 +1257,9 @@ write_time_pvd(const char* filename, function_type& u)
 	std::string name;
 
 // 	get some numbers
-	bool isOutputProc = true;
+	bool isOutputProc = GetLogAssistant().is_output_process();
 	int numProcs = 1;
 #ifdef UG_PARALLEL
-	isOutputProc = pcl::IsOutputProc();
 	numProcs = pcl::GetNumProcesses();
 #endif
 
@@ -1386,12 +1385,11 @@ write_subset_pvd(function_type& u, const std::string& filename, int step, number
 	std::string name;
 
 //	get rank, outproc bool and number of processes
-	bool isOutputProc = true;
+	bool isOutputProc = GetLogAssistant().is_output_process();
 	int rank = 0;
 	int numProcs = 1;
 
 #ifdef UG_PARALLEL
-	isOutputProc = pcl::IsOutputProc();
 	rank = pcl::GetProcRank();
 	numProcs = pcl::GetNumProcesses();
 #endif

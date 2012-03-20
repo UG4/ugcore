@@ -109,7 +109,7 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 #ifdef UG_PARALLEL
 //		pcl::Init(argc, argv);
 		pcl::Init(argcp, argvp);
-		pcl::SetOutputProcRank(parallelOutputProcRank);
+		GetLogAssistant().set_output_process(parallelOutputProcRank);
 #endif
 
 	//todo: If initPaths fails, something should be done...
@@ -142,15 +142,11 @@ int UGFinalize()
 	if (outputProfileStats) {
 	//	output the profiled data.
 		PROFILER_UPDATE();
-		#ifdef UG_PARALLEL
-			if(pcl::IsOutputProc()) {
-				UG_LOG("\n");
-				PROFILER_OUTPUT();
-			}
-		#else
+
+		if(GetLogAssistant().is_output_process()) {
 			UG_LOG("\n");
 			PROFILER_OUTPUT();
-		#endif
+		}
 	}
 
 #ifdef UG_PARALLEL

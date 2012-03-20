@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 
 #ifdef UG_PARALLEL
 	pcl::Init(&argc, &argv);
-	pcl::SetOutputProcRank(outputProc);
+	GetLogAssistant().set_output_process(outputProc);
 #endif
 
 	LOG("********************************************************************************\n");

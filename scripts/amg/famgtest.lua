@@ -5,7 +5,7 @@
 --   Author: Martin Rupp / Andreas Vogel
 --
 ----------------------------------------------------------
--- SetOutputProcessRank(0)
+-- GetLogAssistant():set_output_process(0)
 SetOutputProfileStats(false)
 
 ug_load_script("ug_util.lua")

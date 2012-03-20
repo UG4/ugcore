@@ -23,18 +23,5 @@ int GetNumProcesses();
 ///	returns the rank of the process
 int GetProcRank();
 
-///	returns the rank of the process for which the output shall be printed to the screen.
-int GetOutputProcRank();
-
-///	sets the rank of the process for which the output shall be printed.
-void SetOutputProcRank(int rank);
-
-///	returns true if the current process has to output data
-inline bool IsOutputProc()
-{
-	int opr = GetOutputProcRank();
-	return (GetProcRank() == opr) || (opr == -1);
-}
-
 }//	end of namespace
 #endif

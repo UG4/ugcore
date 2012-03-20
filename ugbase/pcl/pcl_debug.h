@@ -14,11 +14,8 @@
 
 ////////////////////////////////////////////////////////////////////////
 ///	this allows us to print messages to the users terminal
-/**
- * if an output-processor is specified through \sa pcl::SetOutputProcRank
- * only messages from that processor will be printed to the screen.
- */
-#define PCLLOG(msg) if(pcl::IsOutputProc()) {std::cout << msg; std::cout.flush();}
+/** Wrapper for UG_LOG.*/
+#define PCLLOG(msg) UG_LOG(msg)
 
 
 namespace pcl

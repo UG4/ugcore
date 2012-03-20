@@ -5,7 +5,7 @@
 --   Author: Andreas Vogel
 --
 ----------------------------------------------------------
-SetOutputProcessRank(-1)
+GetLogAssistant():set_output_process(-1)
 ug_load_script("ug_util.lua")
 
 --------------------------------------------------------------------------------

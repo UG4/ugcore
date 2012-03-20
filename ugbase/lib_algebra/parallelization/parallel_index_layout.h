@@ -38,7 +38,7 @@ inline void LogIndexLayout(IndexLayout& layout, int depth = 0)
 	typedef IndexLayout::Interface Interface;
 	typedef IndexLayout::iterator  InterfaceIter;
 
-	UG_LOG("-- IndexLayout Informations: Proc "<< pcl::GetOutputProcRank() << " --\n");
+	UG_LOG("-- IndexLayout Informations: Proc "<< GetLogAssistant().get_output_process() << " --\n");
 
 	UG_LOG(" interface | target proc id |   size    ");
 	if(depth >= 1) UG_LOG(" | indices ")
@@ -78,7 +78,7 @@ inline void LogIndexLayout(IndexLayout& layout, int depth = 0)
 inline void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth = 0)
 {
 //	remember current outproc
-	int outproc = pcl::GetOutputProcRank();
+	int outproc = GetLogAssistant().get_output_process();
 
 //	loop all procs
 	for(int p = 0; p < pcl::GetNumProcesses(); ++p)
@@ -90,7 +90,7 @@ inline void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth = 0)
 		if(p == pcl::GetProcRank())
 		{
 		//	set output proc to proc p
-			pcl::SetOutputProcRank(p);
+			GetLogAssistant().set_output_process(p);
 
 		//	write
 			LogIndexLayout(layout, depth);
@@ -100,7 +100,7 @@ inline void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth = 0)
 	UG_LOG(std::flush);
 
 //	reset output proc
-	pcl::SetOutputProcRank(outproc);
+	GetLogAssistant().set_output_process(outproc);
 }
 
 /// replaces the indices in the layout based on a passed mapping

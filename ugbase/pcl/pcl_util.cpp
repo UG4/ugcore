@@ -155,8 +155,10 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 	if(!AllProcsTrue(!sendRecvMismatch, involvedProcs)){
 		int mismatch = (int)sendRecvMismatch;
 		vector<int> buffer(involvedProcs.size(), 0);
+		int root = GetLogAssistant().get_output_process();
+		if(root < 0) root = 0;
 		involvedProcs.gather(&mismatch, 1, PCL_DT_INT, &buffer.front(), 1,
-							PCL_DT_INT, GetOutputProcRank());
+							PCL_DT_INT, root);
 
 		UG_LOG("SEND / RECEIVE MISMATCH OCCURED ON PROC:");
 		for(size_t i = 0; i < buffer.size(); ++i){
@@ -229,8 +231,10 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 	if(!AllProcsTrue(bSuccess, involvedProcs)){
 		int mismatch = (int)(!bSuccess);
 		vector<int> buffer(involvedProcs.size(), 0);
+		int root = GetLogAssistant().get_output_process();
+		if(root < 0) root = 0;
 		involvedProcs.gather(&mismatch, 1, PCL_DT_INT, &buffer.front(), 1,
-							PCL_DT_INT, GetOutputProcRank());
+							PCL_DT_INT, root);
 
 		UG_LOG("SEND / RECEIVE BUFFER MISMATCH OCCURED ON PROC:");
 		for(size_t i = 0; i < buffer.size(); ++i){

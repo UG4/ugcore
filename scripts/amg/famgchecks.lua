@@ -11,7 +11,7 @@ SetOutputProfileStats(false)
 ug_load_script("ug_util.lua")
 ug_load_script("util.lua")
 
-SetOutputProcessRank(util.GetParamNumber("-outproc", 0))
+GetLogAssistant():set_output_process(util.GetParamNumber("-outproc", 0))
 
 -- constants
 if util.HasParamOption("-3d") then

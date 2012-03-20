@@ -549,7 +549,7 @@ void IApproximationSpace::print_layout_statistic(int verboseLev) const
 {
 #ifdef UG_PARALLEL
 //	Write info
-	UG_LOG("Layouts on Process " <<  pcl::GetOutputProcRank() << ":\n");
+	UG_LOG("Layouts on Process " <<  GetLogAssistant().get_output_process() << ":\n");
 
 //	Write header line
 	UG_LOG(" Level |  Master  |  Slave   | vert. Master | vert. Slave\n");

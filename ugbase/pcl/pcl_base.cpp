@@ -10,8 +10,6 @@
 namespace pcl
 {
 
-static int OUTPUT_PROC_RANK = 0;
-
 ////////////////////////////////////////////////////////////////////////
 //void Init(int argc, char* argv[])
 void Init(int *argcp, char ***argvp)
@@ -42,24 +40,6 @@ int GetNumProcesses()
 	int numProcesses;
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcesses);
 	return numProcesses;
-}
-
-////////////////////////////////////////////////////////////////////////
-int GetOutputProcRank()
-{
-	return OUTPUT_PROC_RANK;
-}
-
-////////////////////////////////////////////////////////////////////////
-void SetOutputProcRank(int rank)
-{
-	if(rank < -1 || rank >= GetNumProcesses()){
-		UG_LOG("-- PCL-LOG: Can't change output process: invalid rank specified: " << rank << ".\n");
-		return;
-	}
-	
-	OUTPUT_PROC_RANK = rank;
-	ug::GetLogAssistant().set_output_process(rank);
 }
 
 }//	end of namespace

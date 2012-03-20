@@ -396,7 +396,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 
 //	Choose root process, where Schur complement w.r.t. Primal unknowns
 //	is gathered.
-	m_primalRootProc = 0;//pcl::GetOutputProcRank();
+	m_primalRootProc = 0;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Nomenclature:
