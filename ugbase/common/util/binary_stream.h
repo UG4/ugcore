@@ -34,7 +34,7 @@ class BinaryStreamBuffer : public std::streambuf
 {
 	public:
 		BinaryStreamBuffer() : m_readPos(0), m_writePos(0)
-			{setbuf(NULL, 0); setg(0,0,0); setp(0,0);}
+			{setbuf(NULL, 0); setg(0,0,0); setp(0,0);}//todo: setbuf shouldn't be necessary!
 
 		inline void clear()	//< clears the data and resets the read and write positions.
 			{resize(0); reset();}

@@ -10,15 +10,10 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 #include "util/ostream_util.h"
 #include "types.h"
 #include "ug_config.h"
-
-//	in order to support parallel logs, we're including pcl.h
-//	you can set the output process using pcl::SetOutputProcRank(int rank).
-#ifdef UG_PARALLEL
-	#include "pcl/pcl_base.h"
-#endif
 
 //	in order to support VRL logs, we're including bindings_vrl.h
 //  this is necessary to get access to the JVM environment
@@ -123,10 +118,27 @@ class UG_API LogAssistant
 	/// returns the debug level of Tag 'tag'
 		inline int get_debug_level(Tags tag);
 
+	///	sets the output-process in a parallel environment. Default is 0.
+	/**	pass a procRank of -1 to enable output on all processes.*/
+		void set_output_process(int procRank);
+
+	///	returns the rank of the current output-process or -1 if all procs perform output.
+		inline int get_output_process();
+
+	///	returns true if the current process is an output process.
+	/**	This is always true, if the application is executed in a serial environment.*/
+		bool is_output_process();
+
+	///	returns the process rank underlying process
+		int get_process_rank();
+
 	protected:
 	///	updates and sets stream buffers based on current options.
 	/**	Note that this method changes the buffer on which clog works.*/
 		void update_ostream();
+
+	///	opens the local logFile, if the process is the output-process
+		bool open_logfile();
 
 	private:
 	/// Constructor, resets all debug levels to -1
@@ -145,14 +157,16 @@ class UG_API LogAssistant
 		std::streambuf*	m_fileBuf;
 		std::streambuf*	m_splitBuf;
 
-		OStreamBufferEmpty		m_emptyBufInst;
+		EmptyStreamBuffer		m_emptyBufInst;
 		OStreamBufferSplitter	m_splitBufInst;
 
-		const char* m_logFileName;
+		std::string 			m_logFileName;
 		std::ofstream			m_fileStream;
 
 		bool m_terminalOutputEnabled;
 		bool m_fileOutputEnabled;
+
+		int m_outputProc;
 
 	/// debug levels of tags
 		int m_TagLevel[NUM_TAGS];
@@ -206,20 +220,12 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 	#define UG_DEBUG_END(tag, level)			}; }
 	#define IF_DEBUG(tag, level) 				if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)
 
-	#ifdef UG_PARALLEL
-		#define UG_DLOG(tag, level, msg)			{if(pcl::IsOutputProc()){\
-														if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
-														{ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}}
-		#define UG_DLOG_ALL_PROCS(tag, level, msg)	{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
-													{ug::GetLogAssistant().debug_logger() << "[Proc " << pcl::GetProcRank() << "]: "; \
-														ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
-	#else
-		#define UG_DLOG(tag, level, msg)			{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
-													 {ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
-		#define UG_DLOG_ALL_PROCS(tag, level, msg)	{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
-													{ug::GetLogAssistant().debug_logger() << "[Proc 0]: "; \
-													ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
-	#endif
+	#define UG_DLOG(tag, level, msg)			{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
+													{ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
+	#define UG_DLOG_ALL_PROCS(tag, level, msg)	{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
+													{ug::LogAssistant& la = ug::GetLogAssistant(); int op = la.get_output_process();\
+													la.set_output_process(-1); la.debug_logger() << "[Proc " << la.get_process_rank() << "]: "\
+													<< msg << std::flush(); la.set_output_process(op);}}
 #else
 	#define UG_SET_DEBUG_LEVEL(tag, level)		{}
 	#define UG_RESET_DEBUG_LEVELS()				{}
@@ -261,42 +267,26 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 #endif
 
 
-////////////////////////////////////////////////////////////////////////////////
+
 ////////////////////////////////////////////////////////////////////////////////
 // LOG
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-// Usage:
 /**
  * UG_LOG(msg)  		- prints a message to the normal output stream
- * If ug is compiled in a parallel environment (UG_PARALLEL is defined),
- * UG_LOG will use PCLLOG to output its data.
  */
 #ifdef FOR_VRL
 	#define VRL_LOG(msg) {std::stringstream ss;ss << "" << msg;\
-                          ug::vrl::MessageBuffer::addMessage(ss.str());}
+						  ug::vrl::MessageBuffer::addMessage(ss.str());}
 #else
 	#define VRL_LOG(msg)
 #endif
 
-#ifdef UG_PARALLEL
-	#define UG_LOG(msg) {if(pcl::IsOutputProc())\
-						{ug::GetLogAssistant().logger() << msg; VRL_LOG(msg);\
-						 ug::GetLogAssistant().logger().flush();}}
-	#define UG_LOG_ALL_PROCS(msg) {ug::GetLogAssistant().logger() << "[Proc " <<\
-								   std::setw(3) << pcl::GetProcRank() << "]: "; \
-						           ug::GetLogAssistant().logger() << msg;\
-						           VRL_LOG(msg);\
-						           ug::GetLogAssistant().logger().flush();}
-#else
-	#define UG_LOG(msg) {ug::GetLogAssistant().logger() << msg; VRL_LOG(msg);\
-						 ug::GetLogAssistant().logger().flush();}
-	#define UG_LOG_ALL_PROCS(msg) {ug::GetLogAssistant().logger() << "[Proc 0]: "; \
-						           ug::GetLogAssistant().logger() << msg;\
-						           VRL_LOG(msg);\
-						           ug::GetLogAssistant().logger().flush();}
-#endif
+
+#define UG_LOG(msg) {ug::GetLogAssistant().logger() << msg << std::flush; VRL_LOG(msg);}
+
+#define UG_LOG_ALL_PROCS(msg) {ug::LogAssistant& la = ug::GetLogAssistant();\
+							   int op = la.get_output_process(); la.set_output_process(-1);\
+							   la.logger() << "[Proc " << std::setw(3) << la.get_process_rank() << "]: "\
+							   << msg << std::flush; VRL_LOG(msg); la.set_output_process(op);}
 
 // include implementation
 #include "log_impl.h"

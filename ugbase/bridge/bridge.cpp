@@ -7,6 +7,11 @@
 #include "common/util/path_provider.h"
 #include "common/profiler/profiler.h"
 
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#endif
+
+
 using namespace std;
 
 namespace ug

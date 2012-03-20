@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include "common/util/hash.h"
+#include "pcl/pcl.h"
 
 namespace ug{
 

@@ -59,6 +59,7 @@ void SetOutputProcRank(int rank)
 	}
 	
 	OUTPUT_PROC_RANK = rank;
+	ug::GetLogAssistant().set_output_process(rank);
 }
 
 }//	end of namespace

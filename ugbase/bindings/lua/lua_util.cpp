@@ -22,6 +22,11 @@
 #include "registry/registry.h"
 #include "lua_debug.h"
 
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#endif
+
+
 using namespace std;
 
 namespace ug
@@ -217,10 +222,10 @@ bool ParseFile(const char* filename)
 /// UGLuaPrint. Redirects LUA prints to UG_LOG
 int UGLuaPrint(lua_State *L)
 {
-#ifdef UG_PARALLEL
+/*#ifdef UG_PARALLEL
 	if(!pcl::IsOutputProc())
 		return false;
-#endif
+#endif*/
 	int nArgs = lua_gettop(L);
 	int i;
 	lua_getglobal(L, "tostring");
@@ -243,10 +248,10 @@ int UGLuaPrint(lua_State *L)
 int UGLuaWrite(lua_State *L)
 {
 	PROFILE_FUNC();
-#ifdef UG_PARALLEL
+/*#ifdef UG_PARALLEL
 	if(!pcl::IsOutputProc())
 		return false;
-#endif
+#endif*/
 	int nArgs = lua_gettop(L);
 	int i;
 	lua_getglobal(L, "tostring");

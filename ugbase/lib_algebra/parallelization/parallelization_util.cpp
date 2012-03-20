@@ -7,6 +7,7 @@
 #include <vector>
 #include "parallelization_util.h"
 #include "communication_policies.h"
+#include "pcl/pcl.h"
 
 using namespace std;
 using namespace pcl;

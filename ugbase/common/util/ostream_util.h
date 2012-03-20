@@ -7,7 +7,7 @@
 
 #include <iostream>
 #include <fstream>
-
+#include "empty_stream.h"
 
 namespace ug
 {
@@ -30,15 +30,10 @@ class OStreamBufferSplitter : public std::streambuf
 		virtual int_type overflow(int_type c = traits_type::eof());
 
 	private:
+		static const int		BUF_SIZE = 128;
 		std::streambuf*	m_buf1;
 		std::streambuf*	m_buf2;
-};
-
-///	this streambuffer simply does nothing.
-class OStreamBufferEmpty : public std::streambuf
-{
-	protected:
-		virtual int_type overflow(int_type v);
+		char_type		m_buf[BUF_SIZE];
 };
 
 }// end of namespace

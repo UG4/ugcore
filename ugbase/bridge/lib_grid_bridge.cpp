@@ -337,7 +337,7 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 		}
 	}
 
-	UG_LOG("saving to " << outFilename << endl;)
+	UG_LOG("saving to " << outFilename << endl);
 	SaveGridHierarchy(mg, outFilename);
 
 	UG_LOG("grid element numbers:\n");

@@ -6,6 +6,13 @@
  */
 #include <iostream>
 #include "common/log.h"
+
+//	in order to support parallel logs, we're including pcl.h
+#ifdef UG_PARALLEL
+	#include "pcl/pcl_base.h"
+#endif
+
+
 using namespace std;
 
 namespace ug{
@@ -13,7 +20,8 @@ namespace ug{
 LogAssistant::
 LogAssistant() :
 	m_terminalOutputEnabled(true),
-	m_fileOutputEnabled(false)
+	m_fileOutputEnabled(false),
+	m_outputProc(0)
 {
 }
 
@@ -56,16 +64,11 @@ instance()
 bool LogAssistant::
 enable_file_output(bool bEnable, const char* filename)
 {
+	m_logFileName = filename;
 	if(bEnable){
-		if(!m_fileStream.is_open())
-		  {
-			m_fileStream.open(filename);
-			if(!m_fileStream)
-			{
-				m_fileOutputEnabled = false;
-				return false;
-			}
-			m_logFileName = filename;
+		if(!open_logfile()){
+			update_ostream();
+			return false;
 		}
 	}
 	else
@@ -79,15 +82,11 @@ enable_file_output(bool bEnable, const char* filename)
 bool LogAssistant::
 rename_log_file(const char * newname)
 {
-		if(!m_fileStream.is_open()){
-			UG_LOG("Unable to rename logfile to '" << newname << "': no logfile open!");
-			return false;
-		} else {
-			UG_LOG("Logfile '" << m_logFileName << "' renamed to '" << newname << "'" << std::endl);
-			rename(m_logFileName, newname);
-			m_logFileName = newname;
-
-		}
+	if(m_fileStream.is_open()){
+		UG_LOG("Logfile '" << m_logFileName << "' renamed to '" << newname << "'" << std::endl);
+		rename(m_logFileName.c_str(), newname);
+	}
+	m_logFileName = newname;
 	return true;
 }
 
@@ -102,24 +101,50 @@ enable_terminal_output(bool bEnable)
 void LogAssistant::
 update_ostream()
 {
-	if(m_terminalOutputEnabled){
-		if(m_fileOutputEnabled)
-			cout.rdbuf(m_splitBuf);
-		else
-			cout.rdbuf(m_logBuf);
-	}
-	else{
-		if(m_fileOutputEnabled){
-			cout.rdbuf(m_fileBuf);
+	if(is_output_process()){
+		if(m_terminalOutputEnabled){
+			if(m_fileOutputEnabled){
+			//	make sure that the logfile is enabled
+				if(open_logfile())
+					cout.rdbuf(m_splitBuf);
+				else
+					cout.rdbuf(m_logBuf);
+			}
+			else
+				cout.rdbuf(m_logBuf);
 		}
 		else{
-			cout.rdbuf(m_emptyBuf);
+			if(m_fileOutputEnabled){
+				if(open_logfile())
+					cout.rdbuf(m_fileBuf);
+				else
+					cout.rdbuf(m_emptyBuf);
+			}
+			else{
+				cout.rdbuf(m_emptyBuf);
+			}
 		}
 	}
+	else
+		cout.rdbuf(m_emptyBuf);
 }
 
-bool
-LogAssistant::
+bool LogAssistant::
+open_logfile()
+{
+	if(!m_fileStream.is_open()){
+		m_fileStream.open(m_logFileName.c_str());
+		if(!m_fileStream){
+			m_fileOutputEnabled = false;
+			UG_LOG("ERROR: LogAssistant::open_logfile failed: Couldn't open "
+					<< m_logFileName << endl);
+			return false;
+		}
+	}
+	return true;
+}
+
+bool LogAssistant::
 set_debug_levels(int lev)
 {
 	for(int i = 0; i < NUM_TAGS; ++i)
@@ -129,20 +154,41 @@ set_debug_levels(int lev)
 	return true;
 }
 
-bool
-LogAssistant::
+bool LogAssistant::
 set_debug_level(Tags tags, int lev)
 {
 	m_TagLevel[tags] = lev;
 	return true;
 }
-/*
-std::ostream&
-LogAssistant::
-file_logger()
+
+void LogAssistant::
+set_output_process(int procRank)
 {
-	static std::ofstream out("uglog.log");
-	return out;
+	m_outputProc = procRank;
+	update_ostream();
 }
-*/
+
+bool LogAssistant::
+is_output_process()
+{
+	#ifdef UG_PARALLEL
+		if((m_outputProc == pcl::GetProcRank()) || (m_outputProc == -1))
+			return true;
+		else
+			return false;
+	#endif
+
+	return true;
 }
+
+int LogAssistant::
+get_process_rank()
+{
+	#ifdef UG_PARALLEL
+		return pcl::GetProcRank();
+	#endif
+
+	return 0;
+}
+
+}//	end of namespace

@@ -16,46 +16,43 @@
 
 namespace ug{
 
-inline
-std::ostream&
-LogAssistant::
+inline std::ostream& LogAssistant::
 debug_logger()
 {
 	return std::cout;
 }
 
-inline
-std::ostream&
-LogAssistant::
+inline std::ostream& LogAssistant::
 logger()
 {
 	return std::cout;
 }
 
-inline
-int
-LogAssistant::
+inline int LogAssistant::
 get_debug_level(Tags tag)
 {
 	return m_TagLevel[tag];
 }
 
+inline int LogAssistant::
+get_output_process()
+{
+	return m_outputProc;
+}
 
-inline
-LogAssistant&
+inline LogAssistant&
 GetLogAssistant()
 {
 	return LogAssistant::instance();
 }
 
-inline
-unsigned int GetNumberOfDigits (uint64_t i)
+inline unsigned int
+GetNumberOfDigits (uint64_t i)
 {
     return i > 0 ? (unsigned int) log10 ((double) i) + 1 : 1;
 }
 
-inline
-std::string
+inline std::string
 ConvertNumber (uint64_t size, unsigned int width, unsigned int numDisplayedDigits)
 {
 	std::stringstream ss;
@@ -106,8 +103,7 @@ ConvertNumber (uint64_t size, unsigned int width, unsigned int numDisplayedDigit
 	return(ss.str());
 }
 
-inline
-std::string
+inline std::string
 ConvertNumberSI (uint64_t size, unsigned int width, unsigned int numDisplayedDigits)
 {
 	std::stringstream ss;
