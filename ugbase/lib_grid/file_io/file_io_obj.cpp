@@ -9,6 +9,7 @@
 #include "file_io_obj.h"
 #include "../lg_base.h"
 #include "common/util/loader/loader_obj.h"
+#include "common/error.h"
 
 using namespace std;
 
@@ -76,41 +77,74 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 			if(pSubsetHandler == NULL)
 			{
 			//	create edges
-				for(int i = 0; i < (int)obj.m_vEdgeList.size() - 1; i+=2)
+				for(size_t i = 0; i < obj.m_vEdgeList.size(); i+=2){
+					for(size_t j = i; j < i+2; ++j){
+						if(obj.m_vEdgeList[j] < 0 || obj.m_vEdgeList[j] >= (int)vVertices.size()){
+							UG_THROW("Bad vertex index in edge " << i / 2 << ": " << obj.m_vEdgeList[i] + 1);
+						}
+					}
 					grid.create<Edge>(EdgeDescriptor(vVertices[obj.m_vEdgeList[i]],
 													vVertices[obj.m_vEdgeList[i+1]]));
+				}
 			//	create triangles
-				for(int i = 0; i < (int)obj.m_vTriangleList.size()-1; i+=3)
+				for(size_t i = 0; i < obj.m_vTriangleList.size(); i+=3){
+					for(size_t j = i; j < i+3; ++j){
+						if(obj.m_vTriangleList[j] < 0 || obj.m_vTriangleList[j] >= (int)vVertices.size()){
+							UG_THROW("Bad vertex index in triangle " << i / 3 << ": " << obj.m_vTriangleList[i] + 1);
+						}
+					}
 					grid.create<Triangle>(TriangleDescriptor(vVertices[obj.m_vTriangleList[i]],
 										vVertices[obj.m_vTriangleList[i+1]], vVertices[obj.m_vTriangleList[i+2]]));
+				}
 
 			//	create quads
-				for(int i = 0; i < (int)obj.m_vQuadList.size()-1; i+=4)
+				for(size_t i = 0; i < obj.m_vQuadList.size(); i+=4){
+					for(size_t j = i; j < i+4; ++j){
+						if(obj.m_vQuadList[j] < 0 || obj.m_vQuadList[j] >= (int)vVertices.size()){
+							UG_THROW("Bad vertex index in quadrilateral " << i / 4 << ": " << obj.m_vQuadList[i] + 1);
+						}
+					}
 					grid.create<Quadrilateral>(QuadrilateralDescriptor(vVertices[obj.m_vQuadList[i]],
 										vVertices[obj.m_vQuadList[i+1]], vVertices[obj.m_vQuadList[i+2]],
 										vVertices[obj.m_vQuadList[i+3]]));
+				}
 			}
 			else
 			{
 			//	create edges
-				for(int i = 0; i < (int)obj.m_vEdgeList.size() - 1; i+=2)
+				for(size_t i = 0; i < obj.m_vEdgeList.size(); i+=2)
 				{
+					for(size_t j = i; j < i+2; ++j){
+						if(obj.m_vEdgeList[j] < 0 || obj.m_vEdgeList[j] >= (int)vVertices.size()){
+							UG_THROW("Bad vertex index in edge " << i / 2 << ": " << obj.m_vEdgeList[i] + 1);
+						}
+					}
 					Edge* e = *grid.create<Edge>(EdgeDescriptor(vVertices[obj.m_vEdgeList[i]],
 													vVertices[obj.m_vEdgeList[i+1]]));
 					pSubsetHandler->assign_subset(e, objCounter);
 				}
 
 			//	create triangles
-				for(int i = 0; i < (int)obj.m_vTriangleList.size()-1; i+=3)
+				for(size_t i = 0; i < obj.m_vTriangleList.size(); i+=3)
 				{
+					for(size_t j = i; j < i+3; ++j){
+						if(obj.m_vTriangleList[j] < 0 || obj.m_vTriangleList[j] >= (int)vVertices.size()){
+							UG_THROW("Bad vertex index in triangle " << i / 3 << ": " << obj.m_vTriangleList[i] + 1);
+						}
+					}
 					Triangle* tri = *grid.create<Triangle>(TriangleDescriptor(vVertices[obj.m_vTriangleList[i]],
 										vVertices[obj.m_vTriangleList[i+1]], vVertices[obj.m_vTriangleList[i+2]]));
 					pSubsetHandler->assign_subset(tri, objCounter);
 				}
 
 			//	create quads
-				for(int i = 0; i < (int)obj.m_vQuadList.size()-1; i+=4)
+				for(size_t i = 0; i < obj.m_vQuadList.size(); i+=4)
 				{
+					for(size_t j = i; j < i+4; ++j){
+						if(obj.m_vQuadList[j] < 0 || obj.m_vQuadList[j] >= (int)vVertices.size()){
+							UG_THROW("Bad vertex index in quadrilateral " << i / 4 << ": " << obj.m_vQuadList[i] + 1);
+						}
+					}
 					Quadrilateral* q = *grid.create<Quadrilateral>(QuadrilateralDescriptor(vVertices[obj.m_vQuadList[i]],
 										vVertices[obj.m_vQuadList[i+1]], vVertices[obj.m_vQuadList[i+2]],
 										vVertices[obj.m_vQuadList[i+3]]));

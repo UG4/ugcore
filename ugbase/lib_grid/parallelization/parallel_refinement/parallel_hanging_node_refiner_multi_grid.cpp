@@ -128,7 +128,6 @@ collect_objects_for_refine()
 
 //	first we'll call the base implementation
 	while(1){
-UG_LOG(">>> entering parallel collect_objects loop\n");
 	//	we call collect_objects_for_refine in each iteration.
 	//	This might be a bit of an overkill, since only a few normally
 	//	have changed...
@@ -154,7 +153,6 @@ UG_LOG(">>> entering parallel collect_objects loop\n");
 		m_bNewInterfaceVolumesMarked = false;
 
 		if(exchangeFlag){
-UG_LOG(">>> marked new elements\n");
 		//	we have to communicate the marks.
 		//	do this by first gather selection at master nodes
 		//	and then distribute them to slaves.
@@ -189,8 +187,6 @@ UG_LOG(">>> marked new elements\n");
 			m_intfComVRT.communicate();
 			m_intfComEDGE.communicate();
 			m_intfComFACE.communicate();
-
-UG_LOG(">>> num selected edges: " << get_refmark_selector().num<EdgeBase>() << std::endl);
 		}
 		else{
 			break;
