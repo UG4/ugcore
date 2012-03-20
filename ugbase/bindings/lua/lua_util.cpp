@@ -191,7 +191,17 @@ bool ParseFile(const char* filename)
 	lua_State* L = GetDefaultLuaState();
 
 	lua_pushcfunction(L, luaCallStackError);
-	int error = luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, -2);
+
+	PROFILE_BEGIN(luaL_loadfile);
+	int error = luaL_loadfile(L, filename);
+	PROFILE_END();
+
+	if(error == 0)
+	{
+		PROFILE_BEGIN(lua_pcall);
+		error = lua_pcall(L, 0, 0, -2);
+		PROFILE_END();
+	}
 
 	if(error)
 	{

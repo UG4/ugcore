@@ -22,6 +22,7 @@
 #include "registry/registry.h"
 
 #include "lua_debug.h"
+#include "common/profiler/dynamic_profiling.h"
 
 extern "C" {
 #include "externals/lua/lstate.h"
@@ -86,41 +87,6 @@ void CheckHook()
 	}
 
 }
-
-#ifdef UG_PROFILER
-// Lua Profiling (mrupp)
-struct s_profileInformation
-{
-	s_profileInformation()
-	{
-		Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, NULL, { { 0, 0 }, { 0, 0 }, { 0, 0 } }};
-		profileInformation = pi;
-		profilerCache =	&Shiny::ProfileNode::_dummy;
-	}
-	Shiny::ProfileZone profileInformation;
-	Shiny::ProfileNodeCache profilerCache;
-	char m_name[255];
-
-	bool is_initialised()
-	{
-		return profileInformation.name != NULL;
-	}
-
-	void init(const char*name, char id)
-	{
-		if(id)
-		{
-			m_name[0]=id;
-			strncpy(m_name+1, name, 255);
-		}
-		else
-			strncpy(m_name, name, 255);
-		profileInformation.name = m_name;
-	}
-};
-
-typedef s_profileInformation* ps_profileInformation ;
-#endif
 
 void AddBreakpoint(const char*source, int line)
 {
@@ -389,18 +355,15 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				if(ar->what[0] == 'L' || ar->what[0] == 'C')
 				{
 					// be sure that this is const char*
-					static std::map<const char*, std::map<int, ps_profileInformation> >pis;
+					static std::map<const char*, std::map<int, pDynamicProfileInformation> >pis;
 
 					if(ar->event == LUA_HOOKCALL)
 					{
 						if(profilingDepth==0)
 						{
-							ps_profileInformation &pi = pis[source][line];
+							pDynamicProfileInformation &pi = pis[source][line];
 							if(pi == NULL)
 							{
-								pi = new s_profileInformation;
-
-
 								char buf[255] = "LUAunknown ";
 								if(source[0]=='@') source++;
 								if(strncmp(source, "./../scripts/", 13)==0)
@@ -409,12 +372,14 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 									sprintf(buf, "@%s:%d ", source, line);
 								const char*p = ug::bridge::GetFileLine(source, line).c_str();
 								strncat(buf, p+strspn(p, " \t"), 254);
-								//UG_LOG(buf << "\n");
-								pi->init(buf, 0);
+
+								pi = new DynamicProfileInformation;
+								pi->set_name_and_copy(buf);
+								// UG_LOG(buf);
 							 }
 
 
-							 Shiny::ProfileManager::instance._beginNode(&pi->profilerCache, &pi->profileInformation);
+							 pi->beginNode();
 							 //UG_LOG(source << ":" << line << ". Profiling depth is " << profilingDepth << "\n");
 						}
 						profilingDepth++;
@@ -436,14 +401,14 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			{
 				if(profilingEndDepth>0)
 					profilingEndDepth--;
-				//UG_ASSERT(Shiny::ProfileManager::instance._curNode == pis[ar->source][ar->linedefined]->profilerCache, "profiler nodes not matching. forgot a PROFILE_END?");
+				//UG_ASSERT(pis[ar->source][ar->linedefined]->isCurNode(), "profiler nodes not matching. forgot a PROFILE_END?");
 				else
 				{
 					if(profilingDepth>0)
 					{
 						profilingDepth--;
 						if(profilingDepth==0)
-							Shiny::ProfileManager::instance._endCurNode();
+							DynamicProfileInformation::endCurNode();
 					}
 					if(bEndProfiling && profilingDepth==0)
 					{
