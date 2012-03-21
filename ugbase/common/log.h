@@ -228,7 +228,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 	#define UG_DLOG_ALL_PROCS(tag, level, msg)	{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
 													{ug::LogAssistant& la = ug::GetLogAssistant(); int op = la.get_output_process();\
 													la.set_output_process(-1); la.debug_logger() << "[Proc " << la.get_process_rank() << "]: "\
-													<< msg << std::flush(); la.set_output_process(op);}}
+													<< msg << std::flush; la.set_output_process(op);}}
 #else
 	#define UG_SET_DEBUG_LEVEL(tag, level)		{}
 	#define UG_RESET_DEBUG_LEVELS()				{}
