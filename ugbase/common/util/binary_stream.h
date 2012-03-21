@@ -11,17 +11,9 @@
 
 namespace ug
 {
-//TODO:	The performance of the buffer could most likely be improved,
-//		if it would use the streambufs internal buffer.
-
 ////////////////////////////////////////////////////////////////////////
 ///	A special version of a std::streambuf, writes data directly into a buffer that is accessible at any time.
-/**
- * \todo This buffer does not yet behave correctly. This should be closer
- * 		investigated and improved.
- * \todo Performance could be increased, if the internal buffer would be used.
- *
- * This buffer stores the data directly in a growing array.
+/** This buffer stores the data directly in a growing array.
  * You may receive a pointer to that array using get_buffer().
  * The size of the buffer is returned by get_buffer_size().
  *
@@ -33,65 +25,50 @@ namespace ug
 class BinaryStreamBuffer : public std::streambuf
 {
 	public:
-		BinaryStreamBuffer() : m_readPos(0), m_writePos(0)
-			{setbuf(NULL, 0); setg(0,0,0); setp(0,0);}//todo: setbuf shouldn't be necessary!
+		BinaryStreamBuffer();
 
-		inline void clear()	//< clears the data and resets the read and write positions.
-			{resize(0); reset();}
+	/// clears the data and resets the read and write positions.
+		void clear();
 
-		inline void resize(int newSize) //< resizes the data-buffer but does not alter read and write positions.
-			{m_dataBuf.resize(newSize);}
+	///	Similar to resize, however, doesn't alter the read-area.
+		void reserve(size_t newSize);
 
-		inline void reset() //< set read- and write-positions to the start of the buffer.
-			{m_readPos = 0; m_writePos = 0;}
+	/// resizes the data-buffer but does not alter read and write positions.
+	/**	A resize extends the readable area.*/
+		void resize(size_t newSize);
 
-		inline void* buffer() //< returns a pointer to the front of the buffer or NULL if the buffer is empty.
-			{return GetDataPtr(m_dataBuf);}
+	/// set read- and write-positions to the start of the buffer.
+		void reset();
 
-		inline int size() const //< returns the size of the buffer in bytes.
-			{return m_dataBuf.size();}
+	/// returns a pointer to the front of the buffer or NULL if the buffer is empty.
+		inline char_type* buffer()				{return reinterpret_cast<char_type*>(GetDataPtr(m_dataBuf));}
 
-		inline void write_jump(int jumpSize) //< advances the write-pointer by jumpSize bytes
-			{m_writePos += jumpSize;}
+		inline const char_type* buffer() const	{return reinterpret_cast<const char_type*>(GetDataPtr(m_dataBuf));}
 
-		inline void read_jump(int jumpSize) //< advances the read-pointer by jumpSize bytes
-			{m_readPos += jumpSize;}
+	/// returns the size of the buffer in bytes.
+		size_t size() const;
 
-		inline size_t get_read_pos() const //< returns the read-position
-			{return m_readPos;}
+	/// advances the write-pointer by jumpSize bytes
+		void write_jump(size_t jumpSize);
+
+	/// advances the read-pointer by jumpSize bytes
+		void read_jump(size_t jumpSize);
+
+	/// returns the read-position
+		size_t get_read_pos() const;
 			
 	//	implementation of virtual std::streambuf methods.
-		inline virtual int_type overflow(int_type c = traits_type::eof())
-		{
-			if(c != traits_type::eof())
-			{
-				if(m_writePos < m_dataBuf.size())
-					m_dataBuf[m_writePos] = c;
-				else
-					m_dataBuf.push_back(c);
-				++m_writePos;
-			}
-			return c;
-		}
+		virtual int_type overflow(int_type c = traits_type::eof());
 
-		inline virtual int_type uflow()
-		{
-			int_type tmp = underflow();
-			m_readPos++;
-			return tmp;
-		}
+		virtual int_type underflow();
 
-		inline virtual int_type underflow()
-		{
-			if(m_readPos < m_dataBuf.size())
-				return m_dataBuf[m_readPos];
-			return traits_type::eof();
-		}
+	protected:
+	///	returns pointer to the first entry behind the buffer.
+		inline char_type* end()					{return buffer() + m_dataBuf.size();}
+		inline const char_type* end() const		{return buffer() + m_dataBuf.size();}
 
 	protected:
 		std::vector<unsigned char>	m_dataBuf;
-		size_t m_readPos;
-		size_t m_writePos;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -100,12 +77,12 @@ class BinaryStream : public std::iostream
 {
 	public:
 		BinaryStream() : std::iostream(&m_streamBuf)	{}
-		BinaryStream(int newSize) : std::iostream(&m_streamBuf)	{resize(newSize);}
+		BinaryStream(size_t newSize) : std::iostream(&m_streamBuf)	{resize(newSize);}
 
 		inline void clear()	//< clears the data and resets the read and write positions.
 			{m_streamBuf.clear();}
 
-		inline void resize(int newSize) //< resizes the data-buffer but does not alter read and write positions.
+		inline void resize(size_t newSize) //< resizes the data-buffer but does not alter read and write positions.
 			{m_streamBuf.resize(newSize);}
 
 		inline void reset() //< set read- and write-positions to the start of the buffer.
@@ -114,13 +91,13 @@ class BinaryStream : public std::iostream
 		inline void* buffer() //< returns a pointer to the front of the buffer.
 			{return m_streamBuf.buffer();}
 
-		inline int size() const//< returns the size of the buffer in bytes.
+		inline size_t size() const//< returns the size of the buffer in bytes.
 			{return m_streamBuf.size();}
 
-		inline void write_jump(int jumpSize) //< advances the write-pointer by jumpSize bytes
+		inline void write_jump(size_t jumpSize) //< advances the write-pointer by jumpSize bytes
 			{m_streamBuf.write_jump(jumpSize);}
 
-		inline void read_jump(int jumpSize) //< advances the read-pointer by jumpSize bytes
+		inline void read_jump(size_t jumpSize) //< advances the read-pointer by jumpSize bytes
 			{m_streamBuf.read_jump(jumpSize);}
 
 		inline size_t read_pos() const
@@ -131,7 +108,7 @@ class BinaryStream : public std::iostream
 	 *		instead (eof,...). However - those do not seem to work properly in the moment.
 	 */
 		inline bool can_read_more()
-			{return (int)m_streamBuf.get_read_pos() < size();}
+			{return m_streamBuf.get_read_pos() < size();}
 	protected:
 		BinaryStreamBuffer	m_streamBuf;
 };

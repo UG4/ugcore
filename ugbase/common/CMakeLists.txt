@@ -12,6 +12,7 @@ set(srcCommon	log.cpp
 				serialization.cpp
 				allocators/small_object_allocator.cpp
 				util/binary_buffer.cpp
+				util/binary_stream.cpp
                 util/string_util.cpp
 				util/loader/loader_util.cpp
 				util/loader/loader_obj.cpp
