@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(laplace) 		{loadScriptWrapper("laplace_test.lua");}
 BOOST_AUTO_TEST_SUITE_END();
 \endcode
 
-As you see, there are currently to test suits for scripts: one on a single Process
+As you see, there are currently two test suits for scripts: one on a single Process
 and a second one on a 3-MPI-Process run. (If needed, other suits may be added. 
 <b>Attention</b>: this will require a change in the setting of Jenkins)
 

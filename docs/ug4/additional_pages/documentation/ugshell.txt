@@ -113,7 +113,7 @@ You can get Information about the current state of LUA by the following methods:
 \code
 void TypeInfo(const char *typename)
 \endcode
-TypeInfo prints all information available the data you insert. Note that you have to enclose your
+TypeInfo prints all information available for the data you insert. Note that you have to enclose your
 type name with ". Example: TypeInfo("Grid"). TypeInfo works with
 <ul>
 <li> tables, and prints their content recursively
@@ -121,7 +121,7 @@ type name with ". Example: TypeInfo("Grid"). TypeInfo works with
 <li> lua script functions, and prints their code
 <li> classes, global functions and member function from the ug registry
 </ul>
-The use of TypeInfo can be abrevated by using
+The use of TypeInfo can be abbreviated by using
 \verbatim
 ug:> Grid?
 \endverbatim
