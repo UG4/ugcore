@@ -37,7 +37,7 @@ PrintBuildConfiguration()
 
 
 ug_load_script("ug_util.lua")
-ug_load_script("domain_distribution_util.lua")
+ug_load_script("../scripts/tests/domain_distribution_util.lua")
 
 -- get number of processes of this run
 numProcs = GetNumProcesses()
@@ -407,7 +407,7 @@ if lsIterator == "gmg" then 	linSolver:set_preconditioner(gmg)
 elseif lsIterator == "jac" then	linSolver:set_preconditioner(jac) 
 else print ("linear solver iterator not specified ==> exit"); exit(); end
 
-linSolver:set_convergence_check(convCheck)
+linSolver:set_convergence_check(convCheck) -- will be overwritten if 'lsType \in ["feti" | "hlib"]
 
 -- create CG Solver
 cgSolver = CG()
@@ -438,7 +438,7 @@ if lsType == "feti" then
 	print("Loading FETI solver setup ...")
 	ug_load_script("setup_fetisolver.lua")
 
-	solver, logfileName = SetupFETISolver(str_problem,
+	solver, lsConvCheck, logfileName = SetupFETISolver(str_problem,
 					      dim,
 					      lsMaxIter,
 					      numProcs,
@@ -450,7 +450,7 @@ if lsType == "feti" then
 elseif lsType == "hlib" then
 	print("Loading HLIB solver setup ...")
 	ug_load_script("setup_hlibsolver.lua")
-	solver, logfileName = SetupHLIBSolver(str_problem,
+	solver, lsConvCheck, logfileName = SetupHLIBSolver(str_problem,
 					      dim,
 					      lsMaxIter,
 					      activateDbgWriter,
@@ -460,6 +460,7 @@ elseif lsType == "hlib" then
 	-- maybe one would like to improve naming in this case ...
 	logfileName = logfileName_tmp
 else -- (lsType == "gmg")
+	lsConvCheck = convCheck
 	-- maybe one would like to improve naming in this case ...
 	cycle_type  = "-gamma-" .. gmg_gamma .. "-nu1-" .. gmg_nu1 .. "-nu2-" .. gmg_nu2
 	logfileName = logfileName_tmp .. "_" .. lsType .. cycle_type
@@ -516,6 +517,12 @@ if lsType == "feti" then
 	end
 end
 
+--lsConvCheck = solver:convergence_check() -- this doesn't work; returns only an object of type of the base class ('IConvergenceCheck') ...
+--SetDebugShell(?) -- no registered method til now (21032012)
+--breakpoint()
+--error("break")
+print("#ANALYZER INFO: linear solver converged in " .. lsConvCheck:step() .. " steps (defect reached: " .. lsConvCheck:defect() ..")")
+
 --------------------------------------------------------------------------------
 --  Output of computed solution
 --------------------------------------------------------------------------------
@@ -530,6 +537,7 @@ end
 
 -- check if profiler is available
 if GetProfilerAvailable() == true then
+    print("")
     -- get node
     pn = GetProfileNode("main")
 --    pn2 = GetProfileNode("GMG_lmgc")
@@ -554,6 +562,8 @@ if renameLogfileAfterRun == true then
 	else
 		print(".. could not rename - no logfile open! Try again with '-logtofile <name>'!")
 	end
+else
+	print("To automatically rename logfile to '" .. logfileName .. "' add option '-rlf'!")
 end
 
 if util.HasParamOption("-stats") then
@@ -584,20 +594,18 @@ if util.HasParamOption("-stats") then
 		} 
 			
 		util.printStats(stats)
-		util.writeFileStats(stats, util.GetParam("-stats", ".").."/modular_scalability_test.txt")
-		util.GetParam("-stats", ".")
-		if util.HasParamOption("-stats") then
-			fromfile=NULL
-			if renameLogfileAfterRun == true then
-				fromfile = logfileName				
-			elseif util.HasParamOption("-logtofile") then
-				fromfile =util.GetParam("-logtofile")
-			end
-			if fromfile then
-				t=io.open(fromfile, "r"):read("*all")
-				io.open(util.GetParam("-stats", ".").."/"..logfileName, "w"):write(t)				
-			end						
-				
+		statsdir = util.GetParam("-stats", ".")
+		util.writeFileStats(stats, statsdir.."/modular_scalability_test.txt")
+
+		fromfile=NULL
+		if renameLogfileAfterRun == true then
+			fromfile = logfileName				
+		elseif util.HasParamOption("-logtofile") then
+			fromfile = util.GetParam("-logtofile")
 		end
+		if fromfile then
+			t=io.open(fromfile, "r"):read("*all")
+			io.open(statsdir.."/"..logfileName, "w"):write(t)				
+		end						
 	end 
 end

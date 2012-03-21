@@ -484,10 +484,14 @@ function SetupFETISolver(str_problem,
 	end
 	
 	-- define convergence criteria for the Neumann problem solver
+	npsMaxIterations = 2000
+	npsAbsLimit      = 1e-10
+	npsReduction     = 1e-16
+	print("    'setup_fetisolver.lua': npsMaxIterations = " .. npsMaxIterations .. ", npsAbsLimit = " .. npsAbsLimit .. ", npsReduction = " .. npsReduction)
 	neumannConvCheck = StandardConvergenceCheck()
-	neumannConvCheck:set_maximum_steps(2000)
-	neumannConvCheck:set_minimum_defect(1e-10)
-	neumannConvCheck:set_reduction(1e-16)
+	neumannConvCheck:set_maximum_steps(npsMaxIterations)
+	neumannConvCheck:set_minimum_defect(npsAbsLimit)
+	neumannConvCheck:set_reduction(npsReduction)
 	neumannConvCheck:set_verbose(false)
 	
 	neumannSolver:set_convergence_check(neumannConvCheck)
@@ -615,10 +619,14 @@ function SetupFETISolver(str_problem,
 	end
 	
 	-- define convergence criteria for the Dirichlet problem solver
+	dpsMaxIterations = 2000
+	dpsAbsLimit      = 1e-10
+	dpsReduction     = 1e-16
+	print("    'setup_fetisolver.lua': dpsMaxIterations = " .. dpsMaxIterations .. ", dpsAbsLimit = " .. dpsAbsLimit .. ", dpsReduction = " .. dpsReduction)
 	dirichletConvCheck = StandardConvergenceCheck()
-	dirichletConvCheck:set_maximum_steps(2000)
-	dirichletConvCheck:set_minimum_defect(1e-10)
-	dirichletConvCheck:set_reduction(1e-16)
+	dirichletConvCheck:set_maximum_steps(dpsMaxIterations)
+	dirichletConvCheck:set_minimum_defect(dpsAbsLimit)
+	dirichletConvCheck:set_reduction(dpsReduction)
 if dirichletProblemSolverType == "famg" then -- TMP
 	dirichletConvCheck:set_verbose(true) -- TMP
 else -- TMP
@@ -683,5 +691,5 @@ end -- TMP
 	logfileName   = logfileName   .. "_" .. str_spsolvers
 
 	print("    'setup_fetisolver.lua': returning FETI solver 'fetiSolver', ready for application!")
-	return fetiSolver, logfileName
+	return fetiSolver, fetiConvCheck, logfileName
 end

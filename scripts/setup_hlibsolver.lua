@@ -115,5 +115,5 @@ function SetupHLIBSolver(str_problem,
 	logfileName    = logfileName    .. "_" .. str_clustering
 	----------------------------------------------------------
 	print("    'setup_hlibsolver.lua': returning HLIB solver 'hlibSolver', ready for application!")
-	return hlibSolver, logfileName
+	return hlibSolver, hlibConvCheck, logfileName
 end
