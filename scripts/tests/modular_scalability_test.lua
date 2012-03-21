@@ -435,7 +435,7 @@ logfileName_tmp = logfileName_tmp .. "_" .. str_refs
 logfileName_tmp = logfileName_tmp .. "_" .. lsType
 
 if lsType == "feti" then
-	print("Loading FETI solver setup ...")
+	print("Loading FETI solver setup ('setup_fetisolver.lua') ...")
 	ug_load_script("setup_fetisolver.lua")
 
 	solver, lsConvCheck, logfileName = SetupFETISolver(str_problem,
@@ -448,7 +448,7 @@ if lsType == "feti" then
 					      verbosity, logfileName_tmp)
 
 elseif lsType == "hlib" then
-	print("Loading HLIB solver setup ...")
+	print("Loading HLIB solver setup ('setup_hlibsolver.lua') ...")
 	ug_load_script("setup_hlibsolver.lua")
 	solver, lsConvCheck, logfileName = SetupHLIBSolver(str_problem,
 					      dim,
@@ -465,12 +465,11 @@ else -- (lsType == "gmg")
 	cycle_type  = "-gamma-" .. gmg_gamma .. "-nu1-" .. gmg_nu1 .. "-nu2-" .. gmg_nu2
 	logfileName = logfileName_tmp .. "_" .. lsType .. cycle_type
 end
+print ("Setup of Algebra Solver finished!")
 
 str_pe = "pe-" .. numProcs
 logfileName = logfileName .. "_" .. str_pe
 logfileName = logfileName .. logpostfix
-
-print("logfileName = '" .. logfileName .."' (automatically renamed if '-rlf' option was set)")
 -- Creation of logfile name END
 
 --------------------------------------------------------------------------------

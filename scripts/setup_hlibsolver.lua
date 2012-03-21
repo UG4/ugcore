@@ -55,7 +55,7 @@ function SetupHLIBSolver(str_problem,
 			 dbgWriter,
 			 verbosity, logfileName)
 
-	print("    'setup_hlibsolver.lua': Setting up HLIB solver...")
+	print("    Setting up HLIB solver (begin of 'SetupHLIBSolver()') ...")
 
 	-- Stuff for the HLIB solver:
         local hlibSolver
@@ -73,8 +73,8 @@ function SetupHLIBSolver(str_problem,
 		clustering = "alg"
 	end
 
-	print(" HLIB parameters chosen:")
-	print("    clustering =        " .. clustering)
+	print("       HLIB parameters chosen:")
+	print("           clustering =        " .. clustering)
 
 	----------------------------------------------------------
 	-- create and configure HLIB Solver
@@ -94,7 +94,7 @@ function SetupHLIBSolver(str_problem,
 	-- define convergence criteria for the HLIB solver
 	hlibConvCheck = StandardConvergenceCheck()
 
-	print("    'setup_hlibsolver.lua': linMaxIterations = " .. linMaxIterations .. ", linAbsLimit = " .. linAbsLimit .. ", linReduction = " .. linReduction)
+	print("             linMaxIterations = " .. linMaxIterations .. ", linAbsLimit = " .. linAbsLimit .. ", linReduction = " .. linReduction)
 
 	hlibConvCheck:set_maximum_steps(linMaxIterations)
 	hlibConvCheck:set_minimum_defect(linAbsLimit)
@@ -104,7 +104,7 @@ function SetupHLIBSolver(str_problem,
 	hlibSolver:set_convergence_check(hlibConvCheck)
 
 	if activateDbgWriter >= 1 then
-		print( "activating debug writer for hlibSolver")
+		print("           activating debug writer for hlibSolver")
 		hlibSolver:set_debug(dbgWriter)
 	end
 
@@ -114,6 +114,6 @@ function SetupHLIBSolver(str_problem,
 	str_clustering = str_clustering .. "_" .. clustering
 	logfileName    = logfileName    .. "_" .. str_clustering
 	----------------------------------------------------------
-	print("    'setup_hlibsolver.lua': returning HLIB solver 'hlibSolver', ready for application!")
+	print("    Returning HLIB solver 'hlibSolver', ready for application (end of 'SetupHLIBSolver()')!")
 	return hlibSolver, hlibConvCheck, logfileName
 end

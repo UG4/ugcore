@@ -167,7 +167,7 @@ function SetupFETISolver(str_problem,
 			 activateDbgWriter,
 			 verbosity, logfileName)
 
-	print("    'setup_fetisolver.lua': Setting up FETI solver ...")
+	print("    Setting up FETI solver (begin of 'SetupFETISolver()') ...")
 
 	--------------------------------------------------------------------------------
 	-- preconditioners, convergence checks, sub solvers and FETI solver:
@@ -225,12 +225,12 @@ function SetupFETISolver(str_problem,
 
 
 	-- Display parameters (or defaults):
-	print("    FETI solver related parameters chosen (or defaults):")
-	print("        numPPSD (numProcsPerSubdomain)   = " .. numProcsPerSubdomain)
+	print("       FETI solver related parameters chosen (or defaults):")
+	print("          numPPSD (numProcsPerSubdomain)   = " .. numProcsPerSubdomain)
 	
-	print("        cps (coarseProblemSolverType)    = " .. coarseProblemSolverType)
-	print("        ns  (neumannProblemSolverType)   = " .. neumannProblemSolverType)
-	print("        ds  (dirichletProblemSolverType) = " .. dirichletProblemSolverType)
+	print("          cps (coarseProblemSolverType)    = " .. coarseProblemSolverType)
+	print("          ns  (neumannProblemSolverType)   = " .. neumannProblemSolverType)
+	print("          ds  (dirichletProblemSolverType) = " .. dirichletProblemSolverType)
 	
 	--------------------------------------------------------------------------------
 	-- Checking for FETI solver related parameters (end)
@@ -247,12 +247,13 @@ function SetupFETISolver(str_problem,
 		print("WARNING: number of processes is smaller than 2 - huh??")
 	end
 	
+	-- check number of processes per subdomain
+	write("       Check if numPPSD = '" .. numProcsPerSubdomain .. "' process(es) per subdomain makes sense ... " )
+	
 	if not util.IsPowerOfTwo(numProcsPerSubdomain) then
-		print("WARNING: numPPSD = '" .. numProcsPerSubdomain .. "' is not a power of 2!" )
+		write("WARNING: numPPSD = '" .. numProcsPerSubdomain .. "' is not a power of 2! " )
 	--	exit()
 	end
-	
-	print("    Check if numPPSD = '" .. numProcsPerSubdomain .. "' process(es) per subdomain makes sense ..." )
 	
 	-- compute number of subdomains
 	numSubdomains = numProcs / numProcsPerSubdomain
@@ -267,25 +268,25 @@ function SetupFETISolver(str_problem,
 		print("ERROR:   numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is NOT a natural number!? Aborting!" )
 		exit()
 	end
-	
 	if not util.IsPowerOfTwo(numSubdomains) then
-		print("WARNING: numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is not a power of 2! Continuing ..." )
+		write("WARNING: numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is not a power of 2! " )
 	-- TODO: Maybe switch to a default value then
 	--	exit() -- in this case the partition can be quite erratic (at least on small (triangular) grids)..
 	end
+	print(" ok!")
 	
-	print("    NumProcs is " .. numProcs .. ", NumSubDomains is " .. numSubdomains )
+	print("          numSubDomains is " .. numSubdomains .. " (numProcs = " .. numProcs .. ", numProcsPerSubdomain = " .. numProcsPerSubdomain .. ")")
 	--------------------------------------------------------------------------------
 	
 	-- create subdomain info
-	print("    Create domainDecompInfo")
+	print("       Create domainDecompInfo")
 	domainDecompInfo = StandardDomainDecompositionInfo()
 	domainDecompInfo:set_num_subdomains(numSubdomains)
 
 	-- test one to many interface creation
 	if verbosity >= 1 then
 		for i=0,numProcs-1 do
-			print("    subdom of proc " .. i .. ": " .. domainDecompInfo:map_proc_id_to_subdomain_id(i))
+			print("       subdom of proc " .. i .. ": " .. domainDecompInfo:map_proc_id_to_subdomain_id(i))
 		end
 	end
 	--------------------------------------------------------------------------------
@@ -295,8 +296,7 @@ function SetupFETISolver(str_problem,
 	--------------------------------------------------------------------------------
 	
 	--if verbosity >= 1 then
-		print("")
-		print("    Setup of FETI coarse and sub problem solvers ...")
+		print("       Setup of FETI coarse and sub problem solvers ...")
 	--end
 	----------------------------------------------------------
 	-- preconditioners used by FETI sub solvers
@@ -320,7 +320,7 @@ function SetupFETISolver(str_problem,
 	-- create and configure coarse problem solver
 	----------------------------------------------------------
 	--if verbosity >= 1 then
-		print("       Create and configure coarse problem solver of type '" .. coarseProblemSolverType .. "' ...")
+		print("          Create and configure coarse problem solver of type '" .. coarseProblemSolverType .. "' ...")
 	--end
 	-- choose solver for coarse problem
 	if coarseProblemSolverType == "exact" then
@@ -362,7 +362,7 @@ function SetupFETISolver(str_problem,
 	-- create and configure Neumann problem solver
 	----------------------------------------------------------
 	--if verbosity >= 1 then
-		print("       Create and configure Neumann problem solver of type '" .. neumannProblemSolverType .. "' ...")
+		print("          Create and configure Neumann problem solver of type '" .. neumannProblemSolverType .. "' ...")
 	--end
 	-- choose solver for Neumann problems
 	if neumannProblemSolverType == "exact" then
@@ -387,10 +387,8 @@ function SetupFETISolver(str_problem,
 		neumannSolver:set_preconditioner(npILU) -- npJac
 	
 	elseif neumannProblemSolverType == "rsamg" or neumannProblemSolverType == "famg" then
---		print ("TMP: RSAMG or FAMG as Neumann problem solver!")
 
 		if neumannProblemSolverType == "famg" then
-			--print ("    Create FAMG as Neumann problem solver ... ")
 
 			npAMG = FAMGPreconditioner()	
 			npAMG:set_delta(0.5)
@@ -436,7 +434,7 @@ function SetupFETISolver(str_problem,
 			npAMG:set_H_reduce_interpolation_nodes_parameter(0.1)
 			npAMG:set_prereduce_A_parameter(0.01)
 		else
-			print ("    Create RSMG as Neumann problem solver ... ")
+			print ("       Create RSMG as Neumann problem solver ... ")
 			npAMG = RSAMGPreconditioner()
 			-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
 			-- amg:set_parallel_coarsening(GetColorCoarsening()) --
@@ -487,7 +485,7 @@ function SetupFETISolver(str_problem,
 	npsMaxIterations = 2000
 	npsAbsLimit      = 1e-10
 	npsReduction     = 1e-16
-	print("    'setup_fetisolver.lua': npsMaxIterations = " .. npsMaxIterations .. ", npsAbsLimit = " .. npsAbsLimit .. ", npsReduction = " .. npsReduction)
+	print("             npsMaxIterations = " .. npsMaxIterations .. ", npsAbsLimit = " .. npsAbsLimit .. ", npsReduction = " .. npsReduction)
 	neumannConvCheck = StandardConvergenceCheck()
 	neumannConvCheck:set_maximum_steps(npsMaxIterations)
 	neumannConvCheck:set_minimum_defect(npsAbsLimit)
@@ -500,7 +498,7 @@ function SetupFETISolver(str_problem,
 	-- create and configure Dirichlet problem solver
 	----------------------------------------------------------
 	--if verbosity >= 1 then
-		print("       Create and configure Dirichlet problem solver of type '" .. dirichletProblemSolverType .. "' ...")
+		print("          Create and configure Dirichlet problem solver of type '" .. dirichletProblemSolverType .. "' ...")
 	--end
 	-- choose solver for Dirichlet problems
 	if dirichletProblemSolverType == "exact" then
@@ -523,10 +521,8 @@ function SetupFETISolver(str_problem,
 		dirichletSolver:set_preconditioner(dpILU) -- dpJac
 	
 	elseif dirichletProblemSolverType == "rsamg" or dirichletProblemSolverType == "famg" then
---		print ("TMP: RSAMG or FAMG as Dirichlet problem solver!")
 
 		if dirichletProblemSolverType == "famg" then
-			--print ("create FAMG as Dirichlet problem solver ... ")
 
 			dpAMG = FAMGPreconditioner()	
 			dpAMG:set_delta(0.5)
@@ -572,7 +568,7 @@ function SetupFETISolver(str_problem,
 			dpAMG:set_H_reduce_interpolation_nodes_parameter(0.1)
 			dpAMG:set_prereduce_A_parameter(0.01)
 		else
-			print ("    Create RSMG as Dirichlet problem solver ... ")
+			print ("       Create RSMG as Dirichlet problem solver ... ")
 			dpAMG = RSAMGPreconditioner()
 			-- amg:set_parallel_coarsening(GetFullSubdomainBlockingCoarsening())
 			-- amg:set_parallel_coarsening(GetColorCoarsening()) --
@@ -622,7 +618,8 @@ function SetupFETISolver(str_problem,
 	dpsMaxIterations = 2000
 	dpsAbsLimit      = 1e-10
 	dpsReduction     = 1e-16
-	print("    'setup_fetisolver.lua': dpsMaxIterations = " .. dpsMaxIterations .. ", dpsAbsLimit = " .. dpsAbsLimit .. ", dpsReduction = " .. dpsReduction)
+	print("             dpsMaxIterations = " .. dpsMaxIterations .. ", dpsAbsLimit = " .. dpsAbsLimit .. ", dpsReduction = " .. dpsReduction)
+--	print("#ANALYZER INFO")
 	dirichletConvCheck = StandardConvergenceCheck()
 	dirichletConvCheck:set_maximum_steps(dpsMaxIterations)
 	dirichletConvCheck:set_minimum_defect(dpsAbsLimit)
@@ -637,6 +634,9 @@ end -- TMP
 	----------------------------------------------------------
 	-- create and configure FETI Solver
 	----------------------------------------------------------
+	--if verbosity >= 1 then
+		print("          Create and configure FETI main solver ...")
+	--end
 	fetiSolver = FETI()
 
 	fetiSolver:set_domain_decomp_info(domainDecompInfo)
@@ -648,7 +648,7 @@ end -- TMP
 	-- define convergence criteria for the FETI solver
 	fetiConvCheck = StandardConvergenceCheck()
 
-	print("    'setup_fetisolver.lua': linMaxIterations = " .. linMaxIterations .. ", linAbsLimit = " .. linAbsLimit .. ", linReduction = " .. linReduction)
+	print("             linMaxIterations = " .. linMaxIterations .. ", linAbsLimit = " .. linAbsLimit .. ", linReduction = " .. linReduction)
 
 	fetiConvCheck:set_maximum_steps(linMaxIterations)
 	fetiConvCheck:set_minimum_defect(linAbsLimit)
@@ -657,7 +657,7 @@ end -- TMP
 	fetiSolver:set_convergence_check(fetiConvCheck)
 
 	if activateDbgWriter >= 1 then
-		print("    Setting debug writer for 'fetiSolver' (no make consistent (former: 'raw data')")
+		print("       Setting debug writer for 'fetiSolver' (no make consistent (former: 'raw data')")
 		-- debug writer
 		fetidbgWriter = GridFunctionDebugWriter(approxSpace)
 		fetidbgWriter:set_vtk_output(true)
@@ -671,7 +671,7 @@ end -- TMP
 
 --[[ Layout tests sind irgendwann rausgeflogen ...
 	if verbosity >= 2 then
-		print("    Performing layout tests:")
+		print("       Performing layout tests:")
 		--BuildDomainDecompositionLayoutsTest2d(u, domainDecompInfo);
 		--OneToManyTests2d(u)
 	end
@@ -690,6 +690,6 @@ end -- TMP
                                       .. "-" .. coarseProblemSolverType
 	logfileName   = logfileName   .. "_" .. str_spsolvers
 
-	print("    'setup_fetisolver.lua': returning FETI solver 'fetiSolver', ready for application!")
+	print("    Returning FETI solver 'fetiSolver', ready for application (end of 'SetupFETISolver()')!")
 	return fetiSolver, fetiConvCheck, logfileName
 end
