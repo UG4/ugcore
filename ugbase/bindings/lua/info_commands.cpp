@@ -509,7 +509,11 @@ void PrintLuaScriptFunction(lua_State *L, int index=-1)
 	lua_Debug ar;
 	lua_getinfo(L, ">S", &ar);
 	if(ar.linedefined != -1)
-		UG_LOG(GetFileLine(ar.source+1, ar.linedefined)); // skip '@'
+	{
+		const char *p=GetFileLine(ar.source+1, ar.linedefined).c_str();
+		p+=strspn(p, " \t");
+		UG_LOG(p);
+	}
 }
 
 /**
@@ -620,7 +624,7 @@ void LuaList()
 			}
 			else if(lua_isuserdata(L, -1))
 				instantiations.push_back(luastr);
-
+			else
 				names.push_back(luastr);
 		}
 		lua_pop(L, 1); // remove table entry from stack
@@ -652,7 +656,9 @@ void LuaList()
 
 	UG_LOG(endl << "--- Script Functions: ---" << endl)
 
-	int maxLength = (*max_element(scriptFunctions.begin(), scriptFunctions.end(), IsLonger)).size();
+	int maxLength=0;
+	if(scriptFunctions.size())
+		maxLength = (*max_element(scriptFunctions.begin(), scriptFunctions.end(), IsLonger)).size();
 	for(size_t i=0; i<scriptFunctions.size(); i++)
 	{
 		lua_getglobal(L, scriptFunctions[i].c_str());  /* get global 'f' */
@@ -670,7 +676,8 @@ void LuaList()
 
 
 	UG_LOG(endl << "--- Lua Objects: ----------------" << endl)
-	maxLength = (*max_element(names.begin(), names.end(), IsLonger)).size();
+	if(names.size())
+		maxLength = (*max_element(names.begin(), names.end(), IsLonger)).size();
 	for(size_t i=0; i<names.size(); i++)
 	{
 		if(names[i].compare("_G") == 0) continue;
@@ -678,11 +685,11 @@ void LuaList()
 		lua_getglobal(L, names[i].c_str());
 		UG_LOG(left << setw(maxLength) << names[i]);
 		UG_LOG(" (" << GetLuaTypeString(L, -1) << ")");
-		if(lua_istable(L, -1))
+		/*if(lua_istable(L, -1))
 		{
 			UG_LOG(" = \n");
 			LuaPrintTable(L, 1);
-		}
+		}*/
 		const char *p = lua_tostring(L, -1);
 		if(p) UG_LOG(": " << p)
 		lua_pop(L, 1);
@@ -690,7 +697,8 @@ void LuaList()
 	}
 
 	UG_LOG(endl << "--- Class Instantiations: ---------" << endl)
-	maxLength = (*max_element(instantiations.begin(), instantiations.end(), IsLonger)).size();
+	if(instantiations.size())
+		maxLength = (*max_element(instantiations.begin(), instantiations.end(), IsLonger)).size();
 	for(size_t i=0; i<instantiations.size(); i++)
 	{
 		lua_getglobal(L, instantiations[i].c_str());
