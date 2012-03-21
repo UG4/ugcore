@@ -458,6 +458,35 @@ size_t GetPathCompletitions(char *buf, int len, std::vector<string> &matches, si
 	return matches.size() - matchesSizeBefore;
 }
 
+int iOtherCompletitionsLength;
+const char **pOtherCompletitions=NULL;
+
+static size_t GetOtherCompletitions(char *buf, int len, std::vector<string> &matches, size_t &sniplen)
+{
+	size_t matchesSizeBefore = matches.size();
+	char *p = buf+len-1;
+
+	// first we get the word left of the cursor to be completed.
+	while(p >= buf) // all?
+	{
+		p--;
+	}
+
+	p++;
+	char *snip = p;
+	sniplen = strlen(snip);
+	if(sniplen == 0) return 0;
+
+	if(pOtherCompletitions)
+		for(int i=0; i<iOtherCompletitionsLength; i++)
+		{
+			if(strncmp(pOtherCompletitions[i], snip, sniplen) == NULL)
+				matches.push_back(pOtherCompletitions[i]);
+		}
+
+	return matches.size() - matchesSizeBefore;
+}
+
 /*
  * \brief A function to implement word completion of classes and functions of ugscript
  * When entered Dom<tab>, it completes to Domain2d, for example. If Domain2d and Domain3d
@@ -478,12 +507,13 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 	if(iPrintCompletionList == 0 && (GetGlobalFunctionInfo(buf, len) || GetMemberFunctionInfo(buf, len)) )
 		return len;
 
+	GetOtherCompletitions(buf, len, matches, sniplen);
 	if( GetPathCompletitions(buf, len, matches, sniplen)  == 0
 		&& GetMemberFunctionCompletitions(buf, len, matches, sniplen) == 0
 		&& GetNamespaceCompletitions(buf, len, matches, sniplen, iPrintCompletionList) == 0
 		&& GetGlobalsCompletitions(buf, len, matches, sniplen, iPrintCompletionList)==0
 		&& GetClassesCompletitions(buf, len, matches, sniplen, iPrintCompletionList)==0)
-		return len; // no match
+		{ }
 
 	if(matches.size() == 0)
 		return len; // no match
