@@ -29,6 +29,14 @@ LogAssistant::LogAssistant(const LogAssistant&)
 {
 }
 
+LogAssistant::~LogAssistant()
+{
+	logger().flush();
+	m_splitBufInst.flush();
+	if(m_fileStream.is_open())
+		m_fileStream.close();
+}
+
 void LogAssistant::init()
 {
 //	originally this was placed in the constructor.

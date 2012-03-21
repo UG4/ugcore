@@ -89,6 +89,9 @@ class UG_API LogAssistant
 	///	returns a reference to the single instance of LogAssistant
 		static LogAssistant& instance();
 
+	///	flushes all buffers before deletion
+		~LogAssistant();
+
 	/// enables or disables file output.
 	/** a filename can be specified. Default is 'uglog.log'.
 	 *	Please note that only the filename given at the first call is considered.

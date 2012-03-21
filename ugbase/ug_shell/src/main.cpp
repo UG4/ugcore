@@ -81,10 +81,15 @@ int main(int argc, char* argv[])
 
 	PROFILE_BEGIN(ugshellInit);
 
+	#ifdef UG_PARALLEL
+		pcl::Init(&argc, &argv);
+	#endif
+
 //	check if an output-process has been specified
 	int outputProc = 0;
 //	if "-outproc" is not found, outputProc won't be changed.
 	ParamToInt(outputProc, "-outproc", argc, argv);
+	GetLogAssistant().set_output_process(outputProc);
 	
 	const char* logFileName = NULL;
 	if(ParamToString(&logFileName, "-logtofile", argc, argv))
@@ -111,11 +116,6 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 */
-
-#ifdef UG_PARALLEL
-	pcl::Init(&argc, &argv);
-	GetLogAssistant().set_output_process(outputProc);
-#endif
 
 	LOG("********************************************************************************\n");
 	std::string aux_str(""); // for nicer output we need some padding with spaces ...

@@ -25,6 +25,9 @@ class OStreamBufferSplitter : public std::streambuf
 
 		~OStreamBufferSplitter();
 
+	//	flushes the local buffer into the associated buffers
+		void flush();
+
 		void set_buffers(std::streambuf* buf1, std::streambuf* buf2);
 
 		virtual int_type overflow(int_type c = traits_type::eof());

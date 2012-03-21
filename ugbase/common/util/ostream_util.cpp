@@ -23,19 +23,23 @@ OStreamBufferSplitter(std::streambuf* buf1, std::streambuf* buf2)
 OStreamBufferSplitter::
 ~OStreamBufferSplitter()
 {
+	flush();
 }
 
-void OStreamBufferSplitter::
-set_buffers(std::streambuf* buf1, std::streambuf* buf2)
+void OStreamBufferSplitter::flush()
 {
 	if(m_buf1 && m_buf2 && (pptr() != pbase())){
 	//	write whats left in the buffer to the split-buffers
 		m_buf1->sputn(pbase(), pptr() - pbase());
 		m_buf2->sputn(pbase(), pptr() - pbase());
 	}
-
-//	reset the local buffer
 	setp(m_buf, m_buf + BUF_SIZE);
+}
+
+void OStreamBufferSplitter::
+set_buffers(std::streambuf* buf1, std::streambuf* buf2)
+{
+	flush();
 
 	m_buf1 = buf1;
 	m_buf2 = buf2;
