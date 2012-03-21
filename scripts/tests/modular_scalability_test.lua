@@ -587,11 +587,17 @@ if util.HasParamOption("-stats") then
 		util.writeFileStats(stats, util.GetParam("-stats", ".").."/modular_scalability_test.txt")
 		util.GetParam("-stats", ".")
 		if util.HasParamOption("-stats") then
+			fromfile=NULL
 			if renameLogfileAfterRun == true then
-				os.execute("cp "..logfileName.." "..util.GetParam("-stats", ".").."/"..logfileName)
+				fromfile = logfileName				
 			elseif util.HasParamOption("-logtofile") then
-				os.execute("cp "..util.GetParam("-logtofile").." "..util.GetParam("-stats", ".").."/"..logfileName)
+				fromfile =util.GetParam("-logtofile")
 			end
+			if fromfile then
+				t=io.open(fromfile, "r"):read("*all")
+				io.open(util.GetParam("-stats", ".").."/"..logfileName, "w"):write(t)				
+			end						
+				
 		end
 	end 
 end
