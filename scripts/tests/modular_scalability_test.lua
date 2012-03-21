@@ -585,5 +585,13 @@ if util.HasParamOption("-stats") then
 			
 		util.printStats(stats)
 		util.writeFileStats(stats, util.GetParam("-stats", ".").."/modular_scalability_test.txt")
+		util.GetParam("-stats", ".")
+		if util.HasParamOption("-stats") then
+			if renameLogfileAfterRun == true then
+				os.execute("cp "..logfileName.." "..util.GetParam("-stats", ".").."/"..logfileName)
+			elseif util.HasParamOption("-logtofile") then
+				os.execute("cp "..util.GetParam("-logtofile").." "..util.GetParam("-stats", ".").."/"..logfileName)
+			end
+		end
 	end 
 end
