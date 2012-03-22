@@ -603,10 +603,34 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_delete
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_invalidate
 (JNIEnv * env, jclass cls, jobject smartPtr) {
 
+//	if (ug::vrl::isJSmartPointerConst(env, smartPtr)) {
+//		ug::vrl::invalidateJConstSmartPointer(env, smartPtr);
+//	} else {
+//		ug::vrl::invalidateJSmartPointer(env, smartPtr);
+//	}
+
+
+	if (env->MonitorEnter(cls) != JNI_OK) {
+		std::cout << "[Error-ENTER: releasing smartptr!]\n";
+	}
+
+	if (env->ExceptionOccurred()) {
+
+		 env->ExceptionDescribe();
+
+	     if (env->MonitorExit(cls) != JNI_OK) {
+	    	std::cout << "[Error-EXIT-EXC: releasing smartptr!]\n";
+	     }
+	}
+
 	if (ug::vrl::isJSmartPointerConst(env, smartPtr)) {
 		ug::vrl::invalidateJConstSmartPointer(env, smartPtr);
 	} else {
 		ug::vrl::invalidateJSmartPointer(env, smartPtr);
+	}
+
+	if (env->MonitorExit(cls) != JNI_OK) {
+		    	std::cout << "[Error-EXIT: releasing smartptr!]\n";
 	}
 }
 

@@ -91,6 +91,39 @@ void TestSmartPtr2ConstPtr(const TestClass* t) {
 	t->print2();
 }
 
+SmartPtrCls::SmartPtrCls() {
+	UG_LOG("Constructor SmartPtrCls() called." << std::endl);
+	_name = "noname";
+	_data = NULL;
+}
+
+SmartPtrCls::SmartPtrCls(std::string name) {
+	_name = name;
+	UG_LOG("Constructor SmartPtrCls(std::string name) called." << std::endl);
+	_data = NULL;
+}
+
+void SmartPtrCls::print_name() {
+	UG_LOG("Name is " << _name << std::endl);
+}
+
+void SmartPtrCls::create_data(int size) {
+	if (_data ==NULL) {
+		_data = new byte[size];
+	} else {
+		UG_LOG(_name << ": Data already created! " << std::endl);
+	}
+}
+
+SmartPtrCls::~SmartPtrCls() {
+	UG_LOG("~SmartPtrCls:" << _name << std::endl);
+
+	if (_data !=NULL ){
+		delete[] _data;
+		_data = NULL;
+	}
+}
+
 void registerPlayground(ug::bridge::Registry& reg) {
 	reg.add_class_<TestClass > ("TestClass", "ug4/testing")
 			.add_constructor()
@@ -107,6 +140,13 @@ void registerPlayground(ug::bridge::Registry& reg) {
 	reg.add_function("SmartTestFunction", &SmartTestFunction, "ug4/testing");
 	reg.add_function("ConstSmartTestFunction", &ConstSmartTestFunction, "ug4/testing");
 	reg.add_function("TestSmartPtr2ConstPtr", &TestSmartPtr2ConstPtr, "ug4/testing");
+
+	reg.add_class_<SmartPtrCls > ("SmartPtrCls", "ug4/testing")
+			.add_constructor()
+			.add_constructor<void(*)(std::string)>()
+			.add_method("print_name", &SmartPtrCls::print_name)
+			.add_method("create_data", &SmartPtrCls::create_data)
+			.set_construct_as_smart_pointer(true);
 }
 
 } // end vrl::

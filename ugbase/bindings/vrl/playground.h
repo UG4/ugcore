@@ -47,6 +47,24 @@ public:
     ~TestClass();
 };
 
+/**
+ * Test Class for SmartPointer. Only created via SmartPtr.
+ */
+class SmartPtrCls {
+public:
+	SmartPtrCls();
+	SmartPtrCls(std::string name);
+
+    void print_name();
+
+    void create_data(int size);
+
+    ~SmartPtrCls();
+private:
+    std::string _name;
+    byte* _data;
+};
+
 int SmartTestFunction(SmartPtr<TestClass> test);
 ////
 int ConstSmartTestFunction(ConstSmartPtr<TestClass> test);
