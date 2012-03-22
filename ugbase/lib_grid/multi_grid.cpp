@@ -34,6 +34,13 @@ MultiGrid::MultiGrid(uint options) :
 MultiGrid::~MultiGrid()
 {
 	unregister_observer(this);
+
+//	release child infos
+	for(FaceIterator iter = begin<Face>(); iter != end<Face>(); ++iter)
+		release_child_info(*iter);
+
+	for(VolumeIterator iter = begin<Volume>(); iter != end<Volume>(); ++iter)
+		release_child_info(*iter);
 }
 
 void MultiGrid::init()

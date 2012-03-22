@@ -225,6 +225,9 @@ void MultiGrid::element_to_be_erased(TElem* elem, TParent* pParent)
 	typename mginfo_traits<TParent>::info_type& parentInfo = get_info(pParent);
 	parentInfo.remove_child(elem);
 	element_to_be_erased(elem);
+	if(!parentInfo.has_children()){
+		release_child_info(pParent);
+	}
 }
 
 /*
