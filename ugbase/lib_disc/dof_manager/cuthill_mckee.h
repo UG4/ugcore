@@ -56,11 +56,13 @@ void OrderCuthillMcKee(ApproximationSpace<TDomain>& approxSpace,
                        bool bReverse)
 {
 //	order levels
-	for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
-		OrderCuthillMcKee(*approxSpace.level_dof_distribution(lev), bReverse);
+	if(approxSpace.levels_enabled())
+		for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
+			OrderCuthillMcKee(*approxSpace.level_dof_distribution(lev), bReverse);
 
 //	order surface
-	OrderCuthillMcKee(*approxSpace.surface_dof_distribution(), bReverse);
+	if(approxSpace.top_surface_enabled())
+		OrderCuthillMcKee(*approxSpace.surface_dof_distribution(), bReverse);
 }
 
 } // end namespace ug

@@ -126,7 +126,15 @@ class IApproximationSpace
 	///	initializes all top surface dof distributions
 		void init_top_surface();
 
-		// \todo: should be removed an handled automatically
+	///	returns if levels are enabled
+		bool levels_enabled() const;
+
+	///	returns if top surface is enabled
+		bool top_surface_enabled() const;
+
+	///	returns if surfaces are enabled
+		bool surfaces_enabled() const;
+
 	///	defragments the index set of the DoF Distribution
 		void defragment();
 

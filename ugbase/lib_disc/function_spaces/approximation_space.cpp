@@ -99,6 +99,22 @@ grid_changed_callback(int, const GridMessage_Adaption* msg)
 	}
 }
 
+bool IApproximationSpace::levels_enabled() const
+{
+	return !m_vLevDD.empty();
+}
+
+bool IApproximationSpace::top_surface_enabled() const
+{
+	return m_spTopSurfDD.valid();
+}
+
+bool IApproximationSpace::surfaces_enabled() const
+{
+	return !m_vSurfDD.empty();
+}
+
+
 std::vector<ConstSmartPtr<SurfaceDoFDistribution> >
 IApproximationSpace::surface_dof_distributions() const
 {
