@@ -553,6 +553,7 @@ bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 			.add_method("set_output_process", &LogAssistant::set_output_process, "", "procRank", "Sets the process which shall output its data.")
 			.add_method("get_output_process", &LogAssistant::get_output_process, "", "", "Returns the process which outputs its data.")
 			.add_method("is_output_process", &LogAssistant::set_output_process, "", "procRank", "Returns whether the process outputs its data.")
+			.add_method("flush", &LogAssistant::flush, "", "", "flush all buffers, especially the file buffer.")
 			;
 		reg.add_function("GetLogAssistant", &GetLogAssistant, grp, "the log assistant");
 		reg.add_function("GetLogAssistantTag", &GetLogAssistantTag, grp, "integer tag for use int set_debug_level");
