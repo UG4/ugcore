@@ -29,13 +29,14 @@ LogAssistant::LogAssistant(const LogAssistant&)
 {
 }
 
+
 LogAssistant::~LogAssistant()
 {
-	logger().flush();
-	m_splitBufInst.flush();
+	flush();
 	if(m_fileStream.is_open())
 		m_fileStream.close();
 }
+
 
 void LogAssistant::init()
 {
@@ -69,6 +70,15 @@ instance()
 	return log;
 }
 
+void LogAssistant::flush()
+{
+	logger().flush();
+	m_splitBufInst.flush();
+	if(m_fileStream.is_open())
+		m_fileStream.flush;
+}
+
+
 bool LogAssistant::
 enable_file_output(bool bEnable, const char* filename)
 {
@@ -90,6 +100,7 @@ enable_file_output(bool bEnable, const char* filename)
 bool LogAssistant::
 rename_log_file(const char * newname)
 {
+	flush();
 	if(m_fileStream.is_open()){
 		UG_LOG("Logfile '" << m_logFileName << "' renamed to '" << newname << "'" << std::endl);
 		rename(m_logFileName.c_str(), newname);

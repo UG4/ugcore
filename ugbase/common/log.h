@@ -135,6 +135,8 @@ class UG_API LogAssistant
 	///	returns the process rank of the underlying process (same as pcl::GetProcRank)
 		int get_process_rank();
 
+		void flush();
+
 	protected:
 	///	updates and sets stream buffers based on current options.
 	/**	Note that this method changes the buffer on which clog works.*/
