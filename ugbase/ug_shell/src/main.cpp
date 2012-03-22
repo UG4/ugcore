@@ -163,11 +163,13 @@ debug_return debugShell()
 	ug::bridge::lua_stacktrace(GetDefaultLuaState());
 	//ug::bridge::lua_printCurrentLine(GetDefaultLuaState());
 
+#ifdef UG_PARALLEL
 	if(pcl::GetNumProcesses() > 1)
 	{
 		UG_LOG("Parallel Shell not available currently.");
 		return DEBUG_CONTINUE;
 	}
+#endif
 
 	//	run the shell
 	const char *completitions[]={"quit", "exit", "step", "next", "cont", "continue", "finish", "list", "backtrace", "bt",
