@@ -1736,7 +1736,7 @@ update_boundary_faces(TElem* pElem, const MathVector<worldDim>* vCornerCoords, c
 
 				//	compute global gradient
 					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
-						for(size_t sh = 0 ; sh < num_scv(); ++sh)
+						for(size_t sh = 0 ; sh < bf.num_sh(); ++sh)
 							MatVecMult(bf.vvGlobalGrad[ip][sh],
 							           bf.vJtInv[ip], bf.vvLocalGrad[ip][sh]);
 
