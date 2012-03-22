@@ -27,9 +27,9 @@ int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 //	always suffice.
 
 //	a helper which avoids multiple recursion
-	static bool dbgRecursionActive = false;
+	/*static bool dbgRecursionActive = false;
 	assert(!dbgRecursionActive);
-	dbgRecursionActive = true;
+	dbgRecursionActive = true;*/
 
 
 	int fillCount = 0;
@@ -115,7 +115,7 @@ int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 		fillCount += count;
 	}
 
-	dbgRecursionActive = false;
+	//dbgRecursionActive = false;
 	return fillCount;
 }
 

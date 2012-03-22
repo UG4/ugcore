@@ -153,7 +153,7 @@ void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
 	typedef typename PtrTypeToGeomObjBaseType<Node>::base_type	Elem;
 
 //	we have to find the local LayoutIndex
-	int locProcRank = pcl::GetProcRank();
+	/*int locProcRank = pcl::GetProcRank();
 	int locLayoutInd = -1;
 	if(processMap){
 		vector<int>& procMap = *processMap;
@@ -166,15 +166,15 @@ void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
 	}
 	else if(locProcRank < (int)distLayouts.size()){
 		locLayoutInd = locProcRank;
-	}
+	}*/
 
 	msel.clear<Elem>();
 
 	for(size_t i_layout = 0; i_layout < distLayouts.size(); ++i_layout)
 	{
-		int curProcRank = i_layout;
+		/*int curProcRank = i_layout;
 		if(processMap)
-			curProcRank = processMap->at(i_layout);
+			curProcRank = processMap->at(i_layout);*/
 
 		TDistLayout& curLayout = distLayouts[i_layout];
 

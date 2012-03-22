@@ -211,7 +211,7 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 		}
 
 		number bestVal = -2;
-		vector2 nextDir;
+		vector2 nextDir(0, 0);
 		SweepLineEdge* nextEdge = NULL;
 		number bestNormDot = 0;
 		for(size_t i = 0; i < lastVrt->connections.size(); ++i){
@@ -330,27 +330,20 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 		//	check the position of connected vertices
 			bool gotUpper = false;
 			bool gotLower = false;
-			bool gotEqualY = false;
 			bool gotEqualYLeft = false;
 			bool gotEqualYRight = false;
 			bool gotRight = false;
-			bool gotLeft = false;
-			bool gotEqualX = false;
 			for(size_t j = 0; j < vrt.connections.size(); ++j){
 				SweepLineVertex& connVrt = *(vrt.connections[j]->get_connected(&vrt));
-				if(connVrt.vrtPtr->x < vrt.vrtPtr->x)
-					gotLeft = true;
-				else if(connVrt.vrtPtr->x > vrt.vrtPtr->x)
+
+				if(connVrt.vrtPtr->x > vrt.vrtPtr->x)
 					gotRight = true;
-				else
-					gotEqualX = true;
 
 				if(connVrt.vrtPtr->y < vrt.vrtPtr->y)
 					gotLower = true;
 				else if(connVrt.vrtPtr->y > vrt.vrtPtr->y)
 					gotUpper = true;
 				else{
-					gotEqualY = true;
 					if(connVrt.vrtPtr->x > vrt.vrtPtr->x)
 						gotEqualYRight = true;
 					else

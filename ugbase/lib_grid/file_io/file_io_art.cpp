@@ -352,8 +352,8 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 
 	//	read the indices
 //TODO:	make sure that everything is ok.
-		int si, i1, i2;
-		si = atoi(tok);
+		int i1, i2;
+		//int si = atoi(tok);
 		tok = strtok(NULL, delim);
 		i1 = atoi(tok);
 		tok = strtok(NULL, delim);

@@ -73,7 +73,8 @@ class UG_API TElemSelector : public Selector
 	public:
 		TElemSelector()	: Selector(SE_NONE)
 		{
-			switch(geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID){
+			int typId = geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID;
+			switch(typId){
 				case VERTEX: this->enable_element_support(SE_VERTEX); break;
 				case EDGE: this->enable_element_support(SE_EDGE); break;
 				case FACE: this->enable_element_support(SE_FACE); break;
@@ -84,7 +85,8 @@ class UG_API TElemSelector : public Selector
 
 		TElemSelector(Grid& grid) : Selector(grid, SE_NONE)
 		{
-			switch(geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID){
+			int typId = geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID;
+			switch(typId){
 				case VERTEX: this->enable_element_support(SE_VERTEX); break;
 				case EDGE: this->enable_element_support(SE_EDGE); break;
 				case FACE: this->enable_element_support(SE_FACE); break;

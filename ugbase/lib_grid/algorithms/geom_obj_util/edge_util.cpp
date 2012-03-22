@@ -157,12 +157,10 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 		int counter = 0;
 		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(e);
 		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
-			iter != grid.associated_faces_end(e); ++iter)
+			iter != iterEnd; ++iter)
 		{
-			Face* tf = *iter;
-
 			if(counter < maxNumFaces)
-				facesOut[counter] = tf;
+				facesOut[counter] = *iter;
 
 			counter++;
 		}
@@ -219,7 +217,7 @@ int NumAssociatedFaces(Grid& grid, EdgeBase* e)
 		int counter = 0;
 		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(e);
 		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
-			iter != grid.associated_faces_end(e); ++iter)
+			iter != iterEnd; ++iter)
 		{
 			counter++;
 		}
