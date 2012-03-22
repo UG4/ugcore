@@ -21,9 +21,13 @@
 namespace ug{
 
 IApproximationSpace::
-IApproximationSpace(SmartPtr<subset_handler_type> spMGSH, bool bGroup)
-	: m_spMGSH(spMGSH), m_spFunctionPattern(new FunctionPattern(spMGSH)),
-	  m_bGrouped(bGroup), m_bAdaptionIsActive(false)
+IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
+                    SmartPtr<grid_type> spMG,
+                    bool bGroup)
+:	 m_spMG(spMG),
+ 	 m_spMGSH(spMGSH),
+ 	 m_spFunctionPattern(new FunctionPattern(spMGSH)),
+ 	 m_bGrouped(bGroup), m_bAdaptionIsActive(false)
 #ifdef UG_PARALLEL
 	, m_pDistGridMgr(NULL)
 #endif
@@ -32,8 +36,11 @@ IApproximationSpace(SmartPtr<subset_handler_type> spMGSH, bool bGroup)
 }
 
 IApproximationSpace::
-IApproximationSpace(SmartPtr<subset_handler_type> spMGSH)
-	: m_spMGSH(spMGSH),  m_spFunctionPattern(new FunctionPattern(spMGSH)),
+IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
+                    SmartPtr<grid_type> spMG)
+	: m_spMG(spMG),
+	  m_spMGSH(spMGSH),
+	  m_spFunctionPattern(new FunctionPattern(spMGSH)),
 	  m_bAdaptionIsActive(false)
 #ifdef UG_PARALLEL
 	, m_pDistGridMgr(NULL)
@@ -55,6 +62,27 @@ IApproximationSpace(SmartPtr<subset_handler_type> spMGSH)
 		UG_THROW_FATAL("Cannot determine blocksize of Algebra.");
 
 	register_at_adaption_msg_hub();
+}
+
+IApproximationSpace::
+~IApproximationSpace()
+{
+	m_vLevDD.clear();
+	m_vSurfDD.clear();
+
+	if(m_spTopSurfDD.valid())
+		m_spTopSurfDD = SmartPtr<SurfaceDoFDistribution>(NULL);
+
+	if(m_spLevMGDD.valid())
+		m_spLevMGDD = SmartPtr<LevelMGDoFDistribution>(NULL);
+
+	m_vSurfLevView.clear();
+
+	if(m_spTopSurfLevView.valid())
+		m_spTopSurfLevView = SmartPtr<SurfaceLevelView>(NULL);
+
+	if(m_spSurfaceView.valid())
+		m_spSurfaceView = SmartPtr<SurfaceView>(NULL);
 }
 
 SubsetGroup IApproximationSpace::subset_grp_by_name(const char* names) const
@@ -723,7 +751,7 @@ void IApproximationSpace::surface_level_view_required(size_t fromLevel, size_t t
 template <typename TDomain>
 ApproximationSpace<TDomain>::
 ApproximationSpace(SmartPtr<domain_type> domain)
-	: IApproximationSpace(domain->subset_handler()),
+	: IApproximationSpace(domain->subset_handler(), domain->grid()),
 	  m_spDomain(domain)
 {
 	if(!m_spDomain.valid())

@@ -38,12 +38,21 @@ class IApproximationSpace
 	///	Type of Subset Handler
 		typedef MGSubsetHandler subset_handler_type;
 
+	///	Type of Subset Handler
+		typedef MultiGrid grid_type;
+
 	public:
 	///	Constructor
-		IApproximationSpace(SmartPtr<subset_handler_type> spMGSH);
+		IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
+		                    SmartPtr<grid_type> spMG);
 
 	///	Constructor setting the grouping flag
-		IApproximationSpace(SmartPtr<subset_handler_type> spMGSH, bool bGroup);
+		IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
+		                    SmartPtr<grid_type>,
+		                    bool bGroup);
+
+	///	Destructor
+		~IApproximationSpace();
 
 	///	clears all functions
 		void clear() {m_spFunctionPattern->clear();}
@@ -181,7 +190,10 @@ class IApproximationSpace
 #endif
 
 	protected:
-	/// grid or multigrid or subsethandler, where elements are stored
+	/// multigrid, where elements are stored
+		SmartPtr<MultiGrid> m_spMG;
+
+	/// subsethandler, where elements are stored
 		SmartPtr<MGSubsetHandler> m_spMGSH;
 
 	///	function pattern
