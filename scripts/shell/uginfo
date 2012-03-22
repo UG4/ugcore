@@ -43,8 +43,11 @@ qstat | grep $USER
 ######################################################################
 elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
 echo "Using Hermit"
-qstat | sed -n 1p
-qstat | grep $USER
+squeueOutput=`mktemp -u squeueOutputXXX`
+qstat > $squeueOutput
+cat $squeueOutput | sed -n 1p
+cat $squeueOutput | grep $USER
+rm $squeueOutput
 
 ######################################################################
 #                            Jugene
@@ -71,8 +74,11 @@ ps aux | grep $USER | grep mpirun
 ######################################################################
 elif [ $UGSUBMIT_TYPE = "cekon" ]; then
 echo "Using SLURM on cekon"
-squeue | sed -n 1p
-squeue | grep $USER
+squeueOutput=`mktemp -u squeueOutputXXX`
+squeue > $squeueOutput
+cat $squeueOutput | sed -n 1
+cat $squeueOutput | grep $USER
+rm $squeueOutput
 
 ######################################################################
 else
