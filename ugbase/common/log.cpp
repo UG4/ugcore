@@ -75,7 +75,7 @@ void LogAssistant::flush()
 	logger().flush();
 	m_splitBufInst.flush();
 	if(m_fileStream.is_open())
-		m_fileStream.flush;
+		m_fileStream.flush();
 }
 
 
