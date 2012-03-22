@@ -51,7 +51,8 @@ GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) :
 GridSubsetHandler::~GridSubsetHandler()
 {
 	if(m_pGrid != NULL){
-		cleanup();
+		erase_subset_lists_impl();
+		detach_data();
 	}
 }
 
@@ -63,17 +64,8 @@ void GridSubsetHandler::grid_to_be_destroyed(Grid* grid)
 
 void GridSubsetHandler::cleanup()
 {
-	erase_subset_lists();
-
-	if(elements_are_supported(SHE_VERTEX))
-		m_pGrid->detach_from_vertices(m_aSharedEntryVRT);
-	if(elements_are_supported(SHE_EDGE))
-		m_pGrid->detach_from_edges(m_aSharedEntryEDGE);
-	if(elements_are_supported(SHE_FACE))
-		m_pGrid->detach_from_faces(m_aSharedEntryFACE);
-	if(elements_are_supported(SHE_VOLUME))
-		m_pGrid->detach_from_volumes(m_aSharedEntryVOL);
-
+	erase_subset_lists_impl();
+	detach_data();
 	ISubsetHandler::set_grid(NULL);
 }
 
@@ -98,6 +90,18 @@ void GridSubsetHandler::assign_grid(Grid& grid)
 		m_pGrid->attach_to_volumes(m_aSharedEntryVOL);
 }
 
+void GridSubsetHandler::detach_data()
+{
+	if(elements_are_supported(SHE_VERTEX))
+		m_pGrid->detach_from_vertices(m_aSharedEntryVRT);
+	if(elements_are_supported(SHE_EDGE))
+		m_pGrid->detach_from_edges(m_aSharedEntryEDGE);
+	if(elements_are_supported(SHE_FACE))
+		m_pGrid->detach_from_faces(m_aSharedEntryFACE);
+	if(elements_are_supported(SHE_VOLUME))
+		m_pGrid->detach_from_volumes(m_aSharedEntryVOL);
+}
+
 GridSubsetHandler& GridSubsetHandler::operator = (const GridSubsetHandler& sh)
 {
 	ISubsetHandler::operator =(sh);
@@ -112,12 +116,16 @@ GridSubsetHandler& GridSubsetHandler::operator = (const ISubsetHandler& sh)
 
 void GridSubsetHandler::erase_subset_lists()
 {
+	erase_subset_lists_impl();
+}
+
+void GridSubsetHandler::erase_subset_lists_impl()
+{
 	for(uint i = 0; i < m_subsets.size(); ++i)
 		delete m_subsets[i];
 
 	m_subsets.clear();
 }
-
 
 void GridSubsetHandler::clear_subset_lists(int index)
 {

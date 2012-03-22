@@ -198,10 +198,16 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	///	returns the number of subsets in the local list
 		inline uint num_subsets_in_list() const	{return m_numSubsets;}
 		
+	///	detaches all attached data.
+		void detach_data();
+
 	////////////////////////////////////////////////
 	//	implementation of protected virtual methdos of ISubsetHandler.
 	///	erases the subsets. Doesn't alter any indices.
-		void erase_subset_lists();
+		virtual void erase_subset_lists();
+
+	///	non-virtual implementation of erase_subset_lists. Callable from destructor
+		void erase_subset_lists_impl();
 		
 	///	clears the element lists in the given subset. Does not alter any indices.
 		void clear_subset_lists(int index);

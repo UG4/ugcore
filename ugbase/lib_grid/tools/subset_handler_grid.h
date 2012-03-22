@@ -223,19 +223,25 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	///	returns the number of subsets in the local list
 		inline uint num_subsets_in_list() const	{return m_subsets.size();}
 		
+	///	detaches all attached data.
+		void detach_data();
+
 	////////////////////////////////////////////////
 	//	implementation of protected virtual methdos of ISubsetHandler.
 	///	erases the subsets. Doesn't alter any indices.
-		void erase_subset_lists();
+		virtual void erase_subset_lists();
+
+	///	non-virtual implementation of erase_subset_lists. Callable from destructor
+		void erase_subset_lists_impl();
 		
 	///	clears the element lists in the given subset. Does not alter any indices.
-		void clear_subset_lists(int index);
+		virtual void clear_subset_lists(int index);
 
 	///	changes the subset-indices of all elements int the subset.
 	/**	WARNING: subsets are not automatically changed accordingly.
 	 *	After termination Subset-Indices and Subset-Infos/iterators are asynchronous.
 	 *	Make sure to change subset-infos and iterators accordingly.*/		
-		void change_subset_indices(int indOld, int indNew);		
+		virtual void change_subset_indices(int indOld, int indNew);
 
 		
 	///	add a subset

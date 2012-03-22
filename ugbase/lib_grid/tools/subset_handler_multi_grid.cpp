@@ -55,8 +55,10 @@ MultiGridSubsetHandler(const MultiGridSubsetHandler& sh) :
 
 MultiGridSubsetHandler::~MultiGridSubsetHandler()
 {
-	if(m_pGrid != NULL)
-		cleanup();
+	if(m_pGrid != NULL){
+		erase_subset_lists_impl();
+		detach_data();
+	}
 }
 
 void MultiGridSubsetHandler::grid_to_be_destroyed(Grid* grid)
@@ -67,18 +69,11 @@ void MultiGridSubsetHandler::grid_to_be_destroyed(Grid* grid)
 
 void MultiGridSubsetHandler::cleanup()
 {
-	erase_subset_lists();
+	erase_subset_lists_impl();
 	m_levels.clear();
 
 	if(m_pMG){
-		if(elements_are_supported(SHE_VERTEX))
-			m_pMG->detach_from_vertices(m_aSharedEntryVRT);
-		if(elements_are_supported(SHE_EDGE))
-			m_pMG->detach_from_edges(m_aSharedEntryEDGE);
-		if(elements_are_supported(SHE_FACE))
-			m_pMG->detach_from_faces(m_aSharedEntryFACE);
-		if(elements_are_supported(SHE_VOLUME))
-			m_pMG->detach_from_volumes(m_aSharedEntryVOL);
+		detach_data();
 
 	//	unregister the previously registered callback
 		m_callbackId = MessageHub::SPCallbackId(NULL);
@@ -120,7 +115,24 @@ void MultiGridSubsetHandler::assign_grid(MultiGrid& mg)
 	level_required(m_pMG->num_levels());
 }
 
+void MultiGridSubsetHandler::detach_data()
+{
+	if(elements_are_supported(SHE_VERTEX))
+		m_pMG->detach_from_vertices(m_aSharedEntryVRT);
+	if(elements_are_supported(SHE_EDGE))
+		m_pMG->detach_from_edges(m_aSharedEntryEDGE);
+	if(elements_are_supported(SHE_FACE))
+		m_pMG->detach_from_faces(m_aSharedEntryFACE);
+	if(elements_are_supported(SHE_VOLUME))
+		m_pMG->detach_from_volumes(m_aSharedEntryVOL);
+}
+
 void MultiGridSubsetHandler::erase_subset_lists()
+{
+	erase_subset_lists_impl();
+}
+
+void MultiGridSubsetHandler::erase_subset_lists_impl()
 {
 	for(size_t level = 0; level < m_levels.size(); ++level)
 	{
