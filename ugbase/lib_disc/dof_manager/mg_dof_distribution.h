@@ -100,6 +100,8 @@ class MGDoFDistribution : public GridObserver
 		                  FunctionPattern& fctPatt,
 		                  bool bGrouped);
 
+		~MGDoFDistribution();
+
 		///	returns the multigrid
 		MultiGrid& multi_grid() {return m_rMultiGrid;}
 		const MultiGrid& multi_grid() const {return m_rMultiGrid;}

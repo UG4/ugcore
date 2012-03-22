@@ -250,6 +250,13 @@ MGDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPatt,
 	register_observer();
 };
 
+MGDoFDistribution::
+~MGDoFDistribution()
+{
+	clear_attachments();
+	unregister_observer();
+}
+
 SubsetGroup MGDoFDistribution::subset_grp_by_name(const char* names) const
 {
 	SubsetGroup ssGrp;
