@@ -61,8 +61,8 @@ void MultiGrid::init()
 //	attach elem-infos
 	attach_to_vertices(m_aVertexInfo);
 	attach_to_edges(m_aEdgeInfo);
-	attach_to_faces(m_aFaceInfo);
-	attach_to_volumes(m_aVolumeInfo);
+	attach_to_faces_dv(m_aFaceInfo, NULL);
+	attach_to_volumes_dv(m_aVolumeInfo, NULL);
 
 //	init accessors
 	m_aaVrtInf.access(*this, m_aVertexInfo);
