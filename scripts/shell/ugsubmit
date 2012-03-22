@@ -36,6 +36,7 @@ walltime="00:10:00";  # walltime
 jobname="job";
 scriptname=$0;		  # name of script
 execpath=`pwd`;       # execution path of script
+runDir=$execPath
 execdate=`date`;      # date of execution
 verbose=false;
 
@@ -52,8 +53,8 @@ JugeneMode="VN"
 JugeneMapfile="TXYZ"
 JugeneVerbose=2
 
-# Hermit Options
-HermitWorkspace=false
+# Hermit Options (max 31)
+HermitWorkspace=0
 
 # general PBS Options
 pbsMailtype=""
@@ -90,6 +91,7 @@ function usage
 	echo "        -verbose               : enable verbose mode"
 	echo "        -tail                  : display the output (as tail -f. job runs even if you hit Ctrl-C)"
 	echo "        -i                     : interactive (not fully supported)"
+	echo "        -dir                   : directory to use"
 	echo " "
 	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon."
 	echo " "
@@ -99,7 +101,7 @@ function usage
 	echo "        -Jugene-verbose         : Verbose Level. Default "$JugeneVerbose
 	echo ""
 	echo " Hermit Parameters"
-	echo "        -Hermit-workspace       : Use the Hermit Workspace mechanism for I/O."
+	echo "        -Hermit-workspace <days>: Use the Hermit Workspace mechanism for I/O. default 31"
 	echo "                                  https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism"
 	echo ""
 	echo " descr: The script creates a new folder relative to the current path with the name"
@@ -213,8 +215,11 @@ do
 		tail=true
 		shift 1
 	elif [ $1 == "-Hermit-workspace" ]; then
-		HermitWorkspace=true
-		shift 1
+		HermitWorkspace=$2
+		shift 2
+	elif [ $1 == "-dir" ]; then
+		outDir=$2
+		shift 2
 	elif [ $1 == "---" ]; then
 		shift
 		break
@@ -252,7 +257,8 @@ if [ ${executable:0:1} = "." ]; then
 fi
 nnodes=$((npe/nppn))
 #npe=$((nnodes*nppn)); # number of process entities (i.e. num processes)
-mydate=$(date "+.%F.%T");
+mydate=$(date "+.%m-%d-%H%M");
+jobname1=$jobname
 jobname=$jobname.$npe$mydate;
 
 
@@ -266,15 +272,16 @@ fi
 ticket=$$
 
 #create output directory
-if [ $HermitWorkspace == true ]; then
-	if [ $UGSUBMIT_TYPE == "Hermit" ]; then
-		outdir=`ws_allocate $jobname 31`
-	else
-		echo "Hermit Workspace only on Cluster Hermit, not on cluster=" $UGSUBMIT_TYPE " !"
-		exit
+if [ $UGSUBMIT_TYPE == "Hermit" ] && [ $HermitWorkspace -gt 0 ] ; then
+	if [ $test == true ]; then
+		HermitWorkspace=1
 	fi
+	outdir=`ws_allocate $jobname $HermitWorkspace`
+	echo "Hermit Workspace dir is $outdir, for $HermitWorkspace days"
+	ln -s $outdir $jobname
 else
-	outdir=$execpath/$jobname
+	HermitWorkspace=0
+	outdir=$outDir/$jobname
 	if [ -d $outdir ]; then
 		echo "Output directory $outdir already exist. Remove directory or choose other jobname"
 		exit 0;
@@ -282,6 +289,7 @@ else
 		mkdir $outdir
 	fi
 fi
+
 echo "Output dir is $outdir"
 rm lastRun
 ln -s $outdir lastRun
@@ -291,33 +299,35 @@ if [ ! -e $outdir/info.txt ]; then
     touch $outdir/info.txt
 fi
 
+cd $outdir
+
 ######################################################################
 # info about args read
-echo " ------------" >> $outdir/info.txt
-echo "  Executing:" >> $outdir/info.txt
-echo " ------------" >> $outdir/info.txt
-echo " cluster type: "$UGSUBMIT_TYPE >> $outdir/info.txt
-echo " script:       "$execpath/$scriptname >> $outdir/info.txt
-echo " exec path:    "$execpath >> $outdir/info.txt
-echo " date:         "$execdate >> $outdir/info.txt
-#echo "" >> $outdir/info.txt
-echo " jobname:      "$jobname >> $outdir/info.txt
-echo " nnodes:       "$nnodes >> $outdir/info.txt
-echo " nppn:         "$nppn >> $outdir/info.txt
-echo " npe:          "$npe >> $outdir/info.txt
-echo " walltime:     "$walltime >> $outdir/info.txt
-echo " executable:   "$executable >> $outdir/info.txt
-echo " arguments:    "$args >> $outdir/info.txt
-echo " email:        "$UGSUBMIT_EMAIL >> $outdir/info.txt
-echo "" >> $outdir/info.txt
-echo " output will be written to: "$outdir/ >> $outdir/info.txt
-echo "" >> $outdir/info.txt
+echo " ------------" >> info.txt
+echo "  Executing:" >> info.txt
+echo " ------------" >> info.txt
+echo " cluster type: "$UGSUBMIT_TYPE >> info.txt
+echo " script:       "$execpath/$scriptname >> info.txt
+echo " exec path:    "$outDir >> info.txt
+echo " date:         "$execdate >> info.txt
+#echo "" >> info.txt
+echo " jobname:      "$jobname >> info.txt
+echo " nnodes:       "$nnodes >> info.txt
+echo " nppn:         "$nppn >> info.txt
+echo " npe:          "$npe >> info.txt
+echo " walltime:     "$walltime >> info.txt
+echo " executable:   "$executable >> info.txt
+echo " arguments:    "$args >> info.txt
+echo " email:        "$UGSUBMIT_EMAIL >> info.txt
+echo "" >> info.txt
+echo " output will be written to: " >> info.txt
+echo "" >> info.txt
 
-echo "Job '$jobname' submitted on `date`" >> $outdir/info.txt
-echo "Output to:      '$outdir'" >> $outdir/info.txt
+echo "Job '$jobname' submitted on `date`" >> info.txt
+echo "Output to:      '$outdir'" >> info.txt
 
 if [ $verbose == true ]; then
-	cat $outdir/info.txt
+	cat info.txt
 fi
 #ugjob $UGSUBMIT_EMAIL $jobname $outdir $nnodes $nppn $walltime $executable $args
 
@@ -330,6 +340,7 @@ export UGS_MYDIR=$execpath
 # now call job schedulers
 
 jobid="unknown"
+
 
 ######################################################################
 #                     qsub on Hermit / HLRS (aprun)
@@ -352,42 +363,35 @@ if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
 	if [ $interactive == true ]; then
 		echo "interactive mode is not supported at the moment"
 	fi
-	
+
 	pbsMail=""
 	if [ $mail == true ]; then 
 		if [ -z "$UGSUBMIT_EMAIL" ]; then
 			echo "please set UGSUBMIT_EMAIL or specify email with -email".
 			exit
-		fi	 
+		fi 
 		$pbsMail="-M $UGSUBMIT_EMAIL -m $pbsMailtype"
 	fi
 	
-	qsubargs="$qsubqueue -V -N $jobname -o $outdir/job.output -e $outdir/job.error -j oe -S /bin/bash -l walltime=$walltime $PBSnodes $pbsMail"
+	qsubargs="$qsubqueue -V -N $jobname -o job.output -e job.error -j oe -S /bin/bash -l walltime=$walltime $PBSnodes  $pbsMail"
 	
-	echo "$qsubrun" >> $outdir/job.output
-	echo "qsub $qsubargs" >> $outdir/job.output	
-	
+	if [ $verbose == true ]; then
+		echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs"		
+	fi
+
 	if [ $test == true ]; then
 		echo ""
 		echo "test. not executing."
-		echo $qsubrun
-		echo "qsub $qsubargs"
-		rm -rf $outdir/
+		cd ..
+		#rm -rf $outdir/
 		exit
 	fi
-	
-# creating script file
-	cat > $outdir/$jobname.sh << EOF
-#!/bin/bash
-$qsubrun
-EOF
 
-	
-#submitting batch job
-	cd $outdir	
-	jobid=`qsub -q user $qsubargs $outdir/$jobname.sh`
+	echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs" >> info.txt
+
+	jobid=`echo "cd $outdir; $qsubrun" | qsub $qsubargs`	
 	jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
-		
+
 ######################################################################
 #                            Jugene
 #-------------------------------------------------------------------
@@ -435,12 +439,12 @@ EOF
 			fi
 		fi	 
 		
-		cat >> $outdir/job.sh << EOF
+		cat >> job.sh << EOF
 # @ notification = $JugeneNotification
 # @ notify_user = $UGSUBMIT_EMAIL
 EOF
 	fi
-	cat >> $outdir/job.sh << EOF
+	cat >> job.sh << EOF
 # @ job_type = bluegene
 # @ bg_connection = TORUS
 # @ bg_size = $npe
@@ -448,13 +452,13 @@ EOF
 mpirun -np $npe -exe $executable -mode $JugeneMode -mapfile $JugeneMapfile -verbose $JugeneVerbose -env LD_LIBRARY_PATH=$MYLDLPATH -args $args
 EOF
 
-	cd $outdir
-	echo $outdir/job.sh
+	echo job.sh
 	if [ $test == true ]; then
 		echo "test. not executing."
 		echo $outdir/job.sh ":"
 		cat $outdir/job.sh
-		rm -rf $outdir/
+		cd $outdir/..
+		#rm -rf $outdir/
 		exit
 	fi
 	
@@ -474,11 +478,11 @@ elif [ $UGSUBMIT_TYPE == "mpi" ]; then
 		echo "pure mpi does not support nppn > 1"
 		exit
 	fi
-	cd $outdir
+
 	echo mpirun -np $npe $executable $args
 	if [ $test == true ]; then
 		echo "test. not executing."
-		rm -rf $outdir/
+		#rm -rf $outdir/
 		exit
 	fi
 	if [ $interactive == true ]; then
@@ -525,16 +529,21 @@ elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 		fi	 
 		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
 	fi
-	cd $outdir
-	echo salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args
+
+	sallocrun="salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args"
+
+	echo "$sallocrun" >> $outdir/info.txt
+	if [ $verbose == true ]; then
+		echo "$sallocrun"
+	fi
+
 	if [ $test == true ]; then
 		echo "test. not executing."
-		rm -rf $outdir/
+		cd $outdir/..
+		#rm -rf $outdir/
 		exit
 	fi
 	
-	sallocrun="salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args"
-	echo "nohup $sallocrun > $outdir/job.output &" >> $outdir/info.txt
 
 	if [ $interactive == true ]; then
 		`$sallocrun`
@@ -556,11 +565,11 @@ if [ $interactive == false ]; then
 		echo "JOBID EXECDATE DIRECTORY" > $execpath/ugjobs
 	fi	
 	echo "$jobid $mydate $outdir" >> $execpath/ugjobs
-	echo "Received job id: $jobid" >> $outdir/info.txt
+	echo "Received job id: $jobid" >> info.txt
 	echo "Received job id: $jobid"
 
 	if [ $tail == true ]; then
-		touch $outdir/job.output
-		sleep 1; tail -f $outdir/job.output
+		touch job.output
+		sleep 1; tail -f job.output
 	fi
 fi
