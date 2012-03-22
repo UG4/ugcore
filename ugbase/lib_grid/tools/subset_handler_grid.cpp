@@ -52,21 +52,18 @@ GridSubsetHandler::~GridSubsetHandler()
 {
 	if(m_pGrid != NULL){
 		cleanup();
-		m_pGrid->unregister_observer(this);
 	}
 }
 
 void GridSubsetHandler::grid_to_be_destroyed(Grid* grid)
 {
+	assert((m_pGrid == grid) && "ERROR in GridSubsetHandler::grid_to_be_destroyed(...): Grids do not match.");
 	cleanup();
-	ISubsetHandler::grid_to_be_destroyed(grid);
 }
 
 void GridSubsetHandler::cleanup()
 {
-	for(size_t i = 0; i < m_subsets.size(); ++i){
-		delete m_subsets[i];
-	}
+	erase_subset_lists();
 
 	if(elements_are_supported(SHE_VERTEX))
 		m_pGrid->detach_from_vertices(m_aSharedEntryVRT);
@@ -76,6 +73,8 @@ void GridSubsetHandler::cleanup()
 		m_pGrid->detach_from_faces(m_aSharedEntryFACE);
 	if(elements_are_supported(SHE_VOLUME))
 		m_pGrid->detach_from_volumes(m_aSharedEntryVOL);
+
+	ISubsetHandler::set_grid(NULL);
 }
 
 void GridSubsetHandler::assign_grid(Grid& grid)

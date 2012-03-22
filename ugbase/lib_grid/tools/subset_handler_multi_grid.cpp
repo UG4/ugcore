@@ -55,16 +55,14 @@ MultiGridSubsetHandler(const MultiGridSubsetHandler& sh) :
 
 MultiGridSubsetHandler::~MultiGridSubsetHandler()
 {
-	cleanup();
-
 	if(m_pGrid != NULL)
-		m_pGrid->unregister_observer(this);
+		cleanup();
 }
 
 void MultiGridSubsetHandler::grid_to_be_destroyed(Grid* grid)
 {
+	assert((m_pGrid == grid) && "ERROR in MultiGridSubsetHandler::grid_to_be_destroyed(...): Grids do not match.");
 	cleanup();
-	ISubsetHandler::grid_to_be_destroyed(grid);
 }
 
 void MultiGridSubsetHandler::cleanup()
