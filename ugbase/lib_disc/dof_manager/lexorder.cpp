@@ -14,76 +14,57 @@
 
 namespace ug{
 
-/// utility class to provide compare operator for indices based on their position
-/**
- * This class is used to provide an ordering for indices. The ordering relation
- * is based on the geometric position.
- *  */
 
-
-
-
-/*
-
+// Order for 1D
 template<int dim>
-struct ComparePosition {
-///	constructor, passing field with connections for each index
-	ComparePosition(const std::vector<std::pair<MathVector<dim>, size_t> >& vPos) : m_vPos(vPos) {}
+bool ComparePosDim(const std::pair<MathVector<dim>, size_t> &p1,
+                   const std::pair<MathVector<dim>, size_t> &p2)
+{return false;}
 
-///	comparison operator
-	bool operator() (size_t i,size_t j)
-	{
-		UG_ASSERT(i < m_vPos.size(), "Invalid index.");
-		UG_ASSERT(j < m_vPos.size(), "Invalid index.");
-		return ComparePosDim(m_vPos[i].first, m_vPos[j].first);
-	}
-
-private:
-	///	storage field for teh position of each index
-	const std::vector<MathVector<dim> >& m_vPos;
-
-	// Order for 1D
-	bool ComparePosDim(MathVector<1> p1, MathVector<1> p2)
-	{return (p1[0]<p2[0]);};
-
-	// Order for 2D
-	bool ComparePosDim(MathVector<2> p1, MathVector<2> p2)
-	{return (p1[0]==p2[0] && p1[1]<p2[1]);};
-
-	// Order for 3D
-	bool ComparePosDim(MathVector<3> p1, MathVector<3> p2)
-	{return (p1[0]==p2[0] && p1[1]==p2[1] && p1[2]<p2[2]);};
+template<>
+bool ComparePosDim<1>(const std::pair<MathVector<1>, size_t> &p1,
+                      const std::pair<MathVector<1>, size_t> &p2)
+{
+	return (p1.first[0]<p2.first[0]);
 };
 
-// computes ordering using Cuthill-McKee algorithm
+// Order for 2D
+template<>
+bool ComparePosDim<2>(const std::pair<MathVector<2>, size_t> &p1,
+                      const std::pair<MathVector<2>, size_t> &p2)
+{
+	if (p1.first[1]==p2.first[1]) return p1.first[0] < p2.first[0];
+	else return (p1.first[1] < p2.first[1]);
+};
+
+// Order for 3D
+template<>
+bool ComparePosDim<3>(const std::pair<MathVector<3>, size_t> &p1,
+                      const std::pair<MathVector<3>, size_t> &p2)
+{
+	return (p1.first[0]==p2.first[0] && p1.first[1]==p2.first[1] && p1.first[2]<p2.first[2]);
+};
+
+
 template<int dim>
-bool ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
-					const std::vector<std::pair<MathVector<dim>, size_t> >& vPos,
-                    int order, int sign)
+void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
+                               std::vector<std::pair<MathVector<dim>, size_t> >& vPos)
 {
 //	list of sorted indices
-	const size_t numVec = vPos.size();
-	std::vector<size_t> vNewOrder(numVec);
-	if(vNewOrder.size()< numVec)
-		{
-			UG_LOG("ERROR in OrderLex: "
-					"Out of memory.\n");
-			return false;
-		}
+	vNewIndex.resize(vPos.size());
 
-// sort indices based on their position
-	ComparePosition<dim> myCompPos(vPos);
-	std::sort(vPos.begin(), vPos.end(), myCompPos);
+//  sort indices based on their position
+	std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim>);
 
-
-	for (size_t i=0; i<numVec; ++i)
-		vNewOrder[vPos.second] = i;
-
-
-//	we're done
-	return true;
+	for (size_t i=0; i < vPos.size(); ++i)
+	{
+		vNewIndex[vPos[i].second] = i;
+	}
 }
 
-*/
+
+template void ComputeLexicographicOrder<1>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<1>, size_t> >& vPos);
+template void ComputeLexicographicOrder<2>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<2>, size_t> >& vPos);
+template void ComputeLexicographicOrder<3>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<3>, size_t> >& vPos);
 
 }
