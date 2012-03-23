@@ -103,8 +103,9 @@ public:
 		return _vec.size();
 	}
 
-	number get(size_t i) const {
-		if (i < 0 || i >= _vec.size()) {
+	number get(int i) const {
+
+		if (i < 0 || (size_t)i >= _vec.size()) {
 			throw UGFatalError("NumberArray: index out of Bounds!");
 		}
 
@@ -318,75 +319,6 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 
 	return result;
 }
-
-//JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
-//(JNIEnv *env, jobject obj, jlong exportedClassPointer, jobjectArray params) {
-//
-//	ug::bridge::IExportedClass* clazz =
-//			(ug::bridge::IExportedClass*) exportedClassPointer;
-//
-//	ug::bridge::ParameterStack paramsIn;
-//
-//	std::string name = "constructor";
-//
-//	try {
-//		const ug::bridge::ExportedConstructor* constructor =
-//				ug::vrl::invocation::getConstructorBySignature(
-//				env, ug::vrl::vrlRegistry,
-//				clazz, params);
-//
-//		if (constructor == NULL) {
-//
-//			std::stringstream ss;
-//
-//			ss << "Constructor not found: " <<
-//					EMPHASIZE_BEGIN << name <<
-//					"()" << EMPHASIZE_END << ".";
-//
-//			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-//			env->ThrowNew(Exception, ss.str().c_str());
-//			return (long)NULL;
-//		}
-//
-//		ug::vrl::jobjectArray2ParamStack(
-//				env, ug::vrl::vrlRegistry,
-//				paramsIn, constructor->params_in(), params);
-//
-//		return (long) constructor->create(paramsIn);
-//
-//	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
-//
-//		std::stringstream ss;
-//		ss << "Incompatible Conversion from " <<
-//				ex.m_from << " to " << ex.m_to;
-//
-//		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-//		env->ThrowNew(Exception, ss.str().c_str());
-//	} catch (ug::bridge::ERROR_BadConversion ex) {
-//
-//		std::stringstream ss;
-//
-//		ss << "Incompatible Conversion from " <<
-//				ex.m_from << " to " << ex.m_to;
-//
-//		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-//		env->ThrowNew(Exception, ss.str().c_str());
-//	} catch (ug::UGError ex) {
-//		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-//		env->ThrowNew(Exception, ex.get_msg().c_str());
-//	} catch (...) {
-//
-//		std::stringstream ss;
-//
-//		ss << "Unknown exception thrown while"
-//				<< " trying to invoke method: " << name << "().";
-//
-//		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-//		env->ThrowNew(Exception, ss.str().c_str());
-//	}
-//
-//	return (long) NULL;
-//}
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 (JNIEnv *env, jobject obj, jlong exportedClassPointer, jobjectArray params) {
@@ -603,35 +535,12 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_delete
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_invalidate
 (JNIEnv * env, jclass cls, jobject smartPtr) {
 
-//	if (ug::vrl::isJSmartPointerConst(env, smartPtr)) {
-//		ug::vrl::invalidateJConstSmartPointer(env, smartPtr);
-//	} else {
-//		ug::vrl::invalidateJSmartPointer(env, smartPtr);
-//	}
-
-
-	if (env->MonitorEnter(cls) != JNI_OK) {
-		std::cout << "[Error-ENTER: releasing smartptr!]\n";
-	}
-
-	if (env->ExceptionOccurred()) {
-
-		 env->ExceptionDescribe();
-
-	     if (env->MonitorExit(cls) != JNI_OK) {
-	    	std::cout << "[Error-EXIT-EXC: releasing smartptr!]\n";
-	     }
-	}
-
 	if (ug::vrl::isJSmartPointerConst(env, smartPtr)) {
 		ug::vrl::invalidateJConstSmartPointer(env, smartPtr);
 	} else {
 		ug::vrl::invalidateJSmartPointer(env, smartPtr);
 	}
 
-	if (env->MonitorExit(cls) != JNI_OK) {
-		    	std::cout << "[Error-EXIT: releasing smartptr!]\n";
-	}
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_convertRegistryInfo
