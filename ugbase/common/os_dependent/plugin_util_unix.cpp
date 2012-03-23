@@ -8,6 +8,7 @@
 #include "common/util/path_provider.h"
 #include "bridge/bridge.h"
 #include "common/os_dependent/file_util.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 
