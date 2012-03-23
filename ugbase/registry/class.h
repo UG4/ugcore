@@ -491,6 +491,10 @@ class IExportedClass
 	///	returns the i-th method group (all overloads of the i-th function)
 		virtual const ExportedMethodGroup& get_const_method_group(size_t ind) const = 0;
 
+		virtual const ExportedMethodGroup* get_exported_method_group(const std::string& name) const = 0;
+
+		virtual const ExportedMethodGroup* get_const_exported_method_group(const std::string& name) const = 0;
+
 	/**  can we create instances of this class
 	 *	(i.e. the class does not contain pure virtual functions)*/
 		virtual bool is_instantiable() const = 0;
@@ -564,6 +568,10 @@ class ExportedClassBaseImpl : public IExportedClass
 
 	///	returns the i-th method group (all overloads of the i-th function)
 		virtual const ExportedMethodGroup& get_const_method_group(size_t ind) const;
+
+		virtual const ExportedMethodGroup* get_exported_method_group(const std::string& name) const;
+
+		virtual const ExportedMethodGroup* get_const_exported_method_group(const std::string& name) const;
 
 	///	number of registered constructors
 		virtual size_t num_constructors() const;

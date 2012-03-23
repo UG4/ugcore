@@ -147,6 +147,9 @@ class UG_API Registry {
 	///	returns a group which contains all overloads of a function
 		ExportedFunctionGroup& get_function_group(size_t ind);
 
+	///	returns an exported function group by name
+		ExportedFunctionGroup* get_exported_function_group(const std::string& name);
+
 	///////////////////
 	// classes
 	///////////////////
@@ -214,6 +217,7 @@ class UG_API Registry {
 		void add_class_to_group(std::string className, std::string groupName,
 		                        std::string classTag = "");
 
+
 	protected:
 	///	performs some checks, throws error if something wrong
 		template <typename TClass, typename TBaseClass>
@@ -228,8 +232,6 @@ class UG_API Registry {
 	/// returns true if functionname is already used by a function in this registry
 		bool functionname_registered(const std::string& name);
 
-	///	returns an exported function group by name
-		ExportedFunctionGroup* get_exported_function_group(const std::string& name);
 
 	private:
 	//	disallow copy

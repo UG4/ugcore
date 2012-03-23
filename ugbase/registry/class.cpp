@@ -307,8 +307,28 @@ get_exported_method_group(const std::string& name)
 	return NULL;
 }
 
+const ExportedMethodGroup* ExportedClassBaseImpl::
+get_exported_method_group(const std::string& name) const
+{
+	for(size_t i = 0; i < m_vMethod.size(); ++i)
+		if(name == m_vMethod[i]->name())
+			return m_vMethod[i];
+
+	return NULL;
+}
+
 ExportedMethodGroup* ExportedClassBaseImpl::
 get_const_exported_method_group(const std::string& name)
+{
+	for(size_t i = 0; i < m_vConstMethod.size(); ++i)
+		if(name == m_vConstMethod[i]->name())
+			return m_vConstMethod[i];
+
+	return NULL;
+}
+
+const ExportedMethodGroup* ExportedClassBaseImpl::
+get_const_exported_method_group(const std::string& name) const
 {
 	for(size_t i = 0; i < m_vConstMethod.size(); ++i)
 		if(name == m_vConstMethod[i]->name())
