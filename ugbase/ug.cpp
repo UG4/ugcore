@@ -11,6 +11,7 @@
 #include "common/log.h"
 #include "common/util/path_provider.h"
 #include "common/os_dependent/os_info.h"
+#include "common/profiler/profiler.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
@@ -34,6 +35,7 @@ namespace ug
  */
 bool InitPaths(const char* argv0)
 {
+	PROFILE_FUNC();
 	//The method currently only works if the path is explicitly specified
 	//during startup or if UG4_ROOT is defined.
 
@@ -100,6 +102,7 @@ bool InitPaths(const char* argv0)
 //int UGInit(int argc, char* argv[], int parallelOutputProcRank)
 int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 {
+	PROFILE_FUNC();
 //	NOTE: UGInit is currently not called by ug_shell (recheck that!)
 
 	static bool firstCall = true;
