@@ -96,15 +96,16 @@ class MGDoFDistribution : public GridObserver
 		typedef MultiIndex<2> multi_index_type;
 
 	public:
-		MGDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH,
+		MGDoFDistribution(SmartPtr<MultiGrid> spMG,
+						  SmartPtr<MGSubsetHandler> spMGSH,
 		                  FunctionPattern& fctPatt,
 		                  bool bGrouped);
 
 		~MGDoFDistribution();
 
 		///	returns the multigrid
-		MultiGrid& multi_grid() {return m_rMultiGrid;}
-		const MultiGrid& multi_grid() const {return m_rMultiGrid;}
+		SmartPtr<MultiGrid> multi_grid() {return m_spMG;}
+		ConstSmartPtr<MultiGrid> multi_grid() const {return m_spMG;}
 
 		///	returns the subset handler
 		ConstSmartPtr<ISubsetHandler> subset_handler() const {return m_spMGSH;}
@@ -454,10 +455,6 @@ class MGDoFDistribution : public GridObserver
 		inline const size_t& obj_index(Volume* vol)     const {return m_aaIndexVOL[vol];}
 		/// \}
 
-	///	returns the associated grid
-		MultiGrid& grid() {return m_rMultiGrid;}
-		const MultiGrid& grid() const {return m_rMultiGrid;}
-
 	protected:
 	///	grouping
 		bool m_bGrouped;
@@ -494,6 +491,9 @@ class MGDoFDistribution : public GridObserver
 
 	///	definition of function on subset
 		std::vector<std::vector<bool> > m_vvFctDefInSubset;
+
+	///	Multi Grid
+		SmartPtr<MultiGrid> m_spMG;
 
 	///	Subset Handler
 		SmartPtr<MGSubsetHandler> m_spMGSH;

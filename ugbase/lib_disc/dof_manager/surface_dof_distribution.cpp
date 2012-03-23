@@ -15,14 +15,17 @@ namespace ug{
 
 ///	constructor
 SurfaceDoFDistribution::
-SurfaceDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPatt,
+SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
+                       SmartPtr<MGSubsetHandler> spMGSH,
+                       FunctionPattern& fctPatt,
                        SmartPtr<SurfaceLevelView> spSurfLevelView,
                        int level, bool bGrouped
 #ifdef UG_PARALLEL
                        , DistributedGridManager* pDistGridMgr
 #endif
 			)
-		:	MGDoFDistribution(spMGSH, fctPatt, bGrouped), m_spSurfLevelView(spSurfLevelView),
+		:	MGDoFDistribution(spMG, spMGSH, fctPatt, bGrouped),
+		 	m_spSurfLevelView(spSurfLevelView),
 		 	m_level(level)
 #ifdef UG_PARALLEL
 			, m_pDistGridMgr(pDistGridMgr)
@@ -231,7 +234,7 @@ void SurfaceDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 			//	check if element is on surface (i.e. has no children). Shadows are
 			//	not taken into account here, since their indices are already added
 			//	to the interface by the shadowing objects
-				if(multi_grid().has_children(elem)) {continue;}
+				if(multi_grid()->has_children(elem)) {continue;}
 
 			//	check if element is a ghost element, i.e. it is a surface element
 			//	but only due to a hierarchical cut of the grid in order to

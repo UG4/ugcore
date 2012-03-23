@@ -20,7 +20,8 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 
 	public:
 	///	constructor
-		LevelMGDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH,
+		LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
+		                       SmartPtr<MGSubsetHandler> spMGSH,
 		                       FunctionPattern& fctPatt, bool bGrouped
 #ifdef UG_PARALLEL
 		                     , DistributedGridManager* pDistGridMgr

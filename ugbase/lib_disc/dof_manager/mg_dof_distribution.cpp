@@ -239,10 +239,15 @@ void ComputeOrientationOffset<Face>
 ////////////////////////////////////////////////////////////////////////////////
 
 MGDoFDistribution::
-MGDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPatt,
+MGDoFDistribution(SmartPtr<MultiGrid> spMG,
+                  SmartPtr<MGSubsetHandler> spMGSH,
+                  FunctionPattern& fctPatt,
                   bool bGrouped)
-	: m_bGrouped(bGrouped), m_spMGSH(spMGSH),
-	  m_rFctPatt(fctPatt), m_rMultiGrid(*m_spMGSH->multi_grid())
+	: m_bGrouped(bGrouped),
+	  m_spMG(spMG),
+	  m_spMGSH(spMGSH),
+	  m_rFctPatt(fctPatt),
+	  m_rMultiGrid(*m_spMG)
 {
 	check_subsets();
 	create_offsets();
@@ -409,25 +414,25 @@ void MGDoFDistribution::create_offsets()
 void MGDoFDistribution::check_subsets()
 {
 //	check, that all geom objects are assigned to a subset
-	if(	m_spMGSH->num<VertexBase>() != m_rMultiGrid.num<VertexBase>())
+	if(	m_spMGSH->num<VertexBase>() != multi_grid()->num<VertexBase>())
 		UG_THROW_FATAL("All Vertices "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.");
 
-	if(	m_spMGSH->num<EdgeBase>() != m_rMultiGrid.num<EdgeBase>())
+	if(	m_spMGSH->num<EdgeBase>() != multi_grid()->num<EdgeBase>())
 		UG_THROW_FATAL("All Edges "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.");
 
-	if(	m_spMGSH->num<Face>() != m_rMultiGrid.num<Face>())
+	if(	m_spMGSH->num<Face>() != multi_grid()->num<Face>())
 		UG_THROW_FATAL("All Faces "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.");
 
-	if(	m_spMGSH->num<Volume>() != m_rMultiGrid.num<Volume>())
+	if(	m_spMGSH->num<Volume>() != multi_grid()->num<Volume>())
 		UG_THROW_FATAL("All Volumes "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
@@ -1101,19 +1106,19 @@ void MGDoFDistribution::init_attachments()
 {
 //	attach DoFs to vertices
 	if(m_vMaxDoFsInDim[VERTEX] > 0) {
-		m_rMultiGrid.attach_to<VertexBase>(m_aIndex);
+		multi_grid()->attach_to<VertexBase>(m_aIndex);
 		m_aaIndexVRT.access(m_rMultiGrid, m_aIndex);
 	}
 	if(m_vMaxDoFsInDim[EDGE] > 0) {
-		m_rMultiGrid.attach_to<EdgeBase>(m_aIndex);
+		multi_grid()->attach_to<EdgeBase>(m_aIndex);
 		m_aaIndexEDGE.access(m_rMultiGrid, m_aIndex);
 	}
 	if(m_vMaxDoFsInDim[FACE] > 0) {
-		m_rMultiGrid.attach_to<Face>(m_aIndex);
+		multi_grid()->attach_to<Face>(m_aIndex);
 		m_aaIndexFACE.access(m_rMultiGrid, m_aIndex);
 	}
 	if(m_vMaxDoFsInDim[VOLUME] > 0) {
-		m_rMultiGrid.attach_to<Volume>(m_aIndex);
+		multi_grid()->attach_to<Volume>(m_aIndex);
 		m_aaIndexVOL.access(m_rMultiGrid, m_aIndex);
 	}
 }
@@ -1121,10 +1126,10 @@ void MGDoFDistribution::init_attachments()
 void MGDoFDistribution::clear_attachments()
 {
 //	detach DoFs
-	if(m_aaIndexVRT.valid()) m_rMultiGrid.detach_from<VertexBase>(m_aIndex);
-	if(m_aaIndexEDGE.valid()) m_rMultiGrid.detach_from<EdgeBase>(m_aIndex);
-	if(m_aaIndexFACE.valid()) m_rMultiGrid.detach_from<Face>(m_aIndex);
-	if(m_aaIndexVOL.valid()) m_rMultiGrid.detach_from<Volume>(m_aIndex);
+	if(m_aaIndexVRT.valid()) multi_grid()->detach_from<VertexBase>(m_aIndex);
+	if(m_aaIndexEDGE.valid()) multi_grid()->detach_from<EdgeBase>(m_aIndex);
+	if(m_aaIndexFACE.valid()) multi_grid()->detach_from<Face>(m_aIndex);
+	if(m_aaIndexVOL.valid()) multi_grid()->detach_from<Volume>(m_aIndex);
 
 	m_aaIndexVRT.invalidate();
 	m_aaIndexEDGE.invalidate();
@@ -1207,12 +1212,12 @@ void MGDoFDistribution::register_observer()
 	if(max_dofs(FACE)) type |= OT_FACE_OBSERVER;
 	if(max_dofs(VOLUME)) type |= OT_VOLUME_OBSERVER;
 
-	m_rMultiGrid.register_observer(this, type);
+	multi_grid()->register_observer(this, type);
 }
 
 void MGDoFDistribution::unregister_observer()
 {
-	m_rMultiGrid.unregister_observer(this);
+	multi_grid()->unregister_observer(this);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

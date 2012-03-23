@@ -14,13 +14,15 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 LevelMGDoFDistribution::
-LevelMGDoFDistribution(SmartPtr<MGSubsetHandler> spMGSH, FunctionPattern& fctPatt,
+LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
+					   SmartPtr<MGSubsetHandler> spMGSH,
+                       FunctionPattern& fctPatt,
                        bool bGrouped
 #ifdef UG_PARALLEL
 						 , DistributedGridManager* pDistGridMgr
 #endif
 		)
-	:	MGDoFDistribution(spMGSH, fctPatt, bGrouped)
+	:	MGDoFDistribution(spMG, spMGSH, fctPatt, bGrouped)
 #ifdef UG_PARALLEL
 		, m_pDistGridMgr(pDistGridMgr)
 #endif

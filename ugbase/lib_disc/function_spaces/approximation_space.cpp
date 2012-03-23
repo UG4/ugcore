@@ -638,7 +638,7 @@ void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
 //	if not yet MGLevelDD allocated
 	if(!m_spLevMGDD.valid()){
 		m_spLevMGDD = SmartPtr<LevelMGDoFDistribution>
-					(new LevelMGDoFDistribution(this->m_spMGSH, *m_spFunctionPattern,
+					(new LevelMGDoFDistribution(m_spMG, m_spMGSH, *m_spFunctionPattern,
 					                            m_bGrouped
 #ifdef UG_PARALLEL
 					                              ,m_pDistGridMgr
@@ -675,8 +675,8 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 	{
 		if(!m_vSurfDD[lvl].valid()){
 			m_vSurfDD[lvl] = SmartPtr<SurfaceDoFDistribution>
-							(new SurfaceDoFDistribution(
-									this->m_spMGSH, *m_spFunctionPattern,
+							(new SurfaceDoFDistribution(m_spMG,
+									m_spMGSH, *m_spFunctionPattern,
 									m_vSurfLevView[lvl], lvl, m_bGrouped
 #ifdef UG_PARALLEL
 					                              ,m_pDistGridMgr
@@ -694,7 +694,7 @@ void IApproximationSpace::top_surf_dd_required()
 	if(!m_spTopSurfDD.valid()){
 		m_spTopSurfDD = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(
-									this->m_spMGSH, *m_spFunctionPattern,
+									m_spMG, m_spMGSH, *m_spFunctionPattern,
 									m_spTopSurfLevView, GridLevel::TOPLEVEL, m_bGrouped
 #ifdef UG_PARALLEL
 					                              ,m_pDistGridMgr

@@ -126,31 +126,31 @@ struct LevInfo<std::set<size_t> > : public LevInfoBase
 template <typename TBaseElem>
 GeometricObject* MGDoFDistribution::get_parent(TBaseElem* elem) const
 {
-	return m_rMultiGrid.get_parent(elem);
+	return multi_grid()->get_parent(elem);
 }
 
 template <typename TBaseElem>
 TBaseElem* MGDoFDistribution::parent_if_copy(TBaseElem* elem) const
 {
-	GeometricObject* pParent = m_rMultiGrid.get_parent(elem);
+	GeometricObject* pParent = multi_grid()->get_parent(elem);
 	TBaseElem* parent = dynamic_cast<TBaseElem*>(pParent);
 	if(parent != NULL &&
-		m_rMultiGrid.num_children<TBaseElem>(parent) == 1) return parent;
+		multi_grid()->num_children<TBaseElem>(parent) == 1) return parent;
 	else return NULL;
 }
 
 template <typename TBaseElem>
 TBaseElem* MGDoFDistribution::parent_if_same_type(TBaseElem* elem) const
 {
-	GeometricObject* pParent = m_rMultiGrid.get_parent(elem);
+	GeometricObject* pParent = multi_grid()->get_parent(elem);
 	return dynamic_cast<TBaseElem*>(pParent);
 }
 
 template <typename TBaseElem>
 TBaseElem* MGDoFDistribution::child_if_copy(TBaseElem* elem) const
 {
-	if(m_rMultiGrid.num_children<TBaseElem>(elem) != 1) return NULL;
-	return m_rMultiGrid.get_child<TBaseElem>(elem, 0);
+	if(multi_grid()->num_children<TBaseElem>(elem) != 1) return NULL;
+	return multi_grid()->get_child<TBaseElem>(elem, 0);
 }
 
 
