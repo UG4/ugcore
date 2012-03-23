@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include "file_util.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 
@@ -16,6 +17,7 @@ namespace ug{
 bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut,
 								const char* dir)
 {
+	PROFILE_FUNC();
 	dirsOut.clear();
 
 	DIR* curDir = opendir(dir);
@@ -44,7 +46,7 @@ bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut,
 ///	This method returns a list of all files in a directory
 bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 {
-
+	PROFILE_FUNC();
 	filesOut.clear();
 
 	DIR* curDir = opendir(dir);
@@ -72,6 +74,7 @@ bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 
 bool FileExists(const char* filename)
 {
+	PROFILE_FUNC();
 //todo: this could be improved.
 	ifstream in(filename);
 	if(in) {

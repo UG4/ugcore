@@ -15,6 +15,7 @@ namespace ug{
 
 bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 {
+	PROFILE_FUNC();
 	typedef void (*FctInitPlugin)(ug::bridge::Registry*, std::string);
 
 //	first we'll try to find all plugins in the given path
