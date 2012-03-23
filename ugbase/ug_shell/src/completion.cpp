@@ -480,7 +480,7 @@ static size_t GetOtherCompletitions(char *buf, int len, std::vector<string> &mat
 	if(pOtherCompletitions)
 		for(int i=0; i<iOtherCompletitionsLength; i++)
 		{
-			if(strncmp(pOtherCompletitions[i], snip, sniplen) == NULL)
+			if(strncmp(pOtherCompletitions[i], snip, sniplen) == 0)
 				matches.push_back(pOtherCompletitions[i]);
 		}
 
