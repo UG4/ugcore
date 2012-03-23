@@ -49,6 +49,7 @@ See also \ref pageUG4SetupParallel.
 </li>
 
 </ul>
+ <!-- 
 TODO/Proposal: Should we start a collection of information about parallel machines available to us (basic performance parameters; accounting informations, ...)?
-
+-->
 */

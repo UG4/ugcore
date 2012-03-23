@@ -7,12 +7,11 @@
 	- \ref secParallelRenderingGeneral           "General informations about parallel rendering"
 	- \ref secParallelRenderingWithParaView      "Parallel rendering with ParaView"
 
+
 <hr>
 \section secParallelRenderingGeneral General informations about parallel rendering
 <hr>
-
-TODO!
-
+<!-- TODO! -->
 <ul>
 <li> ...
 </li>
@@ -60,7 +59,7 @@ In client-server mode, one executes the <tt>pvserver</tt> program on a parallel 
      Select the (newly defined) server and click "Connect".
      </li>
 
-<li> In the "Pipeline Browser" of your client choose the server as "data object" -- TODO: Test and explicate!
+<li> In the "Pipeline Browser" of your client choose the server as "data object" <!-- TODO: Test and explicate! -->
      </li>
 
 

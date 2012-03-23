@@ -275,7 +275,7 @@ Here we only introduce some important details (everything else should become cle
      See sec. 6. of the "Best-Practise guide" mentioned above for an example and which LoadLeveler keywords to use.
      </li>
      </ul>
-     TODO: Some notes about "topology aware placing of MPI processes" might become relevant in the future.
+     <!-- TODO: Some notes about "topology aware placing of MPI processes" might become relevant in the future. -->
 </li>
 
 <li> If ug4 was dynamically linked add to the <tt>mpirun</tt> parameters <tt>-env LD_LIBRARY_PATH==/bgsys/drivers/ppcfloor/comm/lib/</tt>.
@@ -284,7 +284,7 @@ Here we only introduce some important details (everything else should become cle
 
 <li> <b>"Modules"</b> can be loaded by executing the <tt>module</tt> command, e.g. <tt>module load lapack</tt> for LAPACK.
 
-     TODO: Nevertheless CMake says "Info: Not using Lapack. No package found"!?
+     <!-- TODO: Nevertheless CMake says "Info: Not using Lapack. No package found"!? -->
 
      This is also for loading <b>performance analysis tools</b>, e.g. <tt>module load scalasca</tt>, <tt>module load UNITE</tt> etc. - no experience with this stuff yet!
 </li>
@@ -293,7 +293,8 @@ Here we only introduce some important details (everything else should become cle
      is a <b>tool with a graphical X11 user interface</b> for displaying system status, running jobs,
      scheduling and prediction of the start time of jobs.
 
-     TODO: If estimated start times can not determined by <tt>llq -s &lt;job-id&gt;</tt> (see below) this is to our knowledge the only possibility to get this information.
+     <!-- TODO: --> 
+     If estimated start times can not determined by <tt>llq -s &lt;job-id&gt;</tt> (see below) this is to our knowledge the only possibility to get this information.
 </li>
 		
 <li> <b>Interactive jobs</b> can be started with the <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerInteractive.html"> llrun </a> command.
@@ -381,7 +382,8 @@ Here we only introduce some important details (everything else should become cle
      llq [-u  <userid>]
      \endverbatim
 
-     TODO (to test): The estimated start time of a job can (maybe) also be determined by <tt>llq -s &lt;job-id&gt;-id</tt> (cf. https://docs.loni.org/wiki/Useful_LoadLeveler_Commands).
+     <!-- TODO (to test): -->
+     The estimated start time of a job can (maybe) also be determined by <tt>llq -s &lt;job-id&gt;-id</tt> (cf. https://docs.loni.org/wiki/Useful_LoadLeveler_Commands).
 </li>
 
 <li> <tt>llcancel</tt> is used to cancel a job (<tt>&lt;jobname&gt;</tt> as displayed by <tt>llq</tt>):
@@ -445,7 +447,7 @@ More information <a href="mailto:Ingo.Heppner@gcsc.uni-frankfurt.de">Ingo.Heppne
 <hr>
 \subsection secHermit_Architecture Architecture
 The <a href="https://wickie.hlrs.de/platforms/index.php/Cray_XE6">Cray XE6 ("Hermit")</a>. In Installation step 1, the XE6 is a 3552 node cluster. Each node is
-a Dual Socket AMD Interlagos @ 2.3GHz 16 cores each, which results in 113.664 cores in total. Normal nodes have 32 GB RAM, 480 special nodes have 64 GB (total 126 TB). (<a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Hardware_and_Architecture"> Architecture</a>)
+a Dual Socket <a href="http://en.wikipedia.org/wiki/List_of_AMD_Opteron_microprocessors#Opteron_6200-series_.22Interlagos.22_.2832_nm.29">AMD Opteron 6276 (Interlagos)</a> @ 2.3GHz 16 cores each, which results in 113.664 cores in total. Normal nodes have 32 GB RAM, 480 special nodes have 64 GB (total 126 TB). (<a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Hardware_and_Architecture"> Architecture</a>)
 That is 1 GB RAM for each process when running the maximum of 32 processes on a node.
 
 \subsection secHermit_General General 

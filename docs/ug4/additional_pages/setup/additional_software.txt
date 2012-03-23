@@ -25,6 +25,11 @@ A basic understanding of the used unix tools (wget, tar, ...) is useful but not 
 (instructions should work "out of the box"- except for the version numbers -
 check for a version that is appropriate for you and adapt the respective file name).
 
+Instead of using wget, you can also use curl (as is installed on mac), like
+\verbatim
+curl -O http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz 
+\endverbatim
+
 <hr>
 \section secInstallCMake Installation of CMake
 <hr>
@@ -53,8 +58,7 @@ You can install a local version of the <a href="http://www.cmake.org">CMake buil
     \endverbatim
     </li>
 
-<li> Shortcut for executing CMake from command-line (i.e., add a line like the
-     following in your <tt>.bashrc</tt> (for Bash):
+<li> Shortcut for executing CMake from command-line (i.e., add a line like the following in your <tt>.bashrc</tt> (for Bash):
     \verbatim
     alias cmake='$HOME/local/bin/cmake'
     \endverbatim
