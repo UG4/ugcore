@@ -252,6 +252,10 @@ class GridReaderUGX
 	///	returns the number of subset handlers for the given grid
 		size_t num_subset_handlers(size_t refGridIndex) const;
 
+	///	returns the name of the given subset handler
+		const char* get_subset_handler_name(size_t refGridIndex,
+											size_t subsetHandlerIndex) const;
+
 	///	fills the given subset-handler
 		bool subset_handler(ISubsetHandler& shOut,
 								size_t subsetHandlerIndex,

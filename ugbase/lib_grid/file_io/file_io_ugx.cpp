@@ -711,7 +711,7 @@ GridReaderUGX::~GridReaderUGX()
 const char* GridReaderUGX::
 get_grid_name(size_t index) const
 {
-	assert(index <= num_grids() && "Bad index!");
+	assert(index < num_grids() && "Bad index!");
 	xml_attribute<>* attrib = m_entries[index].node->first_attribute("name");
 	if(attrib)
 		return attrib->value();
@@ -727,6 +727,19 @@ size_t GridReaderUGX::num_subset_handlers(size_t refGridIndex) const
 	}
 
 	return m_entries[refGridIndex].subsetHandlerEntries.size();
+}
+
+const char* GridReaderUGX::
+get_subset_handler_name(size_t refGridIndex, size_t subsetHandlerIndex) const
+{
+	assert(refGridIndex < num_grids() && "Bad refGridIndex!");
+	const GridEntry& ge = m_entries[refGridIndex];
+	assert(subsetHandlerIndex < ge.subsetHandlerEntries.size() && "Bad subsetHandlerIndex!");
+
+	xml_attribute<>* attrib = ge.subsetHandlerEntries[subsetHandlerIndex].node->first_attribute("name");
+	if(attrib)
+		return attrib->value();
+	return NULL;
 }
 
 bool GridReaderUGX::
