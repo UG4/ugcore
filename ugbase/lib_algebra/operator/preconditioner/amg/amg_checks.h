@@ -429,6 +429,9 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 #endif
 		double nH2 = ConstTwoNorm(dH);
 		UG_LOG("base solver reduced by " << nH2/nH1 << " (on coarse)" << std::endl);
+
+		res.coarseDefect = nH2;
+		res.lastCoarseReduction = nH2/nH1;
 	}
 	else
 	{
