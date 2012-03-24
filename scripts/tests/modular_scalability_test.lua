@@ -1,26 +1,25 @@
 --------------------------------------------------------------------------------
 --
---   Lua - Script for scalability studies solving the
---   Laplace-Problem.
+--   Lua - Script for scalability studies solving the Laplace-Problem.
 --
---   For some flexibility several definitions concerning
---   the solver can also be given via command line parameters
+--   For some flexibility several definitions concerning the solver
+--   can also be given via command line parameters
 --
 --   Authors: Ingo Heppner, Sebastian Reiter, Andreas Vogel
 --
 --------------------------------------------------------------------------------
 -- Some usage infos:
--- * For an automatic (re)naming of logfile after simulation run
---   add the following parameters / options:
+-- * For an automatic (re)naming of logfile after simulation run add the
+--   following parameters / options:
 --
 --      '-logtofile bla -rlf'
 --
---   'bla' is a temporary dummy name, '-rlf' ("Rename Log File")
---   does the job. The New name is (gradually through the script)
---   assembled by concatenating some significant parameter values,
---   e.g. problem, dimension, startgrid, refinements, solver ...
---   Note: Not tested on JuGene (there a logfile is created by
---   default and named by the load leveler)!
+--   'bla' is a temporary dummy name, '-rlf' ("Rename Log File") eventually
+--   does the job. The new name is (gradually through the script) assembled
+--   by concatenating some significant parameter values, e.g. problem,
+--   dimension, startgrid, refinements, solver ...
+--   Note: Not tested on JuGene (there a logfile is created by default and
+--   named by the load leveler)!
 
 --------------------------------------------------------------------------------
 -- Execute on cekon via e.g.
@@ -32,6 +31,7 @@
 -- llrun -v -np 32 -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ -args "-ex ../scripts/tests/scalability_test.lua -dim 2 -grid  unit_square/unit_square_quads_8x8.ugx -numPreRefs 4 -numRefs 8"
 
 --------------------------------------------------------------------------------
+print("Execution of script 'modular_scalability_test.lua' started at " .. os.date())
 PrintBuildConfiguration()
 
 
@@ -518,8 +518,8 @@ end
 
 --lsConvCheck = solver:convergence_check() -- this doesn't work; returns only an object of type of the base class ('IConvergenceCheck') ...
 --SetDebugShell(?) -- no registered method til now (21032012)
---breakpoint()
---error("break")
+--breakpoint() -- available only in serial case
+--error("break before printSol")
 print("#ANALYZER INFO: linear solver converged in " .. lsConvCheck:step() .. " steps (defect reached: " .. lsConvCheck:defect() ..")")
 
 --------------------------------------------------------------------------------
@@ -542,7 +542,7 @@ if GetProfilerAvailable() == true then
 --    pn2 = GetProfileNode("GMG_lmgc")
     -- check if node is valid
     if pn:is_valid() then
-	    print(pn:call_tree())
+	    print(pn:call_tree(0.0))
 --        print(pn2:total_time_sorted())
     else
         print("main is not known to the profiler.")
@@ -608,3 +608,6 @@ if util.HasParamOption("-stats") then
 		end						
 	end 
 end
+
+print("Execution finished at " .. os.date())
+print("pwd = " .. os.execute(pwd))
