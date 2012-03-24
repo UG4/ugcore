@@ -75,8 +75,25 @@ ug:>
 and a blinking cursor: This is called the interactive shell. Interactive shell is disabled
 when you use -ex without -noquit and if UG is running in parallel.
 
-You can abort the execution of UG out of lua scripts by using exit(). If you want to stop the execution of a script, but you want to use the interactive shell thereafter, 
-you can use error("break").
+In the interactive shell you can start the LUA script <tt>&lt;scriptname&gt;</tt> (as usual) by executing
+<tt>ug_load_script()</tt>:
+\verbatim
+ug:> ug_load_script(<scriptname>)
+\endverbatim
+where <tt>&lt;scriptname&gt;</tt> is currently searched
+<ol>
+<li> relative to the currently loaded script</li>
+<li> absolute,</li>
+<li> relative to <tt>PathProvider::get_path(SCRIPT_PATH)</tt> (i.e <tt>\<ugshelldir\>/../scripts</tt>).
+</ol>
+
+(Using <tt>ug_load_script()</tt> is the preferred method of loading scripts; alternatively a script can be loaded using the (standard LUA) function <tt>dofile()</tt>.)
+
+You can abort the execution of UG out of lua scripts by using <tt>exit()</tt>.
+If you want to stop the execution of a script at a specific place, but you want to use the interactive shell thereafter, 
+insert at that place a call like <tt>error("break")</tt> (or whatever message sounds reasonable to you) and start the run with the <tt>-noquit</tt>. option
+
+Please note that the interactive shell currently is not available in a parallel environment.
 
 <hr>
 \section secAutoCompletion Auto Completion
@@ -213,7 +230,7 @@ The debug shell is like the normal ug4 shell (so it has \ref secAutoCompletion a
 <li> <tt>print VAL</tt> : Like <tt>VAL?</tt>
 </ul>
 
-Note that you don't have to define UG_DEBUG to use the debug shell. 
+Note that you don't have to configure ug4 with <tt>cmake -DDEBUG=ON ..</tt>) to use the debug shell. 
 There is a small performance drawback when using <tt>breakpoint(source, line)</tt> because we have to check for every line if it is a break line. 
 This is especially the case if you have lots of small calls in your lua script. However, there is no performance drawback in <tt>breakpoint()</tt>.
 */

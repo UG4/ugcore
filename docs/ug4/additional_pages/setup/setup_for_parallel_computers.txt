@@ -454,7 +454,7 @@ That is 1 GB RAM for each process when running the maximum of 32 processes on a 
 Using the <a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Using_the_Batch_System"> Batch system </a> and the <a href="https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism"> Workspace mechanism </a>.
 <br>
 The Job Scheduler on Hermit is supported by ugsubmit/uginfo/ugcancel (\ref pageugsubmit). You might want to use -Hermit-workspace . <br>
-Note that you have to choose modules every time you log in (you might want to add you module load/swap into .bashrc or similar).
+Note that you have to choose modules every time you log in (you might want to add your <tt>module load/swap</tt> commands into your <tt>.bashrc</tt> or similar).
 
 \subsection secHermit_GCC GCC
 
@@ -479,7 +479,7 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit_gcc.cmake ..
 \endverbatim
 
 \subsection secHermit_Cray Cray CC
-The Cray C Compiler is not working at the moment because there is a internal compiler error in release mode.
+The Cray C Compiler is not working at the moment because there is an internal compiler error in release mode.
 
 Toolchain file is ../toolchain_file_hermit.cmake, and the module is PrgEnv-cray.
 \verbatim

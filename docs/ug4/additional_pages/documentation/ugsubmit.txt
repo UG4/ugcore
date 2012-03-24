@@ -116,7 +116,7 @@ ugsubmit <npe> [optional Parameters] --- <binary> <arg1> <arg2> ...
 
  descr: The script creates a new folder relative to the current path with the name
         '\<jobname\>.\<npe\>.(date)' (where \<npe\> is the number of processes. In this new directory
-        a file names 'info.txt' is created, to identify the job. Then, depending
+        a file named 'info.txt' is created, to identify the job. Then, depending
         on the selected cluster type, a shell script is created and submitted to the
         job scheduling system. ugsubmit also sets a symbolic link lastRun to the newly
         created directory
