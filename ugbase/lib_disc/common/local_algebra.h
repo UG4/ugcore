@@ -8,6 +8,10 @@
 #ifndef __H__UG__LIB_DISC__COMMON__LOCAL_ALGEBRA__
 #define __H__UG__LIB_DISC__COMMON__LOCAL_ALGEBRA__
 
+#define UG_LOCALALGEBRA_ASSERT(cond, exp)
+// include define below to assert arrays used in stabilization
+//#define UG_LOCALALGEBRA_ASSERT(cond, exp) UG_ASSERT((cond), (exp))
+
 #include <vector>
 
 #include "./multi_index.h"
@@ -123,13 +127,13 @@ class LocalIndices
 	///	checks correct fct index in debug mode
 		inline void check_fct(size_t fct) const
 		{
-			UG_ASSERT(fct < num_fct(), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(fct < num_fct(), "Wrong index.");
 		}
 	///	checks correct dof index in debug mode
 		inline void check_dof(size_t fct, size_t dof) const
 		{
 			check_fct(fct);
-			UG_ASSERT(dof < num_dof(fct), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(dof < num_dof(fct), "Wrong index.");
 		}
 
 	protected:
@@ -198,7 +202,7 @@ class LocalVector
 	/// add a local vector
 		this_type& operator+=(const this_type& rhs)
 		{
-			UG_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
+			UG_LOCALALGEBRA_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
 			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
 					m_vvValue[fct][dof] += rhs.m_vvValue[fct][dof];
@@ -208,7 +212,7 @@ class LocalVector
 	/// subtract a local vector
 		this_type& operator-=(const this_type& rhs)
 		{
-			UG_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
+			UG_LOCALALGEBRA_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
 			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
 					m_vvValue[fct][dof] -= rhs.m_vvValue[fct][dof];
@@ -218,7 +222,7 @@ class LocalVector
 	///	add a scaled vector
 		this_type& scale_append(number s, const this_type& rhs)
 		{
-			UG_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
+			UG_LOCALALGEBRA_ASSERT(m_pIndex==rhs.m_pIndex, "Not same indices.");
 			for(size_t fct = 0; fct < m_vvValue.size(); ++fct)
 				for(size_t dof = 0; dof < m_vvValue[fct].size(); ++dof)
 					m_vvValue[fct][dof] += s * rhs.m_vvValue[fct][dof];
@@ -300,24 +304,24 @@ class LocalVector
 	///	checks correct fct index in debug mode
 		inline void check_fct(size_t fct) const
 		{
-			UG_ASSERT(fct < num_fct(), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(fct < num_fct(), "Wrong index.");
 		}
 	///	checks correct dof index in debug mode
 		inline void check_dof(size_t fct, size_t dof) const
 		{
 			check_fct(fct);
-			UG_ASSERT(dof < num_dof(fct), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(dof < num_dof(fct), "Wrong index.");
 		}
 	///	checks correct fct index in debug mode
 		inline void check_all_fct(size_t fct) const
 		{
-			UG_ASSERT(fct < num_all_fct(), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(fct < num_all_fct(), "Wrong index.");
 		}
 	///	checks correct dof index in debug mode
 		inline void check_all_dof(size_t fct, size_t dof) const
 		{
 			check_all_fct(fct);
-			UG_ASSERT(dof < num_all_dof(fct), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(dof < num_all_dof(fct), "Wrong index.");
 		}
 
 	protected:
@@ -416,7 +420,7 @@ class LocalMatrix
 	/// add matrix
 		this_type& operator+=(const this_type& rhs)
 		{
-			UG_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
+			UG_LOCALALGEBRA_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
 			          m_pColIndex==rhs.m_pColIndex, "Not same indices.");
 			for(size_t fct1=0; fct1 < m_CplMat.num_rows(); ++fct1)
 				for(size_t fct2=0; fct2 < m_CplMat.num_cols(); ++fct2)
@@ -427,7 +431,7 @@ class LocalMatrix
 	/// subtract matrix
 		this_type& operator-=(const this_type& rhs)
 		{
-			UG_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
+			UG_LOCALALGEBRA_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
 			          m_pColIndex==rhs.m_pColIndex, "Not same indices.");
 			for(size_t fct1=0; fct1 < m_CplMat.num_rows(); ++fct1)
 				for(size_t fct2=0; fct2 < m_CplMat.num_cols(); ++fct2)
@@ -438,7 +442,7 @@ class LocalMatrix
 	/// add scaled matrix
 		this_type& scale_append(number s, const this_type& rhs)
 		{
-			UG_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
+			UG_LOCALALGEBRA_ASSERT(m_pRowIndex==rhs.m_pRowIndex &&
 					  m_pColIndex==rhs.m_pColIndex, "Not same indices.");
 			for(size_t fct1=0; fct1 < m_CplMat.num_rows(); ++fct1)
 				for(size_t fct2=0; fct2 < m_CplMat.num_cols(); ++fct2)
@@ -568,30 +572,30 @@ class LocalMatrix
 	///	checks correct (fct1,fct2) index in debug mode
 		inline void check_fct(size_t rowFct, size_t colFct) const
 		{
-			UG_ASSERT(rowFct < num_row_fct(), "Wrong index.");
-			UG_ASSERT(colFct < num_col_fct(), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(rowFct < num_row_fct(), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(colFct < num_col_fct(), "Wrong index.");
 		}
 	///	checks correct (dof1,dof2) index in debug mode
 		inline void check_dof(size_t rowFct, size_t rowDoF,
 		                      size_t colFct, size_t colDoF) const
 		{
 			check_fct(rowFct, colFct);
-			UG_ASSERT(rowDoF < num_row_dof(rowFct), "Wrong index.");
-			UG_ASSERT(colDoF < num_col_dof(colFct), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(rowDoF < num_row_dof(rowFct), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(colDoF < num_col_dof(colFct), "Wrong index.");
 		}
 	///	checks correct (fct1,fct2) index in debug mode
 		inline void check_all_fct(size_t rowFct, size_t colFct) const
 		{
-			UG_ASSERT(rowFct < num_all_row_fct(), "Wrong index.");
-			UG_ASSERT(colFct < num_all_col_fct(), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(rowFct < num_all_row_fct(), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(colFct < num_all_col_fct(), "Wrong index.");
 		}
 	///	checks correct (dof1,dof2) index in debug mode
 		inline void check_all_dof(size_t rowFct, size_t rowDoF,
 							  size_t colFct, size_t colDoF) const
 		{
 			check_all_fct(rowFct, colFct);
-			UG_ASSERT(rowDoF < num_all_row_dof(rowFct), "Wrong index.");
-			UG_ASSERT(colDoF < num_all_col_dof(colFct), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(rowDoF < num_all_row_dof(rowFct), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(colDoF < num_all_col_dof(colFct), "Wrong index.");
 		}
 
 	protected:
