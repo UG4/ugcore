@@ -102,6 +102,9 @@ ugsubmit <npe> [optional Parameters] --- <binary> <arg1> <arg2> ...
 -        -mail-all              : 
 -        -verbose               : enable verbose mode
 -        -tail                  : display the output (as tail -f. job runs even if you hit Ctrl-C)
+-        -i                     : interactive (not fully supported)
+-        -dir                   : directory to use
+
  
  Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon.
  
