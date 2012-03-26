@@ -37,7 +37,7 @@ PrintBuildConfiguration()
 
 
 ug_load_script("ug_util.lua")
-ug_load_script("../scripts/tests/domain_distribution_util.lua")
+ug_load_script("domain_distribution_util.lua")
 
 -- get number of processes of this run
 numProcs = GetNumProcesses()
