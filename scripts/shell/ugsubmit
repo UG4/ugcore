@@ -47,6 +47,7 @@ mail=false
 
 tail=false
 interactive=false
+outDir=`pwd`
 
 # Jugene Options
 JugeneMode="VN"
