@@ -134,7 +134,8 @@ std::ostream &operator << (std::ostream &out, const DenseVector<TStorage> &vec)
 	out << "[";
 	for(size_t i=0; i<vec.size(); i++)
 		out << " " << vec[i];
-	out << " ] (" << vec.size() << ")";
+	out << " ] ";
+//	out << "(" << vec.size() << ")";
 	return out;
 }
 

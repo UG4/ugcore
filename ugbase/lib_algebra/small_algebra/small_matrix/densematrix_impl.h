@@ -177,7 +177,7 @@ std::ostream &operator << (std::ostream &out, const DenseMatrix<TStorage> &mat)
 		if(r != mat.num_rows()-1) out << "| ";
 	}
 	out << "]";
-	out << "(DenseMatrix " << mat.num_rows() << "x" << mat.num_cols() << ", " << ((DenseMatrix<TStorage>::ordering == ColMajor) ? "ColMajor)" : "RowMajor)");
+//	out << "(DenseMatrix " << mat.num_rows() << "x" << mat.num_cols() << ", " << ((DenseMatrix<TStorage>::ordering == ColMajor) ? "ColMajor)" : "RowMajor)");
 
 	return out;
 }
