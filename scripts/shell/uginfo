@@ -76,7 +76,7 @@ elif [ $UGSUBMIT_TYPE = "cekon" ]; then
 echo "Using SLURM on cekon"
 squeueOutput=`mktemp -u squeueOutputXXX`
 squeue > $squeueOutput
-cat $squeueOutput | sed -n 1
+cat $squeueOutput | sed -n 1p
 cat $squeueOutput | grep $USER
 rm $squeueOutput
 
