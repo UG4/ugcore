@@ -42,5 +42,12 @@ if(ddu.ParseAndInitializeParameters(dim) == false) then
 	exit()
 end
 
+print(" Parallelisation related parameters chosen:")
+print("    numProcs   = " .. ddu.numProcesses)
+ddu.PrintParameters("    ")
+
+print("")
+print("Now performe a 'dry run' of the hierarchical redistribution approach ...")
 -- now print the single steps which will be performed...
 ddu.PrintSteps()
+print("... 'dry run' finished!")
