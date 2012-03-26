@@ -328,7 +328,7 @@ bool GetProfilerAvailable()
 }
 
 #endif
-
+//////////////////////////////////////////////////////////////////////////////////////////
 
 bool RegisterProfileFunctions(Registry &reg, string parentGroup)
 {
