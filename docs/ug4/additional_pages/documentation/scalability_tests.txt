@@ -38,14 +38,19 @@ For any questions, contact <a href="mailto:Ingo.Heppner@gcsc.uni-frankfurt.de">I
 	   e.g. after computing of global norms, after performing <tt>pcl::Synchronize()</tt>, <tt>pcl::AllProcsTrue()</tt> ...
 </li>
 
+<!--
 <li>Number of DoFs should be maximal ...
 </li>
+?
+-->
 
 <li>For weak scalability e.g. of GMG: Check if the number of iterations is constant over all problem sizes.
 </li>
 
+<!-- TODO:
 <li> Infos about how to distribute the levels of a multigrid hierarchy when performing a multi grid solver (i.e. especially how to avoid too much work for the root proc) - TODO.
 </li>
+-->
 </ul>
 
 <hr>
@@ -133,7 +138,7 @@ See also e.g. <tt>ll_scale_gmg.x</tt> for usage examples (specifically to JuGene
 "Topology aware mapping" of MPI processes to nodes / cores with respect to the network topology of the parallel machine on which a parallel job is run might be important one day.
 
 <ul>
-<li> Parameter <tt>-distType</tt>: Available values: "grid2d", "bisect", "metis" - TODO.
+<li> Parameter <tt>-distType</tt>: Available values: "grid2d", "bisect", "metis" <!-- TODO. -->
 </li>
 </ul>
 
