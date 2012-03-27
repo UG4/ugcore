@@ -11,8 +11,7 @@
 	- \ref secCekon	"Cekon"
 	- \ref secJuGene "JuGene"
 	- \ref secHermit "Hermit"
-	- \ref secSSH "SSH"
-	- \ref secSSHFS "SSHFS"
+	- \ref secSSH "SSH" (\ref secSSHKeys, \ref secSSHHoping, \ref secSSHFS) 
 
 <hr>
 \section secGeneral_Notes General Notes
@@ -174,7 +173,7 @@ See <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE
 
 To be able to connect to JuGene from different machines maybe you find it useful to define one of GCSCs machines
 (e.g. speedo, quadruped, ...) as a "springboard" to one of JuGenes login nodes (so that you have to login to this
-machine first, then to JuGene).
+machine first, then to JuGene), see \ref secSSHHoping.
 
 <hr>
 \subsection secConfiguration_of_ug4_for_JuGene Configuration of ug4 for JuGene
@@ -251,7 +250,7 @@ Here we only introduce some important details (everything else should become cle
      <p>
 
      Obviously "VN" is the preferred execution mode if large numbers of processes should be achieved -
-     and ug4 works with VN mode (at least up to ~64 Ki DoFs per process)! :-)
+     and ug4 works with VN mode (at least up to ~64 Ki DoFs per process)!
 </li>
 
 <li> The <tt>mpirun</tt> parameter <b><tt>-mapfile</tt></b> specifies an order in which the MPI processes are mapped to the CNs / the cores of the BG/P partition reserved for the run.
@@ -288,7 +287,11 @@ Here we only introduce some important details (everything else should become cle
 
      <!-- TODO: Nevertheless CMake says "Info: Not using Lapack. No package found"!? -->
 
-     This is also for loading <b>performance analysis tools</b>, e.g. <tt>module load scalasca</tt>, <tt>module load UNITE</tt> etc. - no experience with this stuff yet!
+     This is also for loading <b>performance analysis tools</b>, e.g. <tt>module load scalasca</tt>, <tt>module load UNITE</tt> etc.
+     
+     <!-- !!!TODO!!!: please provide a link which explains a bit more -->
+     
+     <!-- - no experience with this stuff yet! -->
 </li>
 
 <li> <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/llview.html"><tt>llview</tt></a>
@@ -349,6 +352,8 @@ Here we only introduce some important details (everything else should become cle
      for more details.
 
 <li> <b>LoadLeveler keywords</b> are strings embedded in comments beginning with the characters "# @".
+	<!-- TODO: isn't there a better overview on the web? -->
+
      Some selected keywords:
      <ul>
      <li> <tt>job_type = bluegene</tt> specifies that the job is running on JuGene's CNs.
@@ -598,7 +603,8 @@ unmounting is done via
 umount ~/sshvolumes/mueller@supercomputer
 \endverbatim
 
-Note: SSHFS also works together with \ref secSSHHoping and \ref secSSHKeys .
+Note: SSHFS also works together with \ref secSSHHoping and \ref secSSHKeys . For Windows, try <a href="http://dokan-dev.net/en/download/">Dokan library</a>.
+<!-- TODO: Add install help for windows/linux -->
 <hr>
 
 */
