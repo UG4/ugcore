@@ -613,6 +613,12 @@ Right Mouse click on the project -> Properties -> C/C++ Build. Disable "use defa
 ssh mrupp@supercomputer.de "cd ug4; cd release; make -j4"
 \endverbatim
 (You can do the same for run/debug settings). <br>
+An improved version is
+\verbatim
+/bin/bash ${ProjDirPath}/scripts/shell/sshfsmake mrupp@supercomputer.de ug4/debug /Volumes/mrupp@supercomputer -j4 -k
+\endverbatim
+See ug4/scripts/shell/sshfsmake for details (basically you are calling ssh mrupp@supercomputer.de "cd ug4/debug; make -j4", and then substituting remote paths with local ones, so eclipse knows which files contain errors).
+
 Since SSHFS is not as fast as your local drive, you might want to disable the most bandwith consuming things (at Project Preferences):
 - C/C++ Build -> Discovery Options: Disable "Automated discovery of paths and symbols"
 - C/C++ Build -> Logging: Disable Logging
