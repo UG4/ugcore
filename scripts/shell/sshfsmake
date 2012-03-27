@@ -1,11 +1,11 @@
 #!/bin/bash
 # use this like
-# sshfsmake mrupp@cekon ug4/debug /Volumes/mrupp@cekon
+# sshfsmake mrupp@cekon /Volumes/mrupp@cekon ug4/debug
 # syntax: sshfsmake <account> <remoteBuildDir> <localHomeDir> [additional make options]
 # the localHomeDir is the dir which mirrors the remote home dir.                                                                                                                                                                                               
 account=$1
 remotehomedir=`ssh $account pwd`
-remotebuilddir=$2
-localhomedir=$3
+remotebuilddir=$3
+localhomedir=$2
 shift 3
 ssh $account "cd $remotebuilddir; make $*" 2>&1 | sed "s:$remotehomedir:$localhomedir:"
