@@ -529,20 +529,20 @@ You can exchange RSA keys so you don't have to type in your password every time 
 \verbatim
 ssh-keygen -b 2048 -t rsa
 \endverbatim
-<li> copy local ssh key to cluster.de (user mueller):
+<li> copy local ssh key to cluster.de (user mrupp):
 \verbatim
-cat .ssh/id_rsa.pub | ssh mueller@cluster.de 'umask 077; cat >> .ssh/authorized_keys'
+cat .ssh/id_rsa.pub | ssh mrupp@cluster.de 'umask 077; cat >> .ssh/authorized_keys'
 \endverbatim
 </ul>
 
 \subsection secSSHHoping SSH Hoping
 Many supercomputers are only accessible by some fixed IP you specify. Since at home we do not have a fixed IP, you have 
 to use SSH hoping. Say speedo's IP (speedo.gcsc.uni-frankfurt.de) is specified as the connecting IP, and your
-account is mueller@speedo.gcsc.uni-frankfurt.de, and smueller@supercomputer.de is the supercomputer account. Then you can 
+account is mrupp@speedo.gcsc.uni-frankfurt.de, and rupp@supercomputer.de is the supercomputer account. Then you can 
 connect to speedo via ssh, and from there further with ssh to the supercomputer:
 \verbatim
-ssh mueller@speedo.gcsc.uni-frankfurt.de
-ssh smueller@supercomputer.de
+ssh mrupp@speedo.gcsc.uni-frankfurt.de
+ssh rupp@supercomputer.de
 \endverbatim
 
 There are two ways to speed this up
@@ -550,16 +550,16 @@ There are two ways to speed this up
 <li>
 hopping in one line:
 \verbatim
-ssh -t mueller@speedo.gcsc.uni-frankfurt.de ssh smueller@supercomputer.de
+ssh -t mrupp@speedo.gcsc.uni-frankfurt.de ssh rupp@supercomputer.de
 \endverbatim
 
 <li>
 automatic hopping: Add the following lines to the file <tt>~/.ssh/config</tt>
 \verbatim
 Host supercomputer.de
-User smueller
+User rupp
 ForwardAgent yes
-ProxyCommand ssh mueller@speedo.gcsc.uni-frankfurt.de nc %h %p
+ProxyCommand ssh mrupp@speedo.gcsc.uni-frankfurt.de nc %h %p
 \endverbatim
 now you'll only have to enter
 \verbatim
@@ -590,21 +590,38 @@ For tiger, use <tt>sshfs-static-tiger</tt>.
 </ul>
 
 
-Now FUSE/SSHFS is installed. Now we'll mount the home directory of mueller@supercomputer.de to 
-~/sshvolumes/mueller\@supercomputer .
+Now FUSE/SSHFS is installed. Now we'll mount the home directory of mrupp@supercomputer.de to 
+~/sshvolumes/mrupp\@supercomputer .
 \verbatim
 mkdir ~/sshvolumes
-mkdir ~/sshvolumes/mueller@supercomputer
-sshfs mueller@supercomputer.de: ~/sshvolumes/mueller@supercomputer -o auto_cache,reconnect,volname=mueller@supercomputer
+mkdir ~/sshvolumes/mrupp@supercomputer
+sshfs mrupp@supercomputer.de: ~/sshvolumes/mrupp@supercomputer -o auto_cache,reconnect,volname=mrupp@supercomputer
 \endverbatim
 
 unmounting is done via
 \verbatim
-umount ~/sshvolumes/mueller@supercomputer
+umount ~/sshvolumes/mrupp@supercomputer
 \endverbatim
-
 Note: SSHFS also works together with \ref secSSHHoping and \ref secSSHKeys . For Windows, try <a href="http://dokan-dev.net/en/download/">Dokan library</a>.
 <!-- TODO: Add install help for windows/linux -->
+
+\subsection secSSH_Eclipse SSHFS + Eclipse
+Note for Eclipse users: You can also import a project on your mounted filesystem. For that, create a C/C++ project and as base directory you use the ug4 base directory.
+You'll then even get SVN info. You can also build on the remote server, but don't use the normal build command:
+Right Mouse click on the project -> Properties -> C/C++ Build. Disable "use default build command", then enter at "Build Command" something like
+\verbatim
+ssh mrupp@supercomputer.de "cd ug4; cd release; make -j4"
+\endverbatim
+(You can do the same for run/debug settings). <br>
+Since SSHFS is not as fast as your local drive, you might want to disable the most bandwith consuming things (at Project Preferences):
+- C/C++ Build -> Discovery Options: Disable "Automated discovery of paths and symbols"
+- C/C++ Build -> Logging: Disable Logging
+- C/C++ General -> Indexer -> Disable Indexer
+
+If that does not help, consider Eclipse -> Preferences -> Team -> SVN -> Performance , altough deactivating "deep outgoing state" is not recommended.<br>
+Remember that Eclipse does not know that the files are not on your local machine, so when you are doing big SVN checkouts in Eclipse, all data is going to your computer, and then to the remote machine. 
+Consider using the remote shell for those tasks. 
+
 <hr>
 
 */
