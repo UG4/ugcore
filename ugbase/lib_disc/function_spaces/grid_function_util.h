@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 
 #include <boost/function.hpp>
+#include <boost/format.hpp>
 
 #include "./grid_function.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_print.h"
@@ -219,6 +220,9 @@ class GridFunctionDebugWriter
 	//	dimension
 		static const int dim = TDomain::dim;
 
+	//  base directory for output
+		const char* m_baseDir;
+
 	public:
 	///	type of matrix
 		typedef TAlgebra algebra_type;
@@ -235,7 +239,7 @@ class GridFunctionDebugWriter
 	public:
 	///	Constructor
 		GridFunctionDebugWriter(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace) :
-			m_spApproxSpace(spApproxSpace), bConnViewerOut(true),
+			m_baseDir(""), m_spApproxSpace(spApproxSpace), bConnViewerOut(true),
 			bVTKOut(true), m_printConsistent(true)
 		{
 			reset();
@@ -253,7 +257,10 @@ class GridFunctionDebugWriter
 			set_grid_level(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE));
 		}
 
-	//	sets if writing to vtk
+	// set the base directory for output files (.vec and .mat)
+	    inline void set_base_dir(const char* const baseDir) { m_baseDir = baseDir; }
+
+	    //	sets if writing to vtk
 		void set_vtk_output(bool b) {bVTKOut = b;}
 
 	//	sets if writing to conn viewer
@@ -281,7 +288,8 @@ class GridFunctionDebugWriter
 			if(!bConnViewerOut) return;
 
 		//	check name
-			std::string name(filename);
+			std::string name = str( boost::format("%1%/%2%") % m_baseDir % filename );
+
 			size_t iExtPos = name.find_last_of(".");
 			if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".mat") != 0)
 				UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
@@ -324,7 +332,9 @@ class GridFunctionDebugWriter
 		                                         const char* filename)
 		{
 		//	check name
-			std::string name(filename);
+
+			std::string name = str( boost::format("%1%/%2%") % m_baseDir % filename );
+
 			size_t iExtPos = name.find_last_of(".");
 			if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".vec") != 0)
 				UG_THROW_FATAL("Only '.vec' format supported for vectors, but"
@@ -372,6 +382,7 @@ class GridFunctionDebugWriter
 
 	//	current grid level
 		GridLevel m_gridLevel;
+
 };
 
 template <typename TGridFunction>

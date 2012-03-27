@@ -93,6 +93,7 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 			.add_method("set_vtk_output", &T::set_vtk_output, "", "vtkOutput")
 			.add_method("set_conn_viewer_output", &T::set_conn_viewer_output, "", "cvOutput")
 			.add_method("set_print_consistent",  &T::set_print_consistent, "", "printConsistent")
+		    .add_method("set_base_dir", &T::set_base_dir, "", "")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionDebugWriter", dimAlgTag);
 	}
