@@ -535,7 +535,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 										From, Direction))
 			{
 				if(bPositiv && t >= 0.0) break;
-				else if(!bPositive && t <= 0.0) break;
+				else if(!bPositiv && t <= 0.0) break;
 			}
 
 			// second triangle (only if 4 corners)
@@ -550,7 +550,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 										From, Direction))
 			{
 				if(bPositiv && t >= 0.0) break;
-				else if(!bPositive && t <= 0.0) break;
+				else if(!bPositiv && t <= 0.0) break;
 			}
 		}
 
