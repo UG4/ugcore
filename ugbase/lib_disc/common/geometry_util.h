@@ -444,7 +444,7 @@ struct ElementSideRayIntersectionWrapper
 {
 	static bool apply(	size_t& sideOut,
 						MathVector<TWorldDim>& GlobalIntersectionPointOut,
-						MathVector<TRefElem::dim> LocalIntersectionPoint,
+						MathVector<TRefElem::dim>& LocalIntersectionPoint,
 						const MathVector<TWorldDim>& From, const MathVector<TWorldDim>& Direction,
 						bool bPositiv, const MathVector<TWorldDim>* vCornerCoords)
 	{
@@ -459,7 +459,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 {
 	static bool apply(	size_t& sideOut,
 						MathVector<2>& GlobalIntersectionPointOut,
-						MathVector<TRefElem::dim> LocalIntersectionPoint,
+						MathVector<TRefElem::dim>& LocalIntersectionPoint,
 						const MathVector<2>& From, const MathVector<2>& Direction,
 						bool bPositiv, const MathVector<2>* vCornerCoords)
 	{
@@ -486,14 +486,15 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 										From, Direction))
 			{
 				if(bPositiv && t >= 0.0) break;
-				else if(t <= 0.0) break;
+				else if(!bPositiv && t <= 0.0) break;
 			}
 		}
 		// if not found
-		if(sideOut >= rRefElem.num(dim-1)) return false;
+		if(sideOut >= rRefElem.num(dim-1))
+			UG_THROW_FATAL("ElementSideRayIntersection: no cut side found.");
 
 		// Compute local intersection
-		VecScaleAdd(LocalIntersectionPoint, bc, rRefElem.corner(p0), 1.-bc, rRefElem.corner(p1));
+		VecScaleAdd(LocalIntersectionPoint, bc, rRefElem.corner(p1), 1.-bc, rRefElem.corner(p0));
 
 		// true if found
 		return true;
@@ -506,7 +507,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 {
 	static bool apply(	size_t& sideOut,
 						MathVector<3>& GlobalIntersectionPointOut,
-						MathVector<TRefElem::dim> LocalIntersectionPoint,
+						MathVector<TRefElem::dim>& LocalIntersectionPoint,
 						const MathVector<3>& From, const MathVector<3>& Direction,
 						bool bPositiv, const MathVector<3>* vCornerCoords)
 	{
@@ -534,7 +535,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 										From, Direction))
 			{
 				if(bPositiv && t >= 0.0) break;
-				else if(t <= 0.0) break;
+				else if(!bPositive && t <= 0.0) break;
 			}
 
 			// second triangle (only if 4 corners)
@@ -549,18 +550,19 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 										From, Direction))
 			{
 				if(bPositiv && t >= 0.0) break;
-				else if(t <= 0.0) break;
+				else if(!bPositive && t <= 0.0) break;
 			}
 		}
 
 		// if not found
-		if(sideOut >= rRefElem.num(dim-1)) return false;
+		if(sideOut >= rRefElem.num(dim-1))
+			UG_THROW_FATAL("ElementSideRayIntersection: no cut side found.");
 
 		// Compute local intersection
 		VecScaleAdd(LocalIntersectionPoint,
-					bc0, rRefElem.corner(p0),
-					bc1, rRefElem.corner(p1),
-					(1.-bc0-bc1), rRefElem.corner(p2));
+		            (1.-bc0-bc1), rRefElem.corner(p0),
+					bc0, rRefElem.corner(p1),
+					bc1, rRefElem.corner(p2));
 
 		// true if found
 		return true;
@@ -589,7 +591,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 template <typename TRefElem, int TWorldDim>
 bool ElementSideRayIntersection(	size_t& sideOut,
 									MathVector<TWorldDim>& GlobalIntersectionPointOut,
-									MathVector<TRefElem::dim> LocalIntersectionPoint,
+									MathVector<TRefElem::dim>& LocalIntersectionPoint,
 									const MathVector<TWorldDim>& From, const MathVector<TWorldDim>& Direction,
 									bool bPositiv, const MathVector<TWorldDim>* vCornerCoords)
 {
