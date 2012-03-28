@@ -76,10 +76,10 @@ function UJS_Info
 {
 	echo "Using SLURM on cekon"
 	squeueOutput=`mktemp -u ~/squeueOutputXXX`
-	squeue > ~/$squeueOutput
-	cat ~/$squeueOutput | sed -n 1p
-	cat ~/$squeueOutput | grep $USER
-	rm ~/$squeueOutput
+	squeue > $squeueOutput
+	cat $squeueOutput | sed -n 1p
+	cat $squeueOutput | grep $USER
+	rm $squeueOutput
 }
 
 function UJS_Cancel

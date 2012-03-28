@@ -7,17 +7,27 @@
 
 function UJS_Submit
 {
-	echo ""; 
+	echo "";
+	 
 	if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
 		echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
 		PBSnodes="-l nodes=$nnodes:nehalem:ppn=$nppn"
 		qsubrun="mpirun -np $npe $executable $args"
-		qsubqueue="-q user"		
+		
+		if [ -z "$queue" ]; then
+			qsubqueue="-q user"
+		else
+			qsubqueue="-q $queue"
+		fi		
 	else
 		echo "Using qsub on Hermit/Cray XE6"
 		PBSnodes="-l mppwidth=$npe -l mppnppn=$nppn"
 		qsubrun="aprun -n $npe -N $nppn $executable $args"
-		qsubqueue=""		
+		if [ -z "$queue" ]; then
+			qsubqueue=""
+		else
+			qsubqueue="-q $queue"
+		fi			
 	fi
 	if [ $interactive == true ]; then
 		echo "interactive mode is not supported at the moment"
@@ -80,10 +90,10 @@ function UJS_Info
 	echo "Using $UGSUBMIT_TYPE"
 	echo "qstat | grep $USER"
 	qstatOutput=`mktemp -u ~/qstatOutputXXX`
-	qstat > ~/$qstatOutput
-	cat ~/$qstatOutput | sed -n 1p
-	cat ~/$qstatOutput | grep $USER
-	rm ~/$qstatOutput
+	qstat > $qstatOutput
+	cat $qstatOutput | sed -n 1p
+	cat $qstatOutput | grep $USER
+	rm $qstatOutput
 }
 
 

@@ -263,7 +263,7 @@ UJS_GetOptions
 
 
 if [ $nppn == "max" ]; then
-	if [ $npe -gt $nppn  ]; then
+	if [ $npe -gt $nppnmax  ]; then
 		nppn=$nppnmax
 	else
 		nppn=$npe
