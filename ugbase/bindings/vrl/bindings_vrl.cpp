@@ -30,6 +30,7 @@
 #include "threading.h"
 
 #include "bindings/lua/externals/lua/lstate.h"
+#include "basicTest.h"
 
 namespace ug {
 namespace vrl {
@@ -161,9 +162,8 @@ public:
 //*********************************************************
 //* JNI METHODS
 //*********************************************************
-
-JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
-(JNIEnv *env, jclass cls, jobjectArray args) {
+JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit
+  (JNIEnv *env, jclass cls, jobjectArray args) {
 
 	ug::vrl::initJavaVM(env);
 
@@ -196,6 +196,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	ug::vrl::registerPlayground(reg);
 #endif
 
+	ug::vrl::registerBasicTest(reg);
+		
 	ug::vrl::RegisterUserData(reg, "UG4/VRL");
 	ug::vrl::registerMessaging(reg);
 	ug::vrl::registerThrowUtil(reg);
@@ -219,7 +221,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG_ugInit
 	return (jint) retVal;
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 (JNIEnv *env, jobject obj,
 		jstring exportedClassName, jlong objPtr, jboolean readOnly,
 		jstring methodName, jobjectArray params) {
@@ -320,7 +322,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeMethod
 	return result;
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 (JNIEnv *env, jobject obj, jlong exportedClassPointer, jobjectArray params) {
 
 	ug::bridge::IExportedClass* clazz =
@@ -402,7 +404,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_newInstance
 	return (jlong) NULL;
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 (JNIEnv *env, jobject obj, jstring fName, jboolean readOnly, jobjectArray params) {
 
 	const ug::bridge::ExportedFunction* func =
@@ -471,7 +473,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_invokeFunction
 	return result;
 }
 
-JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_getExportedClassPtrByName
+JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG__1getExportedClassPtrByName
 (JNIEnv *env, jobject obj, jstring name, jboolean classGrp) {
 
 	if (ug::vrl::boolJ2C(classGrp)) {
@@ -494,7 +496,7 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG_getExportedClassPtrByName
 	return (jlong) NULL;
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDefaultClassNameFromGroup
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup
 (JNIEnv *env, jobject obj, jstring grpName) {
 	const ug::bridge::ClassGroupDesc* grpDesc =
 			ug::vrl::vrlRegistry->get_class_group(
@@ -511,18 +513,18 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDefaultClassNameFromGroup
 	return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name().c_str());
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getSvnRevision
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getSvnRevision
 (JNIEnv *env, jobject obj) {
 	std::string revision = ug::vrl::svnRevision();
 	return ug::vrl::stringC2J(env, revision.c_str());
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getCompileDate
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getCompileDate
 (JNIEnv *env, jobject obj) {
 	return ug::vrl::stringC2J(env, COMPILE_DATE);
 }
 
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_delete
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG__1delete
 (JNIEnv * env, jclass cls, jlong objPtr, jlong exportedClsPtr) {
 
 	if (((void*) objPtr) != NULL && ((void*) exportedClsPtr) != NULL) {
@@ -532,7 +534,7 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_delete
 	}
 }
 
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_invalidate
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG__1invalidate
 (JNIEnv * env, jclass cls, jobject smartPtr) {
 
 	if (ug::vrl::isJSmartPointerConst(env, smartPtr)) {
@@ -543,12 +545,12 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_MemoryManager_invalidate
 
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG_convertRegistryInfo
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1convertRegistryInfo
 (JNIEnv * env, jobject obj) {
 	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDescription
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDescription
 (JNIEnv *env, jobject obj) {
 	std::string desc =
 			"UG is a general platform for the numerical solution<br>"
@@ -557,7 +559,7 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getDescription
 	return ug::vrl::stringC2J(env, desc.c_str());
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG_getAuthors
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getAuthors
 (JNIEnv *env, jobject obj) {
 	return ug::vrl::stringC2J(env, ug::UG_AUTHORS.c_str());
 }
