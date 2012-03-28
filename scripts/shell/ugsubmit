@@ -97,6 +97,7 @@ function usage
 	echo "        -tail                  : display the output (as tail -f. job runs even if you hit Ctrl-C)"
 	echo "        -i                     : interactive (not fully supported)"
 	echo "        -dir                   : directory to use"
+	echo "		  -queue				 : the queue to use"
 	echo " "
 	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon."
 	echo " "
@@ -224,6 +225,9 @@ do
 		shift 2
 	elif [ $1 == "-dir" ]; then
 		outDir=$2
+		shift 2
+	elif [ $1 == "-queue" ]; then
+		queue=$2
 		shift 2
 	elif [ $1 == "---" ]; then
 		shift
