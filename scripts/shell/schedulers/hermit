@@ -79,11 +79,11 @@ function UJS_Info
 {
 	echo "Using $UGSUBMIT_TYPE"
 	echo "qstat | grep $USER"
-	qstatOutput=`mktemp -u qstatOutputXXX`
-	qstat > $qstatOutput
-	cat $qstatOutput | sed -n 1p
-	cat $qstatOutput | grep $USER
-	rm $qstatOutput
+	qstatOutput=`mktemp -u ~/qstatOutputXXX`
+	qstat > ~/$qstatOutput
+	cat ~/$qstatOutput | sed -n 1p
+	cat ~/$qstatOutput | grep $USER
+	rm ~/$qstatOutput
 }
 
 
