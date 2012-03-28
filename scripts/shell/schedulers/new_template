@@ -4,6 +4,11 @@
 #-------------------------------------------------------------------
 ######################################################################
 
+# if you want to use PBS (qsub, qstat ...) check the "hermit" script in this directory
+# if you want to use SLURM (salloc, sinfo ...) check the "cekon" script in this directory
+# if you want to use the IBM LoadLeveler (ll_submit, ...) check the "jugene" script in this directory
+# todo: add scripts pbs, slurm and IBMLoadLeveler
+
 function UJS_Submit
 {
 	# submit a job
