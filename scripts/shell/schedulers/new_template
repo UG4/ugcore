@@ -32,6 +32,16 @@ function UJS_Submit
 		# display more information, and also the actual call to the scheduler
 	fi
 
+	# call your scheduler command
+
+	# please check the return of your scheduler command:
+	
+	return=$?
+	if [ ! $return == 0 ]; then
+		echo "ERROR: scheduler returned $return. Job has NOT been scheduled."		
+		exit
+	fi
+	
 	# you should write the job id in the variable jobid, for example	
 	# sleep 1
 	# jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`

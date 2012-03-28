@@ -58,6 +58,16 @@ function UJS_Submit
 
 	if [ $interactive == true ]; then
 		`$sallocrun`
+		return=$?	
+		if [ ! $return == 0 ]; then
+			echo "ERROR! salloc args:"
+			if [ ! $verbose == true ]; then
+				echo "$sallocrun"		
+			fi 
+			echo "ERROR: salloc returned $return. Job has NOT been scheduled."
+			
+			exit
+		fi
 	else
 		nohup $sallocrun > $outdir/job.output &
 	fi
