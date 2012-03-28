@@ -1,9 +1,11 @@
 #!/bin/bash
 ######################################################################
-# ugsubmit 0.1
+# ugcancel 0.1
 #-------------------------------------------------------------------
 # created by Martin Rupp 05.03.2012
 ######################################################################
+
+scriptpath=`dirname $0`
 
 echo "uginfo 0.1. (c) Goethe-Center for Scientific Computing 2012"
 
@@ -23,68 +25,8 @@ do
 	fi
 done
 
-if [ -z "$UGSUBMIT_TYPE" ]; then
-   	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
-   	exit
-fi	 
-######################################################################
-#        qsub on NecNehalem / NEC Nehalem Cluster / HLRS
-#-------------------------------------------------------------------
-######################################################################
-if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
-	echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
-echo "Using NecNehalem"
-qstat | sed -n 1p
-qstat | grep $USER	
 
-######################################################################
-#                     qsub on Hermit / HLRS
-#-------------------------------------------------------------------
-######################################################################
-elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
-echo "Using Hermit"
-qstatOutput=`mktemp -u qstatOutputXXX`
-qstat > $qstatOutput
-cat $qstatOutput | sed -n 1p
-cat $qstatOutput | grep $USER
-rm $qstatOutput
+source $scriptpath/clusters
 
-######################################################################
-#                            Jugene
-#-------------------------------------------------------------------
-# http://www.lrz.de/services/compute/supermuc/loadleveler/
-######################################################################
-elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
-echo "Using Jugene"
-
-######################################################################
-#                            mpi
-#-------------------------------------------------------------------
-# not a real job scheduler, just for completeness and tests
-######################################################################
-elif [ $UGSUBMIT_TYPE = "mpi" ]; then
-echo "Using MPI"
-ps aux | sed -n 1p
-ps aux | grep $USER | grep mpirun
-
-######################################################################
-#                           cekon
-#-------------------------------------------------------------------
-# using SLURM
-######################################################################
-elif [ $UGSUBMIT_TYPE = "cekon" ]; then
-echo "Using SLURM on cekon"
-squeueOutput=`mktemp -u squeueOutputXXX`
-squeue > $squeueOutput
-cat $squeueOutput | sed -n 1p
-cat $squeueOutput | grep $USER
-rm $squeueOutput
-
-######################################################################
-else
-	echo "" 
-	echo "ERROR: cluster "$UGSUBMIT_TYPE" is not supported."
-fi
-
-
+UJS_Info
 

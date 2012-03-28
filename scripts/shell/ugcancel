@@ -7,6 +7,7 @@
 
 # set default values
 scriptname=$0;		  # name of script
+scriptpath=`dirname $scriptname`
 
 echo "ugcancel 0.1. (c) Goethe-Center for Scientific Computing 2012"
 
@@ -40,59 +41,9 @@ do
 	fi
 done
 
-if [ -z "$UGSUBMIT_TYPE" ]; then
-   	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
-   	exit
-fi	 
+source $scriptpath/clusters
 
-######################################################################
-#        qsub on NecNehalem / NEC Nehalem Cluster / HLRS
-#-------------------------------------------------------------------
-######################################################################
-if [ $UGSUBMIT_TYPE = "NecNehalem" ]; then
-echo "Using NecNehalem"
-qdel $jobid
-
-######################################################################
-#                     qsub on Hermit / HLRS
-#-------------------------------------------------------------------
-######################################################################
-
-elif [ $UGSUBMIT_TYPE = "Hermit" ]; then
-echo "Using Hermit"
-qdel $jobid
-
-######################################################################
-#                            Jugene
-#-------------------------------------------------------------------
-# http://www.lrz.de/services/compute/supermuc/loadleveler/
-######################################################################
-elif [ $UGSUBMIT_TYPE = "Jugene" ]; then
-echo "Using Jugene"
-
-######################################################################
-#                            mpi
-#-------------------------------------------------------------------
-# not a real job scheduler, just for completeness and tests
-######################################################################
-elif [ $UGSUBMIT_TYPE = "mpi" ]; then
-echo "Using MPI"
-kill $jobid
-
-######################################################################
-#                           cekon
-#-------------------------------------------------------------------
-# using SLURM
-######################################################################
-elif [ $UGSUBMIT_TYPE = "cekon" ]; then
-echo "Using SLURM on cekon"
-scancel $jobid
-
-######################################################################
-else
-	echo "" 
-	echo "ERROR: cluster "$UGSUBMIT_TYPE" is not supported."
-fi
+UJS_Cancel $jobid
 
 
 

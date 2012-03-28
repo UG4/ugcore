@@ -1,0 +1,49 @@
+######################################################################
+#                            mpi
+#-------------------------------------------------------------------
+# not a real job scheduler, just for completeness and tests
+# todo: wait for completion of "jobs"...
+######################################################################
+
+function UJS_Submit
+{
+	echo ""; echo "Using MPI"
+		
+	echo mpirun -np $npe $executable $args
+	if [ $test == true ]; then
+		echo "test. not executing."
+		#rm -rf $outdir/
+		exit
+	fi
+	if [ $interactive == true ]; then
+		mpirun -np $npe $executable $args
+	else
+		nohup mpirun -np $npe $executable $args > $outdir/job.output &
+	fi
+}
+
+
+
+function UJS_GetOptions
+{
+	nppnmax=1
+	
+	# arbitrary maximum
+	pemax=1024
+}
+
+function UJS_Info
+{
+	echo "Using MPI"
+	echo "ps aux | grep $USER | grep mpirun"
+	ps aux | sed -n 1p
+	ps aux | grep $USER | grep mpirun
+}
+
+
+function UJS_Cancel
+{
+	echo "Using MPI"
+	echo "kill $1"
+	kill $1
+}

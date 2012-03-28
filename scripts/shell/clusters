@@ -1,0 +1,38 @@
+#!/bin/bash
+
+if [ -z "$UGSUBMIT_TYPE" ]; then
+   	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+   	exit
+fi	 
+
+if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
+
+	source $scriptpath/schedulers/hermit
+	
+elif [ $UGSUBMIT_TYPE == "Jugene" ]; then
+
+	source $scriptpath/schedulers/jugene
+	
+elif [ $UGSUBMIT_TYPE == "mpi" ]; then
+
+	source $scriptpath/schedulers/mpi
+	
+elif [ $UGSUBMIT_TYPE == "cekon" ]; then
+
+	source $scriptpath/schedulers/cekon
+
+############################################################
+#
+# you can add your own cluster like this:
+#
+#elif [ $UGSUBMIT_TYPE == "mycluster" ]; then
+#	source $scriptpath/schedulers/mycluster
+#
+# use the schedulers/new_template template file for this
+############################################################
+	
+else
+	echo "" 
+	echo "ERROR: cluster "$UGSUBMIT_TYPE" is not supported."
+	exit
+fi

@@ -1,6 +1,7 @@
 #!/bin/bash
 ######################################################################
-# ugsubmit 0.1
+# ujssubmit 0.2
+# Unified Job Scheduler
 #-------------------------------------------------------------------
 # created by Martin Rupp 05.03.2012
 # mail: martin.rupp@gcsc.uni-frankfurt.de
@@ -9,11 +10,11 @@
 # ugsubmit is a job submitting script to unify the job schedulers
 # on different clusters. Supported Clusters are:
 # - cekon , G-CSC Frankfurt (SLURM, salloc)
-# - Jugene, Forschungszentrum Jülich (ll_submit)
+# - Jugene, Forschungszentrum Juelich (ll_submit)
 # - Hermit, HLRS Stuttgart (qsub, aprun)
 # - NecNehalem, HLRS Stuttgart (qsub, mpirun)
 # 
-# feel free to add more!
+# feel free to add more! see the files "schedulers/new_template" and "clusters"
 #
 # usage: see function usage(). quick manual:
 # use environment variables e.g. 
@@ -31,7 +32,7 @@
 ######################################################################
 # set default values
 test=false;
-nppn=1;
+nppn="max";
 walltime="00:10:00";  # walltime
 jobname="job";
 scriptname=$0;		  # name of script
@@ -39,11 +40,13 @@ execpath=`pwd`;       # execution path of script
 runDir=$execPath
 execdate=`date`;      # date of execution
 verbose=false;
+scriptpath=`dirname $scriptname`
 
 mailStart=false
 mailEnd=false
 mailError=false
 mail=false
+jobid="unknown"
 
 tail=false
 interactive=false
@@ -61,12 +64,10 @@ HermitWorkspace=0
 pbsMailtype=""
 
 ######################################################################
-# todo: vielleicht scripts fuer die scheduler auslagern
-# todo: different default nppn for clusters
 # todo: option -nodir
 # todo: interactive mode
 
-echo "ugsubmit 0.1. (c) Goethe-Center for Scientific Computing 2012"
+echo "ujssubmit 0.2. (c) Goethe-Center for Scientific Computing 2012"
 
 ######################################################################
 function usage 
@@ -235,14 +236,39 @@ if [ $# -eq 0 ]; then
 	exit
 fi
 
+
 binary=$1
 shift
 args=$*
 
+# UGSUBMIT_TYPE
+if [ -z "$UGSUBMIT_TYPE" ]; then
+   	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+   	exit
+fi	 
+
+source $scriptpath/clusters
+
+#### Get Options from actual cluster implementation ####
+
+UJS_GetOptions
+
+
+
+if [ $nppn == "max" ]; then
+	nppn=$nppnmax
+fi
+
+if [ $nppn -gt $nppnmax ]; then
+	echo "$UGSUBMIT_TYPE does not support nppn=$nppn (max is $nppnmax)"
+	exit
+fi
 if [ $((npe%nppn)) -ne 0 ]; then
 	echo "npe=$npe is not dividable by nppn=$nppn"
 	exit
 fi
+
+
 
 ######################################################################
 
@@ -262,12 +288,6 @@ mydate=$(date "+.%m-%d-%H%M");
 jobname1=$jobname
 jobname=$jobname.$npe$mydate;
 
-
-# UGSUBMIT_TYPE
-if [ -z "$UGSUBMIT_TYPE" ]; then
-   	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
-   	exit
-fi	 
 
 # save processnumber of shell to get a unique ticket
 ticket=$$
@@ -300,7 +320,17 @@ if [ ! -e $outdir/info.txt ]; then
     touch $outdir/info.txt
 fi
 
+
 cd $outdir
+
+export UGS_JOBNAME=$jobname
+export UGS_OUTDIR=$outdir
+export UGS_NP=$npe
+export UGS_NPPN=$nppn
+export UGS_MYDIR=$execpath
+
+#### now call job schedulers ####
+UJS_Submit
 
 ######################################################################
 # info about args read
@@ -330,236 +360,8 @@ echo "Output to:      '$outdir'" >> info.txt
 if [ $verbose == true ]; then
 	cat info.txt
 fi
-#ugjob $UGSUBMIT_EMAIL $jobname $outdir $nnodes $nppn $walltime $executable $args
-
-export UGS_JOBNAME=$jobname
-export UGS_OUTDIR=$outdir
-export UGS_NP=$npe
-export UGS_NPPN=$nppn
-export UGS_MYDIR=$execpath
-
-# now call job schedulers
-
-jobid="unknown"
 
 
-######################################################################
-#                     qsub on Hermit / HLRS (aprun)
-#        qsub on NecNehalem / NEC Nehalem Cluster / HLRS (mpirun)
-#-------------------------------------------------------------------
-######################################################################
-if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
-	echo ""; 
-	if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
-		echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
-		PBSnodes="-l nodes=$nnodes:nehalem:ppn=$nppn"
-		qsubrun="mpirun -np $npe $executable $args"
-		qsubqueue="-q user"
-	else
-		echo "Using qsub on Hermit/Cray XE6"
-		PBSnodes="-l mppwidth=$npe -l mppnppn=$nppn"
-		qsubrun="aprun -n $npe -N $nppn $executable $args"
-		qsubqueue=""
-	fi
-	if [ $interactive == true ]; then
-		echo "interactive mode is not supported at the moment"
-	fi
-
-	pbsMail=""
-	if [ $mail == true ]; then 
-		if [ -z "$UGSUBMIT_EMAIL" ]; then
-			echo "please set UGSUBMIT_EMAIL or specify email with -email".
-			exit
-		fi 
-		$pbsMail="-M $UGSUBMIT_EMAIL -m $pbsMailtype"
-	fi
-	
-	qsubargs="$qsubqueue -V -N $jobname -o job.output -e job.error -j oe -S /bin/bash -l walltime=$walltime $PBSnodes  $pbsMail"
-	
-	if [ $verbose == true ]; then
-		echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs"		
-	fi
-
-	if [ $test == true ]; then
-		echo ""
-		echo "test. not executing."
-		cd ..
-		#rm -rf $outdir/
-		exit
-	fi
-
-	echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs" >> info.txt
-
-	jobid=`echo "cd $outdir; $qsubrun" | qsub $qsubargs`	
-	jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
-
-######################################################################
-#                            Jugene
-#-------------------------------------------------------------------
-# http://www.lrz.de/services/compute/supermuc/loadleveler/
-######################################################################
-elif [ $UGSUBMIT_TYPE == "Jugene" ]; then
-	echo ""; echo "On Jugene, using ll_submit"
-	
-	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
-	
-	if [ $interactive == true ]; then
-		echo "interactive mode is not supported at the moment"
-	fi
-
-	cat > $outdir/job.sh << EOF
-# @ job_name = $jobname
-# @ comment = $executable $args
-# @ error = $outdir/job.error
-# @ output = $outdir/job.output
-# @ environment = COPY_ALL
-# @ wall_clock_limit = $walltime
-EOF
-	if [ $mail == true ]; then 
-		if [ -z "$UGSUBMIT_EMAIL" ]; then
-			echo "please set UGSUBMIT_EMAIL or specify email with -email".
-			exit
-		fi
-
-		JugeneNotification="never"
-		if [ $mailStart == true ]; then
-			JugeneNotification="start"
-		fi
-		if [ $mailEnd == true ]; then
-			if [ $JugeneNotification == "never" ]; then
-				JugeneNotification="stop"
-			else
-				JugeneNotification="always"
-			fi
-		fi
-		if [ $mailError == true ]; then
-			if [ $JugeneNotification == "never" ]; then
-				JugeneNotification="error"
-			else
-				JugeneNotification="always"
-			fi
-		fi	 
-		
-		cat >> job.sh << EOF
-# @ notification = $JugeneNotification
-# @ notify_user = $UGSUBMIT_EMAIL
-EOF
-	fi
-	cat >> job.sh << EOF
-# @ job_type = bluegene
-# @ bg_connection = TORUS
-# @ bg_size = $npe
-# @ queue
-mpirun -np $npe -exe $executable -mode $JugeneMode -mapfile $JugeneMapfile -verbose $JugeneVerbose -env LD_LIBRARY_PATH=$MYLDLPATH -args $args
-EOF
-
-	echo job.sh
-	if [ $test == true ]; then
-		echo "test. not executing."
-		echo $outdir/job.sh ":"
-		cat $outdir/job.sh
-		cd $outdir/..
-		#rm -rf $outdir/
-		exit
-	fi
-	
-#todo: uncomment next line, get jobid=
-# ll_submit $outdir/job.sh
-
-######################################################################
-#                            mpi
-#-------------------------------------------------------------------
-# not a real job scheduler, just for completeness and tests
-# todo: wait for completion of "jobs"...
-######################################################################
-elif [ $UGSUBMIT_TYPE == "mpi" ]; then
-
-	echo ""; echo "Using MPI"
-	if [ $nppn -ne 1 ]; then
-		echo "pure mpi does not support nppn > 1"
-		exit
-	fi
-
-	echo mpirun -np $npe $executable $args
-	if [ $test == true ]; then
-		echo "test. not executing."
-		#rm -rf $outdir/
-		exit
-	fi
-	if [ $interactive == true ]; then
-		mpirun -np $npe $executable $args
-	else
-		nohup mpirun -np $npe $executable $args > $outdir/job.output &
-	fi
-######################################################################
-#                           cekon
-#-------------------------------------------------------------------
-# using SLURM
-######################################################################
-elif [ $UGSUBMIT_TYPE == "cekon" ]; then
-	echo ""; echo "Using SLURM on cekon"
-	if [ $nppn -ne 1 ]; then
-		echo "cekon does not support nppn > 1"
-		exit
-	fi
-
-	SlurmMail=""
-	if [ $mail == true ]; then 
-		if [ -z "$UGSUBMIT_EMAIL" ]; then
-			echo "please set UGSUBMIT_EMAIL or specify email with -email".
-			exit
-		fi
-
-		SlurmNotification="never"
-		if [ $mailStart == true ]; then
-			SlurmNotification="BEGIN"
-		fi
-		if [ $mailEnd == true ]; then
-			if [ $SlurmNotification == "never" ]; then
-				SlurmNotification="END"
-			else
-				SlurmNotification="ALL"
-			fi
-		fi
-		if [ $mailError == true ]; then
-			if [ $SlurmNotification == "never" ]; then
-				SlurmNotification="FAIL"
-			else
-				SlurmNotification="ALL"
-			fi
-		fi	 
-		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
-	fi
-
-	sallocrun="salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args"
-
-	echo "$sallocrun" >> $outdir/info.txt
-	if [ $verbose == true ]; then
-		echo "$sallocrun"
-	fi
-
-	if [ $test == true ]; then
-		echo "test. not executing."
-		cd $outdir/..
-		#rm -rf $outdir/
-		exit
-	fi
-	
-
-	if [ $interactive == true ]; then
-		`$sallocrun`
-	else
-		nohup $sallocrun > $outdir/job.output &
-	fi
-	sleep 1
-	jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
-
-######################################################################
-else
-	echo "" 
-	echo "ERROR: cluster "$UGSUBMIT_TYPE" is not supported."
-	exit
-fi
 
 if [ $interactive == false ]; then
 	if [ ! -e $execpath/ugjobs ]; then

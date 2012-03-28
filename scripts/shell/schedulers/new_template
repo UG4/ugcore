@@ -1,0 +1,51 @@
+#!/bin/bash
+######################################################################
+#                    UJS cluster template
+#-------------------------------------------------------------------
+######################################################################
+
+function UJS_Submit
+{
+	# submit a job
+	# see ugsubmit for a complete list of variables you can use.
+	# most important are
+	# $UGSUBMIT_EMAIL
+	# $nppn
+	# $npe
+	# $mail (true or false)
+	# $jobname
+	# $executable
+	# $args
+	# $interactive
+	
+	# your current directory is $outdir, it is where all output should be stored
+	# the output of the executable should be stored in job.output and the error in job.error
+	
+	# additional information about the job scheduling should be appended to the file info.txt
+	
+	if [ $verbose == true ]; then
+		# display more information, and also the actual call to the scheduler
+	fi
+
+	# you should write the job id in the variable jobid, for example	
+	# sleep 1
+	# jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
+}
+
+
+function UJS_GetOptions
+{
+	### set maximal ppn and pe. 
+	#nppnmax=4
+	#pemax=1024	
+}
+
+function UJS_Info
+{
+	### call a command which prints scheduled jobs
+}
+
+function UJS_Cancel
+{
+	### call a command which cancels the job with job id $1	
+}

@@ -1,0 +1,89 @@
+#!/bin/bash
+######################################################################
+#                           cekon
+#-------------------------------------------------------------------
+# using SLURM
+######################################################################
+
+function UJS_Submit
+{
+	echo ""; echo "Using SLURM on cekon"
+	if [ $nppn -ne 1 ]; then
+		echo "cekon does not support nppn > 1"
+		exit
+	fi
+
+	SlurmMail=""
+	if [ $mail == true ]; then 
+		if [ -z "$UGSUBMIT_EMAIL" ]; then
+			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			exit
+		fi
+
+		SlurmNotification="never"
+		if [ $mailStart == true ]; then
+			SlurmNotification="BEGIN"
+		fi
+		if [ $mailEnd == true ]; then
+			if [ $SlurmNotification == "never" ]; then
+				SlurmNotification="END"
+			else
+				SlurmNotification="ALL"
+			fi
+		fi
+		if [ $mailError == true ]; then
+			if [ $SlurmNotification == "never" ]; then
+				SlurmNotification="FAIL"
+			else
+				SlurmNotification="ALL"
+			fi
+		fi	 
+		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
+	fi
+
+	sallocrun="salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args"
+
+	echo "$sallocrun" >> $outdir/info.txt
+	if [ $verbose == true ]; then
+		echo "$sallocrun"
+	fi
+
+	if [ $test == true ]; then
+		echo "test. not executing."
+		cd $outdir/..
+		#rm -rf $outdir/
+		exit
+	fi
+	
+
+	if [ $interactive == true ]; then
+		`$sallocrun`
+	else
+		nohup $sallocrun > $outdir/job.output &
+	fi
+	sleep 1
+	jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
+}
+
+
+function UJS_GetOptions
+{
+	nppnmax=1
+	pemax=92	
+}
+
+function UJS_Info
+{
+	echo "Using SLURM on cekon"
+	squeueOutput=`mktemp -u squeueOutputXXX`
+	squeue > $squeueOutput
+	cat $squeueOutput | sed -n 1p
+	cat $squeueOutput | grep $USER
+	rm $squeueOutput
+}
+
+function UJS_Cancel
+{
+	echo "Using SLURM on cekon"
+	scancel $1
+}

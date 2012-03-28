@@ -1,0 +1,95 @@
+#!/bin/bash
+######################################################################
+#                     qsub on Hermit / HLRS (aprun)
+#        qsub on NecNehalem / NEC Nehalem Cluster / HLRS (mpirun)
+#-------------------------------------------------------------------
+######################################################################
+
+function UJS_Submit
+{
+	echo ""; 
+	if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
+		echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
+		PBSnodes="-l nodes=$nnodes:nehalem:ppn=$nppn"
+		qsubrun="mpirun -np $npe $executable $args"
+		qsubqueue="-q user"		
+	else
+		echo "Using qsub on Hermit/Cray XE6"
+		PBSnodes="-l mppwidth=$npe -l mppnppn=$nppn"
+		qsubrun="aprun -n $npe -N $nppn $executable $args"
+		qsubqueue=""		
+	fi
+	if [ $interactive == true ]; then
+		echo "interactive mode is not supported at the moment"
+	fi
+
+	pbsMail=""
+	if [ $mail == true ]; then 
+		if [ -z "$UGSUBMIT_EMAIL" ]; then
+			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			exit
+		fi 
+		$pbsMail="-M $UGSUBMIT_EMAIL -m $pbsMailtype"
+	fi
+	
+	if [ $nppn == "max" ]; then
+		nppn=$nppnmax
+	fi
+	
+	if [ $((npe%nppn)) -ne 0 ]; then
+		echo "npe=$npe is not dividable by nppn=$nppn"
+		exit
+	fi
+	
+	
+	qsubargs="$qsubqueue -V -N $jobname -o job.output -e job.error -j oe -S /bin/bash -l walltime=$walltime $PBSnodes  $pbsMail"
+	
+	if [ $verbose == true ]; then
+		echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs"		
+	fi
+
+	if [ $test == true ]; then
+		echo ""
+		echo "test. not executing."
+		cd ..
+		#rm -rf $outdir/
+		exit
+	fi
+
+	echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs" >> info.txt
+
+	jobid=`echo "cd $outdir; $qsubrun" | qsub $qsubargs`	
+	jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
+}
+
+
+
+function UJS_GetOptions
+{
+	if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
+		nppnmax=4
+		pemax=1024
+	else
+		nppnmax=32
+		pemax=65536
+	fi
+}
+
+function UJS_Info
+{
+	echo "Using $UGSUBMIT_TYPE"
+	echo "qstat | grep $USER"
+	qstatOutput=`mktemp -u qstatOutputXXX`
+	qstat > $qstatOutput
+	cat $qstatOutput | sed -n 1p
+	cat $qstatOutput | grep $USER
+	rm $qstatOutput
+}
+
+
+function UJS_Cancel
+{
+	echo "Using $UGSUBMIT_TYPE"
+	echo "qdel $1"
+	qdel $1
+}
