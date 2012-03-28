@@ -287,7 +287,7 @@ public:
 		this->expression = expression;
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-
+                
 		userDataObject = compileUserDataString(localEnv, expression, returnValueDim);
 		userDataClass = getUserDataClass(localEnv);
 		runMethod = getUserDataRunMethod(
@@ -297,7 +297,7 @@ public:
 		// (GC won't deallocate them until manual deletion request)
 		userDataObject = localEnv->NewGlobalRef(userDataObject);
 		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
-
+               
 		initialized = true;
 	}
 
