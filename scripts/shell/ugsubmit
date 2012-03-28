@@ -69,6 +69,9 @@ pbsMailtype=""
 
 echo "ujssubmit 0.2. (c) Goethe-Center for Scientific Computing 2012"
 
+
+# complete -W "-test -nppn -cluster -walltime -mail-start -mail-end -mail-error -mail-arr -verbose -tail -i -dir -Jugene-mode -Jugene-mapfile -Jugene-verbose -Hermit-workspace" ugsubmit
+
 ######################################################################
 function usage 
 {
