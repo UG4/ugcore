@@ -499,6 +499,8 @@ communicate()
 		}
 	}
 	
+
+
 //	if the buffer size could not be determined, we have to communicate it.
 	if(!allBufferSizesFixed)
 	{
@@ -506,6 +508,7 @@ communicate()
 
 		int sizeTag = 189345;//	an arbitrary number
 		int counter;
+		std::vector<int> streamSizes;
 
 	//	shedule receives first
 		counter = 0;
@@ -518,12 +521,13 @@ communicate()
 
 	//	send buffer sizes
 		counter = 0;
+		streamSizes.resize(m_curOutProcs.size());
 		for(std::set<int>::iterator iter = m_curOutProcs.begin();
 			iter != m_curOutProcs.end(); ++iter, ++counter)
 		{
-			int streamSize = (int)m_bufMapOut[*iter].write_pos();
+			streamSizes[counter] = (int)m_bufMapOut[*iter].write_pos();
 
-			MPI_Isend(&streamSize, sizeof(int), MPI_UNSIGNED_CHAR,
+			MPI_Isend(&streamSizes[counter], sizeof(int), MPI_UNSIGNED_CHAR,
 					*iter, sizeTag, MPI_COMM_WORLD, &vSendRequests[counter]);
 		}
 
