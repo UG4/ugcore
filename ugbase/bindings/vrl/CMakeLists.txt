@@ -24,6 +24,7 @@ set(srcBindingsVRL
                     invocation.cpp
                     playground.cpp
                     user_data.cpp
+                    basicTest.cpp
 )
 
 
