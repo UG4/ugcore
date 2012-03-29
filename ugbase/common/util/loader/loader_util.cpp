@@ -16,7 +16,7 @@ void split_parameters(std::vector<std::string>& paramsOut, char* strParams, cons
 	char* param = strtok(strParams, delims);
 	while(param != NULL)
 	{
-		if(strlen(param) > 0)
+		if(*param != '\0')
 			paramsOut.push_back(string(param));
 		param = strtok(NULL, delims);
 	}

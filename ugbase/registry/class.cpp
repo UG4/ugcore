@@ -110,7 +110,7 @@ bool IExportedClass::check_consistency() const
 		const char* baseName = (*vClassNames)[i];
 
 	//	check the name
-		if(baseName == NULL || strlen(baseName) == 0 || baseName[0] == '[')
+		if(baseName == NULL || *baseName == '\0' || baseName[0] == '[')
 		{
 			if(i>0){
 			UG_LOG("ERROR in 'IExportedClass::check_consistency':"

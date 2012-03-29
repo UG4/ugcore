@@ -413,7 +413,9 @@ size_t GetPathCompletitions(char *buf, int len, std::vector<string> &matches, si
 	// first we look if we can complete a filename/directory
 	p++;
 
-	if(strlen(p) == 0) return 0;
+	//if(strlen(p) == 0) return 0;
+	if(*p == '\0')
+		return 0;
 
 	string dirname;
 	if(lastSlash)
