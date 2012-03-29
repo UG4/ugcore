@@ -9,6 +9,7 @@
 	- \ref secAutoCompletion "Auto Completion"
 	- \ref secRuntimeInformation "Runtime Information"
 	- \ref secDebugging "Debug Shell"
+	- \ref secBashCompletion "Bash Completion for ugshell"
 
 For any questions, contact martin.rupp@gcsc.uni-frankfurt.de.
 
@@ -234,3 +235,45 @@ Note that you don't have to configure ug4 with <tt>cmake -DDEBUG=ON ..</tt>) to 
 There is a small performance drawback when using <tt>breakpoint(source, line)</tt> because we have to check for every line if it is a break line. 
 This is especially the case if you have lots of small calls in your lua script. However, there is no performance drawback in <tt>breakpoint()</tt>.
 */
+
+<hr>
+\section secBashCompletion Bash Completion for ugshell
+<hr>
+You can also use bash completion for ugshell in non-interactive mode.
+First (simple) variant:
+\verbatim
+complete -o plusdirs -G "*+(lua|ugx)" -W "-ex -grid -numRefs -numPreRefs" ugshell
+\endverbatim
+Please note that you need to set the <tt>extglob</tt> shell option to "on" in order to use extended globbings like: "*+(lua|ugx)". Put the following line into your <tt>.bashrc</tt> respectively into your <tt>.bash_profile</tt> in your <tt>$HOME</tt>:
+\verbatim
+shopt extglob on 
+\endverbatim
+As for me the first variant did not work as expected (listing of lua, ugx files and directories, cf. for yourself ;-) please) and isn't very extensible too, a second variant is presented where you can supply a function to the -F parameter of the complete command.
+Put the following two function into your <tt>.bashrc</tt> resp. <tt>.bash_profile</tt> (or you may create a file <tt>.my_complete.bash</tt> and source it):
+\verbatim
+my_complete() {
+   local word="$1"
+   local ext=$2
+   local i=0 line
+   declare -a liste
+
+   while read line; do liste[i++]="$line"; done < <(compgen -f -- "$word")
+
+   local w
+   for w in "${liste[@]}"; do 
+      [[ -d "$w" ]] && continue
+      [[ "${w##*.}" = $ext ]] && COMPREPLY[i++]="$w" 
+   done
+}
+\endverbatim
+\verbatim
+my_complete_ugshell () {
+   my_complete "$2" "*+(lua|ugx|obj)"
+}
+\endverbatim
+Now you can turn on completion as before:
+\verbatim 
+complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F my_complete_ugshell ugshell
+\endverbatim
+Please contact stephan.grein@gcsc.uni-frankfurt.de for any questions.
+
