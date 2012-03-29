@@ -104,7 +104,7 @@ number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b,
 	VecCross(nacd, ac, ad);
 	VecCross(nbcd, bd, bc);
 
-//	LOTFU§VERFAHREN
+//	LOTFUï¿½VERFAHREN
 	vector3 CutComb;
 
 	///////////
@@ -302,7 +302,7 @@ number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
 
 	VecCross(cross, bd, cd);
 
-	TetrahedronVolume = VecDot(ad, cross) / 6;
+	TetrahedronVolume = abs(VecDot(ad, cross) / 6);
 
 	return TetrahedronVolume;
 }
@@ -314,7 +314,7 @@ double CMesh::calculate_volume_gauss() {
 	
 	for(uint i = 0; i < number_of_triangles; i++) {
 		
-	 Êuint a = triangles[i].a;
+	 ï¿½uint a = triangles[i].a;
 		uint b = triangles[i].b;
 		uint c = triangles[i].c;
 		
@@ -330,9 +330,9 @@ double CMesh::calculate_volume_gauss() {
 		
 		if(length > 0.0) {
 		
-		 Êx /= length;
-	 Ê	y /= length; 
- Ê		z /= length;
+		 ï¿½x /= length;
+	 ï¿½	y /= length; 
+ ï¿½		z /= length;
 			
 			double sx = (vertices[a].x + vertices[b].x + vertices[c].x) / 3.0;
 			double sy = (vertices[a].y + vertices[b].y + vertices[c].y) / 3.0;
