@@ -18,7 +18,7 @@ namespace ug
  * @return  <code>true</code> if the specified name is valid;
  *          <code>false</code> otherwise
  */
-UG_API bool IsValidRegistryIdentifier(std::string name);
+UG_API bool IsValidRegistryIdentifier(const std::string& name);
 
 /**
  * Returns a message describing which registry identifiers are valid and which are not.

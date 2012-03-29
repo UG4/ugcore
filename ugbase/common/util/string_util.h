@@ -67,8 +67,8 @@ UG_API std::string FilenameWithoutPath(const std::string& str);
  */
 UG_API std::string ReplaceAll(
 		std::string target,
-		const std::string oldstr,
-		const std::string newstr);
+		const std::string& oldstr,
+		const std::string& newstr);
 
 
 /**
@@ -78,7 +78,7 @@ UG_API std::string ReplaceAll(
  * @return <code>true</code> if <code>str</code> starts
  * with <code>search</code>; <code>false</code> otherwise
  */
-UG_API bool StartsWith(std::string str, std::string search);
+UG_API bool StartsWith(const std::string& str, const std::string& search);
 
 /**
  * Checks whether <code>str</code> contains <code>search</code>.
@@ -87,7 +87,7 @@ UG_API bool StartsWith(std::string str, std::string search);
  * @return <code>true</code> if <code>str</code> contains
  * <code>search</code>; <code>false</code> otherwise
  */
-UG_API bool Contains(std::string str, std::string search);
+UG_API bool Contains(const std::string& str, const std::string& search);
 
 /**
  * Returns a lower case version of the specified string.

@@ -98,8 +98,8 @@ std::string FilenameWithoutPath(const std::string& str)
 
 std::string ReplaceAll(
 		std::string target,
-		const std::string oldstr,
-		const std::string newstr) {
+		const std::string& oldstr,
+		const std::string& newstr) {
 
 	// no substitution necessary
 	if (oldstr == newstr) {
@@ -114,11 +114,11 @@ std::string ReplaceAll(
 	return target;
 }
 
-bool StartsWith(std::string str, std::string begin) {
+bool StartsWith(const std::string& str, const std::string& begin) {
 	return str.find(begin) == 0;
 }
 
-bool Contains(std::string str, std::string search) {
+bool Contains(const std::string& str, const std::string& search) {
 	return str.find(search) !=std::string::npos;
 }
 

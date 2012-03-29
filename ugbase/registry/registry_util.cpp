@@ -4,7 +4,7 @@
 
 namespace ug{
 
-bool IsValidRegistryIdentifier(std::string name) {
+bool IsValidRegistryIdentifier(const std::string& name) {
 	return !Contains(name,"__") &&
 			!StartsWith(name, "F_") &&
 			!StartsWith(name, "C_") &&
