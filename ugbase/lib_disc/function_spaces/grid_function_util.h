@@ -237,6 +237,7 @@ public:
 		reset();
 	}
 
+
 	///	sets the function
 	void set_grid_level(const GridLevel& gridLevel) {
 		m_gridLevel = gridLevel;
@@ -301,7 +302,7 @@ public:
 					"GridFunctionDebugWriter::write_matrix: directory " << m_baseDir << "does not exist.");
 			UG_WARNING(
 					"GridFunctionDebugWriter::write_vector_to_conn_viewer: using cwd as basedir.");
-			name = boost::format("./%1%") % filename;
+			name = str(boost::format("./%1%") % filename);
 		}
 
 		size_t iExtPos = name.find_last_of(".");
@@ -353,7 +354,7 @@ protected:
 			"directory " << m_baseDir << "does not exist.");
 			UG_WARNING(
 					"GridFunctionDebugWriter::write_vector_to_conn_viewer: using cwd as basedir.");
-			name = boost::format("./%1%") % filename;
+			name = str(boost::format("./%1%") % filename);
 		}
 
 		// if ( !boost::filesystem::exists( name ) ) could be used, but sadly
@@ -382,7 +383,7 @@ protected:
 					"GridFunctionDebugWriter::write_vector_to_vtk: directory " << m_baseDir << "does not exist.");
 			UG_WARNING(
 					"GridFunctionDebugWriter::write_vector_to_vtk: using cwd as basedir.");
-			name = boost::format("./%1%") % filename;
+			name = str(boost::format("./%1%") % filename);
 		}
 
 		if (m_gridLevel.type() == GridLevel::LEVEL) {
