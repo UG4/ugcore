@@ -9,7 +9,6 @@
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 
 #include <boost/function.hpp>
-#include <boost/format.hpp>
 #include "../../common/os_dependent/file_util.h"
 
 #include "./grid_function.h"
@@ -291,18 +290,14 @@ public:
 		if (!bConnViewerOut)
 			return;
 
-		//	check name
-		std::string name = str(
-				boost::format("%1%/%2%") % m_baseDir.c_str() % filename);
+		std::string name(m_baseDir); name.append("/").append(filename);
 
-		// if ( !boost::filesystem::exists( name ) ) could be used, but is boost:filesystem
-		// is not available as header-only (see boost documentation)
 		if (!FileExists(m_baseDir.c_str())) {
-			UG_WARNING(
-					"GridFunctionDebugWriter::write_matrix: directory " << m_baseDir << "does not exist.");
-			UG_WARNING(
-					"GridFunctionDebugWriter::write_vector_to_conn_viewer: using cwd as basedir.");
-			name = str(boost::format("./%1%") % filename);
+			UG_WARNING("GridFunctionDebugWriter::write_matrix: directory "
+						<< m_baseDir << "does not exist.");
+			UG_WARNING("GridFunctionDebugWriter::write_matrix: using cwd "
+						"as basedir.");
+			name = "./"; name.append(filename);
 		}
 
 		size_t iExtPos = name.find_last_of(".");
@@ -345,20 +340,15 @@ protected:
 	///	write vector
 	virtual void write_vector_to_conn_viewer(const vector_type& vec,
 			const char* filename) {
-		//	check name
-		std::string name = str(
-				boost::format("%1%/%2%") % m_baseDir.c_str() % filename);
+		std::string name(m_baseDir); name.append("/").append(filename);
 
 		if (!FileExists(m_baseDir.c_str())) {
-			UG_WARNING("GridFunctionDebugWriter::write_vector_to_conn_viewer: "
-			"directory " << m_baseDir << "does not exist.");
-			UG_WARNING(
-					"GridFunctionDebugWriter::write_vector_to_conn_viewer: using cwd as basedir.");
-			name = str(boost::format("./%1%") % filename);
+			UG_WARNING("GridFunctionDebugWriter::write_vector_to_conn_viewer: directory "
+						<< m_baseDir << "does not exist.");
+			UG_WARNING("GridFunctionDebugWriter::write_vector_to_conn_viewer: using cwd "
+						"as basedir.");
+			name = "./"; name.append(filename);
 		}
-
-		// if ( !boost::filesystem::exists( name ) ) could be used, but sadly
-		// boost:filesystem is not available as header-only
 
 		size_t iExtPos = name.find_last_of(".");
 		if (iExtPos == std::string::npos
@@ -375,15 +365,14 @@ protected:
 
 	void write_vector_to_vtk(const vector_type& vec, const char* filename) {
 		//	check name
-		std::string name = str(
-				boost::format("%1%/%2%") % m_baseDir.c_str() % filename);
+		std::string name(m_baseDir); name.append("/").append(filename);
 
 		if (!FileExists(m_baseDir.c_str())) {
-			UG_WARNING(
-					"GridFunctionDebugWriter::write_vector_to_vtk: directory " << m_baseDir << "does not exist.");
-			UG_WARNING(
-					"GridFunctionDebugWriter::write_vector_to_vtk: using cwd as basedir.");
-			name = str(boost::format("./%1%") % filename);
+			UG_WARNING("GridFunctionDebugWriter::write_vector_to_vtk: directory "
+						<< m_baseDir << "does not exist.");
+			UG_WARNING("GridFunctionDebugWriter::write_vector_to_vtk: using cwd "
+						"as basedir.");
+			name = "./"; name.append(filename);
 		}
 
 		if (m_gridLevel.type() == GridLevel::LEVEL) {
