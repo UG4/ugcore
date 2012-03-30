@@ -221,7 +221,7 @@ class GridFunctionDebugWriter
 		static const int dim = TDomain::dim;
 
 	//  base directory for output
-		const char* m_baseDir;
+		std::string m_baseDir;
 
 	public:
 	///	type of matrix
@@ -239,7 +239,7 @@ class GridFunctionDebugWriter
 	public:
 	///	Constructor
 		GridFunctionDebugWriter(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace) :
-			m_baseDir(""), m_spApproxSpace(spApproxSpace), bConnViewerOut(true),
+			m_baseDir("."), m_spApproxSpace(spApproxSpace), bConnViewerOut(true),
 			bVTKOut(true), m_printConsistent(true)
 		{
 			reset();
@@ -288,7 +288,7 @@ class GridFunctionDebugWriter
 			if(!bConnViewerOut) return;
 
 		//	check name
-			std::string name = str( boost::format("%1%/%2%") % m_baseDir % filename );
+			std::string name = str( boost::format("%1%/%2%") % m_baseDir.c_str() % filename );
 
 			size_t iExtPos = name.find_last_of(".");
 			if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".mat") != 0)
@@ -333,7 +333,7 @@ class GridFunctionDebugWriter
 		{
 		//	check name
 
-			std::string name = str( boost::format("%1%/%2%") % m_baseDir % filename );
+			std::string name = str( boost::format("%1%/%2%") % m_baseDir.c_str() % filename );
 
 			size_t iExtPos = name.find_last_of(".");
 			if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".vec") != 0)
