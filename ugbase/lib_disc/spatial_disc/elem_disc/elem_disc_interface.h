@@ -45,6 +45,9 @@ class IElemDisc
 	///	Constructor
 		IElemDisc(const char* functions = NULL, const char* subsets = NULL);
 
+	///	Constructor
+		IElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset);
+
 	////////////////////////////
 	// Functions and Subsets
 

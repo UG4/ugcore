@@ -19,6 +19,14 @@ IElemDisc::IElemDisc(const char* functions, const char* subsets)
 	if(subsets) set_subsets(subsets);
 }
 
+IElemDisc::IElemDisc(const std::vector<std::string>& vFct,
+                     const std::vector<std::string>& vSubset)
+{
+	m_vFct = vFct;
+	m_vSubset = vSubset;
+}
+
+
 void IElemDisc::set_functions(std::string fctString)
 {
 //	tokenize string
