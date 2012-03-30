@@ -1,0 +1,46 @@
+/*
+  created
+  Andreas Vogel <andreas.vogel@gcsc.uni-frankfurt.de>
+  y11 m03 d29
+
+  refactored
+  Torbjörn Klatt <opensource@torbjoern-klatt.de>
+  y12 m03 d29
+*/
+
+/** \page pageTeamCommunication Developer Team Communication
+
+- \ref secMailingList
+- \ref secJenkins
+- \ref secForum
+
+For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
+
+
+<hr>
+\section secMailingList Mailing List
+
+Developers can subscribe to the <strong>UG4 &mdash; MailingList</strong> at:
+
+http://atlas.gcsc.uni-frankfurt.de/mailman/listinfo/ug4
+
+If you are subscribed to the mailing list, you can send a message to all 
+subscribed users by sending an email to:
+ug4@atlas.gcsc.uni-frankfurt.de
+
+
+<hr>
+\section secJenkins Jenkins
+
+<!--
+\todo Write information about the Jenkins CI server.
+-->
+
+<hr>
+\section secForum Forum
+
+<!--
+\todo What about the / a forum?
+-->
+
+*/

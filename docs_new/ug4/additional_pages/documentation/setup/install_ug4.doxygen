@@ -1,0 +1,141 @@
+/*
+  created
+  Andreas Vogel <andreas.vogel@gcsc.uni-frankfurt.de>
+  y10 m12 d11
+
+  refactored
+  Torbjörn Klatt <opensource@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageInstallUG4 Setup and Installation
+
+- \ref secInstallUG4CMake "Download CMake"
+- \ref secInstallUG4UG4 "Download UG4"
+- \ref secInstallUG4Boost "Download Boost"
+- \subpage pageAdditionalSoftware "Additional (optional) software
+- \subpage pageInstallEclipse
+- \subpage pageUG4OnWindows "Installation on Windows"
+- \subpage pageUG4SetupParallel
+- \subpage pageUG4SetupSSH "SSH" (\ref secSSHKeys, \ref secSSHHoping, \ref secSSHFS)
+
+For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
+
+
+<hr>
+\section secInstallUG4CMake CMake
+
+<ul>
+  <li><strong>CMake</strong>: Download <em>CMake</em> from 
+    http://www.cmake.org/cmake/resources/software.html (min Release 2.6)
+  </li>
+  <li>Install <em>CMake</em> on your computer.
+    Install the command line tools, when requested during installation.
+  </li>
+  <li>Open a terminal window.
+    Enter <tt>cmake</tt>.
+    If you see some output <tt>cmake version ...</tt> <em>CMake</em> has been 
+    installed correctly.
+  </li>
+</ul>
+
+See \ref secInstallCMake "here" for a more detailed describtion.
+
+
+<hr>
+\section secInstallUG4UG4 UG4
+
+Create a ug4 directory and perform a svn checkout on the trunk.
+
+<ol>
+  <li><tt>mkdir ug4</tt></li>
+  <li><tt>cd ug4</tt></li>
+  <li><tt>svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt></li>
+</ol>
+
+<hr>
+\section secInstallUG4RunCmake Run CMake
+
+<ol>
+  <li>Open a terminal/shell window</li>
+  <li>move to <tt>ug4/trunk/</tt></li>
+  <li><tt>mkdir build_debug</tt></li>
+  <li><tt>cd build_debug</tt></li>
+  <li><tt>cmake -DDEBUG=ON ..</tt> --> Makefiles are generated</li>
+</ol>
+
+Note, that there are several options, that can be passed to <tt>cmake</tt> to 
+change the build behaviour.
+You see always the current chosen setup when runnig <tt>cmake</tt> and you 
+should see a list of options which you can change.
+In order to change an option run <tt>cmake</tt> again with the parameter 
+<tt>-D&lt;option&gt;=&lt;val&gt;</tt>, where <tt>&lt;option&gt;</tt> is one of 
+the enumerated options and <tt>&lt;val&gt;</tt> is one of the possible values
+for that option ("<tt>&lt;</tt>" and "<tt>&gt;</tt>" should of course not be 
+typed).
+The last argument to <tt>cmake</tt> always has to be the path which you used 
+when you called <tt>cmake</tt> the first time.
+
+Note that you only have to specify the variables which you want to change.
+All other variables will keep their values.
+
+As default <strong>UG4</strong> is build for all supported world dimensions 
+(Dim = 1,2,3).
+If you only need a special dimension (e.g. for code development) and you want 
+to save compilation time, use the <tt>-DDIM</tt> option.
+Examples:
+<ul>
+  <li><tt>cmake -DDIM=ALL ..</tt> -> Builds all dimensions</li>
+  <li><tt>cmake -DDIM=2 ..</tt> -> Builds only dimension 2</li>
+  <li><tt>cmake -DDIM="2;3" ..</tt> -> Builds dimension 2 and 3, but not 1</li>
+</ul>
+
+For <em>CMake</em> Versions older than 2.8 yo may be forced to explicitly 
+specify, that the option <tt>DIM</tt> is passed as a string.
+So, please use: <tt>cmake -DDIM:STRING=2 ..</tt> etc.
+
+
+<hr>
+\section secInstallUG4Make Make
+
+<ol>
+  <li>move to <tt>ug4/trunk/build_debug</tt>
+  <li><tt>make</tt> --> <strong>UG4</strong> is build
+</ol>
+
+<hr>
+\section secInstallUG4Boost Boost
+
+<ul>
+  <li><strong>Boost</strong>: 
+    \note <em>Boost</em>-Headers are now automatically checked out with 
+    <strong>UG4</strong> into the folder /externals.
+    You have to download <em>Boost</em> only if you want to use a different 
+    version of <em>Boost</em>.
+
+    Download latest release of <em>Boost</em> from 
+    http://www.boost.org/users/download/ .
+  </li>
+  <li>Extract/Copy the library to some folder on your computer.
+    The folder is arbitrary. 
+    (e.g. <tt>$HOME/lib/boost_1_46_0</tt>)
+  </li>
+  <li>Add the path of the folder, where <em>Boost</em> is located, to the 
+    environment variable 
+    <a href="http://www.linuxheadquarters.com/howto/basic/path.shtml">PATH</a>, 
+    e.g.: 
+    <ul>
+      <li>in Bash: add <tt>PATH=$PATH:$HOME/lib/boost_1_46_0</tt> to the end of 
+        the file <tt>~/.bashrc</tt>
+      </li>
+      <li>in tcsh/csh: add <tt>set PATH = ($PATH $HOME/lib/boost_1_46_0)</tt> 
+        to the end of the file <tt>~/.tcshrc</tt>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+A more detailed describtion of the setup process of a separate <em>Boost</em> 
+installation can be found \ref secInstallBoost "here".
+
+*/

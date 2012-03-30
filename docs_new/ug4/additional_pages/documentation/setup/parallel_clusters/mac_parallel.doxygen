@@ -1,0 +1,18 @@
+/*
+  moved from 'setup_for_prallel_computers.doxygen'
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageUG4SetupParallelMac MacOS X
+
+After installation of a <em>MPI</em> implementation (e.g. 
+<a href="http://www.open-mpi.org/">OpenMPI</a>, for example via 
+<a href="http://www.macports.org">MacPorts</a>: <tt>sudo port install 
+openmpi</tt>) you can use
+\verbatim
+mpirun -np <NP> ugshell $UGARGS
+\endverbatim
+to run <strong>UG4</strong>.
+
+*/

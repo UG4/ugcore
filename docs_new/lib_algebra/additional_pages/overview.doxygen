@@ -1,0 +1,109 @@
+/*
+  created
+  Martin Rupp <martin.rupp@gcsc.uni-frankfurt.de>
+  y10 m10 d27
+
+  refactored
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d29
+*/
+
+/** \page pageLAOverview libAlgebra
+
+- \ref secSmallAlgebra "Small Algebra"
+- \ref secCPUAlgebra "(Sparse) CPU Algebra"
+- \ref secOperators "Operators"
+- \ref secParallelization "Algebra Parallelization"	
+- \ref secLAPACKIntegration "LAPACK Integration"
+
+
+For any questions, contact martin.rupp@gcsc.uni-frankfurt.de .
+
+<hr>
+\section secSmallAlgebra Small Algebra
+<hr>
+
+The small_algebra has two main classes:
+- ug::DenseMatrix
+- ug::DenseVector
+<br>
+
+Both are meant to work with small, dense matrices/vectors (for ex. n=1..100). You specify the storage policy by using
+DenseMatrix<StoragePolicy>, for example 
+\code DenseMatrix<FixedArray2<double, 2, 3, ColOrdering> > \endcode
+creates a fixed 2x3 matrix of doubles in column-first-ordering, 
+\code DenseMatrix<VariableArray2<float> > \endcode
+creates a variable sized float-matrix. Use resize to specify the actual size. DenseVector is similar, 
+but uses VariableArray1 and FixedArray1, or std::vector.
+<br>
+Feel free to add functionality to small_algebra. Before using your own DenseMatrix class in your code, make sure
+it is impossible to use this one as it is or when you expand it. When you make your eigenvalue / KKT solver
+DenseMatrix-compatible, everyone can use your solver. See also \ref secLAPACKIntegration "LAPACK Integration".
+<br>
+You are also free to implement your own storage policy, for example a 
+ReservingVariableArray2 policy which holds some surplus memory
+to avoid frequent reallocations. 
+
+<br>
+
+
+<hr>
+\section secCPUAlgebra Sparse CPU Algebra
+<hr>
+
+The CPUAlgebra has two main classes:
+- ug::SparseMatrix
+- ug::Vector
+<br>
+
+Both are meant to work with very big dimensions, for example SparseMatrix A = double (1000000 x 10000000),
+and ug::Vector is the associated vector. If you need a matrix for discretization on a unstructured grid,
+choose ug::SparseMatrix, see also the doxygen docu for SparseMatrix. SparseMatrix expects a template
+parameter, the block matrix. It can be double or some DenseMatrix<T>. Vector needs a double
+or DenseVector as template. Some functions are also using SparseMatrix:
+- ug::WriteMatrixToConnectionViewer
+- ug::WriteVectorToConnectionViewer
+- ug::CreateAsMultiplyOf (calculates A = B*C or A = B*C*D)
+- ug::GetNeighborhood
+- ug::IsCloseToBoundary
+- ug::SetDirichletRow
+- ug::MatMult (x = alpha A y)
+- ug::MatMultAdd (x = alpha1 A y + alpha2 z , ...)
+<br>
+
+<hr>
+\section secOperators Operators
+<hr>
+
+Operators are mappings from between spaces. Thus, the Operator interfaces
+are designed in this way. You can find the following operator interfaces:
+- ug::IOperator
+- ug::ILinearOperator
+- ug::IMatrixOperator
+<br>
+	
+In order to invert this operators one may use a specialization of the 
+following interfaces:
+- ug::IOperatorInverse
+- ug::ILinearOperatorInverse
+- ug::IMatrixOperatorInverse
+<br>
+
+<hr>
+\section secParallelization Parallelization of Algebra
+<hr>
+
+The algebra is parallelized using the Parallel Communication Layer (PCL). 
+The main idea is to build interfaces between processes. These interfaces 
+describe with index on the each process represent the same vector entry.
+<br>
+
+<hr>
+\section secLAPACKIntegration Lapack Integration
+<hr>
+
+UG4 is designed to find all LAPACK/BLAS packages via cmake. It is tested on MacOSX (vecLib Framework) and
+on ATLAS (atlas-dev). LAPACK integration is part of the small_algebra. In UG4ROOT/ugbase/lib_algebra/small_algebra
+you find a directory lapack, where all lapack-bridges are set up.
+
+*/

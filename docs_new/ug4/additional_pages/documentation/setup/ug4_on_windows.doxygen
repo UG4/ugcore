@@ -1,0 +1,70 @@
+/*
+  created
+  Sebastian Reiter <sreiter@gcsc.uni-frankfurt.de>
+  y12 m03 d16
+  
+  refactored
+  Torbjörn Klatt <opensource@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageUG4OnWindows Setting up UG4 on Windows
+
+<strong>UG4</strong> supports Windows through the <em>MinGW</em> gcc-compilers.
+<em>MinGW</em> can be downloaded together with <em>MSYS</em> at 
+http://www.mingw.org/wiki/MSYS .  
+<em>MSYS</em> is a <em>'minimal shell'</em>, which mimics some of the features 
+of unix shells.
+You should install <em>MSYS</em> and <em>MinGW</em> to a rather simple path 
+which does not contain spaces or special characters (e.g. <tt>C:\\msys</tt>).
+
+Compiliation of <strong>ug4</strong> furthermore requires the installation of 
+<em>CMake</em>, which can be obtained from 
+<a href="http://www.cmake.org/cmake/resources/software.html">here</a> (min 
+Release 2.6).
+
+You should be able to run <em>CMake</em> from your <em>MSYS</em> shell (simply 
+type <tt>cmake</tt> and press enter).
+If <tt>cmake</tt> can't be found, then you should add the path to the 
+<em>CMake</em> binary to your systems <tt>PATH</tt> variable.
+
+In order to checkout <strong>UG4</strong> from its <em>svn</em> repository 
+you'll either have to follow the instructions on how to setup <em>Eclipse</em> 
+with svn capabilities (cf. \ref pageInstallEclipse) or you'll have to install 
+<em>Tortoise SVN</em> (http://tortoisesvn.net/), depending on whether you want 
+to develop with <strong>UG4</strong> or just compile it.
+<em>Tortoise SVN</em> is an extension to the Windows Explorer and allows to 
+perform checkouts and commits through the right-click-menu directly in the 
+explorer.
+
+If you're using <em>Tortoise SVN</em>, then open the explorer and navigate to 
+the folder in which you want to install <strong>UG4</strong>.
+Create a new folder called <tt>ug4</tt>, perform a right click on it and choose 
+<em>svn checkout</em> from the menu.
+Enter the repository adress (e.g. svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk), 
+your username and password.
+
+You should now have received a full checkout of <strong>UG4</strong>'s sources.
+Now open the <em>MSYS</em> shell and navigate to the <strong>UG4</strong> folder 
+you just created.
+Note that folders in <em>MSYS</em> are specified in a Unix way, e.g. 
+<tt>cd /c/ug4</tt>)
+
+If you chose <em>Eclipse</em>, then please follow the tutorial given in 
+\ref pageInstallEclipse to set up <em>Eclipse</em> and how to checkout 
+<strong>UG4</strong>.
+
+Compilation and <em>CMake</em> calls are very similar to Unix and to the 
+description given in \ref pageInstallUG4.
+However one important thing to note is, that one has to explicitly specifiy the 
+compiler, which shall be used by <em>CMake</em>.
+A call to <em>CMake</em> thus should start as follows:
+
+\verbatim
+cmake -G"MSYS Makefiles"
+\endverbatim
+
+This is however only necessary when you invoke <em>CMake</em> the first time 
+for a given folder.
+
+*/

@@ -1,0 +1,259 @@
+/*
+  created
+  Sebastian Reiter <s.b.reiter@googlemail.com>
+  y09 m09 d14
+
+  refactored
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageLGOverview Details
+
+- \ref secGrid "Grid"
+- \ref secGeomObjs "Geometric Objects"
+- \ref secObjectCreation "Object Creation"
+- \ref secObjectIteration "Object Iteration"
+- \ref secAttachments "Attachments"
+- \ref secTools "Tools"
+- \ref secUtil "Util"
+- \ref secAlgorithms "Algorithms"
+- \ref secFileIO "FileIO"
+
+
+<hr>
+\section secGrid Grid
+
+The central class of libGrid is the Grid class.
+It handles element creation, neighbourhood managment, data-attachments and observers.
+The class MultiGrid is derived from Grid, and adds a hierarchical structure to the grids elements.
+- ug::Grid
+- ug::MultiGrid
+
+<br>
+<hr>
+\section secGeomObjs Geometric Objects
+<hr>
+Geometric Objects are the building blocks of a grid.
+There are four different basic geometric objects:
+- ug::VertexBase
+- ug::EdgeBase
+- ug::Face
+- ug::Volume
+	
+Those basic objects are then further specialized:
+- ug::Vertex
+- ug::Edge
+- ug::Triangle, ug::Quadrilateral
+- ug::Tetrahedron, ug::Hexahedron, ug::Prism, ug::Pyramid
+	
+For hanging-node support the following objects are introduced:
+- ug::HangingVertex
+- ug::ConstrainingEdge. ug::ConstrainingEdge
+- ug::ConstrainingTriangle, ug::ConstrainingQuadrilateral, ug::ConstrainedTriangle, ug::ConstrainedQuadrilateral
+
+<br>
+<hr>
+\section secObjectCreation Object Creation
+<hr>
+Geometric Objects are created through the ug::Grid::create method (or ug::MultiGrid::create).
+Since the Grid class only knows about the basic geometric objects,
+ug::Grid::create<TGeomObj> is a template method, that takes the type
+of the geometric object that is to be created as template argument:
+\verbatim
+using namespace ug;
+...
+Grid g;
+/* create vertices */
+Vertex* v1 = *g.create<Vertex>();
+Vertex* v2 = *g.create<Vertex>();
+
+/* create an edge */
+g.create<Edge>(EdgeDescriptor(v1, v2));
+\endverbatim
+
+The create method takes an optional parameter:
+\code ug::Grid::create(GeometricObject* pParent = NULL);\endcode
+The parent is used in different ways:
+- ug::SubsetHandler can automatically assign a subset based on the parents subset.
+- ug::Selector can automatically assign the selection-status based on the parents selection status.
+- A ug::MultiGrid inserts elements one level above the parents level.
+- You can use the parent in your own grid-observer specializations (derive from ug::IGridObserver)
+	
+All those beahviours can be enabled / disabled in the respective classes.
+
+<br>
+<hr>
+\section secObjectIteration Object Iteration
+<hr>
+libGrid uses the technique of iterators for geometric-object access.
+A separate iterator-type exists for each object-type:
+- ug::VertexBaseIterator, ug::VertexIterator, ...
+- ug::EdgeBaseIterator, ug::EdgeIterator, ...
+- ug::FaceIterator, ug::TriangleIterator, ug::QuadrilateralIterator, ...
+- ug::TetrahedronIterator, ug::HexahedronIterator, ug::PrismIterator, ug::PyramidIterator
+	
+You can query a grid for a begin and an end-iterator for each geometric-object type using
+ug::Grid::begin and ug::Grid::end. Both methods are template methods. The template argument
+specifies the type of geometric-object over which you want to iterate.
+
+\code
+/* Let g be a grid that already contains some geometric objects */
+/* iterate over all vertices */
+for(VertexBaseIterator iter = g.begin<VertexBase>();
+	iter != g.end<VertexBase>(); ++iter)
+{
+	VertexBase* v = *iter;
+	...
+}
+
+/* iterate over all faces */
+for(FaceIterator iter = g.begin<Face>();
+	iter != g.end<Face>(); ++iter)
+{
+	Face* f = *iter;
+	...
+}
+
+/* iterate over all triangles */
+for(TriangleIterator iter = g.begin<Triangle>();
+	iter != g.end<Triangle>(); ++iter)
+{
+	Triangle* t = *iter;
+	...
+}
+\endcode
+
+The same technique can be used to iterate over all Triangles of a subset:
+\code
+using namespace ug;
+...
+Grid g;
+SubsetHandler sh(g);
+...
+/* iterate over all triangles in subset 0 */
+for(TriangleIterator iter = sh.begin<Triangle>(0);
+	iter != sh.end<Triangle>(0); ++iter)
+{
+	Triangle* t = *iter;
+	...
+}
+\endcode
+
+or a ug::Selector
+\code
+...
+Selector sel(g);
+...
+for(TriangleIterator iter = sel.begin<Triangle>();
+	iter != sel.end<Triangle>(); ++iter)
+...
+\endcode
+
+or a level of a ug::MultiGrid
+\code
+...
+MultiGrid mg;
+...
+for(TriangleIterator iter = mg.begin<Triangle>(0);
+	iter != mg.end<Triangle>(0); ++iter)
+\endcode
+
+or triangles on level l in subset i of a ug::MGSubsetHandler
+\code
+...
+MGSubsetHandler mgsh(mg);
+...
+for(TriangleIterator iter = mgsh.begin<Triangle>(i, l);
+	iter != mgsh.end<Triangle>(i, l); ++iter)
+...
+\endcode
+
+There are even more classes that support this way of geometric-object iteration.
+\sa ug::GeometricObjectCollection, ug::MultiLevelGeometricObjectCollection
+
+<br>
+<hr>
+\section secAttachments Attachments
+<hr>
+Through attachments custom data can be associated with the geometric objects in a ug::Grid
+or a subset of a ug::SubsetHandler or ug::MGSubsetHandler.
+Data is attached to all objects of the same basic type at once (ug::VertexBase, ug::EdgeBase,
+ug::Face, ug::Volume).
+
+Lets say we wanted to associate an integer with each vertex in a grid g. This could be done as follows:
+\code
+/* we define the attachment type */ 
+typedef Attachment<int> AInt;
+
+/* The instance of the attachment-type serves as identifier for the attachment. */
+AInt aInt;
+
+/* Let g be an instance of ug::Grid or ug::MultiGrid*/
+g.attach_to_vertices(aInt);
+\endcode
+
+When aInt is being attached to the vertices of the grid, memory is automatically allocated and
+associated with the vertices. If you add or remove vertices, the memory is adjusted in the background.
+
+To access the integer-value that is associated with each vertex, an attachment-accessor is required:
+
+\code
+/* a vertex-attachment-accessor for attachments of type AInt */
+/* We want it to operate on the Grid g and on the attachment aInt */ 
+Grid::VertexAttachmentAccessor<AInt> aaInt(g, aInt);
+
+/* iterate over all vertices of the grid and assign 12 to the attached integer-value */
+for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
+	aaInt[*iter] = 12;
+\endcode
+
+The vertex-attachment-accessor features the operator [] that takes a pointer to a vertex
+and returns a reference to the associated value.
+
+<br>
+Data can be attached to elements of a subset of an ug::SubsetHandler or ug::MGSubsetHandler like this:
+\code
+...
+SubsetHandler sh(g);
+...
+/* attach the integers to all faces in subset 2 */
+sh.attach_to_faces(aInt, 2);
+
+/* access the attachment */
+SubsetHandler::AttachmentAccessor<Face, AInt> aaIntSH2(sh, aInt, 2);
+
+/* Assign values: */
+/* Please note that you may only pass faces to the accessor that are contained in subset 2. */
+for(FaceIterator iter = sh.faces_begin(2); iter != sh.faces_end(2); ++iter)
+	aaIntSH2[*iter] = 17;
+\endcode
+
+<br>
+<hr>
+\section secTools Tools
+<hr>
+There are some classes that help tremendously when implementing algorithms:
+the Selector and the SubsetHandler.
+- ug::Selector
+- ug::SubsetHandler, ug::MGSubsetHandler
+
+<br>
+<hr>
+\section secUtil Util
+<hr>
+...
+
+<br>
+<hr>
+\section secAlgorithms Algorithms
+<hr>
+...
+
+<br>
+<hr>
+\section secFileIO FileIO
+<hr>
+...
+
+*/

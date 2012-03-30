@@ -1,0 +1,95 @@
+/*
+  created
+  Ingo Heppner <ingo.heppner@gcsc.uni-frankfurt.de>
+  y12 m03 d10
+
+  refactored
+  Torbjörn Klatt <opensource@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageParallelRendering Parallel Rendering
+
+- \ref secParallelRenderingGeneral
+- \ref secParallelRenderingWithParaView
+
+
+<hr>
+\section secParallelRenderingGeneral General Information About Parallel Rendering
+
+<!--
+\todo Write general information about parallel rendering
+-->
+
+
+<hr>
+\section secParallelRenderingWithParaView Parallel Rendering with ParaView
+
+<strong>Prerequisite</strong>:
+<a href="http://paraview.org/">ParaView</a> (client) is installed on your 
+local machine, and <em>ParaView</em> (server; with MPI support) is installed 
+on the machine which is intended as rendering server.
+
+<strong>Important</strong>:
+The version of the client must match that of the server!
+
+For a local installation of <em>ParaView</em> on the rendering server see 
+\ref secInstallParaView.
+
+This mode of running <em>ParaView</em> is also called "Client-Server mode".
+In client-server mode, one executes the <tt>pvserver</tt> program on a parallel 
+machine and connect to it with the <em>ParaView</em> client application.
+
+<ol>
+  <li>
+    Start the ParaView server on the rendering server, e.g. <tt>cekon</tt>, 
+    with your local machine as client (the parameter <tt>-ch</tt> describes 
+    the "client host"):
+    \verbatim
+    salloc -n <NP> mpirun /usr/local/bin/pvserver -ch=<yourlocalhost>.gcsc.uni-frankfurt.de -rc --use-offscreen-rendering
+    \endverbatim
+    The option <tt>-rc</tt> stands for "reverse connection".
+    This means that the server connects to the client instead of the client 
+    connecting to the server.
+    This may be necessary when the server is behind a firewall.
+  </li>
+  <li>Start the ParaView client on your local machine as usual.</li>
+  <li>Then choose "File --> Connect".
+    In the new dialog "Choose Server Configuration" click "Add Server" 
+    (window title changes to "Edit Server Configuration").
+
+    Fill in the necessary informations to define a connection to the ParaView 
+    server running on <tt>cekon</tt>:
+    <ul>
+      <li>Name: "cekon" (only descriptive; this is the name that will appear 
+        in the "Choose Server Configuration" dialog),
+      <li>Server Type: "Client / Server (reverse Connection)",
+      <li>Port: "11111" (if default port can be used; see below).
+    </ul>
+    Then click "Configure" and choose "Startup Type": "Manual". Click "Save"
+
+    Select the (newly defined) server and click "Connect".
+  </li>
+  <li>In the "Pipeline Browser" of your client choose the server as "data object"
+
+<!--
+    \todo Test and explicate selection of server in pipeline browser.
+-->
+
+  </li>
+</ol>
+
+If a ParaView server is already running and listening at the default port, 
+<tt>11111</tt> (or this port is blocked by a firewall etc.), you have to start 
+the server using a non-default port using the additional parameter 
+<tt>--server-port=&lt;portnumber&gt;</tt> (and of course take this into account 
+also when connecting from the client to the server).
+
+For some further documentation see e.g.:
+- http://www.paraview.org/Wiki/Setting_up_a_ParaView_Server#Running_the_Server
+- http://www.vtk.org/Wiki/Setting_up_a_ParaView_Server
+- http://www.fz-juelich.de/ias/jsc/EN/Expertise/Support/Visualization/ScientificVisualization/JUVIS/_node.html
+- http://www.fz-juelich.de/ias/jsc/EN/Expertise/Support/Visualization/ScientificVisualization/JUVIS/SampleSessionLocalRender.html
+
+
+*/

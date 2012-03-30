@@ -1,0 +1,160 @@
+/*
+  created
+  Martin Rupp <martin.rupp@gcsc.uni-frankfurt.de>
+  y12 m03 d07
+
+  refactored
+  Torbjörn Klatt <opensource@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageUGSubmit Job Scheduling on Clusters
+
+- \ref secIntroduction
+- \ref secOtherScripts
+- \ref secUGSubmit
+- \ref secUGInfo
+- \ref secUGCancel
+
+
+<hr>
+\section secIntroduction Introduction
+
+\ref secUGSubmit, \ref secUGInfo and \ref secUGCancel are scripts to unify the 
+access to job schedulers over different clusters.
+Supported clusters are
+- NecNehalem
+- Hermit
+- Jugene
+- mpi
+-cekon
+
+For this you can set some environment variables (here for bash)
+\verbatim
+export UGSUBMIT_TYPE=Hermit
+export UGSUBMIT_EMAIL=mail@you.de
+\endverbatim
+Alternatively, you can use the arguments <tt>-cluster=Hermit</tt> and 
+<tt>-email=mail\@you.de</tt>.
+
+Now you can run a job like this:
+\verbatim
+Hermit [~/ug4/bin] ../scripts/shell/ugsubmit 64 -mail-all --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 9
+\endverbatim
+
+and you get this output
+\verbatim
+ugsubmit 0.1. (c) Goethe-Center for Scientific Computing 2012
+
+Using qsub on Hermit/Cray XE6
+qsub -V ./bin/job.64.2012-03-07.10:27:34/job.sh
+Submitting batch job to queue ...
+Recieved PBSid: 
+42851.sdb
+\endverbatim
+
+we can look if it really runs with uginfo:
+\verbatim
+Hermit [~/ug4/bin] ../scripts/shell/uginfo
+uginfo 0.1. (c) Goethe-Center for Scientific Computing 2012
+Using Hermit
+Job id                    Name             User            Time Use S Queue
+42851.sdb                  ...3-07.10:27:34 rupp            00:00:01 C multi          
+42853.sdb                  ...3-07.10:29:00 rupp                   0 R multi          
+42854.sdb                  ...3-07.10:29:13 rupp                   0 R single 
+\endverbatim
+
+You can also write testscripts using a bunch of ugsubmits, and use them on a 
+wide range of clusters like this:
+\verbatim
+#!/bin/bash
+./scripts/shell/ugsubmit 1 --- ./ugshell -ex laplace.lua -numRefs 6
+./scripts/shell/ugsubmit 16 --- ./ugshell -ex laplace.lua -numPreRefs 4 -numRefs 8
+./scripts/shell/ugsubmit 64 --- ./ugshell -ex laplace.lua -numPreRefs 5 -numRefs 9
+./scripts/shell/ugsubmit 256 -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 10
+./scripts/shell/ugsubmit 1024 -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 7 -numRefs 11
+\endverbatim
+
+
+<hr>
+\section secOtherScripts Other Scripts, Improvements
+
+If you have other scripts which start job schedulers, please mail them to me, 
+and tell me how to make <tt>ugsubmit</tt> better.
+You have an option which you can't live without?
+Perhaps you can include it into <tt>ugsubmit</tt>, then everyone can benefit.
+Also if you come to new clusters currently not supported in <tt>ugsubmit</tt>, 
+we can incorporate this into <tt>ugsubmit</tt>.
+Change it in the repro or write an email to martin.rupp@gcsc.uni-frankfurt.de .
+
+
+<hr>
+\section secUGSubmit ugsubmit
+
+<tt>ugsubmit</tt> can be located in <tt>/ug4/scripts/shell/ugsubmit</tt>. 
+You might have to add <tt>chmod +x /ug4/scripts/shell/ugsubmit</tt> to make it 
+executable.
+
+\verbatim
+ugsubmit <npe> [optional Parameters] --- <binary> <arg1> <arg2> ...
+\endverbatim
+-        \<npe\>                  : number of processes
+-        \<binary\>               : the binary
+-        \<args\>                 : arguments for execution of binary
+
+ optional Parameters are:
+-        -test                  : do not actually execute, only write scripts (also sets -verbose)
+-        -nppn \<nppn\>           : number of processes per node (optional, default 1)
+-        -cluster \<type\>        : cluster to use. see below (or use env. variable UGSUBMIT_TYPE)
+-        -name \<jobname\>        : a jobname to be used (optional, default "job")
+-        -walltime \<hh:mm:ss\>   : max walltime for job to run (optional; default is 00:10:00)
+-        -email \<emailadress\>   : emailadress. you can also use the environment variable UGSUBMIT_EMAIL.
+-        -mail-start            : mail when job starts
+-        -mail-end              : mail when job ends
+-        -mail-error            : mail on error
+-        -mail-all              : 
+-        -verbose               : enable verbose mode
+-        -tail                  : display the output (as tail -f. job runs even if you hit Ctrl-C)
+-        -i                     : interactive (not fully supported)
+-        -dir                   : directory to use
+
+
+ Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon.
+ 
+ Jugene Parameters
+-        -Jugene-mode            : VN, DUAL or SMP. Default VN
+-        -Jugene-mapfile         : Mapfile. Default TXYZ
+-        -Jugene-verbose         : Verbose Level. Default 2
+
+ Hermit Parameters
+-        -Hermit-workspace       : Use the Hermit Workspace mechanism for I/O.
+                                  https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism
+
+ descr: The script creates a new folder relative to the current path with the name
+        '\<jobname\>.\<npe\>.(date)' (where \<npe\> is the number of processes. In this new directory
+        a file named 'info.txt' is created, to identify the job. Then, depending
+        on the selected cluster type, a shell script is created and submitted to the
+        job scheduling system. ugsubmit also sets a symbolic link lastRun to the newly
+        created directory
+ 
+ exported environment variables:
+ -       UGS_JOBNAME              : job name
+ -       UGS_OUTDIR               : output directory
+ -       UGS_NP                   : see \<npe\>
+ -       UGS_NPPN                 : see -nppn
+ -       UGS_MYDIR                : the directory ugsubmit is started from
+
+
+<hr>
+\section secUGInfo uginfo
+
+<tt>uginfo</tt> displays job information of the current user on the cluster. 
+
+
+<hr>
+\section secUGCancel ugcancel
+
+<tt>ugcancel</tt> cancels a job.
+Use \ref secUGInfo to get a job id.
+
+*/

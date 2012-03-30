@@ -1,0 +1,104 @@
+/*
+  created
+  Martin Rupp <martin.rupp@gcsc.uni-frankfurt.de>
+  y12 m02 d29
+  
+  refactored
+  Torbjörn Klatt <opensource@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageUG4SetupParallel UG on Parallel Computers / Clusters
+
+- \ref secGeneral_Notes "General Notes"
+- \ref secCMake "CMake, Toolchains, Compilers"
+- \ref secInstallation_of_additional_software "Installation of additional software"
+- \subpage pageUG4SetupParallelWindows "Windows"
+- \subpage pageUG4SetupParallelMac "MacOSX"
+- \subpage pageUG4SetupCekon "Cekon"
+- \subpage pageUG4SetupJugene "JuGene"
+- \subpage pageUG4SetupHermit "Hermit"
+
+
+<hr>
+\section secGeneral_Notes General Notes
+
+All examples are for running <strong>UG4</strong> in parallel with 
+<tt>&lt;NP&gt;</tt> processors and <tt>$UGARGS</tt> as arguments, where
+<tt>&lt;NP&gt;</tt> is a placeholder for the number of MPI processes and
+<tt>$UGARGS</tt> is an Unix environment variable which for example is defined 
+by (Bash syntax; just to shorten command lines):
+\verbatim
+UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx"
+\endverbatim
+
+Except for your own computer/workstation or explicitly stated, do NOT EVER use 
+<tt>mpirun -np &lt;NP&gt; ugshell $UGARGS</tt> to start your job on a cluster! 
+The node you are logging into is only a login node, and you don't want to run 
+your job on these.
+
+
+<hr>
+\section secCMake CMake, Toolchains, Compilers
+
+\subsection secCMake_ToolchainFiles Toolchain file
+
+On some systems (especially when the software is built for a different system 
+than the one which does the build) it is necessary to change some configuration 
+settings done by <em>CMake</em> (like compilers or flags to use) by a so 
+called "toolchain file" (cf. for example 
+<a href="http://www.vtk.org/Wiki/CMake_Cross_Compiling">CMake Cross Compiling</a>).
+
+In this case run <em>CMake</em> like this
+\verbatim
+cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..
+\endverbatim
+
+
+\subsection secCMake_OtherCompilers Setting compilers to use
+
+You can specify other compilers than detected by <em>CMake</em> from the 
+command line with
+\verbatim
+cmake -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC ..
+\endverbatim
+
+
+\subsection secCMake_GCC412 GCC 4.1.2
+
+GCC v. 4.1.2, like it is default on <tt>cekon</tt>, is not able to compile a 
+debug build (i.e. configured with <tt>cmake -DDEBUG=ON ..</tt>) because of an 
+internal compiler error (<tt>internal compiler error: in force_type_die, at 
+dwarf2out.c...</tt>).
+In this case it is possible to configure <strong>UG4</strong> by specifying 
+<em>GCC v. 4.4.4</em> which is also installed on <tt>cekon</tt> as an 
+alternative compiler:
+\verbatim
+cmake -DCMAKE_CXX_COMPILER=/usr/bin/g++44 ..
+\endverbatim
+
+Alternatively one can instruct the (default) compiler to produce the debug 
+infos in <a href="http://gcc.gnu.org/ml/gcc/2001-04/msg01028.html">another 
+format</a>. 
+To do so, call <em>CMake</em> with
+\verbatim
+cmake -DDEBUG_FORMAT=-gstabs ..
+\endverbatim
+
+This sets STABS as format of debug infos.
+
+\note If you need to choose another compiler, please consider writing your own 
+toolchain file, so others can benefit from your knowledge. 
+
+<hr>
+\section secInstallation_of_additional_software Installation of additional software
+
+Unfortunately on some systems it turned out that especially the build tool 
+<em>CMake</em>, absolutely necessary to configure <strong>UG4</strong> (cf. 
+\ref pageInstallUG4, \ref secInstallUG4CMake), was not available.
+In such cases you have to install the required software yourself (typically 
+locally).
+For some installation instructions &mdash; including those for <em>CMake</em> 
+&mdash; see \ref pageAdditionalSoftware .
+
+*/

@@ -1,0 +1,417 @@
+/*
+  refactored
+  Torbjörn Klatt <opensource@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageUG4Registry ug-Registry
+
+In order to make functionality (such as C++ classes, methods and functions) 
+available in the Lua-Script or the VRL, this functionality must be registered
+by the C++ programmer.
+By this registration, the programmer indicates, that the functionality is 
+exported.
+Once exported the functionality is accessible in Script and VRL simultaneously.
+
+This page gives an introduction to the registration process.
+
+
+<hr>
+\section secSTHowToRegister How to register Functionality
+
+Registering is done in the <tt>*.cpp</tt> files in the folder 
+<tt>ugbase/ug_bridge/bridges</tt>.
+Here are found several so called <em>bridges</em> that map (bridge) the 
+functionality of different parts of the software project to the script (or VRL). 
+
+To understand the usage of the <tt>ug::Registry</tt>, lets start with the 
+simple and exemplary file <tt>test_bridges.cpp</tt>.
+Here, you find several simple test classes and functions, written in normal C++.
+This functionality is now exported. 
+
+The function, where the registration takes place is 
+<tt>RegisterTestInterface</tt>.
+
+\code
+bool RegisterTestInterface(Registry& reg, const char* parentGroup)
+{
+  //  usually the parentGroup is "ug4"
+
+  //  get group string
+  std::stringstream groupString; groupString << parentGroup << "/Test";
+  std::string grp = groupString.str();
+
+  //  now groupString is simply "ug4/Test"
+
+  //  ...
+}
+\endcode
+
+This function gets passed the Registry to which all functionality is added.
+In addition a <em>Group</em> string is added, that can be used to group 
+functionality together.
+Usually all separated parts (e.g. <em>Grid</em>, <em>Algebra</em>, ...) are 
+grouped, but this is not essential for the registration.
+(Therefore, lets not stress this point here)
+
+
+<hr>
+\section secSTHowToRegisterFunctions How to register Global Functions
+
+Now, we come to the point to register a global C++-Function.
+We start with a very simple example, the famous <em>Hello World</em>.
+You will find in the file a global Function <tt>PrintHelloWorldToScreen</tt>:
+\code
+// prints "Hello World"
+void PrintHelloWorldToScreen()
+{
+  UG_LOG("Hello World !\n");
+}
+\endcode
+
+In order to export this global function, you must use the syntax
+\code{.lua}
+reg.add_function( "NameAppearingInScript", Pointer to Function, ... )
+\endcode
+
+For the <em>Hello World</em> function this reads:
+\code
+//  registering hello world
+reg.add_function("PrintHelloWorld", &PrintHelloWorldToScreen);
+\endcode
+
+Now, you can call this function in the Script.
+So, start the ug shell in your terminal:
+
+\verbatim
+user$ ./ugshell 
+********************************************************************************
+* ugshell - v4.0.1                                                             *
+*                                                                              *
+* arguments:                                                                   *
+*   -outproc id:         Sets the output-proc to id. Default is 0.             *
+*   -ex scriptname:      Executes the specified script.                        *
+*   -noquit:             Runs the interactive shell after specified script.    *
+*   -noterm:             Terminal logging will be disabled.                    *
+*   -logtofile filename: Output will be written to the specified file.         *
+* Additional parameters are passed to the script through ugargc and ugargv.    *
+********************************************************************************
+ug:> 
+\endverbatim
+
+Now, just type the function:
+\verbatim
+ug:> PrintHelloWorld()
+Hello World !
+ug:> 
+\endverbatim/
+
+
+<hr>
+\section secSTHowToRegisterClasses How to register Classes and Methods
+
+C++-Classes and their methods are registered similarly.
+Lets focus on the example class "Test":
+
+\code
+class Test
+{
+  public:
+    int add(int a, int b)
+    {
+      return a+b;
+    }
+
+    int print_name()
+    {
+      UG_LOG("Name is Test\n");
+      return 1;
+    }
+    
+    int print() {UG_LOG("Test::print()\n"); return 0;}
+    int print() const {UG_LOG("Test::print() const\n"); return 1;}
+};
+\endcode 
+
+This class is registered by
+\code
+//  register class "Test"
+reg.add_class_<Test>("Test", grp)
+   .add_constructor()
+   .add_method("add", &Test::add, "c", "a#b")
+   .add_method("print_name", &Test::print_name);
+\endcode
+
+The following is done here:
+<ul>
+  <li>In add_class_< Class > the exported class is specified</li>
+  <li>By <tt>Test</tt> is specified the name of the class used in the 
+    script
+  </li>
+  <li>By <tt>.add_constructor()</tt> is specified, that the constructor is 
+    available in the script.
+  </li>
+  <li> By <tt>.add_method("MethodNameInSkript", Pointer to method)</tt> a 
+    method is exported.
+  </li>
+</ul>
+
+Now, you can create an object of this class from script using the 
+<tt>()</tt>-Operator:
+\verbatim
+ug:> myClass = Test()
+\endverbatim
+
+Calling a method of the class is done by using the <tt>:</tt>-Operator
+\verbatim
+ug:> myClass:print_name()
+Name is Test
+\endverbatim
+
+
+<hr>
+\section secSTHowToSpecifyParameterInformation How to specify Parameter information
+
+As shown in the last example, the <tt>.add_method()</tt> method allows to 
+specify additional parameter related information.
+The first string after the method pointer specifies properties of the return 
+value:
+<tt>c</tt>.
+The second string specifies properties of the parameters of the registered 
+method:
+<tt>a#b</tt>.
+
+These properties allow VRL and the Script to provide additional information for 
+the registered methods.
+Apart from the <em>name</em>, in this case <tt>c</tt>, VRL uses a so called 
+<em>style</em> identifier to choose between several possible type 
+representations.
+Additional <em>options</em> allow to specify range conditions, default values 
+etc.
+
+
+<hr>
+\subsection secParamStrings Syntax
+
+Parameter properties can be specified as follows:
+\code
+name | style | options
+\endcode
+
+The short form <tt>name</tt> is also valid if no additional option shall be
+specified.
+
+An example for return value properties:
+<tt>c|default|min=1;max=10</tt>.
+
+For the parameter string an additional separator is used to split the
+individual parameter properties.
+Parameters can be separated as follows (seperating two parameters):
+\code
+name1 | style1 | options1 # name2 | style2 | options2
+\endcode
+
+
+<hr>
+\subsection secParamStringsAvaliableOptions Available styles and options
+
+\subsubsection secParamStringsName Name
+
+For the name it is safe to specify ASCII strings.
+Roughly speaking, it is safe to specify strings consisting of letters from
+the latin alphabet, numbers and characters from the following list:
+<tt>^!"§$%&/()=?*,.-;:_<>\@</tt> (list may be not complete).
+
+VRL supports simple HTML syntax (most tags from HTML 3.x are supported).
+Thus, it is possible to request bold or underlined names.
+Using colors and other enhanced stylings should not be used as this will most 
+likely conflict with the VRL interface styles because in this case VRL cannot 
+automatically change the text color accordingly.
+
+\note Special characters and control characters, such as <tt>\\n</tt> are not
+supported.
+The characters <tt>|</tt> and <tt>#</tt> must not be used either.
+
+
+<hr>
+\subsubsection secParamStringsStyle Style
+
+VRL uses a so called <em>style identifier</em> to choose between type 
+representations.
+The most relevant type representations for UG are listed below  (more details 
+can be found in the VRL API documentation):
+
+<hr>
+<strong>Type representations for the <em>number</em> type:</strong>
+- style identifier: <tt>default</tt>
+- possible options: <tt>min</tt>, <tt>max</tt>, <tt>value</tt>
+- example string: <tt>Double|default|min=1D;max=100D;value=50D</tt>
+
+\image html img/vrl/double-default-01.png
+
+<hr>
+<strong>Type representations for the <em>integer</em> type:</strong>
+- style identifier: <tt>default</tt>
+- possible options: <tt>min</tt>, <tt>max</tt>, <tt>value</tt>
+- example string: <tt>Integer|default|min=1;max=100;value=50</tt>
+
+\image html img/vrl/integer-default-01.png
+<hr>
+
+- style identifier: <tt>slider</tt>
+- possible options: <tt>min</tt>, <tt>max</tt>
+- example string: <tt>Integer|slider|min=1;max=255</tt>
+
+\image html img/vrl/integer-slider-01.png
+<hr>
+
+- style identifier: <tt>selection</tt>
+- possible options: <tt>min</tt>, <tt>max</tt>
+- example string: <tt>Integer|selection|value=[1,2,3]</tt>
+
+\image html img/vrl/selection-integer-01.png
+
+<hr>
+<strong>Type representations for the <em>string</em> type:</strong>
+- style identifier: <tt>default</tt>
+- possible options: - none -
+- example string: <tt>String|default</tt>
+
+\image html img/vrl/string-default-01.png
+<hr>
+
+- style identifier: <tt>load-dialog</tt> or <tt>save-dialog</tt> 
+- possible options: <tt>endings</tt>, <tt>description</tt>
+- example string: <tt>"File Name|load-dialog|endings=[\"png\\",\"jpg\\"];description=\"Image-Files\\"</tt>
+
+\image html img/vrl/load-dialog-01.png
+<br>
+\image html img/vrl/load-dialog-02.png
+<hr>
+- style identifier: <tt>selection</tt>
+- possible options: <tt>value</tt>
+- example string: <tt>String|selection|value=[\"string1\\",\"string2\\"]</tt>
+
+\image html img/vrl/selection-string-01.png
+
+
+<hr>
+\section secSTHowToRegisterBaseClasses How to register Base Classes
+
+Class hierarchies can also be exported to the Script.
+Please note, that currently only <strong>one base class is supported</strong> 
+(i.e. multiply derivation is not possible in the registry).
+In order to register a base class, use the usual C++-syntax:
+
+\code
+class Base
+{
+  public:
+    virtual ~Base()	{}
+    virtual void print() = 0;
+};
+
+class Derived : public Base
+{
+  public:
+    virtual ~Derived()	{}
+    virtual void print()
+    {
+      UG_LOG("Derived::print() called\n");
+    }
+};
+\endcode
+
+Now, in registration, add the base class <strong>without</strong> constructor:
+
+\code
+//  registering base class (without constructor)
+reg.add_class_<Base>("Base", grp)
+   .add_method("print", &Base::print);
+\endcode
+
+When registering the Derived class, add also the Base class as a second template
+argument.
+\code
+//  registering derived class
+reg.add_class_<Derived, Base>("Derived", grp)
+   .add_constructor();
+\endcode
+
+
+<hr>
+\section secSTHowToRegisterOverloadedMethods How to register Overloaded Methods
+
+When a method (or function) is overloaded, the compiler can not find the method
+you want to register by only passing the method pointer.
+You have to explicitly specify the method signature to choose between the 
+possibilities:
+
+\code
+class Test
+{
+  public:
+  // 	... something ...		
+
+  //	overloaded functions
+    int print()			{UG_LOG("Test::print()\n"); return 0;}
+    int print() const	{UG_LOG("Test::print() const\n"); return 1;}
+};
+\endcode
+
+\code
+//  register class "Test"
+reg.add_class_<Test>("Test", grp)
+   .add_method("print", static_cast<int(Test::*)()>(&Test::print))
+   .add_method("print", static_cast<int(Test::*)() const>(&Test::print));
+\endcode
+
+
+<hr>
+\section secSTHowToRegisterOverloadedConstructors How to register Overloaded Constructors
+
+Constructors with parameters and several (overloaded) Constructors are also 
+possible.
+Since it is impossible to take the function point of a constructor the special 
+method <tt>add_constructor<SignatureFunction>(...)</tt> must be used. 
+
+\code
+class Test
+{
+  public:
+    Test() { UG_LOG("Test::Test() constructor used.\n")}
+    Test(const char* msg)
+    {
+      UG_LOG("Test::Test(const char*) constructor used.\n")
+      UG_LOG("Message is: '"<<msg<<"'.\n");
+    }
+};
+\endcode
+
+\code
+//  register class "Test"
+reg.add_class_<Test>("Test", grp)
+   .add_constructor()
+   .add_constructor<void (*)(const char*)>("Message");
+\endcode
+
+The template argument of the <tt>add_constructor</tt> method must be a global 
+function pointer with void return value.
+The signature of the function pointer type is used to get the arguments of the 
+constructor.
+In total these informations can be passed when registering a constructor:
+
+\code
+template <typename TFunc>
+ExportedClass<TClass>& add_constructor(std::string paramInfos = "",
+                                       std::string tooltip = "", std::string help = "",
+                                       std::string options = "")
+\endcode
+ 
+\arg \c paramInfos &mdash; a list of parameter names (and options) separated 
+  by '<tt>#</tt>' (see above)
+\arg \c tooltip &mdash; some information about the usage of the constructor
+\arg \c help &mdash; help informations
+\arg \c options &mdash; style option of the constructor itself (for visualisation)
+
+*/

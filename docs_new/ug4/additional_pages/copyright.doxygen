@@ -1,0 +1,15 @@
+/*
+  refactored
+  Torbjörn Klatt <opensource@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageCopyrights License
+
+<strong>UG4</strong> is currently only available through a custom license from 
+the <em>GCSC Frankfurt</em>.
+
+Licenses for libraries used by <strong>UG4</strong> can be found on the 
+following page: \subpage pageExternalLibraries "External Libraries".
+
+*/
