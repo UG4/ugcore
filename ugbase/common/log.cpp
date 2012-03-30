@@ -6,6 +6,7 @@
  */
 #include <iostream>
 #include "common/log.h"
+#include "common/profiler/profiler.h"
 
 //	in order to support parallel logs, we're including pcl.h
 #ifdef UG_PARALLEL
@@ -40,6 +41,7 @@ LogAssistant::~LogAssistant()
 
 void LogAssistant::init()
 {
+	PROFILE_FUNC();
 //	originally this was placed in the constructor.
 //	However, an internal compiler error in MinGW (windows)
 //	appears then. Having moved the stuff here into this init
@@ -82,6 +84,7 @@ void LogAssistant::flush()
 bool LogAssistant::
 enable_file_output(bool bEnable, const char* filename)
 {
+	PROFILE_FUNC();
 	m_logFileName = filename;
 	if(bEnable){
 		if(!open_logfile()){
@@ -100,6 +103,7 @@ enable_file_output(bool bEnable, const char* filename)
 bool LogAssistant::
 rename_log_file(const char * newname)
 {
+	PROFILE_FUNC();
 	flush();
 	if(m_fileStream.is_open()){
 		UG_LOG("Logfile '" << m_logFileName << "' renamed to '" << newname << "'" << std::endl);
@@ -112,6 +116,7 @@ rename_log_file(const char * newname)
 bool LogAssistant::
 enable_terminal_output(bool bEnable)
 {
+	PROFILE_FUNC();
 	m_terminalOutputEnabled = bEnable;
 	update_ostream();
 	return true;
@@ -151,6 +156,11 @@ update_ostream()
 bool LogAssistant::
 open_logfile()
 {
+	PROFILE_FUNC();
+	// open log file only when output process
+	// otherwise slowdown on > 1024 cores.
+	if(!is_output_process())
+		return true;
 	if(!m_fileStream.is_open()){
 		m_fileStream.open(m_logFileName.c_str());
 		if(!m_fileStream){
