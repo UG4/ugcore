@@ -234,7 +234,7 @@ The debug shell is like the normal ug4 shell (so it has \ref secAutoCompletion a
 Note that you don't have to configure ug4 with <tt>cmake -DDEBUG=ON ..</tt>) to use the debug shell. 
 There is a small performance drawback when using <tt>breakpoint(source, line)</tt> because we have to check for every line if it is a break line. 
 This is especially the case if you have lots of small calls in your lua script. However, there is no performance drawback in <tt>breakpoint()</tt>.
-*/
+
 
 <hr>
 \section secBashCompletion Bash Completion for ugshell
@@ -277,3 +277,4 @@ complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F my_complete_ugshell 
 \endverbatim
 Please contact stephan.grein@gcsc.uni-frankfurt.de for any questions.
 
+*/
