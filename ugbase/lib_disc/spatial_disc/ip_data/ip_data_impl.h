@@ -19,39 +19,47 @@ namespace ug{
 inline IIPData::IIPData() : m_locPosDim(-1), m_time(0.0)
 {
 	m_vNumIP.clear();
+	m_vMayChange.clear();
 	m_locPosDim = -1;
 	m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
 }
 
 inline void IIPData::clear()
 {
-	local_ips_to_be_cleared();
+	local_ip_series_to_be_cleared();
 	m_vNumIP.clear();
+	m_vMayChange.clear();
 	m_locPosDim = -1;
 	m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
 }
 
 template <int ldim>
-size_t IIPData::register_local_ip_series(const MathVector<ldim>* vPos, size_t numIP)
+size_t IIPData::register_local_ip_series(const MathVector<ldim>* vPos,
+                                         const size_t numIP,
+                                         bool bMayChange)
 {
 //	check, that dimension is ok.
 	if(m_locPosDim == -1) m_locPosDim = ldim;
 	else if(m_locPosDim != ldim)
-		throw(UGFatalError("Local IP dimension conflict"));
+		UG_THROW_FATAL("Local IP dimension conflict");
 
 //	get local positions
 	std::vector<const MathVector<ldim>*>& vvIP = get_local_ips(Int2Type<ldim>());
 
 //	search for ips
-	for(size_t s = 0; s < vvIP.size(); ++s)
-	{
-	//	return series number iff exists
-		if(vvIP[s] == vPos && m_vNumIP[s] == numIP) return s;
-	}
+//	we only identify ip series if the local ip positions will not change
+	if(!bMayChange && numIP != 0)
+		for(size_t s = 0; s < vvIP.size(); ++s)
+		{
+		//	return series number iff exists and local ips remain constant
+			if(!m_vMayChange[s])
+				if(vvIP[s] == vPos && m_vNumIP[s] == numIP) return s;
+		}
 
 //	if series not yet registered, add it
 	vvIP.push_back(vPos);
 	m_vNumIP.push_back(numIP);
+	m_vMayChange.push_back(bMayChange);
 
 //	invoke callback:
 //	This callback is called, whenever the local_ip_series have changed. It
@@ -59,17 +67,56 @@ size_t IIPData::register_local_ip_series(const MathVector<ldim>* vPos, size_t nu
 //	linker must himself request local_ip_series from the data inputs of
 //	the linker. In addition value fields and derivative fields must be adjusted
 //	in IPData<TData, dim> etc.
-	local_ips_added();
+	local_ip_series_added(m_vNumIP.size());
 
 //	return new series id
 	return m_vNumIP.size() - 1;
+}
+
+
+template <int ldim>
+void IIPData::set_local_ips(const size_t seriesID,
+                            const MathVector<ldim>* vPos,
+                            const size_t numIP)
+{
+//	check series id
+	if(seriesID >= num_series())
+		UG_THROW_FATAL("Trying to set new ips for invalid seriesID "<<seriesID);
+
+//	check that series is changeable
+	if(!m_vMayChange[seriesID])
+		UG_THROW_FATAL("Local IP is not changable, but trying to set new ips.");
+
+//	check, that dimension is ok.
+	if(m_locPosDim == -1) m_locPosDim = ldim;
+	else if(m_locPosDim != ldim)
+		UG_THROW_FATAL("Local IP dimension conflict");
+
+//	get local positions
+	std::vector<const MathVector<ldim>*>& vvIP = get_local_ips(Int2Type<ldim>());
+
+//	check if still at same position and with same numIP. In that case the
+//	positions have not changed. We have nothing to do
+	if(vvIP[seriesID] == vPos && m_vNumIP[seriesID] == numIP) return;
+
+//	remember new positions and numIP
+	vvIP[seriesID] = vPos;
+	m_vNumIP[seriesID] = numIP;
+
+//	invoke callback:
+//	This callback is called, whenever the local_ip_series have changed. It
+//	allows derived classes to react on this changes. For example, the data
+//	linker must himself request local_ip_series from the data inputs of
+//	the linker. In addition value fields and derivative fields must be adjusted
+//	in IPData<TData, dim> etc.
+	local_ips_changed(seriesID, numIP);
 }
 
 template <int ldim>
 const MathVector<ldim>* IIPData::local_ips(size_t s) const
 {
 //	check, that dimension is ok.
-	if(m_locPosDim != ldim) throw(UGFatalError("Local IP dimension conflict"));
+	if(m_locPosDim != ldim) UG_THROW_FATAL("Local IP dimension conflict");
 
 	UG_ASSERT(s < num_series(), "Wrong series id");
 	UG_ASSERT(get_local_ips(Int2Type<ldim>())[s] != NULL, "Zero local ip pointer.");
@@ -81,7 +128,7 @@ template <int ldim>
 const MathVector<ldim>& IIPData::local_ip(size_t s, size_t ip) const
 {
 //	check, that dimension is ok.
-	if(m_locPosDim != ldim) throw(UGFatalError("Local IP dimension conflict"));
+	if(m_locPosDim != ldim) UG_THROW_FATAL("Local IP dimension conflict");
 
 	UG_ASSERT(s < num_series(), "Wrong series id");
 	UG_ASSERT(ip < num_ip(s), "Invalid index.");
@@ -100,12 +147,9 @@ void IIPDimData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, size
 
 //	check number of ips (must match local ip number)
 	if(numIP != num_ip(s))
-	{
-		UG_LOG("ERROR in 'IPData::set_global_ips':"
-				" Num Local IPs is " << num_ip(s)  << ", but trying to set"
-				" Num Global IPs: " << numIP << " for series "<< s<< ".\n");
-		throw(UGFatalError("Num ip does not match."));
-	}
+		UG_THROW_FATAL("IPData::set_global_ips: Num Local IPs is " << num_ip(s)
+		               << ", but trying to set Num Global IPs: " << numIP <<
+		               " for series "<< s);
 
 //	remember global positions
 	m_vvGlobPos[s] = vPos;
@@ -148,10 +192,11 @@ inline void IPData<TData,dim>::check_series_ip(size_t s, size_t ip) const
 {
 	check_series(s);
 	UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
+	UG_ASSERT(ip < m_vvValue[s].size(), "Invalid index "<<ip);
 }
 
 template <typename TData, int dim>
-void IPData<TData,dim>::local_ips_added()
+void IPData<TData,dim>::local_ip_series_added(const size_t newNumSeries)
 {
 //	find out currently allocated series
 	const size_t numOldSeries = m_vvValue.size();
@@ -159,29 +204,46 @@ void IPData<TData,dim>::local_ips_added()
 //	check, that only increasing the data, this is important to guarantee,
 //	that the allocated memory pointer remain valid. They are used outside of
 //	the class as well to allow fast access to the data.
-	if(num_series() < numOldSeries)
+	if(newNumSeries < numOldSeries)
 		UG_THROW_FATAL("Decrease is not implemented.");
 
 //	increase number of series if needed
-	m_vvValue.resize(num_series());
+	m_vvValue.resize(newNumSeries);
 
 //	allocate new storage
 	for(size_t s = numOldSeries; s < m_vvValue.size(); ++s)
 			m_vvValue[s].resize(num_ip(s));
 
 //	call base class callback
-	base_type::local_ips_added();
+	base_type::local_ip_series_added(newNumSeries);
 }
 
 template <typename TData, int dim>
-void IPData<TData,dim>::local_ips_to_be_cleared()
+void IPData<TData,dim>::local_ip_series_to_be_cleared()
 {
 //	free the memory
 //	clear all series
 	m_vvValue.clear();
 
-//	call base class callback
-	base_type::local_ips_to_be_cleared();
+//	call base class callback (if implementation given)
+//	base_type::local_ip_series_to_be_cleared();
+}
+
+template <typename TData, int dim>
+void IPData<TData,dim>::local_ips_changed(const size_t seriesID, const size_t newNumIP)
+{
+//	resize only when more data is needed than actually allocated
+	if(newNumIP >= m_vvValue[seriesID].size())
+	{
+	//	resize
+		m_vvValue[seriesID].resize(newNumIP);
+
+	//	invoke callback
+		value_storage_changed(seriesID);
+	}
+
+//	call base class callback (if implementation given)
+//	base_type::local_ips_changed(seriesID);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -194,6 +256,10 @@ void DependentIPData<TData,dim>::resize(const LocalIndices& ind,
 {
 //	resize num fct
 	for(size_t s = 0; s < m_vvvvDeriv.size(); ++s)
+	{
+	//	resize ips
+		m_vvvvDeriv[s].resize(num_ip(s));
+
 		for(size_t ip = 0; ip < m_vvvvDeriv[s].size(); ++ip)
 		{
 		//	number of functions
@@ -206,6 +272,7 @@ void DependentIPData<TData,dim>::resize(const LocalIndices& ind,
 			for(size_t fct = 0; fct < numFct; ++fct)
 				m_vvvvDeriv[s][ip][fct].resize(ind.num_dof(map[fct]));
 		}
+	}
 }
 
 template <typename TData, int dim>
@@ -245,15 +312,13 @@ inline void DependentIPData<TData,dim>::check_s_ip_fct_dof(size_t s, size_t ip, 
 }
 
 template <typename TData, int dim>
-void DependentIPData<TData,dim>::local_ips_added()
+void DependentIPData<TData,dim>::local_ip_series_added(const size_t newNumSeries)
 {
 //	adjust data arrays
-	m_vvvvDeriv.resize(num_series());
-	for(size_t s = 0; s < m_vvvvDeriv.size(); ++s)
-		m_vvvvDeriv[s].resize(num_ip(s));
+	m_vvvvDeriv.resize(newNumSeries);
 
 //	forward change signal to base class
-	IPData<TData, dim>::local_ips_added();
+	IPData<TData, dim>::local_ip_series_added(newNumSeries);
 }
 
 

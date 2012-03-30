@@ -37,13 +37,13 @@ elem_loop_prepare_fe()
 	}
 
 //	set local positions
-	m_imDiffusion.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
-	m_imVelocity.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
-	m_imSource.template    set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
-	m_imReactionRate.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
-	m_imReaction.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
-	m_imMassScale.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
-	m_imMass.template 	   set_local_ips<refDim>(geo.local_ips(), geo.num_ip());
+	m_imDiffusion.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imVelocity.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imSource.template    set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imReactionRate.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imReaction.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imMassScale.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imMass.template 	   set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 
 //	done
 	return true;

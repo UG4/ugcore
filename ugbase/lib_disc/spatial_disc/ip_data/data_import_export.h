@@ -92,6 +92,9 @@ class IDataImport
 	///	add jacobian entries introduced by this import
 		virtual void assemble_jacobian(LocalMatrix& J) = 0;
 
+	///	removes the positions
+		virtual void clear_ips() = 0;
+
 	protected:
 	/// connected iexport
 		SmartPtr<IDependentIPData> m_spIDependentIPData;
@@ -182,7 +185,12 @@ class DataImport : public IDataImport
 
 	///	set the local integration points
 		template <int ldim>
-		void set_local_ips(const MathVector<ldim>* vPos, size_t numIP);
+		void set_local_ips(const MathVector<ldim>* vPos, size_t numIP,
+		                   bool bMayChange = true);
+
+	///	set the local integration points
+		void set_local_ips(const MathVector<dim>* vPos, size_t numIP,
+		                   bool bMayChange = true);
 
 	///	sets the global positions
 		void set_global_ips(const MathVector<dim>* vPos, size_t numIP);
@@ -194,6 +202,9 @@ class DataImport : public IDataImport
 			 UG_THROW_FATAL("DataLinker::position: "
 					 	 	 "No Data set, but positions requested.");
 		}
+
+	///	removes the positions
+		virtual void clear_ips();
 
 	/////////////////////////////////////////
 	// Linearization of Defect
@@ -363,13 +374,10 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		void clear() {m_vDependData.clear();}
 
 	///	add data dependency
-		void add_needed_data(SmartPtr<IIPData> data) {m_vDependData.push_back(data);}
+		void add_needed_data(SmartPtr<IIPData> data);
 
 	///	remove needed data
-		void remove_needed_data(SmartPtr<IIPData> data) {m_vDependData.erase(remove(m_vDependData.begin(),
-		                                                                            m_vDependData.end(),
-		                                                                            data),
-		                                                                            m_vDependData.end());}
+		void remove_needed_data(SmartPtr<IIPData> data);
 
 	///	number of other Data this data depends on
 		virtual size_t num_needed_data() const {return m_vDependData.size();}

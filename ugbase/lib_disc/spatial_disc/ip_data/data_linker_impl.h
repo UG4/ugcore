@@ -87,7 +87,7 @@ bool DataLinker<TData,dim>::update_function_group()
 
 template <typename TData, int dim>
 void DataLinker<TData,dim>::
-local_ips_added()
+local_ip_series_added(const size_t newNumSeries)
 {
 //	 we need a series id for all inputs
 	m_vvSeriesID.resize(m_vpIIPData.size());
@@ -96,7 +96,7 @@ local_ips_added()
 	for(size_t i = 0; i < m_vpIIPData.size(); ++i)
 	{
 	//	resize series ids
-		m_vvSeriesID[i].resize(this->num_series());
+		m_vvSeriesID[i].resize(newNumSeries);
 
 	//	skip unset data
 		UG_ASSERT(m_vpIIPData[i].valid(), "No Input set, but requested.");
@@ -109,25 +109,28 @@ local_ips_added()
 				case 1:
 					m_vvSeriesID[i][s] =
 							m_vpIIPData[i]->template register_local_ip_series<1>
-									(this->template local_ips<1>(s), num_ip(s));
+									(this->template local_ips<1>(s), num_ip(s),
+									 this->m_vMayChange[s]);
 					break;
 				case 2:
 					m_vvSeriesID[i][s] =
 							m_vpIIPData[i]->template register_local_ip_series<2>
-									(this->template local_ips<2>(s), num_ip(s));
+									(this->template local_ips<2>(s), num_ip(s),
+									 this->m_vMayChange[s]);
 					break;
 				case 3:
 					m_vvSeriesID[i][s] =
 							m_vpIIPData[i]->template register_local_ip_series<3>
-									(this->template local_ips<3>(s), num_ip(s));
+									(this->template local_ips<3>(s), num_ip(s),
+									 this->m_vMayChange[s]);
 					break;
-				default: throw(UGFatalError("Dimension not supported."));
+				default: UG_THROW_FATAL("Dimension not supported.");
 			}
 		}
 	}
 
 //	resize data fields
-	DependentIPData<TData, dim>::local_ips_added();
+	DependentIPData<TData, dim>::local_ip_series_added(newNumSeries);
 }
 
 template <typename TData, int dim>

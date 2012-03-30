@@ -70,30 +70,68 @@ void DataImport<TData,dim>::set_data(SmartPtr<IPData<TData, dim> > spData)
 
 template <typename TData, int dim>
 template <int ldim>
-void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t numIP)
+void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t numIP,
+                                          bool bMayChange)
 {
 //	if no data set, skip
 	if(!data_given()) return;
 
-//	request series
-	m_seriesID = m_spIPData->template
-				register_local_ip_series<ldim>(vPos,numIP);
+//	request series if first time requested
+	if(m_seriesID == -1)
+	{
+		m_seriesID = m_spIPData->template
+					register_local_ip_series<ldim>(vPos,numIP,bMayChange);
 
-//	cache the pointer to the data field. This is possible, since once a
-//	local ip series is registered it can not be removed or altered. In the same
-//	way the memory storage is not changed but always only increased. Therefore,
-//	we can request the data now and it will remain valid until IIPData::clear()
-//	is called.
-	m_vValue = m_spIPData->values(m_seriesID);
+	//	cache the pointer to the data field. This is possible, since once a
+	//	local ip series is registered it can not be removed or altered. In the same
+	//	way the memory storage is not changed but always only increased. Therefore,
+	//	we can request the data now and it will remain valid until IIPData::clear()
+	//	is called.
+		m_vValue = m_spIPData->values(m_seriesID);
 
-//	in addition we cache the number of ips
-	m_numIP = m_spIPData->num_ip(m_seriesID);
+	//	in addition we cache the number of ips
+		m_numIP = m_spIPData->num_ip(m_seriesID);
 
-//	resize ips
-	m_vvvLinDefect.resize(num_ip());
+	//	resize ips
+		m_vvvLinDefect.resize(num_ip());
 
-//	check that num ip is correct
-	UG_ASSERT(m_numIP == numIP, "Different number of ips than requested.");
+	//	check that num ip is correct
+		UG_ASSERT(m_numIP == numIP, "Different number of ips than requested.");
+	}
+	else
+	{
+		if(!bMayChange)
+			UG_THROW_FATAL("DataImport: Setting different local ips to non-changable ip series.");
+
+	//	set new local ips
+		m_spIPData->template set_local_ips<ldim>(m_seriesID, vPos,numIP);
+
+		if(numIP != m_numIP)
+		{
+		//	cache the pointer to the data field. This is possible, since once a
+		//	local ip series is registered it can not be removed or altered. In the same
+		//	way the memory storage is not changed but always only increased. Therefore,
+		//	we can request the data now and it will remain valid until IIPData::clear()
+		//	is called.
+			m_vValue = m_spIPData->values(m_seriesID);
+
+		//	in addition we cache the number of ips
+			m_numIP = m_spIPData->num_ip(m_seriesID);
+
+		//	resize ips
+			m_vvvLinDefect.resize(num_ip());
+		}
+
+	//	check that num ip is correct
+		UG_ASSERT(m_numIP == numIP, "Different number of ips than requested.");
+	}
+}
+
+template <typename TData, int dim>
+void DataImport<TData,dim>::set_local_ips(const MathVector<dim>* vPos, size_t numIP,
+                                          bool bMayChange)
+{
+	set_local_ips<dim>(vPos, numIP, bMayChange);
 }
 
 template <typename TData, int dim>
@@ -105,6 +143,15 @@ void DataImport<TData,dim>::set_global_ips(const MathVector<dim>* vPos, size_t n
 //	set global ips for series ID
 	UG_ASSERT(m_seriesID >= 0, "Wrong series id.");
 	m_spIPData->set_global_ips(m_seriesID,vPos,numIP);
+}
+
+template <typename TData, int dim>
+void DataImport<TData,dim>::clear_ips()
+{
+	m_seriesID = -1;
+	m_vValue = 0;
+	m_numIP = 0;
+	m_vvvLinDefect.resize(num_ip());
 }
 
 template <typename TData, int dim>
@@ -347,6 +394,23 @@ bool DataExport<TData, dim>::compute_with_sol(const LocalVector& u, bool bDeriv)
 	UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
 	UG_ASSERT(m_vCompFct[m_id] != NULL, "Func pointer is NULL");
 	return (this->*m_vCompFct[m_id])(u, bDeriv);
+}
+
+template <typename TData, int dim>
+void DataExport<TData, dim>::
+add_needed_data(SmartPtr<IIPData> data)
+{
+	m_vDependData.push_back(data);
+}
+
+template <typename TData, int dim>
+void DataExport<TData, dim>::
+remove_needed_data(SmartPtr<IIPData> data)
+{
+	m_vDependData.erase(remove(m_vDependData.begin(),
+	                           m_vDependData.end(),
+	                           data),
+	                           m_vDependData.end());
 }
 
 

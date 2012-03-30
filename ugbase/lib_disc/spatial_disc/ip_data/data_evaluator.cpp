@@ -127,6 +127,7 @@ void
 DataEvaluator::
 clear_extracted_data_and_mappings()
 {
+	m_vAllDataImport.clear();
 	m_vMassDataImport.clear();
 	m_vStiffDataImport.clear();
 	m_vMassImpMap.clear();
@@ -380,6 +381,9 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 		//	get import
 			IDataImport* iimp = &((*m_pvElemDisc)[d]->get_import(i));
 
+		//	remember it
+			m_vAllDataImport.push_back(iimp);
+
 		//	skip, if in mass part but no mass part wanted
 			if(!bMassPart && iimp->in_mass_part()) continue;
 
@@ -490,11 +494,6 @@ bool DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 
 bool DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 {
-//	evaluate constant data (only in case of hanging nodes, size may have changed.)
-	if(m_bUseHanging)
-		for(size_t i = 0; i < m_vConstData.size(); ++i)
-			m_vConstData[i]->compute();
-
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
 		m_vPosData[i]->compute();

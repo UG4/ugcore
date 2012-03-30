@@ -590,20 +590,20 @@ prepare_element_loop()
 
 	const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
 	size_t numSCVFip = geo.num_scvf_ips();
-	m_imBrineScvf.			template set_local_ips<refDim>(vSCVFip, numSCVFip);
-	m_imBrineGradScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip);
-	m_imPressureGradScvf.	template set_local_ips<refDim>(vSCVFip, numSCVFip);
-	m_imPorosityScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip);
-	m_imPermeabilityScvf.	template set_local_ips<refDim>(vSCVFip, numSCVFip);
-	m_imMolDiffusionScvf.	template set_local_ips<refDim>(vSCVFip, numSCVFip);
-	m_imViscosityScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip);
-	m_imDensityScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip);
-	m_imDarcyVelScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip);
+	m_imBrineScvf.			template set_local_ips<refDim>(vSCVFip, numSCVFip, false);
+	m_imBrineGradScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip, false);
+	m_imPressureGradScvf.	template set_local_ips<refDim>(vSCVFip, numSCVFip, false);
+	m_imPorosityScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip, false);
+	m_imPermeabilityScvf.	template set_local_ips<refDim>(vSCVFip, numSCVFip, false);
+	m_imMolDiffusionScvf.	template set_local_ips<refDim>(vSCVFip, numSCVFip, false);
+	m_imViscosityScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip, false);
+	m_imDensityScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip, false);
+	m_imDarcyVelScvf.		template set_local_ips<refDim>(vSCVFip, numSCVFip, false);
 
 	const MathVector<refDim>* vSCVip = geo.scv_local_ips();
 	size_t numSCVip = geo.num_scv_ips();
-	m_imPorosityScv.	template set_local_ips<refDim>(vSCVip, numSCVip);
-	m_imDensityScv.		template set_local_ips<refDim>(vSCVip, numSCVip);
+	m_imPorosityScv.	template set_local_ips<refDim>(vSCVip, numSCVip, false);
+	m_imDensityScv.		template set_local_ips<refDim>(vSCVip, numSCVip, false);
 
 //	we're done
 	return true;

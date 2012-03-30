@@ -56,6 +56,8 @@ prepare_elem_loop(LocalIndices& ind, number time, bool bMassPart)
 	for(size_t i = 0; i < m_vPosData.size(); ++i)   m_vPosData[i]->clear();
 	for(size_t i = 0; i < m_vDependentIPData.size(); ++i) m_vDependentIPData[i]->clear();
 
+	for(size_t i = 0; i < m_vAllDataImport.size(); ++i) m_vAllDataImport[i]->clear_ips();
+
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 		if(!(*m_pvElemDisc)[i]->set_roid(id))
@@ -126,7 +128,7 @@ DataEvaluator::
 prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
              bool bDeriv, bool bMassPart)
 {
-//	adjust lin defect array of imports
+//	adjust lin defect array of imports and derivative array of exports
 	if(bDeriv)
 	{
 		for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
@@ -134,11 +136,10 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 		if(bMassPart)
 			for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
 				m_vMassDataImport[i]->resize(ind, m_vMassImpMap[i]);
-	}
 
-//	adjust derivative array of exports
-	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
-		m_vDependentIPData[i]->resize(ind, m_vDependentMap[i]);
+		for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
+			m_vDependentIPData[i]->resize(ind, m_vDependentMap[i]);
+	}
 
 // 	prepare element
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)

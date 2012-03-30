@@ -78,6 +78,13 @@ class ConstUserNumber
 	///	returns if data is constant
 		virtual bool constant_data() const {return true;}
 
+	///	callback, invoked when data storage changed
+		virtual void value_storage_changed(const size_t seriesID)
+		{
+			for(size_t i = 0; i < num_ip(seriesID); ++i)
+				value(seriesID,i) = m_Number;
+		}
+
 	protected:
 		number m_Number;
 };
@@ -133,6 +140,13 @@ class ConstUserVector
 				for(size_t i = 0; i < num_ip(s); ++i)
 					value(s,i) = m_Vector;
 			return true;
+		}
+
+	///	callback, invoked when data storage changed
+		virtual void value_storage_changed(const size_t seriesID)
+		{
+			for(size_t i = 0; i < num_ip(seriesID); ++i)
+				value(seriesID,i) = m_Vector;
 		}
 
 	protected:
@@ -208,6 +222,13 @@ class ConstUserMatrix
 				for(size_t i = 0; i < num_ip(s); ++i)
 					value(s,i) = m_Tensor;
 			return true;
+		}
+
+	///	callback, invoked when data storage changed
+		virtual void value_storage_changed(const size_t seriesID)
+		{
+			for(size_t i = 0; i < num_ip(seriesID); ++i)
+				value(seriesID,i) = m_Tensor;
 		}
 
 	protected:

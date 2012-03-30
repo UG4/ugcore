@@ -147,6 +147,8 @@ class DataEvaluator
 	////////////////////////////////
 	// 	Data Import
 	////////////////////////////////
+	///	all data imports of elem discs
+		std::vector<IDataImport*> m_vAllDataImport;
 	///	data imports which are connected to non-zero derivative ip data in mass part
 		std::vector<IDataImport*> m_vMassDataImport;
 	///	data imports which are connected to non-zero derivative ip data in stiffness part

@@ -64,12 +64,9 @@ prepare_element_loop()
 	if(!TFVGeom<TElem, dim>::usesHangingNodes)
 	{
 		TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
-		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
-		                   	                      geo.num_scvf_ips());
-		m_imSource.template 		set_local_ips<refDim>(geo.scv_local_ips(),
-		               		                      geo.num_scv_ips());
-		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(),
-		                                           geo.num_scv_ips());
+		m_imVelocity.template  set_local_ips<refDim>(geo.scvf_local_ips(), geo.num_scvf_ips(), false);
+		m_imSource.template    set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips(), false);
+		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips(), false);
 	}
 
 //	we're done
@@ -125,12 +122,9 @@ prepare_element(TElem* elem, const LocalVector& u){
 //	set local positions for rhs
 	if(TFVGeom<TElem, dim>::usesHangingNodes)
 	{
-		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
-												  geo.num_scvf_ips());
-		m_imSource.template 		set_local_ips<refDim>(geo.scv_local_ips(),
-												  geo.num_scv_ips());
-		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(),
-												   geo.num_scv_ips());
+		m_imVelocity.template  set_local_ips<refDim>(geo.scvf_local_ips(), geo.num_scvf_ips());
+		m_imSource.template    set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips());
+		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips());
 	}
 
 //	set global positions for rhs

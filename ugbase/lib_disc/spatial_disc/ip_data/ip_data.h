@@ -45,8 +45,28 @@ class IIPData
 		void clear();
 
 	///	set local positions, returns series id
+	/**
+	 * This method registers a local ip series. If the position of points may
+	 * change during computations, this can be specified.
+	 * IMPORTANT: the memory of the local ip values must remain valid until the
+	 * IPData is deleted.
+	 *
+	 * \returns size_t 		series id
+	 */
 		template <int ldim>
-		size_t register_local_ip_series(const MathVector<ldim>* vPos, size_t numIP);
+		size_t register_local_ip_series(const MathVector<ldim>* vPos,
+		                                const size_t numIP,
+		                                bool bMayChange = true);
+
+	///	sets new local ip positions for a local ip series
+	/**
+	 * This method set new local positions for an already registered ip series.
+	 * Of coarse this is only possible for a ip series, that has the bMayChange
+	 * flag set to true.
+	 */
+		template <int ldim>
+		void set_local_ips(const size_t seriesId, const MathVector<ldim>* vPos,
+		                   const size_t numIP);
 
 	///	returns current local ip dimension
 		int dim_local_ips() const {return m_locPosDim;}
@@ -88,14 +108,18 @@ class IIPData
 	 * 		 allow derived classes to only increase their data fields as well,
 	 * 		 leaving accessing pointers invariant. If the local ip series must
 	 * 		 be changed, this can only be done through a clear(), that will
-	 * 		 involke the local_ips_to_be_cleared() callback, and adding all local
+	 * 		 invoke the local_ip_series_to_be_cleared() callback, and adding all local
 	 * 		 series again.
 	 */
-		virtual void local_ips_added() = 0;
+		virtual void local_ip_series_added(const size_t newNumSeries) = 0;
+
+	///	callback invoked, if a local ip series has been changed
+		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP) = 0;
 
 	///	callback invoked, when local ips are cleared
-		virtual void local_ips_to_be_cleared() = 0;
+		virtual void local_ip_series_to_be_cleared() = 0;
 
+	protected:
 	///	help function to get local ips
 		std::vector<const MathVector<1>*>& get_local_ips(Int2Type<1>) {return m_pvLocIP1d;}
 		std::vector<const MathVector<2>*>& get_local_ips(Int2Type<2>) {return m_pvLocIP2d;}
@@ -105,6 +129,9 @@ class IIPData
 		const std::vector<const MathVector<3>*>& get_local_ips(Int2Type<3>) const {return m_pvLocIP3d;}
 
 	protected:
+	///	flags if local ips may change
+		std::vector<bool> m_vMayChange;
+
 	/// number of evaluation points (-1 indicates no ips set)
 		std::vector<size_t> m_vNumIP;
 
@@ -148,17 +175,16 @@ class IIPDimData : virtual public IIPData
 	 * be used by derived classes to react on this fact, e.g. to forward the
 	 * global_ips.
 	 */
-		virtual void global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP) {}
+		virtual void global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP) {};
 
-	///	implement callback, called when num of local IPs changes
-		virtual void local_ips_added()
-		{
-		//	adjust Global positions pointer to current number of series
-			m_vvGlobPos.resize(num_series());
-		}
+	///	implement callback, called when num of local IP series changed
+		virtual void local_ip_series_added(const size_t newNumSeries){m_vvGlobPos.resize(newNumSeries);}
+
+	///	implement callback, called when local IPs changed
+		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP) = 0;
 
 	///	implement callback, invoked when local ips are cleared
-		virtual void local_ips_to_be_cleared() {m_vvGlobPos.clear();}
+		virtual void local_ip_series_to_be_cleared() {m_vvGlobPos.clear();}
 
 	///	checks in debug mode the correct usage of indices
 		inline void check_s(size_t s) const;
@@ -209,7 +235,7 @@ class IPData : public IIPDimData<dim>
 			{check_series(s); return &(m_vvValue[s][0]);}
 
 	///	destructor
-		~IPData() {local_ips_to_be_cleared();}
+		~IPData() {local_ip_series_to_be_cleared();}
 
 	protected:
 	///	checks in debug mode the correct index
@@ -219,12 +245,18 @@ class IPData : public IIPDimData<dim>
 		inline void check_series_ip(size_t s, size_t ip) const;
 
 	///	resizes the data field, when local ip changed signaled
-		virtual void local_ips_added();
+		virtual void local_ip_series_added(const size_t newNumSeries);
 
 	///	free the data field memory and set series to zero
-		virtual void local_ips_to_be_cleared();
+		virtual void local_ip_series_to_be_cleared();
 
-	protected:
+	///	implement callback, called when local IPs changed
+		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP);
+
+	///	callback, invoked when storage of data has changed for a series
+		virtual void value_storage_changed(const size_t seriesID) {}
+
+	private:
 	/// data at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
 		std::vector<std::vector<TData> > m_vvValue;
 };
@@ -353,7 +385,7 @@ class DependentIPData : public IPData<TData, dim>,
 		inline void check_s_ip_fct_dof(size_t s, size_t ip, size_t fct, size_t dof) const;
 
 	///	resizes the derivative field when local ip change is signaled
-		virtual void local_ips_added();
+		virtual void local_ip_series_added(const size_t newNumSeries);
 
 	protected:
 	// 	Data (size: (0,...,num_series-1) x (0,...,num_ip-1) x (0,...,num_fct-1) x (0,...,num_sh(fct) )
