@@ -19,6 +19,7 @@ Here you'll find information on how to setup ug4 on your machine:
 - \ref pageInstallEclipse		"ug4 development with eclipse"
 - \ref pageUG4SetupParallel		"install ug4 for parallel computing"
 - \ref pageAdditionalSoftware	"additional software"
+- \ref pageUG4OnMac             "ug4 on Mac"
 
 
 <br>

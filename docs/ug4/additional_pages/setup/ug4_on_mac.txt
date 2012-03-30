@@ -4,7 +4,7 @@
 /**	\page pageUG4OnMac Setting up UG on mac
 
 To install ug4 on Mac OSX you need a working toolchain. For me it wasn't hassle-free as compared with a Unix based system, 
-therefore Isearched the web.
+therefore I searched the web.
 \verbatim
 Downloading and installing the massive Xcode installer is a huge hassle if you just want GCC and related tools.
 The osx-gcc-installer allows you to install the essential compilers from either pre-built binary packages or helps you create your own installer.
