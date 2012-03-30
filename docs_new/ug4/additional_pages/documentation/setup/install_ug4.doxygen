@@ -15,6 +15,7 @@
 - \ref secInstallUG4Boost "Download Boost"
 - \subpage pageAdditionalSoftware "Additional (optional) software
 - \subpage pageInstallEclipse
+- \subpage pageUG4OnMac "Installation on MacOS X"
 - \subpage pageUG4OnWindows "Installation on Windows"
 - \subpage pageUG4SetupParallel
 - \subpage pageUG4SetupSSH "SSH" (\ref secSSHKeys, \ref secSSHHoping, \ref secSSHFS)

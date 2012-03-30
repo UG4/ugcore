@@ -1,0 +1,49 @@
+/*
+  created
+  Stephan Grein <stephan.grein@gcsc.uni-frankfurt.de>
+  y12 m03 d30
+  
+  refactored
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d30
+*/
+
+/** \page pageUG4OnMac Setting up UG4 on Mac
+
+To install <strong>UG4</strong> on Mac OSX you need a working toolchain.
+For me it wasn't hassle-free as compared with a Unix based system, therefore 
+I searched the web.
+
+Downloading and installing the massive <em>Xcode</em> installer is a huge 
+hassle if you just want GCC and related tools.
+The <tt>osx-gcc-installer</tt> allows you to install the essential compilers 
+from either pre-built binary packages or helps you create your own installer.
+
+There is a bundle called <em>OSX GCC Installer</em> (see above) which contains 
+up-to-date versions of:
+- GCC
+- Clang
+- LLVM
+- Developer CLI Tools (purge, etc.)
+- DevSDK (headers, etc.)
+
+
+Steps:
+<ul>
+  <li>Download the prebuilt pkg from:
+    https://github.com/kennethreitz/osx-gcc-installer/
+    (alternatively you can download <em>Command Line Tools</em> for 
+    <em>Xcode</em> with a free apple ID from 
+    http://developer.apple.com/downloads )
+  </li>
+  <li>Install the pkg.
+    For me the prebuilt pkgs worked flawless on <em>Snow Leopard</em> and 
+    <em>Lion</em>, too (compiled <em>UG4 rev 5289</em> with <em>clang</em> and 
+    <em>gcc</em>)
+  </li>
+</ul>
+
+\note Please note, you can build your own.
+See http://kennethreitz.com/xcode-gcc-and-homebrew.html for further information.
+
+*/
