@@ -134,10 +134,10 @@ class DataImport : public IDataImport
 		void set_data(SmartPtr<IPData<TData, dim> > spData);
 
 	/// returns the connected IIPData
-		SmartPtr<IIPData> data(){return m_spIPData.template cast_dynamic<IIPData>();}
+		SmartPtr<IIPData> data() {return m_spIPData.template cast_dynamic<IIPData>();}
 
 	/// returns the connected IIPData
-		SmartPtr<IPData<TData, dim> > data(){return m_spIPData;}
+		SmartPtr<IPData<TData, dim> > ip_data(){return m_spIPData;}
 
 	///	returns true if data given
 		virtual bool data_given() const {return m_spIPData.valid();}
