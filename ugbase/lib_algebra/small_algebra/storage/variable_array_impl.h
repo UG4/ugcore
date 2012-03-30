@@ -211,7 +211,6 @@ template<typename T, eMatrixOrdering T_ordering>
 bool
 VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols, bool bCopyValues)
 {
-	assert(newRows >= 0 && newCols >= 0);
 	if(newRows == rows && newCols == cols) return true;
 
 	if(newRows == 0 && newCols == 0)
@@ -262,8 +261,8 @@ template<typename T, eMatrixOrdering T_ordering>
 T &
 VariableArray2<T, T_ordering>::operator()(size_t r, size_t c)
 {
-	assert(r>=0 && r<rows);
-	assert(c>=0 && c<cols);
+	assert(r<rows);
+	assert(c<cols);
 	if(T_ordering==RowMajor)
 		return values[c+r*cols];
 	else
@@ -274,8 +273,8 @@ template<typename T, eMatrixOrdering T_ordering>
 const T &
 VariableArray2<T, T_ordering>::operator()(size_t r, size_t c) const
 {
-	assert(r>=0 && r<rows);
-	assert(c>=0 && c<cols);
+	assert(r<rows);
+	assert(c<cols);
 	if(T_ordering==RowMajor)
 		return values[c+r*cols];
 	else
