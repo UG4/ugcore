@@ -427,8 +427,13 @@ class IDomainElemDisc : public IElemDisc
 		typedef typename TDomain::position_type position_type;
 
 	public:
+	///	Constructor
 		IDomainElemDisc(const char* functions = NULL, const char* subsets = NULL)
 			: IElemDisc(functions, subsets), m_spApproxSpace(NULL) {};
+		
+	///	Constructor
+		IDomainElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset)
+			: IElemDisc(vFct, vSubset), m_spApproxSpace(NULL) {};
 
 	///	sets the approximation space
 	/**	Calls protected virtual 'approximation_space_changed', when a new approximation space
