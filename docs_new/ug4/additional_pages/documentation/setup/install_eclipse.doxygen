@@ -17,6 +17,7 @@ The page is an install guide for the usage of Eclipse for <strong>UG4</strong>.
 - \ref secInstallEcpliseUseMakefiles "Build in Eclipse using external Makefiles"
 - \ref secInstallEcpliseRunExecutable	"Run ug-executable via Eclipse"
 - \ref secInstallEcpliseSyntaxLua "Syntax Highlighting for Lua"
+- \ref secInstallEclipseSyntaxDoxygen
 
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
@@ -209,5 +210,27 @@ E.g. on MacOSX use: http://luaeclipse.luaforge.net/preview/update-site/macosx.ca
 
 A second (not recommended) choice is <em>LunarEclispe</em> 
 (http://lunareclipse.sourceforge.net/update.html)
+
+
+<hr>
+\section secInstallEclipseSyntaxDoxygen Syntax Highlighting for Doxygen
+
+As Doxygen is used for generating the documentation for <strong>UG4</strong>, 
+it is handy having the Doxygen commands as <tt>\\brief</tt>, <tt>\\param</tt>
+or alike highlighted correctly.
+
+In <em>Eclipse</em> one have to activate that implicitly.
+Therefore two actions need to be taken in <em>Eclipse</em>:
+<ol>
+  <li><em>Window</em> -> <em>Preferences</em> -> <em>C / C++</em> -> 
+    <em>File Types</em> -> <em>New ...</em> -> <tt>*.doxygen</tt> and
+    <em>Type</em> -> <em>C++ Source</em>.
+    Confirm with <em>OK</em>.
+  </li>
+  <li>With right-click on the <tt>ug4</tt> project go to <em>Properties</em>
+    and under <em>C / C++ General</em> activate <em>Enable project specific
+    settings</em> and choose <em>Doxygen</em> as the <em>Documentation Tool</em>.
+  </li>
+</ol>
 
 */
