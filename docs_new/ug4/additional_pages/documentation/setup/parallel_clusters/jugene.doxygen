@@ -227,15 +227,12 @@ clear by examining the examples provided):
     <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/llview.html"><tt>llview</tt></a>
     is a <strong>tool with a graphical X11 user interface</strong> for 
     displaying system status, running jobs, scheduling and prediction of the 
-    start time of jobs.
+    start time of jobs (the latter can also be achieved by the <tt>llq</tt>
+    command, see below).
 
 <!--
-    \todo Write more about <tt>llview</tt>.
+    \todo Write more about <tt>llview</tt>. - There is not much more to say about llview - by us! (ih)
 -->
-
-    If estimated start times can not determined by <tt>llq -s &lt;job-id&gt;</tt> 
-    (see below) this is to our knowledge the only possibility to get this 
-    information.
   </li>
   <li><strong>Interactive jobs</strong> can be started with the
     <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerInteractive.html">llrun</a> 
@@ -355,13 +352,23 @@ clear by examining the examples provided):
     llq [-u  <userid>]
     \endverbatim
 
-<!--
-    \todo (to test):
-    The estimated start time of a job can (maybe) also be determined by <tt>llq 
-    -s &lt;job-id&gt;-id</tt> (cf. https://docs.loni.org/wiki/Useful_LoadLeveler_Commands).
--->
+    The <strong>estimated start time</strong> of a job can be determined by
+    <tt>llq -s \<job-id\></tt>
+    (cf. https://docs.loni.org/wiki/Useful_LoadLeveler_Commands), where
+    <tt>\<job-id\></tt> was determined by the previous command, e.g. for the
+    job <tt>jugene4b.304384.0</tt>:
 
-  </li>
+    \verbatim
+    llq -s 304384  
+    
+    ===== EVALUATIONS FOR JOB STEP jugene4b.zam.kfa-juelich.de.304384.0 =====
+    
+    Step state                       : Idle
+    Considered for scheduling at     : Sun 01 Apr 2012 00:02:55 CEST
+    Top dog estimated start time     : Sun 01 Apr 2012 16:38:55 CEST
+    ...
+    \endverbatim
+    </li>
   <li><tt>llcancel</tt> is used to cancel a job (<tt>&lt;jobname&gt;</tt> as 
     displayed by <tt>llq</tt>):
     \verbatim
