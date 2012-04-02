@@ -5,7 +5,7 @@
 --   Author: Martin Rupp / Andreas Vogel
 --
 ----------------------------------------------------------
-
+-- ProfileLUA(true)
 SetOutputProfileStats(false)
 
 ug_load_script("ug_util.lua")
@@ -111,7 +111,7 @@ print("    RAepsilon = "..RAepsilon)
 print("    RAalpha = "..RAalpha.." degree")
 RAalpha = RAalpha * (2*math.pi/360)
 print("    RAalpha = "..RAalpha.." grad")
-print("    epsx = "..epsx)
+print("    epsx = "..epsx)	
 print("    epsy = "..epsy)
 print("    gridName = "..gridName)
 
@@ -119,7 +119,6 @@ function writeln(...)
 	write(...)
 	write("\n")
 end
-
 
 --------------------------------
 -- User Data Functions (begin)
@@ -247,6 +246,7 @@ print("Loading Domain failed.")
 exit()
 end
 
+
 -- create Refiner
 assert(numPreRefs < numRefs, "numPreRefs must be smaller than numRefs");
 
@@ -268,7 +268,6 @@ if numRefs > 0 then
 	end
 end
 tGrid = os.clock()-tBefore
-
 
 
 -- get subset handler
@@ -305,6 +304,7 @@ elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction_rate(reaction)
 elemDisc:set_source(rhs)
 
+
 -----------------------------------------------------------------
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
@@ -329,7 +329,6 @@ domainDisc:add(elemDisc)
 domainDisc:add(dirichletBND)
 
 
-
 -------------------------------------------
 --  Algebra
 -------------------------------------------
@@ -341,10 +340,6 @@ u = GridFunction(approxSpace)
 b = GridFunction(approxSpace)
 b2 = GridFunction(approxSpace)
 
-
-
-
-
 -- set initial value
 
 
@@ -355,9 +350,8 @@ domainDisc:assemble_linear(A, b)
 tAssemble = os.clock()-tBefore
 print ("done")
 
-
 -- write matrix for test purpose
-if true then
+if bWriteMat then
 	SaveMatrixForConnectionViewer(u, A, "Stiffness.mat")
 	SaveVectorForConnectionViewer(b, "Rhs.vec")
 end
@@ -400,6 +394,7 @@ if false then
 else
 	base = LU()
 end
+
 
 -- create AMG ---
 -----------------
@@ -500,6 +495,8 @@ if bWriteMat then
 amg:set_matrix_write_path("/Users/mrupp/matrices/")
 end
 
+
+
 amg:set_num_presmooth(2)
 amg:set_num_postsmooth(2)
 if util.HasParamOption("-Wcycle") then
@@ -532,8 +529,6 @@ convCheck:set_reduction(1e-16)
 
 print("done.")
 -- create Linear Solver
-
-
 
 
 -- Apply Solver
@@ -618,8 +613,6 @@ if util.HasParamOption("-bCheck") then
 	-- amg:check_fsmoothing()
 end	
 	
-		
-
 ---------
 
 
@@ -699,3 +692,5 @@ if not bCheck and bWriteStats then
 		print("Profiler not available.")
 	end	
 end
+
+				
