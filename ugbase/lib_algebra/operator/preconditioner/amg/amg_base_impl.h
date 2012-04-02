@@ -465,12 +465,18 @@ void AMGBase<TAlgebra>::cleanup()
 {
 	m_usedLevels = 0;
 	m_bInited=false;
+
+	if(m_vec4 != NULL) delete m_vec4; m_vec4 = NULL;
+
+	for(size_t k=0; k<levels.size(); k++)
+		delete levels[k];
 }
 //!
 //! amg destructor
 template<typename TAlgebra>
 AMGBase<TAlgebra>::~AMGBase()
 {
+	UG_LOG("~AMGBase.\n");
 	cleanup();
 }
 
