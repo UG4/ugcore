@@ -467,6 +467,8 @@ int main(int argc, char* argv[])
 
 	PROFILE_BEGIN(ugshellFinalize);
 
+	// Until fully tested for dependency problems, I commented out the following lines.
+	// For using valgrind, you'll have to uncomment them.
 	//FinalizeLUA();
 	//UnloadPlugins();
 	UGFinalize();
