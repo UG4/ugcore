@@ -150,6 +150,10 @@ int UGFinalize()
 			UG_LOG("\n");
 			PROFILER_OUTPUT();
 		}
+
+#ifdef UG_PROFILER
+		//Shiny::ProfileManager::instance.destroy();
+#endif
 	}
 
 #ifdef UG_PARALLEL
@@ -162,6 +166,7 @@ int UGFinalize()
 void UGForceExit()
 {
 	UG_LOG("--- ABORTING UG EXECUTION ---\n");
+	// ? UnloadPlugins();
 	UGFinalize();
 	exit(0);
 }
