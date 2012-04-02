@@ -1,8 +1,12 @@
 #!/bin/bash
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
-   	echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
-   	exit
+	if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
+		UGSUBMIT_TYPE=cekon
+	else
+   		echo "please set UGSUBMIT_TYPE or specify cluster with -cluster".
+   		exit
+   	fi   	
 fi	 
 
 if [ $UGSUBMIT_TYPE == "Hermit" ] || [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
