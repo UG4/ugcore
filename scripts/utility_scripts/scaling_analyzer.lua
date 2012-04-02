@@ -149,9 +149,9 @@ for _, fileName in ipairs(inFiles) do
 						--       by adding those characters to the corresp. capture patterns.
 						--       The actual conversion of strings to numbers is delegated to 'tonumber()'!
 						--       (No '-' in the 'hit' capture pattern since we always expect that #hits is an integer ...)
-						= string.match(line, "(%s*)(<*%a[_%w]+>*)%s+([%.%deE+]+)%s+"	-- leading spaces, name and hits
-								   .."([%.%deE+-]+)%s+(%a+)%s+(%d+)%%%s+"	-- self:  time, unit, percent
-								   .."([%.%deE+-]+)%s+(%a+)%s+(%d+)%%")		-- total: time, unit, percent
+						= string.match(line, "(%s*)(<*%a[_%.()%w]+>*)%s+([%.%deE+]+)%s+" -- leading spaces, name and hits
+								   .."([%.%deE+-]+)%s+(%a+)%s+(%d+)%%%s+"	 -- self:  time, unit, percent
+								   .."([%.%deE+-]+)%s+(%a+)%s+(%d+)%%")		 -- total: time, unit, percent
 										   
 				if name == nil then
 				--	we reached the end of the profiler output
