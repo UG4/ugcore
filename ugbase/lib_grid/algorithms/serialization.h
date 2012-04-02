@@ -467,10 +467,14 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
  * Problems could be caused by automatic element creation.
  * consider to set grid.set_option(GRIDOPT_NONE) before loading
  * the grid.
+ *
+ * readPropertyMap should always be true. It is only contained for backwards
+ * compatibility with older binary files, which did not support property maps.
  */
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
-							std::istream& in);
+							std::istream& in,
+							bool readPropertyMap = true);
 
 							
 ////////////////////////////////////////////////////////////////////////
@@ -480,9 +484,13 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
  * Problems could be caused by automatic element creation.
  * consider to set grid.set_option(GRIDOPT_NONE) before loading
  * the grid.
+ *
+ * readPropertyMap should always be true. It is only contained for backwards
+ * compatibility with older binary files, which did not support property maps.
  */
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							std::istream& in);
+							std::istream& in,
+							bool readPropertyMap = true);
 
 /*
 bool SerializeSelector(Grid& grid, Selector& sel, std::ostream& out);

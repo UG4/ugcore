@@ -1681,7 +1681,7 @@ void ReadSubsetIndicesFromStream(TElemIter iterBegin, TElemIter iterEnd,
 //	DeserializeSubsetHandler
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
-							std::istream& in)
+							std::istream& in, bool readPropertyMap)
 {
 //	read a magic number at the beginning and at the end.
 	int magicNumber = 654664;
@@ -1720,7 +1720,8 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 	//	read the subset-state
 		in.read((char*)&si.subsetState, sizeof(uint));
 	//	read the property map
-		Deserialize(in, si.m_propertyMap);
+		if(readPropertyMap)
+			Deserialize(in, si.m_propertyMap);
 	}
 
 	for(size_t i = 0; i < goc.num_levels(); ++i)
@@ -1759,11 +1760,11 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeSubsetHandler
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							std::istream& in)
+							std::istream& in, bool readPropertyMap)
 {
 	return DeserializeSubsetHandler(grid, sh,
 							grid.get_geometric_objects(),
-							in);
+							in, readPropertyMap);
 }
 
 }//	end of namespace

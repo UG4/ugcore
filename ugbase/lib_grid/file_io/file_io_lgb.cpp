@@ -36,7 +36,7 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 	byte endianess = 1;
 	byte intSize = (byte)sizeof(int);
 	byte numberSize = (byte)sizeof(number);
-	int versionNumber = 3;
+	int versionNumber = 4;
 	
 	out.write((char*)&endianess, sizeof(byte));
 	out.write((char*)&intSize, sizeof(byte));
@@ -118,7 +118,7 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 		LOG("ERROR in LoadGridFromLGB: bad number-size\n");
 		return false;
 	}
-	if((versionNumber < 2) || (versionNumber > 3))
+	if((versionNumber < 2) || (versionNumber > 4))
 	{
 		LOG("ERROR in LoadGridFromLGB: bad file-version: " << versionNumber << ". Expected 2 or 3.\n");
 		return false;
@@ -149,15 +149,19 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 		int numSrcSHs;
 		in.read((char*)&numSrcSHs, sizeof(int));
 		
+	//	starting from version 4, subset-infos contain a property-map
+		bool readPropertyMap = (versionNumber >= 4);
+
 		int i;
-		for(i = 0; i < min(numSrcSHs, numSHs); ++i)
-			DeserializeSubsetHandler(grid, *ppSH[i], in);
+		for(i = 0; i < min(numSrcSHs, numSHs); ++i){
+			DeserializeSubsetHandler(grid, *ppSH[i], in, readPropertyMap);
+		}
 		
 	//	read the rest
 		for(; i < numSrcSHs; ++i)
 		{
 			SubsetHandler sh(grid);
-			DeserializeSubsetHandler(grid, sh, in);
+			DeserializeSubsetHandler(grid, sh, in, readPropertyMap);
 		}
 	}
 
