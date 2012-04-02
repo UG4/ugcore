@@ -14,6 +14,8 @@ using namespace std;
 
 namespace ug{
 
+static vector<void*> loadedPlugins;
+
 bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 {
 	PROFILE_FUNC();
@@ -46,16 +48,36 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 		if(!fctInitPlugin){
 			UG_LOG("PLUGIN-ERROR: Couldn't find entry point 'InitUGPlugin' in plugin " << files[i] << endl);
+			dlclose(libHandle);
 			continue;
 		}
 
 	//	call the init method
 		fctInitPlugin(&reg, parentGroup);
+		loadedPlugins.push_back(libHandle);
 	}
 
 //	make sure that the registry is updated
 	reg.registry_changed();
 
+	return true;
+}
+
+bool UnloadPlugins()
+{
+	typedef void (*FctFinalizePlugin)();
+	for(size_t i=0; i<loadedPlugins.size(); ++i)
+	{
+		std::string fctName("FinalizeUGPlugin");
+		void *libHandle = loadedPlugins[i];
+
+		FctFinalizePlugin fctFinalizePlugin = (FctFinalizePlugin) dlsym(libHandle, fctName.c_str());
+
+		if(fctFinalizePlugin) fctFinalizePlugin();
+
+		dlclose(libHandle);
+	}
+	loadedPlugins.clear();
 	return true;
 }
 
