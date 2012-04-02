@@ -24,7 +24,7 @@ filename = util.GetParam("-filename", "/tmp/tkd/tkdDomain.ugx")
 
 -- subset information
 sh_name_corneocyte = util.GetParam("-sh_name_corneo", "corneocytes")
-sh_name_lipid = util.GetParam("-sh_name_lipid", "corneocytes")
+sh_name_lipid = util.GetParam("-sh_name_lipid", "lipid matrix")
 
 -- init grid and its associated subset handler
 go = GridObject()
@@ -32,12 +32,18 @@ grid = go:grid()
 sh = go:subset_handler()
 
 -- create the grid
-CreateTKDDomain(grid, sh, a, w, h, d_lipid, rows, cols, layers)
+gen = TKDDomainGenerator(grid, sh)
+gen:CreateDomain(a, w, h, d_lipid, rows, cols, layers)
 
 -- optionally override subset information
 green = MakeVec(0, 1, 0, 0)
 blue = MakeVec(0, 0, 1, 0)
-SetTKDSubsetInfos(sh, sh_name_corneocyte, sh_name_lipid, blue, green)
+gen:SetSubsetInfo(sh_name_corneocyte, sh_name_lipid, blue, green)
+
+-- print volume of single cell
+geom = gen:GetGeometryGenerator()
+print("volume of lipid matrix: " .. geom:getVolume(0))
+print("volume of corneocyte: " .. geom:getVolume(1))
 
 if SaveGrid(grid, sh, filename) then
 	print("TKD Domain successfully written to " .. filename)
