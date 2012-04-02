@@ -413,14 +413,16 @@ int main(int argc, char* argv[])
 
 //	if a script has been specified, then execute it now
 //	if a script is executed, we won't execute the interactive shell.
+	int ret = 0;
+	bool bAbort=false;
 	if(scriptName)
 	{
 		try{
 			if(!LoadUGScript(scriptName))
 			{
 				UG_LOG("Can not find specified script ('" << scriptName << "'). Aborting.\n");
-				UGFinalize();
-				return 1;
+				bAbort=true;
+				ret=1;
 			}
 		}
 		catch(LuaError& err) {
@@ -429,8 +431,8 @@ int main(int argc, char* argv[])
 				UG_LOG(err.get_msg(i)<<endl);
 
 			if(err.terminate()){
-				UGFinalize();
-				return 0; // exit with code 0
+				bAbort=true;
+				ret=0;
 			}
 		}
 		catch(UGError &err)
@@ -457,14 +459,19 @@ int main(int argc, char* argv[])
 
 		}
 	#endif
-	
-	int ret = 0;
-	if(runInteractiveShell)
+
+	if(!bAbort && runInteractiveShell)
 		ret = runShell();
 
 	LOG(endl);
 
+	PROFILE_BEGIN(ugshellFinalize);
+
+	//FinalizeLUA();
+	//UnloadPlugins();
 	UGFinalize();
+
+	PROFILE_END();
 
 	return ret;
 }
