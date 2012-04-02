@@ -33,6 +33,7 @@ void DebugBacktrace();
 void DebugDown();
 void DebugUp();
 
+void FinalizeLUADebug();
 }
 }
 

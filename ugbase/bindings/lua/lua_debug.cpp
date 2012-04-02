@@ -51,6 +51,17 @@ static int debugMode  = DEBUG_CONTINUE;
 static bool bProfiling = false;
 static std::map<std::string, std::map<int, bool> > breakpoints;
 static debug_return (*pDebugShell)() = NULL;
+static std::string lastsource;
+static int lastline = -1;
+static int currentDepth = -1;
+#ifdef UG_PROFILER
+static bool bEndProfiling=false;
+static bool bProfileLUALines=true;
+static int profilingDepth=0;
+static int profilingEndDepth=0;
+static std::map<const char*, std::map<int, pDynamicProfileInformation> >pis;
+#endif
+
 
 bool hookset = false;
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,6 +72,16 @@ extern stack<string> stkPathes;
 void LuaCallHook(lua_State *L, lua_Debug *ar);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void FinalizeLUADebug()
+{
+	breakpoints.clear();
+#ifdef UG_PROFILER
+	pis.clear();
+#endif
+	lastsource.clear();
+}
+
 int SetDebugShell(debug_return (*s)())
 {
 	pDebugShell=s;
@@ -133,10 +154,6 @@ void PrintBreakpoints()
 		}
 	}
 }
-
-static std::string lastsource;
-static int lastline = -1;
-static int currentDepth = -1;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void breakpoint()
@@ -263,13 +280,6 @@ void luaDebug(lua_State *L, const char *source, int line)
 	breakpoint();
 }
 
-#ifdef UG_PROFILER
-static bool bEndProfiling=false;
-static bool bProfileLUALines=true;
-static int profilingDepth=0;
-static int profilingEndDepth=0;
-#endif
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void LuaCallHook(lua_State *L, lua_Debug *ar)
 {
@@ -355,7 +365,6 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				if(ar->what[0] == 'L' || ar->what[0] == 'C')
 				{
 					// be sure that this is const char*
-					static std::map<const char*, std::map<int, pDynamicProfileInformation> >pis;
 
 					if(ar->event == LUA_HOOKCALL)
 					{

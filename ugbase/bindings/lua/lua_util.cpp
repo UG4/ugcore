@@ -118,12 +118,11 @@ static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 										*pReg);
 }
 
+static lua_State* theLuaState = NULL;
 lua_State* GetDefaultLuaState()
 {
-	static lua_State* L = NULL;
-	
 //	if the state has not already been opened then do it now.
-	if(!L)
+	if(!theLuaState)
 	{
 		PROFILE_BEGIN(CreateLUARegistry);
 		if(!g_pRegistry){
@@ -133,9 +132,9 @@ lua_State* GetDefaultLuaState()
 		}
 		
 	//	open a lua state
-		L = lua_open();
+		theLuaState = lua_open();
 	//	open standard libs
-		luaL_openlibs(L);
+		luaL_openlibs(theLuaState);
 
 		g_pRegistry->add_function("ug_load_script", &LoadUGScript, "/ug4/lua",
 					"success", "", "Loads and parses a script and returns whether it succeeded.");
@@ -157,11 +156,23 @@ lua_State* GetDefaultLuaState()
 			throw(UGFatalError("Script-Registry not ok."));
 
 	//	create lua bindings for registered functions and objects
-		ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
+		ug::bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
 		PROFILE_END();
 	}
 	
-	return L;
+	return theLuaState;
+}
+
+
+void FinalizeLUA()
+{
+	if(theLuaState != NULL)
+	{
+		lua_close(theLuaState);
+		theLuaState = NULL;
+	}
+	FinalizeLUADebug();
+	return;
 }
 
 int luaCallStackError( lua_State *L )

@@ -53,6 +53,9 @@ UG_API bool LoadUGScript(const char* filename);
  *	Registry::registry_changed() is called on the default registry.*/
 UG_API lua_State* GetDefaultLuaState();
 
+/// FinalizeLUA. clears up.
+UG_API void FinalizeLUA();
+
 ///	parses and executes a buffer
 /**	Throws an instance of LuaError, if a parse error occurs.*/
 UG_API bool ParseBuffer(const char* buffer, const char *bufferName="buffer");
@@ -66,6 +69,7 @@ UG_API int UGLuaPrint(lua_State *L);
 
 /// UGLuaWrite. prints LUA output to UG_LOG without adding std::endl automatically
 UG_API int UGLuaWrite(lua_State *L);
+
 
 }//	end of namespace
 }//	end of namespace
