@@ -13,112 +13,84 @@
 namespace ug{
 
 template<typename TDomain>
-template <typename TUserData, typename TScheduledUserData>
-bool FV1NeumannBoundaryElemDisc<TDomain>::
-extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegment,
-                       const std::vector<TScheduledUserData>& vScheduledUserData,
-                       FunctionGroup& commonFctGrp, std::string& fctNames)
+template <typename TUserData>
+void FV1NeumannBoundaryElemDisc<TDomain>::
+extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
+             std::vector<TUserData>& vUserData,
+             FunctionGroup& commonFctGrp, std::string& fctNames)
 {
 //	clear all extracted data
 	mvUserDataBndSegment.clear();
 
 //	loop all scheduled data
-	for(size_t i = 0; i < vScheduledUserData.size(); ++i)
+	for(size_t i = 0; i < vUserData.size(); ++i)
 	{
 	//	create Function Group and Subset Group
 		FunctionGroup functionGroup;
-		SubsetGroup subsetGroup;
 
 	//	convert strings
 		try{
-			subsetGroup = this->approx_space()->subset_grp_by_name(vScheduledUserData[i].ssName.c_str());
-		}UG_CATCH_THROW("'FV1NeumannBoundaryElemDisc:extract_scheduled_data':"
-						" Subsets '"<<vScheduledUserData[i].ssName<<"' not"
+			vUserData[i].ssGrp = this->approx_space()->subset_grp_by_name(vUserData[i].ssNames.c_str());
+		}UG_CATCH_THROW("NeumannBoundary:extract_data':"
+						" Subsets '"<<vUserData[i].ssNames<<"' not"
 						" all contained in ApproximationSpace.");
 
 		try{
-			functionGroup = this->approx_space()->fct_grp_by_name(vScheduledUserData[i].fctName.c_str());
-		}UG_CATCH_THROW("'FV1NeumannBoundaryElemDisc:extract_scheduled_data':"
-						" Functions '"<<vScheduledUserData[i].fctName<<"' not"
+			functionGroup = this->approx_space()->fct_grp_by_name(vUserData[i].fctName.c_str());
+		}UG_CATCH_THROW("NeumannBoundary:extract_data':"
+						" Functions '"<<vUserData[i].fctName<<"' not"
 						" all contained in ApproximationSpace.");
 
 	//	check that only one function given
 		if(functionGroup.num_fct() != 1)
-		{
-			UG_LOG("ERROR in 'FV1NeumannBoundaryElemDisc:extract_scheduled_data':"
-					" Only one function allowed for a neumann value.\n");
-			return false;
-		}
+			UG_THROW_FATAL("NeumannBoundary:extract_data: Only one function allowed"
+							" per neumann value, but passed: " << vUserData[i].fctName);
 
 	//	get function
 		const size_t fct = functionGroup[0];
 
 	// 	check if function exist
 		if(fct >= this->function_pattern().num_fct())
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Function "<< fct << " does not exist in pattern.\n");
-			return false;
-		}
+			UG_THROW_FATAL("NeumannBoundary:extract_data: Function "<< fct <<
+			               " does not exist in pattern.");
 
 	//	add to common fct group if not already contained
-		if(commonFctGrp.contains(fct))
-		{
-			UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-				" More than one neumann value specified for function "<<
-				vScheduledUserData[i].fctName.c_str()<<".\n");
-			return false;
-		}
-		else
-		{
-			commonFctGrp.add(fct);
-		}
+		if(!commonFctGrp.contains(fct)) commonFctGrp.add(fct);
 
 	//	build string of functions
 		if(!fctNames.empty()) fctNames.append(",");
-		fctNames.append(vScheduledUserData[i].fctName.c_str());
+		fctNames.append(vUserData[i].fctName.c_str());
 
-	//	get subsethandler
+	//	set local fct id
+		vUserData[i].loc_fct = commonFctGrp.local_index(fct);
+
+	//	check subsets and add referenze to data to each segment
 		const ISubsetHandler& rSH = *this->function_pattern().subset_handler();
-
-	// 	loop subsets
-		for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)
+		for(size_t si = 0; si < vUserData[i].ssGrp.num_subsets(); ++si)
 		{
 		//	get subset index
-			const int subsetIndex = subsetGroup[si];
+			const int subsetIndex = vUserData[i].ssGrp[si];
 
 		// 	check that function is defined for segment
 			if(!this->function_pattern().is_def_in_subset(fct, subsetIndex))
-			{
-				UG_LOG("ERROR in 'LagrangeDirichletBoundary:extract_scheduled_data':"
-					" Function "<<fct<<" not defined on subset "<<subsetIndex<<".\n");
-				return false;
-			}
+				UG_THROW_FATAL("NeumannBoundary:extract_data: Function "<<fct<<
+				               " not defined on subset "<<subsetIndex<<".");
 
 		//	check that subsetIndex is valid
 			if(subsetIndex < 0 || subsetIndex >= rSH.num_subsets())
-			{
-				UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc:extract_scheduled_data':"
-						" Invalid subset Index " << subsetIndex <<
-						". (Valid is 0, .. , " << rSH.num_subsets() <<").\n");
-				return false;
-			}
+				UG_THROW_FATAL("NeumannBoundary:extract_data: Invalid subset "
+						"Index " << subsetIndex <<
+						". (Valid is 0, .. , " << rSH.num_subsets() <<").");
 
-		//	get Boundary segment from map
-			std::vector<TUserData>& vSegmentFunction = mvUserDataBndSegment[subsetIndex];
-
-		//	remember functor and function
-			vSegmentFunction.push_back(TUserData(commonFctGrp.num_fct()-1,
-			                                     vScheduledUserData[i].functor));
+		//	add to segment
+			mvUserDataBndSegment[subsetIndex].push_back(&vUserData[i]);
 		}
 	}
-
-	return true;
 }
 
 template<typename TDomain>
-bool FV1NeumannBoundaryElemDisc<TDomain>::
-extract_scheduled_data()
+void FV1NeumannBoundaryElemDisc<TDomain>::
+extract_data()
 {
 //	a common function group
 	FunctionGroup commonFctGrp;
@@ -127,35 +99,29 @@ extract_scheduled_data()
 //	string of functions
 	std::string fctNames;
 
-	bool bRet = true;
-	bRet &= extract_scheduled_data(m_mBNDNumberBndSegment, m_vScheduledBNDNumberData,
-	                               commonFctGrp, fctNames);
-	bRet &= extract_scheduled_data(m_mVectorBndSegment, m_vScheduledVectorData,
-	                               commonFctGrp, fctNames);
+	extract_data(m_mBNDNumberBndSegment, m_vBNDNumberData, commonFctGrp, fctNames);
+	extract_data(m_mVectorBndSegment, m_vVectorData, commonFctGrp, fctNames);
 
 //	set name of function
 	this->set_functions(fctNames.c_str());
-
-//	done
-	return bRet;
 }
 
 template<typename TDomain>
 void FV1NeumannBoundaryElemDisc<TDomain>::
 add(BNDNumberFunctor& user, const char* function, const char* subsets)
 {
-	m_vScheduledBNDNumberData.push_back(ScheduledBNDNumberData(user, function, subsets));
+	m_vBNDNumberData.push_back(BNDNumberData(user, function, subsets));
 
-	if(this->fct_pattern_set()) extract_scheduled_data();
+	if(this->fct_pattern_set()) extract_data();
 }
 
 template<typename TDomain>
 void FV1NeumannBoundaryElemDisc<TDomain>::
 add(VectorFunctor& user, const char* function, const char* subsets)
 {
-	m_vScheduledVectorData.push_back(ScheduledVectorData(user, function, subsets));
+	m_vVectorData.push_back(VectorData(user, function, subsets));
 
-	if(this->fct_pattern_set()) extract_scheduled_data();
+	if(this->fct_pattern_set()) extract_data();
 }
 
 template<typename TDomain>
@@ -169,7 +135,7 @@ prepare_element_loop()
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
 	{
-	typename std::map<int, std::vector<BNDNumberData> >::const_iterator subsetIter;
+	typename std::map<int, std::vector<BNDNumberData*> >::const_iterator subsetIter;
 	for(subsetIter = m_mBNDNumberBndSegment.begin();
 			subsetIter != m_mBNDNumberBndSegment.end(); ++subsetIter)
 	{
@@ -183,7 +149,7 @@ prepare_element_loop()
 	}
 
 	{
-	typename std::map<int, std::vector<VectorData> >::const_iterator subsetIter;
+	typename std::map<int, std::vector<VectorData*> >::const_iterator subsetIter;
 	for(subsetIter = m_mVectorBndSegment.begin();
 			subsetIter != m_mVectorBndSegment.end(); ++subsetIter)
 	{
@@ -210,7 +176,7 @@ finish_element_loop()
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
 	{
-	typename std::map<int, std::vector<BNDNumberData> >::const_iterator subsetIter;
+	typename std::map<int, std::vector<BNDNumberData*> >::const_iterator subsetIter;
 	for(subsetIter = m_mBNDNumberBndSegment.begin();
 			subsetIter != m_mBNDNumberBndSegment.end(); ++subsetIter)
 	{
@@ -223,7 +189,7 @@ finish_element_loop()
 	}
 
 	{
-	typename std::map<int, std::vector<VectorData> >::const_iterator subsetIter;
+	typename std::map<int, std::vector<VectorData*> >::const_iterator subsetIter;
 	for(subsetIter = m_mVectorBndSegment.begin();
 			subsetIter != m_mVectorBndSegment.end(); ++subsetIter)
 	{
@@ -323,14 +289,14 @@ assemble_f(LocalVector& d)
 
 // 	loop registered boundary segments
 	{
-	typename std::map<int, std::vector<BNDNumberData> >::const_iterator subsetIter;
+	typename std::map<int, std::vector<BNDNumberData*> >::const_iterator subsetIter;
 	for(subsetIter = m_mBNDNumberBndSegment.begin(); subsetIter != m_mBNDNumberBndSegment.end(); ++subsetIter)
 	{
 	//	get subset index corresponding to boundary
 		const int bndSubset = (*subsetIter).first;
 
 	//	get evaluation function vector
-		const std::vector<BNDNumberData>& vSegmentFunction = (*subsetIter).second;
+		const std::vector<BNDNumberData*>& vSegmentData = (*subsetIter).second;
 
 	// 	loop Boundary Faces
 		for(size_t i = 0; i < geo.num_bf(bndSubset); ++i)
@@ -339,17 +305,17 @@ assemble_f(LocalVector& d)
 			const typename TFVGeom<TElem, dim>::BF& bf = geo.bf(bndSubset, i);
 
 		//	loop functions, where neumann bnd is set for this bndSubset
-			for(size_t fct = 0; fct < vSegmentFunction.size(); ++fct)
+			for(size_t fct = 0; fct < vSegmentData.size(); ++fct)
 			{
 			// 	get neumann value
 				number val = 0.0;
-				vSegmentFunction[fct].functor(val, bf.global_ip(), time());
+				vSegmentData[fct]->functor(val, bf.global_ip(), time());
 
 			// 	get associated node
 				const int co = bf.node_id();
 
 			// 	add to local matrix
-				d(vSegmentFunction[fct].loc_fct, co) -= val * bf.volume();
+				d(vSegmentData[fct]->loc_fct, co) -= val * bf.volume();
 			}
 		}
 	}
@@ -357,14 +323,14 @@ assemble_f(LocalVector& d)
 
 // 	loop registered boundary segments
 	{
-	typename std::map<int, std::vector<VectorData> >::const_iterator subsetIter;
+	typename std::map<int, std::vector<VectorData*> >::const_iterator subsetIter;
 	for(subsetIter = m_mVectorBndSegment.begin(); subsetIter != m_mVectorBndSegment.end(); ++subsetIter)
 	{
 	//	get subset index corresponding to boundary
 		const int bndSubset = (*subsetIter).first;
 
 	//	get evaluation function vector
-		const std::vector<VectorData>& vSegmentFunction = (*subsetIter).second;
+		const std::vector<VectorData*>& vSegmentData = (*subsetIter).second;
 
 	// 	loop Boundary Faces
 		for(size_t i = 0; i < geo.num_bf(bndSubset); ++i)
@@ -373,17 +339,17 @@ assemble_f(LocalVector& d)
 			const typename TFVGeom<TElem, dim>::BF& bf = geo.bf(bndSubset, i);
 
 		//	loop functions, where neumann bnd is set for this bndSubset
-			for(size_t fct = 0; fct < vSegmentFunction.size(); ++fct)
+			for(size_t fct = 0; fct < vSegmentData.size(); ++fct)
 			{
 			// 	get neumann value
 				MathVector<dim> val;
-				vSegmentFunction[fct].functor(val, bf.global_ip(), time());
+				vSegmentData[fct]->functor(val, bf.global_ip(), time());
 
 			// 	get associated node
 				const int co = bf.node_id();
 
 			// 	add to local matrix
-				d(vSegmentFunction[fct].loc_fct, co) -= VecDot(val, bf.normal());
+				d(vSegmentData[fct]->loc_fct, co) -= VecDot(val, bf.normal());
 			}
 		}
 	}
@@ -402,6 +368,7 @@ FV1NeumannBoundaryElemDisc<TDomain>::FV1NeumannBoundaryElemDisc(const char* subs
  :IDomainElemDisc<TDomain>("", subsets)
 {
 	m_mBNDNumberBndSegment.clear();
+	m_mVectorBndSegment.clear();
 	register_all_fv1_funcs(false);
 }
 
