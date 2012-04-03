@@ -3,27 +3,28 @@
 //	
 /**	\page pageUG4OnMac Setting up UG on mac
 
-To install ug4 on Mac OSX you need a working toolchain. For me it wasn't hassle-free as compared with a Unix based system, 
-therefore I searched the web.
+To install ug4 on Mac OSX you need a working toolchain. For me it wasn't as hassle-free as compared to do that on an Unix / a Linux based system.
+Therefore I searched the web and found some fellow sufferers:
 \verbatim
 Downloading and installing the massive Xcode installer is a huge hassle if you just want GCC and related tools.
 The osx-gcc-installer allows you to install the essential compilers from either pre-built binary packages or helps you create your own installer.
 \endverbatim  
 There is a bundle called OSX GCC Installer (see above) which contains up-to-date versions of:
 <ul>
-<li> GCC </li>
+<li> GCC (>4.5) </li>
 <li> LLVM </li>
-<li> Clang </li>
+<li> Clang (>2.9> </li>
 <li> Developer CLI Tools (purge, etc.)</li>
 <li> DevSDK (headers, etc.) </li>
 </ul>
 
 Steps:
 <ul>
-<li> Download the prebuilt pkg from: https://github.com/kennethreitz/osx-gcc-installer/
+<li> Download the prebuilt pkg from the github repository: https://github.com/kennethreitz/osx-gcc-installer/
 (alternatively you can download Command Line Tools for Xcode with a free apple ID from 
 http://developer.apple.com/downloads)</li>
-<li> Install the pkg. For me the prebuilt pkgs worked flawless on Snow Leopard and Lion too (compiled UG4 rev 5289 with clang and gcc)</li>
+<li> Install the pkg by doubleclick. For me the prebuilt pkgs worked flawless on Snow Leopard and Lion too (I compiled UG4 r5289 with clang and gcc)</li>
 </ul>
-Please note, you can build your own. See http://kennethreitz.com/xcode-gcc-and-homebrew.html for further informations.
+Please note, you can build your own package. for more recent versions of compilers, et cetera. See http://kennethreitz.com/xcode-gcc-and-homebrew.html for further informations.
+Please contact stephan.grein@gcsc.uni-frankfurt.de for any questions.
 */
