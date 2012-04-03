@@ -90,7 +90,7 @@ EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri)
 	size_t numEdges = tri->num_edges();
 	EdgeDescriptor ed;
 	for(size_t i = 0; i < numEdges; ++i){
-		tri->edge(i, ed);
+		tri->edge_desc(i, ed);
 		if(!EdgeContains(&ed, vrt))
 			return g.get_edge(ed);
 	}

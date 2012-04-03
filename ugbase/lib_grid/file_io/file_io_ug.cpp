@@ -602,7 +602,7 @@ static bool GetRightLeftUnitIndex(int& rightIndex, int& leftIndex, Grid& grid, F
 	//	find the face in the volume that matches the face
 		for(uint i = 0; i < v->num_faces(); ++i)
 		{
-			v->face(i, fd);
+			v->face_desc(i, fd);
 			if(CompareVertices(face, &fd))
 			{
 			//	we found a matching face.

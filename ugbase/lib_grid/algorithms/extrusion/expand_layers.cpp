@@ -267,7 +267,7 @@ CalculateCreaseNormal(Grid& grid, Volume* vol, VertexBase* vrt,
 					if(funcIsCreaseFace(f)){
 					//	calculate the normal of the side
 						vector_t tmpN;
-						curVol->face(i_side, fd);
+						curVol->face_desc(i_side, fd);
 						CalculateNormal(tmpN, &fd, aaPos);
 
 					//	the normal points away from the volume, so

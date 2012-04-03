@@ -21,7 +21,7 @@ int GetEdgeIndex(Face* f, EdgeBase* e)
 	EdgeDescriptor ed;
 	for(uint i = 0; i < numEdges; ++i)
 	{
-		f->edge(i, ed);
+		f->edge_desc(i, ed);
 		if(CompareVertices(e, &ed))
 			return (int)i;
 	}
@@ -35,7 +35,7 @@ int GetEdgeIndex(Volume* vol, EdgeBase* e)
 	EdgeDescriptor ed;
 	for(uint i = 0; i < numEdges; ++i)
 	{
-		vol->edge(i, ed);
+		vol->edge_desc(i, ed);
 		if(CompareVertices(e, &ed))
 			return (int)i;
 	}

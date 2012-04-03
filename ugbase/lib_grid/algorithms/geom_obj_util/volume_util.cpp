@@ -40,7 +40,7 @@ void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 	grid.begin_marking();
 
 	FaceDescriptor fd;
-	v->face(side, fd);
+	v->face_desc(side, fd);
 	uint numFaceVrts = fd.num_vertices();
 	for(uint i = 0; i < numFaceVrts; ++ i)
 		grid.mark(fd.vertex(i));
@@ -244,10 +244,10 @@ number CalculateMaxTetrahedronEdgelength(Grid& grid, Volume& v)
 	number maxEdgelength, tmpMaxEdgelength;
 
 //	compare all edges and find shortest
-	maxEdgelength = VecDistance(aaPos[v.edge(0).vertex(1)], aaPos[v.edge(0).vertex(0)]);
+	maxEdgelength = VecDistance(aaPos[v.edge_desc(0).vertex(1)], aaPos[v.edge_desc(0).vertex(0)]);
 	for(uint i = 1; i<5; ++i)
 	{
-		tmpMaxEdgelength = VecDistance(aaPos[v.edge(i).vertex(1)], aaPos[v.edge(i).vertex(0)]);
+		tmpMaxEdgelength = VecDistance(aaPos[v.edge_desc(i).vertex(1)], aaPos[v.edge_desc(i).vertex(0)]);
 		if(tmpMaxEdgelength > maxEdgelength)
 			maxEdgelength = tmpMaxEdgelength;
 	}

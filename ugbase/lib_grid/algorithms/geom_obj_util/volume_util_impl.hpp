@@ -60,7 +60,7 @@ CheckOrientation(Volume* vol, TAAPosVRT& aaPosVRT)
 	FaceDescriptor fd;
 	vector_t normal;
 	for(size_t i = 0; i < numFaces; ++i){
-		vol->face(i, fd);
+		vol->face_desc(i, fd);
 		CalculateNormal(normal, &fd, aaPosVRT);
 		
 	//	in order to best approximate quadrilateral faces, we'll calculate the

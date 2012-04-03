@@ -484,7 +484,7 @@ void Grid::register_edge(EdgeBase* e, GeometricObject* pParent,
 					uint numEdges = f->num_edges();
 					for(uint i = 0; i < numEdges; ++i)
 					{
-						f->edge(i, ed);
+						f->edge_desc(i, ed);
 						if(CompareVertices(e, &ed))
 						{
 						//	f contains e
@@ -540,7 +540,7 @@ void Grid::register_edge(EdgeBase* e, GeometricObject* pParent,
 					for(uint i = 0; i < numEdges; ++i)
 					{
 						EdgeDescriptor ed;
-						v->edge(i, ed);
+						v->edge_desc(i, ed);
 						if(CompareVertices(e, &ed))
 						{
 						//	f contains e
@@ -853,7 +853,7 @@ void Grid::edge_store_associated_volumes(bool bStoreIt)
 				{
 				//	get the edge-descriptor
 					EdgeDescriptor ed;
-					v->edge(i, ed);
+					v->edge_desc(i, ed);
 				//	get the edge that is described by the EdgeDescriptor - if it exists at all.
 					EdgeBase* e = get_edge(ed);
 					if(e != NULL)
@@ -918,7 +918,7 @@ void Grid::register_face(Face* f, GeometricObject* pParent, Volume* createdByVol
 		EdgeDescriptor ed;
 		for(int i = 0; i < numEdges; ++i)
 		{
-			f->edge(i, ed);
+			f->edge_desc(i, ed);
 			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 			if(e == NULL)
@@ -1352,7 +1352,7 @@ void Grid::face_autogenerate_edges(bool bAutogen)
 				for(uint i = 0; i < numEdges; ++i)
 				{
 				//	we can't use get_edge here, since we're manipulating m_aaEdgeContainerFACE on the fly.
-					f->edge(i, ed);
+					f->edge_desc(i, ed);
 					EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 					if(e == NULL)
@@ -1437,7 +1437,7 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 		FaceDescriptor fd;
 		for(uint i = 0; i < numFaces; ++i)
 		{
-			v->face(i, fd);
+			v->face_desc(i, fd);
 			Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
 
 			if(f == NULL)
@@ -1476,7 +1476,7 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 		EdgeDescriptor ed;
 		for(uint i = 0; i < numEdges; ++i)
 		{
-			v->edge(i, ed);
+			v->edge_desc(i, ed);
 			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 			if(e == NULL)
@@ -1838,7 +1838,7 @@ void Grid::volume_store_associated_faces(bool bStoreIt)
 					else{
 						for(int i = 0; i < numFaces; ++i)
 						{
-							v->face(i, fd);
+							v->face_desc(i, fd);
 							Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
 
 							if(f)
@@ -1889,7 +1889,7 @@ void Grid::volume_autogenerate_edges(bool bAutogen)
 				for(uint i = 0; i < numEdges; ++i)
 				{
 				//	we can't use get_edge here, since we modify m_aaEdgeContainerVOLUME on the fly.
-					v->edge(i, ed);
+					v->edge_desc(i, ed);
 					EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 					if(e == NULL)
@@ -1941,7 +1941,7 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 				for(uint i = 0; i < numFaces; ++i)
 				{
 				//	we can't use get_face here, since we modify m_aaEdgeContainerVOLUME on the fly.
-					v->face(i, fd);
+					v->face_desc(i, fd);
 					Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
 
 					if(f == NULL)
@@ -2222,7 +2222,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 					uint numEdges = f->num_edges();
 					for(uint i = 0; i < numEdges; ++i)
 					{
-						f->edge(i, ed);
+						f->edge_desc(i, ed);
 						if(ed.vertex(0) == vrtNew || ed.vertex(1) == vrtNew)
 						{
 							EdgeBase* tEdge = get_edge(ed);
@@ -2363,7 +2363,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 					uint numEdges = v->num_edges();
 					for(uint i = 0; i < numEdges; ++i)
 					{
-						v->edge(i, ed);
+						v->edge_desc(i, ed);
 						if(ed.vertex(0) == vrtNew || ed.vertex(1) == vrtNew)
 						{
 							EdgeBase* tEdge = get_edge(ed);
@@ -2385,7 +2385,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 					uint numFaces = v->num_faces();
 					for(uint i = 0; i < numFaces; ++i)
 					{
-						v->face(i, fd);
+						v->face_desc(i, fd);
 					//	check whether fd contains vrtNew
 						bool bContainsVrtNew = false;
 						size_t numFaceVrts = fd.num_vertices();

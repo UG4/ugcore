@@ -422,7 +422,7 @@ bool FaceContains(Face* f, EdgeVertices* ev)
 	EdgeDescriptor ed;
 	for(uint i = 0; i < numEdges; ++i)
 	{
-		f->edge(i, ed);
+		f->edge_desc(i, ed);
 		if(CompareVertices(ev, &ed))
 			return true;
 	}
@@ -603,7 +603,7 @@ bool VolumeContains(Volume* v, EdgeVertices* ev)
 	for(uint i = 0; i < numEdges; ++i)
 	{
 		EdgeDescriptor ed;
-		v->edge(i, ed);
+		v->edge_desc(i, ed);
 		if(CompareVertices(ev, &ed))
 			return true;
 	}
@@ -620,7 +620,7 @@ bool VolumeContains(Volume* v, FaceVertices* fv)
 	unsigned long hash = hash_key(fv);
 	for(uint i = 0; i < numFaces; ++i)
 	{
-		v->face(i, fd);
+		v->face_desc(i, fd);
 		if(hash == hash_key(&fd))
 		{
 			if(CompareVertices(fv, &fd))

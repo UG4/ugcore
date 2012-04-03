@@ -87,7 +87,7 @@ void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
 			//	get the neighbours for each side
 				for(size_t i = 0; i < f->num_edges(); ++i)
 				{
-					f->edge(i, ed);
+					f->edge_desc(i, ed);
 					GetNeighbours(vNeighbours, grid, f, i);
 
 				//	fix orientation of unprocessed neighbours.

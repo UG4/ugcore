@@ -398,12 +398,12 @@ class UG_API Face : public GeometricObject, public FaceVertices
 
 	///	returns the i-th edge of the face.
 	/**	This default implementation is reimplemented by derived classes for optimal speed.*/
-		virtual EdgeDescriptor edge(int index) const
+		virtual EdgeDescriptor edge_desc(int index) const
 			{return EdgeDescriptor(vertex(index), vertex((index+1) % size()));}
 
 	///	returns the i-th edge of the face.
 	/**	This default implementation is reimplemented by derived classes for optimal speed.*/
-		virtual void edge(int index, EdgeDescriptor& edOut)
+		virtual void edge_desc(int index, EdgeDescriptor& edOut)
 			{edOut.set_vertices(vertex(index), vertex((index+1) % size()));}
 
 		inline uint num_edges() const	{return num_vertices();}
@@ -600,14 +600,14 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 
 		virtual ~Volume()	{}
 
-		virtual EdgeDescriptor edge(int index) const				{return EdgeDescriptor(NULL, NULL);}
-		virtual void edge(int index, EdgeDescriptor& edOut) const	{edOut = EdgeDescriptor(NULL, NULL);}
-		virtual uint num_edges() const								{return 0;}
+		virtual EdgeDescriptor edge_desc(int index) const				{return EdgeDescriptor(NULL, NULL);}
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const	{edOut = EdgeDescriptor(NULL, NULL);}
+		virtual uint num_edges() const									{return 0;}
 
-		virtual FaceDescriptor face(int index) const				{return FaceDescriptor(0);}
-		virtual void face(int index, FaceDescriptor& fdOut) const	{fdOut = FaceDescriptor(0);}
-		virtual uint num_faces() const								{return 0;}
-		inline uint num_sides() const								{return num_faces();}
+		virtual FaceDescriptor face_desc(int index) const				{return FaceDescriptor(0);}
+		virtual void face_desc(int index, FaceDescriptor& fdOut) const	{fdOut = FaceDescriptor(0);}
+		virtual uint num_faces() const									{return 0;}
+		inline uint num_sides() const									{return num_faces();}
 
 		virtual EdgeBase* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
 		virtual Face* create_face(int index)		{return NULL;}	///< create the face with index i and return it.

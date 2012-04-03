@@ -429,7 +429,7 @@ void Grid::flip_orientation(Face* f)
 		EdgeDescriptor ed;
 		for(size_t ind = 0; ind < f->num_edges(); ++ind){
 		//	get the descriptor of the i-th edge
-			f->edge(ind, ed);
+			f->edge_desc(ind, ed);
 		//	find the edge by checking vertices.
 			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 			if(e)
@@ -456,7 +456,7 @@ void Grid::flip_orientation(Volume* vol)
 		EdgeDescriptor ed;
 		for(size_t ind = 0; ind < vol->num_edges(); ++ind){
 		//	get the descriptor of the i-th edge
-			vol->edge(ind, ed);
+			vol->edge_desc(ind, ed);
 		//	find the edge by checking vertices.
 			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 			if(e)
@@ -470,7 +470,7 @@ void Grid::flip_orientation(Volume* vol)
 		FaceDescriptor fd;
 		for(size_t ind = 0; ind < vol->num_faces(); ++ind){
 		//	get the descriptor of the i-th face
-			vol->face(ind, fd);
+			vol->face_desc(ind, fd);
 		//	find the face by checking vertices.
 			Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
 			if(f)
@@ -924,7 +924,7 @@ EdgeBase* Grid::get_edge(Face* f, int ind)
 			return m_aaEdgeContainerFACE[f][ind];
 		else{
 			EdgeDescriptor ed;
-			f->edge(ind, ed);
+			f->edge_desc(ind, ed);
 			return find_edge_in_associated_edges(f, ed);
 		}
 	}
@@ -932,7 +932,7 @@ EdgeBase* Grid::get_edge(Face* f, int ind)
 	{
 	//	get the descriptor of the i-th edge
 		EdgeDescriptor ed;
-		f->edge(ind, ed);
+		f->edge_desc(ind, ed);
 	//	it doesn't. find the edge by checking vertices.
 		return find_edge_in_associated_edges(ed.vertex(0), ed);
 	}
@@ -954,7 +954,7 @@ EdgeBase* Grid::get_edge(Volume* v, int ind)
 		}
 		else{
 			EdgeDescriptor ed;
-			v->edge(ind, ed);
+			v->edge_desc(ind, ed);
 			return find_edge_in_associated_edges(v, ed);
 		}
 	}
@@ -962,7 +962,7 @@ EdgeBase* Grid::get_edge(Volume* v, int ind)
 	{
 	//	get the descriptor of the i-th edge
 		EdgeDescriptor ed;
-		v->edge(ind, ed);
+		v->edge_desc(ind, ed);
 	//	it doesn't. find the edge by checking vertices.
 		return find_edge_in_associated_edges(ed.vertex(0), ed);
 	}
@@ -985,13 +985,13 @@ Face* Grid::get_face(Volume* v, int ind)
 			return m_aaFaceContainerVOLUME[v][ind];
 		else{
 			FaceDescriptor fd;
-			v->face(ind, fd);
+			v->face_desc(ind, fd);
 			return find_face_in_associated_faces(v, fd);
 		}
 	}
 	else {
 		FaceDescriptor fd;
-		v->face(ind, fd);
+		v->face_desc(ind, fd);
 	//	it does not. check associated faces of the first vertex of fd.
 		return find_face_in_associated_faces(fd.vertex(0), fd);
 	}

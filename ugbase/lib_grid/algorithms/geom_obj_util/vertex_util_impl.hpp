@@ -71,7 +71,7 @@ void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
 	//	check for each side of f whether it is a boundary edge
 		for(size_t i_side = 0; i_side < f->num_sides(); ++i_side){
 			if(IsBoundaryEdge2D(grid, grid.get_edge(f, i_side))){
-				f->edge(i_side, ed);
+				f->edge_desc(i_side, ed);
 			//	make sure that e contains the specified vertex
 				if(!EdgeContains(&ed, vrt))
 					continue;
@@ -109,7 +109,7 @@ void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, VertexBase* vrt,
 	//	check for each side of f whether it is a boundary edge
 		for(size_t i_side = 0; i_side < v->num_sides(); ++i_side){
 			if(IsBoundaryFace3D(grid, grid.get_face(v, i_side))){
-				v->face(i_side, fd);
+				v->face_desc(i_side, fd);
 
 			//	make sure that fd contains the given vertex
 				if(!FaceContains(&fd, vrt))

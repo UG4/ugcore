@@ -20,7 +20,7 @@ int GetFaceIndex(Volume* vol, Face* f)
 	FaceDescriptor fd;
 	for(uint i = 0; i < numFaces; ++i)
 	{
-		vol->face(i, fd);
+		vol->face_desc(i, fd);
 		if(CompareVertices(f, &fd))
 			return (int)i;
 	}

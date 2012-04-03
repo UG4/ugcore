@@ -88,7 +88,6 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 				
 ///	redistributes parts of distributed grids.
 /**	This method is still in development... Use with care!
- * (If possible, you shouldn't use it at all in its current incarnation!).
  *
  * Note that the method assumes that all data serialized and deserialized
  * is stored in a consistent manner - i.e. that all slaves hold the same
