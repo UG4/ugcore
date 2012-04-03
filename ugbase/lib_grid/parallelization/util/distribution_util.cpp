@@ -353,7 +353,7 @@ bool CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 
 			//	access the parents info vec.
 				if(parent){
-					int parentType = parent->base_object_type_id();
+					int parentType = parent->base_object_id();
 					switch(parentType){
 						case VERTEX:
 							ppivec = &aaInfoVecVRT[static_cast<VertexBase*>(parent)];
@@ -635,10 +635,10 @@ void CreateDistributionLayouts(
 		//	we have to make sure that constraining objects are sent to all
 		//	processes to which their constrained objects are sent.
 			for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
-				for(HangingVertexIterator iter = msel.begin<HangingVertex>(lvl);
-					iter != msel.end<HangingVertex>(lvl); ++iter)
+				for(ConstrainedVertexIterator iter = msel.begin<ConstrainedVertex>(lvl);
+					iter != msel.end<ConstrainedVertex>(lvl); ++iter)
 				{
-					GeometricObject* cobj = (*iter)->get_parent();
+					GeometricObject* cobj = (*iter)->get_constraining_object();
 					if(cobj && !msel.is_selected(cobj)){
 						foundConstraining = true;
 						msel.select(cobj);

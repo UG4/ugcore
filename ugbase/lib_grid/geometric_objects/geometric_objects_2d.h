@@ -15,17 +15,17 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-//	shared pipe sections face
 ///	These numbers define where in the face-section-container a face will be stored.
-enum SharedPipeSectionFace
+/**	The order of the constants must not be changed! Algorithms may exist that rely on it.*/
+enum FaceContainerSections
 {
-	SPSFACE_NONE = -1,
-	SPSFACE_TRIANGLE = 0,
-	SPSFACE_QUADRILATERAL = 1,
-	SPSFACE_CONSTRAINED_TRIANGLE = 2,
-	SPSFACE_CONSTRAINED_QUADRILATERAL = 3,
-	SPSFACE_CONSTRAINING_TRIANGLE = 4,
-	SPSFACE_CONSTRAINING_QUADRILATERAL = 5
+	CSFACE_NONE = -1,
+	CSFACE_TRIANGLE = 0,
+	CSFACE_QUADRILATERAL = 1,
+	CSFACE_CONSTRAINED_TRIANGLE = 2,
+	CSFACE_CONSTRAINED_QUADRILATERAL = 3,
+	CSFACE_CONSTRAINING_TRIANGLE = 4,
+	CSFACE_CONSTRAINING_QUADRILATERAL = 5
 };
 
 
@@ -105,8 +105,6 @@ class UG_API CustomTriangle : public BaseClass
 							std::vector<Face*>& vNewFacesOut,
 							VertexBase** pSubstituteVertices = NULL);
 
-		virtual int base_object_type_id() const	{return FACE;}
-
 	protected:
 		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
 
@@ -133,7 +131,7 @@ class UG_API Triangle : public CustomTriangle<Triangle, Face>
 		Triangle(const TriangleDescriptor& td) : BaseClass(td)	{}
 		Triangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) : BaseClass(v1, v2, v3)	{}
 
-		virtual int shared_pipe_section() const	{return SPSFACE_TRIANGLE;}
+		virtual int container_section() const	{return CSFACE_TRIANGLE;}
 
 	protected:
 		virtual EdgeBase* create_edge(int index)
@@ -155,8 +153,8 @@ class geometry_traits<Triangle>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSFACE_TRIANGLE,
-			BASE_OBJECT_TYPE_ID = FACE
+			CONTAINER_SECTION = CSFACE_TRIANGLE,
+			BASE_OBJECT_ID = FACE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
 };
@@ -239,8 +237,6 @@ class UG_API CustomQuadrilateral : public BaseClass
 							std::vector<Face*>& vNewFacesOut,
 							VertexBase** pSubstituteVertices = NULL);
 
-		virtual int base_object_type_id() const	{return FACE;}
-
 	protected:
 		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
 
@@ -268,7 +264,7 @@ class UG_API Quadrilateral : public CustomQuadrilateral<Quadrilateral, Face>
 		Quadrilateral(VertexBase* v1, VertexBase* v2,
 					  VertexBase* v3, VertexBase* v4) : BaseClass(v1, v2, v3, v4)	{}
 
-		virtual int shared_pipe_section() const	{return SPSFACE_QUADRILATERAL;}
+		virtual int container_section() const	{return CSFACE_QUADRILATERAL;}
 
 	protected:
 		virtual EdgeBase* create_edge(int index)
@@ -290,8 +286,8 @@ class geometry_traits<Quadrilateral>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSFACE_QUADRILATERAL,
-			BASE_OBJECT_TYPE_ID = FACE
+			CONTAINER_SECTION = CSFACE_QUADRILATERAL,
+			BASE_OBJECT_ID = FACE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
 };
@@ -351,7 +347,7 @@ class UG_API ConstrainedTriangle : public CustomTriangle<ConstrainedTriangle, Co
 		ConstrainedTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) :
 			BaseTriangle(v1, v2, v3)	{}
 
-		virtual int shared_pipe_section() const	{return SPSFACE_CONSTRAINED_TRIANGLE;}
+		virtual int container_section() const	{return CSFACE_CONSTRAINED_TRIANGLE;}
 
 	protected:
 		virtual EdgeBase* create_edge(int index)
@@ -373,8 +369,8 @@ class geometry_traits<ConstrainedTriangle>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSFACE_CONSTRAINED_TRIANGLE,
-			BASE_OBJECT_TYPE_ID = FACE
+			CONTAINER_SECTION = CSFACE_CONSTRAINED_TRIANGLE,
+			BASE_OBJECT_ID = FACE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
 };
@@ -402,7 +398,7 @@ class UG_API ConstrainedQuadrilateral : public CustomQuadrilateral<ConstrainedQu
 		ConstrainedQuadrilateral(VertexBase* v1, VertexBase* v2,
 								 VertexBase* v3, VertexBase* v4) : BaseClass(v1, v2, v3, v4)	{}
 
-		virtual int shared_pipe_section() const	{return SPSFACE_CONSTRAINED_QUADRILATERAL;}
+		virtual int container_section() const	{return CSFACE_CONSTRAINED_QUADRILATERAL;}
 
 	protected:
 		virtual EdgeBase* create_edge(int index)
@@ -425,8 +421,8 @@ class geometry_traits<ConstrainedQuadrilateral>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSFACE_CONSTRAINED_QUADRILATERAL,
-			BASE_OBJECT_TYPE_ID = FACE
+			CONTAINER_SECTION = CSFACE_CONSTRAINED_QUADRILATERAL,
+			BASE_OBJECT_ID = FACE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
 };
@@ -580,7 +576,7 @@ class UG_API ConstrainingTriangle : public CustomTriangle<ConstrainingTriangle, 
 		ConstrainingTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) :
 			BaseTriangle(v1, v2, v3)	{reserve_memory();}
 
-		virtual int shared_pipe_section() const	{return SPSFACE_CONSTRAINING_TRIANGLE;}
+		virtual int container_section() const	{return CSFACE_CONSTRAINING_TRIANGLE;}
 
 	protected:
 		void reserve_memory()
@@ -608,8 +604,8 @@ class geometry_traits<ConstrainingTriangle>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSFACE_CONSTRAINING_TRIANGLE,
-			BASE_OBJECT_TYPE_ID = FACE
+			CONTAINER_SECTION = CSFACE_CONSTRAINING_TRIANGLE,
+			BASE_OBJECT_ID = FACE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
 };
@@ -640,7 +636,7 @@ class UG_API ConstrainingQuadrilateral : public CustomQuadrilateral<Constraining
 								  VertexBase* v3, VertexBase* v4) :
 			BaseClass(v1, v2, v3, v4)	{reserve_memory();}
 
-		virtual int shared_pipe_section() const	{return SPSFACE_CONSTRAINING_QUADRILATERAL;}
+		virtual int container_section() const	{return CSFACE_CONSTRAINING_QUADRILATERAL;}
 
 	protected:
 		void reserve_memory()
@@ -669,8 +665,8 @@ class geometry_traits<ConstrainingQuadrilateral>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSFACE_CONSTRAINING_QUADRILATERAL,
-			BASE_OBJECT_TYPE_ID = FACE
+			CONTAINER_SECTION = CSFACE_CONSTRAINING_QUADRILATERAL,
+			BASE_OBJECT_ID = FACE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
 };

@@ -294,7 +294,7 @@ SurfaceLevelView(SmartPtr<SurfaceView> spSV, int topLvl) :
 template <>
 bool SurfaceView::is_shadowed(GeometricObject* obj) const
 {
-	switch(obj->base_object_type_id())
+	switch(obj->base_object_id())
 	{
 		case VERTEX: return is_shadowed(static_cast<VertexBase*>(obj));
 		case EDGE: return is_shadowed(static_cast<EdgeBase*>(obj));

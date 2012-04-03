@@ -94,7 +94,7 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 			//	check correct size
 				UG_ASSERT(ind.size() == vElemPos.size(), "Num MultiIndex ("<<ind.size()
 						  <<") and Num Position ("<<vElemPos.size()<<") must match."
-						 "GeomObject dim="<<geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID);
+						 "GeomObject dim="<<geometry_traits<TBaseElem>::BASE_OBJECT_ID);
 
 			//	write position
 				for(size_t sh = 0; sh < ind.size(); ++sh)

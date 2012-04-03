@@ -1133,8 +1133,8 @@ void AssignSubsetsByElementType(ISubsetHandler& sh)
 		sh.subset_info(subsetInd++).name = "Vertex";
 	}
 
-	if(g.num<HangingVertex>() > 0){
-		sh.assign_subset(g.begin<HangingVertex>(), g.end<HangingVertex>(), subsetInd);
+	if(g.num<ConstrainedVertex>() > 0){
+		sh.assign_subset(g.begin<ConstrainedVertex>(), g.end<ConstrainedVertex>(), subsetInd);
 		sh.subset_info(subsetInd++).name = "HangingVertex";
 	}
 

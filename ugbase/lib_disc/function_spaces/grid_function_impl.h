@@ -108,7 +108,7 @@ DoFPositionOnVertex(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* el
 template <typename TDomain>
 bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* elem, TDomain& domain, LFEID lfeID)
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return InnerDoFPosition(vPos, static_cast<VertexBase*>(elem), domain, lfeID);
 		case EDGE:   return InnerDoFPosition(vPos, static_cast<EdgeBase*>(elem), domain, lfeID);
@@ -127,11 +127,11 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* 
 template <typename TDomain>
 bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, TDomain& domain, LFEID lfeID)
 {
-	switch(elem->shared_pipe_section())
+	switch(elem->container_section())
 	{
-		case SPSEDGE_EDGE: 			   return InnerDoFPosition(vPos, static_cast<Edge*>(elem), domain, lfeID);
-		case SPSEDGE_CONSTRAINED_EDGE: return InnerDoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID);
-		case SPSEDGE_CONSTRAINING_EDGE:return InnerDoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID);
+		case CSEDGE_EDGE: 			   return InnerDoFPosition(vPos, static_cast<Edge*>(elem), domain, lfeID);
+		case CSEDGE_CONSTRAINED_EDGE: return InnerDoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID);
+		case CSEDGE_CONSTRAINING_EDGE:return InnerDoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID);
 	}
 	throw(UGFatalError("Edge type not found."));
 }
@@ -139,14 +139,14 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* el
 template <typename TDomain>
 bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDomain& domain, LFEID lfeID)
 {
-	switch(elem->shared_pipe_section())
+	switch(elem->container_section())
 	{
-		case SPSFACE_TRIANGLE: return InnerDoFPosition(vPos, static_cast<Triangle*>(elem), domain, lfeID);
-		case SPSFACE_CONSTRAINED_TRIANGLE: return InnerDoFPosition(vPos, static_cast<ConstrainedTriangle*>(elem), domain, lfeID);
-		case SPSFACE_CONSTRAINING_TRIANGLE: return InnerDoFPosition(vPos, static_cast<ConstrainingTriangle*>(elem), domain, lfeID);
-		case SPSFACE_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<Quadrilateral*>(elem), domain, lfeID);
-		case SPSFACE_CONSTRAINED_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID);
-		case SPSFACE_CONSTRAINING_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID);
+		case CSFACE_TRIANGLE: return InnerDoFPosition(vPos, static_cast<Triangle*>(elem), domain, lfeID);
+		case CSFACE_CONSTRAINED_TRIANGLE: return InnerDoFPosition(vPos, static_cast<ConstrainedTriangle*>(elem), domain, lfeID);
+		case CSFACE_CONSTRAINING_TRIANGLE: return InnerDoFPosition(vPos, static_cast<ConstrainingTriangle*>(elem), domain, lfeID);
+		case CSFACE_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<Quadrilateral*>(elem), domain, lfeID);
+		case CSFACE_CONSTRAINED_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID);
+		case CSFACE_CONSTRAINING_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID);
 	}
 	throw(UGFatalError("Face type not found."));
 }
@@ -154,12 +154,12 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, 
 template <typename TDomain>
 bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDomain& domain, LFEID lfeID)
 {
-	switch(elem->shared_pipe_section())
+	switch(elem->container_section())
 	{
-		case SPSVOL_TETRAHEDRON: return InnerDoFPosition(vPos, static_cast<Tetrahedron*>(elem), domain, lfeID);
-		case SPSVOL_PYRAMID: return InnerDoFPosition(vPos, static_cast<Pyramid*>(elem), domain, lfeID);
-		case SPSVOL_PRISM: return InnerDoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID);
-		case SPSVOL_HEXAHEDRON: return InnerDoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID);
+		case CSVOL_TETRAHEDRON: return InnerDoFPosition(vPos, static_cast<Tetrahedron*>(elem), domain, lfeID);
+		case CSVOL_PYRAMID: return InnerDoFPosition(vPos, static_cast<Pyramid*>(elem), domain, lfeID);
+		case CSVOL_PRISM: return InnerDoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID);
+		case CSVOL_HEXAHEDRON: return InnerDoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID);
 	}
 	throw(UGFatalError("Volume type not found."));
 }
@@ -220,7 +220,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 template <typename TDomain>
 bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* elem, TDomain& domain, LFEID lfeID)
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return DoFPosition(vPos, static_cast<VertexBase*>(elem), domain, lfeID);
 		case EDGE:   return DoFPosition(vPos, static_cast<EdgeBase*>(elem), domain, lfeID);
@@ -239,11 +239,11 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* elem,
 template <typename TDomain>
 bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, TDomain& domain, LFEID lfeID)
 {
-	switch(elem->shared_pipe_section())
+	switch(elem->container_section())
 	{
-		case SPSEDGE_EDGE: 			   return DoFPosition(vPos, static_cast<Edge*>(elem), domain, lfeID);
-		case SPSEDGE_CONSTRAINED_EDGE: return DoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID);
-		case SPSEDGE_CONSTRAINING_EDGE:return DoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID);
+		case CSEDGE_EDGE: 			   return DoFPosition(vPos, static_cast<Edge*>(elem), domain, lfeID);
+		case CSEDGE_CONSTRAINED_EDGE: return DoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID);
+		case CSEDGE_CONSTRAINING_EDGE:return DoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID);
 	}
 	throw(UGFatalError("Edge type not found."));
 }
@@ -251,14 +251,14 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, T
 template <typename TDomain>
 bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDomain& domain, LFEID lfeID)
 {
-	switch(elem->shared_pipe_section())
+	switch(elem->container_section())
 	{
-		case SPSFACE_TRIANGLE: return DoFPosition(vPos, static_cast<Triangle*>(elem), domain, lfeID);
-		case SPSFACE_CONSTRAINED_TRIANGLE: return DoFPosition(vPos, static_cast<ConstrainedTriangle*>(elem), domain, lfeID);
-		case SPSFACE_CONSTRAINING_TRIANGLE: return DoFPosition(vPos, static_cast<ConstrainingTriangle*>(elem), domain, lfeID);
-		case SPSFACE_QUADRILATERAL: return DoFPosition(vPos, static_cast<Quadrilateral*>(elem), domain, lfeID);
-		case SPSFACE_CONSTRAINED_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID);
-		case SPSFACE_CONSTRAINING_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID);
+		case CSFACE_TRIANGLE: return DoFPosition(vPos, static_cast<Triangle*>(elem), domain, lfeID);
+		case CSFACE_CONSTRAINED_TRIANGLE: return DoFPosition(vPos, static_cast<ConstrainedTriangle*>(elem), domain, lfeID);
+		case CSFACE_CONSTRAINING_TRIANGLE: return DoFPosition(vPos, static_cast<ConstrainingTriangle*>(elem), domain, lfeID);
+		case CSFACE_QUADRILATERAL: return DoFPosition(vPos, static_cast<Quadrilateral*>(elem), domain, lfeID);
+		case CSFACE_CONSTRAINED_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID);
+		case CSFACE_CONSTRAINING_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID);
 	}
 	throw(UGFatalError("Face type not found."));
 }
@@ -266,12 +266,12 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDoma
 template <typename TDomain>
 bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDomain& domain, LFEID lfeID)
 {
-	switch(elem->shared_pipe_section())
+	switch(elem->container_section())
 	{
-		case SPSVOL_TETRAHEDRON: return DoFPosition(vPos, static_cast<Tetrahedron*>(elem), domain, lfeID);
-		case SPSVOL_PYRAMID: return DoFPosition(vPos, static_cast<Pyramid*>(elem), domain, lfeID);
-		case SPSVOL_PRISM: return DoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID);
-		case SPSVOL_HEXAHEDRON: return DoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID);
+		case CSVOL_TETRAHEDRON: return DoFPosition(vPos, static_cast<Tetrahedron*>(elem), domain, lfeID);
+		case CSVOL_PYRAMID: return DoFPosition(vPos, static_cast<Pyramid*>(elem), domain, lfeID);
+		case CSVOL_PRISM: return DoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID);
+		case CSVOL_HEXAHEDRON: return DoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID);
 	}
 	throw(UGFatalError("Volume type not found."));
 }

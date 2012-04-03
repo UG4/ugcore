@@ -81,9 +81,9 @@ static number GetLocalVertexCoordinate(EdgeBase* e, VertexBase* vrt)
 		return 0;
 	else if(vrt == e->vertex(1))
 		return 1.0;
-	else if(HangingVertex::type_match(vrt))
+	else if(ConstrainedVertex::type_match(vrt))
 	{
-		HangingVertex* hv = dynamic_cast<HangingVertex*>(vrt);
+		ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(vrt);
 		return hv->get_local_coordinate_1();
 	}
 
@@ -414,7 +414,7 @@ void HangingNodeRefiner2D_IRN::refine()
 					for(VertexBaseIterator vrtIter = constrainingEdge->constrained_vertices_begin();
 						vrtIter != constrainingEdge->constrained_vertices_end(); ++vrtIter)
 					{
-						HangingVertex* hv = dynamic_cast<HangingVertex*>(*vrtIter);
+						ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(*vrtIter);
 						if(hv)
 						{
 							if(hv->get_local_coordinate_1() == 0.5)
@@ -825,7 +825,7 @@ void HangingNodeRefiner2D_IRN::refine_constrained_edge(ConstrainedEdge* constrai
 	//	a constrained edge is splitted into two constrained edges.
 	//	the constraining element of ce will constrain the new edges, too.
 	//	create the new vertex first (a hanging vertex)
-		HangingVertex* hv = *grid.create<HangingVertex>(constrainedEdge);
+		ConstrainedVertex* hv = *grid.create<ConstrainedVertex>(constrainedEdge);
 	
 	//	allow refCallback to calculate a new position
 		if(m_refCallback)
@@ -840,7 +840,7 @@ void HangingNodeRefiner2D_IRN::refine_constrained_edge(ConstrainedEdge* constrai
 		hv->set_local_coordinate_1(localCoord);
 
 		constrainingEdge->add_constrained_object(hv);
-		hv->set_parent(constrainingEdge);
+		hv->set_constraining_object(constrainingEdge);
 
 	//	unlink cde and ce
 		constrainingEdge->unconstrain_edge(constrainedEdge);
@@ -888,15 +888,15 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 //	this can be either normal edges or constraining edges again.
 	ConstrainingEdge* ce = constrainingEdge;
 	bool bHasHVrts[2] = {false, false};// indicates whether hanging nodes lie on the lower and/or the upper part.
-	HangingVertex* centerVrt = NULL;
+	ConstrainedVertex* centerVrt = NULL;
 
 //	iterate through the constrained vertices of the edge and gather vertex-information
 	for(VertexBaseIterator hVrtIter = ce->constrained_vertices_begin();
 		hVrtIter != ce->constrained_vertices_end(); ++hVrtIter)
 	{
-		if(HangingVertex::type_match(*hVrtIter))
+		if(ConstrainedVertex::type_match(*hVrtIter))
 		{
-			HangingVertex* hv = dynamic_cast<HangingVertex*>(*hVrtIter);
+			ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(*hVrtIter);
 			if(hv->get_local_coordinate_1() < 0.5 - SMALL)
 				bHasHVrts[0] = true;
 			else if(hv->get_local_coordinate_1() > 0.5 + SMALL)
@@ -969,13 +969,13 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 				for(VertexBaseIterator hVrtIter = ce->constrained_vertices_begin();
 					hVrtIter != ce->constrained_vertices_end(); ++hVrtIter)
 				{
-					if(HangingVertex::type_match(*hVrtIter))
+					if(ConstrainedVertex::type_match(*hVrtIter))
 					{
-						HangingVertex* hv = dynamic_cast<HangingVertex*>(*hVrtIter);
+						ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(*hVrtIter);
 						if((hv->get_local_coordinate_1() > lowBorder + SMALL) &&
 							(hv->get_local_coordinate_1() < highBorder - SMALL))
 						{
-							hv->set_parent(nCE);
+							hv->set_constraining_object(nCE);
 							nCE->add_constrained_object(hv);
 						}
 					}
@@ -1006,13 +1006,13 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 									bCopy = true;
 									break;
 								}
-								else if(HangingVertex::type_match(tVrt) &&
+								else if(ConstrainedVertex::type_match(tVrt) &&
 										tVrt != ce->vertex(0) && tVrt != ce->vertex(1))
 								{
 								//	it was important to check whether tVrt is an end-point of ce, since those
 								//	end-points can possibly be HangingVertices with local-coords again.
 								//	in regard to ce however, their local coordinates should not be regarded.
-									HangingVertex* tmpHVrt = dynamic_cast<HangingVertex*>(tVrt);
+									ConstrainedVertex* tmpHVrt = dynamic_cast<ConstrainedVertex*>(tVrt);
 									if((tmpHVrt->get_local_coordinate_1() > lowBorder + SMALL) &&
 										(tmpHVrt->get_local_coordinate_1() < highBorder - SMALL))
 									{
@@ -1085,9 +1085,9 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 		for(VertexBaseIterator hVrtIter = ce->constrained_vertices_begin();
 			hVrtIter != ce->constrained_vertices_end(); ++hVrtIter)
 		{
-			if(HangingVertex::type_match(*hVrtIter))
+			if(ConstrainedVertex::type_match(*hVrtIter))
 			{
-				HangingVertex* hv = dynamic_cast<HangingVertex*>(*hVrtIter);
+				ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(*hVrtIter);
 				if(hv->get_local_coordinate_1() < 0.5 - SMALL)
 					hv->set_local_coordinate_1(hv->get_local_coordinate_1() * (number)2);
 				else if(hv->get_local_coordinate_1() > 0.5 + SMALL)
@@ -1125,7 +1125,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 			vrtIter != ce->constrained_vertices_end(); ++vrtIter)
 		{
 			//LOG("pos: (" << m_aaPos[*vrtIter].x << ", " << m_aaPos[*vrtIter].y << ")");
-			HangingVertex* hv = dynamic_cast<HangingVertex*>(*vrtIter);
+			ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(*vrtIter);
 			if(hv)
 			{
 				LOG(" local coord: " << hv->get_local_coordinate_1() << endl);
@@ -1171,14 +1171,14 @@ void HangingNodeRefiner2D_IRN::refine_edge_with_hanging_vertex(EdgeBase* e)
 
 	ConstrainingEdge* ce = *grid.create_and_replace<ConstrainingEdge>(e);
 
-	HangingVertex* hv = *grid.create<HangingVertex>(ce);
+	ConstrainedVertex* hv = *grid.create<ConstrainedVertex>(ce);
 
 //	allow refCallback to calculate a new position
 	if(m_refCallback)
 		m_refCallback->new_vertex(hv, ce);
 
 	set_center_vertex(ce, hv);
-	hv->set_parent(ce);
+	hv->set_constraining_object(ce);
 	ce->add_constrained_object(hv);
 
 	hv->set_local_coordinate_1(0.5);
@@ -1275,7 +1275,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_hanging_vertex(Face* f)
 	VertexBase* vNewVrt = NULL;
 	if(f->num_vertices() > 3)
 	{
-		vNewVrt = *grid.create<HangingVertex>(f);
+		vNewVrt = *grid.create<ConstrainedVertex>(f);
 
 	//	allow refCallback to calculate a new position
 		if(m_refCallback)

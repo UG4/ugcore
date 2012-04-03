@@ -15,7 +15,7 @@ typename geometry_traits<TElem>::iterator
 GridSubsetHandler::
 begin(int subsetIndex)
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
@@ -34,7 +34,7 @@ typename geometry_traits<TElem>::iterator
 GridSubsetHandler::
 end(int subsetIndex)
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
@@ -53,7 +53,7 @@ typename geometry_traits<TElem>::const_iterator
 GridSubsetHandler::
 begin(int subsetIndex) const
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
@@ -72,7 +72,7 @@ typename geometry_traits<TElem>::const_iterator
 GridSubsetHandler::
 end(int subsetIndex) const
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
@@ -92,7 +92,7 @@ void
 GridSubsetHandler::
 clear_subset_elements(int subsetIndex)
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return;
@@ -118,7 +118,7 @@ uint
 GridSubsetHandler::
 num_elements(int subsetIndex) const
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets_in_list()))
 		return 0;
@@ -134,7 +134,7 @@ uint
 GridSubsetHandler::
 num(int subsetIndex) const
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets_in_list()))
 		return 0;

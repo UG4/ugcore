@@ -86,10 +86,10 @@ add_grid(Grid& grid, const char* name,
 										grid.end<Vertex>(), aaPos));
 
 //	write constrained vertices
-	if(grid.num<HangingVertex>() > 0)
+	if(grid.num<ConstrainedVertex>() > 0)
 		gridNode->append_node(create_constrained_vertex_node(
-										grid.begin<HangingVertex>(),
-										grid.end<HangingVertex>(),
+										grid.begin<ConstrainedVertex>(),
+										grid.end<ConstrainedVertex>(),
 										aaPos, aaIndEDGE, aaIndFACE));
 
 //	add the remaining grid elements to the nodes
@@ -159,8 +159,8 @@ create_vertex_node(VertexIterator vrtsBegin,
 template <class TAAPos>
 rapidxml::xml_node<>*
 GridWriterUGX::
-create_constrained_vertex_node(HangingVertexIterator vrtsBegin,
-								HangingVertexIterator vrtsEnd,
+create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
+								ConstrainedVertexIterator vrtsEnd,
 								TAAPos& aaPos,
 								AAEdgeIndex aaIndEDGE,
 							 	AAFaceIndex aaIndFACE)
@@ -172,7 +172,7 @@ create_constrained_vertex_node(HangingVertexIterator vrtsBegin,
 
 //	write the vertices to a temporary stream
 	stringstream ss;
-	for(HangingVertexIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
+	for(ConstrainedVertexIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
 	{
 		for(int i = 0; i < numCoords; ++i)
 			ss << aaPos[*iter][i] << " ";
@@ -183,8 +183,8 @@ create_constrained_vertex_node(HangingVertexIterator vrtsBegin,
 	//			1: edge. index and 1 local coordinate follow.
 	//			2: face. index and 2 local coordinates follow.
 	//			3: volume. index and 3 local coordinates follow. (not yet supported)
-		EdgeBase* ce = dynamic_cast<EdgeBase*>((*iter)->get_parent());
-		Face* cf = dynamic_cast<Face*>((*iter)->get_parent());
+		EdgeBase* ce = dynamic_cast<EdgeBase*>((*iter)->get_constraining_object());
+		Face* cf = dynamic_cast<Face*>((*iter)->get_constraining_object());
 		if(ce)
 			ss << "1 " << aaIndEDGE[ce] << " " << (*iter)->get_local_coordinate_1() << " ";
 		else if(cf)
@@ -318,11 +318,11 @@ grid(Grid& gridOut, size_t index,
 	//	iterate over the pairs.
 	//	at the same time we'll iterate over the constrained vertices since
 	//	they are synchronized.
-		HangingVertexIterator hvIter = grid.begin<HangingVertex>();
+		ConstrainedVertexIterator hvIter = grid.begin<ConstrainedVertex>();
 		for(std::vector<std::pair<int, int> >::iterator iter = constrainingObjsVRT.begin();
 			iter != constrainingObjsVRT.end(); ++iter, ++hvIter)
 		{
-			HangingVertex* hv = *hvIter;
+			ConstrainedVertex* hv = *hvIter;
 			
 			switch(iter->first){
 				case 1:	// constraining object is an edge
@@ -332,7 +332,7 @@ grid(Grid& gridOut, size_t index,
 					//	get the edge
 						ConstrainingEdge* edge = dynamic_cast<ConstrainingEdge*>(edges[iter->second]);
 						if(edge){
-							hv->set_parent(edge);
+							hv->set_constraining_object(edge);
 							edge->add_constrained_object(hv);
 						}
 						else{
@@ -351,7 +351,7 @@ grid(Grid& gridOut, size_t index,
 					//	get the edge
 						ConstrainingFace* face = dynamic_cast<ConstrainingFace*>(faces[iter->second]);
 						if(face){
-							hv->set_parent(face);
+							hv->set_constraining_object(face);
 							face->add_constrained_object(hv);
 						}
 						else{
@@ -676,7 +676,7 @@ create_constrained_vertices(std::vector<VertexBase*>& vrtsOut,
 		}
 
 	//	create a new vertex
-		HangingVertex* vrt = *grid.create<HangingVertex>();
+		ConstrainedVertex* vrt = *grid.create<ConstrainedVertex>();
 		vrtsOut.push_back(vrt);
 
 	//	set the coordinates

@@ -15,7 +15,7 @@ typename geometry_traits<TElem>::iterator
 MultiGridSubsetHandler::
 begin(int subsetIndex, int level)
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::begin(): bad subset index.");
@@ -35,7 +35,7 @@ typename geometry_traits<TElem>::iterator
 MultiGridSubsetHandler::
 end(int subsetIndex, int level)
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::end(): bad subset index.");
@@ -55,7 +55,7 @@ typename geometry_traits<TElem>::const_iterator
 MultiGridSubsetHandler::
 begin(int subsetIndex, int level) const
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::begin(): bad subset index.");
@@ -74,7 +74,7 @@ typename geometry_traits<TElem>::const_iterator
 MultiGridSubsetHandler::
 end(int subsetIndex, int level) const
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::end(): bad subset index.");
@@ -100,7 +100,7 @@ template <class TElem>
 void MultiGridSubsetHandler::
 clear_subset_elements(int subsetIndex, int level)
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::clear_subsets_elements(): bad subset index.");
@@ -126,7 +126,7 @@ uint
 MultiGridSubsetHandler::
 num(int subsetIndex, int level) const
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::num_elements(): bad subset index.");
@@ -146,7 +146,7 @@ uint
 MultiGridSubsetHandler::
 num(int subsetIndex) const
 {
-	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::num_elements(): bad subset index.");

@@ -275,15 +275,15 @@ adjust_defect(vector_type& d, const vector_type& u,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
+	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<ConstrainedVertex>();
+	iterEnd = dd->template end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
+		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);
@@ -318,15 +318,15 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
+	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<ConstrainedVertex>();
+	iterEnd = dd->template end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
+		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);
@@ -360,15 +360,15 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
+	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<ConstrainedVertex>();
+	iterEnd = dd->template end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
+		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);
@@ -405,15 +405,15 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
+	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<ConstrainedVertex>();
+	iterEnd = dd->template end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
+		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);
@@ -453,15 +453,15 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
+	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<ConstrainedVertex>();
+	iterEnd = dd->template end<ConstrainedVertex>();
 
 //	loop constraining edges
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
+		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);
@@ -561,15 +561,15 @@ adjust_defect(vector_type& d, const vector_type& u,
 	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
+	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<ConstrainedVertex>();
+	iterEnd = dd->template end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
+		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);
@@ -610,15 +610,15 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
+	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<ConstrainedVertex>();
+	iterEnd = dd->template end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
+		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);
@@ -658,15 +658,15 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
+	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<ConstrainedVertex>();
+	iterEnd = dd->template end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
+		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);
@@ -709,15 +709,15 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
+	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<ConstrainedVertex>();
+	iterEnd = dd->template end<ConstrainedVertex>();
 
 //	loop constraining edges
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
+		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);
@@ -761,15 +761,15 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<HangingVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<HangingVertex>();
-	iterEnd = dd->template end<HangingVertex>();
+	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->template begin<ConstrainedVertex>();
+	iterEnd = dd->template end<ConstrainedVertex>();
 
 //	loop constraining edges
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get hanging vert
-		HangingVertex* hgVrt = *iter;
+		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
 		CollectConstraining(vConstrainingVrt, hgVrt);

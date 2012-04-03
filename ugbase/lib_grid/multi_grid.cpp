@@ -149,7 +149,7 @@ create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, int level)
 
 GeometricObject* MultiGrid::get_parent(GeometricObject* parent) const
 {
-	int baseType = parent->base_object_type_id();
+	int baseType = parent->base_object_id();
 	switch(baseType)
 	{
 		case VERTEX:	return get_parent((VertexBase*)parent);
@@ -182,14 +182,14 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 	//	the object given in parent will be replaced be the newly created one.
 	//	The parent of pParent is thus the real parent of the new object.
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
-		UG_ASSERT(pParent->base_object_type_id() == VERTEX,
+		UG_ASSERT(pParent->base_object_id() == VERTEX,
 				  "only objects of the same base type can be replaced.");
 		VertexBase* pReplaceMe = static_cast<VertexBase*>(pParent);
 		GeometricObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
 		if(realParent){
-			int baseType = realParent->base_object_type_id();
+			int baseType = realParent->base_object_id();
 			switch(baseType)
 			{
 			case VERTEX:	element_created(vrt, (VertexBase*)realParent, pReplaceMe); break;
@@ -216,7 +216,7 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 
 		if(pParent)
 		{
-			int baseType = pParent->base_object_type_id();
+			int baseType = pParent->base_object_id();
 			switch(baseType)
 			{
 			case VERTEX:	element_created(vrt, (VertexBase*)pParent); break;
@@ -241,7 +241,7 @@ void MultiGrid::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
 	GeometricObject* pParent = get_parent(vrt);
 	if(pParent)
 	{
-		int baseType = pParent->base_object_type_id();
+		int baseType = pParent->base_object_id();
 		switch(baseType)
 		{
 		case VERTEX:	element_to_be_erased(vrt, (VertexBase*)pParent); break;
@@ -263,13 +263,13 @@ void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
 	//	the object given in parent will be replaced be the newly created one.
 	//	The parent of pParent is thus the real parent of the new object.
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
-		UG_ASSERT(pParent->base_object_type_id() == EDGE,
+		UG_ASSERT(pParent->base_object_id() == EDGE,
 				  "only objects of the same base type can be replaced.");
 		EdgeBase* pReplaceMe = static_cast<EdgeBase*>(pParent);
 		GeometricObject* realParent = get_parent(pReplaceMe);
 		if(realParent){
 		//	we call a version of element_created, which allows a replace
-			int baseType = realParent->base_object_type_id();
+			int baseType = realParent->base_object_id();
 			switch(baseType)
 			{
 			case EDGE:		element_created(edge, (EdgeBase*)realParent, pReplaceMe); break;
@@ -300,7 +300,7 @@ void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
 
 		if(pParent)
 		{
-			int baseType = pParent->base_object_type_id();
+			int baseType = pParent->base_object_id();
 			switch(baseType)
 			{
 			case EDGE:		element_created(edge, (EdgeBase*)pParent); break;
@@ -322,7 +322,7 @@ void MultiGrid::edge_to_be_erased(Grid* grid, EdgeBase* edge,
 	GeometricObject* pParent = get_parent(edge);
 	if(pParent)
 	{
-		int baseType = pParent->base_object_type_id();
+		int baseType = pParent->base_object_id();
 		switch(baseType)
 		{
 		case EDGE:		element_to_be_erased(edge, (EdgeBase*)pParent); break;
@@ -343,14 +343,14 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 	//	the object given in parent will be replaced be the newly created one.
 	//	The parent of pParent is thus the real parent of the new object.
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
-		UG_ASSERT(pParent->base_object_type_id() == FACE,
+		UG_ASSERT(pParent->base_object_id() == FACE,
 				  "only objects of the same base type can be replaced.");
 		Face* pReplaceMe = static_cast<Face*>(pParent);
 		GeometricObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
 		if(realParent){
-			int baseType = realParent->base_object_type_id();
+			int baseType = realParent->base_object_id();
 			switch(baseType)
 			{
 			case FACE:		element_created(face, (Face*)realParent, pReplaceMe); break;
@@ -388,7 +388,7 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 
 		if(pParent)
 		{
-			int baseType = pParent->base_object_type_id();
+			int baseType = pParent->base_object_id();
 			switch(baseType)
 			{
 			case FACE:		element_created(face, (Face*)pParent); break;
@@ -409,7 +409,7 @@ void MultiGrid::face_to_be_erased(Grid* grid, Face* face,
 	GeometricObject* pParent = get_parent(face);
 	if(pParent)
 	{
-		int baseType = pParent->base_object_type_id();
+		int baseType = pParent->base_object_id();
 		switch(baseType)
 		{
 		case FACE:		element_to_be_erased(face, (Face*)pParent); break;
@@ -429,7 +429,7 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 	//	the object given in parent will be replaced be the newly created one.
 	//	The parent of pParent is thus the real parent of the new object.
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
-		UG_ASSERT(pParent->base_object_type_id() == VOLUME,
+		UG_ASSERT(pParent->base_object_id() == VOLUME,
 				  "only objects of the same base type can be replaced.");
 		Volume* pReplaceMe = static_cast<Volume*>(pParent);
 		GeometricObject* realParent = get_parent(pReplaceMe);
@@ -470,7 +470,7 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 
 		if(pParent)
 		{
-			UG_ASSERT(pParent->base_object_type_id() == VOLUME,
+			UG_ASSERT(pParent->base_object_id() == VOLUME,
 				  "Only volumes can be parents to volumes.");
 			element_created(vol, (Volume*)pParent);
 		}
@@ -488,7 +488,7 @@ void MultiGrid::volume_to_be_erased(Grid* grid, Volume* vol,
 	GeometricObject* pParent = get_parent(vol);
 	if(pParent)
 	{
-		UG_ASSERT(pParent->base_object_type_id() == VOLUME,
+		UG_ASSERT(pParent->base_object_id() == VOLUME,
 				  "Only volumes can be parents to volumes.");
 		element_to_be_erased(vol, (Volume*)pParent);
 	}

@@ -28,8 +28,8 @@ namespace ug
  * 					casts should be checked when in DEBUG mode!
  *
  * constants:
- * - SHARED_PIPE_SECTION: This constant should hold the pipes section in which your objects should be placed after creation, starting from 0. See the Grid-documentation for more information.
- * - BASE_OBJECT_TYPE_ID: Has to hold one of the GeometricBaseObject constants, or -1.
+ * - CONTAINER_SECTION: This constant should hold the pipes section in which your objects should be placed after creation, starting from 0. See the Grid-documentation for more information.
+ * - BASE_OBJECT_ID: Has to hold one of the GeometricBaseObject constants, or -1.
  *
  * OPTIONAL:
  * Types:
@@ -64,8 +64,8 @@ class geometry_traits<GeometricObject>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = -1,
-			BASE_OBJECT_TYPE_ID = -1
+			CONTAINER_SECTION = -1,
+			BASE_OBJECT_ID = -1
 		};
 };
 
@@ -80,8 +80,8 @@ class geometry_traits<VertexBase>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = -1,
-			BASE_OBJECT_TYPE_ID = VERTEX
+			CONTAINER_SECTION = -1,
+			BASE_OBJECT_ID = VERTEX
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
 };
@@ -97,8 +97,8 @@ class geometry_traits<EdgeBase>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = -1,
-			BASE_OBJECT_TYPE_ID = EDGE
+			CONTAINER_SECTION = -1,
+			BASE_OBJECT_ID = EDGE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
@@ -115,8 +115,8 @@ class geometry_traits<Face>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = -1,
-			BASE_OBJECT_TYPE_ID = FACE
+			CONTAINER_SECTION = -1,
+			BASE_OBJECT_ID = FACE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
 };
@@ -132,8 +132,8 @@ class geometry_traits<Volume>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = -1,
-			BASE_OBJECT_TYPE_ID = VOLUME
+			CONTAINER_SECTION = -1,
+			BASE_OBJECT_ID = VOLUME
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_UNKNOWN;
 };

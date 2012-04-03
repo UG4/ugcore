@@ -281,7 +281,7 @@ class DelaunayInfo : public GridObserver
 
 		//	new vertices created on constrained edges shall not be marked
 			if(pParent){
-				if(pParent->base_object_type_id() == EDGE){
+				if(pParent->base_object_id() == EDGE){
 					if(is_constrained(static_cast<EdgeBase*>(pParent)))
 						m_aaMarkedVRT[vrt] = 0;
 				}
@@ -295,7 +295,7 @@ class DelaunayInfo : public GridObserver
 			m_aaMarkedEDGE[e] = 0;
 
 			if(pParent){
-				if(pParent->base_object_type_id() == EDGE){
+				if(pParent->base_object_id() == EDGE){
 					if(is_constrained(static_cast<EdgeBase*>(pParent)))
 						mark_as_constrained(e);
 				}
@@ -310,7 +310,7 @@ class DelaunayInfo : public GridObserver
 		//	was performed), and if that parent is marked, then we'll mark the new
 		//	face.
 			if(pParent){
-				if(pParent->base_object_type_id() == FACE){
+				if(pParent->base_object_id() == FACE){
 					if(is_marked(static_cast<Face*>(pParent)))
 						mark(f);
 				}

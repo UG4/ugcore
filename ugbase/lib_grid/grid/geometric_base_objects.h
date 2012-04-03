@@ -140,8 +140,8 @@ class UG_API GeometricObject/* : public SmallObject<>*/
 	/**	Make sure to overload this method in derivates of this class!*/
 		virtual GeometricObject* create_empty_instance() const {return NULL;}
 
-		virtual int shared_pipe_section() const = 0;
-		virtual int base_object_type_id() const = 0;//	This method probably shouldn't be there!
+		virtual int container_section() const = 0;
+		virtual int base_object_id() const = 0;
 	/**
 	 * A reference object represents a class of geometric objects.
 	 * Tetrahedrons, Triangles etc are such classes.
@@ -214,8 +214,8 @@ class UG_API VertexBase : public GeometricObject
 
 		inline uint num_sides() const	{return 0;}
 
-		virtual int shared_pipe_section() const	{return -1;}
-		virtual int base_object_type_id() const	{return VERTEX;}
+		virtual int container_section() const	{return -1;}
+		virtual int base_object_id() const		{return VERTEX;}
 		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
 
 	///	returns a value that can be used for hashing.
@@ -291,8 +291,8 @@ class UG_API EdgeBase : public GeometricObject, public EdgeVertices
 
 		virtual ~EdgeBase()	{}
 
-		virtual int shared_pipe_section() const	{return -1;}
-		virtual int base_object_type_id() const	{return EDGE;}
+		virtual int container_section() const	{return -1;}
+		virtual int base_object_id() const		{return EDGE;}
 		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
 
 		inline uint num_sides() const	{return 2;}
@@ -409,8 +409,8 @@ class UG_API Face : public GeometricObject, public FaceVertices
 		inline uint num_edges() const	{return num_vertices();}
 		inline uint num_sides() const	{return num_edges();}
 
-		virtual int shared_pipe_section() const	{return -1;}
-		virtual int base_object_type_id() const	{return FACE;}
+		virtual int container_section() const	{return -1;}
+		virtual int base_object_id() const		{return FACE;}
 		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
 
 	/**	A default implementation is featured to allow empty instances of
@@ -698,8 +698,8 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 	 */
 	 	virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 		
-		virtual int shared_pipe_section() const	{return -1;}
-		virtual int base_object_type_id() const	{return VOLUME;}
+		virtual int container_section() const	{return -1;}
+		virtual int base_object_id() const		{return VOLUME;}
 		virtual ReferenceObjectID reference_object_id() const	{return ROID_UNKNOWN;}
 
 	/**	creates the volumes that result from the splitting of the edge with index 'splitEdgeIndex'.*/

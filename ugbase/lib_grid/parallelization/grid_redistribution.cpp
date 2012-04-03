@@ -592,7 +592,7 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 			//	debug output
 				UG_LOG("Added Interface entry to " << targetProc);
 				UG_LOG(": " << entry.type);
-				if((int)geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID
+				if((int)geometry_traits<TGeomObj>::BASE_OBJECT_ID
 					== (int)VERTEX)
 				{
 					UG_LOG(endl);
@@ -696,7 +696,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 			//	the vertex didn't yet exist. create it.
 				GeometricObject* parent = mgSrc.get_parent(vrt);
 				if(parent){
-					int type = parent->base_object_type_id();
+					int type = parent->base_object_id();
 					switch(type){
 						case VERTEX:
 							nVrt = *mgDest.create_by_cloning(vrt,
@@ -756,7 +756,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 				ed.set_vertices(aaVrt[e->vertex(0)], aaVrt[e->vertex(1)]);
 				GeometricObject* parent = mgSrc.get_parent(e);
 				if(parent){
-					int type = parent->base_object_type_id();
+					int type = parent->base_object_id();
 					switch(type){
 						case EDGE:
 							ne = *mgDest.create_by_cloning(e, ed,
@@ -812,7 +812,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 
 				GeometricObject* parent = mgSrc.get_parent(f);
 				if(parent){
-					int type = parent->base_object_type_id();
+					int type = parent->base_object_id();
 					switch(type){
 						case FACE:
 							nf = *mgDest.create_by_cloning(f, fd,
@@ -863,7 +863,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 
 				GeometricObject* parent = mgSrc.get_parent(v);
 				if(parent){
-					UG_ASSERT(parent->base_object_type_id() == VOLUME, "volumes can only be children to volumes.");
+					UG_ASSERT(parent->base_object_id() == VOLUME, "volumes can only be children to volumes.");
 					nv = *mgDest.create_by_cloning(v, vd,
 											aaVol[static_cast<Volume*>(parent)]);
 				}

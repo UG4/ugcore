@@ -1139,7 +1139,7 @@ void MGDoFDistribution::clear_attachments()
 
 void MGDoFDistribution::indices(GeometricObject* elem, LocalIndices& ind, bool bHang) const
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return indices(static_cast<VertexBase*>(elem), ind, bHang);
 		case EDGE: return indices(static_cast<EdgeBase*>(elem), ind, bHang);
@@ -1153,7 +1153,7 @@ size_t MGDoFDistribution::multi_indices(GeometricObject* elem, size_t fct,
                                         std::vector<multi_index_type>& ind,
                                         bool bHang, bool bClear) const
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return multi_indices(static_cast<VertexBase*>(elem), fct, ind, bHang, bClear);
 		case EDGE: return multi_indices(static_cast<EdgeBase*>(elem), fct, ind, bHang, bClear);
@@ -1167,7 +1167,7 @@ size_t MGDoFDistribution::inner_multi_indices(GeometricObject* elem, size_t fct,
                                               std::vector<multi_index_type>& ind,
                                               bool bClear) const
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return inner_multi_indices(static_cast<VertexBase*>(elem), fct, ind, bClear);
 		case EDGE: return inner_multi_indices(static_cast<EdgeBase*>(elem), fct, ind, bClear);
@@ -1180,7 +1180,7 @@ size_t MGDoFDistribution::inner_multi_indices(GeometricObject* elem, size_t fct,
 size_t MGDoFDistribution::algebra_indices(GeometricObject* elem,	std::vector<size_t>& ind,
                                           bool bClear) const
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return algebra_indices(static_cast<VertexBase*>(elem), ind, bClear);
 		case EDGE: return algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
@@ -1193,7 +1193,7 @@ size_t MGDoFDistribution::algebra_indices(GeometricObject* elem,	std::vector<siz
 size_t MGDoFDistribution::inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind,
                                                 bool bClear) const
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return inner_algebra_indices(static_cast<VertexBase*>(elem), ind, bClear);
 		case EDGE: return inner_algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);

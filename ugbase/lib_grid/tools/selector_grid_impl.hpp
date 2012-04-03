@@ -19,7 +19,7 @@ template <class TElem>
 inline int
 Selector::get_section_index() const
 {
-	return geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	return geometry_traits<TElem>::CONTAINER_SECTION;
 }
 
 template <class TElem>

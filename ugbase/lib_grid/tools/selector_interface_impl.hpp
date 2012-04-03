@@ -26,7 +26,7 @@ inline void ISelector::select(TElem* elem, byte status){
 }
 
 inline void ISelector::select(GeometricObject* elem, byte status){
-	int elemID = elem->base_object_type_id();
+	int elemID = elem->base_object_id();
 	switch(elemID){
 		case VERTEX:
 			select(static_cast<VertexBase*>(elem), status);
@@ -66,7 +66,7 @@ inline void ISelector::deselect(TElem* elem){
 }
 
 inline void ISelector::deselect(GeometricObject* elem){
-	int elemID = elem->base_object_type_id();
+	int elemID = elem->base_object_id();
 	switch(elemID){
 		case VERTEX:
 			deselect(static_cast<VertexBase*>(elem));
@@ -95,7 +95,7 @@ inline void ISelector::deselect(TIterator iterBegin, TIterator iterEnd)
 
 
 byte ISelector::get_selection_status(GeometricObject* elem) const{
-	int elemID = elem->base_object_type_id();
+	int elemID = elem->base_object_id();
 	switch(elemID){
 		case VERTEX:
 			return get_selection_status(static_cast<VertexBase*>(elem));

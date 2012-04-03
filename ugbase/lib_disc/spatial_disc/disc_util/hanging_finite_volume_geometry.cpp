@@ -81,10 +81,10 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 		const size_t to = m_rRefElem.id(1, i, 0, 1);
 
 		// choose weather to insert two or one new edge
-		switch(vEdges[i]->shared_pipe_section())
+		switch(vEdges[i]->container_section())
 		{
-		case SPSEDGE_CONSTRAINED_EDGE:
-		case SPSEDGE_EDGE:
+		case CSEDGE_CONSTRAINED_EDGE:
+		case CSEDGE_EDGE:
 			// classic case: Just set corner ids
 			if(dim == 2)
 			{
@@ -105,7 +105,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 			}
 			break;
 
-		case SPSEDGE_CONSTRAINING_EDGE:
+		case CSEDGE_CONSTRAINING_EDGE:
 			{
 				// insert hanging node in list of nodes
 				const size_t newNodeId = m_gloMid[0].size();
@@ -170,7 +170,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 			///////////
 			// case QUADRILATERAL with all edges hanging and hanging node in middle
 			///////////
-			if(vFaces[i]->shared_pipe_section() == SPSFACE_CONSTRAINING_QUADRILATERAL)
+			if(vFaces[i]->container_section() == CSFACE_CONSTRAINING_QUADRILATERAL)
 			{
 				// insert hanging node in list of nodes
 				const size_t newNodeId = m_gloMid[0].size();
@@ -233,7 +233,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 			///////////
 			// case TRIANGLE with all edges hanging, that matches a refined element on other side
 			///////////
-			else if (vFaces[i]->shared_pipe_section() == SPSFACE_CONSTRAINING_TRIANGLE)
+			else if (vFaces[i]->container_section() == CSFACE_CONSTRAINING_TRIANGLE)
 			{
 				// compute position of new (hanging) node
 				compute_side_midpoints(i, locSideMid, gloSideMid);

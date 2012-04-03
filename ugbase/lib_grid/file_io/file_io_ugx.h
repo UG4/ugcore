@@ -110,8 +110,8 @@ class GridWriterUGX
 
 		template <class TAAPos>
 		rapidxml::xml_node<>*
-		create_constrained_vertex_node(HangingVertexIterator vrtsBegin,
-										HangingVertexIterator vrtsEnd,
+		create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
+										ConstrainedVertexIterator vrtsEnd,
 										TAAPos& aaPos,
 										AAEdgeIndex aaIndEDGE,
 										AAFaceIndex aaIndFACE);

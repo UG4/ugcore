@@ -14,7 +14,7 @@ template <class TChild, class TElem>
 int MultiGrid::num_children(TElem* elem)
 {
 
-	int sharedPipeSec = elem->shared_pipe_section();
+	int sharedPipeSec = elem->container_section();
 	assert(sharedPipeSec != -1 && "bad shared pipe section!");
 
 	return get_elem_info(elem)->m_children.num_elements(sharedPipeSec);
@@ -25,7 +25,7 @@ template <class TChild, class TElem>
 int MultiGrid::get_children(std::vector<TChild*>& vChildrenOut, TElem* elem)
 {
 
-	int sharedPipeSec = geometry_traits<TChild>::SHARED_PIPE_SECTION;
+	int sharedPipeSec = geometry_traits<TChild>::CONTAINER_SECTION;
 	assert(sharedPipeSec != -1 && "bad shared pipe section!");
 
 	MGElementInfo* elemInfo = get_elem_info(elem);

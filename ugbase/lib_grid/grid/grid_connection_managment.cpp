@@ -72,7 +72,7 @@ void Grid::register_vertex(VertexBase* v, GeometricObject* pParent)
 
 //	store the element and register it at the pipe.
 	m_vertexElementStorage.m_attachmentPipe.register_element(v);
-	m_vertexElementStorage.m_sectionContainer.insert(v, v->shared_pipe_section());
+	m_vertexElementStorage.m_sectionContainer.insert(v, v->container_section());
 
 //	assign the hash-value
 	assign_hash_value(v);
@@ -86,7 +86,7 @@ void Grid::register_vertex(VertexBase* v, GeometricObject* pParent)
 void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 {
 	m_vertexElementStorage.m_attachmentPipe.register_element(v);
-	m_vertexElementStorage.m_sectionContainer.insert(v, v->shared_pipe_section());
+	m_vertexElementStorage.m_sectionContainer.insert(v, v->container_section());
 
 //	assign the hash-value
 	assign_hash_value(v);
@@ -174,7 +174,7 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 
 //	remove pReplaceMe
 	m_vertexElementStorage.m_attachmentPipe.unregister_element(pReplaceMe);
-	m_vertexElementStorage.m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->shared_pipe_section());
+	m_vertexElementStorage.m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->container_section());
 	delete pReplaceMe;
 }
 
@@ -289,7 +289,7 @@ void Grid::unregister_vertex(VertexBase* v)
 	}
 
 //	remove the element from the storage
-	m_vertexElementStorage.m_sectionContainer.erase(get_iterator(v), v->shared_pipe_section());
+	m_vertexElementStorage.m_sectionContainer.erase(get_iterator(v), v->container_section());
 	m_vertexElementStorage.m_attachmentPipe.unregister_element(v);
 }
 
@@ -444,7 +444,7 @@ void Grid::register_edge(EdgeBase* e, GeometricObject* pParent,
 
 //	store the element and register it at the pipe.
 	m_edgeElementStorage.m_attachmentPipe.register_element(e);
-	m_edgeElementStorage.m_sectionContainer.insert(e, e->shared_pipe_section());
+	m_edgeElementStorage.m_sectionContainer.insert(e, e->container_section());
 
 //	register edge at vertices, faces and volumes, if the according options are enabled.
 	if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
@@ -571,7 +571,7 @@ void Grid::register_and_replace_element(EdgeBase* e, EdgeBase* pReplaceMe)
 {
 //	store the element and register it at the pipe.
 	m_edgeElementStorage.m_attachmentPipe.register_element(e);
-	m_edgeElementStorage.m_sectionContainer.insert(e, e->shared_pipe_section());
+	m_edgeElementStorage.m_sectionContainer.insert(e, e->container_section());
 
 	pass_on_values(pReplaceMe, e);
 
@@ -632,7 +632,7 @@ void Grid::register_and_replace_element(EdgeBase* e, EdgeBase* pReplaceMe)
 	}
 
 //	remove the element from the storage and delete it.
-	m_edgeElementStorage.m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->shared_pipe_section());
+	m_edgeElementStorage.m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->container_section());
 	m_edgeElementStorage.m_attachmentPipe.unregister_element(pReplaceMe);
 	delete pReplaceMe;
 }
@@ -743,7 +743,7 @@ void Grid::unregister_edge(EdgeBase* e)
 	}
 
 //	remove the element from the storage
-	m_edgeElementStorage.m_sectionContainer.erase(get_iterator(e), e->shared_pipe_section());
+	m_edgeElementStorage.m_sectionContainer.erase(get_iterator(e), e->container_section());
 	m_edgeElementStorage.m_attachmentPipe.unregister_element(e);
 }
 
@@ -887,7 +887,7 @@ void Grid::register_face(Face* f, GeometricObject* pParent, Volume* createdByVol
 
 //	store the element and register it at the pipe.
 	m_faceElementStorage.m_attachmentPipe.register_element(f);
-	m_faceElementStorage.m_sectionContainer.insert(f, f->shared_pipe_section());
+	m_faceElementStorage.m_sectionContainer.insert(f, f->container_section());
 
 //	register face at vertices
 	if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
@@ -1012,7 +1012,7 @@ void Grid::register_and_replace_element(Face* f, Face* pReplaceMe)
 
 //	store the element and register it at the pipe.
 	m_faceElementStorage.m_attachmentPipe.register_element(f);
-	m_faceElementStorage.m_sectionContainer.insert(f, f->shared_pipe_section());
+	m_faceElementStorage.m_sectionContainer.insert(f, f->container_section());
 
 	pass_on_values(pReplaceMe, f);
 
@@ -1078,7 +1078,7 @@ void Grid::register_and_replace_element(Face* f, Face* pReplaceMe)
 	}
 
 //	remove the element from the storage and delete it.
-	m_faceElementStorage.m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->shared_pipe_section());
+	m_faceElementStorage.m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->container_section());
 	m_faceElementStorage.m_attachmentPipe.unregister_element(pReplaceMe);
 	delete pReplaceMe;
 }
@@ -1160,7 +1160,7 @@ void Grid::unregister_face(Face* f)
 	}
 
 //	remove the element from the storage
-	m_faceElementStorage.m_sectionContainer.erase(get_iterator(f), f->shared_pipe_section());
+	m_faceElementStorage.m_sectionContainer.erase(get_iterator(f), f->container_section());
 	m_faceElementStorage.m_attachmentPipe.unregister_element(f);
 }
 
@@ -1390,7 +1390,7 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 
 //	store the element and register it at the pipe.
 	m_volumeElementStorage.m_attachmentPipe.register_element(v);
-	m_volumeElementStorage.m_sectionContainer.insert(v, v->shared_pipe_section());
+	m_volumeElementStorage.m_sectionContainer.insert(v, v->container_section());
 
 //	create edges and faces if the according options are enabled.
 //	register the volume at the associated vertices, edges and faces, if the according options are enabled.
@@ -1524,7 +1524,7 @@ void Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe)
 
 //	store the element and register it at the pipe.
 	m_volumeElementStorage.m_attachmentPipe.register_element(v);
-	m_volumeElementStorage.m_sectionContainer.insert(v, v->shared_pipe_section());
+	m_volumeElementStorage.m_sectionContainer.insert(v, v->container_section());
 
 	pass_on_values(pReplaceMe, v);
 
@@ -1587,7 +1587,7 @@ void Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe)
 	}
 
 //	remove the element from the storage and delete it.
-	m_volumeElementStorage.m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->shared_pipe_section());
+	m_volumeElementStorage.m_sectionContainer.erase(get_iterator(pReplaceMe), pReplaceMe->container_section());
 	m_volumeElementStorage.m_attachmentPipe.unregister_element(pReplaceMe);
 	delete pReplaceMe;
 }
@@ -1655,7 +1655,7 @@ void Grid::unregister_volume(Volume* v)
 	}
 
 //	remove the element from the storage
-	m_volumeElementStorage.m_sectionContainer.erase(get_iterator(v), v->shared_pipe_section());
+	m_volumeElementStorage.m_sectionContainer.erase(get_iterator(v), v->container_section());
 	m_volumeElementStorage.m_attachmentPipe.unregister_element(v);
 }
 
@@ -2074,7 +2074,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 					}
 
 				//	we can now remove e from the storage.
-					m_edgeElementStorage.m_sectionContainer.erase(get_iterator(e), e->shared_pipe_section());
+					m_edgeElementStorage.m_sectionContainer.erase(get_iterator(e), e->container_section());
 					m_edgeElementStorage.m_attachmentPipe.unregister_element(e);
 					delete e;
 				}
@@ -2192,7 +2192,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 					}
 
 				//	we can now remove f from the storage.
-					m_faceElementStorage.m_sectionContainer.erase(get_iterator(f), f->shared_pipe_section());
+					m_faceElementStorage.m_sectionContainer.erase(get_iterator(f), f->container_section());
 					m_faceElementStorage.m_attachmentPipe.unregister_element(f);
 					delete f;
 				}
@@ -2333,7 +2333,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 
 
 				//	we can now remove v from the storage.
-					m_volumeElementStorage.m_sectionContainer.erase(get_iterator(v), v->shared_pipe_section());
+					m_volumeElementStorage.m_sectionContainer.erase(get_iterator(v), v->container_section());
 					m_volumeElementStorage.m_attachmentPipe.unregister_element(v);
 					delete v;
 				}
@@ -2417,7 +2417,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 	}
 
 //	finally erase vrtOld.
-	m_vertexElementStorage.m_sectionContainer.erase(get_iterator(vrtOld), vrtOld->shared_pipe_section());
+	m_vertexElementStorage.m_sectionContainer.erase(get_iterator(vrtOld), vrtOld->container_section());
 	m_vertexElementStorage.m_attachmentPipe.unregister_element(vrtOld);
 	delete vrtOld;
 

@@ -60,7 +60,7 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 			GeometricObject* parent = mg->get_parent(vrt);
 
 		//	distinguish type of parent
-			switch(parent->base_object_type_id())
+			switch(parent->base_object_id())
 			{
 				case ROID_VERTEX:
 				{

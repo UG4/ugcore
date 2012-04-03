@@ -14,16 +14,14 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-//	shared pipe sections edge
 ///	These numbers define where in the edge-section-container an edge will be stored.
-/**	The order of the constants must not be changed! There are algorithms that rely
- *	on them. I.e. ug::HangingNodeRefiner.*/
-enum SharedPipeSectionEdge
+/**	The order of the constants must not be changed! Algorithms may exist that rely on it.*/
+enum EdgeContainerSections
 {
-	SPSEDGE_NONE = -1,
-	SPSEDGE_EDGE = 0,
-	SPSEDGE_CONSTRAINED_EDGE = 1,
-	SPSEDGE_CONSTRAINING_EDGE = 2
+	CSEDGE_NONE = -1,
+	CSEDGE_EDGE = 0,
+	CSEDGE_CONSTRAINED_EDGE = 1,
+	CSEDGE_CONSTRAINING_EDGE = 2
 };
 
 
@@ -59,8 +57,7 @@ class UG_API Edge : public EdgeBase
 
 		virtual GeometricObject* create_empty_instance() const	{return new Edge;}
 
-		virtual int shared_pipe_section() const	{return SPSEDGE_EDGE;}
-		virtual int base_object_type_id() const	{return EDGE;}
+		virtual int container_section() const	{return CSEDGE_EDGE;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
 	///	virtual refine. Returns pointers to EdgeBase.
@@ -96,8 +93,8 @@ class geometry_traits<Edge>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSEDGE_EDGE,
-			BASE_OBJECT_TYPE_ID = EDGE
+			CONTAINER_SECTION = CSEDGE_EDGE,
+			BASE_OBJECT_ID = EDGE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
@@ -142,8 +139,7 @@ class UG_API ConstrainedEdge : public EdgeBase
 
 		virtual GeometricObject* create_empty_instance() const	{return new ConstrainedEdge;}
 
-		virtual int shared_pipe_section() const	{return SPSEDGE_CONSTRAINED_EDGE;}
-		virtual int base_object_type_id() const	{return EDGE;}
+		virtual int container_section() const	{return CSEDGE_CONSTRAINED_EDGE;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
 		virtual bool is_constrained() const			{return true;}
@@ -191,8 +187,8 @@ class geometry_traits<ConstrainedEdge>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSEDGE_CONSTRAINED_EDGE,
-			BASE_OBJECT_TYPE_ID = EDGE
+			CONTAINER_SECTION = CSEDGE_CONSTRAINED_EDGE,
+			BASE_OBJECT_ID = EDGE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
@@ -238,8 +234,7 @@ class UG_API ConstrainingEdge : public EdgeBase
 
 		virtual GeometricObject* create_empty_instance() const	{return new ConstrainingEdge;}
 
-		virtual int shared_pipe_section() const	{return SPSEDGE_CONSTRAINING_EDGE;}
-		virtual int base_object_type_id() const	{return EDGE;}
+		virtual int container_section() const	{return CSEDGE_CONSTRAINING_EDGE;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
 		virtual bool is_constraining() const	{return true;}
@@ -349,8 +344,8 @@ class geometry_traits<ConstrainingEdge>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSEDGE_CONSTRAINING_EDGE,
-			BASE_OBJECT_TYPE_ID = EDGE
+			CONTAINER_SECTION = CSEDGE_CONSTRAINING_EDGE,
+			BASE_OBJECT_ID = EDGE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };

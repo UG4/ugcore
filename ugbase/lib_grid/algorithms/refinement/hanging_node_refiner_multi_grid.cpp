@@ -1263,7 +1263,7 @@ We have to handle elements as follows:
 			//	if the parent is a face, then it the face should have been converted
 			//	to a constraining face during the face-coarsening step. If it hasn't
 			//	been converted, then the somethings wrong with the selection states.
-				if(parent->base_object_type_id() == FACE){
+				if(parent->base_object_id() == FACE){
 					ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(parent);
 					assert(cf);
 
@@ -1340,7 +1340,7 @@ We have to handle elements as follows:
 
 			//	if the parent is an edge or a face, the vertex will be converted
 			//	to a hanging-vertex
-				switch(parent->base_object_type_id()){
+				switch(parent->base_object_id()){
 					case EDGE:{
 					//	the parent already has to be a constraining edge, due to
 					//	the operations performed during edge-coarsening
@@ -1348,9 +1348,9 @@ We have to handle elements as follows:
 						assert(ce);
 						assert(ce->num_constrained_vertices() == 0);
 
-						HangingVertex* hv = *mg.create_and_replace<HangingVertex>(elem);
+						ConstrainedVertex* hv = *mg.create_and_replace<ConstrainedVertex>(elem);
 						ce->add_constrained_object(hv);
-						hv->set_parent(ce);
+						hv->set_constraining_object(ce);
 						hv->set_local_coordinate_1(0.5);
 					}break;
 
@@ -1361,16 +1361,16 @@ We have to handle elements as follows:
 						assert(cf);
 						assert(cf->num_constrained_vertices() == 0);
 
-						HangingVertex* hv = *mg.create_and_replace<HangingVertex>(elem);
+						ConstrainedVertex* hv = *mg.create_and_replace<ConstrainedVertex>(elem);
 						cf->add_constrained_object(hv);
-						hv->set_parent(cf);
+						hv->set_constraining_object(cf);
 						hv->set_local_coordinates(0.5, 0.5);
 					}break;
 
 					default:
 					//	child vertices of volumes lie inside of coarsen-families.
 					//	HNCM_ALL_NBRS_SELECTED thus has to be applied.
-						assert((parent->base_object_type_id() != VOLUME));
+						assert((parent->base_object_id() != VOLUME));
 						break;
 				}
 

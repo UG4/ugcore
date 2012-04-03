@@ -171,14 +171,14 @@ assign_subset_impl(TElem* elem, int subsetIndex)
 	int oldIndex = get_subset_index(elem);
 	
 	if(oldIndex != -1)
-		section_container<TElem>(oldIndex, level).erase(get_list_iterator(elem), elem->shared_pipe_section());
+		section_container<TElem>(oldIndex, level).erase(get_list_iterator(elem), elem->container_section());
 
 //	add the element to the subset.
 	if(subsetIndex != -1)
 	{
 		subset_required(subsetIndex);
 		level_required(level);
-		section_container<TElem>(subsetIndex, level).insert(elem, elem->shared_pipe_section());
+		section_container<TElem>(subsetIndex, level).insert(elem, elem->container_section());
 		subset_assigned(elem, subsetIndex);
 	}
 	else {

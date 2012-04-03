@@ -19,13 +19,13 @@ template<class TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 Grid::create(GeometricObject* pParent)
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION != -1
-		&&	geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::CONTAINER_SECTION != -1
+		&&	geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_geometry_type);
 
 	TGeomObj* geomObj = new TGeomObj;
 //	int baseObjectType = geometry_traits<GeomObjType>::base_object_type();
-//	geomObj->m_elemHandle = m_elementStorage[baseObjectType].m_sectionContainer.insert_element(geomObj, geometry_traits<GeomObjType>::shared_pipe_section());
+//	geomObj->m_elemHandle = m_elementStorage[baseObjectType].m_sectionContainer.insert_element(geomObj, geometry_traits<GeomObjType>::container_section());
 //	m_elementStorage[baseObjectType].m_attachmentPipe.register_element(geomObj);
 
 	register_element(geomObj, pParent);
@@ -38,14 +38,14 @@ typename geometry_traits<TGeomObj>::iterator
 Grid::create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
 			GeometricObject* pParent)
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION != -1
-			&&	geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::CONTAINER_SECTION != -1
+			&&	geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 			invalid_geometry_type);
 
 	TGeomObj* geomObj = new TGeomObj(descriptor);
 
 //	int baseObjectType = geometry_traits<TGeomObj>::base_object_type();
-//	geomObj->m_elemHandle = m_elementStorage[baseObjectType].m_sectionContainer.insert_element(geomObj, geometry_traits<GeomObjType>::shared_pipe_section());
+//	geomObj->m_elemHandle = m_elementStorage[baseObjectType].m_sectionContainer.insert_element(geomObj, geometry_traits<GeomObjType>::container_section());
 //	m_elementStorage[baseObjectType].m_attachmentPipe.register_element(geomObj);
 
 	register_element(geomObj, pParent);
@@ -57,8 +57,8 @@ template<class TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 Grid::create_and_replace(typename geometry_traits<TGeomObj>::geometric_base_object* pReplaceMe)
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION != -1
-		&&	geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::CONTAINER_SECTION != -1
+		&&	geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_geometry_type);
 
 	TGeomObj* geomObj = new TGeomObj;
@@ -81,7 +81,7 @@ Grid::create_and_replace(typename geometry_traits<TGeomObj>::geometric_base_obje
 template <class TGeomObj>
 void Grid::reserve(size_t num)
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 				invalid_geometry_type);
 
 	element_storage<TGeomObj>().m_attachmentPipe.reserve(num);
@@ -114,76 +114,76 @@ template <class TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 Grid::begin()
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_GeomObj);
 
 	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
-		(element_storage<TGeomObj>().m_sectionContainer.section_begin(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+		(element_storage<TGeomObj>().m_sectionContainer.section_begin(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
 template <class TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 Grid::end()
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_GeomObj);
 
 	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
-		(element_storage<TGeomObj>().m_sectionContainer.section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+		(element_storage<TGeomObj>().m_sectionContainer.section_end(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
 template <class TGeomObj>
 typename geometry_traits<TGeomObj>::const_iterator
 Grid::begin() const
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_GeomObj);
 
 	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
-		(element_storage<TGeomObj>().m_sectionContainer.section_begin(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+		(element_storage<TGeomObj>().m_sectionContainer.section_begin(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
 template <class TGeomObj>
 typename geometry_traits<TGeomObj>::const_iterator
 Grid::end() const
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_GeomObj);
 
 	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
-		(element_storage<TGeomObj>().m_sectionContainer.section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+		(element_storage<TGeomObj>().m_sectionContainer.section_end(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
 template <class TGeomObj>
 TGeomObj*
 Grid::front()
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_GeomObj);
 
 	return static_cast<TGeomObj*>(*element_storage<TGeomObj>().m_sectionContainer.
-										front(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+										front(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
 template <class TGeomObj>
 TGeomObj*
 Grid::back()
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_GeomObj);
 
 	return static_cast<TGeomObj*>(*element_storage<TGeomObj>().m_sectionContainer.
-										back(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+										back(geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 ////////////////////////////////////////////////////////////////////////
 //	element numbers
 template <class TGeomObj>
 size_t Grid::num() const
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 		invalid_GeomObj);
 
-	int secIndex = geometry_traits<TGeomObj>::SHARED_PIPE_SECTION;
+	int secIndex = geometry_traits<TGeomObj>::CONTAINER_SECTION;
 
 	if(secIndex == -1)
 		return element_storage<TGeomObj>().m_sectionContainer.num_elements();
@@ -246,7 +246,7 @@ size_t Grid::attachment_container_size() const
 template <class TGeomObjClass>
 void Grid::attach_to(IAttachment& attachment, bool passOnValues)
 {
-	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_ID != -1,
 			invalid_GeomObjClass);
 
 //	setup the options for this attachment.
@@ -293,7 +293,7 @@ attach_to_all_dv(TAttachment& attachment,
 template <class TGeomObjClass, class TAttachment>
 void Grid::attach_to_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)
 {
-	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_ID != -1,
 			invalid_GeomObjClass);
 
 //	setup the options for this attachment.
@@ -319,7 +319,7 @@ attach_to_all_dv(TAttachment& attachment,
 template <class TGeomObjClass>
 void Grid::detach_from(IAttachment& attachment)
 {
-	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_ID != -1,
 				invalid_GeomObjClass);
 
 	element_storage<TGeomObjClass>().m_attachmentPipe.detach(attachment);
@@ -349,7 +349,7 @@ template <class TGeomObj, class TAttachment>
 typename TAttachment::ContainerType*
 Grid::get_attachment_data_container(TAttachment& attachment)
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 			invalid_GeomObj);
 
 	return element_storage<TGeomObj>().m_attachmentPipe.get_data_container(attachment);
@@ -359,7 +359,7 @@ template <class TGeomObj>
 typename Grid::traits<TGeomObj>::AttachmentPipe&
 Grid::get_attachment_pipe()
 {
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
 			invalid_GeomObj);
 
 	return element_storage<TGeomObj>().m_attachmentPipe;
@@ -608,7 +608,7 @@ VolumeAttachmentAccessor(Grid& grid, TAttachment& a) :
 //	marks
 inline void Grid::mark(GeometricObject* obj)
 {
-	const int typeID = obj->base_object_type_id();
+	const int typeID = obj->base_object_id();
 	switch(typeID){
 		case VERTEX: mark(static_cast<VertexBase*>(obj)); break;
 		case EDGE: mark(static_cast<EdgeBase*>(obj)); break;
@@ -643,7 +643,7 @@ inline void Grid::mark(Volume* obj)
 
 inline void Grid::unmark(GeometricObject* obj)
 {
-	const int typeID = obj->base_object_type_id();
+	const int typeID = obj->base_object_id();
 	switch(typeID){
 		case VERTEX: unmark(static_cast<VertexBase*>(obj)); break;
 		case EDGE: unmark(static_cast<EdgeBase*>(obj)); break;
@@ -678,7 +678,7 @@ inline void Grid::unmark(Volume* obj)
 
 inline bool Grid::is_marked(GeometricObject* obj)
 {
-	const int typeID = obj->base_object_type_id();
+	const int typeID = obj->base_object_id();
 	switch(typeID){
 		case VERTEX: return is_marked(static_cast<VertexBase*>(obj));
 		case EDGE: return is_marked(static_cast<EdgeBase*>(obj));

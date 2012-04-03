@@ -156,7 +156,7 @@ TBaseElem* MGDoFDistribution::child_if_copy(TBaseElem* elem) const
 
 inline size_t& MGDoFDistribution::obj_index(GeometricObject* obj)
 {
-	switch(obj->base_object_type_id())
+	switch(obj->base_object_id())
 	{
 		case VERTEX: return obj_index(static_cast<VertexBase*>(obj));
 		case EDGE:   return obj_index(static_cast<EdgeBase*>(obj));
@@ -168,7 +168,7 @@ inline size_t& MGDoFDistribution::obj_index(GeometricObject* obj)
 
 inline const size_t& MGDoFDistribution::obj_index(GeometricObject* obj) const
 {
-	switch(obj->base_object_type_id())
+	switch(obj->base_object_id())
 	{
 		case VERTEX: return obj_index(static_cast<VertexBase*>(obj));
 		case EDGE:   return obj_index(static_cast<EdgeBase*>(obj));
@@ -332,7 +332,7 @@ template <typename T>
 void MGDoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
                             const int si, LevInfo<T>& li)
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return add(static_cast<VertexBase*>(elem), roid, si, li);
 		case EDGE: return add(static_cast<EdgeBase*>(elem), roid, si, li);
@@ -346,7 +346,7 @@ template <typename T>
 void MGDoFDistribution::add_from_free(GeometricObject* elem, const ReferenceObjectID roid,
                                       const int si, LevInfo<T>& li)
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return add_from_free(static_cast<VertexBase*>(elem), roid, si, li);
 		case EDGE: return add_from_free(static_cast<EdgeBase*>(elem), roid, si, li);
@@ -360,7 +360,7 @@ template <typename T>
 void MGDoFDistribution::erase(GeometricObject* elem, const ReferenceObjectID roid,
                               const int si, LevInfo<T>& li)
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return erase(static_cast<VertexBase*>(elem), roid, si, li);
 		case EDGE: return erase(static_cast<EdgeBase*>(elem), roid, si, li);
@@ -374,7 +374,7 @@ template <typename T>
 void MGDoFDistribution::defragment(GeometricObject* elem, const ReferenceObjectID roid, const int si,
                                    LevInfo<T>& li, std::vector<std::pair<size_t, size_t> >& vReplaced)
 {
-	switch(elem->base_object_type_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: return erase(static_cast<VertexBase*>(elem), roid, si, li, vReplaced);
 		case EDGE: return erase(static_cast<EdgeBase*>(elem), roid, si, li, vReplaced);

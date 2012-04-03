@@ -14,7 +14,7 @@ namespace ug{
 bool SubsetIsRegularGrid(const SubsetHandler& sh, int si)
 {
 //	check for constraining/constrained elements
-	if(sh.num<HangingVertex>(si) > 0) return false;
+	if(sh.num<ConstrainedVertex>(si) > 0) return false;
 	if(sh.num<ConstrainedEdge>(si) > 0) return false;
 	if(sh.num<ConstrainingEdge>(si) > 0) return false;
 	if(sh.num<ConstrainedTriangle>(si) > 0) return false;
@@ -30,7 +30,7 @@ bool SubsetIsRegularGrid(const SubsetHandler& sh, int si)
 bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si)
 {
 //	check for constraining/constrained elements
-	if(sh.num<HangingVertex>(si) > 0) return false;
+	if(sh.num<ConstrainedVertex>(si) > 0) return false;
 	if(sh.num<ConstrainedEdge>(si) > 0) return false;
 	if(sh.num<ConstrainingEdge>(si) > 0) return false;
 	if(sh.num<ConstrainedTriangle>(si) > 0) return false;

@@ -198,7 +198,7 @@ init_grid_attachments(Grid& grid)
 	int baseInd = 0;
 	AssignIndices(grid.begin<Vertex>(), grid.end<Vertex>(), aaIndVRT, baseInd);
 	baseInd += grid.num<Vertex>();
-	AssignIndices(grid.begin<HangingVertex>(), grid.end<HangingVertex>(),
+	AssignIndices(grid.begin<ConstrainedVertex>(), grid.end<ConstrainedVertex>(),
 				  aaIndVRT, baseInd);
 
 	baseInd = 0;

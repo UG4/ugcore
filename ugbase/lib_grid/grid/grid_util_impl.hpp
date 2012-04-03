@@ -132,7 +132,7 @@ inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
 inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
                               Grid& grid, GeometricObject* obj, bool clearContainer)
 {
-	uint type = obj->base_object_type_id();
+	uint type = obj->base_object_id();
 	switch(type)
 	{
 		case VERTEX:CollectAssociated(vVertexOut, grid, reinterpret_cast<VertexBase*>(obj), clearContainer); return;
@@ -172,7 +172,7 @@ inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
 inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
                               Grid& grid, GeometricObject* obj, bool clearContainer)
 {
-	uint type = obj->base_object_type_id();
+	uint type = obj->base_object_id();
 	switch(type)
 	{
 		case VERTEX:CollectAssociated(vEdgesOut, grid, reinterpret_cast<VertexBase*>(obj), clearContainer); return;
@@ -212,7 +212,7 @@ inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 inline void CollectAssociated(std::vector<Face*>& vFacesOut,
                               Grid& grid, GeometricObject* obj, bool clearContainer)
 {
-	uint type = obj->base_object_type_id();
+	uint type = obj->base_object_id();
 	switch(type)
 	{
 		case VERTEX:CollectAssociated(vFacesOut, grid, reinterpret_cast<VertexBase*>(obj), clearContainer); return;
@@ -259,7 +259,7 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
                               Grid& grid, GeometricObject* obj, bool clearContainer)
 {
-	uint type = obj->base_object_type_id();
+	uint type = obj->base_object_id();
 	switch(type)
 	{
 		case VERTEX:CollectAssociated(vVolumesOut, grid, reinterpret_cast<VertexBase*>(obj), clearContainer); return;
@@ -276,7 +276,7 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 inline void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
                             				GeometricObject* obj, bool clearContainer)
 {
-	switch(obj->base_object_type_id())
+	switch(obj->base_object_id())
 	{
 		case VERTEX:CollectVertices(vVertexOut, grid, static_cast<VertexBase*>(obj), clearContainer); return;
 		case EDGE:	CollectVertices(vVertexOut, grid, static_cast<EdgeBase*>(obj), clearContainer); return;
@@ -289,7 +289,7 @@ inline void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
 inline void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
                             				GeometricObject* obj, bool clearContainer)
 {
-	switch(obj->base_object_type_id())
+	switch(obj->base_object_id())
 	{
 		case VERTEX:CollectEdgesSorted(vEdgesOut, grid, static_cast<VertexBase*>(obj), clearContainer); return;
 		case EDGE:	CollectEdgesSorted(vEdgesOut, grid, static_cast<EdgeBase*>(obj), clearContainer); return;
@@ -302,7 +302,7 @@ inline void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
 inline void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid,
                             				GeometricObject* obj, bool clearContainer)
 {
-	switch(obj->base_object_type_id())
+	switch(obj->base_object_id())
 	{
 		case VERTEX:CollectFacesSorted(vFacesOut, grid, static_cast<VertexBase*>(obj), clearContainer); return;
 		case EDGE:	CollectFacesSorted(vFacesOut, grid, static_cast<EdgeBase*>(obj), clearContainer); return;

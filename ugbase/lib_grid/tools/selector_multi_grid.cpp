@@ -214,54 +214,54 @@ void MGSelector::add_to_list(VertexBase* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
 	section_container<VertexBase>(level).insert(elem,
-								elem->shared_pipe_section());
+								elem->container_section());
 }
 
 void MGSelector::add_to_list(EdgeBase* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
 	section_container<EdgeBase>(level).insert(elem,
-								elem->shared_pipe_section());
+								elem->container_section());
 }
 
 void MGSelector::add_to_list(Face* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
 	section_container<Face>(level).insert(elem,
-								elem->shared_pipe_section());
+								elem->container_section());
 }
 
 void MGSelector::add_to_list(Volume* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
 	section_container<Volume>(level).insert(elem,
-								elem->shared_pipe_section());
+								elem->container_section());
 }	
 
 void MGSelector::erase_from_list(VertexBase* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
 	section_container<VertexBase>(level).erase(get_iterator(elem),
-						elem->shared_pipe_section());
+						elem->container_section());
 }
 void MGSelector::erase_from_list(EdgeBase* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
 	section_container<EdgeBase>(level).erase(get_iterator(elem),
-						elem->shared_pipe_section());
+						elem->container_section());
 }
 void MGSelector::erase_from_list(Face* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
 	section_container<Face>(level).erase(get_iterator(elem),
-						elem->shared_pipe_section());
+						elem->container_section());
 }
 
 void MGSelector::erase_from_list(Volume* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
 	section_container<Volume>(level).erase(get_iterator(elem),
-						elem->shared_pipe_section());
+						elem->container_section());
 }
 
 //	geometric-object-collection

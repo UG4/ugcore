@@ -510,7 +510,7 @@ reset_subset_indices(uint shElements)
 int ISubsetHandler::
 get_subset_index(GeometricObject* elem) const
 {
-	uint type = elem->base_object_type_id();
+	uint type = elem->base_object_id();
 	switch(type)
 	{
 		case VERTEX:
@@ -898,7 +898,7 @@ vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
 	//LOG("si_before assignement: " << get_subset_index(vrt) << endl);
 		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
-				if(pParent->base_object_type_id() == VERTEX){
+				if(pParent->base_object_id() == VERTEX){
 					assign_subset(vrt, get_subset_index(
 										reinterpret_cast<VertexBase*>(pParent)));
 				}
@@ -939,7 +939,7 @@ edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent,
 
 		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
-				if(pParent->base_object_type_id() == EDGE){
+				if(pParent->base_object_id() == EDGE){
 					assign_subset(edge, get_subset_index(
 										reinterpret_cast<EdgeBase*>(pParent)));
 				}
@@ -980,7 +980,7 @@ face_created(Grid* grid, Face* face, GeometricObject* pParent,
 
 		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
-				if(pParent->base_object_type_id() == FACE){
+				if(pParent->base_object_id() == FACE){
 					assign_subset(face, get_subset_index(
 										reinterpret_cast<Face*>(pParent)));
 				}
@@ -1020,7 +1020,7 @@ volume_created(Grid* grid, Volume* vol, GeometricObject* pParent,
 
 		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
 			if(m_bStrictInheritanceEnabled){
-				if(pParent->base_object_type_id() == VOLUME){
+				if(pParent->base_object_id() == VOLUME){
 					assign_subset(vol, get_subset_index(
 										reinterpret_cast<Volume*>(pParent)));
 				}

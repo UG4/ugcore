@@ -46,7 +46,7 @@ struct reference_element_traits<Vertex>
 	: public reference_element_traits<VertexBase> {};
 
 template <>
-struct reference_element_traits<HangingVertex>
+struct reference_element_traits<ConstrainedVertex>
 	: public reference_element_traits<VertexBase> {};
 
 ///////////////////////////////////////////////////////////////////////////////

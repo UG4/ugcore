@@ -46,7 +46,7 @@ GeometricObjectCollection::begin(size_t level) const
 {
 	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
 		(get_container<TGeomObj>(level)->section_begin(
-			geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+			geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -57,7 +57,7 @@ GeometricObjectCollection::end(size_t level) const
 {
 	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
 		(get_container<TGeomObj>(level)->section_end(
-			geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+			geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ GeometricObjectCollection::begin(size_t level)
 {
 	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
 		(get_container<TGeomObj>(level)->section_begin(
-			geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+			geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ GeometricObjectCollection::end(size_t level)
 {
 	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
 		(get_container<TGeomObj>(level)->section_end(
-			geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+			geometry_traits<TGeomObj>::CONTAINER_SECTION));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -88,7 +88,7 @@ template <class TGeomObj>
 size_t
 GeometricObjectCollection::num(size_t level) const
 {
-	int secIndex = geometry_traits<TGeomObj>::SHARED_PIPE_SECTION;
+	int secIndex = geometry_traits<TGeomObj>::CONTAINER_SECTION;
 
 	if(secIndex == -1)
 		return get_container<TGeomObj>(level)->num_elements();

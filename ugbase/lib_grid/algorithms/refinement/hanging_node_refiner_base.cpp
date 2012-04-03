@@ -537,7 +537,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 	vector<Volume*> vVols;
 
 //	queues will be used to avoid recursion during element selection
-	queue<HangingVertex*> qHVrts;//	only required if hanging-node-order-1 is enabled.
+	queue<ConstrainedVertex*> qHVrts;//	only required if hanging-node-order-1 is enabled.
 	queue<EdgeBase*>	qEdges;
 	queue<Face*> 		qFaces;
 	queue<Volume*> 		qVols;
@@ -659,9 +659,9 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 			iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
 		{
 			for(size_t i = 0; i < 2; ++i){
-				if(HangingVertex::type_match((*iter)->vertex(i))
+				if(ConstrainedVertex::type_match((*iter)->vertex(i))
 				   && refinement_is_allowed((*iter)->vertex(i))){
-					qHVrts.push(static_cast<HangingVertex*>((*iter)->vertex(i)));
+					qHVrts.push(static_cast<ConstrainedVertex*>((*iter)->vertex(i)));
 				}
 			}
 		}
@@ -674,9 +674,9 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 			{
 				Face* f = *iter;
 				for(size_t i = 0; i < f->num_vertices(); ++i){
-					if(HangingVertex::type_match(f->vertex(i))
+					if(ConstrainedVertex::type_match(f->vertex(i))
 					   && refinement_is_allowed(f->vertex(i))){
-						qHVrts.push(static_cast<HangingVertex*>(f->vertex(i)));
+						qHVrts.push(static_cast<ConstrainedVertex*>(f->vertex(i)));
 					}
 				}
 			}
@@ -691,13 +691,13 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 	//	process vertices in qHVrts.
 	//	Note that qHVrts only contains elements if hangingNodeOrder1 is true.
 		while(!qHVrts.empty()){
-			HangingVertex* hv = qHVrts.front();
+			ConstrainedVertex* hv = qHVrts.front();
 			qHVrts.pop();
 
 			UG_ASSERT(refinement_is_allowed(hv), "Vertex may only be queued if refinement is allowed.");
 
 		//	find unmarked parents of qHVrts.
-			GeometricObject* co = hv->get_parent();
+			GeometricObject* co = hv->get_constraining_object();
 			if(co){
 				if(EdgeBase* e = dynamic_cast<EdgeBase*>(co)){
 					if(!is_marked(e) && refinement_is_allowed(e))
@@ -730,9 +730,9 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		//	for associated hanging vertices and push them to qHVrts.
 			if(node_dependency_order_1_enabled()){
 				for(size_t i = 0; i < 2; ++i){
-					if(HangingVertex::type_match(e->vertex(i))
+					if(ConstrainedVertex::type_match(e->vertex(i))
 					   && refinement_is_allowed(e->vertex(i))){
-						qHVrts.push(static_cast<HangingVertex*>(e->vertex(i)));
+						qHVrts.push(static_cast<ConstrainedVertex*>(e->vertex(i)));
 					}
 				}
 			}
@@ -800,10 +800,10 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		//	for associated hanging vertices and push them to qHVrts.
 			if(node_dependency_order_1_enabled()){
 				for(size_t i = 0; i < f->num_vertices(); ++i){
-					if(HangingVertex::type_match(f->vertex(i))
+					if(ConstrainedVertex::type_match(f->vertex(i))
 					    && refinement_is_allowed(f->vertex(i)))
 					{
-						qHVrts.push(static_cast<HangingVertex*>(f->vertex(i)));
+						qHVrts.push(static_cast<ConstrainedVertex*>(f->vertex(i)));
 					}
 				}
 			}
@@ -997,9 +997,9 @@ refine_constraining_edge(ConstrainingEdge* cge)
 	Grid& grid = *m_pGrid;
 
 //	the central hanging vertex has to be transformed into a normal vertex
-	HangingVertex* centralHV = NULL;
+	ConstrainedVertex* centralHV = NULL;
 	if(cge->num_constrained_vertices() > 0)
-		centralHV = dynamic_cast<HangingVertex*>(cge->constrained_vertex(0));
+		centralHV = dynamic_cast<ConstrainedVertex*>(cge->constrained_vertex(0));
 
 	if(!centralHV){
 		UG_LOG("The central hanging vertex of a constraining edge is missing. ignoring edge.\n");
@@ -1065,14 +1065,14 @@ refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 
 	ConstrainingEdge* ce = *grid.create_and_replace<ConstrainingEdge>(e);
 
-	HangingVertex* hv = *grid.create<HangingVertex>(ce);
+	ConstrainedVertex* hv = *grid.create<ConstrainedVertex>(ce);
 
 //	allow refCallback to calculate a new position
 	if(m_refCallback)
 		m_refCallback->new_vertex(hv, ce);
 
 	set_center_vertex(ce, hv);
-	hv->set_parent(ce);
+	hv->set_constraining_object(ce);
 	ce->add_constrained_object(hv);
 
 	hv->set_local_coordinate_1(0.5);
@@ -1192,7 +1192,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 	}
 
 	ConstrainingFace* cgf = NULL;
-	HangingVertex* hv = NULL;
+	ConstrainedVertex* hv = NULL;
 
 //	the face has to be replaced by a constraining face.
 //	we'll perform a switch here depending on the number of vertices
@@ -1220,14 +1220,14 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 				cgf = *grid.create_and_replace<ConstrainingQuadrilateral>(f);
 
 			//	a central hanging vertex is required
-				hv = *grid.create<HangingVertex>(cgf);
+				hv = *grid.create<ConstrainedVertex>(cgf);
 
 			//	allow refCallback to calculate a new position
 				if(m_refCallback)
 					m_refCallback->new_vertex(hv, cgf);
 
 				set_center_vertex(cgf, hv);
-				hv->set_parent(cgf);
+				hv->set_constraining_object(cgf);
 				cgf->add_constrained_object(hv);
 				hv->set_local_coordinates(0.5, 0.5);
 
@@ -1312,14 +1312,14 @@ refine_constraining_face(ConstrainingFace* cgf)
 			  "bad number of constrained faces. There have to be exactly 4. "
 			  << "At face with center " << GetGeometricObjectCenter(grid, cgf) << endl);
 
-	HangingVertex* centralHV = NULL;
+	ConstrainedVertex* centralHV = NULL;
 	Vertex* centerVrt = NULL;
 
 	if(numVrts == 4){
 	//	the central hanging vertex has to be transformed into a normal vertex
 		centralHV = NULL;
 		if(cgf->num_constrained_vertices() > 0)
-			centralHV = dynamic_cast<HangingVertex*>(cgf->constrained_vertex(0));
+			centralHV = dynamic_cast<ConstrainedVertex*>(cgf->constrained_vertex(0));
 /*
 		if(!centralHV){
 			UG_LOG("The central hanging vertex of a constraining face is missing. ignoring face.\n");

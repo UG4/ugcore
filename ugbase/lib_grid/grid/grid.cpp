@@ -331,10 +331,10 @@ VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const VolumeVertices& v
 //	erase functions
 void Grid::erase(GeometricObject* geomObj)
 {
-	assert(geomObj->shared_pipe_section() != -1
+	assert(geomObj->container_section() != -1
 			&& "ERROR in Grid::erase(Vertex*). Invalid pipe section!");
 
-	uint objType = geomObj->base_object_type_id();
+	uint objType = geomObj->base_object_id();
 	switch(objType)
 	{
 		case VERTEX:
@@ -355,7 +355,7 @@ void Grid::erase(GeometricObject* geomObj)
 void Grid::erase(VertexBase* vrt)
 {
 	assert((vrt != NULL) && "ERROR in Grid::erase(Vertex*): invalid pointer)");
-	assert(vrt->shared_pipe_section() != -1
+	assert(vrt->container_section() != -1
 			&& "ERROR in Grid::erase(Vertex*). Invalid pipe section!");
 
 	unregister_vertex(vrt);
@@ -366,7 +366,7 @@ void Grid::erase(VertexBase* vrt)
 void Grid::erase(EdgeBase* edge)
 {
 	assert((edge != NULL) && "ERROR in Grid::erase(Edge*): invalid pointer)");
-	assert(edge->shared_pipe_section() != -1
+	assert(edge->container_section() != -1
 			&& "ERROR in Grid::erase(Edge*). Invalid pipe section!");
 
 	unregister_edge(edge);
@@ -377,7 +377,7 @@ void Grid::erase(EdgeBase* edge)
 void Grid::erase(Face* face)
 {
 	assert((face != NULL) && "ERROR in Grid::erase(Face*): invalid pointer)");
-	assert(face->shared_pipe_section() != -1
+	assert(face->container_section() != -1
 			&& "ERROR in Grid::erase(Face*). Invalid pipe section!");
 
 	unregister_face(face);
@@ -388,7 +388,7 @@ void Grid::erase(Face* face)
 void Grid::erase(Volume* vol)
 {
 	assert((vol != NULL) && "ERROR in Grid::erase(Volume*): invalid pointer)");
-	assert(vol->shared_pipe_section() != -1
+	assert(vol->container_section() != -1
 			&& "ERROR in Grid::erase(Volume*). Invalid pipe section!");
 
 	unregister_volume(vol);

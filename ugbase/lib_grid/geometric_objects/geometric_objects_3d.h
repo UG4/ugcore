@@ -16,15 +16,15 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-//	shared pipe sections volume
 ///	These numbers define where in the volume-section-container a volume will be stored.
-enum SharedPipeSectionVolume
+/**	The order of the constants must not be changed! Algorithms may exist that rely on it.*/
+enum VolumeContainerSections
 {
-	SPSVOL_NONE = -1,
-	SPSVOL_TETRAHEDRON = 0,
-	SPSVOL_HEXAHEDRON = 1,
-	SPSVOL_PRISM = 2,
-	SPSVOL_PYRAMID = 3
+	CSVOL_NONE = -1,
+	CSVOL_TETRAHEDRON = 0,
+	CSVOL_HEXAHEDRON = 1,
+	CSVOL_PRISM = 2,
+	CSVOL_PYRAMID = 3
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -111,8 +111,7 @@ class UG_API Tetrahedron : public Volume
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
-		virtual int shared_pipe_section() const	{return SPSVOL_TETRAHEDRON;}
-		virtual int base_object_type_id() const	{return VOLUME;}
+		virtual int container_section() const	{return CSVOL_TETRAHEDRON;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_TETRAHEDRON;}
 
 	protected:
@@ -135,8 +134,8 @@ class geometry_traits<Tetrahedron>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSVOL_TETRAHEDRON,
-			BASE_OBJECT_TYPE_ID = VOLUME
+			CONTAINER_SECTION = CSVOL_TETRAHEDRON,
+			BASE_OBJECT_ID = VOLUME
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TETRAHEDRON;
 };
@@ -222,8 +221,7 @@ class UG_API Hexahedron : public Volume
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
-		virtual int shared_pipe_section() const	{return SPSVOL_HEXAHEDRON;}
-		virtual int base_object_type_id() const	{return VOLUME;}
+		virtual int container_section() const	{return CSVOL_HEXAHEDRON;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_HEXAHEDRON;}
 
 	protected:
@@ -246,8 +244,8 @@ class geometry_traits<Hexahedron>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSVOL_HEXAHEDRON,
-			BASE_OBJECT_TYPE_ID = VOLUME
+			CONTAINER_SECTION = CSVOL_HEXAHEDRON,
+			BASE_OBJECT_ID = VOLUME
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_HEXAHEDRON;
 };
@@ -333,8 +331,7 @@ class UG_API Prism : public Volume
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
-		virtual int shared_pipe_section() const	{return SPSVOL_PRISM;}
-		virtual int base_object_type_id() const	{return VOLUME;}
+		virtual int container_section() const	{return CSVOL_PRISM;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_PRISM;}
 
 	protected:
@@ -357,8 +354,8 @@ class geometry_traits<Prism>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSVOL_PRISM,
-			BASE_OBJECT_TYPE_ID = VOLUME
+			CONTAINER_SECTION = CSVOL_PRISM,
+			BASE_OBJECT_ID = VOLUME
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PRISM;
 };
@@ -444,8 +441,7 @@ class UG_API Pyramid : public Volume
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
-		virtual int shared_pipe_section() const	{return SPSVOL_PYRAMID;}
-		virtual int base_object_type_id() const	{return VOLUME;}
+		virtual int container_section() const	{return CSVOL_PYRAMID;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_PYRAMID;}
 
 	protected:
@@ -468,8 +464,8 @@ class geometry_traits<Pyramid>
 
 		enum
 		{
-			SHARED_PIPE_SECTION = SPSVOL_PYRAMID,
-			BASE_OBJECT_TYPE_ID = VOLUME
+			CONTAINER_SECTION = CSVOL_PYRAMID,
+			BASE_OBJECT_ID = VOLUME
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PYRAMID;
 };

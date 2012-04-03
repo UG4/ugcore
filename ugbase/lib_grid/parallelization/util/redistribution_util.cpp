@@ -501,7 +501,7 @@ void FinalizeRedistributionLayoutInterfaces(
 						if(newMasterProc == targetProc){
 						/*
 							UG_LOG("TI:");
-							if(elem->base_object_type_id() == VERTEX){
+							if(elem->base_object_id() == VERTEX){
 								UG_LOG(" [" << aaPos[elem] << "] -");
 							}
 						*/

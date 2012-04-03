@@ -357,17 +357,17 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 		}
 		
 	//	write hanging vertices
-		if(goc.num<HangingVertex>() > 0)
+		if(goc.num<ConstrainedVertex>() > 0)
 		{
 			tInt = GOID_HANGING_VERTEX;
 			out.write((char*)&tInt, sizeof(int));
-			tInt = goc.num<HangingVertex>();
+			tInt = goc.num<ConstrainedVertex>();
 			out.write((char*)&tInt, sizeof(int));
 			
 		//	write local-coords and assign indices
 		//	we need a number stream for that
-			for(HangingVertexIterator iter = goc.begin<HangingVertex>();
-				iter != goc.end<HangingVertex>(); ++iter)
+			for(ConstrainedVertexIterator iter = goc.begin<ConstrainedVertex>();
+				iter != goc.end<ConstrainedVertex>(); ++iter)
 			{
 				tNumber = (*iter)->get_local_coordinate_1();
 				out.write((char*)&tNumber, sizeof(number));
@@ -592,7 +592,7 @@ bool DeserializeGridElements(Grid& grid, std::istream& in,
 					//	create the hanging vertices and assign the local coordinates
 						for(int i = 0; i < numElems; ++i)
 						{
-							HangingVertex* hv = *grid.create<HangingVertex>();
+							ConstrainedVertex* hv = *grid.create<ConstrainedVertex>();
 							number coord1, coord2;
 							in.read((char*)&coord1, sizeof(number));
 							in.read((char*)&coord2, sizeof(number));
@@ -749,7 +749,7 @@ static void WriteParent(MultiGrid& mg, TElem* pElem,
 	
 	if(pParent)
 	{
-			int parentType = pParent->base_object_type_id();
+			int parentType = pParent->base_object_id();
 
 		switch(parentType)
 		{
@@ -872,19 +872,19 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 		}
 
 	//	write hanging vertices
-		if(mgoc.num<HangingVertex>(iLevel) > 0)
+		if(mgoc.num<ConstrainedVertex>(iLevel) > 0)
 		{
 			tInt = GOID_HANGING_VERTEX;
 			out.write((char*)&tInt, sizeof(int));
-			tInt = mgoc.num<HangingVertex>(iLevel);
+			tInt = mgoc.num<ConstrainedVertex>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
 			
 		//	write local-coords and assign indices
 		//	we need a number stream for that
-			for(HangingVertexIterator iter = mgoc.begin<HangingVertex>(iLevel);
-				iter != mgoc.end<HangingVertex>(iLevel); ++iter)
+			for(ConstrainedVertexIterator iter = mgoc.begin<ConstrainedVertex>(iLevel);
+				iter != mgoc.end<ConstrainedVertex>(iLevel); ++iter)
 			{
-				HangingVertex* v = *iter;
+				ConstrainedVertex* v = *iter;
 				mg.mark(v);
 				tNumber = (v)->get_local_coordinate_1();
 				out.write((char*)&tNumber, sizeof(number));
@@ -897,15 +897,15 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 			//	write constraining object
 				int type = -1;
 				int ind = -1;
-				if(GeometricObject* cobj = v->get_parent()){
+				if(GeometricObject* cobj = v->get_constraining_object()){
 					if(!mg.is_marked(cobj)){
 						UG_LOG("constrainig object not serialized: ");
 						UG_LOG(" lvl: " << mg.get_level(cobj) << ", type: "
-								<< cobj->base_object_type_id() << endl);
+								<< cobj->base_object_id() << endl);
 						UG_LOG("current level: " << iLevel << endl);
 					}
 					assert(mg.is_marked(cobj) && "constraining object has to be serialized already.");
-					type = cobj->base_object_type_id();
+					type = cobj->base_object_id();
 					switch(type){
 						case EDGE:
 							ind = aaIntEDGE[static_cast<EdgeBase*>(cobj)];
@@ -992,7 +992,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				int ind = -1;
 				if(GeometricObject* cobj = e->get_constraining_object()){
 					assert(mg.is_marked(cobj) && "constraining object has to be serialized already.");
-					type = cobj->base_object_type_id();
+					type = cobj->base_object_id();
 					switch(type){
 						case EDGE:
 							ind = aaIntEDGE[static_cast<EdgeBase*>(cobj)];
@@ -1326,11 +1326,11 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							in.read((char*)&coord1, sizeof(number));
 							in.read((char*)&coord2, sizeof(number));
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
-							HangingVertex* hv;
+							ConstrainedVertex* hv;
 							if(parent)
-								hv = *mg.create<HangingVertex>(parent);
+								hv = *mg.create<ConstrainedVertex>(parent);
 							else
-								hv = *mg.create<HangingVertex>(currentLevel);
+								hv = *mg.create<ConstrainedVertex>(currentLevel);
 							hv->set_local_coordinate_1(coord1);
 							hv->set_local_coordinate_2(coord2);
 							vVrts.push_back(hv);
@@ -1343,13 +1343,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							switch(type){
 								case EDGE:
 									assert(ind < (int)vEdges.size());
-									hv->set_parent(vEdges[ind]);
+									hv->set_constraining_object(vEdges[ind]);
 									if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(vEdges[ind]))
 										ce->add_constrained_object(hv);
 									break;
 								case FACE:
 									assert(ind < (int)vFaces.size());
-									hv->set_parent(vFaces[ind]);
+									hv->set_constraining_object(vFaces[ind]);
 									if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(vFaces[ind]))
 										cf->add_constrained_object(hv);
 									break;

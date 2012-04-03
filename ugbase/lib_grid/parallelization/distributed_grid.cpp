@@ -337,7 +337,7 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addSt
 byte DistributedGridManager::
 get_status(GeometricObject* go) const
 {
-	int baseType = go->base_object_type_id();
+	int baseType = go->base_object_id();
 	switch(baseType)
 	{
 		case VERTEX:
@@ -431,7 +431,7 @@ perform_ordered_element_insertion(TScheduledElemMap& elemMap)
 		iter != elemMap.end(); ++iter)
 	{
 		ScheduledElement& schedElem = iter->second;
-		int objType = schedElem.geomObj->base_object_type_id();
+		int objType = schedElem.geomObj->base_object_id();
 		switch(objType)
 		{
 			case VERTEX:
@@ -569,7 +569,7 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 		(ES_IN_INTERFACE | ES_SCHEDULED_FOR_INTERFACE)))
 		return;
 
-	int parentType = pParent->base_object_type_id();
+	int parentType = pParent->base_object_id();
 
 //	if ordered insertion mode is active, we have to insert the elements
 //	into a map, instead of directly adding them to the group.

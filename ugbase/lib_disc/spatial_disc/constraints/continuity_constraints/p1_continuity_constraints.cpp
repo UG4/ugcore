@@ -12,20 +12,20 @@ namespace ug{
 
 /// returns the vertices of the object constraining a hanging vertex
 void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
-                         HangingVertex* hgVrt,
+                         ConstrainedVertex* hgVrt,
                          bool bClearContainer)
 {
 //	clear container
 	if(bClearContainer) vConstrainingVrt.clear();
 
 //	switch constraining parent
-	switch(hgVrt->get_parent_base_object_type_id())
+	switch(hgVrt->get_parent_base_object_id())
 	{
 	case EDGE:
 	{
 	//	cast to constraining edge
 		ConstrainingEdge* constrainingEdge =
-				dynamic_cast<ConstrainingEdge*>(hgVrt->get_parent());
+				dynamic_cast<ConstrainingEdge*>(hgVrt->get_constraining_object());
 
 	//	check that edge is correct
 		if(constrainingEdge == NULL)
@@ -56,7 +56,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 	{
 	//	cast to constraining quadrilateral
 		ConstrainingQuadrilateral* bigQuad =
-				dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_parent());
+				dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_constraining_object());
 
 	//	check that quad is correct
 		if(bigQuad == NULL)
@@ -74,7 +74,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 			for(i_vrt = 0; i_vrt < face->num_vertices(); ++i_vrt)
 			{
 				vrt = face->vertex(i_vrt);
-				if(hgVrt != vrt && dynamic_cast<HangingVertex*>(vrt) == NULL)
+				if(hgVrt != vrt && dynamic_cast<ConstrainedVertex*>(vrt) == NULL)
 					break;
 			}
 			if(i_vrt == face->num_vertices())

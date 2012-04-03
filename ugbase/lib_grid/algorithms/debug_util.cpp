@@ -18,7 +18,7 @@ void PrintElementNumbers(const GeometricObjectCollection& goc)
 		UG_LOG("  vertices total:\t" << goc.num<VertexBase>(i) << endl);
 		if(goc.num<VertexBase>() > 0){
 			UG_LOG("    normal vrts:\t" << goc.num<Vertex>(i) << endl);
-			UG_LOG("    hanging vrts:\t" << goc.num<HangingVertex>(i) << endl);
+			UG_LOG("    hanging vrts:\t" << goc.num<ConstrainedVertex>(i) << endl);
 		}
 
 		UG_LOG("  edges total:\t\t" << goc.num<EdgeBase>(i) << endl);
@@ -120,11 +120,11 @@ bool CheckHangingVertexConsistency(Grid& g)
 
 //	iterate over all hanging nodes and check whether the associated parent
 //	contains the node in its list of constraiend objects
-	for(Grid::traits<HangingVertex>::iterator iter = g.begin<HangingVertex>();
-		iter != g.end<HangingVertex>(); ++iter)
+	for(Grid::traits<ConstrainedVertex>::iterator iter = g.begin<ConstrainedVertex>();
+		iter != g.end<ConstrainedVertex>(); ++iter)
 	{
-		HangingVertex* hnode = *iter;
-		GeometricObject* parent = hnode->get_parent();
+		ConstrainedVertex* hnode = *iter;
+		GeometricObject* parent = hnode->get_constraining_object();
 		if(!parent){
 			UG_LOG("CheckHangingNodeConsistency: Hanging Vertex has no parent!\n");
 			UG_LOG("  at: " << GetGeometricObjectCenter(g, hnode) << endl);

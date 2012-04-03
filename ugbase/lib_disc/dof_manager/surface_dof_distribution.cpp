@@ -343,7 +343,7 @@ template <typename TBaseElem>
 inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject* pParent,
                         bool replacesParent)
 {
-	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID;
+	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
 
 //	case 1: if replacesParent == true, only an obj (e.g. HangingVertex)
 //			is replaced by a similar obj (e.g. Vertex). This case is
@@ -388,7 +388,7 @@ template <typename TBaseElem>
 inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
                              TBaseElem* replacedBy)
 {
-	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_TYPE_ID;
+	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
 
 //	case 1: Only replacement. Just copy indices from one obj to the other
 	if(replacedBy) {copy(replacedBy, obj); return;}

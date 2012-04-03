@@ -135,47 +135,47 @@ void Selector::clear()
 void Selector::add_to_list(VertexBase* elem)
 {
 	section_container<VertexBase>().insert(elem,
-								elem->shared_pipe_section());
+								elem->container_section());
 }
 
 void Selector::add_to_list(EdgeBase* elem)
 {
 	section_container<EdgeBase>().insert(elem,
-								elem->shared_pipe_section());
+								elem->container_section());
 }
 
 void Selector::add_to_list(Face* elem)
 {
 	section_container<Face>().insert(elem,
-								elem->shared_pipe_section());
+								elem->container_section());
 }
 
 void Selector::add_to_list(Volume* elem)
 {
 	section_container<Volume>().insert(elem,
-								elem->shared_pipe_section());
+								elem->container_section());
 }	
 
 void Selector::erase_from_list(VertexBase* elem)
 {
 	section_container<VertexBase>().erase(get_iterator(elem),
-						elem->shared_pipe_section());
+						elem->container_section());
 }
 void Selector::erase_from_list(EdgeBase* elem)
 {
 	section_container<EdgeBase>().erase(get_iterator(elem),
-						elem->shared_pipe_section());
+						elem->container_section());
 }
 void Selector::erase_from_list(Face* elem)
 {
 	section_container<Face>().erase(get_iterator(elem),
-						elem->shared_pipe_section());
+						elem->container_section());
 }
 
 void Selector::erase_from_list(Volume* elem)
 {
 	section_container<Volume>().erase(get_iterator(elem),
-						elem->shared_pipe_section());
+						elem->container_section());
 }
 
 //	geometric-object-collection
