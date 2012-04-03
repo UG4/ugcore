@@ -99,11 +99,21 @@ extract_data()
 //	string of functions
 	std::string fctNames;
 
+	extract_data(m_mNumberBndSegment, m_vNumberData, commonFctGrp, fctNames);
 	extract_data(m_mBNDNumberBndSegment, m_vBNDNumberData, commonFctGrp, fctNames);
 	extract_data(m_mVectorBndSegment, m_vVectorData, commonFctGrp, fctNames);
 
 //	set name of function
 	this->set_functions(fctNames.c_str());
+}
+
+template<typename TDomain>
+void FV1NeumannBoundaryElemDisc<TDomain>::
+add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subsets)
+{
+	m_vNumberData.push_back(NumberData(data, function, subsets));
+
+	if(this->fct_pattern_set()) extract_data();
 }
 
 template<typename TDomain>
@@ -134,6 +144,19 @@ prepare_element_loop()
 //	register subsetIndex at Geometry
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
+	for(size_t i = 0; i < m_vNumberData.size(); ++i)
+	{
+		for(size_t s = 0; s < m_vNumberData[i].ssGrp.num_subsets(); ++s)
+		{
+		//	get subset index
+			const int bndSubset = m_vNumberData[i].ssGrp[s];
+
+		//	request this subset index as boundary subset. This will force the
+		//	creation of boundary subsets when calling geo.update
+			geo.add_boundary_subset(bndSubset);
+		}
+	}
+
 	{
 	typename std::map<int, std::vector<BNDNumberData*> >::const_iterator subsetIter;
 	for(subsetIter = m_mBNDNumberBndSegment.begin();
@@ -162,6 +185,22 @@ prepare_element_loop()
 	}
 	}
 
+	this->clear_imports();
+
+	typedef typename FV1NeumannBoundaryElemDisc<TDomain>::NumberData T;
+	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	set lin defect fct for imports
+	for(size_t data = 0; data < m_vNumberData.size(); ++data)
+	{
+		m_vNumberData[data].import.set_fct(id,
+		                                   &m_vNumberData[data],
+		                                   &NumberData::template lin_def_fv1<TElem, TFVGeom>);
+
+		this->register_import(m_vNumberData[data].import);
+		m_vNumberData[data].import.set_rhs_part(true);
+	}
+
 //	we're done
 	return true;
 }
@@ -174,6 +213,19 @@ finish_element_loop()
 {
 //	remove subsetIndex from Geometry
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
+
+	for(size_t i = 0; i < m_vNumberData.size(); ++i)
+	{
+		for(size_t s = 0; s < m_vNumberData[i].ssGrp.num_subsets(); ++s)
+		{
+		//	get subset index
+			const int bndSubset = m_vNumberData[i].ssGrp[s];
+
+		//	request this subset index as boundary subset. This will force the
+		//	creation of boundary subsets when calling geo.update
+			geo.remove_boundary_subset(bndSubset);
+		}
+	}
 
 	{
 	typename std::map<int, std::vector<BNDNumberData*> >::const_iterator subsetIter;
@@ -224,6 +276,9 @@ prepare_element(TElem* elem, const LocalVector& u)
 				"Cannot update Finite Volume Geometry.\n");
 		return false;
 	}
+
+	for(size_t i = 0; i < m_vNumberData.size(); ++i)
+		m_vNumberData[i].template extract_bip<TElem, TFVGeom>(geo);
 
 //	we're done
 	return true;
@@ -286,8 +341,31 @@ assemble_f(LocalVector& d)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
-
 	typedef typename TFVGeom<TElem, dim>::BF BF;
+
+	size_t ip = 0;
+	for(size_t data = 0; data < m_vNumberData.size(); ++data)
+	{
+		for(size_t s = 0; s < m_vNumberData[data].ssGrp.num_subsets(); ++s)
+		{
+		//	get subset index
+			const int bndSubset = m_vNumberData[data].ssGrp[s];
+
+			if(geo.num_bf(bndSubset) == 0) continue;
+
+			const std::vector<BF>& vBF = geo.bf(bndSubset);
+
+			for(size_t i = 0; i < vBF.size(); ++i, ++ip)
+			{
+			// 	get associated node
+				const int co = vBF[i].node_id();
+
+			// 	add to local matrix
+				d(m_vNumberData[data].locFct, co) -= m_vNumberData[data].import[ip]
+				                                    * vBF[i].volume();
+			}
+		}
+	}
 
 // 	loop registered boundary segments
 	if(!m_vBNDNumberData.empty())

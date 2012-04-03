@@ -16,6 +16,7 @@
 
 // library intern headers
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
+#include "common/util/provider.h"
 
 namespace ug{
 
@@ -53,6 +54,7 @@ class FV1NeumannBoundaryElemDisc
 		FV1NeumannBoundaryElemDisc(const char* subsets);
 
 	///	add a boundary value
+		void add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subsets);
 		void add(BNDNumberFunctor& user, const char* function, const char* subsets);
 		void add(VectorFunctor& user, const char* function, const char* subsets);
 
@@ -65,6 +67,77 @@ class FV1NeumannBoundaryElemDisc
 				: functor(functor_), fctName(fctName_), ssNames(ssName_) {}
 
 			BNDNumberFunctor functor;
+			size_t locFct;
+			std::string fctName;
+			SubsetGroup ssGrp;
+			std::string ssNames;
+		};
+
+		struct NumberData
+		{
+			NumberData(SmartPtr<IPData<number, dim> > data,
+			           std::string fctName_, std::string ssName_)
+				: fctName(fctName_), ssNames(ssName_)
+			{
+				import.set_data(data);
+			}
+
+			template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+			void extract_bip(const TFVGeom<TElem,dim>& geo)
+			{
+				typedef typename TFVGeom<TElem, dim>::BF BF;
+				vLocIP.clear();
+				vGloIP.clear();
+				for(size_t s = 0; s < ssGrp.num_subsets(); s++)
+				{
+					const int bndSubset = ssGrp[s];
+					if(geo.num_bf(bndSubset) == 0) continue;
+					const std::vector<BF>& vBF = geo.bf(bndSubset);
+					for(size_t i = 0; i < vBF.size(); ++i)
+					{
+						vLocIP.push_back(vBF[i].local_ip());
+						vGloIP.push_back(vBF[i].global_ip());
+					}
+				}
+
+				import.set_local_ips(&vLocIP[0], vLocIP.size());
+				import.set_global_ips(&vGloIP[0], vGloIP.size());
+			}
+
+			template <typename TElem, template <class Elem, int  Dim> class TFVGeom>
+			bool
+			lin_def_fv1(const LocalVector& u,
+			            std::vector<std::vector<number> > vvvLinDef[],
+			            const size_t nip)
+			{
+			//  get finite volume geometry
+				const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
+				typedef typename TFVGeom<TElem, dim>::BF BF;
+
+				size_t ip = 0;
+				for(size_t s = 0; s < ssGrp.num_subsets(); ++s)
+				{
+					const int bndSubset = ssGrp[s];
+					if(geo.num_bf(bndSubset) == 0) continue;
+					const std::vector<BF>& vBF = geo.bf(bndSubset);
+					for(size_t i = 0; i < vBF.size(); ++i)
+					{
+					// 	get associated node
+						const int co = vBF[i].node_id();
+
+					// 	set lin defect
+						vvvLinDef[ip][locFct][co] -= vBF[i].volume();
+					}
+				}
+
+			//	we're done
+				return true;
+			}
+
+
+			DataImport<number, dim> import;
+			std::vector<MathVector<dim> > vLocIP;
+			std::vector<MathVector<dim> > vGloIP;
 			size_t locFct;
 			std::string fctName;
 			SubsetGroup ssGrp;
@@ -84,6 +157,9 @@ class FV1NeumannBoundaryElemDisc
 			SubsetGroup ssGrp;
 			std::string ssNames;
 		};
+
+		std::vector<NumberData> m_vNumberData;
+		std::map<int, std::vector<NumberData*> > m_mNumberBndSegment;
 
 		std::vector<BNDNumberData> m_vBNDNumberData;
 		std::vector<VectorData> m_vVectorData;
