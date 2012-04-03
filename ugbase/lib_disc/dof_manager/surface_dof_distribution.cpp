@@ -263,7 +263,7 @@ void SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 //	if nothing to do, return
 	if(!lev_info().free_index_available()) return;
 
-	int numElem = 0.0;
+	int numElem = 0;
 //	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
