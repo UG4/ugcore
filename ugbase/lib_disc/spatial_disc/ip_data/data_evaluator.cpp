@@ -28,14 +28,12 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 
 //	create FunctionIndexMapping for each Disc
 	m_vElemDiscMap.resize(m_pvElemDisc->size());
+	m_vElemDiscFctGrp.resize(m_pvElemDisc->size());
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 	{
-	//	a function group for the elem disc
-		FunctionGroup discFctGrp;
-
 	//	create function group of this elem disc
 		try{
-			ConvertStringToFunctionGroup(discFctGrp, fctPat,
+			ConvertStringToFunctionGroup(m_vElemDiscFctGrp[i], fctPat,
 		                                 (*m_pvElemDisc)[i]->symb_fcts());
 		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
 					"some symbolic Function Name for disc "<<i<<".");
@@ -48,11 +46,11 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
 						"some symbolic Subset Name for disc "<<i<<".");
 
-		for(size_t fct = 0; fct < discFctGrp.num_fct(); ++fct)
+		for(size_t fct = 0; fct < m_vElemDiscFctGrp[i].num_fct(); ++fct)
 		{
 			for(size_t si = 0; si < discSubsetGrp.num_subsets(); ++si)
 			{
-				if(!fctPat.is_def_in_subset(discFctGrp[fct], discSubsetGrp[si])){
+				if(!fctPat.is_def_in_subset(m_vElemDiscFctGrp[i][fct], discSubsetGrp[si])){
 					UG_LOG("WARNING in 'DataEvaluator::set_elem_discs': On disc "<<i<<
 					       ": symbolic Function "<< (*m_pvElemDisc)[i]->symb_fcts()[fct]
                      << " is not defined on subset "<<(*m_pvElemDisc)[i]->symb_subsets()[si]
@@ -61,11 +59,11 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 			}
 		}
 
-		if(discFctGrp.num_fct() != (*m_pvElemDisc)[i]->num_fct())
+		if(m_vElemDiscFctGrp[i].num_fct() != (*m_pvElemDisc)[i]->num_fct())
 		{
 			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
 					" requires "<<(*m_pvElemDisc)[i]->num_fct()<<" symbolic "
-					"Function Name, but "<<discFctGrp.num_fct()<<" Functions "
+					"Function Name, but "<<m_vElemDiscFctGrp[i].num_fct()<<" Functions "
 					" specified: ");
 			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
 			{
@@ -77,9 +75,9 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	//	request assembling for local finite element id
-		std::vector<LFEID> vLfeID(discFctGrp.num_fct());
+		std::vector<LFEID> vLfeID(m_vElemDiscFctGrp[i].num_fct());
 		for(size_t f = 0; f < vLfeID.size(); ++f)
-			vLfeID[f] = discFctGrp.local_finite_element_id(f);
+			vLfeID[f] = m_vElemDiscFctGrp[i].local_finite_element_id(f);
 		if(!((*m_pvElemDisc)[i]->request_finite_element_id(vLfeID)))
 		{
 			UG_LOG("WARNING in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
@@ -91,18 +89,10 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 			}
 		}
 
-
-	//	copy function group in import/export of element discs
-		for(size_t imp = 0; imp < (*m_pvElemDisc)[i]->num_imports(); ++imp)
-			(*m_pvElemDisc)[i]->get_import(imp).set_function_group(discFctGrp);
-
-		for(size_t exp = 0; exp < (*m_pvElemDisc)[i]->num_exports(); ++exp)
-			(*m_pvElemDisc)[i]->get_export(exp)->set_function_group(discFctGrp);
-
 	//	create a mapping between all functions and the function group of this
 	//	element disc.
 		try{
-			CreateFunctionIndexMapping(m_vElemDiscMap[i], discFctGrp,
+			CreateFunctionIndexMapping(m_vElemDiscMap[i], m_vElemDiscFctGrp[i],
 		                               	   	   	   	   	   	   m_commonFctGroup);
 		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot create "
 						"Function Index Mapping for disc "<<i<<".");
@@ -119,8 +109,7 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 //	reset local time series flag
 	const size_t numElemDisc = (*m_pvElemDisc).size();
 	m_vbNeedLocTimeSeries.clear(); m_vbNeedLocTimeSeries.resize(numElemDisc, false);
-
-	return extract_imports_and_ipdata(bMassPart);
+	return true;
 }
 
 void
@@ -664,6 +653,13 @@ bool DataEvaluator::finish_elem_loop()
 					"Cannot finish element loop for IElemDisc "<<i<<".\n");
 			return false;
 		}
+
+//	remove ip series for all used IPData
+	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear();
+	for(size_t i = 0; i < m_vPosData.size(); ++i)   m_vPosData[i]->clear();
+	for(size_t i = 0; i < m_vDependentIPData.size(); ++i) m_vDependentIPData[i]->clear();
+
+	for(size_t i = 0; i < m_vAllDataImport.size(); ++i) m_vAllDataImport[i]->clear_ips();
 
 //	we're done
 	return true;

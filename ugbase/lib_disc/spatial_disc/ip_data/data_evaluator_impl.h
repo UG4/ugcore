@@ -51,12 +51,23 @@ prepare_elem_loop(LocalIndices& ind, number time, bool bMassPart)
 //	reference object id
 	const ReferenceObjectID id = reference_element_type::REFERENCE_OBJECT_ID;
 
-//	remove ip series for all used IPData
-	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear();
-	for(size_t i = 0; i < m_vPosData.size(); ++i)   m_vPosData[i]->clear();
-	for(size_t i = 0; i < m_vDependentIPData.size(); ++i) m_vDependentIPData[i]->clear();
+//	copy function group in import/export of element discs
+	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
+	{
+		for(size_t imp = 0; imp < (*m_pvElemDisc)[i]->num_imports(); ++imp)
+			(*m_pvElemDisc)[i]->get_import(imp).set_function_group(m_vElemDiscFctGrp[i]);
 
-	for(size_t i = 0; i < m_vAllDataImport.size(); ++i) m_vAllDataImport[i]->clear_ips();
+		for(size_t exp = 0; exp < (*m_pvElemDisc)[i]->num_exports(); ++exp)
+			(*m_pvElemDisc)[i]->get_export(exp)->set_function_group(m_vElemDiscFctGrp[i]);
+	}
+
+//	extract data imports and ipdatas
+	if(!extract_imports_and_ipdata(bMassPart))
+	{
+		UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
+				"Cannot extract imports and ipdata.\n");
+		return false;
+	}
 
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
@@ -66,6 +77,33 @@ prepare_elem_loop(LocalIndices& ind, number time, bool bMassPart)
 					"Cannot set geometric object type for Disc " << i <<".\n");
 			return false;
 		}
+
+// 	prepare loop (elem disc set local ip series here)
+	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
+		if(!(*m_pvElemDisc)[i]->prepare_elem_loop())
+		{
+			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
+					"Cannot prepare element loop.\n");
+			return false;
+		}
+
+//	copy function group in import/export of element discs
+	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
+	{
+		for(size_t imp = 0; imp < (*m_pvElemDisc)[i]->num_imports(); ++imp)
+			(*m_pvElemDisc)[i]->get_import(imp).set_function_group(m_vElemDiscFctGrp[i]);
+
+		for(size_t exp = 0; exp < (*m_pvElemDisc)[i]->num_exports(); ++exp)
+			(*m_pvElemDisc)[i]->get_export(exp)->set_function_group(m_vElemDiscFctGrp[i]);
+	}
+
+//	extract data imports and ipdatas
+	if(!extract_imports_and_ipdata(bMassPart))
+	{
+		UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
+				"Cannot extract imports and ipdata.\n");
+		return false;
+	}
 
 //	set geometric type at imports
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
@@ -92,15 +130,6 @@ prepare_elem_loop(LocalIndices& ind, number time, bool bMassPart)
 		{
 			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
 					"Cannot set geometric object type for Export " << i <<".\n");
-			return false;
-		}
-
-// 	prepare loop (elem disc set local ip series here)
-	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
-		if(!(*m_pvElemDisc)[i]->prepare_elem_loop())
-		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
-					"Cannot prepare element loop.\n");
 			return false;
 		}
 

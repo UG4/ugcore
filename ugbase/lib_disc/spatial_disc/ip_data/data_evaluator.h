@@ -129,6 +129,9 @@ class DataEvaluator
 	///	common function group (all function of function pattern)
 		FunctionGroup m_commonFctGroup;
 
+	///	function group for all elem discs
+		std::vector<FunctionGroup> m_vElemDiscFctGrp;
+
 	///	Function mapping for each disc
 		std::vector<FunctionIndexMapping> m_vElemDiscMap;
 
