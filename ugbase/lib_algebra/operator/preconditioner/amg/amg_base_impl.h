@@ -75,6 +75,7 @@ size_t GetNNZs(const TMatrix &A)
 template<typename TAlgebra>
 void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createAMGlevelTiming)
 {
+	PROFILE_FUNC();
 	AMGLevel &L = *levels[level];
 	matrix_operator_type &A = *L.pA;
 
@@ -131,6 +132,7 @@ static void eh( MPI_Comm *comm, int *err, ... )
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 {
+	AMG_PROFILE_FUNC();
 	if(m_bOneInit && m_bInited)
 		return true;
 
@@ -141,9 +143,6 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 	MPI_Comm_set_errhandler( MPI_COMM_WORLD, newerr );
 	  //MPI_Comm_call_errhandler( MPI_COMM_WORLD, MPI_ERR_OTHER );
 #endif
-
-
-	AMG_PROFILE_FUNC();
 
 	cleanup();
 
@@ -483,13 +482,14 @@ AMGBase<TAlgebra>::~AMGBase()
 template<typename TAlgebra>
 void AMGBase<TAlgebra>::init_fsmoothing()
 {
+	AMG_PROFILE_FUNC();
 #ifdef UG_PARALLEL
 
 	UG_LOG("\n\nInit FSmoothing...\n");
 	// last level is basesolver level
 	for(size_t k=0; k<levels.size()-1; k++)
 	{
-		UG_LOG("---- level " << k << " ---- ");
+		//UG_LOG("---- level " << k << " ---- ");
 		matrix_operator_type &mat = *levels[k]->pAgglomeratedA;
 
 		ParallelVector<Vector< typename matrix_operator_type::value_type > > m_diag;
@@ -523,6 +523,7 @@ void AMGBase<TAlgebra>::init_fsmoothing()
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::f_smoothing(vector_type &corr, vector_type &d, size_t level)
 {
+	AMG_PROFILE_FUNC();
 	AMGLevel &L = *levels[level];
 	stdvector<bool> &is_fine = L.is_fine;
 	matrix_operator_type &A = *L.pA;
@@ -555,6 +556,7 @@ bool AMGBase<TAlgebra>::f_smoothing(vector_type &corr, vector_type &d, size_t le
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::solve_on_base(vector_type &c, vector_type &d, size_t level)
 {
+	AMG_PROFILE_FUNC();
 	m_basesolver->apply_return_defect(c, d);
 #if 0
 	AMGLevel &L = *levels[level];
@@ -632,6 +634,7 @@ template<typename TAlgebra>
 bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector_type &d,
 		matrix_operator_type &A, size_t level)
 {
+	AMG_PROFILE_FUNC();
 	//PRINTPC(A.get_process_communicator());
 	// c = consistent, d = additiv
 
@@ -795,6 +798,7 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect2(vector_type &c, vector
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::get_correction(vector_type &c, const vector_type &const_d)
 {
+	AMG_PROFILE_FUNC();
 	UG_ASSERT(c.size() == const_d.size() && c.size() == levels[0]->pA->num_rows(),
 				"c.size = " << c.size() << ", d.size = " << const_d.size() << ", A.size = " <<
 					levels[0]->pA->num_rows() << ": not matching");
@@ -865,6 +869,7 @@ void AMGBase<TAlgebra>::tostring() const
 template<typename TAlgebra>
 void AMGBase<TAlgebra>::update_positions()
 {
+	AMG_PROFILE_FUNC();
 	UG_ASSERT(m_pPositionProvider2d == NULL || m_pPositionProvider3d == NULL, "specify EITHER positions 2d or 3d");
 	if(m_pPositionProvider2d == NULL && m_pPositionProvider3d == NULL)
 		return;
