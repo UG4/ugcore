@@ -120,8 +120,8 @@ static void AddHorizontalInterfaces(GridLayoutMap& layoutMapOut,
 
 		//	iterate over the nodes in the interface
 			for(size_t i = 0; i < distInterface.size(); ++i){
-				int newElemType = distInterface[i].type;
-				TGeomObj* node = nodeVec[distInterface[i].localID];
+				int newElemType = (int)distInterface[i].type();
+				TGeomObj* node = nodeVec[distInterface[i].local_id()];
 			//	get the layout and the matching interface
 				if(elemType != newElemType){
 					elemType = newElemType;

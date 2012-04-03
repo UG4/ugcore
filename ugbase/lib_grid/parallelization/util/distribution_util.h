@@ -25,15 +25,19 @@ namespace ug
 struct DistributionInterfaceEntry
 {
 	DistributionInterfaceEntry() :
-		localID(0),
-		type(0)	{}
+		m_localID(0),
+		m_type(0)	{}
 		
 	DistributionInterfaceEntry(int nLocalID, int nType) :
-		localID(nLocalID),
-		type(nType)	{}
+		m_localID(nLocalID),
+		m_type(nType)	{}
 
-	unsigned int localID : 28;
-	unsigned int type  	: 4;
+	unsigned int local_id()	{return m_localID;}
+	unsigned int type()		{return m_type;}
+
+	private:
+		unsigned int m_localID : 28;
+		unsigned int m_type  	: 4;
 };
 
 ////////////////////////////////////////////////////////////////////////

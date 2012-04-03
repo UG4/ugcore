@@ -563,11 +563,11 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 			for(size_t i = 0; i < redistInterface.size(); ++i)
 			{
 				DistributionInterfaceEntry& entry = redistInterface[i];
-				TGeomObj* node = nodes[entry.localID];
+				TGeomObj* node = nodes[entry.local_id()];
 
 			//	first check whether the node is already contained in an
 			//	interface of the given type to the given proc.
-				pair<int, byte> connection(targetProc, entry.type);
+				pair<int, byte> connection(targetProc, entry.type());
 				ConnectionVec& conVec = aaConVec[node];
 
 			//	if the connection has already been established, we'll continue
@@ -577,10 +577,10 @@ void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 
 			//	we're caching the last layout and interface to avoid too
 			//	many lookups
-				if((!pcurLayout) || (curLayoutKey != entry.type)){
-					pcurLayout = &glm.template get_layout<TGeomObj>(entry.type).
+				if((!pcurLayout) || (curLayoutKey != entry.type())){
+					pcurLayout = &glm.template get_layout<TGeomObj>(entry.type()).
 																layout_on_level(lvl);
-					curLayoutKey = entry.type;
+					curLayoutKey = entry.type();
 					pcurInterface = &pcurLayout->interface(targetProc);
 				}
 

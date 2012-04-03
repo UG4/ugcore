@@ -965,7 +965,7 @@ size_t NumEntriesOfTypeInDistributionInterface(unsigned int type,
 {
 	size_t counter = 0;
 	for(size_t i = 0; i < interface.size(); ++i){
-		if(interface[i].type == type)
+		if(interface[i].type() == type)
 			++counter;
 	}
 	return counter;

@@ -66,8 +66,9 @@ void SerializeDistributionLayoutInterfaces(std::ostream& out, TLayout& layout,
 		//	element was serialized.
 			InterfaceEntry entry;
 			for(size_t i = 0; i < interface.size(); ++i){
-				entry.localID = aaLocalInd[nodes[interface[i].localID]];
-				entry.type = interface[i].type;
+				entry = DistributionInterfaceEntry(
+									aaLocalInd[nodes[interface[i].local_id()]],
+									interface[i].type());
 				out.write((char*)&entry, sizeof(InterfaceEntry));
 			}
 		}
@@ -179,17 +180,17 @@ void DeserializeDistributionLayoutInterfaces(
 			{
 				in.read((char*)&entry, sizeof(DistributionInterfaceEntry));
 			//	we're caching the last used layout to avoid too much lookups.
-				if((!pLayout) || (lastLayoutKey != entry.type))
+				if((!pLayout) || (lastLayoutKey != entry.type()))
 				{
 				//	get the matching layout
-					pLayout = &layoutMapOut.template get_layout<TGeomObj>(entry.type).
+					pLayout = &layoutMapOut.template get_layout<TGeomObj>(entry.type()).
 																layout_on_level(level);
-					lastLayoutKey = entry.type;
+					lastLayoutKey = entry.type();
 				//	the interface has changed too
 					pInterface = &pLayout->interface(procID);
 				}
 			//	copy the element into the interface
-				pInterface->push_back(vGeomObjs[entry.localID]);
+				pInterface->push_back(vGeomObjs[entry.local_id()]);
 			}
 		}
 	}
