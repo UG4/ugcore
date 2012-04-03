@@ -46,6 +46,8 @@ class IIntegrand
 		                    const MathMatrix<worldDim, elemDim> vJT[],
 		                    const size_t numIP,
 		                    number value[]) = 0;
+
+		virtual ~IIntegrand() {}
 };
 
 
