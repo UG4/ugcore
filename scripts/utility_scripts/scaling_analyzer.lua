@@ -28,6 +28,7 @@ inFiles = {"log_refs_7.txt", "log_refs_8.txt",
 
 --	num digits behind comma
 numDigitsBehindComma = 2
+minimumTime = 0 --- set this to 0.1 to display only times with > 0.1 s
 
 print()
 print("Scaling Analyzer")
@@ -240,6 +241,10 @@ else
 	
 --	iterate over all entries of mainTimings
 	for mainEntryInd, mainEntry in ipairs(mainTimings) do
+		local bPrint=false
+		if minimumTime == 0 then
+			bPrint=true
+		end
 	--	print the line
 		local line = FillSpaces(mainEntry.spaces .. mainEntry.name, 48)
 		
@@ -276,7 +281,7 @@ else
 		--	calculate the speedup factor
 			if time1 == nil or time2 == nil then
 				tStr = "(???)"
-			else
+			else			
 				if time1 == 0  then
 					tStr = "(nan)"
 				else
@@ -284,6 +289,10 @@ else
 						   string.format("%."..numDigitsBehindComma.."f", time2 / time1) ..
 						   ")"
 				end
+			end
+			
+			if time1 ~= nil and time2 ~= nil and (time2 > minimumTime or time1 > minimumTime) then
+			   bPrint = true
 			end
 			
 			line = line .. FillSpaces(tStr, 10)
@@ -304,6 +313,8 @@ else
 			timingInd2 = timingInd2 + 1
 		end -- "while timings[timingInd2] ~= nil do"
 		
-		print(line)
+		if bPrint then
+				print(line)
+		end
 	end
 end
