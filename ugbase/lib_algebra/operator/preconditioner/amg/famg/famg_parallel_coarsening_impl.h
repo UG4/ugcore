@@ -319,11 +319,11 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 	AddLayout(OLCoarseningReceiveLayout, slaveLayouts[1]);
 	AddLayout(OLCoarseningReceiveLayout, masterLayouts[1]);
 
-	UG_LOG("\n======================================\n");
+	/*UG_LOG("\n======================================\n");
 	UG_LOG("         LEVEL " << level << " \n");
 	UG_LOG("\n======================================\n");
 	PRINTPC(A.process_communicator());
-	UG_LOG("\n======================================\n");
+	UG_LOG("\n======================================\n");*/
 
 	//UG_DLOG(LIB_ALG_AMG, 1, "OLCoarseningLayout :\n")
 	//PrintLayout(A.get_process_communicator(), PN.get_communicator(), OLCoarseningSendLayout, OLCoarseningSendLayout);
