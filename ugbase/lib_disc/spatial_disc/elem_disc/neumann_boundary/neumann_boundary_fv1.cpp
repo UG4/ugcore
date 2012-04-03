@@ -62,7 +62,7 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 		fctNames.append(vUserData[i].fctName.c_str());
 
 	//	set local fct id
-		vUserData[i].loc_fct = commonFctGrp.local_index(fct);
+		vUserData[i].locFct = commonFctGrp.local_index(fct);
 
 	//	check subsets and add referenze to data to each segment
 		const ISubsetHandler& rSH = *this->function_pattern().subset_handler();
@@ -287,72 +287,88 @@ assemble_f(LocalVector& d)
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
+	typedef typename TFVGeom<TElem, dim>::BF BF;
+
 // 	loop registered boundary segments
+	if(!m_vBNDNumberData.empty())
 	{
-	typename std::map<int, std::vector<BNDNumberData*> >::const_iterator subsetIter;
-	for(subsetIter = m_mBNDNumberBndSegment.begin(); subsetIter != m_mBNDNumberBndSegment.end(); ++subsetIter)
-	{
-	//	get subset index corresponding to boundary
-		const int bndSubset = (*subsetIter).first;
-
-	//	get evaluation function vector
-		const std::vector<BNDNumberData*>& vSegmentData = (*subsetIter).second;
-
-	// 	loop Boundary Faces
-		for(size_t i = 0; i < geo.num_bf(bndSubset); ++i)
+		typename std::map<int, std::vector<BNDNumberData*> >::const_iterator subsetIter;
+		for(subsetIter = m_mBNDNumberBndSegment.begin(); subsetIter != m_mBNDNumberBndSegment.end(); ++subsetIter)
 		{
-		// get current BF
-			const typename TFVGeom<TElem, dim>::BF& bf = geo.bf(bndSubset, i);
+		//	get subset index corresponding to boundary
+			const int bndSubset = (*subsetIter).first;
 
-		//	loop functions, where neumann bnd is set for this bndSubset
-			for(size_t fct = 0; fct < vSegmentData.size(); ++fct)
+		//	check for boundary faces
+			if(geo.num_bf(bndSubset) == 0) continue;
+
+		//	get evaluation function vector
+			const std::vector<BNDNumberData*>& vSegmentData = (*subsetIter).second;
+
+		//	get boundary faces
+			const std::vector<BF>& vBF = geo.bf(bndSubset);
+
+		// 	loop Boundary Faces
+			for(size_t i = 0; i < vBF.size(); ++i)
 			{
-			// 	get neumann value
-				number val = 0.0;
-				vSegmentData[fct]->functor(val, bf.global_ip(), time());
+			// get current BF
+				const BF& bf = vBF[i];
 
-			// 	get associated node
-				const int co = bf.node_id();
+			//	loop functions, where neumann bnd is set for this bndSubset
+				for(size_t fct = 0; fct < vSegmentData.size(); ++fct)
+				{
+				// 	get neumann value
+					number val = 0.0;
+					vSegmentData[fct]->functor(val, bf.global_ip(), time());
 
-			// 	add to local matrix
-				d(vSegmentData[fct]->loc_fct, co) -= val * bf.volume();
+				// 	get associated node
+					const int co = bf.node_id();
+
+				// 	add to local matrix
+					d(vSegmentData[fct]->locFct, co) -= val * bf.volume();
+				}
 			}
 		}
 	}
-	}
 
 // 	loop registered boundary segments
+	if(!m_vVectorData.empty())
 	{
-	typename std::map<int, std::vector<VectorData*> >::const_iterator subsetIter;
-	for(subsetIter = m_mVectorBndSegment.begin(); subsetIter != m_mVectorBndSegment.end(); ++subsetIter)
-	{
-	//	get subset index corresponding to boundary
-		const int bndSubset = (*subsetIter).first;
-
-	//	get evaluation function vector
-		const std::vector<VectorData*>& vSegmentData = (*subsetIter).second;
-
-	// 	loop Boundary Faces
-		for(size_t i = 0; i < geo.num_bf(bndSubset); ++i)
+		typename std::map<int, std::vector<VectorData*> >::const_iterator subsetIter;
+		for(subsetIter = m_mVectorBndSegment.begin(); subsetIter != m_mVectorBndSegment.end(); ++subsetIter)
 		{
-		// get current BF
-			const typename TFVGeom<TElem, dim>::BF& bf = geo.bf(bndSubset, i);
+		//	get subset index corresponding to boundary
+			const int bndSubset = (*subsetIter).first;
 
-		//	loop functions, where neumann bnd is set for this bndSubset
-			for(size_t fct = 0; fct < vSegmentData.size(); ++fct)
+		//	check for boundary faces
+			if(geo.num_bf(bndSubset) == 0) continue;
+
+		//	get evaluation function vector
+			const std::vector<VectorData*>& vSegmentData = (*subsetIter).second;
+
+		//	get boundary faces
+			const std::vector<BF>& vBF = geo.bf(bndSubset);
+
+		// 	loop Boundary Faces
+			for(size_t i = 0; i < vBF.size(); ++i)
 			{
-			// 	get neumann value
-				MathVector<dim> val;
-				vSegmentData[fct]->functor(val, bf.global_ip(), time());
+			// get current BF
+				const BF& bf = vBF[i];
 
-			// 	get associated node
-				const int co = bf.node_id();
+			//	loop functions, where neumann bnd is set for this bndSubset
+				for(size_t fct = 0; fct < vSegmentData.size(); ++fct)
+				{
+				// 	get neumann value
+					MathVector<dim> val;
+					vSegmentData[fct]->functor(val, bf.global_ip(), time());
 
-			// 	add to local matrix
-				d(vSegmentData[fct]->loc_fct, co) -= VecDot(val, bf.normal());
+				// 	get associated node
+					const int co = bf.node_id();
+
+				// 	add to local matrix
+					d(vSegmentData[fct]->locFct, co) -= VecDot(val, bf.normal());
+				}
 			}
 		}
-	}
 	}
 
 // 	we're done

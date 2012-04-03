@@ -65,7 +65,7 @@ class FV1NeumannBoundaryElemDisc
 				: functor(functor_), fctName(fctName_), ssNames(ssName_) {}
 
 			BNDNumberFunctor functor;
-			size_t loc_fct;
+			size_t locFct;
 			std::string fctName;
 			SubsetGroup ssGrp;
 			std::string ssNames;
@@ -79,7 +79,7 @@ class FV1NeumannBoundaryElemDisc
 			: functor(functor_), fctName(fctName_), ssNames(ssName_) {}
 
 			VectorFunctor functor;
-			size_t loc_fct;
+			size_t locFct;
 			std::string fctName;
 			SubsetGroup ssGrp;
 			std::string ssNames;
