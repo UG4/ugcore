@@ -92,11 +92,17 @@ class IElemDisc
 	/// returns an import
 		IDataImport& get_import(size_t i);
 
+	///	removes all imports
+		void clear_imports() {m_vIImport.clear();}
+
 	///	returns number of exports
 		size_t num_exports() const {return m_vIExport.size();}
 
 	/// returns an export
 		SmartPtr<IDataExport> get_export(size_t i);
+
+	///	removes all exports
+		void clear_exports() {m_vIExport.clear();}
 
 	protected:
 	/// data imports
