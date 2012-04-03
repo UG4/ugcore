@@ -19,6 +19,7 @@ namespace ug
 template<typename TAlgebra>
 void AMGBase<TAlgebra>::write_interfaces()
 {
+	AMG_PROFILE_FUNC();
 	if(!m_writeMatrices)
 	{
 		UG_LOG("no position data given.\n");
@@ -102,6 +103,7 @@ void AMGBase<TAlgebra>::write_interfaces()
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_d, size_t level, const vector_type *solution)
 {
+	AMG_PROFILE_FUNC();
 	UG_ASSERT(m_writeMatrices, "");
 	vector_type solution2;
 
@@ -164,6 +166,7 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &const_d)
 {
+	AMG_PROFILE_FUNC();
 	UG_LOG("\n");
 	UG_LOG("         check     \n");
 	UG_LOG("========================\n");
@@ -264,6 +267,7 @@ template<typename TAlgebra>
 bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type &A,
 		size_t level, checkResult &res, const vector_type *solution)
 {
+	AMG_PROFILE_FUNC();
 	AMGLevel &L = *levels[level];
 
 	UG_ASSERT(c.size() == d.size() && c.size() == A.num_rows(),
@@ -561,6 +565,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::check2(const vector_type &const_c, const vector_type &const_d)
 {
+	AMG_PROFILE_FUNC();
 	UG_LOG("\n");
 	UG_LOG("            check2\n");
 	UG_LOG("==================================\n");
@@ -607,6 +612,7 @@ bool AMGBase<TAlgebra>::check2(const vector_type &const_c, const vector_type &co
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level, size_t exactLevel)
 {
+	AMG_PROFILE_FUNC();
 	AMGLevel &L = *levels[level];
 	const matrix_operator_type &A = *L.pA;
 	UG_ASSERT(c.size() == d.size() && c.size() == A.num_rows(),
@@ -708,6 +714,7 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::check_fsmoothing()
 {
+	AMG_PROFILE_FUNC();
 	UG_LOG("\n");
 	UG_LOG("            check_fsmoothing\n");
 	UG_LOG("==========================================\n")
