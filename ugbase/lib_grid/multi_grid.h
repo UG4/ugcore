@@ -12,11 +12,6 @@
 #include "common_attachments.h"
 #include "common/util/array_util.h"
 
-//TODO:	Improve implementation of child-handling.
-//		Think about only allowing one child-vertex per element.
-//		Do we really need to be able to add children of any type
-//		to a vertex (think about the overhead of a section-container).
-
 namespace ug
 {
 //	Predeclaration
@@ -33,27 +28,6 @@ const int MG_VOLUME_MAX_EDGE_CHILDREN = 6;///< maximal number of edges that can 
 const int MG_VOLUME_MAX_FACE_CHILDREN = 12;///< maximal number of faces that can be children of a volume.
 const int MG_VOLUME_MAX_VOLUME_CHILDREN = 8;///< maximal number of volumes that can be children of a volume.
 
-////////////////////////////////////////////////////////////////////////
-///	constants that describe the state of an element
-/**
- * If not all elements are marked for refinement, then there will be
- * a boundary of the marked area.
- * Vertices in the new level that have a parent vertex that lies on
- * this boundary are regarded as fixed vertices and have the state MGES_FIXED.
- * Vertices and edges in the new level that have a parent edge that lies
- * on the mark-boundary are regarded as constrained objects and have
- * the state MGES_CONSTRAINED.
- * If the parent edge of such an element is not a constrained edge itself,
- * it has the state MGES_CONSTRAINING.
- * All other elements have the state MGES_NORMAL.
- */
-enum MGElementState
-{
-	MGES_NORMAL = 0,
-	MGES_CONSTRAINING = 1,
-	MGES_CONSTRAINED = 2,
-	MGES_FIXED = 3
-};
 
 ///	Holds information about vertex relations. Used internally.
 /**
@@ -191,6 +165,8 @@ template <> class mginfo_traits<Volume>
 	public:
 		typedef MGVolumeInfo	info_type;
 };
+
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * Inherits from \sa Grid.
@@ -211,12 +187,6 @@ template <> class mginfo_traits<Volume>
  * GridMessage_MultiGridChanged (defined in "lib_grid/lib_grid_messages.h").
  * You may register a callback at the grids message-hub if you want to react
  * on such a message.
- *
- * In order to make state-assignment as effective as possible, one should
- * assign the status of the parent before creating its children.
- *
- * Note that states are currently not really used. They should probably
- * be removed.
  */
 class MultiGrid : public Grid, public GridObserver
 {
