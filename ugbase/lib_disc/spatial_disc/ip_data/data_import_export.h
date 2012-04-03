@@ -125,7 +125,7 @@ class DataImport : public IDataImport
 	public:
 	/// Constructor
 		DataImport(bool bLinDefect = true) : IDataImport(bLinDefect),
-			m_id(ROID_UNKNOWN), m_pObj(NULL),
+			m_id(ROID_UNKNOWN),
 			m_seriesID(-1),	m_spIPData(NULL), m_vValue(NULL),
 			m_numIP(0), m_spDependentIPData(NULL)
 		{clear_fct();}
@@ -244,16 +244,27 @@ class DataImport : public IDataImport
 
 	public:
 	///	type of evaluation function
-		typedef bool (IElemDisc::*LinDefectFunc)(const LocalVector& u,
-												 std::vector<std::vector<TData> > vvvLinDefect[],
-												 const size_t nip);
+		typedef boost::function<bool (const LocalVector& u,
+		                              std::vector<std::vector<TData> > vvvLinDefect[],
+		                              const size_t nip)> LinDefectFunc;
 
 	///	sets the geometric object type
 		virtual bool set_roid(ReferenceObjectID id);
 
 	///	register evaluation of linear defect for a element
-		template <typename TFunc>
-		void set_fct(ReferenceObjectID id, IElemDisc* obj, TFunc func);
+		template <typename TClass>
+		void set_fct(ReferenceObjectID id, TClass* obj,
+		             bool (TClass::*func)(
+		            		 const LocalVector& u,
+		            		 std::vector<std::vector<TData> > vvvLinDefect[],
+		            		 const size_t nip));
+
+	///	register evaluation of linear defect for a element
+		void set_fct(ReferenceObjectID id,
+					 bool (*func)(
+							 const LocalVector& u,
+							 std::vector<std::vector<TData> > vvvLinDefect[],
+							 const size_t nip));
 
 	///	clear all evaluation functions
 		void clear_fct();
@@ -262,9 +273,9 @@ class DataImport : public IDataImport
 		virtual bool compute_lin_defect(const LocalVector& u)
 		{
 			UG_ASSERT(m_vLinDefectFunc[m_id] != NULL, "No evaluation function.");
-			return (m_pObj->*(m_vLinDefectFunc[m_id]))(u,
-													   &m_vvvLinDefect[0],
-													   m_numIP);
+			return (m_vLinDefectFunc[m_id])(u,
+											&m_vvvLinDefect[0],
+											m_numIP);
 		}
 
 	protected:
@@ -282,9 +293,6 @@ class DataImport : public IDataImport
 
 	/// current Geom Object
 		ReferenceObjectID m_id;
-
-	///	elem disc
-		IElemDisc* m_pObj;
 
 	///	function pointers for all elem types
 		LinDefectFunc m_vLinDefectFunc[NUM_REFERENCE_OBJECTS];

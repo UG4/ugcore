@@ -40,11 +40,32 @@ bool DataImport<TData,dim>::set_roid(ReferenceObjectID id)
 }
 
 template <typename TData, int dim>
-template <typename TFunc>
-void DataImport<TData,dim>::set_fct(ReferenceObjectID id, IElemDisc* obj, TFunc func)
+template <typename TClass>
+void
+DataImport<TData,dim>::
+set_fct(ReferenceObjectID id, TClass* obj,
+        bool (TClass::*func)(const LocalVector& u,
+        					 std::vector<std::vector<TData> > vvvLinDefect[],
+        					 const size_t nip))
 {
-	m_vLinDefectFunc[id] = static_cast<LinDefectFunc>(func);
-	m_pObj = obj;
+	if(id >= NUM_REFERENCE_OBJECTS)
+		UG_THROW_FATAL("Reference Object id invalid: "<<id);
+
+	m_vLinDefectFunc[id] = boost::bind(func, obj, _1, _2, _3);
+}
+
+template <typename TData, int dim>
+void
+DataImport<TData,dim>::
+set_fct(ReferenceObjectID id,
+             bool (*func)(const LocalVector& u,
+            		 	  std::vector<std::vector<TData> > vvvLinDefect[],
+            		 	  const size_t nip))
+{
+	if(id >= NUM_REFERENCE_OBJECTS)
+		UG_THROW_FATAL("Reference Object id invalid: "<<id);
+
+	m_vLinDefectFunc[id] = func;
 }
 
 template <typename TData, int dim>
