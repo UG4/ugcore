@@ -533,6 +533,7 @@ private:
 
 	void create_new_indices()
 	{
+		AMG_PROFILE_FUNC();
 		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelCommunicateProlongation);
 		UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, m_famg.iDebugLevelCommunicateProlongation);
 
@@ -665,7 +666,8 @@ template<>
 void FAMG<CPUAlgebra>::precalc_level(size_t level)
 {
 
-	UG_LOG("\n\n\nprecalc!\n\n\n");
+	AMG_PROFILE_FUNC();
+	//UG_LOG("\n\n\nprecalc!\n\n\n");
 	UG_ASSERT(m_testvectorsmoother != NULL, "please provide a testvector smoother.");
 
 
@@ -700,6 +702,7 @@ template<>
 void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
+	AMG_PROFILE_FUNC();
 
 	UG_ASSERT(m_testvectorsmoother != NULL, "please provide a testvector smoother.");
 
@@ -713,7 +716,6 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 					testvectors[i], &m_amghelper.positions[level][0], m_dbgDimension);
 	}
 
-	AMG_PROFILE_FUNC();
 	//UG_ASSERT(testvectors.size() > 0, "we need at least one testvector.");
 
 	// testvectors will be altered by FAMGLevelCalculator
@@ -744,6 +746,7 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 template<>
 bool FAMG<CPUAlgebra>::check_testvector()
 {
+	AMG_PROFILE_FUNC();
 
 	UG_LOG("\n");
 	UG_LOG("            check_testvector\n");
