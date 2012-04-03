@@ -75,6 +75,9 @@ class FunctionGroup
 		bool empty() {return m_vFunction.empty();}
 
 	/// number of functions in this group
+		size_t size() const {return num_fct();}
+
+	/// number of functions in this group
 		size_t num_fct() const {return m_vFunction.size();}
 
 	/// returns the name of a function

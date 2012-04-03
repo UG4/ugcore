@@ -72,6 +72,9 @@ class SubsetGroup
 		bool empty() {return m_vSubset.empty();}
 
 	/// number of subsets in this group
+		inline size_t size() const {return num_subsets();}
+
+	/// number of subsets in this group
 		inline size_t num_subsets() const
 		{
 			if (!m_pSH.valid()) return 0;
