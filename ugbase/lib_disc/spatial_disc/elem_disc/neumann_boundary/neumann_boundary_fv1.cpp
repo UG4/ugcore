@@ -373,6 +373,36 @@ FV1NeumannBoundaryElemDisc<TDomain>::FV1NeumannBoundaryElemDisc(const char* subs
 }
 
 
+///	type of trial space for each function used
+template<typename TDomain>
+bool
+FV1NeumannBoundaryElemDisc<TDomain>::
+request_finite_element_id(const std::vector<LFEID>& vLfeID)
+{
+//	check that Lagrange 1st order
+	for(size_t i = 0; i < vLfeID.size(); ++i)
+		if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1)) return false;
+	return true;
+}
+
+///	switches between non-regular and regular grids
+template<typename TDomain>
+bool
+FV1NeumannBoundaryElemDisc<TDomain>::
+treat_non_regular_grid(bool bNonRegular)
+{
+//	switch, which assemble functions to use.
+	if(bNonRegular)
+	{
+		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc::treat_non_regular_grid':"
+				" Non-regular grid not implemented.\n");
+		return false;
+	}
+
+//	this disc supports regular grids
+	return true;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
@@ -384,7 +414,7 @@ FV1NeumannBoundaryElemDisc<TDomain>::
 register_all_fv1_funcs(bool bHang)
 {
 //	get all grid element types in this dimension and below
-	typedef typename domain_traits<dim>::AllElemList ElemList;
+	typedef typename domain_traits<dim>::DimElemList ElemList;
 
 //	switch assemble functions
 	if(!bHang) boost::mpl::for_each<ElemList>( RegisterFV1<FV1Geometry>(this) );
