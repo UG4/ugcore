@@ -661,11 +661,7 @@ if GetProcessRank() == 0 then
 	if bWriteStats  then	
 		util.writeFileStats(stats, util.GetParam("-outdir", "").."stats.txt")
 	end
-	
-	if util.GetParam("-outdir", ".") ~= "." then
-		t=io.open(filename, "r"):read("*all")
-		io.open(statsdir.."/"..logfileName, "w"):write(t)
-	end				
+
 end
 	
 if not bCheck and bWriteStats then
