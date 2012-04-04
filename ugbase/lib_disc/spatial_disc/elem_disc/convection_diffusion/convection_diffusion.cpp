@@ -17,13 +17,13 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef UG_DIM_1
-template class ConvectionDiffusionElemDisc<Domain1d>;
+template class ConvectionDiffusion<Domain1d>;
 #endif
 #ifdef UG_DIM_2
-template class ConvectionDiffusionElemDisc<Domain2d>;
+template class ConvectionDiffusion<Domain2d>;
 #endif
 #ifdef UG_DIM_3
-template class ConvectionDiffusionElemDisc<Domain3d>;
+template class ConvectionDiffusion<Domain3d>;
 #endif
 
 } // end namespace ug

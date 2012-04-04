@@ -97,12 +97,12 @@ class FV1InnerBoundaryElemDisc
 		}
 
 	///	switches between non-regular and regular grids
-		virtual bool treat_non_regular_grid(bool bNonRegular)
+		virtual bool request_non_regular_grid(bool bNonRegular)
 		{
 		//	switch, which assemble functions to use.
 			if(bNonRegular)
 			{
-				UG_LOG("ERROR in 'FV1InnerBoundaryElemDisc::treat_non_regular_grid':"
+				UG_LOG("ERROR in 'FV1InnerBoundaryElemDisc::request_non_regular_grid':"
 						" Non-regular grid not implemented.\n");
 				return false;
 			}
@@ -136,7 +136,7 @@ class FV1InnerBoundaryElemDisc
 	 * at the data imports.
 	 */
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		bool prepare_element_loop();
+		void prepare_element_loop();
 
 	///	prepares the element for assembling
 	/**
@@ -145,31 +145,31 @@ class FV1InnerBoundaryElemDisc
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		bool prepare_element(TElem* elem, const LocalVector& u);
+		void prepare_element(TElem* elem, const LocalVector& u);
 
 	///	finishes the loop over all elements
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		bool finish_element_loop();
+		void finish_element_loop();
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		bool assemble_JA(LocalMatrix& J, const LocalVector& u);
+		void ass_JA_elem(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		bool assemble_JM(LocalMatrix& J, const LocalVector& u);
+		void ass_JM_elem(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the stiffness part of the local defect
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		bool assemble_A(LocalVector& d, const LocalVector& u);
+		void ass_dA_elem(LocalVector& d, const LocalVector& u);
 
 	///	assembles the mass part of the local defect
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		bool assemble_M(LocalVector& d, const LocalVector& u);
+		void ass_dM_elem(LocalVector& d, const LocalVector& u);
 
 	///	assembles the local right hand side
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		bool assemble_f(LocalVector& d);
+		void ass_rhs_elem(LocalVector& d);
 
 	private:
 		// position access

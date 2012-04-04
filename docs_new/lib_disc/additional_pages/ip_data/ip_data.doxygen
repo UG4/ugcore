@@ -84,7 +84,7 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
 template<typename TElem>
-bool FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
+bool FVConvectionDiffusion<TFVGeom, TDomain, TAlgebra>::
 prepare_element_loop()
 {
 //  get reference element type
@@ -108,7 +108,7 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
 template<typename TElem >
-bool FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
+bool FVConvectionDiffusion<TFVGeom, TDomain, TAlgebra>::
 prepare_element(TElem* elem, const LocalVector& u,
 								const LocalIndices& glob_ind)
 {
@@ -123,7 +123,7 @@ prepare_element(TElem* elem, const LocalVector& u,
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 	if(!geo.update(elem, m_pDomain->subset_handler(), &m_vCornerCoords[0]))
 	{
-		UG_LOG("FVConvectionDiffusionElemDisc::prepare_element:"
+		UG_LOG("FVConvectionDiffusion::prepare_element:"
 				" Cannot update Finite Volume Geometry.\n"); return false;
 	}
 
@@ -242,7 +242,7 @@ data for, by
 template <typename TElem>
 void register_all_assemble_functions(int id)
 {
-	typedef DensityDrivenFlowElemDisc T;
+	typedef DensityDrivenFlow T;
 
 	m_DarcyVelExport.reg_export_fct(id, this, &T::template compute_darcy_export<TElem>);
 }

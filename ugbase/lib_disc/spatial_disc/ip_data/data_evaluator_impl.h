@@ -11,8 +11,7 @@
 namespace ug{
 
 template <typename TElem>
-bool
-DataEvaluator::
+void DataEvaluator::
 prepare_timestep_elem(TElem* elem, LocalVector& u)
 {
 
@@ -27,21 +26,16 @@ prepare_timestep_elem(TElem* elem, LocalVector& u)
 				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
 	//	prepare timestep for elem disc
-		if(!(*m_pvElemDisc)[i]->prepare_timestep_elem(elem, u))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_timestep_element': "
-					"Cannot prepare timestep on element for IElemDisc "<<i<<".\n");
-			return false;
+		try{
+			(*m_pvElemDisc)[i]->prepare_timestep_elem(elem, u);
 		}
+		UG_CATCH_THROW("DataEvaluator::prepare_timestep_element: "
+						"Cannot prepare timestep on element for IElemDisc "<<i);
 	}
-
-//	we're done
-	return true;
 }
 
 template <typename TElem>
-bool
-DataEvaluator::
+void DataEvaluator::
 prepare_elem_loop(LocalIndices& ind, number time, bool bMassPart)
 {
 //	type of reference element
@@ -63,29 +57,24 @@ prepare_elem_loop(LocalIndices& ind, number time, bool bMassPart)
 
 //	extract data imports and ipdatas
 	if(!extract_imports_and_ipdata(bMassPart))
-	{
-		UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
-				"Cannot extract imports and ipdata.\n");
-		return false;
-	}
+		UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: "
+						"Cannot extract imports and ipdata.");
 
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 		if(!(*m_pvElemDisc)[i]->set_roid(id))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
-					"Cannot set geometric object type for Disc " << i <<".\n");
-			return false;
-		}
+			UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: "
+							"Cannot set geometric object type for Disc " << i);
 
 // 	prepare loop (elem disc set local ip series here)
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
-		if(!(*m_pvElemDisc)[i]->prepare_elem_loop())
-		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
-					"Cannot prepare element loop.\n");
-			return false;
+	{
+		try{
+			(*m_pvElemDisc)[i]->prepare_elem_loop();
 		}
+		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
+						"Cannot prepare element loop.");
+	}
 
 //	copy function group in import/export of element discs
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
@@ -99,61 +88,43 @@ prepare_elem_loop(LocalIndices& ind, number time, bool bMassPart)
 
 //	extract data imports and ipdatas
 	if(!extract_imports_and_ipdata(bMassPart))
-	{
-		UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
-				"Cannot extract imports and ipdata.\n");
-		return false;
-	}
+		UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: "
+						"Cannot extract imports and ipdata.");
 
 //	set geometric type at imports
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
 		if(!m_vStiffDataImport[i]->set_roid(id))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': Cannot set "
+			UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: Cannot set "
 					" geometric object type "<<id<<" for Import " << i <<
-					" (Stiffness part).\n");
-			return false;
-		}
+					" (Stiffness part).");
+
 	if(bMassPart)
 		for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
 			if(!m_vMassDataImport[i]->set_roid(id))
-			{
-				UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': Cannot set "
+				UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: Cannot set "
 						" geometric object type "<<id<<" for Import " << i <<
-						" (Mass part).\n");
-				return false;
-			}
+						" (Mass part).");
 
 //	set geometric type at exports
 	for(size_t i = 0; i < m_vDataExport.size(); ++i)
 		if(!m_vDataExport[i]->set_roid(id))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_elem_loop': "
-					"Cannot set geometric object type for Export " << i <<".\n");
-			return false;
-		}
+			UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: "
+							"Cannot set geometric object type for Export " << i);
 
 //	check, that all dependent data is ready for evaluation
 	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
 		if(!m_vDependentIPData[i]->is_ready())
-		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_element': Dependent IPData "
-					"(e.g. Linker or Export) is not ready for evaluation.\n");
-			return false;
-		}
+			UG_THROW_FATAL("DataEvaluator::prepare_element: Dependent IPData "
+							"(e.g. Linker or Export) is not ready for evaluation.");
 
 //	evaluate constant data
 	for(size_t i = 0; i < m_vConstData.size(); ++i)
 		m_vConstData[i]->compute();
-
-//	we're done
-	return true;
 }
 
 
 template <typename TElem>
-bool
-DataEvaluator::
+void DataEvaluator::
 prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
              bool bDeriv, bool bMassPart)
 {
@@ -181,24 +152,18 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
 	//	prepare for elem disc
-		if(!(*m_pvElemDisc)[i]->prepare_elem(elem, u))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::prepare_element': "
-					"Cannot prepare element for IElemDisc "<<i<<".\n");
-			return false;
+		try{
+			(*m_pvElemDisc)[i]->prepare_elem(elem, u);
 		}
+		UG_CATCH_THROW("DataEvaluator::prepare_element: "
+						"Cannot prepare element for IElemDisc "<<i);
 	}
-
-//	we're done
-	return true;
 }
 
 template <typename TElem>
-bool
-DataEvaluator::
+void DataEvaluator::
 finish_timestep_elem(TElem* elem, const number time, LocalVector& u)
 {
-
 // 	finish timestep
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -210,18 +175,13 @@ finish_timestep_elem(TElem* elem, const number time, LocalVector& u)
 				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
 	//	finish timestep for elem disc
-		if(!(*m_pvElemDisc)[i]->finish_timestep_elem(elem, time, u))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::finish_timestep_element': "
-					"Cannot finish timestep on element for IElemDisc "<<i<<".\n");
-			return false;
+		try{
+			(*m_pvElemDisc)[i]->finish_timestep_elem(elem, time, u);
 		}
+		UG_CATCH_THROW("DataEvaluator::finish_timestep_element: "
+						"Cannot finish timestep on element for IElemDisc "<<i);
 	}
-
-//	we're done
-	return true;
 }
-
 
 } // end namespace ug
 

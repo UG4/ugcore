@@ -32,8 +32,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-void
-ThermohalineFlowElemDisc<TDomain>::
+void FV1ThermohalineFlow<TDomain>::
 compute_darcy_velocity_ip_std(MathVector<dim>& DarcyVel,
                               const MathMatrix<dim, dim>& Permeability,
                               number Viscosity,
@@ -112,8 +111,8 @@ compute_darcy_velocity_ip_std(MathVector<dim>& DarcyVel,
 
 template<typename TDomain>
 template <typename TElem>
-bool
-ThermohalineFlowElemDisc<TDomain>::
+void
+FV1ThermohalineFlow<TDomain>::
 ex_darcy_std(const LocalVector& u,
              const MathVector<dim> vGlobIP[],
              const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
@@ -194,19 +193,14 @@ ex_darcy_std(const LocalVector& u,
 // 	others not implemented
 	else
 	{
-		UG_LOG("Evaluation not implemented.");
-		return false;
+		UG_THROW_FATAL("Evaluation not implemented.");
 	}
-
-//	we're done
-	return true;
 }
 
 
 template<typename TDomain>
 template <typename TElem>
-bool
-ThermohalineFlowElemDisc<TDomain>::
+void FV1ThermohalineFlow<TDomain>::
 ex_darcy_cons_grav(const LocalVector& u,
                    const MathVector<dim> vGlobIP[],
                    const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
@@ -230,8 +224,7 @@ ex_darcy_cons_grav(const LocalVector& u,
 	if(!PrepareConsistentGravity<dim>(
 			&vConsGravity[0], numSh, &m_vCornerCoords[0], m_imDensityScv.values(),m_Gravity))
 	{
-		UG_LOG("ERROR in assemble_JA: Cannot prepare Consistent Gravity.\n");
-		return false;
+		UG_THROW_FATAL("ass_JA_elem: Cannot prepare Consistent Gravity.");
 	}
 
 // 	Prepare DensityDerivative in Corners
@@ -243,8 +236,7 @@ ex_darcy_cons_grav(const LocalVector& u,
 					&vvDConsGravity_c[sh][0], numSh, &m_vCornerCoords[0],
 					&DCoVal[0], m_Gravity))
 			{
-				UG_LOG("ERROR in assemble_JA: Cannot prepare Consistent Gravity.\n");
-				return false;
+				UG_THROW_FATAL("ass_JA_elem: Cannot prepare Consistent Gravity.");
 			}
 			DCoVal[sh] = 0.0;
 		}
@@ -254,8 +246,7 @@ ex_darcy_cons_grav(const LocalVector& u,
 					&vvDConsGravity_T[sh][0], numSh, &m_vCornerCoords[0],
 					&DCoVal[0], m_Gravity))
 			{
-				UG_LOG("ERROR in assemble_JA: Cannot prepare Consistent Gravity.\n");
-				return false;
+				UG_THROW_FATAL("ass_JA_elem: Cannot prepare Consistent Gravity.");
 			}
 			DCoVal[sh] = 0.0;
 		}
@@ -302,9 +293,8 @@ ex_darcy_cons_grav(const LocalVector& u,
 							DensityTimesGravity_c[sh], numSh, scvf.JTInv(),
 							scvf.local_grad_vector(), &vvDConsGravity_c[sh][0]))
 					{
-						UG_LOG("ERROR in compute_ip_Darcy_velocity: Cannot "
-								"Compute Consistent Gravity.\n");
-						return false;
+						UG_THROW_FATAL("compute_ip_Darcy_velocity: Cannot "
+										"Compute Consistent Gravity.");
 					}
 
 			//	compute rho_T_sh * g
@@ -313,9 +303,8 @@ ex_darcy_cons_grav(const LocalVector& u,
 							DensityTimesGravity_T[sh], numSh, scvf.JTInv(),
 							scvf.local_grad_vector(), &vvDConsGravity_T[sh][0]))
 					{
-						UG_LOG("ERROR in compute_ip_Darcy_velocity: Cannot "
-								"Compute Consistent Gravity.\n");
-						return false;
+						UG_THROW_FATAL("ompute_ip_Darcy_velocity: Cannot "
+								"Compute Consistent Gravity.");
 					}
 
 			//	get derivative of gradient derivative
@@ -327,9 +316,8 @@ ex_darcy_cons_grav(const LocalVector& u,
 					DensityTimesGravity, numSh, scvf.JTInv(),
 					scvf.local_grad_vector(), vConsGravity))
 			{
-				UG_LOG("ERROR in compute_ip_Darcy_velocity: Cannot "
-						"Compute Consistent Gravity.\n");
-				return false;
+				UG_THROW_FATAL("compute_ip_Darcy_velocity: Cannot "
+								"Compute Consistent Gravity.");
 			}
 
 		//	compute Darcy velocity (and derivative if required)
@@ -345,18 +333,13 @@ ex_darcy_cons_grav(const LocalVector& u,
 // 	others not implemented
 	else
 	{
-		UG_LOG("Evaluation not implemented.");
-		return false;
+		UG_THROW_FATAL("Evaluation not implemented.");
 	}
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
+void FV1ThermohalineFlow<TDomain>::
 ex_brine(const LocalVector& u,
          const MathVector<dim> vGlobIP[],
          const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
@@ -415,18 +398,13 @@ ex_brine(const LocalVector& u,
 // 	others not implemented
 	else
 	{
-		UG_LOG("Evaluation not implemented.");
-		return false;
+		UG_THROW_FATAL("Evaluation not implemented.");
 	}
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
+void FV1ThermohalineFlow<TDomain>::
 ex_temperature(const LocalVector& u,
                const MathVector<dim> vGlobIP[],
                const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
@@ -485,18 +463,13 @@ ex_temperature(const LocalVector& u,
 // 	others not implemented
 	else
 	{
-		UG_LOG("Evaluation not implemented.");
-		return false;
+		UG_THROW_FATAL("Evaluation not implemented.");
 	}
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
+void FV1ThermohalineFlow<TDomain>::
 ex_brine_grad(const LocalVector& u,
               const MathVector<dim> vGlobIP[],
               const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
@@ -533,18 +506,13 @@ ex_brine_grad(const LocalVector& u,
 // others not implemented
 	else
 	{
-		UG_LOG("Evaluation not implemented.");
-		return false;
+		UG_THROW_FATAL("Evaluation not implemented.");
 	}
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
+void FV1ThermohalineFlow<TDomain>::
 ex_pressure_grad(const LocalVector& u,
                  const MathVector<dim> vGlobIP[],
                  const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
@@ -581,18 +549,13 @@ ex_pressure_grad(const LocalVector& u,
 // others not implemented
 	else
 	{
-		UG_LOG("Evaluation not implemented.");
-		return false;
+		UG_THROW_FATAL("Evaluation not implemented.");
 	}
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
+void FV1ThermohalineFlow<TDomain>::
 ex_temperature_grad(const LocalVector& u,
                     const MathVector<dim> vGlobIP[],
                     const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
@@ -629,18 +592,13 @@ ex_temperature_grad(const LocalVector& u,
 // others not implemented
 	else
 	{
-		UG_LOG("Evaluation not implemented.");
-		return false;
+		UG_THROW_FATAL("Evaluation not implemented.");
 	}
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
+void FV1ThermohalineFlow<TDomain>::
 prepare_element_loop()
 {
 // 	Resizes
@@ -652,94 +610,52 @@ prepare_element_loop()
 
 //	check, that upwind has been set
 	if(m_spUpwind.invalid() || m_spUpwindEnergy.invalid())
-	{
-		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::prepare_element_loop':"
-				" Upwind has not been set.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Upwind has not been set.")
 
 //	init upwind for element type
 	if(!m_spUpwind->template set_geometry_type<FV1Geometry<TElem, dim> >() ||
 		!m_spUpwindEnergy->template set_geometry_type<FV1Geometry<TElem, dim> >())
-	{
-		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::prepare_element_loop':"
-				" Cannot init upwind for element type.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Cannot init upwind for element type.");
 
 //	check necessary imports
 	if(!m_imBrineScvf.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing Import: Brine mass fraction.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing Import: Brine mass fraction.");
 	if(!m_imBrineGradScvf.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing Import: Gradient of Brine mass fraction.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing Import: Gradient of Brine mass fraction.");
 	if(!m_imPressureGradScvf.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing Import: Gradient of Pressure.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing Import: Gradient of Pressure.");
 	if(!m_imPorosityScvf.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing user function: Porosity.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing user function: Porosity.");
 	if(!m_imPermeabilityScvf.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing user function: Permeability.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing user function: Permeability.");
 	if(!m_imThermalCondictivityScvf.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing user function: Thermal Conductivity.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing user function: Thermal Conductivity.");
 	if(!m_imMolDiffusionScvf.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing user function: Molecular Diffusion.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing user function: Molecular Diffusion.");
 	if(!m_imViscosityScvf.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing user function: Viscosity.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing user function: Viscosity.");
 	if(!m_imDensityScvf.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing user function: Density.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing user function: Density.");
 	if(!m_imDarcyVelScvf.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing Import: Darcy Velocity.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing Import: Darcy Velocity.");
 	if(!m_imPorosityScv.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing user function: Porosity.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing user function: Porosity.");
 	if(!m_imDensityScv.data_given())
-	{
-		UG_LOG("ThermohalineFlowElemDisc::prepare_element_loop:"
-				" Missing user function: Density.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element_loop:"
+						" Missing user function: Density.");
 	if(m_imConstGravity.constant_data())
 	{
 	//	cast gravity export
@@ -749,8 +665,7 @@ prepare_element_loop()
 	//	check success
 		if(!pGrav.valid())
 		{
-			UG_LOG("ERROR in prepare_element_loop: Cannot cast constant gravity.\n");
-			return false;
+			UG_THROW_FATAL("prepare_element_loop: Cannot cast constant gravity.");
 		}
 
 	//	evaluate constant data
@@ -759,8 +674,7 @@ prepare_element_loop()
 	}
 	else
 	{
-		UG_LOG("ERROR in prepare_element_loop: Gravity must be constant.\n");
-		return false;
+		UG_THROW_FATAL("prepare_element_loop: Gravity must be constant.");
 	}
 
 
@@ -785,15 +699,12 @@ prepare_element_loop()
 	size_t numSCVip = geo.num_scv_ips();
 	m_imPorosityScv.	template set_local_ips<refDim>(vSCVip, numSCVip, false);
 	m_imDensityScv.		template set_local_ips<refDim>(vSCVip, numSCVip, false);
-
-//	we're done
-	return true;
 }
 
 
 template<typename TDomain>
 bool
-ThermohalineFlowElemDisc<TDomain>::
+FV1ThermohalineFlow<TDomain>::
 time_point_changed(number time)
 {
 //	set new time point at imports
@@ -817,17 +728,13 @@ time_point_changed(number time)
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
+void FV1ThermohalineFlow<TDomain>::
 finish_element_loop()
-{
-	return true;
-}
+{}
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
+void FV1ThermohalineFlow<TDomain>::
 prepare_element(TElem* elem, const LocalVector& u)
 {
 //	reference element
@@ -841,10 +748,8 @@ prepare_element(TElem* elem, const LocalVector& u)
 				Provider<FV1Geometry<TElem,dim> >::get();
 
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-	{
-		UG_LOG("FVConvectionDiffusionElemDisc::prepare_element:"
-				" Cannot update Finite Volume Geometry.\n"); return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::prepare_element:"
+						" Cannot update Finite Volume Geometry.\n");
 
 //	set global positions for user data
 	const MathVector<dim>* vSCVFip = geo.scvf_global_ips();
@@ -865,16 +770,12 @@ prepare_element(TElem* elem, const LocalVector& u)
 	size_t numSCVip = geo.num_scv_ips();
 	m_imPorosityScv.		set_global_ips(vSCVip, numSCVip);
 	m_imDensityScv.			set_global_ips(vSCVip, numSCVip);
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
-assemble_JA(LocalMatrix& J, const LocalVector& u)
+void FV1ThermohalineFlow<TDomain>::
+ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo = Provider<FV1Geometry<TElem,dim> >::get();
@@ -893,20 +794,14 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 //	compute upwind shapes for transport equation
 	if(!m_spUpwind->update(&geo, m_imDarcyVelScvf.values(),
 	                      	    m_imMolDiffusionScvf.values(), true))
-	{
-		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::assemble_JA': "
-				"Cannot compute convection shapes.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::ass_JA_elem: "
+						"Cannot compute convection shapes.");
 
 //	compute upwind shapes for energy equation
 	if(!m_spUpwindEnergy->update(&geo, m_imDarcyVelScvf.values(),
 	                            	  m_imThermalCondictivityScvf.values(), true))
-	{
-		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::assemble_JA': "
-				"Cannot compute convection shapes.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::ass_JA_elem: "
+						"Cannot compute convection shapes.");
 
 //	get a const (!!) reference to the upwind
 	const IConvectionShapes<dim>& convShape
@@ -1110,16 +1005,12 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 			J(_T_, scvf.to(),   _T_, sh) -= vDFlux_T[sh];
 		}
 	}
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
-assemble_A(LocalVector& d, const LocalVector& u)
+void FV1ThermohalineFlow<TDomain>::
+ass_dA_elem(LocalVector& d, const LocalVector& u)
 {
 //	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo =
@@ -1135,20 +1026,14 @@ assemble_A(LocalVector& d, const LocalVector& u)
 //	compute upwind shapes for transport equation
 	if(!m_spUpwind->update(&geo, m_imDarcyVelScvf.values(),
 	                      	  	m_imMolDiffusionScvf.values(), false))
-	{
-		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::assemble_JA': "
-				"Cannot compute convection shapes.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::ass_dA_elem: "
+						"Cannot compute convection shapes.");
 
 //	compute upwind shapes for energy equation
 	if(!m_spUpwindEnergy->update(&geo, m_imDarcyVelScvf.values(),
 	                            	  m_imThermalCondictivityScvf.values(), false))
-	{
-		UG_LOG("ERROR in 'ThermohalineFlowElemDisc::assemble_JA': "
-				"Cannot compute convection shapes.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1ThermohalineFlow::ass_dA_elem: "
+						"Cannot compute convection shapes.");
 
 //	get a const (!!) reference to the upwind
 	const IConvectionShapes<dim>& convShape
@@ -1221,17 +1106,13 @@ assemble_A(LocalVector& d, const LocalVector& u)
 		d(_T_,scvf.from()) += flux;
 		d(_T_,scvf.to()) -= flux;
 	}
-
-//	we're done
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
-assemble_JM(LocalMatrix& J, const LocalVector& u)
+void FV1ThermohalineFlow<TDomain>::
+ass_JM_elem(LocalMatrix& J, const LocalVector& u)
 {
 // 	get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo = Provider<FV1Geometry<TElem,dim> >::get();
@@ -1297,17 +1178,13 @@ assemble_JM(LocalMatrix& J, const LocalVector& u)
 		//J(_P_, co, _P_, co) += 0;
 		//J(_T_, co, _P_, co) += 0;
 	}
-
-// 	we're done
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
-assemble_M(LocalVector& d, const LocalVector& u)
+void FV1ThermohalineFlow<TDomain>::
+ass_dM_elem(LocalVector& d, const LocalVector& u)
 {
 // 	Get finite volume geometry
 	static const FV1Geometry<TElem, dim>& geo = Provider<FV1Geometry<TElem,dim> >::get();
@@ -1345,21 +1222,15 @@ assemble_M(LocalVector& d, const LocalVector& u)
 			+ (1-m_imPorosityScv[ip])*m_imHeatCapacitySolid*m_imMassDensitySolid)
 				* u(_T_, co) * scv.volume();
 	}
-
-// 	we're done
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem >
-bool
-ThermohalineFlowElemDisc<TDomain>::
-assemble_f(LocalVector& d)
+void FV1ThermohalineFlow<TDomain>::
+ass_rhs_elem(LocalVector& d)
 {
 //	currently there is no contribution that does not depend on the solution
-
-	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1367,7 +1238,7 @@ assemble_f(LocalVector& d)
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-ThermohalineFlowElemDisc<TDomain>::ThermohalineFlowElemDisc(const char* functions, const char* subsets) :
+FV1ThermohalineFlow<TDomain>::FV1ThermohalineFlow(const char* functions, const char* subsets) :
 	IDomainElemDisc<TDomain>(functions,subsets),
 	m_spUpwind(new ConvectionShapesNoUpwind<dim>),
 	m_spUpwindEnergy(new ConvectionShapesNoUpwind<dim>),
@@ -1437,7 +1308,7 @@ ThermohalineFlowElemDisc<TDomain>::ThermohalineFlowElemDisc(const char* function
 // register for 1D
 template<typename TDomain>
 void
-ThermohalineFlowElemDisc<TDomain>::
+FV1ThermohalineFlow<TDomain>::
 register_all_fv1_funcs()
 {
 //	get all grid element types in this dimension and below
@@ -1450,7 +1321,7 @@ register_all_fv1_funcs()
 template<typename TDomain>
 template<typename TElem>
 void
-ThermohalineFlowElemDisc<TDomain>::
+FV1ThermohalineFlow<TDomain>::
 register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -1460,11 +1331,11 @@ register_fv1_func()
 	this->set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem>);
 	this->set_prep_elem_fct(	 id, &T::template prepare_element<TElem>);
 	this->set_fsh_elem_loop_fct( id, &T::template finish_element_loop<TElem>);
-	this->set_ass_JA_elem_fct(		 id, &T::template assemble_JA<TElem>);
-	this->set_ass_JM_elem_fct(		 id, &T::template assemble_JM<TElem>);
-	this->set_ass_dA_elem_fct(		 id, &T::template assemble_A<TElem>);
-	this->set_ass_dM_elem_fct(		 id, &T::template assemble_M<TElem>);
-	this->set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem>);
+	this->set_ass_JA_elem_fct(		 id, &T::template ass_JA_elem<TElem>);
+	this->set_ass_JM_elem_fct(		 id, &T::template ass_JM_elem<TElem>);
+	this->set_ass_dA_elem_fct(		 id, &T::template ass_dA_elem<TElem>);
+	this->set_ass_dM_elem_fct(		 id, &T::template ass_dM_elem<TElem>);
+	this->set_ass_rhs_elem_fct(	 id, &T::template ass_rhs_elem<TElem>);
 
 	if(m_bConsGravity)
 		m_exDarcyVel->template set_fct<T,refDim>(id, this, &T::template ex_darcy_cons_grav<TElem>);
@@ -1482,9 +1353,9 @@ register_fv1_func()
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-template class ThermohalineFlowElemDisc<Domain1d>;
-template class ThermohalineFlowElemDisc<Domain2d>;
-template class ThermohalineFlowElemDisc<Domain3d>;
+template class FV1ThermohalineFlow<Domain1d>;
+template class FV1ThermohalineFlow<Domain2d>;
+template class FV1ThermohalineFlow<Domain3d>;
 
 
 } // namespace ug

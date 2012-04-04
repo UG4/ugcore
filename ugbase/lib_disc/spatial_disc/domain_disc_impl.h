@@ -18,17 +18,14 @@
 namespace ug{
 
 template <typename TDomain, typename TAlgebra>
-bool DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
+void DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
 {
 //	check Approximation space
 	if(!m_spApproxSpace.valid())
-	{
-		UG_LOG("ERROR in DomainDiscretization: Before using the "
+		UG_THROW_FATAL("DomainDiscretization: Before using the "
 				"DomainDiscretization an ApproximationSpace must be set to it. "
 				"Please use DomainDiscretization:set_approximation_space to "
-				"set an appropriate Space.\n");
-		return false;
-	}
+				"set an appropriate Space.");
 
 //	set approximation space and extract IElemDiscs
 	m_vElemDisc.clear();
@@ -37,23 +34,17 @@ bool DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
 		m_vDomainElemDisc[i]->set_approximation_space(m_spApproxSpace);
 		m_vElemDisc.push_back(m_vDomainElemDisc[i].get());
 	}
-
-//	ok
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool DomainDiscretization<TDomain, TAlgebra>::update_constraints()
+void DomainDiscretization<TDomain, TAlgebra>::update_constraints()
 {
 //	check Approximation space
 	if(!m_spApproxSpace.valid())
-	{
-		UG_LOG("ERROR in DomainDiscretization: Before using the "
+		UG_THROW_FATAL("DomainDiscretization: Before using the "
 				"DomainDiscretization an ApproximationSpace must be set to it. "
 				"Please use DomainDiscretization:set_approximation_space to "
-				"set an appropriate Space.\n");
-		return false;
-	}
+				"set an appropriate Space.");
 
 
 	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
@@ -63,22 +54,13 @@ bool DomainDiscretization<TDomain, TAlgebra>::update_constraints()
 			m_vvConstraints[type][i]->set_approximation_space(m_spApproxSpace);
 		}
 	}
-
-//	ok
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool DomainDiscretization<TDomain, TAlgebra>::update_disc_items()
+void DomainDiscretization<TDomain, TAlgebra>::update_disc_items()
 {
-//	return flag
-	bool bRet = true;
-
-	bRet &= update_elem_discs();
-	bRet &= update_constraints();
-
-//	ok
-	return bRet;
+	update_elem_discs();
+	update_constraints();
 }
 
 
@@ -92,8 +74,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
                      ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("DomainDisc: Cannot update disc items.")
+	update_disc_items();
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd->num_indices();
@@ -107,8 +88,8 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 
 //	create list of all subsets
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-					   " Can not Subset Groups and union.\n");
+		UG_THROW_FATAL("DomainDiscretization::assemble_mass_matrix:"
+					   " Can not Subset Groups and union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -131,42 +112,39 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleMassMatrix<Edge,TDD,TAlgebra>
+			AssembleMassMatrix<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= AssembleMassMatrix<Triangle,TDD,TAlgebra>
+			AssembleMassMatrix<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
-			bSuc &= AssembleMassMatrix<Quadrilateral,TDD,TAlgebra>
+			AssembleMassMatrix<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= AssembleMassMatrix<Tetrahedron,TDD,TAlgebra>
+			AssembleMassMatrix<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
-			bSuc &= AssembleMassMatrix<Pyramid,TDD,TAlgebra>
+			AssembleMassMatrix<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
-			bSuc &= AssembleMassMatrix<Prism,TDD,TAlgebra>
+			AssembleMassMatrix<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
-			bSuc &= AssembleMassMatrix<Hexahedron,TDD,TAlgebra>
+			AssembleMassMatrix<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
-							"Dimension " << dim << " (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::assemble_mass_matrix:"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_mass_matrix:"
 						" Assembling of elements of Dimension " << dim << " in "
-						" subset "<<si<< " failed.\n");
+						" subset "<<si<< " failed.");
 	}
 
 //	post process
@@ -199,8 +177,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
                           ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("Cannot update disc items.");
+	update_disc_items();
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd->num_indices();
@@ -214,8 +191,8 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 
 //	create list of all subsets
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-						" Can not Subset Groups and union.\n");
+		UG_THROW_FATAL("DomainDiscretization::assemble_stiffness_matrix:"
+						" Can not Subset Groups and union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -238,42 +215,39 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleStiffnessMatrix<Edge,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= AssembleStiffnessMatrix<Triangle,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
-			bSuc &= AssembleStiffnessMatrix<Quadrilateral,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= AssembleStiffnessMatrix<Tetrahedron,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
-			bSuc &= AssembleStiffnessMatrix<Pyramid,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
-			bSuc &= AssembleStiffnessMatrix<Prism,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
-			bSuc &= AssembleStiffnessMatrix<Hexahedron,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
-							"Dimension " << dim << " (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::assemble_stiffness_matrix:"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_stiffness_matrix:"
 					" Assembling of elements of Dimension " << dim << " in "
-					" subset "<<si<< " failed.\n");
+					" subset "<<si<< " failed.");
 	}
 
 //	post process
@@ -313,8 +287,7 @@ assemble_jacobian(matrix_type& J,
                   ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("Cannot update disc items.");
+	update_disc_items();
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd->num_indices();
@@ -352,42 +325,39 @@ assemble_jacobian(matrix_type& J,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleJacobian<Edge,TDD,TAlgebra>
+			AssembleJacobian<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= AssembleJacobian<Triangle,TDD,TAlgebra>
+			AssembleJacobian<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
-			bSuc &= AssembleJacobian<Quadrilateral,TDD,TAlgebra>
+			AssembleJacobian<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= AssembleJacobian<Tetrahedron,TDD,TAlgebra>
+			AssembleJacobian<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
-			bSuc &= AssembleJacobian<Pyramid,TDD,TAlgebra>
+			AssembleJacobian<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
-			bSuc &= AssembleJacobian<Prism,TDD,TAlgebra>
+			AssembleJacobian<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
-			bSuc &= AssembleJacobian<Hexahedron,TDD,TAlgebra>
+			AssembleJacobian<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian (stationary)':"
-							"Dimension " << dim << " (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::assemble_jacobian (stationary):"
+							"Dimension "<<dim<<"(subset="<<si<<") not supported");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian (stationary)':"
-							" Assembling of elements of Dimension " << dim << " in "
-							" subset "<<si<< " failed.\n");
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_jacobian (stationary):"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
 	}
 
 //	post process
@@ -420,8 +390,7 @@ assemble_defect(vector_type& d,
                 ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("Cannot update disc items.");
+	update_disc_items();
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd->num_indices();
@@ -458,42 +427,39 @@ assemble_defect(vector_type& d,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleDefect<Edge,TDD,TAlgebra>
+			AssembleDefect<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= AssembleDefect<Triangle,TDD,TAlgebra>
+			AssembleDefect<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
-			bSuc &= AssembleDefect<Quadrilateral,TDD,TAlgebra>
+			AssembleDefect<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= AssembleDefect<Tetrahedron,TDD,TAlgebra>
+			AssembleDefect<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
-			bSuc &= AssembleDefect<Pyramid,TDD,TAlgebra>
+			AssembleDefect<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
-			bSuc &= AssembleDefect<Prism,TDD,TAlgebra>
+			AssembleDefect<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
-			bSuc &= AssembleDefect<Hexahedron,TDD,TAlgebra>
+			AssembleDefect<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_defect (stationary)':"
-						"Dimension " << dim << " (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::assemble_defect (stationary):"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_defect (stationary)':"
-							" Assembling of elements of Dimension " << dim << " in "
-							" subset "<<si<< " failed.\n");
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_defect (stationary):"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
 	}
 
 //	post process
@@ -521,8 +487,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
                 ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("Cannot update disc items.");
+	update_disc_items();
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd->num_indices();
@@ -540,7 +505,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	create list of all subsets
 	try{
 		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
-	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
+	}UG_CATCH_THROW("DomainDiscretization: Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -563,42 +528,39 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleLinear<Edge,TDD,TAlgebra>
+			AssembleLinear<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= AssembleLinear<Triangle,TDD,TAlgebra>
+			AssembleLinear<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
-			bSuc &= AssembleLinear<Quadrilateral,TDD,TAlgebra>
+			AssembleLinear<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= AssembleLinear<Tetrahedron,TDD,TAlgebra>
+			AssembleLinear<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
-			bSuc &= AssembleLinear<Pyramid,TDD,TAlgebra>
+			AssembleLinear<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
-			bSuc &= AssembleLinear<Prism,TDD,TAlgebra>
+			AssembleLinear<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
-			bSuc &= AssembleLinear<Hexahedron,TDD,TAlgebra>
+			AssembleLinear<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear (stationary)':"
-							"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::assemble_linear (stationary):"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear (stationary)':"
-							" Assembling of elements of Dimension " << dim << " in "
-							" subset "<<si<< " failed.\n");
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_linear (stationary):"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
 	}
 
 //	post process
@@ -630,8 +592,7 @@ assemble_rhs(vector_type& rhs,
 			ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("Cannot update disc items.");
+	update_disc_items();
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd->num_indices();
@@ -644,8 +605,8 @@ assemble_rhs(vector_type& rhs,
 
 //	create list of all subsets
 	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("ERROR in 'DomainDiscretization':"
-						" Can not Subset Groups and union.\n");
+		UG_THROW_FATAL("DomainDiscretization:"
+						" Can not Subset Groups and union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -668,42 +629,39 @@ assemble_rhs(vector_type& rhs,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleRhs<Edge,TDD,TAlgebra>
+			AssembleRhs<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= AssembleRhs<Triangle,TDD,TAlgebra>
+			AssembleRhs<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
-			bSuc &= AssembleRhs<Quadrilateral,TDD,TAlgebra>
+			AssembleRhs<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= AssembleRhs<Tetrahedron,TDD,TAlgebra>
+			AssembleRhs<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
-			bSuc &= AssembleRhs<Pyramid,TDD,TAlgebra>
+			AssembleRhs<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
-			bSuc &= AssembleRhs<Prism,TDD,TAlgebra>
+			AssembleRhs<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
-			bSuc &= AssembleRhs<Hexahedron,TDD,TAlgebra>
+			AssembleRhs<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_rhs (stationary)':"
-						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::assemble_rhs (stationary):"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_rhs (stationary)':"
-							" Assembling of elements of Dimension " << dim << " in "
-							" subset "<<si<< " failed.\n");
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_rhs (stationary):"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
 	}
 
 //	post process
@@ -713,8 +671,8 @@ assemble_rhs(vector_type& rhs,
 		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
 		{
 			if(!m_vvConstraints[type][i]->adjust_rhs(rhs, u, dd))
-				UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_rhs':"
-							" Cannot post process.\n");
+				UG_THROW_FATAL("DomainDiscretization::assemble_rhs:"
+							" Cannot post process.");
 		}
 	}
 
@@ -732,8 +690,7 @@ template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd)
 {
-	if(!update_constraints())
-		UG_THROW_FATAL("Cannot update constraints.");
+	update_constraints();
 
 	try{
 //	post process dirichlet
@@ -763,8 +720,7 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("Cannot update disc items.");
+	update_disc_items();
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -796,42 +752,39 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= PrepareTimestep<Edge,TDD,TAlgebra>
+			PrepareTimestep<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= PrepareTimestep<Triangle,TDD,TAlgebra>
+			PrepareTimestep<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
-			bSuc &= PrepareTimestep<Quadrilateral,TDD,TAlgebra>
+			PrepareTimestep<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= PrepareTimestep<Tetrahedron,TDD,TAlgebra>
+			PrepareTimestep<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
-			bSuc &= PrepareTimestep<Pyramid,TDD,TAlgebra>
+			PrepareTimestep<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
-			bSuc &= PrepareTimestep<Prism,TDD,TAlgebra>
+			PrepareTimestep<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
-			bSuc &= PrepareTimestep<Hexahedron,TDD,TAlgebra>
+			PrepareTimestep<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::prepare_timestep (instationary)':"
-						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::prepare_timestep (instationary):"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::prepare_timestep (instationary)':"
-							" Assembling of elements of Dimension " << dim << " in "
-							" subset "<<si<< " failed.\n");
+		}
+		UG_CATCH_THROW("DomainDiscretization::prepare_timestep (instationary):"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
 	}
 
 	//hier Dirichlet-Constraints abfragen?
@@ -850,8 +803,7 @@ assemble_jacobian(matrix_type& J,
                   ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("Cannot update disc items.");
+	update_disc_items();
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd->num_indices();
@@ -892,42 +844,39 @@ assemble_jacobian(matrix_type& J,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleJacobian<Edge,TDD,TAlgebra>
+			AssembleJacobian<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= AssembleJacobian<Triangle,TDD,TAlgebra>
+			AssembleJacobian<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
-			bSuc &= AssembleJacobian<Quadrilateral,TDD,TAlgebra>
+			AssembleJacobian<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= AssembleJacobian<Tetrahedron,TDD,TAlgebra>
+			AssembleJacobian<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
-			bSuc &= AssembleJacobian<Pyramid,TDD,TAlgebra>
+			AssembleJacobian<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
-			bSuc &= AssembleJacobian<Prism,TDD,TAlgebra>
+			AssembleJacobian<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
-			bSuc &= AssembleJacobian<Hexahedron,TDD,TAlgebra>
+			AssembleJacobian<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian (instationary)':"
-				"Dimension " << dim << " (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::assemble_jacobian (instationary):"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_jacobian (instationary)':"
-					" Assembling of elements of Dimension " << dim << " in "
-					" subset "<<si<< " failed.\n");
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_jacobian (instationary):"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
 	}
 
 //	post process
@@ -960,8 +909,7 @@ assemble_defect(vector_type& d,
                 ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("Cannot update disc items.");
+	update_disc_items();
 
 //	reset matrix to zero and resize
 	const size_t numIndex = dd->num_indices();
@@ -998,42 +946,39 @@ assemble_defect(vector_type& d,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleDefect<Edge,TDD,TAlgebra>
+			AssembleDefect<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= AssembleDefect<Triangle,TDD,TAlgebra>
+			AssembleDefect<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
-			bSuc &= AssembleDefect<Quadrilateral,TDD,TAlgebra>
+			AssembleDefect<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= AssembleDefect<Tetrahedron,TDD,TAlgebra>
+			AssembleDefect<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
-			bSuc &= AssembleDefect<Pyramid,TDD,TAlgebra>
+			AssembleDefect<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
-			bSuc &= AssembleDefect<Prism,TDD,TAlgebra>
+			AssembleDefect<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
-			bSuc &= AssembleDefect<Hexahedron,TDD,TAlgebra>
+			AssembleDefect<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_defect (instationary)':"
-						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::assemble_defect (instationary):"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_defect (instationary)':"
-							" Assembling of elements of Dimension " << dim << " in "
-							" subset "<<si<< " failed.\n");
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_defect (instationary):"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
 	}
 
 //	post process
@@ -1064,8 +1009,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
                 ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("Cannot update disc items.");
+	update_disc_items();
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1097,42 +1041,39 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= AssembleLinear<Edge,TDD,TAlgebra>
+			AssembleLinear<Edge,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= AssembleLinear<Triangle,TDD,TAlgebra>
+			AssembleLinear<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
-			bSuc &= AssembleLinear<Quadrilateral,TDD,TAlgebra>
+			AssembleLinear<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= AssembleLinear<Tetrahedron,TDD,TAlgebra>
+			AssembleLinear<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
-			bSuc &= AssembleLinear<Pyramid,TDD,TAlgebra>
+			AssembleLinear<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
-			bSuc &= AssembleLinear<Prism,TDD,TAlgebra>
+			AssembleLinear<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
-			bSuc &= AssembleLinear<Hexahedron,TDD,TAlgebra>
+			AssembleLinear<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear (instationary)':"
-						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::assemble_linear (instationary):"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::assemble_linear (instationary)':"
-					" Assembling of elements of Dimension " << dim << " in "
-					" subset "<<si<< " failed.\n");
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_linear (instationary):"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
 	}
 
 
@@ -1163,8 +1104,7 @@ template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 adjust_solution(vector_type& u, number time, ConstSmartPtr<TDD> dd)
 {
-	if(!update_constraints())
-		UG_THROW_FATAL("Cannot update constraints.");
+	update_constraints();
 
 	try{
 
@@ -1189,8 +1129,7 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 ConstSmartPtr<TDD> dd)
 {
 //	update the elem discs
-	if(!update_disc_items())
-		UG_THROW_FATAL("Cannot update disc items.");
+	update_disc_items();
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1222,42 +1161,39 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
 
-	//	success flag
-		bool bSuc = true;
-
 	//	assemble on suitable elements
+		try
+		{
 		switch(dim)
 		{
 		case 1:
-			bSuc &= FinishTimestep<Edge, TDD, TAlgebra>
+			FinishTimestep<Edge, TDD, TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		case 2:
-			bSuc &= FinishTimestep<Triangle,TDD,TAlgebra>
+			FinishTimestep<Triangle,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
-			bSuc &= FinishTimestep<Quadrilateral,TDD,TAlgebra>
+			FinishTimestep<Quadrilateral,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		case 3:
-			bSuc &= FinishTimestep<Tetrahedron,TDD,TAlgebra>
+			FinishTimestep<Tetrahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
-			bSuc &= FinishTimestep<Pyramid,TDD,TAlgebra>
+			FinishTimestep<Pyramid,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
-			bSuc &= FinishTimestep<Prism,TDD,TAlgebra>
+			FinishTimestep<Prism,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
-			bSuc &= FinishTimestep<Hexahedron,TDD,TAlgebra>
+			FinishTimestep<Hexahedron,TDD,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::finish_timestep (instationary)':"
-						"Dimension "<<dim<<" (subset="<<si<<") not supported.\n");
+			UG_THROW_FATAL("DomainDiscretization::finish_timestep (instationary):"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
-
-	//	check success
-		if(!bSuc)
-			UG_THROW_FATAL("ERROR in 'DomainDiscretization::finish_timestep (instationary)':"
-							" Assembling of elements of Dimension " << dim << " in "
-							" subset "<<si<< " failed.\n");
+		}
+		UG_CATCH_THROW("DomainDiscretization::finish_timestep (instationary):"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
 	}
 
 }

@@ -14,7 +14,7 @@ namespace ug{
 // DataEvaluator Setup
 ///////////////////////////////////////////////////////////////////////////////
 
-bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
+void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
                                    const FunctionPattern& fctPat,
                                    bool bNonRegularGrid,
                                    bool bMassPart)
@@ -71,7 +71,7 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 				UG_LOG((*m_pvElemDisc)[i]->symb_fcts()[f]);
 			}
 			UG_LOG(".\n");
-			return false;
+			UG_THROW_FATAL("DataEvaluator:set_elem_discs: fct error.");
 		}
 
 	//	request assembling for local finite element id
@@ -99,17 +99,16 @@ bool DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	setup for non-regular grid
-	if(!set_non_regular_grid(bNonRegularGrid))
+	try
 	{
-		UG_LOG("ERROR in 'DataEvaluator::set_elem_discs':"
-				"Cannot setup non-regular grid.\n");
-		return false;
+		set_non_regular_grid(bNonRegularGrid);
 	}
+	UG_CATCH_THROW("DataEvaluator::set_elem_discs:"
+					"Cannot setup non-regular grid.");
 
 //	reset local time series flag
 	const size_t numElemDisc = (*m_pvElemDisc).size();
 	m_vbNeedLocTimeSeries.clear(); m_vbNeedLocTimeSeries.resize(numElemDisc, false);
-	return true;
 }
 
 void
@@ -453,17 +452,16 @@ bool DataEvaluator::set_time_dependent(bool bTimeDep, number time,
 }
 
 
-bool DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
+void DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
 	//  let disc use non-regular grid assemblings
-		if(!(*m_pvElemDisc)[i]->treat_non_regular_grid(bNonRegularGrid))
+		if(!(*m_pvElemDisc)[i]->request_non_regular_grid(bNonRegularGrid))
 		{
-			UG_LOG("ERROR in 'DataEvaluator::set_non_regular_grid': "
-					" Elem Disc " << i << " does not support non-regular"
-				   " grids, but this is requested.\n");
-			return false;
+			UG_THROW_FATAL("DataEvaluator::set_non_regular_grid: "
+						" Elem Disc " << i << " does not support non-regular"
+						" grids, but this is requested.\n");
 		}
 	}
 
@@ -472,16 +470,13 @@ bool DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 	if(bNonRegularGrid)
 		for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 			m_bUseHanging |= (*m_pvElemDisc)[i]->use_hanging();
-
-//	we're done
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Assemble routines
 ///////////////////////////////////////////////////////////////////////////////
 
-bool DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
+void DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 {
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
@@ -505,22 +500,24 @@ bool DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 			u.access_by_map(m_vDependentMap[i]);
 
 		//	compute the data
-			if(!m_vDependentIPData[i]->compute_with_sol(u, bDeriv))
-			{
-				UG_LOG("ERROR in 'DataEvaluator::compute_elem_data':"
-						"Cannot compute data for Export " << i <<".\n");
-				return false;
+			try{
+				m_vDependentIPData[i]->compute_with_sol(u, bDeriv);
 			}
+			UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
+							"Cannot compute data for Export " << i);
 		}
 		else
-			m_vDependentIPData[i]->compute(bDeriv);
+		{
+			try{
+				m_vDependentIPData[i]->compute(bDeriv);
+			}
+			UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
+							"Cannot compute data for IPData " << i);
+		}
 	}
-
-//	we're done
-	return true;
 }
 
-bool DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u)
+void DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -533,19 +530,15 @@ bool DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u)
 				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
 	//	assemble JA
-		if(!(*m_pvElemDisc)[i]->ass_JA_elem(A, u))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::assemble_JA': "
-					"Cannot assemble JA for IElemDisc "<<i<<".\n");
-			return false;
+		try{
+			(*m_pvElemDisc)[i]->ass_JA_elem(A, u);
 		}
+		UG_CATCH_THROW("DataEvaluator::ass_JA_elem: "
+						"Cannot assemble Jacobian (A) for IElemDisc "<<i);
 	}
-
-//	we're done
-	return true;
 }
 
-bool DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u)
+void DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -557,20 +550,16 @@ bool DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
 				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
-	//	assemble JA
-		if(!(*m_pvElemDisc)[i]->ass_JM_elem(M, u))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::assemble_JM': "
-					"Cannot assemble JM for IElemDisc "<<i<<".\n");
-			return false;
+	//	assemble JM
+		try{
+			(*m_pvElemDisc)[i]->ass_JM_elem(M, u);
 		}
+		UG_CATCH_THROW("DataEvaluator::ass_JM_elem: "
+						"Cannot assemble Jacobian (M) for IElemDisc "<<i);
 	}
-
-//	we're done
-	return true;
 }
 
-bool DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u)
+void DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -582,20 +571,16 @@ bool DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
 				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
-	//	assemble JA
-		if(!(*m_pvElemDisc)[i]->ass_dA_elem(d, u))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::assemble_A': "
-					"Cannot assemble Defect (A) for IElemDisc "<<i<<".\n");
-			return false;
+	//	assemble dA
+		try{
+			(*m_pvElemDisc)[i]->ass_dA_elem(d, u);
 		}
+		UG_CATCH_THROW("DataEvaluator::ass_dA_elem: "
+						"Cannot assemble Defect (A) for IElemDisc "<<i);
 	}
-
-//	we're done
-	return true;
 }
 
-bool DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u)
+void DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -607,20 +592,16 @@ bool DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
 				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
-	//	assemble JA
-		if(!(*m_pvElemDisc)[i]->ass_dM_elem(d, u))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::assemble_M': "
-					"Cannot assemble Defect (M) for IElemDisc "<<i<<".\n");
-			return false;
+	//	assemble dM
+		try{
+			(*m_pvElemDisc)[i]->ass_dM_elem(d, u);
 		}
+		UG_CATCH_THROW("DataEvaluator::ass_dM_elem: "
+						"Cannot assemble Defect (M) for IElemDisc "<<i);
 	}
-
-//	we're done
-	return true;
 }
 
-bool DataEvaluator::ass_rhs_elem(LocalVector& rhs)
+void DataEvaluator::ass_rhs_elem(LocalVector& rhs)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -632,27 +613,24 @@ bool DataEvaluator::ass_rhs_elem(LocalVector& rhs)
 				m_pLocTimeSeries->solution(t).access_by_map(map(i));
 
 	//	assemble rhs
-		if(!(*m_pvElemDisc)[i]->ass_rhs_elem(rhs))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::assemble_rhs': "
-					"Cannot assemble rhs for IElemDisc "<<i<<".\n");
-			return false;
+		try{
+			(*m_pvElemDisc)[i]->ass_rhs_elem(rhs);
 		}
+		UG_CATCH_THROW("DataEvaluator::ass_rhs_elem: "
+						"Cannot assemble rhs for IElemDisc "<<i);
 	}
-
-//	we're done
-	return true;
 }
 
-bool DataEvaluator::finish_elem_loop()
+void DataEvaluator::finish_elem_loop()
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
-		if(!(*m_pvElemDisc)[i]->finish_elem_loop())
-		{
-			UG_LOG("ERROR in 'DataEvaluator::finish_element_loop': "
-					"Cannot finish element loop for IElemDisc "<<i<<".\n");
-			return false;
+	{
+		try{
+			(*m_pvElemDisc)[i]->finish_elem_loop();
 		}
+		UG_CATCH_THROW("DataEvaluator::finish_element_loop: "
+						"Cannot finish element loop for IElemDisc "<<i);
+	}
 
 //	remove ip series for all used IPData
 	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear();
@@ -660,16 +638,13 @@ bool DataEvaluator::finish_elem_loop()
 	for(size_t i = 0; i < m_vDependentIPData.size(); ++i) m_vDependentIPData[i]->clear();
 
 	for(size_t i = 0; i < m_vAllDataImport.size(); ++i) m_vAllDataImport[i]->clear_ips();
-
-//	we're done
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Coupling
 ///////////////////////////////////////////////////////////////////////////////
 
-bool DataEvaluator::compute_lin_defect_JA(LocalVector & u)
+void DataEvaluator::compute_lin_defect_JA(LocalVector & u)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
@@ -678,19 +653,15 @@ bool DataEvaluator::compute_lin_defect_JA(LocalVector & u)
 		u.access_by_map(m_vStiffImpMap[i]);
 
 	//	compute linearization of defect
-		if(!m_vStiffDataImport[i]->compute_lin_defect(u))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::compute_elem_data': Cannot compute"
-					" linearized defect for Import " << i <<" (Stiffness part).\n");
-			return false;
+		try{
+			m_vStiffDataImport[i]->compute_lin_defect(u);
 		}
+		UG_CATCH_THROW("DataEvaluator::compute_elem_data: Cannot compute"
+						" linearized defect for Import " << i <<" (Stiffness part).");
 	}
-
-//	we're done
-	return true;
 }
 
-bool DataEvaluator::compute_lin_defect_JM(LocalVector & u)
+void DataEvaluator::compute_lin_defect_JM(LocalVector & u)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
@@ -699,19 +670,15 @@ bool DataEvaluator::compute_lin_defect_JM(LocalVector & u)
 		u.access_by_map(m_vMassImpMap[i]);
 
 	//	compute linearization of defect
-		if(!m_vMassDataImport[i]->compute_lin_defect(u))
-		{
-			UG_LOG("ERROR in 'DataEvaluator::compute_elem_data': Cannot compute"
-					" linearized defect for Import " << i <<" (Mass part).\n");
-			return false;
+		try{
+			m_vMassDataImport[i]->compute_lin_defect(u);
 		}
+		UG_CATCH_THROW("DataEvaluator::compute_elem_data: Cannot compute"
+						" linearized defect for Import " << i <<" (Mass part).");
 	}
-
-//	we're done
-	return true;
 }
 
-bool DataEvaluator::add_coupl_JA(LocalMatrix& J)
+void DataEvaluator::add_coupl_JA(LocalMatrix& J)
 {
 //	loop all imports located in the stiffness part
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
@@ -720,14 +687,14 @@ bool DataEvaluator::add_coupl_JA(LocalMatrix& J)
 		J.access_by_map(m_vStiffImpMap[i], m_vStiffImpConnMap[i]);
 
 	//	add off diagonal coupling
-		m_vStiffDataImport[i]->assemble_jacobian(J);
+		try{
+			m_vStiffDataImport[i]->assemble_jacobian(J);
+		}
+		UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot add couplings.");
 	}
-
-//	we're done
-	return true;
 }
 
-bool DataEvaluator::add_coupl_JM(LocalMatrix& J)
+void DataEvaluator::add_coupl_JM(LocalMatrix& J)
 {
 //	loop all imports located in the mass part
 	for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
@@ -736,11 +703,11 @@ bool DataEvaluator::add_coupl_JM(LocalMatrix& J)
 		J.access_by_map(m_vMassImpMap[i], m_vMassImpConnMap[i]);
 
 	//	add off diagonal coupling
-		m_vMassDataImport[i]->assemble_jacobian(J);
+		try{
+			m_vMassDataImport[i]->assemble_jacobian(J);
+		}
+		UG_CATCH_THROW("DataEvaluator::add_coupl_JM: Cannot add couplings.");
 	}
-
-//	we're done
-	return true;
 }
 
 } // end namespace ug

@@ -20,33 +20,21 @@ namespace ug
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-bool
-FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TDomain>::
 prepare_element_loop()
-{
-//	we're done
-	return true;
-}
+{}
 
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-inline
-bool
-FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TDomain>::
 finish_element_loop()
-{
-//	we're done
-	return true;
-}
+{}
 
 
 template<typename TDomain>
-
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-inline
-bool
-FV1InnerBoundaryElemDisc<TDomain>::
+void FV1InnerBoundaryElemDisc<TDomain>::
 prepare_element(TElem* elem, const LocalVector& u)
 {
 //	get corners
@@ -55,22 +43,15 @@ prepare_element(TElem* elem, const LocalVector& u)
 	// update Geometry for this element
 	TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-	{
-		UG_LOG("ERROR in 'FV1InnerBoundaryElemDisc::prepare_element: "
-				"Cannot update Finite Volume Geometry.\n"); return false;}
-
-	return true;
+		UG_THROW_FATAL("FV1InnerBoundaryElemDisc::prepare_element: "
+						"Cannot update Finite Volume Geometry.\n");
 }
-
-
 
 // assemble stiffness part of Jacobian
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-inline
-bool
-FV1InnerBoundaryElemDisc<TDomain>::
-assemble_JA(LocalMatrix& J, const LocalVector& u)
+void FV1InnerBoundaryElemDisc<TDomain>::
+ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 {
 	// get finite volume geometry
 	const static TFVGeom<TElem, dim>& fvgeom = Provider<TFVGeom<TElem,dim> >::get();
@@ -85,11 +66,8 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 		
 		FluxDerivCond fdc;
 		if (!fluxDensityDerivFct(u, co, fdc))
-		{
-			UG_LOG("ERROR in 'FV1InnerBoundaryElemDisc::assemble_JA':"
-					" Call to fluxDensityDerivFct resulted did not succeed.\n");
-			return false;
-		}
+			UG_THROW_FATAL("FV1InnerBoundaryElemDisc::ass_JA_elem:"
+							" Call to fluxDensityDerivFct resulted did not succeed.");
 		
 		// scale with volume of BF
 		for(size_t j=0; j<fdc.fluxDeriv.size(); j++)
@@ -106,31 +84,19 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 			}
 		}	
 	}
-	
-	return true;
 }
 
+template<typename TDomain>
+template<typename TElem, template <class Elem, int Dim> class TFVGeom>
+void FV1InnerBoundaryElemDisc<TDomain>::
+ass_JM_elem(LocalMatrix& J, const LocalVector& u)
+{}
 
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-inline
-bool
-FV1InnerBoundaryElemDisc<TDomain>::
-assemble_JM(LocalMatrix& J, const LocalVector& u)
-{
-	// nothing to be done
-	return true;
-}
-
-
-
-template<typename TDomain>
-template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-inline
-bool
-FV1InnerBoundaryElemDisc<TDomain>::
-assemble_A(LocalVector& d, const LocalVector& u)
+void FV1InnerBoundaryElemDisc<TDomain>::
+ass_dA_elem(LocalVector& d, const LocalVector& u)
 {
 	// get finite volume geometry
 	static TFVGeom<TElem, dim>& fvgeom = Provider<TFVGeom<TElem,dim> >::get();
@@ -147,11 +113,8 @@ assemble_A(LocalVector& d, const LocalVector& u)
 		// get flux densities in that node
 		FluxCond fc;
 		if (!fluxDensityFct(u, co, fc))
-		{
-			UG_LOG("ERROR in 'FV1InnerBoundaryElemDisc::assemble_A':"
-					" Call to fluxDensityFct resulted did not succeed.\n");
-			return false;
-		}
+			UG_THROW_FATAL("FV1InnerBoundaryElemDisc::ass_dA_elem:"
+						" Call to fluxDensityFct resulted did not succeed.");
 				
 		// scale with volume of BF
 		for (size_t j=0; j<fc.flux.size(); j++) fc.flux[j] *= bf.volume();
@@ -163,35 +126,19 @@ assemble_A(LocalVector& d, const LocalVector& u)
 			d(fc.from[j], co) += fc.flux[j];
 		}
 	}
-
-	return true;
 }
-
-
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-inline
-bool
-FV1InnerBoundaryElemDisc<TDomain>::
-assemble_M(LocalVector& d, const LocalVector& u)
-{
-	// nothing to be done
-	return true;
-}
-
-
+void FV1InnerBoundaryElemDisc<TDomain>::
+ass_dM_elem(LocalVector& d, const LocalVector& u)
+{}
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-inline
-bool
-FV1InnerBoundaryElemDisc<TDomain>::
-assemble_f(LocalVector& d)
-{
-	// nothing to be done
-	return true;
-}
+void FV1InnerBoundaryElemDisc<TDomain>::
+ass_rhs_elem(LocalVector& d)
+{}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -223,11 +170,11 @@ register_fv1_func()
 	this->set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
 	this->set_prep_elem_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
 	this->set_fsh_elem_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
-	this->set_ass_JA_elem_fct(	 id, &T::template assemble_JA<TElem, TFVGeom>);
-	this->set_ass_JM_elem_fct(	 id, &T::template assemble_JM<TElem, TFVGeom>);
-	this->set_ass_dA_elem_fct(	 id, &T::template assemble_A<TElem, TFVGeom>);
-	this->set_ass_dM_elem_fct(	 id, &T::template assemble_M<TElem, TFVGeom>);
-	this->set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
+	this->set_ass_JA_elem_fct(	 id, &T::template ass_JA_elem<TElem, TFVGeom>);
+	this->set_ass_JM_elem_fct(	 id, &T::template ass_JM_elem<TElem, TFVGeom>);
+	this->set_ass_dA_elem_fct(	 id, &T::template ass_dA_elem<TElem, TFVGeom>);
+	this->set_ass_dM_elem_fct(	 id, &T::template ass_dM_elem<TElem, TFVGeom>);
+	this->set_ass_rhs_elem_fct(	 id, &T::template ass_rhs_elem<TElem, TFVGeom>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

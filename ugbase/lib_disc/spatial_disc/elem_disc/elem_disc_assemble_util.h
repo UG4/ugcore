@@ -53,10 +53,8 @@ namespace ug {
  * \param[in]		u				solution
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD, typename TAlgebra>
+void
 AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
                         	ConstSmartPtr<TDD> dd,
                         	int si, bool bNonRegularGrid,
@@ -64,37 +62,28 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
                         	const typename TAlgebra::vector_type& u,
                         	BoolMarker* sel = NULL)
 {
-// 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
-
-//	create data evaluator
-	DataEvaluator Eval;
-
-//	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid))
-	{
-		UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
-	}
-
-	Eval.set_time_dependent(false);
-
-// 	local indices and local algebra
-	LocalIndices ind; LocalVector locU; LocalMatrix locA;
-
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind))
-	{
-		UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
-				"Cannot prepare element loop.\n");
-		return false;
-	}
-
 //	get element iterator
 	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
 	iterBegin = dd->template begin<TElem>(si);
 	iterEnd = dd->template end<TElem>(si);
+
+// 	check if at least on element exist, else return
+	if(iterBegin == iterEnd) return;
+
+//	create data evaluator
+	DataEvaluator Eval;
+
+// 	local indices and local algebra
+	LocalIndices ind; LocalVector locU; LocalMatrix locA;
+
+//	prepare for given elem discs
+	try
+	{
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		Eval.set_time_dependent(false);
+		Eval.template prepare_elem_loop<TElem>(ind);
+	}
+	UG_CATCH_THROW("AssembleStiffnessMatrix': Cannot prepare element loop.");
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -115,55 +104,50 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind, true))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
-					"Cannot prepare element.\n");
-			return false;
+			Eval.prepare_elem(elem, locU, ind, true);
 		}
+		UG_CATCH_THROW("AssembleStiffnessMatrix Cannot prepare element.");
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, true))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
-					"Cannot compute element data.\n");
-			return false;
+			Eval.compute_elem_data(locU, true);
 		}
+		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot compute element data.");
 
 	//	Evaluate lin defect A
-		if(!Eval.compute_lin_defect_JA(locU))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
-					"Cannot compute lin_defect_JA.\n");
-			return false;
+			Eval.compute_lin_defect_JA(locU);
 		}
+		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot compute lin_defect_JA.");
 
 	// 	Assemble JA
 		locA = 0.0;
-		if(!Eval.ass_JA_elem(locA, locU))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
-					"Cannot compute element contribution to Jacobian (A).\n");
-			return false;
+			Eval.ass_JA_elem(locA, locU);
 		}
+		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot compute Jacobian (A).");
 
 	//	add couplings
-		Eval.add_coupl_JA(locA);
+		try{
+			Eval.add_coupl_JA(locA);
+		}
+		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot add couplings (A).");
 
 	// 	send local to global matrix
 		AddLocalMatrixToGlobal(A, locA);
 	}
 
 // 	finish element loop
-	if(!Eval.finish_elem_loop())
+	try
 	{
-		UG_LOG("ERROR in 'AssembleStiffnessMatrix': "
-				"Cannot finish element loop.\n");
-		return false;
+		Eval.finish_elem_loop();
 	}
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot finish element loop.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -181,10 +165,8 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		u				solution
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD, typename TAlgebra>
+void
 AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 					ConstSmartPtr<TDD> dd,
 					int si, bool bNonRegularGrid,
@@ -192,37 +174,28 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 					const typename TAlgebra::vector_type& u,
                 	BoolMarker* sel = NULL)
 {
-// 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
-
-//	create data evaluator
-	DataEvaluator Eval;
-
-//	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
-	{
-		UG_LOG("ERROR in 'AssembleMassMatrix': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
-	}
-
-	Eval.set_time_dependent(false);
-
-// 	local indices and local algebra
-	LocalIndices ind; LocalVector locU; LocalMatrix locM;
-
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind, 0.0, true))
-	{
-		UG_LOG("ERROR in 'AssembleMassMatrix': "
-				"Cannot prepare element loop.\n");
-		return false;
-	}
-
 //	get element iterator
 	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
 	iterBegin = dd->template begin<TElem>(si);
 	iterEnd = dd->template end<TElem>(si);
+
+// 	check if at least on element exist, else return
+	if(iterBegin == iterEnd) return;
+
+//	create data evaluator
+	DataEvaluator Eval;
+
+// 	local indices and local algebra
+	LocalIndices ind; LocalVector locU; LocalMatrix locM;
+
+//	prepare for given elem discs
+	try
+	{
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
+		Eval.set_time_dependent(false);
+		Eval.template prepare_elem_loop<TElem>(ind, 0.0, true);
+	}
+	UG_CATCH_THROW("AssembleMassMatrix: Cannot prepare element loop.");
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -243,55 +216,51 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind, true, true))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleMassMatrix': "
-					"Cannot prepare element.\n");
-			return false;
+			Eval.prepare_elem(elem, locU, ind, true, true);
 		}
+		UG_CATCH_THROW("AssembleMassMatrix: Cannot prepare element.");
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, true))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleMassMatrix': "
-					"Cannot compute element data.\n");
-			return false;
+			Eval.compute_elem_data(locU, true);
 		}
+		UG_CATCH_THROW("AssembleMassMatrix: Cannot compute element data.");
 
 	//	Evaluate lin defect M
-		if(!Eval.compute_lin_defect_JM(locU))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleMassMatrix': "
-					"Cannot compute lin_defect_JA.\n");
-			return false;
+			Eval.compute_lin_defect_JM(locU);
 		}
+		UG_CATCH_THROW("AssembleMassMatrix: Cannot compute lin_defect_JM.");
 
 	// 	Assemble JM
 		locM = 0.0;
-		if(!Eval.ass_JM_elem(locM, locU))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleMassMatrix': "
-					"Cannot compute element contribution to Jacobian (A).\n");
-			return false;
+			Eval.ass_JM_elem(locM, locU);
 		}
+		UG_CATCH_THROW("AssembleMassMatrix: Cannot compute Jacobian (M).");
 
 	//	add couplings
-		Eval.add_coupl_JM(locM);
+		try
+		{
+			Eval.add_coupl_JM(locM);
+		}
+		UG_CATCH_THROW("AssembleMassMatrix: Cannot add couplings (M).");
 
 	// 	send local to global matrix
 		AddLocalMatrixToGlobal(M, locM);
 	}
 
 // 	finish element loop
-	if(!Eval.finish_elem_loop())
+	try
 	{
-		UG_LOG("ERROR in 'AssembleMassMatrix': "
-				"Cannot finish element loop.\n");
-		return false;
+		Eval.finish_elem_loop();
 	}
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("AssembleMassMatrix: Cannot finish element loop.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -309,18 +278,21 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vSol			current and previous solutions
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD, typename TAlgebra>
+void
 PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
             	BoolMarker* sel = NULL)
 {
+//	get element iterator
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
+
 // 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
+	if(iterBegin == iterEnd) return;
 
 //	get current time and vector
 	const number time = vSol->time(0);
@@ -328,36 +300,20 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 
 //	create data evaluator
 	DataEvaluator Eval;
-
-//	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
-	{
-		UG_LOG("ERROR in '(instationary) PrepareTimestep': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
-	}
-
-//	set time-independent
 	LocalVectorTimeSeries locTimeSeries; //time series of local vectors
-	bool bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
-
-// 	local indices and local algebra
+	bool bNeedLocTimeSeries = false;
 	LocalIndices ind; LocalVector locU;
 
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind, time, true))
+//	prepare for given elem discs
+	try
 	{
-		UG_LOG("ERROR in '(instationary) PrepareTimestep': "
-				"Cannot prepare element loop.\n");
-		return false;
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
+		bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
+		Eval.template prepare_elem_loop<TElem>(ind, time, true);
 	}
+	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare element loop.");
 
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
-	// 	Loop over all elements
+// 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
@@ -383,33 +339,34 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind, true, true))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) PrepareTimestep': "
-					"Cannot prepare element.\n");
-			return false;
+			Eval.prepare_elem(elem, locU, ind, true, true);
 		}
+		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare element.");
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, true))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) PrepareTimestep': "
-					"Cannot compute element data.\n");
-			return false;
+			Eval.compute_elem_data(locU, true);
 		}
+		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot compute element data.");
 
 	// 	prepare timestep
-		if(!Eval.prepare_timestep_elem(elem, locU)) //anstatt locU auf read_values(vSol,ind) zurückgreifen?!
+		try
 		{
-			UG_LOG("ERROR in '(instationary) PrepareTimestep': "
-					"Cannot prepare timestep.\n");
-			return false;
+			//anstatt locU auf read_values(vSol,ind) zurückgreifen?!
+			Eval.prepare_timestep_elem(elem, locU);
 		}
-
+		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare timestep.");
 	}
 
-//	we're done
-	return true;
+// 	finish element loop
+	try
+	{
+		Eval.finish_elem_loop();
+	}
+	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot finish element loop.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -428,10 +385,8 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		u				solution
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD, typename TAlgebra>
+void
 AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					ConstSmartPtr<TDD> dd,
 					int si, bool bNonRegularGrid,
@@ -439,37 +394,28 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					const typename TAlgebra::vector_type& u,
                 	BoolMarker* sel = NULL)
 {
-// 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
-
-//	create data evaluator
-	DataEvaluator Eval;
-
-//	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid))
-	{
-		UG_LOG("ERROR in '(stationary) AssembleJacobian': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
-	}
-
-	Eval.set_time_dependent(false);
-
-// 	local indices and local algebra
-	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
-
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind))
-	{
-		UG_LOG("ERROR in '(stationary) AssembleJacobian': "
-				"Cannot prepare element loop.\n");
-		return false;
-	}
-
 //	get element iterator
 	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
 	iterBegin = dd->template begin<TElem>(si);
 	iterEnd = dd->template end<TElem>(si);
+
+// 	check if at least on element exist, else return
+	if(iterBegin == iterEnd) return;
+
+//	create data evaluator
+	DataEvaluator Eval;
+
+// 	local indices and local algebra
+	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
+
+//	prepare for given elem discs
+	try
+	{
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		Eval.set_time_dependent(false);
+		Eval.template prepare_elem_loop<TElem>(ind);
+	}
+	UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot prepare element loop.");
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -490,55 +436,51 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind, true))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleJacobian': "
-					"Cannot prepare element.\n");
-			return false;
+			Eval.prepare_elem(elem, locU, ind, true);
 		}
+		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot prepare element.");
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, true))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleJacobian': "
-					"Cannot compute element data.\n");
-			return false;
+			Eval.compute_elem_data(locU, true);
 		}
+		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute element data.");
 
 	//	Evaluate lin defect A
-		if(!Eval.compute_lin_defect_JA(locU))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleJacobian': "
-					"Cannot compute lin_defect_JA.\n");
-			return false;
+			Eval.compute_lin_defect_JA(locU);
 		}
+		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute lin_defect_JA.");
 
 	// 	Assemble JA
 		locJ = 0.0;
-		if(!Eval.ass_JA_elem(locJ, locU))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleJacobian': "
-					"Cannot compute element contribution to Jacobian (A).\n");
-			return false;
+			Eval.ass_JA_elem(locJ, locU);
 		}
+		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute Jacobian (A).");
 
 	//	add couplings
-		Eval.add_coupl_JA(locJ);
+		try
+		{
+			Eval.add_coupl_JA(locJ);
+		}
+		UG_CATCH_THROW("(stationary AssembleJacobian: Cannot add couplings (A).");
 
 	// 	send local to global matrix
 		AddLocalMatrixToGlobal(J, locJ);
 	}
 
 // 	finish element loop
-	if(!Eval.finish_elem_loop())
+	try
 	{
-		UG_LOG("ERROR in '(stationary) AssembleJacobian': "
-				"Cannot finish element loop.\n");
-		return false;
+		Eval.finish_elem_loop();
 	}
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot finish element loop.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -559,10 +501,8 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		s_a0			scaling factor for stiffness part
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD, typename TAlgebra>
+void
 AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					ConstSmartPtr<TDD> dd,
 					int si, bool bNonRegularGrid,
@@ -571,8 +511,13 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					number s_a0,
                 	BoolMarker* sel = NULL)
 {
+//	get element iterator
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
+
 // 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
+	if(iterBegin == iterEnd) return;
 
 //	get current time and vector
 	const number time = vSol->time(0);
@@ -580,34 +525,18 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 
 //	create data evaluator
 	DataEvaluator Eval;
+	LocalVectorTimeSeries locTimeSeries;
+	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
+	bool bNeedLocTimeSeries = false;
 
 //	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
+	try
 	{
-		UG_LOG("ERROR in '(instationary) AssembleJacobian': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
+		bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
+		Eval.template prepare_elem_loop<TElem>(ind, time, true);
 	}
-
-//	set time-independent
-	LocalVectorTimeSeries locTimeSeries;
-	bool bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
-
-// 	local indices and local algebra
-	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
-
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind, time, true))
-	{
-		UG_LOG("ERROR in '(instationary) AssembleJacobian': "
-				"Cannot prepare element loop.\n");
-		return false;
-	}
-
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
+	UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot prepare element loop.");
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -635,77 +564,75 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind, true, true))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
-					"Cannot prepare element.\n");
-			return false;
+			Eval.prepare_elem(elem, locU, ind, true, true);
 		}
+		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot prepare element.");
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, true))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
-					"Cannot compute element data.\n");
-			return false;
+			Eval.compute_elem_data(locU, true);
 		}
+		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute element data.");
 
 	//	Evaluate lin defect A
-		if(!Eval.compute_lin_defect_JA(locU))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
-					"Cannot compute lin_defect_JA.\n");
-			return false;
+			Eval.compute_lin_defect_JA(locU);
 		}
+		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute lin_defect_JA.");
 
 	//	Evaluate lin defect M
-		if(!Eval.compute_lin_defect_JM(locU))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
-					"Cannot compute lin_defect_JM.\n");
-			return false;
+			Eval.compute_lin_defect_JM(locU);
 		}
+		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute lin_defect_JM.");
 
 	// 	Assemble JA
 		locJ = 0.0;
-		if(!Eval.ass_JA_elem(locJ, locU))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
-					"Cannot compute element contribution to Jacobian (A).\n");
-			return false;
+			Eval.ass_JA_elem(locJ, locU);
 		}
+		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (A).");
 
 	//	add couplings
-		Eval.add_coupl_JA(locJ);
+		try
+		{
+			Eval.add_coupl_JA(locJ);
+		}
+		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot add couplings (A).");
 
 	//	scale stiffness part
 		locJ *= s_a0;
 
 	// 	Assemble JM
-		if(!Eval.ass_JM_elem(locJ, locU))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleJacobian': "
-					"Cannot compute element contribution to Jacobian (A).\n");
-			return false;
+			Eval.ass_JM_elem(locJ, locU);
 		}
+		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (M).");
 
 	//	add couplings
-		Eval.add_coupl_JM(locJ);
+		try
+		{
+			Eval.add_coupl_JM(locJ);
+		}
+		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot add couplings (M).");
 
 	// 	send local to global matrix
 		AddLocalMatrixToGlobal(J, locJ);
 	}
 
 // 	finish element loop
-	if(!Eval.finish_elem_loop())
+	try
 	{
-		UG_LOG("ERROR in '(instationary) AssembleJacobian': "
-				"Cannot finish element loop.\n");
-		return false;
+		Eval.finish_elem_loop();
 	}
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot finish element loop.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -724,10 +651,8 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		u				solution
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD, typename TAlgebra>
+void
 AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
@@ -735,38 +660,28 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	const typename TAlgebra::vector_type& u,
             	BoolMarker* sel = NULL)
 {
-// 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
-
-//	create data evaluator
-	DataEvaluator Eval;
-
-//	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid))
-	{
-		UG_LOG("ERROR in '(stationary) AssembleDefect': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
-	}
-
-//	set time-independent
-	Eval.set_time_dependent(false);
-
-// 	local indices and local algebra
-	LocalIndices ind; LocalVector locU, locD, tmpLocD;
-
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind))
-	{
-		UG_LOG("ERROR in '(stationary) AssembleDefect': "
-				"Cannot prepare element loop.\n");
-		return false;
-	}
-
 //	get element iterator
 	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
 	iterBegin = dd->template begin<TElem>(si);
 	iterEnd = dd->template end<TElem>(si);
+
+// 	check if at least on element exist, else return
+	if(iterBegin == iterEnd) return;
+
+//	create data evaluator
+	DataEvaluator Eval;
+
+// 	local indices and local algebra
+	LocalIndices ind; LocalVector locU, locD, tmpLocD;
+
+//	prepare for given elem discs
+	try
+	{
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		Eval.set_time_dependent(false);
+		Eval.template prepare_elem_loop<TElem>(ind);
+	}
+	UG_CATCH_THROW("(stationary) AssembleDefect: Cannot prepare element loop.");
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -787,38 +702,35 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleDefect': "
-					"Cannot prepare element.\n");
-			return false;
+			Eval.prepare_elem(elem, locU, ind);
 		}
+		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot prepare element.");
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, false))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleDefect': "
-					"Cannot compute element data.\n");
-			return false;
+			Eval.compute_elem_data(locU, false);
 		}
+		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute element data.");
 
 	// 	Assemble A
 		locD = 0.0;
-		if(!Eval.ass_dA_elem(locD, locU))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleDefect': "
-					"Cannot compute element contribution to Jacobian (A).\n");
-			return false;
+			Eval.ass_dA_elem(locD, locU);
 		}
+		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Defect (A).");
 
 	// 	Assemble rhs
 		tmpLocD = 0.0;
-		if(!Eval.ass_rhs_elem(tmpLocD))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleDefect': "
-					"Cannot compute element contribution to Rhs.\n");
-			return false;
+			Eval.ass_rhs_elem(tmpLocD);
 		}
+		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Rhs.");
+
 		locD.scale_append(-1, tmpLocD);
 
 	// 	send local to global rhs
@@ -826,15 +738,11 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_elem_loop())
+	try
 	{
-		UG_LOG("ERROR in '(stationary) AssembleDefect': "
-				"Cannot finish element loop.\n");
-		return false;
+		Eval.finish_elem_loop();
 	}
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("(stationary) AssembleDefect: Cannot finish element loop.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -855,10 +763,8 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vScaleStiff		scaling factors for stiffness part
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD, typename TAlgebra>
+void
 AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
@@ -868,42 +774,32 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 				const std::vector<number>& vScaleStiff,
             	BoolMarker* sel = NULL)
 {
+//	get element iterator
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
+
 // 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
+	if(iterBegin == iterEnd) return;
 
 //	create data evaluator
 	DataEvaluator Eval;
 
 //	current time
 	const number time = vSol->time(0);
-
-//	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
-	{
-		UG_LOG("ERROR in '(instationary) AssembleDefect': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
-	}
-
-//	set time-independent
 	LocalVectorTimeSeries locTimeSeries;
-	Eval.set_time_dependent(true, time, &locTimeSeries);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locD, tmpLocD;
 
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind, time, true))
+//	prepare for given elem discs
+	try
 	{
-		UG_LOG("ERROR in '(instationary) AssembleDefect': "
-				"Cannot prepare element loop.\n");
-		return false;
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
+		Eval.set_time_dependent(true, time, &locTimeSeries);
+		Eval.template prepare_elem_loop<TElem>(ind, time, true);
 	}
-
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
+	UG_CATCH_THROW("(instationary) AssembleDefect: Cannot prepare element loop.");
 
 //	read time points
 	locTimeSeries.read_times(vSol);
@@ -935,53 +831,48 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		//	get local solution at timepoint
 			LocalVector& locU = locTimeSeries.solution(t);
 
-			//printf("locTimeSeries-size in assemble_defect: %lu \n", locTimeSeries.size());
-			//printf("time-iter in assemble_defect: %lu \n", t);
-
 		// 	prepare element
-			if(!Eval.prepare_elem(elem, locU, ind, false, true))
+			try
 			{
-				UG_LOG("ERROR in '(instationary) AssembleDefect': "
-						"Cannot prepare element.\n");
-				return false;
+				Eval.prepare_elem(elem, locU, ind, false, true);
 			}
+			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot prepare element.");
 
 		//	Compute element data
-			if(!Eval.compute_elem_data(locU, false))
+			try
 			{
-				UG_LOG("ERROR in '(instationary) AssembleDefect': "
-						"Cannot compute element data.\n");
-				return false;
+				Eval.compute_elem_data(locU, false);
 			}
+			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute element data.");
 
 		// 	Assemble M
 			tmpLocD = 0.0;
-			if(!Eval.ass_dM_elem(tmpLocD, locU))
+			try
 			{
-				UG_LOG("ERROR in '(instationary) AssembleDefect': "
-						"Cannot compute element contribution to Jacobian (A).\n");
-				return false;
+				Eval.ass_dM_elem(tmpLocD, locU);
 			}
+			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (M).");
+
 			locD.scale_append(vScaleMass[t], tmpLocD);
 
 		// 	Assemble A
 			tmpLocD = 0.0;
-			if(!Eval.ass_dA_elem(tmpLocD, locU))
+			try
 			{
-				UG_LOG("ERROR in '(instationary) AssembleDefect': "
-						"Cannot compute element contribution to Jacobian (A).\n");
-				return false;
+				Eval.ass_dA_elem(tmpLocD, locU);
 			}
+			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (A).");
+
 			locD.scale_append(vScaleStiff[t], tmpLocD);
 
 		// 	Assemble rhs
 			tmpLocD = 0.0;
-			if(!Eval.ass_rhs_elem(tmpLocD))
+			try
 			{
-				UG_LOG("ERROR in '(instationary) AssembleDefect': "
-						"Cannot compute element contribution to Rhs.\n");
-				return false;
+				Eval.ass_rhs_elem(tmpLocD);
 			}
+			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Rhs.");
+
 			locD.scale_append( -vScaleStiff[t], tmpLocD);
 		}
 
@@ -990,15 +881,11 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_elem_loop())
+	try
 	{
-		UG_LOG("ERROR in '(instationary) AssembleDefect': "
-				"Cannot finish element loop.\n");
-		return false;
+		Eval.finish_elem_loop();
 	}
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("(instationary) AssembleDefect: Cannot finish element loop.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1017,10 +904,8 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in,out]	rhs				Right-hand side
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD,typename TAlgebra>
+void
 AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
@@ -1028,38 +913,28 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	typename TAlgebra::vector_type& rhs,
             	BoolMarker* sel = NULL)
 {
-// 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
-
-//	create data evaluator
-	DataEvaluator Eval;
-
-//	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid))
-	{
-		UG_LOG("ERROR in '(stationary) AssembleLinear': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
-	}
-
-//	set time-independent
-	Eval.set_time_dependent(false);
-
-// 	local indices and local algebra
-	LocalIndices ind; LocalVector locRhs; LocalMatrix locA;
-
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind))
-	{
-		UG_LOG("ERROR in '(stationary) AssembleLinear': "
-				"Cannot prepare element loop.\n");
-		return false;
-	}
-
 //	get element iterator
 	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
 	iterBegin = dd->template begin<TElem>(si);
 	iterEnd = dd->template end<TElem>(si);
+
+// 	check if at least on element exist, else return
+	if(iterBegin == iterEnd) return;
+
+//	create data evaluator
+	DataEvaluator Eval;
+
+// 	local indices and local algebra
+	LocalIndices ind; LocalVector locRhs; LocalMatrix locA;
+
+//	prepare for given elem discs
+	try
+	{
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		Eval.set_time_dependent(false);
+		Eval.template prepare_elem_loop<TElem>(ind);
+	}
+	UG_CATCH_THROW("(stationary) AssembleLinear: Cannot prepare element loop.");
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -1077,38 +952,34 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		locRhs.resize(ind); locA.resize(ind);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locRhs, ind))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleLinear': "
-					"Cannot prepare element.\n");
-			return false;
+			Eval.prepare_elem(elem, locRhs, ind);
 		}
+		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot prepare element.");
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locRhs, false))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleLinear': "
-					"Cannot compute element data.\n");
-			return false;
+			Eval.compute_elem_data(locRhs, false);
 		}
+		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute element data.");
 
 	// 	Assemble JA
 		locA = 0.0;
-		if(!Eval.ass_JA_elem(locA, locRhs))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleLinear': "
-					"Cannot compute element contribution to Jacobian (A).\n");
-			return false;
+			Eval.ass_JA_elem(locA, locRhs);
 		}
+		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute Jacobian (A).");
 
 	// 	Assemble rhs
 		locRhs = 0.0;
-		if(!Eval.ass_rhs_elem(locRhs))
+		try
 		{
-			UG_LOG("ERROR in '(stationary) AssembleLinear': "
-					"Cannot compute element contribution to Rhs.\n");
-			return false;
+			Eval.ass_rhs_elem(locRhs);
 		}
+		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute Rhs.");
 
 	// 	send local to global matrix
 		AddLocalMatrixToGlobal(A, locA);
@@ -1118,15 +989,11 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_elem_loop())
+	try
 	{
-		UG_LOG("ERROR in '(stationary) AssembleLinear': "
-				"Cannot finish element loop.\n");
-		return false;
+		Eval.finish_elem_loop();
 	}
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("(stationary) AssembleLinear: Cannot finish element loop.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1148,10 +1015,8 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vScaleStiff		scaling factors for stiffness part
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD, typename TAlgebra>
+void
 AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
@@ -1162,42 +1027,30 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	const std::vector<number>& vScaleStiff,
             	BoolMarker* sel = NULL)
 {
+//	get element iterator
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
+
 // 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
+	if(iterBegin == iterEnd) return;
 
 //	create data evaluator
 	DataEvaluator Eval;
 
 //	get current time
 	const number time = vSol->time(0);
-
-//	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
-	{
-		UG_LOG("ERROR in '(instationary) AssembleLinear': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
-	}
-
-//	set time-independent
 	LocalVectorTimeSeries locTimeSeries;
-	Eval.set_time_dependent(true, time, &locTimeSeries);
-
-// 	local indices and local algebra
 	LocalIndices ind; LocalVector locRhs, tmpLocRhs; LocalMatrix locA, tmpLocA;
 
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind, time, true))
+//	prepare for given elem discs
+	try
 	{
-		UG_LOG("ERROR in '(instationary) AssembleLinear': "
-				"Cannot prepare element loop.\n");
-		return false;
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
+		Eval.set_time_dependent(true, time, &locTimeSeries);
+		Eval.template prepare_elem_loop<TElem>(ind, time, true);
 	}
-
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
+	UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element loop.");
 
 //	get time points
 	locTimeSeries.read_times(vSol);
@@ -1231,49 +1084,47 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		LocalVector& locU = locTimeSeries.solution(0);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind, false, true))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleLinear': "
-					"Cannot prepare element.\n");
-			return false;
+			Eval.prepare_elem(elem, locU, ind, false, true);
 		}
+		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element.");
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, false))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleLinear': "
-					"Cannot compute element data.\n");
-			return false;
+			Eval.compute_elem_data(locU, false);
 		}
+		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute element data.");
 
 	// 	Assemble JM
 		tmpLocA = 0.0;
-		if(!Eval.ass_JM_elem(tmpLocA, locU))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleLinear': "
-					"Cannot compute element contribution to Jacobian (A).\n");
-			return false;
+			Eval.ass_JM_elem(tmpLocA, locU);
 		}
+		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (M).");
+
 		locA.scale_append(vScaleMass[0], tmpLocA);
 
 	// 	Assemble JA
 		tmpLocA = 0.0;
-		if(!Eval.ass_JA_elem(tmpLocA, locU))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleLinear': "
-					"Cannot compute element contribution to Jacobian (A).\n");
-			return false;
+			Eval.ass_JA_elem(tmpLocA, locU);
 		}
+		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
+
 		locA.scale_append(vScaleStiff[0], tmpLocA);
 
 	// 	Assemble rhs
 		tmpLocRhs = 0.0;
-		if(!Eval.ass_rhs_elem(tmpLocRhs))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) AssembleLinear': "
-					"Cannot compute element contribution to Rhs.\n");
-			return false;
+			Eval.ass_rhs_elem(tmpLocRhs);
 		}
+		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
+
 		locRhs.scale_append(vScaleStiff[0], tmpLocRhs);
 
 	///////////////////
@@ -1286,49 +1137,48 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 			LocalVector& locU = locTimeSeries.solution(t);
 
 		// 	prepare element
-			if(!Eval.prepare_elem(elem, locU, ind, false, true))
+			try
 			{
-				UG_LOG("ERROR in '(instationary) AssembleLinear': "
-						"Cannot prepare element.\n");
-				return false;
+				Eval.prepare_elem(elem, locU, ind, false, true);
 			}
+			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element.");
 
 		//	Compute element data
-			if(!Eval.compute_elem_data(locU, false))
+			try
 			{
-				UG_LOG("ERROR in '(instationary) AssembleLinear': "
-						"Cannot compute element data.\n");
-				return false;
+				Eval.compute_elem_data(locU, false);
+
 			}
+			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute element data");
 
 		// 	Assemble dM
 			tmpLocRhs = 0.0;
-			if(!Eval.ass_dM_elem(tmpLocRhs, locU))
+			try
 			{
-				UG_LOG("ERROR in '(instationary) AssembleLinear': "
-						"Cannot compute element contribution to Jacobian (A).\n");
-				return false;
+				Eval.ass_dM_elem(tmpLocRhs, locU);
 			}
+			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (M).");
+
 			locRhs.scale_append(-vScaleMass[t], tmpLocRhs);
 
 		// 	Assemble dA
 			tmpLocRhs = 0.0;
-			if(!Eval.ass_dA_elem(tmpLocRhs, locU))
+			try
 			{
-				UG_LOG("ERROR in '(instationary) AssembleLinear': "
-						"Cannot compute element contribution to Jacobian (A).\n");
-				return false;
+				Eval.ass_dA_elem(tmpLocRhs, locU);
 			}
+			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
+
 			locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
 
 		// 	Assemble rhs
 			tmpLocRhs = 0.0;
-			if(!Eval.ass_rhs_elem(tmpLocRhs))
+			try
 			{
-				UG_LOG("ERROR in '(instationary) AssembleLinear': "
-						"Cannot compute element contribution to Rhs.\n");
-				return false;
+				Eval.ass_rhs_elem(tmpLocRhs);
 			}
+			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
+
 			locRhs.scale_append(vScaleStiff[t], tmpLocRhs);
 		}
 
@@ -1340,15 +1190,11 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 // 	finish element loop
-	if(!Eval.finish_elem_loop())
+	try
 	{
-		UG_LOG("ERROR in '(instationary) AssembleLinear': "
-				"Cannot finish element loop.\n");
-		return false;
+		Eval.finish_elem_loop();
 	}
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("(instationary) AssembleLinear: Cannot finish element loop.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1367,10 +1213,8 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		u				solution
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD, typename TAlgebra>
+void
 AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
@@ -1378,38 +1222,28 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                	const typename TAlgebra::vector_type& u,
             	BoolMarker* sel = NULL)
 {
-// 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
-
-//	create data evaluator
-	DataEvaluator Eval;
-
-//	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid))
-	{
-		UG_LOG("ERROR in 'AssembleRhs': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
-	}
-
-//	set time-independent
-	Eval.set_time_dependent(false);
-
-// 	local indices and local algebra
-	LocalIndices ind; LocalVector locU, locRhs;
-
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind))
-	{
-		UG_LOG("ERROR in 'AssembleRhs': "
-				"Cannot prepare element loop.\n");
-		return false;
-	}
-
 //	get element iterator
 	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
 	iterBegin = dd->template begin<TElem>(si);
 	iterEnd = dd->template end<TElem>(si);
+
+// 	check if at least on element exist, else return
+	if(iterBegin == iterEnd) return;
+
+//	create data evaluator
+	DataEvaluator Eval;
+
+// 	local indices and local algebra
+	LocalIndices ind; LocalVector locU, locRhs;
+
+//	prepare for given elem discs
+	try
+	{
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		Eval.set_time_dependent(false);
+		Eval.template prepare_elem_loop<TElem>(ind);
+	}
+	UG_CATCH_THROW("AssembleRhs: Cannot prepare element loop.");
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -1430,44 +1264,37 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleRhs': "
-					"Cannot prepare element.\n");
-			return false;
+			Eval.prepare_elem(elem, locU, ind);
 		}
+		UG_CATCH_THROW("AssembleRhs: Cannot prepare element.");
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, false))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleRhs': "
-					"Cannot compute element data.\n");
-			return false;
+			Eval.compute_elem_data(locU, false);
 		}
+		UG_CATCH_THROW("AssembleRhs: Cannot compute element data.");
 
 	// 	Assemble rhs
 		locRhs = 0.0;
-		if(!Eval.ass_rhs_elem(locRhs))
+		try
 		{
-			UG_LOG("ERROR in 'AssembleRhs': "
-					"Cannot compute element contribution to Rhs.\n");
-			return false;
+			Eval.ass_rhs_elem(locRhs);
 		}
+		UG_CATCH_THROW("AssembleRhs: Cannot compute Rhs.");
 
 	// 	send local to global rhs
 		AddLocalVector(rhs, locRhs);
 	}
 
 // 	finish element loop
-	if(!Eval.finish_elem_loop())
+	try
 	{
-		UG_LOG("ERROR in 'AssembleRhs': "
-				"Cannot finish element loop.\n");
-		return false;
+		Eval.finish_elem_loop();
 	}
-
-//	we're done
-	return true;
+	UG_CATCH_THROW("AssembleRhs: Cannot finish element loop.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1485,18 +1312,21 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vSol			current and previous solutions
  * \param[in]		sel				Selector
  */
-template <	typename TElem,
-			typename TDD,
-			typename TAlgebra>
-bool
+template <typename TElem, typename TDD, typename TAlgebra>
+void
 FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
                ConstSmartPtr<TDD> dd,
                int si, bool bNonRegularGrid,
                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                BoolMarker* sel = NULL)
 {
+//	get element iterator
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
+
 // 	check if at least on element exist, else return
-	if(dd->template begin<TElem>(si) == dd->template end<TElem>(si)) return true;
+	if(iterBegin == iterEnd) return;
 
 //	get current time and vector
 	const number time = vSol->time(0);
@@ -1504,36 +1334,20 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 
 //	create data evaluator
 	DataEvaluator Eval;
-
-//	prepare for given elem discs
-	if(!Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true))
-	{
-		UG_LOG("ERROR in '(instationary) FinishTimestep': "
-				"Cannot init DataEvaluator with IElemDiscs.\n");
-		return false;
-	}
-
-//	set time-independent
 	LocalVectorTimeSeries locTimeSeries;
-	bool bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
-
-// 	local indices and local algebra
+	bool bNeedLocTimeSeries = false;
 	LocalIndices ind; LocalVector locU;
 
-//	prepare element discs
-	if(!Eval.template prepare_elem_loop<TElem>(ind, time, true))
+//	prepare for given elem discs
+	try
 	{
-		UG_LOG("ERROR in '(instationary) FinishTimestep': "
-				"Cannot finish element loop.\n");
-		return false;
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
+		bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
+		Eval.template prepare_elem_loop<TElem>(ind, time, true);
 	}
+	UG_CATCH_THROW("(instationary) FinishTimestep: Cannot finish element loop.");
 
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
-	// 	Loop over all elements
+// 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
@@ -1559,33 +1373,26 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	// 	prepare element
-		if(!Eval.prepare_elem(elem, locU, ind, true, true))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) FinishTimestep': "
-					"Cannot prepare element.\n");
-			return false;
+			Eval.prepare_elem(elem, locU, ind, true, true);
 		}
+		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot prepare element.");
 
 	//	Compute element data
-		if(!Eval.compute_elem_data(locU, true))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) FinishTimestep': "
-					"Cannot compute element data.\n");
-			return false;
+			Eval.compute_elem_data(locU, true);
 		}
+		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot compute element data.");
 
 	// 	finish timestep
-		if(!Eval.finish_timestep_elem(elem, time, locU))
+		try
 		{
-			UG_LOG("ERROR in '(instationary) FinishTimestep': "
-					"Cannot finish timestep.\n");
-			return false;
+			Eval.finish_timestep_elem(elem, time, locU);
 		}
-
+		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot finish timestep.");
 	}
-
-//	we're done
-	return true;
 }
 
 } // end namespace ug

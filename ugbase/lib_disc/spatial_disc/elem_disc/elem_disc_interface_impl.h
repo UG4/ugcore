@@ -15,28 +15,28 @@
 namespace ug{
 
 template <typename TElem>
-inline bool IElemDisc::prepare_timestep_elem(TElem* elem, const LocalVector& u)
+inline void IElemDisc::prepare_timestep_elem(TElem* elem, const LocalVector& u)
 {
 //	cast the method pointer back to the original type
-	typedef bool (IElemDisc::*Func)(TElem*, const LocalVector&);
+	typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
 	Func pFunc = reinterpret_cast<Func>(m_vPrepareTimestepElemFct[m_id]);
 	return (this->*(pFunc))(elem, u);
 }
 
 template <typename TElem>
-inline bool IElemDisc::prepare_elem(TElem* elem, const LocalVector& u)
+inline void IElemDisc::prepare_elem(TElem* elem, const LocalVector& u)
 {
 //	cast the method pointer back to the original type
-	typedef bool (IElemDisc::*Func)(TElem*, const LocalVector&);
+	typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
 	Func pFunc = reinterpret_cast<Func>(m_vPrepareElemFct[m_id]);
 	return (this->*(pFunc))(elem, u);
 }
 
 template <typename TElem>
-inline bool IElemDisc::finish_timestep_elem(TElem* elem, const number time, const LocalVector& u)
+inline void IElemDisc::finish_timestep_elem(TElem* elem, const number time, const LocalVector& u)
 {
 //	cast the method pointer back to the original type
-	typedef bool (IElemDisc::*Func)(TElem*, const LocalVector&);
+	typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
 	Func pFunc = reinterpret_cast<Func>(m_vFinishTimestepElemFct[m_id]);
 	return (this->*(pFunc))(elem, u);
 }

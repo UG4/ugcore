@@ -63,7 +63,7 @@ namespace ug{
  * \tparam	TAlgebra	Algebra
  */
 template<typename TDomain>
-class DensityDrivenFlowElemDisc
+class DensityDrivenFlow
 	: public IDomainElemDisc<TDomain>
 {
 	private:
@@ -71,7 +71,7 @@ class DensityDrivenFlowElemDisc
 		typedef IDomainElemDisc<TDomain> base_type;
 
 	///	own type
-		typedef DensityDrivenFlowElemDisc<TDomain> this_type;
+		typedef DensityDrivenFlow<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -85,7 +85,7 @@ class DensityDrivenFlowElemDisc
 
 	public:
 	///	Constructor
-		DensityDrivenFlowElemDisc(const char* functions, const char* subsets);
+		DensityDrivenFlow(const char* functions, const char* subsets);
 
 	///	sets usage of consistent gravity
 		void set_consistent_gravity(bool bUse)
@@ -188,12 +188,12 @@ class DensityDrivenFlowElemDisc
 		}
 
 	///	switches between non-regular and regular grids
-		virtual bool treat_non_regular_grid(bool bNonRegular)
+		virtual bool request_non_regular_grid(bool bNonRegular)
 		{
 		//	switch, which assemble functions to use.
 			if(bNonRegular)
 			{
-				UG_LOG("ERROR in 'DensityDrivenFlowElemDisc::treat_non_regular_grid':"
+				UG_LOG("ERROR in 'DensityDrivenFlow::request_non_regular_grid':"
 						" Non-regular grid not implemented.\n");
 				return false;
 			}
@@ -214,28 +214,28 @@ class DensityDrivenFlowElemDisc
 		virtual bool time_point_changed(number time);
 
 		template <typename TElem>
-		bool prepare_element_loop();
+		void prepare_element_loop();
 
 		template <typename TElem>
-		bool prepare_element(TElem* elem, const LocalVector& u);
+		void prepare_element(TElem* elem, const LocalVector& u);
 
 		template <typename TElem>
-		bool finish_element_loop();
+		void finish_element_loop();
 
 		template <typename TElem>
-		bool assemble_JA(LocalMatrix& J, const LocalVector& u);
+		void ass_JA_elem(LocalMatrix& J, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_JM(LocalMatrix& J, const LocalVector& u);
+		void ass_JM_elem(LocalMatrix& J, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_A(LocalVector& d, const LocalVector& u);
+		void ass_dA_elem(LocalVector& d, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_M(LocalVector& d, const LocalVector& u);
+		void ass_dM_elem(LocalVector& d, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_f(LocalVector& d);
+		void ass_rhs_elem(LocalVector& d);
 
 	private:
 	///	strategy to compute the upwind shapes
@@ -323,7 +323,7 @@ class DensityDrivenFlowElemDisc
 
 	///	computes the darcy velocity using consistent gravity
 		template <typename TElem>
-		bool ex_darcy_std(const LocalVector& u,
+		void ex_darcy_std(const LocalVector& u,
 		                  const MathVector<dim> vGlobIP[],
 		                  const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 		                  const size_t nip,
@@ -333,7 +333,7 @@ class DensityDrivenFlowElemDisc
 
 	///	computes the darcy velocity using consistent gravity
 		template <typename TElem>
-		bool ex_darcy_cons_grav(const LocalVector& u,
+		void ex_darcy_cons_grav(const LocalVector& u,
 		                        const MathVector<dim> vGlobIP[],
 		                        const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 		                        const size_t nip,
@@ -343,7 +343,7 @@ class DensityDrivenFlowElemDisc
 
 	///	computes the value of the brine mass fraction
 		template <typename TElem>
-		bool ex_brine(const LocalVector& u,
+		void ex_brine(const LocalVector& u,
 		              const MathVector<dim> vGlobIP[],
 		              const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 		              const size_t nip,
@@ -353,7 +353,7 @@ class DensityDrivenFlowElemDisc
 
 	///	computes the value of the gradient of the brine mass fraction
 		template <typename TElem>
-		bool ex_brine_grad(const LocalVector& u,
+		void ex_brine_grad(const LocalVector& u,
 		                   const MathVector<dim> vGlobIP[],
 		                   const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 		                   const size_t nip,
@@ -363,7 +363,7 @@ class DensityDrivenFlowElemDisc
 
 	///	computes the value of the gradient of the pressure
 		template <typename TElem>
-		bool ex_pressure_grad(const LocalVector& u,
+		void ex_pressure_grad(const LocalVector& u,
 		                      const MathVector<dim> vGlobIP[],
 		                      const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 		                      const size_t nip,

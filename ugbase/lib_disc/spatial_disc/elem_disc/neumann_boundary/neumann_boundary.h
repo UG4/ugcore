@@ -21,7 +21,7 @@
 namespace ug{
 
 template<typename TDomain>
-class FV1NeumannBoundaryElemDisc
+class FV1NeumannBoundary
 	: public IDomainElemDisc<TDomain>
 {
 	private:
@@ -29,7 +29,7 @@ class FV1NeumannBoundaryElemDisc
 		typedef IDomainElemDisc<TDomain> base_type;
 
 	///	Base class type
-		typedef FV1NeumannBoundaryElemDisc<TDomain> this_type;
+		typedef FV1NeumannBoundary<TDomain> this_type;
 
 	///	explicitly forward function
 		using base_type::time;
@@ -51,7 +51,7 @@ class FV1NeumannBoundaryElemDisc
 
 	public:
 	///	default constructor
-		FV1NeumannBoundaryElemDisc(const char* subsets);
+		FV1NeumannBoundary(const char* subsets);
 
 	///	add a boundary value
 		void add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subsets);
@@ -105,7 +105,7 @@ class FV1NeumannBoundaryElemDisc
 			}
 
 			template <typename TElem, template <class Elem, int  Dim> class TFVGeom>
-			bool
+			void
 			lin_def_fv1(const LocalVector& u,
 			            std::vector<std::vector<number> > vvvLinDef[],
 			            const size_t nip)
@@ -129,9 +129,6 @@ class FV1NeumannBoundaryElemDisc
 						vvvLinDef[ip][locFct][co] -= vBF[i].volume();
 					}
 				}
-
-			//	we're done
-				return true;
 			}
 
 
@@ -181,32 +178,32 @@ class FV1NeumannBoundaryElemDisc
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID);
 
 	///	switches between non-regular and regular grids
-		virtual bool treat_non_regular_grid(bool bNonRegular);
+		virtual bool request_non_regular_grid(bool bNonRegular);
 
 	private:
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool prepare_element_loop();
+		void prepare_element_loop();
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool prepare_element(TElem* elem, const LocalVector& u);
+		void prepare_element(TElem* elem, const LocalVector& u);
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool finish_element_loop();
+		void finish_element_loop();
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool assemble_JA(LocalMatrix& J, const LocalVector& u);
+		void ass_JA_elem(LocalMatrix& J, const LocalVector& u) {}
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool assemble_JM(LocalMatrix& J, const LocalVector& u);
+		void ass_JM_elem(LocalMatrix& J, const LocalVector& u) {}
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool assemble_A(LocalVector& d, const LocalVector& u);
+		void ass_dA_elem(LocalVector& d, const LocalVector& u) {}
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool assemble_M(LocalVector& d, const LocalVector& u);
+		void ass_dM_elem(LocalVector& d, const LocalVector& u) {}
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		bool assemble_f(LocalVector& d);
+		void ass_rhs_elem(LocalVector& d);
 
 	private:
 	// 	position access

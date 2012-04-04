@@ -43,7 +43,7 @@ class DataLinker
 		DataLinker() {m_vpIIPData.clear(); m_vpIDependData.clear();}
 
 	///	compute method
-		virtual bool compute(bool bDeriv) = 0;
+		virtual void compute(bool bDeriv) = 0;
 
 	///	returns if derivative is zero
 		virtual bool zero_derivative() const;
@@ -179,7 +179,7 @@ class DataLinkerEqualData
 		}
 
 	///	compute method
-		virtual bool compute(bool bDeriv) = 0;
+		virtual void compute(bool bDeriv) = 0;
 
 	///	set number of needed inputs
 		void set_num_input(size_t num);
@@ -347,7 +347,7 @@ class ScaleAddLinker
 		bool add(IPData<TDataScale, dim>& scale, IPData<TData, dim>& data);
 
 	///	computes the value
-		virtual bool compute(bool bDeriv);
+		virtual void compute(bool bDeriv);
 
 	protected:
 	///	resizes the scaling arrays

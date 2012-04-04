@@ -14,7 +14,7 @@ namespace ug{
 
 template<typename TDomain>
 template <typename TUserData>
-void FV1NeumannBoundaryElemDisc<TDomain>::
+void FV1NeumannBoundary<TDomain>::
 extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
              std::vector<TUserData>& vUserData,
              FunctionGroup& commonFctGrp, std::string& fctNames)
@@ -89,7 +89,7 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 }
 
 template<typename TDomain>
-void FV1NeumannBoundaryElemDisc<TDomain>::
+void FV1NeumannBoundary<TDomain>::
 extract_data()
 {
 //	a common function group
@@ -108,7 +108,7 @@ extract_data()
 }
 
 template<typename TDomain>
-void FV1NeumannBoundaryElemDisc<TDomain>::
+void FV1NeumannBoundary<TDomain>::
 add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subsets)
 {
 	m_vNumberData.push_back(NumberData(data, function, subsets));
@@ -117,7 +117,7 @@ add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subse
 }
 
 template<typename TDomain>
-void FV1NeumannBoundaryElemDisc<TDomain>::
+void FV1NeumannBoundary<TDomain>::
 add(BNDNumberFunctor& user, const char* function, const char* subsets)
 {
 	m_vBNDNumberData.push_back(BNDNumberData(user, function, subsets));
@@ -126,7 +126,7 @@ add(BNDNumberFunctor& user, const char* function, const char* subsets)
 }
 
 template<typename TDomain>
-void FV1NeumannBoundaryElemDisc<TDomain>::
+void FV1NeumannBoundary<TDomain>::
 add(VectorFunctor& user, const char* function, const char* subsets)
 {
 	m_vVectorData.push_back(VectorData(user, function, subsets));
@@ -136,9 +136,7 @@ add(VectorFunctor& user, const char* function, const char* subsets)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-inline
-bool
-FV1NeumannBoundaryElemDisc<TDomain>::
+void FV1NeumannBoundary<TDomain>::
 prepare_element_loop()
 {
 //	register subsetIndex at Geometry
@@ -187,7 +185,7 @@ prepare_element_loop()
 
 	this->clear_imports();
 
-	typedef typename FV1NeumannBoundaryElemDisc<TDomain>::NumberData T;
+	typedef typename FV1NeumannBoundary<TDomain>::NumberData T;
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	set lin defect fct for imports
@@ -200,15 +198,11 @@ prepare_element_loop()
 		this->register_import(m_vNumberData[data].import);
 		m_vNumberData[data].import.set_rhs_part(true);
 	}
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-bool
-FV1NeumannBoundaryElemDisc<TDomain>::
+void FV1NeumannBoundary<TDomain>::
 finish_element_loop()
 {
 //	remove subsetIndex from Geometry
@@ -252,17 +246,11 @@ finish_element_loop()
 		geo.remove_boundary_subset(bndSubset);
 	}
 	}
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
-
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-inline
-bool
-FV1NeumannBoundaryElemDisc<TDomain>::
+void FV1NeumannBoundary<TDomain>::
 prepare_element(TElem* elem, const LocalVector& u)
 {
 //	get corners
@@ -271,73 +259,17 @@ prepare_element(TElem* elem, const LocalVector& u)
 //  update Geometry for this element
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-	{
-		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc::prepare_element': "
-				"Cannot update Finite Volume Geometry.\n");
-		return false;
-	}
+		UG_THROW_FATAL("FV1NeumannBoundary::prepare_element: "
+						"Cannot update Finite Volume Geometry.");
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
 		m_vNumberData[i].template extract_bip<TElem, TFVGeom>(geo);
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-inline
-bool
-FV1NeumannBoundaryElemDisc<TDomain>::
-assemble_JA(LocalMatrix& J, const LocalVector& u)
-{
-	// we're done
-	return true;
-}
-
-
-template<typename TDomain>
-template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-inline
-bool
-FV1NeumannBoundaryElemDisc<TDomain>::
-assemble_JM(LocalMatrix& J, const LocalVector& u)
-{
-	// we're done
-	return true;
-}
-
-
-template<typename TDomain>
-template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-inline
-bool
-FV1NeumannBoundaryElemDisc<TDomain>::
-assemble_A(LocalVector& d, const LocalVector& u)
-{
-	// we're done
-	return true;
-}
-
-
-template<typename TDomain>
-template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-inline
-bool
-FV1NeumannBoundaryElemDisc<TDomain>::
-assemble_M(LocalVector& d, const LocalVector& u)
-{
-	// we're done
-	return true;
-}
-
-
-template<typename TDomain>
-template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-inline
-bool
-FV1NeumannBoundaryElemDisc<TDomain>::
-assemble_f(LocalVector& d)
+void FV1NeumannBoundary<TDomain>::
+ass_rhs_elem(LocalVector& d)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
@@ -448,9 +380,6 @@ assemble_f(LocalVector& d)
 			}
 		}
 	}
-
-// 	we're done
-	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -458,7 +387,7 @@ assemble_f(LocalVector& d)
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-FV1NeumannBoundaryElemDisc<TDomain>::FV1NeumannBoundaryElemDisc(const char* subsets)
+FV1NeumannBoundary<TDomain>::FV1NeumannBoundary(const char* subsets)
  :IDomainElemDisc<TDomain>("", subsets)
 {
 	m_mBNDNumberBndSegment.clear();
@@ -470,7 +399,7 @@ FV1NeumannBoundaryElemDisc<TDomain>::FV1NeumannBoundaryElemDisc(const char* subs
 ///	type of trial space for each function used
 template<typename TDomain>
 bool
-FV1NeumannBoundaryElemDisc<TDomain>::
+FV1NeumannBoundary<TDomain>::
 request_finite_element_id(const std::vector<LFEID>& vLfeID)
 {
 //	check that Lagrange 1st order
@@ -482,13 +411,13 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 ///	switches between non-regular and regular grids
 template<typename TDomain>
 bool
-FV1NeumannBoundaryElemDisc<TDomain>::
-treat_non_regular_grid(bool bNonRegular)
+FV1NeumannBoundary<TDomain>::
+request_non_regular_grid(bool bNonRegular)
 {
 //	switch, which assemble functions to use.
 	if(bNonRegular)
 	{
-		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc::treat_non_regular_grid':"
+		UG_LOG("ERROR in 'FVNeumannBoundaryElemDisc::request_non_regular_grid':"
 				" Non-regular grid not implemented.\n");
 		return false;
 	}
@@ -504,7 +433,7 @@ treat_non_regular_grid(bool bNonRegular)
 // register for 1D
 template<typename TDomain>
 void
-FV1NeumannBoundaryElemDisc<TDomain>::
+FV1NeumannBoundary<TDomain>::
 register_all_fv1_funcs(bool bHang)
 {
 //	get all grid element types in this dimension and below
@@ -518,7 +447,7 @@ register_all_fv1_funcs(bool bHang)
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 void
-FV1NeumannBoundaryElemDisc<TDomain>::
+FV1NeumannBoundary<TDomain>::
 register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -527,20 +456,20 @@ register_fv1_func()
 	this->set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
 	this->set_prep_elem_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
 	this->set_fsh_elem_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
-	this->set_ass_JA_elem_fct(		 id, &T::template assemble_JA<TElem, TFVGeom>);
-	this->set_ass_JM_elem_fct(		 id, &T::template assemble_JM<TElem, TFVGeom>);
-	this->set_ass_dA_elem_fct(		 id, &T::template assemble_A<TElem, TFVGeom>);
-	this->set_ass_dM_elem_fct(		 id, &T::template assemble_M<TElem, TFVGeom>);
-	this->set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem, TFVGeom>);
+	this->set_ass_JA_elem_fct(		 id, &T::template ass_JA_elem<TElem, TFVGeom>);
+	this->set_ass_JM_elem_fct(		 id, &T::template ass_JM_elem<TElem, TFVGeom>);
+	this->set_ass_dA_elem_fct(		 id, &T::template ass_dA_elem<TElem, TFVGeom>);
+	this->set_ass_dM_elem_fct(		 id, &T::template ass_dM_elem<TElem, TFVGeom>);
+	this->set_ass_rhs_elem_fct(	 id, &T::template ass_rhs_elem<TElem, TFVGeom>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-template class FV1NeumannBoundaryElemDisc<Domain1d>;
-template class FV1NeumannBoundaryElemDisc<Domain2d>;
-template class FV1NeumannBoundaryElemDisc<Domain3d>;
+template class FV1NeumannBoundary<Domain1d>;
+template class FV1NeumannBoundary<Domain2d>;
+template class FV1NeumannBoundary<Domain3d>;
 
 } // namespace ug
 

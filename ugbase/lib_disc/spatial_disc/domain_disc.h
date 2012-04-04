@@ -250,9 +250,9 @@ class DomainDiscretization
 		}
 
 	///	set the approximation space in the elem discs and extract IElemDiscs
-		bool update_elem_discs();
-		bool update_constraints();
-		bool update_disc_items();
+		void update_elem_discs();
+		void update_constraints();
+		void update_disc_items();
 
 	protected:
 	///	vector holding all registered elem discs

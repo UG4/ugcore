@@ -17,17 +17,17 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_upwind(SmartPtr<IConvectionShapes<dim> > shapes) {m_spConvShape = shapes;}
 
 //////// Diffusion
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user) {m_imDiffusion.set_data(user);}
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_diffusion(number val)
 {
 	set_diffusion(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
@@ -35,7 +35,7 @@ set_diffusion(number val)
 
 #ifndef FOR_VRL
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_diffusion(const char* fctName)
 {
 	set_diffusion(CreateSmartPtr(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
@@ -45,11 +45,11 @@ set_diffusion(const char* fctName)
 //////// Velocity
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user) {m_imVelocity.set_data(user);}
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_velocity(number vel_x)
 {
 	UG_THROW_FATAL("ConvectionDiffusion: Setting velocity vector of dimension 1"
@@ -57,7 +57,7 @@ set_velocity(number vel_x)
 }
 
 template<>
-void ConvectionDiffusionElemDisc<Domain1d>::
+void ConvectionDiffusion<Domain1d>::
 set_velocity(number vel_x)
 {
 	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
@@ -66,7 +66,7 @@ set_velocity(number vel_x)
 }
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_velocity(number vel_x, number vel_y)
 {
 	UG_THROW_FATAL("ConvectionDiffusion: Setting velocity vector of dimension 2"
@@ -74,7 +74,7 @@ set_velocity(number vel_x, number vel_y)
 }
 
 template<>
-void ConvectionDiffusionElemDisc<Domain2d>::
+void ConvectionDiffusion<Domain2d>::
 set_velocity(number vel_x, number vel_y)
 {
 	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
@@ -84,7 +84,7 @@ set_velocity(number vel_x, number vel_y)
 }
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_velocity(number vel_x, number vel_y, number vel_z)
 {
 	UG_THROW_FATAL("ConvectionDiffusion: Setting velocity vector of dimension 3"
@@ -92,7 +92,7 @@ set_velocity(number vel_x, number vel_y, number vel_z)
 }
 
 template<>
-void ConvectionDiffusionElemDisc<Domain3d>::
+void ConvectionDiffusion<Domain3d>::
 set_velocity(number vel_x, number vel_y, number vel_z)
 {
 	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
@@ -105,7 +105,7 @@ set_velocity(number vel_x, number vel_y, number vel_z)
 
 #ifndef FOR_VRL
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_velocity(const char* fctName)
 {
 	set_velocity(CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(fctName)));
@@ -115,11 +115,11 @@ set_velocity(const char* fctName)
 //////// Reaction Rate
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_reaction_rate(SmartPtr<IPData<number, dim> > user) {m_imReactionRate.set_data(user);}
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_reaction_rate(number val)
 {
 	set_reaction_rate(CreateSmartPtr(new ConstUserNumber<dim>(val)));
@@ -127,7 +127,7 @@ set_reaction_rate(number val)
 
 #ifndef FOR_VRL
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_reaction_rate(const char* fctName)
 {
 	set_reaction_rate(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
@@ -137,11 +137,11 @@ set_reaction_rate(const char* fctName)
 //////// Reaction
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_reaction(SmartPtr<IPData<number, dim> > user) {m_imReaction.set_data(user);}
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_reaction(number val)
 {
 	set_reaction(CreateSmartPtr(new ConstUserNumber<dim>(val)));
@@ -149,7 +149,7 @@ set_reaction(number val)
 
 #ifndef FOR_VRL
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_reaction(const char* fctName)
 {
 	set_reaction(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
@@ -159,11 +159,11 @@ set_reaction(const char* fctName)
 //////// Source
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_source(SmartPtr<IPData<number, dim> > user)	{m_imSource.set_data(user);}
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_source(number val)
 {
 	set_source(CreateSmartPtr(new ConstUserNumber<dim>(val)));
@@ -171,7 +171,7 @@ set_source(number val)
 
 #ifndef FOR_VRL
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_source(const char* fctName)
 {
 	set_source(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
@@ -181,11 +181,11 @@ set_source(const char* fctName)
 //////// Mass Scale
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_mass_scale(SmartPtr<IPData<number, dim> > user)	{m_imMassScale.set_data(user);}
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_mass_scale(number val)
 {
 	set_mass_scale(CreateSmartPtr(new ConstUserNumber<dim>(val)));
@@ -193,7 +193,7 @@ set_mass_scale(number val)
 
 #ifndef FOR_VRL
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_mass_scale(const char* fctName)
 {
 	set_mass_scale(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
@@ -203,11 +203,11 @@ set_mass_scale(const char* fctName)
 //////// Mass
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_mass(SmartPtr<IPData<number, dim> > user)	{m_imMass.set_data(user);}
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_mass(number val)
 {
 	set_mass(CreateSmartPtr(new ConstUserNumber<dim>(val)));
@@ -215,7 +215,7 @@ set_mass(number val)
 
 #ifndef FOR_VRL
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_mass(const char* fctName)
 {
 	set_mass(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
@@ -225,7 +225,7 @@ set_mass(const char* fctName)
 
 
 template<typename TDomain>
-bool ConvectionDiffusionElemDisc<TDomain>::
+bool ConvectionDiffusion<TDomain>::
 time_point_changed(number time)
 {
 //	set new time point at imports
@@ -242,14 +242,14 @@ time_point_changed(number time)
 }
 
 template <typename TDomain>
-typename ConvectionDiffusionElemDisc<TDomain>::NumberExport
-ConvectionDiffusionElemDisc<TDomain>::
+typename ConvectionDiffusion<TDomain>::NumberExport
+ConvectionDiffusion<TDomain>::
 value() {return m_exConcentration;}
 
 
 template <typename TDomain>
-typename ConvectionDiffusionElemDisc<TDomain>::GradExport
-ConvectionDiffusionElemDisc<TDomain>::
+typename ConvectionDiffusion<TDomain>::GradExport
+ConvectionDiffusion<TDomain>::
 gradient() {return m_exConcentrationGrad;}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -257,8 +257,8 @@ gradient() {return m_exConcentrationGrad;}
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-ConvectionDiffusionElemDisc<TDomain>::
-ConvectionDiffusionElemDisc(const char* functions, const char* subsets)
+ConvectionDiffusion<TDomain>::
+ConvectionDiffusion(const char* functions, const char* subsets)
  : IDomainElemDisc<TDomain>(functions,subsets), m_spConvShape(new ConvectionShapesNoUpwind<dim>),
    m_exConcentration(new DataExport<number, dim>),
    m_exConcentrationGrad(new DataExport<MathVector<dim>, dim>)
@@ -295,17 +295,17 @@ ConvectionDiffusionElemDisc(const char* functions, const char* subsets)
 	m_discScheme = "fe";
 
 //	update assemble functions
-	set_assemble_funcs();
+	set_ass_funcs();
 }
 
 template<typename TDomain>
-bool ConvectionDiffusionElemDisc<TDomain>::
+bool ConvectionDiffusion<TDomain>::
 request_finite_element_id(const std::vector<LFEID>& vLfeID)
 {
 //	check number
 	if(vLfeID.size() != 1)
 	{
-		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::request_finite_element_id':"
+		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
 				" Wrong number of functions given. Need exactly "<<1<<"\n");
 		return false;
 	}
@@ -313,7 +313,7 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 //	check that Lagrange order
 	if(vLfeID[0].type() != LFEID::LAGRANGE)
 	{
-		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::request_finite_element_id':"
+		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
 				" Lagrange trial space needed.\n");
 		return false;
 	}
@@ -321,7 +321,7 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 //	for fv only 1st order
 	if(m_discScheme == "fv1" && vLfeID[0].order() != 1)
 	{
-		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::request_finite_element_id':"
+		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
 				" FV Scheme only implemented for 1st order.\n");
 		return false;
 	}
@@ -329,7 +329,7 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 //	check that not ADAPTIVE
 	if(vLfeID[0].order() < 1)
 	{
-		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::request_finite_element_id':"
+		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
 				" Adaptive or invalid order not implemented.\n");
 		return false;
 	}
@@ -341,28 +341,28 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 	m_order = vLfeID[0].order();
 
 //	update assemble functions
-	set_assemble_funcs();
+	set_ass_funcs();
 
 //	is supported
 	return true;
 }
 
 template<typename TDomain>
-bool ConvectionDiffusionElemDisc<TDomain>::
-treat_non_regular_grid(bool bNonRegular)
+bool ConvectionDiffusion<TDomain>::
+request_non_regular_grid(bool bNonRegular)
 {
 //	remember
 	m_bNonRegularGrid = bNonRegular;
 
 //	update assemble functions
-	set_assemble_funcs();
+	set_ass_funcs();
 
 //	this disc supports both grids
 	return true;
 }
 
 template<typename TDomain>
-bool ConvectionDiffusionElemDisc<TDomain>::
+bool ConvectionDiffusion<TDomain>::
 use_hanging() const
 {
 	if(m_discScheme == "fv1") return true;
@@ -372,7 +372,7 @@ use_hanging() const
 }
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 set_disc_scheme(const char* c_scheme)
 {
 //	convert to string
@@ -383,7 +383,7 @@ set_disc_scheme(const char* c_scheme)
 	   scheme != std::string("fv1") &&
 	   scheme != std::string("fv"))
 	{
-		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::set_disc_scheme':"
+		UG_LOG("ERROR in 'ConvectionDiffusion::set_disc_scheme':"
 				" Only 'fe', 'fv' and 'fv1' supported.\n");
 	}
 
@@ -391,12 +391,12 @@ set_disc_scheme(const char* c_scheme)
 	m_discScheme = scheme;
 
 //	update assemble functions
-	set_assemble_funcs();
+	set_ass_funcs();
 }
 
 template<typename TDomain>
-void ConvectionDiffusionElemDisc<TDomain>::
-set_assemble_funcs()
+void ConvectionDiffusion<TDomain>::
+set_ass_funcs()
 {
 //	set default quadrature order if not set by user
 	if(!m_bQuadOrderUserDef)

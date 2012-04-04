@@ -27,8 +27,8 @@ namespace ug{
 
 
 template<typename TDomain>
-FE1LinearElasticityElemDisc<TDomain>::
-FE1LinearElasticityElemDisc(const char* functions, const char* subsets)
+FE1LinearElasticity<TDomain>::
+FE1LinearElasticity(const char* functions, const char* subsets)
 	: 	IDomainElemDisc<TDomain>(functions,subsets), m_ElasticityTensorFct(NULL)
 {
 //	check number of functions
@@ -43,8 +43,7 @@ FE1LinearElasticityElemDisc(const char* functions, const char* subsets)
 
 template<typename TDomain>
 template<typename TElem >
-bool
-FE1LinearElasticityElemDisc<TDomain>::
+void FE1LinearElasticity<TDomain>::
 prepare_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -52,27 +51,17 @@ prepare_element_loop()
 
 // 	evaluate Elasticity Tensor
 	m_ElasticityTensorFct(m_ElasticityTensor);
-
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem >
-inline
-bool
-FE1LinearElasticityElemDisc<TDomain>::
+void FE1LinearElasticity<TDomain>::
 finish_element_loop()
-{
-//	nothing to do
-	return true;
-}
+{}
 
 template<typename TDomain>
-
 template<typename TElem >
-inline
-bool
-FE1LinearElasticityElemDisc<TDomain>::
+void FE1LinearElasticity<TDomain>::
 prepare_element(TElem* elem, const LocalVector& u)
 {
 //	get corners
@@ -86,18 +75,14 @@ prepare_element(TElem* elem, const LocalVector& u)
 		= Provider<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >::get();
 
 	if(!geo.update(elem, m_corners, LFEID(LFEID::LAGRANGE,1), 2))
-		{UG_LOG("FE1LinearElasticityElemDisc::prepare_element:"
-				" Cannot update Finite Element Geometry.\n"); return false;}
-
-	return true;
+		UG_THROW_FATAL("FE1LinearElasticity::prepare_element:"
+						" Cannot update Finite Element Geometry.\n");
 }
 
 template<typename TDomain>
 template<typename TElem >
-inline
-bool
-FE1LinearElasticityElemDisc<TDomain>::
-assemble_JA(LocalMatrix& J, const LocalVector& u)
+void FE1LinearElasticity<TDomain>::
+ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
@@ -133,17 +118,13 @@ assemble_JA(LocalMatrix& J, const LocalVector& u)
 			}
 		}
 	}
-
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem >
-inline
-bool
-FE1LinearElasticityElemDisc<TDomain>::
-assemble_JM(LocalMatrix& J, const LocalVector& u)
+void FE1LinearElasticity<TDomain>::
+ass_JM_elem(LocalMatrix& J, const LocalVector& u)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
@@ -166,45 +147,28 @@ assemble_JM(LocalMatrix& J, const LocalVector& u)
 			}
 		}
 	}
-
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem >
-inline
-bool
-FE1LinearElasticityElemDisc<TDomain>::
-assemble_A(LocalVector& d, const LocalVector& u)
-{
-	// Not implemented
-	return false;
-}
+void FE1LinearElasticity<TDomain>::
+ass_dA_elem(LocalVector& d, const LocalVector& u)
+{}
 
 
 template<typename TDomain>
 template<typename TElem >
-inline
-bool
-FE1LinearElasticityElemDisc<TDomain>::
-assemble_M(LocalVector& d, const LocalVector& u)
-{
-	// Not implemented
-	return false;
-}
+void FE1LinearElasticity<TDomain>::
+ass_dM_elem(LocalVector& d, const LocalVector& u)
+{}
 
 
 template<typename TDomain>
 template<typename TElem >
-inline
-bool
-FE1LinearElasticityElemDisc<TDomain>::
-assemble_f(LocalVector& d)
-{
-	// Not implemented
-	return false;
-}
+void FE1LinearElasticity<TDomain>::
+ass_rhs_elem(LocalVector& d)
+{}
 
 ////////////////////////////////////////////////////////////////////////////////
 //	register assemble functions
@@ -212,8 +176,7 @@ assemble_f(LocalVector& d)
 
 // register for 1D
 template<typename TDomain>
-void
-FE1LinearElasticityElemDisc<TDomain>::
+void FE1LinearElasticity<TDomain>::
 register_all_fe1_funcs()
 {
 //	get all grid element types in this dimension and below
@@ -225,8 +188,7 @@ register_all_fe1_funcs()
 
 template<typename TDomain>
 template<typename TElem>
-void
-FE1LinearElasticityElemDisc<TDomain>::
+void FE1LinearElasticity<TDomain>::
 register_fe1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -235,20 +197,20 @@ register_fe1_func()
 	this->set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem>);
 	this->set_prep_elem_fct(	 id, &T::template prepare_element<TElem>);
 	this->set_fsh_elem_loop_fct( id, &T::template finish_element_loop<TElem>);
-	this->set_ass_JA_elem_fct(		 id, &T::template assemble_JA<TElem>);
-	this->set_ass_JM_elem_fct(		 id, &T::template assemble_JM<TElem>);
-	this->set_ass_dA_elem_fct(		 id, &T::template assemble_A<TElem>);
-	this->set_ass_dM_elem_fct(		 id, &T::template assemble_M<TElem>);
-	this->set_ass_rhs_elem_fct(	 id, &T::template assemble_f<TElem>);
+	this->set_ass_JA_elem_fct(		 id, &T::template ass_JA_elem<TElem>);
+	this->set_ass_JM_elem_fct(		 id, &T::template ass_JM_elem<TElem>);
+	this->set_ass_dA_elem_fct(		 id, &T::template ass_dA_elem<TElem>);
+	this->set_ass_dM_elem_fct(		 id, &T::template ass_dM_elem<TElem>);
+	this->set_ass_rhs_elem_fct(	 id, &T::template ass_rhs_elem<TElem>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-template class FE1LinearElasticityElemDisc<Domain1d>;
-template class FE1LinearElasticityElemDisc<Domain2d>;
-template class FE1LinearElasticityElemDisc<Domain3d>;
+template class FE1LinearElasticity<Domain1d>;
+template class FE1LinearElasticity<Domain2d>;
+template class FE1LinearElasticity<Domain3d>;
 
 
 } // namespace ug

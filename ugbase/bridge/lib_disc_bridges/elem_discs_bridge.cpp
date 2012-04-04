@@ -68,7 +68,7 @@ void Register__Domain(Registry& reg, string grp)
 	{
 		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
 		typedef boost::function<void (MathVector<dim>& value, const MathVector<dim>& x, number time)> VectorFunctor;
-		typedef FV1NeumannBoundaryElemDisc<TDomain> T;
+		typedef FV1NeumannBoundary<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1NeumannBoundary").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
@@ -100,7 +100,7 @@ void Register__Domain(Registry& reg, string grp)
 
 //	Constant Equation Finite Volume
 	{
-		typedef FVConstantEquationElemDisc<TDomain> T;
+		typedef FV1ConstantEquation<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1ConstantEquation").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
@@ -116,7 +116,7 @@ void Register__Domain(Registry& reg, string grp)
 
 //	Convection Diffusion
 	{
-		typedef ConvectionDiffusionElemDisc<TDomain> T;
+		typedef ConvectionDiffusion<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("ConvectionDiffusion").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
@@ -179,7 +179,7 @@ void Register__Domain(Registry& reg, string grp)
 
 //	Density Driven Flow
 	{
-		typedef DensityDrivenFlowElemDisc<TDomain> T2;
+		typedef DensityDrivenFlow<TDomain> T2;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("DensityDrivenFlow").append(dimSuffix);
 		reg.add_class_<T2, TBase >(name, elemGrp)
@@ -212,7 +212,7 @@ void Register__Domain(Registry& reg, string grp)
 
 //	Thermohaline Flow
 	{
-		typedef ThermohalineFlowElemDisc<TDomain> T2;
+		typedef FV1ThermohalineFlow<TDomain> T2;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1ThermohalineFlow").append(dimSuffix);
 		reg.add_class_<T2, TBase >(name, elemGrp)

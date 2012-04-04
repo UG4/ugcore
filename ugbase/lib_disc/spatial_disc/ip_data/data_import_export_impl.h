@@ -44,7 +44,7 @@ template <typename TClass>
 void
 DataImport<TData,dim>::
 set_fct(ReferenceObjectID id, TClass* obj,
-        bool (TClass::*func)(const LocalVector& u,
+        void (TClass::*func)(const LocalVector& u,
         					 std::vector<std::vector<TData> > vvvLinDefect[],
         					 const size_t nip))
 {
@@ -58,7 +58,7 @@ template <typename TData, int dim>
 void
 DataImport<TData,dim>::
 set_fct(ReferenceObjectID id,
-             bool (*func)(const LocalVector& u,
+             void (*func)(const LocalVector& u,
             		 	  std::vector<std::vector<TData> > vvvLinDefect[],
             		 	  const size_t nip))
 {
@@ -291,7 +291,7 @@ template <typename TData, int dim>
 template <typename T, int refDim>
 void DataExport<TData, dim>::
 set_fct(ReferenceObjectID id, IElemDisc* obj,
-        bool (T::*func)(const LocalVector& u,
+        void (T::*func)(const LocalVector& u,
         				const MathVector<dim> vGlobIP[],
         				const MathVector<refDim> vLocIP[],
         				const size_t nip,
@@ -314,10 +314,10 @@ set_fct(ReferenceObjectID id, IElemDisc* obj,
 
 template <typename TData, int dim>
 template <typename T, int refDim>
-inline bool DataExport<TData, dim>::
+inline void DataExport<TData, dim>::
 comp(const LocalVector& u, bool bDeriv)
 {
-	typedef bool (T::*ExpFunc)(	const LocalVector& u,
+	typedef void (T::*ExpFunc)(	const LocalVector& u,
 								const MathVector<dim> vGlobIP[],
 								const MathVector<refDim> vLocIP[],
 								const size_t nip,
@@ -326,7 +326,7 @@ comp(const LocalVector& u, bool bDeriv)
 								std::vector<std::vector<TData> > vvvDeriv[]);
 
 
-	typedef bool (IElemDisc::*ElemDiscFunc)(
+	typedef void (IElemDisc::*ElemDiscFunc)(
 								const LocalVector& u,
 								const MathVector<dim> vGlobIP[],
 								const MathVector<refDim> vLocIP[],
@@ -342,10 +342,9 @@ comp(const LocalVector& u, bool bDeriv)
 	ElemDiscFunc elemDiscfunc = static_cast<ElemDiscFunc>(func);
 
 //	evaluate for each ip series
-	bool bRet = true;
 	for(size_t s = 0; s < this->num_series(); ++s)
 	{
-		bRet &= (m_pObj->*(elemDiscfunc))
+		(m_pObj->*(elemDiscfunc))
 				(u,
 				 this->ips(s),
 				 this->template local_ips<refDim>(s),
@@ -354,7 +353,6 @@ comp(const LocalVector& u, bool bDeriv)
 				 bDeriv,
 				 &this->m_vvvvDeriv[s][0]);
 	}
-	return bRet;
 }
 
 template <typename TData, int dim>
@@ -402,19 +400,18 @@ bool DataExport<TData, dim>::is_ready() const
 }
 
 template <typename TData, int dim>
-bool DataExport<TData, dim>::compute(bool bDeriv)
+void DataExport<TData, dim>::compute(bool bDeriv)
 {
-	UG_LOG("ERROR in 'DataExport::compute()': Computation of Export "
-		 	 "without current solution called. Cannot evaluate.\n");
-	return false;
+	UG_THROW_FATAL("DataExport::compute(): Computation of Export "
+		 	 	   "without current solution called. Cannot evaluate.");
 }
 
 template <typename TData, int dim>
-bool DataExport<TData, dim>::compute_with_sol(const LocalVector& u, bool bDeriv)
+void DataExport<TData, dim>::compute_with_sol(const LocalVector& u, bool bDeriv)
 {
 	UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
 	UG_ASSERT(m_vCompFct[m_id] != NULL, "Func pointer is NULL");
-	return (this->*m_vCompFct[m_id])(u, bDeriv);
+	(this->*m_vCompFct[m_id])(u, bDeriv);
 }
 
 template <typename TData, int dim>

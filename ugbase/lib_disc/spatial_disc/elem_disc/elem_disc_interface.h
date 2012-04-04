@@ -141,7 +141,7 @@ class IElemDisc
 	 * \returns			bool			true  if successful
 	 * 									false if cannot be handled by disc
 	 */
-		virtual bool treat_non_regular_grid(bool bNonRegular) = 0;
+		virtual bool request_non_regular_grid(bool bNonRegular) = 0;
 
 	///	returns if discretization acts on hanging nodes if present
 	/**
@@ -229,10 +229,8 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		/*bool prepare_timestep_elem(const LocalVector& u)
-			{return (this->*(m_vPrepareTimestepElemFct[m_id]))(u);}*/
 		template <typename TElem>
-		bool prepare_timestep_elem(TElem* elem, const LocalVector& u);
+		void prepare_timestep_elem(TElem* elem, const LocalVector& u);
 
 	///	prepares the loop over all elements of one type
 	/**
@@ -242,7 +240,7 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool prepare_elem_loop()
+		void prepare_elem_loop()
 			{return (this->*(m_vPrepareElemLoopFct[m_id]))();}
 
 	///	prepare one elements for assembling
@@ -257,7 +255,7 @@ class IElemDisc
 	 * \param[in]		glob_ind	The global indices of the local solution
 	 */
 		template <typename TElem>
-		bool prepare_elem(TElem* elem, const LocalVector& u);
+		void prepare_elem(TElem* elem, const LocalVector& u);
 
 	///	postprocesses the loop over all elements of one type
 	/**
@@ -267,7 +265,7 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool finish_elem_loop()
+		void finish_elem_loop()
 			{return (this->*(m_vFinishElemLoopFct[m_id]))();}
 
 	/// finish the timestep
@@ -278,7 +276,7 @@ class IElemDisc
 	 * 'set_roid must have been called to set the elem type.
 	 */
 		template <typename TElem>
-		bool finish_timestep_elem(TElem* elem, const number time, const LocalVector& u);
+		void finish_timestep_elem(TElem* elem, const number time, const LocalVector& u);
 
 	/// Assembling of Jacobian (Stiffness part)
 	/**
@@ -287,7 +285,7 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool ass_JA_elem(LocalMatrix& J, const LocalVector& u)
+		void ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 			{return (this->*(m_vElemJAFct[m_id]))(J, u);}
 
 	/// Assembling of Jacobian (Mass part)
@@ -297,7 +295,7 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool ass_JM_elem(LocalMatrix& J, const LocalVector& u)
+		void ass_JM_elem(LocalMatrix& J, const LocalVector& u)
 			{return (this->*(m_vElemJMFct[m_id]))(J, u);}
 
 	/// Assembling of Defect (Stiffness part)
@@ -307,7 +305,7 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool ass_dA_elem(LocalVector& d, const LocalVector& u)
+		void ass_dA_elem(LocalVector& d, const LocalVector& u)
 			{return (this->*(m_vElemdAFct[m_id]))(d, u);}
 
 
@@ -318,7 +316,7 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool ass_dM_elem(LocalVector& d, const LocalVector& u)
+		void ass_dM_elem(LocalVector& d, const LocalVector& u)
 			{return (this->*(m_vElemdMFct[m_id]))(d, u);}
 
 	/// Assembling of Right-Hand Side
@@ -327,7 +325,7 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid must have been called to set the elem type.
 	 */
-		bool ass_rhs_elem(LocalVector& rhs)
+		void ass_rhs_elem(LocalVector& rhs)
 			{return (this->*(m_vElemRHSFct[m_id]))(rhs);}
 
 	/// Virtual destructor
@@ -351,28 +349,28 @@ class IElemDisc
 		typedef IElemDisc T;
 
 	// 	types of timestep function pointers
-		typedef bool (T::*PrepareTimestepElemFct)(const LocalVector& u);
-		typedef bool (T::*FinishTimestepElemFct)(const LocalVector& u);
+		typedef void (T::*PrepareTimestepElemFct)(const LocalVector& u);
+		typedef void (T::*FinishTimestepElemFct)(const LocalVector& u);
 
 	// 	types of loop function pointers
-		typedef bool (T::*PrepareElemLoopFct)();
-		typedef bool (T::*PrepareElemFct)(GeometricObject* obj, const LocalVector& u);
-		typedef bool (T::*FinishElemLoopFct)();
+		typedef void (T::*PrepareElemLoopFct)();
+		typedef void (T::*PrepareElemFct)(GeometricObject* obj, const LocalVector& u);
+		typedef void (T::*FinishElemLoopFct)();
 
 	// 	types of Jacobian assemble functions
-		typedef bool (T::*ElemJAFct)(	LocalMatrix& J,
+		typedef void (T::*ElemJAFct)(	LocalMatrix& J,
 										const LocalVector& u);
-		typedef bool (T::*ElemJMFct)(	LocalMatrix& J,
+		typedef void (T::*ElemJMFct)(	LocalMatrix& J,
 										const LocalVector& u);
 
 	// 	types of Defect assemble functions
-		typedef bool (T::*ElemdAFct)( 	LocalVector& d,
+		typedef void (T::*ElemdAFct)( 	LocalVector& d,
 										const LocalVector& u);
-		typedef bool (T::*ElemdMFct)(	LocalVector& d,
+		typedef void (T::*ElemdMFct)(	LocalVector& d,
 											const LocalVector& u);
 
 	// 	types of right hand side assemble functions
-		typedef bool (T::*ElemRHSFct)(LocalVector& d);
+		typedef void (T::*ElemRHSFct)(LocalVector& d);
 
 	protected:
 	// 	register the functions

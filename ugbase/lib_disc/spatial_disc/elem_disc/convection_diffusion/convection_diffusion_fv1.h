@@ -23,7 +23,7 @@ namespace ug{
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 elem_loop_prepare_fv1()
 {
 //	reference dimension
@@ -51,36 +51,24 @@ elem_loop_prepare_fv1()
 
 //	check, that upwind has been set
 	if(m_spConvShape.invalid())
-	{
-		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::prepare_element_loop':"
-				" Upwind has not been set.\n");
-		return false;
-	}
+		UG_THROW_FATAL("ConvectionDiffusion::prepare_element_loop:"
+						" Upwind has not been set.");
 
 //	init upwind for element type
 	if(!m_spConvShape->template set_geometry_type<TFVGeom>())
-	{
-		UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::prepare_element_loop':"
-				" Cannot init upwind for element type.\n");
-		return false;
-	}
-
-//	done
-	return true;
+		UG_THROW_FATAL("ConvectionDiffusion::prepare_element_loop:"
+						" Cannot init upwind for element type.");
 }
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 elem_loop_finish_fv1()
-{
-//	nothing to do
-	return true;
-}
+{}
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 elem_prepare_fv1(TElem* elem, const LocalVector& u)
 {
 //	get reference elements
@@ -93,10 +81,8 @@ elem_prepare_fv1(TElem* elem, const LocalVector& u)
 	static TFVGeom& geo = Provider<TFVGeom>::get();
 
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-	{
-		UG_LOG("ConvectionDiffusionElemDisc::prepare_element:"
-				" Cannot update Finite Volume Geometry.\n"); return false;
-	}
+		UG_THROW_FATAL("ConvectionDiffusion::prepare_element:"
+						" Cannot update Finite Volume Geometry.");
 
 //	set local positions
 	if(TFVGeom::usesHangingNodes)
@@ -118,11 +104,8 @@ elem_prepare_fv1(TElem* elem, const LocalVector& u)
 
 		if(m_spConvShape.valid())
 			if(!m_spConvShape->template set_geometry_type<TFVGeom>())
-			{
-				UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::prepare_element_loop':"
-						" Cannot init upwind for element type.\n");
-				return false;
-			}
+				UG_THROW_FATAL("ConvectionDiffusion::prepare_element_loop:"
+								" Cannot init upwind for element type.");
 	}
 
 //	set global positions
@@ -133,15 +116,12 @@ elem_prepare_fv1(TElem* elem, const LocalVector& u)
 	m_imReaction.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imMassScale.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imMass.		set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
-elem_JA_fv1(LocalMatrix& J, const LocalVector& u)
+void ConvectionDiffusion<TDomain>::
+ass_JA_elem_fv1(LocalMatrix& J, const LocalVector& u)
 {
 // get finite volume geometry
 	const static TFVGeom& geo = Provider<TFVGeom>::get();
@@ -206,7 +186,7 @@ elem_JA_fv1(LocalMatrix& J, const LocalVector& u)
 ////////////////////////////////////////////////////
 
 //	if no data for reaction rate given, return
-	if(!m_imReactionRate.data_given()) return true;
+	if(!m_imReactionRate.data_given()) return;
 
 // 	loop Sub Control Volume (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
@@ -222,16 +202,13 @@ elem_JA_fv1(LocalMatrix& J, const LocalVector& u)
 	}
 
 //	reaction term does not explicitly depend on the associated unknown function
-
-// 	we're done
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
-elem_JM_fv1(LocalMatrix& J, const LocalVector& u)
+void ConvectionDiffusion<TDomain>::
+ass_JM_elem_fv1(LocalMatrix& J, const LocalVector& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom& geo = Provider<TFVGeom>::get();
@@ -257,16 +234,13 @@ elem_JM_fv1(LocalMatrix& J, const LocalVector& u)
 	}
 
 //	m_imMass part does not explicitly depend on associated unknown function
-
-//	 we're done
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
-elem_dA_fv1(LocalVector& d, const LocalVector& u)
+void ConvectionDiffusion<TDomain>::
+ass_dA_elem_fv1(LocalVector& d, const LocalVector& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom& geo = Provider<TFVGeom>::get();
@@ -356,16 +330,13 @@ elem_dA_fv1(LocalVector& d, const LocalVector& u)
 			d(_C_, co) += m_imReaction[ip] * scv.volume();
 		}
 	}
-
-// 	we're done
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
-elem_dM_fv1(LocalVector& d, const LocalVector& u)
+void ConvectionDiffusion<TDomain>::
+ass_dM_elem_fv1(LocalVector& d, const LocalVector& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom& geo = Provider<TFVGeom>::get();
@@ -414,19 +385,16 @@ elem_dM_fv1(LocalVector& d, const LocalVector& u)
 			d(_C_, co) += val * scv.volume();
 		}
 	}
-
-// 	we're done
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
-elem_rhs_fv1(LocalVector& d)
+void ConvectionDiffusion<TDomain>::
+ass_rhs_elem_fv1(LocalVector& d)
 {
 //	if zero data given, return
-	if(!m_imSource.data_given()) return true;
+	if(!m_imSource.data_given()) return;
 
 // 	get finite volume geometry
 	const static TFVGeom& geo = Provider<TFVGeom>::get();
@@ -443,16 +411,13 @@ elem_rhs_fv1(LocalVector& d)
 	// 	Add to local rhs
 		d(_C_, co) += m_imSource[ip] * scv.volume();
 	}
-
-// 	we're done
-	return true;
 }
 
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 lin_def_velocity_fv1(const LocalVector& u,
                      std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                      const size_t nip)
@@ -485,15 +450,12 @@ lin_def_velocity_fv1(const LocalVector& u,
 		vvvLinDef[ip][_C_][scvf.from()] += linDefect;
 		vvvLinDef[ip][_C_][scvf.to()] -= linDefect;
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 lin_def_diffusion_fv1(const LocalVector& u,
                       std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
                       const size_t nip)
@@ -538,15 +500,12 @@ lin_def_diffusion_fv1(const LocalVector& u,
 		vvvLinDef[ip][_C_][scvf.from()] -= linDefect;
 		vvvLinDef[ip][_C_][scvf.to()  ] += linDefect;
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the reaction rate
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 lin_def_reaction_rate_fv1(const LocalVector& u,
                           std::vector<std::vector<number> > vvvLinDef[],
                           const size_t nip)
@@ -566,15 +525,12 @@ lin_def_reaction_rate_fv1(const LocalVector& u,
 	// 	set lin defect
 		vvvLinDef[ip][_C_][co] = u(_C_, co) * scv.volume();
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the reaction
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 lin_def_reaction_fv1(const LocalVector& u,
                      std::vector<std::vector<number> > vvvLinDef[],
                      const size_t nip)
@@ -594,15 +550,12 @@ lin_def_reaction_fv1(const LocalVector& u,
 	// 	set lin defect
 		vvvLinDef[ip][_C_][co] = scv.volume();
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the source
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 lin_def_source_fv1(const LocalVector& u,
                    std::vector<std::vector<number> > vvvLinDef[],
                    const size_t nip)
@@ -622,15 +575,12 @@ lin_def_source_fv1(const LocalVector& u,
 	// 	set lin defect
 		vvvLinDef[ip][_C_][co] = scv.volume();
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the mass scale
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 lin_def_mass_scale_fv1(const LocalVector& u,
                        std::vector<std::vector<number> > vvvLinDef[],
                        const size_t nip)
@@ -650,15 +600,12 @@ lin_def_mass_scale_fv1(const LocalVector& u,
 	// 	set lin defect
 		vvvLinDef[co][_C_][co] = u(_C_, co) * scv.volume();
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the mass scale
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 lin_def_mass_fv1(const LocalVector& u,
                        std::vector<std::vector<number> > vvvLinDef[],
                        const size_t nip)
@@ -678,15 +625,12 @@ lin_def_mass_fv1(const LocalVector& u,
 	// 	set lin defect
 		vvvLinDef[co][_C_][co] = scv.volume();
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 ex_value_fv1(const LocalVector& u,
                      const MathVector<dim> vGlobIP[],
                      const MathVector<TFVGeom::dim> vLocIP[],
@@ -765,15 +709,12 @@ ex_value_fv1(const LocalVector& u,
 					vvvDeriv[ip][_C_][sh] = vShape[sh];
 		}
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
-bool ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 ex_grad_fv1(const LocalVector& u,
                           const MathVector<dim> vGlobIP[],
                           const MathVector<TFVGeom::dim> vLocIP[],
@@ -848,15 +789,12 @@ ex_grad_fv1(const LocalVector& u,
 					MatVecMult(vvvDeriv[ip][_C_][sh], JTInv, vLocGrad[sh]);
 		}
 	}
-
-//	we're done
-	return true;
 };
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
-const typename ConvectionDiffusionElemDisc<TDomain>::conv_shape_type&
-ConvectionDiffusionElemDisc<TDomain>::
+const typename ConvectionDiffusion<TDomain>::conv_shape_type&
+ConvectionDiffusion<TDomain>::
 get_updated_conv_shapes(const FVGeometryBase& geo)
 {
 //	compute upwind shapes for transport equation
@@ -871,7 +809,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 	//	update convection shapes
 		if(!m_spConvShape->update(&geo, m_imVelocity.values(), vDiffusion, true))
 		{
-			UG_LOG("ERROR in 'ConvectionDiffusionElemDisc::assemble_JA': "
+			UG_LOG("ERROR in 'ConvectionDiffusion::ass_JA_elem': "
 					"Cannot compute convection shapes.\n");
 		}
 	}
@@ -886,7 +824,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 ////////////////////////////////////////////////////////////////////////////////
 
 template<>
-void ConvectionDiffusionElemDisc<Domain1d>::
+void ConvectionDiffusion<Domain1d>::
 register_all_fv1_funcs(bool bHang)
 {
 //	switch assemble functions
@@ -901,7 +839,7 @@ register_all_fv1_funcs(bool bHang)
 }
 
 template<>
-void ConvectionDiffusionElemDisc<Domain2d>::
+void ConvectionDiffusion<Domain2d>::
 register_all_fv1_funcs(bool bHang)
 {
 //	switch assemble functions
@@ -918,7 +856,7 @@ register_all_fv1_funcs(bool bHang)
 }
 
 template<>
-void ConvectionDiffusionElemDisc<Domain3d>::
+void ConvectionDiffusion<Domain3d>::
 register_all_fv1_funcs(bool bHang)
 {
 //	switch assemble functions
@@ -940,7 +878,7 @@ register_all_fv1_funcs(bool bHang)
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
-void ConvectionDiffusionElemDisc<TDomain>::
+void ConvectionDiffusion<TDomain>::
 register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -950,11 +888,11 @@ register_fv1_func()
 	this->set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fv1<TElem, TFVGeom>);
 	this->set_prep_elem_fct(	 id, &T::template elem_prepare_fv1<TElem, TFVGeom>);
 	this->set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fv1<TElem, TFVGeom>);
-	this->set_ass_JA_elem_fct(   id, &T::template elem_JA_fv1<TElem, TFVGeom>);
-	this->set_ass_JM_elem_fct(   id, &T::template elem_JM_fv1<TElem, TFVGeom>);
-	this->set_ass_dA_elem_fct(   id, &T::template elem_dA_fv1<TElem, TFVGeom>);
-	this->set_ass_dM_elem_fct(   id, &T::template elem_dM_fv1<TElem, TFVGeom>);
-	this->set_ass_rhs_elem_fct(  id, &T::template elem_rhs_fv1<TElem, TFVGeom>);
+	this->set_ass_JA_elem_fct(   id, &T::template ass_JA_elem_fv1<TElem, TFVGeom>);
+	this->set_ass_JM_elem_fct(   id, &T::template ass_JM_elem_fv1<TElem, TFVGeom>);
+	this->set_ass_dA_elem_fct(   id, &T::template ass_dA_elem_fv1<TElem, TFVGeom>);
+	this->set_ass_dM_elem_fct(   id, &T::template ass_dM_elem_fv1<TElem, TFVGeom>);
+	this->set_ass_rhs_elem_fct(  id, &T::template ass_rhs_elem_fv1<TElem, TFVGeom>);
 
 //	set computation of linearized defect w.r.t velocity
 	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity_fv1<TElem, TFVGeom>);

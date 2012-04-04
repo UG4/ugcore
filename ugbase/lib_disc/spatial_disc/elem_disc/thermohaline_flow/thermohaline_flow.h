@@ -71,7 +71,7 @@ namespace ug{
  * \tparam	TAlgebra	Algebra
  */
 template<typename TDomain>
-class ThermohalineFlowElemDisc
+class FV1ThermohalineFlow
 	: public IDomainElemDisc<TDomain>
 {
 	private:
@@ -79,7 +79,7 @@ class ThermohalineFlowElemDisc
 		typedef IDomainElemDisc<TDomain> base_type;
 
 	///	own type
-		typedef ThermohalineFlowElemDisc<TDomain> this_type;
+		typedef FV1ThermohalineFlow<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -93,7 +93,7 @@ class ThermohalineFlowElemDisc
 
 	public:
 	///	Constructor
-		ThermohalineFlowElemDisc(const char* functions, const char* subsets);
+		FV1ThermohalineFlow(const char* functions, const char* subsets);
 
 	///	sets usage of consistent gravity
 		void set_consistent_gravity(bool bUse)
@@ -248,12 +248,12 @@ class ThermohalineFlowElemDisc
 		}
 
 	///	switches between non-regular and regular grids
-		virtual bool treat_non_regular_grid(bool bNonRegular)
+		virtual bool request_non_regular_grid(bool bNonRegular)
 		{
 		//	switch, which assemble functions to use.
 			if(bNonRegular)
 			{
-				UG_LOG("ERROR in 'ThermohalineFlowElemDisc::treat_non_regular_grid':"
+				UG_LOG("ERROR in 'FV1ThermohalineFlow::request_non_regular_grid':"
 						" Non-regular grid not implemented.\n");
 				return false;
 			}
@@ -274,28 +274,28 @@ class ThermohalineFlowElemDisc
 		virtual bool time_point_changed(number time);
 
 		template <typename TElem>
-		bool prepare_element_loop();
+		void prepare_element_loop();
 
 		template <typename TElem>
-		bool prepare_element(TElem* elem, const LocalVector& u);
+		void prepare_element(TElem* elem, const LocalVector& u);
 
 		template <typename TElem>
-		bool finish_element_loop();
+		void finish_element_loop();
 
 		template <typename TElem>
-		bool assemble_JA(LocalMatrix& J, const LocalVector& u);
+		void ass_JA_elem(LocalMatrix& J, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_JM(LocalMatrix& J, const LocalVector& u);
+		void ass_JM_elem(LocalMatrix& J, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_A(LocalVector& d, const LocalVector& u);
+		void ass_dA_elem(LocalVector& d, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_M(LocalVector& d, const LocalVector& u);
+		void ass_dM_elem(LocalVector& d, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_f(LocalVector& d);
+		void ass_rhs_elem(LocalVector& d);
 
 	private:
 	///	strategy to compute the upwind shapes
@@ -416,7 +416,7 @@ class ThermohalineFlowElemDisc
 
 	///	computes the darcy velocity using consistent gravity
 		template <typename TElem>
-		bool ex_darcy_std(const LocalVector& u,
+		void ex_darcy_std(const LocalVector& u,
 						  const MathVector<dim> vGlobIP[],
 						  const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 						  const size_t nip,
@@ -426,7 +426,7 @@ class ThermohalineFlowElemDisc
 
 	///	computes the darcy velocity using consistent gravity
 		template <typename TElem>
-		bool ex_darcy_cons_grav(const LocalVector& u,
+		void ex_darcy_cons_grav(const LocalVector& u,
 								const MathVector<dim> vGlobIP[],
 								const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 								const size_t nip,
@@ -436,7 +436,7 @@ class ThermohalineFlowElemDisc
 
 	///	computes the value of the brine mass fraction
 		template <typename TElem>
-		bool ex_brine(const LocalVector& u,
+		void ex_brine(const LocalVector& u,
 					  const MathVector<dim> vGlobIP[],
 					  const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 					  const size_t nip,
@@ -446,7 +446,7 @@ class ThermohalineFlowElemDisc
 
 	///	computes the value of the gradient of the brine mass fraction
 		template <typename TElem>
-		bool ex_brine_grad(const LocalVector& u,
+		void ex_brine_grad(const LocalVector& u,
 						   const MathVector<dim> vGlobIP[],
 						   const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 						   const size_t nip,
@@ -456,7 +456,7 @@ class ThermohalineFlowElemDisc
 
 	///	computes the value of the gradient of the pressure
 		template <typename TElem>
-		bool ex_pressure_grad(const LocalVector& u,
+		void ex_pressure_grad(const LocalVector& u,
 							  const MathVector<dim> vGlobIP[],
 							  const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 							  const size_t nip,
@@ -466,7 +466,7 @@ class ThermohalineFlowElemDisc
 
 	///	computes the value of the brine mass fraction
 		template <typename TElem>
-		bool ex_temperature(const LocalVector& u,
+		void ex_temperature(const LocalVector& u,
 						  const MathVector<dim> vGlobIP[],
 						  const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 						  const size_t nip,
@@ -476,7 +476,7 @@ class ThermohalineFlowElemDisc
 
 	///	computes the value of the gradient of the brine mass fraction
 		template <typename TElem>
-		bool ex_temperature_grad(const LocalVector& u,
+		void ex_temperature_grad(const LocalVector& u,
 							   const MathVector<dim> vGlobIP[],
 							   const MathVector<FV1Geometry<TElem,dim>::dim> vLocIP[],
 							   const size_t nip,

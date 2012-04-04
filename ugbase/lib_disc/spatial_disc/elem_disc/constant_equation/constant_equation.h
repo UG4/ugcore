@@ -41,14 +41,14 @@ namespace ug{
  * \tparam	TAlgebra	Algebra
  */
 template<	typename TDomain>
-class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
+class FV1ConstantEquation : public IDomainElemDisc<TDomain>
 {
 	private:
 	///	Base class type
 		typedef IDomainElemDisc<TDomain> base_type;
 
 	///	Own type
-		typedef FVConstantEquationElemDisc<TDomain> this_type;
+		typedef FV1ConstantEquation<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -62,7 +62,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 
 	public:
 	///	Constructor
-		FVConstantEquationElemDisc(const char* functions, const char* subsets);
+		FV1ConstantEquation(const char* functions, const char* subsets);
 
 	///	sets the velocity field
 	/**
@@ -97,7 +97,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 		}
 
 	///	switches between non-regular and regular grids
-		virtual bool treat_non_regular_grid(bool bNonRegular)
+		virtual bool request_non_regular_grid(bool bNonRegular)
 		{
 		//	switch, which assemble functions to use.
 			register_all_fv1_funcs(bNonRegular);
@@ -126,7 +126,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	 * at the data imports.
 	 */
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		inline bool prepare_element_loop();
+		void prepare_element_loop();
 
 	///	prepares the element for assembling
 	/**
@@ -135,48 +135,48 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool prepare_element(TElem* elem, const LocalVector& u);
+		void prepare_element(TElem* elem, const LocalVector& u);
 
 	///	finishes the loop over all elements
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		inline bool finish_element_loop();
+		void finish_element_loop();
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool assemble_JA(LocalMatrix& J, const LocalVector& u);
+		void ass_JA_elem(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool assemble_JM(LocalMatrix& J, const LocalVector& u);
+		void ass_JM_elem(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the stiffness part of the local defect
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool assemble_A(LocalVector& d, const LocalVector& u);
+		void ass_dA_elem(LocalVector& d, const LocalVector& u);
 
 	///	assembles the mass part of the local defect
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool assemble_M(LocalVector& d, const LocalVector& u);
+		void ass_dM_elem(LocalVector& d, const LocalVector& u);
 
 	///	assembles the local right hand side
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool assemble_f(LocalVector& d);
+		void ass_rhs_elem(LocalVector& d);
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool lin_def_velocity(const LocalVector& u,
+		void lin_def_velocity(const LocalVector& u,
 	                          std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 	                          const size_t nip);
 
 	///	computes the linearized defect w.r.t to the source term
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool lin_def_source(const LocalVector& u,
+		void lin_def_source(const LocalVector& u,
                             std::vector<std::vector<number> > vvvLinDef[],
                             const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool lin_def_mass_scale(const LocalVector& u,
+		void lin_def_mass_scale(const LocalVector& u,
 	                            std::vector<std::vector<number> > vvvLinDef[],
 	                            const size_t nip);
 
@@ -206,7 +206,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 	protected:
 	///	computes the concentration
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool ex_concentration(const LocalVector& u,
+		void ex_concentration(const LocalVector& u,
 							 const MathVector<dim> vGlobIP[],
 							 const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
 							 const size_t nip,
@@ -216,7 +216,7 @@ class FVConstantEquationElemDisc : public IDomainElemDisc<TDomain>
 
 	///	computes the gradient of the concentration
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		bool ex_concentration_grad(const LocalVector& u,
+		void ex_concentration_grad(const LocalVector& u,
 								  const MathVector<dim> vGlobIP[],
 								  const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
 								  const size_t nip,

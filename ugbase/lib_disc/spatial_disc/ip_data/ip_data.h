@@ -92,7 +92,7 @@ class IIPData
 		virtual SmartPtr<IIPData> needed_data(size_t i) {return NULL;}
 
 	/// compute values (and derivatives iff compDeriv == true)
-		virtual bool compute(bool bDeriv = false) = 0;
+		virtual void compute(bool bDeriv = false) = 0;
 
 	///	virtual desctructor
 		virtual ~IIPData() {};
@@ -281,17 +281,15 @@ class IDependentIPData : virtual public IIPData
 		                    const FunctionIndexMapping& map) = 0;
 
 	///	computation of data depending on current solution
-		virtual bool compute(bool bDeriv = false)
+		virtual void compute(bool bDeriv = false)
 		{
 			UG_THROW_FATAL("IDependentIPData::compute: No implementation found.");
-			return false;
 		}
 
 	///	computation of data depending on current solution
-		virtual bool compute_with_sol(const LocalVector& u, bool bDeriv)
+		virtual void compute_with_sol(const LocalVector& u, bool bDeriv)
 		{
 			UG_THROW_FATAL("IDependentIPData::compute: No implementation found.");
-			return false;
 		}
 
 	///	returns if the computation needs the current solution

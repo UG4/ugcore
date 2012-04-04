@@ -83,7 +83,7 @@ class IDataImport
 		virtual bool set_roid(ReferenceObjectID id) = 0;
 
 	///	compute lin defect
-		virtual bool compute_lin_defect(const LocalVector& u) = 0;
+		virtual void compute_lin_defect(const LocalVector& u) = 0;
 
 	///	resize arrays
 		virtual void resize(const LocalIndices& ind,
@@ -244,7 +244,7 @@ class DataImport : public IDataImport
 
 	public:
 	///	type of evaluation function
-		typedef boost::function<bool (const LocalVector& u,
+		typedef boost::function<void (const LocalVector& u,
 		                              std::vector<std::vector<TData> > vvvLinDefect[],
 		                              const size_t nip)> LinDefectFunc;
 
@@ -254,14 +254,14 @@ class DataImport : public IDataImport
 	///	register evaluation of linear defect for a element
 		template <typename TClass>
 		void set_fct(ReferenceObjectID id, TClass* obj,
-		             bool (TClass::*func)(
+		             void (TClass::*func)(
 		            		 const LocalVector& u,
 		            		 std::vector<std::vector<TData> > vvvLinDefect[],
 		            		 const size_t nip));
 
 	///	register evaluation of linear defect for a element
 		void set_fct(ReferenceObjectID id,
-					 bool (*func)(
+					 void (*func)(
 							 const LocalVector& u,
 							 std::vector<std::vector<TData> > vvvLinDefect[],
 							 const size_t nip));
@@ -270,12 +270,10 @@ class DataImport : public IDataImport
 		void clear_fct();
 
 	///	compute lin defect
-		virtual bool compute_lin_defect(const LocalVector& u)
+		virtual void compute_lin_defect(const LocalVector& u)
 		{
 			UG_ASSERT(m_vLinDefectFunc[m_id] != NULL, "No evaluation function.");
-			return (m_vLinDefectFunc[m_id])(u,
-											&m_vvvLinDefect[0],
-											m_numIP);
+			(m_vLinDefectFunc[m_id])(u, &m_vvvLinDefect[0], m_numIP);
 		}
 
 	protected:
@@ -356,10 +354,10 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		DataExport();
 
 	//	implement compute() method of IIPData: Not available
-		virtual bool compute(bool bDeriv = false);
+		virtual void compute(bool bDeriv = false);
 
 	///	compute export (implements IDependendIPData::compute)
-		virtual bool compute_with_sol(const LocalVector& u, bool bDeriv);
+		virtual void compute_with_sol(const LocalVector& u, bool bDeriv);
 
 	///	sets the geometric object type
 		virtual bool set_roid(ReferenceObjectID id);
@@ -367,7 +365,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 	///	register evaluation of export function
 		template <typename T, int refDim>
 		void set_fct(ReferenceObjectID id, IElemDisc* obj,
-		             bool (T::*func)(const LocalVector& u,
+		             void (T::*func)(const LocalVector& u,
 		            		 	 	 const MathVector<dim> vGlobIP[],
 		            		 	 	 const MathVector<refDim> vLocIP[],
 		            		 	 	 const size_t nip,
@@ -405,7 +403,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 
 	protected:
 		template <typename T, int refDim>
-		inline bool comp(const LocalVector& u, bool bDeriv);
+		inline void comp(const LocalVector& u, bool bDeriv);
 
 	/// current Geom Object
 		ReferenceObjectID m_id;
@@ -414,10 +412,10 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		IElemDisc* m_pObj;
 
 	///	function pointers for all elem types
-		typedef bool (IElemDisc::*DummyMethod)();
+		typedef void (IElemDisc::*DummyMethod)();
 		DummyMethod	m_vExportFunc[NUM_REFERENCE_OBJECTS];
 
-		typedef bool (DataExport::*CompFct)(const LocalVector&, bool);
+		typedef void (DataExport::*CompFct)(const LocalVector&, bool);
 		CompFct m_vCompFct[NUM_REFERENCE_OBJECTS];
 
 	///	data the export depends on

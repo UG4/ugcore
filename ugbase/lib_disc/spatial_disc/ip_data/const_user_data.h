@@ -67,12 +67,11 @@ class ConstUserNumber
 		}
 
 	///	implement as a IPData
-		virtual bool compute(bool bDeriv = false)
+		virtual void compute(bool bDeriv = false)
 		{
 			for(size_t s = 0; s < num_series(); ++s)
 				for(size_t i = 0; i < num_ip(s); ++i)
 					value(s,i) = m_Number;
-			return true;
 		}
 
 	///	returns if data is constant
@@ -134,12 +133,11 @@ class ConstUserVector
 		virtual bool constant_data() const {return true;}
 
 	///	implement as a IPData
-		virtual bool compute(bool bDeriv = false)
+		virtual void compute(bool bDeriv = false)
 		{
 			for(size_t s = 0; s < num_series(); ++s)
 				for(size_t i = 0; i < num_ip(s); ++i)
 					value(s,i) = m_Vector;
-			return true;
 		}
 
 	///	callback, invoked when data storage changed
@@ -216,12 +214,11 @@ class ConstUserMatrix
 		virtual bool constant_data() const {return true;}
 
 	///	implement as a IPData
-		virtual bool compute(bool bDeriv = false)
+		virtual void compute(bool bDeriv = false)
 		{
 			for(size_t s = 0; s < num_series(); ++s)
 				for(size_t i = 0; i < num_ip(s); ++i)
 					value(s,i) = m_Tensor;
-			return true;
 		}
 
 	///	callback, invoked when data storage changed

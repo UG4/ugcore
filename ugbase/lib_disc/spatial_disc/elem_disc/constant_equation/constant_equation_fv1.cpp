@@ -22,8 +22,8 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-FVConstantEquationElemDisc<TDomain>::
-FVConstantEquationElemDisc(const char* functions, const char* subsets)
+FV1ConstantEquation<TDomain>::
+FV1ConstantEquation(const char* functions, const char* subsets)
 :IDomainElemDisc<TDomain>(functions,subsets),
  m_exConcentration(new DataExport<number, dim>),
  m_exConcentrationGrad(new DataExport<MathVector<dim>, dim>)
@@ -51,10 +51,7 @@ FVConstantEquationElemDisc(const char* functions, const char* subsets)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-inline
-bool
-FVConstantEquationElemDisc<TDomain>::
-prepare_element_loop()
+void FV1ConstantEquation<TDomain>::prepare_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
@@ -68,26 +65,15 @@ prepare_element_loop()
 		m_imSource.template    set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips(), false);
 		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips(), false);
 	}
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-inline
-bool
-FVConstantEquationElemDisc<TDomain>::
-finish_element_loop()
-{
-//	nothing to do
-	return true;
-}
+void FV1ConstantEquation<TDomain>::finish_element_loop()
+{}
 
 template<typename TDomain>
-bool
-FVConstantEquationElemDisc<TDomain>::
-time_point_changed(number time)
+bool FV1ConstantEquation<TDomain>::time_point_changed(number time)
 {
 //	set new time point at imports
 	m_imVelocity.set_time(time);
@@ -101,10 +87,9 @@ time_point_changed(number time)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-inline
-bool
-FVConstantEquationElemDisc<TDomain>::
-prepare_element(TElem* elem, const LocalVector& u){
+void FV1ConstantEquation<TDomain>::
+prepare_element(TElem* elem, const LocalVector& u)
+{
 //	get dimension of reference element
 	static const int refDim = TFVGeom<TElem, dim>::dim;
 
@@ -114,10 +99,8 @@ prepare_element(TElem* elem, const LocalVector& u){
 // 	Update Geometry for this element
 	TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-	{
-		UG_LOG("FVConstantEquationElemDisc::prepare_element:"
-				" Cannot update Finite Volume Geometry.\n"); return false;
-	}
+		UG_THROW_FATAL("ConstantEquation::prepare_element:"
+						" Cannot update Finite Volume Geometry.");
 
 //	set local positions for rhs
 	if(TFVGeom<TElem, dim>::usesHangingNodes)
@@ -131,47 +114,36 @@ prepare_element(TElem* elem, const LocalVector& u){
 	m_imVelocity.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
 	m_imSource.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imMassScale.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
-
-//	we're done
-	return true;
 }
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-inline
-bool
-FVConstantEquationElemDisc<TDomain>::
-assemble_JA(LocalMatrix& J, const LocalVector& u)
+void FV1ConstantEquation<TDomain>::
+ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	no own contribution to jacobian (only due to linearized defect)
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-inline
-bool
-FVConstantEquationElemDisc<TDomain>::
-assemble_JM(LocalMatrix& J, const LocalVector& u)
+void FV1ConstantEquation<TDomain>::
+ass_JM_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	no own contribution to jacobian (only due to linearized defect)
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-inline
-bool
-FVConstantEquationElemDisc<TDomain>::
-assemble_A(LocalVector& d, const LocalVector& u)
+void FV1ConstantEquation<TDomain>::
+ass_dA_elem(LocalVector& d, const LocalVector& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo	= Provider<TFVGeom<TElem,dim> >::get();
 
 //	check if data given
-	if(!m_imVelocity.data_given()) return true;
+	if(!m_imVelocity.data_given()) return;
 
 // 	loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -186,18 +158,13 @@ assemble_A(LocalVector& d, const LocalVector& u)
 		d(_C_, scvf.from()) += conv_flux;
 		d(_C_, scvf.to()  ) -= conv_flux;
 	}
-
-// 	we're done
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-inline
-bool
-FVConstantEquationElemDisc<TDomain>::
-assemble_M(LocalVector& d, const LocalVector& u)
+void FV1ConstantEquation<TDomain>::
+ass_dM_elem(LocalVector& d, const LocalVector& u)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
@@ -221,21 +188,16 @@ assemble_M(LocalVector& d, const LocalVector& u)
 	// 	Add to local defect
 		d(_C_, co) += val;
 	}
-
-// 	we're done
-	return true;
 }
 
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-inline
-bool
-FVConstantEquationElemDisc<TDomain>::
-assemble_f(LocalVector& d)
+void FV1ConstantEquation<TDomain>::
+ass_rhs_elem(LocalVector& d)
 {
 //	if zero data given, return
-	if(!m_imSource.data_given()) return true;
+	if(!m_imSource.data_given()) return;
 
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo
@@ -253,17 +215,13 @@ assemble_f(LocalVector& d)
 	// 	Add to local rhs
 		d(_C_, co) += m_imSource[ip] * scv.volume();
 	}
-
-// 	we're done
-	return true;
 }
 
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-bool
-FVConstantEquationElemDisc<TDomain>::
+void FV1ConstantEquation<TDomain>::
 lin_def_velocity(const LocalVector& u,
                  std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                  const size_t nip)
@@ -287,16 +245,12 @@ lin_def_velocity(const LocalVector& u,
 		vvvLinDef[ip][_C_][scvf.from()] += scvf.normal();
 		vvvLinDef[ip][_C_][scvf.to()] -= scvf.normal();
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the source
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-bool
-FVConstantEquationElemDisc<TDomain>::
+void FV1ConstantEquation<TDomain>::
 lin_def_source(const LocalVector& u,
                std::vector<std::vector<number> > vvvLinDef[],
                const size_t nip)
@@ -316,16 +270,12 @@ lin_def_source(const LocalVector& u,
 	// 	set lin defect
 		vvvLinDef[ip][_C_][co] = scv.volume();
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the mass scale
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-bool
-FVConstantEquationElemDisc<TDomain>::
+void FV1ConstantEquation<TDomain>::
 lin_def_mass_scale(const LocalVector& u,
                    std::vector<std::vector<number> > vvvLinDef[],
                    const size_t nip)
@@ -345,16 +295,12 @@ lin_def_mass_scale(const LocalVector& u,
 	// 	set lin defect
 		vvvLinDef[co][_C_][co] = scv.volume();
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-bool
-FVConstantEquationElemDisc<TDomain>::
+void FV1ConstantEquation<TDomain>::
 ex_concentration(const LocalVector& u,
                  const MathVector<dim> vGlobIP[],
                  const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
@@ -433,16 +379,12 @@ ex_concentration(const LocalVector& u,
 					vvvDeriv[ip][_C_][sh] = vShape[sh];
 		}
 	}
-
-//	we're done
-	return true;
 }
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-bool
-FVConstantEquationElemDisc<TDomain>::
+void FV1ConstantEquation<TDomain>::
 ex_concentration_grad(const LocalVector& u,
                       const MathVector<dim> vGlobIP[],
                       const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
@@ -517,9 +459,6 @@ ex_concentration_grad(const LocalVector& u,
 					MatVecMult(vvvDeriv[ip][_C_][sh], JTInv, vLocGrad[sh]);
 		}
 	}
-
-//	we're done
-	return true;
 };
 
 
@@ -530,7 +469,7 @@ ex_concentration_grad(const LocalVector& u,
 // register for 1D
 template<typename TDomain>
 void
-FVConstantEquationElemDisc<TDomain>::
+FV1ConstantEquation<TDomain>::
 register_all_fv1_funcs(bool bHang)
 {
 //	get all grid element types in this dimension and below
@@ -544,7 +483,7 @@ register_all_fv1_funcs(bool bHang)
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 void
-FVConstantEquationElemDisc<TDomain>::
+FV1ConstantEquation<TDomain>::
 register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -554,11 +493,11 @@ register_fv1_func()
 	this->set_prep_elem_loop_fct(	id, &T::template prepare_element_loop<TElem, TFVGeom>);
 	this->set_prep_elem_fct(		id, &T::template prepare_element<TElem, TFVGeom>);
 	this->set_fsh_elem_loop_fct( 	id, &T::template finish_element_loop<TElem, TFVGeom>);
-	this->set_ass_JA_elem_fct(	id, &T::template assemble_JA<TElem, TFVGeom>);
-	this->set_ass_JM_elem_fct(	id, &T::template assemble_JM<TElem, TFVGeom>);
-	this->set_ass_dA_elem_fct(	id, &T::template assemble_A<TElem, TFVGeom>);
-	this->set_ass_dM_elem_fct(	id, &T::template assemble_M<TElem, TFVGeom>);
-	this->set_ass_rhs_elem_fct(	id, &T::template assemble_f<TElem, TFVGeom>);
+	this->set_ass_JA_elem_fct(	id, &T::template ass_JA_elem<TElem, TFVGeom>);
+	this->set_ass_JM_elem_fct(	id, &T::template ass_JM_elem<TElem, TFVGeom>);
+	this->set_ass_dA_elem_fct(	id, &T::template ass_dA_elem<TElem, TFVGeom>);
+	this->set_ass_dM_elem_fct(	id, &T::template ass_dM_elem<TElem, TFVGeom>);
+	this->set_ass_rhs_elem_fct(	id, &T::template ass_rhs_elem<TElem, TFVGeom>);
 
 //	set computation of linearized defect w.r.t velocity
 	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity<TElem, TFVGeom>);
@@ -574,9 +513,9 @@ register_fv1_func()
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-template class FVConstantEquationElemDisc<Domain1d>;
-template class FVConstantEquationElemDisc<Domain2d>;
-template class FVConstantEquationElemDisc<Domain3d>;
+template class FV1ConstantEquation<Domain1d>;
+template class FV1ConstantEquation<Domain2d>;
+template class FV1ConstantEquation<Domain3d>;
 
 
 } // namespace ug

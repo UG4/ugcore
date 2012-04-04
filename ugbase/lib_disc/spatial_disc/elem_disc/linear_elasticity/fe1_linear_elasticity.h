@@ -19,7 +19,7 @@ namespace ug{
 
 
 template<typename TDomain>
-class FE1LinearElasticityElemDisc
+class FE1LinearElasticity
 	: public IDomainElemDisc<TDomain>
 {
 	private:
@@ -27,7 +27,7 @@ class FE1LinearElasticityElemDisc
 		typedef IDomainElemDisc<TDomain> base_type;
 
 	///	own type
-		typedef FE1LinearElasticityElemDisc<TDomain> this_type;
+		typedef FE1LinearElasticity<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -43,7 +43,7 @@ class FE1LinearElasticityElemDisc
 		typedef void (*Elasticity_Tensor_fct)(MathTensor<4,dim>&);
 
 	public:
-		FE1LinearElasticityElemDisc(const char* functions, const char* subsets);
+		FE1LinearElasticity(const char* functions, const char* subsets);
 
 	///	type of trial space for each function used
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
@@ -58,7 +58,7 @@ class FE1LinearElasticityElemDisc
 		}
 
 	///	switches between non-regular and regular grids
-		virtual bool treat_non_regular_grid(bool bNonRegular)
+		virtual bool request_non_regular_grid(bool bNonRegular)
 		{
 		//	no special care for non-regular grids
 			return true;
@@ -66,28 +66,28 @@ class FE1LinearElasticityElemDisc
 
 	private:
 		template <typename TElem>
-		bool prepare_element_loop();
+		void prepare_element_loop();
 
 		template <typename TElem>
-		bool prepare_element(TElem* elem, const LocalVector& u);
+		void prepare_element(TElem* elem, const LocalVector& u);
 
 		template <typename TElem>
-		bool finish_element_loop();
+		void finish_element_loop();
 
 		template <typename TElem>
-		bool assemble_JA(LocalMatrix& J, const LocalVector& u);
+		void ass_JA_elem(LocalMatrix& J, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_JM(LocalMatrix& J, const LocalVector& u);
+		void ass_JM_elem(LocalMatrix& J, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_A(LocalVector& d, const LocalVector& u);
+		void ass_dA_elem(LocalVector& d, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_M(LocalVector& d, const LocalVector& u);
+		void ass_dM_elem(LocalVector& d, const LocalVector& u);
 
 		template <typename TElem>
-		bool assemble_f(LocalVector& d);
+		void ass_rhs_elem(LocalVector& d);
 
 	private:
 		// position access

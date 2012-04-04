@@ -26,7 +26,7 @@ class DataEvaluator
 {
 	public:
 	///	sets the elem discs to evaluate
-		bool set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
+		void set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		                    const FunctionPattern& fctPat,
 		                    bool bNonRegularGrid,
 		                    bool bMassPart = false);
@@ -40,66 +40,66 @@ class DataEvaluator
 		                        LocalVectorTimeSeries* locTimeSeries = NULL);
 
 	///	requests in all IElemDisc to use HangingGrid
-		bool set_non_regular_grid(bool bNonRegularGrid);
+		void set_non_regular_grid(bool bNonRegularGrid);
 
 	///	returns if one of the element discs needs hanging dofs
 		bool use_hanging() const {return m_bUseHanging;}
 
 	///	prepares the element for all time-dependent IElemDiscs
 		template <typename TElem>
-		bool prepare_timestep_elem(TElem* elem, LocalVector& u);
+		void prepare_timestep_elem(TElem* elem, LocalVector& u);
 
 	///	prepares the element loop for all IElemDiscs
 		template <typename TElem>
-		bool prepare_elem_loop(LocalIndices& ind, number time = 0.0,
+		void prepare_elem_loop(LocalIndices& ind, number time = 0.0,
 		                       bool bMassPart = false);
 
 	///	prepares the element for all IElemDiscs
 		template <typename TElem>
-		bool prepare_elem(TElem* elem, LocalVector& u,
+		void prepare_elem(TElem* elem, LocalVector& u,
 		                  const LocalIndices& ind,
 		                  bool bDeriv = false, bool bMassPart = false);
 
 	///	finishes the element for all time-dependent IElemDiscs
 		template <typename TElem>
-		bool finish_timestep_elem(TElem* elem, const number time, LocalVector& u);
+		void finish_timestep_elem(TElem* elem, const number time, LocalVector& u);
 
 	///	computes all needed data on the element
-		bool compute_elem_data(LocalVector & u, bool bDeriv = false);
+		void compute_elem_data(LocalVector & u, bool bDeriv = false);
 
 	///	compute local stiffness matrix for all IElemDiscs
-		bool ass_JA_elem(LocalMatrix& A, LocalVector& u);
+		void ass_JA_elem(LocalMatrix& A, LocalVector& u);
 
 	///	compute local mass matrix for all IElemDiscs
-		bool ass_JM_elem(LocalMatrix& M, LocalVector& u);
+		void ass_JM_elem(LocalMatrix& M, LocalVector& u);
 
 	///	compute local stiffness defect for all IElemDiscs
-		bool ass_dA_elem(LocalVector& d, LocalVector& u);
+		void ass_dA_elem(LocalVector& d, LocalVector& u);
 
 	///	compute local mass defect for all IElemDiscs
-		bool ass_dM_elem(LocalVector& d, LocalVector& u);
+		void ass_dM_elem(LocalVector& d, LocalVector& u);
 
 	///	compute local rhs for all IElemDiscs
-		bool ass_rhs_elem(LocalVector& rhs);
+		void ass_rhs_elem(LocalVector& rhs);
 
 	///	finishes the element loop for all IElemDiscs
-		bool finish_elem_loop();
+		void finish_elem_loop();
 
 		////////////////////////////////////////////
 		// Coupling
 		////////////////////////////////////////////
 
 	///	computes the linearized defect of imports in stiffness part of all IElemDiscs
-		bool compute_lin_defect_JA(LocalVector& u);
+		void compute_lin_defect_JA(LocalVector& u);
 
 	///	computes the linearized defect of imports in mass part of all IElemDiscs
-		bool compute_lin_defect_JM(LocalVector& u);
+		void compute_lin_defect_JM(LocalVector& u);
 
 	///	adds the contribution due to coupling to local stiffness matrix
-		bool add_coupl_JA(LocalMatrix& J);
+		void add_coupl_JA(LocalMatrix& J);
 
 	///	adds the contribution due to coupling to local mass matrix
-		bool add_coupl_JM(LocalMatrix& J);
+		void add_coupl_JM(LocalMatrix& J);
 
 	protected:
 	///	Mapping between local functions of ElemDisc i and common FunctionGroup

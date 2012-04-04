@@ -229,7 +229,7 @@ add(IPData<TDataScale, dim>& scale, IPData<TData, dim>& data)
 }
 
 template <typename TData, int dim, typename TDataScale>
-bool ScaleAddLinker<TData,dim,TDataScale>::compute(bool bDeriv)
+void ScaleAddLinker<TData,dim,TDataScale>::compute(bool bDeriv)
 {
 //	check that size of Scalings and inputs is equal
 	UG_ASSERT(m_vpIPData.size() == m_vpScaleData.size(), "Wrong num Scales.");
@@ -252,7 +252,7 @@ bool ScaleAddLinker<TData,dim,TDataScale>::compute(bool bDeriv)
 		}
 
 //	check if derivative is required
-	if(!bDeriv || this->zero_derivative()) return true;
+	if(!bDeriv || this->zero_derivative()) return;
 
 //	check sizes
 	UG_ASSERT(m_vpDependData.size() == m_vpScaleDependData.size(),
@@ -312,8 +312,6 @@ bool ScaleAddLinker<TData,dim,TDataScale>::compute(bool bDeriv)
 				}
 		}
 	}
-
-	return true;
 }
 
 
