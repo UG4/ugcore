@@ -632,6 +632,8 @@ if GetProcessRank() == 0 then
 	{ "perform_refinement [ms]", GetProfileNode("perform_refinement"):get_avg_total_time_ms()},
 	{ "c_create_AMG_level [ms]", GetProfileNode("c_create_AMG_level"):get_avg_total_time_ms()},
 	{ "init_fsmoothing [ms]", GetProfileNode("init_fsmoothing"):get_avg_total_time_ms()},
+	{ "amg_createDirectSolver [ms]", GetProfileNode("amg_createDirectSolver"):get_avg_total_time_ms()},
+	
 	
 	{ "XC", bExternalCoarsening},	
 	{ "AC", bAggressiveCoarsening},
