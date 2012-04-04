@@ -331,16 +331,13 @@ public:
 
 	///	implement as a IPData
 
-	virtual bool compute(bool computeDeriv = false) {
+	virtual void compute(bool computeDeriv = false) {
 		for (size_t s = 0; s < num_series(); ++s)
 			for (size_t i = 0; i < num_ip(s); ++i) {
 				this->operator()(value(s, i),
 						ip(s, i),
 						time());
 			}
-		
-		// TODO shall we do some checks here?
-		return true;
 	}
 
 	~UserNumber() {
@@ -460,16 +457,13 @@ public:
 
 	///	implement as a IPData
 
-	virtual bool compute(bool computeDeriv = false) {
+	virtual void compute(bool computeDeriv = false) {
 		for (size_t s = 0; s < num_series(); ++s)
 			for (size_t i = 0; i < num_ip(s); ++i) {
 				this->operator()(value(s, i),
 						ip(s, i),
 						time());
 			}
-		
-		// TODO shall we do some checks here?
-		return true;
 	}
 
 	~UserVector() {
