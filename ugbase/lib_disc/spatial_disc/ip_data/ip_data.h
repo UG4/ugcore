@@ -385,6 +385,12 @@ class DependentIPData : public IPData<TData, dim>,
 	///	resizes the derivative field when local ip change is signaled
 		virtual void local_ip_series_added(const size_t newNumSeries);
 
+	///	implement callback, called when local IPs changed
+		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP);
+
+	///	implement callback, invoked when local ips are cleared
+		virtual void local_ip_series_to_be_cleared();
+
 	protected:
 	// 	Data (size: (0,...,num_series-1) x (0,...,num_ip-1) x (0,...,num_fct-1) x (0,...,num_sh(fct) )
 	///	Derivatives

@@ -113,8 +113,8 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 	//	in addition we cache the number of ips
 		m_numIP = m_spIPData->num_ip(m_seriesID);
 
-	//	resize ips
-		m_vvvLinDefect.resize(num_ip());
+	//	resize also lin defect array
+		resize_defect_array();
 
 	//	check that num ip is correct
 		UG_ASSERT(m_numIP == numIP, "Different number of ips than requested.");
@@ -139,8 +139,8 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 		//	in addition we cache the number of ips
 			m_numIP = m_spIPData->num_ip(m_seriesID);
 
-		//	resize ips
-			m_vvvLinDefect.resize(num_ip());
+		//	resize also lin defect array
+			resize_defect_array();
 		}
 
 	//	check that num ip is correct
@@ -227,15 +227,33 @@ void DataImport<TData,dim>::assemble_jacobian(LocalMatrix& J)
 template <typename TData, int dim>
 void DataImport<TData,dim>::resize(const LocalIndices& ind, const FunctionIndexMapping& map)
 {
+//	cache numFct and their numDoFs
+	m_vvNumDoFPerFct.resize(map.num_fct());
+	for(size_t fct = 0; fct < m_vvNumDoFPerFct.size(); ++fct)
+		m_vvNumDoFPerFct[fct] = ind.num_dof(map[fct]);
+
+	resize_defect_array();
+}
+
+template <typename TData, int dim>
+void DataImport<TData,dim>::resize_defect_array()
+{
+//	get old size
+//	NOTE: for all ips up to oldSize the arrays are already resized
+	const size_t oldSize = m_vvvLinDefect.size();
+
+//	resize ips
+	m_vvvLinDefect.resize(num_ip());
+
 //	resize num fct
-	for(size_t ip = 0; ip < num_ip(); ++ip)
+	for(size_t ip = oldSize; ip < num_ip(); ++ip)
 	{
 	//	resize num fct
-		m_vvvLinDefect[ip].resize(map.num_fct());
+		m_vvvLinDefect[ip].resize(m_vvNumDoFPerFct.size());
 
 	//	resize dofs
-		for(size_t fct = 0; fct < map.num_fct(); ++fct)
-			m_vvvLinDefect[ip][fct].resize(ind.num_dof(map[fct]));
+		for(size_t fct = 0; fct < m_vvNumDoFPerFct.size(); ++fct)
+			m_vvvLinDefect[ip][fct].resize(m_vvNumDoFPerFct[fct]);
 	}
 }
 

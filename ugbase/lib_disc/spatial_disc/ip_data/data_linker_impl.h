@@ -133,6 +133,40 @@ local_ip_series_added(const size_t newNumSeries)
 	DependentIPData<TData, dim>::local_ip_series_added(newNumSeries);
 }
 
+
+template <typename TData, int dim>
+void DataLinker<TData,dim>::
+local_ips_changed(const size_t seriesID, const size_t newNumIP)
+{
+//	loop inputs
+	for(size_t i = 0; i < m_vpIIPData.size(); ++i)
+	{
+	//	skip unset data
+		UG_ASSERT(m_vpIIPData[i].valid(), "No Input set, but requested.");
+
+	//	request local ips for all series at input data
+		for(size_t s = 0; s < m_vvSeriesID[i].size(); ++s)
+		{
+			switch(this->dim_local_ips())
+			{
+				case 1: m_vpIIPData[i]->template set_local_ips<1>
+						(m_vvSeriesID[i][s], this->template local_ips<1>(s), num_ip(s));
+					break;
+				case 2: m_vpIIPData[i]->template set_local_ips<2>
+						(m_vvSeriesID[i][s], this->template local_ips<2>(s), num_ip(s));
+					break;
+				case 3: m_vpIIPData[i]->template set_local_ips<3>
+						(m_vvSeriesID[i][s], this->template local_ips<3>(s), num_ip(s));
+					break;
+				default: UG_THROW_FATAL("Dimension not supported.");
+			}
+		}
+	}
+
+//	resize data fields
+	DependentIPData<TData, dim>::local_ips_changed(seriesID, newNumIP);
+}
+
 template <typename TData, int dim>
 void DataLinker<TData,dim>::
 global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP)

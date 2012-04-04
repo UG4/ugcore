@@ -289,6 +289,9 @@ class DataImport : public IDataImport
 	///	checks in debug mode the correct index
 		inline void check_values() const;
 
+	///	resizes the lin defect arrays for current number of ips.
+		void resize_defect_array();
+
 	/// current Geom Object
 		ReferenceObjectID m_id;
 
@@ -309,6 +312,9 @@ class DataImport : public IDataImport
 
 	/// connected export (if depended data)
 		SmartPtr<DependentIPData<TData, dim> > m_spDependentIPData;
+
+	///	number of functions and their dofs
+		std::vector<size_t> m_vvNumDoFPerFct;
 
 	/// linearized defect (num_ip) x (num_fct) x (num_dofs(i))
 		std::vector<std::vector<std::vector<TData> > > m_vvvLinDefect;

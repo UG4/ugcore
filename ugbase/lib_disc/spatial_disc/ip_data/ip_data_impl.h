@@ -119,8 +119,8 @@ const MathVector<ldim>* IIPData::local_ips(size_t s) const
 	if(m_locPosDim != ldim) UG_THROW_FATAL("Local IP dimension conflict");
 
 	UG_ASSERT(s < num_series(), "Wrong series id");
-	UG_ASSERT(get_local_ips(Int2Type<ldim>())[s] != NULL, "Zero local ip pointer.");
 
+//	NOTE: local ips may be NULL, if no ip position given, i.e. num_ip(s) == 0
 	return get_local_ips(Int2Type<ldim>())[s];
 }
 
@@ -258,7 +258,9 @@ void DependentIPData<TData,dim>::resize(const LocalIndices& ind,
 	for(size_t s = 0; s < m_vvvvDeriv.size(); ++s)
 	{
 	//	resize ips
-		m_vvvvDeriv[s].resize(num_ip(s));
+	// 	todo: we store at least one ip, so that we can get the infos on
+	//		  number of functions and number of dofs somewhere. Improve.
+		m_vvvvDeriv[s].resize(num_ip(s)+1);
 
 		for(size_t ip = 0; ip < m_vvvvDeriv[s].size(); ++ip)
 		{
@@ -321,6 +323,43 @@ void DependentIPData<TData,dim>::local_ip_series_added(const size_t newNumSeries
 	IPData<TData, dim>::local_ip_series_added(newNumSeries);
 }
 
+template <typename TData, int dim>
+void DependentIPData<TData,dim>::local_ip_series_to_be_cleared()
+{
+//	adjust data arrays
+	m_vvvvDeriv.clear();
+
+//	forward change signal to base class
+	IPData<TData, dim>::local_ip_series_to_be_cleared();
+}
+
+template <typename TData, int dim>
+void DependentIPData<TData,dim>::local_ips_changed(const size_t seriesID, const size_t newNumIP)
+{
+	UG_ASSERT(seriesID < m_vvvvDeriv.size(), "wrong series id.");
+
+//	resize only when more data is needed than actually allocated
+//	note, that always one ip per series is allocated
+	if(newNumIP >= m_vvvvDeriv[seriesID].size())
+	{
+	//	resize
+		m_vvvvDeriv[seriesID].resize(newNumIP);
+
+		for(size_t ip = 1; ip < m_vvvvDeriv[seriesID].size(); ++ip)
+		{
+		//	resize num fct
+			m_vvvvDeriv[seriesID][ip].resize(m_vvvvDeriv[seriesID][0].size());
+
+		//	resize dofs
+			for(size_t fct = 0; fct < m_vvvvDeriv[seriesID][0].size(); ++fct)
+				m_vvvvDeriv[seriesID][ip][fct].resize(m_vvvvDeriv[seriesID][0][fct].size());
+		}
+
+	}
+
+//	call base class callback (if implementation given)
+	base_type::local_ips_changed(seriesID, newNumIP);
+}
 
 } // end namespace ug
 
