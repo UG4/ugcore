@@ -628,6 +628,11 @@ if GetProcessRank() == 0 then
 	{ "gridName", gridName},
 	{ "ndofs", amg:get_level_information(0):get_nr_of_nodes() },
 	{ "tSetupAmg [s]", amg:get_timing_whole_setup_ms()/1000},
+	{ "main [ms]", GetProfileNode("main"):get_avg_total_time_ms()},
+	{ "perform_refinement [ms]", GetProfileNode("perform_refinement"):get_avg_total_time_ms()},
+	{ "c_create_AMG_level [ms]", GetProfileNode("c_create_AMG_level"):get_avg_total_time_ms()},
+	{ "init_fsmoothing [ms]", GetProfileNode("init_fsmoothing"):get_avg_total_time_ms()},
+	
 	{ "XC", bExternalCoarsening},	
 	{ "AC", bAggressiveCoarsening},
 	{ "c_A", amg:get_operator_complexity()},
@@ -656,6 +661,11 @@ if GetProcessRank() == 0 then
 	if bWriteStats  then	
 		util.writeFileStats(stats, util.GetParam("-outdir", "").."stats.txt")
 	end
+	
+	if util.GetParam("-outdir", ".") ~= "." then
+		t=io.open(filename, "r"):read("*all")
+		io.open(statsdir.."/"..logfileName, "w"):write(t)
+	end				
 end
 	
 if not bCheck and bWriteStats then
@@ -687,7 +697,7 @@ if not bCheck and bWriteStats then
 			PrintParallelProfileNode("create_galerkin_product")
 			PrintParallelProfileNode("CalculateNextTestvector")
 		end
-	
+		
 	else
 		print("Profiler not available.")
 	end	
