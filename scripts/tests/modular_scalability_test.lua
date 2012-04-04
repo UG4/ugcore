@@ -506,7 +506,9 @@ end
 --approxSpace:print_statistic() -- TMP
 
 if lsType == "feti" then
-	solver:print_statistic_of_inner_solver()
+	solver:print_statistic_of_inner_solver(false) -- true: print only averages
+	print("Averages for subproblem solvers:")
+	solver:print_statistic_of_inner_solver(true) -- true: print only averages
 	if verbosity >= 2 then
 		--print("Testing standard interfaces ...")
 		--TestDomainInterfaces(dom)

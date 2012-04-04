@@ -161,7 +161,7 @@ class FetiLayouts
 		}
 
 	//	tests the previously created layouts:
-		void test_layouts(bool print)
+		void test_layouts(bool bPrint)
 		{
 			// TODO: Besserer Check, dass die Layouts schon existieren? Das hier sollte aber reichen, da Konstruktor
 			// 'm_pMasterStdLayout' mit NULL initialisiert!?
@@ -172,35 +172,35 @@ class FetiLayouts
 			pcl::InterfaceCommunicator<IndexLayout> comTmp;
 
 			UG_LOG("TEST STANDARD LAYOUTS:\n");
-			if (TestLayout(m_stdProcessCom, comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout, print) != true) {
+			if (TestLayout(m_stdProcessCom, comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout, bPrint) != true) {
 				UG_LOG("STANDARD LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("STANDARD LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST INNER LAYOUTS:\n");
-			if (TestLayout(m_stdProcessCom, comTmp, m_masterInnerLayout, m_slaveInnerLayout, print) != true) {
+			if (TestLayout(m_stdProcessCom, comTmp, m_masterInnerLayout, m_slaveInnerLayout, bPrint) != true) {
 				UG_LOG("INNER LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("INNER LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST PRIMAL LAYOUTS:\n");
-			if (TestLayout(m_stdProcessCom, comTmp, m_masterPrimalLayout, m_slavePrimalLayout, print) != true) {
+			if (TestLayout(m_stdProcessCom, comTmp, m_masterPrimalLayout, m_slavePrimalLayout, bPrint) != true) {
 				UG_LOG("PRIMAL LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("PRIMAL LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST DUAL LAYOUTS:\n");
-			if (TestLayout(m_stdProcessCom, comTmp, m_masterDualLayout, m_slaveDualLayout, print) != true) {
+			if (TestLayout(m_stdProcessCom, comTmp, m_masterDualLayout, m_slaveDualLayout, bPrint) != true) {
 				UG_LOG("DUAL LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("DUAL LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST DUAL NBR LAYOUTS:\n");
-			if (TestLayout(m_stdProcessCom, comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout, print) != true) {
+			if (TestLayout(m_stdProcessCom, comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout, bPrint) != true) {
 				UG_LOG("DUAL NBR LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("DUAL NBR LAYOUTS are consistent!\n");
@@ -612,7 +612,7 @@ class LocalSchurComplement
 		void set_statistic_type(std::string type) {m_statType = type;}
 
 	///	prints some convergence statistic of inner solvers
-		void print_statistic_of_inner_solver() const;
+		void print_statistic_of_inner_solver(bool bPrintOnlyAverages) const;
 
 	// destructor
 		virtual ~LocalSchurComplement() {};
@@ -729,7 +729,7 @@ class PrimalSubassembledMatrixInverse
 		void set_statistic_type(std::string type) {m_statType = type;}
 
 	///	prints some convergence statistic of inner solvers
-		void print_statistic_of_inner_solver() const;
+		void print_statistic_of_inner_solver(bool bPrintOnlyAverages) const;
 
 	///	set 'm_bTestOneToManyLayouts'
 		void set_test_one_to_many_layouts(bool bTest) {m_bTestOneToManyLayouts = bTest;}
@@ -908,7 +908,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		bool apply_M_inverse(vector_type& z, const vector_type& r);
 
 	//	tests layouts:
-		void test_layouts(bool print);
+		void test_layouts(bool bPrint);
 
 	//	set member 'm_bTestOneToManyLayouts' of class 'PrimalSubassembledMatrixInverse':
 		void set_test_one_to_many_layouts(bool bTest)
@@ -934,12 +934,12 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		}
 
 	///	prints some convergence statistic of inner solvers
-		void print_statistic_of_inner_solver() const
+		void print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 		{
-			m_PrimalSubassembledMatrixInverse.print_statistic_of_inner_solver();
+			m_PrimalSubassembledMatrixInverse.print_statistic_of_inner_solver(bPrintOnlyAverages);
 			UG_LOG("\n");
 
-			m_LocalSchurComplement.print_statistic_of_inner_solver();
+			m_LocalSchurComplement.print_statistic_of_inner_solver(bPrintOnlyAverages);
 		}
 
 		// destructor
