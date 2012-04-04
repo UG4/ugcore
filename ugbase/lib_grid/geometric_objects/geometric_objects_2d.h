@@ -78,10 +78,10 @@ class UG_API CustomTriangle : public BaseClass
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const	{return 3;}
 
-		virtual EdgeDescriptor edge(int index) const
+		virtual EdgeDescriptor edge_desc(int index) const
 			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % 3]);}
 
-		virtual void edge(int index, EdgeDescriptor& edOut)
+		virtual void edge_desc(int index, EdgeDescriptor& edOut)
 			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % 3]);}
 
 	///	Refines a Triangle by inserting new vertices. \sa Face::refine.
@@ -210,10 +210,10 @@ class UG_API CustomQuadrilateral : public BaseClass
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const	{return 4;}
 
-		virtual EdgeDescriptor edge(int index) const
+		virtual EdgeDescriptor edge_desc(int index) const
 			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % 4]);}
 
-		virtual void edge(int index, EdgeDescriptor& edOut)
+		virtual void edge_desc(int index, EdgeDescriptor& edOut)
 			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % 4]);}
 
 	///	Refines a Quadrilateral by inserting new vertices. \sa Face::refine.

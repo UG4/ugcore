@@ -76,12 +76,12 @@ class UG_API Tetrahedron : public Volume
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 4;}
 
-		virtual EdgeDescriptor edge(int index) const;
-		virtual void edge(int index, EdgeDescriptor& edOut) const;
+		virtual EdgeDescriptor edge_desc(int index) const;
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const;
 		virtual uint num_edges() const;
 
-		virtual FaceDescriptor face(int index) const;
-		virtual void face(int index, FaceDescriptor& fdOut) const;
+		virtual FaceDescriptor face_desc(int index) const;
+		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
@@ -195,12 +195,12 @@ class UG_API Hexahedron : public Volume
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 8;}
 
-		virtual EdgeDescriptor edge(int index) const;
-		virtual void edge(int index, EdgeDescriptor& edOut) const;
+		virtual EdgeDescriptor edge_desc(int index) const;
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const;
 		virtual uint num_edges() const;
 
-		virtual FaceDescriptor face(int index) const;
-		virtual void face(int index, FaceDescriptor& fdOut) const;
+		virtual FaceDescriptor face_desc(int index) const;
+		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
@@ -305,12 +305,12 @@ class UG_API Prism : public Volume
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 6;}
 
-		virtual EdgeDescriptor edge(int index) const;
-		virtual void edge(int index, EdgeDescriptor& edOut) const;
+		virtual EdgeDescriptor edge_desc(int index) const;
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const;
 		virtual uint num_edges() const;
 
-		virtual FaceDescriptor face(int index) const;
-		virtual void face(int index, FaceDescriptor& fdOut) const;
+		virtual FaceDescriptor face_desc(int index) const;
+		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
@@ -415,12 +415,12 @@ class UG_API Pyramid : public Volume
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 5;}
 
-		virtual EdgeDescriptor edge(int index) const;
-		virtual void edge(int index, EdgeDescriptor& edOut) const;
+		virtual EdgeDescriptor edge_desc(int index) const;
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const;
 		virtual uint num_edges() const;
 
-		virtual FaceDescriptor face(int index) const;
-		virtual void face(int index, FaceDescriptor& fdOut) const;
+		virtual FaceDescriptor face_desc(int index) const;
+		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.

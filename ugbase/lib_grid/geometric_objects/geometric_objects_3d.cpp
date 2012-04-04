@@ -231,14 +231,14 @@ Tetrahedron::Tetrahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexB
 	m_vertices[3] = v4;
 }
 
-EdgeDescriptor Tetrahedron::edge(int index) const
+EdgeDescriptor Tetrahedron::edge_desc(int index) const
 {
 	EdgeDescriptor ed;
-	edge(index, ed);
+	edge_desc(index, ed);
 	return ed;
 }
 
-void Tetrahedron::edge(int index, EdgeDescriptor& edOut) const
+void Tetrahedron::edge_desc(int index, EdgeDescriptor& edOut) const
 {
 	using namespace tet_rules;
 	assert(index >= 0 && index <= NUM_EDGES);
@@ -251,14 +251,14 @@ uint Tetrahedron::num_edges() const
 	return 6;
 }
 
-FaceDescriptor Tetrahedron::face(int index) const
+FaceDescriptor Tetrahedron::face_desc(int index) const
 {
 	FaceDescriptor fd;
-	face(index, fd);
+	face_desc(index, fd);
 	return fd;
 }
 
-void Tetrahedron::face(int index, FaceDescriptor& fdOut) const
+void Tetrahedron::face_desc(int index, FaceDescriptor& fdOut) const
 {
 	using namespace tet_rules;
 	assert(index >= 0 && index < NUM_FACES);
@@ -420,14 +420,14 @@ Hexahedron::Hexahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBas
 	m_vertices[7] = v8;
 }
 
-EdgeDescriptor Hexahedron::edge(int index) const
+EdgeDescriptor Hexahedron::edge_desc(int index) const
 {
 	EdgeDescriptor ed;
-	edge(index, ed);
+	edge_desc(index, ed);
 	return ed;
 }
 
-void Hexahedron::edge(int index, EdgeDescriptor& edOut) const
+void Hexahedron::edge_desc(int index, EdgeDescriptor& edOut) const
 {
 	using namespace hex_rules;
 	assert(index >= 0 && index < NUM_EDGES);
@@ -441,14 +441,14 @@ uint Hexahedron::num_edges() const
 	return 12;
 }
 
-FaceDescriptor Hexahedron::face(int index) const
+FaceDescriptor Hexahedron::face_desc(int index) const
 {
 	FaceDescriptor fd;
-	face(index, fd);
+	face_desc(index, fd);
 	return fd;
 }
 
-void Hexahedron::face(int index, FaceDescriptor& fdOut) const
+void Hexahedron::face_desc(int index, FaceDescriptor& fdOut) const
 {
 	using namespace hex_rules;
 	assert(index >= 0 && index < NUM_FACES);
@@ -591,14 +591,14 @@ Prism::Prism(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 	m_vertices[5] = v6;
 }
 
-EdgeDescriptor Prism::edge(int index) const
+EdgeDescriptor Prism::edge_desc(int index) const
 {
 	EdgeDescriptor ed;
-	edge(index, ed);
+	edge_desc(index, ed);
 	return ed;
 }
 
-void Prism::edge(int index, EdgeDescriptor& edOut) const
+void Prism::edge_desc(int index, EdgeDescriptor& edOut) const
 {
 	using namespace prism_rules;
 	assert(index >= 0 && index < NUM_EDGES);
@@ -612,14 +612,14 @@ uint Prism::num_edges() const
 	return 9;
 }
 
-FaceDescriptor Prism::face(int index) const
+FaceDescriptor Prism::face_desc(int index) const
 {
 	FaceDescriptor fd;
-	face(index, fd);
+	face_desc(index, fd);
 	return fd;
 }
 
-void Prism::face(int index, FaceDescriptor& fdOut) const
+void Prism::face_desc(int index, FaceDescriptor& fdOut) const
 {
 	using namespace prism_rules;
 	assert(index >= 0 && index < NUM_FACES);
@@ -767,14 +767,14 @@ Pyramid::Pyramid(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 	m_vertices[4] = v5;
 }
 
-EdgeDescriptor Pyramid::edge(int index) const
+EdgeDescriptor Pyramid::edge_desc(int index) const
 {
 	EdgeDescriptor ed;
-	edge(index, ed);
+	edge_desc(index, ed);
 	return ed;
 }
 
-void Pyramid::edge(int index, EdgeDescriptor& edOut) const
+void Pyramid::edge_desc(int index, EdgeDescriptor& edOut) const
 {
 	using namespace pyra_rules;
 	assert(index >= 0 && index < NUM_EDGES);
@@ -788,14 +788,14 @@ uint Pyramid::num_edges() const
 	return 8;
 }
 
-FaceDescriptor Pyramid::face(int index) const
+FaceDescriptor Pyramid::face_desc(int index) const
 {
 	FaceDescriptor fd;
-	face(index, fd);
+	face_desc(index, fd);
 	return fd;
 }
 
-void Pyramid::face(int index, FaceDescriptor& fdOut) const
+void Pyramid::face_desc(int index, FaceDescriptor& fdOut) const
 {
 	using namespace pyra_rules;
 	assert(index >= 0 && index < NUM_FACES);
