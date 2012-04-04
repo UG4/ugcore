@@ -509,6 +509,7 @@ if lsType == "feti" then
 	solver:print_statistic_of_inner_solver(false) -- true: print only averages
 	print("Averages for subproblem solvers:")
 	solver:print_statistic_of_inner_solver(true) -- true: print only averages
+	print("")
 	if verbosity >= 2 then
 		--print("Testing standard interfaces ...")
 		--TestDomainInterfaces(dom)
@@ -612,4 +613,3 @@ if util.HasParamOption("-stats") then
 end
 
 print("Execution finished at " .. os.date())
-print("pwd = " .. os.execute(pwd))
