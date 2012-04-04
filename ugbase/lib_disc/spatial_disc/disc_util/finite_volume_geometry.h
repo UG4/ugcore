@@ -61,7 +61,7 @@ class FVGeometryBase {};
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-/// helper class to store dimnesion and id of a midpoint of a sub-element
+/// helper class to store dimension and id of a midpoint of a sub-element
 struct MidID
 {
 		MidID() : dim(0), id(0) {};
@@ -184,7 +184,7 @@ class FV1Geometry : public FVGeometryBase
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vGlobalGrad[sh];}
 
-			/// vector of gloabl gradients in ip point
+			/// vector of global gradients in ip point
 				inline const MathVector<worldDim>* global_grad_vector() const {return vGlobalGrad;}
 
 			/// number of corners, that bound the scvf
@@ -194,7 +194,7 @@ class FV1Geometry : public FVGeometryBase
 				inline const MathVector<dim>& local_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
-			/// return glbal corner number i
+			/// return global corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
@@ -219,7 +219,7 @@ class FV1Geometry : public FVGeometryBase
 
 			// scvf part
 				MathVector<dim> localIP; // local integration point
-				MathVector<worldDim> globalIP; // global intergration point
+				MathVector<worldDim> globalIP; // global integration point
 
 			// shapes and derivatives
 				number vShape[nsh]; // shapes at ip
@@ -249,7 +249,7 @@ class FV1Geometry : public FVGeometryBase
 				inline const MathVector<dim>& local_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
-			/// return glbal corner number i
+			/// return global corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
@@ -291,7 +291,7 @@ class FV1Geometry : public FVGeometryBase
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vGlobalGrad[sh];}
 
-			/// vector of gloabl gradients in ip point
+			/// vector of global gradients in ip point
 				inline const MathVector<worldDim>* global_grad_vector() const {return vGlobalGrad;}
 
 			private:
@@ -385,7 +385,7 @@ class FV1Geometry : public FVGeometryBase
 				inline const MathVector<dim>& local_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
-			/// return glbal corner number i
+			/// return global corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
@@ -406,7 +406,7 @@ class FV1Geometry : public FVGeometryBase
 
 			// 	scvf part
 				MathVector<dim> localIP; // local integration point
-				MathVector<worldDim> globalIP; // global intergration point
+				MathVector<worldDim> globalIP; // global integration point
 				MathVector<worldDim> Normal; // normal (incl. area)
 				number Vol; // volume of bf
 
@@ -702,7 +702,7 @@ class DimFV1Geometry : public FVGeometryBase
 
 			// scvf part
 				MathVector<dim> localIP; // local integration point
-				MathVector<worldDim> globalIP; // global intergration point
+				MathVector<worldDim> globalIP; // global integration point
 
 			// shapes and derivatives
 				size_t numSH;
@@ -733,7 +733,7 @@ class DimFV1Geometry : public FVGeometryBase
 				inline const MathVector<dim>& local_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
-			/// return glbal corner number i
+			/// return global corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
@@ -775,7 +775,7 @@ class DimFV1Geometry : public FVGeometryBase
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vGlobalGrad[sh];}
 
-			/// vector of gloabl gradients in ip point
+			/// vector of global gradients in ip point
 				inline const MathVector<worldDim>* global_grad_vector() const {return vGlobalGrad;}
 
 			private:
@@ -870,7 +870,7 @@ class DimFV1Geometry : public FVGeometryBase
 				inline const MathVector<dim>& local_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
-			/// return glbal corner number i
+			/// return global corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
@@ -891,7 +891,7 @@ class DimFV1Geometry : public FVGeometryBase
 
 			// 	scvf part
 				MathVector<dim> localIP; // local integration point
-				MathVector<worldDim> globalIP; // global intergration point
+				MathVector<worldDim> globalIP; // global integration point
 				MathVector<worldDim> Normal; // normal (incl. area)
 				number Vol; // volume of bf
 
@@ -1208,7 +1208,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
 
-			/// vector of gloabl gradients in ip point
+			/// vector of global gradients in ip point
 				inline const MathVector<worldDim>* global_grad_vector(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip];}
 
@@ -1219,7 +1219,7 @@ class FVGeometry : public FVGeometryBase
 				inline const MathVector<dim>& local_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vLocPos[co];}
 
-			/// return glbal corner number i
+			/// return global corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
@@ -1244,7 +1244,7 @@ class FVGeometry : public FVGeometryBase
 
 			// scvf part
 				MathVector<dim> vLocalIP[nip]; // local integration point
-				MathVector<worldDim> vGlobalIP[nip]; // global intergration point
+				MathVector<worldDim> vGlobalIP[nip]; // global integration point
 				const number* vWeight; // weight at ip
 
 			// shapes and derivatives
@@ -1333,7 +1333,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(),"Wring index."); return vvGlobalGrad[ip][sh];}
 
-			/// vector of gloabl gradients in ip point
+			/// vector of global gradients in ip point
 				inline const MathVector<worldDim>* global_grad_vector(size_t ip) const
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return vvGlobalGrad[ip];}
 
@@ -1438,7 +1438,7 @@ class FVGeometry : public FVGeometryBase
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
 
-			/// vector of gloabl gradients in ip point
+			/// vector of global gradients in ip point
 				inline const MathVector<worldDim>* global_grad_vector(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip];}
 
@@ -1470,7 +1470,7 @@ class FVGeometry : public FVGeometryBase
 
 			// 	scvf part
 				MathVector<dim> vLocalIP[nip]; // local integration point
-				MathVector<worldDim> vGlobalIP[nip]; // global intergration point
+				MathVector<worldDim> vGlobalIP[nip]; // global integration point
 				const number* vWeight; // weight at ip
 				MathVector<worldDim> Normal; // normal (incl. area)
 				number Vol; // volume of bf
@@ -1792,7 +1792,7 @@ class DimFVGeometry : public FVGeometryBase
 			// scvf part
 				size_t nip;
 				std::vector<MathVector<dim> > vLocalIP; // local integration point (size: nip)
-				std::vector<MathVector<worldDim> > vGlobalIP; // global intergration point (size: nip)
+				std::vector<MathVector<worldDim> > vGlobalIP; // global integration point (size: nip)
 				const number* vWeight; // weight at ip
 
 			// shapes and derivatives
@@ -1879,7 +1879,7 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(),"Wring index."); return vvGlobalGrad[ip][sh];}
 
-			/// vector of gloabl gradients in ip point
+			/// vector of global gradients in ip point
 				inline const MathVector<worldDim>* global_grad_vector(size_t ip) const
 					{UG_ASSERT(ip<num_ip(),"Wring index."); return &vvGlobalGrad[ip][0];}
 
@@ -1983,7 +1983,7 @@ class DimFVGeometry : public FVGeometryBase
 					{UG_ASSERT(sh < num_sh(), "Invalid index");
 					 UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
 
-			/// vector of gloabl gradients in ip point
+			/// vector of global gradients in ip point
 				inline const MathVector<worldDim>* global_grad_vector(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvGlobalGrad[ip][0];}
 
@@ -2016,7 +2016,7 @@ class DimFVGeometry : public FVGeometryBase
 			// 	scvf part
 				size_t nip;
 				std::vector<MathVector<dim> > vLocalIP; // local integration point (size: nip)
-				std::vector<MathVector<worldDim> > vGlobalIP; // global intergration point (size: nip)
+				std::vector<MathVector<worldDim> > vGlobalIP; // global integration point (size: nip)
 				const number* vWeight; // weight at ip
 				MathVector<worldDim> Normal; // normal (incl. area)
 				number Vol; // volume of bf
@@ -2337,7 +2337,7 @@ class FV1ManifoldBoundary
 				
 				//IPs & shapes
 				MathVector<dim> localIP; // local integration point
-				MathVector<worldDim> globalIP; // global intergration point
+				MathVector<worldDim> globalIP; // global integration point
 				std::vector<number> vShape; // shapes at ip
 				
 				number vol;
