@@ -2,22 +2,36 @@
 //	s.b.reiter@googlemail.com
 //	y11 m06 d08
 
-/** \page pageTutorials - Tutorials
+/** \page pageTutorials Tutorials
+<!--
+TODO extend and possibly reorder this list
+-->
 
-On this site you'll find links to different tutorials. Some are targetted at
-all users of ug, like the scripting tutorials or the ugshell tutorial, others
-are aimed primarily at developers - e.g. the 'install eclipse' and
-'compile ug4' tutorials. Some are aimed at both - e.g. the profiling tutorial.
+<!--
+TODO Rewrite this paragraph.
+-->
+On this site you'll find links to different tutorials.
+Some are targetted at all users of ug4, like the <em>Scripting tutorials</em>
+or the <em>ugshell tutorial</em>, others are aimed primarily at developers 
+&mdash; e.g. the <em>Install Eclipse</em> and <em>Compile ug4</em> tutorials.
+Some are aimed at both &mdash; e.g. the <em>profiling tutorial</em>.
 
-	- \ref pageInstallUG4 "Compile ug4"
-	- \ref pageUG4Shell "ugshell"
-	- \ref pageScriptTutorial "Script Tutorial"
-	- \ref pageInstallEclipse "Install Eclipse"
-	- \ref pageUG4Profiling "Profiling"
-	- \ref pageUG4ParallelComputing "Parallel computing"
-	- \ref pageParallelRendering "Parallel Rendering"
-	- \ref pageUG4ScalabilityTests "Scalability Tests"
-	- \ref pageAdditionalSoftware "Additional software that might be useful"
-	
-	- \ref pageugsubmit "Job Scheduling on Clusters"
- */
+\section secTutorialsGeneral General Tutorials
+
+- \ref pageUG4Shell
+- \subpage pageScriptTutorial
+
+
+\section secTutorialsSpecial Special Tutorials
+- \subpage pageUG4Profiling
+- \subpage pageUG4ScalabilityTests
+- \ref pageUG4ParallelComputing
+- \ref pageParallelRendering
+- \ref pageugsubmit
+
+
+\section secTutorialsDev Development Tutorials
+- \ref pageInstallEclipse
+- \ref pageUnitTests
+
+*/
