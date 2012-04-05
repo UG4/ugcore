@@ -15,6 +15,9 @@
 // library intern headers
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/ip_data/data_import_export.h"
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_user_data.h"
+#endif
 
 namespace ug{
 
