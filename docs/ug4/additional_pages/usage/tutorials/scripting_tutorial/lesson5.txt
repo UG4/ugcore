@@ -1,12 +1,14 @@
 
-/**	\page pageSTLesson5	Script-Tutorial Lesson 5 - Global Refinement
+/** \page pageSTLesson5 Lesson 5 - Global Refinement
 
 This script shows how a domain can be refined, both before and after
-parallel distribution. To keep things easy, a global refiner is used.
+parallel distribution.
+To keep things easy, a global refiner is used.
 Adaptive refinement is subject to later tutorials.
 
-Below you'll find the scripts sources. They are the same as in
-scripts/tutorials/tut05_global_refinement.lua
+Below you'll find the scripts sources.
+They are the same as in 
+<tt>scripts/tutorials/tut05_global_refinement.lua</tt>.
 
 \include tut05_global_refinement.lua
 

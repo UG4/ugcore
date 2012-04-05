@@ -1,22 +1,24 @@
 
-/**	\page pageScriptTutorial ug-Script Tutorial
+/** \page pageScriptTutorial ug-Script Tutorial
 
-One possibility to work with ug is the usage of the <b>Scripting facility</b>. 
+One possibility to work with ug4 is the usage of the <strong>Scripting 
+facility</strong>. 
 
-The ug script is based on <b>Lua</b> (see www.lua.org). 
+The <strong>ug-script</strong> is based on \em Lua (see http://www.lua.org). 
 
-This tutorial is addressed to users starting to work with the ug-script for the
-first time. Several lessons will give a step by step introduction to the broad 
-world of commands, classes and functionality of ug, that can be used and controlled
-by users without even programming a line of code in c/c++. In each lesson only
-few small new aspects are added such that the user can focus on small parts 
-of the script.
+This tutorial is addressed to users starting to work with the <em>ug-script</em>
+for the first time.
+Several lessons will give a step by step introduction to the broad world of 
+commands, classes and functionality of ug4, that can be used and controlled
+by users without even programming a line of code in C/C++.
+In each lesson only few small new aspects are added such that the user can 
+focus on small parts of the script.
 
-	- \ref pageSTLesson1 "Lesson 1 - lua basics"
-	- \ref pageSTLesson2 "Lesson 2 - loading a domain"
-	- \ref pageSTLesson3 "Lesson 3 - laplace with exact solver"
-	- \ref pageSTLesson4 "Lesson 4 - modular programming"
-	- \ref pageSTLesson5 "Lesson 5 - global refinement"
-	- \ref pageSTLesson6 "Lesson 6 - flexible domain distribution"
+- \subpage pageSTLesson1
+- \subpage pageSTLesson2
+- \subpage pageSTLesson3
+- \subpage pageSTLesson4
+- \subpage pageSTLesson5
+- \subpage pageSTLesson6
 
 */
