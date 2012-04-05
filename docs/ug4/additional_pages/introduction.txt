@@ -3,8 +3,42 @@
 //	y10 m07 d30
 
 /**	\page pageUG4Introduction ug4 - Introduction
-Below you find introductions to the main modules of ug4
-	- \ref pageLAOverview 		"lib_algebra"
-	- \ref pageLDIntroduction	"lib_discretization"
-	- \ref pageLGIntroduction	"lib_grid"
+
+
+ug4 is a simulation framework, targetted at the solution of
+differential equations on unstructured hybrid grids in 1, 2 and 3 dimensions
+on systems reaching from laptops to massively parallel systems.
+ug4 is written in C++, striving for a flexible, yet fast and robust simulation environment.
+
+Features are:
+	- Fast and efficient numerical solvers for serial and parallel environments.
+	- A flexible discretization module, allowing to freely couple equations, input
+		and output parameters, even on scripting level.
+	- An efficient extensible grid manager supporting distributed adaptive hybrid
+		multigrids in 1, 2 and 3 dimensions. Supported element types are vertices, edges,
+		triangles, quadrilaterals, tetrahedrons, hexahedrons, prisms and pyramids. 
+	- A parallelization layer based on mpi which allows efficient communication
+		on distrubuted hierarchical graphs. Scalability has been shown for up to
+		256ki processes - more to come...
+	- ug4 extends the lua scripting language, which allows to control the entire
+		simulation from powerful an easily readable scripts.
+	- Through the 'Visual Reflection Library' users can run and control an
+		entire simulation through a modern graphical interface.
+	- ug4 also features an interactive shell with auto-completion, which can
+		be used in addition to scripts to have even more control over the run of
+		a simulation.
+	- A Plugin system allows users to extend ug4 without having to dive into
+		the specifics of ug's implementation. Plugins can export functions and
+		classes, which are then immediately available in ug's script and in the
+		'Visual Reflection Library'.
+	- ug4 is backed up by several powerful tools like ProMesh (meshing software) or
+		the ConnectionViewer (used to inspect matrix connections).
+	- Simulation results can be stored and interpreted by widely spread visualization
+		toolkits like the VTK based ParaView.
+	- ug4 is a cross-platform tool and supports Linux, MacOSX and Microsoft Windows.
+<br>
+
+ug4 has been written and is still developed at the
+<i>Goethe Center for Scientific Computing at the University of Frankfurt, Germany </i>(http://www.g-csc.de).
+
 */

@@ -1,62 +1,64 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
-//	y10 m07 d30
+/** \mainpage ug4 - Documentation 
+ 
+ \section secAbout About
 
-/** \mainpage ug4 - Documentation
-
-- \ref secAbout "About"
-- \ref secWhatIsIt "What is ug4?"
-- \ref secUserManual "User Manual"
-
-
-<br>
-<hr>
-\section secAbout About
 ug4 has been written and is still developed at the
 <i>Goethe Center for Scientific Computing at the University of Frankfurt, Germany </i>(http://www.g-csc.de).
- 
- 
-<br>
+
+
 <hr>
 \section secWhatIsIt What is ug4?
+
 ug4 is a simulation framework, targetted at the solution of
-differential equations on unstructured hybrid grids on massive parallel systems
-in 1, 2 and 3 dimensions.
-ug4 is written in C++, striving for a flexible, yet fast and robust simulation environment.
-
-Features are:
-	- Fast and efficient numerical solvers for serial and parallel environments.
-	- A flexible discretization module, allowing to freely couple equations, input
-		and output parameters, even on scripting level.
-	- An efficient extensible grid manager supporting distributed adaptive hybrid
-		multigrids in 1, 2 and 3 dimensions. Supported element types are vertices, edges,
-		triangles, quadrilaterals, tetrahedrons, hexahedrons, prisms and pyramids. 
-	- A parallelization layer based on mpi which allows efficient communication
-		on distrubuted hierarchical graphs. Scalability has been shown for up to
-		256ki processes - more to come...
-	- ug4 extends the lua scripting language, which allows to control the entire
-		simulation from powerful an easily readable scripts.
-	- Through the 'Visual Reflection Library' users can run and control an
-		entire simulation through a modern graphical interface.
-	- ug4 also features an interactive shell with auto-completion, which can
-		be used in addition to scripts to have even more control over the run of
-		a simulation.
-	- A Plugin system allows users to extend ug4 without having to dive into
-		the specifics of ug's implementation. Plugins can export functions and
-		classes, which are then immediately available in ug's script and in the
-		'Visual Reflection Library'.
-	- ug4 is backed up by several powerful tools like ProMesh (meshing software) or
-		the ConnectionViewer (used to inspect matrix connections).
-	- Simulation results can be stored and interpreted by widely spread visualization
-		toolkits like the VTK based ParaView.
-	- ug4 is a cross-platform tool and supports Linux, MacOSX and Microsoft Windows.
+differential equations on unstructured hybrid grids in 1, 2 and 3 dimensions
+on systems reaching from laptops to massively parallel systems.
+ug4 is written in C++, striving for a flexible, yet fast and robust simulation environment
+\ref pageUG4Introduction "... [more]"
 
 
-<br>		
 <hr>
 \section secUserManual User Manual:
+- Overview
 	- \ref pageUG4Introduction "Introduction"
-	- \ref pageUG4Documentation "Documentation"
-	- \ref pageCopyrights "Copyrights and Licenses"
+	- Ideas behind ug4
+	- Software Architecture
+	- Background
+	
+- Setup and installation
+	- \ref pageAdditionalSoftware	"Prerequisites and recommendend tools"
+	- Downloads and sources
+	- Setting up ug4 on
+		- \ref pageInstallUG4		"linux"
+		- \ref pageUG4OnMac			"mac-osx"
+		- \ref pageUG4OnWindows		"windows"
+		- \ref pageUG4SetupParallel	"parallel clusters"
+	- ug4 for vrl
+
+- Usage
+	- \ref pageAdditionalSoftware	"Tools"
+	- \ref pageUG4Shell				"ugshell"
+	- \ref pageTutorials			"Tutorials"
+	- Parallel computing
+		- \ref pageUG4ParallelComputing	"General information"
+		- \ref pageugsubmit				"Submitting jobs"
+		- \ref pageParallelRendering	"Parallel rendering"
+	- ug and vrl
+	- ug-scripting reference documentation
+
+- Development
+	- Central modules of ugbase
+		- \ref pageLAOverview 		"lib_algebra"
+		- \ref pageLDIntroduction	"lib_disc"
+		- \ref pageLGIntroduction	"lib_grid"
+		- \ref pageUG4Registry		"registry"
+	- Plugins
+	- \ref pageUnitTests "Unit tests"
+	- Tips and guidelines
+		- \ref pageInstallEclipse 		"ug4 development with the Eclipse IDE"
+		- \ref pageUG4CodingStyle 		"Coding and documentation style"
+		- \ref pageTeamCommunication 	"Team Communication"
+
+- Copyrights and Licenses
+	- \ref pageCopyrights "ug4 License (preliminary)"
+	- \ref pageExternalLibraries "External libraries"
  */
- 
