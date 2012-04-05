@@ -1,0 +1,283 @@
+//  created by Torbjörn Klatt
+//  torbjoern@torbjoern-klatt.de
+//  y12 m04 d04
+
+<!--
+TODO Think about Lua integration with https://github.com/alecchen/doxygen-lua
+-->
+
+/** \page pageUG4DoxygenQuickref Doxygen Quick Reference
+
+- \ref secDoxygenGeneral
+  - \ref secDoxygenParScope
+  - \ref secDoxygenOwnCommands
+- \ref secDoxygenText
+  - \ref secDoxygenStyle
+  - \ref secDoxygenLinks
+  - \ref secDoxygenParagraphs
+  - \ref secDoxygenLists
+- \ref secDoxygenFunctions
+  - \ref secDoxygenParameters
+  - \ref secDoxygenGrouping
+- \ref secDoxygenTipps
+
+<hr>
+As written in our \ref pageUG4CodingStyle "Coding Style Guidelines", we are 
+using \em Doxygen for documentation purposes in \ug4.
+
+This is a list and short description of the most frequently used and most 
+important \em Doxygen commands and tricks.
+Using these should result in a concise and beatiful documentation.
+
+The full list of available commands can be found in Doxygen's documentation:
+http://www.stack.nl/~dimitri/doxygen/commands.html
+
+
+<hr>
+\section secDoxygenGeneral General Behaviour of Doxygen
+
+\subsection secDoxygenParScope Scope of Paragraph Commands
+When ever a \em paragraph command is used (e.g. <tt>note</tt>), which does
+not define a start and end command (as <tt>verbatim</tt>/<tt>endverbatim</tt>),
+the paragraph ends at the next paragraph command or empty line.
+
+
+<hr>
+\subsection secDoxygenOwnCommands Custom Commands for \ug4
+To ease the "correct" writing of this software we are documenting &mdash; \ug4
+&mdash; a custom command (alias) has been defined:
+\code
+\ug4
+\endcode
+which renders to: \ug4.
+
+
+<hr>
+\section secDoxygenText Formatting and Structuring Text
+
+\subsection secDoxygenStyle Styling Text
+The usual formatting is available.
+- \b bold
+  - for one word: <tt>\\b word</tt>
+  - for several words: <tt><&lt;strong&gt;several words&lt;/strong&gt;</tt>
+- \em italic
+  - for one word: <tt>\\em word</tt>
+  - for several words: <tt>&lt;em&gt;several words&lt;/em&gt;</tt>
+- \c typewriter
+  - for one word: <tt>\\c word</tt>
+  - for several words (inline): <tt>&lt;tt&gt;several words&lt;/tt&gt;</tt>
+  - for blocks of code see \ref secDoxygenParagraphs.
+
+
+<hr>
+\subsection secDoxygenLinks Links and References
+In case of function and class names, \em Doxygen is smart and will automatically
+create a link to the documentation of a function or class whenever it is
+mentioned inside \em Doxygen comments.<br>
+To force the reference to a class or method one can use the <tt>\\see</tt> 
+command followed by a list of class and method names.
+Accessing a method of one specific class, the <tt>::</tt> and <tt>#</tt> 
+notation is supported.
+E.g. <tt>MyNamespace::AwesomeClass#print</tt>
+
+Full URLs (with <tt>http://</tt>) and email addresses are converted into links.
+
+To create custom links, either the HTML tag 
+(<tt>&lt;a href="place-the-url-here"&gt;This is a link&lt;/a&gt;</tt>) or the 
+reference command (<tt>\\ref target "Title"</tt>) can be used.
+In case <tt>"Title"</tt> is not given with the <tt>\\ref</tt> command, the name
+of the section or page is used.
+
+Targets accessible by the <tt>\\ref</tt> command are either defined pages 
+(<tt>\\page</tt>), sections (e.g. <tt>\\subsection</tt>) or arbitrarily defined
+anchors (<tt>\\anchor target</tt>) somewhere in documents within the include 
+path of \em Doxygen.
+
+
+<hr>
+\subsection secDoxygenParagraphs Special Paragraphs
+There are some special paragraphs available, which do not only look nice but
+come sometimes rather handy.
+\note These paragraphs end at the start of the next such paragraph or at an 
+empty line.
+Indentation ist not required.
+\warning If used within lists or other blocks of HTML, please make sure there is
+one empty line between the end of such a paragraph and e.g. a closing list item
+tag ('<tt>&lt;/li&gt;</tt>').
+
+<ul>
+  <li>
+    \code
+\note It might be a good thing to bookmark this page.
+    \endcode
+    \note It might be a good thing to bookmark this page.
+    
+  </li>
+  <li>
+    \code
+\remarks Make sure your development toolchain is functional.
+    \endcode
+    \remarks Make sure your development toolchain is functional.
+  
+  </li>
+  <li>
+    \code
+\todo Extend the documentation.
+    \endcode
+    \todo Extend the documentation.
+  
+  </li>
+  <li>
+    \code
+\warning Check your pointers!
+    \endcode
+    \warning Check your pointers!
+  
+  </li>
+</ul>
+
+The second type of paragraphs are defined by a starting and closing command.
+Especially for displaying source code the following are usefull:
+<ul>
+  <li><tt>\\code</tt> &mdash; <tt>\\endcode</tt> to display source code.
+    It offers basic syntax highlighting and automated linking to functions and
+    classes found somewhere else in the documentation.
+  </li>
+  <li><tt>\\verbatim</tt> &mdash; <tt>\\endverbatim</tt>, same as above, but
+    without the fancy syntax highlighting or linking.
+  </li>
+</ul>
+
+
+<hr>
+\subsection secDoxygenLists Lists
+There are two options: One pure and one lazy with a little remark.
+<ul>
+  <li>\b pure &mdash; HTML-Tags
+    There are HTML tags for two kinds of lists:
+    <ul>
+      <li>\em unordered (<tt>&lt;ul&gt;</tt> - <tt>&lt;/ul&gt;</tt>)</li>
+      <li>\em ordered (<tt>&lt;ol&gt;</tt>) - <tt>&lt;/ol&gt;</tt></li>
+    </ul>
+    with the items wrapped inside <tt>&lt;li&gt;</tt> - <tt>&lt;/li&gt;</tt>.
+  </li>
+  <li>\b lazy &mdash; simple Markdown
+    Same possibilities as with HTML, but with simple dashes ('<tt>-</tt>') 
+    followed by a whitespace defining each element.
+    For the ordered list, append a \em hash ('<tt>#</tt>') to the dash.
+    \note The indentation of the text is important!
+    
+    \code
+- an unordered item of highest level
+  - with a unordered item of lover level where the source code 
+    but not the rendered text spans over several rows
+-# and an order item of highest level
+    \endcode
+    renders to:
+    - an unordered item of highest level
+      - with a unordered item of lover level where the source code 
+        but not the rendered text spans over several rows
+    -# and an order item of highest level
+    
+    \remark The lazy verariant might not work in full functionality with 
+    Doxygen version prior to 1.8.0.
+    
+  </li>
+</ul>
+
+
+<hr>
+\section secDoxygenFunctions Documenting Classes, Funktions and Variables
+To define author and date of creation, the commands <tt>\\author</tt> and
+<tt>\\date</tt> are available.
+The first can be used several times.
+
+
+<hr>
+\subsection secDoxygenParameters Parameters, Return Values and Exceptions
+<ul>
+  <li><tt>\\brief text</tt><br>
+    A very short description of the function showing up in the member list at
+    the top of each class documentation page. It is as well repeated in the
+    detailed documentation of that function, but separated from the detailed
+    description.<br>
+    This brief text ends at the line it is defined in, i.e. it can not be 
+    longer than one line.
+  </li>
+  <li><tt>\\param[in,out] name text</tt><br>
+    Documenting the parameter \c name of the function with a short descriptive 
+    \em text and whether it is only an input (\c in) or output (\c out) or both
+    (<tt>in,out</tt>) paameter.
+  </li>
+  <li><tt>\\return text</tt><br>
+    Documenting the return value of a function with a descriptive \c text.
+  </li>
+  <li><tt>\\exception type text</tt><br>
+    Documenting possible exceptions emitted by a function with their defined
+    \c type and a descriptive \c text. Multiple <tt>\\exception</tt> commands
+    are possible.
+  </li>
+</ul>
+
+
+<hr>
+\subsection secDoxygenGrouping Grouping Namespaces, Classes and Members
+Everything except of pages can be grouped into \em Modules showing up in a
+separate group in the documentation.
+An example of this usage can be found with the lib_algebra, lib_disc and
+lib_grid modules.
+
+<tt>\\defgroup identifier name</tt> will create such a group, which can be
+referenced and used by its \c identifier and show up in the rendered page as \c
+name.
+Make sure this command is only called once per identifier &mdash; \em Doxygen
+will get confused otherwise and throw errors / warnings.
+
+<tt>\\addtogroup identifier</tt> will add a component to a defined group.
+You can use <tt>\@{</tt> and <tt>\@}</tt> to add several components at once:
+\verbatim
+/**
+ * \addtogroup myPrefiouslyDefinedGroup
+ * @{
+ * /
+class MyClass
+{
+  void myFunction()
+  {
+    std::cout << "Hello World!" << std::endl;
+  }
+
+  int add(int a, int b)
+  {
+    return a+b;
+  }
+}
+/** @} * /
+\endverbatim
+For more details about this powerful functionality of \em Doxygen, see
+http://www.stack.nl/~dimitri/doxygen/grouping.html
+
+
+<hr>
+\section secDoxygenTipps Further Doxygen Tipps
+
+A <strong>hierarchy of pages</strong> can be achieved with the 
+<tt>\\subpage</tt> command.
+
+<!--
+NOTE: Uncomment this as soon as Doxygen 1.8.0 is available broadly. Yet too soon.
+-->
+<!--
+From version 1.8.0 on, \em Doxygen provides the <tt>\\tableofcontents</tt> 
+command in related pages (as this one) to automatically create a nice 
+<strong>table of contents</strong>.
+-->
+
+<strong>Special characters</strong> as the dash ('&mdash;') should be entered 
+in the form of their HTML entity. (without the whitespaces)
+- '&mdash;' -> '<tt>& mdash ;</tt>'
+
+<strong>Horizontal lines</strong> are created with the default HTML tag:
+<tt>&lt;hr&gt;</tt>.
+
+*/

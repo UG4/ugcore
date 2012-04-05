@@ -133,6 +133,9 @@ namespace ug{
 In ug doxygen is used to document the code (see www.doxygen.org). The 
 JavaDoc style is the preferred documentation style.
 
+See the \ref pageUG4DoxygenQuickref for the most important commands and how 
+to use them.
+
 \verbatim
 /// A brief documentation
 /**
