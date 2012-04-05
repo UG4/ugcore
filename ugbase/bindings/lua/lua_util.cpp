@@ -164,7 +164,7 @@ lua_State* GetDefaultLuaState()
 }
 
 
-void FinalizeLUA()
+void ReleaseDefaultLuaState()
 {
 	if(theLuaState != NULL)
 	{

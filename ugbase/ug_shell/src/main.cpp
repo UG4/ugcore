@@ -469,7 +469,7 @@ int main(int argc, char* argv[])
 
 	// Until fully tested for dependency problems, I commented out the following lines.
 	// For using valgrind, you'll have to uncomment them.
-	//FinalizeLUA();
+	//ReleaseDefaultLuaState();
 	//UnloadPlugins();
 	UGFinalize();
 

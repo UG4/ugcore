@@ -46,15 +46,16 @@ UG_API bool LoadUGScript(const char* filename);
 
 
 ///	returns the default lua state
-/**	When called for the first time, a new state is created and
- *	the methods and classes in ugs default registry
- *	(ug::bridge::GetUGRegistry) are registered. Furthermore a callback
- *	is registered, which registers new methods whenever
- *	Registry::registry_changed() is called on the default registry.*/
+/**	When called for the first time, or after ReleaseDefaultLuaState,
+ * a new state is created and the methods and classes in ugs default registry
+ * (ug::bridge::GetUGRegistry) are registered. Furthermore a callback
+ * is registered, which registers new methods whenever
+ * Registry::registry_changed() is called on the default registry.*/
 UG_API lua_State* GetDefaultLuaState();
 
-/// FinalizeLUA. clears up.
-UG_API void FinalizeLUA();
+/// Releases the lua-state returned by GetDefaultLuaState().
+/**	This method is useful, if you want to restart scripting from scratch.*/
+UG_API void ReleaseDefaultLuaState();
 
 ///	parses and executes a buffer
 /**	Throws an instance of LuaError, if a parse error occurs.*/
