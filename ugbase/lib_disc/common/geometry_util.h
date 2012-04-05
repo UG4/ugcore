@@ -611,7 +611,7 @@ bool ElementSideRayIntersection(	size_t& sideOut,
 template <int TDim, int TWorldDim>
 struct SCVFofSCVRayIntersectionWrapper
 {
-	static bool apply(	size_t& sideOut,
+	static bool apply(	size_t& sideOut, number& bc,
 						MathVector<TWorldDim>& GlobalIntersectionPointOut,
 						MathVector<TDim>& LocalIntersectionPoint,
 						const MathVector<TWorldDim>& From, const MathVector<TWorldDim>& Direction,
@@ -713,7 +713,7 @@ bool SCVFofSCVRayIntersection(	size_t& sideOut, number& bc,
 {
 	UG_ASSERT(VecTwoNorm(Direction) > 0, "Direction must be non-zero vector.");
 	return SCVFofSCVRayIntersectionWrapper<TDim, TWorldDim>::
-			apply(sideOut, GlobalIntersectionPointOut, LocalIntersectionPoint,
+			apply(sideOut, bc, GlobalIntersectionPointOut, LocalIntersectionPoint,
 					Root, Direction, bPositiv, vCornerCoords);
 }
 
