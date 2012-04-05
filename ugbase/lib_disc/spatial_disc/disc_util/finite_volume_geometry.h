@@ -253,6 +253,14 @@ class FV1Geometry : public FVGeometryBase
 				inline const MathVector<worldDim>& global_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
 
+			/// return local corners
+				inline const MathVector<dim>* local_corners() const
+					{return &vLocPos[0];}
+
+			/// return global corners
+				inline const MathVector<worldDim>* global_corners() const
+					{return &vGloPos[0];}
+
 			/// node id that this scv is associated to
 				inline size_t node_id() const {return nodeId;}
 
