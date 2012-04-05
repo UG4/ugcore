@@ -132,19 +132,6 @@ bool IsDefinedUG_CPU_VAR() { return true; }
 bool IsDefinedUG_CPU_VAR() { return false; }
 #endif
 
-// DOF:
-#ifdef DOF_GEN
-bool IsDefinedDOF_GEN() { return true; }
-#else
-bool IsDefinedDOF_GEN() { return false; }
-#endif
-
-#ifdef DOF_P1
-bool IsDefinedDOF_P1() { return true; }
-#else
-bool IsDefinedDOF_P1() { return false; }
-#endif
-
 // STATIC:
 #ifdef UG_STATIC
 bool IsDefinedUG_STATIC() { return true; }
@@ -350,11 +337,6 @@ void PrintBuildConfiguration()
 		aux_str.append( (IsDefinedUG_CPU_VAR() ? "VAR" : "") );
 	}
 	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
-	aux_str = "";
-	aux_str.append("DOF:               ");
-	aux_str.append( (IsDefinedDOF_P1()  ? "P1  " : " ") );
-	aux_str.append( (IsDefinedDOF_GEN() ? "GEN " : " ") );
-	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
 
 	// We've decided so far not to display the following derived parameters!
 
@@ -418,11 +400,6 @@ void PrintBuildConfiguration()
 		UG_LOG( (IsDefinedUG_CPU_4() ? "4 " : " ") );
 		UG_LOG( (IsDefinedUG_CPU_VAR() ? "VAR" : " ") );
 	}
-	UG_LOG("\n");
-
-	UG_LOG("DOF:               ");
-	UG_LOG( (IsDefinedDOF_P1()  ? "P1  " : " ") );
-	UG_LOG( (IsDefinedDOF_GEN() ? "GEN " : " ") );
 	UG_LOG("\n");
 
 	UG_LOG("DEBUG:             ");

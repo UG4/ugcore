@@ -33,7 +33,7 @@ set_diffusion(number val)
 	set_diffusion(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
 }
 
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_diffusion(const char* fctName)
@@ -103,7 +103,7 @@ set_velocity(number vel_x, number vel_y, number vel_z)
 }
 
 
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_velocity(const char* fctName)
@@ -125,7 +125,7 @@ set_reaction_rate(number val)
 	set_reaction_rate(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_reaction_rate(const char* fctName)
@@ -147,7 +147,7 @@ set_reaction(number val)
 	set_reaction(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_reaction(const char* fctName)
@@ -169,7 +169,7 @@ set_source(number val)
 	set_source(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_source(const char* fctName)
@@ -191,7 +191,7 @@ set_mass_scale(number val)
 	set_mass_scale(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_mass_scale(const char* fctName)
@@ -213,7 +213,7 @@ set_mass(number val)
 	set_mass(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_mass(const char* fctName)

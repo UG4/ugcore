@@ -35,6 +35,7 @@ set(BUILD_ONE_LIB ON)
 # on the value of TARGET.
 set(buildUGShell OFF)
 set(buildForVRL OFF)
+set(buildForLUA OFF)
 set(buildAlgebra OFF)
 set(buildPluginSystem OFF)
 set(buildCorePlugins OFF)
@@ -196,6 +197,7 @@ add_definitions(-DUG_TARGET="${TARGET}") # (dummy) preprocessor directive used f
 # The target option enables specific build variables
 if("${TARGET}" STREQUAL "ugshell")
 	set(buildUGShell ON)
+	set(buildForLUA ON)
 	set(buildAlgebra ON)
 	set(buildPluginSystem ON)
 	set(buildCorePlugins ON)	# will be disabled later on if STATIC is enabled
@@ -631,6 +633,12 @@ if(buildForVRL)
     include_directories(${JNI_INCLUDE_DIRS})
 	add_definitions(-DFOR_VRL)
 endif(buildForVRL)
+
+########################################
+# LUA
+if(buildForLUA)
+	add_definitions(-DUG_FOR_LUA)
+endif(buildForLUA)
 
 
 ################################################################################

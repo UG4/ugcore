@@ -186,17 +186,6 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		first = false;
 #endif
 
-	//	build a string with all compiled DoFManager
-		stringstream availDofManager; first = true;
-#ifdef DOF_P1
-		if(!first) {availDofManager << ",";}; availDofManager << "\"P1\"";
-		first=false;
-#endif
-#ifdef DOF_GEN
-		if(!first) {availDofManager << ",";}; availDofManager << "\"GEN\"";
-		first=false;
-#endif
-
 #ifdef UG_ALGEBRA
 		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&)>(&InitUG), "/ug4/Init",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).

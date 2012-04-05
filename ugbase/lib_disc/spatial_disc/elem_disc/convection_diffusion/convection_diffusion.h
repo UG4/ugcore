@@ -88,7 +88,7 @@ class ConvectionDiffusion
 	///	\{
 		void set_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
 		void set_diffusion(number val);
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 		void set_diffusion(const char* fctName);
 #endif
 	///	\}
@@ -103,7 +103,7 @@ class ConvectionDiffusion
 		void set_velocity(number vel_x);
 		void set_velocity(number vel_x, number vel_y);
 		void set_velocity(number vel_x, number vel_y, number vel_z);
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 		void set_velocity(const char* fctName);
 #endif
 	/// \}
@@ -115,7 +115,7 @@ class ConvectionDiffusion
 	///	\{
 		void set_reaction_rate(SmartPtr<IPData<number, dim> > user);
 		void set_reaction_rate(number val);
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 		void set_reaction_rate(const char* fctName);
 #endif
 	///	\}
@@ -127,7 +127,7 @@ class ConvectionDiffusion
 	///	\{
 		void set_reaction(SmartPtr<IPData<number, dim> > user);
 		void set_reaction(number val);
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 		void set_reaction(const char* fctName);
 #endif
 	///	\}
@@ -140,7 +140,7 @@ class ConvectionDiffusion
 	///	\{
 		void set_source(SmartPtr<IPData<number, dim> > user);
 		void set_source(number val);
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 		void set_source(const char* fctName);
 #endif
 	///	\}
@@ -153,7 +153,7 @@ class ConvectionDiffusion
 	///	\{
 		void set_mass_scale(SmartPtr<IPData<number, dim> > user);
 		void set_mass_scale(number val);
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 		void set_mass_scale(const char* fctName);
 #endif
 	///	\}
@@ -166,7 +166,7 @@ class ConvectionDiffusion
 	///	\{
 		void set_mass(SmartPtr<IPData<number, dim> > user);
 		void set_mass(number val);
-#ifndef FOR_VRL
+#ifdef UG_FOR_LUA
 		void set_mass(const char* fctName);
 #endif
 	///	\}
