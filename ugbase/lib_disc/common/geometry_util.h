@@ -13,6 +13,7 @@
 
 #include "common/common.h"
 #include "lib_disc/reference_element/reference_element.h"
+#include "common/util/provider.h"
 
 namespace ug{
 
@@ -448,7 +449,7 @@ struct ElementSideRayIntersectionWrapper
 						const MathVector<TWorldDim>& From, const MathVector<TWorldDim>& Direction,
 						bool bPositiv, const MathVector<TWorldDim>* vCornerCoords)
 	{
-		UG_ASSERT(0, "Not implemented.");
+		UG_THROW_FATAL("Not implemented.");
 		return false;
 	}
 };
@@ -463,8 +464,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 						const MathVector<2>& From, const MathVector<2>& Direction,
 						bool bPositiv, const MathVector<2>* vCornerCoords)
 	{
-		// TODO: Replace by SingeltonProvider
-		static TRefElem rRefElem;
+		static const TRefElem& rRefElem = Provider<TRefElem>::get();
 
 		// reference dimension
 		const int dim = TRefElem::dim;
@@ -511,8 +511,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 						const MathVector<3>& From, const MathVector<3>& Direction,
 						bool bPositiv, const MathVector<3>* vCornerCoords)
 	{
-		// TODO: Replace by SingeltonProvider
-		static TRefElem rRefElem;
+		static const TRefElem& rRefElem = Provider<TRefElem>::get();
 
 		// reference dimension
 		const int dim = TRefElem::dim;
@@ -599,6 +598,123 @@ bool ElementSideRayIntersection(	size_t& sideOut,
 	return ElementSideRayIntersectionWrapper<TRefElem, TWorldDim>::
 			apply(sideOut, GlobalIntersectionPointOut, LocalIntersectionPoint,
 					From, Direction, bPositiv, vCornerCoords);
+}
+
+
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+// ElementSideRayIntersection
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+// wrapper class to distinguish reference dimesion
+template <int TDim, int TWorldDim>
+struct SCVFofSCVRayIntersectionWrapper
+{
+	static bool apply(	size_t& sideOut,
+						MathVector<TWorldDim>& GlobalIntersectionPointOut,
+						MathVector<TDim>& LocalIntersectionPoint,
+						const MathVector<TWorldDim>& From, const MathVector<TWorldDim>& Direction,
+						bool bPositiv, const MathVector<TWorldDim>* vCornerCoords)
+	{
+		UG_THROW_FATAL("Not implemented.");
+		return false;
+	}
+};
+
+// specialization for 2d
+template <>
+struct SCVFofSCVRayIntersectionWrapper<2, 2>
+{
+	static bool apply(	size_t& sideOut, number& bc,
+						MathVector<2>& GlobalIntersectionPointOut,
+						MathVector<2>& LocalIntersectionPoint,
+						const MathVector<2>& From, const MathVector<2>& Direction,
+						bool bPositiv, const MathVector<2>* vCornerCoords)
+	{
+		static const ReferenceQuadrilateral& rRefElem = Provider<ReferenceQuadrilateral>::get();
+
+		// reference dimension
+		static const int dim = 2;
+
+		// parameters
+		bc = 0.;
+		number t = 0.;
+		size_t p0 = 0, p1 = 0;
+
+		// find side
+		for(sideOut = 0; sideOut < rRefElem.num(0); ++sideOut)
+		{
+			// get corners
+			p0 = rRefElem.id(dim-1, sideOut, 0, 0);
+			p1 = rRefElem.id(dim-1, sideOut, 0, 1);
+
+			// if match: break
+			if(RayLineIntersection2d(	GlobalIntersectionPointOut, bc, t,
+										vCornerCoords[p0], vCornerCoords[p1],
+										From, Direction))
+			{
+			//	skip if one root-point scvf
+				if(fabs(t) <= std::numeric_limits<number>::epsilon() * 10)
+					continue;
+
+			//	upwind / downwind switch
+				if(bPositiv && t >= 0.0) break;
+				else if(!bPositiv && t <= 0.0) break;
+			}
+		}
+
+		// if not found
+		if(sideOut >= rRefElem.num(0))
+			UG_THROW_FATAL("Side not found.");
+
+		// Compute local intersection
+		VecScaleAdd(LocalIntersectionPoint, bc, rRefElem.corner(p1), 1.-bc, rRefElem.corner(p0));
+
+		//	parameter of intersection should loop always from center to edgeMidpoint
+		//	thus, for side 2 this is correct, but for side 1 we have to invert direction
+		if(sideOut == 1) bc = 1. - bc;
+
+		// true if found on scvf
+		if(sideOut == 1 || sideOut == 2) return true;
+		// false if found on element corner
+		else return false;
+	}
+};
+
+///////////////////////////////////////////////////////////////
+// SCVFofSCVRayIntersection
+/**
+ * This function computes if another scvf of a scv is intersected
+ * by a Ray given in Parameter form by 'Root + c * Direction'. The
+ * intersection is choose to be at positive parameter if bPositiv == true,
+ * else the intersection at negative parameter is choosen.
+ * Global and local coordinates of the intersection points are returned
+ * as well as the local number of the side of the scv that matches the intersection.
+ *
+ * \param[in]	Root							Point of Ray
+ * \param[in]	Direction						Direction of Ray
+ * \param[in]	bPositiv						Flag, whether to search in positiv of negative direction
+ * \param[in]	vCornerCoords					Vector of corner coordinates
+ * \param[out]	sideOut							side of intersection
+ * \param[out]	bc								line parameter in [0,1] indicating position
+ * 												of intersection point on scvf in direction
+ * 												center to edge
+ * \param[out]	GlobalIntersectionPointOut		Intersection Point (global)
+ * \param[out]	LocalIntersectionPoint			Intersection Point (local)
+ * \returns true if intersected with another scvf of the scv, false else
+ */
+template <int TDim, int TWorldDim>
+bool SCVFofSCVRayIntersection(	size_t& sideOut, number& bc,
+                              	MathVector<TWorldDim>& GlobalIntersectionPointOut,
+                              	MathVector<TDim>& LocalIntersectionPoint,
+                              	const MathVector<TWorldDim>& Root, const MathVector<TWorldDim>& Direction,
+                              	bool bPositiv, const MathVector<TWorldDim>* vCornerCoords)
+{
+	UG_ASSERT(VecTwoNorm(Direction) > 0, "Direction must be non-zero vector.");
+	return SCVFofSCVRayIntersectionWrapper<TDim, TWorldDim>::
+			apply(sideOut, GlobalIntersectionPointOut, LocalIntersectionPoint,
+					Root, Direction, bPositiv, vCornerCoords);
 }
 
 
