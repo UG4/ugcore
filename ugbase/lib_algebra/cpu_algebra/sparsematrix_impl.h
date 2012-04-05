@@ -29,8 +29,6 @@ namespace ug{
 //======================================================================================================
 // construction etc.
 
-//!
-//! constructor for empty SparseMatrix
 template<typename T>
 SparseMatrix<T>::SparseMatrix()
 {
@@ -48,8 +46,7 @@ SparseMatrix<T>::SparseMatrix()
 	FORCE_CREATION { print(); p(); pr(0); }
 }
 
-//!
-//! destructor
+
 template<typename T>
 SparseMatrix<T>::~SparseMatrix()
 {
@@ -57,11 +54,7 @@ SparseMatrix<T>::~SparseMatrix()
 }
 
 
-// create
-//---------------------
-//! used to create the SparseMatrix
-//! @param _rows nr of rows
-//! @param _cols nr of cols
+
 template<typename T>
 bool SparseMatrix<T>::create(size_t _rows, size_t _cols)
 {
@@ -87,11 +80,7 @@ bool SparseMatrix<T>::create(size_t _rows, size_t _cols)
 	return true;
 }
 
-// resize
-//---------------------
-//! used to resize the SparseMatrix
-//! @param newRows new nr of rows
-//! @param newCols new nr of cols
+
 template<typename T>
 bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 {
@@ -216,10 +205,6 @@ SparseMatrix<T>::destroy()
 	return true;
 }
 
-// set_as_transpose_of
-//-----------------------
-//!
-//! write in a empty SparseMatrix the transpose SparseMatrix of B.
 template<typename T>
 bool SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<T> &B, double scale)
 {
@@ -332,11 +317,6 @@ bool SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<T> &B, double scale
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// defragment
-/**
- * defragmentates the matrix by writing all matrix rows consecutively in memory.
- * Sets pRowEnd = pRowStart+1.
- */
 template<typename T>
 void SparseMatrix<T>::defragment()
 {
@@ -371,11 +351,7 @@ void SparseMatrix<T>::defragment()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// definalize
-/**
- * \brief returns the matrix in a condition where you can change rowssizes (add connections).
- * creates own pRowEnd array, so that rows dont have to be consecutive anymore
- */
+
 template<typename T>
 void SparseMatrix<T>::definalize()
 {
@@ -387,9 +363,7 @@ void SparseMatrix<T>::definalize()
 	pRowEnd = pNewRowEnd;
 	// no need to delete old pRowEnd, since it was pRowEnd = pRowStart+1.
 }
-/**
- * \return true, if matrix is finalized
- */
+
 template<typename T>
 bool SparseMatrix<T>::is_finalized() const
 {
@@ -398,12 +372,7 @@ bool SparseMatrix<T>::is_finalized() const
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// safe_set_connections
-/** "safe" way to set a connection, since when the row is
- * in the big consecutive consmem-array, (that means pRowStart[row] is) you mustn'd delete it.
- * @param row row to set
- * @param connection pointer to connection to set
- */
+
 template<typename T>
 void SparseMatrix<T>::safe_set_connections(size_t row, connection *mem) const
 {
@@ -414,10 +383,7 @@ void SparseMatrix<T>::safe_set_connections(size_t row, connection *mem) const
 	pRowStart[row] = mem;
 }
 
-/**
- * \param row index of the row
- * \return true if row row is in the big consecutive consmem-array (that means pRowStart[row] is)
- */
+
 template<typename T>
 bool SparseMatrix<T>::in_consmem(size_t row) const
 {
@@ -430,7 +396,7 @@ bool SparseMatrix<T>::in_consmem(size_t row) const
 // general functions
 
 
-//! calculate dest = alpha1*v1 + beta1*A*w1 (A = this matrix)
+// calculate dest = alpha1*v1 + beta1*A*w1 (A = this matrix)
 template<typename T>
 template<typename vector_t>
 bool SparseMatrix<T>::axpy(vector_t &dest,
@@ -478,7 +444,7 @@ bool SparseMatrix<T>::axpy(vector_t &dest,
 	return true;
 }
 
-//! calculate dest = alpha1*v1 + beta1*A^T*w1 (A = this matrix)
+// calculate dest = alpha1*v1 + beta1*A^T*w1 (A = this matrix)
 template<typename T>
 template<typename vector_t>
 bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
@@ -527,10 +493,6 @@ inline void SparseMatrix<T>::mat_mult_add_row(size_t row, typename vector_t::val
 //======================================================================================================
 // submatrix set/get
 
-
-// add Submatrix
-//--------------------
-//! function to add submatrices ( submatrix )
 template<typename T>
 template<typename M>
 void SparseMatrix<T>::add(const M &mat)
@@ -560,9 +522,6 @@ void SparseMatrix<T>::add(const M &mat)
 }
 
 
-// set Submatrix
-//--------------------
-//! function to add submatrices ( submatrix )
 template<typename T>
 template<typename M>
 void SparseMatrix<T>::set(const M &mat)
@@ -591,8 +550,6 @@ void SparseMatrix<T>::set(const M &mat)
 	delete[] c;
 }
 
-
-//!
 template<typename T>
 template<typename M>
 void SparseMatrix<T>::get(M &mat) const
@@ -662,8 +619,6 @@ void SparseMatrix<T>::get(M &mat, size_t *rows, size_t *cols) const
 
 
 
-//! set whole matrix to a*I
-//! used by Andreas to init matrix. avoid.
 template<typename T>
 bool SparseMatrix<T>::set(double a)
 {
@@ -697,12 +652,6 @@ bool SparseMatrix<T>::set(double a)
 // row functions
 
 
-// is_isolated
-//-----------------
-/**
- * \brief check if row i is isolated from all other rows.
- * \return false if there exist a j != i with A(i,j) != 0.0, otherwise true.
- */
 template<typename T>
 inline bool SparseMatrix<T>::is_isolated(size_t i) const
 {
@@ -724,14 +673,7 @@ inline size_t SparseMatrix<T>::num_connections(size_t row) const
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// set_matrix_row
-/**
- * \brief sets a whole row of a matrix, deletes previous content
- * \note the matrix will be definalized in this step
- * \param row 	the index of the row
- * \param c 	the array with connections c[0]..c[nr-1]
- * \param nr	number of connections in the array c
- */
+
 template<typename T>
 void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 {
@@ -785,17 +727,6 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // add_matrix_row
-/**
- * adds the connections c to the matrixrow row.
- * if c has a connection con with con.iIndex=i, and the matrix already has a connection (row, i),
- * the function will set A(row,i) += con.dValue. otherwise the connection A(row, i) is created
- * and set to con.dValue.
- * \param row row to add to
- * \param c connections ("row") to be added the row.
- * \param nr number of connections in array c.
- * \return true on success.
- * \note you may use double connections in c.
- */
 template<typename T>
 void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 {
@@ -916,12 +847,6 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_connection
-/**
- * returns a row_iterator to the connection A(r,c), creates connection if necessary.
- * \param r index of the row
- * \param c index of the column
- * \remark creates connection if necessary.
- */
 template<typename T>
 typename SparseMatrix<T>::row_iterator SparseMatrix<T>::get_connection(size_t r, size_t c)
 {
@@ -1021,13 +946,6 @@ typename SparseMatrix<T>::row_iterator SparseMatrix<T>::get_connection(size_t r,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_connection_nr_templ
-/** binary searches connection A(r,c).
- * \param r index of the row
- * \param c index of the column
- * \param nr returns nr in pRowStart[r], so that pRowStart[r][nr].iIndex = c or >=/>/</<= \sa get_connection_nr
- * \return true if connection was exactly found in = mode, otherwise always true.
- * \remarks >=/>/=/<=/< depends on template parameter flag
- */
 template<typename T>
 template<size_t flag >
 bool SparseMatrix<T>::get_connection_nr_templ(size_t r, size_t c, size_t &nr) const
@@ -1109,14 +1027,6 @@ bool SparseMatrix<T>::get_connection_nr_templ(size_t r, size_t c, size_t &nr) co
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_connection_nr
-/** searches connections A(r,c)
- * \param r index of the row
- * \param c index of the column
- * \param nr returns nr in pRowStart[r], so that pRowStart[r][nr].iIndex = c or >=/>/</<= depending on flag
- * \param flag EQUAL, LESS_EQUAL, LESS, GREATER, or GREATER_EQUAL
- * \return true if connection was exactly found in = mode, otherwise always false if no connection at all.
- * \remarks flag=EQUAL is standard parameter
- */
 template<typename T>
 bool SparseMatrix<T>::get_connection_nr(size_t r, size_t c, size_t &nr, get_connection_nr_flag flag) const
 {

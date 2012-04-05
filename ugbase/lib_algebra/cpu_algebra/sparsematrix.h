@@ -80,19 +80,35 @@ public:
 	// construction etc
 	//----------------------
 
-	// constructor for empty SparseMatrix
+	/// constructor for empty SparseMatrix
 	SparseMatrix();
-	// destructor
+	/// destructor
 	~SparseMatrix ();
 
 
+	/**
+	 * \brief resizes the SparseMatrix
+	 * \param newRows new nr of rows
+	 * \param newCols new nr of cols
+	 * \return
+	 */
 	bool resize(size_t newRows, size_t newCols);
 
 
-	//! create this as a transpose of SparseMatrix B
+	/**
+	 * \brief write in a empty SparseMatrix (this) the transpose SparseMatrix of B.
+	 * \param B			the matrix of which to create the transpose of
+	 * \param scale		an optional scaling
+	 * \return			true on success
+	 */
 	bool set_as_transpose_of(const SparseMatrix<value_type> &B, double scale=1.0);
 
-	//! create/recreate this as a copy of SparseMatrix B
+	/**
+	 * \brief create/recreate this as a copy of SparseMatrix B
+	 * \param B			the matrix of which to create a copy of
+	 * \param scale		an optional scaling
+	 * \return			true on success
+	 */
 	bool set_as_copy_of(const SparseMatrix<value_type> &B, double scale=1.0);
 	SparseMatrix<value_type> &operator = (const SparseMatrix<value_type> &B)
 	{
@@ -141,7 +157,12 @@ public:
 		}
 
 
-	//! isUnconnected: true if only A[i,i] != 0.0.
+
+	/**
+	 * \brief check for isolated condition of an index
+	 * \param i
+	 * \return true if only A[i,i] != 0.0
+	 */
 	inline bool is_isolated(size_t i) const;
 
 	bool scale(double d);
@@ -172,6 +193,13 @@ public:
 
 	// finalizing functions
 	//----------------------
+
+
+
+	/**
+	 * \brief defragmentates the matrix by writing all matrix rows consecutively in memory.
+	 * Sets pRowEnd = pRowStart+1.
+	 */
 	void defragment();
 
 
@@ -201,7 +229,8 @@ public:
 public:
 	// row functions
 
-	/** set a row of the matrix. all previous content in this row is destroyed (@sa add_matrix_row).
+	/**
+	 * set a row of the matrix. all previous content in this row is destroyed (@sa add_matrix_row).
 	 * \param row index of the row to set
 	 * \param c pointer to a array of sorted connections of size nr
 	 * \param nr number of connections in c
@@ -209,13 +238,16 @@ public:
 	 */
 	void set_matrix_row(size_t row, connection *c, size_t nr);
 
-	/** add_matrix_row
-	 *  add a row to a matrix row.
-	 * \param row index of the row to set
-	 * \param c pointer to a array of sorted connections of size nr
-	 * \param nr number of connections in c
-	 * \remark if we get new connections, matrix is definalized.
-	 * \remark connections have to be sorted
+	/**
+	 * adds the connections c to the matrixrow row.
+	 * if c has a connection con with con.iIndex=i, and the matrix already has a connection (row, i),
+	 * the function will set A(row,i) += con.dValue. otherwise the connection A(row, i) is created
+	 * and set to con.dValue.
+	 * \param row row to add to
+	 * \param c connections ("row") to be added the row.
+	 * \param nr number of connections in array c.
+	 * \return true on success.
+	 * \note you may use double connections in c.
 	 */
 	void add_matrix_row(size_t row, connection *c, size_t nr);
 
@@ -229,15 +261,13 @@ public:
 	// accessor functions
 	//----------------------
 
+	//! returns number of rows
 	size_t num_rows() const { return rows; }
+	//! returns the number of cols
 	size_t num_cols() const { return cols; }
 
+	//! returns the total number of connections
 	size_t total_num_connections() const { return iTotalNrOfConnections; }
-
-
-
-
-
 
 public:
 
@@ -258,10 +288,10 @@ public:
 	// a const_row_iterator has to suppport
 	// operator ++, operator +=, index() const, const value_type &value() const
 
-	/** row_iterator
-	 * iterator over a row
+	/**
+	 *  row_iterator
+	 *  iterator over a row
 	 */
-
 	class row_iterator
 	{
 	private:
@@ -375,10 +405,34 @@ public:
 public:
 	// connectivity functions
 	//-------------------------
+
+
+	/**
+	 * \param r index of the row
+	 * \param c index of the column
+	 * \return a const_row_iterator to the connection A(r,c) if existing, otherwise end_row(row)
+	 */
 	const_row_iterator get_connection(size_t r, size_t c, bool &bFound) const;
+
+	/**
+	 * \param r index of the row
+	 * \param c index of the column
+	 * \return a row_iterator to the connection A(r,c) if existing, otherwise end_row(row)
+	 */
 	row_iterator get_connection(size_t r, size_t c, bool &bFound);
 
+	/**
+	 * \param r index of the row
+	 * \param c index of the column
+	 * \return a const_row_iterator to the connection A(r,c) if existing, otherwise end_row(row)
+	 */
 	const_row_iterator get_connection(size_t r, size_t c) const;
+	/**
+	 * \param r index of the row
+	 * \param c index of the column
+	 * \return a row_iterator to the connection A(r,c)
+	 * \remark creates connection if necessary.
+	 */
 	row_iterator get_connection(size_t r, size_t c);
 
 public:
@@ -408,27 +462,48 @@ private:
 	SparseMatrix(SparseMatrix&); ///< disallow copy operator
 
 private:
+	/**
+	 * \brief private method to create the matrix
+	 * \param _rows nr of rows
+	 * \param _cols nr of cols
+	 * \return true on sucess
+	 */
 	bool create(size_t _rows, size_t _cols);
 	bool destroy();
 
+	/**
+	 * \brief returns the matrix in a condition where you can change rowssizes (add connections).
+	 * creates own pRowEnd array, so that rows dont have to be consecutive anymore
+	 */
 	void definalize();
+
+	/**
+	 * \return true, if matrix is finalized
+	 */
 	void finalize()
 	{
 		defragment();
 	}
 	bool is_finalized() const;
 
-	// safe_set_connections
+	/**
+	 *
+	 *
+	 */
+
 	/**
 	 * "safe" way to set a connection, since when cons[row] is in the big consecutive consmem-array,
-	 * you mustnt delete[] mem.
+	 * you must NOT delete[] mem.
+	 * @param row row of which to set new connections
+	 * @param mem connection array created with new. SparseMatrix deallocates it in the future
 	 */
 	void safe_set_connections(size_t row, connection *mem) const;
-	//! returns true if the row is stored inside the consecutive mem.
+
+	/**
+	 * \param row index of the row
+	 * \return true if row is in the big consecutive consmem-array
+	 */
 	bool in_consmem(size_t row) const;
-
-
-
 
 private:
 	enum get_connection_nr_flag
@@ -442,8 +517,26 @@ private:
 		// than the connection (r,c)
 	};
 
+
+	/**
+	 * searches connections A(r,c)
+	 * \param r index of the row
+	 * \param c index of the column
+	 * \param nr returns nr in pRowStart[r], so that pRowStart[r][nr].iIndex = c or >=/>/</<= depending on flag
+	 * \param flag EQUAL, LESS_EQUAL, LESS, GREATER, or GREATER_EQUAL
+	 * \return true if connection was exactly found in = mode, otherwise always false if no connection at all.
+	 * \remarks flag=EQUAL is standard parameter
+	 */
 	bool get_connection_nr(size_t r, size_t c, size_t &nr, get_connection_nr_flag flag=EQUAL) const;
 
+	/**
+	 * binary searches connection A(r,c).
+	 * \param r index of the row
+	 * \param c index of the column
+	 * \param nr returns nr in pRowStart[r], so that pRowStart[r][nr].iIndex = c or >=/>/</<= \sa get_connection_nr
+	 * \return true if connection was exactly found in = mode, otherwise always true.
+	 * \remarks >=/>/=/<=/< depends on template parameter flag
+	 */
 	template<size_t flag>
 	bool get_connection_nr_templ(size_t r, size_t c, size_t &nr) const;
 
