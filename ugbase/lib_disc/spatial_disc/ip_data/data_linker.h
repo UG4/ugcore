@@ -63,7 +63,7 @@ class DataLinker
 		}
 
 	///	sets an input
-		void set_input(size_t i, SmartPtr<IIPDimData<dim> > input)
+		virtual void set_input(size_t i, SmartPtr<IIPDimData<dim> > input)
 		{
 			UG_ASSERT(i < m_vpIIPData.size(), "invalid index");
 			m_vpIIPData[i] = input;
@@ -71,7 +71,7 @@ class DataLinker
 		}
 
 	///	number of inputs
-		size_t num_input() const {return num_needed_data();}
+		virtual size_t num_input() const {return num_needed_data();}
 
 	///	number of other Data this data depends on
 		virtual size_t num_needed_data() const {return m_vpIIPData.size();}
@@ -188,7 +188,7 @@ class DataLinkerEqualData
 		void set_num_input(size_t num);
 
 	///	set input i
-		bool set_input(size_t i, IPData<TDataIn, dim>& data);
+		void set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data);
 
 	protected:
 	///	data at ip of input
@@ -347,7 +347,8 @@ class ScaleAddLinker
 		ScaleAddLinker() {}
 
 	///	adds an input to the list of summands scaled by a user data factor
-		bool add(IPData<TDataScale, dim>& scale, IPData<TData, dim>& data);
+		void add(SmartPtr<IPData<TDataScale, dim> > scale,
+		         SmartPtr<IPData<TData, dim> > data);
 
 	///	computes the value
 		virtual void compute(bool bDeriv);

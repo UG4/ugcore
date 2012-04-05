@@ -198,32 +198,26 @@ void DataLinkerEqualData<TData,dim,TDataIn>::set_num_input(size_t num)
 }
 
 template <typename TData, int dim, typename TDataIn>
-bool DataLinkerEqualData<TData,dim,TDataIn>::
-set_input(size_t i, IPData<TDataIn, dim>& data)
+void DataLinkerEqualData<TData,dim,TDataIn>::
+set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data)
 {
 	UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
 	UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
 
 //	check input number
 	if(i >= num_input())
-	{
-		UG_LOG("ERROR in 'DataLinker::set_input': Only " << num_input()
-		       << " inputs can be set. Use 'set_num_input' to increase"
-		       " the number of needed inputs.\n");
-		return false;
-	}
+		UG_THROW_FATAL("DataLinker::set_input: Only " << num_input()
+		               	<< " inputs can be set. Use 'set_num_input' to increase"
+		               	" the number of needed inputs.");
 
 //	remember ipdata
-	m_vpIPData[i] = &data;
+	m_vpIPData[i] = data;
 
 //	cast to dependent data
-	m_vpDependData[i] = dynamic_cast<DependentIPData<TDataIn, dim>*>(&data);
+	m_vpDependData[i] = data.template cast_dynamic<DependentIPData<TDataIn, dim> >();
 
 //	forward to base class
-	base_type::set_input(i, &data);
-
-//	we're done
-	return true;
+	base_type::set_input(i, data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -231,8 +225,8 @@ set_input(size_t i, IPData<TDataIn, dim>& data)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim, typename TDataScale>
-bool ScaleAddLinker<TData,dim,TDataScale>::
-add(IPData<TDataScale, dim>& scale, IPData<TData, dim>& data)
+void ScaleAddLinker<TData,dim,TDataScale>::
+add(SmartPtr<IPData<TDataScale, dim> > scale, SmartPtr<IPData<TData, dim> > data)
 {
 //	current number of inputs
 	const size_t numInput = base_type::num_input() / 2;
@@ -241,25 +235,22 @@ add(IPData<TDataScale, dim>& scale, IPData<TData, dim>& data)
 	resize_scaling(numInput+1);
 
 //	remember ipdata
-	m_vpIPData[numInput] = &data;
+	m_vpIPData[numInput] = data;
 	UG_ASSERT(m_vpIPData[numInput].valid(), "Null Pointer as Input set.");
-	m_vpDependData[numInput] = dynamic_cast<DependentIPData<TData, dim>*>(&data);
+	m_vpDependData[numInput] = data. template cast_dynamic<DependentIPData<TData, dim> >();
 
 //	remember ipdata
-	m_vpScaleData[numInput] = &scale;
+	m_vpScaleData[numInput] = scale;
 	UG_ASSERT(m_vpScaleData[numInput].valid(), "Null Pointer as Scale set.");
 	m_vpScaleDependData[numInput]
-	              = dynamic_cast<DependentIPData<TDataScale, dim>*>(&scale);
+	              = scale.template cast_dynamic<DependentIPData<TDataScale, dim> >();
 
 //	increase number of inputs by one
 	base_type::set_num_input(2*numInput+2);
 
 //	add this input
-	base_type::set_input(2*numInput, &data);
-	base_type::set_input(2*numInput+1, &scale);
-
-//	done
-	return true;
+	base_type::set_input(2*numInput, data);
+	base_type::set_input(2*numInput+1, scale);
 }
 
 template <typename TData, int dim, typename TDataScale>
