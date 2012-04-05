@@ -232,6 +232,7 @@ void DataImport<TData,dim>::resize(const LocalIndices& ind, const FunctionIndexM
 	for(size_t fct = 0; fct < m_vvNumDoFPerFct.size(); ++fct)
 		m_vvNumDoFPerFct[fct] = ind.num_dof(map[fct]);
 
+	m_vvvLinDefect.clear();
 	resize_defect_array();
 }
 
