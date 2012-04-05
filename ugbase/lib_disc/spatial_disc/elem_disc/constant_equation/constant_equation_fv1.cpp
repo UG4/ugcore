@@ -10,6 +10,8 @@
 #include "common/util/provider.h"
 #include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
 #include "lib_disc/spatial_disc/disc_util/hanging_finite_volume_geometry.h"
+#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "bindings/lua/lua_user_data.h"
 
 namespace ug{
 
@@ -21,9 +23,124 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
+//////// Velocity
+
 template<typename TDomain>
-FV1ConstantEquation<TDomain>::
-FV1ConstantEquation(const char* functions, const char* subsets)
+void ConstantEquation<TDomain>::
+set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user) {m_imVelocity.set_data(user);}
+
+template<typename TDomain>
+void ConstantEquation<TDomain>::
+set_velocity(number vel_x)
+{
+	UG_THROW_FATAL("ConstantEquation: Setting velocity vector of dimension 1"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void ConstantEquation<Domain1d>::
+set_velocity(number vel_x)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	set_velocity(vel);
+}
+
+template<typename TDomain>
+void ConstantEquation<TDomain>::
+set_velocity(number vel_x, number vel_y)
+{
+	UG_THROW_FATAL("ConstantEquation: Setting velocity vector of dimension 2"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void ConstantEquation<Domain2d>::
+set_velocity(number vel_x, number vel_y)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	vel->set_entry(1, vel_y);
+	set_velocity(vel);
+}
+
+template<typename TDomain>
+void ConstantEquation<TDomain>::
+set_velocity(number vel_x, number vel_y, number vel_z)
+{
+	UG_THROW_FATAL("ConstantEquation: Setting velocity vector of dimension 3"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void ConstantEquation<Domain3d>::
+set_velocity(number vel_x, number vel_y, number vel_z)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	vel->set_entry(1, vel_y);
+	vel->set_entry(2, vel_z);
+	set_velocity(vel);
+}
+
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ConstantEquation<TDomain>::
+set_velocity(const char* fctName)
+{
+	set_velocity(CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(fctName)));
+}
+#endif
+
+//////// Source
+
+template<typename TDomain>
+void ConstantEquation<TDomain>::
+set_source(SmartPtr<IPData<number, dim> > user)	{m_imSource.set_data(user);}
+
+template<typename TDomain>
+void ConstantEquation<TDomain>::
+set_source(number val)
+{
+	set_source(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ConstantEquation<TDomain>::
+set_source(const char* fctName)
+{
+	set_source(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+//////// Mass
+
+template<typename TDomain>
+void ConstantEquation<TDomain>::
+set_mass(SmartPtr<IPData<number, dim> > user)	{m_imMass.set_data(user);}
+
+template<typename TDomain>
+void ConstantEquation<TDomain>::
+set_mass(number val)
+{
+	set_mass(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ConstantEquation<TDomain>::
+set_mass(const char* fctName)
+{
+	set_mass(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+
+template<typename TDomain>
+ConstantEquation<TDomain>::
+ConstantEquation(const char* functions, const char* subsets)
 :IDomainElemDisc<TDomain>(functions,subsets),
  m_exConcentration(new DataExport<number, dim>),
  m_exConcentrationGrad(new DataExport<MathVector<dim>, dim>)
@@ -43,15 +160,15 @@ FV1ConstantEquation(const char* functions, const char* subsets)
 //	register imports
 	this->register_import(m_imVelocity);
 	this->register_import(m_imSource);
-	this->register_import(m_imMassScale);
+	this->register_import(m_imMass);
 
-	m_imMassScale.set_mass_part(true);
+	m_imMass.set_mass_part(true);
 	m_imSource.set_rhs_part(true);
 }
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::prepare_element_loop()
+void ConstantEquation<TDomain>::prepare_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
@@ -63,22 +180,22 @@ void FV1ConstantEquation<TDomain>::prepare_element_loop()
 		TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 		m_imVelocity.template  set_local_ips<refDim>(geo.scvf_local_ips(), geo.num_scvf_ips(), false);
 		m_imSource.template    set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips(), false);
-		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips(), false);
+		m_imMass.template set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips(), false);
 	}
 }
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::finish_element_loop()
+void ConstantEquation<TDomain>::finish_element_loop()
 {}
 
 template<typename TDomain>
-bool FV1ConstantEquation<TDomain>::time_point_changed(number time)
+bool ConstantEquation<TDomain>::time_point_changed(number time)
 {
 //	set new time point at imports
 	m_imVelocity.set_time(time);
 	m_imSource.set_time(time);
-	m_imMassScale.set_time(time);
+	m_imMass.set_time(time);
 
 //	this disc does not need the old time solutions, thus, return false
 	return false;
@@ -87,7 +204,7 @@ bool FV1ConstantEquation<TDomain>::time_point_changed(number time)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
+void ConstantEquation<TDomain>::
 prepare_element(TElem* elem, const LocalVector& u)
 {
 //	get dimension of reference element
@@ -107,18 +224,18 @@ prepare_element(TElem* elem, const LocalVector& u)
 	{
 		m_imVelocity.template  set_local_ips<refDim>(geo.scvf_local_ips(), geo.num_scvf_ips());
 		m_imSource.template    set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips());
-		m_imMassScale.template set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips());
+		m_imMass.template set_local_ips<refDim>(geo.scv_local_ips(), geo.num_scv_ips());
 	}
 
 //	set global positions for rhs
 	m_imVelocity.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
 	m_imSource.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
-	m_imMassScale.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
+	m_imMass.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 }
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
+void ConstantEquation<TDomain>::
 ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	no own contribution to jacobian (only due to linearized defect)
@@ -127,7 +244,7 @@ ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
+void ConstantEquation<TDomain>::
 ass_JM_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	no own contribution to jacobian (only due to linearized defect)
@@ -136,7 +253,7 @@ ass_JM_elem(LocalMatrix& J, const LocalVector& u)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
+void ConstantEquation<TDomain>::
 ass_dA_elem(LocalVector& d, const LocalVector& u)
 {
 // 	get finite volume geometry
@@ -163,7 +280,7 @@ ass_dA_elem(LocalVector& d, const LocalVector& u)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
+void ConstantEquation<TDomain>::
 ass_dM_elem(LocalVector& d, const LocalVector& u)
 {
 // 	get finite volume geometry
@@ -182,8 +299,8 @@ ass_dM_elem(LocalVector& d, const LocalVector& u)
 		number val = scv.volume();
 
 	//	multiply by scaling
-		if(m_imMassScale.data_given())
-			val *= m_imMassScale[ip];
+		if(m_imMass.data_given())
+			val *= m_imMass[ip];
 
 	// 	Add to local defect
 		d(_C_, co) += val;
@@ -193,7 +310,7 @@ ass_dM_elem(LocalVector& d, const LocalVector& u)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
+void ConstantEquation<TDomain>::
 ass_rhs_elem(LocalVector& d)
 {
 //	if zero data given, return
@@ -221,7 +338,7 @@ ass_rhs_elem(LocalVector& d)
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
+void ConstantEquation<TDomain>::
 lin_def_velocity(const LocalVector& u,
                  std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                  const size_t nip)
@@ -250,7 +367,7 @@ lin_def_velocity(const LocalVector& u,
 //	computes the linearized defect w.r.t to the source
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
+void ConstantEquation<TDomain>::
 lin_def_source(const LocalVector& u,
                std::vector<std::vector<number> > vvvLinDef[],
                const size_t nip)
@@ -275,10 +392,10 @@ lin_def_source(const LocalVector& u,
 //	computes the linearized defect w.r.t to the mass scale
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
-lin_def_mass_scale(const LocalVector& u,
-                   std::vector<std::vector<number> > vvvLinDef[],
-                   const size_t nip)
+void ConstantEquation<TDomain>::
+lin_def_mass(const LocalVector& u,
+             std::vector<std::vector<number> > vvvLinDef[],
+             const size_t nip)
 {
 // 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo	= Provider<TFVGeom<TElem,dim> >::get();
@@ -300,7 +417,7 @@ lin_def_mass_scale(const LocalVector& u,
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
+void ConstantEquation<TDomain>::
 ex_concentration(const LocalVector& u,
                  const MathVector<dim> vGlobIP[],
                  const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
@@ -384,7 +501,7 @@ ex_concentration(const LocalVector& u,
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
 template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void FV1ConstantEquation<TDomain>::
+void ConstantEquation<TDomain>::
 ex_concentration_grad(const LocalVector& u,
                       const MathVector<dim> vGlobIP[],
                       const MathVector<TFVGeom<TElem, dim>::dim> vLocIP[],
@@ -469,7 +586,7 @@ ex_concentration_grad(const LocalVector& u,
 // register for 1D
 template<typename TDomain>
 void
-FV1ConstantEquation<TDomain>::
+ConstantEquation<TDomain>::
 register_all_fv1_funcs(bool bHang)
 {
 //	get all grid element types in this dimension and below
@@ -483,7 +600,7 @@ register_all_fv1_funcs(bool bHang)
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 void
-FV1ConstantEquation<TDomain>::
+ConstantEquation<TDomain>::
 register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -502,7 +619,7 @@ register_fv1_func()
 //	set computation of linearized defect w.r.t velocity
 	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity<TElem, TFVGeom>);
 	m_imSource.	  set_fct(id, this, &T::template lin_def_source<TElem, TFVGeom>);
-	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale<TElem, TFVGeom>);
+	m_imMass.set_fct(id, this, &T::template lin_def_mass<TElem, TFVGeom>);
 
 //	exports
 	m_exConcentration->	   template set_fct<T,refDim>(id, this, &T::template ex_concentration<TElem, TFVGeom>);
@@ -513,9 +630,9 @@ register_fv1_func()
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-template class FV1ConstantEquation<Domain1d>;
-template class FV1ConstantEquation<Domain2d>;
-template class FV1ConstantEquation<Domain3d>;
+template class ConstantEquation<Domain1d>;
+template class ConstantEquation<Domain2d>;
+template class ConstantEquation<Domain3d>;
 
 
 } // namespace ug

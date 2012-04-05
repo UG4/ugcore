@@ -32,7 +32,7 @@ namespace ug{
  * with
  * <ul>
  * <li>	<b>no</b> unknown solution
- * <li>	\f$ m \equiv m(\vec{x},t) \f$ is the Mass Scaling Term
+ * <li>	\f$ m \equiv m(\vec{x},t) \f$ is the Mass Term
  * <li>	\f$ v \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
  * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
  * </ul>
@@ -41,14 +41,14 @@ namespace ug{
  * \tparam	TAlgebra	Algebra
  */
 template<	typename TDomain>
-class FV1ConstantEquation : public IDomainElemDisc<TDomain>
+class ConstantEquation : public IDomainElemDisc<TDomain>
 {
 	private:
 	///	Base class type
 		typedef IDomainElemDisc<TDomain> base_type;
 
 	///	Own type
-		typedef FV1ConstantEquation<TDomain> this_type;
+		typedef ConstantEquation<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -62,28 +62,48 @@ class FV1ConstantEquation : public IDomainElemDisc<TDomain>
 
 	public:
 	///	Constructor
-		FV1ConstantEquation(const char* functions, const char* subsets);
+		ConstantEquation(const char* functions, const char* subsets);
 
 	///	sets the velocity field
 	/**
 	 * This method sets the Velocity field. If no field is provided a zero
 	 * value is assumed.
 	 */
-		void set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user) {m_imVelocity.set_data(user);}
+	/// \{
+		void set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user);
+		void set_velocity(number vel_x);
+		void set_velocity(number vel_x, number vel_y);
+		void set_velocity(number vel_x, number vel_y, number vel_z);
+#ifdef UG_FOR_LUA
+		void set_velocity(const char* fctName);
+#endif
+	/// \}
 
 	///	sets the source / sink term
 	/**
 	 * This method sets the source/sink value. A zero value is assumed as
 	 * default.
 	 */
-		void set_source(SmartPtr<IPData<number, dim> > user)	{m_imSource.set_data(user);}
+	///	\{
+		void set_source(SmartPtr<IPData<number, dim> > user);
+		void set_source(number val);
+#ifdef UG_FOR_LUA
+		void set_source(const char* fctName);
+#endif
+	///	\}
 
-	///	sets mass scale
+	///	sets mass
 	/**
-	 * This method sets the mass scale value. A value of 1.0 is assumed as
+	 * This method sets the mass value. A value of 1.0 is assumed as
 	 * default.
 	 */
-		void set_mass_scale(SmartPtr<IPData<number, dim> > user)	{m_imMassScale.set_data(user);}
+	///	\{
+		void set_mass(SmartPtr<IPData<number, dim> > user);
+		void set_mass(number val);
+#ifdef UG_FOR_LUA
+		void set_mass(const char* fctName);
+#endif
+	///	\}
 
 	public:
 	///	type of trial space for each function used
@@ -176,9 +196,9 @@ class FV1ConstantEquation : public IDomainElemDisc<TDomain>
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-		void lin_def_mass_scale(const LocalVector& u,
-	                            std::vector<std::vector<number> > vvvLinDef[],
-	                            const size_t nip);
+		void lin_def_mass(const LocalVector& u,
+		                  std::vector<std::vector<number> > vvvLinDef[],
+		                  const size_t nip);
 
 	private:
 	///	Corner Coordinates
@@ -194,7 +214,7 @@ class FV1ConstantEquation : public IDomainElemDisc<TDomain>
 		DataImport<number, dim> m_imSource;
 
 	///	Data import for the mass scale
-		DataImport<number, dim> m_imMassScale;
+		DataImport<number, dim> m_imMass;
 
 	public:
 	///	returns the export of the concentration

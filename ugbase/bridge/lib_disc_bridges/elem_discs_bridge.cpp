@@ -100,18 +100,34 @@ void Register__Domain(Registry& reg, string grp)
 
 //	Constant Equation Finite Volume
 	{
-		typedef FV1ConstantEquation<TDomain> T;
+		typedef ConstantEquation<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("FV1ConstantEquation").append(dimSuffix);
+		string name = string("ConstantEquation").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
-			.add_method("set_velocity", &T::set_velocity)
-			.add_method("set_source", &T::set_source)
-			.add_method("set_mass_scale", &T::set_mass_scale)
+			.add_method("set_velocity", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >)>(&T::set_velocity), "", "Velocity Field")
+			.add_method("set_velocity", static_cast<void (T::*)(number)>(&T::set_velocity), "", "Vel_x")
+			.add_method("set_velocity", static_cast<void (T::*)(number,number)>(&T::set_velocity), "", "Vel_x, Vel_y")
+			.add_method("set_velocity", static_cast<void (T::*)(number,number,number)>(&T::set_velocity), "", "Vel_x, Vel_y, Vel_z")
+#ifdef UG_FOR_LUA
+			.add_method("set_velocity", static_cast<void (T::*)(const char*)>(&T::set_velocity), "", "Velocity Field")
+#endif
+
+			.add_method("set_source", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_source), "", "Source")
+			.add_method("set_source", static_cast<void (T::*)(number)>(&T::set_source), "", "Source")
+#ifdef UG_FOR_LUA
+			.add_method("set_source", static_cast<void (T::*)(const char*)>(&T::set_source), "", "Source")
+#endif
+
+			.add_method("set_mass", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_mass), "", "Mass")
+			.add_method("set_mass", static_cast<void (T::*)(number)>(&T::set_mass), "", "Mass")
+#ifdef UG_FOR_LUA
+			.add_method("set_mass", static_cast<void (T::*)(const char*)>(&T::set_mass), "", "Mass")
+#endif
 			.add_method("value", &T::value)
 			.add_method("gradient", &T::gradient)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "FV1ConstantEquation", dimTag);
+		reg.add_class_to_group(name, "ConstantEquation", dimTag);
 	}
 
 //	Convection Diffusion
