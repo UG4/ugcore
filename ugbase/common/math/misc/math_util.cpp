@@ -374,5 +374,4 @@ int BinomCoeff(int n, int k)
 	return BinomCoeff(n-1,k)*n/(n-k);
 }
 
-
 }//	end of namespace

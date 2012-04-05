@@ -493,6 +493,26 @@ bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vecto
  */
 int BinomCoeff(int n, int k);
 
+////////////////////////////////////////////////////////////////////////
+//	ReflectVectorAtPlane
+///	reflects a vector at a plane
+/**
+ * This method reflects a given vector at a plane specified by n and r0, i.e.
+ * the plane P is given such that for all \$f\vec{x} in P\$f it holds that
+ * \f[
+ * 	(\vec{x}Ê- \vec{r0}) \cdot \vec{n} = 0.
+ * \f]
+ *
+ * @param vReflectedOut		the reflected vector
+ * @param v					the original vector, that is reflected
+ * @param n					normal for plane specification
+ * @param r0				root point of plane
+ */
+template <class vector_t>
+void ReflectVectorAtPlane(vector_t& vReflectedOut, const vector_t& v,
+                          const vector_t& n, const vector_t& r0);
+
+
 }//	end of namespace
 
 ////////////////////////////////////////////////

@@ -799,6 +799,16 @@ bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vecto
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////
+//	ReflectVectorAtPlane
+template <class vector_t>
+void ReflectVectorAtPlane(vector_t& vReflectedOut, const vector_t& v,
+                          const vector_t& n, const vector_t& r0)
+{
+	const number s = 2 * (VecDot(v, n) - VecDot(n, r0)) / VecDot(n, n);
+	VecScaleAdd(vReflectedOut, 1.0, v, -s, n);
+}
+
 }//	end of namespace
 
 #endif
