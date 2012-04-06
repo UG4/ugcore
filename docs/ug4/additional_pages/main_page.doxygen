@@ -47,7 +47,7 @@ environment
 	- ug and vrl
 	- ug-scripting reference documentation
 
-- Development
+- \subpage pageUG4Development
 	- Central modules of ugbase
 		- \ref pageLAOverview 		"lib_algebra"
 		- \ref pageLDIntroduction	"lib_disc"

@@ -1,0 +1,18 @@
+/** \page pageUG4Development Development
+
+These pages are a collection of information addressing developers of \ug4.
+
+- Central Modules of \ug4
+  - \subpage pageLAOverview "lib_algebra"
+  - \subpage pageLDIntroduction "lib_disc"
+  - \subpage pageLGIntroduction "lib_grid"
+  - \subpage pageUG4Registry "registry"
+- Plugins
+- \subpage pageUnitTests
+- Tips and Guidelines
+  - \subpage pageInstallEclipse
+  - \subpage pageUG4CodingStyle
+  - \subpage pageTeamCommunication
+  - \subpage pageUG4DoxygenQuickref
+
+*/
