@@ -1,8 +1,10 @@
 
-/**	\page pageCopyrights ug - License
-ug4 is currently only available through a custom license from the GCSC Frankfurt.
+/** \page pageCopyrights ug4 - License
 
-Licenses for libraries used by ug4 can be found on the following page:
-\ref pageExternalLibraries "external libraries".
+\ug4 is currently only available through a custom license from the <em>GCSC 
+Frankfurt</em>.
+
+Licenses for libraries used by \ug4 can be found on the following page:
+\ref pageExternalLibraries .
 
 */
