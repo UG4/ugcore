@@ -1,25 +1,27 @@
 /** \mainpage ug4 - Documentation 
  
- \section secAbout About
+\section secAbout About
 
-ug4 has been written and is still developed at the
-<i>Goethe Center for Scientific Computing at the University of Frankfurt, Germany </i>(http://www.g-csc.de).
+\ug4 has been written and is still developed at the <em>Goethe Center for 
+Scientific Computing at the University of Frankfurt, Germany </em> 
+(http://www.g-csc.de).
 
 
 <hr>
 \section secWhatIsIt What is ug4?
 
-ug4 is a simulation framework, targetted at the solution of
+\ug4 is a simulation framework, targetted at the solution of
 differential equations on unstructured hybrid grids in 1, 2 and 3 dimensions
 on systems reaching from laptops to massively parallel systems.
-ug4 is written in C++, striving for a flexible, yet fast and robust simulation environment
+\ug4 is written in C++, striving for a flexible, yet fast and robust simulation 
+environment
 \ref pageUG4Introduction "... [more]"
 
 
 <hr>
 \section secUserManual User Manual:
 - Overview
-	- \ref pageUG4Introduction "Introduction"
+	- \subpage pageUG4Introduction
 	- Ideas behind ug4
 	- Software Architecture
 	- Background
@@ -59,6 +61,6 @@ ug4 is written in C++, striving for a flexible, yet fast and robust simulation e
 		- \ref pageTeamCommunication 	"Team Communication"
 
 - Copyrights and Licenses
-	- \ref pageCopyrights "ug4 License (preliminary)"
-	- \ref pageExternalLibraries "External libraries"
+	- \subpage pageCopyrights
+	- \subpage pageExternalLibraries
  */
