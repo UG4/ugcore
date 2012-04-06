@@ -10,10 +10,11 @@
 
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
-There are special instructions available for \em Windows and \em MacOSX:
+There are special instructions available for \em Windows, \em MacOSX and 
+<em>parallel and high performance computers</em>:
 - \subpage pageUG4OnWindows
 - \subpage pageUG4OnMac
-
+- \subpage pageUG4SetupParallel
 
 <hr>
 \section secInstallUG4CMake CMake

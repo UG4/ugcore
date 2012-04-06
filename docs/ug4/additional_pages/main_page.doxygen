@@ -26,7 +26,7 @@ environment
 	- Software Architecture
 	- Background
 	
-- Setup and installation
+- \subpage pageUG4Setup
 	- \ref pageAdditionalSoftware	"Prerequisites and recommendend tools"
 	- Downloads and sources
 	- Setting up ug4 on

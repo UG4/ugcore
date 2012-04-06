@@ -1,0 +1,12 @@
+/** \page pageUG4Setup Setup and Installation
+
+These pages give instructions and help in installing and setting up \ug4 for
+simple and special usage as well for development.
+
+- \subpage pageAdditionalSoftware
+- \subpage pageInstallUG4
+  - \ref pageUG4OnMac
+  - \ref pageUG4OnWindows
+  - \ref pageUG4SetupParallel
+
+*/
