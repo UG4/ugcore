@@ -2,52 +2,57 @@
 //	sreiter@gcsc.uni-frankfurt.de
 //	y12 m03 d16
 
-/**	\page pageUG4OnWindows Setting up UG on windows
+/** \page pageUG4OnWindows Setting up ug4 on Windows
 
-ug4 supports windows through the MinGW gcc-compilers. MinGW can be downloaded
-together with MSYS at
-<a href="http://www.mingw.org/wiki/MSYS"> http://www.mingw.org/wiki/MSYS</a>.
-MSYS is a 'minimal shell', which mimics some of the features of unix shells.
-You should install MSYS and MinGW to a rather simple path which does not contain
-spaces or special characters (e.g. C:\\msys)
+\ug4 supports Windows through the \em MinGW gcc-compilers.
+\em MinGW can be downloaded together with \em MSYS at 
+http://www.mingw.org/wiki/MSYS .
+\em MSYS is a 'minimal shell', which mimics some of the features of unix shells.
+You should install \em MSYS and \em MinGW to a rather simple path which does 
+not contain spaces or special characters (e.g. <tt>C:\\msys</tt>).
 
-Compiliation of ug4 furthermore requires the installation of cmake, which can be
-obtained from here
-<a href="http://www.cmake.org/cmake/resources/software.html">
-http://www.cmake.org/cmake/resources/software.html</a>
+Compiliation of \ug4 furthermore requires the installation of \em CMake, which 
+can be obtained from here http://www.cmake.org/cmake/resources/software.html
 (min Release 2.6).
 
-You should be able to run cmake from your MSYS shell (simply type cmake and press enter).
-If cmake can't be found, then you should add the path to the cmake binary to your
-systems PATH variable.
+You should be able to run \em CMake from your \em MSYS shell (simply type 
+\c cmake and press enter).
+If \c cmake can't be found, then you should add the path to the \em CMake binary 
+to your systems \c PATH variable.
 
-In order to checkout ug4 from its svn repository you'll either have to follow the
-instructions on how to setup eclipse with svn capabilities
-or you'll have to install tortoise svn
-<a href="http://tortoisesvn.net/"> http://tortoisesvn.net/</a>.,
-depending on whether you want to develop with ug or just compile it.
-Tortoise svn is an extension to the windows explorer and
+In order to checkout \ug4 from its svn repository you'll either have to follow 
+the instructions on how to setup \em Eclipse with svn capabilities
+or you'll have to install <em>Tortoise SVN</em> (http://tortoisesvn.net/),
+depending on whether you want to develop with \ug4 or just compile it.
+<em>Tortoise SVN</em> is an extension to the Windows Explorer and
 allows to perform checkouts and commits through the right-click-menu directly
 in the explorer.
 
-If you're using tortoise svn, then open the explorer and navigate to the folder
-in which you want to install ug4. Create a new folder called 'ug4', perform
-a right click on it and choose 'svn checkout' from the menu. Enter the repository
-adress (e.g. svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk), your username and password.
+If you're using <em>Tortoise SVN</em>, then open the explorer and navigate to 
+the folder in which you want to install \ug4.
+Create a new folder called \c ug4, perform a right click on it and choose 
+<em>svn checkout</em> from the menu.
+Enter the repository adress (e.g. 
+<tt>svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>), your username and 
+password.
 
-You should now have received a full checkout of ug4's sources. Now open the
-msys shell and navigate to the ug4 folder you just created. Note that folders
-in msys are specified in a unix way, e.g. 'cd /c/ug4')
+You should now have received a full checkout of \ug4's sources.
+Now open the \em MSYS shell and navigate to the \ug4 folder you just created.
+Note that folders in \em MSYS are specified in a unix way, e.g. <tt>cd 
+/c/ug4</tt>)
 
-If you chose eclipse, then please follow the tutorial given in \ref pageInstallEclipse
-to set up eclipse and how to checkout ug4.
+If you chose \em Eclipse, then please follow the tutorial given in 
+\ref pageInstallEclipse to set up \em Eclipse and how to checkout \ug4.
 
-Compilation and cmake calls are very similar to unix and to the description given
-in \ref pageInstallUG4. However one important thing to note is, that one has to
-explicitly specifiy the compiler, which shall be used by cmake. A call to cmake
-thus should start as follows:
-
+Compilation and \em CMake calls are very similar to unix and to the description 
+given in \ref pageInstallUG4.
+However one important thing to note is, that one has to explicitly specifiy the 
+compiler, which shall be used by \em CMake.
+A call to \em CMake thus should start as follows:
+\verbatim
 cmake -G"MSYS Makefiles"
+\endverbatim
+This is however only necessary when you invoke \em CMake the first time for a 
+given folder.
 
-This is however only necessary when you invoke cmake the first time for a given folder.
 */
