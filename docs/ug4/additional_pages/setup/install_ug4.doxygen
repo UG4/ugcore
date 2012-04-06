@@ -2,98 +2,124 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y10 m12 d11
 
-/**	\page pageInstallUG4 ug4 - Installation
+/** \page pageInstallUG4 ug4 - Installation
 
-	- \ref secInstallUG4CMake "Download CMake"
-	- \ref secInstallUG4UG4 "Download UG4"
-	- \ref secInstallUG4Boost "Download Boost"
-	
+- \ref secInstallUG4CMake
+- \ref secInstallUG4UG4
+- \ref secInstallUG4Boost
+
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
+
+There are special instructions available for \em Windows and \em MacOSX:
+- \subpage pageUG4OnWindows
+- \subpage pageUG4OnMac
+
 
 <hr>
 \section secInstallUG4CMake CMake
-<hr>
 
 <ul>
-<li> <b>CMake</b>: Download CMake from <a href="http://www.cmake.org/cmake/resources/software.html">http://www.cmake.org/cmake/resources/software.html</a> (min Release 2.6)
-<li> Install cmake on your computer. Install the command line tools, when requested during installation.
-<li> Open a terminal window. Enter cmake<Enter>. If you see some output "cmake version ..." cmake has been installed correctly.
+  <li>Download \em CMake:
+    Download \em CMake from http://www.cmake.org/cmake/resources/software.html 
+    (min Release 2.6)
+  </li>
+  <li>Install \em CMake on your computer.
+    Install the command line tools, when requested during installation.
+  </li>
+  <li>Open a terminal window.
+    Enter <tt>cmake</tt>.
+    If you see some output <tt>cmake version ...</tt> \em CMake has been 
+    installed correctly.
+  </li>
 </ul>
+
 
 <hr>
 \section secInstallUG4UG4 ug4
-Create a ug4 directory and perform a svn checkout on the trunk.
-<hr>
+Create a \c ug4 directory and perform a svn checkout on the trunk.
 
-<ul>
-<li> "mkdir ug4"
-<li> "cd ug4"
-<li> "svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk"
-</ul>
+- <tt>mkdir ug4</tt>
+- <tt>cd ug4</tt>
+- <tt>svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>
+
 
 <hr>
 \section secInstallUG4RunCmake Run CMake
-<hr>
 
 <ol>
-<li> Open a terminal/shell window
-<li> move to <tt>ug4/trunk/</tt>
-<li> <tt>mkdir build_debug</tt>
-<li> <tt>cd build_debug</tt>
-<li> <tt>cmake -DDEBUG=ON ..</tt> --> Makefiles are generated
+  <li>Open a terminal/shell window</li>
+  <li>move to <tt>ug4/trunk/</tt></li>
+  <li><tt>mkdir build_debug</tt></li>
+  <li><tt>cd build_debug</tt></li>
+  <li><tt>cmake -DDEBUG=ON ..</tt> --> Makefiles are generated</li>
 </ol>
 
-Note, that there are several options, that can be passed to cmake to change
-the build behaviour. You see always the current chosen setup when runnig cmake
-and you should see a list of options which you can change. In order to change
-an option run cmake again with the parameter <tt>-D&lt;option&gt;=&lt;val&gt;</tt>, where <tt>&lt;option&gt;</tt>
-is one of the enumerated options and <tt>&lt;val&gt;</tt> is one of the possible values for
-that option (<tt>&lt;</tt> and <tt>&gt;</tt> should of course not be typed). The last argument to
-<tt>cmake</tt> always has to be the path which you used when you called cmake the first time.
+Note, that there are several options, that can be passed to \em CMake to change
+the build behaviour.
+You see always the current chosen setup when runnig \em CMake and you should 
+see a list of options which you can change.
+In order to change an option run \em CMake again with the parameter 
+<tt>-D&lt;option&gt;=&lt;val&gt;</tt>, where <tt>&lt;option&gt;</tt> is one of 
+the enumerated options and <tt>&lt;val&gt;</tt> is one of the possible values 
+for that option (<tt>&lt;</tt> and <tt>&gt;</tt> should of course not be typed).
+The last argument to <tt>cmake</tt> always has to be the path which you used 
+when you called cmake the first time.
 
-Note that you only have to specify the variables which you want to change. All other
-variables will keep their values.
+Note that you only have to specify the variables which you want to change.
+All other variables will keep their values.
 
-As default ug is build for all supported world dimensions (Dim = 1,2,3). If 
-you only need a special dimension (e.g. for code development) and you want to 
-save compilation time, use the <tt>-DDIM</tt> option. Examples:
+As default ug is build for all supported world dimensions (<tt>Dim = 1,2,3</tt>).
+If you only need a special dimension (e.g. for code development) and you want to 
+save compilation time, use the <tt>-DDIM</tt> option.
+Examples:
+- <tt>cmake -DDIM=ALL ..</tt> -> Builds all dimensions
+- <tt>cmake -DDIM=2 ..</tt> -> Builds only dimension 2
+- <tt>cmake -DDIM="2;3" ..</tt> -> Builds dimension 2 and 3, but not 1
 
-<ul>
-<li> <tt>cmake -DDIM=ALL ..</tt> -> Builds all dimensions
-<li> <tt>cmake -DDIM=2 ..</tt> -> Builds only dimension 2
-<li> <tt>cmake -DDIM="2;3" ..</tt> -> Builds dimension 2 and 3, but not 1
-</ul>
+For \em CMake Versions older than 2.8 yo may be forced to explicitly specify, 
+that the option \c DIM is passed as a string.
+So, please use: <tt>cmake -DDIM:STRING=2 ..</tt> etc.
 
-For cmake Versions older than 2.8 yo may be forced to explicitly specify, that
-the option DIM is passed as a string. So, please use:
-<tt>cmake -DDIM:STRING=2 ..</tt> etc.
 
 <hr>
 \section secInstallUG4Make Make
-<hr>
 
-<ol>
-<li> move to <tt>ug4/trunk/build_debug</tt>
-<li> <tt>make</tt> --> ug4 is build
-</ol>
+-# move to <tt>ug4/trunk/build_debug</tt>
+-# <tt>make</tt> --> \ug4 is build
 
 
 <hr>
 \section secInstallUG4Boost Boost
-<hr>
 
 <ul>
-<li> <b>Boost</b>: 
-Note: Boost-Headers are now automatically checked out with UG4 into the folder /externals. You have to download boost only if you want to use a different version of boost. <br>
-Download latest release of Boost from <a href="http://www.boost.org/users/download/">http://www.boost.org/users/download/</a> .
-<li> Extract/Copy the library to some folder on your computer. The folder is arbitrary. 
-	(e.g. <tt>$HOME/lib/boost_1_46_0</tt>)<li>
-<li> Add the path of the folder, where boost is located, to the environment 
-	variable <a href="http://www.linuxheadquarters.com/howto/basic/path.shtml">PATH</a>, e.g.: 
-	<ul>
-	<li> in bash: add <tt>PATH=$PATH:$HOME/lib/boost_1_46_0</tt> to the end of the file <tt>~/.bashrc</tt></li>
-	<li> in tcsh/csh: add <tt>set PATH = ($PATH $HOME/lib/boost_1_46_0)</tt> to the end of the file <tt>~/.tcshrc</tt></li>
-	</ul>
+  <li>\em Boost:
+    \note Boost-Headers are now automatically checked out with \ug4 into the 
+    folder <tt>/externals</tt>.
+    You have to download boost only if you want to use a different version of 
+    \em Boost.
+
+    Download latest release of \em Boost from 
+    http://www.boost.org/users/download/ .
+  </li>
+  <li>Extract/Copy the library to some folder on your computer.
+    The folder is arbitrary.
+    (e.g. <tt>$HOME/lib/boost_1_46_0</tt>)
+  <li>
+  <li>Add the path of the folder, where \em Boost is located, to the environment 
+    variable 
+    <a href="http://www.linuxheadquarters.com/howto/basic/path.shtml">PATH</a>, 
+    e.g.: 
+    <ul>
+      <li>in bash:
+        add <tt>PATH=$PATH:$HOME/lib/boost_1_46_0</tt> to the end of the file 
+        <tt>~/.bashrc</tt>
+      </li>
+      <li>in tcsh/csh:
+        add <tt>set PATH = ($PATH $HOME/lib/boost_1_46_0)</tt> to the end of 
+        the file <tt>~/.tcshrc</tt>
+      </li>
+    </ul>
+  </li>
 </ul> 
 
 */
