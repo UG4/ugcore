@@ -36,7 +36,7 @@ environment
 		- \ref pageUG4SetupParallel	"parallel clusters"
 	- ug4 for vrl
 
-- Usage
+- \subpage pageUG4Usage
 	- \ref pageAdditionalSoftware	"Tools"
 	- \ref pageUG4Shell				"ugshell"
 	- \ref pageTutorials			"Tutorials"
