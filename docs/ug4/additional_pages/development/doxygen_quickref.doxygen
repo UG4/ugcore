@@ -43,7 +43,7 @@ the paragraph ends at the next paragraph command or empty line.
 
 
 <hr>
-\subsection secDoxygenOwnCommands Custom Commands for \ug4
+\subsection secDoxygenOwnCommands Custom Commands for ug4
 To ease the "correct" writing of this software we are documenting &mdash; \ug4
 &mdash; a custom command (alias) has been defined:
 \code
@@ -59,7 +59,7 @@ which renders to: \ug4.
 The usual formatting is available.
 - \b bold
   - for one word: <tt>\\b word</tt>
-  - for several words: <tt><&lt;strong&gt;several words&lt;/strong&gt;</tt>
+  - for several words: <tt>&lt;strong&gt;several words&lt;/strong&gt;</tt>
 - \em italic
   - for one word: <tt>\\em word</tt>
   - for several words: <tt>&lt;em&gt;several words&lt;/em&gt;</tt>
@@ -107,30 +107,30 @@ tag ('<tt>&lt;/li&gt;</tt>').
 
 <ul>
   <li>
-    \code
+    \verbatim
 \note It might be a good thing to bookmark this page.
-    \endcode
+    \endverbatim
     \note It might be a good thing to bookmark this page.
     
   </li>
   <li>
-    \code
+    \verbatim
 \remarks Make sure your development toolchain is functional.
-    \endcode
+    \endverbatim
     \remarks Make sure your development toolchain is functional.
   
   </li>
   <li>
-    \code
+    \verbatim
 \todo Extend the documentation.
-    \endcode
+    \endverbatim
     \todo Extend the documentation.
   
   </li>
   <li>
-    \code
+    \verbatim
 \warning Check your pointers!
-    \endcode
+    \endverbatim
     \warning Check your pointers!
   
   </li>
@@ -276,6 +276,9 @@ command in related pages (as this one) to automatically create a nice
 <strong>Special characters</strong> as the dash ('&mdash;') should be entered 
 in the form of their HTML entity. (without the whitespaces)
 - '&mdash;' -> '<tt>& mdash ;</tt>'
+- '&auml;', '&Auml;', '&szlig;' -> '<tt>& auml ;</tt>', '<tt>& Auml ;</tt>', 
+  '<tt>& szlig ;</tt>'<br>
+  for the other German umlauts substitute '<tt>a</tt>', '<tt>A</tt>' respectively.
 
 <strong>Horizontal lines</strong> are created with the default HTML tag:
 <tt>&lt;hr&gt;</tt>.
