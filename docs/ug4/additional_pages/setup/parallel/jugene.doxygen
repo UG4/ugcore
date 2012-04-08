@@ -131,7 +131,7 @@ Also look at
 Here we only introduce some important details (everything else should become 
 clear by examining the examples provided):
 <ul>
-  <li><storng>Jobs can be submitted</strong> by the <tt>llrun</tt> 
+  <li><strong>Jobs can be submitted</strong> by the <tt>llrun</tt> 
     (interactively) and the <tt>mpirun</tt> (as batch job; defined in a 
     \em LoadLeveler script) command.
     See below for some details.
@@ -281,7 +281,7 @@ llsubmit <cmdfile>
     a specific run remove the comment sign.)
 
     Please change in your copy of one of these scripts at least the value of the 
-    </tt>notify_user</tt> keyword before submitting a job ...
+    <tt>notify_user</tt> keyword before submitting a job ...
 
     See also this 
     <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLeveler.html">more recent JSC documentation</a>,
