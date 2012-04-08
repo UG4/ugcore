@@ -8,5 +8,6 @@ simple and special usage as well for development.
   - \ref pageUG4OnMac
   - \ref pageUG4OnWindows
   - \ref pageUG4SetupParallel
+- \subpage pageUG4SSH
 
 */

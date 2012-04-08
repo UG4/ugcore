@@ -1,0 +1,43 @@
+//  created by Martin Rupp
+//  martin.rupp@gcsc.uni-frankfurt.de
+//  y12 m02 d29
+
+/** \page pageUG4ParallelCekon Cekon
+
+\em Cekon is the in-house cluster of the \em G-CSC.
+By now it consists of 23 compute nodes with 4 cores per node, that is 92 
+computing cores.
+
+<ul>
+  <li>Configuration:
+    Normally a run of \em CMake with "standard" parameters should do the job.
+
+    There are some problems with the pre-installed <em>GCC 4.1.2</em>, see 
+    \ref secCMake_GCC412 .
+    You can also use <tt>icc</tt> as compiler.
+  </li>
+  <li>The <em>Job Scheduler</em> on \em Cekon is supported by \c ugsubmit / 
+    \c uginfo / \c ugcancel (\ref pageugsubmit).
+
+    If you want to do job scheduling manually:<br>
+    Start your job with
+    \verbatim
+salloc -n <NP> mpirun ugshell $UGARGS
+    \endverbatim
+    Please note that ony the <tt>salloc</tt> parameter <tt>-n</tt> reserves a 
+    number of processes / cores of a job, while <tt>-N</tt> (capital \c N) a 
+    number of nodes.
+    See the <tt>salloc</tt> manual page for further details.
+  </li>
+  <li>To display information about jobs already running (located in the 
+    \em SLURM scheduling queue) use the <tt>squeue</tt> command.
+  </li>
+  <li>\b Debugging : If \em DDT is installed, simply type <tt>ddt</tt> in the 
+    Unix shell to start the Debugger and fill in the job definition of the job 
+    to be debugged in the GUI (X11 based) &mdash; everything should be quite 
+    self-explanatory.
+  </li>
+</ul>
+
+
+*/

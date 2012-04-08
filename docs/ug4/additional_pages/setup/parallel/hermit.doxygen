@@ -1,0 +1,111 @@
+//  created by Martin Rupp
+//  martin.rupp@gcsc.uni-frankfurt.de
+//  y12 m02 d29
+
+/** \page pageUG4ParallelHermit Hermit
+
+- \ref secHermit_Architecture
+- \ref secHermit_General
+- \ref secHermit_GCC
+- \ref secHermit_Cray
+- \ref secHermit_Workspace
+
+
+<hr>
+\section secHermit_Architecture Architecture
+The <a href="https://wickie.hlrs.de/platforms/index.php/Cray_XE6">Cray XE6 ("Hermit")</a>.
+In Installation step 1, the XE6 is a 3552 node cluster.
+Each node is a Dual Socket
+<a href="http://en.wikipedia.org/wiki/List_of_AMD_Opteron_microprocessors#Opteron_6200-series_.22Interlagos.22_.2832_nm.29">AMD Opteron 6276 (Interlagos)</a>
+@ 2.3GHz 16 cores each, which results in 113.664 cores in total.
+Normal nodes have 32 GB RAM, 480 special nodes have 64 GB (total 126 TB).
+(<a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Hardware_and_Architecture"> Architecture</a>)
+That is 1 GB RAM for each process when running the maximum of 32 processes on a 
+node. 
+Current maximum number of cores for one job is 64000.
+Speak to the administration for more nodes.
+
+
+<hr>
+\section secHermit_General General 
+Using the
+<a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Using_the_Batch_System">Batch system</a>
+and the
+<a href="https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism">Workspace mechanism</a>.
+
+The Job Scheduler on Hermit is supported by \c ugsubmit / \c uginfo / 
+\c ugcancel (\ref pageugsubmit).
+You might want to use -Hermit-workspace .
+
+\note You have to choose modules every time you log in (you might want to add 
+your <tt>module load/swap</tt> commands into your <tt>.bashrc</tt> or similar).
+
+
+<hr>
+\section secHermit_GCC GCC
+First, look what modules are loaded
+\verbatim
+module list
+\endverbatim
+
+There is one which is named PrgEnv-cray or PrgEnv-*. Now you swap that to 
+PrgEnv-gnu:
+\verbatim
+module swap PrgEnv-cray PrgEnv-gnu
+\endverbatim
+
+There's a one-liner for this task:
+\verbatim
+module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu
+\endverbatim
+
+Then you start cmake with a \ref secCMake_ToolchainFiles :
+\verbatim
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit_gcc.cmake ..
+\endverbatim
+
+
+<hr>
+\section secHermit_Cray Cray CC
+The Cray C Compiler is not working at the moment because there is an internal 
+compiler error in release mode.
+
+Toolchain file is <tt>../toolchain_file_hermit.cmake</tt>, and the module is 
+PrgEnv-cray.
+\verbatim
+module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-cray
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake ..
+\endverbatim
+
+
+<hr>
+\section secHermit_Workspace Workspace Mechanism
+Access to the user file system (anything in your home directory) from your 
+running job is very slow on Hermit.
+It is very noticable in runs with 1024 cores and even if you are accessing only 
+small files once like your script files.
+The
+<a href="https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism">Workspace Mechanism</a>
+lets you create a directory on a specialized parallel file system.
+Use a script like this to create a workspace directory and copy all you data 
+there:
+\verbatim
+runDir=`ws_allocate $mydate 15`
+echo "Hermit Workspace dir is $runDir"
+ln -s $runDir $(date "+workspace.%m-%d-%H%M");
+cp -r ../scripts $runDir
+cp -r ../data $runDir
+\endverbatim
+
+Now before you run \ug4, you want \ug4 to know about its new root dir. 
+Be aware that also file written to can be damaged if you are not using the 
+Workspace mechanism. 
+See also the "-dir" and "-Hermit-workspace" option in \ref pageugsubmit.
+
+\verbatim
+export UG4_ROOT=$runDir
+\endverbatim
+Otherwise, \ug4 will look in <tt>../scripts/</tt> for scripts and 
+<tt>../data/</tt> for data, relative to the path of the binary.
+
+*/

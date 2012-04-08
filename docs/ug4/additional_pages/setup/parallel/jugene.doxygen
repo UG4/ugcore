@@ -1,0 +1,404 @@
+//  created by Martin Rupp
+//  martin.rupp@gcsc.uni-frankfurt.de
+//  y12 m02 d29
+
+/** \page pageUG4ParallelJuGene JuGene
+
+- \ref secJuGene
+- \ref secAccess_to_JuGenes_login_nodes
+- \ref secConfiguration_of_ug4_for_JuGene
+- \ref secWorking_with_ug4_on_JuGene
+- \ref secVery_large_jobs_on_JuGene
+
+
+<hr>
+\section secJuGene General Information about JuGene
+
+<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/JUGENE_node.html">JuGene</a>
+&mdash; the 
+<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/Configuration/Configuration_node.html">72 racks Blue Gene/P</a>
+system at <em>J&uuml;lich Supercomputing Centre (JSC)</em> (FZ J&uuml;lich) in total 
+provides 294.912 cores (288 Ki) and 144 Tbyte RAM.
+The 73.728 compute nodes (CN) each have a quadcore Power 32-bit PC 450 running 
+at 850 MHz, with 2 Gbyte of RAM. 
+
+Half a rack (2048 cores) is called a \b midplane.
+The \em JuGene system uses five different networks dedicated for various tasks 
+and functionalities of the machine.
+Relevant for us:
+The 3-D torus network.
+This is a point-to-point network &mdash; each of the CNs has six 
+nearest-neighbour connections.
+
+See more on the architecture of \em JuGene 
+<a href="http://www.fz-juelich.de/SharedDocs/Downloads/IAS/JSC/EN/JUGENE/SlidesBGPArchitecture.pdf">here</a>.
+
+More information about \em JuGene "in order to enable users of the system to 
+achieve good performance of their applications" can be found in
+<a href="http://www.prace-ri.eu/IMG/pdf/Best-practise-guide-JUGENE-v0-3.pdf">"PRACE Best-Practice Guide for JUGENE"</a>.
+
+\note Note that the login nodes are running under <em>SuSE Linux Enterprise 
+Server 10</em> (SLES 10), while the CNs are running a limited version of Linux 
+called <em>Compute Node Kernel</em> (CNK).
+Therefore its necessary to <strong>cross-compile</strong> for \em JuGene (cf. 
+sec. \ref secCMake; sec. \ref secConfiguration_of_ug4_for_JuGene).
+
+
+<hr>
+\section secAccess_to_JuGenes_login_nodes Access to JuGene's Login Nodes
+\em JuGene is reached via two so called <strong>front-end</strong> or 
+<strong>login nodes</strong> (\c jugene3 and \c jugene4) for interactive access 
+and the submission of batch jobs.
+
+These login nodes are reached via
+\verbatim
+ssh <user>@jugene.fz-juelich.de
+\endverbatim
+i.e., for login there is only a generic hostname, <tt>jugene.fz-juelich.de</tt>,
+from which automatically a connection either to \c jugene3 or \c jugene4 will 
+be established.
+
+The front-end nodes have an identical environment, but multiple sessions of one 
+user may reside on different nodes which must be taken into account when 
+killing processes.
+
+It is necessary to <strong>upload the SSH key</strong> of the machine from 
+which to connect to one of JuGenes login nodes.
+See 
+<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/Logon.html">Logging on to JUGENE</a>
+(also for \em X11 problems).
+
+To be able to connect to \em JuGene from different machines maybe you find it 
+useful to define one of \em GCSC's machines (e.g. \c speedo, \c quadruped, ...) 
+as a "springboard" to one of \em JuGenes login nodes (so that you have to login 
+to this machine first, then to \em JuGene), see \ref secSSHHoping.
+
+
+<hr>
+\section secConfiguration_of_ug4_for_JuGene Configuration of ug4 for JuGene
+
+For JuGene you have to "cross compile" and to do so use a specific 
+\ref secCMake_ToolchainFiles.
+Start CMake like this
+\verbatim
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_jugene.cmake ..
+\endverbatim
+or, for <strong>static builds</strong> which is the <strong>configuration of 
+choice</strong> if you want to <strong>process very large jobs</strong>,
+\verbatim
+cmake -DSTATIC=ON -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_jugene_static.cmake ..
+\endverbatim
+
+See also \ref secVery_large_jobs_on_JuGene!
+
+\note A <em>static build</em> where also all system libraries are linked 
+statically need some additional "hand work" by now:
+After configuration with \em CMake edit the following files by replacing all 
+occurences of <tt>libXXXXXXX.so</tt> by <tt>libXXXXXXX.a</tt>
+(has to be done only once):
+\verbatim
+CMakeCache.txt,
+ugbase/ug_shell/CMakeFiles/ugshell.dir/link.txt,
+ugbase/ug_shell/CMakeFiles/ugshell.dir/build.make
+\endverbatim
+
+Or use this <tt>sed</tt> command:
+\verbatim
+sed -i '' 's/\([[:alnum:]]*\).so/\1.a/g' CMakeCache.txt ugbase/ug_shell/CMakeFiles/ugshell.dir/link.txt ugbase/ug_shell/CMakeFiles/ugshell.dir/build.make 
+\endverbatim
+
+You can check your executable by running the <tt>ldd</tt> command on it:
+\verbatim
+ldd ugshell
+\endverbatim
+Answer should be <tt>not a dynamic executable</tt> for a completely static 
+build!
+
+
+<hr>
+\section secWorking_with_ug4_on_JuGene Working with ug4 on JuGene
+
+\subsection secBasic_job_handling Basic job handling
+Please take the time and fill out the details in \c ugsubmit / \c uginfo / 
+\c ugcancel (\ref pageugsubmit).
+
+See 
+<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/QuickIntroduction.html">Quick Introduction</a>
+to job handling.
+Also look at 
+<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/mpirun.html">job/mpirun options</a>.
+
+Here we only introduce some important details (everything else should become 
+clear by examining the examples provided):
+<ul>
+  <li><storng>Jobs can be submitted</strong> by the <tt>llrun</tt> 
+    (interactively) and the <tt>mpirun</tt> (as batch job; defined in a 
+    \em LoadLeveler script) command.
+    See below for some details.
+  </li>
+  <li>There are different <strong>execution modes</strong> which can be 
+    specified by the <tt>mpirun</tt> and <tt>llrun</tt> parameter 
+    <tt>-mode {VN | DUAL | SMP}</tt>:
+    <ul>
+      <li><strong>Quad Mode</strong> (a.k.a. "Virtual Mode"):
+        All four cores run one MPI process.
+        Memory/MPI Process = 1/4 CN RAM:
+        <tt>-mode VN</tt>.
+      </li>
+      <li><strong>Dual Mode</strong>:
+        Two cores run one MPI process (hybrid MPI/OpenMP).
+        Memory/MPI Process = 1/2 CN RAM:
+        <tt>-mode DUAL</tt>.
+      </li>
+      <li><strong>SMP Mode</strong> ("Symmetrical Multi Processing Mode"):
+        All four cores run one MPI process (hybrid MPI/OpenMP).
+        Memory/MPI Process = CN RAM:
+        <tt>-mode SMP</tt>.
+      </li>
+    </ul>
+    Note that in quad mode (using all 4 processors of a computing node) this 
+    means each core has only ca. 512 Mbyte of RAM (474 Mbyte to be more 
+    specific, since the CNK also needs some memory).
+    
+    Obviously "VN" is the preferred execution mode if large numbers of 
+    processes should be achieved &mdash; and \ug4 works with VN mode (at least 
+    up to ~64 Ki DoFs per process)!
+  </li>
+  <li>The <tt>mpirun</tt> parameter <tt>-mapfile</tt> specifies an order in 
+    which the MPI processes are mapped to the CNs / the cores of the BG/P 
+    partition reserved for the run.
+    This order can either be specified by a permutation of the letters X,Y,Z 
+    and T \em or the name of a mapfile in which the distribution of the tasks 
+    is specified, <tt>-mapfile {&lt;mapping&gt;|&lt;mapfile&gt;}</tt>:
+    <ul>
+      <li><tt>&lt;mapping&gt;</tt> is a permutation of X, Y, Z and T.
+
+        The standard mapping on \em JuGene is to place the tasks in "XYZT" 
+        order, where X, Y, and Z are the torus coordinates of the nodes in the 
+        partition and T is the number of the cores within each node (T=0,1,2,3).
+
+        When the tasks are distributed across the nodes the first dimension is 
+        increased first, i.e. for XYZT the first three tasks would be executed 
+        by the nodes with the torus coordinates <tt>&lt;0,0,0,0&gt;</tt>, 
+        <tt>&lt;1,0,0,0&gt;</tt> and <tt>&lt;2,0,0,0&gt;</tt>, which obviously 
+        is not what we want for our simulation runs.
+        For now we recommend <tt>-mapfile TXYZ</tt> which fills up a CN before 
+        going to the next CN so that MPI processes working on adjacent 
+        subdomains are placed closely in the 3-D torus.
+      </li>
+      <li><tt>&lt;mapfile&gt;</tt> is the name of a mapfile in which the 
+        distribution of the tasks is specified:
+        It contains a line of <tt>x y z t</tt> coordinates for each MPI process.
+        See sec. 6. of the <em>Best-Practise guide</em> mentioned above for an 
+        example and which LoadLeveler keywords to use.
+      </li>
+    </ul>
+<!--
+TODO: Some notes about "topology aware placing of MPI processes" might become relevant in the future.
+-->
+  </li>
+  <li>If \ug4 was dynamically linked add to the <tt>mpirun</tt> parameters 
+    <tt>-env LD_LIBRARY_PATH==/bgsys/drivers/ppcfloor/comm/lib/</tt>.
+    \note This parameter is (obviously) not necessary for completely static builds!
+
+  </li>
+  <li><strong>"Modules"</strong> can be loaded by executing the <tt>module</tt> 
+    command, e.g. <tt>module load lapack</tt> for LAPACK.
+
+<!--
+TODO: Nevertheless CMake says "Info: Not using Lapack. No package found"!?
+-->
+
+    This is also for loading <strong>performance analysis tools</strong>, e.g. 
+    <tt>module load scalasca</tt>, <tt>module load UNITE</tt> etc.
+     
+<!--
+TODO: Please provide a link which explains a bit more !!!
+-->
+     
+     <!-- no experience with this stuff yet! -->
+  </li>
+  <li><a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/llview.html"><tt>llview</tt></a>
+    is a <strong>tool with a graphical X11 user interface</strong> for 
+    displaying system status, running jobs, scheduling and prediction of the 
+    start time of jobs.
+<!--
+TODO: llview on JuGene
+--> 
+    If estimated start times can not determined by 
+    <tt>llq -s &lt;job-id&gt;</tt> (see below) this is to our knowledge the 
+    only possibility to get this information.
+  </li>
+  <li><strong>Interactive jobs</strong> can be started with the 
+    <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerInteractive.html">llrun</a>
+    command.
+
+    Example:
+    \verbatim
+llrun -np <NP> -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ $UGARGS
+    \endverbatim
+
+    Please note that <tt>llrun</tt> only allows jobs up to 256 
+    (<tt>-mode SMP</tt>) / 512 (<tt>-mode DUAL</tt>) / 1024 (<tt>-mode VN</tt>) 
+    MPI processes!
+  </li>
+  <li><strong>Batch Jobs</strong> are defined in so called <strong>"LoadLeveler 
+    scripts"</strong> and submitted by the 
+    <a href="http://www2.fz-juelich.de/jsc/jugene/usage/loadl/llsubmit/"><tt>llsubmit</tt></a>
+    command to the <em>IBM Tivoli Workload Scheduler LoadLeveler</em> (TWS 
+    LoadLeveler), typically in the directory where the ug4 executable resides:
+    \verbatim
+llsubmit <cmdfile>
+    \endverbatim
+    <tt>&lt;cmdfile&gt;</tt> is a (plain Unix) shell script file (i.e., the 
+    "LoadLeveler script"), which contains job definitions given by 
+    <strong>"LoadLeveler keywords"</strong> (some important examples are 
+    explained below).
+
+    If <tt>llsubmit</tt> was able to submit the job it outputs a <strong>job 
+    name</strong> (e.g. <tt>jugene4b.zam.kfa-juelich.de.298508</tt>) with which 
+    a specific job can be identified in further commands, e.g. to cancel it 
+    (see below).
+
+    The <strong>output</strong> of the run (messages from Frontend end Backend 
+    MPI &mdash; and the output of \ug4 &mdash; is written to a file in the 
+    directory where <tt>llsubmit</tt> was executed and whose name begins with 
+    the job name you have specified in the LoadLeveler script and ends with 
+    <tt>&lt;job number&gt;.out</tt>.
+
+    For some <strong>example LoadLeveler scripts</strong> used with \ug4 see 
+    subdirectory <tt>scripts/shell/</tt>:
+
+    <ul>
+      <li><tt>ll_scale_gmg.x</tt> contains job definitions for a complete 
+        scalability study for GMG in 2-D and 3-D.
+      </li>
+      <li><tt>ll_template.x</tt> also contains some documentation of LoadLeveler 
+        and mpirun parameters.
+      </li>
+    </ul>
+    (All <tt>mpirun</tt> commands therein are commented out &mdash; to performe 
+    a specific run remove the comment sign.)
+
+    Please change in your copy of one of these scripts at least the value of the 
+    </tt>notify_user</tt> keyword before submitting a job ...
+
+    See also this 
+    <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLeveler.html">more recent JSC documentation</a>,
+    and especially the
+    <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerSamples.html">Job File Samples</a>
+    for more details.
+  </li>
+  <li><strong>LoadLeveler keywords</strong> are strings embedded in comments 
+    beginning with the characters "# @".
+<!--
+TODO: isn't there a better overview on the web?
+-->
+    Some selected keywords:
+    <ul>
+      <li><tt>job_type = bluegene</tt> specifies that the job is running on 
+        <em>JuGene</em>'s CNs.
+      </li>
+      <li><tt>job_name</tt> specifies the name of the job, which will get part 
+        of the name of the output file.
+      </li>
+      <li><tt>bg_size</tt> specifies the size of the BG/P partition reserved 
+        for the job in <strong>number of compute nodes</strong>.
+
+        That is, for <tt>&lt;NP&gt;</tt> MPI processes, <tt>bg_size</tt> must 
+        be >= <tt>(&lt;NP&gt;)/4</tt>.
+
+        Alternatively the size of a job can be defined by the <tt>bg_shape</tt> 
+        keyword.
+
+        See comments in the example LoadLeveler scripts for proper settings.
+      </li>
+      <li><tt>bg_connection</tt> specifies the "connection type", i.e. the 
+        <strong>network topology</strong> used by a job.
+
+        Connection type can be one in <tt>[TORUS| MESH | PREFER_TORUS]</tt>.
+        Default is <tt>bg_connection = MESH</tt>.
+
+        <tt>bg_connection = TORUS</tt> &mdash; utilising the 3-D torus network 
+        &mdash; is the preferred topology for our jobs.
+        For this <tt>bg_size</tt> (see above) must be >= 512.
+
+        See also comments and usage in the example LoadLeveler scripts for 
+        proper settings.
+      </li>
+    </ul>
+    Please note that keywords must not be followed by comments in the same line! 
+
+    A nice introduction to LoadLeveler command file syntax is given e.g. 
+    <a href="https://docs.loni.org/wiki/LoadLeveler_Command_File_Syntax">here</a>.
+  </li>
+  <li><tt>llq</tt> is used to display the status of jobs (of a specified user) 
+    in the queue/executed:
+    \verbatim
+llq [-u  <userid>]
+    \endverbatim
+<!--
+TODO: (to test)
+-->
+    The estimated start time of a job can (maybe) also be determined by 
+    <tt>llq -s &lt;job-id&gt;-id</tt> (cf. 
+    https://docs.loni.org/wiki/Useful_LoadLeveler_Commands).
+  </li>
+  <li><tt>llcancel</tt> is used to cancel a job (<tt>&lt;jobname&gt;</tt> as 
+    displayed by <tt>llq</tt>):
+    \verbatim
+llcancel <jobname>
+    \endverbatim
+  </li>
+  <li>Debugging:
+    See documentation to the tools 
+    <tt>/bgsys/drivers/ppcfloor/tools/coreprocessor</tt>, <tt>gdbserver</tt> ...
+  </li>
+  <li>Available file systems.
+    See
+    <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUDGE/Userinfo/Access_Environment.html">JSC documentation</a>
+    for more details.
+  </li>
+  <li>Querying <strong>Quota Status</strong>:
+    \verbatim
+q_cpuquota <options>
+    \endverbatim
+
+    Useful options: 
+    \arg <tt>-?</tt>                   usage information and all options .
+    \arg <tt>-j &lt;jobstepid&gt;</tt> for a single job.
+    \arg <tt>-t &lt;time&gt;</tt>      for all jobs in the specified time, e.g.
+      <tt>q_cpuquota -t 23.11.2011 01.12.2011</tt>.
+    \arg <tt>-d &lt;number&gt;</tt> for last number of days (positive integer).
+  </li>
+</ul>
+
+
+<hr>
+\subsection secVery_large_jobs_on_JuGene Very large jobs on JuGene
+<ul>
+  <li>Although its possible on \em JuGene to create shared libraries and run 
+    dynamically linked executables this is <strong>in general not 
+    recommended</strong>, since loading of shared libraries can delay the 
+    startup of such an application considerably, especially when using large 
+    partitions (8 racks or more).
+    See also
+    <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/SharedLibraries.html">Shared Libraries and Dynamic Executables</a>.
+
+    So, for <strong>very large jobs</strong> be sure to have \ug4 built as a 
+    <strong>completely static executable</strong> (c.f. 
+    \ref secConfiguration_of_ug4_for_JuGene) since otherwise loading of the 
+    shared libraries consumes too much wall time!
+  </li>
+  <li><strong>Very large jobs</strong> (e.g. jobs larger than 32 racks) 
+    normally run on <b>Tuesday</b> only.
+
+    Exceptions to this rule are possible in urgent cases (please contact the SC 
+    Support under <a href="sc@fz-juelich.de">sc@fz-juelich.de</a>).
+  </li>
+</ul>
+
+More information ingo.heppner@gcsc.uni-frankfurt.de .
+
+
+*/
