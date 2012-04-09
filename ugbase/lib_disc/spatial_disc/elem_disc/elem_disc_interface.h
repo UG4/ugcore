@@ -169,44 +169,33 @@ class IElemDisc
 	 *
 	 * \param[in]	bTimeDependent	flag if time-dependent
 	 * \param[in]	time			time point
-	 * \param[in]	time	time point
+	 * \param[in]	time			time point
 	 *
 	 * \returns 	if elem disc needs time series local solutions
 	 */
-		bool set_time_dependent(bool bTimeDependent,
-		                        number time = 0.0,
+		void set_time_dependent(bool bTimeDependent,
 		                        const LocalVectorTimeSeries* locTimeSeries = NULL)
 		{
 			m_bTimeDependent = bTimeDependent;
-			m_time = time;
 			m_pLocalVectorTimeSeries = locTimeSeries;
-			if(is_time_dependent()) return time_point_changed(m_time);
-			else return false;
 		}
 
 	///	returns if assembling is time-dependent
 		bool is_time_dependent() const {return m_bTimeDependent;}
 
-	///	callback, invoked when new time point is set
+	///	returns if local time series needed by assembling
 	/**
 	 * This callback must be implemented by a derived Elem Disc in order to handle
-	 * time-dependent data. The callback is invoked, whenever the time point
-	 * of the disc changes. As return the derived Elem Disc can specify, if
+	 * time-dependent data. As return the derived Elem Disc can specify, if
 	 * it really needs data from previous time steps for the (spatial) disc. The
 	 * default is false.
 	 *
-	 * \param[in]	time		new time point
 	 * \returns 	if elem disc needs time series local solutions
 	 */
-		virtual bool time_point_changed(number time) {return false;}
+		virtual bool requests_local_time_series() {return false;}
 
-	///	returns the current time point
-	/**
-	 * This function returns the current time point.
-	 *
-	 * \returns 	time 	time point
-	 */
-		inline number time() const {return m_time;}
+		void set_time(const number time) {m_time = time;}
+		number time() const {return m_time;}
 
 	///	returns the local time solutions
 	/**

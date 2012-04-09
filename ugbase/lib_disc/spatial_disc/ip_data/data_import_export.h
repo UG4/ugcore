@@ -86,8 +86,8 @@ class IDataImport
 		virtual void compute_lin_defect(const LocalVector& u) = 0;
 
 	///	resize arrays
-		virtual void resize(const LocalIndices& ind,
-		                    const FunctionIndexMapping& map) = 0;
+		virtual void set_dof_sizes(const LocalIndices& ind,
+		                           const FunctionIndexMapping& map) = 0;
 
 	///	add jacobian entries introduced by this import
 		virtual void assemble_jacobian(LocalMatrix& J) = 0;
@@ -141,9 +141,6 @@ class DataImport : public IDataImport
 
 	///	returns true if data given
 		virtual bool data_given() const {return m_spIPData.valid();}
-
-	///	sets the evaluation time point
-		void set_time(number time) {if(data_given()) m_spIPData->set_time(time);}
 
 
 	/////////////////////////////////////////
@@ -216,8 +213,8 @@ class DataImport : public IDataImport
 	/// number of shapes for local function
 		size_t num_sh(size_t fct) const
 		{
-			const size_t ip = 0; check_ip_fct(ip,fct);
-			return m_vvvLinDefect[ip][fct].size();
+			UG_ASSERT(fct <  m_vvNumDoFPerFct[fct], "Invalid index");
+			return m_vvNumDoFPerFct[fct];
 		}
 
 	///	returns the pointer to all  linearized defects at one ip
@@ -240,7 +237,8 @@ class DataImport : public IDataImport
 		void assemble_jacobian(LocalMatrix& J);
 
 	///	resize lin defect arrays
-		virtual void resize(const LocalIndices& ind, const FunctionIndexMapping& map);
+		virtual void set_dof_sizes(const LocalIndices& ind,
+		                           const FunctionIndexMapping& map);
 
 	public:
 	///	type of evaluation function

@@ -36,7 +36,7 @@ prepare_timestep_elem(TElem* elem, LocalVector& u)
 
 template <typename TElem>
 void DataEvaluator::
-prepare_elem_loop(LocalIndices& ind, number time, bool bMassPart)
+prepare_elem_loop(bool bMassPart)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -132,13 +132,13 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 	if(bDeriv)
 	{
 		for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
-			m_vStiffDataImport[i]->resize(ind, m_vStiffImpMap[i]);
+			m_vStiffDataImport[i]->set_dof_sizes(ind, m_vStiffImpMap[i]);
 		if(bMassPart)
 			for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
-				m_vMassDataImport[i]->resize(ind, m_vMassImpMap[i]);
+				m_vMassDataImport[i]->set_dof_sizes(ind, m_vMassImpMap[i]);
 
 		for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
-			m_vDependentIPData[i]->resize(ind, m_vDependentMap[i]);
+			m_vDependentIPData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
 	}
 
 // 	prepare element

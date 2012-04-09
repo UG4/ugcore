@@ -27,17 +27,17 @@ class DataEvaluator
 	public:
 	///	sets the elem discs to evaluate
 		void set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
-		                    const FunctionPattern& fctPat,
-		                    bool bNonRegularGrid,
-		                    bool bMassPart = false);
-
-		////////////////////////////////////////////
-		// Regular assembling
-		////////////////////////////////////////////
+		                    const FunctionPattern& fctPat);
 
 	///	sets in all IElemDiscs the time and previous solutions
-		bool set_time_dependent(bool bTimeDep, number time = 0.0,
+		void set_time_dependent(bool bTimeDep,
 		                        LocalVectorTimeSeries* locTimeSeries = NULL);
+
+	///	sets the time point for data evaluation
+		void set_time(const number time);
+
+	///	returns if local time series is really needed for assembling
+		bool time_series_needed() const {return m_bNeedLocTimeSeries;}
 
 	///	requests in all IElemDisc to use HangingGrid
 		void set_non_regular_grid(bool bNonRegularGrid);
@@ -45,14 +45,17 @@ class DataEvaluator
 	///	returns if one of the element discs needs hanging dofs
 		bool use_hanging() const {return m_bUseHanging;}
 
+		////////////////////////////////////////////
+		// Regular assembling
+		////////////////////////////////////////////
+
 	///	prepares the element for all time-dependent IElemDiscs
 		template <typename TElem>
 		void prepare_timestep_elem(TElem* elem, LocalVector& u);
 
 	///	prepares the element loop for all IElemDiscs
 		template <typename TElem>
-		void prepare_elem_loop(LocalIndices& ind, number time = 0.0,
-		                       bool bMassPart = false);
+		void prepare_elem_loop(bool bMassPart = false);
 
 	///	prepares the element for all IElemDiscs
 		template <typename TElem>
@@ -166,7 +169,7 @@ class DataEvaluator
 		std::vector<FunctionIndexMapping> m_vStiffImpConnMap;
 
 	////////////////////////////////
-	// 	Data Import
+	// 	IP Data
 	////////////////////////////////
 
 	///	constant data

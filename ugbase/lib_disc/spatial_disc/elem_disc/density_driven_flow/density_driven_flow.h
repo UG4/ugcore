@@ -203,15 +203,8 @@ class DensityDrivenFlow
 		}
 
 	private:
-	///	prepares the discretization for time dependent discretization
-	/**
-	 * This function prepares the discretization for time-dependent problems.
-	 * It sets the time in the imports.
-	 *
-	 * \param[in]	time	new time point
-	 * \returns 	true	indicates, that old values are needed
-	 */
-		virtual bool time_point_changed(number time);
+	///	returns if local time series is needed
+		virtual bool requests_local_time_series() {return false;}
 
 		template <typename TElem>
 		void prepare_element_loop();

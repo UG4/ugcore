@@ -277,8 +277,8 @@ class IDependentIPData : virtual public IIPData
 		IDependentIPData() : m_bCompNeedsSol(false) {};
 
 	///	resize arrays
-		virtual void resize(const LocalIndices& ind,
-		                    const FunctionIndexMapping& map) = 0;
+		virtual void set_dof_sizes(const LocalIndices& ind,
+		                           const FunctionIndexMapping& map) = 0;
 
 	///	computation of data depending on current solution
 		virtual void compute(bool bDeriv = false)
@@ -341,10 +341,10 @@ class DependentIPData : public IPData<TData, dim>,
 
 	public:
 	/// number of shapes for local function
-		size_t num_sh(size_t s, size_t fct) const
+		size_t num_sh(size_t fct) const
 		{
-			const size_t ip = 0; check_s_ip_fct(s,ip,fct);
-			return m_vvvvDeriv[s][ip][fct].size();
+			UG_ASSERT(fct < m_vvNumDoFPerFct.size(), "Wring index");
+			return m_vvNumDoFPerFct[fct];
 		}
 
 	///	returns the derivative of the local function, at ip and for a dof
@@ -364,7 +364,8 @@ class DependentIPData : public IPData<TData, dim>,
 			{check_s_ip_fct(s,ip,fct);return &(m_vvvvDeriv[s][ip][fct][0]);}
 
 	///	resize lin defect arrays
-		virtual void resize(const LocalIndices& ind, const FunctionIndexMapping& map);
+		virtual void set_dof_sizes(const LocalIndices& ind,
+		                           const FunctionIndexMapping& map);
 
 	///	sets all derivative values to zero
 		void clear_derivative_values();
@@ -391,7 +392,16 @@ class DependentIPData : public IPData<TData, dim>,
 	///	implement callback, invoked when local ips are cleared
 		virtual void local_ip_series_to_be_cleared();
 
+	///	resizes the derivative arrays for current number of ips.
+		void resize_deriv_array();
+
+	///	resizes the derivative arrays for current number of ips of a single series
+		void resize_deriv_array(const size_t seriesID);
+
 	protected:
+	///	number of functions and their dofs
+		std::vector<size_t> m_vvNumDoFPerFct;
+
 	// 	Data (size: (0,...,num_series-1) x (0,...,num_ip-1) x (0,...,num_fct-1) x (0,...,num_sh(fct) )
 	///	Derivatives
 		std::vector<std::vector<std::vector<std::vector<TData> > > > m_vvvvDeriv;

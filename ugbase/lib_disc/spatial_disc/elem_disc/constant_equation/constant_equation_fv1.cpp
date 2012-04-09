@@ -191,18 +191,6 @@ template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 void ConstantEquation<TDomain>::finish_element_loop()
 {}
 
-template<typename TDomain>
-bool ConstantEquation<TDomain>::time_point_changed(number time)
-{
-//	set new time point at imports
-	m_imVelocity.set_time(time);
-	m_imSource.set_time(time);
-	m_imMass.set_time(time);
-
-//	this disc does not need the old time solutions, thus, return false
-	return false;
-}
-
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>

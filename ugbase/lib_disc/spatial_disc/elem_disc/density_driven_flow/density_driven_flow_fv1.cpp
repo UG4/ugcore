@@ -535,29 +535,6 @@ prepare_element_loop()
 	m_imDensityScv.		template set_local_ips<refDim>(vSCVip, numSCVip, false);
 }
 
-
-template<typename TDomain>
-bool DensityDrivenFlow<TDomain>::
-time_point_changed(number time)
-{
-//	set new time point at imports
-	m_imBrineScvf.set_time(time);
-	m_imBrineGradScvf.set_time(time);
-	m_imPressureGradScvf.set_time(time);
-	m_imPressureGradScvf.set_time(time);
-	m_imPorosityScvf.set_time(time);
-	m_imPermeabilityScvf.set_time(time);
-	m_imMolDiffusionScvf.set_time(time);
-	m_imViscosityScvf.set_time(time);
-	m_imDensityScvf.set_time(time);
-	m_imDarcyVelScvf.set_time(time);
-	m_imPorosityScv.set_time(time);
-	m_imDensityScv.set_time(time);
-
-//	this disc does not need the old time solutions, thus, return false
-	return false;
-}
-
 template<typename TDomain>
 template<typename TElem >
 void DensityDrivenFlow<TDomain>::

@@ -537,7 +537,7 @@ class LuaUserFunction
 							const size_t commonFct = input_common_fct(c, fct);
 
 						//	loop dofs
-							for(size_t dof = 0; dof < num_sh(s, fct); ++dof)
+							for(size_t dof = 0; dof < num_sh(fct); ++dof)
 							{
 								linker_traits<TData, TDataIn>::
 								mult_add(deriv(s, ip, commonFct, dof),

@@ -15,9 +15,7 @@ namespace ug{
 ///////////////////////////////////////////////////////////////////////////////
 
 void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
-                                   const FunctionPattern& fctPat,
-                                   bool bNonRegularGrid,
-                                   bool bMassPart)
+                                   const FunctionPattern& fctPat)
 {
 //	remember current elem discs
 	m_pvElemDisc = &vElemDisc;
@@ -80,13 +78,14 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 			vLfeID[f] = m_vElemDiscFctGrp[i].local_finite_element_id(f);
 		if(!((*m_pvElemDisc)[i]->request_finite_element_id(vLfeID)))
 		{
-			UG_LOG("WARNING in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
+			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
 					" can not assemble the specified local finite element space set:\n");
 			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
 			{
 				UG_LOG("  Fct "<<f<<": '"<<(*m_pvElemDisc)[i]->symb_fcts()[f]);
 				UG_LOG("' using "<< vLfeID[f] << "\n");
 			}
+			UG_THROW_FATAL("DataEvaluator: Wrong functions for assembling.");
 		}
 
 	//	create a mapping between all functions and the function group of this
@@ -98,17 +97,10 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 						"Function Index Mapping for disc "<<i<<".");
 	}
 
-//	setup for non-regular grid
-	try
-	{
-		set_non_regular_grid(bNonRegularGrid);
-	}
-	UG_CATCH_THROW("DataEvaluator::set_elem_discs:"
-					"Cannot setup non-regular grid.");
-
 //	reset local time series flag
 	const size_t numElemDisc = (*m_pvElemDisc).size();
-	m_vbNeedLocTimeSeries.clear(); m_vbNeedLocTimeSeries.resize(numElemDisc, false);
+	m_vbNeedLocTimeSeries.clear();
+	m_vbNeedLocTimeSeries.resize(numElemDisc, false);
 }
 
 void
@@ -434,21 +426,37 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 }
 
 
-bool DataEvaluator::set_time_dependent(bool bTimeDep, number time,
+void DataEvaluator::set_time_dependent(bool bTimeDep,
                                        LocalVectorTimeSeries* locTimeSeries)
 {
+//	set time dependent to all elem discs and find out if time series really needed
 	m_bNeedLocTimeSeries = false;
-
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
-		m_vbNeedLocTimeSeries[i]
-		  = (*m_pvElemDisc)[i]->set_time_dependent(bTimeDep, time, locTimeSeries);
+	//	checks if local time series is needed.
+		m_vbNeedLocTimeSeries[i] = (*m_pvElemDisc)[i]->requests_local_time_series();
 		m_bNeedLocTimeSeries |= m_vbNeedLocTimeSeries[i];
+
+	//	sets time dependent flag
+		(*m_pvElemDisc)[i]->set_time_dependent(bTimeDep, locTimeSeries);
 	}
-
 	m_pLocTimeSeries = locTimeSeries;
+}
 
-	return m_bNeedLocTimeSeries;
+void DataEvaluator::set_time(const number time)
+{
+	// TODO: Remove explicit time in IElemDiscs. Discs can use
+	//		requests_local_time_series anyway if time is needed explicitly
+	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+		(*m_pvElemDisc)[i]->set_time(time);
+
+	// NOTE: constant data is not processed.
+
+	for(size_t i = 0; i < m_vPosData.size(); ++i)
+		m_vPosData[i]->set_time(time);
+
+	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
+		m_vDependentIPData[i]->set_time(time);
 }
 
 

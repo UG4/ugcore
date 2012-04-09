@@ -328,7 +328,7 @@ ass_rhs_elem(LocalVector& d)
 				{
 				// 	get neumann value
 					number val = 0.0;
-					vSegmentData[fct]->functor(val, bf.global_ip(), time());
+					vSegmentData[fct]->functor(val, bf.global_ip(), this->time());
 
 				// 	get associated node
 					const int co = bf.node_id();
@@ -369,7 +369,7 @@ ass_rhs_elem(LocalVector& d)
 				{
 				// 	get neumann value
 					MathVector<dim> val;
-					vSegmentData[fct]->functor(val, bf.global_ip(), time());
+					vSegmentData[fct]->functor(val, bf.global_ip(), this->time());
 
 				// 	get associated node
 					const int co = bf.node_id();

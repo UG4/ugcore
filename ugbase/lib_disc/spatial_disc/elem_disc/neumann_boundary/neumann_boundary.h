@@ -31,9 +31,6 @@ class FV1NeumannBoundary
 	///	Base class type
 		typedef FV1NeumannBoundary<TDomain> this_type;
 
-	///	explicitly forward function
-		using base_type::time;
-
 	public:
 	///	Domain type
 		typedef typename base_type::domain_type domain_type;

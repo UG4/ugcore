@@ -251,29 +251,42 @@ void IPData<TData,dim>::local_ips_changed(const size_t seriesID, const size_t ne
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
-void DependentIPData<TData,dim>::resize(const LocalIndices& ind,
-                                        const FunctionIndexMapping& map)
+void DependentIPData<TData,dim>::set_dof_sizes(const LocalIndices& ind,
+                                               const FunctionIndexMapping& map)
+{
+//	check size
+	UG_ASSERT(map.num_fct() == num_fct(), "Number function mismatch.");
+
+//	cache numFct and their numDoFs
+	m_vvNumDoFPerFct.resize(map.num_fct());
+	for(size_t fct = 0; fct < m_vvNumDoFPerFct.size(); ++fct)
+		m_vvNumDoFPerFct[fct] = ind.num_dof(map[fct]);
+
+	resize_deriv_array();
+}
+
+template <typename TData, int dim>
+void DependentIPData<TData,dim>::resize_deriv_array()
 {
 //	resize num fct
 	for(size_t s = 0; s < m_vvvvDeriv.size(); ++s)
+		resize_deriv_array(s);
+}
+
+template <typename TData, int dim>
+void DependentIPData<TData,dim>::resize_deriv_array(const size_t s)
+{
+//	resize ips
+	m_vvvvDeriv[s].resize(num_ip(s));
+
+	for(size_t ip = 0; ip < m_vvvvDeriv[s].size(); ++ip)
 	{
-	//	resize ips
-	// 	todo: we store at least one ip, so that we can get the infos on
-	//		  number of functions and number of dofs somewhere. Improve.
-		m_vvvvDeriv[s].resize(num_ip(s)+1);
+	//	resize num fct
+		m_vvvvDeriv[s][ip].resize(m_vvNumDoFPerFct.size());
 
-		for(size_t ip = 0; ip < m_vvvvDeriv[s].size(); ++ip)
-		{
-		//	number of functions
-			const size_t numFct = map.num_fct();
-
-		//	resize num fct
-			m_vvvvDeriv[s][ip].resize(numFct);
-
-		//	resize dofs
-			for(size_t fct = 0; fct < numFct; ++fct)
-				m_vvvvDeriv[s][ip][fct].resize(ind.num_dof(map[fct]));
-		}
+	//	resize dofs
+		for(size_t fct = 0; fct < m_vvNumDoFPerFct.size(); ++fct)
+			m_vvvvDeriv[s][ip][fct].resize(m_vvNumDoFPerFct[fct]);
 	}
 }
 
@@ -339,23 +352,8 @@ void DependentIPData<TData,dim>::local_ips_changed(const size_t seriesID, const 
 	UG_ASSERT(seriesID < m_vvvvDeriv.size(), "wrong series id.");
 
 //	resize only when more data is needed than actually allocated
-//	note, that always one ip per series is allocated
 	if(newNumIP >= m_vvvvDeriv[seriesID].size())
-	{
-	//	resize
-		m_vvvvDeriv[seriesID].resize(newNumIP);
-
-		for(size_t ip = 1; ip < m_vvvvDeriv[seriesID].size(); ++ip)
-		{
-		//	resize num fct
-			m_vvvvDeriv[seriesID][ip].resize(m_vvvvDeriv[seriesID][0].size());
-
-		//	resize dofs
-			for(size_t fct = 0; fct < m_vvvvDeriv[seriesID][0].size(); ++fct)
-				m_vvvvDeriv[seriesID][ip][fct].resize(m_vvvvDeriv[seriesID][0][fct].size());
-		}
-
-	}
+		resize_deriv_array(seriesID);
 
 //	call base class callback (if implementation given)
 	base_type::local_ips_changed(seriesID, newNumIP);

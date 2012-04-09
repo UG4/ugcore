@@ -194,7 +194,7 @@ void DataImport<TData,dim>::assemble_jacobian(LocalMatrix& J)
 
 	//	loop shapes of functions
 		for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
-			for(size_t sh2 = 0; sh2 < m_spDependentIPData->num_sh(m_seriesID, fct2); ++sh2)
+			for(size_t sh2 = 0; sh2 < m_spDependentIPData->num_sh(fct2); ++sh2)
 			{
 				J(fct1, sh1, fct2, sh2) -= LinDef[sh1]*Deriv[sh2];
 			}
@@ -215,7 +215,7 @@ void DataImport<TData,dim>::assemble_jacobian(LocalMatrix& J)
 
 	//	loop shapes of functions
 		for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
-			for(size_t sh2 = 0; sh2 < m_spDependentIPData->num_sh(m_seriesID, fct2); ++sh2)
+			for(size_t sh2 = 0; sh2 < m_spDependentIPData->num_sh(fct2); ++sh2)
 			{
 				J(fct1, sh1, fct2, sh2) += LinDef[sh1]*Deriv[sh2];
 			}
@@ -225,8 +225,12 @@ void DataImport<TData,dim>::assemble_jacobian(LocalMatrix& J)
 }
 
 template <typename TData, int dim>
-void DataImport<TData,dim>::resize(const LocalIndices& ind, const FunctionIndexMapping& map)
+void DataImport<TData,dim>::set_dof_sizes(const LocalIndices& ind,
+                                          const FunctionIndexMapping& map)
 {
+//	check size
+	UG_ASSERT(map.num_fct() == num_fct(), "Number function mismatch.");
+
 //	cache numFct and their numDoFs
 	m_vvNumDoFPerFct.resize(map.num_fct());
 	for(size_t fct = 0; fct < m_vvNumDoFPerFct.size(); ++fct)

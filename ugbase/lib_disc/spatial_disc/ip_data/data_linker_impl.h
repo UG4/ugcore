@@ -302,7 +302,7 @@ void ScaleAddLinker<TData,dim,TDataScale>::compute(bool bDeriv)
 						const size_t commonFct = input_common_fct(c, fct);
 
 					//	loop dofs
-						for(size_t sh = 0; sh < num_sh(s, fct); ++sh)
+						for(size_t sh = 0; sh < num_sh(fct); ++sh)
 						{
 							linker_traits<TData, TDataScale>::
 							mult_add(deriv(s, ip, commonFct, sh),
@@ -326,7 +326,7 @@ void ScaleAddLinker<TData,dim,TDataScale>::compute(bool bDeriv)
 						const size_t commonFct = scale_common_fct(c, fct);
 
 					//	loop dofs
-						for(size_t sh = 0; sh < num_sh(s, fct); ++sh)
+						for(size_t sh = 0; sh < num_sh(fct); ++sh)
 						{
 							linker_traits<TData, TDataScale>::
 							mult_add(deriv(s, ip, commonFct, sh),

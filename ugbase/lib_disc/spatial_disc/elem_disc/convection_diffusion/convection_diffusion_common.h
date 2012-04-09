@@ -225,24 +225,6 @@ set_mass(const char* fctName)
 #endif
 
 
-
-template<typename TDomain>
-bool ConvectionDiffusion<TDomain>::
-time_point_changed(number time)
-{
-//	set new time point at imports
-	m_imDiffusion.set_time(time);
-	m_imVelocity.set_time(time);
-	m_imSource.set_time(time);
-	m_imReactionRate.set_time(time);
-	m_imReaction.set_time(time);
-	m_imMassScale.set_time(time);
-	m_imMass.set_time(time);
-
-//	this disc does not need the old time solutions, thus, return false
-	return false;
-}
-
 template <typename TDomain>
 typename ConvectionDiffusion<TDomain>::NumberExport
 ConvectionDiffusion<TDomain>::

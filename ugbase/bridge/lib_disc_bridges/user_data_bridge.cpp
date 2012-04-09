@@ -168,7 +168,7 @@ class ElderDensityLinker
 			for(size_t s = 0; s < num_series(); ++s)
 				for(size_t ip = 0; ip < num_ip(s); ++ip)
 					for(size_t fct = 0; fct < num_fct(); ++fct)
-						for(size_t dof = 0; dof < num_sh(s, fct); ++dof)
+						for(size_t dof = 0; dof < num_sh(fct); ++dof)
 						{
 							deriv(s, ip, fct, dof) = 0.2e3 * input_deriv(0, s, ip, fct, dof);
 						}
@@ -286,7 +286,7 @@ class DarcyVelocityLinker
 						const size_t commonFct = input_common_fct(_MU_, fct);
 
 					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < num_sh(s, fct); ++sh)
+						for(size_t sh = 0; sh < num_sh(fct); ++sh)
 						{
 						//  DarcyVel_fct[sh] -= mu_fct_sh / mu * q
 							VecSubtract(deriv(s, ip, commonFct, sh), vDarcyVel[ip], -vDViscosity[sh] / vViscosity[ip]);
@@ -314,7 +314,7 @@ class DarcyVelocityLinker
 						VecScale(Kmug, Kmug, 1./vViscosity[ip]);
 
 					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < num_sh(s, fct); ++sh)
+						for(size_t sh = 0; sh < num_sh(fct); ++sh)
 						{
 						//  DarcyVel_fct[sh] += K/mu * (rho_fct_sh * g)
 							VecScaleAppend(deriv(s, ip, commonFct, sh),
@@ -340,7 +340,7 @@ class DarcyVelocityLinker
 						MatScale(Kmurho, vDensity[ip]/vViscosity[ip],vPermeability[ip]);
 
 					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < num_sh(s, fct); ++sh)
+						for(size_t sh = 0; sh < num_sh(fct); ++sh)
 						{
 							MathVector<dim> tmp;
 							MatVecMult(tmp, Kmurho, vDGravity[sh]);
@@ -367,7 +367,7 @@ class DarcyVelocityLinker
 						MatScale(Kmu, -1.0/vViscosity[ip],vPermeability[ip]);
 
 					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < num_sh(s, fct); ++sh)
+						for(size_t sh = 0; sh < num_sh(fct); ++sh)
 						{
 							MathVector<dim> tmp;
 							MatVecMult(tmp, Kmu, vDPressureGrad[sh]);
@@ -400,7 +400,7 @@ class DarcyVelocityLinker
 						VecScale(Vel, Vel, 1./vViscosity[ip]);
 
 					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < num_sh(s, fct); ++sh)
+						for(size_t sh = 0; sh < num_sh(fct); ++sh)
 						{
 							MathVector<dim> tmp;
 							MatVecMult(tmp, vDPermeability[sh], Vel);

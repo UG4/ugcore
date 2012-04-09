@@ -79,9 +79,10 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(false);
-		Eval.template prepare_elem_loop<TElem>(ind);
+		Eval.template prepare_elem_loop<TElem>();
 	}
 	UG_CATCH_THROW("AssembleStiffnessMatrix': Cannot prepare element loop.");
 
@@ -191,9 +192,10 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(false);
-		Eval.template prepare_elem_loop<TElem>(ind, 0.0, true);
+		Eval.template prepare_elem_loop<TElem>(0.0, true);
 	}
 	UG_CATCH_THROW("AssembleMassMatrix: Cannot prepare element loop.");
 
@@ -301,15 +303,16 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 //	create data evaluator
 	DataEvaluator Eval;
 	LocalVectorTimeSeries locTimeSeries; //time series of local vectors
-	bool bNeedLocTimeSeries = false;
 	LocalIndices ind; LocalVector locU;
 
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
-		bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
-		Eval.template prepare_elem_loop<TElem>(ind, time, true);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
+		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.set_time(time);
+		Eval.template prepare_elem_loop<TElem>(true);
 	}
 	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare element loop.");
 
@@ -332,7 +335,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	//	read local values of time series
-		if(bNeedLocTimeSeries)
+		if(Eval.time_series_needed())
 		{
 			locTimeSeries.read_values(vSol, ind);
 			locTimeSeries.read_times(vSol);
@@ -411,9 +414,10 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(false);
-		Eval.template prepare_elem_loop<TElem>(ind);
+		Eval.template prepare_elem_loop<TElem>();
 	}
 	UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot prepare element loop.");
 
@@ -527,14 +531,15 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 	LocalVectorTimeSeries locTimeSeries;
 	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
-	bool bNeedLocTimeSeries = false;
 
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
-		bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
-		Eval.template prepare_elem_loop<TElem>(ind, time, true);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
+		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.set_time(time);
+		Eval.template prepare_elem_loop<TElem>(true);
 	}
 	UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot prepare element loop.");
 
@@ -557,7 +562,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	//	read local values of time series
-		if(bNeedLocTimeSeries)
+		if(Eval.time_series_needed())
 		{
 			locTimeSeries.read_values(vSol, ind);
 			locTimeSeries.read_times(vSol);
@@ -677,9 +682,10 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(false);
-		Eval.template prepare_elem_loop<TElem>(ind);
+		Eval.template prepare_elem_loop<TElem>();
 	}
 	UG_CATCH_THROW("(stationary) AssembleDefect: Cannot prepare element loop.");
 
@@ -786,7 +792,6 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	current time
-	const number time = vSol->time(0);
 	LocalVectorTimeSeries locTimeSeries;
 
 // 	local indices and local algebra
@@ -795,9 +800,10 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
-		Eval.set_time_dependent(true, time, &locTimeSeries);
-		Eval.template prepare_elem_loop<TElem>(ind, time, true);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
+		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.template prepare_elem_loop<TElem>(true);
 	}
 	UG_CATCH_THROW("(instationary) AssembleDefect: Cannot prepare element loop.");
 
@@ -830,6 +836,8 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		{
 		//	get local solution at timepoint
 			LocalVector& locU = locTimeSeries.solution(t);
+			const number time = vSol->time(t);
+			Eval.set_time(time);
 
 		// 	prepare element
 			try
@@ -930,9 +938,10 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(false);
-		Eval.template prepare_elem_loop<TElem>(ind);
+		Eval.template prepare_elem_loop<TElem>();
 	}
 	UG_CATCH_THROW("(stationary) AssembleLinear: Cannot prepare element loop.");
 
@@ -1039,16 +1048,16 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	DataEvaluator Eval;
 
 //	get current time
-	const number time = vSol->time(0);
 	LocalVectorTimeSeries locTimeSeries;
 	LocalIndices ind; LocalVector locRhs, tmpLocRhs; LocalMatrix locA, tmpLocA;
 
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
-		Eval.set_time_dependent(true, time, &locTimeSeries);
-		Eval.template prepare_elem_loop<TElem>(ind, time, true);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
+		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.template prepare_elem_loop<TElem>(true);
 	}
 	UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element loop.");
 
@@ -1073,6 +1082,8 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 	//	read local values of time series
 		locTimeSeries.read_values(vSol, ind);
+		number time = vSol->time(0);
+		Eval.set_time(time);
 
 	//	reset element contribution
 		locA = 0.0; locRhs = 0.0;
@@ -1135,6 +1146,8 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		{
 		//	get local solution at time point
 			LocalVector& locU = locTimeSeries.solution(t);
+			number time = vSol->time(t);
+			Eval.set_time(time);
 
 		// 	prepare element
 			try
@@ -1239,9 +1252,10 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(false);
-		Eval.template prepare_elem_loop<TElem>(ind);
+		Eval.template prepare_elem_loop<TElem>();
 	}
 	UG_CATCH_THROW("AssembleRhs: Cannot prepare element loop.");
 
@@ -1335,15 +1349,16 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 //	create data evaluator
 	DataEvaluator Eval;
 	LocalVectorTimeSeries locTimeSeries;
-	bool bNeedLocTimeSeries = false;
 	LocalIndices ind; LocalVector locU;
 
 //	prepare for given elem discs
 	try
 	{
-		Eval.set_elem_discs(vElemDisc, dd->function_pattern(), bNonRegularGrid, true);
-		bNeedLocTimeSeries = Eval.set_time_dependent(true, time, &locTimeSeries);
-		Eval.template prepare_elem_loop<TElem>(ind, time, true);
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
+		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.set_time(time);
+		Eval.template prepare_elem_loop<TElem>(true);
 	}
 	UG_CATCH_THROW("(instationary) FinishTimestep: Cannot finish element loop.");
 
@@ -1366,7 +1381,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		GetLocalVector(locU, u);
 
 	//	read local values of time series
-		if(bNeedLocTimeSeries)
+		if(Eval.time_series_needed())
 		{
 			locTimeSeries.read_values(vSol, ind);
 			locTimeSeries.read_times(vSol);
