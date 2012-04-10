@@ -249,12 +249,6 @@ void HangingNodeRefinerBase::perform_refinement()
 	}
 
 //	check grid options.
-	if(!grid.option_is_enabled(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION))
-	{
-		LOG("WARNING in HangingNodeRefiner::refine(): grid option GRIDOPT_VERTEXCENTRIC_INTERCONNECTION auto-enabled." << endl);
-		grid.enable_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION);
-	}
-
 	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES))
 	{
 		LOG("WARNING in HangingNodeRefiner::refine(): grid option GRIDOPT_AUTOGENERATE_SIDES auto-enabled." << endl);

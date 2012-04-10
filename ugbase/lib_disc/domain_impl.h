@@ -19,7 +19,7 @@ namespace ug{
 template <typename TGrid, typename TSubsetHandler>
 IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
 	:
-	m_spGrid(new TGrid(GRIDOPT_NONE)),
+	m_spGrid(new TGrid(GRIDOPT_NONE)),	// Note: actual options are set by the derived class (dimension dependent).
 	m_spSH(new TSubsetHandler(*m_spGrid)),
 	m_isAdaptive(isAdaptive),
 	m_adaptionIsActive(false)

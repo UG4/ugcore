@@ -148,6 +148,10 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Volume* v
 void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, VertexBase* v, bool clearContainer)
 {
 	vEdgesOut.clear();
+
+//	if no edges are present, we can leave immediately
+	if(grid.num<EdgeBase>() == 0)
+		return;
 }
 
 ///	Collects all edges. (Returns the edge itself)
@@ -155,6 +159,10 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, b
 {
 	if(clearContainer)
 		vEdgesOut.clear();
+
+//	if no edges are present, we can leave immediately
+	if(grid.num<EdgeBase>() == 0)
+		return;
 
 	vEdgesOut.push_back(e);
 }
@@ -164,6 +172,10 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool 
 {
 	if(clearContainer)
 		vEdgesOut.clear();
+
+//	if no edges are present, we can leave immediately
+	if(grid.num<EdgeBase>() == 0)
+		return;
 
 //	second-best: use GetEdge in order to find the queried edges
 	uint numEdges = f->num_edges();
@@ -180,6 +192,10 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, boo
 {
 	if(clearContainer)
 		vEdgesOut.clear();
+
+//	if no edges are present, we can leave immediately
+	if(grid.num<EdgeBase>() == 0)
+		return;
 
 //	second best: use GetEdge in order to find the queried edges.
 	uint numEdges = v->num_edges();
@@ -202,6 +218,10 @@ void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, VertexBase* vrt
 	if(clearContainer)
 		vEdgesOut.clear();
 
+//	if no edges are present, we can leave immediately
+	if(grid.num<EdgeBase>() == 0)
+		return;
+
 	Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(vrt);
 	for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
 		iter != iterEnd; ++iter)
@@ -216,6 +236,10 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool cl
 	if(clearContainer)
 		vEdgesOut.clear();
 
+//	if no edges are present, we can leave immediately
+	if(grid.num<EdgeBase>() == 0)
+		return;
+
 	vEdgesOut.push_back(e);
 }
 
@@ -224,6 +248,10 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool clearC
 {
 	if(clearContainer)
 		vEdgesOut.clear();
+
+//	if no edges are present, we can leave immediately
+	if(grid.num<EdgeBase>() == 0)
+		return;
 
 //	best-option: FACEOPT_STORE_ASSOCIATED_EDGES
 	if(grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
@@ -255,6 +283,10 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clea
 {
 	if(clearContainer)
 		vEdgesOut.clear();
+
+//	if no edges are present, we can leave immediately
+	if(grid.num<EdgeBase>() == 0)
+		return;
 
 //	best option: VOLOPT_STORE_ASSOCIATED_EDGES
 	if(grid.option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
@@ -304,6 +336,10 @@ void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Face* f, bool clea
 	if(clearContainer)
 		vFacesOut.clear();
 
+//	if no faces are present, we can leave immediately
+	if(grid.num<Face>() == 0)
+		return;
+
 	if(f != NULL)
 		vFacesOut.push_back(f);
 }
@@ -313,6 +349,10 @@ void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool cl
 {
 	if(clearContainer)
 		vFacesOut.clear();
+
+//	if no faces are present, we can leave immediately
+	if(grid.num<Face>() == 0)
+		return;
 
 	// TODO:	If option VOLOPT_STORE_ASSOCIATED_FACES enabled, it might be
 	// 			more efficient to use associated_faces and sort them
@@ -334,6 +374,10 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, VertexBase* vrt, bo
 	if(clearContainer)
 		vFacesOut.clear();
 
+//	if no faces are present, we can leave immediately
+	if(grid.num<Face>() == 0)
+		return;
+
 	Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt);
 	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
 		iter != iterEnd; ++iter)
@@ -347,6 +391,10 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool c
 {
 	if(clearContainer)
 		vFacesOut.clear();
+
+//	if no faces are present, we can leave immediately
+	if(grid.num<Face>() == 0)
+		return;
 
 //	best option: EDGEOPT_STORE_ASSOCIATED_FACES
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
@@ -380,6 +428,10 @@ void CollectFaces(vector<Face*>& vFacesOut, Grid& grid, Face* e, bool clearConta
 	if(clearContainer)
 		vFacesOut.clear();
 
+//	if no faces are present, we can leave immediately
+	if(grid.num<Face>() == 0)
+		return;
+
 	vFacesOut.push_back(e);
 }
 
@@ -388,6 +440,10 @@ void CollectFaces(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool clearCon
 {
 	if(clearContainer)
 		vFacesOut.clear();
+
+//	if no faces are present, we can leave immediately
+	if(grid.num<Face>() == 0)
+		return;
 
 //	best option: VOLOPT_STORE_ASSOCIATED_FACES
 	if(grid.option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
@@ -452,6 +508,10 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, VertexBase* v
 	if(clearContainer)
 		vVolumesOut.clear();
 
+//	if no volumes are present, we can leave immediately
+	if(grid.num<Volume>() == 0)
+		return;
+
 	Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrt);
 	for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrt);
 		iter != iterEnd; ++iter)
@@ -467,6 +527,10 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, EdgeBase* e, 
 {
 	if(clearContainer)
 		vVolumesOut.clear();
+
+//	if no volumes are present, we can leave immediately
+	if(grid.num<Volume>() == 0)
+		return;
 
 //	best option: EDGEOPT_STORE_ASSOCIATED_VOLUMES
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
@@ -497,6 +561,10 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Face* f, bool
 {
 	if(clearContainer)
 		vVolumesOut.clear();
+
+//	if no volumes are present, we can leave immediately
+	if(grid.num<Volume>() == 0)
+		return;
 
 	if(!ignoreAssociatedVolumes)
 	{
@@ -549,6 +617,10 @@ void CollectVolumes(vector<Volume*>& vVolumesOut, Grid& grid, Volume* v, bool cl
 	if(clearContainer)
 		vVolumesOut.clear();
 
+//	if no volumes are present, we can leave immediately
+	if(grid.num<Volume>() == 0)
+		return;
+
 	vVolumesOut.push_back(v);
 }
 
@@ -557,6 +629,10 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, FaceDescripto
 {
 	if(clearContainer)
 		vVolumesOut.clear();
+
+//	if no volumes are present, we can leave immediately
+	if(grid.num<Volume>() == 0)
+		return;
 
 //	iterate through all volumes which are connected to the first vertex of fd.
 //	check for each if it contains f. If so, store it in the container.
