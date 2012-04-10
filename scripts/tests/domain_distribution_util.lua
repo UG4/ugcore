@@ -166,11 +166,12 @@ end
 -- Prints all internal parameters
 -- Specify a prefix, which is prepended to each line
 function ddu.PrintParameters(prefix)
-	print(prefix .. "numRefs    = " .. ddu.numRefs)
-	print(prefix .. "numPreRefs = " .. ddu.numPreRefs)
-	
-	print(prefix .. "distType   = " .. ddu.distributionType)
+	print(prefix .. "distType =                 " .. ddu.distributionType)
 	print(prefix .. "numPPN (numProcsPerNode) = " .. ddu.numProcsPerNode)
+
+	print(prefix .. "numPreRefs =               " .. ddu.numPreRefs)
+	print(prefix .. "numRefs =                  " .. ddu.numRefs)
+	
 	print(prefix .. "hRedistFirstLevel =        " .. ddu.hRedistFirstLevel)
 	print(prefix .. "hRedistNewProcsPerStep =   " .. ddu.hRedistNewProcsPerStep)
 	print(prefix .. "hRedistStepSize =          " .. ddu.hRedistStepSize)

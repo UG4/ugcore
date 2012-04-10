@@ -506,8 +506,9 @@ end
 --approxSpace:print_statistic() -- TMP
 
 if lsType == "feti" then
+	print("Calls of subproblem solvers (norms, #iter):")
 	solver:print_statistic_of_inner_solver(false) -- true: print only averages
-	print("Averages for subproblem solvers:")
+	print("Averages for subproblem solvers over processes:")
 	solver:print_statistic_of_inner_solver(true) -- true: print only averages
 	print("")
 	if verbosity >= 2 then
