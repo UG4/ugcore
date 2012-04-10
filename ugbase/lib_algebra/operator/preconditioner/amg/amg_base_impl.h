@@ -59,7 +59,7 @@ size_t GetMaxConnections(const TMatrix &A)
 	return m;
 }
 
-// returns the number of non-zeroes (!= number of connections)
+/// returns the number of non-zeroes (!= number of connections)
 template<typename TMatrix>
 size_t GetNNZs(const TMatrix &A)
 {
@@ -125,10 +125,7 @@ static void eh( MPI_Comm *comm, int *err, ... )
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//----------------
-//! creates MG Hierachy for with matrix_operator_type A and temporary vectors for higher levels
-//! @param A	matrix A.
+
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 {
@@ -870,7 +867,8 @@ template<typename TAlgebra>
 void AMGBase<TAlgebra>::update_positions()
 {
 	AMG_PROFILE_FUNC();
-	UG_ASSERT(m_pPositionProvider2d == NULL || m_pPositionProvider3d == NULL, "specify EITHER positions 2d or 3d");
+	UG_ASSERT(m_dbgDimension != 0 || m_pPositionProvider2d == NULL
+			|| m_pPositionProvider3d == NULL, "specify EITHER positions 2d or 3d");
 	if(m_pPositionProvider2d == NULL && m_pPositionProvider3d == NULL)
 		return;
 	if(m_pPositionProvider2d)

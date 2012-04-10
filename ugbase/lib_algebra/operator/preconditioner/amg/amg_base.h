@@ -50,20 +50,22 @@ class AMGBase:
 {
 public:
 
-//	Algebra type
+///	Algebra type
 	typedef TAlgebra algebra_type;
 
-//	Vector type
+///	Vector type
 	typedef typename TAlgebra::vector_type vector_type;
 
-//	Matrix type
+///	Matrix type
 	typedef typename TAlgebra::matrix_type matrix_type;
+///	Prolongation Matrix type
 	typedef typename TAlgebra::matrix_type prolongation_matrix_type;
 
 ///	Matrix Operator type
 	typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
 	typedef typename matrix_type::value_type value_type;
+
 
 	class LevelInformation
 	{
@@ -163,10 +165,14 @@ public:
 protected:
 	virtual const char* name() const = 0;
 
-//	Preprocess routine
-	virtual bool preprocess(matrix_operator_type& mat);
+	/**
+	 * creates MG Hierachy for with matrix_operator_type A and temporary vectors for higher levels
+	 * @param A matrix A.
+	 * @return true
+	 */
+	virtual bool preprocess(matrix_operator_type& A);
 
-//	Postprocess routine
+	///	nothing to do here
 	virtual bool postprocess() {return true;}
 
 //	Stepping routine
@@ -176,51 +182,206 @@ protected:
 		return get_correction(c, d);
 	}
 
+	/**
+	 * create direct solver on a specified level
+	 * @param level
+	 */
 	void create_direct_solver(size_t level);
+
+	/**
+	 * solves A[level]c = d with the direct solver,
+	 * then calculates d -= A[level]c
+	 * @param c output correction
+	 * @param d defect. will be updated
+	 * @param level
+	 * @return true
+	 */
 	bool solve_on_base(vector_type &c, vector_type &d, size_t level);
 
+	/**
+	 * create fine marks for F-Smoothing
+	 * @param level		current AMG level
+	 * @param amgnodes 	for getting amgnodes[i].is_fine()
+	 * @param N			number of elements in amgnodes with is_fine() == true.
+	 */
 	template<typename TAMGNodes>
 	void create_fine_marks(int level, TAMGNodes &amgnodes, size_t N);
 
+	/**
+	 * calculate so that parentIndex[level+1][newIndex[i]] = i
+	 * @param level		 current AMG level
+	 * @param newIndex	 new indices of the nodes. -1 means node is fine.
+	 * @param nrOfCoarse nr of Coarse nodes.
+	 */
 	void create_parent_index(int level, stdvector<int> newIndex, size_t nrOfCoarse);
 
+	/**
+	 * every coarse node c gets a unique new index newIndex[c]
+	 * calculate PnewIndices(r, newIndex[c]) = PoldIndex(r, c)
+	 *
+	 * @param PoldIndices			prolongation matrix with old indices
+	 * @param PnewIndices			prolongation matrix with new indices
+	 * @param N						overlap 0 size (size of master+slave+inner nodes)
+	 * @param amgnodes				amgnodes used for coarse/fine
+	 * @param newIndex				new indices are stored here
+	 * @param dEpsilonTruncation	connections in P with P(i,j) < dEpsilonTruction * max_k P(i,k) are dropped.
+	 */
 	template<typename TAMGNodes>
 	void create_new_indices(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices,
 				size_t N, TAMGNodes &amgnodes, stdvector<int> &newIndex, double dEpsilonTruncation);
 #ifndef UG_PARALLEL
+	/**
+	 * this function processes the prolongation in old indices and returns a prolongation with new indices,
+	 * computing the new indices and and everything associated with the new indices (fine marks, parent indices etc.)
+	 * in detail, this is
+	 * - create the new indices by counting used coarse nodes and creation of PnewIndices @sa create_new_indices
+	 * - create parent index (for debugging) @sa create_parent_index
+	 * - create the coarser level of positions (for debugging) @sa make_coarse_level
+	 * - create fine marks for f-smoothing @sa create_fine_marks
+	 *
+	 * @note this function is the serial version of @sa parallel_process_prolongation
+	 *
+	 * @param 	PoldIndices				used Prolongation matrix with old (fine grid) indices. in/out.
+	 * @param	PnewIndices				Prolongation matrix with new indices.
+	 * @param	dEpsilonTruncation		used to trucation the prolongation /sa create_new_indices
+	 * @param	level					the amg level
+	 * @param	amgnodes				coarse/fine ratings of the nodes
+	 * @param	nextLevelMasterLayout	the master layout on the next coarser level
+	 * @param	nextLevelSLaveLayout	the slave layout on the next coarser level
+	 */
 	template<typename TAMGNodes>
 	void serial_process_prolongation(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices, double dEpsilonTruncation, int level, TAMGNodes &amgnodes);
 #else
+
+	/**
+	 * this function processes the prolongation in old indices and returns a prolongation with new indices,
+	 * computing the new indices and and everything associated with the new indices (fine marks, parent indices etc.)
+	 * in detail, this is
+	 * - since we calculate the prolongation only in the master/inner nodes, we need to send this communication to the slave nodes (so we get additive AH=RAP again)
+	 * 	 @sa communicate_prolongation
+	 * - post set nodes which are interpolated from because of newly received prolongation rows @sa postset_coarse
+	 * - create a minimal layout for the next level: we start with the total overlap layout we have in ParallelNodes PN, which also includes some node which might have
+	 *   been added because of the sending of the prolongation rows, and then send a 'delete' to the master proc @sa create_minimal_layout_for_prolongation
+	 * - create the new indices by counting used coarse nodes and creation of PnewIndices @sa create_new_indices
+	 * - Replace Indices in the layout so we have our next level layouts with new indices @sa ReplaceIndicesInLayout
+	 * - create parent index (for debugging) @sa create_parent_index
+	 * - create the coarser level of positions (for debugging) @sa make_coarse_level
+	 * - create fine marks for f-smoothing @sa create_fine_marks
+	 *
+	 * \note this function is the parallel version of @sa serial_process_prolongation
+	 *
+	 * @param 	PoldIndices				used Prolongation matrix with old (fine grid) indices. in/out.
+	 * @param	PnewIndices				Prolongation matrix with new indices.
+	 * @param	dEpsilonTruncation		used to trucation the prolongation /sa create_new_indices
+	 * @param	level					the amg level
+	 * @param	amgnodes				coarse/fine ratings of the nodes
+	 * @param	nextLevelMasterLayout	the master layout on the next coarser level
+	 * @param	nextLevelSLaveLayout	the slave layout on the next coarser level
+	 */
 	template<typename TAMGNodes>
 	void parallel_process_prolongation(prolongation_matrix_type &PoldIndices, prolongation_matrix_type &PnewIndices, double dEpsilonTruncation, int level, TAMGNodes &amgnodes,
 			ParallelNodes &PN, bool bCreateNewNodes, IndexLayout &nextLevelMasterLayout, IndexLayout &nextLevelSlaveLayout);
 
+	/** since we calculate the prolongation only in the master/inner nodes, we need to send this communication to the slave nodes (so we get additive AH=RAP again)
+	 *
+	 * @param	PN				ParallelNodes. here we use master/slaveLayouts
+	 * @param 	PoldIndices		used Prolongation matrix with old (fine grid) indices. in/out.
+	 * @note this function can create new nodes in ParallelNodes. This is because for example a Slave node may be interpolated by a node which is in Overlap1.
+	 */
 	void communicate_prolongation(ParallelNodes &PN, prolongation_matrix_type &PoldIndices, bool bCreateNewNodes);
 
-	void create_minimal_layout_for_prolongation(ParallelNodes &PN, prolongation_matrix_type &P, IndexLayout &newMasterLayout, IndexLayout &newSlaveLayout);
-
+	/** post set nodes which are interpolated from because of newly received prolongation rows
+	 *
+	 * @param	PN				ParallelNodes. here we use slaveLayout
+	 * @param 	PoldIndices		used Prolongation matrix with old (fine grid) indices. in.
+	 * @param	amgnodes		struct to set fine/coarse.
+	 */
 	template<typename TAMGNodes>
 	void postset_coarse(ParallelNodes &PN, prolongation_matrix_type &PoldIndices, TAMGNodes &nodes);
+
+	/**
+	 * P is a matrix which has nodes from ParallelNodes PN. We want to get a minimal layout for P.
+	 * For this we first mark all slaves j for which there exist i with P(i, j) != 0.
+	 * Since the P is P : Coarse -> Fine, this means we mark all slave elements we use on this processor.
+	 * Then we create a slave layout out of it an communicate it to the master. This is necessary
+	 * since the master cannot know which nodes we use.
+	 *
+	 * @param PN				Parallel Nodes structure
+	 * @param P					used prolongation matrix
+	 * @param newMasterLayout	new master layout for P, condensed from PN.get_total_master_layout();
+	 * @param newSlaveLayout	new slave layout for P, condensed from PN.get_total_slave_layout();
+	 */
+	void create_minimal_layout_for_prolongation(ParallelNodes &PN, prolongation_matrix_type &P, IndexLayout &newMasterLayout, IndexLayout &newSlaveLayout);
+
 
 #endif
 
 #ifdef UG_PARALLEL
 public:
+
+	/**
+	 * since we can turn off cores, we need to collect the data from them
+	 * here we collect the data from vec into collectedVec.
+	 * @param vec			uncollected vec
+	 * @param collectedVec	collectedVec (result)
+	 * @param level			level we operate on
+	 * @param type			the type we want the result to be in (PST_ADDITIVE or PST_CONSISTENT)
+	 */
 	bool gather_vertical(vector_type &vec, vector_type &collectedVec, size_t level, ParallelStorageType type);
+
+	/**
+	 * in this function, we broadcast the data to cores we have shut off
+	 * i.e. we write the data to vec
+	 * @param vec			uncollected vec (result)
+	 * @param collectedVec	collectedVec
+	 * @param level			level we operate on
+	 * @param type			the type we want the result to be in (PST_ADDITIVE or PST_CONSISTENT)
+	 */
 	bool broadcast_vertical(vector_type &vec, vector_type &collectedVec, size_t level, ParallelStorageType type);
 #endif
 
 
 public:
+	/// debug output of interfaces written in ConnectionViewer-format
 	void write_interfaces();
-	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level, size_t exactLevel);
+
 	bool check2(const vector_type &const_c, const vector_type &const_d);
 	bool check_fsmoothing();
 
+	/**
+	 * handles agglomeration, and then calls
+	 * add_correction_and_update_defect2 with collected vectors
+	 * @param c			result: computed correction is added
+	 * @param d			defect, result: updated defect.
+	 * @param level		AMG level we operate on
+	 * @return			true
+	 */
 	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level=0);
+	/**
+	 * adds the correction dc to c and updates the defect d with d -= A dc.
+	 * uses the normal recursive AMG cycle for the coarse problem
+	 * actual AMG cycle.
+	 * @param c			result: computed correction is added
+	 * @param d			defect, result: updated defect.
+	 * @param A			matrix A to use
+	 * @return			true
+	 */
 	bool add_correction_and_update_defect2(vector_type &c, vector_type &d,  matrix_operator_type &A, size_t level=0);
+
+	/**
+	 * for the purposes: like a normal AMG cycle, except that it will try to solve
+	 * the coarse problem at exactLevel exactly by linear iteration
+	 * @param c				result: computed correction is added
+	 * @param d				defect, result: updated defect.
+	 * @param level			current level
+	 * @param exactLevel	level to solve problem exactly
+	 * @return				true
+	 */
+	bool add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level, size_t exactLevel);
+
 	bool get_correction(vector_type &c, const vector_type &d);
 
+	/// calculates vH[j] = v[m_parentIndex[level+1][j]];
 	bool injection(vector_type &vH, const vector_type &v, size_t level);
 /*
 	size_t get_nr_of_coarse(size_t level)
@@ -229,6 +390,7 @@ public:
 		return A[level+1]->length;
 	}
 */
+	/// returns the number of AMG levels
 	size_t get_used_levels() const { return m_usedLevels; }
 
 	bool check_level(vector_type &c, vector_type &d, matrix_type &A, size_t level,
@@ -292,12 +454,6 @@ public:
 		m_pPositionProvider3d = ppp3d;
 	}
 
-	void set_matrix_write_path(const char *path)
-	{
-		m_writeMatrixPath = path;
-		m_writeMatrices = true;
-	}
-
 	void set_positions(const MathVector<2> *pos, size_t size)
 	{
 		m_dbgPositions.resize(size);
@@ -317,8 +473,16 @@ public:
 		m_dbgDimension = 3;
 	}
 
+	void set_matrix_write_path(const char *path)
+	{
+		m_writeMatrixPath = path;
+		m_writeMatrices = true;
+	}
+
+
 	virtual void tostring() const;
 
+	/// if true, do not re-create AMG we preprocess is called
 	void set_one_init(bool b)
 	{
 		m_bOneInit = b;
@@ -336,18 +500,19 @@ public:
 		m_iYCycle = maxIterations;
 	}
 
-	//! \return c_A = total nnz of all matrices divided by nnz of matrix A
+	/// @return c_A = total nnz of all matrices divided by nnz of matrix A
 	double get_operator_complexity() const { return m_dOperatorComplexity; }
 
-	//! \return c_G = total number of nodes of all levels divided by number of nodes on level 0
+	/// @return c_G = total number of nodes of all levels divided by number of nodes on level 0
 	double get_grid_complexity() const { return m_dGridComplexity; }
 
-	//! \return the time spent on the whole setup in ms
+	/// @return the time spent on the whole setup in ms
 	double get_timing_whole_setup_ms() const { return m_dTimingWholeSetupMS; }
 
-	//! \return the time spent in the coarse solver setup in ms
+	/// @return the time spent in the coarse solver setup in ms
 	double get_timing_coarse_solver_setup_ms() const { return m_dTimingCoarseSolverSetupMS; }
 
+	/// print level informations
 	void print_level_information() const
 	{
 		std::cout.setf(std::ios::fixed);
@@ -358,14 +523,12 @@ public:
 
 	}
 
-	const LevelInformation *get_level_information(size_t i) const
+	const LevelInformation *get_level_information(size_t level) const
 	{
-		if(i < levels.size())
-			return &levels[i]->m_levelInformation;
+		if(level < levels.size())
+			return &levels[level]->m_levelInformation;
 		else return NULL;
 	}
-
-
 
 protected:
 	void write_debug_matrices(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
@@ -377,13 +540,28 @@ protected:
 	template<typename TNodeType>
 	void write_debug_matrix_markers(size_t level, const TNodeType &nodes);
 
+	/// init f-smoothing (get consistent matrix)
 	void init_fsmoothing();
+	/// f-smoothing
+	bool f_smoothing(vector_type &corr, vector_type &d, size_t level);
+
+
+	/**
+	 * writes the vector d in a connection-viewer-vec format
+	 *
+	 * @param 	filename
+	 * @param	d
+	 * @param	level
+	 */
 	bool writevec(std::string filename, const vector_type &d, size_t level, const vector_type *solution=NULL);
+
+	/**
+	 * reads in the positions from the position provider
+	 * @sa set_position_provider, set_positions
+	 */
 	void update_positions();
 
-	bool create_level_vectors(size_t level);
 
-	bool f_smoothing(vector_type &corr, vector_type &d, size_t level);
 
 // pure virtual functions
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
@@ -412,7 +590,7 @@ protected:
 	bool 	m_bUseCollectedSolver;
 
 	bool	m_bFSmoothing;
-	bool	m_bOneInit;
+	bool	m_bOneInit;							///< if true, do not re-create AMG we preprocess is called
 
 	size_t 	m_iNrOfPreiterationsCheck;
 
@@ -476,7 +654,7 @@ protected:
 		vector_type cH;						///< temporary Vector for storing rH
 		vector_type dH; 					///< temporary Vector for storing eH
 
-		stdvector<bool> is_fine;
+		stdvector<bool> is_fine;			///< fine marks for f-smoothing
 
 		prolongation_matrix_type R; 	///< R Restriction Matrices
 		prolongation_matrix_type P; 	///< P Prolongation Matrices
@@ -493,7 +671,7 @@ protected:
 		stdvector< typename block_traits<typename matrix_type::value_type>::inverse_type > m_diagInv;
 
 		// agglomeration
-		bool bHasBeenMerged;
+		bool bHasBeenMerged;				///< if true, this core is either father or child of a collected group
 		// level 0 - m_agglomerateLevel
 		pcl::ProcessCommunicator *pProcessCommunicator;
 

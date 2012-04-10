@@ -240,7 +240,7 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
 //---------------------------------------------------------------------------
 /**
  * creates overlap 2 matrix A_OL2,
- * \sa GnerateOverlap
+ * \sa GenerateOverlap
  */
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::create_OL2_matrix()

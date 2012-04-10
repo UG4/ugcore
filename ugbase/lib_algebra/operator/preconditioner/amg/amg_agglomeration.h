@@ -7,6 +7,7 @@ namespace ug
 {
 
 #ifdef UG_PARALLEL
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::gather_vertical(vector_type &vec, vector_type &collectedVec, size_t level,
 		ParallelStorageType type)
@@ -61,6 +62,7 @@ bool AMGBase<TAlgebra>::gather_vertical(vector_type &vec, vector_type &collected
 	return true;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::broadcast_vertical(vector_type &vec, vector_type &collectedVec, size_t level,
 		ParallelStorageType type)
@@ -110,18 +112,21 @@ bool AMGBase<TAlgebra>::broadcast_vertical(vector_type &vec, vector_type &collec
 	return true;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::isMergingSlave(size_t level)
 {
 	return levels[level]->bHasBeenMerged && m_agglomerateLevel == level;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::isMergingMaster(size_t level)
 {
 	return levels[level]->bHasBeenMerged && m_agglomerateLevel != level;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::isNotMerging(size_t level)
 {
@@ -129,7 +134,7 @@ bool AMGBase<TAlgebra>::isNotMerging(size_t level)
 }
 #endif
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_type &d, size_t level)
 {

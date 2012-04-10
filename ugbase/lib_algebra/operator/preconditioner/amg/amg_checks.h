@@ -93,13 +93,6 @@ void AMGBase<TAlgebra>::write_interfaces()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // writevec
 //--------------------------------
-/**
- * writes the vector d in a connection-viewer-vec format
- *
- * \param 	filename
- * \param	d
- * \param	level
- */
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_d, size_t level, const vector_type *solution)
 {
