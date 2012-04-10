@@ -24,8 +24,6 @@ namespace ug
  * In this case however, the refinement is not regular - faces are
  * refined in a way to avoid hanging nodes.
  *
- * WARNING: Volume geometries are not yet supported.
- *
  * Pass a grid and a selector (which is working on the grid). The
  * provided aInt is required by the algorithm to store temporary
  * values. You have to pass it to the algorithm to allow

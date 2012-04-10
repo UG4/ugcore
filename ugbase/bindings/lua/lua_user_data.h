@@ -175,7 +175,11 @@ class LuaUserData
 		}
 
 	///	virtual destructor
-		virtual ~LuaUserData()	{}
+		virtual ~LuaUserData()
+		{
+		//	free reference to callback
+			luaL_unref(m_L, LUA_REGISTYINDEX, m_callbackRef);
+		}
 
 	///	evaluates the data at a given point and time
 		void operator() (TData& D, const MathVector<dim>& x, number time = 0.0)
@@ -275,7 +279,11 @@ class LuaBoundaryData
 		}
 
 	///	virtual destructor
-		virtual ~LuaBoundaryData()	{}
+		virtual ~LuaBoundaryData()
+		{
+		//	free reference to callback
+			luaL_unref(m_L, LUA_REGISTYINDEX, m_callbackRef);
+		}
 
 	///	evaluates the data at a given point and time
 		bool operator() (TData& D, const MathVector<dim>& x, number time = 0.0)
@@ -383,6 +391,36 @@ class LuaUserFunction
 			m_cbDerivName.clear();
 		}
 
+	///	destructor frees the reference
+		virtual ~LuaUserFunction()
+		{
+		//	free reference to callback
+			free_callback_ref();
+
+		//	free references to derivate callbacks
+			for(size_t i = 0; i < m_numArgs; ++i){
+				free_deriv_callback_ref(i);
+			}
+		}
+
+	///	frees the callback-reference, if a callback was set.
+		void free_callback_ref()
+		{
+			if(m_cbValueRef != LUA_NOREF){
+				luaL_unref(m_L, LUA_REGISTYINDEX, m_cbValueRef);
+				m_cbValueRef = LUA_NOREF;
+			}
+		}
+
+	///	frees callback-references for derivate callbacks
+		void free_deriv_callback_ref(size_t arg)
+		{
+			if(m_cbDerivName[arg] != LUA_NOREF){
+				luaL_unref(m_L, LUA_REGISTYINDEX, m_cbDerivName[arg]);
+				m_cbDerivName[arg] = LUA_NOREF;
+			}
+		}
+
 	///	sets the Lua function used to compute the data
 	/**
 	 * This function sets the lua callback. The name of the function is
@@ -402,6 +440,9 @@ class LuaUserFunction
 				UG_THROW_FATAL("LuaUserFunction::set_lua_value_callback(...):"
 						"Specified callback does not exist: " << m_cbValueName);
 			}
+
+		//	if a callback was already set, we have to free the old one
+			free_callback_ref();
 
 		//	store reference to lua function
 			m_cbValueRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
@@ -426,6 +467,9 @@ class LuaUserFunction
 
 		//	store name (string) of callback
 			m_cbDerivName[arg] = luaCallback;
+
+		//	free old reference
+			free_deriv_callback_ref(arg);
 
 		//	obtain a reference
 			lua_getglobal(m_L, m_cbDerivName[arg]);
