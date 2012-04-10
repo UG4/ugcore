@@ -2,7 +2,7 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y10 m12 d10
 
-/**	\page pageLDGeomObjBasedDiscs libDiscretization - Geometric Object Based Discretizations
+/** \page pageLDGeomObjBasedDiscs Geometric Object Based Discretizations
 
 The interfaces presented in \ref pageLDCategorization "Categorization of Problems" 
 separate nicely the 
@@ -13,8 +13,8 @@ is presented. It will lead to very flexibel and reusable implementations of smal
 and commonly used parts of problems. These parts can be combined to form a 
 major problem.
 
-	- \ref secGeomObjBasedDiscsGeneralIdea "General Idea"
-	- \ref secElemDisc "Element Discretization"
+- \ref secGeomObjBasedDiscsGeneralIdea "General Idea"
+- \ref secElemDisc "Element Discretization"
 
 <br>
 

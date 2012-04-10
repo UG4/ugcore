@@ -2,17 +2,17 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y11 m01 d11
 
-/**	\page pageLDImportExport libDiscretization - Data Import / Data Export
+/** \page pageLDImportExport Data Import / Data Export
 
 This page gives an introduction to the idea of the import/export/linker idea
 used in ug to couple several discretizations.
 
-	- \ref secPreliminaries "Preliminaries"
-	- \ref secImport "Import"
-	- \ref secComputationJacobian "Computation of Jacobian"
-	- \ref secIPData "IP Data"
-	- \ref secExport "Export"
-	- \ref secLinker "Linker"
+- \ref secPreliminaries "Preliminaries"
+- \ref secImport "Import"
+- \ref secComputationJacobian "Computation of Jacobian"
+- \ref secIPData "IP Data"
+- \ref secExport "Export"
+- \ref secLinker "Linker"
 	
 <br>
 

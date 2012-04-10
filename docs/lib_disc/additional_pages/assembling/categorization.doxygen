@@ -2,18 +2,18 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y10 m12 d10
 
-/**	\page pageLDCategorization libDiscretization - Categorization of Problems
+/** \page pageLDCategorization Categorization of Problems
 
 In order to discretize a problem as presented in \ref secGeneralProblemDescribtion
 the different problems can be categorized into several classes. All classes of
 problems can be implemented in a general framework.
 
-	- \ref secDomainDiscretization "Domain Discretizaion"
-	- \ref secStationaryLinearDiscretization "Linear Stationary Problems"
-	- \ref secStationaryNonLinearDiscretization "Non-Linear Stationary Problems"
-	- \ref secTimeDiscretization "Time Discretization"
-	- \ref secTimeDependentLinearDiscretization "Time-Dependent Linear Problems"
-	- \ref secTimeDependentNonLinearDiscretization "Time-Dependent Non-Linear Problems"
+- \ref secDomainDiscretization "Domain Discretizaion"
+- \ref secStationaryLinearDiscretization "Linear Stationary Problems"
+- \ref secStationaryNonLinearDiscretization "Non-Linear Stationary Problems"
+- \ref secTimeDiscretization "Time Discretization"
+- \ref secTimeDependentLinearDiscretization "Time-Dependent Linear Problems"
+- \ref secTimeDependentNonLinearDiscretization "Time-Dependent Non-Linear Problems"
 
 <br>
 

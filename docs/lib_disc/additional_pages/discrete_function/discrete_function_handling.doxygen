@@ -2,17 +2,17 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y16 m12 d10
 
-/**	\page pageLDDiscreteFunctionHandling libDiscretization - Function Handling
+/** \page pageLDDiscreteFunctionHandling Function Handling
 
 For Discretizations, the discrete functions (sometimes also called 
 "grid functions", since they "live" on the grid) have to be specified. This is 
 done by the use of a Function Pattern.
 
-	- \ref secFunctionPattern "Function Pattern"
-	- \ref secFunctionGroup "Function Group"
-	- \ref secUnionFunctionGroup "Unions of Function Groups"
-	- \ref secFunctionIndexMapping "Function Index Mapping"
-	- \ref secFunctionGroupExample "Function Group Example"
+- \ref secFunctionPattern "Function Pattern"
+- \ref secFunctionGroup "Function Group"
+- \ref secUnionFunctionGroup "Unions of Function Groups"
+- \ref secFunctionIndexMapping "Function Index Mapping"
+- \ref secFunctionGroupExample "Function Group Example"
 <br>
 
 <hr>

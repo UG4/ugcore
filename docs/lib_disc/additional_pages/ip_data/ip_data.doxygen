@@ -2,21 +2,21 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y16 m12 d10
 
-/**	\page pageLDIPData libDiscretization - IP Data
+/** \page pageLDIPData IP Data
 
 An IElemDisc object can assemble the local stiffness/mass matrix and/or the local
 defect/rhs. In order to accomplish this task user defined data is often needed
 for several integration points on the element. On this page, we describe the
 idea of the IPData import, that is used in ug. 
 
-	- \ref secDataImport "Data Import"
-	- \ref secIPData "IPData"
-	- \ref secDataExport "Data Export"
-	- \ref secEvaluationOrder "Evaluation Order"
+- \ref secDataImport "Data Import"
+- \ref secIPData "IPData"
+- \ref secDataExport "Data Export"
+- \ref secEvaluationOrder "Evaluation Order"
 	
 While this page is concentrated on the technical usage, a more detailed and 
 mathematical introduction to the import/export strategy can be found on
-\ref pageLDImportExport "Import/Export Concept". 
+\subpage pageLDImportExport "Import/Export Concept". 
 <br>
 
 <hr>

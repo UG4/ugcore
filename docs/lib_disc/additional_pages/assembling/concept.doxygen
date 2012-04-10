@@ -2,27 +2,27 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y10 m12 d10
 
-/**	\page pageLDAssemblingConcept libDiscretization - Assembling Concept
+/** \page pageLDAssemblingConcept Assembling Concept
 
 libDiscretization provides two interface types to facilitate the implementation
 and reusability of discretization. These concepts are described in the following.
 This is done in three steps.
 
 First, a general describtion of the PDE problems is given. 
-	- \ref secGeneralProblemDescribtion "General Problem Description"
+- \ref secGeneralProblemDescribtion "General Problem Description"
 
 Then, a categorization of the different problems is presented together 
 with the needs of the implementation.
 These needs give rise to a first Interface class. 
 
-	- \ref pageLDCategorization "Categorization of Problems"
-	- \ref pageLDAssembleInterface "Assemble Interfaces"
+- \subpage pageLDCategorization "Categorization of Problems"
+- \subpage pageLDAssembleInterface "Assemble Interfaces"
 
 In a third step an even finer splitting of the problem is described. This
 splitting suggests a second interface class. One implementation of the first
 Interface class will use this finer grained splitting.
 
-	- \ref pageLDGeomObjBasedDiscs "Geometric Object Based Discretizations"
+- \subpage pageLDGeomObjBasedDiscs "Geometric Object Based Discretizations"
 
 <br>
 
