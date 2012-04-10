@@ -497,6 +497,14 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 		reg.add_class_to_group(name, string("IPData").append(type), dimTag);
 	}
 
+//	IPCondData"Type"
+	{
+		typedef IPData<TData, dim, bool> T;
+		string name = string("IPCondData").append(type).append(dimSuffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, string("IPCondData").append(type), dimTag);
+	}
+
 //	User"Type"
 	{
 		typedef boost::function<void (TData& res, const MathVector<dim>& x,number time)> T;
