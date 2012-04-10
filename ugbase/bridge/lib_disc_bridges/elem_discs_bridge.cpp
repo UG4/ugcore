@@ -66,16 +66,14 @@ void Register__Domain(Registry& reg, string grp)
 
 //	Neumann Boundary
 	{
-		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
-		typedef boost::function<void (MathVector<dim>& value, const MathVector<dim>& x, number time)> VectorFunctor;
 		typedef FV1NeumannBoundary<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("FV1NeumannBoundary").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*)>("Function(s)")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >, const char*, const char*)>(&T::add))
-			.add_method("add", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add))
-			.add_method("add", static_cast<void (T::*)(VectorFunctor&, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim, bool> >, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "FV1NeumannBoundary", dimTag);
 	}

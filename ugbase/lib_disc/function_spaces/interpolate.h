@@ -18,9 +18,9 @@ namespace ug{
 
 /// interpolates a function on an element
 template <typename TElem, typename TGridFunction>
-bool InterpolateFunctionOnElem(
-	boost::function<void (number& res,const MathVector<TGridFunction::domain_type::dim>& x, number time)> InterpolFunction,
-	TGridFunction& u, size_t fct, int si, number time)
+void InterpolateFunctionOnElem(
+		IPData<number, TGridFunction::domain_type::dim>& InterpolFunction,
+		TGridFunction& u, size_t fct, int si, number time)
 {
 //	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -39,7 +39,7 @@ bool InterpolateFunctionOnElem(
 	iter = u.template begin<TElem>(si);
 
 //	check if something to do:
-	if(iter == iterEnd) return true;
+	if(iter == iterEnd) return;
 
 //	id of shape functions used
 	LFEID id = u.local_finite_element_id(fct);
@@ -55,11 +55,8 @@ bool InterpolateFunctionOnElem(
 	std::vector<MathVector<dim> > loc_pos(nsh);
 	for(size_t i = 0; i < nsh; ++i)
 		if(!trialSpace.position(i, loc_pos[i]))
-		{
-			UG_LOG("ERROR in 'InterpolateFunctionOnElem': Cannot find meaningful"
-					" local positions of dofs.\n");
-			return false;
-		}
+			UG_THROW_FATAL("InterpolateFunctionOnElem: Cannot find meaningful"
+					" local positions of dofs.");
 
 //	create a reference mapping
 	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
@@ -83,11 +80,8 @@ bool InterpolateFunctionOnElem(
 
 	//	check multi indices
 		if(ind.size() != nsh)
-		{
-			UG_LOG("ERROR in 'InterpolateFunctionOnElem': Number of shapes is "
-					<<nsh<<", but got "<<ind.size()<<" multi indices.\n");
-			return false;
-		}
+			UG_THROW_FATAL("InterpolateFunctionOnElem: Number of shapes is "
+					<<nsh<<", but got "<<ind.size()<<" multi indices.");
 
 	// 	loop all dofs
 		for(size_t i = 0; i < nsh; ++i)
@@ -106,9 +100,6 @@ bool InterpolateFunctionOnElem(
 			BlockRef(u[ind[i][0]], ind[i][1]) = val;
 		}
 	}
-
-//	we're done
-	return true;
 }
 
 template <int dim, typename TGridFunction>
@@ -117,15 +108,11 @@ struct InterpolationLoopHelp
 
 template <typename TGridFunction>
 struct InterpolationLoopHelp<3, TGridFunction>{
-static number invoke(	boost::function<void (
-									number& res,
-									const MathVector<TGridFunction::domain_type::dim>& x,
-									number time)>
-									InterpolFunction,
-								TGridFunction& u,
-								size_t fct,
-								number time,
-								const SubsetGroup& ssGrp)
+static void invoke(IPData<number, TGridFunction::domain_type::dim>& InterpolFunction,
+                   TGridFunction& u,
+                   size_t fct,
+                   number time,
+                   const SubsetGroup& ssGrp)
 {
 //	loop subsets
 	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
@@ -138,58 +125,47 @@ static number invoke(	boost::function<void (
 
 
 	//	switch dimensions
-		bool bRes = true;
+		try
+		{
 		const int dim = ssGrp.dim(i);
 		switch(dim)
 		{
 		case DIM_SUBSET_EMPTY_GRID: break;
 		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
-			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
 		case 2:
-			bRes &= InterpolateFunctionOnElem<Triangle, TGridFunction>(InterpolFunction, u, fct, si, time);
-			bRes &= InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Triangle, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
 		case 3:
-			bRes &= InterpolateFunctionOnElem<Tetrahedron, TGridFunction>(InterpolFunction, u, fct, si, time);
-			bRes &= InterpolateFunctionOnElem<Hexahedron, TGridFunction>(InterpolFunction, u, fct, si, time);
-			bRes &= InterpolateFunctionOnElem<Prism, TGridFunction>(InterpolFunction, u, fct, si, time);
-			bRes &= InterpolateFunctionOnElem<Pyramid, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Tetrahedron, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Hexahedron, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Prism, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Pyramid, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_LOG("InterpolateFunction: Dimension " <<dim<<
-		                " not possible for world dim "<<3<<".\n"); return false;
+		default: UG_THROW_FATAL("InterpolateFunction: Dimension " <<dim<<
+		                " not possible for world dim "<<3<<".");
 		}
-
-	//	check success
-		if(!bRes)
-		{
-			UG_LOG("ERROR in InterpolateFunction: Cannot interpolate on elements.\n");
-			return false;
 		}
+		UG_CATCH_THROW("InterpolateFunction: Cannot interpolate on elements.");
 	}
 
 //	adjust parallel storage state
 #ifdef UG_PARALLEL
 	u.set_storage_type(PST_CONSISTENT);
 #endif
-
-//	we're done
-	return true;
 }
 };
 
 template <typename TGridFunction>
 struct InterpolationLoopHelp<2, TGridFunction>{
-static number invoke(	boost::function<void (
-									number& res,
-									const MathVector<TGridFunction::domain_type::dim>& x,
-									number time)>
-									InterpolFunction,
-								TGridFunction& u,
-								size_t fct,
-								number time,
-								const SubsetGroup& ssGrp)
+static void invoke(IPData<number, TGridFunction::domain_type::dim>& InterpolFunction,
+                   TGridFunction& u,
+                   size_t fct,
+                   number time,
+                   const SubsetGroup& ssGrp)
 {
 //	loop subsets
 	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
@@ -202,52 +178,41 @@ static number invoke(	boost::function<void (
 
 
 	//	switch dimensions
-		bool bRes = true;
+		try
+		{
 		const int dim = ssGrp.dim(i);
 		switch(dim)
 		{
 		case DIM_SUBSET_EMPTY_GRID: break;
 		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
-			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
 		case 2:
-			bRes &= InterpolateFunctionOnElem<Triangle, TGridFunction>(InterpolFunction, u, fct, si, time);
-			bRes &= InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Triangle, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_LOG("InterpolateFunction: Dimension " << dim <<
-		                " not possible for world dim "<<2<<".\n"); return false;
+		default: UG_THROW_FATAL("InterpolateFunction: Dimension " << dim <<
+		                        " not possible for world dim "<<2<<".");
 		}
-
-	//	check success
-		if(!bRes)
-		{
-			UG_LOG("ERROR in InterpolateFunction: Cannot interpolate on elements.\n");
-			return false;
 		}
+		UG_CATCH_THROW("InterpolateFunction: Cannot interpolate on elements.");
 	}
 
 //	adjust parallel storage state
 #ifdef UG_PARALLEL
 	u.set_storage_type(PST_CONSISTENT);
 #endif
-
-//	we're done
-	return true;
 }
 };
 
 template <typename TGridFunction>
 struct InterpolationLoopHelp<1, TGridFunction>{
-static number invoke(	boost::function<void (
-									number& res,
-									const MathVector<TGridFunction::domain_type::dim>& x,
-									number time)>
-									InterpolFunction,
-								TGridFunction& u,
-								size_t fct,
-								number time,
-								const SubsetGroup& ssGrp)
+static void invoke(	IPData<number, TGridFunction::domain_type::dim>& InterpolFunction,
+                   	TGridFunction& u,
+                   	size_t fct,
+                   	number time,
+                   	const SubsetGroup& ssGrp)
 {
 //	loop subsets
 	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
@@ -260,34 +225,27 @@ static number invoke(	boost::function<void (
 
 
 	//	switch dimensions
-		bool bRes = true;
+		try
+		{
 		const int dim = ssGrp.dim(i);
 		switch(dim)
 		{
 		case DIM_SUBSET_EMPTY_GRID: break;
 		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
-			bRes &= InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
+			InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_LOG("InterpolateFunction: Dimension " <<dim<<
-		                " not possible for world dim "<<1<<".\n"); return false;
+		default: UG_THROW_FATAL("InterpolateFunction: Dimension " <<dim<<
+		                        " not possible for world dim "<<1<<".");
 		}
-
-	//	check success
-		if(!bRes)
-		{
-			UG_LOG("ERROR in InterpolateFunction: Cannot interpolate on elements.\n");
-			return false;
 		}
+		UG_CATCH_THROW("InterpolateFunction: Cannot interpolate on elements.");
 	}
 
 //	adjust parallel storage state
 #ifdef UG_PARALLEL
 	u.set_storage_type(PST_CONSISTENT);
 #endif
-
-//	we're done
-	return true;
 }
 };
 
@@ -304,20 +262,19 @@ static number invoke(	boost::function<void (
  * \param[in]		subsets		subsets, where to interpolate
  */
 template <typename TGridFunction>
-bool InterpolateFunction(
-		const boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)>& InterpolFunction,
-		TGridFunction& u, const char* name, number time, const char* subsets)
+void InterpolateFunction(IPData<number, TGridFunction::domain_type::dim>& InterpolFunction,
+                         TGridFunction& u, const char* name, number time, const char* subsets)
 {
 //	get function id of name
 	const size_t fct = u.fct_id_by_name(name);
 
 //	check that function found
 	if(fct == (size_t)-1)
-		UG_THROW_FATAL("ERROR in InterpolateFunction: Name of function not found.");
+		UG_THROW_FATAL("InterpolateFunction: Name of function not found.");
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW_FATAL("ERROR in InterpolateFunction: Function space does not contain"
+		UG_THROW_FATAL("InterpolateFunction: Function space does not contain"
 						" a function with index " << fct);
 
 //	create subset group
@@ -331,18 +288,17 @@ bool InterpolateFunction(
 
 
 //	forward
-	return InterpolationLoopHelp<TGridFunction::dim, TGridFunction>::
+	InterpolationLoopHelp<TGridFunction::dim, TGridFunction>::
 								invoke(InterpolFunction, u, fct, time, ssGrp);
 }
 
 /// interpolates a function on the whole domain
 template <typename TGridFunction>
-bool InterpolateFunction(
-		const boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)>& InterpolFunction,
-		TGridFunction& u, const char* name, number time)
+void InterpolateFunction(IPData<number, TGridFunction::domain_type::dim>& InterpolFunction,
+                         TGridFunction& u, const char* name, number time)
 {
 //	forward
-	return InterpolateFunction(InterpolFunction, u, name, time, NULL);
+	InterpolateFunction(InterpolFunction, u, name, time, NULL);
 }
 
 
@@ -353,9 +309,8 @@ bool InterpolateFunction(
 
 /// interpolates a function on vertices
 template <typename TGridFunction>
-bool InterpolateFunctionOnVertices(
-		boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)> InterpolFunction,
-		TGridFunction& u, size_t fct, int si, number time)
+void InterpolateFunctionOnVertices(IPData<number, TGridFunction::domain_type::dim>& InterpolFunction,
+                                   TGridFunction& u, size_t fct, int si, number time)
 {
 //	domain type and position_type
 	typedef typename TGridFunction::domain_type domain_type;
@@ -381,7 +336,7 @@ bool InterpolateFunctionOnVertices(
 
 	//	value at position
 		number val;
-		InterpolFunction(val, glob_pos, time);
+		(*InterpolFunction)(val, glob_pos, time);
 
 	//	get multiindices of element
 		typename TGridFunction::multi_index_vector_type ind;
@@ -394,9 +349,6 @@ bool InterpolateFunctionOnVertices(
 			BlockRef(u[ind[i][0]], ind[i][1]) = val;
 		}
 	}
-
-//	we're done
-	return true;
 }
 
 
@@ -413,9 +365,8 @@ bool InterpolateFunctionOnVertices(
  * \param[in]		subsets		subsets, where to interpolate
  */
 template <typename TGridFunction>
-bool InterpolateFunctionOnVertices(
-		const boost::function<void (number& res, const MathVector<TGridFunction::domain_type::dim>& x, number time)>& InterpolFunction,
-		TGridFunction& u, const char* name, number time, const char* subsets)
+void InterpolateFunctionOnVertices(IPData<number, TGridFunction::domain_type::dim>& InterpolFunction,
+                                   TGridFunction& u, const char* name, number time, const char* subsets)
 {
 //	get Function Pattern
 	const typename TGridFunction::approximation_space_type& approxSpace
@@ -426,18 +377,12 @@ bool InterpolateFunctionOnVertices(
 
 //	check that function found
 	if(fct == (size_t)-1)
-	{
-		UG_LOG("ERROR in InterpolateFunctionOnVertices: Name of function not found.\n");
-		return false;
-	}
+		UG_THROW_FATAL("InterpolateFunctionOnVertices: Name of function not found.");
 
 //	check that function exists
 	if(fct >= u.num_fct())
-	{
-		UG_LOG("ERROR in InterpolateFunctionOnVertices: Function space does not contain"
-				" a function with index " << fct << ".\n");
-		return false;
-	}
+		UG_THROW_FATAL("InterpolateFunctionOnVertices: Function space does not contain"
+				" a function with index " << fct);
 
 //	create subset group
 	SubsetGroup ssGrp; ssGrp.set_subset_handler(*approxSpace.subset_handler());
@@ -457,22 +402,14 @@ bool InterpolateFunctionOnVertices(
 	//	skip if function is not defined in subset
 		if(!u.is_def_in_subset(fct, si)) continue;
 
-		if(!InterpolateFunctionOnVertices<TGridFunction>
-							(InterpolFunction, u, fct, si, time))
-		{
-			UG_LOG("ERROR in InterpolateFunctionOnVertices: "
-					"Cannot interpolate on elements.\n");
-			return false;
-		}
+		InterpolateFunctionOnVertices<TGridFunction>
+							(InterpolFunction, u, fct, si, time);
 	}
 
 //	adjust parallel storage state
 #ifdef UG_PARALLEL
 	u.set_storage_type(PST_CONSISTENT);
 #endif
-
-//	we're done
-	return true;
 }
 
 

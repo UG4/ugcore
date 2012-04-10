@@ -31,14 +31,10 @@ namespace ug {
 /// constant scalar user data
 template <int dim>
 class ConstUserNumber
-	: public IPData<number, dim>,
-	  public boost::function<void (number& res, const MathVector<dim>& x,number time)>
+	: public IPData<number, dim>
 {
 	///	Base class type
 		typedef IPData<number, dim> base_type;
-
-	///	Functor type
-		typedef boost::function<void (number& res, const MathVector<dim>& x,number time)> func_type;
 
 		using base_type::num_series;
 		using base_type::num_ip;
@@ -48,10 +44,10 @@ class ConstUserNumber
 
 	public:
 	///	creates empty user number
-		ConstUserNumber() : func_type(boost::ref(*this)) {set(0.0);}
+		ConstUserNumber() {set(0.0);}
 
 	///	creates user number with value
-		ConstUserNumber(number val) : func_type(boost::ref(*this)) {set(val);}
+		ConstUserNumber(number val) {set(val);}
 
 	///	set constant value
 		void set(number val) {m_Number = val;}
@@ -91,14 +87,10 @@ class ConstUserNumber
 /// constant vector user data
 template <int dim>
 class ConstUserVector
-	: public IPData<MathVector<dim>, dim>,
-	  public boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)>
+	: public IPData<MathVector<dim>, dim>
 {
 	/// Base class type
 		typedef IPData<MathVector<dim>, dim> base_type;
-
-	///	Functor type
-		typedef boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)> func_type;
 
 		using base_type::num_series;
 		using base_type::num_ip;
@@ -108,10 +100,10 @@ class ConstUserVector
 
 	public:
 	///	Constructor
-		ConstUserVector() : func_type(boost::ref(*this)) {set_all_entries(0.0);}
+		ConstUserVector() {set_all_entries(0.0);}
 
 	///	creates user number with value
-		ConstUserVector(number val) : func_type(boost::ref(*this)) {set_all_entries(val);}
+		ConstUserVector(number val) {set_all_entries(val);}
 
 	///	set all vector entries
 		void set_all_entries(number val) { m_Vector = val;}
@@ -154,14 +146,10 @@ class ConstUserVector
 /// constant matrix user data
 template <int dim>
 class ConstUserMatrix
-	: public IPData<MathMatrix<dim, dim>, dim>,
-	  public boost::function<void (MathMatrix<dim, dim>& res, const MathVector<dim>& x,number time)>
+	: public IPData<MathMatrix<dim, dim>, dim>
 {
 	/// Base class type
 		typedef IPData<MathMatrix<dim, dim>, dim> base_type;
-
-	///	Functor type
-		typedef boost::function<void (MathMatrix<dim, dim>& res, const MathVector<dim>& x,number time)> func_type;
 
 		using base_type::num_series;
 		using base_type::num_ip;
@@ -171,10 +159,10 @@ class ConstUserMatrix
 
 	public:
 	///	Constructor
-		ConstUserMatrix() : func_type(boost::ref(*this)) {set_diag_tensor(1.0);}
+		ConstUserMatrix() {set_diag_tensor(1.0);}
 
 	///	Constructor setting the diagonal
-		ConstUserMatrix(number val) : func_type(boost::ref(*this)) {set_diag_tensor(val);}
+		ConstUserMatrix(number val) {set_diag_tensor(val);}
 
 	///	set diagonal of matrix to a vector
 		void set_diag_tensor(number val)
@@ -235,17 +223,23 @@ class ConstUserMatrix
 /// constant dirichlet boundary scalar user data
 template <int dim>
 class ConstBoundaryNumber
-	 : public boost::function<bool (number& res, const MathVector<dim>& x,number time)>
+	: public IPData<MathMatrix<dim, dim>, dim, bool>
 {
-	/// functor type
-		typedef boost::function<bool (number& res, const MathVector<dim>& x,number time)> func_type;
+	/// Base class type
+		typedef IPData<MathMatrix<dim, dim>, dim, bool> base_type;
+
+		using base_type::num_series;
+		using base_type::num_ip;
+		using base_type::ip;
+		using base_type::time;
+		using base_type::value;
 
 	public:
 	///	Constructor
-		ConstBoundaryNumber() : func_type(boost::ref(*this)) {set(0.0);}
+		ConstBoundaryNumber() {set(0.0);}
 
 	///	Constructor
-		ConstBoundaryNumber(number val) : func_type(boost::ref(*this)) {set(val);}
+		ConstBoundaryNumber(number val) {set(val);}
 
 	///	set value
 		void set(number val) {m_Number = val;}
@@ -259,6 +253,21 @@ class ConstBoundaryNumber
 		{
 			c = m_Number;
 			return true;
+		}
+
+	///	implement as a IPData
+		virtual void compute(bool bDeriv = false)
+		{
+			for(size_t s = 0; s < num_series(); ++s)
+				for(size_t i = 0; i < num_ip(s); ++i)
+					value(s,i) = m_Number;
+		}
+
+	///	callback, invoked when data storage changed
+		virtual void value_storage_changed(const size_t seriesID)
+		{
+			for(size_t i = 0; i < num_ip(seriesID); ++i)
+				value(seriesID,i) = m_Number;
 		}
 
 	protected:

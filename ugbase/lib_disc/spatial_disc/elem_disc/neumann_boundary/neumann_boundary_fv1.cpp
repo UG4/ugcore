@@ -118,7 +118,7 @@ add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subse
 
 template<typename TDomain>
 void FV1NeumannBoundary<TDomain>::
-add(BNDNumberFunctor& user, const char* function, const char* subsets)
+add(SmartPtr<IPData<number, dim, bool> > user, const char* function, const char* subsets)
 {
 	m_vBNDNumberData.push_back(BNDNumberData(user, function, subsets));
 
@@ -127,7 +127,7 @@ add(BNDNumberFunctor& user, const char* function, const char* subsets)
 
 template<typename TDomain>
 void FV1NeumannBoundary<TDomain>::
-add(VectorFunctor& user, const char* function, const char* subsets)
+add(SmartPtr<IPData<MathVector<dim>, dim> > user, const char* function, const char* subsets)
 {
 	m_vVectorData.push_back(VectorData(user, function, subsets));
 
@@ -328,7 +328,8 @@ ass_rhs_elem(LocalVector& d)
 				{
 				// 	get neumann value
 					number val = 0.0;
-					vSegmentData[fct]->functor(val, bf.global_ip(), this->time());
+					if(!(*vSegmentData[fct]->functor)(val, bf.global_ip(), this->time()))
+						continue;
 
 				// 	get associated node
 					const int co = bf.node_id();
@@ -369,7 +370,7 @@ ass_rhs_elem(LocalVector& d)
 				{
 				// 	get neumann value
 					MathVector<dim> val;
-					vSegmentData[fct]->functor(val, bf.global_ip(), this->time());
+					(*vSegmentData[fct]->functor)(val, bf.global_ip(), this->time());
 
 				// 	get associated node
 					const int co = bf.node_id();

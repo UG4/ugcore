@@ -181,7 +181,7 @@ inline void IIPDimData<dim>::check_s_ip(size_t s, size_t ip) const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim, typename TRet>
-TRet IPData<TData,dim,TRet>::operator() (TData& D, const MathVector<dim>& x, number time)
+TRet IPData<TData,dim,TRet>::operator() (TData& D, const MathVector<dim>& x, number time) const
 {
 	UG_THROW_FATAL("IPData: operator()(TData, MathVector<dim>, time) not implemented.");
 }

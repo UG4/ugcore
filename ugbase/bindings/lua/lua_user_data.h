@@ -166,14 +166,10 @@ struct lua_traits< MathMatrix<dim, dim> >
  */
 template <typename TData, int dim, typename TRet = void>
 class LuaUserData
-	: public IPData<TData, dim, TRet>,
-	  public boost::function<TRet (TData& res, const MathVector<dim>& x,number time)>
+	: public IPData<TData, dim, TRet>
 {
 	///	Base class type
 		typedef IPData<TData, dim, TRet> base_type;
-
-	///	Functor type
-		typedef boost::function<TRet (TData& res, const MathVector<dim>& x,number time)> func_type;
 
 		using base_type::num_series;
 		using base_type::num_ip;
@@ -183,8 +179,7 @@ class LuaUserData
 
 	public:
 	///	Constructor
-		LuaUserData(const char* luaCallback)
-			: func_type(boost::ref(*this)), m_callbackName(luaCallback)
+		LuaUserData(const char* luaCallback) : m_callbackName(luaCallback)
 		{
 		//	get lua state
 			m_L = ug::script::GetDefaultLuaState();
@@ -210,7 +205,7 @@ class LuaUserData
 		}
 
 	///	evaluates the data at a given point and time
-		TRet operator() (TData& D, const MathVector<dim>& x, number time)
+		TRet operator() (TData& D, const MathVector<dim>& x, number time) const
 		{
 		//	push the callback function on the stack
 			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
@@ -262,105 +257,6 @@ class LuaUserData
 										ip(s, i),
 										time());
 				}
-		}
-
-	protected:
-	///	callback name as string
-		std::string m_callbackName;
-
-	///	reference to lua function
-		int m_callbackRef;
-
-	///	lua state
-		lua_State*	m_L;
-};
-
-////////////////////////////////
-// Generic LuaBoundaryData
-////////////////////////////////
-
-/// provides boundary data specified in the lua script
-/**
- * This class provide boundary data at arbitrary
- * points. A Lua callback is used to evaluate the data.
- */
-template <typename TData, int dim>
-class LuaBoundaryData
-	: public boost::function<bool (TData& res, const MathVector<dim>& x,number time)>
-{
-	///	Functor type
-		typedef boost::function<bool (TData& res, const MathVector<dim>& x,number time)> func_type;
-
-	public:
-	///	Constructor
-		LuaBoundaryData(const char* luaCallback)  : func_type(boost::ref(*this))
-		{
-			m_L = ug::script::GetDefaultLuaState();
-
-		//	store name (string) of callback
-			m_callbackName = luaCallback;
-
-		//	obtain a reference
-			lua_getglobal(m_L, m_callbackName.c_str());
-
-		//	make sure that the reference is valid
-			if(lua_isnil(m_L, -1)){
-				UG_THROW_FATAL("LuaBoundaryData(...): Specified lua callback "
-								"does not exist: " << m_callbackName);
-			}
-
-		//	store reference to lua function
-			m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
-		}
-
-	///	virtual destructor
-		virtual ~LuaBoundaryData()
-		{
-		//	free reference to callback
-			luaL_unref(m_L, LUA_REGISTRYINDEX, m_callbackRef);
-		}
-
-	///	evaluates the data at a given point and time
-		bool operator() (TData& D, const MathVector<dim>& x, number time = 0.0)
-		{
-		//	push the callback function on the stack
-			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
-
-		//  push space coordinates on stack
-			lua_traits<MathVector<dim> >::push(m_L, x);
-
-		//	push time on stack
-			lua_traits<number>::push(m_L, time);
-
-		//	compute total args size
-			const int argSize = lua_traits<MathVector<dim> >::size
-								+  lua_traits<number>::size;
-
-		//	compute total return size (+1 for boolean)
-			const int retSize = lua_traits<TData>::size + lua_traits<bool>::size;
-
-		//	call lua function
-			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-				UG_THROW_FATAL("LuaBoundaryData::operator(...): "
-						<< "Error while running callback '" << m_callbackName
-						<< "', lua message: "<< lua_tostring(m_L, -1));
-
-			bool res = false;
-			try{
-			//	read return value
-				lua_traits<TData>::read(m_L, D);
-
-			//	read bool flag
-				lua_traits<bool>::read(m_L, res, -retSize);
-			}
-			UG_CATCH_THROW("LuaBoundaryData::operator(...): Error while "
-							"running callback '" << m_callbackName << "'");
-
-		//	pop values
-			lua_pop(m_L, retSize);
-
-		//	forward flag
-			return res;
 		}
 
 	protected:

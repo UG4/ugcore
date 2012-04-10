@@ -40,7 +40,7 @@ class IIntegrand
 	 * \param[in]	vGlobIP	global integration point positions
 	 * \param[in]	numIP	number of integration points
 	 */
-		virtual bool values(GeometricObject* pElem,
+		virtual void values(GeometricObject* pElem,
 		                    const MathVector<elemDim> vLocIP[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    const MathMatrix<worldDim, elemDim> vJT[],
@@ -127,13 +127,13 @@ number Integrate(TConstIterator iterBegin,
 
 	//	compute integrand values at integration points
 		std::vector<number> vValue(numIP);
-		if(!integrand.values(pElem, rQuadRule.points(),
-							&(vGlobIP[0]), &(vJT[0]),
-							numIP, &(vValue[0])))
+		try
 		{
-			UG_LOG("Unable to compute values of integrand at integration point.\n");
-			throw(UGFatalError("Cannot compute integration values."));
+			integrand.values(pElem, rQuadRule.points(),
+							&(vGlobIP[0]), &(vJT[0]),
+							numIP, &(vValue[0]));
 		}
+		UG_CATCH_THROW("Unable to compute values of integrand at integration point.");
 
 	//	reset contribution of this element
 		number intValElem = 0;
@@ -155,12 +155,10 @@ number Integrate(TConstIterator iterBegin,
 		integral += intValElem;
 
 		}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
-			UG_LOG("ERROR in 'SumValuesOnElems': " << ex.get_msg() << ".\n");
-			return false;
+			UG_THROW_FATAL("SumValuesOnElems: " << ex.get_msg() << ".");
 		}
 		}catch(UG_ERROR_ReferenceMappingMissing& ex){
-			UG_LOG("ERROR in 'SumValuesOnElems': " << ex.get_msg() << ".\n");
-			return false;
+			UG_THROW_FATAL("SumValuesOnElems: " << ex.get_msg() << ".");
 		}
 	} // end elem
 
@@ -188,18 +186,14 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		const size_t m_fct;
 
 	//  exact solution
-		typedef boost::function<void (number&, const MathVector<worldDim>&, number)> ExactSolFunctor;
-		ExactSolFunctor m_ExactSolution;
+		IPData<number, worldDim>& m_ExactSolution;
 
 	//	time
 		number m_time;
 
-
-
 	public:
-
 	/// constructor
-		L2ErrorIntegrand(const ExactSolFunctor& exactSol,
+		L2ErrorIntegrand(IPData<number, worldDim>& exactSol,
 		                 TGridFunction& gridFct, size_t cmp,
 		                 number time)
 		: m_rGridFct(gridFct), m_fct(cmp),
@@ -207,7 +201,7 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		{};
 
 	/// \copydoc IIntegrand::getValues
-		virtual bool values(GeometricObject* pElem,
+		virtual void values(GeometricObject* pElem,
 		                    const MathVector<elemDim> vLocIP[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    const MathMatrix<worldDim, elemDim> vJT[],
@@ -235,11 +229,8 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-			{
-				UG_LOG("ERROR in 'L2ErrorIntegrand::values': Wrong number of"
-						" multi indices.\n");
-				return false;
-			}
+				UG_THROW_FATAL("L2ErrorIntegrand::values: Wrong number of"
+						" multi indices.");
 
 		//	loop all integration points
 			for(size_t ip = 0; ip < numIP; ++ip)
@@ -268,11 +259,8 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_LOG("ERROR in 'L2ErrorIntegrand::getValues': "<<ex.get_msg()<<"\n");
-				return false;
+				UG_THROW_FATAL("L2ErrorIntegrand::getValues: "<<ex.get_msg());
 			}
-
-			return true;
 		};
 };
 
@@ -298,23 +286,18 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 		LFEID m_id;
 
 	// 	exact solution
-		typedef boost::function<void (number&, const MathVector<worldDim>&, number)> ExactSolFunctor;
-		ExactSolFunctor m_ExactSolution;
+		IPData<number, worldDim>& m_ExactSolution;
 
 	// 	exact gradient
-		typedef boost::function<void (MathVector<worldDim>&, const MathVector<worldDim>&, number)> ExactGradFunctor;
-		ExactGradFunctor m_ExactGrad;
+		IPData<MathVector<worldDim>, worldDim>& m_ExactGrad;
 
 	//	time
 		number m_time;
 
-
-
 	public:
-
 	/// constructor
-		H1ErrorIntegrand(ExactSolFunctor& exactSol,
-		                 ExactGradFunctor& exactGrad,
+		H1ErrorIntegrand(IPData<number, worldDim>& exactSol,
+		                 IPData<MathVector<worldDim>, worldDim>& exactGrad,
 		                 TGridFunction& gridFct, size_t cmp,
 		                 number time)
 		: m_rGridFct(gridFct), m_fct(cmp),
@@ -325,8 +308,7 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 		{}
 
 	/// \copydoc IIntegrand::getValues
-		virtual bool values(GeometricObject* pElem,
-
+		virtual void values(GeometricObject* pElem,
 		                    const MathVector<elemDim> vLocIP[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    const MathMatrix<worldDim, elemDim> vJT[],
@@ -352,11 +334,8 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-			{
-				UG_LOG("ERROR in 'L2ErrorIntegrand::values': Wrong number of"
-						" multi indices.\n");
-				return false;
-			}
+				UG_THROW_FATAL("L2ErrorIntegrand::values: Wrong number of"
+						" multi indices.");
 
 		//	loop all integration points
 			std::vector<MathVector<elemDim> > vLocGradient(num_sh);
@@ -401,11 +380,8 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_LOG("ERROR in 'L2ErrorIntegrand::getValues': "<<ex.get_msg()<<"\n");
-				return false;
+				UG_THROW_FATAL("L2ErrorIntegrand::getValues: "<<ex.get_msg());
 			}
-
-			return true;
 		};
 };
 
@@ -427,20 +403,16 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
  * \returns			number 		l2-norm of difference
  */
 template <typename TGridFunction>
-number L2ErrorDraft(
-	const boost::function<void (number& res, const MathVector<TGridFunction::dim>& x, number m_time)>& ExactSol,
-	TGridFunction& u, const char* name, number time, int quadOrder, const char* subsets)
+number L2ErrorDraft(IPData<number, TGridFunction::dim>& ExactSol,
+                    TGridFunction& u, const char* name, number time, int quadOrder, const char* subsets)
 {
 //	get function id of name
 	const size_t fct = u.fct_id_by_name(name);
 
 //	check that function exists
 	if(fct >= u.num_fct())
-	{
-		UG_LOG("ERROR in L2ErrorDraft: Function space does not contain"
-				" a function with name " << name << ".\n");
-		return false;
-	}
+		UG_THROW_FATAL("L2ErrorDraft: Function space does not contain"
+				" a function with name " << name << ".");
 
 //	create subset group
 	SubsetGroup ssGrp; ssGrp.set_subset_handler(u.domain()->subset_handler());
@@ -464,10 +436,8 @@ number L2ErrorDraft(
 		if(!u.is_def_in_subset(fct, si)) continue;
 
 
-		if (ssGrp.dim(i) != TGridFunction::dim)  {
-			UG_LOG("ERROR in L2ErrorDraft: Element dimension does not match world dimension!\n");
-			return false;
-		}
+		if (ssGrp.dim(i) != TGridFunction::dim)
+			UG_THROW_FATAL("L2ErrorDraft: Element dimension does not match world dimension!");
 
 
 	//	create integration kernel
@@ -487,13 +457,6 @@ number L2ErrorDraft(
 	return sqrt(l2norm2);
 }
 
-
-
-
-
-
-
-
 template <typename TGridFunction, int TDim = TGridFunction::dim>
 class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 {
@@ -511,17 +474,14 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 	//	component of function
 		const size_t m_fct;
 
-
-
 	public:
-
 	/// constructor
 		L2FuncIntegrand(TGridFunction& gridFct, size_t cmp)
 		: m_rGridFct(gridFct), m_fct(cmp)
 		{};
 
 	/// \copydoc IIntegrand::getValues
-		virtual bool values(GeometricObject* pElem,
+		virtual void values(GeometricObject* pElem,
 		                    const MathVector<elemDim> vLocIP[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    const MathMatrix<worldDim, elemDim> vJT[],
@@ -548,11 +508,8 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-			{
-				UG_LOG("ERROR in 'L2ErrorIntegrand::values': Wrong number of"
-						" multi indices.\n");
-				return false;
-			}
+				UG_THROW_FATAL("L2ErrorIntegrand::values: Wrong number of"
+						" multi indices.");
 
 		//	loop all integration points
 			for(size_t ip = 0; ip < numIP; ++ip)
@@ -575,11 +532,8 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_LOG("ERROR in 'L2ErrorIntegrand::values': "<<ex.get_msg()<<"\n");
-				return false;
+				UG_THROW_FATAL("L2ErrorIntegrand::values: "<<ex.get_msg());
 			}
-
-			return true;
 		};
 };
 
@@ -601,17 +555,14 @@ class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 	//	component of function
 		const size_t m_fct;
 
-
-
 	public:
-
 	/// constructor
 		StdFuncIntegrand(TGridFunction& gridFct, size_t cmp)
 		: m_rGridFct(gridFct), m_fct(cmp)
 		{};
 
 	/// \copydoc IIntegrand::getValues
-		virtual bool values(GeometricObject* pElem,
+		virtual void values(GeometricObject* pElem,
 		                    const MathVector<elemDim> vLocIP[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    const MathMatrix<worldDim, elemDim> vJT[],
@@ -638,11 +589,8 @@ class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-			{
-				UG_LOG("ERROR in 'StdFuncIntegrand::values': Wrong number of"
-						" multi indices.\n");
-				return false;
-			}
+				UG_THROW_FATAL("StdFuncIntegrand::values: Wrong number of"
+						" multi indices.");
 
 		//	loop all integration points
 			for(size_t ip = 0; ip < numIP; ++ip)
@@ -665,18 +613,12 @@ class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_LOG("ERROR in 'StdFuncIntegrand::values': "<<ex.get_msg()<<"\n");
-				return false;
+				UG_THROW_FATAL("StdFuncIntegrand::values: "<<ex.get_msg());
 			}
-
-			return true;
 		};
 };
 
 /// interpolates a function on the whole domain or on some subsets
-
-
-
 /**
  * This function computes the L2-norm of a grid function.
  *
@@ -688,8 +630,6 @@ class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
  * \param[in]		subsets		subsets, where to interpolate
  * \returns			number 		l2-norm of difference
  */
-
-
 template <typename TGridFunction>
 number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* subsets)
 {
@@ -698,11 +638,8 @@ number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* sub
 
 //	check that function exists
 	if(fct >= u.num_fct())
-	{
-		UG_LOG("ERROR in L2ErrorFunc: Function space does not contain"
-				" a function with name " << name << ".\n");
-		return false;
-	}
+		UG_THROW_FATAL("L2ErrorFunc: Function space does not contain"
+				" a function with name " << name << ".");
 
 //	create subset group
 	SubsetGroup ssGrp; ssGrp.set_subset_handler(u.domain()->subset_handler());
@@ -726,11 +663,8 @@ number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* sub
 		if(!u.is_def_in_subset(fct, si)) continue;
 
 
-		if (ssGrp.dim(i) != TGridFunction::dim)  {
-			UG_LOG("ERROR in L2Norm: Element dimension does not match world dimension!\n");
-			return false;
-		}
-
+		if (ssGrp.dim(i) != TGridFunction::dim)
+			UG_THROW_FATAL("L2Norm: Element dimension does not match world dimension!");
 
 	//	create integration kernel
 		static const int dim = TGridFunction::dim;
@@ -766,11 +700,8 @@ number StdFuncIntegral(TGridFunction& u, const char* name, int quadOrder, const 
 
 //	check that function exists
 	if(fct >= u.num_fct())
-	{
-		UG_LOG("ERROR in StdIntegral: Function space does not contain"
-				" a function with name " << name << ".\n");
-		return false;
-	}
+		UG_THROW_FATAL("StdIntegral: Function space does not contain"
+				" a function with name " << name << ".");
 
 //	create subset group
 	SubsetGroup ssGrp; ssGrp.set_subset_handler(u.domain()->subset_handler());
@@ -794,11 +725,8 @@ number StdFuncIntegral(TGridFunction& u, const char* name, int quadOrder, const 
 		if(!u.is_def_in_subset(fct, si)) continue;
 
 
-		if (ssGrp.dim(i) != TGridFunction::dim)  {
-			UG_LOG("ERROR in StdIntegral: Element dimension does not match world dimension!\n");
-			return false;
-		}
-
+		if (ssGrp.dim(i) != TGridFunction::dim)
+			UG_THROW_FATAL("StdIntegral: Element dimension does not match world dimension!");
 
 	//	create integration kernel
 		static const int dim = TGridFunction::dim;

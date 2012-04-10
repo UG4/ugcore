@@ -99,65 +99,40 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 
 //	InterpolateFunction
 	{
-		typedef bool (*fct_type)(
-				const boost::function<void (number& res,const MathVector<dim>& x, number time)>&,
-				TFct&, const char*, number);
-		reg.add_function("InterpolateFunction",
-						 static_cast<fct_type>(&InterpolateFunction<TFct>),
-						 grp);
+		typedef void (*fct_type)(IPData<number, dim>&, TFct&, const char*, number);
+		reg.add_function("InterpolateFunction", static_cast<fct_type>(&InterpolateFunction<TFct>), grp);
 
-		typedef bool (*fct_type_subset)(
-				const boost::function<void (number& res,const MathVector<dim>& x, number time)>&,
-				TFct&, const char*, number, const char*);
-		reg.add_function("InterpolateFunction",
-						 static_cast<fct_type_subset>(&InterpolateFunction<TFct>),
-						 grp);
+		typedef void (*fct_type_subset)(IPData<number, dim>&, TFct&, const char*, number, const char*);
+		reg.add_function("InterpolateFunction",static_cast<fct_type_subset>(&InterpolateFunction<TFct>),grp);
 
 	}
 
 //	L2Error
 	{
-		typedef number (*fct_type)(
-				const boost::function<void (number& res,const MathVector<dim>& x, number time)>&,
-				TFct&, const char*, number);
-		reg.add_function("L2Error",
-						 static_cast<fct_type>(&L2Error<TFct>),
-						 grp);
+		typedef number (*fct_type)(IPData<number, dim>&, TFct&, const char*, number);
+		reg.add_function("L2Error",static_cast<fct_type>(&L2Error<TFct>), grp);
 
-		typedef number (*fct_type_subset)(
-				const boost::function<void (number& res,const MathVector<dim>& x, number time)>&,
-				TFct&, const char*, number, const char*);
-		reg.add_function("L2Error",
-						 static_cast<fct_type_subset>(&L2Error<TFct>),
-						 grp);
+		typedef number (*fct_type_subset)(IPData<number, dim>&, TFct&, const char*, number, const char*);
+		reg.add_function("L2Error",static_cast<fct_type_subset>(&L2Error<TFct>),grp);
 	}
 
 //	L2ErrorDraft
 	{
-		typedef number (*fct_type)(
-				const boost::function<void (number& res,const MathVector<dim>& x, number time)>&,
-				TFct&, const char*, number, int, const char*);
-		reg.add_function("L2ErrorDraft",
-						 static_cast<fct_type>(&L2ErrorDraft<TFct>),
-						 grp);
+		typedef number (*fct_type)(IPData<number, dim>&, TFct&, const char*, number, int, const char*);
+		reg.add_function("L2ErrorDraft",static_cast<fct_type>(&L2ErrorDraft<TFct>), grp);
 	}
 
 //	L2Norm
 	{
 		typedef number (*fct_type)(TFct&, const char*, int, const char*);
-		reg.add_function("L2Norm",
-						 static_cast<fct_type>(&L2Norm<TFct>),
-						 grp);
+		reg.add_function("L2Norm",static_cast<fct_type>(&L2Norm<TFct>),grp);
 	}
 
-	//	StdFuncIntegral
-		{
-			typedef number (*fct_type)(TFct&, const char*, int, const char*);
-			reg.add_function("StdFuncIntegral",
-							 static_cast<fct_type>(&StdFuncIntegral<TFct>),
-							 grp);
-		}
-
+//	StdFuncIntegral
+	{
+		typedef number (*fct_type)(TFct&, const char*, int, const char*);
+		reg.add_function("StdFuncIntegral",static_cast<fct_type>(&StdFuncIntegral<TFct>),grp);
+	}
 }
 
 

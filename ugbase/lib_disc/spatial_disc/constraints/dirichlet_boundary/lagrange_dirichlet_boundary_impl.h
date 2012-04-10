@@ -40,14 +40,14 @@ clear()
 
 template <typename TDomain, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-add(BNDNumberFunctor& func, const char* function, const char* subsets)
+add(SmartPtr<IPData<number, dim, bool> > func, const char* function, const char* subsets)
 {
-	m_vBNDNumberData.push_back(BNDNumberData(func, function, subsets));
+	m_vBNDNumberData.push_back(CondNumberData(func, function, subsets));
 }
 
 template <typename TDomain, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-add(NumberFunctor& func, const char* function, const char* subsets)
+add(SmartPtr<IPData<number, dim> > func, const char* function, const char* subsets)
 {
 	m_vNumberData.push_back(NumberData(func, function, subsets));
 }
@@ -61,7 +61,7 @@ add(number value, const char* function, const char* subsets)
 
 template <typename TDomain, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-add(VectorFunctor& func, const char* functions, const char* subsets)
+add(SmartPtr<IPData<MathVector<dim>, dim> > func, const char* functions, const char* subsets)
 {
 	m_vVectorData.push_back(VectorData(func, functions, subsets));
 }
@@ -185,11 +185,11 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 	extract_data();
 
 //	loop boundary subsets
-	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
+	typename std::map<int, std::vector<CondNumberData> >::const_iterator iter;
 	for(iter = m_mBNDNumberBndSegment.begin(); iter != m_mBNDNumberBndSegment.end(); ++iter)
 	{
 		const int si = (*iter).first;
-		const std::vector<BNDNumberData>& userData = (*iter).second;
+		const std::vector<CondNumberData>& userData = (*iter).second;
 
 		typename TDD::template traits<VertexBase>::const_iterator iterBegin 	= dd->template begin<VertexBase>(si);
 		typename TDD::template traits<VertexBase>::const_iterator iterEnd 	= dd->template end<VertexBase>(si);
@@ -245,7 +245,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<TDD> dd, num
 {
 	extract_data();
 
-	adjust_jacobian<BNDNumberData, TDD>(m_mBNDNumberBndSegment, J, u, dd, time);
+	adjust_jacobian<CondNumberData, TDD>(m_mBNDNumberBndSegment, J, u, dd, time);
 	adjust_jacobian<NumberData, TDD>(m_mNumberBndSegment, J, u, dd, time);
 	adjust_jacobian<ConstNumberData, TDD>(m_mConstNumberBndSegment, J, u, dd, time);
 
@@ -362,7 +362,7 @@ adjust_defect(vector_type& d, const vector_type& u,
 {
 	extract_data();
 
-	adjust_defect<BNDNumberData, TDD>(m_mBNDNumberBndSegment, d, u, dd, time);
+	adjust_defect<CondNumberData, TDD>(m_mBNDNumberBndSegment, d, u, dd, time);
 	adjust_defect<NumberData, TDD>(m_mNumberBndSegment, d, u, dd, time);
 	adjust_defect<ConstNumberData, TDD>(m_mConstNumberBndSegment, d, u, dd, time);
 
@@ -479,7 +479,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd, number time)
 {
 	extract_data();
 
-	adjust_solution<BNDNumberData, TDD>(m_mBNDNumberBndSegment, u, dd, time);
+	adjust_solution<CondNumberData, TDD>(m_mBNDNumberBndSegment, u, dd, time);
 	adjust_solution<NumberData, TDD>(m_mNumberBndSegment, u, dd, time);
 	adjust_solution<ConstNumberData, TDD>(m_mConstNumberBndSegment, u, dd, time);
 
@@ -591,7 +591,7 @@ adjust_linear(matrix_type& A, vector_type& b,
 {
 	extract_data();
 
-	adjust_linear<BNDNumberData, TDD>(m_mBNDNumberBndSegment, A, b, dd, time);
+	adjust_linear<CondNumberData, TDD>(m_mBNDNumberBndSegment, A, b, dd, time);
 	adjust_linear<NumberData, TDD>(m_mNumberBndSegment, A, b, dd, time);
 	adjust_linear<ConstNumberData, TDD>(m_mConstNumberBndSegment, A, b, dd, time);
 
@@ -712,7 +712,7 @@ adjust_rhs(vector_type& b, const vector_type& u,
 {
 	extract_data();
 
-	adjust_rhs<BNDNumberData, TDD>(m_mBNDNumberBndSegment, b, u, dd, time);
+	adjust_rhs<CondNumberData, TDD>(m_mBNDNumberBndSegment, b, u, dd, time);
 	adjust_rhs<NumberData, TDD>(m_mNumberBndSegment, b, u, dd, time);
 	adjust_rhs<ConstNumberData, TDD>(m_mConstNumberBndSegment, b, u, dd, time);
 

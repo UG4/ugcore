@@ -41,29 +41,24 @@ class FV1NeumannBoundary
 	///	Position type
 		typedef typename base_type::position_type position_type;
 
-	protected:
-	///	type of bnd number
-		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
-		typedef boost::function<void (MathVector<dim>& value, const MathVector<dim>& x, number time)> VectorFunctor;
-
 	public:
 	///	default constructor
 		FV1NeumannBoundary(const char* subsets);
 
 	///	add a boundary value
 		void add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subsets);
-		void add(BNDNumberFunctor& user, const char* function, const char* subsets);
-		void add(VectorFunctor& user, const char* function, const char* subsets);
+		void add(SmartPtr<IPData<number, dim, bool> > user, const char* function, const char* subsets);
+		void add(SmartPtr<IPData<MathVector<dim>, dim> > user, const char* function, const char* subsets);
 
 	private:
 	///	Functor, function grouping
 		struct BNDNumberData
 		{
-			BNDNumberData(BNDNumberFunctor functor_,
+			BNDNumberData(SmartPtr<IPData<number, dim, bool> > functor_,
 			              std::string fctName_, std::string ssName_)
 				: functor(functor_), fctName(fctName_), ssNames(ssName_) {}
 
-			BNDNumberFunctor functor;
+			SmartPtr<IPData<number, dim, bool> > functor;
 			size_t locFct;
 			std::string fctName;
 			SubsetGroup ssGrp;
@@ -141,11 +136,11 @@ class FV1NeumannBoundary
 	///	Functor, function grouping
 		struct VectorData
 		{
-			VectorData(VectorFunctor functor_,
+			VectorData(SmartPtr<IPData<MathVector<dim>, dim> > functor_,
 			           std::string fctName_, std::string ssName_)
 			: functor(functor_), fctName(fctName_), ssNames(ssName_) {}
 
-			VectorFunctor functor;
+			SmartPtr<IPData<MathVector<dim>, dim> > functor;
 			size_t locFct;
 			std::string fctName;
 			SubsetGroup ssGrp;

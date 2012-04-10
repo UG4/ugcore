@@ -50,15 +50,6 @@ class LagrangeDirichletBoundary
 	///	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
-	///	Type of conditional boundary functor for a number (bool return value)
-		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
-
-	///	Type of non-conditional boundary functor for a number (always true)
-		typedef boost::function<void (number& value, const MathVector<dim>& x, number time)> NumberFunctor;
-
-	///	Type of non-conditional boundary functor for a Vector (always true)
-		typedef boost::function<void (MathVector<dim>& value, const MathVector<dim>& x, number time)> VectorFunctor;
-
 	public:
 	///	constructor
 		LagrangeDirichletBoundary() {clear();}
@@ -67,16 +58,16 @@ class LagrangeDirichletBoundary
 		~LagrangeDirichletBoundary() {}
 
 	///	adds a conditional user-defined value as dirichlet condition for a function on subsets
-		void add(BNDNumberFunctor& func, const char* function, const char* subsets);
+		void add(SmartPtr<IPData<number, dim, bool> > func, const char* function, const char* subsets);
 
 	///	adds a user-defined value as dirichlet condition for a function on subsets
-		void add(NumberFunctor& func, const char* function, const char* subsets);
+		void add(SmartPtr<IPData<number, dim> > func, const char* function, const char* subsets);
 
 	///	adds a constant value as dirichlet condition for a function on subsets
 		void add(number value, const char* function, const char* subsets);
 
 	///	adds a user-defined vector as dirichlet condition for a vector-function on subsets
-		void add(VectorFunctor& func, const char* functions, const char* subsets);
+		void add(SmartPtr<IPData<MathVector<dim>, dim> > func, const char* functions, const char* subsets);
 
 	///	sets the approximation space to work on
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
@@ -201,17 +192,17 @@ class LagrangeDirichletBoundary
 			const static bool isConditional = false;
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
-			NumberData(NumberFunctor functor_,
+			NumberData(SmartPtr<IPData<number, dim> > functor_,
 			           std::string fctName_, std::string ssName_)
-				: functor(functor_), fctName(fctName_), ssName(ssName_)
+				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
 			{}
 
 			bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
 			{
-				functor(val[0], x, time); return true;
+				(*spFunctor)(val[0], x, time); return true;
 			}
 
-			NumberFunctor functor;
+			SmartPtr<IPData<number, dim> > spFunctor;
 			std::string fctName;
 			std::string ssName;
 			size_t fct[numFct];
@@ -219,21 +210,21 @@ class LagrangeDirichletBoundary
 		};
 
 	///	grouping for subset and conditional data
-		struct BNDNumberData
+		struct CondNumberData
 		{
 			const static bool isConditional = true;
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
-			BNDNumberData(BNDNumberFunctor functor_,
+			CondNumberData(SmartPtr<IPData<number, dim, bool> > functor_,
 			              std::string fctName_, std::string ssName_)
-				: functor(functor_), fctName(fctName_), ssName(ssName_)
+				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
 			{}
 			bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
 			{
-				return functor(val[0], x, time);
+				return (*spFunctor)(val[0], x, time);
 			}
 
-			BNDNumberFunctor functor;
+			SmartPtr<IPData<number, dim, bool> > spFunctor;
 			std::string fctName;
 			std::string ssName;
 			size_t fct[numFct];
@@ -268,23 +259,23 @@ class LagrangeDirichletBoundary
 			const static bool isConditional = false;
 			const static size_t numFct = dim;
 			typedef MathVector<dim> value_type;
-			VectorData(VectorFunctor value_,
+			VectorData(SmartPtr<IPData<MathVector<dim>, dim> > value_,
 			           std::string fctName_, std::string ssName_)
-				: functor(value_), fctName(fctName_), ssName(ssName_)
+				: spFunctor(value_), fctName(fctName_), ssName(ssName_)
 			{}
 			bool operator()(MathVector<dim>& val, const MathVector<dim> x, number time) const
 			{
-				functor(val, x, time); return true;
+				(*spFunctor)(val, x, time); return true;
 			}
 
-			VectorFunctor functor;
+			SmartPtr<IPData<MathVector<dim>, dim> > spFunctor;
 			std::string fctName;
 			std::string ssName;
 			size_t fct[numFct];
 			SubsetGroup ssGrp;
 		};
 
-		std::vector<BNDNumberData> m_vBNDNumberData;
+		std::vector<CondNumberData> m_vBNDNumberData;
 		std::vector<NumberData> m_vNumberData;
 		std::vector<ConstNumberData> m_vConstNumberData;
 
@@ -297,7 +288,7 @@ class LagrangeDirichletBoundary
 		std::map<int, std::vector<ConstNumberData*> > m_mConstNumberBndSegment;
 
 	///	conditional boundary values for all subsets
-		std::map<int, std::vector<BNDNumberData*> > m_mBNDNumberBndSegment;
+		std::map<int, std::vector<CondNumberData*> > m_mBNDNumberBndSegment;
 
 	///	non-conditional boundary values for all subsets
 		std::map<int, std::vector<VectorData*> > m_mVectorBndSegment;

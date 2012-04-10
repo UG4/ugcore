@@ -23,6 +23,7 @@
 #include <string>
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "lib_algebra/common/csv_gnuplot_output.h"
+#include "lib_disc/spatial_disc/ip_data/ip_data.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -446,9 +447,6 @@ public:
 	typedef typename TVector::value_type value_type;
 	typedef typename TGridFunction::domain_type domain_type;
 	typedef TVector vector_type;
-	typedef boost::function<
-			void(number& value, const MathVector<domain_type::dim>& x,
-					number time)> NumberFunctor;
 
 public:
 	///	Constructor
@@ -456,7 +454,7 @@ public:
 			m_pGridFunc(NULL) {
 	}
 
-	void set_user_data(const NumberFunctor& userData) {
+	void set_user_data(SmartPtr<IPData<number, domain_type::dim> > userData) {
 		m_userData = userData;
 	}
 
@@ -471,7 +469,7 @@ public:
 	virtual bool update(vector_type &vec) {
 		UG_ASSERT(m_pGridFunc != NULL,
 				"provide a grid function with set_reference_grid_function");
-		UG_ASSERT(m_userData != NULL, "provide user data with set_user_data");
+		UG_ASSERT(m_userData.valid(), "provide user data with set_user_data");
 
 		const TGridFunction &u = *m_pGridFunc;
 
@@ -507,7 +505,7 @@ public:
 				number t = 0.0;
 
 				number d;
-				m_userData(d, aaPos[v], t);
+				(*m_userData)(d, aaPos[v], t);
 
 				//	write
 				for (size_t i = 0; i < ind.size(); ++i) {
@@ -522,7 +520,7 @@ public:
 
 protected:
 	const TGridFunction *m_pGridFunc;
-	NumberFunctor m_userData;
+	SmartPtr<IPData<number, domain_type::dim> > m_userData;
 };
 
 template<typename TGridFunction>

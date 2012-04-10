@@ -18,107 +18,6 @@ namespace ug
 namespace bridge
 {
 
-class PrintUserNumber2d
-{
-	protected:
-		typedef boost::function<void (number& value, const MathVector<2>& x, number time)> NumberFunctor;
-
-	public:
-		void set_user_number(const NumberFunctor& data){m_Number = data;}
-
-		number print(number x, number y)
-		{
-			MathVector<2> v(x,y); number time = 0.0; number val;
-			if(m_Number) m_Number(val, v, time);
-			else{ UG_LOG("Functor not set. \n"); val = -1;}
-			return val;
-		}
-
-	private:
-		NumberFunctor m_Number;
-};
-
-/// provides boundary data for the concentration of the elder problem
-/**
- * This class provide boundary data for the elder problem.
- * \todo: This should be temporarily only, until setting of user data can
- * 		  be done efficiently in script/VRL
- */
-class ElderConcentrationBoundaryData2d
-	: public boost::function<bool (number& value, const MathVector<2>& x, number time)>
-{
-	///	Base class type
-		typedef boost::function<bool (number& value, const MathVector<2>& x, number time)> NumberFunctor;
-
-	public:
-	///	Constructor
-		ElderConcentrationBoundaryData2d() : NumberFunctor(boost::ref(*this))
-		{}
-
-	///	virtual destructor
-		virtual ~ElderConcentrationBoundaryData2d()	{}
-
-	///	evaluates the data at a given point and time
-		bool operator() (number& val, const MathVector<2>& pos, number time = 0.0)
-		{
-			const number x = pos[0];
-			const number y = pos[1];
-
-			if(y == 150){
-				if(x > 150 && x < 450){
-					val = 1.0;
-					return true;
-				}
-			}
-			if(y == 0.0){
-				val = 0.0;
-				return true;
-			}
-
-			val = 0.0;
-			return false;
-		}
-};
-
-/// provides boundary data for the pressure of the elder problem
-/**
- * This class provide boundary data for the elder problem.
- * \todo: This should be temporarily only, until setting of user data can
- * 		  be done efficiently in script/VRL
- */
-class ElderPressureBoundaryData2d
-	: public boost::function<bool (number& value, const MathVector<2>& x, number time)>
-{
-	///	Base class type
-		typedef boost::function<bool (number& value, const MathVector<2>& x, number time)> NumberFunctor;
-
-	public:
-	///	Constructor
-		ElderPressureBoundaryData2d()  : NumberFunctor(boost::ref(*this))
-		{}
-
-	///	virtual destructor
-		virtual ~ElderPressureBoundaryData2d()	{}
-
-	///	evaluates the data at a given point and time
-		bool operator() (number& val, const MathVector<2>& pos, number time = 0.0)
-		{
-			const number x = pos[0];
-			const number y = pos[1];
-
-			if(y == 150){
-				if(x == 0.0 || x == 600){
-					val = 9810 * (150 - y);
-					return true;
-				}
-			}
-
-			val = 0.0;
-			return false;
-		}
-};
-
-
 /// Hard Coded Linker for d3f
 template <int dim>
 class ElderDensityLinker
@@ -505,22 +404,6 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 		reg.add_class_to_group(name, string("IPCondData").append(type), dimTag);
 	}
 
-//	User"Type"
-	{
-		typedef boost::function<void (TData& res, const MathVector<dim>& x,number time)> T;
-		string name = string("User").append(type).append(dimSuffix);
-		reg.add_class_<T>(name, grp);
-	    reg.add_class_to_group(name, string("User").append(type), dimTag);
-	}
-
-//	UserBoundary"Type"
-	{
-		typedef boost::function<bool (TData& res, const MathVector<dim>& x,number time)> T;
-		string name = string("UserBoundary").append(type).append(dimSuffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, string("UserBoundary").append(type), dimTag);
-	}
-
 //	DependentIPData"Type"
 	{
 		typedef DependentIPData<TData, dim> T;
@@ -581,9 +464,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 	{
 		typedef ConstUserNumber<dim> T;
 		typedef IPData<number, dim> TBase;
-		typedef boost::function<void (number& res, const MathVector<dim>& x,number time)> TBase2;
 		string name = string("ConstUserNumber").append(dimSuffix);
-		reg.add_class_<T, TBase, TBase2>(name, grp)
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("Value")
 			.add_method("set", &T::set, "", "Value")
@@ -596,9 +478,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 	{
 		typedef ConstUserVector<dim> T;
 		typedef IPData<MathVector<dim>, dim> TBase;
-		typedef boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)> TBase2;
 		string name = string("ConstUserVector").append(dimSuffix);
-		reg.add_class_<T, TBase, TBase2>(name, grp)
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("Values")
 			.add_method("set_all_entries", &T::set_all_entries)
@@ -612,9 +493,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 	{
 		typedef ConstUserMatrix<dim> T;
 		typedef IPData<MathMatrix<dim, dim>, dim> TBase;
-		typedef boost::function<void (MathMatrix<dim, dim>& res, const MathVector<dim>& x,number time)> TBase2;
 		string name = string("ConstUserMatrix").append(dimSuffix);
-		reg.add_class_<T, TBase, TBase2>(name, grp)
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("Diagonal Value")
 			.add_method("set_diag_tensor", &T::set_diag_tensor)
@@ -628,7 +508,7 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 //	ConstBoundaryNumber
 	{
 		typedef ConstBoundaryNumber<dim> T;
-		typedef boost::function<bool (number& res, const MathVector<dim>& x, number time)> TBase;
+		typedef IPData<MathMatrix<dim, dim>, dim, bool> TBase;
 		string name = string("ConstBoundaryNumber").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -682,23 +562,6 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 #endif
 #ifdef UG_DIM_3
 	RegisterUserData<3>(reg, grp);
-#endif
-
-#ifdef UG_DIM_2
-//	Elder Boundary Data for 2D
-	{
-		typedef ElderConcentrationBoundaryData2d T;
-		typedef boost::function<bool (number& res, const MathVector<2>& x, number time)> TBase;
-		reg.add_class_<T, TBase>("ElderConcentrationBoundaryData2d", grp)
-			.add_constructor();
-	}
-	{
-		typedef ElderPressureBoundaryData2d T;
-		typedef boost::function<bool (number& res, const MathVector<2>& x, number time)> TBase;
-		reg.add_class_<T, TBase>("ElderPressureBoundaryData2d", grp)
-			.add_constructor();
-	}
-
 #endif
 
 	reg.add_class_<IFunction<number> >("IFunctionNumber", grp);

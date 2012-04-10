@@ -89,16 +89,14 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 
 //	LagrangeDirichletBoundary
 	{
-		typedef boost::function<bool (number& value, const MathVector<dim>& x, number time)> BNDNumberFunctor;
-		typedef boost::function<void (number& value, const MathVector<dim>& x, number time)> NumberFunctor;
 		typedef LagrangeDirichletBoundary<TDomain, TAlgebra> T;
 		typedef IDomainConstraint<TDomain, TAlgebra> TBase;
 		string name = string("DirichletBoundary").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.add_constructor()
-			.add_method("add", static_cast<void (T::*)(BNDNumberFunctor&, const char*, const char*)>(&T::add),
+			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim, bool> >, const char*, const char*)>(&T::add),
 						"Success", "Value#Function#Subsets")
-			.add_method("add", static_cast<void (T::*)(NumberFunctor&, const char*, const char*)>(&T::add),
+			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >, const char*, const char*)>(&T::add),
 						"Success", "Value#Function#Subsets")
 			.add_method("add",static_cast<void (T::*)(number, const char*, const char*)>(&T::add),
 						"Success", "Constant Value#Function#Subsets")

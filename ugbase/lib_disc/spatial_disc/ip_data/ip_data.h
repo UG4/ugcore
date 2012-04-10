@@ -240,7 +240,7 @@ class IPData : public IIPDimData<dim>
 			{check_series_ip(s,ip); return m_vvBoolFlag[s][ip];}
 
 	///	returns value for a position
-		virtual TRet operator() (TData& D, const MathVector<dim>& x, number time);
+		virtual TRet operator() (TData& D, const MathVector<dim>& x, number time) const;
 
 	///	destructor
 		~IPData() {local_ip_series_to_be_cleared();}
