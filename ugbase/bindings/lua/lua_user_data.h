@@ -178,7 +178,7 @@ class LuaUserData
 		virtual ~LuaUserData()
 		{
 		//	free reference to callback
-			luaL_unref(m_L, LUA_REGISTYINDEX, m_callbackRef);
+			luaL_unref(m_L, LUA_REGISTRYINDEX, m_callbackRef);
 		}
 
 	///	evaluates the data at a given point and time
@@ -282,7 +282,7 @@ class LuaBoundaryData
 		virtual ~LuaBoundaryData()
 		{
 		//	free reference to callback
-			luaL_unref(m_L, LUA_REGISTYINDEX, m_callbackRef);
+			luaL_unref(m_L, LUA_REGISTRYINDEX, m_callbackRef);
 		}
 
 	///	evaluates the data at a given point and time
@@ -407,7 +407,7 @@ class LuaUserFunction
 		void free_callback_ref()
 		{
 			if(m_cbValueRef != LUA_NOREF){
-				luaL_unref(m_L, LUA_REGISTYINDEX, m_cbValueRef);
+				luaL_unref(m_L, LUA_REGISTRYINDEX, m_cbValueRef);
 				m_cbValueRef = LUA_NOREF;
 			}
 		}
@@ -415,9 +415,9 @@ class LuaUserFunction
 	///	frees callback-references for derivate callbacks
 		void free_deriv_callback_ref(size_t arg)
 		{
-			if(m_cbDerivName[arg] != LUA_NOREF){
-				luaL_unref(m_L, LUA_REGISTYINDEX, m_cbDerivName[arg]);
-				m_cbDerivName[arg] = LUA_NOREF;
+			if(m_cbDerivRef[arg] != LUA_NOREF){
+				luaL_unref(m_L, LUA_REGISTRYINDEX, m_cbDerivRef[arg]);
+				m_cbDerivRef[arg] = LUA_NOREF;
 			}
 		}
 
