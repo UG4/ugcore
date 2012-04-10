@@ -2,15 +2,13 @@
 //	martin.rupp@gcsc.uni-frankfurt.de
 //	y10 m10 d27
 
-/**	\page pageLAOverview libAlgebra - Overview
+/** \page pageLAOverview libAlgebra
 
-	- \ref secSmallAlgebra "Small Algebra"
-	- \ref secCPUAlgebra "(Sparse) CPU Algebra"
-	- \ref secOperators "Operators"
-	- \ref secParallelization "Algebra Parallelization"	
-	- \ref secLAPACKIntegration "LAPACK Integration"
-	
-<br>
+- \ref secSmallAlgebra
+- \ref secCPUAlgebra
+- \ref secOperators
+- \ref secParallelization
+- \ref secLAPACKIntegration
 
 For any questions, contact martin.rupp@gcsc.uni-frankfurt.de .
 
@@ -94,7 +92,7 @@ describe with index on the each process represent the same vector entry.
 <br>
 
 <hr>
-\section secLAPACKIntegration Lapack Integration
+\section secLAPACKIntegration LAPACK Integration
 <hr>
 
 UG4 is designed to find all LAPACK/BLAS packages via cmake. It is tested on MacOSX (vecLib Framework) and
