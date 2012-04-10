@@ -17,33 +17,53 @@ namespace ug{
 //	setup
 ////////////////////////////////////////////////////////////////////////////////
 
+template <typename TDomain, typename TAlgebra>
+void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
+{
+	base_type::set_approximation_space(approxSpace);
+	m_spApproxSpace = approxSpace;
+	m_spDomain = approxSpace->domain();
+	m_aaPos = m_spDomain->position_accessor();
+}
+
+template <typename TDomain, typename TAlgebra>
+void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+clear()
+{
+	m_vBNDNumberData.clear();
+	m_vNumberData.clear();
+	m_vConstNumberData.clear();
+	m_vVectorData.clear();
+}
+
 
 template <typename TDomain, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
 add(BNDNumberFunctor& func, const char* function, const char* subsets)
 {
-	m_vScheduledBNDNumberData.push_back(ScheduledBNDNumberData(func, function, subsets));
+	m_vBNDNumberData.push_back(BNDNumberData(func, function, subsets));
 }
 
 template <typename TDomain, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
 add(NumberFunctor& func, const char* function, const char* subsets)
 {
-	m_vScheduledNumberData.push_back(ScheduledNumberData(func, function, subsets));
+	m_vNumberData.push_back(NumberData(func, function, subsets));
 }
 
 template <typename TDomain, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
 add(number value, const char* function, const char* subsets)
 {
-	m_vScheduledConstNumberData.push_back(ScheduledConstNumberData(value, function, subsets));
+	m_vConstNumberData.push_back(ConstNumberData(value, function, subsets));
 }
 
 template <typename TDomain, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
 add(VectorFunctor& func, const char* functions, const char* subsets)
 {
-	m_vScheduledVectorData.push_back(ScheduledVectorData(func, functions, subsets));
+	m_vVectorData.push_back(VectorData(func, functions, subsets));
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -52,7 +72,7 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 {
 //	only number of functions allowed
 	if(functionGroup.num_fct() != numFct)
-		UG_THROW_FATAL("LagrangeDirichletBoundary:extract_scheduled_data:"
+		UG_THROW_FATAL("LagrangeDirichletBoundary:extract_data:"
 					" Only "<<numFct<<" function(s) allowed in specification of a"
 					" Dirichlet Value, but the following functions given:"
 					<<functionGroup);
@@ -68,7 +88,7 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 
 	//	check that subsetIndex is valid
 		if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
-			UG_THROW_FATAL("LagrangeDirichletBoundary:extract_scheduled_data:"
+			UG_THROW_FATAL("LagrangeDirichletBoundary:extract_data:"
 							" Invalid Subset Index " << subsetIndex << ". (Valid is"
 							" 0, .. , " << pSH->num_subsets() <<").");
 
@@ -79,12 +99,12 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 
 		// 	check if function exist
 			if(fct >= m_spApproxSpace->function_pattern()->num_fct())
-				UG_THROW_FATAL("LagrangeDirichletBoundary:extract_scheduled_data:"
+				UG_THROW_FATAL("LagrangeDirichletBoundary:extract_data:"
 							" Function "<< fct << " does not exist in pattern.");
 
 		// 	check that function is defined for segment
 			if(!m_spApproxSpace->function_pattern()->is_def_in_subset(fct, subsetIndex))
-				UG_THROW_FATAL("LagrangeDirichletBoundary:extract_scheduled_data:"
+				UG_THROW_FATAL("LagrangeDirichletBoundary:extract_data:"
 								" Function "<<fct<<" not defined on subset "<<subsetIndex);
 		}
 	}
@@ -95,41 +115,44 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TScheduledUserData>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegment,
-                       const std::vector<TScheduledUserData>& vScheduledUserData)
+extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
+             std::vector<TScheduledUserData>& vUserData)
 {
 //	clear the extracted data
 	mvUserDataBndSegment.clear();
 
-	for(size_t i = 0; i < vScheduledUserData.size(); ++i)
+	for(size_t i = 0; i < vUserData.size(); ++i)
 	{
 	//	create Function Group and Subset Group
-		SubsetGroup ssGrp;
 		try{
-			ssGrp = m_spApproxSpace->subset_grp_by_name(vScheduledUserData[i].ssName.c_str());
-		}UG_CATCH_THROW(" Subsets '"<<vScheduledUserData[i].ssName<<"' not"
+			vUserData[i].ssGrp = m_spApproxSpace->subset_grp_by_name(vUserData[i].ssName.c_str());
+		}UG_CATCH_THROW(" Subsets '"<<vUserData[i].ssName<<"' not"
 		                " all contained in ApproximationSpace.");
 
 		FunctionGroup fctGrp;
 		try{
-			fctGrp = m_spApproxSpace->fct_grp_by_name(vScheduledUserData[i].fctName.c_str());
-		}UG_CATCH_THROW(" Functions '"<<vScheduledUserData[i].fctName<<"' not"
+			fctGrp = m_spApproxSpace->fct_grp_by_name(vUserData[i].fctName.c_str());
+		}UG_CATCH_THROW(" Functions '"<<vUserData[i].fctName<<"' not"
 		                " all contained in ApproximationSpace.");
 
 	//	check functions and subsets
-		check_functions_and_subsets(fctGrp, ssGrp, TUserData::numFct);
+		check_functions_and_subsets(fctGrp, vUserData[i].ssGrp, TUserData::numFct);
+
+	//	set functions
+		UG_ASSERT(fctGrp.size() == TUserData::numFct, "wrong number of fct");
+		for(size_t fct = 0; fct < TUserData::numFct; ++fct)
+		{
+			vUserData[i].fct[fct] = fctGrp[fct];
+		}
 
 	// 	loop subsets
-		for(size_t si = 0; si < ssGrp.num_subsets(); ++si)
+		for(size_t si = 0; si < vUserData[i].ssGrp.size(); ++si)
 		{
 		//	get subset index and function
-			const int subsetIndex = ssGrp[si];
-
-		//	get Boundary segment from map
-			std::vector<TUserData>& vSegmentFunction = mvUserDataBndSegment[subsetIndex];
+			const int subsetIndex = vUserData[i].ssGrp[si];
 
 		//	remember functor and function
-			vSegmentFunction.push_back(TUserData(fctGrp, vScheduledUserData[i].functor));
+			mvUserDataBndSegment[subsetIndex].push_back(&vUserData[i]);
 		}
 	}
 }
@@ -137,17 +160,17 @@ extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegm
 
 template <typename TDomain, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-extract_scheduled_data()
+extract_data()
 {
 //	check that function pattern exists
 	if(!m_spApproxSpace.valid())
-		UG_THROW_FATAL("LagrangeDirichletBoundary:extract_scheduled_data: "
+		UG_THROW_FATAL("LagrangeDirichletBoundary:extract_data: "
 				" Approximation Space not set.");
 
-	extract_scheduled_data(m_mNumberBndSegment, m_vScheduledNumberData);
-	extract_scheduled_data(m_mBNDNumberBndSegment, m_vScheduledBNDNumberData);
-	extract_scheduled_data(m_mConstNumberBndSegment, m_vScheduledConstNumberData);
-	extract_scheduled_data(m_mVectorBndSegment, m_vScheduledVectorData);
+	extract_data(m_mNumberBndSegment, m_vNumberData);
+	extract_data(m_mBNDNumberBndSegment, m_vBNDNumberData);
+	extract_data(m_mConstNumberBndSegment, m_vConstNumberData);
+	extract_data(m_mVectorBndSegment, m_vVectorData);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -159,7 +182,7 @@ template <typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
 assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 {
-	extract_scheduled_data();
+	extract_data();
 
 //	loop boundary subsets
 	typename std::map<int, std::vector<BNDNumberData> >::const_iterator iter;
@@ -220,7 +243,7 @@ template <typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<TDD> dd, number time)
 {
-	extract_scheduled_data();
+	extract_data();
 
 	adjust_jacobian<BNDNumberData, TDD>(m_mBNDNumberBndSegment, J, u, dd, time);
 	adjust_jacobian<NumberData, TDD>(m_mNumberBndSegment, J, u, dd, time);
@@ -233,19 +256,19 @@ adjust_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<TDD> dd, num
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-adjust_jacobian(const std::map<int, std::vector<TUserData> >& mvUserData,
+adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
                 matrix_type& J, const vector_type& u,
            	    ConstSmartPtr<TDD> dd, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<TUserData> >::const_iterator iter;
+	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
 	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
 	{
 	//	get subset index
 		const int si = (*iter).first;
 
 	//	get vector of scheduled dirichlet data on this subset
-		const std::vector<TUserData>& vUserData = (*iter).second;
+		const std::vector<TUserData*>& vUserData = (*iter).second;
 
 	//	adapt jacobian for dofs in each base element type
 		try
@@ -267,7 +290,7 @@ adjust_jacobian(const std::map<int, std::vector<TUserData> >& mvUserData,
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData, typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
+adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
                 matrix_type& J, const vector_type& u,
            	    ConstSmartPtr<TDD> dd, number time)
 {
@@ -297,7 +320,7 @@ adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
 			for(size_t f = 0; f < TUserData::numFct; ++f)
 			{
 			//	get function index
-				const size_t fct = vUserData[i].fct[f];
+				const size_t fct = vUserData[i]->fct[f];
 
 			//	get local finite element id
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
@@ -316,7 +339,7 @@ adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
 				{
 				// 	check if function is dirichlet
 					if(TUserData::isConditional){
-						if(!vUserData[i](val, vPos[j], time)) continue;
+						if(!(*vUserData[i])(val, vPos[j], time)) continue;
 					}
 
 				//	set dirichlet row
@@ -337,7 +360,7 @@ void LagrangeDirichletBoundary<TDomain, TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
               ConstSmartPtr<TDD> dd, number time)
 {
-	extract_scheduled_data();
+	extract_data();
 
 	adjust_defect<BNDNumberData, TDD>(m_mBNDNumberBndSegment, d, u, dd, time);
 	adjust_defect<NumberData, TDD>(m_mNumberBndSegment, d, u, dd, time);
@@ -350,19 +373,19 @@ adjust_defect(vector_type& d, const vector_type& u,
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-adjust_defect(const std::map<int, std::vector<TUserData> >& mvUserData,
+adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
                vector_type& d, const vector_type& u,
                ConstSmartPtr<TDD> dd, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<TUserData> >::const_iterator iter;
+	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
 	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
 	{
 	//	get subset index
 		const int si = (*iter).first;
 
 	//	get vector of scheduled dirichlet data on this subset
-		const std::vector<TUserData>& vUserData = (*iter).second;
+		const std::vector<TUserData*>& vUserData = (*iter).second;
 
 	//	adapt jacobian for dofs in each base element type
 		try
@@ -384,7 +407,7 @@ adjust_defect(const std::map<int, std::vector<TUserData> >& mvUserData,
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData, typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-adjust_defect(const std::vector<TUserData>& vUserData, int si,
+adjust_defect(const std::vector<TUserData*>& vUserData, int si,
               vector_type& d, const vector_type& u,
               ConstSmartPtr<TDD> dd, number time)
 {
@@ -414,7 +437,7 @@ adjust_defect(const std::vector<TUserData>& vUserData, int si,
 			for(size_t f = 0; f < TUserData::numFct; ++f)
 			{
 			//	get function index
-				const size_t fct = vUserData[i].fct[f];
+				const size_t fct = vUserData[i]->fct[f];
 
 			//	get local finite element id
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
@@ -434,7 +457,7 @@ adjust_defect(const std::vector<TUserData>& vUserData, int si,
 				{
 				// 	check if function is dirichlet
 					if(TUserData::isConditional){
-						if(!vUserData[i](val, vPos[j], time)) continue;
+						if(!(*vUserData[i])(val, vPos[j], time)) continue;
 					}
 
 				//	set zero for dirichlet values
@@ -454,7 +477,7 @@ template <typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd, number time)
 {
-	extract_scheduled_data();
+	extract_data();
 
 	adjust_solution<BNDNumberData, TDD>(m_mBNDNumberBndSegment, u, dd, time);
 	adjust_solution<NumberData, TDD>(m_mNumberBndSegment, u, dd, time);
@@ -467,18 +490,18 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd, number time)
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-adjust_solution(const std::map<int, std::vector<TUserData> >& mvUserData,
+adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
                 vector_type& u, ConstSmartPtr<TDD> dd, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<TUserData> >::const_iterator iter;
+	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
 	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
 	{
 	//	get subset index
 		const int si = (*iter).first;
 
 	//	get vector of scheduled dirichlet data on this subset
-		const std::vector<TUserData>& vUserData = (*iter).second;
+		const std::vector<TUserData*>& vUserData = (*iter).second;
 
 	//	adapt jacobian for dofs in each base element type
 		try
@@ -500,7 +523,7 @@ adjust_solution(const std::map<int, std::vector<TUserData> >& mvUserData,
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData, typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-adjust_solution(const std::vector<TUserData>& vUserData, int si,
+adjust_solution(const std::vector<TUserData*>& vUserData, int si,
                 vector_type& u, ConstSmartPtr<TDD> dd, number time)
 {
 //	create Multiindex
@@ -529,7 +552,7 @@ adjust_solution(const std::vector<TUserData>& vUserData, int si,
 			for(size_t f = 0; f < TUserData::numFct; ++f)
 			{
 			//	get function index
-				const size_t fct = vUserData[i].fct[f];
+				const size_t fct = vUserData[i]->fct[f];
 
 			//	get local finite element id
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
@@ -546,7 +569,7 @@ adjust_solution(const std::vector<TUserData>& vUserData, int si,
 				for(size_t j = 0; j < multInd.size(); ++j)
 				{
 				//  get dirichlet value
-					if(!vUserData[i](val, vPos[j], time)) continue;
+					if(!(*vUserData[i])(val, vPos[j], time)) continue;
 
 				//	set zero for dirichlet values
 					BlockRef(u[multInd[j][0]], multInd[j][1]) = val[f];
@@ -566,7 +589,7 @@ void LagrangeDirichletBoundary<TDomain, TAlgebra>::
 adjust_linear(matrix_type& A, vector_type& b,
               ConstSmartPtr<TDD> dd, number time)
 {
-	extract_scheduled_data();
+	extract_data();
 
 	adjust_linear<BNDNumberData, TDD>(m_mBNDNumberBndSegment, A, b, dd, time);
 	adjust_linear<NumberData, TDD>(m_mNumberBndSegment, A, b, dd, time);
@@ -579,19 +602,19 @@ adjust_linear(matrix_type& A, vector_type& b,
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
+adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
               matrix_type& A, vector_type& b,
            	  ConstSmartPtr<TDD> dd, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<TUserData> >::const_iterator iter;
+	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
 	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
 	{
 	//	get subset index
 		const int si = (*iter).first;
 
 	//	get vector of scheduled dirichlet data on this subset
-		const std::vector<TUserData>& vUserData = (*iter).second;
+		const std::vector<TUserData*>& vUserData = (*iter).second;
 
 	//	adapt jacobian for dofs in each base element type
 		try
@@ -613,7 +636,7 @@ adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData, typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-adjust_linear(const std::vector<TUserData>& vUserData, int si,
+adjust_linear(const std::vector<TUserData*>& vUserData, int si,
               matrix_type& A, vector_type& b,
               ConstSmartPtr<TDD> dd, number time)
 {
@@ -643,7 +666,7 @@ adjust_linear(const std::vector<TUserData>& vUserData, int si,
 			for(size_t f = 0; f < TUserData::numFct; ++f)
 			{
 			//	get function index
-				const size_t fct = vUserData[i].fct[f];
+				const size_t fct = vUserData[i]->fct[f];
 
 			//	get local finite element id
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
@@ -661,7 +684,7 @@ adjust_linear(const std::vector<TUserData>& vUserData, int si,
 				for(size_t j = 0; j < multInd.size(); ++j)
 				{
 				// 	check if function is dirichlet and read value
-					if(!vUserData[i](val, vPos[j], time)) continue;
+					if(!(*vUserData[i])(val, vPos[j], time)) continue;
 
 					const size_t index = multInd[j][0];
 					const size_t alpha = multInd[j][1];
@@ -687,7 +710,7 @@ void LagrangeDirichletBoundary<TDomain, TAlgebra>::
 adjust_rhs(vector_type& b, const vector_type& u,
            ConstSmartPtr<TDD> dd, number time)
 {
-	extract_scheduled_data();
+	extract_data();
 
 	adjust_rhs<BNDNumberData, TDD>(m_mBNDNumberBndSegment, b, u, dd, time);
 	adjust_rhs<NumberData, TDD>(m_mNumberBndSegment, b, u, dd, time);
@@ -700,19 +723,19 @@ adjust_rhs(vector_type& b, const vector_type& u,
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-adjust_rhs(const std::map<int, std::vector<TUserData> >& mvUserData,
+adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
            vector_type& b, const vector_type& u,
            ConstSmartPtr<TDD> dd, number time)
 {
 //	loop boundary subsets
-	typename std::map<int, std::vector<TUserData> >::const_iterator iter;
+	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
 	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
 	{
 	//	get subset index
 		const int si = (*iter).first;
 
 	//	get vector of scheduled dirichlet data on this subset
-		const std::vector<TUserData>& vUserData = (*iter).second;
+		const std::vector<TUserData*>& vUserData = (*iter).second;
 
 	//	adapt jacobian for dofs in each base element type
 		try
@@ -734,7 +757,7 @@ adjust_rhs(const std::map<int, std::vector<TUserData> >& mvUserData,
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData, typename TDD>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
-adjust_rhs(const std::vector<TUserData>& vUserData, int si,
+adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
            vector_type& b, const vector_type& u,
            ConstSmartPtr<TDD> dd, number time)
 {
@@ -764,7 +787,7 @@ adjust_rhs(const std::vector<TUserData>& vUserData, int si,
 			for(size_t f = 0; f < TUserData::numFct; ++f)
 			{
 			//	get function index
-				const size_t fct = vUserData[i].fct[f];
+				const size_t fct = vUserData[i]->fct[f];
 
 			//	get local finite element id
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
@@ -781,7 +804,7 @@ adjust_rhs(const std::vector<TUserData>& vUserData, int si,
 				for(size_t j = 0; j < multInd.size(); ++j)
 				{
 				// 	check if function is dirichlet and read value
-					if(!vUserData[i](val, vPos[j], time)) continue;
+					if(!(*vUserData[i])(val, vPos[j], time)) continue;
 
 					const size_t index = multInd[j][0];
 					const size_t alpha = multInd[j][1];

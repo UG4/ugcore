@@ -79,22 +79,10 @@ class LagrangeDirichletBoundary
 		void add(VectorFunctor& func, const char* functions, const char* subsets);
 
 	///	sets the approximation space to work on
-		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
-		{
-			base_type::set_approximation_space(approxSpace);
-			m_spApproxSpace = approxSpace;
-			m_spDomain = approxSpace->domain();
-			m_aaPos = m_spDomain->position_accessor();
-		}
+		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
 	///	removes all scheduled dirichlet data.
-		void clear()
-		{
-			m_vScheduledBNDNumberData.clear();
-			m_vScheduledNumberData.clear();
-			m_vScheduledConstNumberData.clear();
-			m_vScheduledVectorData.clear();
-		}
+		void clear();
 
 	///	Sets dirichlet rows for all registered dirichlet values
 	/**	(implemented by Mr. Xylouris and Mr. Reiter)
@@ -152,57 +140,57 @@ class LagrangeDirichletBoundary
 		void check_functions_and_subsets(FunctionGroup& functionGroup,
 		                                 SubsetGroup& subsetGroup, size_t numFct) const;
 
-		void extract_scheduled_data();
+		void extract_data();
 
 		template <typename TUserData, typename TScheduledUserData>
-		void extract_scheduled_data(std::map<int, std::vector<TUserData> >& mvUserDataBndSegment,
-		                            const std::vector<TScheduledUserData>& vScheduledUserData);
+		void extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
+		                  std::vector<TScheduledUserData>& vUserData);
 
 		template <typename TUserData, typename TDD>
-		void adjust_jacobian(const std::map<int, std::vector<TUserData> >& mvUserData,
+		void adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                     matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<TDD> dd, number time);
 
 		template <typename TBaseElem, typename TUserData, typename TDD>
-		void adjust_jacobian(const std::vector<TUserData>& vUserData, int si,
+		void adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 		                     matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<TDD> dd, number time);
 
 		template <typename TUserData, typename TDD>
-		void adjust_defect(const std::map<int, std::vector<TUserData> >& mvUserData,
+		void adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                   vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<TDD> dd, number time);
 
 		template <typename TBaseElem, typename TUserData, typename TDD>
-		void adjust_defect(const std::vector<TUserData>& vUserData, int si,
+		void adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 		                   vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<TDD> dd, number time);
 
 		template <typename TUserData, typename TDD>
-		void adjust_solution(const std::map<int, std::vector<TUserData> >& mvUserData,
+		void adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                     vector_type& u, ConstSmartPtr<TDD> dd, number time);
 
 		template <typename TBaseElem, typename TUserData, typename TDD>
-		void adjust_solution(const std::vector<TUserData>& vUserData, int si,
+		void adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 		                     vector_type& u, ConstSmartPtr<TDD> dd, number time);
 
 		template <typename TUserData, typename TDD>
-		void adjust_linear(const std::map<int, std::vector<TUserData> >& mvUserData,
+		void adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                   matrix_type& A, vector_type& b,
 		                   ConstSmartPtr<TDD> dd, number time);
 
 		template <typename TBaseElem, typename TUserData, typename TDD>
-		void adjust_linear(const std::vector<TUserData>& vUserData, int si,
+		void adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 		                   matrix_type& A, vector_type& b,
 		                   ConstSmartPtr<TDD> dd, number time);
 
 		template <typename TUserData, typename TDD>
-		void adjust_rhs(const std::map<int, std::vector<TUserData> >& mvUserData,
+		void adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                vector_type& b, const vector_type& u,
 		                ConstSmartPtr<TDD> dd, number time);
 
 		template <typename TBaseElem, typename TUserData, typename TDD>
-		void adjust_rhs(const std::vector<TUserData>& vUserData, int si,
+		void adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 		                vector_type& b, const vector_type& u,
 		                ConstSmartPtr<TDD> dd, number time);
 
@@ -213,18 +201,21 @@ class LagrangeDirichletBoundary
 			const static bool isConditional = false;
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
-			NumberData(const FunctionGroup& fcts_, NumberFunctor functor_)
-				: functor(functor_)
-			{
-				UG_ASSERT(fcts_.num_fct()==numFct, "Must be exactly numFct functions.");
-				for(size_t i=0;i<numFct; ++i) fct[i]=fcts_[i];
-			}
+			NumberData(NumberFunctor functor_,
+			           std::string fctName_, std::string ssName_)
+				: functor(functor_), fctName(fctName_), ssName(ssName_)
+			{}
+
 			bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
 			{
 				functor(val[0], x, time); return true;
 			}
-			size_t fct[numFct];
+
 			NumberFunctor functor;
+			std::string fctName;
+			std::string ssName;
+			size_t fct[numFct];
+			SubsetGroup ssGrp;
 		};
 
 	///	grouping for subset and conditional data
@@ -233,18 +224,20 @@ class LagrangeDirichletBoundary
 			const static bool isConditional = true;
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
-			BNDNumberData(const FunctionGroup& fcts_, BNDNumberFunctor functor_)
-				: functor(functor_)
-			{
-				UG_ASSERT(fcts_.num_fct()==numFct, "Must be exactly numFct functions.");
-				for(size_t i=0;i<numFct; ++i) fct[i]=fcts_[i];
-			}
+			BNDNumberData(BNDNumberFunctor functor_,
+			              std::string fctName_, std::string ssName_)
+				: functor(functor_), fctName(fctName_), ssName(ssName_)
+			{}
 			bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
 			{
 				return functor(val[0], x, time);
 			}
-			size_t fct[numFct];
+
 			BNDNumberFunctor functor;
+			std::string fctName;
+			std::string ssName;
+			size_t fct[numFct];
+			SubsetGroup ssGrp;
 		};
 
 	///	grouping for subset and conditional data
@@ -253,18 +246,20 @@ class LagrangeDirichletBoundary
 			const static bool isConditional = false;
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
-			ConstNumberData(const FunctionGroup& fcts_, number value_)
-				: functor(value_)
-			{
-				UG_ASSERT(fcts_.num_fct()==numFct, "Must be exactly numFct functions.");
-				for(size_t i=0;i<numFct; ++i) fct[i]=fcts_[i];
-			}
+			ConstNumberData(number value_,
+			              std::string fctName_, std::string ssName_)
+				: functor(value_), fctName(fctName_), ssName(ssName_)
+			{}
 			inline bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
 			{
 				val[0] = functor; return true;
 			}
-			size_t fct[numFct];
+
 			number functor;
+			std::string fctName;
+			std::string ssName;
+			size_t fct[numFct];
+			SubsetGroup ssGrp;
 		};
 
 	///	grouping for subset and non-conditional data
@@ -273,77 +268,39 @@ class LagrangeDirichletBoundary
 			const static bool isConditional = false;
 			const static size_t numFct = dim;
 			typedef MathVector<dim> value_type;
-			VectorData(const FunctionGroup& fcts_, VectorFunctor functor_)
-				: functor(functor_)
-			{
-				UG_ASSERT(fcts_.num_fct()==numFct, "Must be exactly numFct functions.");
-				for(size_t i=0;i<numFct; ++i) fct[i]=fcts_[i];
-			}
+			VectorData(VectorFunctor value_,
+			           std::string fctName_, std::string ssName_)
+				: functor(value_), fctName(fctName_), ssName(ssName_)
+			{}
 			bool operator()(MathVector<dim>& val, const MathVector<dim> x, number time) const
 			{
 				functor(val, x, time); return true;
 			}
+
+			VectorFunctor functor;
+			std::string fctName;
+			std::string ssName;
 			size_t fct[numFct];
-			VectorFunctor functor;
+			SubsetGroup ssGrp;
 		};
 
-	///	to remember the scheduled data
-		struct ScheduledBNDNumberData
-		{
-			ScheduledBNDNumberData(BNDNumberFunctor functor_,
-								   std::string fctName_, std::string ssName_)
-				: functor(functor_), fctName(fctName_), ssName(ssName_)
-			{}
+		std::vector<BNDNumberData> m_vBNDNumberData;
+		std::vector<NumberData> m_vNumberData;
+		std::vector<ConstNumberData> m_vConstNumberData;
 
-			BNDNumberFunctor functor;
-			std::string fctName;
-			std::string ssName;
-		};
+		std::vector<VectorData> m_vVectorData;
 
-	///	to remember the scheduled data
-		struct ScheduledNumberData
-		{
-			ScheduledNumberData(NumberFunctor functor_,
-			                    std::string fctName_, std::string ssName_)
-				: functor(functor_), fctName(fctName_), ssName(ssName_)
-			{}
+	///	non-conditional boundary values for all subsets
+		std::map<int, std::vector<NumberData*> > m_mNumberBndSegment;
 
-			NumberFunctor functor;
-			std::string fctName;
-			std::string ssName;
-		};
+	///	constant boundary values for all subsets
+		std::map<int, std::vector<ConstNumberData*> > m_mConstNumberBndSegment;
 
-	///	to remember the scheduled data
-		struct ScheduledConstNumberData
-		{
-			ScheduledConstNumberData(number value_,
-			                         std::string fctName_, std::string ssName_)
-				: functor(value_), fctName(fctName_), ssName(ssName_)
-			{}
+	///	conditional boundary values for all subsets
+		std::map<int, std::vector<BNDNumberData*> > m_mBNDNumberBndSegment;
 
-			number functor;
-			std::string fctName;
-			std::string ssName;
-		};
-
-	///	to remember the scheduled data
-		struct ScheduledVectorData
-		{
-			ScheduledVectorData(VectorFunctor functor_,
-								std::string fctName_, std::string ssName_)
-				: functor(functor_), fctName(fctName_), ssName(ssName_)
-			{}
-
-			VectorFunctor functor;
-			std::string fctName;
-			std::string ssName;
-		};
-
-		std::vector<ScheduledBNDNumberData> m_vScheduledBNDNumberData;
-		std::vector<ScheduledNumberData> m_vScheduledNumberData;
-		std::vector<ScheduledConstNumberData> m_vScheduledConstNumberData;
-
-		std::vector<ScheduledVectorData> m_vScheduledVectorData;
+	///	non-conditional boundary values for all subsets
+		std::map<int, std::vector<VectorData*> > m_mVectorBndSegment;
 
 	protected:
 	///	current ApproxSpace
@@ -354,18 +311,6 @@ class LagrangeDirichletBoundary
 
 	///	current position accessor
 		typename domain_type::position_accessor_type m_aaPos;
-
-	///	non-conditional boundary values for all subsets
-		std::map<int, std::vector<NumberData> > m_mNumberBndSegment;
-
-	///	constant boundary values for all subsets
-		std::map<int, std::vector<ConstNumberData> > m_mConstNumberBndSegment;
-
-	///	conditional boundary values for all subsets
-		std::map<int, std::vector<BNDNumberData> > m_mBNDNumberBndSegment;
-
-	///	non-conditional boundary values for all subsets
-		std::map<int, std::vector<VectorData> > m_mVectorBndSegment;
 };
 
 } // end namespace ug
