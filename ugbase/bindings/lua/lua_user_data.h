@@ -65,6 +65,36 @@ template <typename TData>
 struct lua_traits;
 
 template <>
+struct lua_traits<void>
+{
+	static void push(lua_State*	L, const bool&){}
+
+	static void read(lua_State* L, bool&, int index = -1){}
+
+	static void do_return(const bool&) {return;}
+
+	static const int size = 0;
+};
+
+template <>
+struct lua_traits<bool>
+{
+	static void push(lua_State*	L, const bool& b)
+	{
+		lua_pushboolean(L, b);
+	}
+
+	static void read(lua_State* L, bool& b, int index = -1)
+	{
+		b =  ReturnValueToBool(L, index);
+	}
+
+	static bool do_return(const bool& b) {return b;}
+
+	static const int size = 1;
+};
+
+template <>
 struct lua_traits<number>
 {
 	static void push(lua_State*	L, const number& c)
@@ -72,9 +102,9 @@ struct lua_traits<number>
 		lua_pushnumber(L, c);
 	}
 
-	static void read(lua_State* L, number& c)
+	static void read(lua_State* L, number& c, int index = -1)
 	{
-		c = ReturnValueToNumber(L, -1);
+		c = ReturnValueToNumber(L, index);
 	}
 
 	static const int size = 1;
@@ -89,11 +119,10 @@ struct lua_traits< ug::MathVector<dim> >
 			lua_pushnumber(L, x[i]);
 	}
 
-	static void read(lua_State* L, MathVector<dim>& x)
+	static void read(lua_State* L, MathVector<dim>& x, int index = -1)
 	{
-		int counter = -1;
 		for(size_t i = 0; i < dim; ++i){
-				x[dim-1-i] = ReturnValueToNumber(L, counter--);
+				x[dim-1-i] = ReturnValueToNumber(L, index--);
 		}
 	}
 
@@ -114,12 +143,11 @@ struct lua_traits< MathMatrix<dim, dim> >
 
 	}
 
-	static void read(lua_State* L, MathMatrix<dim, dim>& D)
+	static void read(lua_State* L, MathMatrix<dim, dim>& D, int index = -1)
 	{
-		int counter = -1;
 		for(size_t i = 0; i < dim; ++i){
 			for(size_t j = 0; j < dim; ++j){
-				D[dim-1-j][dim-1-i] = ReturnValueToNumber(L, counter--);
+				D[dim-1-j][dim-1-i] = ReturnValueToNumber(L, index--);
 			}
 		}
 	}
@@ -136,16 +164,16 @@ struct lua_traits< MathMatrix<dim, dim> >
  * This class implements the IPData interface to provide data at arbitrary
  * points. A Lua callback is used to evaluate the data.
  */
-template <typename TData, int dim>
+template <typename TData, int dim, typename TRet = void>
 class LuaUserData
-	: public IPData<TData, dim>,
-	  public boost::function<void (TData& res, const MathVector<dim>& x,number time)>
+	: public IPData<TData, dim, TRet>,
+	  public boost::function<TRet (TData& res, const MathVector<dim>& x,number time)>
 {
 	///	Base class type
-		typedef IPData<TData, dim> base_type;
+		typedef IPData<TData, dim, TRet> base_type;
 
 	///	Functor type
-		typedef boost::function<void (TData& res, const MathVector<dim>& x,number time)> func_type;
+		typedef boost::function<TRet (TData& res, const MathVector<dim>& x,number time)> func_type;
 
 		using base_type::num_series;
 		using base_type::num_ip;
@@ -182,7 +210,7 @@ class LuaUserData
 		}
 
 	///	evaluates the data at a given point and time
-		void operator() (TData& D, const MathVector<dim>& x, number time = 0.0)
+		TRet operator() (TData& D, const MathVector<dim>& x, number time)
 		{
 		//	push the callback function on the stack
 			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
@@ -194,11 +222,11 @@ class LuaUserData
 			lua_traits<number>::push(m_L, time);
 
 		//	compute total args size
-			size_t argSize = lua_traits<MathVector<dim> >::size
-								+  lua_traits<number>::size;
+			const int argSize = lua_traits<MathVector<dim> >::size
+									+  lua_traits<number>::size;
 
 		//	compute total return size
-			size_t retSize = lua_traits<TData>::size;
+			const int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
 
 		//	call lua function
 			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
@@ -206,15 +234,22 @@ class LuaUserData
 								"running callback '" << m_callbackName << "',"
 								" lua message: "<< lua_tostring(m_L, -1));
 
+			bool res = false;
 			try{
 			//	read return value
 				lua_traits<TData>::read(m_L, D);
+
+			//	read return flag (may be void)
+				lua_traits<TRet>::read(m_L, res, -retSize);
 			}
 			UG_CATCH_THROW("LuaUserData::operator(...): Error while running "
 							"callback '" << m_callbackName << "'");
 
 		//	pop values
 			lua_pop(m_L, retSize);
+
+		//	forward flag
+			return lua_traits<TRet>::do_return(res);
 		}
 
 	///	implement as a IPData
@@ -298,11 +333,11 @@ class LuaBoundaryData
 			lua_traits<number>::push(m_L, time);
 
 		//	compute total args size
-			size_t argSize = lua_traits<MathVector<dim> >::size
+			const int argSize = lua_traits<MathVector<dim> >::size
 								+  lua_traits<number>::size;
 
 		//	compute total return size (+1 for boolean)
-			size_t retSize = lua_traits<TData>::size + 1;
+			const int retSize = lua_traits<TData>::size + lua_traits<bool>::size;
 
 		//	call lua function
 			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
@@ -316,7 +351,7 @@ class LuaBoundaryData
 				lua_traits<TData>::read(m_L, D);
 
 			//	read bool flag
-				res = ReturnValueToBool(m_L, -retSize);
+				lua_traits<bool>::read(m_L, res, -retSize);
 			}
 			UG_CATCH_THROW("LuaBoundaryData::operator(...): Error while "
 							"running callback '" << m_callbackName << "'");

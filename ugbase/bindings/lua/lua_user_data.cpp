@@ -100,6 +100,18 @@ bool RegisterLuaUserDataType(Registry& reg, string type, const char* parentGroup
 		reg.add_class_to_group(name, string("LuaUser").append(type), dimTag);
 	}
 
+//	LuaCondUser"Type"
+	{
+		typedef LuaUserData<TData, dim, bool> T;
+		typedef IPData<TData, dim, bool> TBase;
+		typedef boost::function<bool (TData& res, const MathVector<dim>& x,number time)> TBase2;
+		string name = string("LuaCondUser").append(type).append(dimSuffix);
+		reg.add_class_<T, TBase, TBase2>(name, grp)
+			.template add_constructor<void (*)(const char*)>("Callback")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, string("LuaCondUser").append(type), dimTag);
+	}
+
 //	LuaBoundary"Type"
 	{
 		typedef LuaBoundaryData<TData, dim> T;

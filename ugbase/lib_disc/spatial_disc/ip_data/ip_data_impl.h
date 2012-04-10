@@ -180,23 +180,30 @@ inline void IIPDimData<dim>::check_s_ip(size_t s, size_t ip) const
 //	IPData
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TData, int dim>
-inline void IPData<TData,dim>::check_series(size_t s) const
+template <typename TData, int dim, typename TRet>
+TRet IPData<TData,dim,TRet>::operator() (TData& D, const MathVector<dim>& x, number time)
+{
+	UG_THROW_FATAL("IPData: operator()(TData, MathVector<dim>, time) not implemented.");
+}
+
+
+template <typename TData, int dim, typename TRet>
+inline void IPData<TData,dim,TRet>::check_series(size_t s) const
 {
 	UG_ASSERT(s < num_series(), "Wrong series id"<<s);
 	UG_ASSERT(s < m_vvValue.size(), "Invalid index "<<s);
 }
 
-template <typename TData, int dim>
-inline void IPData<TData,dim>::check_series_ip(size_t s, size_t ip) const
+template <typename TData, int dim, typename TRet>
+inline void IPData<TData,dim,TRet>::check_series_ip(size_t s, size_t ip) const
 {
 	check_series(s);
 	UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
 	UG_ASSERT(ip < m_vvValue[s].size(), "Invalid index "<<ip);
 }
 
-template <typename TData, int dim>
-void IPData<TData,dim>::local_ip_series_added(const size_t newNumSeries)
+template <typename TData, int dim, typename TRet>
+void IPData<TData,dim,TRet>::local_ip_series_added(const size_t newNumSeries)
 {
 //	find out currently allocated series
 	const size_t numOldSeries = m_vvValue.size();
@@ -209,34 +216,40 @@ void IPData<TData,dim>::local_ip_series_added(const size_t newNumSeries)
 
 //	increase number of series if needed
 	m_vvValue.resize(newNumSeries);
+	m_vvBoolFlag.resize(newNumSeries);
 
 //	allocate new storage
 	for(size_t s = numOldSeries; s < m_vvValue.size(); ++s)
-			m_vvValue[s].resize(num_ip(s));
+	{
+		m_vvValue[s].resize(num_ip(s));
+		m_vvBoolFlag[s].resize(num_ip(s), true);
+	}
 
 //	call base class callback
 	base_type::local_ip_series_added(newNumSeries);
 }
 
-template <typename TData, int dim>
-void IPData<TData,dim>::local_ip_series_to_be_cleared()
+template <typename TData, int dim, typename TRet>
+void IPData<TData,dim,TRet>::local_ip_series_to_be_cleared()
 {
 //	free the memory
 //	clear all series
 	m_vvValue.clear();
+	m_vvBoolFlag.clear();
 
 //	call base class callback (if implementation given)
 //	base_type::local_ip_series_to_be_cleared();
 }
 
-template <typename TData, int dim>
-void IPData<TData,dim>::local_ips_changed(const size_t seriesID, const size_t newNumIP)
+template <typename TData, int dim, typename TRet>
+void IPData<TData,dim,TRet>::local_ips_changed(const size_t seriesID, const size_t newNumIP)
 {
 //	resize only when more data is needed than actually allocated
 	if(newNumIP >= m_vvValue[seriesID].size())
 	{
 	//	resize
 		m_vvValue[seriesID].resize(newNumIP);
+		m_vvBoolFlag[seriesID].resize(newNumIP, true);
 
 	//	invoke callback
 		value_storage_changed(seriesID);

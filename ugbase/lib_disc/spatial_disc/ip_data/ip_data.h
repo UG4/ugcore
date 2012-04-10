@@ -205,8 +205,9 @@ class IIPDimData : virtual public IIPData
  *
  * \tparam	TData	Data
  * \tparam	dim		world dimension
+ * \tparam	TRet	Type of return flag (bool or void)
  */
-template <typename TData, int dim>
+template <typename TData, int dim, typename TRet = void>
 class IPData : public IIPDimData<dim>
 {
 	public:
@@ -234,6 +235,13 @@ class IPData : public IIPDimData<dim>
 		TData* values(size_t s)
 			{check_series(s); return &(m_vvValue[s][0]);}
 
+	///	returns flag, if data is evaluated (for conditional data)
+		bool defined(size_t s, size_t ip) const
+			{check_series_ip(s,ip); return m_vvBoolFlag[s][ip];}
+
+	///	returns value for a position
+		virtual TRet operator() (TData& D, const MathVector<dim>& x, number time);
+
 	///	destructor
 		~IPData() {local_ip_series_to_be_cleared();}
 
@@ -259,6 +267,9 @@ class IPData : public IIPDimData<dim>
 	private:
 	/// data at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
 		std::vector<std::vector<TData> > m_vvValue;
+
+	/// bool flag at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
+		std::vector<std::vector<bool> > m_vvBoolFlag;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
