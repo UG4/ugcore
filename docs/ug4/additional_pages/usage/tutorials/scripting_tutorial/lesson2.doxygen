@@ -7,7 +7,7 @@ The tutorial furthermore shows how utility scripts can be loaded and how
 commandline arguments can be accessed.
 
 Below you'll find the scripts sources.
-They are the same as in <tt>scripts/tutorials/tut02_loading_a_domain.lua</tt>.
+They are the same as in <tt>apps/tutorials/tut02_loading_a_domain.lua</tt>.
 
 \include tut02_loading_a_domain.lua
 

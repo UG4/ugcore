@@ -10,7 +10,7 @@ use it in a call to <tt>RedistributeDomain</tt>.
 
 Below you'll find the scripts sources.
 They are the same as in
-<tt>scripts/tutorials/tut06_flexible_grid_distribution.lua</tt>
+<tt>apps/tutorials/tut06_flexible_grid_distribution.lua</tt>
 
 \include tut06_flexible_domain_distribution.lua
 

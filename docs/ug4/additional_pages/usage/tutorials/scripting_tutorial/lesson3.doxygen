@@ -11,7 +11,7 @@ with \em ParaView or similar software.
 
 Below you'll find the scripts sources.
 They are the same as in 
-<tt>scripts/tutorials/tut03_laplace_with_exact_solver.lua</tt>.
+<tt>apps/tutorials/tut03_laplace_with_exact_solver.lua</tt>.
 
 \include tut03_laplace_with_exact_solver.lua
 

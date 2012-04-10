@@ -8,7 +8,7 @@ Adaptive refinement is subject to later tutorials.
 
 Below you'll find the scripts sources.
 They are the same as in 
-<tt>scripts/tutorials/tut05_global_refinement.lua</tt>.
+<tt>apps/tutorials/tut05_global_refinement.lua</tt>.
 
 \include tut05_global_refinement.lua
 

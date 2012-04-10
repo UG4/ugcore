@@ -6,7 +6,7 @@ We introduce the most commonly used syntax and control structures and give a
 small outlook what else can be achieved in Lua.
 
 Below you'll find the scripts sources.
-They are the same as in <tt>scripts/tutorials/tut01_lua_basics.lua</tt>.
+They are the same as in <tt>apps/tutorials/tut01_lua_basics.lua</tt>.
 
 \include tut01_lua_basics.lua
 
