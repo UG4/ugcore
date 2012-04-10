@@ -35,10 +35,6 @@ using namespace std;
 namespace ug
 {
 
-namespace bridge
-{
-string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
-}
 namespace script
 {
 

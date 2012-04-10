@@ -15,24 +15,49 @@ namespace ug
 namespace script
 {
 
+/**
+ * enum used to control execution flow in debug mode
+ */
 enum debug_return
 {
-	DEBUG_EXIT=0,
-	DEBUG_CONTINUE,
-	DEBUG_NEXT,
-	DEBUG_STEP,
-	DEBUG_FINISH
+	DEBUG_EXIT=0,  //!< exit ug
+	DEBUG_CONTINUE,//!< continue execution
+	DEBUG_NEXT,    //!< go to next line, but do not go deeper in stack
+	DEBUG_STEP,    //!< go to next line, step into functions (deeper in stack)
+	DEBUG_FINISH   //!< continue until we finish current function
 };
 
+/**
+ * Register debug/profile functions
+ * @param reg
+ * @return true
+ * @sa debug_return
+ */
+bool RegisterLuaDebug(ug::bridge::Registry &reg);
+
+/**
+ * function called when a breakpoint is reached
+ * @param s debug shell function
+ * @return 0
+ * @sa DebugList, DebugBacktrace, DebugDown, DebugUp
+ */
 int SetDebugShell(debug_return (*s)());
 
-bool RegisterLuaDebug(ug::bridge::Registry &reg);
 void ProfileLUA(bool bProfile);
+
+/// lists the current line in the script
 void DebugList();
+
+/// lists the function stack in lua
 void DebugBacktrace();
+
+/// move down function stack
 void DebugDown();
+
+/// move down function stack
 void DebugUp();
 
+/// Free all memory associated with lua_debug
 void FinalizeLUADebug();
 }
 }
