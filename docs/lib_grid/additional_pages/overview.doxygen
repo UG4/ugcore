@@ -2,17 +2,17 @@
 //	s.b.reiter@googlemail.com
 //	y09 m09 d14
 
-/**	\page pageLGOverview libGrid - Overview
+/** \page pageLGOverview Overview
 
-	- \ref secGrid "Grid"
-	- \ref secGeomObjs "Geometric Objects"
-	- \ref secObjectCreation "Object Creation"
-	- \ref secObjectIteration "Object Iteration"
-	- \ref secAttachments "Attachments"
-	- \ref secTools "Tools"
-	- \ref secUtil "Util"
-	- \ref secAlgorithms "Algorithms"
-	- \ref secFileIO "FileIO"
+- \ref secGrid "Grid"
+- \ref secGeomObjs "Geometric Objects"
+- \ref secObjectCreation "Object Creation"
+- \ref secObjectIteration "Object Iteration"
+- \ref secAttachments "Attachments"
+- \ref secTools "Tools"
+- \ref secUtil "Util"
+- \ref secAlgorithms "Algorithms"
+- \ref secFileIO "FileIO"
 
 <br>
 <hr>

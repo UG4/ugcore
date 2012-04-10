@@ -2,7 +2,7 @@
 //	s.b.reiter@googlemail.com
 //	y09 m09 d14
 
-/**	\page pageLGIntroduction libGrid - Introduction
+/**	\page pageLGIntroduction libGrid
 	
 	- \ref secLGAbout "About"
 	- \ref secLGWhatIsIt "What is libGrid?"
@@ -93,7 +93,7 @@ the executable in libGrid/bin.
 \section secLGUsage Usage
 An introduction to the most important ideas behind libGrid and a short overview of the coding-style
 can be found here:
-\ref pageLGOverview "Overview"
+\subpage pageLGOverview "Overview"
 
 More detailed samples will be available from the tutorial section soon.
 */
