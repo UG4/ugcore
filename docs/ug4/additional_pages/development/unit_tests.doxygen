@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_SUITE(testLUAScriptsNumProc1);
 
 // add more script test cases below...
 BOOST_AUTO_TEST_CASE(sampleScript) 	{loadScriptWrapper("../unit_tests/scripts/sample_test.lua");}
-BOOST_AUTO_TEST_CASE(laplace) 		{loadScriptWrapper("laplace_test.lua");}
+BOOST_AUTO_TEST_CASE(laplace) 		{loadScriptWrapper("../apps/conv_diff/laplace_test.lua");}
 
 BOOST_AUTO_TEST_SUITE_END();
 
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_SUITE_END();
 BOOST_AUTO_TEST_SUITE(testLUAScriptsNumProc3);
 
 // add more script test cases below...
-BOOST_AUTO_TEST_CASE(laplace) 		{loadScriptWrapper("laplace_test.lua");}
+BOOST_AUTO_TEST_CASE(laplace) 		{loadScriptWrapper("../apps/conv_diff/laplace_test.lua");}
 
 BOOST_AUTO_TEST_SUITE_END();
 \endcode
