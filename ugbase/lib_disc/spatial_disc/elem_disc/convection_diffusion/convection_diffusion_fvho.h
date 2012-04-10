@@ -1047,6 +1047,7 @@ register_fvho_func()
 	typedef this_type T;
 	static const int refDim = reference_element_traits<TElem>::dim;
 
+	this->enable_fast_ass_elem(true);
 	this->set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fvho<TElem, TGeomProvider>);
 	this->set_prep_elem_fct(	 id, &T::template elem_prepare_fvho<TElem, TGeomProvider>);
 	this->set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fvho<TElem, TGeomProvider>);

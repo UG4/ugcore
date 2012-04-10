@@ -11,7 +11,8 @@ namespace ug{
 
 IElemDisc::IElemDisc(const char* functions, const char* subsets)
 	: 	m_bTimeDependent(false), m_time(0.0),
-	  	m_pLocalVectorTimeSeries(NULL), m_id(ROID_UNKNOWN)
+	  	m_pLocalVectorTimeSeries(NULL),
+	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
 	m_vFct.clear();
 	m_vSubset.clear();
@@ -21,6 +22,9 @@ IElemDisc::IElemDisc(const char* functions, const char* subsets)
 
 IElemDisc::IElemDisc(const std::vector<std::string>& vFct,
                      const std::vector<std::string>& vSubset)
+	: 	m_bTimeDependent(false), m_time(0.0),
+		m_pLocalVectorTimeSeries(NULL),
+		m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
 	m_vFct = vFct;
 	m_vSubset = vSubset;
@@ -107,18 +111,22 @@ SmartPtr<IDataExport> IElemDisc::get_export(size_t i)
 	return m_vIExport[i];
 }
 
-bool IElemDisc::set_roid(ReferenceObjectID id)
+void IElemDisc::set_roid(ReferenceObjectID id)
 {
 	m_id = id;
-	return true;
 
-//	\todo: error check
+	if(id == ROID_UNKNOWN)
 	{
 		m_id = ROID_UNKNOWN;
-		UG_LOG("No or not all functions registered "
-				"for object with reference object id " << id << ".\n");
+		UG_THROW_FATAL("Cannot assemble for RefID: "<<id<<".\n");
 	}
-	return false;
 };
+
+void IElemDisc::set_time_dependent(bool bTimeDependent,
+                                   const LocalVectorTimeSeries* locTimeSeries)
+{
+	m_bTimeDependent = bTimeDependent;
+	m_pLocalVectorTimeSeries = locTimeSeries;
+}
 
 } // end namespace ug

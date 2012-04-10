@@ -29,6 +29,11 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 	m_vElemDiscFctGrp.resize(m_pvElemDisc->size());
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 	{
+	//	currently only fast assembles allowed
+		if(!(*m_pvElemDisc)[i]->fast_ass_elem_enabled())
+			UG_THROW_FATAL("DataEvaluator: currently only fast assemble allowed."
+							" Please use enable_fast_ass_elem in all IElemDisc.");
+
 	//	create function group of this elem disc
 		try{
 			ConvertStringToFunctionGroup(m_vElemDiscFctGrp[i], fctPat,
@@ -539,7 +544,7 @@ void DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u)
 
 	//	assemble JA
 		try{
-			(*m_pvElemDisc)[i]->ass_JA_elem(A, u);
+			(*m_pvElemDisc)[i]->fast_ass_JA_elem(A, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_JA_elem: "
 						"Cannot assemble Jacobian (A) for IElemDisc "<<i);
@@ -560,7 +565,7 @@ void DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u)
 
 	//	assemble JM
 		try{
-			(*m_pvElemDisc)[i]->ass_JM_elem(M, u);
+			(*m_pvElemDisc)[i]->fast_ass_JM_elem(M, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_JM_elem: "
 						"Cannot assemble Jacobian (M) for IElemDisc "<<i);
@@ -581,7 +586,7 @@ void DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u)
 
 	//	assemble dA
 		try{
-			(*m_pvElemDisc)[i]->ass_dA_elem(d, u);
+			(*m_pvElemDisc)[i]->fast_ass_dA_elem(d, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_dA_elem: "
 						"Cannot assemble Defect (A) for IElemDisc "<<i);
@@ -602,7 +607,7 @@ void DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u)
 
 	//	assemble dM
 		try{
-			(*m_pvElemDisc)[i]->ass_dM_elem(d, u);
+			(*m_pvElemDisc)[i]->fast_ass_dM_elem(d, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_dM_elem: "
 						"Cannot assemble Defect (M) for IElemDisc "<<i);
@@ -622,7 +627,7 @@ void DataEvaluator::ass_rhs_elem(LocalVector& rhs)
 
 	//	assemble rhs
 		try{
-			(*m_pvElemDisc)[i]->ass_rhs_elem(rhs);
+			(*m_pvElemDisc)[i]->fast_ass_rhs_elem(rhs);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_rhs_elem: "
 						"Cannot assemble rhs for IElemDisc "<<i);
@@ -634,7 +639,7 @@ void DataEvaluator::finish_elem_loop()
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
 		try{
-			(*m_pvElemDisc)[i]->finish_elem_loop();
+			(*m_pvElemDisc)[i]->fast_finish_elem_loop();
 		}
 		UG_CATCH_THROW("DataEvaluator::finish_element_loop: "
 						"Cannot finish element loop for IElemDisc "<<i);

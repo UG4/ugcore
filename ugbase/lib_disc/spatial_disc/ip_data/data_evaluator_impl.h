@@ -27,7 +27,7 @@ prepare_timestep_elem(TElem* elem, LocalVector& u)
 
 	//	prepare timestep for elem disc
 		try{
-			(*m_pvElemDisc)[i]->prepare_timestep_elem(elem, u);
+			(*m_pvElemDisc)[i]->fast_prepare_timestep_elem(elem, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::prepare_timestep_element: "
 						"Cannot prepare timestep on element for IElemDisc "<<i);
@@ -62,15 +62,19 @@ prepare_elem_loop(bool bMassPart)
 
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
-		if(!(*m_pvElemDisc)[i]->set_roid(id))
-			UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: "
-							"Cannot set geometric object type for Disc " << i);
+	{
+		try{
+			(*m_pvElemDisc)[i]->set_roid(id);
+		}
+		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
+						"Cannot set geometric object type for Disc " << i);
+	}
 
 // 	prepare loop (elem disc set local ip series here)
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 	{
 		try{
-			(*m_pvElemDisc)[i]->prepare_elem_loop();
+			(*m_pvElemDisc)[i]->fast_prepare_elem_loop();
 		}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 						"Cannot prepare element loop.");
@@ -153,7 +157,7 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 
 	//	prepare for elem disc
 		try{
-			(*m_pvElemDisc)[i]->prepare_elem(elem, u);
+			(*m_pvElemDisc)[i]->fast_prepare_elem(elem, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::prepare_element: "
 						"Cannot prepare element for IElemDisc "<<i);
@@ -176,7 +180,7 @@ finish_timestep_elem(TElem* elem, const number time, LocalVector& u)
 
 	//	finish timestep for elem disc
 		try{
-			(*m_pvElemDisc)[i]->finish_timestep_elem(elem, time, u);
+			(*m_pvElemDisc)[i]->fast_finish_timestep_elem(elem, time, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::finish_timestep_element: "
 						"Cannot finish timestep on element for IElemDisc "<<i);

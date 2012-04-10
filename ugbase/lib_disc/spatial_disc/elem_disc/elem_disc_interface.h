@@ -151,34 +151,15 @@ class IElemDisc
 	 */
 		virtual bool use_hanging() const {return false;}
 
-	/// sets the geometric object type
+	///	sets if assembling should be time-dependent
 	/**
-	 * This functions set the geometric object type of the object, that is
-	 * assembled next. The user has to call this function before most of the
-	 * assembling routines can be called. Keep in mind, that the elements are
-	 * looped type by type, thus this function has to be called very few times.
-	 */
-		bool set_roid(ReferenceObjectID id);
-
-	///	sets if assembling should be time-dependent (and the time point iff)
-	/**
-	 * This function specifies if the assembling is time-dependent. In that case
-	 * the time point is set and can be accessed by the method time(). Iff the
-	 * problem is time dependent, the time_point_changed() callback is invoked
-	 * with the new time point.
+	 * This function specifies if the assembling is time-dependent.
 	 *
 	 * \param[in]	bTimeDependent	flag if time-dependent
-	 * \param[in]	time			time point
-	 * \param[in]	time			time point
-	 *
-	 * \returns 	if elem disc needs time series local solutions
+	 * \param[in]	locTimeSeries	Time series of previous solutions
 	 */
 		void set_time_dependent(bool bTimeDependent,
-		                        const LocalVectorTimeSeries* locTimeSeries = NULL)
-		{
-			m_bTimeDependent = bTimeDependent;
-			m_pLocalVectorTimeSeries = locTimeSeries;
-		}
+		                        const LocalVectorTimeSeries* locTimeSeries = NULL);
 
 	///	returns if assembling is time-dependent
 		bool is_time_dependent() const {return m_bTimeDependent;}
@@ -194,7 +175,10 @@ class IElemDisc
 	 */
 		virtual bool requests_local_time_series() {return false;}
 
+	///	sets the time point
 		void set_time(const number time) {m_time = time;}
+
+	///	returns currently set timepoint
 		number time() const {return m_time;}
 
 	///	returns the local time solutions
@@ -216,10 +200,13 @@ class IElemDisc
 	 * called once for every element before the spatial assembling procedure
 	 * begins.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
+	 * 'set_roid' must have been called to set the elem type.
 	 */
 		template <typename TElem>
-		void prepare_timestep_elem(TElem* elem, const LocalVector& u);
+		void fast_prepare_timestep_elem(TElem* elem, const LocalVector& u);
+
+	/// prepare the timestep
+		virtual void prepare_timestep_elem(GeometricObject* elem, const LocalVector& u) {}
 
 	///	prepares the loop over all elements of one type
 	/**
@@ -227,24 +214,29 @@ class IElemDisc
 	 * type. This function is called before e.g. the loop over all geometric
 	 * objects of a chosen type is performed.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
+	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void prepare_elem_loop()
-			{return (this->*(m_vPrepareElemLoopFct[m_id]))();}
+		void fast_prepare_elem_loop()
+			{(this->*m_vPrepareElemLoopFct[m_id])();}
+
+	///	virtual prepares the loop over all elements of one type
+		virtual void prepare_elem_loop() {}
 
 	///	prepare one elements for assembling
 	/**
 	 * This function prepares one Geometric object, that will be assembled in
 	 * the next step.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
+	 * 'set_roid' must have been called to set the elem type.
 	 *
-	 * \param[in]		obj			The geometric object
+	 * \param[in]		elem		The geometric object
 	 * \param[in]		u			The current local solution
-	 * \param[in]		glob_ind	The global indices of the local solution
 	 */
 		template <typename TElem>
-		void prepare_elem(TElem* elem, const LocalVector& u);
+		void fast_prepare_elem(TElem* elem, const LocalVector& u);
+
+	///	virtual prepare one elements for assembling
+		virtual void prepare_elem(GeometricObject* elem, const LocalVector& u) {}
 
 	///	postprocesses the loop over all elements of one type
 	/**
@@ -252,70 +244,90 @@ class IElemDisc
 	 * type. This function is called after e.g. the loop over all geometric
 	 * objects of a chosen type has been performed.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
+	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void finish_elem_loop()
-			{return (this->*(m_vFinishElemLoopFct[m_id]))();}
+		void fast_finish_elem_loop()
+			{(this->*m_vFinishElemLoopFct[m_id])();}
+
+	///	virtual postprocesses the loop over all elements of one type
+		virtual void finish_elem_loop() {}
 
 	/// finish the timestep
 	/**
 	 * This function finishes the timestep (iff timedependent). This function is
 	 * called in the PostProcess of a timestep.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
+	 * 'set_roid' must have been called to set the elem type.
 	 */
 		template <typename TElem>
-		void finish_timestep_elem(TElem* elem, const number time, const LocalVector& u);
+		void fast_finish_timestep_elem(TElem* elem, const number time, const LocalVector& u);
+
+	/// virtual finish the timestep
+		virtual void finish_timestep_elem(GeometricObject* elem, const number time, const LocalVector& u) {}
 
 	/// Assembling of Jacobian (Stiffness part)
 	/**
 	 * This function assembles the local (stiffness) jacobian for the current
-	 * solution u and the time (iff timedependent).
+	 * solution u.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
+	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void ass_JA_elem(LocalMatrix& J, const LocalVector& u)
-			{return (this->*(m_vElemJAFct[m_id]))(J, u);}
+		void fast_ass_JA_elem(LocalMatrix& J, const LocalVector& u)
+			{(this->*m_vElemJAFct[m_id])(J, u);}
+
+	/// Assembling of Jacobian (Stiffness part)
+		virtual void ass_JA_elem(GeometricObject* elem, LocalMatrix& J, const LocalVector& u) {}
 
 	/// Assembling of Jacobian (Mass part)
 	/**
 	 * This function assembles the local (mass) jacobian for the current
-	 * solution u and the time (iff timedependent).
+	 * solution u.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
+	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void ass_JM_elem(LocalMatrix& J, const LocalVector& u)
-			{return (this->*(m_vElemJMFct[m_id]))(J, u);}
+		void fast_ass_JM_elem(LocalMatrix& J, const LocalVector& u)
+			{(this->*m_vElemJMFct[m_id])(J, u);}
+
+	/// Assembling of Jacobian (Mass part)
+		virtual void ass_JM_elem(GeometricObject* elem, LocalMatrix& J, const LocalVector& u) {}
 
 	/// Assembling of Defect (Stiffness part)
 	/**
 	 * This function assembles the local (stiffness) defect for the current
-	 * solution u and the time (iff timedependent).
+	 * solution u.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
+	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void ass_dA_elem(LocalVector& d, const LocalVector& u)
-			{return (this->*(m_vElemdAFct[m_id]))(d, u);}
+		void fast_ass_dA_elem(LocalVector& d, const LocalVector& u)
+			{(this->*m_vElemdAFct[m_id])(d, u);}
 
+	/// virtual Assembling of Defect (Stiffness part)
+		virtual void ass_dA_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
 
 	/// Assembling of Defect (Mass part)
 	/**
 	 * This function assembles the local (mass) defect for the current
-	 * solution u and the time (iff timedependent).
+	 * solution u.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
+	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void ass_dM_elem(LocalVector& d, const LocalVector& u)
-			{return (this->*(m_vElemdMFct[m_id]))(d, u);}
+		void fast_ass_dM_elem(LocalVector& d, const LocalVector& u)
+			{(this->*m_vElemdMFct[m_id])(d, u);}
+
+	/// virtual Assembling of Defect (Mass part)
+		virtual void ass_dM_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
 
 	/// Assembling of Right-Hand Side
 	/**
 	 * This function assembles the local rhs.
 	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid must have been called to set the elem type.
+	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void ass_rhs_elem(LocalVector& rhs)
-			{return (this->*(m_vElemRHSFct[m_id]))(rhs);}
+		void fast_ass_rhs_elem(LocalVector& rhs)
+			{(this->*m_vElemRHSFct[m_id])(rhs);}
+
+	/// virtual Assembling of Right-Hand Side
+		virtual void ass_rhs_elem(GeometricObject* elem, LocalVector& rhs) {}
 
 	/// Virtual destructor
 		virtual ~IElemDisc() {}
@@ -347,16 +359,12 @@ class IElemDisc
 		typedef void (T::*FinishElemLoopFct)();
 
 	// 	types of Jacobian assemble functions
-		typedef void (T::*ElemJAFct)(	LocalMatrix& J,
-										const LocalVector& u);
-		typedef void (T::*ElemJMFct)(	LocalMatrix& J,
-										const LocalVector& u);
+		typedef void (T::*ElemJAFct)(LocalMatrix& J, const LocalVector& u);
+		typedef void (T::*ElemJMFct)(LocalMatrix& J, const LocalVector& u);
 
 	// 	types of Defect assemble functions
-		typedef void (T::*ElemdAFct)( 	LocalVector& d,
-										const LocalVector& u);
-		typedef void (T::*ElemdMFct)(	LocalVector& d,
-											const LocalVector& u);
+		typedef void (T::*ElemdAFct)(LocalVector& d, const LocalVector& u);
+		typedef void (T::*ElemdMFct)(LocalVector& d, const LocalVector& u);
 
 	// 	types of right hand side assemble functions
 		typedef void (T::*ElemRHSFct)(LocalVector& d);
@@ -376,7 +384,26 @@ class IElemDisc
 		template <typename TAssFunc> void set_ass_dM_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
 
+	///	sets usage of fast assemble functions
+		void enable_fast_ass_elem(bool bEnable) {m_bFastAssembleEnabled = bEnable;}
+
+	public:
+	///	returns if fast assembling for elememts is used
+		bool fast_ass_elem_enabled() const {return m_bFastAssembleEnabled;}
+
+	/// sets the geometric object type
+	/**
+	 * This functions set the geometric object type of the object, that is
+	 * assembled next. The user has to call this function before most of the
+	 * assembling routines can be called. Keep in mind, that the elements are
+	 * looped type by type, thus this function has to be called very few times.
+	 */
+		void set_roid(ReferenceObjectID id);
+
 	private:
+	///	flag if fast assemble is used
+		bool m_bFastAssembleEnabled;
+
 	// 	timestep function pointers
 		PrepareTimestepElemFct 		m_vPrepareTimestepElemFct[NUM_REFERENCE_OBJECTS];
 		FinishTimestepElemFct 		m_vFinishTimestepElemFct[NUM_REFERENCE_OBJECTS];
