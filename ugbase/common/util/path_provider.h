@@ -16,12 +16,14 @@ namespace ug
 ///	Constants used by PathProvider
 enum PathTypes
 {
-	APP_PATH = 0,
+	APP_PATH = 0,	///< path in which the binary lies
 	DATA_PATH,
 	SCRIPT_PATH,
 	ROOT_PATH,
 	PLUGIN_PATH,
 	GRID_PATH,
+	APPS_PATH,		///< path in which the application-scripts lie
+
 //	always last
 	MAX_PATH_CONSTANT
 };

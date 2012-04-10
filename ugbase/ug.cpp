@@ -71,10 +71,12 @@ bool InitPaths(const char* argv0)
 	if(!PathProvider::has_path(DATA_PATH))
 		PathProvider::set_path(DATA_PATH, strRoot + pathSep + "data");
 	if(!PathProvider::has_path(GRID_PATH))
-		PathProvider::set_path(GRID_PATH, strRoot + pathSep + "data/grids");
+		PathProvider::set_path(GRID_PATH, strRoot + pathSep + "data" + pathSep + "grids");
 	if(!PathProvider::has_path(PLUGIN_PATH))
 		PathProvider::set_path(PLUGIN_PATH, strRoot + pathSep
 										+ "bin" + pathSep + "plugins");
+	if(!PathProvider::has_path(APPS_PATH))
+		PathProvider::set_path(APPS_PATH, strRoot + pathSep + "apps");
 
 //	log the paths
 	UG_DLOG(MAIN, 1, "app path set to: " << PathProvider::get_path(APP_PATH) <<

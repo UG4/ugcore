@@ -83,9 +83,26 @@ bool LoadUGScript(const char* filename)
 		return success;
 	}
 
-//	finally we have to check relative to the  default path
+//	now we have to check relative to the script path
 	string curPath = PathProvider::get_path(SCRIPT_PATH);
 	string file = curPath;
+	file.append("/").append(filename);
+
+//	check script path
+	if(FileExists(file.c_str())){
+		curPath.append("/").append(strInPath);
+		stkPathes.push(curPath);
+		PathProvider::push_current_path(curPath);
+		bool success = ug::script::ParseFile(file.c_str());
+		PathProvider::pop_current_path();
+		stkPathes.pop();
+		return success;
+	}
+
+
+//	now we check relative to the apps path
+	curPath = PathProvider::get_path(APPS_PATH);
+	file = curPath;
 	file.append("/").append(filename);
 
 //	check script path
