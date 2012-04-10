@@ -20,10 +20,12 @@
 --	of each such line will be printed during parsing of the file.
 --------------------------------------------------------------------------------
 
+-- switch defining amount of output:
+verbose = false
+
 --	the files which will be processed
 inFiles = {"log_refs_7.txt", "log_refs_8.txt",
 		   "log_refs_9.txt", "log_refs_10.txt"}
-
 
 
 --	num digits behind comma
@@ -138,7 +140,7 @@ for _, fileName in ipairs(inFiles) do
 				else
 					local str = string.match(line, "#ANALYZER INFO:%s*(.+)")
 					if str ~= nil then
-						print("", "  - " .. str)
+						if verbose == true then print("", "  - " .. str) end
 						printedInfo = true
 					end
 				end
@@ -173,7 +175,7 @@ for _, fileName in ipairs(inFiles) do
 		
 	--	add an empty line if info has been printed
 		if printedInfo == true then
-			print()
+			if verbose == true then print() end
 		end
 		
 		f:close()
@@ -220,8 +222,9 @@ for _, timing in ipairs(timings) do
 	end
 end
 
+--------------------------------------------------------------------------------
 
---	now print all the timings
+--	reading input finished - now print all the timings
 --	file 1 is the main file - for each entry, we'll check the other timings
 --	for comparable entries and calculate the speedup from the timings
 if timings[1] == nil or timings[2] == nil then
