@@ -2,8 +2,8 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y10 m10 d18
 
-/**	\page pageLDIntroduction libDiscretization - Introduction
-	
+/** \page pageLDIntroduction libDiscretization
+
 <hr>
 \section secLDAbout About
 libDiscretization is a library to provide Disretization tools that work
@@ -13,11 +13,14 @@ are independent of each other and of libDiscretization.
 
 Currently available topics:
 
-	- \ref pageLDAssemblingConcept "Assembling Concept"
-	- \ref pageLDDiscreteFunctionHandling "Discrete Function Handling"
-	- \ref pageLDIPData "Integration Point Data"
+- \subpage pageLDAssemblingConcept "Assembling Concept"
+- \subpage pageLDDiscreteFunctionHandling "Discrete Function Handling"
+- \subpage pageLDIPData "Integration Point Data"
 
 <hr>
+<!--
+TODO: can't this be removed here? Alternatively the link above.
+-->
 \section secLDConcept Concept
 The concept of libDiscretization are described here:
 \ref pageLDAssemblingConcept "Assembling Concepts of libDiscretization"
