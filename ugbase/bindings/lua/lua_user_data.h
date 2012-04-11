@@ -43,18 +43,19 @@ class LuaUserNumberNumberFunction
 /// Helper to access a return value on the stack.
 /**	If the value can't be converted to a number, an error is thrown*/
 inline number ReturnValueToNumber(lua_State* L, int index){
-	if(!lua_isnumber(L, index)){
-		UG_THROW_FATAL("Can't convert return value to number!");
-	}
+	if(!lua_isnumber(L, index))
+		UG_THROW_FATAL("ReturnValueToNumber: Data passed from Lua: "
+						"Can't convert return value to number!");
 	return lua_tonumber(L, index);
 }
 
 /// Helper to access a return value on the stack.
 /**	If the value can't be converted to a boolean, an error is thrown*/
 inline number ReturnValueToBool(lua_State* L, int index){
-	if(!lua_isboolean(L, index)){
-		UG_THROW_FATAL("Can't convert return value to boolean!");
-	}
+	if(!lua_isboolean(L, index))
+		UG_THROW_FATAL("ReturnValueToBool: Data passed from Lua: "
+						"Can't convert return value to boolean!");
+
 	return lua_toboolean(L, index);
 }
 
@@ -73,6 +74,13 @@ struct lua_traits<void>
 
 	static void do_return(const bool&) {return;}
 
+	static bool check(lua_State* L, int index = -1){return true;}
+
+	static std::string signature()
+	{
+		return "void";
+	}
+
 	static const int size = 0;
 };
 
@@ -89,7 +97,17 @@ struct lua_traits<bool>
 		b =  ReturnValueToBool(L, index);
 	}
 
+	static bool check(lua_State* L, int index = -1)
+	{
+		return lua_isboolean(L, index);
+	}
+
 	static bool do_return(const bool& b) {return b;}
+
+	static std::string signature()
+	{
+		return "bool";
+	}
 
 	static const int size = 1;
 };
@@ -105,6 +123,16 @@ struct lua_traits<number>
 	static void read(lua_State* L, number& c, int index = -1)
 	{
 		c = ReturnValueToNumber(L, index);
+	}
+
+	static bool check(lua_State* L, int index = -1)
+	{
+		return lua_isnumber(L, index);
+	}
+
+	static std::string signature()
+	{
+		return "number";
 	}
 
 	static const int size = 1;
@@ -124,6 +152,25 @@ struct lua_traits< ug::MathVector<dim> >
 		for(size_t i = 0; i < dim; ++i){
 				x[dim-1-i] = ReturnValueToNumber(L, index--);
 		}
+	}
+
+	static bool check(lua_State* L, int index = -1)
+	{
+		for(size_t i = 0; i < dim; ++i){
+			if(!lua_isnumber(L, index--)) return false;
+		}
+		return true;
+	}
+
+	static std::string signature()
+	{
+		static char cmp[] = {'x', 'y', 'z'};
+		std::stringstream ss;
+		for(size_t i = 0; i < dim; ++i){
+			if(i != 0) ss << ", ";
+			ss << "v" << cmp[i];
+		}
+		return ss.str();
 	}
 
 	static const int size = dim;
@@ -152,12 +199,38 @@ struct lua_traits< MathMatrix<dim, dim> >
 		}
 	}
 
+	static bool check(lua_State* L, int index = -1)
+	{
+		for(size_t i = 0; i < dim; ++i){
+			for(size_t j = 0; j < dim; ++j){
+				if(!lua_isnumber(L, index--)) return false;
+			}
+		}
+		return true;
+	}
+
+	static std::string signature()
+	{
+		static char cmp[] = {'x', 'y', 'z'};
+		std::stringstream ss;
+		for(size_t i = 0; i < dim; ++i){
+			for(size_t j = 0; j < dim; ++j){
+				if(i != 0 && j != 0) ss << ", ";
+				ss << "D" << cmp[i] << cmp[j] << ", ";
+			}
+		}
+		return ss.str();
+	}
+
 	static const int size = dim*dim;
 };
 
 ////////////////////////////////
 // Generic LuaUserData
 ////////////////////////////////
+
+///	returns true if callback exists
+bool CheckLuaCallbackName(const char* name);
 
 /// provides data specified in the lua script
 /**
@@ -195,6 +268,82 @@ class LuaUserData
 
 		//	store reference to lua function
 			m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
+		}
+
+	///	returns true if callback has correct return values
+		static bool check_callback_returns(const char* name)
+		{
+		//	get lua state
+			lua_State* L = ug::script::GetDefaultLuaState();
+
+		//	obtain a reference
+			lua_getglobal(L, name);
+
+		//	check if reference is valid
+			if(lua_isnil(L, -1)) return false;
+
+		//	get reference
+			int callbackRef = luaL_ref(L, LUA_REGISTRYINDEX);
+
+		//	dummy values to invoke the callback once
+			MathVector<dim> x(0.0);
+			number time = 0.0;
+
+		//	push the callback function on the stack
+			lua_rawgeti(L, LUA_REGISTRYINDEX, callbackRef);
+
+		//  push space coordinates on stack
+			lua_traits<MathVector<dim> >::push(L, x);
+
+		//	push time on stack
+			lua_traits<number>::push(L, time);
+
+		//	compute total args size
+			const int argSize = lua_traits<MathVector<dim> >::size
+									+  lua_traits<number>::size;
+
+		//	compute total return size
+			const int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
+
+		//	call lua function
+			if(lua_pcall(L, argSize, retSize, 0) != 0)
+				UG_THROW_FATAL("LuaUserData::check_returns(): Error while "
+								"running callback '" << name << "',"
+								" lua message: "<< lua_tostring(L, -1));
+
+		//	success flag
+			bool bRet = true;
+
+		//	check return value
+			bRet &= lua_traits<TData>::check(L);
+
+		//	read return flag (may be void)
+			bRet &= lua_traits<TRet>::read(L, -retSize);
+
+		//	pop values
+			lua_pop(L, retSize);
+
+		//	free reference to callback
+			luaL_unref(L, LUA_REGISTRYINDEX, callbackRef);
+
+		//	return match
+			return bRet;
+		}
+
+	///	returns string of required callback signature
+		static std::string signature()
+		{
+			std::stringstream ss;
+			ss << "function name(";
+			if(dim >= 1) ss << "x";
+			if(dim >= 2) ss << ", y";
+			if(dim >= 3) ss << ", z";
+			ss << ", t) ... return ";
+			if(lua_traits<TRet>::size != 0)
+				ss << lua_traits<TRet>::signature() << ", ";
+			ss << lua_traits<TData>::signature();
+			ss << " end";
+			return ss.str();
 		}
 
 	///	virtual destructor

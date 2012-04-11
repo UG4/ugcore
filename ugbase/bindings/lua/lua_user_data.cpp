@@ -13,6 +13,19 @@ using namespace std;
 namespace ug
 {
 
+///	returns true if callback exists
+bool CheckLuaCallbackName(const char* name)
+{
+//	get lua state
+	lua_State* L = ug::script::GetDefaultLuaState();
+
+//	obtain a reference
+	lua_getglobal(L, name);
+
+//	check if reference is valid
+	if(lua_isnil(L, -1)) return false;
+	else return true;
+}
 
 
 LuaUserNumberNumberFunction::LuaUserNumberNumberFunction()
