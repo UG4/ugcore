@@ -54,7 +54,8 @@ private:
 
 	// exact solution
 	IPData<number, TGridFunction::domain_type::dim>& ExactSolution;
-	number time;
+	number time; //<time
+	int si; //< subset index
 
 	// aux. index array
 	typename std::vector<MultiIndex<2> > ind;
@@ -65,13 +66,13 @@ public:
 	/// constructor
 	L2ErrorIntegrandTmp(TGridFunction &f, size_t fctid,
 	            		IPData<number, TGridFunction::domain_type::dim>& e,
-	            		number t) :
+	            		number t, int _si) :
 				//	grid function and id of shape functions used
 				u(f), fct(fctid), id(u.local_finite_element_id(fct)),
 				//	trial space
 				trialSpace(LocalShapeFunctionSetProvider::get<typename reference_element_traits<TElem>::reference_element_type>(id)),
 				// exact solution
-				ExactSolution(e), time(t)
+				ExactSolution(e), time(t), si(_si)
 	{};
 
 
@@ -98,7 +99,7 @@ public:
 
 		//	compute exact solution at integration point
 		number exactSolIP;
-		ExactSolution(exactSolIP, globIP, time);
+		ExactSolution(exactSolIP, globIP, time, si);
 
 		//	reset approx solution
 		number approxSolIP = 0.0;
@@ -152,7 +153,7 @@ void SumValuesForSubsetGroup(number& addValue,
 	// initialize local class
 	// NOTE: This is independent of the rest and may be provided as its own class!!!
 	L2ErrorIntegrandTmp<TElem,TGridFunction> integrand =
-			L2ErrorIntegrandTmp<TElem,TGridFunction>(u, fct, ExactSolution, time);
+			L2ErrorIntegrandTmp<TElem,TGridFunction>(u, fct, ExactSolution, time, si);
 
 //	get quadrature Rule
 	const QuadratureRule<dim>& rQuadRule

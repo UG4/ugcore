@@ -29,6 +29,12 @@ class IIPData
 	///	default constructor
 		IIPData();
 
+	///	set the subset of evaluation
+		void set_subset(int si) {m_si = si;}
+
+	///	returns the subset of evaluation
+		int subset() const {return m_si;}
+
 	///	set evaluation time
 		void set_time(number time) {m_time = time;}
 
@@ -145,6 +151,9 @@ class IIPData
 
 	///	time for evaluation
 		number m_time;
+
+	///	subset for evaluation
+		int m_si;
 };
 
 /// World dimension based IP Data
@@ -240,7 +249,7 @@ class IPData : public IIPDimData<dim>
 			{check_series_ip(s,ip); return m_vvBoolFlag[s][ip];}
 
 	///	returns value for a position
-		virtual TRet operator() (TData& D, const MathVector<dim>& x, number time) const;
+		virtual TRet operator() (TData& D, const MathVector<dim>& x, number time, int si) const;
 
 	///	destructor
 		~IPData() {local_ip_series_to_be_cleared();}

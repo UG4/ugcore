@@ -57,7 +57,7 @@ class ConstUserNumber
 
 	///	evaluate
 		void operator() (number& c, const MathVector<dim>& x,
-		                 number time = 0.0) const
+		                 number time, int si) const
 		{
 			c = m_Number;
 		}
@@ -116,7 +116,7 @@ class ConstUserVector
 
 	/// evaluate
 		void operator() (MathVector<dim>& v, const MathVector<dim>& x,
-		                 number time = 0.0) const
+		                 number time, int si) const
 		{
 			v = m_Vector;
 		}
@@ -193,7 +193,7 @@ class ConstUserMatrix
 
 	///	evaluate
 		void operator() (MathMatrix<dim, dim>& D, const MathVector<dim>& x,
-		                 number time = 0.0) const
+		                 number time, int si) const
 		{
 			D = m_Tensor;
 		}
@@ -249,7 +249,7 @@ class ConstBoundaryNumber
 
 	///	evaluate and return true for dirichlet value
 		bool operator() (number& c, const MathVector<dim>& x,
-		                 number time = 0.0) const
+		                 number time, int si) const
 		{
 			c = m_Number;
 			return true;

@@ -505,7 +505,7 @@ public:
 				number t = 0.0;
 
 				number d;
-				(*m_userData)(d, aaPos[v], t);
+				(*m_userData)(d, aaPos[v], t, si);
 
 				//	write
 				for (size_t i = 0; i < ind.size(); ++i) {

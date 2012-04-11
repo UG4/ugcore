@@ -464,6 +464,17 @@ void DataEvaluator::set_time(const number time)
 		m_vDependentIPData[i]->set_time(time);
 }
 
+void DataEvaluator::set_subset(const int subset)
+{
+	// NOTE: constant data is not processed, since constant == independent of si
+
+	for(size_t i = 0; i < m_vPosData.size(); ++i)
+		m_vPosData[i]->set_subset(subset);
+
+	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
+		m_vDependentIPData[i]->set_subset(subset);
+}
+
 
 void DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 {

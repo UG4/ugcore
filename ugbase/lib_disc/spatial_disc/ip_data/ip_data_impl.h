@@ -16,7 +16,7 @@ namespace ug{
 //	IIPData
 ////////////////////////////////////////////////////////////////////////////////
 
-inline IIPData::IIPData() : m_locPosDim(-1), m_time(0.0)
+inline IIPData::IIPData() : m_locPosDim(-1), m_time(0.0), m_si(-1)
 {
 	m_vNumIP.clear();
 	m_vMayChange.clear();
@@ -31,6 +31,8 @@ inline void IIPData::clear()
 	m_vMayChange.clear();
 	m_locPosDim = -1;
 	m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
+	m_time = 0.0;
+	m_si = -1;
 }
 
 template <int ldim>
@@ -181,9 +183,10 @@ inline void IIPDimData<dim>::check_s_ip(size_t s, size_t ip) const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim, typename TRet>
-TRet IPData<TData,dim,TRet>::operator() (TData& D, const MathVector<dim>& x, number time) const
+TRet IPData<TData,dim,TRet>::operator() (TData& D, const MathVector<dim>& x,
+                                         number time, int si) const
 {
-	UG_THROW_FATAL("IPData: operator()(TData, MathVector<dim>, time) not implemented.");
+	UG_THROW_FATAL("IPData: operator()(TData, MathVector<dim>, time, si) not implemented.");
 }
 
 

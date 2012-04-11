@@ -94,7 +94,7 @@ void InterpolateFunctionOnElem(
 
 		//	value at position
 			number val;
-			InterpolFunction(val, glob_pos, time);
+			InterpolFunction(val, glob_pos, time, si);
 
 		//	set value
 			BlockRef(u[ind[i][0]], ind[i][1]) = val;

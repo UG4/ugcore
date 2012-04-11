@@ -59,6 +59,16 @@ inline number ReturnValueToBool(lua_State* L, int index){
 	return lua_toboolean(L, index);
 }
 
+/// Helper to access a return value on the stack.
+/**	If the value can't be converted to a integer, an error is thrown*/
+inline int ReturnValueToInteger(lua_State* L, int index){
+	if(!lua_isnumber(L, index))
+		UG_THROW_FATAL("ReturnValueToBool: Data passed from Lua: "
+						"Can't convert return value to integer!");
+
+	return lua_tointeger(L, index);
+}
+
 
 
 /// Lua Traits to push/pop on lua stack
@@ -119,6 +129,37 @@ struct lua_traits<bool>
 	static std::string name()
 	{
 		return "Bool";
+	}
+};
+
+template <>
+struct lua_traits<int>
+{
+	static const int size = 1;
+
+	static void push(lua_State*	L, const int& c)
+	{
+		lua_pushinteger(L, c);
+	}
+
+	static void read(lua_State* L, int& c, int index = -1)
+	{
+		c = ReturnValueToInteger(L, index);
+	}
+
+	static bool check(lua_State* L, int index = -1)
+	{
+		return lua_isnumber(L, index);
+	}
+
+	static std::string signature()
+	{
+		return "integer";
+	}
+
+	static std::string name()
+	{
+		return "Integer";
 	}
 };
 
@@ -277,6 +318,7 @@ class LuaUserData
 		using base_type::num_ip;
 		using base_type::ip;
 		using base_type::time;
+		using base_type::subset;
 		using base_type::value;
 
 	public:
@@ -288,7 +330,7 @@ class LuaUserData
 			if(dim >= 1) ss << "x";
 			if(dim >= 2) ss << ", y";
 			if(dim >= 3) ss << ", z";
-			ss << ", t)\n   ... \n   return ";
+			ss << ", t, si)\n   ... \n   return ";
 			if(lua_traits<TRet>::size != 0)
 				ss << lua_traits<TRet>::signature() << ", ";
 			ss << lua_traits<TData>::signature();
@@ -336,7 +378,8 @@ class LuaUserData
 		}
 
 	///	returns true if callback has correct return values
-		static bool check_callback_returns(const char* callName, const bool bThrow = false)
+		static bool check_callback_returns(const char* callName,
+		                                   const bool bThrow = false)
 		{
 		//	get lua state
 			lua_State* L = ug::script::GetDefaultLuaState();
@@ -364,6 +407,7 @@ class LuaUserData
 		//	dummy values to invoke the callback once
 			MathVector<dim> x; x = 0.0;
 			number time = 0.0;
+			int si = 0;
 
 		//	push the callback function on the stack
 			lua_rawgeti(L, LUA_REGISTRYINDEX, callbackRef);
@@ -374,9 +418,13 @@ class LuaUserData
 		//	push time on stack
 			lua_traits<number>::push(L, time);
 
+		//	push subset on stack
+			lua_traits<int>::push(L, si);
+
 		//	compute total args size
 			const int argSize = lua_traits<MathVector<dim> >::size
-									+  lua_traits<number>::size;
+									+ lua_traits<number>::size
+									+ lua_traits<int>::size;
 
 		//	compute total return size
 			const int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
@@ -451,7 +499,7 @@ class LuaUserData
 		}
 
 	///	evaluates the data at a given point and time
-		TRet operator() (TData& D, const MathVector<dim>& x, number time) const
+		TRet operator() (TData& D, const MathVector<dim>& x, number time, int si) const
 		{
 		//	push the callback function on the stack
 			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
@@ -462,9 +510,13 @@ class LuaUserData
 		//	push time on stack
 			lua_traits<number>::push(m_L, time);
 
+		//	push subset index on stack
+			lua_traits<int>::push(m_L, si);
+
 		//	compute total args size
 			const int argSize = lua_traits<MathVector<dim> >::size
-									+  lua_traits<number>::size;
+								+ lua_traits<number>::size
+								+ lua_traits<int>::size;
 
 		//	compute total return size
 			const int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
@@ -500,12 +552,13 @@ class LuaUserData
 	///	implement as a IPData
 		virtual void compute(bool bDeriv = false)
 		{
+			const number t = time();
+			const int si = subset();
+
 			for(size_t s = 0; s < num_series(); ++s)
 				for(size_t i = 0; i < num_ip(s); ++i)
 				{
-					this->operator()(	value(s,i),
-										ip(s, i),
-										time());
+					this->operator()(value(s,i), ip(s, i), t, si);
 				}
 		}
 

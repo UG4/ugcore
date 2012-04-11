@@ -191,13 +191,16 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 	//	time
 		number m_time;
 
+	//	subset
+		int m_si;
+
 	public:
 	/// constructor
 		L2ErrorIntegrand(IPData<number, worldDim>& exactSol,
 		                 TGridFunction& gridFct, size_t cmp,
-		                 number time)
+		                 number time, int si)
 		: m_rGridFct(gridFct), m_fct(cmp),
-		  m_ExactSolution(exactSol), m_time(time)
+		  m_ExactSolution(exactSol), m_time(time), m_si(si)
 		{};
 
 	/// \copydoc IIntegrand::getValues
@@ -239,7 +242,7 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			//	compute exact solution at integration point
 				number exactSolIP;
-				m_ExactSolution(exactSolIP, vGlobIP[ip], m_time);
+				m_ExactSolution(exactSolIP, vGlobIP[ip], m_time, m_si);
 
 			// 	compute approximated solution at integration point
 				number approxSolIP = 0.0;
@@ -442,7 +445,7 @@ number L2ErrorDraft(IPData<number, TGridFunction::dim>& ExactSol,
 
 	//	create integration kernel
 		static const int dim = TGridFunction::dim;
-		L2ErrorIntegrand<TGridFunction, dim> integrandKernel(ExactSol, u, fct, time);
+		L2ErrorIntegrand<TGridFunction, dim> integrandKernel(ExactSol, u, fct, time, si);
 
 	//	integrate elements of subset
 		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;

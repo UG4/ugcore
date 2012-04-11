@@ -202,9 +202,10 @@ class DirichletBoundary
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
 			{}
 
-			bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
+			bool operator()(MathVector<1>& val, const MathVector<dim> x,
+			                number time, int si) const
 			{
-				(*spFunctor)(val[0], x, time); return true;
+				(*spFunctor)(val[0], x, time, si); return true;
 			}
 
 			SmartPtr<IPData<number, dim> > spFunctor;
@@ -224,9 +225,10 @@ class DirichletBoundary
 			              std::string fctName_, std::string ssName_)
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
 			{}
-			bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
+			bool operator()(MathVector<1>& val, const MathVector<dim> x,
+			                number time, int si) const
 			{
-				return (*spFunctor)(val[0], x, time);
+				return (*spFunctor)(val[0], x, time, si);
 			}
 
 			SmartPtr<IPData<number, dim, bool> > spFunctor;
@@ -246,7 +248,8 @@ class DirichletBoundary
 			              std::string fctName_, std::string ssName_)
 				: functor(value_), fctName(fctName_), ssName(ssName_)
 			{}
-			inline bool operator()(MathVector<1>& val, const MathVector<dim> x, number time) const
+			inline bool operator()(MathVector<1>& val, const MathVector<dim> x,
+			                       number time, int si) const
 			{
 				val[0] = functor; return true;
 			}
@@ -268,9 +271,10 @@ class DirichletBoundary
 			           std::string fctName_, std::string ssName_)
 				: spFunctor(value_), fctName(fctName_), ssName(ssName_)
 			{}
-			bool operator()(MathVector<dim>& val, const MathVector<dim> x, number time) const
+			bool operator()(MathVector<dim>& val, const MathVector<dim> x,
+			                number time, int si) const
 			{
-				(*spFunctor)(val, x, time); return true;
+				(*spFunctor)(val, x, time, si); return true;
 			}
 
 			SmartPtr<IPData<MathVector<dim>, dim> > spFunctor;

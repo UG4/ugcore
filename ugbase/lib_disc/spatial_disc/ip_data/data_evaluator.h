@@ -29,6 +29,9 @@ class DataEvaluator
 		void set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		                    const FunctionPattern& fctPat);
 
+	///	sets the subset for data evaluation
+		void set_subset(const int subset);
+
 	///	sets in all IElemDiscs the time and previous solutions
 		void set_time_dependent(bool bTimeDep,
 		                        LocalVectorTimeSeries* locTimeSeries = NULL);

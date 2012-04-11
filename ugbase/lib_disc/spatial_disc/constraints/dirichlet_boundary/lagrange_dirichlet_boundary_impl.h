@@ -383,7 +383,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 				{
 				// 	check if function is dirichlet
 					if(TUserData::isConditional){
-						if(!(*vUserData[i])(val, vPos[j], time)) continue;
+						if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 					}
 
 				//	set dirichlet row
@@ -501,7 +501,7 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 				{
 				// 	check if function is dirichlet
 					if(TUserData::isConditional){
-						if(!(*vUserData[i])(val, vPos[j], time)) continue;
+						if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 					}
 
 				//	set zero for dirichlet values
@@ -613,7 +613,7 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 				for(size_t j = 0; j < multInd.size(); ++j)
 				{
 				//  get dirichlet value
-					if(!(*vUserData[i])(val, vPos[j], time)) continue;
+					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
 				//	set zero for dirichlet values
 					BlockRef(u[multInd[j][0]], multInd[j][1]) = val[f];
@@ -728,7 +728,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 				for(size_t j = 0; j < multInd.size(); ++j)
 				{
 				// 	check if function is dirichlet and read value
-					if(!(*vUserData[i])(val, vPos[j], time)) continue;
+					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
 					const size_t index = multInd[j][0];
 					const size_t alpha = multInd[j][1];
@@ -848,7 +848,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 				for(size_t j = 0; j < multInd.size(); ++j)
 				{
 				// 	check if function is dirichlet and read value
-					if(!(*vUserData[i])(val, vPos[j], time)) continue;
+					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
 					const size_t index = multInd[j][0];
 					const size_t alpha = multInd[j][1];

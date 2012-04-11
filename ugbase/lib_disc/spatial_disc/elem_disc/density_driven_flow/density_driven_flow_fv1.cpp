@@ -505,7 +505,7 @@ prepare_element_loop()
 
 	//	evaluate constant data
 		MathVector<dim> dummy;
-		pGrav->operator ()(m_Gravity, dummy, 0.0);
+		pGrav->operator ()(m_Gravity, dummy, 0.0, 0);
 	}
 	else
 	{
