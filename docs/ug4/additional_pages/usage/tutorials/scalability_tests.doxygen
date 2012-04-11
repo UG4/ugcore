@@ -7,33 +7,32 @@
 - \ref secScalabilityTestsGeneral
 - \ref secScalabilityTestsSpecific
 
-For any questions, contact ingo.heppner@gcsc.uni-frankfurt.de .
-
 
 <hr>
 \section secScalabilityTestsGeneral General Practical Information about Scalability Tests
+<hr>
 
 <ul>
   <li>First of all you have to <strong>enable profiling</strong> by configuring 
     your build with \em CMake (cf. \ref secEnableProfiling):
-    \verbatim
+    \code
 cmake -DPROFILER=ON [-DPROFILE_PCL=ON] ..
-    \endverbatim
+    \endcode
   </li>
   <li>Then, to get "clean" timing measurements, you should do a <strong>release 
     build</strong>, i.e.
-    \verbatim
+    \code
 cmake -DEBUG=OFF ..
-    \endverbatim
+    \endcode
 
     (Obviously the above configurations can be performed by only one 
     <tt>cmake</tt> command.)
   </li>
-  <li>Furthermore, since output can be very time consuming for jobs with a very 
-    large number of MPI processes its highly recommended to <strong>turn off 
-    any output</strong>, by disabling debug writers and any other print/write 
-    operations for saving large data to files (vectors and matrices, refined 
-    grids, partition maps, solutions ...).
+  <li>Furthermore, since generation of output can be very time consuming for jobs
+    with a very large number of MPI processes its highly recommended to
+    <strong>turn off any output generation</strong> by disabling debug writers and
+    any other print/write operations for saving large data to files (vectors and
+    matrices, refined grids, partition maps, solutions ...).
   </li>
   <li>Timing measurements are only useful at points where processes are 
     synchronised, e.g. after computing of global norms, after performing 
@@ -47,9 +46,9 @@ cmake -DEBUG=OFF ..
     Check if the number of iterations is constant over all problem sizes.
   </li>
 <!--
-  TODO: info about how to distribute levels of multigrid hierarchy
+  TODO: Infos about how to distribute levels of a multigrid hierarchy
   <li>Information about how to distribute the levels of a multigrid hierarchy 
-    when performing a multi grid solver (i.e. especially how to avoid too much 
+    when executing a multi grid solver (i.e. especially how to avoid too much 
     work for the root proc).
   </li>
 -->
@@ -68,9 +67,13 @@ performance of large jobs (running with >= 1024 PE) on \em JuGene
 
 <ul>
   <li>Example (applicable in a \em LoadLeveler script on \em JuGene):
-    \verbatim
+    \code
 mpirun -np   1024 -exe ./ugshell -mode VN -mapfile TXYZ -args "<other ug4 args> -numPreRefs 3 -numRefs 10 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep  16"
-    \endverbatim
+    \endcode
+     Or (a smaller, not very reasonable one) on \em cekon:
+     \code
+salloc -n 64 mpirun ./ugshell -ex ../scripts/tests/modular_scalability_test.lua -numPreRefs 1 -hRedistFirstLevel 4 -hRedistStepSize 2 -hRedistNewProcsPerStep  4 -numRefs 8
+     \endcode
   </li>
   <li>Parameters that control hierarchical redistribution:
     <ul>
@@ -142,8 +145,7 @@ mpirun -np   1024 -exe ./ugshell -mode VN -mapfile TXYZ -args "<other ug4 args> 
     </ul>
     So, all parameters with name part <tt>"Redist"</tt> refer to the 
     redistribution of an already distributed grid.
-  </li>
-  <li>
+  <br>
     The number of processes <tt>k</tt> of the first distribution step is 
     determined by the (total) number of MPI processes, <tt>numProcs</tt>, on 
     one side, and the other redistribution parameters on the other side, 
@@ -157,10 +159,14 @@ mpirun -np   1024 -exe ./ugshell -mode VN -mapfile TXYZ -args "<other ug4 args> 
     <!-- until the first distribution step.-->
   </li>
   <li>A test of the paramaters for hierarchical redistribution can be performed 
-    with LUA script <tt>parameter_test.lua</tt>, e.g.
-    \verbatim
-ugshell -ex ../scripts/tests/parameter_test.lua -numPreRefs 3 -numRefs 10 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep 16 -numProcs 1024
-    \endverbatim
+    with the LUA script <tt>parameter_test.lua</tt>, e.g.
+    \code
+./ugshell -ex ../scripts/tests/parameter_test.lua -numPreRefs 3 -numRefs 10 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep 16 -numProcs 1024
+    \endcode
+     Or the dry run for the smaller job on \em cekon above:
+    \code
+./ugshell -ex ../scripts/tests/parameter_test.lua -numPreRefs 1 -hRedistFirstLevel 4 -hRedistStepSize 2 -hRedistNewProcsPerStep  4 -numRefs 8 -numProcs 64
+    \endcode
     I.e. since the run is a serial run one has just to specify the number of 
     MPI processes in addition to the distribution parameters.
   </li>
@@ -178,11 +184,11 @@ distribution type" (<tt>distributionType</tt>) <tt>"grid2d"</tt> (see
 In the moment (march 2012) also grid distribution type <tt>"metis"</tt> is 
 unsupported.
 
-See also e.g. <tt>ll_scale_gmg.x</tt> for usage examples (specifically to 
-\em JuGene, but also in general).
+See also e.g. <tt>ll_scale_gmg.x</tt> (in <tt>scripts/shell/</tt>) for usage
+examples (specifically to \em JuGene, but also in general).
 
 
-\subsection secTopology_aware_mapping_of_mpi_processes Mapping of MPI Processes
+\subsection secTopology_aware_mapping_of_mpi_processes Mapping of MPI processes
 
 "Topology aware mapping" of MPI processes to nodes / cores with respect to the 
 network topology of the parallel machine on which a parallel job is run might 
@@ -204,7 +210,7 @@ TODO: Parameters of Mapping of MPI Processes
     (pathes relavtive to ug4's main directory):
     <ul>
       <li>For the Laplace problem:
-        <tt>scripts/tests/modular_scalability_test.lua</tt>.
+        <tt>apps/scaling_tests/modular_scalability_test.lua</tt>.
       </li>
       <li>For the Elder problem:
         <tt>apps/d3f/elder_scalability_test.lua</tt>.
@@ -213,7 +219,7 @@ TODO: Parameters of Mapping of MPI Processes
   </li>
   <li>For a (quiet convenient) \b analysis of the profiling results of several 
     simulation runs there also exist a special <strong>analyzer script</strong>:
-    <tt>scripts/utility_scripts/scaling_analyzer.lua</tt>.
+    <tt>scripts/tools/scaling_analyzer.lua</tt>.
     <ol>
       <li>To get log files of your simulation runs use the <tt>-ugshell</tt> 
         parameter <tt>-logtofile</tt>.
@@ -224,15 +230,20 @@ TODO: Parameters of Mapping of MPI Processes
         the names of the logfiles of all runs which profiling results should be 
         analysed (edit a local copy).
       </li>
-      <li>Then execute (stand-alone LUA interpreter necessary; see 
-        \ref secInstallLUA):
-        \verbatim
+      <li>Then execute (with the stand-alone LUA interpreter; see 
+        \ref secInstallLUA for installation if necessary):
+        \code
 lua my_scaling_analyzer.lua
-        \endverbatim
+        \endcode
         or, redirecting the output to a file :
-        \verbatim
+        \code
 lua my_scaling_analyzer.lua > jugene_ug4-static_laplace-2d_gmg_weak-scaling_pe4-256k_rev4354.txt
-        \endverbatim
+        \endcode
+	If \c ugshell is executable on the machine used for this analysis
+	(which is \em not the case if you are working on a login node of e.g.
+	 \em JuGene), one can also execute
+	 <tt ugshell -ex jugene/scaling_analyzer.lua</tt>
+	 (adapt	file pathes in <tt>inFiles</tt> relative to \c ugshell).
       </li>
     </ol>
   </li>

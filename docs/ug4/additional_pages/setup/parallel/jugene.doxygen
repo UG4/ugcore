@@ -118,7 +118,7 @@ build!
 <hr>
 \section secWorking_with_ug4_on_JuGene Working with ug4 on JuGene
 
-\subsection secBasic_job_handling Basic job handling
+\subsection secBasic_job_handling Basic Job Handling
 Please take the time and fill out the details in \c ugsubmit / \c uginfo / 
 \c ugcancel (\ref pageugsubmit).
 
@@ -221,13 +221,12 @@ TODO: Please provide a link which explains a bit more !!!
   <li><a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/llview.html"><tt>llview</tt></a>
     is a <strong>tool with a graphical X11 user interface</strong> for 
     displaying system status, running jobs, scheduling and prediction of the 
-    start time of jobs.
+    start time of jobs (the latter can also be achieved by the <tt>llq</tt>
+    command, see below).
+
 <!--
-TODO: llview on JuGene
---> 
-    If estimated start times can not determined by 
-    <tt>llq -s &lt;job-id&gt;</tt> (see below) this is to our knowledge the 
-    only possibility to get this information.
+    \todo Write more about <tt>llview</tt>. - There is not much more to say about llview - by us! (ih)
+-->
   </li>
   <li><strong>Interactive jobs</strong> can be started with the 
     <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerInteractive.html">llrun</a>
@@ -292,7 +291,7 @@ llsubmit <cmdfile>
   <li><strong>LoadLeveler keywords</strong> are strings embedded in comments 
     beginning with the characters "# @".
 <!--
-TODO: isn't there a better overview on the web?
+    \todo Isn't there a better overview on the web?
 -->
     Some selected keywords:
     <ul>
@@ -337,12 +336,26 @@ TODO: isn't there a better overview on the web?
     \verbatim
 llq [-u  <userid>]
     \endverbatim
+
+    The <strong>estimated start time</strong> of a job can be determined by
+    <tt>llq -s \<job-id\></tt>
+    (cf. https://docs.loni.org/wiki/Useful_LoadLeveler_Commands), where
+    <tt>\<job-id\></tt> was determined by the previous command, e.g. for the
+    job <tt>jugene4b.304384.0</tt>:
+
+    \verbatim
+    llq -s 304384  
+    
+    ===== EVALUATIONS FOR JOB STEP jugene4b.zam.kfa-juelich.de.304384.0 =====
+    
+    Step state                       : Idle
+    Considered for scheduling at     : Sun 01 Apr 2012 00:02:55 CEST
+    Top dog estimated start time     : Sun 01 Apr 2012 16:38:55 CEST
+    ...
+    \endverbatim
 <!--
-TODO: (to test)
+    \todo The "top dog" time in the example above and the predicted start time (~18:44) displayed by \c llview differ!?
 -->
-    The estimated start time of a job can (maybe) also be determined by 
-    <tt>llq -s &lt;job-id&gt;-id</tt> (cf. 
-    https://docs.loni.org/wiki/Useful_LoadLeveler_Commands).
   </li>
   <li><tt>llcancel</tt> is used to cancel a job (<tt>&lt;jobname&gt;</tt> as 
     displayed by <tt>llq</tt>):
@@ -375,7 +388,7 @@ q_cpuquota <options>
 
 
 <hr>
-\subsection secVery_large_jobs_on_JuGene Very large jobs on JuGene
+\subsection secVery_large_jobs_on_JuGene Very large Jobs on JuGene
 <ul>
   <li>Although its possible on \em JuGene to create shared libraries and run 
     dynamically linked executables this is <strong>in general not 
@@ -397,8 +410,5 @@ q_cpuquota <options>
     Support under <a href="sc@fz-juelich.de">sc@fz-juelich.de</a>).
   </li>
 </ul>
-
-More information ingo.heppner@gcsc.uni-frankfurt.de .
-
 
 */

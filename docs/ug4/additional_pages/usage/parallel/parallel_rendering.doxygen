@@ -4,12 +4,12 @@
 
 /**	\page pageParallelRendering Parallel Rendering
 
-	- \ref secParallelRenderingGeneral           "General informations about parallel rendering"
-	- \ref secParallelRenderingWithParaView      "Parallel rendering with ParaView"
+	- \ref secParallelRenderingGeneral           "General Information about Parallel Rendering"
+	- \ref secParallelRenderingWithParaView      "Parallel Rendering with ParaView"
 
 
 <hr>
-\section secParallelRenderingGeneral General informations about parallel rendering
+\section secParallelRenderingGeneral General Information about Parallel Rendering
 <hr>
 <!-- TODO! -->
 <ul>
@@ -20,7 +20,7 @@
 
 
 <hr>
-\section secParallelRenderingWithParaView Parallel rendering with ParaView
+\section secParallelRenderingWithParaView Parallel Rendering with ParaView
 <hr>
 
 <b>Prerequisite</b>: <a href="http://paraview.org/">ParaView</a> (client) is installed on your local machine,
@@ -34,7 +34,7 @@ This mode of running ParaView is also called "Client-Server mode".
 In client-server mode, one executes the <tt>pvserver</tt> program on a parallel machine and connect to it with the ParaView client application.
 
 <ol>
-<li> Start the ParaView server on the rendering server, e.g. cekon, with your local machine as client (the parameter <tt>-ch</tt> describes the "client host"):
+<li> Start the ParaView server on the rendering server, e.g. cekon, with your local machine as client (the parameter <tt>-ch</tt> specifies the "client host"):
      \verbatim
      salloc -n <NP> mpirun /usr/local/bin/pvserver -ch=<yourlocalhost>.gcsc.uni-frankfurt.de -rc --use-offscreen-rendering
      \endverbatim
@@ -48,11 +48,11 @@ In client-server mode, one executes the <tt>pvserver</tt> program on a parallel 
 <li> Then choose "File -- Connect".
      In the new dialog "Choose Server Configuration" click "Add Server" (window title changes to "Edit Server Configuration").
 
-     Fill in the necessary informations to define a connection to the ParaView server running on cekon:
+     Fill in the necessary information to define a connection to the ParaView server running on cekon:
      <ul>
      <li> Name: "cekon" (only descriptive; this is the name that will appear in the "Choose Server Configuration" dialog),
      <li> Server Type: "Client / Server (reverse Connection)",
-     <li> Port: "11111" (if default port can be used; see below).
+     <li> Port: "11111" (this is the default port; see below for use of other ports).
      </ul>
      Then click "Configure" and choose "Startup Type": "Manual". Click "Save"
 

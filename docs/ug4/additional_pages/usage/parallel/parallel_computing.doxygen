@@ -4,12 +4,12 @@
 
 /**	\page pageUG4ParallelComputing Parallel computing
 
-	- \ref secParallelComputingGeneral           "General informations about parallel computing"
-	- \ref secParallelComputingSpecific          "Specific informations about parallel computing"
-	- \ref secParallelComputingAvailableMachines "Available parallel computers"
+	- \ref secParallelComputingGeneral           "General Information about Parallel Computing"
+	- \ref secParallelComputingSpecific          "Specific Information about Parallel Computing"
+	- \ref secParallelComputingAvailableMachines "Available Parallel Computers"
 
 <hr>
-\section secParallelComputingGeneral General informations about parallel computing
+\section secParallelComputingGeneral General Information about Parallel Computing
 <hr>
 
 <ul>
@@ -27,7 +27,7 @@
 See also \ref pageUG4SetupParallel.
 
 <hr>
-\section secParallelComputingSpecific Specific informations about  parallel computing
+\section secParallelComputingSpecific Specific Information about Parallel Computing
 <hr>
 
 <ul>
@@ -37,7 +37,7 @@ See also \ref pageUG4SetupParallel.
 </ul>
 
 <hr>
-\section secParallelComputingAvailableMachines Available parallel computers
+\section secParallelComputingAvailableMachines Available Parallel Computers
 <hr>
 
 <ul>
@@ -50,6 +50,6 @@ See also \ref pageUG4SetupParallel.
 
 </ul>
  <!-- 
-TODO/Proposal: Should we start a collection of information about parallel machines available to us (basic performance parameters; accounting informations, ...)?
+TODO/Proposal: Should we start a collection of information about parallel machines available to us (basic performance parameters; accounting information, ...)?
 -->
 */
