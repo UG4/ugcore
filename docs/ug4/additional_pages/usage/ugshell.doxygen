@@ -294,7 +294,8 @@ complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F my_complete_ugshell 
 
 Finally, navigating on a terminal may seem uncomfortable, definining a (bash) 
 shell function <em>cdug</em> could improve that:
-\verbatimfunction cdug() {
+\verbatim
+function cdug() {
    local UG4_ROOT=~/ug4
    local SEP=_
    
@@ -339,7 +340,6 @@ shell function <em>cdug</em> could improve that:
 }
 complete -W "apps builds branches data docs scripts trunk ugbase unit_tests plugins" # -o plusdirs cdug
 Optionally you can supply -o plusdirs for <TAB> complete directories.
-*/
-
+\endverbatim
 
 */
