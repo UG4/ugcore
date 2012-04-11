@@ -10,6 +10,10 @@
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
 
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_user_data.h"
+#endif
+
 namespace ug{
 
 template<typename TDomain>
@@ -133,6 +137,48 @@ add(SmartPtr<IPData<MathVector<dim>, dim> > user, const char* function, const ch
 
 	if(this->fct_pattern_set()) extract_data();
 }
+
+#ifdef UG_FOR_LUA
+template <typename TDomain>
+void FV1NeumannBoundary<TDomain>::
+add(const char* name, const char* function, const char* subsets)
+{
+	if(LuaUserData<number, dim>::check_callback_returns(name)){
+		SmartPtr<IPData<number, dim> > sp =
+							CreateSmartPtr(new LuaUserData<number, dim>(name));
+		add(sp, function, subsets);
+		return;
+	}
+	if(LuaUserData<number, dim, bool>::check_callback_returns(name)){
+		SmartPtr<IPData<number, dim, bool> > sp =
+						CreateSmartPtr(new LuaUserData<number, dim, bool>(name));
+		add(sp, function, subsets);
+		return;
+	}
+	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(name)){
+		SmartPtr<IPData<MathVector<dim>, dim> > sp =
+				CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(name));
+		add(sp, function, subsets);
+		return;
+	}
+
+//	no match found
+	if(!CheckLuaCallbackName(name))
+		UG_THROW_FATAL("FV1NeumannBoundary::add: Lua-Callback with name '"<<name<<
+		               "' does not exist.");
+
+//	name exists but wrong signature
+	UG_THROW_FATAL("FV1NeumannBoundary::add: Cannot find matching callback "
+					"signature. Use one of:\n"
+					"a) Number - Callback\n"
+					<< (LuaUserData<number, dim>::signature()) << "\n" <<
+					"b) Conditional Number - Callback\n"
+					<< (LuaUserData<number, dim, bool>::signature()) << "\n" <<
+					"c) "<<dim<<"d Vector - Callback\n"
+					<< (LuaUserData<MathVector<dim>, dim>::signature()));
+}
+#endif
+
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
@@ -382,6 +428,64 @@ ass_rhs_elem(LocalVector& d)
 		}
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Number Data
+////////////////////////////////////////////////////////////////////////////////
+
+
+template<typename TDomain>
+template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+void FV1NeumannBoundary<TDomain>::NumberData::
+extract_bip(const TFVGeom<TElem,dim>& geo)
+{
+	typedef typename TFVGeom<TElem, dim>::BF BF;
+	vLocIP.clear();
+	vGloIP.clear();
+	for(size_t s = 0; s < ssGrp.num_subsets(); s++)
+	{
+		const int bndSubset = ssGrp[s];
+		if(geo.num_bf(bndSubset) == 0) continue;
+		const std::vector<BF>& vBF = geo.bf(bndSubset);
+		for(size_t i = 0; i < vBF.size(); ++i)
+		{
+			vLocIP.push_back(vBF[i].local_ip());
+			vGloIP.push_back(vBF[i].global_ip());
+		}
+	}
+
+	import.set_local_ips(&vLocIP[0], vLocIP.size());
+	import.set_global_ips(&vGloIP[0], vGloIP.size());
+}
+
+template<typename TDomain>
+template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+void FV1NeumannBoundary<TDomain>::NumberData::
+lin_def_fv1(const LocalVector& u,
+            std::vector<std::vector<number> > vvvLinDef[],
+            const size_t nip)
+{
+//  get finite volume geometry
+	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
+	typedef typename TFVGeom<TElem, dim>::BF BF;
+
+	size_t ip = 0;
+	for(size_t s = 0; s < ssGrp.num_subsets(); ++s)
+	{
+		const int bndSubset = ssGrp[s];
+		if(geo.num_bf(bndSubset) == 0) continue;
+		const std::vector<BF>& vBF = geo.bf(bndSubset);
+		for(size_t i = 0; i < vBF.size(); ++i)
+		{
+		// 	get associated node
+			const int co = vBF[i].node_id();
+
+		// 	set lin defect
+			vvvLinDef[ip][locFct][co] -= vBF[i].volume();
+		}
+	}
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Constructor

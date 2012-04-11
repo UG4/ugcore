@@ -74,6 +74,9 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim, bool> >, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add))
+#ifdef UG_FOR_LUA
+			.add_method("add", static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add))
+#endif
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "FV1NeumannBoundary", dimTag);
 	}
