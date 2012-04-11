@@ -518,8 +518,8 @@ if false then
 	problem["Poisson"].velocity = LuaUserVector("zeroVelocityField2d")
 	problem["Poisson"].reaction = LuaUserNumber("zeroReaction2d")
 	problem["Poisson"].source = LuaUserNumber("stdSource2d")
-	problem["Poisson"].neumann = LuaBoundaryNumber("stdNeumannBnd2d")
-	problem["Poisson"].dirichlet = LuaBoundaryNumber("stdDirichletBnd2d")
+	problem["Poisson"].neumann = LuaCondUserNumber("stdNeumannBnd2d")
+	problem["Poisson"].dirichlet = LuaCondUserNumber("stdDirichletBnd2d")
 	
 	problem["Poisson"].configs = {}
 	problem["Poisson"].configs[1] = {["epsx"]= 1.0, ["epsy"]= 1.0}
@@ -550,8 +550,8 @@ if false then
 	problem["ConvDiff"].velocity = LuaUserVector("constVelocityField2d")
 	problem["ConvDiff"].reaction = LuaUserNumber("zeroReaction2d")
 	problem["ConvDiff"].source = LuaUserNumber("stdSource2d")
-	problem["ConvDiff"].neumann = LuaBoundaryNumber("stdNeumannBnd2d")
-	problem["ConvDiff"].dirichlet = LuaBoundaryNumber("stdDirichletBnd2d")
+	problem["ConvDiff"].neumann = LuaCondUserNumber("stdNeumannBnd2d")
+	problem["ConvDiff"].dirichlet = LuaCondUserNumber("stdDirichletBnd2d")
 	
 	problem["ConvDiff"].configs = {}
 	problem["ConvDiff"].configs[1] = {["epsx"]= 1.0, ["epsy"]= 1.0}
@@ -571,8 +571,8 @@ if false then
 	problem["Recirc"].velocity = LuaUserVector("recirculatingVelocityField2d")
 	problem["Recirc"].reaction = LuaUserNumber("zeroReaction2d")
 	problem["Recirc"].source = LuaUserNumber("stdSource2d")
-	problem["Recirc"].neumann = LuaBoundaryNumber("stdNeumannBnd2d")
-	problem["Recirc"].dirichlet = LuaBoundaryNumber("stdDirichletBnd2d")
+	problem["Recirc"].neumann = LuaCondUserNumber("stdNeumannBnd2d")
+	problem["Recirc"].dirichlet = LuaCondUserNumber("stdDirichletBnd2d")
 	
 	problem["Recirc"].configs = {}
 	problem["Recirc"].configs[1] ={["epsx"]= 1.0, ["epsy"]= 1.0}
@@ -593,8 +593,8 @@ if true then
 	problem["Hedgehog"].velocity = LuaUserVector("zeroVelocityField2d")
 	problem["Hedgehog"].reaction = LuaUserNumber("zeroReaction2d")
 	problem["Hedgehog"].source = LuaUserNumber("stdSource2d")
-	problem["Hedgehog"].neumann = LuaBoundaryNumber("stdNeumannBnd2d")
-	problem["Hedgehog"].dirichlet = LuaBoundaryNumber("stdDirichletBnd2d")
+	problem["Hedgehog"].neumann = LuaCondUserNumber("stdNeumannBnd2d")
+	problem["Hedgehog"].dirichlet = LuaCondUserNumber("stdDirichletBnd2d")
 	
 	problem["Hedgehog"].configs = {}
 	problem["Hedgehog"].configs[1] = {["epsx"]= 1.0, ["epsy"]= 1.0}
@@ -614,8 +614,8 @@ if true then
 	problem["Isolator"].velocity = LuaUserVector("zeroVelocityField2d")
 	problem["Isolator"].reaction = LuaUserNumber("zeroReaction2d")
 	problem["Isolator"].source = LuaUserNumber("stdSource2d")
-	problem["Isolator"].neumann = LuaBoundaryNumber("stdNeumannBnd2d")
-	problem["Isolator"].dirichlet = LuaBoundaryNumber("stdDirichletBnd2d")
+	problem["Isolator"].neumann = LuaCondUserNumber("stdNeumannBnd2d")
+	problem["Isolator"].dirichlet = LuaCondUserNumber("stdDirichletBnd2d")
 	
 	problem["Isolator"].configs = {}
 	problem["Isolator"].configs[1] = {["epsx"]= 1e+6, ["epsy"]= 1e+6}

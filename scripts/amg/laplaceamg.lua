@@ -117,11 +117,11 @@ rhs = LuaUserNumber("ourRhs")
 --rhs = ConstUserNumber(0.0)
 
 -- neumann setup
-neumann = LuaBoundaryNumber("ourNeumannBnd")
+neumann = LuaCondUserNumber("ourNeumannBnd")
 --neumann = ConstUserNumber(0.0)
 
 -- dirichlet setup
-dirichlet = LuaBoundaryNumber("ourDirichletBnd")
+dirichlet = LuaCondUserNumber("ourDirichletBnd")
 --dirichlet = ConstBoundaryNumber(0.0)
 
 -----------------------------------------------------------------

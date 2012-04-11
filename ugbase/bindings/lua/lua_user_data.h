@@ -982,7 +982,7 @@ class LuaFunction
 namespace bridge{
 
 void RegisterLuaUserData(Registry& reg, const char* parentGroup);
-void RegisterLuaBoundaryNumber(Registry& reg, const char* parentGroup);
+void RegisterLuaCondUserNumber(Registry& reg, const char* parentGroup);
 
 } // end namepace bridge
 } // end namespace ug

@@ -129,7 +129,7 @@ end
 	function cbDirichletBnd3d(x, y, z, t)
 		return true, 5.9991		
 	end	
-	dirchletBnd = LuaBoundaryNumber("cbDirichletBnd"..dim.."d")
+	dirchletBnd = LuaCondUserNumber("cbDirichletBnd"..dim.."d")
 	
 	
 	function cbSinRhs2d(x, y, t)
@@ -143,7 +143,7 @@ end
 		local s = 2*math.pi
 		return true, math.sin(s*x) + math.sin(s*y)
 	end
-	sinDirchletBnd2d = LuaBoundaryNumber("cbSinDirichletBnd2d")
+	sinDirchletBnd2d = LuaCondUserNumber("cbSinDirichletBnd2d")
 	
 	-- anisotropic diffusion in corners
 	function cbAnisoDiffTensor2d(x, y, t)

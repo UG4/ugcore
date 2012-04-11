@@ -196,8 +196,8 @@ end
 velocityField = LuaUserVector("ourVelocityField"..dim.."d")
 reaction = LuaUserNumber("ourReaction"..dim.."d")
 rhs = LuaUserNumber("ourRhs"..dim.."d")
-neumann = LuaBoundaryNumber("ourNeumannBnd"..dim.."d")
-dirichlet = LuaBoundaryNumber("ourDirichletBnd"..dim.."d")
+neumann = LuaCondUserNumber("ourNeumannBnd"..dim.."d")
+dirichlet = LuaCondUserNumber("ourDirichletBnd"..dim.."d")
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization

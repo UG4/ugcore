@@ -152,15 +152,15 @@ print ("Setting up Assembling")
 	--rhs = ConstUserNumber(0.0)
 
 -- neumann setup
-	neumann = LuaBoundaryNumber("ourNeumannBnd2d")
+	neumann = LuaCondUserNumber("ourNeumannBnd2d")
 	--neumann = ConstUserNumber(0.0)
 
 -- dirichlet setup
-	dirichlet = LuaBoundaryNumber("ourDirichletBnd2d")
+	dirichlet = LuaCondUserNumber("ourDirichletBnd2d")
 	--dirichlet = ConstBoundaryNumber(3.2)
 	
 -- dirichlet setup
-	membraneDirichlet = LuaBoundaryNumber("membraneDirichletBnd2d")
+	membraneDirichlet = LuaCondUserNumber("membraneDirichletBnd2d")
 
 
 -----------------------------------------------------------------

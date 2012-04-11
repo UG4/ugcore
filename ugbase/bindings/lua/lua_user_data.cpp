@@ -116,11 +116,11 @@ bool RegisterLuaUserDataType(Registry& reg, string type, const char* parentGroup
 	{
 		typedef LuaUserData<TData, dim, bool> T;
 		typedef IPData<TData, dim, bool> TBase;
-		string name = string("LuaBoundary").append(type).append(dimSuffix);
+		string name = string("LuaCondUser").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, string("LuaBoundary").append(type), dimTag);
+		reg.add_class_to_group(name, string("LuaCondUser").append(type), dimTag);
 	}
 
 	return true;

@@ -135,7 +135,7 @@ diffusionMatrix = CreateRotatedAnisotropyMatrix2d(RAalpha, RAepsilon)
 velocityField = LuaUserVector("ourVelocityField"..dim.."d")
 reaction = LuaUserNumber("ourReaction"..dim.."d")
 rhs = LuaUserNumber("ourRhs"..dim.."d")
-dirichlet = LuaBoundaryNumber("ourDirichletBnd"..dim.."d")
+dirichlet = LuaCondUserNumber("ourDirichletBnd"..dim.."d")
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
