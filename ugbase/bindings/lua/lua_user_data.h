@@ -68,6 +68,8 @@ struct lua_traits;
 template <>
 struct lua_traits<void>
 {
+	static const int size = 0;
+
 	static void push(lua_State*	L, const bool&){}
 
 	static void read(lua_State* L, bool&, int index = -1){}
@@ -81,12 +83,17 @@ struct lua_traits<void>
 		return "void";
 	}
 
-	static const int size = 0;
+	static std::string name()
+	{
+		return "void";
+	}
 };
 
 template <>
 struct lua_traits<bool>
 {
+	static const int size = 1;
+
 	static void push(lua_State*	L, const bool& b)
 	{
 		lua_pushboolean(L, b);
@@ -109,12 +116,17 @@ struct lua_traits<bool>
 		return "bool";
 	}
 
-	static const int size = 1;
+	static std::string name()
+	{
+		return "Bool";
+	}
 };
 
 template <>
 struct lua_traits<number>
 {
+	static const int size = 1;
+
 	static void push(lua_State*	L, const number& c)
 	{
 		lua_pushnumber(L, c);
@@ -135,12 +147,17 @@ struct lua_traits<number>
 		return "number";
 	}
 
-	static const int size = 1;
+	static std::string name()
+	{
+		return "Number";
+	}
 };
 
 template <std::size_t dim>
 struct lua_traits< ug::MathVector<dim> >
 {
+	static const int size = dim;
+
 	static void push(lua_State*	L, const MathVector<dim>& x)
 	{
 		for(size_t i = 0; i < dim; ++i)
@@ -173,13 +190,20 @@ struct lua_traits< ug::MathVector<dim> >
 		return ss.str();
 	}
 
-	static const int size = dim;
+	static std::string name()
+	{
+		std::stringstream ss;
+		ss << "Vector";
+		return ss.str();
+	}
 };
 
 
 template <std::size_t dim>
 struct lua_traits< MathMatrix<dim, dim> >
 {
+	static const int size = dim*dim;
+
 	static void push(lua_State*	L, const MathMatrix<dim, dim>& D)
 	{
 		for(size_t i = 0; i < dim; ++i){
@@ -222,7 +246,12 @@ struct lua_traits< MathMatrix<dim, dim> >
 		return ss.str();
 	}
 
-	static const int size = dim*dim;
+	static std::string name()
+	{
+		std::stringstream ss;
+		ss << "Matrix";
+		return ss.str();
+	}
 };
 
 ////////////////////////////////
@@ -251,9 +280,45 @@ class LuaUserData
 		using base_type::value;
 
 	public:
+	///	returns string of required callback signature
+		static std::string signature()
+		{
+			std::stringstream ss;
+			ss << "function name(";
+			if(dim >= 1) ss << "x";
+			if(dim >= 2) ss << ", y";
+			if(dim >= 3) ss << ", z";
+			ss << ", t)\n   ... \n   return ";
+			if(lua_traits<TRet>::size != 0)
+				ss << lua_traits<TRet>::signature() << ", ";
+			ss << lua_traits<TData>::signature();
+			ss << "\nend";
+			return ss.str();
+		}
+
+	///	returns name of UserData
+		static std::string name()
+		{
+			std::stringstream ss;
+			ss << "Lua";
+			if(lua_traits<TRet>::size > 0) ss << "Cond";
+			ss << "User" << lua_traits<TData>::name() << dim << "d";
+			return ss.str();
+		}
+
 	///	Constructor
+	/**
+	 * Creates a LuaUserData that uses a Lua function to evaluate some data.
+	 * NOTE: The Lua callback function is called once with dummy parameters
+	 * 		 in order to check the correct return values.
+	 *
+	 * @param luaCallback		Name of Lua Callback Function
+	 */
 		LuaUserData(const char* luaCallback) : m_callbackName(luaCallback)
 		{
+		//	make a test run
+			check_callback_returns(luaCallback, true);
+
 		//	get lua state
 			m_L = ug::script::GetDefaultLuaState();
 
@@ -262,7 +327,7 @@ class LuaUserData
 
 		//	make sure that the reference is valid
 			if(lua_isnil(m_L, -1)){
-				UG_THROW_FATAL("LuaUserData(...): Specified lua callback "
+				UG_THROW_FATAL(name() << ": Specified lua callback "
 								"does not exist: " << m_callbackName);
 			}
 
@@ -271,16 +336,27 @@ class LuaUserData
 		}
 
 	///	returns true if callback has correct return values
-		static bool check_callback_returns(const char* name)
+		static bool check_callback_returns(const char* callName, const bool bThrow = false)
 		{
 		//	get lua state
 			lua_State* L = ug::script::GetDefaultLuaState();
 
+		//	get current stack level
+			const int level = lua_gettop(L);
+
 		//	obtain a reference
-			lua_getglobal(L, name);
+			lua_getglobal(L, callName);
 
 		//	check if reference is valid
-			if(lua_isnil(L, -1)) return false;
+			if(lua_isnil(L, -1)) {
+				if(bThrow) {
+					UG_THROW_FATAL(name() << ": Cannot find specified lua callback "
+									" with name: "<<callName);
+				}
+				else {
+					return false;
+				}
+			}
 
 		//	get reference
 			int callbackRef = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -306,44 +382,65 @@ class LuaUserData
 			const int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
 
 		//	call lua function
-			if(lua_pcall(L, argSize, retSize, 0) != 0)
-				UG_THROW_FATAL("LuaUserData::check_returns(): Error while "
-								"running callback '" << name << "',"
+			if(lua_pcall(L, argSize, LUA_MULTRET, 0) != 0)
+				UG_THROW_FATAL(name() << ": Error while "
+								"testing callback '" << callName << "',"
 								" lua message: "<< lua_tostring(L, -1));
+
+		//	get number of results
+			const int numResults = lua_gettop(L) - level;
 
 		//	success flag
 			bool bRet = true;
 
+		//	if number of results is wrong return error
+			if(numResults != retSize){
+				if(bThrow){
+					UG_THROW_FATAL(name() << ": Number of return values incorrect "
+									"for callback '"<<callName<<"'. "
+									"Required: "<<retSize<<", passed: "<<numResults
+									<<". Use signature as follows:\n"
+									<< signature());
+				}
+				else{
+					bRet = false;
+				}
+			}
+
 		//	check return value
-			bRet &= lua_traits<TData>::check(L);
+			if(!lua_traits<TData>::check(L)){
+				if(bThrow){
+					UG_THROW_FATAL(name() << ": Data values incorrect "
+									"for callback '"<<callName<<"'. "
+									"Use signature as follows:\n"
+									<< signature());
+				}
+				else{
+					bRet = false;
+				}
+			}
 
 		//	read return flag (may be void)
-			bRet &= lua_traits<TRet>::check(L, -retSize);
+			if(!lua_traits<TRet>::check(L, -retSize)){
+				if(bThrow){
+					UG_THROW_FATAL("LuaUserData: Return values incorrect "
+									"for callback '"<<callName<<"'. "
+									"Use signature as follows:\n"
+									<< signature());
+				}
+				else{
+					bRet = false;
+				}
+			}
 
 		//	pop values
-			lua_pop(L, retSize);
+			lua_pop(L, numResults);
 
 		//	free reference to callback
 			luaL_unref(L, LUA_REGISTRYINDEX, callbackRef);
 
 		//	return match
 			return bRet;
-		}
-
-	///	returns string of required callback signature
-		static std::string signature()
-		{
-			std::stringstream ss;
-			ss << "function name(";
-			if(dim >= 1) ss << "x";
-			if(dim >= 2) ss << ", y";
-			if(dim >= 3) ss << ", z";
-			ss << ", t)\n   ... \n   return ";
-			if(lua_traits<TRet>::size != 0)
-				ss << lua_traits<TRet>::signature() << ", ";
-			ss << lua_traits<TData>::signature();
-			ss << "\nend";
-			return ss.str();
 		}
 
 	///	virtual destructor
@@ -374,9 +471,11 @@ class LuaUserData
 
 		//	call lua function
 			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-				UG_THROW_FATAL("LuaUserData::operator(...): Error while "
+				UG_THROW_FATAL(name() << "::operator(...): Error while "
 								"running callback '" << m_callbackName << "',"
-								" lua message: "<< lua_tostring(m_L, -1));
+								" lua message: "<< lua_tostring(m_L, -1)<<".\n"
+								"Use signature as follows:\n"
+								<< signature());
 
 			bool res = false;
 			try{
@@ -386,8 +485,10 @@ class LuaUserData
 			//	read return flag (may be void)
 				lua_traits<TRet>::read(m_L, res, -retSize);
 			}
-			UG_CATCH_THROW("LuaUserData::operator(...): Error while running "
-							"callback '" << m_callbackName << "'");
+			UG_CATCH_THROW(name() << "::operator(...): Error while running "
+							"callback '" << m_callbackName << "'."
+							"Use signature as follows:\n"
+							<< signature());
 
 		//	pop values
 			lua_pop(m_L, retSize);
