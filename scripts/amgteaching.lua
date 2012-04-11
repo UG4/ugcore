@@ -495,7 +495,7 @@ elemDisc = ConvectionDiffusion("c", "Inner")
 elemDisc:set_disc_scheme("fv1")
 elemDisc:set_upwind(upwind)
 elemDisc:set_diffusion(problem.diffusion)
-elemDisc:set_velocity_field(problem.velocity)
+elemDisc:set_velocity(problem.velocity)
 elemDisc:set_reaction_rate(problem.reaction)
 elemDisc:set_source(problem.source)
 return elemDisc

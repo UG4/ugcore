@@ -131,7 +131,7 @@ dirichlet = LuaBoundaryNumber("ourDirichletBnd")
 elemDisc = ConvectionDiffusion("c", "Inner")
 elemDisc:set_disc_scheme("fv1")
 elemDisc:set_diffusion(diffusionMatrix)
-elemDisc:set_velocity_field(velocityField)
+elemDisc:set_velocity(velocityField)
 elemDisc:set_reaction_rate(reaction)
 elemDisc:set_source(rhs)
 
