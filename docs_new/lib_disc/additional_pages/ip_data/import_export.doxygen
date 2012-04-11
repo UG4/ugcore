@@ -1,0 +1,272 @@
+/*
+  created
+  Andreas Vogel <andreas.vogel@gcsc.uni-frankfurt.de>
+  y11 m01 d11
+
+  refactored
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageLDImportExport Data Import / Data Export
+
+This page gives an introduction to the idea of the import/export/linker idea
+used in ug to couple several discretizations.
+
+- \ref secPreliminaries "Preliminaries"
+- \ref secImport "Import"
+- \ref secComputationJacobian "Computation of Jacobian"
+- \ref secIPData "IP Data"
+- \ref secExport "Export"
+- \ref secLinker "Linker"
+
+
+<hr>
+\section secPreliminaries Preliminaries
+<hr>
+
+Assume, the whole problem can be logically partitioned into some smaller problems.
+(The partition may not be unique, several possibilities may be thinkable. Then, 
+the following strategy is applicable to every possibility). This smaller parts
+of the whole problem are called <b>systems</b>. Let \f$n_{sys}\f$ be the number 
+of systems. Assume, that the numerical solution can be partitioned in the same
+way into subsolutions, that are related to exactly one system, i.e. one can
+find a splitting of the whole solution like
+\f[
+\vec{u} = \bigotimes_{s=1}^{n_{sys}} \vec{u}^s
+\f]
+where we have some index set \f$ I_s \f$ to describe the unknowns of
+the part of the solution belonging to system \f$s\f$. One may say informally, 
+that system \f$ s \f$ "owns" its unknown solution \f$ \vec{u}^s\f$.
+
+Lets introduce some numbers:
+<ul>
+<li> \f$N_s := |I_s|\f$: number of unknowns of system s
+<li> \f$N := |\bigotimes\limits_{s=1}^{n_{sys}}I_s| 
+			= \sum\limits_{s=1}^{n_{sys}} N_s\f$: number of all unknowns
+</ul>
+
+Thus, the vector \f$\vec{u}\f$ is build up by \f$N\f$ scalar values, while each
+of the subsolutions \f$ \vec{u}^s \f$ has \f$ N_s\f$ scalar entries, i.e. for
+every \f$ i \in I \f$ one finds \f$ \vec{u}_i \in \mathbb{R}\f$, and
+for every \f$ i \in I_s\f$ one has \f$ \vec{u}^s_i \in \mathbb{R}\f$.
+
+In the common discretization schemes, one usually computes a defect, that uses 
+the same index set \f$ I \f$ as the solution, since then the resulting
+linear system matrix is quadratic (and hopefully invertible).
+
+Therefore, lets assume to have a discretization producing \f$ N \f$ discrete 
+equations. We can group those equation to one vector called defect, that must be
+equal to zero, if a solution has been found. Formally, we write
+
+\f{align*}
+	\vec{d}(\vec{u}): \mathbb{R}^N &\mapsto \mathbb{R}^N, \\
+	J(\vec{u}): \mathbb{R}^N &\mapsto \mathbb{R}^{N \times N}.
+\f}
+Here, we already introduced the jacobian matrix, which is the derivative of the
+defect with respect to the unknown solution, i.e. each entry of the jacobian is
+given by
+\f[
+	J(\vec{u})_{ij} := \frac{\partial \vec{d}_i}{\partial \vec{u}_j}.
+\f]
+
+Using the partition of the index set into the index sets of the systems, one can
+again split the defect into its system components:
+\f[
+\vec{d}(\vec{u}) =  \bigotimes_{s=1}^{n_{sys}} \vec{d}^s(\vec{u}),
+\f]
+and the same holds for the jacobian matrix
+\f[
+J(\vec{u}) =  \bigotimes_{s=1}^{n_{sys}} \bigotimes_{t=1}^{n_{sys}} 
+				J^{st}(\vec{u}),
+\f]
+where we introduced a abbreviation for the inter-system jacobian
+\f{align*}
+	J^{st}(\vec{u}) &:= \frac{\partial \vec{d}^s}{\partial \vec{u}^t},\\
+	J^{st}(\vec{u})_{ij} &:= \frac{\partial \vec{d}^s_i}{\partial \vec{u}^t_j}.
+\f}
+
+<hr>
+\section secImport Import
+<hr>
+
+Up till now, there has been no restriction of the dependency of the defect to the
+unknown solutions. Now, we make the strong assumption, that the defect related to
+system \f$ s\f$ does explicitly only depend on the subsolution \f$ \vec{u}^s \f$.
+It may, however, depend implicitly on the whole solution \f$ \vec{u} \f$. This 
+implicit dependency is realized by the use of objects called <b>imports</b>. The
+most important task of an import is to compute data of some c++-type at some 
+given integration points and some time step. In the following we denote the c++-type by 
+\f$ \mathcal{D}\f$ and assume, that this type is isomorph to the
+\f$ \mathbb{R}^m\f$ (typically, this type is a scalar, a vector ot some matrix).
+Thus, the Import can be described by
+\f{align*}
+\mathcal{I}: \mathbb{R}^d \times \mathbb{R} \times
+			 \mathbb{R}^{N_1} \times \dots \times \mathbb{R}^{N_{n_{sys}}} 
+			 &\mapsto \mathcal{D} \\
+
+\vec{x}, t, \vec{u}^1, \dots, \vec{u}^{n_{sys}}
+ &\mapsto \mathcal{I}(\vec{x}, t, \vec{u}^1, \dots, \vec{u}^{n_{sys}})			 
+\f}
+Note, that we assume that the import can and may depend on all subsolution.
+The strong assumption on the explicit dependency of the defect on its own solution
+can now be expressed as
+\f[
+\vec{d}^s \equiv \vec{d}^s(\vec{u}^s, \mathcal{I}^s_1, \dots, \mathcal{I}^s_{n_{\mathcal{I}^s}}),
+\f]
+if we assume that system \f$s\f$ has \f$n_{\mathcal{I}^s}\f$ imports.
+
+<hr>
+\section secComputationJacobian Computation of Jacobian
+<hr>
+
+A second main task of the import facility is the computation of the jacobian. 
+By use of the splitting of the defect and the solution into the systems, one
+can compute the jacobian parts as follows:
+\f{align*}
+ J^{ss}(\vec{u}) &= \left. \frac{\partial \vec{d}^s}{\partial \vec{u}^s} \right|_{\vec{u}}
+ 					+ \sum_{k=1}^{n_{\mathcal{I}^s}}
+ 						 \left. \frac{\partial \vec{d}^s}{\partial \mathcal{I}^s_k} \right|_{\vec{u}}
+ 						 \cdot 
+ 						 \left. \frac{\partial \mathcal{I}^s_k} {\partial \vec{u}^s} \right|_{\vec{u}}\\
+ J^{st}(\vec{u}) &= \sum_{k=1}^{n_{\mathcal{I}^s}}
+ 						 \left. \frac{\partial \vec{d}^s}{\partial \mathcal{I}^s_k} \right|_{\vec{u}}
+ 						 \cdot 
+ 						 \left. \frac{\partial \mathcal{I}^s_k} {\partial \vec{u}^t} \right|_{\vec{u}}
+\f}
+
+The expression
+\f{align*}
+	 \left. \frac{\partial \vec{d}^s}{\partial \vec{u}^s} \right|_{\vec{u}} :=
+	  \left. \frac{\partial \vec{d}^s(\vec{v}^s, \mathcal{I}^s_1(\vec{u}), 
+ 	 				\dots,  \mathcal{I}^s_{n_{\mathcal{I}^s}}(\vec{u})))}
+	  			  {\partial \vec{v}^s} \right|_{\vec{v}^s = \vec{u}^s}
+\f}
+
+is the derivative of the system defect w.r.t. to its own unknowns and can thus 
+be computed by the system \f$s\f$ itself, once all values of the data imports
+have been computed. Thus, a general strategy must be to first compute the 
+values of the imports and then use this values to compute the system-local 
+defect and the system-local jacobian.
+
+Second, we find the expression
+\f{align*}
+ 	 \left. \frac{\partial \vec{d}^s}{\partial \mathcal{I}^s_k} \right|_{\vec{u}} := 
+ 	 \left. \frac{\partial \vec{d}^s(\vec{u}^s,  \mathcal{I}^s_1(\vec{u}), 
+ 	 \dots, \tilde{\mathcal{I}}^s_k,
+ 	 \dots, \mathcal{I}^s_{n_{\mathcal{I}^s}}(\vec{u}))}
+ 	 {\partial \tilde{\mathcal{I}}^s_k} \right|_{\tilde{\mathcal{I}}^s_k = \mathcal{I}^s_k(\vec{u})}
+\f}
+which is the linearization of the defect w.r.t. the \f$k\f$-th import of the 
+system \f$s\f$. Please note, that all informations to compute these linearization
+is known by system \f$s\f$ and thus this system can compute the values without
+any knowledge to the other systems, once the values of the imports are given.
+Thus, a general strategy must be to first compute the values of all imports and
+then to compute the linearizations of the defect w.r.t. the imports. Also it is 
+important to note, that the data type of 
+\f{align*}
+ \frac{\partial \vec{d}^s_i}{\partial \mathcal{I}^s_k} 
+\f}
+can also be represented by the c++-type \f$\mathcal{D}\f$ of the import.
+
+Finally, we find the expression
+\f{align*}
+	\left. \frac{\partial \mathcal{I}^s_k} {\partial \vec{u}^t} \right|_{\vec{u}} :=
+	\left. \frac{\partial \mathcal{I}^s_k(\vec{u}^1,
+				 \dots, \vec{v}^t,
+				 \dots, \vec{u}^{n_{sys}})} 
+				{\partial \vec{v}^t} \right|_{\vec{v}^t = \vec{u}^t}
+\f}
+which is the derivative of the import data w.r.t. to the unknown solution. Here,
+we can have a non-zero derivative to any subsolution. Please note, that again
+the expression
+\f{align*}
+ \frac{\partial \mathcal{I}^s_k}{\partial \vec{u}^t_j} 
+\f}
+can be represented by the c++-type \f$\mathcal{D}\f$ of the import. This derivative
+is not known to the system \f$s\f$ at all. We will see in the following, where 
+these data can be computed. 
+
+However, note that once the needed components are given we can compute the
+contribution to the jacobian by
+\f{align*}
+J^{st}(\vec{u})_{ij} =  \sum_{k=1}^{n_{\mathcal{I}^s}}
+ 						 \left. \frac{\partial \vec{d}^s_i}{\partial \mathcal{I}^s_k} \right|_{\vec{u}}
+ 						 \cdot 
+ 						 \left. \frac{\partial \mathcal{I}^s_k} {\partial \vec{u}^t_j} \right|_{\vec{u}}
+\f}
+as long as the data type \f$\mathcal{D}\f$ of the each import implements a
+scalar product.
+
+
+<hr>
+\section secIPData IP Data
+<hr>
+
+The base class for the computation of the values and derivatives needed by 
+the imports is called IPData, and we will denote them by \f$\mathcal{E}\f$ since
+they "export" data. A data export is plugged into a data import in order to 
+indicate, that the data produced by the export should be used as the import. One
+may think that in the forementioned formulas each import must be replaced by 
+an export.
+
+We distinguish different kinds of IPData:
+
+<ul>
+<li> constant data: \f$ \mathcal{E} \equiv \mathcal{E}()\f$. 
+<li> position dependent data: \f$ \mathcal{E} \equiv \mathcal{E}(\vec{x},t)\f$
+<li> system exports: \f$ \mathcal{E} \equiv \mathcal{E}(\vec{x}, t, \vec{u}^s)\f$
+<li> linker: \f$ \mathcal{E} \equiv \mathcal{E}(\vec{x}, t, \vec{u}^1, \dots, \vec{u}^{n_{sys}})\f$
+</ul>
+
+The first two have a zero-derivative. Thus, in a general strategy their derivatives
+should not be computed and the loop over these exports are skipped in the computation
+of the jacobian. The last two kinds are now discussed in more detail.
+
+<hr>
+\section secExport Export
+<hr>
+
+The system exports compute data at requested points based on their own 
+subsolution. For example, a data export may be the subsolution itself or its
+derivative, but also more complicated expressions involving the solution 
+are possible. In general these exports can be thought to be evaluation like
+\f{align*}
+ \mathcal{E}: \mathbb{R}^d \times \mathbb{R} \times \mathbb{R}^{N_s} &\mapsto \mathcal{D}, \\
+ \vec{x}, t, \vec{u}^s &\mapsto \mathcal{E}(\vec{x}, t, \vec{u}^s).
+\f}
+Note, that the system \f$s\f$ does also know the derivative of the data w.r.t.
+to the unknows. However, an export may need data from other imports in order
+to compute the data. Thus a general strategy would be to first compute the data
+the export depends on and then compute the data and the derivative of the data in 
+case of a jacobian. Of course, circle dependencies of the exports are not allowed.
+
+<hr>
+\section secLinker Linker
+<hr>
+
+A linker is ip data, that is computed by combining other ip datas. Thus, it does
+not create any data, but connects (links) the data. A linker is an ip data; just 
+to emphasize the difference between the other ip data and a linker we will use 
+the denotation \f$\mathcal{L}\f$ for the linker.
+
+\f{align*}
+	\mathcal{L}: \mathcal{D}_1  \times \dots \times \mathcal{D}_{n_{\mathcal{L}}}
+		&\mapsto \mathcal{D}, \\
+		\mathcal{E}_1, \dots, \mathcal{E}_{n_{\mathcal{L}}} 
+		&\mapsto \mathcal{L}(\mathcal{E}_1, \dots, \mathcal{E}_{n_{\mathcal{L}}} ).
+\f}
+Note, that a linker must therefore be able to combine different c++-types to 
+form a new one.
+
+The linker must also compute the derivative of the data w.r.t. the unknowns. 
+This can be done using
+\f{align*}
+\left. \frac{\partial \mathcal{L}}{\partial \vec{u}^t} \right|_{\vec{u}} =
+\sum\limits_{k=1}^{n_{\mathcal{L}}} 
+\left. \frac{\partial \mathcal{L}}{\partial \mathcal{I}_k} \right|_{\vec{u}}
+\cdot
+\left. \frac{\partial \mathcal{I}_k}{\partial \vec{u}^t} \right|_{\vec{u}}
+\f}
+
+**/

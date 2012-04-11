@@ -1,0 +1,45 @@
+/*
+  created
+  Sebastian Reiter <s.b.reiter@googlemail.com>
+  y11 m06 d08
+
+  refactored
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageTutorials Tutorials
+
+<!--
+\todo Rewrite this introductory paragraph for the tutorials section.
+-->
+
+On this site you'll find links to different tutorials.
+Some are targetted at all users of <strong>UG4</strong>, like the scripting 
+tutorials or the <tt>ugshell</tt> tutorial, others are aimed primarily at 
+developers &mdash; e.g. the 'install eclipse' and 'compile ug4' tutorials.
+Some are aimed at both &mdash; e.g. the profiling tutorial.
+
+\section secTutorialsGeneral General Tutorials
+
+- \ref pageUG4Shell "ugshell"
+- \subpage pageScriptTutorial "Script Tutorial"
+
+
+\section secTutorialSpecial Special Tutorials
+
+- \subpage pageUG4Profiling "Profiling"
+- \ref pageUGSubmit "Job Scheduling on Clusters"
+- \ref pageUG4ParallelComputing "Parallel computing"
+- \ref pageParallelRendering "Parallel Rendering"
+- \ref pageUG4ScalabilityTests "Scalability Tests"
+- \ref pageAdditionalSoftware "Additional software that might be useful"
+
+
+\section secTutorialsDev Development Tutorials
+
+- \ref pageInstallEclipse "Install Eclipse"
+- \ref pageInstallUG4 "Compile ug4"
+
+
+*/

@@ -1,0 +1,18 @@
+/*
+  refactored
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageSTLesson1 Lesson 1 - Lua Basics
+
+In this tutorial we show you some of the basics behind lua.
+We introduce the most commonly used syntax and control structures and give a 
+small outlook what else can be achieved in Lua.
+
+Below you'll find the scripts sources.
+They are the same as in <tt>scripts/tutorials/tut01_lua_basics.lua</tt>.
+
+\include tut01_lua_basics.lua
+
+*/

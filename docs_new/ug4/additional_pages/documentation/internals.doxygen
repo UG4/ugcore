@@ -1,0 +1,13 @@
+/*
+  created
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d29
+*/
+
+/** \page pageUG4Internals UG4's Internals
+
+- \subpage pageLAOverview "libAlgebra"
+- \subpage pageLDIntroduction "libDiscretization"
+- \subpage pageLGIntroduction "libGrid"
+
+*/

@@ -1,0 +1,22 @@
+/*
+  refactored
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageSTLesson3 Lesson 3 - Laplace with Exact Solver
+
+This tutorial is based on \ref pageSTLesson2 .
+It shows how a discretization of the Laplace problem can be set up and how an 
+exact solver can be used to solve the problem.
+We will use script callbacks to specify the diffusion tensor and the right hand 
+side as well as the Dirichlet boundary values.
+The results are finally written to a <tt>.vtk</tt> file which can be opened 
+with <em>ParaView</em> or similar software.
+
+Below you'll find the scripts sources.
+They are the same as in <tt>scripts/tutorials/tut03_laplace_with_exact_solver.lua</tt>.
+
+\include tut03_laplace_with_exact_solver.lua
+
+*/

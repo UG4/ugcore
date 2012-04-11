@@ -1,0 +1,186 @@
+/*
+  created
+  Andreas Vogel <andreas.vogel@gcsc.uni-frankfurt.de>
+  y10 m12 d11
+
+  refactored
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageUG4CodingStyle Coding Style
+
+The following Coding Style is recommended for ug.
+
+- \ref secCodingSyleNaming
+- \ref secCodingSyleFiles
+- \ref secCodingSyleDocumentation
+
+For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
+
+
+<hr>
+\section secCodingSyleNaming Naming
+
+<ul>
+  <li><strong>Global Functions</strong> are named using <em>Camel Case</em>, 
+    i.e.  each element's initial is letter capitalized.
+    \code
+    int AddTwoIntegers(int a, int b);
+    \endcode
+  </li>
+  <li><strong>Classes</strong> are named using <em>Camel Case</em>, i.e. each 
+    element's initial is letter capitalized.
+    The members of a class should be named like this:
+    <ul>
+      <li><strong>member variables</strong> are indicated by an leading 
+        <tt>m_</tt> followed by a lower camel case style
+      </li>
+      <li><strong>pointer member variables</strong> are indicated by an leading 
+        <tt>m_p</tt>
+      </li>
+      <li><strong>member functions</strong> (methods) are named in lower case 
+        separating each word by an underscore <tt>_</tt>
+      </li>
+    </ul>
+    \code
+    class MyClassOfTwoIntegers
+    {
+      public:
+        MyClassOfTwoIntegers(int a, int b) :
+          m_firstInteger(a), m_pSecondInteger(&b)
+        {}
+      
+        int& get_first_integer() {return m_firstInteger;}
+        int& get_second_integer() {return *m_pSecondInteger;}
+        
+      private:
+        int m_firstInteger;
+        int* m_pSecondInteger;
+    };
+    \endcode
+  </li>
+  <li><strong>Interface Classes</strong> should be named by an leading capital 
+    <tt>I</tt>
+    \code
+      class IVehicle
+      {
+        public:
+          virtual void drive() = 0;
+      };
+    \endcode
+  </li>
+  <li><strong>Template parameters</strong> should be indicated by an leading 
+    capital <tt>T</tt>
+    \code
+      template <typename TDomain, typename TMatrix>
+      void AssembleMatrixOnDomain(TDomain& dom, TMatrix& mat);
+    \endcode
+  </li>
+</ul>
+
+
+<hr>
+\section secCodingSyleFiles Files
+
+Files are named by using lower case letters and separating each word by an 
+underscore <tt>_</tt>.
+Please try to separate declaration and definition (implementation) into 
+separate files:
+<ul>
+  <li><tt>*.h</tt> &mdash; files contain the declaration of functions and 
+    classes
+  </li>
+  <li><tt>*_impl.h</tt> &mdash; files contain the implementation of inline and 
+    template functions/classes
+  </li>
+  <li><tt>*.cpp</tt> &mdash; files contain the rest of the implementation</li>
+</ul>
+
+Example:
+<ul>
+  <li><tt>domain_util.h</tt>
+    \code
+    #ifndef __H__UG__LIB_DISC__DOMAIN_UTIL__
+    #define __H__UG__LIB_DISC__DOMAIN_UTIL__
+
+    namespace ug{
+
+    // ... declaration of classes and functions ...
+
+    } // end namespace ug
+
+    // include implementation
+    #include "./domain_util_impl.h"
+
+    #endif /* __H__UG__LIB_DISC__DOMAIN_UTIL__ */
+    \endcode
+  </li>
+  <li><tt>domain_util_impl.h</tt>
+    \code
+    #ifndef __H__UG__LIB_DISC__DOMAIN_UTIL_IMPL__
+    #define __H__UG__LIB_DISC__DOMAIN_UTIL_IMPL__
+
+    // include declarations
+    #include "./domain_util.h"
+
+    namespace ug{
+
+    // ... implementation of inline and template classes/functions ...
+
+    } // end namespace ug
+
+    #endif /* __H__UG__LIB_DISC__DOMAIN_UTIL_IMPL__ */
+    \endcode
+  </li>
+  <li><tt>domain_util.cpp</tt>
+    \code
+    // include declarations
+    #include "./domain_util.h"
+
+    namespace ug{
+
+    // ... implementation ...
+
+    } // end namespace ug
+    \endcode
+  </li>
+</ul>
+
+
+<hr>
+\section secCodingSyleDocumentation Documentation
+
+In UG4 Doxygen is used to document the code (see http://www.doxygen.org).
+The JavaDoc style is the preferred documentation style.
+
+\code
+/// A brief documentation
+/**
+ * A long description of the class.
+ * \tparam	TParam	The docu of the template Parameter
+ */
+template <typename TParam>
+class SomeClass
+{
+  public:
+    /// short docu of member function
+    /**
+      * long docu of the member function
+      * \param[out] firstParam  docu of outgoing parameter
+      * \param[in]  secondParam docu of ingoing parameter
+      * \return true  docu of return value	
+      */
+      bool some_member_function(int& firstParam, const int secondParam);
+}
+\endcode
+
+<!--
+\todo Please agree on the place of documentation.
+Either in the <strong>definition</strong> <em>or</em> the 
+<strong>implementation</strong> of functions.<br>
+Suggestion: Definition, as the header file with the definitions is usually 
+shorter than the implementation files.
+-->
+
+*/

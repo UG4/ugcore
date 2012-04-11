@@ -1,0 +1,300 @@
+/*
+  created
+  Andreas Vogel <andreas.vogel@gcsc.uni-frankfurt.de>
+  y16 m12 d10
+
+  refactored
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageLDIPData IP Data
+
+An IElemDisc object can assemble the local stiffness/mass matrix and/or the local
+defect/rhs. In order to accomplish this task user defined data is often needed
+for several integration points on the element. On this page, we describe the
+idea of the IPData import, that is used in ug. 
+
+- \ref secDataImport "Data Import"
+- \ref secIPData "IPData"
+- \ref secDataExport "Data Export"
+- \ref secEvaluationOrder "Evaluation Order"
+	
+While this page is concentrated on the technical usage, a more detailed and 
+mathematical introduction to the import/export strategy can be found on
+\subpage pageLDImportExport "Import/Export Concept". 
+
+
+<hr>
+\section secDataImport Data Import
+<hr>
+Each IElemDisc may have several DataImports, describing some user defined 
+functions or data given from outside of the IElemDisc. To give an idea, 
+this may be a Diffusion Tensor, a Velocity field, some reaction constants, but
+also data computed by other IElemDisc, such as their local solution values at
+those points or some computed velocity field etc. This data must be known at 
+several points on each element. We call this points IntegrationPoints, 
+as they are usually linked to some quadrature procedure. Please note, that the 
+position of the integration points is uniquely and only determined by the requesting 
+IElemDisc. Other (data exporting) IElemDiscs or the user defined Data must not
+need any information on how and why these integration points have been chosen.
+This is important to ensure, that IElemDiscs remain independent from each other.
+ 
+The IElemDisc tells the DataImport, at which integration points it wants to 
+evaluate the data. This is done in two fashions:
+<ul>
+<li> local integration points: A vector of all ips expressed in reference element
+	coordinates. This is usually needed for data exported by other IElemDiscs
+<li> global integration points: A vector if all ips expressed in global (i.e. physical
+	world) coordinates. This is usually needed for user-defined data 
+</ul>
+Please note, that only a pointer to the vector of coordinates together with the 
+number of integration points is stored when requesting ip data. Some reason for 
+that:
+
+<ul>
+<li> Storing positions in a vector-like structure gives good cache hit rates
+<li> Computing the data for all ips with only one virtual call
+<li> The identity of two requested ip series is compared using the pointer to 
+the integration points. Iff two pointers are equal, the computation of the second
+request is skipped, since not needed. This comparison and scheduling of evaluation
+is done before the loop over all elements starts.
+</ul>
+
+Lets show the usage with the example of a Diffusion Tensor Import. The Import
+is realized by class member 
+\code
+///	Data import for Diffusion
+	DataImport<MathMatrix<dim,dim>, dim, algebra_type> m_Diff;
+\endcode
+This indicates, that the computed/imported data has the C++-type 
+<b>MathMatrix\<dim,dim\></b>, the dimension of the global coordinates is 
+<b>dim</b>. This Import must be registered, in order to include it to the 
+evaluation process, by calling (e.g. in the constructor):
+\code
+//	register imports
+	register_import(m_Diff);
+\endcode
+
+The request of a local integration point series must be done in
+<b> prepare_element_loop() </b>, like e.g.
+
+\code
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
+template<typename TElem>
+bool FVConvectionDiffusion<TFVGeom, TDomain, TAlgebra>::
+prepare_element_loop()
+{
+//  get reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type
+																ref_elem_type;
+																
+//	get Finite-Volume Geometry															
+	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
+
+//	set local positions
+	m_Diff.template set_local_ips<ref_elem_type::dim>(geo.scvf_local_ips(),
+	                                                 geo.num_scvf_ips());
+}
+\endcode
+
+The request of the global integration points takes place in <b>prepare_element()</b>,
+after the global ips have been updated for the element:
+
+\code
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
+template<typename TElem >
+bool FVConvectionDiffusion<TFVGeom, TDomain, TAlgebra>::
+prepare_element(TElem* elem, const LocalVector& u,
+								const LocalIndices& glob_ind)
+{
+// 	Load corners of this element
+	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
+	{
+		VertexBase* vert = elem->vertex(i);
+		m_vCornerCoords[i] = m_aaPos[vert];
+	}
+
+// 	Update Geometry for this element
+	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	if(!geo.update(elem, m_pDomain->subset_handler(), &m_vCornerCoords[0]))
+	{
+		UG_LOG("FVConvectionDiffusion::prepare_element:"
+				" Cannot update Finite Volume Geometry.\n"); return false;
+	}
+
+//	set global positions for rhs
+	m_Diff.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
+}
+\endcode
+
+Then, in each <b>assemble_...()</b> function the data can be accessed at the integration 
+points like this
+
+\code
+size_t ip = 0;
+if(!m_Diff.zero_data())
+{
+// 	loop Sub Control Volume Faces (SCVF)
+	for(size_t i = 0; i < geo.num_scvf(); ++i)
+	{
+	// 	get current SCVF
+		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
+
+	// 	loop integration point of SCVF
+		for(size_t i = 0; i < scvf.num_ip(); ++i, ++ip)
+		{
+		// 	loop shape functions
+			for(size_t j = 0; j < scvf.num_sh(); ++j)
+			{
+			// 	Compute Diffusion Tensor times Gradient
+				MathMatrix<dim, dim> ipDiffTensor = m_Diff[ip];
+			}
+		}
+	}
+}
+\endcode
+
+<hr>
+\section secIPData IP Data
+<hr>
+
+The base class for Data, that can be plugged into the Data Import is given by
+the class <b>IPData</b>. In ug, we distinguish four kinds of IP Data:
+
+<ul>
+<li> default data (usually zero or identity data)
+<li> constant data
+<li> data depending on \f$ (\vec{x}, t) \f$, i.e. on the global space coordinate and
+	the time.
+<li> data produced by other IElemDiscs.
+</ul>
+
+Default data is used, iff no data has been set to the Data Import. The the 
+IElemDisc may decide to use a predefined default value. This is usually zero, 
+sometimes identity.
+
+The base class for the last three data, is the class 
+\code 
+template <typename TData>
+class IPData
+\endcode
+
+This class can provide the data for the templated type. It knows:
+
+<ul>
+<li> The number of integration points
+<li> The Data at the integration points
+</ul>
+
+Note, that we have to serve a variety of possible setting. This ranges between
+to extremes:
+
+<ul>
+<li> Data is used by several IElemDiscs at exactly the same points. Thus, 
+	we want to compute the data only once.
+<li> Data is needed at different points. Thus, several data sets must be 
+	 produced using the same evaluation function, but at different points.
+</ul>
+
+In order to implement this, every DataImport is connected to exactly one IPData.
+Then, it requests the needed ips using <b>register_local_ip_series( ... )</b> and gets
+a <b>Series ID</b>. This id is like a ticket for the Import. Each time it requests 
+the data at its points, the Import must use the ID to indicate which series it has
+requested. Internally, requests to identical ip points, will produce identical 
+series IDs and the data at those points will only be computed once, while several
+Imports have access to the data.
+
+<hr>
+\section secDataExport	Data Export
+<hr>
+
+Each IElemDisc can provide as many <b>DataExports</b> as it wants. In general, 
+an Export can be regarded as the offer to compute data at integration points
+(and its derivative w.r.t. the local unknowns in case of Jacobian). Please note:
+if no request is made to use this offer, no computation or call to an export
+takes place, resulting in a zero overhead.
+
+In order to implement the a DataExport, a class defines a member of this type.
+\code
+///	Export for the Darcy velocity
+	DataExport<MathVector<dim>, dim, algebra_type> m_DarcyVelExport;
+\endcode
+
+Now, a evaluation function must be written in the same class, with the signature:
+\code
+///	computes the export
+	template <typename TElem>
+	bool 
+	IElemDisc<TAlgebra>::
+	compute_darcy_export(const LocalVector& u, bool compDeriv);
+\endcode
+
+A DataExport uses the local integration points to compute the data. 
+
+On creation the IElemDisc must register all element types it can evalute the 
+data for, by
+\code
+template <typename TElem>
+void register_all_assemble_functions(int id)
+{
+	typedef DensityDrivenFlow T;
+
+	m_DarcyVelExport.reg_export_fct(id, this, &T::template compute_darcy_export<TElem>);
+}
+\endcode
+
+<hr>
+\section secEvaluationOrder EvaluationOrder
+<hr>
+
+The order of evaluation is as follows.
+
+<ol>
+<li> Setup (before loop over all elements)
+	<ol>
+	<li> Get Imports from every IElemDisc.
+	<li> Sort the connected data by its behaviour: constant, user-defined 
+		and data-export data. Each type is scheduled for computation at a 
+		certain point.
+	<li> Remember imports that are connected to a non-zero-derivative data. This
+		imports are scheduled for the evaluation of the linearized defect.
+	<li> TODO: Skip Exports, that are already scheduled.
+	<li> <b>set_roid(...)</b>: Set geometric object type for 
+		each IElemDisc to indicate which evaluation function must be used
+	<li> <b>prepare_element_loop(...)</b>: Call preparation of element loop for 
+		each IElemDisc. Local positions are set for DataImports here.
+	<li> For all DataImports: Set the geometric object type to indicate which
+		evaluation function must be used
+	<li> For all DataExports: Set the geometric object type to indicate which
+		evaluation function must be used
+	<li> Compute <b> Constant User Data </b>, since they only depend on number
+		of integration points
+	</ol> 
+<li> Loop all elements. For each element do:
+	<ol>
+	<li> <b>prepare_element(...)</b>: Prepare element for each IElemDisc. Here, 
+		the new global ips are computed and set for each IDataImport
+	<li> Compute all user-defined data
+	<li> Compute all exports
+	<li> For Jacobian: Compute linearized defect w.r.t. to Imports 
+	<li> <b>assemble_....(...)</b>: Call assemble function of each IElemDisc
+	<li> For Jacobian: Assemble inter-IElemDisc coupling by multiplying linearized
+		defect with Data derivative for each import.
+	</ol> 
+<li> Post process (after loop over all elements)
+	<ol>
+	<li> <b>finish_element_loop()</b>: Finish element loop for each IElemDisc
+	</ol>
+</ol>
+
+The main point is, that first the ip positions are set and then the IPData is 
+computed before the local assemble_... functions are called for each IElemDisc. 
+Therefore, the computed ip data can be used in these functions.
+
+
+*/

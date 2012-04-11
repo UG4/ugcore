@@ -1,0 +1,32 @@
+/*
+  created
+  Andreas Vogel <andreas.vogel@gcsc.uni-frankfurt.de>
+  y10 m10 d18
+
+  refactored
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m03 d28
+*/
+
+/** \page pageLDIntroduction libDiscretization
+
+<hr>
+\section secLDAbout About
+libDiscretization is a library to provide Disretization tools that work
+on grids and algebras provided by libGrid and libAlgebra and is the third part
+of ug. libDiscretization depends on both libraries, while the other two 
+are independent of each other and of libDiscretization.
+
+Currently available topics:
+
+- \subpage pageLDAssemblingConcept "Assembling Concept"
+- \subpage pageLDDiscreteFunctionHandling "Discrete Function Handling"
+- \subpage pageLDIPData "Integration Point Data"
+
+<hr>
+\section secLDConcept Concept
+The concept of libDiscretization are described here:
+\ref pageLDAssemblingConcept "Assembling Concepts of libDiscretization"
+
+
+*/
