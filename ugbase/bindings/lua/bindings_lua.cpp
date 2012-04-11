@@ -504,13 +504,34 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 }
 
 
-static void PrintError(UGError &err)
+static void PrintUGErrorTraceback(UGError &err)
 {
+//	header
+	UG_LOG(errSymb<<"  Error traceback (innermost first): \n");
+
+//	padding to insert
+	std::string pad(errSymb); pad.append("     ");
+
+//	print each message
 	for(size_t i=0;i<err.num_msg();++i)
 	{
-		UG_LOG(errSymb<<" "<<i<<": "<<err.get_msg(i)<<endl);
-		UG_LOG(errSymb<<"     [at "<<err.get_file(i)<<
-		       ", line "<<err.get_line(i)<<"]\n");
+	//	get copy of original sting
+		std::string msg = err.get_msg(i);
+
+	//	add paddings
+		std::string::size_type pos = 0;
+		while (1) {
+		    pos = msg.find('\n', pos);
+		    if (pos == std::string::npos) break;
+		    pos++;
+		    msg.insert(pos, pad);
+		}
+
+	//	write message
+		UG_LOG(errSymb<<std::setw(3)<<i<<": "<<msg<<endl);
+
+	//	write file and line
+		UG_LOG(pad << "[at "<<err.get_file(i)<<", line "<<err.get_line(i)<<"]\n");
 	}
 }
 
@@ -545,8 +566,7 @@ static int LuaProxyFunction(lua_State* L)
 				UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
 				UG_LOG(errSymb<<"UGError thrown in call to function '");
 				PrintFunctionInfo(*func); UG_LOG("'.\n");
-				UG_LOG(errSymb<<"Error traceback:\n");
-				PrintError(err);
+				PrintUGErrorTraceback(err);
 				if(err.terminate())
 				{
 					UG_LOG(errSymb<<"Call stack:\n");
@@ -654,8 +674,7 @@ static int LuaProxyConstructor(lua_State* L)
 			UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L));
 			UG_LOG(errSymb<<"UGError thrown while creating class '"<<c->name());
 			UG_LOG("'.\n");
-			UG_LOG(errSymb<<"Error traceback:\n");
-			PrintError(err);
+			PrintUGErrorTraceback(err);
 			if(err.terminate())
 			{
 				UG_LOG(errSymb<<"Call stack:\n");
@@ -763,8 +782,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
 				UG_LOG(errSymb << "UGError thrown in call to method '");
 				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
-				UG_LOG(errSymb << " Error traceback:\n");
-				PrintError(err);
+				PrintUGErrorTraceback(err);
 				if(err.terminate())
 				{
 					UG_LOG(errSymb<<"Terminating..." << endl);
@@ -1143,8 +1161,8 @@ static int LuaProxyGroupCreate(lua_State* L)
 		{
 			UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L) <<":\n");
 			UG_LOG(errSymb<<"UGError thrown while creating class '"<<c->name());
-			UG_LOG("'.\n"); UG_LOG(errSymb<<"Error traceback:\n");
-			PrintError(err);
+			UG_LOG("'.\n");
+			PrintUGErrorTraceback(err);
 			if(err.terminate())
 			{
 				UG_LOG(errSymb<<"Call stack:\n");
