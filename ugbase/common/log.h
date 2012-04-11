@@ -17,7 +17,7 @@
 
 //	in order to support VRL logs, we're including bindings_vrl.h
 //  this is necessary to get access to the JVM environment
-#ifdef FOR_VRL
+#ifdef UG_FOR_VRL
 		#include <sstream>
 		#include "bindings/vrl/messaging.h"
 #endif
@@ -278,7 +278,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 /**
  * UG_LOG(msg)  		- prints a message to the normal output stream
  */
-#ifdef FOR_VRL
+#ifdef UG_FOR_VRL
 	#define VRL_LOG(msg) {std::stringstream ss;ss << "" << msg;\
 						  ug::vrl::MessageBuffer::addMessage(ss.str());}
 #else

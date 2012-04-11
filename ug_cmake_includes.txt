@@ -631,7 +631,7 @@ endif(HERMIT_EXPERIMENTAL)
 if(buildForVRL)
 	find_package(JNI REQUIRED)
     include_directories(${JNI_INCLUDE_DIRS})
-	add_definitions(-DFOR_VRL)
+	add_definitions(-DUG_FOR_VRL)
 endif(buildForVRL)
 
 ########################################

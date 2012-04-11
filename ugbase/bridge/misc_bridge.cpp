@@ -235,10 +235,10 @@ bool IsDefinedUG_HLIBPRO() { return false; }
 #endif
 
 // VRL - derived (depends on target):
-#ifdef FOR_VRL
-bool IsDefinedFOR_VRL() { return true; }
+#ifdef UG_FOR_VRL
+bool IsDefinedUG_FOR_VRL() { return true; }
 #else
-bool IsDefinedFOR_VRL() { return false; }
+bool IsDefinedUG_FOR_VRL() { return false; }
 #endif
 
 // PLUGIN - derived (depends on target)
@@ -440,7 +440,7 @@ void PrintBuildConfiguration()
 	// 2. Derived parameters (no direct parameters to cmake):
 	UG_LOG("2. Derived parameters:\n");
 	UG_LOG("Build for VRL:     ");
-	UG_LOG( (IsDefinedFOR_VRL() ? "ON " : "OFF") );
+	UG_LOG( (IsDefinedUG_FOR_VRL() ? "ON " : "OFF") );
 	UG_LOG("\n");
 
 	UG_LOG("PLUGIN:            ");
