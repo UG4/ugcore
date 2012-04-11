@@ -10,6 +10,10 @@
 
 #include "lagrange_dirichlet_boundary.h"
 
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_user_data.h"
+#endif
+
 namespace ug{
 
 
@@ -36,7 +40,6 @@ clear()
 	m_vConstNumberData.clear();
 	m_vVectorData.clear();
 }
-
 
 template <typename TDomain, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::
@@ -65,6 +68,38 @@ add(SmartPtr<IPData<MathVector<dim>, dim> > func, const char* functions, const c
 {
 	m_vVectorData.push_back(VectorData(func, functions, subsets));
 }
+
+#ifdef UG_FOR_LUA
+template <typename TDomain, typename TAlgebra>
+void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+add(const char* name, const char* function, const char* subsets)
+{
+	if(LuaUserData<number, dim>::check_callback_returns(name)){
+		add(CreateSmartPtr(new LuaUserData<number, dim>(name)), function, subsets);
+		return;
+	}
+	if(LuaUserData<number, dim, bool>::check_callback_returns(name)){
+		add(CreateSmartPtr(new LuaUserData<number, dim, bool>(name)), function, subsets);
+		return;
+	}
+	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(name)){
+		add(CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(name)), function, subsets);
+		return;
+	}
+
+//	no match found
+	if(!CheckLuaCallbackName(name))
+		UG_THROW_FATAL("LagrangeDirichlet::add: Lua-Callback with name '"<<name<<
+		               "' does not exist.");
+
+//	name exists but wrong signature
+	UG_THROW_FATAL("LagrangeDirichlet::add: Cannot find matching callback "
+					"signature. Use one of:\n"
+					<< (LuaUserData<number, dim>::signature()) << "\n"
+					<< (LuaUserData<number, dim, bool>::signature()) << "\n"
+					<< (LuaUserData<MathVector<dim>, dim>::signature()));
+}
+#endif
 
 template <typename TDomain, typename TAlgebra>
 void LagrangeDirichletBoundary<TDomain, TAlgebra>::

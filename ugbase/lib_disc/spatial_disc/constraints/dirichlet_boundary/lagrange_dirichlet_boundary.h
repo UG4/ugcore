@@ -57,6 +57,11 @@ class LagrangeDirichletBoundary
 	///	destructor
 		~LagrangeDirichletBoundary() {}
 
+	///	adds a lua callback (cond and non-cond)
+#ifdef UG_FOR_LUA
+		void add(const char* name, const char* function, const char* subsets);
+#endif
+
 	///	adds a conditional user-defined value as dirichlet condition for a function on subsets
 		void add(SmartPtr<IPData<number, dim, bool> > func, const char* function, const char* subsets);
 
