@@ -22,7 +22,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 {
 	base_type::set_approximation_space(approxSpace);
@@ -32,7 +32,7 @@ set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 }
 
 template <typename TDomain, typename TAlgebra>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 clear()
 {
 	m_vBNDNumberData.clear();
@@ -42,28 +42,28 @@ clear()
 }
 
 template <typename TDomain, typename TAlgebra>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 add(SmartPtr<IPData<number, dim, bool> > func, const char* function, const char* subsets)
 {
 	m_vBNDNumberData.push_back(CondNumberData(func, function, subsets));
 }
 
 template <typename TDomain, typename TAlgebra>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 add(SmartPtr<IPData<number, dim> > func, const char* function, const char* subsets)
 {
 	m_vNumberData.push_back(NumberData(func, function, subsets));
 }
 
 template <typename TDomain, typename TAlgebra>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 add(number value, const char* function, const char* subsets)
 {
 	m_vConstNumberData.push_back(ConstNumberData(value, function, subsets));
 }
 
 template <typename TDomain, typename TAlgebra>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 add(SmartPtr<IPData<MathVector<dim>, dim> > func, const char* functions, const char* subsets)
 {
 	m_vVectorData.push_back(VectorData(func, functions, subsets));
@@ -71,7 +71,7 @@ add(SmartPtr<IPData<MathVector<dim>, dim> > func, const char* functions, const c
 
 #ifdef UG_FOR_LUA
 template <typename TDomain, typename TAlgebra>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 add(const char* name, const char* function, const char* subsets)
 {
 	if(LuaUserData<number, dim>::check_callback_returns(name)){
@@ -102,12 +102,12 @@ add(const char* name, const char* function, const char* subsets)
 #endif
 
 template <typename TDomain, typename TAlgebra>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGroup, size_t numFct) const
 {
 //	only number of functions allowed
 	if(functionGroup.num_fct() != numFct)
-		UG_THROW_FATAL("LagrangeDirichletBoundary:extract_data:"
+		UG_THROW_FATAL("DirichletBoundary:extract_data:"
 					" Only "<<numFct<<" function(s) allowed in specification of a"
 					" Dirichlet Value, but the following functions given:"
 					<<functionGroup);
@@ -123,7 +123,7 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 
 	//	check that subsetIndex is valid
 		if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
-			UG_THROW_FATAL("LagrangeDirichletBoundary:extract_data:"
+			UG_THROW_FATAL("DirichletBoundary:extract_data:"
 							" Invalid Subset Index " << subsetIndex << ". (Valid is"
 							" 0, .. , " << pSH->num_subsets() <<").");
 
@@ -134,12 +134,12 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 
 		// 	check if function exist
 			if(fct >= m_spApproxSpace->function_pattern()->num_fct())
-				UG_THROW_FATAL("LagrangeDirichletBoundary:extract_data:"
+				UG_THROW_FATAL("DirichletBoundary:extract_data:"
 							" Function "<< fct << " does not exist in pattern.");
 
 		// 	check that function is defined for segment
 			if(!m_spApproxSpace->function_pattern()->is_def_in_subset(fct, subsetIndex))
-				UG_THROW_FATAL("LagrangeDirichletBoundary:extract_data:"
+				UG_THROW_FATAL("DirichletBoundary:extract_data:"
 								" Function "<<fct<<" not defined on subset "<<subsetIndex);
 		}
 	}
@@ -149,7 +149,7 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TScheduledUserData>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
              std::vector<TScheduledUserData>& vUserData)
 {
@@ -194,12 +194,12 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 
 
 template <typename TDomain, typename TAlgebra>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 extract_data()
 {
 //	check that function pattern exists
 	if(!m_spApproxSpace.valid())
-		UG_THROW_FATAL("LagrangeDirichletBoundary:extract_data: "
+		UG_THROW_FATAL("DirichletBoundary:extract_data: "
 				" Approximation Space not set.");
 
 	extract_data(m_mNumberBndSegment, m_vNumberData);
@@ -214,7 +214,7 @@ extract_data()
 
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 {
 	extract_data();
@@ -275,7 +275,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<TDD> dd, number time)
 {
 	extract_data();
@@ -290,7 +290,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<TDD> dd, num
 
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
                 matrix_type& J, const vector_type& u,
            	    ConstSmartPtr<TDD> dd, number time)
@@ -317,14 +317,14 @@ adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		if(dd->has_indices_on(VOLUME))
 			adjust_jacobian<Volume, TUserData, TDD>(vUserData, si, J, u, dd, time);
 		}
-		UG_CATCH_THROW("LagrangeDirichletBoundary::adjust_jacobian:"
+		UG_CATCH_THROW("DirichletBoundary::adjust_jacobian:"
 						" While calling 'adapt_jacobian' for TUserData, aborting.");
 	}
 }
 
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData, typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
                 matrix_type& J, const vector_type& u,
            	    ConstSmartPtr<TDD> dd, number time)
@@ -391,7 +391,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
               ConstSmartPtr<TDD> dd, number time)
 {
@@ -407,7 +407,7 @@ adjust_defect(vector_type& d, const vector_type& u,
 
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
                vector_type& d, const vector_type& u,
                ConstSmartPtr<TDD> dd, number time)
@@ -434,14 +434,14 @@ adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		if(dd->has_indices_on(VOLUME))
 			adjust_defect<Volume, TUserData, TDD>(vUserData, si, d, u, dd, time);
 		}
-		UG_CATCH_THROW("LagrangeDirichletBoundary::adjust_defect:"
+		UG_CATCH_THROW("DirichletBoundary::adjust_defect:"
 						" While calling 'adjust_defect' for TUserData, aborting.");
 	}
 }
 
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData, typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_defect(const std::vector<TUserData*>& vUserData, int si,
               vector_type& d, const vector_type& u,
               ConstSmartPtr<TDD> dd, number time)
@@ -509,7 +509,7 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd, number time)
 {
 	extract_data();
@@ -524,7 +524,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd, number time)
 
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
                 vector_type& u, ConstSmartPtr<TDD> dd, number time)
 {
@@ -550,14 +550,14 @@ adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		if(dd->has_indices_on(VOLUME))
 			adjust_solution<Volume, TUserData, TDD>(vUserData, si, u, dd, time);
 		}
-		UG_CATCH_THROW("LagrangeDirichletBoundary::adjust_solution:"
+		UG_CATCH_THROW("DirichletBoundary::adjust_solution:"
 						" While calling 'adjust_solution' for TUserData, aborting.");
 	}
 }
 
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData, typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_solution(const std::vector<TUserData*>& vUserData, int si,
                 vector_type& u, ConstSmartPtr<TDD> dd, number time)
 {
@@ -620,7 +620,7 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_linear(matrix_type& A, vector_type& b,
               ConstSmartPtr<TDD> dd, number time)
 {
@@ -636,7 +636,7 @@ adjust_linear(matrix_type& A, vector_type& b,
 
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
               matrix_type& A, vector_type& b,
            	  ConstSmartPtr<TDD> dd, number time)
@@ -663,14 +663,14 @@ adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		if(dd->has_indices_on(VOLUME))
 			adjust_linear<Volume, TUserData, TDD>(vUserData, si, A, b, dd, time);
 		}
-		UG_CATCH_THROW("LagrangeDirichletBoundary::adjust_linear:"
+		UG_CATCH_THROW("DirichletBoundary::adjust_linear:"
 						" While calling 'adjust_linear' for TUserData, aborting.");
 	}
 }
 
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData, typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_linear(const std::vector<TUserData*>& vUserData, int si,
               matrix_type& A, vector_type& b,
               ConstSmartPtr<TDD> dd, number time)
@@ -741,7 +741,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 template <typename TDomain, typename TAlgebra>
 template <typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_rhs(vector_type& b, const vector_type& u,
            ConstSmartPtr<TDD> dd, number time)
 {
@@ -757,7 +757,7 @@ adjust_rhs(vector_type& b, const vector_type& u,
 
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData, typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
            vector_type& b, const vector_type& u,
            ConstSmartPtr<TDD> dd, number time)
@@ -784,14 +784,14 @@ adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		if(dd->has_indices_on(VOLUME))
 			adjust_rhs<Volume, TUserData, TDD>(vUserData, si, b, u, dd, time);
 		}
-		UG_CATCH_THROW("LagrangeDirichletBoundary::adjust_rhs:"
+		UG_CATCH_THROW("DirichletBoundary::adjust_rhs:"
 						" While calling 'adjust_rhs' for TUserData, aborting.");
 	}
 }
 
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData, typename TDD>
-void LagrangeDirichletBoundary<TDomain, TAlgebra>::
+void DirichletBoundary<TDomain, TAlgebra>::
 adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
            vector_type& b, const vector_type& u,
            ConstSmartPtr<TDD> dd, number time)

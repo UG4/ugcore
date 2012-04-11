@@ -87,19 +87,25 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "SymP1Constraints", dimAlgTag);
 	}
 
-//	LagrangeDirichletBoundary
+//	DirichletBoundary
 	{
-		typedef LagrangeDirichletBoundary<TDomain, TAlgebra> T;
+		typedef DirichletBoundary<TDomain, TAlgebra> T;
 		typedef IDomainConstraint<TDomain, TAlgebra> TBase;
 		string name = string("DirichletBoundary").append(dimAlgSuffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.add_constructor()
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim, bool> >, const char*, const char*)>(&T::add),
-						"Success", "Value#Function#Subsets")
+						"", "Value#Function#Subsets")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >, const char*, const char*)>(&T::add),
-						"Success", "Value#Function#Subsets")
+						"", "Value#Function#Subsets")
+			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add),
+						"", "Vector#Functions#Subsets")
 			.add_method("add",static_cast<void (T::*)(number, const char*, const char*)>(&T::add),
-						"Success", "Constant Value#Function#Subsets")
+						"", "Constant Value#Function#Subsets")
+#ifdef UG_FOR_LUA
+//			.add_method("add",static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add),
+//						"", "Lua Callback#Function#Subsets")
+#endif
 			.add_method("clear", &T::clear)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DirichletBoundary", dimAlgTag);

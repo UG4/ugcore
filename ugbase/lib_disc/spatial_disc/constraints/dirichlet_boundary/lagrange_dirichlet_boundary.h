@@ -23,14 +23,14 @@
 namespace ug{
 
 template <	typename TDomain, typename TAlgebra>
-class LagrangeDirichletBoundary
+class DirichletBoundary
 	: public ConstraintBase<TDomain, TAlgebra,
-	  	  	  	  	  	  	LagrangeDirichletBoundary<TDomain, TAlgebra> >
+	  	  	  	  	  	  	DirichletBoundary<TDomain, TAlgebra> >
 {
 	public:
 	///	Base Type
 		typedef ConstraintBase<TDomain, TAlgebra,
-	  	  	  	  	LagrangeDirichletBoundary<TDomain, TAlgebra> > base_type;
+	  	  	  	  	DirichletBoundary<TDomain, TAlgebra> > base_type;
 
 	///	Type of domain
 		typedef TDomain domain_type;
@@ -52,10 +52,10 @@ class LagrangeDirichletBoundary
 
 	public:
 	///	constructor
-		LagrangeDirichletBoundary() {clear();}
+		DirichletBoundary() {clear();}
 
 	///	destructor
-		~LagrangeDirichletBoundary() {}
+		~DirichletBoundary() {}
 
 	///	adds a lua callback (cond and non-cond)
 #ifdef UG_FOR_LUA
