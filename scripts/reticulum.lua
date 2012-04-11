@@ -183,19 +183,19 @@ end
 
 elemDiscER = ConvectionDiffusion("ca_er", "er") 
 elemDiscER:set_disc_scheme("fv1")
-elemDiscER:set_diffusion_tensor(diffusionMatrixCA)
+elemDiscER:set_diffusion(diffusionMatrixCA)
 elemDiscER:set_source(rhs)
 elemDiscER:set_upwind(upwind)
 
 elemDiscCYT = ConvectionDiffusion("ca_cyt", "cyt")
 elemDiscCYT:set_disc_scheme("fv1")
-elemDiscCYT:set_diffusion_tensor(diffusionMatrixCA)
+elemDiscCYT:set_diffusion(diffusionMatrixCA)
 elemDiscCYT:set_source(rhs)
 elemDiscCYT:set_upwind(upwind)
 
 elemDiscIP3 = ConvectionDiffusion("ip3", "cyt")
 elemDiscIP3:set_disc_scheme("fv1")
-elemDiscIP3:set_diffusion_tensor(diffusionMatrixIP3)
+elemDiscIP3:set_diffusion(diffusionMatrixIP3)
 elemDiscIP3:set_source(rhs)
 elemDiscIP3:set_upwind(upwind)
 
