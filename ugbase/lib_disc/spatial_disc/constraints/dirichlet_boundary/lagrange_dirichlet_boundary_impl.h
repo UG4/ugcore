@@ -101,8 +101,11 @@ add(const char* name, const char* function, const char* subsets)
 //	name exists but wrong signature
 	UG_THROW_FATAL("LagrangeDirichlet::add: Cannot find matching callback "
 					"signature. Use one of:\n"
-					<< (LuaUserData<number, dim>::signature()) << "\n"
-					<< (LuaUserData<number, dim, bool>::signature()) << "\n"
+					"a) Number - Callback\n"
+					<< (LuaUserData<number, dim>::signature()) << "\n" <<
+					"b) Conditional Number - Callback\n"
+					<< (LuaUserData<number, dim, bool>::signature()) << "\n" <<
+					"c) "<<dim<<"d Vector - Callback\n"
 					<< (LuaUserData<MathVector<dim>, dim>::signature()));
 }
 #endif

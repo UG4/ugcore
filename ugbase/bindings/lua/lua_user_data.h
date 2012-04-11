@@ -338,11 +338,11 @@ class LuaUserData
 			if(dim >= 1) ss << "x";
 			if(dim >= 2) ss << ", y";
 			if(dim >= 3) ss << ", z";
-			ss << ", t) ... return ";
+			ss << ", t)\n   ... \n   return ";
 			if(lua_traits<TRet>::size != 0)
 				ss << lua_traits<TRet>::signature() << ", ";
 			ss << lua_traits<TData>::signature();
-			ss << " end";
+			ss << "\nend";
 			return ss.str();
 		}
 
