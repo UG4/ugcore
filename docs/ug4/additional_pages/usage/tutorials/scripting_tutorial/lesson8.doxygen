@@ -1,0 +1,14 @@
+
+/** \page pageSTLesson8 Lesson 8 - Nonlinear coupled convection/diffusion
+
+This tutorial is used to show tha ability to compute non-linear problems.
+The problem itself will be a simple convection-diffusion equation that is
+non-linear since the coefficients are non-linear.
+
+Below you'll find the scripts sources.
+They are the same as in
+<tt>apps/tutorials/tut08_nonlinear_conv_diff_using_self_coupling.lua</tt>
+
+\include tut08_nonlinear_conv_diff_using_self_coupling.lua
+
+*/

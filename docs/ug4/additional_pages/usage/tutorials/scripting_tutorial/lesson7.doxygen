@@ -1,0 +1,13 @@
+
+/** \page pageSTLesson7 Lesson 7 - Parallel Geometric Multigrid solver
+
+In this tutorial we'll see how a parallel geometric multigrid solver can be
+used to solve the laplace problem.
+
+Below you'll find the scripts sources.
+They are the same as in
+<tt>apps/tutorials/tut07_parallel_laplace_gmg.lua</tt>
+
+\include tut07_parallel_laplace_gmg.lua
+
+*/

@@ -1,0 +1,13 @@
+
+/** \page pageSTLesson9 Lesson 9 - Anisotropic refinement
+
+The purpose of this tutorial is to demonstrate how one can use adaptive
+refinement to refine geometries in a more sophisticated way.
+
+Below you'll find the scripts sources.
+They are the same as in
+<tt>apps/tutorials/tut09_anisotropic_refinement.lua</tt>
+
+\include tut09_anisotropic_refinement.lua
+
+*/
