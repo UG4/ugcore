@@ -235,46 +235,111 @@ Note that you don't have to configure ug4 with <tt>cmake -DDEBUG=ON ..</tt>) to 
 There is a small performance drawback when using <tt>breakpoint(source, line)</tt> because we have to check for every line if it is a break line. 
 This is especially the case if you have lots of small calls in your lua script. However, there is no performance drawback in <tt>breakpoint()</tt>.
 
-
 <hr>
 \section secBashCompletion Bash Completion for ugshell
-<hr>
-You can also use bash completion for ugshell in non-interactive mode.
-First (simple) variant:
+
+If you want to use bash completion for ugshell in non-interactive mode, two 
+feasible variants are suggested:
+First (a simple) variant:
 \verbatim
 complete -o plusdirs -G "*+(lua|ugx)" -W "-ex -grid -numRefs -numPreRefs" ugshell
 \endverbatim
-Please note that you need to set the <tt>extglob</tt> shell option to "on" in order to use extended globbings like: "*+(lua|ugx)". Put the following line into your <tt>.bashrc</tt> respectively into your <tt>.bash_profile</tt> in your <tt>$HOME</tt>:
+
+This will enable to use <em>ugshell <TAB> <TAB></em> which will complete the key
+words (behind -W), all directories and only those files which match the extended
+glob (behind -G).
+
+Please note that you need to set the <tt>extglob</tt> shell option to 
+<tt>on</tt> in order to use extended globbings like:
+<tt>*+(lua|ugx)</tt>.
+Put the following line into your <tt>.bashrc</tt> respectively into your 
+<tt>.bash_profile</tt> dependent on your local settings in your <tt>$HOME</tt>:
 \verbatim
 shopt extglob on 
 \endverbatim
-As for me the first variant did not work as expected (listing of lua, ugx files and directories, cf. for yourself ;-) please) and isn't very extensible too, a second variant is presented where you can supply a function to the -F parameter of the complete command.
-Put the following two function into your <tt>.bashrc</tt> resp. <tt>.bash_profile</tt> (or you may create a file <tt>.my_complete.bash</tt> and source it):
+
+As the first simple variant sometimes does not work as expected and is too little
+extensible too, a second variant is suggested, which uses a function (bash function).
+You need to supply that function to the <tt>-F</tt> parameter of the complete command.
+Put the following two functions into your <tt>.bashrc</tt> respectively 
+<tt>.bash_profile</tt> dependent on your local settings in your <tt>$HOME</tt>:
 \verbatim
 my_complete() {
-   local word="$1"
-   local ext=$2
-   local i=0 line
-   declare -a liste
+  local word="$1"
+  local ext=$2
+  local i=0 line
+  declare -a liste
 
-   while read line; do liste[i++]="$line"; done < <(compgen -f -- "$word")
+  while read line; do liste[i++]="$line"; done < <(compgen -f -- "$word")
 
-   local w
-   for w in "${liste[@]}"; do 
-      [[ -d "$w" ]] && continue
-      [[ "${w##*.}" = $ext ]] && COMPREPLY[i++]="$w" 
-   done
+  local w
+  for w in "${liste[@]}"; do 
+    [[ -d "$w" ]] && continue
+    [[ "${w##*.}" = $ext ]] && COMPREPLY[i++]="$w" 
+  done
 }
 \endverbatim
+
 \verbatim
 my_complete_ugshell () {
    my_complete "$2" "*+(lua|ugx|obj)"
 }
 \endverbatim
-Now you can turn on completion as before:
+
+Now, to enable the completion, proceed as before. Please note the additional part
+at the end of the line.
 \verbatim 
 complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F my_complete_ugshell ugshell
 \endverbatim
-Please contact stephan.grein@gcsc.uni-frankfurt.de for any questions.
+
+Finally, navigating on a terminal may seem uncomfortable, definining a (bash) 
+shell function <em>cdug</em> could improve that:
+\verbatimfunction cdug() {
+   local UG4_ROOT=~/ug4
+   local SEP=_
+   
+   if [ ! -d "$UG4_ROOT/$1" -o -z "$1" ]; then
+      echo -e  "\e[0;35m$1\e[0;30m: directory does not exist, changing to \e[0;35m$UG4_ROOT\e[0;30m (UG4_ROOT) instead."
+      cd $UG4_ROOT;
+   else
+      if [[ "$1" == builds ]]; then 
+         cd $MY_UG4_ROOT/builds;
+      elif [[ "$1" == trunk ]]; then
+         cd $MY_UG4_ROOT/trunk/;
+      elif [[ "$1" == branches ]]; then
+         cd $UG4_ROOT/branches/;
+      elif [[ "$1" == plugins* ]]; then
+         if [[ "$1" == plugins/ex* ]]; then
+            cd $UG4_ROOT/trunk/plugins/experimental/;
+         elif [[ "$1" == plugins/co* ]]; then
+            cd $UG4_ROOT/trunk/plugins/core/;
+         else
+            cd $UG4_ROOT/trunk/plugins/;
+         fi
+      elif [[ "$1" == build_* ]]; then
+         cd $UG4_ROOT/builds/${1#$SEP}/;
+      elif [[ "$1" == branch_* ]]; then
+         cd $UG4_ROOT/branches/${1#$SEP}/;
+      elif [[ "$1" == docs ]]; then
+         cd $UG4_ROOT/trunk/docs/;
+      elif [[ "$1" == apps ]]; then
+         cd $UG4_ROOT/trunk/apps;
+      elif [[ "$1" == scripts ]]; then
+         cd $UG4_ROOT/trunk/scripts;
+      elif [[ "$1" == unit_tests ]]; then
+         cd $UG4_ROOT/trunk/unit_tests;
+      elif [[ "$1" == data ]]; then
+         cd $UG4_ROOT/trunk/data;
+      elif [[ "$1" == ugbase ]]; then
+         cd $UG4_ROOT/trunk/ugbase;
+      else
+         cd $UG4_ROOT;
+      fi
+   fi
+}
+complete -W "apps builds branches data docs scripts trunk ugbase unit_tests plugins" # -o plusdirs cdug
+Optionally you can supply -o plusdirs for <TAB> complete directories.
+*/
+
 
 */
