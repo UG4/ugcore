@@ -101,10 +101,10 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add),
 						"", "Vector#Functions#Subsets")
 			.add_method("add",static_cast<void (T::*)(number, const char*, const char*)>(&T::add),
-						"", "Constant Value#Function#Subsets")
+						"", "ConstantValue#Function#Subsets")
 #ifdef UG_FOR_LUA
 			.add_method("add",static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add),
-						"", "Lua Callback#Function#Subsets")
+						"", "LuaCallback#Function#Subsets")
 #endif
 			.add_method("clear", &T::clear)
 			.set_construct_as_smart_pointer(true);
