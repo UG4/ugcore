@@ -91,7 +91,7 @@ ugsubmit <npe> [optional Parameters] --- <binary> <arg1> <arg2> ...
 
  optional Parameters are:
 -        -test                  : do not actually execute, only write scripts (also sets -verbose)
--        -nppn \<nppn\>           : number of processes per node (optional, default 1)
+-        -nppn \<nppn\>           : number of processes per node (optional, default maximum nr. on cluster)
 -        -cluster \<type\>        : cluster to use. see below (or use env. variable UGSUBMIT_TYPE)
 -        -name \<jobname\>        : a jobname to be used (optional, default "job")
 -        -walltime \<hh:mm:ss\>   : max walltime for job to run (optional; default is 00:10:00)
