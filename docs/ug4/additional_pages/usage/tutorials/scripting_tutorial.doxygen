@@ -4,14 +4,9 @@
 One possibility to work with ug4 is the usage of the <strong>scripting
 facility</strong>. 
 The <strong>ug-script</strong> is based on \em Lua (see http://www.lua.org).
-
-<br>
 Several lessons will give a step by step introduction to
 the commands, the classes and the general functionality available in ug's
 scripting facility.
-
-In each lesson only few small new aspects are added such that the user can 
-focus on the crucial parts of each script.
 
 - \subpage pageSTLesson1
 - \subpage pageSTLesson2
