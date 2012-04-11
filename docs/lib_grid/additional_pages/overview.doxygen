@@ -42,7 +42,7 @@ Those basic objects are then further specialized:
 	- ug::Tetrahedron, ug::Hexahedron, ug::Prism, ug::Pyramid
 	
 For hanging-node support the following objects are introduced:
-	- ug::HangingVertex
+	- ug::ConstrainedVertex
 	- ug::ConstrainingEdge. ug::ConstrainingEdge
 	- ug::ConstrainingTriangle, ug::ConstrainingQuadrilateral, ug::ConstrainedTriangle, ug::ConstrainedQuadrilateral
 
@@ -69,10 +69,10 @@ g.create<Edge>(EdgeDescriptor(v1, v2));
 The create method takes an optional parameter:
 \code ug::Grid::create(GeometricObject* pParent = NULL);\endcode
 The parent is used in different ways:
-	- ug::SubsetHandler can automatically assign a subset based on the parents subset.
+	- ug::GridSubsetHandler can automatically assign a subset based on the parents subset.
 	- ug::Selector can automatically assign the selection-status based on the parents selection status.
 	- A ug::MultiGrid inserts elements one level above the parents level.
-	- You can use the parent in your own grid-observer specializations (derive from ug::IGridObserver)
+	- You can use the parent in your own grid-observer specializations (derive from ug::GridObserver)
 	
 All those beahviours can be enabled / disabled in the respective classes.
 
@@ -123,7 +123,7 @@ The same technique can be used to iterate over all Triangles of a subset:
 using namespace ug;
 ...
 Grid g;
-SubsetHandler sh(g);
+SubsetHandler sh(g);	// short for GridSubsetHandler
 ...
 /* iterate over all triangles in subset 0 */
 for(TriangleIterator iter = sh.begin<Triangle>(0);
@@ -153,10 +153,10 @@ for(TriangleIterator iter = mg.begin<Triangle>(0);
 	iter != mg.end<Triangle>(0); ++iter)
 \endcode
 
-or triangles on level l in subset i of a ug::MGSubsetHandler
+or triangles on level l in subset i of a ug::MultiGridSubsetHandler
 \code
 ...
-MGSubsetHandler mgsh(mg);
+MGSubsetHandler mgsh(mg);	// short for MultiGridSubsetHandler
 ...
 for(TriangleIterator iter = mgsh.begin<Triangle>(i, l);
 	iter != mgsh.end<Triangle>(i, l); ++iter)
@@ -164,14 +164,14 @@ for(TriangleIterator iter = mgsh.begin<Triangle>(i, l);
 \endcode
 
 There are even more classes that support this way of geometric-object iteration.
-\sa ug::GeometricObjectCollection, ug::MultiLevelGeometricObjectCollection
+\sa ug::GeometricObjectCollection
 
 <br>
 <hr>
 \section secAttachments Attachments
 <hr>
 Through attachments custom data can be associated with the geometric objects in a ug::Grid
-or a subset of a ug::SubsetHandler or ug::MGSubsetHandler.
+or a subset of a ug::GridSubsetHandler or ug::MultiGridSubsetHandler.
 Data is attached to all objects of the same basic type at once (ug::VertexBase, ug::EdgeBase,
 ug::Face, ug::Volume).
 
@@ -206,7 +206,7 @@ The vertex-attachment-accessor features the operator [] that takes a pointer to 
 and returns a reference to the associated value.
 
 <br>
-Data can be attached to elements of a subset of an ug::SubsetHandler or ug::MGSubsetHandler like this:
+Data can be attached to elements of a subset of an ug::GridSubsetHandler or ug::MultiGridSubsetHandler like this:
 \code
 ...
 SubsetHandler sh(g);
@@ -230,7 +230,7 @@ for(FaceIterator iter = sh.faces_begin(2); iter != sh.faces_end(2); ++iter)
 There are some classes that help tremendously when implementing algorithms:
 the Selector and the SubsetHandler.
 	- ug::Selector
-	- ug::SubsetHandler, ug::MGSubsetHandler
+	- ug::GridSubsetHandler, ug::MultiGridSubsetHandler
 
 <br>
 <hr>

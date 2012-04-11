@@ -1,10 +1,10 @@
 
 /** \page pageSTLesson2 Lesson 2 - Loading a Domain
 
-This is the first tutorial that actually controls ug4 from the Lua scripts.
+This is the first tutorial that actually controls ug4 from a Lua script.
 We will load a domain and distribute it to several processes.
 The tutorial furthermore shows how utility scripts can be loaded and how
-commandline arguments can be accessed.
+command-line arguments can be accessed.
 
 Below you'll find the scripts sources.
 They are the same as in <tt>apps/tutorials/tut02_loading_a_domain.lua</tt>.

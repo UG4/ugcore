@@ -3,35 +3,29 @@
 //	y11 m06 d08
 
 /** \page pageTutorials Tutorials
-<!--
-TODO extend and possibly reorder this list
--->
 
-<!--
-TODO Rewrite this paragraph.
--->
-On this site you'll find links to different tutorials.
-Some are targetted at all users of ug4, like the <em>Scripting tutorials</em>
-or the <em>ugshell tutorial</em>, others are aimed primarily at developers 
-&mdash; e.g. the <em>Install Eclipse</em> and <em>Compile ug4</em> tutorials.
-Some are aimed at both &mdash; e.g. the <em>profiling tutorial</em>.
-
-\section secTutorialsGeneral General Tutorials
-
-- \ref pageUG4Shell
+<hr>
+\section secScripting Scripting
+The scripting tutorials should be visited by anyone who intends to write and understand
+ug4 scripts.
 - \subpage pageScriptTutorial
 
-
-\section secTutorialsSpecial Special Tutorials
+<hr>
+\section secProfiling Profiling
+Profiling is very useful to get an understanding how much time is required for
+the different tasks performed during a simulation run. It greatly helps in
+optimizing your code, since it helps in identifying the sections of your code,
+in which most time is spend.
 - \subpage pageUG4Profiling
+
+
+<hr>
+\section secParallelScalability Parallel Scalability
+Scalability tests are performed to measure the scaling behavior of a parallel
+application. The scripts and tools introduced in this tutorial can be used to
+see how an existing application performs on different parallel computer architectures
+and how the amount of data processed in a given time scales with the number of
+cores on which the application is executed.
 - \subpage pageUG4ScalabilityTests
-- \ref pageUG4ParallelComputing
-- \ref pageParallelRendering
-- \ref pageugsubmit
-
-
-\section secTutorialsDev Development Tutorials
-- \ref pageInstallEclipse
-- \ref pageUnitTests
 
 */

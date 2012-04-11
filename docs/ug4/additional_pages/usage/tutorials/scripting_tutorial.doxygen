@@ -1,18 +1,17 @@
 
-/** \page pageScriptTutorial ug-Script Tutorial
+/** \page pageScriptTutorial Scripting Tutorials
 
-One possibility to work with ug4 is the usage of the <strong>Scripting 
+One possibility to work with ug4 is the usage of the <strong>scripting
 facility</strong>. 
+The <strong>ug-script</strong> is based on \em Lua (see http://www.lua.org).
 
-The <strong>ug-script</strong> is based on \em Lua (see http://www.lua.org). 
+<br>
+Several lessons will give a step by step introduction to
+the commands, the classes and the general functionality available in ug's
+scripting facility.
 
-This tutorial is addressed to users starting to work with the <em>ug-script</em>
-for the first time.
-Several lessons will give a step by step introduction to the broad world of 
-commands, classes and functionality of ug4, that can be used and controlled
-by users without even programming a line of code in C/C++.
 In each lesson only few small new aspects are added such that the user can 
-focus on small parts of the script.
+focus on the crucial parts of each script.
 
 - \subpage pageSTLesson1
 - \subpage pageSTLesson2

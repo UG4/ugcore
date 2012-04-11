@@ -5,6 +5,12 @@ In this tutorial we show you some of the basics behind Lua.
 We introduce the most commonly used syntax and control structures and give a 
 small outlook what else can be achieved in Lua.
 
+<br>
+The main purpose of this tutorial is to be a quick reference for the parts of
+lua's syntax, which are used in the tutorials. In contrary to the following
+scripting tutorials, it will not yet use any command specific to ug4.
+
+<br>
 Below you'll find the scripts sources.
 They are the same as in <tt>apps/tutorials/tut01_lua_basics.lua</tt>.
 
