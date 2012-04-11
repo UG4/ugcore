@@ -4,7 +4,7 @@
 
 /** \page pageUnitTests Unit Tests
 
-For the unit testing of <strong>ug4</strong>, the <em>Boost Testing Library</em> 
+For the unit testing of \ug4 the <em>Boost Testing Library</em> 
 is used.
 The test are run by the Continuous Integration Service "Jenkins" (currently on 
 <tt>cave1.gcsc.uni-frankfurt.de</tt>) daily.
@@ -40,6 +40,8 @@ BOOST_AUTO_TEST_CASE(myTest)
   int a = 1, b = 2;
 
   // write a message
+  BOOST_MESSAGE("Starting some test")
+	
   // check 
   BOOST_CHECK_MESSAGE(a+b == 3, "1+2 must be 3");
   BOOST_REQUIRE_MESSAGE(a+b == 3, "1+2 must be 3");
@@ -97,7 +99,7 @@ BOOST_AUTO_TEST_SUITE_END();
 \endcode
 
 As you see, there are currently two test suits for scripts:
-one on a single Process and a second one on a 3-MPI-Process run.
+one on a single process and a second one on a 3-MPI-process run.
 (If needed, other suits may be added.
 
 \attention This will require a change in the setting of Jenkins!
