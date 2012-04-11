@@ -286,7 +286,7 @@ class LuaUserData
 			int callbackRef = luaL_ref(L, LUA_REGISTRYINDEX);
 
 		//	dummy values to invoke the callback once
-			MathVector<dim> x(0.0);
+			MathVector<dim> x; x = 0.0;
 			number time = 0.0;
 
 		//	push the callback function on the stack
@@ -318,7 +318,7 @@ class LuaUserData
 			bRet &= lua_traits<TData>::check(L);
 
 		//	read return flag (may be void)
-			bRet &= lua_traits<TRet>::read(L, -retSize);
+			bRet &= lua_traits<TRet>::check(L, -retSize);
 
 		//	pop values
 			lua_pop(L, retSize);

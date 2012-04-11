@@ -75,15 +75,21 @@ void DirichletBoundary<TDomain, TAlgebra>::
 add(const char* name, const char* function, const char* subsets)
 {
 	if(LuaUserData<number, dim>::check_callback_returns(name)){
-		add(CreateSmartPtr(new LuaUserData<number, dim>(name)), function, subsets);
+		SmartPtr<IPData<number, dim> > sp =
+							CreateSmartPtr(new LuaUserData<number, dim>(name));
+		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<number, dim, bool>::check_callback_returns(name)){
-		add(CreateSmartPtr(new LuaUserData<number, dim, bool>(name)), function, subsets);
+		SmartPtr<IPData<number, dim, bool> > sp =
+						CreateSmartPtr(new LuaUserData<number, dim, bool>(name));
+		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(name)){
-		add(CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(name)), function, subsets);
+		SmartPtr<IPData<MathVector<dim>, dim> > sp =
+				CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(name));
+		add(sp, function, subsets);
 		return;
 	}
 
