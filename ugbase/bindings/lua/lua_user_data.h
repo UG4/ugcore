@@ -239,8 +239,8 @@ struct lua_traits< MathMatrix<dim, dim> >
 		std::stringstream ss;
 		for(size_t i = 0; i < dim; ++i){
 			for(size_t j = 0; j < dim; ++j){
-				if(i != 0 && j != 0) ss << ", ";
-				ss << "D" << cmp[i] << cmp[j] << ", ";
+				if(i != 0 || j != 0) ss << ", ";
+				ss << "D" << cmp[i] << cmp[j];
 			}
 		}
 		return ss.str();
@@ -410,7 +410,7 @@ class LuaUserData
 		//	check return value
 			if(!lua_traits<TData>::check(L)){
 				if(bThrow){
-					UG_THROW_FATAL(name() << ": Data values incorrect "
+					UG_THROW_FATAL(name() << ": Data values type incorrect "
 									"for callback '"<<callName<<"'. "
 									"Use signature as follows:\n"
 									<< signature());
@@ -423,7 +423,7 @@ class LuaUserData
 		//	read return flag (may be void)
 			if(!lua_traits<TRet>::check(L, -retSize)){
 				if(bThrow){
-					UG_THROW_FATAL("LuaUserData: Return values incorrect "
+					UG_THROW_FATAL("LuaUserData: Return values type incorrect "
 									"for callback '"<<callName<<"'. "
 									"Use signature as follows:\n"
 									<< signature());
