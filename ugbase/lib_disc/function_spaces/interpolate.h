@@ -14,6 +14,10 @@
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include <boost/function.hpp>
 
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_user_data.h"
+#endif
+
 namespace ug{
 
 /// interpolates a function on an element
@@ -301,6 +305,23 @@ void InterpolateFunction(IPData<number, TGridFunction::domain_type::dim>& Interp
 	InterpolateFunction(InterpolFunction, u, name, time, NULL);
 }
 
+#ifdef UG_FOR_LUA
+template <typename TGridFunction>
+void InterpolateFunction(const char* InterpolFunction,
+                         TGridFunction& u, const char* name, number time)
+{
+	LuaUserData<number, TGridFunction::domain_type::dim> p(InterpolFunction);
+	InterpolateFunction(p, u, name, time);
+}
+
+template <typename TGridFunction>
+void InterpolateFunction(const char* InterpolFunction,
+                         TGridFunction& u, const char* name, number time, const char* subsets)
+{
+	LuaUserData<number, TGridFunction::domain_type::dim> p(InterpolFunction);
+	InterpolateFunction(p, u, name, time, subsets);
+}
+#endif
 
 
 /////////////////////////////////////////////////////

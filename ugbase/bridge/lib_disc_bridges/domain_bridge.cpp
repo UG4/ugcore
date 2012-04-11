@@ -99,11 +99,10 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 
 //	InterpolateFunction
 	{
-		typedef void (*fct_type)(IPData<number, dim>&, TFct&, const char*, number);
-		reg.add_function("InterpolateFunction", static_cast<fct_type>(&InterpolateFunction<TFct>), grp);
-
-		typedef void (*fct_type_subset)(IPData<number, dim>&, TFct&, const char*, number, const char*);
-		reg.add_function("InterpolateFunction",static_cast<fct_type_subset>(&InterpolateFunction<TFct>),grp);
+		reg.add_function("InterpolateFunction", static_cast<void (*)(IPData<number, dim>&, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
+		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
+		reg.add_function("InterpolateFunction",static_cast<void (*)(IPData<number, dim>&, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
+		reg.add_function("InterpolateFunction",static_cast<void (*)(const char*, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
 
 	}
 
