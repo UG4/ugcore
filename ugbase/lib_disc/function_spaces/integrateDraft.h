@@ -17,6 +17,10 @@
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include <boost/function.hpp>
 
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_user_data.h"
+#endif
+
 namespace ug{
 
 
@@ -459,6 +463,16 @@ number L2ErrorDraft(IPData<number, TGridFunction::dim>& ExactSol,
 //	return the sqrt of the result
 	return sqrt(l2norm2);
 }
+
+#ifdef UG_FOR_LUA
+template <typename TGridFunction>
+number L2ErrorDraft(const char* ExactSol,
+                         TGridFunction& u, const char* name, number time, int quadOrder, const char* subsets)
+{
+	LuaUserData<number, TGridFunction::domain_type::dim> p(ExactSol);
+	return L2ErrorDraft(p, u, name, time, quadOrder, subsets);
+}
+#endif
 
 template <typename TGridFunction, int TDim = TGridFunction::dim>
 class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>

@@ -100,25 +100,29 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 //	InterpolateFunction
 	{
 		reg.add_function("InterpolateFunction", static_cast<void (*)(IPData<number, dim>&, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
-		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
 		reg.add_function("InterpolateFunction",static_cast<void (*)(IPData<number, dim>&, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
+#ifdef UG_FOR_LUA
+		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
 		reg.add_function("InterpolateFunction",static_cast<void (*)(const char*, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
-
+#endif
 	}
 
 //	L2Error
 	{
-		typedef number (*fct_type)(IPData<number, dim>&, TFct&, const char*, number);
-		reg.add_function("L2Error",static_cast<fct_type>(&L2Error<TFct>), grp);
-
-		typedef number (*fct_type_subset)(IPData<number, dim>&, TFct&, const char*, number, const char*);
-		reg.add_function("L2Error",static_cast<fct_type_subset>(&L2Error<TFct>),grp);
+		reg.add_function("L2Error", static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number)>(&L2Error<TFct>), grp);
+		reg.add_function("L2Error",static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number, const char*)>(&L2Error<TFct>),grp);
+#ifdef UG_FOR_LUA
+		reg.add_function("L2Error", static_cast<number (*)(const char*, TFct&, const char*, number)>(&L2Error<TFct>), grp);
+		reg.add_function("L2Error",static_cast<number (*)(const char*, TFct&, const char*, number, const char*)>(&L2Error<TFct>),grp);
+#endif
 	}
 
 //	L2ErrorDraft
 	{
-		typedef number (*fct_type)(IPData<number, dim>&, TFct&, const char*, number, int, const char*);
-		reg.add_function("L2ErrorDraft",static_cast<fct_type>(&L2ErrorDraft<TFct>), grp);
+		reg.add_function("L2ErrorDraft",static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number, int, const char*)>(&L2ErrorDraft<TFct>), grp);
+#ifdef UG_FOR_LUA
+		reg.add_function("L2ErrorDraft",static_cast<number (*)(const char*, TFct&, const char*, number, int, const char*)>(&L2ErrorDraft<TFct>), grp);
+#endif
 	}
 
 //	L2Norm
