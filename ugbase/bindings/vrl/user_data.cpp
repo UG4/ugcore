@@ -63,7 +63,7 @@ template <std::size_t dim>
 struct VectorConverter {
 
 	static jdoubleArray toJava(JNIEnv *env,
-			const MathVector<dim>& x, const number time = 0.0) {
+			const MathVector<dim>& x, const number time) {
 		jdoubleArray result = NULL;
 		result = env->NewDoubleArray(dim + 1);
 		number elements[dim + 1];
@@ -252,26 +252,23 @@ jmethodID getBoundaryUserDataRunMethod(JNIEnv *env, jclass cls) {
 }
 
 template <int dim>
-class UserNumber
-	: public IPData<number, dim>,
-	  public boost::function<void (number& res, const MathVector<dim>& x,number time)>
+class VRLUserNumber
+	: public IPData<number, dim>
 {
 public:
 ///	Base class type
 	typedef IPData<number, dim> base_type;
 
-///	Functor type
-	typedef boost::function<void (number& res, const MathVector<dim>& x,number time)> func_type;
-
 	using base_type::num_series;
 	using base_type::num_ip;
 	using base_type::ip;
 	using base_type::time;
+	using base_type::subset;
 	using base_type::value;
 
 public:
 
-	UserNumber() : func_type(boost::ref(*this)) {
+	VRLUserNumber() {
 		javaVM = getJavaVM();
 		expression = "";
 		returnValueDim = 0;
@@ -303,7 +300,7 @@ public:
 
 	///	evaluates the data at a given point and time
 
-	void operator() (number& c, const MathVector<dim>& x, number time = 0.0) {
+	void operator() (number& c, const MathVector<dim>& x, number time, int si) {
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
@@ -336,11 +333,12 @@ public:
 			for (size_t i = 0; i < num_ip(s); ++i) {
 				this->operator()(value(s, i),
 						ip(s, i),
-						time());
+						time(),
+						subset());
 			}
 	}
 
-	~UserNumber() {
+	~VRLUserNumber() {
 		// deleting thread-safe global references
 //		if (initialized) {
 //			JNIEnv* localEnv = threading::getEnv(getJavaVM());
@@ -361,26 +359,23 @@ private:
 };
 
 template <int dim>
-class UserVector
-: public IPData<MathVector<dim>, dim>,
-  public boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)>
+class VRLUserVector
+	: public IPData<MathVector<dim>, dim>
 {
 public:
 /// Base class type
 	typedef IPData<MathVector<dim>, dim> base_type;
 
-///	Functor type
-	typedef boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)> func_type;
-
 	using base_type::num_series;
 	using base_type::num_ip;
 	using base_type::ip;
 	using base_type::time;
+	using base_type::subset;
 	using base_type::value;
 
 public:
 
-	UserVector() : func_type(boost::ref(*this)) {
+	VRLUserVector() {
 		javaVM = getJavaVM();
 		expression = "";
 		returnValueDim = 1;
@@ -421,7 +416,7 @@ public:
 
 	///	evaluates the data at a given point and time
 
-	void operator() (MathVector<dim>& c, const MathVector<dim>& x, number time = 0.0) {
+	void operator() (MathVector<dim>& c, const MathVector<dim>& x, number time, int si) {
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
@@ -462,11 +457,12 @@ public:
 			for (size_t i = 0; i < num_ip(s); ++i) {
 				this->operator()(value(s, i),
 						ip(s, i),
-						time());
+						time(),
+						subset());
 			}
 	}
 
-	~UserVector() {
+	~VRLUserVector() {
 
 		// deleting thread-safe global references
 //		if (initialized) {
@@ -488,20 +484,26 @@ private:
 };
 
 template <int dim>
-class BoundaryNumber
-: public boost::function<bool (number& res, const MathVector<dim>& x,number time)>
+class VRLCondUserNumber
+	: public IPData<number, dim, bool>
 {
-/// functor type
-	typedef boost::function<bool (number& res, const MathVector<dim>& x,number time)> func_type;
+/// Base class type
+	typedef IPData<number, dim, bool> base_type;
+
+	using base_type::num_series;
+	using base_type::num_ip;
+	using base_type::ip;
+	using base_type::time;
+	using base_type::subset;
+	using base_type::value;
 
 public:
-
-	BoundaryNumber() : func_type(boost::ref(*this)) {
+	VRLCondUserNumber() {
 		javaVM = getJavaVM();
 		expression = "";
 
 		std::stringstream stream;
-		stream << "<font color=\"red\">VRLUserNumber"
+		stream << "<font color=\"red\">VRLCondUserNumber"
 				<< dim << "D: invokation error:</font>";
 		invocationErrorMsg = stream.str();
 
@@ -528,7 +530,7 @@ public:
 
 	///	evaluates the data at a given point and time
 
-	bool operator() (number& c, const MathVector<dim>& x, number time = 0.0) {
+	bool operator() (number& c, const MathVector<dim>& x, number time, int si) {
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
@@ -551,7 +553,18 @@ public:
 		return result;
 	}
 
-	~BoundaryNumber() {
+	// \todo: should remember flag
+	virtual void compute(bool computeDeriv = false) {
+		for (size_t s = 0; s < num_series(); ++s)
+			for (size_t i = 0; i < num_ip(s); ++i) {
+				this->operator()(value(s, i),
+						ip(s, i),
+						time(),
+						subset());
+			}
+	}
+
+	~VRLCondUserNumber() {
 		// deleting thread-safe global references
 //		if (initialized) {
 //			JNIEnv* localEnv = threading::getEnv(getJavaVM());
@@ -571,56 +584,48 @@ private:
 };
 
 class PrintUserNumber2d {
-protected:
-/// functor type
-	typedef boost::function<void (number& res, const MathVector<2>& x,number time)> func_type;
-
 public:
 
-	void set_user_number(func_type& user) {
-		m_Number = user;
+	void set(SmartPtr<IPData<number, 2> > user) {
+		m_spNumber = user;
 	}
 
 	number print(number x, number y) {
 		MathVector < 2 > v(x, y);
 		number time = 0.0;
+		int si = 0;
 		number ret;
 
-		if (m_Number)
-			m_Number(ret, v, time);
+		if (m_spNumber.valid())
+			(*m_spNumber)(ret, v, time, si);
 		else {
-			UG_LOG("Functor not set. \n");
-			ret = -1;
+			UG_THROW_FATAL("PrintUserNumber2d: Data not set.");
 		}
 
 		return ret;
 	}
 
 private:
-	func_type m_Number;
+	SmartPtr<IPData<number, 2> > m_spNumber;
 };
 
 class PrintUserVector2d {
-protected:
-/// functor type
-	typedef boost::function<void (MathVector<2>& res, const MathVector<2>& x,number time)> func_type;
-
 public:
 
-	void set_user_vector(func_type& user) {
-		m_Number = user;
+	void set(SmartPtr<IPData<MathVector<2>, 2> > user) {
+		m_spData = user;
 	}
 
 	void print(number x, number y) {
 		MathVector < 2 > v(x, y);
 		number time = 0.0;
+		int si = 0;
 		MathVector < 2 > ret;
 
-		if (m_Number)
-			m_Number(ret, v, time);
+		if (m_spData.valid())
+			(*m_spData)(ret, v, time, si);
 		else {
-			UG_LOG("Functor not set. \n");
-			ret = -1;
+			UG_THROW_FATAL("PrintUserVector2d: Data not set.");
 		}
 
 		for (size_t i = 0; i < ret.size(); i++) {
@@ -629,30 +634,27 @@ public:
 	}
 
 private:
-	func_type m_Number;
+	SmartPtr<IPData<MathVector<2>, 2> > m_spData;
 };
 
-class PrintBoundaryNumber2d {
-protected:
-/// functor type
-	typedef boost::function<bool (number& res, const MathVector<2>& x,number time)> func_type;
-
+class PrintCondUserNumber2d {
 public:
 
-	void set_user_number(func_type& user) {
-		m_Number = user;
+	void set(SmartPtr<IPData<number, 2, bool> > user) {
+		m_spData = user;
 	}
 
 	std::string print(number x, number y) {
 		MathVector < 2 > v(x, y);
 		number time = 0.0;
+		int si = 0;
 		number ret;
 		bool bndResult = false;
 
-		if (m_Number)
-			bndResult = m_Number(ret, v, time);
+		if (m_spData.valid())
+			bndResult = (*m_spData)(ret, v, time, si);
 		else {
-			UG_LOG("Functor not set. \n");
+			UG_THROW_FATAL("PrintCondUserNumber2d: Data not set.");
 			ret = -1;
 		}
 
@@ -664,38 +666,20 @@ public:
 	}
 
 private:
-	func_type m_Number;
+	SmartPtr<IPData<number, 2, bool> > m_spData;
 };
 
 template <int dim>
 void RegisterUserData(ug::bridge::Registry& reg,
-		std::vector<const char*> paramNames, const char* parentGroup) {
+                      std::vector<const char*> paramNames,
+                      const char* parentGroup)
+{
+	// 	get group
 	std::string grp = std::string(parentGroup);
-
-	////	Base class
-	//	{
-	//		stringstream ss; ss << "IUserNumberProvider" << dim << "d";
-	//		reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
-	//	}
-
-	////	Functor
-	//	{
-	//	//	ConstUserNumber
-	//		{
-	//			typedef ConstUserNumber<dim> T;
-	//			stringstream ss; ss << "ConstUserNumber" << dim << "d";
-	//			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
-	//				.add_constructor()
-	//				.add_method("set", &T::set)
-	//				.add_method("print", &T::print);
-	//		}
-	//
-	//	}
-
 
 	//	VRLUserNumber
 	{
-		typedef UserNumber<dim> T;
+		typedef VRLUserNumber<dim> T;
 		std::stringstream className;
 		className << "VRLUserNumber" << dim << "d";
 		std::stringstream options;
@@ -711,8 +695,7 @@ void RegisterUserData(ug::bridge::Registry& reg,
 		options << "];";
 
 		typedef IPData<number, dim> TBase;
-		typedef boost::function<void (number& res, const MathVector<dim>& x,number time)> TBase2;
-		reg.add_class_<T, TBase, TBase2>(
+		reg.add_class_<T, TBase>(
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("userNumber", &T::set_vrl_callback, "",
@@ -722,7 +705,7 @@ void RegisterUserData(ug::bridge::Registry& reg,
 
 	//	VRLUserVector
 	{
-		typedef UserVector<dim> T;
+		typedef VRLUserVector<dim> T;
 		std::stringstream className;
 		className << "VRLUserVector" << dim << "d";
 		std::stringstream options;
@@ -738,8 +721,7 @@ void RegisterUserData(ug::bridge::Registry& reg,
 		options << "];";
 
 		typedef IPData<MathVector<dim>, dim> TBase;
-		typedef boost::function<void (MathVector<dim>& res, const MathVector<dim>& x,number time)> TBase2;
-		reg.add_class_<T, TBase, TBase2>(
+		reg.add_class_<T, TBase>(
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("userVector", &T::set_vrl_callback, "",
@@ -747,11 +729,11 @@ void RegisterUserData(ug::bridge::Registry& reg,
 				.set_construct_as_smart_pointer(true);
 	}
 
-	//	VRLBoundaryUserVector
+	//	VRLCondUserNumber
 	{
-		typedef BoundaryNumber<dim> T;
+		typedef VRLCondUserNumber<dim> T;
 		std::stringstream className;
-		className << "VRLBoundaryNumber" << dim << "d";
+		className << "VRLCondUserNumber" << dim << "d";
 		std::stringstream options;
 		options << "Input:|boundary-user-data|params=[";
 
@@ -764,7 +746,7 @@ void RegisterUserData(ug::bridge::Registry& reg,
 
 		options << "];";
 
-		typedef boost::function<bool (number& res, const MathVector<dim>& x, number time)> TBase;
+		typedef IPData<number, dim, bool> TBase;
 		reg.add_class_<T, TBase>(
 				className.str().c_str(), grp.c_str())
 				.add_constructor()
@@ -792,19 +774,19 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup) {
 	typedef PrintUserNumber2d T;
 	reg.add_class_<T > ("PrintUserNumber2d", parentGroup)
 			.add_constructor()
-			.add_method("set_user_number", &T::set_user_number, "", "NumberProvider")
+			.add_method("set_user_number", &T::set, "", "Number")
 			.add_method("print", &T::print, "Result", "x#y");
 
 	typedef PrintUserVector2d T2;
 	reg.add_class_<T2 > ("PrintUserVector2d", parentGroup)
 			.add_constructor()
-			.add_method("set_user_vector", &T2::set_user_vector, "", "NumberProvider")
+			.add_method("set_user_vector", &T2::set, "", "Vector")
 			.add_method("print", &T2::print, "Result", "x#y");
 
-	typedef PrintBoundaryNumber2d T3;
-	reg.add_class_<T3 > ("PrintBoundaryNumber2d", parentGroup)
+	typedef PrintCondUserNumber2d T3;
+	reg.add_class_<T3 > ("PrintCondUserNumber2d", parentGroup)
 			.add_constructor()
-			.add_method("set_user_number", &T3::set_user_number, "", "BoundaryNumber")
+			.add_method("set_user_number", &T3::set, "", "CondNumber")
 			.add_method("print", &T3::print, "Result", "x#y");
 
 
