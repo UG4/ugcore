@@ -434,18 +434,25 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 void DataEvaluator::set_time_dependent(bool bTimeDep,
                                        LocalVectorTimeSeries* locTimeSeries)
 {
-//	set time dependent to all elem discs and find out if time series really needed
+//	reset to false
 	m_bNeedLocTimeSeries = false;
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
-	{
-	//	checks if local time series is needed.
-		m_vbNeedLocTimeSeries[i] = (*m_pvElemDisc)[i]->requests_local_time_series();
-		m_bNeedLocTimeSeries |= m_vbNeedLocTimeSeries[i];
+		m_vbNeedLocTimeSeries[i] = false;
 
-	//	sets time dependent flag
-		(*m_pvElemDisc)[i]->set_time_dependent(bTimeDep, locTimeSeries);
+//	check if time dependent
+	if(bTimeDep)
+	{
+		for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+		{
+		//	checks if local time series is needed.
+			m_vbNeedLocTimeSeries[i] = (*m_pvElemDisc)[i]->requests_local_time_series();
+			m_bNeedLocTimeSeries |= m_vbNeedLocTimeSeries[i];
+
+		//	sets time dependent flag
+			(*m_pvElemDisc)[i]->set_time_dependent(bTimeDep, locTimeSeries);
+		}
+		m_pLocTimeSeries = locTimeSeries;
 	}
-	m_pLocTimeSeries = locTimeSeries;
 }
 
 void DataEvaluator::set_time(const number time)
