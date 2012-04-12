@@ -389,11 +389,13 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 	string dimTag = GetDomainTag<dim>();
 
 //	IPData"Type"
+//	User"Type" NOTE: For better readability this class is named User"Type"
+//				     in vrl and lua. E.g. UserNumber, UserVector, ...
 	{
 		typedef IPData<TData, dim> T;
-		string name = string("IPData").append(type).append(dimSuffix);
+		string name = string("User").append(type).append(dimSuffix);
 		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, string("IPData").append(type), dimTag);
+		reg.add_class_to_group(name, string("User").append(type), dimTag);
 	}
 
 //	IPCondData"Type"
