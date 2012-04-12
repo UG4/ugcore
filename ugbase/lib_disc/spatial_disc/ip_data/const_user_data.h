@@ -220,60 +220,6 @@ class ConstUserMatrix
 		MathMatrix<dim, dim> m_Tensor;
 };
 
-/// constant dirichlet boundary scalar user data
-template <int dim>
-class ConstBoundaryNumber
-	: public IPData<MathMatrix<dim, dim>, dim, bool>
-{
-	/// Base class type
-		typedef IPData<MathMatrix<dim, dim>, dim, bool> base_type;
-
-		using base_type::num_series;
-		using base_type::num_ip;
-		using base_type::ip;
-		using base_type::time;
-		using base_type::value;
-
-	public:
-	///	Constructor
-		ConstBoundaryNumber() {set(0.0);}
-
-	///	Constructor
-		ConstBoundaryNumber(number val) {set(val);}
-
-	///	set value
-		void set(number val) {m_Number = val;}
-
-	///	print current setting
-		void print() const{UG_LOG("ConstBoundaryNumber:" << m_Number << "\n");}
-
-	///	evaluate and return true for dirichlet value
-		bool operator() (number& c, const MathVector<dim>& x,
-		                 number time, int si) const
-		{
-			c = m_Number;
-			return true;
-		}
-
-	///	implement as a IPData
-		virtual void compute(bool bDeriv = false)
-		{
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t i = 0; i < num_ip(s); ++i)
-					value(s,i) = m_Number;
-		}
-
-	///	callback, invoked when data storage changed
-		virtual void value_storage_changed(const size_t seriesID)
-		{
-			for(size_t i = 0; i < num_ip(seriesID); ++i)
-				value(seriesID,i) = m_Number;
-		}
-
-	protected:
-		number m_Number;
-};
-
 /// @}
 
 } /// end namespace ug

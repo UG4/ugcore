@@ -505,20 +505,6 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "ConstUserMatrix", dimTag);
 	}
 
-//	ConstBoundaryNumber
-	{
-		typedef ConstBoundaryNumber<dim> T;
-		typedef IPData<MathMatrix<dim, dim>, dim, bool> TBase;
-		string name = string("ConstBoundaryNumber").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			.template add_constructor<void (*)(number)>("Value")
-			.add_method("set", &T::set)
-			.add_method("print", &T::print)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ConstBoundaryNumber", dimTag);
-	}
-
 //	ElderDensityLinker
 	{
 		typedef ElderDensityLinker<dim> T;

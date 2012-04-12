@@ -157,7 +157,6 @@ print ("Setting up Assembling")
 
 -- dirichlet setup
 	dirichlet = LuaCondUserNumber("ourDirichletBnd2d")
-	--dirichlet = ConstBoundaryNumber(3.2)
 	
 -- dirichlet setup
 	membraneDirichlet = LuaCondUserNumber("membraneDirichletBnd2d")
