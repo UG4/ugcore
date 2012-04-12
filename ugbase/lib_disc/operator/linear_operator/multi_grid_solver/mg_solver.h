@@ -139,7 +139,14 @@ class AssembledMultiGridCycle :
 		SmartPtr<ILinearIterator<vector_type> > clone();
 
 	///	Destructor
-		~AssembledMultiGridCycle() {top_level_required(0);};
+		~AssembledMultiGridCycle()
+		{
+			//top_level_required(0);
+			for(size_t i = 0; i < m_vLevData.size(); ++i)
+				delete m_vLevData[i];
+
+			m_vLevData.clear();
+		};
 
  	protected:
  	/// compute correction on level and update defect
