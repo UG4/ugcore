@@ -51,7 +51,7 @@ send_data(int targetProc, Interface& interface,
 			  ICommunicationPolicy<TLayout>& commPol)
 {
 	if(!interface.empty()){
-		assert(targetProc == -1 || targetProc >= 0 && targetProc < pcl::GetNumProcesses());
+		assert((targetProc == -1 || targetProc >= 0) && targetProc < pcl::GetNumProcesses());
 
 		ug::BinaryBuffer& buffer = m_bufMapOut[targetProc];
 		m_curOutProcs.insert(targetProc);
