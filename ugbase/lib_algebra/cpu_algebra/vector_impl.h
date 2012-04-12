@@ -20,14 +20,14 @@ namespace ug{
 template<typename value_type>
 inline value_type &Vector<value_type>::operator [] (size_t i)
 {
-	UG_ASSERT(i >= 0 && i < length, *this << ": tried to access element " << i);
+	UG_ASSERT(i < length, *this << ": tried to access element " << i);
 	return values[i];
 }
 
 template<typename value_type>
 inline const value_type &Vector<value_type>::operator [] (size_t i) const
 {
-	UG_ASSERT(i >= 0 && i < length, *this << ": tried to access element " << i);
+	UG_ASSERT(i < length, *this << ": tried to access element " << i);
 	return values[i];
 }
 
