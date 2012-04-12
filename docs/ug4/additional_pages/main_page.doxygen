@@ -22,6 +22,7 @@ environment
 \section secUserManual User Manual:
 - Overview
 	- \subpage pageUG4Introduction
+	- \subpage pageUG4Releases
 	- Ideas behind ug4
 	- Software Architecture
 	- Background

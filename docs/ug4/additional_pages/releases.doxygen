@@ -1,0 +1,41 @@
+/** \page pageUG4Releases Releases
+
+\ug4 is currently under active development. Below you'll find a list of
+the latest releases together with a short description of the main features of
+each release.
+
+<br>
+<hr>
+\section secUG4_0	ug4.0
+ug4.0 is the first release of the \ug4 simulation environment. While this version does not
+yet contain all of the planned features of \ug4, it already provides a rich
+simulation environment which is used in many different projects.
+
+Below you'll find a list which tries to summarize the current state of ug4.
+Note that this list is far from complete.
+
+- libAlgebra
+	- Template based implementation, which allows to use highly specialized
+	  matrix structures.
+	- Efficient sparse matrix support for arbitrary block types.
+	- Dense matrix types for small block-matrices.
+	- Efficient linear serial and parallel solvers, like 'bicgstab', 'cg',
+	  'feti', 'gauss-seidel', 'ilu', 'jacobi' and 'lu-decomposition'.
+	- Serial and parallel algebraic multigrid methods.
+	- Tools and utilities to inspect large matrices.
+	- Operators and structures are registered at ug's registry and are thus
+	  available both in ug-script and in the vrl.
+
+- libDisc
+	- Highly flexible discretization library, which provides modular
+	  discretization building blocks.
+	- Data imports and exports allow the efficient and flexible coupling
+	  of different discretization building blocks with each other and with
+	  user provided callback functions.
+	- ...
+
+- libGrid
+...
+- Plugins and applications
+...
+ */
