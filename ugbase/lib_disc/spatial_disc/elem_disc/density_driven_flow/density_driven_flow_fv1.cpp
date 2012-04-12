@@ -9,6 +9,9 @@
 #include "common/util/provider.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape.h"
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_user_data.h"
+#endif
 
 //#define PROFILE_D3F
 #ifdef PROFILE_D3F
@@ -24,11 +27,109 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
+// Data setup
 ////////////////////////////////////////////////////////////////////////////////
-//  Provide a generic implementation for all elements
-//  (since this discretization can be implemented in a generic way)
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::set_consistent_gravity(bool bUse)
+{
+	m_bConsGravity = bUse;
+	register_all_fv1_funcs();
+}
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::set_upwind(SmartPtr<IConvectionShapes<dim> > shape)
+{
+	m_spUpwind = shape;
+}
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::set_porosity(SmartPtr<IPData<number, dim> > user)
+{
+	m_imPorosityScv.set_data(user);
+	m_imPorosityScvf.set_data(user);
+}
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > user)
+{
+	m_imConstGravity.set_data(user);
+}
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_molecular_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
+{
+	m_imMolDiffusionScvf.set_data(user);
+}
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_permeability(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
+{
+	m_imPermeabilityScvf.set_data(user);
+}
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_viscosity(SmartPtr<IPData<number, dim> > user)
+{
+	m_imViscosityScvf.set_data(user);
+}
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_density(SmartPtr<IPData<number,dim> > data)
+{
+//	remove old data
+	SmartPtr<IIPData> oldData = m_imDensityScv.data();
+	if (oldData.valid())
+		m_exDarcyVel->remove_needed_data(oldData);
+	oldData = m_imDensityScvf.data();
+	if (oldData.valid())
+		m_exDarcyVel->remove_needed_data(oldData);
+
+//	connect to import
+	m_imDensityScv.set_data(data);
+	m_imDensityScvf.set_data(data);
+
+//	darcy velocity depends on density
+	m_exDarcyVel->add_needed_data(data);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
+// assembling
 ////////////////////////////////////////////////////////////////////////////////
+
+template<typename TDomain>
+bool DensityDrivenFlow<TDomain>::
+request_finite_element_id(const std::vector<LFEID>& vLfeID)
+{
+//	check number
+	if(vLfeID.size() != 2) return false;
+
+//	check that Lagrange 1st order
+	for(size_t i = 0; i < vLfeID.size(); ++i)
+		if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1)) return false;
+	return true;
+}
+
+template<typename TDomain>
+bool DensityDrivenFlow<TDomain>::
+request_non_regular_grid(bool bNonRegular)
+{
+//	switch, which assemble functions to use.
+	if(bNonRegular)
+	{
+		UG_LOG("ERROR in 'DensityDrivenFlow::request_non_regular_grid':"
+				" Non-regular grid not implemented.\n");
+		return false;
+	}
+
+//	this disc supports regular grids
+	return true;
+}
 
 template<typename TDomain>
 void

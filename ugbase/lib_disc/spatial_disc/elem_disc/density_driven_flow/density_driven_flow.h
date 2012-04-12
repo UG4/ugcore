@@ -88,11 +88,7 @@ class DensityDrivenFlow
 		DensityDrivenFlow(const char* functions, const char* subsets);
 
 	///	sets usage of consistent gravity
-		void set_consistent_gravity(bool bUse)
-		{
-			m_bConsGravity = bUse;
-			register_all_fv1_funcs();
-		}
+		void set_consistent_gravity(bool bUse);
 
 	///	sets usage of boussinesq approximation for transport equation
 		void set_boussinesq_transport(bool bUse) {m_BoussinesqTransport = bUse;}
@@ -104,103 +100,47 @@ class DensityDrivenFlow
 	/**
 	 * This method sets the procedure that compute the upwinded flux.
 	 */
-		void set_upwind(SmartPtr<IConvectionShapes<dim> > shape)
-		{
-			m_spUpwind = shape;
-		}
+		void set_upwind(SmartPtr<IConvectionShapes<dim> > shape);
 
 	///	sets the porosity
 	/**
 	 * This method sets the Porosity. (Dimensionless)
 	 */
-		void set_porosity(SmartPtr<IPData<number, dim> > user)
-		{
-			m_imPorosityScv.set_data(user);
-			m_imPorosityScvf.set_data(user);
-		}
+		void set_porosity(SmartPtr<IPData<number, dim> > user);
 
 	///	sets the gravity vector
 	/**
 	 * This method sets the Gravity. (Unit is \f$ \frac{m}{s^2} \f$)
 	 */
-		void set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > user)
-		{
-			m_imConstGravity.set_data(user);
-		}
+		void set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > user);
 
 	///	sets the molecular diffusion tensor
 	/**
 	 * This method sets the molecular Diffusion tensor.
 	 */
-		void set_molecular_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
-		{
-			m_imMolDiffusionScvf.set_data(user);
-		}
+		void set_molecular_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
 
 	///	sets the permeability tensor
 	/**
 	 * This method sets the Permeability tensor.
 	 */
-		void set_permeability(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
-		{
-			m_imPermeabilityScvf.set_data(user);
-		}
+		void set_permeability(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
 
 	///	sets the viscosity tensor
 	/**
 	 * This method sets the Viscosity.
 	 */
-		void set_viscosity(SmartPtr<IPData<number, dim> > user)
-		{
-			m_imViscosityScvf.set_data(user);
-		}
+		void set_viscosity(SmartPtr<IPData<number, dim> > user);
 
 	///	set density
-		void set_density(SmartPtr<IPData<number,dim> > data)
-		{
-		//	remove old data
-			SmartPtr<IIPData> oldData = m_imDensityScv.data();
-			if (oldData.valid())
-				m_exDarcyVel->remove_needed_data(oldData);
-			oldData = m_imDensityScvf.data();
-			if (oldData.valid())
-				m_exDarcyVel->remove_needed_data(oldData);
-
-		//	connect to import
-			m_imDensityScv.set_data(data);
-			m_imDensityScvf.set_data(data);
-
-		//	darcy velocity depends on density
-			m_exDarcyVel->add_needed_data(data);
-		}
+		void set_density(SmartPtr<IPData<number,dim> > data);
 
 	public:
 	///	type of trial space for each function used
-		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
-		{
-		//	check number
-			if(vLfeID.size() != 2) return false;
-
-		//	check that Lagrange 1st order
-			for(size_t i = 0; i < vLfeID.size(); ++i)
-				if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1)) return false;
-			return true;
-		}
+		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID);
 
 	///	switches between non-regular and regular grids
-		virtual bool request_non_regular_grid(bool bNonRegular)
-		{
-		//	switch, which assemble functions to use.
-			if(bNonRegular)
-			{
-				UG_LOG("ERROR in 'DensityDrivenFlow::request_non_regular_grid':"
-						" Non-regular grid not implemented.\n");
-				return false;
-			}
-
-		//	this disc supports regular grids
-			return true;
-		}
+		virtual bool request_non_regular_grid(bool bNonRegular);
 
 	private:
 	///	returns if local time series is needed
