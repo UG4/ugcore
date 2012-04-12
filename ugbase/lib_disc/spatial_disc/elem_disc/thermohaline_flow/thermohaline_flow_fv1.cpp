@@ -20,8 +20,288 @@
 #include "common/util/provider.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape.h"
+#ifdef UG_FOR_LUA
+#include "bindings/lua/lua_user_data.h"
+#endif
 
 namespace ug{
+
+////////////////////////////////////////////////////////////////////////////////
+// Data setup
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::set_consistent_gravity(bool bUse)
+{
+	m_bConsGravity = bUse;
+	register_all_fv1_funcs();
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::set_boussinesq_density(number den)
+{
+	m_BoussinesqDensity = den;
+	m_BoussinesqEnergy = true;
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::set_upwind(SmartPtr<IConvectionShapes<dim> > shape)
+{
+	m_spUpwind = shape;
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::set_upwind_energy(SmartPtr<IConvectionShapes<dim> > shape)
+{
+	m_spUpwindEnergy = shape;
+}
+
+
+///////// Porosity
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::set_porosity(SmartPtr<IPData<number, dim> > user)
+{
+	m_imPorosityScv.set_data(user);
+	m_imPorosityScvf.set_data(user);
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_porosity(number val)
+{
+	set_porosity(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_porosity(const char* fctName)
+{
+	set_porosity(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+///////// Gravity
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > user)
+{
+	m_imConstGravity.set_data(user);
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_gravity(number vel_x)
+{
+	UG_THROW_FATAL("ThermohalineFlow: Setting gravity vector of dimension 1"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void ThermohalineFlow<Domain1d>::
+set_gravity(number vel_x)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	set_gravity(vel);
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_gravity(number vel_x, number vel_y)
+{
+	UG_THROW_FATAL("ThermohalineFlow: Setting gravity vector of dimension 2"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void ThermohalineFlow<Domain2d>::
+set_gravity(number vel_x, number vel_y)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	vel->set_entry(1, vel_y);
+	set_gravity(vel);
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_gravity(number vel_x, number vel_y, number vel_z)
+{
+	UG_THROW_FATAL("ThermohalineFlow: Setting gravity vector of dimension 3"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void ThermohalineFlow<Domain3d>::
+set_gravity(number vel_x, number vel_y, number vel_z)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	vel->set_entry(1, vel_y);
+	vel->set_entry(2, vel_z);
+	set_gravity(vel);
+}
+
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_gravity(const char* fctName)
+{
+	set_gravity(CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(fctName)));
+}
+#endif
+
+///////// mol. Diffusion
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_molecular_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
+{
+	m_imMolDiffusionScvf.set_data(user);
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_molecular_diffusion(number val)
+{
+	set_molecular_diffusion(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_molecular_diffusion(const char* fctName)
+{
+	set_molecular_diffusion(CreateSmartPtr(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
+}
+#endif
+
+///////// Thermal conductivity
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_thermal_conductivity(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
+{
+	m_imThermalCondictivityScvf.set_data(user);
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_thermal_conductivity(number val)
+{
+	set_thermal_conductivity(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_thermal_conductivity(const char* fctName)
+{
+	set_thermal_conductivity(CreateSmartPtr(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
+}
+#endif
+
+///////// Permeability
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_permeability(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
+{
+	m_imPermeabilityScvf.set_data(user);
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_permeability(number val)
+{
+	set_permeability(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_permeability(const char* fctName)
+{
+	set_permeability(CreateSmartPtr(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
+}
+#endif
+
+///////// Viscosity
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_viscosity(SmartPtr<IPData<number, dim> > user)
+{
+	m_imViscosityScvf.set_data(user);
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_viscosity(number val)
+{
+	set_viscosity(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_viscosity(const char* fctName)
+{
+	set_viscosity(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+
+///////// Density
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_density(SmartPtr<IPData<number, dim> > data)
+{
+//	remove old data
+	SmartPtr<IIPData> oldData = m_imDensityScv.data();
+	if (oldData.valid())
+		m_exDarcyVel->remove_needed_data(oldData);
+	oldData = m_imDensityScvf.data();
+	if (oldData.valid())
+		m_exDarcyVel->remove_needed_data(oldData);
+
+//	connect to import
+	m_imDensityScv.set_data(data);
+	m_imDensityScvf.set_data(data);
+
+//	darcy velocity depends on density
+	m_exDarcyVel->add_needed_data(data);
+}
+
+////////// Capacities
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_heat_capacity_solid(number data)
+{
+	m_imHeatCapacitySolid = data;
+}
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_heat_capacity_fluid(number data)
+{
+	m_imHeatCapacityFluid = data;
+}
+
+
+template<typename TDomain>
+void ThermohalineFlow<TDomain>::
+set_mass_density_solid(number data)
+{
+	m_imMassDensitySolid = data;
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,6 +310,36 @@ namespace ug{
 //  (since this discretization can be implemented in a generic way)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+template<typename TDomain>
+bool ThermohalineFlow<TDomain>::
+request_finite_element_id(const std::vector<LFEID>& vLfeID)
+{
+//	check number
+	if(vLfeID.size() != 3) return false;
+
+//	check that Lagrange 1st order
+	for(size_t i = 0; i < vLfeID.size(); ++i)
+		if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1)) return false;
+	return true;
+}
+
+template<typename TDomain>
+bool ThermohalineFlow<TDomain>::
+request_non_regular_grid(bool bNonRegular)
+{
+//	switch, which assemble functions to use.
+	if(bNonRegular)
+	{
+		UG_LOG("ERROR in 'ThermohalineFlow::request_non_regular_grid':"
+				" Non-regular grid not implemented.\n");
+		return false;
+	}
+
+//	this disc supports regular grids
+	return true;
+}
+
 
 template<typename TDomain>
 void ThermohalineFlow<TDomain>::

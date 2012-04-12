@@ -96,11 +96,7 @@ class ThermohalineFlow
 		ThermohalineFlow(const char* functions, const char* subsets);
 
 	///	sets usage of consistent gravity
-		void set_consistent_gravity(bool bUse)
-		{
-			m_bConsGravity = bUse;
-			register_all_fv1_funcs();
-		}
+		void set_consistent_gravity(bool bUse);
 
 	///	sets usage of boussinesq approximation for transport equation
 		void set_boussinesq_transport(bool bUse) {m_BoussinesqTransport = bUse;}
@@ -109,158 +105,121 @@ class ThermohalineFlow
 		void set_boussinesq_flow(bool bUse) {m_BoussinesqFlow = bUse;}
 
 	///	sets reference density used for boussinesq flow
-		void set_boussinesq_density(number den)
-		{
-			m_BoussinesqDensity = den;
-			m_BoussinesqEnergy = true;
-		}
+		void set_boussinesq_density(number den);
 
 	///	sets the type of upwind
 	/**
 	 * This method sets the procedure that compute the upwinded flux.
 	 */
-		void set_upwind(SmartPtr<IConvectionShapes<dim> > shape)
-		{
-			m_spUpwind = shape;
-		}
+		void set_upwind(SmartPtr<IConvectionShapes<dim> > shape);
 
 	///	sets the type of upwind for the energy equation
 	/**
 	 * This method sets the procedure that compute the upwinded flux.
 	 */
-		void set_upwind_energy(SmartPtr<IConvectionShapes<dim> > shape)
-		{
-			m_spUpwindEnergy = shape;
-		}
+		void set_upwind_energy(SmartPtr<IConvectionShapes<dim> > shape);
 
 	///	sets the porosity
 	/**
 	 * This method sets the Porosity. (Dimensionless)
 	 */
-		void set_porosity(SmartPtr<IPData<number, dim> > user)
-		{
-			m_imPorosityScv.set_data(user);
-			m_imPorosityScvf.set_data(user);
-		}
+	///	\{
+		void set_porosity(SmartPtr<IPData<number, dim> > user);
+		void set_porosity(number val);
+#ifdef UG_FOR_LUA
+		void set_porosity(const char* fctName);
+#endif
+	///	\}
 
 	///	sets the gravity vector
 	/**
 	 * This method sets the Gravity. (Unit is \f$ \frac{m}{s^2} \f$)
 	 */
-		void set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > user)
-		{
-			m_imConstGravity.set_data(user);
-		}
+	/// \{
+		void set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > user);
+		void set_gravity(number vel_x);
+		void set_gravity(number vel_x, number vel_y);
+		void set_gravity(number vel_x, number vel_y, number vel_z);
+#ifdef UG_FOR_LUA
+		void set_gravity(const char* fctName);
+#endif
+	/// \}
 
 	///	sets the molecular diffusion tensor
 	/**
 	 * This method sets the molecular Diffusion tensor.
 	 */
-		void set_molecular_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
-		{
-			m_imMolDiffusionScvf.set_data(user);
-		}
+	/// \{
+		void set_molecular_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
+		void set_molecular_diffusion(number val);
+#ifdef UG_FOR_LUA
+		void set_molecular_diffusion(const char* fctName);
+#endif
+	/// \}
 
 	///	sets the thermal conductivity tensor
 	/**
 	 * This method sets the thermal conductivity tensor.
 	 */
-		void set_thermal_conductivity(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
-		{
-			m_imThermalCondictivityScvf.set_data(user);
-		}
+	/// \{
+		void set_thermal_conductivity(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
+		void set_thermal_conductivity(number val);
+#ifdef UG_FOR_LUA
+		void set_thermal_conductivity(const char* fctName);
+#endif
+	/// \}
 
 	///	sets the permeability tensor
 	/**
 	 * This method sets the Permeability tensor.
 	 */
-		void set_permeability(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
-		{
-			m_imPermeabilityScvf.set_data(user);
-		}
+	/// \{
+		void set_permeability(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
+		void set_permeability(number val);
+#ifdef UG_FOR_LUA
+		void set_permeability(const char* fctName);
+#endif
+	/// \}
 
 	///	sets the viscosity tensor
 	/**
 	 * This method sets the Viscosity.
 	 */
-		void set_viscosity(SmartPtr<IPData<number, dim> > user)
-		{
-			m_imViscosityScvf.set_data(user);
-		}
+	///	\{
+		void set_viscosity(SmartPtr<IPData<number, dim> > user);
+		void set_viscosity(number val);
+#ifdef UG_FOR_LUA
+		void set_viscosity(const char* fctName);
+#endif
+	///	\}
 
 	///	set density
-		void set_density(SmartPtr<IPData<number, dim> > data)
-		{
-		//	remove old data
-			SmartPtr<IIPData> oldData = m_imDensityScv.data();
-			if (oldData.valid())
-				m_exDarcyVel->remove_needed_data(oldData);
-			oldData = m_imDensityScvf.data();
-			if (oldData.valid())
-				m_exDarcyVel->remove_needed_data(oldData);
-
-		//	connect to import
-			m_imDensityScv.set_data(data);
-			m_imDensityScvf.set_data(data);
-
-		//	darcy velocity depends on density
-			m_exDarcyVel->add_needed_data(data);
-		}
+		void set_density(SmartPtr<IPData<number, dim> > data);
 
 	///	sets the heat capacity of the solid-phase
 	/**
 	 * This method sets the heat capacity of the solid-phase.
 	 */
-		void set_heat_capacity_solid(number data)
-		{
-			m_imHeatCapacitySolid = data;
-		}
+		void set_heat_capacity_solid(number data);
 
 	///	sets the heat capacity of the fluid-phase
 	/**
 	 * This method sets the heat capacity of the fluid-phase.
 	 */
-		void set_heat_capacity_fluid(number data)
-		{
-			m_imHeatCapacityFluid = data;
-		}
+		void set_heat_capacity_fluid(number data);
 
 	///	sets the mass density of the solid-phase
 	/**
 	 * This method sets the mass density of the solid-phase.
 	 */
-		void set_mass_density_solid(number data)
-		{
-			m_imMassDensitySolid = data;
-		}
+		void set_mass_density_solid(number data);
 
 	public:
 	///	type of trial space for each function used
-		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
-		{
-		//	check number
-			if(vLfeID.size() != 3) return false;
-
-		//	check that Lagrange 1st order
-			for(size_t i = 0; i < vLfeID.size(); ++i)
-				if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1)) return false;
-			return true;
-		}
+		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID);
 
 	///	switches between non-regular and regular grids
-		virtual bool request_non_regular_grid(bool bNonRegular)
-		{
-		//	switch, which assemble functions to use.
-			if(bNonRegular)
-			{
-				UG_LOG("ERROR in 'ThermohalineFlow::request_non_regular_grid':"
-						" Non-regular grid not implemented.\n");
-				return false;
-			}
-
-		//	this disc supports regular grids
-			return true;
-		}
+		virtual bool request_non_regular_grid(bool bNonRegular);
 
 	private:
 	///	returns if local time series is needed
@@ -382,10 +341,10 @@ class ThermohalineFlow
 		SmartPtr<IPData<MathVector<dim>, dim> > brine_grad() {return m_exBrineGrad;}
 
 	///	returns the export of temperature
-		SmartPtr<IPData<number, dim> > get_temperature() {return m_exTemperature;}
+		SmartPtr<IPData<number, dim> > temperature() {return m_exTemperature;}
 
 	///	returns the export of temperature gradient
-		SmartPtr<IPData<MathVector<dim>, dim> > get_temperature_grad() {return m_exTemperatureGrad;}
+		SmartPtr<IPData<MathVector<dim>, dim> > temperature_grad() {return m_exTemperatureGrad;}
 
 	///	returns the export of brine mass fracture
 		SmartPtr<IPData<MathVector<dim>, dim> > pressure_grad() {return m_exPressureGrad;}
