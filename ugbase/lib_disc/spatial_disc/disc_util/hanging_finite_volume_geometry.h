@@ -300,7 +300,7 @@ class HFV1Geometry : public FVGeometryBase{
 			{
 				const size_t dim_ = scv.m_midId[i].dim;
 				const size_t id = scv.m_midId[i].id;
-				UG_ASSERT(dim_ >= 0 && dim_ <= (size_t)dim, "Dimension wrong");
+				UG_ASSERT(dim_ <= (size_t)dim, "Dimension wrong");
 				UG_ASSERT(id < m_gloMid[dim_].size(), "id " << id << " in dim="
 				          <<dim_<<" wrong. (size is "<< m_gloMid[dim_].size()<<")\n");
 				scv.m_vGloPos[i] = m_gloMid[dim_][id];
