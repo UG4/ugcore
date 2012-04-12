@@ -14,6 +14,29 @@ simulation environment which is used in many different projects.
 Below you'll find a list which tries to summarize the current state of ug4.
 Note that this list is far from complete.
 
+- General
+	- \ug4 is a cross platform simulation environment, running on Linux, Mac-OSX
+	  and Microsoft Windows. More platforms may well be supported but have not yet
+	  been tested.
+	- \ug4 runs on laptops as well as on large scale parallel clusters. Scalability
+	  of the provided geometric multigrid solver has been shown for up to
+	  262144 (256ki) processes. It may very well scale well for even more processes.
+	- \ug4 not only provides a flexible scripting environment throug the use of
+	  the lua scripting language, it also provides bindings to java and the
+	  "Visual Programming Languge" vrl. The latter allows to build a simulation
+	  while at the same time building its graphical user interface through simple
+	  drag and drop operations.
+	- \ug4 provides an interactive shell with auto-completion, method-inspection
+	  script-debugging utilities and many more.
+	- Comprehensive error messages with call-stacks allow to quickly understand
+	  what went wrong in a script and where it did so.
+	- \ug4 is extendible through plugins. Classes and algorithms developed in
+	  such plugins are immediately available in ug-script and the vrl.
+	- Methods of different plugins can easily be combined on the scripting level.
+	- The sources of ug4 are structured in a modular way, with the main sub-libraries
+	  libAlgebra, libDisc (discretization) and libGrid. More libraries like the
+	  "parallel communication layer" support those main libraries.
+
 - libAlgebra
 	- Template based implementation, which allows to use highly specialized
 	  matrix structures.
@@ -32,10 +55,33 @@ Note that this list is far from complete.
 	- Data imports and exports allow the efficient and flexible coupling
 	  of different discretization building blocks with each other and with
 	  user provided callback functions.
-	- ...
+	- Support for different algebra implementations through the use of template
+	  programming.
+	- Prebuild discretization blocks: ...
+	- Fully scriptable through ug-script or vrl-projects.
 
 - libGrid
-...
+	- Unstructured hybrid hierarchical grids in 1, 2 and 3 dimensions.
+	- Separation of topology and data allow to associate arbitrary data with
+	  elements in the grid - even temporary data may be attached. Data access is
+	  typesafe and fast. Management of the data associated with the elements of
+	  a grid is fully automated.
+	- Grids may consist of vertices, edges, faces and volumes. Currently used
+	  concrete element-types include vertices, edges, triangles, quadrilaterals,
+	  tetrahedrons, pyramids, prisms and hexahedrons.
+	- New grid-element types can easily be added by a user, without the need to
+	  change any library related code.
+	- A large set of algorithms operating on grids and related classes. Those
+	  algorithms include refinement-, extrusion-, graph- and remeshing- algorithms.
+	- Adaptive refinement using hanging nodes or regular closure is supported.
+	- Adaptive parallel multigrid hierarchies using hanging nodes are available.
+	- Grids may be distributed to an arbitrary amount of processes using
+	  user-defined partition maps.
+	- Redistribution and hierarchical redistribution are supported, which allow
+	  efficient use of parallel multigrid solvers on large parallel clusters (>100000 procs)
+	- Associated software like ProMesh provides tools to create custom grids
+	  ready for simulation.
+
 - Plugins and applications
-...
+	...
  */
