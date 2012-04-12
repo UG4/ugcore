@@ -203,7 +203,7 @@ elemDiscIP3:set_upwind(upwind)
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
-neumannDiscCYT = FV1NeumannBoundary("cyt")
+neumannDiscCYT = NeumannBoundary("cyt")
 neumannDiscCYT:add(neumann, "ca_cyt", "mem_cyt")
 
 -- we pass here the function needed to evaluate the flux function.

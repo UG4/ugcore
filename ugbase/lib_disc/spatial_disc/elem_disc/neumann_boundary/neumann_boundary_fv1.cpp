@@ -18,7 +18,7 @@ namespace ug{
 
 template<typename TDomain>
 template <typename TUserData>
-void FV1NeumannBoundary<TDomain>::
+void NeumannBoundary<TDomain>::
 extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
              std::vector<TUserData>& vUserData,
              FunctionGroup& commonFctGrp, std::string& fctNames)
@@ -93,7 +93,7 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 }
 
 template<typename TDomain>
-void FV1NeumannBoundary<TDomain>::
+void NeumannBoundary<TDomain>::
 extract_data()
 {
 //	a common function group
@@ -112,7 +112,7 @@ extract_data()
 }
 
 template<typename TDomain>
-void FV1NeumannBoundary<TDomain>::
+void NeumannBoundary<TDomain>::
 add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subsets)
 {
 	m_vNumberData.push_back(NumberData(data, function, subsets));
@@ -121,7 +121,7 @@ add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subse
 }
 
 template<typename TDomain>
-void FV1NeumannBoundary<TDomain>::
+void NeumannBoundary<TDomain>::
 add(SmartPtr<IPData<number, dim, bool> > user, const char* function, const char* subsets)
 {
 	m_vBNDNumberData.push_back(BNDNumberData(user, function, subsets));
@@ -130,7 +130,7 @@ add(SmartPtr<IPData<number, dim, bool> > user, const char* function, const char*
 }
 
 template<typename TDomain>
-void FV1NeumannBoundary<TDomain>::
+void NeumannBoundary<TDomain>::
 add(SmartPtr<IPData<MathVector<dim>, dim> > user, const char* function, const char* subsets)
 {
 	m_vVectorData.push_back(VectorData(user, function, subsets));
@@ -140,7 +140,7 @@ add(SmartPtr<IPData<MathVector<dim>, dim> > user, const char* function, const ch
 
 #ifdef UG_FOR_LUA
 template <typename TDomain>
-void FV1NeumannBoundary<TDomain>::
+void NeumannBoundary<TDomain>::
 add(const char* name, const char* function, const char* subsets)
 {
 	if(LuaUserData<number, dim>::check_callback_returns(name)){
@@ -164,11 +164,11 @@ add(const char* name, const char* function, const char* subsets)
 
 //	no match found
 	if(!CheckLuaCallbackName(name))
-		UG_THROW_FATAL("FV1NeumannBoundary::add: Lua-Callback with name '"<<name<<
+		UG_THROW_FATAL("NeumannBoundary::add: Lua-Callback with name '"<<name<<
 		               "' does not exist.");
 
 //	name exists but wrong signature
-	UG_THROW_FATAL("FV1NeumannBoundary::add: Cannot find matching callback "
+	UG_THROW_FATAL("NeumannBoundary::add: Cannot find matching callback "
 					"signature. Use one of:\n"
 					"a) Number - Callback\n"
 					<< (LuaUserData<number, dim>::signature()) << "\n" <<
@@ -182,7 +182,7 @@ add(const char* name, const char* function, const char* subsets)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-void FV1NeumannBoundary<TDomain>::
+void NeumannBoundary<TDomain>::
 prepare_element_loop()
 {
 //	register subsetIndex at Geometry
@@ -231,7 +231,7 @@ prepare_element_loop()
 
 	this->clear_imports();
 
-	typedef typename FV1NeumannBoundary<TDomain>::NumberData T;
+	typedef typename NeumannBoundary<TDomain>::NumberData T;
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	set lin defect fct for imports
@@ -248,7 +248,7 @@ prepare_element_loop()
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-void FV1NeumannBoundary<TDomain>::
+void NeumannBoundary<TDomain>::
 finish_element_loop()
 {
 //	remove subsetIndex from Geometry
@@ -296,7 +296,7 @@ finish_element_loop()
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-void FV1NeumannBoundary<TDomain>::
+void NeumannBoundary<TDomain>::
 prepare_element(TElem* elem, const LocalVector& u)
 {
 //	get corners
@@ -305,7 +305,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 //  update Geometry for this element
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-		UG_THROW_FATAL("FV1NeumannBoundary::prepare_element: "
+		UG_THROW_FATAL("NeumannBoundary::prepare_element: "
 						"Cannot update Finite Volume Geometry.");
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
@@ -314,7 +314,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-void FV1NeumannBoundary<TDomain>::
+void NeumannBoundary<TDomain>::
 ass_rhs_elem(LocalVector& d)
 {
 // 	get finite volume geometry
@@ -436,7 +436,7 @@ ass_rhs_elem(LocalVector& d)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-void FV1NeumannBoundary<TDomain>::NumberData::
+void NeumannBoundary<TDomain>::NumberData::
 extract_bip(const TFVGeom<TElem,dim>& geo)
 {
 	typedef typename TFVGeom<TElem, dim>::BF BF;
@@ -460,7 +460,7 @@ extract_bip(const TFVGeom<TElem,dim>& geo)
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-void FV1NeumannBoundary<TDomain>::NumberData::
+void NeumannBoundary<TDomain>::NumberData::
 lin_def_fv1(const LocalVector& u,
             std::vector<std::vector<number> > vvvLinDef[],
             const size_t nip)
@@ -492,7 +492,7 @@ lin_def_fv1(const LocalVector& u,
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-FV1NeumannBoundary<TDomain>::FV1NeumannBoundary(const char* subsets)
+NeumannBoundary<TDomain>::NeumannBoundary(const char* subsets)
  :IDomainElemDisc<TDomain>("", subsets)
 {
 	m_mBNDNumberBndSegment.clear();
@@ -504,7 +504,7 @@ FV1NeumannBoundary<TDomain>::FV1NeumannBoundary(const char* subsets)
 ///	type of trial space for each function used
 template<typename TDomain>
 bool
-FV1NeumannBoundary<TDomain>::
+NeumannBoundary<TDomain>::
 request_finite_element_id(const std::vector<LFEID>& vLfeID)
 {
 //	check that Lagrange 1st order
@@ -516,7 +516,7 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 ///	switches between non-regular and regular grids
 template<typename TDomain>
 bool
-FV1NeumannBoundary<TDomain>::
+NeumannBoundary<TDomain>::
 request_non_regular_grid(bool bNonRegular)
 {
 //	switch, which assemble functions to use.
@@ -538,7 +538,7 @@ request_non_regular_grid(bool bNonRegular)
 // register for 1D
 template<typename TDomain>
 void
-FV1NeumannBoundary<TDomain>::
+NeumannBoundary<TDomain>::
 register_all_fv1_funcs(bool bHang)
 {
 //	get all grid element types in this dimension and below
@@ -552,7 +552,7 @@ register_all_fv1_funcs(bool bHang)
 template<typename TDomain>
 template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 void
-FV1NeumannBoundary<TDomain>::
+NeumannBoundary<TDomain>::
 register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -573,9 +573,9 @@ register_fv1_func()
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-template class FV1NeumannBoundary<Domain1d>;
-template class FV1NeumannBoundary<Domain2d>;
-template class FV1NeumannBoundary<Domain3d>;
+template class NeumannBoundary<Domain1d>;
+template class NeumannBoundary<Domain2d>;
+template class NeumannBoundary<Domain3d>;
 
 } // namespace ug
 

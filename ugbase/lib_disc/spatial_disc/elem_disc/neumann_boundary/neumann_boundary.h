@@ -21,7 +21,7 @@
 namespace ug{
 
 template<typename TDomain>
-class FV1NeumannBoundary
+class NeumannBoundary
 	: public IDomainElemDisc<TDomain>
 {
 	private:
@@ -29,7 +29,7 @@ class FV1NeumannBoundary
 		typedef IDomainElemDisc<TDomain> base_type;
 
 	///	Base class type
-		typedef FV1NeumannBoundary<TDomain> this_type;
+		typedef NeumannBoundary<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -43,7 +43,7 @@ class FV1NeumannBoundary
 
 	public:
 	///	default constructor
-		FV1NeumannBoundary(const char* subsets);
+		NeumannBoundary(const char* subsets);
 
 	///	adds a lua callback (cond and non-cond)
 #ifdef UG_FOR_LUA

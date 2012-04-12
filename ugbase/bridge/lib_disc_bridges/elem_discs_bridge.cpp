@@ -66,9 +66,9 @@ void Register__Domain(Registry& reg, string grp)
 
 //	Neumann Boundary
 	{
-		typedef FV1NeumannBoundary<TDomain> T;
+		typedef NeumannBoundary<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("FV1NeumannBoundary").append(dimSuffix);
+		string name = string("NeumannBoundary").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*)>("Function(s)")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >, const char*, const char*)>(&T::add))
@@ -78,7 +78,7 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("add", static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add))
 #endif
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "FV1NeumannBoundary", dimTag);
+		reg.add_class_to_group(name, "NeumannBoundary", dimTag);
 	}
 
 //	Inner Boundaries
