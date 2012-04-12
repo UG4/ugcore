@@ -62,7 +62,7 @@ Note that this list is far from complete.
 
 - libGrid
 	- Unstructured hybrid hierarchical grids in 1, 2 and 3 dimensions.
-	- Separation of topology and data allow to associate arbitrary data with
+	- Separation of topology and data allows to associate arbitrary data with
 	  elements in the grid - even temporary data may be attached. Data access is
 	  typesafe and fast. Management of the data associated with the elements of
 	  a grid is fully automated.
