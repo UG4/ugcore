@@ -43,12 +43,32 @@ void DensityDrivenFlow<TDomain>::set_upwind(SmartPtr<IConvectionShapes<dim> > sh
 	m_spUpwind = shape;
 }
 
+///////// Porosity
+
 template<typename TDomain>
 void DensityDrivenFlow<TDomain>::set_porosity(SmartPtr<IPData<number, dim> > user)
 {
 	m_imPorosityScv.set_data(user);
 	m_imPorosityScvf.set_data(user);
 }
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_porosity(number val)
+{
+	set_porosity(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_porosity(const char* fctName)
+{
+	set_porosity(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+///////// Gravity
 
 template<typename TDomain>
 void DensityDrivenFlow<TDomain>::
@@ -59,10 +79,94 @@ set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > user)
 
 template<typename TDomain>
 void DensityDrivenFlow<TDomain>::
+set_gravity(number vel_x)
+{
+	UG_THROW_FATAL("DensityDrivenFlow: Setting gravity vector of dimension 1"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void DensityDrivenFlow<Domain1d>::
+set_gravity(number vel_x)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	set_gravity(vel);
+}
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_gravity(number vel_x, number vel_y)
+{
+	UG_THROW_FATAL("DensityDrivenFlow: Setting gravity vector of dimension 2"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void DensityDrivenFlow<Domain2d>::
+set_gravity(number vel_x, number vel_y)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	vel->set_entry(1, vel_y);
+	set_gravity(vel);
+}
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_gravity(number vel_x, number vel_y, number vel_z)
+{
+	UG_THROW_FATAL("DensityDrivenFlow: Setting gravity vector of dimension 3"
+					" to a Discretization for world dim " << dim);
+}
+
+template<>
+void DensityDrivenFlow<Domain3d>::
+set_gravity(number vel_x, number vel_y, number vel_z)
+{
+	SmartPtr<ConstUserVector<dim> > vel(new ConstUserVector<dim>());
+	vel->set_entry(0, vel_x);
+	vel->set_entry(1, vel_y);
+	vel->set_entry(2, vel_z);
+	set_gravity(vel);
+}
+
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_gravity(const char* fctName)
+{
+	set_gravity(CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(fctName)));
+}
+#endif
+
+///////// mol. Diffusion
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
 set_molecular_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
 {
 	m_imMolDiffusionScvf.set_data(user);
 }
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_molecular_diffusion(number val)
+{
+	set_molecular_diffusion(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_molecular_diffusion(const char* fctName)
+{
+	set_molecular_diffusion(CreateSmartPtr(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
+}
+#endif
+
+///////// Permeability
 
 template<typename TDomain>
 void DensityDrivenFlow<TDomain>::
@@ -73,10 +177,46 @@ set_permeability(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user)
 
 template<typename TDomain>
 void DensityDrivenFlow<TDomain>::
+set_permeability(number val)
+{
+	set_permeability(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_permeability(const char* fctName)
+{
+	set_permeability(CreateSmartPtr(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
+}
+#endif
+
+///////// Viscosity
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
 set_viscosity(SmartPtr<IPData<number, dim> > user)
 {
 	m_imViscosityScvf.set_data(user);
 }
+
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_viscosity(number val)
+{
+	set_viscosity(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void DensityDrivenFlow<TDomain>::
+set_viscosity(const char* fctName)
+{
+	set_viscosity(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+}
+#endif
+
+///////// Density
 
 template<typename TDomain>
 void DensityDrivenFlow<TDomain>::

@@ -106,31 +106,63 @@ class DensityDrivenFlow
 	/**
 	 * This method sets the Porosity. (Dimensionless)
 	 */
+	///	\{
 		void set_porosity(SmartPtr<IPData<number, dim> > user);
+		void set_porosity(number val);
+#ifdef UG_FOR_LUA
+		void set_porosity(const char* fctName);
+#endif
+	///	\}
 
 	///	sets the gravity vector
 	/**
 	 * This method sets the Gravity. (Unit is \f$ \frac{m}{s^2} \f$)
 	 */
+	/// \{
 		void set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > user);
+		void set_gravity(number vel_x);
+		void set_gravity(number vel_x, number vel_y);
+		void set_gravity(number vel_x, number vel_y, number vel_z);
+#ifdef UG_FOR_LUA
+		void set_gravity(const char* fctName);
+#endif
+	/// \}
 
 	///	sets the molecular diffusion tensor
 	/**
 	 * This method sets the molecular Diffusion tensor.
 	 */
+	/// \{
 		void set_molecular_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
+		void set_molecular_diffusion(number val);
+#ifdef UG_FOR_LUA
+		void set_molecular_diffusion(const char* fctName);
+#endif
+	/// \}
 
 	///	sets the permeability tensor
 	/**
 	 * This method sets the Permeability tensor.
 	 */
+	/// \{
 		void set_permeability(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
+		void set_permeability(number val);
+#ifdef UG_FOR_LUA
+		void set_permeability(const char* fctName);
+#endif
+	/// \}
 
 	///	sets the viscosity tensor
 	/**
 	 * This method sets the Viscosity.
 	 */
+	///	\{
 		void set_viscosity(SmartPtr<IPData<number, dim> > user);
+		void set_viscosity(number val);
+#ifdef UG_FOR_LUA
+		void set_viscosity(const char* fctName);
+#endif
+	///	\}
 
 	///	set density
 		void set_density(SmartPtr<IPData<number,dim> > data);

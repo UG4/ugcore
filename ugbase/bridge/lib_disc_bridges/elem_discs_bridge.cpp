@@ -196,33 +196,51 @@ void Register__Domain(Registry& reg, string grp)
 
 //	Density Driven Flow
 	{
-		typedef DensityDrivenFlow<TDomain> T2;
+		typedef DensityDrivenFlow<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
 		string name = string("DensityDrivenFlow").append(dimSuffix);
-		reg.add_class_<T2, TBase >(name, elemGrp)
+		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
-			.add_method("set_upwind", &T2::set_upwind,
-						"", "Upwind (no, part, full)")
-			.add_method("set_boussinesq_transport", &T2::set_boussinesq_transport,
-						"", "Boussinesq Transport")
-			.add_method("set_boussinesq_flow", &T2::set_boussinesq_flow,
-						"", "Boussinesq Flow")
-			.add_method("set_porosity", &T2::set_porosity,
-						"", "Porosity")
-			.add_method("set_gravity", &T2::set_gravity,
-						"", "Gravity")
-			.add_method("set_permeability", &T2::set_permeability,
-						"", "Permeability")
-			.add_method("set_viscosity", &T2::set_viscosity,
-						"", "Viscosity")
-			.add_method("set_molecular_diffusion", &T2::set_molecular_diffusion,
-						"", "Molecular Diffusion")
-			.add_method("set_density", &T2::set_density,
-						"", "Density")
-			.add_method("set_consistent_gravity", &T2::set_consistent_gravity,
-						"", "Consistent Gravity")
-			.add_method("darcy_velocity", &T2::darcy_velocity)
-			.add_method("brine", &T2::brine)
+			.add_method("set_consistent_gravity", &T::set_consistent_gravity, "", "Consistent Gravity")
+			.add_method("set_boussinesq_transport", &T::set_boussinesq_transport, "", "Boussinesq Transport")
+			.add_method("set_boussinesq_flow", &T::set_boussinesq_flow,"", "Boussinesq Flow")
+			.add_method("set_upwind", &T::set_upwind, "", "Upwind (no, part, full)")
+
+			.add_method("set_porosity", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_porosity), "", "Porosity")
+			.add_method("set_porosity", static_cast<void (T::*)(number)>(&T::set_porosity), "", "Porosity")
+#ifdef UG_FOR_LUA
+			.add_method("set_porosity", static_cast<void (T::*)(const char*)>(&T::set_porosity), "", "Porosity")
+#endif
+
+			.add_method("set_gravity", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >)>(&T::set_gravity), "", "Gravity")
+			.add_method("set_gravity", static_cast<void (T::*)(number)>(&T::set_gravity), "", "g_x")
+			.add_method("set_gravity", static_cast<void (T::*)(number,number)>(&T::set_gravity), "", "g_x, g_y")
+			.add_method("set_gravity", static_cast<void (T::*)(number,number,number)>(&T::set_gravity), "", "g_x, g_y, g_z")
+#ifdef UG_FOR_LUA
+			.add_method("set_gravity", static_cast<void (T::*)(const char*)>(&T::set_gravity), "", "Gravity")
+#endif
+
+			.add_method("set_molecular_diffusion", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_molecular_diffusion), "", "MolecularDiffusion")
+			.add_method("set_molecular_diffusion", static_cast<void (T::*)(number)>(&T::set_molecular_diffusion), "", "MolecularDiffusion")
+#ifdef UG_FOR_LUA
+			.add_method("set_molecular_diffusion", static_cast<void (T::*)(const char*)>(&T::set_molecular_diffusion), "", "MolecularDiffusion")
+#endif
+
+			.add_method("set_permeability", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_permeability), "", "Permeability")
+			.add_method("set_permeability", static_cast<void (T::*)(number)>(&T::set_permeability), "", "Permeability")
+#ifdef UG_FOR_LUA
+			.add_method("set_permeability", static_cast<void (T::*)(const char*)>(&T::set_permeability), "", "Permeability")
+#endif
+
+			.add_method("set_viscosity", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_viscosity), "", "Viscosity")
+			.add_method("set_viscosity", static_cast<void (T::*)(number)>(&T::set_viscosity), "", "Viscosity")
+#ifdef UG_FOR_LUA
+			.add_method("set_viscosity", static_cast<void (T::*)(const char*)>(&T::set_viscosity), "", "Viscosity")
+#endif
+
+			.add_method("set_density", &T::set_density, "", "Density")
+			.add_method("darcy_velocity", &T::darcy_velocity)
+			.add_method("brine", &T::brine)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DensityDrivenFlow", dimTag);
 	}
