@@ -71,7 +71,7 @@ namespace ug{
  * \tparam	TAlgebra	Algebra
  */
 template<typename TDomain>
-class FV1ThermohalineFlow
+class ThermohalineFlow
 	: public IDomainElemDisc<TDomain>
 {
 	private:
@@ -79,7 +79,7 @@ class FV1ThermohalineFlow
 		typedef IDomainElemDisc<TDomain> base_type;
 
 	///	own type
-		typedef FV1ThermohalineFlow<TDomain> this_type;
+		typedef ThermohalineFlow<TDomain> this_type;
 
 	public:
 	///	Domain type
@@ -93,7 +93,7 @@ class FV1ThermohalineFlow
 
 	public:
 	///	Constructor
-		FV1ThermohalineFlow(const char* functions, const char* subsets);
+		ThermohalineFlow(const char* functions, const char* subsets);
 
 	///	sets usage of consistent gravity
 		void set_consistent_gravity(bool bUse)
@@ -253,7 +253,7 @@ class FV1ThermohalineFlow
 		//	switch, which assemble functions to use.
 			if(bNonRegular)
 			{
-				UG_LOG("ERROR in 'FV1ThermohalineFlow::request_non_regular_grid':"
+				UG_LOG("ERROR in 'ThermohalineFlow::request_non_regular_grid':"
 						" Non-regular grid not implemented.\n");
 				return false;
 			}

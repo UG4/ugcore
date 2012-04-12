@@ -247,9 +247,9 @@ void Register__Domain(Registry& reg, string grp)
 
 //	Thermohaline Flow
 	{
-		typedef FV1ThermohalineFlow<TDomain> T2;
+		typedef ThermohalineFlow<TDomain> T2;
 		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("FV1ThermohalineFlow").append(dimSuffix);
+		string name = string("ThermohalineFlow").append(dimSuffix);
 		reg.add_class_<T2, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_upwind", &T2::set_upwind,
@@ -286,7 +286,7 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("get_temperature", &T2::get_temperature)
 			.add_method("brine", &T2::brine)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "FV1ThermohalineFlow", dimTag);
+		reg.add_class_to_group(name, "ThermohalineFlow", dimTag);
 	}
 
 /////////////////////////////////////////////////////////////////////////////
