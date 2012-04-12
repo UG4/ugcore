@@ -388,9 +388,9 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 	string dimSuffix = GetDomainSuffix<dim>();
 	string dimTag = GetDomainTag<dim>();
 
-//	IPData"Type"
-//	User"Type" NOTE: For better readability this class is named User"Type"
-//				     in vrl and lua. E.g. UserNumber, UserVector, ...
+//	User"Type"
+//	NOTE: For better readability this class is named User"Type"
+//	      in vrl and lua. E.g. UserNumber, UserVector, ...
 	{
 		typedef IPData<TData, dim> T;
 		string name = string("User").append(type).append(dimSuffix);
@@ -398,12 +398,14 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 		reg.add_class_to_group(name, string("User").append(type), dimTag);
 	}
 
-//	IPCondData"Type"
+//	CondUser"Type"
+//	NOTE: For better readability this class is named CondUser"Type"
+//	 	  in vrl and lua. E.g. CondUserNumber, CondUserVector, ...
 	{
 		typedef IPData<TData, dim, bool> T;
-		string name = string("IPCondData").append(type).append(dimSuffix);
+		string name = string("CondUser").append(type).append(dimSuffix);
 		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, string("IPCondData").append(type), dimTag);
+		reg.add_class_to_group(name, string("CondUser").append(type), dimTag);
 	}
 
 //	DependentIPData"Type"
