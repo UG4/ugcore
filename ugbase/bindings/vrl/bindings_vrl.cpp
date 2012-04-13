@@ -306,8 +306,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
 	} catch (ug::UGError ex) {
-		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, ex.get_msg().c_str());
+
+		ug::vrl::throwUgErrorAsJavaException(env, ex);
 	} catch (...) {
 
 		std::stringstream ss;
@@ -388,8 +388,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
 	} catch (ug::UGError ex) {
-		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-		env->ThrowNew(Exception, ex.get_msg().c_str());
+
+		ug::vrl::throwUgErrorAsJavaException(env, ex);
 	} catch (...) {
 
 		std::stringstream ss;
@@ -459,6 +459,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
 
+	} catch (ug::UGError ex) {
+
+		ug::vrl::throwUgErrorAsJavaException(env, ex);
 	} catch (...) {
 		std::stringstream ss;
 

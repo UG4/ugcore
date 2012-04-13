@@ -409,6 +409,35 @@ namespace ug {
 			return stringJ2C(env, (jstring) obj);
 		}
 
+		void throwUgErrorAsJavaException(JNIEnv *env, ug::UGError error) {
+			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+
+			std::stringstream ss;
+
+			ss << "<div><pre>\n";
+			for(size_t i = 0; i < error.num_msg(); i++) {
+
+				std::string msg = error.get_msg(i);
+
+				ss << "\n" << msg << "\n";
+
+				if (msg.size() !=0 && msg[msg.size()-1] != '\n') {
+					ss << "\n";
+				}
+
+				ss	<< ">> File:\t" << error.get_file(i) << "\n"
+					<< ">> Line:\t" << error.get_line(i) << "\n\n";
+
+				if (i < error.num_msg()-1) {
+					ss << "> Caused by:" << std::endl;
+				}
+			}
+
+			ss << "</pre></div>";
+
+			env->ThrowNew(Exception, ss.str().c_str());
+		}
+
 		jobject getClass(JNIEnv *env, jobject obj) {
 			jclass classMethodAccess = env->FindClass("java/lang/Class");
 
@@ -747,7 +776,7 @@ namespace ug {
 
 				// only used for
 				// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) 
-						uint java_value_type = paramClass2ParamType(env, value);
+				uint java_value_type = paramClass2ParamType(env, value);
 
 				// we don't allow null values
 				if (value == NULL) {

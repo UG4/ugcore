@@ -335,6 +335,14 @@ std::vector<const char*> getBaseClassNames(const ug::bridge::ClassNameNode* node
  */
 std::string getParamTypeAsString(const uint type);
 
+/**
+ * Converts the specified ug error to its equivalent Java representation
+ * and throws it as Java exception.
+ * @param env JVM environment to operate on
+ * @param error the error to convert/throw
+ */
+void throwUgErrorAsJavaException(JNIEnv *env, ug::UGError error);
+
 }// end vrl::
 }// end ug::
 
