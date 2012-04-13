@@ -10,7 +10,6 @@
 #include "compiledate.h"
 #include "build_hostname.h"
 #include "bindings_vrl.h"
-#include "vrl_user_number.h"
 
 
 

@@ -331,7 +331,7 @@ protected:
 	jdouble condData2Double(JNIEnv *env, jobject obj) const
 	{
 		// todo: cache this
-		jclass cls = env->FindClass("edu/gcsc/vrl/ug/Boundary");
+		jclass cls = env->FindClass("edu/gcsc/vrl/ug/Cond");
 		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
 		jmethodID method = env->GetMethodID(cls, "getValue", "()D");
@@ -343,10 +343,10 @@ protected:
 	jdouble condData2Boolean(JNIEnv *env, jobject obj) const
 	{
 		// todo: cache this
-		jclass cls = env->FindClass("edu/gcsc/vrl/ug/Boundary");
+		jclass cls = env->FindClass("edu/gcsc/vrl/ug/Cond");
 		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
-		jmethodID method = env->GetMethodID(cls, "getBndBool", "()Z");
+		jmethodID method = env->GetMethodID(cls, "getCondBool", "()Z");
 		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
 		return env->CallBooleanMethod(obj, method);
@@ -354,12 +354,12 @@ protected:
 
 	jobject compileCondUserDataString(JNIEnv *env, const char* s) const
 	{
-		jclass cls = env->FindClass("edu/gcsc/vrl/ug/UserDataCompiler");
+		jclass cls = env->FindClass("edu/gcsc/vrl/ug/CondUserDataCompiler");
 		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
 		jmethodID runMethod = env->GetStaticMethodID(
 				cls, "compile",
-				"(Ljava/lang/String;I)Ljava/lang/Object;");
+				"(Ljava/lang/String;)Ljava/lang/Object;");
 		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
 		return env->CallStaticObjectMethod(cls, runMethod, stringC2J(env, s));
@@ -367,7 +367,7 @@ protected:
 
 	jclass getCondUserDataClass(JNIEnv *env) const
 	{
-		jclass result = env->FindClass("edu/gcsc/vrl/ug/BoundaryUserData");
+		jclass result = env->FindClass("edu/gcsc/vrl/ug/CondUserData");
 		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
 		return result;
@@ -375,14 +375,14 @@ protected:
 
 	jmethodID getCondUserDataRunMethod(JNIEnv *env, jclass cls) const
 	{
-		std::string signature = "([D)Ledu/gcsc/vrl/ug/Boundary;";
+		std::string signature = "([D)Ledu/gcsc/vrl/ug/Cond;";
 		std::string mName = "run";
 
 		jmethodID result = env->GetMethodID(cls, mName.c_str(), signature.c_str());
 		if (!checkException(env))
 		{
 			UG_LOG("[VRL-Bindings] Error:"
-					<< " cannot find boundary-userdata method."
+					<< " cannot find cond-userdata method."
 					<< " Please check your implementation!" << std::endl);
 		}
 
@@ -419,6 +419,8 @@ public:
 	{
 		JNIEnv* env = threading::getEnv(getJavaVM());
 
+		releaseGlobalRefs();
+
 		userDataObject = compileCondUserDataString(env, expression);
 		userDataClass = getCondUserDataClass(env);
 		runMethod = getCondUserDataRunMethod(env, userDataClass);
@@ -428,7 +430,7 @@ public:
 		userDataObject = env->NewGlobalRef(userDataObject);
 		userDataClass = (jclass) env->NewGlobalRef((jobject) userDataClass);
 
-//		initialized = true;
+		initialized = true;
 	}
 
 	///	evaluates the data at a given point and time
@@ -479,13 +481,18 @@ public:
 		}
 	}
 
-	~VRLCondUserNumber() {
+	void releaseGlobalRefs()
+	{
 		// deleting thread-safe global references
-//		if (initialized) {
-//			JNIEnv* localEnv = threading::getEnv(getJavaVM());
-//			localEnv->DeleteGlobalRef(userDataObject);
-//			localEnv->DeleteGlobalRef((jobject) userDataClass);
-//		}
+		if (initialized) {
+			JNIEnv* localEnv = threading::getEnv(getJavaVM());
+			localEnv->DeleteGlobalRef(userDataObject);
+			localEnv->DeleteGlobalRef((jobject) userDataClass);
+		}
+	}
+
+	~VRLCondUserNumber() {
+		releaseGlobalRefs();
 	}
 
 private:
@@ -616,7 +623,7 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 		typedef VRLCondUserNumber<dim> T;
 		typedef IPData<number, dim, bool> TBase;
 		std::stringstream options;
-		options << "Input:|boundary-user-data|params=["<<T::params()<<"];";
+		options << "Input:|cond-user-data|params=["<<T::params()<<"];";
 		reg.add_class_<T, TBase>(T::name(), grp)
 			.add_constructor()
 			.add_method("data", &T::set_vrl_callback, "", options.str().c_str())
@@ -629,7 +636,7 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 		reg.add_class_<T3 > (T3::name(), grp)
 				.add_constructor()
 				.add_method("set", &T3::set, "", T3::dataname())
-				.add_method("print", &T3::print, "Result", "x#y");
+				.add_method("print", &T3::print, "Result", "x#y#t#si");
 	}
 }
 
