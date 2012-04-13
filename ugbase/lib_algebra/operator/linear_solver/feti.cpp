@@ -260,7 +260,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 	//	write Type
 		std::string type                  = (*mapIter).first;
 		const vector<StepConv>& vStepConv = (*mapIter).second;
-		double avgLastDef3b;
+		double avgLastDef3b = -1.0;
 
 		if (!bPrintOnlyAverages) {
 			UG_LOG("Calls of Dirichlet solver in 'LocalSchurComplement::apply' for '"<< type << "' ('avg' is average over procs):\n");
@@ -1131,7 +1131,8 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 		std::string type                  = (*mapIter).first;
 		const vector<StepConv>& vStepConv = (*mapIter).second;
 		double avgLastDefSC, avgLastDef2a, avgLastDef7;
-		int sumAvgNumIter;
+		avgLastDefSC = avgLastDef2a = avgLastDef7 = -1.0;
+		int sumAvgNumIter = -1;
 
 	//	write all calls
 	//	print results
