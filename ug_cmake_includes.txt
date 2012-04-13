@@ -14,7 +14,9 @@
 ################################################################################
 # Make sure code is only executed once.
 # (no indent here, since it affects the whole file)
-if(NOT UG_CMAKE_INCLUDES_INCLUDED)
+if(UG_CMAKE_INCLUDES_INCLUDED)
+    return()
+endif()
 set(UG_CMAKE_INCLUDES_INCLUDED on)
 
 
@@ -793,5 +795,3 @@ mark_as_advanced(CMAKE_BUILD_TYPE)
 mark_as_advanced(BUILTIN_LAPACK)
 mark_as_advanced(BUILTIN_BLAS)
 mark_as_advanced(BUILTIN_MPI)
-
-endif(NOT UG_CMAKE_INCLUDES_INCLUDED)
