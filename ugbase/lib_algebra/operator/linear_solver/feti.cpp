@@ -262,22 +262,24 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 		const vector<StepConv>& vStepConv = (*mapIter).second;
 		double avgLastDef3b;
 
-		if (bPrintOnlyAverages) {
-			UG_LOG("dps calls for '"<< type << "' (3b): ");
-		} else {
+		if (!bPrintOnlyAverages) {
 			UG_LOG("Calls of Dirichlet solver in 'LocalSchurComplement::apply' for '"<< type << "' ('avg' is average over procs):\n");
+		} else {
+			UG_LOG("dps calls for '"<< type << "' (3b): ");
 		}
 
 	//	write all calls
-	//	print num call
+	//	print num call header
 		if (!bPrintOnlyAverages) {
 			UG_LOG("Call                     :  ");
 			for(size_t i = 0; i < vStepConv.size(); ++i)
 				UG_LOG(std::setw(8) << i << " |  ");
 			UG_LOG("\n");
-
-			UG_LOG("Defect3b  (avg)          :  ");
 		}
+
+		if (!bPrintOnlyAverages) UG_LOG("Defect3b  (avg)          :  ");
+
+	//	print results
 		for(size_t i = 0; i < vStepConv.size(); ++i)
 		{
 			double tGlob, tLoc = vStepConv[i].lastDef3b;
@@ -314,9 +316,10 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 		if (bPrintOnlyAverages) {
 			UG_LOG(" avg last defect: " << std::setprecision(2) << avgLastDef3b << " in ");
 		}
-		UG_LOG("" << std::setw(3) << sumAvgNumIter << " avg steps, " 
-			      << std::fixed << (double)sumAvgNumIter/vStepConv.size() << " per FETI iteration"
-			      << std::scientific << "\n");
+		UG_LOG("" << std::setw(3) << sumAvgNumIter << " avg steps" 
+//			      << std::fixed << (double)sumAvgNumIter/vStepConv.size() << " per FETI iteration"
+//			      << std::scientific << "\n");
+			      << " in " << std::setw(3) << vStepConv.size() << " call(s)\n"); // Note: #calls should be always equal #FETI iterations - but one of them is performed before lambda-loop!
 
 		if (!bPrintOnlyAverages) UG_LOG("\n");
 	}
@@ -504,7 +507,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 		//	UG_LOG(std::setw(6) << vPrimalRootIDLUT[i]);
 		UG_LOG(std::endl);
 	} else {
-		UG_LOG(" only known by primal root proc (try '-outproc <primal root proc>')!" << std::endl);
+		UG_LOG(" only known by primal root proc (try '-outproc <primal root proc rank>')!" << std::endl);
 	}
 
 	UG_LOG("     %  -                         on this feti subdomain:  " << vSubdomPrimalRootID.size() << std::endl);
@@ -630,11 +633,12 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 			m_pFetiLayouts->vec_use_intra_sd_communication(h2);
 			h2.set_storage_type(PST_CONSISTENT);
 
+			FETI_PROFILE_BEGIN(PSMIInit_NeumannSolve_SC);
 			if(!m_spNeumannSolver->apply(h2, h1))
 			{
 				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
-						" Could not solve local Neumann problem to compute Schur"
-						" complement w.r.t. primal unknowns: "
+						" Could not solve local Neumann problem (inversion of A_I Delta,I Delta)"
+						" to compute Schur complement w.r.t. primal unknowns: "
 								 << procInFetiSD << ", " << pvTo_j << ".\n"); // TODO: info about current repetition of loop? (28102011ih)
 
 				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
@@ -642,6 +646,17 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 								" after " << m_spNeumannSolver->step() << " steps.\n");
 
 				return false;
+			}
+			FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIInit_NeumannSolve_SC)'
+
+		//	remember for statistic
+			StepConv stepConv;
+			if(!m_statType.empty())
+			{
+				stepConv.lastDefSC = m_spNeumannSolver->defect();
+				stepConv.numIterSC = m_spNeumannSolver->step();
+
+				m_mvStepConv[m_statType].push_back(stepConv);
 			}
 
 		//////////////////////////
@@ -1106,44 +1121,111 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 
 	typename map<string, vector<StepConv> >::const_iterator mapIter = m_mvStepConv.begin();
 
+	if (!bPrintOnlyAverages) {
+		UG_LOG("Calls of Neumann solver in 'PrimalSubassembledMatrixInverse::init' and 'apply_return_defect' ('avg' is average over procs):\n");
+	}
+
 	for(; mapIter != m_mvStepConv.end(); ++mapIter)
 	{
 	//	write Type
 		std::string type                  = (*mapIter).first;
 		const vector<StepConv>& vStepConv = (*mapIter).second;
-		double avgLastDef2a, avgLastDef7;
-
-		if (bPrintOnlyAverages) {
-			UG_LOG("nps calls for '"<< type << "'         (2a): ");
-		} else {
-			UG_LOG("Calls of Neumann solver in 'PrimalSubassembledMatrixInverse::apply_return_defect' for '"<< type << "' ('avg' is average over procs):\n");
-		}
+		double avgLastDefSC, avgLastDef2a, avgLastDef7;
+		int sumAvgNumIter;
 
 	//	write all calls
-	//	print num call
+	//	print results
+		if (type.compare("PSMI_init") == 0) {
+
+			if (!bPrintOnlyAverages) {
+				UG_LOG("Calls of Neumann solver in 'PrimalSubassembledMatrixInverse::init' for '"<< type << "':\n");
+			} else {
+				UG_LOG("nps calls for '"<< type << "'         (SC): ");
+			}
+
+	//	print num call header
+			if (!bPrintOnlyAverages) {
+				UG_LOG("Call                     :  ");
+				for(size_t i = 0; i < vStepConv.size(); ++i)
+					UG_LOG(std::setw(8) << i << " |  ");
+				UG_LOG("\n");
+			}
+
+			if (!bPrintOnlyAverages) UG_LOG("DefectSC  (avg)          :  ");
+
+	// (no iteration for this tag!)
+
+			double tGlob, tLoc = vStepConv[0].lastDefSC;
+			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+			tGlob /= pcl::GetNumProcesses();
+			avgLastDefSC = tGlob;
+			if (!bPrintOnlyAverages) {
+				UG_LOG(std::setprecision(2) << tGlob << " |  ");
+				UG_LOG("\n");
+
+				UG_LOG("NumIterSC (avg, max, min):");
+			}
+
+			sumAvgNumIter = 0;
+			int tGlobN, tLocN = vStepConv[0].numIterSC;
+			ProcCom.allreduce(&tLocN, &tGlobN, 1, PCL_DT_INT, PCL_RO_SUM);
+			tGlobN /= pcl::GetNumProcesses();
+
+			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlobN << ",");
+
+			sumAvgNumIter += tGlobN;
+
+			tLocN = vStepConv[0].numIterSC;
+			ProcCom.allreduce(&tLocN, &tGlobN, 1, PCL_DT_INT, PCL_RO_MAX);
+
+			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlobN << ",");
+
+			tLocN = vStepConv[0].numIterSC;
+			ProcCom.allreduce(&tLocN, &tGlobN, 1, PCL_DT_INT, PCL_RO_MIN);
+
+			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlobN << "|");
+
+			if (bPrintOnlyAverages) {
+				UG_LOG(" avg last defect: " << std::setprecision(2) << avgLastDefSC << " in ");
+			}
+			UG_LOG("" << std::setw(3) << sumAvgNumIter << " avg steps\n");
+
+		} else {
+
+		if (!bPrintOnlyAverages) {
+			UG_LOG("Calls of Neumann solver in 'PrimalSubassembledMatrixInverse::apply_return_defect' for '"<< type << "'");
+			if (type.compare("compute_d") == 0) UG_LOG(" (1x before lambda loop)");
+			if (type.compare("backsolve") == 0) UG_LOG(" (1x after  lambda loop)");
+			UG_LOG(":\n");
+		} else {
+			UG_LOG("nps calls for '"<< type << "'         (2a): ");
+		}
+
+	//	print num call header
 		if (!bPrintOnlyAverages) {
 			UG_LOG("Call                     :  ");
 			for(size_t i = 0; i < vStepConv.size(); ++i)
 				UG_LOG(std::setw(8) << i << " |  ");
 			UG_LOG("\n");
-
-			UG_LOG("Defect2a  (avg)          :  ");
 		}
+
+		if (!bPrintOnlyAverages) UG_LOG("Defect2a  (avg)          :  ");
+
+	//	print results
 		for(size_t i = 0; i < vStepConv.size(); ++i)
 		{
 			double tGlob, tLoc = vStepConv[i].lastDef2a;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
 			tGlob /= pcl::GetNumProcesses();
 			avgLastDef2a = tGlob;
-			if (!bPrintOnlyAverages)
-				UG_LOG(std::setprecision(2) << tGlob << " |  ");
+			if (!bPrintOnlyAverages) UG_LOG(std::setprecision(2) << tGlob << " |  ");
 		}
 		if (!bPrintOnlyAverages) {
 			UG_LOG("\n");
 
 			UG_LOG("NumIter2a (avg, max, min):");
 		}
-		int sumAvgNumIter = 0;
+		sumAvgNumIter = 0;
 		for(size_t i = 0; i < vStepConv.size(); ++i)
 		{
 			int tGlob, tLoc = vStepConv[i].numIter2a;
@@ -1167,15 +1249,19 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 		if (bPrintOnlyAverages) {
 			UG_LOG(" avg last defect: " << std::setprecision(2) << avgLastDef2a << " in ");
 		}
-		UG_LOG("" << std::setw(3) << sumAvgNumIter << " avg steps, " 
-			      << std::fixed << (double)sumAvgNumIter/vStepConv.size() << " per FETI iteration"
-			      << std::scientific << "\n");
-
-		if (bPrintOnlyAverages) {
-			UG_LOG("nps calls for '"<< type << "'          (7): ");
-		} else {
-			UG_LOG("Defect7   (avg)          :  ");
+		UG_LOG("" << std::setw(3) << sumAvgNumIter << " avg steps");
+		if (type.compare("apply_F  ") == 0) {
+//			UG_LOG(", " << std::fixed << (double)sumAvgNumIter/vStepConv.size()
+//				        << std::scientific << " per FETI iteration");
+			UG_LOG(" in " << std::setw(3) << vStepConv.size() << " call(s), "
+				          << std::fixed << (double)sumAvgNumIter/vStepConv.size()
+				          << std::scientific << " per FETI iteration");
 		}
+		UG_LOG("\n");
+		
+		if (bPrintOnlyAverages) UG_LOG("nps calls for '"<< type << "'          (7): ");
+
+		if (!bPrintOnlyAverages) UG_LOG("Defect7   (avg)          :  ");
 		for(size_t i = 0; i < vStepConv.size(); ++i)
 		{
 			double tGlob, tLoc = vStepConv[i].lastDef7;
@@ -1203,6 +1289,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 
 			tLoc = vStepConv[i].numIter7;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MAX);
+
 			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlob << ",");
 
 			tLoc = vStepConv[i].numIter7;
@@ -1213,10 +1300,17 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 		if (bPrintOnlyAverages) {
 			UG_LOG(" avg last defect: " << std::setprecision(2) << avgLastDef7 << " in ");
 		}
-		UG_LOG("" << std::setw(3) << sumAvgNumIter << " avg steps, " 
-			      << std::fixed << (double)sumAvgNumIter/vStepConv.size() << " per FETI iteration"
-			      << std::scientific << "\n");
-
+		UG_LOG("" << std::setw(3) << sumAvgNumIter << " avg steps");
+		if (type.compare("apply_F  ") == 0) {
+//			UG_LOG(", " << std::fixed << (double)sumAvgNumIter/vStepConv.size()
+//				        << std::scientific << " per FETI iteration");
+			UG_LOG(" in " << std::setw(3) << vStepConv.size() << " call(s), "
+				          << std::fixed << (double)sumAvgNumIter/vStepConv.size()
+				          << std::scientific << " per FETI iteration");
+		}
+		UG_LOG("\n");
+} //
+		
 		if (!bPrintOnlyAverages) UG_LOG("\n");
 	}
 } /* end 'PrimalSubassembledMatrixInverse::print_statistic_of_inner_solver()' */
@@ -1340,6 +1434,7 @@ init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 //	3.4 init PrimalSubassembledMatrixInverse (operator - given as parameter here - is also set thereby)
 	FETI_PROFILE_BEGIN(FETISolverInit_InitPrimalSubassMatInv);
 	UG_LOG("\n%   - Init 'PrimalSubassembledMatrixInverse' ...\n");
+	m_PrimalSubassembledMatrixInverse.set_statistic_type("PSMI_init");
 	if(m_PrimalSubassembledMatrixInverse.init(m_spOperator) != true)
 	{
 		UG_LOG("ERROR in FETISolver::init: Can not init Schur "
@@ -1471,7 +1566,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 // 	Precondition the start defect: apply z = M^-1 * r
 	FETI_PROFILE_BEGIN(FETISolverApply_Apply_M_inverse);
-	m_LocalSchurComplement.set_statistic_type("apply_M_inv_start");
+	m_LocalSchurComplement.set_statistic_type("apply_M_inv_iter "); // maybe set type to "apply_M_inv_start" for debugging
 	if (!apply_M_inverse(z, r)) // (calls 'm_LocalSchurComplement.apply()')
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "

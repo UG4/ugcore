@@ -780,8 +780,10 @@ class PrimalSubassembledMatrixInverse
 		{
 			int numIter2a;
 			int numIter7;
+			int numIterSC;
 			number lastDef2a;
 			number lastDef7;
+			number lastDefSC;
 		};
 
 		std::map<std::string, std::vector<StepConv> > m_mvStepConv;
