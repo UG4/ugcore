@@ -6,11 +6,11 @@ As well some tutorials targeting special features of \ug4 are available.
 - \ref pageAdditionalSoftware
 - \subpage pageUG4Shell
 - \subpage pageTutorials
-- Parallel Computing
-  - \subpage pageUG4ParallelComputing
-  - \subpage pageugsubmit
-  - \subpage pageParallelRendering
+- \subpage pageUG4ParallelUsage
+  - \ref pageUG4ParallelComputing
+  - \ref pageugsubmit
+  - \ref pageParallelRendering
 - \ug4 and \em VRL
-- ug-scripting Reference Documentation
+- <a href="http://cave1.gcsc.uni-frankfurt.de/job/ug-bridge-doc/javadoc/">ug4-Scripting Reference Documentation</a>
 
 */

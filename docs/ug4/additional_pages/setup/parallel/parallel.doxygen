@@ -2,7 +2,9 @@
 //	martin.rupp@gcsc.uni-frankfurt.de
 //	y12 m02 d29
 
-/** \page pageUG4SetupParallel Setting up ug4 on Parallel Computers / Clusters
+//todo:	More prominent note on OpenMPI for all operating systems!
+
+/** \page pageUG4SetupParallel Installation on Parallel Computers
 
 - \ref secGeneral_Notes
 - \ref secCMake

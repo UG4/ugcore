@@ -1,8 +1,4 @@
-//	created by Sebastian Reiter
-//	sreiter@gcsc.uni-frankfurt.de
-//	y12 m03 d16
-
-/** \page pageUG4OnWindows Setting up ug4 on Windows
+/** \page pageUG4OnWindows Windows Installation
 
 \ug4 supports Windows through the \em MinGW gcc-compilers.
 \em MinGW can be downloaded together with \em MSYS at 

@@ -2,13 +2,9 @@
   created
   Stephan Grein <stephan.grein@gcsc.uni-frankfurt.de>
   y12 m03 d30
-  
-  refactored
-  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
-  y12 m03 d30
 */
 
-/** \page pageUG4OnMac Setting up UG4 on Mac
+/** \page pageUG4OnMac Mac OSX Installation
 
 To install <strong>UG4</strong> on Mac OSX you need a working toolchain.
 The common way to achieve this is to download and install Xcode IDE by Apple. 

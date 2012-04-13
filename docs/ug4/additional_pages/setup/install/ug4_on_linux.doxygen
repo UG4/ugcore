@@ -2,19 +2,13 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y10 m12 d11
 
-/** \page pageInstallUG4 ug4 - Installation
+/** \page pageUG4OnLinux Linux Installation
 
 - \ref secInstallUG4CMake
 - \ref secInstallUG4UG4
 - \ref secInstallUG4Boost
 
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
-
-There are special instructions available for \em Windows, \em MacOSX and 
-<em>parallel and high performance computers</em>:
-- \subpage pageUG4OnWindows
-- \subpage pageUG4OnMac
-- \subpage pageUG4SetupParallel
 
 <hr>
 \section secInstallUG4CMake CMake

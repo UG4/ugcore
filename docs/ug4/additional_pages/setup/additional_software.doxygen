@@ -2,7 +2,7 @@
 //	ingo.heppner@gcsc.uni-frankfurt.de
 //	y12 m03 d05
 
-/** \page pageAdditionalSoftware Additional Software That Might be Useful
+/** \page pageAdditionalSoftware Prerequisites and Recommendend Tools
 
 - \ref secInstallCMake
 - \ref secInstallBoost

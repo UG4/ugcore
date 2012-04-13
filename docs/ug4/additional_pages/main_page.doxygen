@@ -28,39 +28,40 @@ environment
 	- Background
 	
 - \subpage pageUG4Setup
-	- \ref pageAdditionalSoftware	"Prerequisites and recommendend tools"
-	- Downloads and sources
-	- Setting up ug4 on
-		- \ref pageInstallUG4		"linux"
-		- \ref pageUG4OnMac			"mac-osx"
-		- \ref pageUG4OnWindows		"windows"
-		- \ref pageUG4SetupParallel	"parallel clusters"
+	- \ref pageAdditionalSoftware
+	- \ref pageUG4Install
+		- \ref pageUG4OnLinux
+		- \ref pageUG4OnMac
+		- \ref pageUG4OnWindows
+		- \ref pageUG4SetupParallel
+	- \ref pageUG4SSH
 	- ug4 for vrl
 
 - \subpage pageUG4Usage
-	- \ref pageAdditionalSoftware	"Tools"
-	- \ref pageUG4Shell				"ugshell"
-	- \ref pageTutorials			"Tutorials"
-	- Parallel computing
-		- \ref pageUG4ParallelComputing	"General information"
-		- \ref pageugsubmit				"Submitting jobs"
-		- \ref pageParallelRendering	"Parallel rendering"
-	- ug and vrl
-	- ug-scripting reference documentation
+	- \ref pageAdditionalSoftware
+	- \ref pageUG4Shell
+	- \ref pageTutorials
+	- \ref pageUG4ParallelUsage
+		- \ref pageUG4ParallelComputing
+		- \ref pageugsubmit
+		- \ref pageParallelRendering
+	- ug4 and vrl
+	- <a href="http://cave1.gcsc.uni-frankfurt.de/job/ug-bridge-doc/javadoc/">ug4-Scripting Reference Documentation</a>
 
 - \subpage pageUG4Development
 	- Central modules of ugbase
-		- \ref pageLAOverview 		"lib_algebra"
-		- \ref pageLDIntroduction	"lib_disc"
-		- \ref pageLGIntroduction	"lib_grid"
-		- \ref pageUG4Registry		"registry"
+		- \ref pageLAOverview
+		- \ref pageLDIntroduction
+		- \ref pageLGIntroduction
+		- \ref pageUG4Registry
 	- Plugins
-	- \ref pageUnitTests "Unit tests"
+	- \ref pageUnitTests
 	- \ref pageUG4DevTipsGuides
-		- \ref pageInstallEclipse 		"ug4 development with the Eclipse IDE"
-		- \ref pageUG4CodingStyle 		"Coding and Documentation Style"
-		- \ref pageTeamCommunication 	"Team Communication"
-    - further tips on simplifying development
+		- \ref pageInstallEclipse
+		- \ref pageUG4CodingStyle
+		- \ref pageTeamCommunication
+		- \ref pageUG4DoxygenQuickref
+		- \ref pageUsingGit
 
 - Copyrights and Licenses
 	- \subpage pageCopyrights
