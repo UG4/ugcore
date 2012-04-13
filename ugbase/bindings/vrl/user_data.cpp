@@ -48,7 +48,7 @@ struct vrl_traits<number>
 		ss << "<font color=\"red\">VRLUserNumber: invokation error:</font>";
 		return ss.str();
 	}
-	static std::string callSignature() {return "([D)D";}
+	static std::string callSignature() {return "([DI)D";}
 
 	static void toJava(JNIEnv *env, jdouble& res, const number& x)
 	{
@@ -61,9 +61,10 @@ struct vrl_traits<number>
 	}
 
 	static void call(JNIEnv *env, number& res,
-	                 jobject obj, jmethodID method, jdoubleArray params)
+	                 jobject obj, jmethodID method,
+	                 jdoubleArray params, jint si)
 	{
-		res = env->CallDoubleMethod(obj, method, params);
+		res = env->CallDoubleMethod(obj, method, params, si);
 		if (checkException(env, errMsg())) {}
 	}
 };
@@ -81,7 +82,7 @@ struct vrl_traits<ug::MathVector<dim> >
 		ss << "<font color=\"red\">VRLUserVector"<<dim<<"d: invokation error:</font>";
 		return ss.str();
 	}
-	static std::string callSignature() {return "([D)[D";}
+	static std::string callSignature() {return "([DI)[D";}
 
 	static void toJava(JNIEnv *env, jdoubleArray& res, const MathVector<dim>& x)
 	{
@@ -104,10 +105,11 @@ struct vrl_traits<ug::MathVector<dim> >
 	}
 
 	static void call(JNIEnv *env, MathVector<dim>& res,
-	                 jobject obj, jmethodID method, jdoubleArray params)
+	                 jobject obj, jmethodID method,
+	                 jdoubleArray params, jint si)
 	{
 		jdoubleArray tmp =
-				(jdoubleArray) env->CallObjectMethod(obj, method, params);
+				(jdoubleArray) env->CallObjectMethod(obj, method, params, si);
 
 		if(checkException(env, errMsg()))
 		{
@@ -129,7 +131,7 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 		ss << "<font color=\"red\">VRLUserMatrix"<<dim<<"d: invokation error:</font>";
 		return ss.str();
 	}
-	static std::string callSignature() {return "([D)[[D";}
+	static std::string callSignature() {return "([DI)[[D";}
 
 	static void toJava(JNIEnv *env, jobjectArray& res, const MathMatrix<dim,dim>& x)
 	{
@@ -164,10 +166,11 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 	}
 
 	static void call(JNIEnv *env, MathMatrix<dim,dim>& res,
-	                 jobject obj, jmethodID method, jdoubleArray params)
+	                 jobject obj, jmethodID method,
+	                 jdoubleArray params, jint si)
 	{
 		jobjectArray tmp =
-				(jobjectArray) env->CallObjectMethod(obj, method, params);
+				(jobjectArray) env->CallObjectMethod(obj, method, params, si);
 
 		if(checkException(env, errMsg()))
 		{
@@ -229,11 +232,13 @@ class VRLUserData : public IPData<TData, dim>
 
 		static std::string params()
 		{
+			// DO NOT USE underscore for param names (i.e. NO "_x" !!!)
 			std::stringstream params;
 			if(dim >= 1) params <<  "\"" << "x" << "\"";
 			if(dim >= 2) params << ",\"" << "y" << "\"";
 			if(dim >= 3) params << ",\"" << "z" << "\"";
 						 params << ",\"" << "t" << "\"";
+						 params << ",\"" << "si" << "\"";
 			return params.str();
 		}
 
@@ -271,9 +276,11 @@ class VRLUserData : public IPData<TData, dim>
 
 			// convert parameters
 			jdoubleArray params = ConvertParametersToJava(env, x, time);
+			jint jsi = si;
 
 			if (runMethod != NULL)
-				vrl_traits<TData>::call(env, c, userDataObject, runMethod, params);
+				vrl_traits<TData>::call(env, c, userDataObject, runMethod,
+				                        params, jsi);
 		}
 
 		void releaseGlobalRefs()
@@ -375,7 +382,7 @@ protected:
 
 	jmethodID getCondUserDataRunMethod(JNIEnv *env, jclass cls) const
 	{
-		std::string signature = "([D)Ledu/gcsc/vrl/ug/Cond;";
+		std::string signature = "([DI)Ledu/gcsc/vrl/ug/Cond;";
 		std::string mName = "run";
 
 		jmethodID result = env->GetMethodID(cls, mName.c_str(), signature.c_str());
@@ -392,11 +399,13 @@ protected:
 public:
 	static std::string params()
 	{
+		// DO NOT USE underscore for param names (i.e. NO "_x" !!!)
 		std::stringstream params;
 		if(dim >= 1) params <<  "\"" << "x" << "\"";
 		if(dim >= 2) params << ",\"" << "y" << "\"";
 		if(dim >= 3) params << ",\"" << "z" << "\"";
 					 params << ",\"" << "t" << "\"";
+					 params << ",\"" << "si" << "\"";
 		return params.str();
 	}
 
@@ -440,6 +449,7 @@ public:
 
 		// convert parameters
 		jdoubleArray params = ConvertParametersToJava(env, x, time);
+		jint jsi = si;
 
 		bool result = false;
 		if (runMethod != NULL)
@@ -447,7 +457,7 @@ public:
 			jobject bndResult = (jdoubleArray) env->CallObjectMethod(
 					userDataObject,
 					runMethod,
-					params);
+					params, jsi);
 
 			if (checkException(env, invocationErrorMsg)) {
 				result = condData2Boolean(env, bndResult);
@@ -469,9 +479,9 @@ public:
 	using base_type::value;
 
 
-	// \todo: should remember flag
 	virtual void compute(bool computeDeriv = false)
 	{
+		// \todo: should remember flag
 		for (size_t s = 0; s < num_series(); ++s)
 		{
 			for (size_t i = 0; i < num_ip(s); ++i)
@@ -570,7 +580,10 @@ public:
 		}
 
 		std::stringstream stream;
-		stream << "[" << bndResult << "," << ret << "]";
+		stream << "[";
+		if(bndResult) stream << "true";
+		else stream << "false";
+		stream << ", " << ret << "]";
 		return stream.str();
 	}
 
