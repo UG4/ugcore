@@ -149,6 +149,7 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 			jdoubleArray row = (jdoubleArray)env->GetObjectArrayElement(array, i);
 
 			const int colSize = env->GetArrayLength(row);
+			if(colSize != dim)
 				UG_THROW_FATAL(RED_BEGIN << "VRLUserMatrix: wrong column size! Required:"
 							   <<dim<<", returned: "<<colSize<<COLOR_END << std::endl);
 
