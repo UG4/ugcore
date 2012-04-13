@@ -490,7 +490,7 @@ function SetupFETISolver(str_problem,
 	neumannConvCheck:set_maximum_steps(npsMaxIterations)
 	neumannConvCheck:set_minimum_defect(npsAbsLimit)
 	neumannConvCheck:set_reduction(npsReduction)
-	neumannConvCheck:set_verbose(false)
+	neumannConvCheck:set_verbose(true)
 	
 	neumannSolver:set_convergence_check(neumannConvCheck)
 	
