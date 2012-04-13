@@ -2,7 +2,7 @@
 //	created by Sebastian Reiter y07 m12 d5
 //	s.b.reiter@googlemail.com
 
-#include <iostream>
+//#include <iostream>
 #include "traverser_intersect_faces.h"
 #include "../node_tree.h"
 #include "common/log.h"
@@ -78,7 +78,7 @@ handle_collision_triangles(CollisionTrianglesNode* colTrisNode)
 										pPoints[indices[i+2]]))
 		{
 		//	check whether the element is in the ignore list
-			CollisionElementID id = colTrisNode->get_triangle_id(i/3);
+			const CollisionElementID& id = colTrisNode->get_triangle_id(i/3);
 			if(find(m_ignoreList.begin(), m_ignoreList.end(), id) == m_ignoreList.end()){
 				m_intersectedElementIDs.push_back(id);
 			}
