@@ -6,9 +6,12 @@
 
 /** \page pageUG4OnMac Mac OSX Installation
 
-To install <strong>UG4</strong> on Mac OSX you need a working toolchain.
-The common way to achieve this is to download and install Xcode IDE by Apple. 
-You require an Apple (developer) ID, which can be obtained on apple.com freely. 
+Installation on Mac OSX is very similar to the linux installation detailed here:
+\ref pageUG4OnLinux.
+
+However, one first has to install a working toolchain.
+The common way to achieve a C++ compiler is to download and install Xcode IDE by Apple.
+You require an Apple (developer) ID, which can be obtained on apple.com freely.
 
 Alternatively, if you do not want to use the Xcode IDE, you can use the following
 package: <em>OSX GCC Installer</em>. This bundle provides: 

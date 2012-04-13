@@ -5,7 +5,7 @@
 http://www.mingw.org/wiki/MSYS .
 \em MSYS is a 'minimal shell', which mimics some of the features of unix shells.
 You should install \em MSYS and \em MinGW to a rather simple path which does 
-not contain spaces or special characters (e.g. <tt>C:\\msys</tt>).
+not contain spaces or special characters (e.g. <tt>C:\MinGW</tt>).
 
 Compilation of \ug4 furthermore requires the installation of \em CMake, which 
 can be obtained from here http://www.cmake.org/cmake/resources/software.html
@@ -41,7 +41,7 @@ If you chose \em Eclipse, then please follow the tutorial given in
 \ref pageInstallEclipse to set up \em Eclipse and how to checkout \ug4.
 
 Compilation and \em CMake calls are very similar to unix and to the description 
-given in \ref pageInstallUG4.
+given in \ref pageUG4OnLinux.
 However one important thing to note is, that one has to explicitly specifiy the 
 compiler, which shall be used by \em CMake.
 A call to \em CMake thus should start as follows:
