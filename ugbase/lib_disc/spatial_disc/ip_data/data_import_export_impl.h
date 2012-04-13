@@ -364,15 +364,15 @@ comp(const LocalVector& u, bool bDeriv)
 //	cast if for evaluation using base class
 	ElemDiscFunc elemDiscfunc = static_cast<ElemDiscFunc>(func);
 
+	std::vector<std::vector<TData> >* vvvDeriv = NULL;
+
 //	evaluate for each ip series
 	for(size_t s = 0; s < this->num_series(); ++s)
 	{
-		UG_ASSERT(this->m_vvvvDeriv[s].size() == this->num_ip(s),
-		          "Deriv Array not resized: size:"<<this->m_vvvvDeriv[s].size()
-		          << ", but num_ip: "<<this->num_ip(s));
-
-		// skip zero size ips
-		if(this->num_ip(s) == 0) continue;
+		if(bDeriv && this->m_vvvvDeriv[s].size() > 0)
+			vvvDeriv = &this->m_vvvvDeriv[s][0];
+		else
+			vvvDeriv = NULL;
 
 		(m_pObj->*(elemDiscfunc))
 				(u,
@@ -381,7 +381,7 @@ comp(const LocalVector& u, bool bDeriv)
 				 this->num_ip(s),
 				 this->values(s),
 				 bDeriv,
-				 &this->m_vvvvDeriv[s][0]);
+				 vvvDeriv);
 	}
 }
 
