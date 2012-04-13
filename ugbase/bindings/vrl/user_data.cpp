@@ -164,7 +164,7 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 //			env->ReleaseDoubleArrayElements(row, rowEntrys, 0);
 		}
 
-		UG_LOG("Matrix toC: read matrix: "<<mat<<"\n");
+		UG_LOG("Matrix toC: read matrix: "<<mat<<" end toC\n");
 
 	}
 
@@ -280,7 +280,7 @@ class VRLUserData : public IPData<TData, dim>
 			if (runMethod != NULL)
 				vrl_traits<TData>::call(env, c, userDataObject, runMethod, params);
 
-			UG_LOG("data is: "<<c<<"\n");
+			UG_LOG("data is: "<<c<<" end data\n");
 		}
 
 		void releaseGlobalRefs()
