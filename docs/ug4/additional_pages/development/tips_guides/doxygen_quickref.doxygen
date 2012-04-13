@@ -41,8 +41,6 @@ When ever a \em paragraph command is used (e.g. <tt>note</tt>), which does
 not define a start and end command (as <tt>verbatim</tt>/<tt>endverbatim</tt>),
 the paragraph ends at the next paragraph command or empty line.
 
-
-<hr>
 \subsection secDoxygenOwnCommands Custom Commands for ug4
 To ease the "correct" writing of this software we are documenting &mdash; \ug4
 &mdash; a custom command (alias) has been defined:
@@ -68,8 +66,6 @@ The usual formatting is available.
   - for several words (inline): <tt>&lt;tt&gt;several words&lt;/tt&gt;</tt>
   - for blocks of code see \ref secDoxygenParagraphs.
 
-
-<hr>
 \subsection secDoxygenLinks Links and References
 In case of function and class names, \em Doxygen is smart and will automatically
 create a link to the documentation of a function or class whenever it is
@@ -93,8 +89,6 @@ Targets accessible by the <tt>\\ref</tt> command are either defined pages
 anchors (<tt>\\anchor target</tt>) somewhere in documents within the include 
 path of \em Doxygen.
 
-
-<hr>
 \subsection secDoxygenParagraphs Special Paragraphs
 There are some special paragraphs available, which do not only look nice but
 come sometimes rather handy.
@@ -148,8 +142,6 @@ Especially for displaying source code the following are usefull:
   </li>
 </ul>
 
-
-<hr>
 \subsection secDoxygenLists Lists
 There are two options: One pure and one lazy with a little remark.
 <ul>
@@ -192,8 +184,6 @@ To define author and date of creation, the commands <tt>\\author</tt> and
 <tt>\\date</tt> are available.
 The first can be used several times.
 
-
-<hr>
 \subsection secDoxygenParameters Parameters, Return Values and Exceptions
 <ul>
   <li><tt>\\brief text</tt><br>
@@ -219,8 +209,6 @@ The first can be used several times.
   </li>
 </ul>
 
-
-<hr>
 \subsection secDoxygenGrouping Grouping Namespaces, Classes and Members
 Everything except of pages can be grouped into \em Modules showing up in a
 separate group in the documentation.
