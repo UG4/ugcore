@@ -9,484 +9,451 @@
 #include <iostream>
 #include <sstream>
 #include <boost/function.hpp>
+#include <jni.h>
 #include "lib_disc/spatial_disc/ip_data/ip_data.h"
-
-//#include "const_user_data.h"
 
 namespace ug {
 namespace vrl {
 
-/// Groovy/Java Converter to read/write data from/to JVM
-//template <std::size_t dim>
-//struct VectorConverter;
+template <std::size_t dim>
+inline jdoubleArray ConvertParametersToJava(JNIEnv *env, const MathVector<dim>& x,
+                                            const number time)
+{
+	jdoubleArray array = NULL;
+	array = env->NewDoubleArray(dim+1);
 
-//template <>
-//struct vrl_traits<number> {
-//
-//	static void write(JNIEnv *env, jdouble& d, const number c) {
-//		d = c;
-//	}
-//
-//	static void read(JNIEnv *env, jdouble d, number & c) {
-//		c = d;
-//	}
-//
-//	static const int size = 1;
-//};
+	jdouble vTmp[dim + 1];
+	for (size_t i = 0; i < dim; i++) vTmp[i] = x[i];
+	vTmp[dim] = time;
 
+	env->SetDoubleArrayRegion(array, 0, dim+1, vTmp);
+	checkException(env, "CopyParametersToJava: error");
 
-//template <std::size_t dim>
-//struct vrl_traits< MathMatrix<dim, dim> > {
-//
-//	static void write(lua_State* L, const MathMatrix<dim, dim>& D) {
-//		for (size_t i = 0; i < dim; ++i) {
-//			for (size_t j = 0; j < dim; ++j) {
-//				lua_pushnumber(L, D[i][j]);
-//			}
-//		}
-//
-//	}
-//
-//	static void read(lua_State* L, MathMatrix<dim, dim>& D) {
-//		int counter = -1;
-//		for (size_t i = 0; i < dim; ++i) {
-//			for (size_t j = 0; j < dim; ++j) {
-//				D[dim - 1 - j][dim - 1 - i] = luaL_checknumber(L, counter--);
-//			}
-//		}
-//	}
-//
-//	static const int size = dim*dim;
-//};
+	return array;
+}
+
+template <typename TData>
+struct vrl_traits;
+
+template <>
+struct vrl_traits<number>
+{
+	typedef jdouble jType;
+	static const unsigned int retArrayDim = 0;
+	static const int size = 1;
+	static std::string name() {return "Number";}
+	static std::string errMsg()
+	{
+		std::stringstream ss;
+		ss << "<font color=\"red\">VRLUserNumber: invokation error:</font>";
+		return ss.str();
+	}
+	static std::string callSignature() {return "([D)D";}
+
+	static void toJava(JNIEnv *env, jdouble& res, const number& x)
+	{
+		res = x;
+	}
+
+	static void toC(JNIEnv *env, number& res, jdouble& from)
+	{
+		res = from;
+	}
+
+	static void call(JNIEnv *env, number& res,
+	                 jobject obj, jmethodID method, jdoubleArray params)
+	{
+		res = env->CallDoubleMethod(obj, method, params);
+		if (checkException(env, errMsg())) {}
+	}
+};
 
 template <std::size_t dim>
-struct VectorConverter {
-
-	static jdoubleArray toJava(JNIEnv *env,
-			const MathVector<dim>& x, const number time) {
-		jdoubleArray result = NULL;
-		result = env->NewDoubleArray(dim + 1);
-		number elements[dim + 1];
-		//		jdouble *elements = env->GetDoubleArrayElements(result, NULL);
-		for (size_t i = 0; i < dim; i++) {
-			elements[i] = x[i];
-		}
-		elements[dim] = time;
-
-		//		env->ReleaseDoubleArrayElements(result, elements, 0);
-		env->SetDoubleArrayRegion(result, 0, dim + 1, elements);
-		return result;
-	}
-
-	static jdoubleArray toJava(JNIEnv *env,
-			const MathVector<dim>& x) {
-		jdoubleArray result = NULL;
-		result = env->NewDoubleArray(dim);
-		number elements[dim + 1];
-		//		jdouble *elements = env->GetDoubleArrayElements(result, NULL);
-		for (size_t i = 0; i < dim; i++) {
-			elements[i] = x[i];
-		}
-
-		//		env->ReleaseDoubleArrayElements(result, elements, 0);
-		env->SetDoubleArrayRegion(result, 0, dim, elements);
-		return result;
-	}
-
-	static void toC(JNIEnv *env, jdoubleArray& array, MathVector<dim>& x) {
-		jdouble elements[dim];
-		env->GetDoubleArrayRegion(array, 0, dim, elements);
-
-		jint arrayLength = env->GetArrayLength(array);
-
-		if (arrayLength != dim) {
-			UG_LOG(RED_BEGIN << "VRLUserData: dimensions do not match! Required: "
-					<< dim << ", returned: " << arrayLength << COLOR_END << std::endl);
-		}
-
-		for (size_t i = 0; i < dim; ++i) {
-			x[i] = elements[i];
-		}
-	}
-
+struct vrl_traits<ug::MathVector<dim> >
+{
+	typedef jdoubleArray jType;
+	static const unsigned int retArrayDim = 1;
 	static const int size = dim;
+	static std::string name() {return "Vector";}
+	static std::string errMsg()
+	{
+		std::stringstream ss;
+		ss << "<font color=\"red\">VRLUserVector"<<dim<<"d: invokation error:</font>";
+		return ss.str();
+	}
+	static std::string callSignature() {return "([D)[D";}
+
+	static void toJava(JNIEnv *env, jdoubleArray& res, const MathVector<dim>& x)
+	{
+		jdouble vTmp[size];
+		for (jint i = 0; i < dim; i++) vTmp[i] = x[i];
+		env->SetDoubleArrayRegion(res, 0, size, vTmp);
+	}
+
+	static void toC(JNIEnv *env, MathVector<dim>& res, jdoubleArray& array)
+	{
+		jint arrayLength = env->GetArrayLength(array);
+		if (arrayLength != size)
+			UG_THROW_FATAL(RED_BEGIN << "VRLUserVector: dimensions do not match! "
+			               "Required: "<<size<<", returned: " << arrayLength <<
+			               COLOR_END << std::endl);
+
+		jdouble vTmp[size];
+		env->GetDoubleArrayRegion(array, 0, size, vTmp);
+		for (jint i = 0; i < (jint)dim; ++i) res[i] = vTmp[i];
+	}
+
+	static void call(JNIEnv *env, MathVector<dim>& res,
+	                 jobject obj, jmethodID method, jdoubleArray params)
+	{
+		jdoubleArray tmp =
+				(jdoubleArray) env->CallObjectMethod(obj, method, params);
+
+		if(checkException(env, errMsg()))
+		{
+			toC(env, res, tmp);
+		}
+	}
 };
 
-jdouble boundaryReturnData2Double(JNIEnv *env, jobject obj) {
-	jdouble result = 0;
+template <std::size_t dim>
+struct vrl_traits<ug::MathMatrix<dim,dim> >
+{
+	typedef jobjectArray jType;
+	static const unsigned int retArrayDim = 2;
+	static const int size = dim*dim;
+	static std::string name() {return "Matrix";}
+	static std::string errMsg()
+	{
+		std::stringstream ss;
+		ss << "<font color=\"red\">VRLUserMatrix"<<dim<<"d: invokation error:</font>";
+		return ss.str();
+	}
+	static std::string callSignature() {return "([D)[[D";}
 
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Boundary");
-
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
+	static void toJava(JNIEnv *env, jobjectArray& res, const MathMatrix<dim,dim>& x)
+	{
+		UG_THROW_FATAL("Not implemented.");
 	}
 
-	jmethodID method = env->GetMethodID(cls, "getValue", "()D");
+	static void toC(JNIEnv *env, MathMatrix<dim,dim>& mat, jobjectArray& myArray)
+	{
+		const int rowSize = env->GetArrayLength(myArray);
+		if(rowSize != dim)
+			UG_THROW_FATAL(RED_BEGIN << "VRLUserMatrix: wrong row size! Required:"
+			               <<dim<<", returned: "<<rowSize<<COLOR_END << std::endl);
 
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
+		jdouble rowEntrys[dim];
+
+		for(int i=0; i < (int)dim; ++i){
+			jdoubleArray row = (jdoubleArray)env->GetObjectArrayElement(myArray, i);
+
+			const int colSize = env->GetArrayLength(row);
+				UG_THROW_FATAL(RED_BEGIN << "VRLUserMatrix: wrong column size! Required:"
+							   <<dim<<", returned: "<<colSize<<COLOR_END << std::endl);
+
+			env->GetDoubleArrayRegion(array, 0, dim, rowEntrys);
+			for(int j=0; j < (int)dim; ++j)
+				mat[i][j]= rowEntrys[j];
+
+			// alternative is to force garbageCollector to "pin" or copy internally
+//			jdouble* rowEntrys = env->GetDoubleArrayElements(row, 0);
+//			env->ReleaseDoubleArrayElements(row, rowEntrys, 0);
+		}
 	}
 
-	result = env->CallDoubleMethod(obj, method);
+	static void call(JNIEnv *env, MathMatrix<dim,dim>& res,
+	                 jobject obj, jmethodID method, jdoubleArray params)
+	{
+		jobjectArray tmp =
+				(jobjectArray) env->CallObjectMethod(obj, method, params);
 
-	return result;
-}
-
-jdouble boundaryReturnData2Boolean(JNIEnv *env, jobject obj) {
-	jdouble result = 0;
-
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug/Boundary");
-
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
+		if(checkException(env, errMsg()))
+		{
+			toC(env, res, tmp);
+		}
 	}
 
-	jmethodID method = env->GetMethodID(cls, "getBndBool", "()Z");
+};
 
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
-	}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-	result = env->CallBooleanMethod(obj, method);
 
-	return result;
-}
+template <typename TData, int dim>
+class VRLUserData : public IPData<TData, dim>
+{
+	protected:
+		static jobject compileUserDataString(JNIEnv *env, const char* s)
+		{
+			jclass cls = env->FindClass("edu/gcsc/vrl/ug/UserDataCompiler");
+			if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
-jobject compileUserDataString(JNIEnv *env, const char* s, unsigned int returnValueDim) {
-	jclass cls = env->FindClass(
-			"edu/gcsc/vrl/ug/UserDataCompiler");
+			jmethodID runMethod = env->GetStaticMethodID(
+					cls, "compile",
+					"(Ljava/lang/String;I)Ljava/lang/Object;");
+			if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
-	}
+			return env->CallStaticObjectMethod(cls, runMethod, stringC2J(env, s),
+			                                   retArrayDim);
+		}
 
-	jmethodID runMethod = env->GetStaticMethodID(
-			cls, "compile",
-			"(Ljava/lang/String;I)Ljava/lang/Object;");
+		static jclass getUserDataClass(JNIEnv *env)
+		{
+			jclass result = env->FindClass("edu/gcsc/vrl/ug/UserData");
+			if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
-	}
+			return result;
+		}
 
-	return env->CallStaticObjectMethod(cls, runMethod, stringC2J(env, s),
-			returnValueDim);
-}
+		static jmethodID getUserDataRunMethod(JNIEnv *env, jclass cls)
+		{
+			std::string signature = vrl_traits<TData>::callSignature();
+			std::stringstream mName; mName << "run" << retArrayDim;
+			jmethodID result = env->GetMethodID(cls, mName.str().c_str(), signature.c_str());
 
-jclass getUserDataClass(JNIEnv *env) {
-	jclass result = env->FindClass(
-			"edu/gcsc/vrl/ug/UserData");
+			if (!checkException(env))
+			{
+				UG_LOG("[VRL-Bindings] "<<name()<<" Error:"
+						<< " cannot find userdata method."
+						<< " Please check your implementation!" << std::endl);
+			}
+			return result;
+		}
 
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
-	}
+	public:
+		static const unsigned int retArrayDim = vrl_traits<TData>::retArrayDim;
 
-	return result;
-}
+		VRLUserData() : initialized(false) {}
 
-jmethodID getUserDataRunMethod(JNIEnv *env, jclass cls, int dim, const char* signature) {
+		static std::string params()
+		{
+			std::stringstream params;
+			if(dim >= 1) params <<  "\"" << "x" << "\"";
+			if(dim >= 2) params << ",\"" << "y" << "\"";
+			if(dim >= 3) params << ",\"" << "z" << "\"";
+						 params << ",\"" << "t" << "\"";
+			return params.str();
+		}
 
-	std::stringstream mName;
+		static std::string name()
+		{
+			std::stringstream ss;
+			ss << "VRLUser"<<vrl_traits<TData>::name() << dim << "d";
+			return ss.str();
+		}
 
-	mName << "run" << dim;
+		void set_vrl_callback(const char* expression)
+		{
+			JNIEnv* env = threading::getEnv(getJavaVM());
 
-	jmethodID result = env->GetMethodID(cls, mName.str().c_str(), signature);
+			userDataObject = compileUserDataString(env, expression);
+			userDataClass = getUserDataClass(env);
+			runMethod = getUserDataRunMethod(env, userDataClass);
 
-	if (!checkException(env)) {
+			checkException(env, name().append(": Cannot setup evaluation class or method."));
 
-		UG_LOG("[VRL-Bindings] Error:"
-				<< " cannot find userdata method."
-				<< " Please check your implementation!" << std::endl);
-	}
-	return result;
-}
+			// create thread-safe references
+			// (GC won't deallocate them until manual deletion request)
+			releaseGlobalRefs();
+			userDataObject = env->NewGlobalRef(userDataObject);
+			userDataClass = (jclass) env->NewGlobalRef((jobject) userDataClass);
+			checkException(env, name().append(": Global Reference Error."));
+			initialized = true;
+		}
 
-jobject compileBoundaryUserDataString(JNIEnv *env, const char* s) {
-	jclass cls = env->FindClass(
-			"edu/gcsc/vrl/ug/UserDataCompiler");
+		///	evaluates the data at a given point and time
+		void operator() (TData& c, const MathVector<dim>& x, number time, int si) const
+		{
+			JNIEnv* env = threading::getEnv(getJavaVM());
 
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
-	}
+			// convert parameters
+			jdoubleArray params = ConvertParametersToJava(env, x, time);
 
-	jmethodID runMethod = env->GetStaticMethodID(
-			cls, "compile",
-			"(Ljava/lang/String;I)Ljava/lang/Object;");
+			if (runMethod != NULL)
+				vrl_traits<TData>::call(env, c, userDataObject, runMethod, params);
+		}
 
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
-	}
+		void releaseGlobalRefs()
+		{
+			// deleting thread-safe global references
+			if (initialized) {
+				JNIEnv* localEnv = threading::getEnv(getJavaVM());
+				localEnv->DeleteGlobalRef(userDataObject);
+				localEnv->DeleteGlobalRef((jobject) userDataClass);
+			}
+		}
 
-	return env->CallStaticObjectMethod(cls, runMethod, stringC2J(env, s));
-}
+		~VRLUserData()
+		{
+			releaseGlobalRefs();
+		}
 
-jclass getBoundaryUserDataClass(JNIEnv *env) {
-	jclass result = env->FindClass(
-			"edu/gcsc/vrl/ug/BoundaryUserData");
+	protected:
+		/// Base class type
+		typedef IPData<TData, dim> base_type;
 
-	if (env->ExceptionCheck()) {
-		env->ExceptionDescribe();
-	}
+		using base_type::num_series;
+		using base_type::num_ip;
+		using base_type::ip;
+		using base_type::time;
+		using base_type::subset;
+		using base_type::value;
 
-	return result;
-}
+		///	implement as a IPData
+		virtual void compute(bool computeDeriv = false)
+		{
+			for (size_t s = 0; s < num_series(); ++s)
+			{
+				for (size_t i = 0; i < num_ip(s); ++i)
+				{
+					this->operator()(value(s, i), ip(s, i), time(), subset());
+				}
+			}
+		}
 
-jmethodID getBoundaryUserDataRunMethod(JNIEnv *env, jclass cls) {
+	private:
+		bool initialized;
+		jobject userDataObject;
+		jclass userDataClass;
+		jmethodID runMethod;
+};
 
-	std::string signature =
-			"([D)Ledu/gcsc/vrl/ug/Boundary;";
-
-	std::stringstream mName;
-
-	mName << "run";
-
-	jmethodID result = env->GetMethodID(
-			cls, mName.str().c_str(), signature.c_str());
-
-	if (!checkException(env)) {
-
-		UG_LOG("[VRL-Bindings] Error:"
-				<< " cannot find boundary-userdata method."
-				<< " Please check your implementation!" << std::endl);
-	}
-	return result;
-}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 template <int dim>
-class VRLUserNumber
-	: public IPData<number, dim>
+class VRLCondUserNumber : public IPData<number, dim, bool>
 {
-public:
-///	Base class type
-	typedef IPData<number, dim> base_type;
+protected:
+	jdouble condData2Double(JNIEnv *env, jobject obj) const
+	{
+		// todo: cache this
+		jclass cls = env->FindClass("edu/gcsc/vrl/ug/Boundary");
+		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
-	using base_type::num_series;
-	using base_type::num_ip;
-	using base_type::ip;
-	using base_type::time;
-	using base_type::subset;
-	using base_type::value;
+		jmethodID method = env->GetMethodID(cls, "getValue", "()D");
+		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
-public:
-
-	VRLUserNumber() {
-		javaVM = getJavaVM();
-		expression = "";
-		returnValueDim = 0;
-
-		std::stringstream stream;
-		stream << "<font color=\"red\">VRLUserNumber"
-				<< dim << "D: invokation error:</font>";
-		invocationErrorMsg = stream.str();
-		initialized = false;
+		return env->CallDoubleMethod(obj, method);
 	}
 
-	void set_vrl_callback(const char* expression) {
-		this->expression = expression;
+	jdouble condData2Boolean(JNIEnv *env, jobject obj) const
+	{
+		// todo: cache this
+		jclass cls = env->FindClass("edu/gcsc/vrl/ug/Boundary");
+		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
-		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-                
-		userDataObject = compileUserDataString(localEnv, expression, returnValueDim);
-		userDataClass = getUserDataClass(localEnv);
-		runMethod = getUserDataRunMethod(
-				localEnv, userDataClass, returnValueDim, "([D)D");
+		jmethodID method = env->GetMethodID(cls, "getBndBool", "()Z");
+		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
 
-		// create thread-safe references
+		return env->CallBooleanMethod(obj, method);
+	}
+
+	jobject compileCondUserDataString(JNIEnv *env, const char* s) const
+	{
+		jclass cls = env->FindClass("edu/gcsc/vrl/ug/UserDataCompiler");
+		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
+
+		jmethodID runMethod = env->GetStaticMethodID(
+				cls, "compile",
+				"(Ljava/lang/String;I)Ljava/lang/Object;");
+		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
+
+		return env->CallStaticObjectMethod(cls, runMethod, stringC2J(env, s));
+	}
+
+	jclass getCondUserDataClass(JNIEnv *env) const
+	{
+		jclass result = env->FindClass("edu/gcsc/vrl/ug/BoundaryUserData");
+		if (env->ExceptionCheck()) {env->ExceptionDescribe();}
+
+		return result;
+	}
+
+	jmethodID getCondUserDataRunMethod(JNIEnv *env, jclass cls) const
+	{
+		std::string signature = "([D)Ledu/gcsc/vrl/ug/Boundary;";
+		std::string mName = "run";
+
+		jmethodID result = env->GetMethodID(cls, mName.c_str(), signature.c_str());
+		if (!checkException(env))
+		{
+			UG_LOG("[VRL-Bindings] Error:"
+					<< " cannot find boundary-userdata method."
+					<< " Please check your implementation!" << std::endl);
+		}
+
+		return result;
+	}
+
+public:
+	static std::string params()
+	{
+		std::stringstream params;
+		if(dim >= 1) params <<  "\"" << "x" << "\"";
+		if(dim >= 2) params << ",\"" << "y" << "\"";
+		if(dim >= 3) params << ",\"" << "z" << "\"";
+					 params << ",\"" << "t" << "\"";
+		return params.str();
+	}
+
+	static std::string name()
+	{
+		std::stringstream ss;
+		ss << "VRLCondUser"<<vrl_traits<number>::name() << dim << "d";
+		return ss.str();
+	}
+
+	VRLCondUserNumber() : initialized(false)
+	{
+		std::stringstream stream;
+		stream << "<font color=\"red\">VRLCondUserNumber"
+				<< dim << "D: invokation error:</font>";
+		invocationErrorMsg = stream.str();
+	}
+
+	void set_vrl_callback(const char* expression)
+	{
+		JNIEnv* env = threading::getEnv(getJavaVM());
+
+		userDataObject = compileCondUserDataString(env, expression);
+		userDataClass = getCondUserDataClass(env);
+		runMethod = getCondUserDataRunMethod(env, userDataClass);
+
+		// create thread-safe references 
 		// (GC won't deallocate them until manual deletion request)
-		userDataObject = localEnv->NewGlobalRef(userDataObject);
-		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
-               
-		initialized = true;
+		userDataObject = env->NewGlobalRef(userDataObject);
+		userDataClass = (jclass) env->NewGlobalRef((jobject) userDataClass);
+
+//		initialized = true;
 	}
 
 	///	evaluates the data at a given point and time
+	bool operator() (number& c, const MathVector<dim>& x, number time, int si) const
+	{
+		JNIEnv* env = threading::getEnv(getJavaVM());
 
-	void operator() (number& c, const MathVector<dim>& x, number time, int si) const {
+		// convert parameters
+		jdoubleArray params = ConvertParametersToJava(env, x, time);
 
-		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-
-		//		// TODO this should be cached!!!
-		//		// <BEGIN>
-		//		userDataObject = compileUserDataString(localEnv, expression.c_str(), returnValueDim);
-		//		userDataClass = getUserDataClass(localEnv);
-		//		runMethod = getUserDataRunMethod(
-		//				localEnv, userDataClass, returnValueDim, "([D)D");
-		//		// <END>
-
-		jdoubleArray params = VectorConverter<dim>::toJava(localEnv, x, time);
-
-		if (runMethod != NULL) {
-			c = localEnv->CallDoubleMethod(
+		bool result = false;
+		if (runMethod != NULL)
+		{
+			jobject bndResult = (jdoubleArray) env->CallObjectMethod(
 					userDataObject,
 					runMethod,
 					params);
 
-			if (checkException(localEnv, invocationErrorMsg)) {
-				// currently nothing to do, only necessary for arrays
-			}
-		}
-	}
-
-	///	implement as a IPData
-
-	virtual void compute(bool computeDeriv = false) {
-		for (size_t s = 0; s < num_series(); ++s)
-			for (size_t i = 0; i < num_ip(s); ++i) {
-				this->operator()(value(s, i),
-						ip(s, i),
-						time(),
-						subset());
-			}
-	}
-
-	~VRLUserNumber() {
-		// deleting thread-safe global references
-//		if (initialized) {
-//			JNIEnv* localEnv = threading::getEnv(getJavaVM());
-//			localEnv->DeleteGlobalRef(userDataObject);
-//			localEnv->DeleteGlobalRef((jobject) userDataClass);
-//		}
-	}
-
-private:
-	std::string expression;
-	JavaVM* javaVM;
-	jobject userDataObject;
-	jclass userDataClass;
-	jmethodID runMethod;
-	unsigned int returnValueDim;
-	std::string invocationErrorMsg;
-	bool initialized;
-};
-
-template <int dim>
-class VRLUserVector
-	: public IPData<MathVector<dim>, dim>
-{
-public:
-/// Base class type
-	typedef IPData<MathVector<dim>, dim> base_type;
-
-	using base_type::num_series;
-	using base_type::num_ip;
-	using base_type::ip;
-	using base_type::time;
-	using base_type::subset;
-	using base_type::value;
-
-public:
-
-	VRLUserVector() {
-		javaVM = getJavaVM();
-		expression = "";
-		returnValueDim = 1;
-
-		std::stringstream stream;
-		stream << "<font color=\"red\">VRLUserNumber"
-				<< dim << "D: invokation error:</font>";
-		invocationErrorMsg = stream.str();
-
-		initialized = false;
-	}
-
-	void set_vrl_callback(const char* expression) {
-		this->expression = expression;
-
-		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-
-		userDataObject = compileUserDataString(localEnv, expression, returnValueDim);
-		userDataClass = getUserDataClass(localEnv);
-		runMethod = getUserDataRunMethod(
-				localEnv, userDataClass, returnValueDim, "([D)[D");
-
-		if (checkException(localEnv, "creatinerror")) {
-			//
-		}
-
-		// create thread-safe references
-		// (GC won't deallocate them until manual deletion request)
-		userDataObject = localEnv->NewGlobalRef(userDataObject);
-		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
-
-		if (checkException(localEnv, "globalref error")) {
-			//
-		}
-
-		initialized = true;
-	}
-
-	///	evaluates the data at a given point and time
-
-	void operator() (MathVector<dim>& c, const MathVector<dim>& x, number time, int si) const {
-
-		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-
-		//		// TODO this should be cached!!!
-		//		// <BEGIN>
-		//		userDataObject = compileUserDataString(localEnv, expression.c_str(), returnValueDim);
-		//		userDataClass = getUserDataClass(localEnv);
-		//		runMethod = getUserDataRunMethod(
-		//				localEnv, userDataClass, returnValueDim, "([D)[D");
-		//		// <END>
-
-		jdoubleArray params = VectorConverter<dim>::toJava(localEnv, x, time);
-
-		if (checkException(localEnv, "paramconverter error")) {
-			//
-		}
-
-		if (runMethod != NULL) {
-			jdoubleArray result = (jdoubleArray) localEnv->CallObjectMethod(
-					userDataObject,
-					runMethod,
-					params);
-
-			if (checkException(localEnv, invocationErrorMsg)) {
-				VectorConverter<dim>::toC(localEnv, result, c);
+			if (checkException(env, invocationErrorMsg)) {
+				result = condData2Boolean(env, bndResult);
+				c = condData2Double(env, bndResult);
 			}
 		}
 
-		if (checkException(localEnv, "???")) {
-			//
-		}
+		return result;
 	}
 
-	///	implement as a IPData
-
-	virtual void compute(bool computeDeriv = false) {
-		for (size_t s = 0; s < num_series(); ++s)
-			for (size_t i = 0; i < num_ip(s); ++i) {
-				this->operator()(value(s, i),
-						ip(s, i),
-						time(),
-						subset());
-			}
-	}
-
-	~VRLUserVector() {
-
-		// deleting thread-safe global references
-//		if (initialized) {
-//			JNIEnv* localEnv = threading::getEnv(getJavaVM());
-//			localEnv->DeleteGlobalRef(userDataObject);
-//			localEnv->DeleteGlobalRef((jobject) userDataClass);
-//		}
-	}
-
-private:
-	std::string expression;
-	JavaVM* javaVM;
-	jobject userDataObject;
-	jclass userDataClass;
-	jmethodID runMethod;
-	unsigned int returnValueDim;
-	std::string invocationErrorMsg;
-	bool initialized;
-};
-
-template <int dim>
-class VRLCondUserNumber
-	: public IPData<number, dim, bool>
-{
 /// Base class type
 	typedef IPData<number, dim, bool> base_type;
 
@@ -497,71 +464,17 @@ class VRLCondUserNumber
 	using base_type::subset;
 	using base_type::value;
 
-public:
-	VRLCondUserNumber() {
-		javaVM = getJavaVM();
-		expression = "";
-
-		std::stringstream stream;
-		stream << "<font color=\"red\">VRLCondUserNumber"
-				<< dim << "D: invokation error:</font>";
-		invocationErrorMsg = stream.str();
-
-		initialized = false;
-	}
-
-	void set_vrl_callback(const char* expression) {
-		this->expression = expression;
-
-		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-
-		userDataObject =
-				compileBoundaryUserDataString(localEnv, expression);
-		userDataClass = getBoundaryUserDataClass(localEnv);
-		runMethod = getBoundaryUserDataRunMethod(localEnv, userDataClass);
-
-		// create thread-safe references 
-		// (GC won't deallocate them until manual deletion request)
-		userDataObject = localEnv->NewGlobalRef(userDataObject);
-		userDataClass = (jclass) localEnv->NewGlobalRef((jobject) userDataClass);
-
-		initialized = true;
-	}
-
-	///	evaluates the data at a given point and time
-
-	bool operator() (number& c, const MathVector<dim>& x, number time, int si) const {
-
-		JNIEnv* localEnv = threading::getEnv(getJavaVM());
-
-		bool result = false;
-
-		jdoubleArray params = VectorConverter<dim>::toJava(localEnv, x, time);
-
-		if (runMethod != NULL) {
-			jobject bndResult = (jdoubleArray) localEnv->CallObjectMethod(
-					userDataObject,
-					runMethod,
-					params);
-
-			if (checkException(localEnv, invocationErrorMsg)) {
-				result = boundaryReturnData2Boolean(localEnv, bndResult);
-				c = boundaryReturnData2Double(localEnv, bndResult);
-			}
-		}
-
-		return result;
-	}
 
 	// \todo: should remember flag
-	virtual void compute(bool computeDeriv = false) {
+	virtual void compute(bool computeDeriv = false)
+	{
 		for (size_t s = 0; s < num_series(); ++s)
-			for (size_t i = 0; i < num_ip(s); ++i) {
-				this->operator()(value(s, i),
-						ip(s, i),
-						time(),
-						subset());
+		{
+			for (size_t i = 0; i < num_ip(s); ++i)
+			{
+				this->operator()(value(s, i), ip(s, i), time(), subset());
 			}
+		}
 	}
 
 	~VRLCondUserNumber() {
@@ -574,94 +487,81 @@ public:
 	}
 
 private:
-	std::string expression;
-	JavaVM* javaVM;
+	std::string invocationErrorMsg;
+	bool initialized;
 	jobject userDataObject;
 	jclass userDataClass;
 	jmethodID runMethod;
-	std::string invocationErrorMsg;
-	bool initialized;
 };
 
-class PrintUserNumber2d {
-public:
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-	void set(SmartPtr<IPData<number, 2> > user) {
-		m_spNumber = user;
+template <typename TData>
+class PrintUserData2d {
+public:
+	void set(SmartPtr<IPData<TData, 2> > user) {m_spNumber = user;}
+
+	static std::string dataname()
+	{
+		std::stringstream ss; ss << "User"<<vrl_traits<TData>::name()<<"2d";
+		return ss.str();
 	}
 
-	number print(number x, number y) {
+	static std::string name()
+	{
+		std::stringstream ss; ss << "PrintUser"<<vrl_traits<TData>::name()<<"2d";
+		return ss.str();
+	}
+
+	std::string print(number x, number y, number time, int si)
+	{
 		MathVector < 2 > v(x, y);
-		number time = 0.0;
-		int si = 0;
-		number ret;
+		TData ret;
 
-		if (m_spNumber.valid())
-			(*m_spNumber)(ret, v, time, si);
-		else {
-			UG_THROW_FATAL("PrintUserNumber2d: Data not set.");
-		}
+		if (m_spNumber.valid()) (*m_spNumber)(ret, v, time, si);
+		else UG_THROW_FATAL(name()<<": Data not set.");
 
-		return ret;
+		std::stringstream ss;
+		ss << ret << std::endl;
+		return ss.str();
 	}
 
 private:
-	SmartPtr<IPData<number, 2> > m_spNumber;
+	SmartPtr<IPData<TData, 2> > m_spNumber;
 };
 
-class PrintUserVector2d {
+template <typename TData>
+class PrintCondUserData2d {
 public:
-
-	void set(SmartPtr<IPData<MathVector<2>, 2> > user) {
-		m_spData = user;
+	static std::string dataname()
+	{
+		std::stringstream ss; ss << "CondUser"<<vrl_traits<TData>::name()<<"2d";
+		return ss.str();
 	}
 
-	void print(number x, number y) {
+	static std::string name()
+	{
+		std::stringstream ss; ss << "PrintCondUser"<<vrl_traits<TData>::name()<<"2d";
+		return ss.str();
+	}
+
+	void set(SmartPtr<IPData<number, 2, bool> > user) {m_spData = user;}
+
+	std::string print(number x, number y, number time, int si)
+	{
 		MathVector < 2 > v(x, y);
-		number time = 0.0;
-		int si = 0;
-		MathVector < 2 > ret;
-
-		if (m_spData.valid())
-			(*m_spData)(ret, v, time, si);
-		else {
-			UG_THROW_FATAL("PrintUserVector2d: Data not set.");
-		}
-
-		for (size_t i = 0; i < ret.size(); i++) {
-			UG_LOG("VECTOR[" << i << "]=" << ret[i] << std::endl);
-		}
-	}
-
-private:
-	SmartPtr<IPData<MathVector<2>, 2> > m_spData;
-};
-
-class PrintCondUserNumber2d {
-public:
-
-	void set(SmartPtr<IPData<number, 2, bool> > user) {
-		m_spData = user;
-	}
-
-	std::string print(number x, number y) {
-		MathVector < 2 > v(x, y);
-		number time = 0.0;
-		int si = 0;
 		number ret;
 		bool bndResult = false;
 
-		if (m_spData.valid())
-			bndResult = (*m_spData)(ret, v, time, si);
+		if (m_spData.valid()) bndResult = (*m_spData)(ret, v, time, si);
 		else {
-			UG_THROW_FATAL("PrintCondUserNumber2d: Data not set.");
+			UG_THROW_FATAL(name()<<": Data not set.");
 			ret = -1;
 		}
 
 		std::stringstream stream;
-
 		stream << "[" << bndResult << "," << ret << "]";
-
 		return stream.str();
 	}
 
@@ -669,135 +569,78 @@ private:
 	SmartPtr<IPData<number, 2, bool> > m_spData;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TData, int dim>
+void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
+{
+	//	VRLUserType
+	{
+		typedef VRLUserData<TData, dim> T;
+		typedef IPData<TData, dim> TBase;
+		std::stringstream options;
+		options << "Input:|user-data|dim=" << T::retArrayDim << ";"
+				<< "params=["<<T::params()<<"];";
+		reg.add_class_<T, TBase>(T::name(), grp)
+			.add_constructor()
+			.add_method("data", &T::set_vrl_callback, "", options.str().c_str())
+			.set_construct_as_smart_pointer(true);
+	}
+
+	// PrintUserType2d
+	if(dim == 2)
+	{
+		typedef PrintUserData2d<TData> T;
+		reg.add_class_<T > (T::name(), grp)
+				.add_constructor()
+				.add_method("set", &T::set, "", T::dataname())
+				.add_method("print", &T::print, "Result", "x#y#t#si");
+	}
+}
+
 template <int dim>
-void RegisterUserData(ug::bridge::Registry& reg,
-                      std::vector<const char*> paramNames,
-                      const char* parentGroup)
+void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 {
 	// 	get group
 	std::string grp = std::string(parentGroup);
 
-	//	VRLUserNumber
-	{
-		typedef VRLUserNumber<dim> T;
-		std::stringstream className;
-		className << "VRLUserNumber" << dim << "d";
-		std::stringstream options;
-		options << "Input:|user-data|dim=" << 0 << ";" << "params=[";
-
-		for (size_t i = 0; i < paramNames.size(); i++) {
-			if (i > 0) {
-				options << ",";
-			}
-			options << "\"" << paramNames[i] << "\"";
-		}
-
-		options << "];";
-
-		typedef IPData<number, dim> TBase;
-		reg.add_class_<T, TBase>(
-				className.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("userNumber", &T::set_vrl_callback, "",
-				options.str().c_str())
-				.set_construct_as_smart_pointer(true);
-	}
-
-	//	VRLUserVector
-	{
-		typedef VRLUserVector<dim> T;
-		std::stringstream className;
-		className << "VRLUserVector" << dim << "d";
-		std::stringstream options;
-		options << "Input:|user-data|dim=" << 1 << ";" << "params=[";
-
-		for (size_t i = 0; i < paramNames.size(); i++) {
-			if (i > 0) {
-				options << ",";
-			}
-			options << "\"" << paramNames[i] << "\"";
-		}
-
-		options << "];";
-
-		typedef IPData<MathVector<dim>, dim> TBase;
-		reg.add_class_<T, TBase>(
-				className.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("userVector", &T::set_vrl_callback, "",
-				options.str().c_str())
-				.set_construct_as_smart_pointer(true);
-	}
+	RegisterUserDataType<number, dim>(reg, grp);
+	RegisterUserDataType<MathVector<dim>, dim>(reg, grp);
+	RegisterUserDataType<MathMatrix<dim,dim>, dim>(reg, grp);
 
 	//	VRLCondUserNumber
 	{
 		typedef VRLCondUserNumber<dim> T;
-		std::stringstream className;
-		className << "VRLCondUserNumber" << dim << "d";
-		std::stringstream options;
-		options << "Input:|boundary-user-data|params=[";
-
-		for (size_t i = 0; i < paramNames.size(); i++) {
-			if (i > 0) {
-				options << ",";
-			}
-			options << "\"" << paramNames[i] << "\"";
-		}
-
-		options << "];";
-
 		typedef IPData<number, dim, bool> TBase;
-		reg.add_class_<T, TBase>(
-				className.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("boundaryNumber", &T::set_vrl_callback, "",
-				options.str().c_str())
-				.set_construct_as_smart_pointer(true);
+		std::stringstream options;
+		options << "Input:|boundary-user-data|params=["<<T::params()<<"];";
+		reg.add_class_<T, TBase>(T::name(), grp)
+			.add_constructor()
+			.add_method("data", &T::set_vrl_callback, "", options.str().c_str())
+			.set_construct_as_smart_pointer(true);
 	}
 
+	if(dim == 2)
+	{
+		typedef PrintCondUserData2d<number> T3;
+		reg.add_class_<T3 > (T3::name(), grp)
+				.add_constructor()
+				.add_method("set", &T3::set, "", T3::dataname())
+				.add_method("print", &T3::print, "Result", "x#y");
+	}
 }
 
-void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup) {
-	std::vector<const char*> paramNames;
+void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
+{
 #ifdef UG_DIM_1
-	paramNames.push_back("x");
-	paramNames.push_back("t");
-	ug::vrl::RegisterUserData < 1 > (reg, paramNames, parentGroup);
+	ug::vrl::RegisterUserData < 1 > (reg, parentGroup);
 #endif
 #ifdef UG_DIM_2
-	paramNames.clear();
-	paramNames.push_back("x");
-	paramNames.push_back("y");
-	paramNames.push_back("t");
-	ug::vrl::RegisterUserData < 2 > (reg, paramNames, parentGroup);
-
-	typedef PrintUserNumber2d T;
-	reg.add_class_<T > ("PrintUserNumber2d", parentGroup)
-			.add_constructor()
-			.add_method("set_user_number", &T::set, "", "Number")
-			.add_method("print", &T::print, "Result", "x#y");
-
-	typedef PrintUserVector2d T2;
-	reg.add_class_<T2 > ("PrintUserVector2d", parentGroup)
-			.add_constructor()
-			.add_method("set_user_vector", &T2::set, "", "Vector")
-			.add_method("print", &T2::print, "Result", "x#y");
-
-	typedef PrintCondUserNumber2d T3;
-	reg.add_class_<T3 > ("PrintCondUserNumber2d", parentGroup)
-			.add_constructor()
-			.add_method("set_user_number", &T3::set, "", "CondNumber")
-			.add_method("print", &T3::print, "Result", "x#y");
-
-
+	ug::vrl::RegisterUserData < 2 > (reg, parentGroup);
 #endif
 #ifdef UG_DIM_3
-	paramNames.clear();
-	paramNames.push_back("x");
-	paramNames.push_back("y");
-	paramNames.push_back("z");
-	paramNames.push_back("t");
-	ug::vrl::RegisterUserData < 3 > (reg, paramNames, parentGroup);
+	ug::vrl::RegisterUserData < 3 > (reg, parentGroup);
 #endif
 }
 
