@@ -1,0 +1,198 @@
+/*
+  created
+  Torbjörn Klatt <torbjoern@torbjoern-klatt.de>
+  y12 m04 d08
+*/
+
+/** \page pageUsingGit Using Git Locally Instead of SVN
+
+Some people might want to use \em Git instead of \em SVN for their local 
+working copy and development environment.
+This is even possible with a \em SVN server.
+
+- \ref secGitSVNGeneral
+- \ref secGitSVNClone
+- \ref secGitSVNCommit
+- \ref secGitSVNNotes
+
+For any questions email torbjoern@torbjoern-klatt.de
+
+
+<hr>
+\section secGitSVNGeneral General Remarks on Git-SVN over Git-Only
+
+\attention In short:
+<strong>Never ever use <tt>merge</tt></strong>.
+Neither on the <em>master</em> (i.e. SVN <em>trunk</em>), nor on any of your 
+local branches, that you intend to maybe commit at some point to \em SVN.
+This is due to <em>SVN</em>'s nature of not being able to deal with a 
+non-linear revision history.
+
+When you are familiar with using \em Git and adopted the general <em>Git 
+Workflow</em> (<tt>pull</tt> -> <tt>branch</tt> -> <tt>checkout</tt> -> 
+<em>work</em> -> <tt>add</tt> -> <tt>commit</tt> -> <tt>merge</tt> / 
+<tt>rebase</tt> -> <tt>push</tt>), please read <tt>git help svn</tt> 
+carefully.
+Especially the bottom sections from <em>Basic Example</em> down to 
+<em>Caveats</em>.
+
+
+<hr>
+\section secGitSVNClone Cloning SVN Repository
+
+Use
+\verbatim
+git svn clone svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk ug4
+\endverbatim
+for cloning the entire \em SVN repository.
+It will create the folder <tt>ug4</tt> with your working copy.
+
+\attention Don't do this with a weak or instable internet connection or while
+running low on battery.
+
+\em Git is going to retreive each and every revision ever done on that \em SVN 
+repository and builds corresponding \em Git refs.
+
+
+\subsection secGitConfig Configuring Git
+
+\subsubsection secGitConfigGitignore Ignoring Files
+To make sure, you are not commiting any files, which should be ignored, get the
+full (recursive) list of <tt>svn:ignore</tt> values and append it to your
+<tt>.git/info/exclude</tt> file:
+\verbatim
+git svn show-ignore >> .git/info/exclude
+\endverbatim
+When ever you create a file, which should not be committed into \em SVN, append
+it to your <tt>.git/info/exclude</tt>:
+\verbatim
+echo "your_file" >> .git/info/exclude
+\endverbatim
+\remarks Converting the <tt>svn:ignore</tt> values into <tt>.gitignore</tt> 
+files is also possible with <tt>git svn create-ignore</tt>.
+According to the \em Git manual the <tt>.gitignore</tt> files are staged for
+committing, but actually are not committed.
+
+However, it's more handy having all ignores in one file rather than 
+<tt>.gitignore</tt> files in almost every directory.
+
+
+\subsubsection secGitConfigCredentials Credentials
+This section might be obsolete, but just in case ...
+
+Before doing any work on your local working copy, add the following to the 
+local \em Git config in <tt>ug4/.git/config</tt>:
+\verbatim
+[user]
+  name = Torbjörn Klatt
+  email = torbjoern@torbjoern-klatt.de
+\endverbatim
+(Substitute your name and email).
+
+
+<hr>
+\section secGitSVNCommit Committing Work
+
+As usually with \em Git, first create a local working branch
+\verbatim
+git checkout -b my_working_branch_name
+\endverbatim
+
+And use the usual \em Git commands for adding (<tt>git add 
+&lt;file_or_folder&gt;</tt>) and commiting (<tt>git commit</tt>) your work 
+locally.
+Stashing work works also as usual (<tt>git stash</tt>).
+
+Pushing however, works differently.
+
+First make sure, you are up to date with the SVN repository:
+\verbatim
+git svn fetch
+\endverbatim
+
+If nothing shows up, you are fine and can <em>dcommit</em> directly.
+Otherwise rebase your local working branch to be on <tt>HEAD</tt> of SVN:
+\verbatim
+git svn rebase
+\endverbatim
+(and resolve possibly occuring conflicts).
+
+Finally <em>dcommit</em> your work:
+\verbatim
+git svn dcommit
+\endverbatim
+This will create a revision on the \em SVN server for every commit you did 
+locally (e.g. <tt>git commit</tt>) and rebase your current branch to 
+be at <tt>HEAD</tt> of \em SVN.
+
+
+<hr>
+\section secGitSVNCommitExample The Full Workflow
+
+Here I will describe my general workflow of using <em>Git-SVN</em> with \ug4's 
+\em SVN repository after a local working copy has been cloned.
+
+<ol>
+  <li>\anchor stepGitWorkflow1
+    Get local <em>master</em> up to date:
+    \verbatim
+git checkout master
+git svn fetch
+git svn rebase
+    \endverbatim
+  </li>
+  <li>\anchor stepGitWorkflow2
+    Switch to / create (then add '<tt>-b</tt>' after <tt>checkout</tt>) local 
+    working branch:
+    \verbatim
+git checkout my_working_branch
+    \endverbatim
+    If not nealy created, make sure it's up to date with \em SVN :
+    \verbatim
+git rebase master
+    \endverbatim
+    Only go on, if you resolved possibly occuring conflicts.
+  </li>
+  <li>Repeat the following steps until you want to publish it to the \em SVN 
+    repository.
+    <ul>
+      <li>Work.</li>
+      <li>Add the things, you want to commit:
+        \verbatim
+        git add rel/path/to/new_class.cpp rel/path/to/new_class.hpp
+        \endverbatim
+        
+        \note You do not have to add all files at once.
+        You can split them up in different commits.
+
+      </li>
+      <li>Let Git save it (i.e. add to history):
+        \verbatim
+        git commit -m "added new_class def. + impl."
+        \endverbatim
+      </li>
+    </ul>
+  </li>
+  <li>Make sure, you are up to date with \em SVN, thus repeat steps 
+    \ref stepGitWorkflow1 "1" and \ref stepGitWorkflow2 "2".
+  </li>
+  <li><em>dcommit</em> (i.e. <tt>push</tt>) your work to the SVN repository:
+    \verbatim
+    git svn dcommit
+    \endverbatim
+  </li>
+  <li>Go to sleep, drink a beer or carry on with step \ref stepGitWorkflow1 "1".
+  </li>
+</ol>
+
+
+<hr>
+\section secGitSVNNotes Further Notes
+
+The following blog article was quite helpful for me when setting up \em Git 
+with \em SVN the first time:
+<a href="http://www.justincarmony.com/blog/2011/02/21/using-git-with-subversion/">Justin Carmony &mdash; Using GIT with SVN (2011-02-11)</a>.
+It is a little more verbose than this page, but lists further resources down the
+bottom of the article.
+
+*/

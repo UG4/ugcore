@@ -1,0 +1,11 @@
+/** \page pageUG4DevTipsGuides Tips and Guidelines
+
+These pages should give help to ease the collaborative development of \ug4.
+
+- \subpage pageInstallEclipse
+- \subpage pageUG4CodingStyle
+- \subpage pageTeamCommunication
+- \subpage pageUG4DoxygenQuickref
+- \subpage pageUsingGit
+
+*/

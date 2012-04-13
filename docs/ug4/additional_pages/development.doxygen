@@ -9,10 +9,11 @@ These pages are a collection of information addressing developers of \ug4.
   - \subpage pageUG4Registry "registry"
 - Plugins
 - \subpage pageUnitTests
-- Tips and Guidelines
-  - \subpage pageInstallEclipse
-  - \subpage pageUG4CodingStyle
-  - \subpage pageTeamCommunication
-  - \subpage pageUG4DoxygenQuickref
+- \subpage pageUG4DevTipsGuides
+  - \ref pageInstallEclipse
+  - \ref pageUG4CodingStyle
+  - \ref pageTeamCommunication
+  - \ref pageUG4DoxygenQuickref
+  - \ref pageUsingGit
 
 */

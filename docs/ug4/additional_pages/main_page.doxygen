@@ -56,10 +56,11 @@ environment
 		- \ref pageUG4Registry		"registry"
 	- Plugins
 	- \ref pageUnitTests "Unit tests"
-	- Tips and guidelines
+	- \ref pageUG4DevTipsGuides
 		- \ref pageInstallEclipse 		"ug4 development with the Eclipse IDE"
-		- \ref pageUG4CodingStyle 		"Coding and documentation style"
+		- \ref pageUG4CodingStyle 		"Coding and Documentation Style"
 		- \ref pageTeamCommunication 	"Team Communication"
+    - further tips on simplifying development
 
 - Copyrights and Licenses
 	- \subpage pageCopyrights
