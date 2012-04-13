@@ -300,7 +300,7 @@ public:
 
 	///	evaluates the data at a given point and time
 
-	void operator() (number& c, const MathVector<dim>& x, number time, int si) {
+	void operator() (number& c, const MathVector<dim>& x, number time, int si) const {
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
@@ -416,7 +416,7 @@ public:
 
 	///	evaluates the data at a given point and time
 
-	void operator() (MathVector<dim>& c, const MathVector<dim>& x, number time, int si) {
+	void operator() (MathVector<dim>& c, const MathVector<dim>& x, number time, int si) const {
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
@@ -530,7 +530,7 @@ public:
 
 	///	evaluates the data at a given point and time
 
-	bool operator() (number& c, const MathVector<dim>& x, number time, int si) {
+	bool operator() (number& c, const MathVector<dim>& x, number time, int si) const {
 
 		JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
