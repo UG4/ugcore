@@ -278,12 +278,12 @@ class VRLUserData : public IPData<TData, dim>
 		void releaseGlobalRefs()
 		{
 			// deleting thread-safe global references
-			if (initialized) {
+/*			if (initialized) {
 				JNIEnv* localEnv = threading::getEnv(getJavaVM());
 				localEnv->DeleteGlobalRef(userDataObject);
 				localEnv->DeleteGlobalRef((jobject) userDataClass);
 			}
-		}
+*/		}
 
 		~VRLUserData()
 		{
