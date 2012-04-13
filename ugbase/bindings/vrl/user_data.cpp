@@ -157,10 +157,15 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 			for(int j=0; j < (int)dim; ++j)
 				mat[i][j]= rowEntrys[j];
 
+			UG_LOG("Matrix: got row: "<<i<<"\n");
+
 			// alternative is to force garbageCollector to "pin" or copy internally
 //			jdouble* rowEntrys = env->GetDoubleArrayElements(row, 0);
 //			env->ReleaseDoubleArrayElements(row, rowEntrys, 0);
 		}
+
+		UG_LOG("Matrix toC: read matrix: "<<mat<<"\n");
+
 	}
 
 	static void call(JNIEnv *env, MathMatrix<dim,dim>& res,
@@ -271,8 +276,11 @@ class VRLUserData : public IPData<TData, dim>
 			// convert parameters
 			jdoubleArray params = ConvertParametersToJava(env, x, time);
 
+			UG_LOG("invoking VRLData ...\n");
 			if (runMethod != NULL)
 				vrl_traits<TData>::call(env, c, userDataObject, runMethod, params);
+
+			UG_LOG("data is: "<<c<<"\n");
 		}
 
 		void releaseGlobalRefs()
