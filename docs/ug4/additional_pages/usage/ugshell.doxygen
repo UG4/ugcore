@@ -2,39 +2,42 @@
 //	martin.rupp@gcsc.uni-frankfurt.de
 //	y11 m04 d13
 
-/**	\page pageUG4Shell ugshell
+/** \page pageUG4Shell ugshell
 
-	- \ref secCommandLineOption "Command-Line Options"
-	- \ref secInteractiveShell "Interactive Shell"
-	- \ref secAutoCompletion "Auto Completion"
-	- \ref secRuntimeInformation "Runtime Information"
-	- \ref secDebugging "Debug Shell"
-	- \ref secBashCompletion "Bash Completion for ugshell"
+- \ref secCommandLineOption
+- \ref secInteractiveShell
+- \ref secAutoCompletion
+- \ref secRuntimeInformation
+- \ref secDebugging
+- \ref secBashCompletion
 
 For any questions, contact martin.rupp@gcsc.uni-frankfurt.de.
 
+
 <hr>
 \section secCommandLineOption Command-Line Options
-<hr>
 
-ugshell has the following build-in command-line options:
-	- -outproc id:	Sets the output-proc to id. Default is 0.
-	- -ex scriptname:	Executes the specified script.
-	- -noquit: Does run the interactive shell after specified script.
-	- -noterm: Terminal logging will be disabled.
-	- -logtofile filename:	Output will be written to the specified file.
+\em ugshell has the following build-in command-line options:
+- <tt>-outproc id</tt> &mdash; Sets the output-proc to id. Default is 0.
+- <tt>-ex scriptname</tt> &mdash; Executes the specified script.
+- <tt>-noquit</tt> &mdash; Does run the interactive shell after specified 
+  script.
+- <tt>-noterm</tt> &mdash; Terminal logging will be disabled.
+- <tt>-logtofile filename</tt> & mdash; Output will be written to the specified 
+  file.
 
 You can also use the command line to pass arguments to your scripts:
 \verbatim
 ./ugshell -ex tutorials/tut02_loading_a_domain.lua -grid unit_square/unit_square_quads_2x2.ugx  
 \endverbatim
 
-You can access command line parameters by using the lua function from ug_util.lua:
+You can access command line parameters by using the lua function from 
+<tt>ug_util.lua</tt>:
 \code
 function util.GetParam(name, return_if_unavailable)
 \endcode
-
-For that, you have to include the ug_util.lua file using ug_load_script("ug_util.lua").
+For that, you have to include the <tt>ug_util.lua</tt> file using 
+<tt>ug_load_script("ug_util.lua")</tt>.
 
 Example:
 \code
@@ -42,19 +45,23 @@ ug_load_script("ug_util.lua")
 gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
 \endcode
 
-If there is no commandline argument "-grid", then the second argument is returned by util.GetParam.
-Otherwise, the argument after "-grid" in the commandline is returned.
-Notice that omitted parameters to lua-functions are treated as nil, so util.GetParam("-grid") is
-the same as util.GetParam("-grid", nil). If you want your argument to be casted
-to a number, use util.GetParamNumber:
+If there is no commandline argument <tt>"-grid"</tt>, then the second argument 
+is returned by <tt>util.GetParam</tt>.
+Otherwise, the argument after <tt>"-grid"</tt> in the commandline is returned.
+Notice that omitted parameters to Lua-functions are treated as <tt>nil</tt>, so 
+<tt>util.GetParam("-grid")</tt> is the same as 
+<tt>util.GetParam("-grid", nil)</tt>.
+If you want your argument to be casted to a number, use 
+<tt>util.GetParamNumber</tt>:
 \code
 function util.GetParamNumber(name, return_if_unavailable)
 \endcode
 If the argument is not a number, the second argument is returned. 
-To check if an option is in the command line, use util.HasParamOption:
+To check if an option is in the command line, use <tt>util.HasParamOption</tt>:
 \code
 function util.HasParamOption(name)
 \endcode
+
 Examples:
 \code
 dim = util.GetParamNumber("-dim", 2)
@@ -62,107 +69,123 @@ useAggressiveCoarsening = util.HasParamOption("-AC")
 \endcode
 
 
-
 <hr>
 \section secInteractiveShell Interactive Shell
-<hr>
 
-When starting ugshell without arguments, you get the following output:
-
+When starting \em ugshell without arguments, you get the following output:
 \verbatim
 ug:> 
 \endverbatim
+and a blinking cursor:
+This is called the <em>interactive shell</em>.
+Interactive shell is disabled when you use \c -ex without \c -noquit and if 
+\ug4 is running in parallel.
 
-and a blinking cursor: This is called the interactive shell. Interactive shell is disabled
-when you use -ex without -noquit and if UG is running in parallel.
-
-In the interactive shell you can start the LUA script <tt>&lt;scriptname&gt;</tt> (as usual) by executing
-<tt>ug_load_script()</tt>:
+In the interactive shell you can start the Lue script 
+<tt>&lt;scriptname&gt;</tt> (as usual) by executing <tt>ug_load_script()</tt>:
 \verbatim
 ug:> ug_load_script(<scriptname>)
 \endverbatim
 where <tt>&lt;scriptname&gt;</tt> is currently searched
 <ol>
-<li> relative to the currently loaded script</li>
-<li> absolute,</li>
-<li> relative to <tt>PathProvider::get_path(SCRIPT_PATH)</tt> (i.e <tt>\<ugshelldir\>/../scripts</tt>).
+  <li>relative to the currently loaded script</li>
+  <li>absolute,</li>
+  <li>relative to <tt>PathProvider::get_path(SCRIPT_PATH)</tt> (i.e 
+    <tt>\<ugshelldir\>/../scripts</tt>).
+  </li>
 </ol>
 
-(Using <tt>ug_load_script()</tt> is the preferred method of loading scripts; alternatively a script can be loaded using the (standard LUA) function <tt>dofile()</tt>.)
+(Using <tt>ug_load_script()</tt> is the preferred method of loading scripts; 
+alternatively a script can be loaded using the (standard Lua) function 
+<tt>dofile()</tt>.)
 
-You can abort the execution of UG out of lua scripts by using <tt>exit()</tt>.
-If you want to stop the execution of a script at a specific place, but you want to use the interactive shell thereafter, 
-insert at that place a call like <tt>error("break")</tt> (or whatever message sounds reasonable to you) and start the run with the <tt>-noquit</tt>. option
+You can abort the execution of \ug4 out of Lua scripts by using 
+<tt>exit()</tt>.
+If you want to stop the execution of a script at a specific place, but you want 
+to use the interactive shell thereafter, insert at that place a call like 
+<tt>error("break")</tt> (or whatever message sounds reasonable to you) and 
+start the run with the <tt>-noquit</tt>. option
 
-Please note that the interactive shell currently is not available in a parallel environment.
+Please note that the interactive shell currently is not available in a parallel 
+environment.
+
 
 <hr>
 \section secAutoCompletion Auto Completion
-<hr>
 
-ugshell has some auto-completion features implemented. When you enter a part of something and hit tab
-ugshell tries to auto-complete your input. If there is not a unique completion, 
-and you hit tab again, you get a list of possible completions.
- 
+\em ugshell has some auto-completion features implemented.
+When you enter a part of something and hit \em tab \em ugshell tries to 
+auto-complete your input.
+If there is not a unique completion, and you hit \em tab again, you get a list 
+of possible completions.
+
 <ul>
-<li> 
-Path Completion: <br>
-"../scr -> "../scripts/ <br>
-(only tried if the word left from the cursor starts with a ")
-<li> 
-Member Function Completion: <br>
-mainProfileNode:cal -> mainProfileNode:call_tree <br>
-(only tried if there is a : in the word)
-<li>
-Table/"Namespace" Completion:<br>
-math.e -> math.exp
-<li>
-Completion of LUA globals, internal functions and modules (like math, io, string),
-classes and global functions from the ug registry, and functions defined in lua script. 
+  <li>Path Completion:<br>
+    <tt>"../scr</tt> -> <tt>"../scripts/</tt><br>
+    (only tried if the word left from the cursor starts with a ")
+  </li>
+  <li>Member Function Completion:<br>
+    <tt>mainProfileNode:cal</tt> -> <tt>mainProfileNode:call_tree</tt><br>
+    (only tried if there is a : in the word)
+  </li>
+  <li>Table/"Namespace" Completion:<br>
+    <tt>math.e</tt> -> <tt>math.exp</tt>
+  </li>
+  <li>Completion of Lua globals, internal functions and modules (like \em math, 
+    \em io, \em string), classes and global functions from the 
+    <em>ug4-registry</em>, and functions defined in Lua script.
+  </li>
 </ul>
+
 
 <hr>
 \section secRuntimeInformation Runtime Information
-<hr>
 
-You can get Information about the current state of LUA by the following methods:
+You can get Information about the current state of Lua by the following methods:
 <ul>
-<li> 
-\code
+  <li>\code
 void TypeInfo(const char *typename)
-\endcode
-TypeInfo prints all information available for the data you insert. Note that you have to enclose your
-type name with ". Example: TypeInfo("Grid"). TypeInfo works with
-<ul>
-<li> tables, and prints their content recursively
-<li> all other basic lua types: numbers, strings, ...
-<li> lua script functions, and prints their code
-<li> classes, global functions and member function from the ug registry
-</ul>
-The use of TypeInfo can be abbreviated by using
-\verbatim
+    \endcode
+    \c TypeInfo prints all information available for the data you insert.
+    Note that you have to enclose your type name with <tt>"</tt>.
+    Example: <tt>TypeInfo("Grid")</tt>.
+    \c TypeInfo works with
+    <ul>
+      <li>tables, and prints their content recursively</li>
+      <li>all other basic lua types: numbers, strings, ...</li>
+      <li>lua script functions, and prints their code</li>
+      <li>classes, global functions and member function from the ug4-registry</li>
+    </ul>
+    The use of \c TypeInfo can be abbreviated by using
+    \verbatim
 ug:> Grid?
-\endverbatim
-and hitting enter. When the name left to the cursor is unambiguous, hitting tab three times also displays information about the object. 
-Functions show their parameters when you enter the function and the first bracket
-\verbatim
+    \endverbatim
+    and hitting enter.
+    When the name left to the cursor is unambiguous, hitting tab three times 
+    also displays information about the object. 
+    Functions show their parameters when you enter the function and the first 
+    bracket
+    \verbatim
 ug:> GetProfileNode(
-\endverbatim
-and hit tab.
-
-<li>
-\code
+    \endverbatim
+    and hit tab.
+  </li>
+  <li>\code
 void ClassUsage(const char *typename)
-\endcode
-ClassUsage prints the usage of the class, that is:
-<ul>
-<li> Functions returning an instantiation of the class 
-<li> Functions which require one argument to be of the type of the class or of a base class
-<li> Instatiations in LUA which have the type class or a subclass of the class.
-</ul>
+    \endcode
+    \c ClassUsage prints the usage of the class, that is:
+    <ul>
+      <li>Functions returning an instantiation of the class</li>
+      <li>Functions which require one argument to be of the type of the class 
+        or of a base class
+      </li>
+      <li>Instatiations in Lua which have the type class or a subclass of the 
+        class.
+      </li>
+    </ul>
 
-Example (excerpt):
-\verbatim
+    Example (excerpt):
+    \verbatim
 ug:> ClassUsage("Domain2d")
 
 --- Functions returning Domain2d: ---
@@ -177,63 +200,77 @@ ug:> ClassUsage("Domain2d")
 
 Instantiations of Class Domain2d:
 dom        (Domain2d)
-\endverbatim
-
-<li>
-\code
+    \endverbatim
+  </li>
+  <li>\code
 void ls()
-\endcode	
-ls prints all available objects and classes in LUA, including 
-<ul>
-<li> global LUA objects, like normal LUA objects and instatiations of UG classes
-<li> LUA script functions
-<li> global functions and classes from UG registry
-</ul>
-
+    \endcode	
+    \c ls prints all available objects and classes in Lua, including 
+    <ul>
+      <li>global Lua objects, like normal Lua objects and instatiations of \ug4 
+        classes
+      </li>
+      <li>Lua script functions</li>
+      <li>global functions and classes from ug4-registry</li>
+    </ul>
+  </li>
 </ul>
 
 
 <hr>
 \section secDebugging Debug Shell
-<hr>
 
-You can also debug your LUA Script using the shell. For this, you can use the script functions
+You can also debug your Lua Script using the shell.
+For this, you can use the script functions
 <ul>
-<li>
-\verbatim
+  <li>\verbatim
 breakpoint()
-\endverbatim
-breakpoint() breaks the execution of the script at exactly the location it stands. This is the preferred method of setting a breakpoint.
-<li>
-\verbatim
+    \endverbatim
+    <tt>breakpoint()</tt> breaks the execution of the script at exactly the 
+    location it stands.
+    This is the preferred method of setting a breakpoint.
+  </li>
+  <li>\verbatim
 breakpoint(source, line)
-\endverbatim
-breakpoint("laplace.lua", 69) adds a breakpoint at the file "laplace.lua" (path relative to current script). print_breakpoints prints those. Note that only lines with code are "catched" by the compiler.
+    \endverbatim
+    <tt>breakpoint("laplace.lua", 69)</tt> adds a breakpoint at the file 
+    <tt>"laplace.lua"</tt> (path relative to current script).
+    <tt>print_breakpoints</tt> prints those.
+    Note that only lines with code are "catched" by the compiler.
+  </li>
 </ul>
 
-When your breakpoint is reached, you are entering the ug4 debug shell:
+When your breakpoint is reached, you are entering the \ug4 <em>debug shell</em>:
 \verbatim
 ./../scripts/laplace.lua:69 breakpoint()
 debug:> 
 \endverbatim
 
-The debug shell is like the normal ug4 shell (so it has \ref secAutoCompletion and \ref secRuntimeInformation), but you have some extra commands. Most of them have a similar function as in gdb:
+The debug shell is like the normal ugshell (so it has \ref secAutoCompletion 
+and \ref secRuntimeInformation), but you have some extra commands.
+Most of them have a similar function as in \em gdb:
+- <tt>continue, cont</tt> &mdash; Continues execution.
+- <tt>step</tt> &mdash; Continues execution until the next line is reached, 
+  steps into subroutines.
+- <tt>next</tt> &mdash; Continues execution until the next line is reached, 
+  does not step into subroutines (that is, we are skipping lines with greater 
+  function stack depth).
+- <tt>finish</tt> &mdash; Finishes subroutines/scripts (continues execution 
+  until a line is reached with lower function stack depth).
+- <tt>list</tt> &mdash; Lists the script surrounding the current statement.
+- <tt>backtrace, bt</tt> &mdash; Prints the function stack.
+- <tt>up, down</tt> &mdash; Goes up and down the function stack.
+- <tt>quit, exit</tt> &mdash; Like in normal shell, exits ug4 directly.
+- <tt>print VAL</tt> &mdash; Like <tt>VAL?</tt>
 
-<ul>
-<li> <tt>continue, cont</tt> : Continues execution.
-<li> <tt>step</tt> : Continues execution until the next line is reached, steps into subroutines.
-<li> <tt>next</tt> : Continues execution until the next line is reached, does not step into subroutines (that is, we are skipping lines with greater function stack depth).
-<li> <tt>finish</tt> : Finishes subroutines/scripts (continues execution until a line is reached with lower function stack depth).
-<li> <tt>list</tt> : Lists the script surrounding the current statement.
-<li> <tt>backtrace, bt</tt> : Prints the function stack.
-<li> <tt>up, down</tt> : Goes up and down the function stack.
-<li> <tt>quit, exit</tt> : Like in normal shell, exits ug4 directly.
-<li> <tt>print VAL</tt> : Like <tt>VAL?</tt>
-</ul>
+Note that you don't have to configure \ug4 with <tt>cmake -DDEBUG=ON ..</tt>) 
+to use the debug shell. 
+There is a small performance drawback when using 
+<tt>breakpoint(source, line)</tt> because we have to check for every line if it 
+is a break line. 
+This is especially the case if you have lots of small calls in your Lua script.
+However, there is no performance drawback in <tt>breakpoint()</tt>.
 
-Note that you don't have to configure ug4 with <tt>cmake -DDEBUG=ON ..</tt>) to use the debug shell. 
-There is a small performance drawback when using <tt>breakpoint(source, line)</tt> because we have to check for every line if it is a break line. 
-This is especially the case if you have lots of small calls in your lua script. However, there is no performance drawback in <tt>breakpoint()</tt>.
 
 <hr>
 \section secBashCompletion Bash Completion for ugshell
@@ -245,9 +282,9 @@ First (a simple) variant:
 complete -o plusdirs -G "*+(lua|ugx)" -W "-ex -grid -numRefs -numPreRefs" ugshell
 \endverbatim
 
-This will enable to use <em>ugshell <TAB> <TAB></em> which will complete the key
-words (behind -W), all directories and only those files which match the extended
-glob (behind -G).
+This will enable to use <tt>ugshell \<TAB\> \<TAB\></tt> which will complete 
+the key words (behind \c -W), all directories and only those files which match 
+the extended glob (behind \c -G).
 
 Please note that you need to set the <tt>extglob</tt> shell option to 
 <tt>on</tt> in order to use extended globbings like:
@@ -258,9 +295,10 @@ Put the following line into your <tt>.bashrc</tt> respectively into your
 shopt extglob on 
 \endverbatim
 
-As the first simple variant sometimes does not work as expected and is too little
-extensible too, a second variant is suggested, which uses a function (bash function).
-You need to supply that function to the <tt>-F</tt> parameter of the complete command.
+As the first simple variant sometimes does not work as expected and is too 
+little extensible too, a second variant is suggested, which uses a function 
+(bash function).
+You need to supply that function to the \c -F parameter of the complete command.
 Put the following two functions into your <tt>.bashrc</tt> respectively 
 <tt>.bash_profile</tt> dependent on your local settings in your <tt>$HOME</tt>:
 \verbatim
@@ -286,8 +324,8 @@ my_complete_ugshell () {
 }
 \endverbatim
 
-Now, to enable the completion, proceed as before. Please note the additional part
-at the end of the line.
+Now, to enable the completion, proceed as before.
+Please note the additional part at the end of the line.
 \verbatim 
 complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F my_complete_ugshell ugshell
 \endverbatim
@@ -296,50 +334,51 @@ Finally, navigating on a terminal may seem uncomfortable, definining a (bash)
 shell function <em>cdug</em> could improve that:
 \verbatim
 function cdug() {
-   local UG4_ROOT=~/ug4
-   local SEP=_
-   
-   if [ ! -d "$UG4_ROOT/$1" -o -z "$1" ]; then
-      echo -e  "\e[0;35m$1\e[0;30m: directory does not exist, changing to \e[0;35m$UG4_ROOT\e[0;30m (UG4_ROOT) instead."
-      cd $UG4_ROOT;
-   else
-      if [[ "$1" == builds ]]; then 
-         cd $MY_UG4_ROOT/builds;
-      elif [[ "$1" == trunk ]]; then
-         cd $MY_UG4_ROOT/trunk/;
-      elif [[ "$1" == branches ]]; then
-         cd $UG4_ROOT/branches/;
-      elif [[ "$1" == plugins* ]]; then
-         if [[ "$1" == plugins/ex* ]]; then
-            cd $UG4_ROOT/trunk/plugins/experimental/;
-         elif [[ "$1" == plugins/co* ]]; then
-            cd $UG4_ROOT/trunk/plugins/core/;
-         else
-            cd $UG4_ROOT/trunk/plugins/;
-         fi
-      elif [[ "$1" == build_* ]]; then
-         cd $UG4_ROOT/builds/${1#$SEP}/;
-      elif [[ "$1" == branch_* ]]; then
-         cd $UG4_ROOT/branches/${1#$SEP}/;
-      elif [[ "$1" == docs ]]; then
-         cd $UG4_ROOT/trunk/docs/;
-      elif [[ "$1" == apps ]]; then
-         cd $UG4_ROOT/trunk/apps;
-      elif [[ "$1" == scripts ]]; then
-         cd $UG4_ROOT/trunk/scripts;
-      elif [[ "$1" == unit_tests ]]; then
-         cd $UG4_ROOT/trunk/unit_tests;
-      elif [[ "$1" == data ]]; then
-         cd $UG4_ROOT/trunk/data;
-      elif [[ "$1" == ugbase ]]; then
-         cd $UG4_ROOT/trunk/ugbase;
+  local UG4_ROOT=~/ug4
+  local SEP=_
+  
+  if [ ! -d "$UG4_ROOT/$1" -o -z "$1" ]; then
+    echo -e  "\e[0;35m$1\e[0;30m: directory does not exist, changing to \e[0;35m$UG4_ROOT\e[0;30m (UG4_ROOT) instead."
+    cd $UG4_ROOT;
+  else
+    if [[ "$1" == builds ]]; then 
+      cd $MY_UG4_ROOT/builds;
+    elif [[ "$1" == trunk ]]; then
+      cd $MY_UG4_ROOT/trunk/;
+    elif [[ "$1" == branches ]]; then
+      cd $UG4_ROOT/branches/;
+    elif [[ "$1" == plugins* ]]; then
+      if [[ "$1" == plugins/ex* ]]; then
+        cd $UG4_ROOT/trunk/plugins/experimental/;
+      elif [[ "$1" == plugins/co* ]]; then
+        cd $UG4_ROOT/trunk/plugins/core/;
       else
-         cd $UG4_ROOT;
+        cd $UG4_ROOT/trunk/plugins/;
       fi
-   fi
+    elif [[ "$1" == build_* ]]; then
+      cd $UG4_ROOT/builds/${1#$SEP}/;
+    elif [[ "$1" == branch_* ]]; then
+      cd $UG4_ROOT/branches/${1#$SEP}/;
+    elif [[ "$1" == docs ]]; then
+      cd $UG4_ROOT/trunk/docs/;
+    elif [[ "$1" == apps ]]; then
+      cd $UG4_ROOT/trunk/apps;
+    elif [[ "$1" == scripts ]]; then
+      cd $UG4_ROOT/trunk/scripts;
+    elif [[ "$1" == unit_tests ]]; then
+      cd $UG4_ROOT/trunk/unit_tests;
+    elif [[ "$1" == data ]]; then
+      cd $UG4_ROOT/trunk/data;
+    elif [[ "$1" == ugbase ]]; then
+      cd $UG4_ROOT/trunk/ugbase;
+    else
+      cd $UG4_ROOT;
+    fi
+  fi
 }
 complete -W "apps builds branches data docs scripts trunk ugbase unit_tests plugins" # -o plusdirs cdug
-Optionally you can supply -o plusdirs for <TAB> complete directories.
 \endverbatim
+Optionally you can supply <tt>-o plusdirs</tt> for <tt>\<TAB\></tt> complete 
+directories.
 
 */

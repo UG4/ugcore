@@ -239,11 +239,11 @@ lua my_scaling_analyzer.lua
         \code
 lua my_scaling_analyzer.lua > jugene_ug4-static_laplace-2d_gmg_weak-scaling_pe4-256k_rev4354.txt
         \endcode
-	If \c ugshell is executable on the machine used for this analysis
-	(which is \em not the case if you are working on a login node of e.g.
-	 \em JuGene), one can also execute
-	 <tt ugshell -ex jugene/scaling_analyzer.lua</tt>
-	 (adapt	file pathes in <tt>inFiles</tt> relative to \c ugshell).
+        If \c ugshell is executable on the machine used for this analysis
+        (which is \em not the case if you are working on a login node of e.g.
+        \em JuGene), one can also execute
+        <tt>ugshell -ex jugene/scaling_analyzer.lua</tt>
+        (adapt	file pathes in <tt>inFiles</tt> relative to \c ugshell).
       </li>
     </ol>
   </li>

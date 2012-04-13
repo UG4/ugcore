@@ -91,7 +91,7 @@ toolchain file, so others can benefit from your knowledge.
 \section secInstallation_of_additional_software Installation of Additional Software
 
 Unfortunately on some systems it turned out that especially the build tool 
-\em CMake, absolutely necessary to configure \ug4 (cf. \ref pageInstallUG4, 
+\em CMake, absolutely necessary to configure \ug4 (cf. \ref pageUG4Install, 
 \ref secInstallUG4CMake), was not available.
 In such cases you have to install the required software yourself (typically 
 locally).

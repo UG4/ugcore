@@ -78,7 +78,7 @@ alias cmake '$HOME/local/bin/cmake'
 A version of the <a href="http://www.boost.org">Boost library</a> is 
 automatically checked out and available in the <tt>externals/</tt> sub 
 directory of your trunk (since Jan 2012), so a local installation is usually no 
-longer necessary for building \ug4 (cf. \ref pageInstallUG4, 
+longer necessary for building \ug4 (cf. \ref pageUG4Install, 
 \ref secInstallUG4Boost).
 But if you need a special (e.g. newer) version, you can get one this way:
 <ol>
@@ -108,7 +108,7 @@ set PATH = ($PATH $HOME/local/boost_1_48_0)
   </li>
 
   <li>Instruct \em CMake to use your own copy of \em Boost when configuring 
-    \ug4 (cf. \ref pageInstallUG4, \ref secInstallUG4CMake):
+    \ug4 (cf. \ref pageUG4Install, \ref secInstallUG4CMake):
     \verbatim
 cmake -DINTERNAL_BOOST=ON <further cmake parameters> ..
     \endverbatim
