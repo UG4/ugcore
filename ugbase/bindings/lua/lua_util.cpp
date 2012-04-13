@@ -146,31 +146,32 @@ lua_State* GetDefaultLuaState()
 		//	store a pointer to the registry and avoid multiple callback registration
 			g_pRegistry = &ug::bridge::GetUGRegistry();
 			g_pRegistry->add_callback(UpdateScriptAfterRegistryChange);
+
+			g_pRegistry->add_function("ug_load_script", &LoadUGScript, "/ug4/lua",
+						"success", "", "Loads and parses a script and returns whether it succeeded.");
+
+			RegisterLuaDebug(*g_pRegistry);
+
+		//	this define makes sure that no methods are referenced that
+		//	use the algebra, even if no algebra is included.
+			#ifdef UG_ALGEBRA
+		//	Register info commands
+			RegisterInfoCommands(*g_pRegistry);
+
+		//	Register user functions
+			RegisterLuaUserData(*g_pRegistry, "/ug4");
+
+			#endif
+
+			if(!g_pRegistry->check_consistency())
+				throw(UGFatalError("Script-Registry not ok."));
+
 		}
 		
 	//	open a lua state
 		theLuaState = lua_open();
 	//	open standard libs
 		luaL_openlibs(theLuaState);
-
-		g_pRegistry->add_function("ug_load_script", &LoadUGScript, "/ug4/lua",
-					"success", "", "Loads and parses a script and returns whether it succeeded.");
-		
-		RegisterLuaDebug(*g_pRegistry);
-
-	//	this define makes sure that no methods are referenced that
-	//	use the algebra, even if no algebra is included.
-		#ifdef UG_ALGEBRA
-	//	Register info commands
-		RegisterInfoCommands(*g_pRegistry);
-
-	//	Register user functions
-		RegisterLuaUserData(*g_pRegistry, "/ug4");
-
-		#endif
-
-		if(!g_pRegistry->check_consistency())
-			throw(UGFatalError("Script-Registry not ok."));
 
 	//	create lua bindings for registered functions and objects
 		ug::bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
