@@ -94,7 +94,7 @@ class SmartPtr
 		T& operator*()				{return *m_ptr;}
 		const T& operator*() const	{return *m_ptr;}
 
-		SmartPtr& operator=(const SmartPtr& sp)	{
+		SmartPtr& operator=(const SmartPtr& sp) {
 			if(m_ptr)
 				release();
 			m_ptr = sp.m_ptr;
@@ -105,7 +105,7 @@ class SmartPtr
 		}
 
 		template <class TIn>
-		SmartPtr<T, FreePolicy>& operator=(const SmartPtr<TIn, FreePolicy>& sp)	{
+		SmartPtr<T, FreePolicy>& operator=(const SmartPtr<TIn, FreePolicy>& sp) {
 			if(m_ptr)
 				release();
 			m_ptr = sp.get_nonconst();
@@ -115,11 +115,11 @@ class SmartPtr
 			return *this;
 		}
 
-		bool operator==(const SmartPtr& sp){
+		bool operator==(const SmartPtr& sp) const {
 			return (this->get() == sp.get());
 		}
 
-		bool operator!=(const SmartPtr& sp){
+		bool operator!=(const SmartPtr& sp) const {
 			return !(this->operator==(sp));
 		}
 
@@ -291,11 +291,11 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		bool operator==(const ConstSmartPtr& sp){
+		bool operator==(const ConstSmartPtr& sp) const {
 			return (this->get() == sp.get());
 		}
 
-		bool operator!=(const ConstSmartPtr& sp){
+		bool operator!=(const ConstSmartPtr& sp) const {
 			return !(this->operator==(sp));
 		}
 
