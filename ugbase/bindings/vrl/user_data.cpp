@@ -136,9 +136,9 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 		UG_THROW_FATAL("Not implemented.");
 	}
 
-	static void toC(JNIEnv *env, MathMatrix<dim,dim>& mat, jobjectArray& myArray)
+	static void toC(JNIEnv *env, MathMatrix<dim,dim>& mat, jobjectArray& array)
 	{
-		const int rowSize = env->GetArrayLength(myArray);
+		const int rowSize = env->GetArrayLength(array);
 		if(rowSize != dim)
 			UG_THROW_FATAL(RED_BEGIN << "VRLUserMatrix: wrong row size! Required:"
 			               <<dim<<", returned: "<<rowSize<<COLOR_END << std::endl);
@@ -146,13 +146,13 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 		jdouble rowEntrys[dim];
 
 		for(int i=0; i < (int)dim; ++i){
-			jdoubleArray row = (jdoubleArray)env->GetObjectArrayElement(myArray, i);
+			jdoubleArray row = (jdoubleArray)env->GetObjectArrayElement(array, i);
 
 			const int colSize = env->GetArrayLength(row);
 				UG_THROW_FATAL(RED_BEGIN << "VRLUserMatrix: wrong column size! Required:"
 							   <<dim<<", returned: "<<colSize<<COLOR_END << std::endl);
 
-			env->GetDoubleArrayRegion(array, 0, dim, rowEntrys);
+			env->GetDoubleArrayRegion(row, 0, dim, rowEntrys);
 			for(int j=0; j < (int)dim; ++j)
 				mat[i][j]= rowEntrys[j];
 
