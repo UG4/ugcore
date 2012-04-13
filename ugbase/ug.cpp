@@ -7,6 +7,7 @@
 
 #include <stack>
 #include <cstdlib>
+#include <string>
 #include "ug.h"
 #include "common/log.h"
 #include "common/util/path_provider.h"
@@ -23,12 +24,28 @@
 	#include "common/os_dependent/plugin_util.h"
 #endif
 
+
+
+/**	Current ug version */
+//	ATTENTION: Please do not change the ug-version on your own!
+//	If you changed something that requires a new version number, please contact
+//	sreiter@gcsc.uni-frankfurt.de (for the moment...)
+std::string gUGVersionString("4.0.0");
+
+
 /** Tells whether profile-output is desired on exit.*/
 //	only visible in this file!
 static bool outputProfileStats = false;
 
+
 namespace ug
 {
+
+UG_API std::string UGGetVersionString()
+{
+	return gUGVersionString;
+}
+
 
 /**
  *  init app, script and data paths

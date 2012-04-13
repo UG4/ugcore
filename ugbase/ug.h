@@ -22,6 +22,13 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
+//	INFORMATION ON UG
+///	Returns the version number of the current ug-version
+/**	The string is formatted like this: "majorVersion.minorVersion.updateVersion"*/
+UG_API std::string UGGetVersionString();
+
+
+////////////////////////////////////////////////////////////////////////
 //	INITIALISATION AND FINALISATION
 ///	initializes ug
 /**	This method should be called at the beginning of main(...).

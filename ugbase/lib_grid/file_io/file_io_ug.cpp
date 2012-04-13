@@ -411,6 +411,7 @@ static bool WriteLGM(Grid& grid,
 	if(!out)
 		return false;
 	out.setf(ios::scientific);
+	out.precision(24);
 
 //	write the header
 	out << "#Domain-Info" << endl;
@@ -663,7 +664,7 @@ static bool WriteNG(Grid& grid,
 	if(!out)
 		return false;
 	out.setf(ios::scientific);
-
+	out.precision(24);
 //UG_LOG("INFO: WRITING DEBUG INFO TO .ng FILE!\n");//ONLY FOR DEBUG
 //size_t nodeCount = 0;//ONLY FOR DEBUG
 

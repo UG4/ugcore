@@ -315,15 +315,15 @@ int main(int argc, char* argv[])
 	LOG("********************************************************************************\n");
 	std::string aux_str(""); // for nicer output we need some padding with spaces ...
 
-	aux_str.append("* ugshell - v4.0.2, head revision '").append(SVN_REVISION).append("',");
+	aux_str.append("* ugshell - ug").append(UGGetVersionString()).append(", head revision '").append(SVN_REVISION).append("',");
 	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
 	aux_str = "";
-	aux_str.append("*                   compiled '").append(COMPILE_DATE).append("'");
+	aux_str.append("*                    compiled '").append(COMPILE_DATE).append("'");
 	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
 	aux_str = "";
-	aux_str.append("*                   on '").append(BUILD_HOST).append("'.");
+	aux_str.append("*                    on '").append(BUILD_HOST).append("'.");
 	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
 	LOG("*                                                                              *\n");
