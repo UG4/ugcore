@@ -157,15 +157,10 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 			for(int j=0; j < (int)dim; ++j)
 				mat[i][j]= rowEntrys[j];
 
-			UG_LOG("Matrix: got row: "<<i<<"\n");
-
 			// alternative is to force garbageCollector to "pin" or copy internally
 //			jdouble* rowEntrys = env->GetDoubleArrayElements(row, 0);
 //			env->ReleaseDoubleArrayElements(row, rowEntrys, 0);
 		}
-
-		UG_LOG("Matrix toC: read matrix: "<<mat<<" end toC\n");
-
 	}
 
 	static void call(JNIEnv *env, MathMatrix<dim,dim>& res,
@@ -253,6 +248,8 @@ class VRLUserData : public IPData<TData, dim>
 		{
 			JNIEnv* env = threading::getEnv(getJavaVM());
 
+			releaseGlobalRefs();
+
 			userDataObject = compileUserDataString(env, expression);
 			userDataClass = getUserDataClass(env);
 			runMethod = getUserDataRunMethod(env, userDataClass);
@@ -261,7 +258,6 @@ class VRLUserData : public IPData<TData, dim>
 
 			// create thread-safe references
 			// (GC won't deallocate them until manual deletion request)
-			releaseGlobalRefs();
 			userDataObject = env->NewGlobalRef(userDataObject);
 			userDataClass = (jclass) env->NewGlobalRef((jobject) userDataClass);
 			checkException(env, name().append(": Global Reference Error."));
@@ -276,11 +272,8 @@ class VRLUserData : public IPData<TData, dim>
 			// convert parameters
 			jdoubleArray params = ConvertParametersToJava(env, x, time);
 
-			UG_LOG("invoking VRLData ...\n");
 			if (runMethod != NULL)
 				vrl_traits<TData>::call(env, c, userDataObject, runMethod, params);
-
-			UG_LOG("data is: "<<c<<" end data\n");
 		}
 
 		void releaseGlobalRefs()
