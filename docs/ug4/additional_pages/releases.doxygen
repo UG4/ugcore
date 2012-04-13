@@ -6,8 +6,8 @@ each release.
 
 <br>
 <hr>
-\section secUG4_0	ug4.0
-ug4.0 is the first release of the \ug4 simulation environment. While this version does not
+\section secUG4_0_0	ug4.0.0
+ug4.0.0 is the first release of the \ug4 simulation environment. While this version does not
 yet contain all of the planned features of \ug4, it already provides a rich
 simulation environment which is used in many different projects.
 
@@ -20,7 +20,8 @@ Note that this list is far from complete.
 	  been tested.
 	- \ug4 runs on laptops as well as on large scale parallel clusters. Scalability
 	  of the provided geometric multigrid solver has been shown for up to
-	  262144 (256ki) processes. It may very well scale well for even more processes.
+	  262144 (256ki) processes. It may well show a good scaling behavior
+	  for even more processes.
 	- \ug4 not only provides a flexible scripting environment throug the use of
 	  the lua scripting language, it also provides bindings to java and the
 	  "Visual Programming Languge" vrl. The latter allows to build a simulation
