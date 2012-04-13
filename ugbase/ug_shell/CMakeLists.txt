@@ -38,7 +38,7 @@ message(STATUS "Info: SHELLTYPE: "${SHELLTYPE}" (options are: "${shelltypeOption
 
 
 # set the main sources
-set(srcUGShell	    main.cpp
+set(srcUGShell	    ugshell_main.cpp
                     completion.cpp)
 
 
