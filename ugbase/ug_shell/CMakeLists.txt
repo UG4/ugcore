@@ -38,13 +38,13 @@ message(STATUS "Info: SHELLTYPE: "${SHELLTYPE}" (options are: "${shelltypeOption
 
 
 # set the main sources
-set(srcUGShell	    src/main.cpp
-                    src/completion.cpp)
+set(srcUGShell	    main.cpp
+                    completion.cpp)
 
 
 if("${SHELLTYPE}" STREQUAL "linenoise")
 	add_definitions(-DUG_USE_LINENOISE)
-	set(srcUGShell	${srcUGShell} src/externals/linenoise/linenoise.cpp)
+	set(srcUGShell	${srcUGShell} externals/linenoise/linenoise.cpp)
 	
 elseif("${SHELLTYPE}" STREQUAL "readline")
 	if(libReadline)
