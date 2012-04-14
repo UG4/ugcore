@@ -49,6 +49,12 @@ Note that this list is far from complete.
 	- Tools and utilities to inspect large matrices.
 	- Operators and structures are registered at ug's registry and are thus
 	  available both in ug-script and in the vrl.
+	- Algebraic Multigrid methods: A abstract parallel algebraic multigrid framework including
+	  calculation of matrix overlaps, several parallel coarsening algorithms, agglomeration of
+	  processors, and a lot of debugging mechanisms for checking at each AMG level:
+	  where error is not corrected, what matrix is produced (including graphical output).
+	  On implementations we have a Ruge-Stüben AMG, and a Filtering AMG (in development).
+	- a PINVIT/LOBPCG eigensolver (in development).
 
 - libDisc
 	- Highly flexible discretization library, which provides modular
