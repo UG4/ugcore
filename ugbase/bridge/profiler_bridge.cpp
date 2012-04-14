@@ -291,24 +291,44 @@ public:
 		return 0.0;
 	}
 
-	string call_tree()
+	string call_tree(double dSkipMarginal) const
 	{
-		return "Profiler not availabel!";
+		return "Profiler not available!";
+	}
+
+	string call_tree() const
+	{
+		return call_tree(0.0);
+	}
+
+	string child_self_time_sorted(double dSkipMarginal) const
+	{
+		return "Profiler not available!";
 	}
 
 	string child_self_time_sorted() const
 	{
-		return "Profiler not availabel!";
+		return child_self_time_sorted(0.0);
+	}
+
+	string total_time_sorted(double dSkipMarginal) const
+	{
+		return "Profiler not available!";
 	}
 
 	string total_time_sorted() const
 	{
-		return "Profiler not availabel!";
+		return total_time_sorted(0.0);
+	}
+
+	string entry_count_sorted(double dSkipMarginal) const
+	{
+		return "Profiler not available!";
 	}
 
 	string entry_count_sorted() const
 	{
-		return "Profiler not availabel!";
+		return entry_count_sorted(0.0);
 	}
 
 	/// \return true if node has been found
