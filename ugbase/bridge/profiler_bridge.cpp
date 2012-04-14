@@ -123,7 +123,7 @@ public:
 		return reinterpret_cast<const UGProfilerNode*>(nextSibling);
 	}
 
-	string call_tree(double dSkipMarginal=0.0) const
+	string call_tree(double dSkipMarginal) const
 	{
 		if(!valid()) return "Profile Node not valid!";
 
@@ -135,19 +135,36 @@ public:
 		return s.str();
 	}
 
-	string child_self_time_sorted(double dSkipMarginal=0.0) const
+	string call_tree() const
+	{
+		return call_tree(0.0);
+	}
+
+	string child_self_time_sorted(double dSkipMarginal) const
 	{
 		return child_sorted("self time sorted", UGProfilerNode::self_time_sort, dSkipMarginal);
 	}
+	string child_self_time_sorted() const
+	{
+		return child_self_time_sorted(0.0);
+	}
 
-	string total_time_sorted(double dSkipMarginal=0.0) const
+	string total_time_sorted(double dSkipMarginal) const
 	{
 		return child_sorted("total time sorted", UGProfilerNode::total_time_sort, dSkipMarginal);
 	}
+	string total_time_sorted() const
+	{
+		return total_time_sorted(0.0);
+	}
 
-	string entry_count_sorted(double dSkipMarginal=0.0) const
+	string entry_count_sorted(double dSkipMarginal) const
 	{
 		return child_sorted("entry count sorted", UGProfilerNode::entry_count_sort, dSkipMarginal);
+	}
+	string entry_count_sorted() const
+	{
+		return entry_count_sorted(0.0);
 	}
 
 	// \return true if node has been found
@@ -336,23 +353,30 @@ bool RegisterProfileFunctions(Registry &reg, string parentGroup)
 	string grp = ss.str();
 
 	reg.add_class_<UGProfilerNode>("UGProfilerNode", grp)
-		.add_method("call_tree", (string(UGProfilerNode::*)() const)&UGProfilerNode::call_tree, "string with call tree")
-		.add_method("call_tree", (string(UGProfilerNode::*)(double dSkipMarginal) const) &UGProfilerNode::call_tree, "string with call tree",
+		.add_method("call_tree", static_cast<string(UGProfilerNode::*)() const>(&UGProfilerNode::call_tree), "string with call tree")
+		.add_method("call_tree",
+				static_cast<string(UGProfilerNode::*)(double dSkipMarginal) const>(&UGProfilerNode::call_tree), "string with call tree",
 				"dSkipMarginal")
 
-		.add_method("child_self_time_sorted", (string(UGProfilerNode::*)() const)&UGProfilerNode::child_self_time_sorted,
+		.add_method("child_self_time_sorted",
+				static_cast<string(UGProfilerNode::*)() const>(&UGProfilerNode::child_self_time_sorted),
 				"string with sorted childs", "", "childs are sorted by self time")
-		.add_method("child_self_time_sorted", (string(UGProfilerNode::*)(double dSkipMarginal) const)&UGProfilerNode::child_self_time_sorted,
+		.add_method("child_self_time_sorted",
+				static_cast<string(UGProfilerNode::*)(double dSkipMarginal) const>(&UGProfilerNode::child_self_time_sorted),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by self time")
 
-		.add_method("total_time_sorted", (string(UGProfilerNode::*)() const)&UGProfilerNode::total_time_sorted,
+		.add_method("total_time_sorted",
+				static_cast<string(UGProfilerNode::*)() const>(&UGProfilerNode::total_time_sorted),
 				"string with sorted childs", "", "childs are sorted by total time")
-		.add_method("total_time_sorted", (string(UGProfilerNode::*)(double dSkipMarginal) const)&UGProfilerNode::total_time_sorted,
+		.add_method("total_time_sorted",
+				static_cast<string(UGProfilerNode::*)(double dSkipMarginal) const>(&UGProfilerNode::total_time_sorted),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by total time")
 
-		.add_method("entry_count_sorted", (string(UGProfilerNode::*)() const)&UGProfilerNode::entry_count_sorted,
+		.add_method("entry_count_sorted",
+				static_cast<string(UGProfilerNode::*)() const>(&UGProfilerNode::entry_count_sorted),
 				"string with sorted childs", "", "childs are sorted by entry count")
-		.add_method("entry_count_sorted", (string(UGProfilerNode::*)(double dSkipMarginal) const)&UGProfilerNode::entry_count_sorted,
+		.add_method("entry_count_sorted",
+				static_cast<string(UGProfilerNode::*)(double dSkipMarginal) const>(&UGProfilerNode::entry_count_sorted),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by entry count")
 
 		.add_method("get_avg_entry_count", &UGProfilerNode::get_avg_entry_count,
