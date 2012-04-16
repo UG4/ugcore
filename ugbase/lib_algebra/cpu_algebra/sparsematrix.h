@@ -83,7 +83,7 @@ public:
 	/// constructor for empty SparseMatrix
 	SparseMatrix();
 	/// destructor
-	~SparseMatrix ();
+	virtual ~SparseMatrix ();
 
 
 	/**

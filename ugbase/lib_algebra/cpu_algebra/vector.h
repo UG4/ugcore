@@ -38,7 +38,7 @@ public:
 	Vector(size_t _length);
 
 	//! destructor
-	~Vector();
+	virtual ~Vector();
 
 	Vector(const vector_type & v)
 	{
