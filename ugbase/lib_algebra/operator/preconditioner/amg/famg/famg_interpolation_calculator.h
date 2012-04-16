@@ -996,8 +996,9 @@ private:
 		DenseVector<VariableArray1<double> > lambda;
 		lambda.resize(N);
 
+		UG_ASSERT(0, "generalizedEigenvalueProblem has to be fixed.");
 		/*int res =*/
-		GeneralizedEigenvalueProblem(localS, X, lambda, B, true);
+		//GeneralizedEigenvalueProblem(localS, X, lambda, B, true);
 
 
 		// X.maple_print("X");
