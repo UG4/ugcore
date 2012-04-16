@@ -176,7 +176,9 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 	d = const_d;
 
 	//UG_LOG("\nLEVEL 0\n\n");
+#ifdef UG_PARALLEL
 	UG_LOG("agglomerate Level is " << m_agglomerateLevel << ", used levels is " << m_usedLevels << "\n");
+#endif
 
 	std::vector<checkResult> checkRes(m_usedLevels-1);
 	for(size_t level=0; level<m_usedLevels; level++)
@@ -221,11 +223,13 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 			pA = levels[level]->collectedA;
 		}
 #endif
+#ifdef UG_PARALLEL
 		if(m_agglomerateLevel==(unsigned int)(-1) && level == m_usedLevels-1)
 		{
 			UG_LOG("breaking2 " << level << "\n");
 			break;
 		}
+#endif
 
 		UG_LOG("checking level " << level << "\n");
 		check_level(*pC, *pD, *pA, level, checkRes[level]);
@@ -387,7 +391,11 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	double preHnorm=nH1;
 	size_t i=0;
 
+#ifdef UG_PARALLEL
 	if(level+1 == m_usedLevels-1 && level+1 != m_agglomerateLevel)
+#else
+	if(level+1 == m_usedLevels-1)
+#endif
 	{
 #if 0
 		// tried to check basesolver here
