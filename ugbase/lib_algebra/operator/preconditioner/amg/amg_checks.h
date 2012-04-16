@@ -143,7 +143,7 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 			file << i << " " << d[i] - solution2[i] << std::endl;
 	else
 		for(size_t i=0; i<d.size(); i++)
-					file << i << " " << d[i] << std::endl;
+			file << i << " " << d[i] << std::endl;
 	return true;
 }
 
@@ -164,11 +164,11 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 	UG_LOG("         check     \n");
 	UG_LOG("========================\n");
 
-	if(m_usedLevels <= 1)
+	/*if(m_usedLevels <= 1)
 	{
 		UG_LOG("No Multigrid hierachy.\n");
 		return true;
-	}
+	}*/
 	vector_type c, d;
 	CloneVector(c, const_c);
 	CloneVector(d, const_d);
@@ -176,9 +176,10 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 	d = const_d;
 
 	//UG_LOG("\nLEVEL 0\n\n");
+	UG_LOG("agglomerate Level is " << m_agglomerateLevel << ", used levels is " << m_usedLevels << "\n");
 
 	std::vector<checkResult> checkRes(m_usedLevels-1);
-	for(size_t level=0; level<m_usedLevels-2; level++)
+	for(size_t level=0; level<m_usedLevels; level++)
 	{
 		vector_type *pC, *pD;
 
@@ -194,21 +195,40 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 			pC->set(0.0); // think about that
 		}
 
+		SmartPtr<matrix_operator_type> pA = levels[level]->pA;
+
 #ifdef UG_PARALLEL
 		if(levels[level]->bLevelHasMergers)
 		{
-			gather_vertical(*pD, levels[level]->collD, 0, PST_ADDITIVE);
-			gather_vertical(*pC, levels[level]->collC, 0, PST_CONSISTENT);
+			UG_LOG("level " << level << " has mergers\n");
+			try
+			{
+			gather_vertical(*pD, levels[level]->collD, level, PST_ADDITIVE);
 
+			gather_vertical(*pC, levels[level]->collC, level, PST_CONSISTENT);
+			}
+			catch(...)
+			{
+				UG_LOG("catch???");
+			}
 			if(isMergingSlave(level))
+			{
+				UG_LOG("breaking, because i'm slave on level " << level << "\n");
 				break;
-
-			check_level(levels[level]->collC, levels[level]->collD,
-				*levels[level]->collectedA, level, checkRes[level]);
+			}
+			pD = &levels[level]->collD;
+			pC = &levels[level]->collC;
+			pA = levels[level]->collectedA;
 		}
-		else
 #endif
-		check_level(*pC, *pD, *levels[level]->pA, level, checkRes[level]);
+		if(m_agglomerateLevel==(unsigned int)(-1) && level == m_usedLevels-1)
+		{
+			UG_LOG("breaking2 " << level << "\n");
+			break;
+		}
+
+		UG_LOG("checking level " << level << "\n");
+		check_level(*pC, *pD, *pA, level, checkRes[level]);
 
 		vector_type d2;
 		CloneVector(d2, *pD);
@@ -217,8 +237,9 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 		//levels[i]->R.apply(levels[i]->cH, c2); // other possiblity, think about that
 	}
 
+	UG_LOG("out\n");
 #ifdef UG_PARALLEL
-	const_c.process_communicator().barrier();
+//	const_c.process_communicator().barrier();
 #endif
 	return true;
 }
@@ -287,7 +308,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	UG_LOG(0 << ":	" << " - " << "\t" << firstnorm << "\n");
 	for(size_t i=0; i<m_iNrOfPreiterationsCheck; i++)
 	{
-		add_correction_and_update_defect(c, d, level);
+		add_correction_and_update_defect2(c, d, *L.pAgglomeratedA, level);
 
 		if(m_writeMatrices) writevec((std::string("cc")+ToString(i+1)).c_str(), c, level, solution);
 		if(m_writeMatrices) writevec((std::string("c")+ToString(i+1)).c_str(), c, level);
@@ -366,7 +387,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	double preHnorm=nH1;
 	size_t i=0;
 
-	if(level+1 == m_usedLevels-1)
+	if(level+1 == m_usedLevels-1 && level+1 != m_agglomerateLevel)
 	{
 #if 0
 		// tried to check basesolver here

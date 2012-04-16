@@ -25,7 +25,6 @@
 
 #include "lib_algebra/common/connection_viewer_output.h"
 
-
 std::string GetProcFilename(std::string path, std::string name, std::string extension);
 
 namespace ug{
@@ -498,9 +497,8 @@ void AMGBase<TAlgebra>::init_fsmoothing()
 		m_diag.set_communicator(mat.communicator());
 
 		// copy diagonal
-		for(size_t i = 0; i < m_diag.size(); ++i){
+		for(size_t i = 0; i < m_diag.size(); ++i)
 			m_diag[i] = mat(i, i);
-		}
 
 		//	make diagonal consistent
 		m_diag.set_storage_type(PST_ADDITIVE);
@@ -523,7 +521,7 @@ bool AMGBase<TAlgebra>::f_smoothing(vector_type &corr, vector_type &d, size_t le
 	AMG_PROFILE_FUNC();
 	AMGLevel &L = *levels[level];
 	stdvector<bool> &is_fine = L.is_fine;
-	matrix_operator_type &A = *L.pA;
+	matrix_operator_type &A = *L.pAgglomeratedA;
 #ifdef UG_PARALLEL
 
 	//UG_ASSERT(L.m_diagInv.size() == is_fine.size(), "fine markers do not match in size on level " << level);

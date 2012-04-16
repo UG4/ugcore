@@ -18,6 +18,7 @@ bool AMGBase<TAlgebra>::gather_vertical(vector_type &vec, vector_type &collected
 
 	if(!levels[level]->bHasBeenMerged)
 	{
+		//UG_LOG("gather_vertical: not merging at level " << level << "\n");
 		if(&vec == &collectedVec) return true;
 		else
 		{
@@ -29,13 +30,14 @@ bool AMGBase<TAlgebra>::gather_vertical(vector_type &vec, vector_type &collected
 	{
 		if(m_agglomerateLevel == level)
 		{
+			//UG_LOG("gather_vertical: sending data at level " << level << "\n");
 			ComPol_VecAdd<vector_type > compolAdd(&collectedVec, &vec);
 			com.send_data(agglomerateSlaveLayout, compolAdd);
 			com.communicate();
 		}
 		else
 		{
-
+			//UG_LOG("gather_vertical: receiving data at level " << level << "\n");
 			UG_ASSERT(&vec != &collectedVec, "");
 			collectedVec.set(0.0);
 			for(size_t i=0; i<vec.size(); i++)
@@ -73,6 +75,7 @@ bool AMGBase<TAlgebra>::broadcast_vertical(vector_type &vec, vector_type &collec
 
 	if(!levels[level]->bHasBeenMerged)
 	{
+		//UG_LOG("broadcast_vertical: not merging at level " << level << "\n");
 		if(&vec == &collectedVec) return true;
 		else
 		{
@@ -84,6 +87,8 @@ bool AMGBase<TAlgebra>::broadcast_vertical(vector_type &vec, vector_type &collec
 	{
 		if(m_agglomerateLevel == level)
 		{
+
+			//UG_LOG("broadcast_vertical: receiving data at level " << level << "\n");
 			ComPol_VecCopy<vector_type> compolCopy(&vec, &collectedVec);
 			com.receive_data(agglomerateSlaveLayout, compolCopy);
 			com.communicate();
@@ -91,13 +96,15 @@ bool AMGBase<TAlgebra>::broadcast_vertical(vector_type &vec, vector_type &collec
 			if(type == PST_ADDITIVE)
 			{
 				vec.set_storage_type(PST_ADDITIVE);
-				SetLayoutValues(&vec, agglomerateSlaveLayout, 0.0); //!!!
+				SetLayoutValues(&vec, vec.slave_layout(), 0.0); //!!!
 			}
 			else if(type == PST_CONSISTENT) {	}
 			else { UG_ASSERT(0, "unsupported."); }
 		}
 		else
 		{
+
+			//UG_LOG("broadcast_vertical: sending data at level " << level << "\n");
 			UG_ASSERT(&vec != &collectedVec, "");
 			for(size_t i=0; i<vec.size(); i++)
 				vec[i] = collectedVec[i];
@@ -144,8 +151,10 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 	if(levels[level]->bLevelHasMergers)
 	{
 		//matrix_operator_type &collA = *L.pAgglomeratedA;
-
 		gather_vertical(d, L.collD, level, PST_ADDITIVE);
+
+		// set 0 anyway
+		//gather_vertical(c, L.collC, level, PST_CONSISTENT);
 
 		bool b=true;
 		if(!isMergingSlave(level))
@@ -153,8 +162,10 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 			L.collC.set(0.0);
 			b = add_correction_and_update_defect2(L.collC, L.collD, *L.pAgglomeratedA, level);
 		}
+
 		broadcast_vertical(c, L.collC, level, PST_CONSISTENT);
 		broadcast_vertical(d, L.collD, level, PST_ADDITIVE);
+
 		return b;
 	}
 	else
@@ -414,9 +425,9 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 	if(mergeWith.size() > 1)
 	{
 		L.bHasBeenMerged = true;
-		//UG_LOG("I am the merging father for pids ");
-		/*for(size_t i=1; i<mergeWith.size(); i++) UG_LOG(mergeWith[i] << " ");
-		UG_LOG("\n");*/
+		UG_LOG("I am the merging father for pids ");
+		for(size_t i=1; i<mergeWith.size(); i++) UG_LOG(mergeWith[i] << " ");
+		UG_LOG("\n");
 		mergeWith.erase(mergeWith.begin());
 
 		//PrintGlobalLayout(globalMasterLayout, "globalmasterLayout before");
@@ -466,7 +477,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		if(pid == pcl::GetProcRank())
 		{
 			L.bHasBeenMerged = false;
-			//UG_LOG("Not merging.\n");
+			UG_LOG("Not merging.\n");
 			L.agglomeratedPC = A.process_communicator().create_sub_communicator(true);
 
 			MergeGlobalLayout(globalMasterLayout, merge);
@@ -499,7 +510,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		else
 		{
 			L.bHasBeenMerged = true;
-			//UG_LOG("MERGING to " << pid << "\n");
+			UG_LOG("MERGING to " << pid << "\n");
 
 			SendMatrix(A, agglomerateSlaveLayout, pid, PN);
 
