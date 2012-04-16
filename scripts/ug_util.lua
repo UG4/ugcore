@@ -315,6 +315,12 @@ function ListUserDataInTable(t, name)
       if type(v) == "userdata" then
 		 print(name.."["..n.."]")
       end
+  
+	  if type(v) == "table" then
+		if(n ~= "_G" and n ~= "io" and n ~= "package") then 
+			ListUserDataInTable(v, name.."["..n.."]")
+		end
+  	  end
     end
 end
 
@@ -328,7 +334,7 @@ function ListUserData()
     
 	    -- userdata in table
 		if type(v) == "table" then
-			if(n ~= "_G" and n ~= "io") then 
+			if(n ~= "_G" and n ~= "io" and n ~= "package") then 
 				ListUserDataInTable(_G[n], n)
 			end
 		end
@@ -340,6 +346,13 @@ function FreeUserDataInTable(t)
       if type(v) == "userdata" then
       	 t[n] = nil
       end
+      
+      if type(v) == "table" then
+		if(n ~= "_G" and n ~= "io" and n ~= "package") then
+			FreeUserDataInTable(v)
+		end
+  	  end
+      
     end
 end
 
@@ -352,7 +365,7 @@ function FreeUserData()
       end
       
       if type(v) == "table" then
- 		if(n ~= "_G" and n ~= "io") then 
+		if(n ~= "_G" and n ~= "io" and n ~= "package") then
  	     	FreeUserDataInTable(_G[n])
  	     end
       end
