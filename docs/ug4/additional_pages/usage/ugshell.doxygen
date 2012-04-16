@@ -334,51 +334,90 @@ Finally, navigating on a terminal may seem uncomfortable, definining a (bash)
 shell function <em>cdug</em> could improve that:
 \verbatim
 function cdug() {
-  local UG4_ROOT=~/ug4
-  local SEP=_
+   local UG4_ROOT=~/ug4
+   local SEP=_
+   local DEST=
+   local CD_CMD=cd
   
-  if [ ! -d "$UG4_ROOT/$1" -o -z "$1" ]; then
-    echo -e  "\e[0;35m$1\e[0;30m: directory does not exist, changing to \e[0;35m$UG4_ROOT\e[0;30m (UG4_ROOT) instead."
-    cd $UG4_ROOT;
-  else
-    if [[ "$1" == builds ]]; then 
-      cd $MY_UG4_ROOT/builds;
-    elif [[ "$1" == trunk ]]; then
-      cd $MY_UG4_ROOT/trunk/;
-    elif [[ "$1" == branches ]]; then
-      cd $UG4_ROOT/branches/;
-    elif [[ "$1" == plugins* ]]; then
-      if [[ "$1" == plugins/ex* ]]; then
-        cd $UG4_ROOT/trunk/plugins/experimental/;
-      elif [[ "$1" == plugins/co* ]]; then
-        cd $UG4_ROOT/trunk/plugins/core/;
-      else
-        cd $UG4_ROOT/trunk/plugins/;
-      fi
-    elif [[ "$1" == build_* ]]; then
-      cd $UG4_ROOT/builds/${1#$SEP}/;
-    elif [[ "$1" == branch_* ]]; then
-      cd $UG4_ROOT/branches/${1#$SEP}/;
-    elif [[ "$1" == docs ]]; then
-      cd $UG4_ROOT/trunk/docs/;
-    elif [[ "$1" == apps ]]; then
-      cd $UG4_ROOT/trunk/apps;
-    elif [[ "$1" == scripts ]]; then
-      cd $UG4_ROOT/trunk/scripts;
-    elif [[ "$1" == unit_tests ]]; then
-      cd $UG4_ROOT/trunk/unit_tests;
-    elif [[ "$1" == data ]]; then
-      cd $UG4_ROOT/trunk/data;
-    elif [[ "$1" == ugbase ]]; then
-      cd $UG4_ROOT/trunk/ugbase;
-    else
-      cd $UG4_ROOT;
-    fi
-  fi
+   if [ -z "$1" ]; then
+      DEST=$UG4_ROOT/trunk
+   else
+      case $1 in
+      builds)
+         DEST=$UG4_ROOT/builds
+         ;;
+      trunk)
+         DEST=$UG4_ROOT/trunk
+         ;;
+      branches)
+         DEST=$UG4_ROOT/branches/;
+         ;;
+      plugins)
+         DEST=$UG4_ROOT/trunk/plugins/;
+         ;;
+      plugins/ex*)
+         DEST=$UG4_ROOT/trunk/plugins/experimental/;
+         ;;
+      plugins/co*)
+         DEST=$UG4_ROOT/trunk/plugins/core/;
+         ;;
+      build$SEP*)
+         DEST=$UG4_ROOT/builds/${1##*$SEP}/;
+         ;;
+      branch$SEP*)
+         DEST=$UG4_ROOT/branches/${1##*$SEP}/;
+         ;;
+      docs)
+         DEST=$UG4_ROOT/trunk/docs/;
+         ;;
+      apps)
+         DEST=$UG4_ROOT/trunk/apps;
+         ;;
+      scripts)
+         DEST=$UG4_ROOT/trunk/scripts;
+         ;;
+      unit_tests)
+         DEST=$UG4_ROOT/trunk/unit_tests;
+         ;;
+      data)
+         DEST=$UG4_ROOT/trunk/data;
+         ;;
+      ugbase)
+         DEST=$UG4_ROOT/trunk/ugbase;
+         ;;
+      bin)
+         DEST=$UG4_ROOT/trunk/bin;
+         ;;
+      externals)
+         DEST=$UG4_ROOT/trunk/externals;
+         ;;
+      lib)
+         DEST=$UG4_ROOT/trunk/lib;
+         ;;
+      tags)
+         DEST=$UG4_ROOT/tags
+         ;;
+      tag$SEP)
+         DEST=$UG4_ROOT/tags/${1##*$SEP}/;
+         ;;
+      *)
+         DEST=$UG4_ROOT/$1
+         ;;
+      esac
+   fi
+   
+   if [ ! -d "$DEST" ]; then
+      echo -e  "\e[0;35m$1\e[0;30m: directory does not exist, changing to \e[0;35m$UG4_ROOT\e[0;30m (UG4_ROOT) instead."
+      $CD_CMD $UG4_ROOT
+   else
+      $CD_CMD $DEST
+   fi
+
 }
-complete -W "apps builds branches data docs scripts trunk ugbase unit_tests plugins" # -o plusdirs cdug
 \endverbatim
-Optionally you can supply <tt>-o plusdirs</tt> for <tt>\<TAB\></tt> complete 
-directories.
+\note Enable completion:
+\verbatim
+complete -W "apps bin builds branches data docs externals lib scripts tags trunk ugbase unit_tests plugins" cdug # -o pl
+\endverbatim
 
 */
