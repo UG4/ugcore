@@ -305,3 +305,57 @@ function bool2string(boolB)
 		return "false"
 	end
 end
+
+--------------------------------------------------------------------------------
+-- list and free user data
+--------------------------------------------------------------------------------
+
+function ListUserDataInTable(t, name)
+   	for n,v in pairs(t) do
+      if type(v) == "userdata" then
+		 print(name.."["..n.."]")
+      end
+    end
+end
+
+-- Lists all user data (even in tables)
+function ListUserData()
+   	for n,v in pairs(_G) do
+	   -- all userdata
+	   if type(v) == "userdata" then
+		 print(n)
+	   end
+    
+	    -- userdata in table
+		if type(v) == "table" then
+			if(n ~= "_G" and n ~= "io") then 
+				ListUserDataInTable(_G[n], n)
+			end
+		end
+    end
+end
+
+function FreeUserDataInTable(t)
+   	for n,v in pairs(t) do
+      if type(v) == "userdata" then
+      	 t[n] = nil
+      end
+    end
+end
+
+-- sets all userdata to nil (even in tables) and calls garbage collector
+function FreeUserData()
+   -- set user data to nil
+   for n,v in pairs(_G) do
+      if type(v) == "userdata" then
+		 _G[n] = nil
+      end
+      
+      if type(v) == "table" then
+      	FreeUserDataInTable(_G[n])
+      end
+   end
+   
+   -- call garbage collector
+   collectgarbage("collect")
+end
