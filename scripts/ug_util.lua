@@ -352,7 +352,9 @@ function FreeUserData()
       end
       
       if type(v) == "table" then
-      	FreeUserDataInTable(_G[n])
+ 		if(n ~= "_G" and n ~= "io") then 
+ 	     	FreeUserDataInTable(_G[n])
+ 	     end
       end
    end
    
