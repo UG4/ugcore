@@ -94,14 +94,16 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 	li.set_max_connections(pc.allreduce(maxConnections, PCL_RO_MAX));
 	size_t localInterfaceElements = A.master_layout().num_interface_elements();
 	li.m_iInterfaceElements = pc.allreduce(localInterfaceElements, PCL_RO_SUM);
+	li.m_iParticipating=pc.size();
+
 #else
 	size_t N = A.num_rows();
 	li.set_nr_of_nodes(N, N, N);
 	li.set_nnz(nnz, nnz, nnz);
 	li.set_max_connections(maxConnections);
 	li.m_iInterfaceElements = 0;
+	li.m_iParticipating=1;
 #endif
-	li.m_iParticipating=pc.size();
 	if(level>0)
 		li.set_coarsening_rate((double)li.get_nr_of_nodes()/
 				(double)m_levelInformation[level-1].get_nr_of_nodes());
