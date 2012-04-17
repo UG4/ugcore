@@ -250,6 +250,69 @@ print_average_convergence() const
 }
 
 template <typename TAlgebra>
+size_t
+NewtonSolver<TAlgebra>::
+num_newton_steps() const
+{
+	return m_vLinSolverCalls.size();
+}
+
+template <typename TAlgebra>
+int
+NewtonSolver<TAlgebra>::
+num_linsolver_calls(size_t call) const
+{
+	return m_vLinSolverCalls[call];
+}
+
+template <typename TAlgebra>
+int
+NewtonSolver<TAlgebra>::
+num_linsolver_steps(size_t call) const
+{
+	return m_vTotalLinSolverSteps[call];
+}
+
+template <typename TAlgebra>
+double
+NewtonSolver<TAlgebra>::
+average_linear_steps(size_t call) const
+{
+	return m_vTotalLinSolverSteps[call] / ((double)m_vLinSolverCalls[call]);
+}
+
+template <typename TAlgebra>
+int
+NewtonSolver<TAlgebra>::
+total_linsolver_calls() const
+{
+	int allCalls = 0;
+	for(size_t call = 0; call < m_vLinSolverCalls.size(); ++call)
+		allCalls += m_vLinSolverCalls[call];
+	return allCalls;
+}
+
+template <typename TAlgebra>
+int
+NewtonSolver<TAlgebra>::
+total_linsolver_steps() const
+{
+	int allSteps = 0;
+	for(size_t call = 0; call < m_vLinSolverCalls.size(); ++call)
+		allSteps += m_vTotalLinSolverSteps[call];
+	return allSteps;
+}
+
+template <typename TAlgebra>
+double
+NewtonSolver<TAlgebra>::
+total_average_linear_steps() const
+{
+	return total_linsolver_steps()/((double)total_linsolver_calls());
+}
+
+
+template <typename TAlgebra>
 void
 NewtonSolver<TAlgebra>::
 clear_average_convergence()

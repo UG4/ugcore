@@ -173,6 +173,13 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 			.add_method("apply", &T::apply)
 			.add_method("print_average_convergence", &T::print_average_convergence)
 			.add_method("clear_average_convergence", &T::clear_average_convergence)
+			.add_method("num_newton_steps", &T::num_newton_steps)
+			.add_method("num_linsolver_calls", &T::num_linsolver_calls)
+			.add_method("num_linsolver_steps", &T::num_linsolver_steps)
+			.add_method("average_linear_steps", &T::average_linear_steps)
+			.add_method("total_linsolver_calls", &T::total_linsolver_calls)
+			.add_method("total_linsolver_steps", &T::total_linsolver_steps)
+			.add_method("total_average_linear_steps", &T::total_average_linear_steps)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NewtonSolver", algTag);
 	}

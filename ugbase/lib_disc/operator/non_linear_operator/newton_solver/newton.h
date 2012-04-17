@@ -83,6 +83,14 @@ class NewtonSolver
 		// prints average linear solver convergence
 		void print_average_convergence() const;
 
+		size_t num_newton_steps() const;
+		int num_linsolver_calls(size_t call) const;
+		int num_linsolver_steps(size_t call) const;
+		double average_linear_steps(size_t call) const;
+		int total_linsolver_calls() const;
+		int total_linsolver_steps() const;
+		double total_average_linear_steps() const;
+
 		// resets average linear solver convergence
 		void clear_average_convergence();
 
