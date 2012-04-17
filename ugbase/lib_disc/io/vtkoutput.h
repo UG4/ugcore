@@ -80,7 +80,7 @@ class VTKOutput{
 	 * \param[in]	fctName		symbolic name of component
 	 * \param[in]	name		name that will appear in the vtk file for the data
 	 */
-		bool select_nodal_scalar(const char* fctName, const char* name);
+		void select_nodal_scalar(const char* fctName, const char* name);
 
 	///	selects a nodal vector value to be written
 	/**
@@ -94,7 +94,7 @@ class VTKOutput{
 	 * \param[in]	fctName		symbolic name of components
 	 * \param[in]	name		name that will appear in the vtk file for the data
 	 */
-		bool select_nodal_vector(const char* fctNames, const char* name);
+		void select_nodal_vector(const char* fctNames, const char* name);
 
 	/**
 	 * This function writes the grid to a *.vtu file. It calls the function
@@ -108,12 +108,12 @@ class VTKOutput{
 	 * \param[in]	time			time point corresponding to timestep
 	 * \param[in]	makeConsistent	flag if data shall be made consistent before printing
 	 */
-		bool print(const char*  filename, function_type& u,
+		void print(const char*  filename, function_type& u,
 		           int step, number time,
 				   bool makeConsistent);
 
 	/**	Calls print with makeConsistent enabled.*/
-		bool print(const char*  filename, function_type& u,
+		void print(const char*  filename, function_type& u,
 		           int step, number time)
 		{
 			return print(filename, u, step, time, true);
@@ -127,14 +127,14 @@ class VTKOutput{
 	 * \param[in]	u				grid function
 	 * \param[in]	makeConsistent	flag if data shall be made consistent before printing
 	 */
-		bool print(const char*  filename, function_type& u,
+		void print(const char*  filename, function_type& u,
 				   bool makeConsistent)
 		{
-			return print(filename, u, -1, 0.0, makeConsistent);
+			print(filename, u, -1, 0.0, makeConsistent);
 		}
 
 	/**	Calls print with makeConsistent enabled.*/
-		bool print(const char*  filename, function_type& u)
+		void print(const char*  filename, function_type& u)
 		{
 			return print(filename, u, true);
 		}
@@ -161,12 +161,12 @@ class VTKOutput{
 	 * \param[in]		time			time point of timestep
 	 * \param[in]	makeConsistent	flag if data shall be made consistent before printing
 	 */
-		bool print_subset(const char* filename, function_type& u,
+		void print_subset(const char* filename, function_type& u,
 		                  int si, int step = -1, number time = 0.0,
 						  bool makeConsistent = true);
 
 	/**	Calls print_subset with makeConsistent enabled.*/
-		bool print_subset(const char* filename, function_type& u,
+		void print_subset(const char* filename, function_type& u,
 		                  int si, int step = -1, number time = 0.0)
 		{
 			return print_subset(filename, u, si, step, time, true);
@@ -179,7 +179,7 @@ class VTKOutput{
 	 * \param[in]		filename		filename used in time series
 	 * \param[in]		u				grid function
 	 */
-		bool write_time_pvd(const char* filename, function_type& u);
+		void write_time_pvd(const char* filename, function_type& u);
 
 	protected:
 	/**
@@ -193,7 +193,7 @@ class VTKOutput{
 	 * \param[out]		numElem		number of elements
 	 * \param[out]		numConn		number of connections
 	 */
-		bool count_piece_sizes(function_type& u, int si, int dim,
+		void count_piece_sizes(function_type& u, int si, int dim,
 		                       int& numVert, int& numElem, int& numConn);
 
 	/**
@@ -206,7 +206,7 @@ class VTKOutput{
 	 * \param[in]		si			subset
 	 * \param[in]		dim			dimension of subset
 	 */
-		bool write_piece(FILE* File, function_type& u, int si, int dim);
+		void write_piece(FILE* File, function_type& u, int si, int dim);
 
 	/**
 	 * This function writes the vertices of a piece of the grid to a vtk file. If
@@ -219,7 +219,7 @@ class VTKOutput{
 	 * \param[in]		dim			dimension of subset
 	 * \param[in]		numVert		number of vertices
 	 */
-		bool write_points(FILE* File, function_type& u, int si,
+		void write_points(FILE* File, function_type& u, int si,
 		                  int dim, int numVert);
 
 	/**
@@ -233,7 +233,7 @@ class VTKOutput{
 	 * \param[out]		numElem		number of elements
 	 * \param[out]		numConn		number of connections
 	 */
-		bool write_cells(FILE* File, function_type& u, int si,
+		void write_cells(FILE* File, function_type& u, int si,
 		                 int dim, int numElem, int numConn);
 
 
@@ -249,7 +249,7 @@ class VTKOutput{
 	 * \param[in]		dim			dimension of subset
 	 * \param[in]		numVert		number of vertices
 	 */
-		bool write_nodal_values(FILE* File, function_type& u,
+		void write_nodal_values(FILE* File, function_type& u,
 		                        const FunctionGroup& vFct,
 		                        const std::string& name,
 		                        int si, int dim, int numVert);
@@ -333,31 +333,31 @@ class VTKOutput{
 	 * \param[in]	si			subset index
 	 */
 		template <typename TElem>
-		bool write_nodal_values_elementwise(FILE* File, function_type& u,
+		void write_nodal_values_elementwise(FILE* File, function_type& u,
 		                                   const FunctionGroup& vFct, int si);
 
 	private:
 	///	writes a grouping *.pvtu file
-		bool write_pvtu(function_type& u, const std::string&  filename,
+		void write_pvtu(function_type& u, const std::string&  filename,
 		                int si, int step, number time);
 
 	///	writes a grouping *.pvd file, grouping all data from different subsets
-		bool write_subset_pvd(function_type& u, const std::string&  filename,
+		void write_subset_pvd(function_type& u, const std::string&  filename,
 		                      int step = -1, number time = 0.0);
 
 	///	creates the needed vtu file name
-		bool vtu_filename(std::string& nameOut, std::string nameIn,
+		void vtu_filename(std::string& nameOut, std::string nameIn,
 		                  int rank, int si, int maxSi, int step);
 
 	///	create the needed pvtu file name
-		bool pvtu_filename(std::string& nameOut, std::string nameIn,
+		void pvtu_filename(std::string& nameOut, std::string nameIn,
 		                   int si, int maxSi, int step);
 
 	///	creates the needed pvd file name
-		bool pvd_filename(std::string& nameOut, std::string nameIn);
+		void pvd_filename(std::string& nameOut, std::string nameIn);
 
 	///	creates the needed pvd file name to group the time steps
-		bool pvd_time_filename(std::string& nameOut, std::string nameIn,
+		void pvd_time_filename(std::string& nameOut, std::string nameIn,
 		                       int step);
 
 	///	checks if chosen filename is admissible

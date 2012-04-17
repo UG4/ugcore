@@ -73,10 +73,10 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 			.add_method("select_all", &T::select_all)
 			.add_method("select_nodal_scalar", &T::select_nodal_scalar)
 			.add_method("select_nodal_vector", &T::select_nodal_vector)
-			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, int, number, bool)>(&T::print))
-			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, int, number)>(&T::print))
-			.add_method("print", static_cast<bool (T::*)(const char*, function_type&, bool)>(&T::print))
-			.add_method("print", static_cast<bool (T::*)(const char*, function_type&)>(&T::print))
+			.add_method("print", static_cast<void (T::*)(const char*, function_type&, int, number, bool)>(&T::print))
+			.add_method("print", static_cast<void (T::*)(const char*, function_type&, int, number)>(&T::print))
+			.add_method("print", static_cast<void (T::*)(const char*, function_type&, bool)>(&T::print))
+			.add_method("print", static_cast<void (T::*)(const char*, function_type&)>(&T::print))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "VTKOutput", dimAlgTag);
 	}

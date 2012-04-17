@@ -99,20 +99,13 @@ inline void BStreamFlush(FILE* File)
 
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 print(const char* filename, function_type& u, int step, number time, bool makeConsistent)
 {
 #ifdef UG_PARALLEL
 	if(makeConsistent)
-	{
 		if(!u.change_storage_type(PST_CONSISTENT))
-		{
-			UG_LOG("ERROR in 'VTK::print': "
-				   "Cannot change storage type to consistent.\n");
-			return false;
-		}
-	}
+			UG_THROW_FATAL("VTK::print: Cannot change storage type to consistent.");
 #endif
 
 //	check functions
@@ -133,11 +126,10 @@ print(const char* filename, function_type& u, int step, number time, bool makeCo
 		int si = -1;
 
 	//	write whole grid to a single file
-		if(!print_subset(filename, u, si, step, time, makeConsistent))
-		{
-			UG_LOG("ERROR in 'VTK::print': Can not write grid.\n");
-			return false;
+		try{
+			print_subset(filename, u, si, step, time, makeConsistent);
 		}
+		UG_CATCH_THROW("VTK::print: Can not write grid.");
 	}
 	else
 	{
@@ -145,40 +137,28 @@ print(const char* filename, function_type& u, int step, number time, bool makeCo
 		for(int si = 0; si < u.num_subsets(); ++si)
 		{
 		//	write each subset to a single file
-			if(!print_subset(filename, u, si, step, time, makeConsistent))
-			{
-				UG_LOG("ERROR in 'VTK::print': Can not write Subset "<< si << ".\n");
-				return false;
+			try{
+				print_subset(filename, u, si, step, time, makeConsistent);
 			}
+			UG_CATCH_THROW("VTK::print: Can not write Subset "<< si << ".");
 		}
 
 		//	write grouping pvd file
-		if(!write_subset_pvd(u, filename, step, time))
-		{
-			UG_LOG("ERROR in 'VTK::print': Can not write pvd file.\n");
-			return false;
+		try{
+			write_subset_pvd(u, filename, step, time);
 		}
+		UG_CATCH_THROW("VTK::print: Can not write pvd file.");
 	}
-
-//	we're done
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 print_subset(const char* filename, function_type& u, int si, int step, number time, bool makeConsistent)
 {
 #ifdef UG_PARALLEL
 	if(makeConsistent)
-	{
 		if(!u.change_storage_type(PST_CONSISTENT))
-		{
-			UG_LOG("ERROR in 'VTK::print_subset': "
-				   "Cannot change storage type to consistent.\n");
-			return false;
-		}
-	}
+			UG_THROW_FATAL("VTK::print_subset: Cannot change storage type to consistent.");
 #endif
 
 //	get the grid associated to the solution
@@ -186,10 +166,7 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 
 //	check grid
 	if(!m_pGrid)
-	{
-		UG_LOG("ERROR in 'VTK::print_subset': Cannot find underlying Grid.\n");
-		return false;
-	}
+		UG_THROW_FATAL("VTK::print_subset: Cannot find underlying Grid.");
 
 // 	attach help indices
 	m_pGrid->attach_to_vertices(m_aDOFIndex);
@@ -203,15 +180,16 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 
 //	get name for *.vtu file
 	std::string name;
-	if(!vtu_filename(name, filename, rank, si, u.num_subsets()-1, step)) return false;
+	try{
+		vtu_filename(name, filename, rank, si, u.num_subsets()-1, step);
+	}
+	UG_CATCH_THROW("VTK::print_subset: Can not write vtu - file.");
+
 
 //	open the file
 	FILE* File = fopen(name.c_str(), "w");
 	if(File == NULL)
-	{
-		UG_LOG("ERROR in 'VTK::print_subset': Can not open Output File.\n");
-		return false;
-	}
+		UG_THROW_FATAL("VTK::print_subset: Can not open Output File.");
 
 //	reset stream
 	BStream.front = 0;
@@ -247,12 +225,15 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 	else dim = DimensionOfSubsets(*u.domain()->subset_handler());
 
 //	write piece of grid
-	if(dim >= 0){
-		if(!write_piece(File, u, si, dim))
-		{
-			UG_LOG("ERROR in 'VTK::print_subset': Can not write Subset.\n");
+	if(dim >= 0)
+	{
+		try{
+			write_piece(File, u, si, dim);
+		}
+		catch(ug::UGError err){
 			fclose(File);
-			return false;
+			err.push_msg("VTK::print_subset: Can not write Subset.",__FILE__,__LINE__);
+			throw(err);
 		}
 	}
 	else
@@ -261,21 +242,25 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 		if( ((si < 0) && m_pGrid->num<VertexBase>() != 0) ||
 			((si >=0) && u.domain()->subset_handler()->template num<VertexBase>(si) != 0))
 		{
-			UG_LOG("ERROR in 'VTK::print_subset': Dimension of grid/subset not"
-					" detected correctly although grid objects present.\n");
 			fclose(File);
-			return false;
+			UG_THROW_FATAL("VTK::print_subset: Dimension of grid/subset not"
+					" detected correctly although grid objects present.");
 		}
 
 	//	write that no elements are in the grid
 		fprintf(File, "    <Piece NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n",
 														0, 0);
-		if(!write_points(File, u, si, dim, 0) ||
-			!write_cells(File, u, si, dim, 0, 0))
-		{
-			UG_LOG("ERROR in 'VTK::print_subset': Can not write empty Points/Cells.\n");
-			return false;
+
+		try{
+			write_points(File, u, si, dim, 0);
+			write_cells(File, u, si, dim, 0, 0);
 		}
+		catch(ug::UGError err){
+			fclose(File);
+			err.push_msg("VTK::print_subset: Can not write empty Points/Cells.",__FILE__,__LINE__);
+			throw(err);
+		}
+
 		fprintf(File, "    </Piece>\n");
 
 	}
@@ -293,11 +278,13 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 
 #ifdef UG_PARALLEL
 //	write grouping *.pvtu file in parallel case
-	if(!write_pvtu(u, filename, si, step, time))
-	{
-		UG_LOG("ERROR in 'VTK::print_subset': Can not write pvtu - file.\n");
+	try{
+		write_pvtu(u, filename, si, step, time);
+	}
+	catch(ug::UGError err){
 		fclose(File);
-		return false;
+		err.push_msg("VTK::print_subset: Can not write pvtu - file.",__FILE__,__LINE__);
+		throw(err);
 	}
 #endif
 
@@ -313,26 +300,21 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 	//	write time point
 		vTimestep[step] = time;
 	}
-
-//	we're done
-	return true;
 }
 
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_piece(FILE* File, function_type& u, int si, int dim)
 {
 //	counters
 	int numVert = 0, numElem = 0, numConn = 0;
 
 // 	Count needed sizes for vertices, elements and connections
-	if(!count_piece_sizes(u, si, dim, numVert, numElem, numConn))
-	{
-		UG_LOG("ERROR in 'VTK::write_subset': Can not count piece sizes.\n");
-		return false;
+	try{
+		count_piece_sizes(u, si, dim, numVert, numElem, numConn);
 	}
+	UG_CATCH_THROW("VTK::write_piece: Can not count piece sizes.");
 
 //	write the beginning of the piece, indicating the number of vertices
 //	and the number of elements for this piece of the grid.
@@ -340,18 +322,16 @@ write_piece(FILE* File, function_type& u, int si, int dim)
 													numVert, numElem);
 
 //	write vertices of this piece
-	if(!write_points(File, u, si, dim, numVert))
-	{
-		UG_LOG("ERROR in 'VTK::write_subset': Can not write Points.\n");
-		return false;
+	try{
+		write_points(File, u, si, dim, numVert);
 	}
+	UG_CATCH_THROW("VTK::write_piece: Can not write Points.");
 
 //	write elements of this piece
-	if(!write_cells(File, u, si, dim, numElem, numConn))
-	{
-		UG_LOG("ERROR in 'VTK::write_subset': Can not write Elements.\n");
-		return false;
+	try{
+		write_cells(File, u, si, dim, numElem, numConn);
 	}
+	UG_CATCH_THROW("VTK::write_piece: Can not write Elements.");
 
 //	write opening tag to indicate point data
 	fprintf(File, "      <PointData>\n");
@@ -384,11 +364,10 @@ write_piece(FILE* File, function_type& u, int si, int dim)
 		if(!bContained) continue;
 
 	//	write scalar value of this function
-		if(!write_nodal_values(File, u, fctGrp, vtkName, si, dim, numVert))
-		{
-			UG_LOG("ERROR in 'VTK::write_subset': Can not write Scalar Values.\n");
-			return false;
+		try{
+			write_nodal_values(File, u, fctGrp, vtkName, si, dim, numVert);
 		}
+		UG_CATCH_THROW("VTK::write_piece: Can not write Scalar Values.");
 	}
 
 //	write closing tag
@@ -396,14 +375,10 @@ write_piece(FILE* File, function_type& u, int si, int dim)
 
 //	write closing tag
 	fprintf(File, "    </Piece>\n");
-
-//	we're done
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 count_piece_sizes(function_type& u, int si, int dim,
             int& numVert, int& numElem, int& numConn)
 {
@@ -434,9 +409,8 @@ count_piece_sizes(function_type& u, int si, int dim,
 				count_sizes<Prism>(u, si, numVert, numElem, numConn);
 				count_sizes<Hexahedron>(u, si, numVert, numElem, numConn);
 				break;
-		default: UG_LOG("ERROR in 'VTK::init_subset': Dimension " << dim <<
-		                " is not supported.\n");
-				return false;
+		default: UG_THROW_FATAL("VTK::count_piece_sizes: Dimension " << dim <<
+		                        " is not supported.");
 	}
 
 //	debug output
@@ -444,14 +418,10 @@ count_piece_sizes(function_type& u, int si, int dim,
 	UG_DLOG(LIB_DISC_OUTPUT, 2, "Number of Elements: " << numElem << "\n");
 	UG_DLOG(LIB_DISC_OUTPUT, 2, "Number of Connections: " << numConn << "\n");
 	UG_DLOG(LIB_DISC_OUTPUT, 2, " ---- End ----\n");
-
-//	we're done
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_points(FILE* File, function_type& u, int si, int dim,
              int numVert)
 {
@@ -483,22 +453,18 @@ write_points(FILE* File, function_type& u, int si, int dim,
 					write_points_elementwise<Prism>(File, u, si, n);
 					write_points_elementwise<Hexahedron>(File, u, si, n);
 					break;
-			default: UG_LOG("ERROR in 'VTK::write_points': Dimension " << dim <<
-							" is not supported.\n");
-					return false;
+			default: UG_THROW_FATAL("VTK::write_points: Dimension " << dim <<
+			                        " is not supported.");
 		}
 	}
 
 //	write closing tags
 	fprintf(File, "\n        </DataArray>\n");
 	fprintf(File, "      </Points>\n");
-
-//	everything fine
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_cells(FILE* File, function_type& u, int si, int dim,
                int numElem, int numConn)
 {
@@ -530,9 +496,8 @@ write_cells(FILE* File, function_type& u, int si, int dim,
 					write_cell_connectivity<Prism>(File, u, si);
 					write_cell_connectivity<Hexahedron>(File, u, si);
 					break;
-			default: UG_LOG("ERROR in 'VTK::write_elements': Dimension " << dim <<
-							" is not supported.\n");
-					return false;
+			default: UG_THROW_FATAL("VTK::write_cells: Dimension " << dim <<
+			                        " is not supported.");
 		}
 	}
 	BStreamFlush(File);
@@ -565,9 +530,8 @@ write_cells(FILE* File, function_type& u, int si, int dim,
 					write_cell_offsets<Prism>(File, u, si, n);
 					write_cell_offsets<Hexahedron>(File, u, si, n);
 					break;
-			default: UG_LOG("ERROR in 'VTK::write_elements': Dimension " << dim <<
-							" is not supported.\n");
-					return false;
+			default: UG_THROW_FATAL("VTK::write_cells: Dimension " << dim <<
+			                        " is not supported.");
 		}
 	}
 	BStreamFlush(File);
@@ -597,24 +561,19 @@ write_cells(FILE* File, function_type& u, int si, int dim,
 					write_cell_types<Prism>(File, u, si);
 					write_cell_types<Hexahedron>(File, u, si);
 					break;
-			default: UG_LOG("ERROR in 'VTK::write_elements': Dimension " << dim <<
-							" is not supported.\n");
-					return false;
+			default: UG_THROW_FATAL("VTK::write_cells: Dimension " << dim <<
+			                        " is not supported.");
 		}
 	}
 
 //	write closing tag
 	fprintf(File, "\n        </DataArray>\n");
 	fprintf(File, "      </Cells>\n");
-
-//	we're done
-	return true;
 }
 
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_nodal_values(FILE* File, function_type& u,
                    const FunctionGroup& vFct, const std::string& name,
                    int si, int dim, int numVert)
@@ -632,24 +591,23 @@ write_nodal_values(FILE* File, function_type& u,
 	switch(dim)
 	{
 		case 0:
-			if(!write_nodal_values_elementwise<VertexBase>(File, u, vFct, si)) return false;
+			write_nodal_values_elementwise<VertexBase>(File, u, vFct, si);
 			break;
 		case 1:
-			if(!write_nodal_values_elementwise<Edge>(File, u, vFct, si)) return false;
+			write_nodal_values_elementwise<Edge>(File, u, vFct, si);
 			break;
 		case 2:
-			if(!write_nodal_values_elementwise<Triangle>(File, u, vFct, si)) return false;
-			if(!write_nodal_values_elementwise<Quadrilateral>(File, u, vFct, si)) return false;
+			write_nodal_values_elementwise<Triangle>(File, u, vFct, si);
+			write_nodal_values_elementwise<Quadrilateral>(File, u, vFct, si);
 			break;
 		case 3:
-			if(!write_nodal_values_elementwise<Tetrahedron>(File, u, vFct, si)) return false;
-			if(!write_nodal_values_elementwise<Pyramid>(File, u, vFct, si)) return false;
-			if(!write_nodal_values_elementwise<Prism>(File, u, vFct, si)) return false;
-			if(!write_nodal_values_elementwise<Hexahedron>(File, u, vFct, si)) return false;
+			write_nodal_values_elementwise<Tetrahedron>(File, u, vFct, si);
+			write_nodal_values_elementwise<Pyramid>(File, u, vFct, si);
+			write_nodal_values_elementwise<Prism>(File, u, vFct, si);
+			write_nodal_values_elementwise<Hexahedron>(File, u, vFct, si);
 			break;
-		default: UG_LOG("ERROR in 'VTK::write_scalar': Dimension " << dim <<
-		                " is not supported.\n");
-				return false;
+		default: UG_THROW_FATAL("VTK::write_nodal_values: Dimension " << dim <<
+		                        " is not supported.");
 	}
 
 //	flush stream
@@ -657,16 +615,12 @@ write_nodal_values(FILE* File, function_type& u,
 
 //	write closing tag
 	fprintf(File, "\n        </DataArray>\n");
-
-//	everything fine
-	return true;
 };
 
 
 template <typename TDiscreteFunction>
 template <typename TElem>
-void
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 count_sizes(function_type& u, int si,
                 int& numVert, int& numElem, int& numConn)
 {
@@ -722,8 +676,7 @@ count_sizes(function_type& u, int si,
 
 template <typename TDiscreteFunction>
 template <typename TElem>
-void
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_points_elementwise(FILE* File, function_type& u, int si, int& n)
 {
 //	get reference element
@@ -818,8 +771,7 @@ write_points_elementwise(FILE* File, function_type& u, int si, int& n)
 
 template <typename TDiscreteFunction>
 template <class TElem>
-void
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_cell_connectivity(FILE* File, function_type& u, int si)
 {
 //	get reference element type
@@ -875,8 +827,7 @@ write_cell_connectivity(FILE* File, function_type& u, int si)
 
 template <typename TDiscreteFunction>
 template <class TElem>
-void
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_cell_offsets(	FILE* File, function_type& u, int si, int& n)
 {
 //	get reference element
@@ -912,8 +863,7 @@ write_cell_offsets(	FILE* File, function_type& u, int si, int& n)
 
 template <typename TDiscreteFunction>
 template <class TElem>
-void
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_cell_types(FILE* File, function_type& u, int si)
 {
 //	get reference element
@@ -963,8 +913,7 @@ write_cell_types(FILE* File, function_type& u, int si)
 
 template <typename TDiscreteFunction>
 template <class TElem>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_nodal_values_elementwise(FILE* File, function_type& u,
                                const FunctionGroup& vFct, int si)
 {
@@ -1016,14 +965,11 @@ write_nodal_values_elementwise(FILE* File, function_type& u,
 				{
 				//	get multi index of vertex for the function
 					if(u.inner_multi_indices(v, vFct[i], vMultInd) != 1)
-					{
-						UG_LOG("ERROR in 'VTK:write_nodal_values_elementwise': "
+						UG_THROW_FATAL("VTK:write_nodal_values_elementwise: "
 								"The function component "<<vFct[i]<<" has "<<
 								vMultInd.size()<<" DoFs in  a vertex. To write a "
 								"component to vtk, exactly one DoF must be "
 								"given in a vertex.\n");
-						return false;
-					}
 
 				//	get index and subindex
 					const size_t index = vMultInd[0][0];
@@ -1049,9 +995,6 @@ write_nodal_values_elementwise(FILE* File, function_type& u,
 
 //	end marking
 	m_pGrid->end_marking();
-
-//	everything fine
-	return true;
 }
 
 template <typename TDiscreteFunction>
@@ -1068,12 +1011,12 @@ is_valid_filename(std::string& nameIn)
 
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 vtu_filename(std::string& nameOut, std::string nameIn, int rank,
              int si, int maxSi, int step)
 {
-	if(!is_valid_filename(nameIn)) return false;
+	if(!is_valid_filename(nameIn))
+		UG_THROW_FATAL("VTKOutput: Invalid vtu-filename: "<<nameIn);
 
 //	copy name
 	nameOut = nameIn;
@@ -1094,19 +1037,16 @@ vtu_filename(std::string& nameOut, std::string nameIn, int rank,
 
 // 	add file extension
 	nameOut.append(".vtu");
-
-//	we're done
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 pvtu_filename(std::string& nameOut, std::string nameIn,
               int si, int maxSi, int step)
 {
 //	check name
-	if(!is_valid_filename(nameIn)) return false;
+	if(!is_valid_filename(nameIn))
+		UG_THROW_FATAL("VTKOutput: Invalid pvtu-filename: "<<nameIn);
 
 //	copy name
 	nameOut = nameIn;
@@ -1121,36 +1061,30 @@ pvtu_filename(std::string& nameOut, std::string nameIn,
 
 // 	add file extension
 	nameOut.append(".pvtu");
-
-//	we're done
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 pvd_filename(std::string& nameOut, std::string nameIn)
 {
 //	check name
-	if(!is_valid_filename(nameIn)) return false;
+	if(!is_valid_filename(nameIn))
+		UG_THROW_FATAL("VTKOutput: Invalid pvd-filename: "<<nameIn);
 
 //	copy name
 	nameOut = nameIn;
 
 // 	add file extension
 	nameOut.append(".pvd");
-
-//	we're done
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 pvd_time_filename(std::string& nameOut, std::string nameIn, int step)
 {
 //	check name
-	if(!is_valid_filename(nameIn)) return false;
+	if(!is_valid_filename(nameIn))
+		UG_THROW_FATAL("VTKOutput: Invalid pvd-filename: "<<nameIn);
 
 //	copy name
 	nameOut = nameIn;
@@ -1161,14 +1095,10 @@ pvd_time_filename(std::string& nameOut, std::string nameIn, int step)
 
 // 	add file extension
 	nameOut.append(".pvd");
-
-//	we're done
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_pvtu(function_type& u, const std::string& filename,
            int si, int step, number time)
 {
@@ -1181,7 +1111,7 @@ write_pvtu(function_type& u, const std::string& filename,
 
 //	get and check number of procs (only for numProcs > 1 we write the pvtu)
 	int numProcs = pcl::GetNumProcesses();
-	if(numProcs == 1) return true;
+	if(numProcs == 1) return;
 
 //	check if this proc is output proc
 	bool isOutputProc = GetLogAssistant().is_output_process();
@@ -1193,15 +1123,12 @@ write_pvtu(function_type& u, const std::string& filename,
 	if (isOutputProc)
 	{
 	//	get name for *.pvtu file
-		if(!pvtu_filename(name, filename, si, maxSi, step)) return false;
+		pvtu_filename(name, filename, si, maxSi, step);
 
 	//	open file
 		file = fopen(name.c_str(), "w");
 		if (file == NULL)
-		{
-			UG_LOG("Cannot print to file.\n");
-			return false;
-		}
+			UG_THROW_FATAL("VTKOutput: Cannot print to file.");
 
 	//	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
@@ -1240,14 +1167,10 @@ write_pvtu(function_type& u, const std::string& filename,
 		fclose(file);
 	}
 #endif
-
-//	we're done
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_time_pvd(const char* filename, function_type& u)
 {
 //	File
@@ -1269,15 +1192,12 @@ write_time_pvd(const char* filename, function_type& u)
 	if (isOutputProc)
 	{
 	//	get file name
-		if(!pvd_filename(name, filename)) return false;
+		pvd_filename(name, filename);
 
 	//	open file
 		file = fopen(name.c_str(), "w");
 		if (file == NULL)
-		{
-			UG_LOG("Cannot print to file.\n");
-			return false;
-		}
+			UG_THROW_FATAL("Cannot print to file.");
 
 	// 	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
@@ -1333,15 +1253,12 @@ write_time_pvd(const char* filename, function_type& u)
 	//	adjust filename
 		std::string procName = filename;
 		procName.append("_processwise");
-		if(!pvd_filename(name, procName)) return false;
+		pvd_filename(name, procName);
 
 	//	open file
 		file = fopen(name.c_str(), "w");
 		if (file == NULL)
-		{
-			UG_LOG("Cannot print to file.\n");
-			return false;
-		}
+			UG_THROW_FATAL("Cannot print to file.");
 
 	// 	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
@@ -1367,15 +1284,11 @@ write_time_pvd(const char* filename, function_type& u)
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
 	}
-
-//	we're done
-	return true;
 }
 
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 write_subset_pvd(function_type& u, const std::string& filename, int step, number time)
 {
 //	file pointer
@@ -1398,20 +1311,13 @@ write_subset_pvd(function_type& u, const std::string& filename, int step, number
 	if (isOutputProc)
 	{
 	//	get file name
-		if(step >= 0){
-			if(!pvd_time_filename(name, filename, step)) return false;
-		}
-		else{
-			if(!pvd_filename(name, filename)) return false;
-		}
+		if(step >= 0) pvd_time_filename(name, filename, step);
+		else pvd_filename(name, filename);
 
 	//	open file
 		file = fopen(name.c_str(), "w");
 		if (file == NULL)
-		{
-			UG_LOG("Cannot print to file.\n");
-			return false;
-		}
+			UG_THROW_FATAL("VTKOutput: Cannot print to file.");
 
 	// 	Write beginning of file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
@@ -1442,20 +1348,13 @@ write_subset_pvd(function_type& u, const std::string& filename, int step, number
 		procName.append("_processwise");
 
 	//	get file name
-		if(step >= 0){
-			if(!pvd_time_filename(name, filename, step)) return false;
-		}
-		else{
-			if(!pvd_filename(name, filename)) return false;
-		}
+		if(step >= 0) pvd_time_filename(name, filename, step);
+		else pvd_filename(name, filename);
 
 	//	open File
 		file = fopen(name.c_str(), "w");
 		if (file == NULL)
-		{
-			UG_LOG("Cannot print to file.\n");
-			return false;
-		}
+			UG_THROW_FATAL("VTKOutput: Cannot print to file.");
 
 	// 	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
@@ -1480,26 +1379,19 @@ write_subset_pvd(function_type& u, const std::string& filename, int step, number
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
 	}
-
-//	we're done
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 select_nodal_scalar(const char* fctName, const char* name)
 {
 	std::vector<std::string> tokens;
 	std::string fctString(fctName);
 	TokenizeString(fctString, tokens, ',');
 	if(tokens.size() != 1)
-	{
-		UG_LOG("ERROR in 'VTK:select_nodal_scalar': In order to select"
+		UG_THROW_FATAL("VTK:select_nodal_scalar: In order to select"
 				" a nodal scalar for output to vtk,"
-				" exactly one function components must be chosen.\n");
-		return false;
-	}
+				" exactly one function components must be chosen.");
 
 //	skip already selected
 	for(size_t i = 0; i < tokens.size(); ++i)
@@ -1513,61 +1405,51 @@ select_nodal_scalar(const char* fctName, const char* name)
 			{
 				if(m_vSymbFct[j].second == name &&
 					m_vSymbFct[j].second.size() == strlen(name)){
-					return true;
+					return;
 				}
 				else{
-					UG_LOG("ERROR in 'VTK:select_nodal_scalar': Selecting component "
+					UG_THROW_FATAL("VTK:select_nodal_scalar: Selecting component "
 							<< tokens[i] << " again, but with different name " <<
 							name << " instead of already scheduled "
-							<< m_vSymbFct[j].second << "\n");
-					return false;
+							<< m_vSymbFct[j].second);
 				}
 			}
 
 		//	check if name is not in use
 			if(m_vSymbFct[j].second == name &&
 				m_vSymbFct[j].second.size() == strlen(name)){
-				UG_LOG("ERROR in 'VTK:select_nodal_scalar': Selecting component "
+				UG_THROW_FATAL("VTK:select_nodal_scalar: Selecting component "
 						<< tokens[i] << ", but with already used name " <<
-						name << ". This is not allowed, use different name.\n");
-				return false;
+						name << ". This is not allowed, use different name.");
 			}
 		}
 	}
 
 	m_vSymbFct.push_back(std::pair<std::string, std::string>(fctName, name));
-	return true;
 }
 
 template <typename TDiscreteFunction>
-bool
-VTKOutput<TDiscreteFunction>::
+void VTKOutput<TDiscreteFunction>::
 select_nodal_vector(const char* fctNames, const char* name)
 {
 	std::vector<std::string> tokens;
 	std::string fctString(fctNames);
 	TokenizeString(fctString, tokens, ',');
 	if(tokens.size() != (size_t)function_type::dim)
-	{
-		UG_LOG("ERROR in 'VTK:select_nodal_vector': In order to select"
+		UG_THROW_FATAL("VTK:select_nodal_vector: In order to select"
 				" a nodal vector for output to vtk,"
-				" #dim function components must be chosen.\n");
-		return false;
-	}
+				" #dim function components must be chosen.");
 
 	for(size_t j = 0; j < m_vSymbFct.size(); ++j)
 	{
 	//	check if name is not in use
 		if(m_vSymbFct[j].second == name &&
-			m_vSymbFct[j].second.size() == strlen(name)){
-			UG_LOG("ERROR in 'VTK:select_nodal_vector': Using name " << name <<
-			       " that is already used by other data is not allowed.\n");
-			return false;
-		}
+			m_vSymbFct[j].second.size() == strlen(name))
+			UG_THROW_FATAL("VTK:select_nodal_vector: Using name " << name <<
+			       " that is already used by other data is not allowed.");
 	}
 
 	m_vSymbFct.push_back(std::pair<std::string, std::string>(fctNames, name));
-	return true;
 }
 
 
