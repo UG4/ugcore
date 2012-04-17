@@ -40,8 +40,13 @@ Note that this list is far from complete.
 	- The sources of ug4 are structured in a modular way, with the main sub-libraries
 	  libAlgebra, libDisc (discretization) and libGrid. More libraries like the
 	  "parallel communication layer" support those main libraries.
+	- Profiling is available to all applications through the use of the Shiny profiler.
+	- A comprehensive math library for vector calculations in 1, 2 and 3 dimensions
+	  (ray-triangle, ray-box, ... intersections, etc).
+	- A unit-testing framework allows to monitor the effect of recent changes and
+	  guarantees a stable code-base.
 
-- libAlgebra
+- <b>libAlgebra</b>
 	- Template based implementation, which allows to use highly specialized
 	  matrix structures.
 	- Efficient sparse matrix support for arbitrary block types.
@@ -59,7 +64,7 @@ Note that this list is far from complete.
 	  available both in ug-script and in the vrl.
 
 
-- libDisc
+- <b>libDisc</b>
 	- Highly flexible discretization library, which provides modular
 	  discretization building blocks.
 	- Data imports and exports allow the efficient and flexible coupling
@@ -73,7 +78,7 @@ Note that this list is far from complete.
 	  and parallel environments.
 	- Fully scriptable through ug-script or vrl-projects.
 
-- libGrid
+- <b>libGrid</b>
 	- Unstructured hybrid hierarchical grids in 1, 2 and 3 dimensions.
 	- Separation of topology and data allows to associate arbitrary data with
 	  elements in the grid - even temporary data may be attached. Data access is
@@ -95,6 +100,45 @@ Note that this list is far from complete.
 	- Associated software like ProMesh provides tools to create custom grids
 	  ready for simulation.
 
+- Other libraries
+	- <b>common</b>: Contains many different utility classes and functions used e.g. for
+	  logging, smart-pointers, serialization, basic math, parsers and profilers and much more.
+	- <b>pcl</b> ("Parallel Communication Layer"): MPI-Based communication for distributed
+	  memory architectures. Template based structures allow to define process interfaces
+	  and layouts, which can be used to communicate data. To minimize buffering
+	  overhead, so called CommunicationPolicies are used. The library introduces
+	  minimal overhead and can be used for many different applications, due to
+	  its template implementation. Currently used by libGrid to distribute grids
+	  and to communicate on distributed grids, e.g. during refinement.
+	  Also used by libAlgebra to perform necessary communication during matrix- /
+	  vector-operations and for the implementation of the parallel amg methods.
+	  The pcl internally identifies objects through there positions in associated
+	  interfaces and does thus not rely on global id's. If required by a user,
+	  global id's can however be efficiently generated.
+	- <b>registry</b>: Classes and functions can be registered at the registry through a
+	  convenient interface. Function arguments are automatically recognized and
+	  are treated in a type-safe way. The registry supports const correctness,
+	  multiple inheritance, virtual functions, pass-by-reference as well as
+	  raw- and smart-pointer arguments. This means that you can register nearly
+	  arbitrary C++ classes and functions.
+	  The registry can be queried by different bindings for registered classes
+	  and functions. Currently bindings exist, which expose all registered
+	  functionality in a coherent way to the lua scripting language and to
+	  java / vrl.
+
 - Plugins and applications
-	...
+	- Many different plugins are currently in development. Those plugins are
+	  currently in an experimental state. The plugins enhance ug through
+	  ug's registry. They register new discretization modules or other algorithms,
+	  which can then be executed by any ug script.
+	- Plugins currently in development: level_set, membrane_potential_mapping,
+	  navier_stokes, neuron, nonlinear_elasticity, tkd_generator, voltage_gated_channels.
+	- Applications are collections of scripts and geometries. Many of them use
+	  methods and structures of associated plugins. Here are some applications
+	  which are currently under development: adaptive_mg, amg, conv_diff, d3f,
+	  eigenvalue, finite_differences, level_set, membrane, navier_stokes,
+	  neuro_muscular_junction, neuron, nonlinear_elasticity, pcl_sample,
+	  scaling_tests, skin, synaptic_cleft, triggered_calcium_diffusion, tutorials,
+	  ugdocu, vol_util.
+	  Note that some of those applications may not be in a usable state.
  */
