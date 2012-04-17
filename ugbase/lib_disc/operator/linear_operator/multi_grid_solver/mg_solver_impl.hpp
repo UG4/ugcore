@@ -1586,14 +1586,13 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		m_pAss->enable_constraints(true);
 
 	//	project
-		if(!CopyMatrixSurfaceToLevel(m_vLevData[lev]->CoarseGridContribution,
+		try{
+			CopyMatrixSurfaceToLevel(m_vLevData[lev]->CoarseGridContribution,
 		                             vSurfLevelMapping[lev],
-		                             surfMat))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_missing_coarse_grid_coupling': "
-					"Projection of matrix from surface to level failed.\n");
-			return false;
+		                             surfMat);
 		}
+		UG_CATCH_THROW("AssembledMultiGridCycle::init_missing_coarse_grid_coupling: "
+					"Projection of matrix from surface to level failed.");
 	}
 
 //	write matrix for debug purpose

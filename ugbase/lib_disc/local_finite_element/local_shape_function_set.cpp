@@ -14,7 +14,7 @@
 namespace ug{
 
 template <typename TRefElem>
-bool LocalShapeFunctionSetProvider::init_standard_sets()
+void LocalShapeFunctionSetProvider::init_standard_sets()
 {
 //	create static Sets
 	static LocalShapeFunctionSetWrapper<LagrangeP1<TRefElem> > sSetLagrangeP1;
@@ -24,30 +24,23 @@ bool LocalShapeFunctionSetProvider::init_standard_sets()
 
 //	insert into map: P1 Lagrange
 	LFEID type1(LFEID::LAGRANGE, 1);
-	if(!register_set(type1, sSetLagrangeP1))
-		return false;
+	register_set(type1, sSetLagrangeP1);
 
 //	insert into map: P2 Lagrange
 	LFEID type2(LFEID::LAGRANGE, 2);
-	if(!register_set(type2, sSetLagrangeP2))
-		return false;
+	register_set(type2, sSetLagrangeP2);
 
 //	insert into map: P3 Lagrange
 	LFEID type3(LFEID::LAGRANGE, 3);
-	if(!register_set(type3, sSetLagrangeP3))
-		return false;
+	register_set(type3, sSetLagrangeP3);
 
 //	insert into map: P4 Lagrange
 	LFEID type4(LFEID::LAGRANGE, 4);
-	if(!register_set(type4, sSetLagrangeP4))
-		return false;
-
-//	return success
-	return true;
+	register_set(type4, sSetLagrangeP4);
 }
 
 template <typename TRefElem>
-bool LocalShapeFunctionSetProvider::init_flex_lagrange(size_t order)
+void LocalShapeFunctionSetProvider::init_flex_lagrange(size_t order)
 {
 //	create static Sets
 	LocalShapeFunctionSetWrapper<FlexLagrangeLSFS<TRefElem> >* sSetFlexLagrange
@@ -56,14 +49,10 @@ bool LocalShapeFunctionSetProvider::init_flex_lagrange(size_t order)
 
 //	insert into map: Lagrange
 	LFEID type(LFEID::LAGRANGE, order);
-	if(!register_set(type, *sSetFlexLagrange))
-		return false;
+	register_set(type, *sSetFlexLagrange);
 
 //	remember creation
 	get_dynamic_allocated_vector<TRefElem::dim>().push_back(sSetFlexLagrange);
-
-//	return success
-	return true;
 }
 
 void LocalShapeFunctionSetProvider::
@@ -75,35 +64,34 @@ dynamically_create_set(ReferenceObjectID roid, LFEID id)
 	//	only order >= 1 available
 		if(id.order() < 1) return;
 
+		try{
 	//	switch type
 		switch(roid)
 		{
 			case ROID_EDGE:
-				if(!init_flex_lagrange<ReferenceEdge>(id.order()))
-					UG_THROW_FATAL("Dynamic Allocation of set failed.");
+					init_flex_lagrange<ReferenceEdge>(id.order());
 				return;
 			case ROID_TRIANGLE:
-				if(!init_flex_lagrange<ReferenceTriangle>(id.order()))
-					UG_THROW_FATAL("Dynamic Allocation of set failed.");
+					init_flex_lagrange<ReferenceTriangle>(id.order());
 				return;
 			case ROID_QUADRILATERAL:
-				if(!init_flex_lagrange<ReferenceQuadrilateral>(id.order()))
-					UG_THROW_FATAL("Dynamic Allocation of set failed.");
+				init_flex_lagrange<ReferenceQuadrilateral>(id.order());
 				return;
 			case ROID_TETRAHEDRON:
-				if(!init_flex_lagrange<ReferenceTetrahedron>(id.order()))
-					UG_THROW_FATAL("Dynamic Allocation of set failed.");
+				init_flex_lagrange<ReferenceTetrahedron>(id.order());
 				return;
 			case ROID_PRISM:
-				if(!init_flex_lagrange<ReferencePrism>(id.order()))
-					UG_THROW_FATAL("Dynamic Allocation of set failed.");
+				init_flex_lagrange<ReferencePrism>(id.order());
 				return;
 			case ROID_HEXAHEDRON:
-				if(!init_flex_lagrange<ReferenceHexahedron>(id.order()))
-					UG_THROW_FATAL("Dynamic Allocation of set failed.");
+				init_flex_lagrange<ReferenceHexahedron>(id.order());
 				return;
 			default: return;
 		}
+
+		}
+		UG_CATCH_THROW("Dynamic Allocation of set failed.");
+
 	}
 }
 
@@ -132,24 +120,31 @@ LocalShapeFunctionSetProvider()
 		get_dynamic_allocated_vector<3>().clear();
 
 	//	register all element types that allow higher orders
-		if(!init_standard_sets<ReferenceEdge>())
-			UG_THROW_FATAL("Cannot register standard Edge trial spaces.");
-		if(!init_standard_sets<ReferenceTriangle>())
-			UG_THROW_FATAL("Cannot register standard Triangle trial spaces.");
-		if(!init_standard_sets<ReferenceQuadrilateral>())
-			UG_THROW_FATAL("Cannot register standard Quadrilateral trial spaces.");
-		if(!init_standard_sets<ReferenceTetrahedron>())
-			UG_THROW_FATAL("Cannot register standard Tetrahedron trial spaces.");
-		if(!init_standard_sets<ReferencePrism>())
-			UG_THROW_FATAL("Cannot register standard Prism trial spaces.");
-		if(!init_standard_sets<ReferenceHexahedron>())
-			UG_THROW_FATAL("Cannot register standard Hexahedron trial spaces.");
+		try{
+			init_standard_sets<ReferenceEdge>();
+		}UG_CATCH_THROW("Cannot register standard Edge trial spaces.");
+		try{
+			init_standard_sets<ReferenceTriangle>();
+		}UG_CATCH_THROW("Cannot register standard Triangle trial spaces.");
+		try{
+			init_standard_sets<ReferenceQuadrilateral>();
+		}UG_CATCH_THROW("Cannot register standard Quadrilateral trial spaces.");
+		try{
+			init_standard_sets<ReferenceTetrahedron>();
+		}UG_CATCH_THROW("Cannot register standard Tetrahedron trial spaces.");
+		try{
+			init_standard_sets<ReferencePrism>();
+		}UG_CATCH_THROW("Cannot register standard Prism trial spaces.");
+		try{
+			init_standard_sets<ReferenceHexahedron>();
+		}UG_CATCH_THROW("Cannot register standard Hexahedron trial spaces.");
 
 	//	register 1st order pyramid
 		LFEID type1(LFEID::LAGRANGE, 1);
 		static LocalShapeFunctionSetWrapper<LagrangeP1<ReferencePyramid> > sSetLagrangeP1;
-		if(!register_set(type1, sSetLagrangeP1))
-			UG_THROW_FATAL("Cannot register Pyramid P1 Lagrange trial spaces.");
+		try{
+			register_set(type1, sSetLagrangeP1);
+		}UG_CATCH_THROW("Cannot register Pyramid P1 Lagrange trial spaces.");
 	}
 };
 

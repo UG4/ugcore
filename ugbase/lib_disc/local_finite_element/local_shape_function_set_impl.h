@@ -86,7 +86,7 @@ clear_maps()
 }
 
 template <typename TRefElem>
-bool
+void
 LocalShapeFunctionSetProvider::
 register_set(LFEID type, const LocalShapeFunctionSet<TRefElem>& set)
 {
@@ -102,12 +102,9 @@ register_set(LFEID type, const LocalShapeFunctionSet<TRefElem>& set)
 //	insert into map
 	MapPair pair = MapPair(type, &set);
 	if(map.insert(pair).second == false)
-	{
-		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::register_set()': "
+		UG_THROW_FATAL("LocalShapeFunctionSetProvider::register_set(): "
 				"Reference type already registered for trial space: "<<type<<" and "
-				" Reference element type "<<roid<<".\n");
-		return false;
-	}
+				" Reference element type "<<roid<<".");
 
 //	get type of map
 	typedef std::vector<std::map<LFEID, const DimLocalShapeFunctionSet<dim>* > > VecMap;
@@ -118,15 +115,9 @@ register_set(LFEID type, const LocalShapeFunctionSet<TRefElem>& set)
 //	insert into map
 	typedef typename DimMap::value_type DimMapPair;
 	if(dimMap.insert(DimMapPair(type, &set)).second == false)
-	{
-		UG_LOG("ERROR in 'LocalShapeFunctionSetProvider::register_set()': "
+		UG_THROW_FATAL("LocalShapeFunctionSetProvider::register_set(): "
 				"Reference type already registered for trial space: "<<type<<" and "
-				" Reference element type "<<roid<<".\n");
-		return false;
-	}
-
-//	all ok
-	return true;
+				" Reference element type "<<roid<<".");
 }
 
 

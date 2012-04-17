@@ -83,7 +83,7 @@ bool RegisterQuadratureRule<ReferencePyramid>(QuadratureRuleProvider<ReferencePy
 	static FlexGaussQuadrature<ReferencePyramid> gaussQuadratureReferencePyramid_2(2);
 
 	bool success = true;
-	success &= factory.register_rule<ReferencePyramid>(gaussQuadratureReferencePyramid_2);
+	factory.register_rule<ReferencePyramid>(gaussQuadratureReferencePyramid_2);
 
 	return success;
 };

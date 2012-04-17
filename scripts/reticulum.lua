@@ -83,10 +83,7 @@ dom = Domain()
 
 -- load domain
 print("Load Domain from File.")
-if LoadDomain(dom, gridName) == false then
-   print("Loading Domain failed.")
-   exit()
-end
+LoadDomain(dom, gridName)
 
 -- create Refiner
 print("Create Refiner")

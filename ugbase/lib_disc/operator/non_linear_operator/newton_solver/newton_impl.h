@@ -42,11 +42,12 @@ init(SmartPtr<IOperator<vector_type> > N)
 
 
 template <typename TAlgebra>
-bool NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
+void NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
 {
 	// Jacobian
 	m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
 	m_J->set_level(m_N->level());
+
 	if(m_J.invalid()) UG_THROW_FATAL("Cannot allocate memory.");
 
 	// defect
@@ -56,7 +57,6 @@ bool NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
 	m_c.resize(u.size()); m_c = u;
 
 	m_allocated = true;
-	return true;
 }
 
 template <typename TAlgebra>
@@ -64,19 +64,15 @@ bool NewtonSolver<TAlgebra>::prepare(vector_type& u)
 {
 	if(!m_allocated)
 	{
-		if(allocate_memory(u) != true)
-		{
-			UG_LOG("NewtonSolver: Cannot allocate memory.\n");
-			return false;
+		try{
+			allocate_memory(u);
 		}
+		UG_CATCH_THROW("NewtonSolver: Cannot allocate memory.");
 	}
 
 //	Check for linear solver
 	if(m_spLinearSolver.invalid())
-	{
-		UG_LOG("ERROR in 'NewtonSolver::prepare': Linear Solver not set.\n");
-		return false;
-	}
+		UG_THROW_FATAL("NewtonSolver::prepare: Linear Solver not set.");
 
 //	Set dirichlet values
 	m_N->prepare(m_d, u);

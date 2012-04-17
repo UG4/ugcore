@@ -813,14 +813,14 @@ bool RegisterQuadratureRule<ReferenceTetrahedron>(QuadratureRuleProvider<Referen
 	static FlexGaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_8(8);
 
 	bool success = true;
-	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_0);
-	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_1);
-	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_2);
-	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_3);
-	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_5);
-	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_6);
-	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_7);
-	success &= factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_8);
+	factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_0);
+	factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_1);
+	factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_2);
+	factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_3);
+	factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_5);
+	factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_6);
+	factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_7);
+	factory.register_rule<ReferenceTetrahedron>(gaussQuadratureReferenceTetrahedron_8);
 
 	return success;
 };

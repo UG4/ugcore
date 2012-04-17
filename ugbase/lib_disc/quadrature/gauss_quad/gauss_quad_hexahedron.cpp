@@ -1403,13 +1403,13 @@ bool RegisterQuadratureRule<ReferenceHexahedron>(QuadratureRuleProvider<Referenc
 	static FlexGaussQuadrature<ReferenceHexahedron> gaussQuadratureReferenceHexahedron_11(11);
 
 	bool success = true;
-	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_2);
-	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_3);
-	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_5);
-	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_7);
-	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_8);
-	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_9);
-	success &= factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_11);
+	factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_2);
+	factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_3);
+	factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_5);
+	factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_7);
+	factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_8);
+	factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_9);
+	factory.register_rule<ReferenceHexahedron>(gaussQuadratureReferenceHexahedron_11);
 
 	return success;
 };

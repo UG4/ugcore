@@ -156,8 +156,8 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		typedef MatrixOperator<matrix_type,	vector_type> matOp;
 
 		reg.add_function("SaveVectorForConnectionViewer", static_cast<void (*)(function_type& ,const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
-		reg.add_function("SaveVectorForConnectionViewer", static_cast<bool (*)(function_type& , matOp&, const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
-		reg.add_function("SaveVectorForConnectionViewer", static_cast<bool (*)(function_type& , function_type& , matOp&, const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
+		reg.add_function("SaveVectorForConnectionViewer", static_cast<void (*)(function_type& , matOp&, const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
+		reg.add_function("SaveVectorForConnectionViewer", static_cast<void (*)(function_type& , function_type& , matOp&, const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
 	}
 
 //	SaveVectorCSV

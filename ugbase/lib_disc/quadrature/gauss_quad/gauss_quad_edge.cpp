@@ -342,19 +342,18 @@ bool RegisterQuadratureRule<ReferenceEdge>(QuadratureRuleProvider<ReferenceEdge:
 	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_17(17);
 	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_19(19);
 
-	bool success = true;
-	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_1);
-	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_3);
-	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_5);
-	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_7);
-	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_9);
-	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_11);
-	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_13);
-	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_15);
-	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_17);
-	success &= factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_19);
+	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_1);
+	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_3);
+	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_5);
+	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_7);
+	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_9);
+	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_11);
+	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_13);
+	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_15);
+	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_17);
+	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_19);
 
-	return success;
+	return true;
 };
 
 }; // namespace ug

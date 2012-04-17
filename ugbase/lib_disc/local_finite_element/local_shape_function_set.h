@@ -337,11 +337,11 @@ class LocalShapeFunctionSetProvider {
 	private:
 	// 	initialize the standard trialspaces (called during construction)
 		template <typename TRefElem>
-		bool init_standard_sets();
+		void init_standard_sets();
 
 	// 	initialize the standard trialspaces (called during construction)
 		template <typename TRefElem>
-		static bool init_flex_lagrange(size_t order);
+		static void init_flex_lagrange(size_t order);
 
 	// 	clears all maps
 		template <typename TRefElem>
@@ -373,10 +373,9 @@ class LocalShapeFunctionSetProvider {
 	 *
 	 * \param[in]		id 		Identifier for local shape function set
 	 * \param[in]		set		Local Shape Function Set to register
-	 * \return			bool	true iff registration successful
 	 */
 		template <typename TRefElem>
-		static bool
+		static void
 		register_set(LFEID id, const LocalShapeFunctionSet<TRefElem>& set);
 
 	/// unregister a local shape function set for a given reference element type

@@ -219,7 +219,7 @@ class QuadratureRuleProvider
 	 * This function registers a quadrature rule at the Provider. If there is
 	 * already a rule registered for the order, the rule is overwritten.
 	 */
-		static bool register_rule(ReferenceObjectID roid,
+		static void register_rule(ReferenceObjectID roid,
 		                          const QuadratureRule<dim>& rule)
 		{
 			m_vRule.resize(NUM_REFERENCE_OBJECTS);
@@ -232,9 +232,6 @@ class QuadratureRuleProvider
 
 		//	set or override rule
 			m_vRule[roid][order] = &rule;
-
-		//	we're done
-			return true;
 		}
 
 	///	register rule at this provider
@@ -243,18 +240,18 @@ class QuadratureRuleProvider
 	 * already a rule registered for the order, the rule is overwritten.
 	 */
 		template <typename TRefElem>
-		static bool register_rule(const QuadratureRule<dim>& rule)
+		static void register_rule(const QuadratureRule<dim>& rule)
 		{
 		//	check that dimension is correct
 			if(TRefElem::dim != dim)
-				throw(UGFatalError("QuadratureRuleProvider: registering by reference"
-						" element, but at provider of different dimension."));
+				UG_THROW_FATAL("QuadratureRuleProvider: registering by reference"
+						" element, but at provider of different dimension.");
 
 		//	get reference object id
 			ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
 
 		//	forward request
-			return register_rule(roid, rule);
+			register_rule(roid, rule);
 		}
 
 	///	gets quadrature rule of requested order
@@ -271,8 +268,8 @@ class QuadratureRuleProvider
 		{
 		//	check that dimension is correct
 			if(TRefElem::dim != dim)
-				throw(UGFatalError("QuadratureRuleProvider: requesting by reference"
-						" element, but at provider of different dimension."));
+				UG_THROW_FATAL("QuadratureRuleProvider: requesting by reference"
+						" element, but at provider of different dimension.");
 
 		//	get reference object id
 			ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;

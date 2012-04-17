@@ -872,18 +872,18 @@ bool RegisterQuadratureRule<ReferenceTriangle>(QuadratureRuleProvider<ReferenceT
 	static FlexGaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_12(12);
 
 	bool success = true;
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_1);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_2);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_3);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_4);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_5);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_6);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_7);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_8);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_9);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_10);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_11);
-	success &= factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_12);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_1);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_2);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_3);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_4);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_5);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_6);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_7);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_8);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_9);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_10);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_11);
+	factory.register_rule<ReferenceTriangle>(gaussQuadratureReferenceTriangle_12);
 
 	return success;
 };

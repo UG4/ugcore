@@ -129,7 +129,7 @@ class CommonLocalDoFSet
 		void clear();
 
 	///	add a local dof set to the intersection
-		bool add(const ILocalDoFSet& set);
+		void add(const ILocalDoFSet& set);
 
 	///	number of dofs on a reference element type
 		int num_dof(ReferenceObjectID roid) const {return m_vNumDoF[roid];}
@@ -206,7 +206,7 @@ class LocalDoFSetProvider {
 	 * \param[in]		set		Local Shape Function Set to register
 	 * \return			bool	true iff registration successful
 	 */
-		static bool register_set(LFEID id, const ILocalDoFSet& set);
+		static void register_set(LFEID id, const ILocalDoFSet& set);
 
 	/** unregister a local DoF set for a given reference element type
 	 * This function is used to unregister a Local Shape Function set for an element

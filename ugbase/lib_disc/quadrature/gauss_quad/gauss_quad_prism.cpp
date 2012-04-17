@@ -118,8 +118,8 @@ bool RegisterQuadratureRule<ReferencePrism>(QuadratureRuleProvider<ReferencePris
 	static FlexGaussQuadrature<ReferencePrism> gaussQuadratureReferencePrism_2(2);
 
 	bool success = true;
-	success &= factory.register_rule<ReferencePrism>(gaussQuadratureReferencePrism_0);
-	success &= factory.register_rule<ReferencePrism>(gaussQuadratureReferencePrism_2);
+	factory.register_rule<ReferencePrism>(gaussQuadratureReferencePrism_0);
+	factory.register_rule<ReferencePrism>(gaussQuadratureReferencePrism_2);
 
 	return success;
 };

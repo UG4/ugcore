@@ -95,7 +95,7 @@ class NewtonSolver
 		void clear_average_convergence();
 
 	private:
-		bool allocate_memory(const vector_type& u);
+		void allocate_memory(const vector_type& u);
 
 		void write_debug(const vector_type& vec, const char* filename)
 		{

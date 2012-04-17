@@ -17,15 +17,15 @@ namespace ug{
  * \{
  */
 template <typename TDomain>
-bool LoadDomain(TDomain& domain, const char* filename);
+void LoadDomain(TDomain& domain, const char* filename);
 
 template <typename TDomain>
-bool LoadDomain(TDomain& domain, const char* filename, int procId);
+void LoadDomain(TDomain& domain, const char* filename, int procId);
 /**	\} */
 
 ///	Saves the domain to a grid-file.
 template <typename TDomain>
-bool SaveDomain(TDomain& domain, const char* filename);
+void SaveDomain(TDomain& domain, const char* filename);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@ bool SaveDomain(TDomain& domain, const char* filename);
  * 				false			if error occurred
  */
 template <typename TDomain>
-bool WriteDomainToUGX(const char* filename, const TDomain& domain);
+void WriteDomainToUGX(const char* filename, const TDomain& domain);
 
 
 ////////////////////////////////////////////////////////////////////////

@@ -101,7 +101,7 @@ void WriteVectorToConnectionViewer(const char *filename,
 }
 
 template<class TFunction>
-bool WriteVectorToConnectionViewer(
+void WriteVectorToConnectionViewer(
 		const char *filename,
 		const typename TFunction::algebra_type::matrix_type &A,
 		const typename TFunction::algebra_type::vector_type &b,
@@ -115,11 +115,8 @@ bool WriteVectorToConnectionViewer(
 
 	std::string name(filename);
 	size_t iExtPos = name.find_last_of(".");
-	if (iExtPos == std::string::npos
-			|| name.substr(iExtPos).compare(".vec") != 0) {
-		UG_LOG("Only '.vec' format supported for vectors.\n");
-		return false;
-	}
+	if (iExtPos == std::string::npos || name.substr(iExtPos).compare(".vec") != 0)
+		UG_THROW_FATAL("Only '.vec' format supported for vectors.");
 
 // 	get positions of vertices
 	std::vector<MathVector<dim> > positions;
@@ -128,9 +125,6 @@ bool WriteVectorToConnectionViewer(
 //	write vector
 	WriteVectorToConnectionViewer(name.c_str(), A, b, &positions[0], dim,
 			pCompareVec);
-
-//	we're done
-	return true;
 }
 
 template<typename TGridFunction>
@@ -140,17 +134,17 @@ void SaveVectorForConnectionViewer(TGridFunction& b, const char* filename) {
 }
 
 template<typename TGridFunction>
-bool SaveVectorForConnectionViewer(
+void SaveVectorForConnectionViewer(
 		TGridFunction& u,
 		MatrixOperator<typename TGridFunction::algebra_type::matrix_type,
 				typename TGridFunction::vector_type>& A,
 		const char* filename) {
 	PROFILE_FUNC();
-	return WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u);
+	WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u);
 }
 
 template<typename TGridFunction>
-bool SaveVectorForConnectionViewer(
+void SaveVectorForConnectionViewer(
 		TGridFunction& u,
 		TGridFunction& compareVec,
 		MatrixOperator<typename TGridFunction::algebra_type::matrix_type,
@@ -158,13 +152,12 @@ bool SaveVectorForConnectionViewer(
 		const char* filename) {
 //	forward
 	PROFILE_FUNC();
-	return WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u,
-			&compareVec);
+	WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u, &compareVec);
 }
 
 // Same as before, but for comma separated value (CSV)
 template<class TFunction>
-bool WriteVectorCSV(const char *filename,
+void WriteVectorCSV(const char *filename,
 		const typename TFunction::algebra_type::vector_type &b,
 		const TFunction &u) {
 	PROFILE_FUNC();
@@ -176,8 +169,7 @@ bool WriteVectorCSV(const char *filename,
 	size_t iExtPos = name.find_last_of(".");
 	if (iExtPos == std::string::npos
 			|| name.substr(iExtPos).compare(".csv") != 0) {
-		UG_LOG("Only '.csv' format supported for vectors.\n");
-		return false;
+		UG_THROW_FATAL("Only '.csv' format supported for vectors.");
 	}
 
 //	extended filename
@@ -196,15 +188,12 @@ bool WriteVectorCSV(const char *filename,
 
 //	write vector
 	WriteVectorCSV(name.c_str(), b, &positions[0], dim);
-
-//	we're done
-	return true;
 }
 
 template<typename TGridFunction>
-bool SaveVectorCSV(TGridFunction& b, const char* filename) {
+void SaveVectorCSV(TGridFunction& b, const char* filename) {
 	PROFILE_FUNC();
-	return WriteVectorCSV(filename, b, b);
+	WriteVectorCSV(filename, b, b);
 }
 
 template<typename TDomain, typename TAlgebra>

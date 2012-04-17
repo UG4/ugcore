@@ -29,8 +29,10 @@ void LocalDoFSetProvider::create_lagrange_set(size_t order)
 	m_vCreated.push_back(setLagrange);
 
 //	register the set
-	if(!register_set(LFEID(LFEID::LAGRANGE, order), *setLagrange))
-		UG_THROW_FATAL("Unable to register LagrangeLDS");
+	try{
+		register_set(LFEID(LFEID::LAGRANGE, order), *setLagrange);
+	}
+	UG_CATCH_THROW("Unable to register LagrangeLDS");
 }
 
 void LocalDoFSetProvider::create_lagrange_sets(size_t order)
@@ -122,7 +124,7 @@ const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id, bool bCreat
 }
 
 
-bool LocalDoFSetProvider::register_set(LFEID id, const ILocalDoFSet& set)
+void LocalDoFSetProvider::register_set(LFEID id, const ILocalDoFSet& set)
 {
 //	reference object id
 	const ReferenceObjectID roid = set.roid();
@@ -135,12 +137,9 @@ bool LocalDoFSetProvider::register_set(LFEID id, const ILocalDoFSet& set)
 
 //	check that no space has been previously registered to this place
 	if(vBase[roid])
-	{
-		UG_LOG("ERROR in 'LocalDoFSetProvider::register_set()': "
+		UG_THROW_FATAL("LocalDoFSetProvider::register_set(): "
 				"LocalDoFSet already registered for type: "<<id<<" and "
-				" Reference element type "<<roid<<".\n");
-		return false;
-	}
+				" Reference element type "<<roid<<".");
 
 //	if ok, add
 	vBase[roid] = &set;
@@ -152,25 +151,24 @@ bool LocalDoFSetProvider::register_set(LFEID id, const ILocalDoFSet& set)
 	vCommonSet.resize(4);
 
 //	add this local dof set
-	if(!vCommonSet[set.dim()].add(set))
+	try{
+		vCommonSet[set.dim()].add(set);
+	}
+	catch(ug::UGError err)
 	{
-	//	write error message
-		UG_LOG("ERROR in 'LocalDoFSetProvider::register_set()': "
-				"Cannot build CommonLocalDoFSet for type: "<<id<<" when adding "
-				" Reference element type "<<roid<<".\n");
-
-		UG_LOG("CommonLocalDoFSet is:\n" << vCommonSet[set.dim()]);
-		UG_LOG("LocalDoFSet is:\n" << set);
-
 	//	remove set
 		m_mCommonDoFSet.erase(id);
 
-	//	return error flag
-		return false;
+	//	write error message
+		std::stringstream ss;
+		ss<<"LocalDoFSetProvider::register_set(): "
+				"Cannot build CommonLocalDoFSet for type: "<<id<<" when adding "
+				" Reference element type "<<roid<<".\n"<<
+				"CommonLocalDoFSet is:\n" << vCommonSet[set.dim()]<<
+				"LocalDoFSet is:\n" << set;
+		err.push_msg(ss.str(),__FILE__,__LINE__);
+		throw(err);
 	}
-
-//	done
-	return true;
 }
 
 std::map<LFEID, std::vector<const ILocalDoFSet*> >
@@ -194,7 +192,7 @@ void CommonLocalDoFSet::clear()
 }
 
 ///	add a local dof set to the intersection
-bool CommonLocalDoFSet::add(const ILocalDoFSet& set)
+void CommonLocalDoFSet::add(const ILocalDoFSet& set)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
@@ -217,18 +215,14 @@ bool CommonLocalDoFSet::add(const ILocalDoFSet& set)
 		if(m_vNumDoF[i] != NOT_SPECIFIED)
 			if(m_vNumDoF[i] != set.num_dof(roid))
 			{
-				UG_LOG("ERROR in 'LocalDoFSetIntersection::add': "
+				UG_THROW_FATAL("LocalDoFSetIntersection::add: "
 						" Values does not match ("<<m_vNumDoF[i]<<" <-> "
-						<< set.num_dof(roid)<<").\n");
-				return false;
+						<< set.num_dof(roid)<<").");
 			}
 
 	//	set value if not already set
 		m_vNumDoF[i] = set.num_dof(roid);
 	}
-
-//	done
-	return true;
 }
 
 /// writes to the output stream

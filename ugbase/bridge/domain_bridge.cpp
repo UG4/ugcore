@@ -39,17 +39,17 @@ static void MinimizeMemoryFootprint(TDomain& dom)
 }
 
 template <typename TDomain>
-static bool LoadAndRefineDomain(TDomain& domain, const char* filename,
+static void LoadAndRefineDomain(TDomain& domain, const char* filename,
 								int numRefs)
 {
-	if(!LoadDomain(domain, filename))
-		return false;
+	try{
+		LoadDomain(domain, filename);
+	}
+	UG_CATCH_THROW("LoadAndRefineDomain: Could not load domain at file: "<<filename);
 
 	GlobalMultiGridRefiner ref(*domain.grid());
 	for(int i = 0; i < numRefs; ++i)
 		ref.refine();
-
-	return true;
 }
 
 template <typename TDomain>
@@ -142,18 +142,18 @@ static bool RegisterDomainInterface_(Registry& reg, string grp)
 	}
 
 // 	LoadDomain
-	reg.add_function("LoadDomain", static_cast<bool (*)(TDomain&, const char*)>(
+	reg.add_function("LoadDomain", static_cast<void (*)(TDomain&, const char*)>(
 					 &LoadDomain<TDomain>), grp,
-					"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
+					"", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
 					"Loads a domain", "No help");
 
 //	LoadAndRefineDomain
 	reg.add_function("LoadAndRefineDomain", &LoadAndRefineDomain<TDomain>, grp,
-					"Success", "Domain # Filename # NumRefines | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
+					"", "Domain # Filename # NumRefines | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
 					"Loads a domain and performs global refinement", "No help");
 //	SaveDomain
 	reg.add_function("SaveDomain", &SaveDomain<TDomain>, grp,
-					"Success", "Domain # Filename|save-dialog",
+					"", "Domain # Filename|save-dialog",
 					"Saves a domain", "No help");
 
 //	SavePartitionMap

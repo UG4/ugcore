@@ -96,10 +96,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSub
 	local dom = Domain()
 	
 	-- load domain
-	if LoadDomain(dom, gridName) == false then
-	   print("Loading Domain failed. Aborting.")
-	   exit()
-	end
+	LoadDomain(dom, gridName)
 	
 	-- create Refiner
 	if numPreRefs > numRefs then

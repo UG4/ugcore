@@ -123,7 +123,7 @@ inline void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLev
 
 /// projects surface function to level functions
 template <typename TMatrix>
-bool CopyMatrixSurfaceToLevel(TMatrix& levelMatrix,
+void CopyMatrixSurfaceToLevel(TMatrix& levelMatrix,
                               const std::vector<int>& surfLevelMapping,
                               const TMatrix& surfMatrix)
 {
@@ -159,31 +159,22 @@ bool CopyMatrixSurfaceToLevel(TMatrix& levelMatrix,
 #ifdef UG_PARALLEL
 	levelMatrix.copy_storage_type(surfMatrix);
 #endif
-
-	return true;
 }
 
 /// projects surface function to level functions
 template <typename TMatrix>
-bool CopyMatrixSurfaceToLevel(std::vector<TMatrix*>& vLevelMatrix,
+void CopyMatrixSurfaceToLevel(std::vector<TMatrix*>& vLevelMatrix,
                               const std::vector<std::vector<int> >& vSurfLevelMapping,
                               const TMatrix& surfMatrix)
 {
 //	check sizes
 	if(vSurfLevelMapping.size() != vLevelMatrix.size())
-	{
-		UG_LOG("ERROR in CopyMatrixSurfaceToLevel: Number of matrices and "
-				"mappings does not match. cannot proceed.\n");
-		return false;
-	}
+		UG_THROW_FATAL("CopyMatrixSurfaceToLevel: Number of matrices and "
+				"mappings does not match. cannot proceed.");
 
 //	loop all level
-	bool bRes = true;
 	for(size_t lev = 0; lev < vSurfLevelMapping.size(); ++lev)
-		bRes &= CopyMatrixSurfaceToLevel(vSurfLevelMapping[lev], *vLevelMatrix[lev], surfMatrix);
-
-//	we're done
-	return bRes;
+		CopyMatrixSurfaceToLevel(vSurfLevelMapping[lev], *vLevelMatrix[lev], surfMatrix);
 }
 
 
