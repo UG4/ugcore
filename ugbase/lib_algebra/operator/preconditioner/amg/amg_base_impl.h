@@ -78,7 +78,10 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 	AMGLevel &L = *levels[level];
 	matrix_operator_type &A = *L.pA;
 
-	LevelInformation &li = L.m_levelInformation;
+	if(m_levelInformation.size() < level+1)
+		m_levelInformation.resize(level+1);
+	LevelInformation &li = m_levelInformation[level];
+	li.level = level;
 
 	size_t nnz = GetNNZs(A); // A.total_num_connections();
 	size_t maxConnections = GetMaxConnections(A);
@@ -98,8 +101,10 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 	li.set_max_connections(maxConnections);
 	li.m_iInterfaceElements = 0;
 #endif
+	li.m_iParticipating=pc.size();
 	if(level>0)
-		li.set_coarsening_rate((double)li.get_nr_of_nodes()/(double)levels[level-1]->m_levelInformation.get_nr_of_nodes());
+		li.set_coarsening_rate((double)li.get_nr_of_nodes()/
+				(double)m_levelInformation[level-1].get_nr_of_nodes());
 	else
 		li.set_coarsening_rate(0.0);
 
@@ -205,8 +210,8 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		calculate_level_information(level, createAMGlevelTiming);
 		UG_LOG(get_level_information(level)->tostring() << "\n");
 
-		if(L.m_levelInformation.get_nr_of_nodes() < m_maxNodesForBase
-				|| L.m_levelInformation.get_fill_in() > m_dMaxFillBeforeBase
+		if(m_levelInformation[level].get_nr_of_nodes() < m_maxNodesForBase
+				|| m_levelInformation[level].get_fill_in() > m_dMaxFillBeforeBase
 				|| level >= m_maxLevels-1)
 		{
 			AMG_PROFILE_BEGIN(amg_createDirectSolver);
@@ -315,10 +320,43 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 			}*/
 	}
 
+	m_usedLevels = level+1;
+#ifdef UG_PARALLEL
+	pcl::ProcessCommunicator &pc = mat.process_communicator(); //!
+	m_totalUsedLevels = pc.allreduce(m_usedLevels, PCL_RO_MAX);
+
+	for(level=0;level<m_totalUsedLevels; level++)
+	{
+		if(m_levelInformation.size() < level+1)
+			m_levelInformation.resize(level+1);
+			LevelInformation &li = m_levelInformation[level];
+		li.level = level;
+
+		li.m_dCreationTimeMS = pc.allreduce(li.m_dCreationTimeMS, PCL_RO_MAX);
+		li.m_iNrOfNodesMin = pc.allreduce(li.m_iNrOfNodesMin, PCL_RO_MAX);
+		li.m_iNrOfNodesMax = pc.allreduce(li.m_iNrOfNodesMax, PCL_RO_MAX);
+		li.m_iNrOfNodesSum = pc.allreduce(li.m_iNrOfNodesSum, PCL_RO_MAX);
+
+		li.m_iNNZsMin = pc.allreduce(li.m_iNNZsMin, PCL_RO_MAX);
+		li.m_iNNZsMax = pc.allreduce(li.m_iNNZsSum, PCL_RO_MAX);
+		li.m_iNNZsSum = pc.allreduce(li.m_iNNZsMax, PCL_RO_MAX);
+
+		li.m_iInterfaceElements = pc.allreduce(li.m_iInterfaceElements, PCL_RO_MAX);
+		li.m_connectionsMax = pc.allreduce(li.m_connectionsMax, PCL_RO_MAX);
+
+		li.m_iParticipating=pc.allreduce(li.m_iParticipating, PCL_RO_MAX);
+
+		if(level >= m_usedLevels){
+		UG_LOG(li.tostring() << "\n");
+		UG_LOG(" level took " << li.m_dCreationTimeMS << " ms" << std::endl << std::endl);}
+	}
+
+#endif
+
 	UG_LOG("finished. now init fsmoothing.\n");
 	init_fsmoothing();
 
-	m_usedLevels = level+1;
+
 	UG_LOG("AMG Setup finished. Used Levels: " << m_usedLevels << ". ");
 	m_dTimingWholeSetupMS = SWwhole.ms();
 	UG_DLOG(LIB_ALG_AMG, 1, "AMG Setup took " << m_dTimingWholeSetupMS << " ms." << std::endl);

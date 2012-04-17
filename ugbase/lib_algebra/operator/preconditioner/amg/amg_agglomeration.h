@@ -241,7 +241,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 	AMGLevel &L = *levels[level];
 	matrix_operator_type &A = *L.pA;
 
-	if(L.m_levelInformation.get_nr_of_nodes_min() > m_minNodesOnOneProcessor
+	if(m_levelInformation[level].get_nr_of_nodes_min() > m_minNodesOnOneProcessor
 			|| A.process_communicator().size() == 1)
 	{
 		L.bHasBeenMerged = false;

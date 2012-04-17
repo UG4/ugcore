@@ -70,9 +70,20 @@ public:
 	class LevelInformation
 	{
 	public:
-		LevelInformation(int _level)
+		LevelInformation(int _level=0)
 		{
 			level = _level;
+			m_dCoarseningRate = 0.0;
+			m_dCreationTimeMS = 0.0;
+			m_iNrOfNodesMin=0;
+			m_iNrOfNodesMax=0;
+			m_iNrOfNodesSum=0;
+			m_iNNZsMin=0;
+			m_iNNZsMax=0;
+			m_iNNZsSum=0;
+			m_iInterfaceElements=0;
+			m_connectionsMax=0;
+			m_iParticipating=0;
 		}
 		double get_creation_time_ms() const { return m_dCreationTimeMS; }
 
@@ -115,6 +126,11 @@ public:
 			return m_dCoarseningRate;
 		}
 
+		int get_participating()
+		{
+			return m_iParticipating;
+		}
+
 		std::string tostring() const
 		{
 			std::stringstream ss;
@@ -123,6 +139,9 @@ public:
 			if(level != 0) ss << "coarsening rate: " << get_coarsening_rate()*100 << "%. ";
 			ss << "nr of interface elements: " << get_nr_of_interface_elements() << " (" << (double)get_nr_of_interface_elements()/(double)get_nr_of_nodes()*100.0 << "%) "
 					<< "nnzs: " << get_nnz() << " avgNNZs/row: " << get_avg_nnz_per_row() << " maxCon: " << get_max_connections();
+#ifdef UG_PARALLEL
+			ss << " participating: " << m_iParticipating;
+#endif
 			return ss.str();
 		}
 
@@ -138,6 +157,7 @@ public:
 		size_t m_iNNZsSum;
 		size_t m_iInterfaceElements;
 		size_t m_connectionsMax;
+		size_t m_iParticipating;
 	};
 
 	struct checkResult
@@ -520,13 +540,12 @@ public:
 		UG_LOG("Whole setup took " << get_timing_whole_setup_ms() << " ms, coarse solver setup took " << get_timing_coarse_solver_setup_ms() << " ms.\n");
 		/*for(int i = 0; i<get_used_levels(); i++)
 			UG_LOG(get_level_information(i)->tostring() << "\n");*/
-
 	}
 
 	const LevelInformation *get_level_information(size_t level) const
 	{
-		if(level < levels.size())
-			return &levels[level]->m_levelInformation;
+		if(level < m_levelInformation.size())
+			return &m_levelInformation[level];
 		else return NULL;
 	}
 
@@ -582,6 +601,7 @@ protected:
 
 	size_t 	m_maxLevels;						///< max. nr of levels used for FAMG
 	size_t	m_usedLevels;						///< nr of FAMG levels used
+	size_t  m_totalUsedLevels;
 
 	size_t 	m_maxNodesForBase;					///< max nr of coarse nodes before Base solver is used
 	double 	m_dMaxFillBeforeBase;				///< max fill rate before Base solver is used
@@ -629,12 +649,11 @@ protected:
 	IPositionProvider<3> *m_pPositionProvider3d;
 
 	stdvector<stdvector<int> > m_parentIndex;		///< parentIndex[i] is the index of i on the finer level
-
+	stdvector<LevelInformation> m_levelInformation;
 	struct AMGLevel
 	{
 		AMGLevel(int level)
-			: m_levelInformation(level),
-			  pA(NULL),
+			: pA(NULL),
 			  presmoother(NULL),
 			  postsmoother(NULL)
 #ifdef UG_PARALLEL
@@ -648,7 +667,6 @@ protected:
 			bHasBeenMerged = false;
 #endif
 		}
-		LevelInformation m_levelInformation;
 
 		vector_type corr;					///< temporary Vector for storing the correction made on this level
 		vector_type cH;						///< temporary Vector for storing rH
