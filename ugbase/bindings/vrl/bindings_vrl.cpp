@@ -529,6 +529,11 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getCompileDate
 	return ug::vrl::stringC2J(env, COMPILE_DATE);
 }
 
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getUGVersion
+  (JNIEnv *env, jobject obj) {
+	return ug::vrl::stringC2J(env, ug::UGGetVersionString().c_str());
+}
+
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG__1delete
 (JNIEnv * env, jclass cls, jlong objPtr, jlong exportedClsPtr) {
 
