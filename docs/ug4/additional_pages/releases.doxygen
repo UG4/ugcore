@@ -9,7 +9,7 @@ each release.
 \section secUG4_0_0	ug4.0.0
 ug4.0.0 is the first release of the \ug4 simulation environment. While this version does not
 yet contain all of the planned features of \ug4, it already provides a rich
-simulation environment which is used in many different projects.
+simulation , which is used in many different projects.
 
 Below you'll find a list which tries to summarize the current state of ug4.
 Note that this list is far from complete.
@@ -22,13 +22,16 @@ Note that this list is far from complete.
 	  of the provided geometric multigrid solver has been shown for up to
 	  262144 (256ki) processes. It may well show a good scaling behavior
 	  for even more processes.
+	- \ug4 has been carefully crafted to allow the execution of applications both
+	  in serial and in parallel environments. No changes to the scripts are required,
+	  since parallelization is handled internally.
 	- \ug4 not only provides a flexible scripting environment throug the use of
 	  the lua scripting language, it also provides bindings to java and the
 	  "Visual Programming Languge" vrl. The latter allows to build a simulation
 	  while at the same time building its graphical user interface through simple
 	  drag and drop operations.
-	- \ug4 provides an interactive shell with auto-completion, method-inspection
-	  script-debugging utilities and many more.
+	- \ug4 provides an interactive shell with auto-completion, method-inspection,
+	  script-debugging utilities and much more.
 	- Comprehensive error messages with call-stacks allow to quickly understand
 	  what went wrong in a script and where it did so.
 	- \ug4 is extendible through plugins. Classes and algorithms developed in
@@ -45,11 +48,11 @@ Note that this list is far from complete.
 	- Dense matrix types for small block-matrices.
 	- Efficient linear serial and parallel solvers, like 'bicgstab', 'cg',
 	  'feti', 'gauss-seidel', 'ilu', 'jacobi' and 'lu-decomposition'.
-	- Algebraic Multigrid methods: A abstract parallel algebraic multigrid framework including
+	- Algebraic Multigrid methods: An abstract parallel algebraic multigrid framework including
 	  calculation of matrix overlaps, several parallel coarsening algorithms, agglomeration of
 	  processors, and a lot of debugging mechanisms for checking at each AMG level:
 	  where error is not corrected, what matrix is produced (including graphical output).
-	  On implementations we have a Ruge-Stüben AMG, and a Filtering AMG (in development).
+	  On implementations we have a Ruge-Stueben AMG, and a Filtering AMG (in development).
 	- a PINVIT/LOBPCG eigensolver (in development).
 	- Tools and utilities to inspect large matrices.
 	- Operators and structures are registered at ug's registry and are thus
@@ -65,13 +68,16 @@ Note that this list is far from complete.
 	- Support for different algebra implementations through the use of template
 	  programming.
 	- Prebuild discretization blocks: ...
+	- Efficient and scalable geometric multigrid methods for serial and parallel
+	  use. Adaptivity through hanging-nodes is fully supported both in serial
+	  and parallel environments.
 	- Fully scriptable through ug-script or vrl-projects.
 
 - libGrid
 	- Unstructured hybrid hierarchical grids in 1, 2 and 3 dimensions.
 	- Separation of topology and data allows to associate arbitrary data with
 	  elements in the grid - even temporary data may be attached. Data access is
-	  typesafe and fast. Management of the data associated with the elements of
+	  typesafe and fast. Management of arbitrary data associated with the elements of
 	  a grid is fully automated.
 	- Grids may consist of vertices, edges, faces and volumes. Currently used
 	  concrete element-types include vertices, edges, triangles, quadrilaterals,
