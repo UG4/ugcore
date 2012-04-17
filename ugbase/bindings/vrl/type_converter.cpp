@@ -710,22 +710,22 @@ namespace ug {
 
 				// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) 
 				// allow non-const-smart* to non const*
-						if (paramType == ug::bridge::PT_SMART_POINTER &&
-								paramStack.get_type(i) == ug::bridge::PT_POINTER) {
-							paramType = ug::bridge::PT_POINTER;
-						}
+				if (paramType == ug::bridge::PT_SMART_POINTER &&
+						paramStack.get_type(i) == ug::bridge::PT_POINTER) {
+					paramType = ug::bridge::PT_POINTER;
+				}
 
-						// allow non-const-smart* to const*
-						if (paramType == ug::bridge::PT_SMART_POINTER &&
-								paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
-							paramType = ug::bridge::PT_CONST_POINTER;
-						}
+				// allow non-const-smart* to const*
+				if (paramType == ug::bridge::PT_SMART_POINTER &&
+						paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
+					paramType = ug::bridge::PT_CONST_POINTER;
+				}
 
-						// allow const smart* to const*
-						if (paramType == ug::bridge::PT_CONST_SMART_POINTER &&
-								paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
-							paramType = ug::bridge::PT_CONST_POINTER;
-						}
+				// allow const smart* to const*
+				if (paramType == ug::bridge::PT_CONST_SMART_POINTER &&
+						paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
+					paramType = ug::bridge::PT_CONST_POINTER;
+				}
 
 				if (paramType != paramStack.get_type(i)) {
 					//#ifdef UG_DEBUG
@@ -757,6 +757,39 @@ namespace ug {
 			//#endif
 
 			return true;
+		}
+
+		std::string getParamTypesAsString(JNIEnv *env, jobjectArray const& array) {
+
+			std::stringstream ss;
+
+			size_t length = (size_t)env->GetArrayLength(array);
+
+			//iterate through the parameter array and add the type name to
+			// the stream
+			for (size_t i = 0; i < length; ++i) {
+				jobject value = env->GetObjectArrayElement(array, i);
+
+				uint java_value_type = paramClass2ParamType(env, value);
+
+				if (i > 0) {
+					ss << ", ";
+				}
+				bool classValue =
+						java_value_type == ug::bridge::PT_CONST_POINTER ||
+						java_value_type == ug::bridge::PT_POINTER ||
+						java_value_type == ug::bridge::PT_SMART_POINTER ||
+						java_value_type == ug::bridge::PT_CONST_SMART_POINTER;
+
+				if (classValue) {
+					ss << getParamClassName(env,value);
+				} else {
+					ss << getParamTypeAsString(java_value_type);
+				}
+
+			}
+
+			return ss.str();
 		}
 
 		void jobjectArray2ParamStack(

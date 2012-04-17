@@ -240,24 +240,24 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 	jobject result = NULL;
 
 	try {
-		const ug::bridge::ExportedMethod* constructor =
+		const ug::bridge::ExportedMethod* exMethod =
 				ug::vrl::invocation::getMethodBySignature(
 				env, ug::vrl::vrlRegistry,
 				clazz, ug::vrl::boolJ2C(readOnly), name, params);
 
-		if (constructor == NULL && readOnly == false) {
-			constructor = ug::vrl::invocation::getMethodBySignature(
+		if (exMethod == NULL && readOnly == false) {
+			exMethod = ug::vrl::invocation::getMethodBySignature(
 					env, ug::vrl::vrlRegistry,
 					clazz, ug::vrl::boolJ2C(true), name, params);
 		}
 
-		if (constructor == NULL) {
+		if (exMethod == NULL) {
 
 			std::stringstream ss;
 
-			ss << "Method not found: " <<
+			ss << "No method found that matches the given signature: " <<
 					EMPHASIZE_BEGIN << clazz->name() << "."<< name <<
-					"()" << EMPHASIZE_END << ".";
+					"(" + ug::vrl::getParamTypesAsString(env, params) +")" << EMPHASIZE_END << ".";
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 			env->ThrowNew(Exception, ss.str().c_str());
@@ -266,7 +266,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 
 		ug::vrl::jobjectArray2ParamStack(
 				env, ug::vrl::vrlRegistry,
-				paramsIn, constructor->params_in(), params);
+				paramsIn, exMethod->params_in(), params);
 
 
 		const ug::bridge::ClassNameNode* clsNode =
@@ -275,9 +275,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 
 		void* finalObjPtr = ug::bridge::ClassCastProvider::cast_to_base_class(
 				(void*) objPtr,
-				clsNode, constructor->class_name());
+				clsNode, exMethod->class_name());
 
-		constructor->execute(finalObjPtr, paramsIn, paramsOut);
+		exMethod->execute(finalObjPtr, paramsIn, paramsOut);
 
 		if (paramsOut.size() > 0) {
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
@@ -342,9 +342,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 
 			std::stringstream ss;
 
-			ss << "Constructor not found: " <<
-					EMPHASIZE_BEGIN << name <<
-					"()" << EMPHASIZE_END << ".";
+			ss << "No constructor found that matches the given signature: " <<
+				EMPHASIZE_BEGIN << clazz->name() << "."<< name <<
+				"(" + ug::vrl::getParamTypesAsString(env, params) +")" << EMPHASIZE_END << ".";
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 			env->ThrowNew(Exception, ss.str().c_str());
@@ -407,9 +407,11 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 (JNIEnv *env, jobject obj, jstring fName, jboolean readOnly, jobjectArray params) {
 
+	std::string name = ug::vrl::stringJ2C(env, fName);
+
 	const ug::bridge::ExportedFunction* func =
 			ug::vrl::invocation::getFunctionBySignature(
-			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, fName), params);
+			env, ug::vrl::vrlRegistry, name, params);
 
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
@@ -421,9 +423,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 		if (func == NULL) {
 			std::stringstream ss;
 
-			ss << "Function not found: " <<
-					EMPHASIZE_BEGIN << ug::vrl::stringJ2C(env, fName) <<
-					"()" << EMPHASIZE_END << ".";
+			ss << "No function found that matches the given signature: " <<
+				EMPHASIZE_BEGIN << name <<
+				"(" + ug::vrl::getParamTypesAsString(env,params) +")" << EMPHASIZE_END << ".";
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 			env->ThrowNew(Exception, ss.str().c_str());

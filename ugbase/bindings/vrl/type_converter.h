@@ -292,7 +292,7 @@ uint paramClass2ParamType(JNIEnv *env, jobject obj);
 /**
  * Compares the parameter types of a Java object array and a
  * paramter stack. It ignores differences regarding constness.
- * This is checked on Java via interface types.
+ * This is checked by Java via interface types.
  * @param env JVM environment to operate on
  * @param params array of Java objects
  * @param reg ug registry
@@ -334,6 +334,12 @@ std::vector<const char*> getBaseClassNames(const ug::bridge::ClassNameNode* node
  * @return the the name of the specified parameter type
  */
 std::string getParamTypeAsString(const uint type);
+
+/**
+ * Returns the the names of the specified parameter types.
+ * @return the the names of the specified parameter types
+ */
+std::string getParamTypesAsString(JNIEnv *env, jobjectArray const& array);
 
 /**
  * Converts the specified ug error to its equivalent Java representation
