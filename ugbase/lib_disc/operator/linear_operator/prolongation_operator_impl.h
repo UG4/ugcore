@@ -217,12 +217,12 @@ void P1Prolongation<TDomain, TAlgebra>::apply(vector_type& uFineOut, const vecto
 //	Apply Matrix
 	if(!m_matrix.apply(uFineOut, uCoarseIn))
 	{
-		UG_THROW_FATAL("P1Prolongation<TDomain, TAlgebra>::apply: " <<
-					"Cannot apply matrix. "
+		std::stringstream ss;
+		ss << "P1Prolongation<TDomain, TAlgebra>::apply: Cannot apply matrix. ";
 #ifdef UG_PARALLEL
-					<< "(Type uCoarse = " <<uCoarseIn.get_storage_mask()
+		ss << "(Type uCoarse = " <<uCoarseIn.get_storage_mask();
 #endif
-		);
+		UG_THROW_FATAL(ss.str().c_str());
 	}
 
 //	Set dirichlet nodes to zero again
