@@ -72,6 +72,7 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 bool UnloadPlugins()
 {
 	// please implement
+	return false;
 }
 
 }// end of namespace
