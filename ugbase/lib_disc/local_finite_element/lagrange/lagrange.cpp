@@ -288,7 +288,7 @@ template class LagrangeLSFS<ReferenceEdge, 3>;
 template class LagrangeLSFS<ReferenceEdge, 4>;
 template class LagrangeLSFS<ReferenceEdge, 5>;
 
-template class FlexLagrangeLSFS<ReferenceEdge>;
+//template class FlexLagrangeLSFS<ReferenceEdge>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Triangle
@@ -344,7 +344,7 @@ template class LagrangeLSFS<ReferenceTriangle, 3>;
 template class LagrangeLSFS<ReferenceTriangle, 4>;
 template class LagrangeLSFS<ReferenceTriangle, 5>;
 
-template class FlexLagrangeLSFS<ReferenceTriangle>;
+//template class FlexLagrangeLSFS<ReferenceTriangle>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Quadrilateral
@@ -400,7 +400,7 @@ template class LagrangeLSFS<ReferenceQuadrilateral, 3>;
 template class LagrangeLSFS<ReferenceQuadrilateral, 4>;
 template class LagrangeLSFS<ReferenceQuadrilateral, 5>;
 
-template class FlexLagrangeLSFS<ReferenceQuadrilateral>;
+//template class FlexLagrangeLSFS<ReferenceQuadrilateral>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Tetrahedron
@@ -455,7 +455,7 @@ template class LagrangeLSFS<ReferenceTetrahedron, 3>;
 template class LagrangeLSFS<ReferenceTetrahedron, 4>;
 template class LagrangeLSFS<ReferenceTetrahedron, 5>;
 
-template class FlexLagrangeLSFS<ReferenceTetrahedron>;
+//template class FlexLagrangeLSFS<ReferenceTetrahedron>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Prism
@@ -519,7 +519,7 @@ template class LagrangeLSFS<ReferencePrism, 3>;
 template class LagrangeLSFS<ReferencePrism, 4>;
 template class LagrangeLSFS<ReferencePrism, 5>;
 
-template class FlexLagrangeLSFS<ReferencePrism>;
+//template class FlexLagrangeLSFS<ReferencePrism>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Pyramid
