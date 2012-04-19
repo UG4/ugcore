@@ -11,9 +11,14 @@
 <hr>
 \section secParallelRenderingGeneral General Information about Parallel Rendering
 <hr>
-<!-- TODO! -->
+<!-- TODO: Explicate a bit! -->
 <ul>
-<li> ...
+<li> There are at least two advantages of the approach introduced in the following:
+     You can utilise the processing power of a parallel machine to render (very)
+     huge data sets, and, if you utilise the same parallel machine which you've
+     used to generate these data sets as "rendering server" also there is no need
+     to transfer the data e.g. on your local workplace computer solely for the
+     purpose of visualisation.
 </li>
 
 </ul>
@@ -23,58 +28,119 @@
 \section secParallelRenderingWithParaView Parallel Rendering with ParaView
 <hr>
 
-<b>Prerequisite</b>: <a href="http://paraview.org/">ParaView</a> (client) is installed on your local machine,
+<b>Prerequisites</b>: <a href="http://paraview.org/">ParaView</a> (client) is installed on your local machine,
 and ParaView (server; with MPI support) is installed on the machine which is intended as rendering server.
 
-<b>Important</b>: The version of the client must match that of the server!
+\note It is important that the version of the client match that of the server!
 
 For a local installation of ParaView on the rendering server see \ref secInstallParaView.
 
 This mode of running ParaView is also called "Client-Server mode".
-In client-server mode, one executes the <tt>pvserver</tt> program on a parallel machine and connect to it with the ParaView client application.
+In client-server mode, one executes the <tt>pvserver</tt> program on a parallel
+machine and establish a connection with the ParaView client application on your
+local workspace computer.
+
+In the following we describe the steps necessary for establishing a so called
+<strong>"reverse connection"</strong> (i.e., the server connects to the client
+instead of that the client connects to the server) from the client running on
+your local machine to the server running on \em Cekon, so the recommended way
+is to <em>start the local client first</em>, and <em>afterwards the remote server</em>
+(otherwise you might get error messages that the connection was refused;
+nevertheless it is possible to connect if you are fast enough to start and
+configure the client (see steps 1 and 2 below) also in this case since the
+server retries for about one minute to establish a connection to the client).
 
 <ol>
-<li> Start the ParaView server on the rendering server, e.g. cekon, with your local machine as client (the parameter <tt>-ch</tt> specifies the "client host"):
-     \verbatim
-     salloc -n <NP> mpirun /usr/local/bin/pvserver -ch=<yourlocalhost>.gcsc.uni-frankfurt.de -rc --use-offscreen-rendering
-     \endverbatim
-     The option <tt>-rc</tt> stands for "reverse connection". This means that the server connects to the client instead of the client connecting to the server.
-     This may be necessary when the server is behind a firewall.
+<li> Start the ParaView program on your local machine as usual. This process
+     is the ParaView <strong>client</strong>.
      </li>
 
-<li> Start the ParaView client on your local machine as usual.
-     </li>
+<li> Then choose "File -- Connect" (or click the "Connect" icon in the clients
+     toolbar).
 
-<li> Then choose "File -- Connect".
-     In the new dialog "Choose Server Configuration" click "Add Server" (window title changes to "Edit Server Configuration").
+     In the "Choose Server Configuration" dialog window popping up
+     click "Add Server" (window title changes to "Edit Server Configuration").
 
-     Fill in the necessary information to define a connection to the ParaView server running on cekon:
+     Fill in the necessary information to define a connection with the ParaView server
+     running on \em Cekon (the following steps are only necessary for the first time
+     you add a specific server):
+
      <ul>
-     <li> Name: "cekon" (only descriptive; this is the name that will appear in the "Choose Server Configuration" dialog),
-     <li> Server Type: "Client / Server (reverse Connection)",
-     <li> Port: "11111" (this is the default port; see below for use of other ports).
+     <li> Name: "cekon" (only descriptive; this is the name that will appear in the
+     "Choose Server Configuration" dialog you can use after finishing this setup
+     for all subsequent connection attempts),</li>
+     <li> Server Type: "Client / Server (reverse Connection)",</li>
+     <li> Port: "11111" (this is the default port; see below for use of other ports).</li>
      </ul>
-     Then click "Configure" and choose "Startup Type": "Manual". Click "Save"
+     Then click "Configure" and choose "Startup Type": "Manual". Click "Save".
 
      Select the (newly defined) server and click "Connect".
+     A small window appears saying "Establishing connection to 'cekon'",
+     "Waiting for server to connect."
+     </li>
+     <--! Note that the client does not need the servers hostname / address since
+     the client is the active one in establishing the connection. So, the statement
+     in the "Name" field is (and can be) just descriptive. On the other side, if a
+     "forward connection" should be established and where the client connects to the
+     server one has to specify the server by stating its hostname - which can be done
+     in an additional field. -->
+<li> Login to \em Cekon via ssh and start the ParaView <strong>server</strong> program,
+     <tt>pvserver</tt> (installed system-wide in this example; you might want to use
+     your own version installed locally to meet the version match mentioned above),
+     specifying that your local machine act as the "client host"
+     (the parameter <tt>-ch</tt> specifies the "client host";
+     the option <tt>-rc</tt> stands for "reverse connection"):
+     \code
+salloc -n <NP> mpirun /usr/local/bin/pvserver -ch=<yourlocalhost>.gcsc.uni-frankfurt.de -rc --use-offscreen-rendering
+     \endcode
+
+     If the server is able to establish the connection to the client it ouputs
+     something like the following:
+     \code
+salloc -n 16 mpirun /usr/local/bin/pvserver -ch=clever.gcsc.uni-frankfurt.de -rc --use-offscreen-rendering
+salloc: Granted job allocation 21861
+Connecting to client (reverse connection requested)...
+Connection URL: csrc://clever.gcsc.uni-frankfurt.de:11111
+Client connected.
+     \endcode
+
      </li>
 
-<li> In the "Pipeline Browser" of your client choose the server as "data object" <!-- TODO: Test and explicate! -->
+<li> In the "Pipeline Browser" of your client now a <strong>symbol for the server</strong>
+     you are connected with is visible (instead of the "builtin" server symbol for the
+     local machine on which ParaView (client) is running).
+
+     Now you are ready to load data located on the \em servers filesystem, \em not on
+     your local filesystem, i.e., the "File - Open" dialog makes the servers filesystem
+     accesible.
      </li>
 
+<li> Open a file with data to be visualised and setup your Visualisation Pipeline as usual,
+     and do your visualisation work.
+     </li>
 
+<li> When finished, click the "Disconnect" icon in the clients toolbar - the server process
+     exits automatically, and the server symbol in the clients "Pipeline Browser" is
+     replaced by the (usual) "builtin" server symbol so that all subsequent load commands
+     access the local filesystem (again).
+     </li>
 </ol>
-If a ParaView server is already running and listening at the default port, <tt>11111</tt>
-(or this port is blocked by a firewall etc.), you have to start the server using a non-default port
-using the additional parameter <tt>--server-port=&lt;portnumber&gt;</tt> (and of course take this into account also when connecting from the client to the server).
 
+If a ParaView server is already running and listening at the default port,
+<tt>11111</tt> (or if this port is blocked by a firewall etc.), you have to start
+the server with the additional parameter <tt>--server-port=\<portnumber\></tt>
+where <tt>\<portnumber\></tt> is a free (non-default) port number (and of course
+you have to take this number into account in the "Connection URL" field described
+above).
+
+<--! A "reverse connection" might be necessary in cases where the server lies behind a firewall etc.-->
 
 For some further documentation see e.g.:
      <ul>
-     <li> http://www.paraview.org/Wiki/Setting_up_a_ParaView_Server#Running_the_Server,</li>
-     <li> http://www.vtk.org/Wiki/Setting_up_a_ParaView_Server,</li>
-     <li> http://www.fz-juelich.de/ias/jsc/EN/Expertise/Support/Visualization/ScientificVisualization/JUVIS/_node.html,</li>
-     <li> http://www.fz-juelich.de/ias/jsc/EN/Expertise/Support/Visualization/ScientificVisualization/JUVIS/SampleSessionLocalRender.html.</li>
+     <li> http://www.paraview.org/Wiki/Setting_up_a_ParaView_Server#Running_the_Server ,</li>
+     <li> http://www.vtk.org/Wiki/Setting_up_a_ParaView_Server ,</li>
+     <li> http://www.fz-juelich.de/ias/jsc/EN/Expertise/Support/Visualization/ScientificVisualization/JUVIS/_node.html ,</li>
+     <li> http://www.fz-juelich.de/ias/jsc/EN/Expertise/Support/Visualization/ScientificVisualization/JUVIS/SampleSessionLocalRender.html .</li>
      </ul>
 
 */
