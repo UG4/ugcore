@@ -189,7 +189,7 @@ class ThetaTimeStep
 			else if(m_scheme == "Alexander")
 			{
 				vSA.resize(2);
-				const number gamma = 1 - 1. / sqrt(2);
+				const number gamma = 1 - 1. / sqrt(2.);
 				switch(m_stage)
 				{
 					case 1:
