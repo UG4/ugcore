@@ -17,6 +17,12 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
+DataImport<TData,dim>::~DataImport()
+{
+	if(data_given()) m_spIPData->unregister_storage_callback(this);
+}
+
+template <typename TData, int dim>
 bool DataImport<TData,dim>::set_roid(ReferenceObjectID id)
 {
 //	if lin defect is not supposed to be computed, we're done
@@ -90,6 +96,16 @@ void DataImport<TData,dim>::set_data(SmartPtr<IPData<TData, dim> > spData)
 }
 
 template <typename TData, int dim>
+void DataImport<TData,dim>::cache_data_access()
+{
+	//	cache the pointer to the data field.
+		m_vValue = m_spIPData->values(m_seriesID);
+
+	//	in addition we cache the number of ips
+		m_numIP = m_spIPData->num_ip(m_seriesID);
+}
+
+template <typename TData, int dim>
 template <int ldim>
 void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t numIP,
                                           bool bMayChange)
@@ -103,15 +119,11 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 		m_seriesID = m_spIPData->template
 					register_local_ip_series<ldim>(vPos,numIP,bMayChange);
 
-	//	cache the pointer to the data field. This is possible, since once a
-	//	local ip series is registered it can not be removed or altered. In the same
-	//	way the memory storage is not changed but always only increased. Therefore,
-	//	we can request the data now and it will remain valid until IIPData::clear()
-	//	is called.
-		m_vValue = m_spIPData->values(m_seriesID);
+	//	register callback, invoked when data field is changed
+		m_spIPData->register_storage_callback(this, &DataImport<TData,dim>::cache_data_access);
 
-	//	in addition we cache the number of ips
-		m_numIP = m_spIPData->num_ip(m_seriesID);
+	//	cache access to the data
+		cache_data_access();
 
 	//	resize also lin defect array
 		resize_defect_array();
@@ -129,15 +141,8 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 
 		if(numIP != m_numIP)
 		{
-		//	cache the pointer to the data field. This is possible, since once a
-		//	local ip series is registered it can not be removed or altered. In the same
-		//	way the memory storage is not changed but always only increased. Therefore,
-		//	we can request the data now and it will remain valid until IIPData::clear()
-		//	is called.
-			m_vValue = m_spIPData->values(m_seriesID);
-
-		//	in addition we cache the number of ips
-			m_numIP = m_spIPData->num_ip(m_seriesID);
+		//	cache access to the data
+			cache_data_access();
 
 		//	resize also lin defect array
 			resize_defect_array();
@@ -169,6 +174,7 @@ void DataImport<TData,dim>::set_global_ips(const MathVector<dim>* vPos, size_t n
 template <typename TData, int dim>
 void DataImport<TData,dim>::clear_ips()
 {
+	if(data_given()) m_spIPData->unregister_storage_callback(this);
 	m_seriesID = -1;
 	m_vValue = 0;
 	m_numIP = 0;

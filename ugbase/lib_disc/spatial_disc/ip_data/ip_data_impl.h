@@ -183,6 +183,40 @@ inline void IIPDimData<dim>::check_s_ip(size_t s, size_t ip) const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim, typename TRet>
+void IPData<TData,dim,TRet>::
+register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim>::*func)())
+{
+	typedef std::pair<DataImport<TData,dim>*, CallbackFct> Pair;
+	m_vCallback.push_back(Pair(obj,func));
+}
+
+template <typename TData, int dim, typename TRet>
+void IPData<TData,dim,TRet>::
+unregister_storage_callback(DataImport<TData,dim>* obj)
+{
+	typedef typename std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > VecType;
+	typedef typename VecType::iterator iterator;
+	iterator iter = m_vCallback.begin();
+	while(iter != m_vCallback.end())
+	{
+		if((*iter).first == obj) iter = m_vCallback.erase(iter);
+		else ++iter;
+	}
+}
+
+template <typename TData, int dim, typename TRet>
+void IPData<TData,dim,TRet>::
+call_storage_callback() const
+{
+	typedef typename std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > VecType;
+	typedef typename VecType::const_iterator iterator;
+	for(iterator iter = m_vCallback.begin(); iter != m_vCallback.end(); ++iter)
+	{
+		(((*iter).first)->*((*iter).second))();
+	}
+}
+
+template <typename TData, int dim, typename TRet>
 TRet IPData<TData,dim,TRet>::operator() (TData& D, const MathVector<dim>& x,
                                          number time, int si) const
 {
@@ -228,6 +262,8 @@ void IPData<TData,dim,TRet>::local_ip_series_added(const size_t newNumSeries)
 		m_vvBoolFlag[s].resize(num_ip(s), true);
 	}
 
+	call_storage_callback();
+
 //	call base class callback
 	base_type::local_ip_series_added(newNumSeries);
 }
@@ -256,6 +292,7 @@ void IPData<TData,dim,TRet>::local_ips_changed(const size_t seriesID, const size
 
 	//	invoke callback
 		value_storage_changed(seriesID);
+		call_storage_callback();
 	}
 
 //	call base class callback (if implementation given)

@@ -130,6 +130,9 @@ class DataImport : public IDataImport
 			m_numIP(0), m_spDependentIPData(NULL)
 		{clear_fct();}
 
+	///	Destructor
+		~DataImport();
+
 	///	set the user data
 		void set_data(SmartPtr<IPData<TData, dim> > spData);
 
@@ -286,6 +289,9 @@ class DataImport : public IDataImport
 
 	///	checks in debug mode the correct index
 		inline void check_values() const;
+
+	///	caches data access
+		void cache_data_access();
 
 	///	resizes the lin defect arrays for current number of ips.
 		void resize_defect_array();

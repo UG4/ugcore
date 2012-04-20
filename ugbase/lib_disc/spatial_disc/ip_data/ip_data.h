@@ -206,6 +206,9 @@ class IIPDimData : virtual public IIPData
 };
 
 
+// predeclaration
+template <typename TData, int dim> class DataImport;
+
 /// Type based IP Data
 /**
  * This class is the base class for all integration point data for a templated
@@ -254,6 +257,12 @@ class IPData : public IIPDimData<dim>
 	///	destructor
 		~IPData() {local_ip_series_to_be_cleared();}
 
+	///	register external callback, invoked when data storage changed
+		void register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim>::*func)());
+
+	///	register all callbacks registered by class
+		void unregister_storage_callback(DataImport<TData,dim>* obj);
+
 	protected:
 	///	checks in debug mode the correct index
 		inline void check_series(size_t s) const;
@@ -273,12 +282,19 @@ class IPData : public IIPDimData<dim>
 	///	callback, invoked when storage of data has changed for a series
 		virtual void value_storage_changed(const size_t seriesID) {}
 
+	///	calls are registered external storage callbacks
+		void call_storage_callback() const;
+
 	private:
 	/// data at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
 		std::vector<std::vector<TData> > m_vvValue;
 
 	/// bool flag at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
 		std::vector<std::vector<bool> > m_vvBoolFlag;
+
+	///	registered callbacks
+		typedef void (DataImport<TData,dim>::*CallbackFct)();
+		std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > m_vCallback;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
