@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER_IMPL__
 
 #include "data_linker.h"
+#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
 
 namespace ug{
 
@@ -251,6 +252,28 @@ add(SmartPtr<IPData<TDataScale, dim> > scale, SmartPtr<IPData<TData, dim> > data
 //	add this input
 	base_type::set_input(2*numInput, data);
 	base_type::set_input(2*numInput+1, scale);
+}
+
+template <typename TData, int dim, typename TDataScale>
+void ScaleAddLinker<TData,dim,TDataScale>::
+add(number scale, SmartPtr<IPData<TData, dim> > data)
+{
+	add(CreateConstUserData<dim>(scale, TDataScale()), data);
+}
+
+template <typename TData, int dim, typename TDataScale>
+void ScaleAddLinker<TData,dim,TDataScale>::
+add(SmartPtr<IPData<TDataScale, dim> > scale, number data)
+{
+	add(scale, CreateConstUserData<dim>(data, TData()));
+}
+
+template <typename TData, int dim, typename TDataScale>
+void ScaleAddLinker<TData,dim,TDataScale>::
+add(number scale, number data)
+{
+	add(CreateConstUserData<dim>(scale, TDataScale()),
+	    CreateConstUserData<dim>(data, TData()));
 }
 
 template <typename TData, int dim, typename TDataScale>

@@ -106,11 +106,11 @@ class DarcyVelocityLinker
 
 	public:
 		DarcyVelocityLinker() :
-			m_pPermeability(NULL), m_pdPermeability(NULL),
-			m_pViscosity(NULL), m_pdViscosity(NULL),
-			m_pDensity(NULL), m_pdDensity(NULL),
-			m_pGravity(NULL), m_pdGravity(NULL),
-			m_pPressureGrad(NULL), m_pdPressureGrad(NULL)
+			m_spPermeability(NULL), m_spDPermeability(NULL),
+			m_spViscosity(NULL), m_spDViscosity(NULL),
+			m_spDensity(NULL), m_spDDensity(NULL),
+			m_spGravity(NULL), m_spDGravity(NULL),
+			m_spPressureGrad(NULL), m_spDPressureGrad(NULL)
 		{
 		//	this linker needs exactly one input
 			set_num_input(5);
@@ -125,11 +125,11 @@ class DarcyVelocityLinker
 			for(size_t s = 0; s < num_series(); ++s)
 			{
 			//	get the data of the ip series
-				const number* vDensity = m_pDensity->values(s);
-				const number* vViscosity = m_pViscosity->values(s);
-				const MathVector<dim>* vGravity = m_pGravity->values(s);
-				const MathVector<dim>* vPressureGrad = m_pPressureGrad->values(s);
-				const MathMatrix<dim,dim>* vPermeability = m_pPermeability->values(s);
+				const number* vDensity = m_spDensity->values(s);
+				const number* vViscosity = m_spViscosity->values(s);
+				const MathVector<dim>* vGravity = m_spGravity->values(s);
+				const MathVector<dim>* vPressureGrad = m_spPressureGrad->values(s);
+				const MathMatrix<dim,dim>* vPermeability = m_spPermeability->values(s);
 
 			//	get the data to be filled
 				MathVector<dim>* vDarcyVel = values(s);
@@ -164,22 +164,22 @@ class DarcyVelocityLinker
 			for(size_t s = 0; s < num_series(); ++s)
 			{
 			//	get the data of the ip series
-				const number* vDensity = m_pDensity->values(s);
-				const number* vViscosity = m_pViscosity->values(s);
-				const MathVector<dim>* vGravity = m_pGravity->values(s);
-				const MathVector<dim>* vPressureGrad = m_pPressureGrad->values(s);
-				const MathMatrix<dim,dim>* vPermeability = m_pPermeability->values(s);
+				const number* vDensity = m_spDensity->values(s);
+				const number* vViscosity = m_spViscosity->values(s);
+				const MathVector<dim>* vGravity = m_spGravity->values(s);
+				const MathVector<dim>* vPressureGrad = m_spPressureGrad->values(s);
+				const MathMatrix<dim,dim>* vPermeability = m_spPermeability->values(s);
 
 			//	get the data to be filled
 				MathVector<dim>* vDarcyVel = values(s);
 
 			//	Derivatives of Viscosity
-				if(m_pdViscosity != NULL && !m_pdViscosity->zero_derivative())
+				if(m_spDViscosity.valid() && !m_spDViscosity->zero_derivative())
 				for(size_t ip = 0; ip < num_ip(s); ++ip)
-					for(size_t fct = 0; fct < m_pdViscosity->num_fct(); ++fct)
+					for(size_t fct = 0; fct < m_spDViscosity->num_fct(); ++fct)
 					{
 					//	get derivative of viscosity w.r.t. to all functions
-						const number* vDViscosity = m_pdViscosity->deriv(s, ip, fct);
+						const number* vDViscosity = m_spDViscosity->deriv(s, ip, fct);
 
 					//	get common fct id for this function
 						const size_t commonFct = input_common_fct(_MU_, fct);
@@ -193,12 +193,12 @@ class DarcyVelocityLinker
 					}
 
 			//	Derivatives of Density
-				if(m_pdDensity != NULL && !m_pdDensity->zero_derivative())
+				if(m_spDDensity.valid() && !m_spDDensity->zero_derivative())
 				for(size_t ip = 0; ip < num_ip(s); ++ip)
-					for(size_t fct = 0; fct < m_pdDensity->num_fct(); ++fct)
+					for(size_t fct = 0; fct < m_spDDensity->num_fct(); ++fct)
 					{
 					//	get derivative of viscosity w.r.t. to all functions
-						const number* vDDensity = m_pdDensity->deriv(s, ip, fct);
+						const number* vDDensity = m_spDDensity->deriv(s, ip, fct);
 
 					//	get common fct id for this function
 						const size_t commonFct = input_common_fct(_RHO_, fct);
@@ -222,12 +222,12 @@ class DarcyVelocityLinker
 					}
 
 			//	Derivatives of Gravity
-				if(m_pdGravity != NULL && !m_pdGravity->zero_derivative())
+				if(m_spDGravity.valid() && !m_spDGravity->zero_derivative())
 				for(size_t ip = 0; ip < num_ip(s); ++ip)
-					for(size_t fct = 0; fct < m_pdGravity->num_fct(); ++fct)
+					for(size_t fct = 0; fct < m_spDGravity->num_fct(); ++fct)
 					{
 					//	get derivative of viscosity w.r.t. to all functions
-						const MathVector<dim>* vDGravity = m_pdGravity->deriv(s, ip, fct);
+						const MathVector<dim>* vDGravity = m_spDGravity->deriv(s, ip, fct);
 
 					//	get common fct id for this function
 						const size_t commonFct = input_common_fct(_G_, fct);
@@ -249,12 +249,12 @@ class DarcyVelocityLinker
 					}
 
 			//	Derivatives of Pressure
-				if(m_pdPressureGrad != NULL && !m_pdPressureGrad->zero_derivative())
+				if(m_spDPressureGrad.valid() && !m_spDPressureGrad->zero_derivative())
 				for(size_t ip = 0; ip < num_ip(s); ++ip)
-					for(size_t fct = 0; fct < m_pdPressureGrad->num_fct(); ++fct)
+					for(size_t fct = 0; fct < m_spDPressureGrad->num_fct(); ++fct)
 					{
 					//	get derivative of viscosity w.r.t. to all functions
-						const MathVector<dim>* vDPressureGrad = m_pdPressureGrad->deriv(s, ip, fct);
+						const MathVector<dim>* vDPressureGrad = m_spDPressureGrad->deriv(s, ip, fct);
 
 					//	get common fct id for this function
 						const size_t commonFct = input_common_fct(_DP_, fct);
@@ -276,12 +276,12 @@ class DarcyVelocityLinker
 					}
 
 			//	Derivatives of Permeability
-				if(m_pdPermeability != NULL && !m_pdPermeability->zero_derivative())
+				if(m_spDPermeability.valid() && !m_spDPermeability->zero_derivative())
 				for(size_t ip = 0; ip < num_ip(s); ++ip)
-					for(size_t fct = 0; fct < m_pdPermeability->num_fct(); ++fct)
+					for(size_t fct = 0; fct < m_spDPermeability->num_fct(); ++fct)
 					{
 					//	get derivative of viscosity w.r.t. to all functions
-						const MathMatrix<dim,dim>* vDPermeability = m_pdPermeability->deriv(s, ip, fct);
+						const MathMatrix<dim,dim>* vDPermeability = m_spDPermeability->deriv(s, ip, fct);
 
 					//	get common fct id for this function
 						const size_t commonFct = input_common_fct(_K_, fct);
@@ -313,70 +313,80 @@ class DarcyVelocityLinker
 
 	public:
 	///	set permeability import
-		void set_permeability(IPData<MathMatrix<dim,dim>, dim>& data)
+		void set_permeability(SmartPtr<IPData<MathMatrix<dim,dim>, dim> > data)
 		{
-			m_pPermeability = &data;
-			m_pdPermeability = dynamic_cast<DependentIPData<MathMatrix<dim,dim>, dim>*>(&data);
-			base_type::set_input(_K_, &data);
+			m_spPermeability = data;
+			m_spDPermeability = data.template cast_dynamic<DependentIPData<MathMatrix<dim,dim>, dim> >();
+			base_type::set_input(_K_, data);
+		}
+
+		void set_permeability(number val)
+		{
+			set_permeability(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
 		}
 
 	///	set permeability import
-		void set_viscosity(IPData<number, dim>& data)
+		void set_viscosity(SmartPtr<IPData<number, dim> > data)
 		{
-			m_pViscosity = &data;
-			m_pdViscosity = dynamic_cast<DependentIPData<number, dim>*>(&data);
-			base_type::set_input(_MU_, &data);
+			m_spViscosity = data;
+			m_spDViscosity = data.template cast_dynamic<DependentIPData<number, dim> >();
+			base_type::set_input(_MU_, data);
+		}
+
+		void set_viscosity(number val)
+		{
+			set_viscosity(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 		}
 
 	///	set density import
-		void set_density(IPData<number, dim>& data)
+		void set_density(SmartPtr<IPData<number, dim> > data)
 		{
-			m_pDensity = &data;
-			m_pdDensity = dynamic_cast<DependentIPData<number, dim>*>(&data);
-			base_type::set_input(_RHO_, &data);
+			m_spDensity = data;
+			m_spDDensity = data.template cast_dynamic<DependentIPData<number, dim> >();
+			base_type::set_input(_RHO_, data);
 		}
 
 	///	set gravity import
-		void set_gravity(IPData<MathVector<dim>, dim>& data)
+		void set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > data)
 		{
-			m_pGravity = &data;
-			m_pdGravity = dynamic_cast<DependentIPData<MathVector<dim>, dim>*>(&data);
-			base_type::set_input(_G_, &data);
+			m_spGravity = data;
+			m_spDGravity = data.template cast_dynamic<DependentIPData<MathVector<dim>, dim> >();
+			base_type::set_input(_G_, data);
 		}
 
 	///	set pressure gradient import
-		void set_pressure_gradient(IPData<MathVector<dim>, dim>& data)
+		void set_pressure_gradient(SmartPtr<IPData<MathVector<dim>, dim> > data)
 		{
-			m_pPressureGrad = &data;
-			m_pdPressureGrad = dynamic_cast<DependentIPData<MathVector<dim>, dim>*>(&data);
-			base_type::set_input(_DP_, &data);
+			m_spPressureGrad = data;
+			m_spDPressureGrad = data.template cast_dynamic<DependentIPData<MathVector<dim>, dim> >();
+			base_type::set_input(_DP_, data);
 		}
 
 	protected:
 	///	import for permeability
 		static const size_t _K_ = 0;
-		IPData<MathMatrix<dim,dim>, dim>* m_pPermeability;
-		DependentIPData<MathMatrix<dim,dim>, dim>* m_pdPermeability;
+		SmartPtr<IPData<MathMatrix<dim,dim>, dim> > m_spPermeability;
+		SmartPtr<DependentIPData<MathMatrix<dim,dim>, dim> > m_spDPermeability;
 
 	///	import for viscosity
 		static const size_t _MU_ = 1;
-		IPData<number, dim>* m_pViscosity;
-		DependentIPData<number, dim>* m_pdViscosity;
+		SmartPtr<IPData<number, dim> > m_spViscosity;
+		SmartPtr<DependentIPData<number, dim> > m_spDViscosity;
 
 	///	import for density
 		static const size_t _RHO_ = 2;
-		IPData<number, dim>* m_pDensity;
-		DependentIPData<number, dim>* m_pdDensity;
+		SmartPtr<IPData<number, dim> > m_spDensity;
+		SmartPtr<DependentIPData<number, dim> > m_spDDensity;
 
 	///	import for gravity
 		static const size_t _G_ = 3;
-		IPData<MathVector<dim>, dim>* m_pGravity;
-		DependentIPData<MathVector<dim>, dim>* m_pdGravity;
+		SmartPtr<IPData<MathVector<dim>, dim> > m_spGravity;
+		SmartPtr<DependentIPData<MathVector<dim>, dim> > m_spDGravity;
 
 	///	import for pressure gradient
 		static const size_t _DP_ = 4;
-		IPData<MathVector<dim>, dim>* m_pPressureGrad;
-		DependentIPData<MathVector<dim>, dim>* m_pdPressureGrad;
+		SmartPtr<IPData<MathVector<dim>, dim> > m_spPressureGrad;
+		SmartPtr<DependentIPData<MathVector<dim>, dim> > m_spDPressureGrad;
 };
 
 
@@ -442,7 +452,10 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 		typedef DataLinker<TData, dim> TBase;
 		string name = string("ScaleAddLinker").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_method("add", &T::add)
+			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number,dim> > , SmartPtr<IPData<TData,dim> >)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(number , SmartPtr<IPData<TData,dim> >)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number,dim> > , number)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(number,number)>(&T::add))
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, string("ScaleAddLinker").append(type), dimTag);
@@ -528,9 +541,11 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("set_density", &T::set_density)
 			.add_method("set_gravity", &T::set_gravity)
-			.add_method("set_permeability", &T::set_permeability)
+			.add_method("set_permeability", static_cast<void (T::*)(number)>(&T::set_permeability))
+			.add_method("set_permeability", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim,dim>,dim> >)>(&T::set_permeability))
 			.add_method("set_pressure_gradient", &T::set_pressure_gradient)
-			.add_method("set_viscosity", &T::set_viscosity)
+			.add_method("set_viscosity", static_cast<void (T::*)(number)>(&T::set_viscosity))
+			.add_method("set_viscosity", static_cast<void (T::*)(SmartPtr<IPData<number,dim> >)>(&T::set_viscosity))
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);

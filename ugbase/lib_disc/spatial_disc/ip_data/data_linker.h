@@ -347,8 +347,16 @@ class ScaleAddLinker
 		ScaleAddLinker() {}
 
 	///	adds an input to the list of summands scaled by a user data factor
+	///	\{
 		void add(SmartPtr<IPData<TDataScale, dim> > scale,
 		         SmartPtr<IPData<TData, dim> > data);
+		void add(number scale,
+		         SmartPtr<IPData<TData, dim> > data);
+		void add(SmartPtr<IPData<TDataScale, dim> > scale,
+		         number data);
+		void add(number scale,
+		         number data);
+	/// \}
 
 	///	computes the value
 		virtual void compute(bool bDeriv);

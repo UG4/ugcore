@@ -220,6 +220,93 @@ class ConstUserMatrix
 		MathMatrix<dim, dim> m_Tensor;
 };
 
+/// constant tensor user data
+template <int TRank, int dim>
+class ConstUserTensor
+	: public IPData<MathTensor<TRank, dim>, dim>
+{
+	/// Base class type
+		typedef IPData<MathTensor<TRank, dim>, dim> base_type;
+
+		using base_type::num_series;
+		using base_type::num_ip;
+		using base_type::ip;
+		using base_type::time;
+		using base_type::value;
+
+	public:
+	///	Constructor
+		ConstUserTensor() {set(0.0);}
+
+	///	Constructor setting the diagonal
+		ConstUserTensor(number val) {set(val);}
+
+	///	set diagonal of matrix to a vector
+		void set(number val)
+		{
+			m_Tensor.set(val);
+		}
+
+	///	print current setting
+		void print() const{UG_LOG("ConstUserTensor:\n" << m_Tensor << "\n");}
+
+	///	evaluate
+		void operator() (MathTensor<TRank, dim>& D, const MathVector<dim>& x,
+						 number time, int si) const
+		{
+			D = m_Tensor;
+		}
+
+	///	returns if data is constant
+		virtual bool constant_data() const {return true;}
+
+	///	implement as a IPData
+		virtual void compute(bool bDeriv = false)
+		{
+			for(size_t s = 0; s < num_series(); ++s)
+				for(size_t i = 0; i < num_ip(s); ++i)
+					value(s,i) = m_Tensor;
+		}
+
+	///	callback, invoked when data storage changed
+		virtual void value_storage_changed(const size_t seriesID)
+		{
+			for(size_t i = 0; i < num_ip(seriesID); ++i)
+				value(seriesID,i) = m_Tensor;
+		}
+
+	protected:
+		MathTensor<TRank, dim> m_Tensor;
+};
+
+/// creates user data of desired type
+template <typename TData, int dim>
+SmartPtr<IPData<TData,dim> > CreateConstUserData(number val, TData dummy);
+
+template <int dim>
+inline SmartPtr<IPData<number,dim> > CreateConstUserData(number val, number)
+{
+	return CreateSmartPtr(new ConstUserNumber<dim>(val));
+};
+
+template <int dim>
+SmartPtr<IPData<MathVector<dim>,dim> > CreateConstUserData(number val, MathVector<dim>)
+{
+	return CreateSmartPtr(new ConstUserVector<dim>(val));
+}
+
+template <int dim>
+SmartPtr<IPData<MathMatrix<dim,dim>,dim> > CreateConstUserData(number val, MathMatrix<dim,dim>)
+{
+	return CreateSmartPtr(new ConstUserMatrix<dim>(val));
+}
+
+template <int dim>
+SmartPtr<IPData<MathTensor<4,dim>,dim> > CreateConstUserData(number val, MathTensor<4,dim>)
+{
+	return CreateSmartPtr(new ConstUserTensor<4,dim>(val));
+}
+
 /// @}
 
 } /// end namespace ug
