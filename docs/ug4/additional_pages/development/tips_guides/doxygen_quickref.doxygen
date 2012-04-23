@@ -20,6 +20,7 @@ TODO Think about Lua integration with https://github.com/alecchen/doxygen-lua
   - \ref secDoxygenParameters
   - \ref secDoxygenGrouping
 - \ref secDoxygenTipps
+- \ref secBuildingDocumentation
 
 <hr>
 As written in our \ref pageUG4CodingStyle "Coding Style Guidelines", we are 
@@ -271,4 +272,18 @@ in the form of their HTML entity. (without the whitespaces)
 <strong>Horizontal lines</strong> are created with the default HTML tag:
 <tt>&lt;hr&gt;</tt>.
 
+<hr>
+\section secBuildingDocumentation Building the documentation locally
+For a complete build of the documentation (in particular for testing modifications /
+additions you've made to the documentation before committing) go into \ug4' main
+directory, then execute in a shell:
+\code
+doxygen - < doxy_config_ug4.txt
+\endcode
+
+Opening of e.g. the main page of the \ug4 documentation in a browser
+(under OSX, from the shell in the same directory):
+\code
+open docs/ug4/html/index.html
+\endcode
 */
