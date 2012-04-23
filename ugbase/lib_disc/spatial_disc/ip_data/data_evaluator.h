@@ -122,11 +122,11 @@ class DataEvaluator
 		void clear_extracted_data_and_mappings();
 
 	///	tries to add the last entry of vTryingToAdd to the eval data
-		bool add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEvalData,
+		void add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEvalData,
 								   std::vector<SmartPtr<IIPData> >& vTryingToAdd);
 
 	///	extracts imports and ipdata from IElemDiscs
-		bool extract_imports_and_ipdata(bool bMassPart = false);
+		void extract_imports_and_ipdata(bool bMassPart = false);
 
 	protected:
 	///	current elem discs

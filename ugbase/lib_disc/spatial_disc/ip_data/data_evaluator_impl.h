@@ -56,9 +56,11 @@ prepare_elem_loop(bool bMassPart)
 	}
 
 //	extract data imports and ipdatas
-	if(!extract_imports_and_ipdata(bMassPart))
-		UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: "
-						"Cannot extract imports and ipdata.");
+	try{
+		extract_imports_and_ipdata(bMassPart);
+	}
+	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
+					"Cannot extract imports and ipdata.");
 
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
@@ -91,9 +93,11 @@ prepare_elem_loop(bool bMassPart)
 	}
 
 //	extract data imports and ipdatas
-	if(!extract_imports_and_ipdata(bMassPart))
-		UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: "
-						"Cannot extract imports and ipdata.");
+	try{
+		extract_imports_and_ipdata(bMassPart);
+	}
+	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
+					"Cannot extract imports and ipdata.");
 
 //	set geometric type at imports
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)

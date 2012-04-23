@@ -133,11 +133,11 @@ clear_extracted_data_and_mappings()
 	m_vDataLinker.clear();
 }
 
-bool DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEvalData,
+void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEvalData,
                                           std::vector<SmartPtr<IIPData> >& vTryingToAdd)
 {
 //	if empty, we're done
-	if(vTryingToAdd.empty()) return true;
+	if(vTryingToAdd.empty()) return;
 
 //	search for element in already scheduled data
 	std::vector<SmartPtr<IIPData> >::iterator it, itEnd;
@@ -147,7 +147,7 @@ bool DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEval
 	if(it != vEvalData.end())
 	{
 		vTryingToAdd.pop_back();
-		return true;
+		return;
 	}
 
 //	search if element already contained in list. Then, the element
@@ -158,11 +158,8 @@ bool DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEval
 
 //	if found, return error of circle dependency
 	if(it != itEnd)
-	{
-		UG_LOG("ERROR in 'DataEvaluator::add_data_to_eval_data':"
-				" Circle dependency of data detected for IP Data.\n");
-		return false;
-	}
+		UG_THROW_FATAL("DataEvaluator::add_data_to_eval_data:"
+						" Circle dependency of data detected for IP Data.");
 
 //	add all dependent datas
 	SmartPtr<IIPData> data = vTryingToAdd.back();
@@ -170,8 +167,7 @@ bool DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEval
 	{
 	//	add each data separately
 		vTryingToAdd.push_back(data->needed_data(i));
-		if(!add_data_to_eval_data(vEvalData, vTryingToAdd))
-			return false;
+		add_data_to_eval_data(vEvalData, vTryingToAdd);
 	}
 
 //	add this data to the evaluation list
@@ -179,20 +175,14 @@ bool DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEval
 
 //	pop last one, since now added to eval list
 	vTryingToAdd.pop_back();
-
-//	we're done
-	return true;
 }
 
-bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
+void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 {
 //	check that elem disc given
 	if(m_pvElemDisc == NULL)
-	{
-		UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata': No vector"
-				" of IElemDisc* set. Cannot extract imports and exports.\n");
-		return false;
-	}
+		UG_THROW_FATAL("DataEvaluator::extract_imports_and_ipdata: No vector"
+				" of IElemDisc* set. Cannot extract imports and exports.");
 
 //	clear imports and ipdata
 	clear_extracted_data_and_mappings();
@@ -229,19 +219,16 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			vTryingToAdd.push_back(iimp->data());
 
 		//	add data and all dependency to evaluation list
-			if(!add_data_to_eval_data(vEvalData, vTryingToAdd))
-			{
-				UG_LOG("ERROR in DataEvaluator::extract_imports_and_ipdata:"
-						" Circle dependency of data detected for IP Data.\n");
-				return false;
+			try{
+				add_data_to_eval_data(vEvalData, vTryingToAdd);
 			}
+			UG_CATCH_THROW("DataEvaluator::extract_imports_and_ipdata:"
+						" Circle dependency of data detected for IP Data.");
+
 		//	check that queue is empty now, else some internal error occured
 			if(!vTryingToAdd.empty())
-			{
-				UG_LOG("ERROR in DataEvaluator::extract_imports_and_ipdata:"
-						" Internal Error, IPData queue not empty after adding.\n");
-				return false;
-			}
+				UG_THROW_FATAL("DataEvaluator::extract_imports_and_ipdata:"
+						" Internal Error, IPData queue not empty after adding.");
 		}
 	}
 
@@ -295,19 +282,13 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 
 	//	check success
 		if(!dependData.valid())
-		{
-			UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
-					" Data seems dependent, but cast failed.\n");
-			return false;
-		}
+			UG_THROW_FATAL("DataEvaluator::extract_imports_and_ipdata:"
+					" Data seems dependent, but cast failed.");
 
 	//	update function group of dependent data
 		if(!dependData->update_function_group())
-		{
-			UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
-					" Cannot update FunctinoGroup of IDependentData.\n");
-			return false;
-		}
+			UG_THROW_FATAL("DataEvaluator::extract_imports_and_ipdata:"
+					" Cannot update FunctinoGroup of IDependentData.");
 
 	//	create FuncMap
 		FunctionIndexMapping map;
@@ -383,11 +364,8 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 
 		//	check success
 			if(!dependData.valid())
-			{
-				UG_LOG("ERROR in 'DataEvaluator::extract_imports_and_ipdata':"
-						" Data seems dependent, but cast failed.\n");
-				return false;
-			}
+				UG_THROW_FATAL("DataEvaluator::extract_imports_and_ipdata:"
+						" Data seems dependent, but cast failed.");
 
 		//	create FuncMap for data
 		//	this is ok, since the function group has been updated in the
@@ -425,9 +403,6 @@ bool DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			}
 		}
 	}
-
-//	we're done
-	return true;
 }
 
 
