@@ -29,7 +29,7 @@ MatAdd(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
-			mOut(i, j) = m1(i, j) + m2(i, j);
+			mOut(i,j) = m1(i,j) + m2(i,j);
 		}
 }
 
@@ -44,7 +44,7 @@ MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
-			mOut(i, j) = m1(i, j) - m2(i, j);
+			mOut(i,j) = m1(i,j) - m2(i,j);
 		}
 }
 
@@ -62,6 +62,32 @@ MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1, const Math
 			for(size_t k = 0; k < L; ++k)
 			{
 				mOut(i,j) += m1(i,k) * m2(k,j);
+			}
+		}
+}
+
+///	multiply three matrices and stores the result in a fourth one
+// mOut = m1 * m2 * m3
+template <size_t N, size_t M, size_t L, size_t P, typename T>
+inline
+void
+MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1, const MathMatrix<L, P, T>& m2, const MathMatrix<P, M, T>& m3)
+{
+	MathMatrix<L, M, T> help;
+
+	for(size_t i = 0; i < N; ++i)
+		for(size_t j = 0; j < M; ++j)
+		{
+			mOut(i,j) = 0;
+			for(size_t k = 0; k < L; ++k)
+			{
+				help(k,j) = 0;
+				for(size_t l = 0; l < P; ++l)
+				{
+					help(k,j) += m2(k,l) * m3(l,j);
+				}
+
+				mOut(i,j) += m1(i,k) * help(k,j);
 			}
 		}
 }

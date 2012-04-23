@@ -42,6 +42,13 @@ inline
 void
 MatMult(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1, const MathMatrix<L, M, T>& m2);
 
+///	multiply three matrices and stores the result in a fourth one
+// mOut = m1 * m2 * m3
+template <size_t N, size_t M, size_t L, size_t P, typename T>
+inline
+void
+MatMult(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1, const MathMatrix<L, P, T>& m2, const MathMatrix<P, M, T>& m3);
+
 ///	multiply two transposed matrices and stores the result in a third one
 // mOut = m1^T * m2^T
 template <size_t N, size_t M, size_t L, typename T>
