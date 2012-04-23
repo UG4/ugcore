@@ -52,6 +52,7 @@ class NeumannBoundary
 
 	///	add a boundary value
 	///	\{
+		void add(number val, const char* function, const char* subsets);
 		void add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subsets);
 		void add(SmartPtr<IPData<number, dim, bool> > user, const char* function, const char* subsets);
 		void add(SmartPtr<IPData<MathVector<dim>, dim> > user, const char* function, const char* subsets);

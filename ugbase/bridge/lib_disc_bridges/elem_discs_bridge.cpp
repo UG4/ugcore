@@ -71,6 +71,7 @@ void Register__Domain(Registry& reg, string grp)
 		string name = string("NeumannBoundary").append(dimSuffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*)>("Function(s)")
+			.add_method("add", static_cast<void (T::*)(number, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim, bool> >, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add))
