@@ -87,25 +87,28 @@ small files once like your script files.
 The
 <a href="https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism">Workspace Mechanism</a>
 lets you create a directory on a specialized parallel file system.
-Use a script like this to create a workspace directory and copy all you data 
-there:
+First create a workspace in ug4/bin:
 \verbatim
-runDir=`ws_allocate $mydate 15`
-echo "Hermit Workspace dir is $runDir"
-ln -s $runDir $(date "+workspace.%m-%d-%H%M");
-cp -r ../scripts $runDir
-cp -r ../data $runDir
+cd bin
+ln -s $`ws_allocate ug4ws 31` workspace
+\endverbatim
+Before each time you run ugshell, you'll have to run a script like the following:
+\verbatim
+rsync -r --exclude=.svn ../scripts/ workspace/scripts/
+rsync -r --exclude=.svn ../data/ workspace/data/
+rsync -r --exclude=.svn ../apps/ workspace/apps/
+export UG4_ROOT=workspace
 \endverbatim
 
-Now before you run \ug4, you want \ug4 to know about its new root dir. 
 Be aware that also file written to can be damaged if you are not using the 
 Workspace mechanism. 
 See also the "-dir" and "-Hermit-workspace" option in \ref pageugsubmit.
 
+Note the export UG4_ROOT-part:
 \verbatim
 export UG4_ROOT=$runDir
 \endverbatim
-Otherwise, \ug4 will look in <tt>../scripts/</tt> for scripts and 
+If this environment variable is not specified, \ug4 will look in <tt>../scripts/</tt> for scripts and
 <tt>../data/</tt> for data, relative to the path of the binary.
 
 */
