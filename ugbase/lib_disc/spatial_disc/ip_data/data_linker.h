@@ -88,7 +88,7 @@ class DataLinker
 		virtual bool is_ready() const;
 
 	///	updates the function group
-		bool update_function_group();
+		void update_function_group();
 
 	protected:
 	///	returns number of functions the input depends on

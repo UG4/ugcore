@@ -286,9 +286,11 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 					" Data seems dependent, but cast failed.");
 
 	//	update function group of dependent data
-		if(!dependData->update_function_group())
-			UG_THROW_FATAL("DataEvaluator::extract_imports_and_ipdata:"
-					" Cannot update FunctinoGroup of IDependentData.");
+		try{
+			dependData->update_function_group();
+		}
+		UG_CATCH_THROW("DataEvaluator::extract_imports_and_ipdata:"
+				     	" Cannot update FunctinoGroup of IDependentData.");
 
 	//	create FuncMap
 		FunctionIndexMapping map;

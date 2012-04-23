@@ -332,7 +332,7 @@ class IDependentIPData : virtual public IIPData
 		bool comp_needs_sol() const {return m_bCompNeedsSol;}
 
 	///	updates the function group (needed for Linker)
-		virtual bool update_function_group() {return true;}
+		virtual void update_function_group() {}
 
 	/// set	Function Group of functions (by copy)
 		void set_function_group(const FunctionGroup& fctGrp) {m_fctGrp = fctGrp;}

@@ -52,7 +52,7 @@ bool DataLinker<TData,dim>::is_ready() const
 }
 
 template <typename TData, int dim>
-bool DataLinker<TData,dim>::update_function_group()
+void DataLinker<TData,dim>::update_function_group()
 {
 //	collect all function groups
 	std::vector<const FunctionGroup*> vFctGrp(num_input(), NULL);
@@ -81,9 +81,6 @@ bool DataLinker<TData,dim>::update_function_group()
 
 //	set common function group as the function group the data depends on
 	this->set_function_group(m_commonFctGroup);
-
-//	we're done
-	return true;
 }
 
 template <typename TData, int dim>
