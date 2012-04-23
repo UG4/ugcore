@@ -51,9 +51,17 @@ UG_API std::string AppendSpacesToString(std::string& str, int nSpaces);
 ///	this template function creates a hash key for a string value.
 template <> UG_API unsigned long hash_key(const std::string& key);
 
-/// returns the part of the string after the last '/' character
+/// returns the part of the string after the last '/' or '\' character (e.g. "/sw/bla.txt" -> "bla.txt")
 UG_API std::string FilenameWithoutPath(const std::string& str);
 
+/// returns the part of the string before the last '/' or '\' character (e.g. "/sw/bla.txt" -> "/sw/")
+UG_API std::string PathFromFilename(const std::string &str);
+
+/// returns the filename without path and with extension (e.g. "/sw/bla.txt" -> "bla")
+UG_API std::string FilenameWithoutExtension(std::string str);
+
+/// returns the extension of the filename (e.g. "/sw/bla.txt" -> "txt")
+UG_API std::string GetFilenameExtension(const std::string &str);
 
 /**
  * Replaces each substring of <code>target</code> string that is equal to

@@ -88,13 +88,46 @@ std::string AppendSpacesToString(std::string& str, int totalLength)
 	return str;
 }
 
+std::string::size_type GetDirectorySeperatorPos(const std::string &str)
+{
+	std::string::size_type pos1 = str.rfind("/");
+	std::string::size_type pos2 = str.rfind("\\");
+	if(pos1 != std::string::npos)
+	{
+		if(pos2 != std::string::npos && pos2 > pos2)	return pos2;
+		else return pos1;
+	}
+	else return pos2;
+}
+
 std::string FilenameWithoutPath(const std::string& str)
 {
-	size_t pos = str.find_last_of("/");
-	if( std::string::npos != pos ) return str.substr( pos+1 );
+	std::string::size_type pos = GetDirectorySeperatorPos(str);
+	if( pos != std::string::npos ) return str.substr( pos+1 );
 	else return str;
 }
 
+std::string PathFromFilename(const std::string &str)
+{
+	std::string::size_type pos = GetDirectorySeperatorPos(str);
+	if( pos != std::string::npos ) return str.substr(0, pos+1 );
+	else return ".";
+}
+
+std::string FilenameWithoutExtension(std::string str)
+{
+	str = FilenameWithoutPath(str);
+	std::string::size_type pos = str.rfind(".");
+	if( pos != std::string::npos ) return str.substr(0, pos );
+	else return str;
+}
+
+std::string GetFilenameExtension(const std::string &str)
+{
+	std::string::size_type pos = str.rfind(".");
+	if( pos != std::string::npos ) return str.substr(pos+1);
+	else return "";
+}
 
 std::string ReplaceAll(
 		std::string target,
