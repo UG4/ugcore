@@ -143,10 +143,12 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 	bool bResult = true;
 	try
 	{
+		// uncomment this to register test-methods
+		// bResult &= RegisterTestInterface(reg, parentGroup);
+
 		bResult &= RegisterVecMathBridge(reg, parentGroup);
 		bResult &= RegisterUtilInterface(reg, parentGroup);
 		bResult &= RegisterLibGridInterface(reg, parentGroup);
-		bResult &= RegisterTestInterface(reg, parentGroup);
 		bResult &= RegisterPCLInterface(reg, parentGroup);
 		bResult &= RegisterDomainInterface(reg, parentGroup);
 		bResult &= RegisterRefinementBridge(reg, parentGroup);
