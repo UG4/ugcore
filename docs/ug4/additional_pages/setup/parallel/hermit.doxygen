@@ -28,10 +28,6 @@ Speak to the administration for more nodes.
 
 <hr>
 \section secHermit_General General 
-Using the
-<a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Using_the_Batch_System">Batch system</a>
-and the
-<a href="https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism">Workspace mechanism</a>.
 
 The Job Scheduler on Hermit is supported by \c ugsubmit / \c uginfo / 
 \c ugcancel (\ref pageugsubmit).
@@ -40,6 +36,7 @@ You might want to use -Hermit-workspace .
 \note You have to choose modules every time you log in (you might want to add 
 your <tt>module load/swap</tt> commands into your <tt>.bashrc</tt> or similar).
 
+Here's how to schedule manually: <a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Using_the_Batch_System">Batch system</a>.
 
 <hr>
 \section secHermit_GCC GCC
