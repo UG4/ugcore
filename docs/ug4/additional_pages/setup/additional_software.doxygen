@@ -32,11 +32,15 @@ like
 curl -O http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz 
 \endverbatim
 
-
 <hr>
-\section secInstallCMake Installation of CMake
+<br>
+\section secInstallCMake Installation of CMake (required)
 
-You can install a local version of the 
+You may install CMake through a pre-built installer, which can be obtained here:
+http://www.cmake.org/cmake/resources/software.html (min Release 2.6).
+Be sure to install the command line tools, when prompted during installation.
+
+You can alternatively compile and install a local version of the
 <a href="http://www.cmake.org">CMake build tool</a> by doing the following 
 steps:
 <ol>
@@ -73,7 +77,8 @@ alias cmake '$HOME/local/bin/cmake'
 
 
 <hr>
-\section secInstallBoost Installation of Boost
+<br>
+\section secInstallBoost Installation of Boost (optional)
 
 A version of the <a href="http://www.boost.org">Boost library</a> is 
 automatically checked out and available in the <tt>externals/</tt> sub 
@@ -117,7 +122,8 @@ cmake -DINTERNAL_BOOST=ON <further cmake parameters> ..
 
 
 <hr>
-\section secInstallLUA Installation of LUA
+<br>
+\section secInstallLUA Installation of LUA (optional)
 
 You can install a local version of the <a href="http://www.lua.org">Lua 
 interpreter</a> by performing the following steps, so that you are able to 
@@ -162,7 +168,8 @@ lua my_scaling_analyzer.lua
 
 
 <hr>
-\section secInstallParaView Installation of ParaView
+<br>
+\section secInstallParaView Installation of ParaView (optional)
 
 You can install a local version of <a href="http://paraview.org/">ParaView</a>
 by performing the following steps (only described for installation of a 

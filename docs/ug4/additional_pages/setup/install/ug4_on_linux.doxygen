@@ -2,13 +2,11 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y10 m12 d11
 
-/** \page pageUG4OnLinux Linux Installation
+/** \page pageUG4OnLinux Linux / Unix Installation
 
 - \ref secInstallUG4CMake
 - \ref secInstallUG4UG4
 - \ref secInstallUG4Boost
-
-For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
 <hr>
 \section secInstallUG4CMake CMake
@@ -71,7 +69,7 @@ Examples:
 - <tt>cmake -DDIM=2 ..</tt> -> Builds only dimension 2
 - <tt>cmake -DDIM="2;3" ..</tt> -> Builds dimension 2 and 3, but not 1
 
-For \em CMake Versions older than 2.8 yo may be forced to explicitly specify, 
+For \em CMake Versions older than 2.8 you may be forced to explicitly specify,
 that the option \c DIM is passed as a string.
 So, please use: <tt>cmake -DDIM:STRING=2 ..</tt> etc.
 
