@@ -23,9 +23,10 @@ namespace bridge
 template <typename TData>
 struct PLStack
 {
-	private:
-		static void push(ParameterStack& ps);
+	protected:
 		static void write(ParameterStack& ps, TData data, int index);
+	public:
+		static void push(ParameterStack& ps);
 		static TData read(const ParameterStack& ps, int index);
 };
 
