@@ -33,10 +33,10 @@ The Job Scheduler on Hermit is supported by \c ugsubmit / \c uginfo /
 \c ugcancel (\ref pageugsubmit).
 You might want to use -Hermit-workspace .
 
-<a href="https://wickie.hlrs.de/platforms/index.php/DDT">Debugging with DDT</a>
-<a href="https://wickie.hlrs.de/platforms/index.php/Software_Development_Tools,_Compilers_%26_Libraries">Available software </a>
-<a href="https://wickie.hlrs.de/platforms/index.php/Module_command>The module command</a>
-<a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Using_the_Batch_System">Batch system</a> (recommended is \c ugsubmit)
+- <a href="https://wickie.hlrs.de/platforms/index.php/DDT">Debugging with DDT</a>
+- <a href="https://wickie.hlrs.de/platforms/index.php/Software_Development_Tools,_Compilers_%26_Libraries">Available software </a>
+- <a href="https://wickie.hlrs.de/platforms/index.php/Module_command">The module command</a>
+- <a href="https://wickie.hlrs.de/platforms/index.php/CRAY_XE6_Using_the_Batch_System">Batch system</a> (recommended is \c ugsubmit)
 
 \note You have to choose modules every time you log in (you might want to add 
 your <tt>module load/swap</tt> commands into your <tt>.bashrc</tt> or similar).
