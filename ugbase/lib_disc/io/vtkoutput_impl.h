@@ -98,8 +98,8 @@ inline void BStreamFlush(FILE* File)
 /* END: Helper Functions */
 
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 print(const char* filename, function_type& u, int step, number time, bool makeConsistent)
 {
 #ifdef UG_PARALLEL
@@ -151,8 +151,8 @@ print(const char* filename, function_type& u, int step, number time, bool makeCo
 	}
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 print_subset(const char* filename, function_type& u, int si, int step, number time, bool makeConsistent)
 {
 #ifdef UG_PARALLEL
@@ -303,8 +303,8 @@ print_subset(const char* filename, function_type& u, int si, int step, number ti
 }
 
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 write_piece(FILE* File, function_type& u, int si, int dim)
 {
 //	counters
@@ -377,13 +377,13 @@ write_piece(FILE* File, function_type& u, int si, int dim)
 	fprintf(File, "    </Piece>\n");
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 count_piece_sizes(function_type& u, int si, int dim,
             int& numVert, int& numElem, int& numConn)
 {
-//	debug output
-	UG_DLOG(LIB_DISC_OUTPUT, 2, "\n ---- Init Numbers ----\n");
+//	reset all marks
+	m_pGrid->begin_marking();
 
 //	switch dimension
 	switch(dim)
@@ -413,15 +413,20 @@ count_piece_sizes(function_type& u, int si, int dim,
 		                        " is not supported.");
 	}
 
+//	signal end of marking
+	m_pGrid->end_marking();
+
 //	debug output
-	UG_DLOG(LIB_DISC_OUTPUT, 2, "Number of Vertices: " << numVert << "\n");
-	UG_DLOG(LIB_DISC_OUTPUT, 2, "Number of Elements: " << numElem << "\n");
-	UG_DLOG(LIB_DISC_OUTPUT, 2, "Number of Connections: " << numConn << "\n");
-	UG_DLOG(LIB_DISC_OUTPUT, 2, " ---- End ----\n");
+	if(m_bVerb)
+	{
+		UG_LOG("VTK: Number of Vertices: " << numVert << "\n");
+		UG_LOG("VTK: Number of Elements: " << numElem << "\n");
+		UG_LOG("VTK: Number of Connections: " << numConn << "\n");
+	}
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 write_points(FILE* File, function_type& u, int si, int dim,
              int numVert)
 {
@@ -432,12 +437,17 @@ write_points(FILE* File, function_type& u, int si, int dim,
 	int n = 3*sizeof(float) * numVert;
 	BStreamWrite(File, &n);
 	BStreamFlush(File);
-	BStream.size = sizeof(float);
 
 //	reset counter for vertices
 	n = 0;
 
+	if(m_bVerb) UG_LOG("VTK: Writing "<<numVert<<" points ... ");
+
+//	start marking of vertices
+	m_pGrid->begin_marking();
+
 //	switch dimension
+	BStream.size = sizeof(float);
 	if(numVert > 0){
 		switch(dim)
 		{
@@ -457,14 +467,20 @@ write_points(FILE* File, function_type& u, int si, int dim,
 			                        " is not supported.");
 		}
 	}
+	BStreamFlush(File);
+
+//	signal end of marking the grid
+	m_pGrid->end_marking();
 
 //	write closing tags
 	fprintf(File, "\n        </DataArray>\n");
 	fprintf(File, "      </Points>\n");
+
+	if(m_bVerb) UG_LOG("done.\n");
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 write_cells(FILE* File, function_type& u, int si, int dim,
                int numElem, int numConn)
 {
@@ -481,7 +497,10 @@ write_cells(FILE* File, function_type& u, int si, int dim,
 	BStreamWrite(File, &n);
 	BStreamFlush(File);
 
+	if(m_bVerb) UG_LOG("VTK: Writing "<<numConn<<" connectivities ... ");
+
 //	switch dimension
+	BStream.size = sizeof(int);
 	if(numConn > 0){
 		switch(dim)
 		{
@@ -505,6 +524,8 @@ write_cells(FILE* File, function_type& u, int si, int dim,
 //	write closing tag
 	fprintf(File, "\n        </DataArray>\n");
 
+	if(m_bVerb) UG_LOG("done.\n");
+
 	///////////////////////////
 	// offsets
 	///////////////////////////
@@ -514,8 +535,11 @@ write_cells(FILE* File, function_type& u, int si, int dim,
 	BStreamWrite(File, &n);
 	BStreamFlush(File);
 
+	if(m_bVerb) UG_LOG("VTK: Writing "<<numElem<<" Element offsets ... ");
+
 	n = 0;
 //	switch dimension
+	BStream.size = sizeof(int);
 	if(numElem > 0){
 		switch(dim)
 		{
@@ -537,6 +561,7 @@ write_cells(FILE* File, function_type& u, int si, int dim,
 	BStreamFlush(File);
 	fprintf(File, "\n        </DataArray>\n");
 
+	if(m_bVerb) UG_LOG("done.\n");
 
 	///////////////////////////
 	// types of elements
@@ -546,7 +571,10 @@ write_cells(FILE* File, function_type& u, int si, int dim,
 	BStreamWrite(File, &numElem);
 	BStreamFlush(File);
 
+	if(m_bVerb) UG_LOG("VTK: Writing "<<numElem<<" Element types ... ");
+
 //	switch dimension
+	BStream.size = sizeof(char);
 	if(numElem > 0) {
 		switch(dim)
 		{
@@ -565,15 +593,17 @@ write_cells(FILE* File, function_type& u, int si, int dim,
 			                        " is not supported.");
 		}
 	}
+	BStreamFlush(File);
 
 //	write closing tag
 	fprintf(File, "\n        </DataArray>\n");
 	fprintf(File, "      </Cells>\n");
+	if(m_bVerb) UG_LOG("done.\n");
 }
 
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 write_nodal_values(FILE* File, function_type& u,
                    const FunctionGroup& vFct, const std::string& name,
                    int si, int dim, int numVert)
@@ -586,6 +616,9 @@ write_nodal_values(FILE* File, function_type& u,
 	int n = sizeof(float) * numVert * (vFct.num_fct() == 1 ? 1 : 3);
 	BStreamWrite(File, &n);
 	BStreamFlush(File);
+
+//	start marking of grid
+	m_pGrid->begin_marking();
 
 //	switch dimension
 	switch(dim)
@@ -610,6 +643,9 @@ write_nodal_values(FILE* File, function_type& u,
 		                        " is not supported.");
 	}
 
+//	end marking
+	m_pGrid->end_marking();
+
 //	flush stream
 	BStreamFlush(File);
 
@@ -618,9 +654,9 @@ write_nodal_values(FILE* File, function_type& u,
 };
 
 
-template <typename TDiscreteFunction>
+template <typename TFunction>
 template <typename TElem>
-void VTKOutput<TDiscreteFunction>::
+void VTKOutput<TFunction>::
 count_sizes(function_type& u, int si,
                 int& numVert, int& numElem, int& numConn)
 {
@@ -629,10 +665,7 @@ count_sizes(function_type& u, int si,
 																ref_elem_type;
 
 //	iterator for the elements
-	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
-
-//	reset all marks
-	m_pGrid->begin_marking();
+	typename TFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	loop all subsets for whole domain, only the given subset if si >= 0
 	int sistart = si, siend = si+1;
@@ -668,15 +701,12 @@ count_sizes(function_type& u, int si,
 			}
 		}
 	}
-
-//	signal end of marking
-	m_pGrid->end_marking();
 };
 
 
-template <typename TDiscreteFunction>
+template <typename TFunction>
 template <typename TElem>
-void VTKOutput<TDiscreteFunction>::
+void VTKOutput<TFunction>::
 write_points_elementwise(FILE* File, function_type& u, int si, int& n)
 {
 //	get reference element
@@ -700,10 +730,7 @@ write_points_elementwise(FILE* File, function_type& u, int si, int& n)
 	float co;
 
 //	get iterators
-	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
-
-//	start marking of vertices
-	m_pGrid->begin_marking();
+	typename TFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	loop all subsets for whole domain, only the given subset if si >= 0
 	int sistart = si, siend = si+1;
@@ -753,25 +780,12 @@ write_points_elementwise(FILE* File, function_type& u, int si, int& n)
 			}
 		}
 	}
-
-	if(n > 0){
-		UG_DLOG(LIB_DISC_OUTPUT, 3, " ---- " << n <<
-		        " Vertices (Nr. 0 - " << (n-1) << ") written to file ----\n");}
-	else{
-		UG_DLOG(LIB_DISC_OUTPUT, 3, " ---- " << n <<
-		        " Vertices written to file ----\n");}
-
-//	flush the stream
-	BStreamFlush(File);
-
-//	signal end of marking the grid
-	m_pGrid->end_marking();
 }
 
 
-template <typename TDiscreteFunction>
+template <typename TFunction>
 template <class TElem>
-void VTKOutput<TDiscreteFunction>::
+void VTKOutput<TFunction>::
 write_cell_connectivity(FILE* File, function_type& u, int si)
 {
 //	get reference element type
@@ -785,7 +799,7 @@ write_cell_connectivity(FILE* File, function_type& u, int si)
 	UG_ASSERT(m_aaDOFIndexVRT.valid(), "ID access invalid");
 
 //	get iterators
-	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
+	typename TFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	loop all subsets for whole domain, only the given subset if si >= 0
 	int sistart = si, siend = si+1;
@@ -825,9 +839,9 @@ write_cell_connectivity(FILE* File, function_type& u, int si)
 	}
 }
 
-template <typename TDiscreteFunction>
+template <typename TFunction>
 template <class TElem>
-void VTKOutput<TDiscreteFunction>::
+void VTKOutput<TFunction>::
 write_cell_offsets(	FILE* File, function_type& u, int si, int& n)
 {
 //	get reference element
@@ -835,7 +849,7 @@ write_cell_offsets(	FILE* File, function_type& u, int si, int& n)
 																ref_elem_type;
 
 //	get iterators
-	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
+	typename TFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	loop all subsets for whole domain, only the given subset if si >= 0
 	int sistart = si, siend = si+1;
@@ -856,14 +870,11 @@ write_cell_offsets(	FILE* File, function_type& u, int si, int& n)
 			BStreamWrite(File, &n);
 		}
 	}
-
-//	flush stream
-	BStreamFlush(File);
 }
 
-template <typename TDiscreteFunction>
+template <typename TFunction>
 template <class TElem>
-void VTKOutput<TDiscreteFunction>::
+void VTKOutput<TFunction>::
 write_cell_types(FILE* File, function_type& u, int si)
 {
 //	get reference element
@@ -888,10 +899,8 @@ write_cell_types(FILE* File, function_type& u, int si)
 		default: throw(UGFatalError("Element Type not known."));
 	}
 
-	BStream.size = sizeof(char);
-
 //	get iterators
-	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
+	typename TFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	loop all subsets for whole domain, only the given subset if si >= 0
 	int sistart = si, siend = si+1;
@@ -904,16 +913,16 @@ write_cell_types(FILE* File, function_type& u, int si)
 
 	//	loop all elements, write type for each element to stream
 		for( ; iterBegin != iterEnd; ++iterBegin)
+		{
 			BStreamWrite(File, &type);
+		}
 	}
-
-	BStreamFlush(File);
 }
 
 
-template <typename TDiscreteFunction>
+template <typename TFunction>
 template <class TElem>
-void VTKOutput<TDiscreteFunction>::
+void VTKOutput<TFunction>::
 write_nodal_values_elementwise(FILE* File, function_type& u,
                                const FunctionGroup& vFct, int si)
 {
@@ -927,11 +936,8 @@ write_nodal_values_elementwise(FILE* File, function_type& u,
 //	index vector
 	std::vector<MultiIndex<2> > vMultInd;
 
-//	start marking of grid
-	m_pGrid->begin_marking();
-
 //	get iterators
-	typename TDiscreteFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
+	typename TFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
 
 //	loop all subsets for whole domain, only the given subset if si >= 0
 	int sistart = si, siend = si+1;
@@ -992,14 +998,11 @@ write_nodal_values_elementwise(FILE* File, function_type& u,
 			}
 		}
 	}
-
-//	end marking
-	m_pGrid->end_marking();
 }
 
-template <typename TDiscreteFunction>
+template <typename TFunction>
 bool
-VTKOutput<TDiscreteFunction>::
+VTKOutput<TFunction>::
 is_valid_filename(std::string& nameIn)
 {
 // 	search for dots, they are not allowed in file name
@@ -1010,8 +1013,8 @@ is_valid_filename(std::string& nameIn)
 }
 
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 vtu_filename(std::string& nameOut, std::string nameIn, int rank,
              int si, int maxSi, int step)
 {
@@ -1039,8 +1042,8 @@ vtu_filename(std::string& nameOut, std::string nameIn, int rank,
 	nameOut.append(".vtu");
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 pvtu_filename(std::string& nameOut, std::string nameIn,
               int si, int maxSi, int step)
 {
@@ -1063,8 +1066,8 @@ pvtu_filename(std::string& nameOut, std::string nameIn,
 	nameOut.append(".pvtu");
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 pvd_filename(std::string& nameOut, std::string nameIn)
 {
 //	check name
@@ -1078,8 +1081,8 @@ pvd_filename(std::string& nameOut, std::string nameIn)
 	nameOut.append(".pvd");
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 pvd_time_filename(std::string& nameOut, std::string nameIn, int step)
 {
 //	check name
@@ -1097,8 +1100,8 @@ pvd_time_filename(std::string& nameOut, std::string nameIn, int step)
 	nameOut.append(".pvd");
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 write_pvtu(function_type& u, const std::string& filename,
            int si, int step, number time)
 {
@@ -1169,8 +1172,8 @@ write_pvtu(function_type& u, const std::string& filename,
 #endif
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 write_time_pvd(const char* filename, function_type& u)
 {
 //	File
@@ -1287,8 +1290,8 @@ write_time_pvd(const char* filename, function_type& u)
 }
 
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 write_subset_pvd(function_type& u, const std::string& filename, int step, number time)
 {
 //	file pointer
@@ -1381,8 +1384,8 @@ write_subset_pvd(function_type& u, const std::string& filename, int step, number
 	}
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 select_nodal_scalar(const char* fctName, const char* name)
 {
 	std::vector<std::string> tokens;
@@ -1428,8 +1431,8 @@ select_nodal_scalar(const char* fctName, const char* name)
 	m_vSymbFct.push_back(std::pair<std::string, std::string>(fctName, name));
 }
 
-template <typename TDiscreteFunction>
-void VTKOutput<TDiscreteFunction>::
+template <typename TFunction>
+void VTKOutput<TFunction>::
 select_nodal_vector(const char* fctNames, const char* name)
 {
 	std::vector<std::string> tokens;

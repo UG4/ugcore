@@ -68,6 +68,7 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		string name = string("VTKOutput").append(dimAlgSuffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
+			.add_method("set_verbose", &T::set_verbose)
 			.add_method("write_time_pvd", &T::write_time_pvd)
 			.add_method("clear_selection", &T::clear_selection)
 			.add_method("select_all", &T::select_all)

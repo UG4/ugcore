@@ -53,13 +53,13 @@ namespace ug{
  * ATTENTION: This class uses heavily the mark-function of the grid.
  * 			  Do not use any member function while having called begin_mark()
  *
- * \tparam		TDiscreteFunction 	discrete grid function used
+ * \tparam		TFunction 	discrete grid function used
  */
-template <typename TDiscreteFunction>
+template <typename TFunction>
 class VTKOutput{
 	public:
 	///	type of grid function
-		typedef TDiscreteFunction function_type;
+		typedef TFunction function_type;
 
 	public:
 	///	clears the selected output
@@ -180,6 +180,9 @@ class VTKOutput{
 	 * \param[in]		u				grid function
 	 */
 		void write_time_pvd(const char* filename, function_type& u);
+
+	///	sets the verbosity, if true some output status info is written to log
+		void set_verbose(bool bVerb) {m_bVerb = bVerb;}
 
 	protected:
 	/**
@@ -365,9 +368,12 @@ class VTKOutput{
 
 	public:
 	///	default constructor
-		VTKOutput()	: m_bSelectAll(true), m_pGrid(NULL) {}
+		VTKOutput()	: m_bVerb(false), m_bSelectAll(true), m_pGrid(NULL) {}
 
 	protected:
+	///	verbosity flag
+		bool m_bVerb;
+
 	///	scheduled components to be printed
 		bool m_bSelectAll;
 		std::vector<std::pair<std::string, std::string> > m_vSymbFct;
