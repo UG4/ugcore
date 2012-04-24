@@ -257,7 +257,7 @@ set_construct_as_smart_pointer(bool enable)
 bool ExportedClassBaseImpl::
 is_instantiable() const
 {
-	return m_vConstructor.size() > 0;
+	return !m_vConstructor.empty();
 }
 
 void ExportedClassBaseImpl::

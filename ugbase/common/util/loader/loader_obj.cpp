@@ -155,7 +155,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 		*/
 		split_parameters(lstParams, BUFFER, " \r\t");
 
-		if(!lstParams.size())
+		if(lstParams.empty())
 			continue;
 
 		strCommand = *lstParams.begin();
@@ -193,7 +193,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 
 				lstParams.clear();
 				split_parameters(&lstParams, BUFFER);
-				if(!lstParams.size())
+				if(lstParams.empty())
 					continue;
 
 				strCommand = *lstParams.begin();
@@ -203,7 +203,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 				{
 					m_vMaterials.push_back(Material());
 					pActMaterial = &m_vMaterials[m_vMaterials.size() - 1];
-					if(lstParams.size())
+					if(!lstParams.empty())
 						pActMaterial->m_strName = *lstParams.begin();
 				}
 				else if(pActMaterial)
@@ -396,7 +396,7 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 				pActiveObject->m_iMaterialIndex = -1;
 			}
 
-			if(lstParams.size())
+			if(lstParams.empty())
 			{
 				pActiveObject->m_strMaterialName = *lstParams.begin();
 				pActiveObject->m_iMaterialIndex = get_material_index_by_name(pActiveObject->m_strMaterialName.c_str());

@@ -923,7 +923,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 				
 				CollectFaces(vFaces, grid, *iter);
 				
-				if(vFaces.size() > 0)
+				if(!vFaces.empty())
 					subsetIndex = psh->get_subset_index(vFaces[0]);
 				
 				for(size_t i = 1; i < vFaces.size(); ++i){
@@ -1141,7 +1141,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 //	open the file
 	out.open(ngFileName.c_str());
 
-//	enable scientific number formatâ
+//	enable scientific number formatï¿½
 	//out.setf(ios::scientific);
 
 	if(!out)

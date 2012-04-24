@@ -127,7 +127,7 @@ create_sub_communicator(bool participate) const
 	}
 
 //	if newProcs is not empty, we'll build a new mpi-communicator.
-	if(newProcs.size() == 0)
+	if(newProcs.empty())
 		return ProcessCommunicator(PCD_EMPTY);
 
 	MPI_Group grpOld;

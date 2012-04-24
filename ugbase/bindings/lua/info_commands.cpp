@@ -90,7 +90,7 @@ bool GetLuaNamespace(lua_State* L, string name)
 	LUA_STACK_CHECK(L, 1);
 	vector<string> tokens;
 	TokenizeString(name, tokens, '.');
-	if(tokens.size() == 0)
+	if(tokens.empty())
 	{
 		lua_pushnil(L);
 		return false;
@@ -275,7 +275,7 @@ int UGTypeInfo(const char *p)
 		UG_LOG("Typeinfo for " << p << ": " << endl);
 		for(size_t i=0; i < names->size(); ++i)
 			PrintClassInfo(reg, names->at(i));
-		if(names->size() > 0)
+		if(!names->empty())
 			PrintClassHierarchy(reg, names->at(0));
 	}
 	else if (lua_istable(L, -1))
@@ -380,7 +380,7 @@ bool ClassUsage(const char *classname)
 	ClassUsageExact(reg, classname, true);
 
 	const std::vector<const char*> *names = c->class_names();
-	if(names != NULL && names->size() > 0)
+	if(names != NULL && !names->empty())
 	{
 		for(size_t i = 0; i<names->size(); i++)
 		{
@@ -647,7 +647,7 @@ void LuaList_scriptFunctions()
 	GetLuaGlobal_scriptFunctions(scriptFunctions);
 	UG_LOG(endl << "--- Script Functions: ---" << endl)
 
-	if(scriptFunctions.size()==0)	return;
+	if(scriptFunctions.empty())	return;
 	int maxLength = (*max_element(scriptFunctions.begin(), scriptFunctions.end(), IsLonger)).size();
 	for(size_t i=0; i<scriptFunctions.size(); i++)
 	{
@@ -677,7 +677,7 @@ void LuaList_luaObjects()
 	GetLuaGlobal_luaObjects(luaObjects);
 
 	UG_LOG(endl << "--- Lua Objects: ----------------" << endl)
-	if(luaObjects.size()==0) return;
+	if(luaObjects.empty()) return;
 	int maxLength = (*max_element(luaObjects.begin(), luaObjects.end(), IsLonger)).size();
 	for(size_t i=0; i<luaObjects.size(); i++)
 	{
@@ -705,14 +705,14 @@ void LuaList_classInstantiations()
 	GetLuaGlobal_classInstantiations(instantiations);
 
 	UG_LOG(endl << "--- Class Instantiations: ---------" << endl)
-	if(instantiations.size()==0) return;
+	if(instantiations.empty()) return;
 	int maxLength = (*max_element(instantiations.begin(), instantiations.end(), IsLonger)).size();
 	for(size_t i=0; i<instantiations.size(); i++)
 	{
 		lua_getglobal(L, instantiations[i].c_str());
 		if(!lua_isuserdata(L, -1)) continue;
 		const std::vector<const char*> *n  = GetClassNames(L, -1);
-		if(n && n->size() > 0)
+		if(n && !n->empty())
 		{
 			UG_LOG(left << setw(maxLength) << instantiations[i] << ": class ");
 			for(size_t j = 0; j < n->size(); j++)

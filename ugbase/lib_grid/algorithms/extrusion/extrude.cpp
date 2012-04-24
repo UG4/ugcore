@@ -58,7 +58,7 @@ void Extrude(Grid& grid,
 	bool bRecordNewFaces = false;
 	if((pvEdgesInOut != NULL) && (extrusionOptions & EO_CREATE_FACES))
 	{
-		if(pvEdgesInOut->size() > 0){
+		if(!pvEdgesInOut->empty()){
 			bRecordNewFaces = true;
 			vNewFaces.resize(numNewFaces);
 		}

@@ -67,7 +67,7 @@ bool AddExtraProcessEntriesToSubdomainLayout(
 			std::vector<std::pair<int, size_t> > vIndexAppear;
 			FindPositionInInterfaces(vIndexAppear, subdomainMasterLayoutInOut, index);
 
-			if(vIndexAppear.size() > 0)
+			if(!vIndexAppear.empty())
 			{
 			//	 flag
 				vMultiplicity[index] = 1;

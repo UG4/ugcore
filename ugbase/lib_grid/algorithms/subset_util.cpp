@@ -602,7 +602,7 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 	if(!grid.has_vertex_attachment(aPos))
 		return;
 
-	if(vNormals.size() == 0)
+	if(vNormals.empty())
 		return;
 
 //	the position accessor

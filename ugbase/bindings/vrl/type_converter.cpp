@@ -78,7 +78,7 @@ namespace ug {
 		jobjectArray stringArrayC2J(
 				JNIEnv *env, std::vector<std::string> const& strings) {
 
-			if (strings.size() > 0) {
+			if (!strings.empty()) {
 				// it is safe to give a pointer to the first vector element as
 				// std::vector implementation uses contiguous memory
 				return stringArrayC2J(env, &strings[0], strings.size());
@@ -92,7 +92,7 @@ namespace ug {
 		jobjectArray stringArrayC2J(
 				JNIEnv *env, const std::vector<const char*>* strings) {
 
-			if (strings != NULL && strings->size() > 0) {
+			if (strings != NULL && !strings->empty()) {
 				// it is safe to give a pointer to the first vector element as
 				// std::vector implementation uses contiguous memory
 				return stringArrayC2J(env, &(*strings)[0], strings->size());
@@ -107,7 +107,7 @@ namespace ug {
 		jobjectArray stringArrayC2J(
 				JNIEnv *env, const std::vector<const char*> strings) {
 
-			if (strings.size() > 0) {
+			if (!strings.empty()) {
 				// it is safe to give a pointer to the first vector element as
 				// std::vector implementation uses contiguous memory
 				return stringArrayC2J(env, &strings[0], strings.size());

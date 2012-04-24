@@ -163,7 +163,7 @@ bool Registry::check_consistency()
 	// check for duplicate function names. comparison is not case sensitive.
 	std::vector<std::string> globFuncDuplicates = 
 			FindDuplicates(globalFunctionNames);
-	bool globFuncDuplicatesExist = globFuncDuplicates.size()>0;
+	bool globFuncDuplicatesExist = !globFuncDuplicates.empty();
 	//todo: use stringstream
 	std::string duplicateFuncMsg = 
 				"#### ERROR in 'Registry::check_consistency': "

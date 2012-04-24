@@ -193,7 +193,7 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 	lastVrt->isRimVertex = true;
 
 //	the start vertex has to have at least one connection
-	if(lastVrt->connections.size() == 0){
+	if(lastVrt->connections.empty()){
 	//	theres nothing we can do.
 		return false;
 	}

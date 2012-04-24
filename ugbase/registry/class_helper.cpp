@@ -146,7 +146,7 @@ bool PrintClassHierarchy(Registry &reg, const char *classname)
 
 	int level = 0;
 	const std::vector<const char*> *names = c->class_names();
-	if(names != NULL && names->size() > 0)
+	if(names != NULL && !names->empty())
 	{
 		for(int i = names->size()-1; i>0; i--)
 		{

@@ -70,7 +70,7 @@ void CommunicateConnections(vector<vector<int> >& connectionsOut,
 			vector<int>& cons = connectionsOut[elem];
 
 		//	the first entry in each connection is the master elements process
-			if(cons.size() == 0)
+			if(cons.empty())
 				cons.push_back(localProc);
 
 		//	now push the slave

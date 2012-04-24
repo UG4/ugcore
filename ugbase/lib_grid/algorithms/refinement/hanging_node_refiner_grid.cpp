@@ -160,7 +160,7 @@ post_refine()
 			Face* f = *iter;
 			++iter;
 			CollectVolumes(vVols, grid, f);
-			if(vVols.size() == 0)
+			if(vVols.empty())
 			{
 			//	erase
 				grid.erase(f);
@@ -177,7 +177,7 @@ post_refine()
 			EdgeBase* e = *iter;
 			++iter;
 			CollectFaces(vFaces, grid, e);
-			if(vFaces.size() == 0)
+			if(vFaces.empty())
 			{
 			//	erase
 				grid.erase(e);
