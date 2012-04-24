@@ -276,7 +276,7 @@ int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
 		vector3 dir;
 		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
 		vNormOut.x = dir.y;
-		vNormOut.y = -dir.y;
+		vNormOut.y = -dir.x;
 		vNormOut.z = 0;
 		VecNormalize(vNormOut, vNormOut);
 		}break;
@@ -320,7 +320,7 @@ int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, EdgeBase* e,
 		vector3 dir;
 		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
 		vNormOut.x = dir.y;
-		vNormOut.y = -dir.y;
+		vNormOut.y = -dir.x;
 		vNormOut.z = 0;
 		}break;
 	
