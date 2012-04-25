@@ -20,12 +20,17 @@ namespace bridge
 //////////////////////////////
 //////////////////////////////
 
+///	Generic PLStack structure. Raises a compile error if used directly by ParameterStackToTypeValueList
+/**	The methods in this class should give an idea, on how the methods in
+ * a concrete PLStack class should look like. The methods have to be public
+ * there. For the generic PLStack, all members are private to enforce a
+ * compile error, if no specialization for a given TData type exists.
+ */
 template <typename TData>
 struct PLStack
 {
-	protected:
+	private:
 		static void write(ParameterStack& ps, TData data, int index);
-	public:
 		static void push(ParameterStack& ps);
 		static TData read(const ParameterStack& ps, int index);
 };
