@@ -18,6 +18,125 @@
 
 namespace ug{
 
+class VTKFileWriter
+{
+	enum{OSIZE=32,            /* must be a multiple of 16 */
+		 BSIZE=(3*OSIZE/4)};  /* will be just right then  */
+
+	struct {
+		char buffer[BSIZE];
+		char output[OSIZE];
+		int front;
+		int size;
+	} BufferStream;
+
+	inline void EncodeTriplet(char *_in, char *out, int n)
+	{
+		static char digits[] =
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+		unsigned char *in = (unsigned char *)_in;
+
+		out[0] = digits[in[0] >> 2];
+		out[1] = digits[((in[0] & 0x03) << 4) | (in[1] >> 4)];
+		out[2] = n > 1? digits[((in[1] & 0x0F) << 2) | (in[2] >> 6)] : '=';
+		out[3] = n > 2? digits[in[2] & 0x3F] : '=';
+	}
+
+	inline void BufferStreamWrite(FILE* File, void *item)
+	{
+		int i;
+		char *p;
+
+		memcpy(BufferStream.buffer + BufferStream.front, item, BufferStream.size);
+		BufferStream.front += BufferStream.size;
+		if (BufferStream.front == BSIZE) {
+			p = BufferStream.output;
+			for (i = 0; i < BSIZE; i += 3) {
+				EncodeTriplet(BufferStream.buffer + i, p, 3);
+				p += 4;
+			}
+			fwrite(BufferStream.output, 1, OSIZE, File);
+			BufferStream.front = 0;
+		}
+	}
+
+	inline void BufferStreamFlush(FILE* File)
+	{
+		int i, r, to;
+		char *p;
+
+		if (BufferStream.front != 0) {
+			p = BufferStream.output;
+			r = BufferStream.front % 3;
+			to = BufferStream.front - r;
+			for (i = 0; i < to; i += 3) {
+				EncodeTriplet(BufferStream.buffer + i, p, 3);
+				p += 4;
+			}
+			if (r) {
+				memset(BufferStream.buffer + BufferStream.front, 0, 3-r);
+				EncodeTriplet(BufferStream.buffer + to, p, r);
+				p += 4;
+			}
+			fwrite(BufferStream.output, 1, p - BufferStream.output, File);
+			BufferStream.front = 0;
+		}
+	}
+
+	public:
+		VTKFileWriter(std::string filename) : m_pFile(NULL)
+		{
+			m_pFile = fopen(filename.c_str(), "w");
+			if(m_pFile == NULL)
+				UG_THROW_FATAL("Base64StreamWriter: Can not open Output File:"
+								<< filename);
+			BufferStream.front = 0;
+		}
+
+		~VTKFileWriter()
+		{
+			if(m_pFile) fclose(m_pFile);
+		}
+
+		void write(const char* msg)
+		{
+			fprintf(m_pFile, "%s", msg);
+		}
+
+		template <typename T>
+		void begin_base64_buffer() {BufferStream.size = sizeof(T);}
+
+		template <typename T>
+		void write_base64_buffered(T& n)
+		{
+			UG_ASSERT(BufferStream.size = sizeof(T), "Stream size invalid.");
+			BufferStreamWrite(m_pFile, &n);
+		}
+
+		void flush_base64_buffered()
+		{
+			BufferStreamFlush(m_pFile);
+		}
+
+		template <typename T>
+		void end_base64_buffer()
+		{
+			UG_ASSERT(BufferStream.size = sizeof(T), "Stream size changed.");
+			BufferStreamFlush(m_pFile);
+		}
+
+		template <typename T>
+		void write_base64(T& n)
+		{
+			BufferStream.size = sizeof(T);
+			BufferStreamWrite(m_pFile, &n);
+			BufferStreamFlush(m_pFile);
+		}
+
+	private:
+		FILE* m_pFile;
+};
+
 /// output writer to the VTK file format
 /**
  * This class can be used to write grid and data associated with the grid to
@@ -55,12 +174,8 @@ namespace ug{
  *
  * \tparam		TFunction 	discrete grid function used
  */
-template <typename TFunction>
-class VTKOutput{
-	public:
-	///	type of grid function
-		typedef TFunction function_type;
-
+class VTKOutput
+{
 	public:
 	///	clears the selected output
 		void clear_selection() {m_vSymbFct.clear();}
@@ -108,12 +223,14 @@ class VTKOutput{
 	 * \param[in]	time			time point corresponding to timestep
 	 * \param[in]	makeConsistent	flag if data shall be made consistent before printing
 	 */
-		void print(const char*  filename, function_type& u,
+		template <typename TFunction>
+		void print(const char*  filename, TFunction& u,
 		           int step, number time,
 				   bool makeConsistent);
 
 	/**	Calls print with makeConsistent enabled.*/
-		void print(const char*  filename, function_type& u,
+		template <typename TFunction>
+		void print(const char*  filename, TFunction& u,
 		           int step, number time)
 		{
 			return print(filename, u, step, time, true);
@@ -127,14 +244,16 @@ class VTKOutput{
 	 * \param[in]	u				grid function
 	 * \param[in]	makeConsistent	flag if data shall be made consistent before printing
 	 */
-		void print(const char*  filename, function_type& u,
+		template <typename TFunction>
+		void print(const char*  filename, TFunction& u,
 				   bool makeConsistent)
 		{
 			print(filename, u, -1, 0.0, makeConsistent);
 		}
 
 	/**	Calls print with makeConsistent enabled.*/
-		void print(const char*  filename, function_type& u)
+		template <typename TFunction>
+		void print(const char*  filename, TFunction& u)
 		{
 			return print(filename, u, true);
 		}
@@ -161,12 +280,14 @@ class VTKOutput{
 	 * \param[in]		time			time point of timestep
 	 * \param[in]	makeConsistent	flag if data shall be made consistent before printing
 	 */
-		void print_subset(const char* filename, function_type& u,
+		template <typename TFunction>
+		void print_subset(const char* filename, TFunction& u,
 		                  int si, int step = -1, number time = 0.0,
 						  bool makeConsistent = true);
 
 	/**	Calls print_subset with makeConsistent enabled.*/
-		void print_subset(const char* filename, function_type& u,
+		template <typename TFunction>
+		void print_subset(const char* filename, TFunction& u,
 		                  int si, int step = -1, number time = 0.0)
 		{
 			return print_subset(filename, u, si, step, time, true);
@@ -179,12 +300,9 @@ class VTKOutput{
 	 * \param[in]		filename		filename used in time series
 	 * \param[in]		u				grid function
 	 */
-		void write_time_pvd(const char* filename, function_type& u);
+		template <typename TFunction>
+		void write_time_pvd(const char* filename, TFunction& u);
 
-	///	sets the verbosity, if true some output status info is written to log
-		void set_verbose(bool bVerb) {m_bVerb = bVerb;}
-
-	protected:
 	/**
 	 * This function counts the number of vertices, elements and connections for
 	 * a given subset (or the whole grid if si < 0).
@@ -196,66 +314,10 @@ class VTKOutput{
 	 * \param[out]		numElem		number of elements
 	 * \param[out]		numConn		number of connections
 	 */
-		void count_piece_sizes(function_type& u, int si, int dim,
-		                       int& numVert, int& numElem, int& numConn);
-
-	/**
-	 * This function writes a piece of the grid to the vtk file. First the
-	 * geometric data is written (points, cells, connectivity). Then the data
-	 * associated to the points or cells is written.
-	 *
-	 * \param[in,out]	File		file to write the points
-	 * \param[in]		u			discrete function
-	 * \param[in]		si			subset
-	 * \param[in]		dim			dimension of subset
-	 */
-		void write_piece(FILE* File, function_type& u, int si, int dim);
-
-	/**
-	 * This function writes the vertices of a piece of the grid to a vtk file. If
-	 * si >= 0 only all vertices needed to form the subset are written; if si < 0
-	 * the whole grid is plotted.
-	 *
-	 * \param[in,out]	File		file to write the points
-	 * \param[in]		u			discrete function
-	 * \param[in]		si			subset
-	 * \param[in]		dim			dimension of subset
-	 * \param[in]		numVert		number of vertices
-	 */
-		void write_points(FILE* File, function_type& u, int si,
-		                  int dim, int numVert);
-
-	/**
-	 * This function writes the elements that are part of a given subset. If si < 0
-	 * is passed, the whole grid is written.
-	 *
-	 * \param[in,out]	File		file to write the points
-	 * \param[in]		u			discrete function
-	 * \param[in]		si			subset
-	 * \param[in]		dim			dimension of subset
-	 * \param[out]		numElem		number of elements
-	 * \param[out]		numConn		number of connections
-	 */
-		void write_cells(FILE* File, function_type& u, int si,
-		                 int dim, int numElem, int numConn);
-
-
-	/**
-	 * This function writes the values of a function as a <DataArray> field to
-	 * the vtu file.
-	 *
-	 * \param[in,out]	File		file to write the points
-	 * \param[in]		u			discrete function
-	 * \param[in]		vFct		components to be written
-	 * \param[in]		name		name to appear for the component
-	 * \param[in]		si			subset
-	 * \param[in]		dim			dimension of subset
-	 * \param[in]		numVert		number of vertices
-	 */
-		void write_nodal_values(FILE* File, function_type& u,
-		                        const FunctionGroup& vFct,
-		                        const std::string& name,
-		                        int si, int dim, int numVert);
+		template <typename T>
+		static void
+		count_piece_sizes(Grid& grid, const T& iterContainer, int si, int dim,
+		                  int& numVert, int& numElem, int& numConn);
 
 	/**
 	 * This function counts the number of vertices, elements and connections that
@@ -273,9 +335,39 @@ class VTKOutput{
 	 * \param[out]		numElem		number of elements in the subset
 	 * \param[out]		numConn		number of connections
 	 */
-		template <typename TElem>
-		void count_sizes(function_type& u, int si,
-		                     int& numVert, int& numElem, int& numConn);
+		template <typename TElem, typename T>
+		static void
+		count_sizes(Grid& grid, const T& iterContainer, int si,
+		            int& numVert, int& numElem, int& numConn);
+
+		template <typename T, int TDim>
+		static void
+		write_grid_piece(VTKFileWriter& File,
+		                 Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
+		                 const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
+		                 Grid& grid, const T& iterContainer, int si, int dim,
+		                 int numVert, int numElem, int numConn);
+
+		static void write_empty_grid_piece(VTKFileWriter& File);
+
+	/**
+	 * This function writes the vertices of a piece of the grid to a vtk file. If
+	 * si >= 0 only all vertices needed to form the subset are written; if si < 0
+	 * the whole grid is plotted.
+	 *
+	 * \param[in,out]	File		file to write the points
+	 * \param[in]		u			discrete function
+	 * \param[in]		si			subset
+	 * \param[in]		dim			dimension of subset
+	 * \param[in]		numVert		number of vertices
+	 */
+		template <typename T, int TDim>
+		static void
+		write_points(VTKFileWriter& File,
+		             Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
+		             const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
+		             Grid& grid, const T& iterContainer, int si, int dim,
+		             int numVert);
 
 	/**
 	 * This method loops all elements of a subset and writes the vertex
@@ -288,8 +380,31 @@ class VTKOutput{
 	 * \param[in]	si			subset index
 	 * \param[in]	n			counter for vertices
 	 */
-		template <typename TElem>
-		void write_points_elementwise(FILE* File, function_type& u, int si, int& n);
+		template <typename TElem, typename T, int dim>
+		static void
+		write_points_elementwise(VTKFileWriter& File,
+		                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
+		                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<dim> > >& aaPos,
+		                         Grid& grid, const T& iterContainer, int si, int& n);
+
+	/**
+	 * This function writes the elements that are part of a given subset. If si < 0
+	 * is passed, the whole grid is written.
+	 *
+	 * \param[in,out]	File		file to write the points
+	 * \param[in]		u			discrete function
+	 * \param[in]		si			subset
+	 * \param[in]		dim			dimension of subset
+	 * \param[out]		numElem		number of elements
+	 * \param[out]		numConn		number of connections
+	 */
+		template <typename T>
+		static void
+		write_cells(VTKFileWriter& File,
+		            Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
+		            Grid& grid, const T& iterContainer, int si,
+		            int dim, int numElem, int numConn);
+
 
 	/**
 	 * This method writes the 'connectivity' for each element of a subset. The
@@ -299,8 +414,18 @@ class VTKOutput{
 	 * \param[in]	u			grid function
 	 * \param[in]	si			subset index
 	 */
-		template <typename TElem>
-		void write_cell_connectivity(FILE* File, function_type& u, int si);
+		template <typename TElem, typename T>
+		static void
+		write_cell_connectivity(VTKFileWriter& File,
+		                        Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
+		                        Grid& grid, const T& iterContainer, int si);
+
+		template <typename T>
+		static void
+		write_cell_connectivity(VTKFileWriter& File,
+		                        Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
+		                        Grid& grid, const T& iterContainer, int si, int dim,
+		                        int numConn);
 
 	/**
 	 * This method writes the 'offset' for each element of a subset.
@@ -310,8 +435,14 @@ class VTKOutput{
 	 * \param[in]	si			subset index
 	 * \param[in]	n			counter for vertices
 	 */
-		template <typename TElem>
-		void write_cell_offsets(FILE* File, function_type& u, int si, int& n);
+		template <typename TElem, typename T>
+		static void
+		write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int& n);
+
+		template <typename T>
+		static void
+		write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
+		                   int numElem);
 
 	/**
 	 * This method writes the 'type' for each element of a subset. The type is
@@ -321,8 +452,32 @@ class VTKOutput{
 	 * \param[in]	u			grid function
 	 * \param[in]	si			subset index
 	 */
-		template <typename TElem>
-		void write_cell_types(FILE* File, function_type& u, int si);
+		template <typename TElem, typename T>
+		static void
+		write_cell_types(VTKFileWriter& File, const T& iterContainer, int si);
+
+		template <typename T>
+		static void
+		write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
+		                 int numElem);
+
+	protected:
+	/**
+	 * This function writes a piece of the grid to the vtk file. First the
+	 * geometric data is written (points, cells, connectivity). Then the data
+	 * associated to the points or cells is written.
+	 *
+	 * \param[in,out]	File		file to write the points
+	 * \param[in]		u			discrete function
+	 * \param[in]		si			subset
+	 * \param[in]		dim			dimension of subset
+	 */
+		template <typename TFunction>
+		void
+		write_grid_solution_piece(VTKFileWriter& File,
+								  Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
+								  Grid& grid,
+								  TFunction& u, int si, int dim);
 
 	/**
 	 * This method writes the nodal values of a function to file. If the function
@@ -335,58 +490,101 @@ class VTKOutput{
 	 * \param[in]	vFct		components to be written
 	 * \param[in]	si			subset index
 	 */
-		template <typename TElem>
-		void write_nodal_values_elementwise(FILE* File, function_type& u,
-		                                   const FunctionGroup& vFct, int si);
+		template <typename TElem, typename TFunction>
+		void write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
+		                                   const FunctionGroup& vFct, Grid& grid, int si);
 
-	private:
+	/**
+	 * This function writes the values of a function as a <DataArray> field to
+	 * the vtu file.
+	 *
+	 * \param[in,out]	File		file to write the points
+	 * \param[in]		u			discrete function
+	 * \param[in]		vFct		components to be written
+	 * \param[in]		name		name to appear for the component
+	 * \param[in]		si			subset
+	 * \param[in]		dim			dimension of subset
+	 * \param[in]		numVert		number of vertices
+	 */
+		template <typename TFunction>
+		void write_nodal_values(VTKFileWriter& File, TFunction& u,
+								const FunctionGroup& vFct,
+								const std::string& name,
+								Grid& grid, int si, int dim, int numVert);
+
+		template <typename TFunction>
+		void write_nodal_values_piece(VTKFileWriter& File, TFunction& u,
+		                              Grid& grid, int si, int dim, int numVert);
+
 	///	writes a grouping *.pvtu file
-		void write_pvtu(function_type& u, const std::string&  filename,
+		template <typename TFunction>
+		void write_pvtu(TFunction& u, const std::string&  filename,
 		                int si, int step, number time);
 
+	public:
 	///	writes a grouping *.pvd file, grouping all data from different subsets
-		void write_subset_pvd(function_type& u, const std::string&  filename,
-		                      int step = -1, number time = 0.0);
+		static void write_subset_pvd(int numSubset, const std::string&  filename,
+		                             int step = -1, number time = 0.0);
 
 	///	creates the needed vtu file name
-		void vtu_filename(std::string& nameOut, std::string nameIn,
-		                  int rank, int si, int maxSi, int step);
+		static void vtu_filename(std::string& nameOut, std::string nameIn,
+		                         int rank, int si, int maxSi, int step);
 
 	///	create the needed pvtu file name
-		void pvtu_filename(std::string& nameOut, std::string nameIn,
-		                   int si, int maxSi, int step);
+		static void pvtu_filename(std::string& nameOut, std::string nameIn,
+		                          int si, int maxSi, int step);
 
 	///	creates the needed pvd file name
-		void pvd_filename(std::string& nameOut, std::string nameIn);
+		static void pvd_filename(std::string& nameOut, std::string nameIn);
 
 	///	creates the needed pvd file name to group the time steps
-		void pvd_time_filename(std::string& nameOut, std::string nameIn,
-		                       int step);
+		static void pvd_time_filename(std::string& nameOut, std::string nameIn,
+		                              int step);
 
-	///	checks if chosen filename is admissible
-		bool is_valid_filename(std::string& nameIn);
+	protected:
+		template <typename T>
+		struct IteratorProvider
+		{
+			template <typename TElem>
+			struct traits
+			{
+				typedef typename T::template traits<TElem>::geometric_object geometric_object;
+				typedef typename T::template traits<TElem>::iterator iterator;
+				typedef typename T::template traits<TElem>::const_iterator const_iterator;
+			};
+
+			template <int dim>
+			struct dim_traits
+			{
+				typedef typename T::template dim_traits<dim>::geometric_base_object geometric_base_object;
+				typedef typename T::template dim_traits<dim>::iterator iterator;
+				typedef typename T::template dim_traits<dim>::const_iterator const_iterator;
+			};
+
+			template <typename TElem>
+			static typename traits<TElem>::const_iterator begin(const T& provider, int si)
+			{
+				if(si < 0) return provider.template begin<TElem>();
+				else return provider.template begin<TElem>(si);
+			}
+
+			template <typename TElem>
+			static typename traits<TElem>::const_iterator end(const T& provider, int si)
+			{
+				if(si < 0) return provider.template end<TElem>();
+				else return provider.template end<TElem>(si);
+			}
+		};
 
 	public:
 	///	default constructor
-		VTKOutput()	: m_bVerb(false), m_bSelectAll(true), m_pGrid(NULL) {}
+		VTKOutput()	: m_bSelectAll(true) {}
 
 	protected:
-	///	verbosity flag
-		bool m_bVerb;
-
 	///	scheduled components to be printed
 		bool m_bSelectAll;
 		std::vector<std::pair<std::string, std::string> > m_vSymbFct;
 
-	///	Grid, working on
-		Grid* m_pGrid;
-
-	///	attachment for dofs
-		typedef ug::Attachment<int> ADOFIndex;
-		ADOFIndex m_aDOFIndex;
-		Grid::VertexAttachmentAccessor<ADOFIndex> m_aaDOFIndexVRT;
-
-	protected:
 	///	map storing the time points
 		std::map<std::string, std::vector<number> > m_mTimestep;
 };

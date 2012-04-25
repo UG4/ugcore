@@ -36,7 +36,7 @@ template <typename TGridFunction>
 void WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
 {
 	PROFILE_FUNC();
-	VTKOutput<TGridFunction> out;
+	VTKOutput out;
 	out.print(filename, u, true); // TODO: setting of last argument (intended to skip "make consistent", for writing of "raw" data; see (grid_function_util.h')
 }
 
@@ -64,22 +64,13 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 
 //	VTK Output
 	{
-		typedef VTKOutput<function_type> T;
-		string name = string("VTKOutput").append(dimAlgSuffix);
-		reg.add_class_<T>(name, grp)
-			.add_constructor()
-			.add_method("set_verbose", &T::set_verbose)
-			.add_method("write_time_pvd", &T::write_time_pvd)
-			.add_method("clear_selection", &T::clear_selection)
-			.add_method("select_all", &T::select_all)
-			.add_method("select_nodal_scalar", &T::select_nodal_scalar)
-			.add_method("select_nodal_vector", &T::select_nodal_vector)
+		typedef VTKOutput T;
+		reg.get_class_<T>()
+			.add_method("write_time_pvd", static_cast<void (T::*)(const char*, function_type&)>(&T::write_time_pvd))
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, int, number, bool)>(&T::print))
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, int, number)>(&T::print))
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, bool)>(&T::print))
-			.add_method("print", static_cast<void (T::*)(const char*, function_type&)>(&T::print))
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "VTKOutput", dimAlgTag);
+			.add_method("print", static_cast<void (T::*)(const char*, function_type&)>(&T::print));
 	}
 
 
@@ -195,6 +186,20 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 
 bool RegisterOutput(Registry& reg, string grp)
 {
+
+//	VTK Output
+	{
+		typedef VTKOutput T;
+		string name = string("VTKOutput");
+		reg.add_class_<T>(name, grp)
+			.add_constructor()
+			.add_method("clear_selection", &T::clear_selection)
+			.add_method("select_all", &T::select_all)
+			.add_method("select_nodal_scalar", &T::select_nodal_scalar)
+			.add_method("select_nodal_vector", &T::select_nodal_vector)
+			.set_construct_as_smart_pointer(true);
+	}
+
 #ifdef UG_CPU_1
 	Register__Algebra<CPUAlgebra>(reg, grp);
 #endif

@@ -30,6 +30,8 @@ set(srcDiscretization	domain_util.cpp
                         function_spaces/grid_function_util.cpp
                         function_spaces/grid_function.cpp
 
+                        io/vtkoutput.cpp
+
 						reference_element/reference_element.cpp
 			            reference_element/reference_element_init.cpp
 			            reference_element/reference_element_mapping.cpp
