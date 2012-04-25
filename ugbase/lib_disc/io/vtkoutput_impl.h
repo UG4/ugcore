@@ -211,14 +211,106 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 	UG_CATCH_THROW("VTK::print_subset: Can not open Output File: "<< filename);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//	Domain Output
+////////////////////////////////////////////////////////////////////////////////
+template <int TDim>
+void VTKOutput::
+print(const char* filename, Domain<TDim>& domain)
+{
+//	get the grid associated to the solution
+	MultiGrid& grid = *domain.grid();
+	MGSubsetHandler& sh = *domain.subset_handler();
+
+// 	attach help indices
+	typedef ug::Attachment<int> AVrtIndex;
+	AVrtIndex aVrtIndex;
+	Grid::VertexAttachmentAccessor<AVrtIndex> aaVrtIndex;
+	grid.attach_to_vertices(aVrtIndex);
+	aaVrtIndex.access(grid, aVrtIndex);
+
+//	get rank of process
+	int rank = 0;
+#ifdef UG_PARALLEL
+	rank = pcl::GetProcRank();
+#endif
+
+	const int si = -1;
+
+//	get name for *.vtu file
+	std::string name;
+	try{
+		vtu_filename(name, filename, rank, si, sh.num_subsets()-1, -1);
+	}
+	UG_CATCH_THROW("VTK::print_subset: Can not write vtu - file.");
+
+
+//	open the file
+	try
+	{
+	VTKFileWriter File(name.c_str());
+
+//	header
+	File.write("<?xml version=\"1.0\"?>\n");
+	File.write("<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"");
+#ifdef __SWAPBYTES__
+	File.write("LittleEndian");
+#else
+	File.write("BigEndian");
+#endif
+	File.write("\">\n");
+
+//	opening the grid
+	File.write("  <UnstructuredGrid>\n");
+
+// 	get dimension of grid-piece
+	int dim = DimensionOfSubsets(sh);
+
+//	write piece of grid
+	if(dim >= 0)
+	{
+		try{
+			write_grid_piece<MGSubsetHandler, TDim>
+			(File, aaVrtIndex, domain.position_accessor(), grid,
+			 sh, si, dim);
+		}
+		UG_CATCH_THROW("VTK::print: Can not write Subset: "<<si);
+	}
+	else
+	{
+	//	if dim < 0, some is wrong with grid, except no element is in the grid
+		if( ((si < 0) && grid.num<VertexBase>() != 0) ||
+			((si >=0) && sh.num<VertexBase>(si) != 0))
+		{
+			UG_THROW_FATAL("VTK::print: Dimension of grid/subset not"
+					" detected correctly although grid objects present.");
+		}
+
+		write_empty_grid_piece(File);
+	}
+
+//	write closing xml tags
+	File.write("  </UnstructuredGrid>\n");
+	File.write("</VTKFile>\n");
+
+// 	detach help indices
+	grid.detach_from_vertices(aVrtIndex);
+
+	}
+	UG_CATCH_THROW("VTK::print: Can not open Output File: "<< filename);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	writing pieces
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, int TDim>
 void VTKOutput::
-write_grid_piece(VTKFileWriter& File,
-                 Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
-                 const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
-                 Grid& grid, const T& iterContainer, int si, int dim,
-                 int numVert, int numElem, int numConn)
+write_points_cells_piece(VTKFileWriter& File,
+                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
+                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
+                         Grid& grid, const T& iterContainer, int si, int dim,
+                         int numVert, int numElem, int numConn)
 {
 //	write vertices of this piece
 	try{
@@ -233,6 +325,36 @@ write_grid_piece(VTKFileWriter& File,
 	UG_CATCH_THROW("VTK::write_piece: Can not write Elements.");
 }
 
+template <typename T, int TDim>
+void VTKOutput::
+write_grid_piece(VTKFileWriter& File,
+                 Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
+                 const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
+                 Grid& grid, const T& iterContainer, int si, int dim)
+{
+//	counters
+	int numVert = 0, numElem = 0, numConn = 0;
+
+// 	Count needed sizes for vertices, elements and connections
+	try{
+		count_piece_sizes(grid, iterContainer, si, dim, numVert, numElem, numConn);
+	}
+	UG_CATCH_THROW("VTK::write_piece: Can not count piece sizes.");
+
+//	write the beginning of the piece, indicating the number of vertices
+//	and the number of elements for this piece of the grid.
+	std::stringstream ss;
+	ss << "    <Piece NumberOfPoints=\""<<numVert<<
+					"\" NumberOfCells=\""<<numElem<<"\">\n";
+	File.write(ss.str().c_str());
+
+//	write grid
+	write_points_cells_piece<T, TDim>
+	(File, aaVrtIndex, aaPos, grid, iterContainer, si, dim, numVert, numElem, numConn);
+
+//	write closing tag
+	File.write("    </Piece>\n");
+}
 
 template <typename TFunction>
 void VTKOutput::
@@ -258,7 +380,7 @@ write_grid_solution_piece(VTKFileWriter& File,
 	File.write(ss.str().c_str());
 
 //	write grid
-	write_grid_piece<TFunction, TFunction::dim>
+	write_points_cells_piece<TFunction, TFunction::dim>
 	(File, aaVrtIndex, u.domain()->position_accessor(), grid, u, si, dim, numVert, numElem, numConn);
 
 //	write nodal data
@@ -267,53 +389,6 @@ write_grid_solution_piece(VTKFileWriter& File,
 //	write closing tag
 	File.write("    </Piece>\n");
 }
-
-
-template <typename TFunction>
-void VTKOutput::
-write_nodal_values_piece(VTKFileWriter& File, TFunction& u, Grid& grid, int si, int dim, int numVert)
-{
-//	write opening tag to indicate point data
-	File.write("      <PointData>\n");
-
-//	add all components if 'selectAll' chosen
-	if(m_bSelectAll)
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-			select_nodal_scalar(u.name(fct).c_str(), u.name(fct).c_str());
-
-//	loop all selected symbolic names
-	for(size_t sym = 0; sym < m_vSymbFct.size(); ++sym)
-	{
-	//	get symb function
-		const std::string& symbNames = m_vSymbFct[sym].first;
-		const std::string& vtkName = m_vSymbFct[sym].second;
-
-	//	create function group
-		FunctionGroup fctGrp = u.fct_grp_by_name(symbNames.c_str());
-
-	//	check that all functions are contained in subset
-		bool bContained = true;
-		for(size_t i = 0; i < fctGrp.num_fct(); ++i)
-		{
-		//	get function
-			const size_t fct = fctGrp[i];
-
-		//	check
-			if(!u.is_def_in_subset(fct, si)) bContained = false;
-		}
-		if(!bContained) continue;
-
-	//	write scalar value of this function
-		try{
-			write_nodal_values(File, u, fctGrp, vtkName, grid, si, dim, numVert);
-		}
-		UG_CATCH_THROW("VTK::write_piece: Can not write Scalar Values.");
-	}
-
-//	write closing tag
-	File.write("      </PointData>\n");
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Sizes
@@ -765,6 +840,51 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 ////////////////////////////////////////////////////////////////////////////////
 // Nodal Value
 ////////////////////////////////////////////////////////////////////////////////
+template <typename TFunction>
+void VTKOutput::
+write_nodal_values_piece(VTKFileWriter& File, TFunction& u, Grid& grid, int si, int dim, int numVert)
+{
+//	write opening tag to indicate point data
+	File.write("      <PointData>\n");
+
+//	add all components if 'selectAll' chosen
+	if(m_bSelectAll)
+		for(size_t fct = 0; fct < u.num_fct(); ++fct)
+			select_nodal_scalar(u.name(fct).c_str(), u.name(fct).c_str());
+
+//	loop all selected symbolic names
+	for(size_t sym = 0; sym < m_vSymbFct.size(); ++sym)
+	{
+	//	get symb function
+		const std::string& symbNames = m_vSymbFct[sym].first;
+		const std::string& vtkName = m_vSymbFct[sym].second;
+
+	//	create function group
+		FunctionGroup fctGrp = u.fct_grp_by_name(symbNames.c_str());
+
+	//	check that all functions are contained in subset
+		bool bContained = true;
+		for(size_t i = 0; i < fctGrp.num_fct(); ++i)
+		{
+		//	get function
+			const size_t fct = fctGrp[i];
+
+		//	check
+			if(!u.is_def_in_subset(fct, si)) bContained = false;
+		}
+		if(!bContained) continue;
+
+	//	write scalar value of this function
+		try{
+			write_nodal_values(File, u, fctGrp, vtkName, grid, si, dim, numVert);
+		}
+		UG_CATCH_THROW("VTK::write_piece: Can not write Scalar Values.");
+	}
+
+//	write closing tag
+	File.write("      </PointData>\n");
+}
+
 
 
 template <typename TElem, typename TFunction>

@@ -15,6 +15,7 @@
 #include "lib_grid/lg_base.h"
 #include "common/util/string_util.h"
 #include "lib_disc/common/function_group.h"
+#include "lib_disc/domain.h"
 
 namespace ug{
 
@@ -137,6 +138,63 @@ class VTKFileWriter
 		FILE* m_pFile;
 };
 
+template <typename T>
+struct IteratorProvider
+{
+	template <typename TElem>
+	struct traits
+	{
+		typedef typename T::template traits<TElem>::iterator iterator;
+		typedef typename T::template traits<TElem>::const_iterator const_iterator;
+	};
+
+	template <typename TElem>
+	static typename traits<TElem>::const_iterator begin(const T& provider, int si)
+	{
+		if(si < 0) return provider.template begin<TElem>();
+		else return provider.template begin<TElem>(si);
+	}
+
+	template <typename TElem>
+	static typename traits<TElem>::const_iterator end(const T& provider, int si)
+	{
+		if(si < 0) return provider.template end<TElem>();
+		else return provider.template end<TElem>(si);
+	}
+};
+
+template <>
+struct IteratorProvider<MGSubsetHandler>
+{
+	private:
+	typedef MGSubsetHandler T;
+
+	public:
+	template <typename TElem>
+	struct traits
+	{
+		typedef typename T::template traits<TElem>::iterator iterator;
+		typedef typename T::template traits<TElem>::const_iterator const_iterator;
+	};
+
+	template <typename TElem>
+	static typename traits<TElem>::const_iterator begin(const T& provider, int si)
+	{
+		const int lev = provider.num_levels() - 1;
+		if(si < 0) return provider.multi_grid()->template begin<TElem>(lev);
+		else return provider.template begin<TElem>(si, lev);
+	}
+
+	template <typename TElem>
+	static typename traits<TElem>::const_iterator end(const T& provider, int si)
+	{
+		const int lev = provider.num_levels() - 1;
+		if(si < 0) return provider.multi_grid()->template end<TElem>(lev);
+		else return provider.template end<TElem>(si, lev);
+	}
+};
+
+
 /// output writer to the VTK file format
 /**
  * This class can be used to write grid and data associated with the grid to
@@ -258,6 +316,10 @@ class VTKOutput
 			return print(filename, u, true);
 		}
 
+	///	prints the domain to file
+		template <int dim>
+		static void print(const char* filename, Domain<dim>& domain);
+
 	/**
 	 * This function writes the subset si of the grid (or the whole grid if
 	 * si < 0) to the file "filename.vtu".
@@ -342,11 +404,18 @@ class VTKOutput
 
 		template <typename T, int TDim>
 		static void
+		write_points_cells_piece(VTKFileWriter& File,
+		                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
+		                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
+		                         Grid& grid, const T& iterContainer, int si, int dim,
+		                         int numVert, int numElem, int numConn);
+
+		template <typename T, int TDim>
+		static void
 		write_grid_piece(VTKFileWriter& File,
 		                 Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                 const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
-		                 Grid& grid, const T& iterContainer, int si, int dim,
-		                 int numVert, int numElem, int numConn);
+		                 Grid& grid, const T& iterContainer, int si, int dim);
 
 		static void write_empty_grid_piece(VTKFileWriter& File);
 
@@ -540,41 +609,6 @@ class VTKOutput
 	///	creates the needed pvd file name to group the time steps
 		static void pvd_time_filename(std::string& nameOut, std::string nameIn,
 		                              int step);
-
-	protected:
-		template <typename T>
-		struct IteratorProvider
-		{
-			template <typename TElem>
-			struct traits
-			{
-				typedef typename T::template traits<TElem>::geometric_object geometric_object;
-				typedef typename T::template traits<TElem>::iterator iterator;
-				typedef typename T::template traits<TElem>::const_iterator const_iterator;
-			};
-
-			template <int dim>
-			struct dim_traits
-			{
-				typedef typename T::template dim_traits<dim>::geometric_base_object geometric_base_object;
-				typedef typename T::template dim_traits<dim>::iterator iterator;
-				typedef typename T::template dim_traits<dim>::const_iterator const_iterator;
-			};
-
-			template <typename TElem>
-			static typename traits<TElem>::const_iterator begin(const T& provider, int si)
-			{
-				if(si < 0) return provider.template begin<TElem>();
-				else return provider.template begin<TElem>(si);
-			}
-
-			template <typename TElem>
-			static typename traits<TElem>::const_iterator end(const T& provider, int si)
-			{
-				if(si < 0) return provider.template end<TElem>();
-				else return provider.template end<TElem>(si);
-			}
-		};
 
 	public:
 	///	default constructor

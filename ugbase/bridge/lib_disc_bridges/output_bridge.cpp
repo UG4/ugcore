@@ -184,6 +184,23 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	}
 }
 
+template <int dim>
+void SaveDomainToVTK(const char* filename, Domain<dim>& domain)
+{
+	VTKOutput::print(filename, domain);
+}
+
+template <typename TDomain>
+static void Register__Domain(Registry& reg, string parentGroup)
+{
+//	get group string
+	string grp = parentGroup; grp.append("/Discretization");
+
+	static const int dim = TDomain::dim;
+
+	reg.add_function("SaveDomainToVTK", &SaveDomainToVTK<dim>);
+}
+
 bool RegisterOutput(Registry& reg, string grp)
 {
 
@@ -198,6 +215,24 @@ bool RegisterOutput(Registry& reg, string grp)
 			.add_method("select_nodal_scalar", &T::select_nodal_scalar)
 			.add_method("select_nodal_vector", &T::select_nodal_vector)
 			.set_construct_as_smart_pointer(true);
+	}
+
+	try{
+#ifdef UG_DIM_1
+	Register__Domain<Domain1d>(reg, grp);
+#endif
+#ifdef UG_DIM_2
+	Register__Domain<Domain2d>(reg, grp);
+#endif
+#ifdef UG_DIM_3
+	Register__Domain<Domain3d>(reg, grp);
+#endif
+	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("### ERROR in RegisterOutput: "
+				"Registration failed (using name " << ex.name << ").\n");
+		UG_THROW_FATAL("Registration failed.");
 	}
 
 #ifdef UG_CPU_1
