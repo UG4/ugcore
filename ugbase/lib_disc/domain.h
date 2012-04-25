@@ -41,7 +41,7 @@ namespace ug{
  * \tparam	TGrid			Grid type
  * \tparam	TSubsetHandler	Subset Handler type
  */
-template <typename TGrid, typename TSubsetHandler>
+template <typename TGrid = MultiGrid, typename TSubsetHandler = MGSubsetHandler>
 class IDomain
 {
 	public:
@@ -145,7 +145,7 @@ class IDomain
 };
 
 
-template <int d, typename TGrid, typename TSubsetHandler>
+template <int d, typename TGrid = MultiGrid, typename TSubsetHandler = MGSubsetHandler>
 class Domain : public IDomain<TGrid, TSubsetHandler>
 {
 	private:
