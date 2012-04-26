@@ -904,65 +904,57 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 	std::vector<MultiIndex<2> > vMultInd;
 
 //	get iterators
-	typename TFunction::template traits<TElem>::const_iterator iterBegin, iterEnd;
+	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
+	const_iterator iterBegin = IteratorProvider<TFunction>::template begin<TElem>(u, si);
+	const_iterator iterEnd = IteratorProvider<TFunction>::template end<TElem>(u, si);
 
-//	loop all subsets for whole domain, only the given subset if si >= 0
-	int sistart = si, siend = si+1;
-	if(si < 0) {sistart = 0; siend = u.num_subsets();}
-	for(int si = sistart; si < siend; ++si)
+//	loop all elements
+	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
-	//	get iterators
-		iterBegin = u.template begin<TElem>(si);
-		iterEnd = u.template end<TElem>(si);
+	//	get element
+		TElem *elem = *iterBegin;
 
-	//	loop all elements
-		for( ; iterBegin != iterEnd; ++iterBegin)
+	//	loop vertices of element
+		for(size_t co = 0; co < (size_t) ref_elem_type::num_corners; ++co)
 		{
-		//	get element
-			TElem *elem = *iterBegin;
+		//	get vertex of element
+			VertexBase* v = GetVertex(elem, co);
 
-		//	loop vertices of element
-			for(size_t co = 0; co < (size_t) ref_elem_type::num_corners; ++co)
+		//	if vertex has been handled before, skip
+			if(grid.is_marked(v)) continue;
+
+		//	mark as used
+			grid.mark(v);
+
+		//	loop all components
+			for(size_t i = 0; i < vFct.num_fct(); ++i)
 			{
-			//	get vertex of element
-				VertexBase* v = GetVertex(elem, co);
+			//	get multi index of vertex for the function
+				if(u.inner_multi_indices(v, vFct[i], vMultInd) != 1)
+					UG_THROW_FATAL("VTK:write_nodal_values_elementwise: "
+							"The function component "<<vFct[i]<<" has "<<
+							vMultInd.size()<<" DoFs in  a vertex. To write a "
+							"component to vtk, exactly one DoF must be "
+							"given in a vertex.");
 
-			//	if vertex has been handled before, skip
-				if(grid.is_marked(v)) continue;
+			//	get index and subindex
+				const size_t index = vMultInd[0][0];
+				const size_t alpha = vMultInd[0][1];
 
-			//	mark as used
-				grid.mark(v);
+			//	read value from vector
+				valf = (float) BlockRef(u[index], alpha);
 
-			//	loop all components
-				for(size_t i = 0; i < vFct.num_fct(); ++i)
+			//	flush stream
+				File.write_base64_buffered(valf);
+			}
+
+		//	fill with zeros up to 3d if vector type
+			if(vFct.num_fct() != 1)
+				for(size_t i = vFct.num_fct(); i < 3; ++i)
 				{
-				//	get multi index of vertex for the function
-					if(u.inner_multi_indices(v, vFct[i], vMultInd) != 1)
-						UG_THROW_FATAL("VTK:write_nodal_values_elementwise: "
-								"The function component "<<vFct[i]<<" has "<<
-								vMultInd.size()<<" DoFs in  a vertex. To write a "
-								"component to vtk, exactly one DoF must be "
-								"given in a vertex.\n");
-
-				//	get index and subindex
-					const size_t index = vMultInd[0][0];
-					const size_t alpha = vMultInd[0][1];
-
-				//	read value from vector
-					valf = (float) BlockRef(u[index], alpha);
-
-				//	flush stream
+					valf = (float) 0.0;
 					File.write_base64_buffered(valf);
 				}
-
-			//	fill with zeros up to 3d if vector type
-				if(vFct.num_fct() != 1)
-					for(size_t i = vFct.num_fct(); i < 3; ++i)
-					{
-						valf = (float) 0.0;
-						File.write_base64_buffered(valf);
-					}
-			}
 		}
 	}
 
