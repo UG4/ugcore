@@ -38,7 +38,7 @@ void LuaUserNumberNumberFunction::set_lua_callback(const char* luaCallback)
 {
 	m_callbackName = luaCallback;
 //	store the callback function in the registry and obtain a reference.
-	lua_getglobal(m_L, m_callbackName);
+	lua_getglobal(m_L, m_callbackName.c_str());
 
 //	make sure that the reference is valid
 	if(lua_isnil(m_L, -1)){
@@ -144,9 +144,8 @@ void RegisterLuaUserData(ug::bridge::Registry& reg, const char* parentGroup)
 		typedef DataLinkerEqualData<number, dim, number> TBase;
 		string name = string("LuaUserFunctionNumber").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			.add_method("set_lua_value_callback", &T::set_lua_value_callback)
-			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback)
+			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
+			.add_method("set_deriv", &T::set_deriv)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LuaUserFunctionNumber", dimTag);
 	}
@@ -157,9 +156,8 @@ void RegisterLuaUserData(ug::bridge::Registry& reg, const char* parentGroup)
 		typedef DataLinkerEqualData<MathMatrix<dim,dim>, dim, number> TBase;
 		string name = string("LuaUserFunctionMatrixNumber").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			.add_method("set_lua_value_callback", &T::set_lua_value_callback)
-			.add_method("set_lua_deriv_callback", &T::set_lua_deriv_callback)
+			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
+			.add_method("set_deriv", &T::set_deriv)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LuaUserFunctionMatrixNumber", dimTag);
 	}

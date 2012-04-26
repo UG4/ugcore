@@ -1,3 +1,7 @@
+/*
+ * lua_user_data.h
+ *      Author: andreasvogel
+ */
 
 #ifndef __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__
 #define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__
@@ -20,297 +24,32 @@ extern "C" {
 namespace ug
 {
 
-/// this class maps a scalar value an output scalar value using a lua callback
-class LuaUserNumberNumberFunction
-{
-	public:
-		LuaUserNumberNumberFunction();
-
-		void set_lua_callback(const char* luaCallback);
-
-		number operator() ( int numArgs, ... ) const;
-
-	protected:
-		const char* m_callbackName;
-		int m_callbackRef;
-		lua_State*	m_L;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation
-///////////////////////////////////////////////////////////////////////////////
-
-/// Helper to access a return value on the stack.
-/**	If the value can't be converted to a number, an error is thrown*/
-inline number ReturnValueToNumber(lua_State* L, int index){
-	if(!lua_isnumber(L, index))
-		UG_THROW_FATAL("ReturnValueToNumber: Data passed from Lua: "
-						"Can't convert return value to number!");
-	return lua_tonumber(L, index);
-}
-
-/// Helper to access a return value on the stack.
-/**	If the value can't be converted to a boolean, an error is thrown*/
-inline number ReturnValueToBool(lua_State* L, int index){
-	if(!lua_isboolean(L, index))
-		UG_THROW_FATAL("ReturnValueToBool: Data passed from Lua: "
-						"Can't convert return value to boolean!");
-
-	return lua_toboolean(L, index);
-}
-
-/// Helper to access a return value on the stack.
-/**	If the value can't be converted to a integer, an error is thrown*/
-inline int ReturnValueToInteger(lua_State* L, int index){
-	if(!lua_isnumber(L, index))
-		UG_THROW_FATAL("ReturnValueToBool: Data passed from Lua: "
-						"Can't convert return value to integer!");
-
-	return lua_tointeger(L, index);
-}
-
-
-
-/// Lua Traits to push/pop on lua stack
-template <typename TData>
-struct lua_traits;
-
-template <>
-struct lua_traits<void>
-{
-	static const int size = 0;
-
-	static void push(lua_State*	L, const bool&){}
-
-	static void read(lua_State* L, bool&, int index = -1){}
-
-	static void do_return(const bool&) {return;}
-
-	static bool check(lua_State* L, int index = -1){return true;}
-
-	static std::string signature()
-	{
-		return "void";
-	}
-
-	static std::string name()
-	{
-		return "void";
-	}
-};
-
-template <>
-struct lua_traits<bool>
-{
-	static const int size = 1;
-
-	static void push(lua_State*	L, const bool& b)
-	{
-		lua_pushboolean(L, b);
-	}
-
-	static void read(lua_State* L, bool& b, int index = -1)
-	{
-		b =  ReturnValueToBool(L, index);
-	}
-
-	static bool check(lua_State* L, int index = -1)
-	{
-		return lua_isboolean(L, index);
-	}
-
-	static bool do_return(const bool& b) {return b;}
-
-	static std::string signature()
-	{
-		return "bool";
-	}
-
-	static std::string name()
-	{
-		return "Bool";
-	}
-};
-
-template <>
-struct lua_traits<int>
-{
-	static const int size = 1;
-
-	static void push(lua_State*	L, const int& c)
-	{
-		lua_pushinteger(L, c);
-	}
-
-	static void read(lua_State* L, int& c, int index = -1)
-	{
-		c = ReturnValueToInteger(L, index);
-	}
-
-	static bool check(lua_State* L, int index = -1)
-	{
-		return lua_isnumber(L, index);
-	}
-
-	static std::string signature()
-	{
-		return "integer";
-	}
-
-	static std::string name()
-	{
-		return "Integer";
-	}
-};
-
-template <>
-struct lua_traits<number>
-{
-	static const int size = 1;
-
-	static void push(lua_State*	L, const number& c)
-	{
-		lua_pushnumber(L, c);
-	}
-
-	static void read(lua_State* L, number& c, int index = -1)
-	{
-		c = ReturnValueToNumber(L, index);
-	}
-
-	static bool check(lua_State* L, int index = -1)
-	{
-		return lua_isnumber(L, index);
-	}
-
-	static std::string signature()
-	{
-		return "number";
-	}
-
-	static std::string name()
-	{
-		return "Number";
-	}
-};
-
-template <std::size_t dim>
-struct lua_traits< ug::MathVector<dim> >
-{
-	static const int size = dim;
-
-	static void push(lua_State*	L, const MathVector<dim>& x)
-	{
-		for(size_t i = 0; i < dim; ++i)
-			lua_pushnumber(L, x[i]);
-	}
-
-	static void read(lua_State* L, MathVector<dim>& x, int index = -1)
-	{
-		for(size_t i = 0; i < dim; ++i){
-				x[dim-1-i] = ReturnValueToNumber(L, index--);
-		}
-	}
-
-	static bool check(lua_State* L, int index = -1)
-	{
-		for(size_t i = 0; i < dim; ++i){
-			if(!lua_isnumber(L, index--)) return false;
-		}
-		return true;
-	}
-
-	static std::string signature()
-	{
-		static char cmp[] = {'x', 'y', 'z'};
-		std::stringstream ss;
-		for(size_t i = 0; i < dim; ++i){
-			if(i != 0) ss << ", ";
-			ss << "v" << cmp[i];
-		}
-		return ss.str();
-	}
-
-	static std::string name()
-	{
-		std::stringstream ss;
-		ss << "Vector";
-		return ss.str();
-	}
-};
-
-
-template <std::size_t dim>
-struct lua_traits< MathMatrix<dim, dim> >
-{
-	static const int size = dim*dim;
-
-	static void push(lua_State*	L, const MathMatrix<dim, dim>& D)
-	{
-		for(size_t i = 0; i < dim; ++i){
-			for(size_t j = 0; j < dim; ++j){
-				lua_pushnumber(L, D[i][j]);
-			}
-		}
-
-	}
-
-	static void read(lua_State* L, MathMatrix<dim, dim>& D, int index = -1)
-	{
-		for(size_t i = 0; i < dim; ++i){
-			for(size_t j = 0; j < dim; ++j){
-				D[dim-1-j][dim-1-i] = ReturnValueToNumber(L, index--);
-			}
-		}
-	}
-
-	static bool check(lua_State* L, int index = -1)
-	{
-		for(size_t i = 0; i < dim; ++i){
-			for(size_t j = 0; j < dim; ++j){
-				if(!lua_isnumber(L, index--)) return false;
-			}
-		}
-		return true;
-	}
-
-	static std::string signature()
-	{
-		static char cmp[] = {'x', 'y', 'z'};
-		std::stringstream ss;
-		for(size_t i = 0; i < dim; ++i){
-			for(size_t j = 0; j < dim; ++j){
-				if(i != 0 || j != 0) ss << ", ";
-				ss << "D" << cmp[i] << cmp[j];
-			}
-		}
-		return ss.str();
-	}
-
-	static std::string name()
-	{
-		std::stringstream ss;
-		ss << "Matrix";
-		return ss.str();
-	}
-};
-
-////////////////////////////////
-// Generic LuaUserData
-////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// LuaUserData
+////////////////////////////////////////////////////////////////////////////////
 
 ///	returns true if callback exists
 bool CheckLuaCallbackName(const char* name);
+
+// predeclaration
+template <typename TData, int dim, typename TRet = void>
+class LuaUserDataFactory;
 
 /// provides data specified in the lua script
 /**
  * This class implements the IPData interface to provide data at arbitrary
  * points. A Lua callback is used to evaluate the data.
+ *
+ * NOTE: If the LuaUserData has been created by the LuaUserDataFactory, then
+ * 		 the fromFactory flag is set to true internally and while deconstruction
+ * 		 of the instance LuaUserDataFactory::remove is called.
  */
 template <typename TData, int dim, typename TRet = void>
-class LuaUserData
-	: public IPData<TData, dim, TRet>
+class LuaUserData : public IPData<TData, dim, TRet>
 {
+	///	friend class
+		friend class LuaUserDataFactory<TData, dim, TRet>;
+
 	///	Base class type
 		typedef IPData<TData, dim, TRet> base_type;
 
@@ -322,32 +61,6 @@ class LuaUserData
 		using base_type::value;
 
 	public:
-	///	returns string of required callback signature
-		static std::string signature()
-		{
-			std::stringstream ss;
-			ss << "function name(";
-			if(dim >= 1) ss << "x";
-			if(dim >= 2) ss << ", y";
-			if(dim >= 3) ss << ", z";
-			ss << ", t, si)\n   ... \n   return ";
-			if(lua_traits<TRet>::size != 0)
-				ss << lua_traits<TRet>::signature() << ", ";
-			ss << lua_traits<TData>::signature();
-			ss << "\nend";
-			return ss.str();
-		}
-
-	///	returns name of UserData
-		static std::string name()
-		{
-			std::stringstream ss;
-			ss << "Lua";
-			if(lua_traits<TRet>::size > 0) ss << "Cond";
-			ss << "User" << lua_traits<TData>::name() << dim << "d";
-			return ss.str();
-		}
-
 	///	Constructor
 	/**
 	 * Creates a LuaUserData that uses a Lua function to evaluate some data.
@@ -356,211 +69,30 @@ class LuaUserData
 	 *
 	 * @param luaCallback		Name of Lua Callback Function
 	 */
-		LuaUserData(const char* luaCallback) : m_callbackName(luaCallback)
-		{
-		//	make a test run
-			check_callback_returns(luaCallback, true);
+		LuaUserData(const char* luaCallback);
 
-		//	get lua state
-			m_L = ug::script::GetDefaultLuaState();
+	///	destructor: frees lua callback, unregisters from LuaUserDataFactory if used
+		virtual ~LuaUserData();
 
-		//	obtain a reference
-			lua_getglobal(m_L, m_callbackName.c_str());
+	///	returns string of required callback signature
+		static std::string signature();
 
-		//	make sure that the reference is valid
-			if(lua_isnil(m_L, -1)){
-				UG_THROW_FATAL(name() << ": Specified lua callback "
-								"does not exist: " << m_callbackName);
-			}
-
-		//	store reference to lua function
-			m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
-		}
+	///	returns name of UserData
+		static std::string name();
 
 	///	returns true if callback has correct return values
 		static bool check_callback_returns(const char* callName,
-		                                   const bool bThrow = false)
-		{
-		//	get lua state
-			lua_State* L = ug::script::GetDefaultLuaState();
-
-		//	get current stack level
-			const int level = lua_gettop(L);
-
-		//	obtain a reference
-			lua_getglobal(L, callName);
-
-		//	check if reference is valid
-			if(lua_isnil(L, -1)) {
-				if(bThrow) {
-					UG_THROW_FATAL(name() << ": Cannot find specified lua callback "
-									" with name: "<<callName);
-				}
-				else {
-					return false;
-				}
-			}
-
-		//	get reference
-			int callbackRef = luaL_ref(L, LUA_REGISTRYINDEX);
-
-		//	dummy values to invoke the callback once
-			MathVector<dim> x; x = 0.0;
-			number time = 0.0;
-			int si = 0;
-
-		//	push the callback function on the stack
-			lua_rawgeti(L, LUA_REGISTRYINDEX, callbackRef);
-
-		//  push space coordinates on stack
-			lua_traits<MathVector<dim> >::push(L, x);
-
-		//	push time on stack
-			lua_traits<number>::push(L, time);
-
-		//	push subset on stack
-			lua_traits<int>::push(L, si);
-
-		//	compute total args size
-			const int argSize = lua_traits<MathVector<dim> >::size
-									+ lua_traits<number>::size
-									+ lua_traits<int>::size;
-
-		//	compute total return size
-			const int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
-
-		//	call lua function
-			if(lua_pcall(L, argSize, LUA_MULTRET, 0) != 0)
-				UG_THROW_FATAL(name() << ": Error while "
-								"testing callback '" << callName << "',"
-								" lua message: "<< lua_tostring(L, -1));
-
-		//	get number of results
-			const int numResults = lua_gettop(L) - level;
-
-		//	success flag
-			bool bRet = true;
-
-		//	if number of results is wrong return error
-			if(numResults != retSize){
-				if(bThrow){
-					UG_THROW_FATAL(name() << ": Number of return values incorrect "
-									"for callback '"<<callName<<"'. "
-									"Required: "<<retSize<<", passed: "<<numResults
-									<<". Use signature as follows:\n"
-									<< signature());
-				}
-				else{
-					bRet = false;
-				}
-			}
-
-		//	check return value
-			if(!lua_traits<TData>::check(L)){
-				if(bThrow){
-					UG_THROW_FATAL(name() << ": Data values type incorrect "
-									"for callback '"<<callName<<"'. "
-									"Use signature as follows:\n"
-									<< signature());
-				}
-				else{
-					bRet = false;
-				}
-			}
-
-		//	read return flag (may be void)
-			if(!lua_traits<TRet>::check(L, -retSize)){
-				if(bThrow){
-					UG_THROW_FATAL("LuaUserData: Return values type incorrect "
-									"for callback '"<<callName<<"'. "
-									"Use signature as follows:\n"
-									<< signature());
-				}
-				else{
-					bRet = false;
-				}
-			}
-
-		//	pop values
-			lua_pop(L, numResults);
-
-		//	free reference to callback
-			luaL_unref(L, LUA_REGISTRYINDEX, callbackRef);
-
-		//	return match
-			return bRet;
-		}
-
-	///	virtual destructor
-		virtual ~LuaUserData()
-		{
-		//	free reference to callback
-			luaL_unref(m_L, LUA_REGISTRYINDEX, m_callbackRef);
-		}
+										   const bool bThrow = false);
 
 	///	evaluates the data at a given point and time
-		TRet operator() (TData& D, const MathVector<dim>& x, number time, int si) const
-		{
-		//	push the callback function on the stack
-			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
-
-		//  push space coordinates on stack
-			lua_traits<MathVector<dim> >::push(m_L, x);
-
-		//	push time on stack
-			lua_traits<number>::push(m_L, time);
-
-		//	push subset index on stack
-			lua_traits<int>::push(m_L, si);
-
-		//	compute total args size
-			const int argSize = lua_traits<MathVector<dim> >::size
-								+ lua_traits<number>::size
-								+ lua_traits<int>::size;
-
-		//	compute total return size
-			const int retSize = lua_traits<TData>::size + lua_traits<TRet>::size;
-
-		//	call lua function
-			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-				UG_THROW_FATAL(name() << "::operator(...): Error while "
-								"running callback '" << m_callbackName << "',"
-								" lua message: "<< lua_tostring(m_L, -1)<<".\n"
-								"Use signature as follows:\n"
-								<< signature());
-
-			bool res = false;
-			try{
-			//	read return value
-				lua_traits<TData>::read(m_L, D);
-
-			//	read return flag (may be void)
-				lua_traits<TRet>::read(m_L, res, -retSize);
-			}
-			UG_CATCH_THROW(name() << "::operator(...): Error while running "
-							"callback '" << m_callbackName << "'."
-							"Use signature as follows:\n"
-							<< signature());
-
-		//	pop values
-			lua_pop(m_L, retSize);
-
-		//	forward flag
-			return lua_traits<TRet>::do_return(res);
-		}
+		TRet operator() (TData& D, const MathVector<dim>& x, number time, int si) const;
 
 	///	implement as a IPData
-		virtual void compute(bool bDeriv = false)
-		{
-			const number t = time();
-			const int si = subset();
+		virtual void compute(bool bDeriv = false);
 
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t i = 0; i < num_ip(s); ++i)
-				{
-					this->operator()(value(s,i), ip(s, i), t, si);
-				}
-		}
+	protected:
+	///	sets that LuaUserData is created by LuaUserDataFactory
+		void set_created_from_factory(bool bFromFactory) {m_bFromFactory = bFromFactory;}
 
 	protected:
 	///	callback name as string
@@ -569,13 +101,84 @@ class LuaUserData
 	///	reference to lua function
 		int m_callbackRef;
 
+	///	flag, indicating if created from factory
+		bool m_bFromFactory;
+
 	///	lua state
 		lua_State*	m_L;
 };
 
-////////////////////////////////
-// Generic LuaUserFunction
-////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// LuaUserDataFactory
+////////////////////////////////////////////////////////////////////////////////
+
+/// Factory providing LuaUserData
+/**
+ * This class is a singleton providing LuaUserData for a given callback name.
+ * The factory creates a new LuaUserData and returns it as a SmartPtr if no
+ * Data has been created with the same callback name before. It already a
+ * LuaUserData using the same callback exists, then a SmartPtr to that instance
+ * is returned. Internally, therefore plain pointers and reference counters
+ * of the created SmartPtrs are stored and LuaUserData unregister from the
+ * List of created LuaUserData in this factory when their destructor is called.
+ *
+ * \tparam	TData	Data produced by LuaUserData
+ * \tparam	dim		world dimension
+ * \tparam	TRet	bool flag or void
+ */
+template <typename TData, int dim, typename TRet>
+class LuaUserDataFactory
+{
+	friend class LuaUserData<TData,dim,TRet>;
+
+	protected:
+	///	private constructor, since singleton
+		LuaUserDataFactory(){};
+
+	//	disallow copy
+		LuaUserDataFactory(const LuaUserDataFactory&);
+		LuaUserDataFactory& operator=(const LuaUserDataFactory&);
+
+	///	singleton provider
+		static LuaUserDataFactory<TData,dim,TRet>& instance()
+		{
+			static LuaUserDataFactory<TData,dim,TRet> inst;
+			return inst;
+		}
+
+	///	returns new Data if not already created, already existing else
+		static SmartPtr<LuaUserData<TData,dim,TRet> > provide_or_create(std::string name);
+
+	///	removes the user data
+		static void remove(std::string name);
+
+	///	storage of already created data
+		static std::map<std::string, std::pair<LuaUserData<TData,dim,TRet>*, int*> > m_mData;
+
+	public:
+	/**
+	 * Returns a LuaUserDataas a SmartPtr for a callback name. If a LuaUserData has
+	 * already been created by the factory it simply returns a new SmartPtr
+	 * without creation, else the LuaUserData is created. All LuaUserData
+	 * store internally, if they have been created by a factory, and if so
+	 * they unregister from the factory when their destructor is called.
+	 *
+	 * NOTE: In order to allow any garbage collection of the LuaUserData,
+	 * therefore this factory can not store the LuaUserData as a SmartPtr, but
+	 * as a plain pointer together with the reference counter.
+	 *
+	 * @param name		lua callback name
+	 * @return			LuaUserNumber as SmartPtr
+	 */
+		static SmartPtr<LuaUserData<TData,dim,TRet> > create(std::string name)
+		{
+			instance().provide_or_create(name);
+		}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// LuaUserFunction
+////////////////////////////////////////////////////////////////////////////////
 
 /// maps several data values to an output data value using a lua callback
 /**
@@ -584,8 +187,7 @@ class LuaUserData
  * a data (of the same type) is returned.
  */
 template <typename TData, int dim, typename TDataIn>
-class LuaUserFunction
-	: public DataLinkerEqualData<TData, dim, TDataIn>
+class LuaUserFunction : public DataLinkerEqualData<TData, dim, TDataIn>
 {
 	public:
 	//	type of base class
@@ -617,298 +219,40 @@ class LuaUserFunction
 
 	public:
 	///	constructor
-		LuaUserFunction() : m_numArgs(0)
-		{
-			m_L = ug::script::GetDefaultLuaState();
-			m_cbValueRef = LUA_NOREF;
-			m_cbDerivRef.clear();
-			m_cbDerivName.clear();
-		}
+		LuaUserFunction(const char* luaCallback, size_t numArgs);
 
 	///	destructor frees the reference
-		virtual ~LuaUserFunction()
-		{
-		//	free reference to callback
-			free_callback_ref();
-
-		//	free references to derivate callbacks
-			for(size_t i = 0; i < m_numArgs; ++i){
-				free_deriv_callback_ref(i);
-			}
-		}
-
-	///	frees the callback-reference, if a callback was set.
-		void free_callback_ref()
-		{
-			if(m_cbValueRef != LUA_NOREF){
-				luaL_unref(m_L, LUA_REGISTRYINDEX, m_cbValueRef);
-				m_cbValueRef = LUA_NOREF;
-			}
-		}
-
-	///	frees callback-references for derivate callbacks
-		void free_deriv_callback_ref(size_t arg)
-		{
-			if(m_cbDerivRef[arg] != LUA_NOREF){
-				luaL_unref(m_L, LUA_REGISTRYINDEX, m_cbDerivRef[arg]);
-				m_cbDerivRef[arg] = LUA_NOREF;
-			}
-		}
-
-	///	sets the Lua function used to compute the data
-	/**
-	 * This function sets the lua callback. The name of the function is
-	 * passed as a string. Make sure, that the function name is defined
-	 * when executing the script.
-	 */
-		void set_lua_value_callback(const char* luaCallback, size_t numArgs)
-		{
-		//	store name (string) of callback
-			m_cbValueName = luaCallback;
-
-		//	obtain a reference
-			lua_getglobal(m_L, m_cbValueName);
-
-		//	make sure that the reference is valid
-			if(lua_isnil(m_L, -1)){
-				UG_THROW_FATAL("LuaUserFunction::set_lua_value_callback(...):"
-						"Specified callback does not exist: " << m_cbValueName);
-			}
-
-		//	if a callback was already set, we have to free the old one
-			free_callback_ref();
-
-		//	store reference to lua function
-			m_cbValueRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
-
-		//	remember number of arguments to be used
-			m_numArgs = numArgs;
-			m_cbDerivName.resize(numArgs);
-			m_cbDerivRef.resize(numArgs, LUA_NOREF);
-
-		//	set num inputs for linker
-			set_num_input(numArgs);
-		}
+		virtual ~LuaUserFunction();
 
 	///	sets the Lua function used to compute the derivative
-		void set_lua_deriv_callback(size_t arg, const char* luaCallback)
-		{
-		//	check number of arg
-			if(arg >= m_numArgs)
-				UG_THROW_FATAL("LuaUserFunction::set_lua_deriv_callback: Trying "
-						"to set a derivative for argument " << arg <<", that "
-						"does not exist. Number of arguments is "<<m_numArgs);
-
-		//	store name (string) of callback
-			m_cbDerivName[arg] = luaCallback;
-
-		//	free old reference
-			free_deriv_callback_ref(arg);
-
-		//	obtain a reference
-			lua_getglobal(m_L, m_cbDerivName[arg]);
-
-		//	make sure that the reference is valid
-			if(lua_isnil(m_L, -1)){
-				UG_THROW_FATAL("LuaUserFunction::set_lua_deriv_callback(...):"
-						"Specified callback does not exist: " << m_cbDerivName[arg]);
-			}
-
-		//	store reference to lua function
-			m_cbDerivRef[arg] = luaL_ref(m_L, LUA_REGISTRYINDEX);
-		}
+		void set_deriv(size_t arg, const char* luaCallback);
 
 	///	evaluates the data
-		virtual void operator() (TData& out, int numArgs, ...)
-		{
-			UG_ASSERT(numArgs == (int)m_numArgs, "Number of arguments mismatched.");
-
-		//	push the callback function on the stack
-			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_cbValueRef);
-
-		//	get list of arguments
-			va_list ap;
-			va_start(ap, numArgs);
-
-		//	read all arguments and push them to the lua stack
-			for(int i = 0; i < numArgs; ++i)
-			{
-			//	cast data
-				TDataIn val = va_arg(ap, TDataIn);
-
-			//	push data to lua stack
-				lua_traits<TDataIn>::push(m_L, val);
-			}
-
-		//	end read in of parameters
-			va_end(ap);
-
-		//	compute total args size
-			size_t argSize = lua_traits<TDataIn>::size * numArgs;
-
-		//	compute total return size
-			size_t retSize = lua_traits<TData>::size;
-
-		//	call lua function
-			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-				UG_THROW_FATAL("LuaUserFunction::operator(...): Error while "
-							"running callback '" << m_cbValueName << "',"
-							" lua message: "<< lua_tostring(m_L, -1));
-
-			try{
-			//	read return value
-				lua_traits<TData>::read(m_L, out);
-			}
-			UG_CATCH_THROW("LuaUserFunction::operator(...): Error while running "
-							"callback '" << m_cbValueName << "'");
-
-		//	pop values
-			lua_pop(m_L, retSize);
-		}
+		virtual void operator() (TData& out, int numArgs, ...);
 
 	///	computes the value
-		virtual void compute(bool bDeriv)
-		{
-		//	vector of data for all inputs
-			std::vector<TDataIn> vDataIn(num_input());
+		virtual void compute(bool bDeriv);
 
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
-				{
-				//	gather all input data for this ip
-					for(size_t c = 0; c < vDataIn.size(); ++c)
-						vDataIn[c] = input_value(c, s, ip);
+	protected:
+	///	sets the Lua function used to compute the data
+		void set_lua_value_callback(const char* luaCallback, size_t numArgs);
 
-				//	evaluate data at ip
-					eval_value(value(s,ip), vDataIn);
-				}
+	///	frees the callback-reference, if a callback was set.
+		void free_callback_ref();
 
-		//	check if derivative is required
-			if(!bDeriv || this->zero_derivative()) return;
-
-		//	clear all derivative values
-			this->clear_derivative_values();
-
-		//	loop all inputs
-			for(size_t c = 0; c < vDataIn.size(); ++c)
-			{
-			//	check if input has derivative
-				if(this->zero_derivative(c)) continue;
-
-			//	loop ips
-				for(size_t s = 0; s < num_series(); ++s)
-					for(size_t ip = 0; ip < num_ip(s); ++ip)
-					{
-					//	gather all input data for this ip
-						vDataIn[c] = input_value(c, s, ip);
-
-					//	data of derivative w.r.t. one component at ip-values
-						TData derivVal;
-
-					//	evaluate data at ip
-						eval_deriv(derivVal, vDataIn, c);
-
-					//	loop functions
-						for(size_t fct = 0; fct < input_num_fct(c); ++fct)
-						{
-						//	get common fct id for this function
-							const size_t commonFct = input_common_fct(c, fct);
-
-						//	loop dofs
-							for(size_t dof = 0; dof < num_sh(fct); ++dof)
-							{
-								linker_traits<TData, TDataIn>::
-								mult_add(deriv(s, ip, commonFct, dof),
-								         derivVal,
-								         input_deriv(c, s, ip, fct, dof));
-							}
-						}
-					}
-			}
-		}
+	///	frees callback-references for derivate callbacks
+		void free_deriv_callback_ref(size_t arg);
 
 	///	evaluates the data
-		void eval_value(TData& out, const std::vector<TDataIn>& dataIn)
-		{
-			UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
-
-		//	push the callback function on the stack
-			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_cbValueRef);
-
-		//	read all arguments and push them to the lua stack
-			for(size_t i = 0; i < dataIn.size(); ++i)
-			{
-			//	push data to lua stack
-				lua_traits<TDataIn>::push(m_L, dataIn[i]);
-			}
-
-		//	compute total args size
-			size_t argSize = lua_traits<TDataIn>::size * dataIn.size();
-
-		//	compute total return size
-			size_t retSize = lua_traits<TData>::size;
-
-		//	call lua function
-			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-				UG_THROW_FATAL("LuaUserFunction::eval_value(...): Error while "
-							"running callback '" << m_cbValueName << "',"
-							" lua message: "<< lua_tostring(m_L, -1));
-
-			try{
-			//	read return value
-				lua_traits<TData>::read(m_L, out);
-			}
-			UG_CATCH_THROW("LuaUserFunction::eval_value(...): Error while "
-							"running callback '" << m_cbValueName << "'");
-
-		//	pop values
-			lua_pop(m_L, retSize);
-		}
-
+		void eval_value(TData& out, const std::vector<TDataIn>& dataIn);
 
 	///	evaluates the data
-		void eval_deriv(TData& out, const std::vector<TDataIn>& dataIn, size_t arg)
-		{
-			UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
-			UG_ASSERT(arg < m_numArgs, "Argument does not exist.");
-
-		//	push the callback function on the stack
-			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_cbDerivRef[arg]);
-
-		//	read all arguments and push them to the lua stack
-			for(size_t i = 0; i < dataIn.size(); ++i)
-			{
-			//	push data to lua stack
-				lua_traits<TDataIn>::push(m_L, dataIn[i]);
-			}
-
-		//	compute total args size
-			size_t argSize = lua_traits<TDataIn>::size * dataIn.size();
-
-		//	compute total return size
-			size_t retSize = lua_traits<TData>::size;
-
-		//	call lua function
-			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-				UG_THROW_FATAL("LuaUserFunction::eval_deriv: Error while "
-						"running callback '" << m_cbDerivName[arg] << "',"
-						" lua message: "<< lua_tostring(m_L, -1) );
-
-			try{
-			//	read return value
-				lua_traits<TData>::read(m_L, out);
-			}
-			UG_CATCH_THROW("LuaUserFunction::eval_deriv(...): Error while "
-						"running callback '" << m_cbDerivName[arg] << "'");
-
-		//	pop values
-			lua_pop(m_L, retSize);
-		}
+		void eval_deriv(TData& out, const std::vector<TDataIn>& dataIn, size_t arg);
 
 	protected:
 	///	callback name as string
-		const char* m_cbValueName;
-		std::vector<const char*> m_cbDerivName;
+		std::string m_cbValueName;
+		std::vector<std::string> m_cbDerivName;
 
 	///	reference to lua function
 		int m_cbValueRef;
@@ -921,6 +265,24 @@ class LuaUserFunction
 		size_t m_numArgs;
 };
 
+
+/// this class maps a scalar value an output scalar value using a lua callback
+class LuaUserNumberNumberFunction
+{
+	public:
+		LuaUserNumberNumberFunction();
+
+		void set_lua_callback(const char* luaCallback);
+
+		number operator() ( int numArgs, ... ) const;
+
+	protected:
+		std::string m_callbackName;
+		int m_callbackRef;
+		lua_State*	m_L;
+};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // LuaFunction
 ////////////////////////////////////////////////////////////////////////////////
@@ -930,16 +292,11 @@ class LuaUserFunction
  * \tparam		TDataIn		Input daten type
  */
 template <typename TData, typename TDataIn>
-class LuaFunction
-	: public IFunction<TData, TDataIn>
+class LuaFunction : public IFunction<TData, TDataIn>
 {
 	public:
 	///	constructor
-		LuaFunction() : m_numArgs(0)
-		{
-			m_L = ug::script::GetDefaultLuaState();
-			m_cbValueRef = LUA_NOREF;
-		}
+		LuaFunction();
 
 	///	sets the Lua function used to compute the data
 	/**
@@ -947,78 +304,14 @@ class LuaFunction
 	 * passed as a string. Make sure, that the function name is defined
 	 * when executing the script.
 	 */
-		void set_lua_callback(const char* luaCallback, size_t numArgs)
-		{
-		//	store name (string) of callback
-			m_cbValueName = luaCallback;
-
-		//	obtain a reference
-			lua_getglobal(m_L, m_cbValueName);
-
-		//	make sure that the reference is valid
-			if(lua_isnil(m_L, -1)){
-				UG_THROW_FATAL("LuaFunction::set_lua_callback(...):"
-						"Specified lua callback does not exist: " << m_cbValueName);
-			}
-
-		//	store reference to lua function
-			m_cbValueRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
-
-		//	remember number of arguments to be used
-			m_numArgs = numArgs;
-		}
+		void set_lua_callback(const char* luaCallback, size_t numArgs);
 
 	///	evaluates the data
-		virtual void operator() (TData& out, int numArgs, ...)
-		{
-			UG_ASSERT(numArgs == (int)m_numArgs, "Number of arguments mismatched.");
-
-		//	push the callback function on the stack
-			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_cbValueRef);
-
-		//	get list of arguments
-			va_list ap;
-			va_start(ap, numArgs);
-
-		//	read all arguments and push them to the lua stack
-			for(int i = 0; i < numArgs; ++i)
-			{
-			//	cast data
-				TDataIn val = va_arg(ap, TDataIn);
-
-			//	push data to lua stack
-				lua_traits<TDataIn>::push(m_L, val);
-			}
-
-		//	end read in of parameters
-			va_end(ap);
-
-		//	compute total args size
-			size_t argSize = lua_traits<TDataIn>::size * numArgs;
-
-		//	compute total return size
-			size_t retSize = lua_traits<TData>::size;
-
-		//	call lua function
-			if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-				UG_THROW_FATAL("LuaFunction::operator(...): Error while "
-							"running callback '" << m_cbValueName << "',"
-							" lua message: "<< lua_tostring(m_L, -1));
-
-			try{
-			//	read return value
-				lua_traits<TData>::read(m_L, out);
-			}
-			UG_CATCH_THROW("LuaFunction::operator(...): Error while running "
-							"callback '" << m_cbValueName << "'");
-
-		//	pop values
-			lua_pop(m_L, retSize);
-		}
+		virtual void operator() (TData& out, int numArgs, ...);
 
 	protected:
 	///	callback name as string
-		const char* m_cbValueName;
+		std::string m_cbValueName;
 
 	///	reference to lua function
 		int m_cbValueRef;
@@ -1039,5 +332,7 @@ void RegisterLuaCondUserNumber(Registry& reg, const char* parentGroup);
 
 } // end namepace bridge
 } // end namespace ug
+
+#include "lua_user_data_impl.h"
 
 #endif /* __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__ */
