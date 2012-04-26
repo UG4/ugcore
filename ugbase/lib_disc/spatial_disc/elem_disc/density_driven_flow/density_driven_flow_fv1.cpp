@@ -64,7 +64,7 @@ template<typename TDomain>
 void DensityDrivenFlow<TDomain>::
 set_porosity(const char* fctName)
 {
-	set_porosity(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+	set_porosity(LuaUserDataFactory<number, dim>::create(fctName));
 }
 #endif
 
@@ -137,7 +137,7 @@ template<typename TDomain>
 void DensityDrivenFlow<TDomain>::
 set_gravity(const char* fctName)
 {
-	set_gravity(CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(fctName)));
+	set_gravity(LuaUserDataFactory<MathVector<dim>, dim>::create(fctName));
 }
 #endif
 
@@ -162,7 +162,7 @@ template<typename TDomain>
 void DensityDrivenFlow<TDomain>::
 set_molecular_diffusion(const char* fctName)
 {
-	set_molecular_diffusion(CreateSmartPtr(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
+	set_molecular_diffusion(LuaUserDataFactory<MathMatrix<dim,dim>, dim>::create(fctName));
 }
 #endif
 
@@ -187,7 +187,7 @@ template<typename TDomain>
 void DensityDrivenFlow<TDomain>::
 set_permeability(const char* fctName)
 {
-	set_permeability(CreateSmartPtr(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
+	set_permeability(LuaUserDataFactory<MathMatrix<dim,dim>, dim>::create(fctName));
 }
 #endif
 
@@ -212,7 +212,7 @@ template<typename TDomain>
 void DensityDrivenFlow<TDomain>::
 set_viscosity(const char* fctName)
 {
-	set_viscosity(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+	set_viscosity(LuaUserDataFactory<number, dim>::create(fctName));
 }
 #endif
 

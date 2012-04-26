@@ -91,7 +91,7 @@ template<typename TDomain>
 void ConstantEquation<TDomain>::
 set_velocity(const char* fctName)
 {
-	set_velocity(CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(fctName)));
+	set_velocity(LuaUserDataFactory<MathVector<dim>, dim>::create(fctName));
 }
 #endif
 
@@ -113,7 +113,7 @@ template<typename TDomain>
 void ConstantEquation<TDomain>::
 set_source(const char* fctName)
 {
-	set_source(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+	set_source(LuaUserDataFactory<number, dim>::create(fctName));
 }
 #endif
 
@@ -135,7 +135,7 @@ template<typename TDomain>
 void ConstantEquation<TDomain>::
 set_mass(const char* fctName)
 {
-	set_mass(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+	set_mass(LuaUserDataFactory<number, dim>::create(fctName));
 }
 #endif
 

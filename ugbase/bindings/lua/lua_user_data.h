@@ -172,7 +172,7 @@ class LuaUserDataFactory
 	 */
 		static SmartPtr<LuaUserData<TData,dim,TRet> > create(std::string name)
 		{
-			instance().provide_or_create(name);
+			return instance().provide_or_create(name);
 		}
 };
 

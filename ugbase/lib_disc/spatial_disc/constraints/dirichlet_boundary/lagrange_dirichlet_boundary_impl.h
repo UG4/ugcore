@@ -76,19 +76,19 @@ add(const char* name, const char* function, const char* subsets)
 {
 	if(LuaUserData<number, dim>::check_callback_returns(name)){
 		SmartPtr<IPData<number, dim> > sp =
-							CreateSmartPtr(new LuaUserData<number, dim>(name));
+							LuaUserDataFactory<number, dim>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<number, dim, bool>::check_callback_returns(name)){
 		SmartPtr<IPData<number, dim, bool> > sp =
-						CreateSmartPtr(new LuaUserData<number, dim, bool>(name));
+						LuaUserDataFactory<number, dim, bool>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(name)){
 		SmartPtr<IPData<MathVector<dim>, dim> > sp =
-				CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(name));
+				LuaUserDataFactory<MathVector<dim>, dim>::create(name);
 		add(sp, function, subsets);
 		return;
 	}

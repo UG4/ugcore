@@ -40,7 +40,7 @@ template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_diffusion(const char* fctName)
 {
-	set_diffusion(CreateSmartPtr(new LuaUserData<MathMatrix<dim,dim>, dim>(fctName)));
+	set_diffusion(LuaUserDataFactory<MathMatrix<dim,dim>, dim>::create(fctName));
 }
 #endif
 
@@ -110,7 +110,7 @@ template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_velocity(const char* fctName)
 {
-	set_velocity(CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(fctName)));
+	set_velocity(LuaUserDataFactory<MathVector<dim>,dim>::create(fctName));
 }
 #endif
 
@@ -132,7 +132,7 @@ template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_reaction_rate(const char* fctName)
 {
-	set_reaction_rate(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+	set_reaction_rate(LuaUserDataFactory<number,dim>::create(fctName));
 }
 #endif
 
@@ -154,7 +154,7 @@ template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_reaction(const char* fctName)
 {
-	set_reaction(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+	set_reaction(LuaUserDataFactory<number,dim>::create(fctName));
 }
 #endif
 
@@ -176,7 +176,7 @@ template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_source(const char* fctName)
 {
-	set_source(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+	set_source(LuaUserDataFactory<number,dim>::create(fctName));
 }
 #endif
 
@@ -198,7 +198,7 @@ template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_mass_scale(const char* fctName)
 {
-	set_mass_scale(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+	set_mass_scale(LuaUserDataFactory<number,dim>::create(fctName));
 }
 #endif
 
@@ -220,7 +220,7 @@ template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_mass(const char* fctName)
 {
-	set_mass(CreateSmartPtr(new LuaUserData<number, dim>(fctName)));
+	set_mass(LuaUserDataFactory<number,dim>::create(fctName));
 }
 #endif
 

@@ -548,6 +548,8 @@ LuaUserDataFactory<TData,dim,TRet>::provide_or_create(std::string name)
 		std::pair<LuaUserData<TData,dim,TRet>*, int*>& data = m_mData[name];
 		data.first = sp.get();
 		data.second = sp.refcount_ptr();
+
+		return sp;
 	}
 //	else return present data
 	{
