@@ -442,7 +442,8 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 		typedef DataLinker<TData, dim> TBase;
 		string name = string("DataLinkerEqual").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase >(name, grp)
-			.add_method("set_input", &T::set_input);
+			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<IPData<number, dim> >)>(&T::set_input))
+			.add_method("set_input", static_cast<void (T::*)(size_t, number)>(&T::set_input));
 		reg.add_class_to_group(name, string("DataLinkerEqual").append(type), dimTag);
 	}
 

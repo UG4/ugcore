@@ -218,6 +218,13 @@ set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data)
 	base_type::set_input(i, data);
 }
 
+template <typename TData, int dim, typename TDataIn>
+void DataLinkerEqualData<TData,dim,TDataIn>::
+set_input(size_t i, number val)
+{
+	set_input(i, CreateConstUserData<dim>(val, TDataIn()));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //	ScaleAddLinker
 ////////////////////////////////////////////////////////////////////////////////

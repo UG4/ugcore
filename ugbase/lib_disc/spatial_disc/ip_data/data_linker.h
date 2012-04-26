@@ -171,6 +171,7 @@ class DataLinkerEqualData
 
 	//	explicitly forward methods of IDataLinker
 		using base_type::num_input;
+		using base_type::set_input;
 		using base_type::series_id;
 
 	public:
@@ -189,6 +190,7 @@ class DataLinkerEqualData
 
 	///	set input i
 		void set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data);
+		void set_input(size_t i, number val);
 
 	protected:
 	///	data at ip of input
