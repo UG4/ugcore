@@ -187,7 +187,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 template <int dim>
 void SaveDomainToVTK(const char* filename, Domain<dim>& domain)
 {
-	VTKOutput::print(filename, domain);
+	VTKOutput::print<dim>(filename, domain);
 }
 
 template <typename TDomain>
