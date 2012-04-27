@@ -44,17 +44,11 @@ number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b,
 
 
 ////////////////////////////////////////////////////////////////////////
-//	CalculateMinTetrahedronEdge - mstepnie
-/// calculates the shortest edge of a tetrahedral element
-UG_API 
-number CalculateMaxTetrahedronEdgelength(Grid& grid, Volume& v);
-
-
-////////////////////////////////////////////////////////////////////////
 //	CalculateTetrahedronAspectRatio - mstepnie
 /// calculates the aspect ratio of a tetrahedral element
 UG_API 
-number CalculateTetrahedronAspectRatio(Grid& grid, Volume& v);
+number CalculateAspectRatio(Grid& grid, Tetrahedron* tet,
+							Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
 
 ////////////////////////////////////////////////////////////////////////
