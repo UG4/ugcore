@@ -3,6 +3,7 @@
 //	y09 m11 d11
 
 #include "volume_util.h"
+#include "lib_grid/lib_grid.h"
 
 using namespace std;
 
@@ -258,21 +259,27 @@ number CalculateMaxTetrahedronEdgelength(Grid& grid, Volume& v)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//	CalculateTetrahedronAspectRatio - mstepnie
-number CalculateTetrahedronAspectRatio(Grid& grid, Volume& v)
+//	CalculateAspectRatio - mstepnie
+number CalculateAspectRatio(Grid& grid, Tetrahedron* tet,
+							Grid::VertexAttachmentAccessor<AVector3>& aaPos)
 {
 	/*
 	 * optimal Aspect Ratio of a regular tetrahedron
 	 * Q = sqrt(2/3) * a / a = 0.81...
 	 */
 
-	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPosition);
 	number AspectRatio;
 	number maxEdgelength;
 	number minTetrahedronHeight;
 
-	maxEdgelength = CalculateMaxTetrahedronEdgelength(grid, v);
-	minTetrahedronHeight = CalculateMinTetrahedronHeight(aaPos[v.vertex(0)], aaPos[v.vertex(1)], aaPos[v.vertex(2)], aaPos[v.vertex(3)]);
+	vector<EdgeBase*> edges;
+	CollectAssociated(edges, grid, tet);
+	EdgeBase* longestEdge = FindLongestEdge(edges.begin(), edges.end(), aaPos);
+	maxEdgelength = EdgeLength(longestEdge, aaPos);
+	minTetrahedronHeight = CalculateMinTetrahedronHeight(	aaPos[tet->vertex(0)],
+															aaPos[tet->vertex(1)],
+															aaPos[tet->vertex(2)],
+															aaPos[tet->vertex(3)]);
 	AspectRatio = minTetrahedronHeight / maxEdgelength;
 
 	return AspectRatio;
