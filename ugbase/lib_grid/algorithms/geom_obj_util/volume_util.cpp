@@ -238,27 +238,6 @@ number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b,
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//	CalculateMinTetrahedronEdge - mstepnie
-number CalculateMaxTetrahedronEdgelength(Grid& grid, Volume& v)
-{
-	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPosition);
-	number maxEdgelength, tmpMaxEdgelength;
-
-//	compare all edges and find shortest
-	maxEdgelength = VecDistance(aaPos[v.edge_desc(0).vertex(1)], aaPos[v.edge_desc(0).vertex(0)]);
-	for(uint i = 1; i<5; ++i)
-	{
-		tmpMaxEdgelength = VecDistance(aaPos[v.edge_desc(i).vertex(1)], aaPos[v.edge_desc(i).vertex(0)]);
-		if(tmpMaxEdgelength > maxEdgelength)
-			maxEdgelength = tmpMaxEdgelength;
-	}
-
-	return maxEdgelength;
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	CalculateAspectRatio - mstepnie
 number CalculateAspectRatio(Grid& grid, Tetrahedron* tet,
 							Grid::VertexAttachmentAccessor<AVector3>& aaPos)
