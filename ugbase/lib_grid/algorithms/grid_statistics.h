@@ -21,7 +21,8 @@ namespace ug
 bool AssignTetrahedronAttributesByAspectRatio(Grid& grid,
 											  SubsetHandler& shVolume,
 											  AInt& aTetrahedronAspectRatioClass,
-											  std::vector<double>& offsets);
+											  std::vector<double>& offsets,
+											  Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 ///	assigns a subset based on the quality of the given element.

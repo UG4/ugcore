@@ -26,7 +26,8 @@ namespace ug
 bool AssignTetrahedronAttributesByAspectRatio(	Grid& grid,
 												SubsetHandler& shVolume,
 												AInt& aTetrahedronAspectRatioClass,
-												vector<double>& offsets)
+												vector<double>& offsets,
+												Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
 	VolumeSelector VolumeSel(grid);
 	Grid::VolumeAttachmentAccessor<AInt> aaTARC(grid, aTetrahedronAspectRatioClass);
@@ -53,17 +54,17 @@ bool AssignTetrahedronAttributesByAspectRatio(	Grid& grid,
 	offsets.push_back(0.0);
 
 //	iterate through all tetrahedrons and assign attributes by their aspect ratio
-	for(VolumeIterator vIter = grid.volumes_begin(); vIter != grid.volumes_end(); ++vIter)
+	for(TetrahedronIterator vIter = grid.begin<Tetrahedron>(); vIter != grid.end<Tetrahedron>(); ++vIter)
 	{
-		Volume* v = *vIter;
-		number AspectRatio = CalculateTetrahedronAspectRatio(grid, *v);
+		Tetrahedron* tet = *vIter;
+		number AspectRatio = CalculateAspectRatio(grid, tet, aaPos);
 
 		for(size_t i = 0; i<offsets.size(); ++i)
 		{
 			if(AspectRatio >= offsets[i])
 			{
-				shVolume.assign_subset(v, i);
-				aaTARC[v] = i;
+				shVolume.assign_subset(tet, i);
+				aaTARC[tet] = i;
 				break;
 			}
 		}
