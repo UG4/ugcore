@@ -39,7 +39,7 @@ The starting point for any discretization is a physical domain, \f$ \Omega
 supported. Furthermore, for time dependent problems one has a finite time 
 interval \f$ I := [t_{start}, t_{end}] \f$ where the solution is searched.
 
-The PDE model the behaviour of a set of \f$n\f$ functions on the domain:
+The PDE model the behaviour of a set of \f$ n \f$ functions on the domain:
 \f{align*}
 	u_i : \Omega \times I &\mapsto \mathbb{R}\\
 	  (\vec{x}, t) &\mapsto u_i(\vec{x}, t).
@@ -64,13 +64,13 @@ Now, a sytem of PDEs for the unknown functions is given by
 Here, we have the following notation:
 \f{align*}
 	f(\vec{x}, t) &\text{ is a given right - hand side independent of } \vec{u},\\
-	\mathcal{M} &\text{ is a time-dependent operator acting on }Ê\vec{u},\\
+	\mathcal{M} &\text{ is a time-dependent operator acting on } \vec{u},\\
 	\mathcal{A} &\text{ is a time-independent operator acting in } \vec{u},\\
 	\mathcal{B} &\text{ are boundary conditions for } \vec{u}.
 \f}
 
 Note, that this gives a well-defined separation of the problem. Usually, the
-term \f$\mathcal{M}\f$ is called Mass-part while \f$\mathcal{A}\f$ is called
+term \f$\mathcal{M}\f$ is called Mass-part while \f$ \mathcal{A}\f$ is called
 Stiffness-part (for historic reasons). Some examples:
 <ul>
 <li> Convection-Diffusion-Reaction Equation
@@ -84,20 +84,20 @@ Stiffness-part (for historic reasons). Some examples:
 
 with the notation
 <ul>
-<li> \f$c(\vec{x},t)\f$ is an unknown concentration,
-<li> \f$D(\vec{x},t)\f$ is the diffusion tensor,
-<li> \f$v(\vec{x},t)\f$ is the convective velocity,
-<li> \f$r(c, \vec{x},t)\f$ is the reaction term,
-<li> \f$f(\vec{x},t)\f$ is a source term independent of \f$\vec{c}\f$.
+<li> \f$ c(\vec{x},t)\f$ is an unknown concentration,
+<li> \f$ D(\vec{x},t)\f$ is the diffusion tensor,
+<li> \f$ v(\vec{x},t)\f$ is the convective velocity,
+<li> \f$ r(c, \vec{x},t)\f$ is the reaction term,
+<li> \f$ f(\vec{x},t)\f$ is a source term independent of \f$\vec{c}\f$.
 </ul>
 
 Interpreting this problem in the above terms one finds:
 
 <ul>
-<li> \f$\vec{u} = c\f$,
-<li> \f$\mathcal{M}(c) := \partial_t c\f$,
-<li> \f$\mathcal{A}(c) := - \nabla \left( D \nabla c - \vec{v} c \right) + r(c)\f$,
-<li> \f$ f = f\f$,
+<li> \f$ \vec{u} = c\f$,
+<li> \f$ \mathcal{M}(c) := \partial_t c \f$,
+<li> \f$ \mathcal{A}(c) := - \nabla \left( D \nabla c - \vec{v} c \right) + r(c)\f$,
+<li> \f$ f = f \f$,
 <li> \f$ \mathcal{B}(c) := \begin{cases}
 		c(\vec{x}, t) - g(\vec{x}, t), &x \in \partial\Omega_D,\\
  		\frac{\partial c}{\partial \vec{n}} - h(\vec{x}, t) &x \in \partial\Omega_N.
@@ -105,9 +105,9 @@ Interpreting this problem in the above terms one finds:
  	\f$
 </ul>
 
-For the stationary problem (i.e. time-independent), one finds \f$\partial_t c = 0\f$ 
-and omits the dependency of \f$t\f$ in for all functions. This problem can be
-written as above, with \f$\mathcal{M}(c) = 0\f$.
+For the stationary problem (i.e. time-independent), one finds \f$ \partial_t c = 0 \f$ 
+and omits the dependency of \f$ t \f$ in for all functions. This problem can be
+written as above, with \f$ \mathcal{M}(c) = 0 \f$.
 
 <li> Density-Driven Flow
 [... to be added ...]
