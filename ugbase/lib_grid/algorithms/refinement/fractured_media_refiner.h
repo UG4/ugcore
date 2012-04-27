@@ -35,7 +35,8 @@ class FracturedMediaRefiner : public THangingNodeRefiner<TGrid>
 
 		virtual ~FracturedMediaRefiner();
 
-		void set_degenerated_edge_threshold(number threshold);
+	///	if the aspect ratio is smaller then the given threshold, the element is considered a fracture element.
+		void set_aspect_ratio_threshold(number threshold);
 
 	///	\todo: replace this with a callback
 		void set_position_attachment(TAPosition& aPos);
@@ -47,12 +48,13 @@ class FracturedMediaRefiner : public THangingNodeRefiner<TGrid>
 		virtual bool mark(Face* f, RefinementMark refMark = RM_REGULAR);
 
 	protected:
+		number aspect_ratio(Face* f);
 		virtual void collect_objects_for_refine();
 
 	private:
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
 		std::queue<Face*>	m_queDegeneratedFaces;
-		number				m_degeneratedEdgeThreshold;
+		number				m_aspectRatioThreshold;
 };
 
 }//	end of namespace

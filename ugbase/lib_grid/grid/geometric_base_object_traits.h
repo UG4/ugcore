@@ -94,6 +94,7 @@ class geometry_traits<EdgeBase>
 		typedef ConstEdgeBaseIterator	const_iterator;
 
 		typedef EdgeBase	geometric_base_object;
+		typedef EdgeDescriptor GeneralDescriptor;
 
 		enum
 		{
@@ -111,7 +112,7 @@ class geometry_traits<Face>
 		typedef ConstFaceIterator	const_iterator;
 
 		typedef Face	geometric_base_object;
-		//typedef void Descriptor;	///< Faces can't be created directly
+		typedef FaceDescriptor GeneralDescriptor;
 
 		enum
 		{
@@ -129,6 +130,7 @@ class geometry_traits<Volume>
 		typedef ConstVolumeIterator		const_iterator;
 
 		typedef Volume		geometric_base_object;
+		typedef VolumeDescriptor GeneralDescriptor;
 
 		enum
 		{

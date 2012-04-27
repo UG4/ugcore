@@ -11,6 +11,7 @@
 #include "common/profiler/profiler.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/tools/partition_map.h"
+#include "lib_grid/algorithms/refinement/global_fractured_domain_refiner.h"
 
 using namespace std;
 
@@ -654,6 +655,24 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_method("assign_grid", static_cast<void (GlobalMultiGridRefiner::*)(MultiGrid&)>(&GlobalMultiGridRefiner::assign_grid))
 			.set_construct_as_smart_pointer(true);
 	
+	//	FracturedMediaRefiner
+		/*typedef FracturedMediaRefiner<typename TDomain::grid_type,
+							  	  	  typename TDomain::position_attachment_type>	FracDomRef;
+		reg.add_class_<FracDomRef, IRefiner>("FracturedMediumRefiner", grp)
+			.add_constructor()
+			.add_method("set_aspect_ratio_threshold", &FracDomRef::set_aspect_ratio_threshold);*/
+
+	//	GlobalFracturedDomainRefiner
+		{
+			typedef GlobalFracturedDomainRefiner cls;
+			reg.add_class_<cls, IRefiner>("GlobalFracturedMediumRefiner", grp)
+				.add_constructor()
+				.add_method("assign_grid", static_cast<void (cls::*)(MultiGrid*)>(&cls::assign_grid))
+				.add_method("set_subset_handler", static_cast<void (cls::*)(ISubsetHandler*)>(&cls::set_subset_handler))
+				.add_method("mark_as_fracture", &cls::mark_as_fracture)
+				.add_method("is_fracture", &cls::is_fracture);
+		}
+
 	//	parallel refinement
 	#ifdef UG_PARALLEL
 		reg.add_class_<ParallelHangingNodeRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>

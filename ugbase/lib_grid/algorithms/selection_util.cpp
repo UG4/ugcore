@@ -976,7 +976,8 @@ void DeselectBoundarySelectionFaces(TSelector& sel)
 ////////////////////////////////////////////////////////////////////////
 // SelectLinkedFlatFaces
 void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
-						   bool traverseFlipped, APosition& aPos)
+						   bool traverseFlipped, bool stopAtSelectedEdges,
+						   APosition& aPos)
 {
 	if(!sel.grid())
 		return;
@@ -998,6 +999,7 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 	
 //	we'll collect neighbours in this vector
 	vector<Face*> vNeighbours;
+	vector<EdgeBase*> edges;
 	
 //	while there are candidates left
 	while(!qCandidates.empty())
@@ -1009,26 +1011,38 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 		vector3 n;
 		CalculateNormal(n, f, aaPos);
 		
-		CollectNeighbors(vNeighbours, f, grid);
+		//CollectNeighbors(vNeighbours, f, grid);
+	//	collect associated edges
+		CollectAssociated(edges, grid, f);
 		
 	//	iterate through all neighbours
-		for(size_t i = 0; i < vNeighbours.size(); ++i)
+		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge)
 		{
-			Face* nbr = vNeighbours[i];
-			if(!sel.is_selected(nbr)){
-			//	compare normals
-				vector3 nNbr;
-				CalculateNormal(nNbr, nbr, aaPos);
-				
-			//	check dots
-				number d = VecDot(n, nNbr);
-				if(traverseFlipped)
-					d = fabs(d);
+			EdgeBase* e = edges[i_edge];
+			if(stopAtSelectedEdges && sel.is_selected(e))
+				continue;
 
-				if(d >= thresholdDot){
-				//	nbr is a linked flat face
-					sel.select(nbr);
-					qCandidates.push(nbr);
+			CollectAssociated(vNeighbours, grid, e);
+			for(size_t i = 0; i < vNeighbours.size(); ++i){
+				Face* nbr = vNeighbours[i];
+				if(nbr == f)
+					continue;
+				
+				if(!sel.is_selected(nbr)){
+				//	compare normals
+					vector3 nNbr;
+					CalculateNormal(nNbr, nbr, aaPos);
+
+				//	check dots
+					number d = VecDot(n, nNbr);
+					if(traverseFlipped)
+						d = fabs(d);
+
+					if(d >= thresholdDot){
+					//	nbr is a linked flat face
+						sel.select(nbr);
+						qCandidates.push(nbr);
+					}
 				}
 			}
 		}
@@ -1039,6 +1053,7 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 										 number maxDeviationAngle,
 										 bool traverseFlipped,
+										 bool stopAtSelectedEdges,
 										 number degThreshold,
 						   	   	   	     APosition& aPos)
 {
@@ -1093,6 +1108,10 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 
 		//	only proceed if the edge is not degenerated
 			if(EdgeLengthSq(e, aaPos) <= degThresholdSq)
+				continue;
+
+		//	if the edge is selected we might have to ignore it
+			if(stopAtSelectedEdges && sel.is_selected(e))
 				continue;
 
 		//	check associated faces

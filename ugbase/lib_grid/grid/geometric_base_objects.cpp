@@ -3,9 +3,23 @@
 //	y09 m10 d26
 
 #include "geometric_base_objects.h"
+#include "grid_util.h"
 
 namespace ug
 {
+////////////////////////////////////////////////////////////////////////
+//	implementation of edge
+bool EdgeBase::get_opposing_side(VertexBase* v, VertexBase** vrtOut)
+{
+	if(v == m_vertices[0])
+		*vrtOut = m_vertices[1];
+	else if(v == m_vertices[1])
+		*vrtOut = m_vertices[0];
+	else
+		return false;
+	return true;
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	implementation of edge-descriptor
 EdgeDescriptor::EdgeDescriptor()
@@ -28,7 +42,22 @@ EdgeDescriptor& EdgeDescriptor::operator = (const EdgeDescriptor& ed)
 	EdgeVertices::assign_edge_vertices(ed);
 	return *this;
 }
-		
+
+
+////////////////////////////////////////////////////////////////////////
+//	implementation of face
+int Face::get_local_side_index(EdgeVertices* e)
+{
+	EdgeDescriptor ed;
+	for(size_t i = 0; i < num_sides(); ++i){
+		edge_desc(i, ed);
+		if(CompareVertices(e, &ed))
+			return (int)i;
+	}
+	return -1;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	implementation of face-descriptor
 FaceDescriptor::FaceDescriptor() :
@@ -60,6 +89,17 @@ FaceDescriptor& FaceDescriptor::operator = (const FaceDescriptor& fd)
 
 ////////////////////////////////////////////////////////////////////////
 //	implementation of Volume
+int Volume::get_local_side_index(FaceVertices* f)
+{
+	FaceDescriptor fd;
+	for(size_t i = 0; i < num_sides(); ++i){
+		face_desc(i, fd);
+		if(CompareVertices(f, &fd))
+			return (int)i;
+	}
+	return -1;
+}
+
 void Volume::get_flipped_orientation(VolumeDescriptor& vdOut) const
 {
 	throw(int(0));

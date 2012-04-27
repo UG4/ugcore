@@ -119,11 +119,12 @@ class UG_API Grid
 				AttachmentAccessor(Grid& grid, TAttachment& a);
 				AttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 
-				inline void access(Grid& grid, TAttachment& a)
-					{ug::AttachmentAccessor<typename TElem::geometric_base_object*,
-											TAttachment,
-											typename traits<TElem>::ElementStorage>::
-						access(grid.get_attachment_pipe<TElem>(), a);
+				inline bool access(Grid& grid, TAttachment& a)
+					{
+						return ug::AttachmentAccessor<typename TElem::geometric_base_object*,
+													  TAttachment,
+													  typename traits<TElem>::ElementStorage>::
+							access(grid.get_attachment_pipe<TElem>(), a);
 					}
 		};
 
@@ -466,6 +467,18 @@ class UG_API Grid
 	/**	Note that you may pass an VolumeDescriptor to this method.*/
 		Volume* get_volume(VolumeVertices& vv);
 		
+	///	returns the element for the given vertices.
+	/**	Note that you can either pass an element type (EdgeBase, Face, Volume)
+	 * or an descriptor (EdgeDescriptor, FaceDescriptor, VolumeDescriptor).
+	 * The method returns NULL, if the specified element does not exist.
+	 * A special overload exists for VertexBase*, which simply returns the
+	 * specified vertex. Useful for template programming...
+	 * \{ */
+		EdgeBase* get_element(EdgeVertices& ev)	{return get_edge(ev);}
+		Face* get_element(FaceVertices& fv)		{return get_face(fv);}
+		Volume* get_element(VolumeVertices& vv)	{return get_volume(vv);}
+	/**	\} */
+
 	////////////////////////////////////////////////
 	//	access to the sides of an geometric object
 	///	This method returns the i-th side of an EdgeBase, Face or Volume.

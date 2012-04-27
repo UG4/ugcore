@@ -8,6 +8,7 @@
 #include "bridge.h"
 #include "lib_disc/domain.h"
 #include "lib_grid/lib_grid.h"
+#include "lib_grid/algorithms/refinement/global_fractured_domain_refiner.h"
 
 using namespace std;
 
@@ -49,6 +50,30 @@ static SmartPtr<IRefiner> HangingNodeDomainRefiner(TDomain* dom)
 	#endif
 
 	return SmartPtr<IRefiner>(new HangingNodeRefiner_MultiGrid(*dom->grid()));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///	Creates a global fractured domain refiner.
+template <class TDomain>
+static SmartPtr<GlobalFracturedDomainRefiner>
+CreateGlobalFracturedDomainRefiner(TDomain* dom)
+{
+	if(!dom->is_adaptive()){
+		UG_THROW_FATAL("Can't create an fractured domain refiner for the given domain. "
+				 	   "Construct the domain with isAdaptive enabled.");
+	}
+
+	#ifdef UG_PARALLEL
+		if(pcl::GetNumProcesses() > 1){
+			UG_THROW("No parallel version of the GlobalFracturedDomainRefiner "
+					"currently exists. Sorry.");
+		}
+	#endif
+
+	GlobalFracturedDomainRefiner* ref = new GlobalFracturedDomainRefiner(*dom->grid());
+	ref->set_subset_handler(*dom->subset_handler());
+
+	return SmartPtr<GlobalFracturedDomainRefiner>(ref);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -543,6 +568,8 @@ static bool RegisterRefinementBridge_DomDep(Registry& reg, string parentGroup)
 						 &GlobalDomainRefiner<domain_type>, grp);
 		reg.add_function("HangingNodeDomainRefiner",
 						 &HangingNodeDomainRefiner<domain_type>, grp);
+		reg.add_function("GlobalFracturedDomainRefiner",
+						 &CreateGlobalFracturedDomainRefiner<domain_type>, grp);
 
 	//	register domain dependent mark methods
 		reg.add_function("MarkForRefinement_VerticesInSphere",

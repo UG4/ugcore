@@ -485,6 +485,17 @@ Face* Hexahedron::create_face(int index)
 							 m_vertices[f[2]], m_vertices[f[1]]);
 }
 
+bool Hexahedron::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut)
+{
+	using namespace hex_rules;
+	int localInd = get_local_side_index(f);
+	if(localInd == -1)
+		return false;
+
+	face_desc(OPPOSED_FACE[localInd], fdOut);
+	return true;
+}
+
 bool Hexahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 					int edgeIndex, VertexBase* newVertex,
 					std::vector<VertexBase*>* pvSubstituteVertices)
@@ -667,6 +678,21 @@ Face* Prism::create_face(int index)
 		return new Quadrilateral(m_vertices[f[0]], m_vertices[f[3]],
 								 m_vertices[f[2]], m_vertices[f[1]]);
 	}
+}
+
+bool Prism::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut)
+{
+	using namespace prism_rules;
+	int localInd = get_local_side_index(f);
+	if(localInd == -1)
+		return false;
+
+	int opposedInd = OPPOSED_FACE[localInd];
+	if(opposedInd == -1)
+		return false;
+
+	face_desc(opposedInd, fdOut);
+	return true;
 }
 
 bool Prism::collapse_edge(std::vector<Volume*>& vNewVolumesOut,

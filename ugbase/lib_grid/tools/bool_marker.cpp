@@ -7,12 +7,18 @@
 namespace ug{
 
 BoolMarker::BoolMarker() :
-	m_pGrid(NULL)
+	m_pGrid(NULL),
+	m_defaultMark(false),
+	m_markInheritanceEnabled(true),
+	m_strictInheritanceEnabled(false)
 {
 }
 
 BoolMarker::BoolMarker(Grid& g) :
-	m_pGrid(NULL)
+	m_pGrid(NULL),
+	m_defaultMark(false),
+	m_markInheritanceEnabled(true),
+	m_strictInheritanceEnabled(false)
 {
 	assign_grid(&g);
 }
@@ -38,14 +44,30 @@ void BoolMarker::assign_grid(Grid* g)
 
 	m_pGrid = g;
 	if(g){
-		g->register_observer(this, OT_GRID_OBSERVER);
-		g->attach_to_all_dv(m_aBool, false);
+		g->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
+									OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
+		g->attach_to_all(m_aBool);
 		m_aaMarkVRT.access(*g, m_aBool);
 		m_aaMarkEDGE.access(*g, m_aBool);
 		m_aaMarkFACE.access(*g, m_aBool);
 		m_aaMarkVOL.access(*g, m_aBool);
 	}
 }
+
+
+bool BoolMarker::is_marked(GeometricObject* e) const
+{
+	switch(e->base_object_id()){
+		case VERTEX: return is_marked(static_cast<VertexBase*>(e));
+		case EDGE: return is_marked(static_cast<EdgeBase*>(e));
+		case FACE: return is_marked(static_cast<Face*>(e));
+		case VOLUME: return is_marked(static_cast<Volume*>(e));
+		default: return false;
+	}
+}
+
+
+
 
 void BoolMarker::grid_to_be_destroyed(Grid* grid)
 {
@@ -59,6 +81,115 @@ void BoolMarker::clear()
 	unmark(m_pGrid->begin<EdgeBase>(), m_pGrid->end<EdgeBase>());
 	unmark(m_pGrid->begin<Face>(), m_pGrid->end<Face>());
 	unmark(m_pGrid->begin<Volume>(), m_pGrid->end<Volume>());
+}
+
+
+void BoolMarker::
+vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
+				bool replacesParent)
+{
+	if(!pParent){
+		mark(vrt, default_mark());
+		return;
+	}
+
+	if(strict_inheritance_enabled() && (pParent->base_object_id() != VERTEX)){
+		mark(vrt, default_mark());
+		return;
+	}
+
+	if(mark_inheritance_enabeld())
+		mark(vrt, is_marked(pParent));
+
+	mark(vrt, default_mark());
+}
+
+void BoolMarker::
+edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent,
+			 bool replacesParent)
+{
+	if(!pParent){
+		mark(e, default_mark());
+		return;
+	}
+
+	if(strict_inheritance_enabled() && (pParent->base_object_id() != EDGE)){
+		mark(e, default_mark());
+		return;
+	}
+
+	if(mark_inheritance_enabeld())
+		mark(e, is_marked(pParent));
+
+	mark(e, default_mark());
+}
+
+void BoolMarker::
+face_created(Grid* grid, Face* f, GeometricObject* pParent,
+			 bool replacesParent)
+{
+	if(!pParent){
+		mark(f, default_mark());
+		return;
+	}
+
+	if(strict_inheritance_enabled() && (pParent->base_object_id() != FACE)){
+		mark(f, default_mark());
+		return;
+	}
+
+	if(mark_inheritance_enabeld())
+		mark(f, is_marked(pParent));
+
+	mark(f, default_mark());
+}
+
+void BoolMarker::
+volume_created(Grid* grid, Volume* vol, GeometricObject* pParent,
+			   bool replacesParent)
+{
+	if(!pParent){
+		mark(vol, default_mark());
+		return;
+	}
+
+	if(strict_inheritance_enabled() && (pParent->base_object_id() != VOLUME)){
+		mark(vol, default_mark());
+		return;
+	}
+
+	if(mark_inheritance_enabeld())
+		mark(vol, is_marked(pParent));
+
+	mark(vol, default_mark());
+}
+
+void BoolMarker::
+vertices_to_be_merged(Grid* grid, VertexBase* target,
+					  VertexBase* elem1, VertexBase* elem2)
+{
+	mark(target, is_marked(elem1) || is_marked(elem2));
+}
+
+void BoolMarker::
+edges_to_be_merged(Grid* grid, EdgeBase* target,
+				   EdgeBase* elem1, EdgeBase* elem2)
+{
+	mark(target, is_marked(elem1) || is_marked(elem2));
+}
+
+void BoolMarker::
+faces_to_be_merged(Grid* grid, Face* target,
+				   Face* elem1, Face* elem2)
+{
+	mark(target, is_marked(elem1) || is_marked(elem2));
+}
+
+void BoolMarker::
+volumes_to_be_merged(Grid* grid, Volume* target,
+					 Volume* elem1, Volume* elem2)
+{
+	mark(target, is_marked(elem1) || is_marked(elem2));
 }
 
 }// end of namespace

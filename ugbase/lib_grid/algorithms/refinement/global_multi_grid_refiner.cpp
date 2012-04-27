@@ -220,7 +220,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 		EdgeBase* e = *iter;
 
 	//	debug: make sure that both vertices may be refined
-		#ifdef UG_DEBUG
+/*		#ifdef UG_DEBUG
 			if(!refinement_is_allowed(e->vertex(0))
 				|| !refinement_is_allowed(e->vertex(1)))
 			{
@@ -239,6 +239,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 				}
 			}
 		#endif // UG_DEBUG
+*/
 
 		assert(refinement_is_allowed(e->vertex(0))
 				&& refinement_is_allowed(e->vertex(1)));
@@ -392,7 +393,7 @@ bool GlobalMultiGridRefiner::save_marks_to_file(const char* filename)
 	SubsetHandler sh(mg);
 
 	AssignGridToSubset(mg, sh, 2);
-	int lvl = mg.num_levels();
+	int lvl = mg.num_levels() - 1;
 	sh.assign_subset(mg.begin<VertexBase>(lvl), mg.end<VertexBase>(lvl), 0);
 	sh.assign_subset(mg.begin<EdgeBase>(lvl), mg.end<EdgeBase>(lvl), 0);
 	sh.assign_subset(mg.begin<Face>(lvl), mg.end<Face>(lvl), 0);

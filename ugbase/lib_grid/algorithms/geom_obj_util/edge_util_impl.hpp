@@ -15,14 +15,14 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>
-inline number EdgeLengthSq(EdgeBase* e, TAAPosVRT& aaPos)
+inline number EdgeLengthSq(const EdgeVertices* e, TAAPosVRT& aaPos)
 {
 	return VecDistanceSq(aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
 }
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>
-inline number EdgeLength(EdgeBase* e, TAAPosVRT& aaPos)
+inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos)
 {
 	return VecDistance(aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
 }

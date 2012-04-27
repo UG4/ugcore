@@ -206,6 +206,8 @@ class UG_API Hexahedron : public Volume
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
 
+		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut);
+
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** ppNewVertexOut,
@@ -315,6 +317,8 @@ class UG_API Prism : public Volume
 
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
+
+		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut);
 
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,

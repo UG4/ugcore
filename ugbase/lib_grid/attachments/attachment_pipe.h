@@ -34,12 +34,11 @@ enum ATTACHMENT_CONSTANTS
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	IAttachedDataContainer
 ///	the interface for an attachment-data-container.
-/**
-*	In order to use an attachment-data-container you have to supply several Typedefs.
-*	Take a look at the template-derivate AttachmentDataContainer<T> to see wich typedefs
-	and operations have to be supplied in addition to the interface-methods.
-*	if possible you should use the derivate-class AttachmentDataContainer<T> instead creating
-	your own derivate of IAttachedDataContainer.
+/** In order to use an attachment-data-container you have to supply several Typedefs.
+* Take a look at the derived generic class AttachmentDataContainer<T> to see which
+* typedefs and operations have to be supplied in addition to the interface-methods.
+* if possible you should always use the derived generic class AttachmentDataContainer<T>
+* instead creating inheriting your own version of IAttachedDataContainer.
 */
 class UG_API IAttachmentDataContainer
 {
@@ -51,30 +50,28 @@ class UG_API IAttachmentDataContainer
 		virtual void copy_data(size_t indFrom, size_t indTo) = 0;///< copy data from entry indFrom to entry indTo.
 		virtual void reset_entry(size_t index) = 0;///< resets the entry to its default value.
 		
-	/**	copies entrys from the this-container to the specified target container.
-	 *	For the i-th entry in the dest-container, pIndexMap has to contain
-	 *	the index of the associated source entry in this container.
-	 *	Num specifies the number of entries to be copied.
-	 *	Make sure, that pDest can hold 'num' elements.
+	/**	copies entries from the this-container to the specified target container.
+	 * For the i-th entry in the destination-container, pIndexMap has to contain
+	 * the index of the associated source entry in this container.
+	 * num specifies the number of entries to be copied.
+	 * Make sure, that pDest can hold 'num' elements.
 	 *
-	 *	pDestCon has to have the same or a derived dynamic type as the container
-	 *	on which this method is called.*/
+	 * pDestCon has to have the same or a derived dynamic type as the container
+	 * on which this method is called.*/
 		virtual void copy_to_container(IAttachmentDataContainer* pDestCon,
 									   int* indexMap, int num) const = 0;
 		
-	/**
-	*	defragment should clear the containers data from unused entries.
-	*	pNewIndices should be an array of indices, wich holds a new index for each entry in IAttachedDataContainer.
-	*	pNewIndices has thus to hold as many indices as there are entries in IAttachedDataContainer.
-	*	If an entry shall not appear in the defragmented container, its new index has to be set to INVALID_ATTACHMENT_INDEX.
-	*	numValidElements has to specify the size of the defragmented container - it thus has to equal the number of valid indices in pNewIndices.
-	*/
+	/** defragment should clear the containers data from unused entries.
+	 * pNewIndices should be an array of indices, wich holds a new index for each
+	 * entry in IAttachedDataContainer. pNewIndices has thus to hold as many indices
+	 * as there are entries in IAttachedDataContainer. If an entry shall not appear
+	 * in the defragmented container, its new index has to be set to INVALID_ATTACHMENT_INDEX.
+	 * numValidElements has to specify the size of the defragmented container -
+	 * it thus has to equal the number of valid indices in pNewIndices.*/
 		virtual void defragment(size_t* pNewIndices, size_t numValidElements) = 0;
 
 	///	returns the size in bytes, which the container occupies
-	/**
-	 * Mainly for debugging purposes.
-	 */
+	/** Mainly for debugging purposes.*/
 		virtual size_t occupied_memory() = 0;
 };
 
@@ -102,11 +99,10 @@ struct attachment_value_traits<bool>{
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	AttachedDataContainer
 ///	A generic specialization of IAttachedDataContainer.
-/**
-*	This template-class not only simplifies the creation of custom containers,
-	it also defines some types, operators and values, which are essential to use an AttachmentDataContainer with libGrid.
-	In particular libGrids AttachmentAccessors require these definitions.
-*/
+/** This template-class not only simplifies the creation of custom containers,
+ * it also defines some types, operators and values, which are essential to use an AttachmentDataContainer with libGrid.
+ * In particular libGrids AttachmentAccessors require these definitions.
+ */
 template <class T> class UG_API AttachmentDataContainer : public IAttachmentDataContainer
 {
 	private:
@@ -162,11 +158,11 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 				}
 			}
 	
-	/**	copies entrys from the this-container to the container
+	/**	copies entries from the this-container to the container
 	 *	specified by pDestCon.
 	 *	For the i-th entry in the target container, pIndexMap has to contain
 	 *	the index of the associated source entry in this container.
-	 *	Num specifies the number of entries to be copied.
+	 *	num specifies the number of entries to be copied.
 	 *	Make sure, that pDest can hold 'num' elements.
 	 *
 	 *	pDestCon has to have the same or a derived dynamic type as the container
@@ -215,13 +211,12 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	IAttachment
 ///	the interface for attachments.
-/**
-*	Attachments can be attached to an AttachmentPipe and thus enhance the pipes elements by data,
-	whose type, container and behavior is defined by the Attachment itself.
-*	In order to use an Attachment with libGrid (in particular with libGrids AttachmentAccessors),
-	derivatives of IAttachment have to feature some special typedefs (see Attachment<T> for more information).
-*	Whenever possible you should use the template-derivative Attachment<T> instead of IAttachment.
-*/
+/** Attachments can be attached to an AttachmentPipe and thus enhance the pipes elements by data,
+ * whose type, container and behavior is defined by the Attachment itself.
+ * In order to use an Attachment with libGrid (in particular with libGrids AttachmentAccessors),
+ * derivatives of IAttachment have to feature some special typedefs (see Attachment<T> for more information).
+ * Whenever possible you should use the template-derivative Attachment<T> instead of IAttachment.
+ */
 class UG_API IAttachment : public UID
 {
 	public:
@@ -243,10 +238,9 @@ class UG_API IAttachment : public UID
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	Attachment
 /// A generic specialization of IAttachment
-/**
-*	This class is intended to simplify the process of Attachment creation.
-*	Note that there are typedefs, which are required by libGrids AttachmentAccessors.
-*/
+/** This class is intended to simplify the process of Attachment creation.
+ * Note that there are typedefs, which are required by libGrids AttachmentAccessors.
+ */
 template <class T> class UG_API Attachment : public IAttachment
 {
 	public:
@@ -284,9 +278,9 @@ struct AttachmentEntry
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-///	attachment_traits define the interface that enables you to use your own data-types with the AttachmentPipe.
-/**
- * Perform template-specialization for your own data-types and their respective handlers.
+///	define the interface that enables you to use your own types as element-types in an AttachmentPipe.
+/** By creating a template specialization for your own element types, you can
+ * use arbitrary types as element-types in an AttachmentPipe.
  */
 template<class TElem, class TElemHandler>
 class attachment_traits
@@ -309,8 +303,7 @@ class attachment_traits
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	AttachmentPipe
 ///	Handles data which has been attached to the pipe using callbacks for the element.
-/**
- * The AttachmentPipe can be used to attach data to a collection of elements.
+/** The AttachmentPipe can be used to attach data to a collection of elements.
  * Elements have to be registered at the AttachmentPipe. Using the methods
  * defined in the attachment_traits template class, registered elements are
  * associated with their data-entries.
@@ -479,10 +472,20 @@ class UG_API AttachmentPipe
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	AttachmentAccessor
 ///	Used to access data that has been attached to an attachment pipe.
-/**
- * Once initialized (use the constructor), an AttachmentAccessor can be used to access
- * the data stored in the given AttachmentPipe. The reference type of the associated value
- * is taken from attachment_value_traits. By default this is the standard reference type.
+/** Once initialized, an AttachmentAccessor can be used to access the data stored
+ * in the given Attachment at the given AttachmentPipe.
+ * The reference type of the associated value is taken from attachment_value_traits.
+ * By default this is the standard reference type.
+ *
+ * To initialize an AttachmentAccessor, you may either use its constructor or
+ * its access method, which returns false if the specified attachment is not present
+ * in the specified attachment pipe.
+ *
+ * Note that data-access using an attachment accessor is cheap. Setting up
+ * a new attachment accessor however involves some work. While this is generally
+ * fast, too, it would introduce an unnecessary overhead inside inner loops
+ * or frequently called methods. You should thus try to minimize calls to access
+ * or to the accessors constructor.
  */
 template <class TElem, class TAttachment, class TElemHandler>
 class UG_API AttachmentAccessor
@@ -498,7 +501,7 @@ class UG_API AttachmentAccessor
 		AttachmentAccessor(const AttachmentAccessor& aa);
 		AttachmentAccessor(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment);
 
-		void access(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment);
+		bool access(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment);
 
 		inline typename attachment_value_traits<ValueType>::reference
 		operator[](typename atraits::ConstElemPtr elem)

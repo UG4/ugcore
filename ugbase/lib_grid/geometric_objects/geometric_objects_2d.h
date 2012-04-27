@@ -84,6 +84,7 @@ class UG_API CustomTriangle : public BaseClass
 		virtual void edge_desc(int index, EdgeDescriptor& edOut)
 			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % 3]);}
 
+
 	///	Refines a Triangle by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
 							VertexBase** newFaceVertexOut,
@@ -215,6 +216,11 @@ class UG_API CustomQuadrilateral : public BaseClass
 
 		virtual void edge_desc(int index, EdgeDescriptor& edOut)
 			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % 4]);}
+
+
+	///	fills the edge-descriptor with the edge that lies opposed to the specified one
+	/**	If the specified edge is not part of the face, false is returned.*/
+		virtual bool get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut);
 
 	///	Refines a Quadrilateral by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,

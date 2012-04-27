@@ -297,6 +297,11 @@ class UG_API EdgeBase : public GeometricObject, public EdgeVertices
 
 		inline uint num_sides() const	{return 2;}
 
+	///	retrieves the vertex on the opposing side to the specified one.
+	/**	If the specified vertex is not part of the edge, false is returned.
+	 * If it is, then vrtOut is filled with the opposing vertex and true is returned.*/
+		bool get_opposing_side(VertexBase* v, VertexBase** vrtOut);
+
 	/**
 	 * create 2 new edges, connecting the original edges end-points with vrtNew.
 	 * Newly created edges have to be registered at a grid manually by the caller.
@@ -419,6 +424,15 @@ class UG_API Face : public GeometricObject, public FaceVertices
 	 *	It is cruical that derived classes overload this method.*/
 		virtual EdgeBase* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
 
+
+	///	retrieves the edge-descriptor for the opposing side to the specified one.
+	/**	If no opposing side exists false is returned. If an opposing side exists,
+	 * the method returns true and fills the specified descriptor.*/
+		virtual bool get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut)	{return false;}
+
+	///	returns the local index of the specified edge.
+	/**	If the edge is not part of the face, then -1 is returned.*/
+		int get_local_side_index(EdgeVertices* e);
 
 	/**
 	 * The refine method can be used to create new elements by inserting new vertices
@@ -632,6 +646,14 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 		//	("Missing implementation of get_local_vertex_indices_of_face.")
 			throw(int(0));
 		};
+
+	///	retrieves the face-descriptor for the opposing side to the specified one.
+	/**	If no opposing side exists false is returned. If an opposing side exists,
+	 * the method returns true and fills the specified descriptor.*/
+		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut)	{return false;}
+
+	///	returns the local index of the given face or -1, if the face is not part of the volume.
+		int get_local_side_index(FaceVertices* f);
 
 	/**
 	 * The refine method can be used to create new elements by inserting new vertices

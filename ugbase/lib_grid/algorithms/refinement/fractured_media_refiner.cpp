@@ -15,7 +15,7 @@ template <class TGrid, class TAPosition>
 FracturedMediaRefiner<TGrid, TAPosition>::
 FracturedMediaRefiner(IRefinementCallback* refCallback) :
 	BaseClass(refCallback),
-	m_degeneratedEdgeThreshold(SMALL)
+	m_aspectRatioThreshold(SMALL)
 {
 }
 
@@ -23,7 +23,7 @@ template <class TGrid, class TAPosition>
 FracturedMediaRefiner<TGrid, TAPosition>::
 FracturedMediaRefiner(TGrid& g, IRefinementCallback* refCallback) :
 	BaseClass(g, refCallback),
-	m_degeneratedEdgeThreshold(SMALL)
+	m_aspectRatioThreshold(SMALL)
 {
 }
 
@@ -36,9 +36,9 @@ FracturedMediaRefiner<TGrid, TAPosition>::
 template <class TGrid, class TAPosition>
 void
 FracturedMediaRefiner<TGrid, TAPosition>::
-set_degenerated_edge_threshold(number threshold)
+set_aspect_ratio_threshold(number threshold)
 {
-	m_degeneratedEdgeThreshold = threshold;
+	m_aspectRatioThreshold = threshold;
 }
 
 template <class TGrid, class TAPosition>
@@ -65,11 +65,38 @@ mark(Face* f, RefinementMark refMark)
 		return false;
 
 	if(!wasMarked){
-		if(IsDegenerated(f, m_aaPos, m_degeneratedEdgeThreshold)){
+		if(aspect_ratio(f) < m_aspectRatioThreshold)
 			m_queDegeneratedFaces.push(f);
-		}
 	}
 	return true;
+}
+
+template <class TGrid, class TAPosition>
+number FracturedMediaRefiner<TGrid, TAPosition>::
+aspect_ratio(Face* f)
+{
+	if(!m_aaPos.valid())
+		UG_THROW("A position attachment has to be specified before this method is called.");
+
+	EdgeDescriptor ed;
+	f->edge_desc(0, ed);
+
+	number eMin = EdgeLength(&ed, m_aaPos);
+	number eMax = eMin;
+
+	for(size_t i = 1; i < f->num_edges(); ++i){
+		f->edge_desc(i, ed);
+		number len = EdgeLength(&ed, m_aaPos);
+		if(len < eMin)
+			eMin = len;
+		else if(len > eMax)
+			eMax = len;
+	}
+
+	if(eMax <= 0)
+		return 0;
+
+	return eMin / eMax;
 }
 
 template <class TGrid, class TAPosition>
@@ -77,18 +104,15 @@ void
 FracturedMediaRefiner<TGrid, TAPosition>::
 collect_objects_for_refine()
 {
-//	if possible, we'll work with the squared threshold.
-	number degThresholdSq = m_degeneratedEdgeThreshold * m_degeneratedEdgeThreshold;
-
 //	get the grid on which we'll operate
-	UG_ASSERT(BaseClass::get_associated_grid(),
-			  "The refiner has to be registered at a grid");
+	if(!BaseClass::get_associated_grid())
+		UG_THROW("No grid has been set for the refiner.");
 
 	Grid& grid = *BaseClass::get_associated_grid();
 
 //	make sure that the position accessor is valid
-	UG_ASSERT(m_aaPos.valid(),
-			  "Set a position attachment before refining!");
+	if(!m_aaPos.valid())
+		UG_THROW("A position attachment has to be specified before this method is called.");
 
 //	push all marked degenerated faces to a queue.
 //	pop elements from that queue, mark them anisotropic and unmark associated
@@ -98,6 +122,7 @@ collect_objects_for_refine()
 
 	Selector& sel = BaseClass::get_refmark_selector();
 
+//	some helpers
 	vector<EdgeBase*> edges;
 	vector<Face*> faces;
 
@@ -117,12 +142,23 @@ collect_objects_for_refine()
 		//	check edges
 			CollectAssociated(edges, grid, f);
 
+		//	get the edge with the maximal length
+			number eMax = 0;
+			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+				number len = EdgeLength(edges[i_edge], m_aaPos);
+				if(len > eMax)
+					eMax = len;
+			}
+
+			if(eMax <= 0)
+				eMax = SMALL;
+
 		//	degenerated neighbors of non-degenerated edges have to be selected.
 		//	degenerated edges may not be selected
 			size_t numDeg = 0;
 			for(size_t i_edge = 0; i_edge< edges.size(); ++i_edge){
 				EdgeBase* e = edges[i_edge];
-				if(EdgeLengthSq(e, m_aaPos) > degThresholdSq){
+				if(EdgeLength(e, m_aaPos) / eMax >= m_aspectRatioThreshold){
 				//	non-degenerated edge
 				//	make sure it is selected
 					if(BaseClass::get_mark(e) != RM_REGULAR)
@@ -134,7 +170,7 @@ collect_objects_for_refine()
 					for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 						Face* nbr = faces[i_face];
 						if(!sel.is_selected(nbr)){
-							if(IsDegenerated(nbr, m_aaPos, m_degeneratedEdgeThreshold)){
+							if(aspect_ratio(f) < m_aspectRatioThreshold){
 							//	push it to the queue.
 								m_queDegeneratedFaces.push(nbr);
 							}

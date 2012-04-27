@@ -441,13 +441,18 @@ AttachmentAccessor(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachm
 }
 
 template <class TElem, class TAttachment, class TElemHandler>
-void
+bool
 AttachmentAccessor<TElem, TAttachment, TElemHandler>::
 access(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment)
 {
+	if(!attachmentPipe.has_attachment(attachment))
+		return false;
+
 	m_pContainer = static_cast<typename TAttachment::ContainerType*>(attachmentPipe.get_data_container(attachment));
 	m_pHandler = attachmentPipe.get_elem_handler();
 	assert(m_pContainer && "ERROR in AttachmentAccessor::access(attachmentPipe, attachment): attachment not attached to attachmentPipe!");
+
+	return true;
 }
 
 }//	end of namespace

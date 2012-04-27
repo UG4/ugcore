@@ -323,6 +323,7 @@ void DeselectBoundarySelectionFaces(TSelector& sel);
  */
 void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 						   bool traverseFlipped = false,
+						   bool stopAtSelectedEdges = false,
 						   APosition& aPos = aPosition);
 
 ////////////////////////////////////////////////////////////////////////
@@ -341,6 +342,7 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 										 number maxDeviationAngle,
 										 bool traverseFlipped = false,
+										 bool stopAtSelectedEdges = false,
 										 number degThreshold = SMALL,
 						   	   	   	     APosition& aPos = aPosition);
 

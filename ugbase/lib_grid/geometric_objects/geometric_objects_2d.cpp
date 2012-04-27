@@ -325,6 +325,20 @@ CustomQuadrilateral(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* 
 }
 
 template <class ConcreteQuadrilateralType, class BaseClass>
+bool
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut)
+{
+	int localInd = Face::get_local_side_index(e);
+	if(localInd == -1){
+		return false;
+	}
+
+	edge_desc((localInd + 2) % 4, edOut);
+	return true;
+}
+
+template <class ConcreteQuadrilateralType, class BaseClass>
 void
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
 create_faces_by_edge_split(int splitEdgeIndex,

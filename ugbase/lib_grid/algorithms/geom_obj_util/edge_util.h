@@ -103,7 +103,7 @@ int NumAssociatedFaces(Grid& grid, EdgeBase* e);
  * in the vertices of the underlying grid.*/
 template <class TAAPosVRT>
 UG_API 
-inline number EdgeLengthSq(EdgeBase* e, TAAPosVRT& aaPos);
+inline number EdgeLengthSq(const EdgeVertices* e, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Calculates the length of the given edge
@@ -111,7 +111,7 @@ inline number EdgeLengthSq(EdgeBase* e, TAAPosVRT& aaPos);
  * in the vertices of the underlying grid.*/
 template <class TAAPosVRT>
 UG_API 
-inline number EdgeLength(EdgeBase* e, TAAPosVRT& aaPos);
+inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
