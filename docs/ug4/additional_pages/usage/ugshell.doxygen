@@ -286,7 +286,7 @@ This will enable to use <tt>ugshell \<TAB\> \<TAB\></tt> which will complete
 the key words (behind \c -W), all directories and only those files which match 
 the extended glob (behind \c -G).
 
-Please note that you need to set the <tt>extglob</tt> shell option to 
+\note Please note that you need to set the <tt>extglob</tt> shell option to 
 <tt>on</tt> in order to use extended globbings like:
 <tt>*+(lua|ugx)</tt>.
 Put the following line into your <tt>.bashrc</tt> respectively into your 
@@ -324,7 +324,7 @@ my_complete_ugshell () {
 }
 \endverbatim
 
-Now, to enable the completion, proceed as before.
+\note Now, to enable the completion, proceed as before.
 Please note the additional part at the end of the line.
 \verbatim 
 complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F my_complete_ugshell ugshell

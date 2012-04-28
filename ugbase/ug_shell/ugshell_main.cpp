@@ -292,7 +292,6 @@ int main(int argc, char* argv[])
 
 	if(FindParam("-noterm", argc, argv))
 		GetLogAssistant().enable_terminal_output(false);
-	
 
 //	ATTENTION
 //	Make sure to initialize ug before accessing the registry or performing any

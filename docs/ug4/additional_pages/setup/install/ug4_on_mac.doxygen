@@ -41,4 +41,5 @@ Steps:
 \note Please note, you can build your own pkg if you want to use 
 more recent revisions of the the software contained in the prebuilt pkg bundle.
 See http://kennethreitz.com/xcode-gcc-and-homebrew.html for further information.
+\note Please note too, you can install Macports and upgrade your compilers then.
 */
