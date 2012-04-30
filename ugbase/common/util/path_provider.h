@@ -9,6 +9,8 @@
 #include <map>
 #include <stack>
 
+#include "common/os_dependent/file_util.h"
+
 namespace ug
 {
 
@@ -94,6 +96,30 @@ class PathProvider
 	///	pops a path from the stack of current paths
 		static inline void pop_current_path()
 		{inst().m_curPaths.pop();}
+
+	/**
+	 * @param relativeFilename (in) relative filename
+	 * @param absoluteFilename (out) absolute filename
+	 * @return true if file exists relative to current path
+	 */
+		static inline bool get_filename_relative_to_current_path(const std::string &relativeFilename, std::string &absoluteFilename)
+		{
+			if(inst().has_current_path() == false) return false;
+			absoluteFilename = inst().get_current_path() + "/" + relativeFilename;
+			return FileExists(absoluteFilename.c_str());
+		}
+
+	/**
+	 * @param relativeFilename (in) relative filename
+	 * @param absoluteFilename (out) absolute filename
+	 * @return true if file exists relative to current path
+	 */
+		static inline bool get_filename_relative_to_path(int pathType, const std::string &relativeFilename, std::string &absoluteFilename)
+		{
+			if(inst().has_path(pathType) == false) return false;
+			absoluteFilename = inst().get_path(pathType) + "/" + relativeFilename;
+			return FileExists(absoluteFilename.c_str());
+		}
 
 	private:
 		PathProvider()	{}
