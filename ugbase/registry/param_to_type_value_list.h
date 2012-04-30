@@ -319,8 +319,8 @@ template <typename TTypeList, int index>
 struct ParameterStackToTypeValueList :
 	public TypeValueList<TTypeList>
 {
-	typedef	typename TTypeList::head	head;
-	typedef	typename TTypeList::tail	tail;
+	typedef	 typename TTypeList::head	head;
+	typedef	 typename TTypeList::tail	tail;
 
 	ParameterStackToTypeValueList(const ParameterStack& in) :
 		TypeValueList<TTypeList>(	PLStack<head>::read(in, index),
