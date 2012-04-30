@@ -39,11 +39,21 @@ function util.GetParam(name, return_if_unavailable)
 For that, you have to include the <tt>ug_util.lua</tt> file using 
 <tt>ug_load_script("ug_util.lua")</tt>.
 
+
+ug_load_script will search for files in the following directories (in that order)
+- relative to current script
+- as absolute filename
+- in the scripts path
+- in the apps path
+- in the ug4 path.
+\note ug_load_script will load files parallel, so you have to be sure that all processes are calling ug_load_script. if you want to load a different file or files only on some cores, you can use ug_load_script_single.
+
 Example:
 \code
 ug_load_script("ug_util.lua")
 gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
 \endcode
+
 
 If there is no commandline argument <tt>"-grid"</tt>, then the second argument 
 is returned by <tt>util.GetParam</tt>.
