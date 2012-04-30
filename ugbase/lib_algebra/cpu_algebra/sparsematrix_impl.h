@@ -30,19 +30,10 @@ namespace ug{
 // construction etc.
 
 template<typename T>
-SparseMatrix<T>::SparseMatrix()
+SparseMatrix<T>::SparseMatrix() : rows(0), cols(0), pRowStart(NULL), pRowEnd(NULL),
+	iTotalNrOfConnections(0), bandwidth(0), estimatedRowSize(0), iMaxNrOfConnections(0), consmem(NULL),
+	 consmemsize(0), iFragmentedMem(0), m_bIgnoreZeroes(false)
 {
-	m_bIgnoreZeroes = false;
-	cols = rows = iTotalNrOfConnections = 0;
-	iFragmentedMem = 0;
-	pRowStart = pRowEnd = NULL;
-	consmem = NULL; consmemsize = 0;
-	iTotalNrOfConnections = 0;
-	bandwidth = 0;
-
-	estimatedRowSize = 0;
-	iMaxNrOfConnections = NULL;
-
 	FORCE_CREATION { print(); p(); pr(0); }
 }
 
@@ -71,9 +62,13 @@ bool SparseMatrix<T>::create(size_t _rows, size_t _cols)
 	UG_ASSERT(pRowEnd != NULL, "out of memory, no more space for " << sizeof(connection*)*(rows+1));
 	memset(pRowEnd, 0, sizeof(connection*)*(rows+1));
 
-	iMaxNrOfConnections = new size_t[rows];
-	UG_ASSERT(iMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*rows);
-	memset(iMaxNrOfConnections, 0, sizeof(size_t)*rows);
+	if(rows == 0)
+		iMaxNrOfConnections = NULL;
+	else {
+		iMaxNrOfConnections = new size_t[rows];
+		UG_ASSERT(iMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*rows);
+		memset(iMaxNrOfConnections, 0, sizeof(size_t)*rows);
+	}
 
 	iTotalNrOfConnections = 0;
 	bandwidth = 0;
@@ -160,18 +155,19 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 			pRowStart[newRows] = NULL;
 		}
 
-		/* TODO why alloc array with 0 bytes?
-		 * call causing this:
-		 * Init operator (i.e. assemble matrix).
-		 * resize(0,0)
-		 * this->cols: 289 this->rows289
-		* alloced new max nr of connections with size: 0 */
-		size_t *iNewMaxNrOfConnections = new size_t[newRows];
-		UG_ASSERT(iNewMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*newRows);
-		memcpy(iNewMaxNrOfConnections, iMaxNrOfConnections, sizeof(size_t) * std::min(rows, newRows));
-		delete[] iMaxNrOfConnections;
-		iMaxNrOfConnections = iNewMaxNrOfConnections;
-		for(size_t i=rows; i<newRows; i++) iMaxNrOfConnections[i] = 0;
+		size_t *iNewMaxNrOfConnections = NULL;
+		if(newRows > 0) {
+			size_t *iNewMaxNrOfConnections = new size_t[newRows];
+
+			UG_ASSERT(iNewMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*newRows);
+			memcpy(iNewMaxNrOfConnections, iMaxNrOfConnections, sizeof(size_t) * std::min(rows, newRows));
+			delete[] iMaxNrOfConnections;
+			iMaxNrOfConnections = iNewMaxNrOfConnections;
+
+			for(size_t i=rows; i<newRows; i++)
+				iMaxNrOfConnections[i] = 0;
+		}
+
 		rows = newRows;
 	}
 
