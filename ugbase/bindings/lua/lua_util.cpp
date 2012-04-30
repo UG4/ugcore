@@ -22,6 +22,9 @@
 #include "registry/registry.h"
 #include "lua_debug.h"
 
+#include "common/util/binary_buffer.h"
+
+
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
