@@ -94,6 +94,7 @@ std::string::size_type GetDirectorySeperatorPos(const std::string &str)
 	std::string::size_type pos2 = str.rfind("\\");
 	if(pos1 != std::string::npos)
 	{
+		// FIXME: pos2 > pos2
 		if(pos2 != std::string::npos && pos2 > pos2)	return pos2;
 		else return pos1;
 	}
