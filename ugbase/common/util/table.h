@@ -10,31 +10,38 @@
 #include <iostream>
 
 namespace ug{
-///	Useful for printing a table into the console or into a file.
+///	Useful for printing a table to the terminal or into a file.
 /**	This class is for output purposes only. It automatically adds spacings, so
  * that all entries in a column are indeed displayed in the same column.
  * Note that the implementation is not optimized in regards to speed and efficiency.
  * The class thus shouldn't be used in performance critical sections of your code.
- * If it is however used in ouput related code, the introduced overhead should
- * be fine and probably even neglectible.
+ * If it is however used in output related code, the introduced overhead should
+ * be fine and probably even negligible.
  *
  * The class is most commonly used as a string table (Table<std::string>) or
  * as a stringstream table (Table<std::stringstream>). If you want to use it
  * for your own types, you may specialize the template method
  * \code
- * template <class T> std::string EntryToString(const Table<T>& table,
- *												size_t rowInd, size_t colInd);
+ * template <class T> std::string EntryToString(const Table<T>& table, size_t rowInd, size_t colInd);
  * \endcode
  * The default implementation of EntryToString may already be suited for most cases.
  *
  * Here's an example on how to use the class:
  * \code
+ * #include "common/util/table.h"
+ * ...
  * ug::Table<std::stringstream> table(2, 2);
  * table(0, 0) << "num rows:";		table(0, 1) << table.num_rows();
  * table(1, 0) << "num columns:";	table(1, 1) << table.num_cols();
+ * std::cout << table;
  * \endcode
  *
- * \todo	different alignements for different columns / rows / fields
+ * And this is what the output looks like:
+\verbatim
+     num rows:  2
+  num columns:  2
+\endverbatim
+ * \todo	different alignments for different columns / rows / fields
  */
 template <class T>
 class Table
