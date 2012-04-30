@@ -155,7 +155,6 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 			pRowStart[newRows] = NULL;
 		}
 
-		size_t *iNewMaxNrOfConnections = NULL;
 		if(newRows > 0) {
 			size_t *iNewMaxNrOfConnections = new size_t[newRows];
 
