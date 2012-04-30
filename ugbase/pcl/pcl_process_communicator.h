@@ -11,6 +11,7 @@
 #include "pcl_methods.h"
 #include "common/util/smart_pointer.h"
 #include "common/util/binary_stream.h"
+#include "common/util/binary_buffer.h"
 #include "common/error.h"
 
 namespace pcl
@@ -255,25 +256,16 @@ class ProcessCommunicator
 
 	/**
 	 * simplified allreduce for size=1. calls allreduce for parameter t, and then returns the result
+	 * compiler error for unsupported datatypes
 	 * \param t the input parameter
 	 * \param op the Reduce Operation
 	 * \return the reduced result
 	 */
 		template<typename T>
-		T allreduce(const T &t, pcl::ReduceOperation op) const
-		{
-			T ret;
-			allreduce(&t, &ret, 1, get_data_type(ret), op);
-			return ret;
-		}
+		T allreduce(const T &t, pcl::ReduceOperation op) const;
 
 	///	overload for size_t
-		size_t allreduce(const size_t &t, pcl::ReduceOperation op) const
-		{
-			int ret, tt = (int)t;
-			allreduce(&tt, &ret, 1, PCL_DT_INT, op);
-			return (size_t)ret;
-		}
+		size_t allreduce(const size_t &t, pcl::ReduceOperation op) const;
 
 	/**
 	 * simplified allreduce for buffers.
@@ -282,33 +274,60 @@ class ProcessCommunicator
 	 * \param count number of elements in the input/output buffers
 	 * \param op the Reduce Operation
 	 */
-	template<typename T>
-	void allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op) const
-	{
-		allreduce(pSendBuff, pReceiveBuff, count, get_data_type(T()), op);
-	}
+		template<typename T>
+		void allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op) const;
+
+	/**
+	 * performs a MPI_Bcast
+	 * @param v		pointer to data
+	 * @param size	size of data
+	 * @param type	type of data
+	 * @param root	root process, that distributes data
+	 */
+		void broadcast(void *v, size_t size, DataType type, int root=0) const;
+
+
+
+	/**
+	 * simplified broadcast for supported datatypes
+	 * compiler error for unsupported datatypes
+	 * you can cast to unsigned char to broadcast arbitrary fixed data
+	 * @param p		pointer to data
+	 * @param size	number of T elements the pointer p is pointing to. default 1
+	 * @param root	process that distributes data (default 0)
+	 */
+		template<typename T>
+		inline void broadcast(T *p, size_t size=1, int root=0) const;
+
+	/**
+	 * Bcast for objects
+	 * @param v		object to be broadcasted (uses Serialize/Deserialize)
+	 * @param root	process that distributes data (default 0)
+	 * @sa Serialize, Deserialize
+	 */
+		template<typename T>
+		inline void broadcast(T &t, int root=0) const;
+
+	/// broadcast function for directly supported types
+		template<typename T>
+		inline void broadcast(T &t, int root, DataTypeDirectlySupported d) const;
+	/// broadcast function for indirectly supported types (using Serialize/Deserialize)
+		template<typename T>
+		void broadcast(T &t, int root, DataTypeIndirectlySupported d) const;
+
+	/// overload for size_t
+		void broadcast(size_t &s, int root=0) const;
+
+	/**
+	 * broadcast of BinaryBuffers
+	 * @param buf	Binary buffer in/out
+	 * @param root	root processor
+	 */
+		void broadcast(ug::BinaryBuffer &buf, int root=0) const;
+
 
 	///	this method will not return until all processes in the communicator have called it.
 		void barrier() const;
-
-	private:
-	/**
-	 * \{
-	 * \param dummy not used (only the type information is used)
-	 * \return the PCL-DataType for a given C-Type.
-	 * \note this might be better in a different place (e.g. global function)
-	 */
-		template <class T>
-		static DataType get_data_type(const T&)					{UG_THROW("Unknown data-type used in ProcessCommunicator."); return MPI_INT;}
-
-		static DataType get_data_type(const unsigned long &) 	{return PCL_DT_UNSIGNED_LONG; }
-		static DataType get_data_type(const long &)				{return PCL_DT_LONG; }
-		static DataType get_data_type(const int &) 				{return PCL_DT_INT; }
-		static DataType get_data_type(const float &)			{return PCL_DT_FLOAT; }
-		static DataType get_data_type(const double &)			{return PCL_DT_DOUBLE; }
-		static DataType get_data_type(const char &) 			{return PCL_DT_CHAR; }
-		static DataType get_data_type(const unsigned char &) 	{return PCL_DT_UNSIGNED_CHAR; }
-		/** \} */
 
 	private:
 	///	holds an mpi-communicator.

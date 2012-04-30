@@ -116,6 +116,68 @@ allgatherv(std::vector<TValue>& recBufOut,
 	}
 }
 
+
+
+
+
+template<typename T>
+T ProcessCommunicator::
+allreduce(const T &t, pcl::ReduceOperation op) const
+{
+	T ret;
+	allreduce(&t, &ret, 1, DataTypeTraits<T>::get_data_type(), op);
+	return ret;
+}
+
+
+template<typename T>
+void ProcessCommunicator::
+allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op) const
+{
+	allreduce(pSendBuff, pReceiveBuff, count, DataTypeTraits<T>::get_data_type(), op);
+}
+
+
+template<typename T>
+void ProcessCommunicator::
+broadcast(T &t, int root) const
+{
+	broadcast(t, root, typename DataTypeTraits<T>::supported());
+}
+
+
+template<typename T>
+void ProcessCommunicator::
+broadcast(T &t, int root, DataTypeDirectlySupported d) const
+{
+	broadcast(&t, 1, DataTypeTraits<T>::get_data_type(), root);
+}
+
+template<typename T>
+void ProcessCommunicator::
+broadcast(T &t, int root, DataTypeIndirectlySupported d) const
+{
+	ug::BinaryBuffer buf;
+	if(pcl::GetProcRank() == root)
+	{
+		Serialize(buf, t);
+		broadcast(buf, root);
+	}
+	else
+	{
+		broadcast(buf, root);
+		Deserialize(buf, t);
+	}
+}
+
+
+template<typename T>
+void ProcessCommunicator::
+broadcast(T *p, size_t size, int root) const
+{
+	broadcast(p, size, DataTypeTraits<T>::get_data_type(), root);
+}
+
 }//	end of namespace
 
 #endif

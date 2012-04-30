@@ -421,4 +421,47 @@ ProcessCommunicator::CommWrapper::
 		MPI_Comm_free(&m_mpiComm);
 }
 
+
+void ProcessCommunicator::broadcast(void *v, size_t size, DataType type, int root) const
+{
+	PCL_PROFILE(pcl_ProcCom_Bcast);
+	UG_LOG("broadcasting " << (root==pcl::GetProcRank() ? "(sender) " : "(receiver) ") << size << " root = " << root << "\n");
+	MPI_Bcast(v, size, type, root, m_comm->m_mpiComm);
+}
+
+void ProcessCommunicator::broadcast(ug::BinaryBuffer &buf, int root) const
+{
+	if(pcl::GetProcRank() == root)
+	{
+		long size;
+		size = buf.write_pos();
+		broadcast(&size, 1, PCL_DT_LONG, root);
+		broadcast(buf.buffer(), size, PCL_DT_CHAR, root);
+	}
+	else
+	{
+		long size;
+		size = buf.write_pos();
+		broadcast(&size, 1, PCL_DT_LONG, root);
+		buf.reserve(size);
+		broadcast(buf.buffer(), size, PCL_DT_CHAR, root);
+		buf.set_write_pos(size);
+	}
+}
+
+size_t ProcessCommunicator::allreduce(const size_t &t, pcl::ReduceOperation op) const
+{
+	int ret, tt = (int)t;
+	allreduce(&tt, &ret, 1, PCL_DT_INT, op);
+	return (size_t)ret;
+}
+
+void ProcessCommunicator::broadcast(size_t &s, int root) const
+{
+	unsigned long l = s;
+	broadcast(l);
+	s = l;
+}
+
+
 }//	end of namespace pcl
