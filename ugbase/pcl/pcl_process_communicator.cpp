@@ -425,7 +425,7 @@ ProcessCommunicator::CommWrapper::
 void ProcessCommunicator::broadcast(void *v, size_t size, DataType type, int root) const
 {
 	PCL_PROFILE(pcl_ProcCom_Bcast);
-	UG_LOG("broadcasting " << (root==pcl::GetProcRank() ? "(sender) " : "(receiver) ") << size << " root = " << root << "\n");
+	//UG_LOG("broadcasting " << (root==pcl::GetProcRank() ? "(sender) " : "(receiver) ") << size << " root = " << root << "\n");
 	MPI_Bcast(v, size, type, root, m_comm->m_mpiComm);
 }
 
