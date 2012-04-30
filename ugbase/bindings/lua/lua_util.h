@@ -14,6 +14,8 @@ extern "C" {
 }
 
 #include "common/common.h"
+#include "common/util/path_provider.h"
+
 
 
 
@@ -42,8 +44,7 @@ class LuaError : public UGError
  *
  * Note that this method pushes the path of the currently parsed script to
  * PathProvider when parsing starts, and pops it when parsing is done.*/
-UG_API bool LoadUGScript(const char* filename);
-
+UG_API bool LoadUGScript(const char* filename, bool bNoMPI=false);
 
 ///	returns the default lua state
 /**	When called for the first time, or after ReleaseDefaultLuaState,
@@ -71,6 +72,17 @@ UG_API int UGLuaPrint(lua_State *L);
 /// UGLuaWrite. prints LUA output to UG_LOG without adding std::endl automatically
 UG_API int UGLuaWrite(lua_State *L);
 
+/**
+ * searches for the filename
+ * - relative to current script
+ * - as absolute filename
+ * - in PathProvider::get_path(SCRIPT_PATH) (ug4/scripts)
+ * - in PathProvider::get_path(APPS_PATH) (ug4/apps)
+ * - in PathProvider::get_path(ROOT_PATH) (ug4)
+ * @param filename in: relative filename to paths above. out: absolute filename (if found)
+ * @return true if found, else false
+ */
+UG_API bool GetAbsoluteUGScriptFilename(const std::string &filename, std::string &absoluteFilename);
 
 }//	end of namespace
 }//	end of namespace

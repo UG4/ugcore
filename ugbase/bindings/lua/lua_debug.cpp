@@ -105,6 +105,7 @@ void CheckHook()
 
 }
 
+
 void AddBreakpoint(const char*source, int line)
 {
 	if(pDebugShell==NULL)
@@ -112,17 +113,12 @@ void AddBreakpoint(const char*source, int line)
 		UG_LOG("No Debug Shell set!\n");
 		return;
 	}
-	string file;
 	const char *s=NULL;
-	if(!stkPathes.empty())
-	{
-		file =stkPathes.top();
-		file.append("/").append(source);
-		if(FileExists(file.c_str()))
-			s = file.c_str();
-	}
-	if(FileExists(source)) s = source;
-	if(s)
+
+	string relativeFilename=source;
+	string absoluteFilename;
+
+	if(GetAbsoluteUGScriptFilename(relativeFilename, absoluteFilename))
 	{
 		breakpoints[s][line]=true;
 		bDebugging = true;
