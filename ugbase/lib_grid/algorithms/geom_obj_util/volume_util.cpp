@@ -73,8 +73,7 @@ void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 	grid.end_marking();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 //	CalculateMinTetrahedronHeight - mstepnie
 number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b, 
 									 const vector3& c, const vector3& d)
@@ -105,7 +104,7 @@ number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b,
 	VecCross(nacd, ac, ad);
 	VecCross(nbcd, bd, bc);
 
-//	LOTFU�VERFAHREN
+//	LOTFUSSVERFAHREN
 	vector3 CutComb;
 
 	///////////
@@ -236,8 +235,7 @@ number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b,
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 //	CalculateAspectRatio - mstepnie
 number CalculateAspectRatio(Grid& grid, Tetrahedron* tet,
 							Grid::VertexAttachmentAccessor<AVector3>& aaPos)
@@ -247,26 +245,32 @@ number CalculateAspectRatio(Grid& grid, Tetrahedron* tet,
 	 * Q = sqrt(2/3) * a / a = 0.81...
 	 */
 
+	vector3& a = aaPos[tet->vertex(0)];
+	vector3& b = aaPos[tet->vertex(1)];
+	vector3& c = aaPos[tet->vertex(2)];
+	vector3& d = aaPos[tet->vertex(3)];
+
 	number AspectRatio;
 	number maxEdgelength;
 	number minTetrahedronHeight;
 
+//	Collect tetrahedron edges, find longest edge and calculate its length
 	vector<EdgeBase*> edges;
 	CollectAssociated(edges, grid, tet);
 	EdgeBase* longestEdge = FindLongestEdge(edges.begin(), edges.end(), aaPos);
 	maxEdgelength = EdgeLength(longestEdge, aaPos);
-	minTetrahedronHeight = CalculateMinTetrahedronHeight(	aaPos[tet->vertex(0)],
-															aaPos[tet->vertex(1)],
-															aaPos[tet->vertex(2)],
-															aaPos[tet->vertex(3)]);
+
+//	Calculate the minimal tetrahedron height
+	minTetrahedronHeight = CalculateMinTetrahedronHeight(a, b, c, d);
+
+//	Calculate the aspect ratio
 	AspectRatio = minTetrahedronHeight / maxEdgelength;
 
 	return AspectRatio;
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 //	CalculateTetrahedronVolume - mstepnie
 number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
 								  const vector3& c, const vector3& d)
