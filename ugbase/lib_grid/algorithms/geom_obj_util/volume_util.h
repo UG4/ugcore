@@ -56,7 +56,7 @@ number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b,
 //	CalculateTetrahedronAspectRatio - mstepnie
 /// calculates the aspect ratio of a tetrahedral element
 UG_API 
-number CalculateAspectRatio(Grid& grid, Tetrahedron* tet,
+number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 							Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
 

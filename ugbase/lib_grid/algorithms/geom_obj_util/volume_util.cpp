@@ -251,8 +251,8 @@ number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b,
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//	CalculateAspectRatio - mstepnie
-number CalculateAspectRatio(Grid& grid, Tetrahedron* tet,
+//	CalculateTetrahedronAspectRatio - mstepnie
+number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 							Grid::VertexAttachmentAccessor<AVector3>& aaPos)
 {
 	/*
