@@ -57,7 +57,7 @@ bool AssignTetrahedronAttributesByAspectRatio(	Grid& grid,
 	for(TetrahedronIterator vIter = grid.begin<Tetrahedron>(); vIter != grid.end<Tetrahedron>(); ++vIter)
 	{
 		Tetrahedron* tet = *vIter;
-		number AspectRatio = CalculateAspectRatio(grid, tet, aaPos);
+		number AspectRatio = CalculateTetrahedronAspectRatio(grid, tet, aaPos);
 
 		for(size_t i = 0; i<offsets.size(); ++i)
 		{
