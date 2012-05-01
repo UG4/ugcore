@@ -90,7 +90,6 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 
 	long status=0;
 	BinaryBuffer buf;
-	pcl::ProcessCommunicator pc; // = MPI_COMM_WORLD
 	std::vector<char> file;
 
 #ifdef UG_PARALLEL
@@ -118,6 +117,7 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 			}
 		}
 
+		pcl::ProcessCommunicator pc; // = MPI_COMM_WORLD
 		pc.broadcast(buf);
 
 		if(pcl::GetProcRank() != 0)
