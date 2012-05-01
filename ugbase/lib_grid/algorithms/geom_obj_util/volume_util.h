@@ -34,6 +34,15 @@ UG_API
 void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 					int side, bool clearContainer = true);
 
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//	CalculateVolumeMinHeight - mstepnie
+/// calculates the minimal height of a volume element of type tetrahedron
+UG_API
+number CalculateMinVolumeHeight(Tetrahedron* tet,
+								Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateMinTetrahedronHeight - mstepnie
 /// calculates the minimal height of a tetrahedral element
