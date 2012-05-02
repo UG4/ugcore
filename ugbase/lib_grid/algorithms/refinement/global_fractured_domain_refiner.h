@@ -31,14 +31,14 @@ class ISubsetHandler;
  * mark_as_fracture once again.
  */
 //template <class TAPosition>
-class GlobalFracturedDomainRefiner : public IRefiner, public GridObserver
+class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 {
 	public:
-		GlobalFracturedDomainRefiner(IRefinementCallback* refCallback = NULL);
-		GlobalFracturedDomainRefiner(MultiGrid& mg,
+		GlobalFracturedMediaRefiner(IRefinementCallback* refCallback = NULL);
+		GlobalFracturedMediaRefiner(MultiGrid& mg,
 							   	     IRefinementCallback* refCallback = NULL);
 							   
-		virtual ~GlobalFracturedDomainRefiner();
+		virtual ~GlobalFracturedMediaRefiner();
 
 		virtual void grid_to_be_destroyed(Grid* grid);
 		
@@ -57,7 +57,7 @@ class GlobalFracturedDomainRefiner : public IRefiner, public GridObserver
 	///	if enabled, a subset will be regarded as a fracture.
 	/**	If a subset is regarded as a fracture, it will be refined appropriately.
 	 * Please make sure, that the specified subset has a valid topology, as
-	 * described in ug::GlobalFracturedDomainRefiner.
+	 * described in ug::GlobalFracturedMediaRefiner.
 	 * @param subInd	The index of the subset whose property is set
 	 * @param isFracture	true or false, indicating whether the subset shall
 	 * 						be regarded as a fracture or not.*/
@@ -80,10 +80,17 @@ class GlobalFracturedDomainRefiner : public IRefiner, public GridObserver
 		virtual void perform_refinement();
 
 	///	called by perform_refinement to adjust the marks
-	/**	Elements (the ones of highest dimension), which lie in a fracture, should
-	 * be marked. Their sides should be marked, too, if they lie in the fractures
-	 * plane (run along the fracture). Everything else shouldn't be marked.*/
+	/**	Everything that shall be refined, should be marked in m_marker.
+	 * Note that the method calls communicate_marks twice, to allow derived
+	 * classes to e.g. communicate marks in a parallel environment. There thus
+	 * shouldn't be a need to reimplement adjust_marks in a derived class.*/
 		virtual void adjust_marks();
+
+	///	Called by adjust_marks. Default implementation does nothing.
+	/**	If you communicate marks (using an or operation) in this method, then the
+	 * GlobalFracturedMediaRefiner should run fine in a parallel environment, too.
+	 * The default implementation does nothing (that's fine for a serial environment).*/
+		virtual void communicate_marks(BoolMarker& marker)		{}
 
 	///	performs the actual marking
 	/**	This class is specialized for Face and Volume.*/

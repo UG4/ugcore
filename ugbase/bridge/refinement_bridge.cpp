@@ -55,7 +55,7 @@ static SmartPtr<IRefiner> HangingNodeDomainRefiner(TDomain* dom)
 ////////////////////////////////////////////////////////////////////////////////
 ///	Creates a global fractured domain refiner.
 template <class TDomain>
-static SmartPtr<GlobalFracturedDomainRefiner>
+static SmartPtr<GlobalFracturedMediaRefiner>
 CreateGlobalFracturedDomainRefiner(TDomain* dom)
 {
 	if(!dom->is_adaptive()){
@@ -70,10 +70,10 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
 		}
 	#endif
 
-	GlobalFracturedDomainRefiner* ref = new GlobalFracturedDomainRefiner(*dom->grid());
+	GlobalFracturedMediaRefiner* ref = new GlobalFracturedMediaRefiner(*dom->grid());
 	ref->set_subset_handler(*dom->subset_handler());
 
-	return SmartPtr<GlobalFracturedDomainRefiner>(ref);
+	return SmartPtr<GlobalFracturedMediaRefiner>(ref);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

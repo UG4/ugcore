@@ -27,9 +27,9 @@ namespace ug
 {
 
 //template <class TAPosition>
-//GlobalFracturedDomainRefiner<TAPosition>::
-GlobalFracturedDomainRefiner::
-GlobalFracturedDomainRefiner(IRefinementCallback* refCallback) :
+//GlobalFracturedMediaRefiner<TAPosition>::
+GlobalFracturedMediaRefiner::
+GlobalFracturedMediaRefiner(IRefinementCallback* refCallback) :
 	IRefiner(refCallback),
 	m_pMG(NULL),
 	m_pSH(NULL)
@@ -40,9 +40,9 @@ GlobalFracturedDomainRefiner(IRefinementCallback* refCallback) :
 
 
 //template <class TAPosition>
-//GlobalFracturedDomainRefiner<TAPosition>::
-GlobalFracturedDomainRefiner::
-GlobalFracturedDomainRefiner(MultiGrid& mg, IRefinementCallback* refCallback) :
+//GlobalFracturedMediaRefiner<TAPosition>::
+GlobalFracturedMediaRefiner::
+GlobalFracturedMediaRefiner(MultiGrid& mg, IRefinementCallback* refCallback) :
 	IRefiner(refCallback),
 	m_pSH(NULL)
 {
@@ -54,9 +54,9 @@ GlobalFracturedDomainRefiner(MultiGrid& mg, IRefinementCallback* refCallback) :
 
 
 //template <class TAPosition>
-//GlobalFracturedDomainRefiner<TAPosition>::
-GlobalFracturedDomainRefiner::
-~GlobalFracturedDomainRefiner()
+//GlobalFracturedMediaRefiner<TAPosition>::
+GlobalFracturedMediaRefiner::
+~GlobalFracturedMediaRefiner()
 {
 	if(m_pMG)
 		m_pMG->unregister_observer(this);
@@ -64,8 +64,8 @@ GlobalFracturedDomainRefiner::
 
 
 //template <class TAPosition>
-//void GlobalFracturedDomainRefiner<TAPosition>::
-void GlobalFracturedDomainRefiner::
+//void GlobalFracturedMediaRefiner<TAPosition>::
+void GlobalFracturedMediaRefiner::
 grid_to_be_destroyed(Grid* grid)
 {
 	m_pMG = NULL;
@@ -73,8 +73,8 @@ grid_to_be_destroyed(Grid* grid)
 
 
 //template <class TAPosition>
-//void GlobalFracturedDomainRefiner<TAPosition>::
-void GlobalFracturedDomainRefiner::
+//void GlobalFracturedMediaRefiner<TAPosition>::
+void GlobalFracturedMediaRefiner::
 assign_grid(MultiGrid& mg)
 {
 	assign_grid(&mg);
@@ -82,8 +82,8 @@ assign_grid(MultiGrid& mg)
 
 
 //template <class TAPosition>
-//void GlobalFracturedDomainRefiner<TAPosition>::
-void GlobalFracturedDomainRefiner::
+//void GlobalFracturedMediaRefiner<TAPosition>::
+void GlobalFracturedMediaRefiner::
 assign_grid(MultiGrid* mg)
 {
 	if(m_pMG){
@@ -101,8 +101,8 @@ assign_grid(MultiGrid* mg)
 }
 
 //template <class TAPosition>
-//void GlobalFracturedDomainRefiner<TAPosition>::
-void GlobalFracturedDomainRefiner::
+//void GlobalFracturedMediaRefiner<TAPosition>::
+void GlobalFracturedMediaRefiner::
 mark_as_fracture(int subInd, bool isFracture)
 {
 	if(subInd < 0)
@@ -117,8 +117,8 @@ mark_as_fracture(int subInd, bool isFracture)
 }
 
 //template <class TAPosition>
-//bool GlobalFracturedDomainRefiner<TAPosition>::
-bool GlobalFracturedDomainRefiner::
+//bool GlobalFracturedMediaRefiner<TAPosition>::
+bool GlobalFracturedMediaRefiner::
 is_fracture(int subInd)
 {
 	if((subInd < 0) || (subInd >= (int)m_subsetIsFracture.size()))
@@ -127,12 +127,12 @@ is_fracture(int subInd)
 }
 
 //template <class TAPosition>
-//void GlobalFracturedDomainRefiner<TAPosition>::
-void GlobalFracturedDomainRefiner::
+//void GlobalFracturedMediaRefiner<TAPosition>::
+void GlobalFracturedMediaRefiner::
 perform_refinement()
 {
 	GFDR_PROFILE_FUNC();
-	UG_DLOG(LIB_GRID, 1, "GlobalFracturedDomainRefiner\n");
+	UG_DLOG(LIB_GRID, 1, "GlobalFracturedMediaRefiner\n");
 
 //	get the grid
 	if(!m_pMG)
@@ -169,7 +169,7 @@ perform_refinement()
 	if(mg.num_volumes() > 0){
 		if(!mg.option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 		{
-			LOG("WARNING in GlobalFracturedDomainRefiner::refine(): auto-enabling VOLOPT_AUTOGENERATE_FACES.\n");
+			LOG("WARNING in GlobalFracturedMediaRefiner::refine(): auto-enabling VOLOPT_AUTOGENERATE_FACES.\n");
 			mg.enable_options(VOLOPT_AUTOGENERATE_FACES);
 		}
 	}
@@ -177,7 +177,7 @@ perform_refinement()
 	if(mg.num_faces() > 0){
 		if(!mg.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 		{
-			LOG("WARNING in GlobalFracturedDomainRefiner::refine(): auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
+			LOG("WARNING in GlobalFracturedMediaRefiner::refine(): auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
 			mg.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 		}
 	}
@@ -426,10 +426,11 @@ perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  refinement done.");
 }
 
+/*
 //template <class TAPosition>
 template <class TElem>
-//void GlobalFracturedDomainRefiner<TAPosition>::
-void GlobalFracturedDomainRefiner::
+//void GlobalFracturedMediaRefiner<TAPosition>::
+void GlobalFracturedMediaRefiner::
 assign_elem_and_side_marks()
 {
 	typedef typename MultiGrid::traits<TElem>::iterator	ElemIter;
@@ -600,10 +601,184 @@ assign_elem_and_side_marks()
 //	mark sides of marked side elements
 	mark_sides_of_marked_top_level_elements<Side>();
 }
+*/
 
 
 template <class TElem>
-void GlobalFracturedDomainRefiner::
+void GlobalFracturedMediaRefiner::
+assign_elem_and_side_marks()
+{
+	typedef typename MultiGrid::traits<TElem>::iterator	ElemIter;
+	typedef typename TElem::side	Side;
+	typedef typename Side::side		SideOfSide;
+
+	if(!m_pMG)
+		UG_THROW("No grid assigned!");
+
+	if(!m_pSH)
+		UG_THROW("No subset handler assigned");
+
+	if(m_pMG->num_levels() == 0)
+		UG_THROW("At least one level has to exist in the associated multi-grid.");
+
+	MultiGrid& mg = *m_pMG;
+
+//	iterate over all elements in the top level and adjust their marks
+	int topLvl = mg.num_levels() - 1;
+
+//	we only clear side marks and element marks here, since only those will be set again.
+	m_marker.clear();
+
+//	we'll also use a temporary marked to mark fixed sides.
+	BoolMarker	fixedMarker(mg);
+
+//	collect associated sides and elements in this vectors
+
+	std::vector<Side*>	sides, sidesCon;
+	std::vector<SideOfSide*> sidesOfSides;	//only used in 3d for fixed marks
+	std::vector<TElem*>	elems;
+	std::vector<TElem*>	caps;// elements at fracture caps (rim-boundary)
+
+//	first we'll mark all elements which do not lie in a fracture. We'll also mark
+//	their sides.
+	for(ElemIter iter = mg.begin<TElem>(topLvl);
+		iter != mg.end<TElem>(topLvl); ++iter)
+	{
+		TElem* e = *iter;
+
+		if(!is_fracture_element(e)){
+			m_marker.mark(e);
+			CollectAssociated(sides, mg, e);
+			for(size_t i = 0; i < sides.size(); ++i){
+				m_marker.mark(sides[i]);
+			}
+		}
+	}
+
+
+//	call a callback, which allows to communicate marks in a parallel environment.
+//	the default implementation does nothing
+	communicate_marks(m_marker);
+
+//	now iterate over all fracture elements and mark interior sides accordingly
+	for(ElemIter iter = mg.begin<TElem>(topLvl);
+		iter != mg.end<TElem>(topLvl); ++iter)
+	{
+		TElem* e = *iter;
+
+		if(!is_fracture_element(e))
+			continue;
+
+		m_marker.mark(e);
+
+	//	find the side which is already marked. If more than one is marked,
+	//	we'll ignore the element. If no side is marked, we'll throw an error,
+	//	since the fracture does not feature the required topology in this case.
+		CollectAssociated(sides, mg, e);
+		Side* markedSide = NULL;
+		int numMarked = 0;
+		for(size_t i_side = 0; i_side < sides.size(); ++i_side){
+			Side* s = sides[i_side];
+			if(m_marker.is_marked(s)){
+				markedSide = s;
+				++numMarked;
+			}
+		}
+
+		if((numMarked == 0) || (numMarked > 2)){
+			UG_THROW("Bad fracture topology encountered in element with center "
+					 << GetGeometricObjectCenter(mg, e) << "! Aborting.");
+		}
+
+		typename geometry_traits<Side>::GeneralDescriptor desc;
+		if(e->get_opposing_side(markedSide, desc)){
+			Side* opSide = mg.get_element(desc);
+			if(opSide){
+				if((numMarked == 2) && (!m_marker.is_marked(opSide))){
+					UG_THROW("Bad fracture topology encountered in element with center "
+							 << GetGeometricObjectCenter(mg, e) << "! Aborting.");
+				}
+				m_marker.mark(opSide);
+			}
+			else{
+				UG_THROW("Opposing side could not be found in grid. Check grid options.");
+			}
+
+		//	we'll iterate over the sides of the element again and mark currently
+		//	unmarked sides as fixed sides
+			for(size_t i_side = 0; i_side < sides.size(); ++i_side){
+				Side* s = sides[i_side];
+				if(!m_marker.is_marked(s))
+				//	in 3d we'll also have to mark sides of sides, to guarantee,
+				//	that fixed marks are communicated correctly.
+					fixedMarker.mark(s);
+
+					if(Side::dim == 2){
+						CollectAssociated(sidesOfSides, mg, s);
+						for(size_t i = 0; i < sidesOfSides.size(); ++i)
+							fixedMarker.mark(sidesOfSides[i]);
+					}
+			}
+
+		}
+		else{
+		//	this should only happen if we're on a cap-element. Store the element for later use.
+			caps.push_back(e);
+		}
+	}
+
+//	communicate fixed marks. Default implementation does nothing.
+//	This can be used by a derived class to communicate marks to other processes.
+	communicate_marks(fixedMarker);
+
+//	now adjust marks at cap elements
+	for(typename std::vector<TElem*>::iterator iter = caps.begin();
+		iter != caps.end(); ++iter)
+	{
+		TElem* e = *iter;
+		m_marker.mark(e);
+
+	//	sides which are marked as fixed or have a fixed side them selfes (3d only)
+	//	may not be refined. All others may be refined.
+		CollectAssociated(sides, mg, e);
+		for(size_t i_side = 0; i_side < sides.size(); ++i_side){
+			bool refineSide = true;
+			Side* s = sides[i_side];
+
+			if(fixedMarker.is_marked(s)){
+				refineSide = false;
+				break;
+			}
+			else{
+				if(Side::dim == 2){
+					CollectAssociated(sidesOfSides, mg, s);
+					for(size_t i = 0; i < sidesOfSides.size(); ++i){
+						if(fixedMarker.is_marked(sidesOfSides[i])){
+							refineSide = false;
+							break;
+						}
+					}
+
+					if(!refineSide)
+						break;
+				}
+			}
+
+		//	if the side shall be refined, we'll mark it
+			if(refineSide)
+				m_marker.mark(s);
+		}
+
+	}
+
+//	mark sides of marked side elements
+	if(Side::HAS_SIDES)
+		mark_sides_of_marked_top_level_elements<Side>();
+}
+
+
+template <class TElem>
+void GlobalFracturedMediaRefiner::
 mark_sides_of_marked_top_level_elements()
 {
 	typedef typename MultiGrid::traits<TElem>::iterator	ElemIter;
@@ -640,8 +815,8 @@ mark_sides_of_marked_top_level_elements()
 
 
 //template <class TAPosition>
-//void GlobalFracturedDomainRefiner<TAPosition>::
-void GlobalFracturedDomainRefiner::
+//void GlobalFracturedMediaRefiner<TAPosition>::
+void GlobalFracturedMediaRefiner::
 adjust_marks()
 {
 	if(!m_pMG){
@@ -654,17 +829,17 @@ adjust_marks()
 	else if(m_pMG->num<Face>() > 0)
 		assign_elem_and_side_marks<Face>();
 	else
-		UG_THROW("A grid on which GlobalFracturedDomainRefiner operates has to"
+		UG_THROW("A grid on which GlobalFracturedMediaRefiner operates has to"
 				" contain faces or volumes.");
 }
 
 //template <class TAPosition>
-//bool GlobalFracturedDomainRefiner<TAPosition>::
-bool GlobalFracturedDomainRefiner::
+//bool GlobalFracturedMediaRefiner<TAPosition>::
+bool GlobalFracturedMediaRefiner::
 save_marks_to_file(const char* filename)
 {
 	if(!m_pMG){
-		UG_THROW("ERROR in GlobalFracturedDomainRefiner::save_marks_to_file: No grid assigned!");
+		UG_THROW("ERROR in GlobalFracturedMediaRefiner::save_marks_to_file: No grid assigned!");
 	}
 
 	MultiGrid& mg = *m_pMG;
@@ -712,7 +887,7 @@ save_marks_to_file(const char* filename)
 }
 
 template <class TElem>
-size_t GlobalFracturedDomainRefiner::
+size_t GlobalFracturedMediaRefiner::
 num_marked(const std::vector<TElem*>& elems) const
 {
 	size_t num = 0;
@@ -723,15 +898,4 @@ num_marked(const std::vector<TElem*>& elems) const
 	return num;
 }
 
-
-////////////////////////////////////////
-//	explicit instantiation
-//template class GlobalFracturedDomainRefiner<APosition1>;
-//template class GlobalFracturedDomainRefiner<APosition2>;
-//template class GlobalFracturedDomainRefiner<APosition3>;
-/*
-template void GlobalFracturedDomainRefiner<APosition1>::assign_elem_and_side_marks<EdgeBase>();
-template void GlobalFracturedDomainRefiner<APosition2>::assign_elem_and_side_marks<EdgeBase>();
-template void GlobalFracturedDomainRefiner<APosition3>::assign_elem_and_side_marks<EdgeBase>();
-*/
 }//	end of namespace

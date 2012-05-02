@@ -664,7 +664,7 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 
 	//	GlobalFracturedDomainRefiner
 		{
-			typedef GlobalFracturedDomainRefiner cls;
+			typedef GlobalFracturedMediaRefiner cls;
 			reg.add_class_<cls, IRefiner>("GlobalFracturedMediumRefiner", grp)
 				.add_constructor()
 				.add_method("assign_grid", static_cast<void (cls::*)(MultiGrid*)>(&cls::assign_grid))
