@@ -48,7 +48,7 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					# (unmaintained) algorithms/refinement/multi_grid_refiner.cpp
 					algorithms/refinement/regular_refinement.cpp
 					algorithms/refinement/global_multi_grid_refiner.cpp
-					algorithms/refinement/global_fractured_domain_refiner.cpp
+					algorithms/refinement/global_fractured_media_refiner.cpp
 					algorithms/refinement/refinement_callbacks.cpp
 					algorithms/subdivision/subdivision_loop.cpp
 					algorithms/subdivision/subdivision_rules_piecewise_loop.cpp)

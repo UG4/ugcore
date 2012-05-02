@@ -2,8 +2,8 @@
 //	s.b.reiter@googlemail.com
 //	y12 m04 d25
 
-#ifndef __H__LIB_GRID__GLOBAL_FRACTURED_DOMAIN_REFINER__
-#define __H__LIB_GRID__GLOBAL_FRACTURED_DOMAIN_REFINER__
+#ifndef __H__LIB_GRID__GLOBAL_FRACTURED_MEDIA_REFINER__
+#define __H__LIB_GRID__GLOBAL_FRACTURED_MEDIA_REFINER__
 
 #include <vector>
 #include "lib_grid/lg_base.h"

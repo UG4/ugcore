@@ -8,7 +8,7 @@
 #include "bridge.h"
 #include "lib_disc/domain.h"
 #include "lib_grid/lib_grid.h"
-#include "lib_grid/algorithms/refinement/global_fractured_domain_refiner.h"
+#include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
 
 using namespace std;
 

@@ -11,7 +11,7 @@
 #include "common/profiler/profiler.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/tools/partition_map.h"
-#include "lib_grid/algorithms/refinement/global_fractured_domain_refiner.h"
+#include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
 
 using namespace std;
 

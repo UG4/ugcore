@@ -4,7 +4,7 @@
 
 #include <cassert>
 #include "common/profiler/profiler.h"
-#include "global_fractured_domain_refiner.h"
+#include "global_fractured_media_refiner.h"
 #include "lib_grid/algorithms/algorithms.h"
 #include "lib_grid/common_attachments.h"
 
