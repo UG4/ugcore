@@ -58,7 +58,7 @@ void Table<T>::add_rows(size_t num)
 			}
 		}
 		
-		m_numRows += num;
+		m_numRows = newSize;
 	}
 }
 
@@ -67,13 +67,13 @@ void Table<T>::add_cols(size_t num)
 {
 	if(num > 0){
 		size_t newSize = m_numCols + num;
-		for(size_t i = 0; i < newSize; ++i){
-			m_data[i].resize(newSize);
+		for(size_t i_row = 0; i_row < m_numRows; ++i_row){
+			m_data[i_row].resize(newSize);
 			for(size_t i_col = m_numCols; i_col < newSize; ++i_col)
-				m_data[i][i_col] = new T;
+				m_data[i_row][i_col] = new T;
 		}
 		
-		m_numCols += num;
+		m_numCols = newSize;
 	}
 }
 
