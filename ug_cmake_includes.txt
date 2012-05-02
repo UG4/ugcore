@@ -48,6 +48,7 @@ set(buildBridge OFF)
 set(buildBindings OFF)
 set(buildRegistry OFF)
 
+
 # Here we'll store libs, if we find and need them
 set(linkLibraries)
 
@@ -115,6 +116,7 @@ option(BUILTIN_BLAS "BLAS is built into compiler" OFF)
 option(BUILTIN_LAPACK "LAPACK is built into compiler" OFF)
 option(BUILTIN_MPI "MPI is built into compiler" OFF)
 option(EMBED_SVN_REV "Enables output of SVN head revision, compile date and build host. Valid options are ON, OFF" ${svnDefault})
+option(OPENMP "Enables use of OpenMP. Valid options are ON, OFF" OFF)
 
 ################################################################################
 # set default values for pseudo-options
@@ -413,6 +415,16 @@ if(PCL_DEBUG_BARRIER)
 	add_definitions(-DPCL_DEBUG_BARRIER_ENABLED)
 endif(PCL_DEBUG_BARRIER)
 
+
+
+########################################
+# OPENMP
+if(OPENMP)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp")
+	message(STATUS "Info: Using OpenMP (experimental)")
+endif(OPENMP)
 
 ########################################
 # buildAlgebra
@@ -795,3 +807,4 @@ mark_as_advanced(CMAKE_BUILD_TYPE)
 mark_as_advanced(BUILTIN_LAPACK)
 mark_as_advanced(BUILTIN_BLAS)
 mark_as_advanced(BUILTIN_MPI)
+
