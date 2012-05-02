@@ -646,6 +646,9 @@ assign_elem_and_side_marks()
 	{
 		TElem* e = *iter;
 
+		if(!refinement_is_allowed(e))
+			continue;
+
 		if(!is_fracture_element(e)){
 			m_marker.mark(e);
 			CollectAssociated(sides, mg, e);
@@ -665,6 +668,9 @@ assign_elem_and_side_marks()
 		iter != mg.end<TElem>(topLvl); ++iter)
 	{
 		TElem* e = *iter;
+
+		if(!refinement_is_allowed(e))
+			continue;
 
 		if(!is_fracture_element(e))
 			continue;

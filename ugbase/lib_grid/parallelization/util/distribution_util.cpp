@@ -4,12 +4,14 @@
 
 #include <utility>
 #include <vector>
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 #include "pcl/pcl.h"
 #include "distribution_util.h"
 #include "common/util/binary_stream.h"
 #include "common/serialization.h"
 #include "common/assert.h"
+#include "lib_grid/algorithms/selection_util.h"
+#include "lib_grid/algorithms/serialization.h"
 
 using namespace std;
 

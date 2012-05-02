@@ -670,7 +670,8 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 				.add_method("assign_grid", static_cast<void (cls::*)(MultiGrid*)>(&cls::assign_grid))
 				.add_method("set_subset_handler", static_cast<void (cls::*)(ISubsetHandler*)>(&cls::set_subset_handler))
 				.add_method("mark_as_fracture", &cls::mark_as_fracture)
-				.add_method("is_fracture", &cls::is_fracture);
+				.add_method("is_fracture", &cls::is_fracture)
+				.set_construct_as_smart_pointer(true);
 		}
 
 	//	parallel refinement
@@ -679,6 +680,14 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			("ParallelHangingNodeRefiner_MultiGrid", grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
+/*Currently not directly usable. For domains, you may use the factory method
+ * GlobalFracturedDomainRefiner, which automatically creates a
+ * ParallelGlobalFracturedMediaRefiner, if required.
+		reg.add_class_<ParallelGlobalFracturedMediaRefiner, GlobalFracturedMediaRefiner>
+			("ParallelGlobalFracturedMediaRefiner", grp)
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+*/
 	#endif
 
 	//	GridObject

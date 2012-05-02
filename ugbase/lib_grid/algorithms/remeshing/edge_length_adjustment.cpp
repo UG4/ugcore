@@ -3,10 +3,13 @@
 //	y10 m01 d22
 
 #include <queue>
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 #include "common/profiler/profiler.h"
 #include "simple_grid.h"
 #include "edge_length_adjustment.h"
+#include "lib_grid/algorithms/refinement/regular_refinement.h"
+#include "common/node_tree/node_tree.h"
+#include "lib_grid/algorithms/trees/octree.h"
 
 using namespace std;
 

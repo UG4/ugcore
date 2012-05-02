@@ -2,11 +2,12 @@
 // s.b.reiter@googlemail.com
 // 15.03.2011 (m,d,y)
  
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 #include "pcl/pcl.h"
 #include "distribution_util.h"
 #include "common/util/binary_stream.h"
 #include "common/serialization.h"
+#include "lib_grid/algorithms/selection_util.h"
 
 using namespace std;
 

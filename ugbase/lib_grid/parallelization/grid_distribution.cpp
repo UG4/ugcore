@@ -4,7 +4,7 @@
 
 #include <algorithm>
 #include "grid_distribution.h"
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 #include "pcl/pcl.h"
 #include "util/distribution_util.h"
 #include "common/util/binary_stream.h"

@@ -6,6 +6,7 @@
 #define __H__UG__parallel_refinement__
 
 #include "parallel_hanging_node_refiner_multi_grid.h"
+#include "parallel_global_fractured_media_refiner.h"
 #include "parallel_global_refiner_t.h"
 
 #include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"

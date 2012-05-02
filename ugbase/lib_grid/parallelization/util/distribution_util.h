@@ -9,6 +9,7 @@
 #include <map>
 #include "lib_grid/lg_base.h"
 #include "../parallel_grid_layout.h"
+#include "../distributed_grid.h"
 
 namespace ug
 {

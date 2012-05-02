@@ -14,6 +14,7 @@
 #include "refinement/hanging_node_refiner_multi_grid.h"
 #include "refinement/regular_refinement.h"
 #include "refinement/global_multi_grid_refiner.h"
+#include "refinement/global_fractured_media_refiner.h"
 #include "refinement/fractured_media_refiner.h"
 #include "extrusion/extrusion.h"
 #include "subdivision/subdivision_loop.h"

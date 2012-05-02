@@ -8,7 +8,6 @@
 #include "bridge.h"
 #include "lib_disc/domain.h"
 #include "lib_grid/lib_grid.h"
-#include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
 
 using namespace std;
 
@@ -63,14 +62,16 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
 				 	   "Construct the domain with isAdaptive enabled.");
 	}
 
+	GlobalFracturedMediaRefiner* ref = NULL;
 	#ifdef UG_PARALLEL
 		if(pcl::GetNumProcesses() > 1){
-			UG_THROW("No parallel version of the GlobalFracturedDomainRefiner "
-					"currently exists. Sorry.");
+			ref = new ParallelGlobalFracturedMediaRefiner(*dom->distributed_grid_manager());
 		}
 	#endif
 
-	GlobalFracturedMediaRefiner* ref = new GlobalFracturedMediaRefiner(*dom->grid());
+	if(!ref)
+		ref = new GlobalFracturedMediaRefiner(*dom->grid());
+
 	ref->set_subset_handler(*dom->subset_handler());
 
 	return SmartPtr<GlobalFracturedMediaRefiner>(ref);

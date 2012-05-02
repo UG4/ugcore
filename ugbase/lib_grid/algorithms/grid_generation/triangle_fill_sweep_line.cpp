@@ -8,7 +8,7 @@
 #include <map>
 #include <stack>
 #include <algorithm>
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 using namespace std;
 
 namespace ug
