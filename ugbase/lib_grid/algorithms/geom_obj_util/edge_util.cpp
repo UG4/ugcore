@@ -80,7 +80,7 @@ bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e)
 {
 //	get the number of connected faces. if only one face is connected then
 //	the edge is considered to be a boundary edge.
-	int counter = 0;
+/*	int counter = 0;
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
@@ -98,7 +98,8 @@ bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e)
 		if(vFaces.size() == 1)
 			return true;
 	}
-	return false;
+	return false;*/
+	return NumAssociatedFaces(grid, e) == 1;
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -286,14 +286,16 @@ template <class TAPosition>
 bool RefinementCallbackSubdivBoundary<TAPosition>::
 is_crease_vertex(VertexBase* vrt)
 {
-	return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
+	return !IsRegularSurfaceVertex(*BaseClass::m_pGrid, vrt);
+	//return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
 }
 
 template <class TAPosition>
 bool RefinementCallbackSubdivBoundary<TAPosition>::
 is_crease_edge(EdgeBase* edge)
 {
-	return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
+	return NumAssociatedFaces(*BaseClass::m_pGrid, edge) != 2;
+	//return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
 }
 
 
@@ -488,14 +490,16 @@ template <class TAPosition>
 bool RefinementCallbackSubdivisionLoop<TAPosition>::
 is_crease_vertex(VertexBase* vrt)
 {
-	return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
+	return !IsRegularSurfaceVertex(*BaseClass::m_pGrid, vrt);
+	//return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
 }
 
 template <class TAPosition>
 bool RefinementCallbackSubdivisionLoop<TAPosition>::
 is_crease_edge(EdgeBase* edge)
 {
-	return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
+	return NumAssociatedFaces(*BaseClass::m_pGrid, edge) != 2;
+	//return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
 }
 
 }// end of namespace
