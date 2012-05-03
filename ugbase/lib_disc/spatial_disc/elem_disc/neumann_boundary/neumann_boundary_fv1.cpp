@@ -60,11 +60,14 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 			               " does not exist in pattern.");
 
 	//	add to common fct group if not already contained
-		if(!commonFctGrp.contains(fct)) commonFctGrp.add(fct);
+		if(!commonFctGrp.contains(fct))
+		{
+			commonFctGrp.add(fct);
 
-	//	build string of functions
-		if(!fctNames.empty()) fctNames.append(",");
-		fctNames.append(vUserData[i].fctName.c_str());
+		//	build string of functions
+			if(!fctNames.empty()) fctNames.append(",");
+			fctNames.append(vUserData[i].fctName.c_str());
+		}
 
 	//	set local fct id
 		vUserData[i].locFct = commonFctGrp.local_index(fct);
@@ -330,9 +333,9 @@ ass_rhs_elem(LocalVector& d)
 	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	typedef typename TFVGeom<TElem, dim>::BF BF;
 
-	size_t ip = 0;
 	for(size_t data = 0; data < m_vNumberData.size(); ++data)
 	{
+		size_t ip = 0;
 		for(size_t s = 0; s < m_vNumberData[data].ssGrp.num_subsets(); ++s)
 		{
 		//	get subset index
