@@ -15,7 +15,7 @@
 
 using namespace std;
 
-#ifdef UG_PARALLEL11
+#ifdef UG_PARALLEL
 #include "lib_algebra/operator/eigensolver/pinvit.h"
 
 namespace ug
@@ -64,9 +64,11 @@ struct RegisterEigensolverClass
 	}
 };
 
+
 bool RegisterEigensolver(Registry& reg, string parentGroup)
 {
 	return RegisterAlgebraClass<RegisterEigensolverClass>(reg, parentGroup);
+
 }
 
 }
