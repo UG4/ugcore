@@ -157,10 +157,36 @@ class IAssemble
 		virtual void adjust_solution(vector_type& u,
 		                             GridLevel gl) = 0;
 
-		/// adjust solution on surface grid
+	/// adjust solution on surface grid
 		void adjust_solution(vector_type& u)
 			{adjust_solution(u, GridLevel());}
 
+	///	assembles mass matrix
+		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u,
+		                               GridLevel gl)
+		{UG_THROW_FATAL("IAssemble: assemble_mass_matrix not implemented.");}
+
+	///	assembles mass matrix on surface grid
+		void assemble_mass_matrix(matrix_type& M, const vector_type& u)
+			{assemble_mass_matrix(M,u,GridLevel());}
+
+	///	assembles stiffness matrix
+		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
+		                                       GridLevel gl)
+		{UG_THROW_FATAL("IAssemble: assemble_stiffness_matrix not implemented.");}
+
+	///	assembles stiffness matrix on surface grid
+		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
+			{assemble_stiffness_matrix(A,u,GridLevel());}
+
+	///	assembles rhs
+		virtual void assemble_rhs(vector_type& rhs, const vector_type& u,
+		                           GridLevel gl)
+		{UG_THROW_FATAL("IAssemble: assemble_rhs not implemented.");}
+
+	///	assembles rhs on surface grid
+		virtual void assemble_rhs(vector_type& rhs, const vector_type& u)
+			{assemble_rhs(rhs, u, GridLevel());}
 
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce) = 0;

@@ -133,27 +133,15 @@ class DomainDiscretization
 		void assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		                          ConstSmartPtr<TDD> dd);
 
-		template <typename TDD>
-		void assemble_mass_matrix(matrix_type& M, const vector_type& u)
-			{assemble_mass_matrix(M, u, GridLevel());}
-
 	/// assembles the stiffness matrix
 		template <typename TDD>
 		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		                               ConstSmartPtr<TDD> dd);
 
-		template <typename TDD>
-		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
-			{assemble_stiffness_matrix(A, u, GridLevel());}
-
 	/// assembles the stiffness matrix
 		template <typename TDD>
 		void assemble_rhs(vector_type& rhs, const vector_type& u,
 		                  ConstSmartPtr<TDD> dd);
-
-		template <typename TDD>
-		void assemble_rhs(vector_type& rhs, const vector_type& u)
-			{assemble_rhs(rhs, u, GridLevel());}
 
 	public:
 	/// forces the assembling to consider the grid as regular

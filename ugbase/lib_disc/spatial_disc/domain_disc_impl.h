@@ -87,9 +87,9 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("DomainDiscretization::assemble_mass_matrix:"
-					   " Can not Subset Groups and union.");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -148,21 +148,21 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	}
 
 //	post process
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
+	try{
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
 		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			if(!m_vvConstraints[type][i]->adjust_jacobian(M, u, dd))
-				UG_THROW_FATAL("DomainDiscretization: Cannot adjust jacobian.");
+		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i){
+			m_vvConstraints[type][i]->adjust_jacobian(M, u, dd->grid_level());
 		}
 	}
+	}UG_CATCH_THROW("DomainDiscretization::assemble_mass_matrix:"
+					" Cannot execute post process.");
 
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	M.set_storage_type(PST_ADDITIVE);
-	TDD* dist = const_cast<TDD*>(&dd);
-	CopyLayoutsAndCommunicatorIntoMatrix(M, *dist);
+	TDD* pDD = const_cast<TDD*>(dd.get());
+	CopyLayoutsAndCommunicatorIntoMatrix(M, *pDD);
 #endif
 }
 
@@ -190,9 +190,9 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("DomainDiscretization::assemble_stiffness_matrix:"
-						" Can not Subset Groups and union.");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -251,21 +251,21 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	}
 
 //	post process
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
+	try{
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
 		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			if(!m_vvConstraints[type][i]->adjust_jacobian(A, u, dd))
-				UG_THROW_FATAL("Cannot adjust jacobian.");
+		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i){
+			m_vvConstraints[type][i]->adjust_jacobian(A, u, dd->grid_level());
 		}
 	}
+	}UG_CATCH_THROW("DomainDiscretization::assemble_stiffness_matrix:"
+					" Cannot execute post process.");
 
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	A.set_storage_type(PST_ADDITIVE);
-	TDD* dist = const_cast<TDD*>(&dd);
-	CopyLayoutsAndCommunicatorIntoMatrix(A, *dist);
+	TDD* pDD = const_cast<TDD*>(dd.get());
+	CopyLayoutsAndCommunicatorIntoMatrix(A, *pDD);
 #endif
 }
 
@@ -604,9 +604,9 @@ assemble_rhs(vector_type& rhs,
 	std::vector<SubsetGroup> vSSGrp;
 
 //	create list of all subsets
-	if(!CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler()))
-		UG_THROW_FATAL("DomainDiscretization:"
-						" Can not Subset Groups and union.");
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
@@ -665,16 +665,15 @@ assemble_rhs(vector_type& rhs,
 	}
 
 //	post process
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
+	try{
+	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
 		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			if(!m_vvConstraints[type][i]->adjust_rhs(rhs, u, dd))
-				UG_THROW_FATAL("DomainDiscretization::assemble_rhs:"
-							" Cannot post process.");
+		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i){
+			m_vvConstraints[type][i]->adjust_rhs(rhs, u, dd->grid_level());
 		}
 	}
+	}UG_CATCH_THROW("DomainDiscretization::assemble_rhs:"
+					" Cannot execute post process.");
 
 //	Remember parallel storage type
 #ifdef UG_PARALLEL

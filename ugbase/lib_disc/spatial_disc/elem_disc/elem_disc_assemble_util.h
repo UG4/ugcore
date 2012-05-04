@@ -197,7 +197,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_subset(si);
 		Eval.set_time_dependent(false);
-		Eval.template prepare_elem_loop<TElem>(0.0, true);
+		Eval.template prepare_elem_loop<TElem>(true);
 	}
 	UG_CATCH_THROW("AssembleMassMatrix: Cannot prepare element loop.");
 

@@ -73,10 +73,17 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 		string name = string("IAssemble").append(algSuffix);
 		reg.add_class_<T>(name, grp)
 			.add_method("assemble_jacobian", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_jacobian),
-					"", "J#u", "assembles jacobian on surface grid")
+					"", "J(u)#u", "assembles jacobian on surface grid")
 			.add_method("assemble_defect", static_cast<void (T::*)(vector_type&, const vector_type&)>(&T::assemble_defect),
-					"d(u)#iterate_u#DoFdistr", "Assembles Defect at a given Solution u.")
-			.add_method("assemble_linear", static_cast<void (T::*)(matrix_type&, vector_type&)>(&T::assemble_linear))
+					"", "d(u)#u", "Assembles Defect at a given Solution u.")
+			.add_method("assemble_linear", static_cast<void (T::*)(matrix_type&, vector_type&)>(&T::assemble_linear),
+					"", "A#b", "Assembles Matrix and rhs on surface grid.")
+			.add_method("assemble_stiffness_matrix", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_stiffness_matrix),
+					"", "A#u", "assembles stiffness matrix on surface grid")
+			.add_method("assemble_mass_matrix", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_mass_matrix),
+					"", "M#u", "assembles mass matrix on surface grid")
+			.add_method("assemble_rhs", static_cast<void (T::*)(vector_type&, const vector_type&)>(&T::assemble_rhs),
+					"", "rhs#u", "assembles right-hand side on surface grid")
 			.add_method("adjust_solution", static_cast<void (T::*)(vector_type&)>(&T::adjust_solution));
 		reg.add_class_to_group(name, "IAssemble", algTag);
 	}
