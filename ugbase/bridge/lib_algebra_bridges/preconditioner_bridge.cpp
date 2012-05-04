@@ -22,8 +22,6 @@
 
 using namespace std;
 
-#include "lib_algebra/operator/eigensolver/pinvit.h"
-
 namespace ug
 {
 namespace bridge
