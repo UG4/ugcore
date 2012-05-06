@@ -117,7 +117,7 @@ option(BUILTIN_LAPACK "LAPACK is built into compiler" OFF)
 option(BUILTIN_MPI "MPI is built into compiler" OFF)
 option(EMBED_SVN_REV "Enables output of SVN head revision, compile date and build host. Valid options are ON, OFF" ${svnDefault})
 option(OPENMP "Enables use of OpenMP. Valid options are ON, OFF" OFF)
-option(CPP11 "Enables compilation with C++11 standard. Valid options are ON, OFF" OFF)
+option(CXX11 "Enables compilation with C++11 standard. Valid options are ON, OFF" OFF)
 
 ################################################################################
 # set default values for pseudo-options
@@ -424,17 +424,17 @@ IF(OPENMP)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp")
-  ADD_DEFINITIONS(-DOPENMP)
+  ADD_DEFINITIONS(-DUG_OPENMP)
   MESSAGE(STATUS "Info: Using OpenMP (experimental)")
 ENDIF(OPENMP)
 
 ########################################
 # C++11
-IF(CPP11)
+IF(CXX11)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  ADD_DEFINITIONS(-DCPP11)
+  ADD_DEFINITIONS(-DUG_CXX11)
   MESSAGE(STATUS "Info: Compiling with C++11 enabled.")
-ENDIF(CPP11)
+ENDIF(CXX11)
 
 ########################################
 # buildAlgebra
