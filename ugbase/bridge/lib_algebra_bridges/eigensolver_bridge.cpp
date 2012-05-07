@@ -58,7 +58,7 @@ struct RegisterEigensolverClass
 								"", "precision")
 				.add_method("set_pinvit", &T::set_pinvit, "", "iPINVIT", "1 = preconditioned inverse block iteration, 2 = preconditioned block gradient descent, 3 = LOBPCG")
 				.add_method("apply", &T::apply);
-			reg.add_class_to_group(name, "EigenSolver", GetAlgebraTag<TAlgebra>())
+			reg.add_class_to_group(name, "EigenSolver", GetAlgebraTag<TAlgebra>());
 	#endif
 		return true;
 	}
