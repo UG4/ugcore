@@ -2,7 +2,7 @@
  * integrate.h
  *
  *  Created on: 04.04.2011
- *      Author: kxylouris, avogel
+ *      Author: avogel, anaegel (some parts)
  */
 
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATEDRAFT__
@@ -797,12 +797,12 @@ number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW_FATAL("IntegrateFluxOnBoundary: Function space does not contain"
-						" a function with name " << cmp << ".");
+		UG_THROW("IntegrateFluxOnBoundary: Function space does not contain"
+				" a function with name " << cmp << ".");
 
 	if(u.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
-		UG_THROW_FATAL("IntegrateFluxOnBoundary:"
-			"Only implemented for Lagrange P1 functions.");
+		UG_THROW("IntegrateFluxOnBoundary:"
+				 "Only implemented for Lagrange P1 functions.");
 
 //	read subsets
 	SubsetGroup innerSSGrp; innerSSGrp.set_subset_handler(u.domain()->subset_handler());
@@ -817,7 +817,7 @@ number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
 		ConvertStringToSubsetGroup(bndSSGrp, u.domain()->subset_handler(), BndSubset);
 	}
 	else{
-		UG_THROW_FATAL("IntegrateFluxOnBoundary: No boundary subsets specified. Aborting.");
+		UG_THROW("IntegrateFluxOnBoundary: No boundary subsets specified. Aborting.");
 	}
 
 //	reset value
@@ -834,7 +834,7 @@ number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
 
 
 		if (innerSSGrp.dim(i) != TGridFunction::dim)
-			UG_THROW_FATAL("IntegrateFluxOnBoundary: Element dimension does not match world dimension!");
+			UG_THROW("IntegrateFluxOnBoundary: Element dimension does not match world dimension!");
 
 	//	create integration kernel
 		static const int dim = TGridFunction::dim;
@@ -875,8 +875,8 @@ number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
 
 		//	compute bf and grads at bip for element
 			if(!geo.update(elem, &vCorner[0], u.domain()->subset_handler().get()))
-				UG_THROW_FATAL("IntegrateFluxOnBoundary: "
-								"Cannot update Finite Volume Geometry.");
+				UG_THROW("IntegrateFluxOnBoundary: "
+						"Cannot update Finite Volume Geometry.");
 
 		//	get fct multi-indeces of element
 			std::vector<MultiIndex<2> > ind;
@@ -933,8 +933,6 @@ number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
 	}
 #endif
 
-	// Alles ist fertig und du bist motiviert !!
-
 //	return the result
 	return value;
 }
@@ -972,18 +970,18 @@ number IntegrateAceticAcidFluxOnBoundary(TGridFunction& u, const char* PressCmp,
 
 //	check that function exists
 	if(pressFct >= u.num_fct())
-		UG_THROW_FATAL("IntegrateFluxOnBoundary: Function space does not contain"
-						" a function with name " << PressCmp << ".");
+		UG_THROW("IntegrateFluxOnBoundary: Function space does not contain"
+				" a function with name " << PressCmp << ".");
 	if(omegaFct >= u.num_fct())
-		UG_THROW_FATAL("IntegrateFluxOnBoundary: Function space does not contain"
-						" a function with name " << omegaFct << ".");
+		UG_THROW("IntegrateFluxOnBoundary: Function space does not contain"
+				" a function with name " << omegaFct << ".");
 
 	if(u.local_finite_element_id(pressFct) != LFEID(LFEID::LAGRANGE, 1))
-		UG_THROW_FATAL("IntegrateFluxOnBoundary:"
-			"Only implemented for Lagrange P1 functions.");
+		UG_THROW("IntegrateFluxOnBoundary:"
+				"Only implemented for Lagrange P1 functions.");
 	if(u.local_finite_element_id(omegaFct) != LFEID(LFEID::LAGRANGE, 1))
-		UG_THROW_FATAL("IntegrateFluxOnBoundary:"
-			"Only implemented for Lagrange P1 functions.");
+		UG_THROW("IntegrateFluxOnBoundary:"
+				"Only implemented for Lagrange P1 functions.");
 
 //	read subsets
 	SubsetGroup innerSSGrp; innerSSGrp.set_subset_handler(u.domain()->subset_handler());
@@ -998,7 +996,7 @@ number IntegrateAceticAcidFluxOnBoundary(TGridFunction& u, const char* PressCmp,
 		ConvertStringToSubsetGroup(bndSSGrp, u.domain()->subset_handler(), BndSubset);
 	}
 	else{
-		UG_THROW_FATAL("IntegrateFluxOnBoundary: No boundary subsets specified. Aborting.");
+		UG_THROW("IntegrateFluxOnBoundary: No boundary subsets specified. Aborting.");
 	}
 
 //	reset value
@@ -1015,7 +1013,7 @@ number IntegrateAceticAcidFluxOnBoundary(TGridFunction& u, const char* PressCmp,
 
 
 		if (innerSSGrp.dim(i) != TGridFunction::dim)
-			UG_THROW_FATAL("IntegrateFluxOnBoundary: Element dimension does not match world dimension!");
+			UG_THROW("IntegrateFluxOnBoundary: Element dimension does not match world dimension!");
 
 	//	create integration kernel
 		static const int dim = TGridFunction::dim;
@@ -1056,7 +1054,7 @@ number IntegrateAceticAcidFluxOnBoundary(TGridFunction& u, const char* PressCmp,
 
 		//	compute bf and grads at bip for element
 			if(!geo.update(elem, &vCorner[0], u.domain()->subset_handler().get()))
-				UG_THROW_FATAL("IntegrateFluxOnBoundary: "
+				UG_THROW("IntegrateFluxOnBoundary: "
 								"Cannot update Finite Volume Geometry.");
 
 		//	get fct multi-indeces of element
@@ -1130,8 +1128,6 @@ number IntegrateAceticAcidFluxOnBoundary(TGridFunction& u, const char* PressCmp,
 		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
 	}
 #endif
-
-	// Alles ist fertig und du bist motiviert !!
 
 //	return the result
 	return value;
