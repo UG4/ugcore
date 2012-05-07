@@ -852,9 +852,11 @@ adjust_marks()
 		assign_elem_and_side_marks<Volume>();
 	else if(m_pMG->num<Face>() > 0)
 		assign_elem_and_side_marks<Face>();
-	else
-		UG_THROW("A grid on which GlobalFracturedMediaRefiner operates has to"
-				" contain faces or volumes.");
+	else{
+	//	simply mark everything
+		m_marker.mark(m_pMG->vertices_begin(), m_pMG->vertices_end());
+		m_marker.mark(m_pMG->edges_begin(), m_pMG->edges_end());
+	}
 }
 
 //template <class TAPosition>
