@@ -193,8 +193,26 @@ set_debug_level(Tags tags, int lev)
 void LogAssistant::
 set_output_process(int procRank)
 {
-	m_outputProc = procRank;
-	update_ostream();
+	int numProcs = 1;
+	#ifdef UG_PARALLEL
+		numProcs = pcl::GetNumProcesses();
+	#endif
+
+	if(procRank < numProcs){
+		m_outputProc = procRank;
+		update_ostream();
+	}
+	else{
+		string strProc;
+		if(numProcs == 1)
+			strProc = " process is ";
+		else
+			strProc = " processes are ";
+
+		UG_LOG("WARNING: Won't change output process to " << procRank <<
+				", since only " << numProcs << strProc << "available. "
+				"Output process is left at " << m_outputProc << "." << endl);
+	}
 }
 
 bool LogAssistant::
