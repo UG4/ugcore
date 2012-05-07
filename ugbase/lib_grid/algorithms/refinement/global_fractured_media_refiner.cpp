@@ -276,7 +276,7 @@ perform_refinement()
 	for(EdgeBaseIterator iter = mg.begin<EdgeBase>(oldTopLevel);
 		iter != mg.end<EdgeBase>(oldTopLevel); ++iter)
 	{
-		if(!refinement_is_allowed(*iter) || !m_marker.is_marked(*iter))
+		if(!refinement_is_allowed(*iter))
 			continue;
 
 		EdgeBase* e = *iter;
@@ -285,6 +285,18 @@ perform_refinement()
 		{
 			UG_THROW("Refinement has to be allowed for both corners of an edge, for"
 					" which refinement is allowed.");
+		}
+
+	//	associated vertices on next level.
+		VertexBase* substituteVrts[2];
+		substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
+		substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
+
+	//	if the face is not marked, we'll simply clone it to the next level
+		if(!m_marker.is_marked(e)){
+			ed.set_vertices(substituteVrts[0], substituteVrts[1]);
+			mg.create_by_cloning(e, ed, e);
+			continue;
 		}
 
 		//GFDR_PROFILE(GFDR_Refine_CreatingEdgeVertices);
@@ -298,10 +310,6 @@ perform_refinement()
 
 	//	split the edge
 		//GFDR_PROFILE(GFDR_Refine_CreatingEdges);
-		VertexBase* substituteVrts[2];
-		substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
-		substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
-
 		e->refine(vEdges, nVrt, substituteVrts);
 		assert((vEdges.size() == 2) && "Edge refine produced wrong number of edges.");
 		mg.register_element(vEdges[0], e);
@@ -316,14 +324,24 @@ perform_refinement()
 	for(FaceIterator iter = mg.begin<Face>(oldTopLevel);
 		iter != mg.end<Face>(oldTopLevel); ++iter)
 	{
-		if(!refinement_is_allowed(*iter) || !m_marker.is_marked(*iter))
+		if(!refinement_is_allowed(*iter))
 			continue;
 			
 		Face* f = *iter;
+
 	//	collect child-vertices
 		vVrts.clear();
 		for(uint j = 0; j < f->num_vertices(); ++j)
 			vVrts.push_back(mg.get_child_vertex(f->vertex(j)));
+
+	//	if the face is not marked, we'll simply clone it to the next level
+		if(!m_marker.is_marked(f)){
+			fd.set_num_vertices(vVrts.size());
+			for(size_t i = 0; i < vVrts.size(); ++i)
+				fd.set_vertex(i, vVrts[i]);
+			mg.create_by_cloning(f, fd, f);
+			continue;
+		}
 
 	//	collect the child vertices of associated edges
 		vEdgeVrts.clear();

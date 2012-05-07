@@ -149,6 +149,15 @@ int runShell(const char *prompt=UG_PROMPT)
 				if(err.terminate())
 					return 0; // exit with code 0
 			}
+			catch(UGError &err)
+			{
+				UG_LOG("UGError:\n");
+				for(size_t i=0; i<err.num_msg(); i++)
+					UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
+				UG_LOG("\n");
+				if(err.terminate())
+					return 0;
+			}
 		}
 	}
 //todo:	clear the history (add ug_freelinecache)
@@ -428,6 +437,7 @@ int main(int argc, char* argv[])
 			UG_LOG("PARSE ERROR: \n");
 			for(size_t i=0;i<err.num_msg();++i)
 				UG_LOG(err.get_msg(i)<<endl);
+			UG_LOG("aborting script parsing...\n");
 
 			if(err.terminate()){
 				bAbort=true;
@@ -440,6 +450,11 @@ int main(int argc, char* argv[])
 			for(size_t i=0; i<err.num_msg(); i++)
 				UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
 			UG_LOG("\n");
+			UG_LOG("aborting script parsing...\n");
+			if(err.terminate()){
+				bAbort = true;
+				ret = 0;
+			}
 		}
 		
 		if(FindParam("-noquit", argc, argv))

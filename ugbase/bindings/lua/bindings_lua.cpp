@@ -12,6 +12,7 @@
 #include "registry/class_helper.h"
 #include "common/common.h"
 #include "info_commands.h"
+#include "lua_util.h"
 
 #define __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 
@@ -571,12 +572,13 @@ static int LuaProxyFunction(lua_State* L)
 				{
 					UG_LOG(errSymb<<"Call stack:\n");
 					lua_stacktrace(L);
-					UG_LOG(errSymb<<"Terminating..." << endl);
-					exit(0);
+					//UG_LOG(errSymb<<"Terminating..." << endl);
+					//exit(0);
+					throw(script::LuaError("fatal error."));
 				}
 				else
 				{
-					UG_LOG(errSymb<<" Continuing execution ...\n");
+					throw(script::LuaError("error occured during execution of a function."));
 				}
 			}
 			catch(bad_alloc& ba)
@@ -587,8 +589,7 @@ static int LuaProxyFunction(lua_State* L)
 				UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
 				UG_LOG(errSymb<<"Call stack:\n");
 				lua_stacktrace(L);
-				UG_LOG(errSymb<<"Terminating..." << endl);
-				exit(0);
+				throw(script::LuaError("bad alloc"));
 			}
 #ifdef __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 			catch(...)
@@ -596,8 +597,7 @@ static int LuaProxyFunction(lua_State* L)
 				UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
 				UG_LOG(errSymb<<"Unknown Exception thrown in call to function '");
 				PrintFunctionInfo(*func); UG_LOG("'.\n");
-				UG_LOG(errSymb<<"Terminating..." << endl);
-				exit(0);
+				throw(script::LuaError("unknown exeption"));
 			}
 #endif
 
@@ -622,8 +622,8 @@ static int LuaProxyFunction(lua_State* L)
 				UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
 			}
 			UG_LOG(errSymb<<"Call stack:\n"); lua_stacktrace(L);
-			UG_LOG(errSymb<<"Terminating..." << endl);
-			exit(0);
+
+			throw(script::LuaError("no overload found"));
 		}
 	}
 	
@@ -686,7 +686,7 @@ static int LuaProxyConstructor(lua_State* L)
 			}
 			else
 			{
-				UG_LOG(errSymb<<" Continuing execution ...\n");
+				throw(script::LuaError("error occured while creating a class."));
 				return 1;
 			}
 		}
@@ -788,7 +788,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 					UG_LOG(errSymb<<"Terminating..." << endl);
 					exit(0);
 				}
-				UG_LOG(errSymb<<" Continuing execution ...\n");
+				throw(script::LuaError("error occured during execution of a method."));
 			}
 			catch(std::bad_alloc& ba)
 			{
@@ -796,8 +796,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				UG_LOG(errSymb << "std::bad_alloc thrown in call to '");
 				UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
 				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG(".'\n");
-				UG_LOG(errSymb<<"Terminating..." << endl);
-				exit(0);
+				throw(script::LuaError("bad alloc"));
 			}
 #ifdef 	__UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 			catch(...)
@@ -805,8 +804,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
 				UG_LOG(errSymb << "Unknown Exception thrown in call to '");
 				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
-				UG_LOG(errSymb<<"Terminating..." << endl);
-				exit(0);
+				throw(script::LuaError("unknown exeption"));
 			}
 #endif
 
@@ -1174,7 +1172,7 @@ static int LuaProxyGroupCreate(lua_State* L)
 			}
 			else
 			{
-				UG_LOG(errSymb<<" Continuing execution ...\n");
+				throw(script::LuaError("error occured during creation of a class."));
 				return 1;
 			}
 		}
