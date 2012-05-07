@@ -51,12 +51,12 @@ elem_loop_prepare_fv1()
 
 //	check, that upwind has been set
 	if(m_spConvShape.invalid())
-		UG_THROW_FATAL("ConvectionDiffusion::prepare_element_loop:"
+		UG_THROW("ConvectionDiffusion::prepare_element_loop:"
 						" Upwind has not been set.");
 
 //	init upwind for element type
 	if(!m_spConvShape->template set_geometry_type<TFVGeom>())
-		UG_THROW_FATAL("ConvectionDiffusion::prepare_element_loop:"
+		UG_THROW("ConvectionDiffusion::prepare_element_loop:"
 						" Cannot init upwind for element type.");
 }
 
@@ -81,7 +81,7 @@ elem_prepare_fv1(TElem* elem, const LocalVector& u)
 	static TFVGeom& geo = Provider<TFVGeom>::get();
 
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-		UG_THROW_FATAL("ConvectionDiffusion::prepare_element:"
+		UG_THROW("ConvectionDiffusion::prepare_element:"
 						" Cannot update Finite Volume Geometry.");
 
 //	set local positions
@@ -104,7 +104,7 @@ elem_prepare_fv1(TElem* elem, const LocalVector& u)
 
 		if(m_spConvShape.valid())
 			if(!m_spConvShape->template set_geometry_type<TFVGeom>())
-				UG_THROW_FATAL("ConvectionDiffusion::prepare_element_loop:"
+				UG_THROW("ConvectionDiffusion::prepare_element_loop:"
 								" Cannot init upwind for element type.");
 	}
 

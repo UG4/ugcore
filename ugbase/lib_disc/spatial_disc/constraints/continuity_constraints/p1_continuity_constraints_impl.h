@@ -497,7 +497,7 @@ struct SortVertexPos {
 		{}
 
 		inline bool operator() (VertexBase* vrt1, VertexBase* vrt2)
-			{UG_THROW_FATAL(dim <<" not implemented.");}
+			{UG_THROW(dim <<" not implemented.");}
 
 	protected:
   	  typename Domain<dim, MultiGrid, MGSubsetHandler>::position_accessor_type& m_aaPos;

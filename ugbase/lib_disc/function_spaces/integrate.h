@@ -88,7 +88,7 @@ public:
 
 		//	check multi indices
 		if(ind.size() != trialSpace.num_sh())
-			UG_THROW_FATAL("L2ErrorOnElem: Wrong number of multi indices.");
+			UG_THROW("L2ErrorOnElem: Wrong number of multi indices.");
 	};
 
 	/// provide values at IP
@@ -256,7 +256,7 @@ static number invoke(IPData<number, TGridFunction::domain_type::dim>& InterpolFu
 			SumValuesForSubsetGroup<Prism, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			SumValuesForSubsetGroup<Pyramid, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_THROW_FATAL("L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
+		default: UG_THROW("L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
 		                        " not supported in world dimension "<<3<<".");
 		}
 		}
@@ -297,7 +297,7 @@ static number invoke(IPData<number, TGridFunction::domain_type::dim>& InterpolFu
 		case 1:
 			SumValuesForSubsetGroup<Edge, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_THROW_FATAL("L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
+		default: UG_THROW("L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
 		                        " not supported in world dimension "<<1<<".");
 		}
 		}
@@ -345,7 +345,7 @@ static number invoke(IPData<number, TGridFunction::domain_type::dim>& InterpolFu
 			SumValuesForSubsetGroup<Triangle, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			SumValuesForSubsetGroup<Quadrilateral, TGridFunction>(diffSquared, InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_THROW_FATAL("L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
+		default: UG_THROW("L2ErrorHelp: Dimension "<<ssGrp.dim(i) <<
 		                " not supported in world dimension "<<2<<".");
 		}
 		}
@@ -380,11 +380,11 @@ number L2Error(
 	const size_t fct = u.fct_id_by_name(name);
 
 //	check that function found
-	if(fct == (size_t)-1) UG_THROW_FATAL("ERROR in L2Error: Name of function not found.");
+	if(fct == (size_t)-1) UG_THROW("ERROR in L2Error: Name of function not found.");
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW_FATAL("ERROR in L2Error: Function space does not contain"
+		UG_THROW("ERROR in L2Error: Function space does not contain"
 				" a function with index " << fct);
 
 //	create subset group

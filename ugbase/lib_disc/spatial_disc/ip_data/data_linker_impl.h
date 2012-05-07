@@ -122,7 +122,7 @@ local_ip_series_added(const size_t newNumSeries)
 									(this->template local_ips<3>(s), num_ip(s),
 									 this->m_vMayChange[s]);
 					break;
-				default: UG_THROW_FATAL("Dimension not supported.");
+				default: UG_THROW("Dimension not supported.");
 			}
 		}
 	}
@@ -156,7 +156,7 @@ local_ips_changed(const size_t seriesID, const size_t newNumIP)
 				case 3: m_vpIIPData[i]->template set_local_ips<3>
 						(m_vvSeriesID[i][s], this->template local_ips<3>(s), num_ip(s));
 					break;
-				default: UG_THROW_FATAL("Dimension not supported.");
+				default: UG_THROW("Dimension not supported.");
 			}
 		}
 	}
@@ -204,7 +204,7 @@ set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data)
 
 //	check input number
 	if(i >= num_input())
-		UG_THROW_FATAL("DataLinker::set_input: Only " << num_input()
+		UG_THROW("DataLinker::set_input: Only " << num_input()
 		               	<< " inputs can be set. Use 'set_num_input' to increase"
 		               	" the number of needed inputs.");
 

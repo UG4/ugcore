@@ -42,7 +42,7 @@ void LuaUserNumberNumberFunction::set_lua_callback(const char* luaCallback)
 
 //	make sure that the reference is valid
 	if(lua_isnil(m_L, -1)){
-		UG_THROW_FATAL("ERROR in LuaUserNumberNumberFunction::set_lua_callback(...):"
+		UG_THROW("ERROR in LuaUserNumberNumberFunction::set_lua_callback(...):"
 				"Specified callback does not exist: " << m_callbackName);
 	}
 
@@ -70,11 +70,9 @@ number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
 
 	if(lua_pcall(m_L, numArgs, 1, 0) != 0)
 	{
-		std::stringstream ss;
-		ss << "ERROR in 'LuaUserNumberNumberFunction::operator(...)': Error while "
-				"running callback '" << m_callbackName << "',"
-				" lua message: "<< lua_tostring(m_L, -1) << "\n";
-		throw(UGError(true, ss.str().c_str()));
+		UG_THROW("ERROR in 'LuaUserNumberNumberFunction::operator(...)': Error while "
+				 "running callback '" << m_callbackName << "',"
+				 " lua message: "<< lua_tostring(m_L, -1) << "\n");
 	}
 
 	number c = ReturnValueToNumber(m_L, -1);

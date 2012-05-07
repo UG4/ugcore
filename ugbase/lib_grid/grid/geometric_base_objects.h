@@ -66,7 +66,7 @@ std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
 		case ROID_HEXAHEDRON: outStream << "Hexahedron"; break;
 		case ROID_PRISM: outStream << "Prism"; break;
 		case ROID_PYRAMID: outStream << "Pyramid"; break;
-		default: throw(UGFatalError("Unknown ReferenceObjectID in operator<<"));
+		default: throw(UGError("Unknown ReferenceObjectID in operator<<"));
 	}
 	return outStream;
 };

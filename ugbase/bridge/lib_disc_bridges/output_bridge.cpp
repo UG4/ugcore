@@ -180,7 +180,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	{
 		UG_LOG("### ERROR in RegisterOutput: "
 				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW_FATAL("Registration failed.");
+		UG_THROW("Registration failed.");
 	}
 }
 
@@ -232,7 +232,7 @@ bool RegisterOutput(Registry& reg, string grp)
 	{
 		UG_LOG("### ERROR in RegisterOutput: "
 				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW_FATAL("Registration failed.");
+		UG_THROW("Registration failed.");
 	}
 
 #ifdef UG_CPU_1

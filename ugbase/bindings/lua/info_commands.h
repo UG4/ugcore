@@ -89,14 +89,14 @@ UG_API bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable);
  * prints the current lua line
  * @param L
  */
-UG_API void lua_printCurrentLine(lua_State* L);
+UG_API void LuaPrintCurrentLine(lua_State* L);
 
 /**
  * searches the lua stack for the first valid line info
  * @param L			the lua state
  * @param entry 	returned lua_Debug structure
  */
-UG_API void lua_getLastLine(lua_State* L, lua_Debug entry);
+UG_API void LuaGetLastLine(lua_State* L, lua_Debug entry);
 
 /**
  * \brief function to get a line of a file
@@ -143,9 +143,9 @@ bool ClassInstantiations(const char *classname);
 std::string GetLuaTypeString(lua_State* L, int index);
 
 /// prints information about lua's call stack (file:line source).
-void lua_stacktrace(lua_State* L);
+void LuaStackTrace(lua_State* L);
 
-/// returns the current file and line ( \sa lua_stacktrace ).
+/// returns the current file and line ( \sa LuaStackTrace ).
 std::string GetLuaFileAndLine(lua_State* L);
 
 }

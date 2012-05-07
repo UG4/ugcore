@@ -273,7 +273,7 @@ class ILinearOperatorInverse
 		SmartPtr<ILinearOperator<Y,X> > linear_operator()
 		{
 			if(m_spLinearOperator.invalid())
-				UG_THROW_FATAL(name() << ": Linear Operator that should be "
+				UG_THROW(name() << ": Linear Operator that should be "
 				               	 "inverted has not been set.");
 
 			return m_spLinearOperator;
@@ -356,7 +356,7 @@ class IPreconditionedLinearOperatorInverse
 			LS_PROFILE_BEGIN(LS_InitPrecond);
 			if(m_spPrecond.valid())
 				if(!m_spPrecond->init(J, u))
-					UG_THROW_FATAL(name() << "::init: Cannot init Preconditioner "
+					UG_THROW(name() << "::init: Cannot init Preconditioner "
 													"Operator for Operator J.");
 			LS_PROFILE_END();
 
@@ -371,7 +371,7 @@ class IPreconditionedLinearOperatorInverse
 			LS_PROFILE_BEGIN(LS_InitPrecond);
 			if(m_spPrecond.valid())
 				if(!m_spPrecond->init(L))
-					UG_THROW_FATAL(name() <<"::prepare: Cannot init Preconditioner "
+					UG_THROW(name() <<"::prepare: Cannot init Preconditioner "
 														"Operator for Operator L.");
 			LS_PROFILE_END();
 
@@ -526,7 +526,7 @@ class IMatrixOperatorInverse
 
 		//	check if correct types are present
 			if(op.invalid())
-				UG_THROW_FATAL("IMatrixOperatorInverse::init:"
+				UG_THROW("IMatrixOperatorInverse::init:"
 						" Passed operator is not matrix-based.");
 
 		//	forward request

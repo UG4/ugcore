@@ -20,7 +20,7 @@ void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 // 	allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
 		if(fineDD.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
-			UG_THROW_FATAL("AssembleVertexProlongation:"
+			UG_THROW("AssembleVertexProlongation:"
 				"Interpolation only implemented for Lagrange P1 functions.");
 
 //  get subsethandler and grid
@@ -36,7 +36,7 @@ void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 
 //  resize matrix
 	if(!mat.resize(numFineDoFs, numCoarseDoFs))
-		UG_THROW_FATAL("AssembleVertexProlongation:"
+		UG_THROW("AssembleVertexProlongation:"
 				"Cannot resize Interpolation Matrix.");
 
 //	clear restricted vector
@@ -140,7 +140,7 @@ void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 					continue;
 				}
 
-				UG_THROW_FATAL("AssembleVertexProlongation: Element Father not detected.");
+				UG_THROW("AssembleVertexProlongation: Element Father not detected.");
 			}
 		}
 	}
@@ -165,11 +165,11 @@ void P1Prolongation<TDomain, TAlgebra>::set_levels(GridLevel coarseLevel, GridLe
 	m_fineLevel = fineLevel;
 	m_coarseLevel = coarseLevel;
 	if(m_fineLevel.level() - m_coarseLevel.level() != 1)
-		UG_THROW_FATAL("P1Prolongation<TDomain, TAlgebra>::set_levels:"
+		UG_THROW("P1Prolongation<TDomain, TAlgebra>::set_levels:"
 				" Can only project between successive level.");
 	if(m_fineLevel.type() != GridLevel::LEVEL ||
 	   m_coarseLevel.type() != GridLevel::LEVEL)
-		UG_THROW_FATAL("P1Prolongation<TDomain, TAlgebra>::set_levels:"
+		UG_THROW("P1Prolongation<TDomain, TAlgebra>::set_levels:"
 				" Can only project between level dof distributions, but fine="
 				<<m_fineLevel<<", coarse="<<m_coarseLevel);
 }
@@ -178,7 +178,7 @@ template <typename TDomain, typename TAlgebra>
 void P1Prolongation<TDomain, TAlgebra>::init()
 {
 	if(!m_spApproxSpace.valid())
-		UG_THROW_FATAL("P1Prolongation<TDomain, TAlgebra>::init: "
+		UG_THROW("P1Prolongation<TDomain, TAlgebra>::init: "
 				"Approximation Space not set. Cannot init Projection.");
 
 	m_matrix.resize(0,0);
@@ -205,7 +205,7 @@ void P1Prolongation<TDomain, TAlgebra>::apply(vector_type& uFineOut, const vecto
 {
 //	Check, that operator is initiallized
 	if(!m_bInit)
-		UG_THROW_FATAL("P1Prolongation<TDomain, TAlgebra>::apply:"
+		UG_THROW("P1Prolongation<TDomain, TAlgebra>::apply:"
 				" Operator not initialized.");
 
 //	Some Assertions
@@ -222,7 +222,7 @@ void P1Prolongation<TDomain, TAlgebra>::apply(vector_type& uFineOut, const vecto
 #ifdef UG_PARALLEL
 		ss << "(Type uCoarse = " <<uCoarseIn.get_storage_mask();
 #endif
-		UG_THROW_FATAL(ss.str().c_str());
+		UG_THROW(ss.str().c_str());
 	}
 
 //	Set dirichlet nodes to zero again
@@ -240,7 +240,7 @@ void P1Prolongation<TDomain, TAlgebra>::apply_transposed(vector_type& uCoarseOut
 {
 //	Check, that operator is initiallized
 	if(!m_bInit)
-		UG_THROW_FATAL("P1Prolongation<TDomain, TAlgebra>::apply_transposed:"
+		UG_THROW("P1Prolongation<TDomain, TAlgebra>::apply_transposed:"
 				"Operator not initialized.");
 
 	vector_type	uTmp; uTmp.resize(uCoarseOut.size());
@@ -253,7 +253,7 @@ void P1Prolongation<TDomain, TAlgebra>::apply_transposed(vector_type& uCoarseOut
 
 //	Apply transposed matrix
 	if(!m_matrix.apply_transposed(uTmp, uFineIn))
-		UG_THROW_FATAL("P1Prolongation<TDomain, TAlgebra>::apply_transposed:"
+		UG_THROW("P1Prolongation<TDomain, TAlgebra>::apply_transposed:"
 				" Cannot apply transposed matrix.");
 
 	uTmp *= m_dampRes;

@@ -161,7 +161,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	{
 		UG_LOG("### ERROR in RegisterLibDisc_Domain: "
 				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW_FATAL("Registration failed.");
+		UG_THROW("Registration failed.");
 	}
 }
 
@@ -269,7 +269,7 @@ bool RegisterLibDisc_Domain(Registry& reg, string parentGroup)
 	{
 		UG_LOG("### ERROR in RegisterLibDisc_Domain: "
 				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW_FATAL("Registration failed.");
+		UG_THROW("Registration failed.");
 	}
 
 	return true;

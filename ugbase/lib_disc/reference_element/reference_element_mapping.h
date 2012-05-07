@@ -251,14 +251,14 @@ class DimReferenceMappingWrapper
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-struct UG_ERROR_ReferenceMappingMissing : public UGFatalError
+struct UG_ERROR_ReferenceMappingMissing : public UGError
 {
 	UG_ERROR_ReferenceMappingMissing(int dim_, int worldDim_, ReferenceObjectID roid_)
-		: UGFatalError(""), dim(dim_), worldDim(worldDim_), roid(roid_)
+		: UGError(""), dim(dim_), worldDim(worldDim_), roid(roid_)
 	{
 		std::stringstream ss; ss << "ReferenceMapping not found for "<<roid<<
 									" from R^"<<dim<<" to R^"<<worldDim;
-		UGFatalError::push_msg(ss.str());
+		UGError::push_msg(ss.str());
 	}
 	int dim;
 	int worldDim;

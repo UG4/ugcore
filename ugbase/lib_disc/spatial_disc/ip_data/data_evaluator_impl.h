@@ -102,27 +102,27 @@ prepare_elem_loop(bool bMassPart)
 //	set geometric type at imports
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
 		if(!m_vStiffDataImport[i]->set_roid(id))
-			UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: Cannot set "
+			UG_THROW("DataEvaluator::prepare_elem_loop: Cannot set "
 					" geometric object type "<<id<<" for Import " << i <<
 					" (Stiffness part).");
 
 	if(bMassPart)
 		for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
 			if(!m_vMassDataImport[i]->set_roid(id))
-				UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: Cannot set "
+				UG_THROW("DataEvaluator::prepare_elem_loop: Cannot set "
 						" geometric object type "<<id<<" for Import " << i <<
 						" (Mass part).");
 
 //	set geometric type at exports
 	for(size_t i = 0; i < m_vDataExport.size(); ++i)
 		if(!m_vDataExport[i]->set_roid(id))
-			UG_THROW_FATAL("DataEvaluator::prepare_elem_loop: "
+			UG_THROW("DataEvaluator::prepare_elem_loop: "
 							"Cannot set geometric object type for Export " << i);
 
 //	check, that all dependent data is ready for evaluation
 	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
 		if(!m_vDependentIPData[i]->is_ready())
-			UG_THROW_FATAL("DataEvaluator::prepare_element: Dependent IPData "
+			UG_THROW("DataEvaluator::prepare_element: Dependent IPData "
 							"(e.g. Linker or Export) is not ready for evaluation.");
 
 //	evaluate constant data

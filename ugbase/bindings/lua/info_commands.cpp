@@ -773,7 +773,7 @@ string GetLuaTypeString(lua_State* L, int index)
 
 
 
-void lua_getLastLine(lua_State* L, lua_Debug entry)
+void LuaGetLastLine(lua_State* L, lua_Debug entry)
 {
     for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
 	{
@@ -783,17 +783,17 @@ void lua_getLastLine(lua_State* L, lua_Debug entry)
 }
 
 
-void lua_printCurrentLine(lua_State* L)
+void LuaPrintCurrentLine(lua_State* L)
 {
 	lua_Debug entry;
-	lua_getLastLine(L, entry);
+	LuaGetLastLine(L, entry);
 	UG_LOG(entry.short_src << ":" << entry.currentline);
 	UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
 	UG_LOG("\n");
 
 }
 /// prints information about lua's call stack (file:line source).
-void lua_stacktrace(lua_State* L)
+void LuaStackTrace(lua_State* L)
 {
     lua_Debug entry;
     for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
@@ -807,7 +807,7 @@ void lua_stacktrace(lua_State* L)
     }
 }
 
-/// returns the current file and line ( \sa lua_stacktrace ).
+/// returns the current file and line ( \sa LuaStackTrace ).
 std::string GetLuaFileAndLine(lua_State* L)
 {
 	lua_Debug entry;
@@ -821,7 +821,7 @@ std::string GetLuaFileAndLine(lua_State* L)
 
 void ScriptStacktrace()
 {
-	lua_stacktrace(script::GetDefaultLuaState());
+	LuaStackTrace(script::GetDefaultLuaState());
 }
 
 bool ScriptPrintClassHierarchy(const char *classname)

@@ -28,9 +28,9 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 
 //	check
 	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
-		UG_THROW_FATAL("ProlongateP1: Top Level not supported.")
+		UG_THROW("ProlongateP1: Top Level not supported.")
 	if(fineTopLevel != coarseTopLevel + 1)
-		UG_THROW_FATAL("ProlongateP1: GridFunctions must have one level difference.");
+		UG_THROW("ProlongateP1: GridFunctions must have one level difference.");
 
 //	storage
 	std::vector<size_t> vFineMI, vCoarseMI;
@@ -133,7 +133,7 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 				case ROID_TETRAHEDRON:
 				case ROID_PRISM:
 				case ROID_PYRAMID: /*nothing to do in those cases */ break;
-				default: UG_THROW_FATAL("Unexpected case appeared.");
+				default: UG_THROW("Unexpected case appeared.");
 			}
 		}
 	}
@@ -146,11 +146,11 @@ void Prolongate(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 {
 //	grid functions must be from same Domain
 	if(uFine.domain() != uCoarse.domain())
-		UG_THROW_FATAL("Prolongate: GridFunctions must have same Domain.");
+		UG_THROW("Prolongate: GridFunctions must have same Domain.");
 
 //	grid functions must have same function pattern
 	if(&uFine.function_pattern() != &uCoarse.function_pattern())
-		UG_THROW_FATAL("Prolongate: GridFunctions must have same Function Pattern.");
+		UG_THROW("Prolongate: GridFunctions must have same Function Pattern.");
 
 //	loop functions
 	bool bOnlyP1Fct = true;
@@ -164,7 +164,7 @@ void Prolongate(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 		ProlongateP1(uFine, uCoarse);
 	else
 	{
-		UG_THROW_FATAL("Prolongate: Only implemented for P1.");
+		UG_THROW("Prolongate: Only implemented for P1.");
 	}
 }
 

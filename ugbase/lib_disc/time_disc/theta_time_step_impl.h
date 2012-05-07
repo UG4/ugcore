@@ -19,7 +19,7 @@ prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 {
 //	perform checks
 	if(prevSol->size() < m_prevSteps)
-		UG_THROW_FATAL("ThetaTimeStep::prepare_step:"
+		UG_THROW("ThetaTimeStep::prepare_step:"
 						" Number of previous solutions must be at least "<<
 						m_prevSteps <<", but only "<< prevSol->size() << " passed.\n");
 
@@ -42,7 +42,7 @@ prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 {
 //	perform checks
 	if(prevSol->size() < m_prevSteps)
-		UG_THROW_FATAL("ThetaTimeStep::prepare_step:"
+		UG_THROW("ThetaTimeStep::prepare_step:"
 						" Number of previous solutions must be at least "<<
 						m_prevSteps <<", but only "<< prevSol->size() << " passed.\n");
 
@@ -69,7 +69,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl)
 {
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW_FATAL("ThetaTimeStep::prepare_step:"
+		UG_THROW("ThetaTimeStep::prepare_step:"
 						" Number of previous solutions must be at least "<<
 						m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.\n");
 
@@ -98,7 +98,7 @@ assemble_defect(vector_type& d, const vector_type& u, GridLevel gl)
 {
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW_FATAL("ThetaTimeStep::prepare_step:"
+		UG_THROW("ThetaTimeStep::prepare_step:"
 						" Number of previous solutions must be at least "<<
 						m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.\n");
 
@@ -135,7 +135,7 @@ template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 assemble_linear(matrix_type& A, vector_type& b, GridLevel gl)
 {
-	UG_THROW_FATAL("Not implemented.");
+	UG_THROW("Not implemented.");
 }
 
 template <typename TAlgebra>
@@ -145,7 +145,7 @@ finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 {
 //	perform checks
 	if(prevSol->size() < m_prevSteps)
-		UG_THROW_FATAL("ThetaTimeStep::prepare_step:"
+		UG_THROW("ThetaTimeStep::prepare_step:"
 						" Number of previous solutions must be at least "<<
 						m_prevSteps <<", but only "<< prevSol->size() << " passed.\n");
 

@@ -40,7 +40,7 @@ void OrderCuthillMcKee(TDD& dofDistr,
 //	get adjacency graph
 	std::vector<std::vector<size_t> > vvConnection;
 	if(!dofDistr.get_connections(vvConnection))
-		UG_THROW_FATAL("OrderCuthillMcKee: No adjacency graph available.");
+		UG_THROW("OrderCuthillMcKee: No adjacency graph available.");
 
 //	get mapping for cuthill-mckee order
 	std::vector<size_t> vNewIndex;

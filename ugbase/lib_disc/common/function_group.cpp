@@ -15,10 +15,10 @@ namespace ug{
 void FunctionGroup::add(size_t fct)
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use FunctionGroup without FunctionPattern.");
+		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
 
 	if(fct >= m_pFunctionPattern->num_fct())
-		UG_THROW_FATAL("Unique function ID " <<fct << " not conatined in "
+		UG_THROW("Unique function ID " <<fct << " not conatined in "
 		               "underlying function pattern (with num_fct=" <<
 		               	  m_pFunctionPattern->num_fct() << ".");
 
@@ -32,7 +32,7 @@ void FunctionGroup::add(size_t fct)
 void FunctionGroup::add(const char* name)
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use FunctionGroup without FunctionPattern.");
+		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
 
 	size_t found = 0;
 
@@ -48,17 +48,17 @@ void FunctionGroup::add(const char* name)
 
 // 	if not found, return false
 	if(found == 0)
-		UG_THROW_FATAL("No function with name "<<name<<
+		UG_THROW("No function with name "<<name<<
 		               " found in underlying Function Pattern.");
 }
 
 void FunctionGroup::add(const FunctionGroup& fctGroup)
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use FunctionGroup without FunctionPattern.");
+		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
 
 	if(m_pFunctionPattern != fctGroup.function_pattern())
-		UG_THROW_FATAL("Underlying function pattern does not match. Cannot"
+		UG_THROW("Underlying function pattern does not match. Cannot"
 				" add function group.");
 
 	for(size_t i = 0; i < fctGroup.num_fct(); ++i)
@@ -68,7 +68,7 @@ void FunctionGroup::add(const FunctionGroup& fctGroup)
 void FunctionGroup::add_all()
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use FunctionGroup without FunctionPattern.");
+		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
 
 	for(size_t i = 0; i < m_pFunctionPattern->num_fct(); ++i)
 		add(i);
@@ -84,7 +84,7 @@ void FunctionGroup::remove(size_t fct)
 	std::vector<size_t>::iterator iter;
 	iter = find(m_vFunction.begin(), m_vFunction.end(), fct);
 	if(iter == m_vFunction.end())
-		UG_THROW_FATAL("Function "<<fct<<" not contained in FunctionGroup.");
+		UG_THROW("Function "<<fct<<" not contained in FunctionGroup.");
 
 	m_vFunction.erase(iter);
 }
@@ -92,7 +92,7 @@ void FunctionGroup::remove(size_t fct)
 void FunctionGroup::remove(const char* name)
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use FunctionGroup without FunctionPattern.");
+		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
 
 	size_t found = 0;
 
@@ -108,18 +108,18 @@ void FunctionGroup::remove(const char* name)
 
 // 	if not found, return false
 	if(found == 0)
-		UG_THROW_FATAL("Function '"<<name<<"' not contained in FunctionGroup.");
+		UG_THROW("Function '"<<name<<"' not contained in FunctionGroup.");
 }
 
 ///	name of function
 const char* FunctionGroup::name(size_t i) const
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use FunctionGroup without FunctionPattern.");
+		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
 
 //	Check, that subset exist
 	if(i >= num_fct())
-		UG_THROW_FATAL("Function index "<<i<<" not valid.");
+		UG_THROW("Function index "<<i<<" not valid.");
 
 	return m_pFunctionPattern->name(m_vFunction[i]);
 }
@@ -129,11 +129,11 @@ const char* FunctionGroup::name(size_t i) const
 LFEID FunctionGroup::local_finite_element_id(size_t i) const
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use FunctionGroup without FunctionPattern.");
+		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
 
 //	Check, that subset exist
 	if(i >= num_fct())
-		UG_THROW_FATAL("Function index "<<i<<" not valid.");
+		UG_THROW("Function index "<<i<<" not valid.");
 
 	return m_pFunctionPattern->local_finite_element_id(m_vFunction[i]);
 }
@@ -142,11 +142,11 @@ LFEID FunctionGroup::local_finite_element_id(size_t i) const
 int FunctionGroup::dim(size_t i) const
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use FunctionGroup without FunctionPattern.");
+		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
 
 //	Check, that subset exist
 	if(i >= num_fct())
-		UG_THROW_FATAL("Function index "<<i<<" not valid.");
+		UG_THROW("Function index "<<i<<" not valid.");
 
 	return m_pFunctionPattern->dim(m_vFunction[i]);
 }
@@ -155,7 +155,7 @@ int FunctionGroup::dim(size_t i) const
 int FunctionGroup::dim() const
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use FunctionGroup without FunctionPattern.");
+		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
 
 //	without functions no dimension
 	if(num_fct() == 0) return -1;
@@ -202,7 +202,7 @@ size_t FunctionGroup::local_index(size_t fct) const
 		if(fct == m_vFunction[i]) return i;
 	}
 
-	UG_THROW_FATAL("Function index "<<fct<<" not valid.");
+	UG_THROW("Function index "<<fct<<" not valid.");
 }
 
 } // end namespace ug

@@ -70,7 +70,7 @@ class BiCGStab
 		//	check correct storage type in parallel
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				UG_THROW_FATAL("BiCGStabSolver::apply_return_defect:"
+				UG_THROW("BiCGStabSolver::apply_return_defect:"
 								"Inadequate storage format of Vectors.");
 			#endif
 
@@ -96,7 +96,7 @@ class BiCGStab
 		//	convert b to unique (should already be unique due to norm calculation)
 			#ifdef UG_PARALLEL
 			if(!b.change_storage_type(PST_UNIQUE))
-				UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+				UG_THROW("BiCGStab::apply_return_defect: "
 								"Cannot convert b to unique vector.");
 			#endif
 
@@ -122,7 +122,7 @@ class BiCGStab
 				// 	make r additive unique
 					#ifdef UG_PARALLEL
 					if(!r.change_storage_type(PST_UNIQUE))
-						UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+						UG_THROW("BiCGStab::apply_return_defect: "
 										"Cannot convert r to unique vector.");
 					#endif
 
@@ -177,7 +177,7 @@ class BiCGStab
 				// 	make q consistent
 					#ifdef UG_PARALLEL
 					if(!q.change_storage_type(PST_CONSISTENT))
-						UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+						UG_THROW("BiCGStab::apply_return_defect: "
 										"Cannot convert q to consistent vector.");
 					#endif
 				}
@@ -188,7 +188,7 @@ class BiCGStab
 			// 	make v unique
 				#ifdef UG_PARALLEL
 				if(!v.change_storage_type(PST_UNIQUE))
-					UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+					UG_THROW("BiCGStab::apply_return_defect: "
 									"Cannot convert v to unique vector.");
 				#endif
 
@@ -243,7 +243,7 @@ class BiCGStab
 				// 	make q consistent
 					#ifdef UG_PARALLEL
 					if(!q.change_storage_type(PST_CONSISTENT))
-						UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+						UG_THROW("BiCGStab::apply_return_defect: "
 										"Cannot convert q to consistent vector.");
 					#endif
 				}
@@ -254,7 +254,7 @@ class BiCGStab
 			// 	make t unique
 				#ifdef UG_PARALLEL
 				if(!t.change_storage_type(PST_UNIQUE))
-					UG_THROW_FATAL("BiCGStab::apply_return_defect: "
+					UG_THROW("BiCGStab::apply_return_defect: "
 									"Cannot convert t to unique vector.");
 				#endif
 

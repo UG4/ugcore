@@ -336,14 +336,14 @@ class DimReferenceElementWrapper
 
 /// Exception thrown when reference element not found
 struct UG_ERROR_ReferenceElementMissing
-	: public UGFatalError
+	: public UGError
 {
 	UG_ERROR_ReferenceElementMissing(int dim_, ReferenceObjectID roid_)
-	: UGFatalError(""), dim(dim_), roid(roid_)
+	: UGError(""), dim(dim_), roid(roid_)
 	{
 		std::stringstream ss; ss << "Refernce Element not found for "
 							<<roid<<" (dim="<<dim<<")";
-		UGFatalError::push_msg(ss.str());
+		UGError::push_msg(ss.str());
 	}
 	int dim;
 	ReferenceObjectID roid;

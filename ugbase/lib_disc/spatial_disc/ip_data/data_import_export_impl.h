@@ -55,7 +55,7 @@ set_fct(ReferenceObjectID id, TClass* obj,
         					 const size_t nip))
 {
 	if(id >= NUM_REFERENCE_OBJECTS)
-		UG_THROW_FATAL("Reference Object id invalid: "<<id);
+		UG_THROW("Reference Object id invalid: "<<id);
 
 	m_vLinDefectFunc[id] = boost::bind(func, obj, _1, _2, _3);
 }
@@ -69,7 +69,7 @@ set_fct(ReferenceObjectID id,
             		 	  const size_t nip))
 {
 	if(id >= NUM_REFERENCE_OBJECTS)
-		UG_THROW_FATAL("Reference Object id invalid: "<<id);
+		UG_THROW("Reference Object id invalid: "<<id);
 
 	m_vLinDefectFunc[id] = func;
 }
@@ -134,7 +134,7 @@ void DataImport<TData,dim>::set_local_ips(const MathVector<ldim>* vPos, size_t n
 	else
 	{
 		if(!bMayChange)
-			UG_THROW_FATAL("DataImport: Setting different local ips to non-changable ip series.");
+			UG_THROW("DataImport: Setting different local ips to non-changable ip series.");
 
 	//	set new local ips
 		m_spIPData->template set_local_ips<ldim>(m_seriesID, vPos,numIP);
@@ -337,7 +337,7 @@ set_fct(ReferenceObjectID id, IElemDisc* obj,
 //	store the base object needed for invocation
 	if(m_pObj == NULL) m_pObj = obj;
 	else if(m_pObj != obj)
-		throw(UGFatalError("Exports assume to be used by on object for all functions."));
+		throw(UGError("Exports assume to be used by on object for all functions."));
 }
 
 
@@ -438,7 +438,7 @@ bool DataExport<TData, dim>::is_ready() const
 template <typename TData, int dim>
 void DataExport<TData, dim>::compute(bool bDeriv)
 {
-	UG_THROW_FATAL("DataExport::compute(): Computation of Export "
+	UG_THROW("DataExport::compute(): Computation of Export "
 		 	 	   "without current solution called. Cannot evaluate.");
 }
 

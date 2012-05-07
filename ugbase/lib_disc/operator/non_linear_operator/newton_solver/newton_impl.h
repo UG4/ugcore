@@ -34,7 +34,7 @@ init(SmartPtr<IOperator<vector_type> > N)
 {
 	m_N = N.template cast_dynamic<AssembledOperator<TAlgebra> >();
 	if(m_N.invalid())
-		UG_THROW_FATAL("NewtonSolver: currently only works for AssembledDiscreteOperator.");
+		UG_THROW("NewtonSolver: currently only works for AssembledDiscreteOperator.");
 
 	m_pAss = m_N->get_assemble();
 	return true;
@@ -48,7 +48,7 @@ void NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
 	m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
 	m_J->set_level(m_N->level());
 
-	if(m_J.invalid()) UG_THROW_FATAL("Cannot allocate memory.");
+	if(m_J.invalid()) UG_THROW("Cannot allocate memory.");
 
 	// defect
 	m_d.resize(u.size()); m_d = u;
@@ -72,7 +72,7 @@ bool NewtonSolver<TAlgebra>::prepare(vector_type& u)
 
 //	Check for linear solver
 	if(m_spLinearSolver.invalid())
-		UG_THROW_FATAL("NewtonSolver::prepare: Linear Solver not set.");
+		UG_THROW("NewtonSolver::prepare: Linear Solver not set.");
 
 //	Set dirichlet values
 	m_N->prepare(m_d, u);

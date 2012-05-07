@@ -95,7 +95,7 @@ template<typename TDomain>
 void ThermohalineFlow<TDomain>::
 set_gravity(number vel_x)
 {
-	UG_THROW_FATAL("ThermohalineFlow: Setting gravity vector of dimension 1"
+	UG_THROW("ThermohalineFlow: Setting gravity vector of dimension 1"
 					" to a Discretization for world dim " << dim);
 }
 
@@ -112,7 +112,7 @@ template<typename TDomain>
 void ThermohalineFlow<TDomain>::
 set_gravity(number vel_x, number vel_y)
 {
-	UG_THROW_FATAL("ThermohalineFlow: Setting gravity vector of dimension 2"
+	UG_THROW("ThermohalineFlow: Setting gravity vector of dimension 2"
 					" to a Discretization for world dim " << dim);
 }
 
@@ -130,7 +130,7 @@ template<typename TDomain>
 void ThermohalineFlow<TDomain>::
 set_gravity(number vel_x, number vel_y, number vel_z)
 {
-	UG_THROW_FATAL("ThermohalineFlow: Setting gravity vector of dimension 3"
+	UG_THROW("ThermohalineFlow: Setting gravity vector of dimension 3"
 					" to a Discretization for world dim " << dim);
 }
 
@@ -503,7 +503,7 @@ ex_darcy_std(const LocalVector& u,
 // 	others not implemented
 	else
 	{
-		UG_THROW_FATAL("Evaluation not implemented.");
+		UG_THROW("Evaluation not implemented.");
 	}
 }
 
@@ -534,7 +534,7 @@ ex_darcy_cons_grav(const LocalVector& u,
 	if(!PrepareConsistentGravity<dim>(
 			&vConsGravity[0], numSh, &m_vCornerCoords[0], m_imDensityScv.values(),m_Gravity))
 	{
-		UG_THROW_FATAL("ass_JA_elem: Cannot prepare Consistent Gravity.");
+		UG_THROW("ass_JA_elem: Cannot prepare Consistent Gravity.");
 	}
 
 // 	Prepare DensityDerivative in Corners
@@ -546,7 +546,7 @@ ex_darcy_cons_grav(const LocalVector& u,
 					&vvDConsGravity_c[sh][0], numSh, &m_vCornerCoords[0],
 					&DCoVal[0], m_Gravity))
 			{
-				UG_THROW_FATAL("ass_JA_elem: Cannot prepare Consistent Gravity.");
+				UG_THROW("ass_JA_elem: Cannot prepare Consistent Gravity.");
 			}
 			DCoVal[sh] = 0.0;
 		}
@@ -556,7 +556,7 @@ ex_darcy_cons_grav(const LocalVector& u,
 					&vvDConsGravity_T[sh][0], numSh, &m_vCornerCoords[0],
 					&DCoVal[0], m_Gravity))
 			{
-				UG_THROW_FATAL("ass_JA_elem: Cannot prepare Consistent Gravity.");
+				UG_THROW("ass_JA_elem: Cannot prepare Consistent Gravity.");
 			}
 			DCoVal[sh] = 0.0;
 		}
@@ -603,7 +603,7 @@ ex_darcy_cons_grav(const LocalVector& u,
 							DensityTimesGravity_c[sh], numSh, scvf.JTInv(),
 							scvf.local_grad_vector(), &vvDConsGravity_c[sh][0]))
 					{
-						UG_THROW_FATAL("compute_ip_Darcy_velocity: Cannot "
+						UG_THROW("compute_ip_Darcy_velocity: Cannot "
 										"Compute Consistent Gravity.");
 					}
 
@@ -613,7 +613,7 @@ ex_darcy_cons_grav(const LocalVector& u,
 							DensityTimesGravity_T[sh], numSh, scvf.JTInv(),
 							scvf.local_grad_vector(), &vvDConsGravity_T[sh][0]))
 					{
-						UG_THROW_FATAL("ompute_ip_Darcy_velocity: Cannot "
+						UG_THROW("ompute_ip_Darcy_velocity: Cannot "
 								"Compute Consistent Gravity.");
 					}
 
@@ -626,7 +626,7 @@ ex_darcy_cons_grav(const LocalVector& u,
 					DensityTimesGravity, numSh, scvf.JTInv(),
 					scvf.local_grad_vector(), vConsGravity))
 			{
-				UG_THROW_FATAL("compute_ip_Darcy_velocity: Cannot "
+				UG_THROW("compute_ip_Darcy_velocity: Cannot "
 								"Compute Consistent Gravity.");
 			}
 
@@ -643,7 +643,7 @@ ex_darcy_cons_grav(const LocalVector& u,
 // 	others not implemented
 	else
 	{
-		UG_THROW_FATAL("Evaluation not implemented.");
+		UG_THROW("Evaluation not implemented.");
 	}
 }
 
@@ -708,7 +708,7 @@ ex_brine(const LocalVector& u,
 // 	others not implemented
 	else
 	{
-		UG_THROW_FATAL("Evaluation not implemented.");
+		UG_THROW("Evaluation not implemented.");
 	}
 }
 
@@ -773,7 +773,7 @@ ex_temperature(const LocalVector& u,
 // 	others not implemented
 	else
 	{
-		UG_THROW_FATAL("Evaluation not implemented.");
+		UG_THROW("Evaluation not implemented.");
 	}
 }
 
@@ -816,7 +816,7 @@ ex_brine_grad(const LocalVector& u,
 // others not implemented
 	else
 	{
-		UG_THROW_FATAL("Evaluation not implemented.");
+		UG_THROW("Evaluation not implemented.");
 	}
 }
 
@@ -859,7 +859,7 @@ ex_pressure_grad(const LocalVector& u,
 // others not implemented
 	else
 	{
-		UG_THROW_FATAL("Evaluation not implemented.");
+		UG_THROW("Evaluation not implemented.");
 	}
 }
 
@@ -902,7 +902,7 @@ ex_temperature_grad(const LocalVector& u,
 // others not implemented
 	else
 	{
-		UG_THROW_FATAL("Evaluation not implemented.");
+		UG_THROW("Evaluation not implemented.");
 	}
 }
 
@@ -920,51 +920,51 @@ prepare_element_loop()
 
 //	check, that upwind has been set
 	if(m_spUpwind.invalid() || m_spUpwindEnergy.invalid())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Upwind has not been set.")
 
 //	init upwind for element type
 	if(!m_spUpwind->template set_geometry_type<FV1Geometry<TElem, dim> >() ||
 		!m_spUpwindEnergy->template set_geometry_type<FV1Geometry<TElem, dim> >())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Cannot init upwind for element type.");
 
 //	check necessary imports
 	if(!m_imBrineScvf.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing Import: Brine mass fraction.");
 	if(!m_imBrineGradScvf.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing Import: Gradient of Brine mass fraction.");
 	if(!m_imPressureGradScvf.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing Import: Gradient of Pressure.");
 	if(!m_imPorosityScvf.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing user function: Porosity.");
 	if(!m_imPermeabilityScvf.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing user function: Permeability.");
 	if(!m_imThermalCondictivityScvf.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing user function: Thermal Conductivity.");
 	if(!m_imMolDiffusionScvf.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing user function: Molecular Diffusion.");
 	if(!m_imViscosityScvf.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing user function: Viscosity.");
 	if(!m_imDensityScvf.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing user function: Density.");
 	if(!m_imDarcyVelScvf.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing Import: Darcy Velocity.");
 	if(!m_imPorosityScv.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing user function: Porosity.");
 	if(!m_imDensityScv.data_given())
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element_loop:"
+		UG_THROW("ThermohalineFlow::prepare_element_loop:"
 						" Missing user function: Density.");
 	if(m_imConstGravity.constant_data())
 	{
@@ -975,7 +975,7 @@ prepare_element_loop()
 	//	check success
 		if(!pGrav.valid())
 		{
-			UG_THROW_FATAL("prepare_element_loop: Cannot cast constant gravity.");
+			UG_THROW("prepare_element_loop: Cannot cast constant gravity.");
 		}
 
 	//	evaluate constant data
@@ -984,7 +984,7 @@ prepare_element_loop()
 	}
 	else
 	{
-		UG_THROW_FATAL("prepare_element_loop: Gravity must be constant.");
+		UG_THROW("prepare_element_loop: Gravity must be constant.");
 	}
 
 
@@ -1033,7 +1033,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 				Provider<FV1Geometry<TElem,dim> >::get();
 
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-		UG_THROW_FATAL("ThermohalineFlow::prepare_element:"
+		UG_THROW("ThermohalineFlow::prepare_element:"
 						" Cannot update Finite Volume Geometry.\n");
 
 //	set global positions for user data
@@ -1079,13 +1079,13 @@ ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 //	compute upwind shapes for transport equation
 	if(!m_spUpwind->update(&geo, m_imDarcyVelScvf.values(),
 	                      	    m_imMolDiffusionScvf.values(), true))
-		UG_THROW_FATAL("ThermohalineFlow::ass_JA_elem: "
+		UG_THROW("ThermohalineFlow::ass_JA_elem: "
 						"Cannot compute convection shapes.");
 
 //	compute upwind shapes for energy equation
 	if(!m_spUpwindEnergy->update(&geo, m_imDarcyVelScvf.values(),
 	                            	  m_imThermalCondictivityScvf.values(), true))
-		UG_THROW_FATAL("ThermohalineFlow::ass_JA_elem: "
+		UG_THROW("ThermohalineFlow::ass_JA_elem: "
 						"Cannot compute convection shapes.");
 
 //	get a const (!!) reference to the upwind
@@ -1311,13 +1311,13 @@ ass_dA_elem(LocalVector& d, const LocalVector& u)
 //	compute upwind shapes for transport equation
 	if(!m_spUpwind->update(&geo, m_imDarcyVelScvf.values(),
 	                      	  	m_imMolDiffusionScvf.values(), false))
-		UG_THROW_FATAL("ThermohalineFlow::ass_dA_elem: "
+		UG_THROW("ThermohalineFlow::ass_dA_elem: "
 						"Cannot compute convection shapes.");
 
 //	compute upwind shapes for energy equation
 	if(!m_spUpwindEnergy->update(&geo, m_imDarcyVelScvf.values(),
 	                            	  m_imThermalCondictivityScvf.values(), false))
-		UG_THROW_FATAL("ThermohalineFlow::ass_dA_elem: "
+		UG_THROW("ThermohalineFlow::ass_dA_elem: "
 						"Cannot compute convection shapes.");
 
 //	get a const (!!) reference to the upwind
@@ -1547,7 +1547,7 @@ ThermohalineFlow<TDomain>::ThermohalineFlow(const char* functions, const char* s
 {
 //	check number of functions
 	if(this->num_fct() != 3)
-		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'ThermohalineFlow'"
+		UG_THROW("Wrong number of functions: The ElemDisc 'ThermohalineFlow'"
 					   " needs exactly "<<3<<" symbolic function.");
 
 //	register assemble functions

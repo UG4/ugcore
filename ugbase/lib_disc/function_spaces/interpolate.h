@@ -60,7 +60,7 @@ void InterpolateFunctionOnElem(
 	std::vector<MathVector<dim> > loc_pos(nsh);
 	for(size_t i = 0; i < nsh; ++i)
 		if(!trialSpace.position(i, loc_pos[i]))
-			UG_THROW_FATAL("InterpolateFunctionOnElem: Cannot find meaningful"
+			UG_THROW("InterpolateFunctionOnElem: Cannot find meaningful"
 					" local positions of dofs.");
 
 //	create a reference mapping
@@ -85,7 +85,7 @@ void InterpolateFunctionOnElem(
 
 	//	check multi indices
 		if(ind.size() != nsh)
-			UG_THROW_FATAL("InterpolateFunctionOnElem: Number of shapes is "
+			UG_THROW("InterpolateFunctionOnElem: Number of shapes is "
 					<<nsh<<", but got "<<ind.size()<<" multi indices.");
 
 	// 	loop all dofs
@@ -150,7 +150,7 @@ static void invoke(IPData<number, TGridFunction::domain_type::dim>& InterpolFunc
 			InterpolateFunctionOnElem<Prism, TGridFunction>(InterpolFunction, u, fct, si, time);
 			InterpolateFunctionOnElem<Pyramid, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_THROW_FATAL("InterpolateFunction: Dimension " <<dim<<
+		default: UG_THROW("InterpolateFunction: Dimension " <<dim<<
 		                " not possible for world dim "<<3<<".");
 		}
 		}
@@ -197,7 +197,7 @@ static void invoke(IPData<number, TGridFunction::domain_type::dim>& InterpolFunc
 			InterpolateFunctionOnElem<Triangle, TGridFunction>(InterpolFunction, u, fct, si, time);
 			InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_THROW_FATAL("InterpolateFunction: Dimension " << dim <<
+		default: UG_THROW("InterpolateFunction: Dimension " << dim <<
 		                        " not possible for world dim "<<2<<".");
 		}
 		}
@@ -240,7 +240,7 @@ static void invoke(	IPData<number, TGridFunction::domain_type::dim>& InterpolFun
 		case 1:
 			InterpolateFunctionOnElem<Edge, TGridFunction>(InterpolFunction, u, fct, si, time);
 			break;
-		default: UG_THROW_FATAL("InterpolateFunction: Dimension " <<dim<<
+		default: UG_THROW("InterpolateFunction: Dimension " <<dim<<
 		                        " not possible for world dim "<<1<<".");
 		}
 		}
@@ -275,11 +275,11 @@ void InterpolateFunction(IPData<number, TGridFunction::domain_type::dim>& Interp
 
 //	check that function found
 	if(fct == (size_t)-1)
-		UG_THROW_FATAL("InterpolateFunction: Name of function not found.");
+		UG_THROW("InterpolateFunction: Name of function not found.");
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW_FATAL("InterpolateFunction: Function space does not contain"
+		UG_THROW("InterpolateFunction: Function space does not contain"
 						" a function with index " << fct);
 
 //	create subset group
@@ -407,11 +407,11 @@ void InterpolateFunctionOnVertices(IPData<number, TGridFunction::domain_type::di
 
 //	check that function found
 	if(fct == (size_t)-1)
-		UG_THROW_FATAL("InterpolateFunctionOnVertices: Name of function not found.");
+		UG_THROW("InterpolateFunctionOnVertices: Name of function not found.");
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW_FATAL("InterpolateFunctionOnVertices: Function space does not contain"
+		UG_THROW("InterpolateFunctionOnVertices: Function space does not contain"
 				" a function with index " << fct);
 
 //	create subset group

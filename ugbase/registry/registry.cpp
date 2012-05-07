@@ -340,7 +340,7 @@ void Registry::add_class_to_group(std::string className, std::string groupName,
 	if(classname_registered(groupName)){
 		UG_LOG("#### ERROR in 'Registry::add_class_to_group': A class "
 				"with the given group name '"<<groupName<<"' already exists.\n");
-		UG_THROW_FATAL("Registry error.");
+		UG_THROW("Registry error.");
 	}
 
 //	Search if class name starts with group name. The requirement is, that a class
@@ -349,7 +349,7 @@ void Registry::add_class_to_group(std::string className, std::string groupName,
 		UG_LOG("#### ERROR in 'Registry::add_class_to_group': The classname "
 				" must contain the group name, when adding to a group. Given:"
 				" Groupname='"<<groupName<<"',  Classname='"<<className<<"'.\n");
-		UG_THROW_FATAL("Registry error.");
+		UG_THROW("Registry error.");
 	}
 	ClassGroupDesc* groupDesc = get_class_group(groupName);
 //todo:	make sure that groupDesc does not already contain className.
@@ -357,7 +357,7 @@ void Registry::add_class_to_group(std::string className, std::string groupName,
 	if(!expClass){
 		UG_LOG("The given class has to be registered before "
 						"adding it to a group: " << className<<"\n");
-		UG_THROW_FATAL("Registry error.");
+		UG_THROW("Registry error.");
 	}
 
 	if(expClass)

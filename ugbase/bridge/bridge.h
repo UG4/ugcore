@@ -147,7 +147,7 @@ inline std::string GetAlgebraSuffix(const AlgebraType& algType)
 
 //	add type
 	if(algType.type() == AlgebraType::CPU) ss << "CPU";
-	else throw(UGFatalError("Unknown algebra type."));
+	else throw(UGError("Unknown algebra type."));
 
 //	add blocktype
 	if(algType.blocksize() == AlgebraType::VariableBlockSize) ss << "Variable";
@@ -178,7 +178,7 @@ inline std::string GetAlgebraTag(const AlgebraType& algType)
 
 //	add type
 	if(algType.type() == AlgebraType::CPU) ss << "CPU";
-	else throw(UGFatalError("Unknown algebra type."));
+	else throw(UGError("Unknown algebra type."));
 
 //	add blocktype
 	if(algType.blocksize() == AlgebraType::VariableBlockSize) ss << "Variable;";

@@ -143,11 +143,11 @@ int runShell(const char *prompt=UG_PROMPT)
 			}
 			catch(LuaError& err)
 			{
-				UG_LOG("PARSE ERROR: \n");
-				for(size_t i=0;i<err.num_msg();++i)
-					UG_LOG(err.get_msg(i)<<endl);
-				if(err.terminate())
-					return 0; // exit with code 0
+				if(!err.get_msg().empty()){
+					UG_LOG("LUA-ERROR: \n");
+					for(size_t i=0;i<err.num_msg();++i)
+						UG_LOG(err.get_msg(i)<<endl);
+				}
 			}
 			catch(UGError &err)
 			{
@@ -155,8 +155,6 @@ int runShell(const char *prompt=UG_PROMPT)
 				for(size_t i=0; i<err.num_msg(); i++)
 					UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
 				UG_LOG("\n");
-				if(err.terminate())
-					return 0;
 			}
 		}
 	}
@@ -169,8 +167,8 @@ int runShell(const char *prompt=UG_PROMPT)
 debug_return debugShell()
 {
 	static string last="";
-	ug::bridge::lua_stacktrace(GetDefaultLuaState());
-	//ug::bridge::lua_printCurrentLine(GetDefaultLuaState());
+	ug::bridge::LuaStackTrace(GetDefaultLuaState());
+	//ug::bridge::LuaPrintCurrentLine(GetDefaultLuaState());
 
 #ifdef UG_PARALLEL
 	if(pcl::GetNumProcesses() > 1)
@@ -262,14 +260,12 @@ debug_return debugShell()
 			}
 			catch(LuaError& err)
 			{
-				UG_LOG("PARSE ERROR: \n");
-				for(size_t i=0;i<err.num_msg();++i)
-					UG_LOG(err.get_msg(i)<<endl);
-				if(err.terminate())
-					return DEBUG_EXIT; // exit with code 0
+				if(!err.get_msg().empty()){
+					UG_LOG("LUA-ERROR: \n");
+					for(size_t i=0;i<err.num_msg();++i)
+						UG_LOG(err.get_msg(i)<<endl);
+				}
 			}
-
-
 		}
 	}
 //todo:	clear the history (add ug_freelinecache)
@@ -434,15 +430,12 @@ int main(int argc, char* argv[])
 			}
 		}
 		catch(LuaError& err) {
-			UG_LOG("PARSE ERROR: \n");
-			for(size_t i=0;i<err.num_msg();++i)
-				UG_LOG(err.get_msg(i)<<endl);
-			UG_LOG("aborting script parsing...\n");
-
-			if(err.terminate()){
-				bAbort=true;
-				ret=0;
+			if(!err.get_msg().empty()){
+				UG_LOG("LUA-ERROR: \n");
+				for(size_t i=0;i<err.num_msg();++i)
+					UG_LOG(err.get_msg(i)<<endl);
 			}
+			UG_LOG("aborting script parsing...\n");
 		}
 		catch(UGError &err)
 		{
@@ -451,10 +444,6 @@ int main(int argc, char* argv[])
 				UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
 			UG_LOG("\n");
 			UG_LOG("aborting script parsing...\n");
-			if(err.terminate()){
-				bAbort = true;
-				ret = 0;
-			}
 		}
 		
 		if(FindParam("-noquit", argc, argv))
@@ -474,7 +463,7 @@ int main(int argc, char* argv[])
 		}
 	#endif
 
-	if(!bAbort && runInteractiveShell)
+	if(runInteractiveShell)
 		ret = runShell();
 
 	LOG(endl);

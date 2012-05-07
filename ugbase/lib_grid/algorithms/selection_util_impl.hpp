@@ -23,7 +23,7 @@ bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 					 Selector& sel, TAAPosVRT& aaPos)
 {
 	if(!sel.grid()){
-		throw(UGFatalError("No grid assigned to selector"));
+		throw(UGError("No grid assigned to selector"));
 	}
 	
 	Grid& grid = *sel.grid();

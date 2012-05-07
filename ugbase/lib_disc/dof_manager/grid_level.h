@@ -35,7 +35,7 @@ class GridLevel
 		{
 			if(type == "top") {m_type = LEVEL;}
 			else if(type == "surf") {m_type = SURFACE;}
-			else UG_THROW_FATAL("Grid Level Type not in ['top' |Ê'surf'].");
+			else UG_THROW("Grid Level Type not in ['top' |Ê'surf'].");
 		}
 
 	///	returns the level
@@ -54,7 +54,7 @@ inline std::ostream& operator<<(std::ostream& out,	const GridLevel& v)
 {
 	if(v.type() == GridLevel::SURFACE) out << "(surface, ";
 	else if(v.type() == GridLevel::LEVEL) out << "(level, ";
-	else UG_THROW_FATAL("type of GridLevel not found.");
+	else UG_THROW("type of GridLevel not found.");
 
 	if(v.level() == GridLevel::TOPLEVEL) out << "toplevel)";
 	else out << v.level() << ")";

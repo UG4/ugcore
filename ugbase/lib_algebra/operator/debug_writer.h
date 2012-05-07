@@ -37,7 +37,7 @@ class IVectorDebugWriter
 		template <int dim>
 		const std::vector<MathVector<dim> >& get_positions() const
 		{
-			if(m_currentDim != dim) throw(UGFatalError("Current dim is different."));
+			if(m_currentDim != dim) throw(UGError("Current dim is different."));
 			return get_pos(Int2Type<dim>());
 		}
 
@@ -138,7 +138,7 @@ class VectorDebugWritingObject
 			std::string name(filename);
 			size_t iExtPos = name.find_last_of(".");
 			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".vec") != 0)
-				UG_THROW_FATAL("Only '.vec' format supported for vectors, but"
+				UG_THROW("Only '.vec' format supported for vectors, but"
 								" filename is '"<<name<<"'.");
 
 			if(iExtPos == std::string::npos)
@@ -201,7 +201,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 			std::string name(filename);
 			size_t iExtPos = name.find_last_of(".");
 			if(iExtPos != std::string::npos && name.substr(iExtPos).compare(".mat") != 0)
-				UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
+				UG_THROW("Only '.mat' format supported for matrices, but"
 								" filename is '"<<name<<"'.");
 
 			if(iExtPos == std::string::npos)

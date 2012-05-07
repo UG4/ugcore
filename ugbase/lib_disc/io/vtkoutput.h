@@ -89,7 +89,7 @@ class VTKFileWriter
 		{
 			m_pFile = fopen(filename.c_str(), "w");
 			if(m_pFile == NULL)
-				UG_THROW_FATAL("Base64StreamWriter: Can not open Output File:"
+				UG_THROW("Base64StreamWriter: Can not open Output File:"
 								<< filename);
 			BufferStream.front = 0;
 		}

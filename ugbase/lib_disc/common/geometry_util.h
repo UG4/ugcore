@@ -312,7 +312,7 @@ inline number ElementSize<1>(ReferenceObjectID roid, const MathVector<1>* vCorne
 	switch(roid)
 	{
 		case ROID_EDGE: return ElementSize<ReferenceEdge, 1>(vCornerCoords);
-		default: UG_THROW_FATAL("ReferenceObject "<<roid<<" not found in dim 1.");
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 1.");
 	}
 }
 
@@ -323,7 +323,7 @@ inline number ElementSize<2>(ReferenceObjectID roid, const MathVector<2>* vCorne
 	{
 		case ROID_TRIANGLE: return ElementSize<ReferenceTriangle, 2>(vCornerCoords);
 		case ROID_QUADRILATERAL: return ElementSize<ReferenceQuadrilateral, 2>(vCornerCoords);
-		default: UG_THROW_FATAL("ReferenceObject "<<roid<<" not found in dim 2.");
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 2.");
 	}
 }
 
@@ -336,7 +336,7 @@ inline number ElementSize<3>(ReferenceObjectID roid, const MathVector<3>* vCorne
 		case ROID_PYRAMID: return ElementSize<ReferencePyramid, 3>(vCornerCoords);
 		case ROID_PRISM: return ElementSize<ReferencePrism, 3>(vCornerCoords);
 		case ROID_HEXAHEDRON: return ElementSize<ReferenceHexahedron, 3>(vCornerCoords);
-		default: UG_THROW_FATAL("ReferenceObject "<<roid<<" not found in dim 3.");
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 3.");
 	}
 }
 
@@ -449,7 +449,7 @@ struct ElementSideRayIntersectionWrapper
 						const MathVector<TWorldDim>& From, const MathVector<TWorldDim>& Direction,
 						bool bPositiv, const MathVector<TWorldDim>* vCornerCoords)
 	{
-		UG_THROW_FATAL("Not implemented.");
+		UG_THROW("Not implemented.");
 		return false;
 	}
 };
@@ -491,7 +491,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
 		}
 		// if not found
 		if(sideOut >= rRefElem.num(dim-1))
-			UG_THROW_FATAL("ElementSideRayIntersection: no cut side found.");
+			UG_THROW("ElementSideRayIntersection: no cut side found.");
 
 		// Compute local intersection
 		VecScaleAdd(LocalIntersectionPoint, bc, rRefElem.corner(p1), 1.-bc, rRefElem.corner(p0));
@@ -555,7 +555,7 @@ struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
 
 		// if not found
 		if(sideOut >= rRefElem.num(dim-1))
-			UG_THROW_FATAL("ElementSideRayIntersection: no cut side found.");
+			UG_THROW("ElementSideRayIntersection: no cut side found.");
 
 		// Compute local intersection
 		VecScaleAdd(LocalIntersectionPoint,
@@ -617,7 +617,7 @@ struct SCVFofSCVRayIntersectionWrapper
 						const MathVector<TWorldDim>& From, const MathVector<TWorldDim>& Direction,
 						bool bPositiv, const MathVector<TWorldDim>* vCornerCoords)
 	{
-		UG_THROW_FATAL("Not implemented.");
+		UG_THROW("Not implemented.");
 		return false;
 	}
 };
@@ -666,7 +666,7 @@ struct SCVFofSCVRayIntersectionWrapper<2, 2>
 
 		// if not found
 		if(sideOut >= rRefElem.num(0))
-			UG_THROW_FATAL("Side not found.");
+			UG_THROW("Side not found.");
 
 		// Compute local intersection
 		VecScaleAdd(LocalIntersectionPoint, bc, rRefElem.corner(p1), 1.-bc, rRefElem.corner(p0));

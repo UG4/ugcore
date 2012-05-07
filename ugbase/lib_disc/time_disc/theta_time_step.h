@@ -159,7 +159,7 @@ class ThetaTimeStep
 			if		(m_scheme == "Theta") 		return 1;
 			else if (m_scheme == "Alexander")	return 2;
 			else if	(m_scheme == "FracStep") 	return 3;
-			else UG_THROW_FATAL("Step Scheme not recognized.");
+			else UG_THROW("Step Scheme not recognized.");
 		}
 
 	///	sets the stage
@@ -201,7 +201,7 @@ class ThetaTimeStep
 						vSA[1] = (1.- 2*gamma) * dt;
 						return currentTime + (1 - gamma) * dt;
 					default:
-						UG_THROW_FATAL("Alexander scheme has only 2 stages")
+						UG_THROW("Alexander scheme has only 2 stages")
 				}
 			}
 			else if(m_scheme == "FracStep")
@@ -222,11 +222,11 @@ class ThetaTimeStep
 						vSA[1] = (1.- (2.-sqrt(2.)))* (1-1./sqrt(2.)) * dt;
 						return currentTime + (1-1./sqrt(2.)) * dt;
 					default:
-						UG_THROW_FATAL("Alexander scheme has only 2 stages")
+						UG_THROW("Alexander scheme has only 2 stages")
 				}
 			}
 			else
-				UG_THROW_FATAL("Unknown Multi-Stage Theta Scheme: "<< m_scheme<<".");
+				UG_THROW("Unknown Multi-Stage Theta Scheme: "<< m_scheme<<".");
 
 		}
 
@@ -279,7 +279,7 @@ class BDF
 	///	sets the stage
 		virtual void set_stage(size_t stage)
 		{
-			if(stage!=1) UG_THROW_FATAL("BDF has only one stage.");
+			if(stage!=1) UG_THROW("BDF has only one stage.");
 		}
 
 	protected:
@@ -297,7 +297,7 @@ class BDF
 
 		//	get time points
 			if(prevSol->size() < m_order)
-				UG_THROW_FATAL("BDF("<<m_order<<") needs at least "<< m_order <<
+				UG_THROW("BDF("<<m_order<<") needs at least "<< m_order <<
 				               " previous solutions, but only "<<prevSol->size()<<"passed.");
 
 			std::vector<number> vTimePoint(m_order+1);

@@ -28,7 +28,7 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 
 	if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
 						 filename, domain.position_attachment()))
-		UG_THROW_FATAL("LoadDomain: Could not load file: "<<filename);
+		UG_THROW("LoadDomain: Could not load file: "<<filename);
 
 	domain.update_local_subset_dim_property();
 }
@@ -39,7 +39,7 @@ void SaveDomain(TDomain& domain, const char* filename)
 {
 	if(!SaveGridToFile(*domain.grid(), *domain.subset_handler(),
 						  filename, domain.position_attachment()))
-		UG_THROW_FATAL("SaveDomain: Could not save to file: "<<filename);
+		UG_THROW("SaveDomain: Could not save to file: "<<filename);
 }
 
 // writes domain to *.ugx file
@@ -51,14 +51,14 @@ void WriteDomainToUGX(const char* filename, const TDomain& domain)
 
 	// check filename
 	if(strName.find(" ") != std::string::npos)
-		UG_THROW_FATAL("Filename must not include spaces. Cannot write domain.");
+		UG_THROW("Filename must not include spaces. Cannot write domain.");
 
 	// check if filename has already ending (if not add it)
 	if(strName.find(".ugx") == std::string::npos)
 	{
 		if(strName.find(".") != std::string::npos)
 		{
-			UG_THROW_FATAL("Filename must not include dots. Cannot write domain.");
+			UG_THROW("Filename must not include dots. Cannot write domain.");
 		}
 		else
 		{
@@ -71,7 +71,7 @@ void WriteDomainToUGX(const char* filename, const TDomain& domain)
 	// save grid
 	if(!SaveGridToUGX(*pDomain->grid(), *pDomain->subset_handler(), strName.c_str()))
 	{
-		UG_THROW_FATAL("WriteDomainToUGX: Cannot save grid.");
+		UG_THROW("WriteDomainToUGX: Cannot save grid.");
 	}
 }
 

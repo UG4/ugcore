@@ -33,7 +33,7 @@ FE1LinearElasticity(const char* functions, const char* subsets)
 {
 //	check number of functions
 	if(this->num_fct() != (size_t)TDomain::dim)
-		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'LinearElasticity'"
+		UG_THROW("Wrong number of functions: The ElemDisc 'LinearElasticity'"
 					   " needs exactly "<<TDomain::dim<<" symbolic function.");
 
 	register_all_fe1_funcs();
@@ -75,7 +75,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 		= Provider<FEGeometry<TElem, dim, LagrangeLSFS<ref_elem_type, 1>, GaussQuadrature<ref_elem_type, 2> > >::get();
 
 	if(!geo.update(elem, m_corners, LFEID(LFEID::LAGRANGE,1), 2))
-		UG_THROW_FATAL("FE1LinearElasticity::prepare_element:"
+		UG_THROW("FE1LinearElasticity::prepare_element:"
 						" Cannot update Finite Element Geometry.\n");
 }
 

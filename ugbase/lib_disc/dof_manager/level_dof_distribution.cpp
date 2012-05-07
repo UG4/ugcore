@@ -202,7 +202,7 @@ void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 	static const int dim = TBaseElem::dim;
 
 	if(l < 0 || l >= num_levels())
-		UG_THROW_FATAL("Level does not exist.");
+		UG_THROW("Level does not exist.");
 
 //	if nothing to do, continue
 	if(!m_vLev[l].free_index_available()) return;
@@ -250,11 +250,11 @@ void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 	lev_info(lev).clear();
 
 	if(lev_info(lev).free_index_available())
-		UG_THROW_FATAL("Internal error: Still free indices available after "
+		UG_THROW("Internal error: Still free indices available after "
 						"defragment: " <<  lev_info(lev).num_free_index());
 
 	if(lev_info(lev).numIndex != lev_info(lev).sizeIndexSet)
-		UG_THROW_FATAL("Internal error: numIndex and sizeIndexSet must be "
+		UG_THROW("Internal error: numIndex and sizeIndexSet must be "
 						"equal after defragment, since the index set does not "
 						"contain holes anymore. But numIndex = "<<lev_info(lev).numIndex
 						<<", sizeIndexSet = "<<lev_info(lev).sizeIndexSet);

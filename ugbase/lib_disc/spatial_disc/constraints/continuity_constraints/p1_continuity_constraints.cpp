@@ -29,7 +29,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 
 	//	check that edge is correct
 		if(constrainingEdge == NULL)
-			UG_THROW_FATAL("Parent element should be "
+			UG_THROW("Parent element should be "
 						"constraining edge, but is not.");
 
 	//	get constraining vertices
@@ -41,7 +41,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 
 		//	check
 			if(constrainedEdge == NULL)
-				UG_THROW_FATAL("Child element should be "
+				UG_THROW("Child element should be "
 							"constrained edge, but is not.");
 
 		//	get non-hanging vertex
@@ -60,7 +60,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 
 	//	check that quad is correct
 		if(bigQuad == NULL)
-			UG_THROW_FATAL("Parent element should be "
+			UG_THROW("Parent element should be "
 							"constraining quad, but is not.");
 
 	//	get constraining vertices
@@ -78,13 +78,13 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 					break;
 			}
 			if(i_vrt == face->num_vertices())
-				UG_THROW_FATAL("ERROR: Vertex not detected.\n");
+				UG_THROW("ERROR: Vertex not detected.\n");
 
 			vConstrainingVrt.push_back(vrt);
 		}
 	}
 		break;
-	default: UG_THROW_FATAL("Parent element of hang. vertex wrong.");
+	default: UG_THROW("Parent element of hang. vertex wrong.");
 	}
 }
 

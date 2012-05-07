@@ -113,7 +113,7 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return Multi index for index i
@@ -215,7 +215,7 @@ class FlexLagrangeLSFS<ReferenceEdge>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return Multi index for index i
@@ -396,7 +396,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index
@@ -570,7 +570,7 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index
@@ -754,7 +754,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index
@@ -896,7 +896,7 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index
@@ -1080,7 +1080,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index
@@ -1282,7 +1282,7 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index
@@ -1526,7 +1526,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index
@@ -1719,7 +1719,7 @@ class FlexLagrangeLSFS<ReferencePrism>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index
@@ -1874,7 +1874,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 		//	only first order
-			if(p != 1) UG_THROW_FATAL("Only 1. order Lagrange Pyramid implemented.");
+			if(p != 1) UG_THROW("Only 1. order Lagrange Pyramid implemented.");
 
 		//	smaller value of x and y
 			number m = x[0];
@@ -1887,7 +1887,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 			  case 2 : return(x[0]*x[1]             + x[2]*m);
 			  case 3 : return((1.0-x[0])*x[1]       - x[2]*m);
 			  case 4 : return(x[2]);
-			  default: UG_THROW_FATAL("Wrong index "<< i<<" in Pyramid");
+			  default: UG_THROW("Wrong index "<< i<<" in Pyramid");
 			}
 		}
 
@@ -1905,7 +1905,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		inline void grad(grad_type& g, const size_t i, const position_type& x) const
 		{
 		//	only first order
-			if(p != 1) UG_THROW_FATAL("Only 1. order Lagrange Pyramid implemented.");
+			if(p != 1) UG_THROW("Only 1. order Lagrange Pyramid implemented.");
 
 			int m = 0;
 			if (x[0] > x[1]) m = 1;
@@ -1941,7 +1941,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 				g[1] = 0.0;
 				g[2] = 1.0;
 				break;
-		      default: UG_THROW_FATAL("Wrong index "<< i<<" in Pyramid");
+		      default: UG_THROW("Wrong index "<< i<<" in Pyramid");
 			}
 
 		}
@@ -1966,7 +1966,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index
@@ -2151,7 +2151,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index
@@ -2294,7 +2294,7 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGFatalError("Index not found in LagrangeLSFS"));
+			throw(UGError("Index not found in LagrangeLSFS"));
 		}
 
 	///	return the index for a multi_index

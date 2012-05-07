@@ -139,7 +139,7 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 	//	open file
 		file = fopen(name.c_str(), "w");
 		if (file == NULL)
-			UG_THROW_FATAL("VTKOutput: Cannot print to file.");
+			UG_THROW("VTKOutput: Cannot print to file.");
 
 	// 	Write beginning of file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
@@ -175,7 +175,7 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 	//	open File
 		file = fopen(name.c_str(), "w");
 		if (file == NULL)
-			UG_THROW_FATAL("VTKOutput: Cannot print to file.");
+			UG_THROW("VTKOutput: Cannot print to file.");
 
 	// 	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
@@ -209,7 +209,7 @@ select_nodal_scalar(const char* fctName, const char* name)
 	std::string fctString(fctName);
 	TokenizeString(fctString, tokens, ',');
 	if(tokens.size() != 1)
-		UG_THROW_FATAL("VTK:select_nodal_scalar: In order to select"
+		UG_THROW("VTK:select_nodal_scalar: In order to select"
 				" a nodal scalar for output to vtk,"
 				" exactly one function components must be chosen.");
 
@@ -228,7 +228,7 @@ select_nodal_scalar(const char* fctName, const char* name)
 					return;
 				}
 				else{
-					UG_THROW_FATAL("VTK:select_nodal_scalar: Selecting component "
+					UG_THROW("VTK:select_nodal_scalar: Selecting component "
 							<< tokens[i] << " again, but with different name " <<
 							name << " instead of already scheduled "
 							<< m_vSymbFct[j].second);
@@ -238,7 +238,7 @@ select_nodal_scalar(const char* fctName, const char* name)
 		//	check if name is not in use
 			if(m_vSymbFct[j].second == name &&
 				m_vSymbFct[j].second.size() == strlen(name)){
-				UG_THROW_FATAL("VTK:select_nodal_scalar: Selecting component "
+				UG_THROW("VTK:select_nodal_scalar: Selecting component "
 						<< tokens[i] << ", but with already used name " <<
 						name << ". This is not allowed, use different name.");
 			}
@@ -256,7 +256,7 @@ select_nodal_vector(const char* fctNames, const char* name)
 	std::string fctString(fctNames);
 	TokenizeString(fctString, tokens, ',');
 	if(tokens.size() > 3)
-		UG_THROW_FATAL("VTK:select_nodal_vector: In order to select"
+		UG_THROW("VTK:select_nodal_vector: In order to select"
 				" a nodal vector for output to vtk,"
 				" maximal #dim function components must be chosen.");
 
@@ -265,7 +265,7 @@ select_nodal_vector(const char* fctNames, const char* name)
 	//	check if name is not in use
 		if(m_vSymbFct[j].second == name &&
 			m_vSymbFct[j].second.size() == strlen(name))
-			UG_THROW_FATAL("VTK:select_nodal_vector: Using name " << name <<
+			UG_THROW("VTK:select_nodal_vector: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 	}
 

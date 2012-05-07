@@ -206,7 +206,7 @@ inline void MultiGridSubsetHandler::
 subset_required(int index) const
 {
 	if(index >= num_subsets()){
-		UG_THROW_FATAL("Can't create new subsets in const MGSubsetHandler. "
+		UG_THROW("Can't create new subsets in const MGSubsetHandler. "
 						<< "num current subsets: " << num_subsets()
 						<< " required subset: " << index);
 	}
@@ -222,7 +222,7 @@ inline void MultiGridSubsetHandler::
 level_required(size_t level) const
 {
 	if(level >= num_levels()){
-		UG_THROW_FATAL("Can't create additional levels in const MGSubsetHandler. "
+		UG_THROW("Can't create additional levels in const MGSubsetHandler. "
 						<< "num current levels: " << num_levels()
 						<< " required level: " << level);
 	}

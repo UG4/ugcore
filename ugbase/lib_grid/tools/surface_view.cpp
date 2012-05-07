@@ -300,7 +300,7 @@ bool SurfaceView::is_shadowed(GeometricObject* obj) const
 		case EDGE: return is_shadowed(static_cast<EdgeBase*>(obj));
 		case FACE: return is_shadowed(static_cast<Face*>(obj));
 		case VOLUME: return is_shadowed(static_cast<Volume*>(obj));
-		default: UG_THROW_FATAL("Base Object type not found.");
+		default: UG_THROW("Base Object type not found.");
 	}
 }
 
@@ -309,7 +309,7 @@ void SurfaceView::mark_shadows()
 #ifdef UG_PARALLEL
 //	get multigrid
 	MultiGrid* pMG = dynamic_cast<MultiGrid*>(m_pDistGridMgr->get_assigned_grid());
-	if(!pMG) throw(UGFatalError("  Can't create surface-view. A Multigrid is required.\n"));
+	if(!pMG) throw(UGError("  Can't create surface-view. A Multigrid is required.\n"));
 
 	MarkShadows(m_Marker, pMG, *m_pDistGridMgr);
 #else

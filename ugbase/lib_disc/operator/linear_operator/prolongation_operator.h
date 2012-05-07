@@ -97,7 +97,7 @@ class P1Prolongation :
 		void apply_transposed(vector_type& uCoarseOut, const vector_type& uFineIn);
 
 	/// apply Operator, i.e. v := v - L(u);
-		virtual void apply_sub(vector_type& u, const vector_type& v) {UG_THROW_FATAL("Not Implemented.");}
+		virtual void apply_sub(vector_type& u, const vector_type& v) {UG_THROW("Not Implemented.");}
 
 	///	returns new instance with same setting
 		virtual SmartPtr<IProlongationOperator<TAlgebra> > clone();

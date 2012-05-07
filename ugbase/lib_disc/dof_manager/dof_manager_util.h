@@ -169,7 +169,7 @@ void CopyMatrixSurfaceToLevel(std::vector<TMatrix*>& vLevelMatrix,
 {
 //	check sizes
 	if(vSurfLevelMapping.size() != vLevelMatrix.size())
-		UG_THROW_FATAL("CopyMatrixSurfaceToLevel: Number of matrices and "
+		UG_THROW("CopyMatrixSurfaceToLevel: Number of matrices and "
 				"mappings does not match. cannot proceed.");
 
 //	loop all level

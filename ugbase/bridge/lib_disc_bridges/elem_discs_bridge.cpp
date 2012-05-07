@@ -400,7 +400,7 @@ bool RegisterElemDiscs(Registry& reg, string parentGroup)
 	{
 		UG_LOG("### ERROR in RegisterElemDiscs: "
 				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW_FATAL("Registration failed.");
+		UG_THROW("Registration failed.");
 	}
 
 	return true;

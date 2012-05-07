@@ -43,7 +43,7 @@ size_t IIPData::register_local_ip_series(const MathVector<ldim>* vPos,
 //	check, that dimension is ok.
 	if(m_locPosDim == -1) m_locPosDim = ldim;
 	else if(m_locPosDim != ldim)
-		UG_THROW_FATAL("Local IP dimension conflict");
+		UG_THROW("Local IP dimension conflict");
 
 //	get local positions
 	std::vector<const MathVector<ldim>*>& vvIP = get_local_ips(Int2Type<ldim>());
@@ -83,16 +83,16 @@ void IIPData::set_local_ips(const size_t seriesID,
 {
 //	check series id
 	if(seriesID >= num_series())
-		UG_THROW_FATAL("Trying to set new ips for invalid seriesID "<<seriesID);
+		UG_THROW("Trying to set new ips for invalid seriesID "<<seriesID);
 
 //	check that series is changeable
 	if(!m_vMayChange[seriesID])
-		UG_THROW_FATAL("Local IP is not changable, but trying to set new ips.");
+		UG_THROW("Local IP is not changable, but trying to set new ips.");
 
 //	check, that dimension is ok.
 	if(m_locPosDim == -1) m_locPosDim = ldim;
 	else if(m_locPosDim != ldim)
-		UG_THROW_FATAL("Local IP dimension conflict");
+		UG_THROW("Local IP dimension conflict");
 
 //	get local positions
 	std::vector<const MathVector<ldim>*>& vvIP = get_local_ips(Int2Type<ldim>());
@@ -118,7 +118,7 @@ template <int ldim>
 const MathVector<ldim>* IIPData::local_ips(size_t s) const
 {
 //	check, that dimension is ok.
-	if(m_locPosDim != ldim) UG_THROW_FATAL("Local IP dimension conflict");
+	if(m_locPosDim != ldim) UG_THROW("Local IP dimension conflict");
 
 	UG_ASSERT(s < num_series(), "Wrong series id");
 
@@ -130,7 +130,7 @@ template <int ldim>
 const MathVector<ldim>& IIPData::local_ip(size_t s, size_t ip) const
 {
 //	check, that dimension is ok.
-	if(m_locPosDim != ldim) UG_THROW_FATAL("Local IP dimension conflict");
+	if(m_locPosDim != ldim) UG_THROW("Local IP dimension conflict");
 
 	UG_ASSERT(s < num_series(), "Wrong series id");
 	UG_ASSERT(ip < num_ip(s), "Invalid index.");
@@ -149,7 +149,7 @@ void IIPDimData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, size
 
 //	check number of ips (must match local ip number)
 	if(numIP != num_ip(s))
-		UG_THROW_FATAL("IPData::set_global_ips: Num Local IPs is " << num_ip(s)
+		UG_THROW("IPData::set_global_ips: Num Local IPs is " << num_ip(s)
 		               << ", but trying to set Num Global IPs: " << numIP <<
 		               " for series "<< s);
 
@@ -220,7 +220,7 @@ template <typename TData, int dim, typename TRet>
 TRet IPData<TData,dim,TRet>::operator() (TData& D, const MathVector<dim>& x,
                                          number time, int si) const
 {
-	UG_THROW_FATAL("IPData: operator()(TData, MathVector<dim>, time, si) not implemented.");
+	UG_THROW("IPData: operator()(TData, MathVector<dim>, time, si) not implemented.");
 }
 
 
@@ -249,7 +249,7 @@ void IPData<TData,dim,TRet>::local_ip_series_added(const size_t newNumSeries)
 //	that the allocated memory pointer remain valid. They are used outside of
 //	the class as well to allow fast access to the data.
 	if(newNumSeries < numOldSeries)
-		UG_THROW_FATAL("Decrease is not implemented.");
+		UG_THROW("Decrease is not implemented.");
 
 //	increase number of series if needed
 	m_vvValue.resize(newNumSeries);

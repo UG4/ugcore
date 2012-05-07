@@ -49,7 +49,7 @@ template<typename TAssFunc>
 void IElemDisc::set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_ass_elem_enabled())
-		UG_THROW_FATAL("IElemDisc: trying to register fast_ass_elem-function, but"
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
@@ -60,7 +60,7 @@ template<typename TAssFunc>
 void IElemDisc::set_prep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_ass_elem_enabled())
-		UG_THROW_FATAL("IElemDisc: trying to register fast_ass_elem-function, but"
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
@@ -71,7 +71,7 @@ template<typename TAssFunc>
 void IElemDisc::set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_ass_elem_enabled())
-		UG_THROW_FATAL("IElemDisc: trying to register fast_ass_elem-function, but"
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
@@ -82,7 +82,7 @@ template<typename TAssFunc>
 void IElemDisc::set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_ass_elem_enabled())
-		UG_THROW_FATAL("IElemDisc: trying to register fast_ass_elem-function, but"
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
@@ -93,7 +93,7 @@ template<typename TAssFunc>
 void IElemDisc::set_ass_JA_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_ass_elem_enabled())
-		UG_THROW_FATAL("IElemDisc: trying to register fast_ass_elem-function, but"
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
@@ -104,7 +104,7 @@ template<typename TAssFunc>
 void IElemDisc::set_ass_JM_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_ass_elem_enabled())
-		UG_THROW_FATAL("IElemDisc: trying to register fast_ass_elem-function, but"
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
@@ -115,7 +115,7 @@ template<typename TAssFunc>
 void IElemDisc::set_ass_dA_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_ass_elem_enabled())
-		UG_THROW_FATAL("IElemDisc: trying to register fast_ass_elem-function, but"
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
@@ -126,7 +126,7 @@ template<typename TAssFunc>
 void IElemDisc::set_ass_dM_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_ass_elem_enabled())
-		UG_THROW_FATAL("IElemDisc: trying to register fast_ass_elem-function, but"
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
@@ -137,7 +137,7 @@ template<typename TAssFunc>
 void IElemDisc::set_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_ass_elem_enabled())
-		UG_THROW_FATAL("IElemDisc: trying to register fast_ass_elem-function, but"
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
@@ -148,7 +148,7 @@ template<typename TAssFunc>
 void IElemDisc::set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_ass_elem_enabled())
-		UG_THROW_FATAL("IElemDisc: trying to register fast_ass_elem-function, but"
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");

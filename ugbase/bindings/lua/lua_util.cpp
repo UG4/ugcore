@@ -245,7 +245,7 @@ lua_State* GetDefaultLuaState()
 			#endif
 
 			if(!g_pRegistry->check_consistency())
-				throw(UGFatalError("Script-Registry not ok."));
+				throw(UGError("Script-Registry not ok."));
 
 		}
 		
@@ -279,7 +279,7 @@ void ReleaseDefaultLuaState()
 int luaCallStackError( lua_State *L )
 {
 	UG_LOG("Error: " << lua_tostring(L, -1) << ". ");
-    UG_LOG("call stack:\n"); ug::bridge::lua_stacktrace(L);
+    UG_LOG("call stack:\n"); ug::bridge::LuaStackTrace(L);
     return 1;
 }
 
@@ -310,7 +310,7 @@ bool ParseBuffer(const char* buffer, const char *bufferName)
 //		LOG("PARSE-ERROR: " << lua_tostring(L, -1) << endl);
 		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
-		ug::bridge::lua_stacktrace(L);
+		ug::bridge::LuaStackTrace(L);
 		throw(LuaError(msg.c_str()));
 //		return false;
 	}
@@ -347,7 +347,7 @@ bool ParseFile(const char* filename)
 		//LOG("PARSE-ERROR in parse_file(" << filename << "): " << lua_tostring(L, -1) << endl);
 		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
-		ug::bridge::lua_stacktrace(L);
+		ug::bridge::LuaStackTrace(L);
 		throw(LuaError(msg.c_str()));
 	}
 	return true;

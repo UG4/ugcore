@@ -48,12 +48,12 @@ class AlgebraDebugWriter
 		{
 		//	check
 			if(m_pPositions == NULL)
-				UG_THROW_FATAL("'AlgebraDebugWriter::write_vector':"
+				UG_THROW("'AlgebraDebugWriter::write_vector':"
 						" No reference positions set.\n");
 
 		//	check number of positions
 			if(vec.size() != (size_t)m_numPos)
-				UG_THROW_FATAL("'AlgebraDebugWriter::write_vector':"
+				UG_THROW("'AlgebraDebugWriter::write_vector':"
 						" Number of positions does not match.\n");
 
 		//	get fresh name
@@ -85,19 +85,19 @@ class AlgebraDebugWriter
 		{
 		//	check
 			if(m_pPositions == NULL)
-				UG_THROW_FATAL("'AlgebraDebugWriter::write_matrix':"
+				UG_THROW("'AlgebraDebugWriter::write_matrix':"
 						" No reference positions set.\n");
 
 		//	check number of positions
 			if(mat.num_rows() != (size_t)m_numPos || mat.num_cols() != (size_t)m_numPos)
-				UG_THROW_FATAL("'AlgebraDebugWriter::write_matrix':"
+				UG_THROW("'AlgebraDebugWriter::write_matrix':"
 						" Number of positions does not match.\n");
 
 		//	check name
 			std::string name(filename);
 			size_t iExtPos = name.find_last_of(".");
 			if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".mat") != 0)
-				UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
+				UG_THROW("Only '.mat' format supported for matrices, but"
 								" filename is '"<<name<<"'.");
 
 		//	write to file

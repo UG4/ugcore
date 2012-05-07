@@ -319,13 +319,13 @@ class IDependentIPData : virtual public IIPData
 	///	computation of data depending on current solution
 		virtual void compute(bool bDeriv = false)
 		{
-			UG_THROW_FATAL("IDependentIPData::compute: No implementation found.");
+			UG_THROW("IDependentIPData::compute: No implementation found.");
 		}
 
 	///	computation of data depending on current solution
 		virtual void compute_with_sol(const LocalVector& u, bool bDeriv)
 		{
-			UG_THROW_FATAL("IDependentIPData::compute: No implementation found.");
+			UG_THROW("IDependentIPData::compute: No implementation found.");
 		}
 
 	///	returns if the computation needs the current solution

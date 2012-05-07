@@ -24,7 +24,7 @@ inline int ReferenceElementDimension(ReferenceObjectID roid)
 		case ROID_PYRAMID: return 3;
 		case ROID_PRISM: return 3;
 		case ROID_HEXAHEDRON: return 3;
-		default: throw(UGFatalError("ReferenceObjectId not found."));
+		default: throw(UGError("ReferenceObjectId not found."));
 	}
 }
 
@@ -38,7 +38,7 @@ inline MathVector<1> ReferenceElementCenter<1>(ReferenceObjectID roid)
 	switch(roid)
 	{
 		case ROID_EDGE: return MathVector<1>(0.5);
-		default: UG_THROW_FATAL("ReferenceObject "<<roid<<" not found in dim 1.");
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 1.");
 	}
 }
 
@@ -49,7 +49,7 @@ inline MathVector<2> ReferenceElementCenter<2>(ReferenceObjectID roid)
 	{
 		case ROID_TRIANGLE: return MathVector<2>(1.0/3.0, 1.0/3.0);
 		case ROID_QUADRILATERAL: return MathVector<2>(0.5, 0.5);
-		default: UG_THROW_FATAL("ReferenceObject "<<roid<<" not found in dim 2.");
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 2.");
 	}
 }
 
@@ -62,7 +62,7 @@ inline MathVector<3> ReferenceElementCenter<3>(ReferenceObjectID roid)
 		case ROID_PYRAMID: return MathVector<3>(2./5., 2./5., 1./5.);
 		case ROID_PRISM: return MathVector<3>(2./6., 2./6., 0.5);
 		case ROID_HEXAHEDRON: return MathVector<3>(0.5, 0.5, 0.5);
-		default: UG_THROW_FATAL("ReferenceObject "<<roid<<" not found in dim 3.");
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 3.");
 	}
 }
 

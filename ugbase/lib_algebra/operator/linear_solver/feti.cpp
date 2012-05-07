@@ -79,11 +79,11 @@ init()
 {
 //	check that operator has been set
 	if(m_spOperator.invalid())
-		UG_THROW_FATAL("LocalSchurComplement::init: No Operator A set.");
+		UG_THROW("LocalSchurComplement::init: No Operator A set.");
 
 //	check Feti layouts have been set
 	if(m_pFetiLayouts == NULL)
-		UG_THROW_FATAL("LocalSchurComplement::init: FETI layouts not set.");
+		UG_THROW("LocalSchurComplement::init: FETI layouts not set.");
 
 //	save matrix from which we build the Schur complement
 	m_pMatrix = &m_spOperator->get_matrix();
@@ -106,7 +106,7 @@ init()
 //	init sequential solver for Dirichlet problem
 	if(m_spDirichletSolver.valid())
 		if(!m_spDirichletSolver->init(m_spDirichletOperator))
-			UG_THROW_FATAL("LocalSchurComplement::init: Cannot init "
+			UG_THROW("LocalSchurComplement::init: Cannot init "
 					"Sequential Dirichlet Solver for Operator A.");
 
 //	Debug output of matrices
@@ -124,22 +124,22 @@ apply(vector_type& f, const vector_type& u)
 {
 //	check that matrix has been set
 	if(m_spOperator.invalid())
-		UG_THROW_FATAL("LocalSchurComplement::apply: Matrix A not set.");
+		UG_THROW("LocalSchurComplement::apply: Matrix A not set.");
 
 //	check Dirichlet solver
 	if(m_spDirichletSolver.invalid())
-		UG_THROW_FATAL("LocalSchurComplement::apply: No sequential Dirichlet Solver set.");
+		UG_THROW("LocalSchurComplement::apply: No sequential Dirichlet Solver set.");
 
 //	Check parallel storage type of matrix
 	if(!m_pDirichletMatrix->has_storage_type(PST_ADDITIVE))
-		UG_THROW_FATAL("LocalSchurComplement::apply: Inadequate storage format of matrix.");
+		UG_THROW("LocalSchurComplement::apply: Inadequate storage format of matrix.");
 
 //	Check parallel storage type of vectors
 	if (!u.has_storage_type(PST_CONSISTENT))
-		UG_THROW_FATAL("LocalSchurComplement::apply: Inadequate storage format of Vector 'u' (should be consistent).");
+		UG_THROW("LocalSchurComplement::apply: Inadequate storage format of Vector 'u' (should be consistent).");
 
 	if(!f.has_storage_type(PST_ADDITIVE))
-		UG_THROW_FATAL("LocalSchurComplement::apply: Inadequate storage format of Vector 'f' (should be additive).");
+		UG_THROW("LocalSchurComplement::apply: Inadequate storage format of Vector 'f' (should be additive).");
 
 //	Help vector
 //	\todo: it would be sufficient to copy only the layouts without copying the values
@@ -190,7 +190,7 @@ apply(vector_type& f, const vector_type& u)
 						" Last defect was " << m_spDirichletSolver->defect() <<
 						" after " << m_spDirichletSolver->step() << " steps.\n");
 
-		UG_THROW_FATAL("Cannot solve Local Schur Complement.");
+		UG_THROW("Cannot solve Local Schur Complement.");
 	} /* else {
 		UG_LOG_ALL_PROCS("'LocalSchurComplement::apply':"
 						" Last defect after applying Dirichlet solver (step 3.b) was " << m_pDirichletSolver->defect() <<

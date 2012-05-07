@@ -260,7 +260,7 @@ class ParameterStack
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			if(m_entries[index].pClassNameNode == NULL)
-				throw(UGFatalError("ClassNameNode missing in Parameter stack."));
+				throw(UGError("ClassNameNode missing in Parameter stack."));
 			return (*m_entries[index].pClassNameNode).name().c_str();
 		}
 
@@ -269,7 +269,7 @@ class ParameterStack
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			if(m_entries[index].pClassNameNode == NULL)
-				throw(UGFatalError("ClassNameNode missing in Parameter stack."));
+				throw(UGError("ClassNameNode missing in Parameter stack."));
 			return m_entries[index].pClassNameNode;
 		}
 

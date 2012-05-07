@@ -115,7 +115,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObj
 		case FACE:   return InnerDoFPosition(vPos, static_cast<Face*>(elem), domain, lfeID);
 		case VOLUME: return InnerDoFPosition(vPos, static_cast<Volume*>(elem), domain, lfeID);
 	}
-	throw(UGFatalError("Base Object type not found."));
+	throw(UGError("Base Object type not found."));
 }
 
 template <typename TDomain>
@@ -133,7 +133,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* el
 		case CSEDGE_CONSTRAINED_EDGE: return InnerDoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID);
 		case CSEDGE_CONSTRAINING_EDGE:return InnerDoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID);
 	}
-	throw(UGFatalError("Edge type not found."));
+	throw(UGError("Edge type not found."));
 }
 
 template <typename TDomain>
@@ -148,7 +148,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, 
 		case CSFACE_CONSTRAINED_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID);
 		case CSFACE_CONSTRAINING_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID);
 	}
-	throw(UGFatalError("Face type not found."));
+	throw(UGError("Face type not found."));
 }
 
 template <typename TDomain>
@@ -161,7 +161,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem
 		case CSVOL_PRISM: return InnerDoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID);
 		case CSVOL_HEXAHEDRON: return InnerDoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID);
 	}
-	throw(UGFatalError("Volume type not found."));
+	throw(UGError("Volume type not found."));
 }
 
 
@@ -227,7 +227,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* 
 		case FACE:   return DoFPosition(vPos, static_cast<Face*>(elem), domain, lfeID);
 		case VOLUME: return DoFPosition(vPos, static_cast<Volume*>(elem), domain, lfeID);
 	}
-	throw(UGFatalError("Base Object type not found."));
+	throw(UGError("Base Object type not found."));
 }
 
 template <typename TDomain>
@@ -245,7 +245,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, T
 		case CSEDGE_CONSTRAINED_EDGE: return DoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID);
 		case CSEDGE_CONSTRAINING_EDGE:return DoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID);
 	}
-	throw(UGFatalError("Edge type not found."));
+	throw(UGError("Edge type not found."));
 }
 
 template <typename TDomain>
@@ -260,7 +260,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDoma
 		case CSFACE_CONSTRAINED_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID);
 		case CSFACE_CONSTRAINING_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID);
 	}
-	throw(UGFatalError("Face type not found."));
+	throw(UGError("Face type not found."));
 }
 
 template <typename TDomain>
@@ -273,7 +273,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDo
 		case CSVOL_PRISM: return DoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID);
 		case CSVOL_HEXAHEDRON: return DoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID);
 	}
-	throw(UGFatalError("Volume type not found."));
+	throw(UGError("Volume type not found."));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -323,19 +323,19 @@ GridFunction<TDomain, TDD, TAlgebra>::check_algebra()
 //	a)	If blocksize fixed and > 1, we need grouping.
 	if(blockSize > 1 && !this->m_spDD->grouped())
 	{
-		UG_THROW_FATAL("Fixed block algebra needs grouped dofs.");
+		UG_THROW("Fixed block algebra needs grouped dofs.");
 	}
 //	b) 	If blocksize flexible, we group
 	else if (blockSize == AlgebraType::VariableBlockSize
 			&& !this->m_spDD->grouped())
 	{
-		UG_THROW_FATAL("Variable block algebra needs grouped dofs.");
+		UG_THROW("Variable block algebra needs grouped dofs.");
 	}
 //	c)	If blocksize == 1, we do not group. This will allow us to handle
 //		this case for any problem.
 	else if (blockSize == 1 && this->m_spDD->grouped())
 	{
-		UG_THROW_FATAL("block 1x1 algebra needs non-grouped dofs.");
+		UG_THROW("block 1x1 algebra needs non-grouped dofs.");
 	}
 }
 
@@ -403,7 +403,7 @@ permute_values(const std::vector<size_t>& vIndNew)
 {
 //	check sizes
 	if(vIndNew.size() != this->size())
-		UG_THROW_FATAL("GridFunction::permute_values: For a permutation the"
+		UG_THROW("GridFunction::permute_values: For a permutation the"
 				" index set must have same cardinality as vector.");
 
 // \todo: avoid tmp vector, only copy values into new vector and use that one
@@ -430,7 +430,7 @@ copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,bool bDisju
 				= this->operator[](vIndexMap[i].first);
 
 //	other case not implemented
-	else UG_THROW_FATAL("Not implemented.");
+	else UG_THROW("Not implemented.");
 }
 
 template <typename TDomain, typename TDD, typename TAlgebra>
@@ -438,7 +438,7 @@ void GridFunction<TDomain, TDD, TAlgebra>::assign(const vector_type& v)
 {
 //	check size
 	if(v.size() != vector_type::size())
-		UG_THROW_FATAL("GridFunction: Assigned vector has incorrect size.");
+		UG_THROW("GridFunction: Assigned vector has incorrect size.");
 
 //	assign vector
 	*(dynamic_cast<vector_type*>(this)) = v;

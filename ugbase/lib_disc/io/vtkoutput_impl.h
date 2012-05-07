@@ -40,7 +40,7 @@ print(const char* filename, TFunction& u, int step, number time, bool makeConsis
 #ifdef UG_PARALLEL
 	if(makeConsistent)
 		if(!u.change_storage_type(PST_CONSISTENT))
-			UG_THROW_FATAL("VTK::print: Cannot change storage type to consistent.");
+			UG_THROW("VTK::print: Cannot change storage type to consistent.");
 #endif
 
 //	check functions
@@ -94,7 +94,7 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 #ifdef UG_PARALLEL
 	if(makeConsistent)
 		if(!u.change_storage_type(PST_CONSISTENT))
-			UG_THROW_FATAL("VTK::print_subset: Cannot change storage type to consistent.");
+			UG_THROW("VTK::print_subset: Cannot change storage type to consistent.");
 #endif
 
 //	get the grid associated to the solution
@@ -172,7 +172,7 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 		if( ((si < 0) && grid.num<VertexBase>() != 0) ||
 			((si >=0) && u.domain()->subset_handler()->template num<VertexBase>(si) != 0))
 		{
-			UG_THROW_FATAL("VTK::print_subset: Dimension of grid/subset not"
+			UG_THROW("VTK::print_subset: Dimension of grid/subset not"
 					" detected correctly although grid objects present.");
 		}
 
@@ -282,7 +282,7 @@ print(const char* filename, Domain<TDim>& domain)
 		if( ((si < 0) && grid.num<VertexBase>() != 0) ||
 			((si >=0) && sh.num<VertexBase>(si) != 0))
 		{
-			UG_THROW_FATAL("VTK::print: Dimension of grid/subset not"
+			UG_THROW("VTK::print: Dimension of grid/subset not"
 					" detected correctly although grid objects present.");
 		}
 
@@ -458,7 +458,7 @@ count_piece_sizes(Grid& grid, const T& iterContainer, int si, int dim,
 				count_sizes<Pyramid, T>(grid, iterContainer, si, numVert, numElem, numConn);
 				count_sizes<Prism, T>(grid, iterContainer, si, numVert, numElem, numConn);
 				count_sizes<Hexahedron, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
-		default: UG_THROW_FATAL("VTK::count_piece_sizes: Dimension " << dim <<
+		default: UG_THROW("VTK::count_piece_sizes: Dimension " << dim <<
 		                        " is not supported.");
 	}
 
@@ -567,7 +567,7 @@ write_points(VTKFileWriter& File,
 					write_points_elementwise<Pyramid,T,TDim>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);
 					write_points_elementwise<Prism,T,TDim>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);
 					write_points_elementwise<Hexahedron,T,TDim>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n); break;
-			default: UG_THROW_FATAL("VTK::write_points: Dimension " << dim <<
+			default: UG_THROW("VTK::write_points: Dimension " << dim <<
 			                        " is not supported.");
 		}
 	}
@@ -686,7 +686,7 @@ write_cell_connectivity(VTKFileWriter& File,
 					write_cell_connectivity<Pyramid,T>(File, aaVrtIndex, grid, iterContainer, si);
 					write_cell_connectivity<Prism,T>(File, aaVrtIndex, grid, iterContainer, si);
 					write_cell_connectivity<Hexahedron,T>(File, aaVrtIndex, grid, iterContainer, si); break;
-			default: UG_THROW_FATAL("VTK::write_cell_connectivity: Dimension " << dim <<
+			default: UG_THROW("VTK::write_cell_connectivity: Dimension " << dim <<
 			                        " is not supported.");
 		}
 	}
@@ -750,7 +750,7 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 					write_cell_offsets<Pyramid,T>(File, iterContainer, si, n);
 					write_cell_offsets<Prism,T>(File, iterContainer, si, n);
 					write_cell_offsets<Hexahedron,T>(File, iterContainer, si, n); break;
-			default: UG_THROW_FATAL("VTK::write_cell_offsets: Dimension " << dim <<
+			default: UG_THROW("VTK::write_cell_offsets: Dimension " << dim <<
 			                        " is not supported.");
 		}
 	}
@@ -788,7 +788,7 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si)
 		case ROID_PYRAMID: type = (char) 14; break;
 		case ROID_PRISM: type = (char) 13; break;
 		case ROID_HEXAHEDRON: type = (char) 12; break;
-		default: throw(UGFatalError("Element Type not known."));
+		default: throw(UGError("Element Type not known."));
 	}
 
 //	get iterators
@@ -827,7 +827,7 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 					write_cell_types<Pyramid>(File, iterContainer, si);
 					write_cell_types<Prism>(File, iterContainer, si);
 					write_cell_types<Hexahedron>(File, iterContainer, si);break;
-			default: UG_THROW_FATAL("VTK::write_cell_types: Dimension " << dim <<
+			default: UG_THROW("VTK::write_cell_types: Dimension " << dim <<
 			                        " is not supported.");
 		}
 	}
@@ -931,7 +931,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 			{
 			//	get multi index of vertex for the function
 				if(u.inner_multi_indices(v, vFct[i], vMultInd) != 1)
-					UG_THROW_FATAL("VTK:write_nodal_values_elementwise: "
+					UG_THROW("VTK:write_nodal_values_elementwise: "
 							"The function component "<<vFct[i]<<" has "<<
 							vMultInd.size()<<" DoFs in  a vertex. To write a "
 							"component to vtk, exactly one DoF must be "
@@ -991,7 +991,7 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 				write_nodal_values_elementwise<Pyramid>(File, u, vFct, grid, si);
 				write_nodal_values_elementwise<Prism>(File, u, vFct, grid, si);
 				write_nodal_values_elementwise<Hexahedron>(File, u, vFct, grid, si);break;
-		default: UG_THROW_FATAL("VTK::write_nodal_values: Dimension " << dim <<
+		default: UG_THROW("VTK::write_nodal_values: Dimension " << dim <<
 		                        " is not supported.");
 	}
 
@@ -1038,7 +1038,7 @@ write_pvtu(TFunction& u, const std::string& filename,
 	//	open file
 		file = fopen(name.c_str(), "w");
 		if (file == NULL)
-			UG_THROW_FATAL("VTKOutput: Cannot print to file.");
+			UG_THROW("VTKOutput: Cannot print to file.");
 
 	//	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
@@ -1108,7 +1108,7 @@ write_time_pvd(const char* filename, TFunction& u)
 	//	open file
 		file = fopen(name.c_str(), "w");
 		if (file == NULL)
-			UG_THROW_FATAL("Cannot print to file.");
+			UG_THROW("Cannot print to file.");
 
 	// 	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");
@@ -1167,7 +1167,7 @@ write_time_pvd(const char* filename, TFunction& u)
 	//	open file
 		file = fopen(name.c_str(), "w");
 		if (file == NULL)
-			UG_THROW_FATAL("Cannot print to file.");
+			UG_THROW("Cannot print to file.");
 
 	// 	Write to file
 		fprintf(file, "<?xml version=\"1.0\"?>\n");

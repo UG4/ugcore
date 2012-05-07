@@ -84,7 +84,7 @@ public:
 	void add_iterator(SmartPtr<ILinearIterator<X,Y> > I) {m_vIterator.push_back(I);}
 
 	//	Clone
-	virtual SmartPtr<ILinearIterator<X,Y> > clone() {UG_THROW_FATAL("Not Implemented!"); return 0;}
+	virtual SmartPtr<ILinearIterator<X,Y> > clone() {UG_THROW("Not Implemented!"); return 0;}
 
 	// 	Destructor
 	virtual ~LinearIteratorProduct() {};

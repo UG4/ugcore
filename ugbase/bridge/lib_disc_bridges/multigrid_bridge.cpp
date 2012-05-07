@@ -146,7 +146,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	{
 		UG_LOG("### ERROR in Register__Algebra_DoFDistribution: "
 				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW_FATAL("Registration failed.");
+		UG_THROW("Registration failed.");
 	}
 }
 

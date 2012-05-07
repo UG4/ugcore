@@ -40,7 +40,7 @@ void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
 		if(fineDD.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
-			UG_THROW_FATAL("AssembleVertexProjection: "
+			UG_THROW("AssembleVertexProjection: "
 					"Interpolation only implemented for Lagrange P1 functions.");
 
 // 	get MultiGrid
@@ -52,7 +52,7 @@ void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
 
 // 	resize matrix
 	if(!mat.resize(numCoarseDoFs, numFineDoFs))
-		UG_THROW_FATAL("AssembleVertexProjection: "
+		UG_THROW("AssembleVertexProjection: "
 				"Cannot resize Interpolation Matrix.");
 
 	std::vector<size_t> coarseInd, fineInd;
@@ -132,11 +132,11 @@ class P1Projection :
 			m_fineLevel = fineLevel;
 			m_coarseLevel = coarseLevel;
 			if(m_fineLevel.level() - m_coarseLevel.level() != 1)
-				UG_THROW_FATAL("P1Projection::set_levels:"
+				UG_THROW("P1Projection::set_levels:"
 						" Can only project between successive level.");
 			if(m_fineLevel.type() != GridLevel::LEVEL ||
 			   m_coarseLevel.type() != GridLevel::LEVEL)
-				UG_THROW_FATAL("P1Projection::set_levels:"
+				UG_THROW("P1Projection::set_levels:"
 						" Can only project between level dof distributions.");
 		}
 
@@ -145,7 +145,7 @@ class P1Projection :
 		virtual void init()
 		{
 			if(!m_spApproxSpace.valid())
-				UG_THROW_FATAL("P1Projection::init: "
+				UG_THROW("P1Projection::init: "
 						"Approximation Space not set. Cannot init Projection.");
 
 			m_matrix.resize(0,0);
@@ -173,7 +173,7 @@ class P1Projection :
 		{
 		//	Check, that operator is initiallized
 			if(!m_bInit)
-				UG_THROW_FATAL("P1Projection::apply:"
+				UG_THROW("P1Projection::apply:"
 						" Operator not initialized.");
 
 		//	Some Assertions
@@ -186,7 +186,7 @@ class P1Projection :
 
 		//	Apply matrix
 			if(!m_matrix.apply(uCoarseOut, uFineIn))
-				UG_THROW_FATAL("P1Projection::apply: Cannot apply matrix.");
+				UG_THROW("P1Projection::apply: Cannot apply matrix.");
 		}
 
 	// 	Apply Transposed Operator u = L^T*f
@@ -194,7 +194,7 @@ class P1Projection :
 		{
 		//	Check, that operator is initiallized
 			if(!m_bInit)
-				UG_THROW_FATAL("P1Projection::apply_transposed:"
+				UG_THROW("P1Projection::apply_transposed:"
 						"Operator not initialized.");
 
 		//	Some Assertions
@@ -207,14 +207,14 @@ class P1Projection :
 
 		//	Apply matrix
 			if(!m_matrix.apply_transposed(uFineOut, uCoarseIn))
-				UG_THROW_FATAL("P1Projection::apply_transposed:"
+				UG_THROW("P1Projection::apply_transposed:"
 						" Cannot apply transposed matrix.");
 		}
 
 	// 	Apply sub not implemented
 		virtual void apply_sub(vector_type& u, const vector_type& v)
 		{
-			UG_THROW_FATAL("Not Implemented.");
+			UG_THROW("Not Implemented.");
 		}
 
 	//	Destructor

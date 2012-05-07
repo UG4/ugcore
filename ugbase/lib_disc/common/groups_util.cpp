@@ -114,7 +114,7 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
 
 //	check that from group is contained in to group
 	if(!grpToLarge.contains(grpFromSmall))
-		UG_THROW_FATAL("CreateFunctionIndexMapping: smaller FunctionGroup "
+		UG_THROW("CreateFunctionIndexMapping: smaller FunctionGroup "
 				<< grpFromSmall << " is not contained in larger Group " <<
 				grpToLarge<<". Cannot create Mapping.");
 
@@ -142,7 +142,7 @@ CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
 
 //	check that from group is contained in to group
 	if(!grpFromLarge.contains(grpToSmall))
-		UG_THROW_FATAL("CreateFunctionIndexMapping: smaller FunctionGroup "
+		UG_THROW("CreateFunctionIndexMapping: smaller FunctionGroup "
 				<< grpToSmall << " is not contained in larger Group " <<
 				grpFromLarge<<". Cannot create Mapping.");
 
@@ -186,7 +186,7 @@ void CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 
 		const FunctionPattern* pFctPat = vFctGrp[grp]->function_pattern();
 		if(pFctPat == NULL)
-			UG_THROW_FATAL("CreateUnionOfFunctionGroups: Function group "
+			UG_THROW("CreateUnionOfFunctionGroups: Function group "
 					<<grp<<" has NULL as underlying FunctionPattern.");
 
 		fctGrp.set_function_pattern(*pFctPat);

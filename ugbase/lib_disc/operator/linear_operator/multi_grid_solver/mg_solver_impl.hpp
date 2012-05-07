@@ -650,7 +650,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 //	Check that Operator type is correct
 	if(m_spSurfaceMat.invalid())
-		UG_THROW_FATAL("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
+		UG_THROW("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
 
 //	check that grid given
 	if(m_spApproxSpace->num_levels() == 0)
@@ -748,7 +748,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 
 //	Check that Operator type is correct
 	if(m_spSurfaceMat.invalid())
-		UG_THROW_FATAL("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
+		UG_THROW("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
 
 //	check that grid given
 	if(m_spApproxSpace->num_levels() == 0)
@@ -1330,7 +1330,7 @@ write_level_debug(const vector_type& vec, const char* filename, size_t lev)
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter.valid()) UG_THROW_FATAL("Cannot write debug on surface");
+	if(dbgWriter.valid()) UG_THROW("Cannot write debug on surface");
 
 //	add iter count to name
 	std::string name(filename);
@@ -1357,7 +1357,7 @@ write_level_debug(const matrix_type& mat, const char* filename, size_t lev)
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter.valid()) UG_THROW_FATAL("Cannot write debug on surface");
+	if(dbgWriter.valid()) UG_THROW("Cannot write debug on surface");
 
 //	add iter count to name
 	std::string name(filename);
@@ -1384,7 +1384,7 @@ write_surface_debug(const vector_type& vec, const char* filename)
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter.valid()) UG_THROW_FATAL("Cannot write debug on surface");
+	if(dbgWriter.valid()) UG_THROW("Cannot write debug on surface");
 
 //	add iter count to name
 	std::string name(filename);
@@ -1412,7 +1412,7 @@ write_surface_debug(const matrix_type& mat, const char* filename)
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter.valid()) UG_THROW_FATAL("Cannot write debug on surface");
+	if(dbgWriter.valid()) UG_THROW("Cannot write debug on surface");
 
 //	add iter count to name
 	std::string name(filename);

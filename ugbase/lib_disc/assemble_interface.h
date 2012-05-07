@@ -164,7 +164,7 @@ class IAssemble
 	///	assembles mass matrix
 		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		                               GridLevel gl)
-		{UG_THROW_FATAL("IAssemble: assemble_mass_matrix not implemented.");}
+		{UG_THROW("IAssemble: assemble_mass_matrix not implemented.");}
 
 	///	assembles mass matrix on surface grid
 		void assemble_mass_matrix(matrix_type& M, const vector_type& u)
@@ -173,7 +173,7 @@ class IAssemble
 	///	assembles stiffness matrix
 		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		                                       GridLevel gl)
-		{UG_THROW_FATAL("IAssemble: assemble_stiffness_matrix not implemented.");}
+		{UG_THROW("IAssemble: assemble_stiffness_matrix not implemented.");}
 
 	///	assembles stiffness matrix on surface grid
 		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
@@ -182,7 +182,7 @@ class IAssemble
 	///	assembles rhs
 		virtual void assemble_rhs(vector_type& rhs, const vector_type& u,
 		                           GridLevel gl)
-		{UG_THROW_FATAL("IAssemble: assemble_rhs not implemented.");}
+		{UG_THROW("IAssemble: assemble_rhs not implemented.");}
 
 	///	assembles rhs on surface grid
 		virtual void assemble_rhs(vector_type& rhs, const vector_type& u)

@@ -110,7 +110,7 @@ class P1LocalTransfer : public ILocalTransferAlgebra<TAlgebra>
 				case ROID_TETRAHEDRON:
 				case ROID_PRISM:
 				case ROID_PYRAMID: /*nothing to do in those cases */ break;
-				default: UG_THROW_FATAL("Reference Object type not found.");
+				default: UG_THROW("Reference Object type not found.");
 			}
 		}
 		void prolongate_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
@@ -141,7 +141,7 @@ class P1LocalTransfer : public ILocalTransferAlgebra<TAlgebra>
 				case ROID_PRISM:
 				case ROID_PYRAMID:
 				case ROID_HEXAHEDRON: /*nothing to do in those cases */ break;
-				default: UG_THROW_FATAL("Reference Object type not found.");
+				default: UG_THROW("Reference Object type not found.");
 			}
 		}
 		void restrict_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}

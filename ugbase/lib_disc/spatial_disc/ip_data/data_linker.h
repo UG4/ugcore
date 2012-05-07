@@ -295,7 +295,7 @@ struct linker_traits< MathTensor<4,dim>, number >
 						 const number& s)
 	{
 		out = in1;
-		throw(UGFatalError("linker_traits for MathTensor4 not implemented"));
+		throw(UGError("linker_traits for MathTensor4 not implemented"));
 	}
 };
 

@@ -44,7 +44,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template assemble_jacobian<SurfaceDoFDistribution>(J, u, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		virtual void assemble_defect(vector_type& d, const vector_type& u,
@@ -55,7 +55,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template assemble_defect<SurfaceDoFDistribution>(d, u, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		virtual void assemble_linear(matrix_type& mat, vector_type& rhs,
@@ -66,7 +66,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template assemble_linear<SurfaceDoFDistribution>(mat, rhs, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		virtual void adjust_solution(vector_type& u, GridLevel gl)
@@ -76,7 +76,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template adjust_solution<SurfaceDoFDistribution>(u, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		// mass- / stiffness - matrix, rhs
@@ -88,7 +88,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template assemble_mass_matrix<SurfaceDoFDistribution>(M, u, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
@@ -99,7 +99,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template assemble_stiffness_matrix<SurfaceDoFDistribution>(A, u, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		virtual void assemble_rhs(vector_type& rhs, const vector_type& u,
@@ -110,7 +110,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template assemble_rhs<SurfaceDoFDistribution>(rhs, u, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 
@@ -123,7 +123,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template prepare_timestep<SurfaceDoFDistribution>(vSol, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		virtual void assemble_jacobian(matrix_type& J,
@@ -135,7 +135,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template assemble_jacobian<SurfaceDoFDistribution>(J, vSol, s_a, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		virtual	void assemble_defect(vector_type& d,
@@ -149,7 +149,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template assemble_defect<SurfaceDoFDistribution>(d, vSol, vScaleMass, vScaleStiff, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		virtual void assemble_linear(matrix_type& A, vector_type& b,
@@ -163,7 +163,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template assemble_linear<SurfaceDoFDistribution>(A, b, vSol, vScaleMass, vScaleStiff, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		virtual void adjust_solution(vector_type& u, number time, GridLevel gl)
@@ -173,7 +173,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template adjust_solution<SurfaceDoFDistribution>(u, time, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 		virtual	void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl)
@@ -183,7 +183,7 @@ class DomainDiscBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template finish_timestep<SurfaceDoFDistribution>(vSol, surf_dd(gl));
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 	protected:

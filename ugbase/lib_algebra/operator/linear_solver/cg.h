@@ -70,7 +70,7 @@ class CG
 		//	check parallel storage types
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				UG_THROW_FATAL("CG::apply_return_defect:"
+				UG_THROW("CG::apply_return_defect:"
 								"Inadequate storage format of Vectors.");
 			#endif
 
@@ -104,7 +104,7 @@ class CG
 		// 	make z consistent
 			#ifdef UG_PARALLEL
 			if(!z.change_storage_type(PST_CONSISTENT))
-				UG_THROW_FATAL("CG::apply_return_defect: "
+				UG_THROW("CG::apply_return_defect: "
 								"Cannot convert z to consistent vector.");
 			#endif
 
@@ -164,7 +164,7 @@ class CG
 				#ifdef UG_PARALLEL
 			// 	make z consistent
 				if(!z.change_storage_type(PST_CONSISTENT))
-					UG_THROW_FATAL("CG::apply_return_defect': "
+					UG_THROW("CG::apply_return_defect': "
 									"Cannot convert z to consistent vector.");
 				#endif
 

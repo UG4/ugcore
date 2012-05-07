@@ -20,7 +20,7 @@ namespace ug{
 /**	If the value can't be converted to a number, an error is thrown*/
 inline number ReturnValueToNumber(lua_State* L, int index){
 	if(!lua_isnumber(L, index))
-		UG_THROW_FATAL("ReturnValueToNumber: Data passed from Lua: "
+		UG_THROW("ReturnValueToNumber: Data passed from Lua: "
 						"Can't convert return value to number!");
 	return lua_tonumber(L, index);
 }
@@ -29,7 +29,7 @@ inline number ReturnValueToNumber(lua_State* L, int index){
 /**	If the value can't be converted to a boolean, an error is thrown*/
 inline number ReturnValueToBool(lua_State* L, int index){
 	if(!lua_isboolean(L, index))
-		UG_THROW_FATAL("ReturnValueToBool: Data passed from Lua: "
+		UG_THROW("ReturnValueToBool: Data passed from Lua: "
 						"Can't convert return value to boolean!");
 
 	return lua_toboolean(L, index);
@@ -39,7 +39,7 @@ inline number ReturnValueToBool(lua_State* L, int index){
 /**	If the value can't be converted to a integer, an error is thrown*/
 inline int ReturnValueToInteger(lua_State* L, int index){
 	if(!lua_isnumber(L, index))
-		UG_THROW_FATAL("ReturnValueToBool: Data passed from Lua: "
+		UG_THROW("ReturnValueToBool: Data passed from Lua: "
 						"Can't convert return value to integer!");
 
 	return lua_tointeger(L, index);
@@ -318,7 +318,7 @@ LuaUserData<TData,dim,TRet>::LuaUserData(const char* luaCallback)
 
 //	make sure that the reference is valid
 	if(lua_isnil(m_L, -1)){
-		UG_THROW_FATAL(name() << ": Specified lua callback "
+		UG_THROW(name() << ": Specified lua callback "
 						"does not exist: " << m_callbackName);
 	}
 
@@ -342,7 +342,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 //	check if reference is valid
 	if(lua_isnil(L, -1)) {
 		if(bThrow) {
-			UG_THROW_FATAL(name() << ": Cannot find specified lua callback "
+			UG_THROW(name() << ": Cannot find specified lua callback "
 							" with name: "<<callName);
 		}
 		else {
@@ -380,7 +380,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 
 //	call lua function
 	if(lua_pcall(L, argSize, LUA_MULTRET, 0) != 0)
-		UG_THROW_FATAL(name() << ": Error while "
+		UG_THROW(name() << ": Error while "
 						"testing callback '" << callName << "',"
 						" lua message: "<< lua_tostring(L, -1));
 
@@ -393,7 +393,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 //	if number of results is wrong return error
 	if(numResults != retSize){
 		if(bThrow){
-			UG_THROW_FATAL(name() << ": Number of return values incorrect "
+			UG_THROW(name() << ": Number of return values incorrect "
 							"for callback '"<<callName<<"'. "
 							"Required: "<<retSize<<", passed: "<<numResults
 							<<". Use signature as follows:\n"
@@ -407,7 +407,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 //	check return value
 	if(!lua_traits<TData>::check(L)){
 		if(bThrow){
-			UG_THROW_FATAL(name() << ": Data values type incorrect "
+			UG_THROW(name() << ": Data values type incorrect "
 							"for callback '"<<callName<<"'. "
 							"Use signature as follows:\n"
 							<< signature());
@@ -420,7 +420,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 //	read return flag (may be void)
 	if(!lua_traits<TRet>::check(L, -retSize)){
 		if(bThrow){
-			UG_THROW_FATAL("LuaUserData: Return values type incorrect "
+			UG_THROW("LuaUserData: Return values type incorrect "
 							"for callback '"<<callName<<"'. "
 							"Use signature as follows:\n"
 							<< signature());
@@ -466,7 +466,7 @@ operator() (TData& D, const MathVector<dim>& x, number time, int si) const
 
 //	call lua function
 	if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-		UG_THROW_FATAL(name() << "::operator(...): Error while "
+		UG_THROW(name() << "::operator(...): Error while "
 						"running callback '" << m_callbackName << "',"
 						" lua message: "<< lua_tostring(m_L, -1)<<".\n"
 						"Use signature as follows:\n"
@@ -577,7 +577,7 @@ LuaUserDataFactory<TData,dim,TRet>::remove(std::string name)
 
 //	if name does not exist, create new one
 	if(iter == m_mData.end())
-		UG_THROW_FATAL("LuaUserDataFactory: trying to remove non-registered"
+		UG_THROW("LuaUserDataFactory: trying to remove non-registered"
 						" data with name: "<<name);
 
 	m_mData.erase(iter);
@@ -646,7 +646,7 @@ void LuaUserFunction<TData,dim,TDataIn>::set_lua_value_callback(const char* luaC
 
 //	make sure that the reference is valid
 	if(lua_isnil(m_L, -1)){
-		UG_THROW_FATAL("LuaUserFunction::set_lua_value_callback(...):"
+		UG_THROW("LuaUserFunction::set_lua_value_callback(...):"
 				"Specified callback does not exist: " << m_cbValueName);
 	}
 
@@ -671,7 +671,7 @@ void LuaUserFunction<TData,dim,TDataIn>::set_deriv(size_t arg, const char* luaCa
 {
 //	check number of arg
 	if(arg >= m_numArgs)
-		UG_THROW_FATAL("LuaUserFunction::set_lua_deriv_callback: Trying "
+		UG_THROW("LuaUserFunction::set_lua_deriv_callback: Trying "
 				"to set a derivative for argument " << arg <<", that "
 				"does not exist. Number of arguments is "<<m_numArgs);
 
@@ -686,7 +686,7 @@ void LuaUserFunction<TData,dim,TDataIn>::set_deriv(size_t arg, const char* luaCa
 
 //	make sure that the reference is valid
 	if(lua_isnil(m_L, -1)){
-		UG_THROW_FATAL("LuaUserFunction::set_lua_deriv_callback(...):"
+		UG_THROW("LuaUserFunction::set_lua_deriv_callback(...):"
 				"Specified callback does not exist: " << m_cbDerivName[arg]);
 	}
 
@@ -727,7 +727,7 @@ void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ..
 
 //	call lua function
 	if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-		UG_THROW_FATAL("LuaUserFunction::operator(...): Error while "
+		UG_THROW("LuaUserFunction::operator(...): Error while "
 					"running callback '" << m_cbValueName << "',"
 					" lua message: "<< lua_tostring(m_L, -1));
 
@@ -827,7 +827,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 
 //	call lua function
 	if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-		UG_THROW_FATAL("LuaUserFunction::eval_value(...): Error while "
+		UG_THROW("LuaUserFunction::eval_value(...): Error while "
 					"running callback '" << m_cbValueName << "',"
 					" lua message: "<< lua_tostring(m_L, -1));
 
@@ -867,7 +867,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 
 //	call lua function
 	if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-		UG_THROW_FATAL("LuaUserFunction::eval_deriv: Error while "
+		UG_THROW("LuaUserFunction::eval_deriv: Error while "
 				"running callback '" << m_cbDerivName[arg] << "',"
 				" lua message: "<< lua_tostring(m_L, -1) );
 
@@ -905,7 +905,7 @@ void LuaFunction<TData,TDataIn>::set_lua_callback(const char* luaCallback, size_
 
 //	make sure that the reference is valid
 	if(lua_isnil(m_L, -1)){
-		UG_THROW_FATAL("LuaFunction::set_lua_callback(...):"
+		UG_THROW("LuaFunction::set_lua_callback(...):"
 				"Specified lua callback does not exist: " << m_cbValueName);
 	}
 
@@ -949,7 +949,7 @@ void LuaFunction<TData,TDataIn>::operator() (TData& out, int numArgs, ...)
 
 //	call lua function
 	if(lua_pcall(m_L, argSize, retSize, 0) != 0)
-		UG_THROW_FATAL("LuaFunction::operator(...): Error while "
+		UG_THROW("LuaFunction::operator(...): Error while "
 					"running callback '" << m_cbValueName << "',"
 					" lua message: "<< lua_tostring(m_L, -1));
 

@@ -52,7 +52,7 @@ class LinearSolver
 
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				UG_THROW_FATAL("LinearSolver::apply: Inadequate storage format of Vectors.");
+				UG_THROW("LinearSolver::apply: Inadequate storage format of Vectors.");
 			#endif
 
 		// 	rename b as d (for convenience)

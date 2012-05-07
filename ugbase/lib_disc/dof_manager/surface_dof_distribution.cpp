@@ -318,11 +318,11 @@ void SurfaceDoFDistribution::defragment()
 	lev_info().clear();
 
 	if(lev_info().free_index_available())
-		UG_THROW_FATAL("Internal error: Still free indices available after "
+		UG_THROW("Internal error: Still free indices available after "
 						"defragment: " <<  lev_info().num_free_index());
 
 	if(lev_info().numIndex != lev_info().sizeIndexSet)
-		UG_THROW_FATAL("Internal error: numIndex and sizeIndexSet must be "
+		UG_THROW("Internal error: numIndex and sizeIndexSet must be "
 						"equal after defragment, since the index set does not "
 						"contain holes anymore. But numIndex = "<<lev_info().numIndex
 						<<", sizeIndexSet = "<<lev_info().sizeIndexSet);
@@ -399,7 +399,7 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
 //			performed.
 	if(parent_if_copy(obj)) {
 		if(obj_index(obj) != obj_index(get_parent(obj)))
-			UG_THROW_FATAL("Must have same index in parent");
+			UG_THROW("Must have same index in parent");
 		return;
 	}
 

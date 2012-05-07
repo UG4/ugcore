@@ -137,14 +137,14 @@ inline bool RegisterQuadratureRuleDim(QuadratureRuleProvider<3>& factory)
 
 /// Exception thrown when quadrature rule not found
 struct UG_ERROR_QuadratureRuleNotRegistered
-	: public UGFatalError
+	: public UGError
 {
 		UG_ERROR_QuadratureRuleNotRegistered(int dim_, ReferenceObjectID roid_, size_t order_)
-			: UGFatalError(""), dim(dim_), roid(roid_), order(order_)
+			: UGError(""), dim(dim_), roid(roid_), order(order_)
 		{
 			std::stringstream ss; ss << "Quadrature Rule not found for "<<roid<<
 										" (dim="<<dim<<") and order "<<order;
-			UGFatalError::push_msg(ss.str());
+			UGError::push_msg(ss.str());
 		}
 		int dim;
 		ReferenceObjectID roid;
@@ -244,7 +244,7 @@ class QuadratureRuleProvider
 		{
 		//	check that dimension is correct
 			if(TRefElem::dim != dim)
-				UG_THROW_FATAL("QuadratureRuleProvider: registering by reference"
+				UG_THROW("QuadratureRuleProvider: registering by reference"
 						" element, but at provider of different dimension.");
 
 		//	get reference object id
@@ -268,7 +268,7 @@ class QuadratureRuleProvider
 		{
 		//	check that dimension is correct
 			if(TRefElem::dim != dim)
-				UG_THROW_FATAL("QuadratureRuleProvider: requesting by reference"
+				UG_THROW("QuadratureRuleProvider: requesting by reference"
 						" element, but at provider of different dimension.");
 
 		//	get reference object id

@@ -1106,7 +1106,7 @@ void Grid::begin_marking()
 	}
 	
 	if(m_bMarking){
-		throw(UGFatalError("ERROR in Grid::begin_marking(): marking is already active. Don't forget to call end_marking when you're done with marking."));
+		throw(UGError("ERROR in Grid::begin_marking(): marking is already active. Don't forget to call end_marking when you're done with marking."));
 	}
 	
 //	increase currentMark

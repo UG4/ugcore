@@ -56,7 +56,7 @@ bool SubsetIsRegularGrid(const ISubsetHandler& ish, int si)
 		return SubsetIsRegularGrid(*mgsh, si);
 
 //	unknown type of subset handler
-	UG_THROW_FATAL("Unknown SubsetHandler type.");
+	UG_THROW("Unknown SubsetHandler type.");
 	return false;
 }
 

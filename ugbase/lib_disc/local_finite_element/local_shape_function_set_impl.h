@@ -102,7 +102,7 @@ register_set(LFEID type, const LocalShapeFunctionSet<TRefElem>& set)
 //	insert into map
 	MapPair pair = MapPair(type, &set);
 	if(map.insert(pair).second == false)
-		UG_THROW_FATAL("LocalShapeFunctionSetProvider::register_set(): "
+		UG_THROW("LocalShapeFunctionSetProvider::register_set(): "
 				"Reference type already registered for trial space: "<<type<<" and "
 				" Reference element type "<<roid<<".");
 
@@ -115,7 +115,7 @@ register_set(LFEID type, const LocalShapeFunctionSet<TRefElem>& set)
 //	insert into map
 	typedef typename DimMap::value_type DimMapPair;
 	if(dimMap.insert(DimMapPair(type, &set)).second == false)
-		UG_THROW_FATAL("LocalShapeFunctionSetProvider::register_set(): "
+		UG_THROW("LocalShapeFunctionSetProvider::register_set(): "
 				"Reference type already registered for trial space: "<<type<<" and "
 				" Reference element type "<<roid<<".");
 }

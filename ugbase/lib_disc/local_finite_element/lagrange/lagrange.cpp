@@ -176,7 +176,7 @@ void SetLagrangeVolumeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 		break;
 
 	case ROID_PYRAMID:
-		if(p>1) UG_THROW_FATAL("LagrangeLSFS: Higher order Pyramid not implemented.");
+		if(p>1) UG_THROW("LagrangeLSFS: Higher order Pyramid not implemented.");
 		break;
 
 	case ROID_PRISM:
@@ -210,7 +210,7 @@ void SetLagrangeVolumeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 					vMultiIndex[index++][2] = m2;
 				}
 		break;
-	default: UG_THROW_FATAL("LagrangeLSFS: Missing 3d mapping for type '"<<type<<"'."
+	default: UG_THROW("LagrangeLSFS: Missing 3d mapping for type '"<<type<<"'."
 	                        " roid="<<rRef.reference_object_id());
 	}
 }

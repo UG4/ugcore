@@ -59,7 +59,7 @@ IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
 //		this case for any problem.
 	else if (blockSize == 1) m_bGrouped = false;
 	else
-		UG_THROW_FATAL("Cannot determine blocksize of Algebra.");
+		UG_THROW("Cannot determine blocksize of Algebra.");
 
 	register_at_adaption_msg_hub();
 }
@@ -120,7 +120,7 @@ grid_changed_callback(int, const GridMessage_Adaption* msg)
 	}
 
 	else{
-		UG_THROW_FATAL("Before any grid-adaption may be performed, the approximation"
+		UG_THROW("Before any grid-adaption may be performed, the approximation"
 				" space has to be informed that grid-adaption shall begin. "
 				"You may use IRefiner::grid_adaption_begins() or schedule "
 				"an appropriate message to the associated grids message-hub.");
@@ -628,11 +628,11 @@ void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
 {
 //	check correct arguments
 	if(fromLevel > toLevel)
-		UG_THROW_FATAL("fromLevel must be smaller than toLevel");
+		UG_THROW("fromLevel must be smaller than toLevel");
 
 //	check level
 	if(toLevel >= this->num_levels())
-		UG_THROW_FATAL("Required Level "<<toLevel<<", but only "<<
+		UG_THROW("Required Level "<<toLevel<<", but only "<<
 					   this->num_levels()<<" in the MultiGrid.");
 
 //	if not yet MGLevelDD allocated
@@ -663,7 +663,7 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 {
 //	check correct arguments
 	if(fromLevel > toLevel)
-		UG_THROW_FATAL("fromLevel must be smaller than toLevel");
+		UG_THROW("fromLevel must be smaller than toLevel");
 
 //	resize level
 	if(m_vSurfDD.size() < toLevel+1) m_vSurfDD.resize(toLevel+1, NULL);
@@ -724,7 +724,7 @@ void IApproximationSpace::surface_level_view_required(size_t fromLevel, size_t t
 {
 //	check correct arguments
 	if(fromLevel > toLevel)
-		UG_THROW_FATAL("fromLevel must be smaller than toLevel");
+		UG_THROW("fromLevel must be smaller than toLevel");
 
 //	allocate surface view if needed
 	if(!m_spSurfaceView.valid())
@@ -755,9 +755,9 @@ ApproximationSpace(SmartPtr<domain_type> domain)
 	  m_spDomain(domain)
 {
 	if(!m_spDomain.valid())
-		UG_THROW_FATAL("Domain, passed to ApproximationSpace, is invalid.");
+		UG_THROW("Domain, passed to ApproximationSpace, is invalid.");
 	if(!m_spMGSH.valid())
-		UG_THROW_FATAL("SubsetHandler, passed to ApproximationSpace, is invalid.");
+		UG_THROW("SubsetHandler, passed to ApproximationSpace, is invalid.");
 
 #ifdef UG_PARALLEL
 	this->set_dist_grid_mgr(domain->distributed_grid_manager());

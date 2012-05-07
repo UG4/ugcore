@@ -85,7 +85,7 @@ class FunctionPattern
 	/// clear all functions
 		void clear()
 		{
-			if(is_locked()) UG_THROW_FATAL("Pattern locked.");
+			if(is_locked()) UG_THROW("Pattern locked.");
 			m_vFunction.clear();
 		}
 

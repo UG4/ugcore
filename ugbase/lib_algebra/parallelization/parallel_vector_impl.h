@@ -10,7 +10,7 @@
 
 #include <cmath>
 #include "parallel_vector.h"
-#include "common/common.h" // for UGFatalError
+#include "common/common.h" // for UGError
 // additions for profiling (14042011ih)
 #include "common/profiler/profiler.h"
 #define PROFILE_PARALLEL_VECTOR
@@ -42,7 +42,7 @@ change_storage_type(ParallelStorageType type)
 
 	// can only change if current state is defined
 	if(has_storage_type(PST_UNDEFINED))
-		UG_THROW_FATAL("ParallelVector::change_storage_type: Trying to change"
+		UG_THROW("ParallelVector::change_storage_type: Trying to change"
 				" storage type of a vector that has type PST_UNDEFINED.");
 
 	// if already in that type
@@ -55,7 +55,7 @@ change_storage_type(ParallelStorageType type)
 			 if(has_storage_type(PST_UNIQUE)){
 			 	PARVEC_PROFILE_BEGIN(ParVec_CSTUnique2Consistent); // added 14042011ih
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
-					UG_THROW_FATAL("ParallelVector::change_storage_type: No "
+					UG_THROW("ParallelVector::change_storage_type: No "
 							"layouts given but trying to change type.");
 				 UniqueToConsistent(this, *const_cast<IndexLayout*>(m_pMasterLayout),
 				                    *const_cast<IndexLayout*>(m_pSlaveLayout),
@@ -67,7 +67,7 @@ change_storage_type(ParallelStorageType type)
 			 else if(has_storage_type(PST_ADDITIVE)){
 			 	PARVEC_PROFILE_BEGIN(ParVec_CSTAdditive2Consistent); // added 14042011ih
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
-					UG_THROW_FATAL("ParallelVector::change_storage_type: No "
+					UG_THROW("ParallelVector::change_storage_type: No "
 							"layouts given but trying to change type.");
 				AdditiveToConsistent(this, *const_cast<IndexLayout*>(m_pMasterLayout),
 				                     *const_cast<IndexLayout*>(m_pSlaveLayout),
@@ -87,7 +87,7 @@ change_storage_type(ParallelStorageType type)
 			else if(has_storage_type(PST_CONSISTENT)){
 				PARVEC_PROFILE_BEGIN(ParVec_CSTConsistent2Additive); // added 14042011ih
 				if(m_pMasterLayout == NULL)
-					UG_THROW_FATAL("ParallelVector::change_storage_type: No "
+					UG_THROW("ParallelVector::change_storage_type: No "
 							"layouts given but trying to change type.");
 				ConsistentToUnique(this, *const_cast<IndexLayout*>(m_pSlaveLayout));
 				set_storage_type(PST_ADDITIVE);
@@ -100,7 +100,7 @@ change_storage_type(ParallelStorageType type)
 			if(has_storage_type(PST_ADDITIVE)){
 				PARVEC_PROFILE_BEGIN(ParVec_CSTAdditive2Unique); // added 14042011ih
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
-					UG_THROW_FATAL("ParallelVector::change_storage_type: No "
+					UG_THROW("ParallelVector::change_storage_type: No "
 							"layouts given but trying to change type.");
 				AdditiveToUnique(this, *const_cast<IndexLayout*>(m_pMasterLayout),
 				                 *const_cast<IndexLayout*>(m_pSlaveLayout),
@@ -112,7 +112,7 @@ change_storage_type(ParallelStorageType type)
 			else if(has_storage_type(PST_CONSISTENT)){
 				PARVEC_PROFILE_BEGIN(ParVec_CSTConsistent2Unique); // added 14042011ih
 				if(m_pSlaveLayout == NULL)
-					UG_THROW_FATAL("ParallelVector::change_storage_type: No "
+					UG_THROW("ParallelVector::change_storage_type: No "
 							"layouts given but trying to change type.");
 				ConsistentToUnique(this, *const_cast<IndexLayout*>(m_pSlaveLayout));
 				set_storage_type(PST_ADDITIVE);
@@ -172,7 +172,7 @@ two_norm()
 {
 // 	step 1: make vector d additive unique
 	if(!change_storage_type(PST_UNIQUE))
-		UG_THROW_FATAL("ParallelVector::two_norm(): Cannot change"
+		UG_THROW("ParallelVector::two_norm(): Cannot change"
 							" ParallelStorageType to unique.");
 
 // 	step 2: compute process-local defect norm, square them
@@ -199,7 +199,7 @@ dotprod(const this_type& v)
 	{
 		UG_LOG("ERROR in 'ParallelVector::dotprod': "
 				"Parallel storage type of vector not given.\n");
-		throw(UGFatalError("ERROR in ParallelVector::dotprod(): No parallel "
+		throw(UGError("ERROR in ParallelVector::dotprod(): No parallel "
 				"Storage type given."));
 	}
 

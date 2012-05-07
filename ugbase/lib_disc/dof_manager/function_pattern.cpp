@@ -20,11 +20,11 @@ add_fct(const char* name, LFEID lfeID, int dim)
 {
 // 	if already locked, return false
 	if(m_bLocked)
-		UG_THROW_FATAL("FunctionPattern: Already fixed. Cannot change.\n");
+		UG_THROW("FunctionPattern: Already fixed. Cannot change.\n");
 
 //	check that space type has been passed
 	if(lfeID.type() == LFEID::NONE || lfeID.order() < LFEID::ADAPTIV)
-		UG_THROW_FATAL("FunctionPattern: Specified Local Finite Element Space "
+		UG_THROW("FunctionPattern: Specified Local Finite Element Space "
 						<<lfeID<< " is not a valid space. "
 						"[use e.g. (Lagrange, p), (DG, p), ...].\n");
 
@@ -39,7 +39,7 @@ add_fct(const char* name, LFEID lfeID, int dim)
 
 //	if still no dimension available, return false
 	if(dim == -1)
-		UG_THROW_FATAL("FunctionPattern: Cannot find dimension for new function.\n");
+		UG_THROW("FunctionPattern: Cannot find dimension for new function.\n");
 
 //	create temporary subset group
 	SubsetGroup tmpSSGrp;
@@ -59,17 +59,17 @@ void FunctionPattern::add_fct(const char* name, LFEID lfeID,
 {
 // 	if already locked, return false
 	if(m_bLocked)
-		UG_THROW_FATAL("FunctionPattern: Already fixed. Cannot change.\n");
+		UG_THROW("FunctionPattern: Already fixed. Cannot change.\n");
 
 //	check that space type has been passed
 	if(lfeID.type() == LFEID::NONE || lfeID.order() < LFEID::ADAPTIV)
-		UG_THROW_FATAL("FunctionPattern: "
+		UG_THROW("FunctionPattern: "
 				" Specified Local Finite Element Space "<<lfeID<< " is not "
 				" a valid space. [use e.g. (Lagrange, p), (DG, p), ...].\n");
 
 //	check that subset handler are equal
 	if(m_spSH.get() != ssGrp.subset_handler().get())
-		UG_THROW_FATAL("FunctionPattern: "
+		UG_THROW("FunctionPattern: "
 				"SubsetHandler of SubsetGroup does "
 				"not match SubsetHandler of FunctionPattern.\n");
 
@@ -84,7 +84,7 @@ void FunctionPattern::add_fct(const char* name, LFEID lfeID,
 
 //	if still no dimension available, return false
 	if(dim == -1)
-		UG_THROW_FATAL("FunctionPattern: Cannot find dimension for new function.\n");
+		UG_THROW("FunctionPattern: Cannot find dimension for new function.\n");
 
 // 	add to function list, everywhere = false, copy SubsetGroup as given
 	m_vFunction.push_back(Function(name, dim, lfeID, false, ssGrp));
@@ -137,7 +137,7 @@ size_t FunctionPattern::fct_id_by_name(const char* name) const
 			return i;
 	}
 
-	UG_THROW_FATAL("Function name "<<name<<" not found in pattern.");
+	UG_THROW("Function name "<<name<<" not found in pattern.");
 }
 
 ///	returns function group by name

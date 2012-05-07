@@ -139,7 +139,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 
 //	check, that number of sorted indices is correct
 	if(numSorted != numToSort)
-		UG_THROW_FATAL("OrderCuthillMcKee: Must sort "<<numToSort<<" indices,"
+		UG_THROW("OrderCuthillMcKee: Must sort "<<numToSort<<" indices,"
 				" but "<<numSorted<<" indices sorted.\n");
 
 // 	Create list of mapping
@@ -178,7 +178,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 
 //	check if all ordered indices have been written
 	if(cnt != vNewOrder.size())
-		UG_THROW_FATAL("OrderCuthillMcKee: "
+		UG_THROW("OrderCuthillMcKee: "
 					   "Not all ordered indices written back.\n");
 
 //	fill non-sorted indices

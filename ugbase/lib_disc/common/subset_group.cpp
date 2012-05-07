@@ -16,10 +16,10 @@ namespace ug{
 void SubsetGroup::add(int si)
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 	if(si < 0)
-		UG_THROW_FATAL("Subset indices must be non-negative, but " << si);
+		UG_THROW("Subset indices must be non-negative, but " << si);
 
 	std::vector<int>::iterator iter;
 	iter = find(m_vSubset.begin(), m_vSubset.end(), si);
@@ -32,7 +32,7 @@ void SubsetGroup::add(int si)
 void SubsetGroup::add(const char* name)
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 	size_t found = 0;
 
@@ -48,17 +48,17 @@ void SubsetGroup::add(const char* name)
 
 // 	if not found, return false
 	if(found == 0)
-		UG_THROW_FATAL("Cannot find '"<<name<<"' to add to SubsetGroup.");
+		UG_THROW("Cannot find '"<<name<<"' to add to SubsetGroup.");
 }
 
 void SubsetGroup::add(const SubsetGroup& ssGroup)
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 //	check that underlying subset handlers are equal
 	if(m_pSH.get() != ssGroup.subset_handler().get())
-		UG_THROW_FATAL("Underlying subset handler does not match. Cannot add"
+		UG_THROW("Underlying subset handler does not match. Cannot add"
 						" subsets to subset group.");
 
 //	add all subsets
@@ -70,7 +70,7 @@ void SubsetGroup::add(const SubsetGroup& ssGroup)
 void SubsetGroup::add_all()
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 	for(int si = 0; si < m_pSH->num_subsets(); ++si)
 		add(si);
@@ -79,15 +79,15 @@ void SubsetGroup::add_all()
 void SubsetGroup::remove(int si)
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 	if(si < 0)
-		UG_THROW_FATAL("Subset indices must be non-negative, but "<<si);
+		UG_THROW("Subset indices must be non-negative, but "<<si);
 
 	std::vector<int>::iterator iter;
 	iter = find(m_vSubset.begin(), m_vSubset.end(), si);
 	if(iter == m_vSubset.end())
-		UG_THROW_FATAL("Index not contained in SubsetGroup.");
+		UG_THROW("Index not contained in SubsetGroup.");
 
 	m_vSubset.erase(iter);
 }
@@ -95,7 +95,7 @@ void SubsetGroup::remove(int si)
 void SubsetGroup::remove(const char* name)
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 	size_t found = 0;
 
@@ -111,17 +111,17 @@ void SubsetGroup::remove(const char* name)
 
 // 	if not found, return false
 	if(found == 0)
-		UG_THROW_FATAL("Cannot find '"<<name<<"' to remove from SubsetGroup.");
+		UG_THROW("Cannot find '"<<name<<"' to remove from SubsetGroup.");
 }
 
 void SubsetGroup::remove(const SubsetGroup& ssGroup)
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 //	check that underlying subset handlers are equal
 	if(m_pSH.get() != ssGroup.subset_handler().get())
-		UG_THROW_FATAL("Underlying subset handler does not match. Cannot add"
+		UG_THROW("Underlying subset handler does not match. Cannot add"
 						" subsets to subset group.\n");
 
 //	add all subsets
@@ -134,11 +134,11 @@ void SubsetGroup::remove(const SubsetGroup& ssGroup)
 const char* SubsetGroup::name(size_t i) const
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 //	Check, that subset exist
 	if(i >= num_subsets())
-		UG_THROW_FATAL("SubsetGroup does not contain a subset "<<i<<".");
+		UG_THROW("SubsetGroup does not contain a subset "<<i<<".");
 
 	return m_pSH->get_subset_name(m_vSubset[i]);
 }
@@ -147,11 +147,11 @@ const char* SubsetGroup::name(size_t i) const
 bool SubsetGroup::regular_grid(size_t i) const
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 //	Check, that subset exist
 	if(i >= num_subsets())
-		UG_THROW_FATAL("SubsetGroup does not contain a subset "<<i<<".");
+		UG_THROW("SubsetGroup does not contain a subset "<<i<<".");
 
 	return SubsetIsRegularGrid(*m_pSH, m_vSubset[i]);
 }
@@ -160,11 +160,11 @@ bool SubsetGroup::regular_grid(size_t i) const
 int SubsetGroup::dim(size_t i) const
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 //	Check, that subset exist
 	if(i >= num_subsets())
-		UG_THROW_FATAL("SubsetGroup does not contain a subset "<<i<<".");
+		UG_THROW("SubsetGroup does not contain a subset "<<i<<".");
 
 	return DimensionOfSubset(*m_pSH, m_vSubset[i]);
 }
@@ -172,7 +172,7 @@ int SubsetGroup::dim(size_t i) const
 int SubsetGroup::get_local_highest_subset_dimension() const
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 //	without subsets no dimension
 	if(num_subsets() == 0) return -1;
@@ -195,7 +195,7 @@ int SubsetGroup::get_local_highest_subset_dimension() const
 bool SubsetGroup::contains(int si) const
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 	//TODO: since we subetindices are sorted be increasing number, one could optimize the search
 	std::vector<int>::const_iterator iter;
@@ -207,7 +207,7 @@ bool SubsetGroup::contains(int si) const
 bool SubsetGroup::contains(const char* name) const
 {
 	if(!is_init())
-		UG_THROW_FATAL("Cannot use SubsetGroup without SubsetHandler.");
+		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
 
 //	Search for name in Subset list
 	for(int si = 0; si < m_pSH->num_subsets(); ++si)

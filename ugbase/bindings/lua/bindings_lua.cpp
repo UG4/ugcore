@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <queue>
 #include "bindings_lua.h"
-#include "bindings/lua/lua_util.h"
 #include "registry/registry.h"
 #include "registry/class_helper.h"
 #include "common/common.h"
@@ -17,7 +16,12 @@
 #define __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 
 using namespace std;
+using namespace ug::script;
 
+///	throw mechanism for lua related errors.
+#define UG_LUA_THROW_EMPTY()	throw(script::LuaError(""));
+#define UG_LUA_THROW(msg)		{std::stringstream ss; ss << msg; \
+								throw(script::LuaError(ss.str().c_str()));}
 
 namespace ug{
 namespace bridge{
@@ -540,97 +544,88 @@ static void PrintUGErrorTraceback(UGError &err)
 //	Note that not the best matching, but the first matchin overload is chosen!
 static int LuaProxyFunction(lua_State* L)
 {
-	bool bLuaError = false;
-	{
-		const ExportedFunctionGroup* funcGrp = (const ExportedFunctionGroup*)
-												lua_touserdata(L, lua_upvalueindex(1));
-	//	we have to try each overload!
-		int badParam = -2;
-		for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
-			const ExportedFunction* func = funcGrp->get_overload(i);
+	const ExportedFunctionGroup* funcGrp = (const ExportedFunctionGroup*)
+											lua_touserdata(L, lua_upvalueindex(1));
+//	we have to try each overload!
+	int badParam = -2;
+	for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
+		const ExportedFunction* func = funcGrp->get_overload(i);
 
-			ParameterStack paramsIn;
-			ParameterStack paramsOut;
+		ParameterStack paramsIn;
+		ParameterStack paramsOut;
 
-			badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
+		badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
 
-		//	check whether the parameter was correct
-			if(badParam != 0){
-			//	parameters didn't match. Try the next overload.
-				continue;
-			}
+	//	check whether the parameter was correct
+		if(badParam != 0){
+		//	parameters didn't match. Try the next overload.
+			continue;
+		}
 
-			try{
-				func->execute(paramsIn, paramsOut);
-			}
-			catch(UGError& err){
-				UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG(errSymb<<"UGError thrown in call to function '");
-				PrintFunctionInfo(*func); UG_LOG("'.\n");
-				PrintUGErrorTraceback(err);
-				if(err.terminate())
-				{
-					UG_LOG(errSymb<<"Call stack:\n");
-					lua_stacktrace(L);
-					//UG_LOG(errSymb<<"Terminating..." << endl);
-					//exit(0);
-					throw(script::LuaError("fatal error."));
-				}
-				else
-				{
-					throw(script::LuaError("error occured during execution of a function."));
-				}
-			}
-			catch(bad_alloc& ba)
-			{
-				UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG(errSymb<<"std::bad_alloc thrown in call to function '");
-				PrintFunctionInfo(*func); UG_LOG("'.\n");
-				UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
-				UG_LOG(errSymb<<"Call stack:\n");
-				lua_stacktrace(L);
-				throw(script::LuaError("bad alloc"));
-			}
+		try{
+			func->execute(paramsIn, paramsOut);
+		}
+		catch(LuaError& err){
+			UG_LUA_THROW(err.get_msg());
+		}
+		catch(UGError& err){
+			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
+			UG_LOG(errSymb<<"UGError thrown in call to function '");
+			PrintFunctionInfo(*func); UG_LOG("'.\n");
+			PrintUGErrorTraceback(err);
+
+			UG_LOG(errSymb<<"Call stack:\n");
+			LuaStackTrace(L);
+			UG_LUA_THROW_EMPTY();
+		}
+		catch(bad_alloc& ba)
+		{
+			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
+			UG_LOG(errSymb<<"std::bad_alloc thrown in call to function '");
+			PrintFunctionInfo(*func); UG_LOG("'.\n");
+			UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
+
+			UG_LOG(errSymb<<"Call stack:\n");
+			LuaStackTrace(L);
+			UG_LUA_THROW_EMPTY();
+		}
 #ifdef __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
-			catch(...)
-			{
-				UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG(errSymb<<"Unknown Exception thrown in call to function '");
-				PrintFunctionInfo(*func); UG_LOG("'.\n");
-				throw(script::LuaError("unknown exeption"));
-			}
+		catch(...)
+		{
+			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
+			UG_LOG(errSymb<<"Unknown Exception thrown in call to function '");
+			PrintFunctionInfo(*func); UG_LOG("'.\n");
+			UG_LUA_THROW_EMPTY();
+		}
 #endif
 
-		//	if we reach this point, then the method was successfully executed.
-			if(!bLuaError)
-				return ParamsToLuaStack(paramsOut, L);
-		}
-
-		if(!bLuaError && badParam != 0)
-		{
-			UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n");
-			UG_LOG(errSymb<<"ERROR occured when trying to call '"
-			       << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):'\n");
-			UG_LOG(errSymb<<"No matching overload found! Candidates are:\n");
-			for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
-			{
-				const ExportedFunction* func = funcGrp->get_overload(i);
-				ParameterStack paramsIn;
-				badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
-				UG_LOG(errSymb<<" - ");
-				PrintFunctionInfo(*func);
-				UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
-			}
-			UG_LOG(errSymb<<"Call stack:\n"); lua_stacktrace(L);
-
-			throw(script::LuaError("no overload found"));
-		}
+	//	if we reach this point, then the method was successfully executed.
+		return ParamsToLuaStack(paramsOut, L);
 	}
-	
-	// pay attention here: lua_error is using longjmp, so destructors in this scope will not be called!
-	if(bLuaError)
-		lua_error(L);
 
+	if(badParam != 0)
+	{
+		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n");
+		UG_LOG(errSymb<<"ERROR occured when trying to call '"
+			   << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):'\n");
+		UG_LOG(errSymb<<"No matching overload found! Candidates are:\n");
+		for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
+		{
+			const ExportedFunction* func = funcGrp->get_overload(i);
+			ParameterStack paramsIn;
+			badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
+			UG_LOG(errSymb<<" - ");
+			PrintFunctionInfo(*func);
+			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
+		}
+		UG_LOG(errSymb<<"Call stack:\n");
+		LuaStackTrace(L);
+
+		UG_LUA_THROW_EMPTY();
+	}
+
+//	this point shouldn't be reached
+	UG_LUA_THROW("Unknown internal error!");
 	return 0;
 }
 
@@ -669,26 +664,19 @@ static int LuaProxyConstructor(lua_State* L)
 								  c->get_delete_function(), false);
 			}
 		}
+		catch(LuaError& err){
+			UG_LUA_THROW(err.get_msg());
+		}
 		catch(UGError& err)
 		{
 			UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L));
 			UG_LOG(errSymb<<"UGError thrown while creating class '"<<c->name());
 			UG_LOG("'.\n");
 			PrintUGErrorTraceback(err);
-			if(err.terminate())
-			{
-				UG_LOG(errSymb<<"Call stack:\n");
-				lua_stacktrace(L);
-				UG_LOG(errSymb<<"Terminating..." << endl);
-				lua_pushstring (L, err.get_msg().c_str());
-				lua_error(L);
-				return 0;
-			}
-			else
-			{
-				throw(script::LuaError("error occured while creating a class."));
-				return 1;
-			}
+
+			UG_LOG(errSymb<<"Call stack:\n");
+			LuaStackTrace(L);
+			UG_LUA_THROW_EMPTY();
 		}
 
 	//	object created
@@ -702,13 +690,8 @@ static int LuaProxyConstructor(lua_State* L)
 		UG_LOG(errSymb<<"Cannot find constructor for class '"<< c->name()  <<"'.\n");
 	}
 
-	UG_LOG(errSymb<<"Call stack:\n"); lua_stacktrace(L);
-	lua_pushstring (L, "Unknown constructor overload.");
-
-//	If we reach this point, an error has occured. Force lua to stop execution.
-//	pay attention here: lua_error is using longjmp, so destructors in this scope will not be called!
-	lua_error(L);
-
+	UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
+	UG_LUA_THROW_EMPTY();
 	return 0;
 }
 
@@ -719,207 +702,201 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 						UserDataWrapper* self, const ClassNameNode* classNameNode,
 						bool errorOutput)
 {
-	bool bLuaError=false;
-	{
-		ParameterStack paramsIn;;
+	ParameterStack paramsIn;;
+	ParameterStack paramsOut;
+
+	//int badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
+
+//	we have to try each overload!
+	int badParam = -2;
+	for(size_t i = 0; i < methodGrp->num_overloads(); ++i){
+		const ExportedMethod* m = methodGrp->get_overload(i);
+
+		ParameterStack paramsIn;
 		ParameterStack paramsOut;
 
-		//int badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
+		badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
 
-	//	we have to try each overload!
-		int badParam = -2;
-		for(size_t i = 0; i < methodGrp->num_overloads(); ++i){
-			const ExportedMethod* m = methodGrp->get_overload(i);
+	//	check whether the parameter was correct
+		if(badParam != 0){
+		//	parameters didn't match. Try the next overload.
+			continue;
+		}
 
-			ParameterStack paramsIn;
-			ParameterStack paramsOut;
-	
-			badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
-	
-		//	check whether the parameter was correct
-			if(badParam != 0){
-			//	parameters didn't match. Try the next overload.
-				continue;
-			}
-	
-			try
+		try
+		{
+		//	raw pointer
+			if(self->is_raw_ptr())
 			{
-			//	raw pointer
-				if(self->is_raw_ptr())
+			//	cast to the needed base class
+				void* objPtr = ClassCastProvider::cast_to_base_class(
+											((RawUserDataWrapper*)self)->obj,
+											classNameNode, m->class_name().c_str());
+
+				m->execute(objPtr, paramsIn, paramsOut);
+			}
+		//	smart pointer
+			else if(self->is_smart_ptr())
+			{
+				if(self->is_const())
 				{
 				//	cast to the needed base class
 					void* objPtr = ClassCastProvider::cast_to_base_class(
-												((RawUserDataWrapper*)self)->obj,
+												(void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get(),
 												classNameNode, m->class_name().c_str());
 
 					m->execute(objPtr, paramsIn, paramsOut);
 				}
-			//	smart pointer
-				else if(self->is_smart_ptr())
+				else
 				{
-					if(self->is_const())
-					{
-					//	cast to the needed base class
-						void* objPtr = ClassCastProvider::cast_to_base_class(
-													(void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get(),
-													classNameNode, m->class_name().c_str());
+				//	cast to the needed base class
+					void* objPtr = ClassCastProvider::cast_to_base_class(
+												((SmartUserDataWrapper*)self)->smartPtr.get(),
+												classNameNode, m->class_name().c_str());
 
-						m->execute(objPtr, paramsIn, paramsOut);
-					}
-					else
-					{
-					//	cast to the needed base class
-						void* objPtr = ClassCastProvider::cast_to_base_class(
-													((SmartUserDataWrapper*)self)->smartPtr.get(),
-													classNameNode, m->class_name().c_str());
-
-						m->execute(objPtr, paramsIn, paramsOut);
-					}
+					m->execute(objPtr, paramsIn, paramsOut);
 				}
 			}
-			catch(UGError& err)
-			{
-				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG(errSymb << "UGError thrown in call to method '");
-				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
-				PrintUGErrorTraceback(err);
-				if(err.terminate())
-				{
-					UG_LOG(errSymb<<"Terminating..." << endl);
-					exit(0);
-				}
-				throw(script::LuaError("error occured during execution of a method."));
-			}
-			catch(std::bad_alloc& ba)
-			{
-				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG(errSymb << "std::bad_alloc thrown in call to '");
-				UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
-				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG(".'\n");
-				throw(script::LuaError("bad alloc"));
-			}
+		}
+		catch(LuaError& err){
+			UG_LUA_THROW(err.get_msg());
+		}
+		catch(UGError& err)
+		{
+			UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
+			UG_LOG(errSymb << "UGError thrown in call to method '");
+			PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
+			PrintUGErrorTraceback(err);
+			UG_LUA_THROW_EMPTY();
+		}
+		catch(std::bad_alloc& ba)
+		{
+			UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
+			UG_LOG(errSymb << "std::bad_alloc thrown in call to '");
+			UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
+			PrintLuaClassMethodInfo(L, 1, *m); UG_LOG(".'\n");
+			UG_LUA_THROW_EMPTY();
+		}
 #ifdef 	__UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
-			catch(...)
-			{
-				UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-				UG_LOG(errSymb << "Unknown Exception thrown in call to '");
-				PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
-				throw(script::LuaError("unknown exeption"));
-			}
+		catch(...)
+		{
+			UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
+			UG_LOG(errSymb << "Unknown Exception thrown in call to '");
+			PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
+			UG_LUA_THROW_EMPTY();
+		}
 #endif
 
-			if(!bLuaError)
-		//	if we reach this point, then the method was successfully executed.
-				return ParamsToLuaStack(paramsOut, L);
-		}
+	//	if we reach this point, then the method was successfully executed.
+		return ParamsToLuaStack(paramsOut, L);
+	}
 
-	//	check whether the parameters were correct
-		if(!bLuaError && badParam != 0)
-		{
-		//	they were not. If the class has a base class, then we can try to
-		//	to find a method-group in one of the base classes and recursively
-		//	call this method.
-			if(classNameNode != NULL){
-			//	check whether a base-class contains overloads of this method-group
-			//	push all base classes to this queue of class name nodes
-				std::queue<const ClassNameNode*> qClassNameNodes;
-				for(size_t i = 0; i < classNameNode->num_base_classes(); ++i)
-					qClassNameNodes.push(&classNameNode->base_class(i));
+//	check whether the parameters were correct
+	if(badParam != 0)
+	{
+	//	they were not. If the class has a base class, then we can try to
+	//	to find a method-group in one of the base classes and recursively
+	//	call this method.
+		if(classNameNode != NULL){
+		//	check whether a base-class contains overloads of this method-group
+		//	push all base classes to this queue of class name nodes
+			std::queue<const ClassNameNode*> qClassNameNodes;
+			for(size_t i = 0; i < classNameNode->num_base_classes(); ++i)
+				qClassNameNodes.push(&classNameNode->base_class(i));
 
-			//	now visit the whole base-class hierarchy to find overloads of
-			//	this method. Stop if one was successfully executed.
-				while(!qClassNameNodes.empty()){
-					const ClassNameNode* curClassName = qClassNameNodes.front();
-					qClassNameNodes.pop();
+		//	now visit the whole base-class hierarchy to find overloads of
+		//	this method. Stop if one was successfully executed.
+			while(!qClassNameNodes.empty()){
+				const ClassNameNode* curClassName = qClassNameNodes.front();
+				qClassNameNodes.pop();
 
-				//	get the metatable of this class
-					luaL_getmetatable(L, curClassName->name().c_str());
+			//	get the metatable of this class
+				luaL_getmetatable(L, curClassName->name().c_str());
 
-				//	check whether the metatable contains a method-group with
-				//	the given name
-					const ExportedMethodGroup* newMethodGrp = NULL;
-					if(!self->is_const()){
-					//	access the table which stores method-groups
-						lua_pushstring(L, "__method_grps");
+			//	check whether the metatable contains a method-group with
+			//	the given name
+				const ExportedMethodGroup* newMethodGrp = NULL;
+				if(!self->is_const()){
+				//	access the table which stores method-groups
+					lua_pushstring(L, "__method_grps");
+					lua_rawget(L, -2);
+
+					if(lua_istable(L, -1)){
+						lua_pushstring(L, methodGrp->name().c_str());
 						lua_rawget(L, -2);
 
-						if(lua_istable(L, -1)){
-							lua_pushstring(L, methodGrp->name().c_str());
-							lua_rawget(L, -2);
-
-						//	if we retrieved something != nil, we've found one.
-							if(!lua_isnil(L, -1)){
-								newMethodGrp = (const ExportedMethodGroup*)
-												lua_touserdata(L, -1);
-							}
-
-						//	pop the result
-							lua_pop(L, 1);
+					//	if we retrieved something != nil, we've found one.
+						if(!lua_isnil(L, -1)){
+							newMethodGrp = (const ExportedMethodGroup*)
+											lua_touserdata(L, -1);
 						}
-					//	pop the table
+
+					//	pop the result
 						lua_pop(L, 1);
 					}
-
-				//	if the object is const or if no non-const member was found,
-				//	we'll check the const methods
-					if(!newMethodGrp){
-					//	the method is const
-						lua_pushstring(L, "__const_method_grps");
-						lua_rawget(L, -2);
-
-						if(lua_istable(L, -1)){
-						//	check whether the entry is contained in the table
-							lua_pushstring(L, methodGrp->name().c_str());
-							lua_rawget(L, -2);
-
-						//	if we retrieved something != nil, we're done.
-							if(!lua_isnil(L, -1)){
-								newMethodGrp = (const ExportedMethodGroup*)
-												lua_touserdata(L, -1);
-							}
-
-						//	remove result from stack
-							lua_pop(L, 1);
-						}
-					//	remove __const table from stack
-						lua_pop(L, 1);
-					}
-
-				//	remove metatable from stack
+				//	pop the table
 					lua_pop(L, 1);
-
-				//	if we found a base-implementation, call it now.
-				//	if not, add all base-classes to the queue again.
-				//	NOTE: If a base class contains the implementation, we
-				//	don't have to add it to the queue, since the method
-				//	is recursive.
-					if(newMethodGrp){
-						int retVal = ExecuteMethod(L, newMethodGrp, self,
-													curClassName, errorOutput);
-						if(retVal >= 0)
-							return retVal;
-					}
-					else{
-						for(size_t i = 0; i < curClassName->num_base_classes(); ++i)
-							qClassNameNodes.push(&curClassName->base_class(i));
-					}
 				}
 
+			//	if the object is const or if no non-const member was found,
+			//	we'll check the const methods
+				if(!newMethodGrp){
+				//	the method is const
+					lua_pushstring(L, "__const_method_grps");
+					lua_rawget(L, -2);
+
+					if(lua_istable(L, -1)){
+					//	check whether the entry is contained in the table
+						lua_pushstring(L, methodGrp->name().c_str());
+						lua_rawget(L, -2);
+
+					//	if we retrieved something != nil, we're done.
+						if(!lua_isnil(L, -1)){
+							newMethodGrp = (const ExportedMethodGroup*)
+											lua_touserdata(L, -1);
+						}
+
+					//	remove result from stack
+						lua_pop(L, 1);
+					}
+				//	remove __const table from stack
+					lua_pop(L, 1);
+				}
+
+			//	remove metatable from stack
+				lua_pop(L, 1);
+
+			//	if we found a base-implementation, call it now.
+			//	if not, add all base-classes to the queue again.
+			//	NOTE: If a base class contains the implementation, we
+			//	don't have to add it to the queue, since the method
+			//	is recursive.
+				if(newMethodGrp){
+					int retVal = ExecuteMethod(L, newMethodGrp, self,
+												curClassName, errorOutput);
+					if(retVal >= 0)
+						return retVal;
+				}
+				else{
+					for(size_t i = 0; i < curClassName->num_base_classes(); ++i)
+						qClassNameNodes.push(&curClassName->base_class(i));
+				}
 			}
 
-		//	neither the given class nor one of its base classes contains a matching
-		//	overload of the given method. We thus have to output errors.
-		//	Here we only print the overload-infos. The rest is done in LuaProxyMethod.
-			if(errorOutput){
-				for(size_t i = 0; i < methodGrp->num_overloads(); ++i)
-				{
-					const ExportedMethod* func = methodGrp->get_overload(i);
-					ParameterStack paramsIn;
-					badParam = LuaStackToParams(paramsIn, func->params_in(), L, 1);
-					UG_LOG("- ");
-					PrintFunctionInfo(*func);
-					UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 1, badParam) << "\n");
-				}
+		}
+
+	//	neither the given class nor one of its base classes contains a matching
+	//	overload of the given method. We thus have to output errors.
+	//	Here we only print the overload-infos. The rest is done in LuaProxyMethod.
+		if(errorOutput){
+			for(size_t i = 0; i < methodGrp->num_overloads(); ++i)
+			{
+				const ExportedMethod* func = methodGrp->get_overload(i);
+				ParameterStack paramsIn;
+				badParam = LuaStackToParams(paramsIn, func->params_in(), L, 1);
+				UG_LOG("- ");
+				PrintFunctionInfo(*func);
+				UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 1, badParam) << "\n");
 			}
 		}
 	}
@@ -973,12 +950,8 @@ static int LuaProxyMethod(lua_State* L)
 //	time outputting the errors
 	ExecuteMethod(L, methodGrp, self, classNameNode, true);
 
-	UG_LOG(errSymb<<"Call stack:\n"); lua_stacktrace(L);
-	lua_pushstring (L, "Unknown member function overload.");
-
-//	If we reach this point, an error has occured. Force lua to stop execution.
-//	pay attention here: lua_error is using longjmp, so destructors in this scope will not be called!
-	lua_error(L);
+	UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
+	UG_LUA_THROW_EMPTY();
 
 	return 0;
 }
@@ -1155,26 +1128,19 @@ static int LuaProxyGroupCreate(lua_State* L)
 								  c->get_delete_function(), false);
 			}
 		}
+		catch(LuaError& err){
+			UG_LUA_THROW(err.get_msg());
+		}
 		catch(UGError& err)
 		{
 			UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L) <<":\n");
 			UG_LOG(errSymb<<"UGError thrown while creating class '"<<c->name());
 			UG_LOG("'.\n");
 			PrintUGErrorTraceback(err);
-			if(err.terminate())
-			{
-				UG_LOG(errSymb<<"Call stack:\n");
-				lua_stacktrace(L);
-				UG_LOG(errSymb<<"Terminating..." << endl);
-				lua_pushstring (L, err.get_msg().c_str());
-				lua_error(L);
-				return 0;
-			}
-			else
-			{
-				throw(script::LuaError("error occured during creation of a class."));
-				return 1;
-			}
+
+			UG_LOG(errSymb<<"Call stack:\n");
+			LuaStackTrace(L);
+			UG_LUA_THROW_EMPTY();
 		}
 
 	//	object created
@@ -1188,12 +1154,8 @@ static int LuaProxyGroupCreate(lua_State* L)
 		UG_LOG(errSymb<<"Cannot find constructor for class "<< c->name() <<".\n");
 	}
 
-	UG_LOG(errSymb<<"Call stack:\n"); lua_stacktrace(L);
-	lua_pushstring (L, "Unknown constructor overload.");
-
-//	If we reach this point, an error has occured. Force lua to stop execution.
-//	pay attention here: lua_error is using longjmp, so destructors in this scope will not be called!
-	lua_error(L);
+	UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
+	UG_LUA_THROW_EMPTY();
 
 	return 0;
 }

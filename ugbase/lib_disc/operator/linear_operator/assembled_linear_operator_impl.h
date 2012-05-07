@@ -29,7 +29,7 @@ void
 AssembledLinearOperator<TAlgebra>::init(const vector_type& u)
 {
 	if(m_pAss == NULL)
-		UG_THROW_FATAL("AssembledLinearOperator: Assembling routine not set.");
+		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 //	assemble matrix (depending on u, i.e. J(u))
 	try{
@@ -44,7 +44,7 @@ void
 AssembledLinearOperator<TAlgebra>::init()
 {
 	if(m_pAss == NULL)
-		UG_THROW_FATAL("AssembledLinearOperator: Assembling routine not set.");
+		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 //	create vector dummy
 	vector_type dummy;
@@ -65,7 +65,7 @@ AssembledLinearOperator<TAlgebra>::init_op_and_rhs(vector_type& b)
 //	todo: check that assembling is linear
 
 	if(m_pAss == NULL)
-		UG_THROW_FATAL("AssembledLinearOperator: Assembling routine not set.");
+		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 //	assemble matrix and rhs in one loop
 	try{
@@ -81,12 +81,12 @@ AssembledLinearOperator<TAlgebra>::apply(vector_type& d, const vector_type& c)
 {
 #ifdef UG_PARALLEL
 	if(!c.has_storage_type(PST_CONSISTENT))
-		UG_THROW_FATAL("Inadequate storage format of Vector c.");
+		UG_THROW("Inadequate storage format of Vector c.");
 #endif
 
 //	perform check of sizes
 	if(c.size() != this->num_cols() || d.size() != this->num_rows())
-		UG_THROW_FATAL("ERROR in 'AssembledLinearOperator::apply': Size of matrix A ["<<
+		UG_THROW("ERROR in 'AssembledLinearOperator::apply': Size of matrix A ["<<
 		        this->num_rows() << " x " << this->num_cols() << "] must match the "
 		        "sizes of vectors x ["<<c.size()<<"], b ["<<d.size()<<"] for the "
 		        " operation b = A*x. Maybe the operator is not initialized ?\n");
@@ -102,14 +102,14 @@ AssembledLinearOperator<TAlgebra>::apply_sub(vector_type& d, const vector_type& 
 {
 #ifdef UG_PARALLEL
 	if(!d.has_storage_type(PST_ADDITIVE))
-		UG_THROW_FATAL("Inadequate storage format of Vector d.");
+		UG_THROW("Inadequate storage format of Vector d.");
 	if(!c.has_storage_type(PST_CONSISTENT))
-		UG_THROW_FATAL("Inadequate storage format of Vector c.");
+		UG_THROW("Inadequate storage format of Vector c.");
 #endif
 
 //	check sizes
 	if(c.size() != this->num_cols() || d.size() != this->num_rows())
-		UG_THROW_FATAL("ERROR in AssembledLinearOperator::apply_sub: Size of matrix A ["<<
+		UG_THROW("ERROR in AssembledLinearOperator::apply_sub: Size of matrix A ["<<
 		        this->num_rows() << " x " << this->num_cols() << "] must match the "
 		        "sizes of vectors x ["<<c.size()<<"], b ["<<d.size()<<"] for the "
 		        " operation b -= A*x. Maybe the operator is not initialized ?\n");
@@ -124,7 +124,7 @@ void AssembledLinearOperator<TAlgebra>::set_dirichlet_values(vector_type& u)
 {
 //	checks
 	if(m_pAss == NULL)
-		UG_THROW_FATAL("AssembledLinearOperator: Assembling routine not set.");
+		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 //	set dirichlet values etc.
 	try{

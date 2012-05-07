@@ -47,7 +47,7 @@ void IElemDisc::set_functions(std::string fctString)
 	for(size_t i = 0; i < m_vFct.size(); ++i)
 	{
 		if(m_vFct.empty())
-			UG_THROW_FATAL("Error while setting functions in an ElemDisc: passed "
+			UG_THROW("Error while setting functions in an ElemDisc: passed "
 							"function string '"<<fctString<<"' lacks a "
 							"function specification at position "<<i<<"(of "
 							<<m_vFct.size()-1<<")");
@@ -70,7 +70,7 @@ void IElemDisc::set_subsets(std::string ssString)
 	for(size_t i = 0; i < m_vFct.size(); ++i)
 	{
 		if(m_vFct.empty())
-			UG_THROW_FATAL("Error while setting subsets in an ElemDisc: passed "
+			UG_THROW("Error while setting subsets in an ElemDisc: passed "
 							"subset string '"<<ssString<<"' lacks a "
 							"subset specification at position "<<i<<"(of "
 							<<m_vFct.size()-1<<")");
@@ -82,7 +82,7 @@ void IElemDisc::register_import(IDataImport& Imp)
 //	check that not already registered
 	for(size_t i = 0; i < m_vIImport.size(); ++i)
 		if(m_vIImport[i] == &Imp)
-			UG_THROW_FATAL("Trying to register import twice.");
+			UG_THROW("Trying to register import twice.");
 
 //	add it
 	m_vIImport.push_back(&Imp);
@@ -93,7 +93,7 @@ void IElemDisc::register_export(SmartPtr<IDataExport> Exp)
 //	check that not already registered
 	for(size_t i = 0; i < m_vIExport.size(); ++i)
 		if(m_vIExport[i] == Exp)
-			UG_THROW_FATAL("Trying to register export twice.");
+			UG_THROW("Trying to register export twice.");
 
 //	add it
 	m_vIExport.push_back(Exp);
@@ -118,7 +118,7 @@ void IElemDisc::set_roid(ReferenceObjectID id)
 	if(id == ROID_UNKNOWN)
 	{
 		m_id = ROID_UNKNOWN;
-		UG_THROW_FATAL("Cannot assemble for RefID: "<<id<<".\n");
+		UG_THROW("Cannot assemble for RefID: "<<id<<".\n");
 	}
 };
 

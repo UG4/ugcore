@@ -18,8 +18,7 @@
 
 #define UG_THROW(msg)		{std::stringstream ss; ss << msg; \
 							throw(ug::UGError(ss.str(),__FILE__,__LINE__));}
-#define UG_THROW_FATAL(msg)	{std::stringstream ss; ss << msg; \
-							throw(ug::UGFatalError(ss.str(),__FILE__,__LINE__));}
+
 #define UG_CATCH_THROW(msg)	catch(ug::UGError err){std::stringstream ss; ss << msg;\
 							  err.push_msg(ss.str(),__FILE__,__LINE__); throw(err);}
 
@@ -36,17 +35,10 @@ class UGError
 	public:
 		UGError(const char* msg,
 		        const char* file = " -- no file -- ", const unsigned long line = 0)
-			: m_bTerminate(false) {push_msg(msg, file, line);}
+			{push_msg(msg, file, line);}
 		UGError(const std::string& msg,
 		        const char* file = " -- no file -- ", const unsigned long line = 0)
-			: m_bTerminate(false) {push_msg(msg, file, line);}
-
-		UGError(bool bExit, const char* msg,
-		        const char* file = " -- no file -- ", const unsigned long line = 0)
-			: m_bTerminate(bExit) {push_msg(msg, file, line);}
-		UGError(bool bExit, const std::string& msg,
-		        const char* file = " -- no file -- ", const unsigned long line = 0)
-			: m_bTerminate(bExit) {push_msg(msg, file, line);}
+			{push_msg(msg, file, line);}
 
 	///	virtual destructor
 		virtual ~UGError()	{}
@@ -84,25 +76,10 @@ class UGError
 	///	returns the line where a message occured
 		unsigned long get_line(size_t i) const{return m_vLine.at(i);}
 
-	///	returns if program should terminate
-		bool terminate() const						{return m_bTerminate;}
-
 	protected:
 		std::vector<std::string> m_vMsg; //< Message stack
 		std::vector<std::string> m_vFile; //< File stack
 		std::vector<unsigned long> m_vLine; //< Line stack
-		bool m_bTerminate;				 //< terminate flag
-};
-
-class UGFatalError : public UGError
-{
-	public:
-		UGFatalError(const char* msg) 			  : UGError(true, msg) {}
-		UGFatalError(const char* msg, const char* file, const unsigned long line)
-			: UGError(true, msg, file, line) {}
-		UGFatalError(const std::string& msg) 	  : UGError(true, msg) {}
-		UGFatalError(const std::string& msg, const char* file, const unsigned long line)
-			: UGError(true, msg, file, line) {}
 };
 
 } // end namespace ug

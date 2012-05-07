@@ -53,7 +53,7 @@ class ConstraintBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template adjust_jacobian<SurfaceDoFDistribution>(J, u, surf_dd(gl), time);
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 	///	adapts defect to enforce constraints
@@ -65,7 +65,7 @@ class ConstraintBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template adjust_defect<SurfaceDoFDistribution>(d, u, surf_dd(gl), time);
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 	///	adapts matrix and rhs (linear case) to enforce constraints
@@ -77,7 +77,7 @@ class ConstraintBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template adjust_linear<SurfaceDoFDistribution>(mat, rhs, surf_dd(gl), time);
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 	///	adapts a rhs to enforce constraints
@@ -89,7 +89,7 @@ class ConstraintBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template adjust_rhs<SurfaceDoFDistribution>(rhs, u, surf_dd(gl), time);
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 	///	sets the constraints in a solution vector
@@ -101,7 +101,7 @@ class ConstraintBase
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template adjust_solution<SurfaceDoFDistribution>(u, surf_dd(gl), time);
 			else
-				UG_THROW_FATAL("Grid Level not recognized.");
+				UG_THROW("Grid Level not recognized.");
 		}
 
 	///	returns the type of constraints

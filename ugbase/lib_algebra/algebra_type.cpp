@@ -14,19 +14,19 @@ AlgebraType::AlgebraType(Type type, int blockSize)
 	: m_type(type), m_blockSize(blockSize)
 {
 	if(blockSize <= 0 && blockSize != VariableBlockSize)
-		UG_THROW_FATAL("BlockSize not allowed. Choose > 0 or VariableBlockSize");
+		UG_THROW("BlockSize not allowed. Choose > 0 or VariableBlockSize");
 }
 
 AlgebraType::AlgebraType(const char* type, int blockSize)
 	: m_blockSize(blockSize)
 {
 	if(blockSize <= 0 && blockSize != VariableBlockSize)
-		UG_THROW_FATAL("BlockSize not allowed. Choose > 0 or VariableBlockSize");
+		UG_THROW("BlockSize not allowed. Choose > 0 or VariableBlockSize");
 
 	std::string sType(type);
 
 	if(sType == "CPU") m_type = CPU;
-	else UG_THROW_FATAL("Type '"<<sType<<"' not reconized. Available: CPU.");
+	else UG_THROW("Type '"<<sType<<"' not reconized. Available: CPU.");
 }
 
 AlgebraType::AlgebraType(const char* type)
@@ -35,7 +35,7 @@ AlgebraType::AlgebraType(const char* type)
 	std::string sType(type);
 
 	if(sType == "CPU") m_type = CPU;
-	else UG_THROW_FATAL("Type '"<<sType<<"' not reconized. Available: CPU.");
+	else UG_THROW("Type '"<<sType<<"' not reconized. Available: CPU.");
 }
 
 

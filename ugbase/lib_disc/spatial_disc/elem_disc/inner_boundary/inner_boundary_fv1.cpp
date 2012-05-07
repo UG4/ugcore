@@ -43,7 +43,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 	// update Geometry for this element
 	TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-		UG_THROW_FATAL("FV1InnerBoundaryElemDisc::prepare_element: "
+		UG_THROW("FV1InnerBoundaryElemDisc::prepare_element: "
 						"Cannot update Finite Volume Geometry.\n");
 }
 
@@ -66,7 +66,7 @@ ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 		
 		FluxDerivCond fdc;
 		if (!fluxDensityDerivFct(u, co, fdc))
-			UG_THROW_FATAL("FV1InnerBoundaryElemDisc::ass_JA_elem:"
+			UG_THROW("FV1InnerBoundaryElemDisc::ass_JA_elem:"
 							" Call to fluxDensityDerivFct resulted did not succeed.");
 		
 		// scale with volume of BF
@@ -113,7 +113,7 @@ ass_dA_elem(LocalVector& d, const LocalVector& u)
 		// get flux densities in that node
 		FluxCond fc;
 		if (!fluxDensityFct(u, co, fc))
-			UG_THROW_FATAL("FV1InnerBoundaryElemDisc::ass_dA_elem:"
+			UG_THROW("FV1InnerBoundaryElemDisc::ass_dA_elem:"
 						" Call to fluxDensityFct resulted did not succeed.");
 				
 		// scale with volume of BF

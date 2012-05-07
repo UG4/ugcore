@@ -22,7 +22,7 @@ void DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
 {
 //	check Approximation space
 	if(!m_spApproxSpace.valid())
-		UG_THROW_FATAL("DomainDiscretization: Before using the "
+		UG_THROW("DomainDiscretization: Before using the "
 				"DomainDiscretization an ApproximationSpace must be set to it. "
 				"Please use DomainDiscretization:set_approximation_space to "
 				"set an appropriate Space.");
@@ -41,7 +41,7 @@ void DomainDiscretization<TDomain, TAlgebra>::update_constraints()
 {
 //	check Approximation space
 	if(!m_spApproxSpace.valid())
-		UG_THROW_FATAL("DomainDiscretization: Before using the "
+		UG_THROW("DomainDiscretization: Before using the "
 				"DomainDiscretization an ApproximationSpace must be set to it. "
 				"Please use DomainDiscretization:set_approximation_space to "
 				"set an appropriate Space.");
@@ -138,7 +138,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::assemble_mass_matrix:"
+			UG_THROW("DomainDiscretization::assemble_mass_matrix:"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
@@ -241,7 +241,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::assemble_stiffness_matrix:"
+			UG_THROW("DomainDiscretization::assemble_stiffness_matrix:"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
@@ -351,7 +351,7 @@ assemble_jacobian(matrix_type& J,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::assemble_jacobian (stationary):"
+			UG_THROW("DomainDiscretization::assemble_jacobian (stationary):"
 							"Dimension "<<dim<<"(subset="<<si<<") not supported");
 		}
 		}
@@ -453,7 +453,7 @@ assemble_defect(vector_type& d,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::assemble_defect (stationary):"
+			UG_THROW("DomainDiscretization::assemble_defect (stationary):"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
@@ -554,7 +554,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::assemble_linear (stationary):"
+			UG_THROW("DomainDiscretization::assemble_linear (stationary):"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
@@ -655,7 +655,7 @@ assemble_rhs(vector_type& rhs,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::assemble_rhs (stationary):"
+			UG_THROW("DomainDiscretization::assemble_rhs (stationary):"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
@@ -777,7 +777,7 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::prepare_timestep (instationary):"
+			UG_THROW("DomainDiscretization::prepare_timestep (instationary):"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
@@ -869,7 +869,7 @@ assemble_jacobian(matrix_type& J,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::assemble_jacobian (instationary):"
+			UG_THROW("DomainDiscretization::assemble_jacobian (instationary):"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
@@ -971,7 +971,7 @@ assemble_defect(vector_type& d,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::assemble_defect (instationary):"
+			UG_THROW("DomainDiscretization::assemble_defect (instationary):"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
@@ -1066,7 +1066,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::assemble_linear (instationary):"
+			UG_THROW("DomainDiscretization::assemble_linear (instationary):"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}
@@ -1186,7 +1186,7 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_pBoolMarker);
 			break;
 		default:
-			UG_THROW_FATAL("DomainDiscretization::finish_timestep (instationary):"
+			UG_THROW("DomainDiscretization::finish_timestep (instationary):"
 							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
 		}
 		}

@@ -77,7 +77,7 @@ class ILocalTransferAlgebra : public ILocalTransfer
 		void set_vector(vector_type* pVec)
 		{
 			if(!pVec)
-				UG_THROW_FATAL("Passing non-valid vector to ILocalAlgebraVector");
+				UG_THROW("Passing non-valid vector to ILocalAlgebraVector");
 
 			m_pVec = pVec;
 		};

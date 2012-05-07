@@ -110,9 +110,9 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 	else if(dim == 3 && rRefElem.reference_object_id() == ROID_PYRAMID && i == 4)
 	{
 		// this scv has 10 corners
-		throw(UGFatalError("Last SCV for Pyramid must be implemented"));
+		throw(UGError("Last SCV for Pyramid must be implemented"));
 	}
-	else {throw(UGFatalError("Dimension higher that 3 not implemented."));}
+	else {throw(UGError("Dimension higher that 3 not implemented."));}
 }
 
 /**
@@ -170,7 +170,7 @@ size_t NumSubElements(ReferenceObjectID roid, int p)
 		default:
 			UG_LOG("ERROR in 'NumSubElements': No subelement specification given"
 					" for "<<roid<<". Aborting.");
-			throw(UGFatalError("Reference Element not supported."));
+			throw(UGError("Reference Element not supported."));
 	}
 }
 
@@ -233,7 +233,7 @@ void ComputeMultiIndicesOfSubElement<1>(std::vector<MathVector<1, int> >* vvMult
 				}
 			}
 			break;
-		default: throw(UGFatalError("ReferenceElement not found."));
+		default: throw(UGError("ReferenceElement not found."));
 	}
 }
 
@@ -361,7 +361,7 @@ void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> >* vvMult
 				}
 			}
 			break;
-		default: throw(UGFatalError("ReferenceElement not found."));
+		default: throw(UGError("ReferenceElement not found."));
 	}
 
 }
@@ -664,7 +664,7 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 			}
 
 			break;
-		default: throw(UGFatalError("ReferenceElement not found."));
+		default: throw(UGError("ReferenceElement not found."));
 	}
 
 }
@@ -787,7 +787,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 		if(m_vSCV[i].numCo != 10)
 			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	//	special case for pyramid, last scv
-		else throw(UGFatalError("Pyramid Not Implemented"));
+		else throw(UGError("Pyramid Not Implemented"));
 	}
 
 // 	Shapes and Derivatives
@@ -1107,7 +1107,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		if(m_vSCV[i].numCorners != 10)
 			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	// 	special case for pyramid, last scv
-		else throw(UGFatalError("Pyramid Not Implemented"));
+		else throw(UGError("Pyramid Not Implemented"));
 	}
 
 //	get reference mapping
@@ -1550,7 +1550,7 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 		if(m_vSCV[i].numCo != 10)
 			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	//	special case for pyramid, last scv
-		else throw(UGFatalError("Pyramid Not Implemented"));
+		else throw(UGError("Pyramid Not Implemented"));
 	}
 
 //	if mapping is linear, compute jacobian only once and copy
@@ -2065,7 +2065,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		if(m_vSCV[i].numCo != 10)
 			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	//	special case for pyramid, last scv
-		else throw(UGFatalError("Pyramid Not Implemented"));
+		else throw(UGError("Pyramid Not Implemented"));
 	}
 
 	for(size_t i = 0; i < num_scvf(); ++i)

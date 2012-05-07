@@ -37,7 +37,7 @@ template <typename TDomain>
 static SmartPtr<IRefiner> HangingNodeDomainRefiner(TDomain* dom)
 {
 	if(!dom->is_adaptive()){
-		UG_THROW_FATAL("Can't create an adaptive refiner for the given domain. "
+		UG_THROW("Can't create an adaptive refiner for the given domain. "
 				 	   "Construct the domain with isAdaptive enabled.");
 	}
 
@@ -58,7 +58,7 @@ static SmartPtr<GlobalFracturedMediaRefiner>
 CreateGlobalFracturedDomainRefiner(TDomain* dom)
 {
 	if(!dom->is_adaptive()){
-		UG_THROW_FATAL("Can't create an fractured domain refiner for the given domain. "
+		UG_THROW("Can't create an fractured domain refiner for the given domain. "
 				 	   "Construct the domain with isAdaptive enabled.");
 	}
 

@@ -159,10 +159,10 @@ number Integrate(TConstIterator iterBegin,
 		integral += intValElem;
 
 		}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
-			UG_THROW_FATAL("SumValuesOnElems: " << ex.get_msg() << ".");
+			UG_THROW("SumValuesOnElems: " << ex.get_msg() << ".");
 		}
 		}catch(UG_ERROR_ReferenceMappingMissing& ex){
-			UG_THROW_FATAL("SumValuesOnElems: " << ex.get_msg() << ".");
+			UG_THROW("SumValuesOnElems: " << ex.get_msg() << ".");
 		}
 	} // end elem
 
@@ -236,7 +236,7 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-				UG_THROW_FATAL("L2ErrorIntegrand::values: Wrong number of"
+				UG_THROW("L2ErrorIntegrand::values: Wrong number of"
 						" multi indices.");
 
 		//	loop all integration points
@@ -266,7 +266,7 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_THROW_FATAL("L2ErrorIntegrand::getValues: "<<ex.get_msg());
+				UG_THROW("L2ErrorIntegrand::getValues: "<<ex.get_msg());
 			}
 		};
 };
@@ -341,7 +341,7 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-				UG_THROW_FATAL("L2ErrorIntegrand::values: Wrong number of"
+				UG_THROW("L2ErrorIntegrand::values: Wrong number of"
 						" multi indices.");
 
 		//	loop all integration points
@@ -387,7 +387,7 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_THROW_FATAL("L2ErrorIntegrand::getValues: "<<ex.get_msg());
+				UG_THROW("L2ErrorIntegrand::getValues: "<<ex.get_msg());
 			}
 		};
 };
@@ -418,7 +418,7 @@ number L2ErrorDraft(IPData<number, TGridFunction::dim>& ExactSol,
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW_FATAL("L2ErrorDraft: Function space does not contain"
+		UG_THROW("L2ErrorDraft: Function space does not contain"
 				" a function with name " << name << ".");
 
 //	create subset group
@@ -444,7 +444,7 @@ number L2ErrorDraft(IPData<number, TGridFunction::dim>& ExactSol,
 
 
 		if (ssGrp.dim(i) != TGridFunction::dim)
-			UG_THROW_FATAL("L2ErrorDraft: Element dimension does not match world dimension!");
+			UG_THROW("L2ErrorDraft: Element dimension does not match world dimension!");
 
 
 	//	create integration kernel
@@ -525,7 +525,7 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-				UG_THROW_FATAL("L2ErrorIntegrand::values: Wrong number of"
+				UG_THROW("L2ErrorIntegrand::values: Wrong number of"
 						" multi indices.");
 
 		//	loop all integration points
@@ -549,7 +549,7 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_THROW_FATAL("L2ErrorIntegrand::values: "<<ex.get_msg());
+				UG_THROW("L2ErrorIntegrand::values: "<<ex.get_msg());
 			}
 		};
 };
@@ -606,7 +606,7 @@ class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-				UG_THROW_FATAL("StdFuncIntegrand::values: Wrong number of"
+				UG_THROW("StdFuncIntegrand::values: Wrong number of"
 						" multi indices.");
 
 		//	loop all integration points
@@ -630,7 +630,7 @@ class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_THROW_FATAL("StdFuncIntegrand::values: "<<ex.get_msg());
+				UG_THROW("StdFuncIntegrand::values: "<<ex.get_msg());
 			}
 		};
 };
@@ -655,7 +655,7 @@ number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* sub
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW_FATAL("L2ErrorFunc: Function space does not contain"
+		UG_THROW("L2ErrorFunc: Function space does not contain"
 				" a function with name " << name << ".");
 
 //	create subset group
@@ -681,7 +681,7 @@ number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* sub
 
 
 		if (ssGrp.dim(i) != TGridFunction::dim)
-			UG_THROW_FATAL("L2Norm: Element dimension does not match world dimension!");
+			UG_THROW("L2Norm: Element dimension does not match world dimension!");
 
 	//	create integration kernel
 		static const int dim = TGridFunction::dim;
@@ -717,7 +717,7 @@ number StdFuncIntegral(TGridFunction& u, const char* name, int quadOrder, const 
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW_FATAL("StdIntegral: Function space does not contain"
+		UG_THROW("StdIntegral: Function space does not contain"
 				" a function with name " << name << ".");
 
 //	create subset group
@@ -743,7 +743,7 @@ number StdFuncIntegral(TGridFunction& u, const char* name, int quadOrder, const 
 
 
 		if (ssGrp.dim(i) != TGridFunction::dim)
-			UG_THROW_FATAL("StdIntegral: Element dimension does not match world dimension!");
+			UG_THROW("StdIntegral: Element dimension does not match world dimension!");
 
 	//	create integration kernel
 		static const int dim = TGridFunction::dim;

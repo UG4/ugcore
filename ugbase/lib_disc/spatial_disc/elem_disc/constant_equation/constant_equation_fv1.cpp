@@ -35,7 +35,7 @@ template<typename TDomain>
 void ConstantEquation<TDomain>::
 set_velocity(number vel_x)
 {
-	UG_THROW_FATAL("ConstantEquation: Setting velocity vector of dimension 1"
+	UG_THROW("ConstantEquation: Setting velocity vector of dimension 1"
 					" to a Discretization for world dim " << dim);
 }
 
@@ -52,7 +52,7 @@ template<typename TDomain>
 void ConstantEquation<TDomain>::
 set_velocity(number vel_x, number vel_y)
 {
-	UG_THROW_FATAL("ConstantEquation: Setting velocity vector of dimension 2"
+	UG_THROW("ConstantEquation: Setting velocity vector of dimension 2"
 					" to a Discretization for world dim " << dim);
 }
 
@@ -70,7 +70,7 @@ template<typename TDomain>
 void ConstantEquation<TDomain>::
 set_velocity(number vel_x, number vel_y, number vel_z)
 {
-	UG_THROW_FATAL("ConstantEquation: Setting velocity vector of dimension 3"
+	UG_THROW("ConstantEquation: Setting velocity vector of dimension 3"
 					" to a Discretization for world dim " << dim);
 }
 
@@ -149,7 +149,7 @@ ConstantEquation(const char* functions, const char* subsets)
 {
 //	check number of functions
 	if(this->num_fct() != 1)
-		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'ConstantEquation'"
+		UG_THROW("Wrong number of functions: The ElemDisc 'ConstantEquation'"
 					   " needs exactly "<<1<<" symbolic function.");
 
 //	register assemling functions
@@ -206,7 +206,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 // 	Update Geometry for this element
 	TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-		UG_THROW_FATAL("ConstantEquation::prepare_element:"
+		UG_THROW("ConstantEquation::prepare_element:"
 						" Cannot update Finite Volume Geometry.");
 
 //	set local positions for rhs

@@ -18,7 +18,7 @@ void
 AssembledOperator<TAlgebra>::prepare(vector_type& dOut, vector_type& uIn)
 {
 	if(m_pAss == NULL)
-		UG_THROW_FATAL("Discretization not set.");
+		UG_THROW("Discretization not set.");
 
 // 	Set Dirichlet - Nodes to exact values
 	try{
@@ -33,7 +33,7 @@ void
 AssembledOperator<TAlgebra>::apply(vector_type& dOut, const vector_type& uIn)
 {
 	if(m_pAss == NULL)
-		UG_THROW_FATAL("Discretization not set.");
+		UG_THROW("Discretization not set.");
 
 //  assemble defect
 	try{

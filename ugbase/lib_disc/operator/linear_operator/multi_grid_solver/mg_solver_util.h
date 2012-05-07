@@ -119,7 +119,7 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 {
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
-		UG_THROW_FATAL("ProjectSurfaceToLevel: Number of level Vectors ("
+		UG_THROW("ProjectSurfaceToLevel: Number of level Vectors ("
 				<< vLevelVector.size() <<") and level DoF Distributions ("
 				<< vLevelDD.size() << ") does not match. Aborting.\n");
 
@@ -215,7 +215,7 @@ void ProjectLevelToSurface(TVector& surfVector,
 {
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
-		UG_THROW_FATAL("ProjectLevelToSurface: Number of level Vectors ("
+		UG_THROW("ProjectLevelToSurface: Number of level Vectors ("
 				<< vLevelVector.size() <<") and level DoF Distributions ("
 				<< vLevelDD.size() << ") does not match. Aborting.\n");
 
@@ -264,7 +264,7 @@ void ProjectLevelToSurface(TVector& surfVector,
  			for(size_t lev = baseLevel; lev < vLevelVector.size(); ++lev)
 				if(vLevelVector[lev] != NULL)
 					UG_LOG("  lev "<<lev<<": "<<vLevelVector[lev]->get_storage_mask()<<"\n");
- 			UG_THROW_FATAL("Cannot Project Level to Surface.")
+ 			UG_THROW("Cannot Project Level to Surface.")
 		}
 
 	//	set type of surface vector to common base

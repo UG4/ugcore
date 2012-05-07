@@ -138,7 +138,7 @@ void SetLagrangeVolumeLocalDoFs(std::vector<LocalDoF>& vLocalDoF,
 					vLocalDoF[index++] = LocalDoF(3, 0, cnt++);
 				}
 		break;
-	default: UG_THROW_FATAL("SetLagrangeVolumeLocalDoFs: Missing 3d mapping "
+	default: UG_THROW("SetLagrangeVolumeLocalDoFs: Missing 3d mapping "
 							"for type '"<<type<<"'.");
 	}
 }

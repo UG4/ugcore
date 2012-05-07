@@ -95,11 +95,11 @@ add(const char* name, const char* function, const char* subsets)
 
 //	no match found
 	if(!CheckLuaCallbackName(name))
-		UG_THROW_FATAL("LagrangeDirichlet::add: Lua-Callback with name '"<<name<<
+		UG_THROW("LagrangeDirichlet::add: Lua-Callback with name '"<<name<<
 		               "' does not exist.");
 
 //	name exists but wrong signature
-	UG_THROW_FATAL("LagrangeDirichlet::add: Cannot find matching callback "
+	UG_THROW("LagrangeDirichlet::add: Cannot find matching callback "
 					"signature. Use one of:\n"
 					"a) Number - Callback\n"
 					<< (LuaUserData<number, dim>::signature()) << "\n" <<
@@ -116,7 +116,7 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 {
 //	only number of functions allowed
 	if(functionGroup.num_fct() != numFct)
-		UG_THROW_FATAL("DirichletBoundary:extract_data:"
+		UG_THROW("DirichletBoundary:extract_data:"
 					" Only "<<numFct<<" function(s) allowed in specification of a"
 					" Dirichlet Value, but the following functions given:"
 					<<functionGroup);
@@ -132,7 +132,7 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 
 	//	check that subsetIndex is valid
 		if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
-			UG_THROW_FATAL("DirichletBoundary:extract_data:"
+			UG_THROW("DirichletBoundary:extract_data:"
 							" Invalid Subset Index " << subsetIndex << ". (Valid is"
 							" 0, .. , " << pSH->num_subsets() <<").");
 
@@ -143,12 +143,12 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 
 		// 	check if function exist
 			if(fct >= m_spApproxSpace->function_pattern()->num_fct())
-				UG_THROW_FATAL("DirichletBoundary:extract_data:"
+				UG_THROW("DirichletBoundary:extract_data:"
 							" Function "<< fct << " does not exist in pattern.");
 
 		// 	check that function is defined for segment
 			if(!m_spApproxSpace->function_pattern()->is_def_in_subset(fct, subsetIndex))
-				UG_THROW_FATAL("DirichletBoundary:extract_data:"
+				UG_THROW("DirichletBoundary:extract_data:"
 								" Function "<<fct<<" not defined on subset "<<subsetIndex);
 		}
 	}
@@ -208,7 +208,7 @@ extract_data()
 {
 //	check that function pattern exists
 	if(!m_spApproxSpace.valid())
-		UG_THROW_FATAL("DirichletBoundary:extract_data: "
+		UG_THROW("DirichletBoundary:extract_data: "
 				" Approximation Space not set.");
 
 	extract_data(m_mNumberBndSegment, m_vNumberData);

@@ -20,7 +20,7 @@ void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 //	get multigrid
 	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
 	if(!pMG){
-		throw(UGFatalError("  Can't create surface-view. A Multigrid is required.\n"));
+		throw(UGError("  Can't create surface-view. A Multigrid is required.\n"));
 	}
 
 //	some typedefs
@@ -62,7 +62,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 //	get multigrid
 	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
 	if(!pMG){
-		throw(UGFatalError("  Can't create surface-view. A Multigrid is required.\n"));
+		throw(UGError("  Can't create surface-view. A Multigrid is required.\n"));
 	}
 
 //	This method clears the surfaceViewOut and assigns all objects of

@@ -95,7 +95,7 @@ struct vrl_traits<ug::MathVector<dim> >
 	{
 		jint arrayLength = env->GetArrayLength(array);
 		if (arrayLength != size)
-			UG_THROW_FATAL(RED_BEGIN << "VRLUserVector: dimensions do not match! "
+			UG_THROW(RED_BEGIN << "VRLUserVector: dimensions do not match! "
 			               "Required: "<<size<<", returned: " << arrayLength <<
 			               COLOR_END << std::endl);
 
@@ -135,14 +135,14 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 
 	static void toJava(JNIEnv *env, jobjectArray& res, const MathMatrix<dim,dim>& x)
 	{
-		UG_THROW_FATAL("Not implemented.");
+		UG_THROW("Not implemented.");
 	}
 
 	static void toC(JNIEnv *env, MathMatrix<dim,dim>& mat, jobjectArray& array)
 	{
 		const int rowSize = env->GetArrayLength(array);
 		if(rowSize != dim)
-			UG_THROW_FATAL(RED_BEGIN << "VRLUserMatrix: wrong row size! Required:"
+			UG_THROW(RED_BEGIN << "VRLUserMatrix: wrong row size! Required:"
 			               <<dim<<", returned: "<<rowSize<<COLOR_END << std::endl);
 
 		jdouble rowEntrys[dim];
@@ -152,7 +152,7 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 
 			const int colSize = env->GetArrayLength(row);
 			if(colSize != dim)
-				UG_THROW_FATAL(RED_BEGIN << "VRLUserMatrix: wrong column size! Required:"
+				UG_THROW(RED_BEGIN << "VRLUserMatrix: wrong column size! Required:"
 							   <<dim<<", returned: "<<colSize<<COLOR_END << std::endl);
 
 			env->GetDoubleArrayRegion(row, 0, dim, rowEntrys);
@@ -539,7 +539,7 @@ public:
 		TData ret;
 
 		if (m_spNumber.valid()) (*m_spNumber)(ret, v, time, si);
-		else UG_THROW_FATAL(name()<<": Data not set.");
+		else UG_THROW(name()<<": Data not set.");
 
 		std::stringstream ss;
 		ss << ret << std::endl;
@@ -575,7 +575,7 @@ public:
 
 		if (m_spData.valid()) bndResult = (*m_spData)(ret, v, time, si);
 		else {
-			UG_THROW_FATAL(name()<<": Data not set.");
+			UG_THROW(name()<<": Data not set.");
 			ret = -1;
 		}
 

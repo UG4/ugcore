@@ -202,7 +202,7 @@ class DataImport : public IDataImport
 		const MathVector<dim>& position(size_t i) const
 		{
 			if(data_given()) return m_spIPData->ip(m_seriesID, i);
-			 UG_THROW_FATAL("DataLinker::position: "
+			 UG_THROW("DataLinker::position: "
 					 	 	 "No Data set, but positions requested.");
 		}
 

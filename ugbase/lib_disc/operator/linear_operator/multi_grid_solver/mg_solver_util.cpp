@@ -63,7 +63,7 @@ void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 {
 //	check full refinement
 	if(surfDD->num_indices() != topDD->num_indices())
-		UG_THROW_FATAL("CreateSurfaceToToplevelMap: This function can only"
+		UG_THROW("CreateSurfaceToToplevelMap: This function can only"
 				" be applied to a full refined grid, where the surface is the "
 				" top level.");
 
@@ -100,12 +100,12 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 
 //	check multigrid
 	if(&mg == NULL)
-		UG_THROW_FATAL("SelectNonShadowsAdjacentToShadowsOnLevel: No "
+		UG_THROW("SelectNonShadowsAdjacentToShadowsOnLevel: No "
 					"Multigrid given, selection ob level not possible.");
 
 //	check level
 	if(level >= (int) mg.num_levels() || level < 0)
-		UG_THROW_FATAL("SelectNonShadowsAdjacentToShadowsOnLevel: Requested "
+		UG_THROW("SelectNonShadowsAdjacentToShadowsOnLevel: Requested "
 						"level "<<level<<" does not exist in Multigrid.");
 
 //	iterator type

@@ -162,7 +162,7 @@ inline size_t& MGDoFDistribution::obj_index(GeometricObject* obj)
 		case EDGE:   return obj_index(static_cast<EdgeBase*>(obj));
 		case FACE:   return obj_index(static_cast<Face*>(obj));
 		case VOLUME: return obj_index(static_cast<Volume*>(obj));
-		default: UG_THROW_FATAL("Base Object type not found.");
+		default: UG_THROW("Base Object type not found.");
 	}
 }
 
@@ -174,7 +174,7 @@ inline const size_t& MGDoFDistribution::obj_index(GeometricObject* obj) const
 		case EDGE:   return obj_index(static_cast<EdgeBase*>(obj));
 		case FACE:   return obj_index(static_cast<Face*>(obj));
 		case VOLUME: return obj_index(static_cast<Volume*>(obj));
-		default: UG_THROW_FATAL("Base Object type not found.");
+		default: UG_THROW("Base Object type not found.");
 	}
 };
 
@@ -278,7 +278,7 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 	//	else try next
 		if(!li.free_index_available())
-			UG_THROW_FATAL("No more free index, but still need to defragment.");
+			UG_THROW("No more free index, but still need to defragment.");
 	}
 
 //	compute the number of indices needed on the Geometric object
@@ -338,7 +338,7 @@ void MGDoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
 		case EDGE: return add(static_cast<EdgeBase*>(elem), roid, si, li);
 		case FACE: return add(static_cast<Face*>(elem), roid, si, li);
 		case VOLUME: return add(static_cast<Volume*>(elem), roid, si, li);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
+		default: UG_THROW("Geometric Base element not found.");
 	}
 }
 
@@ -352,7 +352,7 @@ void MGDoFDistribution::add_from_free(GeometricObject* elem, const ReferenceObje
 		case EDGE: return add_from_free(static_cast<EdgeBase*>(elem), roid, si, li);
 		case FACE: return add_from_free(static_cast<Face*>(elem), roid, si, li);
 		case VOLUME: return add_from_free(static_cast<Volume*>(elem), roid, si, li);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
+		default: UG_THROW("Geometric Base element not found.");
 	}
 }
 
@@ -366,7 +366,7 @@ void MGDoFDistribution::erase(GeometricObject* elem, const ReferenceObjectID roi
 		case EDGE: return erase(static_cast<EdgeBase*>(elem), roid, si, li);
 		case FACE: return erase(static_cast<Face*>(elem), roid, si, li);
 		case VOLUME: return erase(static_cast<Volume*>(elem), roid, si, li);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
+		default: UG_THROW("Geometric Base element not found.");
 	}
 }
 
@@ -380,7 +380,7 @@ void MGDoFDistribution::defragment(GeometricObject* elem, const ReferenceObjectI
 		case EDGE: return erase(static_cast<EdgeBase*>(elem), roid, si, li, vReplaced);
 		case FACE: return erase(static_cast<Face*>(elem), roid, si, li, vReplaced);
 		case VOLUME: return erase(static_cast<Volume*>(elem), roid, si, li, vReplaced);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
+		default: UG_THROW("Geometric Base element not found.");
 	}
 }
 

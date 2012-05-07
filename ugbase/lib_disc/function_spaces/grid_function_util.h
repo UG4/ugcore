@@ -55,7 +55,7 @@ void WriteMatrixToConnectionViewer(const char *filename,
 	size_t iExtPos = name.find_last_of(".");
 	if (iExtPos == std::string::npos
 			|| name.substr(iExtPos).compare(".mat") != 0)
-		UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
+		UG_THROW("Only '.mat' format supported for matrices, but"
 		" filename is '"<<name<<"'.");
 
 //	position array
@@ -88,7 +88,7 @@ void WriteVectorToConnectionViewer(const char *filename,
 	size_t iExtPos = name.find_last_of(".");
 	if (iExtPos == std::string::npos
 			|| name.substr(iExtPos).compare(".vec") != 0)
-		UG_THROW_FATAL("Only '.vec' format supported for vectors, but"
+		UG_THROW("Only '.vec' format supported for vectors, but"
 		" filename is '"<<name<<"'.");
 
 // 	get positions of vertices
@@ -116,7 +116,7 @@ void WriteVectorToConnectionViewer(
 	std::string name(filename);
 	size_t iExtPos = name.find_last_of(".");
 	if (iExtPos == std::string::npos || name.substr(iExtPos).compare(".vec") != 0)
-		UG_THROW_FATAL("Only '.vec' format supported for vectors.");
+		UG_THROW("Only '.vec' format supported for vectors.");
 
 // 	get positions of vertices
 	std::vector<MathVector<dim> > positions;
@@ -169,7 +169,7 @@ void WriteVectorCSV(const char *filename,
 	size_t iExtPos = name.find_last_of(".");
 	if (iExtPos == std::string::npos
 			|| name.substr(iExtPos).compare(".csv") != 0) {
-		UG_THROW_FATAL("Only '.csv' format supported for vectors.");
+		UG_THROW("Only '.csv' format supported for vectors.");
 	}
 
 //	extended filename
@@ -293,7 +293,7 @@ public:
 		size_t iExtPos = name.find_last_of(".");
 		if (iExtPos == std::string::npos
 				|| name.substr(iExtPos).compare(".mat") != 0)
-			UG_THROW_FATAL("Only '.mat' format supported for matrices, but"
+			UG_THROW("Only '.mat' format supported for matrices, but"
 			" filename is '"<<name<<"'.");
 
 		//	write to file
@@ -323,7 +323,7 @@ protected:
 					m_spApproxSpace->level_dof_distribution(gridLevel.level()),
 					vPos);
 		} else {
-			UG_THROW_FATAL("Cannot find grid level");
+			UG_THROW("Cannot find grid level");
 		}
 	}
 
@@ -343,7 +343,7 @@ protected:
 		size_t iExtPos = name.find_last_of(".");
 		if (iExtPos == std::string::npos
 				|| name.substr(iExtPos).compare(".vec") != 0)
-			UG_THROW_FATAL("Only '.vec' format supported for vectors, but"
+			UG_THROW("Only '.vec' format supported for vectors, but"
 			" filename is '"<<name<<"'.");
 
 		//	write
@@ -384,7 +384,7 @@ protected:
 			VTKOutput out;
 			out.print(filename, vtkFunc, m_printConsistent);
 		} else
-			UG_THROW_FATAL("Cannot find grid level.");
+			UG_THROW("Cannot find grid level.");
 	}
 
 protected:

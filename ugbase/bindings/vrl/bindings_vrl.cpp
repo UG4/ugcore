@@ -107,7 +107,7 @@ public:
 	number get(int i) const {
 
 		if (i < 0 || (size_t)i >= _vec.size()) {
-			throw UGFatalError("NumberArray: index out of Bounds!");
+			throw UGError("NumberArray: index out of Bounds!");
 		}
 
 		return _vec[i];

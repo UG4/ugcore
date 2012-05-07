@@ -240,7 +240,7 @@ inline void GridSubsetHandler::
 subset_required(int index) const
 {
 	if(index >= num_subsets()){
-		UG_THROW_FATAL("Can't create new subsets in const SubsetHandler. "
+		UG_THROW("Can't create new subsets in const SubsetHandler. "
 						<< "num current subsets: " << num_subsets()
 						<< " required subset: " << index);
 	}

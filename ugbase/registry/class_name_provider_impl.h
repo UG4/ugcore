@@ -103,7 +103,7 @@ bool ClassNameProvider<TClass>::is_a(const std::string& parent, bool strict)
 {
 //	check if class is forward declared
 	if(m_bForwardDeclared)
-		throw(UGFatalError("ERROR in 'ClassNameProvider::is_a':"
+		throw(UGError("ERROR in 'ClassNameProvider::is_a':"
 					"Class must not be foreward declared to use is_a"));
 
 //  strict comparison: must match this class name, parents are not allowed

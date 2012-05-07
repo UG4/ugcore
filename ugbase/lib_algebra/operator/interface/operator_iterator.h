@@ -281,7 +281,7 @@ class IPreconditioner :
 
 		//	Check that matrix if of correct type
 			if(pOp.invalid())
-				UG_THROW_FATAL(name() << "::init': Passed Operator is "
+				UG_THROW(name() << "::init': Passed Operator is "
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
@@ -307,7 +307,7 @@ class IPreconditioner :
 
 		//	Check that matrix if of correct type
 			if(pOp.invalid())
-				UG_THROW_FATAL(name() << "::init': Passed Operator is "
+				UG_THROW(name() << "::init': Passed Operator is "
 						"not based on matrix. This Preconditioner can only "
 						"handle matrix-based operators.");
 
@@ -331,7 +331,7 @@ class IPreconditioner :
 
 		//	Check that matrix exists
 			if(m_spOperator.invalid())
-				UG_THROW_FATAL(name() << "::init': Passed Operator is invalid.");
+				UG_THROW(name() << "::init': Passed Operator is invalid.");
 
 		//	Preprocess
 			if(!preprocess(*m_spOperator))
@@ -369,19 +369,19 @@ class IPreconditioner :
 		//	Check parallel status
 			#ifdef UG_PARALLEL
 			if(!d.has_storage_type(PST_ADDITIVE))
-				UG_THROW_FATAL(name() << "::apply: Wrong parallel "
+				UG_THROW(name() << "::apply: Wrong parallel "
 				               "storage format. Defect must be additive.");
 			#endif
 
 		//	Check sizes
 			if(d.size() != m_spOperator->num_rows())
-				UG_THROW_FATAL("Vector [size= "<<d.size()<<"] and Row [size= "
+				UG_THROW("Vector [size= "<<d.size()<<"] and Row [size= "
 				               <<m_spOperator->num_rows()<<"] sizes have to match!");
 			if(c.size() != m_spOperator->num_cols())
-				UG_THROW_FATAL("Vector [size= "<<c.size()<<"] and Column [size= "
+				UG_THROW("Vector [size= "<<c.size()<<"] and Column [size= "
 				               <<m_spOperator->num_cols()<<"] sizes have to match!");
 			if(d.size() != c.size())
-				UG_THROW_FATAL("Vector [d size= "<<d.size()<<", c size = "
+				UG_THROW("Vector [d size= "<<d.size()<<", c size = "
 				               << c.size() << "] sizes have to match!");
 
 		// 	apply iterator: c = B*d
@@ -394,7 +394,7 @@ class IPreconditioner :
 		//	Correction is always consistent
 			#ifdef 	UG_PARALLEL
 			if(!c.change_storage_type(PST_CONSISTENT))
-				UG_THROW_FATAL(name() << "::apply': Cannot change "
+				UG_THROW(name() << "::apply': Cannot change "
 						"parallel storage type of correction to consistent.");
 			#endif
 

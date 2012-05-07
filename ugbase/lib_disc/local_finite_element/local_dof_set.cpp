@@ -72,7 +72,7 @@ const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id, b
 
 		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
 				"Unknown LocalDoFSet for type "<<id<<" requested.\n");
-		throw(UGFatalError("LocalDoFSet for Finite Element Space unknown"));
+		throw(UGError("LocalDoFSet for Finite Element Space unknown"));
 	}
 
 //	get vector
@@ -90,7 +90,7 @@ const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id, b
 		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
 				"Unknown LocalDoFSet for type "<<id<<" requested for"
 				" Reference Element type " <<roid<<".\n");
-		throw(UGFatalError("Trial Space type unknown"));
+		throw(UGError("Trial Space type unknown"));
 	}
 
 //	return dof set
@@ -113,7 +113,7 @@ const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id, bool bCreat
 
 		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
 				"Unknown LocalDoFSet for type "<<id<<" and dim "<<dim<<" requested.\n");
-		throw(UGFatalError("LocalDoFSet for Finite Element Space unknown"));
+		throw(UGError("LocalDoFSet for Finite Element Space unknown"));
 	}
 
 //	get dimension
@@ -137,7 +137,7 @@ void LocalDoFSetProvider::register_set(LFEID id, const ILocalDoFSet& set)
 
 //	check that no space has been previously registered to this place
 	if(vBase[roid])
-		UG_THROW_FATAL("LocalDoFSetProvider::register_set(): "
+		UG_THROW("LocalDoFSetProvider::register_set(): "
 				"LocalDoFSet already registered for type: "<<id<<" and "
 				" Reference element type "<<roid<<".");
 
@@ -215,7 +215,7 @@ void CommonLocalDoFSet::add(const ILocalDoFSet& set)
 		if(m_vNumDoF[i] != NOT_SPECIFIED)
 			if(m_vNumDoF[i] != set.num_dof(roid))
 			{
-				UG_THROW_FATAL("LocalDoFSetIntersection::add: "
+				UG_THROW("LocalDoFSetIntersection::add: "
 						" Values does not match ("<<m_vNumDoF[i]<<" <-> "
 						<< set.num_dof(roid)<<").");
 			}

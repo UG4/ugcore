@@ -33,18 +33,18 @@ void IDDGridFunction<SurfaceDoFDistribution>::clear_transfers()
 template <>
 void IDDGridFunction<LevelDoFDistribution>::add_transfer(SmartPtr<ILocalTransfer> transfer)
 {
-	UG_THROW_FATAL("No Transfer operations for Level DoF Distributions.");
+	UG_THROW("No Transfer operations for Level DoF Distributions.");
 }
 template <>
 void IDDGridFunction<LevelDoFDistribution>::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
 {
-	UG_THROW_FATAL("No Transfer operations for Level DoF Distributions.");
+	UG_THROW("No Transfer operations for Level DoF Distributions.");
 }
 
 template <>
 void IDDGridFunction<LevelDoFDistribution>::clear_transfers()
 {
-	UG_THROW_FATAL("No Transfer operations for Level DoF Distributions.");
+	UG_THROW("No Transfer operations for Level DoF Distributions.");
 }
 
 

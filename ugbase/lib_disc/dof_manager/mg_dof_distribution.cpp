@@ -104,7 +104,7 @@ static void MapFace(size_t& map_i, size_t& map_j,
 				case 0: map_i = i; map_j = j; break;
 				case 1: map_i = j; map_j = p-i-j; break;
 				case 2: map_i = p-i-j; map_j = i; break;
-				default: UG_THROW_FATAL("Corner not found.");
+				default: UG_THROW("Corner not found.");
 			}
 			break;
 		}
@@ -116,11 +116,11 @@ static void MapFace(size_t& map_i, size_t& map_j,
 				case 1: map_i = j; map_j = p-i; break;
 				case 2: map_i = p-i; map_j = p-j; break;
 				case 3: map_i = p-j; map_j = i; break;
-				default: UG_THROW_FATAL("Corner not found.");
+				default: UG_THROW("Corner not found.");
 			}
 			break;
 		}
-		default: UG_THROW_FATAL("Num Corners not supported.");
+		default: UG_THROW("Num Corners not supported.");
 	}
 
 //	handle mirroring
@@ -282,7 +282,7 @@ void MGDoFDistribution::create_offsets(ReferenceObjectID roid)
 		int dim = m_rFctPatt.dim_subset(si);
 
 	//	check dimension
-		if(dim < 0) UG_THROW_FATAL("Dimension of subset "<<si<<" is not valid."
+		if(dim < 0) UG_THROW("Dimension of subset "<<si<<" is not valid."
 		                           " This may indicate, that the subset is empty, "
 		                           " or empty on some process and the subset "
 		                           "dimensions have not been computed correctly "
@@ -415,25 +415,25 @@ void MGDoFDistribution::check_subsets()
 {
 //	check, that all geom objects are assigned to a subset
 	if(	m_spMGSH->num<VertexBase>() != multi_grid()->num<VertexBase>())
-		UG_THROW_FATAL("All Vertices "
+		UG_THROW("All Vertices "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.");
 
 	if(	m_spMGSH->num<EdgeBase>() != multi_grid()->num<EdgeBase>())
-		UG_THROW_FATAL("All Edges "
+		UG_THROW("All Edges "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.");
 
 	if(	m_spMGSH->num<Face>() != multi_grid()->num<Face>())
-		UG_THROW_FATAL("All Faces "
+		UG_THROW("All Faces "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.");
 
 	if(	m_spMGSH->num<Volume>() != multi_grid()->num<Volume>())
-		UG_THROW_FATAL("All Volumes "
+		UG_THROW("All Volumes "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.");
@@ -818,7 +818,7 @@ size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
 //	If no hanging dofs are required, we're done
 	if(!bHang) return ind.size();
 
-	UG_THROW_FATAL("Hanging DoFs are currently not supported by this DoFManager.");
+	UG_THROW("Hanging DoFs are currently not supported by this DoFManager.");
 
 //	return number of indices
 	return ind.size();
@@ -1069,7 +1069,7 @@ void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) 
 
 //	todo: allow also constrained dofs on other elements
 	if(max_dofs(EDGE) || max_dofs(FACE) || max_dofs(VOLUME))
-		UG_THROW_FATAL("Hanging DoFs are only implemented for P1 by this DoFManager.");
+		UG_THROW("Hanging DoFs are only implemented for P1 by this DoFManager.");
 
 //	we're done
 	return;
@@ -1145,7 +1145,7 @@ void MGDoFDistribution::indices(GeometricObject* elem, LocalIndices& ind, bool b
 		case EDGE: return indices(static_cast<EdgeBase*>(elem), ind, bHang);
 		case FACE: return indices(static_cast<Face*>(elem), ind, bHang);
 		case VOLUME: return indices(static_cast<Volume*>(elem), ind, bHang);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
+		default: UG_THROW("Geometric Base element not found.");
 	}
 }
 
@@ -1159,7 +1159,7 @@ size_t MGDoFDistribution::multi_indices(GeometricObject* elem, size_t fct,
 		case EDGE: return multi_indices(static_cast<EdgeBase*>(elem), fct, ind, bHang, bClear);
 		case FACE: return multi_indices(static_cast<Face*>(elem), fct, ind, bHang, bClear);
 		case VOLUME: return multi_indices(static_cast<Volume*>(elem), fct, ind, bHang, bClear);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
+		default: UG_THROW("Geometric Base element not found.");
 	}
 }
 
@@ -1173,7 +1173,7 @@ size_t MGDoFDistribution::inner_multi_indices(GeometricObject* elem, size_t fct,
 		case EDGE: return inner_multi_indices(static_cast<EdgeBase*>(elem), fct, ind, bClear);
 		case FACE: return inner_multi_indices(static_cast<Face*>(elem), fct, ind, bClear);
 		case VOLUME: return inner_multi_indices(static_cast<Volume*>(elem), fct, ind, bClear);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
+		default: UG_THROW("Geometric Base element not found.");
 	}
 }
 
@@ -1186,7 +1186,7 @@ size_t MGDoFDistribution::algebra_indices(GeometricObject* elem,	std::vector<siz
 		case EDGE: return algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
 		case FACE: return algebra_indices(static_cast<Face*>(elem), ind, bClear);
 		case VOLUME: return algebra_indices(static_cast<Volume*>(elem), ind, bClear);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
+		default: UG_THROW("Geometric Base element not found.");
 	}
 }
 
@@ -1199,7 +1199,7 @@ size_t MGDoFDistribution::inner_algebra_indices(GeometricObject* elem, std::vect
 		case EDGE: return inner_algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
 		case FACE: return inner_algebra_indices(static_cast<Face*>(elem), ind, bClear);
 		case VOLUME: return inner_algebra_indices(static_cast<Volume*>(elem), ind, bClear);
-		default: UG_THROW_FATAL("Geometric Base element not found.");
+		default: UG_THROW("Geometric Base element not found.");
 	}
 }
 

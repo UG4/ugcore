@@ -44,7 +44,7 @@ bool FactorizeILU(Matrix_type &A)
 			// so that A(i,k) is zero.
 			// safe A(i,k)/A(k,k) in A(i,k)
 			if(fabs(BlockNorm(A(k,k))) < 1e-50)
-				UG_THROW_FATAL("Diag is Zero for k="<<k<<", cannot factorize ILU.");
+				UG_THROW("Diag is Zero for k="<<k<<", cannot factorize ILU.");
 
 			a_ik /= A(k,k);
 
@@ -159,7 +159,7 @@ bool FactorizeILUSorted(Matrix_type &A)
 			// so that A(i,k) is zero.
 			// safe A(i,k)/A(k,k) in A(i,k)
 			if(fabs(BlockNorm(a_kk)) < 1e-50)
-				UG_THROW_FATAL("Diag is Zero for k="<<k<<", cannot factorize ILU.");
+				UG_THROW("Diag is Zero for k="<<k<<", cannot factorize ILU.");
 
 			a_ik /= a_kk;
 

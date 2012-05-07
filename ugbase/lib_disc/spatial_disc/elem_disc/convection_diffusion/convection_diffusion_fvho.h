@@ -34,7 +34,7 @@ elem_loop_prepare_fvho()
 	static typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 	if(!geo.update_local(roid, m_order, m_quadOrderSCVF, m_quadOrderSCV))
-		UG_THROW_FATAL("ConvectionDiffusion::elem_loop_prepare_fvho:"
+		UG_THROW("ConvectionDiffusion::elem_loop_prepare_fvho:"
 						" Cannot update Finite Volume Geometry.");
 
 //	set local positions
@@ -78,7 +78,7 @@ elem_prepare_fvho(TElem* elem, const LocalVector& u)
 	static typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-		UG_THROW_FATAL("ConvectionDiffusion::prepare_element:"
+		UG_THROW("ConvectionDiffusion::prepare_element:"
 						" Cannot update Finite Volume Geometry.");
 
 //	set local positions

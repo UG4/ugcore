@@ -48,7 +48,7 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 
 	//	check that only one function given
 		if(functionGroup.num_fct() != 1)
-			UG_THROW_FATAL("NeumannBoundary:extract_data: Only one function allowed"
+			UG_THROW("NeumannBoundary:extract_data: Only one function allowed"
 							" per neumann value, but passed: " << vUserData[i].fctName);
 
 	//	get function
@@ -56,7 +56,7 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 
 	// 	check if function exist
 		if(fct >= this->function_pattern().num_fct())
-			UG_THROW_FATAL("NeumannBoundary:extract_data: Function "<< fct <<
+			UG_THROW("NeumannBoundary:extract_data: Function "<< fct <<
 			               " does not exist in pattern.");
 
 	//	add to common fct group if not already contained
@@ -81,12 +81,12 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 
 		// 	check that function is defined for segment
 			if(!this->function_pattern().is_def_in_subset(fct, subsetIndex))
-				UG_THROW_FATAL("NeumannBoundary:extract_data: Function "<<fct<<
+				UG_THROW("NeumannBoundary:extract_data: Function "<<fct<<
 				               " not defined on subset "<<subsetIndex<<".");
 
 		//	check that subsetIndex is valid
 			if(subsetIndex < 0 || subsetIndex >= rSH.num_subsets())
-				UG_THROW_FATAL("NeumannBoundary:extract_data: Invalid subset "
+				UG_THROW("NeumannBoundary:extract_data: Invalid subset "
 						"Index " << subsetIndex <<
 						". (Valid is 0, .. , " << rSH.num_subsets() <<").");
 
@@ -176,11 +176,11 @@ add(const char* name, const char* function, const char* subsets)
 
 //	no match found
 	if(!CheckLuaCallbackName(name))
-		UG_THROW_FATAL("NeumannBoundary::add: Lua-Callback with name '"<<name<<
+		UG_THROW("NeumannBoundary::add: Lua-Callback with name '"<<name<<
 		               "' does not exist.");
 
 //	name exists but wrong signature
-	UG_THROW_FATAL("NeumannBoundary::add: Cannot find matching callback "
+	UG_THROW("NeumannBoundary::add: Cannot find matching callback "
 					"signature. Use one of:\n"
 					"a) Number - Callback\n"
 					<< (LuaUserData<number, dim>::signature()) << "\n" <<
@@ -317,7 +317,7 @@ prepare_element(TElem* elem, const LocalVector& u)
 //  update Geometry for this element
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-		UG_THROW_FATAL("NeumannBoundary::prepare_element: "
+		UG_THROW("NeumannBoundary::prepare_element: "
 						"Cannot update Finite Volume Geometry.");
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
@@ -558,7 +558,7 @@ register_all_fv1_funcs(bool bHang)
 
 //	switch assemble functions
 	if(!bHang) boost::mpl::for_each<ElemList>( RegisterFV1<FV1Geometry>(this) );
-	else throw (UGFatalError("Not implemented."));
+	else throw (UGError("Not implemented."));
 }
 
 template<typename TDomain>

@@ -140,7 +140,7 @@ inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
 		case FACE:	CollectAssociated(vVertexOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
 		case VOLUME:CollectAssociated(vVertexOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
 	}
-	throw(UGFatalError("GeomObject type not known."));
+	throw(UGError("GeomObject type not known."));
 }
 
 
@@ -180,7 +180,7 @@ inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
 		case FACE:	CollectAssociated(vEdgesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
 		case VOLUME:CollectAssociated(vEdgesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
 	}
-	throw(UGFatalError("GeomObject type not known."));
+	throw(UGError("GeomObject type not known."));
 }
 
 
@@ -220,7 +220,7 @@ inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 		case FACE:	CollectAssociated(vFacesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
 		case VOLUME:CollectAssociated(vFacesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
 	}
-	throw(UGFatalError("GeomObject type not known."));
+	throw(UGError("GeomObject type not known."));
 }
 
 
@@ -267,7 +267,7 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 		case FACE:	CollectAssociated(vVolumesOut, grid, reinterpret_cast<Face*>(obj), clearContainer); return;
 		case VOLUME:CollectAssociated(vVolumesOut, grid, reinterpret_cast<Volume*>(obj), clearContainer); return;
 	}
-	throw(UGFatalError("GeomObject type not known."));
+	throw(UGError("GeomObject type not known."));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -283,7 +283,7 @@ inline void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
 		case FACE:	CollectVertices(vVertexOut, grid, static_cast<Face*>(obj), clearContainer); return;
 		case VOLUME:CollectVertices(vVertexOut, grid, static_cast<Volume*>(obj), clearContainer); return;
 	}
-	throw(UGFatalError("GeomObject type not known."));
+	throw(UGError("GeomObject type not known."));
 }
 
 inline void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
@@ -296,7 +296,7 @@ inline void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
 		case FACE:	CollectEdgesSorted(vEdgesOut, grid, static_cast<Face*>(obj), clearContainer); return;
 		case VOLUME:CollectEdgesSorted(vEdgesOut, grid, static_cast<Volume*>(obj), clearContainer); return;
 	}
-	throw(UGFatalError("GeomObject type not known."));
+	throw(UGError("GeomObject type not known."));
 }
 
 inline void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid,
@@ -309,7 +309,7 @@ inline void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid,
 		case FACE:	CollectFacesSorted(vFacesOut, grid, static_cast<Face*>(obj), clearContainer); return;
 		case VOLUME:CollectFacesSorted(vFacesOut, grid, static_cast<Volume*>(obj), clearContainer); return;
 	}
-	throw(UGFatalError("GeomObject type not known."));
+	throw(UGError("GeomObject type not known."));
 }
 
 }//	end of namespace libGrid

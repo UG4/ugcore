@@ -54,7 +54,7 @@ template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_velocity(number vel_x)
 {
-	UG_THROW_FATAL("ConvectionDiffusion: Setting velocity vector of dimension 1"
+	UG_THROW("ConvectionDiffusion: Setting velocity vector of dimension 1"
 					" to a Discretization for world dim " << dim);
 }
 
@@ -71,7 +71,7 @@ template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_velocity(number vel_x, number vel_y)
 {
-	UG_THROW_FATAL("ConvectionDiffusion: Setting velocity vector of dimension 2"
+	UG_THROW("ConvectionDiffusion: Setting velocity vector of dimension 2"
 					" to a Discretization for world dim " << dim);
 }
 
@@ -89,7 +89,7 @@ template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
 set_velocity(number vel_x, number vel_y, number vel_z)
 {
-	UG_THROW_FATAL("ConvectionDiffusion: Setting velocity vector of dimension 3"
+	UG_THROW("ConvectionDiffusion: Setting velocity vector of dimension 3"
 					" to a Discretization for world dim " << dim);
 }
 
@@ -249,7 +249,7 @@ ConvectionDiffusion(const char* functions, const char* subsets)
 {
 //	check number of functions
 	if(this->num_fct() != 1)
-		UG_THROW_FATAL("Wrong number of functions: The ElemDisc 'ConvectionDiffusion'"
+		UG_THROW("Wrong number of functions: The ElemDisc 'ConvectionDiffusion'"
 					   " needs exactly "<<1<<" symbolic function.");
 
 //	register exports
@@ -352,7 +352,7 @@ use_hanging() const
 	if(m_discScheme == "fv1") return true;
 	else if(m_discScheme == "fv") return false;
 	else if(m_discScheme == "fe") return false;
-	else throw(UGFatalError("Disc Scheme not recognized. Internal error."));
+	else throw(UGError("Disc Scheme not recognized. Internal error."));
 }
 
 template<typename TDomain>
@@ -404,7 +404,7 @@ set_ass_funcs()
 	if(m_discScheme == "fv1") register_all_fv1_funcs(m_bNonRegularGrid);
 	else if(m_discScheme == "fv") register_all_fvho_funcs(m_order, m_quadOrderSCV, m_quadOrderSCVF);
 	else if(m_discScheme == "fe") register_all_fe_funcs(m_order, m_quadOrder);
-	else throw(UGFatalError("Disc Scheme not recognized. Internal error."));
+	else throw(UGError("Disc Scheme not recognized. Internal error."));
 }
 
 } // namespace ug

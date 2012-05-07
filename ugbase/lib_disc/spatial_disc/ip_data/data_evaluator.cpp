@@ -31,7 +31,7 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 	{
 	//	currently only fast assembles allowed
 		if(!(*m_pvElemDisc)[i]->fast_ass_elem_enabled())
-			UG_THROW_FATAL("DataEvaluator: currently only fast assemble allowed."
+			UG_THROW("DataEvaluator: currently only fast assemble allowed."
 							" Please use enable_fast_ass_elem in all IElemDisc.");
 
 	//	create function group of this elem disc
@@ -74,7 +74,7 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 				UG_LOG((*m_pvElemDisc)[i]->symb_fcts()[f]);
 			}
 			UG_LOG(".\n");
-			UG_THROW_FATAL("DataEvaluator:set_elem_discs: fct error.");
+			UG_THROW("DataEvaluator:set_elem_discs: fct error.");
 		}
 
 	//	request assembling for local finite element id
@@ -90,7 +90,7 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 				UG_LOG("  Fct "<<f<<": '"<<(*m_pvElemDisc)[i]->symb_fcts()[f]);
 				UG_LOG("' using "<< vLfeID[f] << "\n");
 			}
-			UG_THROW_FATAL("DataEvaluator: Wrong functions for assembling.");
+			UG_THROW("DataEvaluator: Wrong functions for assembling.");
 		}
 
 	//	create a mapping between all functions and the function group of this
@@ -158,7 +158,7 @@ void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEval
 
 //	if found, return error of circle dependency
 	if(it != itEnd)
-		UG_THROW_FATAL("DataEvaluator::add_data_to_eval_data:"
+		UG_THROW("DataEvaluator::add_data_to_eval_data:"
 						" Circle dependency of data detected for IP Data.");
 
 //	add all dependent datas
@@ -181,7 +181,7 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 {
 //	check that elem disc given
 	if(m_pvElemDisc == NULL)
-		UG_THROW_FATAL("DataEvaluator::extract_imports_and_ipdata: No vector"
+		UG_THROW("DataEvaluator::extract_imports_and_ipdata: No vector"
 				" of IElemDisc* set. Cannot extract imports and exports.");
 
 //	clear imports and ipdata
@@ -227,7 +227,7 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 
 		//	check that queue is empty now, else some internal error occured
 			if(!vTryingToAdd.empty())
-				UG_THROW_FATAL("DataEvaluator::extract_imports_and_ipdata:"
+				UG_THROW("DataEvaluator::extract_imports_and_ipdata:"
 						" Internal Error, IPData queue not empty after adding.");
 		}
 	}
@@ -282,7 +282,7 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 
 	//	check success
 		if(!dependData.valid())
-			UG_THROW_FATAL("DataEvaluator::extract_imports_and_ipdata:"
+			UG_THROW("DataEvaluator::extract_imports_and_ipdata:"
 					" Data seems dependent, but cast failed.");
 
 	//	update function group of dependent data
@@ -366,7 +366,7 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 
 		//	check success
 			if(!dependData.valid())
-				UG_THROW_FATAL("DataEvaluator::extract_imports_and_ipdata:"
+				UG_THROW("DataEvaluator::extract_imports_and_ipdata:"
 						" Data seems dependent, but cast failed.");
 
 		//	create FuncMap for data
@@ -467,7 +467,7 @@ void DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 	//  let disc use non-regular grid assemblings
 		if(!(*m_pvElemDisc)[i]->request_non_regular_grid(bNonRegularGrid))
 		{
-			UG_THROW_FATAL("DataEvaluator::set_non_regular_grid: "
+			UG_THROW("DataEvaluator::set_non_regular_grid: "
 						" Elem Disc " << i << " does not support non-regular"
 						" grids, but this is requested.\n");
 		}
