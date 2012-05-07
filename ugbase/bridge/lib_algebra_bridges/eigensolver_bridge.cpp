@@ -67,7 +67,7 @@ struct RegisterEigensolverClass
 
 bool RegisterEigensolver(Registry& reg, string parentGroup)
 {
-	return RegisterAlgebraClass<RegisterEigensolverClass>(reg, parentGroup);
+	return RegisterEigensolverClass<CPUAlgebra>::reg(reg, parentGroup);
 
 }
 
