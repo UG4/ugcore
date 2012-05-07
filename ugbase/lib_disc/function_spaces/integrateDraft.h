@@ -15,6 +15,7 @@
 #include "lib_disc/common/subset_group.h"
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
 #include <boost/function.hpp>
 
 #ifdef UG_FOR_LUA
@@ -770,6 +771,372 @@ number StdFuncIntegral(TGridFunction& u, const char* name, int quadOrder, const 
 //	return the result
 	return value;
 }
+
+
+/// Integrates the Flux of a component over some boundary subsets
+/**
+ * This function integrates \f$ - \nabla c \cdot \vec{n} \f$ over some selected
+ * boundary subsets. In order to compute the gradient of a function a world-
+ * dimension element must be given and, thus, some "inner" subsets have to be
+ * specified to indicate the full-dimensional subsets. The integral sum is then
+ * taken over all boundary subset manifold geometric objects, that are part of
+ * an element of the scheduled "inner" elements
+ *
+ * @param u				a grid function
+ * @param cmp			the component, whose gradient should be integrated
+ * @param BndSubset		a comma-separated string of symbolic boundary subset names
+ * @param InnerSubset	a comma-separated string of symbolic inner subset names
+ * @return	the integral
+ */
+template <typename TGridFunction>
+number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
+                               const char* BndSubset, const char* InnerSubset = NULL)
+{
+//	get function id of name
+	const size_t fct = u.fct_id_by_name(cmp);
+
+//	check that function exists
+	if(fct >= u.num_fct())
+		UG_THROW_FATAL("IntegrateFluxOnBoundary: Function space does not contain"
+						" a function with name " << cmp << ".");
+
+	if(u.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+		UG_THROW_FATAL("IntegrateFluxOnBoundary:"
+			"Only implemented for Lagrange P1 functions.");
+
+//	read subsets
+	SubsetGroup innerSSGrp; innerSSGrp.set_subset_handler(u.domain()->subset_handler());
+	if(InnerSubset != NULL)
+		ConvertStringToSubsetGroup(innerSSGrp, u.domain()->subset_handler(), InnerSubset);
+	else // add all if no subset specified
+		innerSSGrp.add_all();
+
+//	read bnd subsets
+	SubsetGroup bndSSGrp; bndSSGrp.set_subset_handler(u.domain()->subset_handler());
+	if(InnerSubset != NULL){
+		ConvertStringToSubsetGroup(bndSSGrp, u.domain()->subset_handler(), BndSubset);
+	}
+	else{
+		UG_THROW_FATAL("IntegrateFluxOnBoundary: No boundary subsets specified. Aborting.");
+	}
+
+//	reset value
+	number value = 0;
+
+//	loop subsets
+	for(size_t i = 0; i < innerSSGrp.num_subsets(); ++i)
+	{
+	//	get subset index
+		const int si = innerSSGrp[i];
+
+	//	skip if function is not defined in subset
+		if(!u.is_def_in_subset(fct, si)) continue;
+
+
+		if (innerSSGrp.dim(i) != TGridFunction::dim)
+			UG_THROW_FATAL("IntegrateFluxOnBoundary: Element dimension does not match world dimension!");
+
+	//	create integration kernel
+		static const int dim = TGridFunction::dim;
+
+	//	integrate elements of subset
+		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+
+	//	get iterators for all elems on subset
+		typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
+		const_iterator iter = u.template begin<geometric_base_object>();
+		const_iterator iterEnd = u.template end<geometric_base_object>();
+
+	//	create a FV1 Geometry
+		DimFV1Geometry<dim> geo;
+
+	//	specify, which subsets are boundary
+		for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
+		{
+		//	get subset index
+			const int bndSubset = bndSSGrp[s];
+
+		//	request this subset index as boundary subset. This will force the
+		//	creation of boundary subsets when calling geo.update
+			geo.add_boundary_subset(bndSubset);
+		}
+
+	//	vector of corner coordinates of element corners (to be filled for each elem)
+		std::vector<MathVector<dim> > vCorner;
+
+	//	loop elements of subset
+		for( ; iter != iterEnd; ++iter)
+		{
+		//	get element
+			geometric_base_object* elem = *iter;
+
+		//	get all corner coordinates
+			CollectCornerCoordinates(vCorner, *elem, u.domain()->position_accessor(), true);
+
+		//	compute bf and grads at bip for element
+			if(!geo.update(elem, &vCorner[0], u.domain()->subset_handler().get()))
+				UG_THROW_FATAL("IntegrateFluxOnBoundary: "
+								"Cannot update Finite Volume Geometry.");
+
+		//	get fct multi-indeces of element
+			std::vector<MultiIndex<2> > ind;
+			u.multi_indices(elem, fct, ind);
+
+		//	specify, which subsets are boundary
+			for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
+			{
+			//	get subset index
+				const int bndSubset = bndSSGrp[s];
+
+			//	get all bf of this subset
+				typedef typename DimFV1Geometry<dim>::BF BF;
+				const std::vector<BF>& vBF = geo.bf(bndSubset);
+
+			//	loop boundary faces
+				for(size_t b = 0; b < vBF.size(); ++b)
+				{
+				//	get bf
+					const BF& bf = vBF[b];
+
+				//	get normal on bf
+					const MathVector<dim>& normal = bf.normal();
+
+				//	check multi indices
+					UG_ASSERT(ind.size() == bf.num_sh(),
+					          "IntegrateFluxOnBoundary::values: Wrong number of"
+							  " multi indices, ind: "<<ind.size() << ", bf.num_sh: "
+							  << bf.num_sh());
+
+				// 	compute gradient of solution at bip
+					MathVector<dim> grad; VecSet(grad, 0.0);
+					for(size_t sh = 0; sh < bf.num_sh(); ++sh)
+					{
+						const number fctVal = BlockRef(u[ind[sh][0]], ind[sh][1]);
+
+						VecScaleAdd(grad, 1.0, grad, fctVal, bf.global_grad(sh));
+					}
+
+				//	sum up contributions
+					value -= VecDot(grad, normal);
+				}
+			}
+		}
+	}
+
+#ifdef UG_PARALLEL
+	// sum over processes
+	if(pcl::GetNumProcesses() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		number local = value;
+		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+	}
+#endif
+
+	// Alles ist fertig und du bist motiviert !!
+
+//	return the result
+	return value;
+}
+
+
+/// Integrates the AceticAcid Flux over some boundary subsets
+/**
+ * This function integrates \f$ \rho \omega \vec{q} \cdot \vec{n} \f$m, where
+ * \f$ \vec{q} := -\frac{K}{\mu}(\nabla p - \rho \vec{g}) \f$ is the
+ * Darcy velocity over some selected
+ * boundary subsets. In order to compute the gradient of a function a world-
+ * dimension element must be given and, thus, some "inner" subsets have to be
+ * specified to indicate the full-dimensional subsets. The integral sum is then
+ * taken over all boundary subset manifold geometric objects, that are part of
+ * an element of the scheduled "inner" elements
+ *
+ * @param u				a grid function
+ * @param cmp			the component, whose gradient should be integrated
+ * @param BndSubset		a comma-separated string of symbolic boundary subset names
+ * @param InnerSubset	a comma-separated string of symbolic inner subset names
+ * @return	the integral
+ */
+template <typename TGridFunction>
+number IntegrateAceticAcidFluxOnBoundary(TGridFunction& u, const char* PressCmp,
+                                         const char* OmegaCmp,
+                                         number Permeability,
+                                         number Viscosity,
+                                         number Density,
+                                         number GravityNorm,
+                                         const char* BndSubset, const char* InnerSubset = NULL)
+{
+//	get function id of name
+	const size_t pressFct = u.fct_id_by_name(PressCmp);
+	const size_t omegaFct = u.fct_id_by_name(OmegaCmp);
+
+//	check that function exists
+	if(pressFct >= u.num_fct())
+		UG_THROW_FATAL("IntegrateFluxOnBoundary: Function space does not contain"
+						" a function with name " << PressCmp << ".");
+	if(omegaFct >= u.num_fct())
+		UG_THROW_FATAL("IntegrateFluxOnBoundary: Function space does not contain"
+						" a function with name " << omegaFct << ".");
+
+	if(u.local_finite_element_id(pressFct) != LFEID(LFEID::LAGRANGE, 1))
+		UG_THROW_FATAL("IntegrateFluxOnBoundary:"
+			"Only implemented for Lagrange P1 functions.");
+	if(u.local_finite_element_id(omegaFct) != LFEID(LFEID::LAGRANGE, 1))
+		UG_THROW_FATAL("IntegrateFluxOnBoundary:"
+			"Only implemented for Lagrange P1 functions.");
+
+//	read subsets
+	SubsetGroup innerSSGrp; innerSSGrp.set_subset_handler(u.domain()->subset_handler());
+	if(InnerSubset != NULL)
+		ConvertStringToSubsetGroup(innerSSGrp, u.domain()->subset_handler(), InnerSubset);
+	else // add all if no subset specified
+		innerSSGrp.add_all();
+
+//	read bnd subsets
+	SubsetGroup bndSSGrp; bndSSGrp.set_subset_handler(u.domain()->subset_handler());
+	if(InnerSubset != NULL){
+		ConvertStringToSubsetGroup(bndSSGrp, u.domain()->subset_handler(), BndSubset);
+	}
+	else{
+		UG_THROW_FATAL("IntegrateFluxOnBoundary: No boundary subsets specified. Aborting.");
+	}
+
+//	reset value
+	number value = 0;
+
+//	loop subsets
+	for(size_t i = 0; i < innerSSGrp.num_subsets(); ++i)
+	{
+	//	get subset index
+		const int si = innerSSGrp[i];
+
+	//	skip if function is not defined in subset
+		if(!u.is_def_in_subset(pressFct, si)) continue;
+
+
+		if (innerSSGrp.dim(i) != TGridFunction::dim)
+			UG_THROW_FATAL("IntegrateFluxOnBoundary: Element dimension does not match world dimension!");
+
+	//	create integration kernel
+		static const int dim = TGridFunction::dim;
+
+	//	integrate elements of subset
+		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+
+	//	get iterators for all elems on subset
+		typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
+		const_iterator iter = u.template begin<geometric_base_object>();
+		const_iterator iterEnd = u.template end<geometric_base_object>();
+
+	//	create a FV1 Geometry
+		DimFV1Geometry<dim> geo;
+
+	//	specify, which subsets are boundary
+		for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
+		{
+		//	get subset index
+			const int bndSubset = bndSSGrp[s];
+
+		//	request this subset index as boundary subset. This will force the
+		//	creation of boundary subsets when calling geo.update
+			geo.add_boundary_subset(bndSubset);
+		}
+
+	//	vector of corner coordinates of element corners (to be filled for each elem)
+		std::vector<MathVector<dim> > vCorner;
+
+	//	loop elements of subset
+		for( ; iter != iterEnd; ++iter)
+		{
+		//	get element
+			geometric_base_object* elem = *iter;
+
+		//	get all corner coordinates
+			CollectCornerCoordinates(vCorner, *elem, u.domain()->position_accessor(), true);
+
+		//	compute bf and grads at bip for element
+			if(!geo.update(elem, &vCorner[0], u.domain()->subset_handler().get()))
+				UG_THROW_FATAL("IntegrateFluxOnBoundary: "
+								"Cannot update Finite Volume Geometry.");
+
+		//	get fct multi-indeces of element
+			std::vector<MultiIndex<2> > indPressure;
+			u.multi_indices(elem, pressFct, indPressure);
+			std::vector<MultiIndex<2> > indOmega;
+			u.multi_indices(elem, omegaFct, indOmega);
+
+		//	specify, which subsets are boundary
+			for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
+			{
+			//	get subset index
+				const int bndSubset = bndSSGrp[s];
+
+			//	get all bf of this subset
+				typedef typename DimFV1Geometry<dim>::BF BF;
+				const std::vector<BF>& vBF = geo.bf(bndSubset);
+
+			//	loop boundary faces
+				for(size_t b = 0; b < vBF.size(); ++b)
+				{
+				//	get bf
+					const BF& bf = vBF[b];
+
+				//	get normal on bf
+					const MathVector<dim>& normal = bf.normal();
+
+				//	check multi indices
+					UG_ASSERT(indPressure.size() != bf.num_sh(),
+					          "IntegrateFluxOnBoundary::values: Wrong number of"
+										" multi indices.");
+
+				// 	compute gradient of solution at bip
+					MathVector<dim> gradPressure; VecSet(gradPressure, 0.0);
+					for(size_t sh = 0; sh < bf.num_sh(); ++sh)
+					{
+						const number fctVal = BlockRef(u[indPressure[sh][0]], indPressure[sh][1]);
+
+						VecScaleAdd(gradPressure, 1.0, gradPressure, fctVal, bf.global_grad(sh));
+					}
+
+				// 	compute omega at bip
+					number omega = 0.0;
+					for(size_t sh = 0; sh < bf.num_sh(); ++sh)
+					{
+						const number fctVal = BlockRef(u[indOmega[sh][0]], indOmega[sh][1]);
+
+						omega += fctVal * bf.shape(sh);
+					}
+
+					MathVector<dim> flux; VecSet(flux, 0.0);
+					flux[dim-1] = GravityNorm * Density;
+
+					VecScaleAppend(flux, -1.0, gradPressure);
+
+					VecScale(flux, flux, Density* omega* Permeability/Viscosity);
+
+				//	sum up contributions
+					value += VecDot(flux, normal);
+				}
+			}
+		}
+	}
+
+#ifdef UG_PARALLEL
+	// sum over processes
+	if(pcl::GetNumProcesses() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		number local = value;
+		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+	}
+#endif
+
+	// Alles ist fertig und du bist motiviert !!
+
+//	return the result
+	return value;
+}
+
 
 } // namespace ug
 

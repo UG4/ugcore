@@ -137,6 +137,24 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		typedef number (*fct_type)(TFct&, const char*, int, const char*);
 		reg.add_function("StdFuncIntegral",static_cast<fct_type>(&StdFuncIntegral<TFct>),grp);
 	}
+
+//	IntegrateFluxOnBoundary
+	{
+		typedef number (*fct_type)(TFct&, const char*, const char*, const char*);
+		reg.add_function("IntegrateFluxOnBoundary",static_cast<fct_type>(&IntegrateFluxOnBoundary<TFct>),grp,
+		                 "Integral", "GridFunction, Component, BoundarySubset, InnerSubset");
+	}
+
+//	IntegrateAceticAcidFluxOnBoundary
+	{
+		typedef number (*fct_type)(TFct&, const char*, const char*, number, number, number, number, const char*, const char*);
+		reg.add_function("IntegrateAceticAcidFluxOnBoundary",static_cast<fct_type>(&IntegrateAceticAcidFluxOnBoundary<TFct>),grp,
+						 "Integral", "GridFunction, PressureComponent, "
+						 	 	 	 "MassFractionComponent, Permeability, Viscosity, "
+						 	 	 	 "Density, GravityNorm, "
+								 	 "BoundarySubset, InnerSubset");
+	}
+
 }
 
 
