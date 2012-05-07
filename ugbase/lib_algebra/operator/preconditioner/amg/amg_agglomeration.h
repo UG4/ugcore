@@ -1,3 +1,15 @@
+/**
+ * \file amg_agglomeration.h
+ *
+ * \author Martin Rupp
+ *
+ * \date 03.08.2011
+ *
+ * Implementation of agglomeration of cores for AMG.
+ *
+ * Goethe-Center for Scientific Computing 2011-2012.
+ */
+
 #include "agglomeration.h"
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/global_layout.h"
@@ -176,62 +188,6 @@ bool AMGBase<TAlgebra>::add_correction_and_update_defect(vector_type &c, vector_
 
 }
 
-/*
- * Ÿberall brauche ich
- * - int iMergeLevel
- *
- * std::vector<ProcessCommunicator> m_vProcessCommunicator;
- * std::vector<IndexLayout> m_vAgglomerateMasterLayout
- * std::vector<vector_type> collC, collD;
- * std::vector<matrix_type> collA;
- * std::vector<bool> bHasBeenMerged;
- *
- * IndexLayout agglomerateSlaveLayout;
- * size_t m_agglomerateLevel;
- *
- * auf jedem level, bei dem ich mitmach
- * - einen process_communicator (fŸr participate usw)
- * - ein IndexLayout m_vAgglomerateMasterLayout
- * - zusŠtzliche Vektoren collC, collD
- * - zusŠtzliche Matrix collA
- * - ein flag bHasBeenMerged
- *
- * nur auf dem gršbsten, auf dem ich mitmache (level == iMergeLevel)
- * - ein IndexLayout agglomerateSlaveLayout
- * - einen process_communicator (fŸr participate usw)
- *
- * A[0] - 1024 entries. coarsen
- * A[1] - 512 entries. Merge with processor 2 -> A[1] has now 1024 entries
- * A[2] - 512 entries. Merge to processor 3. finished.
- *
- *
- *
- * agglomerate()
- *  ...
- *  // (ProcessCommunicator L.agglomeratedPC)
- *  if bMergesWithAnotherProcessor
- *  	L.agglomeratedPC = A.get_process_communicator().create_sub_communicator(false)
- *  else
- *  	L.agglomeratedPC = A.get_process_communicator().create_sub_communicator(true)
- *
- *
- *	d additiv, c consistent
- *
- * MGC(c, d, level)
- * if level == m_aggloLevel
- * 		sendtoMaster(c, d, level)
- * else
- * 		if bHasMerged[level] == true
- * 			getFromSlaves(c, collC[level], d, collD[level], level)
- * 			c = collC[level]; d = collD[level];
- * 		endif
- * 		smooth(c, d, A[level])
- *
- *
- * !!! AUFPASSEN AUFPASSEN AUFPASSEN !!!
- *  mit additiv und konsistent usw!!!!!
- * !!! AUFPASSEN AUFPASSEN AUFPASSEN !!!
- * */
 #ifdef UG_PARALLEL
 template<typename TAlgebra>
 bool AMGBase<TAlgebra>::agglomerate(size_t level)
@@ -445,12 +401,12 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 		//PrintGlobalLayout(globalMasterLayout, "AM globalmasterLayout");
 		//PrintGlobalLayout(globalSlaveLayout, "AM globalSlaveLayout");
 
-		CreateLayoutFromGlobalLayout(L.masterLayout2, globalMasterLayout, PN);
-		CreateLayoutFromGlobalLayout(L.slaveLayout2, globalSlaveLayout, PN);
+		CreateLayoutFromGlobalLayout(L.masterLayoutAfterAgglomeration, globalMasterLayout, PN);
+		CreateLayoutFromGlobalLayout(L.slaveLayoutAfterAgglomeration, globalSlaveLayout, PN);
 
 		L.agglomeratedPC = A.process_communicator().create_sub_communicator(true);
 
-		L.collectedA->set_layouts(L.masterLayout2, L.slaveLayout2);
+		L.collectedA->set_layouts(L.masterLayoutAfterAgglomeration, L.slaveLayoutAfterAgglomeration);
 		L.collectedA->set_process_communicator(L.agglomeratedPC);
 		L.pAgglomeratedA  = L.collectedA;
 
@@ -482,8 +438,8 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 
 			MergeGlobalLayout(globalMasterLayout, merge);
 			MergeGlobalLayout(globalSlaveLayout, merge);
-			CreateLayoutFromGlobalLayout(L.masterLayout2, globalMasterLayout, PN);
-			CreateLayoutFromGlobalLayout(L.slaveLayout2, globalSlaveLayout, PN);
+			CreateLayoutFromGlobalLayout(L.masterLayoutAfterAgglomeration, globalMasterLayout, PN);
+			CreateLayoutFromGlobalLayout(L.slaveLayoutAfterAgglomeration, globalSlaveLayout, PN);
 
 			//PrintGlobalLayout(globalMasterLayout, "AM globalmasterLayout");
 			//PrintGlobalLayout(globalSlaveLayout, "AM globalSlaveLayout");
@@ -498,7 +454,7 @@ bool AMGBase<TAlgebra>::agglomerate(size_t level)
 			// todo: this is some waste because we're just changing layouts.
 			// change vecs tooo....
 			*L.collectedA = A;
-			L.collectedA->set_layouts(L.masterLayout2, L.slaveLayout2);
+			L.collectedA->set_layouts(L.masterLayoutAfterAgglomeration, L.slaveLayoutAfterAgglomeration);
 			L.collectedA->set_process_communicator(L.agglomeratedPC);
 			L.pAgglomeratedA  = L.collectedA;
 

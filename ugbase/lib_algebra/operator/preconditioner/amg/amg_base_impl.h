@@ -76,7 +76,7 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 {
 	PROFILE_FUNC();
 	AMGLevel &L = *levels[level];
-	matrix_operator_type &A = *L.pA;
+	matrix_operator_type &A = *L.pAgglomeratedA;
 
 	if(m_levelInformation.size() < level+1)
 		m_levelInformation.resize(level+1);
@@ -95,7 +95,6 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 	size_t localInterfaceElements = A.master_layout().num_interface_elements();
 	li.m_iInterfaceElements = pc.allreduce(localInterfaceElements, PCL_RO_SUM);
 	li.m_iParticipating=pc.size();
-
 #else
 	size_t N = A.num_rows();
 	li.set_nr_of_nodes(N, N, N);
@@ -110,8 +109,12 @@ void AMGBase<TAlgebra>::calculate_level_information(size_t level, double createA
 	else
 		li.set_coarsening_rate(0.0);
 
-	UG_DLOG(LIB_ALG_AMG, 1, li.tostring() << "\n");
-	UG_DLOG(LIB_ALG_AMG, 1, " level took " << createAMGlevelTiming << " ms" << std::endl << std::endl);
+	UG_LOG(li.tostring() << "\n");
+	UG_LOG(" level took " << li.m_dCreationTimeMS << " ms" <<
+			std::endl << std::endl);
+
+	//UG_DLOG(LIB_ALG_AMG, 1, li.tostring() << "\n");
+	//UG_DLOG(LIB_ALG_AMG, 1, " level took " << createAMGlevelTiming << " ms" << std::endl << std::endl);
 }
 
 
@@ -209,8 +212,8 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 	{
 		AMGLevel &L = *levels[level];
 
+		L.pAgglomeratedA = L.pA;
 		calculate_level_information(level, createAMGlevelTiming);
-		UG_LOG(get_level_information(level)->tostring() << "\n");
 
 		if(m_levelInformation[level].get_nr_of_nodes() < m_maxNodesForBase
 				|| m_levelInformation[level].get_fill_in() > m_dMaxFillBeforeBase
@@ -219,6 +222,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 			AMG_PROFILE_BEGIN(amg_createDirectSolver);
 			create_direct_solver(level);
 			AMG_PROFILE_END();
+			L.pAgglomeratedA = L.pA;
 			break;
 		}
 
@@ -226,6 +230,9 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 #ifdef UG_PARALLEL
 		//PRINTPC(L.pA->process_communicator());
 		agglomerate(level);
+		// todo: recalculate level information after agglomeration
+		//if(L.bLevelHasMergers)
+			//calculate_level_information(level, createAMGlevelTiming);
 		precalc_level(level);
 		if(m_agglomerateLevel == level)
 		{
@@ -347,6 +354,12 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		li.m_connectionsMax = pc.allreduce(li.m_connectionsMax, PCL_RO_MAX);
 
 		li.m_iParticipating=pc.allreduce(li.m_iParticipating, PCL_RO_MAX);
+
+		if(level>0)
+			li.set_coarsening_rate((double)li.get_nr_of_nodes()/
+					(double)m_levelInformation[level-1].get_nr_of_nodes());
+		else
+			li.set_coarsening_rate(0.0);
 
 		if(level >= m_usedLevels){
 		UG_LOG(li.tostring() << "\n");

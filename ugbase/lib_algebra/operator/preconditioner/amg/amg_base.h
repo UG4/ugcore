@@ -411,7 +411,7 @@ public:
 	}
 */
 	/// returns the number of AMG levels
-	size_t get_used_levels() const { return m_usedLevels; }
+	size_t get_used_levels() const { return m_totalUsedLevels; }
 
 	bool check_level(vector_type &c, vector_type &d, matrix_type &A, size_t level,
 			checkResult &res, const vector_type *solution=NULL);
@@ -674,28 +674,28 @@ protected:
 
 		stdvector<bool> is_fine;			///< fine marks for f-smoothing
 
-		prolongation_matrix_type R; 	///< R Restriction Matrices
-		prolongation_matrix_type P; 	///< P Prolongation Matrices
-		SmartPtr<matrix_operator_type> pA;				///< A Matrices
+		prolongation_matrix_type R; 		///< R Restriction Matrices
+		prolongation_matrix_type P; 		///< P Prolongation Matrices
+		SmartPtr<matrix_operator_type> pA;	///< A Matrices
 
 		SmartPtr<ILinearIterator<vector_type> > presmoother;	///< presmoothers for each level
 		SmartPtr<ILinearIterator<vector_type> > postsmoother;	///< postsmoothers for each level
 
 #ifdef UG_PARALLEL
-		pcl::InterfaceCommunicator<IndexLayout> com; ///< the communicator object on this level
-		IndexLayout slaveLayout, masterLayout;
-		IndexLayout slaveLayout2, masterLayout2;
+		pcl::InterfaceCommunicator<IndexLayout> com; 										///< the communicator object on this level
+		IndexLayout slaveLayout, masterLayout;												///< layouts
+		IndexLayout slaveLayoutAfterAgglomeration, masterLayoutAfterAgglomeration;			///< since layouts can change due to neighbors merging, these are the new layouts
 
-		stdvector< typename block_traits<typename matrix_type::value_type>::inverse_type > m_diagInv;
+		stdvector< typename block_traits<typename matrix_type::value_type>::inverse_type > m_diagInv;	///< inverse for diagonal, for f-smoothing
 
 		// agglomeration
-		bool bHasBeenMerged;				///< if true, this core is either father or child of a collected group
+		bool bHasBeenMerged;								///< if true, this core is either father or child of a collected group
 		// level 0 - m_agglomerateLevel
-		pcl::ProcessCommunicator *pProcessCommunicator;
+		pcl::ProcessCommunicator *pProcessCommunicator;		///< process Communicator on this level
 
 
 		// level 0 - m_agglomerateLevel-1
-		pcl::ProcessCommunicator agglomeratedPC;
+		pcl::ProcessCommunicator agglomeratedPC;			///< process Communicator if level contains mergers
 		IndexLayout agglomerateMasterLayout;
 
 		vector_type collC, collD;
@@ -717,8 +717,11 @@ protected:
 	pcl::ProcessCommunicator m_emptyPC;
 	IndexLayout m_emptyLayout;
 
+	/// return true if we have been merged to another core on this level
 	bool isMergingSlave(size_t level);
+	/// return true if we are the master for agglomeration on this level
 	bool isMergingMaster(size_t level);
+	/// return true if we are neither horizontal master nor slave on this level
 	bool isNotMerging(size_t level);
 
 #endif
