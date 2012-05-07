@@ -21,7 +21,7 @@ namespace ug
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_all_possible_parent_pairs()
 {
-	stopwatch SW;
+	Stopwatch SW;
 	UG_DLOG(LIB_ALG_AMG, 1, "\ncreating possible parent list... "); if(bTiming) SW.start();
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelCalculateParentPairs);
 	AMG_PROFILE_FUNC();
@@ -59,7 +59,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::pr
 {
 	AMG_PROFILE_FUNC();
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelPrecalculateCoarsening);
-	stopwatch SW;
+	Stopwatch SW;
 	UG_DLOG(LIB_ALG_AMG, 1, std::endl << "coarsening... "); if(bTiming) SW.start();
 
 	size_t N = rating.size();

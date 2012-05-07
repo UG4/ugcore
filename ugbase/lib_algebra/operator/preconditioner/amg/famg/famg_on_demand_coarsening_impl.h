@@ -115,7 +115,7 @@ template<typename matrix_type, typename prolongation_matrix_type, typename vecto
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on_demand_coarsening()
 {
 	AMG_PROFILE_FUNC();
-	stopwatch SW;
+	Stopwatch SW;
 	UG_DLOG(LIB_ALG_AMG, 1, std::endl << "other coarsening... "); if(bTiming) SW.start();
 
 	AMG_PROFILE_BEGIN(AMG_on_demand_Init)

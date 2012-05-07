@@ -18,7 +18,7 @@ template<typename matrix_type, typename prolongation_matrix_type, typename vecto
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::external_coarsening_calculate_prolongation()
 {
 	AMG_PROFILE_FUNC();
-	stopwatch SW;
+	Stopwatch SW;
 	UG_DLOG(LIB_ALG_AMG, 0, std::endl << "calculate prolongation... "); if(bTiming) SW.start();
 	size_t N = A.num_rows();
 	for(size_t i=0; i<N; i++)
@@ -33,7 +33,7 @@ template<typename matrix_type, typename prolongation_matrix_type, typename vecto
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::rs_amg_external_coarsening()
 {
 	AMG_PROFILE_FUNC();
-	stopwatch SW;
+	Stopwatch SW;
 	UG_DLOG(LIB_ALG_AMG, 0, std::endl << "external coarsening... " ); if(bTiming) SW.start();
 	nodeinfo_pq_type PQ;
 	size_t N = A_OL2.num_rows();

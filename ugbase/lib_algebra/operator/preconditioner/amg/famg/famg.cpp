@@ -250,7 +250,7 @@ private:
 	void create_restriction()
 	{
 		AMG_PROFILE_FUNC();
-		stopwatch SW;
+		Stopwatch SW;
 		UG_DLOG(LIB_ALG_AMG, 0, std::endl << "restriction... "); if(bTiming) SW.start();
 		// construct restriction R = I_{h -> 2h}
 		R.set_as_transpose_of(PnewIndices);
@@ -273,7 +273,7 @@ private:
 	void create_galerkin_product()
 	{
 		AMG_PROFILE_FUNC();
-		stopwatch SW;
+		Stopwatch SW;
 		UG_DLOG(LIB_ALG_AMG, 0, "\ngalerkin product... "); if(bTiming) SW.start();
 		// AH = R A P
 
@@ -345,7 +345,7 @@ public:
 		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 1);
 		UG_DLOG(LIB_ALG_AMG, 0, "Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::fixed);
 		bTiming=true;
-		stopwatch SW, SWwhole; SWwhole.start();
+		Stopwatch SW, SWwhole; SWwhole.start();
 
 		// 1. Overlap calculation
 		//---------------------------

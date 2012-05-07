@@ -149,7 +149,7 @@ void RSAMG<Matrix_type, Vector_type>::amgTestLevel(Vector_type &x, const Vector_
 	cout << "[" << level << "]" << endl;
 	
 	
-	stopwatch SW;
+	Stopwatch SW;
 	SW.start();
 	double pre1 = norm(b - Ah*x);
 	cout << "calc norm "; SW.printTimeDiff(); cout << endl;

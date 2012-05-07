@@ -183,7 +183,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 
 	UG_DLOG(LIB_ALG_AMG, 1, "Starting AMG Setup." << std::endl << std::endl);
 
-	stopwatch SWwhole;
+	Stopwatch SWwhole;
 	SWwhole.start();
 
 	size_t level=0;
@@ -283,7 +283,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		R.set_process_communicator(L.pAgglomeratedA->process_communicator());
 #endif
 
-		stopwatch SW; SW.start();
+		Stopwatch SW; SW.start();
 
 		create_AMG_level(AH, R, *L.pAgglomeratedA, P, level);
 
@@ -397,7 +397,7 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 			<< A.num_rows()*static_nrUnknowns << " unknowns)" << std::endl << "Using Direct Solver on Matrix "
 			<< A.num_rows()*static_nrUnknowns << "x" << A.num_rows()*static_nrUnknowns << ". ");
 	(void) static_nrUnknowns;
-	stopwatch SW; SW.start();
+	Stopwatch SW; SW.start();
 
 	UG_LOG("creating direct solver on level " << level << "\n");
 

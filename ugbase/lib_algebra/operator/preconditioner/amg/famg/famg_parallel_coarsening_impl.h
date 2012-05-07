@@ -48,7 +48,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 {
 	AMG_PROFILE_FUNC();
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelColoring)
-	stopwatch SW;
+	Stopwatch SW;
 
 	UG_DLOG(LIB_ALG_AMG, 0, "\ncoloring processor OL graph..."); if(bTiming) SW.start();
 	// add processors of overlap 1 to pidsOL
@@ -153,7 +153,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	AMG_PROFILE_FUNC();
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelRecvCoarsening);
 
-	stopwatch SW;
+	Stopwatch SW;
 	if(bTiming) SW.start();
 
 	UG_DLOG(LIB_ALG_AMG, 0, "\nreceive coarsening data from processes with lower color");
@@ -190,7 +190,7 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 	AMG_PROFILE_FUNC();
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelSendCoarsening);
 
-	stopwatch SW; if(bTiming) SW.start();
+	Stopwatch SW; if(bTiming) SW.start();
 	UG_DLOG(LIB_ALG_AMG, 0, "\nsend coarsening data to processes...");
 	if(processesWithHigherColor.size() == 0)
 	{
@@ -253,7 +253,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 #endif
 
 	AMG_PROFILE_FUNC();
-	stopwatch SW;
+	Stopwatch SW;
 
 	// get the Overlap 2 matrix
 	//-------------------------------

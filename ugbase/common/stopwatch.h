@@ -23,7 +23,7 @@ namespace ug
 {
 
 /**
- * \brief stopwatch class for quickly taking times
+ * \brief Stopwatch class for quickly taking times
  *
  * Depending on \c CXX11 flag, two different versions are compiled.
  * If \c CXX11=ON, <tt>std::chrono</tt> from C++11's STL is used providing high
@@ -33,13 +33,13 @@ namespace ug
  * \note If \c CXX11=OFF timings shorter than 100ms seem to be rather
  * inaccurate.
  */
-class stopwatch
+class Stopwatch
 {
   public:
     /**
-     * \brief Default constructor for the stopwatch
+     * \brief Default constructor for the Stopwatch
      */
-    stopwatch() {
+    Stopwatch() {
       // you cant be really sure when constructor is called
 #ifdef UG_CXX11
       begin = chrono::high_resolution_clock::now();
@@ -51,7 +51,7 @@ class stopwatch
     }
     
     /**
-     * \brief Starts the stopwatch
+     * \brief Starts the Stopwatch
      */
     void start() {
       cout.flush();
@@ -64,7 +64,7 @@ class stopwatch
     }
 
     /**
-     * \brief Stops the stopwatch
+     * \brief Stops the Stopwatch
      */
     void stop() {
 #ifdef UG_CXX11
@@ -79,13 +79,13 @@ class stopwatch
      * \brief Prints number of milliseconds since call of start() to ostream
      *
      * Pretty prints the amount of milliseconds passed between calls of
-     * stopwatch::start() and stopwatch::stop() or this function call
+     * Stopwatch::start() and Stopwatch::stop() or this function call
      * to the specified std::ostream.
      *
      * \param[out]  out std::ostream to print number of milliseconds to
-     * \param[in]   sw  a stopwatch instance (usualy 'this')
+     * \param[in]   sw  a Stopwatch instance (usualy 'this')
      */
-    friend std::ostream &operator << ( std::ostream &out, stopwatch &s ) {
+    friend std::ostream &operator << ( std::ostream &out, Stopwatch &s ) {
       out << s.ms() << " ms";
       return out;
     }
@@ -94,7 +94,7 @@ class stopwatch
      * \brief Returns milliseconds since call of start
      *
      * Returns the amount of milliseconds passed between calls of
-     * stopwatch::start() and stopwatch::stop() or this function call.
+     * Stopwatch::start() and Stopwatch::stop() or this function call.
      *
      * \note If compiled with \c CXX11=ON returned milliseconds have microsecond
      * resolution.
@@ -113,17 +113,17 @@ class stopwatch
 
   private:
 #ifdef UG_CXX11
-    /// Time point of the start of stopwatch
+    /// Time point of the start of Stopwatch
     chrono::high_resolution_clock::time_point begin;
     /// Number of microseconds since \c begin
     chrono::microseconds end;
 #else
-    /// Time point of the start of stopwatch
+    /// Time point of the start of Stopwatch
     clock_t beg;
-    /// Time point of the end of stopwatch
+    /// Time point of the end of Stopwatch
     clock_t end;
 #endif
-    /// Flag indicating state of stopwatch
+    /// Flag indicating state of Stopwatch
     bool bRunning;
 };
 

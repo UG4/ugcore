@@ -112,7 +112,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 
 	// todo: all global?
 	UG_DLOG(LIB_ALG_AMG, 1, "\ncalculating testvector... ");
-	stopwatch SW;
+	Stopwatch SW;
 	if(bTiming) SW.start();
 
 	vector_type d; d.resize(A.num_rows());
