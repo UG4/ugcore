@@ -47,11 +47,15 @@ template<typename vector_type, typename densematrix_type>
 void MultiScalProd(vector_type **px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
+	UG_ASSERT(0, "");
 	UG_ASSERT(n == rA.num_rows() && n == rA.num_cols(), "");
 	for(size_t r=0; r<n; r++)
 	{
 		for(size_t c=r; c<n; c++)
-			rA(r, c) = VecProd((*px[c]), (*px[r]));
+		{
+			rA(r, c) = px[c]->dotprod(*px[r]);
+			UG_LOG("MultiScalProd : " << rA(r, c) << "\n");
+		}
 	}
 
 	for(size_t r=0; r<n; r++)
@@ -64,7 +68,7 @@ template<typename matrix_type, typename vector_type>
 double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2)
 {
 	pcl::ProcessCommunicator pc;
-	pc.barrier();
+
 	vector_type t;
 	CloneVector(t, v1);
 #ifdef UG_PARALLEL
@@ -74,8 +78,9 @@ double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2)
 #ifdef UG_PARALLEL
 	t.change_storage_type(PST_CONSISTENT);
 #endif
-	double a = VecProd(v1, t);
-	pc.barrier();
+	double a = v1.dotprod(t);
+	//UG_LOG("EnergyProd " << a << "\n");
+
 	return a;
 }
 
@@ -89,7 +94,7 @@ void MultiEnergyProd(matrix_type &A,
 	vector_type t;
 	CloneVector(t, *px[0]);
 
-	pc.barrier();
+
 	for(size_t r=0; r<n; r++)
 	{
 		// todo: why is SparseMatrix<T>::apply not const ?!?
@@ -101,9 +106,13 @@ void MultiEnergyProd(matrix_type &A,
 		t.change_storage_type(PST_CONSISTENT);
 #endif
 		for(size_t c=r; c<n; c++)
-			rA(r, c) = VecProd((*px[c]), t);
+		{
+			//rA(r, c) = VecProd((*px[c]), t);
+			rA(r, c) = px[c]->dotprod(t);
+			//UG_LOG("MultiEnergyProd : " << rA(r, c) << "\n");
+		}
 	}
-	pc.barrier();
+
 
 	for(size_t r=0; r<n; r++)
 		for(size_t c=0; c<r; c++)
@@ -289,7 +298,7 @@ public:
 		{
 			UG_LOG("iteration " << iteration << "\n");
 			// 0. normalize
-			pc.barrier();
+
 			if(m_pB)
 			{
 				for(size_t i=0; i<n; i++)
@@ -301,7 +310,7 @@ public:
 					(*px[i]) *= 1 / px[i]->two_norm();
 			}
 
-			pc.barrier();
+
 
 			// 1. before calculating new correction, save old correction
 			for(size_t i=0; i<n; i++)
@@ -310,7 +319,7 @@ public:
 			//  2. compute rayleigh quotient, residuum, apply preconditioner, compute corrections norm
 			size_t nrofconverged=0;
 
-			pc.barrier();
+
 			for(size_t i=0; i<n; i++)
 			{
 				// 2a. compute rayleigh quotients
@@ -318,19 +327,19 @@ public:
 				// todo: replace with MatMult
 //				UG_LOG("m_pA has storage type "); PrintStorageType(*m_pA); UG_LOG(", and vector px[" << i << "] has storage type"); PrintStorageType(*px[i]); UG_LOG("\n");
 				// px can be set to unique because of two_norm
-				pc.barrier();
+
 #ifdef UG_PARALLEL
 				px[i]->change_storage_type(PST_CONSISTENT);
 				defect.set_storage_type(PST_ADDITIVE);
 #endif
 				m_pA->apply(defect, *px[i]);
-				pc.barrier();
+
 
 #ifdef UG_PARALLEL
 				defect.change_storage_type(PST_UNIQUE);
 				px[i]->change_storage_type(PST_UNIQUE);
 #endif
-				lambda[i] = VecProd(*px[i], defect); // / <px[i], px[i]> = 1.0.
+				lambda[i] = px[i]->dotprod(defect); // / <px[i], px[i]> = 1.0.
 				//UG_LOG("lambda[" << i << "] = " << lambda[i] << "\n");
 
 				// 2b. calculate residuum
@@ -340,6 +349,7 @@ public:
 					// todo: replace with MatMultAdd
 					//MatMultAddDirect(defect, 1.0, defect, -lambda[i], *m_pB, *px[i]);
 #ifdef UG_PARALLEL
+					defect.change_storage_type(PST_ADDITIVE);
 					px[i]->change_storage_type(PST_CONSISTENT);
 #endif
 					MatMultAddDirect(defect, 1.0, defect, -lambda[i], B, *px[i]);
@@ -349,13 +359,14 @@ public:
 
 				// 2c. check if converged
 
-				pc.barrier();
+
 #ifdef UG_PARALLEL
 				defect.change_storage_type(PST_UNIQUE);
 #endif
-				pc.barrier();
-
 				corrnorm[i] = defect.two_norm();
+#ifdef UG_PARALLEL
+				defect.change_storage_type(PST_UNIQUE);
+#endif
 				//UG_LOG("corrnorm[" << i << "] = " << corrnorm[i] << "\n");
 				if(corrnorm[i] < m_dPrecision)
 					nrofconverged++;
@@ -502,7 +513,7 @@ public:
 				if(r_lambda[nrzero] > 1e-15)
 					break;
 
-			/*if(nrzero)
+			if(nrzero)
 			{
 				UG_LOG("Lambda < 0: \n");
 				for(size_t i=0; i<nrzero; i++)
@@ -524,9 +535,13 @@ public:
 					if(dabs(r_ev(r, c)) > 1e-9 )
 						UG_LOG(std::setw(14) << r_ev(r, c) << "   " << testVectorDescription[r] << "\n");
 				UG_LOG("\n\n");
-			}*/
+			}
 
 
+			for(size_t i=0; i<iNrOfTestVectors; i++)
+				pTestVectors[i]->change_storage_type(PST_UNIQUE);
+			for(size_t i=0; i<n; i++)
+				px[i]->change_storage_type(PST_UNIQUE);
 			// assume r_lambda is sorted
 			std::vector<typename vector_type::value_type> x_tmp(n);
 			for(size_t i=0; i<size; i++)
