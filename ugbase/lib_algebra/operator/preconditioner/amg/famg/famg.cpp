@@ -27,7 +27,7 @@
 #include "lib_algebra/common/stl_debug.h"
 #include "../amg_debug_helper.h"
 
-#include "../stopwatch.h"
+#include "common/stopwatch.h"
 #include "common/assert.h"
 #include "lib_algebra/common/heap/maxheap.h"
 #include "famg.h"

@@ -1,14 +1,15 @@
 /**
- * \file lib_algebra/operator/preconditioner/amg/stopwatch.h
+ * \file common/stopwatch.h
  * \author Martin Rupp
- * \author Torbjörn Klatt
  * \date 2010-03-03
+ * \author Torbjörn Klatt
+ * \date 2012-05-07
  * \copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
  * \brief stopwatch class for quickly taking times
  */
 
-#ifndef __H__UG__LIB_ALGEBRA__STOPWATCH_H__
-#define __H__UG__LIB_ALGEBRA__STOPWATCH_H__
+#ifndef __H__UG__STOPWATCH_H__
+#define __H__UG__STOPWATCH_H__
 
 #ifdef UG_CXX11
 #include <chrono>
@@ -130,4 +131,4 @@ class stopwatch
 } // namespace ug
 
 
-#endif // __H__UG__LIB_ALGEBRA__STOPWATCH_H__
+#endif // __H__UG__STOPWATCH_H__

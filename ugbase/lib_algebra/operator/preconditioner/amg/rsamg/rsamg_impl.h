@@ -32,7 +32,7 @@ template<typename T> inline double amg_offdiag_value(const T &d) { return -Block
 
 #include "rsamg_coarsening.h"
 
-#include "../stopwatch.h"
+#include "common/stopwatch.h"
 #include "../amg_profiling.h"
 
 #ifdef UG_PARALLEL

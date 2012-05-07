@@ -23,7 +23,7 @@
 #include "lib_algebra/parallelization/parallel_coloring.h"
 #include "lib_algebra/parallelization/communication_scheme.h"
 
-#include "../stopwatch.h"
+#include "common/stopwatch.h"
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "../rsamg/rsamg_impl.h"
 

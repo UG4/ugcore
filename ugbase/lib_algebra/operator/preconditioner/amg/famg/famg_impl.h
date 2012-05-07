@@ -16,7 +16,7 @@
 //#include "sparsematrix_util.h"
 
 //#include "famg_nodeinfo.h"
-#include "../stopwatch.h"
+#include "common/stopwatch.h"
 #include "common/assert.h"
 //#include "maxheap.h"
 

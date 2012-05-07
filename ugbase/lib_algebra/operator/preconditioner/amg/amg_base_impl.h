@@ -14,7 +14,7 @@
 #define __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_BASE_IMPL_H__
 
 #include <fstream>
-#include "stopwatch.h"
+#include "common/stopwatch.h"
 #include "amg_debug.h"
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/collect_matrix.h"
