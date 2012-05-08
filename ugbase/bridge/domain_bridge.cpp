@@ -117,6 +117,45 @@ static void TestDomainVisualization(TDomain& dom)
 }
 
 
+template <typename TDomain>
+static void ScaleDomain(TDomain& dom, number sx, number sy, number sz)
+{
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	typename TDomain::grid_type& g = *dom.grid();
+	vector3 s(sx, sy, sz);
+
+	const int numCoords = TDomain::position_type::Size;
+	UG_ASSERT(numCoords <= 3, "too many coordinates.");
+
+	for(VertexBaseIterator iter = g.vertices_begin();
+		iter != g.vertices_end(); ++iter)
+	{
+		for(int i = 0; i < numCoords; ++i)
+			aaPos[*iter][i] *= s[i];
+	}
+}
+
+
+template <typename TDomain>
+static void TranslateDomain(TDomain& dom, number tx, number ty, number tz)
+{
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	typename TDomain::grid_type& g = *dom.grid();
+	vector3 t(tx, ty, tz);
+
+	const int numCoords = TDomain::position_type::Size;
+	UG_ASSERT(numCoords <= 3, "too many coordinates.");
+
+	for(VertexBaseIterator iter = g.vertices_begin();
+		iter != g.vertices_end(); ++iter)
+	{
+		for(int i = 0; i < numCoords; ++i)
+			aaPos[*iter][i] += t[i];
+	}
+}
+
+
+
 namespace bridge{
 
 template <typename TDomain>
@@ -183,6 +222,10 @@ static bool RegisterDomainInterface_(Registry& reg, string grp)
 
 	reg.add_function("RedistributeDomain",
 					 &RedistributeDomain<TDomain>, grp);
+
+//	transform the domain
+	reg.add_function("ScaleDomain", &ScaleDomain<TDomain>, grp);
+	reg.add_function("TranslateDomain", &TranslateDomain<TDomain>, grp);
 
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);

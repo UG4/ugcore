@@ -86,7 +86,7 @@ class PathProvider
 		}
 
 	///	returns true if a current path exists, false if not.
-		bool has_current_path()
+		static inline bool has_current_path()
 		{return !inst().m_curPaths.empty();}
 
 	///	pushes a path to the stack of current paths
@@ -96,6 +96,10 @@ class PathProvider
 	///	pops a path from the stack of current paths
 		static inline void pop_current_path()
 		{inst().m_curPaths.pop();}
+
+	///	clears the stack of current paths. This makes sense if an error was catched.
+		static inline void clear_current_path_stack()
+		{while(has_current_path()) {pop_current_path();}}
 
 	/**
 	 * @param relativeFilename (in) relative filename

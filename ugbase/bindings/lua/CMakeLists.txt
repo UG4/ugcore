@@ -19,58 +19,58 @@ if(UNIX)
 endif(UNIX)
 
 set(srcLua	externals/lua/lapi.c
-			externals/lua/lapi.h
 			externals/lua/lauxlib.c
-			externals/lua/lauxlib.h
 			externals/lua/lbaselib.c
 			externals/lua/lcode.c
-			externals/lua/lcode.h
 			externals/lua/ldblib.c
 			externals/lua/ldebug.c
-			externals/lua/ldebug.h
 			externals/lua/ldo.c
-			externals/lua/ldo.h
 			externals/lua/ldump.c
 			externals/lua/lfunc.c
-			externals/lua/lfunc.h
 			externals/lua/lgc.c
-			externals/lua/lgc.h
 			externals/lua/linit.c
 			externals/lua/liolib.c
 			externals/lua/llex.c
-			externals/lua/llex.h
-			externals/lua/llimits.h
 			externals/lua/lmathlib.c
 			externals/lua/lmem.c
-			externals/lua/lmem.h
 			externals/lua/loadlib.c
 			externals/lua/lobject.c
-			externals/lua/lobject.h
 			externals/lua/lopcodes.c
-			externals/lua/lopcodes.h
 			externals/lua/loslib.c
 			externals/lua/lparser.c
-			externals/lua/lparser.h
 			externals/lua/lstate.c
-			externals/lua/lstate.h
 			externals/lua/lstring.c
-			externals/lua/lstring.h
 			externals/lua/lstrlib.c
 			externals/lua/ltable.c
-			externals/lua/ltable.h
 			externals/lua/ltablib.c
 			externals/lua/ltm.c
-			externals/lua/ltm.h
-			externals/lua/lua.h
-			externals/lua/luaconf.h
-			externals/lua/lualib.h
 			externals/lua/lundump.c
-			externals/lua/lundump.h
 			externals/lua/lvm.c
-			externals/lua/lvm.h
-			externals/lua/lzio.c
-			externals/lua/lzio.h)
+			externals/lua/lzio.c)
 
+set(headersLua	externals/lua/lapi.h
+				externals/lua/lauxlib.h
+				externals/lua/lcode.h
+				externals/lua/ldebug.h
+				externals/lua/ldo.h
+				externals/lua/lfunc.h
+				externals/lua/lgc.h
+				externals/lua/llex.h
+				externals/lua/llimits.h
+				externals/lua/lmem.h
+				externals/lua/lobject.h
+				externals/lua/lopcodes.h
+				externals/lua/lparser.h
+				externals/lua/lstate.h
+				externals/lua/lstring.h
+				externals/lua/ltable.h
+				externals/lua/ltm.h
+				externals/lua/lua.h
+				externals/lua/luaconf.h
+				externals/lua/lualib.h
+				externals/lua/lundump.h
+				externals/lua/lvm.h
+				externals/lua/lzio.h)
 
 set(srcUGScript		lua_util.cpp
 					info_commands.cpp

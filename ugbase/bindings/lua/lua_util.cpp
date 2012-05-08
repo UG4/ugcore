@@ -278,8 +278,8 @@ void ReleaseDefaultLuaState()
 /// error function to be used for lua_pcall
 int luaCallStackError( lua_State *L )
 {
-	UG_LOG("Error: " << lua_tostring(L, -1) << ". ");
-    UG_LOG("call stack:\n"); ug::bridge::LuaStackTrace(L);
+	//UG_LOG("Error: " << lua_tostring(L, -1) << ". ");
+    //UG_LOG("call stack:\n"); ug::bridge::LuaStackTrace(L);
     return 1;
 }
 
@@ -293,6 +293,7 @@ bool ParseBuffer(const char* buffer, const char *bufferName)
 {
 	PROFILE_BEGIN(ParseBuffer);
 	lua_State* L = GetDefaultLuaState();
+
 	lua_pushcfunction(L, luaCallStackError);
 
 	PROFILE_BEGIN(luaL_loadbuffer);
@@ -302,7 +303,7 @@ bool ParseBuffer(const char* buffer, const char *bufferName)
 	if(error == 0)
 	{
 		PROFILE_BEGIN(lua_pcall);
-		lua_pcall(L, 0, 0, -2);
+		error = lua_pcall(L, 0, 0, -2);
 	}
 
 	if(error)
@@ -310,10 +311,11 @@ bool ParseBuffer(const char* buffer, const char *bufferName)
 //		LOG("PARSE-ERROR: " << lua_tostring(L, -1) << endl);
 		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
-		ug::bridge::LuaStackTrace(L);
+		//ug::bridge::LuaStackTrace(L);
 		throw(LuaError(msg.c_str()));
 //		return false;
 	}
+
 	PROFILE_END();
 	return true;
 
@@ -347,7 +349,7 @@ bool ParseFile(const char* filename)
 		//LOG("PARSE-ERROR in parse_file(" << filename << "): " << lua_tostring(L, -1) << endl);
 		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
-		ug::bridge::LuaStackTrace(L);
+		//ug::bridge::LuaStackTrace(L);
 		throw(LuaError(msg.c_str()));
 	}
 	return true;

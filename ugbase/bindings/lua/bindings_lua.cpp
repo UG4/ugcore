@@ -19,9 +19,8 @@ using namespace std;
 using namespace ug::script;
 
 ///	throw mechanism for lua related errors.
-#define UG_LUA_THROW_EMPTY()	throw(script::LuaError(""));
-#define UG_LUA_THROW(msg)		{std::stringstream ss; ss << msg; \
-								throw(script::LuaError(ss.str().c_str()));}
+#define UG_LUA_THROW_EMPTY(luaState)	luaL_error(luaState, "")
+#define UG_LUA_THROW(luaState, msg)		luaL_error(luaState, "\n%s", msg)
 
 namespace ug{
 namespace bridge{
@@ -566,7 +565,7 @@ static int LuaProxyFunction(lua_State* L)
 			func->execute(paramsIn, paramsOut);
 		}
 		catch(LuaError& err){
-			UG_LUA_THROW(err.get_msg());
+			UG_LUA_THROW(L, err.get_msg().c_str());
 		}
 		catch(UGError& err){
 			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
@@ -574,9 +573,8 @@ static int LuaProxyFunction(lua_State* L)
 			PrintFunctionInfo(*func); UG_LOG("'.\n");
 			PrintUGErrorTraceback(err);
 
-			UG_LOG(errSymb<<"Call stack:\n");
-			LuaStackTrace(L);
-			UG_LUA_THROW_EMPTY();
+			//UG_LOG(errSymb<<"Call stack:\n");	LuaStackTrace(L);
+			UG_LUA_THROW_EMPTY(L);
 		}
 		catch(bad_alloc& ba)
 		{
@@ -585,9 +583,8 @@ static int LuaProxyFunction(lua_State* L)
 			PrintFunctionInfo(*func); UG_LOG("'.\n");
 			UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
 
-			UG_LOG(errSymb<<"Call stack:\n");
-			LuaStackTrace(L);
-			UG_LUA_THROW_EMPTY();
+			//UG_LOG(errSymb<<"Call stack:\n");	LuaStackTrace(L);
+			UG_LUA_THROW_EMPTY(L);
 		}
 #ifdef __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 		catch(...)
@@ -595,7 +592,7 @@ static int LuaProxyFunction(lua_State* L)
 			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
 			UG_LOG(errSymb<<"Unknown Exception thrown in call to function '");
 			PrintFunctionInfo(*func); UG_LOG("'.\n");
-			UG_LUA_THROW_EMPTY();
+			UG_LUA_THROW_EMPTY(L);
 		}
 #endif
 
@@ -618,14 +615,13 @@ static int LuaProxyFunction(lua_State* L)
 			PrintFunctionInfo(*func);
 			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
 		}
-		UG_LOG(errSymb<<"Call stack:\n");
-		LuaStackTrace(L);
+		//UG_LOG(errSymb<<"Call stack:\n");	LuaStackTrace(L);
 
-		UG_LUA_THROW_EMPTY();
+		UG_LUA_THROW_EMPTY(L);
 	}
 
 //	this point shouldn't be reached
-	UG_LUA_THROW("Unknown internal error!");
+	UG_LUA_THROW(L, "Unknown internal error!");
 	return 0;
 }
 
@@ -665,7 +661,7 @@ static int LuaProxyConstructor(lua_State* L)
 			}
 		}
 		catch(LuaError& err){
-			UG_LUA_THROW(err.get_msg());
+			UG_LUA_THROW(L, err.get_msg().c_str());
 		}
 		catch(UGError& err)
 		{
@@ -674,9 +670,9 @@ static int LuaProxyConstructor(lua_State* L)
 			UG_LOG("'.\n");
 			PrintUGErrorTraceback(err);
 
-			UG_LOG(errSymb<<"Call stack:\n");
-			LuaStackTrace(L);
-			UG_LUA_THROW_EMPTY();
+			//UG_LOG(errSymb<<"Call stack:\n");
+			//LuaStackTrace(L);
+			UG_LUA_THROW_EMPTY(L);
 		}
 
 	//	object created
@@ -690,8 +686,8 @@ static int LuaProxyConstructor(lua_State* L)
 		UG_LOG(errSymb<<"Cannot find constructor for class '"<< c->name()  <<"'.\n");
 	}
 
-	UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
-	UG_LUA_THROW_EMPTY();
+	//UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
+	UG_LUA_THROW_EMPTY(L);
 	return 0;
 }
 
@@ -759,7 +755,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 			}
 		}
 		catch(LuaError& err){
-			UG_LUA_THROW(err.get_msg());
+			UG_LUA_THROW(L, err.get_msg().c_str());
 		}
 		catch(UGError& err)
 		{
@@ -767,7 +763,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 			UG_LOG(errSymb << "UGError thrown in call to method '");
 			PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
 			PrintUGErrorTraceback(err);
-			UG_LUA_THROW_EMPTY();
+			UG_LUA_THROW_EMPTY(L);
 		}
 		catch(std::bad_alloc& ba)
 		{
@@ -775,7 +771,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 			UG_LOG(errSymb << "std::bad_alloc thrown in call to '");
 			UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
 			PrintLuaClassMethodInfo(L, 1, *m); UG_LOG(".'\n");
-			UG_LUA_THROW_EMPTY();
+			UG_LUA_THROW_EMPTY(L);
 		}
 #ifdef 	__UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 		catch(...)
@@ -783,7 +779,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 			UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
 			UG_LOG(errSymb << "Unknown Exception thrown in call to '");
 			PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
-			UG_LUA_THROW_EMPTY();
+			UG_LUA_THROW_EMPTY(L);
 		}
 #endif
 
@@ -950,8 +946,8 @@ static int LuaProxyMethod(lua_State* L)
 //	time outputting the errors
 	ExecuteMethod(L, methodGrp, self, classNameNode, true);
 
-	UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
-	UG_LUA_THROW_EMPTY();
+	//UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
+	UG_LUA_THROW_EMPTY(L);
 
 	return 0;
 }
@@ -1129,7 +1125,7 @@ static int LuaProxyGroupCreate(lua_State* L)
 			}
 		}
 		catch(LuaError& err){
-			UG_LUA_THROW(err.get_msg());
+			UG_LUA_THROW(L, err.get_msg().c_str());
 		}
 		catch(UGError& err)
 		{
@@ -1138,9 +1134,8 @@ static int LuaProxyGroupCreate(lua_State* L)
 			UG_LOG("'.\n");
 			PrintUGErrorTraceback(err);
 
-			UG_LOG(errSymb<<"Call stack:\n");
-			LuaStackTrace(L);
-			UG_LUA_THROW_EMPTY();
+			//UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
+			UG_LUA_THROW_EMPTY(L);
 		}
 
 	//	object created
@@ -1154,8 +1149,8 @@ static int LuaProxyGroupCreate(lua_State* L)
 		UG_LOG(errSymb<<"Cannot find constructor for class "<< c->name() <<".\n");
 	}
 
-	UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
-	UG_LUA_THROW_EMPTY();
+	//UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
+	UG_LUA_THROW_EMPTY(L);
 
 	return 0;
 }
