@@ -145,8 +145,8 @@ namespace ug{
 In ug4 \em Doxygen is used to document the code (see http://www.doxygen.org).
 The \em JavaDoc style is the preferred documentation style.
 
-Documentation of functions should be placed at their definition and not 
-implementation (if split up into different files).
+Documentation of functions should be placed at their declaration not 
+implementation respectively defintion (if split up into different files).
 
 See the \ref pageUG4DoxygenQuickref for the most important commands and how 
 to use them.
