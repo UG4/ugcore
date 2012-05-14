@@ -72,7 +72,7 @@ mpirun -np   1024 -exe ./ugshell -mode VN -mapfile TXYZ -args "<other ug4 args> 
     \endcode
      Or (a smaller, not very reasonable one) on \em cekon:
      \code
-salloc -n 64 mpirun ./ugshell -ex ../scripts/tests/modular_scalability_test.lua -numPreRefs 1 -hRedistFirstLevel 4 -hRedistStepSize 2 -hRedistNewProcsPerStep  4 -numRefs 8
+salloc -n 64 mpirun ./ugshell -ex ../apps/scaling_tests/modular_scalability_test.lua -numPreRefs 1 -hRedistFirstLevel 4 -hRedistStepSize 2 -hRedistNewProcsPerStep  4 -numRefs 8
      \endcode
   </li>
   <li>Parameters that control hierarchical redistribution:
@@ -161,11 +161,11 @@ salloc -n 64 mpirun ./ugshell -ex ../scripts/tests/modular_scalability_test.lua 
   <li>A test of the paramaters for hierarchical redistribution can be performed 
     with the LUA script <tt>parameter_test.lua</tt>, e.g.
     \code
-./ugshell -ex ../scripts/tests/parameter_test.lua -numPreRefs 3 -numRefs 10 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep 16 -numProcs 1024
+./ugshell -ex ../apps/scaling_tests/parameter_test.lua -numPreRefs 3 -numRefs 10 -hRedistFirstLevel 5 -hRedistStepSize 100 -hRedistNewProcsPerStep 16 -numProcs 1024
     \endcode
      Or the dry run for the smaller job on \em cekon above:
     \code
-./ugshell -ex ../scripts/tests/parameter_test.lua -numPreRefs 1 -hRedistFirstLevel 4 -hRedistStepSize 2 -hRedistNewProcsPerStep  4 -numRefs 8 -numProcs 64
+./ugshell -ex ../apps/scaling_tests/parameter_test.lua -numPreRefs 1 -hRedistFirstLevel 4 -hRedistStepSize 2 -hRedistNewProcsPerStep  4 -numRefs 8 -numProcs 64
     \endcode
     I.e. since the run is a serial run one has just to specify the number of 
     MPI processes in addition to the distribution parameters.
@@ -248,7 +248,7 @@ lua my_scaling_analyzer.lua > jugene_ug4-static_laplace-2d_gmg_weak-scaling_pe4-
     </ol>
   </li>
   <li>See also the <tt>util.printStats(stats)</tt> functionality, e.g. in 
-    <tt>scripts/tests/modular_scalability_test.lua</tt>.
+    <tt>apps/scaling_tests/modular_scalability_test.lua</tt>.
   </li>
 </ul>
 
