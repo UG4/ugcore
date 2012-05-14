@@ -65,12 +65,9 @@ bool CreateFractal(Grid& grid, HangingNodeRefiner_Grid& href,
 
 ///	Saves a grid hierarchy by offsetting levels along the z-axis.
 /**	Note that this method might better be implemented for domains.*/
-bool SaveGridHierarchyTransformed(MultiGrid& mg, const SubsetHandler& csh,
+bool SaveGridHierarchyTransformed(MultiGrid& mg, ISubsetHandler& sh,
 								  const char* filename, number offset)
 {
-//	cast away constness
-	SubsetHandler& sh = *const_cast<SubsetHandler*>(&csh);
-
 	APosition aPos;
 //	uses auto-attach
 	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
@@ -711,7 +708,7 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 			.add_function("SaveGridObject", &SaveGridObject, grp)
 			.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp)
 			.add_function("SaveGridHierarchyTransformed",
-						  static_cast<bool (*)(MultiGrid&, const SubsetHandler&, const char*, number)>(
+						  static_cast<bool (*)(MultiGrid&, ISubsetHandler&, const char*, number)>(
 								  &SaveGridHierarchyTransformed),
 						  grp)
 			.add_function("SaveGridHierarchyTransformed",
