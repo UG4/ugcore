@@ -5,17 +5,15 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fstream>
-#include "file_util.h"
+#include "common/util/file_util.h"
 #include "common/profiler/profiler.h"
 
 using namespace std;
 
 namespace ug{
 
-///	This method returns a list of all directories in a directory
-bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut,
-								const char* dir)
+//	This method returns a list of all directories in a directory
+bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut, const char* dir)
 {
 	PROFILE_FUNC();
 	dirsOut.clear();
@@ -43,7 +41,7 @@ bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut,
 	return true;
 }
 
-///	This method returns a list of all files in a directory
+//	This method returns a list of all files in a directory
 bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 {
 	PROFILE_FUNC();
@@ -70,18 +68,6 @@ bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 	closedir(curDir);
 
 	return true;
-}
-
-bool FileExists(const char* filename)
-{
-	PROFILE_FUNC();
-//todo: this could be improved.
-	ifstream in(filename);
-	if(in) {
-		in.close();
-		return true;
-	}
-	return false;
 }
 
 }// end of namespace
