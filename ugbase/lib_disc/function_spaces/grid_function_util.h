@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_UTIL__
 
 #include <boost/function.hpp>
-#include "../../common/os_dependent/file_util.h"
+#include "common/util/file_util.h"
 
 #include "./grid_function.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_print.h"

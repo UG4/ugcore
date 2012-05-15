@@ -11,7 +11,7 @@
 #include "bridge/bridge.h"
 #include "bindings/lua/info_commands.h"
 #include "common/util/parameter_parsing.h"
-#include "common/os_dependent/file_util.h"
+#include "common/util/file_util.h"
 
 #include "common/os_dependent/os_info.h"
 #include "common/util/path_provider.h"

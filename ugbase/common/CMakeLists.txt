@@ -13,12 +13,13 @@ set(srcCommon	log.cpp
 				allocators/small_object_allocator.cpp
 				util/binary_buffer.cpp
 				util/binary_stream.cpp
-                util/string_util.cpp
-				util/loader/loader_util.cpp
+        util/file_util.cpp
+        util/loader/loader_util.cpp
 				util/loader/loader_obj.cpp
+				util/message_hub.cpp
 				util/ostream_util.cpp
 				util/parameter_parsing.cpp
-				util/message_hub.cpp
+        util/string_util.cpp
 				util/variant.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp

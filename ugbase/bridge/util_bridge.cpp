@@ -5,7 +5,7 @@
 #include "common/util/path_provider.h"
 #include "registry/registry.h"
 #include "bridge.h"
-#include "common/os_dependent/file_util.h"
+#include "common/util/file_util.h"
 #include "ug.h"
 
 #include <cstdlib>

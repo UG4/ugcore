@@ -6,7 +6,7 @@
 #include "file_io.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "common/util/path_provider.h"
-#include "common/os_dependent/file_util.h"
+#include "common/util/file_util.h"
 
 using namespace std;
 
