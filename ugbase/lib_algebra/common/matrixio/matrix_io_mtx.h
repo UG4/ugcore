@@ -1,0 +1,345 @@
+/**
+ * \file matrix_io_mtx.h
+ * \author Torbjoern Klatt
+ * \date 2012-05-06
+ *
+ * \details For some parts the implementation of a pure C library for the
+ * MatrixMarket exchange format was used as a source of inspiration.
+ * These can be found at http://math.nist.gov/MatrixMarket/mmio-c.html
+ */
+
+#ifndef __H__UG__LIB_ALGEBRA__MATRIX_IO_MTX_H
+#define __H__UG__LIB_ALGEBRA__MATRIX_IO_MTX_H
+
+#include <sstream>
+#include <vector>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+
+#include "lib_algebra/common/matrixio/matrix_io.h"
+#include "lib_algebra/common/matrixio/mm_type_code.h"
+
+using namespace std;
+using namespace ug;
+
+namespace ug
+{
+
+/// \addtogroup lib_algebra
+/// @{
+
+/**
+ * \brief Provides I/O functionality for MatrixMarket exchange file format
+ *
+ * Given the path to a \c .mtx file it queries the therein stored matrix type
+ * and characteristics.
+ * With <tt>readInto(matrixType &matrix)</tt> an easy way of reading the
+ * represented matrix into a <tt>CPUAlgebra::matrix_type</tt> object is
+ * provided.
+ *
+ * \note So far, only real sparse matrices either symmetric or skew-symmetric or
+ * none of both are supported.
+ * Support for dense matrices (either really dense or just in array format) will
+ * come soon.
+ * Non-real (i.e. complex, integer or pattern) matrices and hermitian matrices
+ * might be supported in the future.
+ *
+ * The specification of the MatrixMarket matrix exchange format can be found
+ * here: http://math.nist.gov/MatrixMarket/formats.html#MMformat
+ *
+ * \note Please include the generic MatrixIO header file
+ * (lib_algebra/common/matrixio/matrix_io.h) for usage and not the header file
+ * of this specific exchange file format.
+ */
+class MatrixIOMtx : MatrixIO
+{
+  private:
+    // Full path name of the matrix exchange file
+    // (docu in matrix_io.h)
+    string *m_pMatFileName;
+    // Internal file stream for reading from and writing into the matrix
+    // exchange file (docu in matrix_io.h)
+    fstream m_matFileStream;
+    /// Line number of the first data line (0 based)
+    size_t m_firstDataLine;
+    // Matrix exchange file type (set to constant MatrixFileType::MatrixMarket)
+    // (docu in matrix_io.h)
+    MatrixFileType m_matFileType;
+    /// Characteristics of MatrixMarket matrix
+    MMTypeCode m_mmTypeCode;
+    // Number of rows as specified in the matrix exchange file
+    // (docu in matrix_io.h)
+    size_t m_rows;
+    // Number of columns as specified in the matrix exchange file
+    // (docu in matrix_io.h)
+    size_t m_cols;
+    // Number of data lines as specified in the matrix exchange file
+    // (docu in matrix_io.h)
+    size_t m_lines;
+
+  public:
+    /**
+     * \brief Default constructor
+     */
+    MatrixIOMtx();
+    /**
+     * \brief Constructor specifying matrix exchange file path
+     *
+     * After successful call to MatrixIOMtx::set_mat_file_name it calls
+     * MatrixIOMtx::query_matrix_type and
+     * MatrixIOMtx::query_matrix_characteristics as long as openMode is
+     * MatrixIO::OpenMode::EXISTING.
+     *
+     * \param[in] mFile     Full path and name of matrix exchange file.
+     * \param[in] openMode  how to deal with non-existing files (a value of
+     *                      MatrixIO::OpenMode)
+     */
+    MatrixIOMtx( string mFile, int openMode=MatrixIO::EXISTING );
+    
+    /**
+     * \brief Destructor
+     *
+     * The destructor calls MatrixIOMtx::close_file to make sure, that write
+     * operations to the associated exchange file are flushed and terminated
+     * correctly.
+     */
+    ~MatrixIOMtx();
+
+    /**
+     * \brief Sets associated file to another one
+     *
+     * \note It does not check, whether the given file is a MatrixMarket
+     *       exchange file.
+     *       Only it's existance is verified.
+     *
+     * \param[in] mFile Full path and name of matrix exchange file.
+     * \param[in] openMode  how to deal with non-existing files
+     *
+     * \throws std::runtime_error if exchange file is not found and
+     *                            <tt>openMode=MatrixIO::OpenMode::Existing</tt>.
+     * \throws ug::UGError        if \c openMode is non of MatrixIO::OpenMode
+     */
+    void set_mat_file_name( string mFile, int openMode=MatrixIO::EXISTING );
+    
+    /**
+     * \brief Retreive associated exchange file path and name
+     *
+     * \return String representation of exchange file with full path as set by
+     * constructor or MatrixIOMtx::set_mat_file_name.
+     */
+    string get_mat_file_name() const;
+
+    /**
+     * \brief Sets the size of the matrix and number of data lines
+     *
+     * In case of reading from a matrix exchange file, this function is called
+     * by MatrixIOMtx::query_matrix_characteristics.
+     *
+     * \param[in] rows  Number of rows of the matrix
+     * \param[in] cols  Number of columns of the matrix
+     * \param[in] lines Number of data lines in the exchange file
+     * 
+     * \throws std::runtime_error if \c rows is not positive
+     * \throws std::runtime_error if \c cols is not positive
+     * \throws std::runtime_error if \c lines is not positive
+     */
+    void set_mat_dims( size_t rows, size_t cols, size_t lines );
+
+    /**
+     * \brief Retrieves number of rows as specified in the exchange file
+     *
+     * \return Number of rows as \c std::size_t
+     */
+    size_t get_num_rows() const;
+
+    /**
+     * \brief Retrieves number of columns as specified in the exchange file
+     *
+     * \return Number of columns as \c std::size_t
+     */
+    size_t get_num_cols() const;
+
+    /**
+     * \brief Retrieves number of data lines as specified in the exchange file
+     *
+     * \return Number of data lines as \c std::size_t
+     */
+    size_t get_num_lines() const;
+
+    /**
+     * \brief Tells whether the associated exchange file holds a sparse matrix
+     *
+     * \return \c true if it is in coordinate format, \c false otherwise
+     */
+    bool is_sparse() const;
+
+    /**
+     * \brief Reads data from associated exchange file into ug matrix
+     *
+     * The given ug-matrix is first resized.
+     * Each data line of the underlying exchange file is read separately and
+     * independently.
+     * If the matrix is (skew-)symmetric as defined in the exchange file, this
+     * is considered during writing the values to the correct positions.
+     *
+     * \note This function does not take care about memory alignement of the
+     *       given ug-matrix (e.g. ug::SparseMatrix::defragment ).
+     *
+     * \param[in,out] matrix  Matrix of CPUAlgebra::matrix_type to read into
+     *
+     * \throws std::runtime_error if one of \c m_rows, \c m_cols or \c m_lines
+     *                            is not positive.
+     * \throws ug::UGError        if exchange file's matrix is not in coordinate
+     *                            format (as only sparse matrices are supported yet)
+     */
+    void read_into( CPUAlgebra::matrix_type &matrix );
+
+    /**
+     * \brief Writes a ug matrix into the associated MatrixMarket exchange file
+     *
+     * From this analysis the MatrixMarket exchange file banner is constructed
+     * and the characteristics and data lines written to that file consecutively.
+     *
+     * A comment is added right after the banner.
+     * The default comment is <tt>Generated with ug4.</tt>.
+     * To suppress the comment line completely, pass an empty string as the
+     * \c comment parameter to this function.
+     * 
+     * \note Please make sure, the lines of the given comment are not longer
+     *       than 1025 characters and all liness start with a \c %.
+     *
+     * \todo Implement validity check for the comment.
+     *
+     * The resulting MatrixMarket exchange file is in line with the
+     * specifications.
+     *
+     * \param[in] matrix  Matrix of CPUAlgebra::matrix_type to read from
+     * \param[in] comment Optional comment to be put atop of the MatrixMarket
+     *                    matrix exchange file.
+     */
+    void write_from( CPUAlgebra::matrix_type &matrix,
+                     string comment="%Generated with ug4." );
+
+  private:
+    // Opens file as fstream. (docu in matrix_io.h)
+    void open_file( ios_base::openmode mode=ios_base::in );
+    
+    // Closes fstream. (docu in matrix_io.h)
+    void close_file();
+
+    /**
+     * \brief Parses banner of MatrixMarket file
+     *
+     * The banner is the first line of a MatrixMarket file with the syntax:
+     *
+     * <tt>%%MatrixMarket matrix [format] [numeric] [type]</tt>
+     *
+     * <dl>
+     * <dt><tt>format</tt></dt>
+     * <dd>Either \c coordinate or \c array, representing a sparse or dense
+     * matrix respectively</dd>
+     * <dt><tt>numeric</tt></dt>
+     * <dd>Either \c real, \c complex, \c integer or \c pattern,
+     * representing the numerical type of the values</dd>
+     * <dt><tt>type</tt></dt>
+     * <dd>Either \c general, \c symmetric, \c skew-symmetric or
+     * \c hermitian, representing the algebraic type of the matrix</dd>
+     * </dl>
+     * 
+     * \throws std::runtime_error if the banner starts not with
+     *                            <tt>%%MatrixMarket</tt>
+     * \throws std::runtime_error if the second word of the banner is not
+     *                            \c matrix
+     * \throws ug::UGError        if the \c format identifier is invalid
+     * \throws ug::UGError        if the \c numeric identifier is invalid
+     * \throws ug::UGError        if the \c type identifier is invalid
+     */
+    void query_matrix_type();
+
+    /**
+     * \brief Retreives matrix size and number non-zeros from exchange file
+     *
+     * The first non-empty line after the comments (lines starting with \c %)
+     * consists of three values for the coordinate format:
+     *
+     * <tt>nRows nCols nLines</tt>
+     *
+     * <dl>
+     * <dt><tt>nRows</tt></dt><dd>Number of rows of the described matrix</dd>
+     * <dt><tt>nCols</tt></dt><dd>Number of columns of the described matrix</dd>
+     * <dt><tt>nLines</tt></dt><dd>Number of data lines. For types \c symmetric,
+     * \c skew-symmetric and \c hermitian, this is not equal to the number of
+     * non-zero elements.</dd>
+     * </dl>
+     *
+     * \throws std::runtime_error if the file stream ended unexpectetly (e.g.
+     *                            the exchange file does not contain data lines)
+     * \throws ug::UGError        if the exchange file does not describe a
+     *                            coordinate/sparse matrix (as only sparse
+     *                            matrices are supported yet)
+     */
+    void query_matrix_characteristics();
+
+    /**
+     * \brief Determines characteristics of given matrix
+     *
+     * Symmetries of the given matrix are determined and saved.
+     *
+     * \param[in] matrix  Matrix of CPUAlgebra::matrix_type to analyse
+     * \return 2D vector with coordinates of non-zero entries of the given matrix
+     *         with column indices as first and row indices as second dimension.
+     *
+     * \throws std::runtime_error if the matrix was determined to be symmetric
+     *                            and skew-symmetric at the same time
+     */
+    vector< vector<size_t> > determine_matrix_characteristics( CPUAlgebra::matrix_type &matrix );
+
+    /**
+     * \brief Reads and parses the next data line
+     *
+     * \note This function does not open the filestream by itself, but requires
+     *       it to be already open.
+     * 
+     * \param[out]  m   pointer to store the row index to (1 based)
+     * \param[out]  n   pointer to store the column index to (1 based)
+     * \param[out]  val pointer to store the value to
+     *
+     * \throws std::runtime_error if the filestream is not open
+     * \throws std::runtime_error if the matrix is sparse but there were less or
+     *                            more than 3 elements in the line
+     * \throws ug::UGError        if the exchange file does not describe a
+     *                            coordinate/sparse matrix (as only sparse
+     *                            matrices are supported yet)
+     */
+    void read_entry( size_t *m, size_t *n, CPUAlgebra::matrix_type::value_type *val );
+
+    /**
+     * \brief Writes the banner to the associated MatrixMarket file
+     *
+     * \note Any existing content of the associated file will be delted.
+     */
+    void write_banner();
+    
+    /**
+     * \brief Appends a data line to the associated file
+     *
+     * The value is formatted to scientific notation with 13 digits of precision.
+     *
+     * \param[out]  m   row index (1 based)
+     * \param[out]  n   column index (1 based)
+     * \param[out]  val value at [row,col]
+     *
+     * \throws std::runtime_error if the filestream is not open
+     * \throws std::runtime_error if either the specified row or column index
+     *                            is not positive
+     */
+    void write_entry( size_t m, size_t n, CPUAlgebra::matrix_type::value_type val );
+};
+
+///@}
+
+} // namespace ug
+
+#endif // __H__UG__LIB_ALGEBRA__MATRIX_IO_MTX_H
+
+// EOF
