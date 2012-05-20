@@ -27,11 +27,16 @@ UG_API size_t FileSize( const char *filename )
 {
   PROFILE_FUNC();
 
-  UG_ASSERT( FileExists( filename ), "The file could not be found." );
+  if( !FileExists( filename ) ) {
+    UG_THROW( "The file " << filename << " could not be found." );
+  }
 
   ifstream ifs;
   ifs.open( filename, ios_base::in );
-  UG_ASSERT( ifs.good(), "File could not be opened." );
+
+  if( !ifs.good() ) {
+    UG_THROW( "The file " << filename << " could not be opened." );
+  }
   ifs.seekg( 0, ios_base::end );
   size_t length = ifs.tellg();
   ifs.close();
@@ -43,11 +48,12 @@ UG_API bool FileCompare( const char *file1, const char *file2 )
   PROFILE_FUNC();
 
   // Make sure, both files do exist
-  UG_ASSERT( FileExists( file1 ) || FileExists( file2 ),
-             "One or both files could not be found." );
+  if( !FileExists( file1 ) || !FileExists( file2 ) ) {
+    UG_THROW( "One or both files could not be found:" << file1 << ", " << file2 );
+  }
 
   // If both files are one and the same, we don't need to compare them any more
-  if( file1 == file2 ) {
+  if( strcmp( file1, file2 ) == 0 ) {
     return true;
   }
 
@@ -68,8 +74,9 @@ UG_API bool FileCompare( const char *file1, const char *file2 )
 
   // This should be obsolete, as it is checked by FileExists, but we want to be
   // sure.
-  UG_ASSERT( f1.good() || f2.good(),
-             "One or both files could not be opened." );
+  if( !f1.good() || !f2.good() ) {
+    UG_THROW( "One or both files could not be opened:" << file1 << ", " << file2 );
+  }
 
   string line1 = "", line2 = "";
   bool diff = false;

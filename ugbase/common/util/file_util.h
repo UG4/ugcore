@@ -12,8 +12,10 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <cstring>
 
 #include "common/ug_config.h"
+#include "common/error.h"
 #include "common/assert.h"
 #include "common/profiler/profiler.h"
 
