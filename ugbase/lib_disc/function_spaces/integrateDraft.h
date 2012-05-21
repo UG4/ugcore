@@ -13,7 +13,8 @@
 #include "common/common.h"
 
 #include "lib_disc/common/subset_group.h"
-#include "lib_disc/common/subset_util.h"
+#include "lib_disc/common/function_group.h"
+#include "lib_disc/common/groups_util.h"
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
