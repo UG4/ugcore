@@ -107,54 +107,6 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 		reg.add_function("InterpolateFunction",static_cast<void (*)(const char*, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
 #endif
 	}
-
-//	L2Error
-	{
-		reg.add_function("L2Error", static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number)>(&L2Error<TFct>), grp);
-		reg.add_function("L2Error",static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number, const char*)>(&L2Error<TFct>),grp);
-#ifdef UG_FOR_LUA
-		reg.add_function("L2Error", static_cast<number (*)(const char*, TFct&, const char*, number)>(&L2Error<TFct>), grp);
-		reg.add_function("L2Error",static_cast<number (*)(const char*, TFct&, const char*, number, const char*)>(&L2Error<TFct>),grp);
-#endif
-	}
-
-//	L2ErrorDraft
-	{
-		reg.add_function("L2ErrorDraft",static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number, int, const char*)>(&L2ErrorDraft<TFct>), grp);
-#ifdef UG_FOR_LUA
-		reg.add_function("L2ErrorDraft",static_cast<number (*)(const char*, TFct&, const char*, number, int, const char*)>(&L2ErrorDraft<TFct>), grp);
-#endif
-	}
-
-//	L2Norm
-	{
-		typedef number (*fct_type)(TFct&, const char*, int, const char*);
-		reg.add_function("L2Norm",static_cast<fct_type>(&L2Norm<TFct>),grp);
-	}
-
-//	StdFuncIntegral
-	{
-		typedef number (*fct_type)(TFct&, const char*, int, const char*);
-		reg.add_function("StdFuncIntegral",static_cast<fct_type>(&StdFuncIntegral<TFct>),grp);
-	}
-
-//	IntegrateFluxOnBoundary
-	{
-		typedef number (*fct_type)(TFct&, const char*, const char*, const char*);
-		reg.add_function("IntegrateFluxOnBoundary",static_cast<fct_type>(&IntegrateFluxOnBoundary<TFct>),grp,
-		                 "Integral", "GridFunction, Component, BoundarySubset, InnerSubset");
-	}
-
-//	IntegrateAceticAcidFluxOnBoundary
-	{
-		typedef number (*fct_type)(TFct&, const char*, const char*, number, number, number, number, const char*, const char*);
-		reg.add_function("IntegrateAceticAcidFluxOnBoundary",static_cast<fct_type>(&IntegrateAceticAcidFluxOnBoundary<TFct>),grp,
-						 "Integral", "GridFunction, PressureComponent, "
-						 	 	 	 "MassFractionComponent, Permeability, Viscosity, "
-						 	 	 	 "Density, GravityNorm, "
-								 	 "BoundarySubset, InnerSubset");
-	}
-
 }
 
 
