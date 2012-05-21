@@ -15,6 +15,7 @@
 #include "lib_disc/common/subset_group.h"
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/spatial_disc/ip_data/ip_data.h"
 #include <boost/function.hpp>
 
 #ifdef UG_FOR_LUA
