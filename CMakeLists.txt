@@ -24,5 +24,20 @@ add_subdirectory(ugbase)
 
 # compile core plugins
 if(buildCorePlugins)
-	add_subdirectory(plugins/core)
+	add_subdirectory(plugins)
 endif(buildCorePlugins)
+
+########################
+# ug4 library
+if(BUILD_ONE_LIB)
+	get_property(ug4libSources GLOBAL PROPERTY ugSources)
+	if(buildDynamicLib)
+		add_definitions(-DBUILDING_DYNAMIC_LIBRARY)
+		if(WIN32)
+			add_definitions(-DLUA_BUILD_AS_DLL -DLUA_LIB -DLUA_CORE)
+		endif(WIN32)
+		add_library(${targetLibraryName} SHARED ${ug4libSources})
+	else(buildDynamicLib)
+		add_library(${targetLibraryName} ${ug4libSources})
+	endif(buildDynamicLib)
+endif(BUILD_ONE_LIB)

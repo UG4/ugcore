@@ -26,7 +26,7 @@ set(Sources     ${srcNodeTree} ${srcTraversers})
 
 
 if(BUILD_ONE_LIB)
-	ExportSources("common/node_tree" ${Sources})
+	ExportSources("ugbase/common/node_tree" ${Sources})
 else(BUILD_ONE_LIB)
 	add_library(node_tree STATIC ${Sources})
 endif(BUILD_ONE_LIB)

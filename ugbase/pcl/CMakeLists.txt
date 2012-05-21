@@ -18,7 +18,7 @@ set(srcPcl	pcl_base.cpp
 			pcl_util.cpp)
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(pcl ${srcPcl})
+	EXPORTSOURCES(ugbase/pcl ${srcPcl})
 else(BUILD_ONE_LIB)
 	add_library(pcl ${srcPcl})
 endif(BUILD_ONE_LIB)

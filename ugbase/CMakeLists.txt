@@ -18,7 +18,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(Sources	ug.cpp)
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(. ${Sources})
+	EXPORTSOURCES(ugbase ${Sources})
 else(BUILD_ONE_LIB)
 	add_library(ugbase ${Sources})
 endif(BUILD_ONE_LIB)
@@ -73,21 +73,6 @@ endif(buildDisc)
 if(PARALLEL)
 	add_subdirectory(pcl)
 endif(PARALLEL)
-
-########################
-# ug4 library
-if(BUILD_ONE_LIB)
-	get_property(ug4libSources GLOBAL PROPERTY ugSources)
-	if(buildDynamicLib)
-		add_definitions(-DBUILDING_DYNAMIC_LIBRARY)
-		if(WIN32)
-			add_definitions(-DLUA_BUILD_AS_DLL -DLUA_LIB -DLUA_CORE)
-		endif(WIN32)
-		add_library(${targetLibraryName} SHARED ${ug4libSources})
-	else(buildDynamicLib)
-		add_library(${targetLibraryName} ${ug4libSources})
-	endif(buildDynamicLib)
-endif(BUILD_ONE_LIB)
 
 ########################
 # ug4 shell

@@ -30,7 +30,7 @@ set(srcBindingsVRL
 set(Sources ${srcBindingsVRL})
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(bindings/vrl  ${Sources})
+	EXPORTSOURCES(ugbase/bindings/vrl  ${Sources})
 else(BUILD_ONE_LIB)
 	add_library(bindings_vrl  ${Sources})
 endif(BUILD_ONE_LIB)

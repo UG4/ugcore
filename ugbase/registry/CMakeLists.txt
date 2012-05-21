@@ -22,7 +22,7 @@ set(srcRegistry    	registry.cpp
 set(Sources ${srcRegistry})
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(registry  ${Sources})
+	EXPORTSOURCES(ugbase/registry  ${Sources})
 else(BUILD_ONE_LIB)
 	add_library(registry  ${Sources})
 endif(BUILD_ONE_LIB)

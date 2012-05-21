@@ -54,11 +54,11 @@ if(UNIX)
 		set(sources ${sources}	os_dependent/plugin_util_unix.cpp)
 	endif(buildPluginSystem)
 	
-	if(MAC)
+	if(APPLE)
 		set(sources ${sources} os_dependent/os_info_osx.cpp)
-	else(MAC)
+	else(APPLE)
 		set(sources ${sources} os_dependent/os_info_linux.cpp)
-	endif(MAC)
+	endif(APPLE)
 
 elseif(WIN32)
 	set(sources ${sources}	os_dependent/os_info_win.cpp)
@@ -88,7 +88,7 @@ add_subdirectory(node_tree)
 #	add sources to library
 ################################################################################
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(common ${sources})
+	EXPORTSOURCES(ugbase/common ${sources})
 else(BUILD_ONE_LIB)
 	add_library(common ${sources})
 endif(BUILD_ONE_LIB)

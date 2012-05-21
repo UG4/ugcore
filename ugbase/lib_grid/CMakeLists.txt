@@ -142,7 +142,7 @@ set(Sources
 					${srcTokstream} ${srcTetgen} ${srcLgm} ${srcNg})
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES("lib_grid" ${Sources})
+	EXPORTSOURCES(ugbase/lib_grid ${Sources})
 else(BUILD_ONE_LIB)
 	add_library(grid STATIC	${Sources})
 endif(BUILD_ONE_LIB)

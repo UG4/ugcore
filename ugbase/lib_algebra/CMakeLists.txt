@@ -43,7 +43,7 @@ endif(PARALLEL)
 ##########################
 # setup library
 if(BUILD_ONE_LIB)
-    EXPORTSOURCES(lib_algebra ${src_Algebra})
+    EXPORTSOURCES(ugbase/lib_algebra ${src_Algebra})
 else(BUILD_ONE_LIB)
 	add_library(algebra ${src_Algebra} )
 endif(BUILD_ONE_LIB)

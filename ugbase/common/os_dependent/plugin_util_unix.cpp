@@ -9,6 +9,7 @@
 #include "bridge/bridge.h"
 #include "common/util/file_util.h"
 #include "common/profiler/profiler.h"
+#include "os_info.h"
 
 using namespace std;
 
@@ -28,7 +29,24 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 	bridge::Registry& reg = bridge::GetUGRegistry();
 
+	int prefixLen = strlen(GetDynamicLibraryPrefix());
+	int suffixLen = strlen(GetDynamicLibrarySuffix()) + 1; // include '.'
+
 	for(size_t i = 0; i < files.size(); ++i){
+	//	extract the plugins name from the file-name
+		int nameStart = prefixLen;
+		int nameLength = (int)files[i].size() - suffixLen - nameStart;
+
+		if(nameLength <= 0)
+		{
+			UG_LOG("\nCouldn't extract plugin-name from filename " << files[i] <<
+					". Ignoring plugin.\n");
+			continue;
+		}
+
+		string pluginName = files[i].substr(nameStart, nameLength);
+
+	//	load the library
 		string fullPluginName(pluginPath);
 		fullPluginName.append("/").append(files[i]);
 
@@ -41,13 +59,16 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 			continue;
 		}
 
-		std::string fctName("InitUGPlugin");
 
-	//	find the init_ug_plugin function
+	//	find the plugins init function
+		string fctName("InitUGPlugin");
+		//fctName.append("_").append(pluginName);
+
 		FctInitPlugin fctInitPlugin = (FctInitPlugin) dlsym(libHandle, fctName.c_str());
 
 		if(!fctInitPlugin){
-			UG_LOG("PLUGIN-ERROR: Couldn't find entry point 'InitUGPlugin' in plugin " << files[i] << endl);
+			UG_LOG("PLUGIN-ERROR: Couldn't find entry point " <<  fctName
+					<< " in plugin " << files[i] << endl);
 			dlclose(libHandle);
 			continue;
 		}

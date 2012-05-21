@@ -92,7 +92,7 @@ endif(buildAlgebra)
 set(Sources ${srcUGScript} ${srcLua})
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(bindings/lua  ${Sources})
+	EXPORTSOURCES(ugbase/bindings/lua  ${Sources})
 else(BUILD_ONE_LIB)
 	add_library(bindings_lua  ${Sources})
 endif(BUILD_ONE_LIB)

@@ -50,7 +50,7 @@ endif(buildAlgebra)
 set(Sources ${srcUGBridge})
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(bridge  ${Sources})
+	EXPORTSOURCES(ugbase/bridge  ${Sources})
 else(BUILD_ONE_LIB)
 	add_library(bridge  ${Sources})
 endif(BUILD_ONE_LIB)

@@ -82,7 +82,7 @@ set(Sources         ${srcParallelization}
 					${srcDiscretization})
 
 if(BUILD_ONE_LIB)
-	EXPORTSOURCES(lib_disc ${Sources})
+	EXPORTSOURCES(ugbase/lib_disc ${Sources})
 else(BUILD_ONE_LIB)
 	add_library(disc STATIC ${Sources})
 endif(BUILD_ONE_LIB)
