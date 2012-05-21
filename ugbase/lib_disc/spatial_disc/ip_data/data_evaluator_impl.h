@@ -136,19 +136,6 @@ void DataEvaluator::
 prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
              bool bDeriv, bool bMassPart)
 {
-//	adjust lin defect array of imports and derivative array of exports
-	if(bDeriv)
-	{
-		for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
-			m_vStiffDataImport[i]->set_dof_sizes(ind, m_vStiffImpMap[i]);
-		if(bMassPart)
-			for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
-				m_vMassDataImport[i]->set_dof_sizes(ind, m_vMassImpMap[i]);
-
-		for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
-			m_vDependentIPData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
-	}
-
 // 	prepare element
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -165,6 +152,23 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 		}
 		UG_CATCH_THROW("DataEvaluator::prepare_element: "
 						"Cannot prepare element for IElemDisc "<<i);
+	}
+
+//	adjust lin defect array of imports and derivative array of exports
+//	INFO: This is place here, since the 'prepare_elem' method of an element
+//			disc may change the number of integration points, even if the type
+//			of the element (e.g. triangle, quad) stays the same. This is the
+//			case for, e.g., the NeumannBoundary element disc.
+	if(bDeriv)
+	{
+		for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
+			m_vStiffDataImport[i]->set_dof_sizes(ind, m_vStiffImpMap[i]);
+		if(bMassPart)
+			for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
+				m_vMassDataImport[i]->set_dof_sizes(ind, m_vMassImpMap[i]);
+
+		for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
+			m_vDependentIPData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
 	}
 }
 
