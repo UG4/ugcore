@@ -12,18 +12,47 @@
 \section secInstallUG4CMake CMake
 
 <ul>
-  <li>Download \em CMake:
-    Download \em CMake from http://www.cmake.org/cmake/resources/software.html 
-    (min Release 2.6)
-  </li>
-  <li>Install \em CMake on your computer.
-    Install the command line tools, when requested during installation.
-  </li>
-  <li>Open a terminal window.
-    Enter <tt>cmake</tt>.
-    If you see some output <tt>cmake version ...</tt> \em CMake has been 
-    installed correctly.
-  </li>
+  <li> Check if cmake is already installed: open a terminal, enter <tt>cmake --version</tt>. Minimum Version is 
+  \em 2.6.
+  <li>Before installing cmake manually, you should check if cmake is available in your packet manager.
+  <li>If Cmake is not installed or wrong version, download \em CMake:
+    Download the Unix/Linux Source code 
+    of \em CMake from <a href="http://www.cmake.org/cmake/resources/software.html">here</a> 
+    (min Release 2.6. <a href="http://www.cmake.org/files/v2.8/cmake-2.8.8.tar.gz">direct link to 2.8.8</a>).
+   <li> suppose you downloaded cmake-2.8.8.tar.gz to your home directory. extract the file with <tt>tar -xzf cmake-2.8.8.tar.gz</tt> .
+  <li> change to the created <tt>cmake-2.8.8</tt> directory.
+  <li> you can look at the configuration options with <tt>./configure --help</tt> .
+  <li> if you have root access
+  <ul>
+  <li> <tt>./configure</tt>
+  <li> <tt>make</tt>
+  <li> <tt>sudo make install</tt>
+  </ul>
+  <li> if you don't have root access
+  <ul>  
+  <li> run <tt>./configure --prefix=.</tt> to install cmake in the current directory. 
+  <li> <tt>make</tt>
+  <li> <tt>make install</tt>
+  <li> cmake is now located at the <tt>bin</tt> subdirectory of your cmake-2.8.8 directory.
+  <li> to make the cmake command available from everywhere, add <tt>$HOME/cmake-2.8.8/bin</tt>
+  		to your PATH variable (see <a href="http://infohost.nmt.edu/tcc/help/pubs/dotfiles/bashrc.html">here</a>).
+  		(Enter the \em full path there, not "."). After that, do a <tt> source ~/.bashrc </tt>
+  </ul>  
+  <li> You can check now if cmake is working by entering <tt>cmake</tt> in the console.
+</ul>
+
+<hr>
+\section secInstallUG4MPI MPI
+
+<ul>
+  <li> Note: MPI is only needed for \em parallel execution of ug4.
+  <li> Check if MPI is already installed: open a terminal, enter <tt>which mpicc</tt>.
+  <li>Before installing mpi manually, you should check if openmpi is available in your packet manager.
+  <li>If MPI is not installed, 
+    download <a href="http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.tar.gz">openmpi-1.6.tar.gz</a>
+    to your home directory.
+  <li> the process is now the same as for cmake, only that you are looking for <tt>mpicc</tt>.
+  <li> remember the <tt>--prefix=.</tt> option and to set the PATH when you can't sudo.
 </ul>
 
 

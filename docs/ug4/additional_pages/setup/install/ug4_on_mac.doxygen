@@ -6,14 +6,38 @@
 
 /** \page pageUG4OnMac Mac OSX Installation
 
-Installation on Mac OSX is very similar to the Linux / Unix installation detailed here:
-\ref pageUG4OnLinux.
+- \ref secInstallUG4CMakeMac
+- \ref secInstallUG4GCCMac
+- \ref secInstallUG4UG4
+- \ref secInstallUG4Boost
+
+<hr>
+\section secInstallUG4CMakeMac CMake
+
+<ul>
+  <li>Download \em CMake:
+    Download the <a href="http://www.cmake.org/files/v2.8/cmake-2.8.8-Darwin64-universal.dmg">
+    CMake 2.8.8 dmg-file</a> (see also <a href="http://www.cmake.org/cmake/resources/software.html">here</a>. 
+    (min Release 2.6)
+  </li>
+  <li>Install \em CMake on your computer.
+    Install the command line tools, when requested during installation.
+  </li>
+  <li>Open a terminal window.
+    Enter <tt>cmake</tt>.
+    If you see some output <tt>cmake version ...</tt> \em CMake has been 
+    installed correctly.
+  </li>
+</ul>
+
+<hr>
+\section secInstallUG4GCCMac GCC
+
 If you already have a working C++ compiler on your system, you may follow those
 instructions immediately. If not, you'll first have to install a C++ compiler.
 The common way to achieve a C++ compiler for Mac-OSX is to download and install
 the XCode IDE by Apple (see https://developer.apple.com/technologies/tools/).
 For that you'll require an Apple (developer) ID, which can be obtained on apple.com freely.
-
 <br>
 Alternatively, if you do not want to use the XCode IDE, you can use the following
 package: <em>OSX GCC Installer</em>. This bundle provides: 
@@ -25,11 +49,8 @@ package: <em>OSX GCC Installer</em>. This bundle provides:
 
 Steps:
 <ul>
-  <li>Download the prebuilt pkg from:
-    https://github.com/kennethreitz/osx-gcc-installer/
-    (alternatively you can download <em>Command Line Tools</em> for 
-    <em>Xcode</em> with a free apple ID from 
-    http://developer.apple.com/downloads)
+  <li>Download the prebuilt pkg from
+    https://github.com/kennethreitz/osx-gcc-installer/ .
   </li>
   <li>Install the pkg.
     The prebuilt packages were tested on <em>Snow Leopard</em> and 
@@ -40,6 +61,10 @@ Steps:
 
 \note Please note, you can build your own pkg if you want to use 
 more recent revisions of the the software contained in the prebuilt pkg bundle.
-See http://kennethreitz.com/xcode-gcc-and-homebrew.html for further information.
+See <a href="http://kennethreitz.com/xcode-gcc-and-homebrew.html">here</a> for further information.
 \note Please note too, you can install Macports and upgrade your compilers then.
+
+
+The rest of the installation on Mac OSX is very similar to the Linux / Unix installation detailed here:
+\ref secInstallUG4UG4.
 */
