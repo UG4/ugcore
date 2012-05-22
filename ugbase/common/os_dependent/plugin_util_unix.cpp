@@ -61,8 +61,8 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 
 	//	find the plugins init function
-		string fctName("InitUGPlugin");
-		//fctName.append("_").append(pluginName);
+		string fctName("InitUGPlugin_");
+		fctName.append(pluginName);
 
 		FctInitPlugin fctInitPlugin = (FctInitPlugin) dlsym(libHandle, fctName.c_str());
 

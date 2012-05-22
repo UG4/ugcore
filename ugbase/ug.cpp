@@ -24,13 +24,17 @@
 	#include "common/os_dependent/plugin_util.h"
 #endif
 
+#ifdef UG_STATIC
+	#include "static_plugins.h"
+#endif
 
 
 /**	Current ug version */
 //	ATTENTION: Please do not change the ug-version on your own!
 //	If you changed something that requires a new version number, please contact
 //	sreiter@gcsc.uni-frankfurt.de (for the moment...)
-std::string gUGVersionString("4.0.0");
+//	See docs/ug4/additional_pages/releases.doxygen for information on the different releases.
+std::string gUGVersionString("4.0.1");
 
 
 /** Tells whether profile-output is desired on exit.*/
@@ -144,10 +148,14 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 #endif
 
 #ifdef UG_PLUGINS
+	#ifdef UG_STATIC
+		InitializeStaticPlugins(&bridge::GetUGRegistry(), "ug4/");
+	#else
 		if(!LoadPlugins(ug::PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))
 		{
 			UG_LOG("ERROR in UGInit: LoadPlugins failed!\n");
 		}
+	#endif
 #endif
 	}
 

@@ -6,6 +6,22 @@ each release.
 
 <br>
 <hr>
+\section secUG4_0_1	ug4.0.1
+- Major changes
+	- The plugin build system has been reworked. Plugins can now be registered
+	  through a simple cmake-function call. They can then be enabled or disabled
+	  through cmake. Enabled plugins are automatically build alongside with ug4,
+	  which completely removes possible build option mismatches between ug4 and its plugins.
+
+	  The new system makes it also possible to include registered plugins in
+	  static builds of ug4.
+
+	  The old plugin build system is still available, however not recommended,
+	  since unregistered plugins can not be included in static builds.
+
+
+<br>
+<hr>
 \section secUG4_0_0	ug4.0.0
 ug4.0.0 is the first release of the \ug4 simulation environment. While this version does not
 yet contain all of the planned features of \ug4, it already provides a rich

@@ -19,6 +19,10 @@
 	#include "common/os_dependent/plugin_util.h"
 #endif
 
+#ifdef UG_STATIC
+	#include "static_plugins.h"
+#endif
+
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
@@ -355,9 +359,15 @@ int main(int argc, char* argv[])
 	FileExists("");
 	#ifdef UG_PLUGINS
 		UG_LOG(", plugins... ");
-		if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))	{UG_LOG("done");}
-		else																	{UG_LOG("fail");}
-		UG_LOG("                 *\n");
+		#ifdef UG_STATIC
+			InitializeStaticPlugins(&bridge::GetUGRegistry(), "ug4/");
+			UG_LOG("done                 *\n");
+		#else
+			if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))	{UG_LOG("done");}
+			else																	{UG_LOG("fail");}
+			UG_LOG("                 *\n");
+		#endif
+
 	#else
 		UG_LOG("                                  *\n");
 	#endif
@@ -478,7 +488,12 @@ int main(int argc, char* argv[])
 	// Until fully tested for dependency problems, I commented out the following lines.
 	// For using valgrind, you'll have to uncomment them.
 	//ReleaseDefaultLuaState();
-	//UnloadPlugins();
+	#ifdef UG_STATIC
+		//FinalizeStaticPlugins();
+	#else
+		//UnloadPlugins();
+	#endif
+
 	UGFinalize();
 
 	PROFILE_END();
