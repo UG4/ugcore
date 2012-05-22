@@ -398,13 +398,34 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 	string dimSuffix = GetDomainSuffix<dim>();
 	string dimTag = GetDomainTag<dim>();
 
+//	DirectUser"Type"
+//	NOTE: For better readability this class is named DirectUser"Type"
+//	      in vrl and lua. E.g. DirectUserNumber, DirectUserVector, ...
+	{
+		typedef IDirectIPData<TData, dim> T;
+		string name = string("DirectUser").append(type).append(dimSuffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, string("DirectUser").append(type), dimTag);
+	}
+
+//	DirectCondUser"Type"
+//	NOTE: For better readability this class is named DirectCondUser"Type"
+//	      in vrl and lua. E.g. DirectCondUserNumber, DirectCondUserVector, ...
+	{
+		typedef IDirectIPData<TData, dim, bool> T;
+		string name = string("DirectCondUser").append(type).append(dimSuffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, string("DirectCondUser").append(type), dimTag);
+	}
+
 //	User"Type"
 //	NOTE: For better readability this class is named User"Type"
 //	      in vrl and lua. E.g. UserNumber, UserVector, ...
 	{
 		typedef IPData<TData, dim> T;
+		typedef IDirectIPData<TData, dim> TBase;
 		string name = string("User").append(type).append(dimSuffix);
-		reg.add_class_<T>(name, grp);
+		reg.add_class_<T,TBase>(name, grp);
 		reg.add_class_to_group(name, string("User").append(type), dimTag);
 	}
 
@@ -413,8 +434,9 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 //	 	  in vrl and lua. E.g. CondUserNumber, CondUserVector, ...
 	{
 		typedef IPData<TData, dim, bool> T;
+		typedef IDirectIPData<TData, dim, bool> TBase;
 		string name = string("CondUser").append(type).append(dimSuffix);
-		reg.add_class_<T>(name, grp);
+		reg.add_class_<T,TBase>(name, grp);
 		reg.add_class_to_group(name, string("CondUser").append(type), dimTag);
 	}
 

@@ -179,6 +179,20 @@ inline void IIPDimData<dim>::check_s_ip(size_t s, size_t ip) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//	IDirectIPData
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TData, int dim, typename TRet>
+TRet IDirectIPData<TData,dim,TRet>::
+operator() (TData& D, const MathVector<dim>& x,
+            number time, int si) const
+{
+	UG_THROW("IDirectIPData: operator()(TData, MathVector<dim>, time, si) not implemented.");
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 //	IPData
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -215,14 +229,6 @@ call_storage_callback() const
 		(((*iter).first)->*((*iter).second))();
 	}
 }
-
-template <typename TData, int dim, typename TRet>
-TRet IPData<TData,dim,TRet>::operator() (TData& D, const MathVector<dim>& x,
-                                         number time, int si) const
-{
-	UG_THROW("IPData: operator()(TData, MathVector<dim>, time, si) not implemented.");
-}
-
 
 template <typename TData, int dim, typename TRet>
 inline void IPData<TData,dim,TRet>::check_series(size_t s) const
