@@ -78,7 +78,7 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 	{
 		typedef number (*fct_type)(TFct&, const char*, const char*, const char*);
 		reg.add_function("IntegrateFluxOnBoundary",static_cast<fct_type>(&IntegrateFluxOnBoundary<TFct>),grp,
-		                 "Integral", "GridFunction, Component, BoundarySubset, InnerSubset");
+		                 "Integral", "GridFunction#Component#BoundarySubset#InnerSubset");
 	}
 
 //	IntegrateAceticAcidFluxOnBoundary
