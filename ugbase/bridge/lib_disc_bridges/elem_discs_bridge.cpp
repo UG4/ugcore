@@ -28,7 +28,6 @@
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/neumann_boundary.h"
 #include "lib_disc/spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
 #include "lib_disc/spatial_disc/elem_disc/inner_boundary/FV1CalciumERElemDisc.h"
-#include "lib_disc/spatial_disc/elem_disc/linear_elasticity/fe1_linear_elasticity.h"
 
 using namespace std;
 

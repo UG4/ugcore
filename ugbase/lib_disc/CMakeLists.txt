@@ -64,7 +64,6 @@ set(srcDiscretization	domain_util.cpp
 						spatial_disc/elem_disc/convection_diffusion/convection_diffusion.cpp
 						spatial_disc/elem_disc/density_driven_flow/density_driven_flow_fv1.cpp
 						spatial_disc/elem_disc/inner_boundary/inner_boundary_fv1.cpp
-						spatial_disc/elem_disc/linear_elasticity/linear_elasticity_fe1.cpp
 						spatial_disc/elem_disc/neumann_boundary/neumann_boundary_fv1.cpp
 						spatial_disc/elem_disc/thermohaline_flow/thermohaline_flow_fv1.cpp)
 						
