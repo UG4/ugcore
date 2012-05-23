@@ -139,7 +139,7 @@ UG_API std::string repeat(char c, int nr);
  * @return minimum number of edits needed to transform one string into the other
  * see http://en.wikipedia.org/wiki/Levenshtein_distance
  */
-UG_API unsigned int LevenshteinDistance( const std::string& s1, const std::string& s2 );
+UG_API size_t LevenshteinDistance( const std::string& s1, const std::string& s2 );
 
 } // end namespace ug
 
