@@ -30,26 +30,23 @@ typename TAAPosVRT::ValueType
 CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
-//	FindByCoordinate
-///	returns the element of the given type whose center is closest to coord.
+//	FindClosestByCoordinate
+///	returns the element of the given type, whose center is closest to coord.
 /**
- * This method does not necessarily return the element that contains the given coordinate.
- * Instead it will simply search for the face whose center is closest to the specified
- * coordinate.
+ * Returns the element, whose center is closest to the given coordinate.
+ *
  * TVertexPositionAttachmentAccessor has to be an AttachmentAccessor,
  * where AttachmentAccessor::ValueType is a vector-type compatible to
  * the lgmath vector descriptor.
  * The Accessor has to access an attachment of the vertices,
- * to which the elements between iterBegin and iterEnd refer.
- *
- * This method can be called like this: FindByCoordinate<Face>(...).
+ * to which the faces between iterBegin and iterEnd refer.
  */
 template<class TElem, class TVertexPositionAttachmentAccessor>
 UG_API 
-TElem* FindByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
-						typename geometry_traits<TElem>::iterator iterBegin,
-						typename geometry_traits<TElem>::iterator iterEnd,
-						TVertexPositionAttachmentAccessor& aaPosVRT);
+TElem* FindClosestByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
+							   typename geometry_traits<TElem>::iterator iterBegin,
+							   typename geometry_traits<TElem>::iterator iterEnd,
+							   TVertexPositionAttachmentAccessor& aaPosVRT);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Calculates the bounding box of a set of geometric objects

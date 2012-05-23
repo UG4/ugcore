@@ -29,9 +29,9 @@ CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos)
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	FindByCoordinate
+//	FindClosestByCoordinate
 template<class TElem, class TVertexPositionAttachmentAccessor>
-TElem* FindByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
+TElem* FindClosestByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
 						typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
 						TVertexPositionAttachmentAccessor& aaPosVRT)

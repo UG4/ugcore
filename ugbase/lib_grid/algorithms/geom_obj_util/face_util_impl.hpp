@@ -132,30 +132,6 @@ void InvertOrientation(Grid& grid, TFaceIterator facesBegin,
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	CalculateFaceCenter
-template<class TVertexPositionAttachmentAccessor>
-typename TVertexPositionAttachmentAccessor::ValueType
-CalculateFaceCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT)
-{
-	uint numVrts = f->num_vertices();
-	typename TVertexPositionAttachmentAccessor::ValueType v;
-//	init v with 0.
-	VecSet(v, 0);
-
-//	sum up
-	for(uint i = 0; i < numVrts; ++i)
-	{
-		VecAdd(v, v, aaPosVRT[f->vertex(i)]);
-	}
-
-//	average
-	if(numVrts > 0)
-		VecScale(v, v, 1./(number)numVrts);
-
-	return v;
-}
-
-////////////////////////////////////////////////////////////////////////
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT)
@@ -178,35 +154,24 @@ CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosV
 	return v;
 }
 
-
-////////////////////////////////////////////////////////////////////////
-//	FindFaceByCoordinate
-template<class TVertexPositionAttachmentAccessor>
-Face* FindFaceByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
-							FaceIterator iterBegin, FaceIterator iterEnd,
-							TVertexPositionAttachmentAccessor& aaPosVRT)
+template <class vector_t>
+bool
+ContainsPoint(const FaceVertices* f, const vector_t& p,
+			  Grid::VertexAttachmentAccessor<Attachment<vector_t> >& aaPos)
 {
-	if(iterBegin == iterEnd)
-		return NULL;
-
-	FaceIterator iter = iterBegin;
-	Face* bestFace = *iter;
-	number bestDistSq = VecDistanceSq(coord, CalculateFaceCenter(bestFace, aaPosVRT));
-	iter++;
-
-	while(iter != iterEnd)
-	{
-		number distSq = VecDistanceSq(coord, CalculateFaceCenter(*iter, aaPosVRT));
-		if(distSq < bestDistSq)
-		{
-			bestDistSq = distSq;
-			bestFace = *iter;
-		}
-
-		++iter;
+	switch(f->num_vertices()){
+		case 3: return PointIsInsideTriangle(p, aaPos[f->vertex(0)],
+											 aaPos[f->vertex(1)],
+											 aaPos[f->vertex(2)]);
+		case 4: return PointIsInsideQuadrilateral(p, aaPos[f->vertex(0)],
+												  aaPos[f->vertex(1)],
+												  aaPos[f->vertex(2)],
+												  aaPos[f->vertex(3)]);
+		default:
+			UG_THROW("Unknown face type with " << f->num_vertices()
+					<< " vertices encountered in ContainsPoint(...).");
 	}
-
-	return bestFace;
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////

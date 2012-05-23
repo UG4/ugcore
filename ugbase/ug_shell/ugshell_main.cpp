@@ -17,10 +17,9 @@
 #include "common/util/path_provider.h"
 #ifdef UG_PLUGINS
 	#include "common/os_dependent/plugin_util.h"
-#endif
-
-#ifdef UG_STATIC
-	#include "static_plugins.h"
+	#ifdef UG_STATIC
+		#include "static_plugins.h"
+	#endif
 #endif
 
 #ifdef UG_PARALLEL

@@ -275,6 +275,8 @@ void InvertOrientation(Grid& grid, TFaceIterator facesBegin,
  * the lgmath vector descriptor.
  * The accessor has to access an attachment of the vertices,
  * to which f refers.
+ *
+ * \{
  */
 template<class TVertexPositionAttachmentAccessor>
 UG_API 
@@ -287,25 +289,19 @@ UG_API
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT);
 
+/** \} */
+
 
 ////////////////////////////////////////////////////////////////////////
-//	FindFaceByCoordinate
-///	returns the face whose center is closest to coord.
-/**
- * This method does not necessarily return the face that contains the given coordinate.
- * Instead it will simply search for the face whose center is closest to the specified
- * coordinate.
- * TVertexPositionAttachmentAccessor has to be an AttachmentAccessor,
- * where AttachmentAccessor::ValueType is a vector-type compatible to
- * the lgmath vector descriptor.
- * The Accessor has to access an attachment of the vertices,
- * to which the faces between iterBegin and iterEnd refer.
+///	Returns true if the given point lies inside the given face.
+/**	\note	The method only works properly, if the point and the face are located
+ * 			in the same x-y-plane.
  */
-template<class TVertexPositionAttachmentAccessor>
-UG_API 
-Face* FindFaceByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
-							FaceIterator iterBegin, FaceIterator iterEnd,
-							TVertexPositionAttachmentAccessor& aaPosVRT);
+template <class vector_t>
+UG_API bool
+ContainsPoint(const FaceVertices* f, const vector_t& p,
+			  Grid::VertexAttachmentAccessor<Attachment<vector_t> >& aaPos);
+
 
 ////////////////////////////////////////////////////////////////////////
 //	project points to surface 

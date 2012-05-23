@@ -22,10 +22,9 @@
 #endif
 #ifdef UG_PLUGINS
 	#include "common/os_dependent/plugin_util.h"
-#endif
-
-#ifdef UG_STATIC
-	#include "static_plugins.h"
+	#ifdef UG_STATIC
+		#include "static_plugins.h"
+	#endif
 #endif
 
 

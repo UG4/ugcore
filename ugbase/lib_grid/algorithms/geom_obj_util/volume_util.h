@@ -74,7 +74,18 @@ UG_API
 inline bool
 PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
 						 Grid::VertexAttachmentAccessor<APosition>& aaPos);
-						 
+
+
+////////////////////////////////////////////////////////////////////////
+///	Checks whether a given point lies in the given volume element
+/** \note	This method assumes that the given volume element is convex and
+ * 			has planar sides.
+ */
+UG_API bool
+ContainsPoint(Volume* vol, const vector3& p,
+			  Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
+
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the center of a volume by averaging the positions of its corners
 template<class TVertexPositionAttachmentAccessor>
