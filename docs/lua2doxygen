@@ -1,0 +1,80 @@
+# this code is based on code from Alec Chen
+# changed by Martin Rupp. More copyright information follows.
+
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my $input = $ARGV[0];
+
+my $bInBlock = 0;
+my $bInFunction = 0;
+my $blockName = q{};
+my $result = q{};
+
+my $luaDoxygenMark = "--!";
+ 
+open FH, "<$input"  or die "Can't open $input for reading: $!";
+ 
+foreach my $line (<FH>)
+{
+    chomp $line;
+
+    # skip normal comments
+    next if $line =~ /^\s*--[^!]/;
+    
+    # remove end of line comments
+    $line =~ s/--[^!].*//;
+    
+    # skip comparison
+    next if $line =~ /==/;
+    
+    # translate to doxygen mark
+    $line =~ s{$luaDoxygenMark}{///};
+
+    if ($line =~ m{^\s*///}) 
+    {
+        $result .= "$line\n";
+    }
+    
+    # function start
+    elsif ($line =~ /^function/) 
+    {
+        $bInFunction = 1;
+        $line .= q{;};
+        $line =~ s/:/-/;
+        $result .= "$line\n";
+    }
+    
+    # function end
+    elsif ($bInFunction == 1 && $line =~ /^end/) 
+    {
+        $bInFunction = 0;
+    }
+    
+    # block start
+    elsif ($bInFunction == 0 && $line =~ /^(\S+)\s*=\s*{/ && $line !~ /}/) 
+    {
+        $blockName = $1; 
+        $bInBlock = 1;
+    }
+    
+    # block end
+    elsif ($bInFunction == 0 && $line =~ /^\s*}/ && $bInBlock == 1) 
+    {
+        $blockName = q{};
+        $bInBlock = 0;
+    }
+    
+    # variables
+    # we don't want variables
+    # elsif ($bInFunction == 0 && $line =~ /=/) {
+    #     $line =~ s/(?=\S)/$blockName./ if $blockName;
+    #     $line =~ s{,?(\s*)(?=///|$)}{;$1};
+    #     $result .= "$line\n";
+    # }
+}
+
+close FH;
+print($result);
