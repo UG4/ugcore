@@ -85,7 +85,6 @@
 #include "spatial_disc/elem_disc/elem_disc_interface.h"
 #include "spatial_disc/elem_disc/elem_disc_assemble_util.h"
 #include "spatial_disc/elem_disc/convection_diffusion/convection_diffusion.h"
-#include "spatial_disc/elem_disc/density_driven_flow/density_driven_flow.h"
 #include "spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
 #include "spatial_disc/elem_disc/neumann_boundary/neumann_boundary.h"
 

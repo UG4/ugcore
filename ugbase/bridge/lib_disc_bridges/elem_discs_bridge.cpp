@@ -17,11 +17,9 @@
 // lib_disc includes
 #include "lib_disc/domain.h"
 
-#include "lib_disc/spatial_disc/elem_disc/thermohaline_flow/thermohaline_flow.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 
-#include "lib_disc/spatial_disc/elem_disc/density_driven_flow/density_driven_flow.h"
 #include "lib_disc/spatial_disc/elem_disc/convection_diffusion/convection_diffusion.h"
 #include "lib_disc/spatial_disc/elem_disc/constant_equation/constant_equation.h"
 
@@ -194,120 +192,6 @@ void Register__Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "ConvectionDiffusion", dimTag);
 	}
 
-//	Density Driven Flow
-	{
-		typedef DensityDrivenFlow<TDomain> T;
-		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("DensityDrivenFlow").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, elemGrp)
-			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
-			.add_method("set_consistent_gravity", &T::set_consistent_gravity, "", "Consistent Gravity")
-			.add_method("set_boussinesq_transport", &T::set_boussinesq_transport, "", "Boussinesq Transport")
-			.add_method("set_boussinesq_flow", &T::set_boussinesq_flow,"", "Boussinesq Flow")
-			.add_method("set_upwind", &T::set_upwind, "", "Upwind (no, part, full)")
-
-			.add_method("set_porosity", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_porosity), "", "Porosity")
-			.add_method("set_porosity", static_cast<void (T::*)(number)>(&T::set_porosity), "", "Porosity")
-#ifdef UG_FOR_LUA
-			.add_method("set_porosity", static_cast<void (T::*)(const char*)>(&T::set_porosity), "", "Porosity")
-#endif
-
-			.add_method("set_gravity", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >)>(&T::set_gravity), "", "Gravity")
-			.add_method("set_gravity", static_cast<void (T::*)(number)>(&T::set_gravity), "", "g_x")
-			.add_method("set_gravity", static_cast<void (T::*)(number,number)>(&T::set_gravity), "", "g_x, g_y")
-			.add_method("set_gravity", static_cast<void (T::*)(number,number,number)>(&T::set_gravity), "", "g_x, g_y, g_z")
-#ifdef UG_FOR_LUA
-			.add_method("set_gravity", static_cast<void (T::*)(const char*)>(&T::set_gravity), "", "Gravity")
-#endif
-
-			.add_method("set_molecular_diffusion", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_molecular_diffusion), "", "MolecularDiffusion")
-			.add_method("set_molecular_diffusion", static_cast<void (T::*)(number)>(&T::set_molecular_diffusion), "", "MolecularDiffusion")
-#ifdef UG_FOR_LUA
-			.add_method("set_molecular_diffusion", static_cast<void (T::*)(const char*)>(&T::set_molecular_diffusion), "", "MolecularDiffusion")
-#endif
-
-			.add_method("set_permeability", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_permeability), "", "Permeability")
-			.add_method("set_permeability", static_cast<void (T::*)(number)>(&T::set_permeability), "", "Permeability")
-#ifdef UG_FOR_LUA
-			.add_method("set_permeability", static_cast<void (T::*)(const char*)>(&T::set_permeability), "", "Permeability")
-#endif
-
-			.add_method("set_viscosity", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_viscosity), "", "Viscosity")
-			.add_method("set_viscosity", static_cast<void (T::*)(number)>(&T::set_viscosity), "", "Viscosity")
-#ifdef UG_FOR_LUA
-			.add_method("set_viscosity", static_cast<void (T::*)(const char*)>(&T::set_viscosity), "", "Viscosity")
-#endif
-
-			.add_method("set_density", &T::set_density, "", "Density")
-			.add_method("darcy_velocity", &T::darcy_velocity)
-			.add_method("brine", &T::brine)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "DensityDrivenFlow", dimTag);
-	}
-
-//	Thermohaline Flow
-	{
-		typedef ThermohalineFlow<TDomain> T;
-		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("ThermohalineFlow").append(dimSuffix);
-		reg.add_class_<T, TBase >(name, elemGrp)
-			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
-			.add_method("set_consistent_gravity", &T::set_consistent_gravity, "", "ConsistentGravity")
-			.add_method("set_boussinesq_transport", &T::set_boussinesq_transport, "", "BoussinesqTransport")
-			.add_method("set_boussinesq_flow", &T::set_boussinesq_flow,"", "BoussinesqFlow")
-			.add_method("set_boussinesq_density", &T::set_boussinesq_density,"", "BoussinesqDensity")
-			.add_method("set_upwind", &T::set_upwind, "", "Upwind (no, part, full)")
-			.add_method("set_upwind_energy", &T::set_upwind_energy, "", "Upwind (no, part, full)")
-
-			.add_method("set_porosity", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_porosity), "", "Porosity")
-			.add_method("set_porosity", static_cast<void (T::*)(number)>(&T::set_porosity), "", "Porosity")
-#ifdef UG_FOR_LUA
-			.add_method("set_porosity", static_cast<void (T::*)(const char*)>(&T::set_porosity), "", "Porosity")
-#endif
-
-			.add_method("set_gravity", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >)>(&T::set_gravity), "", "Gravity")
-			.add_method("set_gravity", static_cast<void (T::*)(number)>(&T::set_gravity), "", "g_x")
-			.add_method("set_gravity", static_cast<void (T::*)(number,number)>(&T::set_gravity), "", "g_x, g_y")
-			.add_method("set_gravity", static_cast<void (T::*)(number,number,number)>(&T::set_gravity), "", "g_x, g_y, g_z")
-#ifdef UG_FOR_LUA
-			.add_method("set_gravity", static_cast<void (T::*)(const char*)>(&T::set_gravity), "", "Gravity")
-#endif
-
-			.add_method("set_molecular_diffusion", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_molecular_diffusion), "", "MolecularDiffusion")
-			.add_method("set_molecular_diffusion", static_cast<void (T::*)(number)>(&T::set_molecular_diffusion), "", "MolecularDiffusion")
-#ifdef UG_FOR_LUA
-			.add_method("set_molecular_diffusion", static_cast<void (T::*)(const char*)>(&T::set_molecular_diffusion), "", "MolecularDiffusion")
-#endif
-
-			.add_method("set_thermal_conductivity", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_thermal_conductivity), "", "ThermalConductivity")
-			.add_method("set_thermal_conductivity", static_cast<void (T::*)(number)>(&T::set_thermal_conductivity), "", "ThermalConductivity")
-#ifdef UG_FOR_LUA
-			.add_method("set_thermal_conductivity", static_cast<void (T::*)(const char*)>(&T::set_thermal_conductivity), "", "ThermalConductivity")
-#endif
-
-			.add_method("set_permeability", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_permeability), "", "Permeability")
-			.add_method("set_permeability", static_cast<void (T::*)(number)>(&T::set_permeability), "", "Permeability")
-#ifdef UG_FOR_LUA
-			.add_method("set_permeability", static_cast<void (T::*)(const char*)>(&T::set_permeability), "", "Permeability")
-#endif
-
-			.add_method("set_viscosity", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_viscosity), "", "Viscosity")
-			.add_method("set_viscosity", static_cast<void (T::*)(number)>(&T::set_viscosity), "", "Viscosity")
-#ifdef UG_FOR_LUA
-			.add_method("set_viscosity", static_cast<void (T::*)(const char*)>(&T::set_viscosity), "", "Viscosity")
-#endif
-
-			.add_method("set_density", &T::set_density, "", "Density")
-			.add_method("set_heat_capacity_fluid", &T::set_heat_capacity_fluid)
-			.add_method("set_heat_capacity_solid", &T::set_heat_capacity_solid)
-			.add_method("set_mass_density_solid", &T::set_mass_density_solid)
-			.add_method("darcy_velocity", &T::darcy_velocity)
-			.add_method("pressure_grad", &T::pressure_grad)
-			.add_method("temperature", &T::temperature)
-			.add_method("brine", &T::brine)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ThermohalineFlow", dimTag);
-	}
 
 /////////////////////////////////////////////////////////////////////////////
 // Convection Shapes
