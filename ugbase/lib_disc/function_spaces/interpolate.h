@@ -314,6 +314,14 @@ void InterpolateFunction(number val,
 	InterpolateFunction(p, u, name, time);
 }
 
+template <typename TGridFunction>
+void InterpolateFunction(number val,
+                         TGridFunction& u, const char* name, number time, const char* subsets)
+{
+	ConstUserNumber<TGridFunction::domain_type::dim> p(val);
+	InterpolateFunction(p, u, name, time, subsets);
+}
+
 #ifdef UG_FOR_LUA
 template <typename TGridFunction>
 void InterpolateFunction(const char* InterpolFunction,

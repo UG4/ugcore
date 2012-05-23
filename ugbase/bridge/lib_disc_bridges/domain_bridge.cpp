@@ -100,12 +100,15 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 //	InterpolateFunction
 	{
 		reg.add_function("InterpolateFunction", static_cast<void (*)(number, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
+		reg.add_function("InterpolateFunction", static_cast<void (*)(number, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>), grp);
+
 		reg.add_function("InterpolateFunction", static_cast<void (*)(IPData<number, dim>&, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
-		reg.add_function("InterpolateFunction",static_cast<void (*)(IPData<number, dim>&, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
-#ifdef UG_FOR_LUA
+		reg.add_function("InterpolateFunction", static_cast<void (*)(IPData<number, dim>&, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
+
+		#ifdef UG_FOR_LUA
 		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
-		reg.add_function("InterpolateFunction",static_cast<void (*)(const char*, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
-#endif
+		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
+		#endif
 	}
 }
 
