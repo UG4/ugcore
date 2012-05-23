@@ -123,6 +123,24 @@ UG_API std::string ToUpper(std::string str);
  */
 UG_API std::vector<std::string> FindDuplicates(const std::vector<std::string>& vec);
 
+/**
+ * @param c  the character
+ * @param nr number of times to repeat c
+ * @return string with nr times c
+ */
+UG_API std::string repeat(char c, int nr);
+
+/**
+ * Levenshtein distance calculates the minimum number of edits to transform one string
+ * into the other with allowable edit operations insertion, deletion, or substitution of a
+ * single character.
+ * @param s1 string 1
+ * @param s2 string 2
+ * @return minimum number of edits needed to transform one string into the other
+ * see http://en.wikipedia.org/wiki/Levenshtein_distance
+ */
+UG_API unsigned int LevenshteinDistance( const std::string& s1, const std::string& s2 );
+
 } // end namespace ug
 
 #endif /*__H__COMMON_STRING_UTIL__*/

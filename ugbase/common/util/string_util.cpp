@@ -211,5 +211,57 @@ std::vector<std::string> FindDuplicates(const std::vector<std::string>& vec) {
 	return result;	
 }
 
+
+const unsigned int cost_del = 1;
+const unsigned int cost_ins = 1;
+const unsigned int cost_sub = 1;
+/**
+ * Levenshtein distance algorithm, taken from
+ * http://www.freemedialibrary.com/index.php/Levenshtein_distance
+ * (check copyright or recreate!)
+ *
+ */
+unsigned int LevenshteinDistance( const std::string& s1, const std::string& s2 )
+{
+  unsigned int n1 = s1.length();
+  unsigned int n2 = s2.length();
+
+  unsigned int* p = new unsigned int[ n2+1 ];
+  unsigned int* q = new unsigned int[ n2+1 ];
+  unsigned int* r;
+
+  p[ 0 ] = 0;
+  for( unsigned int j = 1; j <= n2; ++j )
+    p[ j ] = p[ j-1 ] + cost_ins;
+
+  for( unsigned int i = 1; i <= n1; ++i )
+    {
+      q[ 0 ] = p[ 0 ] + cost_del;
+      for( unsigned int j = 1; j <= n2; ++j )
+        {
+          unsigned int d_del = p[ j   ] + cost_del;
+          unsigned int d_ins = q[ j-1 ] + cost_ins;
+          unsigned int d_sub = p[ j-1 ] + ( s1[i-1] == s2[j-1] ? 0 : cost_sub );
+          q[ j ] = std::min( std::min( d_del, d_ins ), d_sub );
+      }
+      r = p;
+      p = q;
+      q = r;
+    }
+
+  unsigned int tmp = p[ n2 ];
+  delete[] p;
+  delete[] q;
+
+  return tmp;
+}
+
+std::string repeat(char c, int nr)
+{
+	if(nr > 0)
+		return std::string(nr, c);
+	else
+		return std::string("");
+}
 }
 
