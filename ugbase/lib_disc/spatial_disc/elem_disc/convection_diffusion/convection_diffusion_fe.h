@@ -769,8 +769,8 @@ void ConvectionDiffusion<TDomain>::register_fe_func()
 	m_imMass.	  set_fct(id, this, &T::template lin_def_mass_fe<TElem, TGeomProvider>);
 
 //	exports
-	m_exConcentration->	  template set_fct<T,refDim>(id, this, &T::template ex_value_fe<TElem, TGeomProvider>);
-	m_exConcentrationGrad->template set_fct<T,refDim>(id, this, &T::template ex_grad_fe<TElem, TGeomProvider>);
+	m_exValue->	  template set_fct<T,refDim>(id, this, &T::template ex_value_fe<TElem, TGeomProvider>);
+	m_exGrad->template set_fct<T,refDim>(id, this, &T::template ex_grad_fe<TElem, TGeomProvider>);
 }
 
 } // namespace ug

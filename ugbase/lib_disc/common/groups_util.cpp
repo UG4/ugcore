@@ -8,7 +8,51 @@
 #include "groups_util.h"
 #include "common/util/string_util.h"
 
+#include <algorithm>
+#include <limits>
+
 namespace ug{
+
+bool SameDimensionsInAllSubsets(const SubsetGroup& subsetGroup)
+{
+//	compute maximum
+	int max = std::numeric_limits<int>::min();
+	for(size_t s = 0; s < subsetGroup.size(); ++s)
+		max = std::max(subsetGroup.dim(s), max);
+
+//	check
+	for(size_t s = 0; s < subsetGroup.size(); ++s)
+		if(subsetGroup.dim(s) < max)
+			return false;
+
+//	same dimension in all subsets
+	return true;
+}
+
+void RemoveLowerDimSubsets(SubsetGroup& subsetGroup)
+{
+//	compute maximum
+	int max = std::numeric_limits<int>::min();
+	for(size_t s = 0; s < subsetGroup.size(); ++s)
+		max = std::max(subsetGroup.dim(s), max);
+
+//	check
+	size_t s = 0;
+	while(s < subsetGroup.size())
+	{
+		if(subsetGroup.dim(s) < max)
+		{
+			// remove and start again
+			subsetGroup.remove(s);
+			s = 0;
+		}
+		else
+		{
+			// next
+			++s;
+		}
+	}
+}
 
 
 void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
@@ -24,11 +68,18 @@ void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern&
 void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetHandler> pSH,
 								const char* subsets, const char separator)
 {
-//	get strings
-	std::string subsetString = std::string(subsets);
-
 //	set underlying subsethandler Subset Group
 	subsetGroup.set_subset_handler(pSH);
+
+//	forward
+	ConvertStringToSubsetGroup(subsetGroup, subsets, separator);
+}
+
+void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup,
+								const char* subsets, const char separator)
+{
+//	get strings
+	std::string subsetString = std::string(subsets);
 
 //	tokenize strings and select subsets
 	std::vector<std::string> tokens;

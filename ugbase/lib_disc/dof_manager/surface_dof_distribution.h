@@ -36,6 +36,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 
 	///	returns all indices of the element
 	///	\{
+		void indices(GeometricObject* elem, LocalIndices& ind, bool bHang = false) const{base_type::indices(elem, ind, bHang);}
 		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const{base_type::indices(elem, ind, bHang);}
 		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const{base_type::indices(elem, ind, bHang);}
 		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const{base_type::indices(elem, ind, bHang);}

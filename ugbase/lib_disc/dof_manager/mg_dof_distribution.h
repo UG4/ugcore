@@ -183,6 +183,9 @@ class MGDoFDistribution : public GridObserver
 		///	prints informations
 		void print_local_dof_statistic(int verboseLev) const;
 
+		/// writes the local finite element ids to LocalIndeces
+		void local_finite_element_ids(LocalIndices& ind) const;
+
 		/// extracts all indices of the element (sorted)
 		/**
 		 * All Indices of the element (including the subelements) are extracted

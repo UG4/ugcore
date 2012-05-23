@@ -19,6 +19,24 @@ namespace ug{
 // predeclaration
 class FunctionPattern;
 
+////////////////////////////////////////////////////////////////////////////////
+//	Subset Group
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns if dimension is the same in all subsets of the subset group
+ * @param subsetGroup	subset group that is checked
+ * @returns true if dimension is the same in all subsets, else false
+ */
+bool SameDimensionsInAllSubsets(const SubsetGroup& subsetGroup);
+
+/**
+ * Removes all subsets from the subset group that have a lower dimension than the
+ * highest dimension contained in the subset group.
+ * @param subsetGroup 	subset group that is modified
+ */
+void RemoveLowerDimSubsets(SubsetGroup& subsetGroup);
+
 /**
  * Passing a string of subset names separated by ',' this function returns
  * a subset group containing the subsets.
@@ -44,6 +62,18 @@ ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetHandle
                            const char* subsets, const char separator = ',');
 
 /**
+ * Passing a string of subset names separated by ',' this function returns
+ * a subset group containing the subsets.
+ */
+void
+ConvertStringToSubsetGroup(SubsetGroup& subsetGroup,
+                           const char* subsets, const char separator = ',');
+
+////////////////////////////////////////////////////////////////////////////////
+//	Function Group
+////////////////////////////////////////////////////////////////////////////////
+
+/**
  * Passing a string of function names separated by ',' this function returns
  * a function group containing the functions.
  */
@@ -58,6 +88,10 @@ ConvertStringToFunctionGroup(FunctionGroup&functionGroup, const FunctionPattern&
 void ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
                                   	const FunctionPattern& pattern,
 									const std::vector<std::string>& vFct);
+
+////////////////////////////////////////////////////////////////////////////////
+//	Index Mapping
+////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Creates a function index mapping that maps all local indices from the one

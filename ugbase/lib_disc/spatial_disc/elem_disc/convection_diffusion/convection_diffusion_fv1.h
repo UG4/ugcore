@@ -905,8 +905,8 @@ register_fv1_func()
 	m_imMass.	set_fct(id, this, &T::template lin_def_mass_fv1<TElem, TFVGeom>);
 
 //	exports
-	m_exConcentration->	   template set_fct<T,refDim>(id, this, &T::template ex_value_fv1<TElem, TFVGeom>);
-	m_exConcentrationGrad->template set_fct<T,refDim>(id, this, &T::template ex_grad_fv1<TElem, TFVGeom>);
+	m_exValue->	   template set_fct<T,refDim>(id, this, &T::template ex_value_fv1<TElem, TFVGeom>);
+	m_exGrad->template set_fct<T,refDim>(id, this, &T::template ex_grad_fv1<TElem, TFVGeom>);
 }
 
 } // namespace ug

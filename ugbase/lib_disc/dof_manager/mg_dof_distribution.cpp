@@ -1020,6 +1020,13 @@ constrained_indices(LocalIndices& ind,
 	}
 }
 
+void MGDoFDistribution::local_finite_element_ids(LocalIndices& ind) const
+{
+	ind.resize_fct(num_fct());
+	for(size_t fct = 0; fct < num_fct(); ++fct)
+		ind.set_lfeID(fct, local_finite_element_id(fct));
+}
+
 template<typename TBaseElem>
 void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) const
 {

@@ -27,6 +27,9 @@
 
 namespace ug{
 
+////////////////////////////////////////////////////////////////////////////////
+// Integrand Interface
+////////////////////////////////////////////////////////////////////////////////
 
 /// Abstract integrand interface
 template <int TWorldDim, int TElemDim>
@@ -48,16 +51,20 @@ class IIntegrand
 	 * \param[in]	vGlobIP	global integration point positions
 	 * \param[in]	numIP	number of integration points
 	 */
-		virtual void values(GeometricObject* pElem,
-		                    const MathVector<elemDim> vLocIP[],
+		virtual void values(number vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<elemDim> vLocIP[],
 		                    const MathMatrix<worldDim, elemDim> vJT[],
-		                    const size_t numIP,
-		                    number value[]) = 0;
+		                    const size_t numIP) = 0;
 
 		virtual ~IIntegrand() {}
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Generic Integration Routine
+////////////////////////////////////////////////////////////////////////////////
 
 /// integrates on the whole domain
 /**
@@ -137,9 +144,10 @@ number Integrate(TConstIterator iterBegin,
 		std::vector<number> vValue(numIP);
 		try
 		{
-			integrand.values(pElem, rQuadRule.points(),
-							&(vGlobIP[0]), &(vJT[0]),
-							numIP, &(vValue[0]));
+			integrand.values(&(vValue[0]), &(vGlobIP[0]),
+			                 pElem, &vCorner[0], rQuadRule.points(),
+							 &(vJT[0]),
+							 numIP);
 		}
 		UG_CATCH_THROW("Unable to compute values of integrand at integration point.");
 
@@ -174,7 +182,140 @@ number Integrate(TConstIterator iterBegin,
 	return integral;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// IPData Integrand
+////////////////////////////////////////////////////////////////////////////////
 
+template <typename TGridFunction, int TDim = TGridFunction::dim>
+class DirectIPDataIntegrand : public IIntegrand<TGridFunction::dim, TDim>
+{
+	public:
+	//	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+
+	//	reference element dimension
+		static const int elemDim = TDim;
+
+	private:
+	//  data to integrate
+		SmartPtr<IDirectIPData<number, worldDim> > m_spData;
+
+	// 	grid function
+		SmartPtr<TGridFunction> m_spGridFct;
+
+	//	time
+		number m_time;
+
+	//	subset
+		int m_si;
+
+	public:
+	/// constructor
+		DirectIPDataIntegrand(SmartPtr<IDirectIPData<number, worldDim> > spData,
+		                      SmartPtr<TGridFunction> spGridFct,
+		                      number time, int si)
+		: m_spData(spData), m_spGridFct(spGridFct), m_time(time), m_si(si)
+		{
+			m_spData->set_function_pattern(spGridFct->function_pattern());
+		};
+
+	/// \copydoc IIntegrand::getValues
+		virtual void values(number vValue[],
+		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<elemDim> vLocIP[],
+		                    const MathMatrix<worldDim, elemDim> vJT[],
+		                    const size_t numIP)
+		{
+		//	create storage
+			LocalIndices ind;
+			LocalVector u;
+
+		//	get local solution if needed
+			if(m_spData->requires_grid_fct())
+			{
+			// 	get global indices
+				m_spGridFct->indices(pElem, ind);
+
+			// 	adapt local algebra
+				u.resize(ind);
+
+			// 	read local values of u
+				GetLocalVector(u, *m_spGridFct);
+			}
+
+		//	compute data
+			try{
+				(*m_spData)(vValue, vGlobIP, m_time, m_si, u, pElem,
+							vCornerCoords, vLocIP, numIP);
+			}
+			UG_CATCH_THROW("DirectIPDataIntegrand: Cannot evaluate data.");
+		};
+};
+
+template <typename TGridFunction>
+number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
+                SmartPtr<TGridFunction> spGridFct,
+                number time,
+                int quadOrder, const char* subsets)
+{
+//	world dimensions
+	static const int dim = TGridFunction::dim;
+
+//	read subsets
+	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
+	if(subsets != NULL)
+	{
+		ConvertStringToSubsetGroup(ssGrp, subsets);
+		if(!SameDimensionsInAllSubsets(ssGrp))
+			UG_THROW("Subsets '"<<subsets<<"' do not have same dimension. Can "
+			         "not integrate on subsets of different dimensions.");
+	}
+	else
+	{
+	//	add all subsets and remove lower dim subsets afterwards
+		ssGrp.add_all();
+		RemoveLowerDimSubsets(ssGrp);
+	}
+
+//	reset value
+	number value = 0;
+
+//	loop subsets
+	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	{
+	//	get subset index
+		const int si = ssGrp[i];
+
+	//	create integration kernel
+		DirectIPDataIntegrand<TGridFunction, dim> integrand(spData, spGridFct, time, si);
+
+	//	integrate elements of subset
+		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+		value += Integrate(spGridFct->template begin<geometric_base_object>(si),
+		                   spGridFct->template end<geometric_base_object>(si),
+		                   spGridFct->domain()->position_accessor(),
+		                   integrand,
+		                   quadOrder);
+	}
+
+#ifdef UG_PARALLEL
+	// sum over processes
+	if(pcl::GetNumProcesses() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		number local = value;
+		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+	}
+#endif
+//	return the result
+	return value;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// L2 Error Integrand
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TGridFunction, int TDim = TGridFunction::dim>
 class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
@@ -212,12 +353,13 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		{};
 
 	/// \copydoc IIntegrand::getValues
-		virtual void values(GeometricObject* pElem,
-		                    const MathVector<elemDim> vLocIP[],
+		virtual void values(number vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<elemDim> vLocIP[],
 		                    const MathMatrix<worldDim, elemDim> vJT[],
-		                    const size_t numIP,
-		                    number value[])
+		                    const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
@@ -264,8 +406,8 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 				}
 
 			//	get squared of difference
-				value[ip] = (exactSolIP - approxSolIP);
-				value[ip] *= value[ip];
+				vValue[ip] = (exactSolIP - approxSolIP);
+				vValue[ip] *= vValue[ip];
 			}
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
@@ -274,131 +416,6 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 			}
 		};
 };
-
-
-template <typename TGridFunction, int TDim = TGridFunction::dim>
-class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
-{
-	public:
-	//	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-
-	//	reference element dimension
-		static const int elemDim = TDim;
-
-	private:
-	// grid function
-		TGridFunction& m_rGridFct;
-
-	//	component of function
-		size_t m_fct;
-
-	//	local finite element id
-		LFEID m_id;
-
-	// 	exact solution
-		IPData<number, worldDim>& m_ExactSolution;
-
-	// 	exact gradient
-		IPData<MathVector<worldDim>, worldDim>& m_ExactGrad;
-
-	//	time
-		number m_time;
-
-	public:
-	/// constructor
-		H1ErrorIntegrand(IPData<number, worldDim>& exactSol,
-		                 IPData<MathVector<worldDim>, worldDim>& exactGrad,
-		                 TGridFunction& gridFct, size_t cmp,
-		                 number time)
-		: m_rGridFct(gridFct), m_fct(cmp),
-		  m_id(m_rGridFct.local_finite_element_id(m_fct)),
-		  m_ExactSolution(exactSol),
-		  m_ExactGrad(exactGrad),
-		  m_time(time)
-		{}
-
-	/// \copydoc IIntegrand::getValues
-		virtual void values(GeometricObject* pElem,
-		                    const MathVector<elemDim> vLocIP[],
-		                    const MathVector<worldDim> vGlobIP[],
-		                    const MathMatrix<worldDim, elemDim> vJT[],
-		                    const size_t numIP,
-		                    number value[])
-		{
-		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
-
-			// 	aux. index array
-					typename TGridFunction::multi_index_vector_type ind;
-
-			try{
-		//	get trial space
-			const DimLocalShapeFunctionSet<elemDim>& rTrialSpace =
-							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
-
-		//	number of dofs on element
-			const size_t num_sh = rTrialSpace.num_sh();
-
-		//	get multiindices of element
-			m_rGridFct.multi_indices(pElem, m_fct, ind);
-
-		//	check multi indices
-			if(ind.size() != num_sh)
-				UG_THROW("L2ErrorIntegrand::values: Wrong number of"
-						" multi indices.");
-
-		//	loop all integration points
-			std::vector<MathVector<elemDim> > vLocGradient(num_sh);
-			for(size_t ip = 0; ip < numIP; ++ip)
-			{
-			//	compute exact solution at integration point
-				number exactSolIP;
-				m_ExactSolution(exactSolIP, vGlobIP[ip], m_time);
-
-			//	compute exact gradient at integration point
-				MathVector<worldDim> exactGradIP;
-				m_ExactGrad(exactGradIP, vGlobIP[ip], m_time);
-
-			//	compute shape gradients at ip
-				rTrialSpace.grads(&vLocGradient[0], vGlobIP[ip]);
-
-			// 	compute approximated solution at integration point
-				number approxSolIP = 0.0;
-				MathVector<elemDim> locTmp = 0.0;
-				for(size_t sh = 0; sh < num_sh; ++sh)
-				{
-				//	get value at shape point (e.g. corner for P1 fct)
-					const number valSH = BlockRef(m_rGridFct[ind[sh][0]], ind[sh][1]);
-
-				//	add shape fct at ip * value at shape
-					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
-
-				//	add gradient at ip
-					VecScaleAppend(locTmp, valSH, vLocGradient[sh]);
-				}
-
-			//	compute global gradient
-				MathVector<worldDim> approxGradIP;
-				MathMatrix<elemDim,worldDim> JTInv;
-				Inverse(JTInv, vJT[ip]);
-				MatVecMult(approxGradIP, JTInv, locTmp);
-
-			//	get squared of difference
-				value[ip] = (exactSolIP - approxSolIP) * (exactSolIP - approxSolIP);
-				value[ip] += VecDistanceSq(approxGradIP, exactGradIP);
-			}
-
-			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
-			{
-				UG_THROW("L2ErrorIntegrand::getValues: "<<ex.get_msg());
-			}
-		};
-};
-
-
-
-
 
 /// interpolates a function on the whole domain or on some subsets
 /**
@@ -478,6 +495,135 @@ number L2ErrorDraft(const char* ExactSol,
 }
 #endif
 
+////////////////////////////////////////////////////////////////////////////////
+// H1 Error Integrand
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TGridFunction, int TDim = TGridFunction::dim>
+class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
+{
+	public:
+	//	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+
+	//	reference element dimension
+		static const int elemDim = TDim;
+
+	private:
+	// grid function
+		TGridFunction& m_rGridFct;
+
+	//	component of function
+		size_t m_fct;
+
+	//	local finite element id
+		LFEID m_id;
+
+	// 	exact solution
+		IPData<number, worldDim>& m_ExactSolution;
+
+	// 	exact gradient
+		IPData<MathVector<worldDim>, worldDim>& m_ExactGrad;
+
+	//	time
+		number m_time;
+
+	public:
+	/// constructor
+		H1ErrorIntegrand(IPData<number, worldDim>& exactSol,
+		                 IPData<MathVector<worldDim>, worldDim>& exactGrad,
+		                 TGridFunction& gridFct, size_t cmp,
+		                 number time)
+		: m_rGridFct(gridFct), m_fct(cmp),
+		  m_id(m_rGridFct.local_finite_element_id(m_fct)),
+		  m_ExactSolution(exactSol),
+		  m_ExactGrad(exactGrad),
+		  m_time(time)
+		{}
+
+	/// \copydoc IIntegrand::getValues
+		virtual void values(number vValue[],
+		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<elemDim> vLocIP[],
+		                    const MathMatrix<worldDim, elemDim> vJT[],
+		                    const size_t numIP)
+		{
+		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
+
+			// 	aux. index array
+					typename TGridFunction::multi_index_vector_type ind;
+
+			try{
+		//	get trial space
+			const DimLocalShapeFunctionSet<elemDim>& rTrialSpace =
+							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
+
+		//	number of dofs on element
+			const size_t num_sh = rTrialSpace.num_sh();
+
+		//	get multiindices of element
+			m_rGridFct.multi_indices(pElem, m_fct, ind);
+
+		//	check multi indices
+			if(ind.size() != num_sh)
+				UG_THROW("L2ErrorIntegrand::values: Wrong number of"
+						" multi indices.");
+
+		//	loop all integration points
+			std::vector<MathVector<elemDim> > vLocGradient(num_sh);
+			for(size_t ip = 0; ip < numIP; ++ip)
+			{
+			//	compute exact solution at integration point
+				number exactSolIP;
+				m_ExactSolution(exactSolIP, vGlobIP[ip], m_time);
+
+			//	compute exact gradient at integration point
+				MathVector<worldDim> exactGradIP;
+				m_ExactGrad(exactGradIP, vGlobIP[ip], m_time);
+
+			//	compute shape gradients at ip
+				rTrialSpace.grads(&vLocGradient[0], vGlobIP[ip]);
+
+			// 	compute approximated solution at integration point
+				number approxSolIP = 0.0;
+				MathVector<elemDim> locTmp = 0.0;
+				for(size_t sh = 0; sh < num_sh; ++sh)
+				{
+				//	get value at shape point (e.g. corner for P1 fct)
+					const number valSH = BlockRef(m_rGridFct[ind[sh][0]], ind[sh][1]);
+
+				//	add shape fct at ip * value at shape
+					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
+
+				//	add gradient at ip
+					VecScaleAppend(locTmp, valSH, vLocGradient[sh]);
+				}
+
+			//	compute global gradient
+				MathVector<worldDim> approxGradIP;
+				MathMatrix<elemDim,worldDim> JTInv;
+				Inverse(JTInv, vJT[ip]);
+				MatVecMult(approxGradIP, JTInv, locTmp);
+
+			//	get squared of difference
+				vValue[ip] = (exactSolIP - approxSolIP) * (exactSolIP - approxSolIP);
+				vValue[ip] += VecDistanceSq(approxGradIP, exactGradIP);
+			}
+
+			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+			{
+				UG_THROW("L2ErrorIntegrand::getValues: "<<ex.get_msg());
+			}
+		};
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// L2 Integrand
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename TGridFunction, int TDim = TGridFunction::dim>
 class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 {
@@ -502,12 +648,13 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		{};
 
 	/// \copydoc IIntegrand::getValues
-		virtual void values(GeometricObject* pElem,
-		                    const MathVector<elemDim> vLocIP[],
+		virtual void values(number vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<elemDim> vLocIP[],
 		                    const MathMatrix<worldDim, elemDim> vJT[],
-		                    const size_t numIP,
-		                    number value[])
+		                    const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
@@ -547,94 +694,13 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 				}
 
 				//	get square
-				value[ip] = approxSolIP*approxSolIP;
+				vValue[ip] = approxSolIP*approxSolIP;
 
 			}
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
 				UG_THROW("L2ErrorIntegrand::values: "<<ex.get_msg());
-			}
-		};
-};
-
-
-template <typename TGridFunction, int TDim = TGridFunction::dim>
-class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
-{
-	public:
-	//	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-
-	//	reference element dimension
-		static const int elemDim = TDim;
-
-	private:
-	// grid function
-		TGridFunction& m_rGridFct;
-
-	//	component of function
-		const size_t m_fct;
-
-	public:
-	/// constructor
-		StdFuncIntegrand(TGridFunction& gridFct, size_t cmp)
-		: m_rGridFct(gridFct), m_fct(cmp)
-		{};
-
-	/// \copydoc IIntegrand::getValues
-		virtual void values(GeometricObject* pElem,
-		                    const MathVector<elemDim> vLocIP[],
-		                    const MathVector<worldDim> vGlobIP[],
-		                    const MathMatrix<worldDim, elemDim> vJT[],
-		                    const size_t numIP,
-		                    number value[])
-		{
-		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
-
-			const LFEID m_id = m_rGridFct.local_finite_element_id(m_fct);
-
-			try{
-		//	get trial space
-			const DimLocalShapeFunctionSet<elemDim>& rTrialSpace =
-							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
-
-		//	number of dofs on element
-			const size_t num_sh = rTrialSpace.num_sh();
-
-		//	get multiindices of element
-
-			std::vector<MultiIndex<2> > ind;  // 	aux. index array
-			m_rGridFct.multi_indices(pElem, m_fct, ind);
-
-		//	check multi indices
-			if(ind.size() != num_sh)
-				UG_THROW("StdFuncIntegrand::values: Wrong number of"
-						" multi indices.");
-
-		//	loop all integration points
-			for(size_t ip = 0; ip < numIP; ++ip)
-			{
-
-			// 	compute approximated solution at integration point
-				number approxSolIP = 0.0;
-				for(size_t sh = 0; sh < num_sh; ++sh)
-				{
-					//	get value at shape point (e.g. corner for P1 fct)
-					//	and add shape fct at ip * value at shape
-					const number valSH = BlockRef(m_rGridFct[ind[sh][0]], ind[sh][1]);
-					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
-				}
-
-				//	get squared of difference
-				value[ip] = approxSolIP;
-
-			}
-
-			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
-			{
-				UG_THROW("StdFuncIntegrand::values: "<<ex.get_msg());
 			}
 		};
 };
@@ -713,6 +779,92 @@ number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* sub
 	return sqrt(l2norm2);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Standard Integrand
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TGridFunction, int TDim = TGridFunction::dim>
+class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
+{
+	public:
+	//	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+
+	//	reference element dimension
+		static const int elemDim = TDim;
+
+	private:
+	// grid function
+		TGridFunction& m_rGridFct;
+
+	//	component of function
+		const size_t m_fct;
+
+	public:
+	/// constructor
+		StdFuncIntegrand(TGridFunction& gridFct, size_t cmp)
+		: m_rGridFct(gridFct), m_fct(cmp)
+		{};
+
+	/// \copydoc IIntegrand::getValues
+		virtual void values(number vValue[],
+		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<elemDim> vLocIP[],
+		                    const MathMatrix<worldDim, elemDim> vJT[],
+		                    const size_t numIP)
+		{
+		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
+
+			const LFEID m_id = m_rGridFct.local_finite_element_id(m_fct);
+
+			try{
+		//	get trial space
+			const DimLocalShapeFunctionSet<elemDim>& rTrialSpace =
+							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
+
+		//	number of dofs on element
+			const size_t num_sh = rTrialSpace.num_sh();
+
+		//	get multiindices of element
+
+			std::vector<MultiIndex<2> > ind;  // 	aux. index array
+			m_rGridFct.multi_indices(pElem, m_fct, ind);
+
+		//	check multi indices
+			if(ind.size() != num_sh)
+				UG_THROW("StdFuncIntegrand::values: Wrong number of"
+						" multi indices.");
+
+		//	loop all integration points
+			for(size_t ip = 0; ip < numIP; ++ip)
+			{
+
+			// 	compute approximated solution at integration point
+				number approxSolIP = 0.0;
+				for(size_t sh = 0; sh < num_sh; ++sh)
+				{
+					//	get value at shape point (e.g. corner for P1 fct)
+					//	and add shape fct at ip * value at shape
+					const number valSH = BlockRef(m_rGridFct[ind[sh][0]], ind[sh][1]);
+					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
+				}
+
+				//	get squared of difference
+				vValue[ip] = approxSolIP;
+
+			}
+
+			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+			{
+				UG_THROW("StdFuncIntegrand::values: "<<ex.get_msg());
+			}
+		};
+};
+
+
 template <typename TGridFunction>
 number StdFuncIntegral(TGridFunction& u, const char* name, int quadOrder, const char* subsets)
 {
@@ -775,6 +927,9 @@ number StdFuncIntegral(TGridFunction& u, const char* name, int quadOrder, const 
 	return value;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Boundary Integral
+////////////////////////////////////////////////////////////////////////////////
 
 /// Integrates the Flux of a component over some boundary subsets
 /**

@@ -39,6 +39,11 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 //	group string
 	string grp = parentGroup; grp.append("");
 
+//	Integral
+	{
+		reg.add_function("Integral", &Integral<TFct>, grp);
+	}
+
 //	L2Error
 	{
 		reg.add_function("L2Error", static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number)>(&L2Error<TFct>), grp);

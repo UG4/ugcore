@@ -205,13 +205,84 @@ class IIPDimData : virtual public IIPData
 		std::vector<const MathVector<dim>*> m_vvGlobPos;
 };
 
+/// class directly providing ip data without predefining integration points
 template <typename TData, int dim, typename TRet = void>
 class IDirectIPData
 {
 	public:
-	///	returns value for a position
-		virtual TRet operator() (TData& D, const MathVector<dim>& x,
+	///	virtual destructor
+		virtual ~IDirectIPData() {}
+
+	///	returns value for a global position
+		virtual TRet operator() (TData& value,
+		                         const MathVector<dim>& globIP,
 		                         number time, int si) const;
+
+		////////////////
+		// one value
+		////////////////
+
+		virtual TRet operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<1>& locIP) const;
+
+		virtual TRet operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<2>& locIP) const;
+
+		virtual TRet operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<3>& locIP) const;
+
+		////////////////
+		// vector of values
+		////////////////
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<1> vLocIP[],
+		                        const size_t nip) const;
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<2> vLocIP[],
+		                        const size_t nip) const;
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<3> vLocIP[],
+		                        const size_t nip) const;
+
+	///	returns of grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return false;}
+
+	///	sets the function pattern for a possibly needed grid function
+		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}
+
 };
 
 // predeclaration

@@ -228,13 +228,13 @@ set_mass(const char* fctName)
 template <typename TDomain>
 typename ConvectionDiffusion<TDomain>::NumberExport
 ConvectionDiffusion<TDomain>::
-value() {return m_exConcentration;}
+value() {return m_exValue;}
 
 
 template <typename TDomain>
 typename ConvectionDiffusion<TDomain>::GradExport
 ConvectionDiffusion<TDomain>::
-gradient() {return m_exConcentrationGrad;}
+gradient() {return m_exGrad;}
 
 ////////////////////////////////////////////////////////////////////////////////
 //	general
@@ -244,8 +244,8 @@ template<typename TDomain>
 ConvectionDiffusion<TDomain>::
 ConvectionDiffusion(const char* functions, const char* subsets)
  : IDomainElemDisc<TDomain>(functions,subsets), m_spConvShape(new ConvectionShapesNoUpwind<dim>),
-   m_exConcentration(new DataExport<number, dim>),
-   m_exConcentrationGrad(new DataExport<MathVector<dim>, dim>)
+   m_exValue(new ValueDataExport<dim>(functions)),
+   m_exGrad(new GradientDataExport<dim>(functions))
 {
 //	check number of functions
 	if(this->num_fct() != 1)
@@ -253,8 +253,8 @@ ConvectionDiffusion(const char* functions, const char* subsets)
 					   " needs exactly "<<1<<" symbolic function.");
 
 //	register exports
-	this->register_export(m_exConcentration);
-	this->register_export(m_exConcentrationGrad);
+	this->register_export(m_exValue);
+	this->register_export(m_exGrad);
 
 //	register imports
 	this->register_import(m_imDiffusion);

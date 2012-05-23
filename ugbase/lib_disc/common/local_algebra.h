@@ -38,7 +38,25 @@ class LocalIndices
 		LocalIndices() {};
 
 	///	sets the number of functions
-		void resize_fct(size_t numFct) {m_vvIndex.resize(numFct);}
+		void resize_fct(size_t numFct)
+		{
+			m_vvIndex.resize(numFct);
+			m_vLFEID.resize(numFct);
+		}
+
+	///	sets the local finite element id for a function
+		void set_lfeID(size_t fct, const LFEID& lfeID)
+		{
+			UG_ASSERT(fct < m_vLFEID.size(), "Invalid index: "<<fct);
+			m_vLFEID[fct] = lfeID;
+		}
+
+	///	returns the local finite element id of a function
+		const LFEID& local_finite_element_id(size_t fct) const
+		{
+			UG_ASSERT(fct < m_vLFEID.size(), "Invalid index: "<<fct);
+			return m_vLFEID[fct];
+		}
 
 	///	sets the number of dofs of a function
 		void resize_dof(size_t fct, size_t numDoF)
@@ -139,6 +157,9 @@ class LocalIndices
 	protected:
 	// 	Mapping (fct, dof) -> local index
 		std::vector<std::vector<multi_index_type> > m_vvIndex;
+
+	//	Local finite element ids
+		std::vector<LFEID> m_vLFEID;
 };
 
 class LocalVector
@@ -260,6 +281,15 @@ class LocalVector
 		{
 			if(m_pFuncMap == NULL) return m_vvValue.size();
 			return m_pFuncMap->num_fct();
+		}
+
+	///	returns the local finite element id of a function
+		const LFEID& local_finite_element_id(size_t fct) const
+		{
+			UG_ASSERT(m_pIndex != NULL, "No indices present");
+			check_fct(fct);
+			if(m_pFuncMap == NULL) return m_pIndex->local_finite_element_id(fct);
+			else return m_pIndex->local_finite_element_id((*m_pFuncMap)[fct]);
 		}
 
 	///	returns the number of dofs for the currently accessible function

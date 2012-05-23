@@ -437,4 +437,6 @@ class DataExport : 	public DependentIPData<TData, dim>,
 // include implementation
 #include "data_import_export_impl.h"
 
+#include "std_data_export.h"
+
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_IMPORT_EXPORT__ */

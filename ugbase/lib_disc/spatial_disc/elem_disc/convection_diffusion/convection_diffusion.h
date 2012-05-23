@@ -580,10 +580,10 @@ class ConvectionDiffusion
 		                std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);
 
 	///	Export for the concentration
-		SmartPtr<DataExport<number, dim> > m_exConcentration;
+		SmartPtr<ValueDataExport<dim> > m_exValue;
 
 	///	Export for the gradient of concentration
-		SmartPtr<DataExport<MathVector<dim>, dim> > m_exConcentrationGrad;
+		SmartPtr<GradientDataExport<dim> > m_exGrad;
 
 	protected:
 	// 	FV1 Assemblings
