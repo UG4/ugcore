@@ -89,6 +89,10 @@ bool RegisterIntegrate(Registry& reg, std::string parentGroup = "/ug4");
 //	Suffix and Tag - Section
 ////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////
+//	Domain - Suffix and Tag
+////////////////////////////////////////////////////////////////////////////////
+
 /// returns the dim-suffix for a domain (e.g. "3d")
 template <int dim>
 std::string GetDomainSuffix()
@@ -125,6 +129,10 @@ inline std::string GetDomainTag(int dim)
 //	return the suffix
 	return ss.str();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//	Algebra - Suffix and Tag
+////////////////////////////////////////////////////////////////////////////////
 
 /// returns the algebra-suffix (e.g. "CPU3", "CPUFlex")
 template <typename TAlgebra>
@@ -186,6 +194,44 @@ inline std::string GetAlgebraTag(const AlgebraType& algType)
 	else ss << algType.blocksize() << ";";
 
 	return ss.str();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	Algebra + Domain - Suffix and Tag
+////////////////////////////////////////////////////////////////////////////////
+
+/// returns the algebra-dim-suffix for a domain (e.g. "3dCPU1")
+template <int dim, typename TAlgebra>
+std::string GetDomainAlgebraSuffix()
+{
+	std::string dimAlgSuffix = GetDomainSuffix<dim>();
+	dimAlgSuffix.append(GetAlgebraSuffix<TAlgebra>());
+	return dimAlgSuffix;
+}
+
+/// returns the dim-suffix for a domain (e.g. "3dCPU1")
+template <typename TDomain, typename TAlgebra>
+std::string GetDomainAlgebraSuffix(){return GetDomainAlgebraSuffix<TDomain::dim, TAlgebra>();}
+
+/// returns the dim-tag for a domain (e.g. "dim=3d;alg=CPU1;")
+template <int dim, typename TAlgebra>
+std::string GetDomainAlgebraTag()
+{
+	std::string dimAlgTag = GetDomainTag<dim>();
+	dimAlgTag.append(GetAlgebraTag<TAlgebra>());
+	return dimAlgTag;
+}
+
+/// returns the dim-tag for a domain (e.g. "dim=3d;alg=CPU1;")
+template <typename TDomain, typename TAlgebra>
+std::string GetDomainAlgebraTag(){return GetDomainAlgebraTag<TDomain::dim, TAlgebra>();}
+
+/// returns dim tag at runtime (e.g. "dim=3d;alg=CPU1;")
+inline std::string GetDomainAlgebraTag(int dim, const AlgebraType& algType)
+{
+	std::string dimAlgTag = GetDomainTag(dim);
+	dimAlgTag.append(GetAlgebraTag(algType));
+	return dimAlgTag;
 }
 
 }//	end of namespace 
