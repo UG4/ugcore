@@ -1,7 +1,7 @@
+#!/usr/bin/env perl
 # this code is based on code from Alec Chen
 # changed by Martin Rupp. More copyright information follows.
 
-#!/usr/bin/env perl
 
 use strict;
 use warnings;
