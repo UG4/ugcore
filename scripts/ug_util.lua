@@ -186,7 +186,6 @@ end
 -- Command line functions
 --------------------------------------------------------------------------------
 
-
 --- util.GetParam
 -- returns parameter in ugargv after ugargv[i] == name
 -- @param name parameter in ugargv to search for
@@ -194,11 +193,17 @@ end
 -- @return parameter in ugargv after ugargv[i] == name
 function util.GetParam(name, return_if_unavailable)
 	local i
+	util.args = util.args or {}
 	for i = 1, ugargc-1 do
 		if ugargv[i] == name then
+			util.argUsed = util.argUsed or {}
+			util.argUsed[i]=true
+			util.argUsed[i+1]=true
+			util.args[name] = ugargv[i+1]
 			return ugargv[i+1]
 		end
 	end
+	util.args[name] = " (string)"
 	return return_if_unavailable; 
 end
 
@@ -209,14 +214,20 @@ end
 -- @param name parameter in ugargv to search for
 -- @return the number after the parameter 'name'
 function util.GetParamNumber(name, return_if_unavailable)
-	local param = util.GetParam(name, return_if_unavailable)
-	local number = tonumber(param)
-	if number == nil then
-		print("WARNING: Parameter "..name.." is not a number, using "..return_if_unavailable.." instead\n") 
+	local param = util.GetParam(name, nil)
+	if param == nil then
+		util.args[name]=" (number)" 
 		return return_if_unavailable
 	else
-		return number
-	end
+		local number = tonumber(param)
+		if number == nil then
+			print("WARNING: Parameter "..name.." is not a number, using "..return_if_unavailable.." instead\n")
+			util.args[name]=" (number) " 
+			return return_if_unavailable
+		else
+			return number
+		end
+	end	
 end
 
 --- util.HasParamOption
@@ -224,11 +235,16 @@ end
 -- @param name option in argv to search for
 -- @return true if option found, else false
 function util.HasParamOption(name)
+	util.args = util.args or {}
 	for i = 1, ugargc do
 		if ugargv[i] == name then
+			util.argUsed = util.argUsed or {}
+			util.argUsed[i]=true
+			util.args[name] = "true"
 			return true
 		end
 	end
+	util.args[name]=" [option]"	
 	return false 
 end
 
@@ -238,6 +254,53 @@ function util.GetCommandLine()
 		pline = pline..ugargv[i].." "
 	end
 	return pline
+end
+
+--- lists all the command line arguments which where used or could
+--  have been used with util.GetParam, util.GetParamNumber and util.HasParamOption
+function util.PrintArguments()
+	print("used command line arguments:")
+	for name,value in pairsSortedByKeys(util.args) do
+		if string.sub(value,1,1) ~= " " then
+			print(name.." = " ..value)
+		end
+	end
+	local pline=""
+	for name,value in pairsSortedByKeys(util.args) do
+		if string.sub(value,1,1) == " " then
+			pline=pline..name..value..", "
+		end
+	end
+	if pline ~= "" then
+		print("Arguments which could have been used:")
+		print(string.sub(pline, 1, string.len(pline)-2))
+	end
+end
+
+--- lists all command line arguments which were provided but could not be used.
+function util.PrintIgnoredArguments()
+	local pline = ""
+	for i=1, ugargc do
+		if util.argUsed == nil or util.argUsed[i] == nil then
+			local imin=4
+			local namemin=""
+			for name in pairs(util.args) do
+				local d = LevenshteinDistance(name, ugargv[i])
+				if d < imin then
+					imin = d
+					namemin = name
+				end
+			end
+			if imin < 4 then
+				pline=pline..ugargv[i].." (did you mean "..namemin.."?)\n"
+			else 
+				pline=pline..ugargv[i]
+			end
+		end
+	end
+	if pline ~= "" then
+		print("Ignored command line arguments:\n"..pline)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -264,6 +327,23 @@ function util.PrintTable(tablePar)
 	util.PrintTableHelper("", tablePar)
 end
 
+--- pairsSortedByKeys
+-- the normal pairs(table) function returns elements unsorted
+-- this function goes through elements sorted.
+-- see http://www.lua.org/pil/19.3.html
+function pairsSortedByKeys (t, f)
+	local a = {}
+    for n in pairs(t) do table.insert(a, n) end
+    table.sort(a, f)
+    local i = 0      -- iterator variable
+    local iter = function ()   -- iterator function
+    	i = i + 1
+        if a[i] == nil then return nil
+        else return a[i], t[a[i]]
+        end
+    end
+	return iter
+end
 
 --------------------------------------------------------------------------------
 -- basic functions missing lua
@@ -371,3 +451,4 @@ function FreeUserData()
    -- call garbage collector
    collectgarbage("collect")
 end
+
