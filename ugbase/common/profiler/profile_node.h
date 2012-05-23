@@ -16,14 +16,14 @@ namespace ug
 {
 
 /**
- * UGProfilerNode class for more information about Shiny's ProfileNode.
+ * UGProfileNode class for more information about Shiny's ProfileNode.
  *
  * \note do NOT introduce variables or virtual functions to this class.
- * Shiny::ProfileNode are cast directly to UGProfilerNode and therefore are
+ * Shiny::ProfileNode are cast directly to UGProfileNode and therefore are
  * assumed to have exactly the same size and format.
  * If you really need to change that you'd have to change the whole GetProfileNode-process.
  */
-class UGProfilerNode
+class UGProfileNode
 #if SHINY_PROFILER
 : public Shiny::ProfileNode
 #endif
@@ -67,25 +67,25 @@ public:
 #if SHINY_PROFILER
 private:
 	std::string print_node(double full, size_t offset=0) const;
-	const UGProfilerNode *get_first_child() const;
-	const UGProfilerNode *get_last_child() const;
-	const UGProfilerNode *get_next_sibling() const;
+	const UGProfileNode *get_first_child() const;
+	const UGProfileNode *get_last_child() const;
+	const UGProfileNode *get_next_sibling() const;
 
 	void rec_print(double full, std::stringstream &s, size_t offset, double dSkipMarginal) const;
-	void add_nodes(std::vector<const UGProfilerNode*> &nodes) const;
-	std::string child_sorted(const char *name, bool sortFunction(const UGProfilerNode *a, const UGProfilerNode *b),
+	void add_nodes(std::vector<const UGProfileNode*> &nodes) const;
+	std::string child_sorted(const char *name, bool sortFunction(const UGProfileNode *a, const UGProfileNode *b),
 			double dSkipMarginal) const;
 	static void log_header(std::stringstream &s, const char *name);
-	static bool self_time_sort(const UGProfilerNode *a, const UGProfilerNode *b);
-	static bool total_time_sort(const UGProfilerNode *a, const UGProfilerNode *b);
-	static bool entry_count_sort(const UGProfilerNode *a, const UGProfilerNode *b);
+	static bool self_time_sort(const UGProfileNode *a, const UGProfileNode *b);
+	static bool total_time_sort(const UGProfileNode *a, const UGProfileNode *b);
+	static bool entry_count_sort(const UGProfileNode *a, const UGProfileNode *b);
 #endif
 
 	// do NOT add variables or virtual functions here (see above).
 };
 
 
-const UGProfilerNode *GetProfileNode(const char *name);
+const UGProfileNode *GetProfileNode(const char *name);
 bool GetProfilerAvailable();
 
 }

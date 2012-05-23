@@ -44,79 +44,79 @@ static string cut(const char *p, size_t L)
 // (WE do call update with damping = 1.0 of course)
 #define SHINY_DAMPING_FACTOR 0.9
 
-double UGProfilerNode::get_avg_entry_count() const
+double UGProfileNode::get_avg_entry_count() const
 {
 	if(!valid()) return 0.0;
 	return data.entryCount.avg; // * SHINY_DAMPING_FACTOR;
 }
 
-double UGProfilerNode::get_avg_self_time_ms() const
+double UGProfileNode::get_avg_self_time_ms() const
 {
 	return get_avg_self_time() / 1000.0;
 }
 
-double UGProfilerNode::get_avg_total_time_ms() const
+double UGProfileNode::get_avg_total_time_ms() const
 {
 	return get_avg_total_time() / 1000.0;
 }
 
-double UGProfilerNode::get_avg_self_time() const
+double UGProfileNode::get_avg_self_time() const
 {
 	if(!valid()) return 0.0;
 	return data.selfTicks.avg * SHINY_DAMPING_FACTOR;
 }
 
-double UGProfilerNode::get_avg_total_time() const
+double UGProfileNode::get_avg_total_time() const
 {
 	if(!valid()) return 0.0;
 	return data.totalTicksAvg() * SHINY_DAMPING_FACTOR;
 }
 
-string UGProfilerNode::call_tree(double dSkipMarginal) const
+string UGProfileNode::call_tree(double dSkipMarginal) const
 {
 	if(!valid()) return "Profile Node not valid!";
 
 	stringstream s;
-	UGProfilerNode::log_header(s, "call tree");
+	UGProfileNode::log_header(s, "call tree");
 
 	rec_print(get_avg_total_time(), s, 0, dSkipMarginal);
 
 	return s.str();
 }
 
-string UGProfilerNode::call_tree() const
+string UGProfileNode::call_tree() const
 {
 	return call_tree(0.0);
 }
 
-string UGProfilerNode::child_self_time_sorted(double dSkipMarginal) const
+string UGProfileNode::child_self_time_sorted(double dSkipMarginal) const
 {
-	return child_sorted("self time sorted", UGProfilerNode::self_time_sort, dSkipMarginal);
+	return child_sorted("self time sorted", UGProfileNode::self_time_sort, dSkipMarginal);
 }
-string UGProfilerNode::child_self_time_sorted() const
+string UGProfileNode::child_self_time_sorted() const
 {
 	return child_self_time_sorted(0.0);
 }
 
-string UGProfilerNode::total_time_sorted(double dSkipMarginal) const
+string UGProfileNode::total_time_sorted(double dSkipMarginal) const
 {
-	return child_sorted("total time sorted", UGProfilerNode::total_time_sort, dSkipMarginal);
+	return child_sorted("total time sorted", UGProfileNode::total_time_sort, dSkipMarginal);
 }
-string UGProfilerNode::total_time_sorted() const
+string UGProfileNode::total_time_sorted() const
 {
 	return total_time_sorted(0.0);
 }
 
-string UGProfilerNode::entry_count_sorted(double dSkipMarginal) const
+string UGProfileNode::entry_count_sorted(double dSkipMarginal) const
 {
-	return child_sorted("entry count sorted", UGProfilerNode::entry_count_sort, dSkipMarginal);
+	return child_sorted("entry count sorted", UGProfileNode::entry_count_sort, dSkipMarginal);
 }
-string UGProfilerNode::entry_count_sorted() const
+string UGProfileNode::entry_count_sorted() const
 {
 	return entry_count_sorted(0.0);
 }
 
-bool UGProfilerNode::valid() const
+bool UGProfileNode::valid() const
 {
 	return this != NULL;
 }
@@ -124,7 +124,7 @@ bool UGProfilerNode::valid() const
 // private functions
 
 
-string UGProfilerNode::print_node(double full, size_t offset) const
+string UGProfileNode::print_node(double full, size_t offset) const
 {
 	if(!valid()) return "";
 	double totalTicksAvg = get_avg_total_time();
@@ -145,28 +145,28 @@ string UGProfilerNode::print_node(double full, size_t offset) const
 	return s.str();
 }
 
-const UGProfilerNode *UGProfilerNode::get_first_child() const
+const UGProfileNode *UGProfileNode::get_first_child() const
 {
-	return reinterpret_cast<const UGProfilerNode*>(firstChild);
+	return reinterpret_cast<const UGProfileNode*>(firstChild);
 }
 
-const UGProfilerNode *UGProfilerNode::get_last_child() const
+const UGProfileNode *UGProfileNode::get_last_child() const
 {
-	return reinterpret_cast<const UGProfilerNode*>(lastChild);
+	return reinterpret_cast<const UGProfileNode*>(lastChild);
 }
 
-const UGProfilerNode *UGProfilerNode::get_next_sibling() const
+const UGProfileNode *UGProfileNode::get_next_sibling() const
 {
-	return reinterpret_cast<const UGProfilerNode*>(nextSibling);
+	return reinterpret_cast<const UGProfileNode*>(nextSibling);
 }
 
-void UGProfilerNode::rec_print(double full, stringstream &s, size_t offset, double dSkipMarginal) const
+void UGProfileNode::rec_print(double full, stringstream &s, size_t offset, double dSkipMarginal) const
 {
 	if(!valid()) return;
 	if(dSkipMarginal==0.0 || full*dSkipMarginal < get_avg_total_time())
 	{
 		s << print_node(full, offset) << "\n";
-		for(const UGProfilerNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
+		for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 		{
 			p->rec_print(full, s, offset+1, dSkipMarginal);
 			if(p==get_last_child())
@@ -175,10 +175,10 @@ void UGProfilerNode::rec_print(double full, stringstream &s, size_t offset, doub
 	}
 }
 
-void UGProfilerNode::add_nodes(vector<const UGProfilerNode*> &nodes) const
+void UGProfileNode::add_nodes(vector<const UGProfileNode*> &nodes) const
 {
 	nodes.push_back(this);
-	for(const UGProfilerNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
+	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 	{
 		p->add_nodes(nodes);
 		if(p==get_last_child())
@@ -186,16 +186,16 @@ void UGProfilerNode::add_nodes(vector<const UGProfilerNode*> &nodes) const
 	}
 }
 
-string UGProfilerNode::child_sorted(const char *name, bool sortFunction(const UGProfilerNode *a, const UGProfilerNode *b),
+string UGProfileNode::child_sorted(const char *name, bool sortFunction(const UGProfileNode *a, const UGProfileNode *b),
 		double dSkipMarginal) const
 {
 	if(!valid()) return "";
 	stringstream s;
-	vector<const UGProfilerNode*> nodes;
+	vector<const UGProfileNode*> nodes;
 	add_nodes(nodes);
 	sort(nodes.begin(), nodes.end(), sortFunction);
 
-	UGProfilerNode::log_header(s, name);
+	UGProfileNode::log_header(s, name);
 	double full = get_avg_total_time();
 	for(size_t i=0; i<nodes.size(); i++)
 	{
@@ -205,7 +205,7 @@ string UGProfilerNode::child_sorted(const char *name, bool sortFunction(const UG
 	return s.str();
 }
 
-void UGProfilerNode::log_header(stringstream &s, const char *name)
+void UGProfileNode::log_header(stringstream &s, const char *name)
 {
 
 	s << 	left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME) << name << " " <<
@@ -214,23 +214,23 @@ void UGProfilerNode::log_header(stringstream &s, const char *name)
 			setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+4+PROFILER_BRIDGE_OUTPUT_WIDTH_PERC+1) << "total time"  << " \n";
 }
 
-bool UGProfilerNode::self_time_sort(const UGProfilerNode *a, const UGProfilerNode *b)
+bool UGProfileNode::self_time_sort(const UGProfileNode *a, const UGProfileNode *b)
 {
 	return a->get_avg_self_time() < b->get_avg_self_time();
 }
 
-bool UGProfilerNode::total_time_sort(const UGProfilerNode *a, const UGProfilerNode *b)
+bool UGProfileNode::total_time_sort(const UGProfileNode *a, const UGProfileNode *b)
 {
 	return a->get_avg_total_time() < b->get_avg_total_time();
 }
 
-bool UGProfilerNode::entry_count_sort(const UGProfilerNode *a, const UGProfilerNode *b)
+bool UGProfileNode::entry_count_sort(const UGProfileNode *a, const UGProfileNode *b)
 {
 	return a->get_avg_entry_count() < b->get_avg_entry_count();
 }
 
 
-const UGProfilerNode *GetProfileNode(const char *name)
+const UGProfileNode *GetProfileNode(const char *name)
 {
 	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
 
@@ -238,7 +238,7 @@ const UGProfilerNode *GetProfileNode(const char *name)
 	do
 	{
 		if(strcmp(node->zone->name, name) == 0)
-			return reinterpret_cast<const UGProfilerNode*> (node);
+			return reinterpret_cast<const UGProfileNode*> (node);
 		node = node->findNextInTree();
 	} while (node);
 
@@ -254,72 +254,72 @@ bool GetProfilerAvailable()
 #else
 
 
-double UGProfilerNode::get_avg_entry_count() const
+double UGProfileNode::get_avg_entry_count() const
 {
 	return 0;
 }
 
 /// \return time in milliseconds spend in this node excluding subnodes
-double UGProfilerNode::get_avg_self_time_ms() const
+double UGProfileNode::get_avg_self_time_ms() const
 {
 	return 0.0;
 }
 
 /// \return time in milliseconds spend in this node including subnodes
-double UGProfilerNode::get_avg_total_time_ms() const
+double UGProfileNode::get_avg_total_time_ms() const
 {
 	return 0.0;
 }
 
-string UGProfilerNode::call_tree(double dSkipMarginal) const
+string UGProfileNode::call_tree(double dSkipMarginal) const
 {
 	return "Profiler not available!";
 }
 
-string UGProfilerNode::call_tree() const
+string UGProfileNode::call_tree() const
 {
 	return call_tree(0.0);
 }
 
-string UGProfilerNode::child_self_time_sorted(double dSkipMarginal) const
+string UGProfileNode::child_self_time_sorted(double dSkipMarginal) const
 {
 	return "Profiler not available!";
 }
 
-string UGProfilerNode::child_self_time_sorted() const
+string UGProfileNode::child_self_time_sorted() const
 {
 	return child_self_time_sorted(0.0);
 }
 
-string UGProfilerNode::total_time_sorted(double dSkipMarginal) const
+string UGProfileNode::total_time_sorted(double dSkipMarginal) const
 {
 	return "Profiler not available!";
 }
 
-string UGProfilerNode::total_time_sorted() const
+string UGProfileNode::total_time_sorted() const
 {
 	return total_time_sorted(0.0);
 }
 
-string UGProfilerNode::entry_count_sorted(double dSkipMarginal) const
+string UGProfileNode::entry_count_sorted(double dSkipMarginal) const
 {
 	return "Profiler not available!";
 }
 
-string UGProfilerNode::entry_count_sorted() const
+string UGProfileNode::entry_count_sorted() const
 {
 	return entry_count_sorted(0.0);
 }
 
 /// \return true if node has been found
-bool UGProfilerNode::valid() const
+bool UGProfileNode::valid() const
 {
 	return false;
 }
 
 
 
-const UGProfilerNode *GetProfileNode(const char *name)
+const UGProfileNode *GetProfileNode(const char *name)
 {
 	return NULL;
 }
