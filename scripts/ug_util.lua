@@ -5,7 +5,7 @@ ug_load_script("util/test_utils.lua")
 ug_load_script("util/partition_maps.lua")
 ug_load_script("util/stats_util.lua")
 
--- returns the standard path at which grids are stored
+--! returns the standard path at which grids are stored
 function util.GetGridPath()
 	return ug_get_data_path().."/grids/"
 end
@@ -26,7 +26,7 @@ end
 -- User Data utils
 --------------------------------------------------------------------------------
 
--- creates a Const User Matrix 2d 
+--! creates a Const User Matrix 2d 
 function util.CreateConstUserMatrix2d(m00, m01, m10, m11)
 	local mat = ConstUserMatrix2d()
 	mat:set_entry(0, 0, m00)
@@ -36,7 +36,7 @@ function util.CreateConstUserMatrix2d(m00, m01, m10, m11)
 	return mat
 end
 
--- creates a Const User Matrix 3d
+--! creates a Const User Matrix 3d
 function util.CreateConstUserMatrix3d(m00, m01, m02, m10, m11, m12, m20, m21, m22)
 	local mat = ConstUserMatrix3d()
 	mat:set_entry(0, 0, m00)
@@ -51,7 +51,7 @@ function util.CreateConstUserMatrix3d(m00, m01, m02, m10, m11, m12, m20, m21, m2
 	return mat
 end
 
--- creates a Const User Vector 2d
+--! creates a Const User Vector 2d
 function util.CreateConstUserVector2d(v0, v1)
 	local vec = ConstUserVector2d()
 	vec:set_entry(0, v0)
@@ -59,7 +59,7 @@ function util.CreateConstUserVector2d(v0, v1)
 	return vec
 end
 
--- creates a Const User Vector 3d
+--! creates a Const User Vector 3d
 function util.CreateConstUserVector3d(v0, v1, v2)
 	local vec = ConstUserVector3d()
 	vec:set_entry(0, v0)
@@ -72,11 +72,11 @@ end
 -- Subset utils
 --------------------------------------------------------------------------------
 
---- util.CheckSubsets
--- checks if all required subsets are contained in the SubsetHandler
--- @param dom Domain
--- @param neededSubsets List of subsets the SubsetHandler must contain
--- @return true if all subsets are contained, false else
+--! util.CheckSubsets
+--! checks if all required subsets are contained in the SubsetHandler
+--! @param dom Domain
+--! @param neededSubsets List of subsets the SubsetHandler must contain
+--! @return true if all subsets are contained, false else
 function util.CheckSubsets(dom, neededSubsets)
 	sh = dom:subset_handler()
 	for i, tval in ipairs(neededSubsets) do
@@ -142,7 +142,7 @@ end
 --------------------------------------------------------------------------------
 -- some auxiliary functions
 --------------------------------------------------------------------------------
--- function returns true if the number is a power of two
+--! function returns true if the number is a power of two
 function util.IsPowerOfTwo(n)
 	local number compare = 1
 
@@ -153,7 +153,7 @@ function util.IsPowerOfTwo(n)
 	return compare==n
 end
 
--- function returns true if the number is a natural number
+--! function returns true if the number is a natural number
 function util.IsNaturalNumber(n)
 	if n-math.floor(n) == 0 then
 		return true
@@ -162,9 +162,9 @@ function util.IsNaturalNumber(n)
 	end
 end
 
--- function to factorise number which has to be a power of 2 in two factors
--- which differ at most by a factor of 2 and returns both
--- (first the smaller one, then the larger one).
+--! function to factorise number which has to be a power of 2 in two factors
+--! which differ at most by a factor of 2 and returns both
+--! (first the smaller one, then the larger one).
 function util.FactorizeInPowersOfTwo(n)
 	if not util.IsPowerOfTwo(n) then
 		print("Number to factorise must be a power of 2. Aborting.")
@@ -186,11 +186,11 @@ end
 -- Command line functions
 --------------------------------------------------------------------------------
 
---- util.GetParam
--- returns parameter in ugargv after ugargv[i] == name
--- @param name parameter in ugargv to search for
--- @param return_if_unavailable when parameter 'name' is not found, this will be returned
--- @return parameter in ugargv after ugargv[i] == name
+--! util.GetParam
+--! returns parameter in ugargv after ugargv[i] == name
+--! @param name parameter in ugargv to search for
+--! @param return_if_unavailable when parameter 'name' is not found, this will be returned
+--! @return parameter in ugargv after ugargv[i] == name
 function util.GetParam(name, return_if_unavailable)
 	local i
 	util.args = util.args or {}
@@ -208,11 +208,11 @@ function util.GetParam(name, return_if_unavailable)
 end
 
 
---- util.GetParamNumber
--- use with CommandLine to get option, like -useAMG
--- if parameter is not a number, returns return_if_unavailable
--- @param name parameter in ugargv to search for
--- @return the number after the parameter 'name'
+--! util.GetParamNumber
+--! use with CommandLine to get option, like -useAMG
+--! if parameter is not a number, returns return_if_unavailable
+--! @param name parameter in ugargv to search for
+--! @return the number after the parameter 'name'
 function util.GetParamNumber(name, return_if_unavailable)
 	local param = util.GetParam(name, nil)
 	if param == nil then
@@ -230,10 +230,10 @@ function util.GetParamNumber(name, return_if_unavailable)
 	end	
 end
 
---- util.HasParamOption
--- use with CommandLine to get option, like -useAMG
--- @param name option in argv to search for
--- @return true if option found, else false
+--! util.HasParamOption
+--! use with CommandLine to get option, like -useAMG
+--! @param name option in argv to search for
+--! @return true if option found, else false
 function util.HasParamOption(name)
 	util.args = util.args or {}
 	for i = 1, ugargc do
@@ -242,7 +242,7 @@ function util.HasParamOption(name)
 			util.argUsed[i]=true
 			util.args[name] = "true"
 			return true
-		end
+		end		
 	end
 	util.args[name]=" [option]"	
 	return false 
@@ -256,8 +256,8 @@ function util.GetCommandLine()
 	return pline
 end
 
---- lists all the command line arguments which where used or could
---  have been used with util.GetParam, util.GetParamNumber and util.HasParamOption
+--! lists all the command line arguments which where used or could
+--! have been used with util.GetParam, util.GetParamNumber and util.HasParamOption
 function util.PrintArguments()
 	print("used command line arguments:")
 	for name,value in pairsSortedByKeys(util.args) do
@@ -277,7 +277,7 @@ function util.PrintArguments()
 	end
 end
 
---- lists all command line arguments which were provided but could not be used.
+--! lists all command line arguments which were provided but could not be used.
 function util.PrintIgnoredArguments()
 	local pline = ""
 	for i=1, ugargc do
@@ -321,16 +321,16 @@ function util.PrintTableHelper(indexPar, valuePar)
 	end
 end
 
--- to print tables
+--! to print tables
 function util.PrintTable(tablePar)
 	util.PrintTableHelperIntend = ""
 	util.PrintTableHelper("", tablePar)
 end
 
---- pairsSortedByKeys
--- the normal pairs(table) function returns elements unsorted
--- this function goes through elements sorted.
--- see http://www.lua.org/pil/19.3.html
+--! pairsSortedByKeys
+--! the normal pairs(table) function returns elements unsorted
+--! this function goes through elements sorted.
+--! see http://www.lua.org/pil/19.3.html
 function pairsSortedByKeys (t, f)
 	local a = {}
     for n in pairs(t) do table.insert(a, n) end
@@ -349,7 +349,7 @@ end
 -- basic functions missing lua
 --------------------------------------------------------------------------------
 
--- adds writeln 
+--! adds writeln 
 function writeln(...)
 	write(...)
 	write("\n")
@@ -364,10 +364,10 @@ printf = function(s,...)
 	print(formatf(...))
 end
 
---- fsize
--- returns the filesize of a file (http://www.lua.org/pil/21.3.html)
--- @param file
--- @return filesize
+--! fsize
+--! returns the filesize of a file (http://www.lua.org/pil/21.3.html)
+--! @param file
+--! @return filesize
 function fsize (file)
 	local current = file:seek()      -- get current position
     local size = file:seek("end")    -- get file size
@@ -401,7 +401,7 @@ function ListUserDataInTable(t, name)
     end
 end
 
--- Lists all user data (even in tables)
+--! Lists all user data (even in tables)
 function ListUserData()
    	for n,v in pairs(_G) do
 	   -- all userdata
@@ -433,7 +433,7 @@ function FreeUserDataInTable(t)
     end
 end
 
--- sets all userdata to nil (even in tables) and calls garbage collector
+--! sets all userdata to nil (even in tables) and calls garbage collector
 function FreeUserData()
    -- set user data to nil
    for n,v in pairs(_G) do

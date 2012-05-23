@@ -43,8 +43,8 @@ util = util or {}
 -- instead of defining -logtofile from the shell, you could also make something like
 -- GetLogAssistant():enable_file_output(true, util.GetParam("-outdir". "").."check_numRefs"..numRefs.."_procs"..procs..".txt")
 
---- util.getStats
--- internal method
+--! util.getStats
+--! internal method
 function util.getStats(stats, bHeader, seperator, bStats, seperator2)
 	local output=""
 	for i,v in ipairs(stats) do
@@ -63,11 +63,11 @@ function util.getStats(stats, bHeader, seperator, bStats, seperator2)
 end
 
 
---- util.writeFileStats
--- writes stats to a file
--- @param stats
--- @param filename
--- @param seperator (default " \t")
+--! util.writeFileStats
+--! writes stats to a file
+--! @param stats
+--! @param filename
+--! @param seperator (default " \t")
 function util.writeFileStats(stats, filename, seperator)
 	if seperator == nil then
 		seperator = " \t"
@@ -86,10 +86,10 @@ function util.writeFileStats(stats, filename, seperator)
 end
 
 
---- util.fill
--- returns a string consisting of N times the character c
--- @param N number of times c is to be repeated
--- @param c character to repeat (if omitted, " ")
+--! util.fill
+--! returns a string consisting of N times the character c
+--! @param N number of times c is to be repeated
+--! @param c character to repeat (if omitted, " ")
 function util.fill(N, c)
 	local s=""
 	if c == nil then c = " " end
@@ -99,12 +99,12 @@ function util.fill(N, c)
 	return s
 end
 
---- util.adjuststring
--- returns a string with whitespace left and right so that total string length
--- is len
--- @param str   string used
--- @param len   total length of resulting string
--- @param type  padding type: "l" = string is on left, "c" = centered, "r" = right. default "l"
+--! util.adjuststring
+--! returns a string with whitespace left and right so that total string length
+--! is len
+--! @param str   string used
+--! @param len   total length of resulting string
+--! @param type  padding type: "l" = string is on left, "c" = centered, "r" = right. default "l"
 function util.adjuststring(str, len, type)
 	if type == nil then
 		type = "l"
@@ -119,9 +119,9 @@ function util.adjuststring(str, len, type)
 	return util.fill(m)..str..util.fill(len-m-l)
 end
 
---- util.printStats
--- prints stats to the console
--- @param stats
+--! util.printStats
+--! prints stats to the console
+--! @param stats
 function util.printStats(stats)
 	local maxlen=2
 	for i,v in ipairs(stats) do
@@ -152,12 +152,12 @@ output:
 3 |  hey |      |
 ]]--
 
---- util.printFormattedTable
--- prints stats to the console
--- @param tab		table in the form t={{["colA"
--- @param header	colums to be printed, like {"colA", "colB"}
--- @param type		type of column padding ("r", "l" or "c", default "l")
--- @param bNumbers	if true, print a colum with the number of the table (default false)
+--! util.printFormattedTable
+--! prints stats to the console
+--! @param tab		table in the form t={{["colA"
+--! @param header	colums to be printed, like {"colA", "colB"}
+--! @param type		type of column padding ("r", "l" or "c", default "l")
+--! @param bNumbers	if true, print a colum with the number of the table (default false)
 function util.printFormattedTable(tab, header, type, bNumbers)
 	local length = {}
 	local j, col, i, v
@@ -227,12 +227,12 @@ col3: |  3  |  6  |       |
 
 ]]--
 
---- util.printFormattedTable
--- prints stats to the console, sideways
--- @param tab		table in the form t={{["colA"
--- @param header	colums to be printed, like {"colA", "colB"}
--- @param type		type of row padding ("r", "l" or "c", default "l")
--- @param bNumbers	if true, print a colum with the number of the table (default false)
+--! util.printFormattedTable
+--! prints stats to the console, sideways
+--! @param tab		table in the form t={{["colA"
+--! @param header	colums to be printed, like {"colA", "colB"}
+--! @param type		type of row padding ("r", "l" or "c", default "l")
+--! @param bNumbers	if true, print a colum with the number of the table (default false)
 function util.printFormattedTableSideways(tab, header, type, bNumbers)
 	local length = {}
 	local j, col, i, v
