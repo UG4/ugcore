@@ -30,7 +30,7 @@ cat .ssh/id_rsa.pub | ssh mrupp@cluster.de 'umask 077; cat >> .ssh/authorized_ke
 
 
 <hr>
-\section secSSHHoping SSH Hoping
+\section secSSHHopping SSH Hopping
 
 Many supercomputers are only accessible by some fixed IP you specify.
 Since at home we do not have a fixed IP, you have to use SSH hoping.
@@ -107,7 +107,7 @@ unmounting is done via
 umount ~/sshvolumes/mrupp@supercomputer
 \endverbatim
 
-\note SSHFS also works together with \ref secSSHHoping and \ref secSSHKeys.
+\note SSHFS also works together with \ref secSSHHopping and \ref secSSHKeys.
 For Windows, try <a href="http://dokan-dev.net/en/download/">Dokan library</a>.
 <!--
 TODO: Add install help for windows/linux
