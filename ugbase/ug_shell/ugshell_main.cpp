@@ -321,166 +321,184 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 */
+	bool bAbort=false;
+	int ret = 0;
 
-	LOG("********************************************************************************\n");
-	std::string aux_str(""); // for nicer output we need some padding with spaces ...
+	try{
+		LOG("********************************************************************************\n");
+		std::string aux_str(""); // for nicer output we need some padding with spaces ...
 
-	aux_str.append("* ugshell - ug").append(UGGetVersionString()).append(", head revision '").append(SVN_REVISION).append("',");
-	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
+		aux_str.append("* ugshell - ug").append(UGGetVersionString()).append(", head revision '").append(SVN_REVISION).append("',");
+		LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 
-	aux_str = "";
-	aux_str.append("*                    compiled '").append(COMPILE_DATE).append("'");
-	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
-
-	aux_str = "";
-	aux_str.append("*                    on '").append(BUILD_HOST).append("'.");
-	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
-
-	LOG("*                                                                              *\n");
-	LOG("* arguments:                                                                   *\n");
-	LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");
-	LOG("*   -ex scriptname:      Executes the specified script.                        *\n");
-	LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
-	LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
-	LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
-	LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
-	LOG("*                                                                              *\n");
+		aux_str = "";
+		aux_str.append("*                    compiled '").append(COMPILE_DATE).append("'");
+		LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 	
-//	initialize the rest of ug
-	LOG("* Initializing: paths... ");
-	if(InitPaths((argv)[0]))	{UG_LOG("done");}
-	else						{UG_LOG("fail");}
+		aux_str = "";
+		aux_str.append("*                    on '").append(BUILD_HOST).append("'.");
+		LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
 	
-	UG_LOG(", bridge... ");
-	if(bridge::InitBridge())	{UG_LOG("done");}
-	else						{UG_LOG("fail");}
+		LOG("*                                                                              *\n");
+		LOG("* arguments:                                                                   *\n");
+		LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");
+		LOG("*   -ex scriptname:      Executes the specified script.                        *\n");
+		LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
+		LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
+		LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
+		LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
+		LOG("*                                                                              *\n");
+
+	//	initialize the rest of ug
+		LOG("* Initializing: paths... ");
+		if(InitPaths((argv)[0]))	{UG_LOG("done");}
+		else						{UG_LOG("fail");}
+
+		UG_LOG(", bridge... ");
+		if(bridge::InitBridge())	{UG_LOG("done");}
+		else						{UG_LOG("fail");}
+
+		FileExists("");
+		#ifdef UG_PLUGINS
+			UG_LOG(", plugins... ");
+			#ifdef UG_STATIC
+				InitializeStaticPlugins(&bridge::GetUGRegistry(), "ug4/");
+				UG_LOG("done                 *\n");
+			#else
+				if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))	{UG_LOG("done");}
+				else																	{UG_LOG("fail");}
+				UG_LOG("                 *\n");
+			#endif
 	
-	FileExists("");
-	#ifdef UG_PLUGINS
-		UG_LOG(", plugins... ");
-		#ifdef UG_STATIC
-			InitializeStaticPlugins(&bridge::GetUGRegistry(), "ug4/");
-			UG_LOG("done                 *\n");
 		#else
-			if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))	{UG_LOG("done");}
-			else																	{UG_LOG("fail");}
-			UG_LOG("                 *\n");
+			UG_LOG("                                  *\n");
+		#endif
+	
+		LOG("********************************************************************************\n");
+	}
+	catch(UGError &err)
+	{
+		PathProvider::clear_current_path_stack();
+		UG_LOG("UGError occurred during initialization:\n");
+		for(size_t i=0; i<err.num_msg(); i++)
+			UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
+		UG_LOG("\n");
+		UG_LOG("terminating ugshell...\n");
+		bAbort = true;
+	}
+	catch(...){
+		UG_LOG("Unknown error received during initialization. Terminating ugshell...\n");
+		bAbort = true;
+	}
+
+	if(!bAbort){
+		bool runInteractiveShell = true;
+
+	//	we want to forward argc and argv to the lua-environment.
+	//	we'll create a table for that.
+	//	Please note that ugargv will neither contain the name of the program, nor
+	//	the script, if one was specified.
+		lua_State* L = script::GetDefaultLuaState();
+
+	//	if a script shall be executed we do so now.
+		int scriptParamIndex = GetParamIndex("-ex", argc, argv);
+		int firstParamIndex = 1;
+		const char* scriptName = NULL;
+
+		if(scriptParamIndex != -1){
+			if(argc > scriptParamIndex + 1){
+			//	offset to the parameterlist
+				firstParamIndex = scriptParamIndex + 2;
+			//	get the name of the script
+				scriptName = argv[scriptParamIndex + 1];
+			}
+		}
+
+		if(FindParam("-noquit", argc, argv))
+			firstParamIndex++;
+
+	//	create ugargc and ugargv in lua
+		int ugargc = argc - firstParamIndex;
+		lua_pushnumber(L, ugargc);
+		lua_setglobal(L, "ugargc");
+
+		lua_newtable(L);
+		for(int i = 0; i < ugargc; ++i){
+		//	push the index to the table
+			lua_pushnumber(L, i+1);
+		//	push the value to the table
+			lua_pushstring(L, argv[firstParamIndex + i]);
+		//	create the entry
+			lua_settable(L, -3);
+		}
+	//	set the tables name
+		lua_setglobal(L, "ugargv");
+
+		// replace LUAs print function with our own, to use UG_LOG
+		lua_register(L, "print", UGLuaPrint );
+		lua_register(L, "write", UGLuaWrite );
+	
+		PROFILE_END(); // ugshellInit
+	
+	#if defined(UG_USE_LINENOISE)
+		linenoiseSetCompletionFunction(CompletionFunction);
+		SetDebugShell(debugShell);
+	#endif
+	
+	
+	//	if a script has been specified, then execute it now
+	//	if a script is executed, we won't execute the interactive shell.
+		if(scriptName)
+		{
+			try{
+				if(!LoadUGScript(scriptName))
+				{
+					UG_LOG("Can not find specified script ('" << scriptName << "'). Aborting.\n");
+					bAbort=true;
+					ret=1;
+				}
+			}
+			catch(LuaError& err) {
+				PathProvider::clear_current_path_stack();
+				if(!err.get_msg().empty()){
+					UG_LOG("LUA-ERROR: \n");
+					for(size_t i=0;i<err.num_msg();++i)
+						UG_LOG(err.get_msg(i)<<endl);
+				}
+				UG_LOG("aborting script parsing...\n");
+			}
+			catch(UGError &err)
+			{
+				PathProvider::clear_current_path_stack();
+				UG_LOG("UGError:\n");
+				for(size_t i=0; i<err.num_msg(); i++)
+					UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
+				UG_LOG("\n");
+				UG_LOG("aborting script parsing...\n");
+			}
+
+			if(FindParam("-noquit", argc, argv))
+				runInteractiveShell = true;
+			else
+				runInteractiveShell = false;
+		}
+
+		//	interactive shell may only be executed in serial environment
+		#ifdef UG_PARALLEL
+			if(runInteractiveShell){
+				if(pcl::GetNumProcesses() > 1){
+					UG_LOG("Parallel environment detected. Disabling interactive shell.\n");
+					runInteractiveShell = false;
+				}
+
+			}
 		#endif
 
-	#else
-		UG_LOG("                                  *\n");
-	#endif
+		if(runInteractiveShell)
+			ret = runShell();
 
-	LOG("********************************************************************************\n");
-
-	bool runInteractiveShell = true;
-	
-//	we want to forward argc and argv to the lua-environment.
-//	we'll create a table for that.
-//	Please note that ugargv will neither contain the name of the program, nor
-//	the script, if one was specified.
-	lua_State* L = script::GetDefaultLuaState();
-	
-//	if a script shall be executed we do so now.
-	int scriptParamIndex = GetParamIndex("-ex", argc, argv);
-	int firstParamIndex = 1;
-	const char* scriptName = NULL;
-	
-	if(scriptParamIndex != -1){
-		if(argc > scriptParamIndex + 1){
-		//	offset to the parameterlist
-			firstParamIndex = scriptParamIndex + 2;
-		//	get the name of the script
-			scriptName = argv[scriptParamIndex + 1];
-		}		
-	}
-
-	if(FindParam("-noquit", argc, argv))
-		firstParamIndex++;
-
-//	create ugargc and ugargv in lua
-	int ugargc = argc - firstParamIndex;
-	lua_pushnumber(L, ugargc);
-	lua_setglobal(L, "ugargc");
-	
-	lua_newtable(L);
-	for(int i = 0; i < ugargc; ++i){
-	//	push the index to the table
-		lua_pushnumber(L, i+1);
-	//	push the value to the table
-		lua_pushstring(L, argv[firstParamIndex + i]);
-	//	create the entry
-		lua_settable(L, -3);
-	}
-//	set the tables name
-	lua_setglobal(L, "ugargv");
-	
-	// replace LUAs print function with our own, to use UG_LOG
-	lua_register(L, "print", UGLuaPrint );
-	lua_register(L, "write", UGLuaWrite );
-
-	PROFILE_END(); // ugshellInit
-
-#if defined(UG_USE_LINENOISE)
-	linenoiseSetCompletionFunction(CompletionFunction);
-	SetDebugShell(debugShell);
-#endif
-
-
-//	if a script has been specified, then execute it now
-//	if a script is executed, we won't execute the interactive shell.
-	int ret = 0;
-	bool bAbort=false;
-	if(scriptName)
-	{
-		try{
-			if(!LoadUGScript(scriptName))
-			{
-				UG_LOG("Can not find specified script ('" << scriptName << "'). Aborting.\n");
-				bAbort=true;
-				ret=1;
-			}
-		}
-		catch(LuaError& err) {
-			PathProvider::clear_current_path_stack();
-			if(!err.get_msg().empty()){
-				UG_LOG("LUA-ERROR: \n");
-				for(size_t i=0;i<err.num_msg();++i)
-					UG_LOG(err.get_msg(i)<<endl);
-			}
-			UG_LOG("aborting script parsing...\n");
-		}
-		catch(UGError &err)
-		{
-			PathProvider::clear_current_path_stack();
-			UG_LOG("UGError:\n");
-			for(size_t i=0; i<err.num_msg(); i++)
-				UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
-			UG_LOG("\n");
-			UG_LOG("aborting script parsing...\n");
-		}
-		
-		if(FindParam("-noquit", argc, argv))
-			runInteractiveShell = true;
-		else
-			runInteractiveShell = false;
-	}
-
-	//	interactive shell may only be executed in serial environment
-	#ifdef UG_PARALLEL
-		if(runInteractiveShell){
-			if(pcl::GetNumProcesses() > 1){
-				UG_LOG("Parallel environment detected. Disabling interactive shell.\n");
-				runInteractiveShell = false;
-			}
-
-		}
-	#endif
-
-	if(runInteractiveShell)
-		ret = runShell();
-
-	LOG(endl);
+		LOG(endl);
+	}//bAbort
 
 	PROFILE_BEGIN(ugshellFinalize);
 
