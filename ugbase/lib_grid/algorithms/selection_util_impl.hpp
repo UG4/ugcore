@@ -98,6 +98,26 @@ void InvertSelection(TSelector& sel, TIterator begin, TIterator end)
 }
 
 ////////////////////////////////////////////////////////////////////////
+template <class TElem, class TIterator>
+void
+SelectAssociated(ISelector& sel, TIterator begin, TIterator end,
+				 ISelector::status_t status = ISelector::SELECTED)
+{
+	Grid* pGrid = sel.grid();
+	if(!pGrid)
+		return;
+
+	Grid& grid = *pGrid;
+	std::vector<TElem*> elems;
+	for(TIterator iter = begin; iter != end; ++iter){
+		CollectAssociated(elems, grid, *iter);
+		for(size_t i = 0; i < elems.size(); ++i){
+			sel.select(elems[i], status);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedVertices
 template <class TSelector, class TElemIterator>
 void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
@@ -152,6 +172,15 @@ void SelectAssociatedFaces(TSelector& sel, TElemIterator elemsBegin,
 			elemsBegin++;
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////
+//	SelectAssociatedFaces
+template <class TSelector, class TElemIterator>
+void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
+						     TElemIterator elemsEnd, ISelector::status_t status)
+{
+	SelectAssociated<Volume>(sel, elemsBegin, elemsEnd, status);
 }
 
 

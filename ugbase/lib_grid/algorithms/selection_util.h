@@ -70,6 +70,18 @@ void InvertSelection(TSelector& sel);
 
 
 ////////////////////////////////////////////////////////////////////////
+///	Selects all elements of type TElem, which touch an element between begin and end.
+/**	To select all associated volumes of selected faces, call this method like this:
+ * \code
+ * SelectAssociated<Volume>(sel, sel.begin<Face>, sel.end<Face>());
+ * \endcode
+ */
+template <class TElem, class TIterator>
+void
+SelectAssociated(ISelector& sel, TIterator begin, TIterator end,
+				 ISelector::status_t status = ISelector::SELECTED);
+
+////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedVertices
 ///	selects all associated vertices of the elements between elemsBegin and elemsEnd
 /**
@@ -131,6 +143,27 @@ template <class TSelector, class TElemIterator>
 void SelectAssociatedFaces(TSelector& sel, TElemIterator elemsBegin,
 						   TElemIterator elemsEnd,
 						   ISelector::status_t status = ISelector::SELECTED);
+
+////////////////////////////////////////////////////////////////////////
+//	SelectAssociatedVolumes
+///	selects all associated faces of the elements between elemsBegin and elemsEnd
+/**
+ * TSelector has to feature a method select(TElemIterator::value_type&);
+ *
+ * TElemIterator has to be a stl-compatible iterator.
+ * The underlying element-type has to be a pointer to a class that
+ * is supported by libGrid::CollectFaces(...)
+ *
+ * A valid classe is for example Volume.
+ *
+ * Make sure that the elements only reference faces that belong to the grid
+ * at which the selector is registered.
+ */
+template <class TSelector, class TElemIterator>
+void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
+						   TElemIterator elemsEnd,
+						   ISelector::status_t status = ISelector::SELECTED);
+
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects associated geometric objects of selected ones.
