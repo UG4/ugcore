@@ -32,7 +32,7 @@ You can also use the command line to pass arguments to your scripts:
 \endverbatim
 
 You can access command line parameters by using the lua function from 
-<tt>ug_util.lua</tt>:
+<a href="ug__util_8lua.html">util.lua</a>:
 \code
 function util.GetParam(name, return_if_unavailable)
 \endcode
@@ -53,7 +53,7 @@ Example:
 ug_load_script("ug_util.lua")
 gridName = util.GetParam("-grid", "unit_square/unit_square_quads_8x8.ugx")
 \endcode
-
+You can find out more about provided scripts in \ref pageLuaScript.
 
 If there is no commandline argument <tt>"-grid"</tt>, then the second argument 
 is returned by <tt>util.GetParam</tt>.
