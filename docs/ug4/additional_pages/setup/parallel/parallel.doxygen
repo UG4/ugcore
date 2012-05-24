@@ -66,7 +66,7 @@ cmake -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC ..
 <em>GCC v. 4.1.2</em>, like it is default on \em cekon, is not able to compile 
 a debug build (i.e. configured with <tt>cmake -DDEBUG=ON ..</tt>) because of an 
 internal compiler error (<tt>internal compiler error: in force_type_die, at 
-dwarf2out.c...</tt>).
+dwarf2out.c...</tt>). The error seems also to be there on gcc 4.3.
 In this case it is possible to configure \ug4 by specifying <em>GCC v. 
 4.4.4</em>, which is also installed on \em cekon as an alternative compiler:
 \verbatim
