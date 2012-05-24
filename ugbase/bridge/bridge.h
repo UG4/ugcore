@@ -11,10 +11,8 @@
 #include "lib_algebra/algebra_type.h"
 #include "common/ug_config.h"
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug{
+namespace bridge{
 
 ///	returns the default registry used in ug
 UG_API Registry & GetUGRegistry();
@@ -82,159 +80,9 @@ bool RegisterAdaptiveTools(Registry& reg, std::string parentGroup = "/ug4");
 bool RegisterIntegrate(Registry& reg, std::string parentGroup = "/ug4");
 #endif
 
+}//	end bridge
+}//	end ug
 
-
-
-////////////////////////////////////////////////////////////////////////////////
-//	Suffix and Tag - Section
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-//	Domain - Suffix and Tag
-////////////////////////////////////////////////////////////////////////////////
-
-/// returns the dim-suffix for a domain (e.g. "3d")
-template <int dim>
-std::string GetDomainSuffix()
-{
-//	the dimension suffix
-	std::stringstream ss; ss << dim << "d";
-
-//	return the suffix
-	return ss.str();
-}
-
-/// returns the dim-suffix for a domain (e.g. "3d")
-template <typename TDomain>
-std::string GetDomainSuffix(){return GetDomainSuffix<TDomain::dim>();}
-
-/// returns the dim-tag for a domain (e.g. "dim=3d")
-template <int dim>
-std::string GetDomainTag()
-{
-//	return the suffix
-	return std::string("dim=").append(GetDomainSuffix<dim>()).append(";");
-}
-
-/// returns the dim-tag for a domain (e.g. "dim=3d")
-template <typename TDomain>
-std::string GetDomainTag(){return GetDomainTag<TDomain::dim>();}
-
-/// returns dim tag at runtime (e.g. "dim=3d")
-inline std::string GetDomainTag(int dim)
-{
-//	the dimension suffix
-	std::stringstream ss; ss << "dim=" << dim << "d;";
-
-//	return the suffix
-	return ss.str();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//	Algebra - Suffix and Tag
-////////////////////////////////////////////////////////////////////////////////
-
-/// returns the algebra-suffix (e.g. "CPU3", "CPUFlex")
-template <typename TAlgebra>
-std::string GetAlgebraSuffix()
-{
-//	the algebra suffix
-	std::stringstream ss; ss << "CPU";
-
-//	add blocktype
-	if(TAlgebra::blockSize == AlgebraType::VariableBlockSize) ss << "Variable";
-	else ss << TAlgebra::blockSize;
-
-	return ss.str();
-}
-
-/// returns the algebra-suffix (e.g. "CPU3", "CPUFlex")
-inline std::string GetAlgebraSuffix(const AlgebraType& algType)
-{
-//	the algebra suffix
-	std::stringstream ss;
-
-//	add type
-	if(algType.type() == AlgebraType::CPU) ss << "CPU";
-	else throw(UGError("Unknown algebra type."));
-
-//	add blocktype
-	if(algType.blocksize() == AlgebraType::VariableBlockSize) ss << "Variable";
-	else ss << algType.blocksize();
-
-	return ss.str();
-}
-
-/// returns the algebra-suffix (e.g. "alg=CPU3", "alg=CPUVariable")
-template <typename TAlgebra>
-std::string GetAlgebraTag()
-{
-//	the algebra suffix
-	std::stringstream ss; ss << "alg=CPU";
-
-//	add blocktype
-	if(TAlgebra::blockSize == AlgebraType::VariableBlockSize) ss << "Variable;";
-	else ss << TAlgebra::blockSize << ";";
-
-	return ss.str();
-}
-
-/// returns the algebra-suffix (e.g. "alg=CPU3", "alg=CPUVariable")
-inline std::string GetAlgebraTag(const AlgebraType& algType)
-{
-//	the algebra suffix
-	std::stringstream ss; ss << "alg=";
-
-//	add type
-	if(algType.type() == AlgebraType::CPU) ss << "CPU";
-	else throw(UGError("Unknown algebra type."));
-
-//	add blocktype
-	if(algType.blocksize() == AlgebraType::VariableBlockSize) ss << "Variable;";
-	else ss << algType.blocksize() << ";";
-
-	return ss.str();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//	Algebra + Domain - Suffix and Tag
-////////////////////////////////////////////////////////////////////////////////
-
-/// returns the algebra-dim-suffix for a domain (e.g. "3dCPU1")
-template <int dim, typename TAlgebra>
-std::string GetDomainAlgebraSuffix()
-{
-	std::string dimAlgSuffix = GetDomainSuffix<dim>();
-	dimAlgSuffix.append(GetAlgebraSuffix<TAlgebra>());
-	return dimAlgSuffix;
-}
-
-/// returns the dim-suffix for a domain (e.g. "3dCPU1")
-template <typename TDomain, typename TAlgebra>
-std::string GetDomainAlgebraSuffix(){return GetDomainAlgebraSuffix<TDomain::dim, TAlgebra>();}
-
-/// returns the dim-tag for a domain (e.g. "dim=3d;alg=CPU1;")
-template <int dim, typename TAlgebra>
-std::string GetDomainAlgebraTag()
-{
-	std::string dimAlgTag = GetDomainTag<dim>();
-	dimAlgTag.append(GetAlgebraTag<TAlgebra>());
-	return dimAlgTag;
-}
-
-/// returns the dim-tag for a domain (e.g. "dim=3d;alg=CPU1;")
-template <typename TDomain, typename TAlgebra>
-std::string GetDomainAlgebraTag(){return GetDomainAlgebraTag<TDomain::dim, TAlgebra>();}
-
-/// returns dim tag at runtime (e.g. "dim=3d;alg=CPU1;")
-inline std::string GetDomainAlgebraTag(int dim, const AlgebraType& algType)
-{
-	std::string dimAlgTag = GetDomainTag(dim);
-	dimAlgTag.append(GetAlgebraTag(algType));
-	return dimAlgTag;
-}
-
-}//	end of namespace 
-}//	end of namespace 
+#include "suffix_tag.h"
 
 #endif /* __H__UG_BRIDGE__UG_BRIDGE__ */

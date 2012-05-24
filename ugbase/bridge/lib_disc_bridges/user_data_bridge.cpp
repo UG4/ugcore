@@ -395,8 +395,8 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 {
 	string grp = string(parentGroup);
 
-	string dimSuffix = GetDomainSuffix<dim>();
-	string dimTag = GetDomainTag<dim>();
+	string dimSuffix = GetDimensionSuffix<dim>();
+	string dimTag = GetDimensionTag<dim>();
 
 //	DirectUser"Type"
 //	NOTE: For better readability this class is named DirectUser"Type"
@@ -492,8 +492,8 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 {
 	string grp = std::string(parentGroup);
 
-	string dimSuffix = GetDomainSuffix<dim>();
-	string dimTag = GetDomainTag<dim>();
+	string dimSuffix = GetDimensionSuffix<dim>();
+	string dimTag = GetDimensionTag<dim>();
 
 	RegisterUserDataType<number, dim>(reg, "Number", parentGroup);
 	RegisterUserDataType<MathVector<dim>, dim>(reg, "Vector", parentGroup);

@@ -72,7 +72,7 @@ void InitUG(int dim, const AlgebraType& algType)
 #endif
 
 //	get dim tag
-	std::string dimTag = GetDomainTag(dim);
+	std::string dimTag = GetDimensionTag(dim);
 	if(dim < 0 || dim > 3)
 		UG_THROW("ERROR in InitUG: Only dimensions 1, 2, 3 are supported.");
 #ifndef UG_DIM_1

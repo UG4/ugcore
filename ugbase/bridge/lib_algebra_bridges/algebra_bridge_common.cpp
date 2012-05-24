@@ -301,9 +301,9 @@ static bool RegisterLibAlgebra__Common(Registry& reg, string parentGroup)
 		reg.add_class_<IPositionProvider<1> >("IPositionProvider1d", grp);
 		reg.add_class_<IPositionProvider<2> >("IPositionProvider2d", grp);
 		reg.add_class_<IPositionProvider<3> >("IPositionProvider3d", grp);
-		reg.add_class_to_group("IPositionProvider1d", "IPositionProvider", GetDomainTag<1>());
-		reg.add_class_to_group("IPositionProvider2d", "IPositionProvider", GetDomainTag<2>());
-		reg.add_class_to_group("IPositionProvider3d", "IPositionProvider", GetDomainTag<3>());
+		reg.add_class_to_group("IPositionProvider1d", "IPositionProvider", GetDimensionTag<1>());
+		reg.add_class_to_group("IPositionProvider2d", "IPositionProvider", GetDimensionTag<2>());
+		reg.add_class_to_group("IPositionProvider3d", "IPositionProvider", GetDimensionTag<3>());
 	}
 
 	}catch(UG_REGISTRY_ERROR_RegistrationFailed ex)

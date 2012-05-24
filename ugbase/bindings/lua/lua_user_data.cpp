@@ -96,8 +96,8 @@ bool RegisterLuaUserDataType(Registry& reg, string type, const char* parentGroup
 {
 	string grp = std::string(parentGroup);
 
-	string dimSuffix = GetDomainSuffix<dim>();
-	string dimTag = GetDomainTag<dim>();
+	string dimSuffix = GetDimensionSuffix<dim>();
+	string dimTag = GetDimensionTag<dim>();
 
 //	LuaUser"Type"
 	{
@@ -129,8 +129,8 @@ void RegisterLuaUserData(ug::bridge::Registry& reg, const char* parentGroup)
 {
 	string grp = std::string(parentGroup);
 
-	string dimSuffix = GetDomainSuffix<dim>();
-	string dimTag = GetDomainTag<dim>();
+	string dimSuffix = GetDimensionSuffix<dim>();
+	string dimTag = GetDimensionTag<dim>();
 
 	RegisterLuaUserDataType<number, dim>(reg, "Number", parentGroup);
 	RegisterLuaUserDataType<MathVector<dim>, dim>(reg, "Vector", parentGroup);
