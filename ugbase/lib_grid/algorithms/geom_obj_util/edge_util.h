@@ -340,6 +340,16 @@ UG_API
 void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 								  EdgeIterator edgesEnd, TAAPos& aaPos);
 
+////////////////////////////////////////////////////////////////////////
+///	Returns true if the given point lies on the given edge.
+/**	\note	The method only works properly, if the point and the edge are located
+ * 			on a line parallel to the x-axis.
+ */
+template <class vector_t>
+UG_API bool
+ContainsPoint(const EdgeVertices* e, const vector_t& p,
+			  Grid::VertexAttachmentAccessor<Attachment<vector_t> >& aaPos);
+
 /// @} // end of doxygen defgroup command
 
 }//	end of namespace

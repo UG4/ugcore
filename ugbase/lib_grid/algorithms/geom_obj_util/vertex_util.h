@@ -324,6 +324,17 @@ UG_API
 void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 					   matrix33& m, TAAPos& aaPos);
 
+////////////////////////////////////////////////////////////////////////
+///	Returns true if the given point lies on the given vertex.
+/**	The method simply checks, whether coordinates are identical. This method
+ * is of no particular use, except for completeness regarding the use
+ * of ConatinsPoint in template-programming.
+ */
+template <class vector_t>
+UG_API bool
+ContainsPoint(const VertexBase* v, const vector_t& p,
+			  Grid::VertexAttachmentAccessor<Attachment<vector_t> >& aaPos);
+
 /// @} // end of doxygen defgroup command
 
 }//	end of namespace

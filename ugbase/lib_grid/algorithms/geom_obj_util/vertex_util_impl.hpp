@@ -373,6 +373,20 @@ void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 		TransformVertex(*iter, m, aaPos);
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
+UG_API bool
+ContainsPoint(const VertexBase* v, const vector_t& p,
+			  Grid::VertexAttachmentAccessor<Attachment<vector_t> >& aaPos)
+{
+	const vector_t& pv = aaPos[v];
+	for(size_t i = 0; i < vector_t::Size; ++i){
+		if(pv[i] != v[i])
+			return false;
+	}
+	return true;
+}
+
 }//	end of namespace
 
 #endif
