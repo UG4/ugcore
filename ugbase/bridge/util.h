@@ -200,4 +200,10 @@ void RegisterDimensionDependent(Registry& reg, std::string grp)
 } // end namespace bridge
 } // end namespace ug
 
+#define UG_REGISTRY_CATCH_THROW(grp)	\
+		catch(UG_REGISTRY_ERROR_RegistrationFailed ex) {\
+			UG_LOG("### ERROR while registering functionality at '"<<(grp)<<"'. "\
+					"Registration failed (using name " << ex.name << ").\n");\
+			throw(ex);}
+
 #endif /* __H__UG_BRIDGE__UTIL__ */
