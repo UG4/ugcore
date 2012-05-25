@@ -9,7 +9,9 @@
 #include "profiler.h"
 #include <iomanip>
 #include <cmath> // for floor
+#include <algorithm>
 #include <string>
+#include <string.h>
 #include "common/log.h"
 #include "profile_node.h"
 
