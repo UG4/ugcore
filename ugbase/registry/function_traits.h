@@ -5,6 +5,15 @@
 
 #include "common/util/metaprogramming_util.h"
 
+/**
+ * Maximum number of template arguments for a bridge traits class. These are
+ * the maximal available function arguments.
+ *
+ * NOTE: IF YOU INCREASE THE NUMBER OF TEMPLATES BELOW, THIS NUMBER MUST BE
+ * 		 ADJUSTED AS WELL.
+ */
+const int UG_REGISTRY_MAX_NUM_ARGS = 11;
+
 namespace ug
 {
 namespace bridge

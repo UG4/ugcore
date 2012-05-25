@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include "class_name_provider.h"
+#include "function_traits.h"
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
 
@@ -79,7 +80,7 @@ static inline int ARRAY_INDEX_TO_STACK_INDEX(int index, int stackSize)
 
 
 
-const int PARAMETER_STACK_MAX_SIZE = 11;
+const int PARAMETER_STACK_MAX_SIZE = UG_REGISTRY_MAX_NUM_ARGS;
 
 // CAUTION:
 // Type values must not be changed! Bindings rely on the exact values.
