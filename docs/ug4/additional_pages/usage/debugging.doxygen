@@ -1,0 +1,64 @@
+//	created by Martin Rupp
+//	martin.rupp@gcsc.uni-frankfurt.de
+//	y12 m05 d25
+
+/** \page pageDebugging Debugging
+
+- \ref secDebuggingUG4
+- \ref secDebuggingTroubleshooting
+
+<hr>
+\section secDebuggingUG4 Debugging UG4
+To debug ug4, you have to make
+\verbatim
+cmake -DDEBUG=ON ..
+\endverbatim
+Note \ref secCMake_GCC412 .
+
+Then you do 
+\verbatim
+gdb ugshell
+b myfile.cpp:33
+run -ex myscript.lua -myParameter1 3.4 -myOption2
+\endverbatim
+
+Another possibility is use <tt>--args</tt>
+\verbatim
+gdb --args ugshell -ex myscript.lua -myParameter1 3.4 -myOption2
+b myfile.cpp:33
+run
+\endverbatim
+
+\section secDebuggingTroubleshooting Debug Troubleshooting
+Sometimes you cannot set breakpoints because the source is in a shared library. This is true for all plugins. 
+Also ug4 is loaded dynamically from ugshell. There are two solutions for this:
+<ol>
+<li> compile ug4 static: <tt>cmake -DSTATIC=ON ..</tt>
+<li> adding the breakpoints "pending". you can use <tt>set breakpoint pending on</tt> to avoid the y/n. Note that now gdb won't 
+tell you if your filename was wrong.
+<li> we've added a function SharedLibrariesLoaded . You can set a breakpoint there with <tt>b SharedLibrariesLoaded</tt>. After that,
+you'll be able to break in your plugin/ug4.
+</ol>
+
+Best way is to create a <tt>.gdbinit</tt> file in your ug4/bin directory like this:
+\verbatim
+b SharedLibrariesLoaded
+run
+
+echo shared libraries now loaded.\n
+# add your breakpoints after this line
+# cont
+\endverbatim
+
+Then you can start your code with
+\verbatim
+gdb --args ugshell -ex myscript.lua -myParameter1 3.4 -myOption2
+\endverbatim
+
+and it will break right after all shared libraries have been loaded. Now you can add your breakpoints.
+\note You will need to <tt>cont</tt> after that, NOT <tt>run</tt>.
+
+You can also add your breakpoints in the .gdbinit file and a <tt>cont</tt> at the end. That way you'll have to type less.
+
+
+*/

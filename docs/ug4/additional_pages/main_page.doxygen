@@ -47,7 +47,7 @@ environment
 		- \ref pageParallelRendering
 	- ug4 and vrl
 	- <a href="http://cave1.gcsc.uni-frankfurt.de/job/ug-bridge-doc/javadoc/">ug4-Scripting Reference Documentation</a>
-	- \ref pageLuaScript
+	- \ref pageLuaScript	
 
 - \subpage pageUG4Development
 	- Central modules of ugbase
@@ -63,6 +63,7 @@ environment
 		- \ref pageTeamCommunication
 		- \ref pageUG4DoxygenQuickref
 		- \ref pageUsingGit
+	- \ref pageDebugging
 
 - Copyrights and Licenses
 	- \subpage pageCopyrights
