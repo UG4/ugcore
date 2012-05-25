@@ -117,7 +117,7 @@ bool AllProcsTrueDUMMY(bool bTrue)
 	return bTrue;
 }
 
-bool RegisterBridge_PCL(Registry& reg, string parentGroup)
+void RegisterBridge_PCL(Registry& reg, string parentGroup)
 {
 	string grp(parentGroup);
 	grp.append("/PCL");
@@ -140,8 +140,6 @@ bool RegisterBridge_PCL(Registry& reg, string parentGroup)
 	reg.add_function("ParallelMinDUMMY", &ParallelMinDUMMY<double>, grp, "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelMaxDUMMY", &ParallelMaxDUMMY<double>, grp, "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelSumDUMMY", &ParallelSumDUMMY<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
-
-	return true;
 }
 
 #endif //UG_PARALLEL
