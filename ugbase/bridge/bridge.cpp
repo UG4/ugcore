@@ -19,6 +19,8 @@ namespace ug
 namespace bridge
 {
 
+const char* UG4_GRP = "/ug4";
+
 Registry & GetUGRegistry()
 {
 	static Registry ugReg;
@@ -30,7 +32,7 @@ bool InitBridge()
 {
 	PROFILE_FUNC();
 	//	initialize ug-interfaces
-	if(!RegisterStandardInterfaces(bridge::GetUGRegistry()))
+	if(!RegisterStandardBridges(bridge::GetUGRegistry()))
 	{
 		return false;
 	}
@@ -138,39 +140,38 @@ void InitUG(int dim, const AlgebraType& algType)
 	DefaultAlgebra::set(algType);
 }
 
-bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
+bool RegisterStandardBridges(Registry& reg, string parentGroup)
 {
-	bool bResult = true;
 	try
 	{
 		// uncomment this to register test-methods
-		// bResult &= RegisterTestInterface(reg, parentGroup);
+		// RegisterTestInterface(reg, parentGroup);
 
-		bResult &= RegisterVecMathBridge(reg, parentGroup);
-		bResult &= RegisterUtilInterface(reg, parentGroup);
-		bResult &= RegisterLibGridInterface(reg, parentGroup);
-		bResult &= RegisterPCLInterface(reg, parentGroup);
-		bResult &= RegisterDomainInterface(reg, parentGroup);
-		bResult &= RegisterRefinementBridge(reg, parentGroup);
+		RegisterBridge_VecMath(reg, parentGroup);
+		RegisterBridge_Util(reg, parentGroup);
+		RegisterBridge_Grid(reg, parentGroup);
+		RegisterBridge_PCL(reg, parentGroup);
+		RegisterBridge_Domain(reg, parentGroup);
+		RegisterBridge_Refinement(reg, parentGroup);
 
-		bResult &= RegisterProfileFunctions(reg, parentGroup);
-		bResult &= RegisterMiscFunctions(reg, parentGroup);
+		RegisterBridge_Profiler(reg, parentGroup);
+		RegisterBridge_Misc(reg, parentGroup);
 
 		#ifdef UG_ALGEBRA
 	//	depends on lib_disc
-		bResult &= RegisterLibDisc_Common(reg, parentGroup);
-		bResult &= RegisterElemDiscs(reg, parentGroup);
+		RegisterBridge_DiscCommon(reg, parentGroup);
+		RegisterBridge_ElemDiscs(reg, parentGroup);
 
 	//	depends on lib_algebra
-		bResult &= RegisterLibAlgebra(reg, parentGroup);
-		bResult &= RegisterLibDisc_Algebra(reg, parentGroup);
-		bResult &= RegisterLibDisc_Domain(reg, parentGroup);
-		bResult &= RegisterUserData(reg, parentGroup);
-		bResult &= RegisterConstraints(reg, parentGroup);
-		bResult &= RegisterMultiGrid(reg, parentGroup);
-		bResult &= RegisterOutput(reg, parentGroup);
-		bResult &= RegisterAdaptiveTools(reg, parentGroup);
-		bResult &= RegisterIntegrate(reg, parentGroup);
+		RegisterBridge_Algebra(reg, parentGroup);
+		RegisterBridge_DiscAlgebra(reg, parentGroup);
+		RegisterBridge_DiscDomain(reg, parentGroup);
+		RegisterBridge_UserData(reg, parentGroup);
+		RegisterBridge_Constraints(reg, parentGroup);
+		RegisterBridge_MultiGrid(reg, parentGroup);
+		RegisterBridge_Output(reg, parentGroup);
+		RegisterBridge_AdaptiveTools(reg, parentGroup);
+		RegisterBridge_Integrate(reg, parentGroup);
 		#endif
 
 
@@ -209,9 +210,7 @@ bool RegisterStandardInterfaces(Registry& reg, string parentGroup)
 		return false;
 	}
 
-	bResult &= reg.registry_changed();
-
-	return bResult;
+	return reg.registry_changed();
 }
 
 }//	end of namespace 

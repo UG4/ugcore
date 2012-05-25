@@ -125,7 +125,7 @@ static void Register__Domain(Registry& reg, string parentGroup)
 	string dimTag = GetDomainTag<TDomain>();
 }
 
-bool RegisterAdaptiveTools(Registry& reg, string parentGroup)
+void RegisterBridge_AdaptiveTools(Registry& reg, string parentGroup)
 {
 //	ILocalTransfer
 	{
@@ -165,8 +165,6 @@ bool RegisterAdaptiveTools(Registry& reg, string parentGroup)
 				"Registration failed (using name " << ex.name << ").\n");
 		UG_THROW("Registration failed.");
 	}
-
-	return true;
 }
 
 }//	end of namespace ug

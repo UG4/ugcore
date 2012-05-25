@@ -597,7 +597,7 @@ static bool RegisterRefinementBridge_DomDep(Registry& reg, string parentGroup)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-bool RegisterRefinementBridge(Registry& reg, string parentGroup)
+void RegisterBridge_Refinement(Registry& reg, string parentGroup)
 {
 	bool bSuccess = true;
 
@@ -612,7 +612,6 @@ bool RegisterRefinementBridge(Registry& reg, string parentGroup)
 #ifdef UG_DIM_3
 	bSuccess &= RegisterRefinementBridge_DomDep<Domain<3, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
 #endif
-	return bSuccess;
 }
 
 }// end of namespace

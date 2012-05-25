@@ -247,7 +247,7 @@ static bool RegisterDomainInterface_2d_3d(Registry& reg, string grp)
 	return true;
 }
 
-bool RegisterDomainInterface(Registry& reg, string parentGroup)
+void RegisterBridge_Domain(Registry& reg, string parentGroup)
 {
 	bool bSuccess = true;
 
@@ -264,7 +264,6 @@ bool RegisterDomainInterface(Registry& reg, string parentGroup)
 	bSuccess &= RegisterDomainInterface_<Domain<3, MultiGrid, MGSubsetHandler> >(reg, grp);
 	bSuccess &= RegisterDomainInterface_2d_3d<Domain<3, MultiGrid, MGSubsetHandler> >(reg, grp);
 #endif
-	return bSuccess;
 }
 
 }// end of namespace

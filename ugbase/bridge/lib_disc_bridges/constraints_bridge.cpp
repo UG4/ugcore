@@ -145,7 +145,7 @@ static void Register__Domain(Registry& reg, string parentGroup)
 	string dimTag = GetDomainTag<TDomain>();
 }
 
-bool RegisterConstraints(Registry& reg, string parentGroup)
+void RegisterBridge_Constraints(Registry& reg, string parentGroup)
 {
 	try{
 #ifdef UG_CPU_1
@@ -180,8 +180,6 @@ bool RegisterConstraints(Registry& reg, string parentGroup)
 				"Registration failed (using name " << ex.name << ").\n");
 		UG_THROW("Registration failed.");
 	}
-
-	return true;
 }
 
 }//	end of namespace ug

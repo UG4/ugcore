@@ -14,6 +14,9 @@
 namespace ug{
 namespace bridge{
 
+/// string for ug4 group
+extern const char* UG4_GRP;
+
 ///	returns the default registry used in ug
 UG_API Registry & GetUGRegistry();
 
@@ -27,57 +30,57 @@ UG_API bool InitBridge();
 /**	This method is called by the constructor of Registry automatically.
  *	You don't have to call it yourself!
  */
-UG_API bool RegisterStandardInterfaces(Registry& reg, std::string parentGroup = "/ug4");
+UG_API bool RegisterStandardBridges(Registry& reg, std::string grp = UG4_GRP);
 
 ///	Registers types and functions for 1, 2, 3 and 4 dimensional vector math.
-bool RegisterVecMathBridge(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_VecMath(Registry& reg, std::string grp = UG4_GRP);
 
 ///	registers some util methods like path-access and script-parsing.
-bool RegisterUtilInterface(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_Util(Registry& reg, std::string grp = UG4_GRP);
 
 ///	registers lib-grid interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-bool RegisterLibGridInterface(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_Grid(Registry& reg, std::string grp = UG4_GRP);
 
 ///	registers methods for a parallel environment
-bool RegisterPCLInterface(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_PCL(Registry& reg, std::string grp = UG4_GRP);
 
 ///	registers tests for the interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-bool RegisterTestInterface(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_Test(Registry& reg, std::string grp = UG4_GRP);
 
 /// registers access to profiling functions at the registry
-bool RegisterProfileFunctions(Registry &reg, std::string parentGroup = "/ug4");
+void RegisterBridge_Profiler(Registry &reg, std::string grp = UG4_GRP);
 
-bool RegisterMiscFunctions(Registry &reg, std::string parentGroup = "/ug4");
+void RegisterBridge_Misc(Registry &reg, std::string grp = UG4_GRP);
 
 ///	Registers the domain object and related methods
-bool RegisterDomainInterface(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_Domain(Registry& reg, std::string grp = UG4_GRP);
 
 ///	Registers refiners and marking methods.
-bool RegisterRefinementBridge(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_Refinement(Registry& reg, std::string grp = UG4_GRP);
 
 /// Registers the element discretizations
-bool RegisterElemDiscs(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_ElemDiscs(Registry& reg, std::string grp = UG4_GRP);
 
 ///	Registers the common part of lib_discretization
-bool RegisterLibDisc_Common(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_DiscCommon(Registry& reg, std::string grp = UG4_GRP);
 
 /// registers user data
-bool RegisterUserData(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_UserData(Registry& reg, std::string grp = UG4_GRP);
 
 #ifdef UG_ALGEBRA
 ///	registers lib-algebra interface methods at the registry.
-bool RegisterLibAlgebra(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_Algebra(Registry& reg, std::string grp = UG4_GRP);
 
 ///	registers lib-discretization interface methods at the registry.
-bool RegisterLibDisc_Algebra(Registry& reg, std::string parentGroup = "/ug4");
-bool RegisterLibDisc_Domain(Registry& reg, std::string parentGroup = "/ug4");
-bool RegisterConstraints(Registry& reg, std::string parentGroup = "/ug4");
-bool RegisterMultiGrid(Registry& reg, std::string parentGroup = "/ug4");
-bool RegisterOutput(Registry& reg, std::string parentGroup = "/ug4");
-bool RegisterAdaptiveTools(Registry& reg, std::string parentGroup = "/ug4");
-bool RegisterIntegrate(Registry& reg, std::string parentGroup = "/ug4");
+void RegisterBridge_DiscAlgebra(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_DiscDomain(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_Constraints(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_MultiGrid(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_Output(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_AdaptiveTools(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_Integrate(Registry& reg, std::string grp = UG4_GRP);
 #endif
 
 }//	end bridge

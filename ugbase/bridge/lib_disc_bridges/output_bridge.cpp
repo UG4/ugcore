@@ -201,7 +201,7 @@ static void Register__Domain(Registry& reg, string parentGroup)
 	reg.add_function("SaveDomainToVTK", &SaveDomainToVTK<dim>);
 }
 
-bool RegisterOutput(Registry& reg, string grp)
+void RegisterBridge_Output(Registry& reg, string grp)
 {
 
 //	VTK Output
@@ -250,7 +250,6 @@ bool RegisterOutput(Registry& reg, string grp)
 #ifdef UG_CPU_VAR
 	Register__Algebra<CPUVariableBlockAlgebra >(reg, grp);
 #endif
-	return true;
 }
 
 }//	end of namespace ug

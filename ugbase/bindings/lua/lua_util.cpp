@@ -237,7 +237,7 @@ lua_State* GetDefaultLuaState()
 		//	use the algebra, even if no algebra is included.
 			#ifdef UG_ALGEBRA
 		//	Register info commands
-			RegisterInfoCommands(*g_pRegistry);
+			RegisterInfoCommands(*g_pRegistry, "/ug4");
 
 		//	Register user functions
 			RegisterLuaUserData(*g_pRegistry, "/ug4");

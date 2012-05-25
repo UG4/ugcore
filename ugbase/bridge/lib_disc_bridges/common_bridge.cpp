@@ -22,7 +22,7 @@ namespace ug
 namespace bridge
 {
 
-bool RegisterLibDisc_Common(Registry& reg, string parentGroup)
+void RegisterBridge_DiscCommon(Registry& reg, string parentGroup)
 {
 //	get group string
 	string grp = parentGroup; grp.append("/Discretization");
@@ -50,10 +50,8 @@ bool RegisterLibDisc_Common(Registry& reg, string parentGroup)
 	{
 		UG_LOG("### ERROR in RegisterLibDisc_Common: "
 				"Registration failed (using name " << ex.name << ").\n");
-		return false;
+		throw(ex);
 	}
-
-	return true;
 }
 
 } // end namespace bridge

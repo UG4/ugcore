@@ -549,7 +549,7 @@ class ExpandLayersDesc : public std::vector<FractureInfo>
 
 
 ////////////////////////////////////////////////////////////////////////
-bool RegisterLibGridInterface(Registry& reg, string parentGroup)
+void RegisterBridge_Grid(Registry& reg, string parentGroup)
 {
 	try
 	{
@@ -764,10 +764,8 @@ bool RegisterLibGridInterface(Registry& reg, string parentGroup)
 	{
 		UG_LOG("### ERROR in RegisterLibGridInterface: "
 				"Registration failed (using name " << ex.name << ").\n");
-		return false;
+		throw(ex);
 	}
-
-	return true;
 }
 
 }//	end of namespace 

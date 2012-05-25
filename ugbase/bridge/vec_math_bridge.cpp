@@ -38,7 +38,7 @@ static SmartPtr<vector4> MakeVec(number x, number y, number z, number w)
 namespace bridge{
 ////////////////////////////////////////////////////////////////////////////////
 template <int dim>
-static bool RegisterVecMathBridge(Registry& reg, string grp)
+static void RegisterBridge_VecMath(Registry& reg, string grp)
 {
 	typedef MathVector<dim, number> vec_type;
 
@@ -65,14 +65,12 @@ static bool RegisterVecMathBridge(Registry& reg, string grp)
 	{
 		UG_LOG("### ERROR in RegisterVecMathBridge: "
 				"Registration failed (using name " << ex.name << ").\n");
-		return false;
+		throw(ex);
 	}
-
-	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-static bool RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
+static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 {
 	try
 	{
@@ -90,28 +88,22 @@ static bool RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 	{
 		UG_LOG("### ERROR in RegisterVecMathBridge_DimIndep: "
 				"Registration failed (using name " << ex.name << ").\n");
-		return false;
+		throw(ex);
 	}
-
-	return true;
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-bool RegisterVecMathBridge(Registry& reg, string parentGroup)
+void RegisterBridge_VecMath(Registry& reg, string parentGroup)
 {
 //	get group string
 	string grp = parentGroup; grp.append("/Util/VecMath");
 
-	bool bSuccess = true;
-
-	bSuccess &= RegisterVecMathBridge<1>(reg, grp);
-	bSuccess &= RegisterVecMathBridge<2>(reg, grp);
-	bSuccess &= RegisterVecMathBridge<3>(reg, grp);
-	bSuccess &= RegisterVecMathBridge<4>(reg, grp);
-	bSuccess &= RegisterVecMathBridge_DimIndep(reg, grp);
-
-	return bSuccess;
+	RegisterBridge_VecMath<1>(reg, grp);
+	RegisterBridge_VecMath<2>(reg, grp);
+	RegisterBridge_VecMath<3>(reg, grp);
+	RegisterBridge_VecMath<4>(reg, grp);
+	RegisterVecMathBridge_DimIndep(reg, grp);
 }
 
 }// end of namespace

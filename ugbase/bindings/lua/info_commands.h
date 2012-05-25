@@ -13,7 +13,7 @@ namespace bridge
 {
 
 ///	registers info commands TypeInfo, ClassUsage and others
-UG_API bool RegisterInfoCommands(bridge::Registry &reg, const char* parentGroup = "/ug4");
+UG_API bool RegisterInfoCommands(bridge::Registry &reg, const char* grp);
 
 /**
  * \param L 		the lua state

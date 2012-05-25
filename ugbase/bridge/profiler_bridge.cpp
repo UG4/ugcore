@@ -23,7 +23,7 @@ namespace bridge
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-bool RegisterProfileFunctions(Registry &reg, string parentGroup)
+void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 {
 	stringstream ss; ss << parentGroup << "/Util/Profiler";
 	string grp = ss.str();
@@ -71,8 +71,6 @@ bool RegisterProfileFunctions(Registry &reg, string parentGroup)
 	reg.add_function("GetProfilerAvailable", &GetProfilerAvailable, grp, "true if profiler available");
 	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, grp, "", "bOutput",
 			"if set to true and profiler available, profile stats are printed at the end of the program. true is default");
-
-	return true;
 }
 
 

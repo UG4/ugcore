@@ -468,7 +468,7 @@ class MessageHubTest
 
 
 
-bool RegisterTestInterface(Registry& reg, string parentGroup)
+void RegisterBridge_Test(Registry& reg, string parentGroup)
 {
 	try
 	{
@@ -625,16 +625,12 @@ bool RegisterTestInterface(Registry& reg, string parentGroup)
 		UG_LOG("### ERROR in RegisterTestInterface: "
 				"Registration failed (using name " << ex.name << ").\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(ex.name.c_str()));
-		return false;
 	}
 	catch(REGISTRY_ERROR_Message ex)
 	{
 		UG_LOG("### ERROR in RegisterTestInterface: " << ex.msg << "\n");
 		throw(UG_REGISTRY_ERROR_RegistrationFailed(""));
-		return false;
 	}
-
-	return true;
 }
 
 }//	end of namespace

@@ -509,7 +509,7 @@ double GetClockS()
 }
 
 
-bool RegisterMiscFunctions(Registry &reg, string parentGroup)
+void RegisterBridge_Misc(Registry &reg, string parentGroup)
 {
 	
 
@@ -555,8 +555,6 @@ bool RegisterMiscFunctions(Registry &reg, string parentGroup)
 
 		reg.add_function("LevenshteinDistance", &LevenshteinDistance, grp);
 	}
-
-	return true;
 }
 
 

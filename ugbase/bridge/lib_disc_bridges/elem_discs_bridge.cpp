@@ -255,7 +255,7 @@ void Register__Domain(Registry& reg, string grp)
 }
 
 
-bool RegisterElemDiscs(Registry& reg, string parentGroup)
+void RegisterBridge_ElemDiscs(Registry& reg, string parentGroup)
 {
 //	get group string
 	string grp = parentGroup; grp.append("/Discretization");
@@ -285,8 +285,6 @@ bool RegisterElemDiscs(Registry& reg, string parentGroup)
 				"Registration failed (using name " << ex.name << ").\n");
 		UG_THROW("Registration failed.");
 	}
-
-	return true;
 }
 
 }//	end of namespace ug

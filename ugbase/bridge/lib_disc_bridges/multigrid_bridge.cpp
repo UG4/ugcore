@@ -150,7 +150,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	}
 }
 
-bool RegisterMultiGrid(Registry& reg, string grp)
+void RegisterBridge_MultiGrid(Registry& reg, string grp)
 {
 #ifdef UG_CPU_1
 	Register__Algebra<CPUAlgebra>(reg, grp);
@@ -167,7 +167,6 @@ bool RegisterMultiGrid(Registry& reg, string grp)
 #ifdef UG_CPU_VAR
 	Register__Algebra<CPUVariableBlockAlgebra >(reg, grp);
 #endif
-	return true;
 }
 
 }//	end of namespace ug

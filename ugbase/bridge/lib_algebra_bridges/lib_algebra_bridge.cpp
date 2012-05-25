@@ -28,7 +28,7 @@ bool RegisterAlgebraCommon(Registry& reg, string parentGroup);
 bool RegisterPreconditioner(Registry& reg, string parentGroup);
 bool RegisterSolver(Registry& reg, string parentGroup);
 
-bool RegisterLibAlgebra(Registry& reg, string parentGroup)
+void RegisterBridge_Algebra(Registry& reg, string parentGroup)
 {
 	RegisterAlgebraCommon(reg, parentGroup);
 	RegisterPreconditioner(reg, parentGroup);
@@ -36,8 +36,6 @@ bool RegisterLibAlgebra(Registry& reg, string parentGroup)
 
 	RegisterAMG(reg, parentGroup);
 	RegisterEigensolver(reg, parentGroup);
-
-	return true;
 }
 
 

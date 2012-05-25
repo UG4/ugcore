@@ -111,7 +111,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	}
 }
 
-bool RegisterIntegrate(Registry& reg, string parentGroup)
+void RegisterBridge_Integrate(Registry& reg, string parentGroup)
 {
 	try{
 #ifdef UG_CPU_1
@@ -136,8 +136,6 @@ bool RegisterIntegrate(Registry& reg, string parentGroup)
 				"Registration failed (using name " << ex.name << ").\n");
 		UG_THROW("Registration failed.");
 	}
-
-	return true;
 }
 
 }//	end of namespace ug

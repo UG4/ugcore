@@ -52,7 +52,7 @@ T ParallelSum(T t)
 	return pc.allreduce(t, PCL_RO_SUM);
 }
 
-bool RegisterPCLInterface(Registry& reg, string parentGroup)
+void RegisterBridge_PCL(Registry& reg, string parentGroup)
 {
 	string grp(parentGroup);
 	grp.append("/pcl");
@@ -75,8 +75,6 @@ bool RegisterPCLInterface(Registry& reg, string parentGroup)
 	reg.add_function("ParallelMin", &ParallelMin<double>, grp, "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelMax", &ParallelMax<double>, grp, "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelSum", &ParallelSum<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
-
-	return true;
 }
 
 #else // UG_PARALLEL
@@ -119,7 +117,7 @@ bool AllProcsTrueDUMMY(bool bTrue)
 	return bTrue;
 }
 
-bool RegisterPCLInterface(Registry& reg, string parentGroup)
+bool RegisterBridge_PCL(Registry& reg, string parentGroup)
 {
 	string grp(parentGroup);
 	grp.append("/PCL");

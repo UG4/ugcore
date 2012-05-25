@@ -48,7 +48,7 @@ void int_srand(int seed)
 	srand((unsigned int)seed);
 }
 
-bool RegisterUtilInterface(Registry& reg, string parentGroup)
+void RegisterBridge_Util(Registry& reg, string parentGroup)
 {
 	string grp(parentGroup);
 	grp.append("/Util");
@@ -75,8 +75,6 @@ bool RegisterUtilInterface(Registry& reg, string parentGroup)
 				 "", "", "Immediatly terminates the application.")
 		.add_function("quit", &UGForceExit, grp,
 				 "", "", "Immediatly terminates the application.");
-
-	return true;
 }
 
 }// end of namespace bridge

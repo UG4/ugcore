@@ -283,7 +283,7 @@ static void Register__Algebra(Registry& reg, string parentGroup)
 	}
 }
 
-bool RegisterLibDisc_Algebra(Registry& reg, string parentGroup)
+void RegisterBridge_DiscAlgebra(Registry& reg, string parentGroup)
 {
 #ifdef UG_CPU_1	
 	Register__Algebra<CPUAlgebra>(reg, parentGroup);
@@ -300,8 +300,6 @@ bool RegisterLibDisc_Algebra(Registry& reg, string parentGroup)
 #ifdef UG_CPU_VAR
 	Register__Algebra<CPUVariableBlockAlgebra>(reg, parentGroup);
 #endif
-
-	return true;
 }
 
 } // end namespace ug

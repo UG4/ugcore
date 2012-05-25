@@ -391,7 +391,7 @@ class DarcyVelocityLinker
 
 
 template <typename TData, int dim>
-bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
+void RegisterUserDataType(Registry& reg, string type, string parentGroup)
 {
 	string grp = string(parentGroup);
 
@@ -483,12 +483,10 @@ bool RegisterUserDataType(Registry& reg, string type, string parentGroup)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, string("ScaleAddLinker").append(type), dimTag);
 	}
-
-	return true;
 }
 
 template <int dim>
-bool RegisterUserData(Registry& reg, string parentGroup)
+void RegisterBridge_UserData(Registry& reg, string parentGroup)
 {
 	string grp = std::string(parentGroup);
 
@@ -573,28 +571,24 @@ bool RegisterUserData(Registry& reg, string parentGroup)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);
 	}
-
-	return true;
 }
 
-bool RegisterUserData(Registry& reg, string parentGroup)
+void RegisterBridge_UserData(Registry& reg, string parentGroup)
 {
 //	get group string
 	std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc/UserData");
 
 #ifdef UG_DIM_1
-	RegisterUserData<1>(reg, grp);
+	RegisterBridge_UserData<1>(reg, grp);
 #endif
 #ifdef UG_DIM_2
-	RegisterUserData<2>(reg, grp);
+	RegisterBridge_UserData<2>(reg, grp);
 #endif
 #ifdef UG_DIM_3
-	RegisterUserData<3>(reg, grp);
+	RegisterBridge_UserData<3>(reg, grp);
 #endif
 
 	reg.add_class_<IFunction<number> >("IFunctionNumber", grp);
-
-	return true;
 }
 
 } // end namespace

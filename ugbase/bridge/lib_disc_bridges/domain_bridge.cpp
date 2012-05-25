@@ -11,11 +11,10 @@
 #include <string>
 
 // include bridge
-#include "../bridge.h"
-#include "registry/registry.h"
+#include "bridge/bridge.h"
+#include "bridge/util.h"
 
 // lib_algebra includes
-#include "lib_algebra/cpu_algebra_types.h"
 #include "lib_algebra/operator/operator_util.h"
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/interface/operator_inverse.h"
@@ -37,9 +36,28 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
-template <typename TDomain, typename TAlgebra>
-static void Register__Algebra_Domain(Registry& reg, string parentGroup)
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
 {
+
+/**
+ * Function called for the registration of Domain and Algebra dependent parts.
+ * All Functions and Classes depending on both Domain and Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Domain and Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain, typename TAlgebra>
+static void DomainAlgebra(Registry& reg, string grp)
+{
+	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
+	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
+
 //	typedef
 	static const int dim = TDomain::dim;
 	typedef typename TAlgebra::vector_type vector_type;
@@ -47,42 +65,35 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 	typedef ApproximationSpace<TDomain> approximation_space_type;
 	typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
 
-//	suffix and tag
-	string dimAlgSuffix = GetDomainSuffix<TDomain>();
-	dimAlgSuffix.append(GetAlgebraSuffix<TAlgebra>());
-
-	string dimAlgTag = GetDomainTag<TDomain>();
-	dimAlgTag.append(GetAlgebraTag<TAlgebra>());
-
 //	group string
-	string approxGrp = parentGroup; approxGrp.append("/ApproximationSpace");
-	string domDiscGrp = parentGroup; domDiscGrp.append("/SpatialDisc");
+	string approxGrp = grp; approxGrp.append("/ApproximationSpace");
+	string domDiscGrp = grp; domDiscGrp.append("/SpatialDisc");
 
 //	DomainDiscretization
 	{
 		typedef IDomainDiscretization<TAlgebra> TBase;
 		typedef DomainDiscretization<TDomain, TAlgebra> T;
-		string name = string("DomainDiscretization").append(dimAlgSuffix);
+		string name = string("DomainDiscretization").append(suffix);
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >)>(&T::add), "", "Post Process")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IDomainElemDisc<TDomain> >)>(&T::add), "", "Element Discretization")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IDiscretizationItem<TDomain, TAlgebra> >)>(&T::add), "", "DiscItem")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "DomainDiscretization", dimAlgTag);
+		reg.add_class_to_group(name, "DomainDiscretization", tag);
 	}
 
 //	IDiscretizationItem
 	{
 		typedef IDiscretizationItem<TDomain, TAlgebra> T;
-		string name = string("IDiscretizationItem").append(dimAlgSuffix);
+		string name = string("IDiscretizationItem").append(suffix);
 		reg.add_class_<T>(name, domDiscGrp);
-		reg.add_class_to_group(name, "IDiscretizationItem", dimAlgTag);
+		reg.add_class_to_group(name, "IDiscretizationItem", tag);
 	}
 
 //	GridFunction
 	{
-		string name = string("GridFunction").append(dimAlgSuffix);
+		string name = string("GridFunction").append(suffix);
 		reg.add_class_<TFct, vector_type>(name, approxGrp)
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("ApproximationSpace")
 			.add_method("assign", static_cast<void (TFct::*)(const vector_type&)>(&TFct::assign),
@@ -92,10 +103,8 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 			.add_method("remove_transfer", &TFct::remove_transfer)
 			.add_method("clear_transfers", &TFct::clear_transfers)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "GridFunction", dimAlgTag);
+		reg.add_class_to_group(name, "GridFunction", tag);
 	}
-
-	string grp = parentGroup; grp.append("");
 
 //	InterpolateFunction
 	{
@@ -112,75 +121,96 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 	}
 }
 
-
-template <typename TAlgebra>
-static void Register__Algebra(Registry& reg, string parentGroup)
-{
-//	get group string
-	string grp = parentGroup; grp.append("/Discretization");
-
-	try{
-#ifdef UG_DIM_1
-		Register__Algebra_Domain<Domain1d, TAlgebra>(reg, grp);
-#endif
-#ifdef UG_DIM_2
-		Register__Algebra_Domain<Domain2d, TAlgebra>(reg, grp);
-#endif
-#ifdef UG_DIM_3
-		Register__Algebra_Domain<Domain3d, TAlgebra>(reg, grp);
-#endif
-	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterLibDisc_Domain: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
-	}
-}
-
+/**
+ * Function called for the registration of Domain dependent parts.
+ * All Functions and Classes depending on the Domain
+ * are to be placed here when registering. The method is called for all
+ * available Domain types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
 template <typename TDomain>
-static void Register__Domain(Registry& reg, string parentGroup)
+static void Domain(Registry& reg, string grp)
 {
-//	typedef
-//	static const int dim = TDomain::dim;
+	string suffix = GetDomainSuffix<TDomain>();
+	string tag = GetDomainTag<TDomain>();
 	typedef ApproximationSpace<TDomain> approximation_space_type;
 
 //	group string
-	string approxGrp = parentGroup; approxGrp.append("/ApproximationSpace");
-
-//	suffix and tag
-	string dimSuffix = GetDomainSuffix<TDomain>();
-	string dimTag = GetDomainTag<TDomain>();
-
+	grp.append("/ApproximationSpace");
 
 //  ApproximationSpace
 	{
 		typedef ApproximationSpace<TDomain> T;
 		typedef IApproximationSpace TBase;
-		string name = string("ApproximationSpace").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, approxGrp)
+		string name = string("ApproximationSpace").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
 			.add_method("domain", static_cast<SmartPtr<TDomain> (T::*)()>(&T::domain))
 			.add_method("surface_view", static_cast<ConstSmartPtr<SurfaceView> (T::*)() const>(&T::surface_view))
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ApproximationSpace", dimTag);
+		reg.add_class_to_group(name, "ApproximationSpace", tag);
 	}
 
 //	Order Cuthill-McKee
 	{
-		reg.add_function("OrderCuthillMcKee", static_cast<void (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee), approxGrp);
+		reg.add_function("OrderCuthillMcKee", static_cast<void (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee), grp);
 	}
 
 //	Order lexicographically
 	{
-		reg.add_function("OrderLex", static_cast<void (*)(approximation_space_type&, const char*)>(&OrderLex<TDomain>), approxGrp);
+		reg.add_function("OrderLex", static_cast<void (*)(approximation_space_type&, const char*)>(&OrderLex<TDomain>), grp);
 	}
+
 }
 
-bool RegisterLibDisc_Domain(Registry& reg, string parentGroup)
+/**
+ * Function called for the registration of Dimension dependent parts.
+ * All Functions and Classes depending on the Dimension
+ * are to be placed here when registering. The method is called for all
+ * available Dimension types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <int dim>
+static void Dimension(Registry& reg, string grp)
+{
+	string suffix = GetDimensionSuffix<dim>();
+	string tag = GetDimensionTag<dim>();
+
+}
+
+/**
+ * Function called for the registration of Algebra dependent parts.
+ * All Functions and Classes depending on Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TAlgebra>
+static void Algebra(Registry& reg, string grp)
+{
+	string suffix = GetAlgebraSuffix<TAlgebra>();
+	string tag = GetAlgebraTag<TAlgebra>();
+
+}
+
+/**
+ * Function called for the registration of Domain and Algebra independent parts.
+ * All Functions and Classes not depending on Domain and Algebra
+ * are to be placed here when registering.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+static void Common(Registry& reg, string grp)
 {
 //	GridLevel
-	reg.add_class_<GridLevel>("GridLevel")
+	reg.add_class_<GridLevel>("GridLevel", grp)
 		.add_constructor()
 		.add_constructor<void (*)(int)>("Level")
 		.add_constructor<void (*)(int, std::string)>("Level, Type")
@@ -189,7 +219,7 @@ bool RegisterLibDisc_Domain(Registry& reg, string parentGroup)
 //	IApproximationSpace
 	{
 	typedef IApproximationSpace T;
-	reg.add_class_<T>("IApproximationSpace")
+	reg.add_class_<T>("IApproximationSpace", grp)
 		.add_method("print_statistic", static_cast<void (T::*)(int) const>(&T::print_statistic))
 		.add_method("print_statistic", static_cast<void (T::*)() const>(&T::print_statistic))
 		.add_method("print_layout_statistic", static_cast<void (T::*)(int) const>(&T::print_layout_statistic))
@@ -210,42 +240,23 @@ bool RegisterLibDisc_Domain(Registry& reg, string parentGroup)
 					"currently no help available");
 
 	}
+}
+
+}; // end Functionality
+
+
+void RegisterBridge_DiscDomain(Registry& reg, string grp)
+{
+	grp.append("/Discretization");
 
 	try{
-#ifdef UG_CPU_1
-	Register__Algebra<CPUAlgebra>(reg, parentGroup);
-#endif
-#ifdef UG_CPU_2
-	Register__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
-#endif
-#ifdef UG_CPU_3
-	Register__Algebra<CPUBlockAlgebra<3> >(reg, parentGroup);
-#endif
-#ifdef UG_CPU_4
-	Register__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
-#endif
-#ifdef UG_CPU_VAR
-	Register__Algebra<CPUVariableBlockAlgebra >(reg, parentGroup);
-#endif
-
-#ifdef UG_DIM_1
-	Register__Domain<Domain1d>(reg, parentGroup);
-#endif
-#ifdef UG_DIM_2
-	Register__Domain<Domain2d>(reg, parentGroup);
-#endif
-#ifdef UG_DIM_3
-	Register__Domain<Domain3d>(reg, parentGroup);
-#endif
+		RegisterCommon<Functionality>(reg,grp);
+		RegisterDimensionDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterLibDisc_Domain: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
-	}
-
-	return true;
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace ug
