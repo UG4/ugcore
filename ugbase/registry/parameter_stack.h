@@ -79,7 +79,7 @@ static inline int ARRAY_INDEX_TO_STACK_INDEX(int index, int stackSize)
 
 
 
-const int PARAMETER_STACK_MAX_SIZE = 10;
+const int PARAMETER_STACK_MAX_SIZE = 11;
 
 // CAUTION:
 // Type values must not be changed! Bindings rely on the exact values.
