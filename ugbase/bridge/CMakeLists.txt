@@ -26,23 +26,23 @@ set(srcUGBridge     ${srcUGBridge}
 if(buildAlgebra)
 	# add source files that depend on the algebra and discretization system here.
 	set(srcUGBridge ${srcUGBridge}
-					lib_algebra_bridges/algebra_bridge_common.cpp
-					lib_algebra_bridges/amg_bridge.cpp
-					lib_algebra_bridges/eigensolver_bridge.cpp
-					lib_algebra_bridges/lib_algebra_bridge.cpp
-					lib_algebra_bridges/preconditioner_bridge.cpp
-					lib_algebra_bridges/solver_bridge.cpp
+					algebra_bridges/algebra_bridge_common.cpp
+					algebra_bridges/amg_bridge.cpp
+					algebra_bridges/eigensolver_bridge.cpp
+					algebra_bridges/lib_algebra_bridge.cpp
+					algebra_bridges/preconditioner_bridge.cpp
+					algebra_bridges/solver_bridge.cpp
 					
-					lib_disc_bridges/integrate_bridge.cpp
-					lib_disc_bridges/adaptive_tools_bridge.cpp
-					lib_disc_bridges/common_bridge.cpp
-					lib_disc_bridges/algebra_bridge.cpp
-					lib_disc_bridges/domain_bridge.cpp
-					lib_disc_bridges/elem_discs_bridge.cpp
-					lib_disc_bridges/constraints_bridge.cpp
-					lib_disc_bridges/multigrid_bridge.cpp
-					lib_disc_bridges/output_bridge.cpp
-					lib_disc_bridges/user_data_bridge.cpp)
+					disc_bridges/integrate_bridge.cpp
+					disc_bridges/adaptive_tools_bridge.cpp
+					disc_bridges/common_bridge.cpp
+					disc_bridges/algebra_bridge.cpp
+					disc_bridges/domain_bridge.cpp
+					disc_bridges/elem_discs_bridge.cpp
+					disc_bridges/constraints_bridge.cpp
+					disc_bridges/multigrid_bridge.cpp
+					disc_bridges/output_bridge.cpp
+					disc_bridges/user_data_bridge.cpp)
 else(buildAlgebra)
 
 endif(buildAlgebra)
