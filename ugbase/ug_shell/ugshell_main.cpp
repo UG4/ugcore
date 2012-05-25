@@ -278,6 +278,12 @@ debug_return debugShell()
 	return DEBUG_EXIT;
 }
 
+#ifdef UG_DEBUG
+void SharedLibrariesLoaded()
+{
+}
+#endif
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // main
@@ -390,6 +396,10 @@ int main(int argc, char* argv[])
 		UG_LOG("Unknown error received during initialization. Terminating ugshell...\n");
 		bAbort = true;
 	}
+
+#ifdef UG_DEBUG
+	SharedLibrariesLoaded();
+#endif
 
 	if(!bAbort){
 		bool runInteractiveShell = true;
