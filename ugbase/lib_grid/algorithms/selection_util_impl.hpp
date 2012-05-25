@@ -101,7 +101,7 @@ void InvertSelection(TSelector& sel, TIterator begin, TIterator end)
 template <class TElem, class TIterator>
 void
 SelectAssociated(ISelector& sel, TIterator begin, TIterator end,
-				 ISelector::status_t status = ISelector::SELECTED)
+				 ISelector::status_t status)
 {
 	Grid* pGrid = sel.grid();
 	if(!pGrid)
