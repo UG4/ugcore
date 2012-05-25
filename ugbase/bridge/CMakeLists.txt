@@ -9,17 +9,17 @@ project(P_UGBRIDGE)
 include("../../ug_cmake_includes.txt")
 
 set(srcUGBridge    	bridge.cpp
-					vec_math_bridge.cpp
-					lib_grid_bridge.cpp
-					test_bridge.cpp
-					profiler_bridge.cpp
-					util_bridge.cpp
-					misc_bridge.cpp
-					domain_bridge.cpp
-					refinement_bridge)
+					domain_bridges/lib_grid_bridge.cpp
+					domain_bridges/domain_bridge.cpp
+					domain_bridges/refinement_bridge
+					misc_bridges/test_bridge.cpp
+					misc_bridges/profiler_bridge.cpp
+					misc_bridges/util_bridge.cpp
+					misc_bridges/misc_bridge.cpp
+					misc_bridges/vec_math_bridge.cpp)
 
 set(srcUGBridge     ${srcUGBridge}
-					pcl_bridge.cpp)
+					misc_bridges/pcl_bridge.cpp)
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.

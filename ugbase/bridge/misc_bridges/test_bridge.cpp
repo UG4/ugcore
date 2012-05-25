@@ -6,7 +6,7 @@
 #include <sstream>
 #include <boost/bind.hpp>
 #include "registry/registry.h"
-#include "bridge.h"
+#include "bridge/bridge.h"
 #include "common/util/message_hub.h"
 
 //	temporary include

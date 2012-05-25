@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
-#include "bridge.h"
+#include "bridge/bridge.h"
 #include "lib_disc/domain.h"
 #include "lib_grid/lib_grid.h"
 

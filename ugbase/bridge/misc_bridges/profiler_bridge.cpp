@@ -6,7 +6,7 @@
  */
 
 #include "registry/registry.h"
-#include "bridge.h"
+#include "bridge/bridge.h"
 #include "common/profiler/profiler.h"
 #include "common/profiler/profile_node.h"
 #include "ug.h" // Required for UGOutputProfileStatsOnExit.

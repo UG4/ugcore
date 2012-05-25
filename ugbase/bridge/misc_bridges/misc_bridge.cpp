@@ -6,7 +6,7 @@
  */
 
 #include "registry/registry.h"
-#include "bridge.h"
+#include "bridge/bridge.h"
 #include <string>
 #include <sstream>
 #include <ctime>

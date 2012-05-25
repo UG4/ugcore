@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "registry/registry.h"
-#include "bridge.h"
+#include "bridge/bridge.h"
 
 #include "common/profiler/profiler.h"
 #include "lib_grid/lib_grid.h"
