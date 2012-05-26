@@ -259,47 +259,53 @@ end
 --! lists all the command line arguments which where used or could
 --! have been used with util.GetParam, util.GetParamNumber and util.HasParamOption
 function util.PrintArguments()
-	print("used command line arguments:")
+	local pUsedLine=""
+	local pOtherLine=""
 	for name,value in pairsSortedByKeys(util.args) do
 		if string.sub(value,1,1) ~= " " then
-			print(name.." = " ..value)
-		end
+			pUsedLine=pUsedLine..name.." = "..value.."\n"
+		else
+			pOtherLine=pOtherLine..name..value..", "
+		end	
 	end
-	local pline=""
-	for name,value in pairsSortedByKeys(util.args) do
-		if string.sub(value,1,1) == " " then
-			pline=pline..name..value..", "
-		end
-	end
-	if pline ~= "" then
-		print("Arguments which could have been used:")
-		print(string.sub(pline, 1, string.len(pline)-2))
-	end
+	if pUsedLine ~= "" then
+		print("Used arguments:\n"..pUsedLine)		
+	end	
+	if pOtherLine ~= "" then
+		print("Available arguments:\n"..string.sub(pOtherLine, 1, string.len(pOtherLine)-2).."\n")
+	end	
 end
 
 --! lists all command line arguments which were provided but could not be used.
 function util.PrintIgnoredArguments()
 	local pline = ""
 	for i=1, ugargc do
-		if util.argUsed == nil or util.argUsed[i] == nil then
-			local imin=4
+		if (util.argUsed == nil or util.argUsed[i] == nil) and 
+			string.sub(ugargv[i], 1,1) == "-" then
+			local imin=10
 			local namemin=""
 			for name in pairs(util.args) do
-				local d = LevenshteinDistance(name, ugargv[i])
-				if d < imin then
-					imin = d
-					namemin = name
+				if string.sub(util.args[name],1,1) == " " then
+					local d = LevenshteinDistance(name, ugargv[i])
+					if d < imin then
+						imin = d
+						namemin = name
+					end
+				elseif name == ugargv[i] then
+					imin = 0
 				end
 			end
-			if imin < 4 then
-				pline=pline..ugargv[i].." (did you mean "..namemin.."?)\n"
-			else 
-				pline=pline..ugargv[i]
+			if imin == 0 then
+				pline=pline..ugargv[i].." is a doubled argument! Already set to "..util.args[ugargv[i]]..".\n"
+			elseif imin < string.len(ugargv[i])/2 then
+				pline=pline..ugargv[i].." (did you mean "..namemin..util.args[namemin].."?)\n"
+			else
+				pline=pline..ugargv[i].." "				
 			end
 		end
 	end
 	if pline ~= "" then
-		print("Ignored command line arguments:\n"..pline)
+		print("Ignored arguments:\n"..pline.."\n")
 	end
 end
 
