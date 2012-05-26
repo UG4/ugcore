@@ -656,13 +656,13 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 {
 #ifdef UG_DIM_1
-	ug::vrl::RegisterBridge_UserData < 1 > (reg, parentGroup);
+	ug::vrl::RegisterUserData < 1 > (reg, parentGroup);
 #endif
 #ifdef UG_DIM_2
-	ug::vrl::RegisterBridge_UserData < 2 > (reg, parentGroup);
+	ug::vrl::RegisterUserData < 2 > (reg, parentGroup);
 #endif
 #ifdef UG_DIM_3
-	ug::vrl::RegisterBridge_UserData < 3 > (reg, parentGroup);
+	ug::vrl::RegisterUserData < 3 > (reg, parentGroup);
 #endif
 }
 
