@@ -6,6 +6,7 @@
  */
 
 #include "convergence_check.h"
+#include "common/util/string_util.h"
 
 namespace ug{
 
@@ -43,21 +44,22 @@ void StandardConvCheck::start_defect(number initialDefect)
 
 	//	print name line
 		print_offset();
-		for(int i = 0; i < num_sym; ++i) UG_LOG(m_symbol);
+		UG_LOG(repeat(m_symbol, num_sym));
 		int pre_space = (int)(max_length -(int)m_name.length()) / 2;
-		for(int i = 0; i < pre_space; ++i) UG_LOG(" ");
+		UG_LOG(repeat(' ', pre_space));
 		UG_LOG("  "<< m_name << "  ");
-		for(int i = m_name.length(); i < max_length - pre_space; ++i) UG_LOG(" ");
-		for(int i = 0; i < space_left; ++i) UG_LOG(m_symbol); UG_LOG("\n");
-
+		UG_LOG(repeat(' ', max_length - pre_space -m_name.length()));
+		UG_LOG(repeat(m_symbol, space_left));
+		UG_LOG("\n");
 	//	print info line
 		print_offset();
 		if(m_info.length() > 0)
 		{
-			for(int i = 0; i < num_sym; ++i) UG_LOG(m_symbol);
+			UG_LOG(repeat(m_symbol, num_sym));
 			UG_LOG("  "<< m_info << "  ");
-			for(int i = m_info.length(); i < max_length; ++i) UG_LOG(" ");
-			for(int i = 0; i < space_left; ++i) UG_LOG(m_symbol); UG_LOG("\n");
+			UG_LOG(repeat(' ', max_length-m_info.length()));
+			UG_LOG(repeat(m_symbol, space_left))
+			UG_LOG("\n");
 		} else {
 			UG_LOG("\n");
 		}
@@ -141,10 +143,12 @@ bool StandardConvCheck::post()
 
 	if(m_verbose)
 	{
-		print_offset(); for(int i = 0; i < 5; ++i) UG_LOG(m_symbol);
+		print_offset();
+		UG_LOG(repeat(m_symbol, 5));
 		if(success) {UG_LOG("  Iteration converged  ");}
 		else {UG_LOG("  Iteration not successful  ");}
-		for(int i = 0; i < 5; ++i) UG_LOG(m_symbol); UG_LOG("\n\n");
+		UG_LOG(repeat(m_symbol, 5));
+		UG_LOG("\n\n");
 	}
 	return success;
 }
@@ -152,7 +156,7 @@ bool StandardConvCheck::post()
 void StandardConvCheck::print_offset()
 {
 	// step 1: whitespace
-	for(int i = 0; i < m_offset; ++i)	UG_LOG(" ");
+	UG_LOG(repeat(' ', m_offset));
 
 	// step 2: print style character
 	UG_LOG(m_symbol << " ");
