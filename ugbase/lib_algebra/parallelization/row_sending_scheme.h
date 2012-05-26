@@ -101,7 +101,8 @@ public:
 				it != connections.end(); ++it)
 		{
 			std::vector<connection> &cons = it->second;
-			mat.set_matrix_row(it->first, &cons[0], cons.size());
+			if(cons.size())
+			  mat.set_matrix_row(it->first, &cons[0], cons.size());
 		}
 	}
 
@@ -112,7 +113,8 @@ public:
 				it != connections.end(); ++it)
 		{
 			std::vector<connection> &cons = it->second;
-			mat.add_matrix_row(it->first, &cons[0], cons.size());
+			if(cons.size())
+			  mat.add_matrix_row(it->first, &cons[0], cons.size());
 		}
 	}
 
