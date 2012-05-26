@@ -231,12 +231,19 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 		//PRINTPC(L.pA->process_communicator());
 		agglomerate(level);
 		// todo: recalculate level information after agglomeration
-		//if(L.bLevelHasMergers)
+		/*if(L.bLevelHasMergers && m_agglomerateLevel == level
+				&& GetLogAssistant().get_output_process() != -1)
+		{
+			GetLogAssistant().set_output_process(L.agglomeratedPC.get_proc_id(0));
+			UG_LOG("New output proc is " << L.agglomeratedPC.get_proc_id(0) << "\n");
+		}*/
 			//calculate_level_information(level, createAMGlevelTiming);
 		precalc_level(level);
 		if(m_agglomerateLevel == level)
 		{
 			UG_LOG("Processor " << pcl::GetProcRank() << " got agglomerated at level " << level << ".\n");
+			//if(GetLogAssistant().get_output_process() != -1)
+				//GetLogAssistant().set_output_process(pcl::GetProcRank()+1);
 			break;
 		}
 #else
@@ -423,23 +430,17 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 		// create basesolver
 		collect_matrix(A, *L.collectedA, L.agglomerateMasterLayout, agglomerateSlaveLayout);
 
-		if(m_writeMatrices && m_amghelper.has_positions())
-		{
-			std::vector<MathVector<3> > vec = m_amghelper.positions[level];
-			vec.resize(L.collectedA->num_rows());
-			ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec);
-			pcl::InterfaceCommunicator<IndexLayout> &communicator = A.communicator();
-			communicator.send_data(agglomerateSlaveLayout, copyPol);
-			communicator.receive_data(L.agglomerateMasterLayout, copyPol);
-			communicator.communicate();
-			if(pcl::GetProcRank() == pc.get_proc_id(0))
-			{
-				std::string name = (std::string(m_writeMatrixPath) + "collectedA.mat");
-				WriteMatrixToConnectionViewer(name.c_str(), *L.collectedA, &vec[0], m_amghelper.dimension);
-			}
-		}
+
 		if(pcl::GetProcRank() == pc.get_proc_id(0))
 		{
+			if(m_writeMatrices && m_amghelper.has_positions())
+			{
+				m_amghelper.receive_agglomerate_positions(level, A.communicator(), L.agglomerateMasterLayout, L.collectedA->num_rows());
+				std::string name = (std::string(m_writeMatrixPath) + "collectedA.mat");
+				std::vector<MathVector<3> > vec = m_amghelper.positions[level];
+				WriteMatrixToConnectionViewer(name.c_str(), *L.collectedA, &vec[0], m_amghelper.dimension);
+			}
+
 			L.agglomeratedPC = pc.create_sub_communicator(true);
 			L.collectedA->set_master_layout(m_emptyLayout);
 			L.collectedA->set_slave_layout(m_emptyLayout);
@@ -454,6 +455,9 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 		}
 		else
 		{
+			if(m_writeMatrices && m_amghelper.has_positions())
+				m_amghelper.send_agglomerate_positions(level, A.communicator(), agglomerateSlaveLayout);
+
 			m_agglomerateLevel = level;
 			L.agglomeratedPC = pc.create_sub_communicator(false);
 		}

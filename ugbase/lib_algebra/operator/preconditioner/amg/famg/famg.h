@@ -148,7 +148,7 @@ public:
 	}
 
 	// void add_std_testvector
-	// with callback calculate(vector_type &c, double &weight, stdvector<positions>, stdvector<bool> isinner) o€.
+	// with callback calculate(vector_type &c, double &weight, stdvector<positions>, stdvector<bool> isinner) oï¿½.
 
 	void add_testvector(vector_type& c, double weight)
 	{
@@ -172,6 +172,9 @@ public:
 	{
 		m_bTestvectorsFromMatrixRows = bEnable;
 	}
+
+	void init_for_EVP(const vector_type &u, const vector_type &b);
+
 
 	void set_testvector_smoother(SmartPtr<ILinearIterator<vector_type> > testvectorsmoother) { m_testvectorsmoother = testvectorsmoother; }
 
@@ -248,6 +251,10 @@ private:
 
 	stdvector< vector_type > testvectors;
 	stdvector<double> omega;
+
+	vector_type evpU, evpB;
+	bool m_bProjectedEVP;
+
 #ifdef UG_PARALLEL
 	IParallelCoarsening *m_pParallelCoarsening;
 #endif

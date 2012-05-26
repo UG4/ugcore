@@ -590,7 +590,34 @@ protected:
 
 private:
 #ifdef UG_PARALLEL
+	/// starts the agglomeration process
 	bool agglomerate(size_t level);
+
+	/**
+	 * agglomerate the vectors and matrix from all processors in mergeWith
+	 * this processor becomes father for this level
+	 * @param merge		this map maps neighbors which got agglomerated to their new cores
+	 * @param mergeWith the processors to agglomerate with
+	 * @param level
+	 */
+	bool agglomerate_from(const std::map<int, int> &merge, const std::vector<int> &mergeWith, size_t level, ParallelNodes &PN);
+
+	/**
+	 * agglomerates this processor on the level to mergeTo
+	 * this processor becomes child for this level
+	 * @param merge		this map maps neighbors which got agglomerated to their new cores
+	 * @param mergeTo 	the processor to merge to
+	 * @param level		the AMG level0
+	 */
+	bool agglomerate_to(const std::map<int, int> &merge, int mergeTo, size_t level, ParallelNodes &PN);
+	/**
+	 * even though this processor does not get agglomerated and does not agglomerate,
+	 * he might need to change his interfaces because neighbors could have gotten
+	 * agglomerated
+	 * @param merge		this map maps neighbors which got agglomerated to their new cores
+	 * @param level		the AMG level0
+	 */
+	bool agglomerate_adjust_interfaces(const std::map<int, int> &merge, size_t level, ParallelNodes &PN);
 #endif
 
 protected:

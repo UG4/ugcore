@@ -706,6 +706,10 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 
 	UG_ASSERT(m_testvectorsmoother != NULL, "please provide a testvector smoother.");
 
+	if(m_bProjectedEVP && level == 0)
+	{
+
+	}
 	UG_ASSERT(testvectors.size() != 0, "testvectors?");
 	UG_ASSERT(testvectors[0].size() == A.num_rows(), "testvectorsize = " << testvectors[0].size() << " != A.num_rows() = " << A.num_rows() << " ?");
 
@@ -846,6 +850,16 @@ bool FAMG<CPUAlgebra>::check_testvector()
 	AMGBase<CPUAlgebra>::set_num_postsmooth(postSmooth);
 	return true;
 }
+
+
+template<>
+void FAMG<CPUAlgebra>::init_for_EVP(const vector_type &u, const vector_type &b)
+{
+	CloneVector(evpU, u);
+	CloneVector(evpB, b);
+	m_bProjectedEVP=true;
+}
+
 } // namespace ug
 
 #ifdef UG_PARALLEL

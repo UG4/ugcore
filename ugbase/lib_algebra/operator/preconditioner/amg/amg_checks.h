@@ -29,8 +29,6 @@ void AMGBase<TAlgebra>::write_interfaces()
 	for(size_t level=0; level<m_usedLevels; level++)
 	{
 
-
-
 		const char *filename = (std::string(m_writeMatrixPath) + std::string("AMG_interface_L") + ToString(level) + "_" + ToString(pcl::GetProcRank()) + std::string(".mat")).c_str();
 		std::fstream file(filename, std::ios::out);
 		file << 1 << std::endl; // connection viewer version
@@ -231,12 +229,14 @@ bool AMGBase<TAlgebra>::check(const vector_type &const_c, const vector_type &con
 		}
 #endif
 
-		UG_LOG("checking level " << level << "\n");
-		check_level(*pC, *pD, *pA, level, checkRes[level]);
-
 		vector_type d2;
 		CloneVector(d2, *pD);
 		d2 = *pD;
+
+		UG_LOG("checking level " << level << "\n");
+		check_level(*pC, *pD, *pA, level, checkRes[level]);
+
+
 		levels[level]->R.apply(levels[level]->dH, d2);
 		//levels[i]->R.apply(levels[i]->cH, c2); // other possiblity, think about that
 	}
@@ -309,7 +309,9 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	if(m_writeMatrices) writevec((std::string("cc0")).c_str(), c, level, solution);
 	if(m_writeMatrices) writevec((std::string("c0")).c_str(), c, level);
 	if(m_writeMatrices) writevec((std::string("d0")).c_str(), d, level);
-	UG_LOG(0 << ":	" << " - " << "\t" << firstnorm << "\n");
+
+	UG_LOG("Type    " << "  Iter#     Defect         Rate\n");
+	UG_LOG("                 " << std::scientific << firstnorm << "\n");
 	for(size_t i=0; i<m_iNrOfPreiterationsCheck; i++)
 	{
 		add_correction_and_update_defect2(c, d, *L.pAgglomeratedA, level);
@@ -321,16 +323,20 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 		n1 = n2;
 		n2 = ConstTwoNorm(d);
 
-		if(prevrate/ (n2/n1) < 1.01 && prevrate/ (n2/n1) > 0.99 )
+		if(n2 < 1e-7 || (prevrate/ (n2/n1) < 1.01 && prevrate/ (n2/n1) > 0.99) )
 			break;
 
 		prevrate = n2/n1;
 
-		UG_LOG(i+1 << ":	" << n2/n1 << "\t" << n2 << "\n");
+		UG_LOG("preIter " << std::setw(4) << i+1 << ":    " << std::scientific << n2 <<
+				"    " << std::scientific << n2/n1 << "\n");
 
 	}
 
+
 	double prenorm = ConstTwoNorm(d);
+	UG_LOG("defect below is in relation to " << std::scientific << prenorm << ".\n");
+	UG_LOG("Type    " << "  Iter#     Defect         Rate            RelDefect \n");
 	//UG_LOG("Prenorm = " << prenorm << "\n");
 
 	n1 = ConstTwoNorm(d);
@@ -353,7 +359,11 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	{
 		L.presmoother->apply_update_defect(corr, d);
 		c += corr;
-		n2 = ConstTwoNorm(d);	UG_LOG("presmoothing " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
+		n2 = ConstTwoNorm(d);
+		UG_LOG("preSm   " << std::setw(4) << i+1 << ":    " << std::scientific << n2 <<
+						"    " << std::scientific << n2/n1 <<
+						"    " << std::scientific << n2/prenorm << "\n");
+		n1 = n2;
 	}
 
 	res.preSmoothing = n2/prenorm;
@@ -365,7 +375,11 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	{
 		f_smoothing(corr, d, level);
 		c+=corr;
-		n2 = ConstTwoNorm(d);	UG_LOG("pre f-smoothing: " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
+		n2 = ConstTwoNorm(d);
+		UG_LOG("preFSm  " << std::setw(4) << 0 << ":    " << std::scientific << n2 <<
+								"    " << std::scientific << n2/n1 <<
+								"    " << std::scientific << n2/prenorm << "\n");
+		n1 = n2;
 	}
 
 	res.preFSmoothing = n2/prenorm;
@@ -530,7 +544,11 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 		f_smoothing(corr, d, level);
 		c+=corr;
 	}
-	n2 = ConstTwoNorm(d);	UG_LOG("post f-smoothing: " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
+	n2 = ConstTwoNorm(d);
+
+	UG_LOG("postFSm " << std::setw(4) << 0 << ":    " << std::scientific << n2 <<
+									"    " << std::scientific << n2/n1 <<
+									"    " << std::scientific << n2/prenorm << "\n");
 	res.postFSmoothing = n2/prenorm;
 
 	if(m_writeMatrices) writevec("S5_d_fpost", d, level);
@@ -541,7 +559,10 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	{
 		L.postsmoother->apply_update_defect(corr, d);
 		c += corr;
-		n2 = ConstTwoNorm(d);	UG_LOG("postsmoothing " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
+		n2 = ConstTwoNorm(d);
+		UG_LOG("postSm  " << std::setw(4) << i+1 << ":    " << std::scientific << n2 <<
+								"    " << std::scientific << n2/n1 <<
+								"    " << std::scientific << n2/prenorm << "\n");
 	}
 
 	res.postSmoothing = n2/prenorm;

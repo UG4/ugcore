@@ -68,6 +68,8 @@ FAMG<TAlgebra>::FAMG() : AMGBase<TAlgebra>()
 				iDebugLevelAggressiveCoarsening = iDebugLevelSendCoarsening = iDebugLevelCommunicateProlongation = iDebugLevelAfterCommunicateProlongation = 0;
 
 	m_bWriteFValues = false;
+
+	m_bProjectedEVP = false;
 #ifdef UG_PARALLEL
 	m_pParallelCoarsening = NULL;
 #endif
