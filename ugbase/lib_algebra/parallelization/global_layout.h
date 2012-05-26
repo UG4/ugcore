@@ -21,9 +21,11 @@ namespace ug
 
 typedef std::map<int, std::vector<AlgebraID> > GlobalLayout;
 
-void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, std::vector<int> &srcprocs, GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout);
-void SendGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout, int pid);
-void MergeGlobalLayout(GlobalLayout &globalLayout, std::map<int, int> &merge);
+void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, const std::vector<int> &srcprocs,
+		GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout);
+void SendGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm,
+		const GlobalLayout &globalMasterLayout, const GlobalLayout &globalSlaveLayout, int pid);
+void MergeGlobalLayout(GlobalLayout &globalLayout, const std::map<int, int> &merge);
 
 
 template<typename TGlobalToLocal>
@@ -63,7 +65,7 @@ inline void CreateLayoutFromGlobalLayout(IndexLayout &layout, GlobalLayout &glob
 
 
 template<typename TLocalToGlobal>
-void CreateGlobalLayout(GlobalLayout &globalLayout, IndexLayout layout, const TLocalToGlobal &localToGlobal)
+void CreateGlobalLayout(GlobalLayout &globalLayout, IndexLayout &layout, const TLocalToGlobal &localToGlobal)
 {
 	PROFILE_FUNC();
 	for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)

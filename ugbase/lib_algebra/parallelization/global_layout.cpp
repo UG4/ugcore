@@ -50,7 +50,7 @@ void PrintGlobalLayout(const GlobalLayout &globalLayout, const char *name)
 	}
 }
 
-void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, std::vector<int> &srcprocs,
+void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, const std::vector<int> &srcprocs,
 		GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout)
 {
 	typedef std::map<int, BinaryBuffer> BufferMap;
@@ -69,15 +69,15 @@ void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, std::vec
 	}
 }
 
-void SerializeGlobalLayout(BinaryBuffer &stream, GlobalLayout &globalLayout)
+void SerializeGlobalLayout(BinaryBuffer &stream, const GlobalLayout &globalLayout)
 {
 	size_t size = globalLayout.size();
 	Serialize(stream, size);
 	UG_DLOG(LIB_ALG_AMG, 4, " size = " << size << "\n");
-	for(GlobalLayout::iterator iter = globalLayout.begin(); iter != globalLayout.end(); ++iter)
+	for(GlobalLayout::const_iterator iter = globalLayout.begin(); iter != globalLayout.end(); ++iter)
 	{
 		int pid = iter->first;
-		std::vector<AlgebraID> &v = iter->second;
+		const std::vector<AlgebraID> &v = iter->second;
 		//UG_DLOG(LIB_ALG_AMG, 4, " " << pid << " - " << v << "\n");
 		//if(v.size() == 0) continue;
 		Serialize(stream, pid);
@@ -85,7 +85,8 @@ void SerializeGlobalLayout(BinaryBuffer &stream, GlobalLayout &globalLayout)
 	}
 }
 
-void SendGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout, int pid)
+void SendGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm,
+		const GlobalLayout &globalMasterLayout, const GlobalLayout &globalSlaveLayout, int pid)
 {
 	UG_DLOG(LIB_ALG_AMG, 4, "sending to " << pid << "\n");
 	BinaryBuffer stream;
@@ -100,9 +101,9 @@ void SendGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, GlobalLayou
 }
 
 
-void MergeGlobalLayout(GlobalLayout &globalLayout, std::map<int, int> &merge)
+void MergeGlobalLayout(GlobalLayout &globalLayout, const std::map<int, int> &merge)
 {
-	for(std::map<int, int>::iterator it = merge.begin(); it != merge.end(); ++it)
+	for(std::map<int, int>::const_iterator it = merge.begin(); it != merge.end(); ++it)
 	{
 		std::vector<AlgebraID> &a = globalLayout[it->first];
 
