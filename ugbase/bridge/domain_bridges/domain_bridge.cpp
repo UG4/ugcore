@@ -5,9 +5,11 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <string>
 
-#include "registry/registry.h"
+// include bridge
 #include "bridge/bridge.h"
+#include "bridge/util.h"
 
 #include "common/profiler/profiler.h"
 #include "lib_grid/lib_grid.h"
@@ -157,16 +159,33 @@ static void TranslateDomain(TDomain& dom, number tx, number ty, number tz)
 
 
 namespace bridge{
+namespace Domain{
 
-template <typename TDomain>
-static void RegisterDomainInterface_(Registry& reg, string grp)
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
 {
-	string dimSuffix = GetDomainSuffix<TDomain>();
-	string dimTag = GetDomainTag<TDomain>();
+
+/**
+ * Function called for the registration of Domain dependent parts.
+ * All Functions and Classes depending on the Domain
+ * are to be placed here when registering. The method is called for all
+ * available Domain types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain>
+static void Domain(Registry& reg, string grp)
+{
+	string suffix = GetDomainSuffix<TDomain>();
+	string tag = GetDomainTag<TDomain>();
 
 //	Domain
 	{
-		string name = string("Domain").append(dimSuffix);
+		string name = string("Domain").append(suffix);
 		reg.add_class_<TDomain>(name, grp)
 			.add_constructor()
 			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (TDomain::*)()>(&TDomain::subset_handler))
@@ -174,7 +193,7 @@ static void RegisterDomainInterface_(Registry& reg, string grp)
 			.add_method("get_dim", static_cast<int (TDomain::*)() const>(&TDomain::get_dim))
 			.set_construct_as_smart_pointer(true);
 
-		reg.add_class_to_group(name, "Domain", dimTag);
+		reg.add_class_to_group(name, "Domain", tag);
 	}
 
 // 	LoadDomain
@@ -206,7 +225,7 @@ static void RegisterDomainInterface_(Registry& reg, string grp)
 
 //	todo: remove this
 	{
-		string name = string("DistributeDomain").append(dimSuffix);
+		string name = string("DistributeDomain").append(suffix);
 		reg.add_function(name.c_str(), static_cast<bool (*)(TDomain&)>(
 						 &DistributeDomain<TDomain>), grp);
 	}
@@ -231,30 +250,44 @@ static void RegisterDomainInterface_(Registry& reg, string grp)
 	reg.add_function("TestDomainVisualization", &TestDomainVisualization<TDomain>, grp);
 	reg.add_function("MinimizeMemoryFootprint", &MinimizeMemoryFootprint<TDomain>, grp);
 }
+}; // end Functionality
+
 
 ///	methods that are only available for 2d and 3d are registered here
+struct Functionality2d3d
+{
 template <typename TDomain>
-static void RegisterDomainInterface_2d_3d(Registry& reg, string grp)
+static void Domain(Registry& reg, string grp)
 {
 	reg.add_function("PartitionDomain_RegularGrid",
 					 &PartitionDomain_RegularGrid<TDomain>, grp);
 }
+}; // end Functionality2d3d
+
+}// end Domain
 
 void RegisterBridge_Domain(Registry& reg, string grp)
 {
 	grp.append("/Domain");
 
-#ifdef UG_DIM_1
-	RegisterDomainInterface_<Domain<1, MultiGrid, MGSubsetHandler> >(reg, grp);
-#endif
-#ifdef UG_DIM_2
-	RegisterDomainInterface_<Domain<2, MultiGrid, MGSubsetHandler> >(reg, grp);
-	RegisterDomainInterface_2d_3d<Domain<2, MultiGrid, MGSubsetHandler> >(reg, grp);
-#endif
-#ifdef UG_DIM_3
-	RegisterDomainInterface_<Domain<3, MultiGrid, MGSubsetHandler> >(reg, grp);
-	RegisterDomainInterface_2d_3d<Domain<3, MultiGrid, MGSubsetHandler> >(reg, grp);
-#endif
+	typedef Domain::Functionality Functionality;
+	typedef boost::mpl::list<
+	#ifdef UG_DIM_2
+			Domain2d
+	#endif
+	#if defined UG_DIM_2 && defined UG_DIM_3
+			,
+	#endif
+	#ifdef UG_DIM_3
+			Domain3d
+	#endif
+	> CompileDomain2d3dList;
+
+	try{
+		RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<Domain::Functionality2d3d, CompileDomain2d3dList>(reg,grp);
+	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }// end of namespace
