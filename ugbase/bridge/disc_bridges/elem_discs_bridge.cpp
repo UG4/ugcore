@@ -20,7 +20,6 @@
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 
-#include "lib_disc/spatial_disc/elem_disc/convection_diffusion/convection_diffusion.h"
 #include "lib_disc/spatial_disc/elem_disc/constant_equation/constant_equation.h"
 
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/neumann_boundary.h"
@@ -136,68 +135,6 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "ConstantEquation", tag);
 	}
 
-//	Convection Diffusion
-	{
-		typedef ConvectionDiffusion<TDomain> T;
-		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("ConvectionDiffusion").append(suffix);
-		reg.add_class_<T, TBase >(name, elemGrp)
-			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
-			.add_method("set_disc_scheme", &T::set_disc_scheme, "", "Disc Scheme|selection|value=[\"fe\",\"fv\",\"fv1\"]")
-			.add_method("set_quad_order", &T::set_quad_order)
-			.add_method("set_quad_order_scvf", &T::set_quad_order_scvf)
-			.add_method("set_quad_order_scv", &T::set_quad_order_scv)
-
-			.add_method("set_diffusion", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
-			.add_method("set_diffusion", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diagonal Diffusion")
-#ifdef UG_FOR_LUA
-			.add_method("set_diffusion", static_cast<void (T::*)(const char*)>(&T::set_diffusion), "", "Diffusion")
-#endif
-
-			.add_method("set_velocity", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >)>(&T::set_velocity), "", "Velocity Field")
-			.add_method("set_velocity", static_cast<void (T::*)(number)>(&T::set_velocity), "", "Vel_x")
-			.add_method("set_velocity", static_cast<void (T::*)(number,number)>(&T::set_velocity), "", "Vel_x, Vel_y")
-			.add_method("set_velocity", static_cast<void (T::*)(number,number,number)>(&T::set_velocity), "", "Vel_x, Vel_y, Vel_z")
-#ifdef UG_FOR_LUA
-			.add_method("set_velocity", static_cast<void (T::*)(const char*)>(&T::set_velocity), "", "Velocity Field")
-#endif
-
-			.add_method("set_reaction_rate", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_reaction_rate), "", "Reaction Rate")
-			.add_method("set_reaction_rate", static_cast<void (T::*)(number)>(&T::set_reaction_rate), "", "Reaction Rate")
-#ifdef UG_FOR_LUA
-			.add_method("set_reaction_rate", static_cast<void (T::*)(const char*)>(&T::set_reaction_rate), "", "Reaction Rate")
-#endif
-
-			.add_method("set_reaction", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_reaction), "", "Reaction")
-			.add_method("set_reaction", static_cast<void (T::*)(number)>(&T::set_reaction), "", "Reaction")
-#ifdef UG_FOR_LUA
-			.add_method("set_reaction", static_cast<void (T::*)(const char*)>(&T::set_reaction), "", "Reaction")
-#endif
-
-			.add_method("set_source", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_source), "", "Source")
-			.add_method("set_source", static_cast<void (T::*)(number)>(&T::set_source), "", "Source")
-#ifdef UG_FOR_LUA
-			.add_method("set_source", static_cast<void (T::*)(const char*)>(&T::set_source), "", "Source")
-#endif
-
-			.add_method("set_mass_scale", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_mass_scale), "", "Mass Scale")
-			.add_method("set_mass_scale", static_cast<void (T::*)(number)>(&T::set_mass_scale), "", "Mass Scale")
-#ifdef UG_FOR_LUA
-			.add_method("set_mass_scale", static_cast<void (T::*)(const char*)>(&T::set_mass_scale), "", "Mass Scale")
-#endif
-
-			.add_method("set_mass", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >)>(&T::set_mass), "", "Mass")
-			.add_method("set_mass", static_cast<void (T::*)(number)>(&T::set_mass), "", "Mass")
-#ifdef UG_FOR_LUA
-			.add_method("set_mass", static_cast<void (T::*)(const char*)>(&T::set_mass), "", "Mass")
-#endif
-
-			.add_method("set_upwind", &T::set_upwind)
-			.add_method("value", &T::value)
-			.add_method("gradient", &T::gradient)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ConvectionDiffusion", tag);
-	}
 
 
 /////////////////////////////////////////////////////////////////////////////
