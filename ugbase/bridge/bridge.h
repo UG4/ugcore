@@ -71,7 +71,11 @@ void RegisterBridge_UserData(Registry& reg, std::string grp = UG4_GRP);
 
 #ifdef UG_ALGEBRA
 ///	registers lib-algebra interface methods at the registry.
-void RegisterBridge_Algebra(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_AlgebraCommon(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_Preconditioner(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_Solver(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_AMG(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_Eigensolver(Registry& reg, std::string grp = UG4_GRP);
 
 ///	registers lib-discretization interface methods at the registry.
 void RegisterBridge_DiscAlgebra(Registry& reg, std::string grp = UG4_GRP);

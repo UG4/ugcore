@@ -27,11 +27,10 @@ if(buildAlgebra)
 	# add source files that depend on the algebra and discretization system here.
 	set(srcUGBridge ${srcUGBridge}
 					algebra_bridges/algebra_bridge_common.cpp
-					algebra_bridges/amg_bridge.cpp
-					algebra_bridges/eigensolver_bridge.cpp
-					algebra_bridges/lib_algebra_bridge.cpp
 					algebra_bridges/preconditioner_bridge.cpp
 					algebra_bridges/solver_bridge.cpp
+					algebra_bridges/amg_bridge.cpp
+					algebra_bridges/eigensolver_bridge.cpp
 					
 					disc_bridges/integrate_bridge.cpp
 					disc_bridges/adaptive_tools_bridge.cpp

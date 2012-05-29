@@ -2,18 +2,19 @@
  * preconditioner_bridge.cpp
  *
  *  Created on: 03.05.2012
- *      Author: mrupp
+ *      Author: avogel
  */
 
 // extern headers
 #include <iostream>
 #include <sstream>
 
-#include "lib_algebra_bridge.h"
-
-#include "lib_algebra/lib_algebra.h"
+// include bridge
+#include "bridge/bridge.h"
+#include "bridge/util.h"
 
 // preconditioner
+#include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/preconditioner/jacobi.h"
 #include "lib_algebra/operator/preconditioner/gauss_seidel.h"
 #include "lib_algebra/operator/preconditioner/ilu.h"
@@ -22,123 +23,134 @@
 
 using namespace std;
 
-namespace ug
-{
-namespace bridge
+namespace ug{
+namespace bridge{
+namespace Preconditioner{
+
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
 {
 
+/**
+ * Function called for the registration of Algebra dependent parts.
+ * All Functions and Classes depending on Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
 template <typename TAlgebra>
-struct RegisterPreconditionerClass
+static void Algebra(Registry& reg, string grp)
 {
-static bool reg(Registry& reg, string parentGroup)
-{
-//	get group string (use same as parent)
-	string grp = string(parentGroup);
+	string suffix = GetAlgebraSuffix<TAlgebra>();
+	string tag = GetAlgebraTag<TAlgebra>();
 
 //	typedefs for this algebra
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
 
-//	suffix and tag
-	string algSuffix = GetAlgebraSuffix<TAlgebra>();
-	string algTag = GetAlgebraTag<TAlgebra>();
-//////////////////////
-// Preconditioner
-//////////////////////
-//	get group string
-	stringstream grpSS2; grpSS2 << grp << "/Preconditioner";
-	string grp2 = grpSS2.str();
-
 //	Jacobi
 	{
 		typedef Jacobi<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
-		string name = string("Jacobi").append(algSuffix);
-		reg.add_class_<T,TBase>(name, grp2, "Jacobi Preconditioner")
+		string name = string("Jacobi").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Jacobi Preconditioner")
 			.add_constructor()
 			.add_method("set_damp", &T::set_damp, "", "damp")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "Jacobi", algTag);
+		reg.add_class_to_group(name, "Jacobi", tag);
 	}
 
 //	GaussSeidel
 	{
 		typedef GaussSeidel<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
-		string name = string("GaussSeidel").append(algSuffix);
-		reg.add_class_<T,TBase>(name, grp2, "Gauss-Seidel Preconditioner")
+		string name = string("GaussSeidel").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Gauss-Seidel Preconditioner")
 		.add_constructor()
 		.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "GaussSeidel", algTag);
+		reg.add_class_to_group(name, "GaussSeidel", tag);
 	}
 
 //	Symmetric GaussSeidel
 	{
 		typedef SymmetricGaussSeidel<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
-		string name = string("SymmetricGaussSeidel").append(algSuffix);
-		reg.add_class_<T,TBase>(name, grp2)
+		string name = string("SymmetricGaussSeidel").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "SymmetricGaussSeidel", algTag);
+		reg.add_class_to_group(name, "SymmetricGaussSeidel", tag);
 	}
 
 //	Backward GaussSeidel
 	{
 		typedef BackwardGaussSeidel<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
-		string name = string("BackwardGaussSeidel").append(algSuffix);
-		reg.add_class_<T,TBase>(name, grp2)
+		string name = string("BackwardGaussSeidel").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "BackwardGaussSeidel", algTag);
+		reg.add_class_to_group(name, "BackwardGaussSeidel", tag);
 	}
 
 //	ILU
 	{
 		typedef ILU<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
-		string name = string("ILU").append(algSuffix);
-		reg.add_class_<T,TBase>(name, grp2, "Incomplete LU Decomposition")
+		string name = string("ILU").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition")
 			.add_constructor()
 			.add_method("set_beta", &T::set_beta, "", "beta")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ILU", algTag);
+		reg.add_class_to_group(name, "ILU", tag);
 	}
 
 //	ILU Threshold
 	{
 		typedef ILUTPreconditioner<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
-		string name = string("ILUT").append(algSuffix);
-		reg.add_class_<T,TBase>(name, grp2, "Incomplete LU Decomposition with threshold")
+		string name = string("ILUT").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition with threshold")
 			.add_constructor()
 			.add_method("set_threshold", &T::set_threshold,
 						"", "threshold", "sets threshold of incomplete LU factorisation")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ILUT", algTag);
+		reg.add_class_to_group(name, "ILUT", tag);
 	}
 
 //	LinearIteratorProduct
 	{
 		typedef LinearIteratorProduct<vector_type, vector_type> T;
 		typedef ILinearIterator<vector_type> TBase;
-		string name = string("LinearIteratorProduct").append(algSuffix);
+		string name = string("LinearIteratorProduct").append(suffix);
 		reg.add_class_<T,TBase>(name, grp,
 						"Linear Iterator consisting of several LinearIterations")
 				.add_constructor()
 				.add_method("add_iteration", &T::add_iterator, "Add an iterator")
 				.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "LinearIteratorProduct", algTag);
+		reg.add_class_to_group(name, "LinearIteratorProduct", tag);
 	}
-	return true;
-}
-};
 
-bool RegisterPreconditioner(Registry& reg, string parentGroup)
+}
+
+}; // end Functionality
+}// end Preconditioner
+
+void RegisterBridge_Preconditioner(Registry& reg, string grp)
 {
-	return RegisterAlgebraClass<RegisterPreconditionerClass>(reg, parentGroup);
+	grp.append("/Algebra/Preconditioner");
+	typedef Preconditioner::Functionality Functionality;
+
+	try{
+		RegisterAlgebraDependent<Functionality>(reg,grp);
+	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
-}
-}
+} // namespace bridge
+} // namespace ug

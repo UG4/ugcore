@@ -2,7 +2,7 @@
  * solver_bridge.cpp
  *
  *  Created on: 03.05.2012
- *      Author: mrupp
+ *      Author: avogel
  */
 
 // extern headers
@@ -10,11 +10,12 @@
 #include <sstream>
 #include <string>
 
-#include "lib_algebra_bridge.h"
-
-#include "lib_algebra/lib_algebra.h"
+// include bridge
+#include "bridge/bridge.h"
+#include "bridge/util.h"
 
 // solver
+#include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/linear_solver/linear_solver.h"
 #include "lib_algebra/operator/linear_solver/cg.h"
 #include "lib_algebra/operator/linear_solver/bicgstab.h"
@@ -28,76 +29,78 @@
 
 using namespace std;
 
-namespace ug
-{
-namespace bridge
-{
-///////////////////////
-//	Solver
-///////////////////////
+namespace ug{
+namespace bridge{
+namespace Solver{
 
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
+{
+
+/**
+ * Function called for the registration of Algebra dependent parts.
+ * All Functions and Classes depending on Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
 template <typename TAlgebra>
-struct RegisterSolverClass
+static void Algebra(Registry& reg, string grp)
 {
-static bool reg(Registry& reg, string parentGroup)
-{
-//	get group string (use same as parent)
-	string grp = string(parentGroup);
+	string suffix = GetAlgebraSuffix<TAlgebra>();
+	string tag = GetAlgebraTag<TAlgebra>();
 
 //	typedefs for this algebra
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
 
-//	suffix and tag
-	string algSuffix = GetAlgebraSuffix<TAlgebra>();
-	string algTag = GetAlgebraTag<TAlgebra>();
-
-	//	get group string
-	stringstream grpSS3; grpSS3 << grp << "/Solver";
-	string grp3 = grpSS3.str();
-
 // 	LinearSolver
 	{
 		typedef LinearSolver<vector_type> T;
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
-		string name = string("LinearSolver").append(algSuffix);
-		reg.add_class_<T,TBase>(name, grp3)
+		string name = string("LinearSolver").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "LinearSolver", algTag);
+		reg.add_class_to_group(name, "LinearSolver", tag);
 	}
 
 // 	CG Solver
 	{
 		typedef CG<vector_type> T;
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
-		string name = string("CG").append(algSuffix);
-		reg.add_class_<T,TBase>(name, grp3, "Conjugate Gradient")
+		string name = string("CG").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Conjugate Gradient")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "CG", algTag);
+		reg.add_class_to_group(name, "CG", tag);
 	}
 
 // 	BiCGStab Solver
 	{
 		typedef BiCGStab<vector_type> T;
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
-		string name = string("BiCGStab").append(algSuffix);
-		reg.add_class_<T,TBase>(name, grp3)
+		string name = string("BiCGStab").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "BiCGStab", algTag);
+		reg.add_class_to_group(name, "BiCGStab", tag);
 	}
 
 // 	LU Solver
 	{
 		typedef LU<TAlgebra> T;
 		typedef ILinearOperatorInverse<vector_type> TBase;
-		string name = string("LU").append(algSuffix);
-		reg.add_class_<T,TBase>(name, grp3, "LU-Decomposition exact solver")
+		string name = string("LU").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "LU-Decomposition exact solver")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "LU", algTag);
+		reg.add_class_to_group(name, "LU", tag);
 	}
 
 #ifdef UG_PARALLEL
@@ -106,8 +109,8 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef LocalSchurComplement<TAlgebra> T;
 		typedef ILinearOperator<vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
-		string name = string("LocalSchurComplement").append(algSuffix);
-		reg.add_class_<	T, TBase, TBase2>(name, grp3)
+		string name = string("LocalSchurComplement").append(suffix);
+		reg.add_class_<	T, TBase, TBase2>(name, grp)
 		.add_constructor()
 		.add_method("set_matrix", &T::set_matrix,
 					"", "Matrix")
@@ -118,7 +121,7 @@ static bool reg(Registry& reg, string parentGroup)
 		.add_method("apply", &T::apply,
 					"Success", "local SC times Vector#Vector")
 		.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "LocalSchurComplement", algTag);
+		reg.add_class_to_group(name, "LocalSchurComplement", tag);
 	}
 
 // 	FETISolver
@@ -126,8 +129,8 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef FETISolver<TAlgebra> T;
 		typedef IMatrixOperatorInverse<matrix_type, vector_type> BaseT;
 		typedef DebugWritingObject<TAlgebra> TBase2;
-		string name = string("FETI").append(algSuffix);
-		reg.add_class_<	T, BaseT,TBase2>(name, grp3, "FETI Domain Decomposition Solver")
+		string name = string("FETI").append(suffix);
+		reg.add_class_<	T, BaseT,TBase2>(name, grp, "FETI Domain Decomposition Solver")
 		.add_constructor()
 		.add_method("set_neumann_solver", &T::set_neumann_solver,
 					"", "Neumann Solver")
@@ -141,7 +144,7 @@ static bool reg(Registry& reg, string parentGroup)
 		.add_method("test_layouts", &T::test_layouts)
 		.add_method("set_test_one_to_many_layouts", &T::set_test_one_to_many_layouts)
 		.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "FETI", algTag);
+		reg.add_class_to_group(name, "FETI", tag);
 	}
 #endif
 
@@ -151,8 +154,8 @@ static bool reg(Registry& reg, string parentGroup)
 		typedef HLIBSolver<TAlgebra> T;
 		typedef ILinearOperatorInverse<vector_type> TBase;
 		typedef DebugWritingObject<TAlgebra> TBase2;
-		string name = string("HLIBSolver").append(algSuffix);
-		reg.add_class_<	T, TBase, TBase2>(name, grp3)
+		string name = string("HLIBSolver").append(suffix);
+		reg.add_class_<	T, TBase, TBase2>(name, grp)
 		.add_constructor()
 		.add_method("set_hlib_nmin",         &T::set_hlib_nmin,
 					"", "HLIB nmin")
@@ -169,17 +172,24 @@ static bool reg(Registry& reg, string parentGroup)
 		.add_method("check_crs_matrix",      &T::check_crs_matrix,
 					"", "Check CRS matrix")
 		.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "HLIBSolver", algTag);
+		reg.add_class_to_group(name, "HLIBSolver", tag);
 	}
 #endif
-	return true;
-}
-};
 
-bool RegisterSolver(Registry& reg, string parentGroup)
+}
+}; // end Functionality
+}// end Solver
+
+void RegisterBridge_Solver(Registry& reg, string grp)
 {
-	return RegisterAlgebraClass<RegisterSolverClass>(reg, parentGroup);
+	grp.append("/Algebra/Solver");
+	typedef Solver::Functionality Functionality;
+
+	try{
+		RegisterAlgebraDependent<Functionality>(reg,grp);
+	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
-}
-}
+} // namespace bridge
+} // namespace ug
