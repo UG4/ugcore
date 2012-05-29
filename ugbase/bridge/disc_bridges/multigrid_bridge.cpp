@@ -11,14 +11,10 @@
 #include <string>
 
 // include bridge
-#include "../bridge.h"
-#include "registry/registry.h"
-
-// lib_algebra includes
-#include "lib_algebra/cpu_algebra_types.h"
+#include "bridge/bridge.h"
+#include "bridge/util.h"
 
 // lib_disc includes
-#include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 
@@ -28,60 +24,71 @@
 
 using namespace std;
 
-namespace ug {
-namespace bridge {
+namespace ug{
+namespace bridge{
+namespace MultiGrid{
 
-template <typename TDomain, typename TAlgebra>
-static void Register__Algebra_Domain(Registry& reg, string parentGroup)
+
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
 {
+
+/**
+ * Function called for the registration of Domain and Algebra dependent parts.
+ * All Functions and Classes depending on both Domain and Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Domain and Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain, typename TAlgebra>
+static void DomainAlgebra(Registry& reg, string grp)
+{
+	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
+	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
+
 //	typedef
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef ApproximationSpace<TDomain> approximation_space_type;
 
-//	group string
-	stringstream grpSS; grpSS << parentGroup << "/MultiGrid";
-	string grp = grpSS.str();
-
-//	suffix and tag
-	string dimAlgSuffix = GetDomainSuffix<TDomain>();
-	dimAlgSuffix.append(GetAlgebraSuffix<TAlgebra>());
-
-	string dimAlgTag = GetDomainTag<TDomain>();
-	dimAlgTag.append(GetAlgebraTag<TAlgebra>());
-
+	grp.append("/MultiGrid");
 
 //	ProlongationOperator
 	{
 		typedef P1Prolongation<TDomain, TAlgebra> T;
 		typedef IProlongationOperator<TAlgebra> TBase;
-		string name = string("P1Prolongation").append(dimAlgSuffix);
+		string name = string("P1Prolongation").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
 			.add_method("add_constraint", &T::add_constraint)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "P1Prolongation", dimAlgTag);
+		reg.add_class_to_group(name, "P1Prolongation", tag);
 	}
 
 //	ProjectionOperator
 	{
 		typedef P1Projection<TDomain, TAlgebra> T;
 		typedef IProjectionOperator<vector_type, vector_type> TBase;
-		string name = string("P1Projection").append(dimAlgSuffix);
+		string name = string("P1Projection").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "P1Projection", dimAlgTag);
+		reg.add_class_to_group(name, "P1Projection", tag);
 	}
 
 //	AssembledMultiGridCycle
 	{
 		typedef AssembledMultiGridCycle<TDomain, TAlgebra> T;
 		typedef ILinearIterator<vector_type> TBase;
-		string name = string("GeometricMultiGrid").append(dimAlgSuffix);
+		string name = string("GeometricMultiGrid").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("Approximation Space")
 			.add_method("set_discretization", &T::set_discretization, "", "Discretization")
@@ -96,77 +103,56 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 			.add_method("set_projection", &T::set_projection_operator,"", "Projection")
 			.add_method("set_debug", &T::set_debug)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "GeometricMultiGrid", dimAlgTag);
+		reg.add_class_to_group(name, "GeometricMultiGrid", tag);
 	}
 }
 
+/**
+ * Function called for the registration of Algebra dependent parts.
+ * All Functions and Classes depending on Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
 template <typename TAlgebra>
-static void Register__Algebra(Registry& reg, string parentGroup)
+static void Algebra(Registry& reg, string grp)
 {
-//	get group string
-	string grp = parentGroup; grp.append("/Discretization");
+	typedef typename TAlgebra::vector_type vector_type;
+	string suffix = GetAlgebraSuffix<TAlgebra>();
+	string tag = GetAlgebraTag<TAlgebra>();
 
-	try
+//	IProlongationOperator
 	{
-
-#ifdef UG_DIM_1
-		Register__Algebra_Domain<Domain1d, TAlgebra>(reg, grp);
-#endif
-#ifdef UG_DIM_2
-		Register__Algebra_Domain<Domain2d, TAlgebra>(reg, grp);
-#endif
-#ifdef UG_DIM_3
-		Register__Algebra_Domain<Domain3d, TAlgebra>(reg, grp);
-#endif
-
-
-		typedef typename TAlgebra::vector_type vector_type;
-	//	suffix and tag
-		string algSuffix = GetAlgebraSuffix<TAlgebra>();
-		string algTag = GetAlgebraTag<TAlgebra>();
-
-	//	IProlongationOperator
-		{
-			typedef IProlongationOperator<TAlgebra> T;
-			string name = string("IProlongationOperator").append(algSuffix);
-			reg.add_class_<T>(name, grp);
-			reg.add_class_to_group(name, "IProlongationOperator", algTag);
-		}
-
-	//	IProjectionOperator
-		{
-			typedef IProjectionOperator<vector_type, vector_type> T;
-			string name = string("IProjectionOperator").append(algSuffix);
-			reg.add_class_<T>(name, grp);
-			reg.add_class_to_group(name, "IProjectionOperator", algTag);
-		}
-
+		typedef IProlongationOperator<TAlgebra> T;
+		string name = string("IProlongationOperator").append(suffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "IProlongationOperator", tag);
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+
+//	IProjectionOperator
 	{
-		UG_LOG("### ERROR in Register__Algebra_DoFDistribution: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
+		typedef IProjectionOperator<vector_type, vector_type> T;
+		string name = string("IProjectionOperator").append(suffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "IProjectionOperator", tag);
 	}
 }
+};
+
+}// namespace MultiGrid
 
 void RegisterBridge_MultiGrid(Registry& reg, string grp)
 {
-#ifdef UG_CPU_1
-	Register__Algebra<CPUAlgebra>(reg, grp);
-#endif
-#ifdef UG_CPU_2
-	Register__Algebra<CPUBlockAlgebra<2> >(reg, grp);
-#endif
-#ifdef UG_CPU_3
-	Register__Algebra<CPUBlockAlgebra<3> >(reg, grp);
-#endif
-#ifdef UG_CPU_4
-	Register__Algebra<CPUBlockAlgebra<4> >(reg, grp);
-#endif
-#ifdef UG_CPU_VAR
-	Register__Algebra<CPUVariableBlockAlgebra >(reg, grp);
-#endif
+	grp.append("/Discretization");
+	typedef MultiGrid::Functionality Functionality;
+
+	try{
+		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace ug

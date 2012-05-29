@@ -1,5 +1,5 @@
 /*
- * domain_bridge.cpp
+ * integrate_bridge.cpp
  *
  *  Created on: 21.05.2012
  *      Author: andreasvogel
@@ -11,14 +11,10 @@
 #include <string>
 
 // include bridge
-#include "../bridge.h"
-#include "registry/registry.h"
-
-// lib_algebra includes
-#include "lib_algebra/cpu_algebra_types.h"
+#include "bridge/bridge.h"
+#include "bridge/util.h"
 
 // lib_disc includes
-#include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
 #include "lib_disc/function_spaces/integrate.h"
@@ -28,16 +24,30 @@ using namespace std;
 
 namespace ug{
 namespace bridge{
+namespace Integrate{
 
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
+{
+
+/**
+ * Function called for the registration of Domain and Algebra dependent parts.
+ * All Functions and Classes depending on both Domain and Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Domain and Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
 template <typename TDomain, typename TAlgebra>
-static void Register__Algebra_Domain(Registry& reg, string parentGroup)
+static void DomainAlgebra(Registry& reg, string grp)
 {
 //	typedef
 	static const int dim = TDomain::dim;
 	typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
-
-//	group string
-	string grp = parentGroup; grp.append("");
 
 //	Integral
 	{
@@ -85,58 +95,19 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 
 }
 
+}; // end Functionality
+}// end Integrate
 
-template <typename TAlgebra>
-static void Register__Algebra(Registry& reg, string parentGroup)
+void RegisterBridge_Integrate(Registry& reg, string grp)
 {
-//	get group string
-	string grp = parentGroup; grp.append("/Discretization");
+	grp.append("/Discretization");
+	typedef Integrate::Functionality Functionality;
 
 	try{
-#ifdef UG_DIM_1
-		Register__Algebra_Domain<Domain1d, TAlgebra>(reg, grp);
-#endif
-#ifdef UG_DIM_2
-		Register__Algebra_Domain<Domain2d, TAlgebra>(reg, grp);
-#endif
-#ifdef UG_DIM_3
-		Register__Algebra_Domain<Domain3d, TAlgebra>(reg, grp);
-#endif
+		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterIntegrate: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
-	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
-void RegisterBridge_Integrate(Registry& reg, string parentGroup)
-{
-	try{
-#ifdef UG_CPU_1
-	Register__Algebra<CPUAlgebra>(reg, parentGroup);
-#endif
-#ifdef UG_CPU_2
-	Register__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
-#endif
-#ifdef UG_CPU_3
-	Register__Algebra<CPUBlockAlgebra<3> >(reg, parentGroup);
-#endif
-#ifdef UG_CPU_4
-	Register__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
-#endif
-#ifdef UG_CPU_VAR
-	Register__Algebra<CPUVariableBlockAlgebra >(reg, parentGroup);
-#endif
-	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterIntegrate: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
-	}
-}
-
+}//	end of namespace bridge
 }//	end of namespace ug
-}//	end of namespace interface

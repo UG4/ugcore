@@ -11,14 +11,10 @@
 #include <string>
 
 // include bridge
-#include "../bridge.h"
-#include "registry/registry.h"
-
-// lib_algebra includes
-#include "lib_algebra/cpu_algebra_types.h"
+#include "bridge/bridge.h"
+#include "bridge/util.h"
 
 // lib_disc includes
-#include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/function_spaces/approximation_space.h"
@@ -28,8 +24,9 @@
 
 using namespace std;
 
-namespace ug {
-namespace bridge {
+namespace ug{
+namespace bridge{
+namespace Output{
 
 /// small wrapper to write a grid function to vtk
 template <typename TGridFunction>
@@ -40,27 +37,40 @@ void WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
 	out.print(filename, u, true); // TODO: setting of last argument (intended to skip "make consistent", for writing of "raw" data; see (grid_function_util.h')
 }
 
-template <typename TDomain, typename TAlgebra>
-static void Register__Algebra_Domain(Registry& reg, string parentGroup)
+template <int dim>
+void SaveDomainToVTK(const char* filename, Domain<dim>& domain)
 {
+	VTKOutput::print<dim>(filename, domain);
+}
+
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
+{
+
+/**
+ * Function called for the registration of Domain and Algebra dependent parts.
+ * All Functions and Classes depending on both Domain and Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Domain and Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain, typename TAlgebra>
+static void DomainAlgebra(Registry& reg, string grp)
+{
+	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
+	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
+
 //	typedef
 	static const int dim = TDomain::dim;
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef ApproximationSpace<TDomain> approximation_space_type;
-
 	typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> function_type;
-
-//	group string
-	stringstream grpSS; grpSS << parentGroup << "/Output";
-	string grp = grpSS.str();
-
-//	suffix and tag
-	string dimAlgSuffix = GetDomainSuffix<TDomain>();
-	dimAlgSuffix.append(GetAlgebraSuffix<TAlgebra>());
-
-	string dimAlgTag = GetDomainTag<TDomain>();
-	dimAlgTag.append(GetAlgebraTag<TAlgebra>());
 
 //	VTK Output
 	{
@@ -78,7 +88,7 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 	{
 		typedef GridFunctionDebugWriter<TDomain, TAlgebra> T;
 		typedef IDebugWriter<TAlgebra> TBase;
-		string name = string("GridFunctionDebugWriter").append(dimAlgSuffix);
+		string name = string("GridFunctionDebugWriter").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("")
 			.add_method("reset", &T::reset, "", "")
@@ -87,19 +97,19 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 			.add_method("set_print_consistent",  &T::set_print_consistent, "", "printConsistent")
 		    .add_method("set_base_dir", &T::set_base_dir, "", "")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "GridFunctionDebugWriter", dimAlgTag);
+		reg.add_class_to_group(name, "GridFunctionDebugWriter", tag);
 	}
 
 //	GridFunctionPositionProvider
 	{
 		typedef GridFunctionPositionProvider<function_type> T;
 		typedef IPositionProvider<dim> TBase;
-		string name = string("GridFunctionPositionProvider").append(dimAlgSuffix);
+		string name = string("GridFunctionPositionProvider").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "GridFunctionPositionProvider", dimAlgTag);
+		reg.add_class_to_group(name, "GridFunctionPositionProvider", tag);
 	}
 
 
@@ -107,26 +117,26 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 	{
 		typedef GridFunctionVectorWriter<function_type, vector_type> T;
 		typedef IVectorWriter<vector_type> TBase;
-		string name = string("GridFunctionVectorWriter").append(dimAlgSuffix);
+		string name = string("GridFunctionVectorWriter").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function, "", "gridFunction")
 			.add_method("set_user_data", &T::set_user_data, "", "userData")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "GridFunctionVectorWriter", dimAlgTag);
+		reg.add_class_to_group(name, "GridFunctionVectorWriter", tag);
 	}
 
 	// GridFunctionVectorWriterDirichlet0
 	{
 		typedef GridFunctionVectorWriterDirichlet0<function_type> T;
 		typedef IVectorWriter<vector_type> TBase;
-		string name = string("GridFunctionVectorWriterDirichlet0").append(dimAlgSuffix);
+		string name = string("GridFunctionVectorWriterDirichlet0").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("init", &T::init, "", "postProcess#approxSpace#level")
 			.add_method("set_level", &T::set_level, "", "level")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "GridFunctionVectorWriterDirichlet0", dimAlgTag);
+		reg.add_class_to_group(name, "GridFunctionVectorWriterDirichlet0", tag);
 	}
 
 //	WriteGridToVTK
@@ -159,51 +169,32 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 	}
 }
 
-template <typename TAlgebra>
-static void Register__Algebra(Registry& reg, string parentGroup)
-{
-//	get group string
-	string grp = parentGroup; grp.append("/Discretization");
 
-	try{
-#ifdef UG_DIM_1
-		Register__Algebra_Domain<Domain1d, TAlgebra>(reg, grp);
-#endif
-#ifdef UG_DIM_2
-		Register__Algebra_Domain<Domain2d, TAlgebra>(reg, grp);
-#endif
-#ifdef UG_DIM_3
-		Register__Algebra_Domain<Domain3d, TAlgebra>(reg, grp);
-#endif
-	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterOutput: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
-	}
-}
-
+/**
+ * Function called for the registration of Dimension dependent parts.
+ * All Functions and Classes depending on the Dimension
+ * are to be placed here when registering. The method is called for all
+ * available Dimension types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
 template <int dim>
-void SaveDomainToVTK(const char* filename, Domain<dim>& domain)
+static void Dimension(Registry& reg, string grp)
 {
-	VTKOutput::print<dim>(filename, domain);
-}
-
-template <typename TDomain>
-static void Register__Domain(Registry& reg, string parentGroup)
-{
-//	get group string
-	string grp = parentGroup; grp.append("/Discretization");
-
-	static const int dim = TDomain::dim;
-
 	reg.add_function("SaveDomainToVTK", &SaveDomainToVTK<dim>);
 }
 
-void RegisterBridge_Output(Registry& reg, string grp)
+/**
+ * Function called for the registration of Domain and Algebra independent parts.
+ * All Functions and Classes not depending on Domain and Algebra
+ * are to be placed here when registering.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+static void Common(Registry& reg, string grp)
 {
-
 //	VTK Output
 	{
 		typedef VTKOutput T;
@@ -216,41 +207,24 @@ void RegisterBridge_Output(Registry& reg, string grp)
 			.add_method("select_nodal_vector", &T::select_nodal_vector)
 			.set_construct_as_smart_pointer(true);
 	}
-
-	try{
-#ifdef UG_DIM_1
-	Register__Domain<Domain1d>(reg, grp);
-#endif
-#ifdef UG_DIM_2
-	Register__Domain<Domain2d>(reg, grp);
-#endif
-#ifdef UG_DIM_3
-	Register__Domain<Domain3d>(reg, grp);
-#endif
-	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterOutput: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
-	}
-
-#ifdef UG_CPU_1
-	Register__Algebra<CPUAlgebra>(reg, grp);
-#endif
-#ifdef UG_CPU_2
-	Register__Algebra<CPUBlockAlgebra<2> >(reg, grp);
-#endif
-#ifdef UG_CPU_3
-	Register__Algebra<CPUBlockAlgebra<3> >(reg, grp);
-#endif
-#ifdef UG_CPU_4
-	Register__Algebra<CPUBlockAlgebra<4> >(reg, grp);
-#endif
-#ifdef UG_CPU_VAR
-	Register__Algebra<CPUVariableBlockAlgebra >(reg, grp);
-#endif
 }
 
+}; // end Functionality
+}// end Output
+
+void RegisterBridge_Output(Registry& reg, string grp)
+{
+	grp.append("/Discretization/Output");
+	typedef Output::Functionality Functionality;
+
+	try{
+		RegisterCommon<Functionality>(reg,grp);
+		RegisterDimensionDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+	}
+	UG_REGISTRY_CATCH_THROW(grp);
+}
+
+
+}//	end of namespace bridge
 }//	end of namespace ug
-}//	end of namespace interface

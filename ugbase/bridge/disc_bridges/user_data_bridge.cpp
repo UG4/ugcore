@@ -4,7 +4,9 @@
 #include <sstream>
 #include <boost/function.hpp>
 
+// include bridge
 #include "bridge/bridge.h"
+#include "bridge/util.h"
 
 #include "common/common.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
@@ -13,10 +15,8 @@
 
 using namespace std;
 
-namespace ug
-{
-namespace bridge
-{
+namespace ug{
+namespace bridge{
 
 /// Hard Coded Linker for d3f
 template <int dim>
@@ -391,10 +391,8 @@ class DarcyVelocityLinker
 
 
 template <typename TData, int dim>
-void RegisterUserDataType(Registry& reg, string type, string parentGroup)
+void RegisterUserDataType(Registry& reg, string type, string grp)
 {
-	string grp = string(parentGroup);
-
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
 
@@ -485,18 +483,34 @@ void RegisterUserDataType(Registry& reg, string type, string parentGroup)
 	}
 }
 
-template <int dim>
-void RegisterBridge_UserData(Registry& reg, string parentGroup)
-{
-	string grp = std::string(parentGroup);
+namespace UserData{
 
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
+{
+
+/**
+ * Function called for the registration of Dimension dependent parts.
+ * All Functions and Classes depending on the Dimension
+ * are to be placed here when registering. The method is called for all
+ * available Dimension types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <int dim>
+static void Dimension(Registry& reg, string grp)
+{
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
 
-	RegisterUserDataType<number, dim>(reg, "Number", parentGroup);
-	RegisterUserDataType<MathVector<dim>, dim>(reg, "Vector", parentGroup);
-	RegisterUserDataType<MathMatrix<dim,dim>, dim>(reg, "Matrix", parentGroup);
-	RegisterUserDataType<MathTensor<4,dim>, dim>(reg, "Tensor4", parentGroup);
+	RegisterUserDataType<number, dim>(reg, "Number", grp);
+	RegisterUserDataType<MathVector<dim>, dim>(reg, "Vector", grp);
+	RegisterUserDataType<MathMatrix<dim,dim>, dim>(reg, "Matrix", grp);
+	RegisterUserDataType<MathTensor<4,dim>, dim>(reg, "Tensor4", grp);
 
 //	ConstUserNumber
 	{
@@ -573,22 +587,33 @@ void RegisterBridge_UserData(Registry& reg, string parentGroup)
 	}
 }
 
-void RegisterBridge_UserData(Registry& reg, string parentGroup)
+/**
+ * Function called for the registration of Domain and Algebra independent parts.
+ * All Functions and Classes not depending on Domain and Algebra
+ * are to be placed here when registering.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+static void Common(Registry& reg, string grp)
+{
+	reg.add_class_<IFunction<number> >("IFunctionNumber", grp);
+}
+
+}; // end Functionality
+}// end UserData
+
+void RegisterBridge_UserData(Registry& reg, string grp)
 {
 //	get group string
-	std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc/UserData");
+	grp.append("/Discretization/SpatialDisc/UserData");
+	typedef UserData::Functionality Functionality;
 
-#ifdef UG_DIM_1
-	RegisterBridge_UserData<1>(reg, grp);
-#endif
-#ifdef UG_DIM_2
-	RegisterBridge_UserData<2>(reg, grp);
-#endif
-#ifdef UG_DIM_3
-	RegisterBridge_UserData<3>(reg, grp);
-#endif
-
-	reg.add_class_<IFunction<number> >("IFunctionNumber", grp);
+	try{
+		RegisterCommon<Functionality>(reg,grp);
+		RegisterDimensionDependent<Functionality>(reg,grp);
+	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // end namespace

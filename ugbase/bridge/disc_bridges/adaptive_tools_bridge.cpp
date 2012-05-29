@@ -11,45 +11,43 @@
 #include <string>
 
 // include bridge
-#include "../bridge.h"
-#include "registry/registry.h"
-
-// lib_algebra includes
-#include "lib_algebra/cpu_algebra_types.h"
+#include "bridge/bridge.h"
+#include "bridge/util.h"
 
 // lib_disc includes
-#include "lib_disc/domain.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/function_spaces/error_indicator.h"
 #include "lib_disc/function_spaces/level_transfer.h"
 #include "lib_disc/function_spaces/local_transfer.h"
 
-
 using namespace std;
 
 namespace ug{
 namespace bridge{
+namespace AdaptiveTools{
 
-template <typename TDomain, typename TAlgebra>
-static void Register__Algebra_Domain(Registry& reg, string parentGroup)
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
 {
-//	typedef
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
-	typedef ApproximationSpace<TDomain> approximation_space_type;
-	typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
 
-//	suffix and tag
-	string dimAlgSuffix = GetDomainSuffix<TDomain>();
-	dimAlgSuffix.append(GetAlgebraSuffix<TAlgebra>());
-
-	string dimAlgTag = GetDomainTag<TDomain>();
-	dimAlgTag.append(GetAlgebraTag<TAlgebra>());
-
-//	group string
-	string approxGrp = parentGroup; approxGrp.append("/ApproximationSpace");
-	string domDiscGrp = parentGroup; domDiscGrp.append("/SpatialDisc");
+/**
+ * Function called for the registration of Domain and Algebra dependent parts.
+ * All Functions and Classes depending on both Domain and Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Domain and Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain, typename TAlgebra>
+static void DomainAlgebra(Registry& reg, string grp)
+{
+	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
+	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
 //	MarkForRefinement_GradientIndicator
 	{
@@ -60,112 +58,117 @@ static void Register__Algebra_Domain(Registry& reg, string parentGroup)
 
 //	Prolongate
 	{
-		string grp("ug4/");
 		reg.add_function("Prolongate",
 						 &Prolongate<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
 	}
+
 }
 
-
-template <typename TAlgebra>
-static void Register__Algebra(Registry& reg, string parentGroup)
+/**
+ * Function called for the registration of Domain dependent parts.
+ * All Functions and Classes depending on the Domain
+ * are to be placed here when registering. The method is called for all
+ * available Domain types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain>
+static void Domain(Registry& reg, string grp)
 {
-//	get group string
-	string grp = parentGroup; grp.append("/Discretization");
+	string suffix = GetDomainSuffix<TDomain>();
+	string tag = GetDomainTag<TDomain>();
 
-//	suffix and tag
-	string algSuffix = GetAlgebraSuffix<TAlgebra>();
-	string algTag = GetAlgebraTag<TAlgebra>();
+}
+
+/**
+ * Function called for the registration of Dimension dependent parts.
+ * All Functions and Classes depending on the Dimension
+ * are to be placed here when registering. The method is called for all
+ * available Dimension types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <int dim>
+static void Dimension(Registry& reg, string grp)
+{
+	string suffix = GetDimensionSuffix<dim>();
+	string tag = GetDimensionTag<dim>();
+
+}
+
+/**
+ * Function called for the registration of Algebra dependent parts.
+ * All Functions and Classes depending on Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TAlgebra>
+static void Algebra(Registry& reg, string grp)
+{
+	string suffix = GetAlgebraSuffix<TAlgebra>();
+	string tag = GetAlgebraTag<TAlgebra>();
 
 //	ILocalTransferAlgebra
 	{
 		typedef ILocalTransferAlgebra<TAlgebra> T;
 		typedef ILocalTransfer TBase;
-		string name = string("ILocalTransferAlgebra").append(algSuffix);
+		string name = string("ILocalTransferAlgebra").append(suffix);
 		reg.add_class_<T, TBase>(name)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ILocalTransferAlgebra", algTag);
+		reg.add_class_to_group(name, "ILocalTransferAlgebra", tag);
 	}
 
 //	P1LocalTransfer
 	{
 		typedef P1LocalTransfer<TAlgebra> T;
 		typedef ILocalTransferAlgebra<TAlgebra> TBase;
-		string name = string("P1LocalTransfer").append(algSuffix);
+		string name = string("P1LocalTransfer").append(suffix);
 		reg.add_class_<T, TBase>(name)
 			.template add_constructor<void (*)(size_t)>("fct")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "P1LocalTransfer", algTag);
+		reg.add_class_to_group(name, "P1LocalTransfer", tag);
 	}
 
-	try{
-#ifdef UG_DIM_1
-		Register__Algebra_Domain<Domain1d, TAlgebra>(reg, grp);
-#endif
-#ifdef UG_DIM_2
-		Register__Algebra_Domain<Domain2d, TAlgebra>(reg, grp);
-#endif
-#ifdef UG_DIM_3
-		Register__Algebra_Domain<Domain3d, TAlgebra>(reg, grp);
-#endif
-	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterAdaptiveTools: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
-	}
 }
 
-template <typename TDomain>
-static void Register__Domain(Registry& reg, string parentGroup)
-{
-//	suffix and tag
-	string dimSuffix = GetDomainSuffix<TDomain>();
-	string dimTag = GetDomainTag<TDomain>();
-}
-
-void RegisterBridge_AdaptiveTools(Registry& reg, string parentGroup)
+/**
+ * Function called for the registration of Domain and Algebra independent parts.
+ * All Functions and Classes not depending on Domain and Algebra
+ * are to be placed here when registering.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+static void Common(Registry& reg, string grp)
 {
 //	ILocalTransfer
 	{
 		reg.add_class_<ILocalTransfer>("ILocalTransfer");
 	}
-
-	try{
-#ifdef UG_CPU_1
-	Register__Algebra<CPUAlgebra>(reg, parentGroup);
-#endif
-#ifdef UG_CPU_2
-	Register__Algebra<CPUBlockAlgebra<2> >(reg, parentGroup);
-#endif
-#ifdef UG_CPU_3
-	Register__Algebra<CPUBlockAlgebra<3> >(reg, parentGroup);
-#endif
-#ifdef UG_CPU_4
-	Register__Algebra<CPUBlockAlgebra<4> >(reg, parentGroup);
-#endif
-#ifdef UG_CPU_VAR
-	Register__Algebra<CPUVariableBlockAlgebra >(reg, parentGroup);
-#endif
-
-#ifdef UG_DIM_1
-	Register__Domain<Domain1d>(reg, parentGroup);
-#endif
-#ifdef UG_DIM_2
-	Register__Domain<Domain2d>(reg, parentGroup);
-#endif
-#ifdef UG_DIM_3
-	Register__Domain<Domain3d>(reg, parentGroup);
-#endif
-	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterAdaptiveTools: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
-	}
 }
 
-}//	end of namespace ug
-}//	end of namespace interface
+}; // end Functionality
+}// end AdaptiveTools
+
+void RegisterBridge_AdaptiveTools(Registry& reg, string grp)
+{
+	grp.append("/Discretization");
+	typedef AdaptiveTools::Functionality Functionality;
+
+	try{
+		RegisterCommon<Functionality>(reg,grp);
+		RegisterDimensionDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+	}
+	UG_REGISTRY_CATCH_THROW(grp);
+}
+
+}// namespace bridge
+}// namespace ug

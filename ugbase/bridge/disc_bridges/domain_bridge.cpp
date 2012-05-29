@@ -35,6 +35,7 @@ using namespace std;
 
 namespace ug{
 namespace bridge{
+namespace DiscDomain{
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -244,10 +245,12 @@ static void Common(Registry& reg, string grp)
 
 }; // end Functionality
 
+}// namespace DiscDomain
 
 void RegisterBridge_DiscDomain(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
+	typedef DiscDomain::Functionality Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);
@@ -259,5 +262,5 @@ void RegisterBridge_DiscDomain(Registry& reg, string grp)
 	UG_REGISTRY_CATCH_THROW(grp);
 }
 
+}//	end of namespace bridge
 }//	end of namespace ug
-}//	end of namespace interface

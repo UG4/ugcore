@@ -11,8 +11,8 @@
 #include <string>
 
 // include bridge
-#include "../bridge.h"
-#include "registry/registry.h"
+#include "bridge/bridge.h"
+#include "bridge/util.h"
 
 // lib_disc includes
 #include "lib_disc/domain.h"
@@ -29,25 +29,32 @@
 
 using namespace std;
 
-namespace ug
+namespace ug{
+namespace bridge{
+namespace ElemDiscs{
+
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
 {
 
-namespace bridge
-{
-
-////////////////////////////////////////////////////////////////////////////////
-//	Registering for all implementations of IElemDisc
-////////////////////////////////////////////////////////////////////////////////
-
+/**
+ * Function called for the registration of Domain dependent parts.
+ * All Functions and Classes depending on the Domain
+ * are to be placed here when registering. The method is called for all
+ * available Domain types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
 template <typename TDomain>
-void Register__Domain(Registry& reg, string grp)
+static void Domain(Registry& reg, string grp)
 {
-//	dimension of domain
+	string suffix = GetDomainSuffix<TDomain>();
+	string tag = GetDomainTag<TDomain>();
 	static const int dim = TDomain::dim;
-
-//	suffix and tag
-	string dimSuffix = GetDomainSuffix<TDomain>();
-	string dimTag = GetDomainTag<TDomain>();
 
 	string approxGrp = grp; approxGrp.append("/ApproximationSpace");
 	string elemGrp = grp; elemGrp.append("/SpatialDisc/ElemDisc");
@@ -56,16 +63,16 @@ void Register__Domain(Registry& reg, string grp)
 	{
 		typedef IDomainElemDisc<TDomain> T;
 		typedef IElemDisc TBase;
-		string name = string("IDomainElemDisc").append(dimSuffix);
+		string name = string("IDomainElemDisc").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp);
-		reg.add_class_to_group(name, "IDomainElemDisc", dimTag);
+		reg.add_class_to_group(name, "IDomainElemDisc", tag);
 	}
 
 //	Neumann Boundary
 	{
 		typedef NeumannBoundary<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("NeumannBoundary").append(dimSuffix);
+		string name = string("NeumannBoundary").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*)>("Function(s)")
 			.add_method("add", static_cast<void (T::*)(number, const char*, const char*)>(&T::add))
@@ -76,24 +83,24 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("add", static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add))
 #endif
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "NeumannBoundary", dimTag);
+		reg.add_class_to_group(name, "NeumannBoundary", tag);
 	}
 
 //	Inner Boundaries
 	{
 		typedef FV1InnerBoundaryElemDisc<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("FV1InnerBoundary").append(dimSuffix);
+		string name = string("FV1InnerBoundary").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp);
-		reg.add_class_to_group(name, "FV1InnerBoundary", dimTag);
+		reg.add_class_to_group(name, "FV1InnerBoundary", tag);
 	
 		typedef FV1CalciumERElemDisc<TDomain> T1;
 		typedef FV1InnerBoundaryElemDisc<TDomain> TBase1;
-		name = string("FV1InnerBoundaryCalciumER").append(dimSuffix);
+		name = string("FV1InnerBoundaryCalciumER").append(suffix);
 		reg.add_class_<T1, TBase1>(name, elemGrp)
 			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "FV1InnerBoundaryCalciumER", dimTag);
+		reg.add_class_to_group(name, "FV1InnerBoundaryCalciumER", tag);
 	
 	}
 
@@ -101,7 +108,7 @@ void Register__Domain(Registry& reg, string grp)
 	{
 		typedef ConstantEquation<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("ConstantEquation").append(dimSuffix);
+		string name = string("ConstantEquation").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_velocity", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >)>(&T::set_velocity), "", "Velocity Field")
@@ -126,14 +133,14 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("value", &T::value)
 			.add_method("gradient", &T::gradient)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ConstantEquation", dimTag);
+		reg.add_class_to_group(name, "ConstantEquation", tag);
 	}
 
 //	Convection Diffusion
 	{
 		typedef ConvectionDiffusion<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("ConvectionDiffusion").append(dimSuffix);
+		string name = string("ConvectionDiffusion").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_disc_scheme", &T::set_disc_scheme, "", "Disc Scheme|selection|value=[\"fe\",\"fv\",\"fv1\"]")
@@ -189,7 +196,7 @@ void Register__Domain(Registry& reg, string grp)
 			.add_method("value", &T::value)
 			.add_method("gradient", &T::gradient)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ConvectionDiffusion", dimTag);
+		reg.add_class_to_group(name, "ConvectionDiffusion", tag);
 	}
 
 
@@ -202,63 +209,70 @@ void Register__Domain(Registry& reg, string grp)
 //	IConvectionShapes
 	{
 		typedef IConvectionShapes<dim> T;
-		string name = string("IConvectionShapes").append(dimSuffix);
+		string name = string("IConvectionShapes").append(suffix);
 		reg.add_class_<T>(name, upGrp);
-		reg.add_class_to_group(name, "IConvectionShapes", dimTag);
+		reg.add_class_to_group(name, "IConvectionShapes", tag);
 	}
 
 //	ConvectionShapesNoUpwind
 	{
 		typedef ConvectionShapesNoUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
-		string name = string("NoUpwind").append(dimSuffix);
+		string name = string("NoUpwind").append(suffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "NoUpwind", dimTag);
+		reg.add_class_to_group(name, "NoUpwind", tag);
 	}
 
 //	ConvectionShapesFullUpwind
 	{
 		typedef ConvectionShapesFullUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
-		string name = string("FullUpwind").append(dimSuffix);
+		string name = string("FullUpwind").append(suffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "FullUpwind", dimTag);
+		reg.add_class_to_group(name, "FullUpwind", tag);
 	}
 
 //	ConvectionShapesWeightedUpwind
 	{
 		typedef ConvectionShapesWeightedUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
-		string name = string("WeightedUpwind").append(dimSuffix);
+		string name = string("WeightedUpwind").append(suffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_method("set_weight", &T::set_weight)
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("weight")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "WeightedUpwind", dimTag);
+		reg.add_class_to_group(name, "WeightedUpwind", tag);
 	}
 
 //	ConvectionShapesPartialUpwind
 	{
 		typedef ConvectionShapesPartialUpwind<dim> T;
 		typedef IConvectionShapes<dim> TBase;
-		string name = string("PartialUpwind").append(dimSuffix);
+		string name = string("PartialUpwind").append(suffix);
 		reg.add_class_<T, TBase>(name, upGrp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "PartialUpwind", dimTag);
+		reg.add_class_to_group(name, "PartialUpwind", tag);
 	}
 }
 
-
-void RegisterBridge_ElemDiscs(Registry& reg, string parentGroup)
+/**
+ * Function called for the registration of Domain and Algebra independent parts.
+ * All Functions and Classes not depending on Domain and Algebra
+ * are to be placed here when registering.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+static void Common(Registry& reg, string grp)
 {
 //	get group string
-	string grp = parentGroup; grp.append("/Discretization");
+	grp.append("/Discretization");
 
 //	Elem Discs
 	{
@@ -266,26 +280,21 @@ void RegisterBridge_ElemDiscs(Registry& reg, string parentGroup)
 		typedef IElemDisc T;
 		reg.add_class_<T>("IElemDisc", elemGrp);
 	}
+}
+};
 
-	try
-	{
-#ifdef UG_DIM_1
-		Register__Domain<Domain1d>(reg, grp);
-#endif
-#ifdef UG_DIM_2
-			Register__Domain<Domain2d>(reg, grp);
-#endif
-#ifdef UG_DIM_3
-			Register__Domain<Domain3d>(reg, grp);
-#endif
+}// namespace ElemDiscs
+
+void RegisterBridge_ElemDiscs(Registry& reg, string grp)
+{
+	typedef ElemDiscs::Functionality Functionality;
+
+	try{
+		RegisterCommon<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality>(reg,grp);
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterElemDiscs: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
-	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
+}//	end of namespace bridge
 }//	end of namespace ug
-}//	end of namespace interface
