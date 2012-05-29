@@ -16,10 +16,10 @@
 
 #include "lib_algebra/lib_algebra.h"
 
+using namespace std;
+
 #ifdef UG_PARALLEL
 #include "lib_algebra/operator/eigensolver/pinvit.h"
-
-using namespace std;
 
 namespace ug{
 namespace bridge{
