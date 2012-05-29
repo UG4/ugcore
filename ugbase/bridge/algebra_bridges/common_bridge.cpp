@@ -1,5 +1,5 @@
 /*
- * lib_algebra_bridge.cpp
+ * common_bridge.cpp
  *
  *  Created on: 11.10.2010
  *      Author: andreasvogel
