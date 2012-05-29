@@ -7,6 +7,7 @@
 #define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA__
 
 #include <stdarg.h>
+#include <string>
 #include "registry/registry.h"
 
 extern "C" {
@@ -327,8 +328,7 @@ class LuaFunction : public IFunction<TData, TDataIn>
 
 namespace bridge{
 
-void RegisterLuaUserData(Registry& reg, const char* parentGroup);
-void RegisterLuaCondUserNumber(Registry& reg, const char* parentGroup);
+void RegisterLuaUserData(Registry& reg, std::string grp);
 
 } // end namepace bridge
 } // end namespace ug

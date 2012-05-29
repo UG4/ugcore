@@ -2,9 +2,11 @@
 
 #include <iostream>
 #include <sstream>
+#include <string>
 
-#include "registry/registry.h"
+// include bridge
 #include "bridge/bridge.h"
+#include "bridge/util.h"
 
 #include "lua_user_data.h"
 
@@ -84,91 +86,106 @@ number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
 
 
 
-namespace bridge
-{
+namespace bridge{
+namespace LuaUserData{
 
-///////////////////////////////////////////////////////////////////////////////
-// Registration
-///////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
-bool RegisterLuaUserDataType(Registry& reg, string type, const char* parentGroup)
+void RegisterLuaUserDataType(Registry& reg, string type, string grp)
 {
-	string grp = std::string(parentGroup);
-
-	string dimSuffix = GetDimensionSuffix<dim>();
-	string dimTag = GetDimensionTag<dim>();
+	string suffix = GetDimensionSuffix<dim>();
+	string tag = GetDimensionTag<dim>();
 
 //	LuaUser"Type"
 	{
-		typedef LuaUserData<TData, dim> T;
+		typedef ug::LuaUserData<TData, dim> T;
 		typedef IPData<TData, dim> TBase;
-		string name = string("LuaUser").append(type).append(dimSuffix);
+		string name = string("LuaUser").append(type).append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, string("LuaUser").append(type), dimTag);
+		reg.add_class_to_group(name, string("LuaUser").append(type), tag);
 	}
 
 //	LuaCondUser"Type"
 	{
-		typedef LuaUserData<TData, dim, bool> T;
+		typedef ug::LuaUserData<TData, dim, bool> T;
 		typedef IPData<TData, dim, bool> TBase;
-		string name = string("LuaCondUser").append(type).append(dimSuffix);
+		string name = string("LuaCondUser").append(type).append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, string("LuaCondUser").append(type), dimTag);
+		reg.add_class_to_group(name, string("LuaCondUser").append(type), tag);
 	}
-
-	return true;
 }
 
-template <int dim>
-void RegisterLuaUserData(ug::bridge::Registry& reg, const char* parentGroup)
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
 {
-	string grp = std::string(parentGroup);
 
-	string dimSuffix = GetDimensionSuffix<dim>();
-	string dimTag = GetDimensionTag<dim>();
+/**
+ * Function called for the registration of Dimension dependent parts.
+ * All Functions and Classes depending on the Dimension
+ * are to be placed here when registering. The method is called for all
+ * available Dimension types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <int dim>
+static void Dimension(Registry& reg, string grp)
+{
+	string suffix = GetDimensionSuffix<dim>();
+	string tag = GetDimensionTag<dim>();
 
-	RegisterLuaUserDataType<number, dim>(reg, "Number", parentGroup);
-	RegisterLuaUserDataType<MathVector<dim>, dim>(reg, "Vector", parentGroup);
-	RegisterLuaUserDataType<MathMatrix<dim,dim>, dim>(reg, "Matrix", parentGroup);
+	RegisterLuaUserDataType<number, dim>(reg, "Number", grp);
+	RegisterLuaUserDataType<MathVector<dim>, dim>(reg, "Vector", grp);
+	RegisterLuaUserDataType<MathMatrix<dim,dim>, dim>(reg, "Matrix", grp);
 
 //	LuaUserFunctionNumber
 	{
 		typedef LuaUserFunction<number, dim, number> T;
 		typedef DataLinkerEqualData<number, dim, number> TBase;
-		string name = string("LuaUserFunctionNumber").append(dimSuffix);
+		string name = string("LuaUserFunctionNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
 			.add_method("set_deriv", &T::set_deriv)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "LuaUserFunctionNumber", dimTag);
+		reg.add_class_to_group(name, "LuaUserFunctionNumber", tag);
 	}
 
 //	LuaUserFunctionMatrixNumber
 	{
 		typedef LuaUserFunction<MathMatrix<dim,dim>, dim, number> T;
 		typedef DataLinkerEqualData<MathMatrix<dim,dim>, dim, number> TBase;
-		string name = string("LuaUserFunctionMatrixNumber").append(dimSuffix);
+		string name = string("LuaUserFunctionMatrixNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
 			.add_method("set_deriv", &T::set_deriv)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "LuaUserFunctionMatrixNumber", dimTag);
+		reg.add_class_to_group(name, "LuaUserFunctionMatrixNumber", tag);
 	}
 
 }
 
-void RegisterLuaUserData(Registry& reg, const char* parentGroup)
+/**
+ * Function called for the registration of Domain and Algebra independent parts.
+ * All Functions and Classes not depending on Domain and Algebra
+ * are to be placed here when registering.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+static void Common(Registry& reg, string grp)
 {
 
 //	LuaUserNumberNumberFunction
 	{
 		typedef LuaUserNumberNumberFunction T;
-		reg.add_class_<T>("LuaUserNumberNumberFunction", parentGroup)
+		reg.add_class_<T>("LuaUserNumberNumberFunction", grp)
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback)
 			.set_construct_as_smart_pointer(true);
@@ -178,22 +195,25 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 	{
 		typedef LuaFunction<number, number> T;
 		typedef IFunction<number, number> TBase;
-		reg.add_class_<T, TBase>("LuaFunctionNumber", parentGroup)
+		reg.add_class_<T, TBase>("LuaFunctionNumber", grp)
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback)
 			.set_construct_as_smart_pointer(true);
 	}
+}
+}; // end Functionality
+}// end LuaUserData
 
-#ifdef UG_DIM_1
-	RegisterLuaUserData<1>(reg, parentGroup);
-#endif
-#ifdef UG_DIM_2
-	RegisterLuaUserData<2>(reg, parentGroup);
-#endif
-#ifdef UG_DIM_3
-	RegisterLuaUserData<3>(reg, parentGroup);
-#endif
+void RegisterLuaUserData(Registry& reg, string grp)
+{
+	typedef LuaUserData::Functionality Functionality;
+
+	try{
+		RegisterCommon<Functionality>(reg,grp);
+		RegisterDimensionDependent<Functionality>(reg,grp);
+	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
-} // end namespace
-} // end namepace
+}// namespace bridge
+}// namespace ug
