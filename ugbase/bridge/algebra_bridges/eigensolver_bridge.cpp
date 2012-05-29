@@ -8,6 +8,7 @@
 // extern headers
 #include <iostream>
 #include <sstream>
+#include <string>
 
 // include bridge
 #include "bridge/bridge.h"
