@@ -608,7 +608,7 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 
 	//	if the following registration is performed, the app should fail on startup,
 	//	since the registered method takes an argument of an unregistered type.
-		reg.add_function("UnregisteredParameterTest", UnregisteredParameterTest);
+		//reg.add_function("UnregisteredParameterTest", UnregisteredParameterTest);
 
 	//	if the following registration is performed, the app should fail on startup,
 	//	since the registered class/functon is ill named (only [a-zA-Z_][a-zA-Z_0-9]* allowed).

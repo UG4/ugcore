@@ -145,7 +145,7 @@ bool RegisterStandardBridges(Registry& reg, string parentGroup)
 	try
 	{
 		// uncomment this to register test-methods
-		RegisterBridge_Test(reg, parentGroup);
+		//RegisterBridge_Test(reg, parentGroup);
 
 		RegisterBridge_VecMath(reg, parentGroup);
 		RegisterBridge_Util(reg, parentGroup);
