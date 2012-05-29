@@ -173,6 +173,21 @@ open_logfile()
 	return true;
 }
 
+
+void LogAssistant::
+flush_error_log()
+{
+	string str = m_errStream.str();
+	if(!str.empty()){
+		logger() << endl
+				<< "********************************************************************************\n"
+				<< "ERRORS OCCURED: " << endl << str << endl
+				<< "********************************************************************************\n";
+		m_errStream.clear();
+	}
+}
+
+
 bool LogAssistant::
 set_debug_levels(int lev)
 {

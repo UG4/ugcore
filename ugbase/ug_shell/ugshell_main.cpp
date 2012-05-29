@@ -330,33 +330,34 @@ int main(int argc, char* argv[])
 	bool bAbort=false;
 	int ret = 0;
 
+	LOG("********************************************************************************\n");
+	std::string aux_str(""); // for nicer output we need some padding with spaces ...
+
+	aux_str.append("* ugshell - ug").append(UGGetVersionString()).append(", head revision '").append(SVN_REVISION).append("',");
+	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
+
+	aux_str = "";
+	aux_str.append("*                    compiled '").append(COMPILE_DATE).append("'");
+	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
+
+	aux_str = "";
+	aux_str.append("*                    on '").append(BUILD_HOST).append("'.");
+	LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
+
+	LOG("*                                                                              *\n");
+	LOG("* arguments:                                                                   *\n");
+	LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");
+	LOG("*   -ex scriptname:      Executes the specified script.                        *\n");
+	LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
+	LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
+	LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
+	LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
+	LOG("*                                                                              *\n");
+
+//	initialize the rest of ug
+	LOG("* Initializing: paths... ");
+
 	try{
-		LOG("********************************************************************************\n");
-		std::string aux_str(""); // for nicer output we need some padding with spaces ...
-
-		aux_str.append("* ugshell - ug").append(UGGetVersionString()).append(", head revision '").append(SVN_REVISION).append("',");
-		LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
-
-		aux_str = "";
-		aux_str.append("*                    compiled '").append(COMPILE_DATE).append("'");
-		LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
-	
-		aux_str = "";
-		aux_str.append("*                    on '").append(BUILD_HOST).append("'.");
-		LOG(AppendSpacesToString(aux_str,80-1).append("*\n"));
-	
-		LOG("*                                                                              *\n");
-		LOG("* arguments:                                                                   *\n");
-		LOG("*   -outproc id:         Sets the output-proc to id. Default is 0.             *\n");
-		LOG("*   -ex scriptname:      Executes the specified script.                        *\n");
-		LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
-		LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
-		LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
-		LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
-		LOG("*                                                                              *\n");
-
-	//	initialize the rest of ug
-		LOG("* Initializing: paths... ");
 		if(InitPaths((argv)[0]))	{UG_LOG("done");}
 		else						{UG_LOG("fail");}
 
@@ -369,18 +370,15 @@ int main(int argc, char* argv[])
 			UG_LOG(", plugins... ");
 			#ifdef UG_STATIC
 				InitializeStaticPlugins(&bridge::GetUGRegistry(), "ug4/");
-				UG_LOG("done                 *\n");
+				UG_LOG("done");
 			#else
 				if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))	{UG_LOG("done");}
 				else																	{UG_LOG("fail");}
-				UG_LOG("                 *\n");
 			#endif
-	
+			UG_LOG("                 *\n");
 		#else
 			UG_LOG("                                  *\n");
 		#endif
-	
-		LOG("********************************************************************************\n");
 	}
 	catch(UGError &err)
 	{
@@ -397,9 +395,13 @@ int main(int argc, char* argv[])
 		bAbort = true;
 	}
 
+	LOG("********************************************************************************\n");
+
+
 #ifdef UG_DEBUG
 	SharedLibrariesLoaded();
 #endif
+
 
 	if(!bAbort){
 		bool runInteractiveShell = true;
@@ -507,7 +509,6 @@ int main(int argc, char* argv[])
 		if(runInteractiveShell)
 			ret = runShell();
 
-		LOG(endl);
 	}//bAbort
 
 	PROFILE_BEGIN(ugshellFinalize);
@@ -521,6 +522,8 @@ int main(int argc, char* argv[])
 		//UnloadPlugins();
 	#endif
 
+	ug::GetLogAssistant().flush_error_log();
+	LOG(endl);
 	UGFinalize();
 
 	PROFILE_END();

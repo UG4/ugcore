@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include "util/ostream_util.h"
 #include "types.h"
 #include "ug_config.h"
@@ -112,6 +113,14 @@ class UG_API LogAssistant
 	/// returns the normal output stream
 		inline std::ostream& logger();
 
+	///	returns the error output stream
+	/**	Note that error-logs are not immediately visible. Instead they are
+	 * gathered and can be printed in one block using LogAssistant::flush_error_log().*/
+		inline std::ostream& error_logger();
+
+	///	outputs all gathered error-logs to the standard logger and clears the error log.
+		void flush_error_log();
+
 	/// sets the debug level of all tags to 'lev'
 		bool set_debug_levels(int lev);
 
@@ -167,6 +176,7 @@ class UG_API LogAssistant
 
 		std::string 			m_logFileName;
 		std::ofstream			m_fileStream;
+		std::stringstream		m_errStream;
 
 		bool m_terminalOutputEnabled;
 		bool m_fileOutputEnabled;
@@ -292,6 +302,15 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 							   int op = la.get_output_process(); la.set_output_process(-1);\
 							   la.logger() << "[Proc " << std::setw(3) << la.get_process_rank() << "]: "\
 							   << msg << std::flush; VRL_LOG(msg); la.set_output_process(op);}
+
+////////////////////////////////////////////////////////////////////////////////
+// LOG
+/**
+ * UG_ERR_LOG(msg)  prints msg to LogAssistant::error_logger().
+ * 					Those messages are not immediately flushed. Instead they can
+ * 					be flushed to the standard logger using LogAssistant::flush_error_log
+ */
+#define UG_ERR_LOG(msg) {ug::GetLogAssistant().error_logger() << msg; VRL_LOG(msg);}
 
 // include implementation
 #include "log_impl.h"

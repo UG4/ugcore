@@ -28,6 +28,12 @@ logger()
 	return std::cout;
 }
 
+inline std::ostream& LogAssistant::
+error_logger()
+{
+	return m_errStream;
+}
+
 inline int LogAssistant::
 get_debug_level(Tags tag)
 {
