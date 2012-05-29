@@ -159,12 +159,9 @@ static void TranslateDomain(TDomain& dom, number tx, number ty, number tz)
 namespace bridge{
 
 template <typename TDomain>
-static bool RegisterDomainInterface_(Registry& reg, string grp)
+static void RegisterDomainInterface_(Registry& reg, string grp)
 {
-//	the dimension suffix
 	string dimSuffix = GetDomainSuffix<TDomain>();
-
-//	the dimension tag
 	string dimTag = GetDomainTag<TDomain>();
 
 //	Domain
@@ -233,36 +230,30 @@ static bool RegisterDomainInterface_(Registry& reg, string grp)
 //	ONLY TEMPORARY
 	reg.add_function("TestDomainVisualization", &TestDomainVisualization<TDomain>, grp);
 	reg.add_function("MinimizeMemoryFootprint", &MinimizeMemoryFootprint<TDomain>, grp);
-
-	return true;
 }
 
 ///	methods that are only available for 2d and 3d are registered here
 template <typename TDomain>
-static bool RegisterDomainInterface_2d_3d(Registry& reg, string grp)
+static void RegisterDomainInterface_2d_3d(Registry& reg, string grp)
 {
 	reg.add_function("PartitionDomain_RegularGrid",
 					 &PartitionDomain_RegularGrid<TDomain>, grp);
-
-	return true;
 }
 
-void RegisterBridge_Domain(Registry& reg, string parentGroup)
+void RegisterBridge_Domain(Registry& reg, string grp)
 {
-	bool bSuccess = true;
-
-	string grp = parentGroup; grp.append("/Domain");
+	grp.append("/Domain");
 
 #ifdef UG_DIM_1
-	bSuccess &= RegisterDomainInterface_<Domain<1, MultiGrid, MGSubsetHandler> >(reg, grp);
+	RegisterDomainInterface_<Domain<1, MultiGrid, MGSubsetHandler> >(reg, grp);
 #endif
 #ifdef UG_DIM_2
-	bSuccess &= RegisterDomainInterface_<Domain<2, MultiGrid, MGSubsetHandler> >(reg, grp);
-	bSuccess &= RegisterDomainInterface_2d_3d<Domain<2, MultiGrid, MGSubsetHandler> >(reg, grp);
+	RegisterDomainInterface_<Domain<2, MultiGrid, MGSubsetHandler> >(reg, grp);
+	RegisterDomainInterface_2d_3d<Domain<2, MultiGrid, MGSubsetHandler> >(reg, grp);
 #endif
 #ifdef UG_DIM_3
-	bSuccess &= RegisterDomainInterface_<Domain<3, MultiGrid, MGSubsetHandler> >(reg, grp);
-	bSuccess &= RegisterDomainInterface_2d_3d<Domain<3, MultiGrid, MGSubsetHandler> >(reg, grp);
+	RegisterDomainInterface_<Domain<3, MultiGrid, MGSubsetHandler> >(reg, grp);
+	RegisterDomainInterface_2d_3d<Domain<3, MultiGrid, MGSubsetHandler> >(reg, grp);
 #endif
 }
 

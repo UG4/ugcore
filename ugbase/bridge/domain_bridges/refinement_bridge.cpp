@@ -5,7 +5,11 @@
 #include <vector>
 #include <string>
 #include <sstream>
+
+// include bridge
 #include "bridge/bridge.h"
+#include "bridge/util.h"
+
 #include "lib_disc/domain.h"
 #include "lib_grid/lib_grid.h"
 
@@ -528,91 +532,82 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 namespace bridge{
+namespace Refinement{
 
-static bool RegisterRefinementBridge_DomIndep(Registry& reg, string parentGroup)
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
 {
-	try
-	{
-	//	get group string
-		stringstream groupString; groupString << parentGroup << "/Refinement";
-		string grp = groupString.str();
 
-	//	register domain independent mark methods
-		reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp);
-	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterRefinementBridge_DomIndep: "
-				"Registration failed (using name " << ex.name << ").\n");
-		return false;
-	}
-
-	return true;
+/**
+ * Function called for the registration of Domain and Algebra independent parts.
+ * All Functions and Classes not depending on Domain and Algebra
+ * are to be placed here when registering.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+static void Common(Registry& reg, string grp)
+{
+//	register domain independent mark methods
+	reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-template <class TDomain>
-static bool RegisterRefinementBridge_DomDep(Registry& reg, string parentGroup)
+/**
+ * Function called for the registration of Domain dependent parts.
+ * All Functions and Classes depending on the Domain
+ * are to be placed here when registering. The method is called for all
+ * available Domain types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain>
+static void Domain(Registry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
 	typedef typename TDomain::position_type		pos_type;
 
-	try
-	{
-	//	get group string
-		stringstream groupString; groupString << parentGroup << "/Refinement";
-		string grp = groupString.str();
+//	refiner factory-method registration
+//	Note that the refiners themselfs have already been registered in lib_grid_bridge.
+	reg.add_function("GlobalDomainRefiner",
+					 &GlobalDomainRefiner<domain_type>, grp);
+	reg.add_function("HangingNodeDomainRefiner",
+					 &HangingNodeDomainRefiner<domain_type>, grp);
+	reg.add_function("GlobalFracturedDomainRefiner",
+					 &CreateGlobalFracturedDomainRefiner<domain_type>, grp);
 
-	//	refiner factory-method registration
-	//	Note that the refiners themselfs have already been registered in lib_grid_bridge.
-		reg.add_function("GlobalDomainRefiner",
-						 &GlobalDomainRefiner<domain_type>, grp);
-		reg.add_function("HangingNodeDomainRefiner",
-						 &HangingNodeDomainRefiner<domain_type>, grp);
-		reg.add_function("GlobalFracturedDomainRefiner",
-						 &CreateGlobalFracturedDomainRefiner<domain_type>, grp);
-
-	//	register domain dependent mark methods
-		reg.add_function("MarkForRefinement_VerticesInSphere",
-					&MarkForRefinement_VerticesInSphere<domain_type>, grp)
-			.add_function("MarkForRefinement_EdgesInSphere",
-					&MarkForRefinement_ElementsInSphere<domain_type, EdgeBase>, grp)
-			.add_function("MarkForRefinement_FacesInSphere",
-					&MarkForRefinement_ElementsInSphere<domain_type, Face>, grp)
-			.add_function("MarkForRefinement_VolumesInSphere",
-					&MarkForRefinement_ElementsInSphere<domain_type, Volume>, grp)
-			.add_function("MarkForRefinement_VerticesInCube",
-					&MarkForRefinement_VerticesInCube<domain_type>, grp)
-			.add_function("MarkForRefinement_AnisotropicElements",
-					&MarkForRefinement_AnisotropicElements<domain_type>, grp);
-	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterRefinementBridge_DomDep: "
-				"Registration failed (using name " << ex.name << ").\n");
-		return false;
-	}
-
-	return true;
+//	register domain dependent mark methods
+	reg.add_function("MarkForRefinement_VerticesInSphere",
+				&MarkForRefinement_VerticesInSphere<domain_type>, grp)
+		.add_function("MarkForRefinement_EdgesInSphere",
+				&MarkForRefinement_ElementsInSphere<domain_type, EdgeBase>, grp)
+		.add_function("MarkForRefinement_FacesInSphere",
+				&MarkForRefinement_ElementsInSphere<domain_type, Face>, grp)
+		.add_function("MarkForRefinement_VolumesInSphere",
+				&MarkForRefinement_ElementsInSphere<domain_type, Volume>, grp)
+		.add_function("MarkForRefinement_VerticesInCube",
+				&MarkForRefinement_VerticesInCube<domain_type>, grp)
+		.add_function("MarkForRefinement_AnisotropicElements",
+				&MarkForRefinement_AnisotropicElements<domain_type>, grp);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-void RegisterBridge_Refinement(Registry& reg, string parentGroup)
+}; // end Functionality
+}// end Refinement
+
+void RegisterBridge_Refinement(Registry& reg, string grp)
 {
-	bool bSuccess = true;
+	grp.append("/Refinement");
+	typedef Refinement::Functionality Functionality;
 
-	bSuccess &= RegisterRefinementBridge_DomIndep(reg, parentGroup);
-
-#ifdef UG_DIM_1
-	bSuccess &= RegisterRefinementBridge_DomDep<Domain<1, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
-#endif
-#ifdef UG_DIM_2
-	bSuccess &= RegisterRefinementBridge_DomDep<Domain<2, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
-#endif
-#ifdef UG_DIM_3
-	bSuccess &= RegisterRefinementBridge_DomDep<Domain<3, MultiGrid, MGSubsetHandler> >(reg, parentGroup);
-#endif
+	try{
+		RegisterCommon<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality>(reg,grp);
+	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
-}// end of namespace
-}// end of namespace
+}// end of namespace bridge
+}// end of namespace ug
