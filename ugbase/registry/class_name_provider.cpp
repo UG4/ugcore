@@ -17,8 +17,7 @@ void ClassNameNode::set_name(const std::string& name)
 
 //	check size
 	if(m_name.empty())
-		throw(REGISTRY_ERROR_Message("ERROR in 'ClassNameNode::set_name':"
-									 "Name must be longer than 0 characters."));
+		UG_THROW_REGISTRY_MSG("Name must be longer than 0 characters.");
 }
 
 void ClassNameNode::add_base_class(const ClassNameNode& node)
@@ -111,7 +110,7 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const std::stri
 	std::vector<size_t> vWay;
 	if(!ClassNameTreeWay(vWay, *node, baseName))
 	{
-		UG_LOG("ERROR in ClassCastProvider::cast_to_base_class: Request"
+		UG_ERR_LOG("ERROR in ClassCastProvider::cast_to_base_class: Request"
 				" to cast from derived class '"<< node->name()<<"' to "
 				" base class '"<<baseName<<"', but no such base class in"
 				" registered class hierarchy.\n");
@@ -136,7 +135,7 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const std::stri
 
 		if(it == m_mmCast.end())
 		{
-			UG_LOG("ERROR in ClassCastProvider::cast_to_base_class:"
+			UG_ERR_LOG("ERROR in ClassCastProvider::cast_to_base_class:"
 					" Request intermediate cast from derived class '" <<
 					pCurrNode->name() <<"' to direct base class '"
 					<<pBaseClassNode->name()<<"', but no such cast "

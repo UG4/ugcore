@@ -14,25 +14,12 @@
 #include <map>
 #include "common/common.h"
 #include "common/ug_config.h"
+#include "error.h"
 
 namespace ug
 {
 namespace bridge
 {
-
-/// exception throw if a class is registered twice
-struct REGISTRY_ERROR_ClassAlreadyNamed
-{
-	REGISTRY_ERROR_ClassAlreadyNamed(const std::string& name_) : name(name_) {}
-	std::string name;
-};
-
-/// exception with message
-struct REGISTRY_ERROR_Message
-{
-	REGISTRY_ERROR_Message(const std::string& msg_): msg(msg_) {}
-	std::string msg;
-};
 
 /// node for class names
 /**

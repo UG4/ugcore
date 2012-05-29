@@ -6,6 +6,7 @@
 #include <sstream>
 #include "registry/registry.h"
 #include "bridge/bridge.h"
+#include "bridge/util.h"
 #include "lib_grid/lib_grid.h"
 #include "lib_grid/tools/surface_view.h"
 #include "common/profiler/profiler.h"
@@ -551,12 +552,11 @@ class ExpandLayersDesc : public std::vector<FractureInfo>
 ////////////////////////////////////////////////////////////////////////
 void RegisterBridge_Grid(Registry& reg, string parentGroup)
 {
+//	get group string
+	stringstream groupString; groupString << parentGroup << "/Grid";
+	string grp = groupString.str();
 	try
 	{
-	//	get group string
-		stringstream groupString; groupString << parentGroup << "/Grid";
-		string grp = groupString.str();
-
 	//	Grid
 		reg.add_class_<Grid>("Grid", grp)
 			.add_constructor()
@@ -760,12 +760,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 		reg.add_function("ExpandLayers2d", &ExpandFractures2d, grp)
 			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterLibGridInterface: "
-				"Registration failed (using name " << ex.name << ").\n");
-		throw(ex);
-	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace 

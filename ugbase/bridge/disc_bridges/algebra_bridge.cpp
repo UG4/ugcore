@@ -60,7 +60,6 @@ static void Algebra(Registry& reg, string parentGroup)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-	try{
 //	IConstraint
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
@@ -279,13 +278,6 @@ static void Algebra(Registry& reg, string parentGroup)
 			.add_method("time", &T::time, "point in time for solution", "i")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SolutionTimeSeries", tag);
-	}
-
-	} catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterLibDisc_Algebra: "
-				"Registration failed (using name " << ex.name << ").\n");
-		UG_THROW("Registration failed.");
 	}
 }
 

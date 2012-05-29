@@ -15,6 +15,7 @@
 #include "bindings/lua/lua_util.h"
 #include "bindings/lua/bindings_lua.h"
 #include "bridge/bridge.h"
+#include "bridge/util.h"
 #include "registry/class_helper.h"
 #include "common/util/sort_util.h"
 #include "common/util/string_util.h"
@@ -831,11 +832,11 @@ bool ScriptPrintClassHierarchy(const char *classname)
 
 bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 {
+	stringstream grpSS; grpSS << parentGroup << "/Info";
+	std::string grp = grpSS.str();
+
 	try
 	{
-		stringstream grpSS; grpSS << parentGroup << "/Info";
-		std::string grp = grpSS.str();
-
 		reg.add_function("ls", &LuaList, grp.c_str());
 		reg.add_function("list_cfunctions", &LuaList_cfunctions, grp.c_str());
 		reg.add_function("list_classes", &LuaList_classes, grp.c_str());
@@ -848,12 +849,7 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 		reg.add_function("ClassHierarchy" ,&ScriptPrintClassHierarchy, grp.c_str());
 		reg.add_function("Stacktrace", &ScriptStacktrace, grp.c_str());
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterInfoCommands: "
-				"Registration failed (using name " << ex.name << ").\n");
-		return false;
-	}
+	UG_REGISTRY_CATCH_THROW(grp);
 
 	return true;
 }

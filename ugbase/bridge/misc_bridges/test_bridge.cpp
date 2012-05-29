@@ -7,6 +7,7 @@
 #include <boost/bind.hpp>
 #include "registry/registry.h"
 #include "bridge/bridge.h"
+#include "bridge/util.h"
 #include "common/util/message_hub.h"
 
 //	temporary include
@@ -470,12 +471,12 @@ class MessageHubTest
 
 void RegisterBridge_Test(Registry& reg, string parentGroup)
 {
+//	get group string
+	stringstream groupString; groupString << parentGroup << "/Test";
+	string grp = groupString.str();
+
 	try
 	{
-	//	get group string
-		stringstream groupString; groupString << parentGroup << "/Test";
-		string grp = groupString.str();
-
 	//	registering hello world
 		reg.add_function("PrintHelloWorld", &PrintHelloWorldToScreen, grp);
 
@@ -607,10 +608,11 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 
 	//	if the following registration is performed, the app should fail on startup,
 	//	since the registered method takes an argument of an unregistered type.
-		//reg.add_function("UnregisteredParameterTest", UnregisteredParameterTest);
+		reg.add_function("UnregisteredParameterTest", UnregisteredParameterTest);
 
 	//	if the following registration is performed, the app should fail on startup,
 	//	since the registered class/functon is ill named (only [a-zA-Z_][a-zA-Z_0-9]* allowed).
+		//reg.add_class_<SmartTest>("SmartTest", grp);
 		//reg.add_class_<NonAllowedName1>("BlimBlim$tshe");
 		//reg.add_class_<NonAllowedName2>("5BlimBlimtshe");
 		//reg.add_class_<NonAllowedName3>("Blim::Blimtshe");
@@ -620,17 +622,7 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 		//reg.add_function("5Blubbrrr", &NonAllowedFct2);
 		//reg.add_function("Blub_brr r", &NonAllowedFct3);
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterTestInterface: "
-				"Registration failed (using name " << ex.name << ").\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(ex.name.c_str()));
-	}
-	catch(REGISTRY_ERROR_Message ex)
-	{
-		UG_LOG("### ERROR in RegisterTestInterface: " << ex.msg << "\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(""));
-	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 }//	end of namespace

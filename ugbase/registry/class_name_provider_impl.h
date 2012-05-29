@@ -28,15 +28,17 @@ set_name(const std::string& nameIn, const std::string& group, bool newName)
 	if(newName == true && m_bForwardDeclared==false && !m_ClassNameNode.empty())
 	{
 		if(nameIn != name())
-			throw(REGISTRY_ERROR_ClassAlreadyNamed(nameIn));
+			UG_THROW_REGISTRY_ERROR(nameIn,
+			"Trying to register class with name '"<<nameIn
+			<< "', that has already been named. This is not allowed.");
 	}
 
 //	check name
 	if(nameIn.empty())
-		throw(REGISTRY_ERROR_Message("Registered class name has length zero"));
+		UG_THROW_REGISTRY_MSG("Registered class name has length zero");
 
 	if(nameIn.c_str()[0] == '[')
-		throw(REGISTRY_ERROR_Message("Registered class name must not begin with '['"));
+		UG_THROW_REGISTRY_ERROR(nameIn, "Registered class name must not begin with '['");
 
 //	check for non-allowed character
 	size_t found = nameIn.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
@@ -45,21 +47,21 @@ set_name(const std::string& nameIn, const std::string& group, bool newName)
 											 "0123456789");
 	if (found!=std::string::npos)
 	{
-		UG_LOG("Non-allowed character '"<<nameIn[found]<<"' "<<
+		UG_ERR_LOG("Non-allowed character '"<<nameIn[found]<<"' "<<
 		       "contained at position "<<int(found)<<" in registered Class Name "
 		       "'"<<nameIn<<"'.\nClass names must match the regular expression: "
 		       "[a-zA-Z_][a-zA-Z_0-9]*, \ni.e. only alphabetic characters, numbers "
 		       " and '_' are allowed; no numbers at the beginning.\n");
-		throw(REGISTRY_ERROR_Message("Class Name must only contain [a-zA-Z_][a-zA-Z_0-9]*."));
+		UG_THROW_REGISTRY_ERROR(nameIn, "Class Name must only contain [a-zA-Z_][a-zA-Z_0-9]*.");
 	}
 
 //	check that no number at the beginning
 	 found = nameIn.find_first_of("0123456789");
 	if (found!=std::string::npos && found == 0)
 	{
-		UG_LOG("Class Name "<<nameIn<<" starts with a number.\nThis is "
+		UG_ERR_LOG("Class Name "<<nameIn<<" starts with a number.\nThis is "
 				" not allowed. Please change naming.\n");
-		throw(REGISTRY_ERROR_Message("Class Name must not start with number."));
+		UG_THROW_REGISTRY_ERROR(nameIn,"Class Name must not start with number.");
 	}
 
 
@@ -103,8 +105,8 @@ bool ClassNameProvider<TClass>::is_a(const std::string& parent, bool strict)
 {
 //	check if class is forward declared
 	if(m_bForwardDeclared)
-		throw(UGError("ERROR in 'ClassNameProvider::is_a':"
-					"Class must not be foreward declared to use is_a"));
+		UG_THROW_REGISTRY_ERROR(parent,
+		"Class '"<<parent<<"' must not be foreward declared to use is_a");
 
 //  strict comparison: must match this class name, parents are not allowed
 	if(strict)

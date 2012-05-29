@@ -213,6 +213,29 @@ static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 										*pReg);
 }
 
+
+void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp)
+{
+
+	reg->add_function("ug_load_script", &LoadUGScript_Parallel, "/ug4/lua",
+				"success", "", "ONLY IF ALL CORES INVOLVED! Loads and parses a script and returns whether it succeeded.");
+	reg->add_function("ug_load_script_single",
+			&LoadUGScript_Single, "/ug4/lua",
+				"success", "", "Loads and parses a script and returns whether it succeeded.");
+
+	RegisterLuaDebug(*reg);
+
+//	this define makes sure that no methods are referenced that
+//	use the algebra, even if no algebra is included.
+	#ifdef UG_ALGEBRA
+//	Register info commands
+	RegisterInfoCommands(*reg, grp.c_str());
+
+//	Register user functions
+	RegisterLuaUserData(*reg, grp);
+	#endif
+}
+
 static lua_State* theLuaState = NULL;
 lua_State* GetDefaultLuaState()
 {
@@ -224,29 +247,6 @@ lua_State* GetDefaultLuaState()
 		//	store a pointer to the registry and avoid multiple callback registration
 			g_pRegistry = &ug::bridge::GetUGRegistry();
 			g_pRegistry->add_callback(UpdateScriptAfterRegistryChange);
-
-			g_pRegistry->add_function("ug_load_script", &LoadUGScript_Parallel, "/ug4/lua",
-						"success", "", "ONLY IF ALL CORES INVOLVED! Loads and parses a script and returns whether it succeeded.");
-			g_pRegistry->add_function("ug_load_script_single",
-					&LoadUGScript_Single, "/ug4/lua",
-						"success", "", "Loads and parses a script and returns whether it succeeded.");
-
-			RegisterLuaDebug(*g_pRegistry);
-
-		//	this define makes sure that no methods are referenced that
-		//	use the algebra, even if no algebra is included.
-			#ifdef UG_ALGEBRA
-		//	Register info commands
-			RegisterInfoCommands(*g_pRegistry, "/ug4");
-
-		//	Register user functions
-			RegisterLuaUserData(*g_pRegistry, "/ug4");
-
-			#endif
-
-			if(!g_pRegistry->check_consistency())
-				throw(UGError("Script-Registry not ok."));
-
 		}
 		
 	//	open a lua state

@@ -165,9 +165,7 @@ bool Registry::check_consistency()
 			FindDuplicates(globalFunctionNames);
 	bool globFuncDuplicatesExist = !globFuncDuplicates.empty();
 	//todo: use stringstream
-	std::string duplicateFuncMsg = 
-				"#### ERROR in 'Registry::check_consistency': "
-				"duplicate function names:\n";
+	std::string duplicateFuncMsg = "#### Registry ERROR: duplicate function names:\n";
 	if (globFuncDuplicatesExist) {
 		for(size_t i = 0; i < globFuncDuplicates.size();i++) {
 			duplicateFuncMsg+=  + "\t" + globFuncDuplicates[i] + "\n";
@@ -197,7 +195,7 @@ bool Registry::check_consistency()
 		{
 			if(c.is_instantiable() && !c.construct_as_smart_pointer())
 			{
-				UG_LOG("#### Registry::check_consistency: Class " << c.name()<<" is "
+				UG_ERR_LOG("#### Registry ERROR: Class " << c.name()<<" is "
 				       "instantiable, but not constructed as Smart Pointer.\n");
 				notConstructedAsSmartPtr++;
 			}
@@ -208,7 +206,7 @@ bool Registry::check_consistency()
 
 	//	check class (e.g. that base classes have been named)
 		if(!c.check_consistency()){
-			UG_LOG("Registry::check_consistency: Base Class Error for class " << c.name()<<"\n");
+			UG_ERR_LOG("#### Registry ERROR: Base Class Error for class " << c.name()<<"\n");
 			baseClassUndef++;
 		}
 
@@ -233,8 +231,7 @@ bool Registry::check_consistency()
 	bool classDuplicatesExist = classDuplicates.size()>0;
 	//todo: use stringstream
 	std::string duplicateClassMsg = 
-				"#### ERROR in 'Registry::check_consistency': "
-				"duplicate class names:\n";
+				"#### Registry ERROR: duplicate class names:\n";
 	if (classDuplicatesExist) {
 		for(size_t i = 0; i < classDuplicates.size();i++) {
 			duplicateClassMsg+= "\t" + classDuplicates[i] + "\n";
@@ -246,25 +243,25 @@ bool Registry::check_consistency()
 
 //	log error messages
 	if(globFctUndef > 0)
-		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<globFctUndef<<
+		UG_ERR_LOG("#### Registry ERROR: "<<globFctUndef<<
 		       " global Functions are using undeclared Classes.\n");
 	if(methodUndef > 0)
-		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<methodUndef<<
+		UG_ERR_LOG("#### Registry ERROR: "<<methodUndef<<
 		       " Methods are using undeclared Classes.\n");
 	if(baseClassUndef > 0)
-		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<baseClassUndef<<
+		UG_ERR_LOG("#### Registry ERROR: "<<baseClassUndef<<
 		       " Base-Classes are using undeclared Classes.\n");
 	if(constructorUndef > 0)
-		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<constructorUndef<<
+		UG_ERR_LOG("#### Registry ERROR: "<<constructorUndef<<
 		       " Constructors are using undeclared Classes.\n");
 	if(notConstructedAsSmartPtr > 0)
-		UG_LOG("#### ERROR in 'Registry::check_consistency': "<<notConstructedAsSmartPtr<<
+		UG_ERR_LOG("#### Registry ERROR: "<<notConstructedAsSmartPtr<<
 		       " Classes are not constructed as SmartPtr.\n");
 	if(globFuncDuplicatesExist) {
-		UG_LOG(duplicateFuncMsg);
+		UG_ERR_LOG(duplicateFuncMsg);
 	}
 	if(classDuplicatesExist) {
-		UG_LOG(duplicateClassMsg);
+		UG_ERR_LOG(duplicateClassMsg);
 	}
 
 //	return false if undefined classes or functions and/or duplicates have been found
@@ -307,12 +304,9 @@ ClassGroupDesc* Registry::get_class_group(const std::string& name)
 	
 	// check that name does not contain illegal characters
 	if (!IsValidRegistryIdentifier(name)) {
-		UG_LOG("### Registry ERROR: Trying add group '" 
-				<< name << "' that"
-				<< " contains illegal characters.\n"
-				<< GetRegistryIdentifierMessage()
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(name));
+		UG_THROW_REGISTRY_ERROR(name,
+		"Trying add group '" << name << "' that"
+		<< " contains illegal characters. "<< GetRegistryIdentifierMessage());
 	}
 
 	ClassGroupDesc* classGroup = new ClassGroupDesc();
@@ -338,26 +332,24 @@ void Registry::add_class_to_group(std::string className, std::string groupName,
 {
 //	make sure that no class with groupName exists.
 	if(classname_registered(groupName)){
-		UG_LOG("#### ERROR in 'Registry::add_class_to_group': A class "
-				"with the given group name '"<<groupName<<"' already exists.\n");
-		UG_THROW("Registry error.");
+		UG_THROW_REGISTRY_ERROR(groupName,
+		"A class with the given group name '"<<groupName<<"' already exists.");
 	}
 
 //	Search if class name starts with group name. The requirement is, that a class
 //	that is added to a class group starts with the group name plus some suffix
 	if(className.find(groupName) == std::string::npos){
-		UG_LOG("#### ERROR in 'Registry::add_class_to_group': The classname "
-				" must contain the group name, when adding to a group. Given:"
-				" Groupname='"<<groupName<<"',  Classname='"<<className<<"'.\n");
-		UG_THROW("Registry error.");
+		UG_THROW_REGISTRY_ERROR(groupName,
+		"The classname  must contain the group name, when adding to a group. Given:"
+				" Groupname='"<<groupName<<"',  Classname='"<<className<<"'.");
 	}
 	ClassGroupDesc* groupDesc = get_class_group(groupName);
 //todo:	make sure that groupDesc does not already contain className.
 	IExportedClass* expClass = get_class(className);
 	if(!expClass){
-		UG_LOG("The given class has to be registered before "
-						"adding it to a group: " << className<<"\n");
-		UG_THROW("Registry error.");
+		UG_THROW_REGISTRY_ERROR(groupName,
+		"The given class has to be registered before "
+						"adding it to a group: " << className);
 	}
 
 	if(expClass)

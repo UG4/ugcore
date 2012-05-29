@@ -11,6 +11,7 @@
 #include "function_traits.h"
 #include "global_function.h"
 #include "common/common.h"
+#include "error.h"
 #include "registry_util.h"
 
 #ifdef PROFILE_BRIDGE
@@ -25,13 +26,6 @@ namespace ug
 {
 namespace bridge
 {
-
-
-struct UG_REGISTRY_ERROR_RegistrationFailed
-{
-	UG_REGISTRY_ERROR_RegistrationFailed(const std::string& name_) : name(name_) {}
-	std::string name;
-};
 
 class MethodPtrWrapper
 {
@@ -688,19 +682,16 @@ class ExportedClass : public ExportedClassBaseImpl
 		// 	check that name is not empty
 			if(strippedMethodName.empty())
 			{
-				UG_LOG("### Registry ERROR: Trying to register empty method name."
-						<< "\n### Please change register process. Aborting ...\n");
-				throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
+				UG_THROW_REGISTRY_ERROR(strippedMethodName,
+				        "Trying to register empty method name.");
 			}
 			
 			// check that name does not contain illegal characters
 			if (!IsValidRegistryIdentifier(strippedMethodName)) {
-				UG_LOG("### Registry ERROR: Trying to register method '" 
-				<< strippedMethodName << "' that"
-				<< " contains illegal characters.\n"
-				<< GetRegistryIdentifierMessage()
-				<< "\n### Please change register process. Aborting ...\n");
-				throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
+				UG_THROW_REGISTRY_ERROR(strippedMethodName,
+				"Trying to register method '"<< strippedMethodName << "' that"
+				<< " contains illegal characters. "
+				<< GetRegistryIdentifierMessage());
 			}
 
 		//	if the method is already in use, we have to add an overload.
@@ -726,11 +717,10 @@ class ExportedClass : public ExportedClassBaseImpl
 
 			if(!success)
 			{
-				UG_LOG("### Registry ERROR: Trying to register method name '" << strippedMethodName
-						<< "' to class '" << name() << "', but another method with this name "
-						<< " and the same function signature is already registered for this class."
-						<< "\n### Please change register process. Aborting ...\n");
-				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
+				UG_THROW_REGISTRY_ERROR(name(),
+				"Trying to register method name '" << strippedMethodName
+				<< "' to class '" << name() << "', but another method with this name "
+				<< " and the same function signature is already registered for this class.");
 			}
 
 			return *this;
@@ -757,10 +747,9 @@ class ExportedClass : public ExportedClassBaseImpl
 		//	return-type must be void
 			if(!(boost::is_void< typename func_traits<TFunc>::return_type >::value))
 			{
-				UG_LOG("### Registry ERROR: Trying to register constructor of class "
-						<<name()<<"with non-void return value in signature "
-								"function. Aborting ...\n");
-				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
+				UG_THROW_REGISTRY_ERROR(name(),
+				"Trying to register constructor of class "
+				 <<name()<<"with non-void return value in signature function.");
 			}
 
 		//	type id of constructor
@@ -769,9 +758,9 @@ class ExportedClass : public ExportedClassBaseImpl
 		//	make sure that the overload didn't exist
 			if(constructor_type_id_registered(typeID))
 			{
-				UG_LOG("### Registry ERROR: Trying to register constructor of class "
-						<<name()<<" with same signature twice. Aborting ...\n");
-				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
+				UG_THROW_REGISTRY_ERROR(name(),
+				"Trying to register constructor of class "
+				 <<name()<<" with same signature twice.");
 			}
 
 		//	create new exported constructor

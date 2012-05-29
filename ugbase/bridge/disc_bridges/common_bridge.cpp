@@ -8,7 +8,8 @@
 #include <string>
 
 // include brigde
-#include "../bridge.h"
+#include "bridge/bridge.h"
+#include "bridge/util.h"
 
 // includes of lib_discretization
 #include "lib_disc/common/function_group.h"
@@ -46,12 +47,7 @@ void RegisterBridge_DiscCommon(Registry& reg, string parentGroup)
 #endif
 
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterLibDisc_Common: "
-				"Registration failed (using name " << ex.name << ").\n");
-		throw(ex);
-	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 } // end namespace bridge

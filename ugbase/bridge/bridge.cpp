@@ -145,7 +145,7 @@ bool RegisterStandardBridges(Registry& reg, string parentGroup)
 	try
 	{
 		// uncomment this to register test-methods
-		// RegisterTestInterface(reg, parentGroup);
+		RegisterBridge_Test(reg, parentGroup);
 
 		RegisterBridge_VecMath(reg, parentGroup);
 		RegisterBridge_Util(reg, parentGroup);
@@ -209,10 +209,10 @@ bool RegisterStandardBridges(Registry& reg, string parentGroup)
 #endif
 
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed& ex)
+	catch(UGRegistryError& ex)
 	{
-		UG_LOG("### ERROR in RegisterStandardInterfaces: "
-				"Registration failed (using name " << ex.name << ").\n");
+		UG_ERR_LOG("### ERROR in RegisterStandardInterfaces: "
+					"Registration failed (using name " << ex.name << ").\n");
 		return false;
 	}
 

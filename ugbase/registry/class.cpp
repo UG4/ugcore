@@ -54,17 +54,17 @@ bool ExportedConstructor::check_consistency(std::string classname) const
 			if(!bUndeclaredParameterFound)
 			{
 				bUndeclaredParameterFound = true;
-				UG_LOG("#### Registry ERROR: Unregistered Class used in ");
-				UG_LOG("Constructor of class "<<classname.c_str());
-				UG_LOG("': Parameter " << j+1);
+				UG_ERR_LOG("#### Registry ERROR: Unregistered Class used in ");
+				UG_ERR_LOG("Constructor of class "<<classname.c_str());
+				UG_ERR_LOG("': Parameter " << j+1);
 			}
 			else
-			{	UG_LOG(", " << j+1);	}
+			{	UG_ERR_LOG(", " << j+1);	}
 		}
 	}
 
 //	check if undeclared parameter has been found
-	if(bUndeclaredParameterFound) {UG_LOG("\n"); return false;}
+	if(bUndeclaredParameterFound) {UG_ERR_LOG("\n"); return false;}
 
 //	everything ok
 	return true;
@@ -97,7 +97,7 @@ bool IExportedClass::check_consistency() const
 //	check if class name vector correct
 	if(vClassNames==NULL)
 	{
-		UG_LOG("ERROR in 'IExportedClass::check_consistency':"
+		UG_ERR_LOG("#### Registry ERROR:"
 				" Class name vector of parent classes missing for "
 				"class '"<<this->name()<<"'.\n");
 		return false;
@@ -113,13 +113,13 @@ bool IExportedClass::check_consistency() const
 		if(baseName == NULL || *baseName == '\0' || baseName[0] == '[')
 		{
 			if(i>0){
-			UG_LOG("ERROR in 'IExportedClass::check_consistency':"
+			UG_ERR_LOG("#### Registry ERROR:"
 					" base class "<<i<<" of class '"<<this->name()<<
 					"' has not been named.\n");
 				return false;
 			}
 			else{
-			UG_LOG("ERROR in 'IExportedClass::check_consistency':"
+			UG_ERR_LOG("#### Registry ERROR:"
 					" Class '"<<this->name()<<"' has not been named.\n");
 				return false;
 			}

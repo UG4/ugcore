@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "bridge/bridge.h"
+#include "bridge/util.h"
 #include "common/math/ugmath.h"
 
 using namespace std;
@@ -61,12 +62,7 @@ static void RegisterBridge_VecMath(Registry& reg, string grp)
 					static_cast<const number& (vec_type::*)(size_t) const>(&vec_type::coord));
 		reg.add_class_to_group(vecName, "Vec", dimTag);
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterVecMathBridge: "
-				"Registration failed (using name " << ex.name << ").\n");
-		throw(ex);
-	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -84,12 +80,7 @@ static void RegisterVecMathBridge_DimIndep(Registry& reg, string grp)
 			.add_function("MakeVec", static_cast<SmartPtr<vector4> (*)(number, number, number, number)>(
 							&MakeVec), grp);
 	}
-	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
-	{
-		UG_LOG("### ERROR in RegisterVecMathBridge_DimIndep: "
-				"Registration failed (using name " << ex.name << ").\n");
-		throw(ex);
-	}
+	UG_REGISTRY_CATCH_THROW(grp);
 }
 
 

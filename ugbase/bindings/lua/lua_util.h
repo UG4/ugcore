@@ -15,6 +15,7 @@ extern "C" {
 
 #include "common/common.h"
 #include "common/util/path_provider.h"
+#include "registry/registry.h"
 
 
 
@@ -45,6 +46,9 @@ class LuaError : public UGError
  * Note that this method pushes the path of the currently parsed script to
  * PathProvider when parsing starts, and pops it when parsing is done.*/
 UG_API bool LoadUGScript(const char* filename, bool bNoMPI=false);
+
+/// registers lua only functionality at the registry
+void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp = "/ug4");
 
 ///	returns the default lua state
 /**	When called for the first time, or after ReleaseDefaultLuaState,

@@ -30,7 +30,6 @@ add_function(std::string funcName, TFunc func, std::string group,
 	if(pos != std::string::npos){
 		methodOptions = strippedMethodName.substr(pos + 1, strippedMethodName.length() - pos);
 		strippedMethodName = strippedMethodName.substr(0, pos);
-		UG_LOG(strippedMethodName << " ... | ... " << methodOptions << std::endl);
 	}
 
 //	trim whitespaces
@@ -40,19 +39,15 @@ add_function(std::string funcName, TFunc func, std::string group,
 // 	check that name is not empty
 	if(strippedMethodName.empty())
 	{
-		UG_LOG("### Registry ERROR: Trying to register empty function name."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
+		UG_THROW_REGISTRY_ERROR(strippedMethodName,
+		"Trying to register empty function name.");
 	}
 	
 	// check that name does not contain illegal characters
 	if (!IsValidRegistryIdentifier(strippedMethodName)) {
-		UG_LOG("### Registry ERROR: Trying to register function '" 
-				<< strippedMethodName << "' that"
-				<< " contains illegal characters.\n"
-				<< GetRegistryIdentifierMessage()
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
+		UG_THROW_REGISTRY_ERROR(strippedMethodName,
+		"Trying to register function '" << strippedMethodName << "' that"
+		<< " contains illegal characters. " << GetRegistryIdentifierMessage());
 	}
 
 //	if the function is already in use, we have to add an overload
@@ -71,10 +66,9 @@ add_function(std::string funcName, TFunc func, std::string group,
 	                                     tooltip, help);
 
 	if(!success){
-		UG_LOG("### Registry ERROR: Trying to register function name '"<<funcName
-				<< "', that is already used by another function in this registry."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(strippedMethodName));
+		UG_THROW_REGISTRY_ERROR(strippedMethodName,
+		"Trying to register function name '"<<funcName
+		<< "', that is already used by another function in this registry.");
 	}
 
 	return *this;
@@ -92,33 +86,31 @@ check_base_class(const std::string& className)
 //	check that className is not already used
 	if(classname_registered(className))
 	{
-		UG_LOG("### Registry ERROR: Trying to register class name '"<<className
-				<< "', that is already used by another class in this registry."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class name '"<<className
+		<< "', that is already used by another class in this registry.");
 	}
 // 	check that name is not empty
 	if(className.empty())
 	{
-		UG_LOG("### Registry ERROR: Trying to register empty class name."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register empty class name.");
 	}
 
 // 	check that base class is not same type as class
 	if(typeid(TClass) == typeid(TBaseClass))
 	{
-		UG_LOG("### Registry ERROR: Trying to register class "<<className
-				<< "\n### that derives from itself. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class '"<<className
+				<< "' that derives from itself.");
 	}
 
 // 	check that class derives from base class
 	if(boost::is_base_of<TBaseClass, TClass>::value == false)
 	{
-		UG_LOG("### Registry ERROR: Trying to register class "<<className
-				<< "\n### with base class that is no base class. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class "<<className
+		<< "with base class that is no base class.");
 	}
 }
 
@@ -129,57 +121,35 @@ add_class_(std::string className, std::string group, std::string tooltip)
 //	check that className is not already used
 	if(classname_registered(className))
 	{
-		UG_LOG("### Registry ERROR: Trying to register class name '"<<className
-				<< "', that is already used by another class in this registry."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class name '"<<className
+		<< "', that is already used by another class in this registry.");
 	}
 //	check that className is not already used as a group name
 	if(groupname_registered(className))
 	{
-		UG_LOG("### Registry ERROR: Trying to register class name '"<<className
-				<< "', that is already used by another group in this registry."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class name '"<<className
+		<< "', that is already used by another group in this registry.");
 	}
 // 	check that name is not empty
 	if(className.empty())
 	{
-		UG_LOG("### Registry ERROR: Trying to register empty class name."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register empty class name.");
 	}
 	
 	// check that name does not contain illegal characters
 	if (!IsValidRegistryIdentifier(className)) {
-		UG_LOG("### Registry ERROR: Trying to register class '" 
-				<< className << "' that"
-				<< " contains illegal characters.\n"
-				<< GetRegistryIdentifierMessage()
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class '" << className << "' that"
+		<< " contains illegal characters. "<< GetRegistryIdentifierMessage());
 	}
 
 //	new class pointer
 	ExportedClass<TClass>* newClass = NULL;
 
-//	try creation
-	try
-	{
-		newClass = new ExportedClass<TClass>(className, group, tooltip);
-	}
-	catch(ug::bridge::REGISTRY_ERROR_ClassAlreadyNamed ex)
-	{
-		UG_LOG("### Registry ERROR: Trying to register class with name '"<<className
-				<< "', that has already been named. This is not allowed. "
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
-	}
-	catch(ug::bridge::REGISTRY_ERROR_Message ex)
-	{
-		UG_LOG("### Registry ERROR: " << ex.msg << "\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed("(unknown)"));
-	}
+	newClass = new ExportedClass<TClass>(className, group, tooltip);
 
 //	add new class to list of classes
 	m_vClass.push_back(newClass);
@@ -194,35 +164,29 @@ add_class_(std::string className, std::string group, std::string tooltip)
 //	check that className is not already used
 	if(classname_registered(className))
 	{
-		UG_LOG("### Registry ERROR: Trying to register class name '"<<className
-				<< "', that is already used by another class in this registry."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class name '"<<className
+		<< "', that is already used by another class in this registry.");
 	}
 //	check that className is not already used as a group name
 	if(groupname_registered(className))
 	{
-		UG_LOG("### Registry ERROR: Trying to register class name '"<<className
-				<< "', that is already used by another group in this registry."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class name '"<<className
+		<< "', that is already used by another group in this registry.");
 	}
 // 	check that name is not empty
 	if(className.empty())
 	{
-		UG_LOG("### Registry ERROR: Trying to register empty class name."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register empty class name.");
 	}
 	
 	// check that name does not contain illegal characters
 	if (!IsValidRegistryIdentifier(className)) {
-		UG_LOG("### Registry ERROR: Trying to register class '" 
-				<< className << "' that"
-				<< " contains illegal characters.\n"
-				<< GetRegistryIdentifierMessage()
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class '" << className << "' that"
+		<< " contains illegal characters. "<< GetRegistryIdentifierMessage());
 	}
 
 //	check
@@ -232,20 +196,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	ExportedClass<TClass>* newClass = NULL;
 
 //	try creation of new class
-	try { newClass = new ExportedClass<TClass>(className, group, tooltip);}
-	catch(ug::bridge::REGISTRY_ERROR_ClassAlreadyNamed ex)
-	{
-		UG_LOG("### Registry ERROR: Trying to register class with name '"<<className
-				<< "', that has already been named. This is not allowed. "
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
-	}
-	catch(ug::bridge::REGISTRY_ERROR_Message ex)
-	{
-		UG_LOG("### Registry ERROR: " << ex.msg << "\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed("(unknown)"));
-	}
-
+	newClass = new ExportedClass<TClass>(className, group, tooltip);
 
 // 	set base class names
 	ClassNameProvider<TClass>::template set_name<TBaseClass>(className, group);
@@ -265,35 +216,29 @@ add_class_(std::string className, std::string group, std::string tooltip)
 //	check that className is not already used
 	if(classname_registered(className))
 	{
-		UG_LOG("### Registry ERROR: Trying to register class name '"<<className
-				<< "', that is already used by another class in this registry."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class name '"<<className
+		<< "', that is already used by another class in this registry.");
 	}
 //	check that className is not already used as a group name
 	if(groupname_registered(className))
 	{
-		UG_LOG("### Registry ERROR: Trying to register class name '"<<className
-				<< "', that is already used by another group in this registry."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class name '"<<className
+		<< "', that is already used by another group in this registry.");
 	}
 // 	check that name is not empty
 	if(className.empty())
 	{
-		UG_LOG("### Registry ERROR: Trying to register empty class name."
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register empty class name.");
 	}
 	
 	// check that name does not contain illegal characters
 	if (!IsValidRegistryIdentifier(className)) {
-		UG_LOG("### Registry ERROR: Trying to register class '" 
-				<< className << "' that"
-				<< " contains illegal characters.\n"
-				<< GetRegistryIdentifierMessage()
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+		UG_THROW_REGISTRY_ERROR(className,
+		"Trying to register class '" << className << "' that"
+		<< " contains illegal characters. " << GetRegistryIdentifierMessage());
 	}
 
 //	check
@@ -304,19 +249,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 	ExportedClass<TClass>* newClass = NULL;
 
 //	try creation of new class
-	try { newClass = new ExportedClass<TClass>(className, group, tooltip);}
-	catch(ug::bridge::REGISTRY_ERROR_ClassAlreadyNamed ex)
-	{
-		UG_LOG("### Registry ERROR: Trying to register class with name '"<<className
-				<< "', that has already been named. This is not allowed. "
-				<< "\n### Please change register process. Aborting ...\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
-	}
-	catch(ug::bridge::REGISTRY_ERROR_Message ex)
-	{
-		UG_LOG("### Registry ERROR: " << ex.msg << "\n");
-		throw(UG_REGISTRY_ERROR_RegistrationFailed("(unknown)"));
-	}
+	newClass = new ExportedClass<TClass>(className, group, tooltip);
 
 // 	set base class names
 	ClassNameProvider<TClass>::template set_name<TBaseClass1, TBaseClass2>(className, group);
@@ -343,10 +276,9 @@ get_class_()
 			return *dynamic_cast<ExportedClass<TClass>* >(m_vClass[i]);
 
 //	not found
-	UG_LOG("### Registry ERROR: Trying to get class with name '" << name
-			<< "', that has not yet been registered to this Registry."
-			<< "\n### Please change register process. Aborting ...\n");
-	throw(UG_REGISTRY_ERROR_RegistrationFailed(name));
+	UG_THROW_REGISTRY_ERROR(name,
+	"Trying to get class with name '" << name
+	<< "', that has not yet been registered to this Registry.");
 }
 
 }//	end of namespace

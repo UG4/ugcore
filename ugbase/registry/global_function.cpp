@@ -48,72 +48,85 @@ ExportedFunctionBase(	const std::string& funcName, const std::string& funcOption
 											 "0123456789");
 	if (found!=std::string::npos)
 	{
-		UG_LOG("Non-allowed character '"<<m_name[found]<<"' "<<
+		UG_ERR_LOG("Non-allowed character '"<<m_name[found]<<"' "<<
 			   "contained at position "<<int(found)<<" in registered function/method "
 			   "'"<<m_name<<"'.\nFunction names must match the regular expression: "
 			   "[a-zA-Z_][a-zA-Z_0-9]*, \ni.e. only alphabetic characters, numbers "
 			   " and '_' are allowed; no numbers at the beginning.\n");
-		throw(REGISTRY_ERROR_Message("Function Name must only contain [a-zA-Z_][a-zA-Z_0-9]*."));
+		UG_THROW_REGISTRY_ERROR(m_name,"Function Name must only contain [a-zA-Z_][a-zA-Z_0-9]*.");
 	}
 
 //	check that no number at the beginning
 	found = m_name.find_first_of("0123456789");
 	if (found!=std::string::npos && found == 0)
 	{
-		UG_LOG("Function Name "<<m_name<<" starts with a number.\nThis is "
+		UG_ERR_LOG("Function Name "<<m_name<<" starts with a number.\nThis is "
 				" not allowed. Please change naming.\n");
-		throw(REGISTRY_ERROR_Message("Function Name must not start with number."));
+		UG_THROW_REGISTRY_ERROR(m_name, "Function Name must not start with number.");
 	}
 };
 
 bool ExportedFunctionBase::check_consistency(std::string classname) const
 {
 //	flag to indicate, that unnamed parameter is found
-	bool bUndeclaredParameterFound = false;
+	bool bUndeclared = false, bUndeclaredParameter = false, bUndeclaredReturn = false;
 
 //	loop method parameters
 	for(int j=0; j<params_in().size(); j++)
-	{
 		if(!params_in().parameter_named(j))
 		{
-		//	print error output, indicate parameter by 1, ..., NumParams
-			if(!bUndeclaredParameterFound)
-			{
-				bUndeclaredParameterFound = true;
-				UG_LOG("#### Registry ERROR: Unregistered Class used in ");
-				if(!classname.empty()){ UG_LOG("Method: '");}
-				else UG_LOG("global Function: '")
-				PrintFunctionInfo(*this, false, classname.c_str());
-				UG_LOG("': Parameter " << j+1);
-			}
-			else
-			{	UG_LOG(", " << j+1);	}
+			bUndeclared = true;
+			bUndeclaredParameter = true;
 		}
-	}
 
 //	loop return values
 	for(int j=0; j<params_out().size(); j++)
-	{
-	//	print error output
 		if(!params_out().parameter_named(j))
 		{
-			UG_ASSERT(j == 0, "Not more than one return value can appear.");
-			if(!bUndeclaredParameterFound)
-			{
-				bUndeclaredParameterFound = true;
-				UG_LOG("#### Registry ERROR: Unregistered Class used in ");
-				if(!classname.empty()){UG_LOG("Method: '");}
-				else UG_LOG("global Function: '");
-				PrintFunctionInfo(*this, false, classname.c_str());
-				UG_LOG("': Return value ");
-			}
-			else
-			{	UG_LOG(", Return value ");	}
+			bUndeclared = true;
+			bUndeclaredReturn = true;
 		}
+
+//	print error message
+	if(bUndeclared)
+	{
+		UG_ERR_LOG("#### Registry ERROR: Unregistered Class used in ");
+		if(!classname.empty()){ UG_ERR_LOG("Method: '");}
+		else UG_ERR_LOG("global Function: '")
+
+		UG_ERR_LOG(ParameterToString(params_out(), 0) << " ");
+		if(!classname.empty()) UG_ERR_LOG(classname << ":");
+		UG_ERR_LOG(name() << "(");
+		for(size_t i=0; i < (size_t)params_in().size(); ++i)
+		{
+			if(i>0) UG_ERR_LOG(", ");
+			UG_ERR_LOG(ParameterToString(params_in(), i));
+			if(i < num_parameter()) UG_ERR_LOG(" " << parameter_name(i));
+		}
+		UG_ERR_LOG(")':");
 	}
 
+	bool bNext = false;
+	if(bUndeclaredParameter)
+	{
+		UG_ERR_LOG(" for Parameter ");
+		for(int j=0; j<params_in().size(); j++)
+			if(!params_in().parameter_named(j))
+			{
+				if(bNext) UG_ERR_LOG(", ")
+				UG_ERR_LOG(j+1);
+				bNext = true;
+			}
+	}
+
+	if(bNext) UG_ERR_LOG(", ")
+	if(bUndeclaredReturn)
+		for(int j=0; j<params_out().size(); j++)
+			if(!params_out().parameter_named(j))
+				UG_ERR_LOG("for Return value ");
+
 //	check if undeclared parameter has been found
-	if(bUndeclaredParameterFound) {UG_LOG("\n"); return false;}
+	if(bUndeclared) {UG_ERR_LOG("\n"); return false;}
 
 //	everything ok
 	return true;

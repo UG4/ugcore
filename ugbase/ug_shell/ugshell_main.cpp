@@ -402,6 +402,16 @@ int main(int argc, char* argv[])
 	SharedLibrariesLoaded();
 #endif
 
+//	check that registry is consistent. Else abort.
+	if(bridge::GetUGRegistry().check_consistency() == false) bAbort = true;
+
+	if(!bAbort){
+	//	register the lua only functonality at the registry
+		RegisterDefaultLuaBridge(&bridge::GetUGRegistry());
+
+	//	check that registry is consistent. Else abort.
+		if(bridge::GetUGRegistry().check_consistency() == false) bAbort =true;
+	}
 
 	if(!bAbort){
 		bool runInteractiveShell = true;
