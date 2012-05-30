@@ -15,6 +15,7 @@
 
 #include "common/common.h" // MathVector<3>
 #include "common/math/ugmath.h"
+#include "lib_algebra/common/stl_debug.h" // stdvector
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"

@@ -21,6 +21,7 @@
 #include "lib_algebra/parallelization/parallel_vector.h"
 #include "lib_algebra/parallelization/parallel_storage_type.h"
 #include "lib_algebra/parallelization/consistency_check.h"
+#include "lib_algebra/parallelization/serialization.h"
 #endif
 
 #include "lib_algebra/common/connection_viewer_output.h"
@@ -508,6 +509,7 @@ AMGBase<TAlgebra>::AMGBase() :
 	iteration_glboal=0;
 	m_checkLevelPostIterations = 10;
 	m_iNrOfPreiterationsCheck = 8;
+	m_dPreiterationsMimumDefect = 1e-8;
 	m_iYCycle = 0;
 }
 
@@ -1012,6 +1014,42 @@ void AMGBase<TAlgebra>::
 		f2 << "c " << GetAMGFilename(mat, "dirichlet", level, ".marks") << "\n";
 	}
 }
+
+/*template<typename TAlgebra>
+void AMGBase<TAlgebra>::save(size_t level, const vector_type &u, const vector_t &b)
+{
+	AMGLevel &L = *levels[level];
+	matrix_operator_type &A = *L.pA;
+
+	std::fstream f;
+	SerializeParallelData(f, A);
+	SerializeUniquePart(f, A);
+	SerializeUniquePart(f, u);
+	SerializeUniquePart(f, b);
+	bool b = m_amghelper.has_positions();
+	if(b)
+		Serialize(f, m_amghelper.positions[level]]);
+
+}
+
+template<typename TAlgebra>
+void AMGBase<TAlgebra>::load(size_t level, const vector_type &u, const vector_t &b)
+{
+	AMGLevel &L = *levels[level];
+	matrix_operator_type &A = *L.pA;
+
+	std::fstream f;
+	SerializeParallelData(f, A);
+	SerializeUniquePart(f, A);
+	SerializeUniquePart(f, u);
+	SerializeUniquePart(f, b);
+	bool b = m_amghelper.has_positions();
+	if(b)
+		Serialize(f, m_amghelper.positions[level]]);
+
+}
+*/
+
 
 template<typename TAlgebra>
 void AMGBase<TAlgebra>::write_debug_matrices(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,

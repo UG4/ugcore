@@ -323,7 +323,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 		n1 = n2;
 		n2 = ConstTwoNorm(d);
 
-		if(n2 < 1e-7 || (prevrate/ (n2/n1) < 1.01 && prevrate/ (n2/n1) > 0.99) )
+		if(n2 < m_dPreiterationsMimumDefect|| (prevrate/ (n2/n1) < 1.01 && prevrate/ (n2/n1) > 0.99) )
 			break;
 
 		prevrate = n2/n1;

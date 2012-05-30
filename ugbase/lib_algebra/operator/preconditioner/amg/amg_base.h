@@ -14,7 +14,7 @@
 #ifndef __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_BASE_H__
 #define __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_BASE_H__
 
-#include "lib_algebra/lib_algebra.h"
+//#include "lib_algebra/lib_algebra.h"
 
 #include "lib_algebra/operator/interface/operator_inverse.h"
 #include "lib_algebra/operator/interface/operator_iterator.h"
@@ -24,6 +24,9 @@
 #include <sstream>
 #include <string>
 #include "amg_debug_helper.h"
+
+#include "lib_algebra/common/stl_debug.h" // stdvector
+
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #include "lib_algebra/parallelization/parallel_nodes.h"
@@ -513,6 +516,11 @@ public:
 		m_iNrOfPreiterationsCheck = i;
 	}
 
+	void set_preiterations_mimum_defect_at_check(double d)
+	{
+		m_dPreiterationsMimumDefect = d;
+	}
+
 	void set_Y_cycle(int maxIterations, double dYreduce, double dYabs)
 	{
 		m_dYreduce = dYreduce;
@@ -639,7 +647,8 @@ protected:
 	bool	m_bFSmoothing;
 	bool	m_bOneInit;							///< if true, do not re-create AMG we preprocess is called
 
-	size_t 	m_iNrOfPreiterationsCheck;
+	size_t 	m_iNrOfPreiterationsCheck;			///< nr of mg cycles performed before checking
+	double m_dPreiterationsMimumDefect;		///< minimum defect for preiterations before checking
 
 	size_t m_checkLevelPostIterations;
 
