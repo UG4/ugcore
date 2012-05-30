@@ -672,7 +672,13 @@ inline size_t SparseMatrix<T>::num_connections(size_t row) const
 template<typename T>
 void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 {
-	if(nr==0) return;
+	if(nr==0)
+	{
+		safe_set_connections(row, NULL);
+		pRowEnd[row] = pRowStart[row];
+		return;
+	}
+
 	definalize();
 	size_t oldNumConnections = num_connections(row);
 	if(in_consmem(row))
