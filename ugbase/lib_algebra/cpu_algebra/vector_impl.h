@@ -269,6 +269,23 @@ bool CloneVector(Vector<TValueType> &dest, const Vector<TValueType> src)
 	return true;
 }
 
+template<typename TValueType, class TOStream>
+void Serialize(TOStream &buf, const Vector<TValueType> &v)
+{
+	Serialize(buf, v.size());
+	for(size_t i=0; i < v.size(); i++)
+		Serialize(buf, v[i]);
+}
+
+template<typename TValueType, class TIStream>
+void Deserialize(TIStream &buf, Vector<TValueType> &v)
+{
+	size_t s = Deserialize<size_t>(buf);
+	v.resize(s);
+	for(size_t i=0; i < s; i++)
+		Deserialize(buf, v[i]);
+}
+
 }//namespace ug
 
 #endif

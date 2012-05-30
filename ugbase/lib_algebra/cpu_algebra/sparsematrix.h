@@ -234,7 +234,7 @@ public:
 	 * \param row index of the row to set
 	 * \param c pointer to a array of sorted connections of size nr
 	 * \param nr number of connections in c
-	 * \remark connections have to be sorted
+	 * \remark will sort array c
 	 */
 	void set_matrix_row(size_t row, connection *c, size_t nr);
 

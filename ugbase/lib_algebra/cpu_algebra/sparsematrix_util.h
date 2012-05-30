@@ -565,6 +565,56 @@ void SetDirichletRow(SparseMatrix<T>& A, const std::vector<size_t> vIndex)
 }
 
 
+template<typename T, class TOStream>
+void Serialize(TOStream &buf, const SparseMatrix<T> &A)
+{
+	Serialize(buf, A.num_rows());
+	Serialize(buf, A.num_cols());
+
+	for(size_t i=0; i < A.num_rows(); i++)
+	{
+		size_t num_connections = A.num_connections(i);
+
+		// serialize number of connections
+		Serialize(buf, num_connections);
+
+		for(typename SparseMatrix<T>::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+		{
+			// serialize connection
+			Serialize(buf, conn.index());
+			Serialize(buf, conn.value());
+		}
+	}
+}
+
+template <typename T, class TIStream>
+void Deserialize(TIStream& buf, SparseMatrix<T> &A)
+{
+	size_t numRows, numCols, num_connections;
+
+	Deserialize(buf, numRows);
+	Deserialize(buf, numCols);
+	A.resize(numRows, numCols);
+
+	std::vector<typename SparseMatrix<T>::connection> con; con.reserve(16);
+
+	for(size_t i=0; i < A.num_rows; i++)
+	{
+		Deserialize(buf, num_connections);
+
+		con.resize(num_connections);
+
+		for(size_t j=0; j<num_connections; j++)
+		{
+			Deserialize(buf, con[j].iIndex);
+			Deserialize(buf, con[j].dValue);
+		}
+		A.set_matrix_row(i, &con[0], num_connections);
+	}
+	A.defragment();
+}
+
+
 /// @}
 } // end namespace ug
 
