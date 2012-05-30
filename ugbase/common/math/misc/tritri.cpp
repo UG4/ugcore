@@ -352,8 +352,9 @@ int tri_tri_intersect(number V0[3],number V1[3],number V2[3],
 
   if(ip1Out && ip2Out){
   	//	calculate the endpoints of the line segment that resembles the intersection.
-	number tpa1[3], tpa2[3], tpb1[3], tpb2[3];
-	
+	number tpa1[3]={0, 0, 0}, tpa2[3]={0, 0, 0}, tpb1[3]={0, 0, 0},
+			tpb2[3]={0, 0, 0};
+
 	/* compute interval-points for triangle 1 */
 	COMPUTE_INTERVAL_POINTS(V0,V1,V2,dv0,dv1,dv2,dv0dv1,dv0dv2,tpa1,tpa2);
 
