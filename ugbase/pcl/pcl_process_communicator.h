@@ -44,6 +44,9 @@ class ProcessCommunicator
 		
 	///	returns true if the communicator is empty, false if not.
 		inline bool empty() const		{return m_comm->m_mpiComm == MPI_COMM_NULL;}
+
+	/// return true if the communicator is PCD_WORLD
+		inline bool is_world() const	{ return m_comm->m_mpiComm == MPI_COMM_WORLD; }
 		
 	///	returns the size of the communicator
 		size_t size() const;
@@ -60,6 +63,10 @@ class ProcessCommunicator
 	 *	communicator - even if they don't want to participate in the new one.*/
 		ProcessCommunicator create_sub_communicator(bool participate) const;
 		
+		ProcessCommunicator create_sub_communicator(std::vector<int> &newProcs) const;
+
+		static ProcessCommunicator create_communicator(std::vector<int> &newGlobalProcs);
+
 	///	performs MPI_Allreduce on the processes of the communicator.
 	/**	This method synchronises involved processes.
 	 */	

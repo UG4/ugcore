@@ -129,7 +129,16 @@ create_sub_communicator(bool participate) const
 //	if newProcs is not empty, we'll build a new mpi-communicator.
 	if(newProcs.empty())
 		return ProcessCommunicator(PCD_EMPTY);
+	else
+		return create_sub_communicator(newProcs);
+}
 
+/// note: ranks in newProcs are ranks in the (group!) communicator m_comm->m_mpiComm
+/// @sa create_communicator
+ProcessCommunicator
+ProcessCommunicator::
+create_sub_communicator(vector<int> &newProcs) const
+{
 	MPI_Group grpOld;
 	MPI_Group grpNew;
 	MPI_Comm commNew;
@@ -155,6 +164,28 @@ create_sub_communicator(bool participate) const
 	ProcessCommunicator newProcComm;
 	newProcComm.m_comm = SPCommWrapper(new CommWrapper(commNew, true));
 	newProcComm.m_comm->m_procs = newProcs;
+
+	return newProcComm;
+}
+
+ProcessCommunicator
+ProcessCommunicator::
+create_communicator(vector<int> &newGlobalProcs)
+{
+
+	CommWrapper comm(MPI_COMM_WORLD, false);
+
+	MPI_Group grpWorld;
+	MPI_Group grpNew;
+	MPI_Comm commNew;
+
+	MPI_Comm_group(MPI_COMM_WORLD, &grpWorld);
+	MPI_Group_incl(grpWorld, (int)newGlobalProcs.size(), &newGlobalProcs.front(), &grpNew);
+	MPI_Comm_create(MPI_COMM_WORLD, grpNew, &commNew);
+
+	ProcessCommunicator newProcComm;
+	newProcComm.m_comm = SPCommWrapper(new CommWrapper(commNew, true));
+	newProcComm.m_comm->m_procs = newGlobalProcs;
 
 	return newProcComm;
 }
