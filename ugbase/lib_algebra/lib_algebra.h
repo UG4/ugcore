@@ -27,7 +27,6 @@
 #include "cpu_algebra/algebra_misc.h"
 #include "cpu_algebra/vector.h"
 #include "cpu_algebra/sparsematrix.h"
-#include "cpu_algebra/core_smoothers.h"
 
 // parallel support
 #ifdef UG_PARALLEL
@@ -36,6 +35,7 @@
 
 // small algebra
 #include "small_algebra/small_algebra.h"
+
 
 // operator interfaces
 #include "lib_algebra/operator/interface/function_base.h"
