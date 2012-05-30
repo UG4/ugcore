@@ -76,7 +76,7 @@ set(lapackDefault ON)
 set(internalBoostDefault ON)
 
 # Option to add svn head revision, compile date and build host into ugshell's initial output
-set(svnDefault OFF)
+set(svnDefault ON)
 
 # Precision of the number type
 set(precisionDefault "double")
