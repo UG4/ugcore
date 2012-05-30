@@ -123,7 +123,9 @@ static void Algebra(Registry& reg, string grp)
 		.add_method("check2", &AMGBase<algebra_type>::check2, "", "x#b", "performs a check of convergence on all levels")
 		.add_method("check_fsmoothing", &AMGBase<algebra_type>::check_fsmoothing, "", "", "")
 		.add_method("set_nr_of_preiterations_at_check", &AMGBase<algebra_type>::set_nr_of_preiterations_at_check,
-				"i")
+							"", "i", "nr of mg cycles performed before checking")
+		.add_method("set_preiterations_mimum_defect_at_check", &AMGBase<algebra_type>::set_preiterations_mimum_defect_at_check, "",
+						"d", "minimum defect for preiterations before checking")
 		.add_method("set_matrix_write_path", &AMGBase<algebra_type>::set_matrix_write_path, "", "matrixWritePath", "set the path where connectionviewer matrices of the levels are written")
 		.add_method("set_fsmoothing", &AMGBase<algebra_type>::set_fsmoothing, "", "enable", "")
 		.add_method("get_fsmoothing", &AMGBase<algebra_type>::get_fsmoothing, "f smoothing enabled", "")
