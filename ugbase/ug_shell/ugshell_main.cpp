@@ -355,16 +355,53 @@ int main(int argc, char* argv[])
 	LOG("*                                                                              *\n");
 
 //	initialize the rest of ug
-	LOG("* Initializing: paths... ");
 
+//	INIT PATH
 	try{
+		LOG("* Initializing: paths... ");
 		if(InitPaths((argv)[0]))	{UG_LOG("done");}
-		else						{UG_LOG("fail");}
+	//	if only false is returned, the error is non-fatal. Still continue shell
+		else{
+			UG_LOG("fail");
+			UG_ERR_LOG("Path Initialization failed. Expect file access problem.\n")
+			UG_ERR_LOG("Check environment variable UG4_ROOT.\n")
+		}
+	}
+	catch(UGError& err)
+	{
+	//	if ugerror is throw, an internal fatal error occured, we termiate shell
+		UG_ERR_LOG("UGError occurred during Path Initialization:\n");
+		for(size_t i=0; i<err.num_msg(); i++)
+			UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
+		bAbort = true;
+	}
+	catch(...){
+		UG_ERR_LOG("Unknown error received during Path Initialization.\n");
+		bAbort = true;
+	}
 
+//	INIT STANDARD BRIDGE
+	try{
 		UG_LOG(", bridge... ");
-		if(bridge::InitBridge())	{UG_LOG("done");}
-		else						{UG_LOG("fail");}
+		bridge::InitBridge();
+		UG_LOG("done");
+	}
+	catch(UGError& err)
+	{
+		UG_LOG("fail");
+		UG_ERR_LOG("UGError occurred during Standard Bridge Initialization:\n");
+		for(size_t i=0; i<err.num_msg(); i++)
+			UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
+		bAbort = true;
+	}
+	catch(...){
+		UG_LOG("fail");
+		UG_ERR_LOG("Unknown error received during Standard Bridge Initialization.\n");
+		bAbort = true;
+	}
 
+//	INIT PLUGINS
+	try{
 		FileExists("");
 		#ifdef UG_PLUGINS
 			UG_LOG(", plugins... ");
@@ -382,16 +419,21 @@ int main(int argc, char* argv[])
 	}
 	catch(UGError &err)
 	{
+		UG_LOG("fail");
+		UG_LOG("                 *\n");
+	//	if registration of plugin fails, we do abort the shell
+	//	this could be skipped if registering of plugin would be done more
+	//	carefully. (try/catch in load plugins)
 		PathProvider::clear_current_path_stack();
-		UG_LOG("UGError occurred during initialization:\n");
+		UG_ERR_LOG("UGError occurred during Plugin Initialization:\n");
 		for(size_t i=0; i<err.num_msg(); i++)
-			UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
-		UG_LOG("\n");
-		UG_LOG("terminating ugshell...\n");
+			UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
 		bAbort = true;
 	}
 	catch(...){
-		UG_LOG("Unknown error received during initialization. Terminating ugshell...\n");
+		UG_LOG("fail");
+		UG_LOG("                 *\n");
+		UG_ERR_LOG("Unknown error received during Plugin Initialization.\n");
 		bAbort = true;
 	}
 
@@ -402,15 +444,37 @@ int main(int argc, char* argv[])
 	SharedLibrariesLoaded();
 #endif
 
-//	check that registry is consistent. Else abort.
-	if(bridge::GetUGRegistry().check_consistency() == false) bAbort = true;
+	if(!bAbort)
+	{
+		try{
+		//	check that registry is consistent. Else abort.
+			if(bridge::GetUGRegistry().check_consistency() == false){
+				UG_ERR_LOG("#### Registry ERROR: Registering of Standard Bridges and Plugins failed.")
+				bAbort = true;
+			}
 
-	if(!bAbort){
-	//	register the lua only functonality at the registry
-		RegisterDefaultLuaBridge(&bridge::GetUGRegistry());
+			if(!bAbort){
+			//	register the lua only functonality at the registry
+				RegisterDefaultLuaBridge(&bridge::GetUGRegistry());
 
-	//	check that registry is consistent. Else abort.
-		if(bridge::GetUGRegistry().check_consistency() == false) bAbort =true;
+			//	check that registry is consistent. Else abort.
+				if(bridge::GetUGRegistry().check_consistency() == false) {
+					UG_ERR_LOG("#### Registry ERROR: Registering of Standard LUA Bridges failed.")
+					bAbort =true;
+				}
+			}
+		}
+		catch(UGError &err)
+		{
+			UG_ERR_LOG("UGError occurred on registry check:\n");
+			for(size_t i=0; i<err.num_msg(); i++)
+				UG_ERR_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i) << "\n");
+			bAbort = true;
+		}
+		catch(...){
+			UG_ERR_LOG("Unknown error occurred on registry check.\n");
+			bAbort = true;
+		}
 	}
 
 	if(!bAbort){
@@ -520,6 +584,10 @@ int main(int argc, char* argv[])
 			ret = runShell();
 
 	}//bAbort
+	else
+	{
+		UG_LOG("Errors occured on startup (see error log). Terminating shell.\n");
+	}
 
 	PROFILE_BEGIN(ugshellFinalize);
 

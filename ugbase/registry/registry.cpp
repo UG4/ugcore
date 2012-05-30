@@ -64,8 +64,9 @@ void Registry::add_callback(FuncRegistryChanged callback)
 
 bool Registry::registry_changed()
 {
-//	check that the registered components are correct
-	if(!check_consistency()) return false;
+	if(!m_callbacksRegChanged.empty())
+		UG_THROW("Sorry, currently no listeners can be registered at the "
+				" the Registry due to restrictions of the VRL binding.");
 
 //	iterate through all callbacks and call them
 	for(size_t i = 0; i < m_callbacksRegChanged.size(); ++i){

@@ -6,6 +6,7 @@
 #include "lib_algebra/algebra_type.h"
 #include "common/util/path_provider.h"
 #include "common/profiler/profiler.h"
+#include "bridge/util.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -28,15 +29,11 @@ Registry & GetUGRegistry()
 }
 
 /// calls RegisterStandardInterfaces and LoadPlugins if UG_PLUGINS is defined
-bool InitBridge()
+void InitBridge()
 {
 	PROFILE_FUNC();
 	//	initialize ug-interfaces
-	if(!RegisterStandardBridges(bridge::GetUGRegistry()))
-	{
-		return false;
-	}
-	return true;
+	RegisterStandardBridges(bridge::GetUGRegistry());
 }
 
 
@@ -140,7 +137,7 @@ void InitUG(int dim, const AlgebraType& algType)
 	DefaultAlgebra::set(algType);
 }
 
-bool RegisterStandardBridges(Registry& reg, string parentGroup)
+void RegisterStandardBridges(Registry& reg, string parentGroup)
 {
 	try
 	{
@@ -209,14 +206,10 @@ bool RegisterStandardBridges(Registry& reg, string parentGroup)
 #endif
 
 	}
-	catch(UGRegistryError& ex)
-	{
-		UG_ERR_LOG("### ERROR in RegisterStandardInterfaces: "
-					"Registration failed (using name " << ex.name << ").\n");
-		return false;
-	}
+	UG_REGISTRY_CATCH_THROW("RegisterStandardInterfaces")
+	UG_CATCH_THROW("RegisterStandardInterfaces failed.")
 
-	return reg.registry_changed();
+	reg.registry_changed();
 }
 
 }//	end of namespace 

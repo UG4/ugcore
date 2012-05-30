@@ -19,17 +19,19 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 {
 	typedef void (*FctInitPlugin)(ug::bridge::Registry*, std::string);
 
+	bool bSuccess = true;
+
 //	first we'll try to find all plugins in the given path
 	vector<string> files;
 
 	GetFilesInDirectory(files, pluginPath);
 
-	//UG_LOG("Loading plugins (from " << pluginPath << "):");
+	//UG_ERR_LOG("Loading plugins (from " << pluginPath << "):");
 
 	bridge::Registry& reg = bridge::GetUGRegistry();
 
 	for(size_t i = 0; i < files.size(); ++i){
-		//UG_LOG(" " << files[i]);
+		//UG_ERR_LOG(" " << files[i]);
 
 		string fullPluginName(pluginPath);
 		fullPluginName.append(GetPathSeparator()).append(files[i]);
@@ -37,9 +39,10 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 		HMODULE libHandle = LoadLibrary(fullPluginName.c_str());
 
 		if(!libHandle){
-			UG_LOG("PLUGIN-ERROR: Couldn't open plugin " << files[i]);
-			UG_LOG(" (" << GetLastError() << ")\n");
-			UG_LOG("NOTE: This could be due to incompatible build settings in ugshell and the plugin.\n");
+			UG_ERR_LOG("PLUGIN-ERROR: Couldn't open plugin " << files[i]);
+			UG_ERR_LOG(" (" << GetLastError() << ")\n");
+			UG_ERR_LOG("NOTE: This could be due to incompatible build settings in ugshell and the plugin.\n");
+			bSuccess = false;
 			continue;
 		}
 
@@ -51,8 +54,9 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 			(FctInitPlugin) GetProcAddress(libHandle, fctName.c_str());
 
 		if(!fctInitPlugin){
-			UG_LOG("PLUGIN-ERROR: Couldn't find entry point 'InitUGPlugin' in plugin " << files[i]);
-			UG_LOG(" (" << GetLastError() << ")\n");
+			UG_ERR_LOG("PLUGIN-ERROR: Couldn't find entry point 'InitUGPlugin' in plugin " << files[i]);
+			UG_ERR_LOG(" (" << GetLastError() << ")\n");
+			bSuccess = false;
 			continue;
 		}
 
@@ -63,9 +67,9 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 //	make sure that the registry is updated
 	reg.registry_changed();
 
-	//UG_LOG(endl);
+	//UG_ERR_LOG(endl);
 
-	return true;
+	return bSuccess;
 }
 
 

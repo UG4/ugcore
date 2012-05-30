@@ -141,7 +141,11 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 		InitPaths((*argvp)[0]);
 
 #ifdef UG_BRIDGE
-		if(!bridge::InitBridge()){
+		try{
+		bridge::InitBridge();
+		}
+		catch(UGError& err)
+		{
 			UG_LOG("ERROR in UGInig: InitBridge failed!\n");
 		}
 #endif

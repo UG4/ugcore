@@ -24,13 +24,13 @@ UG_API Registry & GetUGRegistry();
 UG_API void InitUG(int dim, const AlgebraType& algebraType);
 
 /// calls RegisterStandardInterfaces and LoadPlugins if UG_PLUGINS is defined
-UG_API bool InitBridge();
+UG_API void InitBridge();
 
 ///	registers all standard interfaces.
 /**	This method is called by the constructor of Registry automatically.
  *	You don't have to call it yourself!
  */
-UG_API bool RegisterStandardBridges(Registry& reg, std::string grp = UG4_GRP);
+UG_API void RegisterStandardBridges(Registry& reg, std::string grp = UG4_GRP);
 
 ///	Registers types and functions for 1, 2, 3 and 4 dimensional vector math.
 void RegisterBridge_VecMath(Registry& reg, std::string grp = UG4_GRP);

@@ -94,7 +94,10 @@ bool ExportedFunctionBase::check_consistency(std::string classname) const
 		if(!classname.empty()){ UG_ERR_LOG("Method: '");}
 		else UG_ERR_LOG("global Function: '")
 
-		UG_ERR_LOG(ParameterToString(params_out(), 0) << " ");
+		if(params_out().size() > 0){
+			UG_ERR_LOG(ParameterToString(params_out(), 0) << " ");
+		}
+		else { UG_ERR_LOG("void ");}
 		if(!classname.empty()) UG_ERR_LOG(classname << ":");
 		UG_ERR_LOG(name() << "(");
 		for(size_t i=0; i < (size_t)params_in().size(); ++i)
