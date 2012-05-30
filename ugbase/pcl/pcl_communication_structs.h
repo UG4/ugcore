@@ -427,20 +427,28 @@ class SingleLevelLayout
 			{return m_interfaceMap.find(procID) != m_interfaceMap.end();}
 
 	///	returns the sum of the interface sizes
-		inline size_t num_interface_elements(){
+		inline size_t num_interface_elements() const
+		{
 			size_t sum = 0;
-			for(iterator iter = begin(); iter != end(); ++iter)
+			for(const_iterator iter = begin(); iter != end(); ++iter)
 				sum += interface(iter).size();
 			return sum;
 		}
 
 	///	returns true if the layout contains interface elements
-		inline bool has_interface_elements(){
+		inline bool has_interface_elements() const
+		{
 			for(iterator iter = begin(); iter != end(); ++iter){
 				if(!interface(iter).empty())
 					return true;
 			}
 			return false;
+		}
+
+	/// returns the number of interfaces in the layout
+		inline size_t num_interfaces(size_t level = 0) const
+		{
+			return m_interfaceMap.size();
 		}
 
 	private:
@@ -539,7 +547,7 @@ class MultiLevelLayout
 	/**	Note that this method only tells whether there are interfaces or not.
 	 * To check whether there are any elements use has_interface_elements.
 	 */
-		inline bool empty()								{for(size_t l = 0; l < num_levels(); ++l){if(!empty(l)) return false;} return true;}
+		inline bool empty()	const						{for(size_t l = 0; l < num_levels(); ++l){if(!empty(l)) return false;} return true;}
 
 	///	returns the interface to the given iterator.
 		inline Interface& interface(iterator iter)		{return iter->second;}
@@ -552,7 +560,7 @@ class MultiLevelLayout
 		inline iterator erase(iterator iter, size_t level)	{return m_vLayouts[level]->erase(iter);}
 		
 	///	returns the number of levels.
-		inline size_t num_levels()							{return m_vLayouts.size();}
+		inline size_t num_levels()	const					{return m_vLayouts.size();}
 
 	////////////////////////////////////////////////
 	//	methods that enhance the layout-tag
@@ -580,7 +588,8 @@ class MultiLevelLayout
 		inline LevelLayout& layout_on_level(int level)			{require_level(level); return *m_vLayouts[level];}
 
 	///	returns the sum of the interface sizes
-		inline size_t num_interface_elements(){
+		inline size_t num_interface_elements() const
+		{
 			size_t sum = 0;
 			for(size_t lvl = 0; lvl < num_levels(); ++lvl){
 				for(iterator iter = begin(lvl); iter != end(lvl); ++iter)
@@ -590,7 +599,8 @@ class MultiLevelLayout
 		}
 
 	///	returns true if the layout contains any interface entries
-		inline bool has_interface_elements(){
+		inline bool has_interface_elements() const
+		{
 			for(size_t lvl = 0; lvl < num_levels(); ++lvl){
 				for(iterator iter = begin(lvl); iter != end(lvl); ++iter){
 					if(!interface(iter).empty())
@@ -598,6 +608,12 @@ class MultiLevelLayout
 				}
 			}
 			return false;
+		}
+
+	/// returns the number of interfaces in the layout
+		inline size_t num_interfaces(size_t level) const
+		{
+			return m_vLayouts[level].size();
 		}
 
 	protected:
