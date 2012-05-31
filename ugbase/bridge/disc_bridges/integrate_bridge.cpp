@@ -51,7 +51,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	Integral
 	{
-		reg.add_function("Integral", &Integral<TFct>, grp);
+		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>, number, int, const char*)>(&Integral<TFct>), grp);
+		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>, number, int, const char*)>(&Integral<TFct>), grp);
+#ifdef UG_FOR_LUA
+		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, number, int, const char*)>(&Integral<TFct>), grp);
+#endif
 	}
 
 //	L2Error

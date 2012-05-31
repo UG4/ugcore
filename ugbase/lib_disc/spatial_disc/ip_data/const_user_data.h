@@ -16,6 +16,117 @@
 
 namespace ug {
 
+///////////////////////////////////////////////////////////////////////////////
+// Base class for const data
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename TData, int dim, typename TImpl>
+class StdConstUserData
+	: 	public IPData<TData,dim>
+{
+	public:
+		StdConstUserData() {}
+
+		virtual void operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si) const
+		{
+			getImpl().evaluate(value);
+		}
+
+		////////////////
+		// one value
+		////////////////
+
+		virtual void operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<1>& locIP) const
+		{
+			getImpl().evaluate(value);
+		}
+
+		virtual void operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<2>& locIP) const
+		{
+			getImpl().evaluate(value);
+		}
+
+		virtual void operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<3>& locIP) const
+		{
+			getImpl().evaluate(value);
+		}
+
+		////////////////
+		// vector of values
+		////////////////
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<1> vLocIP[],
+		                        const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				getImpl().evaluate(vValue[ip]);
+		}
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<2> vLocIP[],
+		                        const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				getImpl().evaluate(vValue[ip]);
+		}
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<3> vLocIP[],
+		                        const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				getImpl().evaluate(vValue[ip]);
+		}
+
+	protected:
+	///	access to implementation
+		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
+
+	///	const access to implementation
+		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementations
+///////////////////////////////////////////////////////////////////////////////
+
 /**
  * \brief User Data
  *
@@ -31,7 +142,7 @@ namespace ug {
 /// constant scalar user data
 template <int dim>
 class ConstUserNumber
-	: public IPData<number, dim>
+	: public StdConstUserData<number, dim, ConstUserNumber<dim> >
 {
 	///	Base class type
 		typedef IPData<number, dim> base_type;
@@ -56,10 +167,9 @@ class ConstUserNumber
 		void print() const {UG_LOG("ConstUserNumber:" << m_Number << "\n");}
 
 	///	evaluate
-		void operator() (number& c, const MathVector<dim>& x,
-		                 number time, int si) const
+		inline void evaluate (number& value) const
 		{
-			c = m_Number;
+			value = m_Number;
 		}
 
 	///	implement as a IPData
@@ -87,7 +197,7 @@ class ConstUserNumber
 /// constant vector user data
 template <int dim>
 class ConstUserVector
-	: public IPData<MathVector<dim>, dim>
+	: public StdConstUserData<MathVector<dim>, dim, ConstUserVector<dim> >
 {
 	/// Base class type
 		typedef IPData<MathVector<dim>, dim> base_type;
@@ -115,10 +225,9 @@ class ConstUserVector
 		void print() const {UG_LOG("ConstUserVector:" << m_Vector << "\n");}
 
 	/// evaluate
-		void operator() (MathVector<dim>& v, const MathVector<dim>& x,
-		                 number time, int si) const
+		inline void evaluate (MathVector<dim>& value) const
 		{
-			v = m_Vector;
+			value = m_Vector;
 		}
 
 	///	returns if data is constant
@@ -146,7 +255,7 @@ class ConstUserVector
 /// constant matrix user data
 template <int dim>
 class ConstUserMatrix
-	: public IPData<MathMatrix<dim, dim>, dim>
+	: public StdConstUserData<MathMatrix<dim, dim>, dim, ConstUserMatrix<dim> >
 {
 	/// Base class type
 		typedef IPData<MathMatrix<dim, dim>, dim> base_type;
@@ -192,10 +301,9 @@ class ConstUserMatrix
 		void print() const{UG_LOG("ConstUserMatrix:\n" << m_Tensor << "\n");}
 
 	///	evaluate
-		void operator() (MathMatrix<dim, dim>& D, const MathVector<dim>& x,
-		                 number time, int si) const
+		inline void evaluate (MathMatrix<dim, dim>& value) const
 		{
-			D = m_Tensor;
+			value = m_Tensor;
 		}
 
 	///	returns if data is constant
@@ -223,7 +331,7 @@ class ConstUserMatrix
 /// constant tensor user data
 template <int TRank, int dim>
 class ConstUserTensor
-	: public IPData<MathTensor<TRank, dim>, dim>
+	: public StdConstUserData<MathTensor<TRank, dim>, dim, ConstUserTensor<TRank,dim> >
 {
 	/// Base class type
 		typedef IPData<MathTensor<TRank, dim>, dim> base_type;
@@ -251,10 +359,9 @@ class ConstUserTensor
 		void print() const{UG_LOG("ConstUserTensor:\n" << m_Tensor << "\n");}
 
 	///	evaluate
-		void operator() (MathTensor<TRank, dim>& D, const MathVector<dim>& x,
-						 number time, int si) const
+		inline void evaluate (MathTensor<TRank, dim>& value) const
 		{
-			D = m_Tensor;
+			value = m_Tensor;
 		}
 
 	///	returns if data is constant

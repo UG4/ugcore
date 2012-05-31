@@ -313,6 +313,32 @@ number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
 	return value;
 }
 
+template <typename TGridFunction>
+number Integral(number val,
+                SmartPtr<TGridFunction> spGridFct,
+                number time,
+                int quadOrder, const char* subsets)
+{
+	static const int dim = TGridFunction::dim;
+	SmartPtr<IDirectIPData<number, dim> > sp =
+			CreateSmartPtr(new ConstUserNumber<dim>(val));
+	return Integral(sp, spGridFct, time, quadOrder, subsets);
+}
+
+#ifdef UG_FOR_LUA
+template <typename TGridFunction>
+number Integral(const char* luaFct,
+                SmartPtr<TGridFunction> spGridFct,
+                number time,
+                int quadOrder, const char* subsets)
+{
+	static const int dim = TGridFunction::dim;
+	SmartPtr<IDirectIPData<number, dim> > sp =
+			LuaUserDataFactory<number, dim>::create(luaFct);
+	return Integral(sp, spGridFct, time, quadOrder, subsets);
+}
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 // L2 Error Integrand
 ////////////////////////////////////////////////////////////////////////////////
