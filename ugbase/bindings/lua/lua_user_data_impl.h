@@ -515,6 +515,92 @@ LuaUserData<TData,dim,TRet>::~LuaUserData()
 		LuaUserDataFactory<TData,dim,TRet>::remove(m_callbackName);
 }
 
+
+
+template <typename TData, int dim, typename TRet>
+TRet LuaUserData<TData,dim,TRet>::
+operator() (TData& value,
+                         const MathVector<dim>& globIP,
+                         number time, int si,
+                         LocalVector& u,
+                         GeometricObject* elem,
+                         const MathVector<dim> vCornerCoords[],
+                         const MathVector<1>& locIP) const
+{
+	return this->operator()(value, globIP, time, si);
+}
+
+template <typename TData, int dim, typename TRet>
+TRet LuaUserData<TData,dim,TRet>::
+operator() (TData& value,
+                         const MathVector<dim>& globIP,
+                         number time, int si,
+                         LocalVector& u,
+                         GeometricObject* elem,
+                         const MathVector<dim> vCornerCoords[],
+                         const MathVector<2>& locIP) const
+{
+	return this->operator()(value, globIP, time, si);
+}
+
+template <typename TData, int dim, typename TRet>
+TRet LuaUserData<TData,dim,TRet>::
+operator() (TData& value,
+                         const MathVector<dim>& globIP,
+                         number time, int si,
+                         LocalVector& u,
+                         GeometricObject* elem,
+                         const MathVector<dim> vCornerCoords[],
+                         const MathVector<3>& locIP) const
+{
+	return this->operator()(value, globIP, time, si);
+}
+
+template <typename TData, int dim, typename TRet>
+void LuaUserData<TData,dim,TRet>::
+operator()(TData vValue[],
+                        const MathVector<dim> vGlobIP[],
+                        number time, int si,
+                        LocalVector& u,
+                        GeometricObject* elem,
+                        const MathVector<dim> vCornerCoords[],
+                        const MathVector<1> vLocIP[],
+                        const size_t nip) const
+{
+	for(size_t ip = 0; ip < nip; ++ip)
+		this->operator()(vValue[ip], vGlobIP[ip], time, si);
+}
+
+template <typename TData, int dim, typename TRet>
+void LuaUserData<TData,dim,TRet>::
+operator()(TData vValue[],
+                        const MathVector<dim> vGlobIP[],
+                        number time, int si,
+                        LocalVector& u,
+                        GeometricObject* elem,
+                        const MathVector<dim> vCornerCoords[],
+                        const MathVector<2> vLocIP[],
+                        const size_t nip) const
+{
+	for(size_t ip = 0; ip < nip; ++ip)
+		this->operator()(vValue[ip], vGlobIP[ip], time, si);
+}
+
+template <typename TData, int dim, typename TRet>
+void LuaUserData<TData,dim,TRet>::
+operator()(TData vValue[],
+                        const MathVector<dim> vGlobIP[],
+                        number time, int si,
+                        LocalVector& u,
+                        GeometricObject* elem,
+                        const MathVector<dim> vCornerCoords[],
+                        const MathVector<3> vLocIP[],
+                        const size_t nip) const
+{
+	for(size_t ip = 0; ip < nip; ++ip)
+		this->operator()(vValue[ip], vGlobIP[ip], time, si);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // LuaUserDataFactory
 ////////////////////////////////////////////////////////////////////////////////
