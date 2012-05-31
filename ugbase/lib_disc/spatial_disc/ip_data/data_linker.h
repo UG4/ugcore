@@ -299,6 +299,120 @@ struct linker_traits< MathTensor<4,dim>, number >
 	}
 };
 
+template <typename TData, int dim, typename TDataScale, typename TImpl>
+class StdDataLinkerEqualData
+	: 	public DataLinkerEqualData<TData,dim, TDataScale>
+{
+	public:
+		StdDataLinkerEqualData() {}
+
+		virtual void operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si) const
+		{
+			getImpl().evaluate(value,globIP,time,si);
+		}
+
+		////////////////
+		// one value
+		////////////////
+
+		virtual void operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<1>& locIP) const
+		{
+			getImpl().template evaluate<1>(value,globIP,time,si,u,elem,vCornerCoords,locIP);
+		}
+
+		virtual void operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<2>& locIP) const
+		{
+			getImpl().template evaluate<2>(value,globIP,time,si,u,elem,vCornerCoords,locIP);
+		}
+
+		virtual void operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<3>& locIP) const
+		{
+			getImpl().template evaluate<3>(value,globIP,time,si,u,elem,vCornerCoords,locIP);
+		}
+
+		////////////////
+		// vector of values
+		////////////////
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<1> vLocIP[],
+		                        const size_t nip) const
+		{
+			getImpl().template evaluate<1>(vValue,vGlobIP,time,si,u,elem,vCornerCoords,vLocIP,nip);
+		}
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<2> vLocIP[],
+		                        const size_t nip) const
+		{
+			getImpl().template evaluate<2>(vValue,vGlobIP,time,si,u,elem,vCornerCoords,vLocIP,nip);
+		}
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<3> vLocIP[],
+		                        const size_t nip) const
+		{
+			getImpl().template evaluate<3>(vValue,vGlobIP,time,si,u,elem,vCornerCoords,vLocIP,nip);
+		}
+
+	///	returns that a grid function is needed for evaluation
+		virtual bool requires_grid_fct() const
+		{
+			bool bRet = false;
+			for(size_t i = 0; i < this->m_vpIPData.size(); ++i)
+				bRet |= this->m_vpIPData[i]->requires_grid_fct();
+			return bRet;
+		}
+
+	///	sets the associated function pattern
+		virtual void set_function_pattern(const FunctionPattern& fctPatt)
+		{
+			for(size_t i = 0; i < this->m_vpIPData.size(); ++i)
+				this->m_vpIPData[i]->set_function_pattern(fctPatt);
+		}
+
+	protected:
+	///	access to implementation
+		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
+
+	///	const access to implementation
+		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
+};
 
 /////////////////////////////////////////////////
 // Scaled adding of Data
@@ -319,7 +433,7 @@ struct linker_traits< MathTensor<4,dim>, number >
  */
 template <typename TData, int dim, typename TDataScale>
 class ScaleAddLinker
-	: public DataLinker<TData, dim>
+	: public StdDataLinkerEqualData<TData, dim, TDataScale, ScaleAddLinker<TData, dim, TDataScale> >
 {
 	public:
 	//	type of base class
@@ -362,6 +476,82 @@ class ScaleAddLinker
 
 	///	computes the value
 		virtual void compute(bool bDeriv);
+
+		inline void evaluate (TData& value,
+		                      const MathVector<dim>& globIP,
+		                      number time, int si) const
+		{
+			//	reset value
+			value = 0.0;
+
+			TData valData;
+			TDataScale valScale;
+
+			//	add contribution of each summand
+				for(size_t c = 0; c < m_vpIPData.size(); ++c)
+				{
+					(*m_vpIPData[c])(valData, globIP, time, si);
+					(*m_vpScaleData[c])(valScale, globIP, time, si);
+
+					linker_traits<TData, TDataScale>::
+					mult_add(value, valData, valScale);
+				}
+		}
+
+		template <int refDim>
+		inline void evaluate (TData& value,
+		                      const MathVector<dim>& globIP,
+		                      number time, int si,
+		                      LocalVector& u,
+		                      GeometricObject* elem,
+		                      const MathVector<dim> vCornerCoords[],
+		                      const MathVector<refDim>& locIP) const
+		{
+			//	reset value
+			value = 0.0;
+
+			TData valData;
+			TDataScale valScale;
+
+			//	add contribution of each summand
+				for(size_t c = 0; c < m_vpIPData.size(); ++c)
+				{
+					(*m_vpIPData[c])(valData, globIP, time, si, u, elem, vCornerCoords, locIP);
+					(*m_vpScaleData[c])(valScale, globIP, time, si, u, elem, vCornerCoords, locIP);
+
+					linker_traits<TData, TDataScale>::
+					mult_add(value, valData, valScale);
+				}
+		}
+
+		template <int refDim>
+		inline void evaluate(TData vValue[],
+		                     const MathVector<dim> vGlobIP[],
+		                     number time, int si,
+		                     LocalVector& u,
+		                     GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[],
+		                     const MathVector<refDim> vLocIP[],
+		                     const size_t nip) const
+		{
+			//	reset value
+			for(size_t ip = 0; ip < nip; ++ip)
+				vValue[ip] = 0.0;
+
+			std::vector<TData> vValData(nip);
+			std::vector<TDataScale> vValScale(nip);
+
+			//	add contribution of each summand
+				for(size_t c = 0; c < m_vpIPData.size(); ++c)
+				{
+					(*m_vpIPData[c])(&vValData[0], vGlobIP, time, si, u, elem, vCornerCoords, vLocIP, nip);
+					(*m_vpScaleData[c])(&vValScale[0], vGlobIP, time, si, u, elem, vCornerCoords, vLocIP, nip);
+
+					for(size_t ip = 0; ip < nip; ++ip)
+						linker_traits<TData, TDataScale>::
+						mult_add(vValue[ip], vValData[ip], vValScale[ip]);
+				}
+		}
 
 	protected:
 	///	resizes the scaling arrays
