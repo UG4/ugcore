@@ -52,7 +52,7 @@
     download <a href="http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.tar.gz">openmpi-1.6.tar.gz</a>
     to your home directory.
   <li> the process is now the same as for cmake, only that you are looking for <tt>mpicc</tt>.
-  <li> remember the <tt>--prefix=.</tt> option and to set the PATH when you can't sudo.
+  <li> when you have no root: remember the <tt>--prefix=.</tt> option and to set the PATH .
 </ul>
 
 

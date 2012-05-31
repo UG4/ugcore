@@ -8,6 +8,7 @@
 - \ref secInstallBoost
 - \ref secInstallLUA
 - \ref secInstallParaView
+- \ref secInstallLAPACK
 
 On this page you'll find short installation instructions for additional software
 that might be useful &mdash; or is even necessary &mdash; for working with \ug4 
@@ -229,5 +230,32 @@ paraview --state=<state file>
 </ol>
 
 For parallel rendering see e.g. \ref pageParallelRendering.
+
+<hr>
+<br>
+\section secInstallLAPACK Installation BLAS/LAPACK (optional)
+
+
+<ul>
+  <li> Note: On most systems, LAPACK and BLAS are preinstalled and are found by cmake.
+  <li> On some clusters, LAPACK/BLAS are kind of "built into" the compiler,
+  so you don't have to specify anything. In this case, use<br>
+  <tt>cmake -DBUILTIN_BLAS=ON -DBUILTIN_LAPACK=ON</tt> <br>
+  Ask the administrator for help.  
+  <li> On some systems, you'd have to install LAPACK/BLAS manually. 
+  You can do this on most systems via their package managers. 
+  <li> If you can't find/get/install the packages: 
+  Download <a href="http://www.tacc.utexas.edu/tacc-projects/gotoblas2">GotoBLAS2</a>.
+  <li> extract the source to <tt>~/software/GotoBLAS2/</tt>
+  <li> Choose one of the <tt>quickbuild.*</tt> files there and execute it.
+  <li> Now add the path <tt>~/software/GotoBLAS2</tt> to the environment variable
+  <tt>LD_LIBRARY_PATH</tt> by adding the line
+  \verbatim
+  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/software/GotoBLAS2/
+  \endverbatim
+  to you <tt>~/.bashrc</tt>
+  <li> remember to <tt> source ~/.bashrc</tt>
+  <li> Now cmake should accept GotoBLAS2 as LAPACK/BLAS library.
+</ul>
 
  */
