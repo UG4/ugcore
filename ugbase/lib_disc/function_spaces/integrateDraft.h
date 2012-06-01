@@ -274,6 +274,24 @@ class DirectIPDataIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		};
 };
 
+template <typename TGridFunction, int dim>
+number IntegrateDirectIPDataInDim(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
+                                  SmartPtr<TGridFunction> spGridFct,
+                                  number time,
+                                  int quadOrder, int si)
+{
+	DirectIPDataIntegrand<TGridFunction, dim> integrand(spData, spGridFct, time, si);
+
+//	integrate elements of subset
+	typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+
+	return Integrate(spGridFct->template begin<geometric_base_object>(si),
+	                   spGridFct->template end<geometric_base_object>(si),
+	                   spGridFct->domain()->position_accessor(),
+	                   integrand,
+	                   quadOrder);
+}
+
 template <typename TGridFunction>
 number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
                 SmartPtr<TGridFunction> spGridFct,
@@ -289,8 +307,8 @@ number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
 	{
 		ConvertStringToSubsetGroup(ssGrp, subsets);
 		if(!SameDimensionsInAllSubsets(ssGrp))
-			UG_THROW("Subsets '"<<subsets<<"' do not have same dimension. Can "
-			         "not integrate on subsets of different dimensions.");
+			UG_THROW("Integral: Subsets '"<<subsets<<"' do not have same dimension."
+			         "Can not integrate on subsets of different dimensions.");
 	}
 	else
 	{
@@ -308,16 +326,20 @@ number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
 	//	get subset index
 		const int si = ssGrp[i];
 
-	//	create integration kernel
-		DirectIPDataIntegrand<TGridFunction, dim> integrand(spData, spGridFct, time, si);
+	//	check dimension
+		if(ssGrp.dim(si) > dim)
+			UG_THROW("Integral: Dimension of subset is "<<ssGrp.dim(si)<<", but "
+			         " World Dimension is "<<dim<<". Cannot integrate this.");
 
 	//	integrate elements of subset
-		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-		value += Integrate(spGridFct->template begin<geometric_base_object>(si),
-		                   spGridFct->template end<geometric_base_object>(si),
-		                   spGridFct->domain()->position_accessor(),
-		                   integrand,
-		                   quadOrder);
+		switch(ssGrp.dim(si))
+		{
+			case 1: value += IntegrateDirectIPDataInDim<TGridFunction, dim>(spData, spGridFct, time, quadOrder, si); break;
+			case 2: value += IntegrateDirectIPDataInDim<TGridFunction, dim>(spData, spGridFct, time, quadOrder, si); break;
+			case 3: value += IntegrateDirectIPDataInDim<TGridFunction, dim>(spData, spGridFct, time, quadOrder, si); break;
+			default: UG_THROW("Integral: Dimension "<<ssGrp.dim(si)<<" not supported. "
+			                  " World dimension is "<<dim<<".");
+		}
 	}
 
 #ifdef UG_PARALLEL
