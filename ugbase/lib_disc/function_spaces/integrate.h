@@ -102,7 +102,6 @@ number Integrate(TConstIterator iterBegin,
 //	this is the base element type (e.g. Face). This is the type when the
 //	iterators above are dereferenciated.
 	typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-	typedef typename domain_traits<dim>::position_type position_type;
 
 // 	iterate over all elements
 	for(; iter != iterEnd; ++iter)
@@ -127,18 +126,18 @@ number Integrate(TConstIterator iterBegin,
 							= ReferenceMappingProvider::get<dim, WorldDim>(roid);
 
 	//	get all corner coordinates
-		std::vector<position_type> vCorner;
+		std::vector<MathVector<WorldDim> > vCorner;
 		CollectCornerCoordinates(vCorner, *pElem, aaPos, true);
 
 	//	update the reference mapping for the corners
 		mapping.update(&vCorner[0]);
 
 	//	compute global integration points
-		std::vector<position_type> vGlobIP(numIP);
+		std::vector<MathVector<WorldDim> > vGlobIP(numIP);
 		mapping.local_to_global(&(vGlobIP[0]), rQuadRule.points(), numIP);
 
 	//	compute transformation matrices
-		std::vector<MathMatrix<WorldDim, dim> > vJT(numIP);
+		std::vector<MathMatrix<dim, WorldDim> > vJT(numIP);
 		mapping.jacobian_transposed(&(vJT[0]), rQuadRule.points(), numIP);
 
 	//	compute integrand values at integration points
@@ -338,9 +337,9 @@ number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
 	//	integrate elements of subset
 		switch(ssGrp.dim(si))
 		{
-			case 1: value += IntegrateDirectIPDataInDim<TGridFunction, dim>(spData, spGridFct, time, quadOrder, si); break;
-			case 2: value += IntegrateDirectIPDataInDim<TGridFunction, dim>(spData, spGridFct, time, quadOrder, si); break;
-			case 3: value += IntegrateDirectIPDataInDim<TGridFunction, dim>(spData, spGridFct, time, quadOrder, si); break;
+			case 1: value += IntegrateDirectIPDataInDim<TGridFunction, 1>(spData, spGridFct, time, quadOrder, si); break;
+			case 2: value += IntegrateDirectIPDataInDim<TGridFunction, 2>(spData, spGridFct, time, quadOrder, si); break;
+			case 3: value += IntegrateDirectIPDataInDim<TGridFunction, 3>(spData, spGridFct, time, quadOrder, si); break;
 			default: UG_THROW("Integral: Dimension "<<ssGrp.dim(si)<<" not supported. "
 			                  " World dimension is "<<dim<<".");
 		}
