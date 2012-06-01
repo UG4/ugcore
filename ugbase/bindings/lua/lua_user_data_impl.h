@@ -565,7 +565,8 @@ operator()(TData vValue[],
                         GeometricObject* elem,
                         const MathVector<dim> vCornerCoords[],
                         const MathVector<1> vLocIP[],
-                        const size_t nip) const
+                        const size_t nip,
+                        const MathMatrix<1, dim>* vJT) const
 {
 	for(size_t ip = 0; ip < nip; ++ip)
 		this->operator()(vValue[ip], vGlobIP[ip], time, si);
@@ -580,7 +581,8 @@ operator()(TData vValue[],
                         GeometricObject* elem,
                         const MathVector<dim> vCornerCoords[],
                         const MathVector<2> vLocIP[],
-                        const size_t nip) const
+                        const size_t nip,
+                        const MathMatrix<2, dim>* vJT) const
 {
 	for(size_t ip = 0; ip < nip; ++ip)
 		this->operator()(vValue[ip], vGlobIP[ip], time, si);
@@ -595,7 +597,8 @@ operator()(TData vValue[],
                         GeometricObject* elem,
                         const MathVector<dim> vCornerCoords[],
                         const MathVector<3> vLocIP[],
-                        const size_t nip) const
+                        const size_t nip,
+                        const MathMatrix<3, dim>* vJT) const
 {
 	for(size_t ip = 0; ip < nip; ++ip)
 		this->operator()(vValue[ip], vGlobIP[ip], time, si);
@@ -1019,7 +1022,8 @@ evaluate(TData vValue[],
          GeometricObject* elem,
          const MathVector<dim> vCornerCoords[],
          const MathVector<refDim> vLocIP[],
-         const size_t nip) const
+         const size_t nip,
+         const MathMatrix<refDim, dim>* vJT) const
 {
 //	vector of data for all inputs
 	std::vector<TDataIn> vDataIn(num_input());

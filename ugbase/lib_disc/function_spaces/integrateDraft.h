@@ -57,7 +57,7 @@ class IIntegrand
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<worldDim, elemDim> vJT[],
+		                    const MathMatrix<elemDim, worldDim> vJT[],
 		                    const size_t numIP) = 0;
 
 		virtual ~IIntegrand() {}
@@ -220,22 +220,32 @@ class DirectIPDataIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 			m_spData->set_function_pattern(spGridFct->function_pattern());
 		};
 
+	/// constructor
+		DirectIPDataIntegrand(SmartPtr<IDirectIPData<number, worldDim> > spData,
+							  number time, int si)
+		: m_spData(spData), m_spGridFct(NULL), m_time(time), m_si(si)
+		{
+			if(m_spData->requires_grid_fct())
+				UG_THROW("DirectIPDataIntegrand: Missing GridFunction, but "
+						" data requires grid function.")
+		};
+
 	/// \copydoc IIntegrand::getValues
 		virtual void values(number vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<worldDim, elemDim> vJT[],
+		                    const MathMatrix<elemDim, worldDim> vJT[],
 		                    const size_t numIP)
 		{
-		//	create storage
-			LocalIndices ind;
-			LocalVector u;
-
 		//	get local solution if needed
 			if(m_spData->requires_grid_fct())
 			{
+			//	create storage
+				LocalIndices ind;
+				LocalVector u;
+
 			// 	get global indices
 				m_spGridFct->indices(pElem, ind);
 
@@ -244,14 +254,23 @@ class DirectIPDataIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			// 	read local values of u
 				GetLocalVector(u, *m_spGridFct);
+
+			//	compute data
+				try{
+					(*m_spData)(vValue, vGlobIP, m_time, m_si, u, pElem,
+								vCornerCoords, vLocIP, numIP, &vJT[0]);
+				}
+				UG_CATCH_THROW("DirectIPDataIntegrand: Cannot evaluate data.");
+			}
+			else
+			{
+			//	compute data
+				try{
+					(*m_spData)(vValue, vGlobIP, m_time, m_si, numIP);
+				}
+				UG_CATCH_THROW("DirectIPDataIntegrand: Cannot evaluate data.");
 			}
 
-		//	compute data
-			try{
-				(*m_spData)(vValue, vGlobIP, m_time, m_si, u, pElem,
-							vCornerCoords, vLocIP, numIP);
-			}
-			UG_CATCH_THROW("DirectIPDataIntegrand: Cannot evaluate data.");
 		};
 };
 
@@ -385,7 +404,7 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<worldDim, elemDim> vJT[],
+		                    const MathMatrix<elemDim, worldDim> vJT[],
 		                    const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
@@ -574,7 +593,7 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<worldDim, elemDim> vJT[],
+		                    const MathMatrix<elemDim, worldDim> vJT[],
 		                    const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
@@ -631,7 +650,7 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 
 			//	compute global gradient
 				MathVector<worldDim> approxGradIP;
-				MathMatrix<elemDim,worldDim> JTInv;
+				MathMatrix<worldDim, elemDim> JTInv;
 				Inverse(JTInv, vJT[ip]);
 				MatVecMult(approxGradIP, JTInv, locTmp);
 
@@ -680,7 +699,7 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<worldDim, elemDim> vJT[],
+		                    const MathMatrix<elemDim, worldDim> vJT[],
 		                    const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
@@ -839,7 +858,7 @@ class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<worldDim, elemDim> vJT[],
+		                    const MathMatrix<elemDim, worldDim> vJT[],
 		                    const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)

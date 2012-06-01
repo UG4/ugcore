@@ -218,6 +218,11 @@ class IDirectIPData
 		                         const MathVector<dim>& globIP,
 		                         number time, int si) const;
 
+	///	returns value for global positions
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si, const size_t nip) const;
+
 		////////////////
 		// one value
 		////////////////
@@ -257,7 +262,8 @@ class IDirectIPData
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<1> vLocIP[],
-		                        const size_t nip) const;
+		                        const size_t nip,
+		                        const MathMatrix<1, dim>* vJT = NULL) const;
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
@@ -266,7 +272,8 @@ class IDirectIPData
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<2> vLocIP[],
-		                        const size_t nip) const;
+		                        const size_t nip,
+		                        const MathMatrix<2, dim>* vJT = NULL) const;
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
@@ -275,7 +282,8 @@ class IDirectIPData
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<3> vLocIP[],
-		                        const size_t nip) const;
+		                        const size_t nip,
+		                        const MathMatrix<3, dim>* vJT = NULL) const;
 
 	///	returns of grid function is needed for evaluation
 		virtual bool requires_grid_fct() const {return false;}

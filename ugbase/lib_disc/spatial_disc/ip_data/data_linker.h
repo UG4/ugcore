@@ -313,6 +313,14 @@ class StdDataLinkerEqualData
 			getImpl().evaluate(value,globIP,time,si);
 		}
 
+		virtual void operator() (TData vValue[],
+		                         const MathVector<dim> vGlobIP[],
+		                         number time, int si, const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				getImpl().evaluate(vValue[ip],vGlobIP[ip],time,si);
+		}
+
 		////////////////
 		// one value
 		////////////////
@@ -361,9 +369,11 @@ class StdDataLinkerEqualData
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<1> vLocIP[],
-		                        const size_t nip) const
+		                        const size_t nip,
+		                        const MathMatrix<1, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<1>(vValue,vGlobIP,time,si,u,elem,vCornerCoords,vLocIP,nip);
+			getImpl().template evaluate<1>(vValue,vGlobIP,time,si,u,elem,
+			                               vCornerCoords,vLocIP,nip, vJT);
 		}
 
 		virtual void operator()(TData vValue[],
@@ -373,9 +383,11 @@ class StdDataLinkerEqualData
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<2> vLocIP[],
-		                        const size_t nip) const
+		                        const size_t nip,
+		                        const MathMatrix<2, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<2>(vValue,vGlobIP,time,si,u,elem,vCornerCoords,vLocIP,nip);
+			getImpl().template evaluate<2>(vValue,vGlobIP,time,si,u,elem,
+			                               vCornerCoords,vLocIP,nip, vJT);
 		}
 
 		virtual void operator()(TData vValue[],
@@ -385,9 +397,11 @@ class StdDataLinkerEqualData
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<3> vLocIP[],
-		                        const size_t nip) const
+		                        const size_t nip,
+		                        const MathMatrix<3, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<3>(vValue,vGlobIP,time,si,u,elem,vCornerCoords,vLocIP,nip);
+			getImpl().template evaluate<3>(vValue,vGlobIP,time,si,u,elem,
+			                               vCornerCoords,vLocIP,nip, vJT);
 		}
 
 	///	returns that a grid function is needed for evaluation
@@ -532,7 +546,8 @@ class ScaleAddLinker
 		                     GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
-		                     const size_t nip) const
+		                     const size_t nip,
+		                     const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
 			//	reset value
 			for(size_t ip = 0; ip < nip; ++ip)
@@ -544,8 +559,10 @@ class ScaleAddLinker
 			//	add contribution of each summand
 				for(size_t c = 0; c < m_vpIPData.size(); ++c)
 				{
-					(*m_vpIPData[c])(&vValData[0], vGlobIP, time, si, u, elem, vCornerCoords, vLocIP, nip);
-					(*m_vpScaleData[c])(&vValScale[0], vGlobIP, time, si, u, elem, vCornerCoords, vLocIP, nip);
+					(*m_vpIPData[c])(&vValData[0], vGlobIP, time, si, u,
+									elem, vCornerCoords, vLocIP, nip, vJT);
+					(*m_vpScaleData[c])(&vValScale[0], vGlobIP, time, si, u,
+										elem, vCornerCoords, vLocIP, nip, vJT);
 
 					for(size_t ip = 0; ip < nip; ++ip)
 						linker_traits<TData, TDataScale>::

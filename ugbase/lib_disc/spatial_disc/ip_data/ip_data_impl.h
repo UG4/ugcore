@@ -193,6 +193,16 @@ operator() (TData& value,
 }
 
 template <typename TData, int dim, typename TRet>
+void IDirectIPData<TData,dim,TRet>::
+operator() (TData vValue[],
+            const MathVector<dim> vGlobIP[],
+            number time, int si, const size_t nip) const
+{
+	UG_THROW("IDirectIPData: operator()(TData[], MathVector<dim>[], "
+			"time, si) not implemented.");
+}
+
+template <typename TData, int dim, typename TRet>
 TRet IDirectIPData<TData,dim,TRet>::
 operator() (TData& value,
             const MathVector<dim>& globIP,
@@ -215,7 +225,8 @@ operator()(TData vValue[],
            GeometricObject* elem,
            const MathVector<dim> vCornerCoords[],
            const MathVector<1> vLocIP[],
-           const size_t nip) const
+           const size_t nip,
+           const MathMatrix<1, dim>* vJT) const
 {
 	for(size_t ip = 0; ip < nip; ++ip)
 	{
@@ -247,7 +258,8 @@ operator()(TData vValue[],
            GeometricObject* elem,
            const MathVector<dim> vCornerCoords[],
            const MathVector<2> vLocIP[],
-           const size_t nip) const
+           const size_t nip,
+           const MathMatrix<2, dim>* vJT) const
 {
 	for(size_t ip = 0; ip < nip; ++ip)
 	{
@@ -279,7 +291,8 @@ operator()(TData vValue[],
            GeometricObject* elem,
            const MathVector<dim> vCornerCoords[],
            const MathVector<3> vLocIP[],
-           const size_t nip) const
+           const size_t nip,
+           const MathMatrix<3, dim>* vJT) const
 {
 	for(size_t ip = 0; ip < nip; ++ip)
 	{

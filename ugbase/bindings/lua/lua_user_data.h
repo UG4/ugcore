@@ -112,6 +112,14 @@ class LuaUserData : public IPData<TData, dim, TRet>
 	// implementation as DirectIPData
 	/////////////////////////////////////
 	public:
+		virtual void operator() (TData vValue[],
+		                         const MathVector<dim> vGlobIP[],
+		                         number time, int si, const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				operator()(vValue[ip], vGlobIP[ip], time, si);
+		}
+
 		virtual TRet operator() (TData& value,
 		                         const MathVector<dim>& globIP,
 		                         number time, int si,
@@ -143,7 +151,8 @@ class LuaUserData : public IPData<TData, dim, TRet>
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<1> vLocIP[],
-		                        const size_t nip) const;
+		                        const size_t nip,
+		                        const MathMatrix<1, dim>* vJT = NULL) const;
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
@@ -152,7 +161,8 @@ class LuaUserData : public IPData<TData, dim, TRet>
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<2> vLocIP[],
-		                        const size_t nip) const;
+		                        const size_t nip,
+		                        const MathMatrix<2, dim>* vJT = NULL) const;
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
@@ -161,7 +171,8 @@ class LuaUserData : public IPData<TData, dim, TRet>
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<3> vLocIP[],
-		                        const size_t nip) const;
+		                        const size_t nip,
+		                        const MathMatrix<3, dim>* vJT = NULL) const;
 
 };
 
@@ -312,7 +323,8 @@ class LuaUserFunction
 		                     GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
-		                     const size_t nip) const;
+		                     const size_t nip,
+		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 	protected:
 	///	sets the Lua function used to compute the data

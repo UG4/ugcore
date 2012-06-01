@@ -34,6 +34,14 @@ class StdConstUserData
 			getImpl().evaluate(value);
 		}
 
+		virtual void operator() (TData vValue[],
+		                         const MathVector<dim> vGlobIP[],
+		                         number time, int si, const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				getImpl().evaluate(vValue[ip]);
+		}
+
 		////////////////
 		// one value
 		////////////////

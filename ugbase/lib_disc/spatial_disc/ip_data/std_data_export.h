@@ -31,6 +31,14 @@ class StdDataExport
 					"for evaluation, but not passed. Cannot evaluate.");
 		}
 
+		virtual void operator() (TData value[],
+		                         const MathVector<dim> globIP[],
+		                         number time, int si, const size_t nip) const
+		{
+			UG_THROW("StdDataExport: Solution, element and local ips required "
+					"for evaluation, but not passed. Cannot evaluate.");
+		}
+
 		////////////////
 		// one value
 		////////////////
@@ -79,9 +87,11 @@ class StdDataExport
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<1> vLocIP[],
-		                        const size_t nip) const
+		                        const size_t nip,
+		                        const MathMatrix<1, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<1>(vValue,vGlobIP,time,si,u,elem,vCornerCoords,vLocIP,nip);
+			getImpl().template evaluate<1>(vValue,vGlobIP,time,si,u,elem,
+			                               vCornerCoords,vLocIP,nip, vJT);
 		}
 
 		virtual void operator()(TData vValue[],
@@ -91,9 +101,11 @@ class StdDataExport
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<2> vLocIP[],
-		                        const size_t nip) const
+		                        const size_t nip,
+		                        const MathMatrix<2, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<2>(vValue,vGlobIP,time,si,u,elem,vCornerCoords,vLocIP,nip);
+			getImpl().template evaluate<2>(vValue,vGlobIP,time,si,u,elem,
+			                               vCornerCoords,vLocIP,nip, vJT);
 		}
 
 		virtual void operator()(TData vValue[],
@@ -103,9 +115,11 @@ class StdDataExport
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<3> vLocIP[],
-		                        const size_t nip) const
+		                        const size_t nip,
+		                        const MathMatrix<3, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<3>(vValue,vGlobIP,time,si,u,elem,vCornerCoords,vLocIP,nip);
+			getImpl().template evaluate<3>(vValue,vGlobIP,time,si,u,elem,
+			                               vCornerCoords,vLocIP,nip, vJT);
 		}
 
 	///	returns that a grid function is needed for evaluation
@@ -238,7 +252,8 @@ class ValueDataExport
 		                       GeometricObject* elem,
 		                       const MathVector<dim> vCornerCoords[],
 		                       const MathVector<refDim> vLocIP[],
-		                       const size_t nip) const
+		                       const size_t nip,
+		                       const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
 		//	reference object id
 			const ReferenceObjectID roid = elem->reference_object_id();
@@ -308,8 +323,12 @@ class GradientDataExport
 		                       GeometricObject* elem,
 		                       const MathVector<dim> vCornerCoords[],
 		                       const MathVector<refDim> vLocIP[],
-		                       const size_t nip) const
+		                       const size_t nip,
+		                       const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
+			//	must pass vJT
+				UG_ASSERT(vJT != NULL, "Jacobian transposed needed.");
+
 			//	reference object id
 				const ReferenceObjectID roid = elem->reference_object_id();
 
@@ -327,9 +346,6 @@ class GradientDataExport
 
 			//	Reference Mapping
 				MathMatrix<dim, refDim> JTInv;
-				DimReferenceMapping<refDim, dim>& mapping =
-								ReferenceMappingProvider::get<refDim,dim>(roid);
-				mapping.update(vCornerCoords);
 
 			//	loop ips
 				for(size_t ip = 0; ip < nip; ++ip)
@@ -342,8 +358,7 @@ class GradientDataExport
 					for(size_t sh = 0; sh < vLocGrad.size(); ++sh)
 						VecScaleAppend(locGrad, u(_C_, sh), vLocGrad[sh]);
 
-				//	compute global grad
-					mapping.jacobian_transposed_inverse(JTInv, vLocIP[ip]);
+					Inverse(JTInv, vJT[ip]);
 					MatVecMult(vValue[ip], JTInv, locGrad);
 				}
 
