@@ -19,6 +19,7 @@
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
 #include "lib_disc/spatial_disc/ip_data/ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
 #include <boost/function.hpp>
 
 #ifdef UG_FOR_LUA
