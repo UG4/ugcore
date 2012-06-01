@@ -781,7 +781,7 @@ void LuaUserFunction<TData,dim,TDataIn>::set_deriv(size_t arg, const char* luaCa
 }
 
 template <typename TData, int dim, typename TDataIn>
-void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ...)
+void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ...) const
 {
 	UG_ASSERT(numArgs == (int)m_numArgs, "Number of arguments mismatched.");
 
@@ -891,7 +891,7 @@ void LuaUserFunction<TData,dim,TDataIn>::compute(bool bDeriv)
 }
 
 template <typename TData, int dim, typename TDataIn>
-void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vector<TDataIn>& dataIn)
+void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vector<TDataIn>& dataIn) const
 {
 	UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
 
@@ -930,7 +930,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 
 
 template <typename TData, int dim, typename TDataIn>
-void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vector<TDataIn>& dataIn, size_t arg)
+void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vector<TDataIn>& dataIn, size_t arg) const
 {
 	UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
 	UG_ASSERT(arg < m_numArgs, "Argument does not exist.");
@@ -967,6 +967,74 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 //	pop values
 	lua_pop(m_L, retSize);
 }
+
+
+template <typename TData, int dim, typename TDataIn>
+void LuaUserFunction<TData,dim,TDataIn>::
+evaluate (TData& value,
+          const MathVector<dim>& globIP,
+          number time, int si) const
+{
+//	vector of data for all inputs
+	std::vector<TDataIn> vDataIn(num_input());
+
+//	gather all input data for this ip
+	for(size_t c = 0; c < vDataIn.size(); ++c)
+		(*this->m_vpIPData[c])(vDataIn[c], globIP, time, si);
+
+//	evaluate data at ip
+	eval_value(value, vDataIn);
+}
+
+template <typename TData, int dim, typename TDataIn>
+template <int refDim>
+void LuaUserFunction<TData,dim,TDataIn>::
+evaluate (TData& value,
+          const MathVector<dim>& globIP,
+          number time, int si,
+          LocalVector& u,
+          GeometricObject* elem,
+          const MathVector<dim> vCornerCoords[],
+          const MathVector<refDim>& locIP) const
+{
+//	vector of data for all inputs
+	std::vector<TDataIn> vDataIn(num_input());
+
+//	gather all input data for this ip
+	for(size_t c = 0; c < vDataIn.size(); ++c)
+		(*this->m_vpIPData[c])(vDataIn[c], globIP, time, si, u, elem, vCornerCoords, locIP);
+
+//	evaluate data at ip
+	eval_value(value, vDataIn);
+}
+
+
+template <typename TData, int dim, typename TDataIn>
+template <int refDim>
+void LuaUserFunction<TData,dim,TDataIn>::
+evaluate(TData vValue[],
+         const MathVector<dim> vGlobIP[],
+         number time, int si,
+         LocalVector& u,
+         GeometricObject* elem,
+         const MathVector<dim> vCornerCoords[],
+         const MathVector<refDim> vLocIP[],
+         const size_t nip) const
+{
+//	vector of data for all inputs
+	std::vector<TDataIn> vDataIn(num_input());
+
+//	gather all input data for this ip
+	for(size_t ip = 0; ip < nip; ++ip)
+	{
+		for(size_t c = 0; c < vDataIn.size(); ++c)
+			(*this->m_vpIPData[c])(vDataIn[c], vGlobIP[ip], time, si, u, elem, vCornerCoords, vLocIP[ip]);
+
+	//	evaluate data at ip
+		eval_value(vValue[ip], vDataIn);
+	}
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

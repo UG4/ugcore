@@ -244,7 +244,8 @@ class LuaUserDataFactory
  * a data (of the same type) is returned.
  */
 template <typename TData, int dim, typename TDataIn>
-class LuaUserFunction : public DataLinkerEqualData<TData, dim, TDataIn>
+class LuaUserFunction
+	: public StdDataLinkerEqualData<TData, dim, TDataIn, LuaUserFunction<TData, dim, TDataIn> >
 {
 	public:
 	//	type of base class
@@ -285,10 +286,33 @@ class LuaUserFunction : public DataLinkerEqualData<TData, dim, TDataIn>
 		void set_deriv(size_t arg, const char* luaCallback);
 
 	///	evaluates the data
-		virtual void operator() (TData& out, int numArgs, ...);
+		virtual void operator() (TData& out, int numArgs, ...) const;
 
 	///	computes the value
 		virtual void compute(bool bDeriv);
+
+		inline void evaluate (TData& value,
+		                      const MathVector<dim>& globIP,
+		                      number time, int si) const;
+
+		template <int refDim>
+		inline void evaluate (TData& value,
+		                      const MathVector<dim>& globIP,
+		                      number time, int si,
+		                      LocalVector& u,
+		                      GeometricObject* elem,
+		                      const MathVector<dim> vCornerCoords[],
+		                      const MathVector<refDim>& locIP) const;
+
+		template <int refDim>
+		inline void evaluate(TData vValue[],
+		                     const MathVector<dim> vGlobIP[],
+		                     number time, int si,
+		                     LocalVector& u,
+		                     GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[],
+		                     const MathVector<refDim> vLocIP[],
+		                     const size_t nip) const;
 
 	protected:
 	///	sets the Lua function used to compute the data
@@ -301,10 +325,10 @@ class LuaUserFunction : public DataLinkerEqualData<TData, dim, TDataIn>
 		void free_deriv_callback_ref(size_t arg);
 
 	///	evaluates the data
-		void eval_value(TData& out, const std::vector<TDataIn>& dataIn);
+		void eval_value(TData& out, const std::vector<TDataIn>& dataIn) const;
 
 	///	evaluates the data
-		void eval_deriv(TData& out, const std::vector<TDataIn>& dataIn, size_t arg);
+		void eval_deriv(TData& out, const std::vector<TDataIn>& dataIn, size_t arg) const;
 
 	protected:
 	///	callback name as string
