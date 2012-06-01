@@ -499,7 +499,7 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
  * \returns			number 		l2-norm of difference
  */
 template <typename TGridFunction>
-number L2ErrorDraft(IPData<number, TGridFunction::dim>& ExactSol,
+number L2Error(IPData<number, TGridFunction::dim>& ExactSol,
                     TGridFunction& u, const char* name, number time, int quadOrder, const char* subsets)
 {
 //	get function id of name
@@ -507,7 +507,7 @@ number L2ErrorDraft(IPData<number, TGridFunction::dim>& ExactSol,
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW("L2ErrorDraft: Function space does not contain"
+		UG_THROW("L2Error: Function space does not contain"
 				" a function with name " << name << ".");
 
 //	create subset group
@@ -533,7 +533,7 @@ number L2ErrorDraft(IPData<number, TGridFunction::dim>& ExactSol,
 
 
 		if (ssGrp.dim(i) != TGridFunction::dim)
-			UG_THROW("L2ErrorDraft: Element dimension does not match world dimension!");
+			UG_THROW("L2Error: Element dimension does not match world dimension!");
 
 
 	//	create integration kernel
@@ -555,11 +555,11 @@ number L2ErrorDraft(IPData<number, TGridFunction::dim>& ExactSol,
 
 #ifdef UG_FOR_LUA
 template <typename TGridFunction>
-number L2ErrorDraft(const char* ExactSol,
+number L2Error(const char* ExactSol,
                          TGridFunction& u, const char* name, number time, int quadOrder, const char* subsets)
 {
 	LuaUserData<number, TGridFunction::domain_type::dim> p(ExactSol);
-	return L2ErrorDraft(p, u, name, time, quadOrder, subsets);
+	return L2Error(p, u, name, time, quadOrder, subsets);
 }
 #endif
 

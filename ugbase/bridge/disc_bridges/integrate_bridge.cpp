@@ -57,11 +57,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 #endif
 	}
 
-//	L2ErrorDraft
+//	L2Error
 	{
-		reg.add_function("L2ErrorDraft",static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number, int, const char*)>(&L2ErrorDraft<TFct>), grp);
+		reg.add_function("L2Error",static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number, int, const char*)>(&L2Error<TFct>), grp);
 #ifdef UG_FOR_LUA
-		reg.add_function("L2ErrorDraft",static_cast<number (*)(const char*, TFct&, const char*, number, int, const char*)>(&L2ErrorDraft<TFct>), grp);
+		reg.add_function("L2Error",static_cast<number (*)(const char*, TFct&, const char*, number, int, const char*)>(&L2Error<TFct>), grp);
 #endif
 	}
 
