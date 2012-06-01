@@ -5,20 +5,25 @@
 # author: Stefan Grein
 ######################################################################
 
-
-
 ug_complete() {
+  	#echo $1
+  	#echo $2
   local word="$1"
   local ext=$2
   local i=0 line
   declare -a liste
 
   while read line; do liste[i++]="$line"; done < <(compgen -f -- "$word")
+  #while read line; do liste[i++]=`echo $line | sed -n "s?$UG4_ROOT[/]*??p"`; done < <(compgen -f -- "$UG4_ROOT/$word")
+  #while read line; do liste[i++]=`echo $line`; done < <(compgen -f -- "$UG4_ROOT/$word")
 
   local w
-  for w in "${liste[@]}"; do 
-    [[ -d "$w" ]] && continue
-    [[ "${w##*.}" = $ext ]] && COMPREPLY[i++]="$w" 
+  for w in "${liste[@]}"; do
+  	#echo $w
+  	COMPREPLY[i++]="$w"
+  	#[[ -d "$w" ]] && continue
+    #[[ -d "$UG4_ROOT/$w" ]] && COMPREPLY[i++]="$UG4_ROOT/$w"
+    #[[ "${w##*.}" = $ext ]] && COMPREPLY[i++]="$w" 
   done
 }
 
@@ -26,4 +31,24 @@ complete_ugshell () {
 	ug_complete "$2" "*+(lua|ugx|obj)"
 }
 
-complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F complete_ugshell ugshell
+complete_files()
+{
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	COMPREPLY=( $(compgen -f ${cur}) )
+}
+
+complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F complete_files ugshell
+
+alias ugcmake=cmake
+CMAKE_COMPLETITIONS="-DCMAKE_TOOLCHAIN_FILE -DCMAKE_C_COMPILER -DCMAKE_CXX_COMPILER"
+complete -W "$CMAKE_COMPLETITIONS" -o plusdirs -F complete_files cmake
+
+UGCMAKE_INTERNAL="-DBUILTIN_BLAS -DBUILTIN_LAPACK -DDEBUG_FORMAT"
+
+complete -W "-DDBLAS -DBiogas -DCPU -DCXX11 -DConstantEquation -DConvectionDiffusion -DDEBUG -DDEBUG_FORMAT \ 
+-DDEBUG_LOGS -DDIM -DEMBED_SVN_REV -DHLIBPRO -DHYPRE -DINTERNAL_BOOST -DLevelSet -DLinearElastoPlasticity \
+-DMETIS -DMembranePotentialMappingPlugin -DNavierStokes -DNeuronPlugin -DNonlinearElastoPlasticity \
+-DOPENMP -DPARALLEL -DPARMETIS -DPCL_DEBUG_BARRIER -DPRECISION PROFILER -DPROFILE_BRIDGE -DPROFILE_PCL \
+-DReceptorKinetic -DSHELLTYPE -DSTATIC -DSample -DTARGET -DTETGEN -DTemplate -DVoltageDependentChannelsPlugin -Dd3f -Dplasma_membrane \
+$CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL"  -o plusdirs -F complete_files ugcmake
+
