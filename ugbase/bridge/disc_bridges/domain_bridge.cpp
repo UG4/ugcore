@@ -26,8 +26,6 @@
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/function_spaces/interpolate.h"
-#include "lib_disc/function_spaces/integrate.h"
-#include "lib_disc/function_spaces/integrateDraft.h"
 #include "lib_disc/dof_manager/cuthill_mckee.h"
 #include "lib_disc/dof_manager/lexorder.h"
 

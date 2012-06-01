@@ -17,7 +17,6 @@
 // lib_disc includes
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
-#include "lib_disc/function_spaces/integrate.h"
 #include "lib_disc/function_spaces/integrateDraft.h"
 
 using namespace std;
@@ -55,16 +54,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>, number, int, const char*)>(&Integral<TFct>), grp);
 #ifdef UG_FOR_LUA
 		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, number, int, const char*)>(&Integral<TFct>), grp);
-#endif
-	}
-
-//	L2Error
-	{
-		reg.add_function("L2Error", static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number)>(&L2Error<TFct>), grp);
-		reg.add_function("L2Error",static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number, const char*)>(&L2Error<TFct>),grp);
-#ifdef UG_FOR_LUA
-		reg.add_function("L2Error", static_cast<number (*)(const char*, TFct&, const char*, number)>(&L2Error<TFct>), grp);
-		reg.add_function("L2Error",static_cast<number (*)(const char*, TFct&, const char*, number, const char*)>(&L2Error<TFct>),grp);
 #endif
 	}
 
