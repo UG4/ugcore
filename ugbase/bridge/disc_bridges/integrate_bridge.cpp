@@ -51,15 +51,23 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	Integral
 	{
 		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets#Time#QuadOrder");
+		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>, const char*, number)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets#Time");
+		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>, number)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Time");
+		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>, const char*)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets");
+		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction");
 
 		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp, "Integral", "ConstantValue#GridFunction#Subsets#Time#QuadOrder");
 		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>, const char*, number)>(&Integral<TFct>), grp, "Integral", "ConstantValue#GridFunction#Subsets#Time");
-		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>, const char*)>(&Integral<TFct>), grp, "Integral", "ConstantValue#GridFunction#Subsets");
 		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>, number)>(&Integral<TFct>), grp, "Integral", "ConstantValue#GridFunction#Time");
+		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>, const char*)>(&Integral<TFct>), grp, "Integral", "ConstantValue#GridFunction#Subsets");
 		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>)>(&Integral<TFct>), grp, "Integral", "ConstantValue#GridFunction");
 
 #ifdef UG_FOR_LUA
-		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp);
+		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction#Subsets#Time#QuadOrder");
+		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, number)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction#Subsets#Time");
+		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, number)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction#Time");
+		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction#Subsets");
+		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction");
 #endif
 	}
 

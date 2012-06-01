@@ -292,6 +292,10 @@ number IntegrateDirectIPDataInDim(SmartPtr<IDirectIPData<number, TGridFunction::
 	                   quadOrder);
 }
 
+///////////////
+// DirectIPData
+///////////////
+
 template <typename TGridFunction>
 number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
                 SmartPtr<TGridFunction> spGridFct,
@@ -355,6 +359,21 @@ number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
 	return value;
 }
 
+template <typename TGridFunction>
+number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets,number time)
+{return Integral(spData, spGridFct, subsets, time, 1);}
+
+template <typename TGridFunction>
+number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,number time)
+{return Integral(spData, spGridFct, NULL, time, 1);}
+
+template <typename TGridFunction>
+number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets)
+{return Integral(spData, spGridFct, subsets, 0.0, 1);}
+
+template <typename TGridFunction>
+number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct)
+{return Integral(spData, spGridFct, NULL, 0.0, 1);}
 
 ///////////////
 // const data
@@ -376,12 +395,12 @@ number Integral(number val, SmartPtr<TGridFunction> spGridFct,const char* subset
 {return Integral(val, spGridFct, subsets, time, 1);}
 
 template <typename TGridFunction>
-number Integral(number val, SmartPtr<TGridFunction> spGridFct,const char* subsets)
-{return Integral(val, spGridFct, subsets, 0.0, 1);}
-
-template <typename TGridFunction>
 number Integral(number val, SmartPtr<TGridFunction> spGridFct,number time)
 {return Integral(val, spGridFct, NULL, time, 1);}
+
+template <typename TGridFunction>
+number Integral(number val, SmartPtr<TGridFunction> spGridFct,const char* subsets)
+{return Integral(val, spGridFct, subsets, 0.0, 1);}
 
 template <typename TGridFunction>
 number Integral(number val, SmartPtr<TGridFunction> spGridFct)
@@ -403,6 +422,23 @@ number Integral(const char* luaFct,
 			LuaUserDataFactory<number, dim>::create(luaFct);
 	return Integral(sp, spGridFct, subsets, time, quadOrder);
 }
+
+template <typename TGridFunction>
+number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,const char* subsets,number time)
+{return Integral(luaFct, spGridFct, subsets, time, 1);}
+
+template <typename TGridFunction>
+number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,number time)
+{return Integral(luaFct, spGridFct, NULL, time, 1);}
+
+template <typename TGridFunction>
+number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,const char* subsets)
+{return Integral(luaFct, spGridFct, subsets, 0.0, 1);}
+
+template <typename TGridFunction>
+number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct)
+{return Integral(luaFct, spGridFct, NULL, 0.0, 1);}
+
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
