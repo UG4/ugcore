@@ -249,6 +249,15 @@ Transpose(matrix_t& m)
 			m(i, j) = _temp(j, i);
 }
 
+
+template <size_t N, size_t M, typename T>
+inline
+typename MathMatrix<N,M,T>::value_type
+Determinant(const MathMatrix<N,M,T>& m)
+{
+	UG_THROW("Determinant for matrix of size "<<N<<"x"<<M<<" not implemented.");
+}
+
 template <typename T>
 inline
 typename MathMatrix<1,1,T>::value_type
@@ -276,6 +285,14 @@ Determinant(const MathMatrix<3,3,T>& m)
 			- m(0,0)*m(1,2)*m(2,1)
 			- m(0,1)*m(1,0)*m(2,2)
 			- m(0,2)*m(1,1)*m(2,0);
+}
+
+template <size_t N, size_t M, typename T>
+inline
+void
+Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
+{
+	UG_THROW("Inverse for matrix of size "<<N<<"x"<<M<<" not implemented.");
 }
 
 template <typename T>
@@ -327,6 +344,14 @@ Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 	mOut(2,2) = ( m(0,0)*m(1,1) - m(0,1)*m(1,0)) * invdet;
 }
 
+template <size_t N, size_t M, typename T>
+inline
+void
+Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m, typename MathMatrix<N,M,T>::value_type& det)
+{
+	UG_THROW("Inverse for matrix of size "<<N<<"x"<<M<<" not implemented.");
+}
+
 template <typename T>
 inline
 void
@@ -376,6 +401,15 @@ Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix
 	mOut(2,2) = ( m(0,0)*m(1,1) - m(0,1)*m(1,0)) * invdet;
 }
 
+
+template <size_t N, size_t M, typename T>
+inline
+void
+InverseTransposed(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
+{
+	UG_THROW("InverseTransposed for matrix of size "<<M<<"x"<<N<<" not implemented.");
+}
+
 template <typename T>
 inline
 void
@@ -421,6 +455,14 @@ InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
     mOut(2,0) = ( m(0,1)*m(1,2) - m(1,1)*m(0,2)) * invdet;
     mOut(2,1) = (-m(0,0)*m(1,2) + m(1,0)*m(0,2)) * invdet;
     mOut(2,2) = ( m(0,0)*m(1,1) - m(1,0)*m(0,1)) * invdet;
+}
+
+template <size_t N, size_t M, typename T>
+inline
+void
+InverseTransposed(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m, typename MathMatrix<N,M,T>::value_type& det)
+{
+	UG_THROW("InverseTransposed for matrix of size "<<M<<"x"<<N<<" not implemented.");
 }
 
 template <typename T>

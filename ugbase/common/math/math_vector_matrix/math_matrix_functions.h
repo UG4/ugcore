@@ -99,6 +99,11 @@ MatScaleAppend(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& 
 // Determinant of Matrix
 
 /// Determinant of a matrix_t
+template <size_t N, size_t M, typename T>
+inline
+typename MathMatrix<N,M,T>::value_type
+Determinant(const MathMatrix<N,M,T>& m);
+
 template <typename T>
 inline
 typename MathMatrix<1,1,T>::value_type
@@ -133,6 +138,11 @@ Transpose(matrix_t& m);
 // Inverse of Matrix
 
 /// Inverse of a matrix_t
+template <size_t N, size_t M, typename T>
+inline
+void
+Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m);
+
 template <typename T>
 inline
 void
@@ -147,6 +157,11 @@ void
 Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m);
 
 /// Inverse of a matrix_t
+template <size_t N, size_t M, typename T>
+inline
+void
+Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m, typename MathMatrix<N,M,T>::value_type& det);
+
 template <typename T>
 inline
 void
@@ -164,6 +179,11 @@ Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix
 // Inverse Transposed of Matrix
 
 /// Transposed-Inverse of a matrix_t (= Inverse-Transposed of a matrix_t)
+template <size_t N, size_t M, typename T>
+inline
+void
+InverseTransposed(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m);
+
 template <typename T>
 inline
 void
@@ -178,6 +198,11 @@ void
 InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m);
 
 /// Transposed-Inverse of a matrix_t (= Inverse-Transposed of a matrix_t)
+template <size_t N, size_t M, typename T>
+inline
+void
+InverseTransposed(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m, typename MathMatrix<N,M,T>::value_type& det);
+
 template <typename T>
 inline
 void
