@@ -1,0 +1,29 @@
+#!/bin/bash
+######################################################################
+# ugcomplete 1.0
+#-------------------------------------------------------------------
+# author: Stefan Grein
+######################################################################
+
+
+
+ug_complete() {
+  local word="$1"
+  local ext=$2
+  local i=0 line
+  declare -a liste
+
+  while read line; do liste[i++]="$line"; done < <(compgen -f -- "$word")
+
+  local w
+  for w in "${liste[@]}"; do 
+    [[ -d "$w" ]] && continue
+    [[ "${w##*.}" = $ext ]] && COMPREPLY[i++]="$w" 
+  done
+}
+
+complete_ugshell () {
+	ug_complete "$2" "*+(lua|ugx|obj)"
+}
+
+complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F complete_ugshell ugshell

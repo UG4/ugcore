@@ -1,0 +1,247 @@
+#!/bin/bash
+######################################################################
+# uginstall 0.1
+#-------------------------------------------------------------------
+# created by Martin Rupp 31.05.2012
+# mail: martin.rupp@gcsc.uni-frankfurt.de
+######################################################################
+
+
+#which wget &> /dev/null
+#if [ $? == 0 ]; then
+	#mywget=wget
+#else
+	#mywget="curl -O"
+#fi
+
+LOCAL_INSTALLDIR=$HOME/local/
+
+LD_LIBRARY_PATH=$LOCAL_INSTALLDIR/lib
+export LD_LIBRARY_PATH
+
+LD_RUN_PATH=$LOCAL_INSTALLDIR/lib
+export LD_RUN_PATH
+
+PATH=$LOCAL_INSTALLDIR/bin:$PATH
+export PATH
+
+C_INCLUDE_PATH=$LOCAL_INSTALLDIR/include/
+export C_INCLUDE_PATH
+CPLUS_INCLUDE_PATH=/$LOCAL_INSTALLDIR/include/
+export CPLUS_INCLUDE_PATH
+
+
+cd 
+if [ ! -e local ]; then mkdir local; fi
+cd local
+if [ ! -e bin ]; then mkdir bin; fi
+if [ ! -e lib ]; then mkdir lib; fi
+if [ ! -e include ]; then mkdir include; fi
+
+
+# subdir location filename
+my_download () 
+{
+	local subdir=$1
+	local location=$2
+	local filename=$3
+ 	
+	if [ -e $subdir ]; then
+		echo "$name already downloaded and extracted" 
+	else
+		if [ -e $filename ]; then
+			echo "$filename already downloaded"
+		else 
+			echo "Downloading $filename..."
+
+			if [ -e $filename.part ]; then rm $filename.part; fi
+
+			which wget &> /dev/null
+			if [ $? == 0 ]; then
+				wget $location -O $filename.part
+			else
+				curl $location -o $filename.part
+			fi
+			if [ ! $? == 0 ]; then 
+				echo "Error downloading from $location."; 
+				rm $filename.part
+				exit;
+			fi
+			mv $filename.part $filename
+			echo "done."
+		fi
+		echo "Extracting $filename..."
+		case $filename in
+		*.tar.bz2)	tar xjf $filename ;;
+		*.tar.gz)	tar xzf $filename ;;
+		*.tar.xz)	tar Jxf $filename ;;
+		*.bz2)		bunzip2 $filename ;;
+		*.rar)		unrar x $filename ;;
+		*.gz)		gunzip $filename ;;
+		*.tar)		tar xf $filename ;;
+		*.tbz2)		tar xjf $filename ;;
+		*.tgz)		tar xzf $filename ;;
+		*.zip)		unzip $filename ;;
+		*.Z)		uncompress $filename ;;
+		*.7z)		7z x $filename ;;
+		*)		echo "don't know how to open '$filename'..." ;;
+		esac
+	fi
+ }
+
+# subdir location filename command
+my_install()
+{
+	local subdir=$1
+	local location=$2
+	local filename=$3
+	local command=$5
+	if [ -e installed.$subdir ]; then
+		echo "$subdir already installed."
+	else
+		#echo "i would download $subdir from $location to $filename with command $command now"
+	
+		my_download $subdir $location $filename
+		cd $subdir
+		if [ ! $? == 0 ]; then echo "Error $subdir does not exist?"; exit; fi
+		$command
+		if [ ! $? == 0 ]; then echo "Error $command for $subdir"; exit; fi
+		make
+		if [ ! $? == 0 ]; then echo "Error make for $subdir"; exit; fi
+		make install
+		if [ ! $? == 0 ]; then echo "Error make install for $subdir"; exit; fi
+		cd ..
+		touch installed.$subdir
+	fi
+}
+
+
+install_gmp()
+{
+	my_install gmp-4.3.2 "http://gcc.petsads.us/infrastructure/gmp-4.3.2.tar.bz2" gmp-4.3.2.tar.bz2 \
+		"./configure --prefix=$HOME/local"
+}
+
+install_mpfr()
+{
+	my_install mpfr-2.4.2 "http://gcc.petsads.us/infrastructure/mpfr-2.4.2.tar.bz2" mpfr-2.4.2.tar.bz2 \
+		"./configure --prefix=$HOME/local"
+}
+
+install_mpc()
+{
+	my_install mpc-0.8.1 "http://gcc.petsads.us/infrastructure/mpc-0.8.1.tar.gz" mpc-0.8.1.tar.gz \
+		"./configure --prefix=$HOME/local"
+}
+
+install_gcc()
+{
+	install_gmp
+	install_mpfr
+	install_mpc
+
+	
+	local subdir="gcc-4.4.7"
+	local location="http://gcc.petsads.us/releases/gcc-4.4.7/gcc-4.4.7.tar.gz"
+	local filename="gcc-4.4.7.tar.gz"
+	local command="../configure --prefix=$HOME/local --with-mpfr-lib=$HOME/local/lib/"
+
+	if [ -e installed.$subdir ]; then
+		echo "$subdir already installed."
+	else
+		#echo "i would download $subdir from $location to $filename with command $command now"
+		my_download $subdir $location $filename
+		cd $subdir
+		if [ ! $? == 0 ]; then echo "Error $subdir does not exist?"; exit; fi
+		mkdir build
+		cd build
+		$command
+		if [ ! $? == 0 ]; then echo "Error $command for $subdir"; exit; fi
+		make
+		if [ ! $? == 0 ]; then echo "Error make for $subdir"; exit; fi
+		make install
+		if [ ! $? == 0 ]; then echo "Error make install for $subdir"; exit; fi
+		cd ..
+		cd ..
+		touch installed.$subdir
+	fi
+
+	
+}
+
+install_cmake()
+{
+	my_install cmake-2.8.6 "http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz" cmake-2.8.6.tar.gz \
+		cmake-2.8.6 "./bootstrap --prefix=$HOME/local"
+}
+
+install_openmpi()
+{	
+	my_install openmpi-1.6 "http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.tar.gz" \
+		openmpi-1.6.tar.gz openmpi-1.6 "./configure --prefix=$HOME/local"
+}
+
+install_GotoBLAS2()
+{
+	## needs to be compiled with a new version of gfortran. use install_gcc.
+
+	local subdir="GotoBLAS2-1.13"
+	local location="http://www.tacc.utexas.edu/documents/13601/b58aeb8c-9d8d-4ec2-b5f1-5a5843b4d47b"
+	local filename="GotoBLAS2-1.13.tar.gz"
+	local command="./quickbuild.64bit"
+
+	if [ -e installed.$subdir ]; then
+		echo "GotoBLAS2-1.13 already installed."
+	else
+		my_download $subdir $location $filename
+
+		mv GotoBLAS2 $subdir
+		cd $subdir
+		if [ ! $? == 0 ]; then echo "Error $subdir does not exist?"; exit; fi
+		$command
+		if [ ! $? == 0 ]; then echo "Error $command failed."; exit; fi
+		cp libgoto2.a $LOCAL_INSTALLDIR/lib/
+		cp cblas.h $LOCAL_INSTALLDIR/include/
+
+		cd ..
+		touch installed.$subdir
+	fi
+}
+
+install_all()
+{
+	install_gcc
+	install_cmake
+	install_GotoBLAS2
+	install_openmpi
+}
+
+print_usage()
+{
+	echo " $0 0.1"
+	echo ""
+    	echo " usage:  " $0 " <program>"
+	echo "  <program> can be:"
+	echo "		all"
+	echo "		CMake"
+	echo "		GCC 4.4"
+	echo "		gmp"
+	echo "		GotoBLAS2"
+	echo "		mpfr"	
+	echo "		mpc"
+	echo "		OpenMPI"
+}
+
+
+case $1 in
+	CMake) install_cmake ;;
+	gcc) install_gcc ;;	
+	gmp) install_gmp ;;
+	GotoBLAS2) install_GotoBLAS2 ;;
+	mpc) install_mpc ;;
+	mpfr) install_mpfr ;;
+	OpenMPI) install_openmpi ;;
+	all) install_all ;;
+	
+	*) print_usage ;;
+esac

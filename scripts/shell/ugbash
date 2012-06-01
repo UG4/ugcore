@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ -z "$UG4_ROOT" ]; then
+	UG4_ROOT=`dirname ${BASH_SOURCE[0]}`/../../  	   	
+fi	
+
+export UG4_ROOT
+
+PATH=$PATH:$UG4_ROOT/scripts/shell/
+export PATH
+
+
+source $UG4_ROOT/scripts/shell/ugcomplete
+source $UG4_ROOT/scripts/shell/cdug
+
+chmod +x $UG4_ROOT/scripts/shell/uginfo
+chmod +x $UG4_ROOT/scripts/shell/ugcancel
+chmod +x $UG4_ROOT/scripts/shell/ugsubmit
+
+chmod +x $UG4_ROOT/scripts/shell/uginstall
+
+
