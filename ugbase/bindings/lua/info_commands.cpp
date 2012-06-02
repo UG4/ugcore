@@ -165,6 +165,7 @@ const std::vector<const char*> *GetClassNames(lua_State* L, const char *name)
 	return p;
 }
 
+string GetFileLinesLUA(const char *filename, size_t fromline, size_t toline);
 int PrintFunctionInfo(lua_State *L, bool bComplete)
 {
 	LUA_STACK_CHECK(L, 0);
@@ -175,8 +176,9 @@ int PrintFunctionInfo(lua_State *L, bool bComplete)
 	{
 		if(bComplete)
 		{
-			UG_LOG(ar.source+1 << ":" << ar.linedefined << "-" << ar.lastlinedefined << "\n");
-			UG_LOG(GetFileLines(ar.source+1, ar.linedefined, ar.lastlinedefined, true) << "\n");
+			const char *src = ar.source[0]=='@' ? ar.source+1 : ar.source;
+			UG_LOG(src << ":" << ar.linedefined << "-" << ar.lastlinedefined << "\n");
+			UG_LOG(GetFileLinesLUA(src, ar.linedefined, ar.lastlinedefined) << "\n");
 		}
 		else
 		{
@@ -431,6 +433,35 @@ string GetFileLines(const char *filename, size_t fromline, size_t toline, bool i
 	return ss.str();
 }
 
+
+string GetFileLinesLUA(const char *filename,
+		size_t fromline, size_t toline)
+{
+	char buf[512];
+	fstream file(filename, ios::in);
+	if(file.is_open() == false) return string("");
+	stringstream *pss = NULL;
+	for(size_t i=0; i<fromline-1; i++)
+	{
+		file.getline(buf, 512);
+		if(strncmp(buf+strspn(buf, "\t "), "--", 2)==0)
+		{
+			if(pss == NULL) pss = new stringstream;
+			*pss << "   \t" << buf+strspn(buf, "-\t ") << '\n';
+		}
+		else if(pss) { delete pss; pss = NULL; }
+
+
+	}
+	stringstream ss;
+	if(pss != NULL) ss << "\n" << pss->str() << "\n";
+	for(; fromline <= toline; fromline++)
+	{
+		file.getline(buf, 512);
+		ss << fromline << "\t" << buf << "\n";
+	}
+	return ss.str();
+}
 string GetFileLine(const char *filename, size_t line)
 {
 	return GetFileLines(filename, line, line, false);
@@ -445,7 +476,9 @@ void PrintLuaScriptFunction(lua_State *L, int index)
 	lua_getinfo(L, ">S", &ar);
 	if(ar.linedefined != -1)
 	{
-		const char *p=GetFileLine(ar.source+1, ar.linedefined).c_str();
+
+		const char *p=GetFileLine(ar.source[0] == '@' ? ar.source+1 : ar.source,
+				ar.linedefined).c_str();
 		p+=strspn(p, " \t");
 		UG_LOG(p);
 	}
