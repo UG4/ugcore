@@ -11,22 +11,23 @@
 ugshell_complete() {
   	local word="${COMP_WORDS[COMP_CWORD]}"
   	local i=0
-	while read line; do 
-	COMPREPLY[i++]=$line
-	done < <(compgen -f -- "$word")  
 	local filename  
 	local b
 
   if [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ]; then 
   	while read line; do
-  		if [ -d $line ]; then
-	  		COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`/;
-	  	else
-	  		COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`;
-	  	fi
+  		[[ -d $line ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`;
+		[[ "${line##*.}" = "lua" ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`
   	done < <(compgen -f -- "$UG4_ROOT/apps/$word")
+  	while read line; do
+		[[ -d $line ]] && COMPREPLY[i++]=$line
+		[[ "${line##*.}" = "lua" ]] && COMPREPLY[i++]=$line
+  	done < <(compgen -f -- "$word")
   else
-  echo $word
+	while read line; do 
+	COMPREPLY[i++]=$line
+	done < <(compgen -f -- "$word")  
+
   	for (( c=0; c<COMP_CWORD; c++ ))
   	do
   		if [ "${COMP_WORDS[$c]}" = "-ex" ]; then
@@ -39,7 +40,6 @@ ugshell_complete() {
 	  			continue
 	  		fi
 	  		while read line; do
-	  			echo $line
 	  			b="0"	  			
 	  			for (( j=0; j<i; j++ ))
 	  			do
@@ -50,24 +50,15 @@ ugshell_complete() {
 	  			
 	  			if [ $b = "0" ]; then
 	  			 COMPREPLY[i++]="$line";
-	  			 echo $line >> bla
-	  			 echo $i > /dev/null
-	  			#echo $line
 	  			fi	  				  			
-	 		done < <(cat $filename ) | sed -n "s/.\*util.\(HasParamOption\|GetParam\|GetParamNumber\)(\"\($word[^\"]*\)".\*).\*/\2/p")
+	 		done < <(cat $filename | sed -n 's/.*util.\([A-Za-z]*\)("\('$word'[^"]*\)".*/\2/p')
 	  	fi
 		done
 	fi
-	
-	#echo "hello"
-	for (( j=0; j<$i; j++ ))
-	do
-		echo $j=.${COMPREPLY[j]}.
-	done
 }
 
-complete -W "-ex -outproc" \
-	-o plusdirs -F complete_files -F ugshell_complete -o nospace ugshell
+complete -W "-outproc -ex -noquit -noterm -logtofile" \
+	-o plusdirs -F ugshell_complete -o nospace ugshell
 
 ########################
 
