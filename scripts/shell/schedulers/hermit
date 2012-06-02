@@ -39,12 +39,14 @@ function UJS_Submit
 			echo "please set UGSUBMIT_EMAIL or specify email with -email".
 			exit
 		fi 
-		$pbsMail="-M $UGSUBMIT_EMAIL -m $pbsMailtype"
+		pbsMail="-M $UGSUBMIT_EMAIL -m $pbsMailtype"
 	fi
 	
 	if [ $nppn == "max" ]; then
 		nppn=$nppnmax
 	fi
+	
+	# interactive: qsub -IX -l walltime=00:50:00 -l mppwidth=4 -l mppnppn=4
 	
 	if [ $((npe%nppn)) -ne 0 ]; then
 		echo "npe=$npe is not dividable by nppn=$nppn"
@@ -52,7 +54,7 @@ function UJS_Submit
 	fi
 	
 	
-	qsubargs="$qsubqueue -V -N $jobname -o job.output -e job.error -j oe -S /bin/bash -l walltime=$walltime $PBSnodes  $pbsMail"
+	qsubargs="$qsubqueue -V -N $jobname -o job.output -e job.error -j oe -S /bin/bash -l walltime=$walltime $PBSnodes $pbsMail"
 	
 	if [ $verbose == true ]; then
 		echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs"		
@@ -81,6 +83,7 @@ function UJS_Submit
 	fi
 	
 	jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
+	#showstart $jobid
 }
 
 
