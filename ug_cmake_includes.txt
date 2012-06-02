@@ -263,7 +263,7 @@ elseif("${TARGET}" STREQUAL "gridshell")
 elseif("${TARGET}" STREQUAL "amg")
 	set(targetLibraryName ugamg)
 	set(buildAlgebra ON)
-	
+	set(buildGrid OFF)
 else("${TARGET}" STREQUAL "ugshell")
 	message(FATAL_ERROR "Unsupported TARGET: "${TARGET}". Options are: "${targetOptions})
 	
@@ -830,4 +830,6 @@ mark_as_advanced(CMAKE_BUILD_TYPE)
 mark_as_advanced(BUILTIN_LAPACK)
 mark_as_advanced(BUILTIN_BLAS)
 mark_as_advanced(BUILTIN_MPI)
+
+
 
