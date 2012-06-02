@@ -523,6 +523,7 @@ bool RegisterLuaDebug(ug::bridge::Registry &reg)
 	reg.add_function("breakpoint", &AddBreakpoint, "/ug4/lua");
 	reg.add_function("breakpoint", &breakpoint_in_script, "/ug4/lua");
 	reg.add_function("print_breakpoints", &PrintBreakpoints, "/ug4/lua");
+	reg.add_function("DebugBacktrace", &DebugBacktrace, "/ug4/lua");
 
 	reg.add_function("ProfileLUA", &ProfileLUA, "/ug4/lua");
 	return true;
