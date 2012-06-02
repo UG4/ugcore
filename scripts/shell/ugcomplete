@@ -5,9 +5,17 @@
 # author: Stefan Grein, Martin Rupp
 ######################################################################
 
-########################
 
-
+######################################################################
+# ugshell_complete is able to complete ugshell:
+# 1. -outproc -ex -noquit -noterm -logtofile
+# 2. files
+# 3. after -ex , completion is only to .lua files, and completion of files in the ug4/apps part, 
+#    so for example ugshell -ex conv<tab>
+# 4. when -ex <luascript> is found in the command line, a sed script is search for util.GetParam("-numRefs") 
+#    and the like, so you get a list of accepted command line parameters.
+# 
+# to use the completion, set UG4_ROOT and source ug4/shell/scripts/ugcomplete or ugbash
 ugshell_complete() {
   	local word="${COMP_WORDS[COMP_CWORD]}"
   	local i=0
@@ -60,20 +68,185 @@ ugshell_complete() {
 complete -W "-outproc -ex -noquit -noterm -logtofile" \
 	-o plusdirs -F ugshell_complete -o nospace ugshell
 
-########################
+######################################################################
 
 CMAKE_COMPLETITIONS="-DCMAKE_TOOLCHAIN_FILE= -DCMAKE_C_COMPILER= -DCMAKE_CXX_COMPILER="
 complete -W "$CMAKE_COMPLETITIONS" -o default -o nospace cmake
 
-########################
+######################################################################
 alias ugcmake=cmake
 
 UGCMAKE_INTERNAL="-DBUILTIN_BLAS= -DBUILTIN_LAPACK= -DDEBUG_FORMAT="
 
-complete -W "-DDBLAS= -DBiogas= -DCPU= -DCXX11= -DConstantEquation= -DConvectionDiffusion= -DDEBUG= -DDEBUG_FORMAT \ 
--DDEBUG_LOGS= -DDIM= -DEMBED_SVN_REV= -DHLIBPRO= -DHYPRE= -DINTERNAL_BOOST= -DLevelSet= -DLinearElastoPlasticity \
--DMETIS= -DMembranePotentialMappingPlugin= -DNavierStokes= -DNeuronPlugin= -DNonlinearElastoPlasticity \
--DOPENMP= -DPARALLEL= -DPARMETIS= -DPCL_DEBUG_BARRIER= -DPRECISION PROFILER= -DPROFILE_BRIDGE= -DPROFILE_PCL \
--DReceptorKinetic= -DSHELLTYPE= -DSTATIC= -DSample= -DTARGET= -DTETGEN= -DTemplate= -DVoltageDependentChannelsPlugin= -Dd3f= -Dplasma_membrane= \
+# create this list with
+# cat $UG4_ROOT/debug/CMakeCache.txt | sed -n 's/^\([^/#][^:]*\):[^I].*/-D\1= \\/p'
+complete -W "\
+-DBLAS= \
+-DBLAS_INCLUDE_PATH= \
+-DBLAS_LIBRARIES= \
+-DBUILTIN_BLAS= \
+-DBUILTIN_LAPACK= \
+-DBUILTIN_MPI= \
+-DBiogas= \
+-DCMAKE_AR= \
+-DCMAKE_BUILD_TYPE= \
+-DCMAKE_COLOR_MAKEFILE= \
+-DCMAKE_CXX_COMPILER= \
+-DCMAKE_CXX_FLAGS= \
+-DCMAKE_CXX_FLAGS_DEBUG= \
+-DCMAKE_CXX_FLAGS_MINSIZEREL= \
+-DCMAKE_CXX_FLAGS_RELEASE= \
+-DCMAKE_CXX_FLAGS_RELWITHDEBINFO= \
+-DCMAKE_C_COMPILER= \
+-DCMAKE_C_FLAGS= \
+-DCMAKE_C_FLAGS_DEBUG= \
+-DCMAKE_C_FLAGS_MINSIZEREL= \
+-DCMAKE_C_FLAGS_RELEASE= \
+-DCMAKE_C_FLAGS_RELWITHDEBINFO= \
+-DCMAKE_EXE_LINKER_FLAGS= \
+-DCMAKE_EXE_LINKER_FLAGS_DEBUG= \
+-DCMAKE_EXE_LINKER_FLAGS_MINSIZEREL= \
+-DCMAKE_EXE_LINKER_FLAGS_RELEASE= \
+-DCMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO= \
+-DCMAKE_EXPORT_COMPILE_COMMANDS= \
+-DCMAKE_INSTALL_NAME_TOOL= \
+-DCMAKE_INSTALL_PREFIX= \
+-DCMAKE_LINKER= \
+-DCMAKE_MAKE_PROGRAM= \
+-DCMAKE_MODULE_LINKER_FLAGS= \
+-DCMAKE_MODULE_LINKER_FLAGS_DEBUG= \
+-DCMAKE_MODULE_LINKER_FLAGS_MINSIZEREL= \
+-DCMAKE_MODULE_LINKER_FLAGS_RELEASE= \
+-DCMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO= \
+-DCMAKE_NM= \
+-DCMAKE_OBJCOPY= \
+-DCMAKE_OBJDUMP= \
+-DCMAKE_OSX_ARCHITECTURES= \
+-DCMAKE_OSX_DEPLOYMENT_TARGET= \
+-DCMAKE_OSX_SYSROOT= \
+-DCMAKE_PROJECT_NAME= \
+-DCMAKE_RANLIB= \
+-DCMAKE_SHARED_LINKER_FLAGS= \
+-DCMAKE_SHARED_LINKER_FLAGS_DEBUG= \
+-DCMAKE_SHARED_LINKER_FLAGS_MINSIZEREL= \
+-DCMAKE_SHARED_LINKER_FLAGS_RELEASE= \
+-DCMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO= \
+-DCMAKE_SKIP_RPATH= \
+-DCMAKE_STRIP= \
+-DCMAKE_USE_RELATIVE_PATHS= \
+-DCMAKE_VERBOSE_MAKEFILE= \
+-DCMAKE_XCODE_SELECT= \
+-DCPU= \
+-DCXX11= \
+-DDEBUG= \
+-DDEBUG_FORMAT= \
+-DDEBUG_LOGS= \
+-DDIM= \
+-DEMBED_SVN_REV= \
+-DElementQualityStatistics= \
+-DHLIBPRO= \
+-DHYPRE= \
+-DINTERNAL_BOOST= \
+-DLAPACK= \
+-DLAPACK_INCLUDE_PATH= \
+-DLAPACK_LIBRARIES= \
+-DLINEAR_ELASTOPLASTICITY_BINARY_DIR= \
+-DLINEAR_ELASTOPLASTICITY_SOURCE_DIR= \
+-DLevelSet= \
+-DLevelSetPlugin= \
+-DLinearElastoPlasticity= \
+-DLinearElastoPlasticity_LIB_DEPENDS= \
+-DMETIS= \
+-DMPIEXEC= \
+-DMPIEXEC_MAX_NUMPROCS= \
+-DMPIEXEC_NUMPROC_FLAG= \
+-DMPIEXEC_POSTFLAGS= \
+-DMPIEXEC_PREFLAGS= \
+-DMPI_CXX_COMPILER= \
+-DMPI_CXX_COMPILE_FLAGS= \
+-DMPI_CXX_INCLUDE_PATH= \
+-DMPI_CXX_LIBRARIES= \
+-DMPI_CXX_LINK_FLAGS= \
+-DMPI_C_COMPILER= \
+-DMPI_C_COMPILE_FLAGS= \
+-DMPI_C_INCLUDE_PATH= \
+-DMPI_C_LIBRARIES= \
+-DMPI_C_LINK_FLAGS= \
+-DMPI_EXTRA_LIBRARY= \
+-DMPI_LIBRARY= \
+-DMembranePotentialMappingPlugin= \
+-DNavierStokes= \
+-DNavierStokesPlugin= \
+-DNeuronPlugin= \
+-DNonlinearElastoPlasticity= \
+-DOPENMP= \
+-DPARALLEL= \
+-DPARMETIS= \
+-DPCL_DEBUG_BARRIER= \
+-DPRECISION= \
+-DPROFILER= \
+-DPROFILE_BRIDGE= \
+-DPROFILE_PCL= \
+-DP_COMMON_BINARY_DIR= \
+-DP_COMMON_SOURCE_DIR= \
+-DP_LIB_ALGEBRA_BINARY_DIR= \
+-DP_LIB_ALGEBRA_SOURCE_DIR= \
+-DP_LIB_DISCRETIZATION_BINARY_DIR= \
+-DP_LIB_DISCRETIZATION_SOURCE_DIR= \
+-DP_LIB_GRID_BINARY_DIR= \
+-DP_LIB_GRID_SOURCE_DIR= \
+-DP_NODE_TREE_BINARY_DIR= \
+-DP_NODE_TREE_SOURCE_DIR= \
+-DP_PCL_BINARY_DIR= \
+-DP_PCL_SOURCE_DIR= \
+-DP_REGISTRY_BINARY_DIR= \
+-DP_REGISTRY_SOURCE_DIR= \
+-DP_UG4_BINARY_DIR= \
+-DP_UG4_SOURCE_DIR= \
+-DP_UGBASE_BINARY_DIR= \
+-DP_UGBASE_SOURCE_DIR= \
+-DP_UGBRIDGE_BINARY_DIR= \
+-DP_UGBRIDGE_SOURCE_DIR= \
+-DP_UGSCRIPT_BINARY_DIR= \
+-DP_UGSCRIPT_SOURCE_DIR= \
+-DReceptorKinetic= \
+-DSAMPLE_PLUGIN_BINARY_DIR= \
+-DSAMPLE_PLUGIN_SOURCE_DIR= \
+-DSHELLTYPE= \
+-DSTATIC= \
+-DSample= \
+-DSamplePlugin= \
+-DSamplePlugin_LIB_DEPENDS= \
+-DTARGET= \
+-DTETGEN= \
+-DTKDGenerator= \
+-DTMP_Biogas_PATH= \
+-DTMP_ElementQualityStatistics_PATH= \
+-DTMP_LevelSet_PATH= \
+-DTMP_LinearElastoPlasticity_PATH= \
+-DTMP_MembranePotentialMappingPlugin_PATH= \
+-DTMP_NavierStokes_PATH= \
+-DTMP_NeuronPlugin_PATH= \
+-DTMP_NonlinearElastoPlasticity_PATH= \
+-DTMP_ReceptorKinetic_PATH= \
+-DTMP_Sample_PATH= \
+-DTMP_TKDGenerator_PATH= \
+-DTMP_Template_PATH= \
+-DTMP_VoltageDependentChannelsPlugin_PATH= \
+-DTMP_d3f_PATH= \
+-DTMP_plasma_membrane_PATH= \
+-DTemplate= \
+-DVoltageDependentChannelsPlugin= \
+-Dd3f= \
+-Dd3f_BINARY_DIR= \
+-Dd3f_LIB_DEPENDS= \
+-Dd3f_SOURCE_DIR= \
+-Dfile_cmd= \
+-DlibReadline= \
+-DmpiHasBeenSearched= \
+-Dplasma_membrane= \
+-Dug4_LIB_DEPENDS= \
 $CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL"  -o default -o nospace ugcmake
+
+
 
