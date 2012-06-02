@@ -15,7 +15,7 @@ cdug_complete() {
   local word="${COMP_WORDS[COMP_CWORD]}"
   local i=0
   while read line; do
-  	[ -d $line ] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT[/]*??p"`/;
+  	[[ -d $line ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT[/]*??p"`/;
   	done < <(compgen -f -- "$UG4_ROOT/$word")  
 }
 
