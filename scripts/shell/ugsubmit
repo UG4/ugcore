@@ -238,11 +238,12 @@ do
 	fi
 done
 
-if [ $# -eq 0 ]; then
-	echo "missing binary!"
-	exit
+if [ $interactive == false ]; then 
+	if [ $# -eq 0 ]; then
+		echo "missing binary!"
+		exit
+	fi
 fi
-
 
 binary=$1
 shift
