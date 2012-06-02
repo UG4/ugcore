@@ -22,6 +22,10 @@ ugshell_complete() {
 	local filename  
 	local b
 
+	while read line; do
+		COMPREPLY[i++]=$line
+	done < <(compgen -W "-outproc -ex -noquit -noterm -logtofile" -- $word)
+	
   if [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ]; then 
   	while read line; do
   		[[ -d $line ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`;
@@ -65,8 +69,44 @@ ugshell_complete() {
 	fi
 }
 
-complete -W "-outproc -ex -noquit -noterm -logtofile" \
-	-o plusdirs -F ugshell_complete -o nospace ugshell
+ugshell_complete_gdb()
+{
+	for (( c=0; c<COMP_CWORD; c++ ))
+  	do
+  		if [ "${COMP_WORDS[$c]}" = "--args" ] && [ "${COMP_WORDS[$c+1]}" = "ugshell" ]; then
+  			ugshell_complete
+  		fi
+  	done
+}
+
+ugshell_complete_ugsubmit()
+{
+	for (( c=0; c<COMP_CWORD; c++ ))
+  	do
+  		if [ "${COMP_WORDS[$c]}" = "---" ] && [ "${COMP_WORDS[$c+1]}" = "ugshell" ]; then
+  			ugshell_complete
+  		fi
+  	done
+}
+
+ugshell_complete_external()
+{
+	for (( c=0; c<=COMP_CWORD; c++ ))
+  	do
+  		if [ "${COMP_WORDS[$c]}" = "ugshell" ]; then
+  			ugshell_complete
+  		fi
+  	done
+}
+
+complete -o plusdirs -F ugshell_complete -o nospace ugshell
+
+
+complete -W "--args" -F ugshell_complete_gdb -o nospace gdb
+complete -W "--args" -F ugshell_complete_external -o nospace mpirun
+complete -W "-test -nppn -cluster -name -walltime -email -mail-start -mail-end -mail-error -mail-all -verbose -tail -i -dir -queue" \
+ -F ugshell_complete_ugsubmit -o nospace ugsubmit
+
 
 ######################################################################
 
