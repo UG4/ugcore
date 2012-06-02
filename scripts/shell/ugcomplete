@@ -2,53 +2,87 @@
 ######################################################################
 # ugcomplete 1.0
 #-------------------------------------------------------------------
-# author: Stefan Grein
+# author: Stefan Grein, Martin Rupp
 ######################################################################
 
-ug_complete() {
-  	#echo $1
-  	#echo $2
-  local word="$1"
-  local ext=$2
-  local i=0 line
-  declare -a liste
+########################
 
-  while read line; do liste[i++]="$line"; done < <(compgen -f -- "$word")
-  #while read line; do liste[i++]=`echo $line | sed -n "s?$UG4_ROOT[/]*??p"`; done < <(compgen -f -- "$UG4_ROOT/$word")
-  #while read line; do liste[i++]=`echo $line`; done < <(compgen -f -- "$UG4_ROOT/$word")
 
-  local w
-  for w in "${liste[@]}"; do
-  	#echo $w
-  	COMPREPLY[i++]="$w"
-  	#[[ -d "$w" ]] && continue
-    #[[ -d "$UG4_ROOT/$w" ]] && COMPREPLY[i++]="$UG4_ROOT/$w"
-    #[[ "${w##*.}" = $ext ]] && COMPREPLY[i++]="$w" 
-  done
+ugshell_complete() {
+  	local word="${COMP_WORDS[COMP_CWORD]}"
+  	local i=0
+	while read line; do 
+	COMPREPLY[i++]=$line
+	done < <(compgen -f -- "$word")  
+	local filename  
+	local b
+
+  if [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ]; then 
+  	while read line; do
+  		if [ -d $line ]; then
+	  		COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`/;
+	  	else
+	  		COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`;
+	  	fi
+  	done < <(compgen -f -- "$UG4_ROOT/apps/$word")
+  else
+  echo $word
+  	for (( c=0; c<COMP_CWORD; c++ ))
+  	do
+  		if [ "${COMP_WORDS[$c]}" = "-ex" ]; then
+	  		
+	  		if [ -e ${COMP_WORDS[c+1]} ]; then
+	  			filename=${COMP_WORDS[c+1]}
+	  		elif [ -e $UG4_ROOT/apps/${COMP_WORDS[c+1]} ]; then
+	  			filename=$UG4_ROOT/apps/${COMP_WORDS[c+1]}
+	  		else
+	  			continue
+	  		fi
+	  		while read line; do
+	  			echo $line
+	  			b="0"	  			
+	  			for (( j=0; j<i; j++ ))
+	  			do
+	  				if [ ${COMPREPLY[j]} = $line ]; then
+	  					b="1"
+	  				fi
+	  			done
+	  			
+	  			if [ $b = "0" ]; then
+	  			 COMPREPLY[i++]="$line";
+	  			 echo $line >> bla
+	  			 echo $i > /dev/null
+	  			#echo $line
+	  			fi	  				  			
+	 		done < <(cat $filename ) | sed -n "s/.\*util.\(HasParamOption\|GetParam\|GetParamNumber\)(\"\($word[^\"]*\)".\*).\*/\2/p")
+	  	fi
+		done
+	fi
+	
+	#echo "hello"
+	for (( j=0; j<$i; j++ ))
+	do
+		echo $j=.${COMPREPLY[j]}.
+	done
 }
 
-complete_ugshell () {
-	ug_complete "$2" "*+(lua|ugx|obj)"
-}
+complete -W "-ex -outproc" \
+	-o plusdirs -F complete_files -F ugshell_complete -o nospace ugshell
 
-complete_files()
-{
-	cur="${COMP_WORDS[COMP_CWORD]}"
-	COMPREPLY=( $(compgen -f ${cur}) )
-}
+########################
 
-complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F complete_files ugshell
+CMAKE_COMPLETITIONS="-DCMAKE_TOOLCHAIN_FILE= -DCMAKE_C_COMPILER= -DCMAKE_CXX_COMPILER="
+complete -W "$CMAKE_COMPLETITIONS" -o default -o nospace cmake
 
+########################
 alias ugcmake=cmake
-CMAKE_COMPLETITIONS="-DCMAKE_TOOLCHAIN_FILE -DCMAKE_C_COMPILER -DCMAKE_CXX_COMPILER"
-complete -W "$CMAKE_COMPLETITIONS" -o plusdirs -F complete_files cmake
 
-UGCMAKE_INTERNAL="-DBUILTIN_BLAS -DBUILTIN_LAPACK -DDEBUG_FORMAT"
+UGCMAKE_INTERNAL="-DBUILTIN_BLAS= -DBUILTIN_LAPACK= -DDEBUG_FORMAT="
 
-complete -W "-DDBLAS -DBiogas -DCPU -DCXX11 -DConstantEquation -DConvectionDiffusion -DDEBUG -DDEBUG_FORMAT \ 
--DDEBUG_LOGS -DDIM -DEMBED_SVN_REV -DHLIBPRO -DHYPRE -DINTERNAL_BOOST -DLevelSet -DLinearElastoPlasticity \
--DMETIS -DMembranePotentialMappingPlugin -DNavierStokes -DNeuronPlugin -DNonlinearElastoPlasticity \
--DOPENMP -DPARALLEL -DPARMETIS -DPCL_DEBUG_BARRIER -DPRECISION PROFILER -DPROFILE_BRIDGE -DPROFILE_PCL \
--DReceptorKinetic -DSHELLTYPE -DSTATIC -DSample -DTARGET -DTETGEN -DTemplate -DVoltageDependentChannelsPlugin -Dd3f -Dplasma_membrane \
-$CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL"  -o plusdirs -F complete_files ugcmake
+complete -W "-DDBLAS= -DBiogas= -DCPU= -DCXX11= -DConstantEquation= -DConvectionDiffusion= -DDEBUG= -DDEBUG_FORMAT \ 
+-DDEBUG_LOGS= -DDIM= -DEMBED_SVN_REV= -DHLIBPRO= -DHYPRE= -DINTERNAL_BOOST= -DLevelSet= -DLinearElastoPlasticity \
+-DMETIS= -DMembranePotentialMappingPlugin= -DNavierStokes= -DNeuronPlugin= -DNonlinearElastoPlasticity \
+-DOPENMP= -DPARALLEL= -DPARMETIS= -DPCL_DEBUG_BARRIER= -DPRECISION PROFILER= -DPROFILE_BRIDGE= -DPROFILE_PCL \
+-DReceptorKinetic= -DSHELLTYPE= -DSTATIC= -DSample= -DTARGET= -DTETGEN= -DTemplate= -DVoltageDependentChannelsPlugin= -Dd3f= -Dplasma_membrane= \
+$CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL"  -o default -o nospace ugcmake
 

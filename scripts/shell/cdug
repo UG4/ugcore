@@ -2,62 +2,22 @@
 ######################################################################
 # cdug 1.0
 #-------------------------------------------------------------------
-# author: Stefan Grein
+# author: Stefan Grein, Martin Rupp
 ######################################################################
 
 
 function cdug() {
-   local SEP=_
-   local DEST=
-   local CD_CMD=cd
-  
-      case $1 in
-      plugins)
-         DEST=$UG4_ROOT/plugins/;
-         ;;
-      plugins/ex*)
-         DEST=$UG4_ROOT/plugins/experimental/;
-         ;;
-      plugins/co*)
-         DEST=$UG4_ROOT/plugins/core/;
-         ;;
-      docs)
-         DEST=$UG4_ROOT/docs/;
-         ;;
-      apps)
-         DEST=$UG4_ROOT/apps;
-         ;;
-      scripts)
-         DEST=$UG4_ROOT/scripts;
-         ;;
-      unit_tests)
-         DEST=$UG4_ROOT/unit_tests;
-         ;;
-      data)
-         DEST=$UG4_ROOT/data;
-         ;;
-      ugbase)
-         DEST=$UG4_ROOT/ugbase;
-         ;;
-      bin)
-         DEST=$UG4_ROOT/bin;
-         ;;
-      externals)
-         DEST=$UG4_ROOT/externals;
-         ;;
-      lib)
-         DEST=$UG4_ROOT/lib;
-         ;;
-      *)
-         DEST=$UG4_ROOT/$1
-         ;;
-      esac
+  cd $UG4_ROOT/$1
    
-   if [ ! -d "$DEST" ]; then
-      echo -e  "\e[0;35m$1\e[0;30m: directory does not exist, changing to \e[0;35m$UG4_ROOT\e[0;30m (UG4_ROOT) instead."
-      $CD_CMD $UG4_ROOT
-   else
-      $CD_CMD $DEST
-   fi
-
 }
+
+cdug_complete() {
+  local word="${COMP_WORDS[COMP_CWORD]}"
+  local i=0
+  while read line; do
+  	[ -d $line ] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT[/]*??p"`/;
+  	done < <(compgen -f -- "$UG4_ROOT/$word")  
+}
+
+
+complete -F cdug_complete -o nospace cdug
