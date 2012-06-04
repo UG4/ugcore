@@ -1,6 +1,6 @@
 #!/bin/bash
 ######################################################################
-# ugcomplete 1.0
+# ugcomplete
 #-------------------------------------------------------------------
 # author: Stefan Grein, Martin Rupp
 ######################################################################
@@ -69,6 +69,11 @@ ugshell_complete() {
 	fi
 }
 
+######################################################################
+# ugshell_complete_gdb 
+#-----------------------
+# bash completion when using gdb --args ugshell
+#
 ugshell_complete_gdb()
 {
 	for (( c=0; c<COMP_CWORD; c++ ))
@@ -79,6 +84,11 @@ ugshell_complete_gdb()
   	done
 }
 
+######################################################################
+# ugshell_complete_ugsubmit 
+#---------------------------
+# bash completion when using ugsubmit <params> --- ugshell 
+#
 ugshell_complete_ugsubmit()
 {
 	for (( c=0; c<COMP_CWORD; c++ ))
@@ -89,6 +99,11 @@ ugshell_complete_ugsubmit()
   	done
 }
 
+######################################################################
+# ugshell_complete_external 
+#---------------------------
+# bash completion when using mpirun -np 4 ugshell 
+#
 ugshell_complete_external()
 {
 	for (( c=0; c<=COMP_CWORD; c++ ))
@@ -99,21 +114,30 @@ ugshell_complete_external()
   	done
 }
 
+# ugshell completion
 complete -o plusdirs -F ugshell_complete -o nospace ugshell
 
-
+# gdb completion
 complete -W "--args" -F ugshell_complete_gdb -o nospace gdb
-complete -W "--args" -F ugshell_complete_external -o nospace mpirun
+
+# mpirun completion
+complete -W "-np" -F ugshell_complete_external -o nospace mpirun
+
+# ugsubmit completion
 complete -W "-test -nppn -cluster -name -walltime -email -mail-start -mail-end -mail-error -mail-all -verbose -tail -i -dir -queue" \
  -F ugshell_complete_ugsubmit -o nospace ugsubmit
 
 
 ######################################################################
+# cmake completion
 
 CMAKE_COMPLETITIONS="-DCMAKE_TOOLCHAIN_FILE= -DCMAKE_C_COMPILER= -DCMAKE_CXX_COMPILER="
 complete -W "$CMAKE_COMPLETITIONS" -o default -o nospace cmake
 
 ######################################################################
+# ugcmake completion
+# ugcmake is just an alias for cmake
+
 alias ugcmake=cmake
 
 UGCMAKE_INTERNAL="-DBUILTIN_BLAS= -DBUILTIN_LAPACK= -DDEBUG_FORMAT="

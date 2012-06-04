@@ -1,11 +1,32 @@
 #!/bin/bash
+######################################################################
+# sshfsmake 0.1
+#-------------------------------------------------------------------
+# created by Martin Rupp
+#
+# sshfsmake is intended to be used when you are using sshfs and want to compile
+# code on the remote server, but you want to have the error strings as local files
+# This works best when you don't have to enter your password, so use sth. like
+# exchange of SSH Keys.
+
 # use this like
-# sshfsmake mrupp@cekon /Volumes/mrupp@cekon ug4/debug
-# syntax: sshfsmake <account> <remoteBuildDir> <localHomeDir> [additional make options]
-# the localHomeDir is the dir which mirrors the remote home dir.                                                                                                                                                                                               
+# sshfsmake mrupp@cekon /Volumes/mrupp@cekon ug4/debug -j4
+# now this does the following:
+# 1. logging in to mrupp@cekon
+# 2. cd ug4/debug
+# 3. make -j4
+# 4. replace every occurence of ~/ug4/debug with /Volumes/mrupp@cekon
+#
+# so instead of /home/mrupp/ug4/ugbase/bridge/algebra_bridges/eigensolver_bridge.cpp:86: error
+# you get
+# /Volumes/mrupp@cekon/ugbase/bridge/algebra_bridges/eigensolver_bridge.cpp:86: error
+#
+# syntax: sshfsmake <account> <localHomeDir> <remoteBuildDir> [additional make options]
+# the localHomeDir is the dir which mirrors the remote home dir.
+                                                                                                                                                                                               
 account=$1
 remotehomedir=`ssh $account pwd`
-remotebuilddir=$3
 localhomedir=$2
+remotebuilddir=$3
 shift 3
 ssh $account "cd $remotebuilddir; make $*" 2>&1 | sed "s:$remotehomedir:$localhomedir:"

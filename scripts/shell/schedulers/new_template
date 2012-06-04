@@ -2,6 +2,8 @@
 ######################################################################
 #                    UJS cluster template
 #-------------------------------------------------------------------
+# created by Martin Rupp 28.03.2012
+# use this to create your own job scheduler implementation
 ######################################################################
 
 # if you want to use PBS (qsub, qstat ...) check the "hermit" script in this directory

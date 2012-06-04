@@ -1,22 +1,60 @@
 #!/bin/bash
+######################################################################
+# ugbash
+#-------------------------------------------------------------------
+# created by Martin Rupp 01.06.2012
+# mail: martin.rupp@gcsc.uni-frankfurt.de
+#
+# source this file in your ~/.bashrc :
+# 1. with specifiying UG4_ROOT:
+# UG4_ROOT=~/Documents/workspace/ug4
+# source $UG4_ROOT/scripts/shell/ugbash
+# 2. without (UG4_ROOT is set to the path ../../ of ugbash)
+# source ~/Documents/workspace/ug4/scripts/ugbash
+#
+# by that, you can access all ug4 bash scripts:
+# cdug - change ug4 directory
+# ugsubmit/uginfo/ugcancel - Unified Job Scheduling Scripts, see ugsubmit
+# uginstall - install local versions of software (for advanced users)
+# bash completion for ugshell, cmake, ugcmake, and all of the above 
+######################################################################
+
+#     get UG4_ROOT     # 
+########################
 
 if [ -z "$UG4_ROOT" ]; then
-	UG4_ROOT=`dirname ${BASH_SOURCE[0]}`/../../  	   	
+	UG4_ROOT=`dirname ${BASH_SOURCE[0]}`/../../
+	
+	# make path absolute
+	# for compatibilty to mac, don't use realpath or readlink here.
+	olddir=`pwd`
+	cd $UG4_ROOT
+	UG4_ROOT=`pwd`
+	cd $olddir
+else
+	if [ ! -e $UG4_ROOT/ug_cmake_includes.txt ]; then
+		echo "Could not find UG4_ROOT/ug_cmake_includes.txt . Is UG4_ROOT=$UG4_ROOT right?"
+	fi	   	
 fi	
 
 export UG4_ROOT
 
+# create an alias to ugshell
+alias ugshell=$UG4_ROOT/bin/ugshell
+
+# add scripts/shell to path
 PATH=$PATH:$UG4_ROOT/scripts/shell/
 export PATH
 
-
+# add ugcomplete and cdug
 source $UG4_ROOT/scripts/shell/ugcomplete
 source $UG4_ROOT/scripts/shell/cdug
 
+# make bash scripts executable
 chmod +x $UG4_ROOT/scripts/shell/uginfo
 chmod +x $UG4_ROOT/scripts/shell/ugcancel
 chmod +x $UG4_ROOT/scripts/shell/ugsubmit
 
 chmod +x $UG4_ROOT/scripts/shell/uginstall
-
+chmod +x $UG4_ROOT/scripts/shell/sshfsmake
 

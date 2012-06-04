@@ -1,4 +1,11 @@
 #!/bin/bash
+######################################################################
+# clusters
+#-------------------------------------------------------------------
+# created by Martin Rupp 28.03.2012
+# this file is used by ugsubmit/ugcancel/uginfo to access all clusters
+# see below for information how to add your own cluster implementation
+######################################################################
 
 if [ -z "$UGSUBMIT_TYPE" ]; then
 	if [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
