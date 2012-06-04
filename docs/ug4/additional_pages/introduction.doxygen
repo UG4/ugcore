@@ -28,7 +28,7 @@ Features are:
     Scalability has been shown for up to 256ki processes &mdash; more to come...
 
   - ug4 extends the lua scripting language, which allows to control the entire
-    simulation from powerful an easily readable scripts.
+    simulation from powerful and easily readable scripts.
 
   - Through the <em>Visual Reflection Library</em> users can run and control an
     entire simulation through a modern graphical interface.
