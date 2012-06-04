@@ -25,7 +25,18 @@ namespace ug{
 // Interpolate on Vertices only
 ////////////////////////////////////////////////////////////////////////////////
 
-/// interpolates a function on vertices
+/**
+ * This function interpolates a grid function on a vertex loop. Thus, it can only
+ * be used if all degrees of freedom are located in the vertices only (e.g. P1
+ * finite elements). In those cases it is faster than the element by element
+ * loop.
+ *
+ * @param[in] spInterpolFunction	data providing interpolation values
+ * @param[out] spGridFct			interpolated grid function
+ * @param[in] fct					symbolic name of function component
+ * @param[in] ssGrp					subsets, where to interpolate
+ * @param[in] time					time point
+ */
 template <typename TGridFunction>
 void InterpolateOnVertices(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spInterpolFunction,
                            SmartPtr<TGridFunction> spGridFct,
@@ -84,7 +95,17 @@ void InterpolateOnVertices(SmartPtr<IDirectIPData<number, TGridFunction::dim> > 
 // Interpolate on Elements
 ////////////////////////////////////////////////////////////////////////////////
 
-/// interpolates a function on an element
+/**
+ * This function interpolates a grid function on an element by element loop. On
+ * each element the all associated (up to the boundary of the element) are
+ * interpolated and the values are stored in the grid function.
+ *
+ * @param[in] spInterpolFunction	data providing interpolation values
+ * @param[out] spGridFct			interpolated grid function
+ * @param[in] fct					symbolic name of function component
+ * @param[in] si					subset, where to interpolate
+ * @param[in] time					time point
+ */
 template <typename TElem, typename TGridFunction>
 void InterpolateOnElements(
 		SmartPtr<IDirectIPData<number, TGridFunction::dim> > spInterpolFunction,
@@ -170,6 +191,17 @@ void InterpolateOnElements(
 	}
 }
 
+/**
+ * This function interpolates a grid function on an element by element loop. On
+ * each element the all associated (up to the boundary of the element) are
+ * interpolated and the values are stored in the grid function.
+ *
+ * @param[in] spInterpolFunction	data providing interpolation values
+ * @param[out] spGridFct			interpolated grid function
+ * @param[in] fct					symbolic name of function component
+ * @param[in] ssGrp					subsets, where to interpolate
+ * @param[in] time					time point
+ */
 template <typename TGridFunction>
 void InterpolateOnElements(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spInterpolFunction,
                            SmartPtr<TGridFunction> spGridFct,
@@ -224,17 +256,16 @@ void InterpolateOnElements(SmartPtr<IDirectIPData<number, TGridFunction::dim> > 
 // Interpolate routine
 ////////////////////////////////////////////////////////////////////////////////
 
-
 /// interpolates a function on a subset
 /**
  * This function interpolates a GridFunction. To evaluate the function on every
  * point a functor must be passed.
  *
- * \param[out]		u			interpolated grid function
- * \param[in]		data		data evaluator
- * \param[in]		name		symbolic name of function
- * \param[in]		time		time point
- * \param[in]		subsets		subsets, where to interpolate
+ * @param[in] spInterpolFunction	data providing interpolation values
+ * @param[out] spGridFct			interpolated grid function
+ * @param[in] cmp					symbolic name of function component
+ * @param[in] subsets				subsets, where to interpolate (NULL = everywhere)
+ * @param[in] time					time point
  */
 template <typename TGridFunction>
 void Interpolate(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spInterpolFunction,
