@@ -81,9 +81,10 @@ void RegisterBridge_Eigensolver(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Solver");
 	typedef Eigensolver::Functionality Functionality;
+	typedef boost::mpl::list<CPUAlgebra> AlgList;
 
 	try{
-		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterAlgebraDependent<Functionality, AlgList>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
