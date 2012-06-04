@@ -201,7 +201,7 @@ void RegisterDimensionDependent(Registry& reg, std::string grp)
 } // end namespace ug
 
 #define UG_REGISTRY_CATCH_THROW(grp)	\
-		catch(UGRegistryError ex) {\
+		catch(UGRegistryError& ex) {\
 			UG_ERR_LOG("### ERROR while registering functionality at '"<<(grp)<<"'. "\
 					"Registration failed (using name " << ex.name << ").\n");\
 			throw(ex);}
