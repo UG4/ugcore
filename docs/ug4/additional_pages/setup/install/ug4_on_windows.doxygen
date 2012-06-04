@@ -1,4 +1,11 @@
-/** \page pageUG4OnWindows Windows Installation
+/** \page pageUG4OnWindows Prerequisites on Windows
+
+- \ref secInstallWindowsMinGW
+- \ref secInstallWindowsCMake
+- \ref secInstallWindowsSVN
+
+<hr>
+\section secInstallWindowsMinGW Install MinGW
 
 \ug4 supports Windows through the \em MinGW gcc-compilers.
 \em MinGW can be downloaded together with \em MSYS at 
@@ -6,6 +13,9 @@ http://www.mingw.org/wiki/MSYS .
 \em MSYS is a 'minimal shell', which mimics some of the features of unix shells.
 You should install \em MSYS and \em MinGW to a rather simple path which does 
 not contain spaces or special characters (e.g. <tt>C:\\MinGW</tt>).
+
+<hr>
+\section secInstallWindowsCMake Install CMake on Windows
 
 Compilation of \ug4 furthermore requires the installation of \em CMake, which 
 can be obtained from here http://www.cmake.org/cmake/resources/software.html
@@ -15,6 +25,9 @@ You should be able to run \em CMake from your \em MSYS shell (simply type
 \c cmake and press enter).
 If \c cmake can't be found, then you should add the path to the \em CMake binary 
 to your systems \c PATH variable.
+
+<hr>
+\section secInstallWindowsSVN Checkout ug4 on Windows
 
 In order to checkout \ug4 from its svn repository you'll either have to follow 
 the instructions on how to setup \em Eclipse with svn capabilities
@@ -39,16 +52,5 @@ Note that folders in \em MSYS are specified in a unix way, e.g. <tt>cd
 
 If you chose \em Eclipse, then please follow the tutorial given in 
 \ref pageInstallEclipse to set up \em Eclipse and how to checkout \ug4.
-
-Compilation and \em CMake calls are very similar to unix and to the description 
-given in \ref pageUG4OnLinux.
-However one important thing to note is, that one has to explicitly specifiy the 
-compiler, which shall be used by \em CMake.
-A call to \em CMake thus should start as follows:
-\verbatim
-cmake -G"MSYS Makefiles"
-\endverbatim
-This is however only necessary when you invoke \em CMake the first time for a 
-given folder.
 
 */

@@ -4,15 +4,16 @@
 
 /** \page pageUG4OnLinux Prerequisites on Linux / Unix
 
-- \ref secInstallUG4CMake
-- \ref secInstallUG4UG4
-- \ref secInstallUG4Boost
+- \ref secInstallLinuxCMake
+- \ref secInstallLinuxMPI
+- \ref secInstallLinuxLAPACK
+- \ref secInstallLinuxParaView
 
 Before installing manually, you should check if the software is available in your packet manager or
 from your cluster managment tool (e.g. module load).
 
 <hr>
-\section secInstallUG4CMake CMake
+\section secInstallLinuxCMake CMake
 
 <ul>
   <li> In order to compile ug4, you have to have cmake installed.
@@ -45,7 +46,7 @@ from your cluster managment tool (e.g. module load).
 </ul>
 
 <hr>
-\section secInstallUG4MPI MPI
+\section secInstallLinuxMPI MPI
 
 <ul>
   <li> Note: MPI is only needed for \em parallel execution of ug4.
@@ -57,4 +58,92 @@ from your cluster managment tool (e.g. module load).
   <li> when you have no root: remember the <tt>--prefix=.</tt> option and to set the PATH .
 </ul>
 
+<hr>
+<br>
+\section secInstallLinuxLAPACK Installation BLAS/LAPACK (optional)
+
+
+<ul>
+  <li> Note: On most systems, LAPACK and BLAS are preinstalled and are found by cmake.
+  <li> On some clusters, LAPACK/BLAS are kind of "built into" the compiler,
+  so you don't have to specify anything. In this case, use<br>
+  <tt>cmake -DBUILTIN_BLAS=ON -DBUILTIN_LAPACK=ON</tt> <br>
+  Ask the administrator for help.  
+  <li> On some systems, you'd have to install LAPACK/BLAS manually. 
+  You can do this on most systems via their package managers. 
+  <li> If you can't find/get/install the packages: 
+  Download <a href="http://www.tacc.utexas.edu/tacc-projects/gotoblas2">GotoBLAS2</a>.
+  <li> extract the source to <tt>~/software/GotoBLAS2/</tt>
+  <li> Choose one of the <tt>quickbuild.*</tt> files there and execute it.
+  <li> Now add the path <tt>~/software/GotoBLAS2</tt> to the environment variable
+  <tt>LD_LIBRARY_PATH</tt> by adding the line
+  \verbatim
+  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/software/GotoBLAS2/
+  \endverbatim
+  add the end of your <tt>~/.bashrc</tt>.
+  <li> remember to <tt> source ~/.bashrc</tt>
+  <li> Now cmake should accept GotoBLAS2 as LAPACK/BLAS library.
+</ul>
+
+
+<hr>
+<br>
+\section secInstallLinuxParaView Installation of ParaView (optional)
+
+You can install a local version of <a href="http://paraview.org/">ParaView</a>
+by performing the following steps (only described for installation of a 
+"precompiled binary", which usually will be the preferred way):
+<ol>
+  <li>Download tar ball:<br>
+    Go to http://www.paraview.org/paraview/resources/software.php and choose 
+    the version, type (e.g. <em>"ParaView Binary Installer"</em>) and OS, and 
+    download the tar ball and move it in the directory where you want to 
+    install \em ParaView:
+    \verbatim
+mv ParaView-3.14.0-Linux-64bit.tar.gz ~/local
+    \endverbatim
+  </li>
+  <li>Unpack:
+    \verbatim
+cd ~/local
+tar xvzf ParaView-3.14.0-Linux-64bit.tar.gz 
+    \endverbatim
+  </li>
+  <li>After unpacking a binary installer the executables reside in e.g.
+    \verbatim
+ParaView-3.14.0-Linux-64bit/
+    \endverbatim
+    See the documentation (e.g. http://paraview.org/Wiki/The_ParaView_Tutorial)
+    for how to build \em ParaView from sources (\em CMake and a compiler (of 
+    course) necessary &mdash; and a bit time).
+  </li>
+  <li>Shortcuts for executing the \em ParaView client and server from 
+    command-line (i.e., add lines like the following in your <tt>.bashrc</tt> 
+    (for Bash)):
+    \verbatim
+alias paraview='$HOME/local/ParaView-3.14.0-Linux-64bit/bin/paraview'
+alias pvserver='$HOME/local/ParaView-3.14.0-Linux-64bit/bin/pvserver'
+    \endverbatim
+    or (for Tcsh):
+    \verbatim
+alias paraview '$HOME/local/ParaView-3.14.0-Linux-64bit/bin/paraview'
+alias pvserver '$HOME/local/ParaView-3.14.0-Linux-64bit/bin/pvserver'
+    \endverbatim
+  </li>
+  <li>Basic usage (using the shortcut mentioned above):
+    <ul>
+      <li>Start an instance of \em ParaView and load a datafile:
+        \verbatim
+paraview --data=<VTK-File>
+        \endverbatim
+      </li>
+      <li>Start an instance of \em ParaView and load a (previously saved) state 
+        file (with ending <tt>.pvsm</tt>):
+        \verbatim
+paraview --state=<state file>
+        \endverbatim
+      </li>
+    </ul>
+  </li>
+</ol>
 */

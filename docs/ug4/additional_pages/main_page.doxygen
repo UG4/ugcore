@@ -37,7 +37,6 @@ environment
 	- ug4 for vrl
 
 - \subpage pageUG4Usage
-	- \ref pageAdditionalSoftware
 	- \ref pageUG4Shell
 	- \ref pageTutorials
 		- \ref pageScriptTutorial

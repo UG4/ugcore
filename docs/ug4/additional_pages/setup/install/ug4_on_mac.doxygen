@@ -4,18 +4,17 @@
   y12 m03 d30
 */
 
-/** \page pageUG4OnMac Mac OSX Installation
+/** \page pageUG4OnMac Prerequisites on Mac OSX
 
-- \ref secInstallUG4CMakeMac
-- \ref secInstallUG4GCCMac
-- \ref secInstallUG4UG4
-- \ref secInstallUG4Boost
+- \ref secInstallMacCMake
+- \ref secInstallMacGCC
+- \ref secInstallMacParaView
 
 Before installing something on a Mac, make sure things aren't already installed by some other user by checking
 the appropriate commands in the terminal (<tt>gcc --version</tt> and <tt>cmake --version</tt>).
 
 <hr>
-\section secInstallUG4CMakeMac CMake
+\section secInstallMacCMake CMake
 
 <ul>
   <li>Download \em CMake:
@@ -34,7 +33,7 @@ the appropriate commands in the terminal (<tt>gcc --version</tt> and <tt>cmake -
 </ul>
 
 <hr>
-\section secInstallUG4GCCMac GCC
+\section secInstallMacGCC GCC
 The common way to achieve a C++ compiler for Mac-OSX is to download and install
 the XCode IDE by Apple (see https://developer.apple.com/technologies/tools/).
 For that you'll require an Apple (developer) ID, which can be obtained on apple.com freely.
@@ -64,8 +63,9 @@ more recent revisions of the the software contained in the prebuilt pkg bundle.
 See <a href="http://kennethreitz.com/xcode-gcc-and-homebrew.html">here</a> for further information.
 \note Please note too, you can install Macports and upgrade your compilers then.
 
-
-The rest of the installation on Mac OSX is very similar to the Linux / Unix installation detailed here:
-\ref secInstallUG4UG4.
+<hr>
+<br>
+\section secInstallMacParaView Installation of ParaView (optional)
+<!-- todo -->
 
 */
