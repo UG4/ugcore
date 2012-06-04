@@ -203,8 +203,8 @@ static void Common(Registry& reg, string grp)
 			.add_constructor()
 			.add_method("clear_selection", &T::clear_selection)
 			.add_method("select_all", &T::select_all)
-			.add_method("select_nodal_scalar", &T::select_nodal_scalar)
-			.add_method("select_nodal_vector", &T::select_nodal_vector)
+			.add_method("select_nodal", &T::select_nodal)
+			.add_method("select_nodal", &T::select_nodal)
 			.set_construct_as_smart_pointer(true);
 	}
 }

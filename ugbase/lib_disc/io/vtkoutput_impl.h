@@ -850,7 +850,7 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, Grid& grid, int si, 
 //	add all components if 'selectAll' chosen
 	if(m_bSelectAll)
 		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-			select_nodal_scalar(u.name(fct).c_str(), u.name(fct).c_str());
+			select_nodal(u.name(fct).c_str(), u.name(fct).c_str());
 
 //	loop all selected symbolic names
 	for(size_t sym = 0; sym < m_vSymbFct.size(); ++sym)
@@ -873,6 +873,14 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, Grid& grid, int si, 
 			if(!u.is_def_in_subset(fct, si)) bContained = false;
 		}
 		if(!bContained) continue;
+
+	//	check that one or #dim components passed
+		if(fctGrp.size() != 1 && fctGrp.size() != (size_t)TFunction::dim)
+			UG_THROW("VTK: a nodal data '" << vtkName<< "' has been selected, "
+					"that is not interpretable as scalar nor as a vector, since "
+			         <<fctGrp.size()<<" components have been selected in world "
+			        "dimension " << TFunction::dim<<". Please select 1 or "<<
+			        TFunction::dim<<" components.");
 
 	//	write scalar value of this function
 		try{

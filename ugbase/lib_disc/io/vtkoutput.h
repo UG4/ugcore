@@ -243,31 +243,19 @@ class VTKOutput
 
 	///	selects a nodal scalar value to be written
 	/**
-	 * This function schedules the component passed by symbolic name to be
+	 * This function schedules the component(s) passed by symbolic name(s) to be
 	 * written to the vtk file under a specified name. Note, that for the
 	 * ansatz space of the component an evaluation of the data at the nodes
-	 * must be available (continuous).
+	 * must be available (continuous). If more than one component is passed, the
+	 * data will be intepreted as a vector and #dim arguments must be passed.
 	 *
 	 * example: fctName = "p"; name = "pressure"
+	 * example: fctNames = "u,v,w"; name = "velocity"
 	 *
 	 * \param[in]	fctName		symbolic name of component
 	 * \param[in]	name		name that will appear in the vtk file for the data
 	 */
-		void select_nodal_scalar(const char* fctName, const char* name);
-
-	///	selects a nodal vector value to be written
-	/**
-	 * This function schedules a vector to be written to the vtk file. The
-	 * symbolic names of the vector components have to be specified as components
-	 * of the passed grid function. Evaluation at nodes must be available for
-	 * all components.
-	 *
-	 * example: fctNames = "u,v,w"; name = "velocity"
-	 *
-	 * \param[in]	fctName		symbolic name of components
-	 * \param[in]	name		name that will appear in the vtk file for the data
-	 */
-		void select_nodal_vector(const char* fctNames, const char* name);
+		void select_nodal(const char* fctName, const char* name);
 
 	/**
 	 * This function writes the grid to a *.vtu file. It calls the function
