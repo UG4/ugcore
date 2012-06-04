@@ -91,7 +91,8 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 					VertexBase* newVolumeVertex,
 					const VertexBase& prototypeVertex,
 					VertexBase** vrts,
-					int (*funcRefine)(int*, int*, bool&))
+					int (*funcRefine)(int*, int*, bool&, vector3*),
+					vector3* corners = NULL)
 {
 	vNewVolumesOut.clear();
 	*ppNewVertexOut = NULL;
@@ -127,7 +128,7 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 
 //	perform refine
 	bool centerVrtRequired = false;
-	int numElemInds = funcRefine(newElemInds, newEdgeVrts, centerVrtRequired);
+	int numElemInds = funcRefine(newElemInds, newEdgeVrts, centerVrtRequired, corners);
 
 	assert(numElemInds != 0 && "PROBLEM in Refine(...): "
 								"refine with 1 new edge vertex failed.");
@@ -327,7 +328,8 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices)
+							VertexBase** pSubstituteVertices,
+							vector3* corners)
 {
 //	handle substitute vertices.
 	VertexBase** vrts;
@@ -339,7 +341,7 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	return Refine<TetrahedronClass>(vNewVolumesOut, ppNewVertexOut,
 									newEdgeVertices, newFaceVertices,
 									newVolumeVertex, prototypeVertex,
-									vrts, tet_rules::Refine);
+									vrts, tet_rules::Refine, corners);
 }
 
 void Tetrahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
@@ -512,7 +514,8 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 						VertexBase** newFaceVertices,
 						VertexBase* newVolumeVertex,
 						const VertexBase& prototypeVertex,
-						VertexBase** pSubstituteVertices)
+						VertexBase** pSubstituteVertices,
+						vector3*)
 {
 //	handle substitute vertices.
 	VertexBase** vrts;
@@ -711,7 +714,8 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 					VertexBase** newFaceVertices,
 					VertexBase* newVolumeVertex,
 					const VertexBase& prototypeVertex,
-					VertexBase** pSubstituteVertices)
+					VertexBase** pSubstituteVertices,
+					vector3*)
 {
 //	handle substitute vertices.
 	VertexBase** vrts;
@@ -887,7 +891,8 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 						VertexBase** newFaceVertices,
 						VertexBase* newVolumeVertex,
 						const VertexBase& prototypeVertex,
-						VertexBase** pSubstituteVertices)
+						VertexBase** pSubstituteVertices,
+						vector3*)
 {
 //	handle substitute vertices.
 	VertexBase** vrts;

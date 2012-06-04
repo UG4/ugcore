@@ -19,7 +19,7 @@ void RotateQuad(int vrtsOut[4], const int quad[4], int steps)
 		vrtsOut[(i + steps) % 4] = quad[i];
 }
 
-int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
+int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 {
 	newCenterOut = false;
 //	If a refinement rule is not implemented, fillCount will stay at 0.

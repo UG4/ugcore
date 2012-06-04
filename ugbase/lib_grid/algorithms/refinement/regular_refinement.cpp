@@ -282,6 +282,9 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	vector<VertexBase*> volFaceVrts;
 	volFaceVrts.reserve(6);
 	
+//	only used for tetrahedron refinement
+	vector<vector3> corners(4, vector3(0, 0, 0));
+
 	for(size_t i = 0; i < vols.size(); ++i){
 		Volume* v = vols[i];
 		VertexBase* newVrt;
@@ -306,8 +309,19 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 				volFaceVrts.push_back(NULL);
 		}
 		
+	//	if we're performing tetrahedral refinement, we have to collect
+	//	the corner coordinates, so that the refinement algorithm may choose
+	//	the best interior diagonal.
+		vector3* pCorners = NULL;
+		if((v->num_vertices() == 4) && refCallback){
+			for(size_t i = 0; i < 4; ++i){
+				refCallback->current_pos(&corners[i].x, v->vertex(i), 3);
+			}
+			pCorners = &corners.front();
+		}
+
 		if(v->refine(newVols, &newVrt, &volEdgeVrts.front(),
-					&volFaceVrts.front(), NULL, Vertex()))
+					&volFaceVrts.front(), NULL, Vertex(), NULL, pCorners))
 		{
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){

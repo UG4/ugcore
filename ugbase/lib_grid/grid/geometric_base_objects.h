@@ -15,6 +15,7 @@
 #include "lib_grid/attachments/attached_list.h"
 #include "common/util/hash.h"
 #include "common/allocators/small_object_allocator.h"
+#include "common/math/ugmath_types.h"
 
 namespace ug
 {
@@ -685,6 +686,11 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 	 * - If you specify pvSubstituteVertices, the created volumes will reference the vertices
 	 *   in pvSubstituteVertices. Note that pvSubstituteVertices has to contain exactly as
 	 *   many vertices as the refined Face. Vertices with the same index correlate.
+	 * - You may optionally specify an array containing the corner positions of the element.
+	 * 	 If specified, those corners are used during regular tetrahedron refinement
+	 * 	 only (only if all edges are refined). They are used to choose the best
+	 * 	 refinement rule for interior child tetrahedrons, thus improving interior
+	 * 	 angles.
 	 */
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** ppNewVertexOut,
@@ -692,7 +698,8 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices = NULL)	{return false;}
+							VertexBase** pSubstituteVertices = NULL,
+							vector3* corners = NULL)	{return false;}
 
 	/**
 	 * The collapse_edge method creates new geometric objects by collapsing the specified edge.

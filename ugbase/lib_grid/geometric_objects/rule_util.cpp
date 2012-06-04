@@ -21,7 +21,7 @@ int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 					int numVrts, int numEdges, int numFaces)
 {
 //	no refinement rule was found. We'll thus insert a new vertex in the
-//	center and split the tetrahedron into 4 sub-tetrahedrons.
+//	center and split the element into sub-elements.
 //	we'll then recursively call this method for each sub-tetrahedron.
 //	since all refinement rules for one side are given, one recursion will
 //	always suffice.

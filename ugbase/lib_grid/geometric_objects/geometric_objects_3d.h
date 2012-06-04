@@ -103,7 +103,8 @@ class UG_API Tetrahedron : public Volume
 							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices = NULL);
+							VertexBase** pSubstituteVertices = NULL,
+							vector3* corners = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, VertexBase* newVertex,
@@ -215,7 +216,8 @@ class UG_API Hexahedron : public Volume
 							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices = NULL);
+							VertexBase** pSubstituteVertices = NULL,
+							vector3* corners = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, VertexBase* newVertex,
@@ -327,7 +329,8 @@ class UG_API Prism : public Volume
 							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices = NULL);
+							VertexBase** pSubstituteVertices = NULL,
+							vector3* corners = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, VertexBase* newVertex,
@@ -437,7 +440,8 @@ class UG_API Pyramid : public Volume
 							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices = NULL);
+							VertexBase** pSubstituteVertices = NULL,
+							vector3* corners = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, VertexBase* newVertex,

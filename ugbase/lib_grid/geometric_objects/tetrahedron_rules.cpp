@@ -23,7 +23,8 @@ void RotateTetrahedron(int vrtsOut[NUM_VERTICES], int steps)
 }
 
 
-int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
+int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
+		   vector3* corners)
 {
 	newCenterOut = false;
 //	If a refinement rule is not implemented, fillCount will stay at 0.
@@ -277,6 +278,7 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 		{
 			int& fi = fillCount;
 			int* inds = newIndsOut;
+
 			inds[fi++] = 4;
 			inds[fi++] = 0;					inds[fi++] = NUM_VERTICES + 0;
 			inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 3;
@@ -290,24 +292,104 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
 			inds[fi++] = NUM_VERTICES + 1;	inds[fi++] = NUM_VERTICES + 5;
 
 			inds[fi++] = 4;
-			inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 1;
-			inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 4;
-
-			inds[fi++] = 4;
-			inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 0;
-			inds[fi++] = NUM_VERTICES + 4;	inds[fi++] = NUM_VERTICES + 3;
-
-			inds[fi++] = 4;
-			inds[fi++] = NUM_VERTICES + 3;	inds[fi++] = NUM_VERTICES + 2;
-			inds[fi++] = NUM_VERTICES + 5;	inds[fi++] = NUM_VERTICES + 4;
-
-			inds[fi++] = 4;
-			inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 1;
-			inds[fi++] = NUM_VERTICES + 5;	inds[fi++] = NUM_VERTICES + 4;
-
-			inds[fi++] = 4;
 			inds[fi++] = NUM_VERTICES + 3;	inds[fi++] = NUM_VERTICES + 4;
 			inds[fi++] = NUM_VERTICES + 5;	inds[fi++] = 3;
+
+		//	for the remaining four tetrahedrons, we'll choose the shortest diagonal
+			int bestDiag = 2;
+			if(corners){
+			//	there are three diagonals between the following edge-centers:
+			//	0-5, 1-3, 2-4
+				vector3 c1, c2;
+
+			//	0-5
+				VecAdd(c1, corners[0], corners[1]);
+				VecScale(c1, c1, 0.5);
+				VecAdd(c2, corners[2], corners[3]);
+				VecScale(c2, c2, 0.5);
+				number d05 = VecDistanceSq(c1, c2);
+
+			//	1-3
+				VecAdd(c1, corners[1], corners[2]);
+				VecScale(c1, c1, 0.5);
+				VecAdd(c2, corners[0], corners[3]);
+				VecScale(c2, c2, 0.5);
+				number d13 = VecDistanceSq(c1, c2);
+
+			//	2-4
+				VecAdd(c1, corners[0], corners[2]);
+				VecScale(c1, c1, 0.5);
+				VecAdd(c2, corners[1], corners[3]);
+				VecScale(c2, c2, 0.5);
+				number d = VecDistanceSq(c1, c2);
+
+				if(d13 < d){
+					bestDiag = 1;
+					d = d13;
+				}
+				if(d05 < d){
+					bestDiag = 0;
+				}
+			}
+
+			switch(bestDiag){
+			case 0:// diag: 0-5
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 1;
+				inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 5;
+
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 1;	inds[fi++] = NUM_VERTICES + 4;
+				inds[fi++] = NUM_VERTICES + 5;	inds[fi++] = NUM_VERTICES + 0;
+
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 5;
+				inds[fi++] = NUM_VERTICES + 3;	inds[fi++] = NUM_VERTICES + 0;
+
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 3;
+				inds[fi++] = NUM_VERTICES + 4;	inds[fi++] = NUM_VERTICES + 5;
+
+				break;
+
+			case 1:// diag: 1-3
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 1;
+				inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 3;
+
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 1;	inds[fi++] = NUM_VERTICES + 4;
+				inds[fi++] = NUM_VERTICES + 5;	inds[fi++] = NUM_VERTICES + 3;
+
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 5;
+				inds[fi++] = NUM_VERTICES + 3;	inds[fi++] = NUM_VERTICES + 1;
+
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 3;
+				inds[fi++] = NUM_VERTICES + 4;	inds[fi++] = NUM_VERTICES + 1;
+
+				break;
+
+			case 2:// diag 2-4
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 2;
+				inds[fi++] = NUM_VERTICES + 3;	inds[fi++] = NUM_VERTICES + 4;
+
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 1;	inds[fi++] = NUM_VERTICES + 2;
+				inds[fi++] = NUM_VERTICES + 0;	inds[fi++] = NUM_VERTICES + 4;
+
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 3;
+				inds[fi++] = NUM_VERTICES + 4;	inds[fi++] = NUM_VERTICES + 5;
+
+				inds[fi++] = 4;
+				inds[fi++] = NUM_VERTICES + 4;	inds[fi++] = NUM_VERTICES + 1;
+				inds[fi++] = NUM_VERTICES + 2;	inds[fi++] = NUM_VERTICES + 5;
+
+				break;
+			}
 		}break;
 	}
 

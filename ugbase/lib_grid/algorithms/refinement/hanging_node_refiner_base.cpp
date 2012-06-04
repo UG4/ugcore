@@ -1432,10 +1432,22 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 		}
 	}
 
+//	if we're performing tetrahedral refinement, we have to collect
+//	the corner coordinates, so that the refinement algorithm may choose
+//	the best interior diagonal.
+	vector3 corners[4];
+	vector3* pCorners = NULL;
+	if((v->num_vertices() == 4) && m_refCallback){
+		for(size_t i = 0; i < 4; ++i){
+			m_refCallback->current_pos(&corners[i].x, v->vertex(i), 3);
+		}
+		pCorners = corners;
+	}
+
 //	refine the volume and register new volumes at the grid.
 	VertexBase* createdVrt = NULL;
 	v->refine(vVolumes, &createdVrt, &vNewEdgeVertices.front(),
-			  &vNewFaceVertices.front(), NULL, Vertex(), newCornerVrts);
+			  &vNewFaceVertices.front(), NULL, Vertex(), newCornerVrts, pCorners);
 
 	if(createdVrt){
 	//	register the new vertex

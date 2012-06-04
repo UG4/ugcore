@@ -23,7 +23,7 @@ void RotatePrism(int vrtsOut[NUM_VERTICES], int steps)
 }
 
 
-int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut)
+int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 {
 	newCenterOut = false;
 //	If a refinement rule is not implemented, fillCount will stay at 0.

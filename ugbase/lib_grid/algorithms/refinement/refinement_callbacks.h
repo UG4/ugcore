@@ -36,6 +36,18 @@ class IRefinementCallback
 	 *
 	 *	Please note that this method won't be called during multigrid refinement.*/
 		virtual void flat_grid_vertex_encountered(VertexBase* vrt)	{new_vertex(vrt, vrt);}
+
+	///	Gives access to the position of the current vertex
+	/**	The method returns the number of coordinates associated with the vertex
+	 * and writes those coordinates to coordsOut. No more than maxCoords will
+	 * be written to coordsOut. coordsOut thus has to be at least as big as maxCoords.*/
+		virtual int current_pos(number* coordsOut, VertexBase* vrt, int maxCoords) = 0;
+
+	protected:
+	///	A helper implementation of current_pos available for derived classes.
+		template <class TAttachmentAccessor>
+		int current_pos_helper(number* coordsOut, VertexBase* vrt, int maxCoords,
+							   TAttachmentAccessor& aaPos);
 };
 
 
@@ -65,6 +77,8 @@ class RefinementCallbackLinear : public IRefinementCallback
 		virtual void new_vertex(VertexBase* vrt, Face* parent);
 		virtual void new_vertex(VertexBase* vrt, Volume* parent);
 		
+		virtual int current_pos(number* coordsOut, VertexBase* vrt, int maxCoords);
+
 	protected:
 		typedef typename TAPosition::ValueType		pos_type;
 		
@@ -99,6 +113,8 @@ class RefinementCallbackSphere : public IRefinementCallback
 		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
 		virtual void new_vertex(VertexBase* vrt, Face* parent);
 		virtual void new_vertex(VertexBase* vrt, Volume* parent);
+
+		virtual int current_pos(number* coordsOut, VertexBase* vrt, int maxCoords);
 
 	protected:
 		template <class TElem>

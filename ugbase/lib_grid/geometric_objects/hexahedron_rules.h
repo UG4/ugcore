@@ -5,6 +5,9 @@
 #ifndef __H__UG__hexahedron_rules__
 #define __H__UG__hexahedron_rules__
 
+//	only required for dummy-parameter ug::vector3*
+#include "common/math/ugmath_types.h"
+
 namespace ug{
 namespace hex_rules{
 
@@ -147,10 +150,13 @@ const int FACE_FROM_EDGES[][12] =	{{0, 0, 0, 0, 1, 1, -1, -1, 1, -1, -1, -1},
  * 						this parameter will be set to true. If not, it is set to
  * 						false.
  *
+ * \param corners		Ignored.
+ *
  * \returns	the number of entries written to newIndsOut or 0, if the refinement
  * 			could not be performed.
  */
-int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut);
+int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
+		   vector3* corners = NULL);
 
 }//	end of namespace
 }//	end of namespace

@@ -5,6 +5,8 @@
 #ifndef __H__UG__tetrahedron_rules__
 #define __H__UG__tetrahedron_rules__
 
+#include "common/math/ugmath.h"
+
 namespace ug{
 namespace tet_rules
 {
@@ -90,10 +92,18 @@ const int FACE_FROM_EDGES[][6] =	{{0, 0, 0, 3, 3, -1}, {0, 0, 0, -1, 1, 1},
  * 						this parameter will be set to true. If not, it is set to
  * 						false.
  *
+ * \param corners		(optional) List of the four corner positions of the
+ * 						tetrahedron. If it is specified, it is used during full
+ * 						refinement (all edges marked), to determine the best
+ * 						diagonal along which inner tetrahedrons are created.
+ * 						Corners are only considered during full refinement and are
+ * 						thus irrelevant during recursive refinement of other elements.
+ *
  * \returns	the number of entries written to newIndsOut or 0, if the refinement
  * 			could not be performed.
  */
-int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut);
+int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut,
+		   vector3* corners = NULL);
 
 }//	end of namespace tet_rules
 }//	end of namespace ug

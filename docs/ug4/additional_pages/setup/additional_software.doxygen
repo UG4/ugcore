@@ -116,7 +116,7 @@ set PATH = ($PATH $HOME/local/boost_1_48_0)
   <li>Instruct \em CMake to use your own copy of \em Boost when configuring 
     \ug4 (cf. \ref pageUG4Install, \ref secInstallUG4CMake):
     \verbatim
-cmake -DINTERNAL_BOOST=ON <further cmake parameters> ..
+cmake -DINTERNAL_BOOST=OFF <further cmake parameters> ..
     \endverbatim
   </li>
 </ol>

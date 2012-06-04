@@ -15,6 +15,19 @@
 namespace ug
 {
 
+template <class TAttachmentAccessor>
+int IRefinementCallback::
+current_pos_helper(number* coordsOut, VertexBase* vrt, int maxCoords,
+				   TAttachmentAccessor& aaPos)
+{
+	using namespace std;
+	const int numCoords = min(maxCoords, (int)TAttachmentAccessor::ValueType::Size);
+	typename TAttachmentAccessor::ValueType& p = aaPos[vrt];
+	for(int i = 0; i < numCoords; ++i)
+		coordsOut[i] = p[i];
+	return numCoords;
+}
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
@@ -78,6 +91,14 @@ new_vertex(VertexBase* vrt, Volume* parent)
 {
 	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	m_aaPos[vrt] = CalculateCenter(parent, m_aaPos);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+int RefinementCallbackLinear<TAPosition>::
+current_pos(number* coordsOut, VertexBase* vrt, int maxCoords)
+{
+	return IRefinementCallback::current_pos_helper(coordsOut, vrt, maxCoords, m_aaPos);
 }
 
 
@@ -146,6 +167,15 @@ new_vertex(VertexBase* vrt, Volume* parent)
 	perform_projection(vrt, parent);
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+int RefinementCallbackSphere<TAPosition>::
+current_pos(number* coordsOut, VertexBase* vrt, int maxCoords)
+{
+	return IRefinementCallback::current_pos_helper(coordsOut, vrt, maxCoords, m_aaPos);
+}
+
+////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 template <class TElem>
 void RefinementCallbackSphere<TAPosition>::

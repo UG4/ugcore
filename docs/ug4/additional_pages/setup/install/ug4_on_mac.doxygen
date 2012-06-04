@@ -32,7 +32,8 @@
 
 <hr>
 \section secInstallUG4GCCMac GCC
-
+Installation on Mac OSX is very similar to the Linux / Unix installation detailed here:
+\ref pageUG4OnLinux.
 If you already have a working C++ compiler on your system, you may follow those
 instructions immediately. If not, you'll first have to install a C++ compiler.
 The common way to achieve a C++ compiler for Mac-OSX is to download and install
@@ -66,5 +67,5 @@ See <a href="http://kennethreitz.com/xcode-gcc-and-homebrew.html">here</a> for f
 
 
 The rest of the installation on Mac OSX is very similar to the Linux / Unix installation detailed here:
-\ref secInstallUG4UG4.
+\ref pageUG4OnLinux.
 */

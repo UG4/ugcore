@@ -314,6 +314,9 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 	UG_DLOG(LIB_GRID, 1, "  creating new volumes\n");
 
+//	only used for tetrahedron refinement
+	vector<vector3> corners(4, vector3(0, 0, 0));
+
 //	create new vertices and volumes from marked volumes
 	for(VolumeIterator iter = mg.begin<Volume>(oldTopLevel);
 		iter != mg.end<Volume>(oldTopLevel); ++iter)
@@ -346,9 +349,20 @@ void GlobalMultiGridRefiner::perform_refinement()
 			vFaceVrts.push_back(mg.get_child_vertex(mg.get_face(v, j)));
 		//GMGR_PROFILE_END();
 
+	//	if we're performing tetrahedral refinement, we have to collect
+	//	the corner coordinates, so that the refinement algorithm may choose
+	//	the best interior diagonal.
+		vector3* pCorners = NULL;
+		if((v->num_vertices() == 4) && m_refCallback){
+			for(size_t i = 0; i < 4; ++i){
+				m_refCallback->current_pos(&corners[i].x, v->vertex(i), 3);
+			}
+			pCorners = &corners.front();
+		}
+
 		VertexBase* newVrt;
 		if(v->refine(vVols, &newVrt, &vEdgeVrts.front(), &vFaceVrts.front(),
-					NULL, Vertex(), &vVrts.front())){
+					NULL, Vertex(), &vVrts.front(), pCorners)){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				mg.register_element(newVrt, v);
