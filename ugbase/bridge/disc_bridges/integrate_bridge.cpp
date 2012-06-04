@@ -69,6 +69,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction#Subsets");
 		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction");
 #endif
+
+		reg.add_function("Integral",static_cast<number (*)(SmartPtr<TFct>, const char*, const char*, int)>(Integral<TFct>),grp, "Integral", "GridFunction#Component#Subsets#QuadOrder");
+		reg.add_function("Integral",static_cast<number (*)(SmartPtr<TFct>, const char*, const char*)>(Integral<TFct>),grp, "Integral", "GridFunction#Component#Subsets");
+		reg.add_function("Integral",static_cast<number (*)(SmartPtr<TFct>, const char*)>(Integral<TFct>),grp, "Integral", "GridFunction#Component");
 	}
 
 //	L2Error
@@ -82,11 +86,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	L2Norm
 	{
 		reg.add_function("L2Norm",static_cast<number (*)(SmartPtr<TFct>, const char*, int, const char*)>(&L2Norm<TFct>),grp);
-	}
-
-//	StdFuncIntegral
-	{
-		reg.add_function("StdFuncIntegral",static_cast<number (*)(SmartPtr<TFct>, const char*, int, const char*)>(&StdFuncIntegral<TFct>),grp);
 	}
 
 //	IntegrateFluxOnBoundary

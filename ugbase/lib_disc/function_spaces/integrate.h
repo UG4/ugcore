@@ -995,8 +995,8 @@ class StdFuncIntegrand
 
 
 template <typename TGridFunction>
-number StdFuncIntegral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
-                       int quadOrder, const char* subsets)
+number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
+                const char* subsets, int quadOrder)
 {
 //	get function id of name
 	const size_t fct = spGridFct->fct_id_by_name(cmp);
@@ -1010,6 +1010,18 @@ number StdFuncIntegral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 		= CreateSmartPtr(new StdFuncIntegrand<TGridFunction>(spGridFct, fct));
 
 	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder);
+}
+
+template <typename TGridFunction>
+number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
+                const char* subsets)
+{
+	return Integral(spGridFct, cmp, subsets, 1);
+}
+template <typename TGridFunction>
+number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp)
+{
+	return Integral(spGridFct, cmp, NULL, 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
