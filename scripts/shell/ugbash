@@ -55,3 +55,4 @@ chmod +x $UG4_ROOT/scripts/shell/ugsubmit
 chmod +x $UG4_ROOT/scripts/shell/uginstall
 chmod +x $UG4_ROOT/scripts/shell/sshfsmake
 
+source .uginstall

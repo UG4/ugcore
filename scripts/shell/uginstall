@@ -6,7 +6,6 @@
 # mail: martin.rupp@gcsc.uni-frankfurt.de
 ######################################################################
 
-
 #which wget &> /dev/null
 #if [ $? == 0 ]; then
 	#mywget=wget
@@ -14,22 +13,9 @@
 	#mywget="curl -O"
 #fi
 
-LOCAL_INSTALLDIR=$HOME/local/
-
-LD_LIBRARY_PATH=$LOCAL_INSTALLDIR/lib
-export LD_LIBRARY_PATH
-
-LD_RUN_PATH=$LOCAL_INSTALLDIR/lib
-export LD_RUN_PATH
-
-PATH=$LOCAL_INSTALLDIR/bin:$PATH
-export PATH
-
-C_INCLUDE_PATH=$LOCAL_INSTALLDIR/include/
-export C_INCLUDE_PATH
-CPLUS_INCLUDE_PATH=/$LOCAL_INSTALLDIR/include/
-export CPLUS_INCLUDE_PATH
-
+scriptname=$0;		  # name of script
+scriptpath=`dirname $scriptname`
+source $scriptpath/.uginstall
 
 cd 
 if [ ! -e local ]; then mkdir local; fi
@@ -111,6 +97,7 @@ my_install()
 		make install
 		if [ ! $? == 0 ]; then echo "Error make install for $subdir"; exit; fi
 		cd ..
+		echo "$subdir installed!"
 		touch installed.$subdir
 	fi
 }
@@ -163,6 +150,7 @@ install_gcc()
 		if [ ! $? == 0 ]; then echo "Error make install for $subdir"; exit; fi
 		cd ..
 		cd ..
+		echo "$subdir installed!"
 		touch installed.$subdir
 	fi
 
@@ -204,8 +192,31 @@ install_GotoBLAS2()
 		cp cblas.h $LOCAL_INSTALLDIR/include/
 
 		cd ..
+		echo "$subdir installed!"
 		touch installed.$subdir
 	fi
+}
+
+install_ParaView()
+{
+	local subdir="ParaView-3.14.1-Linux-32bit" 
+	local location="http://www.paraview.org/files/v3.14/ParaView-3.14.1-Linux-32bit.tar.gz"
+	local filename="ParaView-3.14.1-Linux-32bit.tar.gz"
+	
+	if [ -e installed.ParaView ]; then
+		echo "ParaView already installed."
+	else
+		my_download $subdir $location $filename
+		
+		echo "$subdir installed!"				
+		cat > $LOCAL_INSTALLDIR/installed.ParaView << EOF
+$LOCAL_INSTALLDIR/$subdir
+EOF
+
+		echo "Please source your .bashrc or restart your shell."
+	fi
+	
+	
 }
 
 install_all()
@@ -214,6 +225,7 @@ install_all()
 	install_cmake
 	install_GotoBLAS2
 	install_openmpi
+	install_ParaView
 }
 
 print_usage()
@@ -230,6 +242,7 @@ print_usage()
 	echo "		mpfr"	
 	echo "		mpc"
 	echo "		OpenMPI"
+	echo "		ParaView"
 }
 
 
@@ -241,6 +254,7 @@ case $1 in
 	mpc) install_mpc ;;
 	mpfr) install_mpfr ;;
 	OpenMPI) install_openmpi ;;
+	ParaView) install_ParaView ;;
 	all) install_all ;;
 	
 	*) print_usage ;;
