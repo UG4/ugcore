@@ -39,11 +39,8 @@ fi
 
 export UG4_ROOT
 
-# create an alias to ugshell
-alias ugshell=$UG4_ROOT/bin/ugshell
-
 # add scripts/shell to path
-PATH=$PATH:$UG4_ROOT/scripts/shell/
+PATH=$PATH:$UG4_ROOT/scripts/shell/:$UG4_ROOT/bin/
 export PATH
 
 # add ugcomplete and cdug
