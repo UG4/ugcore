@@ -348,9 +348,9 @@ newtonSolver:init(op)
 u = GridFunction(approxSpace)
 
 -- set initial value
-InterpolateFunction(CaCytStartValue, u, "ca_cyt", 0.0)
-InterpolateFunction(CaERStartValue, u, "ca_er", 0.0)
-InterpolateFunction(IP3StartValue, u, "ip3", 0.0)
+Interpolate(CaCytStartValue, u, "ca_cyt", 0.0)
+Interpolate(CaERStartValue, u, "ca_er", 0.0)
+Interpolate(IP3StartValue, u, "ip3", 0.0)
 
 -- timestep in seconds
 dt = 0.001
