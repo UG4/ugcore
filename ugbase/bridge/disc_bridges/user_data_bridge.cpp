@@ -72,6 +72,14 @@ class ElderDensityLinker
 							deriv(s, ip, fct, dof) = 0.2e3 * input_deriv(0, s, ip, fct, dof);
 						}
 		}
+
+		// \todo: implement correctly
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return true;}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const {return false;}
+
 };
 
 
@@ -310,6 +318,13 @@ class DarcyVelocityLinker
 
 			}
 		}
+
+		// \todo: implement correctly
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return true;}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const {return false;}
 
 	public:
 	///	set permeability import

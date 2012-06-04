@@ -174,6 +174,12 @@ class LuaUserData : public IPData<TData, dim, TRet>
 		                        const size_t nip,
 		                        const MathMatrix<3, dim>* vJT = NULL) const;
 
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return false;}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const {return true;}
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -285,8 +285,11 @@ class IDirectIPData
 		                        const size_t nip,
 		                        const MathMatrix<3, dim>* vJT = NULL) const;
 
-	///	returns of grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return false;}
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return true;}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const {return false;}
 
 	///	sets the function pattern for a possibly needed grid function
 		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}

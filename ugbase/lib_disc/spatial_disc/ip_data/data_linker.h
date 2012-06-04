@@ -413,6 +413,15 @@ class StdDataLinkerEqualData
 			return bRet;
 		}
 
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const
+		{
+			bool bRet = true;
+			for(size_t i = 0; i < this->m_vpIPData.size(); ++i)
+				bRet &= this->m_vpIPData[i]->is_continuous();
+			return bRet;
+		}
+
 	///	sets the associated function pattern
 		virtual void set_function_pattern(const FunctionPattern& fctPatt)
 		{

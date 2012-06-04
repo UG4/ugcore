@@ -287,6 +287,15 @@ class ValueDataExport
 			}
 		}
 
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const
+		{
+			const LFEID& lfeID = this->fct_grp().local_finite_element_id(_C_);
+
+			if(lfeID.type() == LFEID::LAGRANGE) return true;
+			else return false;
+		}
+
 	protected:
 	//	abbreviation for component
 		static const int _C_ = 0;
@@ -366,6 +375,12 @@ class GradientDataExport
 					UG_THROW("GradientDataExport: "<< ex.get_msg()<<", Reference Object: "
 					         <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
 				}
+		}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const
+		{
+			return false;
 		}
 
 	protected:

@@ -122,6 +122,12 @@ class StdConstUserData
 				getImpl().evaluate(vValue[ip]);
 		}
 
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return false;}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const {return true;}
+
 	protected:
 	///	access to implementation
 		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
