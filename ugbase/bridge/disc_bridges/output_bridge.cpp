@@ -33,14 +33,14 @@ template <typename TGridFunction>
 void WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
 {
 	PROFILE_FUNC();
-	VTKOutput out;
+	VTKOutput<TGridFunction::dim> out;
 	out.print(filename, u, true); // TODO: setting of last argument (intended to skip "make consistent", for writing of "raw" data; see (grid_function_util.h')
 }
 
 template <int dim>
 void SaveDomainToVTK(const char* filename, Domain<dim>& domain)
 {
-	VTKOutput::print<dim>(filename, domain);
+	VTKOutput<dim>::print(filename, domain);
 }
 
 /**
@@ -74,7 +74,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	VTK Output
 	{
-		typedef VTKOutput T;
+		typedef VTKOutput<dim> T;
 		reg.get_class_<T>()
 			.add_method("write_time_pvd", static_cast<void (T::*)(const char*, function_type&)>(&T::write_time_pvd))
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, int, number, bool)>(&T::print))
@@ -182,7 +182,23 @@ static void DomainAlgebra(Registry& reg, string grp)
 template <int dim>
 static void Dimension(Registry& reg, string grp)
 {
+	string suffix = GetDimensionSuffix<dim>();
+	string tag = GetDimensionTag<dim>();
+
 	reg.add_function("SaveDomainToVTK", &SaveDomainToVTK<dim>);
+
+//	VTK Output
+	{
+		typedef VTKOutput<dim> T;
+		string name = string("VTKOutput").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.add_constructor()
+			.add_method("clear_selection", &T::clear_selection)
+			.add_method("select_all", &T::select_all)
+			.add_method("select_nodal", static_cast<void (T::*)(const char*, const char*)>(&T::select_nodal))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "VTKOutput", tag);
+	}
 }
 
 /**
@@ -195,17 +211,6 @@ static void Dimension(Registry& reg, string grp)
  */
 static void Common(Registry& reg, string grp)
 {
-//	VTK Output
-	{
-		typedef VTKOutput T;
-		string name = string("VTKOutput");
-		reg.add_class_<T>(name, grp)
-			.add_constructor()
-			.add_method("clear_selection", &T::clear_selection)
-			.add_method("select_all", &T::select_all)
-			.add_method("select_nodal", &T::select_nodal)
-			.set_construct_as_smart_pointer(true);
-	}
 }
 
 }; // end Functionality

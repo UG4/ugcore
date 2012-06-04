@@ -372,7 +372,7 @@ protected:
 					m_spApproxSpace->level_dof_distribution(
 							m_gridLevel.level()));
 			vtkFunc.assign(vec);
-			VTKOutput out;
+			VTKOutput<dim> out;
 			out.print(filename, vtkFunc, m_printConsistent);
 		} else if (m_gridLevel.type() == GridLevel::SURFACE) {
 			typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TGridFunction;
@@ -381,7 +381,7 @@ protected:
 					m_spApproxSpace->surface_dof_distribution(
 							m_gridLevel.level()));
 			vtkFunc.assign(vec);
-			VTKOutput out;
+			VTKOutput<dim> out;
 			out.print(filename, vtkFunc, m_printConsistent);
 		} else
 			UG_THROW("Cannot find grid level.");

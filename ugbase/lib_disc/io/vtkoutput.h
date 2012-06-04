@@ -16,6 +16,7 @@
 #include "common/util/string_util.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/domain.h"
+#include "lib_disc/spatial_disc/ip_data/ip_data.h"
 
 namespace ug{
 
@@ -230,8 +231,9 @@ struct IteratorProvider<MGSubsetHandler>
  * ATTENTION: This class uses heavily the mark-function of the grid.
  * 			  Do not use any member function while having called begin_mark()
  *
- * \tparam		TFunction 	discrete grid function used
+ * \tparam		dim 	world dimension
  */
+template <int TDim>
 class VTKOutput
 {
 	public:
@@ -241,9 +243,10 @@ class VTKOutput
 	///	schedules that all components of the passed discrete functions will be written to file
 		void select_all(bool bAll) {m_bSelectAll = bAll;}
 
-	///	selects a nodal scalar value to be written
+	///	selects a nodal value of a grid function value to be written
 	/**
-	 * This function schedules the component(s) passed by symbolic name(s) to be
+	 * This function schedules the component(s) passed by symbolic name(s) of an
+	 * approximation space to be
 	 * written to the vtk file under a specified name. Note, that for the
 	 * ansatz space of the component an evaluation of the data at the nodes
 	 * must be available (continuous). If more than one component is passed, the
@@ -256,6 +259,20 @@ class VTKOutput
 	 * \param[in]	name		name that will appear in the vtk file for the data
 	 */
 		void select_nodal(const char* fctName, const char* name);
+
+	///	selects a nodal data value to be written
+	/**
+	 * This function schedules a user data to be written to the vtk file under
+	 * a specified name. Note, that for the the data at the nodes must be
+	 * available (continuous).
+	 *
+	 * \param[in]	spData		data to be written
+	 * \param[in]	name		name that will appear in the vtk file for the data
+	 */
+	/// \{
+		void select_nodal(SmartPtr<IDirectIPData<number, TDim> > spData, const char* name);
+		void select_nodal(SmartPtr<IDirectIPData<MathVector<TDim>, TDim> > spData, const char* name);
+	/// \}
 
 	/**
 	 * This function writes the grid to a *.vtu file. It calls the function
@@ -305,8 +322,7 @@ class VTKOutput
 		}
 
 	///	prints the domain to file
-		template <int dim>
-		static void print(const char* filename, Domain<dim>& domain);
+		static void print(const char* filename, Domain<TDim>& domain);
 
 	/**
 	 * This function writes the subset si of the grid (or the whole grid if
@@ -390,7 +406,7 @@ class VTKOutput
 		count_sizes(Grid& grid, const T& iterContainer, int si,
 		            int& numVert, int& numElem, int& numConn);
 
-		template <typename T, int TDim>
+		template <typename T>
 		static void
 		write_points_cells_piece(VTKFileWriter& File,
 		                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
@@ -398,7 +414,7 @@ class VTKOutput
 		                         Grid& grid, const T& iterContainer, int si, int dim,
 		                         int numVert, int numElem, int numConn);
 
-		template <typename T, int TDim>
+		template <typename T>
 		static void
 		write_grid_piece(VTKFileWriter& File,
 		                 Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
@@ -418,7 +434,7 @@ class VTKOutput
 	 * \param[in]		dim			dimension of subset
 	 * \param[in]		numVert		number of vertices
 	 */
-		template <typename T, int TDim>
+		template <typename T>
 		static void
 		write_points(VTKFileWriter& File,
 		             Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
@@ -437,11 +453,11 @@ class VTKOutput
 	 * \param[in]	si			subset index
 	 * \param[in]	n			counter for vertices
 	 */
-		template <typename TElem, typename T, int dim>
+		template <typename TElem, typename T>
 		static void
 		write_points_elementwise(VTKFileWriter& File,
 		                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
-		                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<dim> > >& aaPos,
+		                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
 		                         Grid& grid, const T& iterContainer, int si, int& n);
 
 	/**
@@ -603,9 +619,19 @@ class VTKOutput
 		VTKOutput()	: m_bSelectAll(true) {}
 
 	protected:
+	///	returns true if name for vtk-component is already used
+		bool vtk_name_used(const char* name) const;
+
+	protected:
 	///	scheduled components to be printed
 		bool m_bSelectAll;
 		std::vector<std::pair<std::string, std::string> > m_vSymbFct;
+
+	///	scheduled scalar data to be printed
+		std::vector<std::pair<SmartPtr<IDirectIPData<number, TDim> >,std::string> > m_vScalarData;
+
+	///	scheduled vector data to be printed
+		std::vector<std::pair<SmartPtr<IDirectIPData<MathVector<TDim>, TDim> >,std::string> > m_vVectorData;
 
 	///	map storing the time points
 		std::map<std::string, std::vector<number> > m_mTimestep;
