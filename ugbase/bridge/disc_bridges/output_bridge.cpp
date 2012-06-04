@@ -204,7 +204,6 @@ static void Common(Registry& reg, string grp)
 			.add_method("clear_selection", &T::clear_selection)
 			.add_method("select_all", &T::select_all)
 			.add_method("select_nodal", &T::select_nodal)
-			.add_method("select_nodal", &T::select_nodal)
 			.set_construct_as_smart_pointer(true);
 	}
 }
