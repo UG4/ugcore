@@ -1,0 +1,90 @@
+//	y12 m06 d04
+
+/** \page pageBuildUG4 Build UG4
+
+- \ref secBuildUG4RunCmake
+- \ref secBuildUG4Make
+
+Before building \ug4, you should make sure that you installed all necessary tools (\ref pageUG4Install) 
+for your system.
+
+<hr>
+\section secBuildUG4Checkout Checkout \ug4
+You \ref secInstallEcpliseUG4Download . 
+To do it \em manually with <tt> svn </tt>: 
+Create a \c ug4 directory and perform a svn checkout on the trunk.
+- <tt>mkdir ug4</tt>
+- <tt>cd ug4</tt>
+- <tt>svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>
+
+In the following section, <YOURUG4ROOT> is the directory which contains 
+ug_cmake_includes.txt, so depending on your svn checkout, 
+this is ug4 or ug4/trunk. 
+
+<hr>
+\section Enable bash tools
+For some helpful bash tools and completion, add this line to the end of your
+<tt>~/.bashrc</tt> (replace <YOURUG4ROOT> with your path):
+\code
+source <YOURUG4ROOT>/scripts/shell/ugbash
+\endcode
+\note After this, the environment variable $UG4_ROOT is set to <YOURUG4ROOT>.
+
+If you are new to bash/Linux, please try out <tt>source <YOURUG4ROOT>/scripts/shell/prompt</tt> . 
+That way you'll always see in which path you are.
+
+<hr>
+\section secBuildUG4RunCmake Run CMake
+
+<ol>
+  <li>Open a terminal/shell window</li>
+  <li>move to <tt>UG4ROOT</tt></li>
+  <li><tt>mkdir build_debug</tt></li>
+  <li><tt>cd build_debug</tt></li>
+  <li> Generate Makefiles:
+  <ul>  	
+  	<li> Linux/MacOS: <tt>cmake ..</tt>
+  	<li> Windows: <tt>cmake -G"MSYS Makefiles" ..</tt>
+  	<li> Clusters: <tt> cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..</tt> <br>see \ref pageUG4SetupParallel.
+  </ul>
+</ol>
+
+Note that there are several options that can be passed to \em CMake to change
+the build behaviour.
+You see always the current chosen setup when runnig <tt>cmake ..</tt> and you should 
+see a list of options which you can change.
+In order to change an option run <tt>cmake</tt> again with the parameter 
+<tt>-D&lt;option&gt;=&lt;val&gt;</tt>, where <tt>&lt;option&gt;</tt> is one of 
+the enumerated options and <tt>&lt;val&gt;</tt> is one of the possible values 
+for that option (<tt>&lt;</tt> and <tt>&gt;</tt> should of course not be typed).
+The last argument to <tt>cmake</tt> always has to be the path which you used 
+when you called cmake the first time.
+
+\note To get more completions for the ug4 cmake parameters, use ugcmake.
+
+
+Note that you only have to specify the variables which you want to change.
+All other variables will keep their values.
+One widely used option is <tt>-DDEBUG=ON</tt>, so you use it like <tt>cmake -DDEBUG=ON ..</tt> .
+
+As default ug is build for all supported world dimensions (<tt>Dim = 1,2,3</tt>).
+If you only need a special dimension (e.g. for code development) and you want to 
+save compilation time, use the <tt>-DDIM</tt> option.
+Examples:
+- <tt>cmake -DDIM=ALL ..</tt> -> Builds all dimensions
+- <tt>cmake -DDIM=2 ..</tt> -> Builds only dimension 2
+- <tt>cmake -DDIM="2;3" ..</tt> -> Builds dimension 2 and 3, but not 1
+
+For \em CMake Versions older than 2.8 you may be forced to explicitly specify,
+that the option \c DIM is passed as a string.
+So, please use: <tt>cmake -DDIM:STRING=2 ..</tt> etc.
+
+
+<hr>
+\section secBuildUG4Make Make
+
+-# move to <tt>ug4/trunk/build_debug</tt>
+-# <tt>make</tt>
+and your \ug4 is being build
+
+*/

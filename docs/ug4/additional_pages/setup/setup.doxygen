@@ -3,12 +3,11 @@
 These pages give instructions and help in installing and setting up \ug4 for
 simple and special usage as well for development.
 
-- \subpage pageAdditionalSoftware
+- \subpage pageBuildUG4
 - \subpage pageUG4Install
   - \ref pageUG4OnLinux
   - \ref pageUG4OnMac
   - \ref pageUG4OnWindows
   - \ref pageUG4SetupParallel
-- \subpage pageUG4SSH
 
 */

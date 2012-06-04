@@ -2,19 +2,22 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y10 m12 d11
 
-/** \page pageUG4OnLinux Linux / Unix Installation
+/** \page pageUG4OnLinux Prerequisites on Linux / Unix
 
 - \ref secInstallUG4CMake
 - \ref secInstallUG4UG4
 - \ref secInstallUG4Boost
 
+Before installing manually, you should check if the software is available in your packet manager or
+from your cluster managment tool (e.g. module load).
+
 <hr>
 \section secInstallUG4CMake CMake
 
 <ul>
+  <li> In order to compile ug4, you have to have cmake installed.
   <li> Check if cmake is already installed: open a terminal, enter <tt>cmake --version</tt>. Minimum Version is 
   \em 2.6.
-  <li>Before installing cmake manually, you should check if cmake is available in your packet manager.
   <li>If Cmake is not installed or wrong version, download \em CMake:
     Download the Unix/Linux Source code 
     of \em CMake from <a href="http://www.cmake.org/cmake/resources/software.html">here</a> 
@@ -47,101 +50,11 @@
 <ul>
   <li> Note: MPI is only needed for \em parallel execution of ug4.
   <li> Check if MPI is already installed: open a terminal, enter <tt>which mpicc</tt>.
-  <li>Before installing mpi manually, you should check if openmpi is available in your packet manager.
   <li>If MPI is not installed, 
     download <a href="http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.tar.gz">openmpi-1.6.tar.gz</a>
     to your home directory.
   <li> the process is now the same as for cmake, only that you are looking for <tt>mpicc</tt>.
   <li> when you have no root: remember the <tt>--prefix=.</tt> option and to set the PATH .
 </ul>
-
-
-<hr>
-\section secInstallUG4UG4 ug4
-Create a \c ug4 directory and perform a svn checkout on the trunk.
-
-- <tt>mkdir ug4</tt>
-- <tt>cd ug4</tt>
-- <tt>svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>
-
-
-<hr>
-\section secInstallUG4RunCmake Run CMake
-
-<ol>
-  <li>Open a terminal/shell window</li>
-  <li>move to <tt>ug4/trunk/</tt></li>
-  <li><tt>mkdir build_debug</tt></li>
-  <li><tt>cd build_debug</tt></li>
-  <li><tt>cmake -DDEBUG=ON ..</tt> --> Makefiles are generated</li>
-</ol>
-
-Note, that there are several options, that can be passed to \em CMake to change
-the build behaviour.
-You see always the current chosen setup when runnig \em CMake and you should 
-see a list of options which you can change.
-In order to change an option run \em CMake again with the parameter 
-<tt>-D&lt;option&gt;=&lt;val&gt;</tt>, where <tt>&lt;option&gt;</tt> is one of 
-the enumerated options and <tt>&lt;val&gt;</tt> is one of the possible values 
-for that option (<tt>&lt;</tt> and <tt>&gt;</tt> should of course not be typed).
-The last argument to <tt>cmake</tt> always has to be the path which you used 
-when you called cmake the first time.
-
-Note that you only have to specify the variables which you want to change.
-All other variables will keep their values.
-
-As default ug is build for all supported world dimensions (<tt>Dim = 1,2,3</tt>).
-If you only need a special dimension (e.g. for code development) and you want to 
-save compilation time, use the <tt>-DDIM</tt> option.
-Examples:
-- <tt>cmake -DDIM=ALL ..</tt> -> Builds all dimensions
-- <tt>cmake -DDIM=2 ..</tt> -> Builds only dimension 2
-- <tt>cmake -DDIM="2;3" ..</tt> -> Builds dimension 2 and 3, but not 1
-
-For \em CMake Versions older than 2.8 you may be forced to explicitly specify,
-that the option \c DIM is passed as a string.
-So, please use: <tt>cmake -DDIM:STRING=2 ..</tt> etc.
-
-
-<hr>
-\section secInstallUG4Make Make
-
--# move to <tt>ug4/trunk/build_debug</tt>
--# <tt>make</tt> --> \ug4 is build
-
-
-<hr>
-\section secInstallUG4Boost Boost
-
-<ul>
-  <li>\em Boost:
-    \note Boost-Headers are now automatically checked out with \ug4 into the 
-    folder <tt>/externals</tt>.
-    You have to download boost only if you want to use a different version of 
-    \em Boost.
-
-    Download latest release of \em Boost from 
-    http://www.boost.org/users/download/ .
-  </li>
-  <li>Extract/Copy the library to some folder on your computer.
-    The folder is arbitrary.
-    (e.g. <tt>$HOME/lib/boost_1_46_0</tt>)
-  <li>
-  <li>Add the path of the folder, where \em Boost is located, to the environment 
-    variable 
-    <a href="http://www.linuxheadquarters.com/howto/basic/path.shtml">PATH</a>, 
-    e.g.: 
-    <ul>
-      <li>in bash:
-        add <tt>PATH=$PATH:$HOME/lib/boost_1_46_0</tt> to the end of the file 
-        <tt>~/.bashrc</tt>
-      </li>
-      <li>in tcsh/csh:
-        add <tt>set PATH = ($PATH $HOME/lib/boost_1_46_0)</tt> to the end of 
-        the file <tt>~/.tcshrc</tt>
-      </li>
-    </ul>
-  </li>
-</ul> 
 
 */

@@ -2,13 +2,13 @@
 //	martin.rupp@gcsc.uni-frankfurt.de
 //	y12 m05 d25
 
-/** \page pageDebugging Debugging
+/** \page pageDebuggingCPP Debugging UG4's C/C++ Code
 
-- \ref secDebuggingUG4
-- \ref secDebuggingTroubleshooting
+- \ref secDebuggingUG4CPP
+- \ref secDebuggingCPPTroubleshooting
 
 <hr>
-\section secDebuggingUG4 Debugging UG4
+\section secDebuggingUG4CPP Debugging UG4
 To debug ug4, you have to make
 \verbatim
 cmake -DDEBUG=ON ..
@@ -29,7 +29,7 @@ b myfile.cpp:33
 run
 \endverbatim
 
-\section secDebuggingTroubleshooting Debug Troubleshooting
+\section secDebuggingCPPTroubleshooting Debug Troubleshooting
 Sometimes you cannot set breakpoints because the source is in a shared library. This is true for all plugins. 
 Also ug4 is loaded dynamically from ugshell. There are two solutions for this:
 <ol>

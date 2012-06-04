@@ -28,19 +28,21 @@ environment
 	- Background
 	
 - \subpage pageUG4Setup
-	- \ref pageAdditionalSoftware
+	- \ref pageBuildUG4
 	- \ref pageUG4Install
 		- \ref pageUG4OnLinux
 		- \ref pageUG4OnMac
 		- \ref pageUG4OnWindows
 		- \ref pageUG4SetupParallel
-	- \ref pageUG4SSH
 	- ug4 for vrl
 
 - \subpage pageUG4Usage
 	- \ref pageAdditionalSoftware
 	- \ref pageUG4Shell
 	- \ref pageTutorials
+		- \ref pageScriptTutorial
+		- \ref pageUG4Profiling
+		- \ref pageUG4ScalabilityTests	
 	- \ref pageUG4ParallelUsage
 		- \ref pageUG4ParallelComputing
 		- \ref pageugsubmit
@@ -63,7 +65,8 @@ environment
 		- \ref pageTeamCommunication
 		- \ref pageUG4DoxygenQuickref
 		- \ref pageUsingGit
-	- \ref pageDebugging
+		- \ref pageUG4SSH	
+	- \ref pageDebuggingCPP
 
 - Copyrights and Licenses
 	- \subpage pageCopyrights

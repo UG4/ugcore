@@ -78,6 +78,13 @@ dim = util.GetParamNumber("-dim", 2)
 useAggressiveCoarsening = util.HasParamOption("-AC")
 \endcode
 
+You can abort the execution of \ug4 out of Lua scripts by using 
+<tt>exit()</tt>.
+If you want to stop the execution of a script at a specific place, but you want 
+to use the interactive shell thereafter, insert at that place a call like 
+<tt>error("break")</tt> (or whatever message sounds reasonable to you) and 
+start the run with the <tt>-noquit</tt>. option
+
 
 <hr>
 \section secInteractiveShell Interactive Shell
@@ -91,39 +98,15 @@ This is called the <em>interactive shell</em>.
 Interactive shell is disabled when you use \c -ex without \c -noquit and if 
 \ug4 is running in parallel.
 
-In the interactive shell you can start the Lue script 
+In the interactive shell you can do everything just like in a .lua file, for example: 
 <tt>&lt;scriptname&gt;</tt> (as usual) by executing <tt>ug_load_script()</tt>:
 \verbatim
 ug:> ug_load_script(<scriptname>)
 \endverbatim
-where <tt>&lt;scriptname&gt;</tt> is currently searched
-<ol>
-  <li>relative to the currently loaded script</li>
-  <li>absolute,</li>
-  <li>relative to <tt>PathProvider::get_path(SCRIPT_PATH)</tt> (i.e 
-    <tt>\<ugshelldir\>/../scripts</tt>).
-  </li>
-</ol>
 
-(Using <tt>ug_load_script()</tt> is the preferred method of loading scripts; 
-alternatively a script can be loaded using the (standard Lua) function 
-<tt>dofile()</tt>.)
+\subsection secAutoCompletion Auto Completion
 
-You can abort the execution of \ug4 out of Lua scripts by using 
-<tt>exit()</tt>.
-If you want to stop the execution of a script at a specific place, but you want 
-to use the interactive shell thereafter, insert at that place a call like 
-<tt>error("break")</tt> (or whatever message sounds reasonable to you) and 
-start the run with the <tt>-noquit</tt>. option
-
-Please note that the interactive shell currently is not available in a parallel 
-environment.
-
-
-<hr>
-\section secAutoCompletion Auto Completion
-
-\em ugshell has some auto-completion features implemented.
+The interactive \em ugshell has some auto-completion features implemented.
 When you enter a part of something and hit \em tab \em ugshell tries to 
 auto-complete your input.
 If there is not a unique completion, and you hit \em tab again, you get a list 
@@ -166,7 +149,8 @@ void TypeInfo(const char *typename)
       <li>lua script functions, and prints their code</li>
       <li>classes, global functions and member function from the ug4-registry</li>
     </ul>
-    The use of \c TypeInfo can be abbreviated by using
+    <li>
+    In interactive shell, the use of \c TypeInfo can be abbreviated by using
     \verbatim
 ug:> Grid?
     \endverbatim
@@ -212,18 +196,15 @@ Instantiations of Class Domain2d:
 dom        (Domain2d)
     \endverbatim
   </li>
-  <li>\code
-void ls()
-    \endcode	
-    \c ls prints all available objects and classes in Lua, including 
-    <ul>
-      <li>global Lua objects, like normal Lua objects and instatiations of \ug4 
-        classes
-      </li>
-      <li>Lua script functions</li>
-      <li>global functions and classes from ug4-registry</li>
-    </ul>
-  </li>
+  <li> Listing
+  <ul>
+  <li> <tt>list_luaObjects()</tt> : Lists all Objects created by lua or in lua scripts.
+  <li> <tt>list_cfunctions()</tt> : Lists all <a href="http://cave1.gcsc.uni-frankfurt.de/job/ug-bridge-doc/javadoc/functions.html">global functions</a>
+   provided by the current registry.
+  <li> <tt>list_classes()</tt> : Lists all <a href="http://cave1.gcsc.uni-frankfurt.de/job/ug-bridge-doc/javadoc/index.html">Classes</a> provided by the current registry.
+  <li> <tt>list_scriptFunctions()</tt> : Lists all LUA functions provided by you or loaded scripts.
+  <li> <tt>list_internalFunctions()</tt> : Lists all functions (these are also internal registry or lua functions).
+  <li> <tt>ls()</tt> lists all of the above.
 </ul>
 
 
@@ -284,150 +265,17 @@ However, there is no performance drawback in <tt>breakpoint()</tt>.
 
 <hr>
 \section secBashCompletion Bash Completion for ugshell
-
-If you want to use bash completion for ugshell in non-interactive mode, two 
-feasible variants are suggested:
-First (a simple) variant:
-\verbatim
-complete -o plusdirs -G "*+(lua|ugx)" -W "-ex -grid -numRefs -numPreRefs" ugshell
-\endverbatim
-
-This will enable to use <tt>ugshell \<TAB\> \<TAB\></tt> which will complete 
-the key words (behind \c -W), all directories and only those files which match 
-the extended glob (behind \c -G).
-
-\note Please note that you need to set the <tt>extglob</tt> shell option to 
-<tt>on</tt> in order to use extended globbings like:
-<tt>*+(lua|ugx)</tt>.
-Put the following line into your <tt>.bashrc</tt> respectively into your 
-<tt>.bash_profile</tt> dependent on your local settings in your <tt>$HOME</tt>:
-\verbatim
-shopt extglob on 
-\endverbatim
-
-As the first simple variant sometimes does not work as expected and is too 
-little extensible too, a second variant is suggested, which uses a function 
-(bash function).
-You need to supply that function to the \c -F parameter of the complete command.
-Put the following two functions into your <tt>.bashrc</tt> respectively 
-<tt>.bash_profile</tt> dependent on your local settings in your <tt>$HOME</tt>:
-\verbatim
-my_complete() {
-  local word="$1"
-  local ext=$2
-  local i=0 line
-  declare -a liste
-
-  while read line; do liste[i++]="$line"; done < <(compgen -f -- "$word")
-
-  local w
-  for w in "${liste[@]}"; do 
-    [[ -d "$w" ]] && continue
-    [[ "${w##*.}" = $ext ]] && COMPREPLY[i++]="$w" 
-  done
-}
-\endverbatim
-
-\verbatim
-my_complete_ugshell () {
-   my_complete "$2" "*+(lua|ugx|obj)"
-}
-\endverbatim
-
-\note Now, to enable the completion, proceed as before.
-Please note the additional part at the end of the line.
-\verbatim 
-complete -W "-ex -grid -numRefs -numPreRefs" -o plusdirs -F my_complete_ugshell ugshell
-\endverbatim
-
-Finally, navigating on a terminal may seem uncomfortable, definining a (bash) 
-shell function <em>cdug</em> could improve that:
-\verbatim
-function cdug() {
-   local UG4_ROOT=~/ug4
-   local SEP=_
-   local DEST=
-   local CD_CMD=cd
-  
-   if [ -z "$1" ]; then
-      DEST=$UG4_ROOT/trunk
-   else
-      case $1 in
-      builds)
-         DEST=$UG4_ROOT/builds
-         ;;
-      trunk)
-         DEST=$UG4_ROOT/trunk
-         ;;
-      branches)
-         DEST=$UG4_ROOT/branches/;
-         ;;
-      plugins)
-         DEST=$UG4_ROOT/trunk/plugins/;
-         ;;
-      plugins/ex*)
-         DEST=$UG4_ROOT/trunk/plugins/experimental/;
-         ;;
-      plugins/co*)
-         DEST=$UG4_ROOT/trunk/plugins/core/;
-         ;;
-      build$SEP*)
-         DEST=$UG4_ROOT/builds/${1##*$SEP}/;
-         ;;
-      branch$SEP*)
-         DEST=$UG4_ROOT/branches/${1##*$SEP}/;
-         ;;
-      docs)
-         DEST=$UG4_ROOT/trunk/docs/;
-         ;;
-      apps)
-         DEST=$UG4_ROOT/trunk/apps;
-         ;;
-      scripts)
-         DEST=$UG4_ROOT/trunk/scripts;
-         ;;
-      unit_tests)
-         DEST=$UG4_ROOT/trunk/unit_tests;
-         ;;
-      data)
-         DEST=$UG4_ROOT/trunk/data;
-         ;;
-      ugbase)
-         DEST=$UG4_ROOT/trunk/ugbase;
-         ;;
-      bin)
-         DEST=$UG4_ROOT/trunk/bin;
-         ;;
-      externals)
-         DEST=$UG4_ROOT/trunk/externals;
-         ;;
-      lib)
-         DEST=$UG4_ROOT/trunk/lib;
-         ;;
-      tags)
-         DEST=$UG4_ROOT/tags
-         ;;
-      tag$SEP)
-         DEST=$UG4_ROOT/tags/${1##*$SEP}/;
-         ;;
-      *)
-         DEST=$UG4_ROOT/$1
-         ;;
-      esac
-   fi
-   
-   if [ ! -d "$DEST" ]; then
-      echo -e  "\e[0;35m$1\e[0;30m: directory does not exist, changing to \e[0;35m$UG4_ROOT\e[0;30m (UG4_ROOT) instead."
-      $CD_CMD $UG4_ROOT
-   else
-      $CD_CMD $DEST
-   fi
-
-}
-\endverbatim
-\note Enable completion:
-\verbatim
-complete -W "apps bin builds branches data docs externals lib scripts tags trunk ugbase unit_tests plugins" cdug # -o pl
-\endverbatim
+When you have added <tt>source UG4_ROOT/scripts/shell/ugbash</tt> to your <tt>.bashrc</tt>, 
+then you have access to completion of parameters from the bash command line. Completion is for:
+<ul>
+<li> ugshell
+<ul>
+<li> all standard parameters
+<li> -ex, absolute paths and paths in $UG4_ROOT/apps
+<li> all parameters found for example in <tt>myfile.lua</tt> when you entered something like 
+<tt>ugshell -ex myfile.lua</tt>.
+</ul>
+<li> <tt>ugcmake</tt>, which is an alias to <tt>cmake</tt>, but adds completion of a lot of our parameters for ug4.
+</ul>
 
 */

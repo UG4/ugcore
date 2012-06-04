@@ -253,7 +253,7 @@ For parallel rendering see e.g. \ref pageParallelRendering.
   \verbatim
   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/software/GotoBLAS2/
   \endverbatim
-  to you <tt>~/.bashrc</tt>
+  add the end of your <tt>~/.bashrc</tt>.
   <li> remember to <tt> source ~/.bashrc</tt>
   <li> Now cmake should accept GotoBLAS2 as LAPACK/BLAS library.
 </ul>
