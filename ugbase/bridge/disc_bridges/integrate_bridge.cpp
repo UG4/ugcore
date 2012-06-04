@@ -73,22 +73,20 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	L2Error
 	{
-		reg.add_function("L2Error",static_cast<number (*)(IPData<number, dim>&, TFct&, const char*, number, int, const char*)>(&L2Error<TFct>), grp);
+		reg.add_function("L2Error",static_cast<number (*)(SmartPtr<IPData<number, dim> >, SmartPtr<TFct>, const char*, number, int, const char*)>(&L2Error<TFct>), grp);
 #ifdef UG_FOR_LUA
-		reg.add_function("L2Error",static_cast<number (*)(const char*, TFct&, const char*, number, int, const char*)>(&L2Error<TFct>), grp);
+		reg.add_function("L2Error",static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, number, int, const char*)>(&L2Error<TFct>), grp);
 #endif
 	}
 
 //	L2Norm
 	{
-		typedef number (*fct_type)(TFct&, const char*, int, const char*);
-		reg.add_function("L2Norm",static_cast<fct_type>(&L2Norm<TFct>),grp);
+		reg.add_function("L2Norm",static_cast<number (*)(SmartPtr<TFct>, const char*, int, const char*)>(&L2Norm<TFct>),grp);
 	}
 
 //	StdFuncIntegral
 	{
-		typedef number (*fct_type)(TFct&, const char*, int, const char*);
-		reg.add_function("StdFuncIntegral",static_cast<fct_type>(&StdFuncIntegral<TFct>),grp);
+		reg.add_function("StdFuncIntegral",static_cast<number (*)(SmartPtr<TFct>, const char*, int, const char*)>(&StdFuncIntegral<TFct>),grp);
 	}
 
 //	IntegrateFluxOnBoundary

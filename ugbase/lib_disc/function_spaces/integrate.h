@@ -5,8 +5,8 @@
  *      Author: avogel, anaegel (some parts)
  */
 
-#ifndef __H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATEDRAFT__
-#define __H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATEDRAFT__
+#ifndef __H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATE__
+#define __H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATE__
 
 #include <cmath>
 
@@ -33,34 +33,110 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Abstract integrand interface
-template <int TWorldDim, int TElemDim>
+template <int TWorldDim>
 class IIntegrand
 {
 	public:
-	///	reference dimension of elements
-		static const int elemDim = TElemDim;
-
 	///	world dimension
 		static const int worldDim = TWorldDim;
 
-	public:
 	///	returns the values of the integrand for a bunch of ips
 	/**
-	 * \param[in]	pElem	the element to integrate
-	 * \param[out]	value	the value of the integrand at the ips
-	 * \param[in]	vLocIP	local integration point positions
-	 * \param[in]	vGlobIP	global integration point positions
-	 * \param[in]	numIP	number of integration points
+	 *
+	 * @param vValue[out]		the value of the integrand at the ips
+	 * @param vGlobIP[in]		global integration point positions
+	 * @param pElem[in] 		the element to integrate
+	 * @param vCornerCoords[in]	corner coordinates of the element
+	 * @param vLocIP[in]		local integration point positions
+	 * @param vJT[in]			jacobian transposed at integration point
+	 * @param numIP[in]			number of integration points
 	 */
+	/// \{
 		virtual void values(number vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
-		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<elemDim, worldDim> vJT[],
+		                    const MathVector<1> vLocIP[],
+		                    const MathMatrix<1, worldDim> vJT[],
 		                    const size_t numIP) = 0;
+		virtual void values(number vValue[],
+		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<2> vLocIP[],
+		                    const MathMatrix<2, worldDim> vJT[],
+		                    const size_t numIP) = 0;
+		virtual void values(number vValue[],
+		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<3> vLocIP[],
+		                    const MathMatrix<3, worldDim> vJT[],
+		                    const size_t numIP) = 0;
+	/// \}
 
 		virtual ~IIntegrand() {}
+
+
+	///	sets the subset
+		void set_subset(int si) {m_si = si;}
+
+	///	returns the subset
+		inline int subset() const {return m_si;}
+
+	protected:
+	///	subset
+		int m_si;
+};
+
+/// Abstract integrand interface
+template <int TWorldDim, typename TImpl>
+class StdIntegrand : public IIntegrand<TWorldDim>
+{
+	public:
+	///	world dimension
+		static const int worldDim = TWorldDim;
+
+	/// \copydoc IIntegrand::values
+	/// \{
+		virtual void values(number vValue[],
+		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<1> vLocIP[],
+		                    const MathMatrix<1, worldDim> vJT[],
+		                    const size_t numIP)
+		{
+			getImpl().template evaluate<1>(vValue,vGlobIP,pElem,vCornerCoords,vLocIP,vJT,numIP);
+		}
+		virtual void values(number vValue[],
+		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<2> vLocIP[],
+		                    const MathMatrix<2, worldDim> vJT[],
+		                    const size_t numIP)
+		{
+			getImpl().template evaluate<2>(vValue,vGlobIP,pElem,vCornerCoords,vLocIP,vJT,numIP);
+		}
+		virtual void values(number vValue[],
+		                    const MathVector<worldDim> vGlobIP[],
+		                    GeometricObject* pElem,
+	                        const MathVector<worldDim> vCornerCoords[],
+		                    const MathVector<3> vLocIP[],
+		                    const MathMatrix<3, worldDim> vJT[],
+		                    const size_t numIP)
+		{
+			getImpl().template evaluate<3>(vValue,vGlobIP,pElem,vCornerCoords,vLocIP,vJT,numIP);
+		}
+	/// \}
+
+	protected:
+	///	access to implementation
+		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
+
+	///	const access to implementation
+		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +165,7 @@ template <int WorldDim, int dim, typename TConstIterator>
 number Integrate(TConstIterator iterBegin,
                  TConstIterator iterEnd,
                  typename domain_traits<WorldDim>::position_accessor_type& aaPos,
-                 IIntegrand<WorldDim,dim>& integrand,
+                 IIntegrand<WorldDim>& integrand,
                  int quadOrder)
 {
 //	reset the result
@@ -182,124 +258,29 @@ number Integrate(TConstIterator iterBegin,
 	return integral;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// IPData Integrand
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename TGridFunction, int TDim = TGridFunction::dim>
-class DirectIPDataIntegrand : public IIntegrand<TGridFunction::dim, TDim>
-{
-	public:
-	//	world dimension of grid function
-		static const int worldDim = TGridFunction::dim;
-
-	//	reference element dimension
-		static const int elemDim = TDim;
-
-	private:
-	//  data to integrate
-		SmartPtr<IDirectIPData<number, worldDim> > m_spData;
-
-	// 	grid function
-		SmartPtr<TGridFunction> m_spGridFct;
-
-	//	time
-		number m_time;
-
-	//	subset
-		int m_si;
-
-	public:
-	/// constructor
-		DirectIPDataIntegrand(SmartPtr<IDirectIPData<number, worldDim> > spData,
-		                      SmartPtr<TGridFunction> spGridFct,
-		                      number time, int si)
-		: m_spData(spData), m_spGridFct(spGridFct), m_time(time), m_si(si)
-		{
-			m_spData->set_function_pattern(spGridFct->function_pattern());
-		};
-
-	/// constructor
-		DirectIPDataIntegrand(SmartPtr<IDirectIPData<number, worldDim> > spData,
-							  number time, int si)
-		: m_spData(spData), m_spGridFct(NULL), m_time(time), m_si(si)
-		{
-			if(m_spData->requires_grid_fct())
-				UG_THROW("DirectIPDataIntegrand: Missing GridFunction, but "
-						" data requires grid function.")
-		};
-
-	/// \copydoc IIntegrand::getValues
-		virtual void values(number vValue[],
-		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
-	                        const MathVector<worldDim> vCornerCoords[],
-		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<elemDim, worldDim> vJT[],
-		                    const size_t numIP)
-		{
-		//	get local solution if needed
-			if(m_spData->requires_grid_fct())
-			{
-			//	create storage
-				LocalIndices ind;
-				LocalVector u;
-
-			// 	get global indices
-				m_spGridFct->indices(pElem, ind);
-
-			// 	adapt local algebra
-				u.resize(ind);
-
-			// 	read local values of u
-				GetLocalVector(u, *m_spGridFct);
-
-			//	compute data
-				try{
-					(*m_spData)(vValue, vGlobIP, m_time, m_si, u, pElem,
-								vCornerCoords, vLocIP, numIP, &vJT[0]);
-				}
-				UG_CATCH_THROW("DirectIPDataIntegrand: Cannot evaluate data.");
-			}
-			else
-			{
-			//	compute data
-				try{
-					(*m_spData)(vValue, vGlobIP, m_time, m_si, numIP);
-				}
-				UG_CATCH_THROW("DirectIPDataIntegrand: Cannot evaluate data.");
-			}
-
-		};
-};
-
 template <typename TGridFunction, int dim>
-number IntegrateDirectIPDataInDim(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
-                                  SmartPtr<TGridFunction> spGridFct,
-                                  number time,
-                                  int quadOrder, int si)
+number IntegrateSubset(SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand,
+                       SmartPtr<TGridFunction> spGridFct,
+                       int si, int quadOrder)
 {
-	DirectIPDataIntegrand<TGridFunction, dim> integrand(spData, spGridFct, time, si);
-
 //	integrate elements of subset
-	typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+	typedef typename TGridFunction::template dim_traits<dim>::geometric_base_object geometric_base_object;
+	typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
 
-	return Integrate(spGridFct->template begin<geometric_base_object>(si),
-	                   spGridFct->template end<geometric_base_object>(si),
-	                   spGridFct->domain()->position_accessor(),
-	                   integrand,
-	                   quadOrder);
+	spIntegrand->set_subset(si);
+
+	return Integrate<TGridFunction::dim,dim,const_iterator>
+					(spGridFct->template begin<geometric_base_object>(si),
+	                 spGridFct->template end<geometric_base_object>(si),
+	                 spGridFct->domain()->position_accessor(),
+	                 *spIntegrand,
+	                 quadOrder);
 }
 
-///////////////
-// DirectIPData
-///////////////
-
 template <typename TGridFunction>
-number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
-                SmartPtr<TGridFunction> spGridFct,
-                const char* subsets, number time,
-                int quadOrder)
+number IntegrateSubsets(SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand,
+                        SmartPtr<TGridFunction> spGridFct,
+                        const char* subsets, int quadOrder)
 {
 //	world dimensions
 	static const int dim = TGridFunction::dim;
@@ -310,7 +291,7 @@ number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
 	{
 		ConvertStringToSubsetGroup(ssGrp, subsets);
 		if(!SameDimensionsInAllSubsets(ssGrp))
-			UG_THROW("Integral: Subsets '"<<subsets<<"' do not have same dimension."
+			UG_THROW("IntegrateSubsets: Subsets '"<<subsets<<"' do not have same dimension."
 			         "Can not integrate on subsets of different dimensions.");
 	}
 	else
@@ -331,16 +312,16 @@ number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
 
 	//	check dimension
 		if(ssGrp.dim(si) > dim)
-			UG_THROW("Integral: Dimension of subset is "<<ssGrp.dim(si)<<", but "
+			UG_THROW("IntegrateSubsets: Dimension of subset is "<<ssGrp.dim(si)<<", but "
 			         " World Dimension is "<<dim<<". Cannot integrate this.");
 
 	//	integrate elements of subset
 		switch(ssGrp.dim(si))
 		{
-			case 1: value += IntegrateDirectIPDataInDim<TGridFunction, 1>(spData, spGridFct, time, quadOrder, si); break;
-			case 2: value += IntegrateDirectIPDataInDim<TGridFunction, 2>(spData, spGridFct, time, quadOrder, si); break;
-			case 3: value += IntegrateDirectIPDataInDim<TGridFunction, 3>(spData, spGridFct, time, quadOrder, si); break;
-			default: UG_THROW("Integral: Dimension "<<ssGrp.dim(si)<<" not supported. "
+			case 1: value += IntegrateSubset<TGridFunction, 1>(spIntegrand, spGridFct, si, quadOrder); break;
+			case 2: value += IntegrateSubset<TGridFunction, 2>(spIntegrand, spGridFct, si, quadOrder); break;
+			case 3: value += IntegrateSubset<TGridFunction, 3>(spIntegrand, spGridFct, si, quadOrder); break;
+			default: UG_THROW("IntegrateSubsets: Dimension "<<ssGrp.dim(si)<<" not supported. "
 			                  " World dimension is "<<dim<<".");
 		}
 	}
@@ -354,8 +335,114 @@ number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
 		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
 	}
 #endif
+
 //	return the result
 	return value;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// IPData Integrand
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TGridFunction>
+class DirectIPDataIntegrand
+	: public StdIntegrand<TGridFunction::dim, DirectIPDataIntegrand<TGridFunction> >
+{
+	public:
+	//	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+
+	private:
+	//  data to integrate
+		SmartPtr<IDirectIPData<number, worldDim> > m_spData;
+
+	// 	grid function
+		SmartPtr<TGridFunction> m_spGridFct;
+
+	//	time
+		number m_time;
+
+	public:
+	/// constructor
+		DirectIPDataIntegrand(SmartPtr<IDirectIPData<number, worldDim> > spData,
+		                      SmartPtr<TGridFunction> spGridFct,
+		                      number time)
+		: m_spData(spData), m_spGridFct(spGridFct), m_time(time)
+		{
+			m_spData->set_function_pattern(spGridFct->function_pattern());
+		};
+
+	/// constructor
+		DirectIPDataIntegrand(SmartPtr<IDirectIPData<number, worldDim> > spData,
+							  number time)
+		: m_spData(spData), m_spGridFct(NULL), m_time(time)
+		{
+			if(m_spData->requires_grid_fct())
+				UG_THROW("DirectIPDataIntegrand: Missing GridFunction, but "
+						" data requires grid function.")
+		};
+
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GeometricObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+		//	get local solution if needed
+			if(m_spData->requires_grid_fct())
+			{
+			//	create storage
+				LocalIndices ind;
+				LocalVector u;
+
+			// 	get global indices
+				m_spGridFct->indices(pElem, ind);
+
+			// 	adapt local algebra
+				u.resize(ind);
+
+			// 	read local values of u
+				GetLocalVector(u, *m_spGridFct);
+
+			//	compute data
+				try{
+					(*m_spData)(vValue, vGlobIP, m_time, this->m_si, u, pElem,
+								vCornerCoords, vLocIP, numIP, &vJT[0]);
+				}
+				UG_CATCH_THROW("DirectIPDataIntegrand: Cannot evaluate data.");
+			}
+			else
+			{
+			//	compute data
+				try{
+					(*m_spData)(vValue, vGlobIP, m_time, this->m_si, numIP);
+				}
+				UG_CATCH_THROW("DirectIPDataIntegrand: Cannot evaluate data.");
+			}
+
+		};
+};
+
+
+///////////////
+// DirectIPData
+///////////////
+
+template <typename TGridFunction>
+number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
+                SmartPtr<TGridFunction> spGridFct,
+                const char* subsets, number time,
+                int quadOrder)
+{
+	SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand
+		= CreateSmartPtr(new DirectIPDataIntegrand<TGridFunction>(spData, spGridFct, time));
+
+	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder);
 }
 
 template <typename TGridFunction>
@@ -444,55 +531,51 @@ number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct)
 // L2 Error Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TGridFunction, int TDim = TGridFunction::dim>
-class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
+template <typename TGridFunction>
+class L2ErrorIntegrand
+	: public StdIntegrand<TGridFunction::dim, L2ErrorIntegrand<TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
 		static const int worldDim = TGridFunction::dim;
 
-	//	reference element dimension
-		static const int elemDim = TDim;
-
 	private:
 	// grid function
-		TGridFunction& m_rGridFct;
+		SmartPtr<TGridFunction> m_spGridFct;
 
 	//	component of function
 		const size_t m_fct;
 
 	//  exact solution
-		IPData<number, worldDim>& m_ExactSolution;
+		SmartPtr<IPData<number, worldDim> > m_spExactSolution;
 
 	//	time
 		number m_time;
 
-	//	subset
-		int m_si;
-
 	public:
 	/// constructor
-		L2ErrorIntegrand(IPData<number, worldDim>& exactSol,
-		                 TGridFunction& gridFct, size_t cmp,
-		                 number time, int si)
-		: m_rGridFct(gridFct), m_fct(cmp),
-		  m_ExactSolution(exactSol), m_time(time), m_si(si)
+		L2ErrorIntegrand(SmartPtr<IPData<number, worldDim> > spExactSol,
+		                 SmartPtr<TGridFunction> gridFct, size_t cmp,
+		                 number time)
+		: m_spGridFct(gridFct), m_fct(cmp),
+		  m_spExactSolution(spExactSol), m_time(time)
 		{};
 
-	/// \copydoc IIntegrand::getValues
-		virtual void values(number vValue[],
-		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
-	                        const MathVector<worldDim> vCornerCoords[],
-		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<elemDim, worldDim> vJT[],
-		                    const size_t numIP)
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GeometricObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
 
 			//	local finite element id
-			const LFEID m_id = m_rGridFct.local_finite_element_id(m_fct);
+			const LFEID m_id = m_spGridFct->local_finite_element_id(m_fct);
 
 			try{
 		//	get trial space
@@ -505,11 +588,11 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		//	get multiindices of element
 
 			std::vector<MultiIndex<2> > ind;  // 	aux. index array
-			m_rGridFct.multi_indices(pElem, m_fct, ind);
+			m_spGridFct->multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-				UG_THROW("L2ErrorIntegrand::values: Wrong number of"
+				UG_THROW("L2ErrorIntegrand::evaluate: Wrong number of"
 						" multi indices.");
 
 		//	loop all integration points
@@ -519,14 +602,14 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			//	compute exact solution at integration point
 				number exactSolIP;
-				m_ExactSolution(exactSolIP, vGlobIP[ip], m_time, m_si);
+				(*m_spExactSolution)(exactSolIP, vGlobIP[ip], m_time, this->subset());
 
 			// 	compute approximated solution at integration point
 				number approxSolIP = 0.0;
 				for(size_t sh = 0; sh < num_sh; ++sh)
 				{
 				//	get value at shape point (e.g. corner for P1 fct)
-					const number valSH = BlockRef(m_rGridFct[ind[sh][0]], ind[sh][1]);
+					const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
 
 				//	add shape fct at ip * value at shape
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
@@ -539,7 +622,7 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_THROW("L2ErrorIntegrand::getValues: "<<ex.get_msg());
+				UG_THROW("L2ErrorIntegrand::evaluate: "<<ex.get_msg());
 			}
 		};
 };
@@ -558,67 +641,33 @@ class L2ErrorIntegrand : public IIntegrand<TGridFunction::dim, TDim>
  * \returns			number 		l2-norm of difference
  */
 template <typename TGridFunction>
-number L2Error(IPData<number, TGridFunction::dim>& ExactSol,
-                    TGridFunction& u, const char* name, number time, int quadOrder, const char* subsets)
+number L2Error(SmartPtr<IPData<number, TGridFunction::dim> > spExactSol,
+               SmartPtr<TGridFunction> spGridFct, const char* cmp,
+               number time, int quadOrder, const char* subsets)
 {
 //	get function id of name
-	const size_t fct = u.fct_id_by_name(name);
+	const size_t fct = spGridFct->fct_id_by_name(cmp);
 
 //	check that function exists
-	if(fct >= u.num_fct())
+	if(fct >= spGridFct->num_fct())
 		UG_THROW("L2Error: Function space does not contain"
-				" a function with name " << name << ".");
+				" a function with name " << cmp << ".");
 
-//	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(u.domain()->subset_handler());
+	SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand
+		= CreateSmartPtr(new L2ErrorIntegrand<TGridFunction>(spExactSol, spGridFct, fct, time));
 
-//	read subsets
-	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, u.domain()->subset_handler(), subsets);
-	else // add all if no subset specified
-		ssGrp.add_all();
-
-//	reset l2norm
-	number l2norm2 = 0;
-
-//	loop subsets
-	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
-	{
-	//	get subset index
-		const int si = ssGrp[i];
-
-	//	skip if function is not defined in subset
-		if(!u.is_def_in_subset(fct, si)) continue;
-
-
-		if (ssGrp.dim(i) != TGridFunction::dim)
-			UG_THROW("L2Error: Element dimension does not match world dimension!");
-
-
-	//	create integration kernel
-		static const int dim = TGridFunction::dim;
-		L2ErrorIntegrand<TGridFunction, dim> integrandKernel(ExactSol, u, fct, time, si);
-
-	//	integrate elements of subset
-		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-		l2norm2 += Integrate(u.template begin<geometric_base_object>(si),
-							 u.template end<geometric_base_object>(si),
-							 u.domain()->position_accessor(),
-							 integrandKernel,
-							 quadOrder);
-	}
-
-//	return the sqrt of the result
-	return sqrt(l2norm2);
+	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
 }
 
 #ifdef UG_FOR_LUA
 template <typename TGridFunction>
 number L2Error(const char* ExactSol,
-                         TGridFunction& u, const char* name, number time, int quadOrder, const char* subsets)
+               SmartPtr<TGridFunction> spGridFct, const char* cmp,
+               number time, int quadOrder, const char* subsets)
 {
-	LuaUserData<number, TGridFunction::domain_type::dim> p(ExactSol);
-	return L2Error(p, u, name, time, quadOrder, subsets);
+	SmartPtr<IPData<number, TGridFunction::dim> > spExactSol
+	 = CreateSmartPtr(new LuaUserData<number, TGridFunction::domain_type::dim>(ExactSol));
+	return L2Error(spExactSol, spGridFct, cmp, time, quadOrder, subsets);
 }
 #endif
 
@@ -626,19 +675,17 @@ number L2Error(const char* ExactSol,
 // H1 Error Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TGridFunction, int TDim = TGridFunction::dim>
-class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
+template <typename TGridFunction>
+class H1ErrorIntegrand
+	: StdIntegrand<TGridFunction::dim, H1ErrorIntegrand<TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
 		static const int worldDim = TGridFunction::dim;
 
-	//	reference element dimension
-		static const int elemDim = TDim;
-
 	private:
 	// grid function
-		TGridFunction& m_rGridFct;
+		SmartPtr<TGridFunction> m_spGridFct;
 
 	//	component of function
 		size_t m_fct;
@@ -647,35 +694,36 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 		LFEID m_id;
 
 	// 	exact solution
-		IPData<number, worldDim>& m_ExactSolution;
+		SmartPtr<IPData<number, worldDim> > m_spExactSolution;
 
 	// 	exact gradient
-		IPData<MathVector<worldDim>, worldDim>& m_ExactGrad;
+		SmartPtr<IPData<MathVector<worldDim>, worldDim> > m_spExactGrad;
 
 	//	time
 		number m_time;
 
 	public:
 	/// constructor
-		H1ErrorIntegrand(IPData<number, worldDim>& exactSol,
-		                 IPData<MathVector<worldDim>, worldDim>& exactGrad,
+		H1ErrorIntegrand(SmartPtr<IPData<number, worldDim> > spExactSol,
+		                 SmartPtr<IPData<MathVector<worldDim>, worldDim> > spExactGrad,
 		                 TGridFunction& gridFct, size_t cmp,
 		                 number time)
-		: m_rGridFct(gridFct), m_fct(cmp),
-		  m_id(m_rGridFct.local_finite_element_id(m_fct)),
-		  m_ExactSolution(exactSol),
-		  m_ExactGrad(exactGrad),
+		: m_spGridFct(gridFct), m_fct(cmp),
+		  m_id(m_spGridFct->local_finite_element_id(m_fct)),
+		  m_spExactSolution(spExactSol),
+		  m_spExactGrad(spExactGrad),
 		  m_time(time)
 		{}
 
-	/// \copydoc IIntegrand::getValues
-		virtual void values(number vValue[],
-		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
-	                        const MathVector<worldDim> vCornerCoords[],
-		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<elemDim, worldDim> vJT[],
-		                    const size_t numIP)
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GeometricObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
@@ -692,11 +740,11 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 			const size_t num_sh = rTrialSpace.num_sh();
 
 		//	get multiindices of element
-			m_rGridFct.multi_indices(pElem, m_fct, ind);
+			m_spGridFct->multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-				UG_THROW("L2ErrorIntegrand::values: Wrong number of"
+				UG_THROW("H1ErrorIntegrand::evaluate: Wrong number of"
 						" multi indices.");
 
 		//	loop all integration points
@@ -705,11 +753,11 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 			{
 			//	compute exact solution at integration point
 				number exactSolIP;
-				m_ExactSolution(exactSolIP, vGlobIP[ip], m_time);
+				(*m_spExactSolution)(exactSolIP, vGlobIP[ip], m_time);
 
 			//	compute exact gradient at integration point
 				MathVector<worldDim> exactGradIP;
-				m_ExactGrad(exactGradIP, vGlobIP[ip], m_time);
+				(*m_spExactGrad)(exactGradIP, vGlobIP[ip], m_time);
 
 			//	compute shape gradients at ip
 				rTrialSpace.grads(&vLocGradient[0], vGlobIP[ip]);
@@ -720,7 +768,7 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 				for(size_t sh = 0; sh < num_sh; ++sh)
 				{
 				//	get value at shape point (e.g. corner for P1 fct)
-					const number valSH = BlockRef(m_rGridFct[ind[sh][0]], ind[sh][1]);
+					const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
 
 				//	add shape fct at ip * value at shape
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
@@ -742,7 +790,7 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_THROW("L2ErrorIntegrand::getValues: "<<ex.get_msg());
+				UG_THROW("H1ErrorIntegrand::evaluate: "<<ex.get_msg());
 			}
 		};
 };
@@ -751,42 +799,41 @@ class H1ErrorIntegrand : IIntegrand<TGridFunction::dim, TDim>
 // L2 Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TGridFunction, int TDim = TGridFunction::dim>
-class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
+template <typename TGridFunction>
+class L2FuncIntegrand
+	: public StdIntegrand<TGridFunction::dim, L2FuncIntegrand<TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
 		static const int worldDim = TGridFunction::dim;
 
-	//	reference element dimension
-		static const int elemDim = TDim;
-
 	private:
 	// grid function
-		TGridFunction& m_rGridFct;
+		SmartPtr<TGridFunction> m_spGridFct;
 
 	//	component of function
 		const size_t m_fct;
 
 	public:
 	/// constructor
-		L2FuncIntegrand(TGridFunction& gridFct, size_t cmp)
-		: m_rGridFct(gridFct), m_fct(cmp)
+		L2FuncIntegrand(SmartPtr<TGridFunction> spGridFct, size_t cmp)
+		: m_spGridFct(spGridFct), m_fct(cmp)
 		{};
 
-	/// \copydoc IIntegrand::getValues
-		virtual void values(number vValue[],
-		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
-	                        const MathVector<worldDim> vCornerCoords[],
-		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<elemDim, worldDim> vJT[],
-		                    const size_t numIP)
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GeometricObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
 
-			const LFEID m_id = m_rGridFct.local_finite_element_id(m_fct);
+			const LFEID m_id = m_spGridFct->local_finite_element_id(m_fct);
 
 			try{
 		//	get trial space
@@ -799,11 +846,11 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		//	get multiindices of element
 
 			std::vector<MultiIndex<2> > ind;  // 	aux. index array
-			m_rGridFct.multi_indices(pElem, m_fct, ind);
+			m_spGridFct->multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-				UG_THROW("L2ErrorIntegrand::values: Wrong number of"
+				UG_THROW("L2FuncIntegrand::values: Wrong number of"
 						" multi indices.");
 
 		//	loop all integration points
@@ -816,7 +863,7 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 				{
 					//	get value at shape point (e.g. corner for P1 fct)
 					//	and add shape fct at ip * value at shape
-					const number valSH = BlockRef(m_rGridFct[ind[sh][0]], ind[sh][1]);
+					const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
 				}
 
@@ -827,7 +874,7 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_THROW("L2ErrorIntegrand::values: "<<ex.get_msg());
+				UG_THROW("L2FuncIntegrand::values: "<<ex.get_msg());
 			}
 		};
 };
@@ -845,107 +892,62 @@ class L2FuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
  * \returns			number 		l2-norm of difference
  */
 template <typename TGridFunction>
-number L2Norm(TGridFunction& u, const char* name, int quadOrder, const char* subsets)
+number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
+              int quadOrder, const char* subsets)
 {
 //	get function id of name
-	const size_t fct = u.fct_id_by_name(name);
+	const size_t fct = spGridFct->fct_id_by_name(cmp);
 
 //	check that function exists
-	if(fct >= u.num_fct())
-		UG_THROW("L2ErrorFunc: Function space does not contain"
-				" a function with name " << name << ".");
+	if(fct >= spGridFct->num_fct())
+		UG_THROW("L2Norm: Function space does not contain"
+				" a function with name " << cmp << ".");
 
-//	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(u.domain()->subset_handler());
+	SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand
+		= CreateSmartPtr(new L2FuncIntegrand<TGridFunction>(spGridFct, fct));
 
-//	read subsets
-	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, u.domain()->subset_handler(), subsets);
-	else // add all if no subset specified
-		ssGrp.add_all();
-
-//	reset l2norm
-	number l2norm2 = 0;
-
-//	loop subsets
-	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
-	{
-	//	get subset index
-		const int si = ssGrp[i];
-
-	//	skip if function is not defined in subset
-		if(!u.is_def_in_subset(fct, si)) continue;
-
-
-		if (ssGrp.dim(i) != TGridFunction::dim)
-			UG_THROW("L2Norm: Element dimension does not match world dimension!");
-
-	//	create integration kernel
-		static const int dim = TGridFunction::dim;
-		L2FuncIntegrand<TGridFunction, dim> integrand(u, fct);
-
-	//	integrate elements of subset
-		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-		l2norm2 += Integrate(u.template begin<geometric_base_object>(si),
-							 u.template end<geometric_base_object>(si),
-							 u.domain()->position_accessor(),
-							 integrand,
-							 quadOrder);
-	}
-
-#ifdef UG_PARALLEL
-	// sum over all processes
-	if(pcl::GetNumProcesses() > 1)
-	{
-		pcl::ProcessCommunicator com;
-		number local = l2norm2;
-		com.allreduce(&local, &l2norm2, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-	}
-#endif
-//	return the sqrt of the result
-	return sqrt(l2norm2);
+	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Standard Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TGridFunction, int TDim = TGridFunction::dim>
-class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
+template <typename TGridFunction>
+class StdFuncIntegrand
+	: public StdIntegrand<TGridFunction::dim, StdFuncIntegrand<TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
 		static const int worldDim = TGridFunction::dim;
 
-	//	reference element dimension
-		static const int elemDim = TDim;
-
 	private:
 	// grid function
-		TGridFunction& m_rGridFct;
+		SmartPtr<TGridFunction> m_spGridFct;
 
 	//	component of function
 		const size_t m_fct;
 
 	public:
 	/// constructor
-		StdFuncIntegrand(TGridFunction& gridFct, size_t cmp)
-		: m_rGridFct(gridFct), m_fct(cmp)
+		StdFuncIntegrand(SmartPtr<TGridFunction> spGridFct, size_t cmp)
+		: m_spGridFct(spGridFct), m_fct(cmp)
 		{};
 
-	/// \copydoc IIntegrand::getValues
-		virtual void values(number vValue[],
-		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
-	                        const MathVector<worldDim> vCornerCoords[],
-		                    const MathVector<elemDim> vLocIP[],
-		                    const MathMatrix<elemDim, worldDim> vJT[],
-		                    const size_t numIP)
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vGlobIP[],
+		              GeometricObject* pElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
 
-			const LFEID m_id = m_rGridFct.local_finite_element_id(m_fct);
+			const LFEID m_id = m_spGridFct->local_finite_element_id(m_fct);
 
 			try{
 		//	get trial space
@@ -958,11 +960,11 @@ class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 		//	get multiindices of element
 
 			std::vector<MultiIndex<2> > ind;  // 	aux. index array
-			m_rGridFct.multi_indices(pElem, m_fct, ind);
+			m_spGridFct->multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
 			if(ind.size() != num_sh)
-				UG_THROW("StdFuncIntegrand::values: Wrong number of"
+				UG_THROW("StdFuncIntegrand::evaluate: Wrong number of"
 						" multi indices.");
 
 		//	loop all integration points
@@ -975,7 +977,7 @@ class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 				{
 					//	get value at shape point (e.g. corner for P1 fct)
 					//	and add shape fct at ip * value at shape
-					const number valSH = BlockRef(m_rGridFct[ind[sh][0]], ind[sh][1]);
+					const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
 				}
 
@@ -986,72 +988,28 @@ class StdFuncIntegrand : public IIntegrand<TGridFunction::dim, TDim>
 
 			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
 			{
-				UG_THROW("StdFuncIntegrand::values: "<<ex.get_msg());
+				UG_THROW("StdFuncIntegrand::evaluate: "<<ex.get_msg());
 			}
 		};
 };
 
 
 template <typename TGridFunction>
-number StdFuncIntegral(TGridFunction& u, const char* name, int quadOrder, const char* subsets)
+number StdFuncIntegral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
+                       int quadOrder, const char* subsets)
 {
 //	get function id of name
-	const size_t fct = u.fct_id_by_name(name);
+	const size_t fct = spGridFct->fct_id_by_name(cmp);
 
 //	check that function exists
-	if(fct >= u.num_fct())
-		UG_THROW("StdIntegral: Function space does not contain"
-				" a function with name " << name << ".");
+	if(fct >= spGridFct->num_fct())
+		UG_THROW("L2Norm: Function space does not contain"
+				" a function with name " << cmp << ".");
 
-//	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(u.domain()->subset_handler());
+	SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand
+		= CreateSmartPtr(new StdFuncIntegrand<TGridFunction>(spGridFct, fct));
 
-//	read subsets
-	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, u.domain()->subset_handler(), subsets);
-	else // add all if no subset specified
-		ssGrp.add_all();
-
-//	reset value
-	number value = 0;
-
-//	loop subsets
-	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
-	{
-	//	get subset index
-		const int si = ssGrp[i];
-
-	//	skip if function is not defined in subset
-		if(!u.is_def_in_subset(fct, si)) continue;
-
-
-		if (ssGrp.dim(i) != TGridFunction::dim)
-			UG_THROW("StdIntegral: Element dimension does not match world dimension!");
-
-	//	create integration kernel
-		static const int dim = TGridFunction::dim;
-		StdFuncIntegrand<TGridFunction, dim> integrand(u, fct);
-
-	//	integrate elements of subset
-		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-		value += Integrate(u.template begin<geometric_base_object>(si),
-							 u.template end<geometric_base_object>(si),
-							 u.domain()->position_accessor(),
-							 integrand,
-							 quadOrder);
-	}
-
-#ifdef UG_PARALLEL
-	// sum over processes
-	if(pcl::GetNumProcesses() > 1)
-	{
-		pcl::ProcessCommunicator com;
-		number local = value;
-		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-	}
-#endif
-//	return the result
-	return value;
+	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1222,203 +1180,6 @@ number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
 	return value;
 }
 
-
-/// Integrates the AceticAcid Flux over some boundary subsets
-/**
- * This function integrates \f$ \rho \omega \vec{q} \cdot \vec{n} \f$m, where
- * \f$ \vec{q} := -\frac{K}{\mu}(\nabla p - \rho \vec{g}) \f$ is the
- * Darcy velocity over some selected
- * boundary subsets. In order to compute the gradient of a function a world-
- * dimension element must be given and, thus, some "inner" subsets have to be
- * specified to indicate the full-dimensional subsets. The integral sum is then
- * taken over all boundary subset manifold geometric objects, that are part of
- * an element of the scheduled "inner" elements
- *
- * @param u				a grid function
- * @param cmp			the component, whose gradient should be integrated
- * @param BndSubset		a comma-separated string of symbolic boundary subset names
- * @param InnerSubset	a comma-separated string of symbolic inner subset names
- * @return	the integral
- */
-template <typename TGridFunction>
-number IntegrateAceticAcidFluxOnBoundary(TGridFunction& u, const char* PressCmp,
-                                         const char* OmegaCmp,
-                                         number Permeability,
-                                         number Viscosity,
-                                         number Density,
-                                         number GravityNorm,
-                                         const char* BndSubset, const char* InnerSubset = NULL)
-{
-//	get function id of name
-	const size_t pressFct = u.fct_id_by_name(PressCmp);
-	const size_t omegaFct = u.fct_id_by_name(OmegaCmp);
-
-//	check that function exists
-	if(pressFct >= u.num_fct())
-		UG_THROW("IntegrateFluxOnBoundary: Function space does not contain"
-				" a function with name " << PressCmp << ".");
-	if(omegaFct >= u.num_fct())
-		UG_THROW("IntegrateFluxOnBoundary: Function space does not contain"
-				" a function with name " << omegaFct << ".");
-
-	if(u.local_finite_element_id(pressFct) != LFEID(LFEID::LAGRANGE, 1))
-		UG_THROW("IntegrateFluxOnBoundary:"
-				"Only implemented for Lagrange P1 functions.");
-	if(u.local_finite_element_id(omegaFct) != LFEID(LFEID::LAGRANGE, 1))
-		UG_THROW("IntegrateFluxOnBoundary:"
-				"Only implemented for Lagrange P1 functions.");
-
-//	read subsets
-	SubsetGroup innerSSGrp; innerSSGrp.set_subset_handler(u.domain()->subset_handler());
-	if(InnerSubset != NULL)
-		ConvertStringToSubsetGroup(innerSSGrp, u.domain()->subset_handler(), InnerSubset);
-	else // add all if no subset specified
-		innerSSGrp.add_all();
-
-//	read bnd subsets
-	SubsetGroup bndSSGrp; bndSSGrp.set_subset_handler(u.domain()->subset_handler());
-	if(InnerSubset != NULL){
-		ConvertStringToSubsetGroup(bndSSGrp, u.domain()->subset_handler(), BndSubset);
-	}
-	else{
-		UG_THROW("IntegrateFluxOnBoundary: No boundary subsets specified. Aborting.");
-	}
-
-//	reset value
-	number value = 0;
-
-//	loop subsets
-	for(size_t i = 0; i < innerSSGrp.num_subsets(); ++i)
-	{
-	//	get subset index
-		const int si = innerSSGrp[i];
-
-	//	skip if function is not defined in subset
-		if(!u.is_def_in_subset(pressFct, si)) continue;
-
-
-		if (innerSSGrp.dim(i) != TGridFunction::dim)
-			UG_THROW("IntegrateFluxOnBoundary: Element dimension does not match world dimension!");
-
-	//	create integration kernel
-		static const int dim = TGridFunction::dim;
-
-	//	integrate elements of subset
-		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-
-	//	get iterators for all elems on subset
-		typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
-		const_iterator iter = u.template begin<geometric_base_object>();
-		const_iterator iterEnd = u.template end<geometric_base_object>();
-
-	//	create a FV1 Geometry
-		DimFV1Geometry<dim> geo;
-
-	//	specify, which subsets are boundary
-		for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
-		{
-		//	get subset index
-			const int bndSubset = bndSSGrp[s];
-
-		//	request this subset index as boundary subset. This will force the
-		//	creation of boundary subsets when calling geo.update
-			geo.add_boundary_subset(bndSubset);
-		}
-
-	//	vector of corner coordinates of element corners (to be filled for each elem)
-		std::vector<MathVector<dim> > vCorner;
-
-	//	loop elements of subset
-		for( ; iter != iterEnd; ++iter)
-		{
-		//	get element
-			geometric_base_object* elem = *iter;
-
-		//	get all corner coordinates
-			CollectCornerCoordinates(vCorner, *elem, u.domain()->position_accessor(), true);
-
-		//	compute bf and grads at bip for element
-			if(!geo.update(elem, &vCorner[0], u.domain()->subset_handler().get()))
-				UG_THROW("IntegrateFluxOnBoundary: "
-								"Cannot update Finite Volume Geometry.");
-
-		//	get fct multi-indeces of element
-			std::vector<MultiIndex<2> > indPressure;
-			u.multi_indices(elem, pressFct, indPressure);
-			std::vector<MultiIndex<2> > indOmega;
-			u.multi_indices(elem, omegaFct, indOmega);
-
-		//	specify, which subsets are boundary
-			for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
-			{
-			//	get subset index
-				const int bndSubset = bndSSGrp[s];
-
-			//	get all bf of this subset
-				typedef typename DimFV1Geometry<dim>::BF BF;
-				const std::vector<BF>& vBF = geo.bf(bndSubset);
-
-			//	loop boundary faces
-				for(size_t b = 0; b < vBF.size(); ++b)
-				{
-				//	get bf
-					const BF& bf = vBF[b];
-
-				//	get normal on bf
-					const MathVector<dim>& normal = bf.normal();
-
-				//	check multi indices
-					UG_ASSERT(indPressure.size() != bf.num_sh(),
-					          "IntegrateFluxOnBoundary::values: Wrong number of"
-										" multi indices.");
-
-				// 	compute gradient of solution at bip
-					MathVector<dim> gradPressure; VecSet(gradPressure, 0.0);
-					for(size_t sh = 0; sh < bf.num_sh(); ++sh)
-					{
-						const number fctVal = BlockRef(u[indPressure[sh][0]], indPressure[sh][1]);
-
-						VecScaleAdd(gradPressure, 1.0, gradPressure, fctVal, bf.global_grad(sh));
-					}
-
-				// 	compute omega at bip
-					number omega = 0.0;
-					for(size_t sh = 0; sh < bf.num_sh(); ++sh)
-					{
-						const number fctVal = BlockRef(u[indOmega[sh][0]], indOmega[sh][1]);
-
-						omega += fctVal * bf.shape(sh);
-					}
-
-					MathVector<dim> flux; VecSet(flux, 0.0);
-					flux[dim-1] = GravityNorm * Density;
-
-					VecScaleAppend(flux, -1.0, gradPressure);
-
-					VecScale(flux, flux, Density* omega* Permeability/Viscosity);
-
-				//	sum up contributions
-					value += VecDot(flux, normal);
-				}
-			}
-		}
-	}
-
-#ifdef UG_PARALLEL
-	// sum over processes
-	if(pcl::GetNumProcesses() > 1)
-	{
-		pcl::ProcessCommunicator com;
-		number local = value;
-		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-	}
-#endif
-
-//	return the result
-	return value;
-}
-
-
 } // namespace ug
 
-#endif /*__H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATEDRAFT__*/
+#endif /*__H__UG__LIB_DISC__FUNCTION_SPACES__INTEGRATE__*/
