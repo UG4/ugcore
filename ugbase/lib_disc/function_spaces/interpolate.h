@@ -27,107 +27,57 @@ namespace ug{
 
 /// interpolates a function on vertices
 template <typename TGridFunction>
-void InterpolateFunctionOnVertices(IPData<number, TGridFunction::domain_type::dim>& InterpolFunction,
-                                   TGridFunction& u, size_t fct, int si, number time)
+void InterpolateOnVertices(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spInterpolFunction,
+                           SmartPtr<TGridFunction> spGridFct,
+                           size_t fct,
+                           number time,
+                           const SubsetGroup& ssGrp)
 {
 //	domain type and position_type
 	typedef typename TGridFunction::domain_type domain_type;
 	typedef typename domain_type::position_type position_type;
 
-//	id of shape functions used
-	LFEID id = u.local_finite_element_id(fct);
-
 // get position accessor
 	const typename domain_type::position_accessor_type& aaPos
-										= u.domain().position_accessor();
+										= spGridFct->domain()->position_accessor();
 
-// 	iterate over all elements
-	typename geometry_traits<VertexBase>::const_iterator iterEnd, iter;
-	iterEnd = u.template end<VertexBase>(si);
-	for(iter = u.template begin<VertexBase>(si); iter != iterEnd; ++iter)
-	{
-	//	get element
-		VertexBase* vrt = *iter;
+	std::vector<MultiIndex<2> > ind;
+	typename TGridFunction::template dim_traits<0>::const_iterator iterEnd, iter;
 
-	//	global position
-		position_type glob_pos = aaPos[vrt];
-
-	//	value at position
-		number val;
-		(*InterpolFunction)(val, glob_pos, time);
-
-	//	get multiindices of element
-		typename TGridFunction::multi_index_vector_type ind;
-		u.multi_indices(vrt, fct, ind);
-
-	// 	loop all dofs
-		for(size_t i = 0; i < ind.size(); ++i)
-		{
-		//	set value
-			BlockRef(u[ind[i][0]], ind[i][1]) = val;
-		}
-	}
-}
-
-
-
-/// interpolates a function on subsets, only for vertex dofs
-/**
- * This function interpolates a GridFunction. To evaluate the function on every
- * point a functor must be passed.
- *
- * \param[out]		u			interpolated grid function
- * \param[in]		data		data evaluator
- * \param[in]		name		symbolic name of function
- * \param[in]		time		time point
- * \param[in]		subsets		subsets, where to interpolate
- */
-template <typename TGridFunction>
-void InterpolateFunctionOnVertices(IPData<number, TGridFunction::domain_type::dim>& InterpolFunction,
-                                   TGridFunction& u, const char* name, number time, const char* subsets)
-{
-//	get Function Pattern
-	const typename TGridFunction::approximation_space_type& approxSpace
-				= u.approximation_space();
-
-//	get function id of name
-	const size_t fct = approxSpace.fct_id_by_name(name);
-
-//	check that function found
-	if(fct == (size_t)-1)
-		UG_THROW("InterpolateFunctionOnVertices: Name of function not found.");
-
-//	check that function exists
-	if(fct >= u.num_fct())
-		UG_THROW("InterpolateFunctionOnVertices: Function space does not contain"
-				" a function with index " << fct);
-
-//	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(*approxSpace.subset_handler());
-
-//	read subsets
-	if(subsets != NULL)
-		ConvertStringToSubsetGroup(ssGrp, *approxSpace.subset_handler(), subsets);
-	else // add all if no subset specified
-		ssGrp.add_all();
-
-//	loop subsets
 	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
 	{
 	//	get subset index
 		const int si = ssGrp[i];
 
 	//	skip if function is not defined in subset
-		if(!u.is_def_in_subset(fct, si)) continue;
+		if(!spGridFct->is_def_in_subset(fct, si)) continue;
 
-		InterpolateFunctionOnVertices<TGridFunction>
-							(InterpolFunction, u, fct, si, time);
+	// 	iterate over all elements
+		iterEnd = spGridFct->template end<VertexBase>(si);
+		iter = spGridFct->template begin<VertexBase>(si);
+		for(; iter != iterEnd; ++iter)
+		{
+		//	get element
+			VertexBase* vrt = *iter;
+
+		//	global position
+			position_type glob_pos = aaPos[vrt];
+
+		//	value at position
+			number val;
+			(*spInterpolFunction)(val, glob_pos, time, si);
+
+		//	get multiindices of element
+			spGridFct->multi_indices(vrt, fct, ind);
+
+		// 	loop all dofs
+			for(size_t i = 0; i < ind.size(); ++i)
+			{
+			//	set value
+				BlockRef((*spGridFct)[ind[i][0]], ind[i][1]) = val;
+			}
+		}
 	}
-
-//	adjust parallel storage state
-#ifdef UG_PARALLEL
-	u.set_storage_type(PST_CONSISTENT);
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +86,7 @@ void InterpolateFunctionOnVertices(IPData<number, TGridFunction::domain_type::di
 
 /// interpolates a function on an element
 template <typename TElem, typename TGridFunction>
-void InterpolateFunctionOnElem(
+void InterpolateOnElements(
 		SmartPtr<IDirectIPData<number, TGridFunction::dim> > spInterpolFunction,
 		SmartPtr<TGridFunction> spGridFct, size_t fct, int si, number time)
 {
@@ -221,11 +171,11 @@ void InterpolateFunctionOnElem(
 }
 
 template <typename TGridFunction>
-void InterpolateFunction(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spInterpolFunction,
-                         SmartPtr<TGridFunction> spGridFct,
-                         size_t fct,
-                         number time,
-                         const SubsetGroup& ssGrp)
+void InterpolateOnElements(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spInterpolFunction,
+                           SmartPtr<TGridFunction> spGridFct,
+                           size_t fct,
+                           number time,
+                           const SubsetGroup& ssGrp)
 {
 //	loop subsets
 	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
@@ -240,34 +190,34 @@ void InterpolateFunction(SmartPtr<IDirectIPData<number, TGridFunction::dim> > sp
 		try
 		{
 		const int dim = ssGrp.dim(i);
+
+		if(dim > TGridFunction::dim)
+			UG_THROW("InterpolateOnElements: Dimension of subset is "<<dim<<", but "
+			         " World Dimension is "<<TGridFunction::dim<<". Cannot interpolate this.");
+
 		switch(dim)
 		{
 		case DIM_SUBSET_EMPTY_GRID: break;
 		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
-			InterpolateFunctionOnElem<Edge, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
+			InterpolateOnElements<Edge, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
 			break;
 		case 2:
-			InterpolateFunctionOnElem<Triangle, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
+			InterpolateOnElements<Triangle, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
+			InterpolateOnElements<Quadrilateral, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
 			break;
 		case 3:
-			InterpolateFunctionOnElem<Tetrahedron, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			InterpolateFunctionOnElem<Hexahedron, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			InterpolateFunctionOnElem<Prism, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
-			InterpolateFunctionOnElem<Pyramid, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
+			InterpolateOnElements<Tetrahedron, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
+			InterpolateOnElements<Hexahedron, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
+			InterpolateOnElements<Prism, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
+			InterpolateOnElements<Pyramid, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
 			break;
-		default: UG_THROW("InterpolateFunction: Dimension " <<dim<<
+		default: UG_THROW("InterpolateOnElements: Dimension " <<dim<<
 		                " not possible for world dim "<<3<<".");
 		}
 		}
-		UG_CATCH_THROW("InterpolateFunction: Cannot interpolate on elements.");
+		UG_CATCH_THROW("InterpolateOnElements: Cannot interpolate on elements.");
 	}
-
-//	adjust parallel storage state
-#ifdef UG_PARALLEL
-	spGridFct->set_storage_type(PST_CONSISTENT);
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -295,26 +245,26 @@ void InterpolateFunction(SmartPtr<IDirectIPData<number, TGridFunction::dim> > sp
 	const size_t fct = spGridFct->fct_id_by_name(cmp);
 
 //	check that function found
-	if(fct == (size_t)-1)
-		UG_THROW("InterpolateFunction: Name of function not found.");
-
-//	check that function exists
-	if(fct >= spGridFct->num_fct())
-		UG_THROW("InterpolateFunction: Function space does not contain"
-						" a function with index " << fct);
+	if(fct > spGridFct->num_fct())
+		UG_THROW("InterpolateFunction: Name of component '"<<cmp<<"' not found.");
 
 //	create subset group
-	SubsetGroup ssGrp; ssGrp.set_subset_handler(spGridFct->domain()->subset_handler());
-
-//	read subsets
+	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
 	if(subsets != NULL)
 		ConvertStringToSubsetGroup(ssGrp, spGridFct->domain()->subset_handler(), subsets);
 	else // add all if no subset specified
 		ssGrp.add_all();
 
-
 //	forward
-	InterpolateFunction<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp);
+	if(spGridFct->local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1))
+		InterpolateOnVertices<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp);
+	else
+		InterpolateOnElements<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp);
+
+	//	adjust parallel storage state
+#ifdef UG_PARALLEL
+	spGridFct->set_storage_type(PST_CONSISTENT);
+#endif
 }
 
 template <typename TGridFunction>
