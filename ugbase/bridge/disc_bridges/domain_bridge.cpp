@@ -107,15 +107,21 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	InterpolateFunction
 	{
-		reg.add_function("InterpolateFunction", static_cast<void (*)(number, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
-		reg.add_function("InterpolateFunction", static_cast<void (*)(number, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>), grp);
+		reg.add_function("InterpolateFunction", static_cast<void (*)(SmartPtr<IDirectIPData<number, dim> >, SmartPtr<TFct>, const char*, const char*, number)>(&InterpolateFunction<TFct>),grp, "Integral", "Data#GridFunction#Component#Subsets#Time");
+		reg.add_function("InterpolateFunction", static_cast<void (*)(SmartPtr<IDirectIPData<number, dim> >, SmartPtr<TFct>, const char*, number)>(&InterpolateFunction<TFct>),grp, "Integral", "Data#GridFunction#Component#Time");
+		reg.add_function("InterpolateFunction", static_cast<void (*)(SmartPtr<IDirectIPData<number, dim> >, SmartPtr<TFct>, const char*, const char*)>(&InterpolateFunction<TFct>), grp, "Integral", "Data#GridFunction#Component#Subsets");
+		reg.add_function("InterpolateFunction", static_cast<void (*)(SmartPtr<IDirectIPData<number, dim> >, SmartPtr<TFct>, const char*)>(&InterpolateFunction<TFct>),grp, "Integral", "Data#GridFunction#Component");
 
-		reg.add_function("InterpolateFunction", static_cast<void (*)(IPData<number, dim>&, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
-		reg.add_function("InterpolateFunction", static_cast<void (*)(IPData<number, dim>&, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
+		reg.add_function("InterpolateFunction", static_cast<void (*)(number, SmartPtr<TFct>, const char*, const char*, number)>(&InterpolateFunction<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component#Subsets#Time");
+		reg.add_function("InterpolateFunction", static_cast<void (*)(number, SmartPtr<TFct>, const char*, number)>(&InterpolateFunction<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component#Time");
+		reg.add_function("InterpolateFunction", static_cast<void (*)(number, SmartPtr<TFct>, const char*, const char*)>(&InterpolateFunction<TFct>), grp, "Integral", "ConstantValue#GridFunction#Component#Subsets");
+		reg.add_function("InterpolateFunction", static_cast<void (*)(number, SmartPtr<TFct>, const char*)>(&InterpolateFunction<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component");
 
 		#ifdef UG_FOR_LUA
-		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, TFct&, const char*, number)>(&InterpolateFunction<TFct>), grp);
-		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, TFct&, const char*, number, const char*)>(&InterpolateFunction<TFct>),grp);
+		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, const char*, number)>(&InterpolateFunction<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component#Subsets#Time");
+		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, number)>(&InterpolateFunction<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component#Time");
+		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, const char*)>(&InterpolateFunction<TFct>), grp, "Integral", "LuaFunction#GridFunction#Component#Subsets");
+		reg.add_function("InterpolateFunction", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*)>(&InterpolateFunction<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component");
 		#endif
 	}
 }
