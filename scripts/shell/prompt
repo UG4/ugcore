@@ -1,0 +1,7 @@
+#!/bin/bash
+PROMPT_COMMAND='echo -ne "\033]0; hostname -a `dirs`\007"'
+PS1="\[\033[1;32m\]\h \[\033[1;30m\][\[\033[1;34m\]\w\[\033[1;30m\]]\[\033[0m\] "
+
+alias cd..="cd .."
+LS_COLORS='di=33;01:fi=0:ln=36:pi=5:so=5:bd=5:cd=5:or=31:mi=0:ex=31;01:*.rpm=90'
+alias ls="ls --color"
