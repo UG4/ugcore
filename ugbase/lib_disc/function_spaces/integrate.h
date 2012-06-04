@@ -79,7 +79,7 @@ class IIntegrand
 
 
 	///	sets the subset
-		void set_subset(int si) {m_si = si;}
+		virtual void set_subset(int si) {m_si = si;}
 
 	///	returns the subset
 		inline int subset() const {return m_si;}
@@ -561,6 +561,15 @@ class L2ErrorIntegrand
 		  m_spExactSolution(spExactSol), m_time(time)
 		{};
 
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_spGridFct->is_def_in_subset(m_fct, si))
+				UG_THROW("L2ErrorIntegrand: Grid function component"
+						<<m_fct<<" not defined on subset "<<si);
+			IIntegrand<worldDim>::set_subset(si);
+		}
+
 	/// \copydoc IIntegrand::values
 		template <int elemDim>
 		void evaluate(number vValue[],
@@ -715,7 +724,15 @@ class H1ErrorIntegrand
 		  m_time(time)
 		{}
 
-	/// \copydoc IIntegrand::values
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_spGridFct->is_def_in_subset(m_fct, si))
+				UG_THROW("L2ErrorIntegrand: Grid function component"
+						<<m_fct<<" not defined on subset "<<si);
+			IIntegrand<worldDim>::set_subset(si);
+		}
+/// \copydoc IIntegrand::values
 		template <int elemDim>
 		void evaluate(number vValue[],
 		              const MathVector<worldDim> vGlobIP[],
@@ -819,6 +836,15 @@ class L2FuncIntegrand
 		L2FuncIntegrand(SmartPtr<TGridFunction> spGridFct, size_t cmp)
 		: m_spGridFct(spGridFct), m_fct(cmp)
 		{};
+
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_spGridFct->is_def_in_subset(m_fct, si))
+				UG_THROW("L2ErrorIntegrand: Grid function component"
+						<<m_fct<<" not defined on subset "<<si);
+			IIntegrand<worldDim>::set_subset(si);
+		}
 
 	/// \copydoc IIntegrand::values
 		template <int elemDim>
@@ -933,6 +959,15 @@ class StdFuncIntegrand
 		StdFuncIntegrand(SmartPtr<TGridFunction> spGridFct, size_t cmp)
 		: m_spGridFct(spGridFct), m_fct(cmp)
 		{};
+
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_spGridFct->is_def_in_subset(m_fct, si))
+				UG_THROW("L2ErrorIntegrand: Grid function component"
+						<<m_fct<<" not defined on subset "<<si);
+			IIntegrand<worldDim>::set_subset(si);
+		}
 
 	/// \copydoc IIntegrand::values
 		template <int elemDim>
