@@ -318,6 +318,7 @@ number IntegrateSubsets(SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand,
 	//	integrate elements of subset
 		switch(ssGrp.dim(si))
 		{
+			case DIM_SUBSET_EMPTY_GRID: break;
 			case 1: value += IntegrateSubset<TGridFunction, 1>(spIntegrand, spGridFct, si, quadOrder); break;
 			case 2: value += IntegrateSubset<TGridFunction, 2>(spIntegrand, spGridFct, si, quadOrder); break;
 			case 3: value += IntegrateSubset<TGridFunction, 3>(spIntegrand, spGridFct, si, quadOrder); break;
