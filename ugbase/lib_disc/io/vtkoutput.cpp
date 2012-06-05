@@ -304,7 +304,6 @@ select_nodal(const char* fctNames, const char* name)
 	std::vector<std::string> tokens;
 	std::string fctString(fctNames);
 	TokenizeString(fctString, tokens, ',');
-	for(size_t i = 0; i < tokens.size(); ++i) TrimString(tokens[i]);
 
 //	check that admissible number of components passed
 	if(tokens.size() != 1 && tokens.size() != (size_t)TDim)
@@ -319,29 +318,8 @@ select_nodal(const char* fctNames, const char* name)
 		UG_THROW("VTK:select_nodal: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	m_vSymbFct.push_back(std::pair<std::string, std::string>(fctNames, name));
+	m_vSymbFctNodal.push_back(std::pair<std::string, std::string>(fctNames, name));
 }
-
-template <int TDim>
-bool VTKOutput<TDim>::
-vtk_name_used(const char* name) const
-{
-	for(size_t j = 0; j < m_vSymbFct.size(); ++j)
-		if(m_vSymbFct[j].second == name)
-			return true;
-
-	for(size_t j = 0; j < m_vScalarData.size(); ++j)
-		if(m_vScalarData[j].second == name)
-			return true;
-
-	for(size_t j = 0; j < m_vVectorData.size(); ++j)
-		if(m_vVectorData[j].second == name)
-			return true;
-
-	return false;
-}
-
-
 
 template <int TDim>
 void VTKOutput<TDim>::
@@ -352,11 +330,7 @@ select_nodal(SmartPtr<IDirectIPData<number, TDim> > spData, const char* name)
 		UG_THROW("VTK:select_nodal: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	if(!spData->is_continuous())
-		UG_THROW("VTK:select_nodal: data with vtk-name " << name <<
-			       " is not continuous. Cannot write it as nodal data.");
-
-	m_vScalarData.push_back(std::pair<SmartPtr<IDirectIPData<number, TDim> >,std::string>(spData, name));
+	m_vScalarNodalData.push_back(std::pair<SmartPtr<IDirectIPData<number, TDim> >,std::string>(spData, name));
 }
 
 template <int TDim>
@@ -368,11 +342,89 @@ select_nodal(SmartPtr<IDirectIPData<MathVector<TDim>, TDim> > spData, const char
 		UG_THROW("VTK:select_nodal: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	if(!spData->is_continuous())
-		UG_THROW("VTK:select_nodal: data with vtk-name " << name <<
-			       " is not continuous. Cannot write it as nodal data.");
+	m_vVectorNodalData.push_back(std::pair<SmartPtr<IDirectIPData<MathVector<TDim>, TDim> >,std::string>(spData, name));
+}
 
-	m_vVectorData.push_back(std::pair<SmartPtr<IDirectIPData<MathVector<TDim>, TDim> >,std::string>(spData, name));
+
+
+template <int TDim>
+void VTKOutput<TDim>::
+select_element(const char* fctNames, const char* name)
+{
+	TrimString(name);
+	std::vector<std::string> tokens;
+	std::string fctString(fctNames);
+	TokenizeString(fctString, tokens, ',');
+
+//	check that admissible number of components passed
+	if(tokens.size() != 1 && tokens.size() != (size_t)TDim)
+		UG_THROW("VTK:select_element: In order to select"
+				" a element data of a grid function for output to vtk,"
+				" 1 or "<<TDim<<" function components must be chosen, but passed are "
+				<<tokens.size()<<" components in '"<<fctNames<<"'. Please select 1 or "<<
+			        TDim<<" components in world dimension "<<TDim);
+
+//	check if name is not in use
+	if(vtk_name_used(name))
+		UG_THROW("VTK:select_element: Using name " << name <<
+			       " that is already used by other data is not allowed.");
+
+	m_vSymbFctElem.push_back(std::pair<std::string, std::string>(fctNames, name));
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+select_element(SmartPtr<IDirectIPData<number, TDim> > spData, const char* name)
+{
+	TrimString(name);
+	if(vtk_name_used(name))
+		UG_THROW("VTK:select_element: Using name " << name <<
+			       " that is already used by other data is not allowed.");
+
+	m_vScalarElemData.push_back(std::pair<SmartPtr<IDirectIPData<number, TDim> >,std::string>(spData, name));
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+select_element(SmartPtr<IDirectIPData<MathVector<TDim>, TDim> > spData, const char* name)
+{
+	TrimString(name);
+	if(vtk_name_used(name))
+		UG_THROW("VTK:select_element: Using name " << name <<
+			       " that is already used by other data is not allowed.");
+
+	m_vVectorElemData.push_back(std::pair<SmartPtr<IDirectIPData<MathVector<TDim>, TDim> >,std::string>(spData, name));
+}
+
+template <int TDim>
+bool VTKOutput<TDim>::
+vtk_name_used(const char* name) const
+{
+	for(size_t j = 0; j < m_vSymbFctNodal.size(); ++j)
+		if(m_vSymbFctNodal[j].second == name)
+			return true;
+
+	for(size_t j = 0; j < m_vScalarNodalData.size(); ++j)
+		if(m_vScalarNodalData[j].second == name)
+			return true;
+
+	for(size_t j = 0; j < m_vVectorNodalData.size(); ++j)
+		if(m_vVectorNodalData[j].second == name)
+			return true;
+
+	for(size_t j = 0; j < m_vSymbFctElem.size(); ++j)
+		if(m_vSymbFctElem[j].second == name)
+			return true;
+
+	for(size_t j = 0; j < m_vScalarElemData.size(); ++j)
+		if(m_vScalarElemData[j].second == name)
+			return true;
+
+	for(size_t j = 0; j < m_vVectorElemData.size(); ++j)
+		if(m_vVectorElemData[j].second == name)
+			return true;
+
+	return false;
 }
 
 #ifdef UG_DIM_1

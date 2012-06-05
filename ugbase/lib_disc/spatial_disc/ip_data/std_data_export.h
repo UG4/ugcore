@@ -314,14 +314,58 @@ class GradientDataExport
 
 		template <int refDim>
 		inline void evaluate (MathVector<dim>& value,
-		                        const MathVector<dim>& globIP,
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<refDim>& locIP) const
+		                      const MathVector<dim>& globIP,
+		                      number time, int si,
+		                      LocalVector& u,
+		                      GeometricObject* elem,
+		                      const MathVector<dim> vCornerCoords[],
+		                      const MathVector<refDim>& locIP) const
 		{
-			UG_THROW("Not implemented.");
+		//	reference object id
+			const ReferenceObjectID roid = elem->reference_object_id();
+
+		//	local finite element id
+			const LFEID& lfeID = this->fct_grp().local_finite_element_id(_C_);
+
+			try{
+
+		//	local shape function set
+			const DimLocalShapeFunctionSet<refDim>& rTrialSpace
+				 = LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
+
+		//	storage for shape function at ip
+			std::vector<MathVector<refDim> > vLocGrad;
+			MathVector<refDim> locGrad;
+
+		//	evaluate at shapes at ip
+			rTrialSpace.grads(vLocGrad, locIP);
+
+		//	compute grad at ip
+			VecSet(locGrad, 0.0);
+			for(size_t sh = 0; sh < vLocGrad.size(); ++sh)
+				VecScaleAppend(locGrad, u(_C_, sh), vLocGrad[sh]);
+
+		//	reference mapping
+			DimReferenceMapping<refDim, dim>& map
+				= ReferenceMappingProvider::get<refDim, dim>(roid);
+
+		//	update the mapping for the new corners
+			map.update(vCornerCoords);
+
+		// 	compute transformation inverse and determinate at ip
+			MathMatrix<dim, refDim> JTInv;
+			map.jacobian_transposed_inverse(JTInv, locIP);
+
+		//	compute global gradient
+			MatVecMult(value, JTInv, locGrad);
+
+			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+				UG_THROW("GradientDataExport: "<< ex.get_msg()<<", Reference Object: "
+						 <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
+			}
+			catch(UG_ERROR_ReferenceMappingMissing& ex){
+				UG_THROW("GradientDataExport: " << ex.get_msg());
+			}
 		}
 
 		template <int refDim>

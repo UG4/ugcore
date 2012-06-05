@@ -44,7 +44,7 @@ class VTKFileWriter
 		out[3] = n > 2? digits[in[2] & 0x3F] : '=';
 	}
 
-	inline void BufferStreamWrite(FILE* File, void *item)
+	inline void BufferStreamWrite(FILE* File, const void *item)
 	{
 		int i;
 		char *p;
@@ -109,7 +109,7 @@ class VTKFileWriter
 		void begin_base64_buffer() {BufferStream.size = sizeof(T);}
 
 		template <typename T>
-		void write_base64_buffered(T& n)
+		void write_base64_buffered(const T& n)
 		{
 			UG_ASSERT(BufferStream.size = sizeof(T), "Stream size invalid.");
 			BufferStreamWrite(m_pFile, &n);
@@ -128,7 +128,7 @@ class VTKFileWriter
 		}
 
 		template <typename T>
-		void write_base64(T& n)
+		void write_base64(const T& n)
 		{
 			BufferStream.size = sizeof(T);
 			BufferStreamWrite(m_pFile, &n);
@@ -238,7 +238,7 @@ class VTKOutput
 {
 	public:
 	///	clears the selected output
-		void clear_selection() {m_vSymbFct.clear();}
+		void clear_selection() {m_vSymbFctNodal.clear();}
 
 	///	schedules that all components of the passed discrete functions will be written to file
 		void select_all(bool bAll) {m_bSelectAll = bAll;}
@@ -248,9 +248,9 @@ class VTKOutput
 	 * This function schedules the component(s) passed by symbolic name(s) of an
 	 * approximation space to be
 	 * written to the vtk file under a specified name. Note, that for the
-	 * ansatz space of the component an evaluation of the data at the nodes
+	 * trial space of the component an evaluation of the data at the nodes
 	 * must be available (continuous). If more than one component is passed, the
-	 * data will be intepreted as a vector and #dim arguments must be passed.
+	 * data will be interpreted as a vector and #dim arguments must be passed.
 	 *
 	 * example: fctName = "p"; name = "pressure"
 	 * example: fctNames = "u,v,w"; name = "velocity"
@@ -259,6 +259,21 @@ class VTKOutput
 	 * \param[in]	name		name that will appear in the vtk file for the data
 	 */
 		void select_nodal(const char* fctName, const char* name);
+
+	///	selects a element value of a grid function value to be written
+	/**
+	 * This function schedules the component(s) passed by symbolic name(s) of an
+	 * approximation space to be written to the vtk file under a specified name.
+	 * If more than one component is passed, the
+	 * data will be interpreted as a vector and #dim arguments must be passed.
+	 *
+	 * example: fctName = "p"; name = "pressure"
+	 * example: fctNames = "u,v,w"; name = "velocity"
+	 *
+	 * \param[in]	fctName		symbolic name of component
+	 * \param[in]	name		name that will appear in the vtk file for the data
+	 */
+		void select_element(const char* fctName, const char* name);
 
 	///	selects a nodal data value to be written
 	/**
@@ -272,6 +287,19 @@ class VTKOutput
 	/// \{
 		void select_nodal(SmartPtr<IDirectIPData<number, TDim> > spData, const char* name);
 		void select_nodal(SmartPtr<IDirectIPData<MathVector<TDim>, TDim> > spData, const char* name);
+	/// \}
+
+	///	selects a element data value to be written
+	/**
+	 * This function schedules a user data to be written to the vtk file under
+	 * a specified name.
+	 *
+	 * \param[in]	spData		data to be written
+	 * \param[in]	name		name that will appear in the vtk file for the data
+	 */
+	/// \{
+		void select_element(SmartPtr<IDirectIPData<number, TDim> > spData, const char* name);
+		void select_element(SmartPtr<IDirectIPData<MathVector<TDim>, TDim> > spData, const char* name);
 	/// \}
 
 	/**
@@ -550,22 +578,27 @@ class VTKOutput
 		write_grid_solution_piece(VTKFileWriter& File,
 								  Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 								  Grid& grid,
-								  TFunction& u, int si, int dim);
+								  TFunction& u, number time, int si, int dim);
+
+	///////////////////////////////////////////////////////////////////////////
+	// nodal data
 
 	/**
 	 * This method writes the nodal values of a function to file. If the function
 	 * group consists of more than on component, than a vector of components is
 	 * expected. For each function, access to the (unique) nodal value is
-	 * requiered.
+	 * required.
 	 *
 	 * \param[in]	File		file stream
 	 * \param[in]	u			grid function
 	 * \param[in]	vFct		components to be written
+	 * \param[in]	grid		Grid
 	 * \param[in]	si			subset index
 	 */
 		template <typename TElem, typename TFunction>
 		void write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
-		                                   const FunctionGroup& vFct, Grid& grid, int si);
+		                                    const std::vector<size_t>& vFct,
+		                                    Grid& grid, int si);
 
 	/**
 	 * This function writes the values of a function as a <DataArray> field to
@@ -575,19 +608,94 @@ class VTKOutput
 	 * \param[in]		u			discrete function
 	 * \param[in]		vFct		components to be written
 	 * \param[in]		name		name to appear for the component
+	 * \param[in]		grid		Grid
 	 * \param[in]		si			subset
 	 * \param[in]		dim			dimension of subset
 	 * \param[in]		numVert		number of vertices
 	 */
 		template <typename TFunction>
 		void write_nodal_values(VTKFileWriter& File, TFunction& u,
-								const FunctionGroup& vFct,
+								const std::vector<size_t>& vFct,
 								const std::string& name,
 								Grid& grid, int si, int dim, int numVert);
 
+	///	writes the nodal scalar data
+	/// \{
+		template <typename TElem, typename TFunction, typename TData>
+		void write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u,
+		                                  number time,
+		                                  SmartPtr<IDirectIPData<TData, TDim> > spData,
+		                                  Grid& grid, int si);
+		template <typename TFunction, typename TData>
+		void write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
+		                      SmartPtr<IDirectIPData<TData, TDim> > spData,
+		                      const int numCmp,
+		                      const std::string& name,
+		                      Grid& grid, int si, int dim, int numVert);
+	/// \}
+
 		template <typename TFunction>
-		void write_nodal_values_piece(VTKFileWriter& File, TFunction& u,
+		void write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time,
 		                              Grid& grid, int si, int dim, int numVert);
+
+	///////////////////////////////////////////////////////////////////////////
+	// cell data
+
+	/**
+	 * This method writes the cell values of a function to file. If the function
+	 * group consists of more than on component, than a vector of components is
+	 * expected.
+	 *
+	 * \param[in]	File		file stream
+	 * \param[in]	u			grid function
+	 * \param[in]	vFct		components to be written
+	 * \param[in]	grid		Grid
+	 * \param[in]	si			subset index
+	 */
+		template <typename TElem, typename TFunction>
+		void write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
+										   const std::vector<size_t>& vFct,
+										   Grid& grid, int si);
+
+	/**
+	 * This function writes the values of a function as a <DataArray> field to
+	 * the vtu file.
+	 *
+	 * \param[in,out]	File		file to write the points
+	 * \param[in]		u			discrete function
+	 * \param[in]		vFct		components to be written
+	 * \param[in]		name		name to appear for the component
+	 * \param[in]		grid		Grid
+	 * \param[in]		si			subset
+	 * \param[in]		dim			dimension of subset
+	 * \param[in]		numVert		number of vertices
+	 */
+		template <typename TFunction>
+		void write_cell_values(VTKFileWriter& File, TFunction& u,
+								const std::vector<size_t>& vFct,
+								const std::string& name,
+								Grid& grid, int si, int dim, int numElem);
+
+	///	writes the nodal cell data
+	/// \{
+		template <typename TElem, typename TFunction, typename TData>
+		void write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
+										  SmartPtr<IDirectIPData<TData, TDim> > spData,
+										  Grid& grid, int si);
+		template <typename TFunction, typename TData>
+		void write_cell_data(VTKFileWriter& File, TFunction& u, number time,
+							  SmartPtr<IDirectIPData<TData, TDim> > spData,
+							  const int numCmp,
+							  const std::string& name,
+							  Grid& grid, int si, int dim, int numElem);
+	/// \}
+
+		template <typename TFunction>
+		void write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time,
+									  Grid& grid, int si, int dim, int numElem);
+
+	///////////////////////////////////////////////////////////////////////////
+	// file names
 
 	///	writes a grouping *.pvtu file
 		template <typename TFunction>
@@ -625,13 +733,16 @@ class VTKOutput
 	protected:
 	///	scheduled components to be printed
 		bool m_bSelectAll;
-		std::vector<std::pair<std::string, std::string> > m_vSymbFct;
+		std::vector<std::pair<std::string, std::string> > m_vSymbFctNodal;
+		std::vector<std::pair<std::string, std::string> > m_vSymbFctElem;
 
 	///	scheduled scalar data to be printed
-		std::vector<std::pair<SmartPtr<IDirectIPData<number, TDim> >,std::string> > m_vScalarData;
+		std::vector<std::pair<SmartPtr<IDirectIPData<number, TDim> >,std::string> > m_vScalarNodalData;
+		std::vector<std::pair<SmartPtr<IDirectIPData<number, TDim> >,std::string> > m_vScalarElemData;
 
 	///	scheduled vector data to be printed
-		std::vector<std::pair<SmartPtr<IDirectIPData<MathVector<TDim>, TDim> >,std::string> > m_vVectorData;
+		std::vector<std::pair<SmartPtr<IDirectIPData<MathVector<TDim>, TDim> >,std::string> > m_vVectorNodalData;
+		std::vector<std::pair<SmartPtr<IDirectIPData<MathVector<TDim>, TDim> >,std::string> > m_vVectorElemData;
 
 	///	map storing the time points
 		std::map<std::string, std::vector<number> > m_mTimestep;

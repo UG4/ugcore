@@ -22,6 +22,9 @@
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/common/multi_index.h"
 #include "lib_disc/reference_element/reference_element.h"
+#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/spatial_disc/disc_util/finite_volume_util.h"
+#include "common/util/provider.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl_base.h"
@@ -164,7 +167,7 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 	if(dim >= 0)
 	{
 		try{
-			write_grid_solution_piece(File, aaVrtIndex, grid, u, si, dim);
+			write_grid_solution_piece(File, aaVrtIndex, grid, u, time, si, dim);
 		}
 		UG_CATCH_THROW("VTK::print_subset: Can not write Subset: "<<si);
 	}
@@ -278,7 +281,7 @@ void VTKOutput<TDim>::
 write_grid_solution_piece(VTKFileWriter& File,
                           Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
                           Grid& grid,
-                          TFunction& u, int si, int dim)
+                          TFunction& u, number time, int si, int dim)
 {
 //	counters
 	int numVert = 0, numElem = 0, numConn = 0;
@@ -301,7 +304,10 @@ write_grid_solution_piece(VTKFileWriter& File,
 	(File, aaVrtIndex, u.domain()->position_accessor(), grid, u, si, dim, numVert, numElem, numConn);
 
 //	write nodal data
-	write_nodal_values_piece(File, u, grid, si, dim, numVert);
+	write_nodal_values_piece(File, u, time, grid, si, dim, numVert);
+
+//	write cell data
+	write_cell_values_piece(File, u, time, grid, si, dim, numElem);
 
 //	write closing tag
 	File.write("    </Piece>\n");
@@ -767,53 +773,170 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 ////////////////////////////////////////////////////////////////////////////////
 // Nodal Value
 ////////////////////////////////////////////////////////////////////////////////
-template <int TDim>
-template <typename TFunction>
-void VTKOutput<TDim>::
-write_nodal_values_piece(VTKFileWriter& File, TFunction& u, Grid& grid,
-                         int si, int dim, int numVert)
+
+namespace {
+void WriteDataToBase64Stream(ug::VTKFileWriter& File, const float& data)
 {
-//	write opening tag to indicate point data
-	File.write("      <PointData>\n");
+	File.write_base64_buffered(data);
+}
+void WriteDataToBase64Stream(ug::VTKFileWriter& File, const ug::MathVector<1>& data)
+{
+	File.write_base64_buffered((float)data[0]);
+	File.write_base64_buffered((float)0.0f);
+	File.write_base64_buffered((float)0.0f);
+}
+void WriteDataToBase64Stream(ug::VTKFileWriter& File, const ug::MathVector<2>& data)
+{
+	File.write_base64_buffered((float)data[0]);
+	File.write_base64_buffered((float)data[1]);
+	File.write_base64_buffered((float)0.0f);
+}
+void WriteDataToBase64Stream(ug::VTKFileWriter& File, const ug::MathVector<3>& data)
+{
+	File.write_base64_buffered((float)data[0]);
+	File.write_base64_buffered((float)data[1]);
+	File.write_base64_buffered((float)data[2]);
+}
 
-//	add all components if 'selectAll' chosen
-	if(m_bSelectAll)
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-			if(!vtk_name_used(u.name(fct).c_str()))
-				select_nodal(u.name(fct).c_str(), u.name(fct).c_str());
+}
 
-//	loop all selected symbolic names
-	for(size_t sym = 0; sym < m_vSymbFct.size(); ++sym)
+template <int TDim>
+template <typename TElem, typename TFunction, typename TData>
+void VTKOutput<TDim>::
+write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
+                             SmartPtr<IDirectIPData<TData, TDim> > spData,
+                             Grid& grid, int si)
+{
+//	get reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+																ref_elem_type;
+	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
+	static const size_t numCo = ref_elem_type::num_corners;
+
+	File.begin_base64_buffer<float>();
+
+//	get iterators
+	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
+	const_iterator iterBegin = IteratorProvider<TFunction>::template begin<TElem>(u, si);
+	const_iterator iterEnd = IteratorProvider<TFunction>::template end<TElem>(u, si);
+
+	std::vector<MathVector<TDim> > vCorner(numCo);
+
+	TData vValue[numCo];
+	bool bNeedFct = spData->requires_grid_fct();
+
+//	loop all elements
+	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
-	//	get symb function
-		const std::string& symbNames = m_vSymbFct[sym].first;
-		const std::string& vtkName = m_vSymbFct[sym].second;
+	//	get element
+		TElem *elem = *iterBegin;
 
-	//	create function group
-		FunctionGroup fctGrp = u.fct_grp_by_name(symbNames.c_str());
+	//	update the reference mapping for the corners
+		CollectCornerCoordinates(vCorner, *elem, u.domain()->position_accessor(), true);
 
-	//	check that all functions are contained in subset
-		bool bContained = true;
-		for(size_t i = 0; i < fctGrp.num_fct(); ++i)
+	//	get local solution if needed
+		if(bNeedFct)
 		{
-		//	get function
-			const size_t fct = fctGrp[i];
+		//	create storage
+			LocalIndices ind;
+			LocalVector locU;
 
-		//	check
-			if(!u.is_def_in_subset(fct, si)) bContained = false;
-		}
-		if(!bContained) continue;
+		// 	get global indices
+			u.indices(elem, ind);
 
-	//	write scalar value of this function
-		try{
-			write_nodal_values(File, u, fctGrp, vtkName, grid, si, dim, numVert);
+		// 	adapt local algebra
+			locU.resize(ind);
+
+		// 	read local values of u
+			GetLocalVector(locU, u);
+
+		//	compute data
+			try{
+				(*spData)(vValue, &vCorner[0], time, si, locU, elem,
+							&vCorner[0], refElem.vCorner(), numCo, NULL);
+			}
+			UG_CATCH_THROW("VTK::write_nodal_data_elementwise: Cannot evaluate data.");
 		}
-		UG_CATCH_THROW("VTK::write_piece: Can not write Scalar Values.");
+		else
+		{
+		//	compute data
+			try{
+				(*spData)(vValue, &vCorner[0], time, si, numCo);
+			}
+			UG_CATCH_THROW("VTK::write_nodal_data_elementwise: Cannot evaluate data.");
+		}
+
+	//	loop vertices of element
+		for(size_t co = 0; co < numCo; ++co)
+		{
+		//	get vertex of element
+			VertexBase* v = GetVertex(elem, co);
+
+		//	if vertex has been handled before, skip
+			if(grid.is_marked(v)) continue;
+
+		//	mark as used
+			grid.mark(v);
+
+		//	loop all components
+			WriteDataToBase64Stream(File, vValue[co]);
+		}
 	}
 
-//	write closing tag
-	File.write("      </PointData>\n");
+	File.end_base64_buffer<float>();
 }
+
+
+template <int TDim>
+template <typename TFunction, typename TData>
+void VTKOutput<TDim>::
+write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
+                 SmartPtr<IDirectIPData<TData, TDim> > spData,
+                 const int numCmp,
+                 const std::string& name,
+                 Grid& grid, int si, int dim, int numVert)
+{
+	spData->set_function_pattern(u.function_pattern());
+
+//	check that nodal data is possible
+	if(!spData->is_continuous())
+		UG_THROW("VTK: data with name '"<<name<<"' is scheduled for nodal output,"
+				" but the data is not continuous. Cannot write it as nodal data.")
+
+//	write opening tag
+	std::stringstream ss;
+	ss << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+					"NumberOfComponents=\""<<numCmp<<"\" format=\"binary\">\n";
+	File.write(ss.str().c_str());
+
+	int n = sizeof(float) * numVert * numCmp;
+	File.write_base64(n);
+
+//	start marking of grid
+	grid.begin_marking();
+
+//	switch dimension
+	switch(dim)
+	{
+		case 1:	write_nodal_data_elementwise<Edge,TFunction,TData>(File, u, time, spData, grid, si);break;
+		case 2:	write_nodal_data_elementwise<Triangle,TFunction,TData>(File, u, time, spData, grid, si);
+				write_nodal_data_elementwise<Quadrilateral,TFunction,TData>(File, u, time, spData, grid, si);break;
+		case 3:	write_nodal_data_elementwise<Tetrahedron,TFunction,TData>(File, u, time, spData, grid, si);
+				write_nodal_data_elementwise<Pyramid,TFunction,TData>(File, u, time, spData, grid, si);
+				write_nodal_data_elementwise<Prism,TFunction,TData>(File, u, time, spData, grid, si);
+				write_nodal_data_elementwise<Hexahedron,TFunction,TData>(File, u, time, spData, grid, si);break;
+		default: UG_THROW("VTK::write_nodal_data: Dimension " << dim <<
+		                        " is not supported.");
+	}
+
+//	end marking
+	grid.end_marking();
+
+//	write closing tag
+	File.write("\n        </DataArray>\n");
+};
+
+
 
 
 
@@ -821,14 +944,13 @@ template <int TDim>
 template <typename TElem, typename TFunction>
 void VTKOutput<TDim>::
 write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
-                               const FunctionGroup& vFct,
+                               const std::vector<size_t>& vFct,
                                Grid& grid, int si)
 {
 //	get reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
 																ref_elem_type;
 
-	float valf;
 	File.begin_base64_buffer<float>();
 
 //	index vector
@@ -858,7 +980,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 			grid.mark(v);
 
 		//	loop all components
-			for(size_t i = 0; i < vFct.num_fct(); ++i)
+			for(size_t i = 0; i < vFct.size(); ++i)
 			{
 			//	get multi index of vertex for the function
 				if(u.inner_multi_indices(v, vFct[i], vMultInd) != 1)
@@ -872,20 +994,14 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 				const size_t index = vMultInd[0][0];
 				const size_t alpha = vMultInd[0][1];
 
-			//	read value from vector
-				valf = (float) BlockRef(u[index], alpha);
-
 			//	flush stream
-				File.write_base64_buffered(valf);
+				File.write_base64_buffered((float) BlockRef(u[index], alpha));
 			}
 
 		//	fill with zeros up to 3d if vector type
-			if(vFct.num_fct() != 1)
-				for(size_t i = vFct.num_fct(); i < 3; ++i)
-				{
-					valf = (float) 0.0;
-					File.write_base64_buffered(valf);
-				}
+			if(vFct.size() != 1)
+				for(size_t i = vFct.size(); i < 3; ++i)
+					File.write_base64_buffered((float) 0.0f);
 		}
 	}
 
@@ -897,16 +1013,16 @@ template <int TDim>
 template <typename TFunction>
 void VTKOutput<TDim>::
 write_nodal_values(VTKFileWriter& File, TFunction& u,
-                   const FunctionGroup& vFct, const std::string& name,
+                   const std::vector<size_t>& vFct, const std::string& name,
                    Grid& grid, int si, int dim, int numVert)
 {
 //	write opening tag
 	std::stringstream ss;
 	ss << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
-					"NumberOfComponents=\""<<(vFct.num_fct() == 1 ? 1 : 3)<<"\" format=\"binary\">\n";
+					"NumberOfComponents=\""<<(vFct.size() == 1 ? 1 : 3)<<"\" format=\"binary\">\n";
 	File.write(ss.str().c_str());
 
-	int n = sizeof(float) * numVert * (vFct.num_fct() == 1 ? 1 : 3);
+	int n = sizeof(float) * numVert * (vFct.size() == 1 ? 1 : 3);
 	File.write_base64(n);
 
 //	start marking of grid
@@ -934,6 +1050,414 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 	File.write("\n        </DataArray>\n");
 };
 
+template <int TDim>
+template <typename TFunction>
+void VTKOutput<TDim>::
+write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& grid,
+                         int si, int dim, int numVert)
+{
+//	add all components if 'selectAll' chosen
+	if(m_bSelectAll)
+		for(size_t fct = 0; fct < u.num_fct(); ++fct)
+			if(!vtk_name_used(u.name(fct).c_str()))
+				select_nodal(u.name(fct).c_str(), u.name(fct).c_str());
+
+//	check if something to do
+	if(m_vSymbFctNodal.empty() && m_vScalarNodalData.empty() && m_vVectorNodalData.empty())
+		return;
+
+//	write opening tag to indicate point data
+	File.write("      <PointData>\n");
+
+//	loop all selected symbolic names
+	for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
+	{
+	//	get symb function
+		const std::string& symbNames = m_vSymbFctNodal[sym].first;
+		const std::string& vtkName = m_vSymbFctNodal[sym].second;
+
+	//	tokenize string
+		std::vector<std::string> tokens;
+		TokenizeString(symbNames, tokens, ',');
+		for(size_t i = 0; i < tokens.size(); ++i) tokens[i] = TrimString(tokens[i]);
+
+	//	create function group
+		std::vector<size_t> fctGrp(tokens.size());
+		for(size_t i = 0; i < tokens.size(); ++i)
+			fctGrp[i] = u.fct_id_by_name(tokens[i].c_str());
+
+	//	check that all functions are contained in subset
+		bool bContained = true;
+		for(size_t i = 0; i < fctGrp.size(); ++i)
+			if(!u.is_def_in_subset(fctGrp[i], si))
+				bContained = false;
+
+		if(!bContained) continue;
+
+	//	write scalar value of this function
+		try{
+			write_nodal_values(File, u, fctGrp, vtkName, grid, si, dim, numVert);
+		}
+		UG_CATCH_THROW("VTK::write_piece: Can not write nodal Values.");
+	}
+
+//	loop all scalar data
+	for(size_t data = 0; data < m_vScalarNodalData.size(); ++data)
+	{
+	//	get symb function
+		SmartPtr<IDirectIPData<number,TDim> > spData = m_vScalarNodalData[data].first;
+		const std::string& vtkName = m_vScalarNodalData[data].second;
+
+	//	write scalar value of this data
+		try{
+			write_nodal_data<TFunction,number>
+							(File, u, time, spData, 1, vtkName, grid, si, dim, numVert);
+		}
+		UG_CATCH_THROW("VTK::write_piece: Can not write nodal scalar Data.");
+	}
+
+//	loop all vector data
+	for(size_t data = 0; data < m_vVectorNodalData.size(); ++data)
+	{
+	//	get symb function
+		SmartPtr<IDirectIPData<MathVector<TDim>,TDim> > spData = m_vVectorNodalData[data].first;
+		const std::string& vtkName = m_vVectorNodalData[data].second;
+
+	//	write scalar value of this data
+		try{
+			write_nodal_data<TFunction,MathVector<TDim> >
+							(File, u, time, spData, 3, vtkName, grid, si, dim, numVert);
+		}
+		UG_CATCH_THROW("VTK::write_piece: Can not write nodal vector Data.");
+	}
+
+//	write closing tag
+	File.write("      </PointData>\n");
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Cell Value
+////////////////////////////////////////////////////////////////////////////////
+
+template <int TDim>
+template <typename TElem, typename TFunction, typename TData>
+void VTKOutput<TDim>::
+write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
+                             SmartPtr<IDirectIPData<TData, TDim> > spData,
+                             Grid& grid, int si)
+{
+//	get reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+																ref_elem_type;
+	static const int refDim = reference_element_traits<TElem>::dim;
+	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
+	static const size_t numCo = ref_elem_type::num_corners;
+
+	File.begin_base64_buffer<float>();
+
+//	get iterators
+	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
+	const_iterator iterBegin = IteratorProvider<TFunction>::template begin<TElem>(u, si);
+	const_iterator iterEnd = IteratorProvider<TFunction>::template end<TElem>(u, si);
+
+	MathVector<refDim> localIP;
+	MathVector<TDim> globIP;
+	AveragePositions(localIP, refElem.vCorner(), numCo);
+
+	std::vector<MathVector<TDim> > vCorner(numCo);
+
+	TData value;
+	bool bNeedFct = spData->requires_grid_fct();
+
+//	loop all elements
+	for( ; iterBegin != iterEnd; ++iterBegin)
+	{
+	//	get element
+		TElem *elem = *iterBegin;
+
+	//	update the reference mapping for the corners
+		CollectCornerCoordinates(vCorner, *elem, u.domain()->position_accessor(), true);
+
+	//	compute global integration points
+		AveragePositions(globIP, &vCorner[0], numCo);
+
+	//	get local solution if needed
+		if(bNeedFct)
+		{
+		//	create storage
+			LocalIndices ind;
+			LocalVector locU;
+
+		// 	get global indices
+			u.indices(elem, ind);
+
+		// 	adapt local algebra
+			locU.resize(ind);
+
+		// 	read local values of u
+			GetLocalVector(locU, u);
+
+		//	compute data
+			try{
+				(*spData)(value, globIP, time, si, locU, elem,
+							&vCorner[0], localIP);
+			}
+			UG_CATCH_THROW("VTK::write_cell_data_elementwise: Cannot evaluate data.");
+		}
+		else
+		{
+		//	compute data
+			try{
+				(*spData)(value, globIP, time, si);
+			}
+			UG_CATCH_THROW("VTK::write_cell_data_elementwise: Cannot evaluate data.");
+		}
+
+		WriteDataToBase64Stream(File, value);
+	}
+
+	File.end_base64_buffer<float>();
+}
+
+
+template <int TDim>
+template <typename TFunction, typename TData>
+void VTKOutput<TDim>::
+write_cell_data(VTKFileWriter& File, TFunction& u, number time,
+                 SmartPtr<IDirectIPData<TData, TDim> > spData,
+                 const int numCmp,
+                 const std::string& name,
+                 Grid& grid, int si, int dim, int numElem)
+{
+	spData->set_function_pattern(u.function_pattern());
+
+//	write opening tag
+	std::stringstream ss;
+	ss << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+					"NumberOfComponents=\""<<numCmp<<"\" format=\"binary\">\n";
+	File.write(ss.str().c_str());
+
+	int n = sizeof(float) * numElem * numCmp;
+	File.write_base64(n);
+
+//	switch dimension
+	switch(dim)
+	{
+		case 1:	write_cell_data_elementwise<Edge,TFunction,TData>(File, u, time, spData, grid, si);break;
+		case 2:	write_cell_data_elementwise<Triangle,TFunction,TData>(File, u, time, spData, grid, si);
+				write_cell_data_elementwise<Quadrilateral,TFunction,TData>(File, u, time, spData, grid, si);break;
+		case 3:	write_cell_data_elementwise<Tetrahedron,TFunction,TData>(File, u, time, spData, grid, si);
+				write_cell_data_elementwise<Pyramid,TFunction,TData>(File, u, time, spData, grid, si);
+				write_cell_data_elementwise<Prism,TFunction,TData>(File, u, time, spData, grid, si);
+				write_cell_data_elementwise<Hexahedron,TFunction,TData>(File, u, time, spData, grid, si);break;
+		default: UG_THROW("VTK::write_cell_data: Dimension " << dim <<
+		                        " is not supported.");
+	}
+
+//	write closing tag
+	File.write("\n        </DataArray>\n");
+};
+
+
+template <int TDim>
+template <typename TElem, typename TFunction>
+void VTKOutput<TDim>::
+write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
+                               const std::vector<size_t>& vFct,
+                               Grid& grid, int si)
+{
+//	get reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+																ref_elem_type;
+
+	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
+	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	static const int dim = ref_elem_type::dim;
+	static const size_t numCo = ref_elem_type::num_corners;
+
+//	index vector
+	std::vector<MultiIndex<2> > vMultInd;
+
+//	get iterators
+	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
+	const_iterator iterBegin = IteratorProvider<TFunction>::template begin<TElem>(u, si);
+	const_iterator iterEnd = IteratorProvider<TFunction>::template end<TElem>(u, si);
+
+	File.begin_base64_buffer<float>();
+
+	MathVector<dim> localIP;
+	AveragePositions(localIP, refElem.vCorner(), numCo);
+
+//	request for trial space
+	try{
+	std::vector<std::vector<number> > vvShape(vFct.size());
+	std::vector<size_t> vNsh(vFct.size());
+
+	for(size_t f = 0; f < vFct.size(); ++f)
+	{
+		const LFEID lfeID = u.local_finite_element_id(vFct[f]);
+		const DimLocalShapeFunctionSet<dim>& lsfs
+			 = LocalShapeFunctionSetProvider::get<dim>(roid, lfeID);
+
+		vNsh[f] = lsfs.num_sh();
+		lsfs.shapes(vvShape[f], localIP);
+	}
+
+//	loop all elements
+	for( ; iterBegin != iterEnd; ++iterBegin)
+	{
+	//	get element
+		TElem *elem = *iterBegin;
+
+	//	loop all components
+		for(size_t f = 0; f < vFct.size(); ++f)
+		{
+		//	get multi index of vertex for the function
+			if(u.multi_indices(elem, vFct[f], vMultInd) != vNsh[f])
+				UG_THROW("VTK:write_cell_values_elementwise: "
+						"Number of shape functions for component "<<vFct[f]<<
+						" does not match number of DoFs");
+
+			number ipVal = 0.0;
+			for(size_t sh = 0; sh < vNsh[f]; ++sh)
+			{
+			//	get index and subindex
+				const size_t index = vMultInd[sh][0];
+				const size_t alpha = vMultInd[sh][1];
+
+				ipVal += BlockRef(u[index], alpha) * vvShape[f][sh];
+			}
+
+		//	flush stream
+			File.write_base64_buffered((float)ipVal);
+		}
+
+	//	fill with zeros up to 3d if vector type
+		if(vFct.size() != 1)
+			for(size_t i = vFct.size(); i < 3; ++i)
+				File.write_base64_buffered((float) 0.0f);
+	}
+	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+		UG_THROW("VTK: " << ex.get_msg());
+	}
+
+	File.end_base64_buffer<float>();
+}
+
+
+template <int TDim>
+template <typename TFunction>
+void VTKOutput<TDim>::
+write_cell_values(VTKFileWriter& File, TFunction& u,
+                   const std::vector<size_t>& vFct, const std::string& name,
+                   Grid& grid, int si, int dim, int numElem)
+{
+//	write opening tag
+	std::stringstream ss;
+	ss << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+					"NumberOfComponents=\""<<(vFct.size() == 1 ? 1 : 3)<<"\" format=\"binary\">\n";
+	File.write(ss.str().c_str());
+
+	int n = sizeof(float) * numElem * (vFct.size() == 1 ? 1 : 3);
+	File.write_base64(n);
+
+//	switch dimension
+	switch(dim)
+	{
+		case 1:	write_cell_values_elementwise<Edge>(File, u, vFct, grid, si);break;
+		case 2:	write_cell_values_elementwise<Triangle>(File, u, vFct, grid, si);
+				write_cell_values_elementwise<Quadrilateral>(File, u, vFct, grid, si);break;
+		case 3:	write_cell_values_elementwise<Tetrahedron>(File, u, vFct, grid, si);
+				write_cell_values_elementwise<Pyramid>(File, u, vFct, grid, si);
+				write_cell_values_elementwise<Prism>(File, u, vFct, grid, si);
+				write_cell_values_elementwise<Hexahedron>(File, u, vFct, grid, si);break;
+		default: UG_THROW("VTK::write_cell_values: Dimension " << dim <<
+		                        " is not supported.");
+	}
+
+//	write closing tag
+	File.write("\n        </DataArray>\n");
+};
+
+template <int TDim>
+template <typename TFunction>
+void VTKOutput<TDim>::
+write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& grid,
+                         int si, int dim, int numElem)
+{
+//	check if something to do
+	if(m_vSymbFctElem.empty() && m_vScalarElemData.empty() && m_vVectorElemData.empty())
+		return;
+
+//	write opening tag to indicate point data
+	File.write("      <CellData>\n");
+
+//	loop all selected symbolic names
+	for(size_t sym = 0; sym < m_vSymbFctElem.size(); ++sym)
+	{
+	//	get symb function
+		const std::string& symbNames = m_vSymbFctElem[sym].first;
+		const std::string& vtkName = m_vSymbFctElem[sym].second;
+
+	//	tokenize string
+		std::vector<std::string> tokens;
+		TokenizeString(symbNames, tokens, ',');
+		for(size_t i = 0; i < tokens.size(); ++i) tokens[i] = TrimString(tokens[i]);
+
+	//	create function group
+		std::vector<size_t> fctGrp(tokens.size());
+		for(size_t i = 0; i < tokens.size(); ++i)
+			fctGrp[i] = u.fct_id_by_name(tokens[i].c_str());
+
+	//	check that all functions are contained in subset
+		bool bContained = true;
+		for(size_t i = 0; i < fctGrp.size(); ++i)
+			if(!u.is_def_in_subset(fctGrp[i], si))
+				bContained = false;
+
+		if(!bContained) continue;
+
+	//	write scalar value of this function
+		try{
+			write_cell_values(File, u, fctGrp, vtkName, grid, si, dim, numElem);
+		}
+		UG_CATCH_THROW("VTK::write_piece: Can not write cell Values.");
+	}
+
+//	loop all scalar data
+	for(size_t data = 0; data < m_vScalarElemData.size(); ++data)
+	{
+	//	get symb function
+		SmartPtr<IDirectIPData<number,TDim> > spData = m_vScalarElemData[data].first;
+		const std::string& vtkName = m_vScalarElemData[data].second;
+
+	//	write scalar value of this data
+		try{
+			write_cell_data<TFunction,number>
+							(File, u, time, spData, 1, vtkName, grid, si, dim, numElem);
+		}
+		UG_CATCH_THROW("VTK::write_piece: Can not write cell scalar Data.");
+	}
+
+//	loop all vector data
+	for(size_t data = 0; data < m_vVectorElemData.size(); ++data)
+	{
+	//	get symb function
+		SmartPtr<IDirectIPData<MathVector<TDim>,TDim> > spData = m_vVectorElemData[data].first;
+		const std::string& vtkName = m_vVectorElemData[data].second;
+
+	//	write scalar value of this data
+		try{
+			write_cell_data<TFunction,MathVector<TDim> >
+							(File, u, time, spData, 3, vtkName, grid, si, dim, numElem);
+		}
+		UG_CATCH_THROW("VTK::write_piece: Can not write cell vector Data.");
+	}
+
+//	write closing tag
+	File.write("      </CellData>\n");
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Grouping Files

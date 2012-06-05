@@ -192,6 +192,9 @@ class IDimReferenceElement : public IReferenceElement
 		static const int dim = d;
 
 	public:
+	/// coordinates of reference corner in a vector
+		virtual const MathVector<dim>* vCorner() const = 0;
+
 	/// coordinates of reference corner (i = 0 ... num(0))
 		virtual const MathVector<dim>& corner(size_t i) const = 0;
 
@@ -213,6 +216,9 @@ class DimReferenceElement : public ReferenceElement
 		static const int dim = d;
 
 	public:
+	/// \copydoc ug::IDimReferenceElement::corner()
+		const MathVector<dim>* vCorner() const {return &m_vCorner[0];}
+
 	/// \copydoc ug::IDimReferenceElement::corner()
 		const MathVector<dim>& corner(size_t i) const {return m_vCorner[i];}
 
@@ -317,6 +323,9 @@ class DimReferenceElementWrapper
 	///	\copydoc ug::DimReferenceElement<d>::ref_elem_type()
 		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const
 			{return TRefElem::ref_elem_type(dim_i, i);}
+
+	///	\copydoc ug::DimReferenceElement<d>::corner()
+		const MathVector<dim>* vCorner() const {return TRefElem::vCorner();}
 
 	///	\copydoc ug::DimReferenceElement<d>::corner()
 		const MathVector<dim>& corner(size_t i) const {return TRefElem::corner(i);}
