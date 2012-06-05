@@ -156,6 +156,24 @@ class IIPData
 		int m_si;
 };
 
+/// class directly providing ip data without predefining integration points
+template <int dim>
+class IDirectDimIPData
+{
+	public:
+	///	virtual destructor
+		virtual ~IDirectDimIPData() {}
+
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return true;}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const {return false;}
+
+	///	sets the function pattern for a possibly needed grid function
+		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}
+};
+
 /// World dimension based IP Data
 /**
  * This class is the dimension dependent base class for all integration point data.
@@ -165,7 +183,7 @@ class IIPData
  * \tparam	dim		world dimension
  */
 template <int dim>
-class IIPDimData : virtual public IIPData
+class IIPDimData : virtual public IIPData, virtual public IDirectDimIPData<dim>
 {
 	public:
 	///	set global positions
@@ -207,7 +225,7 @@ class IIPDimData : virtual public IIPData
 
 /// class directly providing ip data without predefining integration points
 template <typename TData, int dim, typename TRet = void>
-class IDirectIPData
+class IDirectIPData : virtual public IDirectDimIPData<dim>
 {
 	public:
 	///	virtual destructor
@@ -284,16 +302,6 @@ class IDirectIPData
 		                        const MathVector<3> vLocIP[],
 		                        const size_t nip,
 		                        const MathMatrix<3, dim>* vJT = NULL) const;
-
-	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return true;}
-
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const {return false;}
-
-	///	sets the function pattern for a possibly needed grid function
-		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}
-
 };
 
 // predeclaration
