@@ -20,71 +20,6 @@ namespace bridge{
 
 /// Hard Coded Linker for d3f
 template <int dim>
-class ElderDensityLinker
-	: public DataLinkerEqualData<number, dim, number>
-{
-	///	Base class type
-		typedef DataLinkerEqualData<number, dim, number> base_type;
-
-	//	explicitly forward methods of IIPData
-		using base_type::num_series;
-		using base_type::num_ip;
-		using base_type::time;
-
-	//	explicitly forward methods of IPData
-		using base_type::ip;
-		using base_type::value;
-
-	//	explicitly forward methods of IDependentIPData
-		using base_type::num_fct;
-
-	//	explicitly forward methods of DependentIPData
-		using base_type::num_sh;
-		using base_type::deriv;
-
-	//	explicitly forward methods of Data Linker
-		using base_type::set_num_input;
-		using base_type::input_value;
-		using base_type::input_deriv;
-
-	public:
-		ElderDensityLinker()
-		{
-		//	this linker needs exactly one input
-			set_num_input(1);
-		}
-
-		virtual void compute(bool bDeriv)
-		{
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
-				{
-					value(s, ip) = 1e3 + 0.2e3 * input_value(0, s, ip);
-				}
-
-			if(!bDeriv || this->zero_derivative()) return;
-
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
-					for(size_t fct = 0; fct < num_fct(); ++fct)
-						for(size_t dof = 0; dof < num_sh(fct); ++dof)
-						{
-							deriv(s, ip, fct, dof) = 0.2e3 * input_deriv(0, s, ip, fct, dof);
-						}
-		}
-
-		// \todo: implement correctly
-	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return true;}
-
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const {return false;}
-
-};
-
-
-/// Hard Coded Linker for d3f
-template <int dim>
 class DarcyVelocityLinker
 	: public DataLinker<MathVector<dim>, dim>
 {
@@ -570,17 +505,6 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("print", &T::print)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConstUserMatrix", dimTag);
-	}
-
-//	ElderDensityLinker
-	{
-		typedef ElderDensityLinker<dim> T;
-		typedef DataLinkerEqualData<number, dim, number> TBase;
-		string name = string("ElderDensityLinker").append(dimSuffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ElderDensityLinker", dimTag);
 	}
 
 //	DarcyVelocityLinker
