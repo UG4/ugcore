@@ -12,7 +12,7 @@ my $bInBlock = 0;
 my $bInFunction = 0;
 my $blockName = q{};
 my $result = q{};
-
+my $deux = 0;
 my $luaDoxygenMark = "--!";
  
 open FH, "<$input"  or die "Can't open $input for reading: $!";
@@ -61,12 +61,38 @@ foreach my $line (<FH>)
     }
     
     # block end
-    elsif ($bInFunction == 0 && $line =~ /^\s*}/ && $bInBlock == 1) 
+    elsif ($bInFunction == 0 && $bInBlock == 1 && $line =~ /^\s*}/) 
     {
         $blockName = q{};
         $bInBlock = 0;
     }
     
+    elsif ($line =~ /.*util.GetParam(Number|)\(\"-(\w*)\"\s*(.*)/ )
+    {
+    	$result .= "parameter ".$2;
+    	if ($3 =~ /^,\s*(\"[^\"]*\")\s*(.*)/ or $3 =~ /^,\s*(\w*)(.*)/)
+    	{ 	
+    		$result .= " = ".$1;
+    		# description
+    		if ( $2 =~ /^,\s*\"([^\"]*)/ )
+    		{
+    			$result .= "; ///< ".$1."\n"	
+			}
+	    	else { 	$result .= ";\n";	}			
+    	}
+		else { 	$result .= ";\n";	}
+    }   
+    elsif ($line =~ /.*util.HasParamOption\(\"-(\w*)\"\s*(.*)/ )
+    {
+    	$result .= "parameterBool ".$1;
+   		# description
+   		if ( $2 =~ /^,\s*\"([^\"]*)/ )
+   		{
+   			$result .= "; ///< ".$1.";\n";    		
+    	}
+    	else { 	$result .= ";\n";	}
+    }     
+        
     # variables
     # we don't want variables
     # elsif ($bInFunction == 0 && $line =~ /=/) {
@@ -77,4 +103,5 @@ foreach my $line (<FH>)
 }
 
 close FH;
+$result .= "\n/** <hr> \\include $input */\n";
 print($result);
