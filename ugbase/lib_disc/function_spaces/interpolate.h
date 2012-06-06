@@ -272,6 +272,12 @@ void Interpolate(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spInterpol
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets, number time)
 {
+//	check, that values do not depend on a solution
+	if(spInterpolFunction->requires_grid_fct())
+		UG_THROW("Interpolate: The interpolation values depend on a grid function."
+				" This is not allowed in the current implementation. Use constant,"
+				" lua-callback or vrl-callback user data only (even within linkers).");
+
 //	get function id of name
 	const size_t fct = spGridFct->fct_id_by_name(cmp);
 
