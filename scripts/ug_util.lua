@@ -186,20 +186,28 @@ end
 -- Command line functions
 --------------------------------------------------------------------------------
 
+util.args = util.args or {}
+util.argDescription = util.argDescription or {}
+util.argsDefault = util.argsDefault or {}
+util.argUsed = util.argUsed or {}
+
 --! util.GetParam
 --! returns parameter in ugargv after ugargv[i] == name
 --! @param name parameter in ugargv to search for
---! @param return_if_unavailable when parameter 'name' is not found, this will be returned
---! @return parameter in ugargv after ugargv[i] == name
-function util.GetParam(name, return_if_unavailable)
+--! @param return_if_unavailable returned value if 'name' is not present (default nil)
+--! @param description description for 'name' (default nil)
+--! @return parameter in ugargv after ugargv[i] == name or return_if_unavailable if 'name' was not present
+function util.GetParam(name, return_if_unavailable, description)
 	local i
-	util.args = util.args or {}
+	if description or util.argDescription[name] == nil then
+		util.argDescription[name]=" (string) "..(description or "")
+	end
+	util.argsDefault[name]=return_if_unavailable	
 	for i = 1, ugargc-1 do
-		if ugargv[i] == name then
-			util.argUsed = util.argUsed or {}
+		if ugargv[i] == name then			
 			util.argUsed[i]=true
 			util.argUsed[i+1]=true
-			util.args[name] = ugargv[i+1]
+			util.args[name] = ugargv[i+1]			
 			return ugargv[i+1]
 		end
 	end
@@ -212,9 +220,16 @@ end
 --! use with CommandLine to get option, like -useAMG
 --! if parameter is not a number, returns return_if_unavailable
 --! @param name parameter in ugargv to search for
---! @return the number after the parameter 'name'
-function util.GetParamNumber(name, return_if_unavailable)
-	local param = util.GetParam(name, nil)
+--! @param return_if_unavailable returned value if 'name' is not present (default nil)
+--! @param description description for 'name' (default nil)
+--! @return the number after the parameter 'name' or return_if_unavailable if 'name' was not present/no number
+function util.GetParamNumber(name, return_if_unavailable, description)
+	if description or util.argDescription[name] == nil then
+		util.argDescription[name]=" (number) "..(description or "")
+	end
+	local param = util.GetParam(name, nil, nil)
+	
+	util.argsDefault[name]=return_if_unavailable
 	if param == nil then
 		util.args[name]=" (number)" 
 		return return_if_unavailable
@@ -233,21 +248,25 @@ end
 --! util.HasParamOption
 --! use with CommandLine to get option, like -useAMG
 --! @param name option in argv to search for
+--! @param description description for 'name' (default nil)
 --! @return true if option found, else false
-function util.HasParamOption(name)
-	util.args = util.args or {}
+function util.HasParamOption(name, description)
+	util.argsDefault[name]="false"
+	if description or util.argDescription[name] == nil then
+		util.argDescription[name]=" [option] "..(description or "")
+	end
 	for i = 1, ugargc do
 		if ugargv[i] == name then
-			util.argUsed = util.argUsed or {}
 			util.argUsed[i]=true
 			util.args[name] = "true"
 			return true
 		end		
-	end
+	end	
 	util.args[name]=" [option]"	
 	return false 
 end
 
+--! returns all arguments from the command line
 function util.GetCommandLine()
 	local pline = ""
 	for i=1, ugargc do
@@ -274,6 +293,28 @@ function util.PrintArguments()
 	if pOtherLine ~= "" then
 		print("Available arguments:\n"..string.sub(pOtherLine, 1, string.len(pOtherLine)-2).."\n")
 	end	
+end
+
+--! prints out the description to each GetParam-parameter so far called
+function util.PrintHelp()
+	local length=0
+	for name,value in pairs(util.argDescription) do
+		length = math.max(string.len(name), length)
+	end	
+	for name,value in pairsSortedByKeys(util.argDescription) do
+		print(util.adjuststring(name, length, "l").." : "..value..". default="..(util.argsDefault[name] or ""))
+	end
+end
+
+--! calls util.PrintHelp() and exits if HasParamOption("-help")
+--! @param optional description of the script
+function util.CheckAndPrintHelp(desc)
+	if util.HasParamOption("-help", "print this help") then
+		if desc ~= nil then print(desc) end
+		print()			
+		util.PrintHelp()
+		exit()
+	end
 end
 
 --! lists all command line arguments which were provided but could not be used.
