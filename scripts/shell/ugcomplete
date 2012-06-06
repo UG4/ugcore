@@ -93,7 +93,7 @@ ugshell_complete_ugsubmit()
 {
 	for (( c=0; c<COMP_CWORD; c++ ))
   	do
-  		if [ "${COMP_WORDS[$c]}" = "---" ] && [ "${COMP_WORDS[$c+1]}" = "ugshell" ]; then
+  		if [ "${COMP_WORDS[$c]}" = "---" ] && [ -e ${COMP_WORDS[$c+1]} ] && [ `basename ${COMP_WORDS[$c+1]}` = "ugshell" ]; then
   			ugshell_complete
   		fi
   	done
@@ -108,7 +108,7 @@ ugshell_complete_external()
 {
 	for (( c=0; c<=COMP_CWORD; c++ ))
   	do
-  		if [ "${COMP_WORDS[$c]}" = "ugshell" ]; then
+  		if [ -e ${COMP_WORDS[$c]} ] && [ `basename ${COMP_WORDS[$c]}` = "ugshell" ]; then
   			ugshell_complete
   		fi
   	done
