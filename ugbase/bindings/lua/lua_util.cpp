@@ -254,6 +254,9 @@ lua_State* GetDefaultLuaState()
 	//	open standard libs
 		luaL_openlibs(theLuaState);
 
+	//	make metatables available in lua script
+		lua_register(theLuaState, "ug_get_metatable", UGGetMetatable );
+
 	//	create lua bindings for registered functions and objects
 		ug::bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
 		PROFILE_END();
@@ -395,6 +398,17 @@ int UGLuaWrite(lua_State *L)
 	}
 	lua_pop(L,1);
 	return 0;
+}
+
+int UGGetMetatable(lua_State *L)
+{
+	const char* name = lua_tostring(L, -1);
+	if(name){
+		luaL_getmetatable(L, name);
+		return 1;
+	}
+	lua_pushnil(L);
+	return 1;
 }
 
 }}//	end of namespace

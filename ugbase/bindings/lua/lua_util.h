@@ -76,6 +76,9 @@ UG_API int UGLuaPrint(lua_State *L);
 /// UGLuaWrite. prints LUA output to UG_LOG without adding std::endl automatically
 UG_API int UGLuaWrite(lua_State *L);
 
+///	Returns the metatable for the given class
+UG_API int UGGetMetatable(lua_State *L);
+
 /**
  * searches for the filename
  * - relative to current script
