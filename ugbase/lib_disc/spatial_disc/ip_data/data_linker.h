@@ -546,10 +546,10 @@ class StdDataLinkerEqualData
 	///	returns that a grid function is needed for evaluation
 		virtual bool requires_grid_fct() const
 		{
-			bool bRet = false;
 			for(size_t i = 0; i < this->m_vpIPData.size(); ++i)
-				bRet |= this->m_vpIPData[i]->requires_grid_fct();
-			return bRet;
+				if(this->m_vpIPData[i]->requires_grid_fct())
+					return true;
+			return false;
 		}
 
 	///	returns if provided data is continuous over geometric object boundaries
@@ -638,6 +638,38 @@ class ScaleAddLinker
 
 	///	computes the value
 		virtual void compute(bool bDeriv);
+
+	///	returns that a grid function is needed for evaluation
+		virtual bool requires_grid_fct() const
+		{
+			for(size_t i = 0; i < m_vpIPData.size(); ++i)
+				if(m_vpIPData[i]->requires_grid_fct())
+					return true;
+			for(size_t i = 0; i < m_vpScaleData.size(); ++i)
+				if(m_vpScaleData[i]->requires_grid_fct())
+					return true;
+			return false;
+		}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const
+		{
+			bool bRet = true;
+			for(size_t i = 0; i < m_vpIPData.size(); ++i)
+				bRet &= m_vpIPData[i]->is_continuous();
+			for(size_t i = 0; i < m_vpScaleData.size(); ++i)
+				bRet &= m_vpScaleData[i]->is_continuous();
+			return bRet;
+		}
+
+	///	sets the associated function pattern
+		virtual void set_function_pattern(const FunctionPattern& fctPatt)
+		{
+			for(size_t i = 0; i < m_vpIPData.size(); ++i)
+				m_vpIPData[i]->set_function_pattern(fctPatt);
+			for(size_t i = 0; i < m_vpScaleData.size(); ++i)
+				m_vpScaleData[i]->set_function_pattern(fctPatt);
+		}
 
 		inline void evaluate (TData& value,
 		                      const MathVector<dim>& globIP,
