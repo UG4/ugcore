@@ -523,8 +523,10 @@ public:
 
 		if(m_famg.m_bWriteFValues)
 		{
+			std::string path=std::string("/level") + ToString(level) + "/";
+			mkdir((std::string(m_famg.m_writeMatrixPath) + path).c_str(), 0777);
 			WriteVectorToConnectionViewer(
-				m_famg.m_writeMatrixPath + std::string("AMG_fvalues_L") + ToString(level) + ".vec",
+				m_famg.m_writeMatrixPath + path + std::string("AMG_fvalues_L") + ToString(level) + ".vec",
 				fvalues, &m_famg.m_amghelper.positions[level][0], 2);
 		}
 	}
@@ -748,7 +750,7 @@ void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_t
 /**
  */
 template<>
-bool FAMG<CPUAlgebra>::check_testvector()
+bool FAMG<CPUAlgebra>::check_testvector(size_t fromlevel, size_t tolevel)
 {
 	AMG_PROFILE_FUNC();
 
@@ -785,6 +787,7 @@ bool FAMG<CPUAlgebra>::check_testvector()
 
 	for(size_t level=0; ; level++)
 	{
+		if(level > tolevel) break;
 		// get testvectors, get agglomerated tv
 		precalc_level(level);
 #ifdef UG_PARALLEL
@@ -794,7 +797,10 @@ bool FAMG<CPUAlgebra>::check_testvector()
 			break;
 		}
 #endif
-		UG_LOG("Check Level " << level << "\n-----------------------------------\n")
+		if(level >=fromlevel)
+		{
+			UG_LOG("Check Level " << level << "\n-----------------------------------\n")
+		}
 
 		SmartPtr<matrix_type> pA, pAH;
 		pA = AMGBase<CPUAlgebra>::levels[level]->pAgglomeratedA;
@@ -834,7 +840,8 @@ bool FAMG<CPUAlgebra>::check_testvector()
 
 		d.change_storage_type(PST_ADDITIVE);*/
 
-		AMGBase<CPUAlgebra>::check_level(c, d, A, level, res, &tv);
+		if(level >=fromlevel)
+			AMGBase<CPUAlgebra>::check_level(c, d, A, level, res, &tv);
 
 		if(level+1 < AMGBase<CPUAlgebra>::m_usedLevels-1)
 		{

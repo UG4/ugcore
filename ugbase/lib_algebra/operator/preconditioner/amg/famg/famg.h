@@ -197,7 +197,15 @@ public:
 
 	void	set_write_f_values(bool b)	{ m_bWriteFValues = b; }
 
-	bool 	check_testvector();
+	bool check_testvector(size_t fromlevel, size_t tolevel);
+	bool check_testvector(size_t fromlevel)
+	{
+		return check_testvector(fromlevel, AMGBase<TAlgebra>::m_usedLevels);
+	}
+	bool check_testvector()
+	{
+		return check_testvector(0);
+	}
 
 private:
 //  functions

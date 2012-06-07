@@ -254,7 +254,9 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 
 		if(m_writeMatrices && m_amghelper.has_positions())
 		{
-			std::string name = m_writeMatrixPath + std::string("AMG_A_L") + ToString(level) + ".mat";
+			std::string path=std::string("/level") + ToString(level) + "/";
+			mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
+			std::string name = m_writeMatrixPath + path + std::string("AMG_A_L") + ToString(level) + ".mat";
 		#ifdef UG_PARALLEL
 			name = GetParallelName(name, L.pAgglomeratedA->process_communicator(), true);
 		#endif
@@ -437,7 +439,10 @@ void AMGBase<TAlgebra>::create_direct_solver(size_t level)
 			if(m_writeMatrices && m_amghelper.has_positions())
 			{
 				m_amghelper.receive_agglomerate_positions(level, A.communicator(), L.agglomerateMasterLayout, L.collectedA->num_rows());
-				std::string name = (std::string(m_writeMatrixPath) + "collectedA.mat");
+
+				std::string path=std::string("/level") + ToString(level) + "/";
+				mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
+				std::string name = (std::string(m_writeMatrixPath) + path + "collectedA.mat");
 				std::vector<MathVector<3> > vec = m_amghelper.positions[level];
 				WriteMatrixToConnectionViewer(name.c_str(), *L.collectedA, &vec[0], m_amghelper.dimension);
 			}
@@ -964,16 +969,20 @@ void AMGBase<TAlgebra>::write_debug_matrix_markers
 {
 	matrix_type &A = *levels[level]->pA;
 	// todo: replace some day with something like nodes.get_mark_count(), nodes.mark_name(i), nodes.is_marked(i)
+
+	std::string path=std::string("/level") + ToString(level) + "/";
+	mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
+
 	AMG_PROFILE_FUNC();
-	std::fstream ffine((m_writeMatrixPath + GetAMGFilename(A, "fine", level, ".marks")).c_str(), std::ios::out);
+	std::fstream ffine((m_writeMatrixPath + path + GetAMGFilename(A, "fine", level, ".marks")).c_str(), std::ios::out);
 	ffine << "1 0 0 1 0\n";
-	std::fstream ffine2((m_writeMatrixPath + GetAMGFilename(A, "aggfine", level, ".marks")).c_str(), std::ios::out);
+	std::fstream ffine2((m_writeMatrixPath + path + GetAMGFilename(A, "aggfine", level, ".marks")).c_str(), std::ios::out);
 	ffine2 << "1 0.2 1 1 0\n";
-	std::fstream fcoarse((m_writeMatrixPath + GetAMGFilename(A, "coarse", level, ".marks")).c_str(), std::ios::out);
+	std::fstream fcoarse((m_writeMatrixPath + path + GetAMGFilename(A, "coarse", level, ".marks")).c_str(), std::ios::out);
 	fcoarse << "0 0 1 1 2\n";
-	std::fstream fother((m_writeMatrixPath + GetAMGFilename(A, "other", level, ".marks")).c_str(), std::ios::out);
+	std::fstream fother((m_writeMatrixPath + path + GetAMGFilename(A, "other", level, ".marks")).c_str(), std::ios::out);
 	fother << "1 1 0 1 0\n";
-	std::fstream fdirichlet((m_writeMatrixPath + GetAMGFilename(A, "dirichlet", level, ".marks")).c_str(), std::ios::out);
+	std::fstream fdirichlet((m_writeMatrixPath + path + GetAMGFilename(A, "dirichlet", level, ".marks")).c_str(), std::ios::out);
 	fdirichlet << "0 1 1 1 0\n";
 	for(size_t i=0; i < nodes.size(); i++)
 	{
@@ -999,12 +1008,17 @@ void AMGBase<TAlgebra>::
 	if(m_writeMatrices)
 	{
 		AMG_PROFILE_FUNC();
-		std::string filename = m_writeMatrixPath + name + ToString(fromlevel) + ".mat";
+
+		int level = std::min(fromlevel, tolevel);
+
+		std::string path=std::string("/level") + ToString(level) + "/";
+		mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
+		std::string filename = m_writeMatrixPath + path+ name + ToString(fromlevel) + ".mat";
 #ifdef UG_PARALLEL
 		filename = GetParallelName(filename, mat.process_communicator(), true);
 #endif
 
-		int level = std::min(fromlevel, tolevel);
+
 		AMGWriteToFile(mat, fromlevel, tolevel, filename.c_str(), m_amghelper);
 		std::fstream f2(filename.c_str(), std::ios::out | std::ios::app);
 		f2 << "c " << GetAMGFilename(mat, "fine", level, ".marks") << "\n";
@@ -1065,8 +1079,11 @@ void AMGBase<TAlgebra>::write_debug_matrices(matrix_type &AH, prolongation_matri
 		write_debug_matrix(R, level, level+1, "AMG_R_L");	UG_LOG(".");
 	}
 
+	std::string path=std::string("/level") + ToString(level) + "/";
+	mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
+
 	//if(AH.num_rows() < AMG_WRITE_MATRICES_MAX)
-	std::string name = m_writeMatrixPath + std::string("AMG_Au_L") + ToString(level+1) + ".mat";
+	std::string name = m_writeMatrixPath + path + std::string("AMG_Au_L") + ToString(level+1) + ".mat";
 #ifdef UG_PARALLEL
 	name = GetParallelName(name, AH.process_communicator(), true);
 #endif

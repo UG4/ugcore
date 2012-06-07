@@ -12,6 +12,8 @@
  */
 #include <sstream>
 
+#include <sys/stat.h>
+
 namespace ug
 {
 
@@ -29,7 +31,10 @@ void AMGBase<TAlgebra>::write_interfaces()
 	for(size_t level=0; level<m_usedLevels; level++)
 	{
 
-		const char *filename = (std::string(m_writeMatrixPath) + std::string("AMG_interface_L") + ToString(level) + "_" + ToString(pcl::GetProcRank()) + std::string(".mat")).c_str();
+		std::string path=std::string("/level") + ToString(level) + "/";
+		mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
+
+		const char *filename = (std::string(m_writeMatrixPath) + path + std::string("AMG_interface_L") + ToString(level) + "_" + ToString(pcl::GetProcRank()) + std::string(".mat")).c_str();
 		std::fstream file(filename, std::ios::out);
 		file << 1 << std::endl; // connection viewer version
 
@@ -115,7 +120,11 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 	const vector_type &d = const_d;
 	size_t pid = 0;
 #endif
-	std::string name = (m_writeMatrixPath + std::string("AMG_L") + ToString(level) + "_" + filename + ".mat");
+
+	std::string path=std::string("/level") + ToString(level) + "/";
+	mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
+
+	std::string name = (m_writeMatrixPath + path + std::string("AMG_L") + ToString(level) + "_" + filename + ".mat");
 
 
 
@@ -135,7 +144,7 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 #endif
 	f << "v " << name2 << "\n";
 
-	std::fstream file((std::string(m_writeMatrixPath)+ name2).c_str(), std::ios::out);
+	std::fstream file((std::string(m_writeMatrixPath)+ path + name2).c_str(), std::ios::out);
 	if(solution)
 		for(size_t i=0; i<d.size(); i++)
 			file << i << " " << d[i] - solution2[i] << std::endl;
@@ -306,19 +315,19 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	double firstnorm = ConstTwoNorm(d), n2=firstnorm, n1=n2;
 	//UG_LOG("firstnorm " <<  firstnorm << "\n");
 	double prevrate=0;
-	if(m_writeMatrices) writevec((std::string("cc0")).c_str(), c, level, solution);
-	if(m_writeMatrices) writevec((std::string("c0")).c_str(), c, level);
-	if(m_writeMatrices) writevec((std::string("d0")).c_str(), d, level);
+	if(m_writeMatrices) writevec("cc0", c, level, solution);
+	if(m_writeMatrices) writevec("c0", c, level);
+	if(m_writeMatrices) writevec("d0", d, level);
 
 	UG_LOG("Type    " << "  Iter#     Defect         Rate\n");
 	UG_LOG("                 " << std::scientific << firstnorm << "\n");
-	for(size_t i=0; i<m_iNrOfPreiterationsCheck; i++)
+	for(size_t i=0; i<1; i++)
 	{
 		add_correction_and_update_defect2(c, d, *L.pAgglomeratedA, level);
 
-		if(m_writeMatrices) writevec((std::string("cc")+ToString(i+1)).c_str(), c, level, solution);
-		if(m_writeMatrices) writevec((std::string("c")+ToString(i+1)).c_str(), c, level);
-		if(m_writeMatrices) writevec((std::string("d")+ToString(i+1)).c_str(), d, level);
+		if(m_writeMatrices) writevec(std::string("cc")+ToString(i+1), c, level, solution);
+		if(m_writeMatrices) writevec(std::string("c")+ToString(i+1), c, level);
+		if(m_writeMatrices) writevec(std::string("d")+ToString(i+1), d, level);
 
 		n1 = n2;
 		n2 = ConstTwoNorm(d);
@@ -334,25 +343,30 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	}
 
 
-	double prenorm = ConstTwoNorm(d);
-	UG_LOG("defect below is in relation to " << std::scientific << prenorm << ".\n");
-	UG_LOG("Type    " << "  Iter#     Defect         Rate            RelDefect \n");
-	//UG_LOG("Prenorm = " << prenorm << "\n");
-
-	n1 = ConstTwoNorm(d);
-	n2=n1;
-
-	if(n1 < 1e-13) reason << "- error too small\n";
 
 
 	corr.set(0.0);
+
+	for(size_t iterations=0; iterations<1; iterations++)
+	{
+
+		double prenorm = ConstTwoNorm(d);
+			UG_LOG("defect below is in relation to " << std::scientific << prenorm << ".\n");
+			UG_LOG("Type    " << "  Iter#     Defect         Rate            RelDefect \n");
+			//UG_LOG("Prenorm = " << prenorm << "\n");
+
+			n1 = ConstTwoNorm(d);
+			n2=n1;
+
+			if(n1 < 1e-13) reason << "- error too small\n";
+
 	//c.set(0.0);
 #ifdef UG_PARALLEL
 	corr.set_storage_type(PST_CONSISTENT);
 #endif
 
-	if(m_writeMatrices) writevec("S0_d_before", d, level);
-	if(m_writeMatrices) writevec("S0_c_before", c, level, solution);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S0_d_before", d, level);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S0_c_before", c, level, solution);
 
 	// presmooth
 	for(size_t i=0; i < m_numPreSmooth; i++)
@@ -368,8 +382,8 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 
 	res.preSmoothing = n2/prenorm;
 
-	if(m_writeMatrices) writevec("S1_d_presmoothed", d, level);
-	if(m_writeMatrices) writevec("S1_c_presmoothed", c, level, solution);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S1_d_presmoothed", d, level);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S1_c_presmoothed", c, level, solution);
 
 	if(m_bFSmoothing)
 	{
@@ -384,8 +398,8 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 
 	res.preFSmoothing = n2/prenorm;
 
-	if(m_writeMatrices) writevec("S1_d_fpresmoothed", d, level);
-	if(m_writeMatrices) writevec("S1_c_fpresmoothed", c, level, solution);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S1_d_fpresmoothed", d, level);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S1_c_fpresmoothed", c, level, solution);
 
 	vector_type &cH = levels[level]->cH;
 	vector_type &dH = levels[level]->dH;
@@ -398,7 +412,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	// dH = m_R[level]*d;
 	L.R.apply(dH, d);
 
-	if(m_writeMatrices) writevec("S2_dH", dH, level+1);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S2_dH", dH, level+1);
 	double nH1 = ConstTwoNorm(dH);
 	UG_LOG("norm of dH = " << nH1 << "\n");
 
@@ -477,7 +491,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	{
 		cH.set(0.0);
 		double nH2=nH1;
-		for(i=0; i<20; i++)
+		for(i=0; i<10; i++)
 		{
 			for(int j=0; j< m_cycleType; j++)
 				add_correction_and_update_defect(cH, dH, level+1);
@@ -486,8 +500,8 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 			/*if(i == 0)
 			{	UG_LOG("coarse correction (on coarse) " << i+1 << ": " << nH2/nH1 << " " << nH2/preHnorm << "\n"); }
 			else UG_LOG(".");*/
-			//if(m_writeMatrices) writevec((std::string("AMG_V")+ToString(i)+std::string("_c_L")).c_str(), cH, level+1);
-			//if(m_writeMatrices) writevec((std::string("AMG_V")+ToString(i)+std::string("_d_L")).c_str(), dH, level+1);
+			//if(m_writeMatrices) writevec(ToString(iterations)+(std::string("AMG_V")+ToString(i)+std::string("_c_L")).c_str(), cH, level+1);
+			//if(m_writeMatrices) writevec(ToString(iterations)+(std::string("AMG_V")+ToString(i)+std::string("_d_L")).c_str(), dH, level+1);
 			if(nH2/preHnorm < 1e-8 || nH2 < 1e-16)
 				break;
 		}
@@ -513,10 +527,10 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 
 	// interpolate correction
 	// corr = m_P[level]*cH
-	if(m_writeMatrices) writevec("S3_dH_solved", dH, level+1);
-	if(m_writeMatrices) writevec("S3_cH_solved", cH, level+1);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S3_dH_solved", dH, level+1);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S3_cH_solved", cH, level+1);
 	L.P.apply(corr, cH);
-	if(m_writeMatrices) writevec("S3_corr_on_fine", corr, level);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S3_corr_on_fine", corr, level);
 
 #ifdef UG_PARALLEL
 	cH.set_storage_type(PST_CONSISTENT);
@@ -534,8 +548,8 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	UG_LOG("complete coarse correction " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 	res.coarseCorrection = n2/prenorm;
 
-	if(m_writeMatrices) writevec("S4_d_coarseCorrected", d, level);
-	if(m_writeMatrices) writevec("S4_c_coarseCorrected", c, level, solution);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S4_d_coarseCorrected", d, level);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S4_c_coarseCorrected", c, level, solution);
 
 
 	// post f-smoothing
@@ -551,8 +565,8 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 									"    " << std::scientific << n2/prenorm << "\n");
 	res.postFSmoothing = n2/prenorm;
 
-	if(m_writeMatrices) writevec("S5_d_fpost", d, level);
-	if(m_writeMatrices) writevec("S5_c_fpost", c, level, solution);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S5_d_fpost", d, level);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S5_c_fpost", c, level, solution);
 
 	// postsmooth
 	for(size_t i=0; i < m_numPostSmooth; i++)
@@ -586,13 +600,16 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 	double postnorm = ConstTwoNorm(d);
 	UG_LOG("Level " << level << " reduction: " << postnorm/prenorm << std::endl);
 
-	if(m_writeMatrices) writevec("S5_d_postsmoothed", d, level);
-	if(m_writeMatrices) writevec("S5_c_postsmoothed", c, level, solution);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S5_d_postsmoothed", d, level);
+	if(m_writeMatrices) writevec(ToString(iterations)+"S5_c_postsmoothed", c, level, solution);
 
 	UG_LOG("Postnorm = " << postnorm << "\n\n");
 	res.reduction = postnorm/prenorm;
+	}
 
-	return postnorm/prenorm;
+
+	//return postnorm/prenorm;
+	return 0;
 }
 
 
@@ -795,8 +812,8 @@ bool AMGBase<TAlgebra>::check_fsmoothing()
 			double n2 = ConstTwoNorm(d);
 			UG_LOG(j << ": " << n2/n << "\n");
 			n = n2;
-			if(m_writeMatrices) writevec((std::string("fsmoothing_c_") + ToString(j)).c_str(), c, level);
-			if(m_writeMatrices) writevec((std::string("fsmoothing_d_") + ToString(j)).c_str(), d, level);
+			if(m_writeMatrices) writevec(std::string("fsmoothing_c_") + ToString(j), c, level);
+			if(m_writeMatrices) writevec(std::string("fsmoothing_d_") + ToString(j), d, level);
 		}
 	}
 

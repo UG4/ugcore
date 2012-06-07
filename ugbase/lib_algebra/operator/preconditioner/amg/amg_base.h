@@ -15,7 +15,7 @@
 #define __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_BASE_H__
 
 //#include "lib_algebra/lib_algebra.h"
-
+#include <sys/stat.h>
 #include "lib_algebra/operator/interface/operator_inverse.h"
 #include "lib_algebra/operator/interface/operator_iterator.h"
 #include "lib_algebra/operator/vector_writer.h"
