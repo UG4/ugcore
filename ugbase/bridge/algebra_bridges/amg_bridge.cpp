@@ -161,69 +161,77 @@ static void Algebra(Registry& reg, string grp)
 
 	reg.add_class_to_group(string("RSAMGPreconditioner").append(suffix), "RSAMGPreconditioner", tag);
 
-	reg.add_class_<	FAMG<algebra_type>, AMGBase<algebra_type> > (string("FAMGPreconditioner").append(suffix), grp, "Filtering Algebraic Multigrid")
-		.add_constructor()
-		.add_method("tostring", &FAMG<algebra_type>::tostring)
-		.add_method("set_aggressive_coarsening", &FAMG<algebra_type>::set_aggressive_coarsening)
-		.add_method("set_delta", &FAMG<algebra_type>::set_delta, "", "delta", "\"Interpolation quality\" F may not be worse than this (F < m_delta). e.g. 0.5")
-		.add_method("get_delta", &FAMG<algebra_type>::get_delta, "delta")
-		.add_method("set_theta", &FAMG<algebra_type>::set_theta, "" , "theta", "with multiple parents paris, discard pairs with m_theta * F > min F. e.g. 0.9")
-		.add_method("get_theta", &FAMG<algebra_type>::get_theta, "theta")
+	{
+		typedef FAMG<algebra_type> T;
+		typedef AMGBase<algebra_type> TBase;
+
+		reg.add_class_<T, TBase> (string("FAMGPreconditioner").append(suffix), grp, "Filtering Algebraic Multigrid")
+			.add_constructor()
+			.add_method("tostring", &T::tostring)
+			.add_method("set_aggressive_coarsening", &T::set_aggressive_coarsening)
+			.add_method("set_delta", &T::set_delta, "", "delta", "\"Interpolation quality\" F may not be worse than this (F < m_delta). e.g. 0.5")
+			.add_method("get_delta", &T::get_delta, "delta")
+			.add_method("set_theta", &T::set_theta, "" , "theta", "with multiple parents paris, discard pairs with m_theta * F > min F. e.g. 0.9")
+			.add_method("get_theta", &T::get_theta, "theta")
 
 
-		.add_method("set_damping_for_smoother_in_interpolation_calculation",&FAMG<algebra_type>::set_damping_for_smoother_in_interpolation_calculation)
+			.add_method("set_damping_for_smoother_in_interpolation_calculation",&T::set_damping_for_smoother_in_interpolation_calculation)
 
-		.add_method("add_testvector", (void(FAMG<algebra_type>::*)(vector_type& c, double weight))&FAMG<algebra_type>::add_testvector, "testVector#weight",
-				"adds a testvector with weight")
-		.add_method("add_testvector", (void(FAMG<algebra_type>::*)(IVectorWriter<vector_type> *vw, double weight))&FAMG<algebra_type>::add_testvector, "testVector#weight",
-				"adds a testvector with weight by using the IVectorWriter interface")
-		.add_method("set_write_testvectors", &FAMG<algebra_type>::set_write_testvectors, "bWrite", "if true, write testvectors to path specified in set_matrix_write_path")
-		.add_method("set_testvector_from_matrix_rows", &FAMG<algebra_type>::set_testvector_from_matrix_rows, "", "testvector is obtained by setting 1 for dirichlet nodes (nodes with only A(i,i) != 0) and 0 everywhere else")
-		.add_method("set_testvector_smoother", &FAMG<algebra_type>::set_testvector_smoother, "smoother", "sets the smoother to smooth testvectors")
-		.add_method("set_testvector_smooths", &FAMG<algebra_type>::set_testvector_smooths, "n", "number of smoothing steps to smooth testvectors")
+			.add_method("add_testvector", (void(T::*)(vector_type& c, double weight))&T::add_testvector, "testVector#weight",
+					"adds a testvector with weight")
+			.add_method("add_testvector", (void(T::*)(IVectorWriter<vector_type> *vw, double weight))&T::add_testvector, "testVector#weight",
+					"adds a testvector with weight by using the IVectorWriter interface")
+			.add_method("set_write_testvectors", &T::set_write_testvectors, "bWrite", "if true, write testvectors to path specified in set_matrix_write_path")
+			.add_method("set_testvector_from_matrix_rows", &T::set_testvector_from_matrix_rows, "", "testvector is obtained by setting 1 for dirichlet nodes (nodes with only A(i,i) != 0) and 0 everywhere else")
+			.add_method("set_testvector_smoother", &T::set_testvector_smoother, "smoother", "sets the smoother to smooth testvectors")
+			.add_method("set_testvector_smooths", &T::set_testvector_smooths, "n", "number of smoothing steps to smooth testvectors")
 
-		.add_method("reset_testvectors", &FAMG<algebra_type>::reset_testvectors, "", "removes all added testvectors")
+			.add_method("reset_testvectors", &T::reset_testvectors, "", "removes all added testvectors")
 
-		.add_method("set_prolongation_truncation", &FAMG<algebra_type>::set_prolongation_truncation, "", "prolongation_tr", "sets prolongation_truncation, a parameter used for truncation of interpolation. use with care! (like 1e-5)")
-		.add_method("get_prolongation_truncation", &FAMG<algebra_type>::get_prolongation_truncation, "prolongation_tr")
+			.add_method("set_prolongation_truncation", &T::set_prolongation_truncation, "", "prolongation_tr", "sets prolongation_truncation, a parameter used for truncation of interpolation. use with care! (like 1e-5)")
+			.add_method("get_prolongation_truncation", &T::get_prolongation_truncation, "prolongation_tr")
 
-		.add_method("set_galerkin_truncation", &FAMG<algebra_type>::set_galerkin_truncation, "", "galerkin_tr", "sets galerkin truncation, a parameter used to truncate the galerkin product. use with care! (like 1e-9)")
-		.add_method("get_galerkin_truncation", &FAMG<algebra_type>::get_galerkin_truncation, "galerkin_tr")
+			.add_method("set_galerkin_truncation", &T::set_galerkin_truncation, "", "galerkin_tr", "sets galerkin truncation, a parameter used to truncate the galerkin product. use with care! (like 1e-9)")
+			.add_method("get_galerkin_truncation", &T::get_galerkin_truncation, "galerkin_tr")
 
-		.add_method("set_H_reduce_interpolation_nodes_parameter", &FAMG<algebra_type>::set_H_reduce_interpolation_nodes_parameter, "", "HreduceParameter", "we can restrict the number of parent nodes by looking at the entries of H(i,j) to prevent high fill in rates (e.g. 1e-3)")
-		.add_method("get_H_reduce_interpolation_nodes_parameter", &FAMG<algebra_type>::get_H_reduce_interpolation_nodes_parameter, "HreduceParameter")
+			.add_method("set_H_reduce_interpolation_nodes_parameter", &T::set_H_reduce_interpolation_nodes_parameter, "", "HreduceParameter", "we can restrict the number of parent nodes by looking at the entries of H(i,j) to prevent high fill in rates (e.g. 1e-3)")
+			.add_method("get_H_reduce_interpolation_nodes_parameter", &T::get_H_reduce_interpolation_nodes_parameter, "HreduceParameter")
 
-		.add_method("set_prereduce_A_parameter", &FAMG<algebra_type>::set_prereduce_A_parameter, "", "prereduceA", "by setting this != 0.0, we reduce the matrix A before using it to its strong connections. (e.g. 1e-3)")
-		.add_method("get_prereduce_A_parameter", &FAMG<algebra_type>::get_prereduce_A_parameter, "prereduceA")
+			.add_method("set_prereduce_A_parameter", &T::set_prereduce_A_parameter, "", "prereduceA", "by setting this != 0.0, we reduce the matrix A before using it to its strong connections. (e.g. 1e-3)")
+			.add_method("get_prereduce_A_parameter", &T::get_prereduce_A_parameter, "prereduceA")
 
-		.add_method("set_external_coarsening", &FAMG<algebra_type>::set_external_coarsening, "bExternalCoarsening", "You need to set_parallel_coarsening in parallel.")
-		.add_method("set_strong_connection_external", &FAMG<algebra_type>::set_strong_connection_external, "epsilon", "set strong_connection value for coarsening (like set_epsilon_strong in RSAMG)")
-		.add_method("get_strong_connection_external", &FAMG<algebra_type>::get_strong_connection_external)
+			.add_method("set_external_coarsening", &T::set_external_coarsening, "bExternalCoarsening", "You need to set_parallel_coarsening in parallel.")
+			.add_method("set_strong_connection_external", &T::set_strong_connection_external, "epsilon", "set strong_connection value for coarsening (like set_epsilon_strong in RSAMG)")
+			.add_method("get_strong_connection_external", &T::get_strong_connection_external)
 
-#ifdef UG_PARALLEL
-		.add_method("set_parallel_coarsening", &FAMG<algebra_type>::set_parallel_coarsening, "parallelCoarsening", "e.g. GetColorCoarsening()")
-#endif
-		.add_method("set_use_precalculate", &FAMG<algebra_type>::set_use_precalculate, "bUsePrecalculate", "experimental way of coarsening. beta.")
+	#ifdef UG_PARALLEL
+			.add_method("set_parallel_coarsening", &T::set_parallel_coarsening, "", "parallelCoarsening", "e.g. GetColorCoarsening()")
+	#endif
+			.add_method("set_use_precalculate", &T::set_use_precalculate, "", "bUsePrecalculate", "experimental way of coarsening. beta.")
 
-		.add_method("set_debug_level_overlap", &FAMG<algebra_type>::set_debug_level_overlap)
-		.add_method("set_debug_level_testvector_calc", &FAMG<algebra_type>::set_debug_level_testvector_calc)
-		.add_method("set_debug_level_phase_3", &FAMG<algebra_type>::set_debug_level_phase_3)
-		.add_method("set_debug_level_calculate_parent_pairs", &FAMG<algebra_type>::set_debug_level_calculate_parent_pairs)
-		.add_method("set_debug_level_recv_coarsening", &FAMG<algebra_type>::set_debug_level_recv_coarsening)
-		.add_method("set_debug_level_coloring", &FAMG<algebra_type>::set_debug_level_coloring)
-		.add_method("set_debug_level_get_ratings", &FAMG<algebra_type>::set_debug_level_get_ratings)
-		.add_method("set_debug_level_precalculate_coarsening", &FAMG<algebra_type>::set_debug_level_precalculate_coarsening)
-		.add_method("set_debug_level_aggressive_coarsening", &FAMG<algebra_type>::set_debug_level_aggressive_coarsening)
-		.add_method("set_debug_level_send_coarsening", &FAMG<algebra_type>::set_debug_level_send_coarsening)
-		.add_method("set_debug_level_communicate_prolongation", &FAMG<algebra_type>::set_debug_level_communicate_prolongation)
-		.add_method("set_debug_level_after_communciate_prolongation", &FAMG<algebra_type>::set_debug_level_after_communciate_prolongation)
+			.add_method("set_debug_level_overlap", &T::set_debug_level_overlap)
+			.add_method("set_debug_level_testvector_calc", &T::set_debug_level_testvector_calc)
+			.add_method("set_debug_level_phase_3", &T::set_debug_level_phase_3)
+			.add_method("set_debug_level_calculate_parent_pairs", &T::set_debug_level_calculate_parent_pairs)
+			.add_method("set_debug_level_recv_coarsening", &T::set_debug_level_recv_coarsening)
+			.add_method("set_debug_level_coloring", &T::set_debug_level_coloring)
+			.add_method("set_debug_level_get_ratings", &T::set_debug_level_get_ratings)
+			.add_method("set_debug_level_precalculate_coarsening", &T::set_debug_level_precalculate_coarsening)
+			.add_method("set_debug_level_aggressive_coarsening", &T::set_debug_level_aggressive_coarsening)
+			.add_method("set_debug_level_send_coarsening", &T::set_debug_level_send_coarsening)
+			.add_method("set_debug_level_communicate_prolongation", &T::set_debug_level_communicate_prolongation)
+			.add_method("set_debug_level_after_communciate_prolongation", &T::set_debug_level_after_communciate_prolongation)
 
 
-		.add_method("set_write_f_values", &FAMG<algebra_type>::set_write_f_values)
+			.add_method("set_write_f_values", &T::set_write_f_values)
 
-		.add_method("check_testvector", &FAMG<algebra_type>::check_testvector)
-		.set_construct_as_smart_pointer(true)
-		;
+			.add_method("check_testvector",	static_cast<bool(T::*)()>(&T::check_testvector))
+			.add_method("check_testvector",	static_cast<bool(T::*)(size_t fromlevel)>(&T::check_testvector), "", "fromlevel")
+			.add_method("check_testvector",	static_cast<bool(T::*)(size_t fromlevel, size_t tolevel)>(&T::check_testvector), "", "fromlevel#tolevel")
+
+			.set_construct_as_smart_pointer(true)
+			;
+	}
 	reg.add_class_to_group(string("FAMGPreconditioner").append(suffix), "FAMGPreconditioner", tag);
 
 }
