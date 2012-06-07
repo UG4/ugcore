@@ -321,7 +321,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 
 	UG_LOG("Type    " << "  Iter#     Defect         Rate\n");
 	UG_LOG("                 " << std::scientific << firstnorm << "\n");
-	for(size_t i=0; i<1; i++)
+	for(size_t i=0; i<m_iNrOfPreiterationsCheck; i++)
 	{
 		add_correction_and_update_defect2(c, d, *L.pAgglomeratedA, level);
 
