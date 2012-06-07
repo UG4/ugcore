@@ -67,7 +67,7 @@ foreach my $line (<FH>)
         $bInBlock = 0;
     }
     
-    elsif ($line =~ /.*util.GetParam(Number|)\(\"-(\w*)\"\s*(.*)/ )
+    elsif ($line =~ /.*util.GetParam(Number|)\s*\(\"-(\w*)\"\s*(.*)/ )
     {
     	$result .= "parameter ".$2;
     	if ($3 =~ /^,\s*(\"[^\"]*\")\s*(.*)/ or $3 =~ /^,\s*(\w*)(.*)/)
@@ -82,7 +82,7 @@ foreach my $line (<FH>)
     	}
 		else { 	$result .= ";\n";	}
     }   
-    elsif ($line =~ /.*util.HasParamOption\(\"-(\w*)\"\s*(.*)/ )
+    elsif ($line =~ /.*util.HasParamOption\s*\(\"-(\w*)\"\s*(.*)/ )
     {
     	$result .= "parameterBool ".$1;
    		# description
