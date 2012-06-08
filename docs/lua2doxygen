@@ -14,43 +14,102 @@ my $blockName = q{};
 my $result = q{};
 my $deux = 0;
 my $luaDoxygenMark = "--!";
- 
+my $originalLine;
+my $functionLine;
+my $inMultilineComment = 0;
+my $inDocuMultilineComment = 0;
+my $functionComment = "";
+my $code="";
 open FH, "<$input"  or die "Can't open $input for reading: $!";
- 
+
+
 foreach my $line (<FH>)
 {
-    chomp $line;
+	chomp $line;
+    $originalLine=$line;
 
+    
+    if ($inDocuMultilineComment == 1 or $inMultilineComment == 1)
+    {
+    	if ( $line =~ /\]\]--/ )
+    	{
+    		$inMultilineComment=0;
+    		$inDocuMultilineComment=0;    		
+    	}
+    	elsif ( $inDocuMultilineComment == 1 )
+    	{
+    		# remove additional --
+    		$line =~ s/^--//;
+    		$functionComment .= $line ."\n";
+    	}
+    	next;
+    }
+    
+    if ($originalLine =~ /--\[\[!/)
+    {
+    	$inDocuMultilineComment=1;
+    	next;
+    }
+    elsif ($line =~ /--\[\[/)
+    {
+      	$inMultilineComment=1;
+    	next;
+    }
+    
     # skip normal comments
     next if $line =~ /^\s*--[^!]/;
     
     # remove end of line comments
     $line =~ s/--[^!].*//;
     
-    # skip comparison
-    next if $line =~ /==/;
+    # skip comparison??
+    #next if $line =~ /==/;
     
     # translate to doxygen mark
     $line =~ s{$luaDoxygenMark}{///};
 
-    if ($line =~ m{^\s*///}) 
+    if ($line =~ m{^\s*///(.*)}) 
     {
-        $result .= "$line\n";
+        $functionComment .= "$1\n";
+        next;
     }
     
+    $code .= $originalLine . "\n";
+    
     # function start
-    elsif ($line =~ /^function/) 
+    if ($line =~ /function/) 
     {
         $bInFunction = 1;
         $line .= q{;};
         $line =~ s/:/-/;
-        $result .= "$line\n";
+        $functionLine = $line;
+        $result .= "\n/**\n";
+        if($functionComment ne "")
+        {
+        	$result .= $functionComment."\n";
+        }
+        $result .= "\\code\n".$originalLine."\n\n";
+        $functionComment = "";
+        next
     }
-    
-    # function end
-    elsif ($bInFunction == 1 && $line =~ /^end/) 
+    elsif($functionComment ne "")
     {
-        $bInFunction = 0;
+    	$result.="/**\n".$functionComment."\n**/\n\n";
+    	$functionComment = "";
+    }
+        
+    # function end
+    if ($bInFunction == 1) 
+    {
+     	if($line =~ /^end/)
+     	{
+        	$bInFunction = 0;
+        	$result .= "$line\n\\endcode\n**/\n".$functionLine."\n";
+        }
+        else
+        {
+        	$result .= $originalLine . "\n";
+        }
     }
     
     # block start
@@ -69,7 +128,9 @@ foreach my $line (<FH>)
     
     elsif ($line =~ /.*util.GetParam(Number|)\s*\(\"-(\w*)\"\s*(.*)/ )
     {
-    	$result .= "parameter ".$2;
+    	if ($1 eq "Number")
+    	{ $result .= "parameterNumber ".$2; }
+    	else { $result .= "parameterString ".$2; }
     	if ($3 =~ /^,\s*(\"[^\"]*\")\s*(.*)/ or $3 =~ /^,\s*(\w*)(.*)/)
     	{ 	
     		$result .= " = ".$1;
@@ -104,4 +165,5 @@ foreach my $line (<FH>)
 
 close FH;
 $result .= "\n/** <hr> \\include $input */\n";
+#print("/**\n\\file $input\n\\brief my superfile\n\\code\n".$code."\n\\endcode\n**/\n");
 print($result);
