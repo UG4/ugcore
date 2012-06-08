@@ -1120,7 +1120,7 @@ QHG_LOCATION           =
 # the ECLIPSE_DOC_ID value. After copying Eclipse needs to be restarted before
 # the help appears.
 
-GENERATE_ECLIPSEHELP   = YES
+GENERATE_ECLIPSEHELP   = NO
 
 # A unique identifier for the eclipse help plugin. When installing the plugin
 # the directory name containing the HTML and XML files should also have
