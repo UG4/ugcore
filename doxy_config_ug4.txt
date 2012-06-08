@@ -668,7 +668,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = ugbase docs/ug4/additional_pages docs/lib_grid/additional_pages docs/lib_algebra/additional_pages docs/lib_disc/additional_pages scripts
+INPUT                  = ugbase docs/ug4/additional_pages docs/lib_grid/additional_pages docs/lib_algebra/additional_pages docs/lib_disc/additional_pages scripts apps
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -686,7 +686,7 @@ INPUT_ENCODING         = UTF-8
 # *.hxx *.hpp *.h++ *.idl *.odl *.cs *.php *.php3 *.inc *.m *.mm *.dox *.py
 # *.f90 *.f *.for *.vhd *.vhdl
 
-FILE_PATTERNS          = *.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++ *.doxygen *.lua
+FILE_PATTERNS          = *.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++ *.doxygen *.lua=./docs/lua2doxygen
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories
 # should be searched for input files as well. Possible values are YES and NO.
@@ -1113,13 +1113,13 @@ QHG_LOCATION           =
 # the ECLIPSE_DOC_ID value. After copying Eclipse needs to be restarted before
 # the help appears.
 
-GENERATE_ECLIPSEHELP   = NO
+GENERATE_ECLIPSEHELP   = YES
 
 # A unique identifier for the eclipse help plugin. When installing the plugin
 # the directory name containing the HTML and XML files should also have
 # this name.
 
-ECLIPSE_DOC_ID         = org.doxygen.Project
+ECLIPSE_DOC_ID         = org.doxygen.ug4
 
 # The DISABLE_INDEX tag can be used to turn on/off the condensed index (tabs)
 # at top of each HTML page. The value NO (the default) enables the index and
@@ -1170,7 +1170,7 @@ EXT_LINKS_IN_WINDOW    = NO
 # to manually remove any form_*.png images from the HTML output directory
 # to force them to be regenerated.
 
-FORMULA_FONTSIZE       = 10
+FORMULA_FONTSIZE       = 12
 
 # Use the FORMULA_TRANPARENT tag to determine whether or not the images
 # generated for formulas are transparent PNGs. Transparent PNGs are
@@ -1187,7 +1187,7 @@ FORMULA_TRANSPARENT    = YES
 # output. When enabled you may also need to install MathJax separately and
 # configure the path to it using the MATHJAX_RELPATH option.
 
-USE_MATHJAX            = NO
+USE_MATHJAX            = YES
 
 # When MathJax is enabled you need to specify the location relative to the
 # HTML output directory using the MATHJAX_RELPATH option. The destination
