@@ -9,6 +9,7 @@ These pages are a collection of information addressing developers of \ug4.
   - \subpage pageUG4Registry "registry"
 - Plugins
 - \subpage pageUnitTests
+- \subpage pageDebuggingCPP
 - \subpage pageUG4DevTipsGuides
   - \ref pageInstallEclipse
   - \ref pageUG4CodingStyle

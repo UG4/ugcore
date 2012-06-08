@@ -12,6 +12,6 @@ As well some tutorials targeting special features of \ug4 are available.
   - \ref pageParallelRendering
 - \ug4 and \em VRL
 - <a href="http://cave1.gcsc.uni-frankfurt.de/job/ug-bridge-doc/javadoc/">ug4-Scripting Reference Documentation</a>
-- \ref pageLuaScript
+- \subpage pageLuaScript
 
 */

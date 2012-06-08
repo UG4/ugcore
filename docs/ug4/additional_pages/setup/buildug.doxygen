@@ -9,7 +9,7 @@ Before building \ug4, you should make sure that you installed all necessary tool
 for your system.
 
 <hr>
-\section secBuildUG4Checkout Checkout \ug4
+\section secBuildUG4Checkout Checkout ug4
 You \ref secInstallEcpliseUG4Download . 
 To do it \em manually with <tt> svn </tt>: 
 Create a \c ug4 directory and perform a svn checkout on the trunk.
