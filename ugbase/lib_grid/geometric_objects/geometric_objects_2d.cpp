@@ -74,6 +74,20 @@ CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3)
 }
 
 template <class ConcreteTriangleType, class BaseClass>
+std::pair<GeometricBaseObject, int>
+CustomTriangle<ConcreteTriangleType, BaseClass>::
+get_opposing_object(VertexBase* vrt) const
+{
+	for(int i = 0; i < 3; ++i){
+		if(vrt == m_vertices[i]){
+			return make_pair(EDGE, (i + 1) % 3);
+		}
+	}
+
+	UG_THROW("The given vertex is not contained in the given face.");
+}
+
+template <class ConcreteTriangleType, class BaseClass>
 bool
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 refine(std::vector<Face*>& vNewFacesOut,
@@ -327,7 +341,7 @@ CustomQuadrilateral(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* 
 template <class ConcreteQuadrilateralType, class BaseClass>
 bool
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
-get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut)
+get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const
 {
 	int localInd = Face::get_local_side_index(e);
 	if(localInd == -1){
@@ -336,6 +350,20 @@ get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut)
 
 	edge_desc((localInd + 2) % 4, edOut);
 	return true;
+}
+
+template <class ConcreteQuadrilateralType, class BaseClass>
+std::pair<GeometricBaseObject, int>
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+get_opposing_object(VertexBase* vrt) const
+{
+	for(int i = 0; i < 4; ++i){
+		if(vrt == m_vertices[i]){
+			return make_pair(VERTEX, (i + 2) % 4);
+		}
+	}
+
+	UG_THROW("The given vertex is not contained in the given face.");
 }
 
 template <class ConcreteQuadrilateralType, class BaseClass>

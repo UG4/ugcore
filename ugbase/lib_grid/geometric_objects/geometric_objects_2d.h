@@ -81,9 +81,10 @@ class UG_API CustomTriangle : public BaseClass
 		virtual EdgeDescriptor edge_desc(int index) const
 			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % 3]);}
 
-		virtual void edge_desc(int index, EdgeDescriptor& edOut)
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const
 			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % 3]);}
 
+		virtual std::pair<GeometricBaseObject, int> get_opposing_object(VertexBase* vrt) const;
 
 	///	Refines a Triangle by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
@@ -214,13 +215,15 @@ class UG_API CustomQuadrilateral : public BaseClass
 		virtual EdgeDescriptor edge_desc(int index) const
 			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % 4]);}
 
-		virtual void edge_desc(int index, EdgeDescriptor& edOut)
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const
 			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % 4]);}
 
 
 	///	fills the edge-descriptor with the edge that lies opposed to the specified one
 	/**	If the specified edge is not part of the face, false is returned.*/
-		virtual bool get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut);
+		virtual bool get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const;
+
+		virtual std::pair<GeometricBaseObject, int> get_opposing_object(VertexBase* vrt) const;
 
 	///	Refines a Quadrilateral by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,

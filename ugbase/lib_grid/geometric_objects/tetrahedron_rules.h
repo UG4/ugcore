@@ -32,6 +32,10 @@ const int FACE_VRT_INDS[][4] = {	{0, 1, 2, -1}, {1, 3, 2, -1},
 ///	for each edge the local index of the opposed edge
 const int OPPOSED_EDGE[] = {5, 3, 4, 1, 2, 0};
 
+/** for each vertex, a pair containing the object type (0: vrt, 1: edge, 2: face)
+ * and an index into the associated array, which describe the object which lies
+ * on the opposite side of the tetrahedron, to a given vertex.*/
+const int OPPOSED_OBJECT[][NUM_VERTICES] = {{2, 1}, {2, 2}, {2, 3}, {2, 0}};
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

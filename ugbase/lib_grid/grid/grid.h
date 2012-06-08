@@ -504,6 +504,13 @@ class UG_API Grid
 		Face::side* get_side(Face* obj, size_t side);
 		Volume::side* get_side(Volume* obj, size_t side);
 
+	///	returns the geometric object on the opposing side of the given vertex regarding the given element.
+	/**	\note Currently only implemented for Face and Volume.
+	 * \{ */
+		GeometricObject* get_opposing_object(VertexBase* vrt, Face* elem);
+		GeometricObject* get_opposing_object(VertexBase* vrt, Volume* elem);
+	/** \} */
+
 	////////////////////////////////////////////////
 	//	attachments
 	////////////////////////////////////////////////////////////////////////

@@ -17,6 +17,15 @@ namespace ug
  * @{
  */
 
+////////////////////////////////////////////////////////////////////////
+//	CalculateGeometricObjectCenter
+///	calculates the center for arbitrary geometric object
+template<class TVertexPositionAttachmentAccessor>
+UG_API
+inline
+typename TVertexPositionAttachmentAccessor::ValueType
+CalculateGeometricObjectCenter(const GeometricObject* o,
+							   TVertexPositionAttachmentAccessor& aaPosVRT);
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter

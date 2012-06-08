@@ -203,6 +203,18 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 	}
 }
 
+bool CreateHierarchy(MultiGrid& mg, size_t numRefs)
+{
+	PROFILE_FUNC();
+
+	GlobalMultiGridRefiner ref(mg);
+
+	for(size_t lvl = 0; lvl < numRefs; ++lvl){
+		ref.refine();
+	}
+	return true;
+}
+
 bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 {
 	PROFILE_FUNC();
@@ -722,6 +734,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	//	refinement
 		reg.add_function("TestSubdivision", &TestSubdivision, grp)
 			.add_function("TestHangingNodeRefiner_MultiGrid", &TestHangingNodeRefiner_MultiGrid, grp)
+			.add_function("CreateHierarchy", &CreateHierarchy, grp)
 			.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp)
 			.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp)
 			.add_function("TestGridRedistribution", &TestGridRedistribution, grp);

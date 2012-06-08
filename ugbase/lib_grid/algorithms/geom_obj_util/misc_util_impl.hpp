@@ -7,9 +7,33 @@
 
 #include "misc_util.h"
 #include "lib_grid/grid/grid_util.h"
+#include "vertex_util.h"
+#include "edge_util.h"
+#include "face_util.h"
+#include "volume_util.h"
 
 namespace ug
 {
+////////////////////////////////////////////////////////////////////////
+//	CalculateGeometricObjectCenter
+template<class TVertexPositionAttachmentAccessor>
+UG_API
+inline
+typename TVertexPositionAttachmentAccessor::ValueType
+CalculateGeometricObjectCenter(const GeometricObject* o,
+							   TVertexPositionAttachmentAccessor& aaPosVRT)
+{
+	switch(o->base_object_id()){
+		case VERTEX:	return CalculateCenter(static_cast<const VertexBase*>(o), aaPosVRT);
+		case EDGE:		return CalculateCenter(static_cast<const EdgeBase*>(o), aaPosVRT);
+		case FACE:		return CalculateCenter(static_cast<const Face*>(o), aaPosVRT);
+		case VOLUME:	return CalculateCenter(static_cast<const Volume*>(o), aaPosVRT);
+		default:
+			UG_THROW("Unknown geometric-object type.");
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter
 template <class TIterator, class TAAPosVRT>

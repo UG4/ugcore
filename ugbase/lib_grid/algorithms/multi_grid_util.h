@@ -36,7 +36,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 template <class TElem>
 bool IsSubSurfaceElement(MultiGrid& mg, TElem* e, bool checkSides = false);
 
-						
+
 }//	end of namespace
 
 ////////////////////////////////

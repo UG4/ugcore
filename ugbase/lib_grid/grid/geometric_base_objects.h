@@ -8,6 +8,7 @@
 #include <list>
 #include <cassert>
 #include <iostream>
+#include <utility>
 #include "common/types.h"
 #include "common/common.h"
 #include "common/assert.h"
@@ -409,7 +410,7 @@ class UG_API Face : public GeometricObject, public FaceVertices
 
 	///	returns the i-th edge of the face.
 	/**	This default implementation is reimplemented by derived classes for optimal speed.*/
-		virtual void edge_desc(int index, EdgeDescriptor& edOut)
+		virtual void edge_desc(int index, EdgeDescriptor& edOut) const
 			{edOut.set_vertices(vertex(index), vertex((index+1) % size()));}
 
 		inline uint num_edges() const	{return num_vertices();}
@@ -429,11 +430,18 @@ class UG_API Face : public GeometricObject, public FaceVertices
 	///	retrieves the edge-descriptor for the opposing side to the specified one.
 	/**	If no opposing side exists false is returned. If an opposing side exists,
 	 * the method returns true and fills the specified descriptor.*/
-		virtual bool get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut)	{return false;}
+		virtual bool get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const	{return false;}
+
+	///	returns an index to the obbject, which lies on the opposite side of the face to the given vertex.
+	/**	The method returs a pair <GeometricBaseObject, int>, where GeometricBaseObject
+	 * is either VERTEX or EDGE and where the second entry specifies the local index
+	 * of the object in the given face.*/
+		virtual std::pair<GeometricBaseObject, int>
+		get_opposing_object(VertexBase* vrt) const	{UG_THROW("Base method not implemented.");}
 
 	///	returns the local index of the specified edge.
 	/**	If the edge is not part of the face, then -1 is returned.*/
-		int get_local_side_index(EdgeVertices* e);
+		int get_local_side_index(EdgeVertices* e) const;
 
 	/**
 	 * The refine method can be used to create new elements by inserting new vertices
@@ -632,29 +640,36 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 	 *	This should be changed by making the method pure virtual.*/
 		virtual void get_local_vertex_indices_of_edge(size_t& ind1Out,
 													  size_t& ind2Out,
-													  size_t edgeInd)
+													  size_t edgeInd) const
 		{
 		//	("Missing implementation of get_local_vertex_indices_of_face.")
-			throw(int(0));
+			UG_THROW("Base method not implemented.");
 		};
 		
 	///	returns the local indices of a face of the volume.
 	/**	Default implementation throws an instance of int.
 	 *	This should be changed by making the method pure virtual.*/
 		virtual void get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
-													  size_t side)
+													  size_t side) const
 		{
 		//	("Missing implementation of get_local_vertex_indices_of_face.")
-			throw(int(0));
+			UG_THROW("Base method not implemented.");
 		};
 
 	///	retrieves the face-descriptor for the opposing side to the specified one.
 	/**	If no opposing side exists false is returned. If an opposing side exists,
 	 * the method returns true and fills the specified descriptor.*/
-		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut)	{return false;}
+		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const	{return false;}
+
+	///	returns an index to the obbject, which lies on the opposite side of the volume to the given vertex.
+	/**	The method returs a pair <GeometricBaseObject, int>, where GeometricBaseObject
+	 * is either VERTEX, EDGE, or FACE and where the second entry specifies the local index
+	 * of the object in the given volume.*/
+		virtual std::pair<GeometricBaseObject, int>
+		get_opposing_object(VertexBase* vrt) const	{UG_THROW("Base method not implemented.");}
 
 	///	returns the local index of the given face or -1, if the face is not part of the volume.
-		int get_local_side_index(FaceVertices* f);
+		int get_local_side_index(FaceVertices* f) const;
 
 	/**
 	 * The refine method can be used to create new elements by inserting new vertices

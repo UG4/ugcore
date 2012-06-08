@@ -34,13 +34,12 @@ const int FACE_VRT_INDS[][4] = {	{0, 1, 2, 3},	{0, 4, 1, -1},
 ///	the pyramids top
 const int TOP_VERTEX = 4;
 
-/*
-///	indicates whether an edge is a bottom edge
-const int IS_BOTTOM_EDGE[8] =	{1, 1, 1, 1, 0, 0, 0, 0};
 
-///	index of the bottom face
-const int BOTTOM_FACE = 0;
-*/
+/** for each vertex, a pair containing the object type (0: vrt, 1: edge, 2: face)
+ * and an index into the associated array, which describe the object which lies
+ * on the opposite side of the pyramid, to a given vertex.*/
+const int OPPOSED_OBJECT[][NUM_VERTICES] = {{1, 6}, {1, 7}, {1, 4}, {1, 5}, {2, 0}};
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

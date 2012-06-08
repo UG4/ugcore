@@ -499,6 +499,40 @@ size_t Grid::volume_fragmentation()
 	return m_volumeElementStorage.m_attachmentPipe.num_data_entries() - m_volumeElementStorage.m_attachmentPipe.num_elements();
 }
 
+
+GeometricObject* Grid::
+get_opposing_object(VertexBase* vrt, Face* elem)
+{
+	std::pair<GeometricBaseObject, int> id = elem->get_opposing_object(vrt);
+	switch(id.first){
+		case VERTEX:
+			return elem->vertex(id.second);
+		case EDGE:
+			return get_edge(elem, id.second);
+		default:
+			UG_THROW("Unsupported geometric base object type returned by "
+					"Face::get_opposing_object(vrt)");
+	}
+}
+
+GeometricObject* Grid::
+get_opposing_object(VertexBase* vrt, Volume* elem)
+{
+	std::pair<GeometricBaseObject, int> id = elem->get_opposing_object(vrt);
+	switch(id.first){
+		case VERTEX:
+			return elem->vertex(id.second);
+		case EDGE:
+			return get_edge(elem, id.second);
+		case FACE:
+			return get_face(elem, id.second);
+		default:
+			UG_THROW("Unsupported geometric base object type returned by "
+					"Volume::get_opposing_object(vrt)");
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	pass_on_values
 template <class TAttachmentPipe, class TElem>

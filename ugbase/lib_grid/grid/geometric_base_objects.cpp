@@ -46,7 +46,7 @@ EdgeDescriptor& EdgeDescriptor::operator = (const EdgeDescriptor& ed)
 
 ////////////////////////////////////////////////////////////////////////
 //	implementation of face
-int Face::get_local_side_index(EdgeVertices* e)
+int Face::get_local_side_index(EdgeVertices* e) const
 {
 	EdgeDescriptor ed;
 	for(size_t i = 0; i < num_sides(); ++i){
@@ -89,7 +89,7 @@ FaceDescriptor& FaceDescriptor::operator = (const FaceDescriptor& fd)
 
 ////////////////////////////////////////////////////////////////////////
 //	implementation of Volume
-int Volume::get_local_side_index(FaceVertices* f)
+int Volume::get_local_side_index(FaceVertices* f) const
 {
 	FaceDescriptor fd;
 	for(size_t i = 0; i < num_sides(); ++i){

@@ -34,6 +34,13 @@ const int FACE_VRT_INDS[][4] = {	{0, 1, 2, -1},	{0, 3, 4, 1},
 ///	the index of the face opposed to the given one. -1 if no face is opposed
 const int OPPOSED_FACE[NUM_FACES] = {4, -1, -1, -1, 0};
 
+
+/** for each vertex, a pair containing the object type (0: vrt, 1: edge, 2: face)
+ * and an index into the associated array, which describe the object which lies
+ * on the opposite side of the prism, to a given vertex.*/
+const int OPPOSED_OBJECT[][NUM_VERTICES] = {{1, 7}, {1, 8}, {1, 6}, {1, 1}, {1, 2}, {1, 0}};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //	SOME HELPER TABLES
 const int TOP_FACE =	4;

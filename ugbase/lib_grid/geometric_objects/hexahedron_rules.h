@@ -43,6 +43,14 @@ const int OPPOSED_FACE_VRT_INDS[][4] =	{{4, 5, 6, 7},	{3, 7, 6, 2},
 									 	 {0, 4, 7, 3},	{1, 5, 4, 0},
 									 	 {1, 2, 6, 5},	{0, 3, 2, 1}};
 
+
+/** for each vertex, a pair containing the object type (0: vrt, 1: edge, 2: face)
+ * and an index into the associated array, which describe the object which lies
+ * on the opposite side of the hexahedron, to a given vertex.*/
+const int OPPOSED_OBJECT[][NUM_VERTICES] = {{0, 6}, {0, 7}, {0, 4}, {0, 5},
+							  	  	  	    {0, 2}, {0, 3}, {0, 0}, {0, 1}};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //	NOTE: The lists below are all generated automatically

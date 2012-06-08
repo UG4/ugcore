@@ -89,10 +89,12 @@ class UG_API Tetrahedron : public Volume
 
 		virtual void get_local_vertex_indices_of_edge(size_t& ind1Out,
 													  size_t& ind2Out,
-													  size_t edgeInd);
+													  size_t edgeInd) const;
 
 		virtual void get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
-													  size_t side);
+													  size_t side) const;
+
+		virtual std::pair<GeometricBaseObject, int> get_opposing_object(VertexBase* vrt) const;
 
 	///	Creates new volume elements through refinement.
 	/**	Make sure that newEdgeVertices contains 6 vertex pointers.
@@ -207,7 +209,9 @@ class UG_API Hexahedron : public Volume
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
 
-		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut);
+		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const;
+
+		virtual std::pair<GeometricBaseObject, int> get_opposing_object(VertexBase* vrt) const;
 
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
@@ -320,7 +324,9 @@ class UG_API Prism : public Volume
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
 
-		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut);
+		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const;
+
+		virtual std::pair<GeometricBaseObject, int> get_opposing_object(VertexBase* vrt) const;
 
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
@@ -432,6 +438,8 @@ class UG_API Pyramid : public Volume
 
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
+
+		virtual std::pair<GeometricBaseObject, int> get_opposing_object(VertexBase* vrt) const;
 
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,

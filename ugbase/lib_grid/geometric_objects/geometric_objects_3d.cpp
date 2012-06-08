@@ -295,7 +295,7 @@ Face* Tetrahedron::create_face(int index)
 void Tetrahedron::
 get_local_vertex_indices_of_edge(size_t& ind1Out,
 								  size_t& ind2Out,
-								  size_t edgeInd)
+								  size_t edgeInd) const
 {
 	assert(edgeInd >= 0 && edgeInd < 6);
 	ind1Out = tet_rules::EDGE_VRT_INDS[edgeInd][0];
@@ -304,7 +304,7 @@ get_local_vertex_indices_of_edge(size_t& ind1Out,
 											  
 void Tetrahedron::
 get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
-								 size_t side)
+								 size_t side) const
 {
 	assert(side >= 0 && side < 4);
 	indsOut.resize(3);
@@ -320,6 +320,20 @@ bool Tetrahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 //	if an edge of a tetrahedron is collapsed, nothing remains.
 	vNewVolumesOut.clear();
 	return true;
+}
+
+std::pair<GeometricBaseObject, int> Tetrahedron::
+get_opposing_object(VertexBase* vrt) const
+{
+	using namespace tet_rules;
+	for(int i = 0; i < NUM_VERTICES; ++i){
+		if(vrt == m_vertices[i]){
+			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
+							 OPPOSED_OBJECT[i][1]);
+		}
+	}
+
+	UG_THROW("Specified vertex is not part of this element.");
 }
 
 bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
@@ -487,7 +501,7 @@ Face* Hexahedron::create_face(int index)
 							 m_vertices[f[2]], m_vertices[f[1]]);
 }
 
-bool Hexahedron::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut)
+bool Hexahedron::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const
 {
 	using namespace hex_rules;
 	int localInd = get_local_side_index(f);
@@ -496,6 +510,20 @@ bool Hexahedron::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut)
 
 	face_desc(OPPOSED_FACE[localInd], fdOut);
 	return true;
+}
+
+std::pair<GeometricBaseObject, int> Hexahedron::
+get_opposing_object(VertexBase* vrt) const
+{
+	using namespace hex_rules;
+	for(int i = 0; i < NUM_VERTICES; ++i){
+		if(vrt == m_vertices[i]){
+			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
+							 OPPOSED_OBJECT[i][1]);
+		}
+	}
+
+	UG_THROW("Specified vertex is not part of this element.");
 }
 
 bool Hexahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -683,7 +711,7 @@ Face* Prism::create_face(int index)
 	}
 }
 
-bool Prism::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut)
+bool Prism::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const
 {
 	using namespace prism_rules;
 	int localInd = get_local_side_index(f);
@@ -696,6 +724,19 @@ bool Prism::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut)
 
 	face_desc(opposedInd, fdOut);
 	return true;
+}
+
+std::pair<GeometricBaseObject, int> Prism::
+get_opposing_object(VertexBase* vrt) const
+{
+	using namespace prism_rules;
+	for(int i = 0; i < NUM_VERTICES; ++i){
+		if(vrt == m_vertices[i]){
+			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
+							 OPPOSED_OBJECT[i][1]);
+		}
+	}
+	UG_THROW("Specified vertex is not part of this element.");
 }
 
 bool Prism::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
@@ -873,6 +914,19 @@ Face* Pyramid::create_face(int index)
 		return new Quadrilateral(m_vertices[f[0]], m_vertices[f[3]],
 								 m_vertices[f[2]], m_vertices[f[1]]);
 	}
+}
+
+std::pair<GeometricBaseObject, int> Pyramid::
+get_opposing_object(VertexBase* vrt) const
+{
+	using namespace pyra_rules;
+	for(int i = 0; i < NUM_VERTICES; ++i){
+		if(vrt == m_vertices[i]){
+			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
+							 OPPOSED_OBJECT[i][1]);
+		}
+	}
+	UG_THROW("Specified vertex is not part of this element.");
 }
 
 bool Pyramid::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
