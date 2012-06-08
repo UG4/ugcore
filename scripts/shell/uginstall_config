@@ -14,6 +14,14 @@ fi
 
 PATH=$LOCAL_INSTALLDIR/bin:$PATH
 
+if [ -z $LDFLAGS ]; then
+LDFLAGS="-L$LOCAL_INSTALLDIR/lib":$LDFLAGS
+else
+LDFLAGS="-L$LOCAL_INSTALLDIR/lib"
+fi
+export LDFLAGS
+
+
 if [ -z $C_INCLUDE_PATH ]; then
 C_INCLUDE_PATH=$LOCAL_INSTALLDIR/include/
 else
