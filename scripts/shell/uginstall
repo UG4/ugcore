@@ -166,13 +166,13 @@ install_gcc()
 install_cmake()
 {
 	my_install cmake-2.8.6 "http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz" cmake-2.8.6.tar.gz \
-		cmake-2.8.6 "./bootstrap --prefix=$HOME/local"
+		"./bootstrap --prefix=$HOME/local"
 }
 
 install_openmpi()
 {	
 	my_install openmpi-1.6 "http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.tar.gz" \
-		openmpi-1.6.tar.gz openmpi-1.6 "./configure --prefix=$HOME/local"
+		openmpi-1.6.tar.gz "./configure --prefix=$HOME/local"
 }
 
 install_GotoBLAS2()
@@ -242,7 +242,7 @@ print_usage()
     	echo " usage:  " $0 " <program>"
 	echo "  <program> can be:"
 	echo "		all"
-	echo "		CMake"
+	echo "		CMake		2.8.6"
 	echo "		Doxygen 	1.8.1"
 	echo "		GCC 		4.4"
 	echo "		gmp			4.3.2"
