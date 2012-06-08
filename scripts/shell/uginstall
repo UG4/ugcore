@@ -15,7 +15,7 @@
 
 scriptname=$0;		  # name of script
 scriptpath=`dirname $scriptname`
-source $scriptpath/.uginstall
+source $scriptpath/uginstall_config
 
 cd 
 if [ ! -e local ]; then mkdir local; fi
@@ -81,7 +81,7 @@ my_install()
 	local subdir=$1
 	local location=$2
 	local filename=$3
-	local command=$5
+	local command=$4
 	if [ -e installed.$subdir ]; then
 		echo "$subdir already installed."
 	else
@@ -119,6 +119,12 @@ install_mpc()
 {
 	my_install mpc-0.8.1 "http://gcc.petsads.us/infrastructure/mpc-0.8.1.tar.gz" mpc-0.8.1.tar.gz \
 		"./configure --prefix=$HOME/local"
+}
+
+install_doxygen()
+{
+	my_install doxygen-1.8.1 "http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.1.src.tar.gz" doxygen-1.8.1.src.tar.gz \
+		"./configure --prefix $HOME/local"
 }
 
 install_gcc()
@@ -223,6 +229,7 @@ install_all()
 {
 	install_gcc
 	install_cmake
+	install_doxygen
 	install_GotoBLAS2
 	install_openmpi
 	install_ParaView
@@ -236,18 +243,20 @@ print_usage()
 	echo "  <program> can be:"
 	echo "		all"
 	echo "		CMake"
-	echo "		GCC 4.4"
-	echo "		gmp"
-	echo "		GotoBLAS2"
-	echo "		mpfr"	
-	echo "		mpc"
-	echo "		OpenMPI"
-	echo "		ParaView"
+	echo "		Doxygen 	1.8.1"
+	echo "		GCC 		4.4"
+	echo "		gmp			4.3.2"
+	echo "		GotoBLAS2	1.13"
+	echo "		mpfr		2.4.2"	
+	echo "		mpc			0.8.1."
+	echo "		OpenMP		1.6"
+	echo "		ParaView	3.14.1-Linux-32bit"
 }
 
 
 case $1 in
 	CMake) install_cmake ;;
+	Doxygen) install_doxygen ;;
 	gcc) install_gcc ;;	
 	gmp) install_gmp ;;
 	GotoBLAS2) install_GotoBLAS2 ;;
