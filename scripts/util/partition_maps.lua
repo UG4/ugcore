@@ -3,10 +3,10 @@
 
 util = util or {}
 
---[!
+--[[!
 \file scripts/util/partition_maps.lua
 \brief creates partition maps of different structure
-]--
+]]--
 
 --! create a partition map by performing repeated bisection
 --! This method automatically adds target procs 0, ..., numProcs - 1.
