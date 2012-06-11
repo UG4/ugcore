@@ -32,6 +32,8 @@ elif [ $UGSUBMIT_TYPE == "cekon" ]; then
 
 	source $scriptpath/schedulers/cekon
 
+elif [ $UGSUBMIT_TYPE == "moab" ]; then
+	source $scriptpath/schedulers/moab
 ############################################################
 #
 # you can add your own cluster like this:
