@@ -1,5 +1,5 @@
 /**
- * \file famg.cpp
+ * \file famg_level_calculator.h
  *
  * \author Martin Rupp
  *
@@ -7,14 +7,13 @@
  *
  * implementation file for famg
  *
- * Goethe-Center for Scientific Computing 2010-2011.
+ * Goethe-Center for Scientific Computing 2010-2012.
  *
- * NOTE: for test purposes, functions are here in a cpp file.
  */
 
 
-#ifndef __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
-#define __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
+#ifndef __H__LIB_ALGEBRA__AMG__FAMG_LEVEL_CALCULATOR_H__
+#define __H__LIB_ALGEBRA__AMG__FAMG_LEVEL_CALCULATORH__
 
 //#include "sparsematrix_util.h"
 
@@ -151,7 +150,7 @@ template <> struct block_traits<MathVector<3> >
  * \param SymmNeighGraph		later used to determine which neighbors' rating needs to be updated
  */
 template<typename matrix_type>
-void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighGraph)
+static void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighGraph)
 {
 	AMG_PROFILE_FUNC();
 
@@ -621,251 +620,6 @@ public:
 };
 
 
-template<>
-void FAMG<CPUAlgebra>::get_testvectors(stdvector<vector_type> &testvectors, stdvector<double> &omega)
-{
-	AMG_PROFILE_FUNC();
-
-	testvectors.resize(m_vVectorWriters.size() + m_testvectors.size());
-	omega.resize(m_vVectorWriters.size() + m_testvectors.size());
-
-	for(size_t i=0; i<m_testvectors.size(); i++)
-	{
-		testvectors[i] = m_testvectors[i];
-		omega[i] = m_omegaVectors[i];
-	}
-
-	for(size_t i=0; i<m_vVectorWriters.size(); i++)
-	{
-		size_t index = i+m_testvectors.size();
-		m_vVectorWriters[i]->update(testvectors[index]);
-		omega[index] = m_omegaVectorWriters[i];
-
-	}
-}
-
-template<>
-void FAMG<CPUAlgebra>::get_testvectors_from_matrix_rows
-	(const matrix_type &A, stdvector<vector_type> &testvectors, stdvector<double> &omega)
-{
-	AMG_PROFILE_FUNC();
-
-	testvectors.resize(1);
-	omega.resize(1);
-	vector_type &v = testvectors[0];
-	v.resize(A.num_rows());
-	for(size_t i=0; i<A.num_rows(); i++)
-	{
-		if(A.is_isolated(i))
-			v[i] = 0.0;
-		else
-			v[i] = 1.0;
-	}
-}
-
-
-template<>
-void FAMG<CPUAlgebra>::precalc_level(size_t level)
-{
-
-	AMG_PROFILE_FUNC();
-	//UG_LOG("\n\n\nprecalc!\n\n\n");
-	UG_ASSERT(m_testvectorsmoother != NULL, "please provide a testvector smoother.");
-
-
-	if(level == 0)
-	{
-		testvectors.clear();
-		if(m_bTestvectorsFromMatrixRows)
-			get_testvectors_from_matrix_rows(*levels[level]->pAgglomeratedA, testvectors, omega);
-		else
-			get_testvectors(testvectors, omega);
-	}
-
-#ifdef UG_PARALLEL
-	if((level != 0 || m_bTestvectorsFromMatrixRows == false)
-			&& levels[level]->bHasBeenMerged)
-	{
-		vector_type t;
-		if(AMGBase<CPUAlgebra>::isMergingMaster(level))
-			t.resize(levels[level]->pAgglomeratedA->num_rows());
-		for(size_t i=0; i<testvectors.size(); i++)
-		{
-			t.set_storage_type(PST_CONSISTENT);
-			testvectors[i].set_storage_type(PST_CONSISTENT);
-			gather_vertical(testvectors[i], t, level, PST_CONSISTENT);
-			testvectors[i] = t;
-		}
-	}
-#endif
-}
-
-template<>
-void FAMG<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
-		prolongation_matrix_type &P, size_t level)
-{
-	AMG_PROFILE_FUNC();
-
-	UG_ASSERT(m_testvectorsmoother != NULL, "please provide a testvector smoother.");
-
-	if(m_bProjectedEVP && level == 0)
-	{
-
-	}
-	UG_ASSERT(testvectors.size() != 0, "testvectors?");
-	UG_ASSERT(testvectors[0].size() == A.num_rows(), "testvectorsize = " << testvectors[0].size() << " != A.num_rows() = " << A.num_rows() << " ?");
-
-	if(m_writeMatrices && m_writeTestvectors)
-	{
-		for(size_t i=0; i<testvectors.size(); i++)
-			WriteVectorToConnectionViewer((m_writeMatrixPath + ToString("testvector") + ToString(i) + ToString("_L") + ToString(level) + ".vec").c_str(),
-					testvectors[i], &m_amghelper.positions[level][0], m_dbgDimension);
-	}
-
-	//UG_ASSERT(testvectors.size() > 0, "we need at least one testvector.");
-
-	// testvectors will be altered by FAMGLevelCalculator
-
-	// UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, 4);
-
-	if(m_dPrereduceAToStrongParameter > 0.0)
-	{
-		matrix_type Aeps;
-		ReduceToStrongConnections(Aeps, A, m_dPrereduceAToStrongParameter);
-
-		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, Aeps, A, P, level, testvectors, omega);
-		dummy.do_calculation();
-	}
-	else
-	{
-		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, A, P, level, testvectors, omega);
-		dummy.do_calculation();
-	}
-
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//       check_testvector
-//--------------------------------
-/**
- */
-template<>
-bool FAMG<CPUAlgebra>::check_testvector(size_t fromlevel, size_t tolevel)
-{
-	AMG_PROFILE_FUNC();
-
-	UG_LOG("\n");
-	UG_LOG("            check_testvector\n");
-	UG_LOG("==========================================\n")
-	UG_LOG("check if testvectors are interpolated exactly\n")
-	if (0){
-		int level = AMGBase<CPUAlgebra>::m_usedLevels-1;
-		matrix_type &A = *AMGBase<CPUAlgebra>::levels[level]->pA;
-		for(size_t i=0; i<A.num_rows(); i++)
-		{
-			double sum=0;
-			for(matrix_type::row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
-				sum += it.value();
-			if(dabs(sum) > 0.1)
-			{
-				UG_LOG("Row " << i << " has sum " << sum << ": ");
-				A.pr(i);
-				UG_LOG("\n");
-			}
-		}
-	}
-
-	size_t preSmooth = AMGBase<CPUAlgebra>::get_num_presmooth();
-	size_t postSmooth = AMGBase<CPUAlgebra>::get_num_postsmooth();
-	AMGBase<CPUAlgebra>::set_num_presmooth(get_testvector_smooths());
-	AMGBase<CPUAlgebra>::set_num_postsmooth(get_testvector_smooths());
-
-
-
-
-
-
-	for(size_t level=0; ; level++)
-	{
-		if(level > tolevel) break;
-		// get testvectors, get agglomerated tv
-		precalc_level(level);
-#ifdef UG_PARALLEL
-		if(AMGBase<CPUAlgebra>::isMergingSlave(level))
-		{
-			UG_LOG("merged.\n");
-			break;
-		}
-#endif
-		if(level >=fromlevel)
-		{
-			UG_LOG("Check Level " << level << "\n-----------------------------------\n")
-		}
-
-		SmartPtr<matrix_type> pA, pAH;
-		pA = AMGBase<CPUAlgebra>::levels[level]->pAgglomeratedA;
-		pAH = AMGBase<CPUAlgebra>::levels[level+1]->pAgglomeratedA;
-
-		matrix_type &A = *pA;
-		matrix_type &AH = *pAH;
-		matrix_type &R = AMGBase<CPUAlgebra>::levels[level]->R;
-		matrix_type &P = AMGBase<CPUAlgebra>::levels[level]->P;
-		vector_type c, d, tv;
-
-	#ifdef UG_PARALLEL
-		SetParallelVectorAsMatrix(c, A, PST_CONSISTENT);
-		SetParallelVectorAsMatrix(d, A, PST_CONSISTENT);
-		SetParallelVectorAsMatrix(tv, A, PST_CONSISTENT);
-	#endif
-		tv.resize(A.num_rows());
-		d.resize(A.num_rows());
-		c.resize(A.num_rows());
-		for(size_t i=0; i<d.size(); i++)
-			tv[i] = testvectors[0][i];
-		A.apply(d, tv);
-		c.set(0.0);
-		checkResult res;
-
-		/*PRINTLAYOUT(A.get_process_communicator(), A.get_communicator(), d.get_master_layout(), d.get_slave_layout());
-		d.change_storage_type(PST_CONSISTENT);
-
-		UG_LOG("\n\ntv level " << level << "\n");
-		tv.print();
-		UG_LOG("\n\nA level " << level << "\n");
-		A.print();
-		UG_LOG("\n\ntestvectors level " << level << "\n");
-		testvectors[0].print();
-		UG_LOG("\n\nd level " << level << "\n");
-		d.print();
-
-		d.change_storage_type(PST_ADDITIVE);*/
-
-		if(level >=fromlevel)
-			AMGBase<CPUAlgebra>::check_level(c, d, A, level, res, &tv);
-
-		if(level+1 < AMGBase<CPUAlgebra>::m_usedLevels-1)
-		{
-			matrix_type Aeps;
-			ReduceToStrongConnections(Aeps, A, m_dPrereduceAToStrongParameter);
-			FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, Aeps, A, P, level, testvectors, omega);
-			dummy.onlyTV();
-		}
-		else break;
-
-	}
-	AMGBase<CPUAlgebra>::set_num_presmooth(preSmooth);
-	AMGBase<CPUAlgebra>::set_num_postsmooth(postSmooth);
-	return true;
-}
-
-
-template<>
-void FAMG<CPUAlgebra>::init_for_EVP(const vector_type &u, const vector_type &b)
-{
-	CloneVector(evpU, u);
-	CloneVector(evpB, b);
-	m_bProjectedEVP=true;
-}
 
 } // namespace ug
 

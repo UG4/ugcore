@@ -21,7 +21,7 @@ namespace ug
 template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
 void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_all_possible_parent_pairs()
 {
-	Stopwatch SW;
+	Stopwatch SW;;
 	UG_DLOG(LIB_ALG_AMG, 1, "\ncreating possible parent list... "); if(bTiming) SW.start();
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelCalculateParentPairs);
 	AMG_PROFILE_FUNC();

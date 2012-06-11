@@ -58,6 +58,7 @@ public:
 	using super::m_writeMatrices;
 	using super::m_writeMatrixPath;
 	using super::levels;
+	using super::m_dbgDimension;
 
 
 public:
