@@ -11,7 +11,7 @@
 #include "ug.h"
 #include "common/log.h"
 #include "common/util/path_provider.h"
-#include "common/os_dependent/os_info.h"
+#include "common/util/os_info.h"
 #include "common/profiler/profiler.h"
 
 #ifdef UG_PARALLEL
@@ -21,7 +21,7 @@
 	#include "bridge/bridge.h"
 #endif
 #ifdef UG_PLUGINS
-	#include "common/os_dependent/plugin_util.h"
+	#include "common/util/plugin_util.h"
 	#ifdef UG_STATIC
 		#include "static_plugins.h"
 	#endif

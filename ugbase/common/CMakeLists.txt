@@ -13,13 +13,13 @@ set(srcCommon	log.cpp
 				allocators/small_object_allocator.cpp
 				util/binary_buffer.cpp
 				util/binary_stream.cpp
-        util/file_util.cpp
-        util/loader/loader_util.cpp
+        		util/file_util.cpp
+        		util/loader/loader_util.cpp
 				util/loader/loader_obj.cpp
 				util/message_hub.cpp
 				util/ostream_util.cpp
 				util/parameter_parsing.cpp
-        util/string_util.cpp
+        		util/string_util.cpp
 				util/variant.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp
@@ -49,29 +49,29 @@ set(sources ${sources} profiler/profile_node.cpp)
 # Platform dependend code
 ################################################################################
 if(UNIX)
-	set(sources ${sources}	os_dependent/file_util_posix.cpp)
+	set(sources ${sources}	util/os_dependent_impl/file_util_posix.cpp)
 	
 	if(buildPluginSystem)
-		set(sources ${sources}	os_dependent/plugin_util_unix.cpp)
+		set(sources ${sources}	util/os_dependent_impl/plugin_util_unix.cpp)
 	endif(buildPluginSystem)
 	
 	if(APPLE)
-		set(sources ${sources} os_dependent/os_info_osx.cpp)
+		set(sources ${sources} util/os_dependent_impl/os_info_osx.cpp)
 	else(APPLE)
-		set(sources ${sources} os_dependent/os_info_linux.cpp)
+		set(sources ${sources} util/os_dependent_impl/os_info_linux.cpp)
 	endif(APPLE)
 
 elseif(WIN32)
-	set(sources ${sources}	os_dependent/os_info_win.cpp)
+	set(sources ${sources}	util/os_dependent_impl/os_info_win.cpp)
 	
 	if(buildPluginSystem)
-		set(sources ${sources}	os_dependent/plugin_util_win.cpp)
+		set(sources ${sources}	util/os_dependent_impl/plugin_util_win.cpp)
 	endif(buildPluginSystem)
 	
 	if(MINGW)
-		set(sources ${sources} os_dependent/file_util_posix.cpp)
+		set(sources ${sources} util/os_dependent_impl/file_util_posix.cpp)
 	else(MINGW)
-		set(sources ${sources} os_dependent/file_util_win.cpp)
+		set(sources ${sources} util/os_dependent_impl/file_util_win.cpp)
 	endif(MINGW)
 	
 else(UNIX)

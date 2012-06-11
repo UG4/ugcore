@@ -2,23 +2,23 @@
 // s.b.reiter@googlemail.com
 // 14.09.2011 (m,d,y)
  
-#include "os_info.h"
+#include "../os_info.h"
 
 namespace ug{
 
 const char* GetDynamicLibraryPrefix()
 {
-	return "";
+	return "lib";
 }
 
 const char* GetDynamicLibrarySuffix()
 {
-	return "dll";
+	return "so";
 }
 
 const char* GetPathSeparator()
 {
-	return "\\";
+	return "/";
 }
 
 }// end of namespace

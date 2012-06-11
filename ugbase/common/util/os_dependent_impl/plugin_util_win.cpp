@@ -8,8 +8,8 @@
 #include "common/log.h"
 #include "common/util/path_provider.h"
 #include "bridge/bridge.h"
-#include "common/util/file_util.h"
-#include "os_info.h"
+#include "../file_util.h"
+#include "../os_info.h"
 
 using namespace std;
 

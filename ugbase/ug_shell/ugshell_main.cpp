@@ -13,10 +13,10 @@
 #include "common/util/parameter_parsing.h"
 #include "common/util/file_util.h"
 
-#include "common/os_dependent/os_info.h"
+#include "common/util/os_info.h"
 #include "common/util/path_provider.h"
 #ifdef UG_PLUGINS
-	#include "common/os_dependent/plugin_util.h"
+	#include "common/util/plugin_util.h"
 	#ifdef UG_STATIC
 		#include "static_plugins.h"
 	#endif
