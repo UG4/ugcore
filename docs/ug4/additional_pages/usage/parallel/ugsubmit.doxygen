@@ -56,10 +56,10 @@ You can also write testscripts using a bunch of ugsubmits, and use them on a wid
 like this:
 \verbatim
 #!/bin/bash
-ugsubmit 1 --- ./ugshell -ex laplace.lua -numRefs 6
+ugsubmit 1  --- ./ugshell -ex laplace.lua -numRefs 6
 ugsubmit 16 --- ./ugshell -ex laplace.lua -numPreRefs 4 -numRefs 8
 ugsubmit 64 --- ./ugshell -ex laplace.lua -numPreRefs 5 -numRefs 9
-ugsubmit 256 -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 10
+ugsubmit 256  -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 10
 ugsubmit 1024 -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 7 -numRefs 11
 \endverbatim
 
