@@ -25,6 +25,11 @@ DenseMatrix<TStorage>::DenseMatrix(const DenseMatrix<TStorage> &rhs) : TStorage(
 {
 }
 
+template<typename TStorage>
+DenseMatrix<TStorage>::DenseMatrix(double value) : TStorage()
+{
+	operator =(value);
+}
 // matrix assignment operators
 
 template<typename TStorage>

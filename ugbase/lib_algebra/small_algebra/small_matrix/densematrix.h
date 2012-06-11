@@ -21,7 +21,7 @@ namespace ug{
 /////////////////////////////////////////////////////////////////////////////////////////////
 //	DenseMatrix
 /**
- * DenseMatrix is a mathematical matrix class, which inheritates its storage behaviour
+ * DenseMatrix is a mathematical matrix class, which inherits its storage behaviour
  * (fixed/variable size, RowMajor/ColMajor ordering) from TStorage.
  * \param TStorage storage policy with interface of VariableArray2.
  * \sa FixedArray2, VariableArray2, eMatrixOrdering
@@ -48,6 +48,7 @@ public:
 public:
 	// 'tors
 	DenseMatrix();
+	DenseMatrix(double val);
 	DenseMatrix(const this_type &rhs);
 
 	//~DenseMatrix() {} // dont implement a destructor, since ~base may not be virtual
