@@ -14,7 +14,7 @@
 <hr>
 
 \ref secugsubmit , \ref secuginfo and \ref secugcancel are scripts to unify the access to job schedulers over different clusters.<br>
-Supported clusters are <tt> NecNehalem, Hermit, Jugene, mpi, cekon </tt>.<br>
+Supported clusters are <tt> NecNehalem, Hermit, Jugene, mpi, cekon, moab </tt>.<br>
 
 For this you can set some environment variables (here for bash)
 \verbatim
@@ -25,7 +25,7 @@ Alternatively, you can use the arguments <tt>-cluster=Hermit</tt> and <tt>-email
 Now you can run a job like this:
 
 \verbatim
-Hermit [~/ug4/bin] ../scripts/shell/ugsubmit 64 -mail-all --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 9
+Hermit [~/ug4/bin] ugsubmit 64 -mail-all --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 9
 \endverbatim
 
 and you get this output
@@ -42,7 +42,7 @@ Recieved PBSid:
 we can look if it really runs with uginfo:
 
 \verbatim
-Hermit [~/ug4/bin] ../scripts/shell/uginfo
+Hermit [~/ug4/bin] uginfo
 uginfo 0.1. (c) Goethe-Center for Scientific Computing 2012
 Using Hermit
 Job id                    Name             User            Time Use S Queue
@@ -56,11 +56,11 @@ You can also write testscripts using a bunch of ugsubmits, and use them on a wid
 like this:
 \verbatim
 #!/bin/bash
-./scripts/shell/ugsubmit 1 --- ./ugshell -ex laplace.lua -numRefs 6
-./scripts/shell/ugsubmit 16 --- ./ugshell -ex laplace.lua -numPreRefs 4 -numRefs 8
-./scripts/shell/ugsubmit 64 --- ./ugshell -ex laplace.lua -numPreRefs 5 -numRefs 9
-./scripts/shell/ugsubmit 256 -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 10
-./scripts/shell/ugsubmit 1024 -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 7 -numRefs 11
+ugsubmit 1 --- ./ugshell -ex laplace.lua -numRefs 6
+ugsubmit 16 --- ./ugshell -ex laplace.lua -numPreRefs 4 -numRefs 8
+ugsubmit 64 --- ./ugshell -ex laplace.lua -numPreRefs 5 -numRefs 9
+ugsubmit 256 -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 10
+ugsubmit 1024 -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 7 -numRefs 11
 \endverbatim
 
 
@@ -78,8 +78,8 @@ to <a href="mailto:martin.rupp@gcsc.uni-frankfurt.de">martin.rupp@gcsc.uni-frank
 \section secugsubmit ugsubmit
 <hr>
 
-ugsubmit can be located in <tt> /ug4/scripts/shell/ugsubmit </tt>. 
-You might have to add <tt> chmod +x /ug4/scripts/shell/ugsubmit </tt> to make it executable.
+ugsubmit can be located in <tt> /ug4/scripts/shell/ugsubmit </tt>. To make it available you have to 
+<tt>source YOUR_UG4_PATH/ug4/scripts/shell/ugpath</tt>.
 
 \verbatim
 ugsubmit <npe> [optional Parameters] --- <binary> <arg1> <arg2> ...
@@ -106,7 +106,7 @@ ugsubmit <npe> [optional Parameters] --- <binary> <arg1> <arg2> ...
 -        -dir                   : directory to use
 
  
- Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon.
+ Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon, moab.
  
  Jugene Parameters
 -        -Jugene-mode            : VN, DUAL or SMP. Default VN
