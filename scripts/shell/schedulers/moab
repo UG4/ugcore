@@ -1,6 +1,9 @@
 #!/bin/bash
 ######################################################################
 #                    MOAB
+# The MOAB Workload manager
+# see http://www.adaptivecomputing.com/resources/docs/mwm/moabusers.php
+# and for LLNL: https://computing.llnl.gov/tutorials/moab/
 #-------------------------------------------------------------------
 # created by Martin Rupp 11.06.2012
 ######################################################################

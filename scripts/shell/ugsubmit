@@ -13,7 +13,8 @@
 # - Jugene, Forschungszentrum Juelich (ll_submit)
 # - Hermit, HLRS Stuttgart (qsub, aprun)
 # - NecNehalem, HLRS Stuttgart (qsub, mpirun)
-# 
+# - MOAB Workload Manager (msub, srun)
+#
 # feel free to add more! see the files "schedulers/new_template" and "clusters"
 #
 # usage: see function usage(). quick manual:
