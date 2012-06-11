@@ -437,6 +437,8 @@ IF(OPENMP)
 ENDIF(OPENMP)
 
 
+
+
 ########################################
 # C++11
 IF(CXX11)
@@ -472,7 +474,7 @@ if(buildAlgebra)
 				find_path(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
 				set(BLAS_FOUND YES)
 				if(BLAS_INCLUDE_PATH)
-					set(BLAS_FOUND YES)
+					set(BLAS_FOqUND YES)
 				endif(BLAS_INCLUDE_PATH)
 			endif(BLAS)
 			
@@ -524,6 +526,10 @@ if(buildAlgebra)
 			message(STATUS "Info: Not using Blas. No package found.")
 		endif(BLAS_FOUND)
 		
+		if(BLAS_goto2_LIBRARY)
+			message(STATUS "Info: GotoBLAS2 found: (${BLAS_goto2_LIBRARY}). Adding -lgfortran.")
+			SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgfortran")
+		endif()
 	endif(LAPACK OR BLAS)
 endif(buildAlgebra)
 
@@ -650,7 +656,7 @@ if(PARALLEL)
 		if(MPI_FOUND)
 			add_definitions(-DUG_PARALLEL)
 			include_directories(${MPI_INCLUDE_PATH})
-			set(linkLibraries ${linkLibraries} ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
+			set(linkLibraries ${linkLibraries} ${MPI_CXX_LIBRARIES})
 		else(MPI_FOUND)
 			message(FATAL_ERROR "MPI not found. Please set PARALLEL to OFF (run cmake -DPARALLEL=OFF ...)")
 		endif(MPI_FOUND)
