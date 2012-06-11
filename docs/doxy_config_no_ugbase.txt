@@ -668,12 +668,12 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = 	../scripts \
-							../apps \							
-							ug4/additional_pages \													
+INPUT                  =	ug4/additional_pages \													
 							lib_grid/additional_pages \
 							lib_algebra/additional_pages \
-							lib_disc/additional_pages
+							lib_disc/additional_pages \	
+							../scripts \
+							../apps
 							
 
 # This tag can be used to specify the character encoding of the source files
