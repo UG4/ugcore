@@ -33,7 +33,7 @@ enum debug_return
  * @return true
  * @sa debug_return
  */
-bool RegisterLuaDebug(ug::bridge::Registry &reg);
+UG_API bool RegisterLuaDebug(ug::bridge::Registry &reg);
 
 /**
  * function called when a breakpoint is reached
@@ -41,26 +41,25 @@ bool RegisterLuaDebug(ug::bridge::Registry &reg);
  * @return 0
  * @sa DebugList, DebugBacktrace, DebugDown, DebugUp
  */
-int SetDebugShell(debug_return (*s)());
+UG_API int SetDebugShell(debug_return (*s)());
 
-void ProfileLUA(bool bProfile);
+UG_API void ProfileLUA(bool bProfile);
 
 /// lists the current line in the script
-void DebugList();
+UG_API void DebugList();
 
 /// lists the function stack in lua
-void DebugBacktrace();
+UG_API void DebugBacktrace();
 
 /// move down function stack
-void DebugDown();
+UG_API void DebugDown();
 
 /// move down function stack
-void DebugUp();
+UG_API void DebugUp();
 
 /// Free all memory associated with lua_debug
-void FinalizeLUADebug();
+UG_API void FinalizeLUADebug();
 }
 }
-
 
 #endif /* LUA_DEBUG_H_ */

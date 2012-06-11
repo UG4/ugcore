@@ -48,7 +48,7 @@ class LuaError : public UGError
 UG_API bool LoadUGScript(const char* filename, bool bNoMPI=false);
 
 /// registers lua only functionality at the registry
-void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp = "/ug4");
+UG_API void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp = "/ug4");
 
 ///	returns the default lua state
 /**	When called for the first time, or after ReleaseDefaultLuaState,

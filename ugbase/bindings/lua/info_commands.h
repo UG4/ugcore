@@ -104,7 +104,7 @@ UG_API void LuaGetLastLine(lua_State* L, lua_Debug entry);
  * \param line
  * \return the line of the file.
  */
-std::string GetFileLine(const char *filename, size_t line);
+UG_API std::string GetFileLine(const char *filename, size_t line);
 
 /**
  * \brief function to get some lines of a file
@@ -115,22 +115,22 @@ std::string GetFileLine(const char *filename, size_t line);
  *
  * \return lines fromline to toline of file filename.
  */
-std::string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
+UG_API std::string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
 
 
 /**
  * \brief prints the source of a lua script function which is on top of the stack
  * \param L		the lua state
  */
-void PrintLuaScriptFunction(lua_State *L, int index=-1);
+UG_API void PrintLuaScriptFunction(lua_State *L, int index=-1);
 
 /**
  * \brief prints the source of a lua script function which is on top of the stack
  * \param L			the lua state
  * \param index 	lua stack index of the table
  */
-void LuaPrintTable(lua_State *L, size_t iSpace, int index=-1);
-bool ClassInstantiations(const char *classname);
+UG_API void LuaPrintTable(lua_State *L, size_t iSpace, int index=-1);
+UG_API bool ClassInstantiations(const char *classname);
 
 
 /**
@@ -140,13 +140,13 @@ bool ClassInstantiations(const char *classname);
  * @param index		lua stack index to get type string of
  * @return			type string
  */
-std::string GetLuaTypeString(lua_State* L, int index);
+UG_API std::string GetLuaTypeString(lua_State* L, int index);
 
 /// prints information about lua's call stack (file:line source).
-void LuaStackTrace(lua_State* L);
+UG_API void LuaStackTrace(lua_State* L);
 
 /// returns the current file and line ( \sa LuaStackTrace ).
-std::string GetLuaFileAndLine(lua_State* L);
+UG_API std::string GetLuaFileAndLine(lua_State* L);
 
 }
 }
