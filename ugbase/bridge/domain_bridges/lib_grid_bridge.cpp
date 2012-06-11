@@ -567,8 +567,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 //	get group string
 	stringstream groupString; groupString << parentGroup << "/Grid";
 	string grp = groupString.str();
-	try
-	{
+	try{
 	//	Grid
 		reg.add_class_<Grid>("Grid", grp)
 			.add_constructor()

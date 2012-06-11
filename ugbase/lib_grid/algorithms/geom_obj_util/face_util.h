@@ -226,14 +226,14 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 //	EdgeOrientationMatches
 ///	checks if the edge-orientation of the edge and the face matches.
 /**
- * the match is positive if the face contains the vertices of ed
- * in the same order as ed.
+ * the match is positive if the face contains the vertices of 'ev'
+ * in the same order as ev.
  * please note: if the edge is contained by two faces and both
  * faces have the same edge-orientation as ed, then the face-orientation
  * of the faces differ.
  */
 UG_API 
-bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f);
+bool EdgeOrientationMatches(EdgeVertices* ev, Face* f);
 
 ////////////////////////////////////////////////////////////////////////
 //	FixOrientation

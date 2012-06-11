@@ -322,13 +322,13 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 	}
 }
 
-bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f)
+bool EdgeOrientationMatches(EdgeVertices* ev, Face* f)
 {
 //	find the first vertex of ed in f
 	size_t i;
 	for(i = 0; i < f->num_vertices(); ++i)
 	{
-		if(f->vertex(i) == ed.vertex(0))
+		if(f->vertex(i) == ev->vertex(0))
 			break;
 	}
 
@@ -337,7 +337,7 @@ bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f)
 	//	the first one has been found.
 	//	check whether the second vertex of ed is the
 	//	same as the next vertex of f
-		if(ed.vertex(1) == f->vertex((i+1)%f->num_vertices()))
+		if(ev->vertex(1) == f->vertex((i+1)%f->num_vertices()))
 			return true;//	the orientation is the same
 	}
 

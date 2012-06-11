@@ -97,7 +97,7 @@ void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
 						if(grid.is_marked(fn))
 						{
 						//	check whether the orientation of f and fn differs.
-							if(EdgeOrientationMatches(ed, fn))
+							if(EdgeOrientationMatches(&ed, fn))
 							{
 							//	the orientation of ed is the same as the orientation
 							//	of an edge in fn.

@@ -216,6 +216,26 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 	grid.end_marking();
 }
 
+
+template <class TEdgeIterator>
+UG_API
+void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
+						   	   	   	   	    TEdgeIterator edgesEnd)
+{
+	using namespace std;
+	Face* nbr;
+
+	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter){
+		int numNbrs = GetAssociatedFaces(&nbr, grid, *iter, 1);
+		if(numNbrs != 1)
+			continue;
+
+		if(!EdgeOrientationMatches(*iter, nbr)){
+			grid.flip_orientation(*iter);
+		}
+	}
+}
+
 template <class TEdgeIterator, class TAAPosVRT>
 EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos)

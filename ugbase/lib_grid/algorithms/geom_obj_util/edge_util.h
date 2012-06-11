@@ -309,6 +309,16 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						TEdgeIterator edgesEnd);
 
 ////////////////////////////////////////////////////////////////////////////////
+///	Orientates boundary edges in the given edge set to the orientation of associated faces.
+/**	The orientation of boundary edges will match the orientation of associated
+ * faces, after this algorithm terminates.
+ */
+template <class TEdgeIterator>
+UG_API
+void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin,
+						   	   	   	   	    TEdgeIterator edgesEnd);
+
+////////////////////////////////////////////////////////////////////////////////
 ///	Returns the shortest edge in a list of edges
 /**	TEdgeIterator has to point to values of type EdgeBase* and has to be an
  * stl-iterator compatible iterator. TAAPosVRT has to be an attachment accessor
