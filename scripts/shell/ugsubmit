@@ -100,7 +100,7 @@ function usage
 	echo "        -dir                   : directory to use"
 	echo "		  -queue				 : the queue to use"
 	echo " "
-	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon."
+	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon, moab."
 	echo " "
 	echo " Jugene Parameters"
 	echo "        -Jugene-mode            : VN, DUAL or SMP. Default "$JugeneMode
