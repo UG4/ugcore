@@ -24,7 +24,6 @@ if [ ! -e bin ]; then mkdir bin; fi
 if [ ! -e lib ]; then mkdir lib; fi
 if [ ! -e include ]; then mkdir include; fi
 
-
 # subdir location filename
 my_download () 
 {
@@ -132,8 +131,15 @@ install_gcc()
 	install_gmp
 	install_mpfr
 	install_mpc
-
 	
+	CFLAGS="-O3"
+	CPPFLAGS="-O3"
+	CXXFLAGS="-O3"
+	export CFLAGS
+	export CXXFLAGS
+	export CPPFLAGS
+	
+
 	local subdir="gcc-4.4.7"
 	local location="http://gcc.petsads.us/releases/gcc-4.4.7/gcc-4.4.7.tar.gz"
 	local filename="gcc-4.4.7.tar.gz"
@@ -173,6 +179,12 @@ install_openmpi()
 {	
 	my_install openmpi-1.6 "http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.tar.gz" \
 		openmpi-1.6.tar.gz "./configure --prefix=$HOME/local"
+}
+
+install_gnuplot()
+{
+	my_install gnuplot-4.6.0 "http://sourceforge.net/projects/gnuplot/files/gnuplot/4.6.0/gnuplot-4.6.0.tar.gz/download?sources=files" \
+	gnuplot-4.6.tar.gz "./configure --prefix=$HOME/local"
 }
 
 install_GotoBLAS2()
@@ -225,14 +237,32 @@ EOF
 	
 }
 
+
+
+install_clang()
+{
+	svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm
+	cd llvm/tools
+	svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
+	cd llvm/projects
+	svn co http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
+	cd ..
+	mkdir build
+	cd build
+	../configure --prefix=$HOME/local/ --enable-optimized
+	make
+}
+
 install_all()
 {
 	install_gcc
 	install_cmake
 	install_doxygen
+	install_gnuplot
 	install_GotoBLAS2
 	install_openmpi
 	install_ParaView
+	install_clang
 }
 
 print_usage()
@@ -242,22 +272,26 @@ print_usage()
     	echo " usage:  " $0 " <program>"
 	echo "  <program> can be:"
 	echo "		all"
-	echo "		CMake		2.8.6"
-	echo "		Doxygen 	1.8.1"
-	echo "		GCC 		4.4"
-	echo "		gmp			4.3.2"
-	echo "		GotoBLAS2	1.13"
-	echo "		mpfr		2.4.2"	
-	echo "		mpc			0.8.1."
-	echo "		OpenMP		1.6"
-	echo "		ParaView	3.14.1-Linux-32bit"
+	echo "		clang		(=clang+llvm from svn)"
+	echo "		CMake       2.8.6"
+	echo "		Doxygen     1.8.1"
+	echo "		GCC         4.4"
+	echo "		gmp         4.3.2"
+	echo "		gnuplot     4.6.0"
+	echo "		GotoBLAS2   1.13"
+	echo "		mpfr        2.4.2"	
+	echo "		mpc         0.8.1."
+	echo "		OpenMP      1.6"
+	echo "		ParaView    3.14.1-Linux-32bit"	
 }
 
 
 case $1 in
+	clang) install_clang ;;
 	CMake) install_cmake ;;
 	Doxygen) install_doxygen ;;
 	gcc) install_gcc ;;	
+	gnuplot) install_gnuplot ;;
 	gmp) install_gmp ;;
 	GotoBLAS2) install_GotoBLAS2 ;;
 	mpc) install_mpc ;;
