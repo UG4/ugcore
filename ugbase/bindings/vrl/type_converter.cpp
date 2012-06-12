@@ -317,7 +317,7 @@ namespace ug {
 		jobject pointer2JObject(JNIEnv *env, void* value) {
 
 			if (value == NULL) {
-				return 0; // exception occured
+				return JNULL; // exception occured
 			}
 
 			jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
@@ -328,7 +328,7 @@ namespace ug {
 		jobject constPointer2JObject(JNIEnv *env, void* value) {
 
 			if (value == NULL) {
-				return 0; // exception occured
+				return JNULL; // exception occured
 			}
 
 			jclass cls = env->FindClass("edu/gcsc/vrl/ug/Pointer");
@@ -343,7 +343,7 @@ namespace ug {
 			jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
 
 			if (memPtr == NULL) {
-				return 0; // exception occured
+				return JNULL; // exception occured
 			}
 
 			new (memPtr) SmartPtr<void>(value);
@@ -366,7 +366,7 @@ namespace ug {
 			jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
 
 			if (memPtr == NULL) {
-				return 0; // exception occured
+				return JNULL; // exception occured
 			}
 
 			new (memPtr) ConstSmartPtr<void>(value);
