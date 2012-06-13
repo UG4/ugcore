@@ -196,6 +196,38 @@ function __ug__UserNumber_div(l, r)
 		return __ug__UserNumber_mul(l, (1/r))
 	end
 end
+
+--------------------------------------------------------------------------------
+-- Function to Multiply/Devide UserData
+--------------------------------------------------------------------------------
+
+--! functions user when '^' is called on an IPData (or a derived implementation)
+function __ug__UserNumber_pow(l, r)
+	-- check that exponent is integer
+	if not tonumber(r) or not (r%1==0) then
+		error("Error in '^': Currently exponent must be plain lua integer")
+	else
+		-- check that type is number
+		if ug_class_name(l) == "" then
+			error("Error in '^': base must be UserData.")
+		else
+			if l:type() ~= "Number" then
+				error("Error in '^': base must be a number-UserData.")
+			end
+		end
+	
+		-- case 1
+		if r == 1 then return l end
+
+		-- case > 1 
+		local value = l
+		for i = 2,r do
+			value = __ug__UserNumber_mul(value, l)
+		end
+		return value
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Loop to set the __add functions for IPData
 --------------------------------------------------------------------------------
@@ -208,22 +240,24 @@ for k, type in ipairs({"Number", "Vector", "Matrix"}) do
 for dim =  1,3 do
 	-- only set if dimension is compiled (otherwise metatable does not exist)
 	if ug_dim_compiled(dim) then
+
+		-- request metatable for the classname
+		mt = ug_get_metatable(class..type..dim.."d")
 		
 		-- set __add function in metatable
-		mt = ug_get_metatable(class..type..dim.."d")
 		mt.__add = _G["__ug__UserNumber_add"]
 	
 		-- set __sub function in metatable
-		mt = ug_get_metatable(class..type..dim.."d")
 		mt.__sub = _G["__ug__UserNumber_sub"]
 		
 		-- set __mul function in metatable
-		mt = ug_get_metatable(class..type..dim.."d")
 		mt.__mul = _G["__ug__UserNumber_mul"]
 
-		-- set __mul function in metatable
-		mt = ug_get_metatable(class..type..dim.."d")
+		-- set __div function in metatable
 		mt.__div = _G["__ug__UserNumber_div"]
+		
+		-- set __pow function in metatable
+		mt.__pow = _G["__ug__UserNumber_pow"]
 	end
 end
 end
