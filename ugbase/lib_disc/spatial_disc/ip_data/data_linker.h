@@ -624,6 +624,18 @@ class ScaleAddLinker
 	///	constructor
 		ScaleAddLinker() {}
 
+	///	constructor
+		ScaleAddLinker(const ScaleAddLinker& linker)
+		{
+			if(linker.m_vpIPData.size() != linker.m_vpScaleData.size())
+				UG_THROW("ScaleAddLinker: number of scaling factors and data mismatch.");
+
+			for(size_t i = 0; i < linker.m_vpIPData.size(); ++i)
+			{
+				this->add(linker.m_vpScaleData[i], linker.m_vpIPData[i]);
+			}
+		}
+
 	///	adds an input to the list of summands scaled by a user data factor
 	///	\{
 		void add(SmartPtr<IPData<TDataScale, dim> > scale,

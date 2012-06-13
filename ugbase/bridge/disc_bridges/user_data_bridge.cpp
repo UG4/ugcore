@@ -549,6 +549,7 @@ void RegisterUserDataType(Registry& reg, string grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number,dim> > , number)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(number,number)>(&T::add))
 			.add_constructor()
+			.template add_constructor<void (*)(const ScaleAddLinker<TData, dim, number>&)>()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, string("ScaleAddLinker").append(type), dimTag);
 	}
