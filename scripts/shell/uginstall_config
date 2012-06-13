@@ -95,3 +95,4 @@ export CPLUS_INCLUDE_PATH
 export LD_RUN_PATH
 export LD_LIBRARY_PATH
 export LIBRARY_PATH
+export LDFLAGS
