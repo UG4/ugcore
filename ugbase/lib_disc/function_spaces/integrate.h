@@ -33,12 +33,15 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Abstract integrand interface
-template <int TWorldDim>
+template <typename TData, int TWorldDim>
 class IIntegrand
 {
 	public:
 	///	world dimension
 		static const int worldDim = TWorldDim;
+
+	///	data type
+		typedef TData data_type;
 
 	///	returns the values of the integrand for a bunch of ips
 	/**
@@ -52,21 +55,21 @@ class IIntegrand
 	 * @param numIP[in]			number of integration points
 	 */
 	/// \{
-		virtual void values(number vValue[],
+		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<1> vLocIP[],
 		                    const MathMatrix<1, worldDim> vJT[],
 		                    const size_t numIP) = 0;
-		virtual void values(number vValue[],
+		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<2> vLocIP[],
 		                    const MathMatrix<2, worldDim> vJT[],
 		                    const size_t numIP) = 0;
-		virtual void values(number vValue[],
+		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
@@ -90,16 +93,19 @@ class IIntegrand
 };
 
 /// Abstract integrand interface
-template <int TWorldDim, typename TImpl>
-class StdIntegrand : public IIntegrand<TWorldDim>
+template <typename TData, int TWorldDim, typename TImpl>
+class StdIntegrand : public IIntegrand<TData, TWorldDim>
 {
 	public:
 	///	world dimension
 		static const int worldDim = TWorldDim;
 
+	///	data type
+		typedef TData data_type;
+
 	/// \copydoc IIntegrand::values
 	/// \{
-		virtual void values(number vValue[],
+		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
@@ -109,7 +115,7 @@ class StdIntegrand : public IIntegrand<TWorldDim>
 		{
 			getImpl().template evaluate<1>(vValue,vGlobIP,pElem,vCornerCoords,vLocIP,vJT,numIP);
 		}
-		virtual void values(number vValue[],
+		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
@@ -119,7 +125,7 @@ class StdIntegrand : public IIntegrand<TWorldDim>
 		{
 			getImpl().template evaluate<2>(vValue,vGlobIP,pElem,vCornerCoords,vLocIP,vJT,numIP);
 		}
-		virtual void values(number vValue[],
+		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
 		                    GeometricObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
@@ -140,7 +146,9 @@ class StdIntegrand : public IIntegrand<TWorldDim>
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// Generic Integration Routine
+////////////////////////////////////////////////////////////////////////////////
+// Generic Volume Integration Routine
+////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 /// integrates on the whole domain
@@ -165,7 +173,7 @@ template <int WorldDim, int dim, typename TConstIterator>
 number Integrate(TConstIterator iterBegin,
                  TConstIterator iterEnd,
                  typename domain_traits<WorldDim>::position_accessor_type& aaPos,
-                 IIntegrand<WorldDim>& integrand,
+                 IIntegrand<number, WorldDim>& integrand,
                  int quadOrder)
 {
 //	reset the result
@@ -259,7 +267,7 @@ number Integrate(TConstIterator iterBegin,
 }
 
 template <typename TGridFunction, int dim>
-number IntegrateSubset(SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand,
+number IntegrateSubset(SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand,
                        SmartPtr<TGridFunction> spGridFct,
                        int si, int quadOrder)
 {
@@ -278,7 +286,7 @@ number IntegrateSubset(SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand,
 }
 
 template <typename TGridFunction>
-number IntegrateSubsets(SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand,
+number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand,
                         SmartPtr<TGridFunction> spGridFct,
                         const char* subsets, int quadOrder)
 {
@@ -343,20 +351,29 @@ number IntegrateSubsets(SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand,
 
 
 ////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Volume Integrand implementations
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
 // IPData Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TGridFunction>
+template <typename TData, typename TGridFunction>
 class DirectIPDataIntegrand
-	: public StdIntegrand<TGridFunction::dim, DirectIPDataIntegrand<TGridFunction> >
+	: public StdIntegrand<TData, TGridFunction::dim, DirectIPDataIntegrand<TData, TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
 		static const int worldDim = TGridFunction::dim;
 
+	//	data type
+		typedef TData data_type;
+
 	private:
 	//  data to integrate
-		SmartPtr<IDirectIPData<number, worldDim> > m_spData;
+		SmartPtr<IDirectIPData<TData, worldDim> > m_spData;
 
 	// 	grid function
 		SmartPtr<TGridFunction> m_spGridFct;
@@ -366,7 +383,7 @@ class DirectIPDataIntegrand
 
 	public:
 	/// constructor
-		DirectIPDataIntegrand(SmartPtr<IDirectIPData<number, worldDim> > spData,
+		DirectIPDataIntegrand(SmartPtr<IDirectIPData<TData, worldDim> > spData,
 		                      SmartPtr<TGridFunction> spGridFct,
 		                      number time)
 		: m_spData(spData), m_spGridFct(spGridFct), m_time(time)
@@ -375,7 +392,7 @@ class DirectIPDataIntegrand
 		};
 
 	/// constructor
-		DirectIPDataIntegrand(SmartPtr<IDirectIPData<number, worldDim> > spData,
+		DirectIPDataIntegrand(SmartPtr<IDirectIPData<TData, worldDim> > spData,
 							  number time)
 		: m_spData(spData), m_spGridFct(NULL), m_time(time)
 		{
@@ -386,7 +403,7 @@ class DirectIPDataIntegrand
 
 	/// \copydoc IIntegrand::values
 		template <int elemDim>
-		void evaluate(number vValue[],
+		void evaluate(TData vValue[],
 		              const MathVector<worldDim> vGlobIP[],
 		              GeometricObject* pElem,
 		              const MathVector<worldDim> vCornerCoords[],
@@ -440,8 +457,8 @@ number Integral(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spData,
                 const char* subsets, number time,
                 int quadOrder)
 {
-	SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand
-		= CreateSmartPtr(new DirectIPDataIntegrand<TGridFunction>(spData, spGridFct, time));
+	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
+		= CreateSmartPtr(new DirectIPDataIntegrand<number, TGridFunction>(spData, spGridFct, time));
 
 	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder);
 }
@@ -534,7 +551,7 @@ number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct)
 
 template <typename TGridFunction>
 class L2ErrorIntegrand
-	: public StdIntegrand<TGridFunction::dim, L2ErrorIntegrand<TGridFunction> >
+	: public StdIntegrand<number, TGridFunction::dim, L2ErrorIntegrand<TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
@@ -568,7 +585,7 @@ class L2ErrorIntegrand
 			if(!m_spGridFct->is_def_in_subset(m_fct, si))
 				UG_THROW("L2ErrorIntegrand: Grid function component"
 						<<m_fct<<" not defined on subset "<<si);
-			IIntegrand<worldDim>::set_subset(si);
+			IIntegrand<number, worldDim>::set_subset(si);
 		}
 
 	/// \copydoc IIntegrand::values
@@ -663,7 +680,7 @@ number L2Error(SmartPtr<IPData<number, TGridFunction::dim> > spExactSol,
 		UG_THROW("L2Error: Function space does not contain"
 				" a function with name " << cmp << ".");
 
-	SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand
+	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
 		= CreateSmartPtr(new L2ErrorIntegrand<TGridFunction>(spExactSol, spGridFct, fct, time));
 
 	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
@@ -687,7 +704,7 @@ number L2Error(const char* ExactSol,
 
 template <typename TGridFunction>
 class H1ErrorIntegrand
-	: StdIntegrand<TGridFunction::dim, H1ErrorIntegrand<TGridFunction> >
+	: StdIntegrand<number, TGridFunction::dim, H1ErrorIntegrand<TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
@@ -731,9 +748,9 @@ class H1ErrorIntegrand
 			if(!m_spGridFct->is_def_in_subset(m_fct, si))
 				UG_THROW("L2ErrorIntegrand: Grid function component"
 						<<m_fct<<" not defined on subset "<<si);
-			IIntegrand<worldDim>::set_subset(si);
+			IIntegrand<number, worldDim>::set_subset(si);
 		}
-/// \copydoc IIntegrand::values
+		/// \copydoc IIntegrand::values
 		template <int elemDim>
 		void evaluate(number vValue[],
 		              const MathVector<worldDim> vGlobIP[],
@@ -819,7 +836,7 @@ class H1ErrorIntegrand
 
 template <typename TGridFunction>
 class L2FuncIntegrand
-	: public StdIntegrand<TGridFunction::dim, L2FuncIntegrand<TGridFunction> >
+	: public StdIntegrand<number, TGridFunction::dim, L2FuncIntegrand<TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
@@ -844,7 +861,7 @@ class L2FuncIntegrand
 			if(!m_spGridFct->is_def_in_subset(m_fct, si))
 				UG_THROW("L2ErrorIntegrand: Grid function component"
 						<<m_fct<<" not defined on subset "<<si);
-			IIntegrand<worldDim>::set_subset(si);
+			IIntegrand<number, worldDim>::set_subset(si);
 		}
 
 	/// \copydoc IIntegrand::values
@@ -930,7 +947,7 @@ number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 		UG_THROW("L2Norm: Function space does not contain"
 				" a function with name " << cmp << ".");
 
-	SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand
+	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
 		= CreateSmartPtr(new L2FuncIntegrand<TGridFunction>(spGridFct, fct));
 
 	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
@@ -942,7 +959,7 @@ number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 
 template <typename TGridFunction>
 class StdFuncIntegrand
-	: public StdIntegrand<TGridFunction::dim, StdFuncIntegrand<TGridFunction> >
+	: public StdIntegrand<number, TGridFunction::dim, StdFuncIntegrand<TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
@@ -967,7 +984,7 @@ class StdFuncIntegrand
 			if(!m_spGridFct->is_def_in_subset(m_fct, si))
 				UG_THROW("L2ErrorIntegrand: Grid function component"
 						<<m_fct<<" not defined on subset "<<si);
-			IIntegrand<worldDim>::set_subset(si);
+			IIntegrand<number, worldDim>::set_subset(si);
 		}
 
 	/// \copydoc IIntegrand::values
@@ -1042,7 +1059,7 @@ number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 		UG_THROW("L2Norm: Function space does not contain"
 				" a function with name " << cmp << ".");
 
-	SmartPtr<IIntegrand<TGridFunction::dim> > spIntegrand
+	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
 		= CreateSmartPtr(new StdFuncIntegrand<TGridFunction>(spGridFct, fct));
 
 	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder);
