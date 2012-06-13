@@ -20,18 +20,18 @@ source $scriptpath/uginstall_config
 cd 
 if [ ! -e local ]; then mkdir local; fi
 cd local
-if [ ! -e bin ]; then mkdir bin; fi
-if [ ! -e lib ]; then mkdir lib; fi
-if [ ! -e include ]; then mkdir include; fi
+LOCAL_DIR=`pwd`
 
-# subdir location filename
 my_download () 
 {
-	local subdir=$1
-	local location=$2
-	local filename=$3
+	local extractedDir=$1
+	local renameDir=$2
+	local location=$3
+	local filename=$4
+	
+	echo "extractedDir = $extractedDir, renameDir = $renameDir, location = $location, filename =$filename" 
  	
-	if [ -e $subdir ]; then
+	if [ -e $renameDir ]; then
 		echo "$name already downloaded and extracted" 
 	else
 		if [ -e $filename ]; then
@@ -71,59 +71,152 @@ my_download ()
 		*.7z)		7z x $filename ;;
 		*)		echo "don't know how to open '$filename'..." ;;
 		esac
+		mv $extractedDir $renameDir
 	fi
  }
 
-# subdir location filename command
+# installing with build not in source dir
+# downloads file from $location, saves is as $subdir/$version/$filename
+# extracts it to $subdir/$version/src
+# and runs there to rest of the commands 
+# (mostly ../src/configure --prefix=$HOME/local/$subdir/$version ; make ; make install )
+my_install_external_build()
+{
+	local subdir=$1
+	local version=$2
+	local location=$3
+	local filename=$4
+	local extractedDir=$5
+	shift 5
+	# $6+ are commands executed in $subdir/$version/build  
+	#echo "subdir = $subdir, version = $version, location = $location, filename =$filename, extractedDir = $extractedDir, command = $*"
+	
+	if [ -e $subdir/$version/installed ]; then
+		echo "$subdir $version already installed."
+	else
+		if [ ! -e $subdir ]; then mkdir $subdir; fi
+		cd $subdir
+		# in local/subdir
+		if [ ! -e $version ]; then mkdir $version; fi
+		cd $version
+		# in local/subdir/version
+				
+		#echo "i would download $subdir from $location to $filename with command $command now"
+	
+		my_download $extractedDir "src" $location $filename		
+		if [ ! $? == 0 ]; then echo "Error subdir "src" does not exist in `pwd`?"; exit; fi
+		if [ ! -e build ]; then mkdir build; fi		
+		cd build
+		# in local/subdir/version/build		
+		
+		
+		while (( "$#" )); do
+			echo $1
+			$1
+			if [ ! $? == 0 ]; then echo "Error $1 in `pwd`"; exit; fi					
+			shift
+		done
+		
+		echo "$subdir version $version installed!"
+		# in local/subdir/version/build
+		cd ..
+		# in local/subdir/version
+		touch installed				
+		cd ..
+		# in local/subdir
+		if [ -e used ]; then rm used; fi
+		ln -s $version used
+		
+		cd $LOCAL_DIR
+		
+		source $scriptpath/uginstall_config
+	fi
+}
+
+# installing with build = source dir
+# downloads file from $location, saves is as $subdir/$filename
+# extracts it to $subdir/$version
+# and runs there to rest of the commands 
+# (mostly ../src/configure --prefix=$HOME/local/$subdir/$version ; make ; make install )
 my_install()
 {
 	local subdir=$1
-	local location=$2
-	local filename=$3
-	local command=$4
-	if [ -e installed.$subdir ]; then
-		echo "$subdir already installed."
-	else
-		#echo "i would download $subdir from $location to $filename with command $command now"
+	local version=$2
+	local location=$3
+	local filename=$4
+	local extractedDir=$5
+	shift 5
+	#echo "subdir = $subdir, version = $version, location = $location, filename =$filename, extractedDir = $extractedDir, command = $*"
 	
-		my_download $subdir $location $filename
+	if [ -e $subdir/$version/installed ]; then
+		echo "$subdir $version already installed."
+	else
+		if [ ! -e $subdir ]; then mkdir $subdir; fi
 		cd $subdir
-		if [ ! $? == 0 ]; then echo "Error $subdir does not exist?"; exit; fi
-		$command
-		if [ ! $? == 0 ]; then echo "Error $command for $subdir"; exit; fi
-		make
-		if [ ! $? == 0 ]; then echo "Error make for $subdir"; exit; fi
-		make install
-		if [ ! $? == 0 ]; then echo "Error make install for $subdir"; exit; fi
+				
+		#echo "i would download $subdir from $location to $filename with command $command now"
+		my_download $extractedDir $version $location $filename
+	
+		cd $version
+		
+		while (( "$#" )); do
+			$1
+			if [ ! $? == 0 ]; then echo "Error $1 in `pwd`"; exit; fi					
+			shift
+		done
+		
+		echo "$subdir version $version installed!"
+		# in local/subdir/version
+		touch installed				
 		cd ..
-		echo "$subdir installed!"
-		touch installed.$subdir
+		# in local/subdir
+		if [ -e used ]; then rm used; fi
+		ln -s $version used
+		
+		cd $LOCAL_DIR
+		
+		source $scriptpath/uginstall_config
 	fi
 }
 
 
 install_gmp()
-{
-	my_install gmp-4.3.2 "http://gcc.petsads.us/infrastructure/gmp-4.3.2.tar.bz2" gmp-4.3.2.tar.bz2 \
-		"./configure --prefix=$HOME/local"
+{	
+	my_install_external_build 
+	gmp 4.3.2 
+	"http://gcc.petsads.us/infrastructure/gmp-4.3.2.tar.bz2" 
+	gmp-4.3.2.tar.bz2 gmp-4.3.2 \
+	"../src/configure --prefix=$HOME/local/gmp/4.3.2/" make "make install"
 }
 
 install_mpfr()
 {
-	my_install mpfr-2.4.2 "http://gcc.petsads.us/infrastructure/mpfr-2.4.2.tar.bz2" mpfr-2.4.2.tar.bz2 \
-		"./configure --prefix=$HOME/local"
+	my_install_external_build \
+	mpfr 2.4.2 \
+	"http://gcc.petsads.us/infrastructure/mpfr-2.4.2.tar.bz2"
+	mpfr-2.4.2.tar.bz2 mpfr-2.4.2 \ 
+	"../src/configure --prefix=$HOME/local/mpfr/2.4.2" make "make install"
 }
 
 install_mpc()
 {
-	my_install mpc-0.8.1 "http://gcc.petsads.us/infrastructure/mpc-0.8.1.tar.gz" mpc-0.8.1.tar.gz \
-		"./configure --prefix=$HOME/local"
+	install_mpfr
+	install_gmp
+	
+	my_install_external_build \
+	mpc 0.8.1 \
+	"http://gcc.petsads.us/infrastructure/mpc-0.8.1.tar.gz" 
+	mpc-0.8.1.tar.gz mpc-0.8.1 \
+	"../src/configure --prefix=$HOME/local/mpc/0.8.1" make "make install"
 }
 
 install_doxygen()
 {
-	my_install doxygen-1.8.1 "http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.1.src.tar.gz" doxygen-1.8.1.src.tar.gz \
-		"./configure --prefix $HOME/local"
+	my_install \
+	doxygen 1.8.1 \
+	"http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.1.src.tar.gz" \
+	doxygen-1.8.1.src.tar.gz doxygen-1.8.1 \
+	"./configure --prefix $HOME/local/doxygen/1.8.1" make 
 }
 
 install_gcc()
@@ -134,107 +227,67 @@ install_gcc()
 	
 	CFLAGS="-O3"
 	CPPFLAGS="-O3"
-	CXXFLAGS="-O3"
+	CXXFLAGS="-O3" # -DCHAR_BIT=8
 	export CFLAGS
 	export CXXFLAGS
 	export CPPFLAGS
 	
-
-	local subdir="gcc-4.4.7"
-	local location="http://gcc.petsads.us/releases/gcc-4.4.7/gcc-4.4.7.tar.gz"
-	local filename="gcc-4.4.7.tar.gz"
-	local command="../configure --prefix=$HOME/local --with-mpfr-lib=$HOME/local/lib/"
-
-	if [ -e installed.$subdir ]; then
-		echo "$subdir already installed."
-	else
-		#echo "i would download $subdir from $location to $filename with command $command now"
-		my_download $subdir $location $filename
-		cd $subdir
-		if [ ! $? == 0 ]; then echo "Error $subdir does not exist?"; exit; fi
-		mkdir build
-		cd build
-		$command
-		if [ ! $? == 0 ]; then echo "Error $command for $subdir"; exit; fi
-		make
-		if [ ! $? == 0 ]; then echo "Error make for $subdir"; exit; fi
-		make install
-		if [ ! $? == 0 ]; then echo "Error make install for $subdir"; exit; fi
-		cd ..
-		cd ..
-		echo "$subdir installed!"
-		touch installed.$subdir
-	fi
-
 	
+	my_install_external_build
+	gcc 4.4.7 \
+	"http://gcc.petsads.us/releases/gcc-4.4.7/gcc-4.4.7.tar.gz" \
+	gcc-4.4.7.tar.gz gcc-4.4.7 \
+	 "../src/configure --prefix=$HOME/local/gcc/4.4.7" make "make install"
 }
 
 install_cmake()
 {
-	my_install cmake-2.8.6 "http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz" cmake-2.8.6.tar.gz \
-		"./bootstrap --prefix=$HOME/local"
+	my_install_external_build \
+	cmake 2.8.6 \
+	"http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz" 
+	cmake-2.8.6.tar.gz cmake-2.8.6 \
+	"../src/bootstrap --prefix=$HOME/local/cmake/2.8.6" make "make install"
 }
 
 install_openmpi()
 {	
-	my_install openmpi-1.6 "http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.tar.gz" \
-		openmpi-1.6.tar.gz "./configure --prefix=$HOME/local"
+	my_install_external_build \
+	openmpi 1.6 \
+	"http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.tar.gz" \
+	openmpi-1.6.tar.gz openmpi-1.6 \
+	"../src/configure --prefix=$HOME/local/openmpi/1.6" make "make install"
 }
 
 install_gnuplot()
 {
-	my_install gnuplot-4.6.0 "http://sourceforge.net/projects/gnuplot/files/gnuplot/4.6.0/gnuplot-4.6.0.tar.gz/download?sources=files" \
-	gnuplot-4.6.tar.gz "./configure --prefix=$HOME/local"
+	my_install_external_build \
+	"gnuplot" "4.6.0"\
+	"http://sourceforge.net/projects/gnuplot/files/gnuplot/4.6.0/gnuplot-4.6.0.tar.gz/download?sources=files"\
+ 	gnuplot-4.6.tar.gz gnuplot-4.6.0 \
+ 	"../src/configure --prefix=$HOME/local/gnuplot/4.6.0" make "make install"
 }
 
 install_GotoBLAS2()
 {
 	## needs to be compiled with a new version of gfortran. use install_gcc.
-
-	local subdir="GotoBLAS2-1.13"
-	local location="http://www.tacc.utexas.edu/documents/13601/b58aeb8c-9d8d-4ec2-b5f1-5a5843b4d47b"
-	local filename="GotoBLAS2-1.13.tar.gz"
-	local command="./quickbuild.64bit"
-
-	if [ -e installed.$subdir ]; then
-		echo "GotoBLAS2-1.13 already installed."
-	else
-		my_download $subdir $location $filename
-
-		mv GotoBLAS2 $subdir
-		cd $subdir
-		if [ ! $? == 0 ]; then echo "Error $subdir does not exist?"; exit; fi
-		$command
-		if [ ! $? == 0 ]; then echo "Error $command failed."; exit; fi
-		cp libgoto2.a $LOCAL_INSTALLDIR/lib/
-		cp cblas.h $LOCAL_INSTALLDIR/include/
-
-		cd ..
-		echo "$subdir installed!"
-		touch installed.$subdir
-	fi
+	
+	my_install \
+	GotoBLAS2 "1.13"\
+	"http://www.tacc.utexas.edu/documents/13601/b58aeb8c-9d8d-4ec2-b5f1-5a5843b4d47b"\
+	GotoBLAS2-1.13.tar.gz GotoBLAS2\
+	"./quickbuild.64bit" \	
+	"mkdir lib" \
+	"cp libgoto2.a lib/" \
+	"mkdir include" \
+	"cp cblas.h include/"
 }
 
 install_ParaView()
 {
-	local subdir="ParaView-3.14.1-Linux-32bit" 
-	local location="http://www.paraview.org/files/v3.14/ParaView-3.14.1-Linux-32bit.tar.gz"
-	local filename="ParaView-3.14.1-Linux-32bit.tar.gz"
-	
-	if [ -e installed.ParaView ]; then
-		echo "ParaView already installed."
-	else
-		my_download $subdir $location $filename
-		
-		echo "$subdir installed!"				
-		cat > $LOCAL_INSTALLDIR/installed.ParaView << EOF
-$LOCAL_INSTALLDIR/$subdir
-EOF
-
-		echo "Please source your .bashrc or restart your shell."
-	fi
-	
-	
+	my_install \
+	ParaView "3.14"\
+	"http://www.paraview.org/files/v3.14/ParaView-3.14.1-Linux-32bit.tar.gz"\
+	ParaView-3.14.1-Linux-32bit.tar.gz ParaView-3.14.1-Linux-32bit
 }
 
 
@@ -244,12 +297,12 @@ install_clang()
 	svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm
 	cd llvm/tools
 	svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
-	cd llvm/projects
+	cd ../projects
 	svn co http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
 	cd ..
 	mkdir build
 	cd build
-	../configure --prefix=$HOME/local/ --enable-optimized
+	../configure --prefix=$HOME/local/llvm --enable-optimized
 	make
 }
 
@@ -271,25 +324,25 @@ print_usage()
 	echo ""
     	echo " usage:  " $0 " <program>"
 	echo "  <program> can be:"
-	echo "		all"
-	echo "		clang		(=clang+llvm from svn)"
-	echo "		CMake       2.8.6"
-	echo "		Doxygen     1.8.1"
-	echo "		GCC         4.4"
-	echo "		gmp         4.3.2"
-	echo "		gnuplot     4.6.0"
-	echo "		GotoBLAS2   1.13"
-	echo "		mpfr        2.4.2"	
-	echo "		mpc         0.8.1."
-	echo "		OpenMP      1.6"
-	echo "		ParaView    3.14.1-Linux-32bit"	
+	echo "	all"
+	echo "	clang       (=clang+llvm from svn)"
+	echo "	cmake       2.8.6                 " `[[ -e cmake/used/installed ]] && echo "(installed)"`
+	echo "	doxygen     1.8.1                 " `[[ -e doxygen/used/installed ]] && echo "(installed)"`
+	echo "	gcc         4.4                   " `[[ -e gcc/used/installed ]] && echo "(installed)"`
+	echo "	gmp         4.3.2                 " `[[ -e gmp/used/installed ]] && echo "(installed)"`
+	echo "	gnuplot     4.6.0                 " `[[ -e gnuplot/used/installed ]] && echo "(installed)"`
+	echo "	GotoBLAS2   1.13                  " `[[ -e GotoBLAS2/used/installed ]] && echo "(installed)"`
+	echo "	mpfr        2.4.2                 "	`[[ -e mpfr/used/installed ]] && echo "(installed)"`
+	echo "	mpc         0.8.1                 " `[[ -e mpc/used/installed ]] && echo "(installed)"`
+	echo "	OpenMPI     1.6                   " `[[ -e openmpi/used/installed ]] && echo "(installed)"`
+	echo "	ParaView    3.14.1-Linux-32bit    " `[[ -e ParaView/used/installed ]] && echo "(installed)"`	
 }
 
 
 case $1 in
 	clang) install_clang ;;
-	CMake) install_cmake ;;
-	Doxygen) install_doxygen ;;
+	cmake) install_cmake ;;
+	doxygen) install_doxygen ;;
 	gcc) install_gcc ;;	
 	gnuplot) install_gnuplot ;;
 	gmp) install_gmp ;;
@@ -299,6 +352,5 @@ case $1 in
 	OpenMPI) install_openmpi ;;
 	ParaView) install_ParaView ;;
 	all) install_all ;;
-	
 	*) print_usage ;;
 esac

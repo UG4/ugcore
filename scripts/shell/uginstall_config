@@ -1,47 +1,97 @@
-LOCAL_INSTALLDIR=$HOME/local/
+LOCAL_INSTALLDIR=$HOME/local
+# LIBRARY_PATH is used by gcc before compilation to search for directories
+#              containing libraries that need to be linked to your program.
+# LD_LIBRARY_PATH is used by your program to search for directories containing 
+#                 the libraries after it has been successfully compiled and linked
+my_setup()
+{
+	dir=$1
+	if [ -e $dir ]; then
+		#echo $dir found!
+		if [ -e $dir/lib ]; then
+			if [ -z $LIBRARY_PATH ]; then
+				LIBRARY_PATH=$dir/lib64:$dir/lib
+			else
+				echo $LIBRARY_PATH | grep -q $dir/lib
+				if [ $? -ne 0 ] ; then
+					LIBRARY_PATH=$LIBRARY_PATH:$dir/lib64:$dir/lib
+				fi
+			fi
+			if [ -z $LD_LIBRARY_PATH ]; then
+				LD_LIBRARY_PATH=$dir/lib64:$dir/lib
+			else
+				echo $LD_LIBRARY_PATH | grep -q $dir/lib
+				if [ $? -ne 0 ] ; then
+					LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$dir/lib64:$dir/lib
+				fi
+			fi
+			if [ -z $LD_RUN_PATH ]; then
+				echo $LD_RUN_PATH | grep -q $dir/lib
+				if [ $? -ne 0 ] ; then
+					LD_RUN_PATH=$dir/lib64:$dir/lib
+				fi
+			else		
+				LD_RUN_PATH=$LD_RUN_PATH:$dir/lib64:$dir/lib
+			fi
+			
+			echo $LDFLAGS | grep -q $dir/lib
+			if [ $? -ne 0 ] ; then
+				LDFLAGS="-L$dir/lib -L$dir/lib64 $LDFLAGS"
+			fi
+		fi
+		if [ -e $dir/include ]; then
+			if [ -z $C_INCLUDE_PATH ]; then
+				C_INCLUDE_PATH=$dir/include/
+			else
+				echo $C_INCLUDE_PATH | grep -q $dir/include
+				if [ $? -ne 0 ] ; then
+					C_INCLUDE_PATH="$dir/include:$C_INCLUDE_PATH"
+				fi
+			fi
+			if [ -z $CPLUS_INCLUDE_PATH ]; then
+				CPLUS_INCLUDE_PATH="$dir/include"
+			else
+				echo $CPLUS_INCLUDE_PATH | grep -q $dir/include
+				if [ $? -ne 0 ] ; then
+					CPLUS_INCLUDE_PATH=$dir/include:$CPLUS_INCLUDE_PATH
+				fi
+			fi	
+		fi
+		
+		if [ -e $dir/bin ]; then
+			echo $PATH | grep -q $dir/bin
+			if [ $? -ne 0 ] ; then
+				PATH=$dir/bin:$PATH
+			fi
+		fi
+	fi
+}
 
-#MY_LIB_PATH="$LOCAL_INSTALLDIR/lib"
-MY_LIB_PATH="$LOCAL_INSTALLDIR/lib64:$LOCAL_INSTALLDIR/lib"
-if [ -z $LD_LIBRARY_PATH ]; then
-LD_LIBRARY_PATH=$MY_LIB_PATH
-else
-LD_LIBRARY_PATH="$MY_LIB_PATH:$LD_LIBRARY_PATH"
-fi
+my_setup2 () 
+{
+	local name=$1
+	local dir=$LOCAL_INSTALLDIR/$name/used
+	my_setup $dir
+	
+}
 
-if [ -z $LD_RUN_PATH ]; then
-LD_RUN_PATH="$MY_LIB_PATH"
-else
-LD_RUN_PATH="$MY_LIB_PATH:$LD_RUN_PATH"
-fi
+my_setup llvm
+my_setup2 cmake
+my_setup2 doxygen
+my_setup2 gcc
+my_setup2 gmp
+my_setup2 gnuplot
+my_setup2 GotoBLAS2
+my_setup2 mpfr
+my_setup2 mpc
+my_setup2 openmpi
+my_setup2 ParaView
 
-PATH=$LOCAL_INSTALLDIR/bin:$PATH
 
-LDFLAGS="-L$LOCAL_INSTALLDIR/lib $LDFLAGS -L$LOCAL_INSTALLDIR/lib64"
-#LDFLAGS="$LDFLAGS -L$LOCAL_INSTALLDIR/lib64" 
-export LDFLAGS
-
-
-if [ -z $C_INCLUDE_PATH ]; then
-C_INCLUDE_PATH=$LOCAL_INSTALLDIR/include/
-else
-C_INCLUDE_PATH=$LOCAL_INSTALLDIR/include/:$C_INCLUDE_PATH
-fi
-
-if [ -z $CPLUS_INCLUDE_PATH ]; then
-CPLUS_INCLUDE_PATH=$LOCAL_INSTALLDIR/include/
-else
-CPLUS_INCLUDE_PATH=$LOCAL_INSTALLDIR/include/:$CPLUS_INCLUDE_PATH
-fi
-
-if [ -e $LOCAL_INSTALLDIR/installed.ParaView ]; then	
-	PARAVIEW_DIR=`cat $LOCAL_INSTALLDIR/installed.ParaView`
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PARAVIEW_DIR/lib
-	LD_RUN_PATH=$LD_RUN_PATH:$PARAVIEW_DIR/lib
-	PATH=$LIBRARY:$PARAVIEW_DIR/bin:$PATH
-fi
 
 export PATH
 export C_INCLUDE_PATH	
 export CPLUS_INCLUDE_PATH
 export LD_RUN_PATH
 export LD_LIBRARY_PATH
+export LIBRARY_PATH
