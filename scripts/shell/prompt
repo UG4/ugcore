@@ -1,5 +1,6 @@
 #!/bin/bash
-PROMPT_COMMAND='echo -ne "\033]0; `hostname -a` `dirs`\007"'
+SHORT_HOSTNAME=`hostname | sed 's/\([^\.]*\).*/\1/'`
+PROMPT_COMMAND='echo -ne "\033]0; $SHORT_HOSTNAME `dirs`\007"'
 PS1="\[\033[1;32m\]\h \[\033[1;30m\][\[\033[1;34m\]\w\[\033[1;30m\]]\[\033[0m\] "
 
 alias cd..="cd .."
