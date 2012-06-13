@@ -244,10 +244,6 @@ install_gcc()
 
 install_cmake()
 {
-	# APPLE BUG
-	export CFLAGS="-Dformat_arg(x)="
-	export CPPFLAGS="-Dformat_arg(x)="
-	export CXXFLAGS="-Dformat_arg(x)="
 	my_install_external_build \
 	cmake 2.8.6 \
 	"http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz" \
@@ -314,7 +310,7 @@ install_clang()
 
 install_all()
 {
-	install_gcc
+#	install_gcc
 	install_cmake
 	install_doxygen
 	install_gnuplot
