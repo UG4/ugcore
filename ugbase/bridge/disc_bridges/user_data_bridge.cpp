@@ -457,10 +457,12 @@ class DarcyVelocityLinker
 
 
 template <typename TData, int dim>
-void RegisterUserDataType(Registry& reg, string type, string grp)
+void RegisterUserDataType(Registry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
+
+	string type = ip_data_traits<TData>::name();
 
 //	DirectUser"Type"
 //	NOTE: For better readability this class is named DirectUser"Type"
@@ -487,9 +489,12 @@ void RegisterUserDataType(Registry& reg, string type, string grp)
 //	      in vrl and lua. E.g. UserNumber, UserVector, ...
 	{
 		typedef IPData<TData, dim> T;
-		typedef IDirectIPData<TData, dim> TBase;
+		typedef IIPData TBase1;
+		typedef IDirectIPData<TData, dim> TBase2;
 		string name = string("User").append(type).append(dimSuffix);
-		reg.add_class_<T,TBase>(name, grp);
+		reg.add_class_<T,TBase1, TBase2>(name, grp)
+			.add_method("get_dim", &T::get_dim)
+			.add_method("type", &T::type);
 		reg.add_class_to_group(name, string("User").append(type), dimTag);
 	}
 
@@ -573,10 +578,10 @@ static void Dimension(Registry& reg, string grp)
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
 
-	RegisterUserDataType<number, dim>(reg, "Number", grp);
-	RegisterUserDataType<MathVector<dim>, dim>(reg, "Vector", grp);
-	RegisterUserDataType<MathMatrix<dim,dim>, dim>(reg, "Matrix", grp);
-	RegisterUserDataType<MathTensor<4,dim>, dim>(reg, "Tensor4", grp);
+	RegisterUserDataType<number, dim>(reg, grp);
+	RegisterUserDataType<MathVector<dim>, dim>(reg, grp);
+	RegisterUserDataType<MathMatrix<dim,dim>, dim>(reg, grp);
+	RegisterUserDataType<MathTensor<4,dim>, dim>(reg, grp);
 
 //	ConstUserNumber
 	{
@@ -653,6 +658,7 @@ static void Dimension(Registry& reg, string grp)
 static void Common(Registry& reg, string grp)
 {
 	reg.add_class_<IFunction<number> >("IFunctionNumber", grp);
+	reg.add_class_<IIPData>("IIPData", grp);
 }
 
 }; // end Functionality

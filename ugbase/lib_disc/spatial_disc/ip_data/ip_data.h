@@ -307,6 +307,37 @@ class IDirectIPData : virtual public IDirectDimIPData<dim>
 // predeclaration
 template <typename TData, int dim> class DataImport;
 
+/// Traits
+template <typename TData>
+struct ip_data_traits
+{
+	static std::string name() {return "(unknown)";}
+};
+
+template <>
+struct ip_data_traits<number>
+{
+	static std::string name() {return "Number";}
+};
+
+template <std::size_t dim>
+struct ip_data_traits< MathVector<dim> >
+{
+	static std::string name() {return "Vector";}
+};
+
+template <std::size_t dim>
+struct ip_data_traits< MathMatrix<dim,dim> >
+{
+	static std::string name() {return "Matrix";}
+};
+
+template <std::size_t dim>
+struct ip_data_traits< MathTensor<4,dim> >
+{
+	static std::string name() {return "Tensor4";}
+};
+
 /// Type based IP Data
 /**
  * This class is the base class for all integration point data for a templated
@@ -329,6 +360,12 @@ class IPData : public IIPDimData<dim>, public IDirectIPData<TData,dim,TRet>
 		using base_type::num_ip;
 
 	public:
+	///	returns dimension
+		int get_dim() const {return dim;}
+
+	///	returns type of data as string (e.g. "Number", "Vector", "Matrix")
+		std::string type() const {return ip_data_traits<TData>::name();}
+
 	///	returns the value at ip
 		const TData& value(size_t s, size_t ip) const
 			{check_series_ip(s,ip); return m_vvValue[s][ip];}

@@ -19,6 +19,7 @@
 #include "registry/class_helper.h"
 #include "info_commands.h"
 #include "lua_user_data.h"
+#include "registry/class_name_provider.h"
 #include "registry/registry.h"
 #include "lua_debug.h"
 
@@ -257,6 +258,15 @@ lua_State* GetDefaultLuaState()
 	//	make metatables available in lua script
 		lua_register(theLuaState, "ug_get_metatable", UGGetMetatable );
 
+	//	make base class check available in lua script
+		lua_register(theLuaState, "ug_is_base_class", UGIsBaseClass);
+
+	//	make dim check available in lua script
+		lua_register(theLuaState, "ug_dim_compiled", UGDimCompiled);
+
+	//	make class name available in lua script
+		lua_register(theLuaState, "ug_class_name", UGGetClassName);
+
 	//	create lua bindings for registered functions and objects
 		ug::bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
 		PROFILE_END();
@@ -411,4 +421,78 @@ int UGGetMetatable(lua_State *L)
 	return 1;
 }
 
+int UGGetClassName(lua_State *L)
+{
+	if(lua_getmetatable(L, -1) != 0)
+	{
+		lua_pushstring(L, "class_name_node");
+		lua_rawget(L, -2);
+		const ug::bridge::ClassNameNode* classNameNode = (const ug::bridge::ClassNameNode*) lua_touserdata(L, -1);
+		lua_pop(L, 2);
+
+		if(classNameNode)
+		{
+			lua_pushstring(L, classNameNode->name().c_str());
+			return 1;
+		}
+		else UG_THROW("In UGGetClassName: Something wrong with ClassNameNode.");
+	}
+
+	lua_pushstring(L, "");
+	return 1;
+}
+
+int UGIsBaseClass(lua_State *L)
+{
+	const char* derivClass = lua_tostring(L, -1);
+	const char* baseClass = lua_tostring(L, -2);
+
+	if(!derivClass || !baseClass)
+		UG_THROW("In UGIsBaseClass: invalid class names passed as arguments.");
+
+	luaL_getmetatable(L, derivClass);
+
+	if(!lua_isnil(L, -1))
+	{
+		lua_pushstring(L, "class_name_node");
+		lua_rawget(L, -2);
+		const ug::bridge::ClassNameNode* classNameNode = (const ug::bridge::ClassNameNode*) lua_touserdata(L, -1);
+		lua_pop(L, 2);
+
+		if(classNameNode)
+		{
+			if(!classNameNode->empty())
+			{
+				if(ClassNameTreeContains(*classNameNode, baseClass))
+				{
+					lua_pushboolean(L, true);
+					return 1;
+				}
+			}
+			lua_pushboolean(L, false);
+			return 1;
+		}
+		else UG_THROW("In UGIsBaseClasse: Something wrong with ClassNameNode.");
+	}
+	else{
+		UG_THROW("In UGIsBaseClass: Cannot find metatable for: "<< derivClass);
+	}
+
+	return 0;
+}
+
+int UGDimCompiled(lua_State *L)
+{
+	int dim = lua_tointeger(L, -1);
+#if UG_DIM_1
+	if(dim == 1){ lua_pushboolean(L, true); return 1;}
+#endif
+#if UG_DIM_2
+	if(dim == 2){ lua_pushboolean(L, true); return 1;}
+#endif
+#if UG_DIM_3
+	if(dim == 3){ lua_pushboolean(L, true); return 1;}
+#endif
+	lua_pushboolean(L, false); return 1;
+}
 }}//	end of namespace
