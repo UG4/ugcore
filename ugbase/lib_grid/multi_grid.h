@@ -25,8 +25,8 @@ const int MG_EDGE_MAX_EDGE_CHILDREN = 2;///< maximal number of edges that can be
 const int MG_FACE_MAX_EDGE_CHILDREN = 4;///< maximal number of edges that can be children of a face.
 const int MG_FACE_MAX_FACE_CHILDREN = 4;///< maximal number of faces that can be children of a face.
 const int MG_VOLUME_MAX_EDGE_CHILDREN = 6;///< maximal number of edges that can be children of a volume.
-const int MG_VOLUME_MAX_FACE_CHILDREN = 12;///< maximal number of faces that can be children of a volume.
-const int MG_VOLUME_MAX_VOLUME_CHILDREN = 8;///< maximal number of volumes that can be children of a volume.
+const int MG_VOLUME_MAX_FACE_CHILDREN = 13;///< maximal number of faces that can be children of a volume.
+const int MG_VOLUME_MAX_VOLUME_CHILDREN = 10;///< maximal number of volumes that can be children of a volume.
 
 
 ///	Holds information about vertex relations. Used internally.
