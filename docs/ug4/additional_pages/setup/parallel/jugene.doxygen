@@ -204,19 +204,11 @@ TODO: Some notes about "topology aware placing of MPI processes" might become re
   </li>
   <li><strong>"Modules"</strong> can be loaded by executing the <tt>module</tt> 
     command, e.g. <tt>module load lapack</tt> for LAPACK.
-
-<!--
-TODO: Nevertheless CMake says "Info: Not using Lapack. No package found"!?
--->
-
+<!--TODO: Nevertheless CMake says "Info: Not using Lapack. No package found"!? -->
     This is also for loading <strong>performance analysis tools</strong>, e.g. 
     <tt>module load scalasca</tt>, <tt>module load UNITE</tt> etc.
-     
-<!--
-TODO: Please provide a link which explains a bit more !!!
--->
-     
-     <!-- no experience with this stuff yet! -->
+<!-- TODO: Please provide a link which explains a bit more !!! -->     
+<!-- no experience with this stuff yet! -->
   </li>
   <li><a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/llview.html"><tt>llview</tt></a>
     is a <strong>tool with a graphical X11 user interface</strong> for 
