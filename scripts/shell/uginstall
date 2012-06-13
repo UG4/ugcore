@@ -182,9 +182,9 @@ my_install()
 
 install_gmp()
 {	
-	my_install_external_build 
-	gmp 4.3.2 
-	"http://gcc.petsads.us/infrastructure/gmp-4.3.2.tar.bz2" 
+	my_install_external_build \ 
+	gmp 4.3.2 \
+	"http://gcc.petsads.us/infrastructure/gmp-4.3.2.tar.bz2" \ 
 	gmp-4.3.2.tar.bz2 gmp-4.3.2 \
 	"../src/configure --prefix=$HOME/local/gmp/4.3.2/" make "make install"
 }
@@ -193,7 +193,7 @@ install_mpfr()
 {
 	my_install_external_build \
 	mpfr 2.4.2 \
-	"http://gcc.petsads.us/infrastructure/mpfr-2.4.2.tar.bz2"
+	"http://gcc.petsads.us/infrastructure/mpfr-2.4.2.tar.bz2" \
 	mpfr-2.4.2.tar.bz2 mpfr-2.4.2 \ 
 	"../src/configure --prefix=$HOME/local/mpfr/2.4.2" make "make install"
 }
@@ -205,7 +205,7 @@ install_mpc()
 	
 	my_install_external_build \
 	mpc 0.8.1 \
-	"http://gcc.petsads.us/infrastructure/mpc-0.8.1.tar.gz" 
+	"http://gcc.petsads.us/infrastructure/mpc-0.8.1.tar.gz" \ 
 	mpc-0.8.1.tar.gz mpc-0.8.1 \
 	"../src/configure --prefix=$HOME/local/mpc/0.8.1" make "make install"
 }
