@@ -87,9 +87,10 @@ my_install_external_build()
 	local location=$3
 	local filename=$4
 	local extractedDir=$5
+	echo "installing $subdir"
 	shift 5
 	# $6+ are commands executed in $subdir/$version/build  
-	#echo "subdir = $subdir, version = $version, location = $location, filename =$filename, extractedDir = $extractedDir, command = $*"
+	echo "subdir = $subdir, version = $version, location = $location, filename =$filename, extractedDir = $extractedDir, command = $*"
 	
 	if [ -e $subdir/$version/installed ]; then
 		echo "$subdir $version already installed."
@@ -145,6 +146,7 @@ my_install()
 	local location=$3
 	local filename=$4
 	local extractedDir=$5
+	echo "installing $subdir"
 	shift 5
 	#echo "subdir = $subdir, version = $version, location = $location, filename =$filename, extractedDir = $extractedDir, command = $*"
 	
@@ -182,9 +184,9 @@ my_install()
 
 install_gmp()
 {	
-	my_install_external_build \ 
+	my_install_external_build \
 	gmp 4.3.2 \
-	"http://gcc.petsads.us/infrastructure/gmp-4.3.2.tar.bz2" \ 
+	"http://gcc.petsads.us/infrastructure/gmp-4.3.2.tar.bz2" \
 	gmp-4.3.2.tar.bz2 gmp-4.3.2 \
 	"../src/configure --prefix=$HOME/local/gmp/4.3.2/" make "make install"
 }
@@ -194,7 +196,7 @@ install_mpfr()
 	my_install_external_build \
 	mpfr 2.4.2 \
 	"http://gcc.petsads.us/infrastructure/mpfr-2.4.2.tar.bz2" \
-	mpfr-2.4.2.tar.bz2 mpfr-2.4.2 \ 
+	mpfr-2.4.2.tar.bz2 mpfr-2.4.2 \
 	"../src/configure --prefix=$HOME/local/mpfr/2.4.2" make "make install"
 }
 
@@ -205,7 +207,7 @@ install_mpc()
 	
 	my_install_external_build \
 	mpc 0.8.1 \
-	"http://gcc.petsads.us/infrastructure/mpc-0.8.1.tar.gz" \ 
+	"http://gcc.petsads.us/infrastructure/mpc-0.8.1.tar.gz" \
 	mpc-0.8.1.tar.gz mpc-0.8.1 \
 	"../src/configure --prefix=$HOME/local/mpc/0.8.1" make "make install"
 }
@@ -233,7 +235,7 @@ install_gcc()
 	export CPPFLAGS
 	
 	
-	my_install_external_build
+	my_install_external_build \
 	gcc 4.4.7 \
 	"http://gcc.petsads.us/releases/gcc-4.4.7/gcc-4.4.7.tar.gz" \
 	gcc-4.4.7.tar.gz gcc-4.4.7 \
@@ -244,7 +246,7 @@ install_cmake()
 {
 	my_install_external_build \
 	cmake 2.8.6 \
-	"http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz" 
+	"http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz" \
 	cmake-2.8.6.tar.gz cmake-2.8.6 \
 	"../src/bootstrap --prefix=$HOME/local/cmake/2.8.6" make "make install"
 }
