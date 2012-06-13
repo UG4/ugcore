@@ -1,7 +1,5 @@
 
-
---! functions user when '+' is called on an IPData (or a derived implementation)
-function __ug__UserNumber_sum(lScale, l, rScale, r)
+function __ug__CheckUserDataArgType(r, l)
 	local rType = ug_class_name(r)
 	local lType = ug_class_name(l)
 	local rDim = -1
@@ -10,19 +8,19 @@ function __ug__UserNumber_sum(lScale, l, rScale, r)
 	local rData = ""
 	local lData = ""
 	local Data = ""
-	
+
 	---------------------------------------------------------
 	-- Check type of operands (and read dim+type if IPData)
 	---------------------------------------------------------
 	-- one of the arguments must be exported by registry
 	if rType == "" and lType == "" then
-		error("Internal Error in __ug__UserNumber_add: No ug4 class as operand")
+		error("Internal Error: No ug4 class as operand")
 	end
 
 	-- check that userdata are IPData	
 	if rType ~= "" then
 		if not ug_is_base_class("IIPData", rType) then
-			error("Error in '+': Can only add UserData, but summand is "..rType)
+			error("Error: Can only operate on UserData, but summand is "..rType)
 		end
 		rDim = r:get_dim()
 		Dim = rDim
@@ -31,47 +29,66 @@ function __ug__UserNumber_sum(lScale, l, rScale, r)
 	end
 	if lType ~= "" then
 		if not ug_is_base_class("IIPData", lType) then
-			error("Error in '+': Can only add UserData, but summand is "..lType)
+			error("Error: Can only operate on UserData, but summand is "..lType)
 		end
 		lDim = l:get_dim()
 		Dim = lDim
 		lData = l:type()		
 		Data = lData
 	end
+
+	---------------------------------------------------------
+	-- Check match of types for operands
+	---------------------------------------------------------
+	
+	-- both operands are IPData
+	-- check for same dimesion
+	if rType ~= "" and lType ~= "" then
+		if lDim ~= rDim then
+			error("Error: Dimensions of UserData does not match")
+		end
+	end
+	
+	return rType, lType, rDim, lDim, Dim, rData, lData, Data
+end
+
+--------------------------------------------------------------------------------
+-- Function to add/subtract UserData
+--------------------------------------------------------------------------------
+
+--! functions user when '+/-' is called on an IPData (or a derived implementation)
+function __ug__UserNumber_sum(lScale, l, rScale, r)
+	local rType, lType, rDim, lDim, Dim, rData, lData, Data = __ug__CheckUserDataArgType(r, l)
+			
 		
 	---------------------------------------------------------
 	-- Check match of types for operands
 	---------------------------------------------------------
 	
 	-- both operands are IPData
+	-- check for same data type
 	if rType ~= "" and lType ~= "" then
-		-- check for same dimesion
-		if lDim ~= rDim then
-			error("Error in '+': Dimensions of UserData does not match")
-		end
-	
-		-- check for same data type
 		if rData ~= lData then
-			error("Error in '+': Data Type of UserData does not match")
+			error("Error in '+' or '-': Data Type of UserData does not match")
 		end
 	-- one operand is scalar value from lua
 	else
 		if rType == "" then
 			if tonumber(r) then
 				if lData ~= "Number" then
-					error("Error in '+': Cannot add Number and "..lData)
+					error("Error in '+' or '-': Cannot add Number and "..lData)
 				end
 			else
-				error("Error in '+': Summand must be scalar number or UserData.")
+				error("Error in '+' or '-': Summand must be scalar number or UserData.")
 			end
 		end
 		if lType == "" then
 			if tonumber(l) then
 				if rData ~= "Number" then
-					error("Error in '+': Cannot add Number and "..rData)
+					error("Error in '+' or '-': Cannot add Number and "..rData)
 				end
 			else
-				error("Error in '+': Summand must be scalar number or UserData.")
+				error("Error in '+' or '-': Summand must be scalar number or UserData.")
 			end
 		end		
 	end	
@@ -121,6 +138,65 @@ function __ug__UserNumber_sub(l,r)
 end
 
 --------------------------------------------------------------------------------
+-- Function to Multiply/Devide UserData
+--------------------------------------------------------------------------------
+
+--! functions user when '*' is called on an IPData (or a derived implementation)
+function __ug__UserNumber_mul(l, r)
+	local rType, lType, rDim, lDim, Dim, rData, lData, Data = __ug__CheckUserDataArgType(r, l)
+		
+	---------------------------------------------------------
+	-- Check match of types for operands
+	---------------------------------------------------------
+	
+	-- both operands are IPData
+	-- check for same data type
+	if rType ~= "" and lType ~= "" then
+		if rData ~= "Number" and lData ~= "Number" then
+			error("Error in '*' or '/': One Data Type of UserData must be number")
+		end
+	-- one operand is scalar value from lua
+	else
+		if rType == "" then
+			if tonumber(r) then
+				if lData ~= "Number" then
+					error("Error in '*' or '/': One Data Type must be number")
+				end
+			else
+				error("Error in '*' or '/': Operand must be scalar number or UserData.")
+			end
+		end
+		if lType == "" then
+			if tonumber(l) then
+				if rData ~= "Number" then
+					error("Error in '*' or '/': One Data Type must be number")
+				end
+			else
+				error("Error in '*' or '/': Operand must be scalar number or UserData.")
+			end
+		end		
+	end	
+
+	-- All checks passed: Can create name for Class to return
+	local ScaleAddLinkerName = "ScaleAddLinker"..Data..Dim.."d"
+	
+	---------------------------------------------------------
+	-- Multiply
+	---------------------------------------------------------
+	local linker =  _G[ScaleAddLinkerName]()
+	linker:add(l, r)
+	return linker				
+end
+
+--! functions user when '*' is called on an IPData (or a derived implementation)
+function __ug__UserNumber_div(l, r)
+	if not tonumber(r) then
+		error("Error in '/': Currently divisor must be plain lua number")
+	else
+		return __ug__UserNumber_mul(l, (1/r))
+	end
+end
+--------------------------------------------------------------------------------
 -- Loop to set the __add functions for IPData
 --------------------------------------------------------------------------------
 
@@ -141,6 +217,13 @@ for dim =  1,3 do
 		mt = ug_get_metatable(class..type..dim.."d")
 		mt.__sub = _G["__ug__UserNumber_sub"]
 		
+		-- set __mul function in metatable
+		mt = ug_get_metatable(class..type..dim.."d")
+		mt.__mul = _G["__ug__UserNumber_mul"]
+
+		-- set __mul function in metatable
+		mt = ug_get_metatable(class..type..dim.."d")
+		mt.__div = _G["__ug__UserNumber_div"]
 	end
 end
 end
