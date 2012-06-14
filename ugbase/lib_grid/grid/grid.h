@@ -136,6 +136,7 @@ class UG_API Grid
 				VertexAttachmentAccessor();
 				VertexAttachmentAccessor(const VertexAttachmentAccessor& aa);
 				VertexAttachmentAccessor(Grid& grid, TAttachment& a);
+				VertexAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 		};
 
 		template <class TAttachment>
@@ -145,6 +146,7 @@ class UG_API Grid
 				EdgeAttachmentAccessor();
 				EdgeAttachmentAccessor(const EdgeAttachmentAccessor& aa);
 				EdgeAttachmentAccessor(Grid& grid, TAttachment& a);
+				EdgeAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 		};
 
 		template <class TAttachment>
@@ -154,6 +156,7 @@ class UG_API Grid
 				FaceAttachmentAccessor();
 				FaceAttachmentAccessor(const FaceAttachmentAccessor& aa);
 				FaceAttachmentAccessor(Grid& grid, TAttachment& a);
+				FaceAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 		};
 
 		template <class TAttachment>
@@ -163,6 +166,7 @@ class UG_API Grid
 				VolumeAttachmentAccessor();
 				VolumeAttachmentAccessor(const VolumeAttachmentAccessor& aa);
 				VolumeAttachmentAccessor(Grid& grid, TAttachment& a);
+				VolumeAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach);
 		};
 
 	///	Container used to store associated vertices

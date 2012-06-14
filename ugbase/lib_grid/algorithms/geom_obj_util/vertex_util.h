@@ -304,12 +304,20 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 ////////////////////////////////////////////////////////////////////////
 ///	returns the position of the vertex.
 /**	Main purpose is to allow the use of vertices in template-methods
- *	that call CalculateCenter*/
+ *	that call CalculateCenter
+ *	\{ */
 template<class TVertexPositionAttachmentAccessor>
 UG_API 
 inline
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT);
+
+template<class TAAPosVRT, class TAAWeightVRT>
+UG_API
+typename TAAPosVRT::ValueType
+CalculateCenter(const VertexBase* v, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight);
+/** \} */
+
 
 ////////////////////////////////////////////////////////////////////////
 ///	transforms a vertex by a given matrix

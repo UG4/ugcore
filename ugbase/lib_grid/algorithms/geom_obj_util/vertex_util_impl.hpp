@@ -153,6 +153,23 @@ CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
 }
 
 ////////////////////////////////////////////////////////////////////////
+template<class TVertexPositionAttachmentAccessor>
+inline
+typename TVertexPositionAttachmentAccessor::ValueType
+CalculateCenter(const VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT)
+{
+	return aaPosVRT[v];
+}
+
+template<class TAAPosVRT, class TAAWeightVRT>
+UG_API
+typename TAAPosVRT::ValueType
+CalculateCenter(const VertexBase* v, TAAPosVRT& aaPosVRT, TAAWeightVRT&)
+{
+	return aaPosVRT[v];
+}
+
+////////////////////////////////////////////////////////////////////////
 template <class TVrtIter, class TAPosition>
 typename TAPosition::ValueType
 CalculateCenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
@@ -191,11 +208,44 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 					TIterator vrtsEnd, AAPosVRT& aaPos,
 					number alpha, int numIterations)
 {
+	std::vector<Face*> faces;
+	std::vector<Volume*> vols;
+
 	for(int iteration = 0; iteration < numIterations; ++iteration){
 	//	iterate through all vertices
 		for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter){
 		//	smooth each one
 			VertexBase* vrt = *iter;
+			vector3 v;
+			VecSet(v, 0);
+			int num = 0;
+
+		//	calculate smoothing vector relative to neighbors
+			CollectAssociated(faces, grid, vrt);
+			for(size_t i = 0; i < faces.size(); ++i)
+			{
+				VecAdd(v, v, CalculateGeometricObjectCenter(
+								grid.get_opposing_object(vrt, faces[i]), aaPos));
+				++num;
+			}
+
+			if(grid.num<Volume>() > 0){
+				CollectAssociated(vols, grid, vrt);
+				for(size_t i = 0; i < vols.size(); ++i)
+				{
+					VecAdd(v, v, CalculateGeometricObjectCenter(
+									grid.get_opposing_object(vrt, vols[i]), aaPos));
+					++num;
+				}
+			}
+
+			if(num > 0){
+				VecScale(v, v, 1. / (number)num);
+				VecSubtract(v, v, aaPos[vrt]);
+				VecScale(v, v, alpha);
+				VecAdd(aaPos[vrt], aaPos[vrt], v);
+			}
+			/*
 			vector3 v(0, 0, 0);
 			int num = 0;
 
@@ -212,20 +262,12 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 				VecSubtract(v, v, aaPos[vrt]);
 				VecScale(v, v, alpha);
 				VecAdd(aaPos[vrt], aaPos[vrt], v);
-			}
+			}*/
 		}
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////
-template<class TVertexPositionAttachmentAccessor>
-inline
-typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(const VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT)
-{
-	return aaPosVRT[v];
-}
-
 template <class TVrtIterator>
 VertexBase* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
 						  	  	  TVrtIterator vrtsEnd)

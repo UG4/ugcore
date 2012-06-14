@@ -93,6 +93,15 @@ UG_API
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const VolumeVertices* vol, TVertexPositionAttachmentAccessor& aaPosVRT);
 
+////////////////////////////////////////////////////////////////////////
+///	returns the weighted center of the vertices of the given volume
+/** TAAWeightVRT has to be an attachment to the vertices of the grid in which
+ * v is contained, with ValueType number (or compatible).
+ */
+template<class TAAPosVRT, class TAAWeightVRT>
+UG_API
+typename TAAPosVRT::ValueType
+CalculateCenter(const VolumeVertices* vol, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns true if the volume is oriented so that all sides point to this outside.

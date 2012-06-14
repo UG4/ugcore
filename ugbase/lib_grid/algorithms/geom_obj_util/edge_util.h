@@ -279,6 +279,18 @@ UG_API
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 
+
+////////////////////////////////////////////////////////////////////////
+///	returns the weighted center of the vertices of the given edge
+/** TAAWeightVRT has to be an attachment to the vertices of the grid in which
+ * e is contained, with ValueType number (or compatible).
+ */
+template<class TAAPosVRT, class TAAWeightVRT>
+UG_API
+typename TAAPosVRT::ValueType
+CalculateCenter(const EdgeVertices* e, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight);
+
+
 ////////////////////////////////////////////////////////////////////////
 ///	refines all edges in sel which cut the given plane.
 /**	New vertices are inserted on the plane.

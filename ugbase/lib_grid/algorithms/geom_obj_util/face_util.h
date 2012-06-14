@@ -293,6 +293,17 @@ CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosV
 
 
 ////////////////////////////////////////////////////////////////////////
+///	returns the weighted center of the vertices of the given face
+/** TAAWeightVRT has to be an attachment to the vertices of the grid in which
+ * f is contained, with ValueType number (or compatible).
+ */
+template<class TAAPosVRT, class TAAWeightVRT>
+UG_API
+typename TAAPosVRT::ValueType
+CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight);
+
+
+////////////////////////////////////////////////////////////////////////
 ///	Returns true if the given point lies inside the given face.
 /**	\note	The method only works properly, if the point and the face are located
  * 			in the same x-y-plane.

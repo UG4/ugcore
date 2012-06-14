@@ -16,18 +16,38 @@ namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
 //	CalculateGeometricObjectCenter
-template<class TVertexPositionAttachmentAccessor>
+template<class TAAPosVRT>
 UG_API
 inline
-typename TVertexPositionAttachmentAccessor::ValueType
-CalculateGeometricObjectCenter(const GeometricObject* o,
-							   TVertexPositionAttachmentAccessor& aaPosVRT)
+typename TAAPosVRT::ValueType
+CalculateGeometricObjectCenter(const GeometricObject* o, TAAPosVRT& aaPosVRT)
 {
 	switch(o->base_object_id()){
 		case VERTEX:	return CalculateCenter(static_cast<const VertexBase*>(o), aaPosVRT);
 		case EDGE:		return CalculateCenter(static_cast<const EdgeBase*>(o), aaPosVRT);
 		case FACE:		return CalculateCenter(static_cast<const Face*>(o), aaPosVRT);
 		case VOLUME:	return CalculateCenter(static_cast<const Volume*>(o), aaPosVRT);
+		default:
+			UG_THROW("Unknown geometric-object type.");
+	}
+}
+
+template<class TAAPosVRT, class TAAWeightVRT>
+UG_API
+inline
+typename TAAPosVRT::ValueType
+CalculateGeometricObjectCenter(const GeometricObject* o, TAAPosVRT& aaPosVRT,
+							   TAAWeightVRT& aaWeight)
+{
+	switch(o->base_object_id()){
+		case VERTEX:
+			return CalculateCenter(static_cast<const VertexBase*>(o), aaPosVRT, aaWeight);
+		case EDGE:
+			return CalculateCenter(static_cast<const EdgeBase*>(o), aaPosVRT, aaWeight);
+		case FACE:
+			return CalculateCenter(static_cast<const Face*>(o), aaPosVRT, aaWeight);
+		case VOLUME:
+			return CalculateCenter(static_cast<const Volume*>(o), aaPosVRT, aaWeight);
 		default:
 			UG_THROW("Unknown geometric-object type.");
 	}

@@ -20,12 +20,11 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	CalculateGeometricObjectCenter
 ///	calculates the center for arbitrary geometric object
-template<class TVertexPositionAttachmentAccessor>
+template<class TAAPosVRT>
 UG_API
 inline
-typename TVertexPositionAttachmentAccessor::ValueType
-CalculateGeometricObjectCenter(const GeometricObject* o,
-							   TVertexPositionAttachmentAccessor& aaPosVRT);
+typename TAAPosVRT::ValueType
+CalculateGeometricObjectCenter(const GeometricObject* o, TAAPosVRT& aaPosVRT);
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter

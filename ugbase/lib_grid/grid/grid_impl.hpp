@@ -531,6 +531,13 @@ VertexAttachmentAccessor(Grid& grid, TAttachment& a) :
 {
 }
 
+template <class TAttachment>
+Grid::VertexAttachmentAccessor<TAttachment>::
+VertexAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
+	Grid::AttachmentAccessor<VertexBase, TAttachment>(grid, a, autoAttach)
+{
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 //	EdgeAttachmentAccessor
@@ -552,6 +559,13 @@ template <class TAttachment>
 Grid::EdgeAttachmentAccessor<TAttachment>::
 EdgeAttachmentAccessor(Grid& grid, TAttachment& a) :
 	Grid::AttachmentAccessor<EdgeBase, TAttachment>(grid, a)
+{
+}
+
+template <class TAttachment>
+Grid::EdgeAttachmentAccessor<TAttachment>::
+EdgeAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
+	Grid::AttachmentAccessor<EdgeBase, TAttachment>(grid, a, autoAttach)
 {
 }
 
@@ -579,6 +593,13 @@ FaceAttachmentAccessor(Grid& grid, TAttachment& a) :
 {
 }
 
+template <class TAttachment>
+Grid::FaceAttachmentAccessor<TAttachment>::
+FaceAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
+	Grid::AttachmentAccessor<Face, TAttachment>(grid, a, autoAttach)
+{
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceAttachmentAccessor
@@ -600,6 +621,13 @@ template <class TAttachment>
 Grid::VolumeAttachmentAccessor<TAttachment>::
 VolumeAttachmentAccessor(Grid& grid, TAttachment& a) :
 	Grid::AttachmentAccessor<Volume, TAttachment>(grid, a)
+{
+}
+
+template <class TAttachment>
+Grid::VolumeAttachmentAccessor<TAttachment>::
+VolumeAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
+	Grid::AttachmentAccessor<Volume, TAttachment>(grid, a, autoAttach)
 {
 }
 

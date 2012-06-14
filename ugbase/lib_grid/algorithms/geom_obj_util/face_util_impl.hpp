@@ -141,10 +141,12 @@ CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosV
 //	init v with 0.
 	VecSet(v, 0);
 
+	FaceVertices::ConstVertexArray vrts = f->vertices();
+
 //	sum up
 	for(uint i = 0; i < numVrts; ++i)
 	{
-		VecAdd(v, v, aaPosVRT[f->vertex(i)]);
+		VecAdd(v, v, aaPosVRT[vrts[i]]);
 	}
 
 //	average
@@ -154,6 +156,38 @@ CalculateCenter(const FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosV
 	return v;
 }
 
+
+////////////////////////////////////////////////////////////////////////
+template<class TAAPosVRT, class TAAWeightVRT>
+UG_API
+typename TAAPosVRT::ValueType
+CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
+{
+	uint numVrts = f->num_vertices();
+	typename TAAPosVRT::ValueType v;
+	typedef typename TAAWeightVRT::ValueType weight_t;
+//	init v with 0.
+	VecSet(v, 0);
+
+	FaceVertices::ConstVertexArray vrts = f->vertices();
+
+//	sum up
+	weight_t totalWeight = 0;
+	for(uint i = 0; i < numVrts; ++i)
+	{
+		weight_t w = aaWeight[vrts[i]];
+		VecScaleAppend(v, w, aaPos[vrts[i]]);
+		totalWeight += w;
+	}
+
+//	average
+	if(totalWeight != 0)
+		VecScale(v, v, 1./(number)totalWeight);
+
+	return v;
+}
+
+////////////////////////////////////////////////////////////////////////
 template <class vector_t>
 bool
 ContainsPoint(const FaceVertices* f, const vector_t& p,

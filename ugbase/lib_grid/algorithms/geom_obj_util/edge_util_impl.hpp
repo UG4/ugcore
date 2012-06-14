@@ -161,6 +161,30 @@ CalculateCenter(const EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT)
 	return v;
 }
 
+////////////////////////////////////////////////////////////////////////
+template<class TAAPosVRT, class TAAWeightVRT>
+UG_API
+typename TAAPosVRT::ValueType
+CalculateCenter(const EdgeVertices* e, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
+{
+	typename TAAPosVRT::ValueType v;
+	typedef typename TAAWeightVRT::ValueType weight_t;
+
+//	init v with 0.
+	VecSet(v, 0);
+
+//	sum up
+	weight_t w0 = aaWeight[e->vertex(0)];
+	weight_t w1 = aaWeight[e->vertex(1)];
+
+	VecScaleAdd(v, w0, aaPos[e->vertex(0)], w1, aaPos[e->vertex(1)]);
+
+	if((w0 + w1) != 0)
+		VecScale(v, v, 1. / (number)(w0 + w1));
+
+	return v;
+}
+
 template <class TEdgeIterator>
 void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						TEdgeIterator edgesEnd)

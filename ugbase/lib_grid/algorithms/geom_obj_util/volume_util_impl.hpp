@@ -25,20 +25,53 @@ template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(const VolumeVertices* vol, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
-	uint numVrts = vol->num_vertices();
 	typename TVertexPositionAttachmentAccessor::ValueType v;
 //	init v with 0.
 	VecSet(v, 0);
 
+	uint numVrts = vol->num_vertices();
+	VolumeVertices::ConstVertexArray vrts = vol->vertices();
+
 //	sum up
 	for(uint i = 0; i < numVrts; ++i)
 	{
-		VecAdd(v, v, aaPosVRT[vol->vertex(i)]);
+		VecAdd(v, v, aaPosVRT[vrts[i]]);
 	}
 
 //	average
 	if(numVrts > 0)
 		VecScale(v, v, 1./(number)numVrts);
+
+	return v;
+}
+
+////////////////////////////////////////////////////////////////////////
+template<class TAAPosVRT, class TAAWeightVRT>
+UG_API
+typename TAAPosVRT::ValueType
+CalculateCenter(const VolumeVertices* vol, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
+{
+	typename TAAPosVRT::ValueType v;
+	typedef typename TAAWeightVRT::ValueType weight_t;
+
+//	init v with 0.
+	VecSet(v, 0);
+
+	uint numVrts = vol->num_vertices();
+	VolumeVertices::ConstVertexArray vrts = vol->vertices();
+
+//	sum up
+	weight_t totalWeight = 0;
+	for(uint i = 0; i < numVrts; ++i)
+	{
+		weight_t w = aaWeight[vrts[i]];
+		VecScaleAppend(v, w, aaPos[vrts[i]]);
+		totalWeight += w;
+	}
+
+//	average
+	if(totalWeight != 0)
+		VecScale(v, v, 1./(number)totalWeight);
 
 	return v;
 }
