@@ -43,7 +43,7 @@ void RemoveLowerDimSubsets(SubsetGroup& subsetGroup)
 		if(subsetGroup.dim(s) < max)
 		{
 			// remove and start again
-			subsetGroup.remove(s);
+			subsetGroup.remove(subsetGroup[s]);
 			s = 0;
 		}
 		else
