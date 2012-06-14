@@ -1,0 +1,13 @@
+
+/** \page pageSTLesson10 Lesson 10 - Doxygen
+
+The purpose of this tutorial is to demonstrate how you can document
+your lua code so that you get a nice html documentation with doxygen.
+Here's the doxygen output: tut10_doxygen.lua . 
+
+Below you'll find the scripts sources.
+They are the same as in
+<tt>apps/tutorials/tut10_doxygen.lua</tt>
+\include tut10_doxygen.lua
+
+*/
