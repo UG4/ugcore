@@ -351,12 +351,6 @@ number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInte
 
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-// Volume Integrand implementations
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
 // IPData Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -446,6 +440,12 @@ class DirectIPDataIntegrand
 		};
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Volume Integrand implementations
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 ///////////////
 // DirectIPData
@@ -1077,6 +1077,233 @@ number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp)
 	return Integral(spGridFct, cmp, NULL, 1);
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Generic Boundary Integration Routine
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+template <int WorldDim, int dim, typename TConstIterator>
+number IntegrateManifoldUsingFV1Geom(TConstIterator iterBegin,
+                                       TConstIterator iterEnd,
+                                       typename domain_traits<WorldDim>::position_accessor_type& aaPos,
+                                       const ISubsetHandler* ish,
+                                       IIntegrand<MathVector<WorldDim>, WorldDim>& integrand,
+                                       const SubsetGroup& bndSSGrp)
+{
+//	reset the result
+	number integral = 0;
+
+//	note: this iterator is for the base elements, e.g. Face and not
+//			for the special type, e.g. Triangle, Quadrilateral
+	TConstIterator iter = iterBegin;
+
+//	this is the base element type (e.g. Face). This is the type when the
+//	iterators above are dereferenciated.
+	typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+
+//	create a FV1 Geometry
+	DimFV1Geometry<dim> geo;
+
+//	specify, which subsets are boundary
+	for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
+	{
+	//	get subset index
+		const int bndSubset = bndSSGrp[s];
+
+	//	request this subset index as boundary subset. This will force the
+	//	creation of boundary subsets when calling geo.update
+		geo.add_boundary_subset(bndSubset);
+	}
+
+//	vector of corner coordinates of element corners (to be filled for each elem)
+	std::vector<MathVector<WorldDim> > vCorner;
+
+// 	iterate over all elements
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get element
+		geometric_base_object* pElem = *iter;
+
+	//	get all corner coordinates
+		CollectCornerCoordinates(vCorner, *pElem, aaPos, true);
+
+	//	compute bf and grads at bip for element
+		if(!geo.update(pElem, &vCorner[0], ish))
+			UG_THROW("IntegrateManifold: "
+					"Cannot update Finite Volume Geometry.");
+
+	//	specify, which subsets are boundary
+		for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
+		{
+		//	get subset index
+			const int bndSubset = bndSSGrp[s];
+
+		//	get all bf of this subset
+			typedef typename DimFV1Geometry<dim>::BF BF;
+			const std::vector<BF>& vBF = geo.bf(bndSubset);
+
+		//	loop boundary faces
+			for(size_t b = 0; b < vBF.size(); ++b)
+			{
+			//	get bf
+				const BF& bf = vBF[b];
+
+			//	value
+				MathVector<WorldDim> value;
+
+			//	jacobian
+				MathMatrix<dim, WorldDim> JT;
+				Inverse(JT, bf.JTInv());
+
+			//	compute integrand values at integration points
+				try
+				{
+					integrand.values(&value, &(bf.global_ip()),
+									 pElem, &vCorner[0], &(bf.local_ip()),
+									 &(JT),
+									 1);
+				}
+				UG_CATCH_THROW("IntegrateManifold: Unable to compute values of "
+								"integrand at integration point.");
+
+			//	sum up contribution (normal includes area)
+				integral += VecDot(value, bf.normal());
+
+			} // end bf
+		} // end bnd subsets
+	} // end elem
+
+//	return the summed integral contributions of all elements
+	return integral;
+}
+
+template <typename TGridFunction, int dim>
+number IntegrateManifoldSubset(SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand,
+                                 SmartPtr<TGridFunction> spGridFct,
+                                 int si, const SubsetGroup& bndSSGrp, int quadOrder)
+{
+//	integrate elements of subset
+	typedef typename TGridFunction::template dim_traits<dim>::geometric_base_object geometric_base_object;
+	typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
+
+	spIntegrand->set_subset(si);
+
+	if(quadOrder > 2)
+		UG_THROW("IntegrateOverManifold: Currently only middle point rule implemented.");
+
+	return IntegrateManifoldUsingFV1Geom<TGridFunction::dim,dim,const_iterator>
+					(spGridFct->template begin<geometric_base_object>(si),
+	                 spGridFct->template end<geometric_base_object>(si),
+	                 spGridFct->domain()->position_accessor(),
+	                 spGridFct->domain()->subset_handler().get(),
+	                 *spIntegrand, bndSSGrp);
+}
+
+template <typename TGridFunction>
+number IntegrateManifoldSubsets(SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand,
+                                  SmartPtr<TGridFunction> spGridFct,
+                                  const char* BndSubsets, const char* InnerSubsets,
+                                  int quadOrder)
+{
+//	world dimensions
+	static const int dim = TGridFunction::dim;
+
+//	read subsets
+	SubsetGroup innerSSGrp(spGridFct->domain()->subset_handler());
+	if(InnerSubsets != NULL)
+	{
+		ConvertStringToSubsetGroup(innerSSGrp, InnerSubsets);
+		if(!SameDimensionsInAllSubsets(innerSSGrp))
+			UG_THROW("IntegrateManifold: Subsets '"<<InnerSubsets<<"' do not have same dimension."
+			         "Can not integrate on subsets of different dimensions.");
+	}
+	else
+	{
+	//	add all subsets and remove lower dim subsets afterwards
+		innerSSGrp.add_all();
+		RemoveLowerDimSubsets(innerSSGrp);
+	}
+
+//	read subsets
+	SubsetGroup bndSSGrp(spGridFct->domain()->subset_handler());
+	if(BndSubsets != NULL)
+		ConvertStringToSubsetGroup(bndSSGrp, BndSubsets);
+	else
+		UG_THROW("IntegrateManifold: No boundary subsets passed.");
+
+//	reset value
+	number value = 0;
+
+//	loop subsets
+	for(size_t i = 0; i < innerSSGrp.num_subsets(); ++i)
+	{
+	//	get subset index
+		const int si = innerSSGrp[i];
+
+	//	check dimension
+		if(innerSSGrp.dim(si) != dim && innerSSGrp.dim(si) != DIM_SUBSET_EMPTY_GRID)
+			UG_THROW("IntegrateManifold: Dimension of inner subset is "<<
+			         innerSSGrp.dim(si)<<", but only World Dimension "<<dim<<
+			         " subsets can be used for inner subsets.");
+
+	//	integrate elements of subset
+		switch(innerSSGrp.dim(si))
+		{
+			case DIM_SUBSET_EMPTY_GRID: break;
+			case dim: value += IntegrateManifoldSubset<TGridFunction, dim>(spIntegrand, spGridFct, si, bndSSGrp, quadOrder); break;
+			default: UG_THROW("IntegrateManifold: Dimension "<<innerSSGrp.dim(si)<<" not supported. "
+			                  " World dimension is "<<dim<<".");
+		}
+	}
+
+#ifdef UG_PARALLEL
+	// sum over processes
+	if(pcl::GetNumProcesses() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		number local = value;
+		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+	}
+#endif
+
+//	return the result
+	return value;
+}
+
+template <typename TGridFunction>
+number IntegralOverManifold(SmartPtr<IDirectIPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+                            SmartPtr<TGridFunction> spGridFct,
+                            const char* BndSubset, const char* InnerSubset,
+                            number time,
+                            int quadOrder)
+{
+	SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand
+		= CreateSmartPtr(new DirectIPDataIntegrand<MathVector<TGridFunction::dim>, TGridFunction>(spData, spGridFct, time));
+
+	return IntegrateManifoldSubsets(spIntegrand, spGridFct, BndSubset, InnerSubset, quadOrder);
+}
+
+///////////////
+// lua data
+///////////////
+
+#ifdef UG_FOR_LUA
+template <typename TGridFunction>
+number IntegralOverManifold(const char* luaFct,
+                SmartPtr<TGridFunction> spGridFct,
+                const char* BndSubset, const char* InnerSubset,
+                number time,
+                int quadOrder)
+{
+	static const int dim = TGridFunction::dim;
+	SmartPtr<IDirectIPData<MathVector<dim>, dim> > sp =
+			LuaUserDataFactory<MathVector<dim>, dim>::create(luaFct);
+	return IntegralOverManifold(sp, spGridFct, BndSubset, InnerSubset, time, quadOrder);
+}
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 // Boundary Integral
 ////////////////////////////////////////////////////////////////////////////////
@@ -1097,19 +1324,19 @@ number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp)
  * @return	the integral
  */
 template <typename TGridFunction>
-number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
-                               const char* BndSubset, const char* InnerSubset = NULL)
+number IntegrateGradientOverManifold(TGridFunction& u, const char* cmp,
+                                   const char* BndSubset, const char* InnerSubset = NULL)
 {
 //	get function id of name
 	const size_t fct = u.fct_id_by_name(cmp);
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW("IntegrateFluxOnBoundary: Function space does not contain"
+		UG_THROW("IntegrateGradientOverManifold: Function space does not contain"
 				" a function with name " << cmp << ".");
 
 	if(u.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
-		UG_THROW("IntegrateFluxOnBoundary:"
+		UG_THROW("IntegrateGradientOverManifold:"
 				 "Only implemented for Lagrange P1 functions.");
 
 //	read subsets
@@ -1125,7 +1352,7 @@ number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
 		ConvertStringToSubsetGroup(bndSSGrp, u.domain()->subset_handler(), BndSubset);
 	}
 	else{
-		UG_THROW("IntegrateFluxOnBoundary: No boundary subsets specified. Aborting.");
+		UG_THROW("IntegrateGradientOverManifold: No boundary subsets specified. Aborting.");
 	}
 
 //	reset value
@@ -1142,7 +1369,7 @@ number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
 
 
 		if (innerSSGrp.dim(i) != TGridFunction::dim)
-			UG_THROW("IntegrateFluxOnBoundary: Element dimension does not match world dimension!");
+			UG_THROW("IntegrateGradientOverManifold: Element dimension does not match world dimension!");
 
 	//	create integration kernel
 		static const int dim = TGridFunction::dim;
@@ -1183,7 +1410,7 @@ number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
 
 		//	compute bf and grads at bip for element
 			if(!geo.update(elem, &vCorner[0], u.domain()->subset_handler().get()))
-				UG_THROW("IntegrateFluxOnBoundary: "
+				UG_THROW("IntegrateGradientOverManifold: "
 						"Cannot update Finite Volume Geometry.");
 
 		//	get fct multi-indeces of element
@@ -1211,7 +1438,7 @@ number IntegrateFluxOnBoundary(TGridFunction& u, const char* cmp,
 
 				//	check multi indices
 					UG_ASSERT(ind.size() == bf.num_sh(),
-					          "IntegrateFluxOnBoundary::values: Wrong number of"
+					          "IntegrateGradientOverManifold::values: Wrong number of"
 							  " multi indices, ind: "<<ind.size() << ", bf.num_sh: "
 							  << bf.num_sh());
 

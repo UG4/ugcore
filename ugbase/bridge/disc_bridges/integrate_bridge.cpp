@@ -88,14 +88,18 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("L2Norm",static_cast<number (*)(SmartPtr<TFct>, const char*, int, const char*)>(&L2Norm<TFct>),grp);
 	}
 
-//	IntegrateFluxOnBoundary
+//	IntegrateGradientOnBoundary
 	{
-		typedef number (*fct_type)(TFct&, const char*, const char*, const char*);
-		reg.add_function("IntegrateFluxOnBoundary",static_cast<fct_type>(&IntegrateFluxOnBoundary<TFct>),grp,
-		                 "Integral", "GridFunction#Component#BoundarySubset#InnerSubset");
+		reg.add_function("IntegrateGradientOverManifold",static_cast<number (*)(TFct&, const char*, const char*, const char*)>(&IntegrateGradientOverManifold<TFct>),grp, "Integral", "GridFunction#Component#BoundarySubset#InnerSubset");
 	}
 
-
+//	IntegralOverManifold
+	{
+		reg.add_function("IntegralOverManifold", static_cast<number (*)(SmartPtr<IDirectIPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*, const char*, number, int)>(&IntegralOverManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets#InnerSubsets#Time#QuadOrder");
+#ifdef UG_FOR_LUA
+		reg.add_function("IntegralOverManifold", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, const char*, number, int)>(&IntegralOverManifold<TFct>), grp, "Integral", "LuaData#GridFunction#BoundarySubsets#InnerSubsets#Time#QuadOrder");
+#endif
+	}
 
 }
 
