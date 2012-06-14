@@ -180,7 +180,7 @@ void FAMG<TAlgebra>::precalc_level(size_t level)
 		{
 			t.set_storage_type(PST_CONSISTENT);
 			testvectors[i].set_storage_type(PST_CONSISTENT);
-			gather_vertical(testvectors[i], t, level, PST_CONSISTENT);
+			super::gather_vertical(testvectors[i], t, level, PST_CONSISTENT);
 			testvectors[i] = t;
 		}
 	}
