@@ -2,6 +2,7 @@
 
 /** \page pageBuildUG4 Build UG4
 
+- \ref secBuildUG4Checkout
 - \ref secBuildUG4RunCmake
 - \ref secBuildUG4Make
 
@@ -17,28 +18,38 @@ Create a \c ug4 directory and perform a svn checkout on the trunk.
 - <tt>cd ug4</tt>
 - <tt>svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>
 
-In the following section, <YOURUG4ROOT> is the directory which contains 
+In the following section, YOURUG4ROOT is the directory which contains 
 ug_cmake_includes.txt, so depending on your svn checkout, 
-this is ug4 or ug4/trunk. 
+this is ug4 or ug4/trunk.
+Because of that, always keep in mind that people mean <tt>YOURUG4ROOT/apps</tt> when
+they speak about <tt>ug4/apps</tt> or <tt>ug4/trunk/apps</tt>. 
 
 <hr>
 \section Enable bash tools
 For some helpful bash tools and completion, add this line to the end of your
 <tt>~/.bashrc</tt> (replace <YOURUG4ROOT> with your path):
 \code
-source <YOURUG4ROOT>/scripts/shell/ugbash
+source YOURUG4ROOT/scripts/shell/ugbash
 \endcode
-\note After this, the environment variable $UG4_ROOT is set to <YOURUG4ROOT>.
+\note After this, the environment variable $UG4_ROOT is set to YOURUG4ROOT.
 
-If you are new to bash/Linux, please try out <tt>source <YOURUG4ROOT>/scripts/shell/prompt</tt> . 
+If you are new to bash/Linux, please try out <tt>source YOURUG4ROOT/scripts/shell/prompt</tt> . 
 That way you'll always see in which path you are.
 
 <hr>
 \section secBuildUG4RunCmake Run CMake
 
+We are using cmake to do an out of source build. That means that the files created at compile 
+time are in a different directory than the source. It is recommended to do the build in 
+subdirectories of YOURUG4ROOT. Depending on the type of build, you can give them names, most
+common are <tt>build_release</tt> or <tt>build_debug</tt>, but some also like 
+<tt>debug</tt> or <tt>release</tt>. When you are in the directory, you start <tt>cmake [DIR]</tt> 
+where [DIR] is the directory where you find the CMakeLists.txt which says "project(P_UG4)" inside.
+The following example is for a debug build:  
+
 <ol>
   <li>Open a terminal/shell window</li>
-  <li>move to <tt>UG4ROOT</tt></li>
+  <li>move to <tt>YOURUG4ROOT</tt></li>
   <li><tt>mkdir build_debug</tt></li>
   <li><tt>cd build_debug</tt></li>
   <li> Generate Makefiles:
@@ -65,7 +76,8 @@ when you called cmake the first time.
 
 Note that you only have to specify the variables which you want to change.
 All other variables will keep their values.
-One widely used option is <tt>-DDEBUG=ON</tt>, so you use it like <tt>cmake -DDEBUG=ON ..</tt> .
+Since in our example we want to do a debug build (hence the name <tt>build_debug</tt>)
+we need to enter <tt>cmake -DDEBUG=ON ..</tt> . On the console in <tt>YOURUG4ROOT/build_debug</tt>.
 
 As default ug is build for all supported world dimensions (<tt>Dim = 1,2,3</tt>).
 If you only need a special dimension (e.g. for code development) and you want to 
@@ -83,8 +95,19 @@ So, please use: <tt>cmake -DDIM:STRING=2 ..</tt> etc.
 <hr>
 \section secBuildUG4Make Make
 
--# move to <tt>ug4/trunk/build_debug</tt>
--# <tt>make</tt>
-and your \ug4 is being build
+<ol>
+<li>move to <tt>YOURUG4ROOT/build_debug</tt>
+<li> <tt>make</tt>
+</ol>
+and your \ug4 is being build. Common options for make are
+<ul>
+<li> <tt>-k</tt> Don't stop at errors
+<li> <tt>-jN</tt> Where N is the number of cores. We suggest 
+to use no more than 4 and to keep an eye on memory consumption.
+There are some files in ug4/ugbase/bridge which need 1 GB RAM when being compiled, 
+so you'll get stuck there. 
+</ul>
+
+If everything went fine, you can move to YOURUG4ROOT/bin and start \ref pageUG4Shell .
 
 */
