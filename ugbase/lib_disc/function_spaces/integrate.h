@@ -319,20 +319,23 @@ number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInte
 		const int si = ssGrp[i];
 
 	//	check dimension
-		if(ssGrp.dim(si) > dim)
-			UG_THROW("IntegrateSubsets: Dimension of subset is "<<ssGrp.dim(si)<<", but "
+		if(ssGrp.dim(i) > dim)
+			UG_THROW("IntegrateSubsets: Dimension of subset is "<<ssGrp.dim(i)<<", but "
 			         " World Dimension is "<<dim<<". Cannot integrate this.");
 
 	//	integrate elements of subset
-		switch(ssGrp.dim(si))
+		try{
+		switch(ssGrp.dim(i))
 		{
 			case DIM_SUBSET_EMPTY_GRID: break;
 			case 1: value += IntegrateSubset<TGridFunction, 1>(spIntegrand, spGridFct, si, quadOrder); break;
 			case 2: value += IntegrateSubset<TGridFunction, 2>(spIntegrand, spGridFct, si, quadOrder); break;
 			case 3: value += IntegrateSubset<TGridFunction, 3>(spIntegrand, spGridFct, si, quadOrder); break;
-			default: UG_THROW("IntegrateSubsets: Dimension "<<ssGrp.dim(si)<<" not supported. "
+			default: UG_THROW("IntegrateSubsets: Dimension "<<ssGrp.dim(i)<<" not supported. "
 			                  " World dimension is "<<dim<<".");
 		}
+		}
+		UG_CATCH_THROW("IntegrateSubsets: Integration failed on subset "<<si);
 	}
 
 #ifdef UG_PARALLEL
@@ -1243,17 +1246,17 @@ number IntegrateManifoldSubsets(SmartPtr<IIntegrand<MathVector<TGridFunction::di
 		const int si = innerSSGrp[i];
 
 	//	check dimension
-		if(innerSSGrp.dim(si) != dim && innerSSGrp.dim(si) != DIM_SUBSET_EMPTY_GRID)
+		if(innerSSGrp.dim(i) != dim && innerSSGrp.dim(i) != DIM_SUBSET_EMPTY_GRID)
 			UG_THROW("IntegrateManifold: Dimension of inner subset is "<<
-			         innerSSGrp.dim(si)<<", but only World Dimension "<<dim<<
+			         innerSSGrp.dim(i)<<", but only World Dimension "<<dim<<
 			         " subsets can be used for inner subsets.");
 
 	//	integrate elements of subset
-		switch(innerSSGrp.dim(si))
+		switch(innerSSGrp.dim(i))
 		{
 			case DIM_SUBSET_EMPTY_GRID: break;
 			case dim: value += IntegrateManifoldSubset<TGridFunction, dim>(spIntegrand, spGridFct, si, bndSSGrp, quadOrder); break;
-			default: UG_THROW("IntegrateManifold: Dimension "<<innerSSGrp.dim(si)<<" not supported. "
+			default: UG_THROW("IntegrateManifold: Dimension "<<innerSSGrp.dim(i)<<" not supported. "
 			                  " World dimension is "<<dim<<".");
 		}
 	}
