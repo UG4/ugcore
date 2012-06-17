@@ -1,28 +1,29 @@
 /*
- * lgmath_matrix_functions_common_impl.hpp
+ * math_matrix_functions_common_impl.hpp
  *
  *  Created on: 07.07.2009
  *      Author: andreasvogel
  */
 
-#ifndef __H__LGMATH__LGMATH_MATRIX_FUNCTIONS_COMMON_IMPL__
-#define __H__LGMATH__LGMATH_MATRIX_FUNCTIONS_COMMON_IMPL__
+#ifndef __H__UG__COMMON__MATH_MATRIX_FUNCTIONS_COMMON_IMPL__
+#define __H__UG__COMMON__MATH_MATRIX_FUNCTIONS_COMMON_IMPL__
 
 #include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <cassert>
 #include "math_matrix.h"
+#include "common/assert.h"
 #include "common/static_assert.h"
 
-namespace ug
-{
+namespace ug{
 
-///	adds two matrices and stores the result in a third one
-// mOut = m1 + m2
+////////////////////////////////////////////////////////////////////////////////
+// Addition of Matrices
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename matrix_t>
-inline
-void
+inline void
 MatAdd(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 {
 	typedef typename matrix_t::size_type size_type;
@@ -33,11 +34,12 @@ MatAdd(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 		}
 }
 
-///	subtracts m2 from m1 and stores the result in a mOut
-// mOut = m1 - m2
+////////////////////////////////////////////////////////////////////////////////
+// Subtraction of Matrices
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename matrix_t>
-inline
-void
+inline void
 MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 {
 	typedef typename matrix_t::size_type size_type;
@@ -48,12 +50,15 @@ MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 		}
 }
 
-///	multiply two matrices and stores the result in a third one
-// mOut = m1 * m2
+
+////////////////////////////////////////////////////////////////////////////////
+// Multiplication of Matrices
+////////////////////////////////////////////////////////////////////////////////
+
 template <size_t N, size_t M, size_t L, typename T>
-inline
-void
-MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1, const MathMatrix<L, M, T>& m2)
+inline void
+MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
+            const MathMatrix<L, M, T>& m2)
 {
 	for(size_t i = 0; i < N; ++i)
 		for(size_t j = 0; j < M; ++j)
@@ -66,12 +71,10 @@ MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1, const Math
 		}
 }
 
-///	multiply three matrices and stores the result in a fourth one
-// mOut = m1 * m2 * m3
 template <size_t N, size_t M, size_t L, size_t P, typename T>
-inline
-void
-MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1, const MathMatrix<L, P, T>& m2, const MathMatrix<P, M, T>& m3)
+inline void
+MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1,
+            const MathMatrix<L, P, T>& m2, const MathMatrix<P, M, T>& m3)
 {
 	MathMatrix<L, M, T> help;
 
@@ -92,12 +95,10 @@ MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1, const Math
 		}
 }
 
-///	multiply two transposed matrices and stores the result in a third one
-// mOut = m1^T * m2^T
 template <size_t N, size_t M, size_t L, typename T>
-inline
-void
-MatMultiplyTransposed(MathMatrix<N, M, T>& mOut, const MathMatrix<L, N, T>& m1, const MathMatrix<M, L, T>& m2)
+inline void
+MatMultiplyTransposed(MathMatrix<N, M, T>& mOut, const MathMatrix<L, N, T>& m1,
+                      const MathMatrix<M, L, T>& m2)
 {
 	for(size_t i = 0; i < N; ++i)
 		for(size_t j = 0; j < M; ++j)
@@ -110,11 +111,8 @@ MatMultiplyTransposed(MathMatrix<N, M, T>& mOut, const MathMatrix<L, N, T>& m1, 
 		}
 }
 
-///	multiply a transposed matrix with itself and stores the result in a second one
-// mOut = m^T * m
 template <size_t N, size_t M, typename T>
-inline
-void
+inline void
 MatMultiplyMTM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m)
 {
 	for(size_t i = 0; i < N; ++i)
@@ -136,11 +134,8 @@ MatMultiplyMTM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m)
 	}
 }
 
-///	multiply a matrix with its transposed and stores the result in a second one
-// mOut = m * m^T
 template <size_t N, size_t M, typename T>
-inline
-void
+inline void
 MatMultiplyMMT(MathMatrix<M, M, T>& mOut, const MathMatrix<M, N, T>& m)
 {
 	for(size_t i = 0; i < M; ++i)
@@ -162,9 +157,12 @@ MatMultiplyMMT(MathMatrix<M, M, T>& mOut, const MathMatrix<M, N, T>& m)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// "Contraction" for Matrices (note: contraction is only known regarding tensors!)
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename matrix_t>
-inline
-typename matrix_t::value_type
+inline typename matrix_t::value_type
 MatContraction(const matrix_t& m1, const matrix_t& m2)
 {
 	typename matrix_t::value_type norm = 0;
@@ -178,11 +176,12 @@ MatContraction(const matrix_t& m1, const matrix_t& m2)
 	return norm;
 }
 
-///	scales a matrix_t and returns the resulting matrix_t
-// mOut = scaleFac * m
+////////////////////////////////////////////////////////////////////////////////
+// Scaling of Matrices
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename matrix_t>
-inline
-void
+inline void
 MatScale(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m)
 {
 	typedef typename matrix_t::size_type size_type;
@@ -193,11 +192,8 @@ MatScale(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m)
 		}
 }
 
-///	scales a matrix_t and adds the resulting matrix to a second one
-// mOut = scaleFac * m
 template <typename matrix_t>
-inline
-void
+inline void
 MatScaleAppend(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m)
 {
 	typedef typename matrix_t::size_type size_type;
@@ -208,15 +204,15 @@ MatScaleAppend(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& 
 		}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Transposed of Matrix
+////////////////////////////////////////////////////////////////////////////////
 
-/// transpose a matrix_t
-/// transpose a matrix_t
 template <typename matrix_t>
-inline
-void
+inline void
 Transpose(matrix_t& mOut, const matrix_t& m)
 {
-	assert(&mOut != &m && "ERROR in Transpose(matrix_t& mOut, const matrix_t& m): mOut and m have to be different");
+	UG_ASSERT(&mOut != &m, "Transpose: mOut and m have to be different");
 
 	typedef typename matrix_t::size_type size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
@@ -226,13 +222,11 @@ Transpose(matrix_t& mOut, const matrix_t& m)
 		}
 }
 
-/// transpose a matrix_t, override original matrix_t
 template <typename matrix_t>
-inline
-void
+inline void
 Transpose(matrix_t& m)
 {
-	assert(m.num_rows()==m.num_cols() && "ERROR in Transpose(matrix_t& m): Square Matrix needed");
+	UG_ASSERT(m.num_rows()==m.num_cols(), "Transpose: Square Matrix needed");
 
 	typedef typename matrix_t::size_type size_type;
 	matrix_t _temp;
@@ -249,34 +243,33 @@ Transpose(matrix_t& m)
 			m(i, j) = _temp(j, i);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Determinant of Matrix
+////////////////////////////////////////////////////////////////////////////////
 
-template <size_t N, size_t M, typename T>
-inline
-typename MathMatrix<N,M,T>::value_type
-Determinant(const MathMatrix<N,M,T>& m)
+template <size_t N, typename T>
+inline typename MathMatrix<N,N,T>::value_type
+Determinant(const MathMatrix<N,N,T>& m)
 {
-	UG_THROW("Determinant for matrix of size "<<N<<"x"<<M<<" not implemented.");
+	UG_THROW("Determinant for matrix of size "<<N<<"x"<<N<<" not implemented.");
 }
 
 template <typename T>
-inline
-typename MathMatrix<1,1,T>::value_type
+inline typename MathMatrix<1,1,T>::value_type
 Determinant(const MathMatrix<1,1,T>& m)
 {
 	return m(0,0);
 }
 
 template <typename T>
-inline
-typename MathMatrix<2,2,T>::value_type
+inline typename MathMatrix<2,2,T>::value_type
 Determinant(const MathMatrix<2,2,T>& m)
 {
 	return (m(0,0)*m(1,1) - m(1,0)*m(0,1));
 }
 
 template <typename T>
-inline
-typename MathMatrix<3,3,T>::value_type
+inline typename MathMatrix<3,3,T>::value_type
 Determinant(const MathMatrix<3,3,T>& m)
 {
 	return 	m(0,0)*m(1,1)*m(2,2)
@@ -287,33 +280,109 @@ Determinant(const MathMatrix<3,3,T>& m)
 			- m(0,2)*m(1,1)*m(2,0);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Gram Determinant of Matrix
+////////////////////////////////////////////////////////////////////////////////
+
 template <size_t N, size_t M, typename T>
-inline
-void
+inline typename MathMatrix<N,M,T>::value_type
+GramDeterminant(const MathMatrix<N,M,T>& m)
+{
+	if(N <= M)
+	{
+		MathMatrix<N,N,T> mmT;
+		MatMultiplyMMT(mmT, m);
+		return Determinant(mmT);
+	}
+	else
+	{
+		MathMatrix<M,M,T> mTm;
+		MatMultiplyMTM(mTm, m);
+		return Determinant(mTm);
+	}
+}
+
+template <typename T>
+inline typename MathMatrix<1,1,T>::value_type
+GramDeterminant(const MathMatrix<1,1,T>& m)
+{
+	return pow(Determinant(m), 2);
+}
+
+template <typename T>
+inline typename MathMatrix<2,2,T>::value_type
+GramDeterminant(const MathMatrix<2,2,T>& m)
+{
+	return pow(Determinant(m), 2);
+}
+
+template <typename T>
+inline typename MathMatrix<3,3,T>::value_type
+GramDeterminant(const MathMatrix<3,3,T>& m)
+{
+	return pow(Determinant(m), 2);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Sqrt Gram Determinant of Matrix
+////////////////////////////////////////////////////////////////////////////////
+
+template <size_t N, size_t M, typename T>
+inline typename MathMatrix<N,M,T>::value_type
+SqrtGramDeterminant(const MathMatrix<N,M,T>& m)
+{
+	return sqrt(GramDeterminant(m));
+}
+
+template <typename T>
+inline typename MathMatrix<1,1,T>::value_type
+SqrtGramDeterminant(const MathMatrix<1,1,T>& m)
+{
+	return fabs(Determinant(m));
+}
+
+template <typename T>
+inline typename MathMatrix<2,2,T>::value_type
+SqrtGramDeterminant(const MathMatrix<2,2,T>& m)
+{
+	return fabs(Determinant(m));
+}
+
+template <typename T>
+inline typename MathMatrix<3,3,T>::value_type
+SqrtGramDeterminant(const MathMatrix<3,3,T>& m)
+{
+	return fabs(Determinant(m));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Inverse of Matrix
+////////////////////////////////////////////////////////////////////////////////
+
+template <size_t N, size_t M, typename T>
+inline void
 Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
 {
 	UG_THROW("Inverse for matrix of size "<<N<<"x"<<M<<" not implemented.");
 }
 
 template <typename T>
-inline
-void
+inline void
 Inverse(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m)
 {
-	assert(&mOut != &m && "ERROR: mOut and m have to be different");
-	assert(m(0,0) != 0 && "ERROR in Inverse: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
+	UG_ASSERT(m(0,0) != 0, "Inverse: determinate is zero, can not Invert Matrix");
 	mOut(0,0) =  1./m(0,0);
 }
 
 template <typename T>
-inline
-void
+inline void
 Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m)
 {
 	typename MathMatrix<2,2,T>::value_type det;
 	det = Determinant(m);
-	assert(&mOut != &m && "ERROR: mOut and m have to be different");
-	assert(det != 0 && "ERROR in Inverse: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
+	UG_ASSERT(det != 0, "Inverse: determinate is zero, can not Invert Matrix");
 	typename MathMatrix<2,2,T>::value_type invdet = 1./det;
 
 	mOut(0,0) =  m(1,1)*invdet;
@@ -323,14 +392,13 @@ Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m)
 }
 
 template <typename T>
-inline
-void
+inline void
 Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 {
 	typename MathMatrix<3,3,T>::value_type det;
 	det = Determinant(m);
-	assert(&mOut != &m && "ERROR: mOut and m have to be different");
-	assert(det != 0 && "ERROR in Inverse: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
+	UG_ASSERT(det != 0, "Inverse: determinate is zero, can not Invert Matrix");
 	typename MathMatrix<3,3,T>::value_type invdet = 1./det;
 
 	mOut(0,0) = ( m(1,1)*m(2,2) - m(1,2)*m(2,1)) * invdet;
@@ -345,33 +413,30 @@ Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 }
 
 template <size_t N, size_t M, typename T>
-inline
-void
+inline void
 Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m, typename MathMatrix<N,M,T>::value_type& det)
 {
 	UG_THROW("Inverse for matrix of size "<<N<<"x"<<M<<" not implemented.");
 }
 
 template <typename T>
-inline
-void
+inline void
 Inverse(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m, typename MathMatrix<1,1,T>::value_type& det)
 {
 	det = m(0,0);
-	assert(&mOut != &m && "ERROR: mOut and m have to be different");
-	assert(m(0,0) != 0 && "ERROR in Inverse: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
+	UG_ASSERT(m(0,0) != 0, "Inverse: determinate is zero, can not Invert Matrix");
 	mOut(0,0) =  1./m(0,0);
 }
 
 
 template <typename T>
-inline
-void
+inline void
 Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename MathMatrix<2,2,T>::value_type& det)
 {
 	det = Determinant(m);
-	assert(&mOut != &m && "ERROR: mOut and m have to be different");
-	assert(det != 0 && "ERROR in Inverse: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
+	UG_ASSERT(det != 0, "Inverse: determinate is zero, can not Invert Matrix");
 	typename MathMatrix<2,2,T>::value_type invdet = 1./det;
 
 	mOut(0,0) =  m(1,1)*invdet;
@@ -381,13 +446,12 @@ Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename MathMatrix
 }
 
 template <typename T>
-inline
-void
+inline void
 Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix<3,3,T>::value_type& det)
 {
 	det = Determinant(m);
-	assert(&mOut != &m && "ERROR: mOut and m have to be different");
-	assert(det != 0 && "ERROR in Inverse: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
+	UG_ASSERT(det != 0, "Inverse: determinate is zero, can not Invert Matrix");
 	typename MathMatrix<3,3,T>::value_type invdet = 1./det;
 
 	mOut(0,0) = ( m(1,1)*m(2,2) - m(1,2)*m(2,1)) * invdet;
@@ -401,32 +465,32 @@ Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix
 	mOut(2,2) = ( m(0,0)*m(1,1) - m(0,1)*m(1,0)) * invdet;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Inverse Transposed of Matrix
+////////////////////////////////////////////////////////////////////////////////
 
 template <size_t N, size_t M, typename T>
-inline
-void
+inline void
 InverseTransposed(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
 {
 	UG_THROW("InverseTransposed for matrix of size "<<M<<"x"<<N<<" not implemented.");
 }
 
 template <typename T>
-inline
-void
+inline void
 InverseTransposed(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m)
 {
 	Inverse(mOut, m);
 }
 
 template <typename T>
-inline
-void
+inline void
 InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m)
 {
 	typename MathMatrix<2,2,T>::value_type det;
 	det = Determinant(m);
-	assert(&mOut != &m && "ERROR: mOut and m have to be different");
-	assert(det != 0 && "ERROR in InverseTransposed: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(&mOut != &m, "InverseTransposed: mOut and m have to be different");
+	UG_ASSERT(det != 0, "InverseTransposed: determinate is zero, can not Invert Matrix");
 	typename MathMatrix<2,2,T>::value_type invdet = 1./det;
 
 	mOut(0,0) =  m(1,1)*invdet;
@@ -436,14 +500,13 @@ InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m)
 }
 
 template <typename T>
-inline
-void
+inline void
 InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 {
 	typename MathMatrix<3,3,T>::value_type det;
 	det = Determinant(m);
-	assert(&mOut != &m && "ERROR: mOut and m have to be different");
-	assert(det != 0 && "ERROR in InverseTransposed: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(&mOut != &m, "InverseTransposed: mOut and m have to be different");
+	UG_ASSERT(det != 0, "InverseTransposed: determinate is zero, can not Invert Matrix");
 	typename MathMatrix<3,3,T>::value_type invdet = 1./det;
 
     mOut(0,0) = ( m(1,1)*m(2,2) - m(2,1)*m(1,2)) * invdet;
@@ -458,29 +521,26 @@ InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 }
 
 template <size_t N, size_t M, typename T>
-inline
-void
+inline void
 InverseTransposed(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m, typename MathMatrix<N,M,T>::value_type& det)
 {
 	UG_THROW("InverseTransposed for matrix of size "<<M<<"x"<<N<<" not implemented.");
 }
 
 template <typename T>
-inline
-void
+inline void
 InverseTransposed(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m, typename MathMatrix<1,1,T>::value_type& det)
 {
 	Inverse(mOut, m, det);
 }
 
 template <typename T>
-inline
-void
+inline void
 InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename MathMatrix<2,2,T>::value_type& det)
 {
 	det = Determinant(m);
-	assert(&mOut != &m && "ERROR: mOut and m have to be different");
-	assert(det != 0 && "ERROR in InverseTransposed: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(&mOut != &m, "InverseTransposed: mOut and m have to be different");
+	UG_ASSERT(det != 0, "InverseTransposed: determinate is zero, can not Invert Matrix");
 	typename MathMatrix<2,2,T>::value_type invdet = 1./det;
 
 	mOut(0,0) =  m(1,1)*invdet;
@@ -490,13 +550,12 @@ InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename 
 }
 
 template <typename T>
-inline
-void
+inline void
 InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix<3,3,T>::value_type& det)
 {
 	det = Determinant(m);
-	assert(&mOut != &m && "ERROR: mOut and m have to be different");
-	assert(det != 0 && "ERROR in InverseTransposed: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(&mOut != &m, "InverseTransposed: mOut and m have to be different");
+	UG_ASSERT(det != 0, "InverseTransposed: determinate is zero, can not Invert Matrix");
 	typename MathMatrix<3,3,T>::value_type invdet = 1./det;
 
     mOut(0,0) = ( m(1,1)*m(2,2) - m(2,1)*m(1,2)) * invdet;
@@ -510,10 +569,12 @@ InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename 
     mOut(2,2) = ( m(0,0)*m(1,1) - m(1,0)*m(0,1)) * invdet;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 // Right-Inverse of Matrix
+////////////////////////////////////////////////////////////////////////////////
+
 template <size_t N, size_t M, typename T>
-inline
-void
+inline void
 RightInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
 {
 	UG_STATIC_ASSERT(M <= N, pseudo_inverse_does_not_exist);
@@ -528,10 +589,24 @@ RightInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
 	MatMultiplyTransposed(mOut, m, HInv);
 }
 
+template <>
+inline void
+RightInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m){Inverse(mOut, m);}
+
+template <>
+inline void
+RightInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m){Inverse(mOut, m);}
+
+template <>
+inline void
+RightInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m){Inverse(mOut, m);}
+
+////////////////////////////////////////////////////////////////////////////////
 // Left-Inverse of Matrix
+////////////////////////////////////////////////////////////////////////////////
+
 template <size_t N, size_t M, typename T>
-inline
-void
+inline void
 LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
 {
 	UG_STATIC_ASSERT(N <= M, pseudo_inverse_does_not_exist);
@@ -549,18 +624,6 @@ LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
 
 template <>
 inline void
-RightInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m){Inverse(mOut, m);}
-
-template <>
-inline void
-RightInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m){Inverse(mOut, m);}
-
-template <>
-inline void
-RightInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m){Inverse(mOut, m);}
-
-template <>
-inline void
 LeftInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m){Inverse(mOut, m);}
 
 template <>
@@ -571,34 +634,37 @@ template <>
 inline void
 LeftInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m){Inverse(mOut, m);}
 
+////////////////////////////////////////////////////////////////////////////////
+// Trace of Matrix
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
-inline
-typename MathMatrix<1,1,T>::value_type
+inline typename MathMatrix<1,1,T>::value_type
 Trace(const MathMatrix<1,1,T>& m)
 {
 	return m(0,0);
 }
 
 template <typename T>
-inline
-typename MathMatrix<2,2,T>::value_type
+inline typename MathMatrix<2,2,T>::value_type
 Trace(const MathMatrix<2,2,T>& m)
 {
 	return (m(0,0)+m(1,1));
 }
 
 template <typename T>
-inline
-typename MathMatrix<3,3,T>::value_type
+inline typename MathMatrix<3,3,T>::value_type
 Trace(const MathMatrix<3,3,T>& m)
 {
 	return 	(m(0,0)+m(1,1)+m(2,2));
 }
 
-/// Set each matrix entry to a scalar (componentwise)
+////////////////////////////////////////////////////////////////////////////////
+// Scalar operations for Matrices
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename matrix_t>
-inline
-void
+inline void
 MatSet(matrix_t& mInOut, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
@@ -609,10 +675,8 @@ MatSet(matrix_t& mInOut, typename matrix_t::value_type s)
 		}
 }
 
-/// Set each diagonal of a matrix to a scalar (componentwise)
 template <typename matrix_t>
-inline
-void
+inline void
 MatDiagSet(matrix_t& mInOut, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
@@ -623,10 +687,8 @@ MatDiagSet(matrix_t& mInOut, typename matrix_t::value_type s)
 		}
 }
 
-/// Add a scalar to a matrix (componentwise)
 template <typename matrix_t>
-inline
-void
+inline void
 MatAdd(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
@@ -637,10 +699,8 @@ MatAdd(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 		}
 }
 
-/// Subtract a scalar from a matrix (componentwise)
 template <typename matrix_t>
-inline
-void
+inline void
 MatSubtract(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
@@ -651,10 +711,8 @@ MatSubtract(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 		}
 }
 
-/// Devide a matrix by a scalar (componentwise)
 template <typename matrix_t>
-inline
-void
+inline void
 MatDevide(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
@@ -665,10 +723,8 @@ MatDevide(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 		}
 }
 
-/// Multiply a matrix by a scalar (componentwise)
 template <typename matrix_t>
-inline
-void
+inline void
 MatMultiply(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
@@ -680,8 +736,7 @@ MatMultiply(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 }
 
 template <typename matrix_t>
-inline
-void
+inline void
 MatIdentity(matrix_t& mOut)
 {
 	MatSet(mOut, 0);
@@ -689,8 +744,7 @@ MatIdentity(matrix_t& mOut)
 }
 
 template <typename matrix_t>
-inline
-void
+inline void
 MatRotationX(matrix_t& mOut, typename matrix_t::value_type rads)
 {
 	//UG_STATIC_ASSERT(matrix_t::RowSize > 2, AT_LEAST_3_ROWS_REQUIRED);
@@ -705,8 +759,7 @@ MatRotationX(matrix_t& mOut, typename matrix_t::value_type rads)
 }
 
 template <typename matrix_t>
-inline
-void
+inline void
 MatRotationY(matrix_t& mOut, typename matrix_t::value_type rads)
 {
 	//UG_STATIC_ASSERT(matrix_t::RowSize > 2, AT_LEAST_3_ROWS_REQUIRED);
@@ -721,8 +774,7 @@ MatRotationY(matrix_t& mOut, typename matrix_t::value_type rads)
 }
 
 template <typename matrix_t>
-inline
-void
+inline void
 MatRotationZ(matrix_t& mOut, typename matrix_t::value_type rads)
 {
 	MatIdentity(mOut);
@@ -733,9 +785,12 @@ MatRotationZ(matrix_t& mOut, typename matrix_t::value_type rads)
 	mOut(1, 0) = s;		mOut(1, 1) = c;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+///	Creates a rotation matrix given yaw, pitch and roll in radiants.
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename matrix_t>
-inline
-void
+inline void
 MatRotationYawPitchRoll(matrix_t& mOut,
 						typename matrix_t::value_type yaw,
 						typename matrix_t::value_type pitch,
@@ -752,9 +807,12 @@ MatRotationYawPitchRoll(matrix_t& mOut,
 	MatMultiply(mOut, tMat3, tMat1);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Norms for Matrices
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename matrix_t>
-inline
-typename matrix_t::value_type
+inline typename matrix_t::value_type
 MatFrobeniusNormSq(matrix_t& m)
 {
 	typename matrix_t::value_type norm = 0;
@@ -769,16 +827,14 @@ MatFrobeniusNormSq(matrix_t& m)
 }
 
 template <typename matrix_t>
-inline
-typename matrix_t::value_type
+inline typename matrix_t::value_type
 MatFrobeniusNorm(matrix_t& m)
 {
 	return static_cast<typename matrix_t::value_type>(sqrt(MatFrobeniusNormSq(m)));
 }
 
 template <typename matrix_t>
-inline
-typename matrix_t::value_type
+inline typename matrix_t::value_type
 MatOneNorm(matrix_t& m)
 {
 	typename matrix_t::value_type sum, max = 0;
@@ -796,8 +852,7 @@ MatOneNorm(matrix_t& m)
 }
 
 template <typename matrix_t>
-inline
-typename matrix_t::value_type
+inline typename matrix_t::value_type
 MatInftyNorm(matrix_t& m)
 {
 	typename matrix_t::value_type sum, max = 0;
@@ -815,8 +870,7 @@ MatInftyNorm(matrix_t& m)
 }
 
 template <typename matrix_t>
-inline
-typename matrix_t::value_type
+inline typename matrix_t::value_type
 MatMaxNorm(matrix_t& m)
 {
 	typename matrix_t::value_type max = 0;
@@ -830,6 +884,6 @@ MatMaxNorm(matrix_t& m)
 	return max;
 }
 
-} // end of namespace: lgmath
+} // end of namespace
 
-#endif /* __H__LGMATH__LGMATH_MATRIX_FUNCTIONS_COMMON_IMPL__ */
+#endif /* __H__UG__COMMON__MATH_MATRIX_FUNCTIONS_COMMON_IMPL__ */
