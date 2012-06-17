@@ -245,7 +245,7 @@ number Integrate(TConstIterator iterBegin,
 			const number weightIP = rQuadRule.weight(ip);
 
 		//	get determinate of mapping
-			const number det = Determinant(vJT[ip]);
+			const number det = SqrtGramDeterminant(vJT[ip]);
 
 		//	add contribution of integration point
 			intValElem += vValue[ip] * weightIP * det;
@@ -1295,10 +1295,10 @@ number IntegralOverManifold(SmartPtr<IDirectIPData<MathVector<TGridFunction::dim
 #ifdef UG_FOR_LUA
 template <typename TGridFunction>
 number IntegralOverManifold(const char* luaFct,
-                SmartPtr<TGridFunction> spGridFct,
-                const char* BndSubset, const char* InnerSubset,
-                number time,
-                int quadOrder)
+                            SmartPtr<TGridFunction> spGridFct,
+                            const char* BndSubset, const char* InnerSubset,
+                            number time,
+                            int quadOrder)
 {
 	static const int dim = TGridFunction::dim;
 	SmartPtr<IDirectIPData<MathVector<dim>, dim> > sp =
