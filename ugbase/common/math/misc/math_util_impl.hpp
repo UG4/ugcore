@@ -348,7 +348,7 @@ bool RayRayIntersection2d(vector_t &vOut, number& t0Out, number& t1Out,
 	if(det == 0.0) return false;
 
 	// compute inverse
-	Inverse(mInv, m, det);
+	Inverse(mInv, m);
 
 	// compute rhs of system
 	VecSubtract(b, p1, p0);
