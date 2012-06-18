@@ -7,6 +7,7 @@
 
 #include "local_dof_set.h"
 #include "lagrange/lagrange_local_dof.h"
+#include "crouzeix-raviart/crouzeix_raviart_local_dof.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 
 namespace ug{
@@ -47,11 +48,43 @@ void LocalDoFSetProvider::create_lagrange_sets(size_t order)
 	create_lagrange_set<ReferenceHexahedron>(order);
 }
 
+template <typename TRefElem>
+void LocalDoFSetProvider::create_crouzeix_raviart_sets()
+{
+//	create lagrange set
+	CrouzeixRaviartLDS<TRefElem>* setCrouzeixRaviart = new CrouzeixRaviartLDS<TRefElem>();
+
+//	remember created set for delete in destructor
+	m_vCreated.push_back(setCrouzeixRaviart);
+
+//	register the set
+	try{
+		register_set(LFEID(LFEID::CROUZEIX_RAVIART, 1), *setCrouzeixRaviart);
+	}
+	UG_CATCH_THROW("Unable to register CrouzeixRaviartLDS");
+}
+
+void LocalDoFSetProvider::create_crouzeix_raviart_sets()
+{
+	create_crouzeix_raviart_sets<ReferenceVertex>();
+	create_crouzeix_raviart_sets<ReferenceEdge>();
+	create_crouzeix_raviart_sets<ReferenceTriangle>();
+	create_crouzeix_raviart_sets<ReferenceQuadrilateral>();
+	create_crouzeix_raviart_sets<ReferenceTetrahedron>();
+	create_crouzeix_raviart_sets<ReferencePyramid>();
+	create_crouzeix_raviart_sets<ReferencePrism>();
+	create_crouzeix_raviart_sets<ReferenceHexahedron>();
+}
+
 void LocalDoFSetProvider::create_set(const LFEID& id)
 {
 	if(id.type() == LFEID::LAGRANGE)
 	{
 		create_lagrange_sets(id.order());
+	}
+	if(id.type() == LFEID::CROUZEIX_RAVIART)
+	{
+		create_crouzeix_raviart_sets();
 	}
 }
 

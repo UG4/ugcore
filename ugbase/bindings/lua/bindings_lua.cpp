@@ -13,7 +13,7 @@
 #include "info_commands.h"
 #include "lua_util.h"
 
-#define __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
+//#define __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 
 using namespace std;
 using namespace ug::script;

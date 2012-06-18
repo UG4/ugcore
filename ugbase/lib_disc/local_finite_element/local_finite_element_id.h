@@ -77,6 +77,7 @@ class LFEID
 		{
 			NONE = -1,
 			LAGRANGE = 0,
+			CROUZEIX_RAVIART,
 			DG,
 			USER_DEFINED,
 			NUM_SPACE_TYPES

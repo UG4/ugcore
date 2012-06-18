@@ -179,6 +179,13 @@ class LocalDoFSetProvider {
 	//	creation of lagrange set for all reference element
 		static void create_lagrange_sets(size_t order);
 
+	//	creation of crouzeix-raviart set for a reference element
+		template <typename TRefElem>
+		static void create_crouzeix_raviart_sets();
+
+	//	creation of crouzeix-raviart set for all reference element
+		static void create_crouzeix_raviart_sets();
+
 	// 	creation of set
 		static void create_set(const LFEID& id);
 

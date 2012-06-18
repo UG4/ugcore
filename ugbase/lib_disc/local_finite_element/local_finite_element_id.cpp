@@ -23,6 +23,7 @@ std::ostream& operator<<(std::ostream& out,	const LFEID& v)
 	switch(v.m_type)
 	{
 		case LFEID::LAGRANGE: out << "(Lagrange, " << ss.str() << ")"; break;
+		case LFEID::CROUZEIX_RAVIART: out << "(Crouzeix-Raviart, " << ss.str() << ")"; break;
 		case LFEID::DG: out << "(DG, " << ss.str() << ")"; break;
 		case LFEID::USER_DEFINED: out << "(User defined, " << ss.str() << ")"; break;
 		default: out << "(unknown, " << ss.str() << ")";
@@ -40,6 +41,7 @@ LFEID ConvertStringToLFEID(const char* type, int order)
 //	compare
 	LFEID::SpaceType eType = LFEID::NONE;
 	if(typeStr == "lagrange") eType = LFEID::LAGRANGE;
+	if(typeStr == "crouzeix-raviart") eType = LFEID::CROUZEIX_RAVIART;
 	if(typeStr == "dg") eType = LFEID::DG;
 
 	return LFEID(eType, order);
