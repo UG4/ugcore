@@ -41,7 +41,8 @@ environment
 	- \ref pageTutorials
 		- \ref pageScriptTutorial
 		- \ref pageUG4Profiling
-		- \ref pageUG4ScalabilityTests	
+		- \ref pageUG4ScalabilityTests
+		- \ref pageShellAndLinux	
 	- \ref pageUG4ParallelUsage
 		- \ref pageUG4ParallelComputing
 		- \ref pageugsubmit

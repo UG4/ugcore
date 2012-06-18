@@ -44,7 +44,7 @@ at the beginning of your script.
 For the moment, we only profile the top-level calls, not all subroutine calls. 
 This has performance reasons.
 Expect a performance drawback when calling small functions very often.
-You can also disable the LUA compiler for these calls:
+You can also disable the LUA profiler for these calls:
 \verbatim
 ProfileLUA(false)
 AssembleLinearOperatorRhsAndSolution(linOp, u, b)
@@ -243,7 +243,7 @@ void FunctionA_bad(double &b)
   for(size_t i=0; i<1000; i++)
   {
     // this section is too small!
-    PROFILE_BEGIN(FuncationA_bad_in_loop)
+    PROFILE_BEGIN(FunctionA_bad_in_loop)
     b += sin(b);
   }
 }
@@ -317,7 +317,7 @@ FunctionC                                             1    900 ns    0% 725.54 m
   FunctionB                                            2  579.6 us    0% 725.49 ms   99% 
   FunctionA                                        2000 98.969 ms   13% 98.969 ms   13% 
   FunctionA_bad                                    2000 243.79 ms   33% 625.94 ms   86% 
-    FuncationA_bad_in_loop                         2e+06 382.15 ms   52% 382.15 ms   52% 
+    FunctionA_bad_in_loop                         2e+06 382.15 ms   52% 382.15 ms   52% 
   FunctionA                                            1   49.5 us    0%   49.5 us    0% 
 
 MyFunction call list self time sorted
@@ -328,13 +328,13 @@ MyFunction                                             1  104.4 us    0% 725.64 
 FunctionB                                              2  579.6 us    0% 725.49 ms   99% 
 FunctionA                                           2000 98.969 ms   13% 98.969 ms   13% 
 FunctionA_bad                                       2000 243.79 ms   33% 625.94 ms   86% 
-FuncationA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
+FunctionA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
 
 MyFunction call list total time sorted
 total time sorted                                    hits       self time      total time 
 FunctionA                                              1   49.5 us    0%   49.5 us    0% 
 FunctionA                                           2000 98.969 ms   13% 98.969 ms   13% 
-FuncationA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
+FunctionA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
 FunctionA_bad                                       2000 243.79 ms   33% 625.94 ms   86% 
 FunctionB                                              2  579.6 us    0% 725.49 ms   99% 
 FunctionC                                              1    900 ns    0% 725.54 ms   99% 
@@ -348,7 +348,7 @@ FunctionA                                              1   49.5 us    0%   49.5 
 FunctionB                                              2  579.6 us    0% 725.49 ms   99% 
 FunctionA                                           2000 98.969 ms   13% 98.969 ms   13% 
 FunctionA_bad                                       2000 243.79 ms   33% 625.94 ms   86% 
-FuncationA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
+FunctionA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
     \endverbatim
     Here we see that <tt>FunctionA_bad</tt> takes six times as long as 
     <tt>FunctionA</tt>, even though they both perform the same task.
@@ -366,7 +366,7 @@ FuncationA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 
       </li>
     </ul>
   </li>
-  <li>Utilities for the <strong>Analysis of Profiling Aesults</strong> 
+  <li>Utilities for the <strong>Analysis of Profiling Results</strong> 
     (automatic comparison of several simulation runs etc.) see 
     \ref pageUG4ScalabilityTests .
   </li>

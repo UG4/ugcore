@@ -1,0 +1,71 @@
+//	created by Martin Rupp
+//	martin.rupp@gcsc.uni-frankfurt.de
+//	y12 m06 d18
+//  this is meant to be a absolute beginners introduction to some
+//  key elements of BASH, Linux, compiling etc.
+//  feel free to add more things, but KEEP IT SHORT (use links or create new page if longer)
+//  also add some nice books
+
+/** 
+\page pageShellAndLinux Some information about Shell and Linux
+
+- \ref secAbsoluteBeginners
+- \ref secRemoteEditors
+- \ref secOtherHints
+
+
+\section secAbsoluteBeginners Absolute Beginners
+<a href="http://linux.about.com/od/linux101/a/desktop11b.htm">A list of basic BASH commands</a> and
+<a href="http://www.tuxfiles.org/linuxhelp/cli.html">Linux Command Line for newbies</a>.
+
+<hr>
+\section secEditors Local Editors
+
+When you're running on your "home" system, you can run any editor you like, most 
+of the time Eclipse can do everything, especially with the appropriate plugins.
+Other recommended editors are gedit or any of the \ref secRemoteEditors for Linux, 
+<a href="http://notepad-plus-plus.org/">notepad++</a> for Windows, 
+<a href="http://aquamacs.org/">Aquamacs Emacs</a> for Mac or
+<a href="http://www.activestate.com/komodo-edit">Komodo Edit</a> for all Platforms.
+<br>
+
+
+<hr>
+\section secRemoteEditors Remote Editors
+
+When you want to access remote systems like clusters, 
+you can't get around learning a editor which is 
+running in text mode on your shell or via 
+<a href="http://de.wikipedia.org/wiki/X_Window_System">X11</a>. 
+Most popular editors are
+<ul>
+<li> <a href="http://www.howtogeek.com/howto/42980/the-beginners-guide-to-nano-the-linux-command-line-text-editor/">nano</a> 
+a really easy-to-use editor for beginners.
+<li> <a href="http://zoo.cs.yale.edu/classes/cs210/help/emacs.html">emacs</a> . A full 
+customizable editor with a lot of additional gimmicks. It can be run over X11 so you
+get a GUI.
+<li><a href="http://www.washington.edu/computing/unix/vi.html">vi / vim</a> . 
+Another very powerful editor.
+</ul>
+They are installed on almost all linux systems. 
+What kind of editor you need depends on taste and task you want to accomplish.
+
+If you spend a lot of time in the shell, you should really learn about programming the BASH:
+<ul>
+<li> <a href="http://de.wikibooks.org/wiki/Linux-Kompendium:_Shellprogrammierung">Linux-Kompendium auf wikibooks (German)</a>
+<li> <a href="http://www.schatenseite.de/uploads/media/shell.pdf">Even longer PDF about BASH programming (German)</a>
+</ul>
+
+<hr>
+\section secOtherHints Other Hints
+<ul>
+<li> <a href="http://wiki.linuxquestions.org/wiki/Packing_and_Unpacking_Files">Packing and Unpacking Files</a>
+<li> <a href="http://home.ubalt.edu/abento/linux/terminal/addtopath.html">Adding something to PATH in .bashrc</a>
+<li> <a href="http://www.thegeekstuff.com/2010/11/50-linux-commands/">50 Most Frequent Used Linux Commands (With Examples)</a>
+<li> <a href="http://www.thegeekstuff.com/2010/09/rsync-command-examples/">Synchronizing directories with rsync</a>
+<li> <a href="http://www.thegeekstuff.com/2009/03/15-practical-linux-find-command-examples/">Find files</a>
+<li> <a href="http://www.tuxfiles.org/linuxhelp/softinstall.html">Compiling and installing software from source in Linux</a> (Note: not the way to install ug4 though).
+<li> \ref pageUG4SSH
+</ul>
+
+*/

@@ -28,4 +28,12 @@ and how the amount of data processed in a given time scales with the number of
 cores on which the application is executed.
 - \subpage pageUG4ScalabilityTests
 
+
+<hr>
+\section secShellAndLinux Shell and Linux
+Here you find some links to Beginners Guide, Hints etc. for using the Shell and Linux.
+- \subpage pageShellAndLinux
+
+
+
 */

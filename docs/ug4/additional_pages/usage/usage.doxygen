@@ -6,6 +6,10 @@ As well some tutorials targeting special features of \ug4 are available.
 - \ref pageAdditionalSoftware
 - \subpage pageUG4Shell
 - \subpage pageTutorials
+	- \ref pageScriptTutorial
+	- \ref pageUG4Profiling
+	- \ref pageUG4ScalabilityTests
+	- \ref pageShellAndLinux	
 - \subpage pageUG4ParallelUsage
   - \ref pageUG4ParallelComputing
   - \ref pageugsubmit
