@@ -89,7 +89,7 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 	string filename=_filename;
 	string absoluteFilename=filename;
 
-	UG_LOG("LoadUGScript("<<filename<<", "<<(bDistributedLoad?"true":"false") << "\n");
+	//UG_LOG("LoadUGScript("<<filename<<", "<<(bDistributedLoad?"true":"false") << "\n");
 	long status=0;
 	BinaryBuffer buf;
 	std::vector<char> file;
@@ -195,12 +195,10 @@ bool ReadFile(const char* filename, vector<char> &file, bool bText)
 
 bool LoadUGScript_Parallel(const char* filename)
 {
-	UG_LOG("LoadUGScript_Parallel("<<filename<<")\n");
 	return LoadUGScript(filename, true);
 }
 bool LoadUGScript_Single(const char* filename)
 {
-	UG_LOG("LoadUGScript_Single("<<filename<<")\n");
 	return LoadUGScript(filename, false);
 }
 
