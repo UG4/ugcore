@@ -537,7 +537,7 @@ int main(int argc, char* argv[])
 		if(scriptName)
 		{
 			try{
-				if(!LoadUGScript(scriptName))
+				if(!LoadUGScript_Parallel(scriptName))
 				{
 					UG_LOG("Can not find specified script ('" << scriptName << "'). Aborting.\n");
 					bAbort=true;
