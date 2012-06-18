@@ -1088,7 +1088,7 @@ number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int WorldDim, int dim, typename TConstIterator>
-number IntegrateManifoldUsingFV1Geom(TConstIterator iterBegin,
+number IntegralNormalComponentOnManifoldUsingFV1Geom(TConstIterator iterBegin,
                                        TConstIterator iterEnd,
                                        typename domain_traits<WorldDim>::position_accessor_type& aaPos,
                                        const ISubsetHandler* ish,
@@ -1134,7 +1134,7 @@ number IntegrateManifoldUsingFV1Geom(TConstIterator iterBegin,
 
 	//	compute bf and grads at bip for element
 		if(!geo.update(pElem, &vCorner[0], ish))
-			UG_THROW("IntegrateManifold: "
+			UG_THROW("IntegralNormalComponentOnManifold: "
 					"Cannot update Finite Volume Geometry.");
 
 	//	specify, which subsets are boundary
@@ -1168,7 +1168,7 @@ number IntegrateManifoldUsingFV1Geom(TConstIterator iterBegin,
 									 &(JT),
 									 1);
 				}
-				UG_CATCH_THROW("IntegrateManifold: Unable to compute values of "
+				UG_CATCH_THROW("IntegralNormalComponentOnManifold: Unable to compute values of "
 								"integrand at integration point.");
 
 			//	sum up contribution (normal includes area)
@@ -1183,7 +1183,7 @@ number IntegrateManifoldUsingFV1Geom(TConstIterator iterBegin,
 }
 
 template <typename TGridFunction, int dim>
-number IntegrateManifoldSubset(SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand,
+number IntegralNormalComponentOnManifoldSubset(SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand,
                                  SmartPtr<TGridFunction> spGridFct,
                                  int si, const SubsetGroup& bndSSGrp, int quadOrder)
 {
@@ -1196,7 +1196,7 @@ number IntegrateManifoldSubset(SmartPtr<IIntegrand<MathVector<TGridFunction::dim
 	if(quadOrder > 2)
 		UG_THROW("IntegrateOverManifold: Currently only middle point rule implemented.");
 
-	return IntegrateManifoldUsingFV1Geom<TGridFunction::dim,dim,const_iterator>
+	return IntegralNormalComponentOnManifoldUsingFV1Geom<TGridFunction::dim,dim,const_iterator>
 					(spGridFct->template begin<geometric_base_object>(si),
 	                 spGridFct->template end<geometric_base_object>(si),
 	                 spGridFct->domain()->position_accessor(),
@@ -1205,10 +1205,11 @@ number IntegrateManifoldSubset(SmartPtr<IIntegrand<MathVector<TGridFunction::dim
 }
 
 template <typename TGridFunction>
-number IntegrateManifoldSubsets(SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand,
-                                  SmartPtr<TGridFunction> spGridFct,
-                                  const char* BndSubsets, const char* InnerSubsets,
-                                  int quadOrder)
+number IntegralNormalComponentOnManifoldSubsets(
+		SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand,
+		SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubsets, const char* InnerSubsets,
+		int quadOrder)
 {
 //	world dimensions
 	static const int dim = TGridFunction::dim;
@@ -1219,7 +1220,7 @@ number IntegrateManifoldSubsets(SmartPtr<IIntegrand<MathVector<TGridFunction::di
 	{
 		ConvertStringToSubsetGroup(innerSSGrp, InnerSubsets);
 		if(!SameDimensionsInAllSubsets(innerSSGrp))
-			UG_THROW("IntegrateManifold: Subsets '"<<InnerSubsets<<"' do not have same dimension."
+			UG_THROW("IntegralNormalComponentOnManifold: Subsets '"<<InnerSubsets<<"' do not have same dimension."
 			         "Can not integrate on subsets of different dimensions.");
 	}
 	else
@@ -1234,7 +1235,7 @@ number IntegrateManifoldSubsets(SmartPtr<IIntegrand<MathVector<TGridFunction::di
 	if(BndSubsets != NULL)
 		ConvertStringToSubsetGroup(bndSSGrp, BndSubsets);
 	else
-		UG_THROW("IntegrateManifold: No boundary subsets passed.");
+		UG_THROW("IntegralNormalComponentOnManifold: No boundary subsets passed.");
 
 //	reset value
 	number value = 0;
@@ -1247,7 +1248,7 @@ number IntegrateManifoldSubsets(SmartPtr<IIntegrand<MathVector<TGridFunction::di
 
 	//	check dimension
 		if(innerSSGrp.dim(i) != dim && innerSSGrp.dim(i) != DIM_SUBSET_EMPTY_GRID)
-			UG_THROW("IntegrateManifold: Dimension of inner subset is "<<
+			UG_THROW("IntegralNormalComponentOnManifold: Dimension of inner subset is "<<
 			         innerSSGrp.dim(i)<<", but only World Dimension "<<dim<<
 			         " subsets can be used for inner subsets.");
 
@@ -1255,8 +1256,8 @@ number IntegrateManifoldSubsets(SmartPtr<IIntegrand<MathVector<TGridFunction::di
 		switch(innerSSGrp.dim(i))
 		{
 			case DIM_SUBSET_EMPTY_GRID: break;
-			case dim: value += IntegrateManifoldSubset<TGridFunction, dim>(spIntegrand, spGridFct, si, bndSSGrp, quadOrder); break;
-			default: UG_THROW("IntegrateManifold: Dimension "<<innerSSGrp.dim(i)<<" not supported. "
+			case dim: value += IntegralNormalComponentOnManifoldSubset<TGridFunction, dim>(spIntegrand, spGridFct, si, bndSSGrp, quadOrder); break;
+			default: UG_THROW("IntegralNormalComponentOnManifold: Dimension "<<innerSSGrp.dim(i)<<" not supported. "
 			                  " World dimension is "<<dim<<".");
 		}
 	}
@@ -1276,17 +1277,48 @@ number IntegrateManifoldSubsets(SmartPtr<IIntegrand<MathVector<TGridFunction::di
 }
 
 template <typename TGridFunction>
-number IntegralOverManifold(SmartPtr<IDirectIPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
-                            SmartPtr<TGridFunction> spGridFct,
-                            const char* BndSubset, const char* InnerSubset,
-                            number time,
-                            int quadOrder)
+number IntegralNormalComponentOnManifold(
+		SmartPtr<IDirectIPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+		SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubset, const char* InnerSubset,
+		number time,
+		int quadOrder)
 {
 	SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand
 		= CreateSmartPtr(new DirectIPDataIntegrand<MathVector<TGridFunction::dim>, TGridFunction>(spData, spGridFct, time));
 
-	return IntegrateManifoldSubsets(spIntegrand, spGridFct, BndSubset, InnerSubset, quadOrder);
+	return IntegralNormalComponentOnManifoldSubsets(spIntegrand, spGridFct, BndSubset, InnerSubset, quadOrder);
 }
+
+template <typename TGridFunction>
+number IntegralNormalComponentOnManifold(
+		SmartPtr<IDirectIPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+		SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubset, const char* InnerSubset,
+		number time)
+{return IntegralNormalComponentOnManifold(spData, spGridFct, BndSubset, InnerSubset, time, 1);}
+
+template <typename TGridFunction>
+number IntegralNormalComponentOnManifold(
+		SmartPtr<IDirectIPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+		SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubset,
+		number time)
+{return IntegralNormalComponentOnManifold(spData, spGridFct, BndSubset, NULL, time, 1);}
+
+template <typename TGridFunction>
+number IntegralNormalComponentOnManifold(
+		SmartPtr<IDirectIPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+		SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubset, const char* InnerSubset)
+{return IntegralNormalComponentOnManifold(spData, spGridFct, BndSubset, InnerSubset, 0.0, 1);}
+
+template <typename TGridFunction>
+number IntegralNormalComponentOnManifold(
+		SmartPtr<IDirectIPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+		SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubset)
+{return IntegralNormalComponentOnManifold(spData, spGridFct, BndSubset, NULL, 0.0, 1);}
 
 ///////////////
 // lua data
@@ -1294,17 +1326,42 @@ number IntegralOverManifold(SmartPtr<IDirectIPData<MathVector<TGridFunction::dim
 
 #ifdef UG_FOR_LUA
 template <typename TGridFunction>
-number IntegralOverManifold(const char* luaFct,
-                            SmartPtr<TGridFunction> spGridFct,
-                            const char* BndSubset, const char* InnerSubset,
-                            number time,
-                            int quadOrder)
+number IntegralNormalComponentOnManifold(
+		const char* luaFct, SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubset, const char* InnerSubset,
+		number time, int quadOrder)
 {
 	static const int dim = TGridFunction::dim;
 	SmartPtr<IDirectIPData<MathVector<dim>, dim> > sp =
 			LuaUserDataFactory<MathVector<dim>, dim>::create(luaFct);
-	return IntegralOverManifold(sp, spGridFct, BndSubset, InnerSubset, time, quadOrder);
+	return IntegralNormalComponentOnManifold(sp, spGridFct, BndSubset, InnerSubset, time, quadOrder);
 }
+
+template <typename TGridFunction>
+number IntegralNormalComponentOnManifold(
+		const char* luaFct, SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubset, const char* InnerSubset,
+		number time)
+{return IntegralNormalComponentOnManifold(luaFct, spGridFct, BndSubset, InnerSubset, time, 1);}
+
+template <typename TGridFunction>
+number IntegralNormalComponentOnManifold(
+		const char* luaFct, SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubset,
+		number time)
+{return IntegralNormalComponentOnManifold(luaFct, spGridFct, BndSubset, NULL, time, 1);}
+
+template <typename TGridFunction>
+number IntegralNormalComponentOnManifold(
+		const char* luaFct, SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubset, const char* InnerSubset)
+{return IntegralNormalComponentOnManifold(luaFct, spGridFct, BndSubset, InnerSubset, 0.0, 1);}
+
+template <typename TGridFunction>
+number IntegralNormalComponentOnManifold(
+		const char* luaFct, SmartPtr<TGridFunction> spGridFct,
+		const char* BndSubset)
+{return IntegralNormalComponentOnManifold(luaFct, spGridFct, BndSubset, NULL, 0.0, 1);}
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1327,7 +1384,7 @@ number IntegralOverManifold(const char* luaFct,
  * @return	the integral
  */
 template <typename TGridFunction>
-number IntegrateGradientOverManifold(TGridFunction& u, const char* cmp,
+number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
                                    const char* BndSubset, const char* InnerSubset = NULL)
 {
 //	get function id of name
@@ -1335,11 +1392,11 @@ number IntegrateGradientOverManifold(TGridFunction& u, const char* cmp,
 
 //	check that function exists
 	if(fct >= u.num_fct())
-		UG_THROW("IntegrateGradientOverManifold: Function space does not contain"
+		UG_THROW("IntegrateNormalGradientOnManifold: Function space does not contain"
 				" a function with name " << cmp << ".");
 
 	if(u.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
-		UG_THROW("IntegrateGradientOverManifold:"
+		UG_THROW("IntegrateNormalGradientOnManifold:"
 				 "Only implemented for Lagrange P1 functions.");
 
 //	read subsets
@@ -1355,7 +1412,7 @@ number IntegrateGradientOverManifold(TGridFunction& u, const char* cmp,
 		ConvertStringToSubsetGroup(bndSSGrp, u.domain()->subset_handler(), BndSubset);
 	}
 	else{
-		UG_THROW("IntegrateGradientOverManifold: No boundary subsets specified. Aborting.");
+		UG_THROW("IntegrateNormalGradientOnManifold: No boundary subsets specified. Aborting.");
 	}
 
 //	reset value
@@ -1372,7 +1429,7 @@ number IntegrateGradientOverManifold(TGridFunction& u, const char* cmp,
 
 
 		if (innerSSGrp.dim(i) != TGridFunction::dim)
-			UG_THROW("IntegrateGradientOverManifold: Element dimension does not match world dimension!");
+			UG_THROW("IntegrateNormalGradientOnManifold: Element dimension does not match world dimension!");
 
 	//	create integration kernel
 		static const int dim = TGridFunction::dim;
@@ -1413,7 +1470,7 @@ number IntegrateGradientOverManifold(TGridFunction& u, const char* cmp,
 
 		//	compute bf and grads at bip for element
 			if(!geo.update(elem, &vCorner[0], u.domain()->subset_handler().get()))
-				UG_THROW("IntegrateGradientOverManifold: "
+				UG_THROW("IntegrateNormalGradientOnManifold: "
 						"Cannot update Finite Volume Geometry.");
 
 		//	get fct multi-indeces of element
@@ -1441,7 +1498,7 @@ number IntegrateGradientOverManifold(TGridFunction& u, const char* cmp,
 
 				//	check multi indices
 					UG_ASSERT(ind.size() == bf.num_sh(),
-					          "IntegrateGradientOverManifold::values: Wrong number of"
+					          "IntegrateNormalGradientOnManifold::values: Wrong number of"
 							  " multi indices, ind: "<<ind.size() << ", bf.num_sh: "
 							  << bf.num_sh());
 
