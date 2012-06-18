@@ -10,6 +10,7 @@
 // include spaces
 #include "lagrange/lagrangep1.h"
 #include "lagrange/lagrange.h"
+#include "crouzeix-raviart/crouzeix_raviart.h"
 
 namespace ug{
 
@@ -37,6 +38,13 @@ void LocalShapeFunctionSetProvider::init_standard_sets()
 //	insert into map: P4 Lagrange
 	LFEID type4(LFEID::LAGRANGE, 4);
 	register_set(type4, sSetLagrangeP4);
+
+
+//	insert into map: Crouzeix-Raviart
+	static LocalShapeFunctionSetWrapper<CrouzeixRaviartLSFS<TRefElem> > sSetCrouzeixRaviart;
+	LFEID typeCR(LFEID::CROUZEIX_RAVIART, 1);
+	register_set(typeCR, sSetCrouzeixRaviart);
+
 }
 
 template <typename TRefElem>
