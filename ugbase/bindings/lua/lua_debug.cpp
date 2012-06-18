@@ -362,19 +362,20 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 					{
 						if(profilingDepth==0)
 						{
+							if(line>0) line--;
 							pDynamicProfileInformation &pi = pis[source][line];
 							if(pi == NULL)
 							{
-								char buf[255] = "LUAunknown ";
+								char buf[1024] = "LUAunknown ";
 								if(source[0]=='@') source++;
 								if(strncmp(source, "./../scripts/", 13)==0)
 									sprintf(buf, "!%s:%d ", source+13, line);
 								else
 									sprintf(buf, "@%s:%d ", source, line);
-								const char*p = ug::bridge::GetFileLine(source, line).c_str();
-								strncat(buf, p+strspn(p, " \t"), 254);
+								//const char*p = ug::bridge::GetFileLine(source, line).c_str();
+								//strncat(buf, p+strspn(p, " \t"), 254);
 
-								pi = new DynamicProfileInformation;
+								pi = new DynamicProfileInformation(NULL, false, "lua");
 								pi->set_name_and_copy(buf);
 								// UG_LOG(buf);
 							 }
