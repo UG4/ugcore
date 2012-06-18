@@ -44,8 +44,18 @@ class LuaError : public UGError
  * load the file from ugs scripting directory.
  *
  * Note that this method pushes the path of the currently parsed script to
- * PathProvider when parsing starts, and pops it when parsing is done.*/
-UG_API bool LoadUGScript(const char* filename, bool bNoMPI=false);
+ * PathProvider when parsing starts, and pops it when parsing is done.
+ * \param filename The filename for the script to be loaded. may be relative to ug4/apps/
+ * \param bDistributed if true, loads the script on core 0 and distributes
+ * the script to all other cores via pcl::broadcast . Use this whenever
+ * possible when doing parallel work otherwise this routine can take a long time
+ * (ignored if UG_PARALLEL not defined)
+ */
+UG_API bool LoadUGScript(const char* filename, bool bDistributed);
+/// calls LoadUGScript with bDistributed=true
+UG_API bool LoadUGScript_Parallel(const char* filename);
+/// calls LoadUGScript with bDistributed=false . Avoid. (\sa LoadUGScript)
+UG_API bool LoadUGScript_Single(const char* filename);
 
 /// registers lua only functionality at the registry
 UG_API void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp = "/ug4");
@@ -95,8 +105,8 @@ UG_API int UGGetClassName(lua_State *L);
  * - in PathProvider::get_path(SCRIPT_PATH) (ug4/scripts)
  * - in PathProvider::get_path(APPS_PATH) (ug4/apps)
  * - in PathProvider::get_path(ROOT_PATH) (ug4)
- * @param filename in: relative filename to paths above. out: absolute filename (if found)
- * @return true if found, else false
+ * \param filename in: relative filename to paths above. out: absolute filename (if found)
+ * \return true if found, else false
  */
 UG_API bool GetAbsoluteUGScriptFilename(const std::string &filename, std::string &absoluteFilename);
 
