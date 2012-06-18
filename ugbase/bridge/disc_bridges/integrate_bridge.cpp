@@ -18,6 +18,7 @@
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
 #include "lib_disc/function_spaces/integrate.h"
+#include "lib_disc/function_spaces/integrate_flux.h"
 
 using namespace std;
 
@@ -107,6 +108,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, const char*)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "LuaFunction#GridFunction#BoundarySubsets#InnerSubsets");
 		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "LuaFunction#GridFunction#BoundarySubsets");
 #endif
+	}
+
+//	IntegrateDiscFlux
+	{
+		reg.add_function("IntegrateDiscFlux", &IntegrateDiscFlux<TFct>, grp, "Integral");
 	}
 
 }

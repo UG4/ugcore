@@ -186,6 +186,12 @@ class IDDGridFunction : public IGridFunction
 	/// return the number of dofs distributed on subset si
 		size_t num_indices(int si) const {return m_spDD->num_indices(si);}
 
+	/// returns the maximum number of dofs on grid objects in a dimension on a subset
+		size_t max_dofs(const int dim, const int si) const {return m_spDD->max_dofs(dim,si);}
+
+	/// return the maximum number of dofs on grid objects in a dimension
+		size_t max_dofs(const int dim) const {return m_spDD->max_dofs(dim);}
+
 	/// get all indices of the element
 		template <typename TElem>
 		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const
