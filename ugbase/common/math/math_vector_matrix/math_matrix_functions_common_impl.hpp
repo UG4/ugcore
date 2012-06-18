@@ -360,46 +360,49 @@ SqrtGramDeterminant(const MathMatrix<3,3,T>& m)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <size_t N, size_t M, typename T>
-inline void
+inline typename MathMatrix<N,M,T>::value_type
 Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
 {
 	UG_THROW("Inverse for matrix of size "<<N<<"x"<<M<<" not implemented.");
 }
 
 template <typename T>
-inline void
+inline typename MathMatrix<1,1,T>::value_type
 Inverse(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m)
 {
+	const typename MathMatrix<1,1,T>::value_type det = m(0,0);
 	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
-	UG_ASSERT(m(0,0) != 0, "Inverse: determinate is zero, can not Invert Matrix");
+	UG_ASSERT(det != 0, "Inverse: determinate is zero, can not Invert Matrix");
 	mOut(0,0) =  1./m(0,0);
+	return det;
 }
 
+
 template <typename T>
-inline void
+inline typename MathMatrix<2,2,T>::value_type
 Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m)
 {
-	typename MathMatrix<2,2,T>::value_type det;
-	det = Determinant(m);
+	const typename MathMatrix<2,2,T>::value_type det = Determinant(m);
 	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
 	UG_ASSERT(det != 0, "Inverse: determinate is zero, can not Invert Matrix");
-	typename MathMatrix<2,2,T>::value_type invdet = 1./det;
+	const typename MathMatrix<2,2,T>::value_type invdet = 1./det;
 
 	mOut(0,0) =  m(1,1)*invdet;
 	mOut(1,0) = -m(1,0)*invdet;
 	mOut(0,1) = -m(0,1)*invdet;
 	mOut(1,1) =  m(0,0)*invdet;
+
+	return det;
 }
 
 template <typename T>
-inline void
+inline typename MathMatrix<3,3,T>::value_type
 Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 {
-	typename MathMatrix<3,3,T>::value_type det;
-	det = Determinant(m);
+	const typename MathMatrix<3,3,T>::value_type det = Determinant(m);
 	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
 	UG_ASSERT(det != 0, "Inverse: determinate is zero, can not Invert Matrix");
-	typename MathMatrix<3,3,T>::value_type invdet = 1./det;
+	const typename MathMatrix<3,3,T>::value_type invdet = 1./det;
 
 	mOut(0,0) = ( m(1,1)*m(2,2) - m(1,2)*m(2,1)) * invdet;
 	mOut(0,1) = (-m(0,1)*m(2,2) + m(0,2)*m(2,1)) * invdet;
@@ -410,59 +413,8 @@ Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 	mOut(2,0) = ( m(1,0)*m(2,1) - m(1,1)*m(2,0)) * invdet;
 	mOut(2,1) = (-m(0,0)*m(2,1) + m(0,1)*m(2,0)) * invdet;
 	mOut(2,2) = ( m(0,0)*m(1,1) - m(0,1)*m(1,0)) * invdet;
-}
 
-template <size_t N, size_t M, typename T>
-inline void
-Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m, typename MathMatrix<N,M,T>::value_type& det)
-{
-	UG_THROW("Inverse for matrix of size "<<N<<"x"<<M<<" not implemented.");
-}
-
-template <typename T>
-inline void
-Inverse(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m, typename MathMatrix<1,1,T>::value_type& det)
-{
-	det = m(0,0);
-	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
-	UG_ASSERT(m(0,0) != 0, "Inverse: determinate is zero, can not Invert Matrix");
-	mOut(0,0) =  1./m(0,0);
-}
-
-
-template <typename T>
-inline void
-Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename MathMatrix<2,2,T>::value_type& det)
-{
-	det = Determinant(m);
-	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
-	UG_ASSERT(det != 0, "Inverse: determinate is zero, can not Invert Matrix");
-	typename MathMatrix<2,2,T>::value_type invdet = 1./det;
-
-	mOut(0,0) =  m(1,1)*invdet;
-	mOut(1,0) = -m(1,0)*invdet;
-	mOut(0,1) = -m(0,1)*invdet;
-	mOut(1,1) =  m(0,0)*invdet;
-}
-
-template <typename T>
-inline void
-Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix<3,3,T>::value_type& det)
-{
-	det = Determinant(m);
-	UG_ASSERT(&mOut != &m, "Inverse: mOut and m have to be different");
-	UG_ASSERT(det != 0, "Inverse: determinate is zero, can not Invert Matrix");
-	typename MathMatrix<3,3,T>::value_type invdet = 1./det;
-
-	mOut(0,0) = ( m(1,1)*m(2,2) - m(1,2)*m(2,1)) * invdet;
-	mOut(0,1) = (-m(0,1)*m(2,2) + m(0,2)*m(2,1)) * invdet;
-	mOut(0,2) = ( m(0,1)*m(1,2) - m(0,2)*m(1,1)) * invdet;
-	mOut(1,0) = (-m(1,0)*m(2,2) + m(1,2)*m(2,0)) * invdet;
-	mOut(1,1) = ( m(0,0)*m(2,2) - m(0,2)*m(2,0)) * invdet;
-	mOut(1,2) = (-m(0,0)*m(1,2) + m(0,2)*m(1,0)) * invdet;
-	mOut(2,0) = ( m(1,0)*m(2,1) - m(1,1)*m(2,0)) * invdet;
-	mOut(2,1) = (-m(0,0)*m(2,1) + m(0,1)*m(2,0)) * invdet;
-	mOut(2,2) = ( m(0,0)*m(1,1) - m(0,1)*m(1,0)) * invdet;
+	return det;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -470,44 +422,44 @@ Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix
 ////////////////////////////////////////////////////////////////////////////////
 
 template <size_t N, size_t M, typename T>
-inline void
+inline typename MathMatrix<N,M,T>::value_type
 InverseTransposed(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
 {
 	UG_THROW("InverseTransposed for matrix of size "<<M<<"x"<<N<<" not implemented.");
 }
 
 template <typename T>
-inline void
+inline typename MathMatrix<1,1,T>::value_type
 InverseTransposed(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m)
 {
-	Inverse(mOut, m);
+	return Inverse(mOut, m);
 }
 
 template <typename T>
-inline void
+inline typename MathMatrix<2,2,T>::value_type
 InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m)
 {
-	typename MathMatrix<2,2,T>::value_type det;
-	det = Determinant(m);
+	const typename MathMatrix<2,2,T>::value_type det = Determinant(m);
 	UG_ASSERT(&mOut != &m, "InverseTransposed: mOut and m have to be different");
 	UG_ASSERT(det != 0, "InverseTransposed: determinate is zero, can not Invert Matrix");
-	typename MathMatrix<2,2,T>::value_type invdet = 1./det;
+	const typename MathMatrix<2,2,T>::value_type invdet = 1./det;
 
 	mOut(0,0) =  m(1,1)*invdet;
 	mOut(1,0) = -m(0,1)*invdet;
 	mOut(0,1) = -m(1,0)*invdet;
 	mOut(1,1) =  m(0,0)*invdet;
+
+	return det;
 }
 
 template <typename T>
-inline void
+inline typename MathMatrix<3,3,T>::value_type
 InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 {
-	typename MathMatrix<3,3,T>::value_type det;
-	det = Determinant(m);
+	const typename MathMatrix<3,3,T>::value_type det = Determinant(m);
 	UG_ASSERT(&mOut != &m, "InverseTransposed: mOut and m have to be different");
 	UG_ASSERT(det != 0, "InverseTransposed: determinate is zero, can not Invert Matrix");
-	typename MathMatrix<3,3,T>::value_type invdet = 1./det;
+	const typename MathMatrix<3,3,T>::value_type invdet = 1./det;
 
     mOut(0,0) = ( m(1,1)*m(2,2) - m(2,1)*m(1,2)) * invdet;
     mOut(0,1) = (-m(1,0)*m(2,2) + m(2,0)*m(1,2)) * invdet;
@@ -518,55 +470,8 @@ InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
     mOut(2,0) = ( m(0,1)*m(1,2) - m(1,1)*m(0,2)) * invdet;
     mOut(2,1) = (-m(0,0)*m(1,2) + m(1,0)*m(0,2)) * invdet;
     mOut(2,2) = ( m(0,0)*m(1,1) - m(1,0)*m(0,1)) * invdet;
-}
 
-template <size_t N, size_t M, typename T>
-inline void
-InverseTransposed(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m, typename MathMatrix<N,M,T>::value_type& det)
-{
-	UG_THROW("InverseTransposed for matrix of size "<<M<<"x"<<N<<" not implemented.");
-}
-
-template <typename T>
-inline void
-InverseTransposed(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m, typename MathMatrix<1,1,T>::value_type& det)
-{
-	Inverse(mOut, m, det);
-}
-
-template <typename T>
-inline void
-InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename MathMatrix<2,2,T>::value_type& det)
-{
-	det = Determinant(m);
-	UG_ASSERT(&mOut != &m, "InverseTransposed: mOut and m have to be different");
-	UG_ASSERT(det != 0, "InverseTransposed: determinate is zero, can not Invert Matrix");
-	typename MathMatrix<2,2,T>::value_type invdet = 1./det;
-
-	mOut(0,0) =  m(1,1)*invdet;
-	mOut(1,0) = -m(0,1)*invdet;
-	mOut(0,1) = -m(1,0)*invdet;
-	mOut(1,1) =  m(0,0)*invdet;
-}
-
-template <typename T>
-inline void
-InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix<3,3,T>::value_type& det)
-{
-	det = Determinant(m);
-	UG_ASSERT(&mOut != &m, "InverseTransposed: mOut and m have to be different");
-	UG_ASSERT(det != 0, "InverseTransposed: determinate is zero, can not Invert Matrix");
-	typename MathMatrix<3,3,T>::value_type invdet = 1./det;
-
-    mOut(0,0) = ( m(1,1)*m(2,2) - m(2,1)*m(1,2)) * invdet;
-    mOut(0,1) = (-m(1,0)*m(2,2) + m(2,0)*m(1,2)) * invdet;
-    mOut(0,2) = ( m(1,0)*m(2,1) - m(2,0)*m(1,1)) * invdet;
-    mOut(1,0) = (-m(0,1)*m(2,2) + m(2,1)*m(0,2)) * invdet;
-    mOut(1,1) = ( m(0,0)*m(2,2) - m(2,0)*m(0,2)) * invdet;
-    mOut(1,2) = (-m(0,0)*m(2,1) + m(2,0)*m(0,1)) * invdet;
-    mOut(2,0) = ( m(0,1)*m(1,2) - m(1,1)*m(0,2)) * invdet;
-    mOut(2,1) = (-m(0,0)*m(1,2) + m(1,0)*m(0,2)) * invdet;
-    mOut(2,2) = ( m(0,0)*m(1,1) - m(1,0)*m(0,1)) * invdet;
+    return det;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

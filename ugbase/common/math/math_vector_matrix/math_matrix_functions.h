@@ -198,84 +198,60 @@ Transpose(matrix_t& m);
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Inverse of a matrix
+/**
+ * Computes the inverse of a matrix and returns the determinante.
+ *
+ * @param mOut		Inverse of Matrix
+ * @param m			Matrix
+ * @return		Determinate of Matrix
+ */
+/// \{
 template <size_t N, size_t M, typename T>
-inline void
+inline typename MathMatrix<N,M,T>::value_type
 Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m);
 
 template <typename T>
-inline void
+inline typename MathMatrix<1,1,T>::value_type
 Inverse(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m);
 
 template <typename T>
-inline void
+inline typename MathMatrix<2,2,T>::value_type
 Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m);
 
 template <typename T>
-inline void
+inline typename MathMatrix<3,3,T>::value_type
 Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m);
-
-/// Inverse of a matrix
-template <size_t N, size_t M, typename T>
-inline void
-Inverse(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m,
-        typename MathMatrix<N,M,T>::value_type& det);
-
-template <typename T>
-inline void
-Inverse(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m,
-        typename MathMatrix<1,1,T>::value_type& det);
-
-template <typename T>
-inline void
-Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m,
-        typename MathMatrix<2,2,T>::value_type& det);
-
-template <typename T>
-inline void
-Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m,
-        typename MathMatrix<3,3,T>::value_type& det);
+/// \}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inverse Transposed of Matrix
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Transposed-Inverse of a matrix_t (= Inverse-Transposed of a matrix_t)
+/// Transposed-Inverse of a Matrix (= Inverse-Transposed of a Matrix)
+/**
+ * Computes the Inverse-Transposed of a Matrix and returns the Determinant.
+ *
+ * @param mOut 		Inverse-Transposed of Matrix
+ * @param m			Matrix
+ * @return			Determinant of Matrix
+ */
+/// \{
 template <size_t N, size_t M, typename T>
-inline void
+inline typename MathMatrix<N,M,T>::value_type
 InverseTransposed(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m);
 
 template <typename T>
-inline void
+inline typename MathMatrix<1,1,T>::value_type
 InverseTransposed(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m);
 
 template <typename T>
-inline void
+inline typename MathMatrix<2,2,T>::value_type
 InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m);
 
 template <typename T>
-inline void
+inline typename MathMatrix<3,3,T>::value_type
 InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m);
-
-/// Transposed-Inverse of a matrix_t (= Inverse-Transposed of a matrix_t)
-template <size_t N, size_t M, typename T>
-inline void
-InverseTransposed(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m,
-                  typename MathMatrix<N,M,T>::value_type& det);
-
-template <typename T>
-inline void
-InverseTransposed(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m,
-                  typename MathMatrix<1,1,T>::value_type& det);
-
-template <typename T>
-inline void
-InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m,
-                  typename MathMatrix<2,2,T>::value_type& det);
-
-template <typename T>
-inline void
-InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m,
-                  typename MathMatrix<3,3,T>::value_type& det);
+/// \}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Right-Inverse of Matrix
@@ -297,7 +273,11 @@ LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m);
 // Trace of Matrix
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Trace of a matrix_t
+/// Trace of a Matrix
+/**
+ * Returns the Trace of a Matrix.
+ */
+/// \{
 template <typename T>
 inline typename MathMatrix<1,1,T>::value_type
 Trace(const MathMatrix<1,1,T>& m);
@@ -309,6 +289,7 @@ Trace(const MathMatrix<2,2,T>& m);
 template <typename T>
 inline typename MathMatrix<3,3,T>::value_type
 Trace(const MathMatrix<3,3,T>& m);
+/// \}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Scalar operations for Matrices
