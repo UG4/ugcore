@@ -47,13 +47,8 @@ void DomainDiscretization<TDomain, TAlgebra>::update_constraints()
 				"set an appropriate Space.");
 
 
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type)
-	{
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-		{
-			m_vvConstraints[type][i]->set_approximation_space(m_spApproxSpace);
-		}
-	}
+	for(size_t i = 0; i < m_vConstraint.size(); ++i)
+		m_vConstraint[i]->set_approximation_space(m_spApproxSpace);
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -149,11 +144,11 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 
 //	post process
 	try{
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
-		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i){
-			m_vvConstraints[type][i]->adjust_jacobian(M, u, dd->grid_level());
-		}
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_jacobian(M, u, dd->grid_level());
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_mass_matrix:"
 					" Cannot execute post process.");
@@ -252,11 +247,11 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 
 //	post process
 	try{
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
-		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i){
-			m_vvConstraints[type][i]->adjust_jacobian(A, u, dd->grid_level());
-		}
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_jacobian(A, u, dd->grid_level());
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_stiffness_matrix:"
 					" Cannot execute post process.");
@@ -362,10 +357,11 @@ assemble_jacobian(matrix_type& J,
 
 //	post process
 	try{
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
-		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-			m_vvConstraints[type][i]->adjust_jacobian(J, u, dd->grid_level());
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_jacobian(J, u, dd->grid_level());
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_jacobian:"
 					" Cannot execute post process.");
@@ -464,10 +460,11 @@ assemble_defect(vector_type& d,
 
 //	post process
 	try{
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
-		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-			m_vvConstraints[type][i]->adjust_defect(d, u, dd->grid_level());
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_defect(d, u, dd->grid_level());
 	}
 	} UG_CATCH_THROW("Cannot adjust defect.");
 
@@ -565,10 +562,11 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 
 //	post process
 	try{
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
-		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-			m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd->grid_level());
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_linear(mat, rhs, dd->grid_level());
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_linear: Cannot post process.");
 
@@ -666,11 +664,11 @@ assemble_rhs(vector_type& rhs,
 
 //	post process
 	try{
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
-		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i){
-			m_vvConstraints[type][i]->adjust_rhs(rhs, u, dd->grid_level());
-		}
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_rhs(rhs, u, dd->grid_level());
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_rhs:"
 					" Cannot execute post process.");
@@ -692,13 +690,13 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd)
 	update_constraints();
 
 	try{
-//	post process dirichlet
-	for(size_t i = 0; i < m_vvConstraints[CT_DIRICHLET].size(); ++i)
-		m_vvConstraints[CT_DIRICHLET][i]->adjust_solution(u, dd->grid_level());
-
-//	post process constraints
-	for(size_t i = 0; i < m_vvConstraints[CT_CONSTRAINTS].size(); ++i)
-		m_vvConstraints[CT_CONSTRAINTS][i]->adjust_solution(u, dd->grid_level());
+//	constraints
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_solution(u, dd->grid_level());
+	}
 
 	} UG_CATCH_THROW("Cannot adjust solution.");
 }
@@ -880,10 +878,11 @@ assemble_jacobian(matrix_type& J,
 
 //	post process
 	try{
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
-		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-			m_vvConstraints[type][i]->adjust_jacobian(J, *vSol->solution(0), dd->grid_level(), time);
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_jacobian(J, *vSol->solution(0), dd->grid_level(), time);
 	}
 	}UG_CATCH_THROW("Cannot adjust jacobian.");
 
@@ -982,10 +981,11 @@ assemble_defect(vector_type& d,
 
 //	post process
 	try{
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
-		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-			m_vvConstraints[type][i]->adjust_defect(d, *vSol->solution(0), dd->grid_level(), vSol->time(0));
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_defect(d, *vSol->solution(0), dd->grid_level(), vSol->time(0));
 	}
 	} UG_CATCH_THROW("Cannot adjust defect.");
 
@@ -1078,10 +1078,11 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 
 //	post process
 	try{
-	for(size_t type = 0; type < NUM_CONSTRAINT_TYPES; ++type){
-		if(type == CT_CONSTRAINTS && !m_bConstraintsEnabled) continue;
-		for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-			m_vvConstraints[type][i]->adjust_linear(mat, rhs, dd->grid_level(), vSol->time(0));
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_linear(mat, rhs, dd->grid_level(), vSol->time(0));
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");
 
@@ -1107,14 +1108,13 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<TDD> dd)
 
 	try{
 
-//	dirichlet
-	for(size_t i = 0; i < m_vvConstraints[CT_DIRICHLET].size(); ++i)
-		m_vvConstraints[CT_DIRICHLET][i]->adjust_solution(u, dd->grid_level(), time);
-
 //	constraints
-	for(size_t i = 0; i < m_vvConstraints[CT_CONSTRAINTS].size(); ++i)
-		m_vvConstraints[CT_CONSTRAINTS][i]->adjust_solution(u, dd->grid_level(), time);
-
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_solution(u, dd->grid_level(), time);
+	}
 	} UG_CATCH_THROW(" Cannot adjust solution.");
 }
 

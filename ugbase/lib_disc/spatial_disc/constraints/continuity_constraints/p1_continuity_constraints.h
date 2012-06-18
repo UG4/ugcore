@@ -36,7 +36,7 @@ class SymP1Constraints
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		virtual int type() {return CT_CONSTRAINTS;}
+		virtual int type() const {return CT_CONSTRAINTS;}
 
 		template <typename TDD>
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
@@ -83,7 +83,7 @@ class OneSideP1Constraints
 		using base_type::approximation_space;
 
 	public:
-		virtual int type() {return CT_CONSTRAINTS;}
+		virtual int type() const {return CT_CONSTRAINTS;}
 
 		template <typename TDD>
 		void adjust_jacobian(matrix_type& J, const vector_type& u,

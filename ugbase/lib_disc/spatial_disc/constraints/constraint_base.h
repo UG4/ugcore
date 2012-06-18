@@ -105,7 +105,7 @@ class ConstraintBase
 		}
 
 	///	returns the type of constraints
-		virtual int type() = 0;
+		virtual int type() const = 0;
 
 	protected:
 	///	returns the level dof distribution

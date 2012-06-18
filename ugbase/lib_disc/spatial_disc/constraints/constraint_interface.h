@@ -26,10 +26,10 @@ namespace ug{
  */
 enum ConstraintType
 {
-	CT_NONE = -1,
-	CT_CONSTRAINTS = 0,
-	CT_DIRICHLET = 1,
-	NUM_CONSTRAINT_TYPES
+	CT_NONE = 0,
+	CT_CONSTRAINTS = 1 << 0,
+	CT_DIRICHLET = 1 << 1,
+	CT_ALL = CT_NONE | CT_CONSTRAINTS | CT_DIRICHLET
 };
 
 /// interface for adjustment of constraints
@@ -81,7 +81,7 @@ class IConstraint
 		                             number time = 0.0) = 0;
 
 	///	returns the type of constraints
-		virtual int type() = 0;
+		virtual int type() const = 0;
 
 	///	virtual destructor
 		virtual ~IConstraint() {};

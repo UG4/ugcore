@@ -130,7 +130,7 @@ class DirichletBoundary
 		                ConstSmartPtr<TDD> dd, number time = 0.0);
 
 	///	returns the type of the constraints
-		virtual int type()	{return CT_DIRICHLET;}
+		virtual int type() const {return CT_DIRICHLET;}
 
 	protected:
 		void check_functions_and_subsets(FunctionGroup& functionGroup,

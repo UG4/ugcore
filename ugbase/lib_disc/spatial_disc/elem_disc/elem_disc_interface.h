@@ -22,6 +22,16 @@
 
 namespace ug{
 
+/// Types of elem disc
+enum ElemDiscType
+{
+	EDT_NONE = 0,
+	EDT_ELEM = 1 << 0,
+	EDT_SIDE = 1 << 1,
+	EDT_BND = 1 << 2,
+	EDT_ALL = EDT_NONE | EDT_SIDE | EDT_ELEM | EDT_BND
+};
+
 /**
  * Element Discretizations
  *
@@ -115,6 +125,8 @@ class IElemDisc
 	////////////////////////////
 	// Assembling functions
 	////////////////////////////
+	///	 returns the type of elem disc
+		virtual int type() const {return EDT_ELEM | EDT_SIDE;}
 
 	/// requests assembling for a finite element id
 	/**

@@ -124,10 +124,28 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 			m_spDomDisc->force_regular_grid(bForce);
 		}
 
-	///	enables constraints
-		virtual void enable_constraints(bool bEnable)
+	///	returns type of constraints enabled
+		virtual int constraints_enabled() const
 		{
-			m_spDomDisc->enable_constraints(bEnable);
+			return m_spDomDisc->constraints_enabled();
+		}
+
+	///	enables constraints
+		virtual void enable_constraints(int TypesEnable)
+		{
+			m_spDomDisc->enable_constraints(TypesEnable);
+		}
+
+	///	returns type of boundary elem discs enabled
+		virtual int elem_discs_enabled() const
+		{
+			return m_spDomDisc->elem_discs_enabled();
+		}
+
+	///	enables boundary elem discs
+		virtual void enable_elem_discs(int TypesEnable)
+		{
+			m_spDomDisc->enable_elem_discs(TypesEnable);
 		}
 
 	///	sets a selector to exclude elements from assembling

@@ -132,6 +132,9 @@ class NeumannBoundary
 		virtual void approximation_space_changed() {extract_data();}
 
 	public:
+	///	 returns the type of elem disc
+		virtual int type() const {return EDT_BND;}
+
 	///	type of trial space for each function used
 		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID);
 

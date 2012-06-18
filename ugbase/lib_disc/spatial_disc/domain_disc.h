@@ -57,7 +57,8 @@ class DomainDiscretization
 	///	default Constructor
 		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
 			m_spApproxSpace(pApproxSpace), m_bForceRegGrid(false),
-			m_bConstraintsEnabled(true), m_pBoolMarker(NULL)
+			m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL),
+			m_pBoolMarker(NULL)
 		{
 			this->set_approximation_space(pApproxSpace);
 		};
@@ -147,8 +148,17 @@ class DomainDiscretization
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
 
+	///	returns if constraints enabled
+		int constraints_enabled() const {return m_ConstraintTypesEnabled;}
+
 	///	enables constraints
-		void enable_constraints(bool bEnable) {m_bConstraintsEnabled = bEnable;}
+		void enable_constraints(int bEnableTypes) {m_ConstraintTypesEnabled = bEnableTypes;}
+
+	///	returns type of boundary elem discs enabled
+		virtual int elem_discs_enabled() const {return m_ElemTypesEnabled;}
+
+	///	enables boundary elem discs
+		virtual void enable_elem_discs(int bEnableTypes) {m_ElemTypesEnabled = bEnableTypes;}
 
 	///	sets a selector to exlude elements from assembling
 	/**
@@ -194,16 +204,13 @@ class DomainDiscretization
 	 */
 		void add(SmartPtr<IDomainConstraint<TDomain, TAlgebra> > pp)
 		{
-		// 	get type of constraint
-			const int type = pp->type();
-
 		//	check that not already registered
-			for(size_t i = 0; i < m_vvConstraints[type].size(); ++i)
-				if(m_vvConstraints[type][i] == pp)
+			for(size_t i = 0; i < m_vConstraint.size(); ++i)
+				if(m_vConstraint[i] == pp)
 					return;
 
 		//	add constraint
-			m_vvConstraints[type].push_back(pp);
+			m_vConstraint.push_back(pp);
 		}
 
 	/// adds a disc item to the assembling process
@@ -228,13 +235,25 @@ class DomainDiscretization
 	///	returns number of registered dirichlet constraints
 		virtual size_t num_dirichlet_constraints() const
 		{
-			return m_vvConstraints[CT_DIRICHLET].size();
+			size_t cnt = 0;
+			for(size_t i = 0; i < m_vConstraint.size(); ++i)
+				if(m_vConstraint[i]->type() & CT_DIRICHLET)
+					cnt++;
+
+			return cnt;
 		}
 
 	///	returns the i'th dirichlet constraint
-		virtual SmartPtr<IConstraint<TAlgebra> > dirichlet_constraint(size_t i)
+		virtual SmartPtr<IConstraint<TAlgebra> > dirichlet_constraint(size_t nr)
 		{
-			return m_vvConstraints[CT_DIRICHLET].at(i);
+			size_t cnt = 0;
+			for(size_t i = 0; i < m_vConstraint.size(); ++i)
+				if(m_vConstraint[i]->type() & CT_DIRICHLET)
+				{
+					if(cnt == nr) return m_vConstraint[i];
+					cnt++;
+				}
+			UG_THROW("DomainDisc: Dirichlet Constraint "<<nr<<" not found.");
 		}
 
 	///	set the approximation space in the elem discs and extract IElemDiscs
@@ -250,7 +269,7 @@ class DomainDiscretization
 		std::vector<IElemDisc*> m_vElemDisc;
 
 	//	vector holding all registered constraints
-		std::vector<SmartPtr<IDomainConstraint<TDomain, TAlgebra> > > m_vvConstraints[NUM_CONSTRAINT_TYPES];
+		std::vector<SmartPtr<IDomainConstraint<TDomain, TAlgebra> > > m_vConstraint;
 
 	///	current approximation space
 		SmartPtr<approx_space_type> m_spApproxSpace;
@@ -258,8 +277,11 @@ class DomainDiscretization
 	/// forces the assembling to regard the grid as regular
 		bool m_bForceRegGrid;
 
-	///	disables the constraints
-		bool m_bConstraintsEnabled;
+	///	enables the constraints
+		int m_ConstraintTypesEnabled;
+
+	///	enables the constraints
+		int m_ElemTypesEnabled;
 
 	///	selector used to skip elements
 		BoolMarker* m_pBoolMarker;

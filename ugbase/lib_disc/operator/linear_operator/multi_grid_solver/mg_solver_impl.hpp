@@ -1560,7 +1560,6 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	//	now set this selector to the assembling, such that only those elements
 	//	will be assembled
 		m_pAss->set_selector(&sel);
-		m_pAss->enable_constraints(true);
 
 	//	create a surface matrix
 		matrix_type surfMat;
@@ -1583,7 +1582,6 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 	//	remove the selector from the assembling procedure
 		m_pAss->set_selector(NULL);
-		m_pAss->enable_constraints(true);
 
 	//	project
 		try{
