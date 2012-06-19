@@ -278,16 +278,6 @@ void MGDoFDistribution::create_offsets(ReferenceObjectID roid)
 	// 	counter
 		size_t count = 0;
 
-	//	get dimension of subset
-		int dim = m_rFctPatt.dim_subset(si);
-
-	//	check dimension
-		if(dim < 0) UG_THROW("Dimension of subset "<<si<<" is not valid."
-		                           " This may indicate, that the subset is empty, "
-		                           " or empty on some process and the subset "
-		                           "dimensions have not been computed correctly "
-		                           " in parallel.");
-
 	//	reset
 		m_vvNumDoFsOnROID[roid][si] = 0;
 
@@ -299,6 +289,16 @@ void MGDoFDistribution::create_offsets(ReferenceObjectID roid)
 
 		//	if function is not defined, we leave the offset as invalid.
 			if(!is_def_in_subset(fct, si))	continue;
+
+		//	get dimension of subset
+			int dim = m_rFctPatt.dim(fct);
+
+		//	check dimension
+			if(dim < 0) UG_THROW("Dimension of function "<<fct<<" is not valid."
+			                     " This may indicate, that the subset is empty, "
+			                     " or empty on some process and the subset "
+			                     "dimensions have not been computed correctly "
+			                     " in parallel.");
 
 		//	get local shape function id
 			LFEID lfeID = m_rFctPatt.local_finite_element_id(fct);
