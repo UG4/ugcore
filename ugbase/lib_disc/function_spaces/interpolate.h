@@ -169,7 +169,7 @@ void InterpolateOnElements(
 
 	//	check multi indices
 		if(ind.size() != nsh)
-			UG_THROW("InterpolateOnElem: Number of shapes is "
+			UG_THROW("InterpolateOnElem: On subset "<<si<<": Number of shapes is "
 					<<nsh<<", but got "<<ind.size()<<" multi indices.");
 
 	// 	loop all dofs
@@ -285,15 +285,34 @@ void Interpolate(SmartPtr<IDirectIPData<number, TGridFunction::dim> > spInterpol
 	if(fct > spGridFct->num_fct())
 		UG_THROW("Interpolate: Name of component '"<<cmp<<"' not found.");
 
+//	check if fast P1 interpolation can be used
+	// \TODO: This should be improved. Manifold admissible if space continuous
+	const bool bUseP1Interpolation =
+			(spGridFct->local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1));
+	const bool bAllowManyfoldInterpolation =
+			(spGridFct->local_finite_element_id(fct).type() == LFEID::LAGRANGE);
+
 //	create subset group
 	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
 	if(subsets != NULL)
+	{
 		ConvertStringToSubsetGroup(ssGrp, spGridFct->domain()->subset_handler(), subsets);
-	else // add all if no subset specified
+
+		if(!bAllowManyfoldInterpolation)
+			if(!SameDimensionsInAllSubsets(ssGrp))
+				UG_THROW("Interpolate: Subsets '"<<subsets<<"' do not have same dimension."
+						 "Can not integrate on subsets of different dimensions.");
+	}
+	else
+	{
+	//	add all subsets and remove lower dim subsets afterwards
 		ssGrp.add_all();
+		if(!bAllowManyfoldInterpolation)
+			RemoveLowerDimSubsets(ssGrp);
+	}
 
 //	forward
-	if(spGridFct->local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1))
+	if(bUseP1Interpolation)
 		InterpolateOnVertices<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp);
 	else
 		InterpolateOnElements<TGridFunction>(spInterpolFunction, spGridFct, fct, time, ssGrp);
