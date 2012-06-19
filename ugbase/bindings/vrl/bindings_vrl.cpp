@@ -574,6 +574,11 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getAuthors
 	return ug::vrl::stringC2J(env, ug::UG_AUTHORS.c_str());
 }
 
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getBinaryLicense
+(JNIEnv *env, jobject obj) {
+	return ug::vrl::stringC2J(env, ug::UG_BINARY_LICENSE.c_str());
+}
+
 
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG_attachCanvas

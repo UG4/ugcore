@@ -14,6 +14,17 @@ namespace ug {
      */
     static std::string UG_AUTHORS
     	="Sebastian Reiter, Martin Rupp, Andreas Vogel, etc ...";
+
+    /**
+     * License for binary usage.
+     */
+    static std::string UG_BINARY_LICENSE
+    	="UG4 -- Binary License\n"
+         "---------------------\n"
+    	 "No licence available.\n"
+    	 "If you recieved this code, you are not allowed to use, run or redistribute it.\n"
+    	 "Contact the authors to obtain an adequate license:\n"
+    	 "sebastian.reiter@gcsc.uni-frankfurt.de";
 }
 
 #endif	/* AUTHORS_H */

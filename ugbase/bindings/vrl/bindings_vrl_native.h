@@ -89,6 +89,14 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getAuthors
 
 /*
  * Class:     edu_gcsc_vrl_ug_UG
+ * Method:    _getBinaryLicense
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getBinaryLicense
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     edu_gcsc_vrl_ug_UG
  * Method:    _getCompileDate
  * Signature: ()Ljava/lang/String;
  */
