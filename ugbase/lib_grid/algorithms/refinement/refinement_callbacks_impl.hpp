@@ -368,13 +368,26 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 	
 	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	assert(m_aaTargetPos.valid() && "make sure to initialise the refiner-callback correctly.");
+
+//	check whether the vertex lies inside a volume geometry. If it does,
+//	perform linear refinement.
+	Grid& g = *BaseClass::m_pGrid;
+	bool volumesExist = g.num<Volume>() > 0;
+
+	if(volumesExist){
+		if(!IsBoundaryVertex3D(g, parent)){
+			aaPos[vrt] = aaPos[parent];
+			return;
+		}
+	}
+
 	if(is_crease_vertex(parent)){
 	//	get the neighboured crease edges
 		EdgeBase* nbrs[2];
 		size_t numNbrs = 0;
 		for(Grid::AssociatedEdgeIterator iter =
-			BaseClass::m_pGrid->associated_edges_begin(parent);
-			iter != BaseClass::m_pGrid->associated_edges_end(parent); ++iter)
+			g.associated_edges_begin(parent);
+			iter != g.associated_edges_end(parent); ++iter)
 		{
 			if(is_crease_edge(*iter)){
 				nbrs[numNbrs] = *iter;
@@ -405,11 +418,13 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 		VecSet(p, 0);
 
 		for(Grid::AssociatedEdgeIterator iter =
-			BaseClass::m_pGrid->associated_edges_begin(parent);
-			iter != BaseClass::m_pGrid->associated_edges_end(parent); ++iter)
+			g.associated_edges_begin(parent);
+			iter != g.associated_edges_end(parent); ++iter)
 		{
-			VecAdd(p, p, aaPos[GetConnectedVertex(*iter, parent)]);
-			++valence;
+			if(volumesExist && IsBoundaryEdge3D(g, *iter)){
+				VecAdd(p, p, aaPos[GetConnectedVertex(*iter, parent)]);
+				++valence;
+			}
 		}
 		
 		number centerWgt = subdiv.ref_even_inner_center_weight(valence);
@@ -432,6 +447,7 @@ template <class TAPosition>
 void RefinementCallbackSubdivisionLoop<TAPosition>::
 new_vertex(VertexBase* vrt, EdgeBase* parent)
 {
+	using namespace std;
 	using std::swap;
 	
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
@@ -439,6 +455,16 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 	
 	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	assert(m_aaTargetPos.valid() && "make sure to initialise the refiner-callback correctly.");
+
+//	check whether the parent edge lies inside a volume geometry. If it does,
+//	perform linear refinement.
+	Grid& g = *BaseClass::m_pGrid;
+	if(g.num<Volume>() > 0){
+		if(!IsBoundaryEdge3D(g, parent)){
+			aaPos[vrt] = CalculateCenter(parent, aaPos);
+			return;
+		}
+	}
 
 	if(is_crease_edge(parent)){
 		vector2 wghts = subdiv.ref_odd_crease_weights();
@@ -449,7 +475,23 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 	//	apply loop-subdivision on inner elements
 	//	get the neighboured triangles
 		Face* f[2];
-		if(GetAssociatedFaces(f, *BaseClass::m_pGrid, parent, 2) == 2){
+		int numAssociatedBndFaces = 0;
+		if(g.num<Volume>() > 0){
+			vector<Face*> faces;
+			CollectAssociated(faces, g, parent);
+			for(size_t i = 0; i < faces.size(); ++i){
+				if(IsBoundaryFace3D(g, faces[i])){
+					if(numAssociatedBndFaces < 2){
+						f[numAssociatedBndFaces] = faces[i];
+					}
+					++numAssociatedBndFaces;
+				}
+			}
+		}
+		else{
+			numAssociatedBndFaces = GetAssociatedFaces(f, g, parent, 2);
+		}
+		if(numAssociatedBndFaces == 2){
 			if(f[0]->num_vertices() == 3 && f[1]->num_vertices() == 3){
 			//	the 4 vertices that are important for the calculation
 				VertexBase* v[4];
@@ -475,8 +517,8 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 				//	todo: only check edges that are on the correct side of the crease.
 					size_t valence = 0;
 					for(Grid::AssociatedEdgeIterator iter =
-						BaseClass::m_pGrid->associated_edges_begin(v[0]);
-						iter != BaseClass::m_pGrid->associated_edges_end(v[0]); ++iter)
+						g.associated_edges_begin(v[0]);
+						iter != g.associated_edges_end(v[0]); ++iter)
 					{
 						++valence;
 					}
@@ -520,16 +562,20 @@ template <class TAPosition>
 bool RefinementCallbackSubdivisionLoop<TAPosition>::
 is_crease_vertex(VertexBase* vrt)
 {
-	return !IsRegularSurfaceVertex(*BaseClass::m_pGrid, vrt);
-	//return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
+	if(BaseClass::m_pGrid->template num<Volume>() > 0)
+		return false;
+	//return !IsRegularSurfaceVertex(*BaseClass::m_pGrid, vrt);
+	return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
 }
 
 template <class TAPosition>
 bool RefinementCallbackSubdivisionLoop<TAPosition>::
 is_crease_edge(EdgeBase* edge)
 {
-	return NumAssociatedFaces(*BaseClass::m_pGrid, edge) != 2;
-	//return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
+	if(BaseClass::m_pGrid->template num<Volume>() > 0)
+		return false;
+	//return NumAssociatedFaces(*BaseClass::m_pGrid, edge) != 2;
+	return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
 }
 
 }// end of namespace

@@ -48,101 +48,130 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 	std::vector<VertexBase*> vrts;
 	std::vector<number> nbrWgts;
 	
-//	iterate through all vertices
-	for(VertexBaseIterator iter = grid.vertices_begin();
-		iter != grid.vertices_end(); ++iter)
-	{
-		VertexBase* v = *iter;
-		
-	//	check whether the vertex is a crease vertex or not
-	//todo: this has to be more flexible
-		if(IsBoundaryVertex2D(grid, v)){
-		//	project the crease vertex
-			EdgeBase* nbrs[2];
-			size_t numNbrs = 0;
-			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
-				iter != grid.associated_edges_end(v); ++iter)
+//	if volumes are contained in the grid, we currently only perform projection
+//	of boundary elements (no creases...)
+	if(grid.num<Volume>() > 0){
+		for(VertexBaseIterator iter = grid.vertices_begin();
+			iter != grid.vertices_end(); ++iter)
+		{
+			VertexBase* vrt = *iter;
+		//	collect all surface neighbors of vrt in vrts
+			vrts.clear();
+			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
+				iter != grid.associated_edges_end(vrt); ++iter)
 			{
-				if(IsBoundaryEdge2D(grid, *iter)){
-					nbrs[numNbrs] = *iter;
-					++numNbrs;
-					if(numNbrs == 2)
-						break;
-				}
+				if(IsBoundaryEdge3D(grid, *iter))
+					vrts.push_back(GetConnectedVertex(*iter, vrt));
 			}
 			
-			if(numNbrs == 2){
-				pos_type& p0 = aaPos[GetConnectedVertex(nbrs[0], v)];
-				pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], v)];
-				vector3 w = subdiv.proj_crease_weights();
-				VecScaleAdd(aaProjPos[v], w.x, aaPos[v], w.y, p0, w.z, p1);
+		//	default loop projection
+			VecScale(aaProjPos[vrt], aaPos[vrt],
+					subdiv.proj_inner_center_weight(vrts.size()));
+
+			for(size_t i = 0; i < vrts.size(); ++i){
+				VecScaleAdd(aaProjPos[vrt], 1.0, aaProjPos[vrt],
+							subdiv.proj_inner_nbr_weight(vrts.size()),
+							aaPos[vrts[i]]);
 			}
-			else
-				aaProjPos[v] = aaPos[v];
 		}
-		else{
-		//	project an inner vertex
-		//	we have to calculate the valence and
-		//	we have to check whether the vertex is a neighbor to a crease.
-		//todo: This could be given my some kind of mark.
-			bool creaseNbr = false;
+	}
+	else{
+	//	iterate through all vertices
+		for(VertexBaseIterator iter = grid.vertices_begin();
+			iter != grid.vertices_end(); ++iter)
+		{
+			VertexBase* v = *iter;
 			
-		//	collect all neighbors in an ordered set.
-		//todo: the order is only important if the node is indeed a crease neighbor.
-			if(!CollectSurfaceNeighborsSorted(vrts, grid, v)){
-				UG_LOG("WARNING in ProjectToLimitPLoop: surface is not regular.");
-				UG_LOG(" Ignoring vertex...\n");
-				aaProjPos[v] = aaPos[v];
-				continue;
-			}
-			
-			nbrInfos.resize(vrts.size());
-			for(size_t i = 0; i < vrts.size(); ++i)
-			{
-				VertexBase* nbrVrt = vrts[i];
-			//	we have to check whether nbrVrt is a crease edge. If it is,
-			//	we have to calculate its valence.
-				if(IsBoundaryVertex2D(grid, nbrVrt)){
-					creaseNbr = true;
-					size_t creaseValence = 0;
-					for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(nbrVrt);
-						iter != grid.associated_edges_end(nbrVrt); ++iter)
-					{
-						++creaseValence;
+		//	check whether the vertex is a crease vertex or not
+		//todo: this has to be more flexible
+			if(IsBoundaryVertex2D(grid, v)){
+			//	project the crease vertex
+				EdgeBase* nbrs[2];
+				size_t numNbrs = 0;
+				for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
+					iter != grid.associated_edges_end(v); ++iter)
+				{
+					if(IsBoundaryEdge2D(grid, *iter)){
+						nbrs[numNbrs] = *iter;
+						++numNbrs;
+						if(numNbrs == 2)
+							break;
 					}
-					
-					nbrInfos[i] = NbrInfo(nbrVrt, creaseValence);
+				}
+
+				if(numNbrs == 2){
+					pos_type& p0 = aaPos[GetConnectedVertex(nbrs[0], v)];
+					pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], v)];
+					vector3 w = subdiv.proj_crease_weights();
+					VecScaleAdd(aaProjPos[v], w.x, aaPos[v], w.y, p0, w.z, p1);
 				}
 				else
-					nbrInfos[i] = NbrInfo(nbrVrt, 0);
-			}
-
-		//	if the vertex is a crease-nbr, we'll apply special weights.
-		//	if not, normal loop-projection-masks are used.
-
-			if(creaseNbr){
-				number cntrWgt;
-				nbrWgts.resize(vrts.size());
-				subdiv.proj_inner_crease_nbr_weights(cntrWgt, &nbrWgts.front(),
-													 &nbrInfos.front(), nbrInfos.size());
-				
-			//	special crease neighbor projection
-				VecScale(aaProjPos[v], aaPos[v], cntrWgt);
-				
-				for(size_t i = 0; i < nbrWgts.size(); ++i){
-					VecScaleAdd(aaProjPos[v], 1.0, aaProjPos[v],
-								nbrWgts[i], aaPos[nbrInfos[i].nbr]);
-				}				
+					aaProjPos[v] = aaPos[v];
 			}
 			else{
-			//	default loop projection
-				VecScale(aaProjPos[v], aaPos[v],
-						subdiv.proj_inner_center_weight(nbrInfos.size()));
+			//	project an inner vertex
+			//	we have to calculate the valence and
+			//	we have to check whether the vertex is a neighbor to a crease.
+			//todo: This could be given my some kind of mark.
+				bool creaseNbr = false;
 				
-				for(size_t i = 0; i < nbrInfos.size(); ++i){
-					VecScaleAdd(aaProjPos[v], 1.0, aaProjPos[v],
-								subdiv.proj_inner_nbr_weight(nbrInfos.size()),
-								aaPos[nbrInfos[i].nbr]);
+			//	collect all neighbors in an ordered set.
+			//todo: the order is only important if the node is indeed a crease neighbor.
+				if(!CollectSurfaceNeighborsSorted(vrts, grid, v)){
+					UG_LOG("WARNING in ProjectToLimitPLoop: surface is not regular.");
+					UG_LOG(" Ignoring vertex...\n");
+					aaProjPos[v] = aaPos[v];
+					continue;
+				}
+				
+				nbrInfos.resize(vrts.size());
+				for(size_t i = 0; i < vrts.size(); ++i)
+				{
+					VertexBase* nbrVrt = vrts[i];
+				//	we have to check whether nbrVrt is a crease edge. If it is,
+				//	we have to calculate its valence.
+					if(IsBoundaryVertex2D(grid, nbrVrt)){
+						creaseNbr = true;
+						size_t creaseValence = 0;
+						for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(nbrVrt);
+							iter != grid.associated_edges_end(nbrVrt); ++iter)
+						{
+							++creaseValence;
+						}
+
+						nbrInfos[i] = NbrInfo(nbrVrt, creaseValence);
+					}
+					else
+						nbrInfos[i] = NbrInfo(nbrVrt, 0);
+				}
+
+			//	if the vertex is a crease-nbr, we'll apply special weights.
+			//	if not, normal loop-projection-masks are used.
+
+				if(creaseNbr){
+					number cntrWgt;
+					nbrWgts.resize(vrts.size());
+					subdiv.proj_inner_crease_nbr_weights(cntrWgt, &nbrWgts.front(),
+														 &nbrInfos.front(), nbrInfos.size());
+
+				//	special crease neighbor projection
+					VecScale(aaProjPos[v], aaPos[v], cntrWgt);
+
+					for(size_t i = 0; i < nbrWgts.size(); ++i){
+						VecScaleAdd(aaProjPos[v], 1.0, aaProjPos[v],
+									nbrWgts[i], aaPos[nbrInfos[i].nbr]);
+					}
+				}
+				else{
+				//	default loop projection
+					VecScale(aaProjPos[v], aaPos[v],
+							subdiv.proj_inner_center_weight(nbrInfos.size()));
+
+					for(size_t i = 0; i < nbrInfos.size(); ++i){
+						VecScaleAdd(aaProjPos[v], 1.0, aaProjPos[v],
+									subdiv.proj_inner_nbr_weight(nbrInfos.size()),
+									aaPos[nbrInfos[i].nbr]);
+					}
 				}
 			}
 		}
