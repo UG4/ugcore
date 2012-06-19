@@ -503,9 +503,10 @@ void RegisterUserDataType(Registry& reg, string grp)
 //	 	  in vrl and lua. E.g. CondUserNumber, CondUserVector, ...
 	{
 		typedef IPData<TData, dim, bool> T;
-		typedef IDirectIPData<TData, dim, bool> TBase;
+		typedef IIPData TBase1;
+		typedef IDirectIPData<TData, dim, bool> TBase2;
 		string name = string("CondUser").append(type).append(dimSuffix);
-		reg.add_class_<T,TBase>(name, grp);
+		reg.add_class_<T,TBase1,TBase2>(name, grp);
 		reg.add_class_to_group(name, string("CondUser").append(type), dimTag);
 	}
 
