@@ -8,6 +8,7 @@
 #include "local_dof_set.h"
 #include "lagrange/lagrange_local_dof.h"
 #include "crouzeix-raviart/crouzeix_raviart_local_dof.h"
+#include "piecewise_constant/piecewise_constant_local_dof.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 
 namespace ug{
@@ -51,7 +52,7 @@ void LocalDoFSetProvider::create_lagrange_sets(size_t order)
 template <typename TRefElem>
 void LocalDoFSetProvider::create_crouzeix_raviart_sets()
 {
-//	create lagrange set
+//	create Crouzeix-Raviart set
 	CrouzeixRaviartLDS<TRefElem>* setCrouzeixRaviart = new CrouzeixRaviartLDS<TRefElem>();
 
 //	remember created set for delete in destructor
@@ -76,6 +77,35 @@ void LocalDoFSetProvider::create_crouzeix_raviart_sets()
 	create_crouzeix_raviart_sets<ReferenceHexahedron>();
 }
 
+
+template <typename TRefElem>
+void LocalDoFSetProvider::create_piecewise_constant_sets()
+{
+//	create piecewise constant set
+	PiecewiseConstantLDS<TRefElem>* setPiecewiseConstant = new PiecewiseConstantLDS<TRefElem>();
+
+//	remember created set for delete in destructor
+	m_vCreated.push_back(setPiecewiseConstant);
+
+//	register the set
+	try{
+		register_set(LFEID(LFEID::PIECEWISE_CONSTANT, 0), *setPiecewiseConstant);
+	}
+	UG_CATCH_THROW("Unable to register PiecewiseConstantLDS");
+}
+
+void LocalDoFSetProvider::create_piecewise_constant_sets()
+{
+	create_piecewise_constant_sets<ReferenceVertex>();
+	create_piecewise_constant_sets<ReferenceEdge>();
+	create_piecewise_constant_sets<ReferenceTriangle>();
+	create_piecewise_constant_sets<ReferenceQuadrilateral>();
+	create_piecewise_constant_sets<ReferenceTetrahedron>();
+	create_piecewise_constant_sets<ReferencePyramid>();
+	create_piecewise_constant_sets<ReferencePrism>();
+	create_piecewise_constant_sets<ReferenceHexahedron>();
+}
+
 void LocalDoFSetProvider::create_set(const LFEID& id)
 {
 	if(id.type() == LFEID::LAGRANGE)
@@ -85,6 +115,10 @@ void LocalDoFSetProvider::create_set(const LFEID& id)
 	if(id.type() == LFEID::CROUZEIX_RAVIART)
 	{
 		create_crouzeix_raviart_sets();
+	}
+	if(id.type() == LFEID::PIECEWISE_CONSTANT)
+	{
+		create_piecewise_constant_sets();
 	}
 }
 

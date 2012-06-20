@@ -1,5 +1,8 @@
 /*
  * crouzeix_raviart_local_dof.h
+ *
+ * Created on: 18.06.2012
+ * Author: Christian Wehner
  */
 
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGE__CROUZEIX_RAVIART_LOCAL_DOF__

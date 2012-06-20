@@ -242,8 +242,10 @@ static void Common(Registry& reg, string grp)
 					"currently no help available")
 		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int)>(&T::add_fct),
 					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
+					"currently no help available")
+		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*)>(&T::add_fct),
+					"", "Name # Type|selection|value=[\"crouzeix-raviart\",\"piecewise-constant\"] ", "Adds a function to the Function Pattern",
 					"currently no help available");
-
 	}
 }
 

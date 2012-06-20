@@ -60,6 +60,10 @@ class IApproximationSpace
 	///	adds function using string to indicate finite element type
 		void add_fct(const char* name, const char* type, int order)
 			{m_spFunctionPattern->add_fct(name, type, order);}
+			
+	///	adds function using string to indicate finite element type
+		void add_fct(const char* name, const char* type)
+			{m_spFunctionPattern->add_fct(name, type);}
 
 	///	adds function using string to indicate finite element type
 		void add_fct(const char* name, const char* type,

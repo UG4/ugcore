@@ -78,6 +78,7 @@ class LFEID
 			NONE = -1,
 			LAGRANGE = 0,
 			CROUZEIX_RAVIART,
+			PIECEWISE_CONSTANT,
 			DG,
 			USER_DEFINED,
 			NUM_SPACE_TYPES
@@ -153,6 +154,9 @@ std::ostream& operator<<(std::ostream& out,	const LFEID& v);
 
 ///	returns the LFEID for a combination of Space and order
 LFEID ConvertStringToLFEID(const char* type, int order);
+
+///	returns the LFEID
+LFEID ConvertStringToLFEID(const char* type);
 
 /// @}
 

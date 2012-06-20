@@ -147,6 +147,12 @@ void FunctionPattern::add_fct(const char* name, const char* fetype, int order)
 	add_fct(name, ConvertStringToLFEID(fetype, order));
 }
 
+void FunctionPattern::add_fct(const char* name, const char* fetype)
+{
+//	convert type to LFEID and forward
+	add_fct(name, ConvertStringToLFEID(fetype));
+}
+
 void FunctionPattern::add_fct(const char* name, const char* fetype,
                                         int order, const char* subsets)
 {

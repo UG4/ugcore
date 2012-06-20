@@ -72,6 +72,9 @@ class FunctionPattern
 	///	adds function using string to indicate finite element type
 		void add_fct(const char* name, const char* type, int order);
 
+		///	adds function using string to indicate finite element type
+		void add_fct(const char* name, const char* type);
+
 	///	adds function using string to indicate finite element type
 		void add_fct(const char* name, const char* type,
 		                     int order, const char* subsets);

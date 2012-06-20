@@ -11,6 +11,7 @@
 #include "lagrange/lagrangep1.h"
 #include "lagrange/lagrange.h"
 #include "crouzeix-raviart/crouzeix_raviart.h"
+#include "piecewise_constant/piecewise_constant.h"
 
 namespace ug{
 
@@ -44,6 +45,11 @@ void LocalShapeFunctionSetProvider::init_standard_sets()
 	static LocalShapeFunctionSetWrapper<CrouzeixRaviartLSFS<TRefElem> > sSetCrouzeixRaviart;
 	LFEID typeCR(LFEID::CROUZEIX_RAVIART, 1);
 	register_set(typeCR, sSetCrouzeixRaviart);
+
+//	insert into map: Piecewise constant
+	static LocalShapeFunctionSetWrapper<PiecewiseConstantLSFS<TRefElem> > sSetPiecewiseConstant;
+	LFEID typePC(LFEID::PIECEWISE_CONSTANT, 0);
+	register_set(typePC, sSetPiecewiseConstant);
 
 }
 
