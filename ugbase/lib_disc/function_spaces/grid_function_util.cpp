@@ -79,6 +79,9 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 		//	skip non-used function
 			if(!dd->is_def_in_subset(fct,si)) continue;
 
+			if(dd->function_pattern().dim(fct) != TBaseElem::dim)
+				continue;
+
 		//	loop all elements
 			for(;iter != iterEnd; ++iter)
 			{
@@ -86,10 +89,10 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 				TBaseElem* elem = *iter;
 
 			//	load indices associated with element function
-				dd->inner_multi_indices(elem, fct, ind);
+				dd->multi_indices(elem, fct, ind);
 
 			//	load positions associated with element and function
-				InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())), dd->local_finite_element_id(fct));
+				DoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())), dd->local_finite_element_id(fct));
 
 			//	check correct size
 				UG_ASSERT(ind.size() == vElemPos.size(), "Num MultiIndex ("<<ind.size()

@@ -252,9 +252,9 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 				case 1:	pos[0] = 1.0;
 						pos[1] = 0.5; return true;
 				case 2:	pos[0] = 0.5;
-						pos[1] = 1.0;
+						pos[1] = 1.0; return true;
 				case 3: pos[0] = 0.0;
-						pos[1] = 0.5;
+						pos[1] = 0.5; return true;
 						return true;
 				default: UG_THROW("CrouzeixRaviartLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");

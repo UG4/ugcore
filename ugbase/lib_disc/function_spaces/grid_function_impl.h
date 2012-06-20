@@ -177,11 +177,14 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 //	physical world dimension
 	static const int dim = TDomain::dim;
 
+//	reference element dimension
+	static const int refDim = reference_element_type::dim;
+
 //	reference object id
 	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
 //	vector for the vertex positions
-	std::vector<MathVector<TDomain::dim> > vVertPos(reference_element_type::num_corners);
+	std::vector<MathVector<dim> > vVertPos(reference_element_type::num_corners);
 
 //	get the vertices
 	CollectCornerCoordinates(vVertPos, *elem, domain, true);
@@ -190,11 +193,11 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 	ReferenceMapping<reference_element_type, dim> map(&(vVertPos[0]));
 
 //	get local shape function set
-	const DimLocalShapeFunctionSet<dim>& lsfs
-		= LocalShapeFunctionSetProvider::get<reference_element_type>(roid, lfeID);
+	const DimLocalShapeFunctionSet<refDim>& lsfs
+		= LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
 
 //	typedef local position type
-	typedef typename DimLocalShapeFunctionSet<dim>::position_type local_pos_type;
+	typedef typename DimLocalShapeFunctionSet<refDim>::position_type local_pos_type;
 
 //	clear pos
 	vPos.resize(lsfs.num_sh());
