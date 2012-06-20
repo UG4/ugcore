@@ -40,6 +40,7 @@ set(buildForVRL OFF)
 set(buildForLUA OFF)
 set(buildAlgebra OFF)
 set(buildPluginSystem OFF)
+set(buildEmbeddedPlugins OFF)
 set(buildSharedLib OFF)
 set(buildGrid OFF)
 set(buildDisc OFF)
@@ -117,6 +118,7 @@ option(BUILTIN_MPI "MPI is built into compiler" OFF)
 option(EMBED_SVN_REV "Enables output of SVN head revision, compile date and build host. Valid options are ON, OFF" ${svnDefault})
 option(OPENMP "Enables use of OpenMP. Valid options are ON, OFF" OFF)
 option(CXX11 "Enables compilation with C++11 standard. Valid options are ON, OFF" OFF)
+option(EMBEDDED_PLUGINS "Plugin sources are directly included in libug4. No dynamic loading required. Valid options are ON, OFF " OFF)
 
 ################################################################################
 # set default values for pseudo-options
@@ -160,6 +162,8 @@ foreach(d ${CPU})
 	endif("${CPUReadable}" STREQUAL "")
 endforeach(d)
 
+
+
 ################################################################################
 # We'll output the current options-setting in this section
 message(STATUS "")
@@ -180,6 +184,7 @@ message(STATUS "Info: LAPACK:            "${LAPACK}" (options are: ON, OFF)")
 message(STATUS "Info: BLAS:              "${BLAS}" (options are: ON, OFF)")
 message(STATUS "Info: INTERNAL_BOOST:    "${INTERNAL_BOOST}" (options are: ON, OFF)")
 message(STATUS "Info: EMBED_SVN_REV:     "${EMBED_SVN_REV}" (options are: ON, OFF)")
+message(STATUS "Info: EMBEDDED_PLUGINS   "${EMBEDDED_PLUGINS}" (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (set them to the path, which contains the library):")
 message(STATUS "Info: METIS:    "${METIS})
@@ -286,14 +291,21 @@ endif("${PRECISION}" STREQUAL "single")
 # Note that no plugins are built if STATIC is enabled.
 
 
+set(buildEmbeddedPlugins ${EMBEDDED_PLUGINS})
+
 if(STATIC)
 	set(buildDynamicLib OFF)
+	set(buildEmbeddedPlugins ON)
 	set(targetLibraryName ${targetLibraryName}_s)
 	add_definitions(-DUG_STATIC)
 else(STATIC)
 	set(buildDynamicLib ON)
 	set(UG_SHARED ON)
 endif(STATIC)
+
+if(buildEmbeddedPlugins)
+	add_definitions(-DUG_EMBEDDED_PLUGINS)
+endif(buildEmbeddedPlugins)
 
 
 ########################################

@@ -22,8 +22,8 @@
 #endif
 #ifdef UG_PLUGINS
 	#include "common/util/plugin_util.h"
-	#ifdef UG_STATIC
-		#include "static_plugins.h"
+	#ifdef UG_EMBEDDED_PLUGINS
+		#include "embedded_plugins.h"
 	#endif
 #endif
 
@@ -151,8 +151,8 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 #endif
 
 #ifdef UG_PLUGINS
-	#ifdef UG_STATIC
-		InitializeStaticPlugins(&bridge::GetUGRegistry(), "ug4/");
+	#ifdef UG_EMBEDDED_PLUGINS
+		InitializeEmbeddedPlugins(&bridge::GetUGRegistry(), "ug4/");
 	#else
 		if(!LoadPlugins(ug::PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))
 		{

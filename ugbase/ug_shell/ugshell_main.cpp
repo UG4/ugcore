@@ -17,8 +17,8 @@
 #include "common/util/path_provider.h"
 #ifdef UG_PLUGINS
 	#include "common/util/plugin_util.h"
-	#ifdef UG_STATIC
-		#include "static_plugins.h"
+	#ifdef UG_EMBEDDED_PLUGINS
+		#include "embedded_plugins.h"
 	#endif
 #endif
 
@@ -405,8 +405,8 @@ int main(int argc, char* argv[])
 		FileExists("");
 		#ifdef UG_PLUGINS
 			UG_LOG(", plugins... ");
-			#ifdef UG_STATIC
-				InitializeStaticPlugins(&bridge::GetUGRegistry(), "ug4/");
+			#ifdef UG_EMBEDDED_PLUGINS
+				InitializeEmbeddedPlugins(&bridge::GetUGRegistry(), "ug4/");
 				UG_LOG("done");
 			#else
 				if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))	{UG_LOG("done");}
@@ -594,8 +594,8 @@ int main(int argc, char* argv[])
 	// Until fully tested for dependency problems, I commented out the following lines.
 	// For using valgrind, you'll have to uncomment them.
 	//ReleaseDefaultLuaState();
-	#ifdef UG_STATIC
-		//FinalizeStaticPlugins();
+	#ifdef UG_EMBEDDED_PLUGINS
+		//FinalizeEmbeddPlugins();
 	#else
 		//UnloadPlugins();
 	#endif
