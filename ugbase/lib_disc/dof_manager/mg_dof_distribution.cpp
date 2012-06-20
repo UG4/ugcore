@@ -310,7 +310,7 @@ void MGDoFDistribution::create_offsets(ReferenceObjectID roid)
 			const int numDoF = clds.num_dof(roid);
 
 		//	overwrite max dim with dofs (if subset has that dimension)
-			if(dim > ReferenceElementDimension((ReferenceObjectID)roid))
+			if(m_rFctPatt.dim_subset(si) > ReferenceElementDimension((ReferenceObjectID)roid))
 				m_vMaxDimToOrderDoFs[fct] = ReferenceElementDimension((ReferenceObjectID)roid);
 
 		//	check that numDoFs specified by this roid
@@ -353,10 +353,13 @@ void MGDoFDistribution::create_offsets()
 		//	remember local dof set
 			m_vLocalDoFSet[roid][fct] = & LocalDoFSetProvider::get((ReferenceObjectID)roid, m_vLFEID[fct]);
 
+			const CommonLocalDoFSet& lds = LocalDoFSetProvider::get(m_rFctPatt.dim(fct), m_vLFEID[fct]);
+
 			for(int subRoid=ROID_VERTEX; subRoid < NUM_REFERENCE_OBJECTS; ++subRoid)
 			{
 			//	get number of DoFs in this sub-geometric object
-				m_vNumDoFOnSubelem[fct](roid,subRoid) = m_vLocalDoFSet[roid][fct]->num_dof((ReferenceObjectID)subRoid);
+//				m_vNumDoFOnSubelem[fct](roid,subRoid) = m_vLocalDoFSet[roid][fct]->num_dof((ReferenceObjectID)subRoid);
+				m_vNumDoFOnSubelem[fct](roid,subRoid) = lds.num_dof((ReferenceObjectID)subRoid);
 			}
 		}
 	}
