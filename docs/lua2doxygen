@@ -69,18 +69,33 @@ foreach my $line (<FH>)
     $line =~ s{$luaDoxygenMark}{///};
 
     if ($line =~ m{^\s*///(.*)}) 
-    {
-        $functionComment .= "$1\n";
+    {    
+        $functionComment .= "$1\n";        
         next;
     }
     
     $code .= $originalLine . "\n";
     
     # function start
-    if ($line =~ /function/) 
+    if ( $line =~ /^\s*function[ \t]/) 
     {
         $bInFunction = 1;
         $line .= q{;};
+        $line =~ s/:/-/;
+        $functionLine = $line;
+        $result .= "\n/**\n";
+        if($functionComment ne "")
+        {
+        	$result .= $functionComment."\n";
+        }
+        $result .= "\\code\n".$originalLine."\n\n";
+        $functionComment = "";
+        next
+    }
+    elsif ( $line =~ /^\s*(\w*)\s+=\s+function\s*\(([^\)]*)/ ) 
+    {
+        $bInFunction = 1;
+        $line = "function $1($2);";
         $line =~ s/:/-/;
         $functionLine = $line;
         $result .= "\n/**\n";
@@ -101,7 +116,7 @@ foreach my $line (<FH>)
     # function end
     if ($bInFunction == 1) 
     {
-     	if($line =~ /^end/)
+    	if ( $line =~ /^[ \t]*end/ )
      	{
         	$bInFunction = 0;
         	$result .= "$line\n\\endcode\n**/\n".$functionLine."\n";
