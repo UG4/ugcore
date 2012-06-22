@@ -9,7 +9,7 @@
 - \ref secConfiguration_of_ug4_for_JuGene
 - \ref secWorking_with_ug4_on_JuGene
 - \ref secVery_large_jobs_on_JuGene
-
+- \ref secDebuggingOnJuGene
 
 <hr>
 \section secJuGene General Information about JuGene
@@ -51,9 +51,9 @@ sec. \ref secCMake; sec. \ref secConfiguration_of_ug4_for_JuGene).
 and the submission of batch jobs.
 
 These login nodes are reached via
-\verbatim
+\code
 ssh <user>@jugene.fz-juelich.de
-\endverbatim
+\endcode
 i.e., for login there is only a generic hostname, <tt>jugene.fz-juelich.de</tt>,
 from which automatically a connection either to \c jugene3 or \c jugene4 will 
 be established.
@@ -80,14 +80,14 @@ to this machine first, then to \em JuGene), see \ref secSSHHoping.
 For JuGene you have to "cross compile" and to do so use a specific 
 \ref secCMake_ToolchainFiles.
 Start CMake like this
-\verbatim
+\code
 cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_jugene.cmake ..
-\endverbatim
+\endcode
 or, for <strong>static builds</strong> which is the <strong>configuration of 
 choice</strong> if you want to <strong>process very large jobs</strong>,
-\verbatim
+\code
 cmake -DSTATIC=ON -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_jugene_static.cmake ..
-\endverbatim
+\endcode
 
 See also \ref secVery_large_jobs_on_JuGene!
 
@@ -96,24 +96,30 @@ statically need some additional "hand work" by now:
 After configuration with \em CMake edit the following files by replacing all 
 occurences of <tt>libXXXXXXX.so</tt> by <tt>libXXXXXXX.a</tt>
 (has to be done only once):
-\verbatim
+\code
 CMakeCache.txt,
 ugbase/ug_shell/CMakeFiles/ugshell.dir/link.txt,
 ugbase/ug_shell/CMakeFiles/ugshell.dir/build.make
-\endverbatim
+\endcode
 
 Or use this <tt>sed</tt> command:
-\verbatim
-sed -i '' 's/\([[:alnum:]]*\).so/\1.a/g' CMakeCache.txt ugbase/ug_shell/CMakeFiles/ugshell.dir/link.txt ugbase/ug_shell/CMakeFiles/ugshell.dir/build.make 
-\endverbatim
+\code
+sed -i 's/\([[:alnum:]]*\).so/\1.a/g' CMakeCache.txt ugbase/ug_shell/CMakeFiles/ugshell.dir/link.txt ugbase/ug_shell/CMakeFiles/ugshell.dir/build.make 
+\endcode
 
-You can check your executable by running the <tt>ldd</tt> command on it:
-\verbatim
+You can check your executable by running the (standard unix) <tt>ldd</tt> command ("list dynamic dependencies") on it:
+\code
 ldd ugshell
-\endverbatim
+\endcode
 Answer should be <tt>not a dynamic executable</tt> for a completely static 
 build!
 
+<strong>Debug builds</strong>:
+Since the pre-installed <em>GCC 4.1.2</em> (in April 2012) is not able to compile
+a "debug" build one should add the flag <tt>-DDEBUG_FORMAT=-gstabs</tt> to the
+CMake call (cf. \ref secCMake_GCC412).
+
+For debugging a parallel application on JuGene see \ref secDebuggingOnJuGene
 
 <hr>
 \section secWorking_with_ug4_on_JuGene Working with ug4 on JuGene
@@ -203,8 +209,13 @@ TODO: Some notes about "topology aware placing of MPI processes" might become re
 
   </li>
   <li><strong>"Modules"</strong> can be loaded by executing the <tt>module</tt> 
-    command, e.g. <tt>module load lapack</tt> for LAPACK.
-<!--TODO: Nevertheless CMake says "Info: Not using Lapack. No package found"!? -->
+    command.
+
+    E.g. <tt>module load lapack</tt> for LAPACK (see http://www.fz-juelich.de/ias/jsc/EN/Expertise/Support/Software/Libraries/LAPACKJugene.html
+    for choosing one of several versions).
+
+<!-- TODO: Nevertheless CMake says "Info: Not using Lapack. No package found"!? -->
+
     This is also for loading <strong>performance analysis tools</strong>, e.g. 
     <tt>module load scalasca</tt>, <tt>module load UNITE</tt> etc.
 <!-- TODO: Please provide a link which explains a bit more !!! -->     
@@ -222,12 +233,22 @@ TODO: Some notes about "topology aware placing of MPI processes" might become re
   </li>
   <li><strong>Interactive jobs</strong> can be started with the 
     <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/LoadLevelerInteractive.html">llrun</a>
-    command.
+    command. \c llrun is invoked in the following way:
+    \code
+llrun [<llrun_options>] [<mpirun_options>] [<executable>]
+    \endcode
+    \c llrun replaces \c mpirun and can be used with the same command line options like \c mpirun.
+    One \c llrun option which might be interesting:
+    <tt> -w \<hh:mm:ss\></tt>: submit job with wallclock limit (Default: 00:30:00).
+    For other options see e.g. http://www.prace-ri.eu/IMG/pdf/Best-practise-guide-JUGENE-v0-3.pdf, sec. 3.5.3.
 
-    Example:
-    \verbatim
-llrun -np <NP> -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/comm/lib/ $UGARGS
-    \endverbatim
+    <strong>Example</strong>:
+    \code
+llrun -np 4 -mode VN -mapfile TXYZ -verbose 2 -exe ./ugshell_debug -args "-ex ../apps/scaling_tests/modular_scalability_test.lua -numPreRefs 3 -numRefs  7"
+    \endcode
+
+    \note Note the quotation marks around the executables arguments!
+
 
     Please note that <tt>llrun</tt> only allows jobs up to 256 
     (<tt>-mode SMP</tt>) / 512 (<tt>-mode DUAL</tt>) / 1024 (<tt>-mode VN</tt>) 
@@ -238,9 +259,9 @@ llrun -np <NP> -exe ./ugshell -mode VN -mapfile TXYZ -verbose 2 -env LD_LIBRARY_
     <a href="http://www2.fz-juelich.de/jsc/jugene/usage/loadl/llsubmit/"><tt>llsubmit</tt></a>
     command to the <em>IBM Tivoli Workload Scheduler LoadLeveler</em> (TWS 
     LoadLeveler), typically in the directory where the ug4 executable resides:
-    \verbatim
+    \code
 llsubmit <cmdfile>
-    \endverbatim
+    \endcode
     <tt>&lt;cmdfile&gt;</tt> is a (plain Unix) shell script file (i.e., the 
     "LoadLeveler script"), which contains job definitions given by 
     <strong>"LoadLeveler keywords"</strong> (some important examples are 
@@ -325,9 +346,9 @@ llsubmit <cmdfile>
   </li>
   <li><tt>llq</tt> is used to display the status of jobs (of a specified user) 
     in the queue/executed:
-    \verbatim
+    \code
 llq [-u  <userid>]
-    \endverbatim
+    \endcode
 
     The <strong>estimated start time</strong> of a job can be determined by
     <tt>llq -s \<job-id\></tt>
@@ -335,7 +356,7 @@ llq [-u  <userid>]
     <tt>\<job-id\></tt> was determined by the previous command, e.g. for the
     job <tt>jugene4b.304384.0</tt>:
 
-    \verbatim
+    \code
     llq -s 304384  
     
     ===== EVALUATIONS FOR JOB STEP jugene4b.zam.kfa-juelich.de.304384.0 =====
@@ -344,16 +365,16 @@ llq [-u  <userid>]
     Considered for scheduling at     : Sun 01 Apr 2012 00:02:55 CEST
     Top dog estimated start time     : Sun 01 Apr 2012 16:38:55 CEST
     ...
-    \endverbatim
+    \endcode
 <!--
     \todo The "top dog" time in the example above and the predicted start time (~18:44) displayed by \c llview differ!?
 -->
   </li>
   <li><tt>llcancel</tt> is used to cancel a job (<tt>&lt;jobname&gt;</tt> as 
     displayed by <tt>llq</tt>):
-    \verbatim
+    \code
 llcancel <jobname>
-    \endverbatim
+    \endcode
   </li>
   <li>Debugging:
     See documentation to the tools 
@@ -365,9 +386,9 @@ llcancel <jobname>
     for more details.
   </li>
   <li>Querying <strong>Quota Status</strong>:
-    \verbatim
+    \code
 q_cpuquota <options>
-    \endverbatim
+    \endcode
 
     Useful options: 
     \arg <tt>-?</tt>                   usage information and all options .
@@ -403,4 +424,86 @@ q_cpuquota <options>
   </li>
 </ul>
 
+<hr>
+\subsection secDebuggingOnJuGene Debugging on JuGene
+On JuGene the parallel debuggers \em TotalView and \em DDT are available.
+
+Be sure to compile \ug4 as a debug build.
+
+DDT uses X11 for its graphical user interface. Be sure to log in with an X window
+forwarding enabled. This could mean using the <tt>-X</tt> or <tt>-Y</tt> option
+to <tt>ssh</tt>.
+
+<strong>Basic usage of \em DDT</strong>:
+<ol>
+<li> Load the appropriate module:
+     \code
+module load UNITE ddt
+     \endcode
+</li>
+<li>Start DDT by typing <tt>ddt</tt>.</li>
+<li>A "DDT" logo appears, wait a bit (or click on the logo) to get the welcome dialog box.</li>
+<li>Click on "Run and Debug a Program" in the "Welcome" dialog box</li>
+<li>Enter your \ug4 parameters (don't forget to enclose them by quotation marks),
+    numbers of processes to run,
+    a (hopefully) appropriate wall time to do all your debugging work
+    (after "Queue submission Parameters"),
+    "MPIRun parameters" (e.g. <tt>-mode VN -mapfile TXYZ -verbose 2</tt>) in the
+    fields provided after clicking "Advanced\>\>" etc.,
+    then click the "Submit" button.
+
+    Wait until the job is launched (you might exercise some patience), DDT will
+    catch the focus automatically when resources are available.</li>
+</ol>
+The rest should be quite self-explaining.
+
+One can also immediately specify the application to debug and also its parameters
+by typing <tt>ddt [\<your app\> <parameters>]</tt></li>.
+
+<!--
+TODO: As the textfield "Number of nodes (1 procs per node)" says, choosing e.g. 4 nodes
+brings up a job with only 4 MPI processes - is it also possible to get 4 processes per
+node, as we otherwise get using execution mode "VN" (<tt>-mode VN</tt>)?
+-->
+
+<strong>Basic usage of \em TotalView</strong>:
+<ol>
+<li> Load the appropriate module:
+     \code
+module load UNITE totalview
+     \endcode
+</li>
+<li>Start TotalView by adding the <tt>-tv</tt> flag to your \c llrun call with which
+    you normally would run your executable in interactive mode (see above).</li>
+</ol>
+
+<strong>Example debug sessions</strong>:
+<ol>
+<li>Start a \em DDT debugging session (immediately specifying the executable to debug):
+     \code
+ddt
+     \endcode
+
+     Specification of executable and parameters should also work - parameters are written in the appropriate field, but not recognised ....
+     \code
+ddt ./ugshell_debug -ex ../apps/scaling_tests/modular_scalability_test.lua -numRefs  7
+     \endcode
+
+     The mpirun parameters, e.g. <tt>-mapfile TXYZ -verbose 2</tt> can be placed in
+     the fields accessible after clicking on the "Advanced" button.
+     </li>
+<li>Start a \em TotalView debugging session:
+     \code
+llrun -tv -np 4 -mode VN -mapfile TXYZ -verbose 2 -exe ./ugshell_debug -args "-ex ../apps/scaling_tests/modular_scalability_test.lua -numPreRefs 3 -numRefs  7"
+     \endcode
+     Use the \c llrun option <tt> -w \<hh:mm:ss\></tt> to specify a (hopefully)
+     appropriate wall time to do all your debugging work.</li>
+<!--
+Remark: When executing \c llrun with '-tv' neither the <tt>-exe</tt> nor the <tt>-args</tt>
+argument (see above) was necessary, and also no quotation marks.
+-->
+</ol>
+
+For additional information (especially for debugging with TotalView) see
+http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/ParallelDebugging.html.
 */
