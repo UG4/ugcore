@@ -522,10 +522,11 @@ public:
 
 		if(m_famg.m_bWriteFValues)
 		{
-			std::string path=std::string("/level") + ToString(level) + "/";
-			mkdir((std::string(m_famg.m_writeMatrixPath) + path).c_str(), 0777);
+			//	\TODO: Implement also Windows support. Comment in below afterwards
+//			std::string path=std::string("/level") + ToString(level) + "/";
+//			mkdir((std::string(m_famg.m_writeMatrixPath) + path).c_str(), 0777);
 			WriteVectorToConnectionViewer(
-				m_famg.m_writeMatrixPath + path + std::string("AMG_fvalues_L") + ToString(level) + ".vec",
+				/*m_famg.m_writeMatrixPath + path +*/ std::string("AMG_fvalues_L") + ToString(level) + ".vec",
 				fvalues, &m_famg.m_amghelper.positions[level][0], 2);
 		}
 	}

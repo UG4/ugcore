@@ -31,10 +31,11 @@ void AMGBase<TAlgebra>::write_interfaces()
 	for(size_t level=0; level<m_usedLevels; level++)
 	{
 
-		std::string path=std::string("/level") + ToString(level) + "/";
-		mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
+		//	\TODO: Implement also Windows support. Comment in below afterwards
+//		std::string path=std::string("/level") + ToString(level) + "/";
+//		mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
 
-		const char *filename = (std::string(m_writeMatrixPath) + path + std::string("AMG_interface_L") + ToString(level) + "_" + ToString(pcl::GetProcRank()) + std::string(".mat")).c_str();
+		const char *filename = (/*std::string(m_writeMatrixPath) + path + */std::string("AMG_interface_L") + ToString(level) + "_" + ToString(pcl::GetProcRank()) + std::string(".mat")).c_str();
 		std::fstream file(filename, std::ios::out);
 		file << 1 << std::endl; // connection viewer version
 
@@ -121,10 +122,10 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 	size_t pid = 0;
 #endif
 
-	std::string path=std::string("/level") + ToString(level) + "/";
-	mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
+//	std::string path=std::string("/level") + ToString(level) + "/";
+//	mkdir((std::string(m_writeMatrixPath) + path).c_str(), 0777);
 
-	std::string name = (m_writeMatrixPath + path + std::string("AMG_L") + ToString(level) + "_" + filename + ".mat");
+	std::string name = (/*m_writeMatrixPath + path +*/ std::string("AMG_L") + ToString(level) + "_" + filename + ".mat");
 
 
 
@@ -144,7 +145,7 @@ bool AMGBase<TAlgebra>::writevec(std::string filename, const vector_type &const_
 #endif
 	f << "v " << name2 << "\n";
 
-	std::fstream file((std::string(m_writeMatrixPath)+ path + name2).c_str(), std::ios::out);
+	std::fstream file((/*std::string(m_writeMatrixPath)+ path +*/ name2).c_str(), std::ios::out);
 	if(solution)
 		for(size_t i=0; i<d.size(); i++)
 			file << i << " " << d[i] - solution2[i] << std::endl;
