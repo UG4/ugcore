@@ -326,6 +326,104 @@ class VRLUserData : public IPData<TData, dim>
 		jobject userDataObject;
 		jclass userDataClass;
 		jmethodID runMethod;
+
+	/////////////////////////////////////
+	// implementation as DirectIPData
+	/////////////////////////////////////
+	public:
+		virtual void operator() (TData vValue[],
+								 const MathVector<dim> vGlobIP[],
+								 number time, int si, const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				operator()(vValue[ip], vGlobIP[ip], time, si);
+		}
+
+		virtual void operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si,
+								 LocalVector& u,
+								 GeometricObject* elem,
+								 const MathVector<dim> vCornerCoords[],
+								 const MathVector<1>& locIP) const
+		{
+			return this->operator()(value, globIP, time, si);
+		}
+
+		virtual void operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si,
+								 LocalVector& u,
+								 GeometricObject* elem,
+								 const MathVector<dim> vCornerCoords[],
+								 const MathVector<2>& locIP) const
+		{
+			return this->operator()(value, globIP, time, si);
+		}
+
+
+		virtual void operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si,
+								 LocalVector& u,
+								 GeometricObject* elem,
+								 const MathVector<dim> vCornerCoords[],
+								 const MathVector<3>& locIP) const
+		{
+			return this->operator()(value, globIP, time, si);
+		}
+
+		virtual void operator()(TData vValue[],
+								const MathVector<dim> vGlobIP[],
+								number time, int si,
+								LocalVector& u,
+								GeometricObject* elem,
+								const MathVector<dim> vCornerCoords[],
+								const MathVector<1> vLocIP[],
+								const size_t nip,
+								const MathMatrix<1, dim>* vJT = NULL) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				this->operator()(vValue[ip], vGlobIP[ip], time, si);
+		}
+
+
+		virtual void operator()(TData vValue[],
+								const MathVector<dim> vGlobIP[],
+								number time, int si,
+								LocalVector& u,
+								GeometricObject* elem,
+								const MathVector<dim> vCornerCoords[],
+								const MathVector<2> vLocIP[],
+								const size_t nip,
+								const MathMatrix<2, dim>* vJT = NULL) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				this->operator()(vValue[ip], vGlobIP[ip], time, si);
+		}
+
+
+		virtual void operator()(TData vValue[],
+								const MathVector<dim> vGlobIP[],
+								number time, int si,
+								LocalVector& u,
+								GeometricObject* elem,
+								const MathVector<dim> vCornerCoords[],
+								const MathVector<3> vLocIP[],
+								const size_t nip,
+								const MathMatrix<3, dim>* vJT = NULL) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				this->operator()(vValue[ip], vGlobIP[ip], time, si);
+		}
+
+
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return false;}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const {return true;}
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////
