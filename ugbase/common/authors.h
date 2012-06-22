@@ -35,7 +35,7 @@ namespace ug {
 "ConvectionDiffusion and ConstantEquation.\n"
 "2. Licensee means the individual that uses ug4 under the \n"
 "terms of this License Agreement.\n"
-"3. The licensor is the Goethe Center for Scientific Computing (G-CSC),\n"
+"3. The licensors are the Goethe Center for Scientific Computing (G-CSC),\n"
 " Goethe University Frankfurt am Main, Germany and the Steinbeis \n"
 "Forschungszentrum, …lbronn, Germany.\n"
 "\n"
