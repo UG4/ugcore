@@ -116,7 +116,7 @@ foreach my $line (<FH>)
     # function end
     if ($bInFunction == 1) 
     {
-    	if ( $line =~ /^[ \t]*end/ )
+    	if ( $line =~ /^end/ )
      	{
         	$bInFunction = 0;
         	$result .= "$line\n\\endcode\n**/\n".$functionLine."\n";
