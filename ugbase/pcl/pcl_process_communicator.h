@@ -284,6 +284,14 @@ class ProcessCommunicator
 		template<typename T>
 		void allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op) const;
 
+		template<typename T>
+		void allreduce(const std::vector<T> &send,
+				std::vector<T> &receive, pcl::ReduceOperation op) const
+		{
+			receive.resize(send.size());
+			allreduce(&send[0], &receive[0], send.size(), op);
+		}
+
 	/**
 	 * performs a MPI_Bcast
 	 * @param v		pointer to data
