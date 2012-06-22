@@ -4,7 +4,7 @@
 
 #include <windows.h>
 #include <string>
-#include "plugin_util.h"
+#include "../plugin_util.h"
 #include "common/log.h"
 #include "common/util/path_provider.h"
 #include "bridge/bridge.h"
