@@ -285,6 +285,7 @@ number IntegrateSubset(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInteg
 	                 quadOrder);
 }
 
+
 template <typename TGridFunction>
 number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand,
                         SmartPtr<TGridFunction> spGridFct,
@@ -1051,6 +1052,49 @@ class StdFuncIntegrand
 
 
 template <typename TGridFunction>
+number StdFuncIntegralOnVertex(SmartPtr<TGridFunction> spGridFct,
+							   size_t fct,
+							   int si)
+{
+//	integrate elements of subset
+	typedef typename TGridFunction::template dim_traits<0>::geometric_base_object geometric_base_object;
+	typedef typename TGridFunction::template dim_traits<0>::const_iterator const_iterator;
+
+	//	reset the result
+	number integral = 0;
+
+//	note: this iterator is for the base elements, e.g. Face and not
+//			for the special type, e.g. Triangle, Quadrilateral
+	const_iterator iter = spGridFct->template begin<geometric_base_object>(si);
+	const_iterator iterEnd = spGridFct->template end<geometric_base_object>(si);
+
+// 	iterate over all elements
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get element
+		geometric_base_object* pElem = *iter;
+
+		std::vector<MultiIndex<2> > ind;  // 	aux. index array
+		spGridFct->multi_indices(pElem, fct, ind);
+
+	// 	compute approximated solution at integration point
+		number value = 0.0;
+		for(size_t sh = 0; sh < ind.size(); ++sh)
+		{
+			value += BlockRef((*spGridFct)[ind[sh][0]], ind[sh][1]);
+		}
+
+	//	add to global sum
+		integral += value;
+
+	} // end elem
+
+//	return the summed integral contributions of all elements
+	return integral;
+}
+
+
+template <typename TGridFunction>
 number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
                 const char* subsets, int quadOrder)
 {
@@ -1061,6 +1105,45 @@ number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 	if(fct >= spGridFct->num_fct())
 		UG_THROW("L2Norm: Function space does not contain"
 				" a function with name " << cmp << ".");
+
+//	read subsets
+	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
+	if(subsets != NULL)
+	{
+		ConvertStringToSubsetGroup(ssGrp, subsets);
+		if(!SameDimensionsInAllSubsets(ssGrp))
+			UG_THROW("IntegrateSubsets: Subsets '"<<subsets<<"' do not have same dimension."
+					 "Can not integrate on subsets of different dimensions.");
+	}
+	else
+	{
+	//	add all subsets and remove lower dim subsets afterwards
+		ssGrp.add_all();
+		RemoveLowerDimSubsets(ssGrp);
+	}
+
+	// \TODO: This should be generalite in IntegrateSubset instead of doing it directly here
+	bool bOnlyVertex = true;
+	for(size_t s = 0; s < ssGrp.size(); ++s)
+		if(ssGrp.dim(s) != 0) bOnlyVertex = false;
+
+	if(bOnlyVertex)
+	{
+		number value = 0;
+		for(size_t s = 0; s < ssGrp.size(); ++s)
+			value += StdFuncIntegralOnVertex(spGridFct, fct, ssGrp[s]);
+
+#ifdef UG_PARALLEL
+	// sum over processes
+	if(pcl::GetNumProcesses() > 1)
+	{
+		pcl::ProcessCommunicator com;
+		number local = value;
+		com.allreduce(&local, &value, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+	}
+#endif
+		return value;
+	}
 
 	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
 		= CreateSmartPtr(new StdFuncIntegrand<TGridFunction>(spGridFct, fct));
