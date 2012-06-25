@@ -96,14 +96,14 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
 								 const MathVector<dim> locPos) const
 		{
-			number a = 1. - locPos[1];
+			const number a = 1. - locPos[1];
+			const number b = 1. - locPos[0];
 
-			JT(0, 0) = a*(m_vCo[1][0] - m_vCo[0][0]) + locPos[1]*(m_vCo[2][0] - m_vCo[3][0]);
-			JT(0, 1) = a*(m_vCo[1][1] - m_vCo[0][1]) + locPos[1]*(m_vCo[2][1] - m_vCo[3][1]);
-
-			a = 1. - locPos[0];
-			JT(1, 0) = a*(m_vCo[3][0] - m_vCo[0][0]) + locPos[0]*(m_vCo[2][0] - m_vCo[1][0]);
-			JT(1, 1) = a*(m_vCo[3][1] - m_vCo[0][1]) + locPos[0]*(m_vCo[2][1] - m_vCo[1][1]);
+			for(int i = 0; i < worldDim; ++i)
+			{
+				JT(0, i) = a*(m_vCo[1][i] - m_vCo[0][i]) + locPos[1]*(m_vCo[2][i] - m_vCo[3][i]);
+				JT(1, i) = b*(m_vCo[3][i] - m_vCo[0][i]) + locPos[0]*(m_vCo[2][i] - m_vCo[1][i]);
+			}
 		}
 
 	///	returns transposed of the inverse of the jacobian
