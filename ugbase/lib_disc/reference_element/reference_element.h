@@ -67,7 +67,7 @@ class IReferenceElement
 	 * (sub-)geometric object of this reference element.
 	 *
 	 * \param[in]	dim_i		dimension of sub geometric object
-	 * \param[in]	i			number of sub geomertic object
+	 * \param[in]	i			number of sub geometric object
 	 * \param[in]	dim_j		dimension for elems contained in the sub-object
 	 * \returns		number of objects of the dimension dim_j that are
 	 * 				contained in the i*th (sub-)geom object of dimension dim_i

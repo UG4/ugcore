@@ -78,6 +78,7 @@
 
 #include "spatial_disc/disc_util/finite_element_geometry.h"
 #include "spatial_disc/disc_util/finite_volume_geometry.h"
+#include "spatial_disc/disc_util/cr_finite_volume_geometry.h"
 #include "spatial_disc/disc_util/finite_volume_output.h"
 #include "spatial_disc/disc_util/finite_volume_util.h"
 #include "spatial_disc/disc_util/hanging_finite_volume_geometry.h"
