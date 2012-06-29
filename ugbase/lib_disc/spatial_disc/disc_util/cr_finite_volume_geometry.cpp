@@ -196,7 +196,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	{
 		MathMatrix<worldDim,dim> JtInv;
 		rMapping.jacobian_transposed_inverse(JtInv, m_vSCVF[0].local_ip());
-		const number detJ = rMapping.jacobian_det(m_vSCVF[0].local_ip());
+		const number detJ = rMapping.sqrt_gram_det(m_vSCVF[0].local_ip());
 
 		for(size_t i = 0; i < num_scvf(); ++i)
 		{
@@ -216,12 +216,12 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		for(size_t i = 0; i < num_scvf(); ++i)
 		{
 			rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].local_ip());
-			m_vSCVF[i].detj = rMapping.jacobian_det(m_vSCVF[i].local_ip());
+			m_vSCVF[i].detj = rMapping.sqrt_gram_det(m_vSCVF[i].local_ip());
 		}
 		for(size_t i = 0; i < num_scv(); ++i)
 		{
 			rMapping.jacobian_transposed_inverse(m_vSCV[i].JtInv, m_vSCV[i].local_ip());
-			m_vSCV[i].detj = rMapping.jacobian_det(m_vSCV[i].local_ip());
+			m_vSCV[i].detj = rMapping.sqrt_gram_det(m_vSCV[i].local_ip());
 		}
 	}
 
@@ -348,7 +348,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 
 			//	get reference mapping
 			rMapping.jacobian_transposed_inverse(bf.JtInv, bf.localIP);
-			bf.detj = rMapping.jacobian_det(bf.localIP);
+			bf.detj = rMapping.sqrt_gram_det(bf.localIP);
 
 			//	compute global gradients
 			for(size_t sh = 0 ; sh < num_scv(); ++sh)
@@ -525,7 +525,7 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 	{
 		MathMatrix<worldDim,dim> JtInv;
 		m_mapping.jacobian_transposed_inverse(JtInv, m_vSCVF[0].local_ip());
-		const number detJ = m_mapping.jacobian_det(m_vSCVF[0].local_ip());
+		const number detJ = m_mapping.sqrt_gram_det(m_vSCVF[0].local_ip());
 
 		for(size_t i = 0; i < num_scvf(); ++i)
 		{
@@ -545,12 +545,12 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 		for(size_t i = 0; i < num_scvf(); ++i)
 		{
 			m_mapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].local_ip());
-			m_vSCVF[i].detj = m_mapping.jacobian_det(m_vSCVF[i].local_ip());
+			m_vSCVF[i].detj = m_mapping.sqrt_gram_det(m_vSCVF[i].local_ip());
 		}
 		for(size_t i = 0; i < num_scv(); ++i)
 		{
 			m_mapping.jacobian_transposed_inverse(m_vSCV[i].JtInv, m_vSCV[i].local_ip());
-			m_vSCV[i].detj = m_mapping.jacobian_det(m_vSCV[i].local_ip());
+			m_vSCV[i].detj = m_mapping.sqrt_gram_det(m_vSCV[i].local_ip());
 		}
 	}
 
@@ -650,7 +650,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 
 			//	get reference mapping
 			m_mapping.jacobian_transposed_inverse(bf.JtInv, bf.localIP);
-			bf.detj = m_mapping.jacobian_det(bf.localIP);
+			bf.detj = m_mapping.sqrt_gram_det(bf.localIP);
 
 			//	compute global gradients
 			for(size_t sh = 0 ; sh < num_scv(); ++sh)

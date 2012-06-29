@@ -160,7 +160,7 @@ class FEGeometry
 			{
 			// 	compute transformation inverse and determinate at first ip
 				m_mapping.jacobian_transposed_inverse(m_vJTInv[0], local_ip(0));
-				m_vDetJ[0] = m_mapping.jacobian_det(local_ip(0));
+				m_vDetJ[0] = m_mapping.sqrt_gram_det(local_ip(0));
 
 			//	copy values
 				for(size_t ip = 1; ip < nip; ++ip)
@@ -177,7 +177,7 @@ class FEGeometry
 					m_mapping.jacobian_transposed_inverse(m_vJTInv[ip], local_ip(ip));
 
 				//	compute determinant
-					m_vDetJ[ip] = m_mapping.jacobian_det(local_ip(ip));
+					m_vDetJ[ip] = m_mapping.sqrt_gram_det(local_ip(ip));
 				}
 			}
 
@@ -417,7 +417,7 @@ class DimFEGeometry
 			map.jacobian_transposed_inverse(&(m_vJTInv[0]), &(m_vIPLocal[0]), m_nip);
 
 		//	compute determinant
-			map.jacobian_det(&(m_vDetJ[0]), &(m_vIPLocal[0]), m_nip);
+			map.sqrt_gram_det(&(m_vDetJ[0]), &(m_vIPLocal[0]), m_nip);
 
 		// 	compute global gradients
 			for(size_t ip = 0; ip < m_nip; ++ip)

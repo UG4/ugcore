@@ -452,7 +452,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 		m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].localIP);
-		m_vSCVF[i].detj = m_rMapping.jacobian_det(m_vSCVF[i].localIP);
+		m_vSCVF[i].detj = m_rMapping.sqrt_gram_det(m_vSCVF[i].localIP);
 
 		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 				LocalShapeFunctionSetProvider::

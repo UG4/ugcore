@@ -92,13 +92,13 @@ class DimReferenceMapping
 												 const std::vector<MathVector<dim> >& vLocPos) const = 0;
 
 	///	returns the determinate of the jacobian
-		virtual number jacobian_det(const MathVector<dim>& locPos) const = 0;
+		virtual number sqrt_gram_det(const MathVector<dim>& locPos) const = 0;
 
 	///	returns the determinate of the jacobian for n local positions
-		virtual void jacobian_det(number* vDet, const MathVector<dim>* vLocPos, size_t n) const = 0;
+		virtual void sqrt_gram_det(number* vDet, const MathVector<dim>* vLocPos, size_t n) const = 0;
 
 	///	returns the determinate of the jacobian for a vector of local positions
-		virtual void jacobian_det(std::vector<number>& vDet,
+		virtual void sqrt_gram_det(std::vector<number>& vDet,
 								  const std::vector<MathVector<dim> >& vLocPos) const = 0;
 
 	///	virtual destructor

@@ -114,13 +114,13 @@ class ReferenceMapping
 		                                 const std::vector<MathVector<dim> >& vLocPos) const;
 
 	///	returns the determinate of the jacobian
-		number jacobian_det(const MathVector<dim>& locPos) const;
+		number sqrt_gram_det(const MathVector<dim>& locPos) const;
 
 	///	returns the determinate of the jacobian for n local positions
-		void jacobian_det(number* vDet, const MathVector<dim>* vLocPos, size_t n) const;
+		void sqrt_gram_det(number* vDet, const MathVector<dim>* vLocPos, size_t n) const;
 
 	///	returns the determinate of the jacobian for a vector of local positions
-		void jacobian_det(std::vector<number> vDet,
+		void sqrt_gram_det(std::vector<number> vDet,
 						  const std::vector<MathVector<dim> >& vLocPos) const;
 };
 
@@ -248,7 +248,7 @@ class BaseReferenceMapping
 		}
 
 	///	returns the determinate of the jacobian
-		number jacobian_det(const MathVector<dim>& locPos) const
+		number sqrt_gram_det(const MathVector<dim>& locPos) const
 		{
 			MathMatrix<dim, worldDim> JT;
 			getImpl().jacobian_transposed(JT, locPos);
@@ -256,26 +256,26 @@ class BaseReferenceMapping
 		}
 
 	///	returns the determinate of the jacobian for n local positions
-		void jacobian_det(number* vDet, const MathVector<dim>* vLocPos, size_t n) const
+		void sqrt_gram_det(number* vDet, const MathVector<dim>* vLocPos, size_t n) const
 		{
 			if(isLinear){
 				if(n == 0) return;
-				vDet[0] = jacobian_det(vLocPos[0]);
+				vDet[0] = sqrt_gram_det(vLocPos[0]);
 				for(size_t ip = 1; ip < n; ++ip) vDet[ip] = vDet[0];
 			}
 			else {
 				for(size_t ip = 0; ip < n; ++ip)
-					vDet[ip] = jacobian_det(vLocPos[ip]);
+					vDet[ip] = sqrt_gram_det(vLocPos[ip]);
 			}
 		}
 
 	///	returns the determinate of the jacobian for a vector of local positions
-		void jacobian_det(std::vector<number>& vDet,
+		void sqrt_gram_det(std::vector<number>& vDet,
 		                  const std::vector<MathVector<dim> >& vLocPos) const
 		{
 			const size_t n = vLocPos.size();
 			vDet.resize(n);
-			jacobian_det(&vDet[0], &vLocPos[0], n);
+			sqrt_gram_det(&vDet[0], &vLocPos[0], n);
 		}
 
 	protected:
@@ -315,7 +315,7 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
 		using base_type::jacobian_transposed_inverse;
-		using base_type::jacobian_det;
+		using base_type::sqrt_gram_det;
 
 	public:
 	///	Default Constructor
@@ -385,7 +385,7 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
 		using base_type::jacobian_transposed_inverse;
-		using base_type::jacobian_det;
+		using base_type::sqrt_gram_det;
 
 	public:
 	///	Default Constructor
@@ -459,7 +459,7 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
 		using base_type::jacobian_transposed_inverse;
-		using base_type::jacobian_det;
+		using base_type::sqrt_gram_det;
 
 	public:
 	///	Default Constructor
@@ -543,7 +543,7 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
 		using base_type::jacobian_transposed_inverse;
-		using base_type::jacobian_det;
+		using base_type::sqrt_gram_det;
 
 	public:
 	///	Default Constructor
@@ -620,7 +620,7 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
 		using base_type::jacobian_transposed_inverse;
-		using base_type::jacobian_det;
+		using base_type::sqrt_gram_det;
 
 	public:
 	///	Default Constructor
@@ -738,7 +738,7 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
 		using base_type::jacobian_transposed_inverse;
-		using base_type::jacobian_det;
+		using base_type::sqrt_gram_det;
 
 	public:
 	///	Default Constructor
@@ -832,7 +832,7 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 		using base_type::jacobian;
 		using base_type::jacobian_transposed;
 		using base_type::jacobian_transposed_inverse;
-		using base_type::jacobian_det;
+		using base_type::sqrt_gram_det;
 
 	public:
 	///	Default Constructor
