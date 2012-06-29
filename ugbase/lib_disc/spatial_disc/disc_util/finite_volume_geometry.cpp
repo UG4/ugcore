@@ -1392,7 +1392,7 @@ update_local_data()
 
 	for(size_t se = 0; se < numSubElem; ++se)
 	{
-		for(int co = 0; co < ref_elem_type::num_corners; ++co)
+		for(int co = 0; co < ref_elem_type::numCorners; ++co)
 		{
 		//	compute corners of sub elem in local coordinates
 			MathVector<dim> pos; pos = 0.0;

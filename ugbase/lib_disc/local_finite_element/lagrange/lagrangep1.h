@@ -50,7 +50,7 @@ class LagrangeP1
 		static const size_t order = 1;
 
 	/// Number of shape functions
-		static const size_t nsh = TRefElem::num_corners;
+		static const size_t nsh = TRefElem::numCorners;
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::type()

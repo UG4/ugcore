@@ -459,7 +459,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 					get<ref_elem_type>
 						(LFEID(LFEID::LAGRANGE, 1));
 
-		const size_t num_sh = ref_elem_type::num_corners;
+		const size_t num_sh = ref_elem_type::numCorners;
 		m_vSCVF[i].vShape.resize(num_sh);
 		m_vSCVF[i].localGrad.resize(num_sh);
 		m_vSCVF[i].globalGrad.resize(num_sh);

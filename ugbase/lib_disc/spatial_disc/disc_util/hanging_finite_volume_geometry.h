@@ -31,10 +31,10 @@ class HFV1Geometry : public FVGeometryBase{
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
 	/// number of SubControlVolumes
-		static const size_t m_numNaturalSCV = ref_elem_type::num_corners;
+		static const size_t m_numNaturalSCV = ref_elem_type::numCorners;
 
 	/// number of SubControlVolumeFaces
-		static const size_t m_numNaturalSCVF = ref_elem_type::num_edges;
+		static const size_t m_numNaturalSCVF = ref_elem_type::numEdges;
 
 	public:
 	/// dimension of reference element

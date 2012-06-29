@@ -284,16 +284,19 @@ class ReferenceVertex : public DimReferenceElement<1>
 		static const int dim = 0;
 
 	///	number of corners
-		static const int num_corners = 1;
+		static const int numCorners = 1;
 
 	///	number of eges
-		static const int num_edges = 0;
+		static const int numEdges = 0;
 
 	///	number of faces
-		static const int num_faces = 0;
+		static const int numFaces = 0;
 
 	///	number of volumes
-		static const int num_volumes = 0;
+		static const int numVolumes = 0;
+
+	///	number of sides
+		static const int numSides = 0;
 
 	public:
 	///	Constructor filling the arrays
@@ -323,16 +326,19 @@ class ReferenceEdge : public DimReferenceElement<1>
 		static const int dim = 1;
 
 	///	number of corners
-		static const int num_corners = 2;
+		static const int numCorners = 2;
 
 	///	number of eges
-		static const int num_edges = 1;
+		static const int numEdges = 1;
 
 	///	number of faces
-		static const int num_faces = 0;
+		static const int numFaces = 0;
 
 	///	number of volumes
-		static const int num_volumes = 0;
+		static const int numVolumes = 0;
+
+	///	number of sides
+		static const int numSides = numCorners;
 
 	public:
 	///	Constructor
@@ -369,16 +375,19 @@ class ReferenceTriangle : public DimReferenceElement<2>
 		static const int dim = 2;
 
 	///	number of corners
-		static const int num_corners = 3;
+		static const int numCorners = 3;
 
 	///	number of eges
-		static const int num_edges = 3;
+		static const int numEdges = 3;
 
 	///	number of faces
-		static const int num_faces = 1;
+		static const int numFaces = 1;
 
 	///	number of volumes
-		static const int num_volumes = 0;
+		static const int numVolumes = 0;
+
+	///	number of sides
+		static const int numSides = numEdges;
 
 	public:
 	///	Constructor filling the arrays
@@ -417,16 +426,19 @@ class ReferenceQuadrilateral : public DimReferenceElement<2>
 		static const int dim = 2;
 
 	///	number of corners
-		static const int num_corners = 4;
+		static const int numCorners = 4;
 
 	///	number of eges
-		static const int num_edges = 4;
+		static const int numEdges = 4;
 
 	///	number of faces
-		static const int num_faces = 1;
+		static const int numFaces = 1;
 
 	///	number of volumes
-		static const int num_volumes = 0;
+		static const int numVolumes = 0;
+
+	///	number of sides
+		static const int numSides = numEdges;
 
 	public:
 		ReferenceQuadrilateral();
@@ -463,16 +475,19 @@ class ReferenceTetrahedron : public DimReferenceElement<3>
 		static const int dim = 3;
 
 	///	number of corners
-		static const int num_corners = 4;
+		static const int numCorners = 4;
 
 	///	number of eges
-		static const int num_edges = 6;
+		static const int numEdges = 6;
 
 	///	number of faces
-		static const int num_faces = 4;
+		static const int numFaces = 4;
 
 	///	number of volumes
-		static const int num_volumes = 1;
+		static const int numVolumes = 1;
+
+	///	number of sides
+		static const int numSides = numFaces;
 
 	public:
 	///	Constructor
@@ -512,16 +527,19 @@ class ReferencePyramid : public DimReferenceElement<3>
 		static const int dim = 3;
 
 	///	number of corners
-		static const int num_corners = 5;
+		static const int numCorners = 5;
 
 	///	number of eges
-		static const int num_edges = 8;
+		static const int numEdges = 8;
 
 	///	number of faces
-		static const int num_faces = 5;
+		static const int numFaces = 5;
 
 	///	number of volumes
-		static const int num_volumes = 1;
+		static const int numVolumes = 1;
+
+	///	number of sides
+		static const int numSides = numFaces;
 
 	public:
 	///	Constructor
@@ -558,16 +576,19 @@ class ReferencePrism : public DimReferenceElement<3>
 		static const int dim = 3;
 
 	///	number of corners
-		static const int num_corners = 6;
+		static const int numCorners = 6;
 
 	///	number of eges
-		static const int num_edges = 9;
+		static const int numEdges = 9;
 
 	///	number of faces
-		static const int num_faces = 5;
+		static const int numFaces = 5;
 
 	///	number of volumes
-		static const int num_volumes = 1;
+		static const int numVolumes = 1;
+
+	///	number of sides
+		static const int numSides = numFaces;
 
 	public:
 	///	Constructor
@@ -608,16 +629,19 @@ class ReferenceHexahedron : public DimReferenceElement<3>
 		static const int dim = 3;
 
 	///	number of corners
-		static const int num_corners = 8;
+		static const int numCorners = 8;
 
 	///	number of eges
-		static const int num_edges = 12;
+		static const int numEdges = 12;
 
 	///	number of faces
-		static const int num_faces = 6;
+		static const int numFaces = 6;
 
 	///	number of volumes
-		static const int num_volumes = 1;
+		static const int numVolumes = 1;
+
+	///	number of sides
+		static const int numSides = numFaces;
 
 	public:
 	///	Constructor filling the arrays

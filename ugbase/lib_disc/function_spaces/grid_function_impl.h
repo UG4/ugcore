@@ -46,7 +46,7 @@ InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
 //	vector for the vertex positions
-	std::vector<MathVector<dim> > vVertPos(reference_element_type::num_corners);
+	std::vector<MathVector<dim> > vVertPos(reference_element_type::numCorners);
 
 //	get the vertices
 	CollectCornerCoordinates(vVertPos, *elem, domain, true);
@@ -185,7 +185,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
 //	vector for the vertex positions
-	std::vector<MathVector<dim> > vVertPos(reference_element_type::num_corners);
+	std::vector<MathVector<dim> > vVertPos(reference_element_type::numCorners);
 
 //	get the vertices
 	CollectCornerCoordinates(vVertPos, *elem, domain, true);

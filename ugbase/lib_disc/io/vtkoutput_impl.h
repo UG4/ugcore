@@ -328,7 +328,7 @@ count_sizes(Grid& grid, const T& iterContainer, int si,
 																ref_elem_type;
 
 //	number of corners of element
-	static const int numCo = ref_elem_type::num_corners;
+	static const int numCo = ref_elem_type::numCorners;
 
 //	get iterators
 	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
@@ -425,7 +425,7 @@ write_points_elementwise(VTKFileWriter& File,
 		TElem *elem = *iterBegin;
 
 	//	loop vertices of the element
-		for(size_t i = 0; i < (size_t) ref_elem_type::num_corners; ++i)
+		for(size_t i = 0; i < (size_t) ref_elem_type::numCorners; ++i)
 		{
 		//	get vertex of element
 			VertexBase* v = GetVertex(elem, i);
@@ -569,7 +569,7 @@ write_cell_connectivity(VTKFileWriter& File,
 	//	write ids of the element
 		if(refID != ROID_PRISM)
 		{
-			for(size_t i=0; i< (size_t) ref_elem_type::num_corners; i++)
+			for(size_t i=0; i< (size_t) ref_elem_type::numCorners; i++)
 			{
 				VertexBase* vert = elem->vertex(i);
 				int id = aaVrtIndex[vert];
@@ -648,7 +648,7 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int& n)
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
 	//	increase counter of vertices
-		n += ref_elem_type::num_corners;
+		n += ref_elem_type::numCorners;
 
 	//	write offset
 		File.write_base64_buffered(n);
@@ -811,7 +811,7 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 	typedef typename reference_element_traits<TElem>::reference_element_type
 																ref_elem_type;
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
-	static const size_t numCo = ref_elem_type::num_corners;
+	static const size_t numCo = ref_elem_type::numCorners;
 
 	File.begin_base64_buffer<float>();
 
@@ -968,7 +968,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 		TElem *elem = *iterBegin;
 
 	//	loop vertices of element
-		for(size_t co = 0; co < (size_t) ref_elem_type::num_corners; ++co)
+		for(size_t co = 0; co < (size_t) ref_elem_type::numCorners; ++co)
 		{
 		//	get vertex of element
 			VertexBase* v = GetVertex(elem, co);
@@ -1152,7 +1152,7 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 																ref_elem_type;
 	static const int refDim = reference_element_traits<TElem>::dim;
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
-	static const size_t numCo = ref_elem_type::num_corners;
+	static const size_t numCo = ref_elem_type::numCorners;
 
 	File.begin_base64_buffer<float>();
 
@@ -1274,7 +1274,7 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 	static const int dim = ref_elem_type::dim;
-	static const size_t numCo = ref_elem_type::num_corners;
+	static const size_t numCo = ref_elem_type::numCorners;
 
 //	index vector
 	std::vector<MultiIndex<2> > vMultInd;

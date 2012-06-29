@@ -105,13 +105,13 @@ class FV1Geometry : public FVGeometryBase
 		static const int order = 1;
 
 	///	number of SubControlVolumes
-		static const size_t numSCV = ref_elem_type::num_corners;
+		static const size_t numSCV = ref_elem_type::numCorners;
 
 	///	type of SubControlVolume
 		typedef typename traits::scv_type scv_type;
 
 	///	number of SubControlVolumeFaces
-		static const size_t numSCVF = ref_elem_type::num_edges;
+		static const size_t numSCVF = ref_elem_type::numEdges;
 
 	///	type of Shape function used
 		typedef LagrangeP1<ref_elem_type> local_shape_fct_set_type;
@@ -1104,7 +1104,7 @@ class FVGeometry : public FVGeometryBase
 		typedef typename traits::scvf_type scvf_type;
 
 	///	number of SCVF per SubElement
-		static const size_t numSCVFPerSubElem = ref_elem_type::num_edges;
+		static const size_t numSCVFPerSubElem = ref_elem_type::numEdges;
 
 	///	number of SubControlVolumeFaces
 		static const size_t numSCVF = numSubElem * numSCVFPerSubElem;
@@ -1123,7 +1123,7 @@ class FVGeometry : public FVGeometryBase
 		typedef typename traits::scv_type scv_type;
 
 	///	number of SCV per SubElement
-		static const size_t numSCVPerSubElem = ref_elem_type::num_corners;
+		static const size_t numSCVPerSubElem = ref_elem_type::numCorners;
 
 	///	number of SubControlVolumes
 		static const size_t numSCV = numSubElem * numSCVPerSubElem;
@@ -1565,7 +1565,7 @@ class FVGeometry : public FVGeometryBase
 		struct SubElement
 		{
 		//	shape number of corners of subelement
-			size_t vDoFID[ref_elem_type::num_corners];
+			size_t vDoFID[ref_elem_type::numCorners];
 
 		// 	local and global geom object midpoints for each dimension
 		// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
@@ -1639,7 +1639,7 @@ class FVGeometry : public FVGeometryBase
 		TElem* m_pElem;
 
 	///	corners of reference element
-		MathVector<dim> m_vLocCorner[ref_elem_type::num_corners];
+		MathVector<dim> m_vLocCorner[ref_elem_type::numCorners];
 
 	///	SubControlVolumeFaces
 		SCVF m_vSCVF[numSCVF];
@@ -2260,7 +2260,7 @@ class FV1ManifoldBoundary
 		static const int order = 1;
 
 	// 	number of BoundaryFaces
-		static const size_t m_numBF = ref_elem_type::num_corners;
+		static const size_t m_numBF = ref_elem_type::numCorners;
 		
 	// 	dimension of reference element
 		static const int dim = ref_elem_type::dim;

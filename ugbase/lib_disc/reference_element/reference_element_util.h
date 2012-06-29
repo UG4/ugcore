@@ -24,7 +24,8 @@ inline int ReferenceElementDimension(ReferenceObjectID roid)
 		case ROID_PYRAMID: return 3;
 		case ROID_PRISM: return 3;
 		case ROID_HEXAHEDRON: return 3;
-		default: throw(UGError("ReferenceObjectId not found."));
+		default:UG_THROW("ReferenceElementDimension: ReferenceObjectId "
+						 <<roid<<" not found.");
 	}
 }
 

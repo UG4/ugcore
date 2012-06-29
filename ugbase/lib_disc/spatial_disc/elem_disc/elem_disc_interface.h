@@ -535,7 +535,7 @@ class IDomainElemDisc : public IElemDisc
 							ref_elem_type;
 
 		//	resize corners
-			m_vCornerCoords.resize(ref_elem_type::num_corners);
+			m_vCornerCoords.resize(ref_elem_type::numCorners);
 
 		//	check domain
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set");

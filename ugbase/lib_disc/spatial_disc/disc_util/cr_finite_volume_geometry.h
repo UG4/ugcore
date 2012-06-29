@@ -647,7 +647,7 @@ class CRFVGeometry : public CRFVGeometryBase
 		static const size_t numSCV = nsh;
 
 	///	number of SubControlVolumeFaces
-		static const size_t numSCVF = ref_elem_type::num_edges;
+		static const size_t numSCVF = ref_elem_type::numEdges;
 
 	public:
 	///	order
