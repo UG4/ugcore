@@ -135,7 +135,7 @@ TBaseElem* MGDoFDistribution::parent_if_copy(TBaseElem* elem) const
 	GeometricObject* pParent = multi_grid()->get_parent(elem);
 	TBaseElem* parent = dynamic_cast<TBaseElem*>(pParent);
 	if(parent != NULL &&
-		multi_grid()->num_children<TBaseElem>(parent) == 1) return parent;
+		multi_grid()->template num_children<TBaseElem>(parent) == 1) return parent;
 	else return NULL;
 }
 
@@ -149,8 +149,8 @@ TBaseElem* MGDoFDistribution::parent_if_same_type(TBaseElem* elem) const
 template <typename TBaseElem>
 TBaseElem* MGDoFDistribution::child_if_copy(TBaseElem* elem) const
 {
-	if(multi_grid()->num_children<TBaseElem>(elem) != 1) return NULL;
-	return multi_grid()->get_child<TBaseElem>(elem, 0);
+	if(multi_grid()->template num_children<TBaseElem>(elem) != 1) return NULL;
+	return multi_grid()->template get_child<TBaseElem>(elem, 0);
 }
 
 

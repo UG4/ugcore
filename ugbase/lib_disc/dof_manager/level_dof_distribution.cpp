@@ -423,9 +423,9 @@ void LevelMGDoFDistribution::permute_indices(const std::vector<size_t>& vNewInd,
 {
 // 	loop Vertices
 	typedef typename geometry_traits<TBaseElem>::const_iterator const_iterator;
-	const_iterator iterEnd = m_spMGSH->multi_grid()->end<TBaseElem>(lev);
+	const_iterator iterEnd = m_spMGSH->multi_grid()->template end<TBaseElem>(lev);
 
-	for(const_iterator iter = m_spMGSH->multi_grid()->begin<TBaseElem>(lev); iter != iterEnd; ++iter)
+	for(const_iterator iter = m_spMGSH->multi_grid()->template begin<TBaseElem>(lev); iter != iterEnd; ++iter)
 	{
 	// 	get vertex
 		TBaseElem* elem = *iter;
