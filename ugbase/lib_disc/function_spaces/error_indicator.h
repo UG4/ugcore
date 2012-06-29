@@ -15,6 +15,7 @@
 #include "lib_grid/algorithms/refinement/refiner_interface.h"
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/reference_element/reference_element_util.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
 
 namespace ug{
 

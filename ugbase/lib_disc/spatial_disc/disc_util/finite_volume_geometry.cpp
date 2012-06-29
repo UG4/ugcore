@@ -1039,7 +1039,7 @@ update_local_data()
 		return false;
 	}
 
-	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	}catch(UGError_ReferenceElementMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -1163,12 +1163,12 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
-	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	}catch(UGError_ReferenceElementMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
 	}
-	}catch(UG_ERROR_ReferenceMappingMissing& ex)
+	}catch(UGError_ReferenceMappingMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -1298,12 +1298,12 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		}
 	}
 
-	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	}catch(UGError_ReferenceElementMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
 	}
-	}catch(UG_ERROR_ReferenceMappingMissing& ex)
+	}catch(UGError_ReferenceMappingMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -1983,7 +1983,7 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 		return false;
 	}
 
-	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	}catch(UGError_ReferenceElementMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -2080,7 +2080,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		rMapping.jacobian_det(&m_vSCV[i].vDetJ[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
 	}
 
-	}catch(UG_ERROR_ReferenceMappingMissing& ex){
+	}catch(UGError_ReferenceMappingMissing& ex){
 		UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
 		return false;
 	}
@@ -2267,7 +2267,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		return false;
 	}
 
-	}catch(UG_ERROR_ReferenceMappingMissing& ex){
+	}catch(UGError_ReferenceMappingMissing& ex){
 		UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
 		return false;
 	}
@@ -2278,7 +2278,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		return false;
 	}
 
-	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	}catch(UGError_ReferenceElementMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;

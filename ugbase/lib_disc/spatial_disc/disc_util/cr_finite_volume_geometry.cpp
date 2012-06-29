@@ -10,6 +10,8 @@
 #include "common/util/provider.h"
 #include "cr_finite_volume_geometry.h"
 #include "lib_disc/reference_element/reference_element.h"
+#include "lib_disc/reference_element/reference_mapping.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/quadrature/quadrature.h"
 
 namespace ug{
@@ -102,7 +104,7 @@ update_local_data()
 		return false;
 	}
 
-	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	}catch(UGError_ReferenceElementMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -235,12 +237,12 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
-	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	}catch(UGError_ReferenceElementMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
 		return false;
 	}
-	}catch(UG_ERROR_ReferenceMappingMissing& ex)
+	}catch(UGError_ReferenceMappingMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -355,12 +357,12 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		}
 	}
 
-	}catch(UG_ERROR_ReferenceElementMissing& ex)
+	}catch(UGError_ReferenceElementMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
 		return false;
 	}
-	}catch(UG_ERROR_ReferenceMappingMissing& ex)
+	}catch(UGError_ReferenceMappingMissing& ex)
 	{
 		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
 		return false;

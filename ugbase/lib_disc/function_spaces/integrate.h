@@ -20,6 +20,7 @@
 #include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
 #include "lib_disc/spatial_disc/ip_data/ip_data.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
 #include <boost/function.hpp>
 
 #ifdef UG_FOR_LUA
@@ -257,7 +258,7 @@ number Integrate(TConstIterator iterBegin,
 		}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
 			UG_THROW("SumValuesOnElems: " << ex.get_msg() << ".");
 		}
-		}catch(UG_ERROR_ReferenceMappingMissing& ex){
+		}catch(UGError_ReferenceMappingMissing& ex){
 			UG_THROW("SumValuesOnElems: " << ex.get_msg() << ".");
 		}
 	} // end elem

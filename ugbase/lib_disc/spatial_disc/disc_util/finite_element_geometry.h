@@ -424,7 +424,7 @@ class DimFEGeometry
 				for(size_t sh = 0; sh < m_nsh; ++sh)
 					MatVecMult(m_vvGradGlobal[ip][sh], m_vJTInv[ip], m_vvGradLocal[ip][sh]);
 
-			}catch(UG_ERROR_ReferenceMappingMissing& ex){
+			}catch(UGError_ReferenceMappingMissing& ex){
 				UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
 				return false;
 			}

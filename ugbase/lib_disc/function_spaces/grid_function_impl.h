@@ -13,6 +13,7 @@
 #include "lib_algebra/algebra_type.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
+#include "lib_disc/reference_element/reference_mapping.h"
 #include "lib_disc/domain_util.h"
 
 #ifdef UG_PARALLEL

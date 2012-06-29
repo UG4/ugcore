@@ -20,6 +20,8 @@
 // library intern includes
 #include "lib_disc/reference_element/reference_element.h"
 #include "lib_disc/reference_element/reference_element_traits.h"
+#include "lib_disc/reference_element/reference_mapping.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/local_finite_element/lagrange/lagrangep1.h"
 #include "lib_disc/quadrature/gauss_quad/gauss_quad.h"

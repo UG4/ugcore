@@ -12,6 +12,7 @@
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/common/groups_util.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
 
 namespace ug{
 
@@ -363,7 +364,7 @@ class GradientDataExport
 				UG_THROW("GradientDataExport: "<< ex.get_msg()<<", Reference Object: "
 						 <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
 			}
-			catch(UG_ERROR_ReferenceMappingMissing& ex){
+			catch(UGError_ReferenceMappingMissing& ex){
 				UG_THROW("GradientDataExport: " << ex.get_msg());
 			}
 		}

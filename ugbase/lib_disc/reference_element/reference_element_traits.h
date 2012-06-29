@@ -9,14 +9,6 @@
 #define __H__UG__LIB_DISC__REFERENCE_ELEMENT__REFERENCE_ELEMENT_TRAITS__
 
 #include "reference_element.h"
-#include "reference_vertex.h"
-#include "reference_edge.h"
-#include "reference_triangle.h"
-#include "reference_quadrilateral.h"
-#include "reference_tetrahedron.h"
-#include "reference_pyramid.h"
-#include "reference_prism.h"
-#include "reference_hexahedron.h"
 
 namespace ug{
 
