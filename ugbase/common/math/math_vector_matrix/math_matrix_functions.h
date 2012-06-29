@@ -183,10 +183,10 @@ SqrtGramDeterminant(const MathMatrix<3,3,T>& m);
 // Transposed of Matrix
 ////////////////////////////////////////////////////////////////////////////////
 
-/// transpose a matrix_t
-template <typename matrix_t>
+/// transpose a matrix
+template <size_t N, size_t M, typename T>
 inline void
-Transpose(matrix_t& mOut, const matrix_t& m);
+Transpose(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m);
 
 /// transpose a matrix_t, override original matrix_t
 template <typename matrix_t>

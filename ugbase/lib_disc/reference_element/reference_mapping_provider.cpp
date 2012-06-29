@@ -35,92 +35,114 @@ class DimReferenceMappingWrapper
 			TRefMapping::update(vCorner);
 		}
 
+	///	refresh mapping for new set of corners
+		virtual void update(const std::vector<MathVector<worldDim> >& vCorner)
+		{
+			TRefMapping::update(vCorner);
+		}
+
 	///	map local coordinate to global coordinate
 		virtual void local_to_global(MathVector<worldDim>& globPos,
-		                             const MathVector<dim> locPos) const
+		                             const MathVector<dim>& locPos) const
 		{
 			TRefMapping::local_to_global(globPos, locPos);
 		}
 
 	///	map n local coordinate to global coordinate
-		virtual void local_to_global(MathVector<worldDim>* globPos,
-									 const MathVector<dim>* locPos, size_t n) const
+		virtual void local_to_global(MathVector<worldDim>* vGlobPos,
+									 const MathVector<dim>* vLocPos, size_t n) const
 		{
-			for(size_t ip = 0; ip < n; ++ip)
-				TRefMapping::local_to_global(globPos[ip], locPos[ip]);
+			TRefMapping::local_to_global(vGlobPos, vLocPos, n);
+		}
+
+	///	map local coordinate to global coordinate for a vector of local positions
+		virtual void local_to_global(std::vector<MathVector<worldDim> >& vGlobPos,
+		                             const std::vector<MathVector<dim> >& vLocPos) const
+		{
+			TRefMapping::local_to_global(vGlobPos, vLocPos);
+		}
+
+	///	returns jacobian
+		virtual void jacobian(MathMatrix<worldDim, dim>& J,
+		                      const MathVector<dim>& locPos) const
+		{
+			TRefMapping::jacobian(J, locPos);
+		}
+
+	///	returns jacobian for n local positions
+		virtual void jacobian(MathMatrix<worldDim, dim>* vJ,
+		                      const MathVector<dim>* vLocPos, size_t n) const
+		{
+			TRefMapping::jacobian(vJ, vLocPos, n);
+		}
+
+	///	returns jacobian for a vector of local positions
+		virtual void jacobian(std::vector<MathMatrix<worldDim, dim> >& vJ,
+		                      const std::vector<MathVector<dim> >& vLocPos) const
+		{
+			TRefMapping::jacobian(vJ, vLocPos);
 		}
 
 	///	returns transposed of jacobian
 		virtual void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
-		                                 const MathVector<dim> locPos) const
+		                                 const MathVector<dim>& locPos) const
 		{
 			TRefMapping::jacobian_transposed(JT, locPos);
 		}
 
 	///	returns transposed of jacobian for n local positions
-		virtual void jacobian_transposed(MathMatrix<dim, worldDim>* JT,
-										 const MathVector<dim>* locPos, size_t n) const
+		virtual void jacobian_transposed(MathMatrix<dim, worldDim>* vJT,
+										 const MathVector<dim>* vLocPos, size_t n) const
 		{
-			if(TRefMapping::isLinear)
-			{
-				UG_ASSERT(n > 0, "No point specified in mapping.");
-				TRefMapping::jacobian_transposed(JT[0], locPos[0]);
-				for(size_t ip = 1; ip < n; ++ip)
-					JT[ip] = JT[0];
-			}
-			else
-			{
-				for(size_t ip = 0; ip < n; ++ip)
-					TRefMapping::jacobian_transposed(JT[ip], locPos[ip]);
-			}
+			TRefMapping::jacobian_transposed(vJT, vLocPos, n);
+		}
+
+	///	returns transposed of jacobian for a vector of positions
+		virtual void jacobian_transposed(std::vector<MathMatrix<dim, worldDim> >& vJT,
+		                                 const std::vector<MathVector<dim> >& vLocPos) const
+		{
+			TRefMapping::jacobian_transposed(vJT, vLocPos);
 		}
 
 	///	returns transposed of the inverse of the jacobian
 		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
-		                                         const MathVector<dim> locPos) const
+		                                         const MathVector<dim>& locPos) const
 		{
 			TRefMapping::jacobian_transposed_inverse(JTInv, locPos);
 		}
 
 	///	returns transposed of the inverse of the jacobian for n local positions
-		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* JTInv,
-												 const MathVector<dim>* locPos, size_t n) const
+		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
+												 const MathVector<dim>* vLocPos, size_t n) const
 		{
-			if(TRefMapping::isLinear)
-			{
-				UG_ASSERT(n > 0, "No point specified in mapping.");
-				TRefMapping::jacobian_transposed_inverse(JTInv[0], locPos[0]);
-				for(size_t ip = 1; ip < n; ++ip)
-					JTInv[ip] = JTInv[0];
-			}
-			else
-			{
-				for(size_t ip = 0; ip < n; ++ip)
-					TRefMapping::jacobian_transposed_inverse(JTInv[ip], locPos[ip]);
-			}
+			TRefMapping::jacobian_transposed_inverse(vJTInv, vLocPos, n);
+		}
+
+	///	returns transposed of the inverse of the jacobian for a vector of positions
+		virtual void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
+		                                         const std::vector<MathVector<dim> >& vLocPos) const
+		{
+			TRefMapping::jacobian_transposed_inverse(vJTInv, vLocPos);
 		}
 
 	///	returns the determinate of the jacobian
-		virtual number jacobian_det(const MathVector<dim> locPos) const
+		virtual number jacobian_det(const MathVector<dim>& locPos) const
 		{
 			return TRefMapping::jacobian_det(locPos);
 		}
 
 	///	returns the determinate of the jacobian for n local positions
-		virtual void jacobian_det(number* det, const MathVector<dim>* locPos, size_t n) const
+		virtual void jacobian_det(number* vDet,
+		                          const MathVector<dim>* vLocPos, size_t n) const
 		{
-			if(TRefMapping::isLinear)
-			{
-				UG_ASSERT(n > 0, "No point specified in mapping.");
-				det[0] = TRefMapping::jacobian_det(locPos[0]);
-				for(size_t ip = 1; ip < n; ++ip)
-					det[ip] = det[0];
-			}
-			else
-			{
-				for(size_t ip = 0; ip < n; ++ip)
-					det[ip] = TRefMapping::jacobian_det(locPos[ip]);
-			}
+			TRefMapping::jacobian_det(vDet, vLocPos, n);
+		}
+
+	///	returns the determinate of the jacobian for a vector of local positions
+		virtual void jacobian_det(std::vector<number>& vDet,
+		                          const std::vector<MathVector<dim> >& vLocPos) const
+		{
+			TRefMapping::jacobian_det(vDet, vLocPos);
 		}
 
 	///	virtual destructor

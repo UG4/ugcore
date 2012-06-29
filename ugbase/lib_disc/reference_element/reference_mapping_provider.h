@@ -38,37 +38,68 @@ class DimReferenceMapping
 		virtual bool is_linear() const = 0;
 
 	///	refresh mapping for new set of corners
-		virtual void update(const MathVector<worldDim>* vCorner) = 0;
+		virtual void update(const MathVector<worldDim>* vCornerCoord) = 0;
+
+	///	refresh mapping for new set of corners
+		virtual void update(const std::vector<MathVector<worldDim> >& vCornerCoord) = 0;
 
 	///	map local coordinate to global coordinate
 		virtual void local_to_global(MathVector<worldDim>& globPos,
-		                             const MathVector<dim> locPos) const = 0;
+		                             const MathVector<dim>& locPos) const = 0;
 
 	///	map n local coordinate to global coordinate
-		virtual void local_to_global(MathVector<worldDim>* globPos,
-									 const MathVector<dim>* locPos, size_t n) const = 0;
+		virtual void local_to_global(MathVector<worldDim>* vGlobPos,
+									 const MathVector<dim>* vLocPos, size_t n) const = 0;
+
+	///	map local coordinate to global coordinate for a vector of local positions
+		virtual void local_to_global(std::vector<MathVector<worldDim> >& vGlobPos,
+									 const std::vector<MathVector<dim> >& vLocPos) const = 0;
+
+	///	returns jacobian
+		virtual void jacobian(MathMatrix<worldDim, dim>& J,
+							  const MathVector<dim>& locPos) const = 0;
+
+	///	returns jacobian for n local positions
+		virtual void jacobian(MathMatrix<worldDim, dim>* vJ,
+							  const MathVector<dim>* vLocPos, size_t n) const = 0;
+
+	///	returns jacobian for a vector of local positions
+		virtual void jacobian(std::vector<MathMatrix<worldDim, dim> >& vJ,
+							  const std::vector<MathVector<dim> >& vLocPos) const = 0;
 
 	///	returns transposed of jacobian
 		virtual void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
-		                                 const MathVector<dim> locPos) const = 0;
+		                                 const MathVector<dim>& locPos) const = 0;
 
 	///	returns transposed of jacobian for n local positions
-		virtual void jacobian_transposed(MathMatrix<dim, worldDim>* JT,
-										 const MathVector<dim>* locPos, size_t n) const = 0;
+		virtual void jacobian_transposed(MathMatrix<dim, worldDim>* vJT,
+										 const MathVector<dim>* vLocPos, size_t n) const = 0;
+
+	///	returns transposed of jacobian for a vector of positions
+		virtual void jacobian_transposed(std::vector<MathMatrix<dim, worldDim> >& vJT,
+										 const std::vector<MathVector<dim> >& vLocPos) const = 0;
 
 	///	returns transposed of the inverse of the jacobian
 		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
-		                                         const MathVector<dim> locPos) const = 0;
+		                                         const MathVector<dim>& locPos) const = 0;
 
 	///	returns transposed of the inverse of the jacobian for n local positions
-		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* JTInv,
-												 const MathVector<dim>* locPos, size_t n) const = 0;
+		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
+												 const MathVector<dim>* vLocPos, size_t n) const = 0;
+
+	///	returns transposed of the inverse of the jacobian for a vector of positions
+		virtual void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
+												 const std::vector<MathVector<dim> >& vLocPos) const = 0;
 
 	///	returns the determinate of the jacobian
-		virtual number jacobian_det(const MathVector<dim> locPos) const = 0;
+		virtual number jacobian_det(const MathVector<dim>& locPos) const = 0;
 
 	///	returns the determinate of the jacobian for n local positions
-		virtual void jacobian_det(number* det, const MathVector<dim>* locPos, size_t n) const = 0;
+		virtual void jacobian_det(number* vDet, const MathVector<dim>* vLocPos, size_t n) const = 0;
+
+	///	returns the determinate of the jacobian for a vector of local positions
+		virtual void jacobian_det(std::vector<number>& vDet,
+								  const std::vector<MathVector<dim> >& vLocPos) const = 0;
 
 	///	virtual destructor
 		virtual ~DimReferenceMapping() {}

@@ -208,13 +208,11 @@ MatScaleAppend(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& 
 // Transposed of Matrix
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename matrix_t>
+template <size_t N, size_t M, typename T>
 inline void
-Transpose(matrix_t& mOut, const matrix_t& m)
+Transpose(MathMatrix<N,M,T>& mOut, const MathMatrix<M,N,T>& m)
 {
-	UG_ASSERT(&mOut != &m, "Transpose: mOut and m have to be different");
-
-	typedef typename matrix_t::size_type size_type;
+	typedef typename MathMatrix<N,M,T>::size_type size_type;
 	for(size_type i = 0; i < mOut.num_rows(); ++i)
 		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
