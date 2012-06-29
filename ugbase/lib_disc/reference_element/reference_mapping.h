@@ -330,8 +330,8 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 	///	refresh mapping for new set of corners
 		virtual void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			if((int)vCornerCoord.size() < ReferenceEdge::num_corners)
-				UG_THROW("ReferenceMapping: to few Corner Coordinates.");
+			UG_ASSERT((int)vCornerCoord.size() < ReferenceEdge::num_corners,
+			          "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
 
@@ -400,8 +400,8 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 	///	refresh mapping for new set of corners
 		virtual void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			if((int)vCornerCoord.size() < ReferenceTriangle::num_corners)
-				UG_THROW("ReferenceMapping: to few Corner Coordinates.");
+			UG_ASSERT((int)vCornerCoord.size() < ReferenceTriangle::num_corners,
+			          "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
 
@@ -474,26 +474,29 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 	///	refresh mapping for new set of corners
 		virtual void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			if((int)vCornerCoord.size() < ReferenceQuadrilateral::num_corners)
-				UG_THROW("ReferenceMapping: to few Corner Coordinates.");
+			UG_ASSERT((int)vCornerCoord.size() < ReferenceQuadrilateral::num_corners,
+			          "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
 
 	///	update the mapping for a new set of corners
-		void update(const MathVector<worldDim>* vCorner)
+		void update(const MathVector<worldDim>* vCornerCoord)
 		{
 			for(int co = 0; co < ReferenceQuadrilateral::num_corners; ++co)
-				m_vCo[co] = vCorner[co];
+				x[co] = vCornerCoord[co];
 		}
 
 	///	map local coordinate to global coordinate
 		void local_to_global(MathVector<worldDim>& globPos,
 							 const MathVector<dim>& locPos) const
 		{
-			VecScaleAdd(globPos, 	(1.-locPos[0])*(1.-locPos[1]), m_vCo[0],
-									locPos[0]*(1.-locPos[1])     , m_vCo[1],
-									locPos[0]*locPos[1]          , m_vCo[2],
-									(1.-locPos[0])*locPos[1]     , m_vCo[3]);
+			const number a = (1.-locPos[0]);
+			const number b = (1.-locPos[1]);
+
+			VecScaleAdd(globPos,        		a*b, x[0],
+			            				locPos[0]*b, x[1],
+								locPos[0]*locPos[1], x[2],
+										a*locPos[1], x[3]);
 		}
 
 	///	returns transposed of jacobian
@@ -504,14 +507,14 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 			const number b = 1. - locPos[0];
 
 			for(int i = 0; i < worldDim; ++i)
-				JT(0, i) = a*(m_vCo[1][i] - m_vCo[0][i]) + locPos[1]*(m_vCo[2][i] - m_vCo[3][i]);
+				JT(0, i) = a*(x[1][i] - x[0][i]) + locPos[1]*(x[2][i] - x[3][i]);
 
 			for(int i = 0; i < worldDim; ++i)
-				JT(1, i) = b*(m_vCo[3][i] - m_vCo[0][i]) + locPos[0]*(m_vCo[2][i] - m_vCo[1][i]);
+				JT(1, i) = b*(x[3][i] - x[0][i]) + locPos[0]*(x[2][i] - x[1][i]);
 		}
 
 	private:
-		MathVector<worldDim> m_vCo[ReferenceQuadrilateral::num_corners];
+		MathVector<worldDim> x[ReferenceQuadrilateral::num_corners];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -555,8 +558,8 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 	///	refresh mapping for new set of corners
 		virtual void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			if((int)vCornerCoord.size() < ReferenceTetrahedron::num_corners)
-				UG_THROW("ReferenceMapping: to few Corner Coordinates.");
+			UG_ASSERT((int)vCornerCoord.size() < ReferenceTetrahedron::num_corners,
+			          "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
 
@@ -621,7 +624,7 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() : m_vCo(NULL) {}
+		ReferenceMapping() {}
 
 	///	Constructor setting the corners
 	/// \{
@@ -632,22 +635,22 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 	///	refresh mapping for new set of corners
 		virtual void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			if((int)vCornerCoord.size() < ReferencePyramid::num_corners)
-				UG_THROW("ReferenceMapping: to few Corner Coordinates.");
+			UG_ASSERT((int)vCornerCoord.size() < ReferencePyramid::num_corners,
+			          "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
 
 	///	update the mapping for a new set of corners
-		void update(const MathVector<worldDim>* vCorner)
+		void update(const MathVector<worldDim>* vCornerCoord)
 		{
-			m_vCo = vCorner;
+			for(int co = 0; co < ReferencePyramid::num_corners; ++co)
+				x[co] = vCornerCoord[co];
 		}
 
 	///	map local coordinate to global coordinate
 		void local_to_global(MathVector<worldDim>& globPos,
 							 const MathVector<dim>& locPos) const
 		{
-			const MathVector<worldDim>* x = m_vCo;
 			const number a = 1.0 - locPos[0];
 			const number b = 1.0 - locPos[1];
 			if (locPos[0] > locPos[1])
@@ -677,8 +680,6 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
 								 const MathVector<dim>& locPos) const
 	   {
-			const MathVector<worldDim>* x = m_vCo;
-
 			number a[3];
 			for(int d = 0; d < worldDim; ++d)
 				a[d] = x[0][d]-x[1][d]+x[2][d]-x[3][d];
@@ -708,7 +709,7 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 		}
 
 	private:
-		const MathVector<worldDim>* m_vCo;
+		MathVector<worldDim> x[ReferencePyramid::num_corners];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -741,7 +742,7 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() : m_vCo(NULL) {}
+		ReferenceMapping() {}
 
 	///	Constructor setting the corners
 	/// \{
@@ -752,23 +753,22 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 	///	refresh mapping for new set of corners
 		virtual void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			if((int)vCornerCoord.size() < ReferencePrism::num_corners)
-				UG_THROW("ReferenceMapping: to few Corner Coordinates.");
+			UG_ASSERT((int)vCornerCoord.size() < ReferencePrism::num_corners,
+						"ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
 
 	///	update the mapping for a new set of corners
-		void update(const MathVector<worldDim>* vCorner)
+		void update(const MathVector<worldDim>* vCornerCoord)
 		{
-			m_vCo = vCorner;
+			for(int co = 0; co < ReferencePrism::num_corners; ++co)
+				x[co] = vCornerCoord[co];
 		}
 
 	///	map local coordinate to global coordinate
 		void local_to_global(MathVector<worldDim>& globPos,
 							 const MathVector<dim>& locPos) const
 		{
-			const MathVector<worldDim>* x = m_vCo;
-
 			const number a = 1.0 - locPos[0] - locPos[1];
 			const number b = 1.0 - locPos[2];
 			const number a0 = a * b;
@@ -787,7 +787,6 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 								 const MathVector<dim>& locPos) const
 	   {
 	        number a[worldDim], b[worldDim];
-			const MathVector<worldDim>* x = m_vCo;
 
 			for(int d = 0; d < worldDim; ++d)
 	          a[d] = x[0][d]-x[1][d]-x[3][d]+x[4][d];
@@ -803,7 +802,7 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 		}
 
 	private:
-		const MathVector<worldDim>* m_vCo;
+		MathVector<worldDim> x[ReferencePrism::num_corners];
 };
 
 
@@ -837,7 +836,7 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 
 	public:
 	///	Default Constructor
-		ReferenceMapping() : m_vCo(NULL) {}
+		ReferenceMapping() {}
 
 	///	Constructor setting the corners
 	/// \{
@@ -848,23 +847,22 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 	///	refresh mapping for new set of corners
 		virtual void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			if((int)vCornerCoord.size() < ReferenceHexahedron::num_corners)
-				UG_THROW("ReferenceMapping: to few Corner Coordinates.");
+			UG_ASSERT((int)vCornerCoord.size() < ReferenceHexahedron::num_corners,
+					 "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
 
 	///	update the mapping for a new set of corners
-		void update(const MathVector<worldDim>* vCorner)
+		void update(const MathVector<worldDim>* vCornerCoord)
 		{
-			m_vCo = vCorner;
+			for(int co = 0; co < ReferenceHexahedron::num_corners; ++co)
+				x[co] = vCornerCoord[co];
 		}
 
 	///	map local coordinate to global coordinate
 		void local_to_global(MathVector<worldDim>& globPos,
 							 const MathVector<dim>& locPos) const
 		{
-			const MathVector<worldDim>* x = m_vCo;
-
 			const number a = 1.0 - locPos[0];
 			const number b = 1.0 - locPos[1];
 			const number c = 1.0 - locPos[2];
@@ -887,7 +885,6 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 		void jacobian_transposed(MathMatrix<dim, worldDim>& JT,
 								 const MathVector<dim>& locPos) const
 	   {
-			const MathVector<worldDim>* x = m_vCo;
 			number a0,a1,a2,a3;
 			const number a = 1.0 - locPos[0];
 			const number b = 1.0 - locPos[1];
@@ -918,7 +915,7 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 		}
 
 	private:
-		const MathVector<worldDim>* m_vCo;
+		MathVector<worldDim> x[ReferenceHexahedron::num_corners];
 };
 
 

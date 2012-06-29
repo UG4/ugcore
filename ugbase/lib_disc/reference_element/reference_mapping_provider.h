@@ -189,6 +189,49 @@ class ReferenceMappingProvider {
 			if(!pMap) throw(UGError_ReferenceMappingMissing(TDim, TWorldDim, roid));
 			else return *pMap;
 		}
+
+	///	returns a reference to a DimReferenceMapping with updated element corners
+	/**
+	 * This class returns a reference mapping for a ReferenceObjectID. The
+	 * reference dimension and the world dimension must be chosen as
+	 * template arguments. An exception is throw if such an mapping does not
+	 * exist.
+	 *
+	 * \param[in]	roid			Reference Object ID
+	 * \param[in]	vCornerCoord	The corner coordinates of the element
+	 * \tparam		TDim			reference element dimension
+	 * \tparam		TWorldDim		(physical) world dimension
+	 */
+		template <int TDim, int TWorldDim>
+		static DimReferenceMapping<TDim, TWorldDim>& get(ReferenceObjectID roid,
+		                                                 const std::vector<MathVector<TWorldDim> >& vCornerCoord)
+		{
+			DimReferenceMapping<TDim, TWorldDim>& map = get<TDim, TWorldDim>(roid);
+			map.update(vCornerCoord);
+			return map;
+		}
+
+	///	returns a reference to a DimReferenceMapping with updated element corners
+	/**
+	 * This class returns a reference mapping for a ReferenceObjectID. The
+	 * reference dimension and the world dimension must be chosen as
+	 * template arguments. An exception is throw if such an mapping does not
+	 * exist.
+	 *
+	 * \param[in]	roid			Reference Object ID
+	 * \param[in]	vCornerCoord	The corner coordinates of the element
+	 * \tparam		TDim			reference element dimension
+	 * \tparam		TWorldDim		(physical) world dimension
+	 */
+		template <int TDim, int TWorldDim>
+		static DimReferenceMapping<TDim, TWorldDim>& get(ReferenceObjectID roid,
+														 const MathVector<TWorldDim>* vCornerCoord)
+		{
+			DimReferenceMapping<TDim, TWorldDim>& map = get<TDim, TWorldDim>(roid);
+			map.update(vCornerCoord);
+			return map;
+		}
+
 };
 
 } // end namespace ug
