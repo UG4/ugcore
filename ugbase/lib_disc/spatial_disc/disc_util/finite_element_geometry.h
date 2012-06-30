@@ -104,39 +104,31 @@ class FEGeometry
 		}
 
 	/// update Geometry for roid
-		bool update_local(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
+		void update_local(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
 		{
 			if(roid != geometry_traits<TElem>::REFERENCE_OBJECT_ID)
-			{
-				UG_LOG("ERROR in 'FEGeometry::update': Geometry only for "
+				UG_THROW("FEGeometry::update: Geometry only for "
 						<<geometry_traits<TElem>::REFERENCE_OBJECT_ID<<", but "
-						<<roid<<" requested.\n");
-				return false;
-			}
+						<<roid<<" requested.");
+
 			if(lfeID != m_rTrialSpace.type())
-			{
-				UG_LOG("ERROR in 'FEGeometry::update': Geometry only for "
-						<<m_rTrialSpace.type()<<", but "<<lfeID<<" requested.\n");
-				return false;
-			}
+				UG_THROW("FEGeometry::update: Geometry only for "
+						<<m_rTrialSpace.type()<<", but "<<lfeID<<" requested.");
+
 			if(orderQuad > m_rQuadRule.order())
-			{
-				UG_LOG("ERROR in 'FEGeometry::update': Geometry only for order "
-						<< m_rQuadRule.order()<<", but order "<<orderQuad<<" requested.\n");
-				return false;
-			}
-
-			return true;
+				UG_THROW("FEGeometry::update: Geometry only for order "
+						<< m_rQuadRule.order()<<", but order "<<
+						orderQuad<<" requested.");
 		}
 
 	/// update Geometry for corners
-		bool update(TElem* pElem, const MathVector<worldDim>* vCorner)
+		void update(TElem* pElem, const MathVector<worldDim>* vCorner)
 		{
-			return update(pElem, vCorner, m_rTrialSpace.type(), m_rQuadRule.order());
+			update(pElem, vCorner, m_rTrialSpace.type(), m_rQuadRule.order());
 		}
 
 	/// update Geometry for corners
-		bool update(TElem* pElem, const MathVector<worldDim>* vCorner,
+		void update(TElem* pElem, const MathVector<worldDim>* vCorner,
 		            LFEID lfeID, size_t orderQuad)
 		{
 		//	check
@@ -144,7 +136,7 @@ class FEGeometry
 			UG_ASSERT(orderQuad <= m_rQuadRule.order(), "Wrong order requested.");
 
 		//	check if element changed
-			if(pElem == m_pElem) return true;
+			if(pElem == m_pElem) return;
 			else m_pElem = pElem;
 
 		//	update the mapping for the new corners
@@ -162,9 +154,6 @@ class FEGeometry
 				for(size_t sh = 0; sh < nsh; ++sh)
 					MatVecMult(m_vvGradGlobal[ip][sh],
 					           m_vJTInv[ip], m_vvGradLocal[ip][sh]);
-
-		//	we're done
-			return true;
 		}
 
 	protected:
@@ -214,7 +203,8 @@ class DimFEGeometry
 	public:
 	///	default Constructor
 		DimFEGeometry() :
-			m_roid(ROID_UNKNOWN), m_quadOrder(0), m_lfeID(LFEID(LFEID::NONE, LFEID::INVALID)),
+			m_roid(ROID_UNKNOWN), m_quadOrder(0),
+			m_lfeID(LFEID(LFEID::NONE, LFEID::INVALID)),
 			m_vIPLocal(NULL), m_vQuadWeight(NULL)
 		{}
 
@@ -288,7 +278,7 @@ class DimFEGeometry
 		}
 
 	/// update Geometry for roid
-		bool update_local(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
+		void update_local(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
 		{
 		//	remember current setting
 			m_roid = roid;
@@ -305,10 +295,7 @@ class DimFEGeometry
 			m_vIPLocal = quadRule.points();
 			m_vQuadWeight = quadRule.weights();
 
-			}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
-				UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
-				return false;
-			}
+			}UG_CATCH_THROW("FEGeometry::update: Quadrature Rule error.");
 
 		//	resize for number of integration points
 			m_vIPGlobal.resize(m_nip);
@@ -342,42 +329,29 @@ class DimFEGeometry
 				lsfs.grads(&(m_vvGradLocal[ip][0]), m_vIPLocal[ip]);
 			}
 
-			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
-				UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
-				return false;
-			}
-			return true;
+			}UG_CATCH_THROW("FEGeometry::update: Shape Function error.");
 		}
 
 	/// update Geometry for corners
-		bool update(GeometricObject* pElem, const MathVector<worldDim>* vCorner)
+		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner)
 		{
-			return update(pElem, vCorner, m_lfeID, m_quadOrder);
+			update(pElem, vCorner, m_lfeID, m_quadOrder);
 		}
 
 	/// update Geometry for corners
-		bool update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
+		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
 					LFEID lfeID, size_t orderQuad)
 		{
 		//	check if same element
-			if(pElem == m_pElem) return true;
+			if(pElem == m_pElem) return;
 			else m_pElem = pElem;
 
 		//	get reference element type
-			ReferenceObjectID roid = (ReferenceObjectID)pElem->reference_object_id();
-
-			////////////////////////
-			//	local values
-			////////////////////////
+			ReferenceObjectID roid = pElem->reference_object_id();
 
 		//	if already prepared for this roid, skip update of local values
 			if(m_roid != roid || lfeID != m_lfeID || (int)orderQuad != m_quadOrder)
-				if(!update_local(roid, lfeID, orderQuad))
-					return false;
-
-			////////////////////////
-			//	global values
-			////////////////////////
+				update_local(roid, lfeID, orderQuad);
 
 		//	get reference element mapping
 			try{
@@ -397,10 +371,7 @@ class DimFEGeometry
 					MatVecMult(m_vvGradGlobal[ip][sh],
 					           m_vJTInv[ip], m_vvGradLocal[ip][sh]);
 
-			}UG_CATCH_THROW("FEGeometry::update: failed.");
-
-		//	we're done
-			return true;
+			}UG_CATCH_THROW("FEGeometry::update: Reference Mapping error.");
 		}
 
 	protected:
