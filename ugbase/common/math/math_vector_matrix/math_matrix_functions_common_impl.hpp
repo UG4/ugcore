@@ -477,7 +477,7 @@ InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <size_t N, size_t M, typename T>
-inline void
+inline typename MathMatrix<N,M,T>::value_type
 RightInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
 {
 	UG_STATIC_ASSERT(M <= N, pseudo_inverse_does_not_exist);
@@ -487,29 +487,31 @@ RightInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
 	MathMatrix<M,M,T> H, HInv;
 	MatMultiplyMMT(H, m);
 	// Invert H
-	Inverse(HInv, H);
+	const number det = Inverse(HInv, H);
 
 	MatMultiplyTransposed(mOut, m, HInv);
+
+	return sqrt(det);
 }
 
-template <>
-inline void
-RightInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m){Inverse(mOut, m);}
+template <typename T>
+inline typename MathMatrix<1,1,T>::value_type
+RightInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m){return fabs(Inverse(mOut, m));}
 
-template <>
-inline void
-RightInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m){Inverse(mOut, m);}
+template <typename T>
+inline typename MathMatrix<2,2,T>::value_type
+RightInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m){return fabs(Inverse(mOut, m));}
 
-template <>
-inline void
-RightInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m){Inverse(mOut, m);}
+template <typename T>
+inline typename MathMatrix<3,3,T>::value_type
+RightInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m){return fabs(Inverse(mOut, m));}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Left-Inverse of Matrix
 ////////////////////////////////////////////////////////////////////////////////
 
 template <size_t N, size_t M, typename T>
-inline void
+inline typename MathMatrix<N,M,T>::value_type
 LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
 {
 	UG_STATIC_ASSERT(N <= M, pseudo_inverse_does_not_exist);
@@ -520,22 +522,24 @@ LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
 	MatMultiplyMTM(H, m);
 
 	// Invert H
-	Inverse(HInv, H);
+	const number det = Inverse(HInv, H);
 
 	MatMultiplyTransposed(mOut, HInv, m);
+
+	return sqrt(det);
 }
 
-template <>
-inline void
-LeftInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m){Inverse(mOut, m);}
+template <typename T>
+inline typename MathMatrix<1,1,T>::value_type
+LeftInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m){return fabs(Inverse(mOut, m));}
 
-template <>
-inline void
-LeftInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m){Inverse(mOut, m);}
+template <typename T>
+inline typename MathMatrix<2,2,T>::value_type
+LeftInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m){return fabs(Inverse(mOut, m));}
 
-template <>
-inline void
-LeftInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m){Inverse(mOut, m);}
+template <typename T>
+inline typename MathMatrix<3,3,T>::value_type
+LeftInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m){return fabs(Inverse(mOut, m));}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Trace of Matrix

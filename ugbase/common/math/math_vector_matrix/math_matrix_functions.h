@@ -257,17 +257,83 @@ InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m);
 // Right-Inverse of Matrix
 ////////////////////////////////////////////////////////////////////////////////
 
+/// Right-Inverse of a Matrix
+/**
+ * Computes the Right-Inverse of a Matrix and returns the square root of the
+ * gram determinate. For any \f$ A \in \mathbb{R}^{M \times N} \f$
+ *  (with \f$ M \leq N \f$) the Right-Inverse is defined as
+ * \f[
+ * 		A^{-1}_{right} := A^T (A A^T)^{-1},
+ * \f]
+ * such that \f$ A A^{-1}_{right} = 1 \f$. The gram determinate is defined as
+ * \f$ \det{A A^T} \f$.
+ *
+ * Please note, that in case of a square matrix (i.e. \f$ N = M \f$), the Right-
+ * Inverse is identical to the Inverse and the square root of the gram determinante
+ * simplifies to the norm of the usual determinate.
+ *
+ * @param mOut 		Right-Inverse of Matrix
+ * @param m			Matrix
+ * @return			Square root of gram determinate of Matrix
+ */
+/// \{
 template <size_t N, size_t M, typename T>
-inline void
+inline typename MathMatrix<N,M,T>::value_type
 RightInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m);
+
+template <typename T>
+inline typename MathMatrix<1,1,T>::value_type
+RightInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m);
+
+template <typename T>
+inline typename MathMatrix<2,2,T>::value_type
+RightInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m);
+
+template <typename T>
+inline typename MathMatrix<3,3,T>::value_type
+RightInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m);
+/// \}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Left-Inverse of Matrix
 ////////////////////////////////////////////////////////////////////////////////
 
+/// Left-Inverse of a Matrix
+/**
+ * Computes the Left-Inverse of a Matrix and returns the square root of the
+ * gram determinate. For any \f$ A \in \mathbb{R}^{M \times N} \f$
+ *  (with \f$ M \geq N \f$) the Left-Inverse is defined as
+ * \f[
+ * 		A^{-1}_{left} := (A^T A)^{-1} A^T,
+ * \f]
+ * such that \f$ A^{-1}_{left} A = 1 \f$. The gram determinate is defined as
+ * \f$ \det{A^T A} \f$.
+ *
+ * Please note, that in case of a square matrix (i.e. \f$ N = M \f$), the Left-
+ * Inverse is identical to the Inverse and the square root of the gram determinante
+ * simplifies to the norm of the usual determinate.
+ *
+ * @param mOut 		Left-Inverse of Matrix
+ * @param m			Matrix
+ * @return			Square root of gram determinate of Matrix
+ */
+/// \{
 template <size_t N, size_t M, typename T>
-inline void
+inline typename MathMatrix<N,M,T>::value_type
 LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m);
+
+template <typename T>
+inline typename MathMatrix<1,1,T>::value_type
+LeftInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m);
+
+template <typename T>
+inline typename MathMatrix<2,2,T>::value_type
+LeftInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m);
+
+template <typename T>
+inline typename MathMatrix<3,3,T>::value_type
+LeftInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m);
+/// \}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Trace of Matrix
