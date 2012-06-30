@@ -101,17 +101,27 @@ class ReferenceMapping
 		void jacobian_transposed(std::vector<MathMatrix<dim, worldDim> >& vJT,
 								 const std::vector<MathVector<dim> >& vLocPos) const;
 
-	///	returns transposed of the inverse of the jacobian
-		void jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
-		                                 const MathVector<dim>& locPos) const;
+	///	returns transposed of the inverse of the jacobian and sqrt of gram determinante
+		number jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
+		                                   const MathVector<dim>& locPos) const;
 
 	///	returns transposed of the inverse of the jacobian for n local positions
 		void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
 		                                 const MathVector<dim>* vLocPos, size_t n) const;
 
+	///	returns transposed of the inverse of the jacobian for n local positions
+		void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
+		                                 number* vDet,
+										 const MathVector<dim>* vLocPos, size_t n) const;
+
 	///	returns transposed of the inverse of the jacobian for a vector of positions
 		void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
-		                                 const std::vector<MathVector<dim> >& vLocPos) const;
+										 const std::vector<MathVector<dim> >& vLocPos) const;
+
+	///	returns transposed of the inverse of the jacobian for a vector of positions
+		void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
+										 std::vector<number>& vDet,
+										 const std::vector<MathVector<dim> >& vLocPos) const;
 
 	///	returns the determinate of the jacobian
 		number sqrt_gram_det(const MathVector<dim>& locPos) const;
@@ -131,7 +141,7 @@ class ReferenceMapping
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-/// Bae class for Reference mappings helping to implement interface
+/// Base class for Reference mappings helping to implement interface
 template <int dim, int worldDim, bool isLinear, typename TImpl>
 class BaseReferenceMapping
 {
@@ -215,12 +225,29 @@ class BaseReferenceMapping
 		}
 
 	///	returns transposed of the inverse of the jacobian
-		void jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
+		number jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
 										 const MathVector<dim>& locPos) const
 		{
 			MathMatrix<dim, worldDim> JT;
 			getImpl().jacobian_transposed(JT, locPos);
-			RightInverse(JTInv, JT);
+			return RightInverse(JTInv, JT);
+		}
+
+	///	returns transposed of the inverse of the jacobian for n local positions
+		void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
+		                                 number* vDet,
+										 const MathVector<dim>* vLocPos, size_t n) const
+		{
+			if(isLinear){
+				if(n == 0) return;
+				vDet[0] = getImpl().jacobian_transposed_inverse(vJTInv[0], vLocPos[0]);
+				for(size_t ip = 1; ip < n; ++ip) vJTInv[ip] = vJTInv[0];
+				for(size_t ip = 1; ip < n; ++ip) vDet[ip] = vDet[0];
+			}
+			else {
+				for(size_t ip = 0; ip < n; ++ip)
+					vDet[ip] = getImpl().jacobian_transposed_inverse(vJTInv[ip], vLocPos[ip]);
+			}
 		}
 
 	///	returns transposed of the inverse of the jacobian for n local positions
@@ -236,6 +263,16 @@ class BaseReferenceMapping
 				for(size_t ip = 0; ip < n; ++ip)
 					getImpl().jacobian_transposed_inverse(vJTInv[ip], vLocPos[ip]);
 			}
+		}
+
+	///	returns transposed of the inverse of the jacobian for a vector of positions
+		void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
+		                                 std::vector<number>& vDet,
+										 const std::vector<MathVector<dim> >& vLocPos) const
+		{
+			const size_t n = vLocPos.size();
+			vJTInv.resize(n); vDet.resize(n);
+			jacobian_transposed_inverse(&vJTInv[0], &vDet[0], &vLocPos[0], n);
 		}
 
 	///	returns transposed of the inverse of the jacobian for a vector of positions

@@ -79,16 +79,26 @@ class DimReferenceMapping
 		virtual void jacobian_transposed(std::vector<MathMatrix<dim, worldDim> >& vJT,
 										 const std::vector<MathVector<dim> >& vLocPos) const = 0;
 
-	///	returns transposed of the inverse of the jacobian
-		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
+	///	returns transposed of the inverse of the jacobian and returns sqrt of gram determinante
+		virtual number jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
 		                                         const MathVector<dim>& locPos) const = 0;
 
 	///	returns transposed of the inverse of the jacobian for n local positions
 		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
 												 const MathVector<dim>* vLocPos, size_t n) const = 0;
 
+	///	returns transposed of the inverse of the jacobian for n local positions
+		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
+		                                         number* vDet,
+												 const MathVector<dim>* vLocPos, size_t n) const = 0;
+
 	///	returns transposed of the inverse of the jacobian for a vector of positions
 		virtual void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
+												 const std::vector<MathVector<dim> >& vLocPos) const = 0;
+
+	///	returns transposed of the inverse of the jacobian for a vector of positions
+		virtual void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
+		                                         std::vector<number>& vDet,
 												 const std::vector<MathVector<dim> >& vLocPos) const = 0;
 
 	///	returns the determinate of the jacobian

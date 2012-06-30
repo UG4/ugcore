@@ -105,10 +105,10 @@ class DimReferenceMappingWrapper
 		}
 
 	///	returns transposed of the inverse of the jacobian
-		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
+		virtual number jacobian_transposed_inverse(MathMatrix<worldDim, dim>& JTInv,
 		                                         const MathVector<dim>& locPos) const
 		{
-			TRefMapping::jacobian_transposed_inverse(JTInv, locPos);
+			return TRefMapping::jacobian_transposed_inverse(JTInv, locPos);
 		}
 
 	///	returns transposed of the inverse of the jacobian for n local positions
@@ -118,11 +118,27 @@ class DimReferenceMappingWrapper
 			TRefMapping::jacobian_transposed_inverse(vJTInv, vLocPos, n);
 		}
 
+	///	returns transposed of the inverse of the jacobian for n local positions
+		virtual void jacobian_transposed_inverse(MathMatrix<worldDim, dim>* vJTInv,
+		                                         number* vDet,
+												 const MathVector<dim>* vLocPos, size_t n) const
+		{
+			TRefMapping::jacobian_transposed_inverse(vJTInv, vDet, vLocPos, n);
+		}
+
 	///	returns transposed of the inverse of the jacobian for a vector of positions
 		virtual void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
 		                                         const std::vector<MathVector<dim> >& vLocPos) const
 		{
 			TRefMapping::jacobian_transposed_inverse(vJTInv, vLocPos);
+		}
+
+	///	returns transposed of the inverse of the jacobian for a vector of positions
+		virtual void jacobian_transposed_inverse(std::vector<MathMatrix<worldDim, dim> >& vJTInv,
+		                                         std::vector<number>& vDet,
+												 const std::vector<MathVector<dim> >& vLocPos) const
+		{
+			TRefMapping::jacobian_transposed_inverse(vJTInv, vDet, vLocPos);
 		}
 
 	///	returns the determinate of the jacobian

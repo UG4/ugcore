@@ -64,7 +64,7 @@ class FEGeometry
 		size_t num_sh() const {return nsh;}
 
 	/// weight for integration point
-		number weight(size_t ip) const {return fabs(m_vDetJ[ip]) * m_rQuadRule.weight(ip);}
+		number weight(size_t ip) const {return m_vDetJ[ip] * m_rQuadRule.weight(ip);}
 
 	/// local integration point
 		const MathVector<dim>& local_ip(size_t ip) const {return m_rQuadRule.point(ip);}
@@ -151,40 +151,17 @@ class FEGeometry
 			m_mapping.update(vCorner);
 
 		//	compute global integration points
-			for(size_t ip = 0; ip < nip; ++ip)
-				m_mapping.local_to_global(m_vIPGlobal[ip], local_ip(ip));
+			m_mapping.local_to_global(&m_vIPGlobal[0], local_ips(), nip);
 
 		//	evaluate global data
-		//	if reference mapping is linear,
-			if(ReferenceMapping<ref_elem_type, worldDim>::isLinear)
-			{
-			// 	compute transformation inverse and determinate at first ip
-				m_mapping.jacobian_transposed_inverse(m_vJTInv[0], local_ip(0));
-				m_vDetJ[0] = m_mapping.sqrt_gram_det(local_ip(0));
-
-			//	copy values
-				for(size_t ip = 1; ip < nip; ++ip)
-				{
-					m_vJTInv[ip] = m_vJTInv[0];
-					m_vDetJ[ip] = m_vDetJ[0];
-				}
-			}
-		//	else compute jacobian for each point
-			{
-				for(size_t ip = 0; ip < nip; ++ip)
-				{
-				// 	compute transformation inverse and determinate at ip
-					m_mapping.jacobian_transposed_inverse(m_vJTInv[ip], local_ip(ip));
-
-				//	compute determinant
-					m_vDetJ[ip] = m_mapping.sqrt_gram_det(local_ip(ip));
-				}
-			}
+			m_mapping.jacobian_transposed_inverse(&m_vJTInv[0], &m_vDetJ[0],
+			                                      local_ips(), nip);
 
 		// 	compute global gradients
 			for(size_t ip = 0; ip < nip; ++ip)
 				for(size_t sh = 0; sh < nsh; ++sh)
-					MatVecMult(m_vvGradGlobal[ip][sh], m_vJTInv[ip], m_vvGradLocal[ip][sh]);
+					MatVecMult(m_vvGradGlobal[ip][sh],
+					           m_vJTInv[ip], m_vvGradLocal[ip][sh]);
 
 		//	we're done
 			return true;
@@ -263,7 +240,7 @@ class DimFEGeometry
 		number weight(size_t ip) const
 		{
 			UG_ASSERT(ip < m_nip, "Wrong index");
-			return fabs(m_vDetJ[ip]) * m_vQuadWeight[ip];
+			return m_vDetJ[ip] * m_vQuadWeight[ip];
 		}
 
 	/// local integration point
@@ -405,29 +382,22 @@ class DimFEGeometry
 		//	get reference element mapping
 			try{
 			DimReferenceMapping<dim, worldDim>& map
-				= ReferenceMappingProvider::get<dim, worldDim>(roid);
-
-		//	update the mapping for the new corners
-			map.update(vCorner);
+				= ReferenceMappingProvider::get<dim, worldDim>(roid, vCorner);
 
 		//	compute global integration points
 			map.local_to_global(&(m_vIPGlobal[0]), &(m_vIPLocal[0]), m_nip);
 
 		// 	compute transformation inverse and determinate at ip
-			map.jacobian_transposed_inverse(&(m_vJTInv[0]), &(m_vIPLocal[0]), m_nip);
-
-		//	compute determinant
-			map.sqrt_gram_det(&(m_vDetJ[0]), &(m_vIPLocal[0]), m_nip);
+			map.jacobian_transposed_inverse(&(m_vJTInv[0]), &(m_vDetJ[0]),
+			                                &(m_vIPLocal[0]), m_nip);
 
 		// 	compute global gradients
 			for(size_t ip = 0; ip < m_nip; ++ip)
 				for(size_t sh = 0; sh < m_nsh; ++sh)
-					MatVecMult(m_vvGradGlobal[ip][sh], m_vJTInv[ip], m_vvGradLocal[ip][sh]);
+					MatVecMult(m_vvGradGlobal[ip][sh],
+					           m_vJTInv[ip], m_vvGradLocal[ip][sh]);
 
-			}catch(UGError_ReferenceMappingMissing& ex){
-				UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
-				return false;
-			}
+			}UG_CATCH_THROW("FEGeometry::update: failed.");
 
 		//	we're done
 			return true;
