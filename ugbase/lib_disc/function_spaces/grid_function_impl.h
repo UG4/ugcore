@@ -54,6 +54,23 @@ InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 //	create a reference mapping
 	ReferenceMapping<reference_element_type, dim> map(&(vVertPos[0]));
 
+//	\TODO: This is a lousy quick-hack. Remove, when dof pos on lower dim elemens
+	//		can be handeled correctly for non-lagrangian spaces.
+	if(lfeID == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+	{
+		vPos.clear();
+		if(fctDim != refDim+1) return true;
+
+		MathVector<dim> center;
+		VecSet(center, 0.0);
+		for(size_t co = 0; co < vVertPos.size(); ++co)
+			VecAppend(center, vVertPos[co]);
+		VecScale(center, center, 1./(vVertPos.size()));
+
+		vPos.push_back(center);
+		return true;
+	}
+
 //	get local shape function set
 	const LocalShapeFunctionSet<refDim>& lsfs
 		= LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
@@ -189,6 +206,24 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 
 //	get the vertices
 	CollectCornerCoordinates(vVertPos, *elem, domain, true);
+
+//	\TODO: This is a lousy quick-hack. Remove, when dof pos on lower dim elemens
+	//		can be handeled correctly for non-lagrangian spaces.
+	if(lfeID == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+	{
+		vPos.clear();
+		if(fctDim != refDim+1)
+		{
+			MathVector<dim> center;
+			VecSet(center, 0.0);
+			for(size_t co = 0; co < vVertPos.size(); ++co)
+				VecAppend(center, vVertPos[co]);
+			VecScale(center, center, 1./(vVertPos.size()));
+			vPos.push_back(center);
+			return true;
+		}
+		if(refDim < fctDim-1) return true;
+	}
 
 //	create a reference mapping
 	ReferenceMapping<reference_element_type, dim> map(&(vVertPos[0]));
