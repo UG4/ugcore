@@ -30,7 +30,7 @@ namespace ug{
 template <typename TElem, typename TDomain>
 bool
 InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
-                 TElem* elem, TDomain& domain, LFEID lfeID)
+                 TElem* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -55,14 +55,14 @@ InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 	ReferenceMapping<reference_element_type, dim> map(&(vVertPos[0]));
 
 //	get local shape function set
-	const DimLocalShapeFunctionSet<refDim>& lsfs
+	const LocalShapeFunctionSet<refDim>& lsfs
 		= LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
 
 //	get local dof set
 	const ILocalDoFSet& lds = LocalDoFSetProvider::get(roid, lfeID);
 
 //	typedef local position type
-	typedef typename DimLocalShapeFunctionSet<refDim>::position_type
+	typedef typename LocalShapeFunctionSet<refDim>::position_type
 		local_pos_type;
 
 //	clear pos
@@ -95,7 +95,7 @@ InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 
 template <typename TDomain>
 bool
-DoFPositionOnVertex(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* elem, TDomain& domain, LFEID lfeID)
+DoFPositionOnVertex(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 //\todo: handle finite element spaces with more than on DoF in Vertex
 
@@ -107,60 +107,60 @@ DoFPositionOnVertex(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* el
 };
 
 template <typename TDomain>
-bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* elem, TDomain& domain, LFEID lfeID)
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 	switch(elem->base_object_id())
 	{
-		case VERTEX: return InnerDoFPosition(vPos, static_cast<VertexBase*>(elem), domain, lfeID);
-		case EDGE:   return InnerDoFPosition(vPos, static_cast<EdgeBase*>(elem), domain, lfeID);
-		case FACE:   return InnerDoFPosition(vPos, static_cast<Face*>(elem), domain, lfeID);
-		case VOLUME: return InnerDoFPosition(vPos, static_cast<Volume*>(elem), domain, lfeID);
+		case VERTEX: return InnerDoFPosition(vPos, static_cast<VertexBase*>(elem), domain, lfeID, fctDim);
+		case EDGE:   return InnerDoFPosition(vPos, static_cast<EdgeBase*>(elem), domain, lfeID, fctDim);
+		case FACE:   return InnerDoFPosition(vPos, static_cast<Face*>(elem), domain, lfeID, fctDim);
+		case VOLUME: return InnerDoFPosition(vPos, static_cast<Volume*>(elem), domain, lfeID, fctDim);
 	}
 	throw(UGError("Base Object type not found."));
 }
 
 template <typename TDomain>
-bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* elem, TDomain& domain, LFEID lfeID)
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
-	return  DoFPositionOnVertex(vPos, elem, domain, lfeID);
+	return  DoFPositionOnVertex(vPos, elem, domain, lfeID, fctDim);
 }
 
 template <typename TDomain>
-bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, TDomain& domain, LFEID lfeID)
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 	switch(elem->container_section())
 	{
-		case CSEDGE_EDGE: 			   return InnerDoFPosition(vPos, static_cast<Edge*>(elem), domain, lfeID);
-		case CSEDGE_CONSTRAINED_EDGE: return InnerDoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID);
-		case CSEDGE_CONSTRAINING_EDGE:return InnerDoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID);
+		case CSEDGE_EDGE: 			   return InnerDoFPosition(vPos, static_cast<Edge*>(elem), domain, lfeID, fctDim);
+		case CSEDGE_CONSTRAINED_EDGE: return InnerDoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID, fctDim);
+		case CSEDGE_CONSTRAINING_EDGE:return InnerDoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID, fctDim);
 	}
 	throw(UGError("Edge type not found."));
 }
 
 template <typename TDomain>
-bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDomain& domain, LFEID lfeID)
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 	switch(elem->container_section())
 	{
-		case CSFACE_TRIANGLE: return InnerDoFPosition(vPos, static_cast<Triangle*>(elem), domain, lfeID);
-		case CSFACE_CONSTRAINED_TRIANGLE: return InnerDoFPosition(vPos, static_cast<ConstrainedTriangle*>(elem), domain, lfeID);
-		case CSFACE_CONSTRAINING_TRIANGLE: return InnerDoFPosition(vPos, static_cast<ConstrainingTriangle*>(elem), domain, lfeID);
-		case CSFACE_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<Quadrilateral*>(elem), domain, lfeID);
-		case CSFACE_CONSTRAINED_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID);
-		case CSFACE_CONSTRAINING_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID);
+		case CSFACE_TRIANGLE: return InnerDoFPosition(vPos, static_cast<Triangle*>(elem), domain, lfeID, fctDim);
+		case CSFACE_CONSTRAINED_TRIANGLE: return InnerDoFPosition(vPos, static_cast<ConstrainedTriangle*>(elem), domain, lfeID, fctDim);
+		case CSFACE_CONSTRAINING_TRIANGLE: return InnerDoFPosition(vPos, static_cast<ConstrainingTriangle*>(elem), domain, lfeID, fctDim);
+		case CSFACE_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<Quadrilateral*>(elem), domain, lfeID, fctDim);
+		case CSFACE_CONSTRAINED_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID, fctDim);
+		case CSFACE_CONSTRAINING_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID, fctDim);
 	}
 	throw(UGError("Face type not found."));
 }
 
 template <typename TDomain>
-bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDomain& domain, LFEID lfeID)
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 	switch(elem->container_section())
 	{
-		case CSVOL_TETRAHEDRON: return InnerDoFPosition(vPos, static_cast<Tetrahedron*>(elem), domain, lfeID);
-		case CSVOL_PYRAMID: return InnerDoFPosition(vPos, static_cast<Pyramid*>(elem), domain, lfeID);
-		case CSVOL_PRISM: return InnerDoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID);
-		case CSVOL_HEXAHEDRON: return InnerDoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID);
+		case CSVOL_TETRAHEDRON: return InnerDoFPosition(vPos, static_cast<Tetrahedron*>(elem), domain, lfeID, fctDim);
+		case CSVOL_PYRAMID: return InnerDoFPosition(vPos, static_cast<Pyramid*>(elem), domain, lfeID, fctDim);
+		case CSVOL_PRISM: return InnerDoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID, fctDim);
+		case CSVOL_HEXAHEDRON: return InnerDoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID, fctDim);
 	}
 	throw(UGError("Volume type not found."));
 }
@@ -169,7 +169,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem
 
 
 template <typename TElem, typename TDomain>
-bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDomain& domain, LFEID lfeID)
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -194,11 +194,11 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 	ReferenceMapping<reference_element_type, dim> map(&(vVertPos[0]));
 
 //	get local shape function set
-	const DimLocalShapeFunctionSet<refDim>& lsfs
+	const LocalShapeFunctionSet<refDim>& lsfs
 		= LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
 
 //	typedef local position type
-	typedef typename DimLocalShapeFunctionSet<refDim>::position_type local_pos_type;
+	typedef typename LocalShapeFunctionSet<refDim>::position_type local_pos_type;
 
 //	clear pos
 	vPos.resize(lsfs.num_sh());
@@ -222,60 +222,60 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 };
 
 template <typename TDomain>
-bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* elem, TDomain& domain, LFEID lfeID)
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 	switch(elem->base_object_id())
 	{
-		case VERTEX: return DoFPosition(vPos, static_cast<VertexBase*>(elem), domain, lfeID);
-		case EDGE:   return DoFPosition(vPos, static_cast<EdgeBase*>(elem), domain, lfeID);
-		case FACE:   return DoFPosition(vPos, static_cast<Face*>(elem), domain, lfeID);
-		case VOLUME: return DoFPosition(vPos, static_cast<Volume*>(elem), domain, lfeID);
+		case VERTEX: return DoFPosition(vPos, static_cast<VertexBase*>(elem), domain, lfeID, fctDim);
+		case EDGE:   return DoFPosition(vPos, static_cast<EdgeBase*>(elem), domain, lfeID, fctDim);
+		case FACE:   return DoFPosition(vPos, static_cast<Face*>(elem), domain, lfeID, fctDim);
+		case VOLUME: return DoFPosition(vPos, static_cast<Volume*>(elem), domain, lfeID, fctDim);
 	}
 	throw(UGError("Base Object type not found."));
 }
 
 template <typename TDomain>
-bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* elem, TDomain& domain, LFEID lfeID)
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, VertexBase* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
-	return  DoFPositionOnVertex(vPos, elem, domain, lfeID);
+	return  DoFPositionOnVertex(vPos, elem, domain, lfeID, fctDim);
 }
 
 template <typename TDomain>
-bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, TDomain& domain, LFEID lfeID)
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 	switch(elem->container_section())
 	{
-		case CSEDGE_EDGE: 			   return DoFPosition(vPos, static_cast<Edge*>(elem), domain, lfeID);
-		case CSEDGE_CONSTRAINED_EDGE: return DoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID);
-		case CSEDGE_CONSTRAINING_EDGE:return DoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID);
+		case CSEDGE_EDGE: 			   return DoFPosition(vPos, static_cast<Edge*>(elem), domain, lfeID, fctDim);
+		case CSEDGE_CONSTRAINED_EDGE: return DoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID, fctDim);
+		case CSEDGE_CONSTRAINING_EDGE:return DoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID, fctDim);
 	}
 	throw(UGError("Edge type not found."));
 }
 
 template <typename TDomain>
-bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDomain& domain, LFEID lfeID)
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 	switch(elem->container_section())
 	{
-		case CSFACE_TRIANGLE: return DoFPosition(vPos, static_cast<Triangle*>(elem), domain, lfeID);
-		case CSFACE_CONSTRAINED_TRIANGLE: return DoFPosition(vPos, static_cast<ConstrainedTriangle*>(elem), domain, lfeID);
-		case CSFACE_CONSTRAINING_TRIANGLE: return DoFPosition(vPos, static_cast<ConstrainingTriangle*>(elem), domain, lfeID);
-		case CSFACE_QUADRILATERAL: return DoFPosition(vPos, static_cast<Quadrilateral*>(elem), domain, lfeID);
-		case CSFACE_CONSTRAINED_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID);
-		case CSFACE_CONSTRAINING_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID);
+		case CSFACE_TRIANGLE: return DoFPosition(vPos, static_cast<Triangle*>(elem), domain, lfeID, fctDim);
+		case CSFACE_CONSTRAINED_TRIANGLE: return DoFPosition(vPos, static_cast<ConstrainedTriangle*>(elem), domain, lfeID, fctDim);
+		case CSFACE_CONSTRAINING_TRIANGLE: return DoFPosition(vPos, static_cast<ConstrainingTriangle*>(elem), domain, lfeID, fctDim);
+		case CSFACE_QUADRILATERAL: return DoFPosition(vPos, static_cast<Quadrilateral*>(elem), domain, lfeID, fctDim);
+		case CSFACE_CONSTRAINED_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID, fctDim);
+		case CSFACE_CONSTRAINING_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID, fctDim);
 	}
 	throw(UGError("Face type not found."));
 }
 
 template <typename TDomain>
-bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDomain& domain, LFEID lfeID)
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDomain& domain, LFEID lfeID, int fctDim)
 {
 	switch(elem->container_section())
 	{
-		case CSVOL_TETRAHEDRON: return DoFPosition(vPos, static_cast<Tetrahedron*>(elem), domain, lfeID);
-		case CSVOL_PYRAMID: return DoFPosition(vPos, static_cast<Pyramid*>(elem), domain, lfeID);
-		case CSVOL_PRISM: return DoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID);
-		case CSVOL_HEXAHEDRON: return DoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID);
+		case CSVOL_TETRAHEDRON: return DoFPosition(vPos, static_cast<Tetrahedron*>(elem), domain, lfeID, fctDim);
+		case CSVOL_PYRAMID: return DoFPosition(vPos, static_cast<Pyramid*>(elem), domain, lfeID, fctDim);
+		case CSVOL_PRISM: return DoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID, fctDim);
+		case CSVOL_HEXAHEDRON: return DoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID, fctDim);
 	}
 	throw(UGError("Volume type not found."));
 }
@@ -349,7 +349,9 @@ bool
 GridFunction<TDomain, TDD, TAlgebra>::
 dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
 {
-	return DoFPosition(vPos, elem, *domain(), this->local_finite_element_id(fct));
+	return DoFPosition(vPos, elem, *domain(),
+	                   this->local_finite_element_id(fct),
+	                   this->dim(fct));
 };
 
 template <typename TDomain, typename TDD, typename TAlgebra>
@@ -358,7 +360,9 @@ bool
 GridFunction<TDomain, TDD, TAlgebra>::
 inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
 {
-	return InnerDoFPosition(vPos, elem, *domain(), this->local_finite_element_id(fct));
+	return InnerDoFPosition(vPos, elem, *domain(),
+	                        this->local_finite_element_id(fct),
+	                        this->dim(fct));
 };
 
 template <typename TDomain, typename TDD, typename TAlgebra>

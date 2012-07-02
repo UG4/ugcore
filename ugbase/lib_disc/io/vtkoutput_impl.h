@@ -1297,7 +1297,7 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 	for(size_t f = 0; f < vFct.size(); ++f)
 	{
 		const LFEID lfeID = u.local_finite_element_id(vFct[f]);
-		const DimLocalShapeFunctionSet<dim>& lsfs
+		const LocalShapeFunctionSet<dim>& lsfs
 			 = LocalShapeFunctionSetProvider::get<dim>(roid, lfeID);
 
 		vNsh[f] = lsfs.num_sh();
@@ -1338,7 +1338,7 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 			for(size_t i = vFct.size(); i < 3; ++i)
 				File.write_base64_buffered((float) 0.0f);
 	}
-	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
 		UG_THROW("VTK: " << ex.get_msg());
 	}
 

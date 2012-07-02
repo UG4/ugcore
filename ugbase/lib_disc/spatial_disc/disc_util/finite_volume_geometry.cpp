@@ -1016,7 +1016,7 @@ update_local_data()
 	/////////////////////////
 
 	try{
-	const DimLocalShapeFunctionSet<dim>& TrialSpace =
+	const LocalShapeFunctionSet<dim>& TrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, 1));
 
 	for(size_t i = 0; i < num_scvf(); ++i)
@@ -1033,7 +1033,7 @@ update_local_data()
 		TrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].vLocPos[0]);
 	}
 
-	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -1222,7 +1222,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 	rMapping.update(vCornerCoords);
 
 	try{
-	const DimLocalShapeFunctionSet<dim>& TrialSpace =
+	const LocalShapeFunctionSet<dim>& TrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, 1));
 
 //	loop requested subset
@@ -1308,7 +1308,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
 	}
-	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -1838,7 +1838,7 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 
 //	get trial space
 	try{
-	const DimLocalShapeFunctionSet<dim>& rTrialSpace =
+	const LocalShapeFunctionSet<dim>& rTrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, m_orderShape));
 
 //	request for quadrature rule
@@ -1977,7 +1977,7 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 			rTrialSpace.grads(&(m_vSCV[i].vvLocalGrad[ip][0]), m_vSCV[i].local_ip(ip));
 		}
 
-	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -2161,7 +2161,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 			= QuadratureRuleProvider<dim-1>::get_rule(scvfRoid, m_quadOrderSCVF);
 
 	try{
-	const DimLocalShapeFunctionSet<dim>& rTrialSpace =
+	const LocalShapeFunctionSet<dim>& rTrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, m_orderShape));
 
 //	update reference mapping
@@ -2272,7 +2272,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		return false;
 	}
 
-	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
 	{
 		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -2374,10 +2374,11 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 	// if the trial space is piecewise linear on tetrahedrons/triangles!
 	for (size_t i = 0; i < num_bf(); ++i)
 	{
-		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+		const LocalShapeFunctionSet<ref_elem_type::dim>& TrialSpace =
 				LocalShapeFunctionSetProvider::
-					get<ref_elem_type>
-					(LFEID(LFEID::LAGRANGE, 1));
+					get<ref_elem_type::dim>
+					(ref_elem_type::REFERENCE_OBJECT_ID,
+					 LFEID(LFEID::LAGRANGE, 1));
 
 		const size_t num_sh = m_numBF;
 		m_vBF[i].vShape.resize(num_sh);

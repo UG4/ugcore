@@ -84,7 +84,7 @@ update_local_data()
 	/////////////////////////
 
 	try{
-	const DimLocalShapeFunctionSet<dim>& TrialSpace =
+	const LocalShapeFunctionSet<dim>& TrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, 1));
 
 	for(size_t i = 0; i < m_numSCVF; ++i)
@@ -101,7 +101,7 @@ update_local_data()
 		TrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].vLocPos[0]);
 	}
 
-	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
 	{
 		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
 		return false;
@@ -297,7 +297,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 	rMapping.update(vCornerCoords);
 
 	try{
-	const DimLocalShapeFunctionSet<dim>& TrialSpace =
+	const LocalShapeFunctionSet<dim>& TrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, 1));
 
 //	loop requested subset
@@ -369,7 +369,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
 		return false;
 	}
-	}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
 	{
 		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
 		return false;

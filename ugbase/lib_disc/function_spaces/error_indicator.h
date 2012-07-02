@@ -53,7 +53,7 @@ void ComputeGradient(TFunction& u, size_t fct,
 		ReferenceObjectID roid = elem->reference_object_id();
 
 	//	get trial space
-		const DimLocalShapeFunctionSet<dim>& lsfs =
+		const LocalShapeFunctionSet<dim>& lsfs =
 				LocalShapeFunctionSetProvider::get<dim>(roid, LFEID(LFEID::LAGRANGE, 1));
 
 	//	create a reference mapping

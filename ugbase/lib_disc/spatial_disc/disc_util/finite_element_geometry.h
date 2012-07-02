@@ -308,7 +308,7 @@ class DimFEGeometry
 
 		//	request for trial space
 			try{
-			const DimLocalShapeFunctionSet<dim>& lsfs
+			const LocalShapeFunctionSet<dim>& lsfs
 				 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
 
 		//	copy shape infos

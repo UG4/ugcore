@@ -454,10 +454,11 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 		m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].localIP);
 		m_vSCVF[i].detj = m_rMapping.sqrt_gram_det(m_vSCVF[i].localIP);
 
-		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+		const LocalShapeFunctionSet<ref_elem_type::dim>& TrialSpace =
 				LocalShapeFunctionSetProvider::
-					get<ref_elem_type>
-						(LFEID(LFEID::LAGRANGE, 1));
+					get<ref_elem_type::dim>
+						(ref_elem_type::REFERENCE_OBJECT_ID,
+						 LFEID(LFEID::LAGRANGE, 1));
 
 		const size_t num_sh = ref_elem_type::numCorners;
 		m_vSCVF[i].vShape.resize(num_sh);

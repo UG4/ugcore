@@ -25,7 +25,7 @@ shape(size_t i, const position_type& x) const
 	{
 	case 0: return (1.-x[0]);
 	case 1: return x[0];
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 };
 
@@ -38,7 +38,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 	{
 	case 0: value[0] = -1.0; break;
 	case 1: value[0] = 	1.0; break;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 }
 
@@ -50,7 +50,7 @@ position(size_t i, position_type& value) const
 	{
 	case 0: value[0] =  0.0; return true;
 	case 1: value[0] = 	1.0; return true;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 	return true;
 }
@@ -69,7 +69,7 @@ shape(size_t i, const position_type& x) const
 	case 0: return(1.0-x[0]-x[1]);
 	case 1: return(x[0]);
 	case 2: return(x[1]);
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 };
 
@@ -86,7 +86,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 			value[1] =  0.0; break;
 	case 2: value[0] =  0.0;
 			value[1] =  1.0; break;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 }
 
@@ -102,7 +102,7 @@ position(size_t i, position_type& value) const
 			value[1] =  0.0; return true;
 	case 2: value[0] =  0.0;
 			value[1] =  1.0; return true;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 	return true;
 }
@@ -122,7 +122,7 @@ shape(size_t i, const position_type& x) const
 	case 1: return(x[0]*(1.0-x[1]));
 	case 2: return(x[0]*x[1]);
 	case 3: return((1.0-x[0])*x[1]);
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 };
 
@@ -141,7 +141,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 			value[1] =        x[0]; break;
 	case 3: value[0] =      - x[1];
 			value[1] =  1.0 - x[0]; break;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 }
 
@@ -160,7 +160,7 @@ position(size_t i, position_type& value) const
 			value[1] =  1.0; return true;
 	case 3: value[0] =  0.0;
 			value[1] =  1.0; return true;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 	return true;
 }
@@ -180,7 +180,7 @@ shape(size_t i, const position_type& x) const
 	case 1: return(x[0]);
 	case 2: return(x[1]);
 	case 3: return(x[2]);
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 };
 
@@ -203,7 +203,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 	case 3: value[0] =  0.0;
 			value[1] =  0.0;
 			value[2] =  1.0; break;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 }
 
@@ -225,7 +225,7 @@ position(size_t i, position_type& value) const
 	case 3: value[0] =  0.0;
 			value[1] =  0.0;
 			value[2] =  1.0; return true;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 	return true;
 }
@@ -262,7 +262,7 @@ shape(size_t i, const position_type& x) const
 		else
 		  return((1.0-x[0])*x[1]       - x[2]*x[0]);
 	  case 4 : return(x[2]);
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 };
 
@@ -338,7 +338,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 		value[1] = 0.0;
 		value[2] = 1.0;
 		break;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 }
 
@@ -370,7 +370,7 @@ shape(size_t i, const position_type& x) const
 	case 3 : return((1.0-x[0]-x[1])*x[2]);
 	case 4 : return(x[0]*x[2]);
 	case 5 : return(x[1]*x[2]);
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 };
 
@@ -411,7 +411,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 		value[1] = x[2];
 		value[2] = x[1];
 		break;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 }
 
@@ -445,7 +445,7 @@ shape(size_t i, const position_type& x) const
 	case 5: return((x[0])*(1.0-x[1])*(x[2]));
 	case 6: return((x[0])*(x[1])*(x[2]));
 	case 7: return((1.0-x[0])*(x[1])*(x[2]));
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 };
 
@@ -496,7 +496,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 		value[1] = (1.0-x[0])*x[2];
 		value[2] = (1.0-x[0])*x[1];
       break;
-	default: throw(UG_ERROR_InvalidShapeFunctionIndex(i));
+	default: UG_THROW("LagrangeP1: Invalid shape fct index: "<<i);
 	}
 }
 

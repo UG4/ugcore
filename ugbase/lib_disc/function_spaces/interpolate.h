@@ -114,6 +114,7 @@ void InterpolateOnElements(
 //	get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
 				ref_elem_type;
+	const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	dimension of reference element
 	const int dim = ref_elem_type::dim;
@@ -134,8 +135,8 @@ void InterpolateOnElements(
 	LFEID id = spGridFct->local_finite_element_id(fct);
 
 //	get trial space
-	const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
-			LocalShapeFunctionSetProvider::get<ref_elem_type>(id);
+	const LocalShapeFunctionSet<dim>& trialSpace =
+			LocalShapeFunctionSetProvider::get<dim>(roid, id);
 
 //	number of dofs on element
 	const size_t nsh = trialSpace.num_sh();

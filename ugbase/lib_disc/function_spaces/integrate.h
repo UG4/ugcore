@@ -611,7 +611,7 @@ class L2ErrorIntegrand
 
 			try{
 		//	get trial space
-			const DimLocalShapeFunctionSet<elemDim>& rTrialSpace =
+			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
 							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
 
 		//	number of dofs on element
@@ -652,7 +652,7 @@ class L2ErrorIntegrand
 				vValue[ip] *= vValue[ip];
 			}
 
-			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
 			{
 				UG_THROW("L2ErrorIntegrand::evaluate: "<<ex.get_msg());
 			}
@@ -773,7 +773,7 @@ class H1ErrorIntegrand
 
 			try{
 		//	get trial space
-			const DimLocalShapeFunctionSet<elemDim>& rTrialSpace =
+			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
 							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
 
 		//	number of dofs on element
@@ -828,7 +828,7 @@ class H1ErrorIntegrand
 				vValue[ip] += VecDistanceSq(approxGradIP, exactGradIP);
 			}
 
-			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
 			{
 				UG_THROW("H1ErrorIntegrand::evaluate: "<<ex.get_msg());
 			}
@@ -886,7 +886,7 @@ class L2FuncIntegrand
 
 			try{
 		//	get trial space
-			const DimLocalShapeFunctionSet<elemDim>& rTrialSpace =
+			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
 							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
 
 		//	number of dofs on element
@@ -921,7 +921,7 @@ class L2FuncIntegrand
 
 			}
 
-			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
 			{
 				UG_THROW("L2FuncIntegrand::values: "<<ex.get_msg());
 			}
@@ -1009,7 +1009,7 @@ class StdFuncIntegrand
 
 			try{
 		//	get trial space
-			const DimLocalShapeFunctionSet<elemDim>& rTrialSpace =
+			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
 							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
 
 		//	number of dofs on element
@@ -1044,7 +1044,7 @@ class StdFuncIntegrand
 
 			}
 
-			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex)
+			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
 			{
 				UG_THROW("StdFuncIntegrand::evaluate: "<<ex.get_msg());
 			}

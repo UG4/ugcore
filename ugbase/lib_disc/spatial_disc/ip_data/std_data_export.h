@@ -225,7 +225,7 @@ class ValueDataExport
 
 		//	get trial space
 			try{
-			const DimLocalShapeFunctionSet<refDim>& rTrialSpace =
+			const LocalShapeFunctionSet<refDim>& rTrialSpace =
 					LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
 
 		//	memory for shapes
@@ -239,7 +239,7 @@ class ValueDataExport
 			for(size_t sh = 0; sh < vShape.size(); ++sh)
 				value += u(_C_, sh) * vShape[sh];
 
-			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
 				UG_THROW("ValueDataExport: "<< ex.get_msg()<<", Reference Object: "
 				         <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
 			}
@@ -264,7 +264,7 @@ class ValueDataExport
 
 		//	request for trial space
 			try{
-			const DimLocalShapeFunctionSet<refDim>& rTrialSpace
+			const LocalShapeFunctionSet<refDim>& rTrialSpace
 				 = LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
 
 		//	memory for shapes
@@ -282,7 +282,7 @@ class ValueDataExport
 					vValue[ip] += u(_C_, sh) * vShape[sh];
 			}
 
-			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
 				UG_THROW("ValueDataExport: "<< ex.get_msg()<<", Reference Object: "
 				         <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
 			}
@@ -331,7 +331,7 @@ class GradientDataExport
 			try{
 
 		//	local shape function set
-			const DimLocalShapeFunctionSet<refDim>& rTrialSpace
+			const LocalShapeFunctionSet<refDim>& rTrialSpace
 				 = LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
 
 		//	storage for shape function at ip
@@ -360,7 +360,7 @@ class GradientDataExport
 		//	compute global gradient
 			MatVecMult(value, JTInv, locGrad);
 
-			}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
 				UG_THROW("GradientDataExport: "<< ex.get_msg()<<", Reference Object: "
 						 <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
 			}
@@ -391,7 +391,7 @@ class GradientDataExport
 
 			//	request for trial space
 				try{
-				const DimLocalShapeFunctionSet<refDim>& rTrialSpace
+				const LocalShapeFunctionSet<refDim>& rTrialSpace
 					 = LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
 
 			//	storage for shape function at ip
@@ -416,7 +416,7 @@ class GradientDataExport
 					MatVecMult(vValue[ip], JTInv, locGrad);
 				}
 
-				}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+				}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
 					UG_THROW("GradientDataExport: "<< ex.get_msg()<<", Reference Object: "
 					         <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
 				}

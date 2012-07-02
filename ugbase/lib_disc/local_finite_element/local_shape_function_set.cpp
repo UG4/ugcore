@@ -15,9 +15,125 @@
 
 namespace ug{
 
+////////////////////////////////////////////////////////////////////////////////
+//	Wrapper for LocalShapeFunctionSets
+////////////////////////////////////////////////////////////////////////////////
+
+/// wrapper class implementing the LocalShapeFunctionSet interface
+/**
+ * This class wrappes a class passed by the template argument into the
+ * virtual ILocalShapeFunctionSet interface and makes it thus usable in that
+ * context on the price of virtual functions.
+ *
+ * \tparam 	TImpl		Implementation of a Local Shape Function Set
+ */
+template <typename TImpl>
+class LocalShapeFunctionSetWrapper
+	: public LocalShapeFunctionSet<TImpl::dim,
+	  	  	  	  	  	  	  	   typename TImpl::shape_type,
+	  	  	  	  	  	  	  	   typename TImpl::grad_type>,
+	  public TImpl
+{
+	/// Implementation
+		typedef TImpl ImplType;
+
+	public:
+	///	Domain position type
+		typedef typename ImplType::position_type position_type;
+
+	///	Shape type
+		typedef typename ImplType::shape_type shape_type;
+
+	///	Gradient type
+		typedef typename ImplType::grad_type grad_type;
+
+	public:
+	///	constructor
+		LocalShapeFunctionSetWrapper(){}
+
+	///	\copydoc ug::LocalShapeFunctionSet::type()
+		virtual LFEID type() const {return ImplType::type();}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		virtual size_t num_sh() const {return ImplType::num_sh();}
+
+	///	\copydoc ug::LocalShapeFunctionSet::position()
+		virtual bool position(size_t i, position_type& pos) const
+		{
+			return ImplType::position(i, pos);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shape()
+		virtual shape_type shape(size_t i, const position_type& x) const
+		{
+			return ImplType::shape(i, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shape()
+		virtual void shape(shape_type& s, size_t i, const position_type& x) const
+		{
+			typedef BaseLocalShapeFunctionSet<TImpl, TImpl::dim,
+				  	  	  	  	  	  	  	   typename TImpl::shape_type,
+				  	  	  	  	  	  	  	   typename TImpl::grad_type> baseType;
+
+				  	  	  	  	  	  	  	   baseType::shape(s, i, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shapes()
+		virtual void shapes(shape_type* vShape, const position_type& x) const
+		{
+			ImplType::shapes(vShape, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shapes()
+		virtual void shapes(std::vector<shape_type>& vShape, const position_type& x) const
+		{
+			ImplType::shapes(vShape, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shapes()
+		virtual void shapes(std::vector<std::vector<shape_type> >& vvShape,
+							const std::vector<position_type>& vLocPos) const
+		{
+			ImplType::shapes(vvShape, vLocPos);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
+		virtual void grad(grad_type& g, size_t i, const position_type& x) const
+		{
+			ImplType::grad(g, i, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grads()
+		virtual void grads(grad_type* vGrad, const position_type& x) const
+		{
+			ImplType::grads(vGrad, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grads()
+		virtual void grads(std::vector<grad_type>& vGrad, const position_type& x) const
+		{
+			ImplType::grads(vGrad, x);
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grads()
+		virtual void grads(std::vector<std::vector<grad_type> >& vvGrad,
+						   const std::vector<position_type>& vLocPos) const
+		{
+			ImplType::grads(vvGrad, vLocPos);
+		}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+//	Provider for LocalShapeFunctionSets
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename TRefElem>
 void LocalShapeFunctionSetProvider::init_standard_sets()
 {
+//	reference object id
+	static const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+
 //	create static Sets
 	static LocalShapeFunctionSetWrapper<LagrangeP1<TRefElem> > sSetLagrangeP1;
 	static LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem, 2> > sSetLagrangeP2;
@@ -26,36 +142,39 @@ void LocalShapeFunctionSetProvider::init_standard_sets()
 
 //	insert into map: P1 Lagrange
 	LFEID type1(LFEID::LAGRANGE, 1);
-	register_set(type1, sSetLagrangeP1);
+	register_set(type1, roid, sSetLagrangeP1);
 
 //	insert into map: P2 Lagrange
 	LFEID type2(LFEID::LAGRANGE, 2);
-	register_set(type2, sSetLagrangeP2);
+	register_set(type2, roid, sSetLagrangeP2);
 
 //	insert into map: P3 Lagrange
 	LFEID type3(LFEID::LAGRANGE, 3);
-	register_set(type3, sSetLagrangeP3);
+	register_set(type3, roid, sSetLagrangeP3);
 
 //	insert into map: P4 Lagrange
 	LFEID type4(LFEID::LAGRANGE, 4);
-	register_set(type4, sSetLagrangeP4);
+	register_set(type4, roid, sSetLagrangeP4);
 
 
 //	insert into map: Crouzeix-Raviart
 	static LocalShapeFunctionSetWrapper<CrouzeixRaviartLSFS<TRefElem> > sSetCrouzeixRaviart;
 	LFEID typeCR(LFEID::CROUZEIX_RAVIART, 1);
-	register_set(typeCR, sSetCrouzeixRaviart);
+	register_set(typeCR, roid, sSetCrouzeixRaviart);
 
 //	insert into map: Piecewise constant
 	static LocalShapeFunctionSetWrapper<PiecewiseConstantLSFS<TRefElem> > sSetPiecewiseConstant;
 	LFEID typePC(LFEID::PIECEWISE_CONSTANT, 0);
-	register_set(typePC, sSetPiecewiseConstant);
+	register_set(typePC, roid, sSetPiecewiseConstant);
 
 }
 
 template <typename TRefElem>
 void LocalShapeFunctionSetProvider::init_flex_lagrange(size_t order)
 {
+//	reference object id
+	static const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+
 //	create static Sets
 	LocalShapeFunctionSetWrapper<FlexLagrangeLSFS<TRefElem> >* sSetFlexLagrange
 		= new LocalShapeFunctionSetWrapper<FlexLagrangeLSFS<TRefElem> >;
@@ -63,7 +182,7 @@ void LocalShapeFunctionSetProvider::init_flex_lagrange(size_t order)
 
 //	insert into map: Lagrange
 	LFEID type(LFEID::LAGRANGE, order);
-	register_set(type, *sSetFlexLagrange);
+	register_set(type, roid, *sSetFlexLagrange);
 
 //	remember creation
 	get_dynamic_allocated_vector<TRefElem::dim>().push_back(sSetFlexLagrange);
@@ -119,15 +238,6 @@ LocalShapeFunctionSetProvider()
 	//	remember initialization
 		init = true;
 
-	//	clear all maps
-		clear_maps<ReferenceEdge>();
-		clear_maps<ReferenceTriangle>();
-		clear_maps<ReferenceQuadrilateral>();
-		clear_maps<ReferenceTetrahedron>();
-		clear_maps<ReferencePrism>();
-		clear_maps<ReferencePyramid>();
-		clear_maps<ReferenceHexahedron>();
-
 	//	clear created holder
 		get_dynamic_allocated_vector<1>().clear();
 		get_dynamic_allocated_vector<2>().clear();
@@ -157,7 +267,7 @@ LocalShapeFunctionSetProvider()
 		LFEID type1(LFEID::LAGRANGE, 1);
 		static LocalShapeFunctionSetWrapper<LagrangeP1<ReferencePyramid> > sSetLagrangeP1;
 		try{
-			register_set(type1, sSetLagrangeP1);
+			register_set(type1, ROID_PYRAMID, sSetLagrangeP1);
 		}UG_CATCH_THROW("Cannot register Pyramid P1 Lagrange trial spaces.");
 	}
 };
@@ -165,11 +275,11 @@ LocalShapeFunctionSetProvider()
 LocalShapeFunctionSetProvider::
 ~LocalShapeFunctionSetProvider()
 {
-	std::vector<DimLocalShapeFunctionSet<1>*>& dynVec1 =
+	std::vector<LocalShapeFunctionSet<1>*>& dynVec1 =
 											get_dynamic_allocated_vector<1>();
-	std::vector<DimLocalShapeFunctionSet<2>*>& dynVec2 =
+	std::vector<LocalShapeFunctionSet<2>*>& dynVec2 =
 											get_dynamic_allocated_vector<2>();
-	std::vector<DimLocalShapeFunctionSet<3>*>& dynVec3 =
+	std::vector<LocalShapeFunctionSet<3>*>& dynVec3 =
 											get_dynamic_allocated_vector<3>();
 
 	for(size_t i = 0; i < dynVec1.size(); ++i) delete dynVec1[i];
