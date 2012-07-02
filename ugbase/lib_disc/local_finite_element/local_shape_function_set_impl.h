@@ -18,14 +18,14 @@ namespace ug{
 ///////////////////////////////////////////
 
 template <int dim>
-std::vector<std::map<LFEID, const LocalShapeFunctionSet<dim>* > >&
-LocalShapeFunctionSetProvider::get_dim_map()
+std::map<LFEID, const LocalShapeFunctionSet<dim>* >*
+LocalShapeFunctionSetProvider::get_map()
 {
 //	get type of map
-	typedef std::vector<std::map<LFEID, const LocalShapeFunctionSet<dim>*> > VecMap;
+	typedef std::map<LFEID, const LocalShapeFunctionSet<dim>*> Map;
 
 //	create static map
-	static VecMap sShapeFunctionSetMap(NUM_REFERENCE_OBJECTS);
+	static Map sShapeFunctionSetMap[NUM_REFERENCE_OBJECTS];
 
 //	return map
 	return sShapeFunctionSetMap;
@@ -52,14 +52,12 @@ register_set(LFEID type,
              const LocalShapeFunctionSet<dim>& set)
 {
 //	get type of map
-	typedef std::vector<std::map<LFEID, const LocalShapeFunctionSet<dim>* > > VecMap;
-	typedef std::map<LFEID, const LocalShapeFunctionSet<dim>* > DimMap;
-	VecMap& vDimMap = get_dim_map<dim>();
-	DimMap& dimMap = vDimMap[roid];
+	typedef std::map<LFEID, const LocalShapeFunctionSet<dim>* > Map;
+	Map& map = get_map<dim>()[roid];
 
 //	insert into map
-	typedef typename DimMap::value_type DimMapPair;
-	if(dimMap.insert(DimMapPair(type, &set)).second == false)
+	typedef typename Map::value_type DimMapPair;
+	if(map.insert(DimMapPair(type, &set)).second == false)
 		UG_THROW("LocalShapeFunctionSetProvider::register_set(): "
 				"Reference type already registered for trial space: "<<type<<" and "
 				" Reference element type "<<roid<<".");
@@ -70,19 +68,18 @@ template <int dim>
 bool LocalShapeFunctionSetProvider::
 unregister_set(LFEID id)
 {
-	typedef std::vector<std::map<LFEID, const LocalShapeFunctionSet<dim>* > > VecMap;
-	typedef std::map<LFEID, const LocalShapeFunctionSet<dim>* > DimMap;
-	VecMap& vDimMap = get_dim_map<dim>();
+	typedef std::map<LFEID, const LocalShapeFunctionSet<dim>* > Map;
+	Map* vMap = get_map<dim>();
 
 	for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r)
 	{
 		const ReferenceObjectID roid = (ReferenceObjectID) r;
 
 	//	get map
-		DimMap& dimMap = vDimMap[roid];
+		Map& map = vMap[roid];
 
 	//	erase element
-		if(!(dimMap.erase(id) == 1)) return false;
+		if(!(map.erase(id) == 1)) return false;
 	}
 
 	return true;
@@ -93,13 +90,9 @@ const LocalShapeFunctionSet<dim>&
 LocalShapeFunctionSetProvider::
 get(ReferenceObjectID roid, LFEID id, bool bCreate)
 {
-//	get type of map
-	typedef std::vector<std::map<LFEID, const LocalShapeFunctionSet<dim>* > > VecMap;
-	typedef std::map<LFEID, const LocalShapeFunctionSet<dim>* > Map;
-
 //	init provider and get map
-	static VecMap& vMap = inst().get_dim_map<dim>();
-	const Map& map = vMap[roid];
+	typedef std::map<LFEID, const LocalShapeFunctionSet<dim>* > Map;
+	const Map& map = inst().get_map<dim>()[roid];
 
 //	search for identifier
 	typename Map::const_iterator iter = map.find(id);

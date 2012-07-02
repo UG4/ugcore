@@ -232,7 +232,7 @@ class BaseLocalShapeFunctionSet
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
-		virtual void shapes(std::vector<std::vector<shape_type> >& vvShape,
+		inline void shapes(std::vector<std::vector<shape_type> >& vvShape,
 		                    const std::vector<MathVector<dim> >& vLocPos) const
 		{
 			vvShape.resize(vLocPos.size());
@@ -254,7 +254,7 @@ class BaseLocalShapeFunctionSet
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
-		virtual void grads(std::vector<std::vector<grad_type> >& vvGrad,
+		inline void grads(std::vector<std::vector<grad_type> >& vvGrad,
 		                   const std::vector<MathVector<dim> >& vLocPos) const
 		{
 			vvGrad.resize(vLocPos.size());
@@ -328,8 +328,8 @@ class LocalShapeFunctionSetProvider {
 
 	// 	return a map of element_trial_spaces
 		template <int dim>
-		static std::vector<std::map<LFEID, const LocalShapeFunctionSet<dim>* > >&
-		get_dim_map();
+		static std::map<LFEID, const LocalShapeFunctionSet<dim>* >*
+		get_map();
 
 	//	vector of dynamically created spaces
 		template <int dim>

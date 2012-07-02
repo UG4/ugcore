@@ -201,30 +201,17 @@ dynamically_create_set(ReferenceObjectID roid, LFEID id)
 	//	switch type
 		switch(roid)
 		{
-			case ROID_EDGE:
-					init_flex_lagrange<ReferenceEdge>(id.order());
-				return;
-			case ROID_TRIANGLE:
-					init_flex_lagrange<ReferenceTriangle>(id.order());
-				return;
-			case ROID_QUADRILATERAL:
-				init_flex_lagrange<ReferenceQuadrilateral>(id.order());
-				return;
-			case ROID_TETRAHEDRON:
-				init_flex_lagrange<ReferenceTetrahedron>(id.order());
-				return;
-			case ROID_PRISM:
-				init_flex_lagrange<ReferencePrism>(id.order());
-				return;
-			case ROID_HEXAHEDRON:
-				init_flex_lagrange<ReferenceHexahedron>(id.order());
-				return;
-			default: return;
+			case ROID_EDGE:			init_flex_lagrange<ReferenceEdge>(id.order()); return;
+			case ROID_TRIANGLE:		init_flex_lagrange<ReferenceTriangle>(id.order()); return;
+			case ROID_QUADRILATERAL:init_flex_lagrange<ReferenceQuadrilateral>(id.order()); return;
+			case ROID_TETRAHEDRON:	init_flex_lagrange<ReferenceTetrahedron>(id.order()); return;
+			case ROID_PRISM:		init_flex_lagrange<ReferencePrism>(id.order()); return;
+			case ROID_HEXAHEDRON:	init_flex_lagrange<ReferenceHexahedron>(id.order()); return;
+			default: UG_THROW("LocalShapeFunctionSetProvider: Roid="<<roid<<" unknown.");
 		}
 
 		}
 		UG_CATCH_THROW("Dynamic Allocation of set failed.");
-
 	}
 }
 
