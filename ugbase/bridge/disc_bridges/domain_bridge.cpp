@@ -28,6 +28,7 @@
 #include "lib_disc/function_spaces/interpolate.h"
 #include "lib_disc/dof_manager/cuthill_mckee.h"
 #include "lib_disc/dof_manager/lexorder.h"
+#include "lib_disc/function_spaces/grid_function_user_data.h"
 
 using namespace std;
 
@@ -103,6 +104,17 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("clear_transfers", &TFct::clear_transfers)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunction", tag);
+	}
+
+//	GridFunction
+	{
+		string name = string("GridFunctionNumberData").append(suffix);
+		typedef GridFunctionNumberData<TFct> T;
+		typedef IPData<number, dim> TBase;
+		reg.add_class_<T, TBase>(name, approxGrp)
+			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GridFunctionNumberData", tag);
 	}
 
 //	Interpolate
