@@ -53,7 +53,7 @@ class StdGridFunctionData
 		                         const MathVector<dim> vCornerCoords[],
 		                         const MathVector<1>& locIP) const
 		{
-			getImpl().template evaluate<1>(value,globIP,time,si,u,elem,vCornerCoords,locIP);
+			getImpl().template evaluate<1>(&value,&globIP,time,si,u,elem,vCornerCoords,&locIP, 1, NULL);
 		}
 
 		virtual void operator() (TData& value,
@@ -64,7 +64,7 @@ class StdGridFunctionData
 		                         const MathVector<dim> vCornerCoords[],
 		                         const MathVector<2>& locIP) const
 		{
-			getImpl().template evaluate<2>(value,globIP,time,si,u,elem,vCornerCoords,locIP);
+			getImpl().template evaluate<2>(&value,&globIP,time,si,u,elem,vCornerCoords,&locIP, 1, NULL);
 		}
 
 		virtual void operator() (TData& value,
@@ -75,7 +75,7 @@ class StdGridFunctionData
 		                         const MathVector<dim> vCornerCoords[],
 		                         const MathVector<3>& locIP) const
 		{
-			getImpl().template evaluate<3>(value,globIP,time,si,u,elem,vCornerCoords,locIP);
+			getImpl().template evaluate<3>(&value,&globIP,time,si,u,elem,vCornerCoords,&locIP, 1, NULL);
 		}
 
 		////////////////
@@ -170,47 +170,6 @@ class GridFunctionNumberData
 		//	local finite element id
 			m_lfeID = spGridFct->local_finite_element_id(m_fct);
 		};
-
-		template <int refDim>
-		inline void evaluate (number& value,
-		                      const MathVector<dim>& globIP,
-		                      number time, int si,
-		                      LocalVector& u,
-		                      GeometricObject* elem,
-		                      const MathVector<dim> vCornerCoords[],
-		                      const MathVector<refDim>& locIP) const
-		{
-		//	reference object id
-			const ReferenceObjectID roid = elem->reference_object_id();
-
-		//	get trial space
-			try{
-			const LocalShapeFunctionSet<refDim>& rTrialSpace =
-					LocalShapeFunctionSetProvider::get<refDim>(roid, m_lfeID);
-
-		//	memory for shapes
-			std::vector<number> vShape;
-
-		//	evaluate at shapes at ip
-			rTrialSpace.shapes(vShape, locIP);
-
-		//	get multiindices of element
-			std::vector<MultiIndex<2> > ind;
-			m_spGridFct->multi_indices(elem, m_fct, ind);
-
-		// 	compute solution at integration point
-			value = 0.0;
-			for(size_t sh = 0; sh < vShape.size(); ++sh)
-			{
-				const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
-				value += valSH * vShape[sh];
-			}
-
-			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
-				UG_THROW("GridFunctionNumberData: "<< ex.get_msg()<<", Reference Object: "
-				         <<roid<<", Trial Space: "<<m_lfeID<<", refDim="<<refDim);
-			}
-		}
 
 		template <int refDim>
 		inline void evaluate(number vValue[],
