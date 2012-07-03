@@ -122,6 +122,24 @@ class StdConstUserData
 				getImpl().evaluate(vValue[ip]);
 		}
 
+	///	implement as a IPData
+		virtual void compute(bool bDeriv = false)
+		{
+			for(size_t s = 0; s < this->num_series(); ++s)
+				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+					getImpl().evaluate(this->value(s,ip));
+		}
+
+	///	callback, invoked when data storage changed
+		virtual void value_storage_changed(const size_t seriesID)
+		{
+			for(size_t ip = 0; ip < this->num_ip(seriesID); ++ip)
+				getImpl().evaluate(this->value(seriesID,ip));
+		}
+
+	///	returns if data is constant
+		virtual bool constant_data() const {return true;}
+
 	///	returns if grid function is needed for evaluation
 		virtual bool requires_grid_fct() const {return false;}
 
@@ -186,24 +204,6 @@ class ConstUserNumber
 			value = m_Number;
 		}
 
-	///	implement as a IPData
-		virtual void compute(bool bDeriv = false)
-		{
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t i = 0; i < num_ip(s); ++i)
-					value(s,i) = m_Number;
-		}
-
-	///	returns if data is constant
-		virtual bool constant_data() const {return true;}
-
-	///	callback, invoked when data storage changed
-		virtual void value_storage_changed(const size_t seriesID)
-		{
-			for(size_t i = 0; i < num_ip(seriesID); ++i)
-				value(seriesID,i) = m_Number;
-		}
-
 	protected:
 		number m_Number;
 };
@@ -213,15 +213,6 @@ template <int dim>
 class ConstUserVector
 	: public StdConstUserData<MathVector<dim>, dim, ConstUserVector<dim> >
 {
-	/// Base class type
-		typedef IPData<MathVector<dim>, dim> base_type;
-
-		using base_type::num_series;
-		using base_type::num_ip;
-		using base_type::ip;
-		using base_type::time;
-		using base_type::value;
-
 	public:
 	///	Constructor
 		ConstUserVector() {set_all_entries(0.0);}
@@ -239,28 +230,7 @@ class ConstUserVector
 		void print() const {UG_LOG("ConstUserVector:" << m_Vector << "\n");}
 
 	/// evaluate
-		inline void evaluate (MathVector<dim>& value) const
-		{
-			value = m_Vector;
-		}
-
-	///	returns if data is constant
-		virtual bool constant_data() const {return true;}
-
-	///	implement as a IPData
-		virtual void compute(bool bDeriv = false)
-		{
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t i = 0; i < num_ip(s); ++i)
-					value(s,i) = m_Vector;
-		}
-
-	///	callback, invoked when data storage changed
-		virtual void value_storage_changed(const size_t seriesID)
-		{
-			for(size_t i = 0; i < num_ip(seriesID); ++i)
-				value(seriesID,i) = m_Vector;
-		}
+		inline void evaluate (MathVector<dim>& value) const{value = m_Vector;}
 
 	protected:
 		MathVector<dim> m_Vector;
@@ -271,15 +241,6 @@ template <int dim>
 class ConstUserMatrix
 	: public StdConstUserData<MathMatrix<dim, dim>, dim, ConstUserMatrix<dim> >
 {
-	/// Base class type
-		typedef IPData<MathMatrix<dim, dim>, dim> base_type;
-
-		using base_type::num_series;
-		using base_type::num_ip;
-		using base_type::ip;
-		using base_type::time;
-		using base_type::value;
-
 	public:
 	///	Constructor
 		ConstUserMatrix() {set_diag_tensor(1.0);}
@@ -315,28 +276,7 @@ class ConstUserMatrix
 		void print() const{UG_LOG("ConstUserMatrix:\n" << m_Tensor << "\n");}
 
 	///	evaluate
-		inline void evaluate (MathMatrix<dim, dim>& value) const
-		{
-			value = m_Tensor;
-		}
-
-	///	returns if data is constant
-		virtual bool constant_data() const {return true;}
-
-	///	implement as a IPData
-		virtual void compute(bool bDeriv = false)
-		{
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t i = 0; i < num_ip(s); ++i)
-					value(s,i) = m_Tensor;
-		}
-
-	///	callback, invoked when data storage changed
-		virtual void value_storage_changed(const size_t seriesID)
-		{
-			for(size_t i = 0; i < num_ip(seriesID); ++i)
-				value(seriesID,i) = m_Tensor;
-		}
+		inline void evaluate (MathMatrix<dim, dim>& value) const{value = m_Tensor;}
 
 	protected:
 		MathMatrix<dim, dim> m_Tensor;
@@ -347,15 +287,6 @@ template <int TRank, int dim>
 class ConstUserTensor
 	: public StdConstUserData<MathTensor<TRank, dim>, dim, ConstUserTensor<TRank,dim> >
 {
-	/// Base class type
-		typedef IPData<MathTensor<TRank, dim>, dim> base_type;
-
-		using base_type::num_series;
-		using base_type::num_ip;
-		using base_type::ip;
-		using base_type::time;
-		using base_type::value;
-
 	public:
 	///	Constructor
 		ConstUserTensor() {set(0.0);}
@@ -364,37 +295,13 @@ class ConstUserTensor
 		ConstUserTensor(number val) {set(val);}
 
 	///	set diagonal of matrix to a vector
-		void set(number val)
-		{
-			m_Tensor.set(val);
-		}
+		void set(number val) {m_Tensor.set(val);}
 
 	///	print current setting
 		void print() const{UG_LOG("ConstUserTensor:\n" << m_Tensor << "\n");}
 
 	///	evaluate
-		inline void evaluate (MathTensor<TRank, dim>& value) const
-		{
-			value = m_Tensor;
-		}
-
-	///	returns if data is constant
-		virtual bool constant_data() const {return true;}
-
-	///	implement as a IPData
-		virtual void compute(bool bDeriv = false)
-		{
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t i = 0; i < num_ip(s); ++i)
-					value(s,i) = m_Tensor;
-		}
-
-	///	callback, invoked when data storage changed
-		virtual void value_storage_changed(const size_t seriesID)
-		{
-			for(size_t i = 0; i < num_ip(seriesID); ++i)
-				value(seriesID,i) = m_Tensor;
-		}
+		inline void evaluate (MathTensor<TRank, dim>& value) const{value = m_Tensor;}
 
 	protected:
 		MathTensor<TRank, dim> m_Tensor;
