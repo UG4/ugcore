@@ -30,7 +30,7 @@ namespace ug {
 /// constant scalar user data
 template <int dim>
 class ConstUserNumber
-	: public StdConstIPData<number, dim, ConstUserNumber<dim> >
+	: public StdConstIPData<ConstUserNumber<dim>, number, dim>
 {
 	public:
 	///	creates empty user number
@@ -55,7 +55,7 @@ class ConstUserNumber
 /// constant vector user data
 template <int dim>
 class ConstUserVector
-	: public StdConstIPData<MathVector<dim>, dim, ConstUserVector<dim> >
+	: public StdConstIPData<ConstUserVector<dim>, MathVector<dim>, dim>
 {
 	public:
 	///	Constructor
@@ -83,7 +83,7 @@ class ConstUserVector
 /// constant matrix user data
 template <int dim>
 class ConstUserMatrix
-	: public StdConstIPData<MathMatrix<dim, dim>, dim, ConstUserMatrix<dim> >
+	: public StdConstIPData<ConstUserMatrix<dim>, MathMatrix<dim, dim>, dim>
 {
 	public:
 	///	Constructor
@@ -129,7 +129,7 @@ class ConstUserMatrix
 /// constant tensor user data
 template <int TRank, int dim>
 class ConstUserTensor
-	: public StdConstIPData<MathTensor<TRank, dim>, dim, ConstUserTensor<TRank,dim> >
+	: public StdConstIPData<ConstUserTensor<TRank,dim>, MathTensor<TRank, dim>, dim>
 {
 	public:
 	///	Constructor

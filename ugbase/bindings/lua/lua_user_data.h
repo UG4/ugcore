@@ -19,6 +19,7 @@ extern "C" {
 #include "common/common.h"
 #include "common/math/ugmath.h"
 #include "lib_disc/spatial_disc/ip_data/ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/std_ip_data.h"
 #include "lib_disc/spatial_disc/ip_data/user_function.h"
 #include "lib_disc/spatial_disc/ip_data/data_linker.h"
 
@@ -46,20 +47,11 @@ class LuaUserDataFactory;
  * 		 of the instance LuaUserDataFactory::remove is called.
  */
 template <typename TData, int dim, typename TRet = void>
-class LuaUserData : public IPData<TData, dim, TRet>
+class LuaUserData
+	: public StdPositionIPData<LuaUserData<TData, dim, TRet>, TData, dim, TRet>
 {
 	///	friend class
 		friend class LuaUserDataFactory<TData, dim, TRet>;
-
-	///	Base class type
-		typedef IPData<TData, dim, TRet> base_type;
-
-		using base_type::num_series;
-		using base_type::num_ip;
-		using base_type::ip;
-		using base_type::time;
-		using base_type::subset;
-		using base_type::value;
 
 	public:
 	///	Constructor
@@ -86,10 +78,7 @@ class LuaUserData : public IPData<TData, dim, TRet>
 										   const bool bThrow = false);
 
 	///	evaluates the data at a given point and time
-		TRet operator() (TData& D, const MathVector<dim>& x, number time, int si) const;
-
-	///	implement as a IPData
-		virtual void compute(bool bDeriv = false);
+		inline TRet evaluate(TData& D, const MathVector<dim>& x, number time, int si) const;
 
 	protected:
 	///	sets that LuaUserData is created by LuaUserDataFactory
@@ -107,79 +96,6 @@ class LuaUserData : public IPData<TData, dim, TRet>
 
 	///	lua state
 		lua_State*	m_L;
-
-	/////////////////////////////////////
-	// implementation as DirectIPData
-	/////////////////////////////////////
-	public:
-		virtual void operator() (TData vValue[],
-		                         const MathVector<dim> vGlobIP[],
-		                         number time, int si, const size_t nip) const
-		{
-			for(size_t ip = 0; ip < nip; ++ip)
-				operator()(vValue[ip], vGlobIP[ip], time, si);
-		}
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<1>& locIP) const;
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<2>& locIP) const;
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<3>& locIP) const;
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<1> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<1, dim>* vJT = NULL) const;
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<2> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<2, dim>* vJT = NULL) const;
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<3> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<3, dim>* vJT = NULL) const;
-
-	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return false;}
-
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const {return true;}
-
 };
 
 ////////////////////////////////////////////////////////////////////////////////

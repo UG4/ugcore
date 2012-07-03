@@ -442,7 +442,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 
 template <typename TData, int dim, typename TRet>
 TRet LuaUserData<TData,dim,TRet>::
-operator() (TData& D, const MathVector<dim>& x, number time, int si) const
+evaluate(TData& D, const MathVector<dim>& x, number time, int si) const
 {
 //	push the callback function on the stack
 	lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
@@ -493,19 +493,6 @@ operator() (TData& D, const MathVector<dim>& x, number time, int si) const
 }
 
 template <typename TData, int dim, typename TRet>
-void LuaUserData<TData,dim,TRet>::compute(bool bDeriv)
-{
-	const number t = time();
-	const int si = subset();
-
-	for(size_t s = 0; s < num_series(); ++s)
-		for(size_t i = 0; i < num_ip(s); ++i)
-		{
-			this->operator()(value(s,i), ip(s, i), t, si);
-		}
-}
-
-template <typename TData, int dim, typename TRet>
 LuaUserData<TData,dim,TRet>::~LuaUserData()
 {
 //	free reference to callback
@@ -513,95 +500,6 @@ LuaUserData<TData,dim,TRet>::~LuaUserData()
 
 	if(m_bFromFactory)
 		LuaUserDataFactory<TData,dim,TRet>::remove(m_callbackName);
-}
-
-
-
-template <typename TData, int dim, typename TRet>
-TRet LuaUserData<TData,dim,TRet>::
-operator() (TData& value,
-                         const MathVector<dim>& globIP,
-                         number time, int si,
-                         LocalVector& u,
-                         GeometricObject* elem,
-                         const MathVector<dim> vCornerCoords[],
-                         const MathVector<1>& locIP) const
-{
-	return this->operator()(value, globIP, time, si);
-}
-
-template <typename TData, int dim, typename TRet>
-TRet LuaUserData<TData,dim,TRet>::
-operator() (TData& value,
-                         const MathVector<dim>& globIP,
-                         number time, int si,
-                         LocalVector& u,
-                         GeometricObject* elem,
-                         const MathVector<dim> vCornerCoords[],
-                         const MathVector<2>& locIP) const
-{
-	return this->operator()(value, globIP, time, si);
-}
-
-template <typename TData, int dim, typename TRet>
-TRet LuaUserData<TData,dim,TRet>::
-operator() (TData& value,
-                         const MathVector<dim>& globIP,
-                         number time, int si,
-                         LocalVector& u,
-                         GeometricObject* elem,
-                         const MathVector<dim> vCornerCoords[],
-                         const MathVector<3>& locIP) const
-{
-	return this->operator()(value, globIP, time, si);
-}
-
-template <typename TData, int dim, typename TRet>
-void LuaUserData<TData,dim,TRet>::
-operator()(TData vValue[],
-                        const MathVector<dim> vGlobIP[],
-                        number time, int si,
-                        LocalVector& u,
-                        GeometricObject* elem,
-                        const MathVector<dim> vCornerCoords[],
-                        const MathVector<1> vLocIP[],
-                        const size_t nip,
-                        const MathMatrix<1, dim>* vJT) const
-{
-	for(size_t ip = 0; ip < nip; ++ip)
-		this->operator()(vValue[ip], vGlobIP[ip], time, si);
-}
-
-template <typename TData, int dim, typename TRet>
-void LuaUserData<TData,dim,TRet>::
-operator()(TData vValue[],
-                        const MathVector<dim> vGlobIP[],
-                        number time, int si,
-                        LocalVector& u,
-                        GeometricObject* elem,
-                        const MathVector<dim> vCornerCoords[],
-                        const MathVector<2> vLocIP[],
-                        const size_t nip,
-                        const MathMatrix<2, dim>* vJT) const
-{
-	for(size_t ip = 0; ip < nip; ++ip)
-		this->operator()(vValue[ip], vGlobIP[ip], time, si);
-}
-
-template <typename TData, int dim, typename TRet>
-void LuaUserData<TData,dim,TRet>::
-operator()(TData vValue[],
-                        const MathVector<dim> vGlobIP[],
-                        number time, int si,
-                        LocalVector& u,
-                        GeometricObject* elem,
-                        const MathVector<dim> vCornerCoords[],
-                        const MathVector<3> vLocIP[],
-                        const size_t nip,
-                        const MathMatrix<3, dim>* vJT) const
-{
-	for(size_t ip = 0; ip < nip; ++ip)
-		this->operator()(vValue[ip], vGlobIP[ip], time, si);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
