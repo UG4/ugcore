@@ -106,7 +106,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "GridFunction", tag);
 	}
 
-//	GridFunction
+//	GridFunctionNumberData
 	{
 		string name = string("GridFunctionNumberData").append(suffix);
 		typedef GridFunctionNumberData<TFct> T;
@@ -115,6 +115,28 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionNumberData", tag);
+	}
+
+//	GridFunctionVectorData
+	{
+		string name = string("GridFunctionVectorData").append(suffix);
+		typedef GridFunctionVectorData<TFct> T;
+		typedef IPData<MathVector<dim>, dim> TBase;
+		reg.add_class_<T, TBase>(name, approxGrp)
+			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Components")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GridFunctionVectorData", tag);
+	}
+
+//	GridFunctionGradientData
+	{
+		string name = string("GridFunctionGradientData").append(suffix);
+		typedef GridFunctionGradientData<TFct> T;
+		typedef IPData<MathVector<dim>, dim> TBase;
+		reg.add_class_<T, TBase>(name, approxGrp)
+			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GridFunctionGradientData", tag);
 	}
 
 //	Interpolate
