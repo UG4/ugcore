@@ -51,7 +51,7 @@ class DataLinker
 		{
 			UG_ASSERT(i < m_vpIIPData.size(), "invalid index");
 			m_vpIIPData[i] = input;
-			m_vpIDependData[i] = input.template cast_dynamic<IDependentIPData>();
+			m_vpIDependData[i] = input;
 		}
 
 	///	number of inputs
@@ -113,7 +113,7 @@ class DataLinker
 		std::vector<SmartPtr<IIPDimData<dim> > > m_vpIIPData;
 
 	///	data input casted to IDependend data
-		std::vector<SmartPtr<IDependentIPData> > m_vpIDependData;
+		std::vector<SmartPtr<IIPData> > m_vpIDependData;
 
 	///	common functions the data depends on
 		FunctionGroup m_commonFctGroup;

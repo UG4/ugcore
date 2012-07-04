@@ -419,7 +419,7 @@ void DependentIPData<TData,dim>::set_dof_sizes(const LocalIndices& ind,
                                                const FunctionIndexMapping& map)
 {
 //	check size
-	UG_ASSERT(map.num_fct() == num_fct(), "Number function mismatch.");
+	UG_ASSERT(map.num_fct() == this->num_fct(), "Number function mismatch.");
 
 //	cache numFct and their numDoFs
 	m_vvNumDoFPerFct.resize(map.num_fct());

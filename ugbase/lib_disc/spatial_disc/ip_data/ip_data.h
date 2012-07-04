@@ -110,6 +110,24 @@ class IIPData
 		virtual void compute(LocalVector* u,
 		                     GeometricObject* elem,
 		                     bool bDeriv = false) = 0;
+	///	resize arrays
+		virtual void set_dof_sizes(const LocalIndices& ind,
+								   const FunctionIndexMapping& map) {}
+
+	///	updates the function group (needed for Linker)
+		virtual void update_function_group() {}
+
+	/// set	Function Group of functions (by copy)
+		void set_function_group(const FunctionGroup& fctGrp) {m_fctGrp = fctGrp;}
+
+	///	Function Group of functions
+		const FunctionGroup& function_group() const {return m_fctGrp;}
+
+	///	number of fuctions this export depends on
+		size_t num_fct() const {return m_fctGrp.num_fct();}
+
+	///	returns if the dependent data is ready for evaluation
+		virtual bool is_ready() const {return true;}
 
 	///	virtual desctructor
 		virtual ~IIPData() {};
@@ -165,6 +183,10 @@ class IIPData
 
 	///	subset for evaluation
 		int m_si;
+
+	protected:
+	/// functions the data depends on
+		FunctionGroup m_fctGrp;
 };
 
 /// World dimension based IP Data
@@ -416,58 +438,13 @@ class IPData : public IIPDimData<dim>
 //	Dependent IP Data
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Base class for solution dependent Data
-/**
- * All classes that derive from this class may depend on the unknwon numerical
- * solution, when computing the data.
- */
-class IDependentIPData : virtual public IIPData
-{
-	public:
-	///	default constructor
-		IDependentIPData() : m_bCompNeedsSol(false) {};
-
-	///	resize arrays
-		virtual void set_dof_sizes(const LocalIndices& ind,
-		                           const FunctionIndexMapping& map) = 0;
-
-	///	returns if the computation needs the current solution
-		bool comp_needs_sol() const {return m_bCompNeedsSol;}
-
-	///	updates the function group (needed for Linker)
-		virtual void update_function_group() {}
-
-	/// set	Function Group of functions (by copy)
-		void set_function_group(const FunctionGroup& fctGrp) {m_fctGrp = fctGrp;}
-
-	///	Function Group of functions
-		const FunctionGroup& function_group() const {return m_fctGrp;}
-
-	///	number of fuctions this export depends on
-		size_t num_fct() const {return m_fctGrp.num_fct();}
-
-	///	returns if the dependent data is ready for evaluation
-		virtual bool is_ready() const = 0;
-
-	///	virtual destructor
-		virtual ~IDependentIPData() {}
-
-	protected:
-	/// functions the data depends on
-		FunctionGroup m_fctGrp;
-
-	///	flag if computation needs the solution
-		bool m_bCompNeedsSol;
-};
-
 /// Dependent IP Data
 /**
  * This class extends the IPData by the derivatives of the data w.r.t. to
  * unknown solutions.
  */
 template <typename TData, int dim>
-class DependentIPData : public IPData<TData, dim>,
-						public IDependentIPData
+class DependentIPData : public IPData<TData, dim>
 {
 	public:
 	///	Base class type

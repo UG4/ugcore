@@ -64,6 +64,7 @@ class IDataImport
 		bool zero_derivative() const
 		{
 			if(!m_spIDependentIPData.valid()) return true;
+			else if (m_spIDependentIPData->zero_derivative()) return true;
 			else return !m_bCompLinDefect;
 		}
 
@@ -97,7 +98,7 @@ class IDataImport
 
 	protected:
 	/// connected iexport
-		SmartPtr<IDependentIPData> m_spIDependentIPData;
+		SmartPtr<IIPData> m_spIDependentIPData;
 
 	///	function group for linear defect
 		FunctionGroup m_fctGrp;
@@ -406,7 +407,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 
 	///	sets the function group
 		virtual void set_function_group(const FunctionGroup& fctGrp)
-			{return IDependentIPData::set_function_group(fctGrp);}
+			{return IIPData::set_function_group(fctGrp);}
 
 	protected:
 		template <typename T, int refDim>

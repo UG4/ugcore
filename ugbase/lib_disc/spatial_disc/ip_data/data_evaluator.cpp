@@ -277,8 +277,7 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 		}
 
 	//	cast to dependent data
-		SmartPtr<IDependentIPData> dependData =
-				ipData.cast_dynamic<IDependentIPData>();
+		SmartPtr<IIPData> dependData = ipData;
 
 	//	check success
 		if(!dependData.valid())
@@ -362,7 +361,7 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			if(iimp->zero_derivative()) continue;
 
 		//	get and cast dependent data
-			SmartPtr<IDependentIPData> dependData = iimp->data().cast_dynamic<IDependentIPData>();
+			SmartPtr<IIPData> dependData = iimp->data();
 
 		//	check success
 			if(!dependData.valid())

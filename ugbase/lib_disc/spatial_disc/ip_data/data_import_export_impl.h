@@ -89,7 +89,7 @@ void DataImport<TData,dim>::set_data(SmartPtr<IPData<TData, dim> > spData)
 	m_spIPData = spData;
 
 //	remember iexport
-	this->m_spIDependentIPData = m_spIPData.template cast_dynamic<IDependentIPData>();
+	this->m_spIDependentIPData = spData;
 
 //	remember dependent data (i.e. is NULL iff no dependent data given)
 	m_spDependentIPData = m_spIPData.template cast_dynamic<DependentIPData<TData, dim> >();
@@ -302,9 +302,6 @@ inline void DataImport<TData,dim>::check_values() const
 template <typename TData, int dim>
 DataExport<TData, dim>::DataExport() : m_id(ROID_UNKNOWN), m_pObj(NULL)
 {
-//	this ipdata needs the solution for evaluation
-	this->m_bCompNeedsSol = true;
-
 //	reset all evaluation functions
 	clear_fct();
 }

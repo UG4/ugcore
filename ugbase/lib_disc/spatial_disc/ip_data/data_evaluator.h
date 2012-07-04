@@ -182,7 +182,7 @@ class DataEvaluator
 		std::vector<SmartPtr<IIPData> > m_vPosData;
 
 	///	dependent data
-		std::vector<SmartPtr<IDependentIPData> > m_vDependentIPData;
+		std::vector<SmartPtr<IIPData> > m_vDependentIPData;
 		std::vector<FunctionIndexMapping> m_vDependentMap;
 
 	///	exports
@@ -190,7 +190,7 @@ class DataEvaluator
 		std::vector<FunctionIndexMapping> m_vExpMap;
 
 	///	data linker
-		std::vector<SmartPtr<IDependentIPData> > m_vDataLinker;
+		std::vector<SmartPtr<IIPData> > m_vDataLinker;
 		std::vector<FunctionIndexMapping> m_vLinkerMap;
 };
 
