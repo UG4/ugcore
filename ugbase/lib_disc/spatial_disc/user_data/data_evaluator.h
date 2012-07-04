@@ -129,6 +129,9 @@ class DataEvaluator
 	///	extracts imports and userdata from IElemDiscs
 		void extract_imports_and_userdata(bool bMassPart = false);
 
+	/// computes function groups and mappings between common grp and fct groups
+		void extract_fct_groups_and_mappings(const FunctionPattern& fctPat);
+
 	///	clears all requested positions in user data
 		void clear_positions_in_user_data();
 

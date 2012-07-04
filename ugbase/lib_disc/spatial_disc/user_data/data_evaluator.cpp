@@ -22,48 +22,73 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 //	copy elem discs
 	m_vElemDisc = vElemDisc;
 
+//	currently only fast assembles allowed
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+		if(!m_vElemDisc[i]->fast_ass_elem_enabled())
+			UG_THROW("DataEvaluator: currently only fast assemble allowed."
+					 " Please use enable_fast_ass_elem in all IElemDisc.");
+
+	extract_fct_groups_and_mappings(fctPat);
+
+//	reset local time series flag
+	m_vbNeedLocTimeSeries.clear();
+	m_vbNeedLocTimeSeries.resize(m_vElemDisc.size(), false);
+}
+
+void DataEvaluator::extract_fct_groups_and_mappings(const FunctionPattern& fctPat)
+{
 //	set function pattern to common function group
 	m_commonFctGroup.set_function_pattern(fctPat);
 	m_commonFctGroup.add_all();
 
-//	create FunctionIndexMapping for each Disc
 	m_vElemDiscMap.resize(m_vElemDisc.size());
 	m_vElemDiscFctGrp.resize(m_vElemDisc.size());
+
+//	create FunctionIndexMapping for each Disc
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
-	//	currently only fast assembles allowed
-		if(!m_vElemDisc[i]->fast_ass_elem_enabled())
-			UG_THROW("DataEvaluator: currently only fast assemble allowed."
-							" Please use enable_fast_ass_elem in all IElemDisc.");
-
 	//	create function group of this elem disc
 		try{
 			ConvertStringToFunctionGroup(m_vElemDiscFctGrp[i], fctPat,
-		                                 m_vElemDisc[i]->symb_fcts());
+										 m_vElemDisc[i]->symb_fcts());
 		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
 					"some symbolic Function Name for disc "<<i<<".");
+
+	//	create a mapping between all functions and the function group of this
+	//	element disc.
+		try{
+			CreateFunctionIndexMapping(m_vElemDiscMap[i], m_vElemDiscFctGrp[i],
+															   m_commonFctGroup);
+		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot create "
+						"Function Index Mapping for disc "<<i<<".");
+
+	////////////////////////
+	// checks
+	////////////////////////
 
 	//	check that all functions are defined on chosen subsets
 		SubsetGroup discSubsetGrp;
 		try{
 			ConvertStringToSubsetGroup(discSubsetGrp, fctPat.subset_handler(),
-		                                 m_vElemDisc[i]->symb_subsets());
+										 m_vElemDisc[i]->symb_subsets());
 		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
 						"some symbolic Subset Name for disc "<<i<<".");
 
+	//	check that all functions are defined on chosen subsets
 		for(size_t fct = 0; fct < m_vElemDiscFctGrp[i].num_fct(); ++fct)
 		{
 			for(size_t si = 0; si < discSubsetGrp.num_subsets(); ++si)
 			{
 				if(!fctPat.is_def_in_subset(m_vElemDiscFctGrp[i][fct], discSubsetGrp[si])){
 					UG_LOG("WARNING in 'DataEvaluator::set_elem_discs': On disc "<<i<<
-					       ": symbolic Function "<< m_vElemDisc[i]->symb_fcts()[fct]
-                     << " is not defined on subset "<<m_vElemDisc[i]->symb_subsets()[si]
-                     << ". This may be senseful only in particular cases.\n");
+						   ": symbolic Function "<< m_vElemDisc[i]->symb_fcts()[fct]
+					 << " is not defined on subset "<<m_vElemDisc[i]->symb_subsets()[si]
+					 << ". This may be senseful only in particular cases.\n");
 				}
 			}
 		}
 
+	//	check correct number of functions
 		if(m_vElemDiscFctGrp[i].num_fct() != m_vElemDisc[i]->num_fct())
 		{
 			std::stringstream ss;
@@ -95,25 +120,10 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 			}
 			UG_THROW(ss.str());
 		}
-
-	//	create a mapping between all functions and the function group of this
-	//	element disc.
-		try{
-			CreateFunctionIndexMapping(m_vElemDiscMap[i], m_vElemDiscFctGrp[i],
-		                               	   	   	   	   	   	   m_commonFctGroup);
-		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot create "
-						"Function Index Mapping for disc "<<i<<".");
 	}
-
-//	reset local time series flag
-	const size_t numElemDisc = m_vElemDisc.size();
-	m_vbNeedLocTimeSeries.clear();
-	m_vbNeedLocTimeSeries.resize(numElemDisc, false);
 }
 
-void
-DataEvaluator::
-clear_extracted_data_and_mappings()
+void DataEvaluator::clear_extracted_data_and_mappings()
 {
 	m_vMassDataImport.clear();
 	m_vMassImpMap.clear();
