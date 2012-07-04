@@ -90,7 +90,8 @@
 
 #include "spatial_disc/ip_data/const_user_data.h"
 #include "spatial_disc/ip_data/ip_data.h"
-#include "spatial_disc/ip_data/data_import_export.h"
+#include "spatial_disc/ip_data/data_export.h"
+#include "spatial_disc/ip_data/data_import.h"
 #include "spatial_disc/ip_data/data_linker.h"
 
 #include "spatial_disc/constraints/constraint_interface.h"

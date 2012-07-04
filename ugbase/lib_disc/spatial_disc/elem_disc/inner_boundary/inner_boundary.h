@@ -17,7 +17,8 @@
 
 // library intern headers
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
-#include "lib_disc/spatial_disc/ip_data/data_import_export.h"
+#include "lib_disc/spatial_disc/ip_data/data_export.h"
+#include "lib_disc/spatial_disc/ip_data/data_import.h"
 
 
 /// Finite Volume Element Discretization for an inner BndCond that depends on the unknowns (on the bnd)

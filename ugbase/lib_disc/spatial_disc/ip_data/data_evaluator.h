@@ -9,7 +9,8 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR__
 
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
-#include "data_import_export.h"
+#include "lib_disc/spatial_disc/ip_data/data_export.h"
+#include "lib_disc/spatial_disc/ip_data/data_import.h"
 
 namespace ug{
 
