@@ -115,14 +115,14 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	//	Compute element data
 		try
 		{
-			Eval.compute_elem_data(locU, true);
+			Eval.compute_elem_data(locU, elem, true);
 		}
 		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot compute element data.");
 
 	//	Evaluate lin defect A
 		try
 		{
-			Eval.compute_lin_defect_JA(locU);
+			Eval.compute_lin_defect_JA(locU, elem);
 		}
 		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot compute lin_defect_JA.");
 
@@ -130,7 +130,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		locA = 0.0;
 		try
 		{
-			Eval.ass_JA_elem(locA, locU);
+			Eval.ass_JA_elem(locA, locU, elem);
 		}
 		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot compute Jacobian (A).");
 
@@ -229,14 +229,14 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	//	Compute element data
 		try
 		{
-			Eval.compute_elem_data(locU, true);
+			Eval.compute_elem_data(locU, elem, true);
 		}
 		UG_CATCH_THROW("AssembleMassMatrix: Cannot compute element data.");
 
 	//	Evaluate lin defect M
 		try
 		{
-			Eval.compute_lin_defect_JM(locU);
+			Eval.compute_lin_defect_JM(locU, elem);
 		}
 		UG_CATCH_THROW("AssembleMassMatrix: Cannot compute lin_defect_JM.");
 
@@ -244,7 +244,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		locM = 0.0;
 		try
 		{
-			Eval.ass_JM_elem(locM, locU);
+			Eval.ass_JM_elem(locM, locU, elem);
 		}
 		UG_CATCH_THROW("AssembleMassMatrix: Cannot compute Jacobian (M).");
 
@@ -354,7 +354,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	//	Compute element data
 		try
 		{
-			Eval.compute_elem_data(locU, true);
+			Eval.compute_elem_data(locU, elem, true);
 		}
 		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot compute element data.");
 
@@ -453,14 +453,14 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	//	Compute element data
 		try
 		{
-			Eval.compute_elem_data(locU, true);
+			Eval.compute_elem_data(locU, elem, true);
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute element data.");
 
 	//	Evaluate lin defect A
 		try
 		{
-			Eval.compute_lin_defect_JA(locU);
+			Eval.compute_lin_defect_JA(locU, elem);
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute lin_defect_JA.");
 
@@ -468,7 +468,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		locJ = 0.0;
 		try
 		{
-			Eval.ass_JA_elem(locJ, locU);
+			Eval.ass_JA_elem(locJ, locU, elem);
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute Jacobian (A).");
 
@@ -583,21 +583,21 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	//	Compute element data
 		try
 		{
-			Eval.compute_elem_data(locU, true);
+			Eval.compute_elem_data(locU, elem, true);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute element data.");
 
 	//	Evaluate lin defect A
 		try
 		{
-			Eval.compute_lin_defect_JA(locU);
+			Eval.compute_lin_defect_JA(locU, elem);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute lin_defect_JA.");
 
 	//	Evaluate lin defect M
 		try
 		{
-			Eval.compute_lin_defect_JM(locU);
+			Eval.compute_lin_defect_JM(locU, elem);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute lin_defect_JM.");
 
@@ -605,7 +605,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		locJ = 0.0;
 		try
 		{
-			Eval.ass_JA_elem(locJ, locU);
+			Eval.ass_JA_elem(locJ, locU, elem);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (A).");
 
@@ -622,7 +622,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	// 	Assemble JM
 		try
 		{
-			Eval.ass_JM_elem(locJ, locU);
+			Eval.ass_JM_elem(locJ, locU, elem);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (M).");
 
@@ -723,7 +723,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	//	Compute element data
 		try
 		{
-			Eval.compute_elem_data(locU, false);
+			Eval.compute_elem_data(locU, elem, false);
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute element data.");
 
@@ -731,7 +731,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		locD = 0.0;
 		try
 		{
-			Eval.ass_dA_elem(locD, locU);
+			Eval.ass_dA_elem(locD, locU, elem);
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Defect (A).");
 
@@ -739,7 +739,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		tmpLocD = 0.0;
 		try
 		{
-			Eval.ass_rhs_elem(tmpLocD);
+			Eval.ass_rhs_elem(tmpLocD, elem);
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Rhs.");
 
@@ -856,7 +856,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		//	Compute element data
 			try
 			{
-				Eval.compute_elem_data(locU, false);
+				Eval.compute_elem_data(locU, elem, false);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute element data.");
 
@@ -864,7 +864,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 			tmpLocD = 0.0;
 			try
 			{
-				Eval.ass_dM_elem(tmpLocD, locU);
+				Eval.ass_dM_elem(tmpLocD, locU, elem);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (M).");
 
@@ -874,7 +874,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 			tmpLocD = 0.0;
 			try
 			{
-				Eval.ass_dA_elem(tmpLocD, locU);
+				Eval.ass_dA_elem(tmpLocD, locU, elem);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (A).");
 
@@ -884,7 +884,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 			tmpLocD = 0.0;
 			try
 			{
-				Eval.ass_rhs_elem(tmpLocD);
+				Eval.ass_rhs_elem(tmpLocD, elem);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Rhs.");
 
@@ -986,7 +986,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		locA = 0.0;
 		try
 		{
-			Eval.ass_JA_elem(locA, locRhs);
+			Eval.ass_JA_elem(locA, locRhs, elem);
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute Jacobian (A).");
 
@@ -994,7 +994,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		locRhs = 0.0;
 		try
 		{
-			Eval.ass_rhs_elem(locRhs);
+			Eval.ass_rhs_elem(locRhs, elem);
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute Rhs.");
 
@@ -1113,7 +1113,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	//	Compute element data
 		try
 		{
-			Eval.compute_elem_data(locU, false);
+			Eval.compute_elem_data(locU, elem, false);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute element data.");
 
@@ -1121,7 +1121,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		tmpLocA = 0.0;
 		try
 		{
-			Eval.ass_JM_elem(tmpLocA, locU);
+			Eval.ass_JM_elem(tmpLocA, locU, elem);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (M).");
 
@@ -1131,7 +1131,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		tmpLocA = 0.0;
 		try
 		{
-			Eval.ass_JA_elem(tmpLocA, locU);
+			Eval.ass_JA_elem(tmpLocA, locU, elem);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
 
@@ -1141,7 +1141,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		tmpLocRhs = 0.0;
 		try
 		{
-			Eval.ass_rhs_elem(tmpLocRhs);
+			Eval.ass_rhs_elem(tmpLocRhs, elem);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
 
@@ -1168,7 +1168,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		//	Compute element data
 			try
 			{
-				Eval.compute_elem_data(locU, false);
+				Eval.compute_elem_data(locU, elem, false);
 
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute element data");
@@ -1177,7 +1177,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 			tmpLocRhs = 0.0;
 			try
 			{
-				Eval.ass_dM_elem(tmpLocRhs, locU);
+				Eval.ass_dM_elem(tmpLocRhs, locU, elem);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (M).");
 
@@ -1187,7 +1187,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 			tmpLocRhs = 0.0;
 			try
 			{
-				Eval.ass_dA_elem(tmpLocRhs, locU);
+				Eval.ass_dA_elem(tmpLocRhs, locU, elem);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
 
@@ -1197,7 +1197,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 			tmpLocRhs = 0.0;
 			try
 			{
-				Eval.ass_rhs_elem(tmpLocRhs);
+				Eval.ass_rhs_elem(tmpLocRhs, elem);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
 
@@ -1297,7 +1297,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	//	Compute element data
 		try
 		{
-			Eval.compute_elem_data(locU, false);
+			Eval.compute_elem_data(locU, elem, false);
 		}
 		UG_CATCH_THROW("AssembleRhs: Cannot compute element data.");
 
@@ -1305,7 +1305,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		locRhs = 0.0;
 		try
 		{
-			Eval.ass_rhs_elem(locRhs);
+			Eval.ass_rhs_elem(locRhs, elem);
 		}
 		UG_CATCH_THROW("AssembleRhs: Cannot compute Rhs.");
 
@@ -1408,7 +1408,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	//	Compute element data
 		try
 		{
-			Eval.compute_elem_data(locU, true);
+			Eval.compute_elem_data(locU, elem, true);
 		}
 		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot compute element data.");
 

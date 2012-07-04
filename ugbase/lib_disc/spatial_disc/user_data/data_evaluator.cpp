@@ -474,11 +474,11 @@ void DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 // Assemble routines
 ///////////////////////////////////////////////////////////////////////////////
 
-void DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
+void DataEvaluator::compute_elem_data(LocalVector& u, GeometricObject* elem, bool bDeriv)
 {
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
-		m_vPosData[i]->compute(&u, NULL, false);
+		m_vPosData[i]->compute(&u, elem, false);
 
 // 	process dependent data:
 //	We can not simply compute exports first, then Linker, because an export
@@ -496,14 +496,14 @@ void DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 
 	//	compute the data
 		try{
-			m_vDependentUserData[i]->compute(&u, NULL, bDeriv);
+			m_vDependentUserData[i]->compute(&u, elem, bDeriv);
 		}
 		UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
 						"Cannot compute data for Export " << i);
 	}
 }
 
-void DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u)
+void DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -524,7 +524,7 @@ void DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u)
 	}
 }
 
-void DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u)
+void DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -545,7 +545,7 @@ void DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u)
 	}
 }
 
-void DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u)
+void DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -566,7 +566,7 @@ void DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u)
 	}
 }
 
-void DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u)
+void DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -587,7 +587,7 @@ void DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u)
 	}
 }
 
-void DataEvaluator::ass_rhs_elem(LocalVector& rhs)
+void DataEvaluator::ass_rhs_elem(LocalVector& rhs, GeometricObject* elem)
 {
 	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
 	{
@@ -630,7 +630,7 @@ void DataEvaluator::finish_elem_loop()
 // Coupling
 ///////////////////////////////////////////////////////////////////////////////
 
-void DataEvaluator::compute_lin_defect_JA(LocalVector & u)
+void DataEvaluator::compute_lin_defect_JA(LocalVector & u, GeometricObject* elem)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
@@ -647,7 +647,7 @@ void DataEvaluator::compute_lin_defect_JA(LocalVector & u)
 	}
 }
 
-void DataEvaluator::compute_lin_defect_JM(LocalVector & u)
+void DataEvaluator::compute_lin_defect_JM(LocalVector & u, GeometricObject* elem)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vMassDataImport.size(); ++i)

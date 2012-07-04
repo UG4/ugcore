@@ -72,22 +72,22 @@ class DataEvaluator
 		void finish_timestep_elem(TElem* elem, const number time, LocalVector& u);
 
 	///	computes all needed data on the element
-		void compute_elem_data(LocalVector & u, bool bDeriv = false);
+		void compute_elem_data(LocalVector& u, GeometricObject* elem, bool bDeriv = false);
 
 	///	compute local stiffness matrix for all IElemDiscs
-		void ass_JA_elem(LocalMatrix& A, LocalVector& u);
+		void ass_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem);
 
 	///	compute local mass matrix for all IElemDiscs
-		void ass_JM_elem(LocalMatrix& M, LocalVector& u);
+		void ass_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem);
 
 	///	compute local stiffness defect for all IElemDiscs
-		void ass_dA_elem(LocalVector& d, LocalVector& u);
+		void ass_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem);
 
 	///	compute local mass defect for all IElemDiscs
-		void ass_dM_elem(LocalVector& d, LocalVector& u);
+		void ass_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem);
 
 	///	compute local rhs for all IElemDiscs
-		void ass_rhs_elem(LocalVector& rhs);
+		void ass_rhs_elem(LocalVector& rhs, GeometricObject* elem);
 
 	///	finishes the element loop for all IElemDiscs
 		void finish_elem_loop();
@@ -97,10 +97,10 @@ class DataEvaluator
 		////////////////////////////////////////////
 
 	///	computes the linearized defect of imports in stiffness part of all IElemDiscs
-		void compute_lin_defect_JA(LocalVector& u);
+		void compute_lin_defect_JA(LocalVector& u, GeometricObject* elem);
 
 	///	computes the linearized defect of imports in mass part of all IElemDiscs
-		void compute_lin_defect_JM(LocalVector& u);
+		void compute_lin_defect_JM(LocalVector& u, GeometricObject* elem);
 
 	///	adds the contribution due to coupling to local stiffness matrix
 		void add_coupl_JA(LocalMatrix& J);
