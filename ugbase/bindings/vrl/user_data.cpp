@@ -447,25 +447,15 @@ public:
 		return result;
 	}
 
-/// Base class type
-	typedef UserData<number, dim, bool> base_type;
-
-	using base_type::num_series;
-	using base_type::num_ip;
-	using base_type::ip;
-	using base_type::time;
-	using base_type::subset;
-	using base_type::value;
-
-
-	virtual void compute(bool computeDeriv = false)
+	virtual void compute(LocalVector* u, GeometricObject* elem, bool computeDeriv = false)
 	{
 		// \todo: should remember flag
-		for (size_t s = 0; s < num_series(); ++s)
+		for (size_t s = 0; s < this->num_series(); ++s)
 		{
-			for (size_t i = 0; i < num_ip(s); ++i)
+			for (size_t i = 0; i < this->num_ip(s); ++i)
 			{
-				this->operator()(value(s, i), ip(s, i), time(), subset());
+				this->operator()(this->value(s, i), this->ip(s, i),
+				                 this->time(), this->subset());
 			}
 		}
 	}
