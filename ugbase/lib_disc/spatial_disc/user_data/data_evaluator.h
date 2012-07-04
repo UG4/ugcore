@@ -129,6 +129,9 @@ class DataEvaluator
 	///	extracts imports and userdata from IElemDiscs
 		void extract_imports_and_userdata(bool bMassPart = false);
 
+	///	clears all requested positions in user data
+		void clear_positions_in_user_data();
+
 	protected:
 	///	current elem discs
 		const std::vector<IElemDisc*>* m_pvElemDisc;
@@ -157,8 +160,6 @@ class DataEvaluator
 	////////////////////////////////
 	// 	Data Import
 	////////////////////////////////
-	///	all data imports of elem discs
-		std::vector<IDataImport*> m_vAllDataImport;
 	///	data imports which are connected to non-zero derivative user data in mass part
 		std::vector<IDataImport*> m_vMassDataImport;
 	///	data imports which are connected to non-zero derivative user data in stiffness part
@@ -183,16 +184,8 @@ class DataEvaluator
 		std::vector<SmartPtr<IUserData> > m_vPosData;
 
 	///	dependent data
-		std::vector<SmartPtr<IUserData> > m_vDependentUserData;
+		std::vector<SmartPtr<IUserData> > m_vDependentData;
 		std::vector<FunctionIndexMapping> m_vDependentMap;
-
-	///	exports
-		std::vector<SmartPtr<IUserData > > m_vDataExport;
-		std::vector<FunctionIndexMapping> m_vExpMap;
-
-	///	data linker
-		std::vector<SmartPtr<IUserData> > m_vDataLinker;
-		std::vector<FunctionIndexMapping> m_vLinkerMap;
 };
 
 } // end namespace ug

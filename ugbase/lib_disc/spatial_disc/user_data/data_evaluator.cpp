@@ -112,25 +112,19 @@ void
 DataEvaluator::
 clear_extracted_data_and_mappings()
 {
-	m_vAllDataImport.clear();
 	m_vMassDataImport.clear();
-	m_vStiffDataImport.clear();
 	m_vMassImpMap.clear();
-	m_vStiffImpMap.clear();
 	m_vMassImpConnMap.clear();
+
+	m_vStiffDataImport.clear();
+	m_vStiffImpMap.clear();
 	m_vStiffImpConnMap.clear();
 
 	m_vConstData.clear();
 	m_vPosData.clear();
 
-	m_vDependentUserData.clear();
+	m_vDependentData.clear();
 	m_vDependentMap.clear();
-
-	m_vDataExport.clear();
-	m_vExpMap.clear();
-
-	m_vLinkerMap.clear();
-	m_vDataLinker.clear();
 }
 
 void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEvalData,
@@ -276,17 +270,9 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 			continue;
 		}
 
-	//	cast to dependent data
-		SmartPtr<IUserData> dependData = ipData;
-
-	//	check success
-		if(!dependData.valid())
-			UG_THROW("DataEvaluator::extract_imports_and_userdata:"
-					" Data seems dependent, but cast failed.");
-
 	//	update function group of dependent data
 		try{
-			dependData->update_function_group();
+			ipData->update_function_group();
 		}
 		UG_CATCH_THROW("DataEvaluator::extract_imports_and_userdata:"
 				     	" Cannot update FunctinoGroup of IDependentData.");
@@ -295,7 +281,7 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 		FunctionIndexMapping map;
 		try{
 			CreateFunctionIndexMapping(map,
-		                               dependData->function_group(),
+		                               ipData->function_group(),
 									   m_commonFctGroup);
 		}UG_CATCH_THROW("'DataEvaluator::extract_imports_and_userdata':"
 						"Cannot create Function Index Mapping for IDependData.");
@@ -304,21 +290,8 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 	//	evaluation at the correct queue
 
 	//	save as dependent data
-		m_vDependentUserData.push_back(dependData);
+		m_vDependentData.push_back(ipData);
 		m_vDependentMap.push_back(map);
-
-	//	Data Export case
-	//	schedule for evaluation of IDataExports
-		m_vDataExport.push_back(ipData);
-
-	// 	remember function map
-		m_vExpMap.push_back(map);
-
-	//	schedule for evaluation of linker
-		m_vDataLinker.push_back(dependData);
-
-	// 	remember function map
-		m_vLinkerMap.push_back(map);
 	}
 
 //	In a second loop over the data imports, we schedule the DataImports for
@@ -339,9 +312,6 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 		//	get import
 			IDataImport* iimp = &((*m_pvElemDisc)[d]->get_import(i));
 
-		//	remember it
-			m_vAllDataImport.push_back(iimp);
-
 		//	skip, if in mass part but no mass part wanted
 			if(!bMassPart && iimp->in_mass_part()) continue;
 
@@ -353,11 +323,6 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 
 		//	get and cast dependent data
 			SmartPtr<IUserData> dependData = iimp->data();
-
-		//	check success
-			if(!dependData.valid())
-				UG_THROW("DataEvaluator::extract_imports_and_userdata:"
-						" Data seems dependent, but cast failed.");
 
 		//	create FuncMap for data
 		//	this is ok, since the function group has been updated in the
@@ -434,8 +399,8 @@ void DataEvaluator::set_time(const number time)
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
 		m_vPosData[i]->set_time(time);
 
-	for(size_t i = 0; i < m_vDependentUserData.size(); ++i)
-		m_vDependentUserData[i]->set_time(time);
+	for(size_t i = 0; i < m_vDependentData.size(); ++i)
+		m_vDependentData[i]->set_time(time);
 }
 
 void DataEvaluator::set_subset(const int subset)
@@ -445,8 +410,8 @@ void DataEvaluator::set_subset(const int subset)
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
 		m_vPosData[i]->set_subset(subset);
 
-	for(size_t i = 0; i < m_vDependentUserData.size(); ++i)
-		m_vDependentUserData[i]->set_subset(subset);
+	for(size_t i = 0; i < m_vDependentData.size(); ++i)
+		m_vDependentData[i]->set_subset(subset);
 }
 
 
@@ -489,14 +454,14 @@ void DataEvaluator::compute_elem_data(LocalVector& u, GeometricObject* elem, boo
 //	so compute it, else compute the linker
 
 //	loop all dependent data
-	for(size_t i = 0; i < m_vDependentUserData.size(); ++i)
+	for(size_t i = 0; i < m_vDependentData.size(); ++i)
 	{
 	//	access needed components
 		u.access_by_map(m_vDependentMap[i]);
 
 	//	compute the data
 		try{
-			m_vDependentUserData[i]->compute(&u, elem, bDeriv);
+			m_vDependentData[i]->compute(&u, elem, bDeriv);
 		}
 		UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
 						"Cannot compute data for Export " << i);
@@ -618,12 +583,20 @@ void DataEvaluator::finish_elem_loop()
 						"Cannot finish element loop for IElemDisc "<<i);
 	}
 
+	clear_positions_in_user_data();
+}
+
+void DataEvaluator::clear_positions_in_user_data()
+{
 //	remove ip series for all used UserData
 	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear();
 	for(size_t i = 0; i < m_vPosData.size(); ++i)   m_vPosData[i]->clear();
-	for(size_t i = 0; i < m_vDependentUserData.size(); ++i) m_vDependentUserData[i]->clear();
+	for(size_t i = 0; i < m_vDependentData.size(); ++i) m_vDependentData[i]->clear();
 
-	for(size_t i = 0; i < m_vAllDataImport.size(); ++i) m_vAllDataImport[i]->clear_ips();
+//	we remove all ips, since they may have been set in prepare_elem
+	for(size_t d = 0; d < m_pvElemDisc->size(); ++d)
+		for(size_t i = 0; i < (*m_pvElemDisc)[d]->num_imports(); ++i)
+			(*m_pvElemDisc)[d]->get_import(i).clear_ips();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

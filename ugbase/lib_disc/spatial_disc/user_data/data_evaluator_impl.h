@@ -72,6 +72,8 @@ prepare_elem_loop(bool bMassPart)
 						"Cannot set geometric object type for Disc " << i);
 	}
 
+	clear_positions_in_user_data();
+
 // 	prepare loop (elem disc set local ip series here)
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 	{
@@ -113,19 +115,17 @@ prepare_elem_loop(bool bMassPart)
 						" geometric object type "<<id<<" for Import " << i <<
 						" (Mass part).");
 
-//	set geometric type at exports
-	for(size_t i = 0; i < m_vDataExport.size(); ++i){
+	for(size_t i = 0; i < m_vDependentData.size(); ++i){
+	//	set geometric type at exports
 		try{
-			m_vDataExport[i]->set_roid(id);
+			m_vDependentData[i]->set_roid(id);
 		}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 						"Cannot set geometric object type for Export " << i);
-	}
 
-//	check, that all dependent data is ready for evaluation
-	for(size_t i = 0; i < m_vDependentUserData.size(); ++i){
+	//	check, that all dependent data is ready for evaluation
 		try{
-			m_vDependentUserData[i]->check_setup();
+			m_vDependentData[i]->check_setup();
 		}UG_CATCH_THROW("DataEvaluator::prepare_element: Dependent UserData "<<i<<
 		                " (e.g. Linker or Export) is not ready for evaluation.)");
 	}
@@ -172,8 +172,8 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 			for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
 				m_vMassDataImport[i]->set_dof_sizes(ind, m_vMassImpMap[i]);
 
-		for(size_t i = 0; i < m_vDependentUserData.size(); ++i)
-			m_vDependentUserData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
+		for(size_t i = 0; i < m_vDependentData.size(); ++i)
+			m_vDependentData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
 	}
 }
 
