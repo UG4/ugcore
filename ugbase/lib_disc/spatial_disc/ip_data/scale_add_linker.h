@@ -58,7 +58,7 @@ class ScaleAddLinker
 	/// \}
 
 	///	computes the value
-		virtual void compute(bool bDeriv);
+		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false);
 
 		inline void evaluate (TData& value,
 		                      const MathVector<dim>& globIP,

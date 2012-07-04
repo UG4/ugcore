@@ -29,9 +29,6 @@ class DataLinker
 	///	constructor
 		DataLinker() {m_vpIIPData.clear(); m_vpIDependData.clear();}
 
-	///	compute method
-		virtual void compute(bool bDeriv) = 0;
-
 	///	returns if derivative is zero
 		virtual bool zero_derivative() const;
 

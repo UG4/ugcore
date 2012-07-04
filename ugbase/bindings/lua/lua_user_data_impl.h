@@ -878,7 +878,8 @@ evaluate(TData vValue[],
 }
 
 template <typename TData, int dim, typename TDataIn>
-void LuaUserFunction<TData,dim,TDataIn>::compute(bool bDeriv)
+void LuaUserFunction<TData,dim,TDataIn>::
+compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 {
 //	vector of data for all inputs
 	std::vector<TDataIn> vDataIn(this->num_input());

@@ -34,7 +34,9 @@ class StdPositionIPData
 	: 	public IPData<TData,dim,TRet>
 {
 	public:
-		StdPositionIPData() {}
+		////////////////
+		// one value
+		////////////////
 
 		virtual TRet operator() (TData& value,
 								 const MathVector<dim>& globIP,
@@ -42,18 +44,6 @@ class StdPositionIPData
 		{
 			return getImpl().evaluate(value, globIP, time, si);
 		}
-
-		virtual void operator() (TData vValue[],
-								 const MathVector<dim> vGlobIP[],
-								 number time, int si, const size_t nip) const
-		{
-			for(size_t ip = 0; ip < nip; ++ip)
-				getImpl().evaluate(vValue[ip], vGlobIP[ip], time, si);
-		}
-
-		////////////////
-		// one value
-		////////////////
 
 		virtual TRet operator() (TData& value,
 								 const MathVector<dim>& globIP,
@@ -91,6 +81,14 @@ class StdPositionIPData
 		////////////////
 		// vector of values
 		////////////////
+
+		virtual void operator() (TData vValue[],
+								 const MathVector<dim> vGlobIP[],
+								 number time, int si, const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				getImpl().evaluate(vValue[ip], vGlobIP[ip], time, si);
+		}
 
 		virtual void operator()(TData vValue[],
 								const MathVector<dim> vGlobIP[],
@@ -132,7 +130,7 @@ class StdPositionIPData
 		}
 
 	///	implement as a IPData
-		virtual void compute(bool bDeriv = false)
+		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
 		{
 			const number t = this->time();
 			const int si = this->subset();
@@ -199,6 +197,9 @@ class StdDataExport
 	public:
 		StdDataExport() : m_pFctPatt(NULL) {m_SymbFct.clear();}
 
+		////////////////
+		// one value
+		////////////////
 		virtual void operator() (TData& value,
 								 const MathVector<dim>& globIP,
 								 number time, int si) const
@@ -206,18 +207,6 @@ class StdDataExport
 			UG_THROW("StdDataExport: Solution, element and local ips required "
 					"for evaluation, but not passed. Cannot evaluate.");
 		}
-
-		virtual void operator() (TData value[],
-								 const MathVector<dim> globIP[],
-								 number time, int si, const size_t nip) const
-		{
-			UG_THROW("StdDataExport: Solution, element and local ips required "
-					"for evaluation, but not passed. Cannot evaluate.");
-		}
-
-		////////////////
-		// one value
-		////////////////
 
 		virtual void operator() (TData& value,
 								 const MathVector<dim>& globIP,
@@ -258,6 +247,13 @@ class StdDataExport
 		////////////////
 		// vector of values
 		////////////////
+		virtual void operator() (TData value[],
+								 const MathVector<dim> globIP[],
+								 number time, int si, const size_t nip) const
+		{
+			UG_THROW("StdDataExport: Solution, element and local ips required "
+					"for evaluation, but not passed. Cannot evaluate.");
+		}
 
 		virtual void operator()(TData vValue[],
 								const MathVector<dim> vGlobIP[],
@@ -400,26 +396,15 @@ class StdDataLinker
 	: 	public DataLinker<TData,dim>
 {
 	public:
-		StdDataLinker() {}
-
+		////////////////
+		// one value
+		////////////////
 		virtual void operator() (TData& value,
 								 const MathVector<dim>& globIP,
 								 number time, int si) const
 		{
 			getImpl().evaluate(value,globIP,time,si);
 		}
-
-		virtual void operator() (TData vValue[],
-								 const MathVector<dim> vGlobIP[],
-								 number time, int si, const size_t nip) const
-		{
-			for(size_t ip = 0; ip < nip; ++ip)
-				getImpl().evaluate(vValue[ip],vGlobIP[ip],time,si);
-		}
-
-		////////////////
-		// one value
-		////////////////
 
 		virtual void operator() (TData& value,
 								 const MathVector<dim>& globIP,
@@ -457,6 +442,14 @@ class StdDataLinker
 		////////////////
 		// vector of values
 		////////////////
+
+		virtual void operator() (TData vValue[],
+								 const MathVector<dim> vGlobIP[],
+								 number time, int si, const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				getImpl().evaluate(vValue[ip],vGlobIP[ip],time,si);
+		}
 
 		virtual void operator()(TData vValue[],
 								const MathVector<dim> vGlobIP[],

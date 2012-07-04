@@ -488,7 +488,7 @@ void DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 {
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
-		m_vPosData[i]->compute();
+		m_vPosData[i]->compute(&u, NULL, false);
 
 // 	process dependent data:
 //	We can not simply compute exports first, then Linker, because an export
@@ -517,7 +517,7 @@ void DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 		else
 		{
 			try{
-				m_vDependentIPData[i]->compute(bDeriv);
+				m_vDependentIPData[i]->compute(&u, NULL, bDeriv);
 			}
 			UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
 							"Cannot compute data for IPData " << i);

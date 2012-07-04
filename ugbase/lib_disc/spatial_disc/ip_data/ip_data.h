@@ -107,7 +107,9 @@ class IIPData
 		virtual SmartPtr<IIPData> needed_data(size_t i) {return NULL;}
 
 	/// compute values (and derivatives iff compDeriv == true)
-		virtual void compute(bool bDeriv = false) = 0;
+		virtual void compute(LocalVector* u,
+		                     GeometricObject* elem,
+		                     bool bDeriv = false) = 0;
 
 	///	virtual desctructor
 		virtual ~IIPData() {};
@@ -428,12 +430,6 @@ class IDependentIPData : virtual public IIPData
 	///	resize arrays
 		virtual void set_dof_sizes(const LocalIndices& ind,
 		                           const FunctionIndexMapping& map) = 0;
-
-	///	computation of data depending on current solution
-		virtual void compute(bool bDeriv = false)
-		{
-			UG_THROW("IDependentIPData::compute: No implementation found.");
-		}
 
 	///	computation of data depending on current solution
 		virtual void compute_with_sol(const LocalVector& u, bool bDeriv)

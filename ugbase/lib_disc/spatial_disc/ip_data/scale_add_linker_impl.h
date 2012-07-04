@@ -169,7 +169,8 @@ evaluate(TData vValue[],
 }
 
 template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::compute(bool bDeriv)
+void ScaleAddLinker<TData,dim,TDataScale>::
+compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 {
 //	check that size of Scalings and inputs is equal
 	UG_ASSERT(m_vpIPData.size() == m_vpScaleData.size(), "Wrong num Scales.");

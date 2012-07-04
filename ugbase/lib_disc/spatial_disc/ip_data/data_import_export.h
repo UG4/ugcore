@@ -364,7 +364,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		DataExport();
 
 	//	implement compute() method of IIPData: Not available
-		virtual void compute(bool bDeriv = false);
+		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false);
 
 	///	compute export (implements IDependendIPData::compute)
 		virtual void compute_with_sol(const LocalVector& u, bool bDeriv);

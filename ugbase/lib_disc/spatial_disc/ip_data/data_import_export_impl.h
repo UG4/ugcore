@@ -436,7 +436,7 @@ bool DataExport<TData, dim>::is_ready() const
 }
 
 template <typename TData, int dim>
-void DataExport<TData, dim>::compute(bool bDeriv)
+void DataExport<TData, dim>::compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 {
 	UG_THROW("DataExport::compute(): Computation of Export "
 		 	 	   "without current solution called. Cannot evaluate.");

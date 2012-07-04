@@ -32,26 +32,15 @@ class StdConstIPData
 	: 	public IPData<TData,dim,TRet>
 {
 	public:
-		StdConstIPData() {}
-
+		////////////////
+		// one value
+		////////////////
 		virtual TRet operator() (TData& value,
 		                         const MathVector<dim>& globIP,
 		                         number time, int si) const
 		{
 			getImpl().evaluate(value);
 		}
-
-		virtual void operator() (TData vValue[],
-		                         const MathVector<dim> vGlobIP[],
-		                         number time, int si, const size_t nip) const
-		{
-			for(size_t ip = 0; ip < nip; ++ip)
-				getImpl().evaluate(vValue[ip]);
-		}
-
-		////////////////
-		// one value
-		////////////////
 
 		virtual TRet operator() (TData& value,
 		                         const MathVector<dim>& globIP,
@@ -89,6 +78,13 @@ class StdConstIPData
 		////////////////
 		// vector of values
 		////////////////
+		virtual void operator() (TData vValue[],
+		                         const MathVector<dim> vGlobIP[],
+		                         number time, int si, const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				getImpl().evaluate(vValue[ip]);
+		}
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
@@ -129,8 +125,12 @@ class StdConstIPData
 				getImpl().evaluate(vValue[ip]);
 		}
 
+		////////////////
+		// compute
+		////////////////
+
 	///	implement as a IPData
-		virtual void compute(bool bDeriv = false)
+		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
 		{
 			for(size_t s = 0; s < this->num_series(); ++s)
 				for(size_t ip = 0; ip < this->num_ip(s); ++ip)

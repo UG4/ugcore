@@ -156,7 +156,7 @@ class DarcyVelocityLinker
 			}
 		}
 
-		virtual void compute(bool bDeriv)
+		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
 		{
 		//	Compute the Darcy velocity at all ips  //
 		/////////////////////////////////////////////

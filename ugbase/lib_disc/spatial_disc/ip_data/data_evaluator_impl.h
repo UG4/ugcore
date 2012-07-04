@@ -127,7 +127,7 @@ prepare_elem_loop(bool bMassPart)
 
 //	evaluate constant data
 	for(size_t i = 0; i < m_vConstData.size(); ++i)
-		m_vConstData[i]->compute();
+		m_vConstData[i]->compute(NULL, NULL, false);
 }
 
 

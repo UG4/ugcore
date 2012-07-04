@@ -25,25 +25,15 @@ class StdGridFunctionData
 	: 	public IPData<TData,dim>
 {
 	public:
-		StdGridFunctionData() {}
-
+		////////////////
+		// one value
+		////////////////
 		virtual void operator() (TData& value,
 		                         const MathVector<dim>& globIP,
 		                         number time, int si) const
 		{
 			UG_THROW("StdGridFunctionData: Need element.");
 		}
-
-		virtual void operator() (TData vValue[],
-		                         const MathVector<dim> vGlobIP[],
-		                         number time, int si, const size_t nip) const
-		{
-			UG_THROW("StdGridFunctionData: Need element.");
-		}
-
-		////////////////
-		// one value
-		////////////////
 
 		virtual void operator() (TData& value,
 		                         const MathVector<dim>& globIP,
@@ -81,6 +71,14 @@ class StdGridFunctionData
 		////////////////
 		// vector of values
 		////////////////
+
+		virtual void operator() (TData vValue[],
+		                         const MathVector<dim> vGlobIP[],
+		                         number time, int si, const size_t nip) const
+		{
+			UG_THROW("StdGridFunctionData: Need element.");
+		}
+
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
@@ -124,7 +122,10 @@ class StdGridFunctionData
 			                               vCornerCoords,vLocIP,nip, vJT);
 		}
 
-		virtual void compute(bool bDeriv) {UG_THROW("Not implemented.");}
+		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
+		{
+			UG_THROW("Not implemented.");
+		}
 
 	protected:
 	///	access to implementation
