@@ -134,7 +134,7 @@ class DataEvaluator
 
 	protected:
 	///	current elem discs
-		const std::vector<IElemDisc*>* m_pvElemDisc;
+		std::vector<IElemDisc*> m_vElemDisc;
 
 	///	common function group (all function of function pattern)
 		FunctionGroup m_commonFctGroup;

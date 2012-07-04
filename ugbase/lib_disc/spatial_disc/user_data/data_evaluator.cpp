@@ -19,27 +19,27 @@ namespace ug{
 void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
                                    const FunctionPattern& fctPat)
 {
-//	remember current elem discs
-	m_pvElemDisc = &vElemDisc;
+//	copy elem discs
+	m_vElemDisc = vElemDisc;
 
 //	set function pattern to common function group
 	m_commonFctGroup.set_function_pattern(fctPat);
 	m_commonFctGroup.add_all();
 
 //	create FunctionIndexMapping for each Disc
-	m_vElemDiscMap.resize(m_pvElemDisc->size());
-	m_vElemDiscFctGrp.resize(m_pvElemDisc->size());
-	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
+	m_vElemDiscMap.resize(m_vElemDisc.size());
+	m_vElemDiscFctGrp.resize(m_vElemDisc.size());
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
 	//	currently only fast assembles allowed
-		if(!(*m_pvElemDisc)[i]->fast_ass_elem_enabled())
+		if(!m_vElemDisc[i]->fast_ass_elem_enabled())
 			UG_THROW("DataEvaluator: currently only fast assemble allowed."
 							" Please use enable_fast_ass_elem in all IElemDisc.");
 
 	//	create function group of this elem disc
 		try{
 			ConvertStringToFunctionGroup(m_vElemDiscFctGrp[i], fctPat,
-		                                 (*m_pvElemDisc)[i]->symb_fcts());
+		                                 m_vElemDisc[i]->symb_fcts());
 		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
 					"some symbolic Function Name for disc "<<i<<".");
 
@@ -47,7 +47,7 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		SubsetGroup discSubsetGrp;
 		try{
 			ConvertStringToSubsetGroup(discSubsetGrp, fctPat.subset_handler(),
-		                                 (*m_pvElemDisc)[i]->symb_subsets());
+		                                 m_vElemDisc[i]->symb_subsets());
 		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
 						"some symbolic Subset Name for disc "<<i<<".");
 
@@ -57,24 +57,24 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 			{
 				if(!fctPat.is_def_in_subset(m_vElemDiscFctGrp[i][fct], discSubsetGrp[si])){
 					UG_LOG("WARNING in 'DataEvaluator::set_elem_discs': On disc "<<i<<
-					       ": symbolic Function "<< (*m_pvElemDisc)[i]->symb_fcts()[fct]
-                     << " is not defined on subset "<<(*m_pvElemDisc)[i]->symb_subsets()[si]
+					       ": symbolic Function "<< m_vElemDisc[i]->symb_fcts()[fct]
+                     << " is not defined on subset "<<m_vElemDisc[i]->symb_subsets()[si]
                      << ". This may be senseful only in particular cases.\n");
 				}
 			}
 		}
 
-		if(m_vElemDiscFctGrp[i].num_fct() != (*m_pvElemDisc)[i]->num_fct())
+		if(m_vElemDiscFctGrp[i].num_fct() != m_vElemDisc[i]->num_fct())
 		{
 			std::stringstream ss;
 			ss << "DataEvaluator::set_elem_discs: Elem Disc "<<i<<
-					" requires "<<(*m_pvElemDisc)[i]->num_fct()<<" symbolic "
+					" requires "<<m_vElemDisc[i]->num_fct()<<" symbolic "
 					"Function Name, but "<<m_vElemDiscFctGrp[i].num_fct()<<" Functions "
 					" specified: ";
-			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
+			for(size_t f=0; f < m_vElemDisc[i]->symb_fcts().size(); ++f)
 			{
 				if(f > 0) ss << ", ";
-				ss << (*m_pvElemDisc)[i]->symb_fcts()[f];
+				ss << m_vElemDisc[i]->symb_fcts()[f];
 			}
 			UG_THROW(ss.str());
 		}
@@ -83,14 +83,14 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 		std::vector<LFEID> vLfeID(m_vElemDiscFctGrp[i].num_fct());
 		for(size_t f = 0; f < vLfeID.size(); ++f)
 			vLfeID[f] = m_vElemDiscFctGrp[i].local_finite_element_id(f);
-		if(!((*m_pvElemDisc)[i]->request_finite_element_id(vLfeID)))
+		if(!(m_vElemDisc[i]->request_finite_element_id(vLfeID)))
 		{
 			std::stringstream ss;
 			ss << "DataEvaluator::set_elem_discs: Elem Disc "<<i<<
 				" can not assemble the specified local finite element space set:";
-			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
+			for(size_t f=0; f < m_vElemDisc[i]->symb_fcts().size(); ++f)
 			{
-				ss << "  Fct "<<f<<": '"<<(*m_pvElemDisc)[i]->symb_fcts()[f];
+				ss << "  Fct "<<f<<": '"<<m_vElemDisc[i]->symb_fcts()[f];
 				ss << "' using "<< vLfeID[f];
 			}
 			UG_THROW(ss.str());
@@ -106,7 +106,7 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 	}
 
 //	reset local time series flag
-	const size_t numElemDisc = (*m_pvElemDisc).size();
+	const size_t numElemDisc = m_vElemDisc.size();
 	m_vbNeedLocTimeSeries.clear();
 	m_vbNeedLocTimeSeries.resize(numElemDisc, false);
 }
@@ -176,11 +176,6 @@ void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEv
 
 void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 {
-//	check that elem disc given
-	if(m_pvElemDisc == NULL)
-		UG_THROW("DataEvaluator::extract_imports_and_userdata: No vector"
-				" of IElemDisc* set. Cannot extract imports and exports.");
-
 //	clear imports and userdata
 	clear_extracted_data_and_mappings();
 
@@ -198,13 +193,13 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 //	process). Of coarse, no circle dependency between UserData is allowed.
 
 //	loop elem discs
-	for(size_t d = 0; d < m_pvElemDisc->size(); ++d)
+	for(size_t d = 0; d < m_vElemDisc.size(); ++d)
 	{
 	//	loop imports
-		for(size_t i = 0; i < (*m_pvElemDisc)[d]->num_imports(); ++i)
+		for(size_t i = 0; i < m_vElemDisc[d]->num_imports(); ++i)
 		{
 		//	get import
-			IDataImport* iimp = &((*m_pvElemDisc)[d]->get_import(i));
+			IDataImport* iimp = &(m_vElemDisc[d]->get_import(i));
 
 		//	skip, if in mass part but no mass part wanted
 			if(!bMassPart && iimp->in_mass_part()) continue;
@@ -307,13 +302,13 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 //	from and only from the primary variables of its associated IElemDisc.
 
 //	loop elem discs
-	for(size_t d = 0; d < m_pvElemDisc->size(); ++d)
+	for(size_t d = 0; d < m_vElemDisc.size(); ++d)
 	{
 	//	loop imports
-		for(size_t i = 0; i < (*m_pvElemDisc)[d]->num_imports(); ++i)
+		for(size_t i = 0; i < m_vElemDisc[d]->num_imports(); ++i)
 		{
 		//	get import
-			IDataImport* iimp = &((*m_pvElemDisc)[d]->get_import(i));
+			IDataImport* iimp = &(m_vElemDisc[d]->get_import(i));
 
 		//	skip, if in mass part but no mass part wanted
 			if(!bMassPart && iimp->in_mass_part()) continue;
@@ -371,20 +366,20 @@ void DataEvaluator::set_time_dependent(bool bTimeDep,
 {
 //	reset to false
 	m_bNeedLocTimeSeries = false;
-	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 		m_vbNeedLocTimeSeries[i] = false;
 
 //	check if time dependent
 	if(bTimeDep)
 	{
-		for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 		{
 		//	checks if local time series is needed.
-			m_vbNeedLocTimeSeries[i] = (*m_pvElemDisc)[i]->requests_local_time_series();
+			m_vbNeedLocTimeSeries[i] = m_vElemDisc[i]->requests_local_time_series();
 			m_bNeedLocTimeSeries |= m_vbNeedLocTimeSeries[i];
 
 		//	sets time dependent flag
-			(*m_pvElemDisc)[i]->set_time_dependent(bTimeDep, locTimeSeries);
+			m_vElemDisc[i]->set_time_dependent(bTimeDep, locTimeSeries);
 		}
 		m_pLocTimeSeries = locTimeSeries;
 	}
@@ -394,8 +389,8 @@ void DataEvaluator::set_time(const number time)
 {
 	// TODO: Remove explicit time in IElemDiscs. Discs can use
 	//		requests_local_time_series anyway if time is needed explicitly
-	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
-		(*m_pvElemDisc)[i]->set_time(time);
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+		m_vElemDisc[i]->set_time(time);
 
 	// NOTE: constant data is not processed.
 
@@ -420,10 +415,10 @@ void DataEvaluator::set_subset(const int subset)
 
 void DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 {
-	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
 	//  let disc use non-regular grid assemblings
-		if(!(*m_pvElemDisc)[i]->request_non_regular_grid(bNonRegularGrid))
+		if(!m_vElemDisc[i]->request_non_regular_grid(bNonRegularGrid))
 		{
 			UG_THROW("DataEvaluator::set_non_regular_grid: "
 						" Elem Disc " << i << " does not support non-regular"
@@ -434,8 +429,8 @@ void DataEvaluator::set_non_regular_grid(bool bNonRegularGrid)
 //	check if hanging dofs are really used
 	m_bUseHanging = false;
 	if(bNonRegularGrid)
-		for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
-			m_bUseHanging |= (*m_pvElemDisc)[i]->use_hanging();
+		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+			m_bUseHanging |= m_vElemDisc[i]->use_hanging();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -473,7 +468,7 @@ void DataEvaluator::compute_elem_data(LocalVector& u, GeometricObject* elem, boo
 
 void DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem)
 {
-	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
 	//	access disc functions
 		u.access_by_map(map(i));
@@ -485,7 +480,7 @@ void DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject*
 
 	//	assemble JA
 		try{
-			(*m_pvElemDisc)[i]->fast_ass_JA_elem(A, u);
+			m_vElemDisc[i]->fast_ass_JA_elem(A, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_JA_elem: "
 						"Cannot assemble Jacobian (A) for IElemDisc "<<i);
@@ -494,7 +489,7 @@ void DataEvaluator::ass_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject*
 
 void DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem)
 {
-	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
 	//	access disc functions
 		u.access_by_map(map(i));
@@ -506,7 +501,7 @@ void DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject*
 
 	//	assemble JM
 		try{
-			(*m_pvElemDisc)[i]->fast_ass_JM_elem(M, u);
+			m_vElemDisc[i]->fast_ass_JM_elem(M, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_JM_elem: "
 						"Cannot assemble Jacobian (M) for IElemDisc "<<i);
@@ -515,7 +510,7 @@ void DataEvaluator::ass_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject*
 
 void DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem)
 {
-	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
 	//	access disc functions
 		u.access_by_map(map(i));
@@ -527,7 +522,7 @@ void DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u, GeometricObject*
 
 	//	assemble dA
 		try{
-			(*m_pvElemDisc)[i]->fast_ass_dA_elem(d, u);
+			m_vElemDisc[i]->fast_ass_dA_elem(d, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_dA_elem: "
 						"Cannot assemble Defect (A) for IElemDisc "<<i);
@@ -536,7 +531,7 @@ void DataEvaluator::ass_dA_elem(LocalVector& d, LocalVector& u, GeometricObject*
 
 void DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem)
 {
-	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
 	//	access disc functions
 		u.access_by_map(map(i));
@@ -548,7 +543,7 @@ void DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u, GeometricObject*
 
 	//	assemble dM
 		try{
-			(*m_pvElemDisc)[i]->fast_ass_dM_elem(d, u);
+			m_vElemDisc[i]->fast_ass_dM_elem(d, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_dM_elem: "
 						"Cannot assemble Defect (M) for IElemDisc "<<i);
@@ -557,7 +552,7 @@ void DataEvaluator::ass_dM_elem(LocalVector& d, LocalVector& u, GeometricObject*
 
 void DataEvaluator::ass_rhs_elem(LocalVector& rhs, GeometricObject* elem)
 {
-	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
 	//	access disc functions
 		rhs.access_by_map(map(i));
@@ -568,7 +563,7 @@ void DataEvaluator::ass_rhs_elem(LocalVector& rhs, GeometricObject* elem)
 
 	//	assemble rhs
 		try{
-			(*m_pvElemDisc)[i]->fast_ass_rhs_elem(rhs);
+			m_vElemDisc[i]->fast_ass_rhs_elem(rhs);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_rhs_elem: "
 						"Cannot assemble rhs for IElemDisc "<<i);
@@ -577,10 +572,10 @@ void DataEvaluator::ass_rhs_elem(LocalVector& rhs, GeometricObject* elem)
 
 void DataEvaluator::finish_elem_loop()
 {
-	for(size_t i = 0; i < (*m_pvElemDisc).size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
 		try{
-			(*m_pvElemDisc)[i]->fast_finish_elem_loop();
+			m_vElemDisc[i]->fast_finish_elem_loop();
 		}
 		UG_CATCH_THROW("DataEvaluator::finish_element_loop: "
 						"Cannot finish element loop for IElemDisc "<<i);
@@ -597,9 +592,9 @@ void DataEvaluator::clear_positions_in_user_data()
 	for(size_t i = 0; i < m_vDependentData.size(); ++i) m_vDependentData[i]->clear();
 
 //	we remove all ips, since they may have been set in prepare_elem
-	for(size_t d = 0; d < m_pvElemDisc->size(); ++d)
-		for(size_t i = 0; i < (*m_pvElemDisc)[d]->num_imports(); ++i)
-			(*m_pvElemDisc)[d]->get_import(i).clear_ips();
+	for(size_t d = 0; d < m_vElemDisc.size(); ++d)
+		for(size_t i = 0; i < m_vElemDisc[d]->num_imports(); ++i)
+			m_vElemDisc[d]->get_import(i).clear_ips();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
