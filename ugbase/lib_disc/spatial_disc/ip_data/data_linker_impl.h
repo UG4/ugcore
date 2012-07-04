@@ -21,17 +21,8 @@ template <typename TData, int dim>
 bool DataLinker<TData,dim>::zero_derivative() const
 {
 	bool bRet = true;
-
-//	loop inputs
 	for(size_t i = 0; i < m_vpIIPData.size(); ++i)
-	{
-	//	skip unset data ( null as default )
-		if(!m_vpIIPData[i].valid()) continue;
-
-	//	flag iff ipdata is dependent
-		bRet = bRet && m_vpIIPData[i]->zero_derivative();
-	}
-
+		bRet &= m_vpIIPData[i]->zero_derivative();
 	return bRet;
 }
 
@@ -107,19 +98,19 @@ local_ip_series_added(const size_t newNumSeries)
 				case 1:
 					m_vvSeriesID[i][s] =
 							m_vpIIPData[i]->template register_local_ip_series<1>
-									(this->template local_ips<1>(s), num_ip(s),
+									(this->template local_ips<1>(s), this->num_ip(s),
 									 this->m_vMayChange[s]);
 					break;
 				case 2:
 					m_vvSeriesID[i][s] =
 							m_vpIIPData[i]->template register_local_ip_series<2>
-									(this->template local_ips<2>(s), num_ip(s),
+									(this->template local_ips<2>(s), this->num_ip(s),
 									 this->m_vMayChange[s]);
 					break;
 				case 3:
 					m_vvSeriesID[i][s] =
 							m_vpIIPData[i]->template register_local_ip_series<3>
-									(this->template local_ips<3>(s), num_ip(s),
+									(this->template local_ips<3>(s), this->num_ip(s),
 									 this->m_vMayChange[s]);
 					break;
 				default: UG_THROW("Dimension not supported.");
@@ -148,13 +139,13 @@ local_ips_changed(const size_t seriesID, const size_t newNumIP)
 			switch(this->dim_local_ips())
 			{
 				case 1: m_vpIIPData[i]->template set_local_ips<1>
-						(m_vvSeriesID[i][s], this->template local_ips<1>(s), num_ip(s));
+						(m_vvSeriesID[i][s], this->template local_ips<1>(s), this->num_ip(s));
 					break;
 				case 2: m_vpIIPData[i]->template set_local_ips<2>
-						(m_vvSeriesID[i][s], this->template local_ips<2>(s), num_ip(s));
+						(m_vvSeriesID[i][s], this->template local_ips<2>(s), this->num_ip(s));
 					break;
 				case 3: m_vpIIPData[i]->template set_local_ips<3>
-						(m_vvSeriesID[i][s], this->template local_ips<3>(s), num_ip(s));
+						(m_vvSeriesID[i][s], this->template local_ips<3>(s), this->num_ip(s));
 					break;
 				default: UG_THROW("Dimension not supported.");
 			}
@@ -179,193 +170,6 @@ global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP)
 		m_vpIIPData[i]->set_global_ips(m_vvSeriesID[i][s], vPos, numIP);
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//	DataLinkerEqualData
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename TData, int dim, typename TDataIn>
-void DataLinkerEqualData<TData,dim,TDataIn>::set_num_input(size_t num)
-{
-//	resize arrays
-	m_vpIPData.resize(num, NULL);
-	m_vpDependData.resize(num, NULL);
-
-//	forward size to base class
-	base_type::set_num_input(num);
-}
-
-template <typename TData, int dim, typename TDataIn>
-void DataLinkerEqualData<TData,dim,TDataIn>::
-set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data)
-{
-	UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
-	UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
-
-//	check input number
-	if(i >= num_input())
-		UG_THROW("DataLinker::set_input: Only " << num_input()
-		               	<< " inputs can be set. Use 'set_num_input' to increase"
-		               	" the number of needed inputs.");
-
-//	remember ipdata
-	m_vpIPData[i] = data;
-
-//	cast to dependent data
-	m_vpDependData[i] = data.template cast_dynamic<DependentIPData<TDataIn, dim> >();
-
-//	forward to base class
-	base_type::set_input(i, data);
-}
-
-template <typename TData, int dim, typename TDataIn>
-void DataLinkerEqualData<TData,dim,TDataIn>::
-set_input(size_t i, number val)
-{
-	set_input(i, CreateConstUserData<dim>(val, TDataIn()));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//	ScaleAddLinker
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::
-add(SmartPtr<IPData<TDataScale, dim> > scale, SmartPtr<IPData<TData, dim> > data)
-{
-//	current number of inputs
-	const size_t numInput = base_type::num_input() / 2;
-
-//	resize scaling
-	resize_scaling(numInput+1);
-
-//	remember ipdata
-	m_vpIPData[numInput] = data;
-	UG_ASSERT(m_vpIPData[numInput].valid(), "Null Pointer as Input set.");
-	m_vpDependData[numInput] = data. template cast_dynamic<DependentIPData<TData, dim> >();
-
-//	remember ipdata
-	m_vpScaleData[numInput] = scale;
-	UG_ASSERT(m_vpScaleData[numInput].valid(), "Null Pointer as Scale set.");
-	m_vpScaleDependData[numInput]
-	              = scale.template cast_dynamic<DependentIPData<TDataScale, dim> >();
-
-//	increase number of inputs by one
-	base_type::set_num_input(2*numInput+2);
-
-//	add this input
-	base_type::set_input(2*numInput, data);
-	base_type::set_input(2*numInput+1, scale);
-}
-
-template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::
-add(number scale, SmartPtr<IPData<TData, dim> > data)
-{
-	add(CreateConstUserData<dim>(scale, TDataScale()), data);
-}
-
-template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::
-add(SmartPtr<IPData<TDataScale, dim> > scale, number data)
-{
-	add(scale, CreateConstUserData<dim>(data, TData()));
-}
-
-template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::
-add(number scale, number data)
-{
-	add(CreateConstUserData<dim>(scale, TDataScale()),
-	    CreateConstUserData<dim>(data, TData()));
-}
-
-template <typename TData, int dim, typename TDataScale>
-void ScaleAddLinker<TData,dim,TDataScale>::compute(bool bDeriv)
-{
-//	check that size of Scalings and inputs is equal
-	UG_ASSERT(m_vpIPData.size() == m_vpScaleData.size(), "Wrong num Scales.");
-
-//	compute value
-	for(size_t s = 0; s < num_series(); ++s)
-		for(size_t ip = 0; ip < num_ip(s); ++ip)
-		{
-		//	reset value
-			value(s,ip) = 0.0;
-
-		//	add contribution of each summand
-			for(size_t c = 0; c < m_vpIPData.size(); ++c)
-			{
-				linker_traits<TData, TDataScale>::
-				mult_add(value(s, ip),
-				         input_value(c, s, ip),
-				         scale_value(c, s, ip));
-			}
-		}
-
-//	check if derivative is required
-	if(!bDeriv || this->zero_derivative()) return;
-
-//	check sizes
-	UG_ASSERT(m_vpDependData.size() == m_vpScaleDependData.size(),
-	          	  	  	  	  	  	  	  	  	  "Wrong num Scales.");
-
-//	clear all derivative values
-	this->clear_derivative_values();
-
-//	loop all inputs
-	for(size_t c = 0; c < m_vpIPData.size(); ++c)
-	{
-	//	check if input has derivative
-		if(!m_vpIPData[c]->zero_derivative())
-		{
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
-				{
-				//	loop functions
-					for(size_t fct = 0; fct < input_num_fct(c); ++fct)
-					{
-					//	get common fct id for this function
-						const size_t commonFct = input_common_fct(c, fct);
-
-					//	loop dofs
-						for(size_t sh = 0; sh < num_sh(fct); ++sh)
-						{
-							linker_traits<TData, TDataScale>::
-							mult_add(deriv(s, ip, commonFct, sh),
-							         input_deriv(c, s, ip, fct, sh),
-							         scale_value(c, s, ip));
-						}
-					}
-				}
-		}
-
-	//	check if scaling has derivative
-		if(!m_vpScaleData[c]->zero_derivative())
-		{
-			for(size_t s = 0; s < num_series(); ++s)
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
-				{
-				//	loop functions
-					for(size_t fct = 0; fct < scale_num_fct(c); ++fct)
-					{
-					//	get common fct id for this function
-						const size_t commonFct = scale_common_fct(c, fct);
-
-					//	loop dofs
-						for(size_t sh = 0; sh < num_sh(fct); ++sh)
-						{
-							linker_traits<TData, TDataScale>::
-							mult_add(deriv(s, ip, commonFct, sh),
-									 input_value(c, s, ip),
-									 scale_deriv(c, s, ip, fct, sh));
-						}
-					}
-				}
-		}
-	}
-}
-
 
 } // end namespace ug
 

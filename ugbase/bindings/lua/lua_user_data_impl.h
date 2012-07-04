@@ -9,6 +9,7 @@
 #define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA_IMPL_
 
 #include "lua_user_data.h"
+#include "lib_disc/spatial_disc/ip_data/scale_add_linker.h"
 
 namespace ug{
 
@@ -734,7 +735,7 @@ template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::compute(bool bDeriv)
 {
 //	vector of data for all inputs
-	std::vector<TDataIn> vDataIn(num_input());
+	std::vector<TDataIn> vDataIn(this->num_input());
 
 	for(size_t s = 0; s < num_series(); ++s)
 		for(size_t ip = 0; ip < num_ip(s); ++ip)
@@ -773,10 +774,10 @@ void LuaUserFunction<TData,dim,TDataIn>::compute(bool bDeriv)
 				eval_deriv(derivVal, vDataIn, c);
 
 			//	loop functions
-				for(size_t fct = 0; fct < input_num_fct(c); ++fct)
+				for(size_t fct = 0; fct < this->input_num_fct(c); ++fct)
 				{
 				//	get common fct id for this function
-					const size_t commonFct = input_common_fct(c, fct);
+					const size_t commonFct = this->input_common_fct(c, fct);
 
 				//	loop dofs
 					for(size_t dof = 0; dof < num_sh(fct); ++dof)
@@ -877,7 +878,7 @@ evaluate (TData& value,
           number time, int si) const
 {
 //	vector of data for all inputs
-	std::vector<TDataIn> vDataIn(num_input());
+	std::vector<TDataIn> vDataIn(this->num_input());
 
 //	gather all input data for this ip
 	for(size_t c = 0; c < vDataIn.size(); ++c)
@@ -899,7 +900,7 @@ evaluate (TData& value,
           const MathVector<refDim>& locIP) const
 {
 //	vector of data for all inputs
-	std::vector<TDataIn> vDataIn(num_input());
+	std::vector<TDataIn> vDataIn(this->num_input());
 
 //	gather all input data for this ip
 	for(size_t c = 0; c < vDataIn.size(); ++c)
@@ -924,7 +925,7 @@ evaluate(TData vValue[],
          const MathMatrix<refDim, dim>* vJT) const
 {
 //	vector of data for all inputs
-	std::vector<TDataIn> vDataIn(num_input());
+	std::vector<TDataIn> vDataIn(this->num_input());
 
 //	gather all input data for this ip
 	for(size_t ip = 0; ip < nip; ++ip)

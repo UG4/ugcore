@@ -178,11 +178,11 @@ class LuaUserDataFactory
  */
 template <typename TData, int dim, typename TDataIn>
 class LuaUserFunction
-	: public StdDataLinkerEqualData<TData, dim, TDataIn, LuaUserFunction<TData, dim, TDataIn> >
+	: public StdDataLinker<TData, dim, LuaUserFunction<TData, dim, TDataIn> >
 {
 	public:
 	//	type of base class
-		typedef DataLinkerEqualData<TData, dim, TDataIn> base_type;
+		typedef DataLinker<TData, dim> base_type;
 
 	//	explicitly forward methods of IIPData
 		using base_type::num_series;
@@ -200,14 +200,6 @@ class LuaUserFunction
 		using base_type::num_sh;
 		using base_type::deriv;
 
-	//	explicitly forward methods of Data Linker
-		using base_type::set_num_input;
-		using base_type::num_input;
-		using base_type::input_value;
-		using base_type::input_deriv;
-		using base_type::input_num_fct;
-		using base_type::input_common_fct;
-
 	public:
 	///	constructor
 		LuaUserFunction(const char* luaCallback, size_t numArgs);
@@ -217,6 +209,44 @@ class LuaUserFunction
 
 	///	sets the Lua function used to compute the derivative
 		void set_deriv(size_t arg, const char* luaCallback);
+
+	///	set number of needed inputs
+		void set_num_input(size_t num)
+		{
+		//	resize arrays
+			m_vpIPData.resize(num, NULL);
+			m_vpDependData.resize(num, NULL);
+
+		//	forward size to base class
+			base_type::set_num_input(num);
+		}
+
+	///	set input i
+		void set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data)
+		{
+			UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
+			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
+
+		//	check input number
+			if(i >= this->num_input())
+				UG_THROW("DataLinker::set_input: Only " << this->num_input()
+				               	<< " inputs can be set. Use 'set_num_input' to increase"
+				               	" the number of needed inputs.");
+
+		//	remember ipdata
+			m_vpIPData[i] = data;
+
+		//	cast to dependent data
+			m_vpDependData[i] = data.template cast_dynamic<DependentIPData<TDataIn, dim> >();
+
+		//	forward to base class
+			base_type::set_input(i, data);
+		}
+
+		void set_input(size_t i, number val)
+		{
+			set_input(i, CreateConstUserData<dim>(val, TDataIn()));
+		}
 
 	///	evaluates the data
 		virtual void operator() (TData& out, int numArgs, ...) const;
@@ -278,6 +308,46 @@ class LuaUserFunction
 
 	///	number of arguments to use
 		size_t m_numArgs;
+
+	protected:
+	///	data at ip of input
+		const TDataIn& input_value(size_t i, size_t s, size_t ip) const
+		{
+			UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
+			UG_ASSERT(m_vpIPData[i].valid(), "Input invalid");
+			return m_vpIPData[i]->value(this->series_id(i,s), ip);
+		}
+
+	///	data at ip of input
+		TDataIn& input_value(size_t i, size_t s, size_t ip)
+		{
+			UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
+			UG_ASSERT(m_vpIPData[i].valid(), "Input invalid");
+			return m_vpIPData[i]->value(this->series_id(i,s), ip);
+		}
+
+	///	derivative of data at input at ip
+		const TDataIn& input_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof) const
+		{
+			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
+			UG_ASSERT(m_vpDependData[i].valid(), "Input invalid");
+			return m_vpDependData[i]->deriv(this->series_id(i,s), ip, fct, dof);
+		}
+
+	///	derivative of data at input at ip
+		TDataIn& input_deriv(size_t i, size_t s, size_t ip, size_t fct, size_t dof)
+		{
+			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
+			UG_ASSERT(m_vpDependData[i].valid(), "Input invalid");
+			return m_vpDependData[i]->deriv(this->series_id(i,s), ip, fct, dof);
+		}
+
+	protected:
+	///	data input
+		std::vector<SmartPtr<IPData<TDataIn, dim> > > m_vpIPData;
+
+	///	data input casted to dependend data
+		std::vector<SmartPtr<DependentIPData<TDataIn, dim> > > m_vpDependData;
 };
 
 

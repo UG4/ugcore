@@ -12,6 +12,8 @@
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
 #include "lib_disc/spatial_disc/ip_data/data_linker.h"
 #include "lib_disc/spatial_disc/ip_data/user_function.h"
+#include "lib_disc/spatial_disc/ip_data/scale_add_linker.h"
+#include "lib_disc/spatial_disc/ip_data/std_ip_data.h"
 
 using namespace std;
 
@@ -526,17 +528,6 @@ void RegisterUserDataType(Registry& reg, string grp)
 		string name = string("DataLinker").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase >(name, grp);
 		reg.add_class_to_group(name, string("DataLinker").append(type), dimTag);
-	}
-
-//	DataLinkerEqual"Type"
-	{
-		typedef DataLinkerEqualData<TData, dim, number> T;
-		typedef DataLinker<TData, dim> TBase;
-		string name = string("DataLinkerEqual").append(type).append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp)
-			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<IPData<number, dim> >)>(&T::set_input))
-			.add_method("set_input", static_cast<void (T::*)(size_t, number)>(&T::set_input));
-		reg.add_class_to_group(name, string("DataLinkerEqual").append(type), dimTag);
 	}
 
 //	ScaleAddLinker"Type"
