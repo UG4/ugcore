@@ -18,8 +18,8 @@
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
-#include "lib_disc/spatial_disc/ip_data/user_data.h"
-#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/user_data/user_data.h"
+#include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include <boost/function.hpp>
 

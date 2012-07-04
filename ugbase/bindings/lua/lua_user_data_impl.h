@@ -9,7 +9,7 @@
 #define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA_IMPL_
 
 #include "lua_user_data.h"
-#include "lib_disc/spatial_disc/ip_data/data_linker_traits.h"
+#include "lib_disc/spatial_disc/user_data/data_linker_traits.h"
 
 namespace ug{
 

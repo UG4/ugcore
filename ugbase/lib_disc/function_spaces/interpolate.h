@@ -13,7 +13,7 @@
 #include "lib_disc/common/subset_group.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include <boost/function.hpp>
-#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"

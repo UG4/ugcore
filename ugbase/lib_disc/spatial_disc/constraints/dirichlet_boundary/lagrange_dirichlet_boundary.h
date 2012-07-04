@@ -12,7 +12,7 @@
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/function_spaces/approximation_space.h"
-#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 
 #include "lib_disc/spatial_disc/constraints/constraint_base.h"

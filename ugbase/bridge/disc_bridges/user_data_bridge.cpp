@@ -9,11 +9,11 @@
 #include "bridge/util.h"
 
 #include "common/common.h"
-#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
-#include "lib_disc/spatial_disc/ip_data/data_linker.h"
-#include "lib_disc/spatial_disc/ip_data/user_function.h"
-#include "lib_disc/spatial_disc/ip_data/scale_add_linker.h"
-#include "lib_disc/spatial_disc/ip_data/std_user_data.h"
+#include "lib_disc/spatial_disc/user_data/const_user_data.h"
+#include "lib_disc/spatial_disc/user_data/data_linker.h"
+#include "lib_disc/spatial_disc/user_data/user_function.h"
+#include "lib_disc/spatial_disc/user_data/scale_add_linker.h"
+#include "lib_disc/spatial_disc/user_data/std_user_data.h"
 
 using namespace std;
 

@@ -9,7 +9,7 @@
 #include "common/util/provider.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
-#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"

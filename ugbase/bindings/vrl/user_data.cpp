@@ -1,7 +1,7 @@
 #include "bridge/bridge.h"
 #include "type_converter.h"
 #include "common/common.h"
-#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "bindings/lua/lua_util.h"
 #include "bindings_vrl.h"
 #include "type_converter.h"
@@ -10,8 +10,8 @@
 #include <sstream>
 #include <boost/function.hpp>
 #include <jni.h>
-#include "lib_disc/spatial_disc/ip_data/user_data.h"
-#include "lib_disc/spatial_disc/ip_data/std_user_data.h"
+#include "lib_disc/spatial_disc/user_data/user_data.h"
+#include "lib_disc/spatial_disc/user_data/std_user_data.h"
 
 namespace ug {
 namespace vrl {

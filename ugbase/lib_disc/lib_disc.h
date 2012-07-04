@@ -88,11 +88,11 @@
 #include "spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
 #include "spatial_disc/elem_disc/neumann_boundary/neumann_boundary.h"
 
-#include "spatial_disc/ip_data/const_user_data.h"
-#include "spatial_disc/ip_data/user_data.h"
-#include "spatial_disc/ip_data/data_export.h"
-#include "spatial_disc/ip_data/data_import.h"
-#include "spatial_disc/ip_data/data_linker.h"
+#include "spatial_disc/user_data/const_user_data.h"
+#include "spatial_disc/user_data/user_data.h"
+#include "spatial_disc/user_data/data_export.h"
+#include "spatial_disc/user_data/data_import.h"
+#include "spatial_disc/user_data/data_linker.h"
 
 #include "spatial_disc/constraints/constraint_interface.h"
 #include "spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.h"

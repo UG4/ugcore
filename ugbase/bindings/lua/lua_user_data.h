@@ -18,10 +18,10 @@ extern "C" {
 
 #include "common/common.h"
 #include "common/math/ugmath.h"
-#include "lib_disc/spatial_disc/ip_data/user_data.h"
-#include "lib_disc/spatial_disc/ip_data/std_user_data.h"
-#include "lib_disc/spatial_disc/ip_data/user_function.h"
-#include "lib_disc/spatial_disc/ip_data/data_linker.h"
+#include "lib_disc/spatial_disc/user_data/user_data.h"
+#include "lib_disc/spatial_disc/user_data/std_user_data.h"
+#include "lib_disc/spatial_disc/user_data/user_function.h"
+#include "lib_disc/spatial_disc/user_data/data_linker.h"
 
 namespace ug
 {

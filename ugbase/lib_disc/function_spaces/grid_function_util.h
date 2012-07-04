@@ -23,7 +23,7 @@
 #include <string>
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "lib_algebra/common/csv_gnuplot_output.h"
-#include "lib_disc/spatial_disc/ip_data/user_data.h"
+#include "lib_disc/spatial_disc/user_data/user_data.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
