@@ -360,8 +360,8 @@ number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInte
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, typename TGridFunction>
-class DirectUserDataIntegrand
-	: public StdIntegrand<TData, TGridFunction::dim, DirectUserDataIntegrand<TData, TGridFunction> >
+class UserDataIntegrand
+	: public StdIntegrand<TData, TGridFunction::dim, UserDataIntegrand<TData, TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
@@ -382,7 +382,7 @@ class DirectUserDataIntegrand
 
 	public:
 	/// constructor
-		DirectUserDataIntegrand(SmartPtr<UserData<TData, worldDim> > spData,
+		UserDataIntegrand(SmartPtr<UserData<TData, worldDim> > spData,
 		                      SmartPtr<TGridFunction> spGridFct,
 		                      number time)
 		: m_spData(spData), m_spGridFct(spGridFct), m_time(time)
@@ -391,7 +391,7 @@ class DirectUserDataIntegrand
 		};
 
 	/// constructor
-		DirectUserDataIntegrand(SmartPtr<UserData<TData, worldDim> > spData,
+		UserDataIntegrand(SmartPtr<UserData<TData, worldDim> > spData,
 							  number time)
 		: m_spData(spData), m_spGridFct(NULL), m_time(time)
 		{
@@ -463,7 +463,7 @@ number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData,
                 int quadOrder)
 {
 	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-		= CreateSmartPtr(new DirectUserDataIntegrand<number, TGridFunction>(spData, spGridFct, time));
+		= CreateSmartPtr(new UserDataIntegrand<number, TGridFunction>(spData, spGridFct, time));
 
 	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder);
 }
@@ -1369,7 +1369,7 @@ number IntegralNormalComponentOnManifold(
 		int quadOrder)
 {
 	SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand
-		= CreateSmartPtr(new DirectUserDataIntegrand<MathVector<TGridFunction::dim>, TGridFunction>(spData, spGridFct, time));
+		= CreateSmartPtr(new UserDataIntegrand<MathVector<TGridFunction::dim>, TGridFunction>(spData, spGridFct, time));
 
 	return IntegralNormalComponentOnManifoldSubsets(spIntegrand, spGridFct, BndSubset, InnerSubset, quadOrder);
 }
