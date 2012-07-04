@@ -88,7 +88,7 @@ void IElemDisc::register_import(IDataImport& Imp)
 	m_vIImport.push_back(&Imp);
 }
 
-void IElemDisc::register_export(SmartPtr<IDataExport> Exp)
+void IElemDisc::register_export(SmartPtr<IUserData> Exp)
 {
 //	check that not already registered
 	for(size_t i = 0; i < m_vIExport.size(); ++i)
@@ -105,7 +105,7 @@ IDataImport& IElemDisc::get_import(size_t i)
 	return *m_vIImport[i];
 }
 
-SmartPtr<IDataExport> IElemDisc::get_export(size_t i)
+SmartPtr<IUserData> IElemDisc::get_export(size_t i)
 {
 	UG_ASSERT(i < num_exports(), "Invalid index");
 	return m_vIExport[i];

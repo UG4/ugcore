@@ -105,22 +105,17 @@ comp(const LocalVector& u, bool bDeriv)
 }
 
 template <typename TData, int dim>
-bool DataExport<TData, dim>::set_roid(ReferenceObjectID id)
+void DataExport<TData, dim>::set_roid(ReferenceObjectID id)
 {
-	if(m_vExportFunc[id] == NULL) {
-		UG_LOG("ERROR in 'DataExport::set_roid': There is no evaluation "
-				"function registered for export and elem type "<<id<<".\n");
-		return false;
-	}
+	if(m_vExportFunc[id] == NULL)
+		UG_THROW("DataExport::set_roid: There is no evaluation "
+				"function registered for export and elem type "<<id);
 
-	if(m_vCompFct[id] == NULL) {
-		UG_LOG("ERROR in 'DataExport::set_roid': There is no evaluation forward"
-				"function registered for export and elem type "<<m_id<<".\n");
-		return false;
-	}
+	if(m_vCompFct[id] == NULL)
+		UG_THROW("DataExport::set_roid: There is no evaluation forward"
+				"function registered for export and elem type "<<m_id);
 
 	m_id = id;
-	return true;
 }
 
 template <typename TData, int dim>

@@ -126,6 +126,9 @@ class IUserData
 	///	number of fuctions this export depends on
 		size_t num_fct() const {return m_fctGrp.num_fct();}
 
+	///	sets the geometric object type
+		virtual void set_roid(ReferenceObjectID id) {};
+
 	///	returns if the dependent data is ready for evaluation
 		virtual void check_setup() const {}
 

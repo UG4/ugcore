@@ -307,27 +307,18 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 		m_vDependentUserData.push_back(dependData);
 		m_vDependentMap.push_back(map);
 
-	//	cast to data export
-		SmartPtr<IDataExport> exp = ipData.cast_dynamic<IDataExport>();
-
 	//	Data Export case
-		if(exp.valid())
-		{
-		//	schedule for evaluation of IDataExports
-			m_vDataExport.push_back(exp);
+	//	schedule for evaluation of IDataExports
+		m_vDataExport.push_back(ipData);
 
-		// 	remember function map
-			m_vExpMap.push_back(map);
-		}
-		else
-	//	Linker case
-		{
-		//	schedule for evaluation of linker
-			m_vDataLinker.push_back(dependData);
+	// 	remember function map
+		m_vExpMap.push_back(map);
 
-		// 	remember function map
-			m_vLinkerMap.push_back(map);
-		}
+	//	schedule for evaluation of linker
+		m_vDataLinker.push_back(dependData);
+
+	// 	remember function map
+		m_vLinkerMap.push_back(map);
 	}
 
 //	In a second loop over the data imports, we schedule the DataImports for

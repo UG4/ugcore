@@ -95,7 +95,7 @@ class IElemDisc
 		void register_import(IDataImport& Imp);
 
 	///	registers a data export
-		void register_export(SmartPtr<IDataExport> Exp);
+		void register_export(SmartPtr<IUserData> Exp);
 
 	///	returns number of imports
 		size_t num_imports() const {return m_vIImport.size();}
@@ -110,7 +110,7 @@ class IElemDisc
 		size_t num_exports() const {return m_vIExport.size();}
 
 	/// returns an export
-		SmartPtr<IDataExport> get_export(size_t i);
+		SmartPtr<IUserData> get_export(size_t i);
 
 	///	removes all exports
 		void clear_exports() {m_vIExport.clear();}
@@ -120,7 +120,7 @@ class IElemDisc
 		std::vector<IDataImport*> m_vIImport;
 
 	///	data exports
-		std::vector<SmartPtr<IDataExport> > m_vIExport;
+		std::vector<SmartPtr<IUserData> > m_vIExport;
 
 	public:
 	////////////////////////////

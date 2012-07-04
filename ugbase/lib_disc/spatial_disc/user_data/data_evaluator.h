@@ -187,7 +187,7 @@ class DataEvaluator
 		std::vector<FunctionIndexMapping> m_vDependentMap;
 
 	///	exports
-		std::vector<SmartPtr<IDataExport > > m_vDataExport;
+		std::vector<SmartPtr<IUserData > > m_vDataExport;
 		std::vector<FunctionIndexMapping> m_vExpMap;
 
 	///	data linker

@@ -8,44 +8,28 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EXPORT__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EXPORT__
 
-#include "data_import.h"
+#include "lib_disc/common/function_group.h"
+#include "lib_disc/common/local_algebra.h"
+#include "lib_disc/common/groups_util.h"
+
+#include "user_data.h"
 
 namespace ug{
+
+// predeclaration
+class IElemDisc;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Data Export
 ////////////////////////////////////////////////////////////////////////////////
-
-
-/// Base class for Data Export
-/**
- * An base class for all data exports
- */
-class IDataExport
-{
-	public:
-	///	Constructor
-		IDataExport() {}
-
-	///	sets the geometric object type
-		virtual bool set_roid(ReferenceObjectID id) = 0;
-
-	///	sets the function group
-		virtual void set_function_group(const FunctionGroup& fctGrp) = 0;
-
-	///	virtual destructor
-		virtual ~IDataExport() {}
-};
 
 /// Data export
 /**
  * A DataExport is user data produced by an element discretization.
  */
 template <typename TData, int dim>
-class DataExport : 	public DependentUserData<TData, dim>,
-					public IDataExport
+class DataExport : 	public DependentUserData<TData, dim>
 {
-  using DependentUserData<TData, dim>::compute;
-
 	public:
 	///	default constructor
 		DataExport();
@@ -54,7 +38,7 @@ class DataExport : 	public DependentUserData<TData, dim>,
 		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false);
 
 	///	sets the geometric object type
-		virtual bool set_roid(ReferenceObjectID id);
+		virtual void set_roid(ReferenceObjectID id);
 
 	///	register evaluation of export function
 		template <typename T, int refDim>
@@ -91,10 +75,6 @@ class DataExport : 	public DependentUserData<TData, dim>,
 	///	returns if the dependent data is ready for evaluation
 		virtual void check_setup() const;
 
-	///	sets the function group
-		virtual void set_function_group(const FunctionGroup& fctGrp)
-			{return IUserData::set_function_group(fctGrp);}
-
 	protected:
 		template <typename T, int refDim>
 		inline void comp(const LocalVector& u, bool bDeriv);
@@ -114,6 +94,204 @@ class DataExport : 	public DependentUserData<TData, dim>,
 
 	///	data the export depends on
 		std::vector<SmartPtr<IUserData> > m_vDependData;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Base class for Export UserData
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * This class is a base class for export user data.
+ * The data thus does depend on the a computed solution and space, time and subset.
+ * In order to use the interface, the deriving class must implement the method:
+ *
+ * template <int refDim>
+ * inline TRet evaluate(TData vValue[],
+		                const MathVector<dim> vGlobIP[],
+		                number time, int si,
+		                LocalVector& u,
+		                GeometricObject* elem,
+		                const MathVector<dim> vCornerCoords[],
+		                const MathVector<refDim> vLocIP[],
+		                const size_t nip,
+		                const MathMatrix<refDim, dim>* vJT = NULL) const
+ *
+ */
+template <typename TImpl, typename TData, int dim>
+class StdDataExport
+	: 	public DataExport<TData,dim>
+{
+	public:
+		StdDataExport() : m_pFctPatt(NULL) {m_SymbFct.clear();}
+
+		////////////////
+		// one value
+		////////////////
+		virtual void operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si) const
+		{
+			UG_THROW("StdDataExport: Solution, element and local ips required "
+					"for evaluation, but not passed. Cannot evaluate.");
+		}
+
+		virtual void operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si,
+								 LocalVector& u,
+								 GeometricObject* elem,
+								 const MathVector<dim> vCornerCoords[],
+								 const MathVector<1>& locIP) const
+		{
+			getImpl().template evaluate<1>(&value,&globIP,time,si,u,elem,
+			                               vCornerCoords,&locIP,1,NULL);
+		}
+
+		virtual void operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si,
+								 LocalVector& u,
+								 GeometricObject* elem,
+								 const MathVector<dim> vCornerCoords[],
+								 const MathVector<2>& locIP) const
+		{
+			getImpl().template evaluate<2>(&value,&globIP,time,si,u,elem,
+			                               vCornerCoords,&locIP,1,NULL);
+		}
+
+		virtual void operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si,
+								 LocalVector& u,
+								 GeometricObject* elem,
+								 const MathVector<dim> vCornerCoords[],
+								 const MathVector<3>& locIP) const
+		{
+			getImpl().template evaluate<3>(&value,&globIP,time,si,u,elem,
+			                               vCornerCoords,&locIP,1,NULL);
+		}
+
+		////////////////
+		// vector of values
+		////////////////
+		virtual void operator() (TData value[],
+								 const MathVector<dim> globIP[],
+								 number time, int si, const size_t nip) const
+		{
+			UG_THROW("StdDataExport: Solution, element and local ips required "
+					"for evaluation, but not passed. Cannot evaluate.");
+		}
+
+		virtual void operator()(TData vValue[],
+								const MathVector<dim> vGlobIP[],
+								number time, int si,
+								LocalVector& u,
+								GeometricObject* elem,
+								const MathVector<dim> vCornerCoords[],
+								const MathVector<1> vLocIP[],
+								const size_t nip,
+								const MathMatrix<1, dim>* vJT = NULL) const
+		{
+			getImpl().template evaluate<1>(vValue,vGlobIP,time,si,u,elem,
+										   vCornerCoords,vLocIP,nip, vJT);
+		}
+
+		virtual void operator()(TData vValue[],
+								const MathVector<dim> vGlobIP[],
+								number time, int si,
+								LocalVector& u,
+								GeometricObject* elem,
+								const MathVector<dim> vCornerCoords[],
+								const MathVector<2> vLocIP[],
+								const size_t nip,
+								const MathMatrix<2, dim>* vJT = NULL) const
+		{
+			getImpl().template evaluate<2>(vValue,vGlobIP,time,si,u,elem,
+										   vCornerCoords,vLocIP,nip, vJT);
+		}
+
+		virtual void operator()(TData vValue[],
+								const MathVector<dim> vGlobIP[],
+								number time, int si,
+								LocalVector& u,
+								GeometricObject* elem,
+								const MathVector<dim> vCornerCoords[],
+								const MathVector<3> vLocIP[],
+								const size_t nip,
+								const MathMatrix<3, dim>* vJT = NULL) const
+		{
+			getImpl().template evaluate<3>(vValue,vGlobIP,time,si,u,elem,
+										   vCornerCoords,vLocIP,nip, vJT);
+		}
+
+	///	returns that a grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return true;}
+
+	///	sets the associated function pattern
+		virtual void set_function_pattern(const FunctionPattern& fctPatt)
+		{
+			m_pFctPatt = &fctPatt;
+			extract_fct_grp();
+		}
+
+	///	sets the associated symbolic functions
+		void set_symb_fct(const char* symbFct)
+		{
+			m_SymbFct = symbFct;
+			extract_fct_grp();
+		}
+
+	protected:
+	///	extracts the function group
+		void extract_fct_grp()
+		{
+		//	if associated infos missing return
+			if(m_pFctPatt == NULL || m_SymbFct.empty()) return;
+
+		//	create function group of this elem disc
+			try{
+				ConvertStringToFunctionGroup(m_FctGrp, *m_pFctPatt, m_SymbFct.c_str());
+			}UG_CATCH_THROW("StdDataExport: Cannot find  some symbolic function "
+							"name in '"<<m_SymbFct<<"'.");
+
+		//	get common fct grp
+			FunctionGroup commonFctGroup(*m_pFctPatt);
+			commonFctGroup.add_all();
+
+		//	create a mapping between all functions and the function group of this
+		//	element disc.
+			try{
+				CreateFunctionIndexMapping(m_FctIndexMap, m_FctGrp, commonFctGroup);
+			}UG_CATCH_THROW("StdDataExport: Cannot create Function Index Mapping"
+							" for '"<<m_SymbFct<<"'.");
+		}
+
+	///	returns the function group
+		const FunctionGroup& fct_grp() const {return m_FctGrp;}
+
+	///	returns the function index mapping
+		const FunctionIndexMapping& fct_index_map() const {return m_FctIndexMap;}
+
+	protected:
+	///	associated function pattern
+		const FunctionPattern* m_pFctPatt;
+
+	///	string of symbolic functions required
+		std::string m_SymbFct;
+
+	///	FunctionGroup corresponding to symb functions
+		FunctionGroup m_FctGrp;
+
+	///	associated function index mapping
+		FunctionIndexMapping m_FctIndexMap;
+
+	protected:
+	///	access to implementation
+		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
+
+	///	const access to implementation
+		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
 };
 
 } // end namespace ug

@@ -114,10 +114,13 @@ prepare_elem_loop(bool bMassPart)
 						" (Mass part).");
 
 //	set geometric type at exports
-	for(size_t i = 0; i < m_vDataExport.size(); ++i)
-		if(!m_vDataExport[i]->set_roid(id))
-			UG_THROW("DataEvaluator::prepare_elem_loop: "
-							"Cannot set geometric object type for Export " << i);
+	for(size_t i = 0; i < m_vDataExport.size(); ++i){
+		try{
+			m_vDataExport[i]->set_roid(id);
+		}
+		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
+						"Cannot set geometric object type for Export " << i);
+	}
 
 //	check, that all dependent data is ready for evaluation
 	for(size_t i = 0; i < m_vDependentUserData.size(); ++i){
