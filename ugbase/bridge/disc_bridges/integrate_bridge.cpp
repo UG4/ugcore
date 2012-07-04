@@ -51,11 +51,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	Integral
 	{
-		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets#Time#QuadOrder");
-		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>, const char*, number)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets#Time");
-		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>, number)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Time");
-		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>, const char*)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets");
-		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IDirectIPData<number,dim> >, SmartPtr<TFct>)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction");
+		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IPData<number,dim> >, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets#Time#QuadOrder");
+		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IPData<number,dim> >, SmartPtr<TFct>, const char*, number)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets#Time");
+		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IPData<number,dim> >, SmartPtr<TFct>, number)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Time");
+		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IPData<number,dim> >, SmartPtr<TFct>, const char*)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets");
+		reg.add_function("Integral", static_cast<number (*)(SmartPtr<IPData<number,dim> >, SmartPtr<TFct>)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction");
 
 		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp, "Integral", "ConstantValue#GridFunction#Subsets#Time#QuadOrder");
 		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>, const char*, number)>(&Integral<TFct>), grp, "Integral", "ConstantValue#GridFunction#Subsets#Time");
@@ -96,11 +96,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	IntegralNormalComponentOnManifold
 	{
-		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(SmartPtr<IDirectIPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*, const char*, number, int)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets#InnerSubsets#Time#QuadOrder");
-		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(SmartPtr<IDirectIPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*, const char*, number)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets#InnerSubsets#Time");
-		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(SmartPtr<IDirectIPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*, number)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets#Time");
-		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(SmartPtr<IDirectIPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*, const char*)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets#InnerSubsets");
-		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(SmartPtr<IDirectIPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets");
+		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(SmartPtr<IPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*, const char*, number, int)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets#InnerSubsets#Time#QuadOrder");
+		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(SmartPtr<IPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*, const char*, number)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets#InnerSubsets#Time");
+		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(SmartPtr<IPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*, number)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets#Time");
+		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(SmartPtr<IPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*, const char*)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets#InnerSubsets");
+		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(SmartPtr<IPData<MathVector<dim>,dim> >, SmartPtr<TFct>, const char*)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "Data#GridFunction#BoundarySubsets");
 #ifdef UG_FOR_LUA
 		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, const char*, number, int)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "LuaData#GridFunction#BoundarySubsets#InnerSubsets#Time#QuadOrder");
 		reg.add_function("IntegralNormalComponentOnManifold", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, const char*, number)>(&IntegralNormalComponentOnManifold<TFct>), grp, "Integral", "LuaFunction#GridFunction#BoundarySubsets#InnerSubsets#Time");

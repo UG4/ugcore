@@ -91,6 +91,15 @@ class IIPData
 	///	returns if data depends on solution
 		virtual bool zero_derivative() const {return true;}
 
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return true;}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool is_continuous() const {return false;}
+
+	///	sets the function pattern for a possibly needed grid function
+		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}
+
 	///	number of other Data this data depends on
 		virtual size_t num_needed_data() const {return 0;}
 
@@ -156,24 +165,6 @@ class IIPData
 		int m_si;
 };
 
-/// class directly providing ip data without predefining integration points
-template <int dim>
-class IDirectDimIPData
-{
-	public:
-	///	virtual destructor
-		virtual ~IDirectDimIPData() {}
-
-	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return true;}
-
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const {return false;}
-
-	///	sets the function pattern for a possibly needed grid function
-		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}
-};
-
 /// World dimension based IP Data
 /**
  * This class is the dimension dependent base class for all integration point data.
@@ -183,7 +174,7 @@ class IDirectDimIPData
  * \tparam	dim		world dimension
  */
 template <int dim>
-class IIPDimData : virtual public IIPData, virtual public IDirectDimIPData<dim>
+class IIPDimData : virtual public IIPData
 {
 	public:
 	///	set global positions
@@ -223,90 +214,6 @@ class IIPDimData : virtual public IIPData, virtual public IDirectDimIPData<dim>
 		std::vector<const MathVector<dim>*> m_vvGlobPos;
 };
 
-/// class directly providing ip data without predefining integration points
-template <typename TData, int dim, typename TRet = void>
-class IDirectIPData : virtual public IDirectDimIPData<dim>
-{
-	public:
-	///	virtual destructor
-		virtual ~IDirectIPData() {}
-
-	///	returns value for a global position
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si) const;
-
-	///	returns value for global positions
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si, const size_t nip) const;
-
-		////////////////
-		// one value
-		////////////////
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<1>& locIP) const;
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<2>& locIP) const;
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<3>& locIP) const;
-
-		////////////////
-		// vector of values
-		////////////////
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<1> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<1, dim>* vJT = NULL) const;
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<2> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<2, dim>* vJT = NULL) const;
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<3> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<3, dim>* vJT = NULL) const;
-};
-
-// predeclaration
-template <typename TData, int dim> class DataImport;
-
 /// Traits
 template <typename TData>
 struct ip_data_traits
@@ -338,6 +245,9 @@ struct ip_data_traits< MathTensor<4,dim> >
 	static std::string name() {return "Tensor4";}
 };
 
+// predeclaration
+template <typename TData, int dim> class DataImport;
+
 /// Type based IP Data
 /**
  * This class is the base class for all integration point data for a templated
@@ -349,7 +259,7 @@ struct ip_data_traits< MathTensor<4,dim> >
  * \tparam	TRet	Type of return flag (bool or void)
  */
 template <typename TData, int dim, typename TRet = void>
-class IPData : public IIPDimData<dim>, public IDirectIPData<TData,dim,TRet>
+class IPData : public IIPDimData<dim>
 {
 	public:
 	///	type of base class
@@ -427,6 +337,77 @@ class IPData : public IIPDimData<dim>, public IDirectIPData<TData,dim,TRet>
 	///	registered callbacks
 		typedef void (DataImport<TData,dim>::*CallbackFct)();
 		std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > m_vCallback;
+
+	public:
+	///	returns value for a global position
+		virtual TRet operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si) const;
+
+	///	returns value for local and global position
+	///	\{
+		virtual TRet operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<1>& locIP) const;
+
+		virtual TRet operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<2>& locIP) const;
+
+		virtual TRet operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<3>& locIP) const;
+	///	\}
+
+	///	returns value for global positions
+		virtual void operator()(TData vValue[],
+								const MathVector<dim> vGlobIP[],
+								number time, int si, const size_t nip) const;
+
+	///	returns values for local and global positions
+	///	\{
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<1> vLocIP[],
+		                        const size_t nip,
+		                        const MathMatrix<1, dim>* vJT = NULL) const;
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<2> vLocIP[],
+		                        const size_t nip,
+		                        const MathMatrix<2, dim>* vJT = NULL) const;
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<3> vLocIP[],
+		                        const size_t nip,
+		                        const MathMatrix<3, dim>* vJT = NULL) const;
+	///	\}
 };
 
 ////////////////////////////////////////////////////////////////////////////////

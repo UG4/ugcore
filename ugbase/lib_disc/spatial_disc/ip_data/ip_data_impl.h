@@ -179,31 +179,31 @@ inline void IIPDimData<dim>::check_s_ip(size_t s, size_t ip) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//	IDirectIPData
+//	IPData
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim, typename TRet>
-TRet IDirectIPData<TData,dim,TRet>::
+TRet IPData<TData,dim,TRet>::
 operator() (TData& value,
             const MathVector<dim>& globIP,
             number time, int si) const
 {
-	UG_THROW("IDirectIPData: operator()(TData, MathVector<dim>, "
+	UG_THROW("IPData: operator()(TData, MathVector<dim>, "
 			"time, si) not implemented.");
 }
 
 template <typename TData, int dim, typename TRet>
-void IDirectIPData<TData,dim,TRet>::
+void IPData<TData,dim,TRet>::
 operator() (TData vValue[],
             const MathVector<dim> vGlobIP[],
             number time, int si, const size_t nip) const
 {
-	UG_THROW("IDirectIPData: operator()(TData[], MathVector<dim>[], "
+	UG_THROW("IPData: operator()(TData[], MathVector<dim>[], "
 			"time, si) not implemented.");
 }
 
 template <typename TData, int dim, typename TRet>
-TRet IDirectIPData<TData,dim,TRet>::
+TRet IPData<TData,dim,TRet>::
 operator() (TData& value,
             const MathVector<dim>& globIP,
             number time, int si,
@@ -212,12 +212,12 @@ operator() (TData& value,
             const MathVector<dim> vCornerCoords[],
             const MathVector<1>& locIP) const
 {
-	UG_THROW("IDirectIPData: operator()(TData, MathVector<dim>, "
+	UG_THROW("IPData: operator()(TData, MathVector<dim>, "
 			"time, si, LocalVector, GeometricObject*, MathVector<1>) not implemented.");
 }
 
 template <typename TData, int dim, typename TRet>
-void IDirectIPData<TData,dim,TRet>::
+void IPData<TData,dim,TRet>::
 operator()(TData vValue[],
            const MathVector<dim> vGlobIP[],
            number time, int si,
@@ -236,7 +236,7 @@ operator()(TData vValue[],
 }
 
 template <typename TData, int dim, typename TRet>
-TRet IDirectIPData<TData,dim,TRet>::
+TRet IPData<TData,dim,TRet>::
 operator() (TData& value,
             const MathVector<dim>& globIP,
             number time, int si,
@@ -245,12 +245,12 @@ operator() (TData& value,
             const MathVector<dim> vCornerCoords[],
             const MathVector<2>& locIP) const
 {
-	UG_THROW("IDirectIPData: operator()(TData, MathVector<dim>, "
+	UG_THROW("IPData: operator()(TData, MathVector<dim>, "
 			"time, si, LocalVector, GeometricObject*, MathVector<2>) not implemented.");
 }
 
 template <typename TData, int dim, typename TRet>
-void IDirectIPData<TData,dim,TRet>::
+void IPData<TData,dim,TRet>::
 operator()(TData vValue[],
            const MathVector<dim> vGlobIP[],
            number time, int si,
@@ -269,7 +269,7 @@ operator()(TData vValue[],
 }
 
 template <typename TData, int dim, typename TRet>
-TRet IDirectIPData<TData,dim,TRet>::
+TRet IPData<TData,dim,TRet>::
 operator() (TData& value,
             const MathVector<dim>& globIP,
             number time, int si,
@@ -278,12 +278,12 @@ operator() (TData& value,
             const MathVector<dim> vCornerCoords[],
             const MathVector<3>& locIP) const
 {
-	UG_THROW("IDirectIPData: operator()(TData, MathVector<dim>, "
+	UG_THROW("IPData: operator()(TData, MathVector<dim>, "
 			"time, si, LocalVector, GeometricObject*, MathVector<3>) not implemented.");
 }
 
 template <typename TData, int dim, typename TRet>
-void IDirectIPData<TData,dim,TRet>::
+void IPData<TData,dim,TRet>::
 operator()(TData vValue[],
            const MathVector<dim> vGlobIP[],
            number time, int si,
@@ -300,10 +300,6 @@ operator()(TData vValue[],
 		                  u, elem, vCornerCoords, vLocIP[ip]);
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//	IPData
-////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim, typename TRet>
 void IPData<TData,dim,TRet>::
@@ -474,9 +470,9 @@ void DependentIPData<TData,dim>::clear_derivative_values()
 template <typename TData, int dim>
 inline void DependentIPData<TData,dim>::check_s_ip(size_t s, size_t ip) const
 {
-	UG_ASSERT(s < num_series(), "Wrong series id"<<s);
+	UG_ASSERT(s < this->num_series(), "Wrong series id"<<s);
 	UG_ASSERT(s < m_vvvvDeriv.size(), "Invalid index "<<s);
-	UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
+	UG_ASSERT(ip < this->num_ip(s), "Invalid index "<<ip);
 	UG_ASSERT(ip < m_vvvvDeriv[s].size(), "Invalid index "<<ip);
 }
 

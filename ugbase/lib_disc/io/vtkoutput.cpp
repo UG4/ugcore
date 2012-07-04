@@ -323,26 +323,26 @@ select_nodal(const char* fctNames, const char* name)
 
 template <int TDim>
 void VTKOutput<TDim>::
-select_nodal(SmartPtr<IDirectIPData<number, TDim> > spData, const char* name)
+select_nodal(SmartPtr<IPData<number, TDim> > spData, const char* name)
 {
 	TrimString(name);
 	if(vtk_name_used(name))
 		UG_THROW("VTK:select_nodal: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	m_vScalarNodalData.push_back(std::pair<SmartPtr<IDirectIPData<number, TDim> >,std::string>(spData, name));
+	m_vScalarNodalData.push_back(std::pair<SmartPtr<IPData<number, TDim> >,std::string>(spData, name));
 }
 
 template <int TDim>
 void VTKOutput<TDim>::
-select_nodal(SmartPtr<IDirectIPData<MathVector<TDim>, TDim> > spData, const char* name)
+select_nodal(SmartPtr<IPData<MathVector<TDim>, TDim> > spData, const char* name)
 {
 	TrimString(name);
 	if(vtk_name_used(name))
 		UG_THROW("VTK:select_nodal: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	m_vVectorNodalData.push_back(std::pair<SmartPtr<IDirectIPData<MathVector<TDim>, TDim> >,std::string>(spData, name));
+	m_vVectorNodalData.push_back(std::pair<SmartPtr<IPData<MathVector<TDim>, TDim> >,std::string>(spData, name));
 }
 
 
@@ -374,26 +374,26 @@ select_element(const char* fctNames, const char* name)
 
 template <int TDim>
 void VTKOutput<TDim>::
-select_element(SmartPtr<IDirectIPData<number, TDim> > spData, const char* name)
+select_element(SmartPtr<IPData<number, TDim> > spData, const char* name)
 {
 	TrimString(name);
 	if(vtk_name_used(name))
 		UG_THROW("VTK:select_element: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	m_vScalarElemData.push_back(std::pair<SmartPtr<IDirectIPData<number, TDim> >,std::string>(spData, name));
+	m_vScalarElemData.push_back(std::pair<SmartPtr<IPData<number, TDim> >,std::string>(spData, name));
 }
 
 template <int TDim>
 void VTKOutput<TDim>::
-select_element(SmartPtr<IDirectIPData<MathVector<TDim>, TDim> > spData, const char* name)
+select_element(SmartPtr<IPData<MathVector<TDim>, TDim> > spData, const char* name)
 {
 	TrimString(name);
 	if(vtk_name_used(name))
 		UG_THROW("VTK:select_element: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	m_vVectorElemData.push_back(std::pair<SmartPtr<IDirectIPData<MathVector<TDim>, TDim> >,std::string>(spData, name));
+	m_vVectorElemData.push_back(std::pair<SmartPtr<IPData<MathVector<TDim>, TDim> >,std::string>(spData, name));
 }
 
 template <int TDim>

@@ -438,35 +438,14 @@ void RegisterUserDataType(Registry& reg, string grp)
 
 	string type = ip_data_traits<TData>::name();
 
-//	DirectUser"Type"
-//	NOTE: For better readability this class is named DirectUser"Type"
-//	      in vrl and lua. E.g. DirectUserNumber, DirectUserVector, ...
-	{
-		typedef IDirectIPData<TData, dim> T;
-		string name = string("DirectUser").append(type).append(dimSuffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, string("DirectUser").append(type), dimTag);
-	}
-
-//	DirectCondUser"Type"
-//	NOTE: For better readability this class is named DirectCondUser"Type"
-//	      in vrl and lua. E.g. DirectCondUserNumber, DirectCondUserVector, ...
-	{
-		typedef IDirectIPData<TData, dim, bool> T;
-		string name = string("DirectCondUser").append(type).append(dimSuffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, string("DirectCondUser").append(type), dimTag);
-	}
-
 //	User"Type"
 //	NOTE: For better readability this class is named User"Type"
 //	      in vrl and lua. E.g. UserNumber, UserVector, ...
 	{
 		typedef IPData<TData, dim> T;
 		typedef IIPData TBase1;
-		typedef IDirectIPData<TData, dim> TBase2;
 		string name = string("User").append(type).append(dimSuffix);
-		reg.add_class_<T,TBase1, TBase2>(name, grp)
+		reg.add_class_<T,TBase1>(name, grp)
 			.add_method("get_dim", &T::get_dim)
 			.add_method("type", &T::type);
 		reg.add_class_to_group(name, string("User").append(type), dimTag);
@@ -478,9 +457,8 @@ void RegisterUserDataType(Registry& reg, string grp)
 	{
 		typedef IPData<TData, dim, bool> T;
 		typedef IIPData TBase1;
-		typedef IDirectIPData<TData, dim, bool> TBase2;
 		string name = string("CondUser").append(type).append(dimSuffix);
-		reg.add_class_<T,TBase1,TBase2>(name, grp);
+		reg.add_class_<T,TBase1>(name, grp);
 		reg.add_class_to_group(name, string("CondUser").append(type), dimTag);
 	}
 
