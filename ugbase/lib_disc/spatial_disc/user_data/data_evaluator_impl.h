@@ -102,18 +102,22 @@ prepare_elem_loop(bool bMassPart)
 					"Cannot extract imports and userdata.");
 
 //	set geometric type at imports
-	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
-		if(!m_vStiffDataImport[i]->set_roid(id))
-			UG_THROW("DataEvaluator::prepare_elem_loop: Cannot set "
-					" geometric object type "<<id<<" for Import " << i <<
-					" (Stiffness part).");
+	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i){
+		try{
+			m_vStiffDataImport[i]->set_roid(id);
+		}UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: Cannot set "
+						" geometric object type "<<id<<" for Import "<<i<<
+						" (Stiffness part).");
+	}
 
 	if(bMassPart)
-		for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
-			if(!m_vMassDataImport[i]->set_roid(id))
-				UG_THROW("DataEvaluator::prepare_elem_loop: Cannot set "
-						" geometric object type "<<id<<" for Import " << i <<
-						" (Mass part).");
+		for(size_t i = 0; i < m_vMassDataImport.size(); ++i){
+			try{
+				m_vMassDataImport[i]->set_roid(id);
+			}UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: Cannot set "
+							" geometric object type "<<id<<" for Import "<<i<<
+							" (Mass part).");
+		}
 
 	for(size_t i = 0; i < m_vDependentData.size(); ++i){
 	//	set geometric type at exports

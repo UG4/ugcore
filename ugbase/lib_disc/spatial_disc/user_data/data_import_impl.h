@@ -23,26 +23,19 @@ DataImport<TData,dim>::~DataImport()
 }
 
 template <typename TData, int dim>
-bool DataImport<TData,dim>::set_roid(ReferenceObjectID id)
+void DataImport<TData,dim>::set_roid(ReferenceObjectID id)
 {
 //	if lin defect is not supposed to be computed, we're done
-	if(!m_bCompLinDefect) return true;
+	if(!m_bCompLinDefect) return;
 
 //	Check for evaluation function and choose it if present
 	if(m_vLinDefectFunc[id] != NULL)
 	{
 		m_id = id;
-		return true;
+		return;
 	}
 
-//	return error else
-	else
-	{
-		UG_LOG("ERROR in 'DataImport::set_roid':"
-				"No lin defect functions registered for " << id << ".\n");
-		m_id = ROID_UNKNOWN;
-		return false;
-	}
+	UG_THROW("DataImport::set_roid: No lin defect functions registered for "<<id);
 }
 
 template <typename TData, int dim>
@@ -89,7 +82,7 @@ void DataImport<TData,dim>::set_data(SmartPtr<UserData<TData, dim> > spData)
 	m_spUserData = spData;
 
 //	remember iexport
-	this->m_spIDependentUserData = spData;
+	this->m_spIUserData = spData;
 
 //	remember dependent data (i.e. is NULL iff no dependent data given)
 	m_spDependentUserData = m_spUserData.template cast_dynamic<DependentUserData<TData, dim> >();

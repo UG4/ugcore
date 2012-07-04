@@ -28,7 +28,7 @@ class IDataImport
 	public:
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
-			: m_spIDependentUserData(NULL),
+			: m_spIUserData(NULL),
 			 m_bInMassPart(false), m_bInRhsPart(false),
 			 m_bCompLinDefect(compLinDefect)
 		{}
@@ -62,8 +62,8 @@ class IDataImport
 	 */
 		bool zero_derivative() const
 		{
-			if(!m_spIDependentUserData.valid()) return true;
-			else if (m_spIDependentUserData->zero_derivative()) return true;
+			if(!m_spIUserData.valid()) return true;
+			else if (m_spIUserData->zero_derivative()) return true;
 			else return !m_bCompLinDefect;
 		}
 
@@ -80,7 +80,7 @@ class IDataImport
 		size_t num_fct() const {return m_fctGrp.num_fct();}
 
 	///	sets the geometric object type
-		virtual bool set_roid(ReferenceObjectID id) = 0;
+		virtual void set_roid(ReferenceObjectID id) = 0;
 
 	///	compute lin defect
 		virtual void compute_lin_defect(const LocalVector& u) = 0;
@@ -97,7 +97,7 @@ class IDataImport
 
 	protected:
 	/// connected iexport
-		SmartPtr<IUserData> m_spIDependentUserData;
+		SmartPtr<IUserData> m_spIUserData;
 
 	///	function group for linear defect
 		FunctionGroup m_fctGrp;
@@ -116,8 +116,6 @@ class IDataImport
 /// Data import
 /**
  * A DataImport is used to import data into an ElemDisc.
- *
- * \todo some data could be cached to allow faster access than using virtual fct
  */
 template <typename TData, int dim>
 class DataImport : public IDataImport
@@ -250,7 +248,7 @@ class DataImport : public IDataImport
 		                              const size_t nip)> LinDefectFunc;
 
 	///	sets the geometric object type
-		virtual bool set_roid(ReferenceObjectID id);
+		virtual void set_roid(ReferenceObjectID id);
 
 	///	register evaluation of linear defect for a element
 		template <typename TClass>
