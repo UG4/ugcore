@@ -5,6 +5,8 @@
  *      Author: andreasvogel
  */
 
+#include <sstream>
+
 #include "data_evaluator.h"
 #include "lib_disc/common/groups_util.h"
 
@@ -64,17 +66,17 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 
 		if(m_vElemDiscFctGrp[i].num_fct() != (*m_pvElemDisc)[i]->num_fct())
 		{
-			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
+			std::stringstream ss;
+			ss << "DataEvaluator::set_elem_discs: Elem Disc "<<i<<
 					" requires "<<(*m_pvElemDisc)[i]->num_fct()<<" symbolic "
 					"Function Name, but "<<m_vElemDiscFctGrp[i].num_fct()<<" Functions "
-					" specified: ");
+					" specified: ";
 			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
 			{
-				if(f > 0) UG_LOG(", ");
-				UG_LOG((*m_pvElemDisc)[i]->symb_fcts()[f]);
+				if(f > 0) ss << ", ";
+				ss << (*m_pvElemDisc)[i]->symb_fcts()[f];
 			}
-			UG_LOG(".\n");
-			UG_THROW("DataEvaluator:set_elem_discs: fct error.");
+			UG_THROW(ss.str());
 		}
 
 	//	request assembling for local finite element id
@@ -83,14 +85,15 @@ void DataEvaluator::set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
 			vLfeID[f] = m_vElemDiscFctGrp[i].local_finite_element_id(f);
 		if(!((*m_pvElemDisc)[i]->request_finite_element_id(vLfeID)))
 		{
-			UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Elem Disc "<<i<<
-					" can not assemble the specified local finite element space set:\n");
+			std::stringstream ss;
+			ss << "DataEvaluator::set_elem_discs: Elem Disc "<<i<<
+				" can not assemble the specified local finite element space set:";
 			for(size_t f=0; f < (*m_pvElemDisc)[i]->symb_fcts().size(); ++f)
 			{
-				UG_LOG("  Fct "<<f<<": '"<<(*m_pvElemDisc)[i]->symb_fcts()[f]);
-				UG_LOG("' using "<< vLfeID[f] << "\n");
+				ss << "  Fct "<<f<<": '"<<(*m_pvElemDisc)[i]->symb_fcts()[f];
+				ss << "' using "<< vLfeID[f];
 			}
-			UG_THROW("DataEvaluator: Wrong functions for assembling.");
+			UG_THROW(ss.str());
 		}
 
 	//	create a mapping between all functions and the function group of this
@@ -448,7 +451,7 @@ void DataEvaluator::compute_elem_data(LocalVector& u, GeometricObject* elem, boo
 // 	process dependent data:
 //	We can not simply compute exports first, then Linker, because an export
 //	itself could depend on other data if implemented somehow in the IElemDisc
-//	(e.g. using data from some DataImport). Thus, we have to loop the soretd
+//	(e.g. using data from some DataImport). Thus, we have to loop the sorted
 //	vector of all dependent data (that is correctly sorted the way that always
 //	needed data has previously computed). We look up, if a Export is given, if
 //	so compute it, else compute the linker
