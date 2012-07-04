@@ -431,12 +431,6 @@ class IDependentIPData : virtual public IIPData
 		virtual void set_dof_sizes(const LocalIndices& ind,
 		                           const FunctionIndexMapping& map) = 0;
 
-	///	computation of data depending on current solution
-		virtual void compute_with_sol(const LocalVector& u, bool bDeriv)
-		{
-			UG_THROW("IDependentIPData::compute: No implementation found.");
-		}
-
 	///	returns if the computation needs the current solution
 		bool comp_needs_sol() const {return m_bCompNeedsSol;}
 

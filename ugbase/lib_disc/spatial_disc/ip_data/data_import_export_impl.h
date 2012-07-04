@@ -438,16 +438,10 @@ bool DataExport<TData, dim>::is_ready() const
 template <typename TData, int dim>
 void DataExport<TData, dim>::compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 {
-	UG_THROW("DataExport::compute(): Computation of Export "
-		 	 	   "without current solution called. Cannot evaluate.");
-}
-
-template <typename TData, int dim>
-void DataExport<TData, dim>::compute_with_sol(const LocalVector& u, bool bDeriv)
-{
 	UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
 	UG_ASSERT(m_vCompFct[m_id] != NULL, "Func pointer is NULL");
-	(this->*m_vCompFct[m_id])(u, bDeriv);
+	UG_ASSERT(u != NULL, "LocalVector pointer is NULL");
+	(this->*m_vCompFct[m_id])(*u, bDeriv);
 }
 
 template <typename TData, int dim>

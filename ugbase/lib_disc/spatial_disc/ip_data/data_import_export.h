@@ -363,11 +363,8 @@ class DataExport : 	public DependentIPData<TData, dim>,
 	///	default constructor
 		DataExport();
 
-	//	implement compute() method of IIPData: Not available
+	///	implement compute() method of IIPData
 		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false);
-
-	///	compute export (implements IDependendIPData::compute)
-		virtual void compute_with_sol(const LocalVector& u, bool bDeriv);
 
 	///	sets the geometric object type
 		virtual bool set_roid(ReferenceObjectID id);
