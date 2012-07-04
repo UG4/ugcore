@@ -408,28 +408,19 @@ bool DataExport<TData, dim>::set_roid(ReferenceObjectID id)
 }
 
 template <typename TData, int dim>
-bool DataExport<TData, dim>::is_ready() const
+void DataExport<TData, dim>::check_setup() const
 {
-	if(m_id == ROID_UNKNOWN) {
-		UG_LOG("ERROR in 'DataExport::is_ready': The reference element "
-				"type has not been set for evaluation.\n");
-		return false;
-	}
+	if(m_id == ROID_UNKNOWN)
+		UG_THROW("DataExport::check_setup: The reference element "
+				"type has not been set for evaluation.");
 
-	if(m_vCompFct[m_id] == NULL) {
-		UG_LOG("ERROR in 'DataExport::is_ready': There is no evaluation forward"
-				"function registered for export and elem type "<<m_id<<".\n");
-		return false;
-	}
+	if(m_vCompFct[m_id] == NULL)
+		UG_THROW("DataExport::check_setup: There is no evaluation forward"
+				"function registered for export and elem type "<<m_id);
 
-	if(m_vExportFunc[m_id] == NULL) {
-		UG_LOG("ERROR in 'DataExport::is_ready': There is no evaluation "
-				"function registered for export and elem type "<<m_id<<".\n");
-		return false;
-	}
-
-//	everything is ok
-	return true;
+	if(m_vExportFunc[m_id] == NULL)
+		UG_THROW("DataExport::check_setup: There is no evaluation "
+				"function registered for export and elem type "<<m_id);
 }
 
 template <typename TData, int dim>

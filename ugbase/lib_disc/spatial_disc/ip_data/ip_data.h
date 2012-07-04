@@ -127,7 +127,7 @@ class IIPData
 		size_t num_fct() const {return m_fctGrp.num_fct();}
 
 	///	returns if the dependent data is ready for evaluation
-		virtual bool is_ready() const {return true;}
+		virtual void check_setup() const {}
 
 	///	virtual desctructor
 		virtual ~IIPData() {};
@@ -485,9 +485,6 @@ class DependentIPData : public IPData<TData, dim>
 
 	///	sets all derivative values to zero
 		void clear_derivative_values();
-
-	///	returns if the dependent data is ready for evaluation
-		virtual bool is_ready() const = 0;
 
 	protected:
 	///	checks in debug mode the correct usage of indices

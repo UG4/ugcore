@@ -27,19 +27,12 @@ bool DataLinker<TData,dim>::zero_derivative() const
 }
 
 template <typename TData, int dim>
-bool DataLinker<TData,dim>::is_ready() const
+void DataLinker<TData,dim>::check_setup() const
 {
 //	check, that all inputs are set
 	for(size_t i = 0; i < num_input(); ++i)
 		if(!m_vpIIPData[i].valid())
-		{
-			UG_LOG("ERROR in 'DataLinker::is_ready': Input number "<<
-					i << " missing.\n");
-			return false;
-		}
-
-//	everything ok
-	return true;
+			UG_THROW("DataLinker::check_setup: Input number "<<i<<" missing.");
 }
 
 template <typename TData, int dim>

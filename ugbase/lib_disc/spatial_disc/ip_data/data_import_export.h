@@ -403,7 +403,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		virtual SmartPtr<IIPData> needed_data(size_t i) {return m_vDependData.at(i);}
 
 	///	returns if the dependent data is ready for evaluation
-		virtual bool is_ready() const;
+		virtual void check_setup() const;
 
 	///	sets the function group
 		virtual void set_function_group(const FunctionGroup& fctGrp)

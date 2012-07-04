@@ -120,10 +120,12 @@ prepare_elem_loop(bool bMassPart)
 							"Cannot set geometric object type for Export " << i);
 
 //	check, that all dependent data is ready for evaluation
-	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
-		if(!m_vDependentIPData[i]->is_ready())
-			UG_THROW("DataEvaluator::prepare_element: Dependent IPData "
-							"(e.g. Linker or Export) is not ready for evaluation.");
+	for(size_t i = 0; i < m_vDependentIPData.size(); ++i){
+		try{
+			m_vDependentIPData[i]->check_setup();
+		}UG_CATCH_THROW("DataEvaluator::prepare_element: Dependent IPData "<<i<<
+		                " (e.g. Linker or Export) is not ready for evaluation.)");
+	}
 
 //	evaluate constant data
 	for(size_t i = 0; i < m_vConstData.size(); ++i)

@@ -69,7 +69,7 @@ class DataLinker
 		}
 
 	///	returns if data is ok
-		virtual bool is_ready() const;
+		virtual void check_setup() const;
 
 	///	updates the function group
 		void update_function_group();
