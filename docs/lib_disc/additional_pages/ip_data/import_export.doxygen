@@ -10,7 +10,7 @@ used in ug to couple several discretizations.
 - \ref secPreliminaries "Preliminaries"
 - \ref secImport "Import"
 - \ref secComputationJacobian "Computation of Jacobian"
-- \ref secIPData "IP Data"
+- \ref secUserData "UserData"
 - \ref secExport "Export"
 - \ref secLinker "Linker"
 	
@@ -195,17 +195,17 @@ scalar product.
 
 
 <hr>
-\section secIPData IP Data
+\section secUserData UserData
 <hr>
 
 The base class for the computation of the values and derivatives needed by 
-the imports is called IPData, and we will denote them by \f$\mathcal{E}\f$ since
+the imports is called UserData, and we will denote them by \f$\mathcal{E}\f$ since
 they "export" data. A data export is plugged into a data import in order to 
 indicate, that the data produced by the export should be used as the import. One
 may think that in the forementioned formulas each import must be replaced by 
 an export.
 
-We distinguish different kinds of IPData:
+We distinguish different kinds of UserData:
 
 <ul>
 <li> constant data: \f$ \mathcal{E} \equiv \mathcal{E}()\f$. 
@@ -240,9 +240,9 @@ case of a jacobian. Of course, circle dependencies of the exports are not allowe
 \section secLinker Linker
 <hr>
 
-A linker is ip data, that is computed by combining other ip datas. Thus, it does
-not create any data, but connects (links) the data. A linker is an ip data; just 
-to emphasize the difference between the other ip data and a linker we will use 
+A linker is user data, that is computed by combining other user datas. Thus, it does
+not create any data, but connects (links) the data. A linker is an user data; just 
+to emphasize the difference between the other user data and a linker we will use 
 the denotation \f$\mathcal{L}\f$ for the linker.
 
 \f{align*}

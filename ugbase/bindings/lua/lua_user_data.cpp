@@ -99,7 +99,7 @@ void RegisterLuaUserDataType(Registry& reg, string type, string grp)
 //	LuaUser"Type"
 	{
 		typedef ug::LuaUserData<TData, dim> T;
-		typedef IPData<TData, dim> TBase;
+		typedef UserData<TData, dim> TBase;
 		string name = string("LuaUser").append(type).append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
@@ -110,7 +110,7 @@ void RegisterLuaUserDataType(Registry& reg, string type, string grp)
 //	LuaCondUser"Type"
 	{
 		typedef ug::LuaUserData<TData, dim, bool> T;
-		typedef IPData<TData, dim, bool> TBase;
+		typedef UserData<TData, dim, bool> TBase;
 		string name = string("LuaCondUser").append(type).append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*)>("Callback")
@@ -153,7 +153,7 @@ static void Dimension(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
 			.add_method("set_deriv", &T::set_deriv)
-			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<IPData<number, dim> >)>(&T::set_input))
+			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<UserData<number, dim> >)>(&T::set_input))
 			.add_method("set_input", static_cast<void (T::*)(size_t, number)>(&T::set_input))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LuaUserFunctionNumber", tag);
@@ -167,7 +167,7 @@ static void Dimension(Registry& reg, string grp)
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
 			.add_method("set_deriv", &T::set_deriv)
-			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<IPData<number, dim> >)>(&T::set_input))
+			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<UserData<number, dim> >)>(&T::set_input))
 			.add_method("set_input", static_cast<void (T::*)(size_t, number)>(&T::set_input))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LuaUserFunctionMatrixNumber", tag);

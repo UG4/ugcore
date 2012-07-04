@@ -15,14 +15,14 @@
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
-#include "lib_disc/spatial_disc/ip_data/ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/user_data.h"
 
 
 namespace ug{
 
 template <typename TData, int dim, typename TImpl>
 class StdGridFunctionData
-	: 	public IPData<TData,dim>
+	: 	public UserData<TData,dim>
 {
 	public:
 		////////////////

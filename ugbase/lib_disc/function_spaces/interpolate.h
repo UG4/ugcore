@@ -38,7 +38,7 @@ namespace ug{
  * @param[in] time					time point
  */
 template <typename TGridFunction>
-void InterpolateOnVertices(SmartPtr<IPData<number, TGridFunction::dim> > spInterpolFunction,
+void InterpolateOnVertices(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                            SmartPtr<TGridFunction> spGridFct,
                            size_t fct,
                            number time,
@@ -108,7 +108,7 @@ void InterpolateOnVertices(SmartPtr<IPData<number, TGridFunction::dim> > spInter
  */
 template <typename TElem, typename TGridFunction>
 void InterpolateOnElements(
-		SmartPtr<IPData<number, TGridFunction::dim> > spInterpolFunction,
+		SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
 		SmartPtr<TGridFunction> spGridFct, size_t fct, int si, number time)
 {
 //	get reference element type
@@ -204,7 +204,7 @@ void InterpolateOnElements(
  * @param[in] time					time point
  */
 template <typename TGridFunction>
-void InterpolateOnElements(SmartPtr<IPData<number, TGridFunction::dim> > spInterpolFunction,
+void InterpolateOnElements(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                            SmartPtr<TGridFunction> spGridFct,
                            size_t fct,
                            number time,
@@ -269,7 +269,7 @@ void InterpolateOnElements(SmartPtr<IPData<number, TGridFunction::dim> > spInter
  * @param[in] time					time point
  */
 template <typename TGridFunction>
-void Interpolate(SmartPtr<IPData<number, TGridFunction::dim> > spInterpolFunction,
+void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets, number time)
 {
@@ -325,17 +325,17 @@ void Interpolate(SmartPtr<IPData<number, TGridFunction::dim> > spInterpolFunctio
 }
 
 template <typename TGridFunction>
-void Interpolate(SmartPtr<IPData<number, TGridFunction::dim> > spInterpolFunction,
+void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  number time)
 {Interpolate(spInterpolFunction, spGridFct, cmp, NULL, time);}
 template <typename TGridFunction>
-void Interpolate(SmartPtr<IPData<number, TGridFunction::dim> > spInterpolFunction,
+void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp,
                  const char* subsets)
 {Interpolate(spInterpolFunction, spGridFct, cmp, subsets, 0.0);}
 template <typename TGridFunction>
-void Interpolate(SmartPtr<IPData<number, TGridFunction::dim> > spInterpolFunction,
+void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunction,
                  SmartPtr<TGridFunction> spGridFct, const char* cmp)
 {Interpolate(spInterpolFunction, spGridFct, cmp, NULL, 0.0);}
 
@@ -349,7 +349,7 @@ void Interpolate(number val,
                  const char* subsets, number time)
 {
 	static const int dim = TGridFunction::dim;
-	SmartPtr<IPData<number, dim> > sp =
+	SmartPtr<UserData<number, dim> > sp =
 			CreateSmartPtr(new ConstUserNumber<dim>(val));
 	Interpolate(sp, spGridFct, cmp, subsets, time);
 }
@@ -379,7 +379,7 @@ void Interpolate(const char* LuaFunction,
                  const char* subsets, number time)
 {
 	static const int dim = TGridFunction::dim;
-	SmartPtr<IPData<number, dim> > sp =
+	SmartPtr<UserData<number, dim> > sp =
 			LuaUserDataFactory<number, dim>::create(LuaFunction);
 	Interpolate(sp, spGridFct, cmp, subsets, time);
 }

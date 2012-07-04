@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__SCALE_ADD_LINKER__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__SCALE_ADD_LINKER__
 
-#include "lib_disc/spatial_disc/ip_data/std_ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/std_user_data.h"
 
 namespace ug{
 
@@ -47,11 +47,11 @@ class ScaleAddLinker
 
 	///	adds an input to the list of summands scaled by a user data factor
 	///	\{
-		void add(SmartPtr<IPData<TDataScale, dim> > scale,
-		         SmartPtr<IPData<TData, dim> > data);
+		void add(SmartPtr<UserData<TDataScale, dim> > scale,
+		         SmartPtr<UserData<TData, dim> > data);
 		void add(number scale,
-		         SmartPtr<IPData<TData, dim> > data);
-		void add(SmartPtr<IPData<TDataScale, dim> > scale,
+		         SmartPtr<UserData<TData, dim> > data);
+		void add(SmartPtr<UserData<TDataScale, dim> > scale,
 		         number data);
 		void add(number scale,
 		         number data);
@@ -88,9 +88,9 @@ class ScaleAddLinker
 	///	data at ip of input
 		const TData& input_value(size_t i, size_t s, size_t ip) const
 		{
-			UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
-			UG_ASSERT(m_vpIPData[i].valid(), "Input invalid");
-			return m_vpIPData[i]->value(this->series_id(2*i,s), ip);
+			UG_ASSERT(i < m_vpUserData.size(), "Input not needed");
+			UG_ASSERT(m_vpUserData[i].valid(), "Input invalid");
+			return m_vpUserData[i]->value(this->series_id(2*i,s), ip);
 		}
 
 	///	derivative of data at input at ip
@@ -131,16 +131,16 @@ class ScaleAddLinker
 
 	protected:
 	///	data input
-		std::vector<SmartPtr<IPData<TDataScale, dim> > > m_vpScaleData;
+		std::vector<SmartPtr<UserData<TDataScale, dim> > > m_vpScaleData;
 
 	///	data input casted to dependend data
-		std::vector<SmartPtr<DependentIPData<TDataScale, dim> > > m_vpScaleDependData;
+		std::vector<SmartPtr<DependentUserData<TDataScale, dim> > > m_vpScaleDependData;
 
 	///	data input
-		std::vector<SmartPtr<IPData<TData, dim> > > m_vpIPData;
+		std::vector<SmartPtr<UserData<TData, dim> > > m_vpUserData;
 
 	///	data input casted to dependend data
-		std::vector<SmartPtr<DependentIPData<TData, dim> > > m_vpDependData;
+		std::vector<SmartPtr<DependentUserData<TData, dim> > > m_vpDependData;
 };
 
 } // end namespace ug

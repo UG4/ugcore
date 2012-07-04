@@ -43,14 +43,14 @@ clear()
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
-add(SmartPtr<IPData<number, dim, bool> > func, const char* function, const char* subsets)
+add(SmartPtr<UserData<number, dim, bool> > func, const char* function, const char* subsets)
 {
 	m_vBNDNumberData.push_back(CondNumberData(func, function, subsets));
 }
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
-add(SmartPtr<IPData<number, dim> > func, const char* function, const char* subsets)
+add(SmartPtr<UserData<number, dim> > func, const char* function, const char* subsets)
 {
 	m_vNumberData.push_back(NumberData(func, function, subsets));
 }
@@ -64,7 +64,7 @@ add(number value, const char* function, const char* subsets)
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
-add(SmartPtr<IPData<MathVector<dim>, dim> > func, const char* functions, const char* subsets)
+add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions, const char* subsets)
 {
 	m_vVectorData.push_back(VectorData(func, functions, subsets));
 }
@@ -75,19 +75,19 @@ void DirichletBoundary<TDomain, TAlgebra>::
 add(const char* name, const char* function, const char* subsets)
 {
 	if(LuaUserData<number, dim>::check_callback_returns(name)){
-		SmartPtr<IPData<number, dim> > sp =
+		SmartPtr<UserData<number, dim> > sp =
 							LuaUserDataFactory<number, dim>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<number, dim, bool>::check_callback_returns(name)){
-		SmartPtr<IPData<number, dim, bool> > sp =
+		SmartPtr<UserData<number, dim, bool> > sp =
 						LuaUserDataFactory<number, dim, bool>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(name)){
-		SmartPtr<IPData<MathVector<dim>, dim> > sp =
+		SmartPtr<UserData<MathVector<dim>, dim> > sp =
 				LuaUserDataFactory<MathVector<dim>, dim>::create(name);
 		add(sp, function, subsets);
 		return;

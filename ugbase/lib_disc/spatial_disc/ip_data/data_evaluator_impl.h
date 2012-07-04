@@ -55,12 +55,12 @@ prepare_elem_loop(bool bMassPart)
 			(*m_pvElemDisc)[i]->get_export(exp)->set_function_group(m_vElemDiscFctGrp[i]);
 	}
 
-//	extract data imports and ipdatas
+//	extract data imports and userdatas
 	try{
-		extract_imports_and_ipdata(bMassPart);
+		extract_imports_and_userdata(bMassPart);
 	}
 	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
-					"Cannot extract imports and ipdata.");
+					"Cannot extract imports and userdata.");
 
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
@@ -92,12 +92,12 @@ prepare_elem_loop(bool bMassPart)
 			(*m_pvElemDisc)[i]->get_export(exp)->set_function_group(m_vElemDiscFctGrp[i]);
 	}
 
-//	extract data imports and ipdatas
+//	extract data imports and userdatas
 	try{
-		extract_imports_and_ipdata(bMassPart);
+		extract_imports_and_userdata(bMassPart);
 	}
 	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
-					"Cannot extract imports and ipdata.");
+					"Cannot extract imports and userdata.");
 
 //	set geometric type at imports
 	for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
@@ -120,10 +120,10 @@ prepare_elem_loop(bool bMassPart)
 							"Cannot set geometric object type for Export " << i);
 
 //	check, that all dependent data is ready for evaluation
-	for(size_t i = 0; i < m_vDependentIPData.size(); ++i){
+	for(size_t i = 0; i < m_vDependentUserData.size(); ++i){
 		try{
-			m_vDependentIPData[i]->check_setup();
-		}UG_CATCH_THROW("DataEvaluator::prepare_element: Dependent IPData "<<i<<
+			m_vDependentUserData[i]->check_setup();
+		}UG_CATCH_THROW("DataEvaluator::prepare_element: Dependent UserData "<<i<<
 		                " (e.g. Linker or Export) is not ready for evaluation.)");
 	}
 
@@ -169,8 +169,8 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 			for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
 				m_vMassDataImport[i]->set_dof_sizes(ind, m_vMassImpMap[i]);
 
-		for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
-			m_vDependentIPData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
+		for(size_t i = 0; i < m_vDependentUserData.size(); ++i)
+			m_vDependentUserData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
 	}
 }
 

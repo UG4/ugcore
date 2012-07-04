@@ -119,15 +119,15 @@ class DataEvaluator
 	///	returns common function group of all needed functions
 		const FunctionGroup& function_group() const {return m_commonFctGroup;}
 
-	///	clears imports and ip data and mappings betweem commonFctGrp and local
+	///	clears imports and user data and mappings betweem commonFctGrp and local
 		void clear_extracted_data_and_mappings();
 
 	///	tries to add the last entry of vTryingToAdd to the eval data
-		void add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEvalData,
-								   std::vector<SmartPtr<IIPData> >& vTryingToAdd);
+		void add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEvalData,
+								   std::vector<SmartPtr<IUserData> >& vTryingToAdd);
 
-	///	extracts imports and ipdata from IElemDiscs
-		void extract_imports_and_ipdata(bool bMassPart = false);
+	///	extracts imports and userdata from IElemDiscs
+		void extract_imports_and_userdata(bool bMassPart = false);
 
 	protected:
 	///	current elem discs
@@ -159,9 +159,9 @@ class DataEvaluator
 	////////////////////////////////
 	///	all data imports of elem discs
 		std::vector<IDataImport*> m_vAllDataImport;
-	///	data imports which are connected to non-zero derivative ip data in mass part
+	///	data imports which are connected to non-zero derivative user data in mass part
 		std::vector<IDataImport*> m_vMassDataImport;
-	///	data imports which are connected to non-zero derivative ip data in stiffness part
+	///	data imports which are connected to non-zero derivative user data in stiffness part
 		std::vector<IDataImport*> m_vStiffDataImport;
 
 	///	Function mapping for import (separated in stiff and mass part)
@@ -173,17 +173,17 @@ class DataEvaluator
 		std::vector<FunctionIndexMapping> m_vStiffImpConnMap;
 
 	////////////////////////////////
-	// 	IP Data
+	// 	UserData
 	////////////////////////////////
 
 	///	constant data
-		std::vector<SmartPtr<IIPData> > m_vConstData;
+		std::vector<SmartPtr<IUserData> > m_vConstData;
 
 	///	position dependent data
-		std::vector<SmartPtr<IIPData> > m_vPosData;
+		std::vector<SmartPtr<IUserData> > m_vPosData;
 
 	///	dependent data
-		std::vector<SmartPtr<IIPData> > m_vDependentIPData;
+		std::vector<SmartPtr<IUserData> > m_vDependentUserData;
 		std::vector<FunctionIndexMapping> m_vDependentMap;
 
 	///	exports
@@ -191,7 +191,7 @@ class DataEvaluator
 		std::vector<FunctionIndexMapping> m_vExpMap;
 
 	///	data linker
-		std::vector<SmartPtr<IIPData> > m_vDataLinker;
+		std::vector<SmartPtr<IUserData> > m_vDataLinker;
 		std::vector<FunctionIndexMapping> m_vLinkerMap;
 };
 

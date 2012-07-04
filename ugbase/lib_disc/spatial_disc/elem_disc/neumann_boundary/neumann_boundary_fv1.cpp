@@ -117,7 +117,7 @@ extract_data()
 
 template<typename TDomain>
 void NeumannBoundary<TDomain>::
-add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subsets)
+add(SmartPtr<UserData<number, dim> > data, const char* function, const char* subsets)
 {
 	m_vNumberData.push_back(NumberData(data, function, subsets));
 
@@ -126,7 +126,7 @@ add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subse
 
 template<typename TDomain>
 void NeumannBoundary<TDomain>::
-add(SmartPtr<IPData<number, dim, bool> > user, const char* function, const char* subsets)
+add(SmartPtr<UserData<number, dim, bool> > user, const char* function, const char* subsets)
 {
 	m_vBNDNumberData.push_back(BNDNumberData(user, function, subsets));
 
@@ -135,7 +135,7 @@ add(SmartPtr<IPData<number, dim, bool> > user, const char* function, const char*
 
 template<typename TDomain>
 void NeumannBoundary<TDomain>::
-add(SmartPtr<IPData<MathVector<dim>, dim> > user, const char* function, const char* subsets)
+add(SmartPtr<UserData<MathVector<dim>, dim> > user, const char* function, const char* subsets)
 {
 	m_vVectorData.push_back(VectorData(user, function, subsets));
 
@@ -146,7 +146,7 @@ template<typename TDomain>
 void NeumannBoundary<TDomain>::
 add(number val, const char* function, const char* subsets)
 {
-	SmartPtr<IPData<number, dim> > sp = CreateSmartPtr(new ConstUserNumber<dim>(val));
+	SmartPtr<UserData<number, dim> > sp = CreateSmartPtr(new ConstUserNumber<dim>(val));
 	add(sp, function, subsets);
 }
 
@@ -156,19 +156,19 @@ void NeumannBoundary<TDomain>::
 add(const char* name, const char* function, const char* subsets)
 {
 	if(LuaUserData<number, dim>::check_callback_returns(name)){
-		SmartPtr<IPData<number, dim> > sp =
+		SmartPtr<UserData<number, dim> > sp =
 							LuaUserDataFactory<number, dim>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<number, dim, bool>::check_callback_returns(name)){
-		SmartPtr<IPData<number, dim, bool> > sp =
+		SmartPtr<UserData<number, dim, bool> > sp =
 				LuaUserDataFactory<number, dim, bool>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(name)){
-		SmartPtr<IPData<MathVector<dim>, dim> > sp =
+		SmartPtr<UserData<MathVector<dim>, dim> > sp =
 				LuaUserDataFactory<MathVector<dim>, dim>::create(name);
 		add(sp, function, subsets);
 		return;

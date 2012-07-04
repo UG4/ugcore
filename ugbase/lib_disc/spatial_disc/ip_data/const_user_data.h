@@ -11,12 +11,12 @@
 #include "common/common.h"
 #include "common/math/ugmath.h"
 
-#include "lib_disc/spatial_disc/ip_data/ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/user_data.h"
 
 namespace ug {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Base class for Constant IPData
+// Base class for Constant UserData
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -28,8 +28,8 @@ namespace ug {
  *
  */
 template <typename TImpl, typename TData, int dim, typename TRet = void>
-class StdConstIPData
-	: 	public IPData<TData,dim,TRet>
+class StdConstUserData
+	: 	public UserData<TData,dim,TRet>
 {
 	public:
 		////////////////
@@ -129,7 +129,7 @@ class StdConstIPData
 		// compute
 		////////////////
 
-	///	implement as a IPData
+	///	implement as a UserData
 		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
 		{
 			for(size_t s = 0; s < this->num_series(); ++s)
@@ -162,7 +162,7 @@ class StdConstIPData
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// Constant IPData
+// Constant UserData
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -180,7 +180,7 @@ class StdConstIPData
 /// constant scalar user data
 template <int dim>
 class ConstUserNumber
-	: public StdConstIPData<ConstUserNumber<dim>, number, dim>
+	: public StdConstUserData<ConstUserNumber<dim>, number, dim>
 {
 	public:
 	///	creates empty user number
@@ -205,7 +205,7 @@ class ConstUserNumber
 /// constant vector user data
 template <int dim>
 class ConstUserVector
-	: public StdConstIPData<ConstUserVector<dim>, MathVector<dim>, dim>
+	: public StdConstUserData<ConstUserVector<dim>, MathVector<dim>, dim>
 {
 	public:
 	///	Constructor
@@ -233,7 +233,7 @@ class ConstUserVector
 /// constant matrix user data
 template <int dim>
 class ConstUserMatrix
-	: public StdConstIPData<ConstUserMatrix<dim>, MathMatrix<dim, dim>, dim>
+	: public StdConstUserData<ConstUserMatrix<dim>, MathMatrix<dim, dim>, dim>
 {
 	public:
 	///	Constructor
@@ -279,7 +279,7 @@ class ConstUserMatrix
 /// constant tensor user data
 template <int TRank, int dim>
 class ConstUserTensor
-	: public StdConstIPData<ConstUserTensor<TRank,dim>, MathTensor<TRank, dim>, dim>
+	: public StdConstUserData<ConstUserTensor<TRank,dim>, MathTensor<TRank, dim>, dim>
 {
 	public:
 	///	Constructor
@@ -303,28 +303,28 @@ class ConstUserTensor
 
 /// creates user data of desired type
 template <typename TData, int dim>
-SmartPtr<IPData<TData,dim> > CreateConstUserData(number val, TData dummy);
+SmartPtr<UserData<TData,dim> > CreateConstUserData(number val, TData dummy);
 
 template <int dim>
-inline SmartPtr<IPData<number,dim> > CreateConstUserData(number val, number)
+inline SmartPtr<UserData<number,dim> > CreateConstUserData(number val, number)
 {
 	return CreateSmartPtr(new ConstUserNumber<dim>(val));
 };
 
 template <int dim>
-SmartPtr<IPData<MathVector<dim>,dim> > CreateConstUserData(number val, MathVector<dim>)
+SmartPtr<UserData<MathVector<dim>,dim> > CreateConstUserData(number val, MathVector<dim>)
 {
 	return CreateSmartPtr(new ConstUserVector<dim>(val));
 }
 
 template <int dim>
-SmartPtr<IPData<MathMatrix<dim,dim>,dim> > CreateConstUserData(number val, MathMatrix<dim,dim>)
+SmartPtr<UserData<MathMatrix<dim,dim>,dim> > CreateConstUserData(number val, MathMatrix<dim,dim>)
 {
 	return CreateSmartPtr(new ConstUserMatrix<dim>(val));
 }
 
 template <int dim>
-SmartPtr<IPData<MathTensor<4,dim>,dim> > CreateConstUserData(number val, MathTensor<4,dim>)
+SmartPtr<UserData<MathTensor<4,dim>,dim> > CreateConstUserData(number val, MathTensor<4,dim>)
 {
 	return CreateSmartPtr(new ConstUserTensor<4,dim>(val));
 }

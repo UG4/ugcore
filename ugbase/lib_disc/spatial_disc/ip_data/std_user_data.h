@@ -1,5 +1,5 @@
 /*
- * std_ip_data.h
+ * std_user_data.h
  *
  *  Created on: 03.07.2012
  *      Author: andreasvogel
@@ -12,13 +12,13 @@
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/common/groups_util.h"
 
-#include "ip_data.h"
+#include "user_data.h"
 #include "data_export.h"
 
 namespace ug{
 
 ///////////////////////////////////////////////////////////////////////////////
-// Base class for Position-Time-IPData
+// Base class for Position-Time-UserData
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -30,8 +30,8 @@ namespace ug{
  *
  */
 template <typename TImpl, typename TData, int dim, typename TRet = void>
-class StdPositionIPData
-	: 	public IPData<TData,dim,TRet>
+class StdPositionUserData
+	: 	public UserData<TData,dim,TRet>
 {
 	public:
 		////////////////
@@ -129,7 +129,7 @@ class StdPositionIPData
 				getImpl().evaluate(vValue[ip], vGlobIP[ip], time, si);
 		}
 
-	///	implement as a IPData
+	///	implement as a UserData
 		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
 		{
 			const number t = this->time();
@@ -170,7 +170,7 @@ class StdPositionIPData
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Base class for Export IPData
+// Base class for Export UserData
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -372,7 +372,7 @@ class StdDataExport
 
 namespace ug{
 ///////////////////////////////////////////////////////////////////////////////
-// Base class for Linker IPData
+// Base class for Linker UserData
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -496,8 +496,8 @@ class StdDataLinker
 	///	returns that a grid function is needed for evaluation
 		virtual bool requires_grid_fct() const
 		{
-			for(size_t i = 0; i < this->m_vpIIPData.size(); ++i)
-				if(this->m_vpIIPData[i]->requires_grid_fct())
+			for(size_t i = 0; i < this->m_vpIUserData.size(); ++i)
+				if(this->m_vpIUserData[i]->requires_grid_fct())
 					return true;
 			return false;
 		}
@@ -506,16 +506,16 @@ class StdDataLinker
 		virtual bool is_continuous() const
 		{
 			bool bRet = true;
-			for(size_t i = 0; i < this->m_vpIIPData.size(); ++i)
-				bRet &= this->m_vpIIPData[i]->is_continuous();
+			for(size_t i = 0; i < this->m_vpIUserData.size(); ++i)
+				bRet &= this->m_vpIUserData[i]->is_continuous();
 			return bRet;
 		}
 
 	///	sets the associated function pattern
 		virtual void set_function_pattern(const FunctionPattern& fctPatt)
 		{
-			for(size_t i = 0; i < this->m_vpIIPData.size(); ++i)
-				this->m_vpIIPData[i]->set_function_pattern(fctPatt);
+			for(size_t i = 0; i < this->m_vpIUserData.size(); ++i)
+				this->m_vpIUserData[i]->set_function_pattern(fctPatt);
 		}
 
 	protected:

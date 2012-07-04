@@ -13,7 +13,7 @@
 #include "lib_disc/spatial_disc/ip_data/data_linker.h"
 #include "lib_disc/spatial_disc/ip_data/user_function.h"
 #include "lib_disc/spatial_disc/ip_data/scale_add_linker.h"
-#include "lib_disc/spatial_disc/ip_data/std_ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/std_user_data.h"
 
 using namespace std;
 
@@ -353,10 +353,10 @@ class DarcyVelocityLinker
 
 	public:
 	///	set permeability import
-		void set_permeability(SmartPtr<IPData<MathMatrix<dim,dim>, dim> > data)
+		void set_permeability(SmartPtr<UserData<MathMatrix<dim,dim>, dim> > data)
 		{
 			m_spPermeability = data;
-			m_spDPermeability = data.template cast_dynamic<DependentIPData<MathMatrix<dim,dim>, dim> >();
+			m_spDPermeability = data.template cast_dynamic<DependentUserData<MathMatrix<dim,dim>, dim> >();
 			base_type::set_input(_K_, data);
 		}
 
@@ -366,10 +366,10 @@ class DarcyVelocityLinker
 		}
 
 	///	set permeability import
-		void set_viscosity(SmartPtr<IPData<number, dim> > data)
+		void set_viscosity(SmartPtr<UserData<number, dim> > data)
 		{
 			m_spViscosity = data;
-			m_spDViscosity = data.template cast_dynamic<DependentIPData<number, dim> >();
+			m_spDViscosity = data.template cast_dynamic<DependentUserData<number, dim> >();
 			base_type::set_input(_MU_, data);
 		}
 
@@ -379,54 +379,54 @@ class DarcyVelocityLinker
 		}
 
 	///	set density import
-		void set_density(SmartPtr<IPData<number, dim> > data)
+		void set_density(SmartPtr<UserData<number, dim> > data)
 		{
 			m_spDensity = data;
-			m_spDDensity = data.template cast_dynamic<DependentIPData<number, dim> >();
+			m_spDDensity = data.template cast_dynamic<DependentUserData<number, dim> >();
 			base_type::set_input(_RHO_, data);
 		}
 
 	///	set gravity import
-		void set_gravity(SmartPtr<IPData<MathVector<dim>, dim> > data)
+		void set_gravity(SmartPtr<UserData<MathVector<dim>, dim> > data)
 		{
 			m_spGravity = data;
-			m_spDGravity = data.template cast_dynamic<DependentIPData<MathVector<dim>, dim> >();
+			m_spDGravity = data.template cast_dynamic<DependentUserData<MathVector<dim>, dim> >();
 			base_type::set_input(_G_, data);
 		}
 
 	///	set pressure gradient import
-		void set_pressure_gradient(SmartPtr<IPData<MathVector<dim>, dim> > data)
+		void set_pressure_gradient(SmartPtr<UserData<MathVector<dim>, dim> > data)
 		{
 			m_spPressureGrad = data;
-			m_spDPressureGrad = data.template cast_dynamic<DependentIPData<MathVector<dim>, dim> >();
+			m_spDPressureGrad = data.template cast_dynamic<DependentUserData<MathVector<dim>, dim> >();
 			base_type::set_input(_DP_, data);
 		}
 
 	protected:
 	///	import for permeability
 		static const size_t _K_ = 0;
-		SmartPtr<IPData<MathMatrix<dim,dim>, dim> > m_spPermeability;
-		SmartPtr<DependentIPData<MathMatrix<dim,dim>, dim> > m_spDPermeability;
+		SmartPtr<UserData<MathMatrix<dim,dim>, dim> > m_spPermeability;
+		SmartPtr<DependentUserData<MathMatrix<dim,dim>, dim> > m_spDPermeability;
 
 	///	import for viscosity
 		static const size_t _MU_ = 1;
-		SmartPtr<IPData<number, dim> > m_spViscosity;
-		SmartPtr<DependentIPData<number, dim> > m_spDViscosity;
+		SmartPtr<UserData<number, dim> > m_spViscosity;
+		SmartPtr<DependentUserData<number, dim> > m_spDViscosity;
 
 	///	import for density
 		static const size_t _RHO_ = 2;
-		SmartPtr<IPData<number, dim> > m_spDensity;
-		SmartPtr<DependentIPData<number, dim> > m_spDDensity;
+		SmartPtr<UserData<number, dim> > m_spDensity;
+		SmartPtr<DependentUserData<number, dim> > m_spDDensity;
 
 	///	import for gravity
 		static const size_t _G_ = 3;
-		SmartPtr<IPData<MathVector<dim>, dim> > m_spGravity;
-		SmartPtr<DependentIPData<MathVector<dim>, dim> > m_spDGravity;
+		SmartPtr<UserData<MathVector<dim>, dim> > m_spGravity;
+		SmartPtr<DependentUserData<MathVector<dim>, dim> > m_spDGravity;
 
 	///	import for pressure gradient
 		static const size_t _DP_ = 4;
-		SmartPtr<IPData<MathVector<dim>, dim> > m_spPressureGrad;
-		SmartPtr<DependentIPData<MathVector<dim>, dim> > m_spDPressureGrad;
+		SmartPtr<UserData<MathVector<dim>, dim> > m_spPressureGrad;
+		SmartPtr<DependentUserData<MathVector<dim>, dim> > m_spDPressureGrad;
 };
 
 
@@ -436,14 +436,14 @@ void RegisterUserDataType(Registry& reg, string grp)
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
 
-	string type = ip_data_traits<TData>::name();
+	string type = user_data_traits<TData>::name();
 
 //	User"Type"
 //	NOTE: For better readability this class is named User"Type"
 //	      in vrl and lua. E.g. UserNumber, UserVector, ...
 	{
-		typedef IPData<TData, dim> T;
-		typedef IIPData TBase1;
+		typedef UserData<TData, dim> T;
+		typedef IUserData TBase1;
 		string name = string("User").append(type).append(dimSuffix);
 		reg.add_class_<T,TBase1>(name, grp)
 			.add_method("get_dim", &T::get_dim)
@@ -455,26 +455,26 @@ void RegisterUserDataType(Registry& reg, string grp)
 //	NOTE: For better readability this class is named CondUser"Type"
 //	 	  in vrl and lua. E.g. CondUserNumber, CondUserVector, ...
 	{
-		typedef IPData<TData, dim, bool> T;
-		typedef IIPData TBase1;
+		typedef UserData<TData, dim, bool> T;
+		typedef IUserData TBase1;
 		string name = string("CondUser").append(type).append(dimSuffix);
 		reg.add_class_<T,TBase1>(name, grp);
 		reg.add_class_to_group(name, string("CondUser").append(type), dimTag);
 	}
 
-//	DependentIPData"Type"
+//	DependentUserData"Type"
 	{
-		typedef DependentIPData<TData, dim> T;
-		typedef IPData<TData, dim> TBase;
-		string name = string("DependentIPData").append(type).append(dimSuffix);
+		typedef DependentUserData<TData, dim> T;
+		typedef UserData<TData, dim> TBase;
+		string name = string("DependentUserData").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase >(name, grp);
-		reg.add_class_to_group(name, string("DependentIPData").append(type), dimTag);
+		reg.add_class_to_group(name, string("DependentUserData").append(type), dimTag);
 	}
 
 //	DataLinker"Type"
 	{
 		typedef DataLinker<TData, dim> T;
-		typedef DependentIPData<TData, dim> TBase;
+		typedef DependentUserData<TData, dim> TBase;
 		string name = string("DataLinker").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase >(name, grp);
 		reg.add_class_to_group(name, string("DataLinker").append(type), dimTag);
@@ -486,9 +486,9 @@ void RegisterUserDataType(Registry& reg, string grp)
 		typedef DataLinker<TData, dim> TBase;
 		string name = string("ScaleAddLinker").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number,dim> > , SmartPtr<IPData<TData,dim> >)>(&T::add))
-			.add_method("add", static_cast<void (T::*)(number , SmartPtr<IPData<TData,dim> >)>(&T::add))
-			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number,dim> > , number)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number,dim> > , SmartPtr<UserData<TData,dim> >)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(number , SmartPtr<UserData<TData,dim> >)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number,dim> > , number)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(number,number)>(&T::add))
 			.add_constructor()
 			.template add_constructor<void (*)(const ScaleAddLinker<TData, dim, number>&)>()
@@ -497,7 +497,7 @@ void RegisterUserDataType(Registry& reg, string grp)
 	}
 }
 
-namespace UserData{
+namespace UserDataBridge{
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -529,7 +529,7 @@ static void Dimension(Registry& reg, string grp)
 //	ConstUserNumber
 	{
 		typedef ConstUserNumber<dim> T;
-		typedef IPData<number, dim> TBase;
+		typedef UserData<number, dim> TBase;
 		string name = string("ConstUserNumber").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -543,7 +543,7 @@ static void Dimension(Registry& reg, string grp)
 //	ConstUserVector
 	{
 		typedef ConstUserVector<dim> T;
-		typedef IPData<MathVector<dim>, dim> TBase;
+		typedef UserData<MathVector<dim>, dim> TBase;
 		string name = string("ConstUserVector").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -558,7 +558,7 @@ static void Dimension(Registry& reg, string grp)
 //	ConstUserMatrix
 	{
 		typedef ConstUserMatrix<dim> T;
-		typedef IPData<MathMatrix<dim, dim>, dim> TBase;
+		typedef UserData<MathMatrix<dim, dim>, dim> TBase;
 		string name = string("ConstUserMatrix").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -580,10 +580,10 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("set_density", &T::set_density)
 			.add_method("set_gravity", &T::set_gravity)
 			.add_method("set_permeability", static_cast<void (T::*)(number)>(&T::set_permeability))
-			.add_method("set_permeability", static_cast<void (T::*)(SmartPtr<IPData<MathMatrix<dim,dim>,dim> >)>(&T::set_permeability))
+			.add_method("set_permeability", static_cast<void (T::*)(SmartPtr<UserData<MathMatrix<dim,dim>,dim> >)>(&T::set_permeability))
 			.add_method("set_pressure_gradient", &T::set_pressure_gradient)
 			.add_method("set_viscosity", static_cast<void (T::*)(number)>(&T::set_viscosity))
-			.add_method("set_viscosity", static_cast<void (T::*)(SmartPtr<IPData<number,dim> >)>(&T::set_viscosity))
+			.add_method("set_viscosity", static_cast<void (T::*)(SmartPtr<UserData<number,dim> >)>(&T::set_viscosity))
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);
@@ -601,7 +601,7 @@ static void Dimension(Registry& reg, string grp)
 static void Common(Registry& reg, string grp)
 {
 	reg.add_class_<IFunction<number> >("IFunctionNumber", grp);
-	reg.add_class_<IIPData>("IIPData", grp);
+	reg.add_class_<IUserData>("IUserData", grp);
 }
 
 }; // end Functionality
@@ -611,7 +611,7 @@ void RegisterBridge_UserData(Registry& reg, string grp)
 {
 //	get group string
 	grp.append("/Discretization/SpatialDisc/UserData");
-	typedef UserData::Functionality Functionality;
+	typedef UserDataBridge::Functionality Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);

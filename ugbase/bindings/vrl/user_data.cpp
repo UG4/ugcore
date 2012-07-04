@@ -10,8 +10,8 @@
 #include <sstream>
 #include <boost/function.hpp>
 #include <jni.h>
-#include "lib_disc/spatial_disc/ip_data/ip_data.h"
-#include "lib_disc/spatial_disc/ip_data/std_ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/user_data.h"
+#include "lib_disc/spatial_disc/ip_data/std_user_data.h"
 
 namespace ug {
 namespace vrl {
@@ -187,7 +187,7 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 
 template <typename TData, int dim>
 class VRLUserData
-	: public StdPositionIPData<VRLUserData<TData, dim>, TData, dim>
+	: public StdPositionUserData<VRLUserData<TData, dim>, TData, dim>
 {
 	protected:
 		static jobject compileUserDataString(JNIEnv *env, const char* s)
@@ -311,7 +311,7 @@ class VRLUserData
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int dim>
-class VRLCondUserNumber : public IPData<number, dim, bool>
+class VRLCondUserNumber : public UserData<number, dim, bool>
 {
 protected:
 	jdouble condData2Double(JNIEnv *env, jobject obj) const
@@ -448,7 +448,7 @@ public:
 	}
 
 /// Base class type
-	typedef IPData<number, dim, bool> base_type;
+	typedef UserData<number, dim, bool> base_type;
 
 	using base_type::num_series;
 	using base_type::num_ip;
@@ -498,7 +498,7 @@ private:
 template <typename TData>
 class PrintUserData2d {
 public:
-	void set(SmartPtr<IPData<TData, 2> > user) {m_spNumber = user;}
+	void set(SmartPtr<UserData<TData, 2> > user) {m_spNumber = user;}
 
 	static std::string dataname()
 	{
@@ -526,7 +526,7 @@ public:
 	}
 
 private:
-	SmartPtr<IPData<TData, 2> > m_spNumber;
+	SmartPtr<UserData<TData, 2> > m_spNumber;
 };
 
 template <typename TData>
@@ -544,7 +544,7 @@ public:
 		return ss.str();
 	}
 
-	void set(SmartPtr<IPData<number, 2, bool> > user) {m_spData = user;}
+	void set(SmartPtr<UserData<number, 2, bool> > user) {m_spData = user;}
 
 	std::string print(number x, number y, number time, int si)
 	{
@@ -567,7 +567,7 @@ public:
 	}
 
 private:
-	SmartPtr<IPData<number, 2, bool> > m_spData;
+	SmartPtr<UserData<number, 2, bool> > m_spData;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -579,7 +579,7 @@ void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 	//	VRLUserType
 	{
 		typedef VRLUserData<TData, dim> T;
-		typedef IPData<TData, dim> TBase;
+		typedef UserData<TData, dim> TBase;
 		std::stringstream options;
 		options << "Input:|user-data|dim=" << T::retArrayDim << ";"
 				<< "params=["<<T::params()<<"];";
@@ -613,7 +613,7 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 	//	VRLCondUserNumber
 	{
 		typedef VRLCondUserNumber<dim> T;
-		typedef IPData<number, dim, bool> TBase;
+		typedef UserData<number, dim, bool> TBase;
 		std::stringstream options;
 		options << "Input:|cond-user-data|params=["<<T::params()<<"];";
 		reg.add_class_<T, TBase>(T::name(), grp)

@@ -41,16 +41,16 @@ class IDataExport
  * A DataExport is user data produced by an element discretization.
  */
 template <typename TData, int dim>
-class DataExport : 	public DependentIPData<TData, dim>,
+class DataExport : 	public DependentUserData<TData, dim>,
 					public IDataExport
 {
-  using DependentIPData<TData, dim>::compute;
+  using DependentUserData<TData, dim>::compute;
 
 	public:
 	///	default constructor
 		DataExport();
 
-	///	implement compute() method of IIPData
+	///	implement compute() method of IUserData
 		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false);
 
 	///	sets the geometric object type
@@ -77,23 +77,23 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		void clear() {m_vDependData.clear();}
 
 	///	add data dependency
-		void add_needed_data(SmartPtr<IIPData> data);
+		void add_needed_data(SmartPtr<IUserData> data);
 
 	///	remove needed data
-		void remove_needed_data(SmartPtr<IIPData> data);
+		void remove_needed_data(SmartPtr<IUserData> data);
 
 	///	number of other Data this data depends on
 		virtual size_t num_needed_data() const {return m_vDependData.size();}
 
 	///	return needed data
-		virtual SmartPtr<IIPData> needed_data(size_t i) {return m_vDependData.at(i);}
+		virtual SmartPtr<IUserData> needed_data(size_t i) {return m_vDependData.at(i);}
 
 	///	returns if the dependent data is ready for evaluation
 		virtual void check_setup() const;
 
 	///	sets the function group
 		virtual void set_function_group(const FunctionGroup& fctGrp)
-			{return IIPData::set_function_group(fctGrp);}
+			{return IUserData::set_function_group(fctGrp);}
 
 	protected:
 		template <typename T, int refDim>
@@ -113,7 +113,7 @@ class DataExport : 	public DependentIPData<TData, dim>,
 		CompFct m_vCompFct[NUM_REFERENCE_OBJECTS];
 
 	///	data the export depends on
-		std::vector<SmartPtr<IIPData> > m_vDependData;
+		std::vector<SmartPtr<IUserData> > m_vDependData;
 };
 
 } // end namespace ug

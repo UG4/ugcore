@@ -16,7 +16,7 @@
 #include "common/util/string_util.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/domain.h"
-#include "lib_disc/spatial_disc/ip_data/ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/user_data.h"
 
 namespace ug{
 
@@ -285,8 +285,8 @@ class VTKOutput
 	 * \param[in]	name		name that will appear in the vtk file for the data
 	 */
 	/// \{
-		void select_nodal(SmartPtr<IPData<number, TDim> > spData, const char* name);
-		void select_nodal(SmartPtr<IPData<MathVector<TDim>, TDim> > spData, const char* name);
+		void select_nodal(SmartPtr<UserData<number, TDim> > spData, const char* name);
+		void select_nodal(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* name);
 	/// \}
 
 	///	selects a element data value to be written
@@ -298,8 +298,8 @@ class VTKOutput
 	 * \param[in]	name		name that will appear in the vtk file for the data
 	 */
 	/// \{
-		void select_element(SmartPtr<IPData<number, TDim> > spData, const char* name);
-		void select_element(SmartPtr<IPData<MathVector<TDim>, TDim> > spData, const char* name);
+		void select_element(SmartPtr<UserData<number, TDim> > spData, const char* name);
+		void select_element(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* name);
 	/// \}
 
 	/**
@@ -624,11 +624,11 @@ class VTKOutput
 		template <typename TElem, typename TFunction, typename TData>
 		void write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u,
 		                                  number time,
-		                                  SmartPtr<IPData<TData, TDim> > spData,
+		                                  SmartPtr<UserData<TData, TDim> > spData,
 		                                  Grid& grid, int si);
 		template <typename TFunction, typename TData>
 		void write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
-		                      SmartPtr<IPData<TData, TDim> > spData,
+		                      SmartPtr<UserData<TData, TDim> > spData,
 		                      const int numCmp,
 		                      const std::string& name,
 		                      Grid& grid, int si, int dim, int numVert);
@@ -680,11 +680,11 @@ class VTKOutput
 	/// \{
 		template <typename TElem, typename TFunction, typename TData>
 		void write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
-										  SmartPtr<IPData<TData, TDim> > spData,
+										  SmartPtr<UserData<TData, TDim> > spData,
 										  Grid& grid, int si);
 		template <typename TFunction, typename TData>
 		void write_cell_data(VTKFileWriter& File, TFunction& u, number time,
-							  SmartPtr<IPData<TData, TDim> > spData,
+							  SmartPtr<UserData<TData, TDim> > spData,
 							  const int numCmp,
 							  const std::string& name,
 							  Grid& grid, int si, int dim, int numElem);
@@ -737,12 +737,12 @@ class VTKOutput
 		std::vector<std::pair<std::string, std::string> > m_vSymbFctElem;
 
 	///	scheduled scalar data to be printed
-		std::vector<std::pair<SmartPtr<IPData<number, TDim> >,std::string> > m_vScalarNodalData;
-		std::vector<std::pair<SmartPtr<IPData<number, TDim> >,std::string> > m_vScalarElemData;
+		std::vector<std::pair<SmartPtr<UserData<number, TDim> >,std::string> > m_vScalarNodalData;
+		std::vector<std::pair<SmartPtr<UserData<number, TDim> >,std::string> > m_vScalarElemData;
 
 	///	scheduled vector data to be printed
-		std::vector<std::pair<SmartPtr<IPData<MathVector<TDim>, TDim> >,std::string> > m_vVectorNodalData;
-		std::vector<std::pair<SmartPtr<IPData<MathVector<TDim>, TDim> >,std::string> > m_vVectorElemData;
+		std::vector<std::pair<SmartPtr<UserData<MathVector<TDim>, TDim> >,std::string> > m_vVectorNodalData;
+		std::vector<std::pair<SmartPtr<UserData<MathVector<TDim>, TDim> >,std::string> > m_vVectorElemData;
 
 	///	map storing the time points
 		std::map<std::string, std::vector<number> > m_mTimestep;

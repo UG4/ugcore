@@ -88,7 +88,7 @@ class IElemDisc
 		std::vector<std::string> m_vSubset;
 
 	////////////////////////////
-	// IP Data and Coupling
+	// UserData and Coupling
 	////////////////////////////
 	public:
 	///	registers a data import

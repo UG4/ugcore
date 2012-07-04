@@ -98,11 +98,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("DirichletBoundary").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim, bool> >, const char*, const char*)>(&T::add),
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*, const char*)>(&T::add),
 						"", "Value#Function#Subsets")
-			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<number, dim> >, const char*, const char*)>(&T::add),
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*, const char*)>(&T::add),
 						"", "Value#Function#Subsets")
-			.add_method("add", static_cast<void (T::*)(SmartPtr<IPData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add),
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add),
 						"", "Vector#Functions#Subsets")
 			.add_method("add",static_cast<void (T::*)(number, const char*, const char*)>(&T::add),
 						"", "ConstantValue#Function#Subsets")

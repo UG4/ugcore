@@ -18,8 +18,8 @@ extern "C" {
 
 #include "common/common.h"
 #include "common/math/ugmath.h"
-#include "lib_disc/spatial_disc/ip_data/ip_data.h"
-#include "lib_disc/spatial_disc/ip_data/std_ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/user_data.h"
+#include "lib_disc/spatial_disc/ip_data/std_user_data.h"
 #include "lib_disc/spatial_disc/ip_data/user_function.h"
 #include "lib_disc/spatial_disc/ip_data/data_linker.h"
 
@@ -39,7 +39,7 @@ class LuaUserDataFactory;
 
 /// provides data specified in the lua script
 /**
- * This class implements the IPData interface to provide data at arbitrary
+ * This class implements the UserData interface to provide data at arbitrary
  * points. A Lua callback is used to evaluate the data.
  *
  * NOTE: If the LuaUserData has been created by the LuaUserDataFactory, then
@@ -48,7 +48,7 @@ class LuaUserDataFactory;
  */
 template <typename TData, int dim, typename TRet = void>
 class LuaUserData
-	: public StdPositionIPData<LuaUserData<TData, dim, TRet>, TData, dim, TRet>
+	: public StdPositionUserData<LuaUserData<TData, dim, TRet>, TData, dim, TRet>
 {
 	///	friend class
 		friend class LuaUserDataFactory<TData, dim, TRet>;
@@ -199,7 +199,7 @@ class LuaUserFunction
 
 	///	set input i
 	/// \{
-		void set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data);
+		void set_input(size_t i, SmartPtr<UserData<TDataIn, dim> > data);
 		void set_input(size_t i, number val);
 	///	\}
 
@@ -266,10 +266,10 @@ class LuaUserFunction
 
 	protected:
 	///	data input
-		std::vector<SmartPtr<IPData<TDataIn, dim> > > m_vpIPData;
+		std::vector<SmartPtr<UserData<TDataIn, dim> > > m_vpUserData;
 
 	///	data input casted to dependend data
-		std::vector<SmartPtr<DependentIPData<TDataIn, dim> > > m_vpDependData;
+		std::vector<SmartPtr<DependentUserData<TDataIn, dim> > > m_vpDependData;
 };
 
 

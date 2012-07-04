@@ -123,7 +123,7 @@ clear_extracted_data_and_mappings()
 	m_vConstData.clear();
 	m_vPosData.clear();
 
-	m_vDependentIPData.clear();
+	m_vDependentUserData.clear();
 	m_vDependentMap.clear();
 
 	m_vDataExport.clear();
@@ -133,14 +133,14 @@ clear_extracted_data_and_mappings()
 	m_vDataLinker.clear();
 }
 
-void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEvalData,
-                                          std::vector<SmartPtr<IIPData> >& vTryingToAdd)
+void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEvalData,
+                                          std::vector<SmartPtr<IUserData> >& vTryingToAdd)
 {
 //	if empty, we're done
 	if(vTryingToAdd.empty()) return;
 
 //	search for element in already scheduled data
-	std::vector<SmartPtr<IIPData> >::iterator it, itEnd;
+	std::vector<SmartPtr<IUserData> >::iterator it, itEnd;
 	it = find(vEvalData.begin(), vEvalData.end(), vTryingToAdd.back());
 
 //	if found, skip this data
@@ -159,10 +159,10 @@ void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEval
 //	if found, return error of circle dependency
 	if(it != itEnd)
 		UG_THROW("DataEvaluator::add_data_to_eval_data:"
-						" Circle dependency of data detected for IP Data.");
+						" Circle dependency of data detected for UserData.");
 
 //	add all dependent datas
-	SmartPtr<IIPData> data = vTryingToAdd.back();
+	SmartPtr<IUserData> data = vTryingToAdd.back();
 	for(size_t i = 0; i < data->num_needed_data(); ++i)
 	{
 	//	add each data separately
@@ -177,28 +177,28 @@ void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IIPData> >& vEval
 	vTryingToAdd.pop_back();
 }
 
-void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
+void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 {
 //	check that elem disc given
 	if(m_pvElemDisc == NULL)
-		UG_THROW("DataEvaluator::extract_imports_and_ipdata: No vector"
+		UG_THROW("DataEvaluator::extract_imports_and_userdata: No vector"
 				" of IElemDisc* set. Cannot extract imports and exports.");
 
-//	clear imports and ipdata
+//	clear imports and userdata
 	clear_extracted_data_and_mappings();
 
-//	queue for all ip data needed
-	std::vector<SmartPtr<IIPData> > vEvalData;
-	std::vector<SmartPtr<IIPData> > vTryingToAdd;
+//	queue for all user data needed
+	std::vector<SmartPtr<IUserData> > vEvalData;
+	std::vector<SmartPtr<IUserData> > vTryingToAdd;
 
-//	In the next loop we extract all need IPData:
+//	In the next loop we extract all need UserData:
 //	We only process the DataImport if there has been set data to the import
 //	since otherwise no evaluation is needed.
-//	If there is data given, we get the connected IPData and add it to the vector
-//	of EvaluationData. This simply adds the IPData to the queue for IPData, if
-//	the data does not depend on other Data. But if the IPData itself has
-//	dependencies to other IPData, this data is added first (in a recursive
-//	process). Of coarse, no circle dependency between IPData is allowed.
+//	If there is data given, we get the connected UserData and add it to the vector
+//	of EvaluationData. This simply adds the UserData to the queue for UserData, if
+//	the data does not depend on other Data. But if the UserData itself has
+//	dependencies to other UserData, this data is added first (in a recursive
+//	process). Of coarse, no circle dependency between UserData is allowed.
 
 //	loop elem discs
 	for(size_t d = 0; d < m_pvElemDisc->size(); ++d)
@@ -222,18 +222,18 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			try{
 				add_data_to_eval_data(vEvalData, vTryingToAdd);
 			}
-			UG_CATCH_THROW("DataEvaluator::extract_imports_and_ipdata:"
-						" Circle dependency of data detected for IP Data.");
+			UG_CATCH_THROW("DataEvaluator::extract_imports_and_userdata:"
+						" Circle dependency of data detected for UserData.");
 
 		//	check that queue is empty now, else some internal error occured
 			if(!vTryingToAdd.empty())
-				UG_THROW("DataEvaluator::extract_imports_and_ipdata:"
-						" Internal Error, IPData queue not empty after adding.");
+				UG_THROW("DataEvaluator::extract_imports_and_userdata:"
+						" Internal Error, UserData queue not empty after adding.");
 		}
 	}
 
 //	Now, we have processed all imports, that must be evaluated and have a long
-//	vector of IPData that is connected to those imports. The IPData is already
+//	vector of UserData that is connected to those imports. The UserData is already
 //	sorted in this way: Data that depends on other data appears after the data
 //	it depends on. This is important since we will schedule now the data for
 //	evaluation and the data, that is needed by other data, will be computed
@@ -241,11 +241,11 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 //	must be sure that the data they depend on has already a correct FunctionGroup
 //	set. This all is ensured by the (already produced) correct ordering.
 //
-//	In the next loop we process all IPData, that will be evaluated during
+//	In the next loop we process all UserData, that will be evaluated during
 //	assembling (i.e. is connected to an Import). First, we check if the data
 //	is constant. If so simply add it the the Constant Data vector; nothing more
 //	has to be done here. Else we check if the data depends on the primary
-//	unknowns. If this is not the case, the IPData must be a Position-dependent
+//	unknowns. If this is not the case, the UserData must be a Position-dependent
 //	data, but not constant. Thus, schedule it at the Position Data vector.
 //	If the data depends on the primary unknowns we must proceed as follows:
 //	First, we update the FunctionGroup of the Data, since it could be a linker
@@ -254,11 +254,11 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 //	mapping between the functions the linker depends on and the common Function
 //	Group.
 
-//	loop all needed ip data and group it
+//	loop all needed user data and group it
 	for(size_t i = 0; i < vEvalData.size(); ++i)
 	{
-	//	get the ip data
-		SmartPtr<IIPData> ipData = vEvalData[i];
+	//	get the user data
+		SmartPtr<IUserData> ipData = vEvalData[i];
 
 	//	detect constant import
 		if(ipData->constant_data())
@@ -277,18 +277,18 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 		}
 
 	//	cast to dependent data
-		SmartPtr<IIPData> dependData = ipData;
+		SmartPtr<IUserData> dependData = ipData;
 
 	//	check success
 		if(!dependData.valid())
-			UG_THROW("DataEvaluator::extract_imports_and_ipdata:"
+			UG_THROW("DataEvaluator::extract_imports_and_userdata:"
 					" Data seems dependent, but cast failed.");
 
 	//	update function group of dependent data
 		try{
 			dependData->update_function_group();
 		}
-		UG_CATCH_THROW("DataEvaluator::extract_imports_and_ipdata:"
+		UG_CATCH_THROW("DataEvaluator::extract_imports_and_userdata:"
 				     	" Cannot update FunctinoGroup of IDependentData.");
 
 	//	create FuncMap
@@ -297,14 +297,14 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			CreateFunctionIndexMapping(map,
 		                               dependData->function_group(),
 									   m_commonFctGroup);
-		}UG_CATCH_THROW("'DataEvaluator::extract_imports_and_ipdata':"
+		}UG_CATCH_THROW("'DataEvaluator::extract_imports_and_userdata':"
 						"Cannot create Function Index Mapping for IDependData.");
 
-	//	now we have to remember the mapping and schedule the dependent ipdata for
+	//	now we have to remember the mapping and schedule the dependent userdata for
 	//	evaluation at the correct queue
 
 	//	save as dependent data
-		m_vDependentIPData.push_back(dependData);
+		m_vDependentUserData.push_back(dependData);
 		m_vDependentMap.push_back(map);
 
 	//	cast to data export
@@ -333,7 +333,7 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 //	In a second loop over the data imports, we schedule the DataImports for
 //	evaluation and compute the correct FunctionMapping for the linearization
 //	of the defect and the Data, the Import is connected to:
-//	If the IPData does not depend on the primary unknowns, we're done. Else
+//	If the UserData does not depend on the primary unknowns, we're done. Else
 //	we have to setup the Function mappings between the common function group
 //	and the DataImport-FunctionGroup. This is simply the same function map as
 //	for the element discretization, since the DataImport depends by definition
@@ -361,11 +361,11 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 			if(iimp->zero_derivative()) continue;
 
 		//	get and cast dependent data
-			SmartPtr<IIPData> dependData = iimp->data();
+			SmartPtr<IUserData> dependData = iimp->data();
 
 		//	check success
 			if(!dependData.valid())
-				UG_THROW("DataEvaluator::extract_imports_and_ipdata:"
+				UG_THROW("DataEvaluator::extract_imports_and_userdata:"
 						" Data seems dependent, but cast failed.");
 
 		//	create FuncMap for data
@@ -376,7 +376,7 @@ void DataEvaluator::extract_imports_and_ipdata(bool bMassPart)
 				CreateFunctionIndexMapping(map,
 										   dependData->function_group(),
 										   m_commonFctGroup);
-			}UG_CATCH_THROW("'DataEvaluator::extract_imports_and_ipdata':"
+			}UG_CATCH_THROW("'DataEvaluator::extract_imports_and_userdata':"
 							"Cannot create Function Index Mapping for DependentData.");
 
 		//	check if data is located in mass part or stiffness part
@@ -443,8 +443,8 @@ void DataEvaluator::set_time(const number time)
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
 		m_vPosData[i]->set_time(time);
 
-	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
-		m_vDependentIPData[i]->set_time(time);
+	for(size_t i = 0; i < m_vDependentUserData.size(); ++i)
+		m_vDependentUserData[i]->set_time(time);
 }
 
 void DataEvaluator::set_subset(const int subset)
@@ -454,8 +454,8 @@ void DataEvaluator::set_subset(const int subset)
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
 		m_vPosData[i]->set_subset(subset);
 
-	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
-		m_vDependentIPData[i]->set_subset(subset);
+	for(size_t i = 0; i < m_vDependentUserData.size(); ++i)
+		m_vDependentUserData[i]->set_subset(subset);
 }
 
 
@@ -498,14 +498,14 @@ void DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 //	so compute it, else compute the linker
 
 //	loop all dependent data
-	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
+	for(size_t i = 0; i < m_vDependentUserData.size(); ++i)
 	{
 	//	access needed components
 		u.access_by_map(m_vDependentMap[i]);
 
 	//	compute the data
 		try{
-			m_vDependentIPData[i]->compute(&u, NULL, bDeriv);
+			m_vDependentUserData[i]->compute(&u, NULL, bDeriv);
 		}
 		UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
 						"Cannot compute data for Export " << i);
@@ -627,10 +627,10 @@ void DataEvaluator::finish_elem_loop()
 						"Cannot finish element loop for IElemDisc "<<i);
 	}
 
-//	remove ip series for all used IPData
+//	remove ip series for all used UserData
 	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear();
 	for(size_t i = 0; i < m_vPosData.size(); ++i)   m_vPosData[i]->clear();
-	for(size_t i = 0; i < m_vDependentIPData.size(); ++i) m_vDependentIPData[i]->clear();
+	for(size_t i = 0; i < m_vDependentUserData.size(); ++i) m_vDependentUserData[i]->clear();
 
 	for(size_t i = 0; i < m_vAllDataImport.size(); ++i) m_vAllDataImport[i]->clear_ips();
 }

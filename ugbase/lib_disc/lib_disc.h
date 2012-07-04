@@ -89,7 +89,7 @@
 #include "spatial_disc/elem_disc/neumann_boundary/neumann_boundary.h"
 
 #include "spatial_disc/ip_data/const_user_data.h"
-#include "spatial_disc/ip_data/ip_data.h"
+#include "spatial_disc/ip_data/user_data.h"
 #include "spatial_disc/ip_data/data_export.h"
 #include "spatial_disc/ip_data/data_import.h"
 #include "spatial_disc/ip_data/data_linker.h"

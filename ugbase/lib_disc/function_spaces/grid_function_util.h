@@ -23,7 +23,7 @@
 #include <string>
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "lib_algebra/common/csv_gnuplot_output.h"
-#include "lib_disc/spatial_disc/ip_data/ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/user_data.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -443,7 +443,7 @@ public:
 			m_pGridFunc(NULL) {
 	}
 
-	void set_user_data(SmartPtr<IPData<number, domain_type::dim> > userData) {
+	void set_user_data(SmartPtr<UserData<number, domain_type::dim> > userData) {
 		m_userData = userData;
 	}
 
@@ -509,7 +509,7 @@ public:
 
 protected:
 	const TGridFunction *m_pGridFunc;
-	SmartPtr<IPData<number, domain_type::dim> > m_userData;
+	SmartPtr<UserData<number, domain_type::dim> > m_userData;
 };
 
 template<typename TGridFunction>

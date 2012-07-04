@@ -10,16 +10,16 @@ function __ug__CheckUserDataArgType(r, l)
 	local Data = ""
 
 	---------------------------------------------------------
-	-- Check type of operands (and read dim+type if IPData)
+	-- Check type of operands (and read dim+type if UserData)
 	---------------------------------------------------------
 	-- one of the arguments must be exported by registry
 	if rType == "" and lType == "" then
 		error("Internal Error: No ug4 class as operand")
 	end
 
-	-- check that userdata are IPData	
+	-- check that userdata are UserData	
 	if rType ~= "" then
-		if not ug_is_base_class("IIPData", rType) then
+		if not ug_is_base_class("IUserData", rType) then
 			error("Error: Can only operate on UserData, but summand is "..rType)
 		end
 		rDim = r:get_dim()
@@ -28,7 +28,7 @@ function __ug__CheckUserDataArgType(r, l)
 		Data = rData
 	end
 	if lType ~= "" then
-		if not ug_is_base_class("IIPData", lType) then
+		if not ug_is_base_class("IUserData", lType) then
 			error("Error: Can only operate on UserData, but summand is "..lType)
 		end
 		lDim = l:get_dim()
@@ -41,7 +41,7 @@ function __ug__CheckUserDataArgType(r, l)
 	-- Check match of types for operands
 	---------------------------------------------------------
 	
-	-- both operands are IPData
+	-- both operands are UserData
 	-- check for same dimesion
 	if rType ~= "" and lType ~= "" then
 		if lDim ~= rDim then
@@ -56,7 +56,7 @@ end
 -- Function to add/subtract UserData
 --------------------------------------------------------------------------------
 
---! functions user when '+/-' is called on an IPData (or a derived implementation)
+--! functions user when '+/-' is called on an UserData (or a derived implementation)
 function __ug__UserNumber_sum(lScale, l, rScale, r)
 	local rType, lType, rDim, lDim, Dim, rData, lData, Data = __ug__CheckUserDataArgType(r, l)
 			
@@ -65,7 +65,7 @@ function __ug__UserNumber_sum(lScale, l, rScale, r)
 	-- Check match of types for operands
 	---------------------------------------------------------
 	
-	-- both operands are IPData
+	-- both operands are UserData
 	-- check for same data type
 	if rType ~= "" and lType ~= "" then
 		if rData ~= lData then
@@ -127,12 +127,12 @@ function __ug__UserNumber_sum(lScale, l, rScale, r)
 	return linker				
 end
 
---! functions used when '+' is called on an IPData (or a derived implementation)
+--! functions used when '+' is called on an UserData (or a derived implementation)
 function __ug__UserNumber_add(l,r)
 	return __ug__UserNumber_sum(1.0, l, 1.0, r)
 end
 
---! functions used when '-' is called on an IPData (or a derived implementation)
+--! functions used when '-' is called on an UserData (or a derived implementation)
 function __ug__UserNumber_sub(l,r)
 	return __ug__UserNumber_sum(1.0, l, -1.0, r)
 end
@@ -141,7 +141,7 @@ end
 -- Function to Multiply/Devide UserData
 --------------------------------------------------------------------------------
 
---! functions user when '*' is called on an IPData (or a derived implementation)
+--! functions user when '*' is called on an UserData (or a derived implementation)
 function __ug__UserNumber_mul(l, r)
 	local rType, lType, rDim, lDim, Dim, rData, lData, Data = __ug__CheckUserDataArgType(r, l)
 		
@@ -149,7 +149,7 @@ function __ug__UserNumber_mul(l, r)
 	-- Check match of types for operands
 	---------------------------------------------------------
 	
-	-- both operands are IPData
+	-- both operands are UserData
 	-- check for same data type
 	if rType ~= "" and lType ~= "" then
 		if rData ~= "Number" and lData ~= "Number" then
@@ -188,7 +188,7 @@ function __ug__UserNumber_mul(l, r)
 	return linker				
 end
 
---! functions user when '*' is called on an IPData (or a derived implementation)
+--! functions user when '*' is called on an UserData (or a derived implementation)
 function __ug__UserNumber_div(l, r)
 	if not tonumber(r) then
 		error("Error in '/': Currently divisor must be plain lua number")
@@ -201,7 +201,7 @@ end
 -- Function to Multiply/Devide UserData
 --------------------------------------------------------------------------------
 
---! functions user when '^' is called on an IPData (or a derived implementation)
+--! functions user when '^' is called on an UserData (or a derived implementation)
 function __ug__UserNumber_pow(l, r)
 	-- check that exponent is integer
 	if not tonumber(r) or not (r%1==0) then
@@ -229,10 +229,10 @@ function __ug__UserNumber_pow(l, r)
 end
 
 --------------------------------------------------------------------------------
--- Loop to set the __add functions for IPData
+-- Loop to set the __add functions for UserData
 --------------------------------------------------------------------------------
 
--- loop some kinds of IPData implementation
+-- loop some kinds of UserData implementation
 for k, class in ipairs({"User", "ConstUser", "LuaUser", "ScaleAddLinker"}) do
 -- loop some kind of data types
 for k, type in ipairs({"Number", "Vector", "Matrix"}) do

@@ -804,7 +804,7 @@ template <int TDim>
 template <typename TElem, typename TFunction, typename TData>
 void VTKOutput<TDim>::
 write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
-                             SmartPtr<IPData<TData, TDim> > spData,
+                             SmartPtr<UserData<TData, TDim> > spData,
                              Grid& grid, int si)
 {
 //	get reference element
@@ -891,7 +891,7 @@ template <int TDim>
 template <typename TFunction, typename TData>
 void VTKOutput<TDim>::
 write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
-                 SmartPtr<IPData<TData, TDim> > spData,
+                 SmartPtr<UserData<TData, TDim> > spData,
                  const int numCmp,
                  const std::string& name,
                  Grid& grid, int si, int dim, int numVert)
@@ -1105,7 +1105,7 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	for(size_t data = 0; data < m_vScalarNodalData.size(); ++data)
 	{
 	//	get symb function
-		SmartPtr<IPData<number,TDim> > spData = m_vScalarNodalData[data].first;
+		SmartPtr<UserData<number,TDim> > spData = m_vScalarNodalData[data].first;
 		const std::string& vtkName = m_vScalarNodalData[data].second;
 
 	//	write scalar value of this data
@@ -1120,7 +1120,7 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	for(size_t data = 0; data < m_vVectorNodalData.size(); ++data)
 	{
 	//	get symb function
-		SmartPtr<IPData<MathVector<TDim>,TDim> > spData = m_vVectorNodalData[data].first;
+		SmartPtr<UserData<MathVector<TDim>,TDim> > spData = m_vVectorNodalData[data].first;
 		const std::string& vtkName = m_vVectorNodalData[data].second;
 
 	//	write scalar value of this data
@@ -1144,7 +1144,7 @@ template <int TDim>
 template <typename TElem, typename TFunction, typename TData>
 void VTKOutput<TDim>::
 write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
-                             SmartPtr<IPData<TData, TDim> > spData,
+                             SmartPtr<UserData<TData, TDim> > spData,
                              Grid& grid, int si)
 {
 //	get reference element
@@ -1225,7 +1225,7 @@ template <int TDim>
 template <typename TFunction, typename TData>
 void VTKOutput<TDim>::
 write_cell_data(VTKFileWriter& File, TFunction& u, number time,
-                 SmartPtr<IPData<TData, TDim> > spData,
+                 SmartPtr<UserData<TData, TDim> > spData,
                  const int numCmp,
                  const std::string& name,
                  Grid& grid, int si, int dim, int numElem)
@@ -1429,7 +1429,7 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 	for(size_t data = 0; data < m_vScalarElemData.size(); ++data)
 	{
 	//	get symb function
-		SmartPtr<IPData<number,TDim> > spData = m_vScalarElemData[data].first;
+		SmartPtr<UserData<number,TDim> > spData = m_vScalarElemData[data].first;
 		const std::string& vtkName = m_vScalarElemData[data].second;
 
 	//	write scalar value of this data
@@ -1444,7 +1444,7 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 	for(size_t data = 0; data < m_vVectorElemData.size(); ++data)
 	{
 	//	get symb function
-		SmartPtr<IPData<MathVector<TDim>,TDim> > spData = m_vVectorElemData[data].first;
+		SmartPtr<UserData<MathVector<TDim>,TDim> > spData = m_vVectorElemData[data].first;
 		const std::string& vtkName = m_vVectorElemData[data].second;
 
 	//	write scalar value of this data

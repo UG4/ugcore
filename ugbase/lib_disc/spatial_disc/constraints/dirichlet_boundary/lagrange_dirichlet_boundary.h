@@ -63,16 +63,16 @@ class DirichletBoundary
 #endif
 
 	///	adds a conditional user-defined value as dirichlet condition for a function on subsets
-		void add(SmartPtr<IPData<number, dim, bool> > func, const char* function, const char* subsets);
+		void add(SmartPtr<UserData<number, dim, bool> > func, const char* function, const char* subsets);
 
 	///	adds a user-defined value as dirichlet condition for a function on subsets
-		void add(SmartPtr<IPData<number, dim> > func, const char* function, const char* subsets);
+		void add(SmartPtr<UserData<number, dim> > func, const char* function, const char* subsets);
 
 	///	adds a constant value as dirichlet condition for a function on subsets
 		void add(number value, const char* function, const char* subsets);
 
 	///	adds a user-defined vector as dirichlet condition for a vector-function on subsets
-		void add(SmartPtr<IPData<MathVector<dim>, dim> > func, const char* functions, const char* subsets);
+		void add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions, const char* subsets);
 
 	///	sets the approximation space to work on
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
@@ -197,7 +197,7 @@ class DirichletBoundary
 			const static bool isConditional = false;
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
-			NumberData(SmartPtr<IPData<number, dim> > functor_,
+			NumberData(SmartPtr<UserData<number, dim> > functor_,
 			           std::string fctName_, std::string ssName_)
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
 			{}
@@ -208,7 +208,7 @@ class DirichletBoundary
 				(*spFunctor)(val[0], x, time, si); return true;
 			}
 
-			SmartPtr<IPData<number, dim> > spFunctor;
+			SmartPtr<UserData<number, dim> > spFunctor;
 			std::string fctName;
 			std::string ssName;
 			size_t fct[numFct];
@@ -221,7 +221,7 @@ class DirichletBoundary
 			const static bool isConditional = true;
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
-			CondNumberData(SmartPtr<IPData<number, dim, bool> > functor_,
+			CondNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
 			              std::string fctName_, std::string ssName_)
 				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
 			{}
@@ -231,7 +231,7 @@ class DirichletBoundary
 				return (*spFunctor)(val[0], x, time, si);
 			}
 
-			SmartPtr<IPData<number, dim, bool> > spFunctor;
+			SmartPtr<UserData<number, dim, bool> > spFunctor;
 			std::string fctName;
 			std::string ssName;
 			size_t fct[numFct];
@@ -267,7 +267,7 @@ class DirichletBoundary
 			const static bool isConditional = false;
 			const static size_t numFct = dim;
 			typedef MathVector<dim> value_type;
-			VectorData(SmartPtr<IPData<MathVector<dim>, dim> > value_,
+			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > value_,
 			           std::string fctName_, std::string ssName_)
 				: spFunctor(value_), fctName(fctName_), ssName(ssName_)
 			{}
@@ -277,7 +277,7 @@ class DirichletBoundary
 				(*spFunctor)(val, x, time, si); return true;
 			}
 
-			SmartPtr<IPData<MathVector<dim>, dim> > spFunctor;
+			SmartPtr<UserData<MathVector<dim>, dim> > spFunctor;
 			std::string fctName;
 			std::string ssName;
 			size_t fct[numFct];

@@ -53,20 +53,20 @@ class NeumannBoundary
 	///	add a boundary value
 	///	\{
 		void add(number val, const char* function, const char* subsets);
-		void add(SmartPtr<IPData<number, dim> > data, const char* function, const char* subsets);
-		void add(SmartPtr<IPData<number, dim, bool> > user, const char* function, const char* subsets);
-		void add(SmartPtr<IPData<MathVector<dim>, dim> > user, const char* function, const char* subsets);
+		void add(SmartPtr<UserData<number, dim> > data, const char* function, const char* subsets);
+		void add(SmartPtr<UserData<number, dim, bool> > user, const char* function, const char* subsets);
+		void add(SmartPtr<UserData<MathVector<dim>, dim> > user, const char* function, const char* subsets);
 	/// \}
 
 	private:
 	///	Functor, function grouping
 		struct BNDNumberData
 		{
-			BNDNumberData(SmartPtr<IPData<number, dim, bool> > functor_,
+			BNDNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
 			              std::string fctName_, std::string ssName_)
 				: functor(functor_), fctName(fctName_), ssNames(ssName_) {}
 
-			SmartPtr<IPData<number, dim, bool> > functor;
+			SmartPtr<UserData<number, dim, bool> > functor;
 			size_t locFct;
 			std::string fctName;
 			SubsetGroup ssGrp;
@@ -75,7 +75,7 @@ class NeumannBoundary
 
 		struct NumberData
 		{
-			NumberData(SmartPtr<IPData<number, dim> > data,
+			NumberData(SmartPtr<UserData<number, dim> > data,
 			           std::string fctName_, std::string ssName_)
 				: fctName(fctName_), ssNames(ssName_)
 			{
@@ -102,11 +102,11 @@ class NeumannBoundary
 	///	Functor, function grouping
 		struct VectorData
 		{
-			VectorData(SmartPtr<IPData<MathVector<dim>, dim> > functor_,
+			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > functor_,
 			           std::string fctName_, std::string ssName_)
 			: functor(functor_), fctName(fctName_), ssNames(ssName_) {}
 
-			SmartPtr<IPData<MathVector<dim>, dim> > functor;
+			SmartPtr<UserData<MathVector<dim>, dim> > functor;
 			size_t locFct;
 			std::string fctName;
 			SubsetGroup ssGrp;

@@ -82,7 +82,7 @@ class FV1InnerBoundaryElemDisc
 		}
 	
 	/// Setting the flux function
-		//void set_fluxFunction(IPData<number, dim>& fluxFct) {m_fluxFct.set_data(fluxFct);}
+		//void set_fluxFunction(UserData<number, dim>& fluxFct) {m_fluxFct.set_data(fluxFct);}
 	
 	public:	// inherited from IElemDisc
 	///	type of trial space for each function used

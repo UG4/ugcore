@@ -18,7 +18,7 @@
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
-#include "lib_disc/spatial_disc/ip_data/ip_data.h"
+#include "lib_disc/spatial_disc/ip_data/user_data.h"
 #include "lib_disc/spatial_disc/ip_data/const_user_data.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include <boost/function.hpp>
@@ -356,12 +356,12 @@ number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInte
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// IPData Integrand
+// UserData Integrand
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, typename TGridFunction>
-class DirectIPDataIntegrand
-	: public StdIntegrand<TData, TGridFunction::dim, DirectIPDataIntegrand<TData, TGridFunction> >
+class DirectUserDataIntegrand
+	: public StdIntegrand<TData, TGridFunction::dim, DirectUserDataIntegrand<TData, TGridFunction> >
 {
 	public:
 	//	world dimension of grid function
@@ -372,7 +372,7 @@ class DirectIPDataIntegrand
 
 	private:
 	//  data to integrate
-		SmartPtr<IPData<TData, worldDim> > m_spData;
+		SmartPtr<UserData<TData, worldDim> > m_spData;
 
 	// 	grid function
 		SmartPtr<TGridFunction> m_spGridFct;
@@ -382,7 +382,7 @@ class DirectIPDataIntegrand
 
 	public:
 	/// constructor
-		DirectIPDataIntegrand(SmartPtr<IPData<TData, worldDim> > spData,
+		DirectUserDataIntegrand(SmartPtr<UserData<TData, worldDim> > spData,
 		                      SmartPtr<TGridFunction> spGridFct,
 		                      number time)
 		: m_spData(spData), m_spGridFct(spGridFct), m_time(time)
@@ -391,12 +391,12 @@ class DirectIPDataIntegrand
 		};
 
 	/// constructor
-		DirectIPDataIntegrand(SmartPtr<IPData<TData, worldDim> > spData,
+		DirectUserDataIntegrand(SmartPtr<UserData<TData, worldDim> > spData,
 							  number time)
 		: m_spData(spData), m_spGridFct(NULL), m_time(time)
 		{
 			if(m_spData->requires_grid_fct())
-				UG_THROW("DirectIPDataIntegrand: Missing GridFunction, but "
+				UG_THROW("DirectUserDataIntegrand: Missing GridFunction, but "
 						" data requires grid function.")
 		};
 
@@ -431,7 +431,7 @@ class DirectIPDataIntegrand
 					(*m_spData)(vValue, vGlobIP, m_time, this->m_si, u, pElem,
 								vCornerCoords, vLocIP, numIP, &vJT[0]);
 				}
-				UG_CATCH_THROW("DirectIPDataIntegrand: Cannot evaluate data.");
+				UG_CATCH_THROW("DirectUserDataIntegrand: Cannot evaluate data.");
 			}
 			else
 			{
@@ -439,7 +439,7 @@ class DirectIPDataIntegrand
 				try{
 					(*m_spData)(vValue, vGlobIP, m_time, this->m_si, numIP);
 				}
-				UG_CATCH_THROW("DirectIPDataIntegrand: Cannot evaluate data.");
+				UG_CATCH_THROW("DirectUserDataIntegrand: Cannot evaluate data.");
 			}
 
 		};
@@ -453,35 +453,35 @@ class DirectIPDataIntegrand
 ////////////////////////////////////////////////////////////////////////////////
 
 ///////////////
-// DirectIPData
+// DirectUserData
 ///////////////
 
 template <typename TGridFunction>
-number Integral(SmartPtr<IPData<number, TGridFunction::dim> > spData,
+number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData,
                 SmartPtr<TGridFunction> spGridFct,
                 const char* subsets, number time,
                 int quadOrder)
 {
 	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-		= CreateSmartPtr(new DirectIPDataIntegrand<number, TGridFunction>(spData, spGridFct, time));
+		= CreateSmartPtr(new DirectUserDataIntegrand<number, TGridFunction>(spData, spGridFct, time));
 
 	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder);
 }
 
 template <typename TGridFunction>
-number Integral(SmartPtr<IPData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets,number time)
+number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets,number time)
 {return Integral(spData, spGridFct, subsets, time, 1);}
 
 template <typename TGridFunction>
-number Integral(SmartPtr<IPData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,number time)
+number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,number time)
 {return Integral(spData, spGridFct, NULL, time, 1);}
 
 template <typename TGridFunction>
-number Integral(SmartPtr<IPData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets)
+number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets)
 {return Integral(spData, spGridFct, subsets, 0.0, 1);}
 
 template <typename TGridFunction>
-number Integral(SmartPtr<IPData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct)
+number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct)
 {return Integral(spData, spGridFct, NULL, 0.0, 1);}
 
 ///////////////
@@ -494,7 +494,7 @@ number Integral(number val, SmartPtr<TGridFunction> spGridFct,
                 number time, int quadOrder)
 {
 	static const int dim = TGridFunction::dim;
-	SmartPtr<IPData<number, dim> > sp =
+	SmartPtr<UserData<number, dim> > sp =
 			CreateSmartPtr(new ConstUserNumber<dim>(val));
 	return Integral(sp, spGridFct, subsets, time, quadOrder);
 }
@@ -527,7 +527,7 @@ number Integral(const char* luaFct,
                 int quadOrder)
 {
 	static const int dim = TGridFunction::dim;
-	SmartPtr<IPData<number, dim> > sp =
+	SmartPtr<UserData<number, dim> > sp =
 			LuaUserDataFactory<number, dim>::create(luaFct);
 	return Integral(sp, spGridFct, subsets, time, quadOrder);
 }
@@ -570,14 +570,14 @@ class L2ErrorIntegrand
 		const size_t m_fct;
 
 	//  exact solution
-		SmartPtr<IPData<number, worldDim> > m_spExactSolution;
+		SmartPtr<UserData<number, worldDim> > m_spExactSolution;
 
 	//	time
 		number m_time;
 
 	public:
 	/// constructor
-		L2ErrorIntegrand(SmartPtr<IPData<number, worldDim> > spExactSol,
+		L2ErrorIntegrand(SmartPtr<UserData<number, worldDim> > spExactSol,
 		                 SmartPtr<TGridFunction> gridFct, size_t cmp,
 		                 number time)
 		: m_spGridFct(gridFct), m_fct(cmp),
@@ -673,7 +673,7 @@ class L2ErrorIntegrand
  * \returns			number 		l2-norm of difference
  */
 template <typename TGridFunction>
-number L2Error(SmartPtr<IPData<number, TGridFunction::dim> > spExactSol,
+number L2Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
                SmartPtr<TGridFunction> spGridFct, const char* cmp,
                number time, int quadOrder, const char* subsets)
 {
@@ -697,7 +697,7 @@ number L2Error(const char* ExactSol,
                SmartPtr<TGridFunction> spGridFct, const char* cmp,
                number time, int quadOrder, const char* subsets)
 {
-	SmartPtr<IPData<number, TGridFunction::dim> > spExactSol
+	SmartPtr<UserData<number, TGridFunction::dim> > spExactSol
 	 = CreateSmartPtr(new LuaUserData<number, TGridFunction::domain_type::dim>(ExactSol));
 	return L2Error(spExactSol, spGridFct, cmp, time, quadOrder, subsets);
 }
@@ -726,18 +726,18 @@ class H1ErrorIntegrand
 		LFEID m_id;
 
 	// 	exact solution
-		SmartPtr<IPData<number, worldDim> > m_spExactSolution;
+		SmartPtr<UserData<number, worldDim> > m_spExactSolution;
 
 	// 	exact gradient
-		SmartPtr<IPData<MathVector<worldDim>, worldDim> > m_spExactGrad;
+		SmartPtr<UserData<MathVector<worldDim>, worldDim> > m_spExactGrad;
 
 	//	time
 		number m_time;
 
 	public:
 	/// constructor
-		H1ErrorIntegrand(SmartPtr<IPData<number, worldDim> > spExactSol,
-		                 SmartPtr<IPData<MathVector<worldDim>, worldDim> > spExactGrad,
+		H1ErrorIntegrand(SmartPtr<UserData<number, worldDim> > spExactSol,
+		                 SmartPtr<UserData<MathVector<worldDim>, worldDim> > spExactGrad,
 		                 TGridFunction& gridFct, size_t cmp,
 		                 number time)
 		: m_spGridFct(gridFct), m_fct(cmp),
@@ -1362,21 +1362,21 @@ number IntegralNormalComponentOnManifoldSubsets(
 
 template <typename TGridFunction>
 number IntegralNormalComponentOnManifold(
-		SmartPtr<IPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+		SmartPtr<UserData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
 		SmartPtr<TGridFunction> spGridFct,
 		const char* BndSubset, const char* InnerSubset,
 		number time,
 		int quadOrder)
 {
 	SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand
-		= CreateSmartPtr(new DirectIPDataIntegrand<MathVector<TGridFunction::dim>, TGridFunction>(spData, spGridFct, time));
+		= CreateSmartPtr(new DirectUserDataIntegrand<MathVector<TGridFunction::dim>, TGridFunction>(spData, spGridFct, time));
 
 	return IntegralNormalComponentOnManifoldSubsets(spIntegrand, spGridFct, BndSubset, InnerSubset, quadOrder);
 }
 
 template <typename TGridFunction>
 number IntegralNormalComponentOnManifold(
-		SmartPtr<IPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+		SmartPtr<UserData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
 		SmartPtr<TGridFunction> spGridFct,
 		const char* BndSubset, const char* InnerSubset,
 		number time)
@@ -1384,7 +1384,7 @@ number IntegralNormalComponentOnManifold(
 
 template <typename TGridFunction>
 number IntegralNormalComponentOnManifold(
-		SmartPtr<IPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+		SmartPtr<UserData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
 		SmartPtr<TGridFunction> spGridFct,
 		const char* BndSubset,
 		number time)
@@ -1392,14 +1392,14 @@ number IntegralNormalComponentOnManifold(
 
 template <typename TGridFunction>
 number IntegralNormalComponentOnManifold(
-		SmartPtr<IPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+		SmartPtr<UserData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
 		SmartPtr<TGridFunction> spGridFct,
 		const char* BndSubset, const char* InnerSubset)
 {return IntegralNormalComponentOnManifold(spData, spGridFct, BndSubset, InnerSubset, 0.0, 1);}
 
 template <typename TGridFunction>
 number IntegralNormalComponentOnManifold(
-		SmartPtr<IPData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
+		SmartPtr<UserData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spData,
 		SmartPtr<TGridFunction> spGridFct,
 		const char* BndSubset)
 {return IntegralNormalComponentOnManifold(spData, spGridFct, BndSubset, NULL, 0.0, 1);}
@@ -1416,7 +1416,7 @@ number IntegralNormalComponentOnManifold(
 		number time, int quadOrder)
 {
 	static const int dim = TGridFunction::dim;
-	SmartPtr<IPData<MathVector<dim>, dim> > sp =
+	SmartPtr<UserData<MathVector<dim>, dim> > sp =
 			LuaUserDataFactory<MathVector<dim>, dim>::create(luaFct);
 	return IntegralNormalComponentOnManifold(sp, spGridFct, BndSubset, InnerSubset, time, quadOrder);
 }

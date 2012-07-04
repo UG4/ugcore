@@ -1,5 +1,5 @@
 /*
- * ip_data.h
+ * user_data.h
  *
  *  Created on: 17.12.2010
  *      Author: andreasvogel
@@ -15,19 +15,19 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
-//	IP Data
+//	UserData Interface
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Base class for IP Data
+/// Base class for UserData
 /**
  * This is the base class for all coupled data at integration point. It handles
  * the set of local integration points and stores the current time.
  */
-class IIPData
+class IUserData
 {
 	public:
 	///	default constructor
-		IIPData();
+		IUserData();
 
 	///	set the subset of evaluation
 		void set_subset(int si) {m_si = si;}
@@ -55,7 +55,7 @@ class IIPData
 	 * This method registers a local ip series. If the position of points may
 	 * change during computations, this can be specified.
 	 * IMPORTANT: the memory of the local ip values must remain valid until the
-	 * IPData is deleted.
+	 * UserData is deleted.
 	 *
 	 * \returns size_t 		series id
 	 */
@@ -104,7 +104,7 @@ class IIPData
 		virtual size_t num_needed_data() const {return 0;}
 
 	///	return needed data
-		virtual SmartPtr<IIPData> needed_data(size_t i) {return NULL;}
+		virtual SmartPtr<IUserData> needed_data(size_t i) {return NULL;}
 
 	/// compute values (and derivatives iff compDeriv == true)
 		virtual void compute(LocalVector* u,
@@ -130,7 +130,7 @@ class IIPData
 		virtual void check_setup() const {}
 
 	///	virtual desctructor
-		virtual ~IIPData() {};
+		virtual ~IUserData() {};
 
 	protected:
 	///	callback invoked after local ips have been added to the series
@@ -189,7 +189,11 @@ class IIPData
 		FunctionGroup m_fctGrp;
 };
 
-/// World dimension based IP Data
+////////////////////////////////////////////////////////////////////////////////
+//	Dimension UserData
+////////////////////////////////////////////////////////////////////////////////
+
+/// World dimension based UserData
 /**
  * This class is the dimension dependent base class for all integration point data.
  * It provides the access to the data and handles the global integration
@@ -198,7 +202,7 @@ class IIPData
  * \tparam	dim		world dimension
  */
 template <int dim>
-class IIPDimData : virtual public IIPData
+class IDimUserData : virtual public IUserData
 {
 	public:
 	///	set global positions
@@ -238,33 +242,37 @@ class IIPDimData : virtual public IIPData
 		std::vector<const MathVector<dim>*> m_vvGlobPos;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+//	UserData
+////////////////////////////////////////////////////////////////////////////////
+
 /// Traits
 template <typename TData>
-struct ip_data_traits
+struct user_data_traits
 {
 	static std::string name() {return "(unknown)";}
 };
 
 template <>
-struct ip_data_traits<number>
+struct user_data_traits<number>
 {
 	static std::string name() {return "Number";}
 };
 
 template <std::size_t dim>
-struct ip_data_traits< MathVector<dim> >
+struct user_data_traits< MathVector<dim> >
 {
 	static std::string name() {return "Vector";}
 };
 
 template <std::size_t dim>
-struct ip_data_traits< MathMatrix<dim,dim> >
+struct user_data_traits< MathMatrix<dim,dim> >
 {
 	static std::string name() {return "Matrix";}
 };
 
 template <std::size_t dim>
-struct ip_data_traits< MathTensor<4,dim> >
+struct user_data_traits< MathTensor<4,dim> >
 {
 	static std::string name() {return "Tensor4";}
 };
@@ -272,7 +280,7 @@ struct ip_data_traits< MathTensor<4,dim> >
 // predeclaration
 template <typename TData, int dim> class DataImport;
 
-/// Type based IP Data
+/// Type based UserData
 /**
  * This class is the base class for all integration point data for a templated
  * type. It provides the access to the data and handles the global integration
@@ -283,11 +291,11 @@ template <typename TData, int dim> class DataImport;
  * \tparam	TRet	Type of return flag (bool or void)
  */
 template <typename TData, int dim, typename TRet = void>
-class IPData : public IIPDimData<dim>
+class UserData : public IDimUserData<dim>
 {
 	public:
 	///	type of base class
-		typedef IIPDimData<dim> base_type;
+		typedef IDimUserData<dim> base_type;
 
 	///	explicitly forward some functions
 		using base_type::num_series;
@@ -298,7 +306,7 @@ class IPData : public IIPDimData<dim>
 		int get_dim() const {return dim;}
 
 	///	returns type of data as string (e.g. "Number", "Vector", "Matrix")
-		std::string type() const {return ip_data_traits<TData>::name();}
+		std::string type() const {return user_data_traits<TData>::name();}
 
 	///	returns the value at ip
 		const TData& value(size_t s, size_t ip) const
@@ -321,7 +329,7 @@ class IPData : public IIPDimData<dim>
 			{check_series_ip(s,ip); return m_vvBoolFlag[s][ip];}
 
 	///	destructor
-		~IPData() {local_ip_series_to_be_cleared();}
+		~UserData() {local_ip_series_to_be_cleared();}
 
 	///	register external callback, invoked when data storage changed
 		void register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim>::*func)());
@@ -435,22 +443,22 @@ class IPData : public IIPDimData<dim>
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-//	Dependent IP Data
+//	Dependent UserData
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Dependent IP Data
+/// Dependent UserData
 /**
- * This class extends the IPData by the derivatives of the data w.r.t. to
+ * This class extends the UserData by the derivatives of the data w.r.t. to
  * unknown solutions.
  */
 template <typename TData, int dim>
-class DependentIPData : public IPData<TData, dim>
+class DependentUserData : public UserData<TData, dim>
 {
 	public:
 	///	Base class type
-		typedef IPData<TData, dim> base_type;
+		typedef UserData<TData, dim> base_type;
 
-	//	explicitly forward methods of IIPData
+	//	explicitly forward methods of IUserData
 		using base_type::num_series;
 		using base_type::num_ip;
 		using base_type::local_ips;
@@ -523,6 +531,6 @@ class DependentIPData : public IPData<TData, dim>
 } // end namespace ug
 
 //include implementation
-#include "ip_data_impl.h"
+#include "user_data_impl.h"
 
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__IP_DATA__IP_DATA__ */

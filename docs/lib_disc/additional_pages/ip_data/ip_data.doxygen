@@ -2,15 +2,15 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y16 m12 d10
 
-/** \page pageLDIPData IP Data
+/** \page pageLDUserData UserData
 
 An IElemDisc object can assemble the local stiffness/mass matrix and/or the local
 defect/rhs. In order to accomplish this task user defined data is often needed
 for several integration points on the element. On this page, we describe the
-idea of the IPData import, that is used in ug. 
+idea of the UserData import, that is used in ug. 
 
 - \ref secDataImport "Data Import"
-- \ref secIPData "IPData"
+- \ref secUserData "UserData"
 - \ref secDataExport "Data Export"
 - \ref secEvaluationOrder "Evaluation Order"
 	
@@ -43,7 +43,7 @@ evaluate the data. This is done in two fashions:
 	world) coordinates. This is usually needed for user-defined data 
 </ul>
 Please note, that only a pointer to the vector of coordinates together with the 
-number of integration points is stored when requesting ip data. Some reason for 
+number of integration points is stored when requesting user data. Some reason for 
 that:
 
 <ul>
@@ -154,11 +154,11 @@ if(!m_Diff.zero_data())
 \endcode
 
 <hr>
-\section secIPData IP Data
+\section secUserData UserData
 <hr>
 
 The base class for Data, that can be plugged into the Data Import is given by
-the class <b>IPData</b>. In ug, we distinguish four kinds of IP Data:
+the class <b>UserData</b>. In ug, we distinguish four kinds of UserData:
 
 <ul>
 <li> default data (usually zero or identity data)
@@ -175,7 +175,7 @@ sometimes identity.
 The base class for the last three data, is the class 
 \code 
 template <typename TData>
-class IPData
+class UserData
 \endcode
 
 This class can provide the data for the templated type. It knows:
@@ -195,7 +195,7 @@ to extremes:
 	 produced using the same evaluation function, but at different points.
 </ul>
 
-In order to implement this, every DataImport is connected to exactly one IPData.
+In order to implement this, every DataImport is connected to exactly one UserData.
 Then, it requests the needed ips using <b>register_local_ip_series( ... )</b> and gets
 a <b>Series ID</b>. This id is like a ticket for the Import. Each time it requests 
 the data at its points, the Import must use the ID to indicate which series it has
@@ -286,9 +286,9 @@ The order of evaluation is as follows.
 	</ol>
 </ol>
 
-The main point is, that first the ip positions are set and then the IPData is 
+The main point is, that first the ip positions are set and then the UserData is 
 computed before the local assemble_... functions are called for each IElemDisc. 
-Therefore, the computed ip data can be used in these functions.
+Therefore, the computed user data can be used in these functions.
 
 
 */

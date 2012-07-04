@@ -110,7 +110,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		string name = string("GridFunctionNumberData").append(suffix);
 		typedef GridFunctionNumberData<TFct> T;
-		typedef IPData<number, dim> TBase;
+		typedef UserData<number, dim> TBase;
 		reg.add_class_<T, TBase>(name, approxGrp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.set_construct_as_smart_pointer(true);
@@ -121,7 +121,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		string name = string("GridFunctionVectorData").append(suffix);
 		typedef GridFunctionVectorData<TFct> T;
-		typedef IPData<MathVector<dim>, dim> TBase;
+		typedef UserData<MathVector<dim>, dim> TBase;
 		reg.add_class_<T, TBase>(name, approxGrp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Components")
 			.set_construct_as_smart_pointer(true);
@@ -132,7 +132,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		string name = string("GridFunctionGradientData").append(suffix);
 		typedef GridFunctionGradientData<TFct> T;
-		typedef IPData<MathVector<dim>, dim> TBase;
+		typedef UserData<MathVector<dim>, dim> TBase;
 		reg.add_class_<T, TBase>(name, approxGrp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.set_construct_as_smart_pointer(true);
@@ -141,10 +141,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	Interpolate
 	{
-		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<IPData<number, dim> >, SmartPtr<TFct>, const char*, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "Data#GridFunction#Component#Subsets#Time");
-		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<IPData<number, dim> >, SmartPtr<TFct>, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "Data#GridFunction#Component#Time");
-		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<IPData<number, dim> >, SmartPtr<TFct>, const char*, const char*)>(&Interpolate<TFct>), grp, "Integral", "Data#GridFunction#Component#Subsets");
-		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<IPData<number, dim> >, SmartPtr<TFct>, const char*)>(&Interpolate<TFct>),grp, "Integral", "Data#GridFunction#Component");
+		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "Data#GridFunction#Component#Subsets#Time");
+		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "Data#GridFunction#Component#Time");
+		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, const char*)>(&Interpolate<TFct>), grp, "Integral", "Data#GridFunction#Component#Subsets");
+		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*)>(&Interpolate<TFct>),grp, "Integral", "Data#GridFunction#Component");
 
 		reg.add_function("Interpolate", static_cast<void (*)(number, SmartPtr<TFct>, const char*, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component#Subsets#Time");
 		reg.add_function("Interpolate", static_cast<void (*)(number, SmartPtr<TFct>, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component#Time");

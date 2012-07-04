@@ -821,7 +821,7 @@ evaluate (TData& value,
 
 //	gather all input data for this ip
 	for(size_t c = 0; c < vDataIn.size(); ++c)
-		(*m_vpIPData[c])(vDataIn[c], globIP, time, si);
+		(*m_vpUserData[c])(vDataIn[c], globIP, time, si);
 
 //	evaluate data at ip
 	eval_value(value, vDataIn);
@@ -843,7 +843,7 @@ evaluate (TData& value,
 
 //	gather all input data for this ip
 	for(size_t c = 0; c < vDataIn.size(); ++c)
-		(*m_vpIPData[c])(vDataIn[c], globIP, time, si, u, elem, vCornerCoords, locIP);
+		(*m_vpUserData[c])(vDataIn[c], globIP, time, si, u, elem, vCornerCoords, locIP);
 
 //	evaluate data at ip
 	eval_value(value, vDataIn);
@@ -870,7 +870,7 @@ evaluate(TData vValue[],
 	for(size_t ip = 0; ip < nip; ++ip)
 	{
 		for(size_t c = 0; c < vDataIn.size(); ++c)
-			(*m_vpIPData[c])(vDataIn[c], vGlobIP[ip], time, si, u, elem, vCornerCoords, vLocIP[ip]);
+			(*m_vpUserData[c])(vDataIn[c], vGlobIP[ip], time, si, u, elem, vCornerCoords, vLocIP[ip]);
 
 	//	evaluate data at ip
 		eval_value(vValue[ip], vDataIn);
@@ -889,7 +889,7 @@ compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 		{
 		//	gather all input data for this ip
 			for(size_t c = 0; c < vDataIn.size(); ++c)
-				vDataIn[c] = m_vpIPData[c]->value(this->series_id(c,s), ip);
+				vDataIn[c] = m_vpUserData[c]->value(this->series_id(c,s), ip);
 
 		//	evaluate data at ip
 			eval_value(this->value(s,ip), vDataIn);
@@ -912,7 +912,7 @@ compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 			for(size_t ip = 0; ip < this->num_ip(s); ++ip)
 			{
 			//	gather all input data for this ip
-				vDataIn[c] = m_vpIPData[c]->value(this->series_id(c,s), ip);
+				vDataIn[c] = m_vpUserData[c]->value(this->series_id(c,s), ip);
 
 			//	data of derivative w.r.t. one component at ip-values
 				TData derivVal;
@@ -943,7 +943,7 @@ template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::set_num_input(size_t num)
 {
 //	resize arrays
-	m_vpIPData.resize(num, NULL);
+	m_vpUserData.resize(num, NULL);
 	m_vpDependData.resize(num, NULL);
 
 //	forward size to base class
@@ -952,9 +952,9 @@ void LuaUserFunction<TData,dim,TDataIn>::set_num_input(size_t num)
 
 template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::
-set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data)
+set_input(size_t i, SmartPtr<UserData<TDataIn, dim> > data)
 {
-	UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
+	UG_ASSERT(i < m_vpUserData.size(), "Input not needed");
 	UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
 
 //	check input number
@@ -963,11 +963,11 @@ set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data)
 						<< " inputs can be set. Use 'set_num_input' to increase"
 						" the number of needed inputs.");
 
-//	remember ipdata
-	m_vpIPData[i] = data;
+//	remember userdata
+	m_vpUserData[i] = data;
 
 //	cast to dependent data
-	m_vpDependData[i] = data.template cast_dynamic<DependentIPData<TDataIn, dim> >();
+	m_vpDependData[i] = data.template cast_dynamic<DependentUserData<TDataIn, dim> >();
 
 //	forward to base class
 	base_type::set_input(i, data);

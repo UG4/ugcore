@@ -8,26 +8,26 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER__
 
-#include "ip_data.h"
+#include "user_data.h"
 #include "lib_disc/common/groups_util.h"
 
 namespace ug{
 
-/// combines several IPDatas to a new IPData of a specified type
+/// combines several UserDatas to a new UserData of a specified type
 /**
  * This class provides data at integration points and implements the
- * DependentIPData interface.
+ * DependentUserData interface.
  *
  * \tparam 	TData		output Data type
  * \tparam 	dim			World dimension
  */
 template <typename TData, int dim>
 class DataLinker
-	: public DependentIPData<TData, dim>
+	: public DependentUserData<TData, dim>
 {
 	public:
 	///	constructor
-		DataLinker() {m_vpIIPData.clear(); m_vpIDependData.clear();}
+		DataLinker() {m_vpIUserData.clear(); m_vpIDependData.clear();}
 
 	///	returns if derivative is zero
 		virtual bool zero_derivative() const;
@@ -35,22 +35,22 @@ class DataLinker
 	///	returns if the derivative of the i'th input is zero
 		bool zero_derivative(size_t i) const
 		{
-			if(!m_vpIIPData[i].valid()) return true;
-			return m_vpIIPData[i]->zero_derivative();
+			if(!m_vpIUserData[i].valid()) return true;
+			return m_vpIUserData[i]->zero_derivative();
 		}
 
 	///	sets the number of inputs
 		void set_num_input(size_t num)
 		{
-			m_vpIIPData.resize(num, NULL);
+			m_vpIUserData.resize(num, NULL);
 			m_vpIDependData.resize(num, NULL);
 		}
 
 	///	sets an input
-		virtual void set_input(size_t i, SmartPtr<IIPDimData<dim> > input)
+		virtual void set_input(size_t i, SmartPtr<IDimUserData<dim> > input)
 		{
-			UG_ASSERT(i < m_vpIIPData.size(), "invalid index");
-			m_vpIIPData[i] = input;
+			UG_ASSERT(i < m_vpIUserData.size(), "invalid index");
+			m_vpIUserData[i] = input;
 			m_vpIDependData[i] = input;
 		}
 
@@ -58,14 +58,14 @@ class DataLinker
 		virtual size_t num_input() const {return num_needed_data();}
 
 	///	number of other Data this data depends on
-		virtual size_t num_needed_data() const {return m_vpIIPData.size();}
+		virtual size_t num_needed_data() const {return m_vpIUserData.size();}
 
 	///	return needed data
-		virtual SmartPtr<IIPData> needed_data(size_t i)
+		virtual SmartPtr<IUserData> needed_data(size_t i)
 		{
-			UG_ASSERT(i < m_vpIIPData.size(), "Input not needed");
-			UG_ASSERT(m_vpIIPData[i].valid(), "Data input not valid");
-			return m_vpIIPData[i];
+			UG_ASSERT(i < m_vpIUserData.size(), "Input not needed");
+			UG_ASSERT(m_vpIUserData[i].valid(), "Data input not valid");
+			return m_vpIUserData[i];
 		}
 
 	///	returns if data is ok
@@ -110,10 +110,10 @@ class DataLinker
 
 	protected:
 	///	data input
-		std::vector<SmartPtr<IIPDimData<dim> > > m_vpIIPData;
+		std::vector<SmartPtr<IDimUserData<dim> > > m_vpIUserData;
 
 	///	data input casted to IDependend data
-		std::vector<SmartPtr<IIPData> > m_vpIDependData;
+		std::vector<SmartPtr<IUserData> > m_vpIDependData;
 
 	///	common functions the data depends on
 		FunctionGroup m_commonFctGroup;
