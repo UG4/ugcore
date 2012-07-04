@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__SCALE_ADD_LINKER__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__SCALE_ADD_LINKER__
 
-#include "lib_disc/spatial_disc/user_data/std_user_data.h"
+#include "lib_disc/spatial_disc/user_data/data_linker.h"
 
 namespace ug{
 
