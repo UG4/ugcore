@@ -10,6 +10,7 @@
 
 #include "lua_user_data.h"
 #include "lib_disc/spatial_disc/user_data/data_linker_traits.h"
+#include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
 namespace ug{
 

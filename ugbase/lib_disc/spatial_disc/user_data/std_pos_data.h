@@ -1,12 +1,12 @@
 /*
- * std_user_data.h
+ * std_pos_data.h
  *
  *  Created on: 03.07.2012
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__STD_IPDATA__
-#define __H__UG__LIB_DISC__SPATIAL_DISC__STD_IPDATA__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__STD_POS_DATA__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__STD_POS_DATA__
 
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/local_algebra.h"
@@ -168,4 +168,4 @@ class StdPositionUserData
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__STD_IPDATA__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__STD_POS_DATA__ */

@@ -11,7 +11,7 @@
 #include <boost/function.hpp>
 #include <jni.h>
 #include "lib_disc/spatial_disc/user_data/user_data.h"
-#include "lib_disc/spatial_disc/user_data/std_user_data.h"
+#include "lib_disc/spatial_disc/user_data/std_pos_data.h"
 
 namespace ug {
 namespace vrl {

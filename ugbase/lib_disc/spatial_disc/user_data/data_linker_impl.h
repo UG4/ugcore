@@ -9,7 +9,6 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER_IMPL__
 
 #include "data_linker.h"
-#include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
 namespace ug{
 

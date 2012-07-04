@@ -13,7 +13,6 @@
 #include "lib_disc/spatial_disc/user_data/data_linker.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/scale_add_linker.h"
-#include "lib_disc/spatial_disc/user_data/std_user_data.h"
 
 using namespace std;
 
