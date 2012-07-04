@@ -71,7 +71,7 @@ class ValueDataExport
 		}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const
+		virtual bool continuous() const
 		{
 			const LFEID& lfeID = this->fct_grp().local_finite_element_id(_C_);
 
@@ -158,7 +158,7 @@ class GradientDataExport
 		}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const
+		virtual bool continuous() const
 		{
 			return false;
 		}

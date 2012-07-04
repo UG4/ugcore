@@ -151,13 +151,13 @@ class StdPositionUserData
 		}
 
 	///	returns if data is constant
-		virtual bool constant_data() const {return false;}
+		virtual bool constant() const {return false;}
 
 	///	returns if grid function is needed for evaluation
 		virtual bool requires_grid_fct() const {return false;}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const {return true;}
+		virtual bool continuous() const {return true;}
 
 	protected:
 	///	access to implementation
@@ -503,11 +503,11 @@ class StdDataLinker
 		}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const
+		virtual bool continuous() const
 		{
 			bool bRet = true;
 			for(size_t i = 0; i < this->m_vpIUserData.size(); ++i)
-				bRet &= this->m_vpIUserData[i]->is_continuous();
+				bRet &= this->m_vpIUserData[i]->continuous();
 			return bRet;
 		}
 

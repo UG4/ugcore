@@ -261,7 +261,7 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 		SmartPtr<IUserData> ipData = vEvalData[i];
 
 	//	detect constant import
-		if(ipData->constant_data())
+		if(ipData->constant())
 		{
 		//	schedule for evaluation of constant data
 			m_vConstData.push_back(ipData);

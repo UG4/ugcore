@@ -145,13 +145,13 @@ class StdConstUserData
 		}
 
 	///	returns if data is constant
-		virtual bool constant_data() const {return true;}
+		virtual bool constant() const {return true;}
 
 	///	returns if grid function is needed for evaluation
 		virtual bool requires_grid_fct() const {return false;}
 
 	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const {return true;}
+		virtual bool continuous() const {return true;}
 
 	protected:
 	///	access to implementation

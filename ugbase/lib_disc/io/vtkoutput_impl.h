@@ -899,7 +899,7 @@ write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
 	spData->set_function_pattern(u.function_pattern());
 
 //	check that nodal data is possible
-	if(!spData->is_continuous())
+	if(!spData->continuous())
 		UG_THROW("VTK: data with name '"<<name<<"' is scheduled for nodal output,"
 				" but the data is not continuous. Cannot write it as nodal data.")
 

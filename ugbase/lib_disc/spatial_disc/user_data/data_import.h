@@ -54,7 +54,7 @@ class IDataImport
 	/**
 	 * This method, returns if the connected data is constant.
 	 */
-		virtual bool constant_data() const = 0;
+		virtual bool constant() const = 0;
 
 	///	returns if data depends on unknown functions
 	/**
@@ -150,10 +150,10 @@ class DataImport : public IDataImport
 	// Data
 	/////////////////////////////////////////
 
-	/// \copydoc IDataImport::constant_data()
-		virtual bool constant_data() const
+	/// \copydoc IDataImport::constant()
+		virtual bool constant() const
 		{
-			if(data_given()) return m_spUserData->constant_data();
+			if(data_given()) return m_spUserData->constant();
 			else return false;
 		}
 

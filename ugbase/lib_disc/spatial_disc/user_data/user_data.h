@@ -86,16 +86,16 @@ class IUserData
 		const MathVector<ldim>& local_ip(size_t s, size_t ip) const;
 
 	///	returns if data is constant
-		virtual bool constant_data() const {return false;}
+		virtual bool constant() const {return false;}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool continuous() const {return false;}
 
 	///	returns if data depends on solution
 		virtual bool zero_derivative() const {return true;}
 
 	///	returns if grid function is needed for evaluation
 		virtual bool requires_grid_fct() const {return true;}
-
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const {return false;}
 
 	///	sets the function pattern for a possibly needed grid function
 		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}
