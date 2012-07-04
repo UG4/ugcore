@@ -501,27 +501,15 @@ void DataEvaluator::compute_elem_data(LocalVector & u, bool bDeriv)
 //	loop all dependent data
 	for(size_t i = 0; i < m_vDependentIPData.size(); ++i)
 	{
-	//	check if current solution is needed
-		if(m_vDependentIPData[i]->comp_needs_sol())
-		{
-		//	access needed components
-			u.access_by_map(m_vDependentMap[i]);
+	//	access needed components
+		u.access_by_map(m_vDependentMap[i]);
 
-		//	compute the data
-			try{
-				m_vDependentIPData[i]->compute(&u, NULL, bDeriv);
-			}
-			UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
-							"Cannot compute data for Export " << i);
+	//	compute the data
+		try{
+			m_vDependentIPData[i]->compute(&u, NULL, bDeriv);
 		}
-		else
-		{
-			try{
-				m_vDependentIPData[i]->compute(&u, NULL, bDeriv);
-			}
-			UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
-							"Cannot compute data for IPData " << i);
-		}
+		UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
+						"Cannot compute data for Export " << i);
 	}
 }
 
