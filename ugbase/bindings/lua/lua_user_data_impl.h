@@ -9,7 +9,7 @@
 #define __H__UG_BRIDGE__BRIDGES__USER_DATA__USER_DATA_IMPL_
 
 #include "lua_user_data.h"
-#include "lib_disc/spatial_disc/ip_data/scale_add_linker.h"
+#include "lib_disc/spatial_disc/ip_data/data_linker_traits.h"
 
 namespace ug{
 
@@ -732,67 +732,6 @@ void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ..
 
 
 template <typename TData, int dim, typename TDataIn>
-void LuaUserFunction<TData,dim,TDataIn>::compute(bool bDeriv)
-{
-//	vector of data for all inputs
-	std::vector<TDataIn> vDataIn(this->num_input());
-
-	for(size_t s = 0; s < num_series(); ++s)
-		for(size_t ip = 0; ip < num_ip(s); ++ip)
-		{
-		//	gather all input data for this ip
-			for(size_t c = 0; c < vDataIn.size(); ++c)
-				vDataIn[c] = input_value(c, s, ip);
-
-		//	evaluate data at ip
-			eval_value(value(s,ip), vDataIn);
-		}
-
-//	check if derivative is required
-	if(!bDeriv || this->zero_derivative()) return;
-
-//	clear all derivative values
-	this->clear_derivative_values();
-
-//	loop all inputs
-	for(size_t c = 0; c < vDataIn.size(); ++c)
-	{
-	//	check if input has derivative
-		if(this->zero_derivative(c)) continue;
-
-	//	loop ips
-		for(size_t s = 0; s < num_series(); ++s)
-			for(size_t ip = 0; ip < num_ip(s); ++ip)
-			{
-			//	gather all input data for this ip
-				vDataIn[c] = input_value(c, s, ip);
-
-			//	data of derivative w.r.t. one component at ip-values
-				TData derivVal;
-
-			//	evaluate data at ip
-				eval_deriv(derivVal, vDataIn, c);
-
-			//	loop functions
-				for(size_t fct = 0; fct < this->input_num_fct(c); ++fct)
-				{
-				//	get common fct id for this function
-					const size_t commonFct = this->input_common_fct(c, fct);
-
-				//	loop dofs
-					for(size_t dof = 0; dof < num_sh(fct); ++dof)
-					{
-						linker_traits<TData, TDataIn>::
-						mult_add(deriv(s, ip, commonFct, dof),
-						         derivVal,
-						         input_deriv(c, s, ip, fct, dof));
-					}
-				}
-			}
-	}
-}
-
-template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vector<TDataIn>& dataIn) const
 {
 	UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
@@ -882,7 +821,7 @@ evaluate (TData& value,
 
 //	gather all input data for this ip
 	for(size_t c = 0; c < vDataIn.size(); ++c)
-		(*this->m_vpIPData[c])(vDataIn[c], globIP, time, si);
+		(*m_vpIPData[c])(vDataIn[c], globIP, time, si);
 
 //	evaluate data at ip
 	eval_value(value, vDataIn);
@@ -904,7 +843,7 @@ evaluate (TData& value,
 
 //	gather all input data for this ip
 	for(size_t c = 0; c < vDataIn.size(); ++c)
-		(*this->m_vpIPData[c])(vDataIn[c], globIP, time, si, u, elem, vCornerCoords, locIP);
+		(*m_vpIPData[c])(vDataIn[c], globIP, time, si, u, elem, vCornerCoords, locIP);
 
 //	evaluate data at ip
 	eval_value(value, vDataIn);
@@ -931,13 +870,113 @@ evaluate(TData vValue[],
 	for(size_t ip = 0; ip < nip; ++ip)
 	{
 		for(size_t c = 0; c < vDataIn.size(); ++c)
-			(*this->m_vpIPData[c])(vDataIn[c], vGlobIP[ip], time, si, u, elem, vCornerCoords, vLocIP[ip]);
+			(*m_vpIPData[c])(vDataIn[c], vGlobIP[ip], time, si, u, elem, vCornerCoords, vLocIP[ip]);
 
 	//	evaluate data at ip
 		eval_value(vValue[ip], vDataIn);
 	}
 }
 
+template <typename TData, int dim, typename TDataIn>
+void LuaUserFunction<TData,dim,TDataIn>::compute(bool bDeriv)
+{
+//	vector of data for all inputs
+	std::vector<TDataIn> vDataIn(this->num_input());
+
+	for(size_t s = 0; s < this->num_series(); ++s)
+		for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+		{
+		//	gather all input data for this ip
+			for(size_t c = 0; c < vDataIn.size(); ++c)
+				vDataIn[c] = m_vpIPData[c]->value(this->series_id(c,s), ip);
+
+		//	evaluate data at ip
+			eval_value(this->value(s,ip), vDataIn);
+		}
+
+//	check if derivative is required
+	if(!bDeriv || this->zero_derivative()) return;
+
+//	clear all derivative values
+	this->clear_derivative_values();
+
+//	loop all inputs
+	for(size_t c = 0; c < vDataIn.size(); ++c)
+	{
+	//	check if input has derivative
+		if(this->zero_derivative(c)) continue;
+
+	//	loop ips
+		for(size_t s = 0; s < this->num_series(); ++s)
+			for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+			{
+			//	gather all input data for this ip
+				vDataIn[c] = m_vpIPData[c]->value(this->series_id(c,s), ip);
+
+			//	data of derivative w.r.t. one component at ip-values
+				TData derivVal;
+
+			//	evaluate data at ip
+				eval_deriv(derivVal, vDataIn, c);
+
+			//	loop functions
+				for(size_t fct = 0; fct < this->input_num_fct(c); ++fct)
+				{
+				//	get common fct id for this function
+					const size_t commonFct = this->input_common_fct(c, fct);
+
+				//	loop dofs
+					for(size_t dof = 0; dof < this->num_sh(fct); ++dof)
+					{
+						linker_traits<TData, TDataIn>::
+						mult_add(this->deriv(s, ip, commonFct, dof),
+						         derivVal,
+						         m_vpDependData[c]->deriv(this->series_id(c,s), ip, fct, dof));
+					}
+				}
+			}
+	}
+}
+
+template <typename TData, int dim, typename TDataIn>
+void LuaUserFunction<TData,dim,TDataIn>::set_num_input(size_t num)
+{
+//	resize arrays
+	m_vpIPData.resize(num, NULL);
+	m_vpDependData.resize(num, NULL);
+
+//	forward size to base class
+	base_type::set_num_input(num);
+}
+
+template <typename TData, int dim, typename TDataIn>
+void LuaUserFunction<TData,dim,TDataIn>::
+set_input(size_t i, SmartPtr<IPData<TDataIn, dim> > data)
+{
+	UG_ASSERT(i < m_vpIPData.size(), "Input not needed");
+	UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
+
+//	check input number
+	if(i >= this->num_input())
+		UG_THROW("DataLinker::set_input: Only " << this->num_input()
+						<< " inputs can be set. Use 'set_num_input' to increase"
+						" the number of needed inputs.");
+
+//	remember ipdata
+	m_vpIPData[i] = data;
+
+//	cast to dependent data
+	m_vpDependData[i] = data.template cast_dynamic<DependentIPData<TDataIn, dim> >();
+
+//	forward to base class
+	base_type::set_input(i, data);
+}
+
+template <typename TData, int dim, typename TDataIn>
+void LuaUserFunction<TData,dim,TDataIn>::set_input(size_t i, number val)
+{
+	set_input(i, CreateConstUserData<dim>(val, TDataIn()));
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -395,7 +395,7 @@ namespace ug{
 						const MathMatrix<refDim, dim>* vJT = NULL) const
  *
  */
-template <typename TData, int dim, typename TImpl>
+template <typename TImpl, typename TData, int dim>
 class StdDataLinker
 	: 	public DataLinker<TData,dim>
 {

@@ -23,31 +23,10 @@ namespace bridge{
 /// Hard Coded Linker for d3f
 template <int dim>
 class DarcyVelocityLinker
-	: public StdDataLinker<MathVector<dim>, dim, DarcyVelocityLinker<dim> >
+	: public StdDataLinker< DarcyVelocityLinker<dim>, MathVector<dim>, dim>
 {
 	///	Base class type
 		typedef DataLinker<MathVector<dim>, dim> base_type;
-
-	//	explicitly forward methods of IIPData
-		using base_type::num_series;
-		using base_type::num_ip;
-		using base_type::time;
-
-	//	explicitly forward methods of IPData
-		using base_type::ip;
-		using base_type::value;
-		using base_type::values;
-
-	//	explicitly forward methods of IDependentIPData
-		using base_type::num_fct;
-
-	//	explicitly forward methods of DependentIPData
-		using base_type::num_sh;
-		using base_type::deriv;
-
-	//	explicitly forward methods of Data Linker
-		using base_type::set_num_input;
-		using base_type::input_common_fct;
 
 	public:
 		DarcyVelocityLinker() :
@@ -57,8 +36,8 @@ class DarcyVelocityLinker
 			m_spGravity(NULL), m_spDGravity(NULL),
 			m_spPressureGrad(NULL), m_spDPressureGrad(NULL)
 		{
-		//	this linker needs exactly one input
-			set_num_input(5);
+		//	this linker needs exactly five input
+			this->set_num_input(5);
 		}
 
 
@@ -183,7 +162,7 @@ class DarcyVelocityLinker
 		/////////////////////////////////////////////
 
 		//	loop all time series and every integration point of the series
-			for(size_t s = 0; s < num_series(); ++s)
+			for(size_t s = 0; s < this->num_series(); ++s)
 			{
 			//	get the data of the ip series
 				const number* vDensity = m_spDensity->values(s);
@@ -193,9 +172,9 @@ class DarcyVelocityLinker
 				const MathMatrix<dim,dim>* vPermeability = m_spPermeability->values(s);
 
 			//	get the data to be filled
-				MathVector<dim>* vDarcyVel = values(s);
+				MathVector<dim>* vDarcyVel = this->values(s);
 
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
+				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
 				{
 				//	Variables
 					MathVector<dim> Vel;
@@ -222,7 +201,7 @@ class DarcyVelocityLinker
 			this->clear_derivative_values();
 
 		//	loop all series
-			for(size_t s = 0; s < num_series(); ++s)
+			for(size_t s = 0; s < this->num_series(); ++s)
 			{
 			//	get the data of the ip series
 				const number* vDensity = m_spDensity->values(s);
@@ -232,37 +211,37 @@ class DarcyVelocityLinker
 				const MathMatrix<dim,dim>* vPermeability = m_spPermeability->values(s);
 
 			//	get the data to be filled
-				MathVector<dim>* vDarcyVel = values(s);
+				MathVector<dim>* vDarcyVel = this->values(s);
 
 			//	Derivatives of Viscosity
 				if(m_spDViscosity.valid() && !m_spDViscosity->zero_derivative())
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
+				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
 					for(size_t fct = 0; fct < m_spDViscosity->num_fct(); ++fct)
 					{
 					//	get derivative of viscosity w.r.t. to all functions
 						const number* vDViscosity = m_spDViscosity->deriv(s, ip, fct);
 
 					//	get common fct id for this function
-						const size_t commonFct = input_common_fct(_MU_, fct);
+						const size_t commonFct = this->input_common_fct(_MU_, fct);
 
 					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < num_sh(fct); ++sh)
+						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 						{
 						//  DarcyVel_fct[sh] -= mu_fct_sh / mu * q
-							VecSubtract(deriv(s, ip, commonFct, sh), vDarcyVel[ip], -vDViscosity[sh] / vViscosity[ip]);
+							VecSubtract(this->deriv(s, ip, commonFct, sh), vDarcyVel[ip], -vDViscosity[sh] / vViscosity[ip]);
 						}
 					}
 
 			//	Derivatives of Density
 				if(m_spDDensity.valid() && !m_spDDensity->zero_derivative())
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
+				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
 					for(size_t fct = 0; fct < m_spDDensity->num_fct(); ++fct)
 					{
 					//	get derivative of viscosity w.r.t. to all functions
 						const number* vDDensity = m_spDDensity->deriv(s, ip, fct);
 
 					//	get common fct id for this function
-						const size_t commonFct = input_common_fct(_RHO_, fct);
+						const size_t commonFct = this->input_common_fct(_RHO_, fct);
 
 					//	Precompute K/mu * g
 						MathVector<dim> Kmug;
@@ -274,24 +253,24 @@ class DarcyVelocityLinker
 						VecScale(Kmug, Kmug, 1./vViscosity[ip]);
 
 					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < num_sh(fct); ++sh)
+						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 						{
 						//  DarcyVel_fct[sh] += K/mu * (rho_fct_sh * g)
-							VecScaleAppend(deriv(s, ip, commonFct, sh),
+							VecScaleAppend(this->deriv(s, ip, commonFct, sh),
 							               vDDensity[sh], Kmug);
 						}
 					}
 
 			//	Derivatives of Gravity
 				if(m_spDGravity.valid() && !m_spDGravity->zero_derivative())
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
+				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
 					for(size_t fct = 0; fct < m_spDGravity->num_fct(); ++fct)
 					{
 					//	get derivative of viscosity w.r.t. to all functions
 						const MathVector<dim>* vDGravity = m_spDGravity->deriv(s, ip, fct);
 
 					//	get common fct id for this function
-						const size_t commonFct = input_common_fct(_G_, fct);
+						const size_t commonFct = this->input_common_fct(_G_, fct);
 
 					//	Precompute K/mu * rho
 						MathMatrix<dim,dim> Kmurho;
@@ -300,25 +279,25 @@ class DarcyVelocityLinker
 						MatScale(Kmurho, vDensity[ip]/vViscosity[ip],vPermeability[ip]);
 
 					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < num_sh(fct); ++sh)
+						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 						{
 							MathVector<dim> tmp;
 							MatVecMult(tmp, Kmurho, vDGravity[sh]);
 
-							deriv(s, ip, commonFct, sh) += tmp;
+							this->deriv(s, ip, commonFct, sh) += tmp;
 						}
 					}
 
 			//	Derivatives of Pressure
 				if(m_spDPressureGrad.valid() && !m_spDPressureGrad->zero_derivative())
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
+				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
 					for(size_t fct = 0; fct < m_spDPressureGrad->num_fct(); ++fct)
 					{
 					//	get derivative of viscosity w.r.t. to all functions
 						const MathVector<dim>* vDPressureGrad = m_spDPressureGrad->deriv(s, ip, fct);
 
 					//	get common fct id for this function
-						const size_t commonFct = input_common_fct(_DP_, fct);
+						const size_t commonFct = this->input_common_fct(_DP_, fct);
 
 					//	Precompute -K/mu
 						MathMatrix<dim,dim> Kmu;
@@ -327,25 +306,25 @@ class DarcyVelocityLinker
 						MatScale(Kmu, -1.0/vViscosity[ip],vPermeability[ip]);
 
 					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < num_sh(fct); ++sh)
+						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 						{
 							MathVector<dim> tmp;
 							MatVecMult(tmp, Kmu, vDPressureGrad[sh]);
 
-							deriv(s, ip, commonFct, sh) += tmp;
+							this->deriv(s, ip, commonFct, sh) += tmp;
 						}
 					}
 
 			//	Derivatives of Permeability
 				if(m_spDPermeability.valid() && !m_spDPermeability->zero_derivative())
-				for(size_t ip = 0; ip < num_ip(s); ++ip)
+				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
 					for(size_t fct = 0; fct < m_spDPermeability->num_fct(); ++fct)
 					{
 					//	get derivative of viscosity w.r.t. to all functions
 						const MathMatrix<dim,dim>* vDPermeability = m_spDPermeability->deriv(s, ip, fct);
 
 					//	get common fct id for this function
-						const size_t commonFct = input_common_fct(_K_, fct);
+						const size_t commonFct = this->input_common_fct(_K_, fct);
 
 					//	Variables
 						MathVector<dim> Vel;
@@ -360,24 +339,17 @@ class DarcyVelocityLinker
 						VecScale(Vel, Vel, 1./vViscosity[ip]);
 
 					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < num_sh(fct); ++sh)
+						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 						{
 							MathVector<dim> tmp;
 							MatVecMult(tmp, vDPermeability[sh], Vel);
 
-							deriv(s, ip, commonFct, sh) += tmp;
+							this->deriv(s, ip, commonFct, sh) += tmp;
 						}
 					}
 
 			}
 		}
-
-		// \todo: implement correctly
-	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return true;}
-
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool is_continuous() const {return false;}
 
 	public:
 	///	set permeability import

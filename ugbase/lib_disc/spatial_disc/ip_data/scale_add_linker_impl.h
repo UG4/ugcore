@@ -9,12 +9,27 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__SCALE_ADD_LINKER_IMPL__
 
 #include "scale_add_linker.h"
+#include "lib_disc/spatial_disc/ip_data/data_linker_traits.h"
 
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ScaleAddLinker
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename TData, int dim, typename TDataScale>
+ScaleAddLinker<TData,dim,TDataScale>::
+ScaleAddLinker(const ScaleAddLinker& linker)
+{
+	if(linker.m_vpIPData.size() != linker.m_vpScaleData.size())
+		UG_THROW("ScaleAddLinker: number of scaling factors and data mismatch.");
+
+	for(size_t i = 0; i < linker.m_vpIPData.size(); ++i)
+	{
+		this->add(linker.m_vpScaleData[i], linker.m_vpIPData[i]);
+	}
+}
+
 
 template <typename TData, int dim, typename TDataScale>
 void ScaleAddLinker<TData,dim,TDataScale>::
@@ -30,20 +45,17 @@ add(SmartPtr<IPData<TDataScale, dim> > scale, SmartPtr<IPData<TData, dim> > data
 	m_vpScaleDependData.resize(numInput+1, NULL);
 
 //	remember ipdata
+	UG_ASSERT(data.valid(), "Null Pointer as Input set.");
 	m_vpIPData[numInput] = data;
-	UG_ASSERT(m_vpIPData[numInput].valid(), "Null Pointer as Input set.");
-	m_vpDependData[numInput] = data. template cast_dynamic<DependentIPData<TData, dim> >();
+	m_vpDependData[numInput] = data.template cast_dynamic<DependentIPData<TData, dim> >();
 
 //	remember ipdata
+	UG_ASSERT(scale.valid(), "Null Pointer as Scale set.");
 	m_vpScaleData[numInput] = scale;
-	UG_ASSERT(m_vpScaleData[numInput].valid(), "Null Pointer as Scale set.");
-	m_vpScaleDependData[numInput]
-	              = scale.template cast_dynamic<DependentIPData<TDataScale, dim> >();
+	m_vpScaleDependData[numInput] = scale.template cast_dynamic<DependentIPData<TDataScale, dim> >();
 
-//	increase number of inputs by one
+//	increase number of inputs by one and set inputs at base class
 	base_type::set_num_input(2*numInput+2);
-
-//	add this input
 	base_type::set_input(2*numInput, data);
 	base_type::set_input(2*numInput+1, scale);
 }
@@ -68,6 +80,92 @@ add(number scale, number data)
 {
 	add(CreateConstUserData<dim>(scale, TDataScale()),
 	    CreateConstUserData<dim>(data, TData()));
+}
+
+
+template <typename TData, int dim, typename TDataScale>
+void ScaleAddLinker<TData,dim,TDataScale>::
+evaluate (TData& value,
+          const MathVector<dim>& globIP,
+          number time, int si) const
+{
+	//	reset value
+	value = 0.0;
+
+	TData valData;
+	TDataScale valScale;
+
+//	add contribution of each summand
+	for(size_t c = 0; c < m_vpIPData.size(); ++c)
+	{
+		(*m_vpIPData[c])(valData, globIP, time, si);
+		(*m_vpScaleData[c])(valScale, globIP, time, si);
+
+		linker_traits<TData, TDataScale>::
+		mult_add(value, valData, valScale);
+	}
+}
+
+template <typename TData, int dim, typename TDataScale>
+template <int refDim>
+void ScaleAddLinker<TData,dim,TDataScale>::
+evaluate (TData& value,
+          const MathVector<dim>& globIP,
+          number time, int si,
+          LocalVector& u,
+          GeometricObject* elem,
+          const MathVector<dim> vCornerCoords[],
+          const MathVector<refDim>& locIP) const
+{
+	//	reset value
+	value = 0.0;
+
+	TData valData;
+	TDataScale valScale;
+
+//	add contribution of each summand
+	for(size_t c = 0; c < m_vpIPData.size(); ++c)
+	{
+		(*m_vpIPData[c])(valData, globIP, time, si, u, elem, vCornerCoords, locIP);
+		(*m_vpScaleData[c])(valScale, globIP, time, si, u, elem, vCornerCoords, locIP);
+
+		linker_traits<TData, TDataScale>::
+		mult_add(value, valData, valScale);
+	}
+}
+
+template <typename TData, int dim, typename TDataScale>
+template <int refDim>
+void ScaleAddLinker<TData,dim,TDataScale>::
+evaluate(TData vValue[],
+         const MathVector<dim> vGlobIP[],
+         number time, int si,
+         LocalVector& u,
+         GeometricObject* elem,
+         const MathVector<dim> vCornerCoords[],
+         const MathVector<refDim> vLocIP[],
+         const size_t nip,
+         const MathMatrix<refDim, dim>* vJT) const
+{
+	//	reset value
+	for(size_t ip = 0; ip < nip; ++ip)
+		vValue[ip] = 0.0;
+
+	std::vector<TData> vValData(nip);
+	std::vector<TDataScale> vValScale(nip);
+
+//	add contribution of each summand
+	for(size_t c = 0; c < m_vpIPData.size(); ++c)
+	{
+		(*m_vpIPData[c])(&vValData[0], vGlobIP, time, si, u,
+						elem, vCornerCoords, vLocIP, nip, vJT);
+		(*m_vpScaleData[c])(&vValScale[0], vGlobIP, time, si, u,
+							elem, vCornerCoords, vLocIP, nip, vJT);
+
+		for(size_t ip = 0; ip < nip; ++ip)
+			linker_traits<TData, TDataScale>::
+			mult_add(vValue[ip], vValData[ip], vValScale[ip]);
+	}
 }
 
 template <typename TData, int dim, typename TDataScale>

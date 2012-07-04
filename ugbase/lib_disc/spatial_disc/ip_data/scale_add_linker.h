@@ -12,71 +12,6 @@
 
 namespace ug{
 
-////////////////////////////////////////////////////////////////////////////////
-// Linker Traits to allow generic programming
-////////////////////////////////////////////////////////////////////////////////
-
-/// Linker Traits
-template <typename TData, typename TDataIn>
-struct linker_traits
-{
-///	computes out += s * in1 (with appropriate '*')
-	static void mult_add(TData& out, const TData& in1, const TDataIn& s);
-};
-
-template <>
-struct linker_traits<number, number>
-{
-	static void mult_add(number& out, const number& in1, const number& s)
-	{
-		out += in1 * s;
-	}
-};
-
-template <std::size_t dim>
-struct linker_traits< MathVector<dim>, number >
-{
-	static void mult_add(MathVector<dim>& out,
-	                     const MathVector<dim>& in1,
-						 const number& s)
-	{
-		VecScaleAppend(out, s, in1);
-	}
-};
-
-template <std::size_t dim>
-struct linker_traits< MathVector<dim>, MathMatrix<dim,dim> >
-{
-	static void mult_add(MathVector<dim>& out,
-	                     const MathVector<dim>& in1,
-						 const MathMatrix<dim,dim>& s)
-	{
-		MatVecMultAppend(out, s, in1);
-	}
-};
-
-template <std::size_t dim>
-struct linker_traits< MathMatrix<dim,dim>, number >
-{
-	static void mult_add(MathMatrix<dim,dim>& out,
-	                     const MathMatrix<dim,dim>& in1,
-						 const number& s)
-	{
-		MatScaleAppend(out, s, in1);
-	}
-};
-
-template <std::size_t dim>
-struct linker_traits< MathTensor<4,dim>, number >
-{
-	static void mult_add(MathTensor<4,dim>& out,
-	                     const MathTensor<4, dim>& in1,
-						 const number& s)
-	{
-		out = in1;
-		throw(UGError("linker_traits for MathTensor4 not implemented"));
-	}
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Scaled adding of Data
@@ -97,7 +32,7 @@ struct linker_traits< MathTensor<4,dim>, number >
  */
 template <typename TData, int dim, typename TDataScale>
 class ScaleAddLinker
-	: public StdDataLinker<TData, dim, ScaleAddLinker<TData, dim, TDataScale> >
+	: public StdDataLinker<ScaleAddLinker<TData, dim, TDataScale>, TData, dim>
 {
 	public:
 	//	type of base class
@@ -108,16 +43,7 @@ class ScaleAddLinker
 		ScaleAddLinker() {}
 
 	///	constructor
-		ScaleAddLinker(const ScaleAddLinker& linker)
-		{
-			if(linker.m_vpIPData.size() != linker.m_vpScaleData.size())
-				UG_THROW("ScaleAddLinker: number of scaling factors and data mismatch.");
-
-			for(size_t i = 0; i < linker.m_vpIPData.size(); ++i)
-			{
-				this->add(linker.m_vpScaleData[i], linker.m_vpIPData[i]);
-			}
-		}
+		ScaleAddLinker(const ScaleAddLinker& linker);
 
 	///	adds an input to the list of summands scaled by a user data factor
 	///	\{
@@ -136,24 +62,7 @@ class ScaleAddLinker
 
 		inline void evaluate (TData& value,
 		                      const MathVector<dim>& globIP,
-		                      number time, int si) const
-		{
-			//	reset value
-			value = 0.0;
-
-			TData valData;
-			TDataScale valScale;
-
-			//	add contribution of each summand
-				for(size_t c = 0; c < m_vpIPData.size(); ++c)
-				{
-					(*m_vpIPData[c])(valData, globIP, time, si);
-					(*m_vpScaleData[c])(valScale, globIP, time, si);
-
-					linker_traits<TData, TDataScale>::
-					mult_add(value, valData, valScale);
-				}
-		}
+		                      number time, int si) const;
 
 		template <int refDim>
 		inline void evaluate (TData& value,
@@ -162,24 +71,7 @@ class ScaleAddLinker
 		                      LocalVector& u,
 		                      GeometricObject* elem,
 		                      const MathVector<dim> vCornerCoords[],
-		                      const MathVector<refDim>& locIP) const
-		{
-			//	reset value
-			value = 0.0;
-
-			TData valData;
-			TDataScale valScale;
-
-			//	add contribution of each summand
-				for(size_t c = 0; c < m_vpIPData.size(); ++c)
-				{
-					(*m_vpIPData[c])(valData, globIP, time, si, u, elem, vCornerCoords, locIP);
-					(*m_vpScaleData[c])(valScale, globIP, time, si, u, elem, vCornerCoords, locIP);
-
-					linker_traits<TData, TDataScale>::
-					mult_add(value, valData, valScale);
-				}
-		}
+		                      const MathVector<refDim>& locIP) const;
 
 		template <int refDim>
 		inline void evaluate(TData vValue[],
@@ -190,28 +82,7 @@ class ScaleAddLinker
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const
-		{
-			//	reset value
-			for(size_t ip = 0; ip < nip; ++ip)
-				vValue[ip] = 0.0;
-
-			std::vector<TData> vValData(nip);
-			std::vector<TDataScale> vValScale(nip);
-
-			//	add contribution of each summand
-				for(size_t c = 0; c < m_vpIPData.size(); ++c)
-				{
-					(*m_vpIPData[c])(&vValData[0], vGlobIP, time, si, u,
-									elem, vCornerCoords, vLocIP, nip, vJT);
-					(*m_vpScaleData[c])(&vValScale[0], vGlobIP, time, si, u,
-										elem, vCornerCoords, vLocIP, nip, vJT);
-
-					for(size_t ip = 0; ip < nip; ++ip)
-						linker_traits<TData, TDataScale>::
-						mult_add(vValue[ip], vValData[ip], vValScale[ip]);
-				}
-		}
+		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 	protected:
 	///	data at ip of input
@@ -247,28 +118,16 @@ class ScaleAddLinker
 		}
 
 	///	returns number of functions the input depends on
-		size_t input_num_fct(size_t i) const
-		{
-			return base_type::input_num_fct(2*i);
-		}
+		size_t input_num_fct(size_t i) const {return base_type::input_num_fct(2*i);}
 
 	///	returns the number in the common FctGrp for a fct of an input
-		size_t input_common_fct(size_t i, size_t fct) const
-		{
-			return base_type::input_common_fct(2*i, fct);
-		}
+		size_t input_common_fct(size_t i, size_t fct) const	{return base_type::input_common_fct(2*i, fct);}
 
 	///	returns number of functions the scaling depends on
-		size_t scale_num_fct(size_t i) const
-		{
-			return base_type::input_num_fct(2*i+1);
-		}
+		size_t scale_num_fct(size_t i) const {return base_type::input_num_fct(2*i+1);}
 
 	///	returns the number in the common FctGrp for a fct of a scaling
-		size_t scale_common_fct(size_t i, size_t fct) const
-		{
-			return base_type::input_common_fct(2*i+1, fct);
-		}
+		size_t scale_common_fct(size_t i, size_t fct) const	{return base_type::input_common_fct(2*i+1, fct);}
 
 	protected:
 	///	data input
