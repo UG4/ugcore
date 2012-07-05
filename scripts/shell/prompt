@@ -1,7 +1,15 @@
 #!/bin/bash
 SHORT_HOSTNAME=`hostname | sed 's/\([^\.]*\).*/\1/'`
+#LONG_HOSTNAME=`hostname -f`
+
+NOCOLOR="\[\e[0m\]"
+BRACKETCOLOR="\[\e[1;30m\]"
+DIRCOLOR="\[\e[1;34m\]"
+HOSTCOLOR="\[\033[1;32m\]"
+[[ ! $(id -u) ]] && HOSTCOLOR="\[\033[1;31m\]SU "
+
 PROMPT_COMMAND='echo -ne "\033]0; $SHORT_HOSTNAME `dirs`\007"'
-PS1="\[\033[1;32m\]\h \[\033[1;30m\][\[\033[1;34m\]\w\[\033[1;30m\]]\[\033[0m\] "
+PS1="$HOSTCOLOR$SHORT_HOSTNAME $BRACKETCOLOR[$DIRCOLOR\w$BRACKETCOLOR] $NOCOLOR"
 
 if ls --color -d . >/dev/null 2>&1; then
     alias ls="ls -lap --color"
