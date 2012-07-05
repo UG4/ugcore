@@ -63,42 +63,70 @@ template <int TWorldDim,int nrfaceco> struct crfv_traits
 {
     typedef void scv_type;
     typedef void face_type;
+	static const size_t maxNumSCVF;
+	static const size_t maxNumSCV;
+	static const size_t maxNSH;
+	static const size_t maxNumCo;
 };
 
 template <> struct crfv_traits<1, 1>
 {
     typedef ReferenceEdge scv_type;
     typedef ReferenceVertex face_type;
+	static const size_t maxNumSCVF = 1;
+	static const size_t maxNumSCV = 2;
+	static const size_t maxNSH = maxNumSCV;
+	static const size_t maxNumCo = 2;
 };
 
 template <> struct crfv_traits<1, 2>
 {
 	typedef ReferenceEdge scv_type;
     typedef ReferenceVertex face_type;
+	static const size_t maxNumSCVF = 1;
+	static const size_t maxNumSCV = 2;
+	static const size_t maxNSH = maxNumSCV;
+	static const size_t maxNumCo = 2;
 };
 
 template <> struct crfv_traits<2, 2>
 {
     typedef ReferenceTriangle scv_type;
     typedef ReferenceEdge face_type;
+	static const size_t maxNumSCVF = 4;
+	static const size_t maxNumSCV = 4;
+	static const size_t maxNSH = maxNumSCV;
+	static const size_t maxNumCo = 4;
 };
 
 template <> struct crfv_traits<2, 3>
 {
     typedef ReferenceTriangle scv_type;
     typedef ReferenceEdge face_type;
+	static const size_t maxNumSCVF = 4;
+	static const size_t maxNumSCV = 4;
+	static const size_t maxNSH = maxNumSCV;
+	static const size_t maxNumCo = 4;
 };
 
 template <> struct crfv_traits<3, 3>
 {
 	typedef ReferenceTetrahedron scv_type;
     typedef ReferenceTriangle face_type;
+	static const size_t maxNumSCVF = 10;
+	static const size_t maxNumSCV = 6;
+	static const size_t maxNSH = maxNumSCV;
+	static const size_t maxNumCo = 8;
 };
 
 template <> struct crfv_traits<3, 4>
 {
     typedef ReferencePyramid scv_type;
     typedef ReferenceQuadrilateral face_type;
+	static const size_t maxNumSCVF = 10;
+	static const size_t maxNumSCV = 6;
+	static const size_t maxNSH = maxNumSCV;
+	static const size_t maxNumCo = 8;
 };
 
 /// base class for all CRFVGeometries
@@ -136,7 +164,7 @@ class DimCRFVGeometry : public CRFVGeometryBase
 {
 	public:
 	///	used traits
-	//	typedef fv1_dim_traits<TDim, TWorldDim> traits;
+		typedef crfv_traits<TDim, TDim> traits;
 
 	public:
 	///	dimension of reference element
@@ -153,7 +181,7 @@ class DimCRFVGeometry : public CRFVGeometryBase
 		static const int order = 1;
 
 	///	number of SubControlVolumes
-		static const size_t maxNumSCV = 6;
+		static const size_t maxNumSCV = traits::maxNumSCV;
 
 	///	traits
 		typedef typename crfv_traits<TWorldDim,TWorldDim>::scv_type scv_type0;
@@ -162,12 +190,12 @@ class DimCRFVGeometry : public CRFVGeometryBase
 	    typedef typename crfv_traits<TWorldDim,TWorldDim+1>::face_type face_type1;
 
 	///	max number of SubControlVolumeFaces
-		static const size_t maxNumSCVF = 10;
+		static const size_t maxNumSCVF = traits::maxNumSCVF;
 
 	/// max number of shape functions
-		static const size_t maxNSH = 6;
+		static const size_t maxNSH = traits::maxNSH;
 
-		static const size_t maxNumCo = 8;
+		static const size_t maxNumCo = traits::maxNumCo;
 
 	/// number of integration points
 		static const size_t nip = 1;

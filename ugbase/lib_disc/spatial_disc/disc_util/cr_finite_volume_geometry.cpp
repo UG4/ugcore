@@ -36,9 +36,6 @@ update_local_data()
 	m_numSCV = rRefElem.num(dim-1); // number of faces
 	m_numSCVF = rRefElem.num(1); // number of edges
 
-	UG_LOG("m_numSCV= " << m_numSCV << "\n");
-	UG_LOG("m_numSCVF= " << m_numSCVF << "\n");
-
 //  compute barycenter coordinates
 	localBary = rRefElem.corner(0);
 	for (size_t j=1;j<rRefElem.num(0);j++){
@@ -182,7 +179,6 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		     m_vSCV[i].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[i].vGloPos);
 		     ElementNormal<face_type1,worldDim>(m_vSCV[i].Normal, m_vSCV[i].vGloPos);
 		};
-
 	}
 
 //	get reference mapping
@@ -513,8 +509,6 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 		     m_vSCV[i].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[i].vGloPos);
 		     ElementNormal<face_type1, worldDim>(m_vSCV[i].Normal, m_vSCV[i].vGloPos);
 		};
-		// UG_LOG("v_normal(" << i << ")=" << m_vSCV[i].Normal <<" ");
-		// UG_LOG("v_vol(" << i << ")=" << m_vSCV[i].Vol <<"\n");
 	}
 
 // 	Shapes and Derivatives
