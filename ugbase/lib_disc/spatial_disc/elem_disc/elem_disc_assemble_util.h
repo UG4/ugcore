@@ -304,7 +304,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 
 //	create data evaluator
 	DataEvaluator Eval;
-	LocalVectorTimeSeries locTimeSeries; //time series of local vectors
+	LocalVectorTimeSeries locTimeSeries;
 	LocalIndices ind; LocalVector locU;
 
 //	prepare for given elem discs
@@ -361,7 +361,6 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	// 	prepare timestep
 		try
 		{
-			//anstatt locU auf read_values(vSol,ind) zurückgreifen?!
 			Eval.prepare_timestep_elem(elem, locU);
 		}
 		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare timestep.");
