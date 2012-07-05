@@ -53,12 +53,14 @@ What kind of editor you need depends on taste and task you want to accomplish.
 If you spend a lot of time in the shell, you should really learn about programming the BASH:
 <ul>
 <li> <a href="http://de.wikibooks.org/wiki/Linux-Kompendium:_Shellprogrammierung">Linux-Kompendium auf wikibooks (German)</a>
+<li> <a href="http://www-f9.ijs.si/~ruben/books/Linux_Shell_Scripting_Cookbook.pdf"> Linux Shell Scripting Cookbook </a>
 <li> <a href="http://www.schatenseite.de/uploads/media/shell.pdf">Even longer PDF about BASH programming (German)</a>
 </ul>
 
 <hr>
 \section secOtherHints Other Hints
 <ul>
+<li> <a href="http://mathemartician.blogspot.com/2012/07/ultimate-bash-prompt.html"> a bash prompt </a>
 <li> <a href="http://wiki.linuxquestions.org/wiki/Packing_and_Unpacking_Files">Packing and Unpacking Files</a>
 <li> <a href="http://home.ubalt.edu/abento/linux/terminal/addtopath.html">Adding something to PATH in .bashrc</a>
 <li> <a href="http://www.thegeekstuff.com/2010/11/50-linux-commands/">50 Most Frequent Used Linux Commands (With Examples)</a>

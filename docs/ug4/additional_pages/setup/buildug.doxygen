@@ -7,19 +7,23 @@
 - \ref secBuildUG4Make
 
 Before building \ug4, you should make sure that you installed all necessary tools (\ref pageUG4Install) 
-for your system.
+for your system. Beginners might also want to have a look at \ref pageShellAndLinux. 
 
 <hr>
 \section secBuildUG4Checkout Checkout ug4
-You \ref secInstallEcpliseUG4Download . 
-To do it \em manually with <tt> svn </tt>: 
-Create a \c ug4 directory and perform a svn checkout on the trunk.
-- <tt>mkdir ug4</tt>
-- <tt>cd ug4</tt>
-- <tt>svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>
 
+<ul>
+<li> You can \ref secInstallEcpliseUG4Download . <br> 
+<li> <b>OR</b> If you want to do it \em manually with <tt> svn </tt>: 
+Create a \c ug4 directory and perform a svn checkout on the trunk.
+<ul>
+<li> <tt>mkdir ug4</tt>
+<li> <tt>cd ug4</tt>
+<li> <tt>svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>
+</ul>
+</ul>
 In the following section, YOURUG4ROOT is the directory which contains 
-ug_cmake_includes.txt, so depending on your svn checkout, 
+ug_cmake_includes.txt, so depending on your checkout, 
 this is ug4 or ug4/trunk.
 Because of that, always keep in mind that people mean <tt>YOURUG4ROOT/apps</tt> when
 they speak about <tt>ug4/apps</tt> or <tt>ug4/trunk/apps</tt>. 
@@ -33,8 +37,8 @@ source YOURUG4ROOT/scripts/shell/ugbash
 \endcode
 \note After this, the environment variable $UG4_ROOT is set to YOURUG4ROOT.
 
-If you are new to bash/Linux, please try out <tt>source YOURUG4ROOT/scripts/shell/prompt</tt> . 
-That way you'll always see in which path you are.
+If you are new to bash/Linux, please try out adding also <tt>source YOURUG4ROOT/scripts/shell/prompt</tt> . 
+That way you'll always see in which path you are. It's also covered <a href="http://mathemartician.blogspot.com/2012/07/ultimate-bash-prompt.html"> here </a>.
 
 <hr>
 \section secBuildUG4RunCmake Run CMake
