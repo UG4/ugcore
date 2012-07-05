@@ -6,6 +6,8 @@
 
 #include "common/util/file_util.h"
 
+#include <direct.h>
+
 using namespace std;
 
 namespace ug{
@@ -65,4 +67,8 @@ bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 	return true;
 }
 
+bool CreateDirectory(const char *directory, int mode)
+{
+	return _mkdir(directory) == 0;
+}
 }// end of namespace

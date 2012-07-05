@@ -70,4 +70,11 @@ bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 	return true;
 }
 
+
+bool CreateDirectory(const char *directory, int mode)
+{
+	return mkdir(directory, mode) == 0;
+}
+
+
 }// end of namespace
