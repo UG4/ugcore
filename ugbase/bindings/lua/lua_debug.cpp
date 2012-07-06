@@ -376,7 +376,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 								//strncat(buf, p+strspn(p, " \t"), 254);
 
 								pi = new DynamicProfileInformation(NULL, false);
-								pi->set_name_and_copy(buf);
+								pi->init(buf, true, "lua", false);
 								// UG_LOG(buf);
 							 }
 
