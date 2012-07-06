@@ -17,7 +17,7 @@ using namespace std;
 
 namespace ug
 {
-
+void PrintLUA();
 namespace bridge
 {
 
@@ -63,10 +63,15 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 				"time in milliseconds spend in this node including subnodes", "")
 		.add_method("is_valid", &UGProfileNode::valid, "true if node has been found", "")
 
+		.add_method("groups", &UGProfileNode::groups, "", "")
+
 		;
 		/*.add_method("__tostring", &UGProfileNode::tostring, "tostring")
 		.add_method("__unm", &UGProfileNode::unm, "unm")
 		.add_method("__add", &UGProfileNode::add, "add");*/
+
+	reg.add_function("PrintLUA", &PrintLUA, grp);
+
 	reg.add_function("GetProfileNode", &GetProfileNode, grp);
 	reg.add_function("GetProfilerAvailable", &GetProfilerAvailable, grp, "true if profiler available");
 	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, grp, "", "bOutput",
