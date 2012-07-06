@@ -5,6 +5,7 @@
 #include "mpi.h"
 #include "pcl_methods.h"
 #include "common/log.h"
+#include "pcl_profiling.h"
 
 namespace pcl
 {
@@ -37,9 +38,9 @@ void ReceiveData(void* pBuffOut, ProcID srcProc, int bufferSize, int tag)
 	MPI_Request request;
 	MPI_Status	status;
 	
-	MPI_Irecv(pBuffOut, bufferSize, MPI_UNSIGNED_CHAR,	
+	MPI_Irecv(pBuffOut, bufferSize, MPI_UNSIGNED_CHAR,
 					srcProc, tag, MPI_COMM_WORLD, &request);
-					
+
 	MPI_Wait(&request, &status);
 }
 

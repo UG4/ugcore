@@ -13,8 +13,8 @@
 
 #ifdef PROFILE_PCL
 	#include "common/profiler/profiler.h"
-	#define PCL_PROFILE_FUNC()	PROFILE_FUNC()
-	#define PCL_PROFILE(name)	PROFILE_BEGIN(name)
+	#define PCL_PROFILE_FUNC()	PROFILE_FUNC_GROUP("pcl")
+	#define PCL_PROFILE(name)	PROFILE_BEGIN_GROUP(name, "pcl")
 	#define PCL_PROFILE_END()	PROFILE_END()
 #else
 	#define PCL_PROFILE_FUNC()
