@@ -242,7 +242,11 @@ void RegisterBridge_AMG(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Preconditioner");
 	typedef AMG::Functionality Functionality;
+#ifdef UG_CPU_1
 	typedef boost::mpl::list<CPUAlgebra> AlgList;
+#else
+	typedef boost::mpl::list<> AlgList;
+#endif
 
 	try{
 		RegisterAlgebraDependent<Functionality, AlgList>(reg,grp);
