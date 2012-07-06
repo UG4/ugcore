@@ -1,4 +1,6 @@
-
+#include "../operations_vec.h"
+namespace ug
+{
 // MATRIX_USE_ROW_FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -90,3 +92,4 @@ struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_ROW_FUNCTIONS>
 		return MatMultTransposedAddDirect(dest, beta1, A1, w1, alpha1, w1);
 	}
 };
+}

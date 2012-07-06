@@ -1,6 +1,10 @@
 // MATRIX_USE_GLOBAL_FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "../operations_vec.h"
+
+namespace ug{
+
 ////////////////////////////////////////////////////////////////////////////////
 //! calculates dest = alpha1*v1 + beta1 * A1 *w1;
 template<typename vector_t, typename matrix_t>
@@ -108,3 +112,4 @@ struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_GLOBAL_FUNCTIONS>
 		return MatMultTransposedAddDirect(dest, alpha1, w1, beta1, A1, w1);
 	}
 };
+}

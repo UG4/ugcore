@@ -2,6 +2,8 @@
 // MATRIX_USE_OPERATORS: elementary types like double, float, or template operatored classes: use operators
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+namespace ug{
+
 template<typename vector_t, typename matrix_t>
 struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_OPERATORS>
 {
@@ -61,3 +63,5 @@ struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_OPERATORS>
 		return true;
 	}
 };
+
+}

@@ -2,6 +2,9 @@
 // MATRIX_USE_MEMBER_FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+namespace ug
+{
+
 template<typename vector_t, typename matrix_t>
 struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_MEMBER_FUNCTIONS>
 {
@@ -61,3 +64,5 @@ struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_MEMBER_FUNCTIONS>
 		return dest.mat_mult_tranposed_add(alpha1, w1, beta1, A1, w1);
 	}
 };
+
+}

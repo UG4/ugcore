@@ -10,9 +10,6 @@
 
 #include "common/common.h"
 
-namespace ug
-{
-
 // operations for matrices
 //-----------------------------------------------------------------------------
 // these functions execute matrix operations
@@ -46,7 +43,8 @@ Other functions like MatMultAdd(dest, beta1, A1, w1, beta2, A2, w2, alpha1, v1) 
 
 */
 
-
+namespace ug
+{
 enum matrix_algebra_type
 {
 	MATRIX_USE_ROW_FUNCTIONS,
@@ -64,6 +62,8 @@ struct matrix_algebra_type_traits
 	static const int type = MATRIX_USE_OPERATORS;
 };
 
+}
+
 #include "matrix_use_operators.h"
 
 #include "matrix_use_global_functions.h"
@@ -72,6 +72,9 @@ struct matrix_algebra_type_traits
 
 #include "matrix_use_member_functions.h"
 
+
+namespace ug
+{
 // functions transforming MatMult into the right operation, depending on matrix_algebra_type_traits.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
