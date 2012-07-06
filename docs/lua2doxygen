@@ -157,7 +157,7 @@ foreach my $line (<FH>)
 	}
 	if($functionComment ne "")
 	{
-	    $result.= "\n/*!< ".$functionComment."".$1."**/";
+	    $result.= "\n/*!< ".$functionComment."**/";
 
 			$functionComment = "";
 	}
