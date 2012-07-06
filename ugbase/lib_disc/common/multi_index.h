@@ -261,7 +261,7 @@ DoFRef(TVector& vec, const MultiIndex<2>& ind)
 
 template <typename TVector>
 inline const number&
-DoFRef(constTVector& vec, const MultiIndex<2>& ind)
+DoFRef(const TVector& vec, const MultiIndex<2>& ind)
 {
 	return BlockRef(vec(ind[0]), ind[1]);
 }
