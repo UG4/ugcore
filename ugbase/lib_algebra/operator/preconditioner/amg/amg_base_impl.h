@@ -344,6 +344,7 @@ bool AMGBase<TAlgebra>::preprocess(matrix_operator_type& mat)
 #ifdef UG_PARALLEL
 	pcl::ProcessCommunicator &pc = mat.process_communicator(); //!
 	m_totalUsedLevels = pc.allreduce(m_usedLevels, PCL_RO_MAX);
+	UG_LOG("total used levels: " << m_totalUsedLevels << "\n");
 
 	for(level=0;level<m_totalUsedLevels; level++)
 	{
