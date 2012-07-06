@@ -764,7 +764,7 @@ IF(UNIX)
     # write a file with the BUILD_HOST define
     set(HOSTNAME "\"${CMAKE_SYSTEM_NAME} ${hostname}\"")
     
-    execute_process(COMMAND touch "-t 202001010000.00" "${CMAKE_BINARY_DIR}/CMakeCache.txt")   
+    execute_process(COMMAND touch "-t" "202001010000.00" "${CMAKE_BINARY_DIR}/CMakeCache.txt")   
 
 ELSEIF(WIN32)
     #MESSAGE(STATUS "INFO: On Windows: time stamp generation unsupported!")
