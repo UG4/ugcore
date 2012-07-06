@@ -730,22 +730,22 @@ include(FindSubversion)
 	        )
 	
 			IF(svn_version_error)
-				file(WRITE ${CMAKE_BINARY_DIR}/svnrevision.h "#define SVN_REVISION \"svnversion_failed\"\n")				
+				set(SVN_REVISION "\"svnversion failed\"")				
 			ELSE(svn_version_error)
 	        	# write a file with the SVN_REVISION define
-	        	file(WRITE ${CMAKE_BINARY_DIR}/svnrevision.h "#define SVN_REVISION \"${svn_version}\"\n")
+	        	set(SVN_REVISION "\"${svn_version}\"")
 	        ENDIF(svn_version_error)
 	
 	ELSE(Subversion_FOUND)
 		MESSAGE(STATUS "WARNING: Looking for Subversion - not found (disable EMBED_SVN_REV with -DEMBED_SVN_REV=OFF)")
 	        # write a file with the SVN_REVISION define
-	        file(WRITE ${CMAKE_BINARY_DIR}/svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
+	        set(SVN_REVISION "\"unknown revision\"")
 	ENDIF(Subversion_FOUND)
 	
 ELSE(EMBED_SVN_REV)
 	#MESSAGE(STATUS "INFO: Not looking for Subversion - (Enable EMBED_SVN_REV with -DEMBED_SVN_REV=ON)")
         # write a file with the SVN_REVISION define
-        file(WRITE ${CMAKE_BINARY_DIR}/svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
+        set(SVN_REVISION  "\"unknown revision\"")
 ENDIF(EMBED_SVN_REV)
 ####
 # make compile date stamp available as C++ macro
@@ -756,22 +756,38 @@ IF(UNIX)
         OUTPUT_VARIABLE compile_date OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     # write a file with the COMPILE_DATE define
-    file(WRITE ${CMAKE_BINARY_DIR}/compiledate.h "#define COMPILE_DATE \"${compile_date}\"\n")
+    set(COMPILE_DATE "\"${compile_date}\"")
 
     execute_process(COMMAND hostname
         OUTPUT_VARIABLE hostname OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     # write a file with the BUILD_HOST define
-    file(WRITE ${CMAKE_BINARY_DIR}/build_hostname.h "#define BUILD_HOST \"${hostname}\"\n")
+    set(HOSTNAME "\"${CMAKE_SYSTEM_NAME} ${hostname}\"")
+    
+    execute_process(COMMAND touch "--date=tomorrow" "${CMAKE_BINARY_DIR}/CMakeCache.txt")   
 
 ELSEIF(WIN32)
     #MESSAGE(STATUS "INFO: On Windows: time stamp generation unsupported!")
     # write a file with the COMPILE_DATE define
-    file(WRITE ${CMAKE_BINARY_DIR}/compiledate.h "#define COMPILE_DATE \"unknown date\"\n")
+    set(COMPILE_DATE "__DATE__")
     #MESSAGE(STATUS "INFO: On Windows: hostname generation unsupported!")
     # write a file with the BUILD_HOST define
-    file(WRITE ${CMAKE_BINARY_DIR}/build_hostname.h "#define BUILD_HOST \"unknown\"\n")
+    set(HOSTNAME "\"${CMAKE_SYSTEM_NAME} WIN32\"")
 ENDIF(UNIX)
+
+file(WRITE ${CMAKE_BINARY_DIR}/compiled_strings.cpp 
+"namespace ug\n"
+"{\n"
+"const char *SVN_REVISION=${SVN_REVISION};\n"
+"const char *BUILD_HOST=${HOSTNAME};\n"
+"const char *COMPILE_DATE=${COMPILE_DATE};\n"
+"}\n")
+
+add_library(compiledstrings ${CMAKE_BINARY_DIR}/compiled_strings.cpp)
+
+
+
+
 
 ################################################################################
 # Those options are temporary and should be removed in future builds.

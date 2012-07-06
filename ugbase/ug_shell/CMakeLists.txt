@@ -73,6 +73,8 @@ endif(buildDynamicLibrary)
 remove_definitions(-DLUA_BUILD_AS_DLL)
 add_executable(${targetExecutableName} ${srcUGShell})
 
+target_link_libraries(${targetExecutableName} compiledstrings)
+
 if("${SHELLTYPE}" STREQUAL "readline")
 	target_link_libraries(${targetExecutableName} readline)
 endif("${SHELLTYPE}" STREQUAL "readline")
