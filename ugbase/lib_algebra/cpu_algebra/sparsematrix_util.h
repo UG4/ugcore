@@ -28,6 +28,21 @@ namespace ug
  * \param A (in) Matrix A
  * \param B (in) Matrix B
  * \param C (in) Matrix C
+ *
+ * Complete formula for calculating M=A*B*C:
+ *  \f[
+ *  	 M_{ij} = \sum_{kl} A_{ik} * B_{kl} * C_{lj}
+ *  \f]
+ * Calculation is done on row-basis without
+ * a temporary BC or AB matrix. This has shown to be much faster than
+ * implementations with temporary matrices due to cache effects.
+ * We also added an improved way of storing the results of the calculation:
+ *  when we go through connections of B and C and want to add the connection
+ *  (i, j) to M, we need to know if this connection already exists. For this we have
+ *  an array posInConnections, needs n=A.num_rows() memory.
+ *  posInConnections[i]: index in the connections for current row (if not in row: -1)
+ *  tried this also with std::map, but took 1511.53 ms instead of 393.972 ms
+ *  searching in the connections array is also slower
  */
 template<typename ABC_type, typename A_type, typename B_type, typename C_type>
 void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &C, double epsilonTruncation=0.0)
@@ -37,10 +52,6 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	// create output matrix M
 	M.resize(A.num_rows(), C.num_cols());
 
-	// speedup with array posInConnections, needs n memory
-	// posInConnections[i]: index in the connections for current row (if not in row: -1)
-	// tried this also with std::map, but took 1511.53 ms instead of 393.972 ms
-	// searching in the connections is also slower
 
 	std::vector<int> posInConnections(C.num_cols(), -1);
 
@@ -50,7 +61,7 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 
 	typedef typename A_type::value_type avalue;
 	typename block_multiply_traits<typename A_type::value_type, typename B_type::value_type>::ReturnType ab;
-	typename C_type::value_type cvalue;
+	//typename C_type::value_type cvalue;
 
 	typename ABC_type::connection c;
 
@@ -59,32 +70,35 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	typedef typename C_type::const_row_iterator cCiterator;
 
 	// do
+	// M_{ij} = \sum_kl A_{ik} * B_{kl} * C_{lj}
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		con.clear();
-		for(cAiterator itA = A.begin_row(i); itA != A.end_row(i); ++itA)
+		for(cAiterator itAik = A.begin_row(i); itAik != A.end_row(i); ++itAik)
 		{
-			if(itA.value() == 0.0) continue;
+			if(itAik.value() == 0.0) continue;
 
-			for(cBiterator itB = B.begin_row(itA.index()); itB != B.end_row(itA.index()); ++itB)
+			size_t k = itAik.index();
+			for(cBiterator itBkl = B.begin_row(k); itBkl != B.end_row(k); ++itBkl)
 			{
-				if(itB.value() == 0.0) continue;
-				AssignMult(ab, itA.value(), itB.value());
+				if(itBkl.value() == 0.0) continue;
+				size_t l = itBkl.index();
+				// ab = A_{ik} * B_{kl}
+				AssignMult(ab, itAik.value(), itBkl.value());
 
-				for(cCiterator itC = C.begin_row(itB.index()); itC != C.end_row(itB.index()); ++itC)
+				for(cCiterator itClj = C.begin_row(l); itClj != C.end_row(l); ++itClj)
 				{
-					cvalue = itC.value();
-					if(cvalue == 0.0) continue;
-					size_t indexTo = itC.index();
+					if(itClj.value() == 0.0) continue;
+					size_t j = itClj.index();
 
-					if(posInConnections[indexTo] == -1)
+					if(posInConnections[j] == -1)
 					{
 						// we havent visited node <indexTo>
 						// so we need to add a Connection to the row
 						// save the index of the connection in the row
-						posInConnections[indexTo] = con.size();
-						c.iIndex = indexTo;
-						AssignMult(c.dValue, ab, cvalue);
+						posInConnections[j] = con.size();
+						c.iIndex = j;
+						AssignMult(c.dValue, ab, itClj.value());
 						con.push_back(c);
 					}
 					else
@@ -92,7 +106,7 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 						// we have visited this node before,
 						// so we know the index of the connection
 						// -> add a*b*c
-						AddMult(con[posInConnections[indexTo]].dValue, ab, cvalue);
+						AddMult(con[posInConnections[j]].dValue, ab, itClj.value());
 					}
 
 				}
@@ -117,7 +131,6 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 			M.set_matrix_row(i, &con2[0], con2.size());
 		}
 		else
-			// set Matrix_type Row in AH
 			M.set_matrix_row(i, &con[0], con.size());
 	}
 
@@ -133,6 +146,8 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
  * \param M (out) Matrix M, M = A*B$
  * \param A (in) Matrix A
  * \param B (in) Matrix B
+ * \f$ M_{ij} = \sum_k A_{ik} * B_{kj} \f$
+ * For implementation details, see also CreateAsMultiplyOf(M, A, B, C).
  */
 template<typename AB_type, typename A_type, typename B_type>
 void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
@@ -150,27 +165,29 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 	typedef typename A_type::const_row_iterator cAiterator;
 	typedef typename B_type::const_row_iterator cBiterator;
 
-	// do
+	// M_{ij} = \sum_k A_{ik} * B_{kj}
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		con.clear();
-		for(cAiterator itA = A.begin_row(i); itA != A.end_row(i); ++itA)
+		for(cAiterator itAik = A.begin_row(i); itAik != itAik.end_row(i); ++itAik)
 		{
-			if(itA.value() == 0.0) continue;
+			if(itAik.value() == 0.0) continue;
+			size_t k = itAik.index();
 
-			for(cBiterator itB = B.begin_row(itA.index()); itB != B.end_row(itA.index()); ++itB)
+
+			for(cBiterator itBkj = B.begin(k); itBkj != B.end_row(k); ++itBkj)
 			{
-				if(itB.value() == 0.0) continue;
-				size_t indexTo = itB.index();
+				if(itBkj.value() == 0.0) continue;
+				size_t j = itBkj.index();
 
-				if(posInConnections[indexTo] == -1)
+				if(posInConnections[j] == -1)
 				{
 					// we havent visited node <indexTo>
 					// so we need to add a Connection to the row
 					// save the index of the connection in the row
-					posInConnections[indexTo] = con.size();
-					c.iIndex = indexTo;
-					AssignMult(c.dValue, itA.value(), itB.value());
+					posInConnections[j] = con.size();
+					c.iIndex = j;
+					AssignMult(c.dValue, itAik.value(), itBkj.value());
 					con.push_back(c);
 				}
 				else
@@ -178,13 +195,13 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 					// we have visited this node before,
 					// so we know the index of the connection
 					// -> add a*b*c
-					AddMult(con[posInConnections[indexTo]].dValue, itA.value(), itB.value());
+					AddMult(con[posInConnections[j]].dValue, itAik.value(), itBkj.value());
 				}
 			}
 		}
 
 		// reset posInConnections to -1
-		for(size_t j=0; j<con.size(); j++) posInConnections[con[j].iIndex] = -1;
+		for(size_t l=0; l<con.size(); l++) posInConnections[con[l].iIndex] = -1;
 		// set Matrix_type Row in AH
 		M.set_matrix_row(i, &con[0], con.size());
 	}
