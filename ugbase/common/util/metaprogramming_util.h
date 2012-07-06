@@ -116,6 +116,24 @@ struct Factorial<1>
 };
 
 //////////////////////////////
+// Pow
+//////////////////////////////
+
+/** returns the power of n^d
+ */
+template <int n, size_t d>
+struct Pow
+{
+    enum{value = n*Pow<n, d-1>::value};
+};
+
+template <int n>
+struct Pow<n, 1>
+{
+    enum {value = n};
+};
+
+//////////////////////////////
 // BinomialCoefficient
 //////////////////////////////
 
