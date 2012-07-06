@@ -63,7 +63,7 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 				"time in milliseconds spend in this node including subnodes", "")
 		.add_method("is_valid", &UGProfileNode::valid, "true if node has been found", "")
 
-	  //		.add_method("groups", &UGProfileNode::groups, "", "")
+	  		.add_method("groups", &UGProfileNode::groups, "", "")
 
 		;
 		/*.add_method("__tostring", &UGProfileNode::tostring, "tostring")
