@@ -28,13 +28,13 @@ namespace ug
 // neuer algorithmus:
 // overlap 0
 // 1. slave-knoten verschicken ihre Zeile an den Master.
-// 2. Master nimmt diese entgegen, zeile wird fŸr vorhandene Knoten addiert
+// 2. Master nimmt diese entgegen, zeile wird fï¿½r vorhandene Knoten addiert
 // 3. fertig.
 
 // overlap 1
 // 1. slave-knoten verschicken ihre Zeile an den Master.
-//    /!\ werden verknŸpfungen zu anderen prozessoren verschickt, werden die prozessoren informiert
-//    /!\ unter umstŠnden wird so ein prozessor "von 2 seiten" informiert. dann muss es eine
+//    /!\ werden verknï¿½pfungen zu anderen prozessoren verschickt, werden die prozessoren informiert
+//    /!\ unter umstï¿½nden wird so ein prozessor "von 2 seiten" informiert. dann muss es eine
 // 2. verschicke die matrixzeilen und benachrichtungen
 // 3. nehme matrixzeilen und benachrichtungen entgegen
 // 4. verarbeite benachrichtungen: erzeuge u.U. neue Master Knoten
@@ -98,7 +98,7 @@ private:
 			IndexLayout &newSlavesLayout, IndexLayout &newMastersLayout,
 			std::set<int> &pids, bool bSet, size_t level)
 	{
-		PROFILE_FUNC();
+		PROFILE_FUNC_GROUP("algebra");
 
 		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\n*** GenerateOverlapClass::communicate ***\n\n")
 		IF_DEBUG(LIB_ALG_MATRIX, 4)
@@ -177,7 +177,7 @@ public:
 	 */
 	bool calculate()
 	{
-		PROFILE_FUNC();
+		PROFILE_FUNC_GROUP("algebra");
 		IF_DEBUG(LIB_ALG_MATRIX, 4)
 		{
 			UG_DLOG(LIB_ALG_MATRIX, 4, "GENERATE OVERLAP START\n");
@@ -369,7 +369,7 @@ bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 		std::vector<size_t> &overlapSize,
 		size_t overlapDepth=1)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("algebra");
 	// pcl does not use const much
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
 	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
@@ -390,7 +390,7 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
 		IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout, std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts,
 		size_t overlapDepthMaster, size_t overlapDepthSlave, bool masterDirichletLast, bool slaveDirichletLast)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("algebra");
 	// pcl does not use const much
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
 	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
@@ -409,7 +409,7 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
 template<typename matrix_type>
 bool MakeConsistent(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("algebra");
 	IndexLayout totalMasterLayout, totalSlaveLayout;
 	std::vector<IndexLayout> vMasterLayouts;
 	std::vector<IndexLayout> vSlaveLayouts;
