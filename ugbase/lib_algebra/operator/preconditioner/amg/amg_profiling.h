@@ -12,13 +12,13 @@
 #define PROFILE_AMG
 #ifdef PROFILE_AMG
 	#include  "common/profiler/profiler.h"
-	#define AMG_PROFILE_FUNC()			PROFILE_FUNC()
-	#define AMG_PROFILE_BEGIN(name)		PROFILE_BEGIN(name)
-	#define AMG_PROFILE_NEXT(name)		PROFILE_END(); PROFILE_BEGIN(name)
+	#define AMG_PROFILE_FUNC()			PROFILE_FUNC_GROUP("algebra")
+	#define AMG_PROFILE_BEGIN(name)		PROFILE_BEGIN_GROUP(name, "algebra")
+	#define AMG_PROFILE_NEXT(name)		PROFILE_END(); PROFILE_BEGIN_GROUP(name, "algebra")
 	#define AMG_PROFILE_END()			PROFILE_END()
-	#define AMG_BPROFILE_BEGIN(name, string) PROFILE_BEGIN(name); Stopwatch SW; const char *profileString = string; SW.start();
+	#define AMG_BPROFILE_BEGIN(name, string) PROFILE_BEGIN_GROUP(name, "algebra"); Stopwatch SW; const char *profileString = string; SW.start();
 	#define AMG_BPROFILE_END() PROFILE_END(); UG_DLOG(LIB_ALG_AMG, 1, string << " took " << SW.ms() << " ms\n");
-	#define AMG_BPROFILE_NEXT(name, string) AMG_BPROFILE_END(); PROFILE_BEGIN(name); SW.start();
+	#define AMG_BPROFILE_NEXT(name, string) AMG_BPROFILE_END(); PROFILE_BEGIN_GROUP(name, "algebra"); SW.start();
 
 #else
 	#define AMG_PROFILE_FUNC()
