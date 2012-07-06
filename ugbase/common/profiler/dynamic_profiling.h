@@ -49,14 +49,14 @@ struct DynamicProfileInformation
 		if(bCopyName)
 		{
 			char *p= new char[strlen(name)+1];
-			strcpy(p, name)
+			strcpy(p, name);
 			bCopied = true;
 			name = p;
 		}
 		if(bCopyGroup)
 		{
 			char *p = new char[strlen(groups)+1];
-			strcpy(p, groups)
+			strcpy(p, groups);
 			bGroupCopied = true;
 			groups = p;
 		}
