@@ -8,6 +8,7 @@ use warnings;
 
 my $input = $ARGV[0];
 
+my $bla=0;
 my $bInBlock = 0;
 my $bInFunction = 0;
 my $blockName = q{};
@@ -107,11 +108,6 @@ foreach my $line (<FH>)
         $functionComment = "";
         next
     }
-    elsif($functionComment ne "")
-    {
-    	$result.="/**\n".$functionComment."\n**/\n\n";
-    	$functionComment = "";
-    }
         
     # function end
     if ($bInFunction == 1) 
@@ -143,20 +139,30 @@ foreach my $line (<FH>)
     
     elsif ($line =~ /.*util.GetParam(Number|)\s*\(\"-(\w*)\"\s*(.*)/ )
     {
-    	if ($1 eq "Number")
+	if ($1 eq "Number")
     	{ $result .= "parameterNumber ".$2; }
     	else { $result .= "parameterString ".$2; }
     	if ($3 =~ /^,\s*(\"[^\"]*\")\s*(.*)/ or $3 =~ /^,\s*(\w*)(.*)/)
     	{ 	
-    		$result .= " = ".$1;
+    		$result .= " = ".$1.";";
     		# description
     		if ( $2 =~ /^,\s*\"([^\"]*)/ )
     		{
-    			$result .= "; ///< ".$1."\n"	
-			}
-	    	else { 	$result .= ";\n";	}			
+		    $result .= " //!< $1" ;	
+		}
     	}
-		else { 	$result .= ";\n";	}
+	else
+	{
+	    $result .= ";";
+	}
+	if($functionComment ne "")
+	{
+	    $result.= "\n/*!< ".$functionComment."".$1."**/";
+
+			$functionComment = "";
+	}
+
+	$result .= "\n";
     }   
     elsif ($line =~ /.*util.HasParamOption\s*\(\"-(\w*)\"\s*(.*)/ )
     {
@@ -176,6 +182,13 @@ foreach my $line (<FH>)
     #     $line =~ s{,?(\s*)(?=///|$)}{;$1};
     #     $result .= "$line\n";
     # }
+
+    if($functionComment ne "")
+    {
+    	$result.="/**\n".$functionComment."\n**/\n\n";
+    	$functionComment = "";
+    }
+    
 }
 
 close FH;
