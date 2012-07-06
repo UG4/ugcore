@@ -33,6 +33,7 @@ bool
 ParallelVector<TVector>::
 change_storage_type(ParallelStorageType type)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	choose communicator to use
 	pcl::InterfaceCommunicator<IndexLayout>* pCommunicator;
 	if(m_pCommunicator == NULL)
@@ -131,6 +132,7 @@ bool
 ParallelVector<TVector>::
 set(number w, ParallelStorageType type)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	if(type == PST_UNDEFINED) return false;
 
 	// set all local vector to value. Therefore parallel vector is consistent
@@ -156,6 +158,7 @@ bool
 ParallelVector<TVector>::
 set_random(number from, number to, ParallelStorageType type)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	// set all local vector to value. Therefore parallel vector is consistent
 	if(!TVector::set_random(from, to)) return false;
 	set_storage_type(PST_ADDITIVE);
@@ -170,6 +173,7 @@ number
 ParallelVector<TVector>::
 two_norm()
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 // 	step 1: make vector d additive unique
 	if(!change_storage_type(PST_UNIQUE))
 		UG_THROW("ParallelVector::two_norm(): Cannot change"
@@ -194,6 +198,7 @@ number
 ParallelVector<TVector>::
 dotprod(const this_type& v)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 // 	step 0: check that storage type is given
 	if(this->has_storage_type(PST_UNDEFINED) || v.has_storage_type(PST_UNDEFINED))
 	{
@@ -253,6 +258,7 @@ template<typename T>
 inline void VecScaleAssign(ParallelVector<T> &dest,
 		double alpha1, const ParallelVector<T> &v1)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	dest.copy_storage_type(v1);
 	VecScaleAssign(*dynamic_cast<T*>(&dest), alpha1, *dynamic_cast<const T*>(&v1));
 }
@@ -263,6 +269,7 @@ template<typename T>
 inline void VecAssign(ParallelVector<T> &dest,
 		const ParallelVector<T> &v1)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	dest.copy_storage_type(v1);
 	VecAssign(*dynamic_cast<T*>(&dest), *dynamic_cast<const T*>(&v1));
 }
@@ -274,6 +281,7 @@ inline void VecScaleAdd(ParallelVector<T>  &dest,
 		double alpha1, const ParallelVector<T> &v1,
 		double alpha2, const ParallelVector<T> &v2)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	uint mask = v1.get_storage_mask() & v2.get_storage_mask();
 	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");
 	dest.set_storage_type(mask);
@@ -289,6 +297,7 @@ inline void VecScaleAdd(ParallelVector<T> &dest,
 		double alpha2, const ParallelVector<T> &v2,
 		double alpha3, const ParallelVector<T> &v3)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	uint mask = 	v1.get_storage_mask() &
 								v2.get_storage_mask() &
 								v3.get_storage_mask();

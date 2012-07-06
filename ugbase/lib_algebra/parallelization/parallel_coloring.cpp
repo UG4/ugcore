@@ -22,6 +22,7 @@ namespace ug
 
 int ParallelColoring::color(pcl::InterfaceCommunicator<IndexLayout> &com)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	// 1. send all neighbors our number of neighbors
 	size_t myDegree = pids.size();
 	typedef std::set<int>::iterator setiterator;
@@ -196,6 +197,7 @@ int ColorProcessorGraph(pcl::InterfaceCommunicator<IndexLayout> &com, std::set<i
 		std::vector<int> &processesWithLowerColor,
 		std::vector<int> &processesWithHigherColor)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	ParallelColoring coloring;
 	coloring.set_connections(pids);
 	coloring.save_processes_with_lower_color_in(&processesWithLowerColor);

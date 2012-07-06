@@ -8,6 +8,7 @@
 #include "parallelization_util.h"
 #include "communication_policies.h"
 #include "pcl/pcl.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 using namespace pcl;
@@ -42,6 +43,7 @@ void CommunicateConnections(vector<vector<int> >& connectionsOut,
 							IndexLayout& slaveLayout,
 							int highestReferencedIndex)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	typedef IndexLayout::Interface 	Interface;
 	typedef IndexLayout::iterator 	InterfaceIter;
 	typedef Interface::iterator		ElemIter;
@@ -88,6 +90,7 @@ void CommunicateConnections(vector<vector<int> >& connectionsOut,
 
 int GetHighestReferencedIndex(IndexLayout& layout)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	we have to find the highest referenced index.
 //	In order to do so, we will iterate over all entries of the
 //	given layouts and check each.
@@ -116,6 +119,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 						  pcl::ProcessCommunicator procComm,
 						  std::vector<int>* pNewMasterIDsOut)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	todo: some of the gather calls can be combined.
 
 	//int localRank = procComm.get_local_proc_id();
@@ -337,6 +341,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 		IndexLayout& standardLayout, vector<int>& flags,
 		IDomainDecompositionInfo& ddinfo)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	typedef IndexLayout::Interface	Interface;
 	typedef IndexLayout::iterator	InterfaceIter;
 	typedef Interface::Element		Element;
@@ -449,6 +454,7 @@ void BuildDomainDecompositionLayouts(
 		IndexLayout& standardMasters, IndexLayout& standardSlaves,
 		int highestReferencedIndex, IDomainDecompositionInfo& ddinfo)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	some typedefs
 	typedef IndexLayout::Interface	Interface;
 	typedef IndexLayout::iterator	InterfaceIter;
@@ -697,6 +703,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 		IndexLayout &masterLayout, IndexLayout &slaveLayout, IndexLayout &allToAllSend,
 		IndexLayout &allToAllReceive)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	// slave -> slave
 #if 1
 	// 1. get for every master node where it is slave
@@ -861,6 +868,7 @@ void CreateAllToAllFromMasterSlave(pcl::InterfaceCommunicator<IndexLayout> &comm
 		IndexLayout &OLCoarseningSendLayout, IndexLayout &OLCoarseningReceiveLayout,
 		IndexLayout &OL1MasterLayout, IndexLayout &OL1SlaveLayout)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	// master -> slave
 	AddLayout(OLCoarseningSendLayout, OL1MasterLayout);
 	AddLayout(OLCoarseningReceiveLayout, OL1SlaveLayout);

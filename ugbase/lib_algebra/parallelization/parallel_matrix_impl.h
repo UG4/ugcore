@@ -50,6 +50,7 @@ bool
 ParallelMatrix<TMatrix>::
 apply(TPVector &res, const TPVector &x) const
 {
+	PROFILE_FUNC_GROUP("algebra");
 //	check types combinations
 	int type = -1;
 	if(this->has_storage_type(PST_ADDITIVE)
@@ -92,6 +93,7 @@ bool
 ParallelMatrix<TMatrix>::
 apply_transposed(TPVector &res, const TPVector &x) const
 {
+	PROFILE_FUNC_GROUP("algebra");
 //	check types combinations
 	int type = -1;
 	if(this->has_storage_type(PST_ADDITIVE)
@@ -134,6 +136,7 @@ bool
 ParallelMatrix<TMatrix>::
 matmul_minus(TPVector &res, const TPVector &x) const
 {
+	PROFILE_FUNC_GROUP("algebra");
 //	check types combinations
 	int type = -1;
 	if(this->has_storage_type(PST_ADDITIVE)
@@ -192,6 +195,7 @@ template<typename matrix_type, typename vector_type>
 inline bool MatMultDirect(ParallelVector<vector_type> &dest,
 		const number &beta1, const ParallelMatrix<matrix_type> &A1, const ParallelVector<vector_type> &w1)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	//	check types combinations
 	ug::ParallelStorageType type = GetMultType(A1, w1);
 	if(type == PST_UNDEFINED) return false;
@@ -210,6 +214,7 @@ inline bool MatMultAddDirect(ParallelVector<vector_type> &dest,
 		const number &alpha1, const ParallelVector<vector_type> &v1,
 		const number &beta1, const ParallelMatrix<matrix_type> &A1, const ParallelVector<vector_type> &w1)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	//	check types combinations
 	ug::ParallelStorageType type = GetMultType(A1, w1);
 	if(type == PST_UNDEFINED) return false;
@@ -236,6 +241,7 @@ inline bool MatMultAddDirect(ParallelVector<vector_type> &dest,
 		const number &alpha2, const ParallelVector<vector_type> &v2,
 		const number &beta1, const ParallelMatrix<matrix_type> &A1, const ParallelVector<vector_type> &w1)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	//	check types combinations
 	ug::ParallelStorageType type = GetMultType(A1, w1);
 	if(type == PST_UNDEFINED) return false;
@@ -262,6 +268,7 @@ template<typename matrix_type, typename vector_type>
 inline void MatMultTransposedDirect(ParallelVector<vector_type> &dest,
 		const number &beta1, const ParallelMatrix<matrix_type> &A1, const ParallelVector<vector_type> &w1)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	//	check types combinations
 	ug::ParallelStorageType type = GetMultType(A1, w1);
 	if(type == PST_UNDEFINED) throw(UGError("Wrong storage type"));
