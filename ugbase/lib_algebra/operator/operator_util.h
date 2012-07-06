@@ -14,7 +14,7 @@ bool ApplyLinearSolver(	SmartPtr<ILinearOperator<vector_type> > A,
 						SmartPtr<ILinearOperatorInverse<vector_type> > solver)
 {
 // step 1: Init Linear Inverse Operator
-	PROFILE_BEGIN(ALS_InitLinearSolver);
+	PROFILE_BEGIN_GROUP(ALS_InitLinearSolver, "algebra");
 	if(!solver->init(A))
 	{
 		UG_LOG("ApplyLinearSolver: Cannot init Inverse operator.\n");

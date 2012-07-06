@@ -32,6 +32,7 @@ void MatAdd(	IMatrixOperator<M, X, Y>& opOut,
 template <typename X, typename Y, typename M>
 void MatIdentity(	MatrixOperator<M, X, Y>& opOut)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	typedef MatrixOperator<M, X, Y> MatrixOperator;
 
 	typedef typename MatrixOperator::matrix_type Matrix;
@@ -51,6 +52,7 @@ void MatIdentity(	MatrixOperator<M, X, Y>& opOut)
 template <typename X, typename Y, typename M>
 void MatAdd( MatrixOperator<M, X, Y>& res, number alpha1, MatrixOperator<M, X, Y>& A1, number alpha2, MatrixOperator<M, X, Y>& A2)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	typedef MatrixOperator<M, X, Y> MatrixOperator;
 
 	typedef typename MatrixOperator::matrix_type Matrix;
@@ -64,6 +66,7 @@ void MatAdd( MatrixOperator<M, X, Y>& res, number alpha1, MatrixOperator<M, X, Y
 template <typename X, typename Y, typename M>
 void MatScale( MatrixOperator<M, X, Y>& A, number alpha)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	typedef MatrixOperator<M, X, Y> MatrixOperator;
 	typedef typename MatrixOperator::matrix_type Matrix;
 	Matrix& matA = A.get_matrix();

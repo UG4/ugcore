@@ -131,6 +131,7 @@ class VectorDebugWritingObject
 	///	writing debug output for a vector (if debug writer set)
 		virtual void write_debug(const vector_type& vec, const char* filename)
 		{
+			PROFILE_FUNC_GROUP("algebra debug");
 		//	if no debug writer set, we're done
 			if(m_spVectorDebugWriter.invalid()) return;
 
@@ -194,6 +195,7 @@ class DebugWritingObject : public VectorDebugWritingObject<typename TAlgebra::ve
 	///	write debug output for a matrix (if debug writer set)
 		virtual void write_debug(const matrix_type& mat, const char* filename)
 		{
+			PROFILE_FUNC_GROUP("algebra debug");
 		//	if no debug writer set, we're done
 			if(m_spDebugWriter.invalid()) return;
 
