@@ -25,8 +25,8 @@
 #include "common/profiler/profiler.h"
 #define PROFILE_FETI
 #ifdef PROFILE_FETI
-	#define FETI_PROFILE_FUNC()			PROFILE_FUNC()
-	#define FETI_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define FETI_PROFILE_FUNC()			PROFILE_FUNC_GROUP("algebra")
+	#define FETI_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "algebra")
 	#define FETI_PROFILE_END()			PROFILE_END()
 #else
 	#define FETI_PROFILE_FUNC()
