@@ -234,6 +234,39 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MultiIndex<N>& v)
 	return outStream;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//	degree of freedom access using multi indices
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TMatrix>
+inline number&
+DoFRef(TMatrix& mat, const MultiIndex<2>& iInd, const MultiIndex<2>& jInd)
+{
+	return BlockRef(mat(iInd[0], jInd[0]), iInd[1], jInd[1]);
+}
+
+template <typename TMatrix>
+inline const number&
+DoFRef(const TMatrix& mat, const MultiIndex<2>& iInd, const MultiIndex<2>& jInd)
+{
+	return BlockRef(mat(iInd[0], jInd[0]), iInd[1], jInd[1]);
+}
+
+template <typename TVector>
+inline number&
+DoFRef(TVector& vec, const MultiIndex<2>& ind)
+{
+	return BlockRef(vec(ind[0]), ind[1]);
+}
+
+template <typename TVector>
+inline const number&
+DoFRef(constTVector& vec, const MultiIndex<2>& ind)
+{
+	return BlockRef(vec(ind[0]), ind[1]);
+}
+
+
 }
 
 
