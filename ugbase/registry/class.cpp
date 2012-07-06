@@ -23,11 +23,7 @@ ExportedConstructor(ProxyFunc pf,
   m_options(options), m_paramInfos(paramInfos), m_tooltip(tooltip), m_help(help)
 {
 #ifdef PROFILE_BRIDGE
-	m_profname=m_className;
-	m_profname.append("(...)");
-	Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, m_profname.c_str(),{ { 0, 0 }, { 0, 0 }, { 0, 0 } }};
-	profileInformation = pi;
-	profilerCache =	&Shiny::ProfileNode::_dummy;
+	m_dpi.init((m_className + "(...)").c_str(), true, "registry", false);
 #endif
 
 //	Tokenize string for parameters into infos per one parameter (separated by '#')

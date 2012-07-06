@@ -18,7 +18,8 @@
 #ifndef UG_PROFILER
 	#error "You need to define UG_PROFILER to use PROFILE_BRIDGE"
 #endif
-#include "common/profiler/profiler.h"
+#include "common/profiler/dynamic_profiling.h"
+#else
 #endif
 
 
@@ -60,6 +61,7 @@ template <class TClass> void CastAndDelete(const void* ptr)
 	delete reinterpret_cast<const TClass*>(ptr);
 }
 
+
 /** function exported from ug
  * This class describes a wrapper for a c++ - function, that is exported by ug
  */
@@ -80,13 +82,7 @@ class ExportedMethod : public ExportedFunctionBase
 		  m_ptrWrapper(m), m_proxy_func(pf), m_className(className)
 		{
 #ifdef PROFILE_BRIDGE
-			m_profname=m_className;
-			m_profname.append(":");
-			m_profname.append(name);
-			Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, m_profname.c_str(),{ { 0, 0 }, { 0, 0 }, { 0, 0 } }};
-			profileInformation = pi;
-
-			profilerCache =	&Shiny::ProfileNode::_dummy;
+			m_dpi.init((m_className + ":" + name).c_str(), true, "registry", false);
 #endif
 		}
 
@@ -94,13 +90,12 @@ class ExportedMethod : public ExportedFunctionBase
 		void execute(void* obj, const ParameterStack& paramsIn, ParameterStack& paramsOut) const
 		{
 #ifdef PROFILE_BRIDGE
-			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
+			m_dpi.beginNode();
 #endif
-
 			m_proxy_func(m_ptrWrapper, obj, paramsIn, paramsOut);
 
 #ifdef PROFILE_BRIDGE
-			Shiny::ProfileManager::instance._endCurNode();
+			m_dpi.endCurNode();
 #endif
 		}
 
@@ -125,9 +120,7 @@ class ExportedMethod : public ExportedFunctionBase
 		std::string m_className;
 
 #ifdef PROFILE_BRIDGE
-		std::string m_profname;
-		mutable Shiny::ProfileZone profileInformation;
-		mutable Shiny::ProfileNodeCache profilerCache;
+		mutable DynamicProfileInformation m_dpi;
 #endif
 };
 
@@ -305,13 +298,13 @@ class UG_API ExportedConstructor
 		void* create(const ParameterStack& paramsIn) const
 		{
 #ifdef PROFILE_BRIDGE
-			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
+			m_dpi.beginNode();
 #endif
 
 			void *pRet = m_proxy_func(paramsIn);
 
 #ifdef PROFILE_BRIDGE
-			Shiny::ProfileManager::instance._endCurNode();
+			m_dpi.endCurNode();
 #endif
 			return pRet;
 		}
@@ -399,9 +392,7 @@ class UG_API ExportedConstructor
 		ParameterStack m_paramsIn;
 
 #ifdef PROFILE_BRIDGE
-		std::string m_profname;
-		mutable Shiny::ProfileZone profileInformation;
-		mutable Shiny::ProfileNodeCache profilerCache;
+		mutable DynamicProfileInformation m_dpi;
 #endif
 };
 

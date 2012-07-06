@@ -16,7 +16,8 @@
 #ifndef UG_PROFILER
 	#error "You need to define UG_PROFILER to use PROFILE_BRIDGE"
 #endif
-#include "common/profiler/profiler.h"
+#include "common/profiler/dynamic_profiling.h"
+
 #endif
 
 namespace ug
@@ -176,9 +177,7 @@ class UG_API ExportedFunction : public ExportedFunctionBase
 			  m_group(group), m_func((void*)f), m_proxy_func(pf)
 		{
 #ifdef PROFILE_BRIDGE
-			Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, ExportedFunctionBase::name().c_str(),{ { 0, 0 }, { 0, 0 }, { 0, 0 } }};
-			profileInformation = pi;
-			profilerCache =	&Shiny::ProfileNode::_dummy;
+			m_dpi.init(ExportedFunctionBase::name().c_str(), true, "registry", false);
 #endif
 			create_parameter_stack<TFunc>();
 		}
@@ -187,12 +186,12 @@ class UG_API ExportedFunction : public ExportedFunctionBase
 		void execute(const ParameterStack& paramsIn, ParameterStack& paramsOut) const
 		{
 #ifdef PROFILE_BRIDGE
-			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
+			m_dpi.beginNode();
 #endif
 			m_proxy_func(m_func, paramsIn, paramsOut);
 
 #ifdef PROFILE_BRIDGE
-			Shiny::ProfileManager::instance._endCurNode();
+			m_dpi.endCurNode();
 #endif
 
 		}
@@ -211,8 +210,7 @@ class UG_API ExportedFunction : public ExportedFunctionBase
 		ProxyFunc m_proxy_func;
 
 #ifdef PROFILE_BRIDGE
-		mutable Shiny::ProfileZone profileInformation;
-		mutable Shiny::ProfileNodeCache profilerCache;
+		mutable DynamicProfileInformation m_dpi;
 #endif
 };
 
