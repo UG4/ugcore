@@ -5,48 +5,64 @@
 #ifdef UG_PROFILER
 // Lua Profiling (mrupp)
 
+/**
+ * Use this version to ProfileFunction of which you don't know the name at compile time.
+ * ex:
+ * ... some function
+ * {
+ * 		static DynamicProfileInformation dpi;
+ * 		if(!dpi.is_initialized()) { a.init(myname, true, "mygroup", false); }
+ * 		dpi.beginNode();
+ * 		....
+ * 		dpi.endCurNode();
+ * 	}
+ *
+ * DynamicProfileInformation only copies the name and the group if you tell it to!
+ * So pay attention if pointers you hand over to DynamicProfileInformation are persitent.
+ */
 struct DynamicProfileInformation
 {
-	DynamicProfileInformation(const char*name=NULL, bool bCopy=false)
+	DynamicProfileInformation(const char*name=NULL, bool bCopy=false, const char *groups=NULL, bool bCopyGroup=false)
 	{
-		Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, NULL, { { 0, 0 }, { 0, 0 }, { 0, 0 } }};
+		Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, NULL, NULL,
+				{ { 0, 0 }, { 0, 0 }, { 0, 0 } }};
 		profileInformation = pi;
 		profilerCache =	&Shiny::ProfileNode::_dummy;
 		bCopied = false;
-		if(name)
-		{
-			if(bCopy)
-				set_name(name);
-			else
-				set_name_and_copy(name);
-		}
+		bgGroupCopied = false;
+		init(name, bCopyName, group, bCopyGroup);
 	}
 	~DynamicProfileInformation()
 	{
 		if(bCopied && profileInformation.name) delete[] profileInformation.name;
 	}
-	Shiny::ProfileZone profileInformation;
-	Shiny::ProfileNodeCache profilerCache;
-	bool bCopied;
 
 	bool is_initialised()
 	{
 		return profileInformation.name != NULL;
 	}
 
-	void set_name_and_copy(const char*name)
+	void init(const char*name=NULL, bool bCopy=false, const char*group=NULL, bool bCopyGroup=false)
 	{
 		if(bCopied && profileInformation.name) delete[] profileInformation.name;
-		char *p = new char[strlen(name)+1];
-		strcpy(p, name);
-		name = p;
-		bCopied = true;
-		profileInformation.name = name;
-	}
+		if(bGroupCopied && profileInformation.group) delete[] profileInformation.group;
+		if(bCopy)
+		{
+			char *p= new char[strlen(name)+1];
+			strcpy(p, name)
+			bCopied = true;
+			name = p;
+		}
+		if(bCopyGroup)
+		{
+			char *p = new char[strlen(group)+1];
+			strcpy(p, group)
+			bGroupCopied = true;
+			group = p;
+		}
 
-	inline void set_name(const char*name)
-	{
 		profileInformation.name = name;
+		profileInformation.group = group;
 	}
 
 	inline void beginNode()
@@ -63,9 +79,15 @@ struct DynamicProfileInformation
 	{
 		return Shiny::ProfileManager::instance._curNode == profilerCache;
 	}
+private:
+	Shiny::ProfileZone profileInformation;
+	Shiny::ProfileNodeCache profilerCache;
+	bool bCopied;
+	bool bGroupCopied;
 };
 
 typedef DynamicProfileInformation * pDynamicProfileInformation;
 #endif
+
 
 #endif

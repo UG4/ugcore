@@ -48,7 +48,7 @@ namespace Shiny {
 		STATE _state;
 
 		mutable const char* name;
-
+		const char *groups;
 		ProfileData data;
 
 		//

@@ -56,11 +56,12 @@
 
 
 	/**	Helper makro used in PROFILE_BEGIN and PROFILE_FUNC.*/
-	#define PROFILE_BEGIN_HELPER(id, name)					\
+	#define PROFILE_BEGIN_HELPER(id, name, group)			\
 															\
 		AutoProfileNode	id;								\
 		static Shiny::ProfileZone __ShinyZone_##id = {		\
-			NULL, Shiny::ProfileZone::STATE_HIDDEN, name,	\
+			NULL, Shiny::ProfileZone::STATE_HIDDEN, name, \
+			group,	\
 			{ { 0, 0 }, { 0, 0 }, { 0, 0 } }				\
 		};													\
 		{													\
@@ -75,7 +76,7 @@
 	 * ends.
 	 */
 	#define PROFILE_BEGIN(name)						\
-			PROFILE_BEGIN_HELPER(apn_##name, #name)
+			PROFILE_BEGIN_HELPER(apn_##name, #name, NULL)
 
 	/**	Ends profiling of the latest PROFILE_BEGIN section.*/
 	#define PROFILE_END()							\
@@ -83,7 +84,13 @@
 
 	/**	Profiles the whole function*/
 	#define PROFILE_FUNC()										\
-			PROFILE_BEGIN_HELPER(__ShinyFunction, __FUNCTION__)
+			PROFILE_BEGIN_HELPER(__ShinyFunction, __FUNCTION__, NULL)
+
+	#define PROFILE_BEGIN_GROUP(name, group)					\
+		PROFILE_BEGIN_HELPER(apn_##name, #name, group)
+
+	#define PROFILE_FUNC_GROUP(group)										\
+			PROFILE_BEGIN_HELPER(__ShinyFunction, __FUNCTION__, group)
 
 	/**	Performs update on the profiler (call before output)*/
 	#define PROFILER_UPDATE									\
@@ -104,8 +111,10 @@
 
 //	Empty macros if UG_PROFILER == false
 	#define PROFILE_BEGIN(name)
+	#define PROFILE_BEGIN_GROUP(name, groups)
 	#define PROFILE_END()
 	#define PROFILE_FUNC()
+	#define PROFILE_FUNC_GROUP(groups)
 	#define PROFILER_UPDATE	ShinyDummy::Update
 	#define PROFILER_OUTPUT	ShinyDummy::Output
 

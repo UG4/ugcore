@@ -13,7 +13,13 @@
 #include <string>
 #include <string.h>
 #include "common/log.h"
+#include "common/util/string_util.h"
 #include "profile_node.h"
+#include <map>
+
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#endif
 
 using namespace std;
 
@@ -143,7 +149,8 @@ string UGProfileNode::print_node(double full, size_t offset) const
 			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(get_avg_self_time() / full * 100) << "%  " <<
 			setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << totalTicksAvg * totalUnit->invTickFreq << " " <<
 			left << setw(2) << totalUnit->suffix << " " <<
-			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "%  ";
+			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "%  "
+			<< zone->groups;
 	return s.str();
 }
 
@@ -176,6 +183,67 @@ void UGProfileNode::rec_print(double full, stringstream &s, size_t offset, doubl
 		}
 	}
 }
+
+string UGProfileNode::groups() const
+{
+	vector<const UGProfileNode*> nodes;
+	add_nodes(nodes);
+
+	map<string, double> mapGroups;
+	for(size_t i=0; i<nodes.size(); i++)
+	{
+		if(nodes[i]->zone->groups == NULL) continue;
+		vector<string> g;
+		TokenizeString(nodes[i]->zone->groups, g, ' ');
+		for(size_t j=0; j<g.size(); j++)
+			mapGroups[g[j]] += nodes[i]->get_avg_self_time();
+	}
+
+	vector<string> gs;
+#ifdef UG_PARALLEL
+	if(pcl::GetProcRank() == 0)
+#endif
+	for(map<string, double>::iterator it = mapGroups.begin(); it != mapGroups.end();++it)
+		gs.push_back(it->first);
+
+#ifdef UG_PARALLEL
+	pcl::ProcessCommunicator pc;
+	pc.broadcast(gs);
+	vector<double> t(gs.size(), 0.0), tMax, tMin;
+	for(size_t i=0; i<gs.size(); i++)
+		t[i] = mapGroups[gs[i]];
+	pc.allreduce(t, tMax, PCL_RO_MAX);
+	pc.allreduce(t, tMin, PCL_RO_MIN);
+#endif
+	stringstream s;
+	for(size_t i=0; i<gs.size(); i++)
+	{
+		string name = gs[i];
+		double time = mapGroups[name];
+		const Shiny::TimeUnit *unit = Shiny::GetTimeUnit(time);
+		s << left << std::setw(20) << name
+		  << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << time * unit->invTickFreq << " " <<
+			left << setw(2) << unit->suffix;
+#ifdef UG_PARALLEL
+		double maxTime = tMax[i];
+		double minTime = tMin[i];
+		double diffTime = maxTime - minTime;
+		const Shiny::TimeUnit *maxUnit  = Shiny::GetTimeUnit(maxTime);
+		const Shiny::TimeUnit *minUnit  = Shiny::GetTimeUnit(minTime);
+		const Shiny::TimeUnit *diffUnit = Shiny::GetTimeUnit(diffTime);
+		s << left << " max: " << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME)
+				<< maxTime * maxUnit->invTickFreq << " " <<	left << setw(2) << maxUnit->suffix;
+		s << left << " min: " << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME)
+						<< minTime * maxUnit->invTickFreq << " " <<	left << setw(2) << minUnit->suffix;
+		s << left << " diff: " << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME)
+								<< diffTime * diffUnit->invTickFreq << " " <<	left << setw(2) << diffUnit->suffix
+								<< " (" << diffTime/maxTime*100 << " %)";
+#endif
+		s << "\n";
+	}
+	return s.str();
+}
+
 
 void UGProfileNode::add_nodes(vector<const UGProfileNode*> &nodes) const
 {
@@ -235,8 +303,9 @@ bool UGProfileNode::entry_count_sort(const UGProfileNode *a, const UGProfileNode
 const UGProfileNode *GetProfileNode(const char *name)
 {
 	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
-
 	const Shiny::ProfileNode *node = &Shiny::ProfileManager::instance.rootNode;
+	if(name == NULL)
+		return reinterpret_cast<const UGProfileNode*> (node);
 	do
 	{
 		if(strcmp(node->zone->name, name) == 0)
@@ -251,6 +320,69 @@ const UGProfileNode *GetProfileNode(const char *name)
 bool GetProfilerAvailable()
 {
 	return true;
+}
+
+void PrintLUA()
+{
+	const UGProfileNode *rootNode = GetProfileNode(NULL);
+	vector<const UGProfileNode*> nodes;
+	rootNode->add_nodes(nodes);
+	double full = rootNode->get_avg_total_time();
+
+	map<string, vector<double> > files;
+	for(size_t i=0; i<nodes.size(); i++)
+	{
+		if(nodes[i]->zone->groups == NULL ||
+				strcmp(nodes[i]->zone->groups, "lua") != 0)
+			continue;
+		const char *name = nodes[i]->zone->name;
+		cout << name << "\n";
+		if(name[0]==0x00 || name[1]==0x00) continue;
+		name++; // skip @
+		const char *p = strchr(name, ':'); // search for line number
+		if(p == NULL || p[0] == 0x00 || p[1] == 0x00) continue;
+		int line = strtol(p+1, NULL, 10);
+		if(line > 10000) continue;
+		char file[255];
+		strncpy(file, name, p-name);
+		file[p-name]=0x00;
+		vector<double> &v = files[file];
+		if(v.size() < line+1)
+		{
+			size_t s=v.size();
+			v.resize(line+1);
+			for(; s<line+1; s++)
+				v[s]=0.0;
+		}
+		v[line] = nodes[i]->get_avg_total_time();
+	}
+
+
+	for(map<string, vector<double> >::iterator it = files.begin(); it != files.end();
+		++it)
+	{
+		string name = it->first;
+		vector<double> &v = it->second;
+		cout << "\n" << name << ":\n\n";
+
+		char buf[512];
+		fstream file(name.c_str(), ios::in);
+		if(file.is_open() == false) continue;
+		size_t lineNr=0;
+		while(!file.eof())
+		{
+			file.getline(buf, 512);
+			double time = lineNr >= v.size() ? 0.0 : v[lineNr];
+			const Shiny::TimeUnit *unit = Shiny::GetTimeUnit(time);
+			cout << std::resetiosflags( ::std::ios::scientific ) <<
+					left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME)
+					<< time * unit->invTickFreq << " " <<
+				left << setw(2) << unit->suffix << " " <<
+				right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(time / full * 100) << "%  "
+				<< setw(3) << lineNr << "| " << buf << "\n";
+			lineNr ++;
+		}
+	}
 }
 
 #else

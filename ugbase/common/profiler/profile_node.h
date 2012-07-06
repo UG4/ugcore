@@ -60,11 +60,14 @@ public:
 
 	std::string entry_count_sorted() const;
 
+	std::string groups() const;
 
 	/// \return true if node has been found
 	bool valid() const;
 
 #if SHINY_PROFILER
+public:
+	void add_nodes(std::vector<const UGProfileNode*> &nodes) const;
 private:
 	std::string print_node(double full, size_t offset=0) const;
 	const UGProfileNode *get_first_child() const;
@@ -72,7 +75,6 @@ private:
 	const UGProfileNode *get_next_sibling() const;
 
 	void rec_print(double full, std::stringstream &s, size_t offset, double dSkipMarginal) const;
-	void add_nodes(std::vector<const UGProfileNode*> &nodes) const;
 	std::string child_sorted(const char *name, bool sortFunction(const UGProfileNode *a, const UGProfileNode *b),
 			double dSkipMarginal) const;
 	static void log_header(std::stringstream &s, const char *name);
