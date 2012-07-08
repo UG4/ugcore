@@ -532,9 +532,10 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 		for(submatch = 0; ; submatch++)
 		{
 			if(matches[0][submatch] == 0x00) break;
-			for(i = 0; i<matches.size(); i++)
-				if(matches[i][submatch] != matches[0][submatch])
+			for( i = 0; i < matches.size() && matches[i].size() < submatch; i++ ) {
+				if( matches[i][submatch] != matches[0][submatch] )
 					break;
+			}
 			if(i != matches.size())
 				break;
 		}
