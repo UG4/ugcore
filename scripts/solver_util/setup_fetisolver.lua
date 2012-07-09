@@ -1,20 +1,20 @@
 ----------------------------------------------------------
+--[[!
+--   \file setup_fetisolver.lua
+--   \brief Lua - Script which creates and configures a FETI solver (linear solver).
+-- 	 \author Ingo Heppner (using FETI solver specific code from 'fetitest.lua').--
 --
---   Lua - Script which creates and configures a FETI solver (linear solver).
---
---   Author: Ingo Heppner (using FETI solver specific code from 'fetitest.lua'.
 --   Begin: 06072011.
---
 --   Provides: Function which set up a FETI solver object.
 --
 --          Input parameters:
---          'str_problem' -- string describing problem (not yet used)
---          'dim',
---          'linMaxIterations'
---          'numProcs'
---          'u'
---          'dirichletBND', 'approxSpace',
---          'activateDbgWriter', 'verbosity', logfileName.
+--          - 'str_problem' -- string describing problem (not yet used)
+--          - 'dim',
+--          - 'linMaxIterations'
+--          - 'numProcs'
+--          - 'u'
+--          - 'dirichletBND', 'approxSpace',
+--          - 'activateDbgWriter', 'verbosity', logfileName.
 --          Return value:
 --          Reference of the fully configured FETI solver object.
 --
@@ -24,6 +24,7 @@
 --   Usage example:
 --	1. In the calling LUA script:
 --
+--  \code
 --	ug_load_script("setup_fetisolver.lua")
 --	solver = SetupFETISolver(str_problem,
 --				 dim
@@ -33,18 +34,20 @@
 --				 dirichletBND, approxSpace,
 --				 activateDbgWriter,
 --				 verbosity, logfileName)
---
+--  \endcode
 --      where 'solver' is the solver object which is called by
 --      'ApplyLinearSolver(., ., ., <solver>)', i.e.:
 --	
+--  \code
 --	print("Apply solver.")
 --	if ApplyLinearSolver(linOp, u, b, solver) == false then
 --		print("Could not apply linear solver.");
 --	end
+--  \endcode
 --
 --	2. Execution of the calling LUA script:
---[[
 
+\verbatim
 UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
 
 # Local:
@@ -56,7 +59,9 @@ openmpirun -np 4 ugshell $UGARGS -numPPSD 1 -numRefs 5 -logtofile bla -rlf # wit
 # cekon:
 ########
 salloc -n  4 mpirun ./ugshell $UGARGS -numPPSD 1 -numRefs 5
-
+\endverbatim
+!]]--
+--[[
 # JuGene:
 #########
 # Interactive - Job lief jedoch nicht mehr (01092011):
@@ -108,8 +113,7 @@ grep "Could not solve Dirichlet problem " ug4_laplace_feti.204720.out_feti-sd1_8
   Level 13 ==> (2^3 * 2^{13} + 1)^2 nodes = (2^{16} + 1)^2 nodes =   4'295'098'369 nodes
   Level 14 ==> (2^3 * 2^{14} + 1)^2 nodes = (2^{17} + 1)^2 nodes =  17'180'131'329 nodes
   Level 15 ==> (2^3 * 2^{15} + 1)^2 nodes = (2^{18} + 1)^2 nodes =  68'720'001'025 nodes
-
-]]
+]]--
 
 
 ----------------------------------------------------------
