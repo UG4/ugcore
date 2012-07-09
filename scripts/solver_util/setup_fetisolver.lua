@@ -664,10 +664,11 @@ end -- TMP
 		-- alt:fetidbgWriter:set_print_raw_data(true) -- if 'true' print "raw" data (no "make consistent" before printing): for checking temporary results in FETI
 		fetidbgWriter:set_print_consistent(false) -- if 'false' print "raw" data (no "make consistent" before printing): for checking temporary results in FETI
 
-		fetiSolver:set_debug(fetidbgWriter)
+		fetiSolver:set_debug(fetidbgWriter)		
+		fetiSolver:set_test_one_to_many_layouts(true)
 	end
 	
-	fetiSolver:set_test_one_to_many_layouts(true)
+	
 
 --[[ Layout tests sind irgendwann rausgeflogen ...
 	if verbosity >= 2 then
