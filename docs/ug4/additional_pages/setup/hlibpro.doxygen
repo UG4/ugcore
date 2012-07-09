@@ -1,0 +1,319 @@
+//////////////////////////////////////////////////////////////////////////////////////////
+//    Coupling of HLibPro (http://www.hlibpro.com/) with ug4 (begin march 2011)
+//////////////////////////////////////////////////////////////////////////////////////////
+
+/** \page pageUG4HLib Coupling of HLibPro
+
+- \ref secCouplingUG4HLibPro_General
+- \ref secCouplingUG4HLibPro_ShortDesc
+- \ref secCouplingUG4HLibPro_InstallationUG4
+- \ref secCouplingUG4HLibPro_InstallationHLibPro
+- \ref secCouplingUG4HLibPro_Remarks
+
+<hr>
+\section secCouplingUG4HLibPro_General General
+
+HLibPro is a parallel H-matrix library for shared and distributed memory machines.
+Hierarchical matrices, or H-matrices for short, are a powerful tool for numerical
+applications allowing the usage of the complete matrix algebra, e.g. matrix
+multiplication and inversion, with almost linear complexity (short description
+from http://www.hlibpro.com/).
+
+NOTE: HLibPro is an external library, for which we do not provide the sources!
+Nevertheless our group has access to the HLibPro sources within "ASIL" project.
+Otherwise you may get a license contacting Dr. Ronald Kriemann, rok@mis.mpg.de.
+
+
+\section secCouplingUG4HLibPro_ShortDesc Short description of HLibPro functionality provided in ug4 so far:
+
+Some functionality of HLibPro is used to define a sparse matrix solver (type
+'IMatrixOperatorInverse'), based on the functions of the HLibPro C interface.
+See 'ugbase/lib_algebra/operator/linear_solver/hlibpro.h'.
+
+For importing the system matrix assembled by UG to HLibPro a sparse matrix format
+is used. This format is implemented by a class 'CRSMatrix', which is also defined
+in 'hlibpro.h'.
+
+The solver is registered as 'HLIBSolver' in 'lib_algebra_bridge.cpp'.
+
+
+TODO:
+Import of coordinates and construction of cluster trees based on coordinates
+aren't implemented yet.
+
+\section secCouplingUG4HLibPro_InstallationUG4 Installation/Usage in ug4 (Unix only)
+
+To use this HLibPro functionality from within ug4,
+
+<ol>
+<li> get a copy of HLibPro (sources are not provided with ug4!) and place it
+   somewhere on your filesystem, e.g. ~/bin/hlibpro-0.13.6/, then configure
+   and build HLibPro. See below for some hints to do this!
+
+<li> Check 'ug_cmake_includes.txt': If necessary adapt path after 'PATH_SUFFIXES'
+   (last argument of 'find_path()' call). In the moment this path is given
+   relative to the location of 'ug_cmake_includes.txt'.
+
+   E.g., if your HLibPro main directory resides in '~/bin/', then use
+
+\code
+   find_path (HLIBPROLIB_DIR libhpro.a
+              PATHS ENV PATH
+              PATH_SUFFIXES ../bin/hlibpro-0.13.6/lib/ )
+\endcode
+
+   This works e.g. on 'cekon.gcsc.uni-frankfurt.de'. Sometimes it seems to be
+   necessary to give 'PATH_SUFFIXES' relative to the ug4 main directory (observed
+   e.g. on 'quadruped.gcsc.uni-frankfurt.de'):
+
+\code
+   find_path (HLIBPROLIB_DIR libhpro.a
+              PATHS ENV PATH
+              PATH_SUFFIXES ../../bin/hlibpro-0.13.6/lib/ )
+\endcode
+
+   Everything else (e.g. include paths, including the path to the C interface
+   header file 'hlib-c.hh') depends on 'PATH_SUFFIXES' and is automatically set.
+
+
+<li> Configure ug4 for using HLibPro, e.g.:
+
+\code
+   % cmake <other options> -DHLIBPRO=ON  ../ # Enable HLibPro
+\endcode
+
+   To disable usage of HLibPro:
+\code
+   % cmake <other options> -DHLIBPRO=OFF ../ # Disable HLibPro
+\endcode
+
+<li> Compile ug4.
+
+<li> Script code for testing HLibPro is provided in
+
+      scripts/hlibtest.lua
+
+   Execute this script by running e.g.
+
+\code
+   % mpirun -n 4 ./ugshell -ex scripts/hlibtest.lua
+\endcode
+
+   For (preliminary) tests for systems of pdes see
+      scripts/systemlaplace_hlib.lua
+      scripts/navierstokes_hlib.lua
+</ol>
+
+\section secCouplingUG4HLibPro_InstallationHLibPro Installation of HLibPro
+
+To use the HLibPro configuration system, a Python interpreter is needed.
+Furthermore, the build system for HLibpro is 'SCons' (http://www.scons.org),
+which also is based on Python. 
+
+For further information to the build process of HLibpro we refer to the
+documentation included in the HLibpro sources, but for convenience we sketch the
+typical steps here (version 0.13.6; we assume, that the tar ball is placed in
+'~/bin/' (which probably isn't the most elegant place ...); consider also the
+"remarks" below):
+
+<ol>
+<li> extract tar ball:
+\code
+    % cd ~/bin/
+    % tar xzf hlibpro-0.13.6.tgz
+\endcode
+
+<li> change into HLibPro main directory and configure HLibPro:
+\code
+    % cd hlibpro-0.13.6
+    % ./configure
+\endcode
+
+<li> compile HLibPro via 'scons' by simply typing
+\code
+    % scons
+\endcode 
+
+<li> Maybe execute the stand-alone test executables now available in the sub
+    directory 'examples/':
+\code
+    % cd examples
+    % bem1d 100
+\endcode
+    etc.
+
+\section secCouplingUG4HLibPro_Remarks Remarks
+
+\subsection secCouplingUG4HLibPro_Remarks_Python Python
+
+HLibPro's 'configure' script needs a "not to old python version", especially
+one whichs knows "subprocesses"! E.g. Python 2.4.3 is ok, Python 2.3.4 is not!
+So, if you get a message like the following
+\code
+   quadruped@/home3/ingo/bin/hlibpro-0.13.6> ./configure
+   Traceback (most recent call last):
+     File "./configure", line 11, in ?
+       import subprocess
+   ImportError: No module named subprocess
+\endcode
+
+You have to update your Python installation first!
+
+To do this (or to install it for the first time), get a copy of its current
+sources (see http://www.python.org) and proceed as follows (this method
+does not require root access and is also feasible if there is no package
+available for your machine; in this example we place it in '~/bin/'):
+\code
+   % cd ~/bin/
+   % wget http://www.python.org/ftp/python/2.7.1/Python-2.7.1.tar.bz2
+   % bunzip Python-2.7.1.tar.bz2
+   % tar xvf Python-2.7.1.tar
+   % cd Python-2.7.1
+\endcode
+The build process consists of the usual
+\code
+   % ./configure
+   % make
+   % make install # (if you have appropriate rights)
+\endcode
+in the "python main directory".
+
+
+After all, to finally configure HLibPro you have to check the first line in
+HLibPro's 'configure' script,
+\code
+   #!/usr/bin/env /usr/bin/python
+\endcode
+and adapt it if needed to point to your new Python interpreter, e.g. change
+it to something like:
+\code
+   #!/usr/bin/env /home3/ingo/bin/Python-2.7.1/python
+\endcode
+Then you can type (as mentioned above):
+\code
+    % cd ~/bin/hlibpro-0.13.6
+    % ./configure
+\endcode
+to configure HLibPro.
+
+
+\subsection secCouplingUG4HLibPro_Remarks_SCons SCons
+
+If you have to build and install 'SCons', get a copy of its current sources
+unpack them, change into the "scons main directory" and execute its Python-
+based setup script, e.g. (again we place everything in '~/bin/'):
+
+\code
+   % cd ~/bin/
+   % wget http://prdownloads.sourceforge.net/scons/scons-2.0.1.tar.gz
+   % gunzip scons-2.0.1.tar.gz 
+   % tar xvf scons-2.0.1.tar
+
+   % cd scons-2.0.1
+   % python setup.py install --prefix=<install dir> # e.g. '--prefix=~/bin/scons'!
+\endcode
+To finally compile HLibPro execute this version of 'scons' in the "HLibPro
+main directory" e.g. by typing:
+\code
+   % cd hlibpro-0.13.6
+   % ~/bin/scons/bin/scons
+\endcode
+
+\subsection secCouplingUG4HLibPro_Remarks_LAPACK LAPACK
+
+Internally, HLibpro uses LAPACK for most arithmetic operations. For the case no
+such implementation is available, HLibpro can use a modified version of CLAPACK
+as a substitute for LAPACK. CLAPACK is contained in the sources of HLibPro.
+
+By default HLibpro is linked against the substitute library, 'libclapack.a'
+("by default" according to the provided documentation, 'hlibpro-user.pdf',
+but I'm in doubt about that, at least on OS X  ...), which might result in a
+reduced performance of HLibpro.
+
+In case an (probably) optimised version of LAPACK is available for your system
+it is therefore highly recommended to use this instead of CLAPACK. To do so,
+configure HLibpro this way:
+\code
+   % ./configure --lapack=-Llapack
+\endcode
+
+\warning There are cases where the substitute library 'libclapack.a' is
+needed (see "Known problems below"). To use CLAPACK, type
+\code
+   % ./configure --lapack=-CLAPACK'
+\endcode
+
+
+\subsection secCouplingUG4HLibPro_Remarks_KnownProblems Known problems
+
+<ol>
+<li>
+While building the executables in the 'examples/' directory the linker may
+drop the following error message:
+\verbatim
+    /usr/bin/ld: Undefined symbols:
+    __Unwind_Resume
+    collect2: ld returned 1 exit status
+    scons: *** [examples/bem1d] Error 1
+    scons: building terminated because of errors.
+\endverbatim
+This seems to be a quite common problem with older versions of OS X / XCode when
+linking C++ software with gcc instead of g++.
+
+
+Remedy:
+Use 'g++' for linking the HLibPro examples! Reason: 'g++' automatically links
+other system libraries than 'gcc' does, so that the otherwise undefined symbol
+can be resolved!
+
+To achieve this, do:
+\code
+   % ./configure --cc=g++
+\endcode
+
+<li>
+<ol>
+<li> When attempting to start one of HLibPro's example executables maybe the
+following error message shows up, e.g.
+\code
+   % bem1d 100
+   % bem1d: symbol lookup error: bem1d: undefined symbol: slamch_
+\endcode
+This behavior seems to be due to a too old (?) version of LAPACK on your system!
+It was observed with 3.0.3.(currently installed on 'quadruped'). In contrast,
+e.g. with Lapack 3.1.1 (currently installed on 'cekon') this problem does not
+occur.
+
+Remedy: Use the substitute library 'libclapack.a' instead, i.e. configure
+HLibPro accordingly (cf. above):
+\code
+   % ./configure --lapack=CLAPACK'
+\endcode
+to enforce building of 'libclapack.a'.
+
+<li> Independent of (but obviously directly related to) the problem above you may
+run in a similar problem when attempting to start 'ugshell' compiled with HLibPro:
+\code
+   % ugshell -ex ../scripts/laplace.lua
+   % ugshell: symbol lookup error: ugshell: undefined symbol: slamch_
+\endcode
+This may happen even if the stand-alone examples of HLibPro work properly - which
+is the case if HLibPro is linked against CLAPACK, but ug4's configuration via
+'cmake' has automatically chosen the (too old) version of LAPACK installed on
+your system!
+
+
+Remedy:
+Link ug4 also against the "LAPACK substitute", 'libclapack.a'!
+
+To achieve this, add also 'libclapack.a' to the 'UG_LIBRARIES', i.e., edit the
+appropriate part in 'ug_cmake_includes.txt':
+\code
+   if(HLIBPRO AND HLIBPROLIB_DIR)
+      set(UG_LIBRARIES ${UG_LIBRARIES} ${HLIBPROLIB_DIR}/libhpro.a ${HLIBPROLIB_DIR}/libclapack.a) # 'libclapack.a' added
+\endcode
+
+(Perhaps/probably there exists a more elegant way, but it works ...)
+</ol>
+</ol>
+*/
