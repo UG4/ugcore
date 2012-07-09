@@ -375,8 +375,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 								//const char*p = ug::bridge::GetFileLine(source, line).c_str();
 								//strncat(buf, p+strspn(p, " \t"), 254);
 
-								pi = new DynamicProfileInformation(NULL, false);
-								pi->init(buf, true, "lua", false);
+								pi = new DynamicProfileInformation(buf, true, "lua", false);
 								// UG_LOG(buf);
 							 }
 
