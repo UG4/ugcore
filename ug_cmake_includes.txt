@@ -239,7 +239,7 @@ elseif("${TARGET}" STREQUAL "libug4")
 	set(buildDisc ON)
 	set(buildBridge ON)
 	set(buildBindings ON)
-	set(buildRegistry ON)
+	set(buildRegistry ON)	
 	
 elseif("${TARGET}" STREQUAL "libgrid")
 	set(targetLibraryName grid)
@@ -783,9 +783,12 @@ file(WRITE ${CMAKE_BINARY_DIR}/compiled_strings.cpp
 "const char *COMPILE_DATE=${COMPILE_DATE};\n"
 "}\n")
 
-add_library(compiledstrings ${CMAKE_BINARY_DIR}/compiled_strings.cpp)
 
-
+if(buildDynamicLib)
+	add_library(compiledstrings SHARED ${CMAKE_BINARY_DIR}/compiled_strings.cpp)
+else(buildDynamicLib)
+	add_library(compiledstrings STATIC ${CMAKE_BINARY_DIR}/compiled_strings.cpp)
+endif(buildDynamicLib)
 
 
 
@@ -806,6 +809,7 @@ set(USE_NEW_CMAKE_INCLUDES ON)
 ################################################################################
 # link against required libraries
 link_libraries(${linkLibraries})
+link_libraries(compiledstrings)
 
 
 ################################################################################
