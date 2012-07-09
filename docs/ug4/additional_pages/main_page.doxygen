@@ -35,6 +35,7 @@ environment
 		- \ref pageUG4OnWindows
 		- \ref pageUG4SetupParallel
 	- ug4 for vrl
+	- \ref pageUG4HLib
 
 - \subpage pageUG4Usage
 	- \ref pageUG4Shell
