@@ -71,7 +71,7 @@ See
 To be able to connect to \em JuGene from different machines maybe you find it 
 useful to define one of \em GCSC's machines (e.g. \c speedo, \c quadruped, ...) 
 as a "springboard" to one of \em JuGenes login nodes (so that you have to login 
-to this machine first, then to \em JuGene), see \ref secSSHHoping.
+to this machine first, then to \em JuGene), see \ref secSSHHopping.
 
 
 <hr>
