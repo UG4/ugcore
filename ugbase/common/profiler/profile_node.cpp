@@ -451,7 +451,10 @@ bool UGProfileNode::valid() const
 	return false;
 }
 
-
+string UGProfileNode::groups() const
+{
+	return "Profiler not available!";
+}
 
 const UGProfileNode *GetProfileNode(const char *name)
 {
