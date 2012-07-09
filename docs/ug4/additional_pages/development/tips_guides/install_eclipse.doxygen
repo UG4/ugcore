@@ -93,8 +93,7 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
 In order to build the \ug4 libraries via \em Eclipse, you first must create the 
 Makefiles.
-This is done using \em Cmake in the terminal (go \ref secInstallUG4CMake "here" 
-if you did not already install \em CMake).
+This is done using \em Cmake in the terminal (go to \ref pageUG4Setup if you did not already install \em CMake).
 
 <ol>
   <li>Open a terminal/shell window</li>

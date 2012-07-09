@@ -5,7 +5,7 @@
 /** \page pageUG4SSH SSH
 
 - \ref secSSHKeys
-- \ref secSSHHoping
+- \ref secSSHHopping
 - \ref secSSHFS
 - \ref secSSH_Eclipse
 
@@ -33,7 +33,7 @@ cat .ssh/id_rsa.pub | ssh mrupp@cluster.de 'umask 077; cat >> .ssh/authorized_ke
 \section secSSHHopping SSH Hopping
 
 Many supercomputers are only accessible by some fixed IP you specify.
-Since at home we do not have a fixed IP, you have to use SSH hoping.
+Since at home we do not have a fixed IP, you have to use SSH hopping.
 Say speedo's IP (<tt>speedo.gcsc.uni-frankfurt.de</tt>) is specified as the 
 connecting IP, and your account is <tt>mrupp\@speedo.gcsc.uni-frankfurt.de</tt>, 
 and <tt>rupp\@supercomputer.de</tt> is the supercomputer account.
