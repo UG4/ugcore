@@ -31,7 +31,7 @@ they speak about <tt>ug4/apps</tt> or <tt>ug4/trunk/apps</tt>.
 <hr>
 \section Enable bash tools
 For some helpful bash tools and completion, add this line to the end of your
-<tt>~/.bashrc</tt> (replace <YOURUG4ROOT> with your path):
+<tt>~/.bashrc</tt> (replace <tt>\<YOURUG4ROOT\></tt> with your path):
 \code
 source YOURUG4ROOT/scripts/shell/ugbash
 \endcode
@@ -60,7 +60,7 @@ The following example is for a debug build:
   <ul>  	
   	<li> Linux/MacOS: <tt>cmake ..</tt>
   	<li> Windows: <tt>cmake -G"MSYS Makefiles" ..</tt>
-  	<li> Clusters: <tt> cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..</tt> <br>see \ref pageUG4SetupParallel.
+  	<li> Clusters: <tt> cmake -DCMAKE_TOOLCHAIN_FILE=\<TOOLCHAINFILE\> ..</tt> <br>see \ref pageUG4SetupParallel.
   </ul>
 </ol>
 

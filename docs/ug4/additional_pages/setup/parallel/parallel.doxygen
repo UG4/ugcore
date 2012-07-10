@@ -17,7 +17,7 @@ Special instructions for the different parallel computers are on separate pages:
 - \subpage pageUG4ParallelHermit
 
 Instructions for password-less login to the different clusters are on the page
-about \ref pageUG4SSH (including \ref secSSHKeys, \ref secSSHHoping, \ref secSSHFS).
+about \ref pageUG4SSH (including \ref secSSHKeys, \ref secSSHHopping, \ref secSSHFS).
 
 
 <hr>
@@ -92,7 +92,7 @@ toolchain file, so others can benefit from your knowledge.
 
 Unfortunately on some systems it turned out that especially the build tool 
 \em CMake, absolutely necessary to configure \ug4 (cf. \ref pageUG4Install, 
-\ref secInstallUG4CMake), was not available.
+\ref secInstallCMake), was not available.
 In such cases you have to install the required software yourself (typically 
 locally).
 For some installation instructions &mdash; including those for \em CMake &mdash;

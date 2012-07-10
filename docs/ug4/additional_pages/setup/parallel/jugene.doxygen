@@ -458,7 +458,7 @@ module load UNITE ddt
 The rest should be quite self-explaining.
 
 One can also immediately specify the application to debug and also its parameters
-by typing <tt>ddt [\<your app\> <parameters>]</tt></li>.
+by typing <tt>ddt [\<your app\> \<parameters\>]</tt>.
 
 <!--
 TODO: As the textfield "Number of nodes (1 procs per node)" says, choosing e.g. 4 nodes
