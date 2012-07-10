@@ -20,10 +20,10 @@
 #include "bindings_vrl_native.h"
 
 #include "lib_grid/lib_grid.h"
-#include "compiledate.h"
-#include "build_hostname.h"
 #include "user_data.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
+
+#include "compiledstrings.h"
 
 #include "invocation.h"
 #include "playground.h"
