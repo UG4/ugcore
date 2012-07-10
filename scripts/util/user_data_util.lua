@@ -6,7 +6,7 @@
 -- Check if class is base class: ug_is_base_class("BaseClass", "DerivClass")
 -- Check if dimension compiled in:  ug_dim_compiled(dim)
 -- Returning metatable for a ug4-class: ug_get_metatable("ClassName")
-!]]-
+!]]--
 
 function __ug__CheckUserDataArgType(r, l)
 	local rType = ug_class_name(r)
