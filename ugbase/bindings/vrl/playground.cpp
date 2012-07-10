@@ -6,9 +6,6 @@
  */
 
 #include "playground.h"
-
-#include "compiledate.h"
-#include "build_hostname.h"
 #include "bindings_vrl.h"
 
 
