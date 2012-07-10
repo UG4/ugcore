@@ -48,7 +48,7 @@
 --	2. Execution of the calling LUA script:
 
 \verbatim
-UGARGS="-ex ../scripts/tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
+UGARGS="-ex ../apps/scaling_tests/modular_scalability_test.lua -dim 2 -grid ../data/grids/unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti"
 
 # Local:
 ########
@@ -309,16 +309,19 @@ function SetupFETISolver(str_problem,
 	cpJac:set_damp(0.8)
 	cpGS  = GaussSeidel()
 	cpILU = ILU()
+	cpSGS = SymmetricGaussSeidel()
 	
 	npJac = Jacobi()
 	npJac:set_damp(0.8)
 	npGS  = GaussSeidel()
 	npILU = ILU()
+	npSGS = SymmetricGaussSeidel()
 	
 	dpJac = Jacobi()
 	dpJac:set_damp(0.8)
 	dpGS  = GaussSeidel()
 	dpILU = ILU()
+	dpSGS = SymmetricGaussSeidel()
 	
 	----------------------------------------------------------
 	-- create and configure coarse problem solver
@@ -382,6 +385,7 @@ function SetupFETISolver(str_problem,
 	
 		neumannSolver = CG()
 		neumannSolver:set_preconditioner(npILU) -- npJac
+		--neumannSolver:set_preconditioner(npSGS)
 	
 	elseif neumannProblemSolverType == "bicg" then
 	
@@ -518,6 +522,7 @@ function SetupFETISolver(str_problem,
 	
 		dirichletSolver = CG()
 		dirichletSolver:set_preconditioner(dpILU) -- dpJac
+		--dirichletSolver:set_preconditioner(npSGS)
 	
 	elseif dirichletProblemSolverType == "bicg" then
 	
