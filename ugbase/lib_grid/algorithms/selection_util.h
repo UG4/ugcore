@@ -215,8 +215,11 @@ void SelectInterfaceElements(ISelector& sel, ISubsetHandler& sh,
 
 ////////////////////////////////////////////////////////////////////////
 /// selects all elements of the given type in the given subset
+/**	If you want to deselect elements, pass ISelector::DESELECT to the status
+ * argument.*/
 template <class TElem>
-void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex);
+void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
+						  ISelector::status_t status = ISelector::SELECTED);
 
 ////////////////////////////////////////////////////////////////////////
 ///	extends the selection to neighbours of selected elements.

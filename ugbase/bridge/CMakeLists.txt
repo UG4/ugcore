@@ -11,7 +11,9 @@ include("../../ug_cmake_includes.txt")
 set(srcUGBridge    	bridge.cpp
 					domain_bridges/lib_grid_bridge.cpp
 					domain_bridges/domain_bridge.cpp
-					domain_bridges/refinement_bridge
+					domain_bridges/refinement_bridge.cpp
+					domain_bridges/selection_bridge.cpp
+					domain_bridges/transform_bridge.cpp
 					misc_bridges/test_bridge.cpp
 					misc_bridges/profiler_bridge.cpp
 					misc_bridges/util_bridge.cpp

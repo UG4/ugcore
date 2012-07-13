@@ -60,6 +60,12 @@ void RegisterBridge_Domain(Registry& reg, std::string grp = UG4_GRP);
 ///	Registers refiners and marking methods.
 void RegisterBridge_Refinement(Registry& reg, std::string grp = UG4_GRP);
 
+///	Registers methods to perform selections on the elements of a domain.
+void RegisterBridge_Selection(Registry& reg, std::string grp = UG4_GRP);
+
+///	Registers methods to transform the vertices of a domain.
+void RegisterBridge_Transform(Registry& reg, std::string grp = UG4_GRP);
+
 /// Registers the element discretizations
 void RegisterBridge_ElemDiscs(Registry& reg, std::string grp = UG4_GRP);
 

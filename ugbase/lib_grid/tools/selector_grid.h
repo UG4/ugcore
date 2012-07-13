@@ -103,15 +103,15 @@ class UG_API Selector : public ISelector
 		inline void clear();
 
 		template <class TElem>
-		inline uint num();
+		inline size_t num() const;
 		
-		inline uint num();
+		inline size_t num() const;
 		
 	//	empty
-		inline bool empty();
+		inline bool empty() const;
 
 		template <class TElem>
-		inline bool empty();
+		inline bool empty() const;
 
 	//	begin
 		template <class TElem>

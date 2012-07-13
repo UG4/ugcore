@@ -296,14 +296,15 @@ void SelectInterfaceElements(ISelector& sel, ISubsetHandler& sh,
 }
 
 template <class TElem>
-void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex)
+void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
+						  ISelector::status_t status)
 {
 	typedef typename GeometricObjectCollection::traits<TElem>::iterator	TIter;
 	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(subsetIndex);
 
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 		for(TIter iter = goc.begin<TElem>(lvl); iter != goc.end<TElem>(lvl); ++iter)
-			sel.select(*iter);
+			sel.select(*iter, status);
 	}
 }
 

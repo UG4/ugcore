@@ -635,6 +635,24 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 		reg.add_class_<SurfaceView>("SurfaceView", grp);
 
 
+	//	Selector
+		reg.add_class_<ISelector>("ISelector", grp);
+
+		reg.add_class_<Selector, ISelector>("Selector", grp)
+			.add_constructor<void (*)(Grid&)>()
+
+			.add_method("num_vertices", static_cast<size_t (Selector::*)() const>(&Selector::num<VertexBase>))
+			.add_method("num_edges", static_cast<size_t (Selector::*)() const>(&Selector::num<EdgeBase>))
+			.add_method("num_faces", static_cast<size_t (Selector::*)() const>(&Selector::num<Face>))
+			.add_method("num_triangles", static_cast<size_t (Selector::*)() const>(&Selector::num<Triangle>))
+			.add_method("num_quadrilaterals", static_cast<size_t (Selector::*)() const>(&Selector::num<Quadrilateral>))
+			.add_method("num_volumes", static_cast<size_t (Selector::*)() const>(&Selector::num<Volume>))
+			.add_method("num_tetrahedrons", static_cast<size_t (Selector::*)() const>(&Selector::num<Tetrahedron>))
+			.add_method("num_pyramids", static_cast<size_t (Selector::*)() const>(&Selector::num<Pyramid>))
+			.add_method("num_prisms", static_cast<size_t (Selector::*)() const>(&Selector::num<Prism>))
+			.add_method("num_hexahedrons", static_cast<size_t (Selector::*)() const>(&Selector::num<Hexahedron>))
+			.set_construct_as_smart_pointer(true);
+
 	////////////////////////
 	//	REFINEMENT
 

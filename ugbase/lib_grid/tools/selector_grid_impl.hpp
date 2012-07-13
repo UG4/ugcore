@@ -42,8 +42,8 @@ Selector::clear()
 }
 
 template <class TElem>
-inline uint 
-Selector::num()
+inline size_t
+Selector::num() const
 {
 	const int sInd = get_section_index<TElem>();
 	if(sInd < 0)
@@ -52,22 +52,22 @@ Selector::num()
 		return section_container<TElem>().num_elements(sInd);
 }
 
-inline uint 
-Selector::num()
+inline size_t
+Selector::num() const
 {
 	return num<VertexBase>() + num<EdgeBase>() + num<Face>() + num<Volume>();
 }
 
 //	empty
 inline bool 
-Selector::empty()
+Selector::empty() const
 {
 	return num() == 0;
 }
 
 template <class TElem>
 inline bool 
-Selector::empty()
+Selector::empty() const
 {
 	return num<TElem>() == 0;
 }

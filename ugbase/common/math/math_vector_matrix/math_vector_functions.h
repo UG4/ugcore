@@ -10,6 +10,15 @@
 namespace ug
 {
 ////////////////////////////////////////////////////////////////
+///	Copy contents between vectors of possibly different types.
+/**	If the target vector is bigger than the source vector, additional entries
+ * will be set to the scalar given in the fill argument. If it is smaller,
+ * then the additional entries in the source vector are ignored.*/
+template <typename vector_target_t, typename vector_source_t>
+void VecCopy(vector_target_t& target, const vector_source_t& source,
+			 typename vector_target_t::value_type fill);
+
+////////////////////////////////////////////////////////////////
 // Append Vector
 
 ///	adds a MathVector<N> to a second one

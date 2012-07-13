@@ -150,6 +150,8 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_PCL(reg, parentGroup);
 		RegisterBridge_Domain(reg, parentGroup);
 		RegisterBridge_Refinement(reg, parentGroup);
+		RegisterBridge_Selection(reg, parentGroup);
+		RegisterBridge_Transform(reg, parentGroup);
 
 		RegisterBridge_Profiler(reg, parentGroup);
 		RegisterBridge_Misc(reg, parentGroup);

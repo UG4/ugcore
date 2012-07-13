@@ -20,6 +20,20 @@
 
 namespace ug
 {
+
+template <typename vector_target_t, typename vector_source_t>
+void VecCopy(vector_target_t& target, const vector_source_t& source,
+			 typename vector_target_t::value_type fill)
+{
+	using std::min;
+	size_t minSize = min(target.size(), source.size());
+	for(size_t i = 0; i < minSize; ++i)
+		target[i] = source[i];
+
+	for(size_t i = minSize; i < target.size(); ++i)
+		target[i] = fill;
+}
+
 ///	adds a MathVector<N>s to a second one
 template <typename vector_t>
 inline
@@ -451,6 +465,7 @@ VecMultiply(vector_t& vOut, const vector_t& v, typename vector_t::value_type s)
 		vOut[i] = v[i] * s;
 	}
 }
+
 
 template <typename vector_t>
 inline
