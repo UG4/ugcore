@@ -26,6 +26,7 @@
 #include "common/stopwatch.h"
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "../rsamg/rsamg_impl.h"
+#include "common/util/file_util.h"
 
 namespace ug
 {
@@ -41,9 +42,9 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
  * and gets arrays processesWithLowerColor and processesWithHigherColor
  * \sa ColorProcessorGraph
  */
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+template<typename algebra_type>
 void
-FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
+FAMGLevelCalculator<algebra_type>::
 	color_process_graph()
 {
 	AMG_PROFILE_FUNC();
@@ -82,7 +83,8 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
 
 
 
-class FAMGCoarseningCommunicationScheme : public CommunicationScheme<FAMGCoarseningCommunicationScheme, char>
+class FAMGCoarseningCommunicationScheme :
+	public CommunicationScheme<FAMGCoarseningCommunicationScheme, char>
 {
 public:
 	FAMGCoarseningCommunicationScheme(FAMGNodes &r) : rating(r)
@@ -145,9 +147,9 @@ private:
  * that is: nextMasterLayout.interface(pid1) if i is master on this processor,
  * or nextSlaveLayout.interface(pid1) if i is slave on this processor
  */
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+template<typename algebra_type>
 void
-FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
+FAMGLevelCalculator<algebra_type>::
 	receive_coarsening_from_processes_with_lower_color()
 {
 	AMG_PROFILE_FUNC();
@@ -182,9 +184,9 @@ FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
  * we send data to processes in processesWithHigherColor about which nodes we have set coarse.
  * for this, we use OLCoarseningSendLayout.
  */
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+template<typename algebra_type>
 void
-FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
+FAMGLevelCalculator<algebra_type>::
 	send_coarsening_data_to_processes_with_higher_color()
 {
 	AMG_PROFILE_FUNC();
@@ -242,8 +244,8 @@ bool GenerateOverlap2(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<ma
  * creates overlap 2 matrix A_OL2,
  * \sa GenerateOverlap
  */
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::create_OL2_matrix()
+template<typename algebra_type>
+void FAMGLevelCalculator<algebra_type>::create_OL2_matrix()
 {
 	UG_DLOG(LIB_ALG_AMG, 0, "\ncreate OL2 matrix...\n");
 #ifdef UG_DEBUG
@@ -376,10 +378,9 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 		AMG_PROFILE_NEXT(create_OL2_matrix_debug_output);
 		if(m_famg.m_writeMatrices)
 		{
-			//	\TODO: Implement also Windows support. Comment in below afterwards
-//			std::string path=std::string("/level") + ToString(level) + "/";
-//			mkdir((std::string(m_famg.m_writeMatrixPath) + path).c_str(), 0777);
-			WriteMatrixToConnectionViewer((/*m_famg.m_writeMatrixPath + path +*/ std::string("AMG_A_OL2_L") + ToString(level) + ".mat").c_str(),
+			std::string path=std::string("/level") + ToString(level) + "/";
+			CreateDirectory((std::string(m_famg.m_writeMatrixPath) + path).c_str(), 0777);
+			WriteMatrixToConnectionViewer((m_famg.m_writeMatrixPath + path + std::string("AMG_A_OL2_L") + ToString(level) + ".mat").c_str(),
 					A_OL2, &m_famg.m_amghelper.positions[level][0], 2);
 		}
 	}
@@ -406,9 +407,9 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::cr
 //	UG_SET_DEBUG_LEVEL(LIB_ALG_MATRIX, iDebugLevelMatrixPre);
 }
 
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+template<typename algebra_type>
 void
-FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::
+FAMGLevelCalculator<algebra_type>::
 	calculate_uncalculated_fine_nodes()
 {
 	AMG_PROFILE_FUNC();

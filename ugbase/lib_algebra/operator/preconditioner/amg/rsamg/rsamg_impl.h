@@ -14,14 +14,7 @@
 #define __H__UG__LIB_ALGEBRA__RSAMG_SOLVER__RSAMG_IMPL_H__
 
 // fixme do not declare these functions in impl
-inline double amg_diag_value(const double &d) { return d; }
-inline double amg_offdiag_value(const double &d) { return d; }
-
-template<typename T> inline double amg_diag_value(const T &d) { return BlockNorm(d); }
-template<typename T> inline double amg_offdiag_value(const T &d) { return -BlockNorm(d); }
-
 //#include "sparsematrix_util.h"
-
 #include "rsamg.h"
 #include "lib_algebra/common/graph/graph.h"
 
@@ -41,7 +34,6 @@ template<typename T> inline double amg_offdiag_value(const T &d) { return -Block
 #include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #include "rsamg_parallel_coarsening.h"
 #endif
-
 
 namespace ug{
 

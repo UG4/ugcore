@@ -474,8 +474,8 @@ private:
 };
 
 
-template<typename neighborstruct>
-void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, stdvector<stdvector<neighborstruct> > &possible_neighbors,
+template<typename TNeighborstruct>
+void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, stdvector<stdvector<TNeighborstruct> > &possible_neighbors,
 		FAMGNodes &nodes, maxheap<FAMGNode> &heap)
 {
 	for(cgraph::const_row_iterator conn = SymmNeighGraph.begin_row(node); conn != SymmNeighGraph.end_row(node); ++conn)

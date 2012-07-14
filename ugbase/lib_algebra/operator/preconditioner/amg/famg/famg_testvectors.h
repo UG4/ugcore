@@ -105,8 +105,8 @@ void CalculateTestvector(const matrix_type &A_OL2, vector_type &big_testvector,
 }
 
 
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_testvectors()
+template<typename algebra_type>
+void FAMGLevelCalculator<algebra_type>::calculate_testvectors()
 {
 	UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelTestvectorCalc);
 
@@ -157,8 +157,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ca
 
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 }
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::get_testvectors_on_OL2()
+template<typename algebra_type>
+void FAMGLevelCalculator<algebra_type>::get_testvectors_on_OL2()
 {
 #ifdef UG_PARALLEL
 	for(size_t i=0; i<m_testvectors.size(); i++)
@@ -177,8 +177,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ge
 }
 
 
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::calculate_next_testvectors()
+template<typename algebra_type>
+void FAMGLevelCalculator<algebra_type>::calculate_next_testvectors()
 {
 	vector_type t;
 	t.resize(AH.num_rows());

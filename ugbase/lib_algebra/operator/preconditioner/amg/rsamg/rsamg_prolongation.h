@@ -14,7 +14,7 @@
 
 #include <vector>
 #include "rsamg_nodeinfo.h"
-#include "rsamg_impl.h"
+#include "rsamg_blockvalues.h"
 
 //#define USE_DIRICHLET_AS_INTERPOLATION_NODES
 #define SKIPDIRICHLET
@@ -51,7 +51,7 @@ void GetNeighborValues(const TMatrix &A, size_t i, double &minConnValue, double 
 	{
 		if(conn.index() == i)
 		{
-			diag = conn.value();
+			diag = amg_diag_value(conn.value());
 			continue; // skip diagonal
 		}
 #ifdef SKIPDIRICHLET

@@ -5,6 +5,8 @@
  *      Author: mrupp
  */
 
+#include <fstream>
+
 #include "../rsamg/rsamg.h"
 #include "../rsamg/rsamg_coarsening.h"
 
@@ -14,8 +16,8 @@
 
 namespace ug{
 
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::external_coarsening_calculate_prolongation()
+template<typename algebra_type>
+void FAMGLevelCalculator<algebra_type>::external_coarsening_calculate_prolongation()
 {
 	AMG_PROFILE_FUNC();
 	Stopwatch SW;
@@ -29,8 +31,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::ex
 	if(bTiming) UG_DLOG(LIB_ALG_AMG, 0, "took " << SW.ms() << " ms");
 }
 
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::rs_amg_external_coarsening()
+template<typename algebra_type>
+void FAMGLevelCalculator<algebra_type>::rs_amg_external_coarsening()
 {
 	AMG_PROFILE_FUNC();
 	Stopwatch SW;
@@ -109,6 +111,74 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::rs
 	//	rating.set_aggressive_fine(i);
 }
 
+
+
+template<typename algebra_type>
+void FAMGLevelCalculator<algebra_type>::write_coarsening()
+{
+	PROFILE_FUNC_GROUP("debug");
+
+	stdvector<MathVector<3> > &vec = m_famg.m_amghelper.positions[level];
+
+	std::ios_base::openmode mode;
+	if(pcl::GetProcRank()==0)
+	{
+		CreateDirectory((std::string(m_famg.m_writeMatrixPath) + "/coarsening").c_str(), 0777);
+		mode = std::ios::out | ios::binary;
+	}
+	else mode = std::ios::out | std::ios::app | ios::binary;
+
+	for(int i=0; i<pcl::GetProcRank(); i++)
+		pcl::AllProcsTrue(true);
+	{
+		std::fstream file((std::string(m_famg.m_writeMatrixPath) + "/coarsening/rating" + ToString(level)).c_str(), mode);
+		for(size_t i=0; i<vec.size(); i++)
+		{
+			Serialize(file, vec[i]);
+			Serialize(file, rating[i].rating);
+		}
+	}
+	for(int i=pcl::GetProcRank(); i<pcl::GetNumProcesses(); i++)
+		pcl::AllProcsTrue(true);
+}
+
+template<int Ti>
+struct MathVectorComp {
+  inline bool operator() (const MathVector<Ti> &a, const MathVector<Ti> &b) const
+  {
+	  for(size_t i=0; i<Ti; i++)
+		  if(a[i] != b[i]) return a[i] < b[i];
+	  return false;
+  }
+};
+
+template<typename algebra_type>
+void FAMGLevelCalculator<algebra_type>::read_coarsening()
+{
+	PROFILE_FUNC_GROUP("debug");
+
+	stdvector<MathVector<3> > &vec = m_famg.m_amghelper.positions[level];
+	typedef std::map<MathVector<3>, size_t, MathVectorComp<3> > MathVecMap;
+	MathVecMap m;
+	for(size_t i=0; i<vec.size(); i++)
+		m[vec[i]] = i;
+
+	std::fstream file((std::string(m_famg.m_writeMatrixPath) + "/coarsening/rating" + ToString(level)).c_str(), std::ios::in | std::ios::binary);
+	for(size_t i=0; i<vec.size(); i++)
+	{
+		MathVector<3> pos;
+		double r;
+		Deserialize(file, pos);
+		Deserialize(file, r);
+
+		MathVecMap::iterator it = m.find(pos);
+		if(it != m.end())
+		{
+			rating[it->second].rating = r;
+			UG_LOG("Setting node " << it->second << " to " << rating[it->second]);
+		}
+	}
+}
 }
 
 #endif /* FAMG_EXTERNAL_COARSENING_H_ */

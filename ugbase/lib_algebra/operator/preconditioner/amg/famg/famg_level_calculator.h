@@ -42,41 +42,7 @@
 #endif
 
 #include "lib_algebra/common/connection_viewer_output.h"
-
-//#include "../row_sender.h"
-
-
-
-std::stack<int> g_DebugLevelStack;
-
-
-#ifdef UG_DEBUG
-#define GET_DEBUG_LEVEL(tag) ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag)
-#else
-#define GET_DEBUG_LEVEL(tag) 0
-#endif
-#define PUSH_DEBUG_LEVEL() g_DebugLevelStack.push(GET_DEBUG_LEVEL(LIB_ALG_AMG))
-#define SET_AND_PUSH_DEBUG_LEVEL(level) g_DebugLevelStack.push(GET_DEBUG_LEVEL(LIB_ALG_AMG)); ug::GetLogAssistant().set_debug_level(level)
-#define POP_DEBUG_LEVEL() ug::GetLogAssistant().set_debug_level(g_DebugLevelStack.pop())
-
-/*
-#ifdef UG_PARALLEL
-std::string GetProcFilename(std::string name, std::string extension)
-{
-	return name + "_" + ToString(pcl::GetProcRank()) + extension;
-}
-
-#else
-std::string GetProcFilename(std::string name, std::string extension)
-{
-	return name + "_0" + extension;
-}
-#endif
-std::string GetProcFilename(std::string path, std::string name, std::string extension)
-{
-	return path + GetProcFilename(name, extension);
-}*/
-
+#include "common/util/file_util.h"
 
 template<typename vector_type>
 void print_vector(const vector_type &vec, const char *p)
@@ -173,13 +139,27 @@ static void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighG
 #endif
 }
 
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+template<typename TAlgebra>
 class FAMGLevelCalculator
 {
+public:
+//	Algebra type
+	typedef TAlgebra algebra_type;
+
+//	Vector type
+	typedef typename TAlgebra::vector_type vector_type;
+
+//	Matrix type
+	typedef typename TAlgebra::matrix_type matrix_type;
+
+	typedef typename matrix_type::value_type value_type;
+
+	typedef typename CPUAlgebra::matrix_type prolongation_matrix_type;
+
 private:
 	// refernce to famg object. this will be done differently in the future
 	// (constructor looks ugly)
-	FAMG<CPUAlgebra> &m_famg;
+	FAMG<TAlgebra> &m_famg;
 
 	// the coarse matrices to be filled
 	matrix_type &AH;
@@ -316,8 +296,9 @@ private:
 	}
 public:
 	// todo: clean up this mess of constructor
-	FAMGLevelCalculator(FAMG<CPUAlgebra> &f,
-			matrix_type &_AH, prolongation_matrix_type &_R,  const matrix_type &_A, const matrix_type &_Aorig,
+	FAMGLevelCalculator(FAMG<TAlgebra> &f,
+			matrix_type &_AH, prolongation_matrix_type &_R,
+			const matrix_type &_A, const matrix_type &_Aorig,
 			prolongation_matrix_type &_P, size_t _level,
 			stdvector< vector_type > &testvectors, stdvector<double> &omega)
 	: m_famg(f), AH(_AH), A(_A), Aorig(_Aorig), R(_R), PnewIndices(_P), level(_level),
@@ -371,7 +352,7 @@ public:
 
 		bool bExternalCoarsening = m_famg.m_bExternalCoarsening;
 		bool bUsePrecalculate = m_famg.m_bUsePrecalculate;
-		if(bExternalCoarsening == false)
+		if(bExternalCoarsening == false && m_famg.m_fileCoarsening != m_famg.READ_COARSENING)
 		{
 			UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelPhase3);
 			heap.create(rating.nodes);
@@ -471,10 +452,16 @@ public:
 		{
 			if(m_famg.m_writeMatrices)	m_famg.write_debug_matrix_markers(level, rating);
 			PoldIndices.resize(N, N);
-			rs_amg_external_coarsening();
+			if(m_famg.m_fileCoarsening == m_famg.READ_COARSENING)
+				read_coarsening();
+			else
+				rs_amg_external_coarsening();
+
 			external_coarsening_calculate_prolongation();
 		}
 
+		if(m_famg.m_fileCoarsening == m_famg.WRITE_COARSENING)
+			write_coarsening();
 
 
 		UG_SET_DEBUG_LEVEL(LIB_ALG_AMG, m_famg.iDebugLevelAfterCommunicateProlongation);
@@ -522,12 +509,10 @@ public:
 
 		if(m_famg.m_bWriteFValues)
 		{
-			//	\TODO: Implement also Windows support. Comment in below afterwards
-//			std::string path=std::string("/level") + ToString(level) + "/";
-//			mkdir((std::string(m_famg.m_writeMatrixPath) + path).c_str(), 0777);
-			WriteVectorToConnectionViewer(
-				/*m_famg.m_writeMatrixPath + path +*/ std::string("AMG_fvalues_L") + ToString(level) + ".vec",
-				fvalues, &m_famg.m_amghelper.positions[level][0], 2);
+			std::string path=std::string("/level") + ToString(level) + "/";
+			CreateDirectory((std::string(m_famg.m_writeMatrixPath) + path).c_str(), 0777);
+			WriteVectorToConnectionViewer(m_famg.m_writeMatrixPath + path + std::string("AMG_fvalues_L") + ToString(level) + ".vec",
+						fvalues, &m_famg.m_amghelper.positions[level][0], 2);
 		}
 	}
 
@@ -609,6 +594,8 @@ private:
 	void get_testvectors_on_OL2();
 	void calculate_next_testvectors();
 public:
+	void write_coarsening(), read_coarsening();
+
 	void onlyTV()
 	{
 #ifdef UG_PARALLEL
@@ -628,7 +615,6 @@ public:
 #include "famg_parallel_coarsening_impl.h"
 #endif
 
-#include "famg_debug_impl.h"
 #include "famg_on_demand_coarsening_impl.h"
 #include "famg_precalculate_coarsening_impl.h"
 #include "famg_testvectors.h"

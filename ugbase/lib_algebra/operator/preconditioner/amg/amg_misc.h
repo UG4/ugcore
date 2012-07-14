@@ -36,7 +36,7 @@ void ReduceToStrongConnections(TMatrix &m1, const TMatrix &const_m2, double thet
 		GetNeighborValues(m2, i, minConnValue, maxConnValue, diag);
 		typename TMatrix::connection c;
 		double barrier = theta*std::max(maxConnValue, dabs(minConnValue));
-		double offLumpedSum=0;
+		typename TMatrix::value_type offLumpedSum=0;
 		int iDiag=-1;
 		for(typename TMatrix::row_iterator conn = m2.begin_row(i); conn != m2.end_row(i); ++conn)
 		{

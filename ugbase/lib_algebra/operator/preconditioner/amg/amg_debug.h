@@ -29,7 +29,7 @@ namespace ug {
 template<typename T>
 void AMGWriteToFile(const SparseMatrix<T> &A, int fromlevel, int tolevel, const char *filename, const cAMG_helper &h)
 {
-	AMG_PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("debug");
 	if(h.has_positions() == false)
 	{
 		UG_LOG("AWriteToFile not possible: no positions available.")
@@ -57,7 +57,7 @@ void AMGWriteToFile(const SparseMatrix<T> &A, int fromlevel, int tolevel, const 
 template<typename T>
 void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, const char *filename, const cAMG_helper &h)
 {
-	AMG_PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("debug");
 	if(h.has_positions() == false)
 	{
 		UG_LOG("AWriteToFilePS not possible: no positions available.")
@@ -94,7 +94,7 @@ void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, cons
 // could be in cpp
 inline void WriteAMGGraphToFile(cgraph &G, const char *filename, const cAMG_helper &h, int level)
 {
-	AMG_PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("debug");
 	if(h.has_positions() == false)
 	{
 		UG_LOG("WriteAMGGraphToFile not possible: no positions available.")

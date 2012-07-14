@@ -39,7 +39,7 @@ namespace ug{
 
 #define FAMG_MAX_LEVELS 32
 
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
+template<typename TAlgebra>
 class FAMGLevelCalculator;
 
 // AMG
@@ -73,7 +73,7 @@ public:
 
 	typedef typename matrix_type::value_type value_type;
 
-	typedef typename TAlgebra::matrix_type prolongation_matrix_type;
+	typedef typename CPUAlgebra::matrix_type prolongation_matrix_type;
 
 //  functions
 	FAMG() ;
@@ -129,12 +129,19 @@ public:
 
 	double get_damping_for_smoother_in_interpolation_calculation() const { return m_dDampingForSmootherInInterpolationCalculation; }
 
+	//! "Interpolation quality" F may not be worse than this (F < m_delta)
 	void set_delta(double delta) { m_delta = delta; }
+	//! with multiple parents, discard pairs with m_theta * F > min F.
 	void set_theta(double theta) { m_theta = theta; }
+
 	double get_delta() const { return m_delta;}
 	double get_theta() const { return m_theta;}
 
 
+	enum{ WRITE_COARSENING, READ_COARSENING, NONE} m_fileCoarsening;
+
+	void set_write_coarsening() { m_fileCoarsening=WRITE_COARSENING;}
+	void set_read_coarsening() { m_fileCoarsening=READ_COARSENING;}
 
 	void set_testvector_smooths(size_t testvectordamps) { m_iTestvectorDamps = testvectordamps; }
 	size_t get_testvector_smooths() const { return m_iTestvectorDamps; }
@@ -213,9 +220,6 @@ private:
 	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 				prolongation_matrix_type &P, size_t level);
 
-	void c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
-			prolongation_matrix_type &P, size_t level);
-
 	virtual void precalc_level(size_t level);
 
 	void get_testvectors(const matrix_type &A, stdvector<vector_type> &testvectors, stdvector<double> &omega);
@@ -251,7 +255,7 @@ private:
 
 	SmartPtr<ILinearIterator<vector_type> > m_testvectorsmoother;
 
-	friend class FAMGLevelCalculator<matrix_type, matrix_type, vector_type >;
+	friend class FAMGLevelCalculator<algebra_type>;
 
 	stdvector<vector_type> m_testvectors;
 	stdvector<double> m_omegaVectors; // testvectorWeights

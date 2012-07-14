@@ -62,7 +62,7 @@ public:
 ///	Matrix type
 	typedef typename TAlgebra::matrix_type matrix_type;
 ///	Prolongation Matrix type
-	typedef typename TAlgebra::matrix_type prolongation_matrix_type;
+	typedef typename CPUAlgebra::matrix_type prolongation_matrix_type;
 
 ///	Matrix Operator type
 	typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;

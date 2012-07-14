@@ -3,14 +3,15 @@
 #include "famg_nodeinfo.h"
 namespace ug{
 
-template<typename value_type>
+template<typename value_type, typename TIndex>
 struct s_interpolation
 {
-	size_t from;
 	value_type value;
+	TIndex from;
 };
 
-struct neighborstruct2
+template<typename value_type, typename TIndex>
+struct neighborstruct2_t
 {
 	void print(FAMGNodes &rating)
 	{
@@ -19,11 +20,12 @@ struct neighborstruct2
 			UG_LOG((i>0 ? "," : "") << "p" << i << ": " << parents[i].from << " [" << rating.get_original_index(parents[i].from) << "] -> " << parents[i].value);
 		UG_LOG(std::endl);
 	}
-	FixedArray1<s_interpolation<double>, 2> parents;
+	FixedArray1<s_interpolation<value_type, TIndex>, 2> parents;
 	double F;
 };
 
-struct neighborstruct_var
+template<typename value_type=double, typename TIndex=size_t>
+struct neighborstruct_var_t
 {
 	void print(FAMGNodes &rating)
 	{
@@ -32,9 +34,12 @@ struct neighborstruct_var
 			UG_LOG((i>0 ? "," : "") << "p" << i << ": " << parents[i].from << " [" << rating.get_original_index(parents[i].from) << "] -> " << parents[i].value);
 		UG_LOG(std::endl);
 	}
-	stdvector<s_interpolation<double> > parents;
+	stdvector<s_interpolation<value_type, TIndex> > parents;
 	double F;
 };
+
+typedef neighborstruct2_t<double, size_t> neighborstruct2;
+typedef neighborstruct_var_t<double, size_t> neighborstruct_var;
 
 
 }

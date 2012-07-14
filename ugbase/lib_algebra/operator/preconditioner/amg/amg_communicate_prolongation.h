@@ -17,6 +17,9 @@
 namespace ug
 {
 
+template<typename TMatrix>
+void CheckMatrixLayout(ParallelNodes &PN, const TMatrix &mat, IndexLayout &masterLayout, IndexLayout &slaveLayout);
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create_fine_marks

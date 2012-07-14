@@ -22,29 +22,12 @@
 
 namespace ug{
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// createFAMGLevel:
-//-------------------------
-/**
- * create FAMG matrix R, P, and AH = R A P
- * \param AH
- * \param R
- * \param A
- * \param P
- * \param level
- */
-template<typename TAlgebra>
-void FAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
-		prolongation_matrix_type &P, size_t level)
-{
-	c_create_AMG_level(AH, R, A, P, level);
-}
 
 template<typename TAlgebra>
 FAMG<TAlgebra>::FAMG() : AMGBase<TAlgebra>()
 {
-	m_theta = 0.95;
-	m_delta = 0.5;
+	m_theta = 0.9;
+	m_delta = 0.1;
 
 	m_dDampingForSmootherInInterpolationCalculation = 0.8;
 	m_bAggressiveCoarsening = false;
@@ -70,6 +53,7 @@ FAMG<TAlgebra>::FAMG() : AMGBase<TAlgebra>()
 	m_bWriteFValues = false;
 
 	m_bProjectedEVP = false;
+	m_fileCoarsening = NONE;
 #ifdef UG_PARALLEL
 	m_pParallelCoarsening = NULL;
 #endif
@@ -187,8 +171,19 @@ void FAMG<TAlgebra>::precalc_level(size_t level)
 #endif
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// createFAMGLevel:
+//-------------------------
+/**
+ * create FAMG matrix R, P, and AH = R A P
+ * \param AH
+ * \param R
+ * \param A
+ * \param P
+ * \param level
+ */
 template<typename TAlgebra>
-void FAMG<TAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+void FAMG<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
 	AMG_PROFILE_FUNC();
@@ -220,12 +215,13 @@ void FAMG<TAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_typ
 		matrix_type Aeps;
 		ReduceToStrongConnections(Aeps, A, m_dPrereduceAToStrongParameter);
 
-		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, Aeps, A, P, level, testvectors, omega);
+		FAMGLevelCalculator<algebra_type>
+			dummy(*this, AH, R, Aeps, A, P, level, testvectors, omega);
 		dummy.do_calculation();
 	}
 	else
 	{
-		FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, A, A, P, level, testvectors, omega);
+		FAMGLevelCalculator<algebra_type> dummy(*this, AH, R, A, A, P, level, testvectors, omega);
 		dummy.do_calculation();
 	}
 
@@ -290,8 +286,8 @@ bool FAMG<TAlgebra>::check_testvector(size_t fromlevel, size_t tolevel)
 
 		matrix_type &A = *pA;
 		matrix_type &AH = *pAH;
-		matrix_type &R = super::levels[level]->R;
-		matrix_type &P = super::levels[level]->P;
+		prolongation_matrix_type &R = super::levels[level]->R;
+		prolongation_matrix_type &P = super::levels[level]->P;
 		vector_type c, d, tv;
 
 	#ifdef UG_PARALLEL
@@ -329,7 +325,8 @@ bool FAMG<TAlgebra>::check_testvector(size_t fromlevel, size_t tolevel)
 		{
 			matrix_type Aeps;
 			ReduceToStrongConnections(Aeps, A, m_dPrereduceAToStrongParameter);
-			FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type> dummy(*this, AH, R, Aeps, A, P, level, testvectors, omega);
+			FAMGLevelCalculator<algebra_type>
+				dummy(*this, AH, R, Aeps, A, P, level, testvectors, omega);
 			dummy.onlyTV();
 		}
 		else break;

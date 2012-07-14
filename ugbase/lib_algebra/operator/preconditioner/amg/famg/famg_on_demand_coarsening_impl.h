@@ -18,10 +18,10 @@
 
 namespace ug{
 
-template<typename neighborstruct, typename matrix_type, typename vector_type>
-bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, FAMGNodes &nodes,
+template<typename TNeighborstruct, typename TMatrix, typename TVector>
+bool OnDemand_UpdateRating(size_t node, stdvector<TNeighborstruct> &PN, FAMGNodes &nodes,
 		stdvector<bool> &prolongation_calculated, cgraph &SymmNeighGraph,
-		FAMGInterpolationCalculator<matrix_type, vector_type> &calculator)
+		FAMGInterpolationCalculator<TMatrix, TVector> &calculator)
 {
 	AMG_PROFILE_FUNC();
 	if(prolongation_calculated[node])
@@ -111,8 +111,8 @@ void AddUnmarkedNeighbors(cgraph &SymmNeighGraph, size_t i, stdvector<bool> &mar
 
 
 
-template<typename matrix_type, typename prolongation_matrix_type, typename vector_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type, vector_type>::on_demand_coarsening()
+template<typename algebra_type>
+void FAMGLevelCalculator<algebra_type>::on_demand_coarsening()
 {
 	AMG_PROFILE_FUNC();
 	Stopwatch SW;
