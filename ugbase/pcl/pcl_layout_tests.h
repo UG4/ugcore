@@ -17,6 +17,7 @@
 #include "common/log.h"
 #include "common/assert.h"
 #include "common/serialization.h"
+#include "common/profiler/profiler.h"
 
 #include <boost/function.hpp>
 
@@ -50,6 +51,7 @@ template<typename TLayout>
 bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
 		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout, TLayout &slaveLayout)
 {
+	PROFILE_FUNC_GROUP("debug");
 	//PRINTPC(processCommunicator);
 //	check if connections are double-ended
 	std::vector<char> bMasterToProcess; bMasterToProcess.resize(processCommunicator.size(), 0x00);
@@ -123,6 +125,7 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 					boost::function<TValue (typename TLayout::Element)> cbToValue
 						= TrivialToValue<typename TLayout::Element>)
 {
+	PROFILE_FUNC_GROUP("debug");
 	typedef std::map<int, ug::BinaryBuffer>	BufferMap;
 	typedef typename TLayout::Interface Interface;
 
@@ -214,6 +217,7 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 				boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>)
 {
+	PROFILE_FUNC_GROUP("debug");
 	if(bPrint)
 	{
 		UG_LOG("MasterLayout is to processes ");
