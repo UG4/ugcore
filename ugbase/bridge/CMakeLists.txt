@@ -32,6 +32,8 @@ if(buildAlgebra)
 					algebra_bridges/preconditioner_bridge.cpp
 					algebra_bridges/solver_bridge.cpp
 					algebra_bridges/amg_bridge.cpp
+					algebra_bridges/rsamg_bridge.cpp
+					algebra_bridges/famg_bridge.cpp
 					algebra_bridges/eigensolver_bridge.cpp
 					
 					disc_bridges/integrate_bridge.cpp
