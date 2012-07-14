@@ -47,6 +47,7 @@ namespace ug
 template<typename ABC_type, typename A_type, typename B_type, typename C_type>
 void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &C, double epsilonTruncation=0.0)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	UG_ASSERT(C.num_rows() == B.num_cols() && B.num_rows() == A.num_cols(), "sizes must match");
 
 	// create output matrix M
@@ -152,6 +153,7 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 template<typename AB_type, typename A_type, typename B_type>
 void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	UG_ASSERT(B.num_rows() == A.num_cols(), "sizes must match");
 
 	// create output matrix M
@@ -222,6 +224,7 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 template<typename matrix_type>
 void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2, const matrix_type &B)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	UG_ASSERT(A.num_rows() == B.num_rows() && A.num_cols() == B.num_cols(), "sizes must match");
 	typedef typename matrix_type::const_row_iterator criterator;
 
@@ -310,7 +313,7 @@ void GetNeighborhood_worker(const TMatrix &A, size_t node, size_t depth, std::ve
 template<typename TMatrix>
 void GetNeighborhood(const TMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited, bool bResetVisitedFlags=true)
 {
-
+	PROFILE_FUNC_GROUP("algebra");
 	indices.clear();
 
 	if(bVisited[node] == false)
@@ -328,6 +331,7 @@ void GetNeighborhood(const TMatrix &A, size_t node, size_t depth, std::vector<si
 template<typename TMatrix>
 void GetNeighborhood(const TMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	std::vector<bool> bVisited(max(A.num_cols(), A.num_rows()), false);
 	GetNeighborhood(A, node, depth, indices, bVisited, false);
 }
@@ -368,6 +372,7 @@ template<typename TMatrix>
 void GetNeighborhoodHierachy(const TMatrix &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited,
 		bool bResetVisitedFlags=true)
 {
+	PROFILE_FUNC_GROUP("algebra");
 	if(indices.size() != depth+1)
 		indices.resize(depth+1);
 	for(size_t i=0; i < depth+1; i++)
