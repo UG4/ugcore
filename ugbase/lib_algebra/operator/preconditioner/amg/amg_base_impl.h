@@ -1093,8 +1093,6 @@ bool AMGBase<TAlgebra>::injection(vector_type &vH, const vector_type &v, size_t 
 
 #include "amg_agglomeration.h"
 #include "amg_checks.h"
-#ifdef UG_PARALLEL
 #include "amg_communicate_prolongation.h"
-#endif
 #endif //  __H__UG__LIB_ALGEBRA__AMG_SOLVER__AMG_BASE_IMPL_H__
 
