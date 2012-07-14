@@ -121,25 +121,34 @@ void FAMGLevelCalculator<algebra_type>::write_coarsening()
 	stdvector<MathVector<3> > &vec = m_famg.m_amghelper.positions[level];
 
 	std::ios_base::openmode mode;
-	if(pcl::GetProcRank()==0)
+#ifdef UG_PARALLEL
+	if(pcl::GetProcRank()!=0)
+		mode = std::ios::out | std::ios::app | ios::binary;
+	else
+#endif
 	{
+
 		CreateDirectory((std::string(m_famg.m_writeMatrixPath) + "/coarsening").c_str(), 0777);
 		mode = std::ios::out | ios::binary;
 	}
-	else mode = std::ios::out | std::ios::app | ios::binary;
 
+
+#ifdef UG_PARALLEL
 	for(int i=0; i<pcl::GetProcRank(); i++)
 		pcl::AllProcsTrue(true);
 	{
+#endif
 		std::fstream file((std::string(m_famg.m_writeMatrixPath) + "/coarsening/rating" + ToString(level)).c_str(), mode);
 		for(size_t i=0; i<vec.size(); i++)
 		{
 			Serialize(file, vec[i]);
 			Serialize(file, rating[i].rating);
 		}
+#ifdef UG_PARALLEL
 	}
 	for(int i=pcl::GetProcRank(); i<pcl::GetNumProcesses(); i++)
 		pcl::AllProcsTrue(true);
+#endif
 }
 
 template<int Ti>

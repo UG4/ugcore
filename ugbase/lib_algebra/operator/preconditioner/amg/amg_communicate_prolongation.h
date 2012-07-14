@@ -17,9 +17,6 @@
 namespace ug
 {
 
-template<typename TMatrix>
-void CheckMatrixLayout(ParallelNodes &PN, const TMatrix &mat, IndexLayout &masterLayout, IndexLayout &slaveLayout);
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // create_fine_marks
@@ -119,7 +116,6 @@ void AMGBase<TAlgebra>::create_new_indices(prolongation_matrix_type &PoldIndices
 
 #ifndef UG_PARALLEL
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // serial_process_prolongation:
 //--------------------------------
@@ -141,6 +137,66 @@ void AMGBase<TAlgebra>::serial_process_prolongation(prolongation_matrix_type &Po
 #else
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CheckMatrixLayout
+//------------------------------
+/**
+ * this function checks:
+ * - if ( P(i,j) != 0.0) and is_slave(j)), that slaveLayout[masterProc(j)].contains(j)
+ * - tests that master/slave layouts are double-ended and matching.
+ *
+ * @param PN			ParallelNodes used for local->global indexing
+ * @param mat			checked matrix. note that we check column entries only (the 'Preimage' of mat).
+ * @param masterLayout	used master layout
+ * @param slaveLayout	used slave layout
+ */
+template<typename TMatrix>
+void CheckMatrixLayout(ParallelNodes &PN, const TMatrix &mat, IndexLayout &masterLayout, IndexLayout &slaveLayout)
+{
+#ifndef NDEBUG
+	AMG_PROFILE_FUNC();
+	// check slave layout
+	// go to every connection. if node not master on this processor, check that slave interface exists
+	bool bEverySlaveIsInLayout=true;
+	for(size_t r = 0; r<PN.get_original_size(); r++)
+	{
+		for(typename TMatrix::const_row_iterator it = mat.begin_row(r); it != mat.end_row(r); ++it)
+		{
+			int c = it.index();
+			const AlgebraID &globalID = PN.local_to_global(c);
+			int mPID = globalID.master_proc();
+			if(mPID == pcl::GetProcRank()) continue;
+			if(slaveLayout.interface_exists(mPID) == false)
+			{
+				UG_LOG("Node " << c << "(gid " << globalID << ") has no connection to master (interface to master proc " << mPID << " nonexistent)\n");
+				bEverySlaveIsInLayout = false;
+			}
+			else if(!IsInInterface(slaveLayout.interface(mPID), c))
+			{
+				UG_LOG("Node " << c << "(gid " << globalID << ") has no connection to master (not in interface to master proc " << mPID << ")\n");
+				bEverySlaveIsInLayout = false;
+			}
+		}
+	}
+
+	if(!bEverySlaveIsInLayout)
+	{
+		PRINTPC(mat.process_communicator());
+		PrintLayout(mat.process_communicator(), PN.communicator(), masterLayout, slaveLayout);
+		mat.print();
+	}
+	UG_ASSERT(bEverySlaveIsInLayout, "Error in Interfaces.");
+
+
+	//UG_LOG("masterLayout\n");
+	//PrintLayout(masterLayout);
+	//UG_LOG("slaveLayout\n");
+	//PrintLayout(slaveLayout);
+
+	// check if slave interfaces match the master interfaces.
+	TESTLAYOUT(mat.process_communicator(), PN.communicator(), masterLayout, slaveLayout);
+#endif
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parallel_process_prolongation:
 //--------------------------------
@@ -288,66 +344,6 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CheckMatrixLayout
-//------------------------------
-/**
- * this function checks:
- * - if ( P(i,j) != 0.0) and is_slave(j)), that slaveLayout[masterProc(j)].contains(j)
- * - tests that master/slave layouts are double-ended and matching.
- *
- * @param PN			ParallelNodes used for local->global indexing
- * @param mat			checked matrix. note that we check column entries only (the 'Preimage' of mat).
- * @param masterLayout	used master layout
- * @param slaveLayout	used slave layout
- */
-template<typename TMatrix>
-void CheckMatrixLayout(ParallelNodes &PN, const TMatrix &mat, IndexLayout &masterLayout, IndexLayout &slaveLayout)
-{
-#ifndef NDEBUG
-	AMG_PROFILE_FUNC();
-	// check slave layout
-	// go to every connection. if node not master on this processor, check that slave interface exists
-	bool bEverySlaveIsInLayout=true;
-	for(size_t r = 0; r<PN.get_original_size(); r++)
-	{
-		for(typename TMatrix::const_row_iterator it = mat.begin_row(r); it != mat.end_row(r); ++it)
-		{
-			int c = it.index();
-			const AlgebraID &globalID = PN.local_to_global(c);
-			int mPID = globalID.master_proc();
-			if(mPID == pcl::GetProcRank()) continue;
-			if(slaveLayout.interface_exists(mPID) == false)
-			{
-				UG_LOG("Node " << c << "(gid " << globalID << ") has no connection to master (interface to master proc " << mPID << " nonexistent)\n");
-				bEverySlaveIsInLayout = false;
-			}
-			else if(!IsInInterface(slaveLayout.interface(mPID), c))
-			{
-				UG_LOG("Node " << c << "(gid " << globalID << ") has no connection to master (not in interface to master proc " << mPID << ")\n");
-				bEverySlaveIsInLayout = false;
-			}
-		}
-	}
-
-	if(!bEverySlaveIsInLayout)
-	{
-		PRINTPC(mat.process_communicator());
-		PrintLayout(mat.process_communicator(), PN.communicator(), masterLayout, slaveLayout);
-		mat.print();
-	}
-	UG_ASSERT(bEverySlaveIsInLayout, "Error in Interfaces.");
-
-
-	//UG_LOG("masterLayout\n");
-	//PrintLayout(masterLayout);
-	//UG_LOG("slaveLayout\n");
-	//PrintLayout(slaveLayout);
-
-	// check if slave interfaces match the master interfaces.
-	TESTLAYOUT(mat.process_communicator(), PN.communicator(), masterLayout, slaveLayout);
-#endif
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
