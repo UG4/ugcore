@@ -15,6 +15,7 @@
 #include <iostream>
 #include <cassert>
 #include "../storage/storage.h"
+#include "densematrix.h"
 
 namespace ug{
 
@@ -44,7 +45,7 @@ public:
 	using base::num_rows;
 	using base::num_cols;
 	using base::resize;
-
+	
 public:
 	// 'tors
 	DenseMatrix();
@@ -55,135 +56,147 @@ public:
 
 public:
 	// matrix assignment operators
-	inline this_type &
-	operator =  (const this_type &rhs);
 
-	inline this_type &
-	operator += (const this_type &rhs);
-
-	inline this_type &
-	operator -= (const this_type &rhs);
-
-	// alpha operators
-	template<typename T>
-	inline this_type &
-	operator=(const T &alpha);
-
-	inline this_type &
-	operator+=(const value_type &alpha);
-
-	inline this_type &
-	operator-=(const value_type &alpha);
+	
+////// =
+	inline
+	this_type &
+	operator = (const this_type &t);
 
 	template<typename T>
-	inline this_type &
-	operator*=(const T &alpha);
-
-	inline this_type &
-	operator/=(const value_type &alpha);
-
-	// compare operators
+	inline
+	this_type &
+	operator = (const T &t);
+	
+	inline
+	this_type &
+	operator = (double alpha);
+	
+////// +=
 	template<typename T>
-	inline bool
-	operator == (const T &t) const;
-
+	inline	
+	this_type &
+	operator += (const T &t);	
+	
+	inline
+	this_type &
+	operator += (double alpha);	
+		
+////// -=
 	template<typename T>
-	inline bool
+	inline	
+	this_type &
+	operator -= (const T &t);
+	
+	inline
+	this_type &
+	operator -= (double alpha);
+
+	
+////// *=
+	inline
+	this_type&
+	operator*=(double alpha);
+	
+	inline
+	this_type&
+	operator *= (const this_type &mat);
+
+////// /=
+	inline
+	this_type&
+	operator/=(double alpha);
+	
+	inline
+	this_type&
+	operator /= (this_type &other);
+	
+	
+////// +
+	inline
+	this_type
+	operator + (const this_type &other ) const;
+	
+////// -
+	inline
+	this_type
+	operator - (const this_type &other ) const;
+	
+////// unary -
+	inline
+	this_type
+	operator - () const;
+
+////// *
+
+	
+	// multiply
+	template<typename T>
+	DenseVector<T>
+	operator * (const DenseVector<T> &vec) const;
+
+	inline
+	this_type
+	operator * (const this_type &mat) const;
+
+	inline
+	this_type
+	operator * (double alpha ) const;
+
+///// /
+	this_type
+	operator / (this_type &other);
+
+// compare operators
+////// ==
+	inline
+	bool
+	operator == (double t) const;
+
+	
+	template<typename T>
+	inline
+	bool
 	operator == (const DenseMatrix<T> &t) const;
-
+	
+///// !=
 	template<typename T>
-	inline bool
+	inline
+	bool
 	operator != (const T &t) const;
 
-
-	inline const value_type &
+////// other
+	inline
+	const value_type &
 	entry(size_type r, size_type c) const
 	{
 		return operator()(r,c);
 	}
 
-	inline value_type &
+	inline
+	value_type &
 	entry(size_type r, size_type c)
 	{
 		return operator()(r,c);
 	}
 
-	////////////////////////////////////////////////////////////////////
-	// this will be removed soon
-
-
-	this_type operator + (const this_type &other ) const
+	
+	template<typename T>
+	void
+	subassign(size_t r, size_t c, const T &t)
 	{
-		UG_ASSERT(num_rows() == other.num_rows() && num_cols() == other.num_cols(), "");
-		this_type erg;
-		erg.resize(num_rows(), num_cols());
-		for(size_t r=0; r<num_rows(); r++)
-			for(size_t c=0; c<num_cols(); c++)
-				erg(r, c) = entry(r, c) + other(r,c);
-		return erg;
+		UG_ASSERT(r+t.num_rows() <= num_rows() && c+t.num_cols() <= num_cols(), "");
+		for(size_t r1=0; r1<t.num_rows(); r1++)
+			for(size_t c1=0; c1<t.num_cols(); c1++)
+				entry(r+r1, c+c1) = t(r1, c1);			
+	}
+	
+	void
+	subassign(size_t r, size_t c, const value_type &t)
+	{
+		entry(r, c) = t;
 	}
 
-	this_type operator - (const this_type &other ) const
-	{
-		UG_ASSERT(num_rows() == other.num_rows() && num_cols() == other.num_cols(), "");
-		this_type erg;
-		erg.resize(num_rows(), num_cols());
-
-		for(size_t r=0; r<num_rows(); r++)
-			for(size_t c=0; c<num_cols(); c++)
-				erg(r, c) = entry(r, c) - other(r,c);
-		return erg;
-	}
-
-// multiply
-	this_type operator * (const this_type &other ) const
-	{
-		// that aint 100% correct
-		UG_ASSERT(num_cols() == other.num_rows(), "");
-
-		this_type erg;
-		erg.resize(num_rows(), other.num_cols());
-
-		for(size_t r=0; r < num_rows(); r++)
-			for(size_t c=0; c < other.num_cols(); c++)
-			{
-				erg(r,c) = 0.0;
-				for(size_t i=0; i < num_cols(); i++)
-					AddMult(erg(r,c), at(r, i), other.at(i, c));
-			}
-		return erg;
-	}
-
-	this_type operator * (double alpha ) const
-	{
-		this_type erg;
-		erg.resize(num_rows(), num_cols());
-
-		for(size_t r=0; r < num_rows(); r++)
-			for(size_t c=0; c < num_cols(); c++)
-				erg(r,c) = at(r,c)*alpha;
-		return erg;
-	}
-
-
-	this_type &operator /= (this_type &other)
-	{
-		this_type tmp = other;
-		Invert(tmp);
-
-		(*this) = (*this) * tmp;
-		return *this;
-	}
-
-	this_type operator / (this_type &other)
-	{
-		this_type tmp = other;
-		Invert(tmp);
-
-		return (*this) * tmp;
-	}
-
-	///
 	void maple_print(const char *name);
 };
 

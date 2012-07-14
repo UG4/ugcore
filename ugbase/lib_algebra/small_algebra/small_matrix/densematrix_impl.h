@@ -6,6 +6,8 @@
  * \date 21.07.2010
  *
  * Goethe-Center for Scientific Computing 2010.
+ *
+ * awesome!
  */
 
 #ifndef __H__UG__COMMON__DENSEMATRIX_IMPL_H__
@@ -30,69 +32,89 @@ DenseMatrix<TStorage>::DenseMatrix(double value) : TStorage()
 {
 	operator =(value);
 }
+
 // matrix assignment operators
+////// =
 
 template<typename TStorage>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator = (const DenseMatrix<TStorage> &rhs)
+DenseMatrix<TStorage>::operator =(const this_type &t)
 {
-	if(this == &rhs) return *this;
-
-	if(num_rows() != rhs.num_rows() || num_cols() != rhs.num_cols())
-		resize(rhs.num_rows(), rhs.num_cols());
-
-	for(size_t r=0; r<num_rows(); ++r)
-		for(size_t c=0; c<num_cols(); ++c)
-			entry(r, c) = rhs(r, c);
+	resize(t.num_rows(), t.num_cols());
+	for(size_t r1=0; r1<t.num_rows(); r1++)
+		for(size_t c1=0; c1<t.num_cols(); c1++)
+			entry(r1, c1) = t(r1, c1);
 	return *this;
 }
-
-template<typename TStorage>
-DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator += (const DenseMatrix<TStorage> &rhs)
-{
-	for(size_t r=0; r<num_rows(); ++r)
-		for(size_t c=0; c<num_cols(); ++c)
-			entry(r, c) += rhs(r, c);
-	return *this;
-}
-
-template<typename TStorage>
-DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator -= (const DenseMatrix<TStorage> &rhs)
-{
-	for(size_t r=0; r<num_rows(); ++r)
-		for(size_t c=0; c<num_cols(); ++c)
-			entry(r, c) -= rhs(r, c);
-	return *this;
-}
-
-// alpha operators
 
 template<typename TStorage>
 template<typename T>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator = (const T &rhs)
+DenseMatrix<TStorage>::operator =(const T &t)
 {
-	for(size_t r=0; r<num_rows(); ++r)
-		for(size_t c=0; c<num_cols(); ++c)
-			entry(r, c) = (r==c ? rhs : 0.0);
+	resize(t.num_rows(), t.num_cols());
+	for(size_t r1=0; r1<t.num_rows(); r1++)
+		for(size_t c1=0; c1<t.num_cols(); c1++)
+			entry(r1, c1) = t(r1, c1);
 	return *this;
 }
 
 template<typename TStorage>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator += (const typename DenseMatrix<TStorage>::value_type &alpha)
+// this is stupid since i like to make it that way that i have one ::value_type and one double,
+// but then there are two (double) functions...
+//DenseMatrix<TStorage>::operator = (const typename DenseMatrix<TStorage>::value_type &rhs)
+DenseMatrix<TStorage>::operator = (double rhs)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			entry(r, c) += alpha;
+		{
+			if(r==c) entry(r, c) = rhs;
+			else     entry(r, c) = 0.0;
+		}
+	return *this;
+}
+
+////// +=
+template<typename TStorage>
+template<typename T>
+DenseMatrix<TStorage> &
+DenseMatrix<TStorage>::operator += (const T &t)
+{
+	UG_ASSERT(t.num_rows() == num_rows() && t.num_cols() == num_cols(), "");
+	for(size_t r1=0; r1<t.num_rows(); r1++)
+		for(size_t c1=0; c1<t.num_cols(); c1++)
+			entry(r1, c1) += t(r1, c1);
 	return *this;
 }
 
 template<typename TStorage>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator -= (const typename DenseMatrix<TStorage>::value_type &alpha)
+DenseMatrix<TStorage>::operator += (double alpha)
+{
+	size_t minimum=num_rows() > num_cols() ? num_cols() : num_rows();
+	for(size_t i=0; i<minimum; i++)
+			entry(i, i) += alpha;
+	return *this;
+}
+
+////// -=
+
+template<typename TStorage>
+template<typename T>
+DenseMatrix<TStorage> &
+DenseMatrix<TStorage>::operator -= (const T &t)
+{
+	UG_ASSERT(t.num_rows() == num_rows() && t.num_cols() == num_cols(), "");
+	for(size_t r1=0; r1<t.num_rows(); r1++)
+		for(size_t c1=0; c1<t.num_cols(); c1++)
+			entry(r1, c1) -= t(r1, c1);
+	return *this;
+}
+
+template<typename TStorage>
+DenseMatrix<TStorage> &
+DenseMatrix<TStorage>::operator -= (double alpha)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
@@ -100,10 +122,11 @@ DenseMatrix<TStorage>::operator -= (const typename DenseMatrix<TStorage>::value_
 	return *this;
 }
 
+////// *=
+
 template<typename TStorage>
-template<typename T>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator *= (const T &alpha)
+DenseMatrix<TStorage>::operator *= (double alpha)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
@@ -113,7 +136,16 @@ DenseMatrix<TStorage>::operator *= (const T &alpha)
 
 template<typename TStorage>
 DenseMatrix<TStorage> &
-DenseMatrix<TStorage>::operator /= (const typename DenseMatrix<TStorage>::value_type &alpha)
+DenseMatrix<TStorage>::operator *= (const this_type &mat)
+{
+	operator=(operator*(mat));
+	return *this;
+}
+
+////// /=
+template<typename TStorage>
+DenseMatrix<TStorage> &
+DenseMatrix<TStorage>::operator /= (double alpha)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
@@ -121,21 +153,151 @@ DenseMatrix<TStorage>::operator /= (const typename DenseMatrix<TStorage>::value_
 	return *this;
 }
 
-// compare operators
+template<typename TStorage>
+DenseMatrix<TStorage> &
+DenseMatrix<TStorage>::operator /= (this_type &other)
+{
+	this_type tmp = other;
+	Invert(tmp);
+	(*this) = (*this) * tmp;
+	return *this;
+}
+
+
+////// +
+template<typename TStorage>
+DenseMatrix<TStorage> 
+DenseMatrix<TStorage>::operator + (const this_type &other ) const
+{
+	UG_ASSERT(num_rows() == other.num_rows() && num_cols() == other.num_cols(), "");
+	this_type erg;
+	erg.resize(num_rows(), num_cols());
+	for(size_t r=0; r<num_rows(); r++)
+		for(size_t c=0; c<num_cols(); c++)
+			erg(r, c) = entry(r, c) + other(r,c);
+	return erg;
+}
+////// -
+template<typename TStorage>
+DenseMatrix<TStorage> 
+DenseMatrix<TStorage>::operator - (const this_type &other ) const
+{
+	UG_ASSERT(num_rows() == other.num_rows() && num_cols() == other.num_cols(), "");
+	this_type erg;
+	erg.resize(num_rows(), num_cols());
+
+	for(size_t r=0; r<num_rows(); r++)
+		for(size_t c=0; c<num_cols(); c++)
+			erg(r, c) = entry(r, c) - other(r,c);
+	return erg;
+}
+
+////// unary -
+template<typename TStorage>
+DenseMatrix<TStorage> 
+DenseMatrix<TStorage>::operator - () const
+{
+	this_type erg;
+	erg.resize(num_rows(), num_cols());
+	for(size_t r=0; r < num_rows(); r++)
+		for(size_t c=0; c < num_cols(); c++)
+		{
+			erg(r,c) = entry(r, c);
+			erg(r,c) *= -1.0;
+		}
+	return erg;
+}
+
+// multiply
+////// *
+template<typename TStorage>
+DenseMatrix<TStorage> 
+DenseMatrix<TStorage>::operator * (const this_type &other ) const
+{
+	// that aint 100% correct
+	UG_ASSERT(num_cols() == other.num_rows(), "");
+
+	this_type erg;
+	erg.resize(num_rows(), other.num_cols());
+
+	for(size_t r=0; r < num_rows(); r++)
+		for(size_t c=0; c < other.num_cols(); c++)
+		{
+			erg(r,c) = 0.0;
+			for(size_t i=0; i < num_cols(); i++)
+				AddMult(erg(r,c), at(r, i), other.at(i, c));
+		}
+	return erg;
+}
+
 
 template<typename TStorage>
 template<typename T>
-bool DenseMatrix<TStorage>::operator == (const T &t) const
+DenseVector<T>
+DenseMatrix<TStorage>::operator * (const DenseVector<T> &vec) const
+{
+	UG_ASSERT(num_cols() == vec.size(), "");
+	DenseVector<T> erg;
+	erg.resize(vec.size());
+
+	for(size_t r=0; r < num_rows(); r++)
+	{
+		erg[r] = 0.0;
+		for(size_t c=0; c < num_cols(); c++)
+			erg[r] += at(r,c) * vec[c];
+	}
+	return erg;
+}
+
+template<typename TStorage>
+DenseMatrix<TStorage> 
+DenseMatrix<TStorage>::operator * (double alpha ) const
+{
+	this_type erg;
+	erg.resize(num_rows(), num_cols());
+
+	for(size_t r=0; r < num_rows(); r++)
+		for(size_t c=0; c < num_cols(); c++)
+			erg(r,c) = at(r,c)*alpha;
+	return erg;
+}
+
+
+
+///// /
+template<typename TStorage>
+DenseMatrix<TStorage> 
+DenseMatrix<TStorage>::operator / (this_type &other)
+{
+	this_type tmp = other;
+	Invert(tmp);
+
+	return (*this) * tmp;
+}
+
+// compare operators
+
+template<typename TStorage>
+bool
+DenseMatrix<TStorage>::operator == (double t) const
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			if(entry(r,c) != t) return false;
+		{
+			if(r==c)
+			{
+				if(entry(r,c) != t) return false;
+			}
+			else
+				if(entry(r,c) != 0.0) return false;
+		}
 	return true;
 }
 
 template<typename TStorage>
 template<typename T>
-bool DenseMatrix<TStorage>::operator == (const DenseMatrix<T> &t) const
+bool
+DenseMatrix<TStorage>::operator == (const DenseMatrix<T> &t) const
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
@@ -188,20 +350,29 @@ std::ostream &operator << (std::ostream &out, const DenseMatrix<TStorage> &mat)
 }
 
 
-template<size_t Tr, size_t Tc> inline bool BlockSerialize(const DenseMatrix<FixedArray2<number, Tr, Tc> > &mat, std::ostream &buff)
+template<size_t Tr, size_t Tc>
+inline
+bool
+BlockSerialize(const DenseMatrix<FixedArray2<number, Tr, Tc> > &mat, std::ostream &buff)
 {
 	buff.write((char*)&mat, sizeof(mat));
 	return true;
 }
 
-template<size_t Tr, size_t Tc> inline bool BlockDeserialize(std::istream &buff, const DenseMatrix<FixedArray2<number, Tr, Tc> > &mat)
+template<size_t Tr, size_t Tc>
+inline
+bool
+BlockDeserialize(std::istream &buff, const DenseMatrix<FixedArray2<number, Tr, Tc> > &mat)
 {
 	buff.read((char*)&mat, sizeof(mat));
 	return true;
 }
 
 
-template<typename T> inline void Serialize(std::ostream &buff, const DenseMatrix<VariableArray2<T> > &mat)
+template<typename T>
+inline
+void
+Serialize(std::ostream &buff, const DenseMatrix<VariableArray2<T> > &mat)
 {
 	size_t rows = mat.num_rows();
 	size_t cols = mat.num_cols();
@@ -212,7 +383,11 @@ template<typename T> inline void Serialize(std::ostream &buff, const DenseMatrix
 			BlockSerialize(mat(r, c), buff);
 }
 
-template<typename T> inline void Deserialize(std::istream &buff, const DenseMatrix<VariableArray2<T> > &mat)
+
+template<typename T>
+inline
+void
+Deserialize(std::istream &buff, const DenseMatrix<VariableArray2<T> > &mat)
 {
 	size_t rows, cols;
 	buff.read((char*)&rows, sizeof(rows));

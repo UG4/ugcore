@@ -18,6 +18,50 @@
 namespace ug{
 
 
+template<typename T>
+class TE_TRANSPOSED
+{
+public:
+	typedef typename T::value_type value_type;
+	TE_TRANSPOSED(const T&_t) : t(_t) {}
+	inline size_t num_rows() const
+	{
+		return t.num_cols();
+	}
+	
+	inline size_t num_cols() const
+	{
+		return t.num_rows();
+	}
+	
+	const value_type &operator() (size_t r, size_t c) const
+	{
+		return t(c, r);
+	}
+	
+	value_type &operator() (size_t r, size_t c)
+	{
+		return t(c, r);
+	}	
+private:	
+	const T &t;
+};
+
+template<typename T>
+inline TE_TRANSPOSED<T> te_transpose(const T &t)
+{
+	return TE_TRANSPOSED<T>(t);
+}
+
+inline const double &te_transpose(const double &t)
+{
+	return t;
+}
+
+inline double &te_transpose(double &t)
+{
+	return t;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////
 //	DenseVector
 /**
@@ -50,7 +94,7 @@ public:
 
 public:
 	// constructors
-	DenseVector();
+	DenseVector(double alpha=0.0);
 	DenseVector(const DenseVector<TStorage> &rhs);
 
 	// ~DenseVector(); // dont implement a destructor, since ~base may not be virtual
@@ -66,10 +110,20 @@ public:
 	inline this_type &
 	operator-= (const this_type &rhs);
 
+	
 	// operations with scalars
 	template<typename T>
 	inline this_type&
 	operator=  (const T& alpha);
+	
+	template<typename T>
+	inline this_type&
+	operator=  (const double & alpha)
+	{
+		for(size_t i=0; i<size(); i++)
+			entry(i) = alpha;
+		return *this;
+	}
 
 	inline this_type&
 	operator+= (const value_type& alpha);
@@ -85,11 +139,83 @@ public:
 	operator/= (const value_type& alpha);
 
 
-	value_type &entry(size_t i) const
+	bool operator > (double d) const
+	{
+		for(size_t i=0; i<size(); i++)
+			if(entry(i) <= d) return false;
+		return true;
+	}
+
+	bool operator < (double d) const
+	{
+		for(size_t i=0; i<size(); i++)
+			if(entry(i) >= d) return false;
+		return true;
+	}
+
+	bool operator >= (double d) const
+	{
+		for(size_t i=0; i<size(); i++)
+			if(entry(i) < d) return false;
+		return true;
+	}
+
+	bool operator <= (double d) const
+	{
+		for(size_t i=0; i<size(); i++)
+			if(entry(i) > d) return false;
+		return true;
+	}
+	////////////////////////////////////////////////////////////////////
+	// this will be removed soon
+
+
+	this_type operator + (const this_type &other ) const
+	{
+		UG_ASSERT(size() == other.size(), "");
+		this_type erg;
+		erg.resize(size());
+		for(size_t i=0; i<size(); i++)
+			erg[i] = entry(i) + other[i];
+		return erg;
+	}
+
+	this_type operator - (const this_type &other ) const
+	{
+		UG_ASSERT(size() == other.size(), "");
+		this_type erg;
+		erg.resize(size());
+		for(size_t i=0; i<size(); i++)
+			erg[i] = entry(i) - other[i];
+		return erg;
+	}
+
+// multiply
+	this_type operator * (double alpha ) const
+	{
+		this_type erg;
+		erg.resize(size());
+		for(size_t i=0; i<size(); i++)
+			erg[i] = alpha*entry(i);
+		return erg;
+	}
+	
+	this_type operator - () const
+	{
+		this_type erg;
+		erg.resize(size());
+		for(size_t i=0; i<size(); i++)
+			erg[i] *= -1.0;
+		return erg;
+	}
+
+	////////////////////////////////////////////////////////////////////
+
+	inline const value_type &entry(size_t i) const
 	{
 		return operator[] (i);
 	}
-	value_type &entry(size_t i)
+	inline value_type &entry(size_t i)
 	{
 		return operator[] (i);
 	}
@@ -99,8 +225,86 @@ public:
 	assign(const Type &t);
 
 	void maple_print(const char *name);
-
+	
+	
+	inline size_t num_rows() const
+	{
+		return size();
+	}
+	
+	inline size_t num_cols() const
+	{
+		return 1;
+	}
+	
+	inline const value_type &operator() (size_t r, size_t c) const
+	{
+		UG_ASSERT(c==0, "vector only has one column");
+		return entry(r);
+	}
+	
+	inline value_type &operator() (size_t r, size_t c)
+	{
+		UG_ASSERT(c==0, "vector only has one column");
+		return entry(r);
+	}
+	
+	void
+	subassign(size_t i, const value_type &t)
+	{
+		entry(i) = t;
+	}
+	
+	template<typename T2>
+	void
+	subassign(size_t i, const T2 &t)
+	{
+		UG_ASSERT(i+t.size() <= size(), "");
+		for(size_t i1=0; i1<t.size(); i1++)
+			entry(i+i1) = t[i1];
+	}
 };
+
+template<typename TStorage> 
+inline
+DenseVector<TStorage> 
+operator * (double alpha, const DenseVector<TStorage> &vec)
+{
+	return vec*alpha;
+}
+
+template<typename TStorage>
+inline
+bool
+operator > (double alpha, const DenseVector<TStorage> &vec)
+{
+	return vec < alpha;
+}
+template<typename TStorage>
+inline
+bool
+operator < (double alpha, const DenseVector<TStorage> &vec)
+{
+	return vec > alpha;
+}
+
+template<typename TStorage>
+inline
+bool
+operator >= (double alpha, const DenseVector<TStorage> &vec)
+{
+	return vec <= alpha;
+}
+
+template<typename TStorage>
+inline
+bool
+operator <= (double alpha, const DenseVector<TStorage> &vec)
+{
+	return vec >= alpha;
+}
+
+
 
 }
 #include "densevector_impl.h"

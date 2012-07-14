@@ -17,10 +17,9 @@
 namespace ug{
 
 template<typename TStorage>
-DenseVector<TStorage>::DenseVector()
+DenseVector<TStorage>::DenseVector(double alpha)
 {
-	for(size_t i=0; i<size(); i++)
-		entry(i) = 0.0;
+	operator=(alpha);
 }
 
 template<typename TStorage>
