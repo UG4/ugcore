@@ -165,7 +165,6 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_AlgebraCommon(reg, parentGroup);
 		RegisterBridge_Preconditioner(reg, parentGroup);
 		RegisterBridge_Solver(reg, parentGroup);
-		RegisterBridge_AMG(reg, parentGroup);
 		RegisterBridge_Eigensolver(reg, parentGroup);
 
 	//	depends on lib_disc
