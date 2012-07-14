@@ -12,6 +12,7 @@
 #define __H__UG__CPU_ALGEBRA__SPARSEMATRIX_UTIL__
 
 #include "../small_algebra/small_algebra.h"
+#include "common/profiler/profiler.h"
 
 namespace ug
 {
