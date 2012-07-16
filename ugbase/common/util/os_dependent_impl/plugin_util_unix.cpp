@@ -31,23 +31,44 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 	bridge::Registry& reg = bridge::GetUGRegistry();
 
-	int prefixLen = strlen(GetDynamicLibraryPrefix());
-	int suffixLen = strlen(GetDynamicLibrarySuffix()) + 1; // include '.'
+	std::string prefixStr = GetDynamicLibraryPrefix();
+	std::string suffixStr = std::string(".").append(GetDynamicLibrarySuffix());
+
+	int prefixLen = prefixStr.size();
+	int suffixLen = suffixStr.size(); // includes '.'
 
 	for(size_t i = 0; i < files.size(); ++i){
+
 	//	extract the plugins name from the file-name
 		int nameStart = prefixLen;
 		int nameLength = (int)files[i].size() - suffixLen - nameStart;
 
+	//	check that plugin name can exist
 		if(nameLength <= 0)
 		{
-			UG_ERR_LOG("\nCouldn't extract plugin-name from filename " << files[i] <<
-					". Ignoring plugin.\n");
+			UG_ERR_LOG("Plugin-filename '" << files[i] <<
+					"' too short. Ignoring plugin.\n");
 			bSuccess = false;
 			continue;
 		}
 
-		string pluginName = files[i].substr(nameStart, nameLength);
+	//	check for prefix
+		if(files[i].compare(0,prefixLen,prefixStr) != 0)
+		{
+			UG_ERR_LOG("Plugin-filename '" << files[i] << "' does not "
+					"start with Plugin prefix '"<<prefixStr<<"'. Ignoring plugin.\n");
+			bSuccess = false;
+			continue;
+		}
+
+	//	check for suffix
+		if(files[i].compare(files[i].size()-suffixLen,suffixLen,suffixStr) != 0)
+		{
+			UG_ERR_LOG("Plugin-filename '" << files[i] << "' does not "
+					"end with Plugin suffix '"<<suffixStr<<"'. Ignoring plugin.\n");
+			bSuccess = false;
+			continue;
+		}
 
 	//	load the library
 		string fullPluginName(pluginPath);
@@ -65,6 +86,7 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 
 	//	find the plugins init function
+		string pluginName = files[i].substr(nameStart, nameLength);
 		string fctName("InitUGPlugin_");
 		fctName.append(pluginName);
 

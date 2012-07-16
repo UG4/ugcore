@@ -26,12 +26,46 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 	GetFilesInDirectory(files, pluginPath);
 
-	//UG_ERR_LOG("Loading plugins (from " << pluginPath << "):");
-
 	bridge::Registry& reg = bridge::GetUGRegistry();
 
+	std::string prefixStr = GetDynamicLibraryPrefix();
+	std::string suffixStr = std::string(".").append(GetDynamicLibrarySuffix());
+
+	int prefixLen = prefixStr.size();
+	int suffixLen = suffixStr.size(); // includes '.'
+
 	for(size_t i = 0; i < files.size(); ++i){
-		//UG_ERR_LOG(" " << files[i]);
+
+	//	extract the plugins name from the file-name
+		int nameStart = prefixLen;
+		int nameLength = (int)files[i].size() - suffixLen - nameStart;
+
+	//	check that plugin name can exist
+		if(nameLength <= 0)
+		{
+			UG_ERR_LOG("Plugin-filename '" << files[i] <<
+					"' too short. Ignoring plugin.\n");
+			bSuccess = false;
+			continue;
+		}
+
+	//	check for prefix
+		if(files[i].compare(0,prefixLen,prefixStr) != 0)
+		{
+			UG_ERR_LOG("Plugin-filename '" << files[i] << "' does not "
+					"start with Plugin prefix '"<<prefixStr<<"'. Ignoring plugin.\n");
+			bSuccess = false;
+			continue;
+		}
+
+	//	check for suffix
+		if(files[i].compare(files[i].size()-suffixLen,suffixLen,suffixStr) != 0)
+		{
+			UG_ERR_LOG("Plugin-filename '" << files[i] << "' does not "
+					"end with Plugin suffix '"<<suffixStr<<"'. Ignoring plugin.\n");
+			bSuccess = false;
+			continue;
+		}
 
 		string fullPluginName(pluginPath);
 		fullPluginName.append(GetPathSeparator()).append(files[i]);
@@ -46,10 +80,11 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 			continue;
 		}
 
+	//	find the plugin init function
+		string pluginName = files[i].substr(nameStart, nameLength);
 		std::string fctName("InitUGPlugin");
-		//fctName.append("_").append(pluginName); //pluginName not yet known...
+		fctName.append(pluginName);
 
-	//	find the init_ug_plugin function
 		FctInitPlugin fctInitPlugin =
 			(FctInitPlugin) GetProcAddress(libHandle, fctName.c_str());
 
@@ -66,8 +101,6 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 //	make sure that the registry is updated
 	reg.registry_changed();
-
-	//UG_ERR_LOG(endl);
 
 	return bSuccess;
 }
