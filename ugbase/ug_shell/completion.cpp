@@ -5,7 +5,7 @@
  *
  * \date 14.10.2010
  *
- * Goethe-Center for Scientific Computing 2010.
+ * Goethe-Center for Scientific Computing 2010-2012.
  */
 
 #include <iostream>
@@ -462,7 +462,17 @@ size_t GetPathCompletitions(char *buf, int len, std::vector<string> &matches, si
 
 int iOtherCompletitionsLength;
 const char **pOtherCompletitions=NULL;
-
+/**
+ * GetOtherCompletitions
+ * puts in matches completitions of user-provided strings like "quit", "continue" etc.
+ * \param buf the buffer to complete
+ * \param len the length of buf
+ * \param matches put your matches here
+ * \param sniplen how much of buf we use (for example, completing "ex" to "example" is 2, completing "examp" to "example" is 5)
+ * \return number of added matches
+ *
+ * use pOtherCompletitions and iOtherCompletitionsLength to set an array with user-provided completition strings.
+ */
 static size_t GetOtherCompletitions(char *buf, int len, std::vector<string> &matches, size_t &sniplen)
 {
 	size_t matchesSizeBefore = matches.size();
@@ -529,10 +539,9 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 	{
 		// several matches. get longest common substring:
 		size_t submatch=0, i;
-		for(submatch = 0; ; submatch++)
+		for(submatch = 0; submatch < matches[0].size(); submatch++)
 		{
-			if(matches[0][submatch] == 0x00) break;
-			for( i = 0; i < matches.size() && matches[i].size() < submatch; i++ ) {
+			for( i = 0; i < matches.size() && submatch < matches[i].size(); i++ ) {
 				if( matches[i][submatch] != matches[0][submatch] )
 					break;
 			}
