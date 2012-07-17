@@ -727,6 +727,19 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 		reg.add_function("CreateFractal", &CreateFractal, grp)
 			.add_function("PrintAttachmentInfo", &PrintAttachmentInfo, grp);
 
+	//	UGXFileInfo
+		reg.add_class_<UGXFileInfo>("UGXFileInfo", grp)
+			.add_constructor()
+			.add_method("parse_file", &UGXFileInfo::parse_file)
+			.add_method("num_grids", &UGXFileInfo::num_grids)
+			.add_method("num_subset_handlers", &UGXFileInfo::num_subset_handlers)
+			.add_method("num_subsets", &UGXFileInfo::num_subsets)
+			.add_method("grid_name", &UGXFileInfo::grid_name)
+			.add_method("subset_handler_name", &UGXFileInfo::subset_handler_name)
+			.add_method("subset_name", &UGXFileInfo::subset_name)
+			.add_method("grid_world_dimension", &UGXFileInfo::grid_world_dimension)
+			.set_construct_as_smart_pointer(true);
+
 	//  GridObject functions
 		reg.add_function("LoadGrid", static_cast<bool (*)(Grid&, ISubsetHandler&, const char*)>(&LoadGrid), grp)
 			.add_function("LoadGrid", static_cast<bool (*)(Grid&, const char*)>(&LoadGrid), grp)
