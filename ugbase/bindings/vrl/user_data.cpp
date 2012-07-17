@@ -1,4 +1,6 @@
 #include "bridge/bridge.h"
+#include "bridge/util.h"
+#include "bridge/suffix_tag.h"
 #include "type_converter.h"
 #include "common/common.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
@@ -251,6 +253,13 @@ class VRLUserData
 			return ss.str();
 		}
 
+		static std::string group_name()
+		{
+			std::stringstream ss;
+			ss << "VRLUser"<<vrl_traits<TData>::name();
+			return ss.str();
+		}
+
 		void set_vrl_callback(const char* expression)
 		{
 			JNIEnv* env = threading::getEnv(getJavaVM());
@@ -392,6 +401,13 @@ public:
 	{
 		std::stringstream ss;
 		ss << "VRLCondUser"<<vrl_traits<number>::name() << dim << "d";
+		return ss.str();
+	}
+
+	static std::string group_name()
+	{
+		std::stringstream ss;
+		ss << "VRLCondUser"<<vrl_traits<number>::name();
 		return ss.str();
 	}
 
@@ -566,6 +582,8 @@ private:
 template <typename TData, int dim>
 void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 {
+	std::string tag = ug::bridge::GetDimensionTag<dim>();
+
 	//	VRLUserType
 	{
 		typedef VRLUserData<TData, dim> T;
@@ -577,6 +595,7 @@ void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 			.add_constructor()
 			.add_method("data", &T::set_vrl_callback, "", options.str().c_str())
 			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(T::name(), T::group_name(), tag);
 	}
 
 	// PrintUserType2d
@@ -595,6 +614,7 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 {
 	// 	get group
 	std::string grp = std::string(parentGroup);
+	std::string tag = ug::bridge::GetDimensionTag<dim>();
 
 	RegisterUserDataType<number, dim>(reg, grp);
 	RegisterUserDataType<MathVector<dim>, dim>(reg, grp);
@@ -610,6 +630,7 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("data", &T::set_vrl_callback, "", options.str().c_str())
 			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(T::name(), T::group_name(), tag);
 	}
 
 	if(dim == 2)
