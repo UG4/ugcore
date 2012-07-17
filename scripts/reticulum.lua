@@ -9,19 +9,19 @@
 ug_load_script("ug_util.lua")
 
 -- Dimension
-dim = 2
+dim = 3
 
 -- choose dimension and algebra
 InitUG(dim, AlgebraType("CPU", 1));
 
 -- Grid
-gridName = "simple_reticulum.ugx"
+gridName = "rc19_amp.ugx"
 
 -- Refinements before distributing grid
 numPreRefs = util.GetParamNumber("-numPreRefs", 0)
 
 -- Total refinements
-numRefs    = util.GetParamNumber("-numRefs",    2)
+numRefs    = util.GetParamNumber("-numRefs",    0)
 
 -- choose number of time steps
 NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 5)
@@ -29,49 +29,72 @@ NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 5)
 --------------------------------
 -- User Data Functions (begin)
 --------------------------------
-    function CaCytStart(x, y, t)
-        if 4.5 < x and x < 4.7 and 0.55 < y and y < 0.75
-        then return 7.5e-4
-        end
-        return 7.5e-8
-    end
-
-    function CaERStart(x, y, t)
-        return 1.0e-4
-    end
-
-    function IP3Start(x, y, t)
-        return 1.0e-6
-    end
-
-	function ourDiffTensor2dCA(x, y, t)
-		return	40, 0, 
-				0, 40
-	end
-	
-	function ourDiffTensor2dIP3(x, y, t)
-		return	280, 0, 
-				0, 280
-	end
-	
-	function ourRhs2d(x, y, t)
-		return 0;
-	end
-	
-	function ourNeumannBnd2d(x, y, t)
-		return true, 0.0
-	end
-	
-	function ourDirichletBnd2d(x, y, t)
-		return true, 0.0
-	end
-
-	function membraneDirichletBnd2d(x, y, t)
-	local s = 2*math.pi
-	--return true, math.sin(s*x) + math.sin(s*y)
-	--return true, x*x*y
-	return true, 2.5
+function CaCytStart(x, y, z, t)
+    return 7.5e-8
 end
+
+function CaERStart(x, y, z, t)
+    return 1.0e-4
+end
+
+function IP3Start(x, y, z, t)
+    return 1.0e-6
+end
+
+function ourDiffTensorCA(x, y, z, t)
+    return	40, 0, 0,
+            0, 40, 0,
+            0, 0, 40
+end
+
+function ourDiffTensorIP3(x, y, z, t)
+    return	280, 0, 0,
+            0, 280, 0,
+            0, 0, 280
+end
+
+function ourRhs(x, y, z, t)
+    return 0;
+end
+
+
+function ourNeumannBndCA(x, y, z, t, si)
+	-- burst for active synapses
+	if 	(si==6 and 0.005<=t and t<0.010)
+		or (si==7 and 0.010<=t and t<0.015)
+		or (si==8 and 0.015<=t and t<0.020)
+		or (si==9 and 0.020<=t and t<0.025)
+		or (si==10 and 0.025<=t and t<0.030)
+		or (si==11 and 0.030<=t and t<0.035)
+		or (si==12 and 0.035<=t and t<0.040)
+		or (si==13 and 0.040<=t and t<0.045)
+		or (si==14 and 0.045<=t and t<0.050)
+	then influx = 0.005
+	else influx = 0.0
+	end
+	
+    return true, influx
+end
+
+ip3EntryTime = 0.05;
+function ourNeumannBndIP3(x, y, z, t, si)
+	-- burst for active synapses
+	if 	(si==6 and 0.005+ip3EntryTime<=t and t<0.010+ip3EntryTime)
+		or (si==7 and 0.010+ip3EntryTime<=t and t<0.015+ip3EntryTime)
+		or (si==8 and 0.015+ip3EntryTime<=t and t<0.020+ip3EntryTime)
+		or (si==9 and 0.020+ip3EntryTime<=t and t<0.025+ip3EntryTime)
+		or (si==10 and 0.025+ip3EntryTime<=t and t<0.030+ip3EntryTime)
+		or (si==11 and 0.030+ip3EntryTime<=t and t<0.035+ip3EntryTime)
+		or (si==12 and 0.035+ip3EntryTime<=t and t<0.040+ip3EntryTime)
+		or (si==13 and 0.040+ip3EntryTime<=t and t<0.045+ip3EntryTime)
+		or (si==14 and 0.045+ip3EntryTime<=t and t<0.050+ip3EntryTime)
+	then influx = 0.01
+	else influx = 0.0
+	end
+	
+    return true, influx
+end
+
 	
 --------------------------------
 -- User Data Functions (end)
@@ -87,8 +110,8 @@ LoadDomain(dom, gridName)
 
 -- create Refiner
 print("Create Refiner")
-if numPreRefs >= numRefs then
-	print("numPreRefs must be smaller than numRefs");
+if numPreRefs > numRefs then
+	print("numPreRefs cannot be greater than numRefs");
 	exit();
 end
 
@@ -115,8 +138,8 @@ end
 
 -- get subset handler
 sh = dom:subset_handler()
-if sh:num_subsets() ~= 4 then 
-print("Domain must have 4 Subsets for this problem.")
+if sh:num_subsets() ~= 15 then 
+print("Domain must have 15 Subsets for this problem.")
 exit()
 end
 
@@ -126,9 +149,14 @@ SaveDomain(dom, "refined_grid.ugx")
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
-approxSpace:add_fct("ca_cyt", "Lagrange", 1, "cyt, mem_er, mem_cyt")
-approxSpace:add_fct("ca_er", "Lagrange", 1, "er, mem_er")
-approxSpace:add_fct("ip3", "Lagrange", 1, "cyt, mem_er, mem_cyt")
+innerDomain = "er, mem_er"
+outerDomain = "cyt, nuc, mem_cyt, mem_er, mem_nuc"
+for i=1,9 do
+	outerDomain = outerDomain .. ", syn" .. i
+end
+approxSpace:add_fct("ca_cyt", "Lagrange", 1, outerDomain)
+approxSpace:add_fct("ca_er", "Lagrange", 1, innerDomain)
+approxSpace:add_fct("ip3", "Lagrange", 1, outerDomain)
 
 -------------------------------------------
 --  Setup User Functions
@@ -136,28 +164,30 @@ approxSpace:add_fct("ip3", "Lagrange", 1, "cyt, mem_er, mem_cyt")
 print ("Setting up Assembling")
 
 -- Start value function setup
-    CaCytStartValue = LuaUserNumber("CaCytStart")
-    CaERStartValue = LuaUserNumber("CaERStart")
-    IP3StartValue = LuaUserNumber("IP3Start")
+    CaCytStartValue = LuaUserNumber3d("CaCytStart")
+    CaERStartValue = LuaUserNumber3d("CaERStart")
+    IP3StartValue = LuaUserNumber3d("IP3Start")
 
 -- Diffusion Tensor setup
-	diffusionMatrixCA = LuaUserMatrix("ourDiffTensor2dCA")
-	diffusionMatrixIP3 = LuaUserMatrix("ourDiffTensor2dIP3")
+	diffusionMatrixCA = LuaUserMatrix3d("ourDiffTensorCA")
+	diffusionMatrixIP3 = LuaUserMatrix3d("ourDiffTensorIP3")
 
 -- rhs setup
-	rhs = LuaUserNumber("ourRhs2d")
+	rhs = LuaUserNumber3d("ourRhs")
 	--rhs = ConstUserNumber(0.0)
 
 -- neumann setup
-	neumann = LuaCondUserNumber("ourNeumannBnd2d")
-	--neumann = ConstUserNumber(0.0)
+	neumannCA = LuaCondUserNumber3d("ourNeumannBndCA")
+	--neumannCA = ConstUserNumber(0.0)
+	neumannIP3 = LuaCondUserNumber3d("ourNeumannBndIP3")
 
+--[[
 -- dirichlet setup
-	dirichlet = LuaCondUserNumber("ourDirichletBnd2d")
+	dirichlet = LuaCondUserNumber3d("ourDirichletBnd")
 	
 -- dirichlet setup
-	membraneDirichlet = LuaCondUserNumber("membraneDirichletBnd2d")
-
+	membraneDirichlet = LuaCondUserNumber3d("membraneDirichletBnd")
+--]]
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
@@ -165,11 +195,6 @@ print ("Setting up Assembling")
 
 -- Note: No VelocityField and Reaction is set. The assembling assumes default
 --       zero values for them
-
- -- muss hier im letzten Arg (subsets) nicht auch ein mem_er stehen?
- -- Antwort: Nein, es geht hier im die 2d elemente von "er", der Rand von "er"
- --          spielt fuer das assemblieren keine Rolle. Randwerte kommen dann 
- --          spaeter extra. 
 
 if dim == 2 then 
     upwind = NoUpwind2d()
@@ -199,12 +224,18 @@ elemDiscIP3:set_upwind(upwind)
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
-neumannDiscCYT = NeumannBoundary("cyt")
-neumannDiscCYT:add(neumann, "ca_cyt", "mem_cyt")
+neumannDiscCA = NeumannBoundary("cyt")
+neumannDiscCA:add(neumannCA, "ca_cyt", "mem_cyt")
+neumannDiscIP3 = NeumannBoundary("cyt")
+neumannDiscIP3:add(neumannIP3, "ip3", "mem_cyt")
 
--- we pass here the function needed to evaluate the flux function.
--- The order in which the discrete fct are passed is crucial!
-innerDisc = FV1InnerBoundaryCalciumER(3, "ca_cyt, ca_er, ip3", "mem_er")
+-----------------------------------------------------------------
+--  Setup inner boundary (channels on ER membrane)
+-----------------------------------------------------------------
+
+-- We pass the function needed to evaluate the flux function here.
+-- The order, in which the discrete fcts are passed, is crucial!
+innerDisc = FV1InnerBoundaryCalciumER("ca_cyt, ca_er, ip3", "mem_er")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
@@ -224,7 +255,7 @@ domainDisc = DomainDiscretization(approxSpace)
 domainDisc:add(elemDiscER)
 domainDisc:add(elemDiscCYT)
 domainDisc:add(elemDiscIP3)
-domainDisc:add(neumannDiscCYT)
+domainDisc:add(neumannDiscCA)
 domainDisc:add(innerDisc)
 --domainDisc:add(dirichletBND)
 --domainDisc:add(membraneDirichletBND)
