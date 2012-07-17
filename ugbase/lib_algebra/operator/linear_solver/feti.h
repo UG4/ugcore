@@ -101,6 +101,7 @@ class FetiLayouts
 							m_masterPrimalLayout, m_slavePrimalLayout,
 							*m_pMasterStdLayout, *m_pSlaveStdLayout,
 							(int)(numIndices - 1), DDInfo);
+			UG_LOG("[BuildDomainDecompositionLayouts done]");
 
 		//	create intra feti subdomain communicator
 			int localSubdomID = DDInfo.map_proc_id_to_subdomain_id(pcl::GetProcRank());
@@ -111,6 +112,7 @@ class FetiLayouts
 				else
 					worldComm.create_sub_communicator(false);
 			}
+			UG_LOG("[intra feti sd comms created]");
 
 		//	create set of unique indices (to avoid doubles due to several interfaces)
 		//	collect from dual layouts
@@ -125,12 +127,14 @@ class FetiLayouts
 
 			CollectElements(m_vUniqueSlaveDualNbrIndex, m_slaveDualNbrLayout);
 			sort_and_remove_doubles(m_vUniqueSlaveDualNbrIndex);
+			UG_LOG("[CollectElements for duals done]");
 
 		//	create union of all dual unknowns
 			add_merge_sort_remove_doubles(m_vUniqueDualIndex, m_vUniqueMasterDualIndex);
 			add_merge_sort_remove_doubles(m_vUniqueDualIndex, m_vUniqueSlaveDualIndex);
 			add_merge_sort_remove_doubles(m_vUniqueDualIndex, m_vUniqueMasterDualNbrIndex);
 			add_merge_sort_remove_doubles(m_vUniqueDualIndex, m_vUniqueSlaveDualNbrIndex);
+			UG_LOG("[union of duals created]");
 
 		//	collect from primal layouts
 			CollectElements(m_vUniquePrimalMasterIndex, m_masterPrimalLayout);
@@ -142,6 +146,7 @@ class FetiLayouts
 		//	create union of all primal unknowns
 			add_merge_sort_remove_doubles(m_vUniquePrimalIndex, m_vUniquePrimalMasterIndex);
 			add_merge_sort_remove_doubles(m_vUniquePrimalIndex, m_vUniquePrimalSlaveIndex);
+			UG_LOG("[CollectElements for primals done] ");
 
 		//	test output
 			if(bDebug && false)
