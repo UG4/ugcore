@@ -223,6 +223,7 @@ class GridWriterUGX
 		AInt	m_aInt;
 };
 
+
 ////////////////////////////////////////////////////////////////////////
 ///	Grants read access to ugx files.
 /**	Before any data can be retrieved using the get_* methods, a file
@@ -263,6 +264,7 @@ class GridReaderUGX
 
 	///	parses an xml file
 		bool parse_file(const char* filename);
+
 
 	protected:
 		struct SubsetHandlerEntry
@@ -377,6 +379,78 @@ class GridReaderUGX
 
 	///	holds grids which already have been created
 		std::vector<GridEntry>	m_entries;
+};
+
+
+class UGXFileInfo{
+	public:
+		UGXFileInfo();
+
+		bool parse_file(const char* filename);
+
+		size_t num_grids() const;
+		size_t num_subset_handlers(size_t gridInd) const;
+		size_t num_subsets(size_t gridInd, size_t shInd) const;
+
+		std::string grid_name(size_t gridInd) const;
+		std::string subset_handler_name(size_t gridInd, size_t shInd) const;
+		std::string subset_name(size_t gridInd, size_t shInd, size_t subsetInd) const;
+
+		bool grid_has_vertices(size_t gridInd) const;
+		bool grid_has_edges(size_t gridInd) const;
+		bool grid_has_faces(size_t gridInd) const;
+		bool grid_has_volumes(size_t gridInd) const;
+
+	///	returns the dimension of the world-coordinates required for the given grid.
+	/** \note	In the current implementation this equals the dimension of the
+	 * 			element of highest dimension in the given grid. This may change in
+	 * 			future builds.
+	 * 			If you currently want to operate on manifolds, you should ignore
+	 * 			this dimension. Stay tuned for changes!*/
+		int grid_world_dimension(size_t gridInd) const;
+
+
+	private:
+		struct SubsetInfo{
+			std::string	m_name;
+		};
+
+		struct SubsetHandlerInfo{
+			std::string	m_name;
+			std::vector<SubsetInfo>	m_subsets;
+		};
+
+		struct GridInfo{
+			std::string	m_name;
+			bool	m_hasVertices;
+			bool	m_hasEdges;
+			bool	m_hasFaces;
+			bool	m_hasVolumes;
+			std::vector<SubsetHandlerInfo>	m_subsetHandlers;
+		};
+
+		std::vector<GridInfo>	m_grids;
+		bool					m_fileParsed;
+
+
+	private:
+	///	returns the name-attribute of the node or "" if none exists
+		std::string node_name(rapidxml::xml_node<>* n) const;
+
+	///	throws an error if no file has been parsed yet
+		void check_file_parsed() const;
+
+	///	return the queried grid info and throws an error if the grid index is out of range
+	/**	Also calls check_file_parsed().*/
+		const GridInfo& grid_info(size_t index) const;
+
+	///	throws an error if the subset handler index is out of range
+	/**	Also calls check_grid_index.*/
+		const SubsetHandlerInfo& subset_handler_info(size_t gridInd, size_t shInd) const;
+
+	///	throws an error if the subset index is out of range.
+	/**	Also calls check_subset_handler_index.*/
+		const SubsetInfo& subset_info(size_t gridInd, size_t shInd, size_t subsetInd) const;
 };
 
 }//	end of namespace

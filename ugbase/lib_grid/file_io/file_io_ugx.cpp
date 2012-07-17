@@ -1432,4 +1432,208 @@ create_pyramids(std::vector<Volume*>& volsOut,
 	return true;
 }
 
+
+
+UGXFileInfo::UGXFileInfo() :
+	m_fileParsed(false)
+{
+}
+
+bool UGXFileInfo::parse_file(const char* filename)
+{
+	ifstream in(filename, ios::binary);
+	if(!in)
+		return false;
+
+//	get the length of the file
+	streampos posStart = in.tellg();
+	in.seekg(0, ios_base::end);
+	streampos posEnd = in.tellg();
+	streamsize size = posEnd - posStart;
+
+//	go back to the start of the file
+	in.seekg(posStart);
+
+//	read the whole file en-block and terminate it with 0
+	rapidxml::xml_document<> doc;
+	char* fileContent = doc.allocate_string(0, size + 1);
+	in.read(fileContent, size);
+	fileContent[size] = 0;
+	in.close();
+
+//	parse the xml-data
+	doc.parse<0>(fileContent);
+
+	xml_node<>* curNode = doc.first_node("grid");
+	while(curNode){
+		m_grids.push_back(GridInfo());
+		GridInfo& gInfo = m_grids.back();
+		gInfo.m_name = node_name(curNode);
+
+	//	collect associated subset handlers
+		xml_node<>* curSHNode = curNode->first_node("subset_handler");
+		while(curSHNode){
+			gInfo.m_subsetHandlers.push_back(SubsetHandlerInfo());
+			SubsetHandlerInfo& shInfo = gInfo.m_subsetHandlers.back();
+			shInfo.m_name = node_name(curSHNode);
+
+			xml_node<>* curSubsetNode = curSHNode->first_node("subset");
+
+			while(curSubsetNode){
+				shInfo.m_subsets.push_back(SubsetInfo());
+				SubsetInfo& sInfo = shInfo.m_subsets.back();
+				sInfo.m_name = node_name(curSubsetNode);
+				curSubsetNode = curSubsetNode->next_sibling("subset");
+			}
+
+			curSHNode = curSHNode->next_sibling("subset_handler");
+		}
+
+	//	fill m_hasVertices, ...
+		gInfo.m_hasVertices = curNode->first_node("vertices") != NULL;
+		gInfo.m_hasVertices |= curNode->first_node("constrained_vertices") != NULL;
+
+		gInfo.m_hasEdges = curNode->first_node("edges") != NULL;
+		gInfo.m_hasEdges |= curNode->first_node("constraining_edges") != NULL;
+		gInfo.m_hasEdges |= curNode->first_node("constrained_edges") != NULL;
+
+		gInfo.m_hasFaces = curNode->first_node("triangles") != NULL;
+		gInfo.m_hasFaces |= curNode->first_node("constraining_triangles") != NULL;
+		gInfo.m_hasFaces |= curNode->first_node("constrained_triangles") != NULL;
+		gInfo.m_hasFaces |= curNode->first_node("quadrilaterals") != NULL;
+		gInfo.m_hasFaces |= curNode->first_node("constraining_quadrilaterals") != NULL;
+		gInfo.m_hasFaces |= curNode->first_node("constrained_quadrilaterals") != NULL;
+
+		gInfo.m_hasVolumes = curNode->first_node("tetrahedrons") != NULL;
+		gInfo.m_hasVolumes |= curNode->first_node("hexahedrons") != NULL;
+		gInfo.m_hasVolumes |= curNode->first_node("prisms") != NULL;
+		gInfo.m_hasVolumes |= curNode->first_node("pyramids") != NULL;
+
+		curNode = curNode->next_sibling("grid");
+	}
+
+	m_fileParsed = true;
+	return true;
+}
+
+size_t UGXFileInfo::num_grids() const
+{
+	check_file_parsed();
+	return m_grids.size();
+}
+
+size_t UGXFileInfo::num_subset_handlers(size_t gridInd) const
+{
+	return grid_info(gridInd).m_subsetHandlers.size();
+}
+
+size_t UGXFileInfo::num_subsets(size_t gridInd, size_t shInd) const
+{
+	return subset_handler_info(gridInd, shInd).m_subsets.size();
+}
+
+std::string UGXFileInfo::grid_name(size_t gridInd) const
+{
+	return grid_info(gridInd).m_name;
+}
+
+std::string UGXFileInfo::subset_handler_name(size_t gridInd, size_t shInd) const
+{
+	return subset_handler_info(gridInd, shInd).m_name;
+}
+
+std::string UGXFileInfo::subset_name(size_t gridInd, size_t shInd, size_t subsetInd) const
+{
+	return subset_info(gridInd, shInd, subsetInd).m_name;
+}
+
+bool UGXFileInfo::grid_has_vertices(size_t gridInd) const
+{
+	return grid_info(gridInd).m_hasVertices;
+}
+
+bool UGXFileInfo::grid_has_edges(size_t gridInd) const
+{
+	return grid_info(gridInd).m_hasEdges;
+}
+
+bool UGXFileInfo::grid_has_faces(size_t gridInd) const
+{
+	return grid_info(gridInd).m_hasFaces;
+}
+
+bool UGXFileInfo::grid_has_volumes(size_t gridInd) const
+{
+	return grid_info(gridInd).m_hasVolumes;
+}
+
+int UGXFileInfo::grid_world_dimension(size_t gridInd) const
+{
+	const GridInfo& gi = grid_info(gridInd);
+
+	if(gi.m_hasVolumes)
+		return 3;
+	if(gi.m_hasFaces)
+		return 2;
+	if(gi.m_hasEdges)
+		return 1;
+
+	return 0;
+}
+
+
+
+std::string UGXFileInfo::node_name(rapidxml::xml_node<>* n) const
+{
+	xml_attribute<>* attrib = n->first_attribute("name");
+	if(attrib)
+		return attrib->value();
+	return "";
+}
+
+void UGXFileInfo::check_file_parsed() const
+{
+	if(!m_fileParsed){
+		UG_THROW("UGXFileInfo: no file has been parsed!");
+	}
+}
+
+const UGXFileInfo::GridInfo&
+UGXFileInfo::grid_info(size_t index) const
+{
+	check_file_parsed();
+	if(index >= m_grids.size()){
+		UG_THROW("Grid index out of range: " << index
+				 << ". Num grids available: " << m_grids.size());
+	}
+
+	return m_grids[index];
+}
+
+const UGXFileInfo::SubsetHandlerInfo&
+UGXFileInfo::subset_handler_info(size_t gridInd, size_t shInd) const
+{
+	const GridInfo& gi = grid_info(gridInd);
+	if(shInd >= gi.m_subsetHandlers.size()){
+		UG_THROW("SubsetHandler index out of range: " << shInd
+				 << ". Num subset-handlers available: "
+				 << gi.m_subsetHandlers.size());
+	}
+
+	return gi.m_subsetHandlers[shInd];
+}
+
+const UGXFileInfo::SubsetInfo&
+UGXFileInfo::subset_info(size_t gridInd, size_t shInd, size_t subsetInd) const
+{
+	const SubsetHandlerInfo& shInfo = subset_handler_info(gridInd, shInd);
+	if(subsetInd >= shInfo.m_subsets.size()){
+		UG_THROW("Subset index out of range: " << subsetInd
+				 << ". Num subset available: "
+				 << shInfo.m_subsets.size());
+	}
+
+	return shInfo.m_subsets[subsetInd];
+}
+
 }//	end of namespace
