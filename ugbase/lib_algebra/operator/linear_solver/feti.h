@@ -617,7 +617,10 @@ class LocalSchurComplement
 		void set_statistic_type(std::string type) {m_statType = type;}
 
 	///	prints some convergence statistic of inner solvers
-		void print_statistic_of_inner_solver(bool bPrintOnlyAverages) const;
+		void print_statistic_of_inner_solver(bool bPrintOnlyAverages); // const;
+
+		void clear_total_itercnt_of_inner_solvers() {m_totalIterCntOfInnerSolvers = 0;}
+		int get_total_itercnt_of_inner_solvers() {return m_totalIterCntOfInnerSolvers;}
 
 	// destructor
 		virtual ~LocalSchurComplement() {};
@@ -653,6 +656,9 @@ class LocalSchurComplement
 		std::map<std::string, std::vector<StepConv> > m_mvStepConv;
 
 		int m_applyCnt;
+
+		int m_totalIterCntOfInnerSolvers;
+
 }; /* end class 'LocalSchurComplement' */
 
 /* 1.7 Application of \f${\tilde{S}_{\Delta \Delta}}^{-1}\f$ */ 
@@ -734,7 +740,10 @@ class PrimalSubassembledMatrixInverse
 		void set_statistic_type(std::string type) {m_statType = type;}
 
 	///	prints some convergence statistic of inner solvers
-		void print_statistic_of_inner_solver(bool bPrintOnlyAverages) const;
+		void print_statistic_of_inner_solver(bool bPrintOnlyAverages); // const;
+
+		void clear_total_itercnt_of_inner_solvers() {m_totalIterCntOfInnerSolvers = 0;}
+		int get_total_itercnt_of_inner_solvers() {return m_totalIterCntOfInnerSolvers;}
 
 	///	set 'm_bTestOneToManyLayouts'
 		void set_test_one_to_many_layouts(bool bTest) {m_bTestOneToManyLayouts = bTest;}
@@ -795,6 +804,9 @@ class PrimalSubassembledMatrixInverse
 
 	//	testing of 'one-to-many layouts'
 		bool m_bTestOneToManyLayouts;
+
+		int m_totalIterCntOfInnerSolvers;
+
 }; /* end class 'PrimalSubassembledMatrixInverse' */
 
 /// operator implementation of the FETI-DP solver
@@ -941,12 +953,27 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 		}
 
 	///	prints some convergence statistic of inner solvers
-		void print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
+		void print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 		{
+			// sum over all calls of inner solvers is done in the following print functions!
+			m_PrimalSubassembledMatrixInverse.clear_total_itercnt_of_inner_solvers();
 			m_PrimalSubassembledMatrixInverse.print_statistic_of_inner_solver(bPrintOnlyAverages);
 			UG_LOG("\n");
 
+			m_LocalSchurComplement.clear_total_itercnt_of_inner_solvers();
 			m_LocalSchurComplement.print_statistic_of_inner_solver(bPrintOnlyAverages);
+
+			int totalIterCntOfInnerSolvers = m_PrimalSubassembledMatrixInverse.get_total_itercnt_of_inner_solvers();
+			totalIterCntOfInnerSolvers     += m_LocalSchurComplement.get_total_itercnt_of_inner_solvers();
+
+			UG_LOG("Total number of calls of sub problem solvers: " << totalIterCntOfInnerSolvers);
+			UG_LOG(" in " << std::setw(5) << m_iterCnt << " FETI iterations ");
+			UG_LOG(" on " << std::setw(5) << m_pDDInfo->get_num_subdomains() << " FETI subdomains, "
+				          << std::fixed << (double)totalIterCntOfInnerSolvers/m_iterCnt
+				          << std::scientific << " per FETI iteration, "
+				          << std::fixed << (double)totalIterCntOfInnerSolvers/m_pDDInfo->get_num_subdomains()
+				          << std::scientific << " per FETI subdomain.\n");
+
 		}
 
 		// destructor

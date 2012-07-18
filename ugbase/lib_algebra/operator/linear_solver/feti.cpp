@@ -247,7 +247,7 @@ apply_sub(vector_type& f, const vector_type& u)
 
 template <typename TAlgebra>
 void LocalSchurComplement<TAlgebra>::
-print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
+print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 {
 	using namespace std;
 //	Process Communicator for CommWorld (MPI_WORLD)
@@ -303,6 +303,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlob << ",");
 
 			sumAvgNumIter += tGlob;
+			m_totalIterCntOfInnerSolvers += tGlob; // sum over all calls of inner solvers
 
 			tLoc = vStepConv[i].numIter3b;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MAX);
@@ -1113,7 +1114,7 @@ apply(vector_type& x, const vector_type& b)
 
 template <typename TAlgebra>
 void PrimalSubassembledMatrixInverse<TAlgebra>::
-print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
+print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 {
 	using namespace std;
 //	Process Communicator for CommWorld (MPI_WORLD)
@@ -1175,6 +1176,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlobN << ",");
 
 			sumAvgNumIter += tGlobN;
+			m_totalIterCntOfInnerSolvers += tGlobN; // sum over all calls of inner solvers
 
 			tLocN = vStepConv[0].numIterSC;
 			ProcCom.allreduce(&tLocN, &tGlobN, 1, PCL_DT_INT, PCL_RO_MAX);
@@ -1236,6 +1238,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlob << ",");
 
 			sumAvgNumIter += tGlob;
+			m_totalIterCntOfInnerSolvers += tGlob; // sum over all calls of inner solvers
 
 			tLoc = vStepConv[i].numIter2a;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MAX);
@@ -1287,6 +1290,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) const
 			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlob << ",");
 
 			sumAvgNumIter += tGlob;
+			m_totalIterCntOfInnerSolvers += tGlob; // sum over all calls of inner solvers
 
 			tLoc = vStepConv[i].numIter7;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MAX);
