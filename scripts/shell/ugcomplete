@@ -25,16 +25,17 @@ ugshell_complete() {
 	while read line; do
 		COMPREPLY[i++]=$line
 	done < <(compgen -W "-outproc -ex -noquit -noterm -logtofile" -- $word)
-	
+
   if [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ]; then 
   	while read line; do
   		[[ -d $line ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`;
 		[[ "${line##*.}" = "lua" ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`
   	done < <(compgen -f -- "$UG4_ROOT/apps/$word")
+  elif [ ${COMP_WORDS[COMP_CWORD-1]} = "-grid" ]; then 
   	while read line; do
-		[[ -d $line ]] && COMPREPLY[i++]=$line
-		[[ "${line##*.}" = "lua" ]] && COMPREPLY[i++]=$line
-  	done < <(compgen -f -- "$word")
+  		[[ -d $line ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/data/grids/??p"`;
+		[[ "${line##*.}" = "ugx" ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/data/grids/??p"`
+  	done < <(compgen -f -- "$UG4_ROOT/data/grids/$word")  	
   else
 	while read line; do 
 	COMPREPLY[i++]=$line
@@ -43,7 +44,6 @@ ugshell_complete() {
   	for (( c=0; c<COMP_CWORD; c++ ))
   	do
   		if [ "${COMP_WORDS[$c]}" = "-ex" ]; then
-	  		
 	  		if [ -e ${COMP_WORDS[c+1]} ]; then
 	  			filename=${COMP_WORDS[c+1]}
 	  		elif [ -e $UG4_ROOT/apps/${COMP_WORDS[c+1]} ]; then
@@ -51,19 +51,23 @@ ugshell_complete() {
 	  		else
 	  			continue
 	  		fi
-	  		while read line; do
-	  			b="0"	  			
-	  			for (( j=0; j<i; j++ ))
-	  			do
-	  				if [ ${COMPREPLY[j]} = $line ]; then
-	  					b="1"
-	  				fi
-	  			done
-	  			
-	  			if [ $b = "0" ]; then
-	  			 COMPREPLY[i++]="$line";
-	  			fi	  				  			
-	 		done < <(cat $filename | sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p')
+	  		echo $word | grep '^-[a-zA-Z0-9_]*$' > /dev/null
+	  		if [[ $? == 0 ]]; then
+	  			while read line; do
+		  			b="0"	  			
+	  				for (( j=0; j<i; j++ ))
+	  				do
+		  				if [ ${COMPREPLY[j]} = $line ]; then
+	  						b="1"
+	  					fi
+	  				done
+		  			
+	  				if [ $b = "0" ]; then
+	  			 	COMPREPLY[i++]="$line";
+	  				fi		  				  			
+	 			done < <(cat $filename | sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p')
+	 		fi
+	 		break
 	  	fi
 		done
 	fi
