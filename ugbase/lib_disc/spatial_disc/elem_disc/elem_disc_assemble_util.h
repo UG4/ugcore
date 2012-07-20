@@ -977,7 +977,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	//	Compute element data
 		try
 		{
-			Eval.compute_elem_data(locRhs, false);
+			Eval.compute_elem_data(locRhs, elem, false);
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute element data.");
 
