@@ -287,22 +287,25 @@ bgs = BackwardGaussSeidel()
 ilu = ILU()
 ilut = ILUT()
 
--- exact Soler
+-- exact Solver
 exactSolver = LU()
+
 
 -- create GMG ---
 -----------------
 
 	-- Base Solver
 	baseConvCheck = StandardConvergenceCheck()
-	baseConvCheck:set_maximum_steps(500)
-	baseConvCheck:set_minimum_defect(1e-8)
-	baseConvCheck:set_reduction(1e-30)
-	baseConvCheck:set_verbose(false)
-	base = LU()
-	--base = LinearSolver()
-	--base:set_convergence_check(baseConvCheck)
-	--base:set_preconditioner(jac)
+	baseConvCheck:set_maximum_steps(100)
+	baseConvCheck:set_minimum_defect(1e-28)
+	baseConvCheck:set_reduction(1e-8)
+	baseConvCheck:set_verbose(true)
+	--base = LU()
+	---[[
+	base = LinearSolver()
+	base:set_convergence_check(baseConvCheck)
+	base:set_preconditioner(ilu)
+	--]]
 	
 	-- Gemoetric Multi Grid
 	gmg = GeometricMultiGrid(approxSpace)
@@ -310,7 +313,7 @@ exactSolver = LU()
 	--gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
-	gmg:set_smoother(jac)
+	gmg:set_smoother(ilu)
 	gmg:set_cycle_type(1)
 	gmg:set_num_presmooth(3)
 	gmg:set_num_postsmooth(3)
@@ -319,21 +322,21 @@ exactSolver = LU()
 -----------------
 
 	if false then
-	amg = RSAMGPreconditioner()
-	amg:set_nu1(2)
-	amg:set_nu2(2)
-	amg:set_gamma(1)
-	amg:set_presmoother(jac)
-	amg:set_postsmoother(jac)
-	amg:set_base_solver(base)
-	--amg:set_debug(u)
+		amg = RSAMGPreconditioner()
+		amg:set_nu1(2)
+		amg:set_nu2(2)
+		amg:set_gamma(1)
+		amg:set_presmoother(jac)
+		amg:set_postsmoother(jac)
+		amg:set_base_solver(base)
+		--amg:set_debug(u)
 	end
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(100)
-convCheck:set_minimum_defect(1e-11)
-convCheck:set_reduction(1e-12)
+convCheck:set_maximum_steps(50)
+convCheck:set_minimum_defect(1e-21)
+convCheck:set_reduction(1e-2)
 
 -- create Linear Solver
 linSolver = LinearSolver()
@@ -356,16 +359,16 @@ bicgstabSolver:set_convergence_check(convCheck)
 
 -- convergence check
 newtonConvCheck = StandardConvergenceCheck()
-newtonConvCheck:set_maximum_steps(10)
-newtonConvCheck:set_minimum_defect(5e-12)
-newtonConvCheck:set_reduction(1e-10)
+newtonConvCheck:set_maximum_steps(20)
+newtonConvCheck:set_minimum_defect(1e-15)
+newtonConvCheck:set_reduction(1e-8)
 newtonConvCheck:set_verbose(true)
 
 newtonLineSearch = StandardLineSearch()
 
 -- create Newton Solver
 newtonSolver = NewtonSolver()
-newtonSolver:set_linear_solver(exactSolver)
+newtonSolver:set_linear_solver(bicgstabSolver)
 newtonSolver:set_convergence_check(newtonConvCheck)
 --newtonSolver:set_line_search(newtonLineSearch)
 
@@ -389,7 +392,7 @@ time = 0.0
 step = 0
 
 -- filename
-filename = "Con"
+filename = "retic/result"
 
 -- write start solution
 print("Writing start values")
