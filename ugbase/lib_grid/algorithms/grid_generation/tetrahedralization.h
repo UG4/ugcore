@@ -45,7 +45,8 @@ bool Retetrahedralize(Grid& grid, SubsetHandler& sh,
 					number quality = 5,
 					bool preserveBnds = false,
 					bool preserveAll = false,
-					APosition& aPos = aPosition);
+					APosition& aPos = aPosition,
+					bool applyVolumeConstraint = true);
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace

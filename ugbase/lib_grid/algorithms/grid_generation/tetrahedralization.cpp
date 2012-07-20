@@ -236,7 +236,8 @@ static bool PerformRetetrahedralization(Grid& grid,
 										bool preserveBnds,
 										bool preserveAll,
 										APosition& aPos,
-										ANumber& aVolCon)
+										ANumber& aVolCon,
+										bool applyVolumeConstraint)
 {
 #ifdef UG_TETGEN
 	if(!grid.has_vertex_attachment(aPos))
@@ -350,7 +351,9 @@ static bool PerformRetetrahedralization(Grid& grid,
 //	call tetrahedralization
 	try{
 		stringstream ss;
-		ss << "ar";
+		if(applyVolumeConstraint)
+			ss << "a";
+		ss << "r";
 		if(quality > SMALL)
 			ss << "qq" << quality;
 		if(preserveBnds || preserveAll)
@@ -458,10 +461,12 @@ bool Retetrahedralize(Grid& grid, SubsetHandler& sh,
 					number quality,
 					bool preserveBnds,
 					bool preserveAll,
-					APosition& aPos)
+					APosition& aPos,
+					bool applyVolumeConstraint)
 {
 	return PerformRetetrahedralization(grid, sh, quality, preserveBnds,
-									preserveAll, aPos, aVolumeConstraint);
+									preserveAll, aPos, aVolumeConstraint,
+									applyVolumeConstraint);
 }
 
 }//	end of namespace
