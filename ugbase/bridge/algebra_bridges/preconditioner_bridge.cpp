@@ -21,6 +21,7 @@
 #include "lib_algebra/operator/preconditioner/ilu.h"
 #include "lib_algebra/operator/preconditioner/ilut.h"
 #include "lib_algebra/operator/preconditioner/iterator_product.h"
+#include "lib_algebra/operator/preconditioner/vanka.h"
 
 using namespace std;
 
@@ -136,6 +137,18 @@ static void Algebra(Registry& reg, string grp)
 				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearIteratorProduct", tag);
 	}
+	
+//	Vanka
+	{
+		typedef Vanka<TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		string name = string("Vanka").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
+		.add_constructor()
+		.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "Vanka", tag);
+	}
+
 
 }
 
