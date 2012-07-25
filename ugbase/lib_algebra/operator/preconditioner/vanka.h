@@ -26,10 +26,25 @@ bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	DenseMatrix< VariableArray2<number> > mat;
 	
 	size_t blockind[MAXBLOCKSIZE];
+	
+	for(size_t i=0; i < x.size(); i++)
+    {
+        x[i]=0;
+    };
 
 	for(size_t i=0; i < x.size(); i++)
 	{
-		if (A(i,i)!=0) continue;
+		if (A(i,i)!=0){ 
+	/*		// do usual gauss-seidel
+	        typename Vector_type::value_type def = b[i];
+
+            for(typename Matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) && it.index() < i; ++it)
+                // s -= it.value() * x[it.index()];
+                MatMultAdd(def, 1.0, def, -1.0, it.value(), x[it.index()]);
+            // x[i] = s/A(i,i)
+            InverseMatMult(x[i], 1.0, A(i,i), def);*/
+			continue;
+		};
 
 		size_t blocksize=0;
 
@@ -53,7 +68,6 @@ bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 			};
 			s.subassign(j,sj);
 		};
-		//UG_LOG("mat = " << mat << "\n\n\n");
 		// solve block
 		InverseMatMult(localx,1.0,mat,s);
 		for (size_t j=0;j<blocksize;j++){
