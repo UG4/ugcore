@@ -149,7 +149,16 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "Vanka", tag);
 	}
 
-
+//	Diag Vanka
+	{
+		typedef DiagVanka<TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		string name = string("DiagVanka").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Diagonal Vanka Preconditioner")
+		.add_constructor()
+		.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "DiagVanka", tag);
+	}
 }
 
 }; // end Functionality
