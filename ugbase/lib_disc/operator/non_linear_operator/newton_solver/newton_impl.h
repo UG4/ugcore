@@ -48,13 +48,13 @@ void NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
 	m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
 	m_J->set_level(m_N->level());
 
-	if(m_J.invalid()) UG_THROW("Cannot allocate memory.");
+	if(m_J.invalid()) UG_THROW("NewtonSolver::prepare: Cannot allocate memory.");
 
-	// defect
-	m_d.resize(u.size()); m_d = u;
-
-	// correction
-	m_c.resize(u.size()); m_c = u;
+	try {
+		m_d.resize(u.size()); m_d = u;
+		m_c.resize(u.size()); m_c = u;
+	}
+	UG_CATCH_THROW("NewtonSolver::prepare: Resize of vectors failed.");
 
 	m_allocated = true;
 }
@@ -75,7 +75,10 @@ bool NewtonSolver<TAlgebra>::prepare(vector_type& u)
 		UG_THROW("NewtonSolver::prepare: Linear Solver not set.");
 
 //	Set dirichlet values
-	m_N->prepare(m_d, u);
+	try{
+		m_N->prepare(m_d, u);
+	}
+	UG_CATCH_THROW("NewtonSolver::prepare: Preapre of Operator failed.");
 
 	return true;
 }
@@ -93,13 +96,17 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	m_dgbCall++;
 
 //	resize
+	try{
 	m_d.resize(u.size());
 	m_c.resize(u.size());
+	}UG_CATCH_THROW("NewtonSolver::apply: Resize of Defect/Correction failed.");
 
 // 	Compute first Defect
+	try{
 	NEWTON_PROFILE_BEGIN(NewtonComputeDefect1);
 	m_N->apply(m_d, u);
 	NEWTON_PROFILE_END();
+	}UG_CATCH_THROW("NewtonSolver::apply: Computation of Start-Defect failed.");
 
 //	write start defect for debug
 	int loopCnt = 0;
@@ -118,7 +125,10 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	m_spConvCheck->set_info(ss.str());
 
 // 	copy pattern
-	vector_type s; s.resize(u.size()); s = u;
+	try{
+		vector_type s; s.resize(u.size()); s = u;
+	}
+	UG_CATCH_THROW("NewtonSolver::apply: Creation of help vector failed.");
 
 // 	start convergence check
 	m_spConvCheck->start(m_d);
@@ -137,9 +147,11 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		NEWTON_PROFILE_END();
 
 	// 	Compute Jacobian
+		try{
 		NEWTON_PROFILE_BEGIN(NewtonComputeJacobian);
 		m_J->init(u);
 		NEWTON_PROFILE_END();
+		}UG_CATCH_THROW("NewtonSolver::apply: Initalization of Jacobian failed.");
 
 	//	Write Jacobian for debug
 		std::string matname("NEWTON_Jacobian");
@@ -147,6 +159,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		write_debug(m_J->get_matrix(), matname.c_str());
 
 	// 	Init Jacobi Inverse
+		try{
 		NEWTON_PROFILE_BEGIN(NewtonPrepareLinSolver);
 		if(!m_spLinearSolver->init(m_J, u))
 		{
@@ -155,8 +168,10 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 			return false;
 		}
 		NEWTON_PROFILE_END();
+		}UG_CATCH_THROW("NewtonSolver::apply: Initalization of Linear Solver failed.");
 
 	// 	Solve Linearized System
+		try{
 		NEWTON_PROFILE_BEGIN(NewtonApplyLinSolver);
 		if(!m_spLinearSolver->apply(m_c, m_d))
 		{
@@ -165,6 +180,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 			return false;
 		}
 		NEWTON_PROFILE_END();
+		}UG_CATCH_THROW("NewtonSolver::apply: Application of Linear Solver failed.");
 
 	//	store convergence history
 		const int numSteps = m_spLinearSolver->step();
@@ -174,6 +190,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		m_vLinSolverCalls[loopCnt] += 1;
 
 	// 	Line Search
+		try{
 		if(m_spLineSearch.valid())
 		{
 			m_spLineSearch->set_offset("   #  ");
@@ -198,6 +215,8 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 			m_N->apply(m_d, u);
 			NEWTON_PROFILE_END();
 		}
+		}UG_CATCH_THROW("NewtonSolver::apply: Line Search update failed.");
+
 
 	//	update counter
 		loopCnt++;
