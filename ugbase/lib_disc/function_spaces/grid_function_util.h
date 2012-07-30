@@ -371,6 +371,7 @@ protected:
 					m_spApproxSpace,
 					m_spApproxSpace->level_dof_distribution(
 							m_gridLevel.level()));
+			vtkFunc.resize_values(vec.size());
 			vtkFunc.assign(vec);
 			VTKOutput<dim> out;
 			out.print(filename, vtkFunc, m_printConsistent);
@@ -380,6 +381,7 @@ protected:
 					m_spApproxSpace,
 					m_spApproxSpace->surface_dof_distribution(
 							m_gridLevel.level()));
+			vtkFunc.resize_values(vec.size());
 			vtkFunc.assign(vec);
 			VTKOutput<dim> out;
 			out.print(filename, vtkFunc, m_printConsistent);
