@@ -16,6 +16,8 @@ InitUG(dim, AlgebraType("CPU", 1));
 
 -- Grid
 gridName = "rc19_amp.ugx"
+--gridName = "RC19amp_ug4_finished.ugx"
+--gridName = "simple_reticulum_3d.ugx"
 
 -- Refinements before distributing grid
 numPreRefs = util.GetParamNumber("-numPreRefs", 0)
@@ -58,37 +60,28 @@ function ourRhs(x, y, z, t)
 end
 
 
+-- firing pattern
+syns = {}
+for i=6,15 do
+	syns["start"..i] = 0.005*(i-6)
+	syns["end"..i] = 0.005*(i-6)+1
+end
+
 function ourNeumannBndCA(x, y, z, t, si)
 	-- burst for active synapses
-	if 	(si==6 and 0.005<=t and t<0.010)
-		or (si==7 and 0.010<=t and t<0.015)
-		or (si==8 and 0.015<=t and t<0.020)
-		or (si==9 and 0.020<=t and t<0.025)
-		or (si==10 and 0.025<=t and t<0.030)
-		or (si==11 and 0.030<=t and t<0.035)
-		or (si==12 and 0.035<=t and t<0.040)
-		or (si==13 and 0.040<=t and t<0.045)
-		or (si==14 and 0.045<=t and t<0.050)
-	then influx = 0.005
+	if 	(si>=6 and si<=15 and syns["start"..si]<=t and t<syns["end"..si])
+	then influx = 5e-6 * 11.0/16.0*(1.0+5.0/((10.0*(t-syns["start"..si])+1)*(10.0*(t-syns["start"..si])+1)))
 	else influx = 0.0
 	end
 	
     return true, influx
 end
 
-ip3EntryTime = 0.05;
+ip3EntryDelay = 0.05;
 function ourNeumannBndIP3(x, y, z, t, si)
 	-- burst for active synapses
-	if 	(si==6 and 0.005+ip3EntryTime<=t and t<0.010+ip3EntryTime)
-		or (si==7 and 0.010+ip3EntryTime<=t and t<0.015+ip3EntryTime)
-		or (si==8 and 0.015+ip3EntryTime<=t and t<0.020+ip3EntryTime)
-		or (si==9 and 0.020+ip3EntryTime<=t and t<0.025+ip3EntryTime)
-		or (si==10 and 0.025+ip3EntryTime<=t and t<0.030+ip3EntryTime)
-		or (si==11 and 0.030+ip3EntryTime<=t and t<0.035+ip3EntryTime)
-		or (si==12 and 0.035+ip3EntryTime<=t and t<0.040+ip3EntryTime)
-		or (si==13 and 0.040+ip3EntryTime<=t and t<0.045+ip3EntryTime)
-		or (si==14 and 0.045+ip3EntryTime<=t and t<0.050+ip3EntryTime)
-	then influx = 0.01
+	if 	(si>=6 and si<=15 and syns["start"..si]+ip3EntryDelay<=t and t<syns["end"..si]+ip3EntryDelay)
+	then influx = 0.0001
 	else influx = 0.0
 	end
 	
@@ -100,60 +93,27 @@ end
 -- User Data Functions (end)
 --------------------------------
 
--- create Instance of a Domain
-print("Create Domain.")
-dom = Domain()
-
--- load domain
-print("Load Domain from File.")
-LoadDomain(dom, gridName)
-
--- create Refiner
-print("Create Refiner")
-if numPreRefs > numRefs then
-	print("numPreRefs cannot be greater than numRefs");
-	exit();
-end
-
--- Create a refiner instance. This is a factory method
---	which automatically creates a parallel refiner if required.
-refiner = GlobalDomainRefiner(dom)
-
--- Performing pre-refines
-for i=1,numPreRefs do
-refiner:refine()
-end
-
--- Distribute the domain to all involved processes
-if DistributeDomain(dom) == false then
-	print("Error while Distributing Grid.")
-	exit()
-end
-
--- Perform post-refine
-print("Refine Parallel Grid")
-	for i=numPreRefs+1,numRefs do
-	refiner:refine()
-end
-
--- get subset handler
-sh = dom:subset_handler()
-if sh:num_subsets() ~= 15 then 
-print("Domain must have 15 Subsets for this problem.")
-exit()
-end
+-- create, load, refine and distribute domain
+print("create, refine and distribute domain")
+neededSubsets = {}
+dom = util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSubsets)
 
 -- write grid to file for test purpose
 SaveDomain(dom, "refined_grid.ugx")
 
--- create Approximation Space
+-- create approximation space
 print("Create ApproximationSpace")
 approxSpace = ApproximationSpace(dom)
 innerDomain = "er, mem_er"
+--outerDomain = "cyt, mem_cyt, mem_er"
 outerDomain = "cyt, nuc, mem_cyt, mem_er, mem_nuc"
+synapses = ""
+---[[
 for i=1,9 do
-	outerDomain = outerDomain .. ", syn" .. i
+	synapses = synapses .. ", syn" .. i
 end
+outerDomain = outerDomain .. synapses
+--]]
 approxSpace:add_fct("ca_cyt", "Lagrange", 1, outerDomain)
 approxSpace:add_fct("ca_er", "Lagrange", 1, innerDomain)
 approxSpace:add_fct("ip3", "Lagrange", 1, outerDomain)
@@ -208,13 +168,13 @@ elemDiscER:set_diffusion(diffusionMatrixCA)
 elemDiscER:set_source(rhs)
 elemDiscER:set_upwind(upwind)
 
-elemDiscCYT = ConvectionDiffusion("ca_cyt", "cyt")
+elemDiscCYT = ConvectionDiffusion("ca_cyt", "cyt, nuc")
 elemDiscCYT:set_disc_scheme("fv1")
 elemDiscCYT:set_diffusion(diffusionMatrixCA)
 elemDiscCYT:set_source(rhs)
 elemDiscCYT:set_upwind(upwind)
 
-elemDiscIP3 = ConvectionDiffusion("ip3", "cyt")
+elemDiscIP3 = ConvectionDiffusion("ip3", "cyt, nuc")
 elemDiscIP3:set_disc_scheme("fv1")
 elemDiscIP3:set_diffusion(diffusionMatrixIP3)
 elemDiscIP3:set_source(rhs)
@@ -225,9 +185,9 @@ elemDiscIP3:set_upwind(upwind)
 -----------------------------------------------------------------
 
 neumannDiscCA = NeumannBoundary("cyt")
-neumannDiscCA:add(neumannCA, "ca_cyt", "mem_cyt")
+neumannDiscCA:add(neumannCA, "ca_cyt", "mem_cyt" .. synapses)
 neumannDiscIP3 = NeumannBoundary("cyt")
-neumannDiscIP3:add(neumannIP3, "ip3", "mem_cyt")
+neumannDiscIP3:add(neumannIP3, "ip3", "mem_cyt" .. synapses)
 
 -----------------------------------------------------------------
 --  Setup inner boundary (channels on ER membrane)
@@ -237,15 +197,18 @@ neumannDiscIP3:add(neumannIP3, "ip3", "mem_cyt")
 -- The order, in which the discrete fcts are passed, is crucial!
 innerDisc = FV1InnerBoundaryCalciumER("ca_cyt, ca_er, ip3", "mem_er")
 
+--[[
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
---dirichletBND = DirichletBoundary()
---dirichletBND:add(dirichlet, "c", "Boundary, MembraneBnd")
+dirichletBND = DirichletBoundary()
+dirichletBND:add(dirichlet, "c", "Boundary, MembraneBnd")
 
---membraneDirichletBND = DirichletBoundary()
---membraneDirichletBND:add(membraneDirichlet, "c_membrane", "MembraneBnd")
+membraneDirichletBND = DirichletBoundary()
+membraneDirichletBND:add(membraneDirichlet, "c_membrane", "MembraneBnd")
+
+--]]
 
 -------------------------------------------
 --  Setup Domain Discretization
@@ -296,48 +259,49 @@ exactSolver = LU()
 
 	-- Base Solver
 	baseConvCheck = StandardConvergenceCheck()
-	baseConvCheck:set_maximum_steps(100)
+	baseConvCheck:set_maximum_steps(10000)
 	baseConvCheck:set_minimum_defect(1e-28)
-	baseConvCheck:set_reduction(1e-8)
-	baseConvCheck:set_verbose(true)
+	baseConvCheck:set_reduction(1e-2)
+	baseConvCheck:set_verbose(false)
 	--base = LU()
 	---[[
 	base = LinearSolver()
 	base:set_convergence_check(baseConvCheck)
-	base:set_preconditioner(ilu)
+	base:set_preconditioner(gs)
 	--]]
-	
 	-- Gemoetric Multi Grid
 	gmg = GeometricMultiGrid(approxSpace)
-	gmg:set_discretization(domainDisc)
+	gmg:set_discretization(timeDisc)
 	--gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
-	gmg:set_smoother(ilu)
+	gmg:set_smoother(gs)
 	gmg:set_cycle_type(1)
 	gmg:set_num_presmooth(3)
 	gmg:set_num_postsmooth(3)
 
+--[[
 -- create AMG ---
 -----------------
 
-	if false then
-		amg = RSAMGPreconditioner()
-		amg:set_nu1(2)
-		amg:set_nu2(2)
-		amg:set_gamma(1)
-		amg:set_presmoother(jac)
-		amg:set_postsmoother(jac)
-		amg:set_base_solver(base)
-		--amg:set_debug(u)
-	end
+	amg = RSAMGPreconditioner()
+	amg:set_nu1(2)
+	amg:set_nu2(2)
+	amg:set_gamma(1)
+	amg:set_presmoother(gs)
+	amg:set_postsmoother(gs)
+	amg:set_base_solver(base)
+	--amg:set_debug(u)
+--]]
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
 convCheck:set_maximum_steps(50)
 convCheck:set_minimum_defect(1e-21)
-convCheck:set_reduction(1e-2)
+convCheck:set_reduction(1e-4)
+convCheck:set_verbose(true)
 
+--[[
 -- create Linear Solver
 linSolver = LinearSolver()
 linSolver:set_preconditioner(gmg)
@@ -347,6 +311,7 @@ linSolver:set_convergence_check(convCheck)
 cgSolver = CG()
 cgSolver:set_preconditioner(jac)
 cgSolver:set_convergence_check(convCheck)
+--]]
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
@@ -360,7 +325,7 @@ bicgstabSolver:set_convergence_check(convCheck)
 -- convergence check
 newtonConvCheck = StandardConvergenceCheck()
 newtonConvCheck:set_maximum_steps(20)
-newtonConvCheck:set_minimum_defect(1e-15)
+newtonConvCheck:set_minimum_defect(1e-21)
 newtonConvCheck:set_reduction(1e-8)
 newtonConvCheck:set_verbose(true)
 
@@ -386,13 +351,15 @@ Interpolate(CaCytStartValue, u, "ca_cyt", 0.0)
 Interpolate(CaERStartValue, u, "ca_er", 0.0)
 Interpolate(IP3StartValue, u, "ip3", 0.0)
 
+SaveVectorForConnectionViewer(u,"debug_vector.vec")
+
 -- timestep in seconds
 dt = 0.001
 time = 0.0
 step = 0
 
 -- filename
-filename = "retic/result"
+filename = "/Users/markus/Developing/ug4/trunk/bin/retic/result"
 
 -- write start solution
 print("Writing start values")
