@@ -444,7 +444,7 @@ class FV1Geometry : public FVGeometryBase
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
-	/// get vector of corners for current element
+	/// get vector of the global coordinates of corners for current element
 		const MathVector<worldDim>* corners() const {return m_vvGloMid[0];}
 
 	/// number of SubControlVolumeFaces
