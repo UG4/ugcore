@@ -70,22 +70,22 @@ end
 function ourNeumannBndCA(x, y, z, t, si)
 	-- burst for active synapses
 	if 	(si>=6 and si<=15 and syns["start"..si]<=t and t<syns["end"..si])
-	then influx = 5e-6 * 11.0/16.0*(1.0+5.0/((10.0*(t-syns["start"..si])+1)*(10.0*(t-syns["start"..si])+1)))
-	else influx = 0.0
+	then efflux = -5e-6 * 11.0/16.0*(1.0+5.0/((10.0*(t-syns["start"..si])+1)*(10.0*(t-syns["start"..si])+1)))
+	else efflux = 0.0
 	end
 	
-    return true, influx
+    return true, efflux
 end
 
-ip3EntryDelay = 0.05;
+ip3EntryDelay = 0.05
 function ourNeumannBndIP3(x, y, z, t, si)
 	-- burst for active synapses
 	if 	(si>=6 and si<=15 and syns["start"..si]+ip3EntryDelay<=t and t<syns["end"..si]+ip3EntryDelay)
-	then influx = 0.0001
-	else influx = 0.0
+	then efflux = -0.0001
+	else efflux = 0.0
 	end
 	
-    return true, influx
+    return true, efflux
 end
 
 	
@@ -219,6 +219,7 @@ domainDisc:add(elemDiscER)
 domainDisc:add(elemDiscCYT)
 domainDisc:add(elemDiscIP3)
 domainDisc:add(neumannDiscCA)
+domainDisc:add(neumannDiscIP3)
 domainDisc:add(innerDisc)
 --domainDisc:add(dirichletBND)
 --domainDisc:add(membraneDirichletBND)
@@ -351,10 +352,8 @@ Interpolate(CaCytStartValue, u, "ca_cyt", 0.0)
 Interpolate(CaERStartValue, u, "ca_er", 0.0)
 Interpolate(IP3StartValue, u, "ip3", 0.0)
 
-SaveVectorForConnectionViewer(u,"debug_vector.vec")
-
 -- timestep in seconds
-dt = 0.001
+dt = 0.002
 time = 0.0
 step = 0
 
