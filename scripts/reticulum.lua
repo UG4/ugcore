@@ -353,7 +353,7 @@ Interpolate(CaERStartValue, u, "ca_er", 0.0)
 Interpolate(IP3StartValue, u, "ip3", 0.0)
 
 -- timestep in seconds
-dt = 0.002
+dt = 0.001
 time = 0.0
 step = 0
 
@@ -395,7 +395,9 @@ for step = 1, NumTimeSteps do
 	time = solTimeSeries:time(0) + do_dt
 	
 	-- plot solution
-	out:print(filename, u, step, time)
+	if step % 10 == 0
+		out:print(filename, u, step, time)
+	end
 	
 	-- get oldest solution
 	oldestSol = solTimeSeries:oldest()
