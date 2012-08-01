@@ -11,7 +11,7 @@
 #include "registry/registry.h"
 #include <jni.h>
 #include "messaging.h"
-#include "compiledstrings.h"
+#include "compile_info/compile_info.h"
 
 #ifdef __GNUC__
 #define PRETTY_FUNCTION __PRETTY_FUNCTION__

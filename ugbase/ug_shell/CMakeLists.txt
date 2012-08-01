@@ -71,9 +71,8 @@ if(buildDynamicLibrary)
 endif(buildDynamicLibrary)
 
 remove_definitions(-DLUA_BUILD_AS_DLL)
-add_executable(${targetExecutableName} ${srcUGShell})
 
-target_link_libraries(${targetExecutableName} compiledstrings)
+add_executable(${targetExecutableName} ${srcUGShell})
 
 if("${SHELLTYPE}" STREQUAL "readline")
 	target_link_libraries(${targetExecutableName} readline)
@@ -82,9 +81,7 @@ endif("${SHELLTYPE}" STREQUAL "readline")
 if(STATIC)
 # if we're compiling with the new cmake_includes, then we have to link
 # against the ug4_s static library
-	if(USE_NEW_CMAKE_INCLUDES)
-		target_link_libraries(${targetExecutableName} ${targetLibraryName})
-	endif(USE_NEW_CMAKE_INCLUDES)
+	target_link_libraries(${targetExecutableName} ${targetLibraryName})
 else(STATIC)
 # link the dynamic library
 	target_link_libraries (${targetExecutableName} ${targetLibraryName})

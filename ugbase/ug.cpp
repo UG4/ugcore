@@ -1,9 +1,3 @@
-/*
- * ug.cpp
- *
- *  Created on: 10.11.2010
- *      Authors: marscher, iheppner, sreiter
- */
 
 #include <stack>
 #include <cstdlib>

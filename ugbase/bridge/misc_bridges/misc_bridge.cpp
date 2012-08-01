@@ -17,7 +17,7 @@
 //#include "svnrevision.h"
 //#include "compiledate.h"
 //#include "build_hostname.h"
-#include "compiledstrings.h"
+#include "compile_info/compile_info.h"
 ////////////////////////////////////////////////////////////////////////////////
 
 using namespace std;

@@ -41,7 +41,7 @@ set(buildForLUA OFF)
 set(buildAlgebra OFF)
 set(buildPluginSystem OFF)
 set(buildEmbeddedPlugins OFF)
-set(buildSharedLib OFF)
+set(buildDynamicLib OFF)
 set(buildGrid OFF)
 set(buildDisc OFF)
 set(buildBridge OFF)
@@ -715,82 +715,6 @@ if(enableDynamicOption)
 	add_definitions(-dynamic)
 endif(enableDynamicOption)
 
-################################################################################
-# make global svn revision, compile date and build host available as C++ macro
-################################################################################
-IF(EMBED_SVN_REV)
-include(FindSubversion)
-
-	IF(Subversion_FOUND)
-		#MESSAGE(STATUS "Info: Embedding svn-revision number.")
-	        EXECUTE_PROCESS(
-	                COMMAND "svnversion" "--no-newline" ${CMAKE_SOURCE_DIR}
-	                OUTPUT_VARIABLE svn_version
-	                ERROR_VARIABLE svn_version_error
-	        )
-	
-			IF(svn_version_error)
-				set(SVN_REVISION "\"svnversion failed\"")				
-			ELSE(svn_version_error)
-	        	# write a file with the SVN_REVISION define
-	        	set(SVN_REVISION "\"${svn_version}\"")
-	        ENDIF(svn_version_error)
-	
-	ELSE(Subversion_FOUND)
-		MESSAGE(STATUS "WARNING: Looking for Subversion - not found (disable EMBED_SVN_REV with -DEMBED_SVN_REV=OFF)")
-	        # write a file with the SVN_REVISION define
-	        set(SVN_REVISION "\"unknown revision\"")
-	ENDIF(Subversion_FOUND)
-	
-ELSE(EMBED_SVN_REV)
-	#MESSAGE(STATUS "INFO: Not looking for Subversion - (Enable EMBED_SVN_REV with -DEMBED_SVN_REV=ON)")
-        # write a file with the SVN_REVISION define
-        set(SVN_REVISION  "\"unknown revision\"")
-ENDIF(EMBED_SVN_REV)
-####
-# make compile date stamp available as C++ macro
-####
-
-IF(UNIX)
-    execute_process(COMMAND date
-        OUTPUT_VARIABLE compile_date OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    # write a file with the COMPILE_DATE define
-    set(COMPILE_DATE "\"${compile_date}\"")
-
-    execute_process(COMMAND hostname
-        OUTPUT_VARIABLE hostname OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    # write a file with the BUILD_HOST define
-    set(HOSTNAME "\"${CMAKE_SYSTEM_NAME} ${hostname}\"")
-    
-    execute_process(COMMAND touch "-t" "202001010000.00" "${CMAKE_BINARY_DIR}/CMakeCache.txt")   
-
-ELSEIF(WIN32)
-    #MESSAGE(STATUS "INFO: On Windows: time stamp generation unsupported!")
-    # write a file with the COMPILE_DATE define
-    set(COMPILE_DATE "__DATE__")
-    #MESSAGE(STATUS "INFO: On Windows: hostname generation unsupported!")
-    # write a file with the BUILD_HOST define
-    set(HOSTNAME "\"${CMAKE_SYSTEM_NAME} WIN32\"")
-ENDIF(UNIX)
-
-file(WRITE ${CMAKE_BINARY_DIR}/compiled_strings.cpp 
-"namespace ug\n"
-"{\n"
-"const char *SVN_REVISION=${SVN_REVISION};\n"
-"const char *BUILD_HOST=${HOSTNAME};\n"
-"const char *COMPILE_DATE=${COMPILE_DATE};\n"
-"}\n")
-
-
-if(buildDynamicLib)
-	add_library(compiledstrings SHARED ${CMAKE_BINARY_DIR}/compiled_strings.cpp)
-else(buildDynamicLib)
-	add_library(compiledstrings STATIC ${CMAKE_BINARY_DIR}/compiled_strings.cpp)
-endif(buildDynamicLib)
-
-
 
 ################################################################################
 # Those options are temporary and should be removed in future builds.
@@ -809,8 +733,23 @@ set(USE_NEW_CMAKE_INCLUDES ON)
 ################################################################################
 # link against required libraries
 link_libraries(${linkLibraries})
-link_libraries(compiledstrings)
 
+# ATTENTION! The following linker flags are specified in this special way
+# (set(...)) because this reduces dependencies during compile time compared to
+# a call to link_libraries.
+# Please note that link_libraries should almost always be preferred over the
+# set commands below.
+if(NOT buildEmbeddedPlugins)
+	if(buildDynamicLib)
+		set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} -lCompileInfo)
+		set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -lCompileInfo)
+		set(CMAKE_MODULE_LINKER_FLAGS ${CMAKE_MODULE_LINKER_FLAGS} -lCompileInfo)
+	else(buildDynamicLib)
+		set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} -lCompileInfo_s)
+		set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -lCompileInfo_s)
+		set(CMAKE_MODULE_LINKER_FLAGS ${CMAKE_MODULE_LINKER_FLAGS} -lCompileInfo_s)
+	endif(buildDynamicLib)
+endif(NOT buildEmbeddedPlugins)
 
 ################################################################################
 # Finally declare a method that allows all sub-cmake-files to add their sources
