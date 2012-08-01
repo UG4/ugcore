@@ -15,7 +15,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 include("ug_cmake_includes.txt")
 
-
 ########################
 # ugbase
 add_subdirectory(ugbase)
@@ -24,7 +23,6 @@ add_subdirectory(ugbase)
 if(buildPluginSystem)
 	add_subdirectory(plugins)
 endif(buildPluginSystem)
-
 
 ########################
 # ug4 library
@@ -36,6 +34,7 @@ if(BUILD_ONE_LIB)
 			add_definitions(-DLUA_BUILD_AS_DLL -DLUA_LIB -DLUA_CORE)
 		endif(WIN32)
 		add_library(${targetLibraryName} SHARED ${ug4libSources})
+		add_dependencies(${targetLibraryName} CompileInfo)
 	else(buildDynamicLib)
 		add_library(${targetLibraryName} ${ug4libSources})
 	endif(buildDynamicLib)

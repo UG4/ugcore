@@ -80,6 +80,15 @@ file(WRITE ${CMAKE_BINARY_DIR}/compile_info.cpp
 if(buildEmbeddedPlugins)
 	EXPORTSOURCES(/ ${CMAKE_BINARY_DIR}/compile_info.cpp)
 else(buildEmbeddedPlugins)
+#	this clearly is a dirty hack...
+#	we have to prevent that the library tries to link against itself.
+#	The benefit of setting the linker flags in the ug_cmake_includes file however
+#	currently outweights this ugly stuff...
+#	Note that this has no influence on other libraries...
+	set(CMAKE_SHARED_LINKER_FLAGS)
+	set(CMAKE_EXE_LINKER_FLAGS)
+	set(CMAKE_MODULE_LINKER_FLAGS)
+		
 	if(buildDynamicLib)
 		add_library(CompileInfo SHARED ${CMAKE_BINARY_DIR}/compile_info.cpp)
 	else(buildDynamicLib)
