@@ -46,7 +46,7 @@ void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
  * \tparam	TAlgebra	the algebra
  */
 template <typename TDomain, typename TAlgebra>
-class P1Projection :
+class StdProjection :
 	virtual public IProjectionOperator<	typename TAlgebra::vector_type,
 										typename TAlgebra::vector_type>
 {
@@ -65,10 +65,10 @@ class P1Projection :
 
 	public:
 	///	Constructor
-		P1Projection() : m_bInit(false) {}
+		StdProjection() : m_bInit(false) {}
 
 	///	Constructor
-		P1Projection(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
+		StdProjection(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 			m_spApproxSpace(approxSpace), m_bInit(false)
 		{}
 

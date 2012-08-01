@@ -40,7 +40,7 @@ void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 
 ///	Prologation Operator for P1 Approximation Spaces
 template <typename TDomain, typename TAlgebra>
-class P1Prolongation :
+class StdProlongation :
 	virtual public IProlongationOperator<TAlgebra>
 {
 	public:
@@ -58,10 +58,10 @@ class P1Prolongation :
 
 	public:
 	/// Default constructor
-		P1Prolongation() : m_bInit(false), m_dampRes(1.0) {clear_constraints();};
+		StdProlongation() : m_bInit(false), m_dampRes(1.0) {clear_constraints();};
 
 	///	Constructor setting approximation space
-		P1Prolongation(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
+		StdProlongation(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 			m_spApproxSpace(approxSpace), m_bInit(false), m_dampRes(1.0)
 		{clear_constraints();};
 
@@ -103,7 +103,7 @@ class P1Prolongation :
 		virtual SmartPtr<IProlongationOperator<TAlgebra> > clone();
 
 	///	Destructor
-		~P1Prolongation() {}
+		~StdProlongation() {}
 
 	protected:
 	///	matrix to store prolongation

@@ -81,39 +81,39 @@ void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-// 	P1Projection
+// 	StdProjection
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
 template <typename TDomain, typename TAlgebra>
-void P1Projection<TDomain, TAlgebra>::
+void StdProjection<TDomain, TAlgebra>::
 set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 {
 	m_spApproxSpace = approxSpace;
 }
 
 template <typename TDomain, typename TAlgebra>
-void P1Projection<TDomain, TAlgebra>::
+void StdProjection<TDomain, TAlgebra>::
 set_levels(GridLevel coarseLevel, GridLevel fineLevel)
 {
 	m_fineLevel = fineLevel;
 	m_coarseLevel = coarseLevel;
 	if(m_fineLevel.level() - m_coarseLevel.level() != 1)
-		UG_THROW("P1Projection::set_levels:"
+		UG_THROW("StdProjection::set_levels:"
 				" Can only project between successive level.");
 	if(m_fineLevel.type() != GridLevel::LEVEL ||
 	   m_coarseLevel.type() != GridLevel::LEVEL)
-		UG_THROW("P1Projection::set_levels:"
+		UG_THROW("StdProjection::set_levels:"
 				" Can only project between level dof distributions.");
 }
 
 template <typename TDomain, typename TAlgebra>
-void P1Projection<TDomain, TAlgebra>::
+void StdProjection<TDomain, TAlgebra>::
 init()
 {
 	if(!m_spApproxSpace.valid())
-		UG_THROW("P1Projection::init: "
+		UG_THROW("StdProjection::init: "
 				"Approximation Space not set. Cannot init Projection.");
 
 	m_matrix.resize(0,0);
@@ -135,12 +135,12 @@ init()
 }
 
 template <typename TDomain, typename TAlgebra>
-void P1Projection<TDomain, TAlgebra>::
+void StdProjection<TDomain, TAlgebra>::
 apply(vector_type& uCoarseOut, const vector_type& uFineIn)
 {
 //	Check, that operator is initiallized
 	if(!m_bInit)
-		UG_THROW("P1Projection::apply:"
+		UG_THROW("StdProjection::apply:"
 				" Operator not initialized.");
 
 //	Some Assertions
@@ -153,16 +153,16 @@ apply(vector_type& uCoarseOut, const vector_type& uFineIn)
 
 //	Apply matrix
 	if(!m_matrix.apply(uCoarseOut, uFineIn))
-		UG_THROW("P1Projection::apply: Cannot apply matrix.");
+		UG_THROW("StdProjection::apply: Cannot apply matrix.");
 }
 
 template <typename TDomain, typename TAlgebra>
-void P1Projection<TDomain, TAlgebra>::
+void StdProjection<TDomain, TAlgebra>::
 apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn)
 {
 //	Check, that operator is initiallized
 	if(!m_bInit)
-		UG_THROW("P1Projection::apply_transposed:"
+		UG_THROW("StdProjection::apply_transposed:"
 				"Operator not initialized.");
 
 //	Some Assertions
@@ -175,12 +175,12 @@ apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn)
 
 //	Apply matrix
 	if(!m_matrix.apply_transposed(uFineOut, uCoarseIn))
-		UG_THROW("P1Projection::apply_transposed:"
+		UG_THROW("StdProjection::apply_transposed:"
 				" Cannot apply transposed matrix.");
 }
 
 template <typename TDomain, typename TAlgebra>
-void P1Projection<TDomain, TAlgebra>::
+void StdProjection<TDomain, TAlgebra>::
 apply_sub(vector_type& u, const vector_type& v)
 {
 	UG_THROW("Not Implemented.");
@@ -188,10 +188,10 @@ apply_sub(vector_type& u, const vector_type& v)
 
 
 template <typename TDomain, typename TAlgebra>
-SmartPtr<IProjectionOperator<typename TAlgebra::vector_type> > P1Projection<TDomain, TAlgebra>::
+SmartPtr<IProjectionOperator<typename TAlgebra::vector_type> > StdProjection<TDomain, TAlgebra>::
 clone()
 {
-	SmartPtr<P1Projection> op(new P1Projection);
+	SmartPtr<StdProjection> op(new StdProjection);
 	op->set_approximation_space(m_spApproxSpace);
 	return op;
 }

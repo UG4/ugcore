@@ -60,28 +60,28 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	ProlongationOperator
 	{
-		typedef P1Prolongation<TDomain, TAlgebra> T;
+		typedef StdProlongation<TDomain, TAlgebra> T;
 		typedef IProlongationOperator<TAlgebra> TBase;
-		string name = string("P1Prolongation").append(suffix);
+		string name = string("StdProlongation").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
 			.add_method("add_constraint", &T::add_constraint)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "P1Prolongation", tag);
+		reg.add_class_to_group(name, "StdProlongation", tag);
 	}
 
 //	ProjectionOperator
 	{
-		typedef P1Projection<TDomain, TAlgebra> T;
+		typedef StdProjection<TDomain, TAlgebra> T;
 		typedef IProjectionOperator<vector_type, vector_type> TBase;
-		string name = string("P1Projection").append(suffix);
+		string name = string("StdProjection").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "P1Projection", tag);
+		reg.add_class_to_group(name, "StdProjection", tag);
 	}
 
 //	AssembledMultiGridCycle

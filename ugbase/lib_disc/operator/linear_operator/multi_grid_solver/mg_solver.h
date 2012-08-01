@@ -70,8 +70,8 @@ class AssembledMultiGridCycle :
 			m_numPreSmooth(2), m_numPostSmooth(2),
 			m_bAdaptive(true),
 			m_spSmootherPrototype(new Jacobi<TAlgebra>()),
-			m_spProjectionPrototype(new P1Projection<TDomain,TAlgebra>(m_spApproxSpace)),
-			m_spProlongationPrototype(new P1Prolongation<TDomain,TAlgebra>(m_spApproxSpace)),
+			m_spProjectionPrototype(new StdProjection<TDomain,TAlgebra>(m_spApproxSpace)),
+			m_spProlongationPrototype(new StdProlongation<TDomain,TAlgebra>(m_spApproxSpace)),
 			m_spBaseSolver(NULL),
 			m_NonGhostMarker(*m_spApproxSpace->domain()->grid()),
 			m_spDebugWriter(NULL), m_dbgIterCnt(0)

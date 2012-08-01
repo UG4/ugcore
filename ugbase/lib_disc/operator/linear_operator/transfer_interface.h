@@ -28,20 +28,14 @@ class IProlongationOperator :
 									typename TAlgebra::vector_type>
 {
 	public:
-	//	vector type
+	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
-	// 	Domain space
-		typedef vector_type domain_function_type;
-
-	// 	Range space
-		typedef vector_type codomain_function_type;
-
 	public:
-	// 	Apply Transposed Operator u = L^T*f
+	/// Apply Transposed Operator u = L^T*f
 		virtual void apply_transposed(vector_type& u, const vector_type& f) = 0;
 
-	// 	Set Levels for Prolongation coarse -> fine
+	/// Set Levels for Prolongation coarse -> fine
 		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) = 0;
 
 	///	clears dirichlet post processes
@@ -53,32 +47,32 @@ class IProlongationOperator :
 	///	removes a post process
 		virtual void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp) = 0;
 
-	//	Clone
+	///	Clone
 		virtual SmartPtr<IProlongationOperator<TAlgebra> > clone() = 0;
 };
 
-///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // Projection Operator
-///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename X, typename Y = X>
 class IProjectionOperator :	public virtual ILinearOperator<X,Y>
 {
 	public:
-	// 	Domain space
+	///	Domain space
 		typedef X domain_function_type;
 
-	// 	Range space
+	///	Range space
 		typedef Y codomain_function_type;
 
 	public:
-	// 	Apply Transposed Operator u = L^T*f
+	/// Apply Transposed Operator u = L^T*f
 		virtual void apply_transposed(X& u, const Y& f) = 0;
 
-	// 	Set Levels for Prolongation coarse -> fine
+	///	Set Levels for Prolongation coarse -> fine
 		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) = 0;
 
-	//	Clone
+	///	Clone
 		virtual SmartPtr<IProjectionOperator<X,Y> > clone() = 0;
 };
 
