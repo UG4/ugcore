@@ -23,7 +23,6 @@
 
 namespace ug{
 
-// TODO: This function should be put to an util file
 /**
  * This functions assembles the interpolation matrix between to
  * grid levels using only the Vertex degrees of freedom.
@@ -35,212 +34,87 @@ namespace ug{
  */
 template <typename TDD, typename TAlgebra>
 void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
-                              const TDD& coarseDD, const TDD& fineDD)
-{
-//  Allow only lagrange P1 functions
-	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
-		if(fineDD.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
-			UG_THROW("AssembleVertexProjection: "
-					"Interpolation only implemented for Lagrange P1 functions.");
+                              const TDD& coarseDD, const TDD& fineDD);
 
-// 	get MultiGrid
-	const MultiGrid& grid = coarseDD.multi_grid();
-
-// 	get number of dofs on different levels
-	const size_t numFineDoFs = fineDD.num_indices();
-	const size_t numCoarseDoFs = coarseDD.num_indices();
-
-// 	resize matrix
-	if(!mat.resize(numCoarseDoFs, numFineDoFs))
-		UG_THROW("AssembleVertexProjection: "
-				"Cannot resize Interpolation Matrix.");
-
-	std::vector<size_t> coarseInd, fineInd;
-
-// 	Vertex iterators
-	typedef typename TDD::template traits<VertexBase>::const_iterator const_iterator;
-	const_iterator iter, iterBegin, iterEnd;
-
-// 	loop subsets of fine level
-	for(int si = 0; si < fineDD.num_subsets(); ++si)
-	{
-		iterBegin = fineDD.template begin<Vertex>(si);
-		iterEnd = fineDD.template end<Vertex>(si);
-
-	// 	loop nodes of fine subset
-		for(iter = iterBegin; iter != iterEnd; ++iter)
-		{
-		// 	get father
-			GeometricObject* geomObj = grid.get_parent(*iter);
-			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
-
-		//	Check if father is Vertex
-			if(vert != NULL)
-			{
-				// get global indices
-				coarseDD.inner_algebra_indices(vert, coarseInd);
-			}
-			else continue;
-
-		// 	get global indices
-			fineDD.inner_algebra_indices(*iter, fineInd);
-
-			for(size_t i = 0; i < coarseInd.size(); ++i)
-				mat(coarseInd[i], fineInd[i]) = 1.0;
-		}
-	}
-}
-
-
-
+/**
+ * The Projection operator transfers is used to transfer vectors between two
+ * grid levels. It implements a purely algebraic interface, just mapping
+ * between two algebraic vectors, but given the approximation space this is indeed
+ * a mapping between two grid functions.
+ *
+ * \tparam	TDomain		the domain
+ * \tparam	TAlgebra	the algebra
+ */
 template <typename TDomain, typename TAlgebra>
 class P1Projection :
 	virtual public IProjectionOperator<	typename TAlgebra::vector_type,
 										typename TAlgebra::vector_type>
 {
 	public:
-	// 	Type of algebra
+	///	Type of algebra
 		typedef TAlgebra algebra_type;
 
-	//	Type of Vector
+	///	Type of Vector
 		typedef typename TAlgebra::vector_type vector_type;
 
-	//	Type of Vector
+	///	Type of Vector
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-	//	Type of Domain
+	///	Type of Domain
 		typedef TDomain domain_type;
 
 	public:
-	//	Constructor
+	///	Constructor
 		P1Projection() : m_bInit(false) {}
 
-	//	Constructor
+	///	Constructor
 		P1Projection(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 			m_spApproxSpace(approxSpace), m_bInit(false)
 		{}
 
-	//	Set Approximation Space
-		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
-		{
-			m_spApproxSpace = approxSpace;
-		}
+	///	Set Approximation Space
+		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
-	//	Set approximation level
-		void set_levels(GridLevel coarseLevel, GridLevel fineLevel)
-		{
-			m_fineLevel = fineLevel;
-			m_coarseLevel = coarseLevel;
-			if(m_fineLevel.level() - m_coarseLevel.level() != 1)
-				UG_THROW("P1Projection::set_levels:"
-						" Can only project between successive level.");
-			if(m_fineLevel.type() != GridLevel::LEVEL ||
-			   m_coarseLevel.type() != GridLevel::LEVEL)
-				UG_THROW("P1Projection::set_levels:"
-						" Can only project between level dof distributions.");
-		}
+	///	Set approximation level
+		void set_levels(GridLevel coarseLevel, GridLevel fineLevel);
 
 	public:
-	//	Init operator
-		virtual void init()
-		{
-			if(!m_spApproxSpace.valid())
-				UG_THROW("P1Projection::init: "
-						"Approximation Space not set. Cannot init Projection.");
-
-			m_matrix.resize(0,0);
-
-			try{
-			if(m_coarseLevel.type() == GridLevel::LEVEL)
-				AssembleVertexProjection<LevelDoFDistribution, algebra_type>
-				(m_matrix,
-				 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
-				 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()));
-			} UG_CATCH_THROW("TransferOperator::init():"
-						" Cannot assemble interpolation matrix.");
-
-			#ifdef UG_PARALLEL
-				m_matrix.set_storage_type(PST_CONSISTENT);
-			#endif
-
-			m_bInit = true;
-		}
+	///	Init operator
+		virtual void init();
 
 		virtual void init(const vector_type& u){init();}
 
-	// 	Project uFine to uCoarse; uCoarse = P(uFine);
-		virtual void apply(vector_type& uCoarseOut, const vector_type& uFineIn)
-		{
-		//	Check, that operator is initiallized
-			if(!m_bInit)
-				UG_THROW("P1Projection::apply:"
-						" Operator not initialized.");
+	/// Project uFine to uCoarse; uCoarse = P(uFine);
+		virtual void apply(vector_type& uCoarseOut, const vector_type& uFineIn);
 
-		//	Some Assertions
-			UG_ASSERT(uCoarseOut.size() == m_matrix.num_rows(),
-			          "Vector [size= " << uCoarseOut.size() << "] and Row [size= "
-			          << m_matrix.num_rows() <<"] sizes have to match!");
-			UG_ASSERT(uFineIn.size() == m_matrix.num_cols(),	"Vector [size= "
-			          << uFineIn.size() << "] and Column [size= " <<
-			          m_matrix.num_cols() <<"] sizes have to match!");
+	/// Apply Transposed Operator u = L^T*f
+		virtual void apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn);
 
-		//	Apply matrix
-			if(!m_matrix.apply(uCoarseOut, uFineIn))
-				UG_THROW("P1Projection::apply: Cannot apply matrix.");
-		}
+	/// Apply sub not implemented
+		virtual void apply_sub(vector_type& u, const vector_type& v);
 
-	// 	Apply Transposed Operator u = L^T*f
-		virtual void apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn)
-		{
-		//	Check, that operator is initiallized
-			if(!m_bInit)
-				UG_THROW("P1Projection::apply_transposed:"
-						"Operator not initialized.");
-
-		//	Some Assertions
-			UG_ASSERT(uCoarseIn.size() == m_matrix.num_rows(),
-					  "Vector [size= " << uCoarseIn.size() << "] and Cols [size= "
-					  << m_matrix.num_rows() <<"] sizes have to match!");
-			UG_ASSERT(uFineOut.size() == m_matrix.num_cols(),	"Vector [size= "
-					  << uFineOut.size() << "] and Rows [size= " <<
-					  m_matrix.num_cols() <<"] sizes have to match!");
-
-		//	Apply matrix
-			if(!m_matrix.apply_transposed(uFineOut, uCoarseIn))
-				UG_THROW("P1Projection::apply_transposed:"
-						" Cannot apply transposed matrix.");
-		}
-
-	// 	Apply sub not implemented
-		virtual void apply_sub(vector_type& u, const vector_type& v)
-		{
-			UG_THROW("Not Implemented.");
-		}
-
-	//	Destructor
-		~P1Projection()
-		{
-		}
-
-		virtual SmartPtr<IProjectionOperator<vector_type> > clone()
-		{
-			SmartPtr<P1Projection> op(new P1Projection);
-			op->set_approximation_space(m_spApproxSpace);
-			return op;
-		}
+	///	clones the operator
+		virtual SmartPtr<IProjectionOperator<vector_type> > clone();
 
 	protected:
+	/// matrix used for projection
 		matrix_type m_matrix;
 
+	///	the underlying approximation space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
+	///	fine level of approximation space
 		GridLevel m_fineLevel;
+
+	///	coarse level of approximation space
 		GridLevel m_coarseLevel;
 
+	///	init flag
 		bool m_bInit;
 };
 
-
 }
+
+#include "projection_operator_impl.h"
 
 #endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROJECTION_OPERATOR__ */
