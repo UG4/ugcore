@@ -57,90 +57,65 @@ void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 	//  loop vertices for fine level subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
-		//  get father
-			GeometricObject* geomObj = grid.get_parent(*iter);
-			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
-			EdgeBase* edge = dynamic_cast<EdgeBase*>(geomObj);
-			Quadrilateral* quad = dynamic_cast<Quadrilateral*>(geomObj);
-			ConstrainingFace* cFace = dynamic_cast<ConstrainingFace*>(geomObj);
-			Face* face = dynamic_cast<Face*>(geomObj);
-			Hexahedron* hexaeder = dynamic_cast<Hexahedron*>(geomObj);
+		//	get element
+			VertexBase* fineVrt = *iter;
 
+		//  get father
+			GeometricObject* parent = grid.get_parent(fineVrt);
+
+		//	type of father
+			const ReferenceObjectID roid = parent->reference_object_id();
+
+		//	loop all components
 			for(size_t fct = 0; fct < fineDD.num_fct(); fct++)
 			{
+			//	check that fct defined on subset
 				if(!fineDD.is_def_in_subset(fct, si)) continue;
 
 			//  get global indices
-				fineDD.inner_multi_indices(*iter, fct, fineMultInd);
+				fineDD.inner_multi_indices(fineVrt, fct, fineMultInd);
 
-			//  Check if father is Vertex
-				if(vert != NULL)
+			//	detect type of father
+				switch(roid)
 				{
-				//  get global indices
-					coarseDD.inner_multi_indices(vert, fct, coarseMultInd);
-
-					vIsRestricted[coarseMultInd[0][0]] = true;
-
-					BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
-								fineMultInd[0][1], coarseMultInd[0][1]) = 1.0;
-					continue;
+					case ROID_VERTEX:
+						{
+							VertexBase* vrt = dynamic_cast<VertexBase*>(parent);
+							coarseDD.inner_multi_indices(vrt, fct, coarseMultInd);
+							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 1.0;
+							vIsRestricted[coarseMultInd[0][0]] = true;
+						}
+						break;
+					case ROID_EDGE:
+						for(int i = 0; i < 2; ++i)
+						{
+							EdgeBase* edge = dynamic_cast<EdgeBase*>(parent);
+							coarseDD.inner_multi_indices(edge->vertex(i), fct, coarseMultInd);
+							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.5;
+							vIsRestricted[coarseMultInd[0][0]] = true;
+						}
+						break;
+					case ROID_QUADRILATERAL:
+						for(int i = 0; i < 4; ++i)
+						{
+							Face* face = dynamic_cast<Face*>(parent);
+							coarseDD.inner_multi_indices(face->vertex(i), fct, coarseMultInd);
+							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.25;
+							vIsRestricted[coarseMultInd[0][0]] = true;
+						}
+						break;
+					case ROID_HEXAHEDRON:
+						for(int i = 0; i < 8; ++i)
+						{
+							Volume* hexaeder = dynamic_cast<Volume*>(parent);
+							coarseDD.inner_multi_indices(hexaeder->vertex(i), fct, coarseMultInd);
+							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.125;
+							vIsRestricted[coarseMultInd[0][0]] = true;
+						}
+						break;
+					default: UG_THROW("AssembleVertexProlongation: Element Father"
+									 "is of unsupported type "<<roid);
 				}
-
-			//  Check if father is Edge
-				if(edge != NULL)
-				{
-					for(int i = 0; i < 2; ++i)
-					{
-						VertexBase* v = edge->vertex(i);
-
-					//  get global indices
-						coarseDD.inner_multi_indices(v, fct, coarseMultInd);
-
-						vIsRestricted[coarseMultInd[0][0]] = true;
-
-						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
-									fineMultInd[0][1], coarseMultInd[0][1]) = 0.5;
-					}
-					continue;
-				}
-
-			//  Check if father is Quad
-				if(quad != NULL || cFace != NULL)
-				{
-					for(int i = 0; i < 4; ++i)
-					{
-						VertexBase* v = face->vertex(i);
-
-					//  get global indices
-						coarseDD.inner_multi_indices(v, fct, coarseMultInd);
-
-						vIsRestricted[coarseMultInd[0][0]] = true;
-
-						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
-									fineMultInd[0][1], coarseMultInd[0][1]) = 0.25;
-					}
-					continue;
-				}
-
-			//  Check if father is Hexaeder
-				if(hexaeder != NULL)
-				{
-					for(int i = 0; i < 8; ++i)
-					{
-						VertexBase* v = hexaeder->vertex(i);
-
-					//  get global indices
-						coarseDD.inner_multi_indices(v, fct, coarseMultInd);
-
-						vIsRestricted[coarseMultInd[0][0]] = true;
-
-						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
-									fineMultInd[0][1], coarseMultInd[0][1]) = 0.125;
-					}
-					continue;
-				}
-
-				UG_THROW("AssembleVertexProlongation: Element Father not detected.");
 			}
 		}
 	}
@@ -164,9 +139,11 @@ void P1Prolongation<TDomain, TAlgebra>::set_levels(GridLevel coarseLevel, GridLe
 {
 	m_fineLevel = fineLevel;
 	m_coarseLevel = coarseLevel;
+
 	if(m_fineLevel.level() - m_coarseLevel.level() != 1)
 		UG_THROW("P1Prolongation<TDomain, TAlgebra>::set_levels:"
 				" Can only project between successive level.");
+
 	if(m_fineLevel.type() != GridLevel::LEVEL ||
 	   m_coarseLevel.type() != GridLevel::LEVEL)
 		UG_THROW("P1Prolongation<TDomain, TAlgebra>::set_levels:"
