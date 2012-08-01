@@ -9,6 +9,8 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR_IMPL__
 
 #include "prolongation_operator.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
+#include "lib_disc/local_finite_element/local_shape_function_set.h"
 
 namespace ug{
 
@@ -121,6 +123,129 @@ void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 	}
 }
 
+
+template <typename TDomain, typename TDD, typename TAlgebra>
+void AssembleProlongationElementwise(typename TAlgebra::matrix_type& mat,
+                                     const TDD& coarseDD, const TDD& fineDD,
+                                     ConstSmartPtr<TDomain> spDomain,
+                                     std::vector<bool>& vIsRestricted)
+{
+//	dimension
+	const int dim = TDomain::dim;
+
+//  get subsethandler and grid
+	const MultiGrid& grid = coarseDD.multi_grid();
+
+//  get number of dofs on different levels
+	const size_t numFineDoFs = fineDD.num_indices();
+	const size_t numCoarseDoFs = coarseDD.num_indices();
+
+//	check if grid distribution has dofs, otherwise skip creation since father
+//	elements may not exist in parallel.
+	if(numFineDoFs == 0 || numCoarseDoFs == 0) return;
+
+//  resize matrix
+	if(!mat.resize(numFineDoFs, numCoarseDoFs))
+		UG_THROW("AssembleVertexProlongation:"
+				"Cannot resize Interpolation Matrix.");
+
+//	clear restricted vector
+	vIsRestricted.clear(); vIsRestricted.resize(numCoarseDoFs, false);
+
+	std::vector<MultiIndex<2> > vCoarseMultInd, vFineMultInd;
+
+
+//	vector of local finite element ids
+	std::vector<LFEID> vLFEID(fineDD.num_fct());
+	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
+		vLFEID[fct] = fineDD.local_finite_element_id(fct);
+
+//  iterators
+	typedef typename TDD::template dim_traits<dim>::const_iterator const_iterator;
+	typedef typename TDD::template dim_traits<dim>::geometric_base_object Element;
+	const_iterator iter, iterBegin, iterEnd;
+
+//  loop subsets on fine level
+	for(int si = 0; si < coarseDD.num_subsets(); ++si)
+	{
+		iterBegin = coarseDD.template begin<Element>(si);
+		iterEnd = coarseDD.template end<Element>(si);
+
+	//  loop vertices for fine level subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	get element
+			Element* coarseElem = *iter;
+
+		//  get children
+			const size_t numChild = grid.num_children<Element, Element>(coarseElem);
+			std::vector<Element*> vChild(numChild);
+			for(size_t c = 0; c < vChild.size(); ++c)
+				vChild[c] = grid.get_child<Element, Element>(coarseElem,  c);
+
+		//	type of father
+			const ReferenceObjectID roid = coarseElem->reference_object_id();
+
+		//	loop all components
+			for(size_t fct = 0; fct < coarseDD.num_fct(); fct++)
+			{
+			//	check that fct defined on subset
+				if(!coarseDD.is_def_in_subset(fct, si)) continue;
+
+			//  get global indices
+				coarseDD.multi_indices(coarseElem, fct, vCoarseMultInd);
+
+			//	get local finite element trial spaces
+				const LocalShapeFunctionSet<dim>& lsfs = LocalShapeFunctionSetProvider::get<dim>(roid, vLFEID[fct]);
+
+			//	get corner coordinates
+				std::vector<MathVector<dim> > vCornerCoarse;
+				CollectCornerCoordinates(vCornerCoarse, *coarseElem, *spDomain);
+
+			//	get Reference Mapping
+				DimReferenceMapping<dim, dim>& map = ReferenceMappingProvider::get<dim, dim>(roid, vCornerCoarse);
+
+			//	loop children
+				for(size_t c = 0; c < vChild.size(); ++c)
+				{
+					Element* child = vChild[c];
+
+				//	fine dof indices
+					fineDD.multi_indices(child, fct, vFineMultInd);
+
+				//	global positions of fine dofs
+					std::vector<MathVector<dim> > vDoFPos, vLocPos;
+					DoFPosition(vDoFPos, child, *spDomain, vLFEID[fct], dim);
+
+					UG_ASSERT(vDoFPos.size() == vFineMultInd.size(), "must match");
+
+				//	get local position of DoF
+					vLocPos.resize(vDoFPos.size());
+					for(size_t ip = 0; ip < vLocPos.size(); ++ip) VecSet(vLocPos[ip], 0.0);
+					map.global_to_local(vLocPos, vDoFPos);
+
+				//	get all shape functions
+					std::vector<std::vector<number> > vvShape;
+
+				//	evaluate coarse shape fct at fine local point
+					lsfs.shapes(vvShape, vLocPos);
+
+					for(size_t ip = 0; ip < vvShape.size(); ++ip)
+					{
+						for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
+						{
+							DoFRef(mat, vFineMultInd[ip], vCoarseMultInd[sh]) = vvShape[ip][sh];
+							vIsRestricted[vCoarseMultInd[sh][0]] = true;
+						}
+					}
+				}
+
+			}
+		}
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 // 	StdProlongation
@@ -160,13 +285,30 @@ void StdProlongation<TDomain, TAlgebra>::init()
 
 	m_matrix.resize(0,0);
 
+// 	check only lagrange P1 functions
+	bool P1LagrangeOnly = true;
+	for(size_t fct = 0; fct < m_spApproxSpace->function_pattern()->num_fct(); ++fct)
+		if(m_spApproxSpace->function_pattern()->local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+			P1LagrangeOnly = false;
+
 	try{
-	if(m_coarseLevel.type() == GridLevel::LEVEL)
-		AssembleVertexProlongation<LevelDoFDistribution, algebra_type>
-		(m_matrix,
-		 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
-		 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),
-		 m_vIsRestricted);
+		if(P1LagrangeOnly)
+		{
+			AssembleVertexProlongation<LevelDoFDistribution, TAlgebra>
+			(m_matrix,
+			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
+			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),
+			 m_vIsRestricted);
+		}
+		else
+		{
+			AssembleProlongationElementwise<TDomain, LevelDoFDistribution, TAlgebra>
+			(m_matrix,
+			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
+			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),
+			 m_spApproxSpace->domain(),
+			 m_vIsRestricted);
+		}
 	} UG_CATCH_THROW("StdProlongation<TDomain, TAlgebra>::init:"
 				"Cannot assemble interpolation matrix.");
 
