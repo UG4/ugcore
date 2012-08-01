@@ -32,6 +32,8 @@ void DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
 	for(size_t i = 0; i < m_vDomainElemDisc.size(); ++i)
 	{
 		m_vDomainElemDisc[i]->set_approximation_space(m_spApproxSpace);
+
+		if(!(m_vDomainElemDisc[i]->type() & m_ElemTypesEnabled)) continue;
 		m_vElemDisc.push_back(m_vDomainElemDisc[i].get());
 	}
 }
