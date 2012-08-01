@@ -518,7 +518,7 @@ LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
 
 	// H = mT*m (H is symmetric)
 	// TODO: Since H is symmetric, we could store only lower or upper elements
-	MathMatrix<M,M,T> H, HInv;
+	MathMatrix<N,N,T> H, HInv;
 	MatMultiplyMTM(H, m);
 
 	// Invert H

@@ -77,6 +77,24 @@ class ReferenceMapping
 		void local_to_global(std::vector<MathVector<worldDim> >& vGlobPos,
 							 const std::vector<MathVector<dim> >& vLocPos) const;
 
+	///	map global coordinate to local coordinate
+		void global_to_local(MathVector<dim>& locPos,
+							 const MathVector<worldDim>& globPos,
+							 const size_t maxIter = 1000,
+							 const number tol = 1e-10) const;
+
+	///	map global coordinate to local coordinate for n local positions
+		void global_to_local(MathVector<dim>* vLocPos,
+							 const MathVector<worldDim>* vGlobPos, size_t n,
+							 const size_t maxIter = 1000,
+							 const number tol = 1e-10) const;
+
+	///	map global coordinate to local coordinate for a vector of local positions
+		void global_to_local(std::vector<MathVector<dim> >& vLocPos,
+							 const std::vector<MathVector<worldDim> >& vGlobPos,
+							 const size_t maxIter = 1000,
+							 const number tol = 1e-10) const;
+
 	///	returns jacobian
 		void jacobian(MathMatrix<worldDim, dim>& J,
 		              const MathVector<dim>& locPos) const;
@@ -164,6 +182,82 @@ class BaseReferenceMapping
 			const size_t n = vLocPos.size();
 			vGlobPos.resize(n);
 			local_to_global(&vGlobPos[0], &vLocPos[0], n);
+		}
+
+	///	map global coordinate to local coordinate
+		void global_to_local(MathVector<dim>& locPos,
+							 const MathVector<worldDim>& globPos,
+							 const size_t maxIter = 1000,
+							 const number tol = 1e-10) const
+		{
+			MathMatrix<worldDim, dim> J;
+			MathMatrix<dim, worldDim> JInv;
+			MathVector<worldDim> dist, compGlobPos;
+
+			for (size_t i = 0; i < maxIter; ++i) {
+
+			//	f(x) := \phi(x) - x_{glob}
+				getImpl().local_to_global(compGlobPos, locPos);
+				VecSubtract(dist, compGlobPos, globPos);
+
+			//	check if tol reached
+				if(fabs(VecTwoNorm(dist)) < tol) return;
+
+			//	compute jacobian df/dx = d \phi(x) / dx =: J
+				getImpl().jacobian(J, locPos);
+
+			//	solve x -= J^{-1} f
+				LeftInverse(JInv, J);
+				MatVecScaleMultAppend(locPos, -1.0, JInv, dist);
+			}
+
+			UG_THROW("ReferenceMapping::global_to_local: Newton method did not"
+					" reach a tolerance "<<tol<<" after "<<maxIter<<" steps.");
+		}
+
+	///	map global coordinate to local coordinate for n local positions
+		void global_to_local(MathVector<dim>* vLocPos,
+							 const MathVector<worldDim>* vGlobPos, size_t n,
+							 const size_t maxIter = 1000,
+							 const number tol = 1e-10) const
+		{
+			if(isLinear){
+				if(n == 0) return;
+
+				MathMatrix<worldDim, dim> J;
+				MathMatrix<dim, worldDim> JInv;
+				MathVector<worldDim> dist, compGlobPos;
+
+			//	compute jacobian df/dx = d \phi(x) / dx =: J
+				getImpl().jacobian(J, vLocPos[0]);
+
+			//	solve x -= J^{-1} f
+				LeftInverse(JInv, J);
+
+				for(size_t ip = 0; ip < n; ++ip)
+				{
+				//	f(x) := \phi(x) - x_{glob}
+					getImpl().local_to_global(compGlobPos, vLocPos[ip]);
+					VecSubtract(dist, compGlobPos, vGlobPos[ip]);
+
+					MatVecScaleMultAppend(vLocPos[ip], -1.0, JInv, dist);
+				}
+			}
+			else{
+				for(size_t ip = 0; ip < n; ++ip)
+					getImpl().global_to_local(vLocPos[ip], vGlobPos[ip], maxIter, tol);
+			}
+		}
+
+	///	map global coordinate to local coordinate for a vector of local positions
+		void global_to_local(std::vector<MathVector<dim> >& vLocPos,
+							 const std::vector<MathVector<worldDim> >& vGlobPos,
+							 const size_t maxIter = 1000,
+							 const number tol = 1e-10) const
+		{
+			const size_t n = vGlobPos.size();
+			vLocPos.resize(n);
+			global_to_local(&vLocPos[0], &vGlobPos[0], n, maxIter, tol);
 		}
 
 	///	returns jacobian

@@ -20,12 +20,19 @@ inline
 void
 MatVecMult(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v);
 
-/// Matrix - Vector Multiplication adding to a second matrix
+/// Matrix - Vector Multiplication adding to a second vector
 // vOut += m * v
 template <typename vector_t_out, typename matrix_t, typename vector_t_in>
 inline
 void
 MatVecMultAppend(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v);
+
+/// Matrix - Vector Multiplication added scaled to a second vector
+// vOut += s * m * v
+template <typename vector_t_out, typename matrix_t, typename vector_t_in>
+inline
+void
+MatVecScaleMultAppend(vector_t_out& vOut, typename vector_t_out::value_type s, const matrix_t& m, const vector_t_in& v);
 
 /// Transposed Matrix - Vector Muliplication
 // vOut = Transpose(m) * v

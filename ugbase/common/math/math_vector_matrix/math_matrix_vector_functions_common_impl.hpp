@@ -56,6 +56,27 @@ MatVecMultAppend(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v)
 	}
 }
 
+/// Matrix - Vector Multiplication added scaled to a second vector
+// vOut += s * m * v
+template <typename vector_t_out, typename matrix_t, typename vector_t_in>
+inline
+void
+MatVecScaleMultAppend(vector_t_out& vOut, typename vector_t_out::value_type s, const matrix_t& m, const vector_t_in& v)
+{
+	assert(vector_t_out::Size == matrix_t::RowSize);
+	assert(vector_t_in::Size == matrix_t::ColSize);
+
+	typedef typename matrix_t::size_type size_type;
+	for(size_type i = 0; i < vOut.size(); ++i)
+	{
+		for(size_type j = 0; j < v.size(); ++j)
+		{
+			vOut[i] += s * m(i,j) * v[j];
+		}
+	}
+}
+
+
 /// Transposed Matrix - Vector Muliplication
 // vOut = Transpose(m) * v
 template <typename vector_t_out, typename matrix_t, typename vector_t_in>
