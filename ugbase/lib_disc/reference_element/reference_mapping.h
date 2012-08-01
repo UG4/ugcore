@@ -461,7 +461,7 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 	///	refresh mapping for new set of corners
 		void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			UG_ASSERT((int)vCornerCoord.size() < ReferenceEdge::numCorners,
+			UG_ASSERT((int)vCornerCoord.size() >= ReferenceEdge::numCorners,
 			          "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
@@ -531,7 +531,7 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 	///	refresh mapping for new set of corners
 		void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			UG_ASSERT((int)vCornerCoord.size() < ReferenceTriangle::numCorners,
+			UG_ASSERT((int)vCornerCoord.size() >= ReferenceTriangle::numCorners,
 			          "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
@@ -605,7 +605,7 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 	///	refresh mapping for new set of corners
 		void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			UG_ASSERT((int)vCornerCoord.size() < ReferenceQuadrilateral::numCorners,
+			UG_ASSERT((int)vCornerCoord.size() >= ReferenceQuadrilateral::numCorners,
 			          "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
@@ -689,7 +689,7 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 	///	refresh mapping for new set of corners
 		void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			UG_ASSERT((int)vCornerCoord.size() < ReferenceTetrahedron::numCorners,
+			UG_ASSERT((int)vCornerCoord.size() >= ReferenceTetrahedron::numCorners,
 			          "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
@@ -766,7 +766,7 @@ class ReferenceMapping<ReferencePyramid, TWorldDim>
 	///	refresh mapping for new set of corners
 		void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			UG_ASSERT((int)vCornerCoord.size() < ReferencePyramid::numCorners,
+			UG_ASSERT((int)vCornerCoord.size() >= ReferencePyramid::numCorners,
 			          "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
@@ -884,7 +884,7 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 	///	refresh mapping for new set of corners
 		void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			UG_ASSERT((int)vCornerCoord.size() < ReferencePrism::numCorners,
+			UG_ASSERT((int)vCornerCoord.size() >= ReferencePrism::numCorners,
 						"ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
@@ -978,7 +978,7 @@ class ReferenceMapping<ReferenceHexahedron, TWorldDim>
 	///	refresh mapping for new set of corners
 		void update(const std::vector<MathVector<worldDim> >& vCornerCoord)
 		{
-			UG_ASSERT((int)vCornerCoord.size() < ReferenceHexahedron::numCorners,
+			UG_ASSERT((int)vCornerCoord.size() >= ReferenceHexahedron::numCorners,
 					 "ReferenceMapping: to few Corner Coordinates.");
 			update(&vCornerCoord[0]);
 		}
