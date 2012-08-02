@@ -256,14 +256,14 @@ template <typename TVector>
 inline number&
 DoFRef(TVector& vec, const MultiIndex<2>& ind)
 {
-	return BlockRef(vec(ind[0]), ind[1]);
+	return BlockRef(vec[ind[0]], ind[1]);
 }
 
 template <typename TVector>
 inline const number&
 DoFRef(const TVector& vec, const MultiIndex<2>& ind)
 {
-	return BlockRef(vec(ind[0]), ind[1]);
+	return BlockRef(vec[ind[0]], ind[1]);
 }
 
 
