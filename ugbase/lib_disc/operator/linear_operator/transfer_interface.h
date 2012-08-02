@@ -22,6 +22,7 @@ class IConstraint;
 // Transfer Operator
 ///////////////////////////////////////////////////////////////////////////////
 
+/// interface for transfer routines
 template <typename TAlgebra>
 class ITransferOperator
 {
@@ -46,10 +47,10 @@ class ITransferOperator
 	///	initialize the operator
 		virtual void init() = 0;
 
-	/// Apply Operator, interpolate function, prolongate
+	/// Prolongates vector, i.e. moves data from coarse to fine level
 		virtual void prolongate(vector_type& uFine, const vector_type& uCoarse) = 0;
 
-	/// Apply Transposed Operator u = L^T*f, restrict
+	/// Restricts vector, i.e. moves data from fine to coarse level
 		virtual void restrict(vector_type& uCoarse, const vector_type& uFine) = 0;
 
 	///	Clone
