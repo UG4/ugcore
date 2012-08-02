@@ -188,6 +188,8 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 
 		//  get children
 			const size_t numChild = grid.num_children<Element, Element>(coarseElem);
+			if(numChild == 0) continue;
+
 			std::vector<Element*> vChild(numChild);
 			for(size_t c = 0; c < vChild.size(); ++c)
 				vChild[c] = grid.get_child<Element, Element>(coarseElem,  c);

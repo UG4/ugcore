@@ -49,34 +49,91 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	typedef typename TDD::template traits<VertexBase>::const_iterator const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
-// 	loop subsets of fine level
-	for(int si = 0; si < fineDD.num_subsets(); ++si)
+	iterBegin = fineDD.template begin<Vertex>();
+	iterEnd = fineDD.template end<Vertex>();
+
+// 	loop nodes of fine subset
+	for(iter = iterBegin; iter != iterEnd; ++iter)
 	{
-		iterBegin = fineDD.template begin<Vertex>(si);
-		iterEnd = fineDD.template end<Vertex>(si);
+	// 	get father
+		GeometricObject* geomObj = grid.get_parent(*iter);
+		VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
 
-	// 	loop nodes of fine subset
-		for(iter = iterBegin; iter != iterEnd; ++iter)
+	//	Check if father is Vertex
+		if(vert != NULL)
 		{
-		// 	get father
-			GeometricObject* geomObj = grid.get_parent(*iter);
-			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
+			// get global indices
+			coarseDD.inner_algebra_indices(vert, coarseInd);
+		}
+		else continue;
 
-		//	Check if father is Vertex
-			if(vert != NULL)
-			{
-				// get global indices
-				coarseDD.inner_algebra_indices(vert, coarseInd);
-			}
-			else continue;
+	// 	get global indices
+		fineDD.inner_algebra_indices(*iter, fineInd);
 
-		// 	get global indices
-			fineDD.inner_algebra_indices(*iter, fineInd);
+		for(size_t i = 0; i < coarseInd.size(); ++i)
+			mat(coarseInd[i], fineInd[i]) = 1.0;
+	}
+}
+
+template <int dim, typename TDD, typename TAlgebra>
+void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
+                                          const TDD& coarseDD, const TDD& fineDD)
+{
+// 	get MultiGrid
+	const MultiGrid& grid = coarseDD.multi_grid();
+
+// 	get number of dofs on different levels
+	const size_t numFineDoFs = fineDD.num_indices();
+	const size_t numCoarseDoFs = coarseDD.num_indices();
+
+// 	resize matrix
+	if(!mat.resize(numCoarseDoFs, numFineDoFs))
+		UG_THROW("AssembleInjectionByAverageOfChildren: "
+				"Cannot resize Interpolation Matrix.");
+
+	std::vector<size_t> coarseInd, fineInd;
+
+// 	Vertex iterators
+	typedef typename TDD::template dim_traits<dim>::const_iterator const_iterator;
+	typedef typename TDD::template dim_traits<dim>::geometric_base_object Element;
+	const_iterator iter, iterBegin, iterEnd;
+
+	iterBegin = coarseDD.template begin<Element>();
+	iterEnd = coarseDD.template end<Element>();
+
+// 	loop elements of coarse subset
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	//	get element
+		Element* coarseElem = *iter;
+
+	//  get children
+		const size_t numChild = grid.num_children<Element, Element>(coarseElem);
+		if(numChild == 0) continue;
+
+	// get global indices
+		coarseDD.inner_algebra_indices(coarseElem, coarseInd);
+
+		for(size_t c = 0; c < numChild; ++c)
+		{
+			Element* child = grid.get_child<Element, Element>(coarseElem,  c);
+
+			fineDD.inner_algebra_indices(child, fineInd);
 
 			for(size_t i = 0; i < coarseInd.size(); ++i)
-				mat(coarseInd[i], fineInd[i]) = 1.0;
+				mat(coarseInd[i], fineInd[i]) = 1.0/(numChild);
 		}
 	}
+}
+
+template <typename TDD, typename TAlgebra>
+void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
+                              const TDD& coarseDD, const TDD& fineDD)
+{
+	if(coarseDD.max_dofs(VERTEX)) AssembleInjectionByAverageOfChildren<0, TDD, TAlgebra>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(EDGE)) AssembleInjectionByAverageOfChildren<1, TDD, TAlgebra>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(FACE)) AssembleInjectionByAverageOfChildren<2, TDD, TAlgebra>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(VOLUME)) AssembleInjectionByAverageOfChildren<3, TDD, TAlgebra>(mat, coarseDD, fineDD);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +192,10 @@ void InjectionTransfer<TDomain, TAlgebra>::init()
 		}
 		else
 		{
-			UG_THROW("InjectionTransfer::init(): Only P1 Implemented.");
+			AssembleInjectionByAverageOfChildren<LevelDoFDistribution, algebra_type>
+			(m_matrix,
+			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
+			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()));
 		}
 
 	} UG_CATCH_THROW("InjectionTransfer::init():"
