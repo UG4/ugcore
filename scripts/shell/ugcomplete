@@ -160,7 +160,6 @@ complete -W "\
 -DDEBUG_FORMAT= \
 -DDEBUG_LOGS= \
 -DDIM= \
--DEMBED_SVN_REV= \
 -DElementQualityStatistics= \
 -DHLIBPRO= \
 -DHYPRE= \

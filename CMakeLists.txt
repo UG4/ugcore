@@ -28,15 +28,34 @@ endif(buildPluginSystem)
 # ug4 library
 if(BUILD_ONE_LIB)
 	get_property(ug4libSources GLOBAL PROPERTY ugSources)
+	
 	if(buildDynamicLib)
 		add_definitions(-DBUILDING_DYNAMIC_LIBRARY)
 		if(WIN32)
 			add_definitions(-DLUA_BUILD_AS_DLL -DLUA_LIB -DLUA_CORE)
 		endif(WIN32)
 		add_library(${targetLibraryName} SHARED ${ug4libSources})
-		add_dependencies(${targetLibraryName} CompileInfo)
+		
+		if(NOT buildEmbeddedPlugins)
+			add_dependencies(${targetLibraryName} CompileInfo)
+		endif(NOT buildEmbeddedPlugins)
+		
 	else(buildDynamicLib)
 		add_library(${targetLibraryName} ${ug4libSources})
+		
+		if(NOT buildEmbeddedPlugins)
+			add_dependencies(${targetLibraryName} CompileInfo_s)
+		endif(NOT buildEmbeddedPlugins)
+		
 	endif(buildDynamicLib)
+	
+	if(buildEmbeddedPlugins)
+	#	if we build with embedded plugins, the compile-info is also embedded
+	#	into the single big target lib. We thus have to add a dependency to
+	#	the custom updateCompileInfo target declared in compile_info/CMakeLists.txt.
+		add_dependencies(${targetLibraryName} updateCompileInfo)
+	endif(buildEmbeddedPlugins)
+	
 endif(BUILD_ONE_LIB)
 
+execute_process(COMMAND touch "-t" "999901010000.00" "${CMAKE_BINARY_DIR}/CMakeCache.txt")

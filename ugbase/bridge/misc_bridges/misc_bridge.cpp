@@ -204,8 +204,6 @@ bool IsDefinedBLAS_AVAILABLE() { return true; }
 bool IsDefinedBLAS_AVAILABLE() { return false; }
 #endif
 
-// EMBED_SVN_REV - no special output nec. since this info is already visible!
-
 // External libraries:
 #ifdef UG_METIS
 bool IsDefinedUG_METIS() { return true; }
