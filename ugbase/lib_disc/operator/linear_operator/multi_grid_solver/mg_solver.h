@@ -135,6 +135,18 @@ class AssembledMultiGridCycle :
 		void set_projection(SmartPtr<ITransferOperator<TAlgebra> > P)
 			{m_spProjectionPrototype = P;}
 
+	///	clears all transfer post process
+		void clear_transfer_post_process()
+			{m_vspProlongationPostProcess.clear(); m_vspRestrictionPostProcess.clear();}
+
+	///	add prolongation post process
+		void add_prolongation_post_process(SmartPtr<ITransferPostProcess<TAlgebra> > PP)
+			{m_vspProlongationPostProcess.push_back(PP);}
+
+	///	add restriction post process
+		void add_restriction_post_process(SmartPtr<ITransferPostProcess<TAlgebra> > PP)
+			{m_vspRestrictionPostProcess.push_back(PP);}
+
 	///////////////////////////////////////////////////////////////////////////
 	//	Linear Solver interface methods
 	///////////////////////////////////////////////////////////////////////////
@@ -293,6 +305,10 @@ class AssembledMultiGridCycle :
 	///	prototype for prolongation operator
 		SmartPtr<ITransferOperator<TAlgebra> > m_spRestrictionPrototype;
 
+	///	prototpe for transfer post process
+		std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > m_vspProlongationPostProcess;
+		std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > m_vspRestrictionPostProcess;
+
 	///	base solver for the coarse problem
 		SmartPtr<ILinearOperatorInverse<vector_type> > m_spBaseSolver;
 
@@ -319,6 +335,8 @@ class AssembledMultiGridCycle :
 			            ITransferOperator<TAlgebra>& projection,
 			            ITransferOperator<TAlgebra>& prolongation,
 			            ITransferOperator<TAlgebra>& restriction,
+			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vprolongationPP,
+			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vrestrictionPP,
 			            BoolMarker& nonGhostMarker);
 
 		//	returns if ghosts are present on the level
@@ -414,11 +432,13 @@ class AssembledMultiGridCycle :
 		//	projection operator
 			SmartPtr<ITransferOperator<TAlgebra> > Projection;
 
-		//	prolongation operator
+		//	transfer operator
 			SmartPtr<ITransferOperator<TAlgebra> > Prolongation;
-
-		//	prolongation operator
 			SmartPtr<ITransferOperator<TAlgebra> > Restriction;
+
+		//	transfer post process
+            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vProlongationPP;
+            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vRestrictionPP;
 
 		//	vectors needed
 			vector_type u, c, d, t;

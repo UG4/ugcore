@@ -60,6 +60,35 @@ class ITransferOperator
 		~ITransferOperator() {}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Transfer Post Process
+///////////////////////////////////////////////////////////////////////////////
+
+/// interface for transfer routines
+template <typename TAlgebra>
+class ITransferPostProcess
+{
+	public:
+	///	Vector type
+		typedef typename TAlgebra::vector_type vector_type;
+
+	public:
+	/// Set Levels for Post Process
+		virtual void set_levels(GridLevel level) = 0;
+
+	///	initialize the operator
+		virtual void init() = 0;
+
+	/// apply post process
+		virtual void post_process(vector_type& u) = 0;
+
+	///	Clone
+		virtual SmartPtr<ITransferPostProcess<TAlgebra> > clone() = 0;
+
+	///	virtual destructor
+		~ITransferPostProcess() {}
+};
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_INTERFACE__ */

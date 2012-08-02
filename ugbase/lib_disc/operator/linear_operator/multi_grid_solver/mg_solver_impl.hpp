@@ -295,6 +295,10 @@ restriction(size_t lev, bool* restrictionPerformedOut)
 				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
 	GMG_PROFILE_END();
 
+//	apply post processes
+	for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
+		m_vLevData[lev]->vRestrictionPP[i]->post_process(cd);
+
 //	since we reached this point, the restriction was performed.
 	*restrictionPerformedOut = true;
 
@@ -340,6 +344,10 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 					" level " << lev-1 << " to " << lev << " failed. "
 					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 		GMG_PROFILE_END();
+
+	//	apply post processes
+		for(size_t i = 0; i < m_vLevData[lev]->vProlongationPP.size(); ++i)
+			m_vLevData[lev]->vProlongationPP[i]->post_process(tmp);
 	}
 
 //	PARALLEL CASE: Receive values of correction for vertical slaves
@@ -1122,6 +1130,18 @@ init_transfer()
 	//	init prolongation
 		m_vLevData[lev]->Prolongation->init();
 		if(!bOneOperator) m_vLevData[lev]->Restriction->init();
+
+		for(size_t i = 0; i < m_vLevData[lev]->vProlongationPP.size(); ++i)
+		{
+			m_vLevData[lev]->vProlongationPP[i]->set_levels(GridLevel(lev, GridLevel::LEVEL));
+			m_vLevData[lev]->vProlongationPP[i]->init();
+		}
+
+		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
+		{
+			m_vLevData[lev]->vRestrictionPP[i]->set_levels(GridLevel(lev-1, GridLevel::LEVEL));
+			m_vLevData[lev]->vRestrictionPP[i]->init();
+		}
 	}
 
 //	we're done
@@ -1534,6 +1554,12 @@ clone()
 	clone->set_presmoother(m_spPreSmootherPrototype);
 	clone->set_postsmoother(m_spPostSmootherPrototype);
 
+	for(size_t i = 0; i < m_vspProlongationPostProcess.size(); ++i)
+		clone->add_prolongation_post_process(m_vspProlongationPostProcess[i]);
+
+	for(size_t i = 0; i < m_vspRestrictionPostProcess.size(); ++i)
+		clone->add_restriction_post_process(m_vspRestrictionPostProcess[i]);
+
 	return clone;
 }
 
@@ -1746,6 +1772,8 @@ top_level_required(size_t topLevel)
 		                       *m_spProjectionPrototype,
 		                       *m_spProlongationPrototype,
 		                       *m_spRestrictionPrototype,
+		                       m_vspProlongationPostProcess,
+		                       m_vspRestrictionPostProcess,
 		                       m_NonGhostMarker);
 	}
 
@@ -1766,6 +1794,8 @@ update(size_t lev,
        ITransferOperator<TAlgebra>& projection,
        ITransferOperator<TAlgebra>& prolongation,
        ITransferOperator<TAlgebra>& restriction,
+       std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vprolongationPP,
+       std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vrestrictionPP,
        BoolMarker& nonGhostMarker)
 {
 //	get dof distribution
@@ -1796,6 +1826,20 @@ update(size_t lev,
 	if(Prolongation.invalid()) Prolongation = prolongation.clone();
 	if(&projection == &restriction)	Restriction = Prolongation;
 	else{if(Restriction.invalid()) Restriction = restriction.clone();}
+
+	vProlongationPP.clear();
+	for(size_t i = 0; i < vprolongationPP.size(); ++i)
+	{
+		if(vprolongationPP[i].invalid())
+			vProlongationPP.push_back(vprolongationPP[i]->clone());
+	}
+
+	vRestrictionPP.clear();
+	for(size_t i = 0; i < vrestrictionPP.size(); ++i)
+	{
+		if(vrestrictionPP[i].invalid())
+			vRestrictionPP.push_back(vrestrictionPP[i]->clone());
+	}
 
 //	IN PARALLEL:
 //	In the parallel case one may have vertical slaves/masters. Those are needed

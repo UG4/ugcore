@@ -19,6 +19,7 @@
 #include "lib_disc/function_spaces/approximation_space.h"
 
 #include "lib_disc/operator/linear_operator/projection_operator.h"
+#include "lib_disc/operator/linear_operator/transfer_post_process.h"
 #include "lib_disc/operator/linear_operator/prolongation_operator.h"
 #include "lib_disc/operator/linear_operator/multi_grid_solver/mg_solver.h"
 
@@ -84,6 +85,17 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "InjectionTransfer", tag);
 	}
 
+//	Average Transfer Post Process
+	{
+		typedef AverageComponent<TDomain, TAlgebra> T;
+		typedef ITransferPostProcess<TAlgebra> TBase;
+		string name = string("AverageComponent").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<approximation_space_type>, const char*)>("Approximation Space#Components")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "AverageComponent", tag);
+	}
+
 //	AssembledMultiGridCycle
 	{
 		typedef AssembledMultiGridCycle<TDomain, TAlgebra> T;
@@ -105,6 +117,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_prolongation", &T::set_prolongation,"", "Prolongation")
 			.add_method("set_restriction", &T::set_restriction,"", "Restriction")
 			.add_method("set_projection", &T::set_projection,"", "Projection")
+			.add_method("add_prolongation_post_process", &T::add_prolongation_post_process,"", "Prolongation Post Process")
 			.add_method("set_debug", &T::set_debug)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GeometricMultiGrid", tag);
@@ -133,6 +146,14 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("ITransferOperator").append(suffix);
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "ITransferOperator", tag);
+	}
+
+//	IProlongationOperator
+	{
+		typedef ITransferPostProcess<TAlgebra> T;
+		string name = string("ITransferPostProcess").append(suffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "ITransferPostProcess", tag);
 	}
 }
 };
