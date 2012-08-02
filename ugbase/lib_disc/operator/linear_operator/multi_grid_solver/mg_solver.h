@@ -22,6 +22,7 @@
 #include "lib_algebra/operator/interface/operator_inverse.h"
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/preconditioner/jacobi.h"
+#include "lib_algebra/operator/linear_solver/lu.h"
 
 // library intern headers
 #include "lib_disc/function_spaces/grid_function_util.h"
@@ -74,7 +75,7 @@ class AssembledMultiGridCycle :
 			m_spProjectionPrototype(new InjectionTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
 			m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
 			m_spRestrictionPrototype(m_spProlongationPrototype),
-			m_spBaseSolver(NULL),
+			m_spBaseSolver(new LU<TAlgebra>()),
 			m_NonGhostMarker(*m_spApproxSpace->domain()->grid()),
 			m_spDebugWriter(NULL), m_dbgIterCnt(0)
 		{};
