@@ -15,6 +15,7 @@
 #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/reference_element/reference_mapping.h"
 #include "lib_disc/domain_util.h"
+#include "lib_disc/domain_traits.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
@@ -212,7 +213,9 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 	if(lfeID == LFEID(LFEID::CROUZEIX_RAVIART, 1))
 	{
 		vPos.clear();
-		if(fctDim != refDim+1)
+
+		// case, that we are on a side
+		if(fctDim == refDim+1)
 		{
 			MathVector<dim> center;
 			VecSet(center, 0.0);
@@ -222,7 +225,34 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 			vPos.push_back(center);
 			return true;
 		}
-		if(refDim < fctDim-1) return true;
+
+		// case, that we are on elements with lower dim, than a side
+		if(fctDim > refDim+1) return true;
+
+		// case, that we are on element with higher dim than side (i.e. the volume element itself)
+		if(fctDim == refDim && fctDim == dim)
+		{
+			typedef typename domain_traits<dim-1>::geometric_base_object Side;
+			std::vector<Side*> vSide;
+
+			CollectAssociated(vSide, *const_cast<MultiGrid*>(&(*domain.grid())), elem);
+
+			for(size_t i = 0; i < vSide.size(); ++i)
+			{
+				CollectCornerCoordinates(vVertPos, *vSide[i], domain, true);
+
+				MathVector<dim> center;
+				VecSet(center, 0.0);
+				for(size_t co = 0; co < vVertPos.size(); ++co)
+					VecAppend(center, vVertPos[co]);
+				VecScale(center, center, 1./(vVertPos.size()));
+				vPos.push_back(center);
+			}
+			return true;
+		}
+
+		// other cases should never happen
+		UG_THROW("Special case for Crouzeix-Raviart: case should not happen.");
 	}
 
 //	create a reference mapping

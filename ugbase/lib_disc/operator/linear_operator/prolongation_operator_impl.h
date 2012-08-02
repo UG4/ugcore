@@ -217,7 +217,8 @@ void AssembleProlongationElementwise(typename TAlgebra::matrix_type& mat,
 					std::vector<MathVector<dim> > vDoFPos, vLocPos;
 					DoFPosition(vDoFPos, child, *spDomain, vLFEID[fct], dim);
 
-					UG_ASSERT(vDoFPos.size() == vFineMultInd.size(), "must match");
+					UG_ASSERT(vDoFPos.size() == vFineMultInd.size(), "numDoFPos ("
+					          <<vDoFPos.size()<<") != numDoFs ("<<vFineMultInd.size()<<").");
 
 				//	get local position of DoF
 					vLocPos.resize(vDoFPos.size());
