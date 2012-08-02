@@ -69,7 +69,8 @@ class AssembledMultiGridCycle :
 			m_topLev(0), m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
 			m_numPreSmooth(2), m_numPostSmooth(2),
 			m_bAdaptive(true),
-			m_spSmootherPrototype(new Jacobi<TAlgebra>()),
+			m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
+			m_spPostSmootherPrototype(m_spPreSmootherPrototype),
 			m_spProjectionPrototype(new InjectionTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
 			m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
 			m_spRestrictionPrototype(m_spProlongationPrototype),
@@ -107,7 +108,15 @@ class AssembledMultiGridCycle :
 
 	///	sets the smoother that is used
 		void set_smoother(SmartPtr<ILinearIterator<vector_type> > smoother)
-			{m_spSmootherPrototype = smoother;}
+			{set_pre_smoother(smoother); set_post_smoother(smoother);}
+
+	///	sets the pre-smoother that is used
+		void set_pre_smoother(SmartPtr<ILinearIterator<vector_type> > smoother)
+			{m_spPreSmootherPrototype = smoother;}
+
+	///	sets the post-smoother that is used
+		void set_post_smoother(SmartPtr<ILinearIterator<vector_type> > smoother)
+			{m_spPostSmootherPrototype = smoother;}
 
 	///	sets the transfer operator
 		void set_transfer(SmartPtr<ITransferOperator<TAlgebra> > P)
@@ -268,8 +277,11 @@ class AssembledMultiGridCycle :
 	///	mapping from surface to top level (only valid in case of full refinement)
 		std::vector<size_t> m_vSurfToTopMap;
 
-	///	prototype for smoother
-		SmartPtr<ILinearIterator<vector_type> > m_spSmootherPrototype;
+	///	prototype for pre-smoother
+		SmartPtr<ILinearIterator<vector_type> > m_spPreSmootherPrototype;
+
+	///	prototype for post-smoother
+		SmartPtr<ILinearIterator<vector_type> > m_spPostSmootherPrototype;
 
 	///	prototype for projection operator
 		SmartPtr<ITransferOperator<TAlgebra> > m_spProjectionPrototype;
@@ -294,14 +306,15 @@ class AssembledMultiGridCycle :
 			: spLevDD(0),
 			  spLevMat(new MatrixOperator<matrix_type, vector_type>),
 			  spSmoothMat(new MatrixOperator<matrix_type, vector_type>),
-			  Smoother(0), Projection(0), Prolongation(0), Restriction(0){};
+			  PreSmoother(0), PostSmoother(0), Projection(0), Prolongation(0), Restriction(0){};
 
 		//	prepares the grid level data for appication
 			void update(size_t lev,
 			            SmartPtr<LevelDoFDistribution> levelDD,
 			            SmartPtr<ApproximationSpace<TDomain> > approxSpace,
 			            assemble_type& ass,
-			            ILinearIterator<vector_type>& smoother,
+			            ILinearIterator<vector_type>& presmoother,
+			            ILinearIterator<vector_type>& postsmoother,
 			            ITransferOperator<TAlgebra>& projection,
 			            ITransferOperator<TAlgebra>& prolongation,
 			            ITransferOperator<TAlgebra>& restriction,
@@ -324,9 +337,6 @@ class AssembledMultiGridCycle :
 				if(has_ghosts()) return spSmoothMat;
 				else return spLevMat;
 			}
-
-		//	returns the smoother
-			ILinearIterator<vector_type>& get_smoother() {return *Smoother;}
 
 		//	returns the vectors used for smoothing (patch only vectors)
 			vector_type& get_smooth_solution() {if(has_ghosts()) return su; else return u;}
@@ -397,7 +407,8 @@ class AssembledMultiGridCycle :
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat;
 
 		//	smoother
-			SmartPtr<ILinearIterator<vector_type> > Smoother;
+			SmartPtr<ILinearIterator<vector_type> > PreSmoother;
+			SmartPtr<ILinearIterator<vector_type> > PostSmoother;
 
 		//	projection operator
 			SmartPtr<ITransferOperator<TAlgebra> > Projection;

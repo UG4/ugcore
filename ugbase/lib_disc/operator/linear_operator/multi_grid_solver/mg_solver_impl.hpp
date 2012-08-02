@@ -218,7 +218,6 @@ presmooth(size_t lev)
 	vector_type& sTmp = m_vLevData[lev]->get_smooth_tmp();
 
 //	get smoother on this level and corresponding operator
-	ILinearIterator<vector_type>& Smoother = m_vLevData[lev]->get_smoother();
 	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
 		m_vLevData[lev]->get_smooth_mat();
 
@@ -234,7 +233,7 @@ presmooth(size_t lev)
 // 	pre-smoothing
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
 	GMG_PARALLEL_DEBUG_BARRIER(sd.process_communicator());
-	if(!smooth(sc, sd, sTmp, *spSmoothMat, Smoother, lev, m_numPreSmooth))
+	if(!smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PreSmoother, lev, m_numPreSmooth))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Pre-Smoothing on "
 				"level " << lev << " failed. "
@@ -408,7 +407,6 @@ postsmooth(size_t lev)
 	vector_type& sTmp = m_vLevData[lev]->get_smooth_tmp();
 
 //	get smoother on this level and corresponding operator
-	ILinearIterator<vector_type>& Smoother = m_vLevData[lev]->get_smoother();
 	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
 		m_vLevData[lev]->get_smooth_mat();
 
@@ -418,7 +416,7 @@ postsmooth(size_t lev)
 //	correction c, such that the defect is "smoother".
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
 	GMG_PARALLEL_DEBUG_BARRIER(sd.process_communicator());
-	if(!smooth(sc, sd, sTmp, *spSmoothMat, Smoother, lev, m_numPostSmooth))
+	if(!smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PostSmoother, lev, m_numPostSmooth))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Post-Smoothing on"
 				" level " << lev << " failed. "
@@ -822,10 +820,16 @@ init_common(bool nonlinear)
 				"Base Solver not set.\n");
 		return false;
 	}
-	if(!m_spSmootherPrototype.valid())
+	if(!m_spPreSmootherPrototype.valid())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Smoother not set.\n");
+				"PreSmoother not set.\n");
+		return false;
+	}
+	if(!m_spPostSmootherPrototype.valid())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
+				"PostSmoother not set.\n");
 		return false;
 	}
 	if(!m_spProlongationPrototype.valid())
@@ -1164,11 +1168,21 @@ init_smoother()
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
 				m_vLevData[lev]->get_smooth_mat();
 
-		if(!m_vLevData[lev]->Smoother->init(spSmoothMat, u))
+		if(!m_vLevData[lev]->PreSmoother->init(spSmoothMat, u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother':"
-					" Cannot init smoother for level "<< lev << ".\n");
+					" Cannot init pre-smoother for level "<< lev << ".\n");
 			return false;
+		}
+
+		if(m_vLevData[lev]->PreSmoother.get() != m_vLevData[lev]->PostSmoother.get())
+		{
+			if(!m_vLevData[lev]->PostSmoother->init(spSmoothMat, u))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother':"
+						" Cannot init post-smoother for level "<< lev << ".\n");
+				return false;
+			}
 		}
 	}
 
@@ -1517,7 +1531,8 @@ clone()
 	clone->set_projection(m_spProjectionPrototype);
 	clone->set_prolongation(m_spProlongationPrototype);
 	clone->set_restriction(m_spRestrictionPrototype);
-	clone->set_smoother(m_spSmootherPrototype);
+	clone->set_pre_smoother(m_spPreSmootherPrototype);
+	clone->set_post_smoother(m_spPostSmootherPrototype);
 
 	return clone;
 }
@@ -1726,7 +1741,8 @@ top_level_required(size_t topLevel)
 		                       m_spApproxSpace->level_dof_distribution(lev),
 		                       m_spApproxSpace,
 		                       *m_pAss,
-		                       *m_spSmootherPrototype,
+		                       *m_spPreSmootherPrototype,
+		                       *m_spPostSmootherPrototype,
 		                       *m_spProjectionPrototype,
 		                       *m_spProlongationPrototype,
 		                       *m_spRestrictionPrototype,
@@ -1745,7 +1761,8 @@ update(size_t lev,
        SmartPtr<LevelDoFDistribution> levDD,
        SmartPtr<ApproximationSpace<TDomain> > approxSpace,
        assemble_type& ass,
-       ILinearIterator<vector_type>& smoother,
+       ILinearIterator<vector_type>& presmoother,
+       ILinearIterator<vector_type>& postsmoother,
        ITransferOperator<TAlgebra>& projection,
        ITransferOperator<TAlgebra>& prolongation,
        ITransferOperator<TAlgebra>& restriction,
@@ -1768,12 +1785,15 @@ update(size_t lev,
 	CopyLayoutsAndCommunicatorIntoMatrix(*spLevMat, *pDD);
 #endif
 
-//	clone operators
-	if(Smoother.invalid()) Smoother = smoother.clone();
+//	post smoother only created if not the same operator
+	if(PreSmoother.invalid()) PreSmoother = presmoother.clone();
+	if(&postsmoother == &presmoother) PostSmoother = PreSmoother;
+	else{if(PostSmoother.invalid()) PostSmoother = postsmoother.clone();}
+
 	if(Projection.invalid()) Projection = projection.clone();
-	if(Prolongation.invalid()) Prolongation = prolongation.clone();
 
 //	restriction only created if not the same operator
+	if(Prolongation.invalid()) Prolongation = prolongation.clone();
 	if(&projection == &restriction)	Restriction = Prolongation;
 	else{if(Restriction.invalid()) Restriction = restriction.clone();}
 
