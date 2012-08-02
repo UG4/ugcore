@@ -57,5 +57,3 @@ if(BUILD_ONE_LIB)
 	endif(buildEmbeddedPlugins)
 	
 endif(BUILD_ONE_LIB)
-
-execute_process(COMMAND touch "-t" "999901010000.00" "${CMAKE_BINARY_DIR}/CMakeCache.txt")
