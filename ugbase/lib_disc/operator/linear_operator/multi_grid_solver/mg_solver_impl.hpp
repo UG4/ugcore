@@ -1721,8 +1721,8 @@ update(size_t lev,
        SmartPtr<ApproximationSpace<TDomain> > approxSpace,
        assemble_type& ass,
        ILinearIterator<vector_type>& smoother,
-       IProjectionOperator<vector_type>& projection,
-       IProlongationOperator<TAlgebra>& prolongation,
+       ITransferOperator<TAlgebra>& projection,
+       ITransferOperator<TAlgebra>& prolongation,
        BoolMarker& nonGhostMarker)
 {
 //	get dof distribution

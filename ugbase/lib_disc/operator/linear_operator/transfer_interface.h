@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef TRANSFER_INTERFACE_H_
-#define TRANSFER_INTERFACE_H_
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_INTERFACE__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_INTERFACE__
 
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_disc/dof_manager/grid_level.h"
@@ -18,23 +18,18 @@ template <typename TAlgebra>
 class IConstraint;
 
 
-///////////////////////////////////////////////////////////
-// Prolongation Operator
-///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// Transfer Operator
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename TAlgebra>
-class IProlongationOperator :
-	public virtual ILinearOperator<	typename TAlgebra::vector_type,
-									typename TAlgebra::vector_type>
+class ITransferOperator
 {
 	public:
 	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
 	public:
-	/// Apply Transposed Operator u = L^T*f
-		virtual void apply_transposed(vector_type& u, const vector_type& f) = 0;
-
 	/// Set Levels for Prolongation coarse -> fine
 		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) = 0;
 
@@ -47,35 +42,23 @@ class IProlongationOperator :
 	///	removes a post process
 		virtual void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp) = 0;
 
-	///	Clone
-		virtual SmartPtr<IProlongationOperator<TAlgebra> > clone() = 0;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Projection Operator
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename X, typename Y = X>
-class IProjectionOperator :	public virtual ILinearOperator<X,Y>
-{
 	public:
-	///	Domain space
-		typedef X domain_function_type;
+	///	initialize the operator
+		virtual void init() = 0;
 
-	///	Range space
-		typedef Y codomain_function_type;
+	/// Apply Operator, interpolate function, prolongate
+		virtual void apply(vector_type& uFine, const vector_type& uCoarse) = 0;
 
-	public:
-	/// Apply Transposed Operator u = L^T*f
-		virtual void apply_transposed(X& u, const Y& f) = 0;
-
-	///	Set Levels for Prolongation coarse -> fine
-		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) = 0;
+	/// Apply Transposed Operator u = L^T*f, restrict
+		virtual void apply_transposed(vector_type& uCoarse, const vector_type& uFine) = 0;
 
 	///	Clone
-		virtual SmartPtr<IProjectionOperator<X,Y> > clone() = 0;
+		virtual SmartPtr<ITransferOperator<TAlgebra> > clone() = 0;
+
+	///	virtual destructor
+		~ITransferOperator() {}
 };
 
 } // end namespace ug
 
-#endif /* TRANSFER_INTERFACE_H_ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_INTERFACE__ */

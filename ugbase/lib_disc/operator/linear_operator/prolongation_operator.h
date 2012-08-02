@@ -41,7 +41,7 @@ void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 ///	Prologation Operator for P1 Approximation Spaces
 template <typename TDomain, typename TAlgebra>
 class StdProlongation :
-	virtual public IProlongationOperator<TAlgebra>
+	virtual public ITransferOperator<TAlgebra>
 {
 	public:
 	///	Type of algebra
@@ -65,28 +65,26 @@ class StdProlongation :
 			m_spApproxSpace(approxSpace), m_bInit(false), m_dampRes(1.0)
 		{clear_constraints();};
 
-	///	clears dirichlet post processes
-		void clear_constraints() {m_vConstraint.clear();}
-
-	///	adds a dirichlet post process (not added if already registered)
-		void add_constraint(SmartPtr<IConstraint<algebra_type> > pp);
-
-	///	removes a post process
-		void remove_constraint(SmartPtr<IConstraint<algebra_type> > pp);
-
 	///	Set approximation space
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
 	///	set interpolation damping
 		void set_restriction_damping(number damp) {m_dampRes = damp;}
 
+	public:
 	///	Set levels
 		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel);
 
-	public:
-	///	initialize the operator
-		virtual void init(const vector_type& u){init();}
+	///	clears dirichlet post processes
+		void clear_constraints() {m_vConstraint.clear();}
 
+	///	adds a dirichlet post process (not added if already registered)
+		void add_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
+
+	///	removes a post process
+		void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
+
+	public:
 	///	initialize the operator
 		virtual void init();
 
@@ -96,21 +94,15 @@ class StdProlongation :
 	/// apply transposed Operator, restrict function
 		void apply_transposed(vector_type& uCoarseOut, const vector_type& uFineIn);
 
-	/// apply Operator, i.e. v := v - L(u);
-		virtual void apply_sub(vector_type& u, const vector_type& v) {UG_THROW("Not Implemented.");}
-
 	///	returns new instance with same setting
-		virtual SmartPtr<IProlongationOperator<TAlgebra> > clone();
-
-	///	Destructor
-		~StdProlongation() {}
+		virtual SmartPtr<ITransferOperator<TAlgebra> > clone();
 
 	protected:
 	///	matrix to store prolongation
 		matrix_type m_matrix;
 
 	///	list of post processes
-		std::vector<SmartPtr<IConstraint<algebra_type> > > m_vConstraint;
+		std::vector<SmartPtr<IConstraint<TAlgebra> > > m_vConstraint;
 
 	///	approximation space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;

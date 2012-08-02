@@ -358,7 +358,7 @@ void StdProlongation<TDomain, TAlgebra>::apply(vector_type& uFineOut, const vect
 template <typename TDomain, typename TAlgebra>
 void StdProlongation<TDomain, TAlgebra>::apply_transposed(vector_type& uCoarseOut, const vector_type& uFineIn)
 {
-//	Check, that operator is initiallized
+//	Check, that operator is initialized
 	if(!m_bInit)
 		UG_THROW("StdProlongation<TDomain, TAlgebra>::apply_transposed:"
 				"Operator not initialized.");
@@ -396,7 +396,7 @@ void StdProlongation<TDomain, TAlgebra>::apply_transposed(vector_type& uCoarseOu
 }
 
 template <typename TDomain, typename TAlgebra>
-SmartPtr<IProlongationOperator<TAlgebra> >
+SmartPtr<ITransferOperator<TAlgebra> >
 StdProlongation<TDomain, TAlgebra>::clone()
 {
 	SmartPtr<StdProlongation> op(new StdProlongation);
@@ -408,8 +408,8 @@ StdProlongation<TDomain, TAlgebra>::clone()
 }
 
 template <typename TDomain, typename TAlgebra>
-void
-StdProlongation<TDomain, TAlgebra>::add_constraint(SmartPtr<IConstraint<algebra_type> > pp)
+void StdProlongation<TDomain, TAlgebra>::
+add_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 {
 //	add only once
 	if(std::find(m_vConstraint.begin(), m_vConstraint.end(), pp) !=
@@ -418,8 +418,8 @@ StdProlongation<TDomain, TAlgebra>::add_constraint(SmartPtr<IConstraint<algebra_
 }
 
 template <typename TDomain, typename TAlgebra>
-void
-StdProlongation<TDomain, TAlgebra>::remove_constraint(SmartPtr<IConstraint<algebra_type> > pp)
+void StdProlongation<TDomain, TAlgebra>::
+remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 {
 	m_vConstraint.erase(m_vConstraint.begin(),
 	                     std::remove(m_vConstraint.begin(), m_vConstraint.end(), pp));

@@ -61,7 +61,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	ProlongationOperator
 	{
 		typedef StdProlongation<TDomain, TAlgebra> T;
-		typedef IProlongationOperator<TAlgebra> TBase;
+		typedef ITransferOperator<TAlgebra> TBase;
 		string name = string("StdProlongation").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -75,7 +75,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	ProjectionOperator
 	{
 		typedef StdProjection<TDomain, TAlgebra> T;
-		typedef IProjectionOperator<vector_type, vector_type> TBase;
+		typedef ITransferOperator<TAlgebra> TBase;
 		string name = string("StdProjection").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -125,18 +125,10 @@ static void Algebra(Registry& reg, string grp)
 
 //	IProlongationOperator
 	{
-		typedef IProlongationOperator<TAlgebra> T;
-		string name = string("IProlongationOperator").append(suffix);
+		typedef ITransferOperator<TAlgebra> T;
+		string name = string("ITransferOperator").append(suffix);
 		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, "IProlongationOperator", tag);
-	}
-
-//	IProjectionOperator
-	{
-		typedef IProjectionOperator<vector_type, vector_type> T;
-		string name = string("IProjectionOperator").append(suffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, "IProjectionOperator", tag);
+		reg.add_class_to_group(name, "ITransferOperator", tag);
 	}
 }
 };

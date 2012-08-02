@@ -109,11 +109,11 @@ class AssembledMultiGridCycle :
 			{m_spSmootherPrototype = smoother;}
 
 	///	sets the prolongation operator
-		void set_prolongation_operator(SmartPtr<IProlongationOperator<TAlgebra> > P)
+		void set_prolongation_operator(SmartPtr<ITransferOperator<TAlgebra> > P)
 			{m_spProlongationPrototype = P;}
 
 	///	sets the projection operator
-		void set_projection_operator(SmartPtr<IProjectionOperator<vector_type> > P)
+		void set_projection_operator(SmartPtr<ITransferOperator<TAlgebra> > P)
 			{m_spProjectionPrototype = P;}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -263,10 +263,10 @@ class AssembledMultiGridCycle :
 		SmartPtr<ILinearIterator<vector_type> > m_spSmootherPrototype;
 
 	///	prototype for projection operator
-		SmartPtr<IProjectionOperator<vector_type> > m_spProjectionPrototype;
+		SmartPtr<ITransferOperator<TAlgebra> > m_spProjectionPrototype;
 
 	///	prototype for prolongation operator
-		SmartPtr<IProlongationOperator<TAlgebra> > m_spProlongationPrototype;
+		SmartPtr<ITransferOperator<TAlgebra> > m_spProlongationPrototype;
 
 	///	base solver for the coarse problem
 		SmartPtr<ILinearOperatorInverse<vector_type> > m_spBaseSolver;
@@ -290,8 +290,8 @@ class AssembledMultiGridCycle :
 			            SmartPtr<ApproximationSpace<TDomain> > approxSpace,
 			            assemble_type& ass,
 			            ILinearIterator<vector_type>& smoother,
-			            IProjectionOperator<vector_type>& projection,
-			            IProlongationOperator<TAlgebra>& prolongation,
+			            ITransferOperator<TAlgebra>& projection,
+			            ITransferOperator<TAlgebra>& prolongation,
 			            BoolMarker& nonGhostMarker);
 
 		//	returns if ghosts are present on the level
@@ -387,10 +387,10 @@ class AssembledMultiGridCycle :
 			SmartPtr<ILinearIterator<vector_type> > Smoother;
 
 		//	projection operator
-			SmartPtr<IProjectionOperator<vector_type> > Projection;
+			SmartPtr<ITransferOperator<TAlgebra> > Projection;
 
 		//	prolongation operator
-			SmartPtr<IProlongationOperator<TAlgebra> > Prolongation;
+			SmartPtr<ITransferOperator<TAlgebra> > Prolongation;
 
 		//	vectors needed
 			vector_type u, c, d, t;

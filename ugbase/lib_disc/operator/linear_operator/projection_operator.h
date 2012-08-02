@@ -47,8 +47,7 @@ void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
  */
 template <typename TDomain, typename TAlgebra>
 class StdProjection :
-	virtual public IProjectionOperator<	typename TAlgebra::vector_type,
-										typename TAlgebra::vector_type>
+	virtual public ITransferOperator<TAlgebra>
 {
 	public:
 	///	Type of algebra
@@ -75,14 +74,22 @@ class StdProjection :
 	///	Set Approximation Space
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
+	public:
 	///	Set approximation level
 		void set_levels(GridLevel coarseLevel, GridLevel fineLevel);
+
+	///	clears dirichlet post processes
+		void clear_constraints() {m_vConstraint.clear();}
+
+	///	adds a dirichlet post process (not added if already registered)
+		void add_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
+
+	///	removes a post process
+		void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
 
 	public:
 	///	Init operator
 		virtual void init();
-
-		virtual void init(const vector_type& u){init();}
 
 	/// Project uFine to uCoarse; uCoarse = P(uFine);
 		virtual void apply(vector_type& uCoarseOut, const vector_type& uFineIn);
@@ -90,11 +97,8 @@ class StdProjection :
 	/// Apply Transposed Operator u = L^T*f
 		virtual void apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn);
 
-	/// Apply sub not implemented
-		virtual void apply_sub(vector_type& u, const vector_type& v);
-
 	///	clones the operator
-		virtual SmartPtr<IProjectionOperator<vector_type> > clone();
+		virtual SmartPtr<ITransferOperator<TAlgebra> > clone();
 
 	protected:
 	/// matrix used for projection
@@ -102,6 +106,9 @@ class StdProjection :
 
 	///	the underlying approximation space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+
+	///	list of post processes
+		std::vector<SmartPtr<IConstraint<TAlgebra> > > m_vConstraint;
 
 	///	fine level of approximation space
 		GridLevel m_fineLevel;

@@ -160,7 +160,7 @@ template <typename TDomain, typename TAlgebra>
 void StdProjection<TDomain, TAlgebra>::
 apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn)
 {
-//	Check, that operator is initiallized
+//	Check, that operator is initialized
 	if(!m_bInit)
 		UG_THROW("StdProjection::apply_transposed:"
 				"Operator not initialized.");
@@ -180,21 +180,36 @@ apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn)
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProjection<TDomain, TAlgebra>::
-apply_sub(vector_type& u, const vector_type& v)
-{
-	UG_THROW("Not Implemented.");
-}
-
-
-template <typename TDomain, typename TAlgebra>
-SmartPtr<IProjectionOperator<typename TAlgebra::vector_type> > StdProjection<TDomain, TAlgebra>::
-clone()
+SmartPtr<ITransferOperator<TAlgebra> >
+StdProjection<TDomain, TAlgebra>::clone()
 {
 	SmartPtr<StdProjection> op(new StdProjection);
 	op->set_approximation_space(m_spApproxSpace);
+	for(size_t i = 0; i < m_vConstraint.size(); ++i)
+		op->add_constraint(m_vConstraint[i]);
 	return op;
 }
+
+template <typename TDomain, typename TAlgebra>
+void StdProjection<TDomain, TAlgebra>::
+add_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
+{
+	UG_THROW("Not Implemented.");
+//	add only once
+	if(std::find(m_vConstraint.begin(), m_vConstraint.end(), pp) !=
+			m_vConstraint.end()) return;
+	m_vConstraint.push_back(pp);
+}
+
+template <typename TDomain, typename TAlgebra>
+void StdProjection<TDomain, TAlgebra>::
+remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
+{
+	UG_THROW("Not Implemented.");
+	m_vConstraint.erase(m_vConstraint.begin(),
+	                     std::remove(m_vConstraint.begin(), m_vConstraint.end(), pp));
+}
+
 
 } // end namespace ug
 
