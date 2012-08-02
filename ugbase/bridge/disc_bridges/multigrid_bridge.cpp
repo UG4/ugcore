@@ -58,7 +58,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	grp.append("/MultiGrid");
 
-//	ProlongationOperator
+//	Standard Transfer
 	{
 		typedef StdProlongation<TDomain, TAlgebra> T;
 		typedef ITransferOperator<TAlgebra> TBase;
@@ -72,7 +72,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "StdProlongation", tag);
 	}
 
-//	ProjectionOperator
+//	Standard Injection
 	{
 		typedef StdProjection<TDomain, TAlgebra> T;
 		typedef ITransferOperator<TAlgebra> TBase;
@@ -99,8 +99,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_cycle_type", &T::set_cycle_type,"", "Cycle Type")
 			.add_method("set_num_presmooth", &T::set_num_presmooth,"", "Number PreSmooth Steps")
 			.add_method("set_num_postsmooth", &T::set_num_postsmooth,"", "Number PostSmooth Steps")
-			.add_method("set_prolongation", &T::set_prolongation_operator,"", "Prolongation")
-			.add_method("set_projection", &T::set_projection_operator,"", "Projection")
+			.add_method("set_transfer", &T::set_transfer,"", "Transfer")
+			.add_method("set_prolongation", &T::set_prolongation,"", "Prolongation")
+			.add_method("set_restriction", &T::set_restriction,"", "Restriction")
+			.add_method("set_projection", &T::set_projection,"", "Projection")
 			.add_method("set_debug", &T::set_debug)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GeometricMultiGrid", tag);

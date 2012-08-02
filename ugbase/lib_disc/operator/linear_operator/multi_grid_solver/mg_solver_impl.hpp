@@ -290,7 +290,7 @@ restriction(size_t lev, bool* restrictionPerformedOut)
 //	This is done using the transposed prolongation.
 	GMG_PROFILE_BEGIN(GMG_RestrictDefect);
 	try{
-		m_vLevData[lev]->Prolongation->restrict(cd, d);
+		m_vLevData[lev]->Restriction->restrict(cd, d);
 	} UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Restriction of "
 				"Defect from level "<<lev<<" to "<<lev-1<<" failed. "
 				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
@@ -834,6 +834,12 @@ init_common(bool nonlinear)
 				"Prolongation not set.\n");
 		return false;
 	}
+	if(!m_spRestrictionPrototype.valid())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
+				"Restriction not set.\n");
+		return false;
+	}
 
 	if(m_baseLev > m_topLev)
 	{
@@ -911,10 +917,10 @@ init_common(bool nonlinear)
 
 // 	Create Interpolation
 	GMG_PROFILE_BEGIN(GMG_InitProlongation);
-	if(!init_prolongation())
+	if(!init_transfer())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
-				"Cannot init Prolongation.\n");
+				"Cannot init Transfer (Prolongation/Restriction).\n");
 		return false;
 	}
 	GMG_PROFILE_END();
@@ -1073,7 +1079,7 @@ init_non_linear_level_operator()
 template <typename TDomain, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_prolongation()
+init_transfer()
 {
 //	loop all levels
 	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
@@ -1082,9 +1088,17 @@ init_prolongation()
 		if(m_vLevData[lev]->num_indices() == 0 ||
 		   m_vLevData[lev-1]->num_indices() == 0) continue;
 
+	//	check if same operator for prolongation and restriction used
+		bool bOneOperator = false;
+		if(m_vLevData[lev]->Prolongation.get() ==  m_vLevData[lev]->Restriction.get())
+			bOneOperator = true;
+
 	//	set levels
 		m_vLevData[lev]->Prolongation->set_levels(GridLevel(lev-1, GridLevel::LEVEL),
-				                                        GridLevel(lev, GridLevel::LEVEL));
+		                                          GridLevel(lev, GridLevel::LEVEL));
+		if(!bOneOperator)
+			m_vLevData[lev]->Restriction->set_levels(GridLevel(lev-1, GridLevel::LEVEL),
+			                                         GridLevel(lev, GridLevel::LEVEL));
 
 	//	add all dirichlet post processes
 		m_vLevData[lev]->Prolongation->clear_constraints();
@@ -1093,8 +1107,17 @@ init_prolongation()
 			m_vLevData[lev]->Prolongation->add_constraint(pp);
 		}
 
+		if(!bOneOperator){
+			m_vLevData[lev]->Restriction->clear_constraints();
+			for(size_t i = 0; i < m_pAss->num_dirichlet_constraints(); ++i){
+				SmartPtr<IConstraint<TAlgebra> > pp = m_pAss->dirichlet_constraint(i);
+				m_vLevData[lev]->Restriction->add_constraint(pp);
+			}
+		}
+
 	//	init prolongation
 		m_vLevData[lev]->Prolongation->init();
+		if(!bOneOperator) m_vLevData[lev]->Restriction->init();
 	}
 
 //	we're done
@@ -1491,8 +1514,9 @@ clone()
 	clone->set_discretization(*m_pAss);
 	clone->set_num_postsmooth(m_numPostSmooth);
 	clone->set_num_presmooth(m_numPreSmooth);
-	clone->set_projection_operator(m_spProjectionPrototype);
-	clone->set_prolongation_operator(m_spProlongationPrototype);
+	clone->set_projection(m_spProjectionPrototype);
+	clone->set_prolongation(m_spProlongationPrototype);
+	clone->set_restriction(m_spRestrictionPrototype);
 	clone->set_smoother(m_spSmootherPrototype);
 
 	return clone;
@@ -1705,6 +1729,7 @@ top_level_required(size_t topLevel)
 		                       *m_spSmootherPrototype,
 		                       *m_spProjectionPrototype,
 		                       *m_spProlongationPrototype,
+		                       *m_spRestrictionPrototype,
 		                       m_NonGhostMarker);
 	}
 
@@ -1723,6 +1748,7 @@ update(size_t lev,
        ILinearIterator<vector_type>& smoother,
        ITransferOperator<TAlgebra>& projection,
        ITransferOperator<TAlgebra>& prolongation,
+       ITransferOperator<TAlgebra>& restriction,
        BoolMarker& nonGhostMarker)
 {
 //	get dof distribution
@@ -1746,6 +1772,10 @@ update(size_t lev,
 	if(Smoother.invalid()) Smoother = smoother.clone();
 	if(Projection.invalid()) Projection = projection.clone();
 	if(Prolongation.invalid()) Prolongation = prolongation.clone();
+
+//	restriction only created if not the same operator
+	if(&projection == &restriction)	Restriction = Prolongation;
+	else{if(Restriction.invalid()) Restriction = restriction.clone();}
 
 //	IN PARALLEL:
 //	In the parallel case one may have vertical slaves/masters. Those are needed

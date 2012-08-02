@@ -72,6 +72,7 @@ class AssembledMultiGridCycle :
 			m_spSmootherPrototype(new Jacobi<TAlgebra>()),
 			m_spProjectionPrototype(new StdProjection<TDomain,TAlgebra>(m_spApproxSpace)),
 			m_spProlongationPrototype(new StdProlongation<TDomain,TAlgebra>(m_spApproxSpace)),
+			m_spRestrictionPrototype(m_spProlongationPrototype),
 			m_spBaseSolver(NULL),
 			m_NonGhostMarker(*m_spApproxSpace->domain()->grid()),
 			m_spDebugWriter(NULL), m_dbgIterCnt(0)
@@ -108,12 +109,20 @@ class AssembledMultiGridCycle :
 		void set_smoother(SmartPtr<ILinearIterator<vector_type> > smoother)
 			{m_spSmootherPrototype = smoother;}
 
+	///	sets the transfer operator
+		void set_transfer(SmartPtr<ITransferOperator<TAlgebra> > P)
+			{set_prolongation(P); set_restriction(P);}
+
 	///	sets the prolongation operator
-		void set_prolongation_operator(SmartPtr<ITransferOperator<TAlgebra> > P)
+		void set_prolongation(SmartPtr<ITransferOperator<TAlgebra> > P)
 			{m_spProlongationPrototype = P;}
 
+	///	sets the restriction operator
+		void set_restriction(SmartPtr<ITransferOperator<TAlgebra> > P)
+			{m_spRestrictionPrototype = P;}
+
 	///	sets the projection operator
-		void set_projection_operator(SmartPtr<ITransferOperator<TAlgebra> > P)
+		void set_projection(SmartPtr<ITransferOperator<TAlgebra> > P)
 			{m_spProjectionPrototype = P;}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -203,7 +212,7 @@ class AssembledMultiGridCycle :
 		bool init_base_solver();
 
 	///	initializes the prolongation
-		bool init_prolongation();
+		bool init_transfer();
 
 	///	initializes the prolongation
 		bool init_projection();
@@ -268,6 +277,9 @@ class AssembledMultiGridCycle :
 	///	prototype for prolongation operator
 		SmartPtr<ITransferOperator<TAlgebra> > m_spProlongationPrototype;
 
+	///	prototype for prolongation operator
+		SmartPtr<ITransferOperator<TAlgebra> > m_spRestrictionPrototype;
+
 	///	base solver for the coarse problem
 		SmartPtr<ILinearOperatorInverse<vector_type> > m_spBaseSolver;
 
@@ -282,7 +294,7 @@ class AssembledMultiGridCycle :
 			: spLevDD(0),
 			  spLevMat(new MatrixOperator<matrix_type, vector_type>),
 			  spSmoothMat(new MatrixOperator<matrix_type, vector_type>),
-			  Smoother(0), Projection(0), Prolongation(0){};
+			  Smoother(0), Projection(0), Prolongation(0), Restriction(0){};
 
 		//	prepares the grid level data for appication
 			void update(size_t lev,
@@ -292,6 +304,7 @@ class AssembledMultiGridCycle :
 			            ILinearIterator<vector_type>& smoother,
 			            ITransferOperator<TAlgebra>& projection,
 			            ITransferOperator<TAlgebra>& prolongation,
+			            ITransferOperator<TAlgebra>& restriction,
 			            BoolMarker& nonGhostMarker);
 
 		//	returns if ghosts are present on the level
@@ -391,6 +404,9 @@ class AssembledMultiGridCycle :
 
 		//	prolongation operator
 			SmartPtr<ITransferOperator<TAlgebra> > Prolongation;
+
+		//	prolongation operator
+			SmartPtr<ITransferOperator<TAlgebra> > Restriction;
 
 		//	vectors needed
 			vector_type u, c, d, t;
