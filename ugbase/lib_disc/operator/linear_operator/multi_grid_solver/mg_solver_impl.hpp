@@ -1531,8 +1531,8 @@ clone()
 	clone->set_projection(m_spProjectionPrototype);
 	clone->set_prolongation(m_spProlongationPrototype);
 	clone->set_restriction(m_spRestrictionPrototype);
-	clone->set_pre_smoother(m_spPreSmootherPrototype);
-	clone->set_post_smoother(m_spPostSmootherPrototype);
+	clone->set_presmoother(m_spPreSmootherPrototype);
+	clone->set_postsmoother(m_spPostSmootherPrototype);
 
 	return clone;
 }

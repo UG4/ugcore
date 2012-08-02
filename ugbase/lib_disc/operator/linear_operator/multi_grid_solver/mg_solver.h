@@ -108,14 +108,14 @@ class AssembledMultiGridCycle :
 
 	///	sets the smoother that is used
 		void set_smoother(SmartPtr<ILinearIterator<vector_type> > smoother)
-			{set_pre_smoother(smoother); set_post_smoother(smoother);}
+			{set_presmoother(smoother); set_postsmoother(smoother);}
 
 	///	sets the pre-smoother that is used
-		void set_pre_smoother(SmartPtr<ILinearIterator<vector_type> > smoother)
+		void set_presmoother(SmartPtr<ILinearIterator<vector_type> > smoother)
 			{m_spPreSmootherPrototype = smoother;}
 
 	///	sets the post-smoother that is used
-		void set_post_smoother(SmartPtr<ILinearIterator<vector_type> > smoother)
+		void set_postsmoother(SmartPtr<ILinearIterator<vector_type> > smoother)
 			{m_spPostSmootherPrototype = smoother;}
 
 	///	sets the transfer operator
