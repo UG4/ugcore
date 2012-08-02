@@ -92,10 +92,10 @@ class StdProjection :
 		virtual void init();
 
 	/// Project uFine to uCoarse; uCoarse = P(uFine);
-		virtual void apply(vector_type& uCoarseOut, const vector_type& uFineIn);
+		virtual void prolongate(vector_type& uFine, const vector_type& uCoarse);
 
 	/// Apply Transposed Operator u = L^T*f
-		virtual void apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn);
+		virtual void restrict(vector_type& uCoarse, const vector_type& uFine);
 
 	///	clones the operator
 		virtual SmartPtr<ITransferOperator<TAlgebra> > clone();

@@ -290,7 +290,7 @@ restriction(size_t lev, bool* restrictionPerformedOut)
 //	This is done using the transposed prolongation.
 	GMG_PROFILE_BEGIN(GMG_RestrictDefect);
 	try{
-		m_vLevData[lev]->Prolongation->apply_transposed(cd, d);
+		m_vLevData[lev]->Prolongation->restrict(cd, d);
 	} UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Restriction of "
 				"Defect from level "<<lev<<" to "<<lev-1<<" failed. "
 				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
@@ -336,7 +336,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 	//	to the fine level
 		GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
 		try{
-			m_vLevData[lev]->Prolongation->apply(tmp, cc);
+			m_vLevData[lev]->Prolongation->prolongate(tmp, cc);
 		} UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Prolongation from"
 					" level " << lev-1 << " to " << lev << " failed. "
 					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
@@ -707,7 +707,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 			m_vLevData[lev-1]->num_indices() == 0) continue;
 
 		try{
-			m_vLevData[lev]->Projection->apply_transposed(m_vLevData[lev-1]->u, m_vLevData[lev]->u);
+			m_vLevData[lev]->Projection->restrict(m_vLevData[lev-1]->u, m_vLevData[lev]->u);
 		} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
 					"solution to coarse grid function of level "<<lev-1<<".\n");
 	}

@@ -137,7 +137,7 @@ void StdProjection<TDomain, TAlgebra>::init()
 
 template <typename TDomain, typename TAlgebra>
 void StdProjection<TDomain, TAlgebra>::
-apply(vector_type& uFine, const vector_type& uCoarse)
+prolongate(vector_type& uFine, const vector_type& uCoarse)
 {
 //	Check, that operator is initiallized
 	if(!m_bInit)
@@ -159,7 +159,7 @@ apply(vector_type& uFine, const vector_type& uCoarse)
 
 template <typename TDomain, typename TAlgebra>
 void StdProjection<TDomain, TAlgebra>::
-apply_transposed(vector_type& uCoarse, const vector_type& uFine)
+restrict(vector_type& uCoarse, const vector_type& uFine)
 {
 //	Check, that operator is initialized
 	if(!m_bInit)

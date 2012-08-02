@@ -89,10 +89,10 @@ class StdProlongation :
 		virtual void init();
 
 	/// apply Operator, interpolate function
-		virtual void apply(vector_type& uFineOut, const vector_type& uCoarseIn);
+		virtual void prolongate(vector_type& uFineOut, const vector_type& uCoarse);
 
 	/// apply transposed Operator, restrict function
-		void apply_transposed(vector_type& uCoarseOut, const vector_type& uFineIn);
+		virtual void restrict(vector_type& uCoarse, const vector_type& uFine);
 
 	///	returns new instance with same setting
 		virtual SmartPtr<ITransferOperator<TAlgebra> > clone();

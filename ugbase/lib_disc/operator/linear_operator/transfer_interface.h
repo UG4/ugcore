@@ -47,10 +47,10 @@ class ITransferOperator
 		virtual void init() = 0;
 
 	/// Apply Operator, interpolate function, prolongate
-		virtual void apply(vector_type& uFine, const vector_type& uCoarse) = 0;
+		virtual void prolongate(vector_type& uFine, const vector_type& uCoarse) = 0;
 
 	/// Apply Transposed Operator u = L^T*f, restrict
-		virtual void apply_transposed(vector_type& uCoarse, const vector_type& uFine) = 0;
+		virtual void restrict(vector_type& uCoarse, const vector_type& uFine) = 0;
 
 	///	Clone
 		virtual SmartPtr<ITransferOperator<TAlgebra> > clone() = 0;

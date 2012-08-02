@@ -322,7 +322,7 @@ void StdProlongation<TDomain, TAlgebra>::init()
 
 template <typename TDomain, typename TAlgebra>
 void StdProlongation<TDomain, TAlgebra>::
-apply(vector_type& uFineOut, const vector_type& uCoarseIn)
+prolongate(vector_type& uFine, const vector_type& uCoarse)
 {
 //	Check, that operator is initiallized
 	if(!m_bInit)
@@ -330,18 +330,18 @@ apply(vector_type& uFineOut, const vector_type& uCoarseIn)
 				" Operator not initialized.");
 
 //	Some Assertions
-	UG_ASSERT(uFineOut.size() == m_matrix.num_rows(),
+	UG_ASSERT(uFine.size() == m_matrix.num_rows(),
 				  "Vector and Row sizes have to match!");
-	UG_ASSERT(uCoarseIn.size() == m_matrix.num_cols(),
+	UG_ASSERT(uCoarse.size() == m_matrix.num_cols(),
 				  "Vector and Column sizes have to match!");
 
 //	Apply Matrix
-	if(!m_matrix.apply(uFineOut, uCoarseIn))
+	if(!m_matrix.apply(uFine, uCoarse))
 	{
 		std::stringstream ss;
 		ss << "StdProlongation<TDomain, TAlgebra>::apply: Cannot apply matrix. ";
 #ifdef UG_PARALLEL
-		ss << "(Type uCoarse = " <<uCoarseIn.get_storage_mask();
+		ss << "(Type uCoarse = " <<uCoarse.get_storage_mask();
 #endif
 		UG_THROW(ss.str().c_str());
 	}
@@ -350,7 +350,7 @@ apply(vector_type& uFineOut, const vector_type& uCoarseIn)
 //	todo: We could handle this by eliminating dirichlet rows as well
 	try{
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
-		m_vConstraint[i]->adjust_defect(uFineOut, uFineOut, m_fineLevel);
+		m_vConstraint[i]->adjust_defect(uFine, uFine, m_fineLevel);
 
 	}UG_CATCH_THROW("StdProlongation<TDomain, TAlgebra>::apply: "
 					"Error while setting dirichlet defect to zero.");
@@ -358,23 +358,23 @@ apply(vector_type& uFineOut, const vector_type& uCoarseIn)
 
 template <typename TDomain, typename TAlgebra>
 void StdProlongation<TDomain, TAlgebra>::
-apply_transposed(vector_type& uCoarseOut, const vector_type& uFineIn)
+restrict(vector_type& uCoarse, const vector_type& uFine)
 {
 //	Check, that operator is initialized
 	if(!m_bInit)
 		UG_THROW("StdProlongation<TDomain, TAlgebra>::apply_transposed:"
 				"Operator not initialized.");
 
-	vector_type	uTmp; uTmp.resize(uCoarseOut.size());
+	vector_type	uTmp; uTmp.resize(uCoarse.size());
 
 //	Some Assertions
-	UG_ASSERT(uFineIn.size() == m_matrix.num_rows(),
+	UG_ASSERT(uFine.size() == m_matrix.num_rows(),
 				  "Vector and Row sizes have to match!");
-	UG_ASSERT(uCoarseOut.size() == m_matrix.num_cols(),
+	UG_ASSERT(uCoarse.size() == m_matrix.num_cols(),
 				  "Vector and Column sizes have to match!");
 
 //	Apply transposed matrix
-	if(!m_matrix.apply_transposed(uTmp, uFineIn))
+	if(!m_matrix.apply_transposed(uTmp, uFine))
 		UG_THROW("StdProlongation<TDomain, TAlgebra>::apply_transposed:"
 				" Cannot apply transposed matrix.");
 
@@ -386,13 +386,13 @@ apply_transposed(vector_type& uCoarseOut, const vector_type& uFineIn)
 //	indices with children) should be changed.
 	for(size_t i = 0; i < uTmp.size(); ++i)
 		if(m_vIsRestricted[i])
-			uCoarseOut[i] = uTmp[i];
+			uCoarse[i] = uTmp[i];
 
 //	Set dirichlet nodes to zero again
 //	todo: We could handle this by eliminating dirichlet columns as well
 	try{
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
-		m_vConstraint[i]->adjust_defect(uCoarseOut, uCoarseOut, m_coarseLevel);
+		m_vConstraint[i]->adjust_defect(uCoarse, uCoarse, m_coarseLevel);
 	} UG_CATCH_THROW("ProjectionOperator::apply_transposed: "
 					"Error while setting dirichlet defect to zero.");
 }
