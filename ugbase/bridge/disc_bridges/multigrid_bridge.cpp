@@ -60,28 +60,28 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	Standard Transfer
 	{
-		typedef StdProlongation<TDomain, TAlgebra> T;
+		typedef StdTransfer<TDomain, TAlgebra> T;
 		typedef ITransferOperator<TAlgebra> TBase;
-		string name = string("StdProlongation").append(suffix);
+		string name = string("StdTransfer").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
 			.add_method("add_constraint", &T::add_constraint)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "StdProlongation", tag);
+		reg.add_class_to_group(name, "StdTransfer", tag);
 	}
 
 //	Standard Injection
 	{
-		typedef StdProjection<TDomain, TAlgebra> T;
+		typedef InjectionTransfer<TDomain, TAlgebra> T;
 		typedef ITransferOperator<TAlgebra> TBase;
-		string name = string("StdProjection").append(suffix);
+		string name = string("InjectionTransfer").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "StdProjection", tag);
+		reg.add_class_to_group(name, "InjectionTransfer", tag);
 	}
 
 //	AssembledMultiGridCycle

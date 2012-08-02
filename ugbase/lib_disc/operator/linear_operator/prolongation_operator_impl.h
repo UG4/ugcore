@@ -249,39 +249,39 @@ void AssembleProlongationElementwise(typename TAlgebra::matrix_type& mat,
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-// 	StdProlongation
+// 	StdTransfer
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-void StdProlongation<TDomain, TAlgebra>::
+void StdTransfer<TDomain, TAlgebra>::
 set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 {
 	m_spApproxSpace = approxSpace;
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProlongation<TDomain, TAlgebra>::set_levels(GridLevel coarseLevel, GridLevel fineLevel)
+void StdTransfer<TDomain, TAlgebra>::set_levels(GridLevel coarseLevel, GridLevel fineLevel)
 {
 	m_fineLevel = fineLevel;
 	m_coarseLevel = coarseLevel;
 
 	if(m_fineLevel.level() - m_coarseLevel.level() != 1)
-		UG_THROW("StdProlongation<TDomain, TAlgebra>::set_levels:"
+		UG_THROW("StdTransfer<TDomain, TAlgebra>::set_levels:"
 				" Can only project between successive level.");
 
 	if(m_fineLevel.type() != GridLevel::LEVEL ||
 	   m_coarseLevel.type() != GridLevel::LEVEL)
-		UG_THROW("StdProlongation<TDomain, TAlgebra>::set_levels:"
+		UG_THROW("StdTransfer<TDomain, TAlgebra>::set_levels:"
 				" Can only project between level dof distributions, but fine="
 				<<m_fineLevel<<", coarse="<<m_coarseLevel);
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProlongation<TDomain, TAlgebra>::init()
+void StdTransfer<TDomain, TAlgebra>::init()
 {
 	if(!m_spApproxSpace.valid())
-		UG_THROW("StdProlongation<TDomain, TAlgebra>::init: "
+		UG_THROW("StdTransfer<TDomain, TAlgebra>::init: "
 				"Approximation Space not set. Cannot init Projection.");
 
 	m_matrix.resize(0,0);
@@ -310,7 +310,7 @@ void StdProlongation<TDomain, TAlgebra>::init()
 			 m_spApproxSpace->domain(),
 			 m_vIsRestricted);
 		}
-	} UG_CATCH_THROW("StdProlongation<TDomain, TAlgebra>::init:"
+	} UG_CATCH_THROW("StdTransfer<TDomain, TAlgebra>::init:"
 				"Cannot assemble interpolation matrix.");
 
 	#ifdef UG_PARALLEL
@@ -321,12 +321,12 @@ void StdProlongation<TDomain, TAlgebra>::init()
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProlongation<TDomain, TAlgebra>::
+void StdTransfer<TDomain, TAlgebra>::
 prolongate(vector_type& uFine, const vector_type& uCoarse)
 {
 //	Check, that operator is initiallized
 	if(!m_bInit)
-		UG_THROW("StdProlongation<TDomain, TAlgebra>::apply:"
+		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply:"
 				" Operator not initialized.");
 
 //	Some Assertions
@@ -339,7 +339,7 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 	if(!m_matrix.apply(uFine, uCoarse))
 	{
 		std::stringstream ss;
-		ss << "StdProlongation<TDomain, TAlgebra>::apply: Cannot apply matrix. ";
+		ss << "StdTransfer<TDomain, TAlgebra>::apply: Cannot apply matrix. ";
 #ifdef UG_PARALLEL
 		ss << "(Type uCoarse = " <<uCoarse.get_storage_mask();
 #endif
@@ -352,17 +352,17 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
 		m_vConstraint[i]->adjust_defect(uFine, uFine, m_fineLevel);
 
-	}UG_CATCH_THROW("StdProlongation<TDomain, TAlgebra>::apply: "
+	}UG_CATCH_THROW("StdTransfer<TDomain, TAlgebra>::apply: "
 					"Error while setting dirichlet defect to zero.");
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProlongation<TDomain, TAlgebra>::
+void StdTransfer<TDomain, TAlgebra>::
 restrict(vector_type& uCoarse, const vector_type& uFine)
 {
 //	Check, that operator is initialized
 	if(!m_bInit)
-		UG_THROW("StdProlongation<TDomain, TAlgebra>::apply_transposed:"
+		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply_transposed:"
 				"Operator not initialized.");
 
 	vector_type	uTmp; uTmp.resize(uCoarse.size());
@@ -375,7 +375,7 @@ restrict(vector_type& uCoarse, const vector_type& uFine)
 
 //	Apply transposed matrix
 	if(!m_matrix.apply_transposed(uTmp, uFine))
-		UG_THROW("StdProlongation<TDomain, TAlgebra>::apply_transposed:"
+		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply_transposed:"
 				" Cannot apply transposed matrix.");
 
 	uTmp *= m_dampRes;
@@ -399,9 +399,9 @@ restrict(vector_type& uCoarse, const vector_type& uFine)
 
 template <typename TDomain, typename TAlgebra>
 SmartPtr<ITransferOperator<TAlgebra> >
-StdProlongation<TDomain, TAlgebra>::clone()
+StdTransfer<TDomain, TAlgebra>::clone()
 {
-	SmartPtr<StdProlongation> op(new StdProlongation);
+	SmartPtr<StdTransfer> op(new StdTransfer);
 	op->set_approximation_space(m_spApproxSpace);
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
 		op->add_constraint(m_vConstraint[i]);
@@ -410,7 +410,7 @@ StdProlongation<TDomain, TAlgebra>::clone()
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProlongation<TDomain, TAlgebra>::
+void StdTransfer<TDomain, TAlgebra>::
 add_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 {
 //	add only once
@@ -420,7 +420,7 @@ add_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProlongation<TDomain, TAlgebra>::
+void StdTransfer<TDomain, TAlgebra>::
 remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 {
 	m_vConstraint.erase(m_vConstraint.begin(),

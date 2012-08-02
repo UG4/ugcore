@@ -81,40 +81,40 @@ void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-// 	StdProjection
+// 	InjectionTransfer
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
 template <typename TDomain, typename TAlgebra>
-void StdProjection<TDomain, TAlgebra>::
+void InjectionTransfer<TDomain, TAlgebra>::
 set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 {
 	m_spApproxSpace = approxSpace;
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProjection<TDomain, TAlgebra>::
+void InjectionTransfer<TDomain, TAlgebra>::
 set_levels(GridLevel coarseLevel, GridLevel fineLevel)
 {
 	m_fineLevel = fineLevel;
 	m_coarseLevel = coarseLevel;
 
 	if(m_fineLevel.level() - m_coarseLevel.level() != 1)
-		UG_THROW("StdProjection::set_levels:"
+		UG_THROW("InjectionTransfer::set_levels:"
 				" Can only project between successive level.");
 
 	if(m_fineLevel.type() != GridLevel::LEVEL ||
 	   m_coarseLevel.type() != GridLevel::LEVEL)
-		UG_THROW("StdProjection::set_levels:"
+		UG_THROW("InjectionTransfer::set_levels:"
 				" Can only project between level dof distributions.");
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProjection<TDomain, TAlgebra>::init()
+void InjectionTransfer<TDomain, TAlgebra>::init()
 {
 	if(!m_spApproxSpace.valid())
-		UG_THROW("StdProjection::init: "
+		UG_THROW("InjectionTransfer::init: "
 				"Approximation Space not set. Cannot init Projection.");
 
 	m_matrix.resize(0,0);
@@ -136,12 +136,12 @@ void StdProjection<TDomain, TAlgebra>::init()
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProjection<TDomain, TAlgebra>::
+void InjectionTransfer<TDomain, TAlgebra>::
 prolongate(vector_type& uFine, const vector_type& uCoarse)
 {
 //	Check, that operator is initiallized
 	if(!m_bInit)
-		UG_THROW("StdProjection::apply:"
+		UG_THROW("InjectionTransfer::apply:"
 				" Operator not initialized.");
 
 //	Some Assertions
@@ -154,16 +154,16 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 
 //	Apply matrix
 	if(!m_matrix.apply_transposed(uFine, uCoarse))
-		UG_THROW("StdProjection::apply: Cannot apply matrix.");
+		UG_THROW("InjectionTransfer::apply: Cannot apply matrix.");
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProjection<TDomain, TAlgebra>::
+void InjectionTransfer<TDomain, TAlgebra>::
 restrict(vector_type& uCoarse, const vector_type& uFine)
 {
 //	Check, that operator is initialized
 	if(!m_bInit)
-		UG_THROW("StdProjection::apply_transposed:"
+		UG_THROW("InjectionTransfer::apply_transposed:"
 				"Operator not initialized.");
 
 //	Some Assertions
@@ -176,15 +176,15 @@ restrict(vector_type& uCoarse, const vector_type& uFine)
 
 //	Apply matrix
 	if(!m_matrix.apply(uCoarse, uFine))
-		UG_THROW("StdProjection::apply_transposed:"
+		UG_THROW("InjectionTransfer::apply_transposed:"
 				" Cannot apply transposed matrix.");
 }
 
 template <typename TDomain, typename TAlgebra>
 SmartPtr<ITransferOperator<TAlgebra> >
-StdProjection<TDomain, TAlgebra>::clone()
+InjectionTransfer<TDomain, TAlgebra>::clone()
 {
-	SmartPtr<StdProjection> op(new StdProjection);
+	SmartPtr<InjectionTransfer> op(new InjectionTransfer);
 	op->set_approximation_space(m_spApproxSpace);
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
 		op->add_constraint(m_vConstraint[i]);
@@ -192,7 +192,7 @@ StdProjection<TDomain, TAlgebra>::clone()
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProjection<TDomain, TAlgebra>::
+void InjectionTransfer<TDomain, TAlgebra>::
 add_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 {
 	UG_THROW("Not Implemented.");
@@ -203,7 +203,7 @@ add_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProjection<TDomain, TAlgebra>::
+void InjectionTransfer<TDomain, TAlgebra>::
 remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 {
 	UG_THROW("Not Implemented.");

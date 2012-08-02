@@ -46,7 +46,7 @@ void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
  * \tparam	TAlgebra	the algebra
  */
 template <typename TDomain, typename TAlgebra>
-class StdProjection :
+class InjectionTransfer :
 	virtual public ITransferOperator<TAlgebra>
 {
 	public:
@@ -64,10 +64,10 @@ class StdProjection :
 
 	public:
 	///	Constructor
-		StdProjection() : m_bInit(false) {}
+		InjectionTransfer() : m_bInit(false) {}
 
 	///	Constructor
-		StdProjection(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
+		InjectionTransfer(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 			m_spApproxSpace(approxSpace), m_bInit(false)
 		{}
 
