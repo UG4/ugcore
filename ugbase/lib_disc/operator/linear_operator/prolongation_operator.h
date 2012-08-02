@@ -23,21 +23,6 @@
 
 namespace ug{
 
-/**
- * This functions assembles the interpolation matrix between to
- * grid levels using only the Vertex degrees of freedom.
- *
- * \param[out]	mat 			Assembled interpolation matrix that interpolates u -> v
- * \param[in] 	approxSpace		Approximation Space
- * \param[in]	coarseLevel		Coarse Level index
- * \param[in]	fineLevel		Fine Level index
- */
-template <typename TDD, typename TAlgebra>
-void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
-                                const TDD& coarseDD, const TDD& fineDD,
-								std::vector<bool>& vIsRestricted);
-
-
 ///	Prologation Operator for P1 Approximation Spaces
 template <typename TDomain, typename TAlgebra>
 class StdTransfer :

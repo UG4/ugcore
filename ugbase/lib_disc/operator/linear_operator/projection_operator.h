@@ -24,19 +24,6 @@
 namespace ug{
 
 /**
- * This functions assembles the interpolation matrix between to
- * grid levels using only the Vertex degrees of freedom.
- *
- * \param[out]	mat 			Assembled interpolation matrix that interpolates u -> v
- * \param[in] 	approxSpace		Approximation Space
- * \param[in]	coarseLevel		Coarse Level index
- * \param[in]	fineLevel		Fine Level index
- */
-template <typename TDD, typename TAlgebra>
-void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
-                              const TDD& coarseDD, const TDD& fineDD);
-
-/**
  * The Projection operator transfers is used to transfer vectors between two
  * grid levels. It implements a purely algebraic interface, just mapping
  * between two algebraic vectors, but given the approximation space this is indeed

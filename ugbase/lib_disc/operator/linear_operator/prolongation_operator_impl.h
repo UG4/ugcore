@@ -14,15 +14,24 @@
 
 namespace ug{
 
+/**
+ * This functions assembles the interpolation matrix between to
+ * grid levels using only the Vertex degrees of freedom.
+ *
+ * \param[out]	mat 			Assembled interpolation matrix that interpolates u -> v
+ * \param[in] 	approxSpace		Approximation Space
+ * \param[in]	coarseLevel		Coarse Level index
+ * \param[in]	fineLevel		Fine Level index
+ */
 template <typename TDD, typename TAlgebra>
-void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
+void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
                                 const TDD& coarseDD, const TDD& fineDD,
 								std::vector<bool>& vIsRestricted)
 {
 // 	allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
 		if(fineDD.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
-			UG_THROW("AssembleVertexProlongation:"
+			UG_THROW("AssembleStdProlongationForP1Lagrange:"
 				"Interpolation only implemented for Lagrange P1 functions.");
 
 //  get subsethandler and grid
@@ -38,7 +47,7 @@ void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 
 //  resize matrix
 	if(!mat.resize(numFineDoFs, numCoarseDoFs))
-		UG_THROW("AssembleVertexProlongation:"
+		UG_THROW("AssembleStdProlongationForP1Lagrange:"
 				"Cannot resize Interpolation Matrix.");
 
 //	clear restricted vector
@@ -115,7 +124,7 @@ void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 							vIsRestricted[coarseMultInd[0][0]] = true;
 						}
 						break;
-					default: UG_THROW("AssembleVertexProlongation: Element Father"
+					default: UG_THROW("AssembleStdProlongationForP1Lagrange: Element Father"
 									 "is of unsupported type "<<roid);
 				}
 			}
@@ -125,7 +134,7 @@ void AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 
 
 template <typename TDomain, typename TDD, typename TAlgebra>
-void AssembleProlongationElementwise(typename TAlgebra::matrix_type& mat,
+void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
                                      const TDD& coarseDD, const TDD& fineDD,
                                      ConstSmartPtr<TDomain> spDomain,
                                      std::vector<bool>& vIsRestricted)
@@ -146,7 +155,7 @@ void AssembleProlongationElementwise(typename TAlgebra::matrix_type& mat,
 
 //  resize matrix
 	if(!mat.resize(numFineDoFs, numCoarseDoFs))
-		UG_THROW("AssembleVertexProlongation:"
+		UG_THROW("AssembleStdProlongationForP1Lagrange:"
 				"Cannot resize Interpolation Matrix.");
 
 //	clear restricted vector
@@ -295,7 +304,7 @@ void StdTransfer<TDomain, TAlgebra>::init()
 	try{
 		if(P1LagrangeOnly)
 		{
-			AssembleVertexProlongation<LevelDoFDistribution, TAlgebra>
+			AssembleStdProlongationForP1Lagrange<LevelDoFDistribution, TAlgebra>
 			(m_matrix,
 			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
 			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),
@@ -303,7 +312,7 @@ void StdTransfer<TDomain, TAlgebra>::init()
 		}
 		else
 		{
-			AssembleProlongationElementwise<TDomain, LevelDoFDistribution, TAlgebra>
+			AssembleStdProlongationElementwise<TDomain, LevelDoFDistribution, TAlgebra>
 			(m_matrix,
 			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
 			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),

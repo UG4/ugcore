@@ -22,13 +22,13 @@ namespace ug{
  * \param[in]	fineLevel		Fine Level index
  */
 template <typename TDD, typename TAlgebra>
-void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
+void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
                               const TDD& coarseDD, const TDD& fineDD)
 {
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
 		if(fineDD.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
-			UG_THROW("AssembleVertexProjection: "
+			UG_THROW("AssembleInjectionForP1Lagrange: "
 					"Interpolation only implemented for Lagrange P1 functions.");
 
 // 	get MultiGrid
@@ -40,7 +40,7 @@ void AssembleVertexProjection(typename TAlgebra::matrix_type& mat,
 
 // 	resize matrix
 	if(!mat.resize(numCoarseDoFs, numFineDoFs))
-		UG_THROW("AssembleVertexProjection: "
+		UG_THROW("AssembleInjectionForP1Lagrange: "
 				"Cannot resize Interpolation Matrix.");
 
 	std::vector<size_t> coarseInd, fineInd;
@@ -119,14 +119,27 @@ void InjectionTransfer<TDomain, TAlgebra>::init()
 
 	m_matrix.resize(0,0);
 
+// 	check only lagrange P1 functions
+	bool P1LagrangeOnly = true;
+	for(size_t fct = 0; fct < m_spApproxSpace->function_pattern()->num_fct(); ++fct)
+		if(m_spApproxSpace->function_pattern()->local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+			P1LagrangeOnly = false;
+
 	try{
-	if(m_coarseLevel.type() == GridLevel::LEVEL)
-		AssembleVertexProjection<LevelDoFDistribution, algebra_type>
-		(m_matrix,
-		 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
-		 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()));
-	} UG_CATCH_THROW("TransferOperator::init():"
-				" Cannot assemble interpolation matrix.");
+		if(P1LagrangeOnly)
+		{
+			AssembleInjectionForP1Lagrange<LevelDoFDistribution, algebra_type>
+			(m_matrix,
+			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
+			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()));
+		}
+		else
+		{
+			UG_THROW("InjectionTransfer::init(): Only P1 Implemented.");
+		}
+
+	} UG_CATCH_THROW("InjectionTransfer::init():"
+						" Cannot assemble interpolation matrix.");
 
 	#ifdef UG_PARALLEL
 		m_matrix.set_storage_type(PST_CONSISTENT);
