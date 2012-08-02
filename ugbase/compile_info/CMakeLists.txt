@@ -28,7 +28,8 @@ file(WRITE ${CMAKE_BINARY_DIR}/compile_info.cpp
 	"}\n")
 
 IF(UNIX)
-#	The custom target is always considered out of date and will be rebuilt every time.
+#	The custom target is always considered out of date and will be rebuilt
+#	every time make is executed.
 	add_custom_target(updateCompileInfo)
 #	The build of the custom target triggers this custom command, which updates
 #	the compile_info.cpp file.
