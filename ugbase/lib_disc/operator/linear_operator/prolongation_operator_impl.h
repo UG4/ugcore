@@ -321,7 +321,8 @@ void StdProlongation<TDomain, TAlgebra>::init()
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProlongation<TDomain, TAlgebra>::apply(vector_type& uFineOut, const vector_type& uCoarseIn)
+void StdProlongation<TDomain, TAlgebra>::
+apply(vector_type& uFineOut, const vector_type& uCoarseIn)
 {
 //	Check, that operator is initiallized
 	if(!m_bInit)
@@ -356,7 +357,8 @@ void StdProlongation<TDomain, TAlgebra>::apply(vector_type& uFineOut, const vect
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProlongation<TDomain, TAlgebra>::apply_transposed(vector_type& uCoarseOut, const vector_type& uFineIn)
+void StdProlongation<TDomain, TAlgebra>::
+apply_transposed(vector_type& uCoarseOut, const vector_type& uFineIn)
 {
 //	Check, that operator is initialized
 	if(!m_bInit)

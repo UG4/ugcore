@@ -99,9 +99,11 @@ set_levels(GridLevel coarseLevel, GridLevel fineLevel)
 {
 	m_fineLevel = fineLevel;
 	m_coarseLevel = coarseLevel;
+
 	if(m_fineLevel.level() - m_coarseLevel.level() != 1)
 		UG_THROW("StdProjection::set_levels:"
 				" Can only project between successive level.");
+
 	if(m_fineLevel.type() != GridLevel::LEVEL ||
 	   m_coarseLevel.type() != GridLevel::LEVEL)
 		UG_THROW("StdProjection::set_levels:"
@@ -109,8 +111,7 @@ set_levels(GridLevel coarseLevel, GridLevel fineLevel)
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdProjection<TDomain, TAlgebra>::
-init()
+void StdProjection<TDomain, TAlgebra>::init()
 {
 	if(!m_spApproxSpace.valid())
 		UG_THROW("StdProjection::init: "
@@ -136,7 +137,7 @@ init()
 
 template <typename TDomain, typename TAlgebra>
 void StdProjection<TDomain, TAlgebra>::
-apply(vector_type& uCoarseOut, const vector_type& uFineIn)
+apply(vector_type& uFine, const vector_type& uCoarse)
 {
 //	Check, that operator is initiallized
 	if(!m_bInit)
@@ -144,21 +145,21 @@ apply(vector_type& uCoarseOut, const vector_type& uFineIn)
 				" Operator not initialized.");
 
 //	Some Assertions
-	UG_ASSERT(uCoarseOut.size() == m_matrix.num_rows(),
-			  "Vector [size= " << uCoarseOut.size() << "] and Row [size= "
+	UG_ASSERT(uFine.size() == m_matrix.num_rows(),
+			  "Vector [size= " << uFine.size() << "] and Rows [size= "
 			  << m_matrix.num_rows() <<"] sizes have to match!");
-	UG_ASSERT(uFineIn.size() == m_matrix.num_cols(),	"Vector [size= "
-			  << uFineIn.size() << "] and Column [size= " <<
+	UG_ASSERT(uCoarse.size() == m_matrix.num_cols(),	"Vector [size= "
+			  << uCoarse.size() << "] and Cols [size= " <<
 			  m_matrix.num_cols() <<"] sizes have to match!");
 
 //	Apply matrix
-	if(!m_matrix.apply(uCoarseOut, uFineIn))
+	if(!m_matrix.apply_transposed(uFine, uCoarse))
 		UG_THROW("StdProjection::apply: Cannot apply matrix.");
 }
 
 template <typename TDomain, typename TAlgebra>
 void StdProjection<TDomain, TAlgebra>::
-apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn)
+apply_transposed(vector_type& uCoarse, const vector_type& uFine)
 {
 //	Check, that operator is initialized
 	if(!m_bInit)
@@ -166,15 +167,15 @@ apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn)
 				"Operator not initialized.");
 
 //	Some Assertions
-	UG_ASSERT(uCoarseIn.size() == m_matrix.num_rows(),
-			  "Vector [size= " << uCoarseIn.size() << "] and Cols [size= "
-			  << m_matrix.num_rows() <<"] sizes have to match!");
-	UG_ASSERT(uFineOut.size() == m_matrix.num_cols(),	"Vector [size= "
-			  << uFineOut.size() << "] and Rows [size= " <<
-			  m_matrix.num_cols() <<"] sizes have to match!");
+	UG_ASSERT(uFine.size() == m_matrix.num_cols(),
+			  "Vector [size= " << uFine.size() << "] and Cols [size= "
+			  << m_matrix.num_cols() <<"] sizes have to match!");
+	UG_ASSERT(uCoarse.size() == m_matrix.num_rows(),	"Vector [size= "
+			  << uCoarse.size() << "] and Rows [size= " <<
+			  m_matrix.num_rows() <<"] sizes have to match!");
 
 //	Apply matrix
-	if(!m_matrix.apply_transposed(uFineOut, uCoarseIn))
+	if(!m_matrix.apply(uCoarse, uFine))
 		UG_THROW("StdProjection::apply_transposed:"
 				" Cannot apply transposed matrix.");
 }

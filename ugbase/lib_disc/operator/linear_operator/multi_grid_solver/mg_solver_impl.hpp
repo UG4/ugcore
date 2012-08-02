@@ -707,7 +707,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 			m_vLevData[lev-1]->num_indices() == 0) continue;
 
 		try{
-			m_vLevData[lev]->Projection->apply(m_vLevData[lev-1]->u, m_vLevData[lev]->u);
+			m_vLevData[lev]->Projection->apply_transposed(m_vLevData[lev-1]->u, m_vLevData[lev]->u);
 		} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
 					"solution to coarse grid function of level "<<lev-1<<".\n");
 	}
