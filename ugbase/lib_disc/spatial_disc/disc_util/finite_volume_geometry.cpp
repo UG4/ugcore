@@ -1104,7 +1104,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		CopyCornerByMidID<worldDim, maxMid>(m_vSCV[i].vGloPos, m_vSCV[i].vMidID, m_vvGloMid, m_vSCV[i].num_corners());
 
 	// 	compute volume of scv
-		if(m_vSCV[i].numCorners != 10)
+		if(m_roid != ROID_PYRAMID || m_vSCV[i].numCorners != 10)
 			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	// 	special case for pyramid, last scv
 		else throw(UGError("Pyramid Not Implemented"));
