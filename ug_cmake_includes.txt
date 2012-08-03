@@ -732,23 +732,6 @@ set(USE_NEW_CMAKE_INCLUDES ON)
 # link against required libraries
 link_libraries(${linkLibraries})
 
-# ATTENTION! The following linker flags are specified in this special way
-# (set(...)) because this reduces dependencies during compile time compared to
-# a call to link_libraries.
-# Please note that link_libraries should almost always be preferred over the
-# set commands below.
-if(NOT buildEmbeddedPlugins)
-	if(buildDynamicLib)
-		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lCompileInfo")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lCompileInfo")
-		set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -lCompileInfo")
-	else(buildDynamicLib)
-		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lCompileInfo_s")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lCompileInfo_s")
-		set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -lCompileInfo_s")
-	endif(buildDynamicLib)
-endif(NOT buildEmbeddedPlugins)
-
 ################################################################################
 # Finally declare a method that allows all sub-cmake-files to add their sources
 # to a common library.

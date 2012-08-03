@@ -12,8 +12,8 @@ fi
 COMPILE_DATE=`date`
 cat > $2 <<EOF
 namespace ug{
-const char *SVN_REVISION="$SVN_REVISION";
-const char *BUILD_HOST="$HOSTNAME";
-const char *COMPILE_DATE="$COMPILE_DATE";
+const char *UG_SVN_REVISION="$SVN_REVISION";
+const char *UG_BUILD_HOST="$HOSTNAME";
+const char *UG_COMPILE_DATE="$COMPILE_DATE";
 }
 EOF

@@ -24,8 +24,6 @@ if(buildPluginSystem)
 	add_subdirectory(plugins)
 endif(buildPluginSystem)
 
-########################
-# ug4 library
 if(BUILD_ONE_LIB)
 	get_property(ug4libSources GLOBAL PROPERTY ugSources)
 	
@@ -35,11 +33,12 @@ if(BUILD_ONE_LIB)
 			add_definitions(-DLUA_BUILD_AS_DLL -DLUA_LIB -DLUA_CORE)
 		endif(WIN32)
 		add_library(${targetLibraryName} SHARED ${ug4libSources})
-		
+
 		if(NOT buildEmbeddedPlugins)
 			add_dependencies(${targetLibraryName} CompileInfo)
 		endif(NOT buildEmbeddedPlugins)
-		
+
+		target_link_libraries(${targetLibraryName} CompileInfo)
 	else(buildDynamicLib)
 		add_library(${targetLibraryName} ${ug4libSources})
 		
@@ -47,6 +46,7 @@ if(BUILD_ONE_LIB)
 			add_dependencies(${targetLibraryName} CompileInfo_s)
 		endif(NOT buildEmbeddedPlugins)
 		
+		target_link_libraries(${targetLibraryName} CompileInfo_s)
 	endif(buildDynamicLib)
 	
 	if(buildEmbeddedPlugins)

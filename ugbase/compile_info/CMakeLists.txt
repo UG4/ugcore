@@ -14,17 +14,20 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 include("../../ug_cmake_includes.txt")
 
+#	Name of the file that will contain the compile-info variables
+set(infoFileName ${CMAKE_BINARY_DIR}/compile_info_vars.cpp)
+
 #	we write this file to make sure that it exists...
 #	Note that on UNIX systems the file is updated with each build through
 #	the add_custom_build_target and add_custom_command calls below. 
 #	on windows we currently don't support updated compile-infos.
 #	check out, whether this can be improved using special windows-scripting...
-file(WRITE ${CMAKE_BINARY_DIR}/compile_info.cpp 
+file(WRITE ${infoFileName} 
 	"namespace ug\n"
 	"{\n"
-	"const char *SVN_REVISION=\"UNKNOWN\";\n"
-	"const char *BUILD_HOST="\"${CMAKE_SYSTEM_NAME}\";\n"
-	"const char *COMPILE_DATE="\"UNKNOWN\";\n"
+	"const char *UG_SVN_REVISION=\"UNKNOWN\";\n"
+	"const char *UG_BUILD_HOST="\"${CMAKE_SYSTEM_NAME}\";\n"
+	"const char *UG_COMPILE_DATE="\"UNKNOWN\";\n"
 	"}\n")
 
 IF(UNIX)
@@ -33,11 +36,16 @@ IF(UNIX)
 	add_custom_target(updateCompileInfo)
 #	The build of the custom target triggers this custom command, which updates
 #	the compile_info.cpp file.
-	add_custom_command(TARGET updateCompileInfo PRE_BUILD COMMAND ${UG_ROOT_PATH}/scripts/shell/generate_compile_info ${UG_ROOT_PATH} ${CMAKE_BINARY_DIR}/compile_info.cpp)
+	add_custom_command(TARGET updateCompileInfo PRE_BUILD COMMAND ${UG_ROOT_PATH}/scripts/shell/generate_compile_info ${UG_ROOT_PATH} ${infoFileName})
 ENDIF(UNIX)
 
+#	Export sources to the file which contains the info-access-methods.
+#	Note that this is not the auto-generated file which contains
+#	the actual variable definitions.
+EXPORTSOURCES(ugbase/compile_info compile_info.cpp)
+
 if(buildEmbeddedPlugins)
-	EXPORTSOURCES(/ ${CMAKE_BINARY_DIR}/compile_info.cpp)
+	EXPORTSOURCES(/ ${infoFileName})
 #	Note that a dependency to updateCompileInfo is created in the main CMakeLists.txt
 #	file for this case.
 
@@ -47,15 +55,15 @@ else(buildEmbeddedPlugins)
 #	The benefit of setting the linker flags in the ug_cmake_includes file however
 #	currently outweights this ugly stuff...
 #	Note that this has no influence on other libraries...
-	set(CMAKE_SHARED_LINKER_FLAGS)
-	set(CMAKE_EXE_LINKER_FLAGS)
-	set(CMAKE_MODULE_LINKER_FLAGS)
+	#set(CMAKE_SHARED_LINKER_FLAGS)
+	#set(CMAKE_EXE_LINKER_FLAGS)
+	#set(CMAKE_MODULE_LINKER_FLAGS)
 		
 	if(buildDynamicLib)
-		add_library(CompileInfo SHARED ${CMAKE_BINARY_DIR}/compile_info.cpp)
+		add_library(CompileInfo SHARED ${infoFileName})
 		set(compileInfoLibName CompileInfo)
 	else(buildDynamicLib)
-		add_library(CompileInfo_s STATIC ${CMAKE_BINARY_DIR}/compile_info.cpp)
+		add_library(CompileInfo_s STATIC ${infoFileName})
 		set(compileInfoLibName CompileInfo_s)
 	endif(buildDynamicLib)
 	
