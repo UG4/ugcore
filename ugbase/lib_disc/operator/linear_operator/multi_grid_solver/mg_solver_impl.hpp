@@ -1794,8 +1794,8 @@ update(size_t lev,
        ITransferOperator<TAlgebra>& projection,
        ITransferOperator<TAlgebra>& prolongation,
        ITransferOperator<TAlgebra>& restriction,
-       std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vprolongationPP,
-       std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vrestrictionPP,
+       std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vprolongationPP,
+       std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP,
        BoolMarker& nonGhostMarker)
 {
 //	get dof distribution
@@ -1829,17 +1829,11 @@ update(size_t lev,
 
 	vProlongationPP.clear();
 	for(size_t i = 0; i < vprolongationPP.size(); ++i)
-	{
-		if(vprolongationPP[i].invalid())
 			vProlongationPP.push_back(vprolongationPP[i]->clone());
-	}
 
 	vRestrictionPP.clear();
 	for(size_t i = 0; i < vrestrictionPP.size(); ++i)
-	{
-		if(vrestrictionPP[i].invalid())
 			vRestrictionPP.push_back(vrestrictionPP[i]->clone());
-	}
 
 //	IN PARALLEL:
 //	In the parallel case one may have vertical slaves/masters. Those are needed

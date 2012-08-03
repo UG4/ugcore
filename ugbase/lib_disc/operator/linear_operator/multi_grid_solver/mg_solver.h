@@ -335,8 +335,8 @@ class AssembledMultiGridCycle :
 			            ITransferOperator<TAlgebra>& projection,
 			            ITransferOperator<TAlgebra>& prolongation,
 			            ITransferOperator<TAlgebra>& restriction,
-			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vprolongationPP,
-			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vrestrictionPP,
+			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vprolongationPP,
+			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP,
 			            BoolMarker& nonGhostMarker);
 
 		//	returns if ghosts are present on the level
