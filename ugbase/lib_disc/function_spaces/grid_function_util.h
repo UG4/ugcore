@@ -196,12 +196,18 @@ void SaveVectorCSV(TGridFunction& b, const char* filename) {
 	WriteVectorCSV(filename, b, b);
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+//	Grid Function Debug Writer
+////////////////////////////////////////////////////////////////////////////////
+
 template<typename TDomain, typename TAlgebra>
-class GridFunctionDebugWriter: public IDebugWriter<TAlgebra> {
-	//	dimension
+class GridFunctionDebugWriter: public IDebugWriter<TAlgebra>
+{
+	///	dimension
 	static const int dim = TDomain::dim;
 
-	//  base directory for output
+	///  base directory for output
 	std::string m_baseDir;
 
 public:
@@ -226,42 +232,35 @@ public:
 		reset();
 	}
 
-
-	///	sets the function
+	///	sets the grid level
 	void set_grid_level(const GridLevel& gridLevel) {
-		m_gridLevel = gridLevel;
+		m_gridLevel = gridLevel; m_coarseGridLevel = gridLevel;
+	}
+
+	///	sets the grid level
+	void set_grid_levels(const GridLevel& fineGridLevel, const GridLevel& coarseGridLevel) {
+		m_gridLevel = fineGridLevel; m_coarseGridLevel = coarseGridLevel;
 	}
 
 	///	returns current grid level
-	GridLevel grid_level() const {
-		return m_gridLevel;
-	}
+	GridLevel grid_level() const {return m_gridLevel;}
 
 	///	sets to toplevel on surface
 	void reset() {
 		set_grid_level(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE));
-
 	}
 
-	// set the base directory for output files (.vec and .mat)
-	inline void set_base_dir(const char* const baseDir) {
-		m_baseDir = std::string(baseDir);
-	}
+	/// set the base directory for output files (.vec and .mat)
+	inline void set_base_dir(const char* const baseDir) {m_baseDir = std::string(baseDir);}
 
-	//	sets if writing to vtk
-	void set_vtk_output(bool b) {
-		bVTKOut = b;
-	}
+	///	sets if writing to vtk
+	void set_vtk_output(bool b) {bVTKOut = b;}
 
-	//	sets if writing to conn viewer
-	void set_conn_viewer_output(bool b) {
-		bConnViewerOut = b;
-	}
+	///	sets if writing to conn viewer
+	void set_conn_viewer_output(bool b) {bConnViewerOut = b;}
 
-	//	sets if data shall be made consistent before printing
-	void set_print_consistent(bool b) {
-		m_printConsistent = b;
-	}
+	///	sets if data shall be made consistent before printing
+	void set_print_consistent(bool b) {m_printConsistent = b;}
 
 	///	write vector
 	virtual void write_vector(const vector_type& vec, const char* filename) {
@@ -297,10 +296,37 @@ public:
 			" filename is '"<<name<<"'.");
 
 		//	write to file
-		extract_positions(m_gridLevel);
-		std::vector<MathVector<dim> >& vPos =
-				this->template get_positions<dim>();
-		WriteMatrixToConnectionViewer(name.c_str(), mat, &vPos[0], dim);
+		if(m_gridLevel == m_coarseGridLevel){
+			if(mat.num_rows() != mat.num_cols())
+				UG_THROW("DebugWriter: grid level the same, but non-square matrix.");
+
+			extract_positions(m_gridLevel);
+			std::vector<MathVector<dim> >& vPos =
+					this->template get_positions<dim>();
+			WriteMatrixToConnectionViewer(name.c_str(), mat, &vPos[0], dim);
+		}
+		else{
+			extract_positions(m_gridLevel);
+			std::vector<MathVector<dim> >& vFinePos =
+					this->template get_positions<dim>();
+			std::vector<MathVector<dim> > vCoarsePos;
+
+			if (m_coarseGridLevel.type() == GridLevel::SURFACE) {
+				ExtractPositions<TDomain, SurfaceDoFDistribution>(
+						m_spApproxSpace->domain(),
+						m_spApproxSpace->surface_dof_distribution(
+								m_coarseGridLevel.level()), vCoarsePos);
+			} else if (m_coarseGridLevel.type() == GridLevel::LEVEL) {
+				ExtractPositions<TDomain, LevelDoFDistribution>(
+						m_spApproxSpace->domain(),
+						m_spApproxSpace->level_dof_distribution(m_coarseGridLevel.level()),
+						vCoarsePos);
+			} else {
+				UG_THROW("DebugWriter: Cannot find grid level");
+			}
+
+			WriteMatrixToConnectionViewer(name, mat, vFinePos, vCoarsePos, dim);
+		}
 	}
 
 protected:
@@ -403,9 +429,13 @@ protected:
 	bool m_printConsistent;
 
 	//	current grid level
-	GridLevel m_gridLevel;
+	GridLevel m_gridLevel, m_coarseGridLevel;
 
 };
+
+////////////////////////////////////////////////////////////////////////////////
+//	Grid Function Position Provider
+////////////////////////////////////////////////////////////////////////////////
 
 template<typename TGridFunction>
 class GridFunctionPositionProvider: public IPositionProvider<
@@ -431,6 +461,10 @@ public:
 protected:
 	const TGridFunction *m_pGridFunc;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+//	Grid Function Vector Writer
+////////////////////////////////////////////////////////////////////////////////
 
 template<typename TGridFunction, typename TVector>
 class GridFunctionVectorWriter: public IVectorWriter<TVector> {
@@ -513,6 +547,10 @@ protected:
 	const TGridFunction *m_pGridFunc;
 	SmartPtr<UserData<number, domain_type::dim> > m_userData;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+//	Grid Function Vector Writer Dirichlet 0
+////////////////////////////////////////////////////////////////////////////////
 
 template<typename TGridFunction>
 class GridFunctionVectorWriterDirichlet0: public IVectorWriter<

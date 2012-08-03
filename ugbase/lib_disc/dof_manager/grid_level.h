@@ -44,6 +44,16 @@ class GridLevel
 	///	returns the type
 		ViewType type() const {return m_type;}
 
+	///	operator ==
+		bool operator==(const GridLevel& rhs) const {
+			return (this->level() == rhs.level() && this->type() == rhs.type());
+		}
+
+	///	operator !=
+		bool operator!=(const GridLevel& rhs) const {
+			return !(this->operator==(rhs));
+		}
+
 	protected:
 		int m_level; ///< the grid level
 		ViewType m_type;	 ///< type (i.e. surface or level view)

@@ -16,6 +16,7 @@
 #include "lib_grid/lg_base.h"
 #include "transfer_interface.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
+#include "lib_algebra/operator/debug_writer.h"
 
 #ifdef UG_PARALLEL
 #include "lib_disc/parallelization/parallelization_util.h"
@@ -43,11 +44,11 @@ class StdTransfer :
 
 	public:
 	/// Default constructor
-		StdTransfer() : m_bInit(false), m_dampRes(1.0) {clear_constraints();};
+		StdTransfer() : m_bInit(false), m_dampRes(1.0), m_spDebugWriter(NULL) {clear_constraints();};
 
 	///	Constructor setting approximation space
 		StdTransfer(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
-			m_spApproxSpace(approxSpace), m_bInit(false), m_dampRes(1.0)
+			m_spApproxSpace(approxSpace), m_bInit(false), m_dampRes(1.0), m_spDebugWriter(NULL)
 		{clear_constraints();};
 
 	///	Set approximation space
@@ -55,6 +56,11 @@ class StdTransfer :
 
 	///	set interpolation damping
 		void set_restriction_damping(number damp) {m_dampRes = damp;}
+
+	///	set debug writer
+		void set_debug(SmartPtr<IDebugWriter<TAlgebra> > spDebugWriter) {
+			m_spDebugWriter = spDebugWriter;
+		}
 
 	public:
 	///	Set levels
@@ -83,6 +89,10 @@ class StdTransfer :
 		virtual SmartPtr<ITransferOperator<TAlgebra> > clone();
 
 	protected:
+	///	debug writing of matrix
+		void write_debug(const matrix_type& mat, const char* filename);
+
+	protected:
 	///	matrix to store prolongation
 		matrix_type m_matrix;
 
@@ -106,6 +116,9 @@ class StdTransfer :
 
 	///	damping parameter
 		number m_dampRes;
+
+	///	debug writer
+		SmartPtr<IDebugWriter<TAlgebra> > m_spDebugWriter;
 };
 
 } // end namespace ug

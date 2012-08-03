@@ -11,6 +11,7 @@
 #include "prolongation_operator.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/function_spaces/grid_function_util.h"
 
 namespace ug{
 
@@ -328,6 +329,9 @@ void StdTransfer<TDomain, TAlgebra>::init()
 		m_matrix.set_storage_type(PST_CONSISTENT);
 	#endif
 
+	std::stringstream ss; ss<<"Prolongation_"<<m_coarseLevel.level()<<"_"<<m_fineLevel.level();
+	write_debug(m_matrix, ss.str().c_str());
+
 	m_bInit = true;
 }
 
@@ -417,6 +421,7 @@ StdTransfer<TDomain, TAlgebra>::clone()
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
 		op->add_constraint(m_vConstraint[i]);
 	op->set_restriction_damping(m_dampRes);
+	op->set_debug(m_spDebugWriter);
 	return op;
 }
 
@@ -438,6 +443,29 @@ remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 	                     std::remove(m_vConstraint.begin(), m_vConstraint.end(), pp));
 }
 
+template <typename TDomain, typename TAlgebra>
+void StdTransfer<TDomain, TAlgebra>::
+write_debug(const matrix_type& mat, const char* filename)
+{
+//	if no debug writer set, we're done
+	if(m_spDebugWriter.invalid()) return;
+
+//	cast dbg writer
+	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
+			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
+
+//	check success
+	if(dbgWriter.invalid()) return;
+
+//	add iter count to name
+	std::string name(filename); name.append(".mat");
+
+//	write
+	GridLevel gridLev = dbgWriter->grid_level();
+	dbgWriter->set_grid_levels(m_coarseLevel, m_fineLevel);
+	dbgWriter->write_matrix(mat, name.c_str());
+	dbgWriter->set_grid_level(gridLev);
+}
 
 } // end namespace ug
 
