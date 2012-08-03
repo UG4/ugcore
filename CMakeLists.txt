@@ -36,17 +36,17 @@ if(BUILD_ONE_LIB)
 
 		if(NOT buildEmbeddedPlugins)
 			add_dependencies(${targetLibraryName} CompileInfo)
+			target_link_libraries(${targetLibraryName} CompileInfo)
 		endif(NOT buildEmbeddedPlugins)
 
-		target_link_libraries(${targetLibraryName} CompileInfo)
 	else(buildDynamicLib)
 		add_library(${targetLibraryName} ${ug4libSources})
 		
 		if(NOT buildEmbeddedPlugins)
 			add_dependencies(${targetLibraryName} CompileInfo_s)
+			target_link_libraries(${targetLibraryName} CompileInfo_s)
 		endif(NOT buildEmbeddedPlugins)
 		
-		target_link_libraries(${targetLibraryName} CompileInfo_s)
 	endif(buildDynamicLib)
 	
 	if(buildEmbeddedPlugins)
