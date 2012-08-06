@@ -62,7 +62,6 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("Jacobi").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Jacobi Preconditioner")
 			.add_constructor()
-			.add_method("set_damp", &T::set_damp, "", "damp")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Jacobi", tag);
 	}
