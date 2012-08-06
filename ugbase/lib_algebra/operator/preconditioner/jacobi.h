@@ -43,19 +43,17 @@ class Jacobi : public IPreconditioner<TAlgebra>
 
 	public:
 	///	default constructor
-		Jacobi() : m_damp(1.0) {};
+		Jacobi() {this->set_damp(1.0);};
 
 	///	constructor setting the damping parameter
-		Jacobi(number damp) :	m_damp(damp){};
-
-	///	sets the damping parameter
-		void set_damp(number damp) {m_damp = damp;}
+		Jacobi(number damp) {this->set_damp(damp);};
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<Jacobi<algebra_type> > newInst(new Jacobi<algebra_type>(m_damp));
+			SmartPtr<Jacobi<algebra_type> > newInst(new Jacobi<algebra_type>());
 			newInst->set_debug(debug_writer());
+			newInst->set_damp(this->damping());
 			return newInst;
 		}
 
@@ -99,10 +97,15 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			diag.set_storage_type(PST_ADDITIVE);
 			diag.change_storage_type(PST_CONSISTENT);
 
+		//	get damping in constant case to damp at once
+			number damp = 1.0;
+			if(damping()->constant_damping())
+				damp = damping()->scaling(c,d, this->m_spOperator);
+
 		// 	invert diagonal and multiply by damping
 			for(size_t i = 0; i < diag.size(); ++i)
 			{
-				diag[i] *= 1/m_damp;
+				diag[i] *= 1./damp;
 				GetInverse(m_diagInv[i], diag[i]);
 			}
 #endif
@@ -132,11 +135,16 @@ class Jacobi : public IPreconditioner<TAlgebra>
 				return false;
 			}
 #else
+		//	get damping in constant case to damp at once
+			number damp = 1.0;
+			if(this->damping()->constant_damping())
+				damp = this->damping()->damping(c,d, this->m_spOperator);
+
 		// 	apply iterator: c = B*d (damp is not used)
 			for(size_t i = 0; i < c.size(); ++i)
 			{
-			// 	c[i] = m_damp * d[i] / mat(i,i)
-				InverseMatMult(c[i], m_damp, mat(i,i), d[i]);
+			// 	c[i] = damp * d[i] / mat(i,i)
+				InverseMatMult(c[i], damp, mat(i,i), d[i]);
 			}
 #endif
 		//	done
@@ -146,10 +154,62 @@ class Jacobi : public IPreconditioner<TAlgebra>
 	///	Postprocess routine
 		virtual bool postprocess() {return true;}
 
-	protected:
-	///	damping parameter
-		number m_damp;
 
+	//	overwrite function in order to specially treat constant damping
+		virtual bool apply(vector_type& c, const vector_type& d)
+		{
+		//	Check that operator is initialized
+			if(!this->m_bInit)
+			{
+				UG_LOG("ERROR in '"<<name()<<"::apply': Iterator not initialized.\n");
+				return false;
+			}
+
+		//	Check parallel status
+			#ifdef UG_PARALLEL
+			if(!d.has_storage_type(PST_ADDITIVE))
+				UG_THROW(name() << "::apply: Wrong parallel "
+				               "storage format. Defect must be additive.");
+			#endif
+
+		//	Check sizes
+			if(d.size() != this->m_spOperator->num_rows())
+				UG_THROW("Vector [size= "<<d.size()<<"] and Row [size= "
+				               <<this->m_spOperator->num_rows()<<"] sizes have to match!");
+			if(c.size() != this->m_spOperator->num_cols())
+				UG_THROW("Vector [size= "<<c.size()<<"] and Column [size= "
+				               <<this->m_spOperator->num_cols()<<"] sizes have to match!");
+			if(d.size() != c.size())
+				UG_THROW("Vector [d size= "<<d.size()<<", c size = "
+				               << c.size() << "] sizes have to match!");
+
+		// 	apply iterator: c = B*d
+			if(!step(*this->m_spOperator, c, d))
+			{
+				UG_LOG("ERROR in '"<<name()<<"::apply': Step Routine failed.\n");
+				return false;
+			}
+
+		//	apply scaling
+			if(!this->damping()->constant_damping()){
+				const number kappa = this->damping()->damping(c, d, this->m_spOperator);
+				if(kappa != 1.0){
+					c *= kappa;
+				}
+			}
+
+		//	Correction is always consistent
+			#ifdef 	UG_PARALLEL
+			if(!c.change_storage_type(PST_CONSISTENT))
+				UG_THROW(name() << "::apply': Cannot change "
+						"parallel storage type of correction to consistent.");
+			#endif
+
+		//	we're done
+			return true;
+		}
+
+	protected:
 #ifdef UG_PARALLEL
 	///	type of block-inverse
 		typedef typename block_traits<typename matrix_type::value_type>::inverse_type inverse_type;

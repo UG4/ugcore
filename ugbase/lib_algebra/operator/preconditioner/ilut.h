@@ -48,6 +48,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		{
 			SmartPtr<ILUTPreconditioner<algebra_type> > newInst(new ILUTPreconditioner<algebra_type>(m_eps));
 			newInst->set_debug(debug_writer());
+			newInst->set_damp(this->damping());
 			return newInst;
 		}
 

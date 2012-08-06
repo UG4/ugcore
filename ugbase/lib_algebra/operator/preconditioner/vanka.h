@@ -200,6 +200,7 @@ class Vanka : public IPreconditioner<TAlgebra>
 		{
 			SmartPtr<Vanka<algebra_type> > newInst(new Vanka<algebra_type>());
 			newInst->set_debug(debug_writer());
+			newInst->set_damp(this->damping());
 			return newInst;
 		}
 
@@ -301,6 +302,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 		{
 			SmartPtr<DiagVanka<algebra_type> > newInst(new DiagVanka<algebra_type>());
 			newInst->set_debug(debug_writer());
+			newInst->set_damp(this->damping());
 			return newInst;
 		}
 

@@ -201,6 +201,22 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 		//	loop all components
 			for(size_t fct = 0; fct < coarseDD.num_fct(); fct++)
 			{
+				if (vLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0)){
+					//	check that fct defined on subset
+					if(!coarseDD.is_def_in_subset(fct, si)) continue;
+					//  get global indices
+					coarseDD.multi_indices(coarseElem, fct, vCoarseMultInd);
+					//	loop children
+					for(size_t c = 0; c < vChild.size(); ++c)
+					{
+						Element* child = vChild[c];
+						//	fine dof indices
+						fineDD.multi_indices(child, fct, vFineMultInd);
+						DoFRef(mat, vFineMultInd[0], vCoarseMultInd[0]) =  1.0/(numChild);
+						vIsRestricted[vCoarseMultInd[0][0]] = true;
+					}
+					continue;
+				}
 			//	check that fct defined on subset
 				if(!coarseDD.is_def_in_subset(fct, si)) continue;
 

@@ -107,18 +107,6 @@ apply_update_defect(vector_type &c, vector_type& d)
 	} UG_CATCH_THROW("AssembledMultiGridCycle: lmgc failed.");
 	GMG_PROFILE_END(); //GMGApply_lmgc
 
-//	project defect from level to surface
-	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromLevelToSurface);
-	try{
-	if(!project_level_to_surface(d, const_level_defects()))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
-				"Projection of defect to surface failed.\n");
-		return false;
-	}
-	} UG_CATCH_THROW("AssembledMultiGridCycle: Project d Level -> Surface failed.");
-	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromLevelToSurface
-
 //	project correction from level to surface
 	GMG_PROFILE_BEGIN(GMG_ProjectCorrectionFromLevelToSurface);
 	try{
@@ -130,6 +118,32 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}
 	} UG_CATCH_THROW("AssembledMultiGridCycle: Project c Level -> Surface failed.");
 	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
+
+//	apply scaling
+	const number kappa = this->damping()->damping(c, d, m_spSurfaceMat.template cast_dynamic<ILinearOperator<vector_type> >());
+
+	if(kappa == 1.0)
+	{
+	//	project defect from level to surface
+		GMG_PROFILE_BEGIN(GMG_ProjectDefectFromLevelToSurface);
+		try{
+		if(!project_level_to_surface(d, const_level_defects()))
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
+					"Projection of defect to surface failed.\n");
+			return false;
+		}
+		} UG_CATCH_THROW("AssembledMultiGridCycle: Project d Level -> Surface failed.");
+		GMG_PROFILE_END(); //GMGApply_ProjectDefectFromLevelToSurface
+	}
+	else
+	{
+	//	scale correction
+		c *= kappa;
+
+	//	scaling case -> recompute updated defect
+		m_spSurfaceMat->matmul_minus(d, c);
+	}
 
 //	increase dbg counter
 	if(m_spDebugWriter.valid()) m_dbgIterCnt++;

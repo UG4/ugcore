@@ -9,6 +9,7 @@
 #define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR_ITERATOR__
 
 #include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/damping.h"
 #include "lib_algebra/operator/debug_writer.h"
 
 #ifdef UG_PARALLEL
@@ -127,11 +128,39 @@ class ILinearIterator
 	 */
 		virtual bool apply_update_defect(Y& c, X& d) = 0;
 
+	///	sets a scaling for the correction
+	/**
+	 * Sets a scaling for the correction, i.e., once the correction has been
+	 * computed, c = B*d, the correction is scaled by a factor, c := s*c, where
+	 * s is provided by the passed scaling class. Note, that the scaling factor
+	 * may depend on the defect and correction. The internal update of the defect
+	 * as done in apply_update_defect must be performed with respect to the
+	 * scaled correction.
+	 */
+		void set_damp(SmartPtr<IDamping<X,Y> > spScaling) {
+			m_spDamping = spScaling;
+		}
+
+	///	sets the damping to a constant factor
+		void set_damp(number factor) {
+			m_spDamping = new ConstantDamping<X,Y>(factor);
+		}
+
+	///	returns the scaling
+		SmartPtr<IDamping<X,Y> > damping() {return m_spDamping;}
+
 	///	clone
 		virtual SmartPtr<ILinearIterator<X,Y> > clone() = 0;
 
 	/// virtual destructor
 		virtual ~ILinearIterator() {};
+
+	///	constructor
+		ILinearIterator() {set_damp(1.0);};
+
+	protected:
+	///	the scaling
+		SmartPtr<IDamping<X,Y> > m_spDamping;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -206,6 +235,7 @@ class IPreconditioner :
 		typedef MatrixOperator<matrix_type, vector_type> matrix_operator_type;
 
 	protected:
+		using ILinearIterator<vector_type>::damping;
 		using DebugWritingObject<TAlgebra>::set_debug;
 		using DebugWritingObject<TAlgebra>::debug_writer;
 		using DebugWritingObject<TAlgebra>::write_debug;
@@ -389,6 +419,12 @@ class IPreconditioner :
 			{
 				UG_LOG("ERROR in '"<<name()<<"::apply': Step Routine failed.\n");
 				return false;
+			}
+
+		//	apply scaling
+			const number kappa = damping()->damping(c, d, m_spOperator);
+			if(kappa != 1.0){
+				c *= kappa;
 			}
 
 		//	Correction is always consistent

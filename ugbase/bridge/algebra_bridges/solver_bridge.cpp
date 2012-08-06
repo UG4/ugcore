@@ -16,6 +16,7 @@
 
 // solver
 #include "lib_algebra/lib_algebra.h"
+#include "lib_algebra/operator/damping.h"
 #include "lib_algebra/operator/linear_solver/linear_solver.h"
 #include "lib_algebra/operator/linear_solver/cg.h"
 #include "lib_algebra/operator/linear_solver/bicgstab.h"
@@ -58,6 +59,26 @@ static void Algebra(Registry& reg, string grp)
 //	typedefs for this algebra
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
+
+
+// 	IDamping
+	{
+		typedef IDamping<vector_type> T;
+		string name = string("IDamping").append(suffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "IDamping", tag);
+	}
+
+// 	MinimalResiduumDamping
+	{
+		typedef MinimalResiduumDamping<vector_type> T;
+		typedef IDamping<vector_type> TBase;
+		string name = string("MinimalResiduumDamping").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "MinimalResiduumDamping", tag);
+	}
 
 // 	LinearSolver
 	{

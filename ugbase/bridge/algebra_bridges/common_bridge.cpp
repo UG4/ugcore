@@ -196,7 +196,9 @@ static void Algebra(Registry& reg, string grp)
 	{
 		typedef ILinearIterator<vector_type> T;
 		string name = string("ILinearIterator").append(suffix);
-		reg.add_class_<T>(name, grp);
+		reg.add_class_<T>(name, grp)
+			.add_method("set_damp", static_cast<void (T::*)(number)>(&T::set_damp))
+			.add_method("set_damp", static_cast<void (T::*)(SmartPtr<IDamping<vector_type> >)>(&T::set_damp));
 		reg.add_class_to_group(name, "ILinearIterator", tag);
 	}
 

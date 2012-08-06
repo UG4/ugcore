@@ -50,6 +50,7 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 		{
 			SmartPtr<GaussSeidel<algebra_type> > newInst(new GaussSeidel<algebra_type>());
 			newInst->set_debug(debug_writer());
+			newInst->set_damp(this->damping());
 			return newInst;
 		}
 
@@ -144,6 +145,7 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 		{
 			SmartPtr<BackwardGaussSeidel<algebra_type> > newInst(new BackwardGaussSeidel<algebra_type>());
 			newInst->set_debug(debug_writer());
+			newInst->set_damp(this->damping());
 			return newInst;
 		}
 
@@ -237,6 +239,7 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 		{
 			SmartPtr<SymmetricGaussSeidel<algebra_type> > newInst(new SymmetricGaussSeidel<algebra_type>());
 			newInst->set_debug(debug_writer());
+			newInst->set_damp(this->damping());
 			return newInst;
 		}
 

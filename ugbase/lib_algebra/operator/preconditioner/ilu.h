@@ -268,6 +268,7 @@ class ILU : public IPreconditioner<TAlgebra>
 		{
 			SmartPtr<ILU<algebra_type> > newInst(new ILU<algebra_type>(m_beta));
 			newInst->set_debug(debug_writer());
+			newInst->set_damp(this->damping());
 			return newInst;
 		}
 

@@ -119,6 +119,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_restriction", &T::set_restriction,"", "Restriction")
 			.add_method("set_projection", &T::set_projection,"", "Projection")
 			.add_method("add_prolongation_post_process", &T::add_prolongation_post_process,"", "Prolongation Post Process")
+			.add_method("add_restriction_post_process", &T::add_restriction_post_process,"", "Restriction Post Process")
 			.add_method("set_debug", &T::set_debug)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GeometricMultiGrid", tag);
