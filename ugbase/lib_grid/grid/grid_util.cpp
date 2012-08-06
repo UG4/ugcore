@@ -148,10 +148,6 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Volume* v
 void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, VertexBase* v, bool clearContainer)
 {
 	vEdgesOut.clear();
-
-//	if no edges are present, we can leave immediately
-	if(grid.num<EdgeBase>() == 0)
-		return;
 }
 
 ///	Collects all edges. (Returns the edge itself)
@@ -159,10 +155,6 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, b
 {
 	if(clearContainer)
 		vEdgesOut.clear();
-
-//	if no edges are present, we can leave immediately
-	if(grid.num<EdgeBase>() == 0)
-		return;
 
 	vEdgesOut.push_back(e);
 }
@@ -173,17 +165,30 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool 
 	if(clearContainer)
 		vEdgesOut.clear();
 
-//	if no edges are present, we can leave immediately
-	if(grid.num<EdgeBase>() == 0)
-		return;
-
-//	second-best: use GetEdge in order to find the queried edges
-	uint numEdges = f->num_edges();
-	for(uint i = 0; i < numEdges; ++i)
+//	to improve performance, we first check the grid options.
+	if(grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES
+							| FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
-		EdgeBase* e = grid.get_edge(f, i);
-		if(e != NULL)
-			vEdgesOut.push_back(e);
+	//	the edges can be accessed in a sorted way through iterators
+		Grid::AssociatedEdgeIterator end = grid.associated_edges_end(f);
+		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(f);
+			iter != end; ++iter)
+		{
+			vEdgesOut.push_back(*iter);
+		}
+	}
+	else{
+	//	if no edges are present, we can leave immediately
+		if(grid.num<EdgeBase>() == 0)
+			return;
+	//	second-best: use GetEdge in order to find the queried edges
+		uint numEdges = f->num_edges();
+		for(uint i = 0; i < numEdges; ++i)
+		{
+			EdgeBase* e = grid.get_edge(f, i);
+			if(e != NULL)
+				vEdgesOut.push_back(e);
+		}
 	}
 }
 
@@ -193,17 +198,31 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, boo
 	if(clearContainer)
 		vEdgesOut.clear();
 
-//	if no edges are present, we can leave immediately
-	if(grid.num<EdgeBase>() == 0)
-		return;
-
-//	second best: use GetEdge in order to find the queried edges.
-	uint numEdges = v->num_edges();
-	for(uint i = 0; i < numEdges; ++i)
+//	to improve performance, we first check the grid options.
+	if(grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES
+							| VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
-		EdgeBase* e = grid.get_edge(v, i);
-		if(e != NULL)
-			vEdgesOut.push_back(e);
+	//	the edges can be accessed in a sorted way through iterators
+		Grid::AssociatedEdgeIterator end = grid.associated_edges_end(v);
+		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
+			iter != end; ++iter)
+		{
+			vEdgesOut.push_back(*iter);
+		}
+	}
+	else{
+	//	if no edges are present, we can leave immediately
+		if(grid.num<EdgeBase>() == 0)
+			return;
+
+	//	second best: use GetEdge in order to find the queried edges.
+		uint numEdges = v->num_edges();
+		for(uint i = 0; i < numEdges; ++i)
+		{
+			EdgeBase* e = grid.get_edge(v, i);
+			if(e != NULL)
+				vEdgesOut.push_back(e);
+		}
 	}
 
 }
@@ -336,10 +355,6 @@ void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Face* f, bool clea
 	if(clearContainer)
 		vFacesOut.clear();
 
-//	if no faces are present, we can leave immediately
-	if(grid.num<Face>() == 0)
-		return;
-
 	if(f != NULL)
 		vFacesOut.push_back(f);
 }
@@ -350,19 +365,30 @@ void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool cl
 	if(clearContainer)
 		vFacesOut.clear();
 
-//	if no faces are present, we can leave immediately
-	if(grid.num<Face>() == 0)
-		return;
-
-	// TODO:	If option VOLOPT_STORE_ASSOCIATED_FACES enabled, it might be
-	// 			more efficient to use associated_faces and sort them
-
-	uint numFaces = v->num_faces();
-	for(uint i = 0; i < numFaces; ++i)
+//	to improve performance, we first check the grid options.
+	if(grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES
+							| VOLOPT_STORE_ASSOCIATED_FACES))
 	{
-		Face* f = grid.get_face(v, i);
-		if(f != NULL)
-			vFacesOut.push_back(f);
+	//	the faces can be accessed in a sorted way through iterators
+		Grid::AssociatedFaceIterator end = grid.associated_faces_end(v);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
+			iter != end; ++iter)
+		{
+			vFacesOut.push_back(*iter);
+		}
+	}
+	else{
+	//	if no faces are present, we can leave immediately
+		if(grid.num<Face>() == 0)
+			return;
+
+		uint numFaces = v->num_faces();
+		for(uint i = 0; i < numFaces; ++i)
+		{
+			Face* f = grid.get_face(v, i);
+			if(f != NULL)
+				vFacesOut.push_back(f);
+		}
 	}
 }
 

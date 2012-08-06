@@ -26,18 +26,18 @@ file(WRITE ${infoFileName}
 	"namespace ug\n"
 	"{\n"
 	"const char *UG_SVN_REVISION=\"UNKNOWN\";\n"
-	"const char *UG_BUILD_HOST="\"${CMAKE_SYSTEM_NAME}\";\n"
-	"const char *UG_COMPILE_DATE="\"UNKNOWN\";\n"
+	"const char *UG_BUILD_HOST=\"${CMAKE_SYSTEM_NAME}\";\n"
+	"const char *UG_COMPILE_DATE=\"UNKNOWN\";\n"
 	"}\n")
 
-IF(UNIX)
+if(UNIX AND buildCompileInfo)
 #	The custom target is always considered out of date and will be rebuilt
 #	every time make is executed.
 	add_custom_target(updateCompileInfo)
 #	The build of the custom target triggers this custom command, which updates
 #	the compile_info.cpp file.
 	add_custom_command(TARGET updateCompileInfo PRE_BUILD COMMAND ${UG_ROOT_PATH}/scripts/shell/generate_compile_info ${UG_ROOT_PATH} ${infoFileName})
-ENDIF(UNIX)
+endif(UNIX AND buildCompileInfo)
 
 #	Export sources to the file which contains the info-access-methods.
 #	Note that this is not the auto-generated file which contains
@@ -67,9 +67,9 @@ else(buildEmbeddedPlugins)
 		set(compileInfoLibName CompileInfo_s)
 	endif(buildDynamicLib)
 	
-	IF(UNIX)
+	if(UNIX AND buildCompileInfo)
 	#	The dependency makes sure, that the compile_info file is written before
 	# 	the CompileInfo lib is being rebuilt.
 		add_dependencies(${compileInfoLibName} updateCompileInfo)
-	ENDIF(UNIX)
+	endif(UNIX AND buildCompileInfo)
 endif(buildEmbeddedPlugins)

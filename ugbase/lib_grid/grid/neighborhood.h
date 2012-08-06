@@ -19,6 +19,8 @@ namespace ug
  * @{
  */
 
+///	Constants to specify a neighborhood
+/**	Use arbitrary or combinations. */
 enum NeighborhoodType
 {
 	NHT_DEFAULT = 0,

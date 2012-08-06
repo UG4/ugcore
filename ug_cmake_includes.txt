@@ -47,7 +47,7 @@ set(buildDisc OFF)
 set(buildBridge OFF)
 set(buildBindings OFF)
 set(buildRegistry OFF)
-
+set(buildCompileInfo ON)
 
 # Here we'll store libs, if we find and need them
 set(linkLibraries)
@@ -118,6 +118,7 @@ option(BUILTIN_MPI "MPI is built into compiler" OFF)
 option(OPENMP "Enables use of OpenMP. Valid options are ON, OFF" OFF)
 option(CXX11 "Enables compilation with C++11 standard. Valid options are ON, OFF" OFF)
 option(EMBEDDED_PLUGINS "Plugin sources are directly included in libug4. No dynamic loading required. Valid options are ON, OFF " OFF)
+option(COMPILE_INFO "Embeds information on compile revision and date. Requires relinking of all involved libraries. Valid options are ON, OFF " ${buildCompileInfo})
 
 ################################################################################
 # set default values for pseudo-options
@@ -183,6 +184,7 @@ message(STATUS "Info: LAPACK:            "${LAPACK}" (options are: ON, OFF)")
 message(STATUS "Info: BLAS:              "${BLAS}" (options are: ON, OFF)")
 message(STATUS "Info: INTERNAL_BOOST:    "${INTERNAL_BOOST}" (options are: ON, OFF)")
 message(STATUS "Info: EMBEDDED_PLUGINS   "${EMBEDDED_PLUGINS}" (options are: ON, OFF)")
+message(STATUS "Info: COMPILE_INFO       "${COMPILE_INFO}" (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (set them to the path, which contains the library):")
 message(STATUS "Info: METIS:    "${METIS})
@@ -684,6 +686,14 @@ if(PARALLEL)
 	endif(BUILTIN_MPI)
 endif(PARALLEL)
 
+
+########################################
+set(buildCompileInfo ${COMPILE_INFO})
+if(buildCompileInfo)
+	message(STATUS "Info: COMPILE_INFO enabled. Causes relinking on each run of make.")
+endif(buildCompileInfo)
+
+########################################
 if(HERMIT_EXPERIMENTAL)
 	add_definitions(-DUG_PARALLEL)
 	add_definitions(-DBLAS_AVAILABLE)
