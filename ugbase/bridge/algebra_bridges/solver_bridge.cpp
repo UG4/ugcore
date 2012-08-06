@@ -79,6 +79,17 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "MinimalResiduumDamping", tag);
 	}
+	
+// 	MinimalEngergyDamping
+	{
+		typedef MinimalEnergyDamping<vector_type> T;
+		typedef IDamping<vector_type> TBase;
+		string name = string("MinimalEnergyDamping").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "MinimalEnergyDamping", tag);
+	}
 
 // 	LinearSolver
 	{

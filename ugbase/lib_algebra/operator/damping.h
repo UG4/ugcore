@@ -58,6 +58,27 @@ class MinimalResiduumDamping : public IDamping<X,Y>
 		virtual bool constant_damping() {return false;};
 };
 
+template <typename X, typename Y = X>
+class MinimalEnergyDamping : public IDamping<X,Y>
+{
+	public:
+	MinimalEnergyDamping() {}
+
+		virtual number damping(const Y& c, const X& d, SmartPtr<ILinearOperator<Y,X> > spLinOp)
+		{
+			X Ac; Ac.create(d.size());
+			spLinOp->apply(Ac, c);
+
+		//	Compute scaling
+			const number kappa = VecProd(d,c) / VecProd(Ac, c);
+
+		//	return result
+			return kappa;
+		}
+
+		virtual bool constant_damping() {return false;};
+};
+
 }
 
 #endif /* __H__LIB_ALGEBRA__OPERATOR__DAMPING__ */
