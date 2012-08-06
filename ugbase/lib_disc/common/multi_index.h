@@ -266,6 +266,11 @@ DoFRef(const TVector& vec, const MultiIndex<2>& ind)
 	return BlockRef(vec[ind[0]], ind[1]);
 }
 
+template <typename TMatrix>
+void SetDirichletRow(TMatrix& mat, const MultiIndex<2>& ind)
+{
+	SetDirichletRow(mat, ind[0], ind[1]);
+}
 
 }
 
