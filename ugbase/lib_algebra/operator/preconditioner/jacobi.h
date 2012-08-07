@@ -100,7 +100,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		//	get damping in constant case to damp at once
 			number damp = 1.0;
 			if(this->damping()->constant_damping())
-				damp = this->damping()->damping(diag,diag, this->m_spOperator);
+				damp = this->damping()->damping();
 
 		// 	invert diagonal and multiply by damping
 			for(size_t i = 0; i < diag.size(); ++i)
@@ -138,7 +138,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		//	get damping in constant case to damp at once
 			number damp = 1.0;
 			if(this->damping()->constant_damping())
-				damp = this->damping()->damping(c,d, this->m_spOperator);
+				damp = this->damping()->damping();
 
 		// 	apply iterator: c = B*d (damp is not used)
 			for(size_t i = 0; i < c.size(); ++i)
