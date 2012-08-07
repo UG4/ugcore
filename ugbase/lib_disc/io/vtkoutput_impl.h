@@ -1507,60 +1507,118 @@ write_pvtu(TFunction& u, const std::string& filename,
 		fprintf(file, "    </PPoints>\n");
 
 	// 	Node Data
-		fprintf(file, "    <PPointData>\n");
-		for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
+		if(!m_vSymbFctNodal.empty() || !m_vScalarNodalData.empty() || !m_vVectorNodalData.empty())
 		{
-		//	get symb function
-			const std::string& symbNames = m_vSymbFctNodal[sym].first;
-			const std::string& vtkName = m_vSymbFctNodal[sym].second;
+			fprintf(file, "    <PPointData>\n");
+			for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
+			{
+			//	get symb function
+				const std::string& symbNames = m_vSymbFctNodal[sym].first;
+				const std::string& vtkName = m_vSymbFctNodal[sym].second;
 
-		//	tokenize string
-			std::vector<std::string> tokens;
-			TokenizeString(symbNames, tokens, ',');
-			for(size_t i = 0; i < tokens.size(); ++i) tokens[i] = TrimString(tokens[i]);
+			//	tokenize string
+				std::vector<std::string> tokens;
+				TokenizeString(symbNames, tokens, ',');
+				for(size_t i = 0; i < tokens.size(); ++i) tokens[i] = TrimString(tokens[i]);
 
-		//	create function group
-			std::vector<size_t> fctGrp(tokens.size());
-			for(size_t i = 0; i < tokens.size(); ++i)
-				fctGrp[i] = u.fct_id_by_name(tokens[i].c_str());
+			//	create function group
+				std::vector<size_t> fctGrp(tokens.size());
+				for(size_t i = 0; i < tokens.size(); ++i)
+					fctGrp[i] = u.fct_id_by_name(tokens[i].c_str());
 
-		//	check that all functions are contained in subset
-			bool bContained = true;
-			for(size_t i = 0; i < fctGrp.size(); ++i)
-				if(!u.is_def_in_subset(fctGrp[i], si))
-					bContained = false;
+			//	check that all functions are contained in subset
+				bool bContained = true;
+				for(size_t i = 0; i < fctGrp.size(); ++i)
+					if(!u.is_def_in_subset(fctGrp[i], si))
+						bContained = false;
 
-			if(!bContained) continue;
+				if(!bContained) continue;
 
-			fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
-						  "NumberOfComponents=\"%d\"/>\n",
-						  vtkName.c_str(), (fctGrp.size() == 1 ? 1 : 3));
+				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
+							  "NumberOfComponents=\"%d\"/>\n",
+							  vtkName.c_str(), (fctGrp.size() == 1 ? 1 : 3));
+			}
+
+		//	loop all scalar data
+			for(size_t data = 0; data < m_vScalarNodalData.size(); ++data)
+			{
+			//	get symb function
+				const std::string& vtkName = m_vScalarNodalData[data].second;
+
+				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
+							  "NumberOfComponents=\"%d\"/>\n",
+							  vtkName.c_str(), 1);
+			}
+
+		//	loop all vector data
+			for(size_t data = 0; data < m_vVectorNodalData.size(); ++data)
+			{
+			//	get symb function
+				const std::string& vtkName = m_vVectorNodalData[data].second;
+
+				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
+							  "NumberOfComponents=\"%d\"/>\n",
+							  vtkName.c_str(), 3);
+			}
+			fprintf(file, "    </PPointData>\n");
 		}
 
-	//	loop all scalar data
-		for(size_t data = 0; data < m_vScalarNodalData.size(); ++data)
+	// 	Elem Data
+		if(!m_vSymbFctElem.empty() || !m_vScalarElemData.empty() || !m_vVectorElemData.empty())
 		{
-		//	get symb function
-			const std::string& vtkName = m_vScalarNodalData[data].second;
+			fprintf(file, "    <PCellData>\n");
+			for(size_t sym = 0; sym < m_vSymbFctElem.size(); ++sym)
+			{
+			//	get symb function
+				const std::string& symbNames = m_vSymbFctElem[sym].first;
+				const std::string& vtkName = m_vSymbFctElem[sym].second;
 
-			fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
-						  "NumberOfComponents=\"%d\"/>\n",
-						  vtkName.c_str(), 1);
+			//	tokenize string
+				std::vector<std::string> tokens;
+				TokenizeString(symbNames, tokens, ',');
+				for(size_t i = 0; i < tokens.size(); ++i) tokens[i] = TrimString(tokens[i]);
+
+			//	create function group
+				std::vector<size_t> fctGrp(tokens.size());
+				for(size_t i = 0; i < tokens.size(); ++i)
+					fctGrp[i] = u.fct_id_by_name(tokens[i].c_str());
+
+			//	check that all functions are contained in subset
+				bool bContained = true;
+				for(size_t i = 0; i < fctGrp.size(); ++i)
+					if(!u.is_def_in_subset(fctGrp[i], si))
+						bContained = false;
+
+				if(!bContained) continue;
+
+				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
+							  "NumberOfComponents=\"%d\"/>\n",
+							  vtkName.c_str(), (fctGrp.size() == 1 ? 1 : 3));
+			}
+
+		//	loop all scalar data
+			for(size_t data = 0; data < m_vScalarElemData.size(); ++data)
+			{
+			//	get symb function
+				const std::string& vtkName = m_vScalarElemData[data].second;
+
+				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
+							  "NumberOfComponents=\"%d\"/>\n",
+							  vtkName.c_str(), 1);
+			}
+
+		//	loop all vector data
+			for(size_t data = 0; data < m_vVectorElemData.size(); ++data)
+			{
+			//	get symb function
+				const std::string& vtkName = m_vVectorElemData[data].second;
+
+				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
+							  "NumberOfComponents=\"%d\"/>\n",
+							  vtkName.c_str(), 3);
+			}
+			fprintf(file, "    </PCellData>\n");
 		}
-
-	//	loop all vector data
-		for(size_t data = 0; data < m_vVectorNodalData.size(); ++data)
-		{
-		//	get symb function
-			const std::string& vtkName = m_vVectorNodalData[data].second;
-
-			fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
-						  "NumberOfComponents=\"%d\"/>\n",
-						  vtkName.c_str(), 3);
-		}
-		fprintf(file, "    </PPointData>\n");
-
-		// Element Data (currently not supported)
 
 	// 	include files from all procs
 		for (int i = 0; i < numProcs; i++) {
