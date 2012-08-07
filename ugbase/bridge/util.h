@@ -30,7 +30,7 @@ typedef boost::mpl::list<
 #ifdef UG_DIM_1
 		Domain1d
 #endif
-#if defined UG_DIM_1 && defined UG_DIM_2
+#if defined UG_DIM_1 && (defined UG_DIM_2 || defined UG_DIM_3)
 		,
 #endif
 #ifdef UG_DIM_2
@@ -52,19 +52,19 @@ typedef boost::mpl::list<
 #ifdef UG_CPU_1
 		CPUAlgebra
 #endif
-#if defined UG_CPU_1 && defined UG_CPU_2
+#if defined UG_CPU_1 && (defined UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR)
 		,
 #endif
 #ifdef UG_CPU_2
 		CPUBlockAlgebra<2>
 #endif
-#if defined UG_CPU_2 && defined UG_CPU_3
+#if defined UG_CPU_2 && (defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR)
 		,
 #endif
 #ifdef UG_CPU_3
 		CPUBlockAlgebra<3>
 #endif
-#if defined UG_CPU_3 && defined UG_CPU_4
+#if defined UG_CPU_3 && (defined UG_CPU_4 || defined UG_CPU_VAR)
 		,
 #endif
 #ifdef UG_CPU_4
