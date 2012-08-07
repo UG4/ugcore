@@ -300,6 +300,9 @@ template <int TDim>
 void VTKOutput<TDim>::
 select_nodal(const char* fctNames, const char* name)
 {
+//	set select all to false, since now user-chosen
+	select_all(false);
+
 	TrimString(name);
 	std::vector<std::string> tokens;
 	std::string fctString(fctNames);
@@ -325,6 +328,9 @@ template <int TDim>
 void VTKOutput<TDim>::
 select_nodal(SmartPtr<UserData<number, TDim> > spData, const char* name)
 {
+//	set select all to false, since now user-chosen
+	select_all(false);
+
 	TrimString(name);
 	if(vtk_name_used(name))
 		UG_THROW("VTK:select_nodal: Using name " << name <<
@@ -337,6 +343,9 @@ template <int TDim>
 void VTKOutput<TDim>::
 select_nodal(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* name)
 {
+//	set select all to false, since now user-chosen
+	select_all(false);
+
 	TrimString(name);
 	if(vtk_name_used(name))
 		UG_THROW("VTK:select_nodal: Using name " << name <<
@@ -351,6 +360,9 @@ template <int TDim>
 void VTKOutput<TDim>::
 select_element(const char* fctNames, const char* name)
 {
+//	set select all to false, since now user-chosen
+	select_all(false);
+
 	TrimString(name);
 	std::vector<std::string> tokens;
 	std::string fctString(fctNames);
@@ -376,6 +388,9 @@ template <int TDim>
 void VTKOutput<TDim>::
 select_element(SmartPtr<UserData<number, TDim> > spData, const char* name)
 {
+//	set select all to false, since now user-chosen
+	select_all(false);
+
 	TrimString(name);
 	if(vtk_name_used(name))
 		UG_THROW("VTK:select_element: Using name " << name <<
@@ -388,6 +403,9 @@ template <int TDim>
 void VTKOutput<TDim>::
 select_element(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* name)
 {
+//	set select all to false, since now user-chosen
+	select_all(false);
+
 	TrimString(name);
 	if(vtk_name_used(name))
 		UG_THROW("VTK:select_element: Using name " << name <<

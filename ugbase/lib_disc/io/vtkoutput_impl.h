@@ -1508,14 +1508,55 @@ write_pvtu(TFunction& u, const std::string& filename,
 
 	// 	Node Data
 		fprintf(file, "    <PPointData>\n");
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
+		for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
 		{
-		//	skip functions not defined in the subset
-			if(!u.is_def_in_subset(fct, si)) continue;
+		//	get symb function
+			const std::string& symbNames = m_vSymbFctNodal[sym].first;
+			const std::string& vtkName = m_vSymbFctNodal[sym].second;
+
+		//	tokenize string
+			std::vector<std::string> tokens;
+			TokenizeString(symbNames, tokens, ',');
+			for(size_t i = 0; i < tokens.size(); ++i) tokens[i] = TrimString(tokens[i]);
+
+		//	create function group
+			std::vector<size_t> fctGrp(tokens.size());
+			for(size_t i = 0; i < tokens.size(); ++i)
+				fctGrp[i] = u.fct_id_by_name(tokens[i].c_str());
+
+		//	check that all functions are contained in subset
+			bool bContained = true;
+			for(size_t i = 0; i < fctGrp.size(); ++i)
+				if(!u.is_def_in_subset(fctGrp[i], si))
+					bContained = false;
+
+			if(!bContained) continue;
 
 			fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
 						  "NumberOfComponents=\"%d\"/>\n",
-						  u.name(fct).c_str(), 1);
+						  vtkName.c_str(), (fctGrp.size() == 1 ? 1 : 3));
+		}
+
+	//	loop all scalar data
+		for(size_t data = 0; data < m_vScalarNodalData.size(); ++data)
+		{
+		//	get symb function
+			const std::string& vtkName = m_vScalarNodalData[data].second;
+
+			fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
+						  "NumberOfComponents=\"%d\"/>\n",
+						  vtkName.c_str(), 1);
+		}
+
+	//	loop all vector data
+		for(size_t data = 0; data < m_vVectorNodalData.size(); ++data)
+		{
+		//	get symb function
+			const std::string& vtkName = m_vVectorNodalData[data].second;
+
+			fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
+						  "NumberOfComponents=\"%d\"/>\n",
+						  vtkName.c_str(), 3);
 		}
 		fprintf(file, "    </PPointData>\n");
 
