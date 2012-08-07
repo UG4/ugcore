@@ -229,11 +229,11 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 	extract_data();
 
 //	loop boundary subsets
-	typename std::map<int, std::vector<CondNumberData> >::const_iterator iter;
+	typename std::map<int, std::vector<CondNumberData*> >::const_iterator iter;
 	for(iter = m_mBNDNumberBndSegment.begin(); iter != m_mBNDNumberBndSegment.end(); ++iter)
 	{
-		const int si = (*iter).first;
-		const std::vector<CondNumberData>& userData = (*iter).second;
+		int si = (*iter).first;
+		const std::vector<CondNumberData*>& userData = (*iter).second;
 
 		typename TDD::template traits<VertexBase>::const_iterator iterBegin 	= dd->template begin<VertexBase>(si);
 		typename TDD::template traits<VertexBase>::const_iterator iterEnd 	= dd->template end<VertexBase>(si);
@@ -242,7 +242,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 		std::vector<MultiIndex<2> >  multInd;
 
 	//	for readin
-		number val;
+		MathVector<1> val;
 		position_type corner;
 
 	//	loop vertices
@@ -258,10 +258,10 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 			for(size_t i = 0; i < userData.size(); ++i)
 			{
 			// 	check if function is dirichlet
-				if(!userData[i].functor(val, corner, time)) continue;
+				if(!(*userData[i])(val, corner, time, si)) continue;
 
 			//	get function index
-				const size_t fct = userData[i].fct[0];
+				const size_t fct = userData[i]->fct[0];
 
 			//	get multi indices
 				if(dd->inner_multi_indices(vertex, fct, multInd) != 1)
