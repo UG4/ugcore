@@ -559,20 +559,20 @@ class L2ErrorIntegrand
 	: public StdIntegrand<number, TGridFunction::dim, L2ErrorIntegrand<TGridFunction> >
 {
 	public:
-	//	world dimension of grid function
+	///	world dimension of grid function
 		static const int worldDim = TGridFunction::dim;
 
 	private:
-	// grid function
+	/// grid function
 		SmartPtr<TGridFunction> m_spGridFct;
 
-	//	component of function
+	///	component of function
 		const size_t m_fct;
 
-	//  exact solution
+	///  exact solution
 		SmartPtr<UserData<number, worldDim> > m_spExactSolution;
 
-	//	time
+	///	time
 		number m_time;
 
 	public:
@@ -641,7 +641,7 @@ class L2ErrorIntegrand
 				for(size_t sh = 0; sh < num_sh; ++sh)
 				{
 				//	get value at shape point (e.g. corner for P1 fct)
-					const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
+					const number valSH = DoFRef(*m_spGridFct, ind[sh]);
 
 				//	add shape fct at ip * value at shape
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
@@ -659,17 +659,17 @@ class L2ErrorIntegrand
 		};
 };
 
-/// interpolates a function on the whole domain or on some subsets
+/// computes the l2 error function on the whole domain or on some subsets
 /**
  * This function computes the L2-difference between a given analytic function
  * and a grid function.
  *
  * \param[in]		ExactSol	analytic function
- * \param[in]		u			grid function
- * \param[in]		name		symbolic name of function
+ * \param[in]		spGridFct	grid function
+ * \param[in]		cmp			symbolic name of component function
  * \param[in]		time		time point
  * \param[in]		quadOrder	order of quadrature rule
- * \param[in]		subsets		subsets, where to interpolate
+ * \param[in]		subsets		subsets, where to compute
  * \returns			number 		l2-norm of difference
  */
 template <typename TGridFunction>
@@ -709,36 +709,36 @@ number L2Error(const char* ExactSol,
 
 template <typename TGridFunction>
 class H1ErrorIntegrand
-	: StdIntegrand<number, TGridFunction::dim, H1ErrorIntegrand<TGridFunction> >
+	: public StdIntegrand<number, TGridFunction::dim, H1ErrorIntegrand<TGridFunction> >
 {
 	public:
-	//	world dimension of grid function
+	///	world dimension of grid function
 		static const int worldDim = TGridFunction::dim;
 
 	private:
-	// grid function
+	/// grid function
 		SmartPtr<TGridFunction> m_spGridFct;
 
-	//	component of function
+	///	component of function
 		size_t m_fct;
 
-	//	local finite element id
+	///	local finite element id
 		LFEID m_id;
 
-	// 	exact solution
+	///	exact solution
 		SmartPtr<UserData<number, worldDim> > m_spExactSolution;
 
-	// 	exact gradient
+	///	exact gradient
 		SmartPtr<UserData<MathVector<worldDim>, worldDim> > m_spExactGrad;
 
-	//	time
+	///	time
 		number m_time;
 
 	public:
 	/// constructor
 		H1ErrorIntegrand(SmartPtr<UserData<number, worldDim> > spExactSol,
 		                 SmartPtr<UserData<MathVector<worldDim>, worldDim> > spExactGrad,
-		                 TGridFunction& gridFct, size_t cmp,
+		                 SmartPtr<TGridFunction> gridFct, size_t cmp,
 		                 number time)
 		: m_spGridFct(gridFct), m_fct(cmp),
 		  m_id(m_spGridFct->local_finite_element_id(m_fct)),
@@ -751,11 +751,12 @@ class H1ErrorIntegrand
 		virtual void set_subset(int si)
 		{
 			if(!m_spGridFct->is_def_in_subset(m_fct, si))
-				UG_THROW("L2ErrorIntegrand: Grid function component"
+				UG_THROW("H1Error: Grid function component"
 						<<m_fct<<" not defined on subset "<<si);
 			IIntegrand<number, worldDim>::set_subset(si);
 		}
-		/// \copydoc IIntegrand::values
+
+	/// \copydoc IIntegrand::values
 		template <int elemDim>
 		void evaluate(number vValue[],
 		              const MathVector<worldDim> vGlobIP[],
@@ -768,9 +769,6 @@ class H1ErrorIntegrand
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
 
-			// 	aux. index array
-					typename TGridFunction::multi_index_vector_type ind;
-
 			try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
@@ -780,6 +778,7 @@ class H1ErrorIntegrand
 			const size_t num_sh = rTrialSpace.num_sh();
 
 		//	get multiindices of element
+			std::vector<MultiIndex<2> > ind;  // 	aux. index array
 			m_spGridFct->multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
@@ -793,22 +792,22 @@ class H1ErrorIntegrand
 			{
 			//	compute exact solution at integration point
 				number exactSolIP;
-				(*m_spExactSolution)(exactSolIP, vGlobIP[ip], m_time);
+				(*m_spExactSolution)(exactSolIP, vGlobIP[ip], m_time, this->subset());
 
 			//	compute exact gradient at integration point
 				MathVector<worldDim> exactGradIP;
-				(*m_spExactGrad)(exactGradIP, vGlobIP[ip], m_time);
+				(*m_spExactGrad)(exactGradIP, vGlobIP[ip], m_time, this->subset());
 
 			//	compute shape gradients at ip
-				rTrialSpace.grads(&vLocGradient[0], vGlobIP[ip]);
+				rTrialSpace.grads(&vLocGradient[0], vLocIP[ip]);
 
 			// 	compute approximated solution at integration point
 				number approxSolIP = 0.0;
-				MathVector<elemDim> locTmp = 0.0;
+				MathVector<elemDim> locTmp; VecSet(locTmp, 0.0);
 				for(size_t sh = 0; sh < num_sh; ++sh)
 				{
 				//	get value at shape point (e.g. corner for P1 fct)
-					const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
+					const number valSH = DoFRef(*m_spGridFct, ind[sh]);
 
 				//	add shape fct at ip * value at shape
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
@@ -834,6 +833,55 @@ class H1ErrorIntegrand
 			}
 		};
 };
+
+/// compute H1 error of a function on the whole domain or on some subsets
+/**
+ * This function computes the H1-difference between a given analytic function
+ * and a grid function.
+ *
+ * \param[in]		spExactSol	analytic function
+ * \param[in]		spExactGrad	analytic gradient
+ * \param[in]		spGridFct	grid function
+ * \param[in]		cmp			symbolic name of component function
+ * \param[in]		time		time point
+ * \param[in]		quadOrder	order of quadrature rule
+ * \param[in]		subsets		subsets, where to compute
+ * \returns			number 		l2-norm of difference
+ */
+template <typename TGridFunction>
+number H1Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
+               SmartPtr<UserData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spExactGrad,
+			   SmartPtr<TGridFunction> spGridFct, const char* cmp,
+			   number time, int quadOrder, const char* subsets)
+{
+//	get function id of name
+	const size_t fct = spGridFct->fct_id_by_name(cmp);
+
+//	check that function exists
+	if(fct >= spGridFct->num_fct())
+		UG_THROW("H1Error: Function space does not contain"
+				" a function with name " << cmp << ".");
+
+	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
+		= CreateSmartPtr(new H1ErrorIntegrand<TGridFunction>(spExactSol, spExactGrad, spGridFct, fct, time));
+
+	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
+}
+
+#ifdef UG_FOR_LUA
+template <typename TGridFunction>
+number H1Error(const char* ExactSol, const char* ExactGrad,
+			   SmartPtr<TGridFunction> spGridFct, const char* cmp,
+			   number time, int quadOrder, const char* subsets)
+{
+	static const int dim = TGridFunction::domain_type::dim;
+	SmartPtr<UserData<number, dim> > spExactSol
+	 = CreateSmartPtr(new LuaUserData<number, dim>(ExactSol));
+	SmartPtr<UserData<MathVector<dim>, dim> > spExactGrad
+	 = CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(ExactGrad));
+	return H1Error(spExactSol, spExactGrad, spGridFct, cmp, time, quadOrder, subsets);
+}
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // L2 Integrand
