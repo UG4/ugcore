@@ -21,7 +21,7 @@ function SetupFAMGSolver(base, presmoother, postsmoother)
 		base = LU()
 	end
 	if presmoother == nil then
-		presmoother = SGS()
+		presmoother = SymmetricGaussSeidel()
 	end
 	if postsmoother == nil then
 		postsmoother = presmoother
@@ -33,10 +33,10 @@ function SetupFAMGSolver(base, presmoother, postsmoother)
 
 	local jac = Jacobi()
 	jac:set_damp(0.8)
-	amg:set_testvector_smooths(iTestvectorSmooths)
+	amg:set_testvector_smooths(3)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.6)
 	amg:set_testvector_smoother(jac)
-	amg:set_testvector_from_matrix_rows(true)
+	amg:set_testvector_from_matrix_rows()
 	
 	amg:set_presmoother(presmoother)	
 	amg:set_postsmoother(postsmoother)
@@ -49,7 +49,7 @@ function SetupFAMGSolver(base, presmoother, postsmoother)
 	amg:set_min_nodes_on_one_processor(100)
 	amg:set_preferred_nodes_on_one_processor(2000)
 
-	amg:set_max_nodes_for_base(maxBase)
+	amg:set_max_nodes_for_base(400)
 	amg:set_max_fill_before_base(0.4)
 	amg:set_fsmoothing(true)
 	
