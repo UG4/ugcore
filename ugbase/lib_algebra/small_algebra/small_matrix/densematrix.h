@@ -206,6 +206,12 @@ DenseMatrix<TStorage> operator *(number a, const DenseMatrix<TStorage> &b)
 	return b*a;
 }
 
+
+template<typename T> struct block_multiply_traits<DenseMatrix<T>, DenseMatrix<T> >
+{
+	typedef DenseMatrix<T> ReturnType;
+};
+
 }
 
 #include "densematrix_impl.h"
