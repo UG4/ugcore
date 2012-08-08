@@ -20,7 +20,8 @@ ExportedConstructor(ProxyFunc pf,
                     const std::string& paramInfos,
                     const std::string& tooltip, const std::string& help)
 : m_proxy_func(pf), m_className(className),
-  m_options(options), m_paramInfos(paramInfos), m_tooltip(tooltip), m_help(help)
+  m_options(options), m_paramInfos(paramInfos), m_vvParamInfo(0),
+  m_tooltip(tooltip), m_help(help)
 {
 #ifdef PROFILE_BRIDGE
 	m_dpi.init((m_className + "(...)").c_str(), true, "registry", false);
