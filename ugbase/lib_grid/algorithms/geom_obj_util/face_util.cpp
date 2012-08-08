@@ -345,4 +345,18 @@ bool EdgeOrientationMatches(EdgeVertices* ev, Face* f)
 	return false;
 }
 
+
+void InsertCenterVertex(Grid& g, Face* f, VertexBase* vrt, bool eraseOldFace)
+{
+//	get the sides of the face and create new elements
+	EdgeDescriptor ed;
+	for(size_t i = 0; i < f->num_edges(); ++i){
+		f->edge_desc(i, ed);
+		g.create<Triangle>(TriangleDescriptor(ed.vertex(0), ed.vertex(1), vrt), f);
+	}
+
+	if(eraseOldFace)
+		g.erase(f);
+}
+
 }//	end of namespace

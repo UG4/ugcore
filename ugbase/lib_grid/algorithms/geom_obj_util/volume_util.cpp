@@ -328,6 +328,32 @@ ContainsPoint(Volume* vol, const vector3& p,
 	return true;
 }
 
+void InsertCenterVertex(Grid& g, Volume* vol, VertexBase* vrt, bool eraseOldVol)
+{
+//	get the sides of the volume and create new elements
+	FaceDescriptor fd;
+	for(size_t i = 0; i < vol->num_faces(); ++i){
+		vol->face_desc(i, fd);
+		if(fd.num_vertices() == 3){
+		//	create a tetrahedron
+			g.create<Tetrahedron>(TetrahedronDescriptor(fd.vertex(2), fd.vertex(1),
+														fd.vertex(0), vrt), vol);
+		}
+		else if(fd.num_vertices() == 4){
+		//	create a pyramid
+			g.create<Pyramid>(PyramidDescriptor(fd.vertex(3), fd.vertex(2),
+												fd.vertex(1), fd.vertex(0), vrt), vol);
+		}
+		else{
+			UG_THROW("Unsupported face type in InsertCenterVertex (#Corners "
+					<< fd.num_vertices() << ")");
+		}
+	}
+
+	if(eraseOldVol)
+		g.erase(vol);
+}
+
 /*
 double CMesh::calculate_volume_gauss() {
 	

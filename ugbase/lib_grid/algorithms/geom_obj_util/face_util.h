@@ -340,6 +340,16 @@ template <class TAAPosVRT>
 UG_API 
 bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold = SMALL);
 
+
+////////////////////////////////////////////////////////////////////////
+///	Refines the face by connecting its sides with the new center.
+/**	Make sure that the specified vertex is belongs to the specified grid, and
+ * that its position lies inside the specified face (self-intersections would
+ * occur if it would lie outside).
+ * The original face may optionally be deleted.
+ */
+void InsertCenterVertex(Grid& g, Face* f, VertexBase* vrt, bool eraseOldFace);
+
 /// @}
 
 }//	end of namespace

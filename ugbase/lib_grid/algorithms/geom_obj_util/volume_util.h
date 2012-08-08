@@ -139,6 +139,16 @@ int
 FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
 			   TAAPosVRT& aaPosVRT);
 
+
+////////////////////////////////////////////////////////////////////////
+///	Refines the volume by connecting its sides with the new center.
+/**	Make sure that the specified vertex is belongs to the specified grid, and
+ * that its position lies inside the specified volume (self-intersections would
+ * occur if it would lie outside).
+ * The original volume may optionally be deleted.
+ */
+void InsertCenterVertex(Grid& g, Volume* vol, VertexBase* vrt, bool eraseOldVol);
+
 }//	end of namespace
 
 /// @}

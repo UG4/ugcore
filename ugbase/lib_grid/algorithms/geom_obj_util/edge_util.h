@@ -193,7 +193,7 @@ bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e);
 /**
  * returns the newly created vertex if everything went right, NULL if not.
  * The vertex that will be created will be of type TVertex.
- * If bConservative == true then SplitEdge will replace e and its adjacent
+ * If bConservative == false then SplitEdge will replace e and its adjacent
  * geometry by the newly generated geometry.
  */
 template<class TVertex>
