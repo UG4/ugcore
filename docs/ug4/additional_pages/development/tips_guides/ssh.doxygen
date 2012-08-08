@@ -5,6 +5,7 @@
 /** \page pageUG4SSH SSH
 
 - \ref secSSHKeys
+- \ref secSSHControlmaster
 - \ref secSSHHopping
 - \ref secSSHFS
 - \ref secSSH_Eclipse
@@ -28,6 +29,22 @@ cat .ssh/id_rsa.pub | ssh mrupp@cluster.de 'umask 077; cat >> .ssh/authorized_ke
   </li>
 </ul>
 
+<hr>
+\section secSSHControlmaster SSH Controlmaster
+Some systems don't support exchange of RSA keys, and some might find it insecure.
+There's another possible way so you only have to enter your password once for each session.
+Create the directory <tt>~/.ssh/controlpath</tt> and add the following lines 
+to your <tt>~/.ssh/config</tt> file:
+\verbatim
+host *
+    controlmaster auto
+    controlpath ~/.ssh/controlpath/ssh-%r@%h:%p
+\endverbatim
+You might have to replace ~ with the complete path to your home directory.
+With this, a ssh connection is "reused" by all later connections. So when you always keep one
+connection open, you don't have to reenter your password for new ssh terminals or scp transfers.
+\note Your first ssh connection has to include a -X to use X11.
+\note When something is going wrong, you might have to kill all ssh/scp/sshfs processes to restart.
 
 <hr>
 \section secSSHHopping SSH Hopping
