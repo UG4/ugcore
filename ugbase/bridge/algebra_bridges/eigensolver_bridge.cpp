@@ -88,7 +88,7 @@ void RegisterBridge_Eigensolver(Registry& reg, string grp)
 #endif*/
 
 	try{
-		RegisterAlgebraDependent<Functionality, AlgList>(reg,grp);
+		RegisterAlgebraDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
