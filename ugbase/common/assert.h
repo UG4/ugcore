@@ -36,6 +36,7 @@
  *     Line:        130
  *
  */
+void ug_assert_failed();
 #define UG_ASSERT(expr, msg)  {if(!(expr)) \
 								{ \
 									UG_LOG("\n  UG_ASSERT failed:\n"); \
@@ -43,6 +44,7 @@
 									UG_LOG("    Description: " << msg << "\n"); \
 									UG_LOG("    File:        " << __FILE__ << "\n"); \
 									UG_LOG("    Line:        " << __LINE__ << "\n\n"); \
+									ug_assert_failed(); \
 									assert(expr);\
 								}}
 #else /* NDEBUG */
