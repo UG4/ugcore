@@ -109,7 +109,7 @@ void MultiEnergyProd(matrix_type &A,
 		{
 			//rA(r, c) = VecProd((*px[c]), t);
 			rA(r, c) = px[c]->dotprod(t);
-			//UG_LOG("MultiEnergyProd : " << rA(r, c) << "\n");
+			//UG_LOG("MultiEnergyProd : (" << r << ", " << c << ") = " << rA(r, c) << "\n");
 		}
 	}
 
@@ -302,12 +302,20 @@ public:
 			if(m_pB)
 			{
 				for(size_t i=0; i<n; i++)
-					(*px[i]) *= 1/ sqrt( EnergyProd(*px[i], B, *px[i]));
+				{
+					double d = sqrt( EnergyProd(*px[i], B, *px[i]));
+					//UG_LOG("sqrt(<x[" << i << "], Bx[" << i << "]>) = " << d << "\n");
+					(*px[i]) *= 1/d;
+				}
 			}
 			else
 			{
 				for(size_t i=0; i<n; i++)
-					(*px[i]) *= 1 / px[i]->two_norm();
+				{
+					double d = px[i]->two_norm();
+					//UG_LOG("sqrt(<x[" << i << "], x[" << i << "]>) = " << d << "\n");
+					(*px[i]) *= 1 / d;
+				}
 			}
 
 
@@ -396,6 +404,7 @@ public:
 			}
 
 			// 5. add Testvectors
+			//UG_LOG("5. add Testvectors\n");
 
 			pTestVectors.clear();
 			testVectorDescription.clear();
@@ -428,10 +437,13 @@ public:
 					}
 				}
 			}
+			/*for(size_t i=0; i<testVectorDescription.size(); i++)
+			{	UG_LOG(testVectorDescription[i] << "\n");	} */
 
 			size_t iNrOfTestVectors = pTestVectors.size();
 
 			// 5. compute reduced Matrices rA, rB
+			//UG_LOG("5. compute reduced Matrices rA, rB\n");
 			rA.resize(iNrOfTestVectors, iNrOfTestVectors);
 			rB.resize(iNrOfTestVectors, iNrOfTestVectors);
 
@@ -478,7 +490,7 @@ public:
 				if(bUse[i])
 				{
 					pTestVectors.push_back(pTestVectors2[i]);
-					testVectorDescription.push_back(testVectorDescription[i]);
+					testVectorDescription.push_back(testVectorDescription2[i]);
 				}
 			}
 
