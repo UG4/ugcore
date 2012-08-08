@@ -47,6 +47,20 @@ inline void AssignMult(DenseVector<A> &dest, const DenseMatrix<B> &mat, const De
 	}
 }
 
+template<typename A, typename B, typename C>
+inline void AssignMult(DenseMatrix<A> &dest, const DenseMatrix<B> &mA, const DenseMatrix<C> &mB)
+{
+	UG_ASSERT(mA.num_cols() == mB.num_rows(), "");
+	dest.resize(mA.num_rows(), mB.num_cols());
+	for(size_t r=0; r < mA.num_rows(); r++)
+		for(size_t c=0; c < mB.num_cols(); c++)
+		{
+			AssignMult(dest(r, c), mA(r, 0), mB(0, c));
+			for(size_t k=1; k < mB.num_rows(); k++)
+				AddMult(dest(r, c), mA(r, k), mB(k, c));
+		}
+}
+
 // dest += b*vec
 template<typename A, typename B, typename C>
 inline void AddMult(DenseVector<A> &dest, const DenseMatrix<B> &mat, const DenseVector<C> &vec)
@@ -59,6 +73,22 @@ inline void AddMult(DenseVector<A> &dest, const DenseMatrix<B> &mat, const Dense
 			AddMult(dest(r), mat(r, c), vec(c));
 	}
 }
+
+
+// dest += b*vec
+template<typename A, typename B, typename C>
+inline void AddMult(DenseMatrix<A> &dest, const DenseMatrix<B> &mA, const DenseMatrix<C> &mB)
+{
+	UG_ASSERT(mA.num_cols() == mB.num_rows(), "");
+	UG_ASSERT(dest.num_rows()==mA.num_rows() && dest.num_cols()==mB.num_cols(), "");
+	for(size_t r=0; r < mA.num_rows(); r++)
+		for(size_t c=0; c < mB.num_cols(); c++)
+		{
+			for(size_t k=0; k < mB.num_rows(); k++)
+				AddMult(dest(r, c), mA(r, k), mB(k, c));
+		}
+}
+
 
 
 // dest -= b*vec
