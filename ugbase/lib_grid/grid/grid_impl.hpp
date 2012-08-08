@@ -400,6 +400,21 @@ void Grid::unmark(TIterator begin, TIterator end)
 		unmark(*iter);
 }
 
+
+////////////////////////////////////////////////////////////////////////
+template <class TElem>
+void Grid::get_associated_sorted(typename traits<TElem>::container& elems, TElem* e)
+{
+	elems.set_external_array(&e, 1);
+}
+
+template <class TAss, class TElem>
+void Grid::get_associated_sorted(typename traits<TAss>::container& elems, TElem* e)
+{
+	elems.set_external_array(NULL, 0);
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	neighbourhood access
 template <class TGeomObj>

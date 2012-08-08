@@ -51,7 +51,8 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/refinement/global_fractured_media_refiner.cpp
 					algorithms/refinement/refinement_callbacks.cpp
 					algorithms/subdivision/subdivision_loop.cpp
-					algorithms/subdivision/subdivision_rules_piecewise_loop.cpp)
+					algorithms/subdivision/subdivision_rules_piecewise_loop.cpp
+					algorithms/unit_tests/check_associated_elements.cpp)
 					
 set(srcFileIO	file_io/file_io_art.cpp
 				file_io/file_io_dump.cpp

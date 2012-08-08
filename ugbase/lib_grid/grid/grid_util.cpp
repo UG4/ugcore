@@ -200,6 +200,9 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, boo
 
 //	to improve performance, we first check the grid options.
 	if(grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES
+							| VOLOPT_STORE_ASSOCIATED_EDGES)
+		|| grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES
+							| FACEOPT_AUTOGENERATE_EDGES
 							| VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	the edges can be accessed in a sorted way through iterators

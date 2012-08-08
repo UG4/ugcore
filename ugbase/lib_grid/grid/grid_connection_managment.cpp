@@ -969,10 +969,14 @@ void Grid::register_face(Face* f, GeometricObject* pParent, Volume* createdByVol
 
 			if(switchVar > 0)
 			{
+			//	find associated volumes of f. Don't use get_associated, since it
+			//	may lookup m_aaVolumeContainerFACE, which we just want to update...
 				vector<Volume*> vVols;
 				vVols.reserve(2);
 
 				CollectVolumes(vVols, *this, f, false, true);
+
+
 
 				for(vector<Volume*>::iterator iter = vVols.begin(); iter != vVols.end(); ++iter)
 				{
@@ -1370,6 +1374,17 @@ void Grid::face_autogenerate_edges(bool bAutogen)
 
 		//	store the option
 			m_options |= FACEOPT_AUTOGENERATE_EDGES;
+
+		//	if VOLOPT_AUTOGENERATE_FACES is active, too, then all volume-edges exist.
+		//	Now, if VOLOPT_STORE_ASSOCIATED_EDGES is active but
+		//	VOLOPT_AUTOGENERATE_EDGES is inactive, then we'll sort the associated-edges
+		//	of volumes.
+			if(option_is_enabled(VOLOPT_AUTOGENERATE_FACES)
+			   && option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES)
+			   && (!option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)))
+			{
+				volume_sort_associated_edge_container();
+			}
 		}
 	}
 	else
@@ -1406,6 +1421,8 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 
 	const bool createEdges = option_is_enabled(VOLOPT_AUTOGENERATE_EDGES);
 	const bool createFaces = option_is_enabled(VOLOPT_AUTOGENERATE_FACES);
+	const bool createEdgesIndirect = option_is_enabled(VOLOPT_AUTOGENERATE_FACES
+													   | FACEOPT_AUTOGENERATE_EDGES);
 
 	const bool edgesStoreVols = option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES);
 	const bool volsStoreEdges = option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES);
@@ -1416,7 +1433,7 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 
 //	if elements are automatically created, then we can directly reserve memory
 //	to store neighborhood relations
-	if(volsStoreEdges && createEdges)
+	if(volsStoreEdges && (createEdges || createEdgesIndirect))
 		m_aaEdgeContainerVOLUME[v].reserve(v->num_edges());
 	if(volsStoreFaces && createFaces)
 		m_aaFaceContainerVOLUME[v].reserve(v->num_faces());
@@ -1471,7 +1488,7 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 	{
 		GCM_PROFILE(GCM_vol_handle_edges);
 	//	loop through all edges of the volume. check if we have to create it.
-	//	register the volume with the edges and with versa after that.
+	//	register the volume with the edges and vice versa after that.
 		uint numEdges = v->num_edges();
 		EdgeDescriptor ed;
 		for(uint i = 0; i < numEdges; ++i)
@@ -1496,8 +1513,15 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 			}
 			else
 			{
-				if(edgesStoreVols)
-					m_aaVolumeContainerEDGE[e].push_back(v);
+				if(edgesStoreVols){
+				//	if the edge was indirectly created during creation of
+				//	a side-face above, it already has v in its associated-
+				//	volume container. v is the first element in this container
+				//	in that case and doesn't have to be added again.
+					VolumeContainer& assVols = m_aaVolumeContainerEDGE[e];
+					if((assVols.size() == 0) || (assVols.front() != v))
+						assVols.push_back(v);
+				}
 
 				if(volsStoreEdges)
 					m_aaEdgeContainerVOLUME[v].push_back(e);
@@ -1720,7 +1744,8 @@ void Grid::volume_store_associated_edges(bool bStoreIt)
 			attach_to_volumes(m_aEdgeContainer);
 			m_aaEdgeContainerVOLUME.access(*this, m_aEdgeContainer);
 
-			bool createEdges = option_is_enabled(VOLOPT_AUTOGENERATE_EDGES);
+			bool createEdges = option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)
+								|| option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES);
 		//	if EDGEOPT_STORE_ASSOCIATED_VOLUMES is enabled, this is as simple
 		//	as to iterate through all edges and store them at their
 		//	associated volumes.
@@ -1906,13 +1931,13 @@ void Grid::volume_autogenerate_edges(bool bAutogen)
 			}
 
 		//	store the option
-			m_options |= VOLOPT_STORE_ASSOCIATED_EDGES;
+			m_options |= VOLOPT_AUTOGENERATE_EDGES;
 		}
 	}
 	else
 	{
 	//	stop auto-generation
-		m_options &= (~VOLOPT_STORE_ASSOCIATED_EDGES);
+		m_options &= (~VOLOPT_AUTOGENERATE_EDGES);
 	}
 }
 
@@ -1959,6 +1984,17 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 
 		//	store the option
 			m_options |= VOLOPT_AUTOGENERATE_FACES;
+
+		//	if FACEOPT_AUTOGENERATE_EDGES is active, too, then all volume-edges exist.
+		//	Now, if VOLOPT_STORE_ASSOCIATED_EDGES is active but
+		//	VOLOPT_AUTOGENERATE_EDGES is inactive, then we'll sort the associated-edges
+		//	of volumes.
+			if(option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)
+			   && option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES)
+			   && (!option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)))
+			{
+				volume_sort_associated_edge_container();
+			}
 		}
 	}
 	else
@@ -1968,6 +2004,43 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 	}
 }
 
+
+void Grid::volume_sort_associated_edge_container()
+{
+	if(!option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
+		return;
+
+	EdgeContainer tmpCon;
+	for(VolumeIterator iter = volumes_begin(); iter != volumes_end(); iter++)
+	{
+		Volume* v = *iter;
+		uint numEdges = v->num_edges();
+
+	//	since we already have a container of associated edges, we will search it
+	//	for matching edges...
+	//	to reduce memory allocation, we'll first copy the values to tmpCon
+		EdgeContainer& edges = m_aaEdgeContainerVOLUME[v];
+		tmpCon.clear();
+		for(size_t i = 0; i < edges.size(); ++i)
+			tmpCon.push_back(edges[i]);
+
+		edges.clear();
+
+	//	check for each edge-desc, whether a matching edge is contained in edges.
+	//	if so push it back to edgesSorted.
+		EdgeDescriptor ed;
+		for(uint i = 0; i < numEdges; ++i){
+			v->edge_desc(i, ed);
+			for(size_t j = 0; j < tmpCon.size(); ++j){
+				if(tmpCon[j] && CompareVertices(&ed, tmpCon[j])){
+					edges.push_back(tmpCon[j]);
+					tmpCon[j] = NULL;
+					break;
+				}
+			}
+		}
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -2487,4 +2560,462 @@ bool Grid::replace_vertex_is_valid(VertexBase* vrtOld, VertexBase* vrtNew)
 
 	return true;
 }
-}	//	end of namespace libGrid
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	ASSOCIATED ELEMENTS
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+//	ASSOCIATED VERTICES
+void Grid::get_associated(AssociatedVertices& vrts, VertexBase* v)
+{
+	vrts.set_external_array(&v, 1);
+}
+
+void Grid::get_associated(AssociatedVertices& vrts, EdgeBase* e)
+{
+	vrts.set_external_array(e->vertices(), e->num_vertices());
+}
+
+void Grid::get_associated(AssociatedVertices& vrts, Face* f)
+{
+	vrts.set_external_array(f->vertices(), f->num_vertices());
+}
+
+void Grid::get_associated(AssociatedVertices& vrts, Volume* v)
+{
+	vrts.set_external_array(v->vertices(), v->num_vertices());
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	ASSOCIATED EDGES
+void Grid::get_associated(AssociatedEdges& edges, VertexBase* v)
+{
+//	Without the VRTOPT_STORE_ASSOCIATED_... option, this operation would have
+//	complexity O(n). This has to be avoided! We thus simply enable the option.
+//	This takes some time, however, later queries will greatly benefit.
+	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES)){
+	//	only enable the option if edges exist at all
+		if(num<EdgeBase>() == 0){
+			edges.clear();
+			return;
+		}
+
+		LOG("WARNING in get_associated(edges, vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES." << endl);
+		vertex_store_associated_edges(true);
+	}
+
+	EdgeContainer& assEdges = m_aaEdgeContainerVERTEX[v];
+	if(assEdges.empty())
+		edges.clear();
+	else
+		edges.set_external_array(&assEdges.front(), assEdges.size());
+}
+
+void Grid::get_associated(AssociatedEdges& edges, EdgeBase* e)
+{
+	edges.set_external_array(&e, 1);
+}
+
+void Grid::get_associated(AssociatedEdges& edges, Face* f)
+{
+//	to improve performance, we first check the grid options.
+	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
+	{
+	//	we can output the associated array directly
+		EdgeContainer& assEdges = m_aaEdgeContainerFACE[f];
+		if(assEdges.empty())
+			edges.clear();
+		else
+			edges.set_external_array(&assEdges.front(), assEdges.size());
+	}
+	else{
+	//	clear the container
+		edges.clear();
+
+	//	if no edges are present, we can leave immediately
+		if(num<EdgeBase>() == 0)
+			return;
+
+	//	get the edges one by one
+		uint numEdges = f->num_edges();
+		for(uint i = 0; i < numEdges; ++i){
+			EdgeBase* e = get_edge(f, i);
+			if(e != NULL)
+				edges.push_back(e);
+		}
+	}
+}
+
+void Grid::get_associated(AssociatedEdges& edges, Volume* v)
+{
+//	to improve performance, we first check the grid options.
+	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
+	{
+	//	we can output the associated array directly
+		EdgeContainer& assEdges = m_aaEdgeContainerVOLUME[v];
+		if(assEdges.empty())
+			edges.clear();
+		else
+			edges.set_external_array(&assEdges.front(), assEdges.size());
+	}
+	else{
+	//	clear the container
+		edges.clear();
+
+	//	if no edges are present, we can leave immediately
+		if(num<EdgeBase>() == 0)
+			return;
+
+	//	get the edges one by one
+		uint numEdges = v->num_edges();
+		for(uint i = 0; i < numEdges; ++i){
+			EdgeBase* e = get_edge(v, i);
+			if(e != NULL)
+				edges.push_back(e);
+		}
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	ASSOCIATED FACES
+void Grid::get_associated(AssociatedFaces& faces, VertexBase* v)
+{
+//	Without the VRTOPT_STORE_ASSOCIATED_... option, this operation would have
+//	complexity O(n). This has to be avoided! We thus simply enable the option.
+//	This takes some time, however, later queries will greatly benefit.
+	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES)){
+	//	only enable the option if faces exist at all
+		if(num<Face>() == 0){
+			faces.clear();
+			return;
+		}
+
+		LOG("WARNING in get_associated(faces, vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
+		vertex_store_associated_faces(true);
+	}
+
+	FaceContainer& assFaces = m_aaFaceContainerVERTEX[v];
+	if(assFaces.empty())
+		faces.clear();
+	else
+		faces.set_external_array(&assFaces.front(), assFaces.size());
+}
+
+void Grid::get_associated(AssociatedFaces& faces, EdgeBase* e)
+{
+//	best option: EDGEOPT_STORE_ASSOCIATED_FACES
+	if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES)){
+	//	we can output the associated array directly
+		FaceContainer& assFaces = m_aaFaceContainerEDGE[e];
+		if(assFaces.empty())
+			faces.clear();
+		else
+			faces.set_external_array(&assFaces.front(), assFaces.size());
+	}
+	else{
+	//	second best: iterate through all faces associated with the first end-point of e
+	//	and check for each if it contains e. If so push it into the container.
+	//	VRTOPT_STORE_ASSOCIATED_FACES has to be enabled for this. Only continue,
+	//	if faces exist at all
+		faces.clear();
+		if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES)){
+		//	only enable the option if faces exist at all
+			if(num<Face>() == 0){
+				return;
+			}
+
+			LOG("WARNING in get_associated(faces, edge): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES." << endl);
+			vertex_store_associated_faces(true);
+		}
+
+	//	check as few faces as possible
+		VertexBase* vrt = e->vertex(0);
+/*	//	This check could be beneficial - however, it probably introduces unnecessary overhead.
+ 		if(m_aaFaceContainerVERTEX[vrt].size() >
+			m_aaFaceContainerVERTEX[e->vertex(1)].size())
+		{
+			vrt = e->vertex(1);
+		}
+*/
+
+		FaceContainer& assFaces = m_aaFaceContainerVERTEX[vrt];
+		for(size_t i = 0; i < assFaces.size(); ++i){
+			if(FaceContains(assFaces[i], e))
+				faces.push_back(assFaces[i]);
+		}
+	}
+}
+
+void Grid::get_associated(AssociatedFaces& faces, Face* f)
+{
+	faces.set_external_array(&f, 1);
+}
+
+void Grid::get_associated(AssociatedFaces& faces, Volume* v)
+{
+//	to improve performance, we first check the grid options.
+	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
+	{
+	//	we can output the associated array directly
+		FaceContainer& assFaces = m_aaFaceContainerVOLUME[v];
+		if(assFaces.empty())
+			faces.clear();
+		else
+			faces.set_external_array(&assFaces.front(), assFaces.size());
+	}
+	else{
+	//	clear the container
+		faces.clear();
+
+	//	if no faces are present, we can leave immediately
+		if(num<Face>() == 0)
+			return;
+
+	//	get the faces one by one
+		uint numFaces = v->num_faces();
+		for(uint i = 0; i < numFaces; ++i){
+			Face* f = get_face(v, i);
+			if(f != NULL)
+				faces.push_back(f);
+		}
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	ASSOCIATED VOLUMES
+void Grid::get_associated(AssociatedVolumes& vols, VertexBase* v)
+{
+//	Without the VRTOPT_STORE_ASSOCIATED_... option, this operation would have
+//	complexity O(n). This has to be avoided! We thus simply enable the option.
+//	This takes some time, however, later queries will greatly benefit.
+	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES)){
+	//	only enable the option if volumes exist at all
+		if(num<Volume>() == 0){
+			vols.clear();
+			return;
+		}
+
+		LOG("WARNING in get_associated(volumes, vrt): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+		vertex_store_associated_volumes(true);
+	}
+
+	VolumeContainer& assVols = m_aaVolumeContainerVERTEX[v];
+	if(assVols.empty())
+		vols.clear();
+	else
+		vols.set_external_array(&assVols.front(), assVols.size());
+}
+
+void Grid::get_associated(AssociatedVolumes& vols, EdgeBase* e)
+{
+//	best option: EDGEOPT_STORE_ASSOCIATED_VOLUMES
+	if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES)){
+	//	we can output the associated array directly
+		VolumeContainer& assVols = m_aaVolumeContainerEDGE[e];
+		if(assVols.empty())
+			vols.clear();
+		else
+			vols.set_external_array(&assVols.front(), assVols.size());
+	}
+	else{
+	//	second best: iterate through all volumes associated with the first end-point of e
+	//	and check for each if it contains e. If so push it into the container.
+	//	VRTOPT_STORE_ASSOCIATED_VOLUMES has to be enabled for this. Only continue,
+	//	if volumes exist at all
+		vols.clear();
+		if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES)){
+		//	only enable the option if volumes exist at all
+			if(num<Volume>() == 0){
+				return;
+			}
+
+			LOG("WARNING in get_associated(volumes, edge): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+			vertex_store_associated_volumes(true);
+		}
+
+	//	check as few faces as possible
+		VertexBase* vrt = e->vertex(0);
+/*	//	This check could be beneficial - however, it probably introduces unnecessary overhead.
+ 		if(m_aaVolumeContainerVERTEX[vrt].size() >
+			m_aaVolumeContainerVERTEX[e->vertex(1)].size())
+		{
+			vrt = e->vertex(1);
+		}
+*/
+
+		VolumeContainer& assVols = m_aaVolumeContainerVERTEX[vrt];
+		for(size_t i = 0; i < assVols.size(); ++i){
+			if(VolumeContains(assVols[i], e))
+				vols.push_back(assVols[i]);
+		}
+	}
+}
+
+void Grid::get_associated(AssociatedVolumes& vols, Face* f)
+{
+//	best option: FACEOPT_STORE_ASSOCIATED_VOLUMES
+	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES)){
+	//	we can output the associated array directly
+		VolumeContainer& assVols = m_aaVolumeContainerFACE[f];
+		if(assVols.empty())
+			vols.clear();
+		else
+			vols.set_external_array(&assVols.front(), assVols.size());
+	}
+	else
+		get_associated_vols_raw(vols, f);
+}
+
+void Grid::get_associated_vols_raw(AssociatedVolumes& vols, Face* f)
+{
+
+//	iterate through all volumes associated with the first corner of f
+//	and check for each if it contains f. If so push it into the container.
+//	VRTOPT_STORE_ASSOCIATED_VOLUMES has to be enabled for this. Only continue,
+//	if volumes exist at all
+	vols.clear();
+	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES)){
+	//	only enable the option if volumes exist at all
+		if(num<Volume>() == 0){
+			return;
+		}
+
+		LOG("WARNING in get_associated_vols_raw(volumes, face): auto-enabling VRTOPT_STORE_ASSOCIATED_VOLUMES." << endl);
+		vertex_store_associated_volumes(true);
+	}
+
+//	check as few faces as possible
+	VertexBase* vrt = f->vertex(0);
+
+	VolumeContainer& assVols = m_aaVolumeContainerVERTEX[vrt];
+	for(size_t i = 0; i < assVols.size(); ++i){
+		Volume* v = assVols[i];
+		if(VolumeContains(v, f->vertex(1))){
+			if(VolumeContains(v, f->vertex(2))){
+				if(VolumeContains(v, f))
+					vols.push_back(v);
+			}
+		}
+	}
+}
+
+void Grid::get_associated(AssociatedVolumes& vols, Volume* v)
+{
+	vols.set_external_array(&v, 1);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	ASSOCIATED SORTED
+void Grid::get_associated_sorted(AssociatedVertices& vrts, EdgeBase* e) const
+{
+	vrts.set_external_array(e->vertices(), e->num_vertices());
+}
+
+void Grid::get_associated_sorted(AssociatedVertices& vrts, Face* f) const
+{
+	vrts.set_external_array(f->vertices(), f->num_vertices());
+}
+
+void Grid::get_associated_sorted(AssociatedVertices& vrts, Volume* v) const
+{
+	vrts.set_external_array(v->vertices(), v->num_vertices());
+}
+
+
+void Grid::get_associated_sorted(AssociatedEdges& edges, Face* f)
+{
+//	to improve performance, we first check the grid options.
+	if(option_is_enabled(FACEOPT_AUTOGENERATE_EDGES
+					   | FACEOPT_STORE_ASSOCIATED_EDGES))
+	{
+	//	we can output the associated array directly
+		EdgeContainer& assEdges = m_aaEdgeContainerFACE[f];
+		edges.set_external_array(&assEdges.front(), assEdges.size());
+	}
+	else{
+	//	clear the container
+		edges.clear();
+
+	//	if no edges are present, we can leave immediately
+		if(num<EdgeBase>() == 0)
+			return;
+
+	//	get the edges one by one
+		uint numEdges = f->num_edges();
+		for(uint i = 0; i < numEdges; ++i){
+			EdgeBase* e = get_edge(f, i);
+			if(e != NULL)
+				edges.push_back(e);
+		}
+	}
+}
+
+void Grid::get_associated_sorted(AssociatedEdges& edges, Volume* v)
+{
+//	to improve performance, we first check the grid options.
+	if(option_is_enabled(VOLOPT_AUTOGENERATE_EDGES
+							| VOLOPT_STORE_ASSOCIATED_EDGES)
+		|| option_is_enabled(VOLOPT_AUTOGENERATE_FACES
+							| FACEOPT_AUTOGENERATE_EDGES
+							| VOLOPT_STORE_ASSOCIATED_EDGES))
+	{
+	//	we can output the associated array directly
+		EdgeContainer& assEdges = m_aaEdgeContainerVOLUME[v];
+		edges.set_external_array(&assEdges.front(), assEdges.size());
+	}
+	else{
+	//	clear the container
+		edges.clear();
+
+	//	if no edges are present, we can leave immediately
+		if(num<EdgeBase>() == 0)
+			return;
+
+	//	get the edges one by one
+		uint numEdges = v->num_edges();
+		for(uint i = 0; i < numEdges; ++i){
+			EdgeBase* e = get_edge(v, i);
+			if(e != NULL)
+				edges.push_back(e);
+		}
+	}
+}
+
+
+void Grid::get_associated_sorted(AssociatedFaces& faces, Volume* v)
+{
+//	to improve performance, we first check the grid options.
+	if(option_is_enabled(VOLOPT_AUTOGENERATE_FACES
+					   | VOLOPT_STORE_ASSOCIATED_FACES))
+	{
+	//	we can output the associated array directly
+		FaceContainer& assFaces = m_aaFaceContainerVOLUME[v];
+		faces.set_external_array(&assFaces.front(), assFaces.size());
+	}
+	else{
+	//	clear the container
+		faces.clear();
+
+	//	if no edges are present, we can leave immediately
+		if(num<Face>() == 0)
+			return;
+
+	//	get the edges one by one
+		uint numFaces = v->num_faces();
+		for(uint i = 0; i < numFaces; ++i){
+			Face* f = get_face(v, i);
+			if(f != NULL)
+				faces.push_back(f);
+		}
+	}
+}
+
+
+}	//	end of namespace

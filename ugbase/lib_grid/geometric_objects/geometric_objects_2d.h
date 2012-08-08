@@ -67,8 +67,6 @@ template <class ConcreteTriangleType, class BaseClass>
 class UG_API CustomTriangle : public BaseClass
 {
 	public:
-		typedef Face::ConstVertexArray ConstVertexArray;
-
 		CustomTriangle()	{}
 		CustomTriangle(const TriangleDescriptor& td);
 		CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3);
@@ -77,7 +75,7 @@ class UG_API CustomTriangle : public BaseClass
 		virtual ReferenceObjectID reference_object_id() const {return ROID_TRIANGLE;}
 
 		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
-		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual Face::ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const	{return 3;}
 
 		virtual EdgeDescriptor edge_desc(int index) const
@@ -200,7 +198,7 @@ template <class ConcreteQuadrilateralType, class BaseClass>
 class UG_API CustomQuadrilateral : public BaseClass
 {
 	public:
-		typedef Face::ConstVertexArray ConstVertexArray;
+		using Face::ConstVertexArray;
 
 		CustomQuadrilateral()	{}
 		CustomQuadrilateral(const QuadrilateralDescriptor& qd);
@@ -211,7 +209,7 @@ class UG_API CustomQuadrilateral : public BaseClass
 		virtual ReferenceObjectID reference_object_id() const {return ROID_QUADRILATERAL;}
 
 		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
-		virtual ConstVertexArray vertices() const		{return m_vertices;}
+		virtual Face::ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const	{return 4;}
 
 		virtual EdgeDescriptor edge_desc(int index) const

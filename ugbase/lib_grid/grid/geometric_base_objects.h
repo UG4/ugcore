@@ -17,6 +17,7 @@
 #include "common/util/hash.h"
 #include "common/allocators/small_object_allocator.h"
 #include "common/math/ugmath_types.h"
+#include "common/util/pointer_const_array.h"
 
 namespace ug
 {
@@ -105,7 +106,7 @@ typedef VolumeDescriptor*	PVolumeDescriptor;
 
 typedef EdgeVertices*		PEdgeVertices;
 typedef FaceVertices*		PFaceVertices;
-typedef VolumeVertices*	PVolumeVertices;
+typedef VolumeVertices*		PVolumeVertices;
 
 template<> class attachment_traits<VertexBase*, ElementStorage<VertexBase> >;
 template<> class attachment_traits<EdgeBase*, ElementStorage<EdgeBase> >;
@@ -240,7 +241,10 @@ class UG_API EdgeVertices
 {
 	friend class Grid;
 	public:
+		typedef VertexBase* const* ConstVertexArray;
+
 		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		inline ConstVertexArray vertices() const	{return m_vertices;}
 		inline uint num_vertices() const			{return 2;}	// this method is supplied to allow the use of EdgeBase in template-methods that require a num_vertices() method.
 
 	//	compatibility with std::vector for some template routines
@@ -273,6 +277,8 @@ class UG_API EdgeBase : public GeometricObject, public EdgeVertices
 {
 	friend class Grid;
 	public:
+		typedef VertexBase* const* ConstVertexArray;
+
 		typedef EdgeBase geometric_base_object;
 
 	//	lower dimensional Base Object
@@ -381,7 +387,7 @@ class UG_API Face : public GeometricObject, public FaceVertices
 {
 	friend class Grid;
 	public:
-		using FaceVertices::ConstVertexArray;
+		typedef VertexBase* const* ConstVertexArray;
 
 		typedef Face geometric_base_object;
 
@@ -600,7 +606,7 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 {
 	friend class Grid;
 	public:
-		using VolumeVertices::ConstVertexArray;
+		typedef VertexBase* const* ConstVertexArray;
 
 		typedef Volume geometric_base_object;
 

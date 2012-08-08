@@ -98,7 +98,18 @@ class UG_API Grid
 
 			typedef typename geometry_traits<TElem>::iterator		iterator;
 			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
+
+			typedef PointerConstArray<TElem*>						container;
 		};
+
+	///	Container to store associated vertices.
+		typedef PointerConstArray<VertexBase*>	AssociatedVertices;
+	///	Container to store associated edges.
+		typedef PointerConstArray<EdgeBase*>	AssociatedEdges;
+	///	Container to store associated faces.
+		typedef PointerConstArray<Face*>		AssociatedFaces;
+	///	Container to store associated volumes.
+		typedef PointerConstArray<Volume*>		AssociatedVolumes;
 
 	///	the attachment-pipe used by Grid
 		typedef ug::AttachmentPipe<VertexBase*, VertexElementStorage>	VertexAttachmentPipe;
@@ -450,13 +461,19 @@ class UG_API Grid
 	/**	To make sure that associated edges always exist, enable the grid-option
 	 *	FACEOPT_AUTOGENERATE_EDGES.
 	 *	For maximal performance, the option FACEOPT_STORE_ASSOCIATED_EDGES
-	 *	should be enabled.*/
+	 *	should be enabled.
+	 *	\note	If all edges of a face have to be processed, it may be faster
+	 *			to get all edges in one single call.
+	 *			This can be done using Grid::associated_elements.*/
 		EdgeBase* get_edge(Face* f, int ind);
 	///	If it exists, this method returns the i-th edge of the given Volume. If not NULL is returned.
 	/**	To make sure that associated edges always exist, enable the grid-option
 	 *	VOLOPT_AUTOGENERATE_EDGES.
 	 *	For maximal performance, the option VOLOPT_STORE_ASSOCIATED_EDGES
-	 *	should be enabled.*/
+	 *	should be enabled.
+	 *	\note	If all edges of a volume have to be processed, it may be faster
+	 *			to get all edges in one single call.
+	 *			This can be done using Grid::associated_elements.*/
 		EdgeBase* get_edge(Volume* v, int ind);
 	///	returns the face that is described by fv.
 	/**	Note that you may pass a FaceDescriptor to this method.*/
@@ -465,7 +482,10 @@ class UG_API Grid
 	/**	To make sure that associated faces always exist, enable the grid-option
 	 *	VOLOPT_AUTOGENERATE_FACES.
 	 *	For maximal performance, the option VOLOPT_STORE_ASSOCIATED_FACES
-	 *	should be enabled.*/
+	 *	should be enabled.
+	 *	\note	If all faces of a volume have to be processed, it may be faster
+	 *			to get all faces in one single call.
+	 *			This can be done using Grid::associated_elements.*/
 		Face* get_face(Volume* v, int ind);
 	///	returns the volume that is described by ev.
 	/**	Note that you may pass an VolumeDescriptor to this method.*/
@@ -473,7 +493,7 @@ class UG_API Grid
 		
 	///	returns the element for the given vertices.
 	/**	Note that you can either pass an element type (EdgeBase, Face, Volume)
-	 * or an descriptor (EdgeDescriptor, FaceDescriptor, VolumeDescriptor).
+	 * or a descriptor (EdgeDescriptor, FaceDescriptor, VolumeDescriptor).
 	 * The method returns NULL, if the specified element does not exist.
 	 * A special overload exists for VertexBase*, which simply returns the
 	 * specified vertex. Useful for template programming...
@@ -502,6 +522,10 @@ class UG_API Grid
 	 *	The method will be faster if elements store associated lower dimensional
 	 *	elements. Options VOLOPT_STORE_ASSOCIATED_FACES and
 	 *	FACEOPT_STORE_ASSOCIATED_EDGES have to be enabled for this.
+	 *
+	 *	\note	If all sides of an element have to be processed, it may be faster
+	 *			to get all sides in one single call.
+	 *			This can be done using Grid::associated_elements.
 	 */
 		VertexBase::side* get_side(VertexBase* obj, size_t side);
 		EdgeBase::side* get_side(EdgeBase* obj, size_t side);
@@ -514,6 +538,55 @@ class UG_API Grid
 		GeometricObject* get_opposing_object(VertexBase* vrt, Face* elem);
 		GeometricObject* get_opposing_object(VertexBase* vrt, Volume* elem);
 	/** \} */
+
+
+	///	Puts all elements of type TAss which are contained in 'e' or which contain 'e' into elemsOut
+	/**	One shouldn't depend on the order of elements in elemsOut.
+	 * Use Grid::associated_elements_sorted if the order matters.
+	 *
+	 * \note	The returned container is only valid until changes to the queried
+	 * 			grid are performed.
+	 *
+	 * \note	The following typedefs might ease your work with associated elements:
+	 * 			AssociatedVertices, AssociatedEdges, AssociatedFaces and
+	 * 			AssociatedVolumes.
+	 * 			Those are typedefs for Grid::traits<VertexBase>::container, ...
+	 *
+	 * \note	Depending on the current grid options, this method may use Grid::mark.
+	 * Valid arguments for TAss and TElem are VertexBase, EdgeBase, Face, Volume.
+	 * \sa Grid::associated_elements_sorted*/
+		template <class TAss, class TElem>
+		void associated_elements(typename traits<TAss>::container& elemsOut,
+								 TElem* e);
+
+	///	Puts all elements of type TAss which are contained in 'e' into elemsOut in the reference elements order
+	/**	The order of elements in elemsOut is the same as the order in the reference element.
+	 * Note that, depending on active grid options, this method may take more
+	 * time than associated_elements, and should thus only be invoked, if the order
+	 * of elements matters. Use Grid::associated_elements if the order does not matter.
+	 *
+	 * Valid arguments for TElem and TAss are VertexBase, EdgeBase, Face, Volume.
+	 * However, only associated elements of lower dimension can be sorted. The method
+	 * thus behaves as follows:
+	 * 	TAss::dim < TElem::dim	->	associated elements are written to 'elemsOut'
+	 * 								with the same order as in the reference element
+	 * 	TAss::dim == TElem::dim	->	onle 'e' itself will be written to 'elemsOut'
+	 * 	TAss::dim > TElem::dim	->	elemsOut will be empty.
+	 *
+	 * \note	The returned container is only valid until changes to the queried
+	 * 			grid are performed.
+	 *
+	 * \note	The following typedefs might ease your work with associated elements:
+	 * 			AssociatedVertices, AssociatedEdges, AssociatedFaces and
+	 * 			AssociatedVolumes.
+	 * 			Those are typedefs for traits<VertexBase>::container, ...
+	 *
+	 * \note	Depending on the current grid options, this method may use Grid::mark.
+	 * \sa Grid::associated_elements*/
+		template <class TAss, class TElem>
+		void associated_elements_sorted(typename traits<TAss>::container& elemsOut,
+										TElem* e);
+
 
 	////////////////////////////////////////////////
 	//	attachments
@@ -814,6 +887,8 @@ class UG_API Grid
 		void volume_autogenerate_edges(bool bAutogen);
 		void volume_autogenerate_faces(bool bAutogen);
 
+		void volume_sort_associated_edge_container();
+
 		template <class TAttachmentPipe, class TElem>
 		void pass_on_values(TAttachmentPipe& attachmentPipe,
 							TElem* pSrc, TElem* pDest);
@@ -833,6 +908,47 @@ class UG_API Grid
 		template <class TGeomObj>
 		Volume* find_volume_in_associated_volumes(TGeomObj* obj,
 												VolumeVertices& vv);
+
+	//	get associated elements
+		void get_associated(AssociatedVertices& vrts, VertexBase* v);
+		void get_associated(AssociatedVertices& vrts, EdgeBase* e);
+		void get_associated(AssociatedVertices& vrts, Face* f);
+		void get_associated(AssociatedVertices& vrts, Volume* v);
+
+		void get_associated(AssociatedEdges& edges, VertexBase* v);
+		void get_associated(AssociatedEdges& edges, EdgeBase* e);
+		void get_associated(AssociatedEdges& edges, Face* f);
+		void get_associated(AssociatedEdges& edges, Volume* v);
+
+		void get_associated(AssociatedFaces& faces, VertexBase* v);
+		void get_associated(AssociatedFaces& faces, EdgeBase* e);
+		void get_associated(AssociatedFaces& faces, Face* f);
+		void get_associated(AssociatedFaces& faces, Volume* v);
+
+		void get_associated(AssociatedVolumes& vols, VertexBase* v);
+		void get_associated(AssociatedVolumes& vols, EdgeBase* e);
+		void get_associated(AssociatedVolumes& vols, Face* f);
+		void get_associated(AssociatedVolumes& vols, Volume* v);
+	/**	this method does not use possibly attached containers and can thus
+	 * be used, when such containers are to be built.*/
+		void get_associated_vols_raw(AssociatedVolumes& vols, Face* f);
+
+		template <class TElem>
+		void get_associated_sorted(typename traits<TElem>::container& elems, TElem* e);
+
+		template <class TAss, class TElem>
+		void get_associated_sorted(typename traits<TAss>::container& elems, TElem* e);
+
+		void get_associated_sorted(AssociatedVertices& vrts, EdgeBase* e) const;
+		void get_associated_sorted(AssociatedVertices& vrts, Face* f) const;
+		void get_associated_sorted(AssociatedVertices& vrts, Volume* v) const;
+
+		void get_associated_sorted(AssociatedEdges& edges, Face* f);
+		void get_associated_sorted(AssociatedEdges& edges, Volume* v);
+
+		void get_associated_sorted(AssociatedFaces& faces, Volume* v);
+
+
 
 	///	helps in copying attachment pipes during assign_grid
 	/**	Note that this method only copies attachments with m_userData==1.
