@@ -40,7 +40,7 @@ JavaVM* getJavaVM();
  * @return global SVN revision of this build
  */
 inline std::string svnRevision() {
-	return split(SVN_REVISION, ':')[0]; //
+	return split(UGSvnRevision(), ':')[0]; //
 }
 } // end vrl::
 }// end ug::

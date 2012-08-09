@@ -526,7 +526,7 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getSvnRevision
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getCompileDate
 (JNIEnv *env, jobject obj) {
-	return ug::vrl::stringC2J(env, ug::COMPILE_DATE);
+	return ug::vrl::stringC2J(env, ug::UGCompileDate());
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getUGVersion
