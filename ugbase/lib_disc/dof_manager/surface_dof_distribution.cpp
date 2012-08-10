@@ -6,6 +6,7 @@
  */
 
 #include "surface_dof_distribution.h"
+#include "mg_dof_distribution_impl.h"
 
 namespace ug{
 
@@ -283,6 +284,9 @@ void SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 
 		//	get roid
 			const ReferenceObjectID roid = elem->reference_object_id();
+
+		//	only for elements with dofs
+			if(num_dofs(roid, si) == 0) continue;
 
 		//	check correct index and replace if needed
 			MGDoFDistribution::defragment(elem, roid, si, lev_info(), vReplaced);

@@ -7,6 +7,7 @@
 
 #include "common/log.h"
 #include "mg_dof_distribution.h"
+#include "mg_dof_distribution_impl.h"
 #include "lib_disc/domain.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/reference_element/reference_element_util.h"

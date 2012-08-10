@@ -14,108 +14,6 @@
 
 namespace ug{
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-// Lev Info
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-template <>
-struct LevInfo<std::vector<size_t> > : public LevInfoBase
-{
-	typedef std::vector<size_t>::iterator iterator;
-	typedef std::vector<size_t>::const_iterator const_iterator;
-
-///	returns if free index avaiable
-	inline bool free_index_available() const
-	{
-		return !vFreeIndex.empty();
-	}
-
-///	returns number of free index avaiable
-	inline size_t num_free_index() const
-	{
-		return vFreeIndex.size();
-	}
-
-///	returns a free index
-	inline size_t pop_free_index()
-	{
-		const size_t index = vFreeIndex.back();
-		vFreeIndex.pop_back();
-		return index;
-	}
-
-///	adds a free index, returns if index has not been contained before
-	inline bool push_free_index(size_t index)
-	{
-		vFreeIndex.push_back(index); return true;
-	}
-
-///	returns iterators
-///	\{
-	inline iterator begin() {return vFreeIndex.begin();}
-	inline iterator end() {return vFreeIndex.end();}
-	inline const_iterator begin() const {return vFreeIndex.begin();}
-	inline const_iterator end() const {return vFreeIndex.end();}
-///	\}
-
-///	clear container
-	void clear() {vFreeIndex.clear();}
-
-	protected:
-	std::vector<size_t> vFreeIndex;
-};
-
-template <>
-struct LevInfo<std::set<size_t> > : public LevInfoBase
-{
-	typedef std::set<size_t>::iterator iterator;
-	typedef std::set<size_t>::const_iterator const_iterator;
-
-///	returns if free index avaiable
-	inline bool free_index_available() const
-	{
-		return !vFreeIndex.empty();
-	}
-
-///	returns number of free index avaiable
-	inline size_t num_free_index() const
-	{
-		return vFreeIndex.size();
-	}
-
-///	returns a free index
-	inline size_t pop_free_index()
-	{
-		const size_t index = *vFreeIndex.begin();
-		vFreeIndex.erase(vFreeIndex.begin());
-		return index;
-	}
-
-///	adds a free index, returns if index has not been contained before
-	inline bool push_free_index(size_t index)
-	{
-	//	already contained, just return flag
-		if(vFreeIndex.find(index) != vFreeIndex.end()) return false;
-
-		vFreeIndex.insert(index); return true;
-	}
-
-///	returns iterators
-///	\{
-	inline iterator begin() {return vFreeIndex.begin();}
-	inline iterator end() {return vFreeIndex.end();}
-	inline const_iterator begin() const {return vFreeIndex.begin();}
-	inline const_iterator end() const {return vFreeIndex.end();}
-///	\}
-
-///	clear container
-	void clear() {vFreeIndex.clear();}
-
-	protected:
-	std::set<size_t> vFreeIndex;
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -196,7 +94,7 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	first managed index plus the size of the index set. (If holes are in the
 //	index set, this is not treated here, wholes remain)
 	obj_index(obj) = li.sizeIndexSet;
-
+	
 //	the size of the index set has changed. adjust counter
 	li.sizeIndexSet += numNewIndex;
 
@@ -253,7 +151,9 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	if(oldIndex < li.numIndex) return;
 
 //	must have holes in the index set
-	UG_ASSERT(li.free_index_available(), "Hole in index set, but no free index.");
+	UG_ASSERT(li.free_index_available(), "Hole in index set, but no free index:"
+	          <<" oldIndex: "<<oldIndex<<", li.numIndex: "<<li.numIndex<<", "<<
+	          " roid: "<<roid<<", si: "<<si);
 
 //	get new index from stack
 	while(1)
@@ -376,10 +276,10 @@ void MGDoFDistribution::defragment(GeometricObject* elem, const ReferenceObjectI
 {
 	switch(elem->base_object_id())
 	{
-		case VERTEX: return erase(static_cast<VertexBase*>(elem), roid, si, li, vReplaced);
-		case EDGE: return erase(static_cast<EdgeBase*>(elem), roid, si, li, vReplaced);
-		case FACE: return erase(static_cast<Face*>(elem), roid, si, li, vReplaced);
-		case VOLUME: return erase(static_cast<Volume*>(elem), roid, si, li, vReplaced);
+		case VERTEX: return defragment(static_cast<VertexBase*>(elem), roid, si, li, vReplaced);
+		case EDGE: return defragment(static_cast<EdgeBase*>(elem), roid, si, li, vReplaced);
+		case FACE: return defragment(static_cast<Face*>(elem), roid, si, li, vReplaced);
+		case VOLUME: return defragment(static_cast<Volume*>(elem), roid, si, li, vReplaced);
 		default: UG_THROW("Geometric Base element not found.");
 	}
 }

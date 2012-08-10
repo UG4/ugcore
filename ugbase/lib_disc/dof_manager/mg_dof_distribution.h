@@ -528,9 +528,113 @@ class MGDoFDistribution : public GridObserver
 	///	\}
 };
 
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// Lev Info
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+template <>
+struct LevInfo<std::vector<size_t> > : public LevInfoBase
+{
+	typedef std::vector<size_t>::iterator iterator;
+	typedef std::vector<size_t>::const_iterator const_iterator;
+
+///	returns if free index avaiable
+	inline bool free_index_available() const
+	{
+		return !vFreeIndex.empty();
+	}
+
+///	returns number of free index avaiable
+	inline size_t num_free_index() const
+	{
+		return vFreeIndex.size();
+	}
+
+///	returns a free index
+	inline size_t pop_free_index()
+	{
+		const size_t index = vFreeIndex.back();
+		vFreeIndex.pop_back();
+		return index;
+	}
+
+///	adds a free index, returns if index has not been contained before
+	inline bool push_free_index(size_t index)
+	{
+		vFreeIndex.push_back(index); return true;
+	}
+
+///	returns iterators
+///	\{
+	inline iterator begin() {return vFreeIndex.begin();}
+	inline iterator end() {return vFreeIndex.end();}
+	inline const_iterator begin() const {return vFreeIndex.begin();}
+	inline const_iterator end() const {return vFreeIndex.end();}
+///	\}
+
+///	clear container
+	void clear() {vFreeIndex.clear();}
+
+	protected:
+	std::vector<size_t> vFreeIndex;
+};
+
+template <>
+struct LevInfo<std::set<size_t> > : public LevInfoBase
+{
+	typedef std::set<size_t>::iterator iterator;
+	typedef std::set<size_t>::const_iterator const_iterator;
+
+///	returns if free index avaiable
+	inline bool free_index_available() const
+	{
+		return !vFreeIndex.empty();
+	}
+
+///	returns number of free index avaiable
+	inline size_t num_free_index() const
+	{
+		return vFreeIndex.size();
+	}
+
+///	returns a free index
+	inline size_t pop_free_index()
+	{
+		const size_t index = *vFreeIndex.begin();
+		vFreeIndex.erase(vFreeIndex.begin());
+		return index;
+	}
+
+///	adds a free index, returns if index has not been contained before
+	inline bool push_free_index(size_t index)
+	{
+	//	already contained, just return flag
+		if(vFreeIndex.find(index) != vFreeIndex.end()) return false;
+
+		vFreeIndex.insert(index); return true;
+	}
+
+///	returns iterators
+///	\{
+	inline iterator begin() {return vFreeIndex.begin();}
+	inline iterator end() {return vFreeIndex.end();}
+	inline const_iterator begin() const {return vFreeIndex.begin();}
+	inline const_iterator end() const {return vFreeIndex.end();}
+///	\}
+
+///	clear container
+	void clear() {vFreeIndex.clear();}
+
+	protected:
+	std::set<size_t> vFreeIndex;
+};
+
 } // end namespace ug
 
-#include "mg_dof_distribution_impl.h"
+//#include "mg_dof_distribution_impl.h"
 #include "level_dof_distribution.h"
 #include "surface_dof_distribution.h"
 

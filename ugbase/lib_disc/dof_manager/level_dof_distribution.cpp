@@ -6,6 +6,7 @@
  */
 
 #include "level_dof_distribution.h"
+#include "mg_dof_distribution_impl.h"
 
 namespace ug{
 
