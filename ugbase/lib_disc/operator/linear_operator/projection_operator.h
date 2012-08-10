@@ -61,6 +61,8 @@ class InjectionTransfer :
 	///	Set Approximation Space
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
+	///	virtual Destructor
+		virtual ~InjectionTransfer(){};
 	public:
 	///	Set approximation level
 		void set_levels(GridLevel coarseLevel, GridLevel fineLevel);

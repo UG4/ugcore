@@ -45,6 +45,8 @@ class AverageComponent :
 			m_spApproxSpace(approxSpace), m_bInit(false)
 		{};
 
+		virtual ~AverageComponent(){};
+
 	public:
 	///	Set levels
 		virtual void set_levels(GridLevel level);

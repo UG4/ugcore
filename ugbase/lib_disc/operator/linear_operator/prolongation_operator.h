@@ -62,6 +62,9 @@ class StdTransfer :
 			m_spDebugWriter = spDebugWriter;
 		}
 
+	/// virtual destructor
+		virtual ~StdTransfer(){};
+
 	public:
 	///	Set levels
 		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel);

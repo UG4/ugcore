@@ -57,7 +57,7 @@ class ITransferOperator
 		virtual SmartPtr<ITransferOperator<TAlgebra> > clone() = 0;
 
 	///	virtual destructor
-		~ITransferOperator() {}
+		virtual ~ITransferOperator() {}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,7 +86,7 @@ class ITransferPostProcess
 		virtual SmartPtr<ITransferPostProcess<TAlgebra> > clone() = 0;
 
 	///	virtual destructor
-		~ITransferPostProcess() {}
+		virtual ~ITransferPostProcess() {}
 };
 
 } // end namespace ug
