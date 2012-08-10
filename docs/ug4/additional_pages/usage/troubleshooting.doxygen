@@ -1,0 +1,27 @@
+//	created by Martin Rupp
+//	martin.rupp@gcsc.uni-frankfurt.de
+//	y12 m07 d17
+
+/** \page pageTroubleshooting Troubleshooting
+
+This file is intended for troubleshooting. Please provide information about as much errors as possible.
+It might be a very stupid error for you, but there's a high chance someone else has the same problem
+and spends hours on solving it.
+
+<hr>
+<b> Descrition: </b>
+Compiling plugin with different configuration
+Plugin initialization shows error
+\code
+*** glibc detected *** gravtree: corrupted double-linked list: 0x000000001aa0fc50 ***
+\endcode
+<b> Cause </b><br>
+Compiling plugin seperately with different configuration
+<b> Solution </b><br>
+Delete contents <tt>ug4/bin/plugins</tt> of directory.
+Use the <tt>-D[pluginname]</tt> option of cmake.
+Recompile ug4.
+
+<hr>
+
+*/
