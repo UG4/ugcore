@@ -191,7 +191,7 @@ struct UGError_ReferenceElementMissing : public UGError
 	UGError_ReferenceElementMissing(int dim_, ReferenceObjectID roid_)
 	: UGError(""), dim(dim_), roid(roid_)
 	{
-		std::stringstream ss; ss << "Refernce Element not found for "
+		std::stringstream ss; ss << "Reference Element not found for "
 							<<roid<<" (dim="<<dim<<")";
 		UGError::push_msg(ss.str());
 	}

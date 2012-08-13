@@ -584,7 +584,7 @@ ReferenceTetrahedron::ReferenceTetrahedron()
 		}
 
 	// Face <-> Volume
-	for(size_t i=0; i<m_vNum[VOLUME]; ++i)
+	for(size_t i=0; i<m_vNum[FACE]; ++i)
 	{
 	 	m_id[VOLUME][0][FACE][i] = i;
 	 	m_id[FACE][i][VOLUME][0] = 0;
@@ -817,7 +817,7 @@ ReferencePyramid::ReferencePyramid()
 		}
 
 	// Face <-> Volume
-	for(size_t i=0; i<m_vNum[VOLUME]; ++i)
+	for(size_t i=0; i<m_vNum[FACE]; ++i)
 	{
 	 	m_id[VOLUME][0][FACE][i] = i;
 	 	m_id[FACE][i][VOLUME][0] = 0;
@@ -860,8 +860,8 @@ ReferencePyramid::ReferencePyramid()
  	m_id[FACE][4][POINT][2] = 4;
 
  	m_id[POINT][0][FACE][0] = 0;
- 	m_id[POINT][0][FACE][1] = 1;
- 	m_id[POINT][0][FACE][2] = 4;
+ 	m_id[POINT][0][FACE][1] = 4;//1;
+ 	m_id[POINT][0][FACE][2] = 1;//4;
 
  	m_id[POINT][1][FACE][0] = 0;
  	m_id[POINT][1][FACE][1] = 1;
@@ -890,9 +890,9 @@ ReferencePyramid::ReferencePyramid()
  	m_id[FACE][1][EDGE][1] = 5;
  	m_id[FACE][1][EDGE][2] = 4;
 
- 	m_id[FACE][2][EDGE][0] = 5;
+ 	m_id[FACE][2][EDGE][0] = 1;
  	m_id[FACE][2][EDGE][1] = 6;
- 	m_id[FACE][2][EDGE][2] = 1;
+ 	m_id[FACE][2][EDGE][2] = 5;
 
  	m_id[FACE][3][EDGE][0] = 2;
  	m_id[FACE][3][EDGE][1] = 7;
@@ -958,16 +958,16 @@ ReferencePyramid::ReferencePyramid()
  	m_id[POINT][0][EDGE][2] = 4;
 
  	m_id[POINT][1][EDGE][0] = 0;
- 	m_id[POINT][1][EDGE][1] = 5;
- 	m_id[POINT][1][EDGE][2] = 1;
+ 	m_id[POINT][1][EDGE][1] = 1;//5;
+ 	m_id[POINT][1][EDGE][2] = 5;//1;
 
  	m_id[POINT][2][EDGE][0] = 1;
- 	m_id[POINT][2][EDGE][1] = 6;
- 	m_id[POINT][2][EDGE][2] = 2;
+ 	m_id[POINT][2][EDGE][1] = 2;//6;
+ 	m_id[POINT][2][EDGE][2] = 6;//2;
 
  	m_id[POINT][3][EDGE][0] = 2;
- 	m_id[POINT][3][EDGE][1] = 7;
- 	m_id[POINT][3][EDGE][2] = 3;
+ 	m_id[POINT][3][EDGE][1] = 3;//7;
+ 	m_id[POINT][3][EDGE][2] = 7;//3;
 
  	m_id[POINT][4][EDGE][0] = 4;
  	m_id[POINT][4][EDGE][1] = 5;
@@ -1091,7 +1091,7 @@ ReferencePrism::ReferencePrism()
 		}
 
 	// Face <-> Volume
-	for(size_t i=0; i<m_vNum[VOLUME]; ++i)
+	for(size_t i=0; i<m_vNum[FACE]; ++i)
 	{
 	 	m_id[VOLUME][0][FACE][i] = i;
 	 	m_id[FACE][i][VOLUME][0] = 0;
@@ -1364,7 +1364,7 @@ ReferenceHexahedron::ReferenceHexahedron()
 		}
 
 	// Face <-> Volume
-	for(size_t i=0; i<m_vNum[VOLUME]; ++i)
+	for(size_t i=0; i<m_vNum[FACE]; ++i)
 	{
 	 	m_id[VOLUME][0][FACE][i] = i;
 	 	m_id[FACE][i][VOLUME][0] = 0;
