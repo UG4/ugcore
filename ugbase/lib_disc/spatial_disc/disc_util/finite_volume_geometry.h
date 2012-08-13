@@ -105,13 +105,15 @@ class FV1Geometry : public FVGeometryBase
 		static const int order = 1;
 
 	///	number of SubControlVolumes
-		static const size_t numSCV = ref_elem_type::numCorners;
+		static const size_t numSCV = (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID)
+									? ref_elem_type::numCorners : 8;
 
 	///	type of SubControlVolume
 		typedef typename traits::scv_type scv_type;
 
 	///	number of SubControlVolumeFaces
-		static const size_t numSCVF = ref_elem_type::numEdges;
+		static const size_t numSCVF = (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID)
+									? ref_elem_type::numEdges : 12;
 
 	///	type of Shape function used
 		typedef LagrangeP1<ref_elem_type> local_shape_fct_set_type;
@@ -236,10 +238,10 @@ class FV1Geometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of scvf
-				static const size_t maxNumCo = traits::MaxNumCornersOfSCV;
+				static const size_t numCo = traits::NumCornersOfSCV;
 
 			public:
-				SCV() : numCo(maxNumCo) {};
+				SCV() {};
 
 			/// volume of scv
 				inline number volume() const {return Vol;}
@@ -314,13 +316,10 @@ class FV1Geometry : public FVGeometryBase
 			//	volume of scv
 				number Vol;
 
-			//	number of corners of this element
-				size_t numCo;
-
 			//	local and global positions of this element
-				MathVector<dim> vLocPos[maxNumCo]; // local position of node
-				MathVector<worldDim> vGloPos[maxNumCo]; // global position of node
-				MidID midId[maxNumCo]; // dimension and id of object, that's midpoint bounds the scv
+				MathVector<dim> vLocPos[numCo]; // local position of node
+				MathVector<worldDim> vGloPos[numCo]; // global position of node
+				MidID midId[numCo]; // dimension and id of object, that's midpoint bounds the scv
 
 			// shapes and derivatives
 				number vShape[nsh]; // shapes at ip
@@ -455,11 +454,16 @@ class FV1Geometry : public FVGeometryBase
 			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
 
 	/// number of SubControlVolumes
+		// do not use this method to obtain the number of shape functions,
+		// since this is NOT the same for pyramids; use num_sh() instead.
 		inline size_t num_scv() const {return numSCV;}
 
 	/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
+
+	/// number of shape functions
+		inline size_t num_sh() const {return nsh;};
 
 	public:
 	/// returns number of all scvf ips
@@ -727,17 +731,17 @@ class DimFV1Geometry : public FVGeometryBase
 		class SCV
 		{
 			public:
-			/// Number of corners of scvf
-				static const size_t maxNumCo = traits::MaxNumCornersOfSCV;
+			/// Number of corners of scv
+				static const size_t numCo = traits::NumCornersOfSCV;
 
 			public:
-				SCV() : numCorners(maxNumCo) {};
+				SCV() {};
 
 			/// volume of scv
 				inline number volume() const {return Vol;}
 
-			/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return numCorners;}
+			/// number of corners, that bound the scv
+				inline size_t num_corners() const {return numCo;}
 
 			/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t co) const
@@ -798,13 +802,10 @@ class DimFV1Geometry : public FVGeometryBase
 			//	volume of scv
 				number Vol;
 
-			//	number of corners of this element
-				size_t numCorners;
-
 			//	local and global positions of this element
-				MathVector<dim> vLocPos[maxNumCo]; // local position of node
-				MathVector<worldDim> vGloPos[maxNumCo]; // global position of node
-				MidID vMidID[maxNumCo]; // dimension and id of object, that's midpoint bounds the scv
+				MathVector<dim> vLocPos[numCo]; // local position of node
+				MathVector<worldDim> vGloPos[numCo]; // global position of node
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the scv
 
 			// shapes and derivatives
 				size_t numSH;
@@ -941,11 +942,16 @@ class DimFV1Geometry : public FVGeometryBase
 			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
 
 	/// number of SubControlVolumes
+		// do not use this method to obtain the number of shape functions,
+		// since this is NOT the same for pyramids; use num_sh() instead.
 		inline size_t num_scv() const {return m_numSCV;}
 
 	/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
+
+	/// number of shape functions
+		inline size_t num_sh() const {return m_nsh;};
 
 	public:
 	/// returns number of all scvf ips
@@ -1038,6 +1044,9 @@ class DimFV1Geometry : public FVGeometryBase
 
 	///	current number of scvf
 		size_t m_numSCVF;
+
+	/// current number of shape functions
+		size_t m_nsh;
 
 	///	max number of geometric objects in a dimension
 	// 	(most objects in 1 dim, i.e. number of edges, but +1 for 1D)
@@ -1273,10 +1282,10 @@ class FVGeometry : public FVGeometryBase
 				static const size_t nip = scv_quad_rule_type::nip;
 
 			/// Number of corners of scvf
-				static const size_t maxNumCo =	traits::MaxNumCornersOfSCV;
+				static const size_t numCo =	traits::NumCornersOfSCV;
 
 			public:
-				SCV() : numCo(maxNumCo) {};
+				SCV() {};
 
 			/// volume of scv
 				inline number volume() const {return Vol;}
@@ -1357,18 +1366,15 @@ class FVGeometry : public FVGeometryBase
 			//	volume of scv
 				number Vol;
 
-			//	number of corners of this element
-				size_t numCo;
-
 			//  scv part
 				MathVector<dim> vLocalIP[nip]; // local integration point
 				MathVector<worldDim> vGlobalIP[nip]; // global intergration point
 				const number* vWeight; // weight at ip
 
 			//	local and global positions of this element
-				MathVector<dim> vLocPos[maxNumCo]; // local position of node
-				MathVector<worldDim> vGloPos[maxNumCo]; // global position of node
-				MidID vMidID[maxNumCo]; // dimension and id of object, that's midpoint bounds the scv
+				MathVector<dim> vLocPos[numCo]; // local position of node
+				MathVector<worldDim> vGloPos[numCo]; // global position of node
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the scv
 
 			// shapes and derivatives
 				number vvShape[nip][nsh]; // shapes at ip
@@ -1527,6 +1533,9 @@ class FVGeometry : public FVGeometryBase
 	/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
+
+	/// number of shape functions
+		inline size_t num_sh() const {return nsh;}
 
 	public:
 	/// returns number of all scvf ips
@@ -1819,10 +1828,10 @@ class DimFVGeometry : public FVGeometryBase
 		{
 			public:
 			/// Number of corners of scvf
-				static const size_t maxNumCo =	traits::MaxNumCornersOfSCV;
+				static const size_t numCo =	traits::NumCornersOfSCV;
 
 			public:
-				SCV() : numCo(maxNumCo) {};
+				SCV() {};
 
 			/// volume of scv
 				inline number volume() const {return Vol;}
@@ -1903,13 +1912,10 @@ class DimFVGeometry : public FVGeometryBase
 			//	volume of scv
 				number Vol;
 
-			//	number of corners of this element
-				size_t numCo;
-
 			//	local and global positions of this element
-				MathVector<dim> vLocPos[maxNumCo]; // local position of node
-				MathVector<worldDim> vGloPos[maxNumCo]; // global position of node
-				MidID vMidID[maxNumCo]; // dimension and id of object, that's midpoint bounds the scv
+				MathVector<dim> vLocPos[numCo]; // local position of node
+				MathVector<worldDim> vGloPos[numCo]; // global position of node
+				MidID vMidID[numCo]; // dimension and id of object, that's midpoint bounds the scv
 
 			//  scv part
 				size_t nip;
@@ -2081,6 +2087,9 @@ class DimFVGeometry : public FVGeometryBase
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
 
+	/// number of shape functions
+		inline size_t num_sh() const {return m_nsh;};
+
 	public:
 	/// returns number of all scvf ips
 		size_t num_scvf_ips() const {return m_numSCVFIP;}
@@ -2200,10 +2209,8 @@ class DimFVGeometry : public FVGeometryBase
 	///	current number of subelements
 		size_t m_numSubElem;
 
-
 	///	number of shape functions
 		size_t m_nsh;
-
 
 	///	current number of scvf
 		size_t m_numSCVF;
@@ -2294,10 +2301,10 @@ class FV1ManifoldBoundary
 				static const size_t m_numIP = 1;
 				
 			// 	max number of corners of bf
-				static const size_t m_maxNumCorners = fv1_traits<ref_elem_type, dim>::MaxNumCornersOfSCV;
+				static const size_t numCorners = fv1_traits<ref_elem_type, dim>::NumCornersOfSCV;
 
 			public:
-				BF() : m_numCorners(m_maxNumCorners) {};
+				BF() {};
 
 			/// node id that this bf is associated to
 				inline size_t node_id() const {return nodeId;}
@@ -2317,7 +2324,7 @@ class FV1ManifoldBoundary
 				inline number volume() const {return vol;}
 
 			/// number of corners, that bound the bf
-				inline size_t num_corners() const {return m_numCorners;}
+				inline size_t num_corners() const {return numCorners;}
 
 			/// return local position of corner number i
 				inline const MathVector<dim>& local_corner(size_t i) const
@@ -2340,10 +2347,9 @@ class FV1ManifoldBoundary
 				// CORNERS: ordering is:
 				// 1D: edgeMidPoint, CenterOfElement
 				// 2D: edgeMidPoint, Side one, CenterOfElement, Side two
-				size_t m_numCorners;
-				MathVector<dim> vLocPos[m_maxNumCorners];			// local position of node
-				MathVector<worldDim> vGloPos[m_maxNumCorners];	// global position of node
-				MidID midId[m_maxNumCorners];			// dimension and id of object, whose midpoint bounds the scv
+				MathVector<dim> vLocPos[numCorners];			// local position of node
+				MathVector<worldDim> vGloPos[numCorners];	// global position of node
+				MidID midId[numCorners];			// dimension and id of object, whose midpoint bounds the scv
 				
 				//IPs & shapes
 				MathVector<dim> localIP; // local integration point

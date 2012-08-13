@@ -58,7 +58,7 @@ template <typename TRefElem, int TWorldDim> struct fv1_traits
 	const static size_t NumCornersOfSCVF;
 
 //	maximum of corners of scv
-	const static size_t MaxNumCornersOfSCV;
+	const static size_t NumCornersOfSCV;
 
 //	computes the normal to a scvf
 	static void NormalOnSCVF(MathVector<TWorldDim>& outNormal,
@@ -81,7 +81,7 @@ struct fv1_traits_ReferenceEdge
 	static const size_t maxNSH = maxNumSCV;
 
 	const static size_t NumCornersOfSCVF = 1;
-	const static size_t MaxNumCornersOfSCV = 2;
+	const static size_t NumCornersOfSCV = 2;
 
 	typedef ReferenceEdge scv_type;
 	typedef ReferenceVertex scvf_type;
@@ -122,7 +122,7 @@ struct fv1_traits_ReferenceFace
 	static const size_t maxNSH = maxNumSCV;
 
 	const static size_t NumCornersOfSCVF = 2;
-	const static size_t MaxNumCornersOfSCV = 4;
+	const static size_t NumCornersOfSCV = 4;
 	typedef ReferenceQuadrilateral scv_type;
 	typedef ReferenceEdge scvf_type;
 };
@@ -160,7 +160,7 @@ struct fv1_traits_ReferenceVolume
 	static const size_t maxNSH = maxNumSCV;
 
 	const static size_t NumCornersOfSCVF = 4;
-	const static size_t MaxNumCornersOfSCV = 10;
+	const static size_t NumCornersOfSCV = 8;
 
 	typedef ReferenceHexahedron scv_type;
 	typedef ReferenceQuadrilateral scvf_type;
@@ -171,25 +171,10 @@ struct fv1_traits_ReferenceVolume
 		{ElementNormal<ReferenceQuadrilateral, 3>(outNormal, vSCVFCorner);}
 };
 
-template <> struct fv1_traits<ReferenceTetrahedron, 3> : public fv1_traits_ReferenceVolume
-{
-	const static size_t MaxNumCornersOfSCV = 8;
-};
-
-template <> struct fv1_traits<ReferencePrism, 3> : public fv1_traits_ReferenceVolume
-{
-	const static size_t MaxNumCornersOfSCV = 8;
-};
-
-template <> struct fv1_traits<ReferencePyramid, 3> : public fv1_traits_ReferenceVolume
-{
-	const static size_t MaxNumCornersOfSCV = 10;
-};
-
-template <> struct fv1_traits<ReferenceHexahedron, 3> : public fv1_traits_ReferenceVolume
-{
-	const static size_t MaxNumCornersOfSCV = 8;
-};
+template <> struct fv1_traits<ReferenceTetrahedron, 3> : public fv1_traits_ReferenceVolume{};
+template <> struct fv1_traits<ReferencePrism, 3> : public fv1_traits_ReferenceVolume{};
+template <> struct fv1_traits<ReferencePyramid, 3> : public fv1_traits_ReferenceVolume{};
+template <> struct fv1_traits<ReferenceHexahedron, 3> : public fv1_traits_ReferenceVolume{};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dimension dependent traits DIM FV1

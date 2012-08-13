@@ -10,8 +10,10 @@
 #include "finite_volume_geometry.h"
 #include "lib_disc/reference_element/reference_element.h"
 #include "lib_disc/quadrature/quadrature.h"
+#include "lib_algebra/common/operations_vec.h"
 
 namespace ug{
+
 
 /**
  * \tparam	dim			dimension of coordinates
@@ -44,6 +46,50 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
 			vvMid[d][i] *= 1./(rRefElem.num(d, i, 0));
 		}
 	}
+
+	// for PYRAMIDS: add midpoints of imaginary faces, edges and volumes
+	// resulting from the division into two tetrahedra alongside x==y
+	if (rRefElem.reference_object_id() == ROID_PYRAMID)
+	{
+		// diagonal 2->0, diagonal 0->2
+		VecScaleAdd(vvMid[1][rRefElem.num(1)], 0.5, vCorner[2], 0.5, vCorner[0]);
+		VecScaleAdd(vvMid[1][rRefElem.num(1)+1], 0.5, vCorner[0], 0.5, vCorner[2]);
+
+		// subface 0,1,2; subface 0,2,3; face 0,4,2; face 0,2,4
+		vvMid[2][rRefElem.num(2)] = vCorner[0];
+		vvMid[2][rRefElem.num(2)] += vCorner[1];
+		vvMid[2][rRefElem.num(2)] += vCorner[2];
+		vvMid[2][rRefElem.num(2)] *= 1.0/3.0;
+
+		vvMid[2][rRefElem.num(2)+1] = vCorner[0];
+		vvMid[2][rRefElem.num(2)+1] += vCorner[2];
+		vvMid[2][rRefElem.num(2)+1] += vCorner[3];
+		vvMid[2][rRefElem.num(2)+1] *= 1.0/3.0;
+
+		vvMid[2][rRefElem.num(2)+2] = vCorner[0];
+		vvMid[2][rRefElem.num(2)+2] += vCorner[4];
+		vvMid[2][rRefElem.num(2)+2] += vCorner[2];
+		vvMid[2][rRefElem.num(2)+2] *= 1.0/3.0;
+
+		vvMid[2][rRefElem.num(2)+3] = vCorner[0];
+		vvMid[2][rRefElem.num(2)+3] += vCorner[2];
+		vvMid[2][rRefElem.num(2)+3] += vCorner[4];
+		vvMid[2][rRefElem.num(2)+3] *= 1.0/3.0;
+
+		// subvolume 0,1,2,4; subvolume 0,2,3,4
+
+		vvMid[3][rRefElem.num(3)] = vCorner[0];
+		vvMid[3][rRefElem.num(3)] += vCorner[1];
+		vvMid[3][rRefElem.num(3)] += vCorner[2];
+		vvMid[3][rRefElem.num(3)] += vCorner[4];
+		vvMid[3][rRefElem.num(3)] *= 0.25;
+
+		vvMid[3][rRefElem.num(3)+1] = vCorner[0];
+		vvMid[3][rRefElem.num(3)+1] += vCorner[2];
+		vvMid[3][rRefElem.num(3)+1] += vCorner[3];
+		vvMid[3][rRefElem.num(3)+1] += vCorner[4];
+		vvMid[3][rRefElem.num(3)+1] *= 0.25;
+	}
 }
 
 /**
@@ -55,21 +101,105 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 {
 	static const int dim = TRefElem::dim;
 
-//	set mid ids
+	if (rRefElem.reference_object_id() != ROID_PYRAMID)
 	{
-	// 	start at edge midpoint
-		vMidID[0] = MidID(1,i);
+		//	set mid ids
+		{
+			// 	start at edge midpoint
+			vMidID[0] = MidID(1,i);
 
-	// 	loop up dimension
-		if(dim == 2)
-		{
-			vMidID[1] = MidID(dim, 0); // center of element
+			// 	loop up dimension
+			if(dim == 2)
+			{
+				vMidID[1] = MidID(dim, 0); // center of element
+			}
+			else if (dim == 3)
+			{
+				vMidID[1] = MidID(2, rRefElem.id(1, i, 2, 0)); // side 0
+				vMidID[2] = MidID(dim, 0); // center of element
+				vMidID[3] = MidID(2, rRefElem.id(1, i, 2, 1)); // side 1
+			}
 		}
-		else if (dim == 3)
+	}
+	// pyramid here
+	else
+	{
+		switch (i)
 		{
-			vMidID[1] = MidID(2, rRefElem.id(1, i, 2, 0)); // side 0
-			vMidID[2] = MidID(dim, 0); // center of element
-			vMidID[3] = MidID(2, rRefElem.id(1, i, 2, 1)); // side 1
+			// scvf of edge 0
+			case 0:	vMidID[0] = MidID(1,0);	// edge 0
+					vMidID[1] = MidID(2,5);	// subface 0/0
+					vMidID[2] = MidID(3,1);	// subvolume 0/0
+					vMidID[3] = MidID(2,1); // face 1
+					break;
+			// scvf of edge 1
+			case 1:	vMidID[0] = MidID(1,1);	// edge 1
+					vMidID[1] = MidID(2,5);	// subface 0/0
+					vMidID[2] = MidID(3,1);	// subvolume 0/0
+					vMidID[3] = MidID(2,2); // face 2
+					break;
+			// scvf of diagonal 2->0
+			case 2:	vMidID[0] = MidID(1,8);	// diagonal 2->0
+					vMidID[1] = MidID(2,5);	// subface 0/0
+					vMidID[2] = MidID(3,1);	// subvolume 0/0
+					vMidID[3] = MidID(2,7); // face 0,4,2
+					break;
+			// scvf of edge 4 in subvolume 0/0
+			case 3:	vMidID[0] = MidID(1,4);	// edge 4
+					vMidID[1] = MidID(2,1); // face 1
+					vMidID[2] = MidID(3,1);	// subvolume 0/0
+					vMidID[3] = MidID(2,7); // face 0,4,2
+					break;
+			// scvf of edge 5
+			case 4:	vMidID[0] = MidID(1,5);	// edge 5
+					vMidID[1] = MidID(2,2);	// face 2
+					vMidID[2] = MidID(3,1);	// subvolume 0/0
+					vMidID[3] = MidID(2,1); // face 1
+					break;
+			// scvf of edge 6 in subvolume 0/0
+			case 5:	vMidID[0] = MidID(1,6);	// edge 6
+					vMidID[1] = MidID(2,7); // face 0,4,2
+					vMidID[2] = MidID(3,1);	// subvolume 0/0
+					vMidID[3] = MidID(2,2);	// face 2
+					break;
+			// edge 0->2
+			case 6:	vMidID[0] = MidID(1,9);	// edge 0->2
+					vMidID[1] = MidID(2,6);	// subface 1/0
+					vMidID[2] = MidID(3,2);	// subvolume 1/0
+					vMidID[3] = MidID(2,8);	// face 0,2,4
+					break;
+			// scvf of edge 2
+			case 7:	vMidID[0] = MidID(1,2);	// edge 2
+					vMidID[1] = MidID(2,6);	// subface 1/0
+					vMidID[2] = MidID(3,2);	// subvolume 1/0
+					vMidID[3] = MidID(2,3); // face 3
+					break;
+			// scvf of edge 3
+			case 8:	vMidID[0] = MidID(1,3);	// edge 3
+					vMidID[1] = MidID(2,6);	// subface 1/0
+					vMidID[2] = MidID(3,2);	// subvolume 1/0
+					vMidID[3] = MidID(2,4); // face 4
+					break;
+			// scvf of edge 4 in subvolume 1/0
+			case 9:	vMidID[0] = MidID(1,4);	// edge 4
+					vMidID[1] = MidID(2,8);	// face 0,2,4
+					vMidID[2] = MidID(3,2);	// subvolume 1/0
+					vMidID[3] = MidID(2,4); // face 4
+					break;
+			// scvf of edge 6 in subvolume 1/0
+			case 10:vMidID[0] = MidID(1,6);	// edge 6
+					vMidID[1] = MidID(2,3);	// face 3
+					vMidID[2] = MidID(3,2);	// subvolume 1/0
+					vMidID[1] = MidID(2,8);	// face 0,2,4
+					break;
+			// scvf of edge 7
+			case 11:vMidID[0] = MidID(1,7);	// edge 7
+					vMidID[3] = MidID(2,4); // face 4
+					vMidID[2] = MidID(3,2);	// subvolume 1/0
+					vMidID[1] = MidID(2,3);	// face 3
+					break;
+			default:UG_THROW("Pyramid only has 12 SCVFs (no. 0-11), but requested no. " << i << ".");
+					break;
 		}
 	}
 }
@@ -83,36 +213,122 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 {
 	static const int dim = TRefElem::dim;
 
-	if(dim == 1)
+	if (rRefElem.reference_object_id() != ROID_PYRAMID)
 	{
-		vMidID[0] = MidID(0, i); // set node as corner of scv
-		vMidID[1] = MidID(dim, 0);	// center of element
+		if(dim == 1)
+		{
+			vMidID[0] = MidID(0, i); // set node as corner of scv
+			vMidID[1] = MidID(dim, 0);	// center of element
+		}
+		else if(dim == 2)
+		{
+			vMidID[0] = MidID(0, i); // set node as corner of scv
+			vMidID[1] = MidID(1, rRefElem.id(0, i, 1, 0)); // edge 1
+			vMidID[2] = MidID(dim, 0);	// center of element
+			vMidID[3] = MidID(1, rRefElem.id(0, i, 1, 1)); // edge 2
+		}
+		else if(dim == 3)
+		{
+			vMidID[0] = MidID(0, i); // set node as corner of scv
+			vMidID[1] = MidID(1, rRefElem.id(0, i, 1, 1)); // edge 1
+			vMidID[2] = MidID(2, rRefElem.id(0, i, 2, 0)); // face 0
+			vMidID[3] = MidID(1, rRefElem.id(0, i, 1, 0)); // edge 0
+			vMidID[4] = MidID(1, rRefElem.id(0, i, 1, 2)); // edge 2
+			vMidID[5] = MidID(2, rRefElem.id(0, i, 2, 2)); // face 2
+			vMidID[6] = MidID(dim, 0);	// center of element
+			vMidID[7] = MidID(2, rRefElem.id(0, i, 2, 1)); // face 1
+		}
+		else {throw(UGError("Dimension higher that 3 not implemented."));}
 	}
-	else if(dim == 2)
+	// pyramid here
+	else
 	{
-		vMidID[0] = MidID(0, i); // set node as corner of scv
-		vMidID[1] = MidID(1, rRefElem.id(0, i, 1, 0)); // edge 1
-		vMidID[2] = MidID(dim, 0);	// center of element
-		vMidID[3] = MidID(1, rRefElem.id(0, i, 1, 1)); // edge 2
+		switch (i)
+		{
+			// scv of corner 0 in subvolume 0/0
+			case 0:	vMidID[0] = MidID(0,0);	// corner 0
+					vMidID[1] = MidID(1,0);	// edge 0
+					vMidID[2] = MidID(2,5);	// subface 0/0
+					vMidID[3] = MidID(1,8); // edge 2->0
+					vMidID[4] = MidID(1,4);	// edge 4
+					vMidID[5] = MidID(2,1); // face 1
+					vMidID[6] = MidID(3,1);	// subvolume 0/0
+					vMidID[7] = MidID(2,7); // face 0,4,2
+					break;
+			// scv of corner 1
+			case 1:	vMidID[0] = MidID(0,1);	// corner 1
+					vMidID[1] = MidID(1,1);	// edge 1
+					vMidID[2] = MidID(2,5);	// subface 0/0
+					vMidID[3] = MidID(1,0);	// edge 0
+					vMidID[4] = MidID(1,5);	// edge 5
+					vMidID[5] = MidID(2,2);	// face 2
+					vMidID[6] = MidID(3,1);	// subvolume 0/0
+					vMidID[7] = MidID(2,1); // face 1
+					break;
+			// scv of corner 2 in subvolume 0/0
+			case 2:	vMidID[0] = MidID(0,2);	// corner 2
+					vMidID[1] = MidID(1,8); // edge 2->0
+					vMidID[2] = MidID(2,5);	// subface 0/0
+					vMidID[3] = MidID(1,1);	// edge 1
+					vMidID[4] = MidID(1,6);	// edge 6
+					vMidID[5] = MidID(2,7); // face 0,4,2
+					vMidID[6] = MidID(3,1);	// subvolume 0/0
+					vMidID[7] = MidID(2,2);	// face 2
+					break;
+			// scv of corner 4 in subvolume 0/0
+			case 3:	vMidID[0] = MidID(0,4);	// corner 4
+					vMidID[1] = MidID(1,5);	// edge 5
+					vMidID[2] = MidID(2,1); // face 1
+					vMidID[3] = MidID(1,4); // edge 4
+					vMidID[4] = MidID(1,6);	// edge 6
+					vMidID[5] = MidID(2,2); // face 2
+					vMidID[6] = MidID(3,1);	// subvolume 0/0
+					vMidID[7] = MidID(2,7); // face 0,4,2
+					break;
+			// scv of corner 0 in subvolume 1/0
+			case 4:	vMidID[0] = MidID(0,0);	// corner 0
+					vMidID[1] = MidID(1,9);	// edge 0->2
+					vMidID[2] = MidID(2,6);	// subface 1/0
+					vMidID[3] = MidID(1,3); // edge 3
+					vMidID[4] = MidID(1,4);	// edge 4
+					vMidID[5] = MidID(2,8); // face 0,2,4
+					vMidID[6] = MidID(3,2);	// subvolume 1/0
+					vMidID[7] = MidID(2,4); // face 4
+					break;
+			// scv of corner 2 in subvolume 1/0
+			case 5:	vMidID[0] = MidID(0,2);	// corner 2
+					vMidID[1] = MidID(1,2);	// edge 2
+					vMidID[2] = MidID(2,6);	// subface 1/0
+					vMidID[3] = MidID(1,9); // edge 0->2
+					vMidID[4] = MidID(1,6);	// edge 6
+					vMidID[5] = MidID(2,3); // face 3
+					vMidID[6] = MidID(3,2);	// subvolume 1/0
+					vMidID[7] = MidID(2,8); // face 0,2,4
+					break;
+			// scv of corner 3
+			case 6:	vMidID[0] = MidID(0,3);	// corner 3
+					vMidID[1] = MidID(1,3);	// edge 3
+					vMidID[2] = MidID(2,6);	// subface 1/0
+					vMidID[3] = MidID(1,2); // edge 2
+					vMidID[4] = MidID(1,7);	// edge 7
+					vMidID[5] = MidID(2,4); // face 4
+					vMidID[6] = MidID(3,2);	// subvolume 1/0
+					vMidID[7] = MidID(2,3); // face 3
+					break;
+			// scv of corner 4 in subvolume 1/0
+			case 7:	vMidID[0] = MidID(0,4);	// corner 4
+					vMidID[1] = MidID(1,6);	// edge 6
+					vMidID[2] = MidID(2,8); // face 0,2,4
+					vMidID[3] = MidID(1,4); // edge 4
+					vMidID[4] = MidID(1,7);	// edge 7
+					vMidID[5] = MidID(2,3); // face 3
+					vMidID[6] = MidID(3,2);	// subvolume 1/0
+					vMidID[7] = MidID(2,4); // face 4
+					break;
+			default:UG_THROW("Pyramid only has 8 SCVs (no. 0-7), but requested no. " << i << ".");
+					break;
+		}
 	}
-	else if(dim == 3 && (rRefElem.reference_object_id() != ROID_PYRAMID || i != 4))
-	{
-		vMidID[0] = MidID(0, i); // set node as corner of scv
-		vMidID[1] = MidID(1, rRefElem.id(0, i, 1, 1)); // edge 1
-		vMidID[2] = MidID(2, rRefElem.id(0, i, 2, 0)); // face 0
-		vMidID[3] = MidID(1, rRefElem.id(0, i, 1, 0)); // edge 0
-		vMidID[4] = MidID(1, rRefElem.id(0, i, 1, 2)); // edge 2
-		vMidID[5] = MidID(2, rRefElem.id(0, i, 2, 2)); // face 2
-		vMidID[6] = MidID(dim, 0);	// center of element
-		vMidID[7] = MidID(2, rRefElem.id(0, i, 2, 1)); // face 1
-	}
-	// TODO: Implement last ControlVolume for Pyramid
-	else if(dim == 3 && rRefElem.reference_object_id() == ROID_PYRAMID && i == 4)
-	{
-		// this scv has 10 corners
-		throw(UGError("Last SCV for Pyramid must be implemented"));
-	}
-	else {throw(UGError("Dimension higher that 3 not implemented."));}
 }
 
 /**
@@ -124,21 +340,69 @@ static void ComputeBFMidID(const TRefElem& rRefElem, int side,
 {
 	static const int dim = TRefElem::dim;
 
-//	number of corners of side
-	const int coOfSide = rRefElem.num(dim-1, side, 0);
+	if (rRefElem.reference_object_id() != ROID_PYRAMID || side != 0)
+	{
+		//	number of corners of side
+		const int coOfSide = rRefElem.num(dim-1, side, 0);
 
-// 	set mid ids
-	if(dim == 2)
-	{
-		vMidID[co%2] = MidID(0, rRefElem.id(1, side, 0, co)); // corner of side
-		vMidID[(co+1)%2] = MidID(1, side); // side midpoint
+		// 	set mid ids
+		if(dim == 2)
+		{
+			vMidID[co%2] = MidID(0, rRefElem.id(1, side, 0, co)); // corner of side
+			vMidID[(co+1)%2] = MidID(1, side); // side midpoint
+		}
+		else if (dim == 3)
+		{
+			vMidID[0] = MidID(0, rRefElem.id(2, side, 0, co)); // corner of side
+			vMidID[1] = MidID(1, rRefElem.id(2, side, 1, co)); // edge co
+			vMidID[2] = MidID(2, side); // side midpoint
+			vMidID[3] = MidID(1, rRefElem.id(2, side, 1, (co -1 + coOfSide)%coOfSide)); // edge co-1
+		}
 	}
-	else if (dim == 3)
+	// bottom side of pyramid here
+	else
 	{
-		vMidID[0] = MidID(0, rRefElem.id(2, side, 0, co)); // corner of side
-		vMidID[1] = MidID(1, rRefElem.id(2, side, 1, co)); // edge co
-		vMidID[2] = MidID(2, side); // side midpoint
-		vMidID[3] = MidID(1, rRefElem.id(2, side, 1, (co -1 + coOfSide)%coOfSide)); // edge co-1
+		switch (co)
+		{
+			// bf of corner 0 in subface 0/0
+			case 0:	vMidID[0] = MidID(0,0);	// corner 0
+					vMidID[1] = MidID(1,8); // edge 2->0
+					vMidID[2] = MidID(2,5);	// subface 0/0
+					vMidID[3] = MidID(1,0);	// edge 0
+					break;
+			// bf of corner 1
+			case 1:	vMidID[0] = MidID(0,1);	// corner 1
+					vMidID[1] = MidID(1,0);	// edge 0
+					vMidID[2] = MidID(2,5);	// subface 0/0
+					vMidID[3] = MidID(1,1);	// edge 1
+					break;
+			// bf of corner 2 in subvolume 0/0
+			case 2:	vMidID[0] = MidID(0,2);	// corner 2
+					vMidID[1] = MidID(1,1);	// edge 1
+					vMidID[2] = MidID(2,5);	// subface 0/0
+					vMidID[3] = MidID(1,8); // edge 2->0
+					break;
+			// bf of corner 0 in subvolume 1/0
+			case 3:	vMidID[0] = MidID(0,0);	// corner 0
+					vMidID[1] = MidID(1,3); // edge 3
+					vMidID[2] = MidID(2,6);	// subface 1/0
+					vMidID[3] = MidID(1,9);	// edge 0->2
+					break;
+			// bf of corner 2 in subvolume 1/0
+			case 4:	vMidID[0] = MidID(0,2);	// corner 2
+					vMidID[1] = MidID(1,9); // edge 0->2
+					vMidID[2] = MidID(2,6);	// subface 1/0
+					vMidID[3] = MidID(1,2);	// edge 2
+					break;
+			// bf of corner 3
+			case 5:	vMidID[0] = MidID(0,3);	// corner 3
+					vMidID[1] = MidID(1,2);	// edge 2
+					vMidID[2] = MidID(2,6);	// subface 1/0
+					vMidID[3] = MidID(1,3); // edge 3
+					break;
+			default:UG_THROW("Pyramid only has 6 BFs on bottom side (no. 0-5), but requested no. " << co << ".");
+					break;
+		}
 	}
 }
 
@@ -696,12 +960,23 @@ update_local_data()
 //	compute local midpoints
 	ComputeMidPoints<dim, ref_elem_type, maxMid>(m_rRefElem, m_vvLocMid[0], m_vvLocMid);
 
-// 	set up local informations for SubControlVolumeFaces (scvf)
+// 	set up local information for SubControlVolumeFaces (scvf)
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
+
 	//	this scvf separates the given nodes
-		m_vSCVF[i].From = m_rRefElem.id(1, i, 0, 0);
-		m_vSCVF[i].To = m_rRefElem.id(1, i, 0, 1);
+		if (m_rRefElem.REFERENCE_OBJECT_ID != ROID_PYRAMID)
+		{
+			m_vSCVF[i].From = m_rRefElem.id(1, i, 0, 0);
+			m_vSCVF[i].To = m_rRefElem.id(1, i, 0, 1);
+		}
+		// special case pyramid (scvf not mappable by edges)
+		else
+		{
+			// map according to order defined in ComputeSCVFMidID
+			m_vSCVF[i].From = ((i>6 && i%3) ? (i%3)+1 : i%3);
+			m_vSCVF[i].To = i%6 > 2 ? 4 : ((i+1)%3 + (i>5 && i<8 ? 1 : 0));
+		}
 
 	//	compute mid ids of the scvf
 		ComputeSCVFMidID(m_rRefElem, m_vSCVF[i].vMidID, i);
@@ -718,7 +993,16 @@ update_local_data()
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
 	//	store associated node
-		m_vSCV[i].nodeId = i;
+		if (m_rRefElem.REFERENCE_OBJECT_ID != ROID_PYRAMID)
+		{
+			m_vSCV[i].nodeId = i;
+		}
+		// special case pyramid (scv not mappable by corners)
+		else
+		{
+			// map according to order defined in ComputeSCVMidID
+			m_vSCV[i].nodeId = i<3 ? i : (i<5 ? (i+1)%5 : i-3);
+		}
 
 	//	compute mid ids scv
 		ComputeSCVMidID(m_rRefElem, m_vSCV[i].midId, i);
@@ -754,7 +1038,7 @@ bool
 FV1Geometry<TElem, TWorldDim>::
 update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-// 	If already update for this element, do nothing
+// 	if already update for this element, do nothing
 	if(m_pElem == elem) return true; else m_pElem = elem;
 
 // 	remember global position of nodes
@@ -784,10 +1068,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 		CopyCornerByMidID<worldDim, maxMid>(m_vSCV[i].vGloPos, m_vSCV[i].midId, m_vvGloMid, m_vSCV[i].num_corners());
 
 	// 	compute volume of scv
-		if(m_vSCV[i].numCo != 10)
-			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
-	//	special case for pyramid, last scv
-		else throw(UGError("Pyramid Not Implemented"));
+		m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	}
 
 // 	Shapes and Derivatives
@@ -829,11 +1110,11 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
-		for(size_t sh = 0 ; sh < num_scv(); ++sh)
+		for(size_t sh = 0 ; sh < scvf(i).num_sh(); ++sh)
 			MatVecMult(m_vSCVF[i].vGlobalGrad[sh], m_vSCVF[i].JtInv, m_vSCVF[i].vLocalGrad[sh]);
 
 	for(size_t i = 0; i < num_scv(); ++i)
-		for(size_t sh = 0 ; sh < num_scv(); ++sh)
+		for(size_t sh = 0 ; sh < scv(i).num_sh(); ++sh)
 			MatVecMult(m_vSCV[i].vGlobalGrad[sh], m_vSCV[i].JtInv, m_vSCV[i].vLocalGrad[sh]);
 
 // 	Copy ip pos in list for SCVF
@@ -901,8 +1182,9 @@ update_boundary_faces(TElem* elem, const MathVector<worldDim>* vCornerCoords, co
 		//	skip non boundary sides
 			if(vSubsetIndex[side] != bndIndex) continue;
 
-		//	number of corners of side
-			const int coOfSide = m_rRefElem.num(dim-1, side, 0);
+		//	number of corners of side (special case bottom side pyramid)
+			const int coOfSide = (m_rRefElem.REFERENCE_OBJECT_ID != ROID_PYRAMID || side != 0)
+								? m_rRefElem.num(dim-1, side, 0) : m_rRefElem.num(dim-1, side, 0) + 2;
 
 		//	resize vector
 			vBF.resize(curr_bf + coOfSide);
@@ -914,7 +1196,13 @@ update_boundary_faces(TElem* elem, const MathVector<worldDim>* vCornerCoords, co
 				BF& bf = vBF[curr_bf];
 
 			//	set node id == scv this bf belongs to
-				bf.nodeId = m_rRefElem.id(dim-1, side, 0, co);
+				if (m_rRefElem.REFERENCE_OBJECT_ID != ROID_PYRAMID || side != 0)
+					bf.nodeId = m_rRefElem.id(dim-1, side, 0, co);
+				else
+				{
+					// map according to order defined in ComputeBFMidID
+					bf.nodeId = m_rRefElem.id(dim-1, side, 0, (co % 3) + (co>3 ? 1 : 0));
+				}
 
 			//	Compute MidID for BF
 				ComputeBFMidID(m_rRefElem, side, bf.vMidID, co);
@@ -939,7 +1227,7 @@ update_boundary_faces(TElem* elem, const MathVector<worldDim>* vCornerCoords, co
 				m_mapping.jacobian_transposed_inverse(bf.JtInv, bf.localIP);
 				bf.detj = m_mapping.sqrt_gram_det(bf.localIP);
 
-				for(size_t sh = 0 ; sh < num_scv(); ++sh)
+				for(size_t sh = 0 ; sh < bf.num_sh(); ++sh)
 					MatVecMult(bf.vGlobalGrad[sh], bf.JtInv, bf.vLocalGrad[sh]);
 
 			//	increase curr_bf
@@ -976,16 +1264,27 @@ update_local_data()
 										(rRefElem, m_vvLocMid[0], m_vvLocMid);
 
 //	set number of scvf / scv of this roid
-	m_numSCV = rRefElem.num(0); // number of corners
-	m_numSCVF = rRefElem.num(1); // number of edges
+	m_numSCV = (m_roid != ROID_PYRAMID) ? rRefElem.num(0) : 8; // number of corners
+	m_numSCVF = (m_roid != ROID_PYRAMID) ? rRefElem.num(1) : 12; // number of edges
 
 // 	set up local informations for SubControlVolumeFaces (scvf)
 // 	each scvf is associated to one edge of the element
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 	//	this scvf separates the given nodes
-		m_vSCVF[i].From = rRefElem.id(1, i, 0, 0);
-		m_vSCVF[i].To = rRefElem.id(1, i, 0, 1);
+		if (m_roid != ROID_PYRAMID)
+		{
+			m_vSCVF[i].From = rRefElem.id(1, i, 0, 0);
+			m_vSCVF[i].To = rRefElem.id(1, i, 0, 1);
+		}
+		// special case pyramid (scvf not mappable by edges)
+		else
+		{
+			// map according to order defined in ComputeSCVFMidID
+			m_vSCVF[i].From = ((i>6 && i%3) ? (i%3)+1 : i%3);
+			m_vSCVF[i].To = i%6 > 2 ? 4 : ((i+1)%3 + (i>5 && i<8 ? 1 : 0));
+		}
+
 
 	//	compute mid ids of the scvf
 		ComputeSCVFMidID(rRefElem, m_vSCVF[i].vMidID, i);
@@ -1002,7 +1301,16 @@ update_local_data()
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
 	//	store associated node
-		m_vSCV[i].nodeId = i;
+		if (m_roid != ROID_PYRAMID)
+		{
+			m_vSCV[i].nodeId = i;
+		}
+		// special case pyramid (scv not mappable by corners)
+		else
+		{
+			// map according to order defined in ComputeSCVMidID
+			m_vSCV[i].nodeId = i<3 ? i : (i<5 ? (i+1)%5 : i-3);
+		}
 
 	//	compute mid ids scv
 		ComputeSCVMidID(rRefElem, m_vSCV[i].vMidID, i);
@@ -1018,6 +1326,8 @@ update_local_data()
 	try{
 	const LocalShapeFunctionSet<dim>& TrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, 1));
+
+	m_nsh = TrialSpace.num_sh();
 
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
@@ -1104,10 +1414,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		CopyCornerByMidID<worldDim, maxMid>(m_vSCV[i].vGloPos, m_vSCV[i].vMidID, m_vvGloMid, m_vSCV[i].num_corners());
 
 	// 	compute volume of scv
-		if(m_roid != ROID_PYRAMID || m_vSCV[i].numCorners != 10)
-			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
-	// 	special case for pyramid, last scv
-		else throw(UGError("Pyramid Not Implemented"));
+		m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	}
 
 //	get reference mapping
@@ -1152,11 +1459,11 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
-		for(size_t sh = 0; sh < num_scv(); ++sh)
+		for(size_t sh = 0; sh < scvf(i).num_sh(); ++sh)
 			MatVecMult(m_vSCVF[i].vGlobalGrad[sh], m_vSCVF[i].JtInv, m_vSCVF[i].vLocalGrad[sh]);
 
 	for(size_t i = 0; i < num_scv(); ++i)
-		for(size_t sh = 0; sh < num_scv(); ++sh)
+		for(size_t sh = 0; sh < scv(i).num_sh(); ++sh)
 			MatVecMult(m_vSCV[i].vGlobalGrad[sh], m_vSCV[i].JtInv, m_vSCV[i].vLocalGrad[sh]);
 
 // 	copy ip points in list (SCVF)
@@ -1247,9 +1554,9 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		//	skip non boundary sides
 			if(vSubsetIndex[side] != bndIndex) continue;
 
-		//	number of corners of side
-			const int coOfSide = rRefElem.num(dim-1, side, 0);
-
+		//	number of corners of side (special case bottom side pyramid)
+			const int coOfSide = (pElem->reference_object_id() != ROID_PYRAMID || side != 0)
+								? rRefElem.num(dim-1, side, 0) : rRefElem.num(dim-1, side, 0) + 2;
 		//	resize vector
 			vBF.resize(curr_bf + coOfSide);
 
@@ -1260,7 +1567,13 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 				BF& bf = vBF[curr_bf];
 
 			//	set node id == scv this bf belongs to
-				bf.nodeId = rRefElem.id(dim-1, side, 0, co);
+				if (pElem->reference_object_id() != ROID_PYRAMID || side != 0)
+					bf.nodeId = rRefElem.id(dim-1, side, 0, co);
+				else
+				{
+					// map according to order defined in ComputeBFMidID
+					bf.nodeId = rRefElem.id(dim-1, side, 0, (co % 3) + (co>3 ? 1 : 0));
+				}
 
 			//	Compute MidID for BF
 				ComputeBFMidID(rRefElem, side, bf.vMidID, co);
@@ -1289,7 +1602,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 				bf.detj = rMapping.sqrt_gram_det(bf.localIP);
 
 			//	compute global gradients
-				for(size_t sh = 0 ; sh < num_scv(); ++sh)
+				for(size_t sh = 0 ; sh < bf.num_sh(); ++sh)
 					MatVecMult(bf.vGlobalGrad[sh], bf.JtInv, bf.vLocalGrad[sh]);
 
 			//	increase curr_bf
@@ -1547,7 +1860,7 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 			m_rMapping.local_to_global(m_vSCV[i].vGlobalIP[ip], m_vSCV[i].local_ip(ip));
 
 	// 	compute volume of scv
-		if(m_vSCV[i].numCo != 10)
+		if(pElem->reference_object_id() != ROID_PYRAMID)
 			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	//	special case for pyramid, last scv
 		else throw(UGError("Pyramid Not Implemented"));
@@ -1939,8 +2252,6 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 
 		m_vSCV[i].nsh = rTrialSpace.num_sh();
 
-		if(dim == 3 && roid != ROID_PYRAMID) m_vSCV[i].numCo = 8;
-
 		ReferenceMapping<scv_type, dim> map(m_vSCV[i].vLocPos);
 		for(size_t ip = 0; ip < rSCVQuadRule.size(); ++ip)
 			map.local_to_global(m_vSCV[i].vLocalIP[ip], rSCVQuadRule.point(ip));
@@ -1954,6 +2265,8 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 	/////////////////////////
 	// Shapes and Derivatives
 	/////////////////////////
+
+	m_nsh = rTrialSpace.num_sh();
 
 	for(size_t i = 0; i < num_scvf(); ++i)
 		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
@@ -2062,7 +2375,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 			rMapping.local_to_global(&m_vSCV[i].vGlobalIP[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
 
 	// 	compute volume of scv
-		if(m_vSCV[i].numCo != 10)
+		if(pElem->reference_object_id() != ROID_PYRAMID)
 			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	//	special case for pyramid, last scv
 		else throw(UGError("Pyramid Not Implemented"));
@@ -2251,7 +2564,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 
 				//	compute global gradient
 					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
-						for(size_t sh = 0 ; sh < num_scv(); ++sh)
+						for(size_t sh = 0 ; sh < bf.num_sh(); ++sh)
 							MatVecMult(bf.vvGlobalGrad[ip][sh],
 							           bf.vJtInv[ip], bf.vvLocalGrad[ip][sh]);
 
