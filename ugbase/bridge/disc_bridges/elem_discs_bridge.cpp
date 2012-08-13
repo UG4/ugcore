@@ -22,7 +22,6 @@
 
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/neumann_boundary.h"
 #include "lib_disc/spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
-#include "lib_disc/spatial_disc/elem_disc/inner_boundary/FV1CalciumERElemDisc.h"
 
 using namespace std;
 
@@ -90,15 +89,6 @@ static void Domain(Registry& reg, string grp)
 		string name = string("FV1InnerBoundary").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp);
 		reg.add_class_to_group(name, "FV1InnerBoundary", tag);
-	
-		typedef FV1CalciumERElemDisc<TDomain> T1;
-		typedef FV1InnerBoundaryElemDisc<TDomain> TBase1;
-		name = string("FV1InnerBoundaryCalciumER").append(suffix);
-		reg.add_class_<T1, TBase1>(name, elemGrp)
-			.template add_constructor<void (*)(const char*, const char*)>("Function(s)#Subset(s)")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "FV1InnerBoundaryCalciumER", tag);
-	
 	}
 
 
