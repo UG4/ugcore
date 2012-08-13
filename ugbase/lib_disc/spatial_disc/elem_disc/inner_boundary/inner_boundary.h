@@ -1,6 +1,15 @@
 /*
  * inner_boundary.h
  *
+ * Finite Volume Element Discretization for an inner BndCond that depends on the unknowns (on the bnd)
+ *
+ * This class implements the IElemDisc interface to provide element local
+ * assemblings for the unknown-dependent Neumann-flux over an inner boundary.
+ * The equation of this flux should be given in a concretization of this class.
+ * 
+ * \tparam	TDomain		Domain
+ * \tparam	TAlgebra	Algebra
+ * 
  *  Created on: 26.02.2010
  *      Author: markusbreit
  */
@@ -9,6 +18,7 @@
 #define __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY__
 
 #include <boost/function.hpp>
+#include <vector>
 #include <string>
 
 // other ug4 modules
@@ -21,17 +31,9 @@
 #include "lib_disc/spatial_disc/user_data/data_import.h"
 
 
-/// Finite Volume Element Discretization for an inner BndCond that depends on the unknowns (on the bnd)
-/**
- * This class implements the IElemDisc interface to provide element local
- * assemblings for the unknown-dependent Neumann-flux over an inner boundary.
- * The equation of this flux should be given in a concretization of this class.
- * 
- * \tparam	TDomain		Domain
- * \tparam	TAlgebra	Algebra
- */
 
-namespace ug{
+namespace ug
+{
 
 /// struct that holds information about the flux densities and from where to where the flux occurs
 struct FluxCond
@@ -74,15 +76,15 @@ class FV1InnerBoundaryElemDisc
 
 	public:
 	
-	/// Constructor
-		FV1InnerBoundaryElemDisc(const char* functions, const char* subsets)
-			: IDomainElemDisc<TDomain>(functions, subsets)
-		{
-			register_all_fv1_funcs();
-		}
-	
-	/// Setting the flux function
-		//void set_fluxFunction(UserData<number, dim>& fluxFct) {m_fluxFct.set_data(fluxFct);}
+    /// Constructor
+        FV1InnerBoundaryElemDisc(const char* functions, const char* subsets)
+        	: IDomainElemDisc<TDomain>(functions, subsets)
+        {
+        	register_all_fv1_funcs();
+        }
+
+    /// Setting the flux function
+        //void set_fluxFunction(UserData<number, dim>& fluxFct) {m_fluxFct.set_data(fluxFct);}
 	
 	public:	// inherited from IElemDisc
 	///	type of trial space for each function used
