@@ -84,6 +84,8 @@ update_local_data()
 	const LocalShapeFunctionSet<dim>& TrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, 1));
 
+	m_nsh = TrialSpace.num_sh();
+
 	for(size_t i = 0; i < m_numSCVF; ++i)
 	{
 		m_vSCVF[i].numSH = TrialSpace.num_sh();
@@ -223,11 +225,11 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
-		for(size_t sh = 0; sh < num_scv(); ++sh)
+		for(size_t sh = 0; sh < scvf(i).num_sh(); ++sh)
 			MatVecMult(m_vSCVF[i].vGlobalGrad[sh], m_vSCVF[i].JtInv, m_vSCVF[i].vLocalGrad[sh]);
 
 	for(size_t i = 0; i < num_scv(); ++i)
-		for(size_t sh = 0; sh < num_scv(); ++sh)
+		for(size_t sh = 0; sh < scv(i).num_sh(); ++sh)
 			MatVecMult(m_vSCV[i].vGlobalGrad[sh], m_vSCV[i].JtInv, m_vSCV[i].vLocalGrad[sh]);
 
 // 	copy ip points in list (SCVF)
@@ -347,7 +349,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 			bf.detj = rMapping.sqrt_gram_det(bf.localIP);
 
 			//	compute global gradients
-			for(size_t sh = 0 ; sh < num_scv(); ++sh)
+			for(size_t sh = 0 ; sh < bf.num_sh(); ++sh)
 				MatVecMult(bf.vGlobalGrad[sh], bf.JtInv, bf.vLocalGrad[sh]);
 
 			//	increase curr_bf
@@ -550,11 +552,11 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
-		for(size_t sh = 0; sh < num_scv(); ++sh)
+		for(size_t sh = 0; sh < scvf(i).num_sh(); ++sh)
 			MatVecMult(m_vSCVF[i].vGlobalGrad[sh], m_vSCVF[i].JtInv, m_vSCVF[i].vLocalGrad[sh]);
 
 	for(size_t i = 0; i < num_scv(); ++i)
-		for(size_t sh = 0; sh < num_scv(); ++sh)
+		for(size_t sh = 0; sh < scv(i).num_sh(); ++sh)
 			MatVecMult(m_vSCV[i].vGlobalGrad[sh], m_vSCV[i].JtInv, m_vSCV[i].vLocalGrad[sh]);
 
 // 	copy ip points in list (SCVF)
@@ -647,7 +649,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 			bf.detj = m_mapping.sqrt_gram_det(bf.localIP);
 
 			//	compute global gradients
-			for(size_t sh = 0 ; sh < num_scv(); ++sh)
+			for(size_t sh = 0 ; sh < bf.num_sh(); ++sh)
 				MatVecMult(bf.vGlobalGrad[sh], bf.JtInv, bf.vLocalGrad[sh]);
 
 			//	increase curr_bf

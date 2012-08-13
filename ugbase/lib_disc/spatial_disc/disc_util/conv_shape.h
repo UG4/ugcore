@@ -111,7 +111,7 @@ update(const TFVGeom<TElem, dim>* geo,
 	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
-	const size_t numSH = geo->num_scv();
+	const size_t numSH = geo->num_sh();
 
 //	loop subcontrol volume faces
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
@@ -248,7 +248,7 @@ update(const TFVGeom<TElem, dim>* geo,
 	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
-	const size_t numSH = geo->num_scv();
+	const size_t numSH = geo->num_sh();
 
 //	loop subcontrol volume faces
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)
@@ -396,7 +396,7 @@ update(const TFVGeom<TElem, dim>* geo,
 	UG_ASSERT(DarcyVelocity != NULL, "Null pointer");
 
 //	\todo: think about: this should be something like scvf.num_sh()
-	const size_t numSH = geo->num_scv();
+	const size_t numSH = geo->num_sh();
 
 //	loop subcontrol volume faces
 	for(size_t ip = 0; ip < geo->num_scvf(); ++ip)

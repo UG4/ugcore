@@ -534,6 +534,9 @@ class DimCRFVGeometry : public CRFVGeometryBase
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
 
+	/// number of shape functions
+		inline size_t num_sh() const {return m_nsh;};
+
 	public:
 	/// returns number of all scvf ips
 		size_t num_scvf_ips() const {return m_numSCVF;}
@@ -628,6 +631,9 @@ class DimCRFVGeometry : public CRFVGeometryBase
 
 	///	current number of scvf
 		size_t m_numSCVF;
+
+	/// current number of shape functions
+		size_t m_nsh;
 
 		MathVector<dim> m_ipCoord[maxNumSCVF];
 		MathVector<dim> faceBaryCoord[maxNumSCV];
@@ -1021,6 +1027,9 @@ class CRFVGeometry : public CRFVGeometryBase
 	/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
+
+	/// number of shape functions
+		inline size_t num_sh() const {return nsh;};
 
 	public:
 	/// returns number of all scvf ips

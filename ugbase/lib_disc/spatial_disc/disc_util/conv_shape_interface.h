@@ -223,7 +223,7 @@ set_geometry_type()
 
 //	set sizes
 	TFVGeom& geo = Provider<TFVGeom>::get();
-	set_sizes(geo.num_scvf(), geo.num_scv());
+	set_sizes(geo.num_scvf(), geo.num_sh());
 
 //	we're done
 	return true;

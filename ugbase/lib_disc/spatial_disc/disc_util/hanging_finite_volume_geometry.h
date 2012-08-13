@@ -235,6 +235,12 @@ class HFV1Geometry : public FVGeometryBase{
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
 
+	/// number of shape functions
+		//\TODO:	This is not yet like it should be and only conserving behavior as it has been.
+		// 			In fact, this should of course return the number of shapes, which is
+		//			generally NOT equal to the number of SCVs.
+		inline size_t num_sh() const {return num_scv();};
+
 	public:
 	/// returns number of all scv ips
 		size_t num_scvf_ips() const {return m_vGlobSCVFIP.size();}
