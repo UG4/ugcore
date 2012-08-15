@@ -261,6 +261,15 @@ inline double Vector<value_type>::norm()
 	return sqrt(d);
 }
 
+template<typename value_type>
+inline double Vector<value_type>::norm(std::vector<size_t>& ind)
+{
+	double d=0;
+	std::vector<size_t>::iterator it = ind.begin();
+	for (; it < ind.end(); it++)
+		d += BlockNorm2(values[*it]);
+	return sqrt(d);
+}
 
 template<typename TValueType>
 bool CloneVector(Vector<TValueType> &dest, const Vector<TValueType> src)

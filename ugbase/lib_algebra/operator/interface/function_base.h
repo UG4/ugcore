@@ -9,6 +9,7 @@
 #define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__FUNCTION_BASE__
 
 #include "common/common.h"
+#include <vector>
 
 namespace ug{
 
@@ -24,6 +25,9 @@ class IFunctionBase
 	public:
 	///	returns the two norm of the function
 		virtual number two_norm() = 0;
+
+	/// returns the two norm of the function on the specified indices
+		virtual number two_norm(std::vector<size_t>& ind) = 0;
 
 	///	virtual destructor
 		virtual ~IFunctionBase() {}

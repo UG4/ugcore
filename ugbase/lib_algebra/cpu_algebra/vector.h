@@ -13,6 +13,7 @@
 #include "../common/template_expressions.h"
 #include "../common/operations.h"
 #include "lib_algebra/operator/interface/function_base.h"
+#include <vector>
 
 namespace ug{
 ///////////////////////////////////////////////////////////////////
@@ -112,6 +113,10 @@ public:
 	//! return sqrt(sum values[i]^2) (euclidian norm)
 	inline double norm();
 	inline double two_norm() { return norm(); }
+
+	//! return sqrt(sum values[ind[i]]^2) (euclidean norm on selected indices)
+	inline double norm(std::vector<size_t>& ind);
+	inline double two_norm(std::vector<size_t>& ind) {return norm(ind);}
 
 	//! printofile: posx posy value
 	void printtofile(const char *filename);
