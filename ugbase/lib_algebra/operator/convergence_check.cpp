@@ -198,7 +198,7 @@ IndivFctConvCheck()
  	 m_minDefect(0),
  	 m_relReduction(0),
 	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
-	 m_locked(false),
+	 m_locked(false), m_timeMeas(true),
 	 m_dd(NULL)
 {};
 
@@ -395,6 +395,8 @@ void IndivFctConvCheck<TDomain>::start_defect(number initialDefect)
 template <class TDomain>
 void IndivFctConvCheck<TDomain>::start(IFunctionBase& d)
 {
+	if (m_timeMeas)	m_stopwatch.start();
+
 	m_initialDefect.clear();
 
 	// calculate the defect's 2-norm for each function
@@ -520,6 +522,8 @@ bool IndivFctConvCheck<TDomain>::iteration_ended()
 template <class TDomain>
 bool IndivFctConvCheck<TDomain>::post()
 {
+	if (m_timeMeas) m_stopwatch.stop();
+
 	bool success = true;
 
 	bool allValid = true;
@@ -576,8 +580,14 @@ bool IndivFctConvCheck<TDomain>::post()
 
 		print_offset();
 		UG_LOG(repeat(m_symbol, 5));
-		if (success) {UG_LOG("  Iteration converged  ");}
-		else {UG_LOG("  Iteration not successful  ");}
+		std::stringstream tmsg;
+		if (m_timeMeas)
+		{
+			number time = m_stopwatch.ms()/1000.0;
+			tmsg << " (t: " << setprecision(3) << time << "s;  t/it: " << time / step() << "s)";
+		}
+		if (success) {UG_LOG("  Iteration converged" << tmsg.str() << "  ");}
+		else {UG_LOG("  Iteration not successful" << tmsg.str() << "  ");}
 		UG_LOG(repeat(m_symbol, 5));
 		UG_LOG("\n\n");
 	}

@@ -295,6 +295,7 @@ static void Domain(Registry& reg, string grp)
 			.add_method("set_approxSpace", &T::set_approxSpace, "", "approximation space")
 			.add_method("set_functions", (void (T::*)(const char*)) &T::set_functions, "",
 					"functions to be evaluated individually as comma-separated list")
+			.add_method("timeMeasurement", &T::timeMeasurement, "", "", "whether to perform a time measurement or not")
 			.add_method("set_maximum_steps", &T::set_maximum_steps, "", "Maximum Steps|default|min=0;value=100")
 			.add_method("set_minimum_defect", (void (T::*)(const char*, number)) &T::set_minimum_defect, "",
 					"minimum defect for defined functions (comma-separated list)#minimum defect for rest|default|min=0D;value=1e-10")

@@ -21,6 +21,7 @@
 #include <math.h>
 
 #include "common/common.h"
+#include "common/stopwatch.h"
 #include "lib_algebra/operator/interface/function_base.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
 #include "lib_disc/function_spaces/approximation_space.h"
@@ -279,7 +280,7 @@ class IndivFctConvCheck : public IConvergenceCheck
 
 		// own
 		void set_verbose(bool level) {m_verbose = level;};
-		//const std::vector<number> get_defects() const { return _defects;}
+		void timeMeasurement(bool yesOrNo) {m_timeMeas = yesOrNo;};
 
 	protected:
 		void print_offset();
@@ -328,6 +329,8 @@ class IndivFctConvCheck : public IConvergenceCheck
 
 	private:
 		bool m_locked;
+		bool m_timeMeas;
+		Stopwatch m_stopwatch;
 		std::vector<std::vector<size_t> > m_indices;
 		std::vector<std::string> m_fctName;
 		FunctionGroup m_fctGrp;
