@@ -292,32 +292,32 @@ VecMultiply(vector_t& vOut, const vector_t& v, typename vector_t::value_type s);
 template <typename vector_t>
 inline
 typename vector_t::value_type
-VecTwoNorm(vector_t& v);
+VecTwoNorm(const vector_t& v);
 
 template <typename vector_t>
 inline
 typename vector_t::value_type
-VecTwoNormSq(vector_t& v);
+VecTwoNormSq(const vector_t& v);
 
 template <typename vector_t>
 inline
 typename vector_t::value_type
-VecOneNorm(vector_t& v);
+VecOneNorm(const vector_t& v);
 
 template <typename vector_t>
 inline
 typename vector_t::value_type
-VecPNorm(vector_t& v, unsigned int p);
+VecPNorm(const vector_t& v, unsigned int p);
 
 template <typename vector_t>
 inline
 typename vector_t::value_type
-VecMaxNorm(vector_t& v);
+VecMaxNorm(const vector_t& v);
 
 template <typename vector_t>
 inline
 typename vector_t::value_type
-VecInftyNorm(vector_t& v);
+VecInftyNorm(const vector_t& v);
 
 
 

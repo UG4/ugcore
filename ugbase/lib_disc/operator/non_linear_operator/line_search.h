@@ -130,7 +130,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 				spOp->apply(d, u);
 
 			//	compute new Residuum
-				norm = d.two_norm();
+				norm = d.norm();
 
 			// 	compute reduction
 				vRho.push_back(norm/norm_old);
@@ -194,7 +194,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 					spOp->apply(d, u);
 
 					// compute new Residuum
-					norm = d.two_norm();
+					norm = d.norm();
 
 					// check if defect-norm is smaller than maximum allowed defect value
 					if (norm > m_maxDefect)

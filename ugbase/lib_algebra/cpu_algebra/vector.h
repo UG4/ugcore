@@ -25,7 +25,7 @@ namespace ug{
 
 //!
 template <typename TValueType>
-class Vector :	public virtual IFunctionBase
+class Vector
 {
 public:
 	typedef TValueType value_type;
@@ -111,12 +111,7 @@ public:
 	}
 
 	//! return sqrt(sum values[i]^2) (euclidian norm)
-	inline double norm();
-	inline double two_norm() { return norm(); }
-
-	//! return sqrt(sum values[ind[i]]^2) (euclidean norm on selected indices)
-	inline double norm(std::vector<size_t>& ind);
-	inline double two_norm(std::vector<size_t>& ind) {return norm(ind);}
+	inline double norm() const;
 
 	//! printofile: posx posy value
 	void printtofile(const char *filename);

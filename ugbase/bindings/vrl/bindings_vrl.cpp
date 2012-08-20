@@ -114,7 +114,7 @@ public:
 	}
 };
 
-SmartPtr<NumberArray> getDefects(const ug::StandardConvCheck* convCheck) {
+SmartPtr<NumberArray> getDefects(const ug::StdConvCheck* convCheck) {
 
 	return SmartPtr<NumberArray > (
 			new NumberArray(convCheck->get_defects()));

@@ -5,6 +5,9 @@
  *      Author: andreasvogel
  */
 
+#ifndef __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK_IMPL__
+#define __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK_IMPL__
+
 #include "convergence_check.h"
 #include "common/util/string_util.h"
 
@@ -17,21 +20,24 @@ namespace ug{
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-StandardConvCheck::
-StandardConvCheck()
+template <typename TVector>
+StdConvCheck<TVector>::
+StdConvCheck()
  :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
 	 m_maxSteps(200), m_minDefect(10e-8), m_relReduction(10e-10),
 	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
 	 {};
 
-StandardConvCheck::
-StandardConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose)
+template <typename TVector>
+StdConvCheck<TVector>::
+StdConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose)
  :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
 	 m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),
 	 m_verbose(verbose), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
 	 {};
 
-void StandardConvCheck::start_defect(number initialDefect)
+template <typename TVector>
+void StdConvCheck<TVector>::start_defect(number initialDefect)
 {
 	_defects.clear();
 	m_initialDefect = initialDefect;
@@ -78,12 +84,14 @@ void StandardConvCheck::start_defect(number initialDefect)
 	}
 }
 
-void StandardConvCheck::start(IFunctionBase& d)
+template <typename TVector>
+void StdConvCheck<TVector>::start(const TVector& d)
 {
-	start_defect(d.two_norm());
+	start_defect(d.norm());
 }
 
-void StandardConvCheck::update_defect(number newDefect)
+template <typename TVector>
+void StdConvCheck<TVector>::update_defect(number newDefect)
 {
 	m_lastDefect = m_currentDefect;
 	m_currentDefect = newDefect;
@@ -97,12 +105,14 @@ void StandardConvCheck::update_defect(number newDefect)
 	}
 }
 
-void StandardConvCheck::update(IFunctionBase& d)
+template <typename TVector>
+void StdConvCheck<TVector>::update(const TVector& d)
 {
-	update_defect(d.two_norm());
+	update_defect(d.norm());
 }
 
-bool StandardConvCheck::iteration_ended()
+template <typename TVector>
+bool StdConvCheck<TVector>::iteration_ended()
 {
 	if(!is_valid_number(m_currentDefect)) return true;
 	if(step() >= m_maxSteps) return true;
@@ -111,7 +121,8 @@ bool StandardConvCheck::iteration_ended()
 	return false;
 }
 
-bool StandardConvCheck::post()
+template <typename TVector>
+bool StdConvCheck<TVector>::post()
 {
 	bool success = false;
 
@@ -160,7 +171,8 @@ bool StandardConvCheck::post()
 	return success;
 }
 
-void StandardConvCheck::print_offset()
+template <typename TVector>
+void StdConvCheck<TVector>::print_offset()
 {
 	// step 1: whitespace
 	UG_LOG(repeat(' ', m_offset));
@@ -169,7 +181,8 @@ void StandardConvCheck::print_offset()
 	UG_LOG(m_symbol << " ");
 }
 
-bool StandardConvCheck::is_valid_number(number value)
+template <typename TVector>
+bool StdConvCheck<TVector>::is_valid_number(number value)
 {
 	// (value >= std::numeric_limits<number>::min() ) == true if value > -infty
 	// (value <= std::numeric_limits<number>::max() ) == true if value < infty
@@ -182,3 +195,5 @@ bool StandardConvCheck::is_valid_number(number value)
 }
 
 } // end namespace ug
+
+#endif /* __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK_IMPL__ */

@@ -22,7 +22,6 @@ set(src_Algebra)
 
 set(src_Algebra	 ${src_Algebra}
 	algebra_type.cpp
-	operator/convergence_check.cpp	
 	 )
 
 if(PARALLEL)

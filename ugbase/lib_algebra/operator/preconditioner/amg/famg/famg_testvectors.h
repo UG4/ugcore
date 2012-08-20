@@ -99,7 +99,7 @@ void CalculateTestvector(const matrix_type &A_OL2, vector_type &big_testvector,
 
 	//big_testvector.set_storage_type(PST_CONSISTENT);
 	//big_testvector.change_storage_type(PST_UNIQUE);
-	//UG_LOG("Norm of testvector " << big_testvector.two_norm() << "\n");
+	//UG_LOG("Norm of testvector " << big_testvector.norm() << "\n");
 	//big_testvector.change_storage_type(PST_CONSISTENT);
 	//VecScaleAssign(big_testvector, 1/sqrt(EnergyProd(big_testvector, A_OL2)), big_testvector);
 }

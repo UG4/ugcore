@@ -253,21 +253,11 @@ double operator *(const TRANSPOSED<Vector<value_type> > &x, const Vector<value_t
 }
 
 template<typename value_type>
-inline double Vector<value_type>::norm()
+inline double Vector<value_type>::norm() const
 {
 	double d=0;
 	for(size_t i=0; i<size(); ++i)
 		d+=BlockNorm2(values[i]);
-	return sqrt(d);
-}
-
-template<typename value_type>
-inline double Vector<value_type>::norm(std::vector<size_t>& ind)
-{
-	double d=0;
-	std::vector<size_t>::iterator it = ind.begin();
-	for (; it < ind.end(); it++)
-		d += BlockNorm2(values[*it]);
 	return sqrt(d);
 }
 

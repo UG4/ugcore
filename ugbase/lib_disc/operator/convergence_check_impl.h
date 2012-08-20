@@ -188,19 +188,13 @@ void CompositeConvCheck<TVector, TDomain>::start_defect(number initialDefect)
 	UG_THROW(	"This method cannot be used to set defect values,\n"
 				"since obviously this class is meant for an individual\n"
 				"defect calculation of more than one function\n"
-				"(use start(IFunctionBase& d) instead).");
+				"(use start(TVector& d) instead).");
 }
 
 
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::start(IFunctionBase& d)
 {
-	// try to cast vector to vector type
-	TVector* pVec = dynamic_cast<TVector*>(&d);
-	if(!pVec)
-		UG_THROW("CompositeConvCheck: Cannot cast vector to concrete type.");
-	TVector& vec = *pVec;
-
 	// start time measurement
 	if (m_timeMeas)	m_stopwatch.start();
 
@@ -281,19 +275,13 @@ void CompositeConvCheck<TVector, TDomain>::update_defect(number newDefect)
 	UG_THROW(	"This method cannot be used to update defect values,\n"
 				"since obviously this class is meant for an individual\n"
 				"defect calculation of more than one function\n"
-				"(use update(IFunctionBase& d) instead).");
+				"(use update(TVector& d) instead).");
 }
 
 
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::update(IFunctionBase& d)
 {
-	// try to cast vector to vector type
-	TVector* pVec = dynamic_cast<TVector*>(&d);
-	if(!pVec)
-		UG_THROW("CompositeConvCheck: Cannot cast vector to concrete type.");
-	TVector& vec = *pVec;
-
 	m_currentOverallDefect = 0.0;
 	m_lastDefect = m_currentDefect;
 

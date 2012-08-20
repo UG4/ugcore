@@ -300,7 +300,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	// 	CompositeConvCheck
 	{
 		typedef CompositeConvCheck<typename TAlgebra::vector_type, TDomain> T;
-		typedef IConvergenceCheck TBase;
+		typedef IConvergenceCheck<typename TAlgebra::vector_type> TBase;
 		string name = string("CompositeConvergenceCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")

@@ -41,7 +41,7 @@ class NewtonSolver
 
 	public:
 		NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
-					SmartPtr<IConvergenceCheck> spConvCheck,
+					SmartPtr<IConvergenceCheck<vector_type> > spConvCheck,
 					SmartPtr<ILineSearch<vector_type> > spLineSearch, bool reallocate) :
 					m_spLinearSolver(LinearSolver),
 					m_spConvCheck(spConvCheck),
@@ -52,14 +52,14 @@ class NewtonSolver
 
 		NewtonSolver() :
 			m_spLinearSolver(NULL),
-			m_spConvCheck(new StandardConvCheck(10, 1e-8, 1e-10, true)),
+			m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 			m_spLineSearch(NULL),
 			m_reallocate(false), m_allocated(false),
 			m_dgbCall(0)
 			{};
 
 		void set_linear_solver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver) {m_spLinearSolver = LinearSolver;}
-		void set_convergence_check(SmartPtr<IConvergenceCheck> spConvCheck)
+		void set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
 		{
 			m_spConvCheck = spConvCheck;
 			m_spConvCheck->set_offset(3);
@@ -78,7 +78,7 @@ class NewtonSolver
 		// apply Operator, i.e. N^{-1}(0) = u
 		virtual bool apply(vector_type& u);
 
-		~NewtonSolver();
+		virtual ~NewtonSolver();
 
 		// prints average linear solver convergence
 		void print_average_convergence() const;
@@ -123,7 +123,7 @@ class NewtonSolver
 		SmartPtr<ILinearOperatorInverse<vector_type> > m_spLinearSolver;
 
 		// Convergence Check
-		SmartPtr<IConvergenceCheck> m_spConvCheck;
+		SmartPtr<IConvergenceCheck<vector_type> > m_spConvCheck;
 
 		// LineSearch
 		SmartPtr<ILineSearch<vector_type> > m_spLineSearch;

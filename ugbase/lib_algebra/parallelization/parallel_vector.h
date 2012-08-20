@@ -25,13 +25,17 @@ namespace ug
  * in parallel. It has all the function a sequential vector supports, since it
  * is derived from it. Furthermore the ParallelStorageType is remembered and
  * can be switched. In addition some functions of the sequential vector are
- * overwritten to adapted the functionality to parallel (e.g. two_norm, set).
+ * overwritten to adapted the functionality to parallel (e.g. norm, set).
  *
  * \tparam 	TVector		Sequential Vector type
  */
 template <typename TVector>
 class ParallelVector : public TVector
 {
+	public:
+		typedef typename TVector::value_type value_type;
+		typedef typename TVector::vector_type vector_type;
+
 	private:
 	// 	disallow copy constructor
 		//ParallelVector(const ParallelVector&);
@@ -196,14 +200,13 @@ class ParallelVector : public TVector
 		// overwritten functions of sequential vector
 		//////////////////////////////////////////////////
 
-	/// two norm (overwrites TVector::two_norm())
+	/// two norm (overwrites TVector::norm())
 	/**
 	 * Returns the two norm of the Vector. First, the two norm of each process
-	 * is computed using the two_norm() method of the sequential vector. Then,
+	 * is computed using the norm() method of the sequential vector. Then,
 	 * the norms are summarized over all processes.
 	 */
-		// todo: should be const
-		number two_norm();
+		number norm() const;
 
 	/// dotprod (overwrites TVector::dotprod())
 	/**

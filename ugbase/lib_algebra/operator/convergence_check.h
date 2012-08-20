@@ -40,7 +40,9 @@ namespace ug{
  * This is the base class for a convergence checking object. An instance is
  * passed to an iterative solver to control the convergence.
  *
+ * \tparam TVector 	vector type
  */
+template <typename TVector>
 class IConvergenceCheck
 {
 	public:
@@ -48,13 +50,13 @@ class IConvergenceCheck
 		virtual void start_defect(number defect) = 0;
 
 		/// computes the start defect and set it
-		virtual void start(IFunctionBase& d) = 0;
+		virtual void start(const TVector& d) = 0;
 
 		/// sets the update for the current defect
 		virtual void update_defect(number defect) = 0;
 
 		/// computes the defect and sets it a the next defect value
-		virtual void update(IFunctionBase& d) = 0;
+		virtual void update(const TVector& d) = 0;
 
 		/** iteration_ended
 		 *
@@ -123,14 +125,15 @@ class IConvergenceCheck
  *
  * This is a standard implementation of the convergence check.
  * The function_type must provide the following function:
- *  - number two_norm()  --- giving the two norm of the function
+ *  - number norm()  --- giving the two norm of the function
  */
-class StandardConvCheck : public IConvergenceCheck
+template <typename TVector>
+class StdConvCheck : public IConvergenceCheck<TVector>
 {
 	public:
-		StandardConvCheck();
+		StdConvCheck();
 
-		StandardConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose);
+		StdConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose);
 
 		void set_verbose(bool level) {m_verbose = level;}
 		void set_maximum_steps(int maxSteps) {m_maxSteps = maxSteps;}
@@ -139,11 +142,11 @@ class StandardConvCheck : public IConvergenceCheck
 
 		void start_defect(number initialDefect);
 
-		void start(IFunctionBase& d);
+		void start(const TVector& d);
 
 		void update_defect(number newDefect);
 
-		void update(IFunctionBase& d);
+		void update(const TVector& d);
 
 		bool iteration_ended();
 
@@ -209,5 +212,7 @@ class StandardConvCheck : public IConvergenceCheck
 };
 
 } // end namespace ug
+
+#include "convergence_check_impl.h"
 
 #endif /* __H__LIB_ALGEBRA__OPERATOR__CONVERGENCE_CHECK__ */

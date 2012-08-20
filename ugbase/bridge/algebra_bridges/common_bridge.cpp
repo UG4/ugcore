@@ -222,7 +222,7 @@ static void Algebra(Registry& reg, string grp)
 					"Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u),  f := f - A*u becomes new defect")
 			.add_method("apply", &T::apply, "Success", "u#f", "Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u), f remains constant")
 			.add_method("set_convergence_check", &T::set_convergence_check)
-			.add_method("convergence_check", static_cast<ConstSmartPtr<IConvergenceCheck> (T::*)() const>(&T::convergence_check))
+			.add_method("convergence_check", static_cast<ConstSmartPtr<IConvergenceCheck<vector_type> > (T::*)() const>(&T::convergence_check))
 			.add_method("defect", &T::defect)
 			.add_method("step", &T::step)
 			.add_method("reduction", &T::reduction);
@@ -266,28 +266,24 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_<T>(name, grp);
 		reg.add_class_to_group(name, "IOperatorInverse", tag);
 	}
-}
 
 
-/**
- * Function called for the registration of Domain and Algebra independent parts.
- * All Functions and Classes not depending on Domain and Algebra
- * are to be placed here when registering.
- *
- * @param reg				registry
- * @param parentGroup		group for sorting of functionality
- */
-static void Common(Registry& reg, string grp)
-{
 // 	IConvergenceCheck
-	reg.add_class_<IConvergenceCheck>("IConvergenceCheck", grp);
+	{
+		typedef IConvergenceCheck<vector_type> T;
+		string name = string("IConvergenceCheck").append(suffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "IConvergenceCheck", tag);
+	}
 
 // 	StandardConvCheck
 	{
-		typedef StandardConvCheck T;
-		reg.add_class_<T, IConvergenceCheck>("StandardConvergenceCheck", grp)
+		typedef StdConvCheck<vector_type> T;
+		typedef IConvergenceCheck<vector_type> TBase;
+		string name = string("StandardConvergenceCheck").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.add_constructor<void (*)(int, number, number, bool)>
+			.template add_constructor<void (*)(int, number, number, bool)>
 							("Maximum Steps|default|min=0;value=100#"
 							 "Minimum Defect|default|min=0D;value=1e-10#"
 							 "Relative Reduction|default|min=0D;value=1e-12#"
@@ -302,7 +298,22 @@ static void Common(Registry& reg, string grp)
 			.add_method("iteration_ended", &T::iteration_ended)
 			.add_method("previous_defect", &T::previous_defect)
 			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "StandardConvergenceCheck", tag);
 	}
+
+}
+
+
+/**
+ * Function called for the registration of Domain and Algebra independent parts.
+ * All Functions and Classes not depending on Domain and Algebra
+ * are to be placed here when registering.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+static void Common(Registry& reg, string grp)
+{
 
 // IPositionProvider (abstract base class)
 	{

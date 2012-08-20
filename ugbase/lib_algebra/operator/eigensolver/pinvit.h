@@ -312,7 +312,7 @@ public:
 			{
 				for(size_t i=0; i<n; i++)
 				{
-					double d = px[i]->two_norm();
+					double d = px[i]->norm();
 					//UG_LOG("sqrt(<x[" << i << "], x[" << i << "]>) = " << d << "\n");
 					(*px[i]) *= 1 / d;
 				}
@@ -334,7 +334,7 @@ public:
 				// lambda = <x, Ax>/<x,x>
 				// todo: replace with MatMult
 //				UG_LOG("m_pA has storage type "); PrintStorageType(*m_pA); UG_LOG(", and vector px[" << i << "] has storage type"); PrintStorageType(*px[i]); UG_LOG("\n");
-				// px can be set to unique because of two_norm
+				// px can be set to unique because of norm
 
 #ifdef UG_PARALLEL
 				px[i]->change_storage_type(PST_CONSISTENT);
@@ -371,7 +371,7 @@ public:
 #ifdef UG_PARALLEL
 				defect.change_storage_type(PST_UNIQUE);
 #endif
-				corrnorm[i] = defect.two_norm();
+				corrnorm[i] = defect.norm();
 #ifdef UG_PARALLEL
 				defect.change_storage_type(PST_UNIQUE);
 #endif

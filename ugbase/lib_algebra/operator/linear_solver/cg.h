@@ -57,7 +57,7 @@ class CG
 
 	///	constructor setting preconditioner and convergence check
 		CG( SmartPtr<ILinearIterator<vector_type> > spPrecond,
-		    SmartPtr<IConvergenceCheck> spConvCheck) :
+		    SmartPtr<IConvergenceCheck<vector_type> > spConvCheck) :
 		    base_type(spPrecond, spConvCheck)
 		{};
 

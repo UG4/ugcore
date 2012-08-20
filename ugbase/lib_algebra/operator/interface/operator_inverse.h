@@ -159,11 +159,11 @@ class ILinearOperatorInverse
 	///	constructor setting convergence check to (100, 1e-12, 1e-12, true)
 		ILinearOperatorInverse()
 			: m_spLinearOperator(NULL),
-			  m_spConvCheck(new StandardConvCheck(100, 1e-12, 1e-12, true))
+			  m_spConvCheck(new StdConvCheck<X>(100, 1e-12, 1e-12, true))
 		{}
 
 	///	Default constructor
-		ILinearOperatorInverse(SmartPtr<IConvergenceCheck> spConvCheck)
+		ILinearOperatorInverse(SmartPtr<IConvergenceCheck<X> > spConvCheck)
 			: m_spLinearOperator(NULL),
 			  m_spConvCheck(spConvCheck)
 		{}
@@ -245,10 +245,10 @@ class ILinearOperatorInverse
 		virtual bool apply_return_defect(Y& u, X& f) = 0;
 
 	///	returns the convergence check
-		ConstSmartPtr<IConvergenceCheck> convergence_check() const {return m_spConvCheck;}
+		ConstSmartPtr<IConvergenceCheck<X> > convergence_check() const {return m_spConvCheck;}
 
 	///	returns the convergence check
-		SmartPtr<IConvergenceCheck> convergence_check() {return m_spConvCheck;}
+		SmartPtr<IConvergenceCheck<X> > convergence_check() {return m_spConvCheck;}
 
 	/// returns the current defect
 		number defect() const {return convergence_check()->defect();}
@@ -263,7 +263,7 @@ class ILinearOperatorInverse
 		virtual int standard_offset() const {return 3;}
 
 	///	set the convergence check
-		void set_convergence_check(SmartPtr<IConvergenceCheck> spConvCheck)
+		void set_convergence_check(SmartPtr<IConvergenceCheck<X> > spConvCheck)
 		{
 			m_spConvCheck = spConvCheck;
 			m_spConvCheck->set_offset(standard_offset());
@@ -284,7 +284,7 @@ class ILinearOperatorInverse
 		SmartPtr<ILinearOperator<Y,X> > m_spLinearOperator;
 
 	///	smart pointer holding the convergence check
-		SmartPtr<IConvergenceCheck> m_spConvCheck;
+		SmartPtr<IConvergenceCheck<X> > m_spConvCheck;
 };
 
 
@@ -334,7 +334,7 @@ class IPreconditionedLinearOperatorInverse
 
 	///	constructor setting the preconditioner
 		IPreconditionedLinearOperatorInverse(SmartPtr<ILinearIterator<X,X> > spPrecond,
-		                                     SmartPtr<IConvergenceCheck> spConvCheck)
+		                                     SmartPtr<IConvergenceCheck<X> > spConvCheck)
 			: 	base_type(spConvCheck),
 				m_bRecompute(false), m_spPrecond(spPrecond)
 		{}
@@ -394,7 +394,7 @@ class IPreconditionedLinearOperatorInverse
 			{
 			//	recompute defect
 				bTmp = b; linear_operator()->apply_sub(bTmp, x);
-				number norm = bTmp.two_norm();
+				number norm = bTmp.norm();
 
 			//	print norm of recomputed defect
 				UG_LOG("%%%% DEBUG "<<name()<<": (Re)computed defect has norm: "

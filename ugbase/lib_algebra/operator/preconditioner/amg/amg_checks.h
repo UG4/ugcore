@@ -267,7 +267,7 @@ double ConstTwoNorm(const TVector &const_d)
 	TVector d;
 	CloneVector(d, const_d);
 	d = const_d;
-	return d.two_norm();
+	return d.norm();
 
 }
 
@@ -310,7 +310,7 @@ bool AMGBase<TAlgebra>::check_level(vector_type &c, vector_type &d, matrix_type 
 #endif
 
 	std::stringstream reason;
-	//UG_LOG("preprenorm: " << d.two_norm() << std::endl);
+	//UG_LOG("preprenorm: " << d.norm() << std::endl);
 	vector_type &corr = levels[level]->corr;
 
 	double firstnorm = ConstTwoNorm(d), n2=firstnorm, n1=n2;

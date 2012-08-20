@@ -9,7 +9,7 @@
 #define VECTOR_INTERFACE_H_
 
 template <typename TValueType>
-class Vector :	public virtual IFunctionBase
+class Vector
 {
 public:
 	typedef TValueType value_type;
@@ -74,8 +74,7 @@ public:
 	bool operator *= (const number &a);
 
 	//! return sqrt(sum values[i]^2) (euclidian norm)
-	inline double norm();
-	inline double two_norm() { return norm(); }
+	inline double norm() const;
 
 	size_t size();
 	void defragment();

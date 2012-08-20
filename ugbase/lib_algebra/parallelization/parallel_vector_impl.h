@@ -169,22 +169,20 @@ set_random(number from, number to, ParallelStorageType type)
 
 template <typename TVector>
 inline
-number
-ParallelVector<TVector>::
-two_norm()
+number ParallelVector<TVector>::norm() const
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 // 	step 1: make vector d additive unique
-	if(!change_storage_type(PST_UNIQUE))
-		UG_THROW("ParallelVector::two_norm(): Cannot change"
+	if(!const_cast<ParallelVector<TVector>*>(this)->change_storage_type(PST_UNIQUE))
+		UG_THROW("ParallelVector::norm(): Cannot change"
 							" ParallelStorageType to unique.");
 
 // 	step 2: compute process-local defect norm, square them
-	double tNormLocal = (double)TVector::two_norm();
+	double tNormLocal = (double)TVector::norm();
 	tNormLocal *= tNormLocal;
 
 // 	step 3: sum squared local norms
-	PARVEC_PROFILE_BEGIN(ParVec_two_norm_allreduce);
+	PARVEC_PROFILE_BEGIN(ParVec_norm_allreduce);
 	double tNormGlobal = m_processCommunicator.allreduce(tNormLocal, PCL_RO_SUM);
 	PARVEC_PROFILE_END();
 
@@ -194,9 +192,7 @@ two_norm()
 
 template <typename TVector>
 inline
-number
-ParallelVector<TVector>::
-dotprod(const this_type& v)
+number ParallelVector<TVector>::dotprod(const this_type& v)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 // 	step 0: check that storage type is given

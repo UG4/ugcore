@@ -38,7 +38,7 @@ namespace ug{
  * the individual functions constituting the overall solution.
  */
 template <class TVector, class TDomain>
-class CompositeConvCheck : public IConvergenceCheck
+class CompositeConvCheck : public IConvergenceCheck<TVector>
 {
 	public:
 	/// constructors
@@ -54,9 +54,9 @@ class CompositeConvCheck : public IConvergenceCheck
 
 	/// defect control
 		void start_defect(number initialDefect);
-		void start(IFunctionBase& d);
+		void start(const TVector& d);
 		void update_defect(number newDefect);
-		void update(IFunctionBase& d);
+		void update(const TVector& d);
 		bool iteration_ended();
 		bool post();
 
