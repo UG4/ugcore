@@ -93,6 +93,8 @@ class MinimalResiduumDamping : public IDamping<X,Y>
 
 		//	Compute scaling
 			const number kappa = VecProd(d, Ac) / VecProd(Ac, Ac);
+			
+			if (kappa<0.3) return 0.3;
 
 		//	return result
 			return kappa;
@@ -121,6 +123,8 @@ class MinimalEnergyDamping : public IDamping<X,Y>
 
 		//	Compute scaling
 			const number kappa = VecProd(d,c) / VecProd(Ac, c);
+			
+			if (kappa<0.3) return 0.3;
 
 		//	return result
 			return kappa;
