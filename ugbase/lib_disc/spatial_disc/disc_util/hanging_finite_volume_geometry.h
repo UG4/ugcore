@@ -238,8 +238,13 @@ class HFV1Geometry : public FVGeometryBase{
 	/// number of shape functions
 		//\TODO:	This is not yet like it should be and only conserving behavior as it has been.
 		// 			In fact, this should of course return the number of shapes, which is
-		//			generally NOT equal to the number of SCVs.
-		inline size_t num_sh() const {return num_scv();};
+		//			generally NOT equal to the number of SCVs (i.e. for pyramids).
+		inline size_t num_sh() const
+		{
+			if (m_pElem->reference_object_id() == ROID_PYRAMID)
+				UG_THROW("Function num_sh() for hanging nodes not yet implemented for pyramids.");
+			return num_scv();
+		};
 
 	public:
 	/// returns number of all scv ips
