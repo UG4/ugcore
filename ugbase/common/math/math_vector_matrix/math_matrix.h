@@ -14,6 +14,7 @@
 #include <iomanip>
 #include "../../types.h"
 #include "math_vector.h"
+#include "common/assert.h"
 
 namespace ug
 {
@@ -203,14 +204,14 @@ class MathMatrix
 		inline std::size_t num_rows() const {return N;}
 		inline std::size_t num_cols() const {return M;}
 
-		inline value_type& entry(std::size_t row, std::size_t col)				{return m_data[row][col];}
-		inline const value_type& entry(std::size_t row, std::size_t col) const	{return m_data[row][col];}
+		inline value_type& entry(std::size_t row, std::size_t col)				{UG_ASSERT(row < N && col < M, "Accessing "<<N<<"x"<<M<<"Matrix at entry ("<<row<<","<<col<<")"); return m_data[row][col];}
+		inline const value_type& entry(std::size_t row, std::size_t col) const	{UG_ASSERT(row < N && col < M, "Accessing "<<N<<"x"<<M<<"Matrix at entry ("<<row<<","<<col<<")"); return m_data[row][col];}
 
-		inline value_type* operator[](std::size_t index)				{return m_data[index];}
-		inline const value_type* operator[](std::size_t index) const	{return m_data[index];}
+		inline value_type* operator[](std::size_t index)				{UG_ASSERT(index < N, "Invalid index"); return m_data[index];}
+		inline const value_type* operator[](std::size_t index) const	{UG_ASSERT(index < N, "Invalid index"); return m_data[index];}
 
-		inline value_type& operator() (std::size_t row, std::size_t col)				{return m_data[row][col];}
-		inline const value_type& operator() (std::size_t row, std::size_t col) const	{return m_data[row][col];}
+		inline value_type& operator() (std::size_t row, std::size_t col)				{UG_ASSERT(row < N && col < M, "Accessing "<<N<<"x"<<M<<"Matrix at entry ("<<row<<","<<col<<")"); return m_data[row][col];}
+		inline const value_type& operator() (std::size_t row, std::size_t col) const	{UG_ASSERT(row < N && col < M, "Accessing "<<N<<"x"<<M<<"Matrix at entry ("<<row<<","<<col<<")"); return m_data[row][col];}
 
 		inline void assign(const MathVector<N, value_type> vec, const std::size_t row) {
 			assert(vec.Size == N);
