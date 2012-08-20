@@ -4,6 +4,9 @@
  *      Author: M. Breit
  */
 
+#ifndef __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK_IMPL__
+#define __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK_IMPL__
+
 #include "convergence_check.h"
 #include "common/util/string_util.h"
 
@@ -13,70 +16,65 @@ namespace ug{
 // Individual function convergence check
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class TDomain>
-IndivFctConvCheck<TDomain>::
-IndivFctConvCheck()
+template <class TVector, class TDomain>
+IndivFctConvCheck<TVector, TDomain>::
+IndivFctConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx)
  :	 m_initialDefect(0), m_initialOverallDefect(0.0),
   	 m_currentDefect(0), m_currentOverallDefect(0.0),
  	 m_lastDefect(0), m_currentStep(0), m_maxSteps(100),
  	 m_minDefect(0),
  	 m_relReduction(0),
 	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
-	 m_locked(false), m_timeMeas(true),
+	 m_timeMeas(true),
 	 m_dd(NULL)
-{};
-
-template <class TDomain>
-void IndivFctConvCheck<TDomain>::set_approxSpace(const ApproximationSpace<TDomain>& approx)
 {
-	// do not call this method a second time after locking
-	if (m_locked) UG_THROW("You can not set the approximation space twice.");
+	m_dd = approx->surface_dof_distribution();
 
-	m_dd = approx.surface_dof_distribution();
-
-	//\TODO: check, if this is correct (a fortiori wrt 'hanging' and block vectors), please!
 	// compute indices for faster access later
-	m_indices.clear();
-	typedef typename SurfaceDoFDistribution::dim_traits<TDomain::dim>::geometric_base_object Elem;
-	typename SurfaceDoFDistribution::template traits<Elem>::const_iterator iter, iterBegin, iterEnd;
+	m_vvMultiIndex.clear();
+	m_vvMultiIndex.resize(m_dd->num_fct());
+	if(m_dd->max_dofs(VERTEX)) extract_multi_indices<VertexBase>();
+	if(m_dd->max_dofs(FACE)) extract_multi_indices<EdgeBase>();
+	if(m_dd->max_dofs(EDGE)) extract_multi_indices<Face>();
+	if(m_dd->max_dofs(VOLUME)) extract_multi_indices<Volume>();
 
-	for (size_t fi = 0; fi < m_dd->function_pattern().num_fct(); fi++)
-	{
-		//	get element iterator for current subset
-		iterBegin = m_dd->template begin<Elem>();
-		iterEnd = m_dd->template end<Elem>();
-
-		// buffer for indices (will contain duplicates)
-		std::vector<size_t> buffer;
-
-		// loop over all elements
-		for (iter = iterBegin; iter != iterEnd; ++iter)
-		{
-			// get local indices
-			LocalIndices ind;
-			m_dd->indices(*iter, ind, true);	// false?
-
-			for (size_t dof = 0; dof < ind.num_dof(fi); dof++)
-			buffer.push_back(ind.index(fi,dof));
-		}
-
-		// remove duplicates from buffer and store
-		std::sort(buffer.begin(), buffer.end());
-		std::unique(buffer.begin(),buffer.end());
-		m_indices.push_back(buffer);
-
-		// store function name
+	// store function name
+	for (size_t fi = 0; fi < m_dd->num_fct(); fi++)
 		m_fctName.push_back(m_dd->function_pattern().name(fi));
-	}
 }
 
-
-template <class TDomain>
-void IndivFctConvCheck<TDomain>::set_functions(const char* functionNames)
+template <class TVector, class TDomain>
+template <typename TBaseElem>
+void IndivFctConvCheck<TVector, TDomain>::
+extract_multi_indices()
 {
-	// do not call this method a second time after locking
-	if (m_locked) UG_THROW("You can not set the functions twice.");
+	typename SurfaceDoFDistribution::template traits<TBaseElem>::const_iterator iter, iterBegin, iterEnd;
 
+	//	get element iterator for current subset
+	iterBegin = m_dd->template begin<TBaseElem>();
+	iterEnd = m_dd->template end<TBaseElem>();
+
+	// loop over all elements
+	std::vector<MultiIndex<2> > vInd;
+	for (iter = iterBegin; iter != iterEnd; ++iter)
+	{
+		for (size_t fi = 0; fi < m_dd->num_fct(); fi++)
+		{
+			// inner multi indices of the grid object for a function component
+			m_dd->inner_multi_indices(*iter, fi, vInd);
+
+			// remember multi indices
+			for (size_t dof = 0; dof < vInd.size(); dof++)
+				m_vvMultiIndex[fi].push_back(vInd[dof]);
+		}
+	}
+
+	// note: no duplicate indices possible
+}
+
+template <class TVector, class TDomain>
+void IndivFctConvCheck<TVector, TDomain>::set_functions(const char* functionNames)
+{
 	// get the functions specified by function names
 	try {m_fctGrp = m_dd->fct_grp_by_name(functionNames);}
 		UG_CATCH_THROW("At least one of the functions in '" << functionNames
@@ -84,20 +82,20 @@ void IndivFctConvCheck<TDomain>::set_functions(const char* functionNames)
 
 
 	// remove unnecessary function names and indices / add 'rest' if necessary
-	std::vector<std::vector<size_t> > finalIndices(0);
+	std::vector<std::vector<MultiIndex<2> > > finalIndices(0);
 	std::vector<std::string> finalNames(0);
 	std::vector<bool> used(m_dd->num_fct(), false);
 	for (size_t i = 0; i < m_fctGrp.num_fct(); i++)
 	{
-		finalIndices.push_back(m_indices[m_fctGrp[i]]);
+		finalIndices.push_back(m_vvMultiIndex[m_fctGrp[i]]);
 		finalNames.push_back(m_fctName[m_fctGrp[i]]);
 		used[m_fctGrp[i]] = true;
 	}
 
-	std::vector<size_t> rest(0);
+	std::vector<MultiIndex<2> > rest(0);
 	std::stringstream ss; ss << "rest (";
 	std::vector<std::string>::iterator itName = m_fctName.begin();
-	std::vector<std::vector<size_t> >::iterator itInd = m_indices.begin();
+	std::vector<std::vector<MultiIndex<2> > >::iterator itInd = m_vvMultiIndex.begin();
 	for (std::vector<bool>::iterator itUsed = used.begin(); itUsed != used.end(); itUsed++)
 	{
 		if (!*itUsed)
@@ -117,15 +115,13 @@ void IndivFctConvCheck<TDomain>::set_functions(const char* functionNames)
 		finalNames.push_back(ss.str());
 	}
 
-	m_indices = finalIndices;
+	m_vvMultiIndex = finalIndices;
 	m_fctName = finalNames;
-
-	m_locked = true;
 }
 
 
-template <class TDomain>
-void IndivFctConvCheck<TDomain>::set_minimum_defect(const char* minDefect, number minDefectForRest)
+template <class TVector, class TDomain>
+void IndivFctConvCheck<TVector, TDomain>::set_minimum_defect(const char* minDefect, number minDefectForRest)
 {
 	//	tokenize strings
 	std::vector<std::string> tokens;
@@ -155,8 +151,8 @@ void IndivFctConvCheck<TDomain>::set_minimum_defect(const char* minDefect, numbe
 }
 
 
-template <class TDomain>
-void IndivFctConvCheck<TDomain>::set_reduction(const char* reduction, number reductionForRest)
+template <class TVector, class TDomain>
+void IndivFctConvCheck<TVector, TDomain>::set_reduction(const char* reduction, number reductionForRest)
 {
 	//	tokenize strings
 	std::vector<std::string> tokens;
@@ -186,8 +182,8 @@ void IndivFctConvCheck<TDomain>::set_reduction(const char* reduction, number red
 }
 
 
-template <class TDomain>
-void IndivFctConvCheck<TDomain>::start_defect(number initialDefect)
+template <class TVector, class TDomain>
+void IndivFctConvCheck<TVector, TDomain>::start_defect(number initialDefect)
 {
 	UG_THROW(	"This method cannot be used to set defect values,\n"
 				"since obviously this class is meant for an individual\n"
@@ -196,17 +192,31 @@ void IndivFctConvCheck<TDomain>::start_defect(number initialDefect)
 }
 
 
-template <class TDomain>
-void IndivFctConvCheck<TDomain>::start(IFunctionBase& d)
+template <class TVector, class TDomain>
+void IndivFctConvCheck<TVector, TDomain>::start(IFunctionBase& d)
 {
+	// try to cast vector to vector type
+	TVector* pVec = dynamic_cast<TVector*>(&d);
+	if(!pVec)
+		UG_THROW("IndivFctConvCheck: Cannot cast vector to concrete type.");
+	TVector& vec = *pVec;
+
+	// start time measurement
 	if (m_timeMeas)	m_stopwatch.start();
 
 	m_initialDefect.clear();
 
 	// calculate the defect's 2-norm for each function
-	for (size_t i = 0; i < m_indices.size(); i++)
+	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)
 	{
-		m_initialDefect.push_back(d.two_norm(m_indices[i]));
+		number compDefect = 0.0;
+		for(size_t dof = 0; dof < m_vvMultiIndex[i].size(); ++dof)
+		{
+			const number val = DoFRef(vec, m_vvMultiIndex[i][dof]);
+			compDefect += val*val;
+		}
+		compDefect = sqrt(compDefect);
+		m_initialDefect.push_back(compDefect);
 		m_initialOverallDefect += m_initialDefect.back()*m_initialDefect.back();
 	}
 	m_initialOverallDefect = sqrt(m_initialOverallDefect);
@@ -265,8 +275,8 @@ void IndivFctConvCheck<TDomain>::start(IFunctionBase& d)
 }
 
 
-template <class TDomain>
-void IndivFctConvCheck<TDomain>::update_defect(number newDefect)
+template <class TVector, class TDomain>
+void IndivFctConvCheck<TVector, TDomain>::update_defect(number newDefect)
 {
 	UG_THROW(	"This method cannot be used to update defect values,\n"
 				"since obviously this class is meant for an individual\n"
@@ -275,16 +285,29 @@ void IndivFctConvCheck<TDomain>::update_defect(number newDefect)
 }
 
 
-template <class TDomain>
-void IndivFctConvCheck<TDomain>::update(IFunctionBase& d)
+template <class TVector, class TDomain>
+void IndivFctConvCheck<TVector, TDomain>::update(IFunctionBase& d)
 {
+	// try to cast vector to vector type
+	TVector* pVec = dynamic_cast<TVector*>(&d);
+	if(!pVec)
+		UG_THROW("IndivFctConvCheck: Cannot cast vector to concrete type.");
+	TVector& vec = *pVec;
+
 	m_currentOverallDefect = 0.0;
 	m_lastDefect = m_currentDefect;
 
 	// calculate the defect's 2-norm for each function
-	for (size_t i = 0; i < m_indices.size(); i++)
+	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)
 	{
-		m_currentDefect[i] = d.two_norm(m_indices[i]);
+		number compDefect = 0.0;
+		for(size_t dof = 0; dof < m_vvMultiIndex[i].size(); ++dof)
+		{
+			const number val = DoFRef(vec, m_vvMultiIndex[i][dof]);
+			compDefect += val*val;
+		}
+		compDefect = sqrt(compDefect);
+		m_currentDefect[i] = compDefect;
 		m_currentOverallDefect += m_currentDefect[i] * m_currentDefect[i];
 	}
 	m_currentOverallDefect = sqrt(m_currentOverallDefect);
@@ -307,8 +330,8 @@ void IndivFctConvCheck<TDomain>::update(IFunctionBase& d)
 }
 
 
-template <class TDomain>
-bool IndivFctConvCheck<TDomain>::iteration_ended()
+template <class TVector, class TDomain>
+bool IndivFctConvCheck<TVector, TDomain>::iteration_ended()
 {
 	bool ended = true;
 
@@ -323,8 +346,8 @@ bool IndivFctConvCheck<TDomain>::iteration_ended()
 }
 
 
-template <class TDomain>
-bool IndivFctConvCheck<TDomain>::post()
+template <class TVector, class TDomain>
+bool IndivFctConvCheck<TVector, TDomain>::post()
 {
 	if (m_timeMeas) m_stopwatch.stop();
 
@@ -400,8 +423,8 @@ bool IndivFctConvCheck<TDomain>::post()
 }
 
 
-template <class TDomain>
-void IndivFctConvCheck<TDomain>::print_offset()
+template <class TVector, class TDomain>
+void IndivFctConvCheck<TVector, TDomain>::print_offset()
 {
 	// step 1: whitespace
 	UG_LOG(repeat(' ', m_offset));
@@ -411,8 +434,8 @@ void IndivFctConvCheck<TDomain>::print_offset()
 }
 
 
-template <class TDomain>
-bool IndivFctConvCheck<TDomain>::is_valid_number(number value)
+template <class TVector, class TDomain>
+bool IndivFctConvCheck<TVector, TDomain>::is_valid_number(number value)
 {
 	if (value == 0.0) return true;
 	else return (value >= std::numeric_limits<number>::min()
@@ -420,12 +443,7 @@ bool IndivFctConvCheck<TDomain>::is_valid_number(number value)
 				&& value == value && value >= 0.0);
 }
 
-
-// explicit class declarations
-template class IndivFctConvCheck<Domain1d>;
-template class IndivFctConvCheck<Domain2d>;
-template class IndivFctConvCheck<Domain3d>;
-
-
-
 } // end namespace ug
+
+
+#endif /* __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK_IMPL__ */

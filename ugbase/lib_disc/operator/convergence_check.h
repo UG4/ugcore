@@ -37,18 +37,17 @@ namespace ug{
  * that makes it possible to define required defect reductions on
  * the individual functions constituting the overall solution.
  */
-template <class TDomain>
+template <class TVector, class TDomain>
 class IndivFctConvCheck : public IConvergenceCheck
 {
 	public:
 	/// constructors
-		IndivFctConvCheck();
+		IndivFctConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx);
 
 	/// sets maximum number of iteration steps
 		void set_maximum_steps(int maxSteps) {m_maxSteps = maxSteps;}
 
 	///	sets the approximation space
-		void set_approxSpace(const ApproximationSpace<TDomain>& approx);
 		void set_functions(const char* functionNames);
 		void set_minimum_defect(const char* minDefect, number minDefectForRest = 1e-10);
 		void set_reduction(const char* reduction, number reductionForRest = 1e-8);
@@ -88,6 +87,10 @@ class IndivFctConvCheck : public IConvergenceCheck
 		void print_offset();
 		bool is_valid_number(number value);
 		std::string fctName(size_t fctIndex) {return m_fctName[fctIndex];};
+
+	///	extracts multi-indices for a fct-comp on a element type
+		template <typename TBaseElem>
+		void extract_multi_indices();
 
 	protected:
 		// start defect
@@ -130,16 +133,16 @@ class IndivFctConvCheck : public IConvergenceCheck
 		std::string m_info;
 
 	private:
-		bool m_locked;
 		bool m_timeMeas;
 		Stopwatch m_stopwatch;
-		std::vector<std::vector<size_t> > m_indices;
+		std::vector<std::vector<MultiIndex<2> > > m_vvMultiIndex;
 		std::vector<std::string> m_fctName;
 		FunctionGroup m_fctGrp;
 		ConstSmartPtr<SurfaceDoFDistribution> m_dd;
 };
 
-
 } // end namespace ug
+
+#include "convergence_check_impl.h"
 
 #endif /* __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK__ */

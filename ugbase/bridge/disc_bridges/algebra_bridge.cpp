@@ -283,29 +283,27 @@ static void Algebra(Registry& reg, string parentGroup)
 }
 
 /**
- * Function called for the registration of Domain dependent parts.
- * All Functions and Classes depending on the Domain
+ * Function called for the registration of Domain and Algebra dependent parts.
+ * All Functions and Classes depending on both Domain and Algebra
  * are to be placed here when registering. The method is called for all
- * available Domain types, based on the current build options.
+ * available Domain and Algebra types, based on the current build options.
  *
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TAlgebra>
+static void DomainAlgebra(Registry& reg, string grp)
 {
-	string suffix = GetDomainSuffix<TDomain>();
-	string tag = GetDomainTag<TDomain>();
+	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
+	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
 	// 	IndivFctConvCheck
 	{
-		typedef IndivFctConvCheck<TDomain> T;
+		typedef IndivFctConvCheck<typename TAlgebra::vector_type, TDomain> T;
 		typedef IConvergenceCheck TBase;
 		string name = string("IndivFctConvergenceCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			//.add_method("set_dofDistr", &T::set_dofDistr, "", "dof distribution")
-			.add_method("set_approxSpace", &T::set_approxSpace, "", "approximation space")
+			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
 			.add_method("set_functions", (void (T::*)(const char*)) &T::set_functions, "",
 					"functions to be evaluated individually as comma-separated list")
 			.add_method("timeMeasurement", &T::timeMeasurement, "", "", "whether to perform a time measurement or not")
@@ -334,7 +332,7 @@ void RegisterBridge_DiscAlgebra(Registry& reg, string grp)
 
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
