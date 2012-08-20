@@ -17,8 +17,8 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class TVector, class TDomain>
-IndivFctConvCheck<TVector, TDomain>::
-IndivFctConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx)
+CompositeConvCheck<TVector, TDomain>::
+CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx)
  :	 m_initialDefect(0), m_initialOverallDefect(0.0),
   	 m_currentDefect(0), m_currentOverallDefect(0.0),
  	 m_lastDefect(0), m_currentStep(0), m_maxSteps(100),
@@ -45,7 +45,7 @@ IndivFctConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx)
 
 template <class TVector, class TDomain>
 template <typename TBaseElem>
-void IndivFctConvCheck<TVector, TDomain>::
+void CompositeConvCheck<TVector, TDomain>::
 extract_multi_indices()
 {
 	typename SurfaceDoFDistribution::template traits<TBaseElem>::const_iterator iter, iterBegin, iterEnd;
@@ -73,7 +73,7 @@ extract_multi_indices()
 }
 
 template <class TVector, class TDomain>
-void IndivFctConvCheck<TVector, TDomain>::set_functions(const char* functionNames)
+void CompositeConvCheck<TVector, TDomain>::set_functions(const char* functionNames)
 {
 	// get the functions specified by function names
 	try {m_fctGrp = m_dd->fct_grp_by_name(functionNames);}
@@ -121,7 +121,7 @@ void IndivFctConvCheck<TVector, TDomain>::set_functions(const char* functionName
 
 
 template <class TVector, class TDomain>
-void IndivFctConvCheck<TVector, TDomain>::set_minimum_defect(const char* minDefect, number minDefectForRest)
+void CompositeConvCheck<TVector, TDomain>::set_minimum_defect(const char* minDefect, number minDefectForRest)
 {
 	//	tokenize strings
 	std::vector<std::string> tokens;
@@ -132,7 +132,7 @@ void IndivFctConvCheck<TVector, TDomain>::set_minimum_defect(const char* minDefe
 	{
 		UG_THROW(	"The number of supplied values (" << tokens.size() << ") does not match the number\n"
 					"of given function names (" << m_fctGrp.num_fct() << "); perhaps you have forgot to call\n"
-					"IndivFctConvCheck::set_functions prior to this method.");
+					"CompositeConvCheck::set_functions prior to this method.");
 	}
 
 	// save values as number
@@ -152,7 +152,7 @@ void IndivFctConvCheck<TVector, TDomain>::set_minimum_defect(const char* minDefe
 
 
 template <class TVector, class TDomain>
-void IndivFctConvCheck<TVector, TDomain>::set_reduction(const char* reduction, number reductionForRest)
+void CompositeConvCheck<TVector, TDomain>::set_reduction(const char* reduction, number reductionForRest)
 {
 	//	tokenize strings
 	std::vector<std::string> tokens;
@@ -163,7 +163,7 @@ void IndivFctConvCheck<TVector, TDomain>::set_reduction(const char* reduction, n
 	{
 		UG_THROW(	"The number of supplied values (" << tokens.size() << ") does not match the number\n"
 					"of given function names (" << m_fctGrp.num_fct() << "); perhaps you have forgot to call\n"
-					"IndivFctConvCheck::set_functions prior to this method.");
+					"CompositeConvCheck::set_functions prior to this method.");
 	}
 
 	// save values as number
@@ -183,7 +183,7 @@ void IndivFctConvCheck<TVector, TDomain>::set_reduction(const char* reduction, n
 
 
 template <class TVector, class TDomain>
-void IndivFctConvCheck<TVector, TDomain>::start_defect(number initialDefect)
+void CompositeConvCheck<TVector, TDomain>::start_defect(number initialDefect)
 {
 	UG_THROW(	"This method cannot be used to set defect values,\n"
 				"since obviously this class is meant for an individual\n"
@@ -193,12 +193,12 @@ void IndivFctConvCheck<TVector, TDomain>::start_defect(number initialDefect)
 
 
 template <class TVector, class TDomain>
-void IndivFctConvCheck<TVector, TDomain>::start(IFunctionBase& d)
+void CompositeConvCheck<TVector, TDomain>::start(IFunctionBase& d)
 {
 	// try to cast vector to vector type
 	TVector* pVec = dynamic_cast<TVector*>(&d);
 	if(!pVec)
-		UG_THROW("IndivFctConvCheck: Cannot cast vector to concrete type.");
+		UG_THROW("CompositeConvCheck: Cannot cast vector to concrete type.");
 	TVector& vec = *pVec;
 
 	// start time measurement
@@ -276,7 +276,7 @@ void IndivFctConvCheck<TVector, TDomain>::start(IFunctionBase& d)
 
 
 template <class TVector, class TDomain>
-void IndivFctConvCheck<TVector, TDomain>::update_defect(number newDefect)
+void CompositeConvCheck<TVector, TDomain>::update_defect(number newDefect)
 {
 	UG_THROW(	"This method cannot be used to update defect values,\n"
 				"since obviously this class is meant for an individual\n"
@@ -286,12 +286,12 @@ void IndivFctConvCheck<TVector, TDomain>::update_defect(number newDefect)
 
 
 template <class TVector, class TDomain>
-void IndivFctConvCheck<TVector, TDomain>::update(IFunctionBase& d)
+void CompositeConvCheck<TVector, TDomain>::update(IFunctionBase& d)
 {
 	// try to cast vector to vector type
 	TVector* pVec = dynamic_cast<TVector*>(&d);
 	if(!pVec)
-		UG_THROW("IndivFctConvCheck: Cannot cast vector to concrete type.");
+		UG_THROW("CompositeConvCheck: Cannot cast vector to concrete type.");
 	TVector& vec = *pVec;
 
 	m_currentOverallDefect = 0.0;
@@ -331,7 +331,7 @@ void IndivFctConvCheck<TVector, TDomain>::update(IFunctionBase& d)
 
 
 template <class TVector, class TDomain>
-bool IndivFctConvCheck<TVector, TDomain>::iteration_ended()
+bool CompositeConvCheck<TVector, TDomain>::iteration_ended()
 {
 	bool ended = true;
 
@@ -347,7 +347,7 @@ bool IndivFctConvCheck<TVector, TDomain>::iteration_ended()
 
 
 template <class TVector, class TDomain>
-bool IndivFctConvCheck<TVector, TDomain>::post()
+bool CompositeConvCheck<TVector, TDomain>::post()
 {
 	if (m_timeMeas) m_stopwatch.stop();
 
@@ -424,7 +424,7 @@ bool IndivFctConvCheck<TVector, TDomain>::post()
 
 
 template <class TVector, class TDomain>
-void IndivFctConvCheck<TVector, TDomain>::print_offset()
+void CompositeConvCheck<TVector, TDomain>::print_offset()
 {
 	// step 1: whitespace
 	UG_LOG(repeat(' ', m_offset));
@@ -435,7 +435,7 @@ void IndivFctConvCheck<TVector, TDomain>::print_offset()
 
 
 template <class TVector, class TDomain>
-bool IndivFctConvCheck<TVector, TDomain>::is_valid_number(number value)
+bool CompositeConvCheck<TVector, TDomain>::is_valid_number(number value)
 {
 	if (value == 0.0) return true;
 	else return (value >= std::numeric_limits<number>::min()

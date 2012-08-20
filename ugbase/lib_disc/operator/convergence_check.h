@@ -28,21 +28,21 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
-// Individual function convergence check
+// Composite convergence check
 ////////////////////////////////////////////////////////////////////////////////
 
-/** IndivFctConvCheck
+/** CompositeConvCheck
  *
  * This is an implementation of the convergence check interface,
  * that makes it possible to define required defect reductions on
  * the individual functions constituting the overall solution.
  */
 template <class TVector, class TDomain>
-class IndivFctConvCheck : public IConvergenceCheck
+class CompositeConvCheck : public IConvergenceCheck
 {
 	public:
 	/// constructors
-		IndivFctConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx);
+		CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx);
 
 	/// sets maximum number of iteration steps
 		void set_maximum_steps(int maxSteps) {m_maxSteps = maxSteps;}

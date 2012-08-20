@@ -297,11 +297,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-	// 	IndivFctConvCheck
+	// 	CompositeConvCheck
 	{
-		typedef IndivFctConvCheck<typename TAlgebra::vector_type, TDomain> T;
+		typedef CompositeConvCheck<typename TAlgebra::vector_type, TDomain> T;
 		typedef IConvergenceCheck TBase;
-		string name = string("IndivFctConvergenceCheck").append(suffix);
+		string name = string("CompositeConvergenceCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
 			.add_method("set_functions", (void (T::*)(const char*)) &T::set_functions, "",
@@ -319,7 +319,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 					"returns the current relative reduction for a function")
 			.add_method("iteration_ended", &T::iteration_ended)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "IndivFctConvergenceCheck", tag);
+		reg.add_class_to_group(name, "CompositeConvergenceCheck", tag);
 	}
 }
 
