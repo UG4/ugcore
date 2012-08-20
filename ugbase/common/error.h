@@ -19,7 +19,7 @@
 #define UG_THROW(msg)		{std::stringstream ss; ss << msg; \
 							throw(ug::UGError(ss.str(),__FILE__,__LINE__));}
 
-#define UG_CATCH_THROW(msg)	catch(ug::UGError err){std::stringstream ss; ss << msg;\
+#define UG_CATCH_THROW(msg)	catch(ug::UGError& err){std::stringstream ss; ss << msg;\
 							  err.push_msg(ss.str(),__FILE__,__LINE__); throw(err);}
 
 ////////////////////////////////////////////////////////////////////////////////
