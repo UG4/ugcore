@@ -193,7 +193,7 @@ void CompositeConvCheck<TVector, TDomain>::start_defect(number initialDefect)
 
 
 template <class TVector, class TDomain>
-void CompositeConvCheck<TVector, TDomain>::start(IFunctionBase& d)
+void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 {
 	// start time measurement
 	if (m_timeMeas)	m_stopwatch.start();
@@ -280,7 +280,7 @@ void CompositeConvCheck<TVector, TDomain>::update_defect(number newDefect)
 
 
 template <class TVector, class TDomain>
-void CompositeConvCheck<TVector, TDomain>::update(IFunctionBase& d)
+void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 {
 	m_currentOverallDefect = 0.0;
 	m_lastDefect = m_currentDefect;
