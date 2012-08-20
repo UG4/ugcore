@@ -50,7 +50,8 @@ set(srcDiscretization	domain_util.cpp
 						local_finite_element/lagrange/lagrange.cpp
 						
 						operator/linear_operator/multi_grid_solver/mg_solver_util.cpp
-						
+						operator/convergence_check.cpp
+					
 						spatial_disc/subset_assemble_util.cpp
 						spatial_disc/elem_disc/elem_disc_interface.cpp
 						spatial_disc/disc_util/finite_volume_geometry.cpp

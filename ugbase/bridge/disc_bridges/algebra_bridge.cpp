@@ -25,6 +25,7 @@
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/line_search.h"
 #include "lib_disc/operator/non_linear_operator/newton_solver/newton.h"
+#include "lib_disc/operator/convergence_check.h"
 
 using namespace std;
 
@@ -281,6 +282,49 @@ static void Algebra(Registry& reg, string parentGroup)
 	}
 }
 
+/**
+ * Function called for the registration of Domain dependent parts.
+ * All Functions and Classes depending on the Domain
+ * are to be placed here when registering. The method is called for all
+ * available Domain types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain>
+static void Domain(Registry& reg, string grp)
+{
+	string suffix = GetDomainSuffix<TDomain>();
+	string tag = GetDomainTag<TDomain>();
+
+	// 	IndivFctConvCheck
+	{
+		typedef IndivFctConvCheck<TDomain> T;
+		typedef IConvergenceCheck TBase;
+		string name = string("IndivFctConvergenceCheck").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor()
+			//.add_method("set_dofDistr", &T::set_dofDistr, "", "dof distribution")
+			.add_method("set_approxSpace", &T::set_approxSpace, "", "approximation space")
+			.add_method("set_functions", (void (T::*)(const char*)) &T::set_functions, "",
+					"functions to be evaluated individually as comma-separated list")
+			.add_method("timeMeasurement", &T::timeMeasurement, "", "", "whether to perform a time measurement or not")
+			.add_method("set_maximum_steps", &T::set_maximum_steps, "", "Maximum Steps|default|min=0;value=100")
+			.add_method("set_minimum_defect", (void (T::*)(const char*, number)) &T::set_minimum_defect, "",
+					"minimum defect for defined functions (comma-separated list)#minimum defect for rest|default|min=0D;value=1e-10")
+			.add_method("set_reduction", (void (T::*)(const char*, number)) &T::set_reduction,	"",
+					"defect reduction for defined functions (comma-separated list)#defect reduction for rest|default|min=0D;value=1e-08")
+			.add_method("set_verbose", &T::set_verbose,	"", "Verbosity")
+			.add_method("defect", (number (T::*)(size_t) const) &T::defect, "defect", "function index", "returns the current defect")
+			.add_method("step", &T::step, "step", "", "returns the current number of steps")
+			.add_method("reduction", (number (T::*)(size_t) const) &T::reduction, "reduction", "function index",
+					"returns the current relative reduction for a function")
+			.add_method("iteration_ended", &T::iteration_ended)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "IndivFctConvergenceCheck", tag);
+	}
+}
+
 }; // end Functionality
 }// end DiscAlgebra
 
@@ -290,6 +334,7 @@ void RegisterBridge_DiscAlgebra(Registry& reg, string grp)
 
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
