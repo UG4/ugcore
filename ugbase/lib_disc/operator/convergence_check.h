@@ -20,7 +20,6 @@
 #include "common/common.h"
 #include "common/stopwatch.h"
 #include "lib_algebra/operator/convergence_check.h"
-#include "lib_algebra/operator/interface/function_base.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/common/function_group.h"

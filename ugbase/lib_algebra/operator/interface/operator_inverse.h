@@ -11,7 +11,6 @@
 #include "common/util/smart_pointer.h"
 #include "common/profiler/profiler.h"
 
-#include "lib_algebra/operator/interface/function_base.h"
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/interface/operator_iterator.h"
 

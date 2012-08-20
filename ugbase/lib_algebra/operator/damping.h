@@ -8,6 +8,8 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__DAMPING__
 #define __H__LIB_ALGEBRA__OPERATOR__DAMPING__
 
+#include "common/common.h"
+
 namespace ug{
 
 /**

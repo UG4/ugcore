@@ -12,7 +12,6 @@
 
 #include "../common/template_expressions.h"
 #include "../common/operations.h"
-#include "lib_algebra/operator/interface/function_base.h"
 #include <vector>
 
 namespace ug{
