@@ -7,6 +7,7 @@
 #include "registry/registry.h"
 #include "registry/class.h"
 #include "common/util/path_provider.h"
+#include "bridge/util.h"
 
 #include "common/common.h"
 #include "lib_algebra/operator/convergence_check.h"
@@ -34,6 +35,7 @@
 
 namespace ug {
 namespace vrl {
+
 static ug::bridge::Registry* vrlRegistry = NULL;
 static JavaVM* javaVM = NULL;
 
@@ -114,7 +116,8 @@ public:
 	}
 };
 
-SmartPtr<NumberArray> getDefects(const ug::StdConvCheck* convCheck) {
+template <typename TVector>
+SmartPtr<NumberArray> getDefects(const ug::StdConvCheck<TVector>* convCheck) {
 
 	return SmartPtr<NumberArray > (
 			new NumberArray(convCheck->get_defects()));
@@ -125,7 +128,6 @@ void registerNumberArray(ug::bridge::Registry & reg) {
 			.add_constructor()
 			.add_method("get", &NumberArray::get)
 			.add_method("size", &NumberArray::size);
-	reg.add_function("GetDefects", &getDefects, "UG4/Util", "Defects");
 }
 
 void registerUGFinalize(ug::bridge::Registry & reg) {
@@ -150,10 +152,45 @@ public:
 };
 
 
+/**
+ * Class exporting the functionality. All functionality that is to
+ * be used in scripts or visualization must be registered here.
+ */
+struct Functionality
+{
 
-//void registryChanged(ug::bridge::Registry* reg) {
-//	UG_LOG("VRL: REGISTRY CHANGED\n");
-//}
+/**
+ * Function called for the registration of Algebra dependent parts.
+ * All Functions and Classes depending on Algebra
+ * are to be placed here when registering. The method is called for all
+ * available Algebra types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TAlgebra>
+static void Algebra(ug::bridge::Registry& reg, string parentGroup)
+{
+//	typedefs for Vector and Matrix
+	typedef typename TAlgebra::vector_type vector_type;
+	typedef typename TAlgebra::matrix_type matrix_type;
+
+//	suffix and tag
+	string suffix = ug::bridge::GetAlgebraSuffix<TAlgebra>();
+	string tag = ug::bridge::GetAlgebraTag<TAlgebra>();
+
+
+	reg.add_function("GetDefects", &getDefects<vector_type>, "UG4/Util", "Defects");
+}
+
+}; // end Functionality
+
+void RegisterVRLFunctionality(ug::bridge::Registry& reg, string grp)
+{
+	typedef ug::vrl::Functionality Functionality;
+
+	ug::bridge::RegisterAlgebraDependent<Functionality>(reg,grp);
+}
 
 }// end vrl::
 }// end ug::
@@ -202,6 +239,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit
 	ug::vrl::registerMessaging(reg);
 	ug::vrl::registerThrowUtil(reg);
 	ug::vrl::registerNumberArray(reg);
+	ug::vrl::RegisterVRLFunctionality(reg, "UG4/VRL");
 	ug::vrl::registerUGFinalize(reg);
 
 	reg.add_class_<ug::vrl::VTest > ("VTest", "UG4/VRL/Testing")
@@ -284,7 +322,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 		}
 
 
-	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
+	} catch (ug::bridge::ERROR_IncompatibleClasses& ex) {
 
 		std::stringstream ss;
 
@@ -294,7 +332,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
-	} catch (ug::bridge::ERROR_BadConversion ex) {
+	} catch (ug::bridge::ERROR_BadConversion& ex) {
 
 		std::stringstream ss;
 
@@ -305,7 +343,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
-	} catch (ug::UGError ex) {
+	} catch (ug::UGError& ex) {
 
 		ug::vrl::throwUgErrorAsJavaException(env, ex);
 	} catch (...) {
@@ -366,7 +404,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 			return ug::vrl::pointer2JObject(env, ptr);
 		}
 
-	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
+	} catch (ug::bridge::ERROR_IncompatibleClasses& ex) {
 
 		std::stringstream ss;
 
@@ -376,7 +414,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
-	} catch (ug::bridge::ERROR_BadConversion ex) {
+	} catch (ug::bridge::ERROR_BadConversion& ex) {
 
 		std::stringstream ss;
 
@@ -387,7 +425,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
-	} catch (ug::UGError ex) {
+	} catch (ug::UGError& ex) {
 
 		ug::vrl::throwUgErrorAsJavaException(env, ex);
 	} catch (...) {
@@ -442,7 +480,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
 		}
 
-	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
+	} catch (ug::bridge::ERROR_IncompatibleClasses& ex) {
 		std::stringstream ss;
 		ss << "Incompatible conversion in function "
 				<< func->name() << "(), param " << ex.m_index << ": from " <<
@@ -451,7 +489,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
 
-	} catch (ug::bridge::ERROR_BadConversion ex) {
+	} catch (ug::bridge::ERROR_BadConversion& ex) {
 		std::stringstream ss;
 		ss << "Incompatible conversion in function "
 				<< func->name() << "(), param " << ex.m_index << ": from " <<
@@ -461,7 +499,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
 
-	} catch (ug::UGError ex) {
+	} catch (ug::UGError& ex) {
 
 		ug::vrl::throwUgErrorAsJavaException(env, ex);
 	} catch (...) {
