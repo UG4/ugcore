@@ -94,6 +94,12 @@ else(BUILTIN_MPI)
 endif(BUILTIN_MPI)
 
 
+set(posixDefault OFF)
+if(UNIX OR APPLE)
+	set(posixDefault ON)
+endif(UNIX OR APPLE)
+
+
 ################################################################################
 # All available options should be defined here:
 # cmake-options can either be on or off.
@@ -119,6 +125,7 @@ option(OPENMP "Enables use of OpenMP. Valid options are ON, OFF" OFF)
 option(CXX11 "Enables compilation with C++11 standard. Valid options are ON, OFF" OFF)
 option(EMBEDDED_PLUGINS "Plugin sources are directly included in libug4. No dynamic loading required. Valid options are ON, OFF " OFF)
 option(COMPILE_INFO "Embeds information on compile revision and date. Requires relinking of all involved libraries. Valid options are ON, OFF " ${buildCompileInfo})
+option(POSIX "If enabled and available, some additional functionality may be available. Valid options are ON, OFF " ${posixDefault})
 
 ################################################################################
 # set default values for pseudo-options
@@ -692,6 +699,12 @@ set(buildCompileInfo ${COMPILE_INFO})
 if(buildCompileInfo)
 	message(STATUS "Info: COMPILE_INFO enabled. Causes relinking on each run of make.")
 endif(buildCompileInfo)
+
+
+########################################
+if(POSIX)
+	add_definitions(-DUG_POSIX)
+endif(POSIX)
 
 ########################################
 if(HERMIT_EXPERIMENTAL)

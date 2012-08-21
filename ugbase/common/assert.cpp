@@ -8,14 +8,10 @@
 #include "common/log.h"
 #include "common/profiler/profiler.h"
 #include <stdlib.h>
-// __GNUC__ is not a sufficient indicator. This is part of POSIX and not GNUC.
-// MinGW on Windows does not supply execinfo and cxxabi.
-/*
-#ifdef __GNUC__
+#ifdef UG_POSIX
 #include <execinfo.h>
 #include <cxxabi.h>
 #endif
-*/
 #include <string.h>
 
 /*
@@ -25,10 +21,7 @@
  */
 void ug_assert_failed()
 {
-// __GNUC__ is not a sufficient indicator. This is part of POSIX and not GNUC.
-// MinGW on Windows does not supply execinfo and cxxabi.
-/*
-#ifdef __GNUC__
+#ifdef UG_POSIX
 
 #ifdef UG_PROFILER
 	UG_LOG("Profiler Backtrace:\n")
@@ -71,6 +64,7 @@ void ug_assert_failed()
 	}
 	free (strings);
 	UG_LOG("\n");
-#endif
-*/
+
+#endif	// UG_POSIX
+
 }
