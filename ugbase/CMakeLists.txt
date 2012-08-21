@@ -25,7 +25,9 @@ endif(BUILD_ONE_LIB)
 
 ########################
 # information on the current compilation environment
-add_subdirectory(compile_info)
+if(buildCompileInfo)
+	add_subdirectory(compile_info)
+endif(buildCompileInfo)
 
 ########################
 # common
