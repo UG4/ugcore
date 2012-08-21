@@ -34,10 +34,10 @@ if(BUILD_ONE_LIB)
 		endif(WIN32)
 		add_library(${targetLibraryName} SHARED ${ug4libSources})
 
-		if(buildCompileInfo AND NOT buildEmbeddedPlugins)
+		if(NOT buildEmbeddedPlugins)
 			add_dependencies(${targetLibraryName} CompileInfo)
 			target_link_libraries(${targetLibraryName} CompileInfo)
-		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
+		endif(NOT buildEmbeddedPlugins)
 
 	else(buildDynamicLib)
 		add_library(${targetLibraryName} ${ug4libSources})
@@ -49,11 +49,11 @@ if(BUILD_ONE_LIB)
 		
 	endif(buildDynamicLib)
 	
-	if(buildCompileInfo AND buildEmbeddedPlugins)
+	if(buildEmbeddedPlugins)
 	#	if we build with embedded plugins, the compile-info is also embedded
 	#	into the single big target lib. We thus have to add a dependency to
 	#	the custom updateCompileInfo target declared in compile_info/CMakeLists.txt.
 		add_dependencies(${targetLibraryName} updateCompileInfo)
-	endif(buildCompileInfo AND buildEmbeddedPlugins)
+	endif(buildEmbeddedPlugins)
 	
 endif(BUILD_ONE_LIB)
