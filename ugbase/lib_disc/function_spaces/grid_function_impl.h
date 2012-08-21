@@ -482,6 +482,10 @@ permute_values(const std::vector<size_t>& vIndNew)
 // \todo: avoid tmp vector, only copy values into new vector and use that one
 //	create tmp vector
 	vector_type vecTmp; vecTmp.resize(this->size());
+#ifdef UG_PARALLEL
+//	copy storage type
+	vecTmp.copy_storage_type(*this);
+#endif
 
 //	loop indices and copy values
 	for(size_t i = 0; i < vIndNew.size(); ++i)
