@@ -345,14 +345,16 @@ void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si)
 
 //	first make sure, that all elems are assigned to a subset, since
 //	those won't be processed later on.
-	if(sh.template num<TElem>() != grid.num<TElem>()){
+
+//	num is not part of ISubsetHandler and thus causes problems, if sh has type ISubsetHandler
+	//if(sh.template num<TElem>() != grid.num<TElem>()){
 		for(ElemIter iter = grid.begin<TElem>();
 			iter != grid.end<TElem>(); ++iter)
 		{
 			if(sh.get_subset_index(*iter) == -1)
 				sh.assign_subset(*iter, si);
 		}
-	}
+	//}
 }
 
 ////////////////////////////////////////////////////////////////////////
