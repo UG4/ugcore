@@ -49,11 +49,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-//	MarkForRefinement_GradientIndicator
+//	MarkForAdaption_GradientIndicator
 	{
 		string grp("ug4/Refinement/");
-		reg.add_function("MarkForRefinement_GradientIndicator",
-						 &MarkForRefinement_GradientIndicator<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
+		reg.add_function("MarkForAdaption_GradientIndicator",
+						 &MarkForAdaption_GradientIndicator<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
 	}
 
 //	Prolongate

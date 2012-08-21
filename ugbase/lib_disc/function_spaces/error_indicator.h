@@ -241,7 +241,7 @@ void MarkElements(MultiGrid::AttachmentAccessor<typename TFunction::element_type
 }
 
 template <typename TDomain, typename TDD, typename TAlgebra>
-void MarkForRefinement_GradientIndicator(IRefiner& refiner,
+void MarkForAdaption_GradientIndicator(IRefiner& refiner,
                                          GridFunction<TDomain, TDD, TAlgebra>& u,
                                          const char* fctName,
                                          number TOL,
