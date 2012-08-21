@@ -371,6 +371,7 @@ void UserData<TData,dim,TRet>::local_ip_series_added(const size_t newNumSeries)
 	{
 		m_vvValue[s].resize(num_ip(s));
 		m_vvBoolFlag[s].resize(num_ip(s), true);
+		value_storage_changed(s);
 	}
 
 	call_storage_callback();
