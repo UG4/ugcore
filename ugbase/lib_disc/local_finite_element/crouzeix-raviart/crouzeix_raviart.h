@@ -81,7 +81,7 @@ class CrouzeixRaviartLSFS<ReferenceEdge>
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			ReferenceEdge::check_position(x);
+			// ReferenceEdge::check_position(x);
 
 			switch(i)
 			{
@@ -92,10 +92,10 @@ class CrouzeixRaviartLSFS<ReferenceEdge>
 			}
 		}
 
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			ReferenceEdge::check_position(x);
+			// ReferenceEdge::check_position(x);
 
 			switch(i)
 			{
@@ -169,7 +169,7 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			ReferenceTriangle::check_position(x);
+			// ReferenceTriangle::check_position(x);
 
 			switch(i)
 			{
@@ -181,10 +181,10 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 			}
 		}
 
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			ReferenceTriangle::check_position(x);
+			// ReferenceTriangle::check_position(x);
 
 			switch(i)
 			{
@@ -267,7 +267,7 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			ReferenceQuadrilateral::check_position(x);
+			// ReferenceQuadrilateral::check_position(x);
 
 			switch(i)
 			{
@@ -280,10 +280,10 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 			}
 		}
 
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			ReferenceQuadrilateral::check_position(x);
+			// ReferenceQuadrilateral::check_position(x);
 
 			switch(i)
 			{
@@ -371,7 +371,7 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			ReferenceTetrahedron::check_position(x);
+			// ReferenceTetrahedron::check_position(x);
 
 			switch(i)
 			{
@@ -384,10 +384,10 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 			}
 		}
 
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			ReferenceTetrahedron::check_position(x);
+			// ReferenceTetrahedron::check_position(x);
 
 			switch(i)
 			{
@@ -486,7 +486,7 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			ReferenceHexahedron::check_position(x);
+			// ReferenceHexahedron::check_position(x);
 
 			switch(i)
 			{
@@ -501,10 +501,10 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 			}
 		}
 
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			ReferenceHexahedron::check_position(x);
+			// ReferenceHexahedron::check_position(x);
 
 			switch(i)
 			{
@@ -603,7 +603,7 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			ReferencePrism::check_position(x);
+			// ReferencePrism::check_position(x);
 
 			switch(i)
 			{
@@ -617,10 +617,10 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 			}
 		}
 
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			ReferencePrism::check_position(x);
+			// ReferencePrism::check_position(x);
 
 			switch(i)
 			{
@@ -718,7 +718,7 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			ReferencePyramid::check_position(x);
+			// ReferencePyramid::check_position(x);
 
 			switch(i)
 			{
@@ -732,10 +732,10 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 			}
 		}
 
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			ReferencePyramid::check_position(x);
+			// ReferencePyramid::check_position(x);
 
 			switch(i)
 			{
