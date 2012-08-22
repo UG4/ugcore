@@ -149,7 +149,7 @@ class IUserData
 	 * 		 invoke the local_ip_series_to_be_cleared() callback, and adding all local
 	 * 		 series again.
 	 */
-		virtual void local_ip_series_added(const size_t newNumSeries) = 0;
+		virtual void local_ip_series_added(const size_t seriesID) = 0;
 
 	///	callback invoked, if a local ip series has been changed
 		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP) = 0;
@@ -224,10 +224,10 @@ class IDimUserData : virtual public IUserData
 	 * be used by derived classes to react on this fact, e.g. to forward the
 	 * global_ips.
 	 */
-		virtual void global_ips_changed(size_t s, const MathVector<dim>* vPos, size_t numIP) {};
+		virtual void global_ips_changed(const size_t seriesID, const MathVector<dim>* vPos, const size_t numIP) {};
 
 	///	implement callback, called when num of local IP series changed
-		virtual void local_ip_series_added(const size_t newNumSeries){m_vvGlobPos.resize(newNumSeries);}
+		virtual void local_ip_series_added(const size_t seriesID){m_vvGlobPos.resize(seriesID+1);}
 
 	///	implement callback, called when local IPs changed
 		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP) = 0;
@@ -348,7 +348,7 @@ class UserData : public IDimUserData<dim>
 		inline void check_series_ip(size_t s, size_t ip) const;
 
 	///	resizes the data field, when local ip changed signaled
-		virtual void local_ip_series_added(const size_t newNumSeries);
+		virtual void local_ip_series_added(const size_t seriesID);
 
 	///	free the data field memory and set series to zero
 		virtual void local_ip_series_to_be_cleared();
@@ -508,7 +508,7 @@ class DependentUserData : public UserData<TData, dim>
 		inline void check_s_ip_fct_dof(size_t s, size_t ip, size_t fct, size_t dof) const;
 
 	///	resizes the derivative field when local ip change is signaled
-		virtual void local_ip_series_added(const size_t newNumSeries);
+		virtual void local_ip_series_added(const size_t seriesID);
 
 	///	implement callback, called when local IPs changed
 		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP);

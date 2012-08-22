@@ -69,7 +69,7 @@ size_t IUserData::register_local_ip_series(const MathVector<ldim>* vPos,
 //	linker must himself request local_ip_series from the data inputs of
 //	the linker. In addition value fields and derivative fields must be adjusted
 //	in UserData<TData, dim> etc.
-	local_ip_series_added(m_vNumIP.size());
+	local_ip_series_added(m_vNumIP.size() - 1);
 
 //	return new series id
 	return m_vNumIP.size() - 1;
@@ -145,7 +145,10 @@ const MathVector<ldim>& IUserData::local_ip(size_t s, size_t ip) const
 template <int dim>
 void IDimUserData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP)
 {
-	UG_ASSERT(s < num_series(), "Wrong series id");
+	numIP = numIP +1;
+	numIP = numIP -1;
+
+	UG_ASSERT(s < num_series(), "Wrong series id: "<<s<<" (numSeries: "<<num_series()<<")");
 
 //	check number of ips (must match local ip number)
 	if(numIP != num_ip(s))
@@ -351,33 +354,29 @@ inline void UserData<TData,dim,TRet>::check_series_ip(size_t s, size_t ip) const
 }
 
 template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::local_ip_series_added(const size_t newNumSeries)
+void UserData<TData,dim,TRet>::local_ip_series_added(const size_t seriesID)
 {
-//	find out currently allocated series
-	const size_t numOldSeries = m_vvValue.size();
+	const size_t s = seriesID;
 
 //	check, that only increasing the data, this is important to guarantee,
 //	that the allocated memory pointer remain valid. They are used outside of
 //	the class as well to allow fast access to the data.
-	if(newNumSeries < numOldSeries)
-		UG_THROW("Decrease is not implemented.");
+	if(s < m_vvValue.size())
+		UG_THROW("Decrease is not implemented. Series: "<<s<<
+		         	 	 ", currNumSeries: "<<m_vvValue.size());
 
 //	increase number of series if needed
-	m_vvValue.resize(newNumSeries);
-	m_vvBoolFlag.resize(newNumSeries);
+	m_vvValue.resize(s+1);
+	m_vvBoolFlag.resize(s+1);
 
 //	allocate new storage
-	for(size_t s = numOldSeries; s < m_vvValue.size(); ++s)
-	{
-		m_vvValue[s].resize(num_ip(s));
-		m_vvBoolFlag[s].resize(num_ip(s), true);
-		value_storage_changed(s);
-	}
-
+	m_vvValue[s].resize(num_ip(s));
+	m_vvBoolFlag[s].resize(num_ip(s), true);
+	value_storage_changed(s);
 	call_storage_callback();
 
 //	call base class callback
-	base_type::local_ip_series_added(newNumSeries);
+	base_type::local_ip_series_added(seriesID);
 }
 
 template <typename TData, int dim, typename TRet>
@@ -492,13 +491,13 @@ inline void DependentUserData<TData,dim>::check_s_ip_fct_dof(size_t s, size_t ip
 }
 
 template <typename TData, int dim>
-void DependentUserData<TData,dim>::local_ip_series_added(const size_t newNumSeries)
+void DependentUserData<TData,dim>::local_ip_series_added(const size_t seriesID)
 {
 //	adjust data arrays
-	m_vvvvDeriv.resize(newNumSeries);
+	m_vvvvDeriv.resize(seriesID+1);
 
 //	forward change signal to base class
-	UserData<TData, dim>::local_ip_series_added(newNumSeries);
+	UserData<TData, dim>::local_ip_series_added(seriesID);
 }
 
 template <typename TData, int dim>
