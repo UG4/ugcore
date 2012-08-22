@@ -18,11 +18,10 @@ set(shelltypeDefault "linenoise")
 # In order to avoid build errors, we'll perform some more checks, to determine
 # the best matching shelltype for the given platform.
 #todo: This can be further elaborated...
-find_library(libReadline readline)
-if(NOT libReadline)
+if(NOT UNIX)
 	# set shelltypeDefault to "simple". linenoise most likely wouldn't work, too.
 	set(shelltypeDefault "simple")
-endif(NOT libReadline)
+endif(NOT UNIX)
 
 
 # this option is a pseudo-option, since it uses a string instead of (ON / OFF)
@@ -48,6 +47,7 @@ if("${SHELLTYPE}" STREQUAL "linenoise")
 	set(srcUGShell	${srcUGShell} externals/linenoise/linenoise.cpp)
 	
 elseif("${SHELLTYPE}" STREQUAL "readline")
+	find_library(libReadline readline)
 	if(libReadline)
 		add_definitions(-DUG_USE_READLINE)
 		message(STATUS "Info: Readline is GPL licensed. Do not redistribute the resulting application!")
