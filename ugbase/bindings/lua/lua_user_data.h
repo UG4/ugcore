@@ -186,7 +186,8 @@ class LuaUserFunction
 
 	public:
 	///	constructor
-		LuaUserFunction(const char* luaCallback, size_t numArgs);
+		//LuaUserFunction(const char* luaCallback, size_t numArgs);
+		LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed = false);
 
 	///	destructor frees the reference
 		virtual ~LuaUserFunction();
@@ -243,11 +244,13 @@ class LuaUserFunction
 	///	frees callback-references for derivate callbacks
 		void free_deriv_callback_ref(size_t arg);
 
-	///	evaluates the data
-		void eval_value(TData& out, const std::vector<TDataIn>& dataIn) const;
+	///	evaluates the data at a given point and time
+		void eval_value(TData& out, const std::vector<TDataIn>& dataIn,
+						const MathVector<dim>& x, number time, int si) const;
 
-	///	evaluates the data
-		void eval_deriv(TData& out, const std::vector<TDataIn>& dataIn, size_t arg) const;
+	///	evaluates the data at a given point and time
+		void eval_deriv(TData& out, const std::vector<TDataIn>& dataIn,
+						const MathVector<dim>& x, number time, int si, size_t arg) const;
 
 	protected:
 	///	callback name as string
@@ -263,6 +266,9 @@ class LuaUserFunction
 
 	///	number of arguments to use
 		size_t m_numArgs;
+	
+	/// flag for position and time data
+		bool m_bPosTimeNeed;
 
 	protected:
 	///	data input

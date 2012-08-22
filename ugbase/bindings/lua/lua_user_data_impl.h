@@ -584,7 +584,8 @@ LuaUserDataFactory<TData,dim,TRet>::m_mData = std::map<std::string, std::pair<Lu
 
 template <typename TData, int dim, typename TDataIn>
 LuaUserFunction<TData,dim,TDataIn>::
-LuaUserFunction(const char* luaCallback, size_t numArgs) : m_numArgs(numArgs)
+LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed)
+	: m_numArgs(numArgs), m_bPosTimeNeed(bPosTimeNeed)
 {
 	m_L = ug::script::GetDefaultLuaState();
 	m_cbValueRef = LUA_NOREF;
@@ -733,7 +734,8 @@ void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ..
 
 
 template <typename TData, int dim, typename TDataIn>
-void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vector<TDataIn>& dataIn) const
+void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vector<TDataIn>& dataIn,
+													const MathVector<dim>& x, number time, int si) const
 {
 	UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
 
@@ -747,8 +749,20 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 		lua_traits<TDataIn>::push(m_L, dataIn[i]);
 	}
 
+//	if needed, read additional coordinate, time and subset index arguments and push them to the lua stack
+	if(m_bPosTimeNeed){
+		lua_traits<MathVector<dim> >::push(m_L, x);
+		lua_traits<number>::push(m_L, time);
+		lua_traits<int>::push(m_L, si);
+	}
+
 //	compute total args size
 	size_t argSize = lua_traits<TDataIn>::size * dataIn.size();
+	if(m_bPosTimeNeed){
+		argSize += 	lua_traits<MathVector<dim> >::size
+					+ lua_traits<number>::size
+					+ lua_traits<int>::size;
+	}
 
 //	compute total return size
 	size_t retSize = lua_traits<TData>::size;
@@ -772,7 +786,8 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 
 
 template <typename TData, int dim, typename TDataIn>
-void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vector<TDataIn>& dataIn, size_t arg) const
+void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vector<TDataIn>& dataIn,
+		 	 	 	 	 	 	 	 	 	 	 	 const MathVector<dim>& x, number time, int si, size_t arg) const
 {
 	UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
 	UG_ASSERT(arg < m_numArgs, "Argument does not exist.");
@@ -787,8 +802,20 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 		lua_traits<TDataIn>::push(m_L, dataIn[i]);
 	}
 
+//	if needed, read additional coordinate, time and subset index arguments and push them to the lua stack
+	if(m_bPosTimeNeed){
+		lua_traits<MathVector<dim> >::push(m_L, x);
+		lua_traits<number>::push(m_L, time);
+		lua_traits<int>::push(m_L, si);
+	}
+
 //	compute total args size
 	size_t argSize = lua_traits<TDataIn>::size * dataIn.size();
+	if(m_bPosTimeNeed){
+		argSize += 	lua_traits<MathVector<dim> >::size
+					+ lua_traits<number>::size
+					+ lua_traits<int>::size;
+	}
 
 //	compute total return size
 	size_t retSize = lua_traits<TData>::size;
@@ -825,7 +852,7 @@ evaluate (TData& value,
 		(*m_vpUserData[c])(vDataIn[c], globIP, time, si);
 
 //	evaluate data at ip
-	eval_value(value, vDataIn);
+	eval_value(value, vDataIn, globIP, time, si);
 }
 
 template <typename TData, int dim, typename TDataIn>
@@ -847,7 +874,7 @@ evaluate (TData& value,
 		(*m_vpUserData[c])(vDataIn[c], globIP, time, si, u, elem, vCornerCoords, locIP);
 
 //	evaluate data at ip
-	eval_value(value, vDataIn);
+	eval_value(value, vDataIn, globIP, time, si);
 }
 
 
@@ -874,7 +901,7 @@ evaluate(TData vValue[],
 			(*m_vpUserData[c])(vDataIn[c], vGlobIP[ip], time, si, u, elem, vCornerCoords, vLocIP[ip]);
 
 	//	evaluate data at ip
-		eval_value(vValue[ip], vDataIn);
+		eval_value(vValue[ip], vDataIn, vGlobIP[ip], time, si);
 	}
 }
 
@@ -885,6 +912,9 @@ compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 //	vector of data for all inputs
 	std::vector<TDataIn> vDataIn(this->num_input());
 
+	const number t = this->time();
+	const int si = this->subset();
+
 	for(size_t s = 0; s < this->num_series(); ++s)
 		for(size_t ip = 0; ip < this->num_ip(s); ++ip)
 		{
@@ -893,7 +923,7 @@ compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 				vDataIn[c] = m_vpUserData[c]->value(this->series_id(c,s), ip);
 
 		//	evaluate data at ip
-			eval_value(this->value(s,ip), vDataIn);
+			eval_value(this->value(s,ip), vDataIn, this->ip(s, ip), t, si);
 		}
 
 //	check if derivative is required
@@ -919,7 +949,7 @@ compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 				TData derivVal;
 
 			//	evaluate data at ip
-				eval_deriv(derivVal, vDataIn, c);
+				eval_deriv(derivVal, vDataIn, this->ip(s, ip), t, si, c);
 
 			//	loop functions
 				for(size_t fct = 0; fct < this->input_num_fct(c); ++fct)
