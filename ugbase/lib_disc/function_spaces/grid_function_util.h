@@ -11,7 +11,6 @@
 #include <boost/function.hpp>
 #include "common/util/file_util.h"
 
-#include "./grid_function.h"
 #include "lib_algebra/cpu_algebra/sparsematrix_print.h"
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/debug_writer.h"
@@ -25,24 +24,14 @@
 #include "lib_algebra/common/csv_gnuplot_output.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 
+#include "grid_function.h"
+#include "dof_position_util.h"
+
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
 
 namespace ug {
-
-template<typename TDomain, typename TDD>
-void ExtractPositions(ConstSmartPtr<TDomain> domain, ConstSmartPtr<TDD> dd,
-		std::vector<MathVector<TDomain::dim> >& vPos);
-
-template<typename TFunction>
-void ExtractPositions(const TFunction &u,
-		std::vector<MathVector<TFunction::domain_type::dim> >& vPos) {
-	typedef typename TFunction::domain_type domain_type;
-	typedef typename TFunction::dof_distribution_type dof_distribution_type;
-	ExtractPositions<domain_type, dof_distribution_type>(u.domain(),
-			u.dof_distribution(), vPos);
-}
 
 template<class TFunction>
 void WriteMatrixToConnectionViewer(const char *filename,

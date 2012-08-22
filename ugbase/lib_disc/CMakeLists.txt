@@ -27,7 +27,7 @@ set(srcDiscretization	domain_util.cpp
 						dof_manager/managing_dof_distribution.cpp
 
                         function_spaces/approximation_space.cpp
-                        function_spaces/grid_function_util.cpp
+                        function_spaces/dof_position_util.cpp
                         function_spaces/grid_function.cpp
 
                         io/vtkoutput.cpp

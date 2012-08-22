@@ -1,11 +1,11 @@
 /*
- * grid_function_util.cpp
+ * dof_position_util.cpp
  *
  *  Created on: 11.01.2012
  *      Author: andreasvogel
  */
 
-#include "grid_function_util.h"
+#include "dof_position_util.h"
 #include "grid_function_impl.h"
 #include "approximation_space.h"
 #include "lib_disc/domain.h"
@@ -73,27 +73,27 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 		iter = dd->template begin<TBaseElem>(si);
 		iterEnd = dd->template end<TBaseElem>(si);
 
-	//	loop all functions
-		for(size_t fct = 0; fct < dd->num_fct(); ++fct)
+	//	loop all elements
+		for(;iter != iterEnd; ++iter)
 		{
-		//	skip non-used function
-			if(!dd->is_def_in_subset(fct,si)) continue;
+		//	get vertex
+			TBaseElem* elem = *iter;
 
-			if(dd->function_pattern().dim(fct) != TBaseElem::dim)
-				continue;
-
-		//	loop all elements
-			for(;iter != iterEnd; ++iter)
+		//	loop all functions
+			for(size_t fct = 0; fct < dd->num_fct(); ++fct)
 			{
-			//	get vertex
-				TBaseElem* elem = *iter;
+			//	skip non-used function
+				if(!dd->is_def_in_subset(fct,si)) continue;
+
+	//			if(dd->function_pattern().dim(fct) != TBaseElem::dim)
+	//				continue;
 
 			//	load indices associated with element function
-				dd->multi_indices(elem, fct, ind);
+				dd->inner_multi_indices(elem, fct, ind);
 
 			//	load positions associated with element and function
-				DoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),
-				            dd->local_finite_element_id(fct), dd->dim(fct));
+				InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),
+				                 dd->local_finite_element_id(fct), dd->dim(fct));
 
 			//	check correct size
 				UG_ASSERT(ind.size() == vElemPos.size(), "Num MultiIndex ("<<ind.size()
@@ -123,10 +123,10 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
 	vPos.resize(nr);
 
 //	extract for all element types
-	ExtractPositionsVertex<TDomain, TDD>(domain, dd, vPos);
-	ExtractPositionsElem<TDomain, TDD, EdgeBase>(domain, dd, vPos);
-	ExtractPositionsElem<TDomain, TDD, Face>(domain, dd, vPos);
-	ExtractPositionsElem<TDomain, TDD, Volume>(domain, dd, vPos);
+	if(dd->max_dofs(VERTEX)) ExtractPositionsVertex<TDomain, TDD>(domain, dd, vPos);
+	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, TDD, EdgeBase>(domain, dd, vPos);
+	if(dd->max_dofs(FACE)) ExtractPositionsElem<TDomain, TDD, Face>(domain, dd, vPos);
+	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, TDD, Volume>(domain, dd, vPos);
 }
 
 template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<LevelDoFDistribution> dd, std::vector<MathVector<Domain1d::dim> >& vPos);
