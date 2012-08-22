@@ -314,26 +314,26 @@ class MGDoFDistribution : public GridObserver
 		template<typename TBaseElem>
 		void indices_on_vertex(TBaseElem* elem, const ReferenceObjectID roid,
 		                       LocalIndices& ind,
-		                       const std::vector<VertexBase*>& vElem) const;
+		                       const Grid::SecureVertexContainer& vElem) const;
 
 		///	extract dofs on constrained objects
 		template <typename TConstraining, typename TConstrained, typename TBaseElem>
 		void constrained_indices(LocalIndices& ind,
-		                         const std::vector<TBaseElem*>& vSubElem) const;
+		                         const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const;
 
 		/// extracts the indices of the subelement of an element
 		template<typename TBaseElem, typename TSubBaseElem>
 		void indices(TBaseElem* elem, const ReferenceObjectID roid,
 		             LocalIndices& ind,
-		             const std::vector<TSubBaseElem*>& vElem,
-		             const std::vector<VertexBase*>& vCorner) const;
+		             const typename Grid::traits<TSubBaseElem>::secure_container& vElem,
+		             const Grid::SecureVertexContainer& vCorner) const;
 
 		/// extracts the indices of a subelement of an element
 		template<typename TBaseElem, typename TSubBaseElem>
 		void multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 		                   size_t fct, std::vector<multi_index_type>& ind,
-		                   const std::vector<TSubBaseElem*>& vElem,
-		                   const std::vector<VertexBase*>& vCorner, bool bHang) const;
+		                   const typename Grid::traits<TSubBaseElem>::secure_container& vElem,
+		                   const Grid::SecureVertexContainer& vCorner, bool bHang) const;
 
 
 		/// adds all algebra indices of an geom object to the LocalIndices
@@ -343,7 +343,7 @@ class MGDoFDistribution : public GridObserver
 
 		///	adds all algebra indices of a set of geometric objects
 		template<typename TBaseElem>
-		void extract_inner_algebra_indices(const std::vector<TBaseElem*>& vElem,
+		void extract_inner_algebra_indices(const typename Grid::traits<TBaseElem>::secure_container& vElem,
 		                                   std::vector<size_t>& ind) const;
 
 	protected:

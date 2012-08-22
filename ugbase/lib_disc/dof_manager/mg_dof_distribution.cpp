@@ -27,7 +27,7 @@ template <typename TBaseElem>
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset, const size_t p,
                               const ReferenceElement& rRefElem,
                               const size_t nrEdge, const size_t numDoFsOnSub,
-                              const std::vector<VertexBase*>& vCorner)
+                              const Grid::SecureVertexContainer& vCorner)
 {}
 
 
@@ -56,7 +56,7 @@ void ComputeOrientationOffset<EdgeBase>
 (std::vector<size_t>& vOrientOffset, const size_t p,
  const ReferenceElement& rRefElem,
  const size_t nrEdge, const size_t numDoFsOnSub,
- const std::vector<VertexBase*>& vCorner)
+ const Grid::SecureVertexContainer& vCorner)
 {
 //	check
 	UG_ASSERT(p-1 == numDoFsOnSub, "Wrong number of dofs on sub");
@@ -176,7 +176,7 @@ void ComputeOrientationOffset<Face>
 (std::vector<size_t>& vOrientOffset, const size_t p,
  const ReferenceElement& rRefElem,
  const size_t nrFace, const size_t numDoFsOnSub,
- const std::vector<VertexBase*>& vCorner)
+ const Grid::SecureVertexContainer& vCorner)
 {
 //	should only be called for p > 2, since else no orientation needed
 	UG_ASSERT(p > 2, "Orientation only needed for p > 2, but given p="<<p);
@@ -545,7 +545,7 @@ extract_inner_algebra_indices(TBaseElem* elem,
 
 template<typename TBaseElem>
 void MGDoFDistribution::
-extract_inner_algebra_indices(const std::vector<TBaseElem*>& vElem,
+extract_inner_algebra_indices(const typename Grid::traits<TBaseElem>::secure_container& vElem,
                               std::vector<size_t>& ind) const
 {
 //	loop passed elements
@@ -579,26 +579,27 @@ size_t MGDoFDistribution::algebra_indices(TBaseElem* elem,
 //	get all sub-elements and add indices on those
 	if(max_dofs(VERTEX) > 0)
 	{
-		std::vector<VertexBase*> vElem;
-		CollectVertices(vElem, m_rMultiGrid, elem);
+		//std::vector<VertexBase*> vElem;
+		Grid::SecureVertexContainer vElem;
+		m_rMultiGrid.associated_elements(vElem, elem);		
 		extract_inner_algebra_indices<VertexBase>(vElem, ind);
 	}
 	if(dim >= EDGE && max_dofs(EDGE) > 0)
 	{
-		std::vector<EdgeBase*> vElem;
-		CollectEdges(vElem, m_rMultiGrid, elem);
+		Grid::SecureEdgeContainer vElem;
+		m_rMultiGrid.associated_elements(vElem, elem);
 		extract_inner_algebra_indices<EdgeBase>(vElem, ind);
 	}
 	if(dim >= FACE && max_dofs(FACE) > 0)
 	{
-		std::vector<Face*> vElem;
-		CollectFaces(vElem, m_rMultiGrid, elem);
+		Grid::SecureFaceContainer vElem;
+		m_rMultiGrid.associated_elements(vElem, elem);
 		extract_inner_algebra_indices<Face>(vElem, ind);
 	}
 	if(dim >= VOLUME && max_dofs(VOLUME) > 0)
 	{
-		std::vector<Volume*> vElem;
-		CollectVolumes(vElem, m_rMultiGrid, elem);
+		Grid::SecureVolumeContainer vElem;
+		m_rMultiGrid.associated_elements(vElem, elem);
 		extract_inner_algebra_indices<Volume>(vElem, ind);
 	}
 
@@ -610,8 +611,8 @@ template<typename TBaseElem, typename TSubBaseElem>
 void MGDoFDistribution::
 multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
               size_t fct, std::vector<multi_index_type>& ind,
-              const std::vector<TSubBaseElem*>& vElem,
-              const std::vector<VertexBase*>& vCorner, bool bHang) const
+              const typename Grid::traits<TSubBaseElem>::secure_container& vElem,
+              const Grid::SecureVertexContainer& vCorner, bool bHang) const
 {
 //	get dimension of subelement
 	static const int d = TSubBaseElem::dim;
@@ -723,9 +724,8 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 	if(d <= m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
 	{
 	//	get corners
-		std::vector<VertexBase*> vCorner;
-		CollectVertices(vCorner, m_rMultiGrid, elem);
-
+		Grid::SecureVertexContainer vCorner;
+		m_rMultiGrid.associated_elements(vCorner, elem);
 	//	get the orientation for this
 		std::vector<size_t> vOrientOffset(numDoFsOnSub);
 		ComputeOrientationOffset<TBaseElem>
@@ -792,29 +792,28 @@ size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
 	const ReferenceObjectID roid = elem->reference_object_id();
 
 //	get all sub-elements and add indices on those
-	std::vector<VertexBase*> vCorner;
-	CollectVertices(vCorner, m_rMultiGrid, elem);
-
+	Grid::SecureVertexContainer vCorner;
+	m_rMultiGrid.associated_elements_sorted(vCorner, elem);
 	if(max_dofs(VERTEX) > 0)
 	{
 		multi_indices<TBaseElem, VertexBase>(elem, roid, fct, ind, vCorner, vCorner, bHang);
 	}
 	if(dim >= EDGE && max_dofs(EDGE) > 0)
 	{
-		std::vector<EdgeBase*> vElem;
-		CollectEdgesSorted(vElem, m_rMultiGrid, elem);
+		Grid::SecureEdgeContainer vElem;
+		m_rMultiGrid.associated_elements_sorted(vElem, elem);
 		multi_indices<TBaseElem, EdgeBase>(elem, roid, fct, ind, vElem, vCorner, bHang);
 	}
 	if(dim >= FACE && max_dofs(FACE) > 0)
 	{
-		std::vector<Face*> vElem;
-		CollectFacesSorted(vElem, m_rMultiGrid, elem);
+		Grid::SecureFaceContainer vElem;
+		m_rMultiGrid.associated_elements_sorted(vElem, elem);
 		multi_indices<TBaseElem, Face>(elem, roid, fct, ind, vElem, vCorner, bHang);
 	}
 	if(dim >= VOLUME && max_dofs(VOLUME) > 0)
 	{
-		std::vector<Volume*> vElem;
-		CollectVolumes(vElem, m_rMultiGrid, elem);
+		Grid::SecureVolumeContainer vElem;
+		m_rMultiGrid.associated_elements_sorted(vElem, elem);
 		multi_indices<TBaseElem, Volume>(elem, roid, fct, ind, vElem, vCorner, bHang);
 	}
 
@@ -831,7 +830,7 @@ size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
 template<typename TBaseElem>
 void MGDoFDistribution::indices_on_vertex(TBaseElem* elem, const ReferenceObjectID roid,
                                           LocalIndices& ind,
-                                          const std::vector<VertexBase*>& vElem) const
+                                          const Grid::SecureVertexContainer& vElem) const
 {
 //	get reference object id for subelement
 	static const ReferenceObjectID subRoid = ROID_VERTEX;
@@ -879,8 +878,8 @@ void MGDoFDistribution::indices_on_vertex(TBaseElem* elem, const ReferenceObject
 template<typename TBaseElem, typename TSubBaseElem>
 void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
                                 LocalIndices& ind,
-                                const std::vector<TSubBaseElem*>& vElem,
-                                const std::vector<VertexBase*>& vCorner) const
+                                const typename Grid::traits<TSubBaseElem>::secure_container& vElem,
+                                const Grid::SecureVertexContainer& vCorner) const
 {
 //	dimension of subelement
 	static const int d = TSubBaseElem::dim;
@@ -975,7 +974,7 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 template <typename TConstraining, typename TConstrained, typename TBaseElem>
 void MGDoFDistribution::
 constrained_indices(LocalIndices& ind,
-                    const std::vector<TBaseElem*>& vSubElem) const
+                    const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const
 {
 //	loop all edges
 	for(size_t i = 0; i < vSubElem.size(); ++i)
@@ -1042,21 +1041,21 @@ void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) 
 	for(size_t fct = 0; fct < num_fct(); ++fct) ind.clear_dof(fct);
 
 //	get all sub-elements and add indices on those
-	std::vector<VertexBase*> vCorner;
-	CollectVertices(vCorner, m_rMultiGrid, elem);
+	Grid::SecureVertexContainer vCorner;
+	m_rMultiGrid.associated_elements_sorted(vCorner, elem);
 
-//	memory for (maybe needed) subelements
-	std::vector<EdgeBase*> vEdge;
-	std::vector<Face*> vFace;
-	std::vector<Volume*> vVol;
+//	storage for (maybe needed) subelements
+	Grid::SecureEdgeContainer vEdge;
+	Grid::SecureFaceContainer vFace;
+	Grid::SecureVolumeContainer vVol;
 
 //	collect elements, if needed
 	if(dim >= EDGE)
-		if(max_dofs(EDGE) > 0 || bHang) CollectEdgesSorted(vEdge, m_rMultiGrid, elem);
+		if(max_dofs(EDGE) > 0 || bHang) m_rMultiGrid.associated_elements_sorted(vEdge, elem);
 	if(dim >= FACE)
-		if(max_dofs(FACE) > 0 || bHang) CollectFacesSorted(vFace, m_rMultiGrid, elem);
+		if(max_dofs(FACE) > 0 || bHang) m_rMultiGrid.associated_elements_sorted(vFace, elem);
 	if(dim >= VOLUME)
-		if(max_dofs(VOLUME) > 0 || bHang) CollectVolumes(vVol, m_rMultiGrid, elem);
+		if(max_dofs(VOLUME) > 0 || bHang) m_rMultiGrid.associated_elements_sorted(vVol, elem);
 
 //	get reference object id
 	const ReferenceObjectID roid = elem->reference_object_id();

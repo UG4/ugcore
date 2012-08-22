@@ -2569,22 +2569,22 @@ bool Grid::replace_vertex_is_valid(VertexBase* vrtOld, VertexBase* vrtNew)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED VERTICES
-void Grid::get_associated(AssociatedVertices& vrts, VertexBase* v)
+void Grid::get_associated(SecureVertexContainer& vrts, VertexBase* v)
 {
 	vrts.set_external_array(&v, 1);
 }
 
-void Grid::get_associated(AssociatedVertices& vrts, EdgeBase* e)
+void Grid::get_associated(SecureVertexContainer& vrts, EdgeBase* e)
 {
 	vrts.set_external_array(e->vertices(), e->num_vertices());
 }
 
-void Grid::get_associated(AssociatedVertices& vrts, Face* f)
+void Grid::get_associated(SecureVertexContainer& vrts, Face* f)
 {
 	vrts.set_external_array(f->vertices(), f->num_vertices());
 }
 
-void Grid::get_associated(AssociatedVertices& vrts, Volume* v)
+void Grid::get_associated(SecureVertexContainer& vrts, Volume* v)
 {
 	vrts.set_external_array(v->vertices(), v->num_vertices());
 }
@@ -2592,7 +2592,7 @@ void Grid::get_associated(AssociatedVertices& vrts, Volume* v)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED EDGES
-void Grid::get_associated(AssociatedEdges& edges, VertexBase* v)
+void Grid::get_associated(SecureEdgeContainer& edges, VertexBase* v)
 {
 //	Without the VRTOPT_STORE_ASSOCIATED_... option, this operation would have
 //	complexity O(n). This has to be avoided! We thus simply enable the option.
@@ -2615,12 +2615,12 @@ void Grid::get_associated(AssociatedEdges& edges, VertexBase* v)
 		edges.set_external_array(&assEdges.front(), assEdges.size());
 }
 
-void Grid::get_associated(AssociatedEdges& edges, EdgeBase* e)
+void Grid::get_associated(SecureEdgeContainer& edges, EdgeBase* e)
 {
 	edges.set_external_array(&e, 1);
 }
 
-void Grid::get_associated(AssociatedEdges& edges, Face* f)
+void Grid::get_associated(SecureEdgeContainer& edges, Face* f)
 {
 //	to improve performance, we first check the grid options.
 	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
@@ -2650,7 +2650,7 @@ void Grid::get_associated(AssociatedEdges& edges, Face* f)
 	}
 }
 
-void Grid::get_associated(AssociatedEdges& edges, Volume* v)
+void Grid::get_associated(SecureEdgeContainer& edges, Volume* v)
 {
 //	to improve performance, we first check the grid options.
 	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
@@ -2683,7 +2683,7 @@ void Grid::get_associated(AssociatedEdges& edges, Volume* v)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED FACES
-void Grid::get_associated(AssociatedFaces& faces, VertexBase* v)
+void Grid::get_associated(SecureFaceContainer& faces, VertexBase* v)
 {
 //	Without the VRTOPT_STORE_ASSOCIATED_... option, this operation would have
 //	complexity O(n). This has to be avoided! We thus simply enable the option.
@@ -2706,7 +2706,7 @@ void Grid::get_associated(AssociatedFaces& faces, VertexBase* v)
 		faces.set_external_array(&assFaces.front(), assFaces.size());
 }
 
-void Grid::get_associated(AssociatedFaces& faces, EdgeBase* e)
+void Grid::get_associated(SecureFaceContainer& faces, EdgeBase* e)
 {
 //	best option: EDGEOPT_STORE_ASSOCIATED_FACES
 	if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES)){
@@ -2751,12 +2751,12 @@ void Grid::get_associated(AssociatedFaces& faces, EdgeBase* e)
 	}
 }
 
-void Grid::get_associated(AssociatedFaces& faces, Face* f)
+void Grid::get_associated(SecureFaceContainer& faces, Face* f)
 {
 	faces.set_external_array(&f, 1);
 }
 
-void Grid::get_associated(AssociatedFaces& faces, Volume* v)
+void Grid::get_associated(SecureFaceContainer& faces, Volume* v)
 {
 //	to improve performance, we first check the grid options.
 	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
@@ -2789,7 +2789,7 @@ void Grid::get_associated(AssociatedFaces& faces, Volume* v)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED VOLUMES
-void Grid::get_associated(AssociatedVolumes& vols, VertexBase* v)
+void Grid::get_associated(SecureVolumeContainer& vols, VertexBase* v)
 {
 //	Without the VRTOPT_STORE_ASSOCIATED_... option, this operation would have
 //	complexity O(n). This has to be avoided! We thus simply enable the option.
@@ -2812,7 +2812,7 @@ void Grid::get_associated(AssociatedVolumes& vols, VertexBase* v)
 		vols.set_external_array(&assVols.front(), assVols.size());
 }
 
-void Grid::get_associated(AssociatedVolumes& vols, EdgeBase* e)
+void Grid::get_associated(SecureVolumeContainer& vols, EdgeBase* e)
 {
 //	best option: EDGEOPT_STORE_ASSOCIATED_VOLUMES
 	if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES)){
@@ -2857,7 +2857,7 @@ void Grid::get_associated(AssociatedVolumes& vols, EdgeBase* e)
 	}
 }
 
-void Grid::get_associated(AssociatedVolumes& vols, Face* f)
+void Grid::get_associated(SecureVolumeContainer& vols, Face* f)
 {
 //	best option: FACEOPT_STORE_ASSOCIATED_VOLUMES
 	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES)){
@@ -2872,7 +2872,7 @@ void Grid::get_associated(AssociatedVolumes& vols, Face* f)
 		get_associated_vols_raw(vols, f);
 }
 
-void Grid::get_associated_vols_raw(AssociatedVolumes& vols, Face* f)
+void Grid::get_associated_vols_raw(SecureVolumeContainer& vols, Face* f)
 {
 
 //	iterate through all volumes associated with the first corner of f
@@ -2905,7 +2905,7 @@ void Grid::get_associated_vols_raw(AssociatedVolumes& vols, Face* f)
 	}
 }
 
-void Grid::get_associated(AssociatedVolumes& vols, Volume* v)
+void Grid::get_associated(SecureVolumeContainer& vols, Volume* v)
 {
 	vols.set_external_array(&v, 1);
 }
@@ -2913,23 +2913,28 @@ void Grid::get_associated(AssociatedVolumes& vols, Volume* v)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED SORTED
-void Grid::get_associated_sorted(AssociatedVertices& vrts, EdgeBase* e) const
+void Grid::get_associated_sorted(SecureVertexContainer& vrts, EdgeBase* e) const
 {
 	vrts.set_external_array(e->vertices(), e->num_vertices());
 }
 
-void Grid::get_associated_sorted(AssociatedVertices& vrts, Face* f) const
+void Grid::get_associated_sorted(SecureVertexContainer& vrts, Face* f) const
 {
 	vrts.set_external_array(f->vertices(), f->num_vertices());
 }
 
-void Grid::get_associated_sorted(AssociatedVertices& vrts, Volume* v) const
+void Grid::get_associated_sorted(SecureVertexContainer& vrts, Volume* v) const
 {
 	vrts.set_external_array(v->vertices(), v->num_vertices());
 }
 
 
-void Grid::get_associated_sorted(AssociatedEdges& edges, Face* f)
+void Grid::get_associated_sorted(SecureEdgeContainer& edges, VertexBase*)
+{
+	edges.set_external_array(NULL, 0);
+}
+
+void Grid::get_associated_sorted(SecureEdgeContainer& edges, Face* f)
 {
 //	to improve performance, we first check the grid options.
 	if(option_is_enabled(FACEOPT_AUTOGENERATE_EDGES
@@ -2957,7 +2962,7 @@ void Grid::get_associated_sorted(AssociatedEdges& edges, Face* f)
 	}
 }
 
-void Grid::get_associated_sorted(AssociatedEdges& edges, Volume* v)
+void Grid::get_associated_sorted(SecureEdgeContainer& edges, Volume* v)
 {
 //	to improve performance, we first check the grid options.
 	if(option_is_enabled(VOLOPT_AUTOGENERATE_EDGES
@@ -2988,8 +2993,17 @@ void Grid::get_associated_sorted(AssociatedEdges& edges, Volume* v)
 	}
 }
 
+void Grid::get_associated_sorted(SecureFaceContainer& faces, VertexBase*)
+{
+	faces.set_external_array(NULL, 0);
+}
 
-void Grid::get_associated_sorted(AssociatedFaces& faces, Volume* v)
+void Grid::get_associated_sorted(SecureFaceContainer& faces, EdgeBase*)
+{
+	faces.set_external_array(NULL, 0);
+}
+
+void Grid::get_associated_sorted(SecureFaceContainer& faces, Volume* v)
 {
 //	to improve performance, we first check the grid options.
 	if(option_is_enabled(VOLOPT_AUTOGENERATE_FACES
@@ -3017,5 +3031,19 @@ void Grid::get_associated_sorted(AssociatedFaces& faces, Volume* v)
 	}
 }
 
+void Grid::get_associated_sorted(SecureVolumeContainer& vols, VertexBase*)
+{
+	vols.set_external_array(NULL, 0);
+}
+
+void Grid::get_associated_sorted(SecureVolumeContainer& vols, EdgeBase*)
+{
+	vols.set_external_array(NULL, 0);
+}
+
+void Grid::get_associated_sorted(SecureVolumeContainer& vols, Face*)
+{
+	vols.set_external_array(NULL, 0);
+}
 
 }	//	end of namespace

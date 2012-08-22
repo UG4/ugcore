@@ -403,15 +403,59 @@ void Grid::unmark(TIterator begin, TIterator end)
 
 ////////////////////////////////////////////////////////////////////////
 template <class TElem>
-void Grid::get_associated_sorted(typename traits<TElem>::container& elems, TElem* e)
+void Grid::associated_elements(traits<VertexBase>::secure_container& elemsOut, TElem* e)
 {
-	elems.set_external_array(&e, 1);
+	get_associated(elemsOut, e);
 }
 
-template <class TAss, class TElem>
-void Grid::get_associated_sorted(typename traits<TAss>::container& elems, TElem* e)
+template <class TElem>
+void Grid::associated_elements(traits<EdgeBase>::secure_container& elemsOut, TElem* e)
 {
-	elems.set_external_array(NULL, 0);
+	get_associated(elemsOut, e);
+}
+
+template <class TElem>
+void Grid::associated_elements(traits<Face>::secure_container& elemsOut, TElem* e)
+{
+	get_associated(elemsOut, e);
+}
+
+template <class TElem>
+void Grid::associated_elements(traits<Volume>::secure_container& elemsOut, TElem* e)
+{
+	get_associated(elemsOut, e);
+}
+
+
+template <class TElem>
+void Grid::associated_elements_sorted(traits<VertexBase>::secure_container& elemsOut, TElem* e)
+{
+	get_associated_sorted(elemsOut, e);
+}
+
+template <class TElem>
+void Grid::associated_elements_sorted(traits<EdgeBase>::secure_container& elemsOut, TElem* e)
+{
+	get_associated_sorted(elemsOut, e);
+}
+
+template <class TElem>
+void Grid::associated_elements_sorted(traits<Face>::secure_container& elemsOut, TElem* e)
+{
+	get_associated_sorted(elemsOut, e);
+}
+
+template <class TElem>
+void Grid::associated_elements_sorted(traits<Volume>::secure_container& elemsOut, TElem* e)
+{
+	get_associated_sorted(elemsOut, e);
+}
+
+
+template <class TElem>
+void Grid::get_associated_sorted(typename traits<TElem>::secure_container& elems, TElem* e)
+{
+	elems.set_external_array(&e, 1);
 }
 
 

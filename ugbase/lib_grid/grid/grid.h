@@ -99,17 +99,17 @@ class UG_API Grid
 			typedef typename geometry_traits<TElem>::iterator		iterator;
 			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
 
-			typedef PointerConstArray<TElem*>						container;
+			typedef PointerConstArray<TElem*>						secure_container;
 		};
 
 	///	Container to store associated vertices.
-		typedef PointerConstArray<VertexBase*>	AssociatedVertices;
+		typedef traits<VertexBase>::secure_container	SecureVertexContainer;
 	///	Container to store associated edges.
-		typedef PointerConstArray<EdgeBase*>	AssociatedEdges;
+		typedef traits<EdgeBase>::secure_container		SecureEdgeContainer;
 	///	Container to store associated faces.
-		typedef PointerConstArray<Face*>		AssociatedFaces;
+		typedef traits<Face>::secure_container			SecureFaceContainer;
 	///	Container to store associated volumes.
-		typedef PointerConstArray<Volume*>		AssociatedVolumes;
+		typedef traits<Volume>::secure_container		SecureVolumeContainer;
 
 	///	the attachment-pipe used by Grid
 		typedef ug::AttachmentPipe<VertexBase*, VertexElementStorage>	VertexAttachmentPipe;
@@ -553,20 +553,28 @@ class UG_API Grid
 	 * 			Those are typedefs for Grid::traits<VertexBase>::container, ...
 	 *
 	 * \note	Depending on the current grid options, this method may use Grid::mark.
-	 * Valid arguments for TAss and TElem are VertexBase, EdgeBase, Face, Volume.
-	 * \sa Grid::associated_elements_sorted*/
-		template <class TAss, class TElem>
-		void associated_elements(typename traits<TAss>::container& elemsOut,
-								 TElem* e);
-
+	 * Valid arguments for TElem are VertexBase, EdgeBase, Face, Volume.
+	 * \sa Grid::associated_elements_sorted
+	 * \{ */
+		template <class TElem>
+		void associated_elements(traits<VertexBase>::secure_container& elemsOut, TElem* e);
+		template <class TElem>
+		void associated_elements(traits<EdgeBase>::secure_container& elemsOut, TElem* e);
+		template <class TElem>
+		void associated_elements(traits<Face>::secure_container& elemsOut, TElem* e);
+		template <class TElem>
+		void associated_elements(traits<Volume>::secure_container& elemsOut, TElem* e);
+	/** \} */
+	
 	///	Puts all elements of type TAss which are contained in 'e' into elemsOut in the reference elements order
 	/**	The order of elements in elemsOut is the same as the order in the reference element.
 	 * Note that, depending on active grid options, this method may take more
 	 * time than associated_elements, and should thus only be invoked, if the order
 	 * of elements matters. Use Grid::associated_elements if the order does not matter.
 	 *
-	 * Valid arguments for TElem and TAss are VertexBase, EdgeBase, Face, Volume.
-	 * However, only associated elements of lower dimension can be sorted. The method
+	 * Valid arguments for TElem are VertexBase, EdgeBase, Face, Volume.
+	 * Let TAss be the type of queried elements in elemsOut.
+	 * Only associated elements of lower dimension can be sorted. The method
 	 * thus behaves as follows:
 	 * 	TAss::dim < TElem::dim	->	associated elements are written to 'elemsOut'
 	 * 								with the same order as in the reference element
@@ -583,9 +591,14 @@ class UG_API Grid
 	 *
 	 * \note	Depending on the current grid options, this method may use Grid::mark.
 	 * \sa Grid::associated_elements*/
-		template <class TAss, class TElem>
-		void associated_elements_sorted(typename traits<TAss>::container& elemsOut,
-										TElem* e);
+		template <class TElem>
+		void associated_elements_sorted(traits<VertexBase>::secure_container& elemsOut, TElem* e);
+		template <class TElem>
+		void associated_elements_sorted(traits<EdgeBase>::secure_container& elemsOut, TElem* e);
+		template <class TElem>
+		void associated_elements_sorted(traits<Face>::secure_container& elemsOut, TElem* e);
+		template <class TElem>
+		void associated_elements_sorted(traits<Volume>::secure_container& elemsOut, TElem* e);
 
 
 	////////////////////////////////////////////////
@@ -910,44 +923,48 @@ class UG_API Grid
 												VolumeVertices& vv);
 
 	//	get associated elements
-		void get_associated(AssociatedVertices& vrts, VertexBase* v);
-		void get_associated(AssociatedVertices& vrts, EdgeBase* e);
-		void get_associated(AssociatedVertices& vrts, Face* f);
-		void get_associated(AssociatedVertices& vrts, Volume* v);
+		void get_associated(SecureVertexContainer& vrts, VertexBase* v);
+		void get_associated(SecureVertexContainer& vrts, EdgeBase* e);
+		void get_associated(SecureVertexContainer& vrts, Face* f);
+		void get_associated(SecureVertexContainer& vrts, Volume* v);
 
-		void get_associated(AssociatedEdges& edges, VertexBase* v);
-		void get_associated(AssociatedEdges& edges, EdgeBase* e);
-		void get_associated(AssociatedEdges& edges, Face* f);
-		void get_associated(AssociatedEdges& edges, Volume* v);
+		void get_associated(SecureEdgeContainer& edges, VertexBase* v);
+		void get_associated(SecureEdgeContainer& edges, EdgeBase* e);
+		void get_associated(SecureEdgeContainer& edges, Face* f);
+		void get_associated(SecureEdgeContainer& edges, Volume* v);
 
-		void get_associated(AssociatedFaces& faces, VertexBase* v);
-		void get_associated(AssociatedFaces& faces, EdgeBase* e);
-		void get_associated(AssociatedFaces& faces, Face* f);
-		void get_associated(AssociatedFaces& faces, Volume* v);
+		void get_associated(SecureFaceContainer& faces, VertexBase* v);
+		void get_associated(SecureFaceContainer& faces, EdgeBase* e);
+		void get_associated(SecureFaceContainer& faces, Face* f);
+		void get_associated(SecureFaceContainer& faces, Volume* v);
 
-		void get_associated(AssociatedVolumes& vols, VertexBase* v);
-		void get_associated(AssociatedVolumes& vols, EdgeBase* e);
-		void get_associated(AssociatedVolumes& vols, Face* f);
-		void get_associated(AssociatedVolumes& vols, Volume* v);
+		void get_associated(SecureVolumeContainer& vols, VertexBase* v);
+		void get_associated(SecureVolumeContainer& vols, EdgeBase* e);
+		void get_associated(SecureVolumeContainer& vols, Face* f);
+		void get_associated(SecureVolumeContainer& vols, Volume* v);
+		
 	/**	this method does not use possibly attached containers and can thus
 	 * be used, when such containers are to be built.*/
-		void get_associated_vols_raw(AssociatedVolumes& vols, Face* f);
+		void get_associated_vols_raw(SecureVolumeContainer& vols, Face* f);
+
+		void get_associated_sorted(SecureVertexContainer& vrts, EdgeBase* e) const;
+		void get_associated_sorted(SecureVertexContainer& vrts, Face* f) const;
+		void get_associated_sorted(SecureVertexContainer& vrts, Volume* v) const;
+
+		void get_associated_sorted(SecureEdgeContainer& edges, VertexBase* v);
+		void get_associated_sorted(SecureEdgeContainer& edges, Face* f);
+		void get_associated_sorted(SecureEdgeContainer& edges, Volume* v);
+
+		void get_associated_sorted(SecureFaceContainer& faces, VertexBase* v);
+		void get_associated_sorted(SecureFaceContainer& faces, EdgeBase* e);
+		void get_associated_sorted(SecureFaceContainer& faces, Volume* v);
+		
+		void get_associated_sorted(SecureVolumeContainer& vols, VertexBase* v);
+		void get_associated_sorted(SecureVolumeContainer& vols, EdgeBase* e);
+		void get_associated_sorted(SecureVolumeContainer& vols, Face* f);
 
 		template <class TElem>
-		void get_associated_sorted(typename traits<TElem>::container& elems, TElem* e);
-
-		template <class TAss, class TElem>
-		void get_associated_sorted(typename traits<TAss>::container& elems, TElem* e);
-
-		void get_associated_sorted(AssociatedVertices& vrts, EdgeBase* e) const;
-		void get_associated_sorted(AssociatedVertices& vrts, Face* f) const;
-		void get_associated_sorted(AssociatedVertices& vrts, Volume* v) const;
-
-		void get_associated_sorted(AssociatedEdges& edges, Face* f);
-		void get_associated_sorted(AssociatedEdges& edges, Volume* v);
-
-		void get_associated_sorted(AssociatedFaces& faces, Volume* v);
-
+		void get_associated_sorted(typename traits<TElem>::secure_container& elems, TElem* e);
 
 
 	///	helps in copying attachment pipes during assign_grid

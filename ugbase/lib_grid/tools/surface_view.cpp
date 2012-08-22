@@ -14,8 +14,8 @@ template <class TElem, class TSideElem>
 void MarkAssociated(BoolMarker& boolMarker)
 {
 	typedef typename geometry_traits<TElem>::const_iterator iterator;
-
-	std::vector<TSideElem*> vSide;
+	
+	typename Grid::traits<TSideElem>::secure_container sides;
 	Grid& grid = *boolMarker.grid();
 
 	iterator iterEnd = grid.end<TElem>();
@@ -24,10 +24,10 @@ void MarkAssociated(BoolMarker& boolMarker)
 		TElem* elem = *iter;
 		if(!boolMarker.is_marked(elem)) continue;
 
-		CollectAssociated(vSide, *boolMarker.grid(), elem);
-
-		for(size_t i = 0; i < vSide.size(); ++i)
-			boolMarker.mark(vSide[i]);
+		grid.associated_elements(sides, elem);
+		
+		for(size_t i = 0; i < sides.size(); ++i)
+			boolMarker.mark(sides[i]);
 	}
 }
 
@@ -72,7 +72,8 @@ void MarkAssociatedSides(BoolMarker& boolMarker)
 {
 	typedef typename geometry_traits<TElem>::const_iterator iterator;
 	typedef typename TElem::lower_dim_base_object Side;
-	std::vector<Side*> vSides;
+
+	typename Grid::traits<Side>::secure_container sides;
 	Grid& grid = *boolMarker.grid();
 
 	iterator iterEnd = grid.end<TElem>();
@@ -81,10 +82,10 @@ void MarkAssociatedSides(BoolMarker& boolMarker)
 		TElem* elem = *iter;
 		if(!boolMarker.is_marked(elem)) continue;
 
-		CollectAssociated(vSides, grid, elem);
+		grid.associated_elements(sides, elem);
 
-		for(size_t i = 0; i < vSides.size(); ++i)
-			boolMarker.mark(vSides[i]);
+		for(size_t i = 0; i < sides.size(); ++i)
+			boolMarker.mark(sides[i]);
 	}
 }
 
@@ -179,11 +180,11 @@ void MarkShadows(BoolMarker& boolMarker,
 
 //	assign associated elements of lower dimension to the surface view
 	bool assignSidesOnly = true;
-	if(pMG->num<Volume>() > 0 && !pMG->option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
+	if((pMG->num<Volume>() > 0) && !pMG->option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 		assignSidesOnly = false;
-	else if(pMG->num<Volume>() > 0 && !pMG->option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
+	else if((pMG->num<Volume>() > 0) && !pMG->option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
 		assignSidesOnly = false;
-	else if(pMG->num<Face>() > 0 && !pMG->option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+	else if((pMG->num<Face>() > 0) && !pMG->option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 		assignSidesOnly = false;
 
 	if(assignSidesOnly){
