@@ -33,8 +33,12 @@ template<>
 bool ComparePosDim<2>(const std::pair<MathVector<2>, size_t> &p1,
                       const std::pair<MathVector<2>, size_t> &p2)
 {
-	if (p1.first[1]==p2.first[1]) return p1.first[0] < p2.first[0];
-	else return (p1.first[1] < p2.first[1]);
+	if (p1.first[1]==p2.first[1]) {
+		return (p1.first[0] < p2.first[0]);
+	}
+	else {
+		return (p1.first[1] < p2.first[1]);
+	}
 };
 
 // Order for 3D
@@ -42,7 +46,17 @@ template<>
 bool ComparePosDim<3>(const std::pair<MathVector<3>, size_t> &p1,
                       const std::pair<MathVector<3>, size_t> &p2)
 {
-	return (p1.first[0]==p2.first[0] && p1.first[1]==p2.first[1] && p1.first[2]<p2.first[2]);
+	if (p1.first[2]==p2.first[2]){
+		if (p1.first[1]==p2.first[1]) {
+			return p1.first[0] < p2.first[0];
+		}
+		else {
+			return (p1.first[1] < p2.first[1]);
+		}
+	}
+	else{
+		return (p1.first[2] < p2.first[2]);
+	}
 };
 
 
@@ -50,15 +64,28 @@ template<int dim>
 void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
                                std::vector<std::pair<MathVector<dim>, size_t> >& vPos)
 {
-//	list of sorted indices
-	vNewIndex.resize(vPos.size());
+//	a) order all indices
+	if(vNewIndex.size() == vPos.size()){
+	//  sort indices based on their position
+		std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim>);
 
-//  sort indices based on their position
-	std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim>);
+	//	write mapping
+		for (size_t i=0; i < vPos.size(); ++i)
+			vNewIndex[vPos[i].second] = i;
+	}
+//	b) only some indices to order
+	else{
+	//	create copy of pos
+		std::vector<std::pair<MathVector<dim>, size_t> > vPosOrig(vPos);
 
-	for (size_t i=0; i < vPos.size(); ++i)
-	{
-		vNewIndex[vPos[i].second] = i;
+	//  sort indices based on their position
+		std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim>);
+
+	//	write mapping
+		for (size_t i=0; i < vNewIndex.size(); ++i)
+			vNewIndex[i] = i;
+		for (size_t i=0; i < vPos.size(); ++i)
+			vNewIndex[vPos[i].second] = vPosOrig[i].second;
 	}
 }
 

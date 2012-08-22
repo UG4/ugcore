@@ -61,6 +61,23 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
                       ConstSmartPtr<TDD> dd,
                       std::vector<std::pair<MathVector<TDomain::dim>, size_t> >& vPosPair);
 
+/**
+ * extracts the positions of the degrees of freedom of a component
+ * and stores them together with the index in a std::pair into the passed
+ * vector at the position of the algebraic index corresponding to the degree of
+ * freedom.
+ *
+ * @param domain		the underlying domain
+ * @param dd			the dof distribution
+ * @param fct			the component of the trial space
+ * @param vPos			the array of positions (to be filled)
+ */
+template <typename TDomain, typename TDD>
+void ExtractPositions(ConstSmartPtr<TDomain> domain,
+                      ConstSmartPtr<TDD> dd,
+                      const size_t fct,
+                      std::vector<std::pair<MathVector<TDomain::dim>, size_t> >& vPosPair);
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__DOF_POSITION_UTIL__ */

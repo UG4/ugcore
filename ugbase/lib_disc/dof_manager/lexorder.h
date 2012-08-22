@@ -13,6 +13,7 @@
 
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
+#include "lib_disc/reference_element/reference_element_util.h"
 
 namespace ug{
 
@@ -25,20 +26,109 @@ template <typename TDD, typename TDomain>
 void OrderLexForDofDist(SmartPtr<TDD> dd,
                         ConstSmartPtr<TDomain> domain)
 {
+//	Lex Ordering is only possible in this cases:
+//	b) Same number of DoFs on each geometric object (or no DoFs on object)
+//		--> in this case we can order all dofs
+//	a) different trial spaces, but DoFs for each trial spaces only on separate
+//	   geometric objects. (e.g. one space only vertices, one space only on edges)
+//		--> in this case we can order all geometric objects separately
+
+//	a) check for same number of DoFs on every geometric object
+	bool bEqualNumDoFOnEachGeomObj = true;
+	int numDoFOnGeomObj = -1;
+	for(int si = 0; si < dd->num_subsets(); ++si){
+		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
+			const int numDoF = dd->num_dofs((ReferenceObjectID)roid, si);
+
+			if(numDoF == 0) continue;
+
+			if(numDoFOnGeomObj == -1){
+				numDoFOnGeomObj = numDoF;
+			}
+			else{
+				if(numDoFOnGeomObj != numDoF)
+					bEqualNumDoFOnEachGeomObj = false;
+			}
+		}
+	}
+
+//	b) check for non-mixed spaces
+	std::vector<bool> bSingleSpaceUsage(NUM_REFERENCE_OBJECTS, true);
+	std::vector<bool> vHasDoFs(NUM_REFERENCE_OBJECTS, false);
+	for(size_t fct = 0; fct < dd->num_fct(); ++fct){
+
+		LFEID lfeID = dd->local_finite_element_id(fct);
+		const int lfeDim = dd->dim(fct);
+		const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeDim, lfeID);
+
+		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
+			const int numDoF = locDoF.num_dof((ReferenceObjectID)roid);
+
+			if(numDoF <= 0) continue;
+
+			if(vHasDoFs[roid] == false){
+				vHasDoFs[roid] = true;
+			}
+			else{
+				bSingleSpaceUsage[roid] = false;
+			}
+		}
+	}
+	std::vector<bool> bSortableComp(dd->num_fct(), true);
+	for(size_t fct = 0; fct < dd->num_fct(); ++fct){
+
+		LFEID lfeID = dd->local_finite_element_id(fct);
+		const int lfeDim = dd->dim(fct);
+		const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeDim, lfeID);
+
+		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
+			if(locDoF.num_dof((ReferenceObjectID)roid) != 0){
+				if(bSingleSpaceUsage[roid] == false)
+					bSortableComp[fct] = false;
+			}
+		}
+	}
+
 //	get position attachment
-	typedef MathVector<TDomain::dim> vec_type;
 	typedef typename std::pair<MathVector<TDomain::dim>, size_t> pos_type;
 
 //	get positions of indices
 	std::vector<pos_type> vPositions;
-	ExtractPositions<TDomain, TDD>(domain, dd, vPositions);
 
-//	get mapping: old -> new index
-	std::vector<size_t> vNewIndex(dd->num_indices());
-	ComputeLexicographicOrder<TDomain::dim>(vNewIndex, vPositions);
+//	a) we can order globally
+	if(bEqualNumDoFOnEachGeomObj)
+	{
+		ExtractPositions<TDomain, TDD>(domain, dd, vPositions);
+
+	//	get mapping: old -> new index
+		std::vector<size_t> vNewIndex(dd->num_indices());
+		ComputeLexicographicOrder<TDomain::dim>(vNewIndex, vPositions);
 
 	//	reorder indices
-	dd->permute_indices(vNewIndex);
+		dd->permute_indices(vNewIndex);
+	}
+//	b) we can only order some spaces
+	else
+	{
+		UG_LOG("OrderLex: Cannot order globally, trying to order some components:\n");
+		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
+			if(bSortableComp[fct] == false){
+				UG_LOG("OrderLex: '"<<dd->name(fct)<<" NOT SORTED.\n");
+				continue;
+			}
+
+			ExtractPositions<TDomain, TDD>(domain, dd, fct, vPositions);
+
+		//	get mapping: old -> new index
+			std::vector<size_t> vNewIndex(dd->num_indices());
+			ComputeLexicographicOrder<TDomain::dim>(vNewIndex, vPositions);
+
+		//	reorder indices
+			dd->permute_indices(vNewIndex);
+
+			UG_LOG("OrderLex: '"<<dd->name(fct)<<" SORTED.\n");
+		}
+	}
 }
 
 
