@@ -139,16 +139,6 @@ class StdPositionUserData
 					getImpl().evaluate(this->value(s,ip), this->ip(s, ip), t, si);
 		}
 
-	///	callback, invoked when data storage changed
-		virtual void value_storage_changed(const size_t seriesID)
-		{
-			const number t = this->time();
-			const int si = this->subset();
-
-			for(size_t ip = 0; ip < this->num_ip(seriesID); ++ip)
-				getImpl().evaluate(this->value(seriesID,ip), this->ip(seriesID, ip), t, si);
-		}
-
 	///	returns if data is constant
 		virtual bool constant() const {return false;}
 
