@@ -12,53 +12,18 @@
 #include <utility> // for pair
 
 #include "lib_disc/function_spaces/approximation_space.h"
+#include "lib_disc/function_spaces/dof_position_util.h"
 
 namespace ug{
 
 template<int dim>
 void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
-					std::vector<std::pair<MathVector<dim>, size_t> >& vPos);
-
-///	writes positions of vertex dofs into a std::vector
-template <typename TDD, typename TDomain>
-void ExtractPos(const TDD& dd,
-				typename TDomain::position_accessor_type& aaPos,
-				std::vector<std::pair<MathVector<TDomain::dim>, size_t> >& vPositions)
-{
-//	resize positions
-	vPositions.resize(dd.num_indices());
-
-	typedef typename TDD::template traits<VertexBase>::const_iterator const_iterator;
-
-//	loop all vertices
-	const_iterator iter = dd.template begin<VertexBase>();
-	const_iterator iterEnd = dd.template end<VertexBase>();
-
-//	algebra indices vector
-	std::vector<size_t> ind;
-
-	for(;iter != iterEnd; ++iter)
-	{
-	//	get vertex
-		VertexBase* v = *iter;
-
-	//	load indices associated with vertex
-		dd.inner_algebra_indices(v, ind);
-
-	//	write position
-		for(size_t i = 0; i < ind.size(); ++i)
-		{
-			const size_t index = ind[i];
-			vPositions[index].first = aaPos[v];
-			vPositions[index].second = index;
-		}
-	}
-}
+                               std::vector<std::pair<MathVector<dim>, size_t> >& vPos);
 
 /// orders the dof distribution using Cuthill-McKee
 template <typename TDD, typename TDomain>
-void OrderLexForDofDist(TDD& dd,
-						typename TDomain::position_accessor_type& aaPos)
+void OrderLexForDofDist(SmartPtr<TDD> dd,
+                        ConstSmartPtr<TDomain> domain)
 {
 //	get position attachment
 	typedef MathVector<TDomain::dim> vec_type;
@@ -66,14 +31,14 @@ void OrderLexForDofDist(TDD& dd,
 
 //	get positions of indices
 	std::vector<pos_type> vPositions;
-	ExtractPos<TDD, TDomain>(dd, aaPos, vPositions);
+	ExtractPositions<TDomain, TDD>(domain, dd, vPositions);
 
 //	get mapping: old -> new index
-	std::vector<size_t> vNewIndex(dd.num_indices());
+	std::vector<size_t> vNewIndex(dd->num_indices());
 	ComputeLexicographicOrder<TDomain::dim>(vNewIndex, vPositions);
 
 	//	reorder indices
-	dd.permute_indices(vNewIndex);
+	dd->permute_indices(vNewIndex);
 }
 
 
@@ -84,19 +49,14 @@ void OrderLex(ApproximationSpace<TDomain>& approxSpace,
 {
 	// TODO: decode order input
 
-	//	get position attachment
-	typedef TDomain domain_type;
-	typename domain_type::position_accessor_type& aaPos
-			= approxSpace.domain()->position_accessor();
-
 	//	order levels
 	if(approxSpace.levels_enabled())
 		for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
-			OrderLexForDofDist<LevelDoFDistribution, TDomain>(*approxSpace.level_dof_distribution(lev), aaPos);
+			OrderLexForDofDist<LevelDoFDistribution, TDomain>(approxSpace.level_dof_distribution(lev), approxSpace.domain());
 
 	//	order surface
 	if(approxSpace.top_surface_enabled())
-		OrderLexForDofDist<SurfaceDoFDistribution, TDomain>(*approxSpace.surface_dof_distribution(), aaPos);
+		OrderLexForDofDist<SurfaceDoFDistribution, TDomain>(approxSpace.surface_dof_distribution(), approxSpace.domain());
 }
 
 } // end namespace ug

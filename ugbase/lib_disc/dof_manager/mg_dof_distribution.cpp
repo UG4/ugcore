@@ -707,23 +707,17 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 //	get subset index
 	const int si = m_spMGSH->get_subset_index(elem);
 
-	UG_LOG("++++ inner_multi_indices, d: "<<d<<", si: "<<si<<", fct: "<<fct<<"\n");
-
 //	check if function is defined on the subset
 	if(!is_def_in_subset(fct, si)) return ind.size();
 
 //	get roid type
 	static const ReferenceObjectID roid = elem->reference_object_id();
 
-	UG_LOG("++ num dofs on "<<roid<<": "<<num_dofs(roid,si) <<"\n");
-
 //	get number of DoFs in this sub-geometric object
 	const size_t numDoFsOnSub = num_dofs(fct,roid,roid);
 
 //	check if dof given
 	if(numDoFsOnSub == 0) return ind.size();
-
-	UG_LOG("++ numDoFsOnSub "<< roid <<": "<< numDoFsOnSub <<", maxDimToOrder: "<<m_vMaxDimToOrderDoFs[fct]<<"\n");
 
 //	a) Orientation required:
 	if(d <= m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
