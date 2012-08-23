@@ -316,6 +316,7 @@ restriction(size_t lev, bool* restrictionPerformedOut)
 //	since we reached this point, the restriction was performed.
 	*restrictionPerformedOut = true;
 
+
 	return true;
 }
 
@@ -413,6 +414,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 		                       -1.0,
 		                       surfView);
 	}
+
 	return true;
 }
 
@@ -1401,7 +1403,7 @@ write_level_debug(const vector_type& vec, const char* filename, size_t lev)
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter.valid()) UG_THROW("Cannot write debug on surface");
+	if(dbgWriter.invalid()) UG_THROW("Cannot write debug vector on level");
 
 //	add iter count to name
 	std::string name(filename);
@@ -1428,7 +1430,7 @@ write_level_debug(const matrix_type& mat, const char* filename, size_t lev)
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter.valid()) UG_THROW("Cannot write debug on surface");
+	if(dbgWriter.invalid()) UG_THROW("Cannot write debug matrix on level");
 
 //	add iter count to name
 	std::string name(filename);
@@ -1455,7 +1457,7 @@ write_surface_debug(const vector_type& vec, const char* filename)
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter.valid()) UG_THROW("Cannot write debug on surface");
+	if(dbgWriter.invalid()) UG_THROW("Cannot write debug vector on surface");
 
 //	add iter count to name
 	std::string name(filename);
@@ -1483,7 +1485,7 @@ write_surface_debug(const matrix_type& mat, const char* filename)
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
 
 //	set grid function
-	if(dbgWriter.valid()) UG_THROW("Cannot write debug on surface");
+	if(dbgWriter.invalid()) UG_THROW("Cannot write debug matrix on surface");
 
 //	add iter count to name
 	std::string name(filename);
