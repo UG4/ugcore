@@ -813,6 +813,14 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	}
 	UG_CATCH_THROW("(instationary) AssembleDefect: Cannot prepare element loop.");
 
+	if(vScaleMass.size() != vScaleStiff.size())
+		UG_THROW("(instationary) AssembleDefect: s_a and s_m must have same size.");
+
+	if(vSol->size() < vScaleStiff.size())
+		UG_THROW("(instationary) AssembleDefect: Time stepping scheme needs at "
+				"least "<<vScaleStiff.size()<<" time steps, but only "<<
+				vSol->size() << " passed.");
+
 //	read time points
 	locTimeSeries.read_times(vSol);
 
@@ -838,7 +846,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		locD = 0.0;
 
 	//	loop all time points and assemble them
-		for(size_t t = 0; t < locTimeSeries.size(); ++t)
+		for(size_t t = 0; t < vScaleStiff.size(); ++t)
 		{
 		//	get local solution at timepoint
 			LocalVector& locU = locTimeSeries.solution(t);
@@ -1072,6 +1080,14 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 //	get time points
 	locTimeSeries.read_times(vSol);
 
+	if(vScaleMass.size() != vScaleStiff.size())
+		UG_THROW("(instationary) AssembleLinear: s_a and s_m must have same size.");
+
+	if(vSol->size() < vScaleStiff.size())
+		UG_THROW("(instationary) AssembleLinear: Time stepping scheme needs at "
+				"least "<<vScaleStiff.size()<<" time steps, but only "<<
+				vSol->size() << " passed.");
+
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
 	{
@@ -1150,7 +1166,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	//	old time steps
 
 	//	loop all old time points
-		for(size_t t = 1; t < locTimeSeries.size(); ++t)
+		for(size_t t = 1; t < vScaleStiff.size(); ++t)
 		{
 		//	get local solution at time point
 			LocalVector& locU = locTimeSeries.solution(t);
