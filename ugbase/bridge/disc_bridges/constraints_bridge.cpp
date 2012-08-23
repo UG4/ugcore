@@ -106,6 +106,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 						"", "Vector#Functions#Subsets")
 			.add_method("add",static_cast<void (T::*)(number, const char*, const char*)>(&T::add),
 						"", "ConstantValue#Function#Subsets")
+			.add_method("set_approximation_space",static_cast<void (T::*)(SmartPtr<ApproximationSpace<TDomain> >)>(&T::set_approximation_space),
+						"", "ApproximationSpace")
 #ifdef UG_FOR_LUA
 			.add_method("add",static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add),
 						"", "LuaCallback#Function#Subsets")
