@@ -541,6 +541,27 @@ class UG_API AttachmentAccessor
 			m_pContainer->swap(*acc.m_pContainer);
 		}
 
+	///	returns the raw pointer to the data of the associated container
+	/**	ATTENTION: Use this method with extreme care!
+	 * Returns NULL if no container was associated. 
+	 */
+		ValueType* raw_data()
+		{
+			if(m_pContainer){
+				if(m_pContainer->size() > 0)
+					return &(*m_pContainer)[0];
+			}
+			return NULL;
+		}
+		
+	///	returns the data index of the given element regarding the associated container.
+	/**	Note that the data index does not stay constant all the time. If the
+	 * associated container is, e.g., defragmented, the data index may change.*/
+		size_t element_data_index(typename atraits::ConstElemPtr elem)
+		{
+			return attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem);
+		}
+		
 	protected:
 		ContainerType*	m_pContainer;
 		TElemHandler*	m_pHandler;

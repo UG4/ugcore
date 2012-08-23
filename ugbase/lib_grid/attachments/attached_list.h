@@ -387,6 +387,15 @@ class AttachedElementList
 			return iterator(elem, m_aaEntry);
 		}
 
+	///	returns a const pointer to an element.
+	/**	This pointer is valid until the content of the list is changed.*/
+		element const* get_pointer_to_element(const element& elem)
+		{
+			if(elem == m_front)
+				return &m_front;
+			return &m_aaEntry[m_aaEntry[elem].prev].next;
+		}
+		
 	///	returns true if the element is in the list
 		bool is_in_list(const element& elem)
 		{

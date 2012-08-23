@@ -9,6 +9,7 @@
 #include "common/common.h"
 #include "common/static_assert.h"
 #include "grid_util.h"
+#include "grid.h"
 
 namespace ug
 {
@@ -455,7 +456,13 @@ void Grid::associated_elements_sorted(traits<Volume>::secure_container& elemsOut
 template <class TElem>
 void Grid::get_associated_sorted(typename traits<TElem>::secure_container& elems, TElem* e)
 {
-	elems.set_external_array(&e, 1);
+//	we have to retrieve a valid pointer on the element pointer. The only way
+//	to receive it, is to return the pointer to the entry in which e is stored in
+//	the element storage.
+	elems.set_external_array(
+		element_storage<typename TElem::geometric_base_object>().m_sectionContainer.
+			get_container().get_pointer_to_element(e),
+		1);
 }
 
 
