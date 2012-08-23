@@ -90,8 +90,9 @@ class LinearSolver
 					}
 					LS_PROFILE_END(); //LS_ApplyPrecond
 				}
-				write_debug(d, "Defect.vec");
-				write_debug(c, "Correction.vec");
+
+				write_debug(d, "LS_Defect.vec");
+				write_debug(c, "LS_Correction.vec");
 
 			// 	add correction to solution: x += c
 				LS_PROFILE_BEGIN(LS_AddCorrection);
