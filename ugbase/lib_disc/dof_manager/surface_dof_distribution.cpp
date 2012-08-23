@@ -558,6 +558,15 @@ void SurfaceDoFDistribution::permute_indices(const std::vector<size_t>& vNewInd)
 
 	//	replace old index by new one
 		obj_index(elem) = vNewInd[oldIndex];
+
+	//	if copy exists, copy also to parent and grand-parents and ... etc.
+		//\todo: save this execution in non-adaptive case
+		TBaseElem* parent = parent_if_copy(elem);
+		while(parent){
+			copy(parent, elem);
+			elem = parent;
+			parent = parent_if_copy(elem);
+		}
 	}
 }
 
