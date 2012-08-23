@@ -584,6 +584,18 @@ LuaUserDataFactory<TData,dim,TRet>::m_mData = std::map<std::string, std::pair<Lu
 
 template <typename TData, int dim, typename TDataIn>
 LuaUserFunction<TData,dim,TDataIn>::
+LuaUserFunction(const char* luaCallback, size_t numArgs)
+	: m_numArgs(numArgs), m_bPosTimeNeed(false)
+{
+	m_L = ug::script::GetDefaultLuaState();
+	m_cbValueRef = LUA_NOREF;
+	m_cbDerivRef.clear();
+	m_cbDerivName.clear();
+	set_lua_value_callback(luaCallback, numArgs);
+}
+
+template <typename TData, int dim, typename TDataIn>
+LuaUserFunction<TData,dim,TDataIn>::
 LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed)
 	: m_numArgs(numArgs), m_bPosTimeNeed(bPosTimeNeed)
 {

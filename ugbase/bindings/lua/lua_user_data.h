@@ -186,8 +186,10 @@ class LuaUserFunction
 
 	public:
 	///	constructor
-		//LuaUserFunction(const char* luaCallback, size_t numArgs);
-		LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed = false);
+	/// \{
+		LuaUserFunction(const char* luaCallback, size_t numArgs);
+		LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed);
+	/// \}
 
 	///	destructor frees the reference
 		virtual ~LuaUserFunction();
