@@ -144,6 +144,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("Vanka").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
 		.add_constructor()
+		.add_method("set_relax", &T::set_relax, "", "relax")
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Vanka", tag);
 	}
@@ -155,6 +156,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("DiagVanka").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Diagonal Vanka Preconditioner")
 		.add_constructor()
+		.add_method("set_relax", &T::set_relax, "", "relax")
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DiagVanka", tag);
 	}

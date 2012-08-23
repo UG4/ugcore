@@ -22,7 +22,7 @@ namespace ug{
 static const int MAXBLOCKSIZE = 19;
 
 template<typename Matrix_type, typename Vector_type>
-bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
+bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b, number relax)
 {
 	DenseVector< VariableArray1<number> > s;
 	DenseVector< VariableArray1<number> > localx;
@@ -37,7 +37,7 @@ bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 
 	for(size_t i=0; i < x.size(); i++)
 	{
-		if (A(i,i)!=0){ 
+		if (A(i,i)!=0){
 	/*		// do usual gauss-seidel (would be needed in case of Dirichlet pressure condition)
 	        typename Vector_type::value_type def = b[i];
 
@@ -45,7 +45,7 @@ bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
                 // s -= it.value() * x[it.index()];
                 MatMultAdd(def, 1.0, def, -1.0, it.value(), x[it.index()]);
             // x[i] = s/A(i,i)
-            InverseMatMult(x[i], 1.0, A(i,i), def);*/
+            InverseMatMult(x[i], relax, A(i,i), s);*/
 			continue;
 		};
 
@@ -72,9 +72,9 @@ bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 			s.subassign(j,sj);
 		};
 		// solve block
-		InverseMatMult(localx,1.0,mat,s);
+		InverseMatMult(localx,1,mat,s);
 		for (size_t j=0;j<blocksize;j++){
-			x[blockind[j]] = localx[j];
+			x[blockind[j]] = relax*localx[j];
 		};
 	}
 
@@ -96,7 +96,7 @@ bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 // The local block system can be solved in O(n) time so that a step of this smoother is computationly cheaper than the
 // full Vanka smoother.
 template<typename Matrix_type, typename Vector_type>
-bool Diag_Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
+bool Diag_Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b, number relax)
 {
 	typedef typename Vector_type::value_type vector_block_type;
 	DenseVector< VariableArray1<vector_block_type> > s;
@@ -122,7 +122,7 @@ bool Diag_Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
                 // s -= it.value() * x[it.index()];
                 MatMultAdd(def, 1.0, def, -1.0, it.value(), x[it.index()]);
             // x[i] = s/A(i,i)
-            InverseMatMult(x[i], 1.0, A(i,i), def);*/
+            InverseMatMult(x[i], relax, A(i,i), def);*/
 			continue;
 		};
 
@@ -159,7 +159,7 @@ bool Diag_Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 			 // s_j-=a_ji*x_i
 			 MatMultAdd(s[j], 1.0, s[j], -1.0, A(blockind[j],i), x[i]);
 			 // x_j=1/a_jj*s_j
-			 InverseMatMult(x[blockind[j]], 1.0, A(blockind[j],blockind[j]),s[j]);
+			 InverseMatMult(x[blockind[j]], relax, A(blockind[j],blockind[j]),s[j]);
 		}
 	}
 	return true;
@@ -193,7 +193,7 @@ class Vanka : public IPreconditioner<TAlgebra>
 
 	public:
 	///	default constructor
-		Vanka() {};
+		Vanka() {m_relax=1;};
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
@@ -207,6 +207,13 @@ class Vanka : public IPreconditioner<TAlgebra>
 	///	Destructor
 		virtual ~Vanka()
 		{};
+
+	/// set relaxation parameter
+	public:
+		void set_relax(number omega){m_relax=omega;};
+
+	protected:
+		number m_relax;
 
 	protected:
 	///	Name of preconditioner
@@ -240,8 +247,7 @@ class Vanka : public IPreconditioner<TAlgebra>
 				dhelp.resize(d.size()); dhelp = d;
 				dhelp.change_storage_type(PST_UNIQUE);
 
-				if(!Vanka_step(m_A, c, dhelp)) return false;
-//				if(!Diag_Vanka_step(m_A, c, dhelp)) return false;
+				if(!Vanka_step(m_A, c, dhelp, m_relax)) return false;
 
 				c.set_storage_type(PST_UNIQUE);
 				return true;
@@ -249,8 +255,8 @@ class Vanka : public IPreconditioner<TAlgebra>
 			else
 #endif
 			{
-				if(!Vanka_step(mat, c, d)) return false;
-//				if(!Diag_Vanka_step(mat, c, d)) return false;
+				if(!Vanka_step(mat, c, d, m_relax)) return false;
+
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_UNIQUE);
 #endif
@@ -295,7 +301,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 
 	public:
 	///	default constructor
-		DiagVanka() {};
+		DiagVanka() {m_relax=1;};
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
@@ -309,6 +315,13 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 	///	Destructor
 		virtual ~DiagVanka()
 		{};
+
+		/// set relaxation parameter
+	public:
+		void set_relax(number omega){m_relax=omega;};
+
+	protected:
+		number m_relax;
 
 	protected:
 	///	Name of preconditioner
@@ -342,7 +355,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 				dhelp.resize(d.size()); dhelp = d;
 				dhelp.change_storage_type(PST_UNIQUE);
 
-				if(!Diag_Vanka_step(m_A, c, dhelp)) return false;
+				if(!Diag_Vanka_step(m_A, c, dhelp, m_relax)) return false;
 
 				c.set_storage_type(PST_UNIQUE);
 				return true;
@@ -351,7 +364,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 #endif
 			{
 
-				if(!Diag_Vanka_step(mat, c, d)) return false;
+				if(!Diag_Vanka_step(mat, c, d, m_relax)) return false;
 
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_UNIQUE);
