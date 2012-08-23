@@ -62,6 +62,7 @@ class LinearSolver
 			LS_PROFILE_BEGIN(LS_BuildDefect);
 			linear_operator()->apply_sub(d, x);
 			LS_PROFILE_END(); //LS_BuildDefect
+			write_debug(d, "LS_StartDefect.vec");
 
 		// 	create correction
 		// 	todo: 	it would be sufficient to only copy the pattern (and parallel constructor)
