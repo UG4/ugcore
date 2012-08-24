@@ -62,7 +62,6 @@ class LinearSolver
 			LS_PROFILE_BEGIN(LS_BuildDefect);
 			linear_operator()->apply_sub(d, x);
 			LS_PROFILE_END(); //LS_BuildDefect
-			write_debug(d, "LS_StartDefect.vec");
 
 		// 	create correction
 		// 	todo: 	it would be sufficient to only copy the pattern (and parallel constructor)
@@ -76,9 +75,18 @@ class LinearSolver
 			convergence_check()->start(d);
 			LS_PROFILE_END();
 
-		// 	Iteration loop
+			int loopCnt = 0;
+			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			std::string name("LS_Defect_"); name.append(ext).append(".vec");
+			write_debug(d, name.c_str());
+			name = std::string("LS_Solution_"); name.append(ext).append(".vec");
+			write_debug(x, name.c_str());
+
+			// 	Iteration loop
 			while(!convergence_check()->iteration_ended())
 			{
+				char ext[20]; sprintf(ext, "_iter%03d", ++loopCnt);
+
 			// 	Compute a correction c := B*d using one iterative step
 			// 	Internally the defect is updated d := d - A*c = d - A*(x+c)
 				if(preconditioner().valid()) {
@@ -92,13 +100,17 @@ class LinearSolver
 					LS_PROFILE_END(); //LS_ApplyPrecond
 				}
 
-				write_debug(d, "LS_Defect.vec");
-				write_debug(c, "LS_Correction.vec");
-
 			// 	add correction to solution: x += c
 				LS_PROFILE_BEGIN(LS_AddCorrection);
 				x += c;
 				LS_PROFILE_END(); //LS_AddCorrection
+
+				name = std::string("LS_Defect_"); name.append(ext).append(".vec");
+				write_debug(d, name.c_str());
+				name = std::string("LS_Correction_"); name.append(ext).append(".vec");
+				write_debug(c, name.c_str());
+				name = std::string("LS_Solution_"); name.append(ext).append(".vec");
+				write_debug(x, name.c_str());
 
 			// 	compute new defect (in parallel) d := d - A*c
 				LS_PROFILE_BEGIN(LS_ComputeNewDefect);
