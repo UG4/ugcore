@@ -691,9 +691,16 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd)
 {
 	update_constraints();
 
+	// NOTE: it is crucial, that dirichlet pp are processed before constraints.
+	// 	 	 otherwise we may start with an inconsistent solution in the solvers
+	std::vector<int> vType(2);
+	vType[0] = CT_DIRICHLET;
+	vType[1] = CT_CONSTRAINTS;
+
 	try{
 //	constraints
-	for(int type = 1; type < CT_ALL; type = type << 1){
+	for(size_t i = 0; i < vType.size(); ++i){
+		int type = vType[i];
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
@@ -1108,10 +1115,17 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<TDD> dd)
 {
 	update_constraints();
 
+	// NOTE: it is crucial, that dirichlet pp are processed before constraints.
+	// 	 	 otherwise we may start with an inconsistent solution in the solvers
+	std::vector<int> vType(2);
+	vType[0] = CT_DIRICHLET;
+	vType[1] = CT_CONSTRAINTS;
+
 	try{
 
 //	constraints
-	for(int type = 1; type < CT_ALL; type = type << 1){
+	for(size_t i = 0; i < vType.size(); ++i){
+		int type = vType[i];
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
