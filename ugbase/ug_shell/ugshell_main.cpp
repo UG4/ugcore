@@ -304,6 +304,9 @@ int main(int argc, char* argv[])
 
 	if(FindParam("-noterm", argc, argv))
 		GetLogAssistant().enable_terminal_output(false);
+		
+	if(FindParam("-profile", argc, argv))
+		UGOutputProfileStatsOnExit(true);
 
 //	ATTENTION
 //	Make sure to initialize ug before accessing the registry or performing any
@@ -346,6 +349,9 @@ int main(int argc, char* argv[])
 	LOG("*   -noquit:             Runs the interactive shell after specified script.    *\n");
 	LOG("*   -noterm:             Terminal logging will be disabled.                    *\n");
 	LOG("*   -logtofile filename: Output will be written to the specified file.         *\n");
+#ifdef UG_PROFILER
+	LOG("*   -profile:            Shows profile-output when the application terminates. *\n");
+#endif
 	LOG("* Additional parameters are passed to the script through ugargc and ugargv.    *\n");
 	LOG("*                                                                              *\n");
 
