@@ -76,5 +76,9 @@ bool CreateDirectory(const char *directory, int mode)
 	return mkdir(directory, mode) == 0;
 }
 
+std::string GetTmpPath()
+{
+	return string("/tmp");
+}
 
 }// end of namespace

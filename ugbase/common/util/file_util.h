@@ -93,6 +93,14 @@ UG_API bool CreateDirectory(const char *directory, int mode);
  */
 UG_API bool FileCompare( const char *file1, const char *file2 );
 
+/**
+ * \brief Returns a path to which an application may write temporary files.
+ *
+ * On unix systems, this is normally "/tmp". On windows the users AppData path
+ * or something similar is returned.
+ */
+UG_API std::string GetTmpPath();
+
 } // namespace ug
 
 #endif // __H__UG__FILE_UTIL__

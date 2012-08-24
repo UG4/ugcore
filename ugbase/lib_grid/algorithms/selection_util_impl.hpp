@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__SELECTION_UTIL_IMPL__
 
 #include <vector>
+#include <queue>
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "common/util/metaprogramming_util.h"
 
@@ -305,6 +306,63 @@ void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 		for(TIter iter = goc.begin<TElem>(lvl); iter != goc.end<TElem>(lvl); ++iter)
 			sel.select(*iter, status);
+	}
+}
+
+template <class TElem, class TAPos>
+void SelectLinkedBoundaryElements(ISelector& sel, TAPos& aPos,
+								  bool stopAtSelectedSides = true)
+{
+	using namespace std;
+	typedef typename Grid::traits<TElem>::iterator	ElemIter;
+	typedef typename TElem::side Side;
+
+	if(!sel.grid())
+		return;
+	Grid& grid = *sel.grid();
+	
+	queue<TElem*> qElems;
+	
+//	add all currently selected elements to the qElems queue
+	GeometricObjectCollection goc = sel.get_geometric_objects();
+	for(size_t i = 0; i < goc.num_levels(); ++i){
+		for(ElemIter iter = goc.begin<TElem>(i); iter != goc.end<TElem>(i); ++iter)
+			qElems.push(*iter);
+	}
+	
+	typename Grid::traits<TElem>::secure_container	nbrs;
+	typename Grid::traits<Side>::secure_container	sides;
+	
+	while(!qElems.empty()){
+		TElem* e = qElems.front();
+		qElems.pop();
+		
+		grid.associated_elements(sides, e);
+		
+		for(size_t i_side = 0; i_side < sides.size(); ++i_side){
+			Side* side = sides[i_side];
+		//	if stopAtSelectedSides is active and if the side is selected,
+		//	we won't traverse it.
+			if(stopAtSelectedSides && sel.is_selected(side))
+				continue;
+			
+		//	get all neighboring elements of side. Check for each unselected,
+		//	whether it lies on a boundary. If it does, select it and push it
+		//	to the queue.
+			grid.associated_elements(nbrs, side);
+			
+			for(size_t i_nbr = 0; i_nbr < nbrs.size(); ++i_nbr){
+				TElem* nbr = nbrs[i_nbr];
+				if(sel.is_selected(nbr))
+					continue;
+				if(!LiesOnBoundary(grid, nbr))
+					continue;
+				
+			//	we found a new linked boundary element
+				sel.select(nbr);
+				qElems.push(nbr);
+			}
+		}
 	}
 }
 

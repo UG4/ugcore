@@ -971,8 +971,6 @@ void DeselectBoundarySelectionFaces(TSelector& sel)
 }
 
 
-
-
 ////////////////////////////////////////////////////////////////////////
 // SelectLinkedFlatFaces
 void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,

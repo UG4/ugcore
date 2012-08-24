@@ -346,7 +346,19 @@ template <class TSelector>
 void DeselectBoundarySelectionFaces(TSelector& sel);
 
 
+
 ////////////////////////////////////////////////////////////////////////
+//	SelectLinkedBoundaryElements
+///	Selects linked boundary elements, starting from currently selected ones.
+/** If stopAtSelectedSides is enabled, selected sides will not be
+ * traversed during the search.
+ *
+ * Valid parameters for TElem are EdgeBase and Face.
+ */
+template <class TElem, class TAPos>
+void SelectLinkedBoundaryElements(ISelector& sel, TAPos& aPos,
+								  bool stopAtSelectedSides = true);
+							   
 ////////////////////////////////////////////////////////////////////////
 //	SelectLinkedFlatFaces
 ///	Extends the selection of faces to all neighbouring faces that have a similar normal.
