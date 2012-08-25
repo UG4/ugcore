@@ -311,7 +311,7 @@ void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
 
 template <class TElem, class TAPos>
 void SelectLinkedBoundaryElements(ISelector& sel, TAPos& aPos,
-								  bool stopAtSelectedSides = true)
+								  bool stopAtSelectedSides)
 {
 	using namespace std;
 	typedef typename Grid::traits<TElem>::iterator	ElemIter;
