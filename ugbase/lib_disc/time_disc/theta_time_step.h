@@ -73,6 +73,10 @@ class MultiStepTimeDiscretization
 
 		void assemble_linear(matrix_type& A, vector_type& b, GridLevel gl);
 
+		void assemble_rhs(vector_type& b, const vector_type& u, GridLevel gl);
+
+		void assemble_rhs(vector_type& b, GridLevel gl);
+
 		void adjust_solution(vector_type& u, GridLevel gl);
 
 	protected:

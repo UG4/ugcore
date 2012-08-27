@@ -79,6 +79,14 @@ class DomainDiscretization
 		template <typename TDD>
 		void assemble_linear(matrix_type& A, vector_type& b, ConstSmartPtr<TDD> dd);
 
+	/// assembles the stiffness matrix
+		template <typename TDD>
+		void assemble_rhs(vector_type& rhs, const vector_type& u, ConstSmartPtr<TDD> dd);
+
+	/// \copydoc IAssemble::assemble_rhs()
+		template <typename TDD>
+		void assemble_rhs(vector_type& b, ConstSmartPtr<TDD> dd);
+
 	/// \copydoc IAssemble::adjust_solution()
 		template <typename TDD>
 		void adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd);
@@ -115,6 +123,14 @@ class DomainDiscretization
 		                     const std::vector<number>& vScaleStiff,
 		                     ConstSmartPtr<TDD> dd);
 
+	/// \copydoc IDomainDiscretization::assemble_rhs()
+		template <typename TDD>
+		void assemble_rhs(	 vector_type& b,
+							 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+							 const std::vector<number>& vScaleMass,
+							 const std::vector<number>& vScaleStiff,
+							 ConstSmartPtr<TDD> dd);
+
 	/// \copydoc IDomainDiscretization::adjust_solution()
 		template <typename TDD>
 		void adjust_solution(vector_type& u, number time,
@@ -138,11 +154,6 @@ class DomainDiscretization
 		template <typename TDD>
 		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		                               ConstSmartPtr<TDD> dd);
-
-	/// assembles the stiffness matrix
-		template <typename TDD>
-		void assemble_rhs(vector_type& rhs, const vector_type& u,
-		                  ConstSmartPtr<TDD> dd);
 
 	public:
 	/// forces the assembling to consider the grid as regular

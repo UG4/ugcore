@@ -113,6 +113,16 @@ class DomainDiscBase
 				UG_THROW("Grid Level not recognized.");
 		}
 
+		virtual void assemble_rhs(vector_type& rhs, GridLevel gl)
+		{
+			if(gl.type() == GridLevel::LEVEL)
+				getImpl().template assemble_rhs<LevelDoFDistribution>(rhs, lev_dd(gl));
+			else if (gl.type() == GridLevel::SURFACE)
+				getImpl().template assemble_rhs<SurfaceDoFDistribution>(rhs, surf_dd(gl));
+			else
+				UG_THROW("Grid Level not recognized.");
+		}
+
 
 		// time dependent
 
@@ -162,6 +172,20 @@ class DomainDiscBase
 				getImpl().template assemble_linear<LevelDoFDistribution>(A, b, vSol, vScaleMass, vScaleStiff, lev_dd(gl));
 			else if (gl.type() == GridLevel::SURFACE)
 				getImpl().template assemble_linear<SurfaceDoFDistribution>(A, b, vSol, vScaleMass, vScaleStiff, surf_dd(gl));
+			else
+				UG_THROW("Grid Level not recognized.");
+		}
+
+		virtual void assemble_rhs(	 vector_type& b,
+		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+		                             const std::vector<number>& vScaleMass,
+		                             const std::vector<number>& vScaleStiff,
+		                             GridLevel gl)
+		{
+			if(gl.type() == GridLevel::LEVEL)
+				getImpl().template assemble_rhs<LevelDoFDistribution>(b, vSol, vScaleMass, vScaleStiff, lev_dd(gl));
+			else if (gl.type() == GridLevel::SURFACE)
+				getImpl().template assemble_rhs<SurfaceDoFDistribution>(b, vSol, vScaleMass, vScaleStiff, surf_dd(gl));
 			else
 				UG_THROW("Grid Level not recognized.");
 		}

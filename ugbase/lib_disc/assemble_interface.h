@@ -30,7 +30,6 @@ class IConstraint;
 /// @{
 
 //////////////////////////////////////////////////////////////////////////
-//	IAssemble
 ///	Interface providing Jacobian and Defect of a discretization.
 /**
  * Interface to generate Jacobi-Matrices and Defect-Vectors for a nonlinear
@@ -77,7 +76,6 @@ class IConstraint;
  *   \f]
  *   and assemble_linear will compute \f$ A = A \f$ and \f$ b = f \f$.
  *
- *	\tparam		TDoFDistribution		DoF Distribution
  *	\tparam		TAlgebra				Algebra type
  */
 template <typename TAlgebra>
@@ -131,9 +129,6 @@ class IAssemble
 		 * \param[out] 	A 	Mass-/Stiffness- Matrix
 		 * \param[out] 	b 	Right-Hand-Side
 		 * \param[in]	dd	DoF Distribution
-		 *
-		 * \return 	true 		if problem is linear and assembling successful
-		 * 			false 		if problem is non-linear or an error occurred during assembling
 		 */
 		virtual void assemble_linear(matrix_type& A, vector_type& b,
 		                             GridLevel gl) = 0;
@@ -142,6 +137,27 @@ class IAssemble
 		void assemble_linear(matrix_type& A, vector_type& b)
 			{assemble_linear(A,b, GridLevel());}
 
+	///	assembles rhs
+		virtual void assemble_rhs(vector_type& rhs, const vector_type& u,
+								   GridLevel gl) = 0;
+
+	///	assembles rhs on surface grid
+		virtual void assemble_rhs(vector_type& rhs, const vector_type& u)
+			{assemble_rhs(rhs, u, GridLevel());}
+
+		/// Assembles Right-Hand-Side for a linear problem
+		/**
+		 * Assembles Right-Hand-Side for a linear problem
+		 *
+		 * \param[out] 	b 	Right-Hand-Side
+		 * \param[in]	dd	DoF Distribution
+		 */
+		virtual void assemble_rhs(vector_type& b, GridLevel gl) = 0;
+
+		/// assembles linear on the surface grid
+		void assemble_rhs(vector_type& b)
+			{assemble_rhs(b, GridLevel());}
+
 		/// sets dirichlet values in solution vector
 		/**
 		 * Sets dirichlet values of the NumericalSolution u when components
@@ -149,10 +165,6 @@ class IAssemble
 		 *
 		 * \param[out] 	u	Numerical Solution
 		 * \param[in]	dd	DoF Distribution
-		 *
-		 * \return 	true 				if function is implemented and assembling successful
-		 * 			false 	if function has not been implemented
-		 * 			false 			if function is implemented and an error occurred during assembling
 		 */
 		virtual void adjust_solution(vector_type& u,
 		                             GridLevel gl) = 0;
@@ -178,15 +190,6 @@ class IAssemble
 	///	assembles stiffness matrix on surface grid
 		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
 			{assemble_stiffness_matrix(A,u,GridLevel());}
-
-	///	assembles rhs
-		virtual void assemble_rhs(vector_type& rhs, const vector_type& u,
-		                           GridLevel gl)
-		{UG_THROW("IAssemble: assemble_rhs not implemented.");}
-
-	///	assembles rhs on surface grid
-		virtual void assemble_rhs(vector_type& rhs, const vector_type& u)
-			{assemble_rhs(rhs, u, GridLevel());}
 
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce) = 0;

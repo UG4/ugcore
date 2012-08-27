@@ -71,9 +71,6 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		 * \param[out] 	A 	Mass-/Stiffness- Matrix
 		 * \param[out] 	b 	Right-Hand-Side
 		 * \param[in]	dd	DoF Distribution
-		 *
-		 * \return 	true 		if problem is linear and assembling successful
-		 * 			false 		if problem is non-linear or an error occurred during assembling
 		 */
 		virtual void assemble_linear(matrix_type& A, vector_type& b, GridLevel gl) = 0;
 
@@ -84,10 +81,6 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		 *
 		 * \param[out] 	u	Numerical Solution
 		 * \param[in]	dd	DoF Distribution
-		 *
-		 * \return 	true 				if function is implemented and assembling successful
-		 * 			false 	if function has not been implemented
-		 * 			false 			if function is implemented and an error occurred during assembling
 		 */
 		virtual void adjust_solution(vector_type& u, GridLevel gl) = 0;
 
@@ -99,9 +92,6 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 *
 	 * \param[in]  vSol			vector of previous and current (iterated) solution
 	 * \param[in]  dd 			DoF Distribution
-	 *
-	 * \return 	true  				if time dependent and successful
-	 * 			false 				if an error occurred
 	 */
 	virtual	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl) = 0;
 
@@ -117,9 +107,6 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  vSol			vector of previous and current (iterated) solution
 	 * \param[in]  s_a			scaling factors for mass matrix
 	 * \param[in]  dd 			DoF Distribution
-	 *
-	 * \return 	true  				if time dependent and successful
-	 * 			false 				if an error occurred
 	 */
 		virtual void assemble_jacobian(matrix_type& J,
 		                               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
@@ -141,9 +128,6 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  vScaleMass	scaling factors for mass matrix
 	 * \param[in]  vScaleStiff	scaling factors for stiffness matrix
 	 * \param[in]  dd 			DoF Distribution
-	 *
-	 * \return 	true  				if time dependent and successful
-	 * 			false 				if an error occurred
 	 */
 		virtual	void assemble_defect(vector_type& d,
 		       	                     ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
@@ -168,9 +152,6 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  vScaleMass	scaling factors for mass matrix
 	 * \param[in]  vScaleStiff	scaling factors for stiffness matrix
 	 * \param[in]  dd 			DoF Distribution
-	 *
-	 * \return 	true  				if time dependent and linear and successful
-	 * 			false 				if an error occurred
 	 */
 		virtual void assemble_linear(matrix_type& A, vector_type& b,
 		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
@@ -185,6 +166,29 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		                     const std::vector<number>& vScaleStiff)
 		{assemble_linear(A,b,vSol,vScaleMass,vScaleStiff, GridLevel());}
 
+	/// Assembles Right-Hand-Side for a linear problem
+	/**
+	 * Assembles Right-Hand-Side for a linear problem
+	 *
+	 * \param[out] b 			Right-Hand-Side of the discretization
+	 * \param[in]  vSol			vector of previous and current (iterated) solution
+	 * \param[in]  vScaleMass	scaling factors for mass matrix
+	 * \param[in]  vScaleStiff	scaling factors for stiffness matrix
+	 * \param[in]  dd 			DoF Distribution
+	 */
+		virtual void assemble_rhs(	 vector_type& b,
+									 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+									 const std::vector<number>& vScaleMass,
+									 const std::vector<number>& vScaleStiff,
+									 GridLevel gl) = 0;
+
+	///	assembles rhs on surface level
+		void assemble_rhs(vector_type& b,
+							 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+							 const std::vector<number>& vScaleMass,
+							 const std::vector<number>& vScaleStiff)
+		{assemble_rhs(b,vSol,vScaleMass,vScaleStiff, GridLevel());}
+
 
 	/// sets dirichlet values in solution vector
 	/**
@@ -193,10 +197,6 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  u 		Solution to set values at
 	 * \param[in]  time		time of next (to be computed) timestep
 	 * \param[in]  dd 		DoF Distribution
-	 *
-	 * \return 	true 			if successful
-	 * 			false 			if function has not been implemented
-	 * 			false 			if implemented but error occurred
 	 */
 		virtual void adjust_solution(vector_type& u, number time, GridLevel gl) = 0;
 
@@ -210,9 +210,6 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 *
 	 * \param[in]  vSol			vector of previous and current (iterated) solution
 	 * \param[in]  dd 			DoF Distribution
-	 *
-	 * \return 	true  				if time dependent and successful
-	 * 			false 				if an error occurred
 	 */
 		virtual	void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl) = 0;
 

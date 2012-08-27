@@ -1337,6 +1337,194 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Assemble (instationary) Rhs
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * This function adds to the Rhs the entries of one subset
+ * for all passed element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in,out]	rhs				Right-hand side
+ * \param[in]		vSol			current and previous solutions
+ * \param[in]		vScaleMass		scaling factors for mass part
+ * \param[in]		vScaleStiff		scaling factors for stiffness part
+ * \param[in]		sel				Selector
+ */
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::vector_type& rhs,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+               	const std::vector<number>& vScaleMass,
+               	const std::vector<number>& vScaleStiff,
+            	BoolMarker* sel = NULL)
+{
+//	get element iterator
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
+
+// 	check if at least on element exist, else return
+	if(iterBegin == iterEnd) return;
+
+//	create data evaluator
+	DataEvaluator Eval;
+
+//	get current time
+	LocalVectorTimeSeries locTimeSeries;
+	LocalIndices ind; LocalVector locRhs, tmpLocRhs;
+
+//	prepare for given elem discs
+	try
+	{
+		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
+		Eval.set_non_regular_grid(bNonRegularGrid);
+		Eval.set_subset(si);
+		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.template prepare_elem_loop<TElem>(true);
+	}
+	UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element loop.");
+
+//	get time points
+	locTimeSeries.read_times(vSol);
+
+	if(vScaleMass.size() != vScaleStiff.size())
+		UG_THROW("(instationary) AssembleRhs: s_a and s_m must have same size.");
+
+	if(vSol->size() < vScaleStiff.size())
+		UG_THROW("(instationary) AssembleRhs: Time stepping scheme needs at "
+				"least "<<vScaleStiff.size()<<" time steps, but only "<<
+				vSol->size() << " passed.");
+
+// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	//	check if elem is skipped from assembling
+		if(sel) if(!sel->is_marked(elem)) continue;
+
+	// 	get global indices
+		dd->indices(elem, ind, Eval.use_hanging());
+
+	// 	adapt local algebra
+		locRhs.resize(ind); tmpLocRhs.resize(ind);
+
+	//	read local values of time series
+		locTimeSeries.read_values(vSol, ind);
+		number time = vSol->time(0);
+		Eval.set_time(time);
+
+	//	reset element contribution
+		locRhs = 0.0;
+
+	/////////////////////
+	//	current time step
+
+	//	get local solution at time point
+		LocalVector& locU = locTimeSeries.solution(0);
+
+	// 	prepare element
+		try
+		{
+			Eval.prepare_elem(elem, locU, ind, false, true);
+		}
+		UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element.");
+
+	//	Compute element data
+		try
+		{
+			Eval.compute_elem_data(locU, elem, false);
+		}
+		UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute element data.");
+
+	// 	Assemble rhs
+		tmpLocRhs = 0.0;
+		try
+		{
+			Eval.ass_rhs_elem(tmpLocRhs, elem);
+		}
+		UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Rhs.");
+
+		locRhs.scale_append(vScaleStiff[0], tmpLocRhs);
+
+	///////////////////
+	//	old time steps
+
+	//	loop all old time points
+		for(size_t t = 1; t < vScaleStiff.size(); ++t)
+		{
+		//	get local solution at time point
+			LocalVector& locU = locTimeSeries.solution(t);
+			number time = vSol->time(t);
+			Eval.set_time(time);
+
+		// 	prepare element
+			try
+			{
+				Eval.prepare_elem(elem, locU, ind, false, true);
+			}
+			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element.");
+
+		//	Compute element data
+			try
+			{
+				Eval.compute_elem_data(locU, elem, false);
+
+			}
+			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute element data");
+
+		// 	Assemble dM
+			tmpLocRhs = 0.0;
+			try
+			{
+				Eval.ass_dM_elem(tmpLocRhs, locU, elem);
+			}
+			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Jacobian (M).");
+
+			locRhs.scale_append(-vScaleMass[t], tmpLocRhs);
+
+		// 	Assemble dA
+			tmpLocRhs = 0.0;
+			try
+			{
+				Eval.ass_dA_elem(tmpLocRhs, locU, elem);
+			}
+			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Jacobian (A).");
+
+			locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
+
+		// 	Assemble rhs
+			tmpLocRhs = 0.0;
+			try
+			{
+				Eval.ass_rhs_elem(tmpLocRhs, elem);
+			}
+			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Rhs.");
+
+			locRhs.scale_append(vScaleStiff[t], tmpLocRhs);
+		}
+
+	// 	send local to global rhs
+		AddLocalVector(rhs, locRhs);
+	}
+
+// 	finish element loop
+	try
+	{
+		Eval.finish_elem_loop();
+	}
+	UG_CATCH_THROW("(instationary) AssembleRhs: Cannot finish element loop.");
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Finish Timestep (instationary)
 ////////////////////////////////////////////////////////////////////////////////
 

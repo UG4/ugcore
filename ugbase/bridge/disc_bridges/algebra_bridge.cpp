@@ -88,6 +88,8 @@ static void Algebra(Registry& reg, string parentGroup)
 					"", "M#u", "assembles mass matrix on surface grid")
 			.add_method("assemble_rhs", static_cast<void (T::*)(vector_type&, const vector_type&)>(&T::assemble_rhs),
 					"", "rhs#u", "assembles right-hand side on surface grid")
+			.add_method("assemble_rhs", static_cast<void (T::*)(vector_type&)>(&T::assemble_rhs),
+					"", "rhs", "assembles right-hand side on surface grid for linear case")
 			.add_method("adjust_solution", static_cast<void (T::*)(vector_type&)>(&T::adjust_solution));
 		reg.add_class_to_group(name, "IAssemble", tag);
 	}

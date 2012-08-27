@@ -681,6 +681,15 @@ assemble_rhs(vector_type& rhs,
 #endif
 }
 
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
+assemble_rhs(vector_type& rhs,
+			ConstSmartPtr<TDD> dd)
+{
+	assemble_rhs(rhs, rhs, dd);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // set constraints (stationary)
 ///////////////////////////////////////////////////////////////////////////////
@@ -1019,6 +1028,16 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	update the elem discs
 	update_disc_items();
 
+//	reset matrix to zero and resize
+	const size_t numIndex = dd->num_indices();
+	rhs.resize(numIndex);
+	rhs.set(0.0);
+
+//	reset matrix to zero and resize
+	mat.resize(0,0);
+	mat.resize(numIndex, numIndex);
+	mat.set(0.0);
+
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 	std::vector<SubsetGroup> vSSGrp;
@@ -1101,6 +1120,108 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	TDD* pDD = const_cast<TDD*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(mat, *pDD);
 
+	rhs.set_storage_type(PST_ADDITIVE);
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// RHS (instationary)
+///////////////////////////////////////////////////////////////////////////////
+template <typename TDomain, typename TAlgebra>
+template <typename TDD>
+void DomainDiscretization<TDomain, TAlgebra>::
+assemble_rhs(vector_type& rhs,
+             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+             const std::vector<number>& vScaleMass,
+             const std::vector<number>& vScaleStiff,
+             ConstSmartPtr<TDD> dd)
+{
+//	update the elem discs
+	update_disc_items();
+
+//	reset matrix to zero and resize
+	const size_t numIndex = dd->num_indices();
+	rhs.resize(numIndex);
+	rhs.set(0.0);
+
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+	std::vector<SubsetGroup> vSSGrp;
+
+//	create list of all subsets
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
+
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = DimensionOfSubset(*dd->subset_handler(), si);
+
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
+
+	//	assemble on suitable elements
+		try
+		{
+		switch(dim)
+		{
+		case 1:
+			AssembleRhs<Edge,TDD,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
+			break;
+		case 2:
+			AssembleRhs<Triangle,TDD,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
+			AssembleRhs<Quadrilateral,TDD,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
+			break;
+		case 3:
+			AssembleRhs<Tetrahedron,TDD,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
+			AssembleRhs<Pyramid,TDD,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
+			AssembleRhs<Prism,TDD,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
+			AssembleRhs<Hexahedron,TDD,TAlgebra>
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_pBoolMarker);
+			break;
+		default:
+			UG_THROW("DomainDiscretization::assemble_rhs (instationary):"
+							"Dimension "<<dim<<" (subset="<<si<<") not supported.");
+		}
+		}
+		UG_CATCH_THROW("DomainDiscretization::assemble_rhs (instationary):"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
+	}
+
+
+//	post process
+	try{
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd->grid_level(), vSol->time(0));
+	}
+	} UG_CATCH_THROW("Cannot adjust linear.");
+
+//	Remember parallel storage type
+#ifdef UG_PARALLEL
 	rhs.set_storage_type(PST_ADDITIVE);
 #endif
 }

@@ -69,9 +69,9 @@ assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl)
 {
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::prepare_step:"
-						" Number of previous solutions must be at least "<<
-						m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.\n");
+		UG_THROW("ThetaTimeStep::assemble_jacobian:"
+				" Number of previous solutions must be at least "<<
+				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 
 //	push unknown solution to solution time series
 //	ATTENTION: Here, we must cast away the constness of the solution, but note,
@@ -98,9 +98,9 @@ assemble_defect(vector_type& d, const vector_type& u, GridLevel gl)
 {
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::prepare_step:"
-						" Number of previous solutions must be at least "<<
-						m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.\n");
+		UG_THROW("ThetaTimeStep::assemble_defect:"
+				" Number of previous solutions must be at least "<<
+				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
 
 //	push unknown solution to solution time series
 //	ATTENTION: Here, we must cast away the constness of the solution, but note,
@@ -135,7 +135,87 @@ template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 assemble_linear(matrix_type& A, vector_type& b, GridLevel gl)
 {
-	UG_THROW("Not implemented.");
+//	perform checks
+	if(m_pPrevSol->size() < m_prevSteps)
+		UG_THROW("ThetaTimeStep::assemble_linear:"
+				" Number of previous solutions must be at least "<<
+				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
+
+//	push unknown solution to solution time series
+//	ATTENTION: Here, we must cast away the constness of the solution, but note,
+//			   that we pass pPrevSol as a const object in assemble_... Thus,
+//			   the solution will not be changed there and we pop it from the
+//			   Solution list afterwards, such that nothing happens to u
+	// \todo: avoid this hack, use smart ptr properly
+	int DummyRefCount = 2;
+	SmartPtr<vector_type> pU(const_cast<vector_type*>(&b), &DummyRefCount);
+	m_pPrevSol->push(pU, m_futureTime);
+
+//	assemble jacobian using current iterate
+	try{
+		this->m_spDomDisc->assemble_linear(A, b, m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
+
+//	pop unknown solution to solution time series
+	m_pPrevSol->remove_latest();
+}
+
+template <typename TAlgebra>
+void MultiStepTimeDiscretization<TAlgebra>::
+assemble_rhs(vector_type& b, GridLevel gl)
+{
+//	perform checks
+	if(m_pPrevSol->size() < m_prevSteps)
+		UG_THROW("ThetaTimeStep::assemble_linear:"
+				" Number of previous solutions must be at least "<<
+				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
+
+//	push unknown solution to solution time series
+//	ATTENTION: Here, we must cast away the constness of the solution, but note,
+//			   that we pass pPrevSol as a const object in assemble_... Thus,
+//			   the solution will not be changed there and we pop it from the
+//			   Solution list afterwards, such that nothing happens to u
+	// \todo: avoid this hack, use smart ptr properly
+	int DummyRefCount = 2;
+	SmartPtr<vector_type> pU(const_cast<vector_type*>(&b), &DummyRefCount);
+	m_pPrevSol->push(pU, m_futureTime);
+
+//	assemble jacobian using current iterate
+	try{
+		this->m_spDomDisc->assemble_rhs(b, m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
+
+//	pop unknown solution to solution time series
+	m_pPrevSol->remove_latest();
+}
+
+template <typename TAlgebra>
+void MultiStepTimeDiscretization<TAlgebra>::
+assemble_rhs(vector_type& b, const vector_type& u, GridLevel gl)
+{
+//	perform checks
+	if(m_pPrevSol->size() < m_prevSteps)
+		UG_THROW("ThetaTimeStep::assemble_linear:"
+				" Number of previous solutions must be at least "<<
+				m_prevSteps <<", but only "<< m_pPrevSol->size() << " passed.");
+
+//	push unknown solution to solution time series
+//	ATTENTION: Here, we must cast away the constness of the solution, but note,
+//			   that we pass pPrevSol as a const object in assemble_... Thus,
+//			   the solution will not be changed there and we pop it from the
+//			   Solution list afterwards, such that nothing happens to u
+	// \todo: avoid this hack, use smart ptr properly
+	int DummyRefCount = 2;
+	SmartPtr<vector_type> pU(const_cast<vector_type*>(&u), &DummyRefCount);
+	m_pPrevSol->push(pU, m_futureTime);
+
+//	assemble jacobian using current iterate
+	try{
+		this->m_spDomDisc->assemble_rhs(b, m_pPrevSol, m_vScaleMass, m_vScaleStiff, gl);
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot assemble jacobian.");
+
+//	pop unknown solution to solution time series
+	m_pPrevSol->remove_latest();
 }
 
 template <typename TAlgebra>
