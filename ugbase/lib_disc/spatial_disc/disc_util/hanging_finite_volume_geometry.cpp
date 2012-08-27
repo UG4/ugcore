@@ -152,7 +152,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 			}
 			break;
 
-		default: UG_LOG("Cannot detect type of edge.\n"); return false;
+		default: UG_THROW("Cannot detect type of edge.");
 		}
 	}
 
@@ -235,6 +235,13 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 			///////////
 			else if (vFaces[i]->container_section() == CSFACE_CONSTRAINING_TRIANGLE)
 			{
+				bool bAllConstraining = true;
+				for(size_t j = 0; j < m_rRefElem.num(2, i, 1); ++j)
+					if(vEdges[m_rRefElem.id(2, i, 1, j)]->container_section() != CSEDGE_CONSTRAINING_EDGE)
+						bAllConstraining = false;
+
+				if(!bAllConstraining) continue;
+
 				// compute position of new (hanging) node
 				compute_side_midpoints(i, locSideMid, gloSideMid);
 
