@@ -14,9 +14,9 @@ namespace ug
 //
 void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut,
 						Grid& grid, VertexBase* vrt, uint nbhType,
-						CB_ConsiderEdge considerEdge,
-						CB_ConsiderFace considerFace,
-						CB_ConsiderVolume considerVol)
+						Grid::edge_traits::callback considerEdge,
+						Grid::face_traits::callback considerFace,
+						Grid::volume_traits::callback considerVol)
 {
 //	clear the container
 	vNeighborsOut.clear();

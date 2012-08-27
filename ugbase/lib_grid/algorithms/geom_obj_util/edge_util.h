@@ -44,7 +44,8 @@ UG_API int GetEdgeIndex(Volume* vol, EdgeBase* e);
  * Take a look at existing standard callbacks, if you want to use this method.
  */
 UG_API 
-bool IsBoundaryEdge(Grid& grid, EdgeBase* e, CB_ConsiderFace funcIsSurfFace);
+bool IsBoundaryEdge(Grid& grid, EdgeBase* e,
+					Grid::face_traits::callback funcIsSurfFace);
 
 
 ////////////////////////////////////////////////////////////////////////

@@ -21,14 +21,14 @@ namespace ug
 //	predeclarations
 class MultiGrid;
 
+/** \ingroup lib_grid_tools
+ *  \{ */
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	MGSelector
 ///	specialization of ISelector for grids of class MultiGrid.
-/**
- * \ingroup lib_grid
- *
- * A selector is a useful class, that allows the user to mark
+/** A selector is a useful class, that allows the user to mark
  * elements of a grid as selected or deselected.
  * The selection status is maintained even if new elements
  * are created or old ones deleted. Features like
@@ -302,6 +302,8 @@ class UG_API MGSelector : public ISelector
 		AttachedFaceList::AEntry	m_aSharedEntryFACE;
 		AttachedVolumeList::AEntry	m_aSharedEntryVOL;
 };
+
+/** \} */
 
 }//	end of namespace
 

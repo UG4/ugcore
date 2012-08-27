@@ -16,14 +16,14 @@
 namespace ug
 {
 
+/** \ingroup lib_grid_tools
+ *  \{ */
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	Selector
 ///	specialization of ISelector for a grid of class Grid.
-/**
- * \ingroup lib_grid
- *
- * A selector is a useful class, that allows the user to mark
+/** A selector is a useful class, that allows the user to mark
  * elements of a grid as selected or deselected.
  * The selection status is maintained even if new elements
  * are created or old ones deleted. Features like
@@ -269,6 +269,7 @@ class UG_API Selector : public ISelector
 		VolumeSectionContainer 	m_volumes;
 };
 
+/** \} */
 }//	end of namespace
 
 ////////////////////////////////

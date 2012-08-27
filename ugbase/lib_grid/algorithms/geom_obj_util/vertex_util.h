@@ -248,7 +248,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
  */
 UG_API 
 bool IsBoundaryVertex1D(Grid& grid, VertexBase* v,
-						CB_ConsiderEdge cbConsiderEdge = ConsiderAllEdges);
+						Grid::edge_traits::callback cbConsiderEdge = Grid::edge_traits::cb_consider_all);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns whether a vertex lies on the boundary of a 2D grid.

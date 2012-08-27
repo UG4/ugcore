@@ -43,7 +43,8 @@ int GetEdgeIndex(Volume* vol, EdgeBase* e)
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool IsBoundaryEdge(Grid& grid, EdgeBase* e, CB_ConsiderFace funcIsSurfFace)
+bool IsBoundaryEdge(Grid& grid, EdgeBase* e,
+					Grid::face_traits::callback funcIsSurfFace)
 {
 	int counter = 0;
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))

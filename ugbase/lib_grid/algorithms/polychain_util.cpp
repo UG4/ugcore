@@ -3,6 +3,7 @@
 // s.b.reiter@googlemail.com
 
 #include "polychain_util.h"
+#include "callback_util.h"
 
 using namespace std;
 
@@ -12,7 +13,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 std::pair<VertexBase*, EdgeBase*>
 GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSection,
-						  CB_ConsiderEdge cbEdgeIsInPolyChain)
+						  Grid::edge_traits::callback cbEdgeIsInPolyChain)
 {
 	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
 	{

@@ -31,6 +31,7 @@
 #include "remeshing/delaunay_triangulation.h"
 #include "fractals.h"
 #include "duplicate.h"
+#include "callback_util.h"
 
 // hanging_node_refiner_2d_irn.h is currently not maintained.
 //#include "refinement/hanging_node_refiner_2d_irn.h"

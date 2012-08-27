@@ -346,18 +346,24 @@ template <class TSelector>
 void DeselectBoundarySelectionFaces(TSelector& sel);
 
 
-
 ////////////////////////////////////////////////////////////////////////
-//	SelectLinkedBoundaryElements
-///	Selects linked boundary elements, starting from currently selected ones.
-/** If stopAtSelectedSides is enabled, selected sides will not be
- * traversed during the search.
- *
- * Valid parameters for TElem are EdgeBase and Face.
+//	SelectLinkedElements
+///	Repeatedly traverses sides of selected elements and selects associated elements
+/**	The method extends the selection as long as it finds new candidates.
+ * Given a selected element, the method first checks the elements sides whether
+ * they may be traversed by calling cbIsTraversable on each. If a side may be traversed,
+ * cbIsSelectable is called on the adjacent unselected elements to the given side.
+ * If the callback returns true, the corresponding elements are selected and considered
+ * as new starting points for the search. By default all elements and all sides are
+ * considered to be selectable / traversable.
  */
-template <class TElem, class TAPos>
-void SelectLinkedBoundaryElements(ISelector& sel, TAPos& aPos,
-								  bool stopAtSelectedSides = true);
+template <class TElem>
+void SelectLinkedElements(ISelector& sel,
+		  typename Grid::traits<TElem>::callback
+		  	  cbIsSelectable = Grid::traits<TElem>::cb_consider_all,
+		  typename Grid::traits<typename TElem::side>::callback
+		  	  cbIsTraversable = Grid::traits<typename TElem::side>::cb_consider_all);
+
 							   
 ////////////////////////////////////////////////////////////////////////
 //	SelectLinkedFlatFaces

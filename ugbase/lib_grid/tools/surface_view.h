@@ -16,6 +16,9 @@
 
 namespace ug{
 
+/** \ingroup lib_grid_tools
+ *  \{ */
+
 ///	Represents the surface view of a multi-grid hierarchy.
 /**	The surface of a multi-grid hierarchy consists of all elements, which
  * do not have children.
@@ -355,6 +358,8 @@ class SurfaceLevelView
 		SmartPtr<SurfaceView>	m_spSV;
 		int						m_topLvl;
 };
+
+/** \} */
 
 }//	end of namespace
 

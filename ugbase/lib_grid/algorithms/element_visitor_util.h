@@ -6,7 +6,7 @@
 #define __H__UG__element_visitor_util__
 
 #include <vector>
-#include "geometric_object_callbacks.h"
+#include "grid/grid.h"
 #include "common/util/metaprogramming_util.h"
 
 namespace ug

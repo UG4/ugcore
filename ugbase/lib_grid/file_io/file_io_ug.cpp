@@ -15,6 +15,8 @@
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/polychain_util.h"
+#include "lib_grid/algorithms/callback_util.h"
+
 
 using namespace std;
 

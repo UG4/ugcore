@@ -15,6 +15,9 @@
 namespace ug
 {
 
+/** \ingroup lib_grid_tools
+ *  \{ */
+
 ////////////////////////////////////////////////////////////////////////
 //	MultiGridSubsetHandler
 /// Handles subsets on a per level basis.
@@ -24,8 +27,6 @@ namespace ug
  * Note that the number of levels in the MultiGridSubsetHandler always matches
  * the number of levels in the associated multigrid. This is guaranteed through
  * a callback mechanism.
- *
- * \ingroup lib_grid
  */
 class UG_API MultiGridSubsetHandler : public ISubsetHandler
 {
@@ -349,10 +350,9 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		AttachedVolumeList::AEntry	m_aSharedEntryVOL;
 };
 
-
-/// \ingroup lib_grid
 typedef MultiGridSubsetHandler MGSubsetHandler;
 
+/** \} */
 }//	end of namespace
 
 //	include implementation

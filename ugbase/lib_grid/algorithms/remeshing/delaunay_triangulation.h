@@ -80,7 +80,7 @@ class DelaunayInfo : public GridObserver
 
 	public:
 		DelaunayInfo(Grid& g, TAAPos& aaPos,
-					 CB_ConsiderEdge cbConstrainedEdge)
+					 Grid::edge_traits::callback cbConstrainedEdge)
 			: m_grid(g), m_aaPos(aaPos), m_numMarkedFaces(0), m_minAngle(0),
 			  m_maxDot(1), m_cbConstrainedEdge(cbConstrainedEdge),
 			  m_faceClassificationEnabled(false)
@@ -442,9 +442,9 @@ class DelaunayInfo : public GridObserver
 		Grid::AttachmentAccessor<Face, AFaceInfo>	m_aaFaceInfo;
 		FacePriorityQueue	m_faceQueue;
 
-		number					m_minAngle;
-		number					m_maxDot;
-		CB_ConsiderEdge 		m_cbConstrainedEdge;
+		number							m_minAngle;
+		number							m_maxDot;
+		Grid::edge_traits::callback 	m_cbConstrainedEdge;
 
 		bool	m_faceClassificationEnabled;
 };
@@ -603,7 +603,7 @@ bool DelaunayLineLineIntersection(vector3& vOut,
 template <class TriIter, class TAAPos>
 bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 						   TAAPos& aaPos, number minAngle = 0,
-				  	  	   CB_ConsiderEdge cbConstrainedEdge = ConsiderNoEdge,
+				  	  	   Grid::edge_traits::callback cbConstrainedEdge = Grid::edge_traits::cb_consider_none,
 				  	  	   int maxSteps = -1/*remove this*/)
 {
 	using namespace std;

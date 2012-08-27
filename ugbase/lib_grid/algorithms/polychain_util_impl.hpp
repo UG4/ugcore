@@ -15,7 +15,7 @@ template <class TEdgeIterator>
 size_t
 GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 				  TEdgeIterator edgesEnd,
-				  CB_ConsiderEdge cbEdgeIsInPolyChain)
+				  Grid::edge_traits::callback cbEdgeIsInPolyChain)
 {
 //	if the chain is empty, there's nothing to do
 	if(edgesBegin == edgesEnd)
@@ -71,7 +71,7 @@ template <class TEdgeIterator>
 std::pair<VertexBase*, EdgeBase*>
 GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 							TEdgeIterator edgesEnd,
-							CB_ConsiderEdge cbEdgeIsInPolyChain)
+							Grid::edge_traits::callback cbEdgeIsInPolyChain)
 {
 	if(edgesBegin == edgesEnd)
 		return std::make_pair<VertexBase*, EdgeBase*>(NULL, NULL);

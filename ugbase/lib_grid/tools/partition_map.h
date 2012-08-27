@@ -10,6 +10,9 @@
 namespace ug
 {
 
+/** \ingroup lib_grid_tools
+ *  \{ */
+
 ///	Used to describe how a domain shall be distributed in a parallel environment.
 /**	A partition map holds a subset handler and a map, which specifies the
  * target process of each subset. Make sure to assign a grid before performing
@@ -92,6 +95,8 @@ bool SavePartitionMapToFile(PartitionMap& pm, const char* filename,
 //	now save the grid to file
 	return SaveGridToFile(grid, sh, filename, aPos);
 }
+
+/** \} */
 
 }//	end of namespace
 

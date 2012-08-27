@@ -13,9 +13,14 @@
 
 namespace ug
 {
+
+/** \ingroup lib_grid_tools
+ *  \{ */
+
 ////////////////////////////////////////////////////////////////////////
 //	GridSubsetHandler
-/// \ingroup lib_grid
+///	Partitions elements of a grid into several subsets.
+/**	The user can iterate over elements of grid subset-wise.*/
 class UG_API GridSubsetHandler : public ISubsetHandler
 {
 	public:
@@ -344,8 +349,9 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 };
 
 
-/// \ingroup lib_grid
 typedef GridSubsetHandler SubsetHandler;
+
+/** \} */
 
 }//	end of namespace
 

@@ -7,6 +7,7 @@
 #include <vector>
 #include "expand_layers.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/algorithms/callback_util.h"
 #include "lib_grid/grid/grid_util.h"
 //#include "lib_grid/util/simple_algebra/least_squares_solver.h"
 
@@ -138,7 +139,7 @@ static bool VertexLiesOnSurface(Grid& grid, VertexBase* vrt,
 template <class TAAPosVRT>
 typename TAAPosVRT::ValueType
 CalculateCreaseNormal(Grid& grid, Face* f, VertexBase* vrt,
-						CB_ConsiderEdge funcIsCreaseEdge,
+						Grid::edge_traits::callback funcIsCreaseEdge,
 						TAAPosVRT& aaPos)
 {
 	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
@@ -228,7 +229,7 @@ CalculateCreaseNormal(Grid& grid, Face* f, VertexBase* vrt,
 template <class TAAPosVRT>
 typename TAAPosVRT::ValueType
 CalculateCreaseNormal(Grid& grid, Volume* vol, VertexBase* vrt,
-						CB_ConsiderFace funcIsCreaseFace,
+						Grid::face_traits::callback funcIsCreaseFace,
 						TAAPosVRT& aaPos)
 {
 	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){

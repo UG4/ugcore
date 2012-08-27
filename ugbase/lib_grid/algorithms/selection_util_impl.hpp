@@ -309,9 +309,10 @@ void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
 	}
 }
 
-template <class TElem, class TAPos>
-void SelectLinkedBoundaryElements(ISelector& sel, TAPos& aPos,
-								  bool stopAtSelectedSides)
+template <class TElem>
+void SelectLinkedElements(ISelector& sel,
+		  typename Grid::traits<TElem>::callback cbIsSelectable,
+		  typename Grid::traits<typename TElem::side>::callback cbIsTraversable)
 {
 	using namespace std;
 	typedef typename Grid::traits<TElem>::iterator	ElemIter;
@@ -343,7 +344,7 @@ void SelectLinkedBoundaryElements(ISelector& sel, TAPos& aPos,
 			Side* side = sides[i_side];
 		//	if stopAtSelectedSides is active and if the side is selected,
 		//	we won't traverse it.
-			if(stopAtSelectedSides && sel.is_selected(side))
+			if(!cbIsTraversable(side))
 				continue;
 			
 		//	get all neighboring elements of side. Check for each unselected,
@@ -355,7 +356,7 @@ void SelectLinkedBoundaryElements(ISelector& sel, TAPos& aPos,
 				TElem* nbr = nbrs[i_nbr];
 				if(sel.is_selected(nbr))
 					continue;
-				if(!LiesOnBoundary(grid, nbr))
+				if(!cbIsSelectable(nbr))
 					continue;
 				
 			//	we found a new linked boundary element

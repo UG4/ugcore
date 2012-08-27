@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <list>
+#include <boost/function.hpp>
 #include "common/util/message_hub.h"
 #include "common/ug_config.h"
 #include "grid_constants.h"
@@ -31,9 +32,6 @@
 
 namespace ug
 {
-
-/// \addtogroup lib_grid
-///	@{
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	Grid
@@ -84,6 +82,9 @@ namespace ug
  *
  * The Grid class features a message-hub, which can be used to distribute messages
  * to registered callbacks.
+ *
+ * \defgroup lib_grid_grid grid
+ * \ingroup lib_grid
  */
 class UG_API Grid
 {
@@ -91,7 +92,8 @@ class UG_API Grid
 	///	The traits class holds some important types for each element-type
 		template <class TElem>
 		struct traits{
-			typedef ug::ElementStorage<typename TElem::geometric_base_object> ElementStorage;
+			typedef typename TElem::geometric_base_object			base_object;
+			typedef ug::ElementStorage<base_object>					ElementStorage;
 			typedef typename ElementStorage::AttachmentPipe			AttachmentPipe;
 			typedef typename ElementStorage::AttachedElementList	AttachedElementList;
 			typedef typename ElementStorage::SectionContainer		SectionContainer;
@@ -100,7 +102,24 @@ class UG_API Grid
 			typedef typename geometry_traits<TElem>::const_iterator	const_iterator;
 
 			typedef PointerConstArray<TElem*>						secure_container;
+
+		//	CALLBACKS
+		///	callback type for the elements base type.
+			typedef boost::function<bool (base_object*)>			callback;
+
+		///	convenience method which can be used as a callback that always returns true
+			static bool cb_consider_all(base_object*)				{return true;}
+		///	convenience method which can be used as a callback that always returns false
+			static bool cb_consider_none(base_object*)				{return false;}
 		};
+
+	///	Convenience access to grid elements
+	/** \{ */
+		typedef traits<VertexBase>	vertex_traits;
+		typedef traits<EdgeBase>	edge_traits;
+		typedef traits<Face>		face_traits;
+		typedef traits<Volume>		volume_traits;
+	/** \} */
 
 	///	Container to store associated vertices.
 		typedef traits<VertexBase>::secure_container	SecureVertexContainer;
@@ -1068,7 +1087,6 @@ class UG_API Grid
 		SPMessageHub m_messageHub;
 };
 
-///	@}
 }//end of namespace
 
 #include "grid_impl.hpp"

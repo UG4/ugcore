@@ -7,7 +7,6 @@
 
 #include <vector>
 #include "grid.h"
-#include "geometric_object_callbacks.h"
 
 namespace ug
 {
@@ -56,9 +55,9 @@ enum NeighborhoodType
  */
 void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut,
 						Grid& grid, VertexBase* vrt, uint nbhType = NHT_EDGE_NEIGHBORS,
-						CB_ConsiderEdge considerEdge = ConsiderAllEdges,
-						CB_ConsiderFace considerFace = ConsiderAllFaces,
-						CB_ConsiderVolume considerVol = ConsiderAllVolumes);
+						Grid::edge_traits::callback considerEdge	= Grid::edge_traits::cb_consider_all,
+						Grid::face_traits::callback considerFace	= Grid::face_traits::cb_consider_all,
+						Grid::volume_traits::callback considerVol	= Grid::volume_traits::cb_consider_all);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectNeighbors

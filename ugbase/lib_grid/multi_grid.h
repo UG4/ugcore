@@ -187,6 +187,8 @@ template <> class mginfo_traits<Volume>
  * GridMessage_MultiGridChanged (defined in "lib_grid/lib_grid_messages.h").
  * You may register a callback at the grids message-hub if you want to react
  * on such a message.
+ *
+ * \addtogroup lib_grid
  */
 class MultiGrid : public Grid, public GridObserver
 {

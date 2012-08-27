@@ -7,6 +7,7 @@
 
 #include "subset_util.h"
 #include "selection_util.h"
+#include "callback_util.h"
 
 namespace ug
 {

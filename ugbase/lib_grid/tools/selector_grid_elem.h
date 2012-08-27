@@ -16,6 +16,9 @@
 namespace ug
 {
 
+/** \ingroup lib_grid_tools
+ *  \{ */
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	TElemSelector
@@ -113,6 +116,7 @@ typedef TElemSelector<EdgeBase>		EdgeSelector;
 typedef TElemSelector<Face>			FaceSelector;
 typedef TElemSelector<Volume>		VolumeSelector;
 
+/** \} */
 }//	end of namespace
 
 #endif
