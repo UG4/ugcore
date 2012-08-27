@@ -776,7 +776,11 @@ function(ExportSources prefix sources)
             # NOTE: properties must be assigned to variables before being used
             get_property(tmp GLOBAL PROPERTY ugSources)
             # append tmp to the global ugSources property using the correct prefix
-            set_property(GLOBAL PROPERTY ugSources ${tmp} "${prefix}/${l}")
+            if("${prefix}" STREQUAL "")
+				set_property(GLOBAL PROPERTY ugSources ${tmp} "${l}")
+			else("${prefix}" STREQUAL "")
+				set_property(GLOBAL PROPERTY ugSources ${tmp} "${prefix}/${l}")
+			endif("${prefix}" STREQUAL "")
         endif(NOT "${l}" STREQUAL "${prefix}")
     endforeach(l)
 endfunction(ExportSources)

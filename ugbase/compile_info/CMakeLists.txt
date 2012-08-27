@@ -45,7 +45,7 @@ endif(UNIX AND buildCompileInfo)
 EXPORTSOURCES(ugbase/compile_info compile_info.cpp)
 
 if(buildEmbeddedPlugins)
-	EXPORTSOURCES(/ ${infoFileName})
+	EXPORTSOURCES("" ${infoFileName})
 #	Note that a dependency to updateCompileInfo is created in the main CMakeLists.txt
 #	file for this case.
 
