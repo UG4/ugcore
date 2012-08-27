@@ -139,7 +139,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 											partitionMap.get_partition_handler(),
 											pMG->begin<Volume>(), pMG->end<Volume>(),
 											numCellsX, numCellsY, aaPos,
-											(bool(*)(Volume*))ConsiderAll, bucketSubset);
+											Grid::volume_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<Volume>(
 											partitionMap.get_partition_handler(),
@@ -153,7 +153,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 											partitionMap.get_partition_handler(),
 											pMG->begin<Face>(), pMG->end<Face>(),
 											numCellsX, numCellsY, aaPos,
-											(bool(*)(Face*))ConsiderAll, bucketSubset);
+											Grid::face_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<Face>(
 											partitionMap.get_partition_handler(),
@@ -167,7 +167,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 											partitionMap.get_partition_handler(),
 											pMG->begin<EdgeBase>(), pMG->end<EdgeBase>(),
 											numCellsX, numCellsY, aaPos,
-											(bool(*)(EdgeBase*))ConsiderAll, bucketSubset);
+											Grid::edge_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<EdgeBase>(
 											partitionMap.get_partition_handler(),
@@ -181,7 +181,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 											partitionMap.get_partition_handler(),
 											pMG->begin<VertexBase>(), pMG->end<VertexBase>(),
 											numCellsX, numCellsY, aaPos,
-											(bool(*)(VertexBase*))ConsiderAll, bucketSubset);
+											Grid::vertex_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<VertexBase>(
 											partitionMap.get_partition_handler(),

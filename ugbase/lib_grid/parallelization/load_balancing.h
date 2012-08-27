@@ -64,8 +64,8 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 								TIterator begin, TIterator end,
 								int numCellsX, int numCellsY,
 								TAAPos& aaPos,
-								boost::function<bool (TElem*)> cbConsiderElem
-									= (bool(*)(TElem*))ConsiderAll,
+								typename Grid::traits<TElem>::callback cbConsiderElem
+									= Grid::traits<TElem>::cb_consider_all,
 								int bucketSubset = -1);
 
 ////////////////////////////////////////////////////////////////////////////////
