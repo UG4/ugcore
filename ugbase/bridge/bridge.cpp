@@ -175,6 +175,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_MultiGrid(reg, parentGroup);
 		RegisterBridge_Output(reg, parentGroup);
 		RegisterBridge_AdaptiveTools(reg, parentGroup);
+		RegisterBridge_FiniteVolume(reg, parentGroup);
 		RegisterBridge_Integrate(reg, parentGroup);
 		#endif
 

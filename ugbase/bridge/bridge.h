@@ -90,6 +90,7 @@ void RegisterBridge_Constraints(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_MultiGrid(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Output(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_AdaptiveTools(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_FiniteVolume(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Integrate(Registry& reg, std::string grp = UG4_GRP);
 #endif
 

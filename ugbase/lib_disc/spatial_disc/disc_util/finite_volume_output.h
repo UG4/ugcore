@@ -10,24 +10,21 @@
 
 // other ug4 modules
 #include "common/common.h"
-
 #include "lib_grid/lg_base.h"
+#include "lib_disc/domain_util.h"
 
 // finite volume geometry
-#include "./finite_volume_geometry.h"
-#include "./hanging_finite_volume_geometry.h"
-#include "lib_disc/domain_util.h"
+#include "finite_volume_geometry.h"
+#include "hanging_finite_volume_geometry.h"
 
 namespace ug{
 
-////////////////////////////////////////////////////
-////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // ConstructGridOfSCVF
-////////////////////////////////////////////////////
-////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
-bool CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler& shOut,
+void CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandler& shOut,
 				Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut)
 {
 	// extract dimensions
@@ -56,61 +53,50 @@ bool CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler
 
 			//	set the coordinates
 				aaPosOut[vrt] = scvf.global_corner(co);
-
-				//UG_LOG("Creating node " << co << " at " << aaPosOut[vrt] << " (vrt= " << vrt << ")\n");
 		}
-		UG_LOG("\n");
 
 		// edge
 		if(refDim == 2)
 		{
-			if(scvf.num_corners() == 2)
-			{
+			if (scvf.num_corners() == 2) {
 				grid.template create<Edge>(EdgeDescriptor(vVert[0], vVert[1]));
 			}
-			else
-			{
-				UG_LOG("SCVF has a number of nodes, that is not drawable.\n"); return false;
+			else {
+				UG_THROW("SCVF has a number of nodes, that is not drawable.");
 			}
 		}
 		// face
 		else if(refDim == 3)
 		{
-			if(scvf.num_corners() == 4)
-			{
+			if (scvf.num_corners() == 4) {
 				grid.template create<Quadrilateral>(QuadrilateralDescriptor(vVert[0], vVert[1],
 																			vVert[2], vVert[3]));
 			}
-			else if(scvf.num_corners() == 3)
-			{
+			else if (scvf.num_corners() == 3) {
 				grid.template create<Triangle>(TriangleDescriptor(vVert[0], vVert[1],
 																			vVert[2]));
 			}
-			else
-			{
-				UG_LOG("SCVF has a number of nodes, that is not drawable.\n"); return false;
+			else{
+				UG_THROW("SCVF has a number of nodes, that is not drawable.");
 			}
 		}
 	}
-	return true;
 }
 
 template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
-bool ConstructGridOfSCVF(SubsetHandler& shOut, const SubsetHandler& sh,
-		Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
-		Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
-		int si)
+void ConstructGridOfSCVF(ISubsetHandler& shOut,
+                         const SurfaceView& surfView,
+                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
+                         Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
+                         int si)
 {
 	// Create Geometry
 	TFVGeom<TElem, TWorldDim> geo;
 
-	// extract grid
-	Grid& grid = *sh.grid();
-
 	// iterators for primary grid
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = sh.begin<TElem>(si);
-	iterEnd = sh.end<TElem>(si);
+	typename SurfaceView::traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = surfView.begin<TElem>();
+	iterEnd = surfView.end<TElem>();
 
 	// corners of element
 	std::vector<MathVector<TWorldDim> > vCornerCoords;
@@ -125,13 +111,11 @@ bool ConstructGridOfSCVF(SubsetHandler& shOut, const SubsetHandler& sh,
 		CollectCornerCoordinates(vCornerCoords, *elem, aaPos);
 
 		// update finite volume geometry
-		geo.update(elem, grid, &vCornerCoords[0]);
+		geo.update(elem, &vCornerCoords[0], &(*surfView.subset_handler()));
 
 		// Create dual grid
 		CreateSCVF<TElem, TFVGeom, TWorldDim>(*elem, geo, shOut, aaPosOut);
 	}
-
-	return true;
 }
 
 
@@ -141,103 +125,81 @@ struct ConstructGridOfSCVFWrapper{};
 template <template <class, int> class TFVGeom>
 struct ConstructGridOfSCVFWrapper<TFVGeom, 1>
 {
-	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
-			   Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPos,
-			   Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPosOut,
-			   int si)
+	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
+	                  const Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPos,
+	                  Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPosOut,
+	                  int si, int siDim)
 	{
-		const int siDim = DimensionOfSubset(sh, si);
 		switch(siDim)
 		{
-			case 1: if(!ConstructGridOfSCVF<Edge, TFVGeom, 1>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Edges.\n"); return false;}
+			case 1: ConstructGridOfSCVF<Edge, TFVGeom, 1>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			default: UG_LOG("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 1 <<".\n");
-						return false;
+			default: UG_THROW("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 1 <<".");
 		}
-		return true;
 	}
 };
 
 template <template <class, int> class TFVGeom>
 struct ConstructGridOfSCVFWrapper<TFVGeom, 2>
 {
-	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
-				Grid::VertexAttachmentAccessor<Attachment<MathVector<2> > >& aaPos,
+	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
+				const Grid::VertexAttachmentAccessor<Attachment<MathVector<2> > >& aaPos,
 				Grid::VertexAttachmentAccessor<Attachment<MathVector<2> > >& aaPosOut,
-				int si)
+				int si, int siDim)
 	{
-		const int siDim = DimensionOfSubset(sh, si);
 		switch(siDim)
 		{
-			case 1: if(!ConstructGridOfSCVF<Edge, TFVGeom, 2>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Edges.\n"); return false;}
+			case 1: ConstructGridOfSCVF<Edge, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			case 2: if(!ConstructGridOfSCVF<Triangle, TFVGeom, 2>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Triangles.\n"); return false;}
-					if(!ConstructGridOfSCVF<Quadrilateral, TFVGeom, 2>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Quadrilaterals.\n"); return false;}
+			case 2: ConstructGridOfSCVF<Triangle, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCVF<Quadrilateral, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			default: UG_LOG("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 2 <<".\n");
-						return false;
+			default: UG_THROW("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 2);
 		}
-		return true;
 	}
 };
 
 template <template <class, int> class TFVGeom>
 struct ConstructGridOfSCVFWrapper<TFVGeom, 3>
 {
-	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
-				Grid::VertexAttachmentAccessor<Attachment<MathVector<3> > >& aaPos,
+	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
+				const Grid::VertexAttachmentAccessor<Attachment<MathVector<3> > >& aaPos,
 				Grid::VertexAttachmentAccessor<Attachment<MathVector<3> > >& aaPosOut,
-				int si)
+				int si, int siDim)
 	{
-		const int siDim = DimensionOfSubset(sh, si);
 		switch(siDim)
 		{
-			case 1: if(!ConstructGridOfSCVF<Edge, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Edges.\n"); return false;}
+			case 1: ConstructGridOfSCVF<Edge, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			case 2: if(!ConstructGridOfSCVF<Triangle, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Triangles.\n"); return false;}
-					if(!ConstructGridOfSCVF<Quadrilateral, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Quadrilaterals.\n"); return false;}
+			case 2: ConstructGridOfSCVF<Triangle, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCVF<Quadrilateral, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			case 3: if(!ConstructGridOfSCVF<Tetrahedron, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Tetrahedrons.\n"); return false;}
-					if(!ConstructGridOfSCVF<Hexahedron, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Hexahedrons.\n"); return false;}
-					if(!ConstructGridOfSCVF<Prism, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Prisms.\n"); return false;}
-					if(!ConstructGridOfSCVF<Pyramid, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Pyramids.\n"); return false;}
+			case 3: ConstructGridOfSCVF<Tetrahedron, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCVF<Hexahedron, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCVF<Prism, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCVF<Pyramid, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			default: UG_LOG("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 3 <<".\n");
-						return false;
+			default: UG_THROW("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 3);
 		}
-		return true;
 	}
 };
 
 template <template <class, int> class TFVGeom, int TWorldDim>
-bool ConstructGridOfSCVF(SubsetHandler& shOut, const SubsetHandler& sh,
-						Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
+void ConstructGridOfSCVF(ISubsetHandler& shOut, const SurfaceView& surfView,
+						const Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
 						Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
-						int si)
+						int si, int siDim)
 {
-	return ConstructGridOfSCVFWrapper<TFVGeom, TWorldDim>::apply(shOut, sh, aaPos, aaPosOut, si);
+	ConstructGridOfSCVFWrapper<TFVGeom, TWorldDim>::apply(shOut, surfView, aaPos, aaPosOut, si, siDim);
 }
 
 
-////////////////////////////////////////////////////
-////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // ConstructGridOfSCV
-////////////////////////////////////////////////////
-////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
-bool CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler& shOut,
+void CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandler& shOut,
 				Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut)
 {
 	// extract dimensions
@@ -273,9 +235,7 @@ bool CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler&
 				if(co == 0) shOut.assign_subset(vrt, 0);
 				else shOut.assign_subset(vrt, -1);
 
-				UG_LOG("Creating node " << co << " at " << aaPosOut[vrt] << " (vrt= " << vrt << ")\n");
 		}
-		UG_LOG("\n");
 
 		// edge
 		if(refDim == 1)
@@ -285,53 +245,44 @@ bool CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler&
 		// face
 		else if(refDim == 2)
 		{
-			if(scv.num_corners() == 4)
-			{
+			if (scv.num_corners() == 4) {
 				grid.template create<Quadrilateral>(QuadrilateralDescriptor(vVert[0], vVert[1],
 																		vVert[2], vVert[3]));
 			}
-			else
-			{
-				UG_LOG("SCV has a number of nodes, that is not drawable.\n"); return false;
+			else {
+				UG_THROW("SCV has a number of nodes, that is not drawable.");
 			}
 		}
 		// volume
 		else if(refDim == 3)
 		{
-			if(scv.num_corners() == 8)
-			{
+			if (scv.num_corners() == 8) {
 				grid.template create<Hexahedron>(HexahedronDescriptor(	vVert[0], vVert[1], vVert[2], vVert[3],
 																		vVert[4], vVert[5], vVert[6], vVert[7]));
 			}
-			else if(scv.num_corners() == 4)
-			{
+			else if (scv.num_corners() == 4) {
 				grid.template create<Tetrahedron>(TetrahedronDescriptor(	vVert[0], vVert[1], vVert[2], vVert[3]));
 			}
-			else
-			{
-				UG_LOG("SCV has a number of nodes, that is not drawable.\n"); return false;
+			else {
+				UG_THROW("SCV has a number of nodes, that is not drawable.");
 			}
 		}
 	}
-	return true;
 }
 
 template <typename TElem, template <class, int> class TFVGeom, int TWorldDim>
-bool ConstructGridOfSCV(SubsetHandler& shOut, const SubsetHandler& sh,
-		Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
-		Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
-		int si)
+void ConstructGridOfSCV(ISubsetHandler& shOut, const SurfaceView& surfView,
+                        const Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
+                        Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
+                        int si)
 {
 	// Create Geometry
 	TFVGeom<TElem, TWorldDim> geo;
 
-	// extract grid
-	Grid& grid = *sh.grid();
-
 	// iterators for primary grid
-	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = sh.begin<TElem>(si);
-	iterEnd = sh.end<TElem>(si);
+	typename SurfaceView::traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = surfView.begin<TElem>();
+	iterEnd = surfView.end<TElem>();
 
 	// corners of element
 	std::vector<MathVector<TWorldDim> > vCornerCoords;
@@ -346,13 +297,11 @@ bool ConstructGridOfSCV(SubsetHandler& shOut, const SubsetHandler& sh,
 		CollectCornerCoordinates(vCornerCoords, *elem, aaPos);
 
 		// update finite volume geometry
-		geo.update(elem, grid, &vCornerCoords[0]);
+		geo.update(elem, &vCornerCoords[0], &(*surfView.subset_handler()));
 
 		// Create dual grid
 		CreateSCV<TElem, TFVGeom, TWorldDim>(*elem, geo, shOut, aaPosOut);
 	}
-
-	return true;
 }
 
 
@@ -362,103 +311,81 @@ struct ConstructGridOfSCVWrapper{};
 template <template <class TElem, int TWorldDim> class TFVGeom>
 struct ConstructGridOfSCVWrapper<TFVGeom, 1>
 {
-	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
-			   Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPos,
-			   Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPosOut,
-			   int si)
+	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
+	                  const Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPos,
+	                  Grid::VertexAttachmentAccessor<Attachment<MathVector<1> > >& aaPosOut,
+	                  int si, int siDim)
 	{
-		const int siDim = DimensionOfSubset(sh, si);
 		switch(siDim)
 		{
-			case 1: if(!ConstructGridOfSCV<Edge, TFVGeom, 1>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Edges.\n"); return false;}
+			case 1: ConstructGridOfSCV<Edge, TFVGeom, 1>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			default: UG_LOG("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 1 <<".\n");
-						return false;
+			default: UG_THROW("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 1);
 		}
-		return true;
 	}
 };
 
 template <template <class, int> class TFVGeom>
 struct ConstructGridOfSCVWrapper<TFVGeom, 2>
 {
-	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
-				Grid::VertexAttachmentAccessor<Attachment<MathVector<2> > >& aaPos,
-				Grid::VertexAttachmentAccessor<Attachment<MathVector<2> > >& aaPosOut,
-				int si)
+	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
+	                  const Grid::VertexAttachmentAccessor<Attachment<MathVector<2> > >& aaPos,
+	                  Grid::VertexAttachmentAccessor<Attachment<MathVector<2> > >& aaPosOut,
+	                  int si, int siDim)
 	{
-		const int siDim = DimensionOfSubset(sh, si);
 		switch(siDim)
 		{
-			case 1: if(!ConstructGridOfSCV<Edge, TFVGeom, 2>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Edges.\n"); return false;}
+			case 1: ConstructGridOfSCV<Edge, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			case 2: if(!ConstructGridOfSCV<Triangle, TFVGeom, 2>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Triangles.\n"); return false;}
-					if(!ConstructGridOfSCV<Quadrilateral, TFVGeom, 2>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Quadrilaterals.\n"); return false;}
+			case 2: ConstructGridOfSCV<Triangle, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCV<Quadrilateral, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			default: UG_LOG("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 2 <<".\n");
-						return false;
+			default: UG_THROW("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 2);
 		}
-		return true;
 	}
 };
 
 template <template <class, int> class TFVGeom>
 struct ConstructGridOfSCVWrapper<TFVGeom, 3>
 {
-	static bool apply(SubsetHandler& shOut, const SubsetHandler& sh,
-				Grid::VertexAttachmentAccessor<Attachment<MathVector<3> > >& aaPos,
-				Grid::VertexAttachmentAccessor<Attachment<MathVector<3> > >& aaPosOut,
-				int si)
+	static void apply(ISubsetHandler& shOut, const SurfaceView& surfView,
+	                  const Grid::VertexAttachmentAccessor<Attachment<MathVector<3> > >& aaPos,
+	                  Grid::VertexAttachmentAccessor<Attachment<MathVector<3> > >& aaPosOut,
+	                  int si, int siDim)
 	{
-		const int siDim = DimensionOfSubset(sh, si);
 		switch(siDim)
 		{
-			case 1: if(!ConstructGridOfSCV<Edge, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Edges.\n"); return false;}
+			case 1: ConstructGridOfSCV<Edge, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			case 2: if(!ConstructGridOfSCV<Triangle, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Triangles.\n"); return false;}
-					if(!ConstructGridOfSCV<Quadrilateral, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Quadrilaterals.\n"); return false;}
+			case 2: ConstructGridOfSCV<Triangle, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCV<Quadrilateral, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			case 3: if(!ConstructGridOfSCV<Tetrahedron, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Tetrahedrons.\n"); return false;}
-					if(!ConstructGridOfSCV<Hexahedron, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Hexahedrons.\n"); return false;}
-					if(!ConstructGridOfSCV<Prism, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Prisms.\n"); return false;}
-					if(!ConstructGridOfSCV<Pyramid, TFVGeom, 3>(shOut, sh, aaPos, aaPosOut, si))
-						{UG_LOG("CreateDualGrid: Error while processing Pyramids.\n"); return false;}
+			case 3: ConstructGridOfSCV<Tetrahedron, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCV<Hexahedron, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCV<Prism, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+					ConstructGridOfSCV<Pyramid, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
-			default: UG_LOG("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 3 <<".\n");
-						return false;
+			default: UG_THROW("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 3);
 		}
-		return true;
 	}
 };
 
 template <template <class, int> class TFVGeom, int TWorldDim>
-bool ConstructGridOfSCV(SubsetHandler& shOut, const SubsetHandler& sh,
-						Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
+void ConstructGridOfSCV(ISubsetHandler& shOut, const SurfaceView& surfView,
+						const Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPos,
 						Grid::VertexAttachmentAccessor<Attachment<MathVector<TWorldDim> > >& aaPosOut,
-						int si)
+						int si, int siDim)
 {
-	return ConstructGridOfSCVWrapper<TFVGeom, TWorldDim>::apply(shOut, sh, aaPos, aaPosOut, si);
+	ConstructGridOfSCVWrapper<TFVGeom, TWorldDim>::apply(shOut, surfView, aaPos, aaPosOut, si, siDim);
 }
 
 
-////////////////////////////////////////////////////
-////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Assignement of Subsets
-////////////////////////////////////////////////////
-////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TElem>
-bool ColorSubControlVolumeFaces(SubsetHandler& shOut)
+void ColorSubControlVolumeFaces(ISubsetHandler& shOut)
 {
 	// extract grid
 	Grid& grid = *shOut.grid();
@@ -474,11 +401,10 @@ bool ColorSubControlVolumeFaces(SubsetHandler& shOut)
 	{
 		shOut.assign_subset(*iter, si++);
 	}
-	return true;
 }
 
 template <typename TElem>
-bool ColorSubControlVolume(SubsetHandler& shOut)
+void ColorSubControlVolume(ISubsetHandler& shOut)
 {
 	// extract grid
 	Grid& grid = *shOut.grid();
@@ -494,12 +420,11 @@ bool ColorSubControlVolume(SubsetHandler& shOut)
 	{
 		shOut.assign_subset(*iter, si++);
 	}
-	return true;
 }
 
 
 template <int TRefDim>
-bool ColorControlVolume(SubsetHandler& shOut)
+void ColorControlVolume(ISubsetHandler& shOut)
 {
 	// extract grid
 	Grid& grid = *shOut.grid();
@@ -509,9 +434,11 @@ bool ColorControlVolume(SubsetHandler& shOut)
 	std::vector<EdgeBase*> vEdges;
 
 	int si = 0;
-	for(VertexBaseIterator iter = shOut.begin<VertexBase>(0);
-		iter != shOut.end<VertexBase>(0); ++iter, ++si)
+	for(VertexBaseIterator iter = shOut.grid()->begin<VertexBase>();
+		iter != shOut.grid()->end<VertexBase>(); ++iter, ++si)
 	{
+		if(shOut.get_subset_index(*iter) != 0) continue;
+
 		switch(TRefDim)
 		{
 		case 1:	CollectEdges(vEdges, grid, *iter);
@@ -523,180 +450,182 @@ bool ColorControlVolume(SubsetHandler& shOut)
 		case 3:	CollectVolumes(vVols, grid, *iter);
 				shOut.assign_subset(vVols.begin(), vVols.end(), si);
 				break;
-		default: UG_LOG("Dimension " << 3 << " is not supported.\n");
+		default: UG_THROW("Dimension " << TRefDim << " is not supported.");
 		}
 	}
-
-	return true;
 }
 
 
-template <template <class, int> class TFVGeom, typename TAPosition>
-bool CreateGridOfSubControlVolumes(SubsetHandler& shOut, SubsetHandler& sh, TAPosition& aPos, int si = -1)
+template <template <class, int> class TFVGeom, typename TAAPosition>
+void CreateGridOfSubControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut, const ISubsetHandler& sh, const TAAPosition& aaPos, const SurfaceView& surfView, int si = -1)
 {
-	static const int dim = TAPosition::ValueType::Size;
-
-	// get assigned grid
-	Grid& grid = *sh.grid();
-	Grid& gridOut = *shOut.grid();
-
-	// create attachment accessor
-	Grid::VertexAttachmentAccessor<TAPosition> aaPos(grid, aPos);
-	Grid::VertexAttachmentAccessor<TAPosition> aaPosOut(gridOut, aPos);
-
-	// check ref dim
-	int refDim = dim;
+	static const int dim = TAAPosition::ValueType::Size;
 
 	// Construct dual domain for scv and given subset
 	if(si >= 0)
 	{
-		refDim = DimensionOfSubset(sh, si);
-
-		if(!ConstructGridOfSCV<TFVGeom, dim>(shOut, sh, aaPos, aaPosOut, si))
-			{UG_LOG("WriteDualGridToFile: Error while writing subset "<<si<<".\n"); return false;}
+		const int siDim = DimensionOfSubset(sh, si);
+		ConstructGridOfSCV<TFVGeom, dim>(shOut, surfView, aaPos, aaPosOut, si, siDim);
 	}
 	// if no subset selected, construct dual grid for all subsets with dim == worldDim
 	else
 	{
 		for(si = 0; si < sh.num_subsets(); ++si)
 		{
-			if(DimensionOfSubset(sh, si) != dim) continue;
+			const int siDim = DimensionOfSubset(sh, si);
+			if(siDim != dim) continue;
 
-            if(!ConstructGridOfSCV<TFVGeom, dim>(shOut, sh, aaPos, aaPosOut, si))
-				{UG_LOG("WriteDualGridToFile: Error while writing subset "<<si<<".\n"); return false;}
+            ConstructGridOfSCV<TFVGeom, dim>(shOut, surfView, aaPos, aaPosOut, si, siDim);
 		}
 	}
 
 	// Let each SubControlVolume be one subset
-	switch(refDim)
+	switch(dim)
 	{
-		case 1: if(!ColorSubControlVolume<EdgeBase>(shOut))
-					{UG_LOG("WriteDualGridToFile: Cannot choose subsets for SubVolumes.\n"); return false;}
-				break;
-		case 2: if(!ColorSubControlVolume<Face>(shOut))
-					{UG_LOG("WriteDualGridToFile: Cannot choose subsets for SubVolumes.\n"); return false;}
-				break;
-		case 3: if(!ColorSubControlVolume<Volume>(shOut))
-					{UG_LOG("WriteDualGridToFile: Cannot choose subsets for SubVolumes.\n"); return false;}
-				break;
-		default: UG_LOG("WriteDualGridToFile: Dimension " << refDim << " not supported.\n");
-					return false;
+		case 1: ColorSubControlVolume<EdgeBase>(shOut); break;
+		case 2: ColorSubControlVolume<Face>(shOut); break;
+		case 3: ColorSubControlVolume<Volume>(shOut); break;
+		default: UG_THROW("WriteDualGridToFile: Dimension "<<dim<<" not supported.");
 	}
-
-	return true;
 }
 
-template <template <class, int> class TFVGeom, typename TAPosition>
-bool CreateGridOfControlVolumes(SubsetHandler& shOut, SubsetHandler& sh, TAPosition& aPos, int si = -1)
+template <template <class, int> class TFVGeom, typename TAAPosition, typename TAPosition>
+void CreateGridOfControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut, TAPosition& aPosOut, const ISubsetHandler& sh, const TAAPosition& aaPos, const SurfaceView& surfView, int si = -1)
 {
-	static const int dim = TAPosition::ValueType::Size;
-
-	// get assigned grid
-	Grid& grid = *sh.grid();
-	Grid& gridOut = *shOut.grid();
-
-	// create attachment accessor
-	Grid::VertexAttachmentAccessor<TAPosition> aaPos(grid, aPos);
-	Grid::VertexAttachmentAccessor<TAPosition> aaPosOut(gridOut, aPos);
-
-	// check ref dim
-	int refDim = dim;
+	static const int dim = TAAPosition::ValueType::Size;
 
 	// Construct dual domain for scv and given subset
 	if(si >= 0)
 	{
-		refDim = DimensionOfSubset(sh, si);
-
-		if(!ConstructGridOfSCV<TFVGeom, dim>(shOut, sh, aaPos, aaPosOut, si))
-			{UG_LOG("WriteDualGridToFile: Error while writing subset "<<si<<".\n"); return false;}
+		const int siDim = DimensionOfSubset(sh, si);
+		ConstructGridOfSCV<TFVGeom, dim>(shOut, surfView, aaPos, aaPosOut, si, siDim);
 	}
 	// if no subset selected, construct dual grid for all subsets with dim == worldDim
 	else
 	{
 		for(si = 0; si < sh.num_subsets(); ++si)
 		{
-			if(DimensionOfSubset(sh, si) != dim) continue;
+			const int siDim = DimensionOfSubset(sh, si);
+			if(siDim != dim) continue;
 
-            if(!ConstructGridOfSCV<TFVGeom, dim>(shOut, sh, aaPos, aaPosOut, si))
-				{UG_LOG("WriteDualGridToFile: Error while writing subset "<<si<<".\n"); return false;}
+            ConstructGridOfSCV<TFVGeom, dim>(shOut, surfView, aaPos, aaPosOut, si, siDim);
 		}
 	}
 
 	// remove doubles
-	RemoveDoubles<dim>(gridOut, gridOut.begin<VertexBase>(), gridOut.end<VertexBase>(), aPos, 1e-5);
+	RemoveDoubles<dim>(*shOut.grid(),
+	                   shOut.grid()->begin<VertexBase>(), shOut.grid()->end<VertexBase>(),
+	                   aPosOut, 1e-5);
 
 	// Let each SubControlVolume be one subset
-	switch(refDim)
+	switch(dim)
 	{
-		case 1: if(!ColorControlVolume<1>(shOut))
-					{UG_LOG("WriteDualGridToFile: Cannot choose subsets for SubVolumes.\n"); return false;}
-				break;
-		case 2: if(!ColorControlVolume<2>(shOut))
-					{UG_LOG("WriteDualGridToFile: Cannot choose subsets for SubVolumes.\n"); return false;}
-				break;
-		case 3: if(!ColorControlVolume<3>(shOut))
-					{UG_LOG("WriteDualGridToFile: Cannot choose subsets for SubVolumes.\n"); return false;}
-				break;
-		default: UG_LOG("WriteDualGridToFile: Dimension " << refDim << " not supported.\n");
-					return false;
+		case 1: ColorControlVolume<1>(shOut); break;
+		case 2: ColorControlVolume<2>(shOut); break;
+		case 3: ColorControlVolume<3>(shOut); break;
+		default: UG_THROW("WriteDualGridToFile: Dimension "<<dim<<" not supported.");
 	}
-
-	return true;
 }
 
-template <template <class, int> class TFVGeom, typename TAPosition>
-bool CreateGridOfSubControlVolumeFaces(SubsetHandler& shOut, SubsetHandler& sh, TAPosition& aPos, int si = -1)
+template <template <class, int> class TFVGeom, typename TAAPosition>
+void CreateGridOfSubControlVolumeFaces(ISubsetHandler& shOut, TAAPosition& aaPosOut, const ISubsetHandler& sh, const TAAPosition& aaPos, const SurfaceView& surfView, int si = -1)
 {
-	static const int dim = TAPosition::ValueType::Size;
-
-	// get assigned grid
-	Grid& grid = *sh.grid();
-	Grid& gridOut = *shOut.grid();
-
-	// create attachment accessor
-	Grid::VertexAttachmentAccessor<TAPosition> aaPos(grid, aPos);
-	Grid::VertexAttachmentAccessor<TAPosition> aaPosOut(gridOut, aPos);
-
-	// check ref dim
-	int refDim = dim;
+	static const int dim = TAAPosition::ValueType::Size;
 
 	// Construct dual domain for scv and given subset
 	if(si >= 0)
 	{
-		refDim = DimensionOfSubset(sh, si);
+		const int siDim = DimensionOfSubset(sh, si);
 
-		if(!ConstructGridOfSCVF<TFVGeom, dim>(shOut, sh, aaPos, aaPosOut, si))
-			{UG_LOG("WriteDualGridToFile: Error while writing subset "<<si<<".\n"); return false;}
+		ConstructGridOfSCVF<TFVGeom, dim>(shOut, surfView, aaPos, aaPosOut, si, siDim);
 	}
 	// if no subset selected, construct dual grid for all subsets with dim == worldDim
 	else
 	{
 		for(si = 0; si < sh.num_subsets(); ++si)
 		{
-			if(DimensionOfSubset(sh, si) != dim) continue;
+			const int siDim = DimensionOfSubset(sh, si);
+			if(siDim != dim) continue;
 
-			if(!ConstructGridOfSCVF<TFVGeom, dim>(shOut, sh, aaPos, aaPosOut, si))
-				{UG_LOG("WriteDualGridToFile: Error while writing subset "<<si<<".\n"); return false;}
+			ConstructGridOfSCVF<TFVGeom, dim>(shOut, surfView, aaPos, aaPosOut, si, siDim);
 		}
 	}
 
 	// Let each SubControlVolume be one subset
-	switch(refDim)
+	switch(dim)
 	{
-		case 1: if(!ColorSubControlVolumeFaces<VertexBase>(shOut))
-					{UG_LOG("WriteDualGridToFile: Cannot choose subsets for SubVolumes.\n"); return false;}
-				break;
-		case 2: if(!ColorSubControlVolumeFaces<EdgeBase>(shOut))
-					{UG_LOG("WriteDualGridToFile: Cannot choose subsets for SubVolumes.\n"); return false;}
-				break;
-		case 3: if(!ColorSubControlVolumeFaces<Face>(shOut))
-					{UG_LOG("WriteDualGridToFile: Cannot choose subsets for SubVolumes.\n"); return false;}
-				break;
-		default: UG_LOG("WriteDualGridToFile: Dimension " << refDim << " not supported.\n");
-					return false;
+		case 1: ColorSubControlVolumeFaces<VertexBase>(shOut); break;
+		case 2: ColorSubControlVolumeFaces<EdgeBase>(shOut); break;
+		case 3: ColorSubControlVolumeFaces<Face>(shOut); break;
+		default: UG_THROW("WriteDualGridToFile: Dimension " << dim << " not supported.");
 	}
+}
 
-	return true;
+/**
+ * Creates a grid consisting of the sub-control-volume faces w.r.t to a given
+ * domain.
+ *
+ * @param domOut	domain to be filled
+ * @param domIn		original domain
+ * @param si		subset used (-1 for whole domain)
+ */
+template <template <class, int> class TFVGeom, typename TDomain>
+void CreateSubControlVolumeFaceDomain(TDomain& domOut, const TDomain& domIn, const SurfaceView& surfView, int si = -1)
+{
+	if(&domOut == &domIn)
+		UG_THROW("CreateSubControlVolumeFaceDomain: Domains must be different.");
+
+	CreateGridOfSubControlVolumeFaces<TFVGeom, typename TDomain::position_accessor_type>
+		( *domOut.subset_handler(),
+		  domOut.position_accessor(),
+		  *domIn.subset_handler(),
+		  domIn.position_accessor(),
+		  surfView, si);
+}
+
+/**
+ * Creates a grid consisting of the sub-control-volume w.r.t to a given
+ * domain.
+ *
+ * @param domOut	domain to be filled
+ * @param domIn		original domain
+ * @param si		subset used (-1 for whole domain)
+ */
+template <template <class, int> class TFVGeom, typename TDomain>
+void CreateSubControlVolumeDomain(TDomain& domOut, const TDomain& domIn, const SurfaceView& surfView, int si = -1)
+{
+	if(&domOut == &domIn)
+		UG_THROW("CreateSubControlVolumeDomain: Domains must be different.");
+
+	CreateGridOfSubControlVolumes<TFVGeom, typename TDomain::position_accessor_type>
+		( *domOut.subset_handler(),
+		  domOut.position_accessor(),
+		  *domIn.subset_handler(),
+		  domIn.position_accessor(),
+		  surfView, si);
+}
+
+/**
+ * Creates a grid consisting of the sub-control-volume faces w.r.t to a given
+ * domain.
+ *
+ * @param domOut	domain to be filled
+ * @param domIn		original domain
+ * @param si		subset used (-1 for whole domain)
+ */
+template <template <class, int> class TFVGeom, typename TDomain>
+void CreateControlVolumeDomain(TDomain& domOut, const TDomain& domIn, const SurfaceView& surfView, int si = -1)
+{
+	if(&domOut == &domIn)
+		UG_THROW("CreateControlVolumeDomain: Domains must be different.");
+
+	CreateGridOfControlVolumes<TFVGeom, typename TDomain::position_accessor_type, typename TDomain::position_attachment_type>
+		( *domOut.subset_handler(),
+		  domOut.position_accessor(),
+		  domOut.position_attachment(),
+		  *domIn.subset_handler(),
+		  domIn.position_accessor(),
+		  surfView, si);
 }
 
 } // end namespace ug
