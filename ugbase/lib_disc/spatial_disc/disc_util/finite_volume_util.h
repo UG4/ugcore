@@ -140,7 +140,7 @@ struct fv1_traits_ReferenceFace3d : public fv1_traits_ReferenceFace
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 							 const MathVector<3>* vSCVFCorner,
 							 const MathVector<3>* vElemCorner)
-		{throw(UGError("Not implemented"));}
+		{UG_THROW("Not implemented");}
 };
 
 template <> struct fv1_traits<ReferenceTriangle, 2> : public fv1_traits_ReferenceFace2d{};
@@ -227,13 +227,13 @@ template <> struct hfv1_traits<ReferenceEdge, 1> : public hfv1_traits_ReferenceE
 template <> struct hfv1_traits<ReferenceEdge, 2> : public hfv1_traits_ReferenceEdge
 {
 	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
-		{throw(UGError("Not implemented"));}
+		{UG_THROW("Not implemented");}
 };
 
 template <> struct hfv1_traits<ReferenceEdge, 3> : public hfv1_traits_ReferenceEdge
 {
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{throw(UGError("Not implemented"));}
+		{UG_THROW("Not implemented");}
 };
 
 /////////////////////////
@@ -256,7 +256,7 @@ template <> struct hfv1_traits<ReferenceTriangle, 2> : public hfv1_traits_Refere
 template <> struct hfv1_traits<ReferenceTriangle, 3> : public hfv1_traits_ReferenceFace
 {
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{throw(UGError("Not implemented"));}
+		{UG_THROW("Not implemented");}
 };
 
 template <> struct hfv1_traits<ReferenceQuadrilateral, 2> : public hfv1_traits_ReferenceFace
@@ -268,7 +268,7 @@ template <> struct hfv1_traits<ReferenceQuadrilateral, 2> : public hfv1_traits_R
 template <> struct hfv1_traits<ReferenceQuadrilateral, 3> : public hfv1_traits_ReferenceFace
 {
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{throw(UGError("Not implemented"));}
+		{UG_THROW("Not implemented");}
 };
 
 /////////////////////////
@@ -314,7 +314,7 @@ template <> struct hfv1_traits<ReferenceHexahedron, 3>
 	const static size_t MaxNumCornersOfSCV = 8;
 
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
-		{ElementNormal<ReferenceQuadrilateral, 3>(outNormal, vCornerCoords);}
+		{ElementNormal<ReferenceTriangle, 3>(outNormal, vCornerCoords);}
 
 	typedef ReferenceTetrahedron scv_type;
 };
