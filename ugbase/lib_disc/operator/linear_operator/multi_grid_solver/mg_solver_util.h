@@ -410,12 +410,15 @@ void SetZeroOnShadowing(TVector& vec,
 		//	get vertex
 			TBaseElem* vrt = *iter;
 
-		//	skip non-shadowing vertices
-			GeometricObject* parent = surfView.parent_if_copy(vrt);
-
+			GeometricObject* parent = surfView.subset_handler()->multi_grid()->get_parent(vrt);
 			if(parent == NULL) continue;
 			if(!surfView.is_shadowed(parent)) continue;
 
+		//	skip non-shadowing vertices
+/*			GeometricObject* parent = surfView.parent_if_copy(vrt);
+			if(parent == NULL) continue;
+			if(!surfView.is_shadowed(parent)) continue;
+*/
 		// 	get global indices
 			dd->inner_algebra_indices(vrt, ind);
 

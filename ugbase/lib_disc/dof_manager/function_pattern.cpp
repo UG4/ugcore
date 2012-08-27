@@ -62,8 +62,8 @@ add_fct(const char* names, LFEID lfeID, int dim)
 		m_vFunction.push_back(Function(name, dim, lfeID, true, tmpSSGrp));
 
 	//	write info
-		UG_LOG("Info: Added discrete function with symbolic name '"<<name<<"' and "
-				"local finite element type " <<lfeID<<" on whole domain (dim="<<dim<<").\n");
+//		UG_LOG("Info: Added discrete function with symbolic name '"<<name<<"' and "
+//				"local finite element type " <<lfeID<<" on whole domain (dim="<<dim<<").\n");
 	}
 }
 
@@ -114,8 +114,8 @@ void FunctionPattern::add_fct(const char* names, LFEID lfeID,
 		m_vFunction.push_back(Function(name, dim, lfeID, false, ssGrp));
 
 	//	write info
-		UG_LOG("Info: Added discrete function with symbolic name '"<<name<<"' and "
-				"local finite element type " <<lfeID<<" defined on subsets [");
+//		UG_LOG("Info: Added discrete function with symbolic name '"<<name<<"' and "
+//				"local finite element type " <<lfeID<<" defined on subsets [");
 
 		for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
 		{

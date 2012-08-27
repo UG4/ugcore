@@ -41,7 +41,7 @@ void InitBridge()
 /**	If a class has a tag (e.g. "dim=1d", "dim=2d" or "dim=3d") then it will be set
  * as default - depending on the given tags.
  */
-void InitUG(int dim, const AlgebraType& algType)
+void InitUG(int dim, const AlgebraType& algType, bool verbose)
 {
 	PROFILE_FUNC();
 //	get tag of algebra type
@@ -105,8 +105,8 @@ void InitUG(int dim, const AlgebraType& algType)
 			int num = (int) count (tag.begin(), tag.end(), ';');
 			if(numTag == -1) numTag = num;
 			else if(numTag != num)
-				throw(UGError("Class Group with classes of different number"
-									" of tags found."));
+				UG_THROW("Class Group with classes of different number"
+									" of tags found.");
 		}
 
 	//	find the class with numTag matches
@@ -128,14 +128,23 @@ void InitUG(int dim, const AlgebraType& algType)
 		}
 	}
 
-	UG_LOG("INFO: InitUG successful. Setting is: ");
-	UG_LOG(dimTag << " " << algTag << "\n");
-#ifdef UG_PARALLEL
-	UG_LOG("      Parallel Environment: Num Procs="<<pcl::GetNumProcesses()<<"\n");
-#endif
+	if(verbose){
+		UG_LOG("INFO: InitUG successful. Setting is: ");
+		UG_LOG(dimTag << " " << algTag << "\n");
+	#ifdef UG_PARALLEL
+		UG_LOG("      Parallel Environment: Num Procs="<<pcl::GetNumProcesses()<<"\n");
+	#endif
+	}
 
 	DefaultAlgebra::set(algType);
 }
+
+// forward for default case
+void InitUG(int dim, const AlgebraType& algType)
+{
+	InitUG(dim, algType, false);
+}
+
 
 void RegisterStandardBridges(Registry& reg, string parentGroup)
 {
@@ -196,9 +205,12 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 #endif
 
 #ifdef UG_ALGEBRA
+		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&, bool)>(&InitUG), "/ug4/Init",
+		                 "", string("Dimension|selection|value=[").append(availDims.str()).
+		                 	 append("]#AlgebraType#verbose"));
 		reg.add_function("InitUG", static_cast<void (*)(int, const AlgebraType&)>(&InitUG), "/ug4/Init",
 		                 "", string("Dimension|selection|value=[").append(availDims.str()).
-		                 	 append("]#Algebra Type"));
+		                 	 append("]#AlgebraType"));
 
 	// 	AlgebraType Interface
 		reg.add_class_<AlgebraType>("AlgebraType", "/ug4/Init")

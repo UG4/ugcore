@@ -82,6 +82,8 @@ apply_update_defect(vector_type &c, vector_type& d)
 		return false;
 	}
 
+	write_surface_debug(d, "GMG_Defect_In");
+
 //	project defect from surface to level
 	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
 	try{
@@ -145,6 +147,9 @@ apply_update_defect(vector_type &c, vector_type& d)
 		m_spSurfaceMat->matmul_minus(d, c);
 	}
 
+	write_surface_debug(d, "GMG_Defect_Out");
+	write_surface_debug(c, "GMG_Correction_Out");
+
 //	increase dbg counter
 	if(m_spDebugWriter.valid()) m_dbgIterCnt++;
 
@@ -202,8 +207,12 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 		//	get surface view
 			const SurfaceView& surfView = *m_spApproxSpace->surface_view();
 
+			write_level_debug(tmp, "GMG_AdaptCorBeforeSetZero", lev);
+
 		//	First we reset the correction to zero on the patch boundary.
 			SetZeroOnShadowing(tmp, m_vLevData[lev]->spLevDD, surfView);
+
+			write_level_debug(tmp, "GMG_AdaptCorAfterSetZero", lev);
 
 		//	now, we can update the defect with this correction ...
 			A.apply_sub(d, tmp);
@@ -371,6 +380,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 	#ifdef UG_PARALLEL
 	broadcast_vertical(tmp);
 	#endif
+	write_level_debug(tmp, "GMG_Prol_CoarseGridCorr", lev);
 
 //	## PROJECT COARSE GRID CORRECTION ONTO SMOOTH AREA
 	m_vLevData[lev]->copy_tmp_to_smooth_patch();
@@ -386,6 +396,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 	GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
 	spSmoothMat->apply_sub(sd, sTmp);
 	GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
+	write_level_debug(sd, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
 //	## ADAPTIVE CASE
 	if(m_bAdaptive)
@@ -413,6 +424,9 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 		                       lev -1,
 		                       -1.0,
 		                       surfView);
+
+		write_level_debug(sd, "GMG_Prol_DefWithAdaptAdding", lev);
+		write_level_debug(cTmp, "GMG_Prol_CorrAdaptAdding", lev-1);
 	}
 
 	return true;
@@ -598,10 +612,14 @@ lmgc(size_t lev)
 
 			for(int i = 0; i < m_cycleType; ++i)
 			{
-			//	m_vLevData[lev]->c.set(0.0); // <<<< only for debug
+				m_vLevData[lev]->c.set(0.0); // <<<< only for debug
 			//	UG_LOG("Before presmooth:\n");	log_level_data(lev);
+				write_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePreSmooth", lev);
+				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePreSmooth", lev);
 				if(!presmooth(lev))
 					return false;
+				write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPreSmooth", lev);
+				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPreSmooth", lev);
 
 			//	store whether the restriction was resuming to the level below.
 				bool restrictionPerformed = true;
@@ -632,8 +650,12 @@ lmgc(size_t lev)
 					return false;
 
 			//	UG_LOG("Before postsmooth:\n");	log_level_data(lev);
+				write_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePostSmooth", lev);
+				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePostSmooth", lev);
 				if(!postsmooth(lev))
 					return false;
+				write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPostSmooth", lev);
+				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPostSmooth", lev);
 
 			//	UG_LOG("After postsmooth:\n");	log_level_data(lev);
 			}
