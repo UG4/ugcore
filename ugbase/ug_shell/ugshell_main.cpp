@@ -601,11 +601,10 @@ int main(int argc, char* argv[])
 		//UnloadPlugins();
 	#endif
 
-	ug::GetLogAssistant().flush_error_log();
-	LOG(endl);
+	PROFILE_END();
 	UGFinalize();
 
-	PROFILE_END();
+	UG_LOG(endl);
 
 	return ret;
 }

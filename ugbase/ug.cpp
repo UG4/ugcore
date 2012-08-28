@@ -166,7 +166,10 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
  */
 int UGFinalize()
 {
+	ug::GetLogAssistant().flush_error_log();
+	
 	if (outputProfileStats) {
+		UG_LOG(endl);
 	//	output the profiled data.
 		PROFILER_UPDATE();
 

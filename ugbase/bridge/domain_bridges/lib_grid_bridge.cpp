@@ -802,6 +802,9 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 
 		reg.add_function("ExpandLayers2d", &ExpandFractures2d, grp)
 			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
+			
+	//	Debugging
+		reg.add_function("CheckHangingNodeConsistency", static_cast<bool (*)(MultiGrid&)>(&CheckHangingNodeConsistency), grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

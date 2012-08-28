@@ -941,23 +941,6 @@ assign_hnode_marks()
 	UG_ASSERT(m_pGrid, "A grid is required to perform this operation!");
 	Grid& grid = *m_pGrid;
 
-	if(grid.num<Face>() > 0){
-		for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
-			iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
-		{
-			EdgeBase* e = *iter;
-			CollectAssociated(faces, grid, e);
-			for(size_t i = 0; i < faces.size(); ++i){
-				if(refinement_is_allowed(faces[i])
-				   && (!m_selMarkedElements.is_selected(faces[i])))
-				{
-					mark_for_hnode_refinement(e, true);
-					break;
-				}
-			}
-		}
-	}
-
 	if(grid.num<Volume>() > 0){
 		for(FaceIterator iter = m_selMarkedElements.begin<Face>();
 			iter != m_selMarkedElements.end<Face>(); ++iter)
@@ -969,6 +952,27 @@ assign_hnode_marks()
 				   && (!m_selMarkedElements.is_selected(vols[i])))
 				{
 					mark_for_hnode_refinement(f, true);
+					break;
+				}
+			}
+		}
+	}
+	
+	if(grid.num<Face>() > 0){
+		for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
+			iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
+		{
+			EdgeBase* e = *iter;
+			CollectAssociated(faces, grid, e);
+			for(size_t i = 0; i < faces.size(); ++i){
+				if(marked_for_hnode_refinement(faces[i])){
+					mark_for_hnode_refinement(e, true);
+					break;
+				}
+				else if(refinement_is_allowed(faces[i])
+						&& (!m_selMarkedElements.is_selected(faces[i])))
+				{
+					mark_for_hnode_refinement(e, true);
 					break;
 				}
 			}

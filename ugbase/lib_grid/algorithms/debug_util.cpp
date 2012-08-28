@@ -109,14 +109,9 @@ void PrintAttachmentInfo(Grid& grid)
 	PrintAttachmentInfo<Volume>(grid);
 }
 
-bool CheckHangingVertexConsistency(Grid& g)
+bool CheckHangingNodeConsistency(Grid& g)
 {
 	bool isConsistent = true;
-
-	if(g.num<Volume>() > 0){
-		UG_LOG("check consistency: volumes are currently not supported... sorry.\n");
-		return true;
-	}
 
 //	iterate over all hanging nodes and check whether the associated parent
 //	contains the node in its list of constraiend objects
@@ -124,35 +119,35 @@ bool CheckHangingVertexConsistency(Grid& g)
 		iter != g.end<ConstrainedVertex>(); ++iter)
 	{
 		ConstrainedVertex* hnode = *iter;
-		GeometricObject* parent = hnode->get_constraining_object();
-		if(!parent){
-			UG_LOG("CheckHangingNodeConsistency: Hanging Vertex has no parent!\n");
-			UG_LOG("  at: " << GetGeometricObjectCenter(g, hnode) << endl);
+		GeometricObject* constrObj = hnode->get_constraining_object();
+		if(!constrObj){
+			UG_ERR_LOG("CheckHangingNodeConsistency: Hanging Vertex has no constraining object!\n");
+			UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, hnode) << endl);
 			isConsistent = false;
 			continue;
 		}
 
-		if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(parent)){
-		//	check whether hnode is a constraiend object of ce
+		if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(constrObj)){
+		//	check whether hnode is a constrained object of ce
 			if(!ce->is_constrained_object(hnode)){
-				UG_LOG("CheckHangingNodeConsistency: Hanging Vertex is not constrained by parent edge!\n");
-				UG_LOG("  at: " << GetGeometricObjectCenter(g, hnode) << endl);
+				UG_ERR_LOG("CheckHangingNodeConsistency: Hanging Vertex is not constrained by parent edge!\n");
+				UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, hnode) << endl);
 				isConsistent = false;
 				continue;
 			}
 		}
-		else if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(parent)){
+		else if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(constrObj)){
 		//	check whether hnode is a constraiend object of cf
 			if(!cf->is_constrained_object(hnode)){
-				UG_LOG("CheckHangingNodeConsistency: Hanging Vertex is not constrained by parent face!\n");
-				UG_LOG("  at: " << GetGeometricObjectCenter(g, hnode) << endl);
+				UG_ERR_LOG("CheckHangingNodeConsistency: Hanging Vertex is not constrained by parent face!\n");
+				UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, hnode) << endl);
 				isConsistent = false;
 				continue;
 			}
 		}
 		else{
-			UG_LOG("CheckHangingNodeConsistency: Parent of Hanging Vertex is not a constraining object!\n");
-			UG_LOG("  at: " << GetGeometricObjectCenter(g, hnode) << endl);
+			UG_ERR_LOG("CheckHangingNodeConsistency: Parent of Hanging Vertex is not a constraining object!\n");
+			UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, hnode) << endl);
 			isConsistent = false;
 			continue;
 		}
@@ -167,15 +162,15 @@ bool CheckHangingVertexConsistency(Grid& g)
 		GeometricObject* parent = e->get_constraining_object();
 
 		if(!parent){
-			UG_LOG("CheckHangingNodeConsistency: Constrained Edge has no parent!\n");
-			UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+			UG_ERR_LOG("CheckHangingNodeConsistency: Constrained Edge has no parent!\n");
+			UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 			isConsistent = false;
 			continue;
 		}
 
 		if(!parent->is_constraining()){
-			UG_LOG("CheckHangingNodeConsistency: Parent of Constrained Edge is not a constraining object!\n");
-			UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+			UG_ERR_LOG("CheckHangingNodeConsistency: Parent of Constrained Edge is not a constraining object!\n");
+			UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 			isConsistent = false;
 			continue;
 		}
@@ -183,8 +178,8 @@ bool CheckHangingVertexConsistency(Grid& g)
 		if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(parent)){
 		//	check whether e is a constraiend object of ce
 			if(!ce->is_constrained_object(e)){
-				UG_LOG("CheckHangingNodeConsistency: Constrained Edge is not constrained by parent edge!\n");
-				UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+				UG_ERR_LOG("CheckHangingNodeConsistency: Constrained Edge is not constrained by parent edge!\n");
+				UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 				isConsistent = false;
 				continue;
 			}
@@ -192,34 +187,51 @@ bool CheckHangingVertexConsistency(Grid& g)
 		else if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(parent)){
 		//	check whether hnode is a constraiend object of cf
 			if(!cf->is_constrained_object(e)){
-				UG_LOG("CheckHangingNodeConsistency: Constrained Edge is not constrained by parent face!\n");
-				UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+				UG_ERR_LOG("CheckHangingNodeConsistency: Constrained Edge is not constrained by parent face!\n");
+				UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 				isConsistent = false;
 				continue;
 			}
 		}
 		else{
-			UG_LOG("CheckHangingNodeConsistency: Unknown parent type of Constrained Edge!\n");
-			UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+			UG_ERR_LOG("CheckHangingNodeConsistency: Unknown parent type of Constrained Edge!\n");
+			UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 			isConsistent = false;
 			continue;
 		}
 	}
 
-//	todo: add check for faces
+//	CHECK FACES
+//	for convenience, we'll add all constraining faces to a vector, first
+	vector<ConstrainingFace*> constrainingFaces;
+	constrainingFaces.assign(g.begin<ConstrainingTriangle>(), g.end<ConstrainingTriangle>());
+	constrainingFaces.assign(g.begin<ConstrainingQuadrilateral>(), g.end<ConstrainingQuadrilateral>());
+	
+	Grid::edge_traits::secure_container	edges;
+
+	for(vector<ConstrainingFace*>::iterator iter = constrainingFaces.begin();
+		iter != constrainingFaces.end(); ++iter)
+	{
+		ConstrainingFace* cf = *iter;
+		
+	//	make sure that all associated edges are constraining, too
+		g.associated_elements(edges, cf);
+		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+			if(!edges[i_edge]->is_constraining()){
+				UG_ERR_LOG("CheckHangingNodeConsistency: Non constraining side of constraining face detected!\n"
+						   "  at " << GetGeometricObjectCenter(g, edges[i_edge]) << endl);
+				isConsistent = false;
+			}
+		}
+	}
 
 	return isConsistent;
 }
 
-bool CheckHangingVertexConsistency(MultiGrid& mg)
+bool CheckHangingNodeConsistency(MultiGrid& mg)
 {
-	if(mg.num<Volume>() > 0){
-		UG_LOG("check consistency: volumes are currently not supported... sorry.\n");
-		return true;
-	}
-
 	Grid& g = mg;
-	bool isConsistent = CheckHangingVertexConsistency(g);
+	bool isConsistent = CheckHangingNodeConsistency(g);
 
 //	iterate over all edges if an edge has children, then collect its ass. faces.
 //	If not all such faces have children, then the edge has to be a constraining
@@ -232,28 +244,32 @@ bool CheckHangingVertexConsistency(MultiGrid& mg)
 		if(mg.has_children<EdgeBase>(e)){
 		//	e may not be a constrained edge
 			if(e->is_constrained()){
-				UG_LOG("CheckHangingNodeConsistency: Constrained Edge may not have children!\n");
-				UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+				UG_ERR_LOG("CheckHangingNodeConsistency: Constrained Edge may not have children!\n");
+				UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 				isConsistent = false;
 				continue;
 			}
 
 		//	check whether all ass. faces have children.
 			bool allNbrsAreParents= true;
+			bool hasConstrainingNbrFaces = false;
 			CollectAssociated(faces, mg, e);
 			for(size_t i = 0; i < faces.size(); ++i){
 				if(!mg.has_children<Face>(faces[i]))
 					allNbrsAreParents = false;
+				if(faces[i]->is_constraining())
+					hasConstrainingNbrFaces = true;
 			}
+			
 
 		//	depending whether e is constrained or normal, either all nbrs
 		//	or only some have to have children.
 			if(e->is_constraining()){
-				if(allNbrsAreParents){
+				if(allNbrsAreParents && (!hasConstrainingNbrFaces)){
 				//	e should be a normal edge
-					UG_LOG("CheckHangingNodeConsistency: At least one neighbor face of a"
+					UG_ERR_LOG("CheckHangingNodeConsistency: At least one neighbor face of a"
 							" constraining edge should not have children!\n");
-					UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+					UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 					isConsistent = false;
 					continue;
 				}
@@ -264,10 +280,10 @@ bool CheckHangingVertexConsistency(MultiGrid& mg)
 					UG_ASSERT(ce, "Only ConstrainingEdges should return true in EdgeBase::is_constrained()!");
 					if(ce){
 						if(ce->num_constrained_edges() != 2){
-							UG_LOG("CheckHangingNodeConsistency: ConstrainingEdge "
+							UG_ERR_LOG("CheckHangingNodeConsistency: ConstrainingEdge "
 									" has to constrain 2 edges not "
 									<< ce->num_constrained_edges() << "!\n");
-							UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+							UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 							isConsistent = false;
 							continue;
 						}
@@ -275,26 +291,26 @@ bool CheckHangingVertexConsistency(MultiGrid& mg)
 						if(!(ce->constrained_edge(0)->is_constrained())
 							 && ce->constrained_edge(1)->is_constrained())
 						{
-							UG_LOG("CheckHangingNodeConsistency: Both edges constrained by "
+							UG_ERR_LOG("CheckHangingNodeConsistency: Both edges constrained by "
 									" a constraining edge have to be ConstrainedEdges!\n");
-							UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+							UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 							isConsistent = false;
 							continue;
 						}
 
 						if(ce->num_constrained_vertices() != 1){
-							UG_LOG("CheckHangingNodeConsistency: ConstrainingEdge "
+							UG_ERR_LOG("CheckHangingNodeConsistency: ConstrainingEdge "
 									" has to constrain 1 vertex, not "
 									<< ce->num_constrained_vertices() << "!\n");
-							UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+							UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 							isConsistent = false;
 							continue;
 						}
 
 						if(!ce->constrained_vertex(0)->is_constrained()){
-							UG_LOG("CheckHangingNodeConsistency: a vertex constrained by "
+							UG_ERR_LOG("CheckHangingNodeConsistency: a vertex constrained by "
 									" a constraining edge has to be a hangingVertex!\n");
-							UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+							UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 							isConsistent = false;
 							continue;
 						}
@@ -306,9 +322,9 @@ bool CheckHangingVertexConsistency(MultiGrid& mg)
 			//	all neighbors should be parents, too!
 				if(!allNbrsAreParents){
 				//	e should be a normal edge
-					UG_LOG("CheckHangingNodeConsistency: All neighbor faces of a"
+					UG_ERR_LOG("CheckHangingNodeConsistency: All neighbor faces of a"
 							" normal edge should have children!\n");
-					UG_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
+					UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, e) << endl);
 					isConsistent = false;
 					continue;
 				}

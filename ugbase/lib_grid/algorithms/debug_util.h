@@ -33,7 +33,7 @@ void PrintGridElementNumbers(GridSubsetHandler& sh);
 ///	prints information on all attachments of the specified grid
 void PrintAttachmentInfo(Grid& grid);
 
-/**@}*/ // end of doxygen defgroup command
+
 
 ///	Returns the center of the given element (SLOW - for debugging only!)
 /**	Caution: This method is pretty slow and should only be used for debugging
@@ -49,8 +49,9 @@ void PrintAttachmentInfo(Grid& grid);
 template <class TElem>
 vector3 GetGeometricObjectCenter(Grid& g, TElem* elem);
 
+
 ///	checks whether all constraining and constrained objects are correctly connected.
-bool CheckHangingVertexConsistency(Grid& g);
+bool CheckHangingNodeConsistency(Grid& g);
 
 ///	checks whether a multigrid is a valid haging vertex grid.
 /**	This algorithm e.g. checks, whether adaptivity is represented by
@@ -58,7 +59,9 @@ bool CheckHangingVertexConsistency(Grid& g);
  *
  * Calls CheckHangingVertexConsistency(Grid&)
  */
-bool CheckHangingVertexConsistency(MultiGrid& mg);
+bool CheckHangingNodeConsistency(MultiGrid& mg);
+
+/**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace
 
