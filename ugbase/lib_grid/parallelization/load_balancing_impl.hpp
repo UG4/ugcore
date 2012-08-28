@@ -194,7 +194,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 								TIterator begin, TIterator end,
 								int numCellsX, int numCellsY,
 								TAAPos& aaPos,
-								boost::function<bool (TElem*)> cbConsiderElem,
+								typename Grid::traits<TElem>::callback cbConsiderElem,
 								int bucketSubset)
 {
 	using namespace ug;
