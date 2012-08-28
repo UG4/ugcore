@@ -14,6 +14,7 @@
 
 namespace ug
 {
+ 
 //	Predeclaration
 class MultiGrid;
 
@@ -166,7 +167,6 @@ template <> class mginfo_traits<Volume>
 		typedef MGVolumeInfo	info_type;
 };
 
-
 ////////////////////////////////////////////////////////////////////////
 /**
  * Inherits from \sa Grid.
@@ -188,7 +188,7 @@ template <> class mginfo_traits<Volume>
  * You may register a callback at the grids message-hub if you want to react
  * on such a message.
  *
- * \addtogroup lib_grid
+ * \ingroup lib_grid_grid
  */
 class MultiGrid : public Grid, public GridObserver
 {

@@ -17,8 +17,6 @@ class EdgeBase;
 class Face;
 class Volume;
 
-/// \addtogroup lib_grid
-/// @{
 
 ////////////////////////////////////////////////////////////////////////
 //	Observer types
@@ -150,8 +148,6 @@ class UG_API GridObserver
 
 	/**	\}	*/
 };
-
-/// @}
 
 }//	end of namespace
 

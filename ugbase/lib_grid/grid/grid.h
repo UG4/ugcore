@@ -32,7 +32,12 @@
 
 namespace ug
 {
-
+/**
+ * \brief Grid, MultiGrid and GeometricObjectCollection are contained in this group
+ * \defgroup lib_grid_grid grid
+ * \ingroup lib_grid
+ * \{ */
+ 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	Grid
 ///	Manages the elements of a grid and their interconnection.
@@ -82,9 +87,6 @@ namespace ug
  *
  * The Grid class features a message-hub, which can be used to distribute messages
  * to registered callbacks.
- *
- * \defgroup lib_grid_grid grid
- * \ingroup lib_grid
  */
 class UG_API Grid
 {
@@ -1087,6 +1089,7 @@ class UG_API Grid
 		SPMessageHub m_messageHub;
 };
 
+/** \} */
 }//end of namespace
 
 #include "grid_impl.hpp"
