@@ -194,9 +194,6 @@ void MarkShadows(BoolMarker& boolMarker,
 	}
 	else
 	{
-		UG_LOG("INFO in MarkShadows: Performing AssignAssociatedLowerDimElemsToSubsets ");
-		UG_LOG("for all elements (Small Performance drawback).\n");
-
 		MarkAssociatedLowerDimElems<Volume>(boolMarker);
 		MarkAssociatedLowerDimElems<Face>(boolMarker);
 		MarkAssociatedLowerDimElems<EdgeBase>(boolMarker);
