@@ -279,11 +279,14 @@ bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
 ///	merges two vertices and restructures the adjacent elements.
 void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
 {
-	if(!grid.option_is_enabled(GRIDOPT_STANDARD_INTERCONNECTION)){
-		UG_LOG("WARNING in MergeVertices: Autoenabling GRIDOPT_STANDARD_INTERCONNECTION.\n");
-		grid.enable_options(GRIDOPT_STANDARD_INTERCONNECTION);
+	if(!grid.option_is_enabled(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION)){
+		UG_LOG("WARNING in MergeVertices: Autoenabling GRIDOPT_VERTEXCENTRIC_INTERCONNECTION.\n");
+		grid.enable_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION);
 	}
 
+//	notify the grid, that the two vertices will be merged
+	grid.objects_will_be_merged(v1, v1, v2);
+	
 //	first we have to check if there are elements that connect the vertices.
 //	We have to delete those.
 	EraseConnectingElements(grid, v1, v2);
@@ -302,8 +305,11 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
 			else
 				ed.set_vertices(e->vertex(0), v1);
 
-			if(!grid.get_edge(ed))
+			EdgeBase* existingEdge = grid.get_edge(ed);
+			if(!existingEdge)
 				grid.create_by_cloning(e, ed, e);
+			else
+				grid.objects_will_be_merged(existingEdge, existingEdge, e);
 		}
 	}
 
@@ -326,8 +332,11 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
 					fd.set_vertex(i, f->vertex(i));
 			}
 
-			if(!grid.get_face(fd))
+			Face* existingFace = grid.get_face(fd);
+			if(!existingFace)
 				grid.create_by_cloning(f, fd, f);
+			else
+				grid.objects_will_be_merged(existingFace, existingFace, f);
 		}
 	}
 
