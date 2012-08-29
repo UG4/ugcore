@@ -62,6 +62,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("Jacobi").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Jacobi Preconditioner")
 			.add_constructor()
+			.template add_constructor<void (*)(number)>("DampingFactor")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Jacobi", tag);
 	}
