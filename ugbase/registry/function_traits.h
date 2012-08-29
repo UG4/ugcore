@@ -517,6 +517,39 @@ struct constructor_traits <T, TypeList<T1, T2, T3, T4, T5> >
 	};
 };
 
+template <typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+struct constructor_traits <T, TypeList<T1, T2, T3, T4, T5, T6> >
+{
+	typedef TypeList<T1, T2, T3, T4, T5, T6> params_type;
+	static T* apply(TypeValueList<params_type>& args)
+	{
+		return new T(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd, args.tl.tl.tl.tl.hd,
+				args.tl.tl.tl.tl.tl.hd);
+	};
+};
+
+template <typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
+struct constructor_traits <T, TypeList<T1, T2, T3, T4, T5, T6, T7> >
+{
+	typedef TypeList<T1, T2, T3, T4, T5, T6, T7> params_type;
+	static T* apply(TypeValueList<params_type>& args)
+	{
+		return new T(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd, args.tl.tl.tl.tl.hd,
+				args.tl.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.tl.hd);
+	};
+};
+
+template <typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
+struct constructor_traits <T, TypeList<T1, T2, T3, T4, T5, T6, T7, T8> >
+{
+	typedef TypeList<T1, T2, T3, T4, T5, T6, T7, T8> params_type;
+	static T* apply(TypeValueList<params_type>& args)
+	{
+		return new T(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd, args.tl.tl.tl.tl.hd,
+				args.tl.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.tl.tl.hd);
+	};
+};
+
 
 } // end namespace bridge
 } // end namespace ug
