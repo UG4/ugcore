@@ -50,6 +50,14 @@ UG_API bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut, const c
 UG_API bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir);
 
 /**
+ * \brief Checks the existence of a given directory
+ *
+ * \param[in] name of the directory to be checked
+ * \return \c true if the specified directory exists, \c false otherwise
+ */
+UG_API bool DirectoryExists(const char* dirname);
+ 
+/**
  * \brief Checks the existence of a given file
  *
  * \param[in] filename path and name of the file to be checked
@@ -72,9 +80,14 @@ UG_API size_t FileSize( const char *filename );
  * \brief Creates a directory
  *
  * \param[in] directory name of the directory
+ * \param[in] mode	(optional, default 0777) Sets ownership options for the file.
+ *					Ignored on windows.
  * \return true if successfull
+ * \{
  */
+UG_API bool CreateDirectory(const char *directory);
 UG_API bool CreateDirectory(const char *directory, int mode);
+/** \} */
 
 
 /**

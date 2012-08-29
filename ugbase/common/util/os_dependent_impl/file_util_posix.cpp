@@ -12,6 +12,17 @@ using namespace std;
 
 namespace ug{
 
+bool DirectoryExists(const char* dirname)
+{
+	DIR* curDir = opendir(dir);
+	if(!curDir)
+		return false;
+	
+	closedir(curDir);
+	return true;
+}
+
+
 //	This method returns a list of all directories in a directory
 bool GetDirectoriesInDirectory(std::vector<std::string>& dirsOut, const char* dir)
 {
@@ -70,6 +81,11 @@ bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 	return true;
 }
 
+
+bool CreateDirectory(const char *directory, int mode)
+{
+	return mkdir(directory, 0777) == 0;
+}
 
 bool CreateDirectory(const char *directory, int mode)
 {
