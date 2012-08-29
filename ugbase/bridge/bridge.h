@@ -85,13 +85,17 @@ void RegisterBridge_Eigensolver(Registry& reg, std::string grp = UG4_GRP);
 
 ///	registers lib-discretization interface methods at the registry.
 void RegisterBridge_DiscAlgebra(Registry& reg, std::string grp = UG4_GRP);
-void RegisterBridge_DiscDomain(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Constraints(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_MultiGrid(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Output(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_AdaptiveTools(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_FiniteVolume(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Integrate(Registry& reg, std::string grp = UG4_GRP);
+
+void RegisterBridge_DomainDisc(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_GridFunction(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_Interpolate(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_Ordering(Registry& reg, std::string grp = UG4_GRP);
 #endif
 
 }//	end bridge

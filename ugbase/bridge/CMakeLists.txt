@@ -33,11 +33,14 @@ if(buildAlgebra)
 					algebra_bridges/solver_bridge.cpp
 					algebra_bridges/eigensolver_bridge.cpp
 					
+					disc_bridges/domain_disc_bridge.cpp
+					disc_bridges/interpolate_bridge.cpp
+					disc_bridges/grid_function_bridge.cpp
+					disc_bridges/ordering_bridge.cpp
 					disc_bridges/integrate_bridge.cpp
 					disc_bridges/adaptive_tools_bridge.cpp
 					disc_bridges/common_bridge.cpp
 					disc_bridges/algebra_bridge.cpp
-					disc_bridges/domain_bridge.cpp
 					disc_bridges/elem_discs_bridge.cpp
 					disc_bridges/constraints_bridge.cpp
 					disc_bridges/multigrid_bridge.cpp

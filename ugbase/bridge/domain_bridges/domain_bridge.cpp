@@ -185,12 +185,13 @@ static void Domain(Registry& reg, string grp)
 
 //	Domain
 	{
+		typedef IDomain<> TBase;
 		string name = string("Domain").append(suffix);
-		reg.add_class_<TDomain>(name, grp)
+		reg.add_class_<TDomain, TBase>(name, grp)
 			.add_constructor()
-			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (TDomain::*)()>(&TDomain::subset_handler))
-			.add_method("grid", static_cast<SmartPtr<MultiGrid> (TDomain::*)()>(&TDomain::grid))
-			.add_method("get_dim", static_cast<int (TDomain::*)() const>(&TDomain::get_dim))
+//			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (TDomain::*)()>(&TDomain::subset_handler))
+//			.add_method("grid", static_cast<SmartPtr<MultiGrid> (TDomain::*)()>(&TDomain::grid))
+//			.add_method("get_dim", static_cast<int (TDomain::*)() const>(&TDomain::get_dim))
 			.set_construct_as_smart_pointer(true);
 
 		reg.add_class_to_group(name, "Domain", tag);
@@ -250,6 +251,29 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("TestDomainVisualization", &TestDomainVisualization<TDomain>, grp);
 	reg.add_function("MinimizeMemoryFootprint", &MinimizeMemoryFootprint<TDomain>, grp);
 }
+
+/**
+ * Function called for the registration of Domain and Algebra independent parts.
+ * All Functions and Classes not depending on Domain and Algebra
+ * are to be placed here when registering.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+static void Common(Registry& reg, string grp)
+{
+//	IDomain
+	{
+		typedef IDomain<> T;
+		reg.add_class_<T>("IDomain", grp)
+			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (T::*)()>(&T::subset_handler))
+			.add_method("grid", static_cast<SmartPtr<MultiGrid> (T::*)()>(&T::grid))
+			.add_method("get_dim", static_cast<int (T::*)() const>(&T::get_dim))
+			.set_construct_as_smart_pointer(true);
+	}
+
+}
+
 }; // end Functionality
 
 

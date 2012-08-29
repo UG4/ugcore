@@ -1,5 +1,5 @@
 /*
- * domain_bridge.cpp
+ * grid_function_bridge.cpp
  *
  *  Created on: 22.09.2010
  *      Author: andreasvogel
@@ -14,27 +14,17 @@
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 
-// lib_algebra includes
-#include "lib_algebra/operator/operator_util.h"
-#include "lib_algebra/operator/interface/operator.h"
-#include "lib_algebra/operator/interface/operator_inverse.h"
-
 // lib_disc includes
-#include "lib_disc/domain.h"
-#include "lib_disc/spatial_disc/domain_disc.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
-#include "lib_disc/function_spaces/interpolate.h"
-#include "lib_disc/dof_manager/cuthill_mckee.h"
-#include "lib_disc/dof_manager/lexorder.h"
 #include "lib_disc/function_spaces/grid_function_user_data.h"
 
 using namespace std;
 
 namespace ug{
 namespace bridge{
-namespace DiscDomain{
+namespace GridFunction{
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -63,38 +53,15 @@ static void DomainAlgebra(Registry& reg, string grp)
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef ApproximationSpace<TDomain> approximation_space_type;
-	typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
+	typedef ug::GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
 
 //	group string
-	string approxGrp = grp; approxGrp.append("/ApproximationSpace");
-	string domDiscGrp = grp; domDiscGrp.append("/SpatialDisc");
-
-//	DomainDiscretization
-	{
-		typedef IDomainDiscretization<TAlgebra> TBase;
-		typedef DomainDiscretization<TDomain, TAlgebra> T;
-		string name = string("DomainDiscretization").append(suffix);
-		reg.add_class_<T, TBase>(name, domDiscGrp)
-			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
-			.add_method("add", static_cast<void (T::*)(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >)>(&T::add), "", "Post Process")
-			.add_method("add", static_cast<void (T::*)(SmartPtr<IDomainElemDisc<TDomain> >)>(&T::add), "", "Element Discretization")
-			.add_method("add", static_cast<void (T::*)(SmartPtr<IDiscretizationItem<TDomain, TAlgebra> >)>(&T::add), "", "DiscItem")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "DomainDiscretization", tag);
-	}
-
-//	IDiscretizationItem
-	{
-		typedef IDiscretizationItem<TDomain, TAlgebra> T;
-		string name = string("IDiscretizationItem").append(suffix);
-		reg.add_class_<T>(name, domDiscGrp);
-		reg.add_class_to_group(name, "IDiscretizationItem", tag);
-	}
+	grp.append("/ApproximationSpace");
 
 //	GridFunction
 	{
 		string name = string("GridFunction").append(suffix);
-		reg.add_class_<TFct, vector_type>(name, approxGrp)
+		reg.add_class_<TFct, vector_type>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("ApproximationSpace")
 			.add_method("assign", static_cast<void (TFct::*)(const vector_type&)>(&TFct::assign),
 						"Success", "Vector")
@@ -111,7 +78,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GridFunctionNumberData").append(suffix);
 		typedef GridFunctionNumberData<TFct> T;
 		typedef UserData<number, dim> TBase;
-		reg.add_class_<T, TBase>(name, approxGrp)
+		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionNumberData", tag);
@@ -122,7 +89,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GridFunctionVectorData").append(suffix);
 		typedef GridFunctionVectorData<TFct> T;
 		typedef UserData<MathVector<dim>, dim> TBase;
-		reg.add_class_<T, TBase>(name, approxGrp)
+		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Components")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionVectorData", tag);
@@ -133,30 +100,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GridFunctionGradientData").append(suffix);
 		typedef GridFunctionGradientData<TFct> T;
 		typedef UserData<MathVector<dim>, dim> TBase;
-		reg.add_class_<T, TBase>(name, approxGrp)
+		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionGradientData", tag);
-	}
-
-//	Interpolate
-	{
-		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "Data#GridFunction#Component#Subsets#Time");
-		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "Data#GridFunction#Component#Time");
-		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*, const char*)>(&Interpolate<TFct>), grp, "Integral", "Data#GridFunction#Component#Subsets");
-		reg.add_function("Interpolate", static_cast<void (*)(SmartPtr<UserData<number, dim> >, SmartPtr<TFct>, const char*)>(&Interpolate<TFct>),grp, "Integral", "Data#GridFunction#Component");
-
-		reg.add_function("Interpolate", static_cast<void (*)(number, SmartPtr<TFct>, const char*, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component#Subsets#Time");
-		reg.add_function("Interpolate", static_cast<void (*)(number, SmartPtr<TFct>, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component#Time");
-		reg.add_function("Interpolate", static_cast<void (*)(number, SmartPtr<TFct>, const char*, const char*)>(&Interpolate<TFct>), grp, "Integral", "ConstantValue#GridFunction#Component#Subsets");
-		reg.add_function("Interpolate", static_cast<void (*)(number, SmartPtr<TFct>, const char*)>(&Interpolate<TFct>),grp, "Integral", "ConstantValue#GridFunction#Component");
-
-		#ifdef UG_FOR_LUA
-		reg.add_function("Interpolate", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component#Subsets#Time");
-		reg.add_function("Interpolate", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, number)>(&Interpolate<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component#Time");
-		reg.add_function("Interpolate", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*, const char*)>(&Interpolate<TFct>), grp, "Integral", "LuaFunction#GridFunction#Component#Subsets");
-		reg.add_function("Interpolate", static_cast<void (*)(const char*, SmartPtr<TFct>, const char*)>(&Interpolate<TFct>),grp, "Integral", "LuaFunction#GridFunction#Component");
-		#endif
 	}
 }
 
@@ -191,17 +138,6 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ApproximationSpace", tag);
 	}
-
-//	Order Cuthill-McKee
-	{
-		reg.add_function("OrderCuthillMcKee", static_cast<void (*)(approximation_space_type&, bool)>(&OrderCuthillMcKee), grp);
-	}
-
-//	Order lexicographically
-	{
-		reg.add_function("OrderLex", static_cast<void (*)(approximation_space_type&, const char*)>(&OrderLex<TDomain>), grp);
-	}
-
 }
 
 /**
@@ -285,18 +221,18 @@ static void Common(Registry& reg, string grp)
 
 }; // end Functionality
 
-}// namespace DiscDomain
+}// namespace GridFunction
 
-void RegisterBridge_DiscDomain(Registry& reg, string grp)
+void RegisterBridge_GridFunction(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
-	typedef DiscDomain::Functionality Functionality;
+	typedef GridFunction::Functionality Functionality;
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);
 		RegisterDimensionDependent<Functionality>(reg,grp);
-		RegisterDomainDependent<Functionality>(reg,grp);
-		RegisterAlgebraDependent<Functionality>(reg,grp);
+		//RegisterDomainDependent<Functionality>(reg,grp);
+		//RegisterAlgebraDependent<Functionality>(reg,grp);
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);

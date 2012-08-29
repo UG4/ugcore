@@ -9,10 +9,11 @@
 #define __H__UG__LIB_DISC__FUNCTION_SPACES__INTERPOLATE__
 
 #include "common/common.h"
+#include "common/util/smart_pointer.h"
 
 #include "lib_disc/common/subset_group.h"
+#include "lib_disc/common/groups_util.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
-#include <boost/function.hpp>
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
 #ifdef UG_FOR_LUA
