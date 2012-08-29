@@ -124,7 +124,14 @@ apply_update_defect(vector_type &c, vector_type& d)
 //	apply scaling
 	const number kappa = this->damping()->damping(c, d, m_spSurfaceMat.template cast_dynamic<ILinearOperator<vector_type> >());
 
-	if(kappa == 1.0)
+//	NOTE: It is impossible to ensure, that assembled level matrices and
+//		  the surface matrix have the same couplings (not even to inner points)
+//		  This is due to the fact, that e.g. finite volume geometries are
+//		  computed using different integration points. (Hanging fv used triangles
+//		  as scvf in 3d, while normal fv use quads). Therefore, the updated
+//		  defect is only approximately the correct defect. In order to return the
+//		  correct defect, we must recompute the defect here in the adaptive case.
+	if(kappa == 1.0 && ! m_bAdaptive)
 	{
 	//	project defect from level to surface
 		GMG_PROFILE_BEGIN(GMG_ProjectDefectFromLevelToSurface);
