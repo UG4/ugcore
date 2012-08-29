@@ -30,6 +30,14 @@ StdConvCheck()
 
 template <typename TVector>
 StdConvCheck<TVector>::
+StdConvCheck(int maxSteps, number minDefect, number relReduction)
+ :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
+	 m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),
+	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
+	 {};
+
+template <typename TVector>
+StdConvCheck<TVector>::
 StdConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose)
  :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
 	 m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),

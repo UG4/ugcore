@@ -353,7 +353,7 @@ function SetupFETISolver(str_problem,
 	end
 	
 	-- define convergence criteria for the coarse problem solver
-	cpConvCheck = StandardConvergenceCheck()
+	cpConvCheck = ConvCheck()
 	cpConvCheck:set_maximum_steps(20)
 	cpConvCheck:set_minimum_defect(1e-10)
 	cpConvCheck:set_reduction(1e-16)
@@ -494,7 +494,7 @@ function SetupFETISolver(str_problem,
 	npsAbsLimit      = 1e-10
 	npsReduction     = 1e-16
 	print("             npsMaxIterations = " .. npsMaxIterations .. ", npsAbsLimit = " .. npsAbsLimit .. ", npsReduction = " .. npsReduction)
-	neumannConvCheck = StandardConvergenceCheck()
+	neumannConvCheck = ConvCheck()
 	neumannConvCheck:set_maximum_steps(npsMaxIterations)
 	neumannConvCheck:set_minimum_defect(npsAbsLimit)
 	neumannConvCheck:set_reduction(npsReduction)
@@ -629,7 +629,7 @@ function SetupFETISolver(str_problem,
 	dpsReduction     = 1e-16
 	print("             dpsMaxIterations = " .. dpsMaxIterations .. ", dpsAbsLimit = " .. dpsAbsLimit .. ", dpsReduction = " .. dpsReduction)
 --	print("#ANALYZER INFO")
-	dirichletConvCheck = StandardConvergenceCheck()
+	dirichletConvCheck = ConvCheck()
 	dirichletConvCheck:set_maximum_steps(dpsMaxIterations)
 	dirichletConvCheck:set_minimum_defect(dpsAbsLimit)
 	dirichletConvCheck:set_reduction(dpsReduction)
@@ -655,7 +655,7 @@ end -- TMP
 	fetiSolver:set_coarse_problem_solver(coarseproblemSolver)
 	
 	-- define convergence criteria for the FETI solver
-	fetiConvCheck = StandardConvergenceCheck()
+	fetiConvCheck = ConvCheck()
 
 	print("             linMaxIterations = " .. linMaxIterations .. ", linAbsLimit = " .. linAbsLimit .. ", linReduction = " .. linReduction)
 

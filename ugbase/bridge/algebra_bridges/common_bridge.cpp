@@ -279,7 +279,7 @@ static void Algebra(Registry& reg, string grp)
 	{
 		typedef StdConvCheck<vector_type> T;
 		typedef IConvergenceCheck<vector_type> TBase;
-		string name = string("StandardConvergenceCheck").append(suffix);
+		string name = string("ConvCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(int, number, number, bool)>
@@ -287,6 +287,10 @@ static void Algebra(Registry& reg, string grp)
 							 "Minimum Defect|default|min=0D;value=1e-10#"
 							 "Relative Reduction|default|min=0D;value=1e-12#"
 							 "Verbosity")
+			.template add_constructor<void (*)(int, number, number)>
+							("Maximum Steps|default|min=0;value=100#"
+							 "Minimum Defect|default|min=0D;value=1e-10#"
+							 "Relative Reduction|default|min=0D;value=1e-12")
 			.add_method("set_maximum_steps", &T::set_maximum_steps, "", "Maximum Steps|default|min=0;value=100")
 			.add_method("set_minimum_defect", &T::set_minimum_defect, "", "Minimum Defect|default|min=0D;value=1e-10")
 			.add_method("set_reduction", &T::set_reduction,	"", "Relative Reduction|default|min=0D;value=1e-12")
@@ -297,7 +301,7 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("iteration_ended", &T::iteration_ended)
 			.add_method("previous_defect", &T::previous_defect)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "StandardConvergenceCheck", tag);
+		reg.add_class_to_group(name, "ConvCheck", tag);
 	}
 
 }

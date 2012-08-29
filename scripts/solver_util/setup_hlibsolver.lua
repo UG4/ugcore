@@ -99,7 +99,7 @@ function SetupHLIBSolver(str_problem,
 	hlibSolver:set_ps_basename("hlib")
 
 	-- define convergence criteria for the HLIB solver
-	hlibConvCheck = StandardConvergenceCheck()
+	hlibConvCheck = ConvCheck()
 
 	print("             linMaxIterations = " .. linMaxIterations .. ", linAbsLimit = " .. linAbsLimit .. ", linReduction = " .. linReduction)
 

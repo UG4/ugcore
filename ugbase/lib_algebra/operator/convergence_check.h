@@ -132,6 +132,7 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 	public:
 		StdConvCheck();
 
+		StdConvCheck(int maxSteps, number minDefect, number relReduction);
 		StdConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose);
 
 		void set_verbose(bool level) {m_verbose = level;}
