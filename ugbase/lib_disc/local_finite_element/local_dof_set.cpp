@@ -9,6 +9,7 @@
 #include "lagrange/lagrange_local_dof.h"
 #include "crouzeix-raviart/crouzeix_raviart_local_dof.h"
 #include "piecewise_constant/piecewise_constant_local_dof.h"
+#include "mini/mini_local_dof.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 
 namespace ug{
@@ -106,6 +107,37 @@ void LocalDoFSetProvider::create_piecewise_constant_sets()
 	create_piecewise_constant_sets<ReferenceHexahedron>();
 }
 
+template <typename TRefElem>
+void LocalDoFSetProvider::create_mini_bubble_sets()
+{
+//	create piecewise constant set
+	MiniBubbleLDS<TRefElem>* setMiniBubble = new MiniBubbleLDS<TRefElem>();
+
+//	remember created set for delete in destructor
+	m_vCreated.push_back(setMiniBubble);
+
+//	register the set
+	try{
+		register_set(LFEID(LFEID::MINI, 0), *setMiniBubble);
+	}
+	UG_CATCH_THROW("Unable to register MiniBubbleLDS");
+}
+
+void LocalDoFSetProvider::create_mini_bubble_sets()
+{
+	//create_mini_sets<ReferenceVertex>();
+	create_mini_bubble_sets<ReferenceEdge>();
+	create_mini_bubble_sets<ReferenceTriangle>();
+	create_mini_bubble_sets<ReferenceQuadrilateral>();
+	/*
+	 *
+	create_mini_sets<ReferenceTetrahedron>();
+	create_mini_sets<ReferencePyramid>();
+	create_mini_sets<ReferencePrism>();
+	create_mini_sets<ReferenceHexahedron>();
+	*/
+}
+
 void LocalDoFSetProvider::create_set(const LFEID& id)
 {
 	if(id.type() == LFEID::LAGRANGE)
@@ -120,6 +152,11 @@ void LocalDoFSetProvider::create_set(const LFEID& id)
 	{
 		create_piecewise_constant_sets();
 	}
+	if(id.type() == LFEID::MINI)
+	{
+		create_mini_bubble_sets();
+	}
+
 }
 
 

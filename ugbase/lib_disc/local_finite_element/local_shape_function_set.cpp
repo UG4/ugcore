@@ -12,6 +12,8 @@
 #include "lagrange/lagrange.h"
 #include "crouzeix-raviart/crouzeix_raviart.h"
 #include "piecewise_constant/piecewise_constant.h"
+#include "mini/mini.h"
+
 
 namespace ug{
 
@@ -166,6 +168,11 @@ void LocalShapeFunctionSetProvider::init_standard_sets()
 	static LocalShapeFunctionSetWrapper<PiecewiseConstantLSFS<TRefElem> > sSetPiecewiseConstant;
 	LFEID typePC(LFEID::PIECEWISE_CONSTANT, 0);
 	register_set(typePC, roid, sSetPiecewiseConstant);
+
+//	insert into map: MINI element
+	static LocalShapeFunctionSetWrapper<MiniBubbleLSFS<TRefElem> > sSetMiniBubble;
+	LFEID typeMB(LFEID::MINI, 0);
+	register_set(typeMB, roid, sSetMiniBubble);
 
 }
 

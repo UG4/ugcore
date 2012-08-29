@@ -193,6 +193,13 @@ class LocalDoFSetProvider {
 	//	creation of piecewise constant set for all reference elements
 		static void create_piecewise_constant_sets();
 
+	//	creation of piecewise constant set for a reference element
+		template <typename TRefElem>
+		static void create_mini_bubble_sets();
+
+	//	creation of piecewise constant set for all reference elements
+		static void create_mini_bubble_sets();
+
 	// 	creation of set
 		static void create_set(const LFEID& id);
 

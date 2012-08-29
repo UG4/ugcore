@@ -27,6 +27,7 @@ std::ostream& operator<<(std::ostream& out,	const LFEID& v)
 		case LFEID::CROUZEIX_RAVIART: out << "(Crouzeix-Raviart, " << ss.str() << ")"; break;
 		case LFEID::PIECEWISE_CONSTANT: out << "(Piecewise constant, " << ss.str() << ")"; break;
 		case LFEID::DG: out << "(DG, " << ss.str() << ")"; break;
+		case LFEID::MINI: out << "(MINI, " << ss.str() << ")"; break;
 		case LFEID::USER_DEFINED: out << "(User defined, " << ss.str() << ")"; break;
 		default: out << "(unknown, " << ss.str() << ")";
 	}
@@ -45,6 +46,7 @@ LFEID ConvertStringToLFEID(const char* type, int order)
 	if(typeStr == "lagrange") eType = LFEID::LAGRANGE;
 	if(typeStr == "crouzeix-raviart") eType = LFEID::CROUZEIX_RAVIART;
 	if(typeStr == "piecewise-constant") eType = LFEID::PIECEWISE_CONSTANT;
+	if(typeStr == "mini") eType = LFEID::MINI;
 	if(typeStr == "dg") eType = LFEID::DG;
 
 	return LFEID(eType, order);
@@ -76,7 +78,10 @@ LFEID ConvertStringToLFEID(const char* type)
 		// eType = LFEID::DG;
 		UG_THROW("Unspecified order for DG approximation space.\n");
 	}
-
+	if(typeStr == "mini"){
+		eType = LFEID::MINI;
+		UG_THROW("Unspecified order for MINI approximation space.\n");
+	}
 	return LFEID(eType, order);
 }
 

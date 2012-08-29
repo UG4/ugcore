@@ -204,7 +204,7 @@ class BaseLocalShapeFunctionSet
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(grad_type& g, size_t i, const MathVector<dim>& x) const
 		{
-			return getImpl().grad(g, i, x);
+			 getImpl().grad(g, i, x); return;
 		}
 
 	//////////////////////////////////////////
