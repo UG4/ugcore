@@ -14,7 +14,7 @@ namespace ug{
 
 bool DirectoryExists(const char* dirname)
 {
-	DIR* curDir = opendir(dir);
+	DIR* curDir = opendir(dirname);
 	if(!curDir)
 		return false;
 	
@@ -82,7 +82,7 @@ bool GetFilesInDirectory(std::vector<std::string>& filesOut, const char* dir)
 }
 
 
-bool CreateDirectory(const char *directory, int mode)
+bool CreateDirectory(const char *directory)
 {
 	return mkdir(directory, 0777) == 0;
 }
