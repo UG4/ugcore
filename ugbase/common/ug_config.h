@@ -12,7 +12,7 @@
 //	or executables, which just use the function.
 
 
-#if defined _WIN32 || defined __CYGWIN__
+#if defined UG_WIN32 || defined UG_CYGWIN
 	#ifdef __GNUC__
 		#define EXPORT_IMPL __attribute__ ((dllexport))
 		#define IMPORT_IMPL __attribute__ ((dllimport))

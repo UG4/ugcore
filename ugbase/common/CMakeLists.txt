@@ -49,7 +49,7 @@ set(sources ${sources} profiler/profile_node.cpp)
 ################################################################################
 # Platform dependend code
 ################################################################################
-if(UNIX)
+if(UNIX AND NOT CYGWIN)
 	set(sources ${sources}	util/os_dependent_impl/file_util_posix.cpp)
 	
 	if(buildPluginSystem)
@@ -75,9 +75,9 @@ elseif(WIN32)
 		set(sources ${sources} util/os_dependent_impl/file_util_win.cpp)
 	#endif(MINGW)
 	
-else(UNIX)
+else(UNIX AND NOT CYGWIN)
 	message(STATUS "YOUR OS IS NOT FULLY SUPPORTED. Methods in common/os_dependent won't be available!")
-endif(UNIX)
+endif(UNIX AND NOT CYGWIN)
 
 
 ################################################################################
