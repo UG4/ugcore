@@ -230,8 +230,8 @@ void RegisterBridge_GridFunction(Registry& reg, string grp)
 
 	try{
 		RegisterCommon<Functionality>(reg,grp);
-		RegisterDimensionDependent<Functionality>(reg,grp);
-		//RegisterDomainDependent<Functionality>(reg,grp);
+		//RegisterDimensionDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality>(reg,grp);
 		//RegisterAlgebraDependent<Functionality>(reg,grp);
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}

@@ -308,6 +308,7 @@ void RegisterBridge_Domain(Registry& reg, string grp)
 	> CompileDomain2d3dList;
 
 	try{
+		RegisterCommon<Functionality>(reg,grp);
 		RegisterDomainDependent<Functionality>(reg,grp);
 		RegisterDomainDependent<Domain::Functionality2d3d, CompileDomain2d3dList>(reg,grp);
 	}
