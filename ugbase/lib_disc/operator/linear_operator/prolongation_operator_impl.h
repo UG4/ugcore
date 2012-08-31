@@ -361,10 +361,8 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 				" Operator not initialized.");
 
 //	Some Assertions
-	UG_ASSERT(uFine.size() == m_matrix.num_rows(),
-				  "Vector and Row sizes have to match!");
-	UG_ASSERT(uCoarse.size() == m_matrix.num_cols(),
-				  "Vector and Column sizes have to match!");
+	UG_ASSERT(uFine.size() >= m_matrix.num_rows(),  "Vector ["<<uFine.size()<<"] must be >= Row size "<<m_matrix.num_rows());
+	UG_ASSERT(uCoarse.size() >= m_matrix.num_cols(),"Vector ["<<uCoarse.size()<<"] must be >= Col size "<<m_matrix.num_cols());
 
 //	Apply Matrix
 	if(!m_matrix.apply(uFine, uCoarse))
@@ -409,10 +407,8 @@ restrict(vector_type& uCoarse, const vector_type& uFine)
 	vector_type	uTmp; uTmp.resize(uCoarse.size());
 
 //	Some Assertions
-	UG_ASSERT(uFine.size() == m_matrix.num_rows(),
-				  "Vector and Row sizes have to match!");
-	UG_ASSERT(uCoarse.size() == m_matrix.num_cols(),
-				  "Vector and Column sizes have to match!");
+	UG_ASSERT(uFine.size() >= m_matrix.num_rows(),  "Vector ["<<uFine.size()<<"] must be >= Row size "<<m_matrix.num_rows());
+	UG_ASSERT(uCoarse.size() >= m_matrix.num_cols(),"Vector ["<<uCoarse.size()<<"] must be >= Col size "<<m_matrix.num_cols());
 
 //	Apply transposed matrix
 	if(!m_matrix.apply_transposed(uTmp, uFine))
