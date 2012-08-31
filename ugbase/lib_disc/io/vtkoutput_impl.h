@@ -5,9 +5,6 @@
  *      Author: andreasvogel
  */
 
-
-#define __SWAPBYTES__            /* if using LittleEndian */
-
 //other libraries
 #include <cstdio>
 #include <iostream>
@@ -18,6 +15,7 @@
 // ug4 libraries
 #include "common/log.h"
 #include "common/util/string_util.h"
+#include "common/util/endian.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/common/multi_index.h"
@@ -141,11 +139,8 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 //	header
 	File.write("<?xml version=\"1.0\"?>\n");
 	File.write("<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"");
-#ifdef __SWAPBYTES__
-	File.write("LittleEndian");
-#else
-	File.write("BigEndian");
-#endif
+	if(IsLittleEndian()) File.write("LittleEndian");
+	else File.write("BigEndian");
 	File.write("\">\n");
 
 //	writing time point

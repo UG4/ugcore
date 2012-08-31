@@ -4,7 +4,6 @@
  *  Created on: 25.04.2012
  *      Author: andreasvogel
  */
-
 #include "vtkoutput.h"
 
 namespace ug{
@@ -51,11 +50,8 @@ print(const char* filename, Domain<TDim>& domain)
 //	header
 	File.write("<?xml version=\"1.0\"?>\n");
 	File.write("<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"");
-#ifdef __SWAPBYTES__
-	File.write("LittleEndian");
-#else
-	File.write("BigEndian");
-#endif
+	if(IsLittleEndian()) File.write("LittleEndian");
+	else File.write("BigEndian");
 	File.write("\">\n");
 
 //	opening the grid
