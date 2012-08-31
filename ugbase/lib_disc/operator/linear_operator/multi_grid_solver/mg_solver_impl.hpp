@@ -1382,12 +1382,18 @@ project_level_to_surface(vector_type& surfVec,
 
 		//	write value
 			surfVec[surfIndex] = topVec[levIndex];
+		}
+		for(size_t surfIndex = m_vSurfToTopMap.size(); surfIndex < topVec.size(); ++surfIndex)
+		{
+		//	write value
+			surfVec[surfIndex] = topVec[surfIndex];
+		}
+
 
 #ifdef UG_PARALLEL
 		//	copy storage type into all vectors
 			surfVec.copy_storage_type(topVec);
 #endif
-		}
 	}
 	else
 	{
@@ -1434,6 +1440,12 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 
 		//	write value
 			topVec[levIndex] = surfVec[surfIndex];
+		}
+		for(size_t surfIndex = m_vSurfToTopMap.size(); surfIndex < topVec.size(); ++surfIndex)
+		{
+		//	write value
+			topVec[surfIndex] = surfVec[surfIndex];
+		}
 
 #ifdef UG_PARALLEL
 		//	copy storage type into all vectors
@@ -1441,8 +1453,6 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 				if(vLevelVec[lev] != NULL)
 					vLevelVec[lev]->copy_storage_type(surfVec);
 #endif
-
-		}
 	}
 	else
 	{
