@@ -380,11 +380,21 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 //	Set dirichlet nodes to zero again
 //	todo: We could handle this by eliminating dirichlet rows as well
 	try{
-	for(size_t i = 0; i < m_vConstraint.size(); ++i)
-		m_vConstraint[i]->adjust_defect(uFine, uFine, m_fineLevel);
-
+	for(size_t i = 0; i < m_vConstraint.size(); ++i){
+		if (m_vConstraint[i]->type() & CT_DIRICHLET){
+			m_vConstraint[i]->adjust_defect(uFine, uFine, m_fineLevel);
+		}
+	}
 	}UG_CATCH_THROW("StdTransfer<TDomain, TAlgebra>::apply: "
 					"Error while setting dirichlet defect to zero.");
+
+// call prolongations due to added constraints (= adjust_restrict, member of class constraint)
+	try{
+	for(size_t i = 0; i < m_vConstraint.size(); ++i)
+		m_vConstraint[i]->adjust_prolongation(uFine, m_fineLevel, uCoarse, m_coarseLevel);
+	} UG_CATCH_THROW("ProjectionOperator::apply_transposed: "
+					"Error while setting dirichlet defect to zero.");
+
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -422,10 +432,21 @@ restrict(vector_type& uCoarse, const vector_type& uFine)
 //	Set dirichlet nodes to zero again
 //	todo: We could handle this by eliminating dirichlet columns as well
 	try{
-	for(size_t i = 0; i < m_vConstraint.size(); ++i)
-		m_vConstraint[i]->adjust_defect(uCoarse, uCoarse, m_coarseLevel);
+	for(size_t i = 0; i < m_vConstraint.size(); ++i){
+		if (m_vConstraint[i]->type() & CT_DIRICHLET){
+			m_vConstraint[i]->adjust_defect(uCoarse, uCoarse, m_coarseLevel);
+		}
+	}
 	} UG_CATCH_THROW("ProjectionOperator::apply_transposed: "
 					"Error while setting dirichlet defect to zero.");
+
+// call restrictions due to added constraints (= adjust_restrict, member of class constraint)
+	try{
+	for(size_t i = 0; i < m_vConstraint.size(); ++i)
+		m_vConstraint[i]->adjust_restriction(uCoarse, m_coarseLevel, uFine, m_fineLevel);
+	} UG_CATCH_THROW("ProjectionOperator::apply_transposed: "
+					"Error while setting dirichlet defect to zero.");
+
 }
 
 template <typename TDomain, typename TAlgebra>

@@ -216,11 +216,11 @@ class IAssemble
 	 */
 		virtual void set_selector(BoolMarker* sel = NULL) = 0;
 
-	///	returns the number of post processes
-		virtual size_t num_dirichlet_constraints() const = 0;
+	///	returns the number of constraints
+		virtual size_t num_constraints() const = 0;
 
-	///	returns the i'th post process
-		virtual SmartPtr<IConstraint<TAlgebra> > dirichlet_constraint(size_t i) = 0;
+	///	returns the i'th constraint
+		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) = 0;
 
 	/// Virtual Destructor
 		virtual ~IAssemble(){};

@@ -242,31 +242,13 @@ class DomainDiscretization
 				add(di->constraint(i));
 		}
 
+	///	returns number of registered constraints
+		virtual size_t num_constraints() const {return m_vConstraint.size();}
+
+	///	returns the i'th constraint
+		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) {return m_vConstraint[i];}
+
 	protected:
-	///	returns number of registered dirichlet constraints
-		virtual size_t num_dirichlet_constraints() const
-		{
-			size_t cnt = 0;
-			for(size_t i = 0; i < m_vConstraint.size(); ++i)
-				if(m_vConstraint[i]->type() & CT_DIRICHLET)
-					cnt++;
-
-			return cnt;
-		}
-
-	///	returns the i'th dirichlet constraint
-		virtual SmartPtr<IConstraint<TAlgebra> > dirichlet_constraint(size_t nr)
-		{
-			size_t cnt = 0;
-			for(size_t i = 0; i < m_vConstraint.size(); ++i)
-				if(m_vConstraint[i]->type() & CT_DIRICHLET)
-				{
-					if(cnt == nr) return m_vConstraint[i];
-					cnt++;
-				}
-			UG_THROW("DomainDisc: Dirichlet Constraint "<<nr<<" not found.");
-		}
-
 	///	set the approximation space in the elem discs and extract IElemDiscs
 		void update_elem_discs();
 		void update_constraints();

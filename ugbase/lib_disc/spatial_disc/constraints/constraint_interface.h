@@ -80,6 +80,14 @@ class IConstraint
 		virtual void adjust_solution(vector_type& u, GridLevel gl,
 		                             number time = 0.0) = 0;
 
+	///	sets the constraints in a solution vector
+		virtual void adjust_restriction(vector_type& uCoarse, GridLevel coarseLvl,
+										const vector_type& uFine, GridLevel fineLvl) {};
+
+	///	sets the constraints in a solution vector
+		virtual void adjust_prolongation(vector_type& uFine, GridLevel fineLvl,
+										const vector_type& uCoarse, GridLevel coarseLvl) {};
+
 	///	returns the type of constraints
 		virtual int type() const = 0;
 

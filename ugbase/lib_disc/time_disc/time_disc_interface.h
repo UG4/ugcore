@@ -161,16 +161,16 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 			m_pBoolMarker = sel; forward_selector();
 		}
 
-	///	returns the number of post processes
-		virtual size_t num_dirichlet_constraints() const
+	///	returns the number of constraint
+		virtual size_t num_constraints() const
 		{
-			return m_spDomDisc->num_dirichlet_constraints();
+			return m_spDomDisc->num_constraints();
 		}
 
-	///	returns the i'th post process
-		virtual SmartPtr<IConstraint<TAlgebra> > dirichlet_constraint(size_t i)
+	///	returns the i'th constraint
+		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i)
 		{
-			return m_spDomDisc->dirichlet_constraint(i);
+			return m_spDomDisc->constraint(i);
 		}
 
 	protected:

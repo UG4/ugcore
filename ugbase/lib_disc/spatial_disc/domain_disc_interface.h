@@ -218,10 +218,10 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 			{finish_timestep(vSol, GridLevel());}
 
 	///	returns the number of post processes
-		virtual size_t num_dirichlet_constraints() const = 0;
+		virtual size_t num_constraints() const = 0;
 
 	///	returns the i'th post process
-		virtual SmartPtr<IConstraint<TAlgebra> > dirichlet_constraint(size_t i) = 0;
+		virtual SmartPtr<IConstraint<TAlgebra> > constraint(size_t i) = 0;
 };
 
 /// @}

@@ -1159,15 +1159,15 @@ init_transfer()
 
 	//	add all dirichlet post processes
 		m_vLevData[lev]->Prolongation->clear_constraints();
-		for(size_t i = 0; i < m_pAss->num_dirichlet_constraints(); ++i){
-			SmartPtr<IConstraint<TAlgebra> > pp = m_pAss->dirichlet_constraint(i);
+		for(size_t i = 0; i < m_pAss->num_constraints(); ++i){
+			SmartPtr<IConstraint<TAlgebra> > pp = m_pAss->constraint(i);
 			m_vLevData[lev]->Prolongation->add_constraint(pp);
 		}
 
 		if(!bOneOperator){
 			m_vLevData[lev]->Restriction->clear_constraints();
-			for(size_t i = 0; i < m_pAss->num_dirichlet_constraints(); ++i){
-				SmartPtr<IConstraint<TAlgebra> > pp = m_pAss->dirichlet_constraint(i);
+			for(size_t i = 0; i < m_pAss->num_constraints(); ++i){
+				SmartPtr<IConstraint<TAlgebra> > pp = m_pAss->constraint(i);
 				m_vLevData[lev]->Restriction->add_constraint(pp);
 			}
 		}
