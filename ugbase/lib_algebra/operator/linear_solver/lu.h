@@ -192,8 +192,8 @@ class LU
 				return false;
 			}
 #endif
-			UG_ASSERT(f.size() == m_pMatrix->num_rows(),	"Vector and Row sizes have to match!");
-			UG_ASSERT(u.size() == m_pMatrix->num_cols(), "Vector and Column sizes have to match!");
+			UG_ASSERT(f.size() == m_pMatrix->num_rows(), "Vector ["<<f.size()<<"] and Row "<<m_pMatrix->num_rows()<<" size mismatch");
+			UG_ASSERT(u.size() == m_pMatrix->num_cols(), "Vector ["<<u.size()<<"] and Col "<<m_pMatrix->num_cols()<<" size mismatch");
 			UG_ASSERT(f.size() == u.size(), "Vector sizes have to match!");
 
 			if(!apply_lu(u, f))
