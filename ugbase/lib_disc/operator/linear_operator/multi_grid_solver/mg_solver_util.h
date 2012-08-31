@@ -553,10 +553,10 @@ void CopyMatrixByMapping(TMatrix& newMat,
                          const TMatrix& origMat)
 {
 //	check size
-	UG_ASSERT(vMap.size() < newMat.num_rows(), "Size must match. Map:"<<vMap.size()<<", mat:"<<newMat.num_rows());
-	UG_ASSERT(vMap.size() < newMat.num_cols(), "Size must match. Map:"<<vMap.size()<<", mat:"<<newMat.num_cols());
-	UG_ASSERT(vMap.size() < origMat.num_rows(), "Size must match. Map:"<<vMap.size()<<", mat:"<<origMat.num_rows());
-	UG_ASSERT(vMap.size() < origMat.num_cols(), "Size must match. Map:"<<vMap.size()<<", mat:"<<origMat.num_cols());
+	UG_ASSERT(vMap.size() <= newMat.num_rows(), "Size must match. Map:"<<vMap.size()<<", mat:"<<newMat.num_rows());
+	UG_ASSERT(vMap.size() <= newMat.num_cols(), "Size must match. Map:"<<vMap.size()<<", mat:"<<newMat.num_cols());
+	UG_ASSERT(vMap.size() <= origMat.num_rows(), "Size must match. Map:"<<vMap.size()<<", mat:"<<origMat.num_rows());
+	UG_ASSERT(vMap.size() <= origMat.num_cols(), "Size must match. Map:"<<vMap.size()<<", mat:"<<origMat.num_cols());
 
 //	type of matrix row iterator
 	typedef typename TMatrix::const_row_iterator const_row_iterator;
