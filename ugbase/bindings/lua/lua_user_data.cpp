@@ -167,6 +167,7 @@ static void Dimension(Registry& reg, string grp)
 		string name = string("LuaUserFunctionMatrixNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
+			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName, NumberOfArguments, PosTimeFlag")
 			.add_method("set_deriv", &T::set_deriv)
 			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<UserData<number, dim> >)>(&T::set_input))
 			.add_method("set_input", static_cast<void (T::*)(size_t, number)>(&T::set_input))
