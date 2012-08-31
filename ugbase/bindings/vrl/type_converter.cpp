@@ -414,19 +414,30 @@ namespace ug {
 
 			std::stringstream ss;
 
+			ss << "<!--NumMsg:"<<error.num_msg()<<":-->";
 			ss << "<div><pre>\n";
 			for(size_t i = 0; i < error.num_msg(); i++) {
 
+				ss << "<!--StartMsg:"<<i<<":-->";
 				std::string msg = error.get_msg(i);
-
 				ss << "\n" << msg << "\n";
+				ss << "<!--EndMsg:"<<i<<":-->";
 
 				if (msg.size() !=0 && msg[msg.size()-1] != '\n') {
 					ss << "\n";
 				}
 
-				ss	<< ">> File:\t" << error.get_file(i) << "\n"
-					<< ">> Line:\t" << error.get_line(i) << "\n\n";
+				ss	<< ">> File:\t";
+				ss << "<!--StartFile:"<<i<<":-->";
+				ss	<< error.get_file(i);
+				ss << "<!--EndFile:"<<i<<":-->";
+				ss << "\n";
+
+				ss	<< ">> Line:\t";
+				ss << "<!--StartLine:"<<i<<":-->";
+				ss  << error.get_line(i);
+				ss << "<!--EndLine:"<<i<<":-->";
+				ss  << "\n\n";
 
 				if (i < error.num_msg()-1) {
 					ss << "> Caused by:" << std::endl;

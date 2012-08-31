@@ -48,7 +48,7 @@ struct vrl_traits<number>
 	static std::string errMsg()
 	{
 		std::stringstream ss;
-		ss << "<font color=\"red\">VRLUserNumber: invokation error:</font>";
+		ss << "<font color=\"red\">User Data (Number): Invocation error: </font>\n";
 		return ss.str();
 	}
 	static std::string callSignature() {return "([DI)D";}
@@ -82,7 +82,7 @@ struct vrl_traits<ug::MathVector<dim> >
 	static std::string errMsg()
 	{
 		std::stringstream ss;
-		ss << "<font color=\"red\">VRLUserVector"<<dim<<"d: invokation error:</font>";
+		ss << "<font color=\"red\">User Data (Vector): Invocation error: </font>\n";
 		return ss.str();
 	}
 	static std::string callSignature() {return "([DI)[D";}
@@ -98,9 +98,10 @@ struct vrl_traits<ug::MathVector<dim> >
 	{
 		jint arrayLength = env->GetArrayLength(array);
 		if (arrayLength != size)
-			UG_THROW(RED_BEGIN << "VRLUserVector: dimensions do not match! "
-			               "Required: "<<size<<", returned: " << arrayLength <<
-			               COLOR_END << std::endl);
+			UG_THROW(RED_BEGIN <<
+			         "User Data (Vector): Wrong return value in Code. "
+			         "Required: Vector of size "<<size<<" (passed size: " <<
+			         arrayLength << ")" << COLOR_END << std::endl);
 
 		jdouble vTmp[size];
 		env->GetDoubleArrayRegion(array, 0, size, vTmp);
@@ -131,7 +132,7 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 	static std::string errMsg()
 	{
 		std::stringstream ss;
-		ss << "<font color=\"red\">VRLUserMatrix"<<dim<<"d: invokation error:</font>";
+		ss << "<font color=\"red\">User Data (Matrix): Invocation error: </font>\n";
 		return ss.str();
 	}
 	static std::string callSignature() {return "([DI)[[D";}
@@ -145,8 +146,10 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 	{
 		const int rowSize = env->GetArrayLength(array);
 		if(rowSize != dim)
-			UG_THROW(RED_BEGIN << "VRLUserMatrix: wrong row size! Required:"
-			               <<dim<<", returned: "<<rowSize<<COLOR_END << std::endl);
+			UG_THROW(RED_BEGIN <<
+			         "User Data (Matrix): Wrong return value in Code. "
+			         "Required: Matrix of size "<<dim<<"x"<<dim<<
+			         " (passed row size: "<<rowSize<< ")" << COLOR_END << std::endl);
 
 		jdouble rowEntrys[dim];
 
@@ -155,8 +158,10 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 
 			const int colSize = env->GetArrayLength(row);
 			if(colSize != dim)
-				UG_THROW(RED_BEGIN << "VRLUserMatrix: wrong column size! Required:"
-							   <<dim<<", returned: "<<colSize<<COLOR_END << std::endl);
+				UG_THROW(RED_BEGIN
+				         "User Data (Matrix): Wrong return value in Code. "
+				         "Required: Matrix of size "<<dim<<"x"<<dim<<
+				         " (passed column size: "<<colSize<< ")" << COLOR_END << std::endl);
 
 			env->GetDoubleArrayRegion(row, 0, dim, rowEntrys);
 			for(int j=0; j < (int)dim; ++j)
