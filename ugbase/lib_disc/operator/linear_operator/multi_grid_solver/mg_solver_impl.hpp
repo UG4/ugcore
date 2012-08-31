@@ -1069,6 +1069,23 @@ init_linear_level_operator()
 		GMG_PROFILE_END();
 	}
 
+// 	resize help vectors. It may occure that disc use more than the geometric
+//	dofs and thus the matrix (and vectors) are larger than expected only by the
+//	passed approximation space.
+	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
+	{
+		SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
+
+	//	skip void level
+		if(m_vLevData[lev]->num_indices() == levMat->num_rows()) continue;
+
+		const size_t numIndex = levMat->num_rows();
+		m_vLevData[lev]->u.resize(numIndex);
+		m_vLevData[lev]->c.resize(numIndex);
+		m_vLevData[lev]->d.resize(numIndex);
+		m_vLevData[lev]->t.resize(numIndex);
+	}
+
 //	we're done
 	return true;
 }
@@ -1127,6 +1144,23 @@ init_non_linear_level_operator()
 			smoothMat->resize(numSmoothIndex, numSmoothIndex);
 			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapFlag, *mat);
 		}
+	}
+
+// 	resize help vectors. It may occure that disc use more than the geometric
+//	dofs and thus the matrix (and vectors) are larger than expected only by the
+//	passed approximation space.
+	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
+	{
+		SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
+
+	//	skip void level
+		if(m_vLevData[lev]->num_indices() == levMat->num_rows()) continue;
+
+		const size_t numIndex = levMat->num_rows();
+		m_vLevData[lev]->u.resize(numIndex);
+		m_vLevData[lev]->c.resize(numIndex);
+		m_vLevData[lev]->d.resize(numIndex);
+		m_vLevData[lev]->t.resize(numIndex);
 	}
 
 //	we're done
