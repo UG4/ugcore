@@ -553,10 +553,10 @@ void CopyMatrixByMapping(TMatrix& newMat,
                          const TMatrix& origMat)
 {
 //	check size
-	UG_ASSERT(vMap.size() == newMat.num_rows(), "Size must match.");
-	UG_ASSERT(vMap.size() == newMat.num_cols(), "Size must match.");
-	UG_ASSERT(vMap.size() == origMat.num_rows(), "Size must match.");
-	UG_ASSERT(vMap.size() == origMat.num_cols(), "Size must match.");
+	UG_ASSERT(vMap.size() < newMat.num_rows(), "Size must match. Map:"<<vMap.size()<<", mat:"<<newMat.num_rows());
+	UG_ASSERT(vMap.size() < newMat.num_cols(), "Size must match. Map:"<<vMap.size()<<", mat:"<<newMat.num_cols());
+	UG_ASSERT(vMap.size() < origMat.num_rows(), "Size must match. Map:"<<vMap.size()<<", mat:"<<origMat.num_rows());
+	UG_ASSERT(vMap.size() < origMat.num_cols(), "Size must match. Map:"<<vMap.size()<<", mat:"<<origMat.num_cols());
 
 //	type of matrix row iterator
 	typedef typename TMatrix::const_row_iterator const_row_iterator;
@@ -573,8 +573,34 @@ void CopyMatrixByMapping(TMatrix& newMat,
 		for(const_row_iterator conn = origMat.begin_row(origInd);
 									conn != origMat.end_row(origInd); ++conn)
 		{
+			size_t newConnIndex = conn.index();
+
 		//	get corresponding level connection index
-			const size_t newConnIndex = vMap[conn.index()];
+			if(conn.index() < vMap.size())
+				newConnIndex = vMap[conn.index()];
+
+		//	copy connection to level matrix
+			newMat(newInd, newConnIndex) = conn.value();
+		}
+	}
+
+//	loop remaining indices as identity
+	for(size_t origInd = vMap.size(); origInd < origMat.num_rows(); ++origInd)
+	{
+	//	get mapped level index
+		const size_t newInd = origInd;
+
+	//	loop all connections of the surface dof to other surface dofs and copy
+	//	the matrix coupling into the level matrix
+
+		for(const_row_iterator conn = origMat.begin_row(origInd);
+									conn != origMat.end_row(origInd); ++conn)
+		{
+			size_t newConnIndex = conn.index();
+
+		//	get corresponding level connection index
+			if(conn.index() < vMap.size())
+				newConnIndex = vMap[conn.index()];
 
 		//	copy connection to level matrix
 			newMat(newInd, newConnIndex) = conn.value();
