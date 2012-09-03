@@ -76,6 +76,15 @@ class IApproximationSpace
 	///	returns the function pattern
 		ConstSmartPtr<FunctionPattern> function_pattern() const {return m_spFunctionPattern;}
 
+	/// number of discrete functions this dof distributor handles
+		size_t num_fct() const {return m_spFunctionPattern->num_fct();}
+
+	/// returns the name of a discrete function
+		const char* name(size_t fct) const {return m_spFunctionPattern->name(fct);}
+
+	/// returns the dimension in which solution lives
+		int dim(size_t fct) const {return m_spFunctionPattern->dim(fct);}
+
 	///	returns subset group by name
 		SubsetGroup subset_grp_by_name(const char* names) const;
 

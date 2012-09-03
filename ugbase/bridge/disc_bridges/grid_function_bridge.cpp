@@ -207,6 +207,9 @@ static void Common(Registry& reg, string grp)
 		.add_method("init_top_surface", &T::init_top_surface)
 		.add_method("defragment", &T::defragment)
 		.add_method("clear", &T::clear)
+		.add_method("num_fct", &T::num_fct)
+		.add_method("name", &T::name)
+		.add_method("dim", &T::dim)
 		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int, const char*)>(&T::add_fct),
 					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order # Subsets", "Adds a function to the Function Pattern",
 					"currently no help available")
