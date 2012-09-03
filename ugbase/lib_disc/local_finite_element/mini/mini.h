@@ -178,10 +178,10 @@ class MiniBubbleLSFS<ReferenceTriangle>
 
 			switch(i)
 			{
-				case 0:	return (1-x[0]-x[1]);
+				case 0:	return (1.0-x[0]-x[1]);
 				case 1:	return x[0];
 				case 2:	return x[1];
-				case 3: return x[0]*x[1]*(1-x[0]-x[1]); // bubble
+				case 3: return x[0]*x[1]*(1.0-x[0]-x[1]); // bubble
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
@@ -200,8 +200,8 @@ class MiniBubbleLSFS<ReferenceTriangle>
 						g[1] = 0.0; return;
 				case 2:	g[0] = 0.0;
 						g[1] = 1.0; return;
-				case 3: g[0] = x[1]*(1.0-x[1]-2*x[0]);
-						g[1] = x[0]*(1.0-x[0]-2*x[1]); return;
+				case 3: g[0] = x[1]*(1.0-x[1]-2.0*x[0]);
+						g[1] = x[0]*(1.0-x[0]-2.0*x[1]); return;
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
@@ -268,6 +268,7 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 						pos[1] = 1.0; return true;
 				case 4: pos[0] = 0.5;
 						pos[1] = 0.5; return true;
+
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
@@ -280,6 +281,11 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 
 			switch(i)
 			{
+				case 0:	return (1.0-x[0])*(1.0-x[1]);
+				case 1:	return x[0]*(1.0-x[1]);
+				case 2:	return x[0]*x[1];
+				case 3:	return x[1]*(1.0-x[0]);
+				case 4:	return x[0]*x[1]*(1.0-x[0])*(1.0-x[1]);
 
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
@@ -293,6 +299,16 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 
 			switch(i)
 			{
+				case 0:	g[0] = -1.0*(1.0-x[1]);
+						g[1] = -1.0*(1.0-x[0]); return;
+				case 1:	g[0] = (1.0-x[1]);
+						g[1] = -x[0]; return;
+				case 2:	g[0] = x[1];
+						g[1] = x[0]; return;
+				case 3: g[0] = -x[1];
+						g[1] = 1.0-x[0]; return;
+				case 4: g[0] = x[1]*(1.0-x[1])*(1.0-2.0*x[0]);
+						g[1] = x[0]*(1.0-x[0])*(1.0-2.0*x[1]); return;
 
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
@@ -319,7 +335,7 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 		static const int dim = 3;
 
 	/// Number of shape functions
-		static const size_t nsh = 4;
+		static const size_t nsh = 4+1;
 
 	public:
 	///	Domain position type
@@ -349,7 +365,11 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 		{
 			switch(i)
 			{
-
+					case 0:	pos[0] = 0.0; pos[1] = 0.0; pos[2] = 0.0; return true;
+					case 1:	pos[0] = 1.0; pos[1] = 0.0; pos[2] = 0.0; return true;
+					case 2:	pos[0] = 0.0; pos[1] = 1.0; pos[2] = 0.0; return true;
+					case 3: pos[0] = 0.0; pos[1] = 0.0; pos[2] = 1.0; return true;
+					case 4: pos[0] = 0.25; pos[1] = 0.25; pos[2] = 0.25; return true;
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
@@ -359,10 +379,16 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			// ReferenceTetrahedron::check_position(x);
+			number prod = x[0]*x[1]*x[2];
+			number lambda4 = (1.0-x[0]-x[1]-x[2]);
 
 			switch(i)
 			{
-
+				case 0:	return (1.0-x[0]-x[1]-x[2]);
+				case 1:	return x[0];
+				case 2:	return x[1];
+				case 3:	return x[2];
+				case 4: return x[0]*x[1]*x[2]*(1.0-x[0]-x[1]-x[2]); // bubble
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
@@ -372,9 +398,26 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
 			// ReferenceTetrahedron::check_position(x);
+			number prod = x[0]*x[1]*x[2];
+			number lambda4 = (1.0-x[0]-x[1]-x[2]);
 
 			switch(i)
 			{
+				case 0:	g[0] = -1.0;
+						g[1] = -1.0;
+						g[1] = -1.0; return;
+				case 1:	g[0] =  1.0;
+						g[1] =  0.0;
+						g[2] =  0.0; return;
+				case 2:	g[0] =  0.0;
+						g[1] =  1.0;
+						g[2] =  0.0; return;
+				case 3:	g[0] =  0.0;
+						g[1] =  0.0;
+						g[2] =  1.0; return;
+				case 4:	g[0] = -prod + lambda4*x[1]*x[2];
+						g[1] = -prod + lambda4*x[0]*x[2];
+						g[2] = -prod + lambda4*x[0]*x[2]; return;
 
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
