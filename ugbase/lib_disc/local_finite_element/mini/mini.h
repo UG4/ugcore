@@ -200,8 +200,8 @@ class MiniBubbleLSFS<ReferenceTriangle>
 						g[1] = 0.0; return;
 				case 2:	g[0] = 0.0;
 						g[1] = 1.0; return;
-				case 3: g[0] = 1.0-2*x[0];
-						g[1] = 1.0-2*x[1]; return;
+				case 3: g[0] = x[1]*(1.0-x[1]-2*x[0]);
+						g[1] = x[0]*(1.0-x[0]-2*x[1]); return;
 				default: UG_THROW("MiniLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}

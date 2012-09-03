@@ -19,7 +19,7 @@ namespace ug{
 // MiniBubble Set
 ///////////////////////////////////////////////////////////////////////////////
 
-/// MiniBubble Set
+/// MiniBubble Set (2D only!)
 template <typename TRefElem>
 class MiniBubbleLDS : public ILocalDoFSet
 {
@@ -31,11 +31,12 @@ class MiniBubbleLDS : public ILocalDoFSet
 	///	constructor
 		MiniBubbleLDS()
 		{
+			// get _the_ reference element
 			const TRefElem& rRefElem = Provider<TRefElem>::get();
 
-			p = 1;
-			if(refDim > 0)
+			if(refDim >= 2)
 			{
+				// face (or volume???)
 				//	set local DoFs (located at vertices+bubble)
 				nsh = rRefElem.num(0)+1;
 
@@ -43,12 +44,16 @@ class MiniBubbleLDS : public ILocalDoFSet
 				for(size_t i = 0; i< nsh-1; ++i)
 					m_vLocalDoF[i] = LocalDoF(0, i, 0);
 
-				m_vLocalDoF[nsh-1] = LocalDoF(refDim, nsh-1, 0); // bubble
+				m_vLocalDoF[nsh-1] = LocalDoF(refDim, nsh-1, 0); // bubble located at element
 			}
 			else
 			{
-				nsh = 0;
-				m_vLocalDoF.clear();
+				// edge or vertex
+				nsh = refDim+1;
+				m_vLocalDoF.resize(nsh);
+				for(size_t i = 0; i< nsh-1; ++i)
+					m_vLocalDoF[i] = LocalDoF(0, i, 0);
+
 			}
 		}
 
@@ -70,14 +75,16 @@ class MiniBubbleLDS : public ILocalDoFSet
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			if(d == refDim-1) return 1;
+			// each element and vertex hold one dof
+			if((d == refDim)||(d==0)) return 1;
 			else return 0;
 		}
 
 	///	returns if the storage needs objects of a given dimension
 		size_t max_num_dof(int d) const
 		{
-			if(d == refDim-1)   return 1;
+			if (d==0) return 1;         // vertices
+			if (d == refDim)   return 1;    // element
 			else if (d > refDim) return -1;
 			else return 0;
 		}

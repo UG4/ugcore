@@ -171,7 +171,7 @@ void LocalShapeFunctionSetProvider::init_standard_sets()
 
 //	insert into map: MINI element
 	static LocalShapeFunctionSetWrapper<MiniBubbleLSFS<TRefElem> > sSetMiniBubble;
-	LFEID typeMB(LFEID::MINI, 0);
+	LFEID typeMB(LFEID::MINI, 1);
 	register_set(typeMB, roid, sSetMiniBubble);
 
 }

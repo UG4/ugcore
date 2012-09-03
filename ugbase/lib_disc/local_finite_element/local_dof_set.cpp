@@ -118,24 +118,23 @@ void LocalDoFSetProvider::create_mini_bubble_sets()
 
 //	register the set
 	try{
-		register_set(LFEID(LFEID::MINI, 0), *setMiniBubble);
+		register_set(LFEID(LFEID::MINI, 1), *setMiniBubble);
 	}
 	UG_CATCH_THROW("Unable to register MiniBubbleLDS");
 }
 
 void LocalDoFSetProvider::create_mini_bubble_sets()
 {
-	//create_mini_sets<ReferenceVertex>();
+	create_mini_bubble_sets<ReferenceVertex>();
 	create_mini_bubble_sets<ReferenceEdge>();
 	create_mini_bubble_sets<ReferenceTriangle>();
 	create_mini_bubble_sets<ReferenceQuadrilateral>();
-	/*
-	 *
-	create_mini_sets<ReferenceTetrahedron>();
-	create_mini_sets<ReferencePyramid>();
-	create_mini_sets<ReferencePrism>();
-	create_mini_sets<ReferenceHexahedron>();
-	*/
+
+	create_mini_bubble_sets<ReferenceTetrahedron>();
+	create_mini_bubble_sets<ReferencePyramid>();
+	create_mini_bubble_sets<ReferencePrism>();
+	create_mini_bubble_sets<ReferenceHexahedron>();
+
 }
 
 void LocalDoFSetProvider::create_set(const LFEID& id)
