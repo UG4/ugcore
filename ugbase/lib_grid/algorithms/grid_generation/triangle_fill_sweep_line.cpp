@@ -46,7 +46,7 @@ struct SweepLineVertex
 	bool isRimVertex;
 };
 
-/**	Please note that edges do not automatically register themselfes at
+/**	Please note that edges do not automatically register them selves at
  *	their vertices connections array. This would make problems with
  *	temporary edge objects and copy-construction.*/
 struct SweepLineEdge
@@ -942,7 +942,8 @@ bool TriangleFill_SweepLine(vector<int>& facesOut,
 
 	if(!CreateSweepLineStructs(vrts, edges, srcVrts, srcEdges)){
 		UG_LOG("CreateSweepLineStructs failed.\n");
-		UG_LOG("Make sure not to select vertices that don't have connected edges.\n");
+		//UG_LOG("Make sure not to select vertices that don't have connected edges.\n");
+		UG_LOG("Make sure to select a closed outer edge-chain!\n");
 		UG_LOG("Aborting.\n");
 		return false;
 	}
@@ -950,8 +951,9 @@ bool TriangleFill_SweepLine(vector<int>& facesOut,
 //PrintDebugInfos(vrts, edges);
 
 	if(!SweepLine_CreateMonotones(vrts, edges)){
-		UG_LOG("SweepLine_CreateMonotones failed. Debug-log:\n");
-		PrintDebugInfos(vrts, edges);
+		UG_LOG("SweepLine_CreateMonotones failed.\n");
+		UG_LOG("Make sure to select a closed outer edge-chain!\n");
+		//PrintDebugInfos(vrts, edges);
 		return false;
 	}
 
