@@ -421,7 +421,7 @@ function SetupFETISolver(str_problem,
 			testvectorwriter:update(testvector)	
 			npAMG:add_testvector(testvectorwriter, 1.0)
    ]]				
-			npAMG:set_testvector_from_matrix_rows(true)
+			npAMG:set_testvector_from_matrix_rows()
 				
 			if bExternalCoarsening then
 				npAMG:set_external_coarsening(true)
@@ -556,7 +556,7 @@ function SetupFETISolver(str_problem,
 			testvectorwriter:update(testvector)	
 			dpAMG:add_testvector(testvectorwriter, 1.0)
    ]]	
-			dpAMG:set_testvector_from_matrix_rows(true)
+			dpAMG:set_testvector_from_matrix_rows()
 				
 			if bExternalCoarsening then
 				dpAMG:set_external_coarsening(true)
