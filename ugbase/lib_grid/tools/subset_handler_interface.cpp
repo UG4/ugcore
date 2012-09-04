@@ -150,7 +150,7 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 	set_default_subset_info(sh.m_defaultSubsetInfo);
 
 //TODO: enable attachment support based on the source-hanlders attachment support!?!
-	subset_info_required(sh.num_subsets() - 1);
+	subset_required(sh.num_subsets() - 1);
 
 //	make sure that both accessors have a valid grid
 	if(srcGrid && destGrid){
@@ -190,7 +190,7 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 }
 
 void ISubsetHandler::
-create_required_subset_infos(int index)
+create_required_subsets(int index)
 {
 	m_subsetInfos.resize(index+1, m_defaultSubsetInfo);
 
@@ -421,14 +421,14 @@ set_subset_name(const char* name, int subsetIndex)
 void ISubsetHandler::
 set_subset_info(int subsetIndex, const SubsetInfo& subsetInfo)
 {
-	subset_info_required(subsetIndex);
+	subset_required(subsetIndex);
 	m_subsetInfos[subsetIndex] = subsetInfo;
 }
 
 SubsetInfo& ISubsetHandler::
 subset_info(int subsetIndex)
 {
-	subset_info_required(subsetIndex);
+	subset_required(subsetIndex);
 	return m_subsetInfos[subsetIndex];
 }
 
@@ -545,7 +545,7 @@ insert_subset(int subsetIndex)
 	if(subsetIndex >= 0)
 	{
 	//	make sure that the subset-infos
-		subset_info_required(num_subsets());
+		subset_required(num_subsets());
 		if(subsetIndex < (int)num_subsets()-1)
 			move_subset(num_subsets() - 1, subsetIndex);
 	}
@@ -597,8 +597,9 @@ erase_subset(int subsetIndex)
 		/*if(subset_attachments_are_enabled())
 			resize_attachment_pipes(numNewSubsets);*/
 	}
-	else
-		LOG("WARNING in SubsetHandler::erase_subset(...): bad subset index: " << subsetIndex << endl);
+	else{
+		UG_THROW("bad subset index: " << subsetIndex);
+	}
 }
 
 void ISubsetHandler::
@@ -637,8 +638,9 @@ swap_subsets(int subsetIndex1, int subsetIndex2)
 	//	swap the lists
 		swap_subset_lists(subsetIndex1, subsetIndex2);
 	}
-	else
-		LOG("WARNING in SubsetHandler::swap_subsets(...): bad indices: " << subsetIndex1 << ", " << subsetIndex2 << endl);
+	else{
+		UG_THROW("bad subset indices: " << subsetIndex1 << ", " << subsetIndex2);
+	}
 }
 
 void ISubsetHandler::
@@ -656,7 +658,7 @@ move_subset(int indexFrom, int indexTo)
 		if(moveDir != 0)
 		{
 		//	check if we have to append subsets
-			subset_info_required(indexTo);
+			subset_required(indexTo);
 
 		//	store the from-subset-info
 			SubsetInfo siFrom = m_subsetInfos[indexFrom];
@@ -704,8 +706,45 @@ move_subset(int indexFrom, int indexTo)
 			move_subset_lists(indexFrom, indexTo);
 		}
 	}
-	else
-		LOG("WARNING in SubsetHandler::move_subset(...): bad indices: " << indexFrom << ", " << indexTo << endl);
+	else{
+		UG_THROW("bad indices: " << indexFrom << ", " << indexTo);
+	}
+}
+
+void ISubsetHandler::
+join_subsets(int targetSub, int sub1, int sub2, bool eraseUnusedSubs)
+{
+//todo: adjust attachments...
+
+	if((sub1 < 0) || (sub1 >= num_subsets())
+		|| (sub2 < 0) || (sub2 >= num_subsets())
+		|| (targetSub < 0))
+	{
+		UG_THROW("Bad subset indices in join_subsets.");
+	}
+
+	subset_required(targetSub);
+
+//	change indices. no entries are copied or lists are changed here
+	if(targetSub != sub1)
+		change_subset_indices(sub1, targetSub);
+
+	if(targetSub != sub2)
+		change_subset_indices(sub2, targetSub);
+
+//	change lists. no indices are affected.
+	join_subset_lists(targetSub, sub1, sub2);
+
+	if(eraseUnusedSubs){
+	//	erase the two old subsets. be careful not to delete wrong subsets
+		int delFirst = max(sub1, sub2);
+		int delSecond = min(sub1, sub2);
+
+		if(delFirst != targetSub)
+			erase_subset(delFirst);
+		if(delSecond != targetSub)
+			erase_subset(delSecond);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -316,6 +316,18 @@ erase(const typename ug::SectionContainer<TValue, TContainer>::iterator& elemHan
 		m_vSections[sectionIndex].m_elemsEnd = m_container.end();
 }
 
+template <class TValue, class TContainer>
+void
+SectionContainer<TValue, TContainer>::
+append(const SectionContainer& c)
+{
+	for(int i = 0; i < c.num_sections(); ++i){
+		for(const_iterator iter = c.section_begin(i); iter != c.section_end(i); ++iter){
+			insert(*iter, i);
+		}
+	}
+}
+
 }
 
 #endif

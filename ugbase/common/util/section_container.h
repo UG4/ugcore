@@ -84,6 +84,10 @@ class SectionContainer
 	 */
 		inline Container& get_container()			{return m_container;}
 
+	///	appends the elements of the given container to the current one
+	/**	Note that the append operation is performed for each section separately.*/
+		void append(const SectionContainer& c);
+
 	protected:
 		void add_sections(int num);
 

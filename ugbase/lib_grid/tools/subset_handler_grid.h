@@ -38,14 +38,6 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		GridSubsetHandler& operator = (const ISubsetHandler& sh);
 
 		void assign_grid(Grid& grid);
-		
-	///	Makes sure that the subset with the given index exists.
-	/**	If required the subsets between num_subsets() and index will be created.
-	 *	ISubsetHandler::subset_info_required is called automatically.*/
-		inline void subset_required(int index);
-		
-	///	The const version of subset_required throws an error if the subset does not exist.
-		inline void subset_required(int index) const;
 
 	////////////////////////////////////////////////
 	//	implementation of public virtual methdos of ISubsetHandler.
@@ -260,6 +252,9 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 
 	///	moves the subset but does not touch the subset-indices.
 		void move_subset_lists(int indexFrom, int indexTo);
+
+	///	join the subset-lists but do not touch the subset-indices.
+		void join_subset_lists(int target, int src1, int src2);
 
 	///	this method is called by ISubsetHandler when attachment_support has been enabled.
 		//void register_subset_elements_at_pipe();

@@ -44,13 +44,6 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		void assign_grid(MultiGrid& mg);
 		inline MultiGrid* multi_grid()	{return m_pMG;}
 		inline const MultiGrid* multi_grid() const {return m_pMG;}
-		
-	///	Makes sure that the subset with the given index exists.
-	/**	If required the subsets between num_subsets() and index will be created.*/
-		inline void subset_required(int index);
-		
-	///	The const version of subset_required throws an error if the subset does not exist.
-		inline void subset_required(int index) const;
 
 	///	creates the required levels, if they do not yet exist
 		inline void level_required(size_t level);
@@ -231,6 +224,9 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 
 	///	moves the subset but does not touch the subset-indices.
 		void move_subset_lists(int indexFrom, int indexTo);
+
+	///	join the subset-lists but do not touch the subset-indices.
+		virtual void join_subset_lists(int target, int src1, int src2);
 
 	///	this method is called by ISubsetHandler when attachment_support has been enabled.
 		//void register_subset_elements_at_pipe();

@@ -264,6 +264,30 @@ void GridSubsetHandler::move_subset_lists(int indexFrom, int indexTo)
 		m_subsets[indexTo] = pFrom;
 	}
 }
+
+///	join the subset-lists but do not touch the subset-indices.
+void GridSubsetHandler::join_subset_lists(int target, int src1, int src2)
+{
+	Subset& t = *m_subsets[target];
+	Subset& s1 = *m_subsets[src1];
+	Subset& s2 = *m_subsets[src2];
+
+	if(target != src1){
+		t.m_vertices.append(s1.m_vertices);
+		t.m_edges.append(s1.m_edges);
+		t.m_faces.append(s1.m_faces);
+		t.m_volumes.append(s1.m_volumes);
+		clear_subset_lists(src1);
+	}
+	if(target != src2){
+		t.m_vertices.append(s2.m_vertices);
+		t.m_edges.append(s2.m_edges);
+		t.m_faces.append(s2.m_faces);
+		t.m_volumes.append(s2.m_volumes);
+		clear_subset_lists(src2);
+	}
+}
+
 /*
 void GridSubsetHandler::
 register_subset_elements_at_pipe()

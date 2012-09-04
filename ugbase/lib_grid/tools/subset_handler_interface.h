@@ -287,7 +287,10 @@ class UG_API ISubsetHandler : public GridObserver
 
 	///	if the subset with the given index does not yet exist, it will be created.
 	/**	All subsets in between num_subsets and index will be created, too.*/
-		inline void subset_info_required(int index);
+		inline void subset_required(int index);
+
+	///	throws an error if the given index is equal or higher than num_subsets.
+		inline void subset_required(int index) const;
 
 	///	returns the number of subset-infos (return value is int, since SubsetIndices are of type int)
 		inline int num_subsets() const		{return (int)m_subsetInfos.size();}
@@ -326,6 +329,8 @@ class UG_API ISubsetHandler : public GridObserver
 		void swap_subsets(int subsetIndex1, int subsetIndex2);
 	///	Moves the subset from index From to index To. Moves all subsets between indexFrom+1 and indexTo in the opposite direction.
 		void move_subset(int indexFrom, int indexTo);///< changes subset indices of other subsets.
+	///	Joins two subsets into a new one. Optionally erases the old subsets, if they are no longer used.
+		void join_subsets(int targetSub, int sub1, int sub2, bool eraseUnusedSubs);
 
 		template <class TIterator>
 		void assign_subset(TIterator iterBegin, TIterator iterEnd, int subsetIndex);
@@ -555,7 +560,7 @@ class UG_API ISubsetHandler : public GridObserver
 		void reset_subset_indices(uint shElements = SHE_ALL);
 
 	///	creates all required infos (and pipes) up to the given index.
-		void create_required_subset_infos(int index);
+		void create_required_subsets(int index);
 
 		inline void subset_assigned(VertexBase* v, int subsetIndex);
 		inline void subset_assigned(EdgeBase* e, int subsetIndex);
@@ -601,6 +606,9 @@ class UG_API ISubsetHandler : public GridObserver
 
 	///	move the subset-lists but do not touch the subset-indices.
 		virtual void move_subset_lists(int indexFrom, int indexTo) = 0;
+
+	///	join the subset-lists but do not touch the subset-indices.
+		virtual void join_subset_lists(int target, int src1, int src2) = 0;
 
 	///	helper for GridObserver callbacks.
 		template <class TElem>

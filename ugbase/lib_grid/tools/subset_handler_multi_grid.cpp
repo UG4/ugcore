@@ -284,6 +284,37 @@ void MultiGridSubsetHandler::move_subset_lists(int indexFrom, int indexTo)
 		}
 	}
 }
+
+void MultiGridSubsetHandler::join_subset_lists(int target, int src1, int src2)
+{
+	for(size_t level = 0; level < m_levels.size(); ++level){
+		SubsetVec& subsets = m_levels[level];
+
+	//	store pointer to the from-subset
+		Subset& t = *subsets[target];
+		Subset& s1 = *subsets[src1];
+		Subset& s2 = *subsets[src2];
+
+		if(target != src1){
+			t.m_vertices.append(s1.m_vertices);
+			t.m_edges.append(s1.m_edges);
+			t.m_faces.append(s1.m_faces);
+			t.m_volumes.append(s1.m_volumes);
+		}
+		if(target != src2){
+			t.m_vertices.append(s2.m_vertices);
+			t.m_edges.append(s2.m_edges);
+			t.m_faces.append(s2.m_faces);
+			t.m_volumes.append(s2.m_volumes);
+		}
+	}
+
+	if(target != src1)
+		clear_subset_lists(src1);
+	if(target != src2)
+		clear_subset_lists(src2);
+}
+
 /*
 void MultiGridSubsetHandler::
 register_subset_elements_at_pipe()

@@ -120,12 +120,22 @@ assign_subset(TIterator iterBegin, TIterator iterEnd, int subsetIndex)
 
 inline void
 ISubsetHandler::
-subset_info_required(int index)
+subset_required(int index)
 {
 	if(index >= (int)m_subsetInfos.size())
-		create_required_subset_infos(index);
+		create_required_subsets(index);
 }
 
+inline void
+ISubsetHandler::
+subset_required(int index) const
+{
+	if(index >= num_subsets()){
+		UG_THROW("Can't create new subsets in const ISubsetHandler. "
+				 << "num current subsets: " << num_subsets()
+				 << " required subset: " << index);
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////
 //	attachment handling
