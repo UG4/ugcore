@@ -34,17 +34,29 @@ bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 //	we do this by using grid::mark.
 	grid.begin_marking();
 
-	std::vector<VertexBase*> vrts;
-	vrts.assign(sel.vertices_begin(), sel.vertices_end());
-	grid.mark(sel.vertices_begin(), sel.vertices_end());
+//	std::vector<VertexBase*> vrts;
+//	vrts.assign(sel.vertices_begin(), sel.vertices_end());
+//	grid.mark(sel.vertices_begin(), sel.vertices_end());
+
+	VecSet(centerOut, 0);
+	size_t n = 0;
+	for(VertexBaseIterator iter = sel.vertices_begin();
+		iter != sel.vertices_end(); ++iter)
+	{
+		VecAdd(centerOut, centerOut, aaPos[*iter]);
+		grid.mark(*iter);
+		++n;
+	}
 
 	for(EdgeBaseIterator iter = sel.edges_begin();
 		iter != sel.edges_end(); ++iter)
 	{
+		EdgeBase::ConstVertexArray vrts = (*iter)->vertices();
 		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
-			if(!grid.is_marked((*iter)->vertex(i))){
-				grid.mark((*iter)->vertex(i));
-				vrts.push_back((*iter)->vertex(i));
+			if(!grid.is_marked(vrts[i])){
+				grid.mark(vrts[i]);
+				VecAdd(centerOut, centerOut, aaPos[vrts[i]]);
+				++n;
 			}
 		}
 	}
@@ -52,10 +64,12 @@ bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 	for(FaceIterator iter = sel.faces_begin();
 		iter != sel.faces_end(); ++iter)
 	{
+		Face::ConstVertexArray vrts = (*iter)->vertices();
 		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
-			if(!grid.is_marked((*iter)->vertex(i))){
-				grid.mark((*iter)->vertex(i));
-				vrts.push_back((*iter)->vertex(i));
+			if(!grid.is_marked(vrts[i])){
+				grid.mark(vrts[i]);
+				VecAdd(centerOut, centerOut, aaPos[vrts[i]]);
+				++n;
 			}
 		}
 	}
@@ -63,21 +77,84 @@ bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 	for(VolumeIterator iter = sel.volumes_begin();
 		iter != sel.volumes_end(); ++iter)
 	{
+		Volume::ConstVertexArray vrts = (*iter)->vertices();
 		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
-			if(!grid.is_marked((*iter)->vertex(i))){
-				grid.mark((*iter)->vertex(i));
-				vrts.push_back((*iter)->vertex(i));
+			if(!grid.is_marked(vrts[i])){
+				grid.mark(vrts[i]);
+				VecAdd(centerOut, centerOut, aaPos[vrts[i]]);
+				++n;
 			}
 		}
 	}
 
 	grid.end_marking();
 
-	if(vrts.size() > 0){
-		centerOut = CalculateCenter(vrts.begin(), vrts.end(), aaPos);
+	if(n > 0){
+		VecScale(centerOut, centerOut, 1. / (number)n);
 		return true;
 	}
 	return false;
+}
+
+template <class TAAPosVRT>
+void TranslateSelection(Selector& sel, const typename TAAPosVRT::ValueType& offset,
+						TAAPosVRT& aaPos)
+{
+	if(!sel.grid()){
+		throw(UGError("No grid assigned to selector"));
+	}
+
+	Grid& grid = *sel.grid();
+
+//	collect all vertices that are adjacent to selected elements
+//	we have to make sure that each vertex is only counted once.
+//	we do this by using grid::mark.
+	grid.begin_marking();
+
+	for(VertexBaseIterator iter = sel.vertices_begin();
+		iter != sel.vertices_end(); ++iter)
+	{
+		VecAdd(aaPos[*iter], aaPos[*iter], offset);
+		grid.mark(*iter);
+	}
+
+	for(EdgeBaseIterator iter = sel.edges_begin();
+		iter != sel.edges_end(); ++iter)
+	{
+		EdgeBase::ConstVertexArray vrts = (*iter)->vertices();
+		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
+			if(!grid.is_marked(vrts[i])){
+				grid.mark(vrts[i]);
+				VecAdd(aaPos[vrts[i]], aaPos[vrts[i]], offset);
+			}
+		}
+	}
+
+	for(FaceIterator iter = sel.faces_begin();
+		iter != sel.faces_end(); ++iter)
+	{
+		Face::ConstVertexArray vrts = (*iter)->vertices();
+		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
+			if(!grid.is_marked(vrts[i])){
+				grid.mark(vrts[i]);
+				VecAdd(aaPos[vrts[i]], aaPos[vrts[i]], offset);
+			}
+		}
+	}
+
+	for(VolumeIterator iter = sel.volumes_begin();
+		iter != sel.volumes_end(); ++iter)
+	{
+		Volume::ConstVertexArray vrts = (*iter)->vertices();
+		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
+			if(!grid.is_marked(vrts[i])){
+				grid.mark(vrts[i]);
+				VecAdd(aaPos[vrts[i]], aaPos[vrts[i]], offset);
+			}
+		}
+	}
+
+	grid.end_marking();
 }
 
 ////////////////////////////////////////////////////////////////////////

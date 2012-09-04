@@ -26,10 +26,21 @@ namespace ug
 //	CalculateCenter
 ///	calculates the center of selected objects
 /**	This algorithm uses Grid::mark
+ * The center is calculated by averaging the positions of all vertices, which
+ * touch the selection.
  */
 template <class TAAPosVRT>
 bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 					 Selector& sel, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+///	moves all vertices touching the selection by the specified offset.
+/**	This algorithm uses Grid::mark
+ */
+template <class TAAPosVRT>
+void TranslateSelection(Selector& sel, const typename TAAPosVRT::ValueType& offset,
+						TAAPosVRT& aaPos);
+
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectVerticesTouchingSelection
