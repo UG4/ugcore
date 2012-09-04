@@ -14,6 +14,8 @@
 #include <jni.h>
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 #include "lib_disc/spatial_disc/user_data/std_pos_data.h"
+#include "lib_disc/spatial_disc/user_data/data_linker.h"
+#include "lib_disc/spatial_disc/user_data/data_linker_traits.h"
 
 namespace ug {
 namespace vrl {
@@ -52,6 +54,12 @@ struct vrl_traits<number>
 		return ss.str();
 	}
 	static std::string callSignature() {return "([DI)D";}
+	static std::string signature() {return "D";}
+
+	static void push(jdouble* vStorage, const number x)
+	{
+		vStorage[0] = x;
+	}
 
 	static void toJava(JNIEnv *env, jdouble& res, const number& x)
 	{
@@ -86,6 +94,13 @@ struct vrl_traits<ug::MathVector<dim> >
 		return ss.str();
 	}
 	static std::string callSignature() {return "([DI)[D";}
+	static std::string signature() {return "[D";}
+
+	static void push(jdouble* vStorage, const MathVector<dim>& x)
+	{
+		for(size_t i = 0; i < dim; ++i)
+			vStorage[i] = x[i];
+	}
 
 	static void toJava(JNIEnv *env, jdoubleArray& res, const MathVector<dim>& x)
 	{
@@ -136,6 +151,16 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 		return ss.str();
 	}
 	static std::string callSignature() {return "([DI)[[D";}
+	static std::string signature() {return "[[D";}
+
+	static void push(jdouble* vStorage, const MathMatrix<dim, dim>& D)
+	{
+		for(size_t i = 0; i < dim; ++i){
+			for(size_t j = 0; j < dim; ++j){
+				vStorage[i*dim+j] = D[i][j];
+			}
+		}
+	}
 
 	static void toJava(JNIEnv *env, jobjectArray& res, const MathMatrix<dim,dim>& x)
 	{
@@ -188,9 +213,385 @@ struct vrl_traits<ug::MathMatrix<dim,dim> >
 
 };
 
+
 ////////////////////////////////////////////////////////////////////////////////
+//	VRLUserFunction
 ////////////////////////////////////////////////////////////////////////////////
 
+template <typename TData, int dim, typename TDataIn>
+class VRLUserLinker
+	: public StdDataLinker<VRLUserLinker<TData, dim, TDataIn>, TData, dim>
+{
+	public:
+	///	type of base class
+		typedef DataLinker<TData, dim> base_type;
+
+	protected:
+		static jobject compileUserDataString(JNIEnv *env, const char* s)
+		{
+			jclass cls = env->FindClass("edu/gcsc/vrl/ug/UserDataCompiler");
+			if (env->ExceptionCheck()) {env->ExceptionDescribe();}
+
+			jmethodID runMethod = env->GetStaticMethodID(
+					cls, "compile",
+					"(Ljava/lang/String;I)Ljava/lang/Object;");
+			if (env->ExceptionCheck()) {env->ExceptionDescribe();}
+
+			return env->CallStaticObjectMethod(cls, runMethod, stringC2J(env, s),
+			                                   retArrayDim);
+		}
+
+		static jclass getUserDataClass(JNIEnv *env)
+		{
+			jclass result = env->FindClass("edu/gcsc/vrl/ug/UserData");
+			if (env->ExceptionCheck()) {env->ExceptionDescribe();}
+
+			return result;
+		}
+
+		static jmethodID getUserDataRunMethod(JNIEnv *env, jclass cls)
+		{
+			std::string signature = vrl_traits<TData>::callSignature();
+			std::stringstream mName; mName << "run" << retArrayDim;
+			jmethodID result = env->GetMethodID(cls, mName.str().c_str(), signature.c_str());
+
+			if (!checkException(env))
+			{
+				UG_LOG("[VRL-Bindings] "<<name()<<" Error:"
+						<< " cannot find userdata method."
+						<< " Please check your implementation!" << std::endl);
+			}
+			return result;
+		}
+
+	public:
+		static const unsigned int retArrayDim = vrl_traits<TData>::retArrayDim;
+
+		VRLUserLinker() : initialized(false) {}
+
+		static std::string name()
+		{
+			std::stringstream ss;
+			ss << "VRLUserLinker"<<vrl_traits<TData>::name() << vrl_traits<TDataIn>::name() << dim << "d";
+			return ss.str();
+		}
+
+		static std::string group_name()
+		{
+			std::stringstream ss;
+			ss << "VRLUserLinker"<<vrl_traits<TData>::name()<<vrl_traits<TDataIn>::name();
+			return ss.str();
+		}
+
+		void set_vrl_value_callback(const char* expression, size_t numArgs)
+		{
+			m_numArgs = numArgs;
+			vUserDataDeriv.resize(numArgs);
+			set_num_input(numArgs);
+
+			JNIEnv* env = threading::getEnv(getJavaVM());
+
+			releaseGlobalRefs();
+
+			userDataValue = compileUserDataString(env, expression);
+			userDataClass = getUserDataClass(env);
+			runMethod = getUserDataRunMethod(env, userDataClass);
+
+			checkException(env, name().append(": Cannot setup evaluation class or method."));
+
+			// create thread-safe references
+			// (GC won't deallocate them until manual deletion request)
+			userDataValue = env->NewGlobalRef(userDataValue);
+			userDataClass = (jclass) env->NewGlobalRef((jobject) userDataClass);
+			checkException(env, name().append(": Global Reference Error."));
+		}
+
+	///	sets the vrl function used to compute the derivative
+		void set_vrl_deriv_callback(size_t arg, const char* expression)
+		{
+			JNIEnv* env = threading::getEnv(getJavaVM());
+
+			vUserDataDeriv[arg] = compileUserDataString(env, expression);
+			checkException(env, name().append(": Cannot setup evaluation class or method."));
+
+			// create thread-safe references
+			// (GC won't deallocate them until manual deletion request)
+			vUserDataDeriv[arg] = env->NewGlobalRef(vUserDataDeriv[arg]);
+			checkException(env, name().append(": Global Reference Error."));
+		}
+
+	///	set input i
+		void set_input(size_t i, SmartPtr<UserData<TDataIn, dim> > data)
+		{
+			UG_ASSERT(i < m_vpUserData.size(), "Input not needed");
+			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
+
+		//	check input number
+			if(i >= this->num_input())
+				UG_THROW("DataLinker::set_input: Only " << this->num_input()
+								<< " inputs can be set. Use 'set_num_input' to increase"
+								" the number of needed inputs.");
+
+		//	remember userdata
+			m_vpUserData[i] = data;
+
+		//	cast to dependent data
+			m_vpDependData[i] = data.template cast_dynamic<DependentUserData<TDataIn, dim> >();
+
+		//	forward to base class
+			base_type::set_input(i, data);
+		}
+
+	///	computes the value
+		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
+		{
+		//	vector of data for all inputs
+			std::vector<TDataIn> vDataIn(this->num_input());
+
+			const number t = this->time();
+			const int si = this->subset();
+
+			for(size_t s = 0; s < this->num_series(); ++s)
+				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+				{
+				//	gather all input data for this ip
+					for(size_t c = 0; c < vDataIn.size(); ++c)
+						vDataIn[c] = m_vpUserData[c]->value(this->series_id(c,s), ip);
+
+				//	evaluate data at ip
+					eval_value(this->value(s,ip), vDataIn, this->ip(s, ip), t, si);
+				}
+
+		//	check if derivative is required
+			if(!bDeriv || this->zero_derivative()) return;
+
+		//	clear all derivative values
+			this->clear_derivative_values();
+
+		//	loop all inputs
+			for(size_t c = 0; c < vDataIn.size(); ++c)
+			{
+			//	check if input has derivative
+				if(this->zero_derivative(c)) continue;
+
+			//	loop ips
+				for(size_t s = 0; s < this->num_series(); ++s)
+					for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+					{
+					//	gather all input data for this ip
+						vDataIn[c] = m_vpUserData[c]->value(this->series_id(c,s), ip);
+
+					//	data of derivative w.r.t. one component at ip-values
+						TData derivVal;
+
+					//	evaluate data at ip
+						eval_deriv(derivVal, vDataIn, this->ip(s, ip), t, si, c);
+
+					//	loop functions
+						for(size_t fct = 0; fct < this->input_num_fct(c); ++fct)
+						{
+						//	get common fct id for this function
+							const size_t commonFct = this->input_common_fct(c, fct);
+
+						//	loop dofs
+							for(size_t dof = 0; dof < this->num_sh(fct); ++dof)
+							{
+								linker_traits<TData, TDataIn>::
+								mult_add(this->deriv(s, ip, commonFct, dof),
+								         derivVal,
+								         m_vpDependData[c]->deriv(this->series_id(c,s), ip, fct, dof));
+							}
+						}
+					}
+			}
+		}
+
+
+		inline void evaluate (TData& value,
+							  const MathVector<dim>& globIP,
+							  number time, int si) const
+		{
+		//	vector of data for all inputs
+			std::vector<TDataIn> vDataIn(this->num_input());
+
+		//	gather all input data for this ip
+			for(size_t c = 0; c < vDataIn.size(); ++c)
+				(*m_vpUserData[c])(vDataIn[c], globIP, time, si);
+
+		//	evaluate data at ip
+			eval_value(value, vDataIn, globIP, time, si);
+		}
+
+
+		template <int refDim>
+		inline void evaluate (TData& value,
+							  const MathVector<dim>& globIP,
+							  number time, int si,
+							  LocalVector& u,
+							  GeometricObject* elem,
+							  const MathVector<dim> vCornerCoords[],
+							  const MathVector<refDim>& locIP) const
+		{
+		//	vector of data for all inputs
+			std::vector<TDataIn> vDataIn(this->num_input());
+
+		//	gather all input data for this ip
+			for(size_t c = 0; c < vDataIn.size(); ++c)
+				(*m_vpUserData[c])(vDataIn[c], globIP, time, si, u, elem, vCornerCoords, locIP);
+
+		//	evaluate data at ip
+			eval_value(value, vDataIn, globIP, time, si);
+		}
+
+
+		template <int refDim>
+		inline void evaluate(TData vValue[],
+							 const MathVector<dim> vGlobIP[],
+							 number time, int si,
+							 LocalVector& u,
+							 GeometricObject* elem,
+							 const MathVector<dim> vCornerCoords[],
+							 const MathVector<refDim> vLocIP[],
+							 const size_t nip,
+							 const MathMatrix<refDim, dim>* vJT = NULL) const
+		{
+		//	vector of data for all inputs
+			std::vector<TDataIn> vDataIn(this->num_input());
+
+		//	gather all input data for this ip
+			for(size_t ip = 0; ip < nip; ++ip)
+			{
+				for(size_t c = 0; c < vDataIn.size(); ++c)
+					(*m_vpUserData[c])(vDataIn[c], vGlobIP[ip], time, si, u, elem, vCornerCoords, vLocIP[ip]);
+
+			//	evaluate data at ip
+				eval_value(vValue[ip], vDataIn, vGlobIP[ip], time, si);
+			}
+		}
+
+	public:
+	///	evaluates the data at a given point and time
+		void eval_value(TData& value, const std::vector<TDataIn>& dataIn,
+						const MathVector<dim>& x, number time, int si) const
+		{
+			JNIEnv* env = threading::getEnv(getJavaVM());
+
+			const int dataSize = vrl_traits<TDataIn>::size * dataIn.size();
+			int argSize = 	dataSize // data
+							+ vrl_traits<MathVector<dim> >::size // x - vector
+							+ vrl_traits<number>::size; // time
+
+			jdoubleArray params = env->NewDoubleArray(argSize);
+
+			// copy data
+			jdouble* vTmp = new jdouble[dataSize];
+			for (size_t i = 0; i < dataIn.size(); i++) {
+				vrl_traits<TDataIn>::push(vTmp, dataIn[i]);
+				env->SetDoubleArrayRegion(params, i*vrl_traits<TDataIn>::size,
+				                          	  	 (i+1)*vrl_traits<TDataIn>::size, vTmp);
+			}
+			delete vTmp;
+			checkException(env, "CopyParametersToJava: error");
+
+			// copy vector and time
+			jdouble vTmp2[dim + 1];
+			for (size_t i = 0; i < dim; i++) vTmp2[i] = x[i];
+			vTmp2[dim] = time;
+			env->SetDoubleArrayRegion(params, dataSize, dataSize+dim+1, vTmp2);
+			checkException(env, "CopyParametersToJava: error");
+
+			jint jsi = si;
+
+			if (runMethod != NULL)
+				vrl_traits<TData>::call(env, value, userDataValue, runMethod,
+				                        params, jsi);
+		}
+
+	///	evaluates the data at a given point and time
+		void eval_deriv(TData& value, const std::vector<TDataIn>& dataIn,
+						const MathVector<dim>& x, number time, int si, size_t arg) const
+		{
+			JNIEnv* env = threading::getEnv(getJavaVM());
+
+			const int dataSize = vrl_traits<TDataIn>::size * dataIn.size();
+			int argSize = 	dataSize // data
+							+ vrl_traits<MathVector<dim> >::size // x - vector
+							+ vrl_traits<number>::size; // time
+
+			jdoubleArray params = env->NewDoubleArray(argSize);
+
+			// copy data
+			jdouble* vTmp = new jdouble[dataSize];
+			for (size_t i = 0; i < dataIn.size(); i++) {
+				vrl_traits<TDataIn>::push(vTmp, dataIn[i]);
+				env->SetDoubleArrayRegion(params, i*vrl_traits<TDataIn>::size,
+				                          	  	 (i+1)*vrl_traits<TDataIn>::size, vTmp);
+			}
+			delete vTmp;
+			checkException(env, "CopyParametersToJava: error");
+
+			// copy vector and time
+			jdouble vTmp2[dim + 1];
+			for (size_t i = 0; i < dim; i++) vTmp2[i] = x[i];
+			vTmp2[dim] = time;
+			env->SetDoubleArrayRegion(params, dataSize, dataSize+dim+1, vTmp2);
+			checkException(env, "CopyParametersToJava: error");
+
+			jint jsi = si;
+
+			if (runMethod != NULL)
+				vrl_traits<TData>::call(env, value, vUserDataDeriv[arg], runMethod,
+				                        params, jsi);
+		}
+
+	public:
+		void releaseGlobalRefs()
+		{
+			// deleting thread-safe global references
+			if (initialized) {
+				JNIEnv* localEnv = threading::getEnv(getJavaVM());
+				localEnv->DeleteGlobalRef(userDataValue);
+				localEnv->DeleteGlobalRef((jobject) userDataClass);
+			}
+		}
+
+		~VRLUserLinker()
+		{
+			releaseGlobalRefs();
+		}
+
+	protected:
+	///	set number of needed inputs
+		void set_num_input(size_t num)
+		{
+		//	resize arrays
+			m_vpUserData.resize(num, NULL);
+			m_vpDependData.resize(num, NULL);
+
+		//	forward size to base class
+			base_type::set_num_input(num);
+		}
+
+	private:
+		size_t m_numArgs;
+		bool initialized;
+		jobject userDataValue;
+		std::vector<jobject> vUserDataDeriv;
+		jclass userDataClass;
+		jmethodID runMethod;
+
+	protected:
+	///	data input
+		std::vector<SmartPtr<UserData<TDataIn, dim> > > m_vpUserData;
+
+	///	data input casted to dependend data
+		std::vector<SmartPtr<DependentUserData<TDataIn, dim> > > m_vpDependData;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// VRLUserData
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
 class VRLUserData
@@ -599,6 +1000,20 @@ void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 		reg.add_class_<T, TBase>(T::name(), grp)
 			.add_constructor()
 			.add_method("data", &T::set_vrl_callback, "", options.str().c_str())
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(T::name(), T::group_name(), tag);
+	}
+
+	//	VRLUserLinkerTypeNumber
+	{
+		typedef VRLUserLinker<TData, dim, number> T;
+		typedef UserData<TData, dim> TBase;
+		std::stringstream options;
+		reg.add_class_<T, TBase>(T::name(), grp)
+			.add_constructor()
+			.add_method("data", &T::set_vrl_value_callback)
+			.add_method("deriv", &T::set_vrl_deriv_callback)
+			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<UserData<number, dim> >)>(&T::set_input))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(T::name(), T::group_name(), tag);
 	}
