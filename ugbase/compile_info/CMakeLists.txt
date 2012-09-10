@@ -22,6 +22,8 @@ set(infoFileName ${CMAKE_BINARY_DIR}/compile_info_vars.cpp)
 #	the add_custom_build_target and add_custom_command calls below. 
 #	on windows we currently don't support updated compile-infos.
 #	check out, whether this can be improved using special windows-scripting...
+
+#TODO	This file only should be written, if it doesn't exist yet.
 file(WRITE ${infoFileName} 
 	"namespace ug\n"
 	"{\n"
@@ -44,12 +46,12 @@ endif(UNIX AND buildCompileInfo)
 #	the actual variable definitions.
 EXPORTSOURCES(ugbase/compile_info compile_info.cpp)
 
-if(buildEmbeddedPlugins)
+if(buildEmbeddedPlugins OR NOT buildCompileInfo)
 	EXPORTSOURCES("" ${infoFileName})
 #	Note that a dependency to updateCompileInfo is created in the main CMakeLists.txt
 #	file for this case.
 
-else(buildEmbeddedPlugins)
+else(buildEmbeddedPlugins OR NOT buildCompileInfo)
 #	this clearly is a dirty hack...
 #	we have to prevent that the library tries to link against itself.
 #	The benefit of setting the linker flags in the ug_cmake_includes file however
@@ -72,4 +74,4 @@ else(buildEmbeddedPlugins)
 	# 	the CompileInfo lib is being rebuilt.
 		add_dependencies(${compileInfoLibName} updateCompileInfo)
 	endif(UNIX AND buildCompileInfo)
-endif(buildEmbeddedPlugins)
+endif(buildEmbeddedPlugins OR NOT buildCompileInfo)
