@@ -16,6 +16,7 @@
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
 
 
 namespace ug{
@@ -366,11 +367,25 @@ class GridFunctionGradientData
 							 const size_t nip,
 							 const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
-		//	must pass vJT
-			UG_ASSERT(vJT != NULL, "Jacobian transposed needed.");
-
 		//	reference object id
 			const ReferenceObjectID roid = elem->reference_object_id();
+
+		//	get reference element mapping by reference object id
+			std::vector<MathMatrix<refDim, dim> > vJTTmp(nip);
+			if(vJT == NULL){
+				try{
+				DimReferenceMapping<refDim, dim>& mapping
+									= ReferenceMappingProvider::get<refDim, dim>(roid, vCornerCoords);
+
+			//	compute transformation matrices
+				mapping.jacobian_transposed(&(vJTTmp[0]), vLocIP, nip);
+
+			//	store tmp Gradient
+				vJT = &(vJTTmp[0]);
+				}catch(UGError_ReferenceMappingMissing& ex){
+					UG_THROW("GridFunctionGradientData: " << ex.get_msg() << ".");
+				}
+			}
 
 		//	get trial space
 			try{
