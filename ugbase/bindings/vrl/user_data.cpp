@@ -283,16 +283,22 @@ class VRLUserLinker
 			return ss.str();
 		}
 
+		size_t num_args() const {return m_numArgs;}
+		const char* vrl_value_callback() {return m_ValueCode.c_str();}
+		const char* vrl_deriv_callback(size_t arg) {return m_vDerivCode[arg].c_str();}
+
 		void set_vrl_value_callback(const char* expression, size_t numArgs)
 		{
 			m_numArgs = numArgs;
 			vUserDataDeriv.resize(numArgs);
+			m_vDerivCode.resize(numArgs);
 			set_num_input(numArgs);
 
 			JNIEnv* env = threading::getEnv(getJavaVM());
 
 			releaseGlobalRefs();
 
+			m_ValueCode = expression;
 			userDataValue = compileUserDataString(env, expression);
 			userDataClass = getUserDataClass(env);
 			runMethod = getUserDataRunMethod(env, userDataClass);
@@ -311,6 +317,7 @@ class VRLUserLinker
 		{
 			JNIEnv* env = threading::getEnv(getJavaVM());
 
+			m_vDerivCode[arg] = expression;
 			vUserDataDeriv[arg] = compileUserDataString(env, expression);
 			checkException(env, name().append(": Cannot setup evaluation class or method."));
 
@@ -579,6 +586,9 @@ class VRLUserLinker
 		std::vector<jobject> vUserDataDeriv;
 		jclass userDataClass;
 		jmethodID runMethod;
+
+		std::string m_ValueCode;
+		std::vector<std::string> m_vDerivCode;
 
 	protected:
 	///	data input
@@ -1011,8 +1021,11 @@ void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 		std::stringstream options;
 		reg.add_class_<T, TBase>(T::name(), grp)
 			.add_constructor()
+			.add_method("num_args", &T::num_args)
 			.add_method("data", &T::set_vrl_value_callback)
+			.add_method("vrl_value_callback", &T::vrl_value_callback)
 			.add_method("deriv", &T::set_vrl_deriv_callback)
+			.add_method("vrl_deriv_callback", &T::vrl_deriv_callback)
 			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<UserData<number, dim> >)>(&T::set_input))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(T::name(), T::group_name(), tag);
