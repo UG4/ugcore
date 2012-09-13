@@ -100,17 +100,17 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 	NOTIFY_OBSERVERS_REVERSE(m_vertexObservers,
 							 vertex_to_be_erased(this, pReplaceMe, v));
 
-//TODO:	auto-enabling of some options should be optimized (and avoided).
 //	all edges, faces and volumes associated with pReplaceMe have to be updated.
-//	the option GRIDOPT_VERTEXCENTRIC_INTERCONNECTION has to be enabled.
-	if(!option_is_enabled(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION))
-	{
-		LOG("WARNING in Grid::register_and_replace_element(...) - Vertex: autoenabling grid-option GRIDOPT_VERTEXCENTRIC_INTERCONNECTION.");
-		enable_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION);
-	}
+//	the options in GRIDOPT_VERTEXCENTRIC_INTERCONNECTION have to be enabled.
+//	we do this per element only, to avoid unnecessary memory overhead.
 
 //	update edges
-	{
+	if(num_edges()){
+		if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES)){
+			LOG("WARNING in Grid::register_and_replace_element(...) - Vertex: autoenabling grid-option VRTOPT_STORE_ASSOCIATED_EDGES.");
+			enable_options(VRTOPT_STORE_ASSOCIATED_EDGES);
+		}
+
 		for(AssociatedEdgeIterator iter = associated_edges_begin(pReplaceMe);
 			iter != associated_edges_end(pReplaceMe); ++iter)
 		{
@@ -127,7 +127,12 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 	}
 
 //	update faces
-	{
+	if(num_faces()){
+		if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES)){
+			LOG("WARNING in Grid::register_and_replace_element(...) - Vertex: autoenabling grid-option VRTOPT_STORE_ASSOCIATED_FACES.");
+			enable_options(VRTOPT_STORE_ASSOCIATED_FACES);
+		}
+
 		for(AssociatedFaceIterator iter = associated_faces_begin(pReplaceMe);
 			iter != associated_faces_end(pReplaceMe); ++iter)
 		{
@@ -146,7 +151,12 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 	}
 
 //	update volumes
-	{
+	if(num_volumes()){
+		if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES)){
+			LOG("WARNING in Grid::register_and_replace_element(...) - Vertex: autoenabling grid-option VRTOPT_STORE_ASSOCIATED_VOLUMES.");
+			enable_options(VRTOPT_STORE_ASSOCIATED_VOLUMES);
+		}
+
 		for(AssociatedVolumeIterator iter = associated_volumes_begin(pReplaceMe);
 			iter != associated_volumes_end(pReplaceMe); ++iter)
 		{

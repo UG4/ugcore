@@ -39,11 +39,12 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/extrusion/extrude.cpp
 					algorithms/extrusion/cylinder_extrusion.cpp
 					algorithms/extrusion/expand_layers.cpp
-					algorithms/refinement/refiner_interface.cpp
+					algorithms/refinement/adaptive_regular_mg_refiner.cpp
+					algorithms/refinement/fractured_media_refiner.cpp
 					algorithms/refinement/hanging_node_refiner_base.cpp
 					algorithms/refinement/hanging_node_refiner_grid.cpp
 					algorithms/refinement/hanging_node_refiner_multi_grid.cpp
-					algorithms/refinement/fractured_media_refiner.cpp
+					algorithms/refinement/refiner_interface.cpp
 					# (unmaintained) algorithms/refinement/hanging_node_refiner_2d_irn.cpp
 					# (unmaintained) algorithms/refinement/multi_grid_refiner.cpp
 					algorithms/refinement/regular_refinement.cpp

@@ -12,7 +12,9 @@
 #include "common/profiler/profiler.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/tools/partition_map.h"
+//todo: include this in algorithms.h
 #include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
+#include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
 
 using namespace std;
 
@@ -673,6 +675,12 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 		reg.add_class_<HangingNodeRefiner_MultiGrid, IRefiner>("HangingNodeRefiner_MultiGrid", grp)
 			.add_constructor()
 			.add_method("assign_grid", &HangingNodeRefiner_MultiGrid::assign_grid)
+			.set_construct_as_smart_pointer(true);
+
+	//	AdaptiveRegularMGRefiner
+		reg.add_class_<AdaptiveRegularRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>("AdaptiveRegularRefiner_MultiGrid", grp)
+			.add_constructor()
+			.add_method("assign_grid", &AdaptiveRegularRefiner_MultiGrid::assign_grid)
 			.set_construct_as_smart_pointer(true);
 
 	//	GlobalMultiGridRefiner

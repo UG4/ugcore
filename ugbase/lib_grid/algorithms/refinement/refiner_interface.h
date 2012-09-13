@@ -32,7 +32,7 @@ class IRefiner
 {
 	public:
 		IRefiner(IRefinementCallback* refCallback = NULL) :
-			m_refCallback(refCallback), m_adaptionIsActive(false)	{}
+			m_msgIdAdaption(-1), m_refCallback(refCallback), m_adaptionIsActive(false)	{}
 
 		virtual ~IRefiner()	{}
 
@@ -42,8 +42,11 @@ class IRefiner
 		IRefinementCallback* get_refinement_callback()
 			{return m_refCallback;}
 
-	///	has to return the associated grid. Pure virtual
+	///	DEPRECIATED! Use grid(). Has to return the associated grid. Pure virtual
 		virtual Grid* get_associated_grid() = 0;
+	///	Returns the grid associated with the refiner
+	/**	Pure virtual. Specify this method in derived classes!*/
+		virtual Grid* grid() = 0;
 
 	///	clears all marks. Default implementation is empty
 		virtual void clear_marks()	{}

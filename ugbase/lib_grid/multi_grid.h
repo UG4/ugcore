@@ -25,9 +25,11 @@ class MultiGrid;
 const int MG_EDGE_MAX_EDGE_CHILDREN = 2;///< maximal number of edges that can be children of an edge.
 const int MG_FACE_MAX_EDGE_CHILDREN = 4;///< maximal number of edges that can be children of a face.
 const int MG_FACE_MAX_FACE_CHILDREN = 4;///< maximal number of faces that can be children of a face.
-const int MG_VOLUME_MAX_EDGE_CHILDREN = 6;///< maximal number of edges that can be children of a volume.
-const int MG_VOLUME_MAX_FACE_CHILDREN = 13;///< maximal number of faces that can be children of a volume.
-const int MG_VOLUME_MAX_VOLUME_CHILDREN = 10;///< maximal number of volumes that can be children of a volume.
+//	the values below are just guesses. They may be too high or to low.
+//	They should be replaced by a more flexible system!
+//const int MG_VOLUME_MAX_EDGE_CHILDREN = 32;///< maximal number of edges that can be children of a volume.
+//const int MG_VOLUME_MAX_FACE_CHILDREN = 32;///< maximal number of faces that can be children of a volume.
+//const int MG_VOLUME_MAX_VOLUME_CHILDREN = 10;///< maximal number of volumes that can be children of a volume.
 
 
 ///	Holds information about vertex relations. Used internally.
@@ -47,7 +49,12 @@ struct MGVertexInfo
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
 	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
 	void unregister_from_children(MultiGrid& mg);
+	size_t num_child_vertices() const	{return m_pVrtChild ? 1 : 0;}
+
+	VertexBase* child_vertex() const {return m_pVrtChild;}
+
 	GeometricObject*	m_pParent;
+private:
 	VertexBase*			m_pVrtChild;
 };
 
@@ -71,7 +78,14 @@ struct MGEdgeInfo
 	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
 	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
 	void unregister_from_children(MultiGrid& mg);
+	size_t num_child_vertices() const	{return m_pVrtChild ? 1 : 0;}
+	size_t num_child_edges() const		{return m_numEdgeChildren;}
+
+	VertexBase* child_vertex() const		{return m_pVrtChild;}
+	EdgeBase* child_edge(size_t i) const	{assert(i < num_child_edges()); return m_pEdgeChild[i];}
+
 	GeometricObject*	m_pParent;
+private:
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_EDGE_MAX_EDGE_CHILDREN];
 	byte				m_numEdgeChildren;///< primarily required during refinement
@@ -95,6 +109,15 @@ struct MGFaceInfo
 	inline void replace_child(Face* elem, Face* child)				{ArrayReplaceEntry(m_pFaceChild, elem, child, m_numFaceChildren);}
 	void unregister_from_children(MultiGrid& mg);
 
+	size_t num_child_vertices() const	{return m_pVrtChild ? 1 : 0;}
+	size_t num_child_edges() const		{return m_numEdgeChildren;}
+	size_t num_child_faces() const		{return m_numFaceChildren;}
+
+	VertexBase* child_vertex() const {return m_pVrtChild;}
+	EdgeBase* child_edge(size_t i) const	{assert(i < num_child_edges()); return m_pEdgeChild[i];}
+	Face* child_face(size_t i) const		{assert(i < num_child_faces()); return m_pFaceChild[i];}
+
+private:
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_FACE_MAX_EDGE_CHILDREN];
 	Face*				m_pFaceChild[MG_FACE_MAX_FACE_CHILDREN];
@@ -106,30 +129,47 @@ struct MGFaceInfo
 /**	No parent included, since MGFaceInfos are not stored for surface elements.*/
 struct MGVolumeInfo
 {
-	MGVolumeInfo()		{clear();}
-	inline void clear()	{m_pVrtChild = NULL; m_numEdgeChildren = m_numFaceChildren = m_numVolChildren = 0;}
-	inline bool has_children()	const {return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren || m_numVolChildren;}
+	MGVolumeInfo() : m_pVrtChild(NULL)		{}
+	inline void clear()	{m_pVrtChild = NULL; m_edgeChildren.clear(); m_faceChildren.clear(); m_volumeChildren.clear();}
+	inline bool has_children()	const {return m_pVrtChild || !(m_edgeChildren.empty() && m_faceChildren.empty() && m_volumeChildren.empty());}
 	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
-	inline void add_child(EdgeBase* elem)	{assert(m_numEdgeChildren < MG_VOLUME_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
-	inline void add_child(Face* elem)		{assert(m_numFaceChildren < MG_VOLUME_MAX_FACE_CHILDREN); m_pFaceChild[m_numFaceChildren++] = elem;}
-	inline void add_child(Volume* elem)		{assert(m_numVolChildren < MG_VOLUME_MAX_VOLUME_CHILDREN); m_pVolChild[m_numVolChildren++] = elem;}
+	inline void add_child(EdgeBase* elem)	{m_edgeChildren.push_back(elem);}
+	inline void add_child(Face* elem)		{m_faceChildren.push_back(elem);}
+	inline void add_child(Volume* elem)		{m_volumeChildren.push_back(elem);}
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
-	inline void remove_child(EdgeBase* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
-	inline void remove_child(Face* elem)		{m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
-	inline void remove_child(Volume* elem)		{m_numVolChildren = ArrayEraseEntry(m_pVolChild, elem, m_numVolChildren);}
+	inline void remove_child(EdgeBase* elem)	{ArraySwapWithLast(&m_edgeChildren.front(), elem, m_edgeChildren.size()); m_edgeChildren.pop_back();}
+	//{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
+	inline void remove_child(Face* elem)		{ArraySwapWithLast(&m_faceChildren.front(), elem, m_faceChildren.size()); m_faceChildren.pop_back();}
+	//{m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
+	inline void remove_child(Volume* elem)		{ArraySwapWithLast(&m_volumeChildren.front(), elem, m_volumeChildren.size()); m_volumeChildren.pop_back();}
+	//{m_numVolChildren = ArrayEraseEntry(m_pVolChild, elem, m_numVolChildren);}
 	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
-	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
-	inline void replace_child(Face* elem, Face* child)				{ArrayReplaceEntry(m_pFaceChild, elem, child, m_numFaceChildren);}
-	inline void replace_child(Volume* elem, Volume* child)			{ArrayReplaceEntry(m_pVolChild, elem, child, m_numVolChildren);}
+	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(&m_edgeChildren.front(), elem, child, m_edgeChildren.size());}
+	inline void replace_child(Face* elem, Face* child)				{ArrayReplaceEntry(&m_faceChildren.front(), elem, child, m_faceChildren.size());}
+	inline void replace_child(Volume* elem, Volume* child)			{ArrayReplaceEntry(&m_volumeChildren.front(), elem, child, m_volumeChildren.size());}
 	void unregister_from_children(MultiGrid& mg);
 
-	VertexBase*			m_pVrtChild;
-	EdgeBase* 			m_pEdgeChild[MG_VOLUME_MAX_EDGE_CHILDREN];
-	Face*				m_pFaceChild[MG_VOLUME_MAX_FACE_CHILDREN];
-	Volume*				m_pVolChild[MG_VOLUME_MAX_VOLUME_CHILDREN];
-	byte				m_numEdgeChildren;///< primarily required during refinement
-	byte				m_numFaceChildren;///< primarily required during refinement
-	byte				m_numVolChildren;///< primarily required during refinement
+	size_t num_child_vertices() const	{return m_pVrtChild ? 1 : 0;}
+	size_t num_child_edges() const		{return m_edgeChildren.size();}
+	size_t num_child_faces() const		{return m_faceChildren.size();}
+	size_t num_child_volumes() const	{return m_volumeChildren.size();}
+
+	VertexBase* child_vertex() const 		{return m_pVrtChild;}
+	EdgeBase* child_edge(size_t i) const	{assert(i < num_child_edges()); return m_edgeChildren[i];}
+	Face* child_face(size_t i) const		{assert(i < num_child_faces()); return m_faceChildren[i];}
+	Volume* child_volume(size_t i) const	{assert(i < num_child_volumes()); return m_volumeChildren[i];}
+
+private:
+	VertexBase*				m_pVrtChild;
+	std::vector<EdgeBase*>	m_edgeChildren;
+	std::vector<Face*>		m_faceChildren;
+	std::vector<Volume*>	m_volumeChildren;
+	//EdgeBase* 			m_pEdgeChild[MG_VOLUME_MAX_EDGE_CHILDREN];
+	//Face*				m_pFaceChild[MG_VOLUME_MAX_FACE_CHILDREN];
+	//Volume*				m_pVolChild[MG_VOLUME_MAX_VOLUME_CHILDREN];
+	//byte				m_numEdgeChildren;///< primarily required during refinement
+	//byte				m_numFaceChildren;///< primarily required during refinement
+	//byte				m_numVolChildren;///< primarily required during refinement
 };
 
 ///	access to connected types. used internally
@@ -344,26 +384,26 @@ class MultiGrid : public Grid, public GridObserver
 
 	///	Returns the number of child vertices
 		template <class TElem>
-		inline size_t num_child_vertices(TElem* elem) const	{return get_info(elem).m_pVrtChild ? 1 : 0;}
+		inline size_t num_child_vertices(TElem* elem) const	{return get_info(elem).num_child_vertices();}
 
 	///	Returns the number of child edges
 	/**	\{	*/
 		template <class TElem>
-		inline size_t num_child_edges(TElem* elem) const	{return get_info(elem).m_numEdgeChildren;}
+		inline size_t num_child_edges(TElem* elem) const	{return get_info(elem).num_child_edges();}
 		inline size_t num_child_edges(VertexBase*) const	{return 0;}
 	/**	\}	*/
 
 	///	Returns the number of child faces
 	/**	\{	*/
 		template <class TElem>
-		inline size_t num_child_faces(TElem* elem) const	{return get_info(elem).m_numFaceChildren;}
+		inline size_t num_child_faces(TElem* elem) const	{return get_info(elem).num_child_faces();}
 		inline size_t num_child_faces(VertexBase*) const	{return 0;}
 		inline size_t num_child_faces(EdgeBase*) const		{return 0;}
 	/**	\}	*/
 
 	///	Returns the number of child volumes
 	/**	\{	*/
-		inline size_t num_child_volumes(Volume* elem) const	{return get_info(elem).m_numVolChildren;}
+		inline size_t num_child_volumes(Volume* elem) const	{return get_info(elem).num_child_volumes();}
 		template <class TElem>
 		inline size_t num_child_volumes(TElem*) const		{return 0;}
 	/**	\}	*/
@@ -377,26 +417,26 @@ class MultiGrid : public Grid, public GridObserver
 
 	///	Returns the child vertex of the given element or NULL if there is none
 		template <class TElem>
-		inline VertexBase* get_child_vertex(TElem* elem) const	{return get_info(elem).m_pVrtChild;}
+		inline VertexBase* get_child_vertex(TElem* elem) const	{return get_info(elem).child_vertex();}
 
 	///	Returns the child edges of the given element or NULL if there is none
 	/**	\{	*/
 		template <class TElem>
-		inline EdgeBase* get_child_edge(TElem* elem, size_t ind) const	{return get_info(elem).m_pEdgeChild[ind];}
+		inline EdgeBase* get_child_edge(TElem* elem, size_t ind) const	{return get_info(elem).child_edge(ind);}
 		inline EdgeBase* get_child_edge(VertexBase*, size_t) const		{return NULL;}
 	/**	\}	*/
 
 	///	Returns the child faces of the given element or NULL if there is none
 	/**	\{	*/
 		template <class TElem>
-		inline Face* get_child_face(TElem* elem, size_t ind) const	{return get_info(elem).m_pFaceChild[ind];}
+		inline Face* get_child_face(TElem* elem, size_t ind) const	{return get_info(elem).child_face(ind);}
 		inline Face* get_child_face(VertexBase*, size_t) const		{return NULL;}
 		inline Face* get_child_face(EdgeBase*, size_t) const			{return NULL;}
 	/**	\}	*/
 
 	///	Returns the child volumes of the given element or NULL if there is none
 	/**	\{	*/
-		inline Volume* get_child_volume(Volume* elem, size_t ind) const	{return get_info(elem).m_pVolChild[ind];}
+		inline Volume* get_child_volume(Volume* elem, size_t ind) const	{return get_info(elem).child_volume(ind);}
 		template <class TElem>
 		inline Volume* get_child_volume(TElem*, size_t) const	{return NULL;}
 	/**	\}	*/

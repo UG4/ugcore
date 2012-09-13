@@ -12,6 +12,8 @@
 
 #include "lib_disc/domain.h"
 #include "lib_grid/lib_grid.h"
+//todo: include this in algorithms.h
+#include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
 
 using namespace std;
 
@@ -53,6 +55,28 @@ static SmartPtr<IRefiner> HangingNodeDomainRefiner(TDomain* dom)
 	#endif
 
 	return SmartPtr<IRefiner>(new HangingNodeRefiner_MultiGrid(*dom->grid()));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///	Creates an adaptive regular domain refiner.
+/**	Automatically chooses whether a parallel refiner is required.*/
+template <typename TDomain>
+static SmartPtr<IRefiner> CreateAdaptiveRegularDomainRefiner(TDomain* dom)
+{
+	if(!dom->is_adaptive()){
+		UG_THROW("Can't create an adaptive refiner for the given domain. "
+				 	   "Construct the domain with isAdaptive enabled.");
+	}
+
+//todo: support normal grids, too!
+//todo: support parallelism, too!
+	/*#ifdef UG_PARALLEL
+		if(pcl::GetNumProcesses() > 1){
+			return SmartPtr<IRefiner>(new ParallelHangingNodeRefiner_MultiGrid(*dom->distributed_grid_manager()));
+		}
+	#endif*/
+
+	return SmartPtr<IRefiner>(new AdaptiveRegularRefiner_MultiGrid(*dom->grid()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -578,6 +602,8 @@ static void Domain(Registry& reg, string grp)
 					 &HangingNodeDomainRefiner<domain_type>, grp);
 	reg.add_function("GlobalFracturedDomainRefiner",
 					 &CreateGlobalFracturedDomainRefiner<domain_type>, grp);
+	reg.add_function("AdaptiveRegularDomainRefiner",
+					 &CreateAdaptiveRegularDomainRefiner<domain_type>, grp);
 
 //	register domain dependent mark methods
 	reg.add_function("MarkForRefinement_VerticesInSphere",

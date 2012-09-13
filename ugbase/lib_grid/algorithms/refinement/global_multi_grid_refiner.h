@@ -32,6 +32,8 @@ class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 		void assign_grid(MultiGrid* mg);
 
 		virtual Grid* get_associated_grid()		{return m_pMG;}
+		virtual Grid* grid()					{return m_pMG;}
+		virtual MultiGrid* multi_grid()			{return m_pMG;}
 
 		virtual bool adaptivity_supported() const	{return false;}
 		virtual bool coarsening_supported() const	{return false;}

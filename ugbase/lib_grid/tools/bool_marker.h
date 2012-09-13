@@ -11,6 +11,9 @@
 namespace ug
 {
 
+/** \ingroup lib_grid_tools
+ *  \{ */
+
 ///	Allows to mark elements.
 /** This class allows to mark elements of a grid.
  * The BoolMarker associates a bool with each element.
@@ -25,7 +28,6 @@ namespace ug
  * mark inheritance in order to activate this behavior (use enable_mark_inheritance).
  * Mark inheritance is enabled by default.
  *
- * \addtogroup lib_grid_tools
  * \todo	Allow to restrict marking to vertices, edges, faces or volumes
  * \todo	Add is_marked, mark, unmark for GeometricObject
  * \todo	Refactor to template <class T> Marker.
@@ -38,7 +40,11 @@ class BoolMarker : public GridObserver
 
 		virtual ~BoolMarker();
 
+	///	Assign the grid on which the marker shall operate.
+	/**	NULL is a valid argument and sets the marker into an unassigned state.
+	 * The marker may only be used, if it is associated with a grid instance.*/
 		void assign_grid(Grid* g);
+	///	Assign the grid on which the marker shall operate.
 		void assign_grid(Grid& g)					{assign_grid(&g);}
 
 		Grid* grid()								{return m_pGrid;}
@@ -138,6 +144,7 @@ class BoolMarker : public GridObserver
 		Grid::AttachmentAccessor<Volume, ABool>		m_aaMarkVOL;
 };
 
+/** \} */
 
 }//	end of namespace
 

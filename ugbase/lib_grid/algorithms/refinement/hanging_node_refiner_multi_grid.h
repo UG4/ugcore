@@ -55,8 +55,10 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 
 		virtual void grid_to_be_destroyed(Grid* grid);
 
-		void assign_grid(MultiGrid& mg);
-		virtual Grid* get_associated_grid()		{return m_pMG;}
+		virtual void assign_grid(MultiGrid& mg);
+		virtual Grid* get_associated_grid()		{return m_pMG;}//depreciated
+		virtual Grid* grid()					{return m_pMG;}
+		virtual MultiGrid* multi_grid()			{return m_pMG;}
 
 		virtual bool adaptivity_supported() const	{return true;}
 		virtual bool coarsening_supported() const	{return true;}

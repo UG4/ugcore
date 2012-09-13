@@ -279,9 +279,18 @@ bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
 ///	merges two vertices and restructures the adjacent elements.
 void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
 {
-	if(!grid.option_is_enabled(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION)){
-		UG_LOG("WARNING in MergeVertices: Autoenabling GRIDOPT_VERTEXCENTRIC_INTERCONNECTION.\n");
-		grid.enable_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION);
+//	make sure that GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is enabled
+	if(grid.num_edges() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))){
+		LOG("  WARNING in MergeVertices: autoenabling VRTOPT_STORE_ASSOCIATED_EDGES\n");
+		grid.enable_options(VRTOPT_STORE_ASSOCIATED_EDGES);
+	}
+	if(grid.num_faces() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))){
+		LOG("  WARNING in MergeVertices: autoenabling VRTOPT_STORE_ASSOCIATED_FACES\n");
+		grid.enable_options(VRTOPT_STORE_ASSOCIATED_FACES);
+	}
+	if(grid.num_volumes() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))){
+		LOG("  WARNING in MergeVertices: autoenabling VRTOPT_STORE_ASSOCIATED_VOLUMES\n");
+		grid.enable_options(VRTOPT_STORE_ASSOCIATED_VOLUMES);
 	}
 
 //	notify the grid, that the two vertices will be merged

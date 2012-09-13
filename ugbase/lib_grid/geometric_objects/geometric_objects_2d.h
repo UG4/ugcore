@@ -322,6 +322,7 @@ class UG_API ConstrainedFace : public Face
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainedFace*>(pObj) != NULL;}
 
+		ConstrainedFace() : m_pConstrainingObject(NULL)			{}
 		virtual ~ConstrainedFace()	{}
 
 		inline void set_constraining_object(GeometricObject* pObj)	{m_pConstrainingObject = pObj;}

@@ -227,7 +227,7 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 {
 	Grid& g = mg;
 	bool isConsistent = CheckHangingNodeConsistency(g);
-
+UG_LOG("1\n");
 //	iterate over all edges if an edge has children, then collect its ass. faces.
 //	If not all such faces have children, then the edge has to be a constraining
 //	edge and its children have to be constrained.
@@ -295,19 +295,21 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 			else{
 			//	e is not constraining
 			//	all neighbors should be parents, too!
+				/*this check is only valid if we don't create a closure
 				if(!allNbrsAreParents){
 				//	e should be a normal edge
 					FAILED_CHECK(e, "All neighbor faces of a normal edge should have children!");
-				}
+				}*/
 			}
 		}
 	}
-
+UG_LOG("2\n");
 //	check faces
 	for(FaceIterator iter = g.begin<Face>(); iter != g.end<Face>(); ++iter){
 		Face* f = *iter;
 		
 		if(f->is_constraining()){
+			UG_LOG("2.1/n");
 			ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(f);
 			UG_ASSERT(cf, "All constraining faces should derive from ConstrainingFace");
 			
@@ -376,12 +378,14 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 		}
 		
 		else if(f->is_constrained()){
+			UG_LOG("2.2.0/n");
 			ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(f);
 			UG_ASSERT(cdf, "All constrained faces should derive from ConstrainedFace");
-			
+			UG_LOG("2.2.1/n");
 		//	we don't have to check all interconnections, since we already checked a lot of
 		//	stuff for constraining faces. So just do the rest now.
 			ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(cdf->get_constraining_object());
+			UG_LOG("2.2.2/n");
 			if(!cf){
 				FAILED_CHECK(cdf, "No constraining face found for given constrained face."); 
 			}
@@ -391,6 +395,7 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 			}
 		}
 	}
+UG_LOG("3\n");
 	return isConsistent;
 }
 

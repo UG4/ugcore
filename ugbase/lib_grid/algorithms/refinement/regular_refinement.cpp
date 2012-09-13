@@ -95,9 +95,17 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 		refCallback = &LinRefCallback;
 		
 //	make sure that GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is enabled
-	if(!grid.option_is_enabled(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION)){
-		LOG("  INFO in Refine: autoenabling GRIDOPT_VERTEXCENTRIC_INTERCONNECTION\n");
-		grid.enable_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION);
+	if(grid.num_edges() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))){
+		LOG("  INFO in Refine: autoenabling VRTOPT_STORE_ASSOCIATED_EDGES\n");
+		grid.enable_options(VRTOPT_STORE_ASSOCIATED_EDGES);
+	}
+	if(grid.num_faces() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))){
+		LOG("  INFO in Refine: autoenabling VRTOPT_STORE_ASSOCIATED_FACES\n");
+		grid.enable_options(VRTOPT_STORE_ASSOCIATED_FACES);
+	}
+	if(grid.num_volumes() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))){
+		LOG("  INFO in Refine: autoenabling VRTOPT_STORE_ASSOCIATED_VOLUMES\n");
+		grid.enable_options(VRTOPT_STORE_ASSOCIATED_VOLUMES);
 	}
 
 //	make sure that FACEOPT_AUTOGENERATE_EDGES is enabled

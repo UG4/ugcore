@@ -75,7 +75,7 @@ int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 		bool centerVrtRequired = false;
 		int count = 0;
 		if(f[3] == -1){
-			clog << "calling tet_rules::Refine\n";
+			//clog << "calling tet_rules::Refine\n";
 			indMap[3] = numVrts + numEdges + numFaces;
 			count = tet_rules::Refine(tmpInds, tmpNewEdgeVrts, centerVrtRequired);
 		}
@@ -83,13 +83,13 @@ int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 			indMap[4] = numVrts + numEdges + numFaces;
 			indMap[pyra_rules::NUM_VERTICES + pyra_rules::NUM_EDGES] =
 													numVrts + numEdges + i_face;
-			clog << "calling pyra_rules::Refine\n";
-				count = pyra_rules::Refine(tmpInds, tmpNewEdgeVrts, centerVrtRequired);
+			//clog << "calling pyra_rules::Refine\n";
+			count = pyra_rules::Refine(tmpInds, tmpNewEdgeVrts, centerVrtRequired);
 		}
 
 	//	No center vertex should be created during this recudsion.
 		assert(!centerVrtRequired);
-
+/*
 		clog << "tmpInds:";
 		for(int i = 0; i < count; ++i)
 			clog << " " << tmpInds[i];
@@ -99,7 +99,7 @@ int RecursiveRefine(int* newIndsOut, int* newEdgeVrts,
 		for(int i = 0; i < indMapSize; ++i)
 			clog << " " << indMap[i];
 		clog << endl;
-
+*/
 	//	copy the new indices to the output array
 		for(int i = 0; i < count;){
 			int numElemInds = tmpInds[i];

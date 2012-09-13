@@ -205,9 +205,9 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 		MGVertexInfo& myInfo = get_info(vrt);
 		MGVertexInfo& replaceInfo = get_info(pReplaceMe);
 
-		if(replaceInfo.m_pVrtChild){
-			myInfo.add_child(replaceInfo.m_pVrtChild);
-			set_parent(replaceInfo.m_pVrtChild, vrt);
+		if(replaceInfo.child_vertex()){
+			myInfo.add_child(replaceInfo.child_vertex());
+			set_parent(replaceInfo.child_vertex(), vrt);
 		}
 	}
 	else{
@@ -284,14 +284,14 @@ void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
 		MGEdgeInfo& myInfo = get_info(edge);
 		MGEdgeInfo& replaceInfo = get_info(pReplaceMe);
 
-		if(replaceInfo.m_pVrtChild){
-			myInfo.add_child(replaceInfo.m_pVrtChild);
-			set_parent(replaceInfo.m_pVrtChild, edge);
+		if(replaceInfo.child_vertex()){
+			myInfo.add_child(replaceInfo.child_vertex());
+			set_parent(replaceInfo.child_vertex(), edge);
 		}
 
-		for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
-			myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
-			set_parent(replaceInfo.m_pEdgeChild[i], edge);
+		for(size_t i = 0; i < replaceInfo.num_child_edges(); ++i){
+			myInfo.add_child(replaceInfo.child_edge(i));
+			set_parent(replaceInfo.child_edge(i), edge);
 		}
 	}
 	else{
@@ -366,19 +366,19 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 			MGFaceInfo& myInfo = get_info(face);
 			MGFaceInfo& replaceInfo = get_info(pReplaceMe);
 
-			if(replaceInfo.m_pVrtChild){
-				myInfo.add_child(replaceInfo.m_pVrtChild);
-				set_parent(replaceInfo.m_pVrtChild, face);
+			if(replaceInfo.child_vertex()){
+				myInfo.add_child(replaceInfo.child_vertex());
+				set_parent(replaceInfo.child_vertex(), face);
 			}
 
-			for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
-				myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
-				set_parent(replaceInfo.m_pEdgeChild[i], face);
+			for(size_t i = 0; i < replaceInfo.num_child_edges(); ++i){
+				myInfo.add_child(replaceInfo.child_edge(i));
+				set_parent(replaceInfo.child_edge(i), face);
 			}
 
-			for(size_t i = 0; i < replaceInfo.m_numFaceChildren; ++i){
-				myInfo.add_child(replaceInfo.m_pFaceChild[i]);
-				set_parent(replaceInfo.m_pFaceChild[i], face);
+			for(size_t i = 0; i < replaceInfo.num_child_faces(); ++i){
+				myInfo.add_child(replaceInfo.child_face(i));
+				set_parent(replaceInfo.child_face(i), face);
 			}
 		}
 	}
@@ -443,24 +443,24 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 			MGVolumeInfo& myInfo = get_info(vol);
 			MGVolumeInfo& replaceInfo = get_info(pReplaceMe);
 
-			if(replaceInfo.m_pVrtChild){
-				myInfo.add_child(replaceInfo.m_pVrtChild);
-				set_parent(replaceInfo.m_pVrtChild, vol);
+			if(replaceInfo.child_vertex()){
+				myInfo.add_child(replaceInfo.child_vertex());
+				set_parent(replaceInfo.child_vertex(), vol);
 			}
 
-			for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
-				myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
-				set_parent(replaceInfo.m_pEdgeChild[i], vol);
+			for(size_t i = 0; i < replaceInfo.num_child_edges(); ++i){
+				myInfo.add_child(replaceInfo.child_edge(i));
+				set_parent(replaceInfo.child_edge(i), vol);
 			}
 
-			for(size_t i = 0; i < replaceInfo.m_numFaceChildren; ++i){
-				myInfo.add_child(replaceInfo.m_pFaceChild[i]);
-				set_parent(replaceInfo.m_pFaceChild[i], vol);
+			for(size_t i = 0; i < replaceInfo.num_child_faces(); ++i){
+				myInfo.add_child(replaceInfo.child_face(i));
+				set_parent(replaceInfo.child_face(i), vol);
 			}
 
-			for(size_t i = 0; i < replaceInfo.m_numVolChildren; ++i){
-				myInfo.add_child(replaceInfo.m_pVolChild[i]);
-				set_parent(replaceInfo.m_pVolChild[i], vol);
+			for(size_t i = 0; i < replaceInfo.num_child_volumes(); ++i){
+				myInfo.add_child(replaceInfo.child_volume(i));
+				set_parent(replaceInfo.child_volume(i), vol);
 			}
 		}
 	}
@@ -500,11 +500,11 @@ void MultiGrid::volume_to_be_erased(Grid* grid, Volume* vol,
 void MultiGrid::check_edge_elem_infos(int level) const
 {
 //	check the max fill rates of each child list.
-	byte maxChildEdges = 0;
+	size_t maxChildEdges = 0;
 
 	for(ConstEdgeBaseIterator iter = begin<EdgeBase>(level);
 		iter != end<EdgeBase>(level); ++iter)
-		maxChildEdges = max(get_info(*iter).m_numEdgeChildren, maxChildEdges);
+		maxChildEdges = max(get_info(*iter).num_child_edges(), maxChildEdges);
 
 	UG_LOG("MultiGrid: max edge child edges on level " << level << ": " << (int)maxChildEdges << endl);
 }
@@ -512,14 +512,14 @@ void MultiGrid::check_edge_elem_infos(int level) const
 void MultiGrid::check_face_elem_infos(int level) const
 {
 //	check the max fill rates of each child list.
-	byte maxChildEdges = 0;
-	byte maxChildFaces = 0;
+	size_t maxChildEdges = 0;
+	size_t maxChildFaces = 0;
 
 	for(ConstFaceIterator iter = begin<Face>(level);
 		iter != end<Face>(level); ++iter)
 	{
-		maxChildEdges = max(get_info(*iter).m_numEdgeChildren, maxChildEdges);
-		maxChildFaces = max(get_info(*iter).m_numFaceChildren, maxChildFaces);
+		maxChildEdges = max(get_info(*iter).num_child_edges(), maxChildEdges);
+		maxChildFaces = max(get_info(*iter).num_child_faces(), maxChildFaces);
 	}
 
 	UG_LOG("MultiGrid: max face child edges on level " << level << ": " << (int)maxChildEdges << endl);
@@ -529,16 +529,16 @@ void MultiGrid::check_face_elem_infos(int level) const
 void MultiGrid::check_volume_elem_infos(int level) const
 {
 //	check the max fill rates of each child list.
-	byte maxChildEdges = 0;
-	byte maxChildFaces = 0;
-	byte maxChildVolumes = 0;
+	size_t maxChildEdges = 0;
+	size_t maxChildFaces = 0;
+	size_t maxChildVolumes = 0;
 
 	for(ConstVolumeIterator iter = begin<Volume>(level);
 		iter != end<Volume>(level); ++iter)
 	{
-		maxChildEdges = max(get_info(*iter).m_numEdgeChildren, maxChildEdges);
-		maxChildFaces = max(get_info(*iter).m_numFaceChildren, maxChildFaces);
-		maxChildVolumes = max(get_info(*iter).m_numVolChildren, maxChildVolumes);
+		maxChildEdges = max(get_info(*iter).num_child_edges(), maxChildEdges);
+		maxChildFaces = max(get_info(*iter).num_child_faces(), maxChildFaces);
+		maxChildVolumes = max(get_info(*iter).num_child_volumes(), maxChildVolumes);
 	}
 
 	UG_LOG("MultiGrid: max volume child edges on level " << level << ": " << (int)maxChildEdges << endl);
@@ -582,12 +582,12 @@ void MGVolumeInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
 		mg.set_parent(m_pVrtChild, NULL);
-	for(int i = 0; i < m_numEdgeChildren; ++i)
-		mg.set_parent(m_pEdgeChild[i], NULL);
-	for(int i = 0; i < m_numFaceChildren; ++i)
-		mg.set_parent(m_pFaceChild[i], NULL);
-	for(int i = 0; i < m_numVolChildren; ++i)
-		mg.set_parent(m_pVolChild[i], NULL);
+	for(size_t i = 0; i < m_edgeChildren.size(); ++i)
+		mg.set_parent(m_edgeChildren[i], NULL);
+	for(size_t i = 0; i < m_faceChildren.size(); ++i)
+		mg.set_parent(m_faceChildren[i], NULL);
+	for(size_t i = 0; i < m_volumeChildren.size(); ++i)
+		mg.set_parent(m_volumeChildren[i], NULL);
 	clear();
 }
 
