@@ -338,7 +338,8 @@ bool SeparateRegions(Grid& grid, ISubsetHandler& shVolsOut,
  * a subset.
  */
 template <class TElem>
-void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh);
+void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh,
+									  bool appendAtEnd = false);
 
 ////////////////////////////////////////////////////////////////////////
 //	SeparateSubsetsByLowerDimSelection
@@ -350,7 +351,7 @@ void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh);
  */
 template <class TElem>
 void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
-										Selector& sel);
+										Selector& sel, bool appendAtEnd = false);
 
 ////////////////////////////////////////////////////////////////////////
 // 	SeparateSubsetsByLowerDimSeparators
@@ -369,6 +370,7 @@ void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
  */
 template <class TElem>
 void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
+					bool appendAtEnd,
 					boost::function<bool (typename TElem::lower_dim_base_object*)>
 						cbIsSeparator);
 

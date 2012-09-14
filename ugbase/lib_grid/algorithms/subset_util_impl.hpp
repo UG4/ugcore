@@ -247,20 +247,24 @@ void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
 }
 */
 template <class TElem>
-void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh)
+void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh,
+									  bool appendAtEnd)
 {
-	SeparateSubsetsByLowerDimSeparators<TElem>(grid, sh, IsNotInSubset(sh, -1));
+	SeparateSubsetsByLowerDimSeparators<TElem>(grid, sh, appendAtEnd,
+												IsNotInSubset(sh, -1));
 }
 
 template <class TElem>
 void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
-										Selector& sel)
+										Selector& sel, bool appendAtEnd)
 {
-	SeparateSubsetsByLowerDimSeparators<TElem>(grid, sh, IsSelected(sel));
+	SeparateSubsetsByLowerDimSeparators<TElem>(grid, sh, appendAtEnd,
+												IsSelected(sel));
 }
 
 template <class TElem>
 void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
+					bool appendAtEnd,
 					boost::function<bool (typename TElem::lower_dim_base_object*)>
 						cbIsSeparator)
 
@@ -286,6 +290,9 @@ void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
 
 //	now - while there are unassigned elements.
 	int subsetIndex = 0;
+	if(appendAtEnd)
+		subsetIndex = sh.num_subsets();
+	
 	while(!sel.empty())
 	{
 	//	choose the element with which we want to start
