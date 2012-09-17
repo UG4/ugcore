@@ -57,7 +57,7 @@ void CommunicateConnections(vector<vector<int> >& connectionsOut,
 
 	int localProc = pcl::GetProcRank();
 
-//	iterte over all master interfaces
+//	iterate over all master interfaces
 	for(InterfaceIter iiter = masterLayout.begin();
 		iiter != masterLayout.end(); ++iiter)
 	{
@@ -465,7 +465,7 @@ void BuildDomainDecompositionLayouts(
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
 
 
-//	first we communicate the conenctions of each entry to all processes
+//	first we communicate the connections of each entry to all processes
 	vector<vector<int> > connections;
 	CommunicateConnections(connections, standardMasters, standardSlaves,
 							highestReferencedIndex);
