@@ -181,7 +181,8 @@ void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEv
 	vEvalData.push_back(data);
 
 //	pop last one, since now added to eval list
-	vTryingToAdd.pop_back();
+	if(!vTryingToAdd.empty())
+		vTryingToAdd.pop_back();
 }
 
 void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
