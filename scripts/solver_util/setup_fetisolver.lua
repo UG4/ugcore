@@ -18,6 +18,10 @@
 --          Return value:
 --          Reference of the fully configured FETI solver object.
 --
+--   Note: To use FAMG as sub problem solvers configure ug4 as follows (since FAMG
+--   is now contained in the 'amg' plugin):
+--   cmake <other cmake options> -Damg=ON ..
+--
 --   Description of some parameters / options:
 --      -AMGwriteMat:   write testvectors (only if Neumann or Dirichlet problem solver is of type "famg")
 
@@ -113,7 +117,7 @@ grep "Could not solve Dirichlet problem " ug4_laplace_feti.204720.out_feti-sd1_8
   Level 13 ==> (2^3 * 2^{13} + 1)^2 nodes = (2^{16} + 1)^2 nodes =   4'295'098'369 nodes
   Level 14 ==> (2^3 * 2^{14} + 1)^2 nodes = (2^{17} + 1)^2 nodes =  17'180'131'329 nodes
   Level 15 ==> (2^3 * 2^{15} + 1)^2 nodes = (2^{18} + 1)^2 nodes =  68'720'001'025 nodes
-]]--
+!]]--
 
 
 ----------------------------------------------------------
