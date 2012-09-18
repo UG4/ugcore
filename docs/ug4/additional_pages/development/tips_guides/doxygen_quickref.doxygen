@@ -271,7 +271,7 @@ in the form of their HTML entity. (without the whitespaces)
 <hr>
 \section secBuildingDocumentation Building the documentation locally
 For a complete build of the documentation (in particular for testing modifications /
-additions you've made to the documentation before committing) go into \ug4' main
+additions you've made to the documentation before committing) go into \ug4/docs
 directory, then execute in a shell:
 \code
 doxygen doxy_config_ug4.txt
@@ -280,7 +280,7 @@ doxygen doxy_config_ug4.txt
 If you only want to build the documentation (without source code docu), you can do this in
 the subdir ug4/docs with
 \code
-doxygen doxy_config_docu_only.txt
+doxygen doxy_config_no_ugbase.txt
 \endcode
 
 Opening of e.g. the main page of the \ug4 documentation in a browser
@@ -288,4 +288,6 @@ Opening of e.g. the main page of the \ug4 documentation in a browser
 \code
 open docs/ug4/html/index.html
 \endcode
+
+
 */
