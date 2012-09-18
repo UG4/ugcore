@@ -1,0 +1,164 @@
+/*
+  Martin Rupp
+  y12 m09 d18
+*/
+
+/** \page pageUginstall uginstall
+
+uginstall is a number of small shell scripts to install some software without having root.
+By now, it is very preliminary and not guaranteed to work on all machines.
+
+To be able to use uginstall and the software it installs, you'll have add the following line to your
+<tt>~/.bashrc</tt> (replace <tt>\<YOURUG4ROOT\></tt> with your ug4 path):
+\code
+source YOURUG4ROOT/scripts/shell/ugbash
+\endcode
+
+Before installing something, make sure things aren't already installed by some other user by checking
+the appropriate commands in the terminal (<tt>gcc --version</tt> and <tt>cmake --version</tt>).
+
+After <tt>source ~/.bashrc</tt> you can use, e.g.
+\code
+uginstall doxygen
+\endcode
+which installs doxygen 1.8 in <tt>~/local/doxygen</tt>. Here again, you'll have to use <tt>source ~/.bashrc</tt>.
+If you want to uninstall doxygen, just delete <tt>~/local/doxygen/</tt>.
+
+You can also install the software by yourself. To see how that works, I collected some of the most used software examples here.
+Note that there might be easier ways to install this software (Mac: installers/fink, Windows: installers, Linux: Package managers),
+and there might be newer versions of the software.
+
+
+<hr>
+\section secGCCFlags Some Paths you can adjust.
+All paths you can change in the following way:
+\code
+export LIBRARY_PATH=path1:path2:path3
+\endcode
+where path1 is searched first, then path2, and then path3. You can also add something to an existing path:
+\code
+export LIBRARY_PATH=addedPath:$LIBRARY_PATH
+\endcode
+or
+\code
+export LIBRARY_PATH=$LIBRARY_PATH:addedPath
+\endcode
+You'll have to write this into <tt>~/.bashrc</tt> to make your changes permanent.
+
+- <tt>PATH</tt> : search path for executables.
+- <tt>LIBRARY_PATH</tt> : path(s) to search libraries (.a) when statically linking
+- <tt>LD_LIBRARY_PATH</tt> : path(s) to search dynamic libraries (.sa) when a program is started.
+- <tt>LD_RUN_PATH</tt> : standard path to search dynamic libraries (.sa) when a program is started. This is written into the file when linking.
+	The difference to LD_LIBRARY_PATH is that LD_LIBRARY_PATH is accessed when the program is started, and LD_RUN_PATH is written into
+	the file and cannot be changed after linking. The directory LD_RUN_PATH written at link time is searched first, and then LD_LIBRARY_PATH.
+- <tt>C_INCLUDE_PATH</tt> : search path for C header files
+- <tt>CPLUS_INCLUDE_PATH</tt> : search path for C++ header files
+
+See also <a href="http://www.network-theory.co.uk/docs/gccintro/gccintro_23.html">here</a>.
+
+<hr>
+\section secDownloadCMake CMake
+
+\code
+wget http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz
+tar xzf cmake-2.8.6.tar.gz
+cd cmake-2.8.6
+\endcode
+
+Root install
+\code
+sudo bootstrap
+sudo make
+\endcode
+
+Non-Root install
+\code
+./bootstrap --prefix=$INSTALLDIR
+make
+\endcode
+
+<hr>
+\section secDownloadDoxygen Doxygen
+\code
+wget http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.1.src.tar.gz
+tar xzf doxygen-1.8.1.src.tar.gz
+cd doxygen-1.8.1
+\endcode
+Root install
+\code
+./configure
+sudo make
+sudo make install
+\endcode
+Non-Root install
+\code
+./configure --prefix $INSTALLDIR
+make
+\endcode
+
+
+<hr>
+\section secDownloadGnuplot Gnuplot
+\code
+wget http://sourceforge.net/projects/gnuplot/files/gnuplot/4.6.0/gnuplot-4.6.0.tar.gz/download?sources=files -O gnuplot-4.6.0.tar.gz
+tar xzf gnuplot-4.6.0.tar.gz
+cd gnuplot-4.6.0
+\endcode
+Root
+\code
+./configure
+make
+make install
+\endcode
+Non-Root
+\code
+./configure --prefix=$INSTALLDIR
+make
+make install
+\endcode
+
+<hr>
+\section secDownloadOpenMPI OpenMPI
+\code
+wget http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.tar.gz
+tar openmpi-1.6.tar.gz
+cd openmpi-1.6
+\endcode
+Root
+\code
+./configure
+sudo make
+sudo make install
+\endcode
+Non-Root
+\code
+./configure --prefix=$INSTALLDIR
+make
+make install
+\endcode
+
+
+<hr>
+\section secDownloadGotoBlas2 GotoBlas2
+GotoBlas 1.13
+\code
+wget http://www.tacc.utexas.edu/documents/13601/b58aeb8c-9d8d-4ec2-b5f1-5a5843b4d47b -O GotoBLAS2-1.13.tar.gz
+tar xzf GotoBLAS2-1.13.tar.gz
+cd GotoBLAS2
+./quickbuild.64bit
+\endcode
+
+Root
+\code
+sudo cp libgoto2.a /usr/lib/
+sudo cp cblas.h /usr/include/
+\endcode
+
+Non-Root:
+You will have to tell gcc where the library libgoto2.a and the file cblas.h are. You do this with
+\code
+LIBRARY_PATH=$LIBRARY_PATH:$HOME/GotoBLAS2
+C_INCLUDE_PATH="$dir/include:$C_INCLUDE_PATH"
+\endcode
+
+*/
