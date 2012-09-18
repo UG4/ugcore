@@ -227,4 +227,24 @@ Therefore two actions need to be taken in \em Eclipse:
   </li>
 </ol>
 
+<hr>
+\section secUG4ProjectInEclipse Create an UG4 project from exisiting source in Eclipse
+Sometimes you already have checked out the source and just want to add ug4 as a project into Eclipse.
+This can be the case if you did svn manually or want to use Eclipse to remotely edit files that
+you access via \ref secSSHFS or via other file networks.
+
+<ul>
+  <li>In Eclipse's Menu, choose \em File -> \em New -> <em> C++ Project</em>
+  </li>
+  <li>Uncheck "Use default location"  </li>
+  <li>Use "Browse" to select the root directory of your ug4.</li>
+  <li>Enter a name for that project. This can be different from the name of your ug4 directory and
+  has to be different from all other projects in eclipse, so you could also choose something like "ug4onHermit". </li>
+</ul>
+
+Note that this will create two new files in your ug4 directory: .cproject and .project.
+If you want to use this project in another eclipse (like another version or on another computer),
+you have to use \em File -> \em Import -> <em> Existing Projects into Workspace </em>.
+
+
 */
