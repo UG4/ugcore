@@ -1,6 +1,6 @@
 //	y12 m06 d04
 
-/** \page pageBuildUG4 Build UG4
+/** \page pageBuildUG4 Building UG4
 
 - \ref secBuildUG4Checkout
 - \ref secBuildUG4RunCmake
