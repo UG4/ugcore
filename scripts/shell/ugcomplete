@@ -28,7 +28,7 @@ ugshell_complete() {
 
   if [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ]; then 
   	while read line; do
-  		[[ -d $line ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`;
+  		[[ -d $line ]] && COMPREPLY[i++]=`echo $line/ | sed -n "s?$UG4_ROOT/apps/??p"`;
 		[[ "${line##*.}" = "lua" ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`
   	done < <(compgen -f -- "$UG4_ROOT/apps/$word")
   elif [ ${COMP_WORDS[COMP_CWORD-1]} = "-grid" ]; then 
