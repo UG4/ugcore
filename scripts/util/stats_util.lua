@@ -38,7 +38,7 @@ function util.writeFileStats(stats, filename, seperator)
 	else
 		if fsize(output) == 0 then
 			print("file is empty, writing header...")
-			output:write(util.getStats(stats, true, seperator, false, seperator))		
+			output:write("#"..util.getStats(stats, true, seperator, false, seperator))		
 		end
 		output:write(util.getStats(stats, false, seperator, true, seperator))
 	end
