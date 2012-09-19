@@ -351,7 +351,7 @@ echo " ------------" >> info.txt
 echo "  Executing:" >> info.txt
 echo " ------------" >> info.txt
 echo " cluster type: "$UGSUBMIT_TYPE >> info.txt
-echo " script:       "$execpath/$scriptname >> info.txt
+echo " script:       "$scriptname >> info.txt
 echo " exec path:    "$outDir >> info.txt
 echo " date:         "$execdate >> info.txt
 #echo "" >> info.txt
