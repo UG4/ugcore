@@ -1,0 +1,58 @@
+#!/bin/bash
+# xprun by Martin Rupp (martin.rupp@gcsc.uni-frankfurt.de). (c) GCSC 2011-2012.
+# this script opens e.g. 4 xterm windows and adjusts size & position so that they fit on the screen
+# inside the windows, a mpi program is started.
+# To adjust window position and max size, see xtermrun.
+# You can access your PID by the variable \$PID 
+# Example: xprun 4 echo 'hello, world! i am processor \$PID'
+
+echo "xprun - parallel running shell commands in X windows using xterm and MPI."
+echo "   by Martin Rupp (martin.rupp@gcsc.uni-frankfurt.de), GCSC 2011."
+
+function usage 
+{
+	echo "Usage: xprun {nrOfprocessors} {program} {arg1} {arg2} {..}"
+	echo "   This script opens e.g. 4 xterm windows and adjusts size & position so that they fit on the screen"
+	echo "   Inside the windows, a mpi program is started."
+	echo "   To adjust window position and max size, see xtermrun."	
+	echo "   You can access your PID by the variable \$PID"
+	echo "   Example: xprun 4 echo 'hello, world! i am processor \$PID'"	
+	exit 0
+}
+
+if ! [[ "$1" =~ ^[0-9]+$ ]] ; then
+	echo "first argument must be a number!"
+	usage
+fi
+
+if [ $# -lt 2 ]
+then
+  usage
+fi
+np=$1
+
+# $1 = $2 usw.
+shift
+
+runfile=`pwd`/xtermrunfile
+# write a little shell script in the file "runfile"
+cat > $runfile << EOF
+if [ -z \$OMPI_MCA_ns_nds_num_procs ]; then
+ PID=\$OMPI_MCA_orte_ess_vpid
+ np=\$OMPI_MCA_orte_ess_num_procs
+else
+ PID=\$OMPI_MCA_ns_nds_vpid
+ np=\$OMPI_MCA_ns_nds_num_procs
+fi
+
+echo -- PID is \$PID -- \${USER}@\${HOSTNAME} -- $* --
+echo -ne "\033]0; PID=\$PID $* \${USER}@\${HOSTNAME}\007"
+$*
+read -p '-- finished. hit any key --'
+EOF
+
+mydir=`dirname ${BASH_SOURCE[0]}`
+
+chmod +x $runfile
+mpirun -np $np $mydir/xtermrun $runfile
+rm $runfile

@@ -1,0 +1,71 @@
+#!/bin/bash
+# xtermrun by Martin Rupp (martin.rupp@gcsc.uni-frankfurt.de). (c) GCSC 2011-2012.
+# this is a helper script for xprun
+# this scripts adjusts the xwindow size and position so for 4 mpi task, 4 windows fit on screen
+
+# all you need to specify is the height and the width of your display, for example, if you have a
+# screen that is 1280x800 pixels:
+# maxw = 1280
+# maxh = 800
+# you can adjust deplacements with dx and dy, for example, if you have a second screen.
+# if windows are overlapping, you might have to adjust charWidth/HeightFactor10.
+
+maxw=1280
+maxh=800
+dx=0
+dy=0
+charWidthFactor10=62
+charHeightFactor10=141
+
+#if [ "$HOSTNAME" == "braeburn.gcsc.uni-frankfurt.de" ]; then 
+maxw=1920
+maxh=1200
+dx=1280
+dy=0
+#fi
+
+#if [ "$HOSTNAME" == "AG-Queisser-Mac-Pro.local" ]; then 
+#maxw=1920
+#maxh=1200
+#fi
+
+#if echo "$HOSTNAME" | grep '\w*.gcsc.uni-frankfurt.de' >/dev/null ; then dis=1 ; fi
+
+# get PID/numprocs
+if [ -z $OMPI_MCA_ns_nds_num_procs ]; then
+	PID=$OMPI_MCA_orte_ess_vpid
+	np=$OMPI_MCA_orte_ess_num_procs
+else
+	PID=$OMPI_MCA_ns_nds_vpid
+	np=$OMPI_MCA_ns_nds_num_procs
+fi
+
+# adjust windows for 2/4/8/16 procs (or less)
+if [  $np -le 2 ]; then
+	w=$((maxw/2))
+	h=$maxh
+	x=$((dx+PID*w))
+	y=$dy
+elif [  $np -le 4 ]; then
+	w=$((maxw/2))
+	h=$((maxh/2))
+	x=$((dx+PID%2*w))
+	y=$((dy+PID/2*h))
+elif [  $np -le 8 ]; then
+	w=$((maxw/2))
+	h=$((maxh/4))
+	x=$((dx+PID%2*w))
+	y=$((dy+PID/2*h))
+elif [  $np -le 16 ]; then
+	w=$((maxw/4))
+	h=$((maxh/4))
+	x=$((dx+PID%4*w))
+	y=$((dy+PID/4*h))
+fi	
+
+w=$(((w*10)/charWidthFactor10))
+h=$(((h*10)/charHeightFactor10))
+
+xterm -geometry ${w}x$h+$x+$y -e $1
+
+
