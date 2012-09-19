@@ -56,7 +56,7 @@ chmod +x $UG4_ROOT/scripts/shell/uginstall
 chmod +x $UG4_ROOT/scripts/shell/sshfsmake
 
 chmod +x $UG4_ROOT/scripts/shell/xprun
-chmod +x $UG4_ROOT/scripts/shell/xtermrunfile
+chmod +x $UG4_ROOT/scripts/shell/xtermrun
 
 
 source uginstall_config
