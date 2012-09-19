@@ -55,6 +55,10 @@ chmod +x $UG4_ROOT/scripts/shell/ugsubmit
 chmod +x $UG4_ROOT/scripts/shell/uginstall
 chmod +x $UG4_ROOT/scripts/shell/sshfsmake
 
+chmod +x $UG4_ROOT/scripts/shell/xprun
+chmod +x $UG4_ROOT/scripts/shell/xtermrunfile
+
+
 source uginstall_config
 
 alias ugrelib="rm $UG4_ROOT/lib/*; rm $UG4_ROOT/bin/ugshell"
