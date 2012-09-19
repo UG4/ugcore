@@ -311,7 +311,7 @@ if [ $UGSUBMIT_TYPE == "Hermit" ] && [ $HermitWorkspace -gt 0 ] ; then
 		HermitWorkspace=1
 	fi
 	outdir=`ws_allocate $jobname $HermitWorkspace`
-	echo "Hermit Workspace dir is $outdir, for $HermitWorkspace days"
+	echo "Hermit Workspace dir for $jobname is $outdir, for $HermitWorkspace days"
 	ln -s $outdir $jobname
 else
 	HermitWorkspace=0
