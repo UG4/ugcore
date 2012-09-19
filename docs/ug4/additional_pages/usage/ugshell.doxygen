@@ -114,7 +114,7 @@ of possible completions.
 
 <ul>
   <li>Path Completion:<br>
-    <tt>"../scr</tt> -> <tt>"../scripts/</tt><br>
+    <tt>"../scr"</tt> -> <tt>"../scripts/"</tt><br>
     (only tried if the word left from the cursor starts with a ")
   </li>
   <li>Member Function Completion:<br>
