@@ -9,6 +9,7 @@
 - \ref secHermit_GCC
 - \ref secHermit_Cray
 - \ref secHermit_Workspace
+- \ref secHermit_Debugging
 
 
 <hr>
@@ -98,7 +99,7 @@ rsync -r --exclude=.svn ../apps/ workspace/apps/
 export UG4_ROOT=workspace
 \endverbatim
 
-Be aware that also file written to can be damaged if you are not using the 
+Be aware that also files written to can be damaged if you are not using the 
 Workspace mechanism. 
 See also the "-dir" and "-Hermit-workspace" option in \ref pageugsubmit.
 
@@ -108,5 +109,100 @@ export UG4_ROOT=$runDir
 \endverbatim
 If this environment variable is not specified, \ug4 will look in <tt>../scripts/</tt> for scripts and
 <tt>../data/</tt> for data, relative to the path of the binary.
+
+
+<hr>
+\section secHermitDebugging Debugging on Hermit
+On Hermit the parallel debugger \em DDT is available.
+See https://wickie.hlrs.de/platforms/index.php/DDT.
+
+Be sure to compile \ug4 as a debug build.
+
+DDT uses X11 for its graphical user interface. Be sure to log in with an X window
+forwarding enabled. This could mean using the <tt>-X</tt> or <tt>-Y</tt> option
+to <tt>ssh</tt>.
+
+<strong>Basic usage of \em DDT</strong>:
+<ol>
+<li> Load the DDT module:
+     \code
+module load ddt
+     \endcode
+     </li>
+<li>Start a job in <em>interactive mode</em> with
+    \code
+qsub -IX [other job options]
+    \endcode
+    <tt>-X</tt> enables X11 forwarding; <tt>-X</tt> exports all environment
+     variables in qsub's  command environment to the job.</li>
+<li>Start DDT by typing
+    \code
+ddt
+    \endcode
+    </li>
+<li>Click on "Run and Debug a Program" in the "Welcome" dialog box, enter the
+    executable to debug, numbers of processes to run, the executables parameters
+    etc.,
+    then click the "Submit" button.
+
+    One can also immediately specify the application to debug and also its
+    parameters by typing <tt>ddt [\<your app\> <parameters>]</tt></li>
+</ol>
+The rest should be quite self-explaining.
+
+<strong>Example debug session</strong>:
+<ol>
+<li>Start interactive session:
+    \code
+qsub -I -V -X -l mppwidth=64,mppnppn=32,walltime=00:30:00
+qsub: waiting for job 309598.sdb to start
+    \endcode
+    I.e, the session in this example lasts 30 minutes.
+    </li>
+<li>Start DDT with <tt>ugshell</tt> as executable and some \ug4 parameters:
+    \code
+ddt ./ugshell -ex ../apps/scaling_tests/modular_scalability_test.lua -numPreRefs 1 -hRedistFirstLevel 4 -hRedistStepSize 2 -hRedistNewProcsPerStep 4 -numRefs 8
+    \endcode
+<--!ddt ./ugshell -ex ../apps/scaling_tests/modular_scalability_test.lua  -numPreRefs 4 -lsType feti -ds famg  -ns famg  -numPPSD   4 -numRefs  7-->
+
+    </li>
+</ol>
+
+Notes:
+<ul>
+<li><tt>-I</tt> declares that the job is to be run "interactively".</li>
+<li><tt>-V</tt> declares that all environment variables are passed to the job.</li>
+<li><tt>-X</tt> Enables X11 forwarding, necessary to get DDT's GUI as X11 window.</li>
+<li>After the job is started with <tt>qsub</tt> you've entered a new shell, so you have to go (again) into \ug4's bin directory before starting the debugger.
+</li>
+<li> When retrying the above procedere the following error message appeared after executing the <tt>qsub</tt> command (19092012):
+\code
+PrgEnv-cray/4.0.46(11):ERROR:150: Module 'PrgEnv-cray/4.0.46' conflicts with the currently loaded module(s) 'PrgEnv-gnu/4.0.46'
+PrgEnv-cray/4.0.46(11):ERROR:102: Tcl command execution failed: conflict PrgEnv-gnu
+
+ModuleCmd_Switch.c(172):ERROR:152: Module 'PrgEnv-cray' is currently not loaded
+\endcode
+This can seemingly be ignored.
+</li>
+
+<li>In the same test DDT complained that no licence file is found:
+\code
+ddt ./ugshell ...
+
+Unable to obtain valid licence for DDT.
+The licence file tried was specified using the (optional) environment
+variable specifier DDT_LICENCE_FILE.
+The file "/opt/cray/ddt/3.2/Licence" does not exist.
+
+If you do not already have a licence for DDT, please visit the Allinea website
+http://www.allinea.com/products/ddt/ to obtain an evaluation licence.
+\endcode
+According to the message above it was possible to specify the license file of an earlier version:
+\code
+nid03538:~ igcingo$ export DDT_LICENCE_FILE=/opt/cray/ddt/3.1/Licence
+\endcode
+So, when executing again the <tt>ddt</tt> command DDT eventually starts ...
+</li>
+<ul>
 
 */
