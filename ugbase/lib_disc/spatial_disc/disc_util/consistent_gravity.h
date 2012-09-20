@@ -75,7 +75,6 @@ inline bool PrepareConsistentGravity<2>(	MathVector<2>* vConsGravity,
     case 3:
 		/* TRIANGLE */
 		TriangleMapping.update(&vCorners[0]);
-		UG_LOG("Eval tri\n");
 
 		/* compute the local gravity at local corner (0,0) */
 		LocalPoint.x = 0.0; LocalPoint.y = 0.0;
