@@ -421,7 +421,7 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 			g.associated_edges_begin(parent);
 			iter != g.associated_edges_end(parent); ++iter)
 		{
-			if(volumesExist && IsBoundaryEdge3D(g, *iter)){
+			if((!volumesExist) || IsBoundaryEdge3D(g, *iter)){
 				VecAdd(p, p, aaPos[GetConnectedVertex(*iter, parent)]);
 				++valence;
 			}
