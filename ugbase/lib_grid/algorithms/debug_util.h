@@ -44,10 +44,15 @@ void PrintAttachmentInfo(Grid& grid);
  * regardless of the actual dimension of the position attachment. Unused
  * coordinates are set to 0.
  *
- * TElem has to be compatible with VertexBase, EdgeBase, Face or Volume.
+ * TElem has to be derived from GeometricObject
+ *
+ * \{
  */
 template <class TElem>
 vector3 GetGeometricObjectCenter(Grid& g, TElem* elem);
+
+vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem);
+/** \} */
 
 
 ///	checks whether all constraining and constrained objects are correctly connected.

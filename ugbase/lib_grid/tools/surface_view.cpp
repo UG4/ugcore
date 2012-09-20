@@ -156,7 +156,7 @@ void RemoveSurfaceViewMarks(BoolMarker& boolMarker,
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	CreateSurfaceView
+//	Marks shadow elements. m_bMarker only holds elements which are shadows afterwards.
 void MarkShadows(BoolMarker& boolMarker,
                  MultiGrid* pMG
 #ifdef UG_PARALLEL
@@ -182,7 +182,8 @@ void MarkShadows(BoolMarker& boolMarker,
 	bool assignSidesOnly = true;
 	if((pMG->num<Volume>() > 0) && !pMG->option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 		assignSidesOnly = false;
-	else if((pMG->num<Volume>() > 0) && !pMG->option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
+	else if((pMG->num<Volume>() > 0) && !(pMG->option_is_enabled(VOLOPT_AUTOGENERATE_EDGES
+										  || pMG->option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))))
 		assignSidesOnly = false;
 	else if((pMG->num<Face>() > 0) && !pMG->option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 		assignSidesOnly = false;

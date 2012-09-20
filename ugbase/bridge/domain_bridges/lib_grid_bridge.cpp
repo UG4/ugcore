@@ -162,16 +162,16 @@ bool SaveGrid(Grid& grid, const char* filename)
 	return SaveGridToFile(grid, filename);
 }
 
-bool SaveGrid(Grid& grid, SubsetHandler& sh, const char* filename)
+bool SaveGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
 {
 	PROFILE_FUNC();
 	return SaveGridToFile(grid, sh, filename);
 }
 
-bool SaveGrid(Grid& grid, const SubsetHandler& sh, const char* filename)
+bool SaveGrid(Grid& grid, const ISubsetHandler& sh, const char* filename)
 {
 	PROFILE_FUNC();
-	return SaveGridToFile(grid, *const_cast<SubsetHandler*>(&sh), filename);
+	return SaveGridToFile(grid, *const_cast<ISubsetHandler*>(&sh), filename);
 }
 
 bool SaveGridHierarchy(MultiGrid& mg, const char* filename)
@@ -634,8 +634,9 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.set_construct_as_smart_pointer(true);
 
 	//	SurfaceView
-		reg.add_class_<SurfaceView>("SurfaceView", grp);
-
+		reg.add_class_<SurfaceView>("SurfaceView", grp)
+			.add_method("subset_handler", static_cast<ConstSmartPtr<MGSubsetHandler> (SurfaceView::*)() const>(
+											&SurfaceView::subset_handler));
 
 	//	Selector
 		reg.add_class_<ISelector>("ISelector", grp);
@@ -751,8 +752,8 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	//  GridObject functions
 		reg.add_function("LoadGrid", static_cast<bool (*)(Grid&, ISubsetHandler&, const char*)>(&LoadGrid), grp)
 			.add_function("LoadGrid", static_cast<bool (*)(Grid&, const char*)>(&LoadGrid), grp)
-			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const SubsetHandler&, const char*)>(&SaveGrid), grp)
-			.add_function("SaveGrid", static_cast<bool (*)(Grid&, SubsetHandler&, const char*)>(&SaveGrid), grp)
+			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const ISubsetHandler&, const char*)>(&SaveGrid), grp)
+			.add_function("SaveGrid", static_cast<bool (*)(Grid&, ISubsetHandler&, const char*)>(&SaveGrid), grp)
 			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const char*)>(&SaveGrid), grp)
 			.add_function("LoadGridObject", &LoadGridObject, grp)
 			.add_function("SaveGridObject", &SaveGridObject, grp)
