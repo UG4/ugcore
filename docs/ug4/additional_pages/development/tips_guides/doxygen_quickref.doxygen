@@ -29,6 +29,7 @@ Using these should result in a concise and beatiful documentation.
 The full list of available commands can be found in Doxygen's documentation:
 http://www.stack.nl/~dimitri/doxygen/commands.html
 
+\note Doxygen is also available for the .lua script files, see \ref pageSTLesson10 .
 
 <hr>
 \section secDoxygenGeneral General Behaviour of Doxygen
