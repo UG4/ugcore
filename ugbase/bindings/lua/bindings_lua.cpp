@@ -678,7 +678,7 @@ static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname
 	if(badParam < 0)
 	{
 		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n");
-		UG_LOG(errSymb<<"ERROR occured when trying create object of ");
+		UG_LOG(errSymb<<"ERROR occured when trying to create object of ");
 		if(groupname)
 		{ 	UG_LOG("group " << groupname << " (default class " << c->name() << ") with constructor '" << c->name());	}
 		else
