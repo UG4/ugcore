@@ -78,6 +78,8 @@ UG_API bool PrintFunctionInfo(Registry &reg, const char *functionname);
 
 UG_API void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false,
                        const char *classname=NULL, const char *highlightclassname=NULL);
+UG_API void PrintConstructorInfo(const ExportedConstructor &constr, const char *classname,
+		const char *highlightclassname=NULL);
 
 UG_API const IExportedClass *FindClass(bridge::Registry &reg, const char* classname);
 UG_API bool PrintClassHierarchy(Registry &reg, const char *classname);

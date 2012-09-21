@@ -230,7 +230,8 @@ string ParameterToString(const ParameterStack &par, int i)
 	}
 }
 
-bool PrintParametersIn(const ExportedFunctionBase &thefunc, const char*highlightclassname = NULL)
+template<typename T>
+bool PrintParametersIn(const T &thefunc, const char*highlightclassname)
 {
 	UG_LOG("(");
 	for(size_t i=0; i < (size_t)thefunc.params_in().size(); ++i)
@@ -249,6 +250,9 @@ bool PrintParametersIn(const ExportedFunctionBase &thefunc, const char*highlight
 	UG_LOG(")");
 	return true;
 }
+
+//bool PrintParametersIn(const ExportedFunctionBase &thefunc, const char*highlightclassname = NULL);
+//bool PrintParametersIn(const ExportedConstructor &thefunc, const char*highlightclassname = NULL);
 
 bool PrintParametersOut(const ExportedFunctionBase &thefunc)
 {
@@ -285,9 +289,21 @@ void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst, const 
 
 	UG_LOG(thefunc.name());
 
-	PrintParametersIn(thefunc, highlightclassname);
+	PrintParametersIn<ExportedFunctionBase>(thefunc, highlightclassname);
 
 	if(isConst) { UG_LOG(" const"); }
+}
+
+/**
+ *
+ * Prints parameters of the constructor constr.
+ * If highlightclassname != NULL, it highlights parameters which implement the highlightclassname class.
+ */
+void PrintConstructorInfo(const ExportedConstructor &constr,
+		const char *classname, const char *highlightclassname)
+{
+	UG_LOG(classname << ":" << classname);
+	PrintParametersIn<ExportedConstructor>(constr, highlightclassname);
 }
 
 
