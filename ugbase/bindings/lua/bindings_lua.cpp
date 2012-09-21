@@ -689,7 +689,7 @@ static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname
 	}
 
 //	no matching overload found
-	if(badParam < 0)
+	if(badParam != 0)
 	{
 		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n");
 		UG_LOG(errSymb<<"ERROR occured when trying to create object of ");
