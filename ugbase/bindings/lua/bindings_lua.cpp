@@ -625,11 +625,9 @@ static int LuaProxyFunction(lua_State* L)
 	return 0;
 }
 
-static int LuaProxyConstructor(lua_State* L)
-{
-//	get class
-	IExportedClass* c = (IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
 
+static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname=NULL)
+{
 //	try each constructor overlaod
 	int badParam = -2;
 	for(size_t i = 0; i < c->num_constructors(); ++i)
@@ -647,8 +645,6 @@ static int LuaProxyConstructor(lua_State* L)
 			continue;
 		}
 
-	//	correct parameterlist found, create the user data.
-	//	check whether we have to create a SmartPointer or a RawPointer
 		try{
 			if(c->construct_as_smart_pointer()){
 				CreateNewUserData(L,
@@ -665,13 +661,12 @@ static int LuaProxyConstructor(lua_State* L)
 		}
 		catch(UGError& err)
 		{
-			UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L));
+			UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L) <<":\n");
 			UG_LOG(errSymb<<"UGError thrown while creating class '"<<c->name());
 			UG_LOG("'.\n");
 			PrintUGErrorTraceback(err);
 
-			//UG_LOG(errSymb<<"Call stack:\n");
-			//LuaStackTrace(L);
+			//UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
 			UG_LUA_THROW_EMPTY(L);
 		}
 
@@ -682,15 +677,69 @@ static int LuaProxyConstructor(lua_State* L)
 //	no matching overload found
 	if(badParam < 0)
 	{
-		UG_LOG(errSymb<<"UGError in " << GetLuaFileAndLine(L) << ": ");
-		UG_LOG(errSymb<<"Cannot find constructor for class '"<< c->name()  <<"'.\n");
+		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n");
+		UG_LOG(errSymb<<"ERROR occured when trying create object of ");
+		if(groupname)
+		{ 	UG_LOG("group " << groupname << " (default class " << c->name() << ") with constructor '" << c->name());	}
+		else
+		{ 	UG_LOG("class " << c->name() << " with constructor '" << c->name());	}
+		UG_LOG("(" << GetLuaParametersString(L, 0) << ")':\n");
+		UG_LOG(errSymb<<"No matching overload found! Candidates are:\n");
+		for(size_t i = 0; i < c->num_constructors(); ++i)
+		{
+			const ExportedConstructor& constr = c->get_constructor(i);
+			ParameterStack paramsIn;
+			badParam = LuaStackToParams(paramsIn, constr.params_in(), L, 0);
+			UG_LOG(errSymb<<" - ");
+			PrintConstructorInfo(constr, c->name().c_str());
+			UG_LOG(": " << GetTypeMismatchString(constr.params_in(), L, 0, badParam) << "\n");
+		}
+		//UG_LOG(errSymb<<"Call stack:\n");	LuaStackTrace(L);
+		UG_LUA_THROW_EMPTY(L);
 	}
 
 	//UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
 	UG_LUA_THROW_EMPTY(L);
+
 	return 0;
 }
 
+static int LuaProxyConstructor(lua_State* L)
+{
+//	get class
+	IExportedClass* c = (IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
+	return LuaConstructor(L, c);
+}
+
+
+//	creates the class which is set as default class for the specified group.
+//	we assume that the first upvalue is a ClassGroupDesc*
+static int LuaProxyGroupConstructor(lua_State* L)
+{
+//	get the group and make sure that it contains data
+	const ClassGroupDesc* group = (ClassGroupDesc*)lua_touserdata(L, lua_upvalueindex(1));
+
+	if(group->empty()){
+		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n")
+		UG_LOG(errSymb<<"Can't create default instance of group '" << group->name());
+		UG_LOG("': Group is empty!\n");
+		lua_pushnil(L);
+		return 1;
+	}
+
+//	get the associated default class
+	IExportedClass* c = group->get_default_class();
+
+	if(!c){
+		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n")
+		UG_LOG(errSymb<<"Can't create default instance of group '" << group->name());
+		UG_LOG("': No default class set!\n");
+		lua_pushnil(L);
+		return 1;
+	}
+
+	return LuaConstructor(L, c, group->name().c_str());
+}
 
 //	This method is not called by lua, but a helper to LuaProxyMethod.
 //	It recursivly calls itself until a matching overload was found.
@@ -1070,91 +1119,6 @@ static int LuaProxyDelete(lua_State* L)
 	return 0;
 }
 
-//	creates the class which is set as default class for the specified group.
-//	we assume that the first upvalue is a ClassGroupDesc*
-static int LuaProxyGroupCreate(lua_State* L)
-{
-//	get the group and make sure that it contains data
-	const ClassGroupDesc* group = (ClassGroupDesc*)lua_touserdata(L, lua_upvalueindex(1));
-
-	if(group->empty()){
-		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n")
-		UG_LOG(errSymb<<"Can't create default instance of group '" << group->name());
-		UG_LOG("': Group is empty!\n");
-		lua_pushnil(L);
-		return 1;
-	}
-
-//	get the associated default class
-	IExportedClass* c = group->get_default_class();
-
-	if(!c){
-		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n")
-		UG_LOG(errSymb<<"Can't create default instance of group '" << group->name());
-		UG_LOG("': No default class set!\n");
-		lua_pushnil(L);
-		return 1;
-	}
-
-//	try each constructor overlaod
-	int badParam = -2;
-	for(size_t i = 0; i < c->num_constructors(); ++i)
-	{
-	//	get overload
-		const ExportedConstructor& constr = c->get_constructor(i);
-
-		ParameterStack paramsIn;
-		badParam = LuaStackToParams(paramsIn, constr.params_in(), L, 0);
-
-	//	check whether the parameter was correct
-		if(badParam != 0)
-		{
-		//	parameters didn't match. Try the next overload.
-			continue;
-		}
-
-		try{
-			if(c->construct_as_smart_pointer()){
-				CreateNewUserData(L,
-					SmartPtr<void>(constr.create(paramsIn), c->get_delete_function()),
-					c->name().c_str());
-			}
-			else{
-				CreateNewUserData(L, constr.create(paramsIn), c->name().c_str(),
-								  c->get_delete_function(), false);
-			}
-		}
-		catch(LuaError& err){
-			UG_LUA_THROW(L, err.get_msg().c_str());
-		}
-		catch(UGError& err)
-		{
-			UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L) <<":\n");
-			UG_LOG(errSymb<<"UGError thrown while creating class '"<<c->name());
-			UG_LOG("'.\n");
-			PrintUGErrorTraceback(err);
-
-			//UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
-			UG_LUA_THROW_EMPTY(L);
-		}
-
-	//	object created
-		return 1;
-	}
-
-//	no matching overload found
-	if(badParam < 0)
-	{
-		UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L) <<":\n");
-		UG_LOG(errSymb<<"Cannot find constructor for class "<< c->name() <<".\n");
-	}
-
-	//UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
-	UG_LUA_THROW_EMPTY(L);
-
-	return 0;
-}
-
 bool CreateBindings_LUA(lua_State* L, Registry& reg)
 {
 //	registers a meta-object for each object found in the ObjectRegistry.
@@ -1322,7 +1286,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 
 	//	The class-group is new. Register the proxy-constructor.
 		lua_pushlightuserdata(L, (void*)cg);
-		lua_pushcclosure(L, LuaProxyGroupCreate, 1);
+		lua_pushcclosure(L, LuaProxyGroupConstructor, 1);
 		lua_setglobal(L, cg->name().c_str());
 	}
 
