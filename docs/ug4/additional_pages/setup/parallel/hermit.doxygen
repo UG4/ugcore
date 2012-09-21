@@ -93,13 +93,14 @@ ln -s $`ws_allocate ug4ws 31` workspace
 \endverbatim
 Before each time you run ugshell, you'll have to run a script like the following:
 \verbatim
-rsync -r --exclude=.svn ../scripts/ workspace/scripts/
-rsync -r --exclude=.svn ../data/ workspace/data/
-rsync -r --exclude=.svn ../apps/ workspace/apps/
+rsync -a -W --exclude=.svn ../scripts/ workspace/scripts/
+rsync -a -W --exclude=.svn ../data/ workspace/data/
+rsync -a -W --exclude=.svn ../apps/ workspace/apps/
 export UG4_ROOT=workspace
 \endverbatim
+See also <a href="http://linux.die.net/man/1/rsync">rsync docu</a> (-a = subdirectories and keep date, -W = whole files).
 
-Be aware that also files written to can be damaged if you are not using the 
+Be aware that also files written to can be damaged if you are not using the
 Workspace mechanism. 
 See also the "-dir" and "-Hermit-workspace" option in \ref pageugsubmit.
 
@@ -109,6 +110,9 @@ export UG4_ROOT=$runDir
 \endverbatim
 If this environment variable is not specified, \ug4 will look in <tt>../scripts/</tt> for scripts and
 <tt>../data/</tt> for data, relative to the path of the binary.
+
+\warning Be aware that your workspace time is limited. You'll have to use <tt>ws_extend</tt> at least every month to prevent your workspace from being deleted. This also includes your output,
+so be sure to extend your workspace time and copy your result out of the workspace asap.
 
 
 <hr>
