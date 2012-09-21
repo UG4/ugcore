@@ -508,6 +508,10 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 }
 
 
+/**
+ * Prints a traceback of errors in UGError err
+ * @param err
+ */
 static void PrintUGErrorTraceback(UGError &err)
 {
 //	header
@@ -519,7 +523,7 @@ static void PrintUGErrorTraceback(UGError &err)
 //	print each message
 	for(size_t i=0;i<err.num_msg();++i)
 	{
-	//	get copy of original sting
+	//	get copy of original string
 		std::string msg = err.get_msg(i);
 
 	//	add paddings
@@ -539,8 +543,12 @@ static void PrintUGErrorTraceback(UGError &err)
 	}
 }
 
-//	global functions are handled here
-//	Note that not the best matching, but the first matchin overload is chosen!
+/**
+ * LuaProxyFunction handling calls to global functions.
+ * Note that not the best matching, but the first matching overload is chosen!
+ * @param L
+ * @return The number of items pushed to the stack
+ */
 static int LuaProxyFunction(lua_State* L)
 {
 	const ExportedFunctionGroup* funcGrp = (const ExportedFunctionGroup*)
@@ -625,7 +633,13 @@ static int LuaProxyFunction(lua_State* L)
 	return 0;
 }
 
-
+/**
+ * Helper function of LuaProxyConstructor and LuaProxyGroupConstructor
+ * @param L
+ * @param c the class to create and object of
+ * @param groupname if not nil, c is the default class of this group
+ * @return The number of items pushed to the stack (should be one = 1 object).
+ */
 static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname=NULL)
 {
 //	try each constructor overlaod
@@ -704,6 +718,11 @@ static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname
 	return 0;
 }
 
+/**
+ * creates a object of a class
+ * @param L
+ * @return The number of items pushed to the stack (should be one = 1 object).
+ */
 static int LuaProxyConstructor(lua_State* L)
 {
 //	get class
@@ -712,8 +731,12 @@ static int LuaProxyConstructor(lua_State* L)
 }
 
 
-//	creates the class which is set as default class for the specified group.
-//	we assume that the first upvalue is a ClassGroupDesc*
+/**
+ * creates the class which is set as default class for the specified group.
+ * we assume that the first upvalue is a ClassGroupDesc*
+ * @param L
+ * @return The number of items pushed to the stack (should be one = 1 object).
+ */
 static int LuaProxyGroupConstructor(lua_State* L)
 {
 //	get the group and make sure that it contains data
@@ -741,8 +764,16 @@ static int LuaProxyGroupConstructor(lua_State* L)
 	return LuaConstructor(L, c, group->name().c_str());
 }
 
-//	This method is not called by lua, but a helper to LuaProxyMethod.
-//	It recursivly calls itself until a matching overload was found.
+/**
+ * This method is not called by lua, but a helper to LuaProxyMethod.
+ * It recursivly calls itself until a matching overload was found.
+ * @param L
+ * @param methodGrp
+ * @param self
+ * @param classNameNode
+ * @param errorOutput
+ * @return The number of items pushed to the stack
+ */
 static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 						UserDataWrapper* self, const ClassNameNode* classNameNode,
 						bool errorOutput)
@@ -949,7 +980,11 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 	return -1;
 }
 
-//	member methods of classes are handled here
+/**
+ * member methods of classes are handled here
+ * @param L
+ * @return
+ */
 static int LuaProxyMethod(lua_State* L)
 {
 	const ExportedMethodGroup* methodGrp = (const ExportedMethodGroup*)
@@ -1119,11 +1154,15 @@ static int LuaProxyDelete(lua_State* L)
 	return 0;
 }
 
+/**
+ * Registers a meta-object for each class and class group found in the ug registry reg.
+ * Global functions are registered for all GlobalFunction-objects in the registry reg.
+ * @param L the Lua State
+ * @param reg the ug registry
+ * @return true on success
+ */
 bool CreateBindings_LUA(lua_State* L, Registry& reg)
 {
-//	registers a meta-object for each object found in the ObjectRegistry.
-//	Global functions are registered for all GlobalFunction-objects in the registry.
-
 //	iterate through all registered objects
 	
 /*
