@@ -410,7 +410,13 @@ bool IsLonger(const std::string &a, const std::string &b)
 }
 
 
-
+/**
+ * @param filename
+ * @param fromline
+ * @param toline
+ * @param includeLineNumbers if true, append line numbers in front of lines
+ * @return string with lines of the file
+ */
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers)
 {
 	char buf[512];
@@ -434,8 +440,15 @@ string GetFileLines(const char *filename, size_t fromline, size_t toline, bool i
 }
 
 
-string GetFileLinesLUA(const char *filename,
-		size_t fromline, size_t toline)
+/**
+ * this function also includes all lines before fromline which begin with -- (lua comments)
+ * and adds line numbers
+ * @param filename
+ * @param fromline
+ * @param toline
+ * @return string with lines
+ */
+string GetFileLinesLUA(const char *filename, size_t fromline, size_t toline)
 {
 	char buf[512];
 	fstream file(filename, ios::in);
@@ -450,7 +463,6 @@ string GetFileLinesLUA(const char *filename,
 			*pss << "   \t" << buf+strspn(buf, "-\t ") << '\n';
 		}
 		else if(pss) { delete pss; pss = NULL; }
-
 
 	}
 	stringstream ss;
