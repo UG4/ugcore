@@ -116,7 +116,7 @@ so be sure to extend your workspace time and copy your result out of the workspa
 
 
 <hr>
-\section secHermitDebugging Debugging on Hermit
+\section secHermit_Debugging Debugging on Hermit
 On Hermit the parallel debugger \em DDT is available.
 See https://wickie.hlrs.de/platforms/index.php/DDT.
 
@@ -167,7 +167,9 @@ qsub: waiting for job 309598.sdb to start
     \code
 ddt ./ugshell -ex ../apps/scaling_tests/modular_scalability_test.lua -numPreRefs 1 -hRedistFirstLevel 4 -hRedistStepSize 2 -hRedistNewProcsPerStep 4 -numRefs 8
     \endcode
-<--!ddt ./ugshell -ex ../apps/scaling_tests/modular_scalability_test.lua  -numPreRefs 4 -lsType feti -ds famg  -ns famg  -numPPSD   4 -numRefs  7-->
+<!--
+ddt ./ugshell -ex ../apps/scaling_tests/modular_scalability_test.lua  -numPreRefs 4 -lsType feti -ds famg  -ns famg  -numPPSD   4 -numRefs  7
+-->
 
     </li>
 </ol>
