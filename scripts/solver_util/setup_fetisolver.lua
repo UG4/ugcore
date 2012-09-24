@@ -7,17 +7,6 @@
 --   Begin: 06072011.
 --   Provides: Function which set up a FETI solver object.
 --
---          Input parameters:
---          - 'str_problem' -- string describing problem (not yet used)
---          - 'dim',
---          - 'linMaxIterations'
---          - 'numProcs'
---          - 'u'
---          - 'dirichletBND', 'approxSpace',
---          - 'activateDbgWriter', 'verbosity', logfileName.
---          Return value:
---          Reference of the fully configured FETI solver object.
---
 --   Note: To use FAMG as sub problem solvers configure ug4 as follows (since FAMG
 --   is now contained in the 'amg' plugin):
 --   cmake <other cmake options> -Damg=ON ..
@@ -163,15 +152,30 @@ function CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
 	return amgDirichlet0
 end
 
-----------------------------------------------------------
--- function 'SetupFETISolver()' (first parameters only for (re)naming of logfile):
-----------------------------------------------------------
+--! function 'SetupFETISolver()' (first parameters only for (re)naming of logfile):
+--! futher commandline parameters:
+--! - -numPPSD : numProcsPerSubdomain
+--! - -cps : coarseProblemSolverType (choose one in [default: "exact" | "cg" | "hlib" ])
+--! - -ns : neumannProblemSolverType choose one in ["exact" | "ls" | default: "cg" | "bicg" | "rsamg" | "famg" ]
+--! - -ds : dirichletProblemSolverType choose one in ["exact" | "ls" | default: "cg" | "bicg" | "rsamg" | "famg" ]
+--!
+--! \param str_problem string describing problem (not yet used)
+--! \param dim Dimensionality (2 or 3)
+--! \param linMaxIterations
+--! \param numProcs total number of processes
+--! \param u for testvector writer for FAMG (created by 'CreateAMGTestvector()')
+--! \param dirichletBND for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()');
+--! \param approxSpace for 'GridFunctionDebugWriter()'
+--! \param activateDbgWriter
+--! \param verbosity 0/1/2.
+--! \param logfileName feti configuration is added to that name
+--! \return fetiSolver, fetiConvCheck, extended logfileName
 function SetupFETISolver(str_problem,
 			 dim,
 			 linMaxIterations,
 			 numProcs,
-			 u,                         -- for testvector writer for FAMG (created by 'CreateAMGTestvector()')
-			 dirichletBND, approxSpace, -- for testvector writer for FAMG (created by 'CreateAMGTestvectorDirichlet0()'); 'approxSpace' also for 'GridFunctionDebugWriter()'
+			 u,                         -- 
+			 dirichletBND, approxSpace, -- 
 			 activateDbgWriter,
 			 verbosity, logfileName)
 

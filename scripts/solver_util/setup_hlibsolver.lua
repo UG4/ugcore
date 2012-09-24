@@ -55,6 +55,18 @@ salloc -n  4 mpirun ./ugshell $UGARGS -numRefs 5
 ----------------------------------------------------------
 -- function 'SetupHLIBSolver()':
 ----------------------------------------------------------
+
+--! function 'SetupHLIBSolver()' (first parameters only for (re)naming of logfile):
+--! futher commandline parameters:
+--!
+--! \param str_problem string describing problem (not yet used)
+--! \param dim Dimensionality (2 or 3)
+--! \param linMaxIterations
+--! \param numProcs total number of processes
+--! \param activateDbgWriter
+--! \param verbosity 0/1/2.
+--! \param logfileName feti configuration is added to that name
+--! \return hlibSolver, hlibConvCheck, extended logfileName
 function SetupHLIBSolver(str_problem,
 			 dim,
 			 linMaxIterations,
