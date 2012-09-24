@@ -1,7 +1,13 @@
+----------------------------------------------------------
+--[[!
+--   \file setup_famg.lua
+--   \brief Lua - Script which creates and configures the FAMG solver
+-- 	 \author Martin Rupp
+--  \sa util.SetupFAMGPreconditioner
+!]]--
 
--- create AMG ---
------------------
 
+--! helper function for SetupFAMGPreconditioner
 function CreateAMGTestvector(gridfunction, luaCallbackName, dim)
 	local amgTestvector;
 	amgTestvector = GridFunctionVectorWriter()
@@ -9,14 +15,36 @@ function CreateAMGTestvector(gridfunction, luaCallbackName, dim)
 	amgTestvector:set_user_data(LuaUserNumber(luaCallbackName))
 	return amgTestvector	
 end
-	
+
+--! helper function for SetupFAMGPreconditioner	
 function CreateAMGTestvectorDirichlet0(dirichletBND, approxSpace)
 	local amgDirichlet0 = GridFunctionVectorWriterDirichlet0()
 	amgDirichlet0:init(dirichletBND, approxSpace)
 	return amgDirichlet0
 end
 
-function SetupFAMGSolver(base, presmoother, postsmoother)
+util = util or {}
+
+--! creates a FAMG Preconditioner object
+--! \param base ILinearOperatorInverse to solve coarse level problem. if nil or omitted: LU 
+--! \param presmoother ILinearIterator for presmoothing. if nil or omitted: SymmetricGaussSeidel 
+--! \param postsmoother ILinearIterator for postsmoothing. if nil or omitted: SymmetricGaussSeidel
+--!
+--! example usage:
+--! \code
+--! ug_load_script("setup_famg.lua")
+--! precond = util.SetupFAMGPrecondition(LU(), GaussSeidel(), GaussSeidel())
+--! \endcode
+--! note that FAMG is a preconditioner, you can use it e.g. in a Linear Solver:
+--! \code
+--! precond = util.SetupFAMGPrecondition()
+--! linSolver = CG()
+--! linSolver:set_preconditioner(precond)
+--! linSolver:set_convergence_check(ConvCheck(40, 1e-16, 1e-9))
+--! -- use linSolver
+--! \endcode
+--! \sa FAMG 
+function util.SetupFAMGPreconditioner(base, presmoother, postsmoother)
 	if base == nil then
 		base = LU()
 	end
@@ -61,3 +89,5 @@ function SetupFAMGSolver(base, presmoother, postsmoother)
 	
 	return amg	
 end
+
+
