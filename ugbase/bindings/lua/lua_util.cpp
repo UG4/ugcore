@@ -95,6 +95,7 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 	std::vector<char> file;
 
 #ifdef UG_PARALLEL
+	if(pcl::GetNumProcesses() == 1) bDistributedLoad = false;
 	if(pcl::GetProcRank() == 0 || bDistributedLoad==false)
 #endif
 	{
@@ -147,7 +148,7 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 
 	std::string curPath = PathFromFilename(absoluteFilename);
 	PathProvider::push_current_path(curPath);
-	bool success = ParseBuffer(&file[0], absoluteFilename.c_str());
+	bool success = ParseBuffer(&file[0], (string("@")+absoluteFilename).c_str());
 	//bool success = ParseFile(absoluteFilename.c_str());
 	PathProvider::pop_current_path();
 
