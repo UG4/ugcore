@@ -189,7 +189,7 @@ static void Dimension(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LuaUserFunctionVectorNumber", tag);
 	}
-
+/*
 //	LuaUserFunctionNumberVector
 	{
 		typedef LuaUserFunction<number, dim, MathVector<dim> > T;
@@ -204,7 +204,7 @@ static void Dimension(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LuaUserFunctionNumberVector", tag);
 	}
-
+*/
 }
 
 /**
