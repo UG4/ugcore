@@ -2,6 +2,7 @@
 //	s.b.reiter@googlemail.com
 //	y10 m01 d22
 
+#include <fstream>
 #include <queue>
 #include "lib_grid/lg_base.h"
 #include "common/profiler/profiler.h"
@@ -16,6 +17,76 @@ using namespace std;
 
 namespace ug
 {
+
+///	only for debugging purposes!!!
+/**	Output value pairs to gnuplot...
+ * \{ */
+//#define EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED
+#ifdef EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED
+	typedef vector<pair<number, number> > GnuplotData;
+	static GnuplotData gplotLengthFac;
+	static GnuplotData gplotMinCurvature;
+	static GnuplotData gplotAverageCurvature;
+
+	void WriteGnuplotData(const char* filename, const GnuplotData& data)
+	{
+		ofstream out(filename);
+		if(!out)
+			return;
+
+		for(size_t i = 0; i < data.size(); ++i)
+			out << data[i].first << " " << data[i].second << endl;
+
+		out.close();
+	}
+
+	#define GPLOTPOINT(dataName, x, y) dataName.push_back(make_pair<number, number>((x), (y)));
+	#define GPLOTSAVE()	{WriteGnuplotData("length_fac.gplot", gplotLengthFac);\
+						WriteGnuplotData("min_curvature.gplot", gplotMinCurvature);\
+						WriteGnuplotData("average_curvature.gplot", gplotAverageCurvature);}
+#else
+//	do nothing if EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED is false
+	#define GPLOTPOINT(dataName, x, y)
+	#define GPLOTSAVE()
+#endif
+/** \} */
+
+
+/*
+vector3 PNTrianglePos(const vector3& p0, const vector3& p1, const vector3& p2,
+					  const vector3& n0, const vector3& n1, const vector3& n2);
+
+vector3 PNTriangleNorm(const vector3& p0, const vector3& p1, const vector3& p2,
+					   const vector3& n0, const vector3& n1, const vector3& n2);
+
+vector3 PNCTrianglePos(const vector3& p0, const vector3& p1, const vector3& p2,
+						const vector3& n0, const vector3& n1, const vector3& n2,
+						const vector3& cn0, const vector3& cn1, const vector3& cn2);
+
+vector3 PNCTriangleNorm(const vector3& p0, const vector3& p1, const vector3& p2,
+						const vector3& n0, const vector3& n1, const vector3& n2,
+						const vector3& cn0, const vector3& cn1, const vector3& cn2);
+
+
+		vector3 pos(number bc0, number bc1);
+		vector3 norm(number bc0, number bc1);
+};
+
+class ProjectedVertex{
+	VertexBase*	vertex();
+	vector3 vertex_position();
+	vector3 vertex_normal();
+	vector3 surface_normal();
+	vector3 surface_position();
+	size_t num_barycentric_coords();
+	number barycentric_coord(size_t index);
+};
+
+class SurfaceRepresentation{
+	public:
+
+};
+*/
 
 ////////////////////////////////////////////////////////////////////////
 static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
@@ -124,7 +195,11 @@ number CalculateMinCurvature(Grid& grid, SubsetHandler& shMarks,
 	for(size_t i = 0; i < vNormals.size(); ++i)
 		minDot = std::min(minDot, VecDot(n, vNormals[i]));
 
+//todo:	Think about converting to radiants.
+	//minDot = acos(minDot);
+	//...
 //	done
+	GPLOTPOINT(gplotMinCurvature, 0, minDot);
 	return minDot;	
 }							
 
@@ -133,8 +208,10 @@ template <class TAAPosVRT>
 number CalculateAverageCurvature(Grid& grid, SubsetHandler& shMarks,
 								EdgeBase* e, TAAPosVRT& aaPos)
 {
-	return 0.5 * (CalculateMinCurvature(grid, shMarks, e->vertex(0), aaPos)
+	number avCurv = 0.5 * (CalculateMinCurvature(grid, shMarks, e->vertex(0), aaPos)
 				+ CalculateMinCurvature(grid, shMarks, e->vertex(1), aaPos));
+	GPLOTPOINT(gplotAverageCurvature, 0.5, avCurv);
+	return avCurv;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -144,7 +221,9 @@ number CalculateLengthFac(Grid& grid, SubsetHandler& shMarks,
 {
 	number lenFac = CalculateAverageCurvature(grid, shMarks, e, aaPos);
 	lenFac = (lenFac - 0.95) / 0.05;
-	return max(number(0.25), lenFac);
+	lenFac = max(number(0.25), lenFac);
+	GPLOTPOINT(gplotLengthFac, 0.5, lenFac);
+	return lenFac;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -978,9 +1057,9 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 		FixBadTriangles(grid, shMarks, esel, aaPos, aaNorm, 0.1);
 */
 	//	relocate points
-		LOG("  smoothing points...");
+		/*LOG("  smoothing points...");
 		PerformSmoothing(grid, shMarks, aaPos, aaNorm, 10, 0.1);
-		LOG(" done\n");
+		LOG(" done\n");*/
 
 		LOG("  updating normals...");
 		CalculateVertexNormals(grid, aPos, aNorm);
@@ -1019,6 +1098,7 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 	grid.detach_from<VertexBase>(aInt);
 	grid.detach_from<VertexBase>(aNorm);
 
+	GPLOTSAVE();
 	return true;
 }
 
