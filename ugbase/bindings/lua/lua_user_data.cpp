@@ -175,6 +175,36 @@ static void Dimension(Registry& reg, string grp)
 		reg.add_class_to_group(name, "LuaUserFunctionMatrixNumber", tag);
 	}
 
+//	LuaUserFunctionVectorNumber
+	{
+		typedef LuaUserFunction<MathVector<dim>, dim, number > T;
+		typedef DataLinker<MathVector<dim>, dim> TBase;
+		string name = string("LuaUserFunctionVectorNumber").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
+			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName, NumberOfArguments, PosTimeFlag")
+			.add_method("set_deriv", &T::set_deriv)
+			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<UserData<number, dim> >)>(&T::set_input))
+			.add_method("set_input", static_cast<void (T::*)(size_t, number)>(&T::set_input))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "LuaUserFunctionVectorNumber", tag);
+	}
+
+//	LuaUserFunctionNumberVector
+	{
+		typedef LuaUserFunction<number, dim, MathVector<dim> > T;
+		typedef DataLinker<number, dim> TBase;
+		string name = string("LuaUserFunctionNumberVector").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
+			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName, NumberOfArguments, PosTimeFlag")
+			.add_method("set_deriv", &T::set_deriv)
+			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<UserData<number, dim> >)>(&T::set_input))
+			.add_method("set_input", static_cast<void (T::*)(size_t, number)>(&T::set_input))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "LuaUserFunctionNumberVector", tag);
+	}
+
 }
 
 /**
