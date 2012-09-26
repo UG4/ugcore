@@ -17,6 +17,7 @@ using namespace std;
 
 namespace ug
 {
+void PrintLUA();
 
 
 namespace bridge
@@ -530,6 +531,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("GetLogAssistantTag", &GetLogAssistantTag, grp, "integer tag for use int set_debug_level");
 		reg.add_function("SetDebugLevel", &SetDebugLevel, grp);
 		reg.add_function("GetClockS", &GetClockS, grp);
+		reg.add_function("PrintLUA", &PrintLUA, grp);
 	}
 
 	{
