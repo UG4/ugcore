@@ -466,6 +466,11 @@ bool GetProfilerAvailable()
 	return false;
 }
 
+void PrintLUA()
+{
+	UG_LOG("LUA Profiler not available.");
+}
+
 #endif // SHINY
 
 } // namespace ug
