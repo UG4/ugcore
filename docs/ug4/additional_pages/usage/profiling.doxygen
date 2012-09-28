@@ -6,10 +6,10 @@
 /** \page pageUG4Profiling Profiling ug4
 
 - \ref secEnableProfiling
-- \ref secProfilingLUA
+- \ref secScriptProfiling
 - \ref secProfilingRegistry
 - \ref secProfilingYourCode
-- \ref secViewProfilingNodes
+- \ref secProfilingCPPExample
 
 For any questions, contact martin.rupp@gcsc.uni-frankfurt.de or 
 sebastian.reiter@gcsc.uni-frankfurt.de .
@@ -36,12 +36,125 @@ Check the output of <tt>cmake ..</tt> for changes and additional flags.
 Keep in mind that you have to do a make when changing <em>Cmake</em> flags.
 
 
+For getting profiling output at the end of the execution of your script,
+you can add
+
+\code
+SetOutputProfileStats(true)
+\endcode
+at the beginning of your script. With this, profiler statistics are output at the end of the execution of
+    <tt>ugshell</tt>, there you will see the total call tree (from main on)
+    and a flat list with timings.
+
+<hr>
+\section secScriptProfiling More Profiling Control in the Script
+Printing the whole call tree at the end of the execution can be pretty much information, and that is why there is also a
+direct way of accessing timing information for a specific Profiler Node
+(Profiler Nodes are all nodes which got created with <tt>PROFILE_BEGIN</tt> or <tt>PROFILE_FUNC</tt>, see \ref secProfilingYourCode).
+
+\warning If a part of code never got executed, the profiler nodes in there do not exist.
+
+\code
+UGProfileNode *GetProfileNode(const char *str);
+\endcode
+Example usage is
+\code
+print(GetProfileNode("main"):call_tree())
+\endcode
+
+The <tt>UGProfilerNode</tt> has the following functions:
+    \code
+class UGProfilerNode
+{
+  double get_avg_entry_count() const;                         // number of entries in this profiler node
+  double get_avg_self_time_ms() const;                        // time in milliseconds spend in this node excluding subnodes
+  double get_avg_total_time_ms() const;                       // time in milliseconds spend in this node including subnodes
+  string call_tree(double dMarginal=0.0) const;               // returns string with call tree
+  string child_self_time_sorted(double dMarginal=0.0) const;  // string with sorted childs (sorted by self time)
+  string total_time_sorted(double dMarginal=0.0) const;       // string with sorted childs (sorted by total time)
+  string entry_count_sorted(double dMarginal=0.0) const;      // string with sorted childs (sorted by entry count)
+  string groups() const;									  // lists time spent in groups
+  bool is_valid() const;                                      // true if this is a valid node (i.e. != NULL)
+}
+    \endcode
+\attention If <tt>dMarginal != 0.0</tt>, only nodes which account for
+    more than <tt>dMarginal*100 % of the total time</tt> are part of the output.
+    So if you want to print the call tree, and want to display only nodes which
+    account for more than 3% of the total time, you can write
+\code
+GetProfileNode("main"):call_tree(0.03)
+\endcode
+
+For nodes other than "main", you should check that the profile node could be found.
+It's also a good idea to check if the profiler is available - otherwise every GetProfileNode(...):is_valid() = false. For this you use
+<tt>GetProfilerAvailable() == true</tt>.
+
+
+
+Here's an example to view detailed information about ALS_ApplyLinearSolver without having to look at the whole call tree of main.
+\code
+if GetProfilerAvailable() == true then
+  pn = GetProfileNode("ALS_ApplyLinearSolver")
+  if pn:is_valid() then   -- check if node is valid
+
+    print("Called MyFunction "..pn:get_avg_entry_count().." times.")
+    print("Spend "..pn:get_avg_self_time_ms().." ms for ALS_ApplyLinearSolver alone (without child nodes).")
+    print("Spend "..pn:get_avg_total_time_ms().." ms in ALS_ApplyLinearSolver altogether.\n")
+    print("ALS_ApplyLinearSolver call tree")
+    print(pn:call_tree())
+    print("ALS_ApplyLinearSolver call list self time sorted")
+    print(pn:child_self_time_sorted())
+    print("ALS_ApplyLinearSolver call list total time sorted")
+    print(pn:total_time_sorted())
+    print("ALS_ApplyLinearSolver call list entry count sorted")
+    print(pn:entry_count_sorted())
+  else
+    print("ALS_ApplyLinearSolver is not known to the profiler.")
+  end
+else
+  print("Profiler not available.")
+end
+\endcode
+
+\note You can also write the strings returned by e.g. call_tree to a file. Remember to add some <tt>if pcl:GetProcRank() == 0 then</tt> to prevent all processors from writing.
+
+Another way of profiling is
+\code
+print(GetProfileNodes("main"):groups())
+\endcode
+This will list the time spent in different groups, for example <tt>mpirun -np 4 ./ugshell -ex conv_diff/laplace.lua -numRefs 8</tt> will give you
+\verbatim
+algebra             3.90574 s  max: 3.96512 s  min: 3.90574 s  diff: 59.3775 ms (1.4975 %)
+debug               21.6    us max: 21.6    us min: 14.4    us diff: 7.2     us (33.3333 %)
+parallelization     8.0802  ms max: 8.1243  ms min: 8.0613  ms diff: 63      us (0.775451 %)
+\endverbatim
+This will give you also <em>parallel</em> information, and you can check if some cores spend more time in some group than others (shown in diff).
+
+<hr>
+\section secProfilingRegistry Profiling Registry
+
+You can enable profiling all calls made through the <strong>ug4</strong>
+<em>Registry / Bridge</em> by calling <em>CMake</em> with
+\verbatim
+cmake -DPROFILE_BRIDGE=ON ..
+\endverbatim
+
+
 <hr>
 \section secProfilingLUA Profiling your LUA Script
 
-To enable profiling of your LUA Script, simply add a <tt>ProfileLUA(true)</tt> 
-at the beginning of your script.
-For the moment, we only profile the top-level calls, not all subroutine calls. 
+To enable profiling of your LUA Script, simply add a
+\code
+ProfileLUA(true)
+\endcode
+at the beginning of your script. You can then print profiling information like in \ref secEnableProfiling or \ref secScriptProfiling.
+However, you can also use
+\code
+PrintLUA()
+\endcode
+at the end of your code. This will list you your LUA script files together with line numbers and time spend in these lines.
+
+\note For the moment, we only profile the top-level calls, not all subroutine calls.
 This has performance reasons.
 Expect a performance drawback when calling small functions very often.
 You can also disable the LUA profiler for these calls:
@@ -52,71 +165,69 @@ ProfileLUA(true)
 \endverbatim
 
 
-<hr>
-\section secProfilingRegistry Profiling Registry
-
-You can enable profiling all calls made through the <strong>ug4</strong> 
-<em>Registry / Brige</em> by calling <em>CMake</em> with
-\verbatim
-cmake -DPROFILE_BRIDGE=ON ..
-\endverbatim
-
 
 <hr>
 \section secProfilingYourCode Profiling your C/C++ code
 
-If you want measure the time spend in your functions or in sections of your 
+If you want to measure the time spent in your functions or in sections of your
 code, you can use our profiling functions:
 \code
 #include  "common/profiler/profiler.h"
 \endcode
 <ul>
-  <li><tt>PROFILE_BEGIN(name)</tt> is for profiling sections of code.
-    Profiling is done from the line where <tt>PROFILE_BEGIN(name)</tt> is until 
-    <tt>PROFILE_END()</tt> or until the end of the scope where 
-    <tt>PROFILE_BEGIN(name)</tt> was in.
+  <li><tt>PROFILE_FUNC_GROUP()</tt> is for profiling functions:
+    Put <tt>PROFILE_FUNC_GROUP()</tt> at the beginning of the function.
+    Here <tt>name</tt> is the unique name of the profile node, and <tt>group</tt> is a group
+    where you want to put that node in. For example, you can put all sections of code which do file access in the group "io":
     \code
+void WriteAMGResultsToFile(const char* filename, std::vector<double> &results)
+{
+	PROFILE_FUNC_GROUP("io");
+	// do stuff
+}
+\endcode
+\note When you put <tt>PROFILE_FUNC_GROUP(group)</tt> not at the beginning of the
+    scope you or others might get unexpected behaviour.
+
+\note You can also put profile nodes in more than one group at once by seperating groups with a space: "io amg debug".
+
+  <li><tt>PROFILE_BEGIN_GROUP(name, group)</tt> is for profiling sections of code.
+    Profiling is done from the line where <tt>PROFILE_BEGIN_GROUP(name, group)</tt> is until
+    <tt>PROFILE_END()</tt> or until the end of the scope where 
+    <tt>PROFILE_BEGIN_GROUP(name, group)</tt> was in.
+    \code
+
 void MyFunction(size_t n)
 {
   // first do some stuff
+  PROFILE_BEGIN_GROUP(MyFunction_CalculationA, "calculation")
   
   // do calculation A
   
   PROFILE_END()
   
-  PROFILE_BEGIN(CalculationB)
+  PROFILE_BEGIN_GROUP(MyFunction_CalculationB, "calculation")
   
   // do calculation B
   
   PROFILE_END()
   
-  PROFILE_BEGIN(CalculationRest)
-  // do rest stuff 
-  // CalculationRest is evaluated until the end
+  PROFILE_BEGIN_GROUP(MyFunction_io, "io")
+  // do rest
+  // MyFunction_io is evaluated until the end
 }
     \endcode
 
-    Here the profile node <tt>Calculation A</tt> measures only the part in 
-    <tt>do calculation A</tt>, <tt>Calculation B</tt> measures only the part in 
-    <tt>do calculation B</tt>, and <tt>CalculationRest</tt> measures only the 
-    part in <tt>do rest stuff</tt>. 
+    Here the profile node <tt>MyFunction_CalculationA</tt> measures only the part in
+    <tt>do calculation A</tt>, <tt>MyFunction_CalculationB</tt> measures only the part in
+    <tt>do calculation B</tt>, and <tt>MyFunction_io</tt> measures only the
+    part in <tt>do rest</tt>.
+
+    \note <tt>PROFILE_FUNC_GROUP()</tt> is basically only a <tt>PROFILE_BEGIN_GROUP</tt>
+    with name = function name.
   </li>
-  <li><tt>PROFILE_FUNC()</tt> is for profiling functions:
-    Put <tt>PROFILE_FUNC()</tt> at the beginning of the function.
-    Note that <tt>PROFILE_FUNC()</tt> is basically only a <tt>PROFILE_BEGIN</tt>
-    with the function name. Example:
-    \code
-void MyFunction(size_t n)
-{
-  PROFILE_FUNC(); // Same as PROFILE_BEGIN(MyFunction)
-  
-  // do stuff 
-}
-    \endcode
-    \note When you put <tt>PROFILE_FUNC()</tt> not at the beginning of the 
-    scope you or others might get unexpected behaviour.
+    <li> <tt>PROFILE_BEGIN(name)</tt> and <tt>PROFILE_FUNC()</tt> is the same only that group is set to NULL (no group). </li>
     
-  </li>
   <li>When a profile node is auto-ended by the scope mechanism, we use 
     destructors to accomplish this.
     However, it is possible that some destructors are called AFTER the 
@@ -133,11 +244,11 @@ void MyFunction(size_t n)
     \code
 void MyFunction(std::vector<int> vec)
 {
-  PROFILE_FUNC() // does not measure destructor of vec.
+  PROFILE_FUNC_GROUP("myGroup") // does not measure destructor of vec.
   
   std::vector<int> vec2;
   
-  PROFILE_BEGIN(MyFunctionSectionA)  // does not measure destructor of vec and vec2.
+  PROFILE_BEGIN_GROUP(MyFunctionSectionA, "myGroup")  // does not measure destructor of vec and vec2.
   
   std::vector<int> vec3;
   
@@ -153,11 +264,11 @@ void MyFunction(std::vector<int> vec)
     \code
 void MyFunction(size_t n)
 {
-  PROFILE_FUNC()
+  PROFILE_FUNC_GROUP("myGroup")
   
   for(size_t i=0; i<5; i++)
   {
-    PROFILE_BEGIN(MyFunction_InLoop);
+    PROFILE_BEGIN_GROUP(MyFunction_InLoop, "myGroup");
     // do some stuff
   }		
   
@@ -176,58 +287,10 @@ void MyFunction(size_t n)
 
 
 <hr>
-\section secViewProfilingNodes View profiling statistics
+\section secProfilingCPPExample C++ Example
+
 
 <ul>
-  <li>
-    \code
-SetOutputProfileStats(true)
-    \endcode
-    With this, profiler statistics are output at the end of the execution of 
-    <tt>ugshell</tt>, there you will see the total call tree (from main on) 
-    and a flat list with timings.
-  </li>
-  <li>This can be pretty much information, and that is why there is also a 
-    direct way of accessing timing information for a specific Profiler Node 
-    (Profiler Nodes are all nodes which got created with <tt>PROFILE_BEGIN</tt>
-    or <tt>PROFILE_FUNC</tt>.
-    Note that if that part of code never got executed, the profiler nodes in 
-    there do not exist).
-  </li>
-</ul>
-
-<ul>
-  <li>You can access the profiling nodes directly from the script with
-    \code
-UGProfileNode *GetProfileNode(const char *str);
-    \endcode
-    With <tt>GetProfilerAvailable() == true</tt> you can check if a profiler 
-    is available.
-
-    The <tt>UGProfilerNode</tt> has the following functions:
-    \code
-class UGProfilerNode
-{
-  double get_avg_entry_count() const;                         // number of entries in this profiler node
-  double get_avg_self_time_ms() const;                        // time in milliseconds spend in this node excluding subnodes
-  double get_avg_total_time_ms() const;                       // time in milliseconds spend in this node including subnodes
-  string call_tree(double dMarginal=0.0) const;               // returns string with call tree
-  string child_self_time_sorted(double dMarginal=0.0) const;  // string with sorted childs (sorted by self time)
-  string total_time_sorted(double dMarginal=0.0) const;       // string with sorted childs (sorted by total time)
-  string entry_count_sorted(double dMarginal=0.0) const;      // string with sorted childs (sorted by entry count)
-  bool is_valid() const;                                      // true if this is a valid node (i.e. != NULL)
-}
-    \endcode
-  </li>
-  <li>\attention If <tt>dMarginal != 0.0</tt>, only nodes which account for 
-    more than <tt>dMarginal*100 % of the total time</tt> are part of the output.
-    So if you want to print the call tree, and want to display only nodes which 
-    account for more than 3% of the total time, you can write
-    \code
-GetProfileNode("main"):call_tree(0.03)
-    \endcode
-    
-  </li>
   <li>Example Code to be profiled:
     \code
 void FunctionA(double &b)
@@ -313,11 +376,11 @@ Spend 725.6421 ms in MyFunction altogether.
 MyFunction call tree
 call tree                                            hits       self time      total time 
 MyFunction                                             1  104.4 us    0% 725.64 ms  100% 
-FunctionC                                             1    900 ns    0% 725.54 ms   99% 
+FunctionC                                              1    900 ns    0% 725.54 ms   99%
   FunctionB                                            2  579.6 us    0% 725.49 ms   99% 
-  FunctionA                                        2000 98.969 ms   13% 98.969 ms   13% 
-  FunctionA_bad                                    2000 243.79 ms   33% 625.94 ms   86% 
-    FunctionA_bad_in_loop                         2e+06 382.15 ms   52% 382.15 ms   52% 
+  FunctionA                                         2000 98.969 ms   13% 98.969 ms   13%
+  FunctionA_bad                                     2000 243.79 ms   33% 625.94 ms   86%
+    FunctionA_bad_in_loop                          2e+06 382.15 ms   52% 382.15 ms   52%
   FunctionA                                            1   49.5 us    0%   49.5 us    0% 
 
 MyFunction call list self time sorted
@@ -328,13 +391,13 @@ MyFunction                                             1  104.4 us    0% 725.64 
 FunctionB                                              2  579.6 us    0% 725.49 ms   99% 
 FunctionA                                           2000 98.969 ms   13% 98.969 ms   13% 
 FunctionA_bad                                       2000 243.79 ms   33% 625.94 ms   86% 
-FunctionA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
+FunctionA_bad_in_loop                              2e+06 382.15 ms   52% 382.15 ms   52%
 
 MyFunction call list total time sorted
 total time sorted                                    hits       self time      total time 
 FunctionA                                              1   49.5 us    0%   49.5 us    0% 
 FunctionA                                           2000 98.969 ms   13% 98.969 ms   13% 
-FunctionA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
+FunctionA_bad_in_loop                              2e+06 382.15 ms   52% 382.15 ms   52%
 FunctionA_bad                                       2000 243.79 ms   33% 625.94 ms   86% 
 FunctionB                                              2  579.6 us    0% 725.49 ms   99% 
 FunctionC                                              1    900 ns    0% 725.54 ms   99% 
@@ -348,7 +411,7 @@ FunctionA                                              1   49.5 us    0%   49.5 
 FunctionB                                              2  579.6 us    0% 725.49 ms   99% 
 FunctionA                                           2000 98.969 ms   13% 98.969 ms   13% 
 FunctionA_bad                                       2000 243.79 ms   33% 625.94 ms   86% 
-FunctionA_bad_in_loop                             2e+06 382.15 ms   52% 382.15 ms   52% 
+FunctionA_bad_in_loop                              2e+06 382.15 ms   52% 382.15 ms   52%
     \endverbatim
     Here we see that <tt>FunctionA_bad</tt> takes six times as long as 
     <tt>FunctionA</tt>, even though they both perform the same task.
