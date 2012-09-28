@@ -23,8 +23,10 @@ For any questions, contact martin.rupp@gcsc.uni-frankfurt.de.
 - <tt>-noquit</tt> &mdash; Does run the interactive shell after specified 
   script.
 - <tt>-noterm</tt> &mdash; Terminal logging will be disabled.
-- <tt>-logtofile filename</tt> & mdash; Output will be written to the specified 
+- <tt>-logtofile filename</tt> &mdash; Output will be written to the specified
   file.
+
+Script files are written in LUA, see \ref pageScriptTutorial for an introduction.
 
 You can also use the command line to pass arguments to your scripts:
 \verbatim
