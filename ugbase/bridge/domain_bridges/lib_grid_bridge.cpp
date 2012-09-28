@@ -623,7 +623,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	//	SubsetHandler
 		reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp)
 			.add_constructor()
-			.add_method("assign_grid", &SubsetHandler::assign_grid)
+			.add_method("assign_grid", static_cast<void (SubsetHandler::*)(Grid&)>(&SubsetHandler::assign_grid))
 			.set_construct_as_smart_pointer(true);
 
 

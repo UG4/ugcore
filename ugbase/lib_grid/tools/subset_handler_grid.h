@@ -37,6 +37,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		GridSubsetHandler& operator = (const GridSubsetHandler& sh);
 		GridSubsetHandler& operator = (const ISubsetHandler& sh);
 
+		void assign_grid(Grid* grid);
 		void assign_grid(Grid& grid);
 
 	////////////////////////////////////////////////

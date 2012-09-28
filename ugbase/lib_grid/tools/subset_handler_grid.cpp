@@ -60,34 +60,42 @@ void GridSubsetHandler::grid_to_be_destroyed(Grid* grid)
 {
 	assert((m_pGrid == grid) && "ERROR in GridSubsetHandler::grid_to_be_destroyed(...): Grids do not match.");
 	cleanup();
+	ISubsetHandler::grid_to_be_destroyed(grid);
 }
 
 void GridSubsetHandler::cleanup()
 {
 	erase_subset_lists_impl();
 	detach_data();
-	ISubsetHandler::set_grid(NULL);
+	//ISubsetHandler::set_grid(NULL);
 }
 
-void GridSubsetHandler::assign_grid(Grid& grid)
+void GridSubsetHandler::assign_grid(Grid* grid)
 {
-	if(m_pGrid == &grid)
+	if(m_pGrid == grid)
 		return;
 
 	if(m_pGrid)
 		cleanup();
 
-	ISubsetHandler::set_grid(&grid);
+	ISubsetHandler::set_grid(grid);
 
-//	attach shared entries
-	if(elements_are_supported(SHE_VERTEX))
-		m_pGrid->attach_to_vertices(m_aSharedEntryVRT);
-	if(elements_are_supported(SHE_EDGE))
-		m_pGrid->attach_to_edges(m_aSharedEntryEDGE);
-	if(elements_are_supported(SHE_FACE))
-		m_pGrid->attach_to_faces(m_aSharedEntryFACE);
-	if(elements_are_supported(SHE_VOLUME))
-		m_pGrid->attach_to_volumes(m_aSharedEntryVOL);
+	//	attach shared entries
+	if(m_pGrid){
+		if(elements_are_supported(SHE_VERTEX))
+			m_pGrid->attach_to_vertices(m_aSharedEntryVRT);
+		if(elements_are_supported(SHE_EDGE))
+			m_pGrid->attach_to_edges(m_aSharedEntryEDGE);
+		if(elements_are_supported(SHE_FACE))
+			m_pGrid->attach_to_faces(m_aSharedEntryFACE);
+		if(elements_are_supported(SHE_VOLUME))
+			m_pGrid->attach_to_volumes(m_aSharedEntryVOL);
+	}
+}
+
+void GridSubsetHandler::assign_grid(Grid& grid)
+{
+	assign_grid(&grid);
 }
 
 void GridSubsetHandler::detach_data()

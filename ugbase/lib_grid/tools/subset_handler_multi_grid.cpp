@@ -65,6 +65,7 @@ void MultiGridSubsetHandler::grid_to_be_destroyed(Grid* grid)
 {
 	assert((m_pGrid == grid) && "ERROR in MultiGridSubsetHandler::grid_to_be_destroyed(...): Grids do not match.");
 	cleanup();
+	ISubsetHandler::grid_to_be_destroyed(grid);
 }
 
 void MultiGridSubsetHandler::cleanup()
@@ -72,7 +73,7 @@ void MultiGridSubsetHandler::cleanup()
 	erase_subset_lists_impl();
 	m_levels.clear();
 
-	if(m_pMG){
+	if(m_pGrid){
 		detach_data();
 
 	//	unregister the previously registered callback
@@ -81,8 +82,7 @@ void MultiGridSubsetHandler::cleanup()
 		m_pMG = NULL;
 	}
 
-	ISubsetHandler::set_grid(NULL);
-
+	//ISubsetHandler::set_grid(NULL);
 }
 
 void MultiGridSubsetHandler::assign_grid(MultiGrid& mg)
@@ -118,13 +118,13 @@ void MultiGridSubsetHandler::assign_grid(MultiGrid& mg)
 void MultiGridSubsetHandler::detach_data()
 {
 	if(elements_are_supported(SHE_VERTEX))
-		m_pMG->detach_from_vertices(m_aSharedEntryVRT);
+		m_pGrid->detach_from_vertices(m_aSharedEntryVRT);
 	if(elements_are_supported(SHE_EDGE))
-		m_pMG->detach_from_edges(m_aSharedEntryEDGE);
+		m_pGrid->detach_from_edges(m_aSharedEntryEDGE);
 	if(elements_are_supported(SHE_FACE))
-		m_pMG->detach_from_faces(m_aSharedEntryFACE);
+		m_pGrid->detach_from_faces(m_aSharedEntryFACE);
 	if(elements_are_supported(SHE_VOLUME))
-		m_pMG->detach_from_volumes(m_aSharedEntryVOL);
+		m_pGrid->detach_from_volumes(m_aSharedEntryVOL);
 }
 
 void MultiGridSubsetHandler::erase_subset_lists()

@@ -66,11 +66,25 @@ Grid::Grid(const Grid& grid) :
 
 Grid::~Grid()
 {
+	notify_and_clear_observers_on_grid_destruction();
+
+//	erase all elements
+	clear_geometry();
+
+//	remove marks - would be done anyway...
+	remove_marks();
+}
+
+void Grid::notify_and_clear_observers_on_grid_destruction(GridObserver* initiator)
+{
 //	tell registered grid-observers that the grid is to be destroyed.
-	for(ObserverContainer::iterator iter = m_gridObservers.begin();
-		iter != m_gridObservers.end(); ++iter)
+//	do this in reverse order, so that the danger of accessing invalid observers
+//	is minimized.
+	for(ObserverContainer::reverse_iterator iter = m_gridObservers.rbegin();
+		iter != m_gridObservers.rend(); ++iter)
 	{
-		(*iter)->grid_to_be_destroyed(this);
+		if(*iter != initiator)
+			(*iter)->grid_to_be_destroyed(this);
 	}
 
 //	unregister all observers	
@@ -88,12 +102,6 @@ Grid::~Grid()
 
 	while(!m_volumeObservers.empty())
 		unregister_observer(m_volumeObservers.back());
-
-//	erase all elements
-	clear_geometry();
-	
-//	remove marks - would be done anyway...
-	remove_marks();
 }
 
 void Grid::clear()
@@ -708,8 +716,9 @@ void Grid::unregister_observer(GridObserver* observer)
 	{
 		ObserverContainer::iterator iter = find(m_gridObservers.begin(),
 												m_gridObservers.end(), observer);
-		if(iter != m_gridObservers.end())
+		if(iter != m_gridObservers.end()){
 			m_gridObservers.erase(iter);
+		}
 
 //		unregisterdFromGridObservers = true;
 	}

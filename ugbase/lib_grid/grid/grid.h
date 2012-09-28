@@ -862,6 +862,15 @@ class UG_API Grid
 		typedef Attachment<int>	AMark;
 
 	protected:
+	///	unregisters all observers. Call this method in destructors of derived classes.
+	/**	If the derived class is an observer itself and if you don't want it to be
+	 * notified on grid-destruction, e.g., because you call this method in the
+	 * destructor of your derived class, then pass a pointer to your class through
+	 * the initiator parameter to this function.
+	 * \param initiator:	The initiator won't be notified about grid destruction
+	 */
+		void notify_and_clear_observers_on_grid_destruction(GridObserver* initiator = NULL);
+
 	///	returns the element storage for a given element type
 		template <class TElem> inline
 		typename traits<TElem>::ElementStorage&

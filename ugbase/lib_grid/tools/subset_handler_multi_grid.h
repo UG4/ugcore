@@ -39,7 +39,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	/**	WARNING: Don't call the copy-constructor from derived classes,
 	  *	Since it calls virtual methods.*/
 		MultiGridSubsetHandler(const MultiGridSubsetHandler& sh);
-		~MultiGridSubsetHandler();
+		virtual ~MultiGridSubsetHandler();
 				
 		void assign_grid(MultiGrid& mg);
 		inline MultiGrid* multi_grid()	{return m_pMG;}

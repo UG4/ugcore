@@ -33,14 +33,14 @@ MultiGrid::MultiGrid(uint options) :
 
 MultiGrid::~MultiGrid()
 {
+	notify_and_clear_observers_on_grid_destruction(this);
+
 //	release child infos
 	for(FaceIterator iter = begin<Face>(); iter != end<Face>(); ++iter)
 		release_child_info(*iter);
 
 	for(VolumeIterator iter = begin<Volume>(); iter != end<Volume>(); ++iter)
 		release_child_info(*iter);
-
-	unregister_observer(this);
 }
 
 void MultiGrid::init()
