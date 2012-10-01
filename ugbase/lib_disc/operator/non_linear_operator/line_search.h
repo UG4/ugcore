@@ -118,12 +118,13 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 
 		// check if defect-norm is already smaller than maximum allowed defect value
-		if (norm_old < m_maxDefect)
+		/*if (norm_old < m_maxDefect)
 		{
 			UG_LOG("ERROR in 'StandardLineSearch::search':"
 					" no computation required.\n");
 									return true;
 		}
+*/
 
 		//	print heading line
 		if(m_verbose)
