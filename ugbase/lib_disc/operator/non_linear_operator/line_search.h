@@ -115,9 +115,20 @@ class StandardLineSearch : public ILineSearch<TVector>
 		// remember u
 			s = u;
 
+
+
+		// check if defect-norm is already smaller than maximum allowed defect value
+		if (norm_old < m_maxDefect)
+		{
+			UG_LOG("ERROR in 'StandardLineSearch::search':"
+					" no computation required.\n");
+									return true;
+		}
+
 		//	print heading line
-			if(m_verbose)
-				UG_LOG(m_offset << "   ++++ Line Search:  Iter       lambda        Defect          Rate \n");
+		if(m_verbose)
+			UG_LOG(m_offset << "   ++++ Line Search:  Iter       lambda        Defect          Rate \n");
+
 
 		//	loop line search steps
 			for(int k = 1; k <= m_maxSteps; ++k)
