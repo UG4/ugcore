@@ -54,16 +54,18 @@ ugshell_complete() {
 	  		echo $word | grep '^-[a-zA-Z0-9_]*$' > /dev/null
 	  		if [[ $? == 0 ]]; then
 	  			while read line; do
-		  			b="0"	  			
-	  				for (( j=0; j<i; j++ ))
-	  				do
-		  				if [ ${COMPREPLY[j]} = $line ]; then
-	  						b="1"
+	  				echo $line | grep '^-[a-zA-Z0-9_]*$' > /dev/null
+	  				if [[ $? == 0 ]]; then
+		  				b="0"	  			
+	  					for (( j=0; j<i; j++ ))
+	  					do
+		  					if [ ${COMPREPLY[j]} = $line ]; then
+	  							b="1"
+	  						fi
+	  					done
+		  				if [ $b = "0" ]; then
+	  			 			COMPREPLY[i++]="$line";
 	  					fi
-	  				done
-		  			
-	  				if [ $b = "0" ]; then
-	  			 	COMPREPLY[i++]="$line";
 	  				fi		  				  			
 	 			done < <(cat $filename | sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p')
 	 		fi
