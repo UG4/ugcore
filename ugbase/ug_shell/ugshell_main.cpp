@@ -501,25 +501,26 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		if(FindParam("-noquit", argc, argv))
-			firstParamIndex++;
+		int iNoQuit = GetParamIndex("-noquit", argc, argv);
 
 	//	create ugargc and ugargv in lua
-		int ugargc = argc - firstParamIndex;
-		lua_pushnumber(L, ugargc);
-		lua_setglobal(L, "ugargc");
 
 		lua_newtable(L);
-		for(int i = 0; i < ugargc; ++i){
+		int ugargc=0;
+		for(int i = firstParamIndex; i < argc; ++i){
+			if(i == iNoQuit) continue;
 		//	push the index to the table
-			lua_pushnumber(L, i+1);
+			lua_pushnumber(L, ++ugargc);
 		//	push the value to the table
-			lua_pushstring(L, argv[firstParamIndex + i]);
+			lua_pushstring(L, argv[i]);
 		//	create the entry
 			lua_settable(L, -3);
 		}
-	//	set the tables name
+		//	set the tables name
 		lua_setglobal(L, "ugargv");
+
+		lua_pushnumber(L, ugargc);
+		lua_setglobal(L, "ugargc");
 
 		// replace LUAs print function with our own, to use UG_LOG
 		lua_register(L, "print", UGLuaPrint );
