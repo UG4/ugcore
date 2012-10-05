@@ -7,6 +7,7 @@
 #include "common/util/path_provider.h"
 #include "common/util/os_info.h"
 #include "common/profiler/profiler.h"
+#include "common/profiler/profile_node.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
@@ -175,7 +176,11 @@ int UGFinalize()
 
 		if(GetLogAssistant().is_output_process()) {
 			UG_LOG("\n");
+#ifdef UG_PROFILER
+			UG_LOG(ug::GetProfileNode(NULL)->call_tree());
+#else
 			PROFILER_OUTPUT();
+#endif
 		}
 
 #ifdef UG_PROFILER
