@@ -99,26 +99,6 @@ UG_API void LuaPrintCurrentLine(lua_State* L);
 UG_API void LuaGetLastLine(lua_State* L, lua_Debug entry);
 
 /**
- * \brief function to get a line of a file
- * \param filename				file name
- * \param line
- * \return the line of the file.
- */
-UG_API std::string GetFileLine(const char *filename, size_t line);
-
-/**
- * \brief function to get some lines of a file
- * \param filename				file name
- * \param fromline
- * \param toline
- * \param includeLineNumbers	if true, add the line number in front of each line and a tab.
- *
- * \return lines fromline to toline of file filename.
- */
-UG_API std::string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers=false);
-
-
-/**
  * \brief prints the source of a lua script function which is on top of the stack
  * \param L		the lua state
  */

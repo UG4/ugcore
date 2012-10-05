@@ -17,12 +17,12 @@
 #include "bindings_lua.h"
 #include "bridge/bridge.h"
 #include "registry/class_helper.h"
-#include "info_commands.h"
 #include "lua_user_data.h"
 #include "registry/registry.h"
-
+#include "info_commands.h"
 #include "lua_debug.h"
 #include "common/profiler/dynamic_profiling.h"
+#include "common/util/string_util.h"
 
 extern "C" {
 #include "externals/lua/lstate.h"
@@ -286,7 +286,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 	    	if(entry.short_src && entry.currentline>0)
 	    	{
 				UG_LOG(entry.short_src << ":" << entry.currentline);
-				UG_LOG(" " << ug::bridge::GetFileLine(entry.short_src, entry.currentline));
+				UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
 	    	}
 	    	if(entry.what)
 	    	{
@@ -372,7 +372,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 									sprintf(buf, "!%s:%d ", source+13, line);
 								else
 									sprintf(buf, "@%s:%d ", source, line);
-								//const char*p = ug::bridge::GetFileLine(source, line).c_str();
+								//const char*p = GetFileLine(source, line).c_str();
 								//strncat(buf, p+strspn(p, " \t"), 254);
 
 								pi = new DynamicProfileInformation(buf, true, "lua", false);
@@ -460,9 +460,9 @@ void DebugList()
 			lastline = entry.currentline;
 			UG_LOG(entry.source+1 << ":" << entry.currentline << "\n");
 			if(entry.currentline-3<0)
-				{UG_LOG(ug::bridge::GetFileLines(entry.source+1, 0, entry.currentline+5, true) << "\n");}
+				{UG_LOG(GetFileLines(entry.source+1, 0, entry.currentline+5, true) << "\n");}
 			else
-				{UG_LOG(ug::bridge::GetFileLines(entry.source+1, entry.currentline-3, entry.currentline+5, true) << "\n");}
+				{UG_LOG(GetFileLines(entry.source+1, entry.currentline-3, entry.currentline+5, true) << "\n");}
 			UG_LOG("\n");
 		}
 		depth--;
@@ -490,7 +490,7 @@ void UpdateDepth()
 			lastsource = entry.source+1;
 			lastline = entry.currentline;
 			UG_LOG(entry.source+1 << ":" << entry.currentline);
-			UG_LOG(" " << ug::bridge::GetFileLine(entry.short_src, entry.currentline));
+			UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
 			UG_LOG("\n");
 		}
 		depth--;

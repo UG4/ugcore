@@ -7,34 +7,36 @@
 #include <iostream>
 #include <iomanip>
 #include <cctype>
+#include <fstream>
 #include "common/common.h"
+
+using namespace std;
 
 namespace ug{
 
-void RemoveWhitespaceFromString(std::string& string)
+void RemoveWhitespaceFromString(std::string& str)
 {
-	string.erase(std::remove_if(string.begin(), string.end(), isspace), string.end());
+	str.erase(std::remove_if(str.begin(), str.end(), ::isspace), str.end());
 }
+
 
 // help function to tokenize the parameter string
-void TokenizeString(const std::string& str, std::vector<std::string>& tokens, const char delimiter)
+void TokenizeString(const string& str, vector<string>& tokens, const char delimiter)
 {
 	tokens.clear();
-	std::stringstream tokenstream;
+	stringstream tokenstream;
 	tokenstream << str;
-	std::string token;
+	string token;
 
-	while ( std::getline (tokenstream, token, delimiter ) )
-	{
-			tokens.push_back(token);
-	}
+	while ( getline (tokenstream, token, delimiter ) )
+		tokens.push_back(token);
 }
 
-std::string TrimString(const std::string& str)
+string TrimString(const string& str)
 {
 	const size_t start = str.find_first_not_of(" \t");
 	const size_t end = str.find_last_not_of(" \t");
-	if(start == std::string::npos || end == std::string::npos) return "";
+	if(start == string::npos || end == string::npos) return "";
 	return str.substr(start, end - start + 1);
 }
 
@@ -57,7 +59,7 @@ int NumberOfDigits(int n)
 }
 
 ///	appends a counter number to a string
-void AppendCounterToString(std::string& str, std::string indicator,
+void AppendCounterToString(string& str, string indicator,
                            int counter, int maxCounter)
 {
 //	check correct usage
@@ -69,77 +71,77 @@ void AppendCounterToString(std::string& str, std::string indicator,
 	if(maxCounter >= 0) numDigits = NumberOfDigits(maxCounter);
 
 //	create stringstream
-	std::stringstream ss;
+	stringstream ss;
 
 //	print stringstream
-	ss << indicator << std::setfill ('0') << std::setw (numDigits) << counter;
+	ss << indicator << setfill ('0') << setw (numDigits) << counter;
 
 //	append to string
 	str.append(ss.str());
 }
 
 ///	appends a number of spaces to a string, returns "padded" string
-std::string AppendSpacesToString(std::string& str, int totalLength)
+string AppendSpacesToString(string& str, int totalLength)
 {
 
-	int numSpaces = std::max((int)(totalLength-str.length()), 0);
+	int numSpaces = max((int)(totalLength-str.length()), 0);
 	for(int i = 0; i < numSpaces; ++i) str.append(" ");
 
 	return str;
 }
 
-std::string::size_type GetDirectorySeperatorPos(const std::string &str)
+string::size_type GetDirectorySeperatorPos(const string &str)
 {
-	std::string::size_type pos1 = str.rfind("/");
-	std::string::size_type pos2 = str.rfind("\\");
-	if(pos1 != std::string::npos)
+	string::size_type pos1 = str.rfind("/");
+	string::size_type pos2 = str.rfind("\\");
+	if(pos1 != string::npos)
 	{
-		if(pos2 != std::string::npos && pos2 > pos1)	return pos2;
+		if(pos2 != string::npos && pos2 > pos1)	return pos2;
 		else return pos1;
 	}
 	else return pos2;
 }
 
-std::string FilenameWithoutPath(const std::string& str)
+string FilenameWithoutPath(const string& str)
 {
-	std::string::size_type pos = GetDirectorySeperatorPos(str);
-	if( pos != std::string::npos ) return str.substr( pos+1 );
+	string::size_type pos = GetDirectorySeperatorPos(str);
+	if( pos != string::npos ) return str.substr( pos+1 );
 	else return str;
 }
 
-std::string PathFromFilename(const std::string &str)
+string PathFromFilename(const string &str)
 {
-	std::string::size_type pos = GetDirectorySeperatorPos(str);
-	if( pos != std::string::npos ) return str.substr(0, pos+1 );
+	string::size_type pos = GetDirectorySeperatorPos(str);
+	if( pos != string::npos ) return str.substr(0, pos+1 );
 	else return ".";
 }
 
-std::string FilenameWithoutExtension(std::string str)
+string FilenameWithoutExtension(string str)
 {
 	str = FilenameWithoutPath(str);
-	std::string::size_type pos = str.rfind(".");
-	if( pos != std::string::npos ) return str.substr(0, pos );
+	string::size_type pos = str.rfind(".");
+	if( pos != string::npos ) return str.substr(0, pos );
 	else return str;
 }
 
-std::string GetFilenameExtension(const std::string &str)
+string GetFilenameExtension(const string &str)
 {
-	std::string::size_type pos = str.rfind(".");
-	if( pos != std::string::npos ) return str.substr(pos+1);
+	string::size_type pos = str.rfind(".");
+	if( pos != string::npos ) return str.substr(pos+1);
 	else return "";
 }
 
-std::string ReplaceAll(
-		std::string target,
-		const std::string& oldstr,
-		const std::string& newstr) {
+string ReplaceAll(
+		string target,
+		const string& oldstr,
+		const string& newstr) {
 
 	// no substitution necessary
 	if (oldstr == newstr) {
 		return target;
 	}
 
-	for (size_t x = target.find(oldstr); x != std::string::npos; x = target.find(oldstr, x + newstr.size())) {
+	for (size_t x = target.find(oldstr); x != string::npos; x = target.find(oldstr, x + newstr.size())) {
 		target.erase(x, oldstr.length());
 		target.insert(x, newstr);
 	}
@@ -147,16 +149,16 @@ std::string ReplaceAll(
 	return target;
 }
 
-bool StartsWith(const std::string& str, const std::string& begin) {
+bool StartsWith(const string& str, const string& begin) {
 	return str.find(begin) == 0;
 }
 
-bool Contains(const std::string& str, const std::string& search) {
-	return str.find(search) !=std::string::npos;
+bool Contains(const string& str, const string& search) {
+	return str.find(search) !=string::npos;
 }
 
 //sreiter - Implementation is copied from some book or website. Can't remember...
-template <> unsigned long hash_key(const std::string& key)
+template <> unsigned long hash_key(const string& key)
 {
 
 	unsigned long hash = 5381;
@@ -172,19 +174,19 @@ template <> unsigned long hash_key(const std::string& key)
 }
 
 
-std::string ToLower(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+string ToLower(string str) {
+    transform(str.begin(), str.end(), str.begin(), ::tolower);
     return str;
 }
 
-std::string ToUpper(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+string ToUpper(string str) {
+    transform(str.begin(), str.end(), str.begin(), ::toupper);
     return str;
 }
 
-std::vector<std::string> FindDuplicates(const std::vector<std::string>& vec) {
+vector<string> FindDuplicates(const vector<string>& vec) {
 		
-	std::vector<std::string> result;
+	vector<string> result;
 	
 	// search for duplicates
 	for (size_t i = 0; i < vec.size();i++) {
@@ -200,7 +202,7 @@ std::vector<std::string> FindDuplicates(const std::vector<std::string>& vec) {
 		
 		// if not already added, add entry to result vec
 		bool duplicateAddedToResult =
-			std::find(result.begin(), result.end(), vec[i])!=result.end();
+			find(result.begin(), result.end(), vec[i])!=result.end();
 		
 		if (duplicateExists && !duplicateAddedToResult) {
 			result.push_back(vec[i]);
@@ -220,7 +222,7 @@ const unsigned int cost_sub = 1;
  * (check copyright or recreate!)
  *
  */
-size_t LevenshteinDistance( const std::string& s1, const std::string& s2 )
+size_t LevenshteinDistance( const string& s1, const string& s2 )
 {
   size_t n1 = s1.length();
   size_t n2 = s2.length();
@@ -241,7 +243,7 @@ size_t LevenshteinDistance( const std::string& s1, const std::string& s2 )
           size_t d_del = p[ j   ] + cost_del;
           size_t d_ins = q[ j-1 ] + cost_ins;
           size_t d_sub = p[ j-1 ] + ( s1[i-1] == s2[j-1] ? 0 : cost_sub );
-          q[ j ] = std::min( std::min( d_del, d_ins ), d_sub );
+          q[ j ] = min( min( d_del, d_ins ), d_sub );
       }
       r = p;
       p = q;
@@ -255,12 +257,49 @@ size_t LevenshteinDistance( const std::string& s1, const std::string& s2 )
   return tmp;
 }
 
-std::string repeat(char c, int nr)
+string repeat(char c, int nr)
 {
 	if(nr > 0)
-		return std::string(nr, c);
+		return string(nr, c);
 	else
-		return std::string("");
+		return string("");
 }
+
+
+
+bool IsLonger(const string &a, const string &b)
+{
+	return b.size() > a.size();
+}
+
+
+
+string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers)
+{
+	char buf[512];
+	fstream file(filename, ios::in);
+	if(file.is_open() == false) return string("");
+	for(size_t i=0; i<fromline; i++)
+		file.getline(buf, 512);
+	stringstream ss;
+	if(includeLineNumbers)
+		ss << fromline << "\t";
+	ss << buf;
+	for(; fromline < toline; fromline++)
+	{
+		file.getline(buf, 512);
+		ss << "\n";
+		if(includeLineNumbers)
+			ss << fromline << "\t";
+		ss << buf;
+	}
+	return ss.str();
+}
+
+string GetFileLine(const char *filename, size_t line)
+{
+	return GetFileLines(filename, line, line, false);
+}
+
 }
 

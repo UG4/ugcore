@@ -21,6 +21,7 @@
 #include "common/util/string_util.h"
 #include "lua_stack_check.h"
 #include "registry/class_name_provider.h"
+#include "common/util/string_util.h"
 
 extern "C"
 {
@@ -36,6 +37,42 @@ namespace ug
 {
 namespace bridge
 {
+
+
+/**
+ * this function also includes all lines before fromline which begin with -- (lua comments)
+ * and adds line numbers
+ * @param filename
+ * @param fromline
+ * @param toline
+ * @return string with lines
+ */
+string GetFileLinesLUA(const char *filename, size_t fromline, size_t toline)
+{
+	char buf[512];
+	fstream file(filename, ios::in);
+	if(file.is_open() == false) return string("");
+	stringstream *pss = NULL;
+	for(size_t i=0; i<fromline-1; i++)
+	{
+		file.getline(buf, 512);
+		if(strncmp(buf+strspn(buf, "\t "), "--", 2)==0)
+		{
+			if(pss == NULL) pss = new stringstream;
+			*pss << "   \t" << buf+strspn(buf, "-\t ") << '\n';
+		}
+		else if(pss) { delete pss; pss = NULL; }
+
+	}
+	stringstream ss;
+	if(pss != NULL) ss << "\n" << pss->str() << "\n";
+	for(; fromline <= toline; fromline++)
+	{
+		file.getline(buf, 512);
+		ss << fromline << "\t" << buf << "\n";
+	}
+	return ss.str();
+}
 
 
 double LuaGetNumber(lua_State *L, const char *name, double notAvailable)
@@ -165,7 +202,6 @@ const std::vector<const char*> *GetClassNames(lua_State* L, const char *name)
 	return p;
 }
 
-string GetFileLinesLUA(const char *filename, size_t fromline, size_t toline);
 int PrintFunctionInfo(lua_State *L, bool bComplete)
 {
 	LUA_STACK_CHECK(L, 0);
@@ -398,88 +434,6 @@ bool ClassUsage(const char *classname)
 	return true;
 }
 
-static void LOGFillSpace(size_t n)
-{
-	for(size_t i=0; i<n; i++)
-		UG_LOG(" ");
-}
-
-bool IsLonger(const std::string &a, const std::string &b)
-{
-	return b.size() > a.size();
-}
-
-
-/**
- * @param filename
- * @param fromline
- * @param toline
- * @param includeLineNumbers if true, append line numbers in front of lines
- * @return string with lines of the file
- */
-string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers)
-{
-	char buf[512];
-	fstream file(filename, ios::in);
-	if(file.is_open() == false) return string("");
-	for(size_t i=0; i<fromline; i++)
-		file.getline(buf, 512);
-	stringstream ss;
-	if(includeLineNumbers)
-		ss << fromline << "\t";
-	ss << buf;
-	for(; fromline < toline; fromline++)
-	{
-		file.getline(buf, 512);
-		ss << "\n";
-		if(includeLineNumbers)
-			ss << fromline << "\t";
-		ss << buf;
-	}
-	return ss.str();
-}
-
-
-/**
- * this function also includes all lines before fromline which begin with -- (lua comments)
- * and adds line numbers
- * @param filename
- * @param fromline
- * @param toline
- * @return string with lines
- */
-string GetFileLinesLUA(const char *filename, size_t fromline, size_t toline)
-{
-	char buf[512];
-	fstream file(filename, ios::in);
-	if(file.is_open() == false) return string("");
-	stringstream *pss = NULL;
-	for(size_t i=0; i<fromline-1; i++)
-	{
-		file.getline(buf, 512);
-		if(strncmp(buf+strspn(buf, "\t "), "--", 2)==0)
-		{
-			if(pss == NULL) pss = new stringstream;
-			*pss << "   \t" << buf+strspn(buf, "-\t ") << '\n';
-		}
-		else if(pss) { delete pss; pss = NULL; }
-
-	}
-	stringstream ss;
-	if(pss != NULL) ss << "\n" << pss->str() << "\n";
-	for(; fromline <= toline; fromline++)
-	{
-		file.getline(buf, 512);
-		ss << fromline << "\t" << buf << "\n";
-	}
-	return ss.str();
-}
-string GetFileLine(const char *filename, size_t line)
-{
-	return GetFileLines(filename, line, line, false);
-}
-
-
 void PrintLuaScriptFunction(lua_State *L, int index)
 {
 	LUA_STACK_CHECK(L, 0);
@@ -507,7 +461,7 @@ void LuaPrintTable(lua_State *L, size_t iSpace, int index)
 	if(index != -1)
 		lua_pushvalue(L, index);
 
-	LOGFillSpace(iSpace);
+	UG_LOG(repeat(' ', iSpace));
 	UG_LOG("{\n");
 	//lua_getglobal(L, "ugargv"); // -2
 	int len=0;
@@ -538,7 +492,7 @@ void LuaPrintTable(lua_State *L, size_t iSpace, int index)
 	{
 		int index = sorted[i].index;
 
-		LOGFillSpace(iSpace);
+		UG_LOG(repeat(' ', iSpace));
 		UG_LOG(sorted[i].value);
 		UG_LOG(" (" << GetLuaTypeString(L, index) << ")");
 		if(lua_isfunction(L, index))
@@ -560,7 +514,7 @@ void LuaPrintTable(lua_State *L, size_t iSpace, int index)
 	}
 
 	lua_pop(L, 2*len);
-	LOGFillSpace(iSpace);
+	UG_LOG(repeat(' ', iSpace));
 	UG_LOG("}\n");
 	if(index != -1)
 		lua_pop(L, 1);

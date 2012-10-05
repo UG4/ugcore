@@ -15,6 +15,7 @@
 #include "common/log.h"
 #include "common/util/string_util.h"
 #include "profile_node.h"
+#include "common/util/string_util.h"
 #include <map>
 
 #ifdef UG_PARALLEL
@@ -26,10 +27,6 @@ using namespace std;
 
 namespace ug
 {
-namespace bridge
-{
-	UG_API std::string GetFileLine(const char *filename, size_t line);
-}
 
 #if SHINY_PROFILER
 
@@ -160,7 +157,7 @@ string UGProfileNode::print_node(double full, size_t offset) const
 			char file[255];
 			strncpy(file, name, p-name);
 			file[p-name]=0x00;
-			string str = ug::bridge::GetFileLine(file, line+1);
+			string str = GetFileLine(file, line+1);
 			for(size_t i=0; i<str.size(); i++) if(str[i] == '\t') str[i] = ' ';
 			s << "\n";
 			if(offset)	s << setw(offset) << " ";

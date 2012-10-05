@@ -141,6 +141,35 @@ UG_API std::string repeat(char c, int nr);
  */
 UG_API size_t LevenshteinDistance( const std::string& s1, const std::string& s2 );
 
+
+/**
+ * \brief function to get some lines of a file
+ * \param filename				file name
+ * \param fromline
+ * \param toline
+ * \param includeLineNumbers	if true, add the line number in front of each line and a tab.
+ *
+ * \return lines fromline to toline of file filename.
+ */
+UG_API std::string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers);
+
+/**
+ * \brief function to get a line of a file
+ * \param filename				file name
+ * \param line
+ * \return the line of the file.
+ */
+UG_API std::string GetFileLine(const char *filename, size_t line);
+
+/**
+ * IsLonger can be used to get the longest string in a vector of strings:
+ * int maxLength = (*max_element(vecStr.begin(), vecStr.end(), IsLonger)).size();
+ * @param a
+ * @param b
+ * @return true if b is longer then a
+ */
+UG_API bool IsLonger(const std::string &a, const std::string &b);
+
 } // end namespace ug
 
 #endif /*__H__COMMON_STRING_UTIL__*/
