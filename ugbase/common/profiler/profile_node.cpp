@@ -26,10 +26,14 @@ using namespace std;
 
 namespace ug
 {
+namespace bridge
+{
+	UG_API std::string GetFileLine(const char *filename, size_t line);
+}
 
 #if SHINY_PROFILER
 
-static const int PROFILER_BRIDGE_OUTPUT_WIDTH_NAME = 50; // Shiny::OUTPUT_WIDTH_NAME
+static const int PROFILER_BRIDGE_OUTPUT_WIDTH_NAME = 70; // Shiny::OUTPUT_WIDTH_NAME
 static const int PROFILER_BRIDGE_OUTPUT_WIDTH_HIT  = 13; // Shiny::OUTPUT_WIDTH_HIT
 static const int PROFILER_BRIDGE_OUTPUT_WIDTH_TIME =  7; // Shiny::OUTPUT_WIDTH_TIME
 static const int PROFILER_BRIDGE_OUTPUT_WIDTH_PERC =  4; // Shiny::OUTPUT_WIDTH_PERC
@@ -141,8 +145,32 @@ string UGProfileNode::print_node(double full, size_t offset) const
 	stringstream s;
 	if(offset)	s << setw(offset) << " ";
 
-	s <<	left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(zone->name, PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) <<
-			right << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << floor(get_avg_entry_count()) << " " <<
+	if(zone->name[0] == '@')
+	{
+		if(strlen(zone->name) > (PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) )
+			s << "@... " << zone->name+strlen(zone->name)-(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset-5);
+		else
+			s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(zone->name, PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
+
+		const char *name = zone->name+1;
+		const char *p = strchr(name, ':'); // search for line number
+		if(!(p == NULL || p[0] == 0x00 || p[1] == 0x00))
+		{
+			int line = strtol(p+1, NULL, 10);
+			char file[255];
+			strncpy(file, name, p-name);
+			file[p-name]=0x00;
+			string str = ug::bridge::GetFileLine(file, line+1);
+			for(size_t i=0; i<str.size(); i++) if(str[i] == '\t') str[i] = ' ';
+			s << "\n";
+			if(offset)	s << setw(offset) << " ";
+			s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(str.c_str(), PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
+		}
+	}
+	else
+		s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(zone->name, PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
+
+	s <<	right << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << floor(get_avg_entry_count()) << " " <<
 			setprecision(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME-1) <<
 			setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << get_avg_self_time() * selfUnit->invTickFreq << " " <<
 			left << setw(2) << selfUnit->suffix << " " <<
@@ -342,16 +370,16 @@ void PrintLUA()
 		const char *p = strchr(name, ':'); // search for line number
 		if(p == NULL || p[0] == 0x00 || p[1] == 0x00) continue;
 		int line = strtol(p+1, NULL, 10);
-		if(line > 10000) continue;
+		if(line > 10000 || line < 0) continue;
 		char file[255];
 		strncpy(file, name, p-name);
 		file[p-name]=0x00;
 		vector<double> &v = files[file];
-		if(v.size() < line+1)
+		if(v.size() < (size_t)line+1)
 		{
 			size_t s=v.size();
 			v.resize(line+1);
-			for(; s<line+1; s++)
+			for(; s<(size_t)line+1; s++)
 				v[s]=0.0;
 		}
 		v[line] = nodes[i]->get_avg_total_time();
