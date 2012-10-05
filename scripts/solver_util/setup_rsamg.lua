@@ -6,6 +6,8 @@
 --  \sa util.SetupRSAMGPreconditioner
 !]]--
 
+util = util or {}
+
 --! creates a RSAMG Preconditioner object
 --! \param base ILinearOperatorInverse to solve coarse level problem. if nil or omitted: LU 
 --! \param presmoother ILinearIterator for presmoothing. if nil or omitted: SymmetricGaussSeidel 
@@ -14,18 +16,18 @@
 --! example usage:
 --! \code
 --! ug_load_script("setup_famg.lua")
---! precond = util.SetupRSAMGPrecondition(LU(), GaussSeidel(), GaussSeidel())
+--! precond = util.SetupRSAMGPreconditioner(LU(), GaussSeidel(), GaussSeidel())
 --! \endcode
 --! note that FAMG is a preconditioner, you can use it e.g. in a Linear Solver:
 --! \code
---! precond = util.SetupRSAMGPrecondition()
+--! precond = util.SetupRSAMGPreconditioner()
 --! linSolver = CG()
 --! linSolver:set_preconditioner(precond)
 --! linSolver:set_convergence_check(ConvCheck(40, 1e-16, 1e-9))
 --! -- use linSolver
 --! \endcode
 --! \sa RSAMG
-function SetupRSAMGSolver(base, presmoother, postsmoother)
+function util.SetupRSAMGPreconditioner(base, presmoother, postsmoother)
 	if base == nil then
 		base = LU()
 	end
