@@ -4,6 +4,8 @@
 --   \brief Lua - Script which creates and configures the RSAMG solver
 -- 	 \author Martin Rupp
 --  \sa util.SetupRSAMGPreconditioner
+--
+--  \note You have to enable the AMG plugin: cmake -Damg=ON ..
 !]]--
 
 util = util or {}

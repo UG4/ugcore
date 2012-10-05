@@ -4,6 +4,8 @@
 --   \brief Lua - Script which creates and configures the FAMG solver
 -- 	 \author Martin Rupp
 --  \sa util.SetupFAMGPreconditioner
+--
+--  \note You have to enable the AMG plugin: cmake -Damg=ON ..
 !]]--
 
 
