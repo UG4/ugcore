@@ -126,7 +126,7 @@ T &
 VariableArray1<T>::operator[](size_t i)
 {
 	assert(values);
-	assert(i>=0 && i<n);
+	assert(i<n);
 	return values[i];
 }
 
@@ -135,7 +135,7 @@ const T &
 VariableArray1<T>::operator[](size_t i) const
 {
 	assert(values);
-	assert(i>=0 && i<n);
+	assert(i<n);
 	return values[i];
 }
 
