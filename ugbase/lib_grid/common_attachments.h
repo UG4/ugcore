@@ -25,7 +25,7 @@ typedef Attachment<byte>		AByte;
 typedef Attachment<int>			AInt;
 typedef Attachment<uint>		AUInt;
 typedef Attachment<number>		ANumber;
-typedef	Attachment<float>		AFloat;
+typedef	 Attachment<float>		AFloat;
 typedef Attachment<double>		ADouble;
 typedef Attachment<vector1>		AVector1;
 typedef Attachment<vector2>		AVector2;
