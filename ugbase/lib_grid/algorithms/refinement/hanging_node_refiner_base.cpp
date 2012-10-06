@@ -1305,10 +1305,10 @@ refine_constraining_face(ConstrainingFace* cgf)
 	UG_ASSERT(cgf->num_constrained_edges() == numVrts,
 			 "bad number of constrained edges: " << cgf->num_constrained_edges()
 			 << ". There have to be as many as vertices: " << numVrts << "."
-			 << "At face with center " << GetGeometricObjectCenter(grid, cgf) << endl);
+			 << "At face with center " << GetGeometricObjectCenter(grid, cgf));
 	UG_ASSERT(cgf->num_constrained_faces() == 4,
 			  "bad number of constrained faces. There have to be exactly 4. "
-			  << "At face with center " << GetGeometricObjectCenter(grid, cgf) << endl);
+			  << "At face with center " << GetGeometricObjectCenter(grid, cgf));
 
 	ConstrainedVertex* centralHV = NULL;
 	Vertex* centerVrt = NULL;
