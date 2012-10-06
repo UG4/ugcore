@@ -431,7 +431,7 @@ bool SparseMatrix<T>::axpy(vector_t &dest,
 	{
 		for(size_t i=0; i < rows; i++)
 		{
-			VecScaleAssign(dest[i], alpha1, v1[i]);;
+			VecScaleAssign(dest[i], alpha1, v1[i]);
 			mat_mult_add_row(i, dest[i], beta1, w1);
 		}
 	}
