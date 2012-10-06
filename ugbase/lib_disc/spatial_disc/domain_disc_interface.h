@@ -42,6 +42,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 
 	/// Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
+		virtual ~IDomainDiscretization() {};
 
 	public:
 		/// assembles Jacobian (or Approximation of Jacobian)
@@ -93,7 +94,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  vSol			vector of previous and current (iterated) solution
 	 * \param[in]  dd 			DoF Distribution
 	 */
-	virtual	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl) = 0;
+	virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl) = 0;
 
 	///	prepares timestep on surface level
 	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
@@ -211,7 +212,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  vSol			vector of previous and current (iterated) solution
 	 * \param[in]  dd 			DoF Distribution
 	 */
-		virtual	void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl) = 0;
+		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl) = 0;
 
 	///	prepares timestep on surface level
 		void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)

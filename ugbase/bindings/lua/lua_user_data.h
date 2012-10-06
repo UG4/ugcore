@@ -312,6 +312,7 @@ class LuaFunction : public IFunction<TData, TDataIn>
 	public:
 	///	constructor
 		LuaFunction();
+		virtual ~LuaFunction() {};
 
 	///	sets the Lua function used to compute the data
 	/**
