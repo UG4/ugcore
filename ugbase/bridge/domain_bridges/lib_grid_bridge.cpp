@@ -36,19 +36,19 @@ class GridObject : public Grid
 
 bool LoadGridObject(GridObject& go, const char* filename)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	return LoadGridFromFile(go.grid(), go.subset_handler(), filename);
 }
 
 bool SaveGridObject(GridObject& go, const char* filename)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	return SaveGridToFile(go.grid(), go.subset_handler(), filename);
 }
 
 GridObject* CreateGridObject(const char* filename)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	GridObject* go = new GridObject;
 	if(!LoadGridObject(*go, filename)){
 		delete go;
@@ -60,7 +60,7 @@ GridObject* CreateGridObject(const char* filename)
 bool CreateFractal(Grid& grid, HangingNodeRefiner_Grid& href,
 					number scaleFac, size_t numIterations)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 //	HangingNodeRefiner_IR1 href(grid);
 	return CreateFractal_NormalScale(grid, href, scaleFac, numIterations);
 //	return true;
@@ -71,6 +71,7 @@ bool CreateFractal(Grid& grid, HangingNodeRefiner_Grid& href,
 bool SaveGridHierarchyTransformed(MultiGrid& mg, ISubsetHandler& sh,
 								  const char* filename, number offset)
 {
+	PROFILE_FUNC_GROUP("grid");
 	APosition aPos;
 //	uses auto-attach
 	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
@@ -108,6 +109,7 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, ISubsetHandler& sh,
 /**	Note that this method might better be implemented for domains.*/
 bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename, number offset)
 {
+	PROFILE_FUNC_GROUP("grid");
 //	cast away constness
 	SubsetHandler& sh = mg.get_hierarchy_handler();
 
@@ -146,44 +148,44 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename, number of
 
 bool LoadGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	return LoadGridFromFile(grid, sh, filename);
 }
 
 bool LoadGrid(Grid& grid, const char* filename)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	return LoadGridFromFile(grid, filename);
 }
 
 bool SaveGrid(Grid& grid, const char* filename)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	return SaveGridToFile(grid, filename);
 }
 
 bool SaveGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	return SaveGridToFile(grid, sh, filename);
 }
 
 bool SaveGrid(Grid& grid, const ISubsetHandler& sh, const char* filename)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	return SaveGridToFile(grid, *const_cast<ISubsetHandler*>(&sh), filename);
 }
 
 bool SaveGridHierarchy(MultiGrid& mg, const char* filename)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	return SaveGridToFile(mg, mg.get_hierarchy_handler(), filename);
 }
 
 
 void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 //todo: Callbacks have to make sure that their attachment is accessible in the grid.
 //		even if they were initialized before the attachment was attached to the grid.
 	MultiGrid mg;
@@ -207,7 +209,7 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 
 bool CreateHierarchy(MultiGrid& mg, size_t numRefs)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 
 	GlobalMultiGridRefiner ref(mg);
 
@@ -219,7 +221,7 @@ bool CreateHierarchy(MultiGrid& mg, size_t numRefs)
 
 bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	IRefinementCallback* refCallback = NULL;
 //	we're only checking for the main attachments here.
 //todo: improve this - add a domain-based hierarchy creator.
@@ -254,7 +256,7 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 
 bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	IRefinementCallback* refCallback = NULL;
 //	we're only checking for the main attachments here.
 //todo: improve this - add a domain-based hierarchy creator.
@@ -292,7 +294,7 @@ void MarkForRefinement(MultiGrid& mg,
 					  IRefiner& refiner,
 					  float percentage)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	typedef typename geometry_traits<TElem>::iterator iterator;
 	for(iterator iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter)
 	{
@@ -322,7 +324,7 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 									  int numIterations,
 									  float percentage)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 	MultiGrid mg;
 	MGSubsetHandler sh(mg);
 	HangingNodeRefiner_MultiGrid refiner(mg);
@@ -370,7 +372,7 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
  */
 void TestGridRedistribution(const char* filename)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC_GROUP("grid");
 #ifndef UG_PARALLEL
 	UG_LOG("WARNING in TestGridRedistribution: ");
 	UG_LOG("This method only works in a parallel environment.\n");

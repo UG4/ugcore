@@ -44,6 +44,7 @@ template <typename TDomain>
 static void LoadAndRefineDomain(TDomain& domain, const char* filename,
 								int numRefs)
 {
+	PROFILE_FUNC_GROUP("grid");
 	try{
 		LoadDomain(domain, filename);
 	}
@@ -58,6 +59,7 @@ template <typename TDomain>
 static bool SavePartitionMap(PartitionMap& pmap, TDomain& domain,
 							 const char* filename)
 {
+	PROFILE_FUNC_GROUP("grid");
 	if(domain.grid().get() != pmap.get_partition_handler().grid())
 	{
 		UG_LOG("WARNING in SavePartitionMap: The given partition map was not"
@@ -273,7 +275,7 @@ static void Common(Registry& reg, string grp)
 	}
 
 }
-
+ perform_refinement
 }; // end Functionality
 
 
