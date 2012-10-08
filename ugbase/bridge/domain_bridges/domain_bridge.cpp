@@ -275,7 +275,6 @@ static void Common(Registry& reg, string grp)
 	}
 
 }
- perform_refinement
 }; // end Functionality
 
 
