@@ -11,8 +11,8 @@
 //the refinement code.
 #define PROFILE_GLOBAL_MULTI_GRID_REFINER
 #ifdef PROFILE_GLOBAL_MULTI_GRID_REFINER
-	#define GMGR_PROFILE_FUNC()	PROFILE_FUNC()
-	#define GMGR_PROFILE(name)	PROFILE_BEGIN(name)
+	#define GMGR_PROFILE_FUNC()	PROFILE_FUNC_GROUP("grid")
+	#define GMGR_PROFILE(name)	PROFILE_BEGIN_GROUP(name, "grid")
 	#define GMGR_PROFILE_END()	PROFILE_END()
 #else
 	#define GMGR_PROFILE_FUNC()
@@ -399,6 +399,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 bool GlobalMultiGridRefiner::save_marks_to_file(const char* filename)
 {
+	GMGR_PROFILE(GlobalMultiGridRefiner_save_marks_to_file);
 	if(!m_pMG){
 		UG_THROW("ERROR in GlobalMultiGridRefiner::save_marks_to_file: No grid assigned!");
 	}
