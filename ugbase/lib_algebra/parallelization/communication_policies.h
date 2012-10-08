@@ -109,6 +109,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecCopy_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVecSrc == NULL) return false;
 
@@ -138,6 +139,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecCopy_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVecDest == NULL) return false;
 
@@ -219,6 +221,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecScaleCopy_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
 
@@ -248,6 +251,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecScaleCopy_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
 
@@ -336,6 +340,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecAdd_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVecSrc == NULL) return false;
 
@@ -365,6 +370,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecAdd_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVecDest == NULL) return false;
 
@@ -450,6 +456,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecScaleAdd_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
 
@@ -479,6 +486,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecScaleAdd_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
 
@@ -566,6 +574,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecAddSetZero_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
 
@@ -598,6 +607,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecAddSetZero_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
 
@@ -679,6 +689,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecSubtract_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
 
@@ -708,6 +719,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecSubtract_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
 
@@ -804,6 +816,8 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 		virtual bool
 		collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
+
+			PROFILE_BEGIN_GROUP(ComPol_VecSubtractOnlyOneSlave_collect, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
 
@@ -833,6 +847,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 		virtual bool
 		extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_VecSubtractOnlyOneSlave_extract, "algebra parallelization");
 		//	check that vector has been set
 			if(m_pVec == NULL) return false;
 
@@ -878,6 +893,7 @@ void GenerateGlobalAlgebraIDs(pcl::InterfaceCommunicator<TLayout>& communicator,
 		TLayout& masterLayout,
 		TLayout& slaveLayout)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	generate an id for each entry.
 	idsOut.resize(numIDs);
 	int localProc = pcl::GetProcRank();
@@ -923,6 +939,7 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 	///	writes the interface values into a buffer that will be sent
 		virtual bool collect(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_MatAddSlaveRowsToMasterOverlap0_collect, "algebra parallelization");
 			typedef typename TMatrix::row_iterator row_iterator;
 			typedef typename TMatrix::value_type block_type;
 
@@ -971,6 +988,7 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 	///	writes values from a buffer into the interface
 		virtual bool extract(ug::BinaryBuffer& buff, Interface& interface)
 		{
+			PROFILE_BEGIN_GROUP(ComPol_MatAddSlaveRowsToMasterOverlap0_extract, "algebra parallelization");
 		//	block type of associated matrix
 			typedef typename TMatrix::value_type block_type;
 

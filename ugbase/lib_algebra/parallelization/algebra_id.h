@@ -43,6 +43,7 @@ std::ostream& operator<<(std::ostream &out, const AlgebraID &ID);
 ///	Creates a hash which allows a algebraID->localIndex mapping
 inline void GenerateAlgebraIDHashList(AlgebraIDHashList &hash, AlgebraIDVec& algebraIDs)
 {
+	PROFILE_FUNC_GROUP("algebra");
 //	clear and resize the hash
 //	We'll resize the hash to the number of algebraIDs, in order to have a
 //	hopefully good mapping...

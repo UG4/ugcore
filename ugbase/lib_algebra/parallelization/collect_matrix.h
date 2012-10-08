@@ -17,6 +17,7 @@ namespace ug{
 template<typename matrix_type>
 void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowIndex, ParallelNodes &PN)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	const AlgebraID &globalRowIndex = PN.local_to_global(localRowIndex);
 
 	// serialize global row index
@@ -46,6 +47,7 @@ void SerializeRow(BinaryBuffer &stream, const matrix_type &mat, size_t localRowI
 template<typename matrix_type>
 void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int destproc, ParallelNodes &PN)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
 
 	pcl::InterfaceCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
@@ -70,6 +72,7 @@ void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int dest
 template<typename TConnectionType>
 size_t DeserializeRow(BinaryBuffer &stream, stdvector<TConnectionType> &cons, ParallelNodes &PN)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	AlgebraID globalRowIndex;
 
 	// serialize global row index
@@ -112,6 +115,7 @@ template<typename matrix_type>
 void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMasterLayout,	const std::vector<int> &srcprocs,
 		ParallelNodes &PN)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** ReceiveMatrix ************\n\n");
 	pcl::InterfaceCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
 
@@ -197,6 +201,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 template<typename matrix_type>
 void collect_matrix(matrix_type &A, matrix_type &M, IndexLayout &masterLayout, IndexLayout &slaveLayout)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
 	std::vector<int> srcprocs;
 	pcl::ProcessCommunicator &pc = A.process_communicator();

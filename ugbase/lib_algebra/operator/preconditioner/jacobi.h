@@ -68,6 +68,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 	///	Preprocess routine
 		virtual bool preprocess(matrix_operator_type& mat)
 		{
+			PROFILE_BEGIN_GROUP(Jacobi_preprocess, "algebra Jacobi");
 #ifdef UG_PARALLEL
 		// 	create help vector to apply diagonal
 			size_t size = mat.num_rows();
@@ -115,6 +116,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 
 		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
+			PROFILE_BEGIN_GROUP(Jacobi_step, "algebra Jacobi");
 #ifdef UG_PARALLEL
 		// 	multiply defect with diagonal, c = damp * D^{-1} * d
 		//	note, that the damping is already included in the inverse diagonal
@@ -158,6 +160,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 	//	overwrite function in order to specially treat constant damping
 		virtual bool apply(vector_type& c, const vector_type& d)
 		{
+			PROFILE_BEGIN_GROUP(Jacobi_apply, "algebra Jacobi");
 		//	Check that operator is initialized
 			if(!this->m_bInit)
 			{

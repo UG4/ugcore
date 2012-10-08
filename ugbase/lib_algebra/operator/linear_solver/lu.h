@@ -49,6 +49,7 @@ class LU
 	///	initializes the solver for a matrix A
 		bool init_lu(const matrix_type &A)
 		{
+			PROFILE_BEGIN_GROUP(LU_init_lu, "algebra lu");
 			if(block_traits<typename vector_type::value_type>::is_static)
 			{
 				const size_t nrOfRows = block_traits<typename matrix_type::value_type>::static_num_rows;
@@ -107,6 +108,7 @@ class LU
 
 		bool apply_lu(vector_type &x, const vector_type &b)
 		{
+			PROFILE_BEGIN_GROUP(LU_apply_lu, "algebra lu");
 #ifndef NDEBUG
 			if(block_traits<typename vector_type::value_type>::is_static)
 			{
@@ -216,6 +218,7 @@ class LU
 	/// Compute u = L^{-1} * f AND return defect f := f - L*u
 		virtual bool apply_return_defect(vector_type& u, vector_type& f)
 		{
+			PROFILE_BEGIN_GROUP(LU_apply_return_defect, "algebra lu");
 		//	solve u
 			if(!apply(u, f)) return false;
 

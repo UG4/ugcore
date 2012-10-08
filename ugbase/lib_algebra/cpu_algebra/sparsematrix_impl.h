@@ -79,6 +79,8 @@ bool SparseMatrix<T>::create(size_t _rows, size_t _cols)
 template<typename T>
 bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 {
+	PROFILE_BEGIN_GROUP(SparseMatrix_resize, "algebra SparseMatrix");
+
 	if(cols == 0 && rows == 0)
 	{
 		// 	\todo: verify: A matrix could not be created, but is resized
@@ -176,6 +178,7 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 template<typename T> bool
 SparseMatrix<T>::destroy()
 {
+	PROFILE_BEGIN_GROUP(SparseMatrix_destroy, "algebra SparseMatrix");
 	if(is_finalized())
 	{
 		if(pRowStart) delete [] pRowStart;
@@ -203,6 +206,7 @@ SparseMatrix<T>::destroy()
 template<typename T>
 bool SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<T> &B, double scale)
 {
+	PROFILE_BEGIN_GROUP(SparseMatrix_set_as_transpose_of, "algebra SparseMatrix");
 	//destroy();
 	UG_ASSERT(rows == 0 && cols == 0, *this << " not empty.");
 
@@ -316,6 +320,7 @@ template<typename T>
 void SparseMatrix<T>::defragment()
 {
 	if(is_finalized()) return;
+	PROFILE_BEGIN_GROUP(SparseMatrix_defragment, "algebra SparseMatrix");
 
 	iTotalNrOfConnections=0;
 	for(size_t i=0; i<rows; i++)
@@ -398,6 +403,7 @@ bool SparseMatrix<T>::axpy(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1) const
 {
+	PROFILE_BEGIN_GROUP(SparseMatrix_axpy, "algebra SparseMatrix");
 //	UG_ASSERT(cols == x.size(), "x: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 //	UG_ASSERT(rows == res.size(), "res: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 
@@ -446,6 +452,7 @@ bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1) const
 {
+	PROFILE_BEGIN_GROUP(SparseMatrix_axpy_transposed, "algebra SparseMatrix");
 //	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 //	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 

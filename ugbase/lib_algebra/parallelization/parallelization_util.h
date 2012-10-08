@@ -48,6 +48,7 @@ namespace ug{
 template <typename TMatrix>
 void MatCopySlaveRowsToMasterRowOverlap0(TMatrix& mat)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	using namespace std;
 	vector<AlgebraID> globalIDs;
 	IndexLayout& masters = mat.master_layout();
@@ -78,6 +79,7 @@ void AdditiveToConsistent(	TVector* pVec,
 							IndexLayout& masterLayout, IndexLayout& slaveLayout,
 							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
 		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
@@ -122,6 +124,7 @@ void UniqueToConsistent(	TVector* pVec,
 							IndexLayout& masterLayout, IndexLayout& slaveLayout,
 							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
 		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
@@ -154,6 +157,7 @@ void AdditiveToUnique(	TVector* pVec,
 						IndexLayout& masterLayout, IndexLayout& slaveLayout,
 						pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
 		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
@@ -181,6 +185,7 @@ void SetLayoutValues(	TVector* pVec,
                      	IndexLayout& layout,
                      	number val)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
 	typename IndexLayout::iterator iter = layout.begin();
 	typename IndexLayout::iterator end = layout.end();
@@ -215,6 +220,7 @@ void SetLayoutValues(	TVector* pVec,
                      	IndexLayout& layout,
                      	typename TVector::value_type val)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
 	typename IndexLayout::iterator iter = layout.begin();
 	typename IndexLayout::iterator end = layout.end();
@@ -268,6 +274,7 @@ void VecSubtractOnLayout(	TVector* pVec,
 							IndexLayout& masterLayout, IndexLayout& slaveLayout,
 							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
 		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
@@ -307,6 +314,7 @@ void VecSubtractOneSlaveFromMaster(	TVector* pVec,
                                    	IndexLayout& slaveLayout,
                                    	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
 		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
@@ -342,6 +350,7 @@ void VecCopy(	TVector* pVec,
 						IndexLayout& masterLayout, IndexLayout& slaveLayout,
 						pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
 		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
@@ -446,6 +455,7 @@ void MatExtractDiagOnLayout(	TVector* pDiagVector,
 								const TMatrix* pMatrix,
                             	IndexLayout& Layout)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterator
 	typename IndexLayout::iterator iter = Layout.begin();
 	typename IndexLayout::iterator end = Layout.end();
@@ -485,6 +495,7 @@ void MatWriteDiagOnLayout(	TMatrix* pMatrix,
                           	const TVector* pDiagVector,
                           	IndexLayout& Layout)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterator
 	typename IndexLayout::iterator iter = Layout.begin();
 	typename IndexLayout::iterator end = Layout.end();
@@ -526,6 +537,7 @@ void MatAdditiveToConsistentOnDiag(	typename TAlgebra::matrix_type* pMat,
                                    	IndexLayout& masterLayout, IndexLayout& slaveLayout,
                                    	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	\todo: We could work on the matrix directly here, without temporary vector
 
 //	create a vector of length of the diagonal
@@ -563,6 +575,7 @@ void VecGather(	TVector* pVecDest, const TVector* pVecSrc,
 				IndexLayout& masterLayoutDest, IndexLayout& slaveLayoutSrc,
 				pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
 		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)
@@ -596,6 +609,7 @@ void VecBroadcast(	TVector* pVecDest, const TVector* pVecSrc,
                   	IndexLayout& slaveLayoutDest, IndexLayout& masterLayoutSrc,
                   	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
 		pcl::InterfaceCommunicator<IndexLayout> tCom;
 		if(!pCom)

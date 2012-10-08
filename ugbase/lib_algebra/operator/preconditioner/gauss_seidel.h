@@ -61,6 +61,7 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(matrix_operator_type& mat)
 		{
+			PROFILE_BEGIN_GROUP(GaussSeidel_preprocess, "algebra gaussseidel");
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
@@ -81,6 +82,7 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
+			PROFILE_BEGIN_GROUP(GaussSeidel_step, "algebra gaussseidel");
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
@@ -156,6 +158,7 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(matrix_operator_type& mat)
 		{
+			PROFILE_BEGIN_GROUP(BackwardGaussSeidel_preprocess, "algebra BackwardGaussSeidel");
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
@@ -176,6 +179,7 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
+			PROFILE_BEGIN_GROUP(GaussSeidel_step, "algebra BackwardGaussSeidel");
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
@@ -250,6 +254,7 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(matrix_operator_type& mat)
 		{
+			PROFILE_BEGIN_GROUP(SymmetricGaussSeidel_preprocess, "algebra SymmetricGaussSeidel");
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
@@ -270,6 +275,7 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
+			PROFILE_BEGIN_GROUP(SymmetricGaussSeidel_step, "algebra SymmetricGaussSeidel");
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{

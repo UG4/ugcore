@@ -25,8 +25,8 @@
 #include "common/profiler/profiler.h"
 #define PROFILE_FETI
 #ifdef PROFILE_FETI
-	#define FETI_PROFILE_FUNC()			PROFILE_FUNC_GROUP("algebra")
-	#define FETI_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "algebra")
+	#define FETI_PROFILE_FUNC()			PROFILE_FUNC_GROUP("algebra feti")
+	#define FETI_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "algebra feti")
 	#define FETI_PROFILE_END()			PROFILE_END()
 #else
 	#define FETI_PROFILE_FUNC()
@@ -122,6 +122,7 @@ template <typename TAlgebra>
 void LocalSchurComplement<TAlgebra>::
 apply(vector_type& f, const vector_type& u)
 {
+	FETI_PROFILE_BEGIN(FETI_apply);
 //	check that matrix has been set
 	if(m_spOperator.invalid())
 		UG_THROW("LocalSchurComplement::apply: Matrix A not set.");
@@ -235,6 +236,7 @@ template <typename TAlgebra>
 void LocalSchurComplement<TAlgebra>::
 apply_sub(vector_type& f, const vector_type& u)
 {
+	FETI_PROFILE_BEGIN(FETI_apply_sub);
 //	create new rhs
 	vector_type d; d.resize(f.size());
 
@@ -351,6 +353,7 @@ template <typename TAlgebra>
 bool PrimalSubassembledMatrixInverse<TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > L)
 {
+	FETI_PROFILE_BEGIN(FETI_init);
 //	status output
 	UG_LOG("     % Initializing 'PrimalSubassembledMatrixInverse': \n");
 

@@ -67,6 +67,7 @@ class CG
 	///	Solve J(u)*x = b, such that x = J(u)^{-1} b
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
+			PROFILE_BEGIN_GROUP(CG_apply_return_defect, "CG algebra");
 		//	check parallel storage types
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))

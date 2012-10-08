@@ -25,6 +25,7 @@ namespace ug{
 template<typename Matrix_type>
 bool FactorizeILU(Matrix_type &A)
 {
+	PROFILE_FUNC_GROUP("algebra ILU");
 	typedef typename Matrix_type::row_iterator row_iterator;
 	typedef typename Matrix_type::value_type block_type;
 
@@ -73,6 +74,7 @@ bool FactorizeILU(Matrix_type &A)
 template<typename Matrix_type>
 bool FactorizeILUBeta(Matrix_type &A, number beta)
 {
+	PROFILE_FUNC_GROUP("algebra ILUBeta");
 	typedef typename Matrix_type::row_iterator row_iterator;
 	typedef typename Matrix_type::value_type block_type;
 
@@ -139,6 +141,7 @@ bool FactorizeILUBeta(Matrix_type &A, number beta)
 template<typename Matrix_type>
 bool FactorizeILUSorted(Matrix_type &A)
 {
+	PROFILE_FUNC_GROUP("algebra ILU");
 	typedef typename Matrix_type::row_iterator row_iterator;
 	typedef typename Matrix_type::value_type block_type;
 
@@ -192,6 +195,7 @@ bool FactorizeILUSorted(Matrix_type &A)
 template<typename Matrix_type, typename Vector_type>
 bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
+	PROFILE_FUNC_GROUP("algebra ILU");
 	typedef typename Matrix_type::const_row_iterator const_row_iterator;
 
 	typename Vector_type::value_type s;
@@ -213,6 +217,7 @@ bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 template<typename Matrix_type, typename Vector_type>
 bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
+	PROFILE_FUNC_GROUP("algebra ILU");
 	typedef typename Matrix_type::const_row_iterator const_row_iterator;
 
 	typename Vector_type::value_type s;
@@ -285,6 +290,7 @@ class ILU : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(matrix_operator_type& mat)
 		{
+			PROFILE_BEGIN_GROUP(ILU_preprocess, "algebra ILU");
 		//	Debug output of matrices
 			write_debug(mat, "ILU_BeforeMakeConsistent");
 
@@ -328,6 +334,7 @@ class ILU : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
 		{
+			PROFILE_BEGIN_GROUP(ILU_step, "algebra ILU");
 		//	\todo: introduce damping
 #ifdef UG_PARALLEL
 		//	for debug output (only for application is written)

@@ -19,8 +19,8 @@
 
 #define PROFILE_LS
 #ifdef PROFILE_LS
-	#define LS_PROFILE_FUNC()		PROFILE_FUNC()
-	#define LS_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define LS_PROFILE_FUNC()		PROFILE_FUNC_GROUP("LinearSolver algebra")
+	#define LS_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "LinearSolver algebra")
 	#define LS_PROFILE_END()		PROFILE_END()
 #else
 	#define LS_PROFILE_FUNC()

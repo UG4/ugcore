@@ -44,8 +44,8 @@ printf( "\n%s\n\n", buf ); /*UG_ASSERT(0);*/ } }
 #include "common/profiler/profiler.h"
 #define PROFILE_HLIB
 #ifdef PROFILE_HLIB
-	#define HLIB_PROFILE_FUNC()			PROFILE_FUNC()
-	#define HLIB_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define HLIB_PROFILE_FUNC()			PROFILE_FUNC_GROUP("algebra hlib")
+	#define HLIB_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "algebra hlib")
 	#define HLIB_PROFILE_END()			PROFILE_END()
 #else
 	#define HLIB_PROFILE_FUNC()

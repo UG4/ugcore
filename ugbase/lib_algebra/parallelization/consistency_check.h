@@ -97,7 +97,7 @@ void ConsistencyCheck(const TVec &vec, pcl::InterfaceCommunicator<IndexLayout> &
 		const pcl::ProcessCommunicator &pc, IndexLayout &masterLayout,
 		IndexLayout &slaveLayout, std::string name="")
 {
-	PROFILE_FUNC()
+	PROFILE_FUNC_GROUP("algebra parallelization debug");
 	ConsistencyCheckClass<TVec, typename TVec::value_type> scheme(vec, name);
 	CommunicateOnInterfaces(com, masterLayout, slaveLayout, scheme);
 

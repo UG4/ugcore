@@ -16,6 +16,7 @@ namespace ug
 
 void DeserializeAndAddGlobalInterface(BinaryBuffer &stream,	std::vector<AlgebraID> &interface)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	std::vector<AlgebraID> tmp;
 	Deserialize(stream, tmp);
 	interface.insert(interface.end(), tmp.begin(), tmp.end());
@@ -23,6 +24,7 @@ void DeserializeAndAddGlobalInterface(BinaryBuffer &stream,	std::vector<AlgebraI
 
 void DeserializeAndAddGlobalLayout(BinaryBuffer &stream, GlobalLayout &globalLayout)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	size_t size;
 	Deserialize(stream, size);
 	for(size_t i=0; i<size; i++)
@@ -34,6 +36,7 @@ void DeserializeAndAddGlobalLayout(BinaryBuffer &stream, GlobalLayout &globalLay
 
 void PrintGlobalLayout(const GlobalLayout &globalLayout, const char *name)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization debug");
 	UG_LOG("GlobalLayout ");
 	if(name) UG_DLOG(LIB_ALG_AMG, 4, name);
 	UG_LOG("\n");
@@ -53,6 +56,7 @@ void PrintGlobalLayout(const GlobalLayout &globalLayout, const char *name)
 void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, const std::vector<int> &srcprocs,
 		GlobalLayout &globalMasterLayout, GlobalLayout &globalSlaveLayout)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	typedef std::map<int, BinaryBuffer> BufferMap;
 	BufferMap streams;
 
@@ -71,6 +75,7 @@ void ReceiveGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm, const st
 
 void SerializeGlobalLayout(BinaryBuffer &stream, const GlobalLayout &globalLayout)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	size_t size = globalLayout.size();
 	Serialize(stream, size);
 	UG_DLOG(LIB_ALG_AMG, 4, " size = " << size << "\n");
@@ -88,6 +93,7 @@ void SerializeGlobalLayout(BinaryBuffer &stream, const GlobalLayout &globalLayou
 void SendGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm,
 		const GlobalLayout &globalMasterLayout, const GlobalLayout &globalSlaveLayout, int pid)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	UG_DLOG(LIB_ALG_AMG, 4, "sending to " << pid << "\n");
 	BinaryBuffer stream;
 	UG_DLOG(LIB_ALG_AMG, 4, "serialize globalMasterLayout\n");
@@ -103,6 +109,7 @@ void SendGlobalLayout(pcl::InterfaceCommunicator<IndexLayout> &comm,
 
 void MergeGlobalLayout(GlobalLayout &globalLayout, const std::map<int, int> &merge)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	for(std::map<int, int>::const_iterator it = merge.begin(); it != merge.end(); ++it)
 	{
 		std::vector<AlgebraID> &a = globalLayout[it->first];

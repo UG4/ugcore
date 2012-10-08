@@ -85,6 +85,7 @@ void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth)
 
 void ReplaceIndicesInLayout(IndexLayout& layout, const std::vector<int>& vMap)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
 	IndexLayout::iterator interfaceIter = layout.begin();
 	IndexLayout::iterator interfaceEnd = layout.end();
