@@ -28,6 +28,7 @@
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
+#include "pcl/pcl_util.h"
 #endif
 
 
@@ -108,8 +109,11 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 		UG_LOG("Couldn't find script " << _filename << endl);
 		return false;
 	}
-
-	if(ParallelReadFile(absoluteFilename, file, true) == false)
+#ifdef UG_PARALLEL
+	if(pcl::ParallelReadFile(absoluteFilename, file, true, bDistributedLoad) == false)
+#else
+	if(ReadFile(absoluteFilename, file, true) == false)
+#endif
 	{
 		UG_LOG("Couldn't read script " << absoluteFilename << endl);
 		return false;
