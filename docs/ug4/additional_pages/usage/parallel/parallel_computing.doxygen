@@ -35,6 +35,27 @@ If you have a lot of cores (and sufficient RAM) you can also speed up compiling 
 </ul>
 
 <hr>
+\section secParallelComputingDebuggin Debugging
+<hr>
+
+Parallel debugging can be really complicated. There are some possibilties to do parallel debugging:
+- insert UG_DLOG()s and use (at the beginning of your script)
+\code
+GetLogAssistant():enable_file_output(true, "mylogfile_proc"..GetProcessRank())
+\endcode
+- TotalView, DDT : graphical debuggers. Available on most clusters
+- xprun : xprun is located at ug4/scripts/shell/xprun (just <tt>source ug4/scripts/shell/ugbash</tt>).
+xprun is a small script which opens N xterm terminals, and starts the program you specify in it. So when you go
+\code
+xprun 4 ugshell -ex conv_diff/laplace.lua -outproc -1
+\endcode
+you'll have 4 terminal windows, each representing one core. When you want to do debugging, just add gdb:
+\code
+xprun 4 gdb --args ugshell -ex conv_diff/laplace.lua -outproc -1
+\endcode
+Now you have 4 gdbs running in 4 xterm windows, connected with mpi. See also \ref pageDebuggingCPP, especially the notes on <tt>.gdbinit</tt> .
+
+<hr>
 \section secParallelComputingClusters General Information about Cluster Computing
 <hr>
 Clusters are normally built as follows:
