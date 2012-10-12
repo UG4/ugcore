@@ -16,6 +16,7 @@
 #include "algebra_misc.h"
 #include "local_helper.h"
 #include "lib_algebra/common/operations_vec.h"
+#include "common/profiler/profiler.h"
 #include <vector>
 #include <algorithm>
 
