@@ -4,52 +4,86 @@
 
 /**	\page pageUG4ParallelComputing Parallel computing
 
+	- \ref secParallelComputingHowto
 	- \ref secParallelComputingGeneral           "General Information about Parallel Computing"
 	- \ref secParallelComputingSpecific          "Specific Information about Parallel Computing"
 	- \ref secParallelComputingAvailableMachines "Available Parallel Computers"
+
+<hr>
+\section secParallelComputingHowto Parallel Computing: Howto
+<hr>
+
+Parallel computing can be done on big clusters (\ref pageUG4SetupParallel), but for beginners, it is easier to do it on
+their own laptop/workstation. Most of the computers nowadays have 2 or even 4 cores, so everyone has the
+possiblity to test parallel code. So basically 4 cores are able to execute 4 threads at once. We're doing our parallelization
+with MPI, so when you've installed OpenMPI or mpich, you can run ugshell's laplace example on 4 cores with
+\code
+mpirun -np 4 ugshell -ex conv_diff/laplace.lua
+\endcode
+Be aware that you can also run this if you don't have 4 cores. This might be handy if you want to check or debug code on 16 threads.
+
+If you have a lot of cores (and sufficient RAM) you can also speed up compiling by using <tt>make -j4</tt>, see \ref secBuildUG4Make.
 
 <hr>
 \section secParallelComputingGeneral General Information about Parallel Computing
 <hr>
 
 <ul>
-<li>Perform enough prerefinement steps (typically controlled by LUA script variable <tt>numPreRefs</tt>) that each MPI process gets at least one element of the start grid.
-</li>
-
-<li> Filesystems on clusters are typically slower than usual. After changing scripts one should therefore wait a while before submitting jobs
-     to be sure that the changes have an effect.
-</li>
-
-<li> ...
-</li>
-
+<li>Perform enough prerefinement steps (typically controlled by LUA script variable <tt>numPreRefs</tt>) that each MPI process gets at least one element of the start grid.</li>
+<li>Start with small problems (but still enough prerefinement steps) </li>
+<li>If you have problems, try to find out the smallest processor/refinement number it occures on.
 </ul>
-See also \ref pageUG4SetupParallel.
 
 <hr>
-\section secParallelComputingSpecific Specific Information about Parallel Computing
+\section secParallelComputingClusters General Information about Cluster Computing
 <hr>
-
+Clusters are normally built as follows:
 <ul>
-<li> ...
+<li> A small number of <em>login nodes</em> (1 to 32) where you are able to log in and work directly on. Here's where you checking out
+your code from svn, downloading other software, do configuration, setup and compiling. Therefore these nodes are pretty much
+"normal" computers: Typically they have 4-32 cores, decent amount of RAM, fast access to hard drive storage,
+internet connection, a lot of software (if you know how to configure it). Basically everything you'll expect from a workstation.
 </li>
-
+<li> In contrast to this, there is a large number (96-1,000,000+) of <em>compute nodes</em>. These have a 4-64 cores, and something like 4-64 GB RAM,
+so most have 0.5 or 1 GB RAM per core when you're using all nodes. Note that these nodes <em>do not</em> have hard drives. If they
+want to access hard disc storage, they have to access it <em>throught</em>
+<li> a parallel file system, consisting of a moderate number of i/o nodes (usually much less than compute nodes) and storage.
 </ul>
 
 <hr>
-\section secParallelComputingAvailableMachines Available Parallel Computers
+\section secParallelComputingClustersScaling Scaling
 <hr>
-
+We distinguish weak scaling and strong scaling.
 <ul>
-<li> Your multi core desktop / laptop,
-</li>
-<li>dedicated parallel machines like cekon, cizeta (in-house clusters),
-</li>
-<li>dedicated parallel machines of the BW-Grid, JuGene (JSC), Hermit (HLRS), HLRB-II, SuperMUC (LRZ Garching), ...
-</li>
-
+<li> \em Weak scaling : Making your problem N times larger and using N times more cores will leave execution time
+more or less constant.
+<li> \em Strong scaling: With the same problem size, N times more cores will make the execution time N times faster.
 </ul>
- <!-- 
-TODO/Proposal: Should we start a collection of information about parallel machines available to us (basic performance parameters; accounting information, ...)?
--->
+Both have their own difficulties if you want to obtain good scaling. For weak scaling, you will need a algorithm which
+has a linear complexity - that can be complicated for some problems.
+For strong scaling, the ratio computation/communication will get worse for big number of cores.
+Unfortunately, you can also get good "scaling" when you have a very slow program, since your communication won't make that
+much of difference then.
+
+
+<hr>
+\section secParallelComputingClustersIO I/O and scaling
+<hr>
+I/O on Clusters is limited because they are optimized for computation, not for huge storage.
+Because of this, you have to keep some things in mind when you want your application to scale.
+- i/o on a cluster can be slower than on your laptop
+- i/o gets REALLY slow if a lot of cores (or all) are accessing the file system. Avoid all-core-i/o.
+- This is not going to change in the next years since some parts of i/o are <em>inherently</em> sequential.
+- A job that accesses too much i/o may scale well on 64 nodes but fail to do so on 16k+ cores.
+- this is true for all i/o access, even C or LUA
+- i/o is EVERYTHING file related: open, close, write, read, check existence, scan.
+
+Note that script files are also files that need to be loaded by all cores. These are loaded with ParallelReadFile :
+One core loads the file and broadcasts its contents over the network.
+Logging is also file access. That's why standard setting is outproc = 0. outproc -1 will cause all cores to log.
+This will \em not scale on clusters.
+
+In the future we might add some MPI-IO capability but even then all-core-IO needs to be prevented whenever possible.
+</ul>
+
 */
