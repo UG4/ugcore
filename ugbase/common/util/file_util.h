@@ -114,6 +114,15 @@ UG_API bool FileCompare( const char *file1, const char *file2 );
  */
 UG_API std::string GetTmpPath();
 
+/**
+ * \param filename filename to read
+ * \param file vector to put whole file into
+ * \param bText if true, open file with r, otherwise rb
+ * used in \sa ParallelReadFile and Script
+ */
+UG_API bool ReadFile(const char* filename, vector<char> &file, bool bText);
+
+
 } // namespace ug
 
 #endif // __H__UG__FILE_UTIL__

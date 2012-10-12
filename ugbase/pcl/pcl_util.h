@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <string>
 #include "common/util/hash.h"
 #include "pcl_base.h"
 #include "pcl_communication_structs.h"
@@ -411,6 +412,18 @@ void AddLayout(TLayout &destLayout, TLayout &sourceLayout)
 			dest_interface.push_back(source_interface.get_element(iter2));
 	}
 }
+
+/// util function to read a file in parallel.
+/** \sa ReadFile in serial
+ * \param filename filename (in/out!)
+ * \param file the file
+ * \param if true, use r instead of rb for file functions
+ * \param bDistributedLoad if false, just use ReadFile.
+ * \param rank which should open files.
+ * core with rank pc.get_proc_id(0) reads this filename. status, filename, and file are transmitted to other cores
+ * \return false on all cores if
+ */
+bool ParallelReadFile(std::string &filename, std::vector<char> &file, bool bText, bool bDistributedLoad, const ProcessCommunicator& pc = ProcessCommunicator());
 
 }//	end of namespace
 

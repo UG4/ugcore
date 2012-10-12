@@ -5,6 +5,8 @@
  */
 
 #include "common/util/file_util.h"
+#include <vector>
+
 
 using namespace std;
 
@@ -95,6 +97,25 @@ UG_API bool FileCompare( const char *file1, const char *file2 )
   f2.close();
 
   return !diff;
+}
+
+
+bool ReadFile(const char* filename, vector<char> &file, bool bText)
+{
+	PROFILE_FUNC();
+	FILE *f = fopen(filename, bText ? "r" : "rb");
+	if(f==NULL)	return false;
+	fseek(f, 0, SEEK_END);
+	long filesize=ftell(f);
+	fseek(f, 0, SEEK_SET);
+
+	long actualFilesize=filesize;
+	if(bText) actualFilesize++;
+	file.resize(actualFilesize);
+
+	fread(&file[0], 1, filesize, f);
+	if(bText) file[filesize]=0x00;
+	return true;
 }
 
 } // namespace ug

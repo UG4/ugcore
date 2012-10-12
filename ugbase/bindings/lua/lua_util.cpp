@@ -83,6 +83,8 @@ bool GetAbsoluteUGScriptFilename(const string &filename, string &absoluteFilenam
 			|| PathProvider::get_filename_relative_to_path(ROOT_PATH, filename, absoluteFilename);
 }
 
+
+
 bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 {
 	PROFILE_FUNC();
@@ -90,57 +92,24 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 	string absoluteFilename=filename;
 
 	//UG_LOG("LoadUGScript("<<filename<<", "<<(bDistributedLoad?"true":"false") << "\n");
-	long status=0;
-	BinaryBuffer buf;
+	bool bSuccess;
 	std::vector<char> file;
 
 #ifdef UG_PARALLEL
 	if(pcl::GetNumProcesses() == 1) bDistributedLoad = false;
 	if(pcl::GetProcRank() == 0 || bDistributedLoad==false)
+		bSuccess = GetAbsoluteUGScriptFilename(filename, absoluteFilename);
+	bSuccess = pcl::AllProcsTrue(bSuccess);
+#else
+	bSuccess = GetAbsoluteUGScriptFilename(filename, absoluteFilename);
 #endif
+	if(bSuccess == false)
 	{
-		if(GetAbsoluteUGScriptFilename(filename, absoluteFilename) == false)
-			status=PL_COULDNT_FIND;
-		else if(ReadFile(absoluteFilename.c_str(), file, true) == false)
-			status=PL_COULDNT_READ;
-		else
-			status = 0;
-	}
-
-#ifdef UG_PARALLEL
-	if(bDistributedLoad)
-	{
-		if(pcl::GetProcRank() == 0)
-		{
-			Serialize(buf, status);
-			if(status == 0)
-			{
-				Serialize(buf, absoluteFilename);
-				Serialize(buf, file);
-			}
-		}
-
-		pcl::ProcessCommunicator pc; // = MPI_COMM_WORLD
-		pc.broadcast(buf);
-
-		if(pcl::GetProcRank() != 0)
-		{
-			Deserialize(buf, status);
-			if(status == 0)
-			{
-				Deserialize(buf, absoluteFilename);
-				Deserialize(buf, file);
-			}
-		}
-	}
-#endif
-
-	if(status == PL_COULDNT_FIND)
-	{
-		UG_LOG("Couldn't find script " << absoluteFilename << endl);
+		UG_LOG("Couldn't find script " << _filename << endl);
 		return false;
 	}
-	else if(status == PL_COULDNT_READ)
+
+	if(ParallelReadFile(absoluteFilename, file, true) == false)
 	{
 		UG_LOG("Couldn't read script " << absoluteFilename << endl);
 		return false;
@@ -156,42 +125,6 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 }
 
 
-bool ReadFile(const char* filename, BinaryBuffer &buf, bool bText)
-{
-	PROFILE_FUNC();
-	FILE *f = fopen(filename, bText ? "r" : "rb");
-	if(f==NULL)	return false;
-	fseek(f, 0, SEEK_END);
-	long filesize=ftell(f);
-	fseek(f, 0, SEEK_SET);
-
-	long actualFilesize=filesize;
-	if(bText) actualFilesize++;
-	buf.reserve(actualFilesize);
-
-	fread(buf.buffer(), 1, filesize, f);
-	if(bText) buf.buffer()[filesize]=0x00;
-	buf.set_write_pos(actualFilesize);
-	return true;
-}
-
-bool ReadFile(const char* filename, vector<char> &file, bool bText)
-{
-	PROFILE_FUNC();
-	FILE *f = fopen(filename, bText ? "r" : "rb");
-	if(f==NULL)	return false;
-	fseek(f, 0, SEEK_END);
-	long filesize=ftell(f);
-	fseek(f, 0, SEEK_SET);
-
-	long actualFilesize=filesize;
-	if(bText) actualFilesize++;
-	file.resize(actualFilesize);
-
-	fread(&file[0], 1, filesize, f);
-	if(bText) file[filesize]=0x00;
-	return true;
-}
 
 
 bool LoadUGScript_Parallel(const char* filename)

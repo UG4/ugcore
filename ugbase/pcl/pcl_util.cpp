@@ -6,6 +6,8 @@
 #include "pcl_util.h"
 #include "pcl_profiling.h"
 #include "common/log.h"
+#include <string>
+#include "common/util/file_util.h"
 
 using namespace std;
 using namespace ug;
@@ -248,6 +250,38 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 	}
 	
 	return true;
+}
+
+
+bool ParallelReadFile(string &filename, vector<char> &file, bool bText, bool bDistributedLoad, const ProcessCommunicator& pc = ProcessCommunicator())
+{
+	if(bDistributedLoad == false)
+		return ReadFile(filename.c_str(), file, bText);
+
+	bool bSuccess;
+	if(GetProcRank() == pc.get_proc_id(0))
+	{
+		bSuccess = ReadFile(filename.c_str(), file, bText);
+		Serialize(buf, bSuccess);
+		if(bSuccess)
+		{
+			Serialize(buf, filename);
+			Serialize(buf, file);
+		}
+	}
+
+	pc.broadcast(buf);
+
+	if(GetProcRank() != pc.get_proc_id(0))
+	{
+		Deserialize(buf, bSuccess);
+		if(bSuccess)
+		{
+			Deserialize(buf, filename);
+			Deserialize(buf, file);
+		}
+	}
+	return bSuccess;
 }
 
 }// end of namespace
