@@ -6,6 +6,7 @@
 
 - \ref secDebuggingUG4CPP
 - \ref secDebuggingCPPTroubleshooting
+- \ref secDebuggingLUA
 
 <hr>
 \section secDebuggingUG4CPP Debugging UG4
@@ -60,5 +61,23 @@ and it will break right after all shared libraries have been loaded. Now you can
 
 You can also add your breakpoints in the .gdbinit file and a <tt>cont</tt> at the end. That way you'll have to type less.
 
+\section secDebuggingLUA Debugging LUA and C++
+
+You can debug your LUA code with the tools here: \ref secDebugging.
+
+\warning Keep in mind that the LUA/ugshell debugger is a completely different thing as the GDB debugger!
+
+You can access the LUA debugger within GDB by writing in the gdb shell
+\code
+(gdb) call ug::script::breakpoint()
+\endcode
+
+This gives you the possibility to check LUA variables and the LUA execution position when your C++ code crashed.
+\note You have to enter <tt>cont</tt> to get back to gdb, \em not quit.
+
+If you only need the current LUA execution position, use
+\code
+(gdb) call ug::bridge::ScriptStacktrace()
+\endcode
 
 */
