@@ -46,26 +46,6 @@ namespace script
 
 
 
-
-
-/**
- * Reads a file with fopen/fread into a BinaryStream
- * @param filename		filename of file to read
- * @param buf			BinaryBuffer to write data to
- * @param bText 		if true, add terminating zero at end
- * @return
- */
-bool ReadFile(const char* filename, BinaryBuffer &buf, bool bText);
-
-/**
- * Reads a file with fopen/fread into a std::vector<char>
- * @param filename		filename of file to read
- * @param buf			vector to write data to
- * @param bText 		if true, add terminating zero at end
- * @return
- */
-bool ReadFile(const char* filename, vector<char> &file, bool bText);
-
 bool GetAbsoluteFilename(const string &relativeFilename, string &absoluteFilename)
 {
 	if(FileExists(relativeFilename.c_str())==false) return false;
@@ -112,7 +92,7 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 #ifdef UG_PARALLEL
 	if(pcl::ParallelReadFile(absoluteFilename, file, true, bDistributedLoad) == false)
 #else
-	if(ReadFile(absoluteFilename, file, true) == false)
+	if(ReadFile(absoluteFilename.c_str(), file, true) == false)
 #endif
 	{
 		UG_LOG("Couldn't read script " << absoluteFilename << endl);
