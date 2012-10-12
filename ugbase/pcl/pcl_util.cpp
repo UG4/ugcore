@@ -8,6 +8,8 @@
 #include "common/log.h"
 #include <string>
 #include "common/util/file_util.h"
+#include "common/util/binary_buffer.h"
+#include "common/serialization.h"
 
 using namespace std;
 using namespace ug;
@@ -253,11 +255,12 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 }
 
 
-bool ParallelReadFile(string &filename, vector<char> &file, bool bText, bool bDistributedLoad, const ProcessCommunicator& pc = ProcessCommunicator())
+bool ParallelReadFile(string &filename, vector<char> &file, bool bText, bool bDistributedLoad, const ProcessCommunicator& pc)
 {
 	if(bDistributedLoad == false)
 		return ReadFile(filename.c_str(), file, bText);
 
+	BinaryBuffer buf;
 	bool bSuccess;
 	if(GetProcRank() == pc.get_proc_id(0))
 	{
