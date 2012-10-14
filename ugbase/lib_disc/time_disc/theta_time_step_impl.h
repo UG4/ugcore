@@ -17,6 +17,7 @@ void MultiStepTimeDiscretization<TAlgebra>::
 prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
              number dt)
 {
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_prepare_step, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(prevSol->size() < m_prevSteps)
 		UG_THROW("ThetaTimeStep::prepare_step:"
@@ -40,6 +41,7 @@ void MultiStepTimeDiscretization<TAlgebra>::
 prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
                   number dt, GridLevel gl)
 {
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_step_elem, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(prevSol->size() < m_prevSteps)
 		UG_THROW("ThetaTimeStep::prepare_step:"
@@ -67,6 +69,7 @@ template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl)
 {
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_jacobian, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
 		UG_THROW("ThetaTimeStep::assemble_jacobian:"
@@ -96,6 +99,7 @@ template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 assemble_defect(vector_type& d, const vector_type& u, GridLevel gl)
 {
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_defect, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
 		UG_THROW("ThetaTimeStep::assemble_defect:"
@@ -125,6 +129,7 @@ template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 adjust_solution(vector_type& u, GridLevel gl)
 {
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_adjust_solution, "discretization MultiStepTimeDiscretization");
 //	assemble solution
 	try{
 		this->m_spDomDisc->adjust_solution(u, m_futureTime, gl);
@@ -135,6 +140,7 @@ template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 assemble_linear(matrix_type& A, vector_type& b, GridLevel gl)
 {
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_linear, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
 		UG_THROW("ThetaTimeStep::assemble_linear:"
@@ -164,6 +170,7 @@ template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 assemble_rhs(vector_type& b, GridLevel gl)
 {
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_rhs, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
 		UG_THROW("ThetaTimeStep::assemble_linear:"
@@ -193,6 +200,7 @@ template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 assemble_rhs(vector_type& b, const vector_type& u, GridLevel gl)
 {
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_rhs, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(m_pPrevSol->size() < m_prevSteps)
 		UG_THROW("ThetaTimeStep::assemble_linear:"
