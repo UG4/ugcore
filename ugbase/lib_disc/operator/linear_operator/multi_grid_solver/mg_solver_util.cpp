@@ -20,6 +20,7 @@ static void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
                                        ConstSmartPtr<SurfaceDoFDistribution> surfDD,
                                        ConstSmartPtr<LevelDoFDistribution> topDD)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	type of element iterator
 	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
 
@@ -61,6 +62,7 @@ void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
                                 ConstSmartPtr<SurfaceDoFDistribution> surfDD,
                                 ConstSmartPtr<LevelDoFDistribution> topDD)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	check full refinement
 	if(surfDD->num_indices() != topDD->num_indices())
 		UG_THROW("CreateSurfaceToToplevelMap: This function can only"
@@ -86,6 +88,7 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
                                               const SurfaceView& surfView,
                                               int level)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	vectors for associated elements
 	std::vector<VertexBase*> vAssVertex;
 	std::vector<EdgeBase*> vAssEdge;
@@ -159,6 +162,7 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 template <typename TElemBase>
 void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfView)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	vectors for associated elements
 	std::vector<VertexBase*> vAssVertex;
 	std::vector<EdgeBase*> vAssEdge;
@@ -204,6 +208,7 @@ void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfV
 
 void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfView)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	clear all marks
 	sel.clear();
 

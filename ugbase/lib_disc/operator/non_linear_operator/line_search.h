@@ -100,6 +100,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 		                    vector_type& u, vector_type& p,
 		                    vector_type& d, number defect)
 		{
+			PROFILE_BEGIN_GROUP(StandardLineSearch_search, ""); // group?
 		// 	clone pattern for s
 			s.resize(u.size());
 

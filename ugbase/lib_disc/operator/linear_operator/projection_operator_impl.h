@@ -25,6 +25,7 @@ template <typename TDD, typename TAlgebra>
 void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
                               const TDD& coarseDD, const TDD& fineDD)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
 		if(fineDD.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
@@ -79,6 +80,7 @@ template <int dim, typename TDD, typename TAlgebra>
 void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
                                           const TDD& coarseDD, const TDD& fineDD)
 {
+	PROFILE_FUNC_GROUP("discretization");
 // 	get MultiGrid
 	const MultiGrid& grid = coarseDD.multi_grid();
 

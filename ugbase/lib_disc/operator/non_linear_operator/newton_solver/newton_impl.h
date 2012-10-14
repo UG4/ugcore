@@ -16,8 +16,8 @@
 
 #define PROFILE_NEWTON
 #ifdef PROFILE_NEWTON
-	#define NEWTON_PROFILE_FUNC()		PROFILE_FUNC()
-	#define NEWTON_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define NEWTON_PROFILE_FUNC()		PROFILE_FUNC_GROUP("Newton")
+	#define NEWTON_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "Newton")
 	#define NEWTON_PROFILE_END()		PROFILE_END()
 #else
 	#define NEWTON_PROFILE_FUNC()
@@ -32,6 +32,7 @@ bool
 NewtonSolver<TAlgebra>::
 init(SmartPtr<IOperator<vector_type> > N)
 {
+	NEWTON_PROFILE_BEGIN(NewtonSolver_init);
 	m_N = N.template cast_dynamic<AssembledOperator<TAlgebra> >();
 	if(m_N.invalid())
 		UG_THROW("NewtonSolver: currently only works for AssembledDiscreteOperator.");
@@ -44,6 +45,7 @@ init(SmartPtr<IOperator<vector_type> > N)
 template <typename TAlgebra>
 void NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
 {
+	NEWTON_PROFILE_BEGIN(NewtonSolver_allocate_memory);
 	// Jacobian
 	m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
 	m_J->set_level(m_N->level());
@@ -62,6 +64,7 @@ void NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
 template <typename TAlgebra>
 bool NewtonSolver<TAlgebra>::prepare(vector_type& u)
 {
+	NEWTON_PROFILE_BEGIN(NewtonSolver_prepare);
 	if(!m_allocated)
 	{
 		try{
@@ -92,6 +95,7 @@ NewtonSolver<TAlgebra>::~NewtonSolver()
 template <typename TAlgebra>
 bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 {
+	NEWTON_PROFILE_BEGIN(NewtonSolver_apply);
 //	increase call count
 	m_dgbCall++;
 

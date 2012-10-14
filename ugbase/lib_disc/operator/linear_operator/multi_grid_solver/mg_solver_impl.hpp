@@ -48,6 +48,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 apply(vector_type &c, const vector_type& d)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	temporary vector for defect
 	vector_type dTmp; dTmp.resize(d.size());
 
@@ -63,6 +64,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 apply_update_defect(vector_type &c, vector_type& d)
 {
+	PROFILE_FUNC_GROUP("gmg");
 	try{
 // 	Check if surface level has been chosen correctly
 //	Please note, that the approximation space returns the global number of levels,
@@ -175,6 +177,7 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
        ILinearIterator<vector_type>& S,
        size_t lev, int nu)
 {
+	PROFILE_FUNC_GROUP("gmg");
 // 	smooth nu times
 	for(int i = 0; i < nu; ++i)
 	{
@@ -237,6 +240,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 presmooth(size_t lev)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	Get all needed vectors and operators
 
 //	get vectors used in smoothing operations. (This is needed if vertical
@@ -286,6 +290,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 restriction(size_t lev, bool* restrictionPerformedOut)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	Get all needed vectors and operators
 
 //	Get vectors defined on whole grid (including ghosts) on this level
@@ -340,6 +345,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 prolongation(size_t lev, bool restrictionWasPerformed)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	Get all needed vectors and operators
 
 //	Get vectors defined on whole grid (including ghosts) on this level
@@ -443,6 +449,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 postsmooth(size_t lev)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	get vectors used in smoothing operations. (This is needed if vertical
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
@@ -482,6 +489,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 base_solve(size_t lev)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	get vectors used in smoothing operations. (This is needed if vertical
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
@@ -607,6 +615,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 lmgc(size_t lev)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	switch, if base level is reached. If so, call base Solver, else we will
 //	perform smoothing, restrict the defect and call the lower level; then,
 //	going up again in the level hierarchy the correction is interpolated and
@@ -694,6 +703,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 {
+	PROFILE_FUNC_GROUP("gmg");
 	try{
 
 // 	Cast Operator
@@ -792,6 +802,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > L)
 {
+	PROFILE_FUNC_GROUP("gmg");
 	try{
 
 // 	Cast Operator
@@ -854,6 +865,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_common(bool nonlinear)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	Perform some checks:
 	if(m_pAss == NULL)
 	{
@@ -992,6 +1004,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_linear_level_operator()
 {
+	PROFILE_FUNC_GROUP("gmg");
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
@@ -1095,6 +1108,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_non_linear_level_operator()
 {
+	PROFILE_FUNC_GROUP("gmg");
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
@@ -1172,6 +1186,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_transfer()
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	loop all levels
 	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
@@ -1232,6 +1247,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_projection()
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	loop all levels
 	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
@@ -1256,6 +1272,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_smoother()
 {
+	PROFILE_FUNC_GROUP("gmg");
 // 	Init smoother
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
@@ -1294,6 +1311,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_base_solver()
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	skip void level
 	if(m_vLevData[m_baseLev]->num_indices() == 0) return true;
 
@@ -1359,6 +1377,7 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 project_level_to_surface(vector_type& surfVec,
                          std::vector<const vector_type*> vLevelVec)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	level dof distributions
 	std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD =
 								m_spApproxSpace->level_dof_distributions();
@@ -1411,6 +1430,7 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 project_surface_to_level(std::vector<vector_type*> vLevelVec,
                          const vector_type& surfVec)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	level dof distributions
 	std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD =
 								m_spApproxSpace->level_dof_distributions();
@@ -1468,6 +1488,7 @@ void
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_level_debug(const vector_type& vec, const char* filename, size_t lev)
 {
+	PROFILE_FUNC_GROUP("debug");
 //	if no debug writer set, we're done
 	if(m_spDebugWriter.invalid()) return;
 
@@ -1495,6 +1516,7 @@ void
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_level_debug(const matrix_type& mat, const char* filename, size_t lev)
 {
+	PROFILE_FUNC_GROUP("debug");
 //	if no debug writer set, we're done
 	if(m_spDebugWriter.invalid()) return;
 
@@ -1522,6 +1544,7 @@ void
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_surface_debug(const vector_type& vec, const char* filename)
 {
+	PROFILE_FUNC_GROUP("debug");
 //	if no debug writer set, we're done
 	if(m_spDebugWriter.invalid()) return;
 
@@ -1550,6 +1573,7 @@ void
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_surface_debug(const matrix_type& mat, const char* filename)
 {
+	PROFILE_FUNC_GROUP("debug");
 //	if no debug writer set, we're done
 	if(m_spDebugWriter.invalid()) return;
 
@@ -1659,6 +1683,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_missing_coarse_grid_coupling(const vector_type* u)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	clear matrices
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 		m_vLevData[lev]->CoarseGridContribution.resize(0,0);
@@ -1766,6 +1791,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 gather_vertical(vector_type& d)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	start with resume as true, i.e. process will continue computation
 //	on the coarser level
 	bool resume = true;
@@ -1803,6 +1829,7 @@ void
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 broadcast_vertical(vector_type& t)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	send vertical-masters -> vertical-slaves
 //	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
@@ -1835,6 +1862,7 @@ bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 top_level_required(size_t topLevel)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	allocated level if needed
 	while(num_levels() <= topLevel)
 	{
@@ -1887,6 +1915,7 @@ update(size_t lev,
        std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP,
        BoolMarker& nonGhostMarker)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	get dof distribution
 	spLevDD = levDD;
 	m_spApproxSpace = approxSpace;

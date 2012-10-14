@@ -17,6 +17,7 @@ template <typename TAlgebra>
 void
 AssembledOperator<TAlgebra>::prepare(vector_type& dOut, vector_type& uIn)
 {
+	PROFILE_BEGIN_GROUP(AssembledOperator_prepare, "discretization");
 	if(m_pAss == NULL)
 		UG_THROW("Discretization not set.");
 
@@ -32,6 +33,7 @@ template <typename TAlgebra>
 void
 AssembledOperator<TAlgebra>::apply(vector_type& dOut, const vector_type& uIn)
 {
+	PROFILE_BEGIN_GROUP(AssembledOperator_apply, "discretization");
 	if(m_pAss == NULL)
 		UG_THROW("Discretization not set.");
 
