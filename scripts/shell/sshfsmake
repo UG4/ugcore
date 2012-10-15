@@ -10,19 +10,18 @@
 # exchange of SSH Keys.
 
 # use this like
-# sshfsmake mrupp@cekon /Volumes/mrupp@cekon ug4/debug -j4
+# sshfsmake mrupp@cekon ug4/debug /home/mrupp /Volumes/mrupp@cekon  -j4
 # now this does the following:
 # 1. logging in to mrupp@cekon
 # 2. cd ug4/debug
 # 3. make -j4
-# 4. replace every occurence of ~/ug4/debug with /Volumes/mrupp@cekon
+# 4. replace every occurence of /home/mrupp with /Volumes/mrupp@cekon
 #
 # so instead of /home/mrupp/ug4/ugbase/bridge/algebra_bridges/eigensolver_bridge.cpp:86: error
 # you get
 # /Volumes/mrupp@cekon/ugbase/bridge/algebra_bridges/eigensolver_bridge.cpp:86: error
 #
-# syntax: sshfsmake <account> <localHomeDir> <remoteBuildDir> [additional make options]
-# the localHomeDir is the dir which mirrors the remote home dir.
+# syntax: sshfsmake <account> <remoteBuildDir> <replaceFrom> <replaceWith> [additional make options]
                                                                                                                                                                                                
 account=$1
 remotebuilddir=$2
