@@ -9,6 +9,7 @@
 #define __H__LIB_ALGEBRA__OPERATOR__DEBUG_WRITER__
 
 #include "common/math/ugmath.h"
+#include "common/profiler/profiler.h"
 
 namespace ug{
 

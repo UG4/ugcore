@@ -18,6 +18,8 @@
 
 #include "lib_disc/parallelization/domain_distribution.h"
 
+#include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
+
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/load_balancing.h"
 	#include "lib_grid/parallelization/parallelization.h"

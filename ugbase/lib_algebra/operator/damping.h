@@ -9,6 +9,7 @@
 #define __H__LIB_ALGEBRA__OPERATOR__DAMPING__
 
 #include "common/common.h"
+#include "common/util/smart_pointer.h"
 
 namespace ug{
 
