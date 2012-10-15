@@ -1,4 +1,9 @@
 /** \page pageUG4Install Prerequisites and Recommended Tools
+
+\note Because of the great variety of systems, this installation guides may be outdated quickly. So if this guide is not working for you
+\em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
+It's to only chance we have to keep this guides updated and correct. 
+
   - \subpage pageUG4OnLinux
   - \subpage pageUG4OnMac
   - \subpage pageUG4OnWindows

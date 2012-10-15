@@ -5,6 +5,11 @@
 
 /** \page pageUginstall uginstall
 
+\note Because of the great variety of systems, this installation guides may be outdated quickly. So if this guide is not working for you
+\em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
+It's the only chance we have to keep this guides updated and correct. 
+
+
 uginstall is a number of small shell scripts to install some software without having root.
 By now, it is very preliminary and not guaranteed to work on all machines.
 
@@ -23,6 +28,16 @@ uginstall doxygen
 \endcode
 which installs doxygen 1.8 in <tt>~/local/doxygen</tt>. Here again, you'll have to use <tt>source ~/.bashrc</tt>.
 If you want to uninstall doxygen, just delete <tt>~/local/doxygen/</tt>.
+
+Some of the software uginstall can install
+\code
+cmake
+doxygen
+gnuplot
+GotoBLAS2
+OpenMPI
+ParaView
+\endcode
 
 You can also install the software by yourself. To see how that works, I collected some of the most used software examples here.
 Note that there might be easier ways to install this software (Mac: installers/fink, Windows: installers, Linux: Package managers),

@@ -8,13 +8,27 @@
 
 - \ref secInstallMacCMake
 - \ref secInstallMacGCC
-- \ref secInstallMacParaView
+- \ref secInstallMacAdditional
+
+\note Because of the great variety of systems, this installation guides may be outdated quickly. So if this guide is not working for you
+\em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
+It's the only chance we have to keep this guides updated and correct.
 
 Before installing something on a Mac, make sure things aren't already installed by some other user by checking
 the appropriate commands in the terminal (<tt>gcc --version</tt> and <tt>cmake --version</tt>).
 
+MacOS Versions are:
+- OS X 1.5 Leopard
+- OS X 1.6 Snow Leopard
+- OS X 1.7 Lion
+- OS X 1.8 Mountain Lion
+
+You can obtain your version by clicking on the apple in the left upper corner -> "about this mac".
+The \em terminal is located in <tt>Programs -> utilities (Dienstprogramme) -> Terminal</tt>.
+
 <hr>
 \section secInstallMacCMake CMake
+<hr>
 
 <ul>
   <li>Download \em CMake:
@@ -34,38 +48,28 @@ the appropriate commands in the terminal (<tt>gcc --version</tt> and <tt>cmake -
 
 <hr>
 \section secInstallMacGCC GCC
-The common way to achieve a C++ compiler for Mac-OSX is to download and install
-the XCode IDE by Apple (see https://developer.apple.com/technologies/tools/).
-For that you'll require an Apple (developer) ID, which can be obtained on apple.com freely.
-<br>
-Alternatively, if you do not want to use the XCode IDE, you can use the following
-package: <em>OSX GCC Installer</em>. This bundle provides: 
-- GCC (version 4.2.1)
-- Clang (version 2.0)
-- LLVM (version 2.9)
-- Developer CLI Tools (purge, etc.)
-- DevSDK (headers, etc.)
+<hr>
 
-Steps:
+Easiest way is to use Kenneth Reitz' page on gcc/command line utilities: https://github.com/kennethreitz/osx-gcc-installer/ .
+
+Another way is to use the Apple homepage:
 <ul>
-  <li>Download the prebuilt pkg from
-    https://github.com/kennethreitz/osx-gcc-installer/ .
-  </li>
-  <li>Install the pkg.
-    The prebuilt packages were tested on <em>Snow Leopard</em> and 
-    <em>Lion</em>, too (successfully compiled <em>UG4 rev 5518</em> with <em>clang</em> and 
-    <em>gcc</em>)
-  </li>
-</ul>
-
-\note Please note, you can build your own pkg if you want to use 
-more recent revisions of the the software contained in the prebuilt pkg bundle.
-See <a href="http://kennethreitz.com/xcode-gcc-and-homebrew.html">here</a> for further information.
-\note Please note too, you can install Macports and upgrade your compilers then.
+<li>Create a apple developer ID <a href="https://developer.apple.com/">here</a> (it's free).
+<li>Go to https://developer.apple.com/downloads/index.action, search for "Command Line Tools", pick the appropriate version.
+<li>Install. Now you should have gcc and svn available in the terminal.
+</ul> 
+ 
+\note XCode, installed through the AppStore, will \em not provide you with command line utilities. 
+\note you can install Macports and upgrade your compilers then.
 
 <hr>
-<br>
-\section secInstallMacParaView Installation of ParaView (optional)
-<!-- todo -->
+\section secInstallMacAdditional Additional Software
+<hr>
+- OpenMPI : for parallel computing. (check if mpicc is available)
+- doxygen : to create this docu locally.
+- gnuplot
+- ParaView
 
+
+You can install all this with \ref pageUginstall.
 */
