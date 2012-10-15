@@ -5,6 +5,7 @@
 #include <fstream>
 #include "file_io_stl.h"
 #include "common/util/loader/loader_util.h"
+#include "lib_grid/lg_base.h"
 
 using namespace std;
 

@@ -11,7 +11,7 @@
 
 #include "common/common.h"
 #include "common/math/ugmath.h"
-#include "lib_grid/lg_base.h"
+#include "lib_grid/grid/geometric_base_objects.h"
 
 namespace ug{
 

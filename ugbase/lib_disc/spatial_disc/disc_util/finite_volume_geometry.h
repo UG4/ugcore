@@ -15,9 +15,9 @@
 
 // other ug4 modules
 #include "common/common.h"
-#include "lib_grid/lg_base.h"
 
 // library intern includes
+#include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_disc/reference_element/reference_element.h"
 #include "lib_disc/reference_element/reference_element_traits.h"
 #include "lib_disc/reference_element/reference_mapping.h"

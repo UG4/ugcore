@@ -23,7 +23,6 @@
 
 // other ug4 modules
 #include "common/common.h"
-#include "lib_grid/lg_base.h"
 
 // library intern headers
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"

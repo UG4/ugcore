@@ -5,8 +5,9 @@
 #ifndef __H__UG__partition_map__
 #define __H__UG__partition_map__
 
-#include "lib_grid/lg_base.h"
 #include "lib_grid/file_io/file_io.h"
+#include "lib_grid/grid/grid.h"
+#include "lib_grid/tools/subset_handler_grid.h"
 
 namespace ug
 {

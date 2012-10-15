@@ -14,7 +14,6 @@
 
 // other ug4 modules
 #include "common/math/ugmath.h"
-#include "lib_grid/lg_base.h"
 
 // library intern headers
 #include "lib_disc/reference_element/reference_element.h"

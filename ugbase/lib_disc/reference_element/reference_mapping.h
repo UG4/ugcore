@@ -13,7 +13,6 @@
 #include <sstream>
 #include "common/common.h"
 #include "common/math/ugmath.h"
-#include "lib_grid/lg_base.h"
 #include "lib_disc/reference_element/reference_element.h"
 
 namespace ug{

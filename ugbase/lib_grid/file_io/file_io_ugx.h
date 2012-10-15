@@ -2,14 +2,18 @@
 //	s.b.reiter@googlemail.com
 //	y10 m06 d16
 
+#ifndef __H__LIB_GRID__FILE_IO_UGX__
+#define __H__LIB_GRID__FILE_IO_UGX__
+
 #include <iostream>
 #include <vector>
 #include <utility>
-#include "../lg_base.h"
 #include "common/parser/rapidxml/rapidxml.hpp"
-
-#ifndef __H__LIB_GRID__FILE_IO_UGX__
-#define __H__LIB_GRID__FILE_IO_UGX__
+#include "lib_grid/grid/grid.h"
+#include "lib_grid/multi_grid.h"
+#include "lib_grid/tools/subset_handler_interface.h"
+#include "lib_grid/common_attachments.h"
+#include "lib_grid/geometric_objects/geometric_objects.h"
 
 namespace ug
 {

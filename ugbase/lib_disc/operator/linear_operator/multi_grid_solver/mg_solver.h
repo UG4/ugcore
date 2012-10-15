@@ -14,7 +14,6 @@
 
 // other ug4 modules
 #include "common/common.h"
-#include "lib_grid/lg_base.h"
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/distributed_grid.h"
 #endif

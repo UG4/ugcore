@@ -8,7 +8,6 @@
 #ifndef __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_DISTRIBUTION__
 #define __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_DISTRIBUTION__
 
-#include "lib_grid/lg_base.h"
 #include "lib_grid/tools/surface_view.h"
 #include "function_pattern.h"
 #include "lib_disc/common/function_group.h"

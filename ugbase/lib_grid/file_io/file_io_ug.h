@@ -5,7 +5,9 @@
 #ifndef __H__LIBGRID__FILE_IO_UG__
 #define __H__LIBGRID__FILE_IO_UG__
 
-#include "lib_grid/lg_base.h"
+#include "lib_grid/grid/grid.h"
+#include "lib_grid/tools/subset_handler_grid.h"
+#include "lib_grid/common_attachments.h"
 
 namespace ug
 {

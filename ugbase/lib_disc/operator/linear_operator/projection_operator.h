@@ -13,7 +13,6 @@
 
 // other ug4 modules
 #include "common/common.h"
-#include "lib_grid/lg_base.h"
 #include "transfer_interface.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 

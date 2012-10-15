@@ -8,7 +8,6 @@
 #ifndef __H__UG__LIB_DISC__DOMAIN__
 #define __H__UG__LIB_DISC__DOMAIN__
 
-#include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/subset_util.h"
 
 #ifdef UG_PARALLEL
