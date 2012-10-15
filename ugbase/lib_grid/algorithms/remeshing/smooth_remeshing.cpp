@@ -21,8 +21,8 @@ namespace ug
 ///	only for debugging purposes!!!
 /**	Output value pairs to gnuplot...
  * \{ */
-#define EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED
-#ifdef EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED
+//#define SMOOTH_REMESHING__GPLOT_ENABLED
+#ifdef SMOOTH_REMESHING__GPLOT_ENABLED
 	typedef vector<pair<number, number> > GnuplotData;
 	static GnuplotData gplotLengthFac;
 	static GnuplotData gplotMinCurvature;
@@ -45,7 +45,7 @@ namespace ug
 						WriteGnuplotData("min_curvature.gplot", gplotMinCurvature);\
 						WriteGnuplotData("average_curvature.gplot", gplotAverageCurvature);}
 #else
-//	do nothing if EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED is false
+//	do nothing if SMOOTH_REMESHING__GPLOT_ENABLED is false
 	#define GPLOTPOINT(dataName, x, y)
 	#define GPLOTSAVE()
 #endif
@@ -66,34 +66,65 @@ vector3 PNCTrianglePos(const vector3& p0, const vector3& p1, const vector3& p2,
 vector3 PNCTriangleNorm(const vector3& p0, const vector3& p1, const vector3& p2,
 						const vector3& n0, const vector3& n1, const vector3& n2,
 						const vector3& cn0, const vector3& cn1, const vector3& cn2);
-
-
-		vector3 pos(number bc0, number bc1);
-		vector3 norm(number bc0, number bc1);
-};
-
-class ProjectedVertex{
-	VertexBase*	vertex();
-	vector3 vertex_position();
-	vector3 vertex_normal();
-	vector3 surface_normal();
-	vector3 surface_position();
-	size_t num_barycentric_coords();
-	number barycentric_coord(size_t index);
-};
-
-class SurfaceRepresentation{
-	public:
-
-};
 */
+
+
+class ILocalRemesher{
+	public:
+		virtual ~ILocalRemesher()	{}
+		virtual void smooth_vertex(VertexBase* vrt) = 0;
+		virtual VertexBase* collapse_edge(EdgeBase* edge) = 0;
+		virtual VertexBase* split_edge(EdgeBase* edge) = 0;
+};
+
+
+class PatchRemesher : public ILocalRemesher{
+	public:
+		virtual ~PatchRemesher();
+
+	///	set the grid which will be remeshed
+		void set_grid(Grid& grid, APosition aPos);
+		void set_crease_callbacks(Grid::vertex_traits::callback vrtCreaseCallback,
+								  Grid::edge_traits::callback edgeCreaseCallback);
+		void set_fixed_callbacks(Grid::vertex_traits::callback vrtFixedCallback,
+								 Grid::edge_traits::callback edgeFixedCallback);
+
+	///	Adds a new patch consisting of the given elements and associated vertices
+	/**	Make sure to specify the source grid before calling this method.*/
+		template <class TElemIterator>
+		void add_surface_patch(TElemIterator begin, TElemIterator end);
+
+		virtual void smooth_vertex(VertexBase* vrt);
+		virtual VertexBase* collapse_edge(EdgeBase* edge);
+		virtual VertexBase* split_edge(EdgeBase* edge);
+		virtual EdgeBase* swap_edge(EdgeBase* edge);
+
+		virtual vector3 vertex_position(VertexBase* vrt);
+		virtual vector3 vertex_normal(VertexBase* vrt);
+
+	protected:
+		virtual void relocate_vertex(VertexBase* vrt);
+
+	private:
+		class ProjectedPoint{
+			int 				patchID;
+			GeometricObject* 	elem;
+			vector2				barycentricCoords;
+		};
+
+		Grid	m_refGrid;
+		Grid*	m_remeshGrid;
+};
+
+
 
 ////////////////////////////////////////////////////////////////////////
 static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 {	
 	grid.begin_marking();
 	
-//	mark all vertices that are not regular crease-vertices as fixed
+//	mark all vertices contained in a crease edge,
+//	and which are not regular crease-vertices as fixed
 	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(REM_CREASE);
 		iter != shMarks.end<EdgeBase>(REM_CREASE); ++iter)
 	{
@@ -118,7 +149,7 @@ static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 	
 	grid.end_marking();
 	
-//	mark all vertices that lie on a fixed edge as fixed vertex
+//	mark all vertices that lie on a fixed edge as fixed
 	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(REM_FIXED);
 		iter != shMarks.end<EdgeBase>(REM_FIXED); ++iter)
 	{

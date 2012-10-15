@@ -20,7 +20,6 @@
 #include "bindings_vrl.h"
 #include "bindings_vrl_native.h"
 
-#include "lib_grid/lib_grid.h"
 #include "user_data.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 

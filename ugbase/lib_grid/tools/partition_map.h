@@ -6,6 +6,7 @@
 #define __H__UG__partition_map__
 
 #include "lib_grid/lg_base.h"
+#include "lib_grid/file_io/file_io.h"
 
 namespace ug
 {

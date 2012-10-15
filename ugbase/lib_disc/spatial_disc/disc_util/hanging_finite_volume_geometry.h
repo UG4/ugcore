@@ -14,7 +14,6 @@
 
 // other ug4 modules
 #include "common/common.h"
-#include "lib_grid/lib_grid.h"
 
 // library intern includes
 #include "lib_disc/reference_element/reference_element.h"

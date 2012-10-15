@@ -12,7 +12,6 @@
 #include "bridge/util.h"
 
 #include "common/profiler/profiler.h"
-#include "lib_grid/lib_grid.h"
 
 #include "lib_disc/domain.h"
 #include "lib_disc/domain_util.h"

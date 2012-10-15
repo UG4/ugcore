@@ -6,8 +6,7 @@
  */
 
 #include "domain_util.h"
-
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/file_io/file_io.h"
 
 namespace ug{
 
