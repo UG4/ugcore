@@ -2,7 +2,6 @@
 // s.b.reiter@googlemail.com
 // y09 m12 d09
 
-#include "lib_grid/lg_base.h"
 #include "pcl/pcl_base.h"
 
 #ifndef __H__PLG__COPY_POLICY__

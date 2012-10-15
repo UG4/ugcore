@@ -6,7 +6,10 @@
 #define __H__LIB_GRID__SERIALIZATION__
 
 #include <iostream>
-#include "lib_grid/lg_base.h"
+#include "lib_grid/geometric_objects/geometric_objects.h"
+#include "lib_grid/tools/subset_handler_interface.h"
+#include "lib_grid/multi_grid.h"
+#include "lib_grid/common_attachments.h"
 
 namespace ug
 {

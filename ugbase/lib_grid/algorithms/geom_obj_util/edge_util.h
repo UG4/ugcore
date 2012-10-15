@@ -5,9 +5,13 @@
 #ifndef __H__LIB_GRID__EDGE_UTIL__
 #define __H__LIB_GRID__EDGE_UTIL__
 
-#include "lib_grid/lg_base.h"
 #include "face_util.h"
+#include "lib_grid/grid/grid.h"
 #include "lib_grid/grid/grid_util.h"
+#include "lib_grid/geometric_objects/geometric_objects.h"
+#include "lib_grid/common_attachments.h"
+#include "lib_grid/tools/selector_grid.h"
+#include "lib_grid/tools/subset_handler_interface.h"
 
 namespace ug
 {

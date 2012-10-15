@@ -6,8 +6,6 @@
 #define __H__UG__parallel_hanging_node_refiner_multi_grid__
 
 
-#include "lib_grid/lg_base.h"
-#include "lib_grid/multi_grid.h"
 #include "lib_grid/algorithms/refinement/hanging_node_refiner_multi_grid.h"
 #include "../distributed_grid.h"
 #include "pcl/pcl_interface_communicator.h"

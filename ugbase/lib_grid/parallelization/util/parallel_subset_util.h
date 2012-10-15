@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__PARALLELL_SUBSET_UTIL__
 
 #include "../distributed_grid.h"
+#include "lib_grid/tools/subset_handler_multi_grid.h"
 
 namespace ug
 {

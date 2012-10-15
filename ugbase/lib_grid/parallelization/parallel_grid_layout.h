@@ -11,7 +11,7 @@
 #include <algorithm>
 #include "common/util/hash.h"
 #include "pcl/pcl.h"
-#include "lib_grid/lg_base.h"
+#include "lib_grid/grid/geometric_base_objects.h"
 
 //	specialize pcl::type_traits for VertexBase, EdgeBase, Face and Volume
 namespace pcl

@@ -5,7 +5,6 @@
 #ifndef __H__LIB_GRID__PARALLELIZATION_UTIL__
 #define __H__LIB_GRID__PARALLELIZATION_UTIL__
 
-#include "lib_grid/lg_base.h"
 #include "distributed_grid.h"
 #include <boost/function.hpp>
 

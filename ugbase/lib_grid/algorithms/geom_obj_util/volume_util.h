@@ -6,7 +6,9 @@
 #define __H__LIB_GRID__VOLUME_UTIL__
 
 #include <vector>
-#include "lib_grid/lg_base.h"
+#include "lib_grid/grid/grid.h"
+#include "lib_grid/geometric_objects/geometric_objects.h"
+#include "lib_grid/common_attachments.h"
 
 namespace ug
 {

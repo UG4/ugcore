@@ -7,8 +7,8 @@
 
 #include <map>
 #include <vector>
-#include "lib_grid/lg_base.h"
 #include "parallel_grid_layout.h"
+#include "lib_grid/multi_grid.h"
 #include "common/util/owned_pointer.h"
 
 namespace ug

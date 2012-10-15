@@ -7,7 +7,6 @@
 
 //	will be removed!
 #include <vector>
-#include "lib_grid/lg_base.h"
 #include "parallel_grid_layout.h"
 #include "distributed_grid.h"
 #include "lib_grid/algorithms/serialization.h"
