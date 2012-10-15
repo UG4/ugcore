@@ -33,7 +33,8 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
   <li>Install a \em Subversion plugin:
     <ol>
       <li><em>Help</em> -> <em>Install new Software</em></li>
-      <li>Type <tt>Work with: http://download.eclipse.org/releases/helios</tt></li>
+      <li>On Eclipse Helios, type <tt>Work with: http://download.eclipse.org/releases/helios</tt></li>
+      <li>On Eclipse Juno, type <tt>Work with: http://download.eclipse.org/releases/juno</tt></li>
       <li>Choose the plugin <em>Collaboration</em> by setting checking the box</li>
       <li>Click \em Next </li>
       <li>Click \em Next </li>
