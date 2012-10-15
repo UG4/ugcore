@@ -149,7 +149,7 @@ ssh mrupp@supercomputer.de "cd ug4; cd release; make -j4"
 
 An improved version is
 \verbatim
-/bin/bash ${ProjDirPath}/scripts/shell/sshfsmake mrupp@supercomputer.de /Volumes/mrupp@supercomputer ug4/debug -j4 -k
+/bin/bash ${ProjDirPath}/scripts/shell/sshfsmake mrupp@supercomputer.de ug4/debug /Users/mrupp/ug4/debug /Volumes/mrupp@supercomputer/ug4/debug  -j4 -k
 \endverbatim
 See <tt>ug4/scripts/shell/sshfsmake</tt> for details (basically you are calling 
 <tt>ssh mrupp\@supercomputer.de "cd ug4/debug; make -j4"</tt>, and then 
