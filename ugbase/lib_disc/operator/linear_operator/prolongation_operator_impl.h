@@ -212,7 +212,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 						Element* child = vChild[c];
 						//	fine dof indices
 						fineDD.multi_indices(child, fct, vFineMultInd);
-						DoFRef(mat, vFineMultInd[0], vCoarseMultInd[0]) =  1.0/(numChild);
+						DoFRef(mat, vFineMultInd[0], vCoarseMultInd[0]) =  1.0;
 						vIsRestricted[vCoarseMultInd[0][0]] = true;
 					}
 					continue;
