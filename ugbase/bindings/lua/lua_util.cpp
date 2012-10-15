@@ -73,7 +73,7 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 	string absoluteFilename=filename;
 
 	//UG_LOG("LoadUGScript("<<filename<<", "<<(bDistributedLoad?"true":"false") << "\n");
-	bool bSuccess;
+	bool bSuccess = true;
 	std::vector<char> file;
 
 #ifdef UG_PARALLEL

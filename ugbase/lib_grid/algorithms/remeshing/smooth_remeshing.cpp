@@ -116,6 +116,21 @@ class PatchRemesher : public ILocalRemesher{
 		Grid*	m_remeshGrid;
 };
 
+class IPatch{
+	public:
+		IPatch(SubsetHandler& sharedPatchSH, int patchIndex) :
+			m_sharedSH(sharedPatchSH)
+		{}
+
+		virtual ~IPatch();
+
+		virtual number approximation_quality(EdgeBase* e);
+		virtual number approximation_quality(Face* f);
+		virtual number element_quality(Face* f);
+
+	private:
+		SubsetHandler& m_sharedSH;
+};
 
 
 ////////////////////////////////////////////////////////////////////////
