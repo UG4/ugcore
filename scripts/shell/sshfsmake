@@ -25,8 +25,9 @@
 # the localHomeDir is the dir which mirrors the remote home dir.
                                                                                                                                                                                                
 account=$1
-remotehomedir=`ssh $account pwd`
-localhomedir=$2
-remotebuilddir=$3
-shift 3
-ssh $account "cd $remotebuilddir; make $*" 2>&1 | sed "s:$remotehomedir:$localhomedir:"
+remotebuilddir=$2
+from=$3
+to=$4
+shift 4
+echo $remotebuilddir
+ssh $account "cd $remotebuilddir; pwd; make $*" 2>&1 | sed "s:$from:$to:"
