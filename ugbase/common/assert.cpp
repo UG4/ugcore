@@ -7,6 +7,7 @@
 
 #include "common/log.h"
 #include "common/profiler/profiler.h"
+#include "assert.h"
 #include <stdlib.h>
 #ifdef UG_POSIX
 #include <execinfo.h>

@@ -9,6 +9,8 @@
 #include <stack>
 #include <algorithm>
 #include "lib_grid/lg_base.h"
+#include "triangle_fill_sweep_line.h"
+
 using namespace std;
 
 namespace ug

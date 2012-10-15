@@ -7,6 +7,7 @@
 
 #include <stack>
 #include "lib_grid/lg_base.h"
+#include "common/ug_config.h"
 
 namespace ug
 {
@@ -48,6 +49,7 @@ void TranslateSelection(Selector& sel, const typename TAAPosVRT::ValueType& offs
 /**	This method uses Grid::mark
  * returns the number of collected vertices.
  */
+UG_API
 size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
 										ISelector& sel);
 
@@ -178,11 +180,13 @@ void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects associated geometric objects of selected ones.
+UG_API
 void SelectAssociatedGeometricObjects(Selector& sel,
 							  ISelector::status_t status = ISelector::SELECTED);
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects associated geometric objects of selected ones on each level.
+UG_API
 void SelectAssociatedGeometricObjects(MGSelector& msel,
 							  ISelector::status_t status = ISelector::SELECTED);
 
@@ -241,6 +245,7 @@ void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
  *
  * \todo: Performance can be improved. See implementation.
  */
+UG_API
 void ExtendSelection(Selector& sel, size_t extSize);
 
 ////////////////////////////////////////////////////////////////////////
@@ -269,6 +274,7 @@ void SelectionFill(Selector& sel);
  * That means a grid whose elements only refence elements on the same
  * level.
  */
+UG_API
 void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements);
 
 ////////////////////////////////////////////////////////////////////////
@@ -281,7 +287,8 @@ void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements);
  * \param stopAtSelVrts: If set to true, the edge-path will stop at selected
  *						vertices.
  * \param aPos: Position attachment
- * \todo: replace aPos by an template AttachmentAccessor TAAPosVrt.*/ 
+ * \todo: replace aPos by an template AttachmentAccessor TAAPosVrt.*/
+UG_API
 void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 							bool stopAtSelVrts = true,
 							APosition& aPos = aPosition);
@@ -386,6 +393,7 @@ void SelectLinkedElements(ISelector& sel,
  * 							inverted orientation are traversed anyways.
  * \param aPos: Position attachment
  */
+UG_API
 void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 						   bool traverseFlipped = false,
 						   bool stopAtSelectedEdges = false,
@@ -404,6 +412,7 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
  * 							inverted orientation are traversed anyways.
  * \param aPos: Position attachment
  */
+UG_API
 void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 										 number maxDeviationAngle,
 										 bool traverseFlipped = false,

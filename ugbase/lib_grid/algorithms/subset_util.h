@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "lib_grid/lg_base.h"
+#include "common/ug_config.h"
 
 namespace ug
 {
@@ -32,6 +33,7 @@ int GetMaxSubsetIndex(SubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the first subset, which does not contain any elements at all
+UG_API
 int GetFirstFreeSubset(const ISubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
@@ -50,6 +52,7 @@ void MakeSubsetsConsecutive(SubsetHandler& sh);
 ///	Assigns all elements of the given grid to the given subset
 /**	Make sure, that the given subset handler operates on the given grid.
  */
+UG_API
 void AssignGridToSubset(Grid& g, ISubsetHandler& sh, int subsetInd);
 
 ////////////////////////////////////////////////////////////////////////
@@ -57,6 +60,7 @@ void AssignGridToSubset(Grid& g, ISubsetHandler& sh, int subsetInd);
 /**	Make sure that the specified subset handler and the specified selector
  * operate on the same grid.
  */
+UG_API
 void AssignSelectionToSubset(ISelector& sel, ISubsetHandler& sh, int subsetInd);
 
 ////////////////////////////////////////////////////////////////////////
@@ -66,6 +70,7 @@ void AssignSelectionToSubset(ISelector& sel, ISubsetHandler& sh, int subsetInd);
  * the edges of each interface between two subset are put into
  * a seperate subset, starting at GetMaxSubsetIndex<EdgeBase>(sh) + 1.
  */
+UG_API
 void AssignFaceInterfaceEdgesToSubsets(Grid& grid, SubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
@@ -75,6 +80,7 @@ void AssignFaceInterfaceEdgesToSubsets(Grid& grid, SubsetHandler& sh);
  * the faces of each interface between two subset are put into
  * a seperate subset, starting at GetMaxSubsetIndex<Face>(sh) + 1.
  */
+UG_API
 void AssignVolumeInterfaceFacesToSubsets(Grid& grid, SubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
@@ -225,6 +231,7 @@ void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
  * Note that the algorithm may not produce a fully compatible geometry
  * in this case (this depends on your initial subsets).
  */
+UG_API
 void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 							bool keepExistingInterfaceSubsets = false);
 
@@ -239,6 +246,7 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
  *
  * \return	true if the subset was splitted, false if not.
  */
+UG_API
 bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
 								  int targetIndex);
 
@@ -260,6 +268,7 @@ bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
  * 							-2: All subsets,
  * 							0, ..., numSubsets: The specified subset only.
  */
+UG_API
 void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 								APosition aPos = aPosition,
 								ANormal* paNorm = NULL,
@@ -284,6 +293,7 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
  * 							-2: All subsets,
  * 							0, ..., numSubsets: The specified subset only.
  */
+UG_API
 void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 								std::vector<ug::vector3> vNormals,
 								APosition aPos = aPosition,
@@ -307,6 +317,7 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
  *
  * shFaces and shVolsOut may refer to the same subset handler.
  */
+UG_API
 void AssignRegionToSubset(Grid& grid, ISubsetHandler& shVolsOut,
 						  const ISubsetHandler& shFaces,
 						  Volume* proxyVol, int newSubsetIndex);
@@ -324,6 +335,7 @@ void AssignRegionToSubset(Grid& grid, ISubsetHandler& shVolsOut,
  * NOTE that this method currently only works for tetrahedral grids
  * (at least the markers are only associated with tetrahedrons).
  */
+UG_API
 bool SeparateRegions(Grid& grid, ISubsetHandler& shVolsOut,
 					 const ISubsetHandler& shFaces,
 					 const MarkerPointManager& mpm,
@@ -377,6 +389,7 @@ void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
 ////////////////////////////////////////////////////////////////////////
 //	AssignInnerAndBoundarySubsets
 ///	assigns objects to subsets depending on whether they are inner or boundary objects.
+UG_API
 void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
 									int inSubset, int bndSubset);
 
@@ -384,11 +397,13 @@ void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
 ////////////////////////////////////////////////////////////////////////
 ///	Returns an rgb vector (values ranging from 0 to 1), with the i-th default color.
 //todo: Move this method to common/util or something like that.
+UG_API
 vector3 GetColorFromStandardPalette(int index);
 
 ////////////////////////////////////////////////////////////////////////
 //	AssignSubsetColors
 ///	assigns a different color to each subset
+UG_API
 void AssignSubsetColors(ISubsetHandler& sh);
 
 
@@ -440,12 +455,14 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
  *
  * The dimension is set to -1, if the subset does not contain any elements at all.
  */
+UG_API
 void UpdateMaxDimensionOfSubset(ISubsetHandler& sh,
 								const std::string propertyName);
 
 
 ////////////////////////////////////////////////////////////////////////
 ///	Assigns subset depending on the element type
+UG_API
 void AssignSubsetsByElementType(ISubsetHandler& sh);
 
 /**@}*/ // end of doxygen defgroup command

@@ -63,7 +63,7 @@ if(UNIX AND NOT CYGWIN)
 		set(sources ${sources} util/os_dependent_impl/os_info_linux.cpp)
 	endif(APPLE)
 
-elseif(WIN32)
+elseif(WIN32 OR CYGWIN)
 	set(sources ${sources}	util/os_dependent_impl/os_info_win.cpp)
 	
 	if(buildPluginSystem)

@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__EDGE_LENGTH_ADJUSTMENT__
 
 #include "lib_grid/lg_base.h"
+#include "common/ug_config.h"
 
 namespace ug
 {
@@ -26,6 +27,7 @@ enum RemeshingElementMarks
  *
  * marks: 0 = normal, 1 = crease, 2 = fixed
  */
+UG_API
 bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 					  number minEdgeLen, number maxEdgeLen, int numIterations,
 					  bool projectPoints = true, bool adaptive = true);

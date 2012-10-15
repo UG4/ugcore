@@ -34,10 +34,10 @@ if(BUILD_ONE_LIB)
 		endif(WIN32)
 		add_library(${targetLibraryName} SHARED ${ug4libSources})
 
-		if(NOT buildEmbeddedPlugins)
+		if(buildCompileInfo AND NOT buildEmbeddedPlugins)
 			add_dependencies(${targetLibraryName} CompileInfo)
 			target_link_libraries(${targetLibraryName} CompileInfo)
-		endif(NOT buildEmbeddedPlugins)
+		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
 
 	else(buildDynamicLib)
 		add_library(${targetLibraryName} ${ug4libSources})

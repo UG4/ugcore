@@ -12,6 +12,7 @@
 #include "../math_vector_matrix/math_vector.h"
 #include "../math_vector_matrix/math_vector_functions.h"
 #include "../ugmath_types.h"
+#include "../../ug_config.h"
 #include "eigenvalues.h"
 
 namespace ug
@@ -50,6 +51,7 @@ clip(TNumber val, TNumber lowerBound, TNumber upperBound);
 
 ////////////////////////////////////////////////////////////////////////
 ///	finds a normal to the given vector in 3d.
+UG_API
 bool FindNormal(vector3& normOut, const vector3& v);
 
 ////////////////////////////////////////////////////////////////////////
@@ -67,6 +69,7 @@ bool FindNormal(vector3& normOut, const vector3& v);
  * \param v: vector
  * \param vColInd: specifies in which column to put v.
  */
+UG_API
 bool ConstructOrthonormalSystem(matrix33& matOut, const vector3& v,
 								size_t vColInd);
 
@@ -89,9 +92,11 @@ TriangleBarycenter(const vector_t& p1, const vector_t& p2, const vector_t& p3);
  * method returns false.
  * If the method succeeds, the calculated center is written to centerOut.
  * \{ */
+UG_API
 bool TriangleCircumcenter(vector2& centerOut, const vector2& p1,
 						  const vector2& p2, const vector2& p3);
 
+UG_API
 bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
 						  const vector3& p2, const vector3& p3);
 /**	\} */
@@ -102,6 +107,7 @@ bool TriangleCircumcenter(vector3& centerOut, const vector3& p1,
  * Please note that you have to specify the point-set together with
  * its center-point.
  */
+UG_API
 void CalculateCovarianceMatrix(matrix33& matOut, const vector3* pointSet,
 							  const vector3& center, size_t numPoints);
 
@@ -112,6 +118,7 @@ void CalculateCovarianceMatrix(matrix33& matOut, const vector3* pointSet,
  * the center and the normal of the plane which minimizes the distance to
  * the given point set.
  */
+UG_API
 bool FindClosestPlane(vector3& centerOut, vector3& normalOut,
 					  const vector3* pointSet, size_t numPoints);
 
@@ -128,6 +135,7 @@ bool FindClosestPlane(vector3& centerOut, vector3& normalOut,
  * \param pointSet: An array of 3d-points of size numPoints.
  * \param numPoints: Specifies the size of the point sets.
  */
+UG_API
 bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
 						  size_t numPoints);
 
@@ -279,6 +287,7 @@ bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
  *
  * This method internally uses the IntersectLineSegments algorithm by Graham Rhodes.
  * Please have a look at lineintersect_utils.h for more information.*/
+UG_API
 bool RayRayIntersection3d(vector3& aOut, vector3& bOut,
 						  const vector3& p0, const vector3& dir0,
 						  const vector3& p1, const vector3& dir1);
@@ -294,6 +303,7 @@ bool RayRayIntersection3d(vector3& aOut, vector3& bOut,
  *
  * This method internally uses the IntersectLineSegments algorithm by Graham Rhodes.
  * Please have a look at lineintersect_utils.h for more information.*/
+UG_API
 bool LineLineIntersection3d(vector3& aOut, vector3& bOut,
 							const vector3& a1, const vector3& a2,
 						  	const vector3& b1, const vector3& b2);
@@ -305,6 +315,7 @@ bool LineLineIntersection3d(vector3& aOut, vector3& bOut,
  *
  * This method internally uses the IntersectLineSegments algorithm by Graham Rhodes.
  * Please have a look at lineintersect_utils.h for more information.*/
+UG_API
 number DistanceLineToLine(const vector3& a1, const vector3& a2,
 						  const vector3& b1, const vector3& b2);
 
@@ -381,7 +392,21 @@ template <class vector_t>
 bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
 						const vector_t& boxMin, const vector_t& boxMax);
 
+////////////////////////////////////////////////////////////////////////
+///	checks whether the line segment (v1, v2) intersect the given sphere.
+/**	The function returns the number of intersections and the values of s at
+ * which the line segment intersects.
+ */
+template <class vector_t>
+int RaySphereIntersection(number& s1Out, number& s2Out,
+						  const vector_t& v, const vector_t& dir,
+						  const vector_t& center, number radius);
 
+template <class vector_t>
+int LineSphereIntersection(number& s1Out, number& s2Out,
+						  const vector_t& v1, const vector_t& v2,
+						  const vector_t& center, number radius);
+						  
 ////////////////////////////////////////////////////////////////////////
 //	TriangleTriangleIntersection
 ///	checks whether two triangles intersect and returns the intervals, if they do.
@@ -394,6 +419,7 @@ bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
  * of the line segment which resembles the intersection. Please specify either both
  * or none.
  */
+UG_API
 bool TriangleTriangleIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
 								  const MathVector<3>& p2, const MathVector<3>& q0,
 								  const MathVector<3>& q1, const MathVector<3>& q2,
@@ -414,6 +440,7 @@ bool TriangleTriangleIntersection(const MathVector<3>& p0, const MathVector<3>& 
  * \param boxMin: has to contain the minimal-coordinates of the box.
  * \param boxMax: has to contain the maximal-coordinates of the box.
  */
+UG_API
 bool TriangleBoxIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
 							 const MathVector<3>& p2,
 							 const MathVector<3>& boxMin, const MathVector<3>& boxMax);
@@ -503,6 +530,7 @@ bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vecto
  * ---------
  * k! (n-k)!
  */
+UG_API
 int BinomCoeff(int n, int k);
 
 ////////////////////////////////////////////////////////////////////////

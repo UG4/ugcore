@@ -389,9 +389,16 @@ if(DEBUG)
 	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
 	# however, GLIBCXX_DEBUG and strstream don't work together on mac (bug: http://bit.ly/cH78bC). 
 	# when this bug is fixed, one could set those flags (or similar) depending on the compiler.
-	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
-		add_definitions(-D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1)
-	ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
+	
+	# I disabled the following definitions, since they cause several additional problems.
+	# First they also cause problems on MinGW builds.
+	# Secondly they have to be defined also for all executables, which link against
+	# ug. Since they are well hidden, this may cause quite some headache.
+	# One should think about a flag DEBUG_STL or something like this, which explicitly
+	# enables those flags. (sreiter)
+	#if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
+	#	add_definitions(-D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1)
+	#ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
 
 else(DEBUG)
 	add_definitions(-O3)

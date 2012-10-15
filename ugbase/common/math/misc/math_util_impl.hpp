@@ -648,6 +648,64 @@ bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
+int RaySphereIntersection(number& s1Out, number& s2Out,
+						  const vector_t& v, const vector_t& dir,
+						  const vector_t& center, number radius)
+{
+	vector_t p;
+	number s = ProjectPointToRay(p, center, v, dir);
+	number h = VecDistance(p, center);
+	if(h > radius)
+		return 0;
+	if(h > radius - SMALL){
+		s1Out = s;
+		s2Out = s;
+		return 1;
+	}
+
+	number dirLen = VecLength(dir);
+	if(dirLen == 0){
+		s1Out = s2Out = 0;
+		return 0;
+	}
+
+	number a = sqrt(radius * radius - h * h);
+
+	number sa = a / dirLen;
+	s1Out = s + sa;
+	s2Out = s - sa;
+	return 2;
+}
+
+template <class vector_t>
+int LineSphereIntersection(number& s1Out, number& s2Out,
+						  const vector_t& v1, const vector_t& v2,
+						  const vector_t& center, number radius)
+{
+	vector_t dir;
+	VecSubtract(dir, v2, v1);
+	int num = RaySphereIntersection(s1Out, s2Out, v1, dir, center, radius);
+
+	switch(num){
+		case 0: return 0;
+		case 1: if((s1Out >= 0) && (s1Out <= 1))
+					return 1;
+				return 0;
+		case 2:{
+			if((s1Out < 0) || (s1Out > 1))
+				--num;
+			if((s2Out < 0) || (s2Out > 1))
+				--num;
+			else if(num == 1)
+				s1Out = s2Out;
+			return num;
+		}
+	}
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
 bool BoxBoxIntersection(const vector_t& box1Min, const vector_t& box1Max,
 						const vector_t& box2Min, const vector_t& box2Max)
 {

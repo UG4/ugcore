@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <iostream>
+#include "../../ug_config.h"
 #include "../../types.h"
 
 namespace ug
@@ -379,10 +380,10 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4,T>& v)
 	return outStream;
 }
 
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<1>& v);
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2>& v);
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<3>& v);
-std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4>& v);
+UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<1>& v);
+UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2>& v);
+UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<3>& v);
+UG_API std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4>& v);
 
 }//	end of namespace
 

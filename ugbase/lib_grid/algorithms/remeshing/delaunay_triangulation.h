@@ -11,6 +11,7 @@
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/grid_generation/triangle_fill_sweep_line.h"
 #include "lib_grid/algorithms/polychain_util.h"
+#include "common/ug_config.h"
 
 //temporary
 #include "lib_grid/file_io/file_io.h"
@@ -18,7 +19,7 @@
 namespace ug
 {
 
-class DelaunayDebugSaver
+class UG_API DelaunayDebugSaver
 {
 	public:
 		static DelaunayDebugSaver& inst()

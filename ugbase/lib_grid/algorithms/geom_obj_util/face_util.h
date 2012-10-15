@@ -348,6 +348,7 @@ bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold = SMALL);
  * occur if it would lie outside).
  * The original face may optionally be deleted.
  */
+UG_API
 void InsertCenterVertex(Grid& g, Face* f, VertexBase* vrt, bool eraseOldFace);
 
 /// @}

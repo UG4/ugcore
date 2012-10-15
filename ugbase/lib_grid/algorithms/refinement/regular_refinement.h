@@ -7,6 +7,7 @@
 
 #include "lib_grid/lg_base.h"
 #include "refinement_callbacks.h"
+#include "common/ug_config.h"
 
 namespace ug
 {
@@ -40,6 +41,7 @@ namespace ug
  *
  * \sa ug::RegularRefiner, ug::HangingNodeRefiner
  */
+UG_API
 bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			IRefinementCallback* refCallback = NULL);
 
@@ -55,6 +57,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
  *
  * \sa ug::RegularRefiner, ug::HangingNodeRefiner
  */
+UG_API
 bool Refine(Grid& grid, Selector& sel,
 			IRefinementCallback* refCallback = NULL);
 

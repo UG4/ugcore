@@ -10,11 +10,10 @@
 
 #include <cassert>
 #include "common/log.h"
+#include "ug_config.h"
 
 #define UG_TO_STRING1(x)  #x
 #define UG_TO_STRING(x)  UG_TO_STRING1(x)
-
-#ifndef NDEBUG
 
 ////////////////////////////////////////////////////////////////////////
 //	UG_ASSERT
@@ -36,7 +35,10 @@
  *     Line:        130
  *
  */
-void ug_assert_failed();
+UG_API void ug_assert_failed();
+
+#ifndef NDEBUG
+
 #define UG_ASSERT(expr, msg)  {if(!(expr)) \
 								{ \
 									UG_LOG("\n  UG_ASSERT failed:\n"); \
