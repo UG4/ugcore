@@ -23,14 +23,18 @@ set(infoFileName ${CMAKE_BINARY_DIR}/compile_info_vars.cpp)
 #	on windows we currently don't support updated compile-infos.
 #	check out, whether this can be improved using special windows-scripting...
 
-#TODO	This file only should be written, if it doesn't exist yet.
-file(WRITE ${infoFileName} 
-	"namespace ug\n"
-	"{\n"
-	"const char *UG_SVN_REVISION=\"UNKNOWN\";\n"
-	"const char *UG_BUILD_HOST=\"${CMAKE_SYSTEM_NAME}\";\n"
-	"const char *UG_COMPILE_DATE=\"UNKNOWN\";\n"
-	"}\n")
+unset(infoFileFound CACHE)
+find_file(infoFileFound compile_info_vars.cpp PATHS ${CMAKE_BINARY_DIR})
+ 
+if(${infoFileFound} STREQUAL "infoFileFound-NOTFOUND")
+	file(WRITE ${infoFileName} 
+		"namespace ug\n"
+		"{\n"
+		"const char *UG_SVN_REVISION=\"UNKNOWN\";\n"
+		"const char *UG_BUILD_HOST=\"${CMAKE_SYSTEM_NAME}\";\n"
+		"const char *UG_COMPILE_DATE=\"UNKNOWN\";\n"
+		"}\n")
+endif(${infoFileFound} STREQUAL "infoFileFound-NOTFOUND")
 
 if(UNIX AND buildCompileInfo)
 #	The custom target is always considered out of date and will be rebuilt
@@ -52,15 +56,6 @@ if(buildEmbeddedPlugins OR NOT buildCompileInfo)
 #	file for this case.
 
 else(buildEmbeddedPlugins OR NOT buildCompileInfo)
-#	this clearly is a dirty hack...
-#	we have to prevent that the library tries to link against itself.
-#	The benefit of setting the linker flags in the ug_cmake_includes file however
-#	currently outweights this ugly stuff...
-#	Note that this has no influence on other libraries...
-	#set(CMAKE_SHARED_LINKER_FLAGS)
-	#set(CMAKE_EXE_LINKER_FLAGS)
-	#set(CMAKE_MODULE_LINKER_FLAGS)
-		
 	if(buildDynamicLib)
 		add_library(CompileInfo SHARED ${infoFileName})
 		set(compileInfoLibName CompileInfo)
