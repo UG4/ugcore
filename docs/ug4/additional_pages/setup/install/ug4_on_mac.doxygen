@@ -65,7 +65,7 @@ Another way is to use the Apple homepage:
 <hr>
 \section secInstallMacAdditional Additional Software
 <hr>
-- X11 : Window manager used by some programs. http://xquartz.macosforge.org/
+- X11 : Window manager used by some programs, not included in MacOS 10.8. http://xquartz.macosforge.org/
 - OpenMPI : for parallel computing. (check if mpicc is available)
 - doxygen : to create this docu locally.
 - gnuplot
