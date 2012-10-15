@@ -671,7 +671,11 @@ endif(INTERNAL_BOOST)
 ########################################
 # dynamic linking
 if(UNIX)
-    set(linkLibraries ${linkLibraries} dl)
+    if(STATIC)
+        set(linkLibraries ${linkLibraries})
+    else(STATIC)
+        set(linkLibraries ${linkLibraries} dl)
+    endif(STATIC)
 elseif(WIN32)
 	set(linkLibraries ${linkLibraries} Kernel32)
 endif(UNIX)
