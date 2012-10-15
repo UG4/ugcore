@@ -78,9 +78,9 @@ class ILocalRemesher{
 };
 
 
-class PatchRemesher : public ILocalRemesher{
+class IPatchRemesher : public ILocalRemesher{
 	public:
-		virtual ~PatchRemesher();
+		virtual ~IPatchRemesher();
 
 	///	set the grid which will be remeshed
 		void set_grid(Grid& grid, APosition aPos);
