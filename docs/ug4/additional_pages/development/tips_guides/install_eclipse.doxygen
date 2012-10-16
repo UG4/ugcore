@@ -156,7 +156,7 @@ To make them available, you have to tell Eclipse, where to look for:
 
 <ol>
   <li>Click right on folder \c ug4 -> Choose \em Properties </li>
-  <li>Under <em>C/C++-General</em> -> <em>Path and Symbols</em></li>
+  <li>Under <em>C/C++-General</em> -> Subfolder <em>Path and Symbols</em></li>
   <li>Under \em Includes click <em>Add ...</em></li>
   <li>Click on <em>Workspace ...</em> and choose the folder \c ugbase </li>
   <li>Check: <em>Add to all languages</em> and <em>Add to all 
@@ -171,7 +171,7 @@ So, add it to the Environment:
 
 <ol>
   <li>Click right on folder \c ug4 -> Choose \em Properties </li>
-  <li>Under <em>C/C++-General</em> -> <em>Path and Symbols</em></li>
+  <li>Under <em>C/C++-General</em> -> Subfolder <em>Path and Symbols</em></li>
   <li>Under \em Symbols click <em>Add ...</em></li>
   <li>Fill in \c UG_PARALLEL, value: \c ON </li>
   <li>Check: <em>Add to all languages</em> and <em>Add to all 
