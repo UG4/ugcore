@@ -136,6 +136,13 @@ bool IsDefinedUG_STATIC() { return true; }
 bool IsDefinedUG_STATIC() { return false; }
 #endif
 
+// UG_EMBEDDED_PLUGINS
+#ifdef UG_EMBEDDED_PLUGINS
+bool IsDefinedUG_EMBEDDED_PLUGINS() { return true; }
+#else
+bool IsDefinedUG_EMBEDDED_PLUGINS() { return false; }
+#endif
+
 // DEBUG, DEBUG_LOGS:
 #ifdef UG_DEBUG
 bool IsDefinedUG_DEBUG() { return true; }
@@ -177,11 +184,35 @@ bool IsDefinedPROFILE_PCL() { return true; }
 bool IsDefinedPROFILE_PCL() { return false; }
 #endif
 
+// PROFILE_BRIDGE:
+#ifdef PROFILE_BRIDGE
+bool IsDefinedPROFILE_BRIDGE() { return true; }
+#else
+bool IsDefinedPROFILE_BRIDGE() { return false; }
+#endif
+
+// Not yet - placeholder for some 'PROFILE_XYZ' CMake flag possibly introduced in the future:
+/*
+// PROFILE_XYZ:
+#ifdef PROFILE_XYZ
+bool IsDefinedPROFILE_XYZ() { return true; }
+#else
+bool IsDefinedPROFILE_XYZ() { return false; }
+#endif
+*/
+
 // ALGEBRA - derived, no output by 'cmake' until now:
 #ifdef UG_ALGEBRA
 bool IsDefinedUG_ALGEBRA() { return true; }
 #else
 bool IsDefinedUG_ALGEBRA() { return false; }
+#endif
+
+// PRECISION
+#ifdef UG_SINGLE_PRECISION
+bool IsDefinedUG_SINGLE_PRECISION() { return true; }
+#else
+bool IsDefinedUG_SINGLE_PRECISION() { return false; }
 #endif
 
 // LAPACK_AVAILABLE - derived:
@@ -272,7 +303,18 @@ void PrintBuildConfiguration()
 	aux_str.append("STATIC:            ").append( (IsDefinedUG_STATIC() ? "ON " : "OFF") );
 	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
 
-	// next pair
+	// next (half) pair
+	aux_str = "";
+	//aux_str.append("...:            ").append( (IsDefined...() ? "" : "") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+	aux_str = "";
+	aux_str.append("EMBEDDED_PLUGINS:  ").append( (IsDefinedUG_EMBEDDED_PLUGINS() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str, 0).append(""));
+	aux_str = "";
+	aux_str.append(" ").append( (IsDefinedUG_STATIC() ? "(always set if 'STATIC=ON')" : "") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+
+	// next (half) pair
 	aux_str = "";
 	aux_str.append("PARALLEL:          ").append( (IsDefinedUG_PARALLEL() ? "ON " : "OFF") );
 	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
@@ -294,6 +336,15 @@ void PrintBuildConfiguration()
 	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
 	aux_str = "";
 	aux_str.append("PROFILE_PCL:       ").append( (IsDefinedPROFILE_PCL() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+
+	// next (half) pair
+	aux_str = "";
+	aux_str.append("PROFILE_BRIDGE:    ").append( (IsDefinedPROFILE_BRIDGE() ? "ON " : "OFF") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+	aux_str = "";
+	// Not yet - placeholder for some 'PROFILE_XYZ' CMake flag possibly introduced in the future:
+	//aux_str.append("PROFILE_XYZ:       ").append( (IsDefinedPROFILE_XYZ() ? "ON " : "OFF") );
 	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
 
 	// next pair
@@ -332,6 +383,9 @@ void PrintBuildConfiguration()
 		aux_str.append( (IsDefinedUG_CPU_VAR() ? "VAR" : "") );
 	}
 	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
+	aux_str = "";
+	aux_str.append("PRECISION:         ").append( (IsDefinedUG_SINGLE_PRECISION() ? "single" : "double ") );
+	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
 
 	// We've decided so far not to display the following derived parameters!
 
