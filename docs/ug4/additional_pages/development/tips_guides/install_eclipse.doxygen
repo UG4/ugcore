@@ -6,17 +6,17 @@
 
 The page is an install guide for the usage of Eclipse for ug.
 
-- \ref secInstallEcpliseDownload
-- \ref secInstallEcpliseUG4Download 
-- \ref secInstallEcpliseUseMakefiles
-- \ref secInstallEcpliseRunExecutable
-- \ref secInstallEcpliseSyntaxLua
+- \ref secInstallEclipseDownload
+- \ref secInstallEclipseUG4Download 
+- \ref secInstallEclipseUseMakefiles
+- \ref secInstallEclipseRunExecutable
+- \ref secInstallEclipseSyntaxLua
 - \ref secInstallEclipseSyntaxDoxygen
 
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
 <hr>
-\section secInstallEcpliseDownload Download Eclipse
+\section secInstallEclipseDownload Download Eclipse
 
 <ul>
   <li>Download \em Eclipse from http://www.eclipse.org/downloads/ :
@@ -61,7 +61,7 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
 
 <hr>
-\section secInstallEcpliseUG4Download Download ug4 via Eclipse/SVN
+\section secInstallEclipseUG4Download Download ug4 via Eclipse/SVN
 
 <ul>
   <li>In Eclipse's Menu, choose \em File -> \em New -> <em>Other ...</em>, and 
@@ -89,7 +89,7 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 </ul>
 
 <hr>
-\section secInstallEcpliseUseMakefiles Build in Eclipse using external Makefiles
+\section secInstallEclipseUseMakefiles Build in Eclipse using external Makefiles
 <hr>
 
 In order to build the \ug4 libraries via \em Eclipse, you first must create the 
@@ -102,7 +102,7 @@ This is done using \em Cmake in the terminal (go to \ref pageUG4Setup if you did
   <li><tt>cd ug4</tt></li>
   <li><tt>mkdir build_debug</tt></li>
   <li><tt>cd build_debug</tt></li>
-  <li><tt>cmake -DUG_DEBUG=ON ..</tt> --> Makefiles are generated</li>
+  <li><tt>cmake -DDEBUG=ON ..</tt> --> Makefiles are generated</li>
 </ol>
 
 Note, that once the Makefiles have been created, you do not have to rebuild them
@@ -129,7 +129,7 @@ You find the binary in <tt>ug4/bin/</tt> with the name <tt>ugshell</tt>
 
 
 <hr>
-\section secInstallEcpliseRunExecutable	Run ug-executable via Eclipse
+\section secInstallEclipseRunExecutable	Run ug-executable via Eclipse
 
 If you want you can also start the executable from \em Eclipse.
 This is especially useful if you like to use the build-in Debugger. 
@@ -148,7 +148,7 @@ Of course, if needed, use adapted arguments.
 
 
 <hr>
-\section secInstallEcplisePathSymbols Path and Symbols
+\section secInstallEclipsePathSymbols Path and Symbols
 
 \em Eclipse has a powerful Autocompletion-Mechanism, Syntax-Highlighting for 
 C++ and many other things.
@@ -181,7 +181,7 @@ So, add it to the Environment:
 
 
 <hr>
-\section secInstallEcpliseSyntaxLua Syntax Highlighting in Lua 
+\section secInstallEclipseSyntaxLua Syntax Highlighting in Lua 
 
 \em Lua is the recommended scripting language in \ug4.
 In order to have a more comfortable editing of Lua-Scripts you should install a 
