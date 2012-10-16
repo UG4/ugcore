@@ -12,6 +12,8 @@ The page is an install guide for the usage of Eclipse for ug.
 - \ref secInstallEclipseRunExecutable
 - \ref secInstallEclipseSyntaxLua
 - \ref secInstallEclipseSyntaxDoxygen
+- \ref secInstallEclipseAdditional
+- \ref secUG4ProjectInEclipse
 
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
@@ -206,7 +208,6 @@ http://luaeclipse.luaforge.net/preview/update-site/macosx.carbon/site.xml
 A second (not recommended) choice is \em LunarEclispe 
 (http://lunareclipse.sourceforge.net/update.html)
 
-
 <hr>
 \section secInstallEclipseSyntaxDoxygen Syntax Highlighting for Doxygen
 
@@ -227,6 +228,15 @@ Therefore two actions need to be taken in \em Eclipse:
     settings</em> and choose <em>Doxygen</em> as the <em>Documentation Tool</em>.
   </li>
 </ol>
+
+<hr>
+\section secInstallEclipseAdditional Additional Tipps & Tricks
+
+ - Line Numbers: Eclipse -> Properties. Subfolder General -> Editors -> Text Editors. Enable "Show line numbers".
+ - Switching Tabs: On Mac: Apple+F6. On Windows: Ctrl+F6. Ctrl+PageUp / Ctrl+PageDown: Cycle through tabs without showing a list.
+ - search a file in the tabs: Apple+E (Mac)
+ - search a symbol (e.g. function) in the current file: Apple+O
+ - You can change key mappings under Eclipse -> Properties, General -> Keys. (e.g. next Tab, previous Tab)
 
 <hr>
 \section secUG4ProjectInEclipse Create an UG4 project from exisiting source in Eclipse
