@@ -21,7 +21,7 @@ namespace ug
 ///	only for debugging purposes!!!
 /**	Output value pairs to gnuplot...
  * \{ */
-#define EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED
+//#define EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED
 #ifdef EDGE_LENGTH_ADJUSTMENT__GPLOT_ENABLED
 	typedef vector<pair<number, number> > GnuplotData;
 	static GnuplotData gplotLengthFac;
