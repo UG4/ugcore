@@ -62,6 +62,7 @@ environment
 	- \ref pageUnitTests
 	- \ref pageUG4DevTipsGuides
 		- \ref pageInstallEclipse
+		- \ref pageInstallNetbeans
 		- \ref pageUG4CodingStyle
 		- \ref pageTeamCommunication
 		- \ref pageUG4DoxygenQuickref

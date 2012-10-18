@@ -12,6 +12,7 @@ These pages are a collection of information addressing developers of \ug4.
 - \subpage pageDebuggingCPP
 - \subpage pageUG4DevTipsGuides
   - \ref pageInstallEclipse
+  - \ref pageInstallNetbeans
   - \ref pageUG4CodingStyle
   - \ref pageTeamCommunication
   - \ref pageUG4DoxygenQuickref
