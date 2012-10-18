@@ -58,6 +58,9 @@ For any questions, contact martin.rupp@gcsc.uni-frankfurt.de .
  <li> Set Working Directory to ug4/release_build</li>
 </ul>
  
+\note Netbeans has a nice code assistance. However, this takes a lot of memory. Go to \em File -> <em>Project Properties</em> -> \em General. There you set <tt>^(nbproject|externals|unit_tests|build_debug|build_release)$</tt> 
+ * as ignored folders. If you still have memory problems, consider disabling code assistance by removing "." from Source Folders.
+ 
 \section secInstallNetbeansRunningAndDebugging Running and Debugging
  <ul>
  <li> Go to \em File -> <em>Project Properties</em></li>
