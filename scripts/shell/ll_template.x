@@ -288,8 +288,16 @@ env | grep LOADL_
 ### to get a history of all our jobs; job id numbers added to the job comments
 ### are given by the 'll_submit' command (maybe this turns out to be useful one day)!
 ###
-### Raw analysis of these jobs:
+### Raw timing analysis of these jobs:
 ### egrep 'NumProcs|main   |unknown|MPI_Init| ASS_AssembleLinearOperatorRhsAndSolution| ALS_InitLinearSolver| ALS_ApplyLinearSolver' ug4_fullystatic_laplace*
+###
+### Check start and end norms of residuum, if solver converged and number of iterations:
+### grep -A3 " Iterative Linear Solver "  ug4_fullystatic_laplace*
+### grep -B1 " Iteration not successful " ug4_fullystatic_laplace*
+### grep -B1 " reached after "            ug4_fullystatic_laplace*
+### egrep 'Iterative Linear Solver | reached after ' ug4_fullystatic_laplace*
+### or, shorter
+### grep "ANALYZER INFO: linear solver converged in" ug4_fullystatic_laplace*
 ################################################################################
 ################################################################################
 

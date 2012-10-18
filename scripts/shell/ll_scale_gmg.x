@@ -121,7 +121,9 @@ env | grep LOADL_
 ### grep -A3 " Iterative Linear Solver "  ug4_fullystatic_laplace*
 ### grep -B1 " Iteration not successful " ug4_fullystatic_laplace*
 ### grep -B1 " reached after "            ug4_fullystatic_laplace*
-### egrep '-A3 " Iterative Linear Solver "|-B1 " reached after "'  ug4_fullystatic_laplace*
+### egrep 'Iterative Linear Solver | reached after ' ug4_fullystatic_laplace*
+### or, shorter
+### grep "ANALYZER INFO: linear solver converged in" ug4_fullystatic_laplace*
 ################################################################################
 ################################################################################
 
