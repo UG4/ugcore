@@ -5,7 +5,7 @@
 /** \page pageInstallNetbeans Developing with the Netbeans IDE
 
 The page is an install guide for the usage of Netbeans for ug.
-Currently tested with Netbeans 7.2 on MacOS.
+Currently tested with Netbeans 7.2 on Mac OS.
 
 - \ref secInstallNetbeansDownload
 - \ref secInstallNetbeansCreateProject
@@ -17,14 +17,18 @@ For any questions, contact martin.rupp@gcsc.uni-frankfurt.de .
 <hr>
 \section secInstallNetbeansDownload Download Netbeans
 
- You have to checkout ug4 manually or use the version you checked out with Eclipse.
 <ul>
-  <li>Got to http://netbeans.org/downloads/, download the "All" package, or the "C/C++" package.  </li>
+  <li>Got to http://netbeans.org/downloads/, download the "C/C++" package or the "All" package if you want to use NetBeans for other purposes as well.</li>
   <li>Open the downloaded file (e.g. netbeans-7.2-ml-macosx.dmg), install.</li>
   <li> Start \em Netbeans. </li>
   <li> Select View -> Show Versioning Labels (for SVN info) </li>
 </ul>
 
+You can either checkout ug4 with NetBeans or do it manually. It is also possible to use the version you checked out previously, e.g., with Eclipse.
+If you have checked out ug already skip this paragraph and go directly to \ref secInstallNetbeansCreateProject.
+
+To use NetBeans for checkout, choose <em> Team -> Subversion -> Checkout</em>. In the following dialogs you must specify the SVN repository, your username etc. TODO: link me to the corresponding docu...
+After the checkout NetBeans will ask you whether to create a new project. Just follow \ref secInstallNetbeansCreateProject.
 
 <hr>
 \section secInstallNetbeansCreateProject Create the ug4 project in Netbeans
