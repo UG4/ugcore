@@ -11,16 +11,11 @@
 #ifndef __H__UG__LIB_ALGEBRA__PINVIT_H__
 #define __H__UG__LIB_ALGEBRA__PINVIT_H__
 
+#include "common/util/string_util.h"
+
 // constructors
 namespace ug{
 
-template<typename T>
-inline std::string ToString(const T &t)
-{
-	std::stringstream out;
-	out << t;
-	return out.str();
-}
 
 /*template<typename mat_type, typename vec_type, typename densematrix_type>
 void MultiEnergyProd(const SparseMatrix<mat_type> &A,
