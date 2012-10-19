@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <algorithm> 
+#include <sstream>
 #include <cctype>
 #include "hash.h"
 #include "common/ug_config.h"
@@ -169,6 +170,20 @@ UG_API std::string GetFileLine(const char *filename, size_t line);
  * @return true if b is longer then a
  */
 UG_API bool IsLonger(const std::string &a, const std::string &b);
+
+
+/**
+ * Convert a object supporting 'cout << obj' to a string
+ * @param t 
+ * @return a string with the object as if you would use operator << (like cout)
+ */
+template<typename T>
+inline std::string ToString(const T &t)
+{
+    std::stringstream out;
+    out << t;
+    return out.str();
+}
 
 } // end namespace ug
 
