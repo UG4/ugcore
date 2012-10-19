@@ -403,7 +403,6 @@ int main(int argc, char* argv[])
 
 //	INIT PLUGINS
 	try{
-		FileExists("");
 		#ifdef UG_PLUGINS
 			UG_LOG(", plugins... ");
 			#ifdef UG_EMBEDDED_PLUGINS
