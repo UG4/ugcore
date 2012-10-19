@@ -4,6 +4,7 @@
 
 #include <windows.h>
 #include <string>
+#include <vector>
 #include "../plugin_util.h"
 #include "common/log.h"
 #include "common/util/path_provider.h"
@@ -14,6 +15,12 @@
 using namespace std;
 
 namespace ug{
+
+static std::vector<std::string> loadedPluginNames;
+bool PluginLoaded(const std::string &name)
+{
+	return std::find(loadedPluginNames.begin(), loadedPluginNames.end(), name) != loadedPluginNames.end();
+}
 
 bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 {
@@ -97,6 +104,7 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 	//	call the init method
 		fctInitPlugin(&reg, parentGroup);
+		loadedPlugins.push_back(loadedPluginNames);
 	}
 
 //	make sure that the registry is updated
@@ -107,7 +115,7 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 
 bool UnloadPlugins()
-{
+{	
 	// please implement
 	return false;
 }

@@ -16,6 +16,12 @@ using namespace std;
 namespace ug{
 
 static vector<void*> loadedPlugins;
+static std::vector<std::string> loadedPluginNames;
+
+bool PluginLoaded(const std::string &name)
+{
+	return std::find(loadedPluginNames.begin(), loadedPluginNames.end(), name) != loadedPluginNames.end();
+}
 
 bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 {
@@ -103,6 +109,7 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 	//	call the init method
 		fctInitPlugin(&reg, parentGroup);
 		loadedPlugins.push_back(libHandle);
+		loadedPluginNames.push_back(pluginName);
 	}
 
 //	make sure that the registry is updated

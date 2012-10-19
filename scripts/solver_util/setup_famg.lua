@@ -47,6 +47,7 @@ util = util or {}
 --! \endcode
 --! \sa FAMG 
 function util.SetupFAMGPreconditioner(base, presmoother, postsmoother)
+	AssertPluginLoaded("amg")
 	if base == nil then
 		base = LU()
 	end

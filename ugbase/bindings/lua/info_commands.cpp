@@ -23,6 +23,7 @@
 #include "registry/class_name_provider.h"
 #include "common/util/string_util.h"
 
+
 extern "C"
 {
 #include "bindings/lua/externals/lua/lstate.h"
@@ -35,6 +36,8 @@ using namespace std;
 
 namespace ug
 {
+	extern bool PluginLoaded(const std::string &name);
+
 namespace bridge
 {
 
@@ -807,6 +810,19 @@ void LuaStackTrace(lua_State* L)
     }
 }
 
+
+/// returns the current file and line ( \sa LuaStackTrace ).
+bool GetLuaFileAndLine(lua_State* L, std::string &file, size_t &line)
+{
+	lua_Debug entry;
+	lua_getstack(L, 1, &entry);
+	int status = lua_getinfo(L, "Sln", &entry);
+	if(!status || !entry.short_src || entry.currentline < 0) return false;
+	file = entry.short_src;
+	line = entry.currentline;
+	return true;
+}
+
 /// returns the current file and line ( \sa LuaStackTrace ).
 std::string GetLuaFileAndLine(lua_State* L)
 {
@@ -829,6 +845,43 @@ bool ScriptPrintClassHierarchy(const char *classname)
 	return PrintClassHierarchy(GetUGRegistry(), classname);
 }
 
+const ClassGroupDesc* FindClassGroup(bridge::Registry &reg, const string &name)
+{
+	const ClassGroupDesc* p=NULL;
+	for(size_t i=0; i<reg.num_class_groups(); i++)
+	{
+		p = reg.get_class_group(i);
+		if(p->name().compare(name) == 0)
+			return p;
+	}
+	return NULL;
+}
+	
+bool ScriptHasClass(const char *classname)
+{
+	return FindClass(GetUGRegistry(), classname) != NULL;
+}
+
+bool ScriptHasClassGroup(const char *classname)
+{
+	return FindClassGroup(GetUGRegistry(), classname) != NULL;
+}
+
+bool AssertPluginLoaded(const char *name)
+{
+	if(PluginLoaded(name) == false)
+	{
+		string msg = string("plugin ") + name + string(" not loaded. Please use 'cmake -D") + name + string("=ON ..' in your build directory.");		
+		std::string file; size_t line;
+		if(GetLuaFileAndLine(script::GetDefaultLuaState(), file, line))
+			throw UGError(msg.c_str(), file.c_str(), line);
+		else
+			throw UGError(msg.c_str());
+		return false;
+	}
+	return true;
+}
+
 bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 {
 	stringstream grpSS; grpSS << parentGroup << "/Info";
@@ -847,6 +900,10 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 		reg.add_function("ClassInstantiations" ,&ClassInstantiations, grp.c_str());
 		reg.add_function("ClassHierarchy" ,&ScriptPrintClassHierarchy, grp.c_str());
 		reg.add_function("Stacktrace", &ScriptStacktrace, grp.c_str());
+		reg.add_function("HasClass", &ScriptHasClass, grp.c_str());
+		reg.add_function("HasClassGroup", &ScriptHasClassGroup, grp.c_str());
+		reg.add_function("PluginLoaded", &PluginLoaded, grp.c_str());		
+		reg.add_function("AssertPluginLoaded", &AssertPluginLoaded, grp.c_str());		
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 

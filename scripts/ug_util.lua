@@ -500,3 +500,23 @@ function FreeUserData()
    collectgarbage("collect")
 end
 
+--! 
+--! @param pluginNamesList a list like {"amg", "d3f"} of plugins to check
+function AssertPluginsLoaded(pluginNamesList)
+	local notLoadedNames = ""
+	local cmakePluginString = ""
+	for i,v in pairs(pluginNamesList) do
+		if PluginLoaded(v) == false then
+			notLoadedNames=notLoadedNames..v.." "
+			cmakePluginString = cmakePluginString.." -D"..v
+		end
+	end	
+	if notLoadedNames:len() > 0 then
+		print("Plugin(s) needed but not loaded: "..notLoadedNames)		
+		print("Please use \n   cmake "..cmakePluginString.." ..; make\nin your build directory to add the plugin(s).")
+		exit()
+	end
+	
+end
+
+			
