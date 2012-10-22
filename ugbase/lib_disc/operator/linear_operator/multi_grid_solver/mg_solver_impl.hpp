@@ -963,7 +963,7 @@ init_common(bool nonlinear)
 	}
 
 //	m_bAdaptive should describe whether the global grid is adaptive or not.
-//	Otherwise different pathes may be executed during sloving, which may lead to
+//	Otherwise different paths may be executed during solving, which may lead to
 //	unmatched parallel communication calls.
 //todo:	Eventually the multigrid is only executed on a subset of processes.
 //		A process communicator would thus make sense, which defines this subset.
