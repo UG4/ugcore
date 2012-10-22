@@ -18,10 +18,11 @@ For any questions, contact martin.rupp@gcsc.uni-frankfurt.de .
 \section secInstallNetbeansDownload Download Netbeans
 
 <ul>
-  <li>Got to http://netbeans.org/downloads/, download the "C/C++" package or the "All" package if you want to use NetBeans for other purposes as well.</li>
+  <li>Go to http://netbeans.org/downloads/, download the "C/C++" package or the "All" package if you want to use NetBeans for other purposes as well.</li>
   <li>Open the downloaded file (e.g. netbeans-7.2-ml-macosx.dmg), install.</li>
   <li> Start \em Netbeans. </li>
   <li> Select View -> Show Versioning Labels (for SVN info) </li>
+  <li> Netbeans -> Properties -> Miscellaneous -> Versioning: At "Format", enter <tt>{folder} {revision} {status}</tt>.</li>
 </ul>
 
 You can either checkout ug4 with NetBeans or do it manually. It is also possible to use the version you checked out previously, e.g., with Eclipse.
