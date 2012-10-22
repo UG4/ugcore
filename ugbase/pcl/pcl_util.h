@@ -39,6 +39,10 @@ void SynchronizeProcesses();
 /// function with bFlag = true
 bool AllProcsTrue(bool bFlag, ProcessCommunicator comm = ProcessCommunicator());
 
+/// performs an allreduce and returns true at least one process called the
+/// function with bFlag = true
+bool OneProcTrue(bool bFlag, ProcessCommunicator comm = ProcessCommunicator());
+
 
 ///	removes all empty interfaces from the given layout.
 template <class TLayout>

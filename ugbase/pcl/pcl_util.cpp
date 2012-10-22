@@ -44,6 +44,27 @@ bool AllProcsTrue(bool bFlag, ProcessCommunicator comm)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+bool OneProcTrue(bool bFlag, ProcessCommunicator comm)
+{
+	PCL_DEBUG_BARRIER(comm);
+	PCL_PROFILE(pclAllProcsTrue);
+
+//	local int bool flag
+	int boolFlag = (bFlag) ? 1 : 0;
+
+// 	local return flag
+	int retBoolFlag;
+
+//	all reduce
+	comm.allreduce(&boolFlag, &retBoolFlag, 1, PCL_DT_INT, PCL_RO_LOR);
+
+//	return global flag
+	if(retBoolFlag != 0)
+		return true;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 								  const std::vector<int>& vSendToRanks,
 								  const ProcessCommunicator& procComm)

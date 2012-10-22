@@ -20,7 +20,7 @@
 
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
-
+	#include "pcl/pcl_util.h"
 //	the debug barrier is used to eliminate synchronization overhead from
 //	profiling stats. Only used for parallel builds.
 //	PCL_DEBUG_BARRIER only has an effect if PCL_DEBUG_BARRIER_ENABLED is defined.
@@ -88,6 +88,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 
 //	project defect from surface to level
 	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
+	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply project_surface_to_level... \n");
 	try{
 	if(!project_surface_to_level(level_defects(), d))
 	{
@@ -101,6 +102,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 // 	Perform one multigrid cycle
 //	At this point c, d are valid for m_vLevData[m_topLev]->c, m_vLevData[m_topLev]->d
 	GMG_PROFILE_BEGIN(GMG_lmgc);
+	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply lmgc (on level " << m_topLev << ")... \n");
 	try{
 	if(!lmgc(m_topLev))
 	{
@@ -113,6 +115,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 
 //	project correction from level to surface
 	GMG_PROFILE_BEGIN(GMG_ProjectCorrectionFromLevelToSurface);
+	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply project_level_to_surface... \n");
 	try{
 	if(!project_level_to_surface(c, const_level_corrections()))
 	{
@@ -135,6 +138,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 //		  correct defect, we must recompute the defect here in the adaptive case.
 	if(kappa == 1.0 && ! m_bAdaptive)
 	{
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply recompute defect (non adaptive)... \n");
 	//	project defect from level to surface
 		GMG_PROFILE_BEGIN(GMG_ProjectDefectFromLevelToSurface);
 		try{
@@ -149,6 +153,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}
 	else
 	{
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply recompute defect (adaptive)... \n");
 	//	scale correction
 		c *= kappa;
 
@@ -165,6 +170,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	} UG_CATCH_THROW("AssembledMultiGridCycle: Application failed.");
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply done. \n");
 	return true;
 }
 
@@ -178,6 +184,8 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
        size_t lev, int nu)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - smooth on level " << lev << "\n");
+
 // 	smooth nu times
 	for(int i = 0; i < nu; ++i)
 	{
@@ -233,6 +241,7 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 	}
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - smooth on level " << lev << "\n");
 	return true;
 }
 
@@ -241,6 +250,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 presmooth(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - presmooth on level " << lev << "\n");
 //	Get all needed vectors and operators
 
 //	get vectors used in smoothing operations. (This is needed if vertical
@@ -282,6 +292,7 @@ presmooth(size_t lev)
 //	zero.
 	m_vLevData[lev]->copy_defect_from_smooth_patch(true);
 
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - presmooth on level " << lev << "\n");
 	return true;
 }
 
@@ -291,6 +302,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 restriction(size_t lev, bool* restrictionPerformedOut)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - restriction on level " << lev << "\n");
 //	Get all needed vectors and operators
 
 //	Get vectors defined on whole grid (including ghosts) on this level
@@ -316,6 +328,7 @@ restriction(size_t lev, bool* restrictionPerformedOut)
 	if(!gather_vertical(d)){
 	//	only continue if levels left
 		*restrictionPerformedOut = false;
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - restriction on level " << lev << " (no levels below)\n");
 		return true;
 	}
 	#endif
@@ -337,7 +350,7 @@ restriction(size_t lev, bool* restrictionPerformedOut)
 //	since we reached this point, the restriction was performed.
 	*restrictionPerformedOut = true;
 
-
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - restriction on level " << lev << "\n");
 	return true;
 }
 
@@ -346,6 +359,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 prolongation(size_t lev, bool restrictionWasPerformed)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - prolongation on level " << lev << "\n");
 //	Get all needed vectors and operators
 
 //	Get vectors defined on whole grid (including ghosts) on this level
@@ -442,6 +456,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 		write_level_debug(cTmp, "GMG_Prol_CorrAdaptAdding", lev-1);
 	}
 
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - prolongation on level " << lev << "\n");
 	return true;
 }
 
@@ -450,6 +465,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 postsmooth(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - postsmooth on level " << lev << "\n");
 //	get vectors used in smoothing operations. (This is needed if vertical
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
@@ -481,6 +497,7 @@ postsmooth(size_t lev)
 	m_vLevData[lev]->copy_defect_from_smooth_patch();
 	m_vLevData[lev]->copy_correction_from_smooth_patch();
 
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - postsmooth on level " << lev << "\n");
 	return true;
 }
 
@@ -490,6 +507,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 base_solve(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - base_solve on level " << lev << "\n");
 //	get vectors used in smoothing operations. (This is needed if vertical
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
@@ -605,6 +623,7 @@ base_solve(size_t lev)
 	}
 #endif
 
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - base_solve on level " << lev << "\n");
 //	we're done for the solution of the base solver
 	return true;
 
@@ -616,6 +635,8 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 lmgc(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - lmgc on level " << lev << "\n");
+
 //	switch, if base level is reached. If so, call base Solver, else we will
 //	perform smoothing, restrict the defect and call the lower level; then,
 //	going up again in the level hierarchy the correction is interpolated and
@@ -675,6 +696,7 @@ lmgc(size_t lev)
 
 			//	UG_LOG("After postsmooth:\n");	log_level_data(lev);
 			}
+			UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - lmgc on level " << lev << "\n");
 			return true;
 		}
 		else{
@@ -682,6 +704,7 @@ lmgc(size_t lev)
 				if(!lmgc(lev-1))
 					return false;
 			}
+			UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - lmgc on level " << lev << " (no dofs on this level)\n");
 			return true;
 		}
 	}
@@ -689,7 +712,9 @@ lmgc(size_t lev)
 //	if the base level has been reached, the coarse problem is solved exactly
 	else if(lev == m_baseLev)
 	{
-		return base_solve(lev);
+		bool baseSolverSuccess = base_solve(lev);
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - lmgc on level " << lev << " (base solver executed)\n");
+		return baseSolverSuccess;
 	}
 
 //	this case should never happen.
@@ -924,10 +949,28 @@ init_common(bool nonlinear)
 //		level matrix can't be copied, an injective SurfToTopLevMap might be useful...
 	if(m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices() ==
 		m_spApproxSpace->surface_dof_distribution()->num_indices())
+	{
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is non adaptive\n");
 		m_bAdaptive = false;
-	else
+	}
+	else{
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is adaptive: ");
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "#level-dofs: "
+				<< m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices());
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, ", #surface-dofs: "
+				<< m_spApproxSpace->surface_dof_distribution()->num_indices());
 		m_bAdaptive = true;
+	}
 
+//	m_bAdaptive should describe whether the global grid is adaptive or not.
+//	Otherwise different pathes may be executed during sloving, which may lead to
+//	unmatched parallel communication calls.
+//todo:	Eventually the multigrid is only executed on a subset of processes.
+//		A process communicator would thus make sense, which defines this subset.
+//		Use that in the call below.
+	#ifdef UG_PARALLEL
+		m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
+	#endif
 
 //	init mapping from surface level to top level in case of full refinement
 	if(!m_bAdaptive)
