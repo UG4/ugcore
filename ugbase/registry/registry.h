@@ -10,7 +10,7 @@
 #include <typeinfo>
 #include <iostream>
 #include <boost/function.hpp>
-//#include <boost/type_traits.hpp>
+#include <boost/type_traits.hpp>
 
 
 #include "global_function.h"
