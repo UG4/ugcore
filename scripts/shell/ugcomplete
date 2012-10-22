@@ -86,6 +86,7 @@ ugshell_complete_gdb()
   	do
   		if [ "${COMP_WORDS[$c]}" = "--args" ] && [ "${COMP_WORDS[$c+1]}" = "ugshell" ]; then
   			ugshell_complete
+			return
   		fi
   	done
 }
@@ -99,8 +100,13 @@ ugshell_complete_ugsubmit()
 {
 	for (( c=0; c<COMP_CWORD; c++ ))
   	do
+		if [ "${COMP_WORDS[$c]}" = "---" ] && [ ${COMP_WORDS[$c+1]} = "ugshell"]; then
+			ugshell_complete
+			return
+		fi
   		if [ "${COMP_WORDS[$c]}" = "---" ] && [ -e ${COMP_WORDS[$c+1]} ] && [ `basename ${COMP_WORDS[$c+1]}` = "ugshell" ]; then
   			ugshell_complete
+			return
   		fi
   	done
 }
@@ -114,8 +120,13 @@ ugshell_complete_external()
 {
 	for (( c=0; c<=COMP_CWORD; c++ ))
   	do
-  		if [ -e ${COMP_WORDS[$c]} ] && [ `basename ${COMP_WORDS[$c]}` = "ugshell" ]; then
+		if [ ${COMP_WORDS[$c]} = "ugshell"]; then
+			ugshell_complete
+			return
+		fi
+		if [ -e ${COMP_WORDS[$c]} ] && [ `basename ${COMP_WORDS[$c]}` = "ugshell" ]; then
   			ugshell_complete
+			return
   		fi
   	done
 }
@@ -127,7 +138,7 @@ complete -o plusdirs -F ugshell_complete -o nospace ugshell
 complete -W "--args" -F ugshell_complete_gdb -o nospace gdb
 
 # mpirun completion
-complete -W "-np" -F ugshell_complete_external -o nospace mpirun
+complete -W "-np ugshell" -F ugshell_complete_external -o nospace mpirun
 
 # ugsubmit completion
 complete -W "-test -nppn -cluster -name -walltime -email -mail-start -mail-end -mail-error -mail-all -verbose -tail -i -dir -queue" \
