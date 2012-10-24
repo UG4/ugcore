@@ -35,9 +35,7 @@ ugshell_complete() {
 
 	
 	# get completions in directory $UG4_ROOT/apps/
-	if [ -d $UG4_ROOT/apps ]
-		&& [ $UG4_ROOT_absolute/apps != $curDir ]
-		&& [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ];
+	if [ -d $UG4_ROOT/apps ] && [ $UG4_ROOT_absolute/apps != $curDir ] && [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ];
 	then 		
 		cd $UG4_ROOT/apps
 		while read line; do
@@ -47,9 +45,7 @@ ugshell_complete() {
 		cd $curDir
 
 	# get completions in directory $UG4_ROOT/data/grid
-	elif [ -d $UG4_ROOT/data/grids ]
-		&& [ $UG4_ROOT_absolute/data/grids != $curDir ]
-		&& [ ${COMP_WORDS[COMP_CWORD-1]} = "-grid" ];
+	elif [ -d $UG4_ROOT/data/grids ] && [ $UG4_ROOT_absolute/data/grids != $curDir ] && [ ${COMP_WORDS[COMP_CWORD-1]} = "-grid" ];
 	then 
 		
 		cd $UG4_ROOT/data/grids
