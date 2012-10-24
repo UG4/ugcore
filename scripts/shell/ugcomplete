@@ -17,60 +17,98 @@
 # 
 # to use the completion, set UG4_ROOT and source ug4/shell/scripts/ugcomplete or ugbash
 ugshell_complete() {
-  	local word="${COMP_WORDS[COMP_CWORD]}"
+	local word="${COMP_WORDS[COMP_CWORD]}"
   	local i=0
 	local filename  
 	local b
 
 	while read line; do
 		COMPREPLY[i++]=$line
-	done < <(compgen -W "-outproc -ex -noquit -noterm -logtofile" -- $word)
+	done < <(compgen -fW "-outproc -ex -noquit -noterm -logtofile" -- $word)
+	
+	# get absolute UG4 root
+	# for compatibilty to mac, don't use realpath or readlink here.
+	curDir=`pwd`
+	cd $UG4_ROOT
+	UG4_ROOT_absolute=`pwd`
+	cd $curDir
 
-  if [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ]; then 
-  	while read line; do
-  		[[ -d $line ]] && COMPREPLY[i++]=`echo $line/ | sed -n "s?$UG4_ROOT/apps/??p"`;
-		[[ "${line##*.}" = "lua" ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/apps/??p"`
-  	done < <(compgen -f -- "$UG4_ROOT/apps/$word")
-  elif [ ${COMP_WORDS[COMP_CWORD-1]} = "-grid" ]; then 
-  	while read line; do
-  		[[ -d $line ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/data/grids/??p"`;
-		[[ "${line##*.}" = "ugx" ]] && COMPREPLY[i++]=`echo $line | sed -n "s?$UG4_ROOT/data/grids/??p"`
-  	done < <(compgen -f -- "$UG4_ROOT/data/grids/$word")  	
-  else
-	while read line; do 
-	COMPREPLY[i++]=$line
-	done < <(compgen -f -- "$word")  
+	
+	# get completions in directory $UG4_ROOT/apps/
+	if [ -d $UG4_ROOT/apps ]
+		&& [ $UG4_ROOT_absolute/apps != $curDir ]
+		&& [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ];
+	then 		
+		cd $UG4_ROOT/apps
+		while read line; do
+			[[ -d $line ]] && COMPREPLY[i++]=$line/
+			[[ "${line##*.}" = "lua" ]] && COMPREPLY[i++]=$line
+		done < <(compgen -f -- $word)
+		cd $curDir
 
-  	for (( c=0; c<COMP_CWORD; c++ ))
-  	do
-  		if [ "${COMP_WORDS[$c]}" = "-ex" ]; then
-	  		if [ -e ${COMP_WORDS[c+1]} ]; then
-	  			filename=${COMP_WORDS[c+1]}
-	  		elif [ -e $UG4_ROOT/apps/${COMP_WORDS[c+1]} ]; then
-	  			filename=$UG4_ROOT/apps/${COMP_WORDS[c+1]}
-	  		else
-	  			continue
-	  		fi
-	  		echo $word | grep '^-[a-zA-Z0-9_]*$' > /dev/null
-	  		if [[ $? == 0 ]]; then
-	  			while read line; do
-	  				echo $line | grep '^-[a-zA-Z0-9_]*$' > /dev/null
-	  				if [[ $? == 0 ]]; then
-		  				b="0"	  			
-	  					for (( j=0; j<i; j++ ))
-	  					do
-		  					if [ ${COMPREPLY[j]} = $line ]; then
-	  							b="1"
-	  						fi
-	  					done
-		  				if [ $b = "0" ]; then
-	  			 			COMPREPLY[i++]="$line";
-	  					fi
-	  				fi		  				  			
-	 			done < <(cat $filename | sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p')
-	 		fi
-	 		break
-	  	fi
+	# get completions in directory $UG4_ROOT/data/grid
+	elif [ -d $UG4_ROOT/data/grids ]
+		&& [ $UG4_ROOT_absolute/data/grids != $curDir ]
+		&& [ ${COMP_WORDS[COMP_CWORD-1]} = "-grid" ];
+	then 
+		
+		cd $UG4_ROOT/data/grids
+		while read line; do
+			[[ -d $line ]] && COMPREPLY[i++]=$line/
+			[[ "${line##*.}" = "ugx" ]] && COMPREPLY[i++]=$line
+		done < <(compgen -f -- $word)  
+		cd $curDir
+
+	# get lua file completions
+	# get all parameters to ug4 lua scripts:
+	# they are formed like 
+	#  util.GetParam("<parameter>"
+	#  util.GetParamNumber("<parameter>"
+	#  util.HasParamOption("<parameter>"
+	else
+		while read line;
+		do 
+			COMPREPLY[i++]=$line
+		done < <(compgen -f -- "$word")  
+
+		for (( c=0; c<COMP_CWORD; c++ ))
+		do
+			if [ "${COMP_WORDS[$c]}" = "-ex" ]; then
+				if [ -e ${COMP_WORDS[c+1]} ]; then
+					filename=${COMP_WORDS[c+1]}
+				elif [ -e $UG4_ROOT/apps/${COMP_WORDS[c+1]} ]; then
+					filename=$UG4_ROOT/apps/${COMP_WORDS[c+1]}
+				else
+					continue
+				fi
+				# we only want "normal" words
+				echo $word | grep '^-[a-zA-Z0-9_]*$' > /dev/null
+				if [[ $? == 0 ]];
+				then
+					# open the file $filename,
+					# with sed, get all words with util.*(<word>)
+					while read line;
+					do
+						# we only want "normal" words
+						echo $line | grep '^-[a-zA-Z0-9_]*$' > /dev/null
+						if [[ $? == 0 ]];
+						then
+							# check if word is already in completions
+							b="0"
+							for (( j=0; j<i; j++ ))
+							do
+								if [ ${COMPREPLY[j]} = $line ]; then
+									b="1"
+								fi
+							done
+							if [ $b = "0" ]; then
+								COMPREPLY[i++]="$line";
+							fi
+						fi							
+					done < <(cat $filename | sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p')
+				fi
+				break
+			fi
 		done
 	fi
 }
