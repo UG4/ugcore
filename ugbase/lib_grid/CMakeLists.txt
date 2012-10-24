@@ -114,25 +114,25 @@ endif(PARALLEL)
 ################################################
 # EXTERNALS - liblgm
 set(srcLgm
-	externals/src/lgm/src/lgm.c
-	externals/src/lgm/src/lgm_error.c
-	externals/src/lgm/src/lgm_info.c
-	externals/src/lgm/src/lgm_parser.c
-	externals/src/lgm/src/lgm_writer.c
+	file_io/externals/src/lgm/src/lgm.c
+	file_io/externals/src/lgm/src/lgm_error.c
+	file_io/externals/src/lgm/src/lgm_info.c
+	file_io/externals/src/lgm/src/lgm_parser.c
+	file_io/externals/src/lgm/src/lgm_writer.c
 )
 
 ################################################
 # EXTERNALS - libng
 set(srcNg
-	externals/src/ng/src/ng.c
-	externals/src/ng/src/ng_error.c
-	externals/src/ng/src/ng_info.c
-	externals/src/ng/src/ng_parser.c
-	externals/src/ng/src/ng_writer.c
+	file_io/externals/src/ng/src/ng.c
+	file_io/externals/src/ng/src/ng_error.c
+	file_io/externals/src/ng/src/ng_info.c
+	file_io/externals/src/ng/src/ng_parser.c
+	file_io/externals/src/ng/src/ng_writer.c
 )
 
 set(srcTokstream
-	externals/src/tokstream/tokstream.c
+	file_io/externals/src/tokstream/tokstream.c
 )
 
 #the grid library					

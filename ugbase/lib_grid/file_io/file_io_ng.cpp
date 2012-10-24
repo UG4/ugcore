@@ -9,7 +9,7 @@
 #include "lib_grid/lg_base.h"
 
 extern "C" {
-#include <lib_grid/externals/include/ng/ng.h>
+#include <lib_grid/file_io/externals/include/ng/ng.h>
 }
 
 using namespace std;

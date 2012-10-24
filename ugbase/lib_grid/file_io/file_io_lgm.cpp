@@ -10,7 +10,7 @@
 #include "common/math/ugmath.h"
 
 extern "C" {
-#include <lib_grid/externals/include/lgm/lgm.h>
+#include <lib_grid/file_io/externals/include/lgm/lgm.h>
 }
 
 using namespace std;
