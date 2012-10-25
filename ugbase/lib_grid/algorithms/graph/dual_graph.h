@@ -253,7 +253,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 			//	add a connection to the parents to the list
 				GeometricObject* parent = mg.get_parent(elem);
 				if(parent && Elem::type_match(parent)){
-					adjacencyMapOut.push_back(aaInd[parent]);
+					adjacencyMapOut.push_back(aaInd[static_cast<Elem*>(parent)]);
 					if(pEdgeWeightsOut)
 						pEdgeWeightsOut->push_back(vWeight);
 				}

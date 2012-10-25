@@ -31,9 +31,9 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
 		}
 
 	//	construct the dual graph to the grid
-		vector<idxtype> adjacencyMapStructure;
-		vector<idxtype> adjacencyMap;
-		ConstructDualGraph<TGeomBaseObj, idxtype>(adjacencyMapStructure,
+		vector<idx_t> adjacencyMapStructure;
+		vector<idx_t> adjacencyMap;
+		ConstructDualGraph<TGeomBaseObj, idx_t>(adjacencyMapStructure,
 												  adjacencyMap, grid);
 
 	//	partition the graph using metis
@@ -42,7 +42,7 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
 		int numflag = 0;
 		int options[5]; options[0] = 0;
 		int edgeCut;
-		vector<idxtype> partitionMap(n);
+		vector<idx_t> partitionMap(n);
 
 		UG_LOG("CALLING METIS\n");
 		METIS_PartGraphKway(&n, &adjacencyMapStructure.front(),
@@ -90,12 +90,12 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 //	only call metis if more than 1 part is required
 	if(numParts > 1){
 	//	here we'll store the dual graph
-		vector<idxtype> adjacencyMapStructure;
-		vector<idxtype> adjacencyMap;
-		vector<idxtype> edgeWeightMap;
+		vector<idx_t> adjacencyMapStructure;
+		vector<idx_t> adjacencyMap;
+		vector<idx_t> edgeWeightMap;
 
 	//todo	add baseLevel to ConstructDualGraphMG.
-		ConstructDualGraphMG<TGeomBaseObj, idxtype>(adjacencyMapStructure,
+		ConstructDualGraphMG<TGeomBaseObj, idx_t>(adjacencyMapStructure,
 													adjacencyMap, &edgeWeightMap,
 													mg, baseLevel, hWeight, vWeight);
 
@@ -105,7 +105,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 		int numflag = 0;
 		int options[5]; options[0] = 0;
 		int edgeCut;
-		vector<idxtype> partitionMap(n);
+		vector<idx_t> partitionMap(n);
 
 		UG_LOG("CALLING METIS\n");
 		METIS_PartGraphKway(&n, &adjacencyMapStructure.front(),

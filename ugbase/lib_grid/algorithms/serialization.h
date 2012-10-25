@@ -77,7 +77,7 @@ typedef GeomObjDataSerializer<Volume>		VolumeDataSerializer;
  *
  * Make sure to completely read all data written by the associated write calls.
  *
- * Note that this class specifies the interfaces of VertexDataSerializer,
+ * Note that this class specializes the interfaces of VertexDataSerializer,
  * EdgeDataSerializer, FaceDataSerializer, VolumeDataSerializer.
  *
  * All methods have an empty implementation by default.
