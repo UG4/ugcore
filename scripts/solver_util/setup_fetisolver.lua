@@ -404,6 +404,22 @@ function SetupFETISolver(str_problem,
 	
 	elseif neumannProblemSolverType == "rsamg" or neumannProblemSolverType == "famg" then
 
+	   -- maybe sometime: modular setup via integration of 'setup_famg.lua'
+	   -- (dito for Dirichlet solver):
+	   -- ug_load_script("setup_famg.lua")
+	   -- npAMG = util.SetupFAMGPrecondition(LU(), GaussSeidel(), GaussSeidel())
+
+	   -- also helpful sometime: functions to switch on debug output for AMG (mail by M. Rupp):
+	   -- amg:set_debug_level_overlap(4, 4)
+	   -- amg:set_use_precalculate(false)
+	   -- amg:set_debug_level_get_ratings(4)
+	   -- amg:set_debug_level_coloring(4)
+	   -- amg:set_debug_level_communicate_prolongation(4)
+	   -- amg:set_debug_level_overlap(4,4)
+	   -- amg:set_debug_level_calculate_parent_pairs(6)
+	   -- amg:set_debug_level_calculate_parent_pairs(6)
+	   -- amg:set_debug_level_precalculate_coarsening(4)
+
 		if neumannProblemSolverType == "famg" then
 
 			npAMG = FAMGPreconditioner()	
