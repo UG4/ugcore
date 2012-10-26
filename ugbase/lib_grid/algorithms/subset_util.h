@@ -465,6 +465,12 @@ void UpdateMaxDimensionOfSubset(ISubsetHandler& sh,
 UG_API
 void AssignSubsetsByElementType(ISubsetHandler& sh);
 
+////////////////////////////////////////////////////////////////////////
+/// Calculates the area (on the surface) covered by faces in a given subset
+UG_API
+number CalculateSurfaceArea(ISubsetHandler& sh, size_t si, size_t lvl,
+					   		  Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 

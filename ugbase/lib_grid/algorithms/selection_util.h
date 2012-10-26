@@ -420,6 +420,7 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 										 number degThreshold = SMALL,
 						   	   	   	     APosition& aPos = aPosition);
 
+
 /**@}*/ // end of doxygen defgroup command
 
 }// end of namespace

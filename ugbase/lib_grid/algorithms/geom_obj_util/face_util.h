@@ -144,6 +144,14 @@ UG_API
 Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
+///	Returns the area covered by faces
+template <class TIterator, class TAAPosVRT>
+UG_API
+number CalculateSurfaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
+
+
+
+////////////////////////////////////////////////////////////////////////
 //	FaceQuality
 ///	a simple measure for the quality of a face
 /**

@@ -20,6 +20,8 @@
 
 #include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
 
+#include "lib_grid/algorithms/subset_util.h"
+
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/load_balancing.h"
 	#include "lib_grid/parallelization/parallelization.h"
@@ -118,6 +120,17 @@ static void TranslateDomain(TDomain& dom, number tx, number ty, number tz)
 	}
 }
 
+template <typename TDomain>
+static number CalculateSurfaceArea(TDomain& dom, ISubsetHandler& sh, size_t si, size_t lvl)
+{
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
+
+	return CalculateSurfaceArea(sh, si, lvl, aaPos);
+}
+
+
+
 
 
 namespace bridge{
@@ -205,6 +218,9 @@ static void Domain(Registry& reg, string grp)
 //	transform the domain
 	reg.add_function("ScaleDomain", &ScaleDomain<TDomain>, grp);
 	reg.add_function("TranslateDomain", &TranslateDomain<TDomain>, grp);
+
+//  calculate the surface covered by faces
+	reg.add_function("CalculateSurfaceArea", &CalculateSurfaceArea<TDomain>, grp);
 
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);
