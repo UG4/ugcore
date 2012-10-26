@@ -108,7 +108,7 @@ if(PARALLEL)
 							parallelization/util/parallel_subset_util.cpp
 							parallelization/util/redistribution_util.cpp)	
 else(PARALLEL)
-	set(srcParallelization )
+	set(srcParallelization	parallelization/load_balancing.cpp)
 endif(PARALLEL)
 
 ################################################

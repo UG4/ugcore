@@ -10,7 +10,7 @@
 #include <map>
 #include <algorithm>
 #include "common/util/hash.h"
-#include "pcl/pcl.h"
+#include "pcl/pcl_communication_structs.h"
 #include "lib_grid/grid/geometric_base_objects.h"
 
 //	specialize pcl::type_traits for VertexBase, EdgeBase, Face and Volume
