@@ -10,6 +10,8 @@
 #include "parallel_grid_layout.h"
 #include "distributed_grid.h"
 #include "lib_grid/algorithms/serialization.h"
+#include "pcl/pcl_base.h"
+#include "pcl/pcl_process_communicator.h"
 
 namespace ug
 {

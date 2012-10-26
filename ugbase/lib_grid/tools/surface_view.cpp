@@ -5,6 +5,9 @@
 #include "surface_view.h"
 #include "common/assert.h"
 #include "lib_grid/parallelization/util/compol_boolmarker.h"
+#ifdef UG_PARALLEL
+	#include "pcl/pcl_interface_communicator.h"
+#endif
 
 namespace ug{
 

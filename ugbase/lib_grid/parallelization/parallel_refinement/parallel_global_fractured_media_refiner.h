@@ -7,6 +7,7 @@
 
 #include "../distributed_grid.h"
 #include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
+#include "pcl/pcl_interface_communicator.h"
 
 namespace ug
 {

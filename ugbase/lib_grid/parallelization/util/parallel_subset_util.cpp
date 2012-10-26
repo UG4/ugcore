@@ -4,6 +4,7 @@
  
 #include <vector>
 #include "parallel_subset_util.h"
+#include "pcl/pcl_process_communicator.h"
 
 using namespace std;
 

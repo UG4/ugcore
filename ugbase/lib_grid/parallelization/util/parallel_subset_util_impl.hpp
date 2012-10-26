@@ -8,6 +8,7 @@
 #include "../distributed_grid.h"
 #include "compol_subset.h"
 #include "lib_grid/algorithms/subset_util.h"
+#include "pcl/pcl_interface_communicator.h"
 
 namespace ug
 {

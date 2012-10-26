@@ -7,6 +7,7 @@
 
 #include "../distributed_grid.h"
 #include "lib_grid/tools/subset_handler_multi_grid.h"
+#include "pcl/pcl_process_communicator.h"
 
 namespace ug
 {

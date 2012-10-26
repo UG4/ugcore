@@ -3,6 +3,7 @@
 // 08.03.2011 (m,d,y)
  
 #include "parallel_grid_layout.h"
+#include "pcl/pcl_util.h"
 
 namespace ug{
 AGeomObjID 	aGeomObjID("globalID", false);

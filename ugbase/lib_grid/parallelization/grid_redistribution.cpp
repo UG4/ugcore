@@ -10,6 +10,7 @@
 #include "parallelization_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "pcl/pcl_profiling.h"
+#include "common/serialization.h"
 
 using namespace std;
 

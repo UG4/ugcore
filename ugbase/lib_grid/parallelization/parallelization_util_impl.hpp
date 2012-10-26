@@ -6,6 +6,7 @@
 #define __H__UG__LIB_GRID__parallelization_util_impl__
 
 #include "copy_policy.h"
+#include "pcl/pcl_interface_communicator.h"
 
 namespace ug
 {
