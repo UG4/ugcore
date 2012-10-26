@@ -81,7 +81,7 @@ number CompositeConvCheck<TVector, TDomain>::norm(const TVector& vec, std::vecto
 
 	// 	make vector d additive unique
 	if (!const_cast<TVector*>(&vec)->change_storage_type(PST_UNIQUE))
-		UG_THROW("ParallelVector::norm(): Cannot change ParallelStorageType to unique.");
+		UG_THROW("CompositeConvCheck::norm(): Cannot change ParallelStorageType to unique.");
 #endif
 
 	double norm = 0.0;
