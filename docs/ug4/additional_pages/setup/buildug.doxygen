@@ -13,7 +13,7 @@ for your system. Beginners might also want to have a look at \ref pageShellAndLi
 \section secBuildUG4Checkout Checkout ug4
 
 <ul>
-<li> You can \ref secInstallEcpliseUG4Download . <br> 
+<li> You can \ref secInstallEclipseUG4Download . <br> 
 <li> <b>OR</b> If you want to do it \em manually with <tt> svn </tt>: 
 Create a \c ug4 directory and perform a svn checkout on the trunk.
 <ul>
