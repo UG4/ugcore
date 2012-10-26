@@ -125,8 +125,8 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 		                                  number time)
 		{return false;}
 
-		virtual size_t num_dirichlet_constraints() const = 0;
-		virtual IConstraint<TDoFDistribution, TAlgebra>* dirichlet_constraint(size_t i) = 0;
+		virtual size_t num_constraints() const = 0;
+		virtual IConstraint<TDoFDistribution, TAlgebra>* constraint(size_t i) = 0;
 };
 
 \endcode
