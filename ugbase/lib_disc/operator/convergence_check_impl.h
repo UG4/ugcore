@@ -13,7 +13,7 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
-// Individual function convergence check
+// Composite convergence check
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class TVector, class TDomain>
@@ -71,6 +71,36 @@ extract_multi_indices()
 
 	// note: no duplicate indices possible
 }
+
+
+
+template <class TVector, class TDomain>
+number CompositeConvCheck<TVector, TDomain>::norm(const TVector& vec, std::vector<MultiIndex<2> > index)
+{
+#ifdef UG_PARALLEL
+
+	// 	make vector d additive unique
+	if (!const_cast<TVector*>(&vec)->change_storage_type(PST_UNIQUE))
+		UG_THROW("ParallelVector::norm(): Cannot change ParallelStorageType to unique.");
+#endif
+
+	double norm = 0.0;
+	for (size_t dof = 0; dof < index.size(); ++dof)
+	{
+		const number val = DoFRef(vec, index[dof]);
+		norm += (double) (val*val);
+	}
+
+#ifdef UG_PARALLEL
+	// sum squared local norms
+	norm = vec.process_communicator().allreduce(norm, PCL_RO_SUM);
+#endif
+
+	// return global norm
+	return sqrt((number) norm);
+}
+
+
 
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::set_functions(const char* functionNames)
@@ -203,13 +233,7 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 	// calculate the defect's 2-norm for each function
 	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)
 	{
-		number compDefect = 0.0;
-		for(size_t dof = 0; dof < m_vvMultiIndex[i].size(); ++dof)
-		{
-			const number val = DoFRef(vec, m_vvMultiIndex[i][dof]);
-			compDefect += val*val;
-		}
-		compDefect = sqrt(compDefect);
+		number compDefect = norm(vec, m_vvMultiIndex[i]);
 		m_initialDefect.push_back(compDefect);
 		m_initialOverallDefect += m_initialDefect.back()*m_initialDefect.back();
 	}
@@ -288,13 +312,7 @@ void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 	// calculate the defect's 2-norm for each function
 	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)
 	{
-		number compDefect = 0.0;
-		for(size_t dof = 0; dof < m_vvMultiIndex[i].size(); ++dof)
-		{
-			const number val = DoFRef(vec, m_vvMultiIndex[i][dof]);
-			compDefect += val*val;
-		}
-		compDefect = sqrt(compDefect);
+		number compDefect = norm(vec,m_vvMultiIndex[i]);
 		m_currentDefect[i] = compDefect;
 		m_currentOverallDefect += m_currentDefect[i] * m_currentDefect[i];
 	}

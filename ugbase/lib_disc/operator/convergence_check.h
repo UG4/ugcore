@@ -91,6 +91,9 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		template <typename TBaseElem>
 		void extract_multi_indices();
 
+	/// calculates the 2-norm of the entries of the vector vec specified by index
+		number norm(const TVector& vec, std::vector<MultiIndex<2> > index);
+
 	protected:
 		// start defect
 		std::vector<number> m_initialDefect;
