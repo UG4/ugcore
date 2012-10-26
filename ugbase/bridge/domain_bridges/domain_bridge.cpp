@@ -121,14 +121,14 @@ static void TranslateDomain(TDomain& dom, number tx, number ty, number tz)
 }
 
 template <typename TDomain>
-static number CalculateSurfaceArea(TDomain& dom, ISubsetHandler& sh, size_t si, size_t lvl)
+static number CalculateSurfaceArea2(TDomain& dom, ISubsetHandler& sh, size_t si, size_t lvl)
 {
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
 
 	return 0.0;
 	// TODO: fix in subset_util.cpp -> subset_util.hpp
-	//return CalculateSurfaceArea(sh, si, lvl, aaPos);
+	return CalculateSurfaceArea(sh, si, lvl, aaPos);
 }
 
 
@@ -222,7 +222,7 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("TranslateDomain", &TranslateDomain<TDomain>, grp);
 
 //  calculate the surface covered by faces
-	reg.add_function("CalculateSurfaceArea", &CalculateSurfaceArea<TDomain>, grp);
+	reg.add_function("CalculateSurfaceArea", &CalculateSurfaceArea2<TDomain>, grp);
 
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);

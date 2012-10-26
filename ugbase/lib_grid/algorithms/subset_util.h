@@ -467,9 +467,10 @@ void AssignSubsetsByElementType(ISubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
 /// Calculates the area (on the surface) covered by faces in a given subset
+template <class TAAPosVRT>
 UG_API
 number CalculateSurfaceArea(ISubsetHandler& sh, size_t si, size_t lvl,
-					   		  Grid::VertexAttachmentAccessor<APosition>& aaPos);
+								TAAPosVRT& aaPos);
 
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace

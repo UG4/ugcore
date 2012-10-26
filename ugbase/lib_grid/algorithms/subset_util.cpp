@@ -1204,7 +1204,7 @@ void AssignSubsetsByElementType(ISubsetHandler& sh)
 	}
 }
 
-number CalculateSurfaceArea(ISubsetHandler& sh, size_t si, size_t lvl,
+/*number CalculateSurfaceArea(ISubsetHandler& sh, size_t si, size_t lvl,
 					   		  Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
 	number sum = 0.;
@@ -1220,6 +1220,7 @@ number CalculateSurfaceArea(ISubsetHandler& sh, size_t si, size_t lvl,
 
 	return sum;
 }
+*/
 
 }//	end of namespace
 
