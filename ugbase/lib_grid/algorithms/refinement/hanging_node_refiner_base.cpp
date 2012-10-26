@@ -156,6 +156,7 @@ get_mark(Volume* v)
 
 bool HangingNodeRefinerBase::save_marks_to_file(const char* filename)
 {
+	UG_DLOG(LIB_GRID, 1, "  saving marks to file...\n");
 	if(!m_pGrid){
 		UG_THROW("ERROR in HangingNodeRefinerBase::save_marks_to_file: No grid assigned!");
 	}
@@ -217,6 +218,7 @@ bool HangingNodeRefinerBase::save_marks_to_file(const char* filename)
 void HangingNodeRefinerBase::perform_refinement()
 {
 	HNODE_PROFILE_FUNC();
+	UG_DLOG(LIB_GRID, 1, "performing hanging-node-refine:\n");
 
 	if(!m_pGrid)
 		throw(UGError("ERROR in HangingNodeRefinerBase::refine(...): No grid assigned."));
@@ -260,11 +262,8 @@ void HangingNodeRefinerBase::perform_refinement()
 	vector<Face*>	 	vFaces;
 	vector<Volume*>		vVols;
 
-	UG_DLOG(LIB_GRID, 1, "performing hanging-node-refine:\n");
 //	fills the queues with the elements that have to be refined.
-
 	collect_objects_for_refine();
-
 //	assigns hnode marks
 	assign_hnode_marks();
 
@@ -517,7 +516,7 @@ bool HangingNodeRefinerBase::remove_coarsen_marks()
 void HangingNodeRefinerBase::collect_objects_for_refine()
 {
 	HNODE_PROFILE_FUNC();
-
+	UG_DLOG(LIB_GRID, 1, "  collecting objects for refine...\n");
 //	This variable determines whether a marked edge leads to the refinement of
 //	associated faces and volumes.
 	bool automarkHigherDimensionalObjects = automark_objects_of_higher_dim_enabled();
@@ -677,6 +676,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		}
 	}
 
+	UG_DLOG(LIB_GRID, 1, "    entering main iteration...\n");
 //	we'll now iterate over the queues and adjust the marks
 //	as long as at least one queue contains something, we'll continue looping.
 	while(!(qHVrts.empty() && qEdges.empty() && qFaces.empty() && qVols.empty()))
@@ -867,6 +867,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 			}
 		}
 	}
+	UG_DLOG(LIB_GRID, 1, "    done.\n");
 }
 
 template <class TIterator>
@@ -929,6 +930,7 @@ collect_associated_unmarked_volumes(std::queue<Volume*>& qVolsOut, Grid& grid,
 void HangingNodeRefinerBase::
 assign_hnode_marks()
 {
+	UG_DLOG(LIB_GRID, 1, "  assigning hnode marks...\n");
 //	iterate over all faces and volumes. If the element is not marked, but
 //	a side is marked, the side has to be marked for hnode refinement.
 //	Note that we won't mark any new elements here - we only adjust the marks.

@@ -13,7 +13,9 @@
 #include "common/log.h"
 #include "common/assert.h"
 
-namespace ug{
+using namespace ug;
+
+namespace pcl{
 
 /**
  * this function is a MPI Error Handler which displays the error

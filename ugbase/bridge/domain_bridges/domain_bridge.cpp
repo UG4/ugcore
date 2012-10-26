@@ -214,6 +214,9 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("PartitionDomain_MetisKWay",
 					 &PartitionDomain_MetisKWay<TDomain>, grp);
 
+	reg.add_function("PartitionDomain_LevelBased",
+					 &PartitionDomain_LevelBased<TDomain>, grp);
+
 	reg.add_function("RedistributeDomain",
 					 &RedistributeDomain<TDomain>, grp);
 

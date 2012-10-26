@@ -38,9 +38,7 @@ bool AllProcsTrue(bool bFlag, ProcessCommunicator comm)
 	comm.allreduce(&boolFlag, &retBoolFlag, 1, PCL_DT_INT, PCL_RO_LAND);
 
 //	return global flag
-	if(retBoolFlag != 0)
-		return true;
-	return false;
+	return retBoolFlag != 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,9 +57,7 @@ bool OneProcTrue(bool bFlag, ProcessCommunicator comm)
 	comm.allreduce(&boolFlag, &retBoolFlag, 1, PCL_DT_INT, PCL_RO_LOR);
 
 //	return global flag
-	if(retBoolFlag != 0)
-		return true;
-	return false;
+	return retBoolFlag != 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -53,6 +53,27 @@ int MultiGrid::get_children(std::vector<TChild*>& vChildrenOut, TElem* elem)
 }
 */
 
+inline size_t MultiGrid::
+top_level() const
+{
+	if(m_hierarchy.num_subsets() <= 0) return 0;
+	return size_t(m_hierarchy.num_subsets() - 1);
+}
+
+template <class TElem>
+size_t MultiGrid::
+num_children_total(TElem* elem)	const
+{
+	size_t numChildren = num_children<TElem>(elem);
+	size_t numChildrenTotal = numChildren;
+
+	for(size_t i = 0; i < numChildren; ++i)
+		numChildrenTotal += num_children_total(get_child<TElem>(elem, i));
+
+	return numChildrenTotal;
+}
+
+
 template<class TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 MultiGrid::create(size_t level)

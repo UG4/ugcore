@@ -7,10 +7,13 @@
 
 #include "domain_distribution.h"
 #include "lib_grid/algorithms/attachment_util.h"
+#include "lib_grid/parallelization/load_balancing.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
+	#include "lib_grid/parallelization/parallelization.h"
 #endif
+
 
 namespace ug
 {
@@ -270,6 +273,27 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 }
 
 
+template <typename TDomain>
+static bool
+PartitionDomain_LevelBased(TDomain& domain, PartitionMap& partitionMap,
+						  	   int numPartitions, size_t level)
+{
+	//	prepare the partition map
+	SmartPtr<MultiGrid> pMG = domain.grid();
+	partitionMap.assign_grid(*pMG);
+	SubsetHandler& shPart = partitionMap.get_partition_handler();
+//	call the actual partitioning routine
+	if(pMG->num<Volume>() > 0)
+		PartitionMultiGridLevel_MetisKway<Volume>(shPart, *pMG, numPartitions, level);
+
+	else if(pMG->num<Face>() > 0)
+		PartitionMultiGridLevel_MetisKway<Face>(shPart, *pMG, numPartitions, level);
+
+	else if(pMG->num<EdgeBase>() > 0)
+		PartitionMultiGridLevel_MetisKway<EdgeBase>(shPart, *pMG, numPartitions, level);
+
+	return true;
+}
 
 template <typename TDomain>
 static bool RedistributeDomain(TDomain& domainOut,

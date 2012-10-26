@@ -171,6 +171,8 @@ pre_refine()
 void HangingNodeRefiner_MultiGrid::
 collect_objects_for_refine()
 {
+	UG_DLOG(LIB_GRID, 1, "  collect_objects_for_refine started for multi-grid...\n");
+
 	if(!m_pMG)
 		throw(UGError("HangingNodeRefiner_MultiGrid::collect_objects_for_refine: No grid assigned."));
 
@@ -208,6 +210,7 @@ collect_objects_for_refine()
 				mark((*iter)->vertex(i));
 		}
 	}
+	UG_DLOG(LIB_GRID, 1, "  mg-collect done...\n");
 }
 
 void HangingNodeRefiner_MultiGrid::

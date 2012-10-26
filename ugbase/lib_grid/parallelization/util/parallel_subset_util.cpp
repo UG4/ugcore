@@ -15,7 +15,12 @@ void UpdateGlobalMaxDimensionOfSubset(ISubsetHandler& sh,
 {
 //	since we only want to perform one communication, we gather all dims in
 //	an array and perform the reduce operation on that.
-	vector<int> dims;
+//	first however we have to communicate the number of subsets, since it may
+//	differ between processes (e.g. if a process didn't receive any grid yet).
+	int numSubsets = sh.num_subsets();
+	numSubsets = com.allreduce(numSubsets, PCL_RO_MAX);
+
+	vector<int> dims(numSubsets, -1);
 
 	for(int i = 0; i < sh.num_subsets(); ++i){
 		int dim = -1;
@@ -28,7 +33,7 @@ void UpdateGlobalMaxDimensionOfSubset(ISubsetHandler& sh,
 		else if(sh.contains_vertices(i))
 			dim = 0;
 
-		dims.push_back(dim);
+		dims[i] = dim;
 	}
 
 //	globally communicate dim

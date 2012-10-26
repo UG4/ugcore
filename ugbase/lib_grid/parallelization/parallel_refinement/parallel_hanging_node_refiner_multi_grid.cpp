@@ -122,12 +122,14 @@ collect_objects_for_refine()
 //todo: This method could be improved.
 //		In its current implementation a little too much
 //		serial work is done.
+	UG_DLOG(LIB_GRID, 1, "  collect_objects_for_refine started for parallel multi-grid...\n");
 
 //	the layoutmap is used for communication
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 
 //	first we'll call the base implementation
 	while(1){
+		UG_DLOG(LIB_GRID, 2, "  new parallel iteration in collect_objects_for_refine\n");
 	//	we call collect_objects_for_refine in each iteration.
 	//	This might be a bit of an overkill, since only a few normally
 	//	have changed...
@@ -135,16 +137,13 @@ collect_objects_for_refine()
 
 	//	we now have to inform all processes whether interface elements
 	//	were marked on any process.
-		int newlyMarkedElems = 0;
-		if(m_bNewInterfaceVerticesMarked ||
-			m_bNewInterfaceEdgesMarked ||
-			m_bNewInterfaceFacesMarked ||
-			m_bNewInterfaceVolumesMarked)
-		{
-			newlyMarkedElems = 1;
-		}
+		UG_DLOG(LIB_GRID, 2, "  exchanging flag for newly marked elements (allreduce)\n");
+		bool newlyMarkedElems = m_bNewInterfaceVerticesMarked ||
+								m_bNewInterfaceEdgesMarked ||
+								m_bNewInterfaceFacesMarked ||
+								m_bNewInterfaceVolumesMarked;
 
-		int exchangeFlag = m_procCom.allreduce(newlyMarkedElems, PCL_RO_LOR);
+		bool exchangeFlag = pcl::OneProcTrue(newlyMarkedElems);
 
 	//	before we continue we'll set all flags to false
 		m_bNewInterfaceVerticesMarked = false;
@@ -153,6 +152,7 @@ collect_objects_for_refine()
 		m_bNewInterfaceVolumesMarked = false;
 
 		if(exchangeFlag){
+			UG_DLOG(LIB_GRID, 2, "  there are newly marked interface elements...\n");
 		//	we have to communicate the marks.
 		//	do this by first gather selection at master nodes
 		//	and then distribute them to slaves.
@@ -189,9 +189,13 @@ collect_objects_for_refine()
 			m_intfComFACE.communicate();
 		}
 		else{
+			UG_DLOG(LIB_GRID, 2, "    there are no newly marked interface elements...\n");
+			UG_DLOG(LIB_GRID, 2, "    leaving parallel collect_objects_for_refine iteration...\n");
 			break;
 		}
 	}
+
+	UG_DLOG(LIB_GRID, 1, "  collect_objects_for_refine done for parallel multi-grid...\n");
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
@@ -204,6 +208,7 @@ assign_hnode_marks()
 //	note that we're enabling the mark, but never disable it.
 //	first we enable it at the master if one of the slaves is enabled,
 //	then we enable it at the slaves, if the master was enabled.
+
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 
 	ComPol_EnableSelectionStateBits<EdgeLayout> compolEDGE(BaseClass::m_selMarkedElements,

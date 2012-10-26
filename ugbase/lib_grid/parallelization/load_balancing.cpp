@@ -6,6 +6,10 @@
 #include "lib_grid/algorithms/graph/dual_graph.h"
 
 //	if we're using metis, then include the header now
+#ifdef UG_PARALLEL
+#include "pcl/pcl_base.h"
+#endif
+
 #ifdef UG_METIS
 	extern "C" {
 		#include "metis.h"
@@ -37,19 +41,34 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
 												  adjacencyMap, grid);
 
 	//	partition the graph using metis
-		int n = (int)adjacencyMapStructure.size() - 1;
-		int wgtflag = 0;
-		int numflag = 0;
-		int options[5]; options[0] = 0;
-		int edgeCut;
-		vector<idx_t> partitionMap(n);
+	//	first define options for the partitioning.
+		idx_t options[METIS_NOPTIONS];
+		METIS_SetDefaultOptions(options);
+		options[METIS_OPTION_PTYPE] = METIS_PTYPE_KWAY;
+		options[METIS_OPTION_OBJTYPE] = METIS_OBJTYPE_CUT;
+		options[METIS_OPTION_NUMBERING] = 0;
+	  //request contiguous partitions
+		//options[METIS_OPTION_CONTIG] = 1;
+	  //note: using the option METIS_OPTION_DBGLVL could be useful for debugging.
 
-		UG_LOG("CALLING METIS\n");
-		METIS_PartGraphKway(&n, &adjacencyMapStructure.front(),
-							&adjacencyMap.front(), NULL, NULL, &wgtflag,
-							&numflag, &numParts, options, &edgeCut,
-							&partitionMap.front());
-		UG_LOG("METIS IS DONE\n");
+		int nVrts = (int)adjacencyMapStructure.size() - 1;
+		int nConstraints = 1;
+		int edgeCut;
+		vector<idx_t> partitionMap(nVrts);
+
+		UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
+		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
+											&adjacencyMapStructure.front(),
+											&adjacencyMap.front(),
+											NULL, NULL, NULL,
+											&numParts, NULL, NULL, options,
+											&edgeCut, &partitionMap.front());
+		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
+
+		if(metisRet != METIS_OK){
+			UG_DLOG(LIB_GRID, 1, "METIS FAILED\n");
+			return false;
+		}
 
 	//	assign the subsets to the subset-handler
 		int counter = 0;
@@ -100,20 +119,35 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 													mg, baseLevel, hWeight, vWeight);
 
 	//	partition the graph using metis
-		int n = (int)adjacencyMapStructure.size() - 1;
-		int wgtflag = 1;//weights on edges only
-		int numflag = 0;
-		int options[5]; options[0] = 0;
-		int edgeCut;
-		vector<idx_t> partitionMap(n);
+	//	first define options for the partitioning.
+		idx_t options[METIS_NOPTIONS];
+		METIS_SetDefaultOptions(options);
+		options[METIS_OPTION_PTYPE] = METIS_PTYPE_KWAY;
+		options[METIS_OPTION_OBJTYPE] = METIS_OBJTYPE_CUT;
+		options[METIS_OPTION_NUMBERING] = 0;
+	  //request contiguous partitions
+		//options[METIS_OPTION_CONTIG] = 1;
+	  //note: using the option METIS_OPTION_DBGLVL could be useful for debugging.
 
-		UG_LOG("CALLING METIS\n");
-		METIS_PartGraphKway(&n, &adjacencyMapStructure.front(),
-							&adjacencyMap.front(), NULL,
-							&edgeWeightMap.front(), &wgtflag,
-							&numflag, &numParts, options, &edgeCut,
-							&partitionMap.front());
-		UG_LOG("METIS DONE\n");
+		int nVrts = (int)adjacencyMapStructure.size() - 1;
+		int nConstraints = 1;
+		int edgeCut;
+		vector<idx_t> partitionMap(nVrts);
+
+		UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
+		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
+											&adjacencyMapStructure.front(),
+											&adjacencyMap.front(),
+											NULL, NULL, &edgeWeightMap.front(),
+											&numParts, NULL, NULL, options,
+											&edgeCut, &partitionMap.front());
+		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
+
+		if(metisRet != METIS_OK){
+			UG_DLOG(LIB_GRID, 1, "METIS FAILED\n");
+			return false;
+		}
+
 
 	//	assign the subsets to the subset-handler
 		int counter = 0;
@@ -142,6 +176,146 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 #endif
 }
 
+////////////////////////////////////////////////////////////////////////////////
+template <class TGeomBaseObj>
+bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
+							 	  MultiGrid& mg, int numParts, size_t level)
+{
+	if(level > mg.top_level()){
+		UG_LOG("  WARNING in PartitionMultiGridLevel_MetisKway:"
+				"Specified level too high: toplevel=" << mg.top_level()
+				<< ", specified-level=" << level <<"\n");
+		return true;
+	}
+
+	if(mg.num<TGeomBaseObj>() == 0)
+		return true;
+
+#ifdef UG_METIS
+	typedef TGeomBaseObj	TElem;
+	typedef typename geometry_traits<TGeomBaseObj>::iterator	ElemIter;
+
+//	only call metis if more than 1 part is required
+	int rootProc = 0;
+	#ifdef UG_PARALLEL
+		rootProc = pcl::GetProcRank();
+	#endif
+
+	if(numParts > 1){
+	//	here we'll store the dual graph
+		vector<idx_t> adjacencyMapStructure;
+		vector<idx_t> adjacencyMap;
+
+	//todo	add baseLevel to ConstructDualGraphMG.
+		ConstructDualGraphMGLevel<TElem, idx_t>(adjacencyMapStructure,
+												adjacencyMap, mg, level);
+
+	//	partition the graph using metis
+	//	first define options for the partitioning.
+		idx_t options[METIS_NOPTIONS];
+		METIS_SetDefaultOptions(options);
+		options[METIS_OPTION_PTYPE] = METIS_PTYPE_KWAY;
+		options[METIS_OPTION_OBJTYPE] = METIS_OBJTYPE_CUT;
+		options[METIS_OPTION_NUMBERING] = 0;
+	  //request contiguous partitions
+		//options[METIS_OPTION_CONTIG] = 1;
+	  //note: using the option METIS_OPTION_DBGLVL could be useful for debugging.
+
+		int nVrts = (int)adjacencyMapStructure.size() - 1;
+		int nConstraints = 1;
+		int edgeCut;
+		vector<idx_t> partitionMap(nVrts);
+
+	//	create a weight map for the vertices based on the number of children+1
+	//	for each graph-vertex. This is not necessary, if we're already on the top level
+		idx_t* pVrtWeightMap = NULL;
+		vector<idx_t> vrtWeightMap;
+		if(level < mg.top_level()){
+			vrtWeightMap.reserve(nVrts);
+			for(ElemIter iter = mg.begin<TElem>(level);
+				iter != mg.end<TElem>(level); ++iter)
+			{
+				vrtWeightMap.push_back(mg.num_children_total(*iter) + 1);
+			}
+			assert((int)vrtWeightMap.size() == nVrts);
+			pVrtWeightMap = &vrtWeightMap.front();
+		}
+
+		UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
+		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
+											&adjacencyMapStructure.front(),
+											&adjacencyMap.front(),
+											pVrtWeightMap, NULL, NULL,
+											&numParts, NULL, NULL, options,
+											&edgeCut, &partitionMap.front());
+		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
+
+		if(metisRet != METIS_OK){
+			UG_DLOG(LIB_GRID, 1, "METIS FAILED\n");
+			return false;
+		}
+
+
+	//	assign the subsets to the subset-handler
+	//	all subsets below the specified level go to the rootProc.
+	//	The ones on the specified level go as METIS assigned them.
+	//	All children in levels above copy their from their parent.
+		for(size_t lvl = 0; lvl < level; ++lvl)
+			for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
+				shPartitionOut.assign_subset(*iter, rootProc);
+
+		int counter = 0;
+		for(ElemIter iter = mg.begin<TElem>(level); iter != mg.end<TElem>(level); ++iter)
+			shPartitionOut.assign_subset(*iter, partitionMap[counter++]);
+
+	//	currently there is a restriction in the functionality of the surface view.
+	//	Because of that we have to make sure, that all siblings in the specified level
+	//	are sent to the same process... we thus adjust the partition slightly.
+	//todo:	Not all siblings should have to be sent to the same process...
+	//		simply remove the following code block - make sure that surface-view supports this!
+		if(level > 0){
+		//	put all children in the subset of the first one.
+			for(ElemIter iter = mg.begin<TElem>(level-1);
+				iter != mg.end<TElem>(level-1); ++iter)
+			{
+				TElem* e = *iter;
+				size_t numChildren = mg.num_children<TElem>(e);
+				if(numChildren > 1){
+					int partition = shPartitionOut.get_subset_index(mg.get_child<TElem>(e, 0));
+					for(size_t i = 1; i < numChildren; ++i)
+						shPartitionOut.assign_subset(mg.get_child<TElem>(e, i), partition);
+				}
+			}
+		}
+
+		for(size_t lvl = level; lvl < mg.top_level(); ++lvl){
+			for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
+			{
+				size_t numChildren = mg.num_children<TElem>(*iter);
+				for(size_t i = 0; i < numChildren; ++i){
+					shPartitionOut.assign_subset(mg.get_child<TElem>(*iter, i),
+												shPartitionOut.get_subset_index(*iter));
+				}
+			}
+		}
+	}
+	else{
+	//	assign all elements to subset 0.
+		for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+			shPartitionOut.assign_subset(mg.begin<TGeomBaseObj>(lvl),
+										 mg.end<TGeomBaseObj>(lvl), rootProc);
+		}
+	}
+	return true;
+#else
+	UG_LOG("WARNING in PartitionMultiGrid_MetisKway: METIS is not available in "
+			"the current build. Please consider recompiling with METIS "
+			"support enabled.\n");
+	return false;
+#endif
+}
+
+
 //////////////////////////////
 //	explicit instantiation
 template bool PartitionMultiGrid_MetisKway<EdgeBase>(SubsetHandler&, MultiGrid&,
@@ -150,5 +324,12 @@ template bool PartitionMultiGrid_MetisKway<Face>(SubsetHandler&, MultiGrid&,
 												 int, size_t, int, int);
 template bool PartitionMultiGrid_MetisKway<Volume>(SubsetHandler&, MultiGrid&,
 												   int, size_t, int, int);
+
+template bool PartitionMultiGridLevel_MetisKway<EdgeBase>(SubsetHandler&,
+													MultiGrid&, int, size_t);
+template bool PartitionMultiGridLevel_MetisKway<Face>(SubsetHandler&,
+													MultiGrid&, int, size_t);
+template bool PartitionMultiGridLevel_MetisKway<Volume>(SubsetHandler&,
+													MultiGrid&, int, size_t);
 
 }// end of namespace

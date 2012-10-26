@@ -306,6 +306,9 @@ class MultiGrid : public Grid, public GridObserver
 	///	number of levels
 		inline size_t num_levels() const	{return (size_t)m_hierarchy.num_subsets();}
 
+	///	index of the highest level.
+		inline size_t top_level() const;
+
 	///	creates new (empty) levels until num_levels() == lvl+1
 		inline void level_required(int lvl);
 
@@ -381,6 +384,11 @@ class MultiGrid : public Grid, public GridObserver
 	///	returns the number of children of the given child-type
 		template <class TChild, class TElem>
 		inline size_t num_children(TElem* elem)	const	{return num_children(elem, TChild());}
+
+	///	returns the total number of children and grand-children.
+	/**	Only children of the same type as the given elements are regarded here.*/
+		template <class TElem>
+		inline size_t num_children_total(TElem* elem)	const;
 
 	///	Returns the number of child vertices
 		template <class TElem>

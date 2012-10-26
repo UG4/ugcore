@@ -8,7 +8,7 @@
 #ifndef __H__PCL__ERRHANDLER_H_
 #define __H__PCL__ERRHANDLER_H_
 
-namespace ug{
+namespace pcl{
 
 void SetMPIErrHandler();
 

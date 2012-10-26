@@ -6,6 +6,7 @@
 #include "pcl_base.h"
 #include "common/log.h"
 #include "pcl_profiling.h"
+#include "pcl_errhandler.h"
 
 namespace pcl
 {
@@ -18,6 +19,7 @@ void Init(int *argcp, char ***argvp)
 //	init mpi
 //	MPI_Init(&argc, &argv);
 	MPI_Init(argcp, argvp);
+	SetMPIErrHandler();
 }
 
 ////////////////////////////////////////////////////////////////////////

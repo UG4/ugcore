@@ -108,6 +108,23 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  size_t baseLevel = 0,
 							 	  int hWeight = 1, int vWeight = 1);
 
+////////////////////////////////////////////////////////////////////////////////
+///	Partitions the elements in the multi-grid using the METIS library
+/**	This method calls METIS_PartGraphKway. Note that METIS is an external library
+ * developed at Karypis Labs (http://glaros.dtc.umn.edu/gkhome/)
+ *
+ * Note that this method is best suited for partitions with more than 8 procs.
+ * For less than 8 procs metis features other, better suited methods.
+ *
+ * The method performs load balancing for the elements in the given level. The
+ * elements are weighted according to the number of children each has.
+ * Child elements will then be recursively assigned to the partitions into which
+ * their parents have been assigned, starting from level+1.
+ * Elements below the specified level will be assigned to the local process id.
+ */
+template <class TGeomBaseObj>
+bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
+							 	  MultiGrid& mg, int numParts, size_t level);
 
 }//	end of namespace
 
