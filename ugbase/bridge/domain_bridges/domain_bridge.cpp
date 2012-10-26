@@ -126,7 +126,9 @@ static number CalculateSurfaceArea(TDomain& dom, ISubsetHandler& sh, size_t si, 
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
 
-	return CalculateSurfaceArea(sh, si, lvl, aaPos);
+	return 0.0;
+	// TODO: fix in subset_util.cpp -> subset_util.hpp
+	//return CalculateSurfaceArea(sh, si, lvl, aaPos);
 }
 
 
