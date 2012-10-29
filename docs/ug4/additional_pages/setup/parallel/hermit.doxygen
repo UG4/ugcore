@@ -150,7 +150,7 @@ ddt
     then click the "Submit" button.
 
     One can also immediately specify the application to debug and also its
-    parameters by typing <tt>ddt [\<your app\> <parameters>]</tt></li>
+    parameters by typing <tt>ddt [\<your app\> \<parameters\>]</tt></li>
 </ol>
 The rest should be quite self-explaining.
 
@@ -179,8 +179,8 @@ Notes:
 <li><tt>-I</tt> declares that the job is to be run "interactively".</li>
 <li><tt>-V</tt> declares that all environment variables are passed to the job.</li>
 <li><tt>-X</tt> Enables X11 forwarding, necessary to get DDT's GUI as X11 window.</li>
-<li>After the job is started with <tt>qsub</tt> you've entered a new shell, so you have to go (again) into \ug4's bin directory before starting the debugger.
-</li>
+<li>After the job is started with <tt>qsub</tt> you've entered a new shell,
+    so you have to go (again) into \ug4's bin directory before starting the debugger.</li>
 <li> When retrying the above procedere the following error message appeared after executing the <tt>qsub</tt> command (19092012):
 \code
 PrgEnv-cray/4.0.46(11):ERROR:150: Module 'PrgEnv-cray/4.0.46' conflicts with the currently loaded module(s) 'PrgEnv-gnu/4.0.46'
@@ -203,12 +203,13 @@ The file "/opt/cray/ddt/3.2/Licence" does not exist.
 If you do not already have a licence for DDT, please visit the Allinea website
 http://www.allinea.com/products/ddt/ to obtain an evaluation licence.
 \endcode
+
 According to the message above it was possible to specify the license file of an earlier version:
 \code
 nid03538:~ igcingo$ export DDT_LICENCE_FILE=/opt/cray/ddt/3.1/Licence
 \endcode
+
 So, when executing again the <tt>ddt</tt> command DDT eventually starts ...
 </li>
-<ul>
-
+</ul>
 */
