@@ -128,14 +128,9 @@ struct Pow
 };
 
 template <int n>
-struct Pow<n, 1>
-{
-    enum {value = n};
-};
-template <int n>
 struct Pow<n, 0>
 {
-    enum {value = n};
+    enum {value = 1};
 };
 
 //////////////////////////////
