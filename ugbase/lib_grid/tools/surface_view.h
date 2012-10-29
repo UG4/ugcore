@@ -125,17 +125,23 @@ class SurfaceView
 		inline int get_level(TGeomObj* obj) const;
 
 	///	returns if the element is contained in the surface view
-	/**	\sa SurfaceView::is_shadowed*/
+	/**	Retruns true e.g. for unshadowed constrained (hanging) vertices
+	 * \sa SurfaceView::is_shadowed*/
 		template <class TGeomObj>
 		inline bool is_contained(TGeomObj* obj) const;
 
 	///	returns if the element is shadowed and thus not contained in the surface view
-	/**	\sa SurfaceView::is_contained*/
+	/**	A shadowed element has at least one child, which is also a member of the
+	 * surface view.
+	 * \sa SurfaceView::is_contained*/
 		template <class TGeomObj>
 		inline bool is_shadowed(TGeomObj* obj) const;
 
 	///	returns if the element is ghost and thus not contained in the surface view
-	/**	\sa SurfaceView::is_contained*/
+	/**	Vertical master elements which are not contained in a horizontal interface
+	 * are called ghost elements, since no operations should be executed on them.
+	 * Those operations are instead executed on associated vertical slave elements.
+	 * \sa SurfaceView::is_contained*/
 		template <class TGeomObj>
 		inline bool is_ghost(TGeomObj* obj) const;
 
