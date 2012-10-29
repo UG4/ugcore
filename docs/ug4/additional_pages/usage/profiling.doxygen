@@ -21,7 +21,7 @@ sebastian.reiter@gcsc.uni-frankfurt.de .
 You enable profiling in ug4 by setting the \em CMake flag <tt>-DPROFILER=ON</tt>.
 So if have a shell open in your subdirectory <tt>build_debug</tt> (as 
 explained \ref pageUG4Install "here" or 
-\ref secInstallEcpliseUseMakefiles "here"), you enter
+\ref secInstallEclipseUseMakefiles "here"), you enter
 \verbatim
 cmake -DPROFILER=ON ..
 make
