@@ -447,9 +447,9 @@ template <class TAAPosVRT>
 number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos)
 {
 	number sum = 0.;
-	const GeometricObjectCollection& goc = sh.get_geometric_objects_in_subset(si);
+	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(si);
 
-	if (goc.num<Face>(lvl) > 0) {
+	if (goc.num<Face>(lvl) == 0) {
 		UG_WARNING("WARNING: Given subset doesn't contain any faces on given level.");
 	} else {
 		typedef geometry_traits<Face>::const_iterator CIT;

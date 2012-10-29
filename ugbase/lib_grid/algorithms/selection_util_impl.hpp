@@ -456,7 +456,7 @@ number FaceArea(ISelector& sel, TAAPosVRT& aaPos)
 	}
 
 	typedef Grid::traits<Face>::const_iterator FaceIter;
-	const GeometricObjectCollection& goc = sel.get_geometric_objects();
+	GeometricObjectCollection goc = sel.get_geometric_objects();
 
 	for(size_t i = 0; i < goc.num_levels(); ++i)
 		for(FaceIter iter = goc.begin<Face>(i); iter != goc.end<Face>(i); ++iter)

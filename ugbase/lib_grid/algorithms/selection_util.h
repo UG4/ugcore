@@ -419,6 +419,7 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 										 bool stopAtSelectedEdges = false,
 										 number degThreshold = SMALL,
 						   	   	   	     APosition& aPos = aPosition);
+
 ////////////////////////////////////////////////////////////////////////
 //	FaceArea
 /**
