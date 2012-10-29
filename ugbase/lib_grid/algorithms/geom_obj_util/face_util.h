@@ -134,6 +134,13 @@ UG_API
 number FaceArea(Face* f, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
+//  FaceArea
+///	Returns the area sum of convex faces
+template <class TIterator, class TAAPosVRT>
+UG_API
+number FaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
 ///	Returns the face with the smallest area
 /**
  * Make sure that TIterator::value_type equals Face* and that aaPos operates
@@ -142,14 +149,6 @@ number FaceArea(Face* f, TAAPosVRT& aaPos);
 template <class TIterator, class TAAPosVRT>
 UG_API 
 Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
-
-////////////////////////////////////////////////////////////////////////
-///	Returns the area covered by faces
-template <class TIterator, class TAAPosVRT>
-UG_API
-number CalculateSurfaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
-
-
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceQuality

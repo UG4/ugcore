@@ -466,11 +466,11 @@ UG_API
 void AssignSubsetsByElementType(ISubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
-/// Calculates the area (on the surface) covered by faces in a given subset
+//  FaceArea
+///	Returns the area sum of convex faces given subset and level
 template <class TAAPosVRT>
 UG_API
-number CalculateSurfaceArea(ISubsetHandler& sh, size_t si, size_t lvl,
-								TAAPosVRT& aaPos);
+number FaceArea(ISubsetHandler& sh, size_t si, size_t lvl,	TAAPosVRT& aaPos);
 
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace

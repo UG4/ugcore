@@ -11,25 +11,6 @@
 
 namespace ug
 {
-
-
-template <class TAAPosVRT> number CalculateSurfaceArea(ISubsetHandler& sh,
-								    	size_t si, size_t lvl, TAAPosVRT& aaPos)
-{
-	number sum = 0.;
-
-	if (!sh.contains_faces(si)) {
-		UG_WARNING("WARNING: Given subset doesn't contain any faces.");
-	} else {
-		GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(si);
-		typedef geometry_traits<Face>::const_iterator CIT;
-		for (CIT cit = goc.faces_begin(lvl); cit != goc.faces_end(lvl); cit++)
-			sum += FaceArea(*cit, aaPos);
-	}
-
-	return sum;
-}
-
 ////////////////////////////////////////////////////////////////////////
 //	FindFirstFreeSubset
 template <class TElem>
@@ -461,6 +442,23 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 	EraseEmptySubsets(sh);
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TAAPosVRT>
+number FaceArea(ISubsetHandler& sh, size_t si, size_t lvl, TAAPosVRT& aaPos)
+{
+	number sum = 0.;
+
+	if (!sh.contains_faces(si)) {
+		UG_WARNING("WARNING: Given subset doesn't contain any faces on given level.");
+	} else {
+		GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(si);
+		typedef geometry_traits<Face>::const_iterator CIT;
+		for (CIT cit = goc.faces_begin(lvl); cit != goc.faces_end(lvl); cit++)
+			sum += FaceArea(*cit, aaPos);
+	}
+
+	return sum;
+}
 
 }//	end of namespace
 

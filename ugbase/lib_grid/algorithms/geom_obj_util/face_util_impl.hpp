@@ -304,6 +304,19 @@ number FaceArea(Face* f, TAAPosVRT& aaPos)
 	return area;
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TIterator, class TAAPosVRT>
+number FaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
+{
+	number sum = 0.;
+
+	for (; facesBegin != facesEnd; ++facesBegin)
+		sum += FaceArea(*facesBegin, aaPos);
+
+	return sum;
+}
+
+////////////////////////////////////////////////////////////////////////
 template <class TIterator, class TAAPosVRT>
 Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
 {
@@ -329,16 +342,6 @@ Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPo
 		return smallestFace;
 }
 
-template <class TIterator, class TAAPosVRT>
-number CalculateSurfaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
-{
-	number sum = 0.;
-
-	for (; facesBegin != facesEnd; ++facesBegin)
-		sum += FaceArea(*facesBegin, aaPos);
-
-	return sum;
-}
 
 }//	end of namespace
 

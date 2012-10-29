@@ -121,19 +121,31 @@ static void TranslateDomain(TDomain& dom, number tx, number ty, number tz)
 }
 
 template <typename TDomain>
-static number CalculateSurfaceArea2(TDomain& dom, ISubsetHandler& sh, size_t si, size_t lvl)
+static number FaceArea(TDomain& dom, ISubsetHandler& sh, size_t si, size_t lvl)
 {
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
 
-	return 0.0;
-	// TODO: fix in subset_util.cpp -> subset_util.hpp
-	return CalculateSurfaceArea(sh, si, lvl, aaPos);
+	return FaceArea(sh, si, lvl, aaPos);
 }
 
+template <typename TDomain>
+static number FaceArea(TDomain& dom, size_t si, size_t lvl)
+{
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
 
+return FaceArea(*dom.subset_handler(), si, lvl, aaPos);
+}
 
+template <typename TDomain>
+static number FaceArea(TDomain& dom, size_t si)
+{
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
 
+	return FaceArea(*dom.subset_handler(), si, 0, aaPos);
+}
 
 namespace bridge{
 namespace Domain{
@@ -224,8 +236,10 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("ScaleDomain", &ScaleDomain<TDomain>, grp);
 	reg.add_function("TranslateDomain", &TranslateDomain<TDomain>, grp);
 
-//  calculate the surface covered by faces
-	reg.add_function("CalculateSurfaceArea", &CalculateSurfaceArea2<TDomain>, grp);
+//  calculate area covered by faces
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISubsetHandler&, size_t, size_t)>(&FaceArea<TDomain>), grp);
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, size_t, size_t)>(&FaceArea<TDomain>), grp);
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, size_t)>(&FaceArea<TDomain>), grp);
 
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);
