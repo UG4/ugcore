@@ -105,6 +105,5 @@ Logging is also file access. That's why standard setting is outproc = 0. outproc
 This will \em not scale on clusters.
 
 In the future we might add some MPI-IO capability but even then all-core-IO needs to be prevented whenever possible.
-</ul>
 
 */
