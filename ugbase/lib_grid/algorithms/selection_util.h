@@ -419,10 +419,21 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 										 bool stopAtSelectedEdges = false,
 										 number degThreshold = SMALL,
 						   	   	   	     APosition& aPos = aPosition);
-
+////////////////////////////////////////////////////////////////////////
+//	FaceArea
+/**
+ * Returns the area sum of convex faces selected by ISelector sel
+ *
+ * \param sel: Selector
+ * \param aaPos: Position attachment
+ *
+ * \return \c area sum of convex faces
+ */
+template <class TAAPosVRT>
+UG_API
+number FaceArea(ISelector& sel, TAAPosVRT& aaPos);
 
 /**@}*/ // end of doxygen defgroup command
-
 }// end of namespace
 
 

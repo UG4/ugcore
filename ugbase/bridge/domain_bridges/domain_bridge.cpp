@@ -120,8 +120,20 @@ static void TranslateDomain(TDomain& dom, number tx, number ty, number tz)
 	}
 }
 
+/**
+ * Calculates the area sum of faces in given domain and subset handler sh.
+ * Please note that the sum is returned for faces in subset with index si and
+ * on grid level lvl in the domain dom.
+ *
+ * \param dom domain
+ * \param sh subset handler
+ * \param si subset index
+ * \param lvl grid level
+ *
+ * \return \c number area sum
+ */
 template <typename TDomain>
-static number FaceArea(TDomain& dom, ISubsetHandler& sh, size_t si, size_t lvl)
+static number FaceArea(TDomain& dom, ISubsetHandler& sh, int si, size_t lvl)
 {
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
@@ -129,8 +141,19 @@ static number FaceArea(TDomain& dom, ISubsetHandler& sh, size_t si, size_t lvl)
 	return FaceArea(sh, si, lvl, aaPos);
 }
 
+/**
+ * Calculates the area sum of faces in given domain with implicit given
+ * subset handler. Please note the sum is returned for faces in subset with
+ * index si and on grid level lvl in the domain dom.
+ *
+ * \param dom domain
+ * \param si subset index
+ * \param lvl grid level
+ *
+ * \return \c number area sum
+ */
 template <typename TDomain>
-static number FaceArea(TDomain& dom, size_t si, size_t lvl)
+static number FaceArea(TDomain& dom, int si, size_t lvl)
 {
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
@@ -138,13 +161,42 @@ static number FaceArea(TDomain& dom, size_t si, size_t lvl)
 return FaceArea(*dom.subset_handler(), si, lvl, aaPos);
 }
 
+/**
+ * Calculates the area sum of faces in a given domain with implicit given
+ * subset handler. Please note the sum is returned for faces in subset with
+ * index si on grid level 0 in the domain dom.
+ *
+ * \param dom domain
+ * \param si subset index
+ *
+ * \return \c number area sum
+ */
 template <typename TDomain>
-static number FaceArea(TDomain& dom, size_t si)
+static number FaceArea(TDomain& dom, int si)
 {
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
 
 	return FaceArea(*dom.subset_handler(), si, 0, aaPos);
+}
+
+/**
+ * Calculates the area sum of faces in a given domain. Please note the sum
+ * is returned for all faces selected by the selector sel in the domain dom.
+ *
+ * \param dom domain
+ * \param sel selector
+ *
+ * \return \c number area sum
+ *
+ */
+template <typename TDomain>
+static number FaceArea(TDomain& dom, ISelector& sel)
+{
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
+
+	return FaceArea(sel, aaPos);
 }
 
 namespace bridge{
@@ -237,9 +289,11 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("TranslateDomain", &TranslateDomain<TDomain>, grp);
 
 //  calculate area covered by faces
-	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISubsetHandler&, size_t, size_t)>(&FaceArea<TDomain>), grp);
-	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, size_t, size_t)>(&FaceArea<TDomain>), grp);
-	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, size_t)>(&FaceArea<TDomain>), grp);
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISubsetHandler&, int, size_t)>(&FaceArea<TDomain>), "Area sum#Domain#Subset handler#Subset index#Grid level", grp);
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int, size_t)>(&FaceArea<TDomain>), "Area sum#Domaim#Subset index#Grid level", grp);
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int)>(&FaceArea<TDomain>), "Area sum#Domain#Subset index", grp);
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISelector&)>(&FaceArea<TDomain>), "Area sum#Domain#Selector", grp);
+
 
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);

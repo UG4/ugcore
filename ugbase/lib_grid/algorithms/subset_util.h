@@ -467,10 +467,18 @@ void AssignSubsetsByElementType(ISubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
 //  FaceArea
-///	Returns the area sum of convex faces given subset and level
+///	Returns the area sum of convex faces given by subset index and level.
+/**
+ * \param sh subset handler
+ * \param si subset index
+ * \param lvl grid level
+ * \param aaPos position attachment
+ *
+ * \return \c number area sum of convex faces
+ */
 template <class TAAPosVRT>
 UG_API
-number FaceArea(ISubsetHandler& sh, size_t si, size_t lvl,	TAAPosVRT& aaPos);
+number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos);
 
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace

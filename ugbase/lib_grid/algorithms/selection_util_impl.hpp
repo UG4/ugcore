@@ -444,6 +444,27 @@ void SelectLinkedElements(ISelector& sel,
 	}
 }
 
+template <class TAAPosVRT>
+UG_API
+number FaceArea(ISelector& sel, TAAPosVRT& aaPos)
+{
+	number sum = 0.;
+
+	if(!sel.grid()) {
+		UG_WARNING("A grid has to be associated with the selector!");
+		return sum;
+	}
+
+	typedef Grid::traits<Face>::const_iterator FaceIter;
+	const GeometricObjectCollection& goc = sel.get_geometric_objects();
+
+	for(size_t i = 0; i < goc.num_levels(); ++i)
+		for(FaceIter iter = goc.begin<Face>(i); iter != goc.end<Face>(i); ++iter)
+			sum += FaceArea(*iter, aaPos);
+
+	return sum;
+}
+
 }// end of namespace
 
 #endif
