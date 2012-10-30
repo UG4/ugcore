@@ -7,6 +7,7 @@
 #include <iostream>
 #include "common/log.h"
 #include "common/profiler/profiler.h"
+#include <cassert>
 
 //	in order to support parallel logs, we're including pcl.h
 #ifdef UG_PARALLEL
@@ -17,6 +18,32 @@
 using namespace std;
 
 namespace ug{
+
+// predefined standard DebugIDs. todo: move some of those in the appropriate modules,
+// syntax for subgroups ?
+DebugID MAIN("MAIN"),
+		APP("APP"),
+		LIB_GRID("LIB_GRID"),
+		LIB_GRID_REFINER("LIB_GRID_REFINER"),
+		LIB_DISC("LIB_DISC"),
+		LIB_DISC_ASSEMBLE("LIB_DISC_ASSEMBLE"),
+		LIB_DISC_D3F("LIB_DISC_D3F"),
+		LIB_DISC_MULTIGRID("LIB_DISC_MULTIGRID"),
+		LIB_DISC_NEWTON("LIB_DISC_NEWTON"),
+		LIB_DISC_LINKER("LIB_DISC_LINKER"),
+		LIB_DISC_TRANSFER("LIB_DISC_TRANSFER"),
+		LIB_DISC_DISCRETE_FUNCTION("LIB_DISC_DISCRETE_FUNCTION"),
+		LIB_DISC_OUTPUT("LIB_DISC_OUTPUT"),
+		LIB_DISC_OPERATOR_INVERSE("LIB_DISC_OPERATOR_INVERSE"),
+		LIB_ALG_LINEAR_OPERATOR("LIB_ALG_LINEAR_OPERATOR"),
+		LIB_ALG_LINEAR_SOLVER("LIB_ALG_LINEAR_SOLVER"),
+		LIB_ALG_VECTOR("LIB_ALG_VECTOR"),
+		LIB_ALG_MATRIX("LIB_ALG_MATRIX"),
+		LIB_ALG_AMG("LIB_ALG_AMG"),
+		LIB_PCL("LIB_PCL");
+
+
+///////////////////////////////////////////////////////////////////////////
 
 LogAssistant::
 LogAssistant() :
@@ -46,7 +73,7 @@ void LogAssistant::init()
 //	However, an internal compiler error in MinGW (windows)
 //	appears then. Having moved the stuff here into this init
 //	method seems to have helped.
-	set_debug_levels(-1);
+	set_debug_levels(-1); // 0 or -1 ?
 	m_emptyBuf = &m_emptyBufInst;
 	m_splitBuf = &m_splitBufInst;
 	m_logBuf = cout.rdbuf();
@@ -188,22 +215,7 @@ flush_error_log()
 }
 
 
-bool LogAssistant::
-set_debug_levels(int lev)
-{
-	for(int i = 0; i < NUM_TAGS; ++i)
-	{
-		m_TagLevel[i] = lev;
-	}
-	return true;
-}
 
-bool LogAssistant::
-set_debug_level(Tags tags, int lev)
-{
-	m_TagLevel[tags] = lev;
-	return true;
-}
 
 void LogAssistant::
 set_output_process(int procRank)
@@ -252,5 +264,17 @@ get_process_rank()
 
 	return 0;
 }
+
+int LogAssistant::get_debug_level_noninline(const char *debugID) const
+{
+	return GetDebugIDManager().get_debug_level(debugID);
+}
+
+bool LogAssistant::set_debug_level_noninline(const char* debugID, int level)
+{
+	return GetDebugIDManager().set_debug_level(debugID, level);
+}
+
+
 
 }//	end of namespace

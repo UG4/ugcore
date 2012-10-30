@@ -16,6 +16,11 @@
 #include "types.h"
 #include "ug_config.h"
 
+#include <vector>
+#include <map>
+#include "common/util/crc32.h"
+#include "debug_id.h"
+
 //	in order to support VRL logs, we're including bindings_vrl.h
 //  this is necessary to get access to the JVM environment
 #ifdef UG_FOR_VRL
@@ -40,6 +45,8 @@ namespace ug{
 	const uint64 UNIT_EXA_SI   = UNIT_PETA_SI * 1000ll;  // 10^{18}
 	//const uint64_t UNIT_ZETTA_SI = UNIT_EXA_SI  * 1000ll;// 10^{21} -- too big for 64 bit 'long long int'!
 
+
+
 // LogAssistant
 /**
  * This class provides infrastructure for logging. It separates the log messages
@@ -58,34 +65,6 @@ namespace ug{
  */
 class UG_API LogAssistant
 {
-	public:
-		// different tags to distingish several parts of the program, that
-		// may be debugged separately
-		enum Tags
-		{
-			MAIN = 0,
-			APP,
-			LIB_GRID,
-			LIB_GRID_REFINER,
-			LIB_DISC,
-			LIB_DISC_ASSEMBLE,
-			LIB_DISC_D3F,
-			LIB_DISC_MULTIGRID,
-			LIB_DISC_NEWTON,
-			LIB_DISC_LINKER,
-			LIB_DISC_TRANSFER,
-			LIB_DISC_DISCRETE_FUNCTION,
-			LIB_DISC_OUTPUT,
-			LIB_DISC_OPERATOR_INVERSE,
-			LIB_ALG_LINEAR_OPERATOR,
-			LIB_ALG_LINEAR_SOLVER,
-			LIB_ALG_VECTOR,
-			LIB_ALG_MATRIX,
-			LIB_ALG_AMG,
-			LIB_PCL,
-			NUM_TAGS
-		};
-
 	public:
 	///	returns a reference to the single instance of LogAssistant
 		static LogAssistant& instance();
@@ -122,13 +101,44 @@ class UG_API LogAssistant
 		void flush_error_log();
 
 	/// sets the debug level of all tags to 'lev'
-		bool set_debug_levels(int lev);
+		bool set_debug_levels(int lev)
+		{
+			return GetDebugIDManager().set_debug_levels(lev);
+		}
 
-	/// sets the debug level of Tag 'tag' to level 'lev'
-		bool set_debug_level(Tags tags, int lev);
-
-	/// returns the debug level of Tag 'tag'
-		inline int get_debug_level(Tags tag);
+	/// returns the debug level of debugID
+		inline int get_debug_level(DebugID &debugID) const
+		{
+			return GetDebugIDManager().get_debug_level(debugID);
+		}
+	/// returns the debug level of debugID
+		inline int get_debug_level(const char *debugID) const
+		{
+			return GetDebugIDManager().get_debug_level(debugID);
+		}
+		/// returns the debug level of debugID
+		int get_debug_level_noninline(const char *debugID) const;
+		
+		
+	/// sets the debug level of debugID
+		inline bool set_debug_level(DebugID &debugID, int level)
+		{
+			return GetDebugIDManager().set_debug_level(debugID, level);
+		}
+		
+	/// returns the debug level of debugID
+		inline bool set_debug_level(const char* debugID, int level)
+		{
+			return GetDebugIDManager().set_debug_level(debugID, level);
+		}
+		
+		bool set_debug_level_noninline(const char* debugID, int level);
+		
+	/// returns the debug level of debugID
+		inline std::string get_registered_debug_IDs()
+		{
+			return GetDebugIDManager().get_registered_debug_IDs();
+		}
 
 	///	sets the output-process in a parallel environment. Default is 0.
 	/**	pass a procRank of -1 to enable output on all processes.*/
@@ -183,8 +193,6 @@ class UG_API LogAssistant
 
 		int m_outputProc;
 
-	/// debug levels of tags
-		int m_TagLevel[NUM_TAGS];
 };
 
 // returns singleton instance of LogAssistant
@@ -228,16 +236,16 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 
 
 #ifdef UG_ENABLE_DEBUG_LOGS
-	#define UG_SET_DEBUG_LEVEL(tag, level)		{ug::GetLogAssistant().set_debug_level(ug::LogAssistant::tag, level);}
-	#define UG_RESET_DEBUG_LEVELS()				{ug::GetLogAssistant().set_debug_levels(-1);}
-	#define UG_SET_DEBUG_LEVELS(level)			{ug::GetLogAssistant().set_debug_levels(level);}
-	#define UG_DEBUG_BEGIN(tag, level)			{ if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level) {
+	#define UG_SET_DEBUG_LEVEL(tag, level)		{ug::GetDebugIDManager().set_debug_level(tag, level);}
+	#define UG_RESET_DEBUG_LEVELS()				{ug::GetDebugIDManager().set_debug_levels(-1);}
+	#define UG_SET_DEBUG_LEVELS(level)			{ug::GetDebugIDManager().set_debug_levels(level);}
+	#define UG_DEBUG_BEGIN(tag, level)			{ if(ug::GetDebugIDManager().get_debug_level(tag) >= level) {
 	#define UG_DEBUG_END(tag, level)			}; }
-	#define IF_DEBUG(tag, level) 				if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)
+	#define IF_DEBUG(tag, level) 				if(ug::GetDebugIDManager().get_debug_level(tag) >= level)
 
-	#define UG_DLOG(tag, level, msg)			{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
+	#define UG_DLOG(tag, level, msg)			{if(ug::GetDebugIDManager().get_debug_level(tag) >= level)\
 													{ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
-	#define UG_DLOG_ALL_PROCS(tag, level, msg)	{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
+	#define UG_DLOG_ALL_PROCS(tag, level, msg)	{if(ug::GetDebugIDManager().get_debug_level(tag) >= level)\
 													{ug::LogAssistant& la = ug::GetLogAssistant(); int op = la.get_output_process();\
 													la.set_output_process(-1); la.debug_logger() << "[Proc " << la.get_process_rank() << "]: "\
 													<< msg << std::flush; la.set_output_process(op);}}

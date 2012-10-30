@@ -35,12 +35,6 @@ error_logger()
 }
 
 inline int LogAssistant::
-get_debug_level(Tags tag)
-{
-	return m_TagLevel[tag];
-}
-
-inline int LogAssistant::
 get_output_process()
 {
 	return m_outputProc;

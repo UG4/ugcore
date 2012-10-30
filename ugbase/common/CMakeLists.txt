@@ -9,6 +9,7 @@ project(P_COMMON)
 include("../../ug_cmake_includes.txt")
 
 set(srcCommon	log.cpp
+				debug_id.cpp
 				assert.cpp
 				serialization.cpp
 				allocators/small_object_allocator.cpp

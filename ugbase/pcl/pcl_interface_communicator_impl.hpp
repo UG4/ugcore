@@ -585,14 +585,14 @@ communicate()
 	PCL_PROFILE(pcl_IntCom_communicateData);
 	int dataTag = 749345;//	an arbitrary number
 
-	UG_DLOG(LIB_PCL, 1, "receiving from procs:");
+	UG_DLOG(ug::LIB_PCL, 1, "receiving from procs:");
 
 //	first shedule receives
 	int counter = 0;
 	for(std::set<int>::iterator iter = m_curInProcs.begin();
 		iter != m_curInProcs.end(); ++iter, ++counter)
 	{
-		UG_DLOG(LIB_PCL, 1, " " << *iter
+		UG_DLOG(ug::LIB_PCL, 1, " " << *iter
 				<< "(" << vBufferSizesIn[counter] << ")");
 		
 		ug::BinaryBuffer& binBuf = m_bufMapIn[*iter];
@@ -601,7 +601,7 @@ communicate()
 				*iter, dataTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
 	}
 
-	UG_DLOG(LIB_PCL, 1, "\nsending to procs:");
+	UG_DLOG(ug::LIB_PCL, 1, "\nsending to procs:");
 
 //	now send data
 	counter = 0;
@@ -610,13 +610,13 @@ communicate()
 	{
 		ug::BinaryBuffer& binBuf = m_bufMapOut[*iter];
 
-		UG_DLOG(LIB_PCL, 1, " " << *iter
+		UG_DLOG(ug::LIB_PCL, 1, " " << *iter
 				<< "(" << binBuf.write_pos() << ")");
 
 		MPI_Isend(binBuf.buffer(), binBuf.write_pos(), MPI_UNSIGNED_CHAR,
 				*iter, dataTag, MPI_COMM_WORLD, &vSendRequests[counter]);
 	}
-	UG_DLOG(LIB_PCL, 1, "\n");
+	UG_DLOG(ug::LIB_PCL, 1, "\n");
 
 //	TODO: this can be improved:
 //		instead of waiting for all, one could wait until one has finished and directly
