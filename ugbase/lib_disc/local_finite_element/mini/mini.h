@@ -379,8 +379,8 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 		inline number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			// ReferenceTetrahedron::check_position(x);
-			number prod = x[0]*x[1]*x[2];
-			number lambda4 = (1.0-x[0]-x[1]-x[2]);
+			//number prod = x[0]*x[1]*x[2];
+			//number lambda4 = (1.0-x[0]-x[1]-x[2]);
 
 			switch(i)
 			{
