@@ -625,14 +625,14 @@ void CreateDistributionLayouts(
 	//	objects have to be selected.
 
 	//todo:	replace the loop with a more efficient structure
-		bool foundConstraining;
+		bool foundSomething;
 		do{
 			if(distributeGenealogy)
 				SelectAssociatedGenealogy(msel, true);
 			else
 				SelectAssociatedGeometricObjects(msel);
 
-			foundConstraining = false;
+			foundSomething = false;
 
 		//	we have to make sure that constraining objects are sent to all
 		//	processes to which their constrained objects are sent.
@@ -642,7 +642,7 @@ void CreateDistributionLayouts(
 				{
 					GeometricObject* cobj = (*iter)->get_constraining_object();
 					if(cobj && !msel.is_selected(cobj)){
-						foundConstraining = true;
+						foundSomething = true;
 						msel.select(cobj);
 					}
 				}
@@ -652,7 +652,7 @@ void CreateDistributionLayouts(
 				{
 					GeometricObject* cobj = (*iter)->get_constraining_object();
 					if(cobj && !msel.is_selected(cobj)){
-						foundConstraining = true;
+						foundSomething = true;
 						msel.select(cobj);
 					}
 				}
@@ -662,7 +662,7 @@ void CreateDistributionLayouts(
 				{
 					GeometricObject* cobj = (*iter)->get_constraining_object();
 					if(cobj && !msel.is_selected(cobj)){
-						foundConstraining = true;
+						foundSomething = true;
 						msel.select(cobj);
 					}
 				}
@@ -672,12 +672,97 @@ void CreateDistributionLayouts(
 				{
 					GeometricObject* cobj = (*iter)->get_constraining_object();
 					if(cobj && !msel.is_selected(cobj)){
-						foundConstraining = true;
+						foundSomething = true;
 						msel.select(cobj);
 					}
 				}
 			}
-		}while(foundConstraining == true);
+
+		//	we also have to make sure that children of constraining elements are
+		//	also sent to all the processes to which those constraining elements go.
+			for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+				for(ConstrainingEdgeIterator iter = msel.begin<ConstrainingEdge>(lvl);
+					iter != msel.end<ConstrainingEdge>(lvl); ++iter)
+				{
+					ConstrainingEdge* ce = *iter;
+					for(size_t i = 0; i < ce->num_constrained_vertices(); ++i){
+						VertexBase* cde = ce->constrained_vertex(i);
+						if(!msel.is_selected(cde)){
+							foundSomething = true;
+							msel.select(cde);
+						}
+					}
+
+					for(size_t i = 0; i < ce->num_constrained_edges(); ++i){
+						EdgeBase* cde = ce->constrained_edge(i);
+						if(!msel.is_selected(cde)){
+							foundSomething = true;
+							msel.select(cde);
+						}
+					}
+				}
+
+				for(ConstrainingTriangleIterator iter = msel.begin<ConstrainingTriangle>(lvl);
+					iter != msel.end<ConstrainingTriangle>(lvl); ++iter)
+				{
+					ConstrainingTriangle* ce = *iter;
+
+					for(size_t i = 0; i < ce->num_constrained_vertices(); ++i){
+						VertexBase* cde = ce->constrained_vertex(i);
+						if(!msel.is_selected(cde)){
+							foundSomething = true;
+							msel.select(cde);
+						}
+					}
+
+					for(size_t i = 0; i < ce->num_constrained_edges(); ++i){
+						EdgeBase* cde = ce->constrained_edge(i);
+						if(!msel.is_selected(cde)){
+							foundSomething = true;
+							msel.select(cde);
+						}
+					}
+
+					for(size_t i = 0; i < ce->num_constrained_faces(); ++i){
+						Face* cde = ce->constrained_face(i);
+						if(!msel.is_selected(cde)){
+							foundSomething = true;
+							msel.select(cde);
+						}
+					}
+				}
+
+				for(ConstrainingQuadrilateralIterator iter = msel.begin<ConstrainingQuadrilateral>(lvl);
+					iter != msel.end<ConstrainingQuadrilateral>(lvl); ++iter)
+				{
+					ConstrainingQuadrilateral* ce = *iter;
+
+					for(size_t i = 0; i < ce->num_constrained_vertices(); ++i){
+						VertexBase* cde = ce->constrained_vertex(i);
+						if(!msel.is_selected(cde)){
+							foundSomething = true;
+							msel.select(cde);
+						}
+					}
+
+					for(size_t i = 0; i < ce->num_constrained_edges(); ++i){
+						EdgeBase* cde = ce->constrained_edge(i);
+						if(!msel.is_selected(cde)){
+							foundSomething = true;
+							msel.select(cde);
+						}
+					}
+
+					for(size_t i = 0; i < ce->num_constrained_faces(); ++i){
+						Face* cde = ce->constrained_face(i);
+						if(!msel.is_selected(cde)){
+							foundSomething = true;
+							msel.select(cde);
+						}
+					}
+				}
+			}
+		}while(foundSomething == true);
 
 		int interfacesOnLevelOnly = -1;
 		/*

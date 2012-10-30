@@ -99,9 +99,18 @@ void AssociateGlobalIDs(Grid& g,
 	}
 }
 
-////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 ///	Collects all target processes for each entry in the grid.
-/**	For each element of the grid of type TGeomObj, the target processes can
+/** Collects the target processes for each node, as specified through the
+ * given redistribution layouts. The target processes are pushed to the
+ * vector<int> attachment in each node.
+ *
+ * A selector may optionally be specified through psel. For the layout of the
+ * current process, values are then only assigned to selected elements. This can
+ * be used to exclude vertical masters.
+ */
+/* THIS IS THE ORIGINAL AND A LITTLE MISLEADING COMMENT...
+ * For each element of the grid of type TGeomObj, the target processes can
  * be found in the attachment to which TAAIntVec points, after the algorithm
  * is done.
  *
@@ -728,6 +737,7 @@ void CreateRedistributionLayouts(
 //todo:	One has to consider existing interfaces during creation of
 //		the distribution layouts. Otherwise existing slave nodes
 //		could accidently be marked as masters.
+//		... I think this has already been taken care of...
 	CreateDistributionLayouts(vertexLayoutsOut, edgeLayoutsOut,
 							  faceLayoutsOut, volumeLayoutsOut,
 							  mg, sh, distributeGenealogy,
