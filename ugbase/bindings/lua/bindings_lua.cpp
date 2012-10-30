@@ -979,11 +979,25 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 	
 	return -1;
 }
+/**
+ * a default __tostring method which shows clasname: <adress>
+ * @param L
+ * @return nr of parameters (its one string)
+ */
+static int LuaToStringDefault(lua_State *L)
+{
+	IExportedClass* c = (IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
+	ParameterStack out;
+	char buf[255];
+	sprintf(buf, "%s: %p", c->name().c_str(), c);
+	out.push_std_string(buf);
+	return ParamsToLuaStack(out, L);
+}
 
 /**
  * member methods of classes are handled here
- * @param L
- * @return
+ * @param L the lua State
+ * @return number of parameters returned
  */
 static int LuaProxyMethod(lua_State* L)
 {
@@ -1154,6 +1168,8 @@ static int LuaProxyDelete(lua_State* L)
 	return 0;
 }
 
+
+
 /**
  * Registers a meta-object for each class and class group found in the ug registry reg.
  * Global functions are registered for all GlobalFunction-objects in the registry reg.
@@ -1252,6 +1268,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		lua_pushlightuserdata(L, (void*)c->class_names());
 		lua_settable(L, -3);
 
+		bool bToStringFound =false;
 	//	register methods
 	//	NOTE: A C-Closure is registered (a function-pointer with default argument)
 		for(size_t j = 0; j < c->num_methods(); ++j){
@@ -1260,6 +1277,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 			lua_pushlightuserdata(L, (void*)&m);
 			lua_pushcclosure(L, LuaProxyMethod, 1);
 			lua_settable(L, -3);
+			if(m.name().compare("__tostring") == 0) bToStringFound = true;
 		}
 
 	//	register const-methods
@@ -1274,6 +1292,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 				lua_pushlightuserdata(L, (void*)&m);
 				lua_pushcclosure(L, LuaProxyMethod, 1);
 				lua_settable(L, -3);
+				if(m.name().compare("__tostring") == 0) bToStringFound = true;
 			}
 			lua_setfield(L, -2, "__const");
 		}
@@ -1304,6 +1323,16 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 				lua_settable(L, -3);
 			}
 			lua_setfield(L, -2, "__const_method_grps");
+		}
+		
+		// add a default __tostring method which shows 
+		// clasname: <adress>
+		if(bToStringFound == false)
+		{
+			lua_pushstring(L, "__tostring");
+			lua_pushlightuserdata(L, (void*)c);
+			lua_pushcclosure(L, LuaToStringDefault, 1);
+			lua_settable(L, -3);
 		}
 	//	pop the metatable from the stack.
 		lua_pop(L, 1);
