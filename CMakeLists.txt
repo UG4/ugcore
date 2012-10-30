@@ -16,14 +16,22 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 include("ug_cmake_includes.txt")
 
 ########################
-# ugbase
-add_subdirectory(ugbase)
-
 # compile plugins
 if(buildPluginSystem)
 	add_subdirectory(plugins)
 endif(buildPluginSystem)
 
+########################
+if(BUILD_UGDOCU)
+    add_subdirectory(apps/ugdocu)
+endif(BUILD_UGDOCU)
+
+
+########################
+# ugbase
+add_subdirectory(ugbase)
+
+########################
 if(BUILD_ONE_LIB)
 	get_property(ug4libSources GLOBAL PROPERTY ugSources)
 	
@@ -57,3 +65,6 @@ if(BUILD_ONE_LIB)
 	endif(buildEmbeddedPlugins)
 	
 endif(BUILD_ONE_LIB)
+
+
+
