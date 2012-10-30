@@ -10,7 +10,6 @@
 
 #include <sstream>
 #include <vector>
-#include "class_name_provider.h"
 
 
 namespace ug
