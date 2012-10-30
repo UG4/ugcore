@@ -184,7 +184,7 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
        size_t lev, int nu)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - smooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - smooth on level " << lev << "\n");
 
 // 	smooth nu times
 	for(int i = 0; i < nu; ++i)
@@ -228,7 +228,11 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 			write_level_debug(tmp, "GMG_AdaptCorBeforeSetZero", lev);
 
 		//	First we reset the correction to zero on the patch boundary.
-			SetZeroOnShadowing(tmp, m_vLevData[lev]->spLevDD, surfView);
+			if(m_vLevData[lev]->has_ghosts())
+				SetZeroOnShadowing(tmp, m_vLevData[lev]->spLevDD, surfView,
+								   &m_vLevData[lev]->vMapGlobalToPatch);
+			else
+				SetZeroOnShadowing(tmp, m_vLevData[lev]->spLevDD, surfView);
 
 			write_level_debug(tmp, "GMG_AdaptCorAfterSetZero", lev);
 
@@ -241,7 +245,7 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 	}
 
 //	we're done
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - smooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - smooth on level " << lev << "\n");
 	return true;
 }
 
@@ -250,7 +254,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 presmooth(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - presmooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level " << lev << "\n");
 //	Get all needed vectors and operators
 
 //	get vectors used in smoothing operations. (This is needed if vertical
@@ -292,7 +296,7 @@ presmooth(size_t lev)
 //	zero.
 	m_vLevData[lev]->copy_defect_from_smooth_patch(true);
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - presmooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level " << lev << "\n");
 	return true;
 }
 
@@ -302,7 +306,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 restriction(size_t lev, bool* restrictionPerformedOut)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - restriction on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level " << lev << "\n");
 //	Get all needed vectors and operators
 
 //	Get vectors defined on whole grid (including ghosts) on this level
@@ -328,7 +332,7 @@ restriction(size_t lev, bool* restrictionPerformedOut)
 	if(!gather_vertical(d)){
 	//	only continue if levels left
 		*restrictionPerformedOut = false;
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - restriction on level " << lev << " (no levels below)\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level " << lev << " (no levels below)\n");
 		return true;
 	}
 	#endif
@@ -350,7 +354,7 @@ restriction(size_t lev, bool* restrictionPerformedOut)
 //	since we reached this point, the restriction was performed.
 	*restrictionPerformedOut = true;
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - restriction on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level " << lev << "\n");
 	return true;
 }
 
@@ -359,7 +363,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 prolongation(size_t lev, bool restrictionWasPerformed)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - prolongation on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level " << lev << "\n");
 //	Get all needed vectors and operators
 
 //	Get vectors defined on whole grid (including ghosts) on this level
@@ -456,7 +460,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 		write_level_debug(cTmp, "GMG_Prol_CorrAdaptAdding", lev-1);
 	}
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - prolongation on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level " << lev << "\n");
 	return true;
 }
 
@@ -465,7 +469,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 postsmooth(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - postsmooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level " << lev << "\n");
 //	get vectors used in smoothing operations. (This is needed if vertical
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
@@ -497,7 +501,7 @@ postsmooth(size_t lev)
 	m_vLevData[lev]->copy_defect_from_smooth_patch();
 	m_vLevData[lev]->copy_correction_from_smooth_patch();
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - postsmooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - postsmooth on level " << lev << "\n");
 	return true;
 }
 
@@ -507,7 +511,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 base_solve(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - base_solve on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - base_solve on level " << lev << "\n");
 //	get vectors used in smoothing operations. (This is needed if vertical
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
@@ -623,7 +627,7 @@ base_solve(size_t lev)
 	}
 #endif
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - base_solve on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level " << lev << "\n");
 //	we're done for the solution of the base solver
 	return true;
 
@@ -635,7 +639,7 @@ bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 lmgc(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "start - lmgc on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - lmgc on level " << lev << "\n");
 
 //	switch, if base level is reached. If so, call base Solver, else we will
 //	perform smoothing, restrict the defect and call the lower level; then,
@@ -696,7 +700,7 @@ lmgc(size_t lev)
 
 			//	UG_LOG("After postsmooth:\n");	log_level_data(lev);
 			}
-			UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - lmgc on level " << lev << "\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << "\n");
 			return true;
 		}
 		else{
@@ -704,7 +708,7 @@ lmgc(size_t lev)
 				if(!lmgc(lev-1))
 					return false;
 			}
-			UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - lmgc on level " << lev << " (no dofs on this level)\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << " (no dofs on this level)\n");
 			return true;
 		}
 	}
@@ -713,7 +717,7 @@ lmgc(size_t lev)
 	else if(lev == m_baseLev)
 	{
 		bool baseSolverSuccess = base_solve(lev);
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "stop - lmgc on level " << lev << " (base solver executed)\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << " (base solver executed)\n");
 		return baseSolverSuccess;
 	}
 
@@ -729,6 +733,8 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init(J, u)\n");
+
 	try{
 
 // 	Cast Operator
@@ -819,6 +825,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	} UG_CATCH_THROW("AssembledMultiGridCycle: Init failure for init(u)");
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init(J, u)\n");
 	return true;
 }
 
@@ -828,6 +835,8 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > L)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init(L)\n");
+
 	try{
 
 // 	Cast Operator
@@ -880,6 +889,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	} UG_CATCH_THROW("AssembledMultiGridCycle: Init failure for init()");
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init(L)\n");
 	return true;
 }
 
@@ -891,6 +901,8 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_common(bool nonlinear)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_common\n");
+
 //	Perform some checks:
 	if(m_pAss == NULL)
 	{
@@ -946,7 +958,7 @@ init_common(bool nonlinear)
 //todo:	make sure that there are no vertical masters in topLevel. Otherwise
 //		the grid can not be considered fully refined.
 //todo: Even if there are vrtMasters and m_bFullRefined is false and the top
-//		level matrix can't be copied, an injective SurfToTopLevMap might be useful...
+//		level matrix can't be copied, an injective SurfToTopLevMapPatchToGlobal might be useful...
 	if(m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices() ==
 		m_spApproxSpace->surface_dof_distribution()->num_indices())
 	{
@@ -958,7 +970,7 @@ init_common(bool nonlinear)
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "#level-dofs: "
 				<< m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices());
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, ", #surface-dofs: "
-				<< m_spApproxSpace->surface_dof_distribution()->num_indices());
+				<< m_spApproxSpace->surface_dof_distribution()->num_indices() << "\n");
 		m_bAdaptive = true;
 	}
 
@@ -1038,6 +1050,7 @@ init_common(bool nonlinear)
 	GMG_PROFILE_END();
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_common\n");
 	return true;
 }
 
@@ -1048,6 +1061,8 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_linear_level_operator()
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_linear_level_operator\n");
+
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
@@ -1096,7 +1111,7 @@ init_linear_level_operator()
 
 			const size_t numSmoothIndex = m_vLevData[lev]->num_smooth_indices();
 			smoothMat->resize(numSmoothIndex, numSmoothIndex);
-			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapFlag, *mat);
+			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapGlobalToPatch, *mat);
 		}
 
 	//	if no ghosts are present we can simply use the whole grid. If the base
@@ -1143,6 +1158,7 @@ init_linear_level_operator()
 	}
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_linear_level_operator\n");
 	return true;
 }
 
@@ -1152,6 +1168,8 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_non_linear_level_operator()
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_non_linear_level_operator\n");
+
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
@@ -1199,7 +1217,7 @@ init_non_linear_level_operator()
 
 			const size_t numSmoothIndex = m_vLevData[lev]->num_smooth_indices();
 			smoothMat->resize(numSmoothIndex, numSmoothIndex);
-			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapFlag, *mat);
+			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapGlobalToPatch, *mat);
 		}
 	}
 
@@ -1221,6 +1239,7 @@ init_non_linear_level_operator()
 	}
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_non_linear_level_operator\n");
 	return true;
 }
 
@@ -1230,6 +1249,8 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_transfer()
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_transfer\n");
+
 //	loop all levels
 	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
@@ -1282,6 +1303,7 @@ init_transfer()
 	}
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_transfer\n");
 	return true;
 }
 
@@ -1291,6 +1313,8 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_projection()
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_projection\n");
+
 //	loop all levels
 	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
@@ -1307,6 +1331,7 @@ init_projection()
 	}
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_projection\n");
 	return true;
 }
 
@@ -1316,6 +1341,8 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_smoother()
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_smoother\n");
+
 // 	Init smoother
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
@@ -1346,6 +1373,7 @@ init_smoother()
 	}
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_smoother\n");
 	return true;
 }
 
@@ -1355,6 +1383,7 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_base_solver()
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_base_solver\n");
 //	skip void level
 	if(m_vLevData[m_baseLev]->num_indices() == 0) return true;
 
@@ -1411,6 +1440,7 @@ init_base_solver()
 	}
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_base_solver\n");
 	return true;
 }
 
@@ -2031,35 +2061,35 @@ update(size_t lev,
 
 //	** 1. **: We create the mapping between the index sets
 //	create a vector of size of the whole grid with 1 everywhere
-	vMapFlag.clear(); vMapFlag.resize(numIndex, 1);
+	vMapGlobalToPatch.clear(); vMapGlobalToPatch.resize(numIndex, 1);
 
 //	set the vector to -1 where vertical masters are present, the set all
 //	indices back to 1 where the index is also a horizontal master/slave
-	SetLayoutValues(&vMapFlag, spLevDD->vertical_master_layout(), -1);
-	SetLayoutValues(&vMapFlag, spLevDD->master_layout(), 1);
-	SetLayoutValues(&vMapFlag, spLevDD->slave_layout(), 1);
+	SetLayoutValues(&vMapGlobalToPatch, spLevDD->vertical_master_layout(), -1);
+	SetLayoutValues(&vMapGlobalToPatch, spLevDD->master_layout(), 1);
+	SetLayoutValues(&vMapGlobalToPatch, spLevDD->slave_layout(), 1);
 
 //	now we create the two mapping:
-//	vMapFlag: mapping (whole grid index -> patch index): the non-ghost indices
+//	vMapGlobalToPatch: mapping (whole grid index -> patch index): the non-ghost indices
 //	are mapped to a patch index, while the ghosts are flagged by a -1 index
-//	vMap: mapping (patch index -> whole grid index): For each patch index the
+//	vMapPatchToGlobal: mapping (patch index -> whole grid index): For each patch index the
 //	corresponding whole grid index is stored
-	vMap.clear();
-	for(size_t j = 0; j < vMapFlag.size(); ++j)
+	vMapPatchToGlobal.clear();
+	for(size_t j = 0; j < vMapGlobalToPatch.size(); ++j)
 	{
 	//	if the index is still negative (i.e. ghost, leave index at -1)
-		if(vMapFlag[j] -1) continue;
+		if(vMapGlobalToPatch[j] -1) continue;
 
 	//	if the index is a non-ghost set the new index
-		vMapFlag[j] = vMap.size();
+		vMapGlobalToPatch[j] = vMapPatchToGlobal.size();
 
 	//	since in the patch we store the mapping index
-		vMap.push_back(j);
+		vMapPatchToGlobal.push_back(j);
 	}
 
 //	now we know the size of the smoothing patch index set and resize help vectors
 //	by the preceeding 's' the relation to the smoothing is indicated
-	const size_t numSmoothIndex = vMap.size();
+	const size_t numSmoothIndex = vMapPatchToGlobal.size();
 	m_numSmoothIndices = numSmoothIndex;
 	su.resize(numSmoothIndex);
 	sc.resize(numSmoothIndex);
@@ -2073,8 +2103,8 @@ update(size_t lev,
 	SmoothSlaveLayout = spLevDD->slave_layout();
 
 //	Replace indices in the layout with the smaller (smoothing patch) indices
-	ReplaceIndicesInLayout(SmoothMasterLayout, vMapFlag);
-	ReplaceIndicesInLayout(SmoothSlaveLayout, vMapFlag);
+	ReplaceIndicesInLayout(SmoothMasterLayout, vMapGlobalToPatch);
+	ReplaceIndicesInLayout(SmoothSlaveLayout, vMapGlobalToPatch);
 
 //	replace old layouts by new modified ones
 	sc.set_layouts(SmoothMasterLayout, SmoothSlaveLayout);

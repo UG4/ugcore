@@ -367,7 +367,7 @@ class AssembledMultiGridCycle :
 			{
 				#ifdef UG_PARALLEL
 				if(has_ghosts()) {
-					for(size_t i = 0; i < vMap.size(); ++i) sd[i] = d[ vMap[i] ];
+					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) sd[i] = d[ vMapPatchToGlobal[i] ];
 					sd.copy_storage_type(d);
 				}
 				#endif
@@ -378,7 +378,7 @@ class AssembledMultiGridCycle :
 			{
 				#ifdef UG_PARALLEL
 				if(has_ghosts()) {
-					for(size_t i = 0; i < vMap.size(); ++i) st[i] = t[ vMap[i] ];
+					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) st[i] = t[ vMapPatchToGlobal[i] ];
 					st.copy_storage_type(t);
 				}
 				#endif
@@ -390,7 +390,7 @@ class AssembledMultiGridCycle :
 				#ifdef UG_PARALLEL
 				if(has_ghosts()) {
 					if(clearGhosts) d.set(0.0);
-					for(size_t i = 0; i < vMap.size(); ++i) d[ vMap[i] ] = sd[i];
+					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) d[ vMapPatchToGlobal[i] ] = sd[i];
 					d.copy_storage_type(sd);
 				}
 				#endif
@@ -402,7 +402,7 @@ class AssembledMultiGridCycle :
 				#ifdef UG_PARALLEL
 				if(has_ghosts()) {
 					if(clearGhosts) c.set(0.0);
-					for(size_t i = 0; i < vMap.size(); ++i) c[ vMap[i] ] = sc[i];
+					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) c[ vMapPatchToGlobal[i] ] = sc[i];
 					c.copy_storage_type(sc);
 				}
 				#endif
@@ -448,9 +448,12 @@ class AssembledMultiGridCycle :
 		//	missing coarse grid correction
 			matrix_type CoarseGridContribution;
 
-		//	map for smoothing
-			std::vector<size_t> vMap;
-			std::vector<int> vMapFlag;
+		///	maps global indices (including ghosts) to patch indices (no ghosts included).
+		/**	maps are only filled if ghosts are present on the given level.
+		 * \{ */
+			std::vector<size_t> vMapPatchToGlobal;
+			std::vector<int> vMapGlobalToPatch;
+		/** \} */
 
 		//	number of smooth indices
 			size_t m_numSmoothIndices;

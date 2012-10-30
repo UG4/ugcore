@@ -22,6 +22,10 @@
 
 #include "lib_disc/dof_manager/mg_dof_distribution.h"
 
+//only for debugging!!!
+#include "lib_grid/algorithms/debug_util.h"
+
+
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -381,14 +385,16 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
  * corresponds to a refine-patch boundary (i.e. the geomeric object is a
  * shadowing object) for an element type
  *
- * \param[out]	vec				grid vector
- * \param[in] 	dd				DoFDistribution
- * \param[in]	surfView		SurfaceView
+ * \param[out]	vec					grid vector
+ * \param[in] 	dd					DoFDistribution
+ * \param[in]	surfView			SurfaceView
+ * \param[in]	pmapGlobalToPatch	(optional) mapping of global indices to patch indices
  */
 template <typename TBaseElem, typename TVector>
 void SetZeroOnShadowing(TVector& vec,
                         ConstSmartPtr<LevelDoFDistribution> dd,
-                        const SurfaceView& surfView)
+                        const SurfaceView& surfView,
+                        const std::vector<int>* pmapGlobalToPatch = NULL)
 {
 //	indices
 	std::vector<size_t> ind;
@@ -404,27 +410,51 @@ void SetZeroOnShadowing(TVector& vec,
 		iterEnd = dd->end<TBaseElem>(si);
 
 	// 	loop nodes of fine subset
-		for(; iter != iterEnd; ++iter)
-		{
-		//	get vertex
-			TBaseElem* vrt = *iter;
+		if(pmapGlobalToPatch){
+			const std::vector<int>& mapGlobalToPatch = *pmapGlobalToPatch;
 
-			GeometricObject* parent = surfView.subset_handler()->multi_grid()->get_parent(vrt);
-			if(parent == NULL) continue;
-			if(!surfView.is_shadowed(parent)) continue;
-
-		//	skip non-shadowing vertices
-/*			GeometricObject* parent = surfView.parent_if_copy(vrt);
-			if(parent == NULL) continue;
-			if(!surfView.is_shadowed(parent)) continue;
-*/
-		// 	get global indices
-			dd->inner_algebra_indices(vrt, ind);
-
-		//	set vector entries to zero
-			for(size_t i = 0; i < ind.size(); ++i)
+			for(; iter != iterEnd; ++iter)
 			{
-				vec[ind[i]] = 0.0;
+			//	get vertex
+				TBaseElem* vrt = *iter;
+
+				GeometricObject* parent = surfView.subset_handler()->multi_grid()->get_parent(vrt);
+				if(parent == NULL) continue;
+				if(!surfView.is_shadowed(parent)) continue;
+
+			// 	get global indices
+				dd->inner_algebra_indices(vrt, ind);
+
+			//	set vector entries to zero
+				for(size_t i = 0; i < ind.size(); ++i)
+				{
+					UG_ASSERT(ind[i] < mapGlobalToPatch.size(),
+							 "mapGlobalToPatch is too small on level " << dd->grid_level() << "."
+							 << "size: " << mapGlobalToPatch.size() << ", "
+							 << "index: " << ind[i]);
+					UG_ASSERT((mapGlobalToPatch[ind[i]] >= 0) && (mapGlobalToPatch[ind[i]] < (int)vec.size()),
+							  "Some problem with mapGlobalToPatch... probably trying to set a ghost to zero?");
+					vec[mapGlobalToPatch[ind[i]]] = 0.0;
+				}
+			}
+		}
+		else{
+			for(; iter != iterEnd; ++iter)
+			{
+			//	get vertex
+				TBaseElem* vrt = *iter;
+
+				GeometricObject* parent = surfView.subset_handler()->multi_grid()->get_parent(vrt);
+				if(parent == NULL) continue;
+				if(!surfView.is_shadowed(parent)) continue;
+
+			// 	get global indices
+				dd->inner_algebra_indices(vrt, ind);
+
+			//	set vector entries to zero
+				for(size_t i = 0; i < ind.size(); ++i)				{
+					vec[ind[i]] = 0.0;
+				}
 			}
 		}
 	}
@@ -442,17 +472,18 @@ void SetZeroOnShadowing(TVector& vec,
 template <typename TVector>
 void SetZeroOnShadowing(TVector& vec,
                         ConstSmartPtr<LevelDoFDistribution> dd,
-                        const SurfaceView& surfView)
+                        const SurfaceView& surfView,
+                        const std::vector<int>* pmapGlobalToPatch = NULL)
 {
 //	forward for all BaseObject types
 	if(dd->has_indices_on(VERTEX))
-		SetZeroOnShadowing<VertexBase, TVector>(vec, dd, surfView);
+		SetZeroOnShadowing<VertexBase, TVector>(vec, dd, surfView, pmapGlobalToPatch);
 	if(dd->has_indices_on(EDGE))
-		SetZeroOnShadowing<EdgeBase, TVector>(vec, dd, surfView);
+		SetZeroOnShadowing<EdgeBase, TVector>(vec, dd, surfView, pmapGlobalToPatch);
 	if(dd->has_indices_on(FACE))
-		SetZeroOnShadowing<Face, TVector>(vec, dd, surfView);
+		SetZeroOnShadowing<Face, TVector>(vec, dd, surfView, pmapGlobalToPatch);
 	if(dd->has_indices_on(VOLUME))
-		SetZeroOnShadowing<Volume, TVector>(vec, dd, surfView);
+		SetZeroOnShadowing<Volume, TVector>(vec, dd, surfView, pmapGlobalToPatch);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
