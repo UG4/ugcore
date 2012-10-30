@@ -12,19 +12,19 @@
 #include <ctime>
 #include "common/util/string_util.h"
 #include "compile_info/compile_info.h"
-
+#include "common/util/crc32.h"
+#include "registry/stdvectorwrap_register.h"
 using namespace std;
 
 namespace ug
 {
+
 void PrintLUA();
-
-
 namespace bridge
 {
 
 // todo: support enums natively and remove this
-template <>
+/*template <>
 struct PLStack<LogAssistant::Tags>
 {
 	static void push(ParameterStack& ps)
@@ -39,12 +39,12 @@ struct PLStack<LogAssistant::Tags>
 	{
 		return (LogAssistant::Tags) ps.to_integer(index);
 	}
-};
+};*/
 
 
-LogAssistant::Tags GetLogAssistantTag(const char *s)
+uint32 GetLogAssistantTag(const char *s)
 {
-	if(strcmp(s, "MAIN") == 0) return LogAssistant::MAIN;
+	/*if(strcmp(s, "MAIN") == 0) return LogAssistant::MAIN;
 	if(strcmp(s, "APP") == 0) return LogAssistant::APP;
 	if(strcmp(s, "LIB_GRID") == 0) return LogAssistant::LIB_GRID;
 	if(strcmp(s, "LIB_GRID_REFINER") ==0) return LogAssistant::LIB_GRID_REFINER;
@@ -63,9 +63,13 @@ LogAssistant::Tags GetLogAssistantTag(const char *s)
 	if(strcmp(s, "LIB_ALG_VECTOR") == 0) return LogAssistant::LIB_ALG_VECTOR;
 	if(strcmp(s, "LIB_ALG_MATRIX") == 0) return LogAssistant::LIB_ALG_MATRIX;
 	if(strcmp(s, "LIB_ALG_AMG") == 0) return LogAssistant::LIB_ALG_AMG;
-	if(strcmp(s, "LIB_PCL") == 0) return LogAssistant::LIB_PCL;
-	UG_LOG("Tag " << s << " not found!");
-	return LogAssistant::MAIN;
+	if(strcmp(s, "LIB_PCL") == 0) return LogAssistant::LIB_PCL;*/
+	if(GetDebugIDManager().debug_id_registered(s) == false)
+	{
+		UG_LOG("DebugID " << s << " not found!");
+		return 0;
+	}
+	else return crc32(s);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -136,13 +140,6 @@ bool IsDefinedUG_STATIC() { return true; }
 bool IsDefinedUG_STATIC() { return false; }
 #endif
 
-// UG_EMBEDDED_PLUGINS
-#ifdef UG_EMBEDDED_PLUGINS
-bool IsDefinedUG_EMBEDDED_PLUGINS() { return true; }
-#else
-bool IsDefinedUG_EMBEDDED_PLUGINS() { return false; }
-#endif
-
 // DEBUG, DEBUG_LOGS:
 #ifdef UG_DEBUG
 bool IsDefinedUG_DEBUG() { return true; }
@@ -184,35 +181,11 @@ bool IsDefinedPROFILE_PCL() { return true; }
 bool IsDefinedPROFILE_PCL() { return false; }
 #endif
 
-// PROFILE_BRIDGE:
-#ifdef PROFILE_BRIDGE
-bool IsDefinedPROFILE_BRIDGE() { return true; }
-#else
-bool IsDefinedPROFILE_BRIDGE() { return false; }
-#endif
-
-// Not yet - placeholder for some 'PROFILE_XYZ' CMake flag possibly introduced in the future:
-/*
-// PROFILE_XYZ:
-#ifdef PROFILE_XYZ
-bool IsDefinedPROFILE_XYZ() { return true; }
-#else
-bool IsDefinedPROFILE_XYZ() { return false; }
-#endif
-*/
-
 // ALGEBRA - derived, no output by 'cmake' until now:
 #ifdef UG_ALGEBRA
 bool IsDefinedUG_ALGEBRA() { return true; }
 #else
 bool IsDefinedUG_ALGEBRA() { return false; }
-#endif
-
-// PRECISION
-#ifdef UG_SINGLE_PRECISION
-bool IsDefinedUG_SINGLE_PRECISION() { return true; }
-#else
-bool IsDefinedUG_SINGLE_PRECISION() { return false; }
 #endif
 
 // LAPACK_AVAILABLE - derived:
@@ -303,18 +276,7 @@ void PrintBuildConfiguration()
 	aux_str.append("STATIC:            ").append( (IsDefinedUG_STATIC() ? "ON " : "OFF") );
 	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
 
-	// next (half) pair
-	aux_str = "";
-	//aux_str.append("...:            ").append( (IsDefined...() ? "" : "") );
-	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
-	aux_str = "";
-	aux_str.append("EMBEDDED_PLUGINS:  ").append( (IsDefinedUG_EMBEDDED_PLUGINS() ? "ON " : "OFF") );
-	UG_LOG(AppendSpacesToString(aux_str, 0).append(""));
-	aux_str = "";
-	aux_str.append(" ").append( (IsDefinedUG_STATIC() ? "(always set if 'STATIC=ON')" : "") );
-	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
-
-	// next (half) pair
+	// next pair
 	aux_str = "";
 	aux_str.append("PARALLEL:          ").append( (IsDefinedUG_PARALLEL() ? "ON " : "OFF") );
 	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
@@ -336,15 +298,6 @@ void PrintBuildConfiguration()
 	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
 	aux_str = "";
 	aux_str.append("PROFILE_PCL:       ").append( (IsDefinedPROFILE_PCL() ? "ON " : "OFF") );
-	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
-
-	// next (half) pair
-	aux_str = "";
-	aux_str.append("PROFILE_BRIDGE:    ").append( (IsDefinedPROFILE_BRIDGE() ? "ON " : "OFF") );
-	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
-	aux_str = "";
-	// Not yet - placeholder for some 'PROFILE_XYZ' CMake flag possibly introduced in the future:
-	//aux_str.append("PROFILE_XYZ:       ").append( (IsDefinedPROFILE_XYZ() ? "ON " : "OFF") );
 	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
 
 	// next pair
@@ -383,9 +336,6 @@ void PrintBuildConfiguration()
 		aux_str.append( (IsDefinedUG_CPU_VAR() ? "VAR" : "") );
 	}
 	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
-	aux_str = "";
-	aux_str.append("PRECISION:         ").append( (IsDefinedUG_SINGLE_PRECISION() ? "single" : "double ") );
-	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
 
 	// We've decided so far not to display the following derived parameters!
 
@@ -416,78 +366,14 @@ void PrintBuildConfiguration()
 	aux_str = "";
 	//aux_str.append("?:               ").append( (IsDefinedUG_?() ? "ON " : "OFF") );
 	UG_LOG(AppendSpacesToString(aux_str,40).append("\n"));
+	UG_LOG("--------------------------------------------------------------------------------\n");
+}
 
-/* TODO: If the compact form above is considered "d'accord",
-         one can remove the following "non compact form":
-
-	UG_LOG("TARGET:            " << UG_TARGET );
-	UG_LOG("\n");
-
-	UG_LOG("STATIC:            ");
-	UG_LOG( (IsDefinedUG_STATIC() ? "ON " : "OFF") );
-	UG_LOG("\n");
-
-	UG_LOG("DIM:               ");
-	if (IsDefinedUG_DIM_1() && IsDefinedUG_DIM_2() && IsDefinedUG_DIM_3()) {
-		UG_LOG("ALL");
-	} else {
-		UG_LOG( (IsDefinedUG_DIM_1() ? "1 " : " ") );
-		UG_LOG( (IsDefinedUG_DIM_2() ? "2 " : " ") );
-		UG_LOG( (IsDefinedUG_DIM_3() ? "3 " : " ") );
-	}
-	UG_LOG("\n");
-
-	UG_LOG("CPU:               ");
-	if (IsDefinedUG_CPU_1() && IsDefinedUG_CPU_2() &&
-		IsDefinedUG_CPU_3() && IsDefinedUG_CPU_4() &&
-		IsDefinedUG_CPU_VAR()) {
-		UG_LOG("ALL");
-	} else {
-		UG_LOG( (IsDefinedUG_CPU_1() ? "1 " : " ") );
-		UG_LOG( (IsDefinedUG_CPU_2() ? "2 " : " ") );
-		UG_LOG( (IsDefinedUG_CPU_3() ? "3 " : " ") );
-		UG_LOG( (IsDefinedUG_CPU_4() ? "4 " : " ") );
-		UG_LOG( (IsDefinedUG_CPU_VAR() ? "VAR" : " ") );
-	}
-	UG_LOG("\n");
-
-	UG_LOG("DEBUG:             ");
-	UG_LOG( (IsDefinedUG_DEBUG() ? "ON " : "OFF") );
-	UG_LOG("\n");
-
-	UG_LOG("DEBUG_LOGS:        ");
-	UG_LOG( (IsDefinedUG_ENABLE_DEBUG_LOGS() ? "ON " : "OFF") );
-	UG_LOG("\n");
-
-	UG_LOG("PARALLEL:          ");
-	UG_LOG( (IsDefinedUG_PARALLEL() ? "ON " : "OFF") );
-	UG_LOG("\n");
-
-	UG_LOG("PCL_DEBUG_BARRIER: ");
-	UG_LOG( (IsDefinedPCL_DEBUG_BARRIER_ENABLED() ? "ON " : "OFF") );
-	UG_LOG("\n");
-
-	UG_LOG("PROFILER:          ");
-	UG_LOG( (IsDefinedUG_PROFILER() ? "ON " : "OFF") );
-	UG_LOG("\n");
-
-	UG_LOG("PROFILE_PCL:       ");
-	UG_LOG( (IsDefinedPROFILE_PCL() ? "ON " : "OFF") );
-	UG_LOG("\n");
-
-	// Please note that there are also independent cmake parameters 'LAPACK' and 'BLAS',
-	// but we are only interested if LAPACK/BLAS was found or not (if requested).
-	UG_LOG("LAPACK available:  ");
-	UG_LOG( (IsDefinedLAPACK_AVAILABLE() ? "YES" : "NO ") );
-	UG_LOG("\n");
-	UG_LOG("BLAS available:    ");
-	UG_LOG( (IsDefinedBLAS_AVAILABLE()   ? "YES" : "NO ") );
-	UG_LOG("\n\n");
-
-
-// We've decided so far not to display the following derived parameters:
+void PrintBuildConfigurationExtended()
+{
+	// We've decided so far not to display the following derived parameters:
 	// 2. Derived parameters (no direct parameters to cmake):
-	UG_LOG("2. Derived parameters:\n");
+	UG_LOG("Derived parameters:\n");
 	UG_LOG("Build for VRL:     ");
 	UG_LOG( (IsDefinedUG_FOR_VRL() ? "ON " : "OFF") );
 	UG_LOG("\n");
@@ -506,26 +392,7 @@ void PrintBuildConfiguration()
 
 // Derived parameters END
 
-	UG_LOG("METIS:             ");
-	UG_LOG( (IsDefinedUG_METIS() ? "ON " : "OFF") );
-	UG_LOG("\n");
 
-	UG_LOG("PARMETIS:          ");
-	UG_LOG( (IsDefinedUG_PARMETIS() ? "ON " : "OFF") );
-	UG_LOG("\n");
-
-	UG_LOG("TETGEN:            ");
-	UG_LOG( (IsDefinedUG_TETGEN() ? "ON " : "OFF") );
-	UG_LOG("\n");
-
-	UG_LOG("HYPRE:             ");
-	UG_LOG( (IsDefinedUG_HYPRE() ? "ON " : "OFF") );
-	UG_LOG("\n");
-
-	UG_LOG("HLIBPRO:           ");
-	UG_LOG( (IsDefinedUG_HLIBPRO() ? "ON " : "OFF") );
-	UG_LOG("\n");
-*/
 	UG_LOG("--------------------------------------------------------------------------------\n");
 }
 
@@ -533,7 +400,7 @@ void PrintBuildConfiguration()
 
 void SetDebugLevel(const char* strTag, int level)
 {
-	GetLogAssistant().set_debug_level(GetLogAssistantTag(strTag), level);
+	GetLogAssistant().set_debug_level(strTag, level);
 }
 
 string GetSVNRevision()
@@ -558,8 +425,16 @@ double GetClockS()
 }
 
 
+
 void RegisterBridge_Misc(Registry &reg, string parentGroup)
 {
+	{
+		stringstream ss; ss << parentGroup << "/Util/";
+		string grp = ss.str();
+		RegStdVectorWrap<size_t>(reg, grp);
+		RegStdVectorWrap<std::string>(reg, grp);
+		RegStdVectorWrap<double>(reg, grp);
+	}
 	
 
 	{
@@ -572,18 +447,21 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 					"", "filename", "Renames previously opened logfile to the name given")
 			.add_method("enable_terminal_output", &LogAssistant::enable_terminal_output,
 					"", "bEnable", "enables or disables terminal output (enabled by default)")
-			.add_method("set_debug_levels", &LogAssistant::set_debug_levels,
-					"", "lev", "sets the debug level of all tags to 'lev'")
-			.add_method("set_debug_level", &LogAssistant::set_debug_level, "", "tag#lev", "sets the debug level of Tag 'tag' to level 'lev'")
-			.add_method("get_debug_level", &LogAssistant::get_debug_level, "", "tag", "use GetLogAssistantTag to get a tag from a tag-string.")
+			.add_method("set_debug_levels", &LogAssistant::set_debug_levels, "", "lev", "sets the debug level of all tags to 'lev'")
+
+			.add_method("set_debug_level", static_cast<bool (LogAssistant::*)(const char *, int)>(&LogAssistant::set_debug_level_noninline), "", "tag#lev", "sets the debug level of Tag 'tag' to level 'lev'")
+			.add_method("get_debug_level", static_cast<int (LogAssistant::*)(const char *) const>(&LogAssistant::get_debug_level_noninline), "", "tag#lev", "gets the debug level of Tag 'tag'")
+
+			.add_method("getDebugIDs", &LogAssistant::get_registered_debug_IDs, "debug IDs")
+
 			.add_method("set_output_process", &LogAssistant::set_output_process, "", "procRank", "Sets the process which shall output its data.")
 			.add_method("get_output_process", &LogAssistant::get_output_process, "", "", "Returns the process which outputs its data.")
 			.add_method("is_output_process", &LogAssistant::set_output_process, "", "procRank", "Returns whether the process outputs its data.")
 			.add_method("flush", &LogAssistant::flush, "", "", "flush all buffers, especially the file buffer.")
 			;
 		reg.add_function("GetLogAssistant", &GetLogAssistant, grp, "the log assistant");
-		reg.add_function("GetLogAssistantTag", &GetLogAssistantTag, grp, "integer tag for use int set_debug_level");
-		reg.add_function("SetDebugLevel", &SetDebugLevel, grp);
+		//reg.add_function("GetLogAssistantTag", &GetLogAssistantTag, grp, "integer tag for use int set_debug_level");
+		//reg.add_function("SetDebugLevel", &SetDebugLevel, grp);
 		reg.add_function("GetClockS", &GetClockS, grp);
 		reg.add_function("PrintLUA", &PrintLUA, grp);
 	}
@@ -598,6 +476,9 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("IsDefinedUG_ENABLE_DEBUG_LOGS", &IsDefinedUG_ENABLE_DEBUG_LOGS, grp, "");
 
 		reg.add_function("PrintBuildConfiguration", &PrintBuildConfiguration, grp, "");
+		reg.add_function("PrintBuildConfigurationExtended", &PrintBuildConfigurationExtended, grp, "");
+		
+		
 
 		reg.add_function("GetSVNRevision", &GetSVNRevision, grp);
 		reg.add_function("GetCompileDate", &GetCompileDate, grp);
@@ -605,6 +486,8 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 
 		reg.add_function("LevenshteinDistance", &LevenshteinDistance, grp);
 	}
+	
+
 }
 
 
