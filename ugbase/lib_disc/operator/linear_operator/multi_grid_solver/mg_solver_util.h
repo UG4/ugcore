@@ -62,7 +62,8 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
                            std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
                            const TVector& surfaceVector,
                            ConstSmartPtr<SurfaceDoFDistribution> surfaceDD,
-                           const SurfaceView& surfaceView)
+                           const SurfaceView& surfaceView,
+                           const int baseLvl = 0)
 {
 //	type of element iterator
 	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
@@ -82,15 +83,19 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 		//	get elem
 			TElem* elem = *iter;
 
-		//	extract all algebra indices for the element on surface
-			surfaceDD->inner_algebra_indices(elem, surfaceInd);
-
 		//	get level of element in hierarchy
 			int level = surfaceView.get_level(elem);
 
+		//	make sure that we're not below baseLvl
+			if(level < baseLvl)
+				continue;
+
 		//	get corresponding level vector for element
-			UG_ASSERT(vLevelVector[level] != NULL, "Vector missing");
+			UG_ASSERT(vLevelVector[level] != NULL, "Vector missing on level " << level);
 			TVector& levelVector = *(vLevelVector[level]);
+
+		//	extract all algebra indices for the element on surface
+			surfaceDD->inner_algebra_indices(elem, surfaceInd);
 
 		//	check that level is correct
 			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
@@ -118,7 +123,8 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
                            std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
                            const TVector& surfVector,
                            ConstSmartPtr<SurfaceDoFDistribution> surfDD,
-                           const SurfaceView& surfView)
+                           const SurfaceView& surfView,
+                           const int baseLvl = 0)
 {
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
@@ -129,16 +135,16 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 //	forward for all BaseObject types
 	if(surfDD->has_indices_on(VERTEX))
 		ProjectSurfaceToLevel<VertexBase, TVector>
-					(vLevelVector, vLevelDD, surfVector, surfDD, surfView);
+					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
 	if(surfDD->has_indices_on(EDGE))
 		ProjectSurfaceToLevel<EdgeBase, TVector>
-					(vLevelVector, vLevelDD, surfVector, surfDD, surfView);
+					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
 	if(surfDD->has_indices_on(FACE))
 		ProjectSurfaceToLevel<Face, TVector>
-					(vLevelVector, vLevelDD, surfVector, surfDD, surfView);
+					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
 	if(surfDD->has_indices_on(VOLUME))
 		ProjectSurfaceToLevel<Volume, TVector>
-					(vLevelVector, vLevelDD, surfVector, surfDD, surfView);
+					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
 
 #ifdef UG_PARALLEL
 //	copy storage type into all vectors
@@ -155,7 +161,7 @@ void ProjectLevelToSurface(TVector& surfaceVector,
                            const SurfaceView& surfaceView,
 						   const std::vector<const TVector*>& vLevelVector,
 						   std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
-                           const int baseLevel)
+                           const int baseLevel = 0)
 {
 //	type of element iterator
 	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
@@ -178,11 +184,15 @@ void ProjectLevelToSurface(TVector& surfaceVector,
 		//	skip shadows
 			if(surfaceView.is_shadowed(elem)) continue;
 
-		//	extract all algebra indices for the element on surface
-			surfaceDD->inner_algebra_indices(elem, surfaceInd);
-
 		//	get level of element in hierarchy
 			int level = surfaceView.get_level(elem);
+
+		//	make sure that we're not below base-level
+			if(level < baseLevel)
+				continue;
+
+		//	extract all algebra indices for the element on surface
+			surfaceDD->inner_algebra_indices(elem, surfaceInd);
 
 		//	get corresponding level vector for element
 			const TVector& levelVector = *(vLevelVector[level]);
@@ -214,7 +224,7 @@ void ProjectLevelToSurface(TVector& surfVector,
                            const SurfaceView& surfView,
                            const std::vector<const TVector*>& vLevelVector,
                            std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
-                           const int baseLevel)
+                           const int baseLevel = 0)
 {
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())

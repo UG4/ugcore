@@ -88,7 +88,6 @@ apply_update_defect(vector_type &c, vector_type& d)
 
 //	project defect from surface to level
 	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
-	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply project_surface_to_level... \n");
 	try{
 	if(!project_surface_to_level(level_defects(), d))
 	{
@@ -430,7 +429,7 @@ prolongation(size_t lev, bool restrictionWasPerformed)
 	write_level_debug(sd, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
 //	## ADAPTIVE CASE
-	if(m_bAdaptive)
+	if(m_bAdaptive && restrictionWasPerformed)
 	{
 	//	in the adaptive case there is a small part of the coarse coupling that
 	//	has not been used to update the defect. In order to ensure, that the
@@ -1504,6 +1503,8 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
                          const vector_type& surfVec)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start project_surface_to_level\n");
+
 //	level dof distributions
 	std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD =
 								m_spApproxSpace->level_dof_distributions();
@@ -1549,10 +1550,11 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 	}
 	else
 	{
-		ProjectSurfaceToLevel(vLevelVec, vLevelDD, surfVec, surfDD, *surfView);
+		ProjectSurfaceToLevel(vLevelVec, vLevelDD, surfVec, surfDD, *surfView, m_baseLev);
 	}
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop project_surface_to_level\n");
 	return true;
 }
 
