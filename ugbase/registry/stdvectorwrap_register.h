@@ -28,7 +28,7 @@ void RegStdVectorWrap(Registry &registry, std::string grp, const char *pname=NUL
 	else
 		name = pname;
 	registry.add_class_< std_vector_wrap<T> > (name, grp)
-		.add_method("__index", &std_vector_wrap<T>::index, "")
+		.add_method("get", &std_vector_wrap<T>::index, "")
 		.add_method("__tostring", &std_vector_wrap<T>::tostring, "")
 		.add_method("size", &std_vector_wrap<T>::size, "");
 }
