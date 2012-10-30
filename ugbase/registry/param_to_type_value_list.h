@@ -196,6 +196,28 @@ struct PLStack<const std::string&>
 //////////////////////////////
 // classes
 //////////////////////////////
+
+template <typename T>
+struct PLStack<SmartPtr<std::vector<T> > >
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_smart_pointer_std_vector<T>();
+	}
+	static void write(ParameterStack& ps, const SmartPtr<std::vector<T> >& data, int index)
+	{
+		ps.set_smart_pointer(index, data);
+	}
+	static SmartPtr<std::vector<T> > read(const ParameterStack& ps, int index)
+	{
+		return ps.to_smart_pointer<std::vector<T> >(index);
+	}
+};
+
+
+
+
+
 template <typename TClass>
 struct PLStack<TClass*>
 {

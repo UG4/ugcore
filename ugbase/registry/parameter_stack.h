@@ -7,6 +7,7 @@
 #include "function_traits.h"
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
+#include "stdvectorwrap.h"
 
 #ifndef __H__UG_BRIDGE__PARAMETER_STACK__
 #define __H__UG_BRIDGE__PARAMETER_STACK__
@@ -76,8 +77,6 @@ static inline int ARRAY_INDEX_TO_STACK_INDEX(int index, int stackSize)
 	
 	return nIndex;
 }
-
-
 
 
 const int PARAMETER_STACK_MAX_SIZE = UG_REGISTRY_MAX_NUM_ARGS;
@@ -213,6 +212,13 @@ class ParameterStack
 		inline void push_pointer(void* ptr, const ClassNameNode* classNameNode)
 			{PUSH_PARAM_TO_STACK(	m_ptr, ptr, PT_POINTER, classNameNode);}
 
+		
+		template<class T>
+		inline void push_smart_pointer_std_vector(const SmartPtr<std::vector<T> >& ptr = SmartPtr<std::vector<T> >(NULL))
+			{PUSH_SP_TO_STACK(ptr, &ClassNameProvider<std_vector_wrap<T> >::class_name_node());
+			m_bHasSmartPtrs = true;}
+			
+		
 	/// user defined classes
 		template<class T>
 		inline void push_const_pointer(const T* ptr = NULL)
