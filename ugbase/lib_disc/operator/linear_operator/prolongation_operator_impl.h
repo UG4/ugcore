@@ -75,6 +75,9 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 		//  get father
 			GeometricObject* parent = grid.get_parent(fineVrt);
 
+			if(!parent)
+				continue;
+
 		//	type of father
 			const ReferenceObjectID roid = parent->reference_object_id();
 
