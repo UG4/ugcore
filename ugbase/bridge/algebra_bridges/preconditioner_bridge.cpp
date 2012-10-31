@@ -23,7 +23,6 @@
 #include "lib_algebra/operator/preconditioner/iterator_product.h"
 #include "lib_algebra/operator/preconditioner/vanka.h"
 #include "lib_algebra/operator/preconditioner/line_smoothers.h"
-// #include "lib_algebra/operator/preconditioner/block_smoothers.h"
 
 using namespace std;
 
