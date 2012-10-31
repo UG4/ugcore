@@ -1854,6 +1854,14 @@ test_layouts(bool bPrint)
 ////////////////////////////////////////////////////////////////////////
 //	template instantiations for all current algebra types.
 
+#ifdef UG_CRS_1
+
+template class LocalSchurComplement<CRSAlgebra>;
+template class PrimalSubassembledMatrixInverse<CRSAlgebra>;
+template class FETISolver<CRSAlgebra>;
+
+#endif
+
 #ifdef UG_CPU_1
 template class LocalSchurComplement<CPUAlgebra>;
 template class PrimalSubassembledMatrixInverse<CPUAlgebra>;
