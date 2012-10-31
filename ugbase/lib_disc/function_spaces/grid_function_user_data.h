@@ -209,7 +209,7 @@ class GridFunctionNumberData
 				vValue[ip] = 0.0;
 				for(size_t sh = 0; sh < vShape.size(); ++sh)
 				{
-					const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
+					const number valSH = DoFRef(*m_spGridFct, ind[sh]);
 					vValue[ip] += valSH * vShape[sh];
 				}
 			}
@@ -305,10 +305,10 @@ class GridFunctionVectorData
 					m_spGridFct->multi_indices(elem, m_vfct[d], ind);
 
 				// 	compute solution at integration point
-					vValue[ip] = 0.0;
+					vValue[ip][d] = 0.0;
 					for(size_t sh = 0; sh < vShape.size(); ++sh)
 					{
-						const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
+						const number valSH = DoFRef( *m_spGridFct, ind[sh]);
 						vValue[ip][d] += valSH * vShape[sh];
 					}
 				}
@@ -413,7 +413,7 @@ class GridFunctionGradientData
 				VecSet(locGrad, 0.0);
 				for(size_t sh = 0; sh < vLocGrad.size(); ++sh)
 				{
-					const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
+					const number valSH = DoFRef( *m_spGridFct, ind[sh]);
 					VecScaleAppend(locGrad, valSH, vLocGrad[sh]);
 				}
 
