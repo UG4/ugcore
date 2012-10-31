@@ -57,20 +57,6 @@ std::string GetDomainTag() {return GetDimensionTag<TDomain::dim>();}
 ////////////////////////////////////////////////////////////////////////////////
 
 /// returns the algebra-suffix (e.g. "CPU3", "CPUFlex")
-template <typename TAlgebra>
-std::string GetAlgebraSuffix()
-{
-//	the algebra suffix
-	std::stringstream ss; ss << "CPU";
-
-//	add blocktype
-	if(TAlgebra::blockSize == AlgebraType::VariableBlockSize) ss << "Variable";
-	else ss << TAlgebra::blockSize;
-
-	return ss.str();
-}
-
-/// returns the algebra-suffix (e.g. "CPU3", "CPUFlex")
 inline std::string GetAlgebraSuffix(const AlgebraType& algType)
 {
 //	the algebra suffix
@@ -78,6 +64,7 @@ inline std::string GetAlgebraSuffix(const AlgebraType& algType)
 
 //	add type
 	if(algType.type() == AlgebraType::CPU) ss << "CPU";
+	else if(algType.type() == AlgebraType::CRS) ss << "CRS";
 	else UG_THROW("Unknown algebra type.");
 
 //	add blocktype
@@ -87,18 +74,11 @@ inline std::string GetAlgebraSuffix(const AlgebraType& algType)
 	return ss.str();
 }
 
-/// returns the algebra-suffix (e.g. "alg=CPU3", "alg=CPUVariable")
+/// returns the algebra-suffix (e.g. "CPU3", "CPUFlex")
 template <typename TAlgebra>
-std::string GetAlgebraTag()
+std::string GetAlgebraSuffix()
 {
-//	the algebra suffix
-	std::stringstream ss; ss << "alg=CPU";
-
-//	add blocktype
-	if(TAlgebra::blockSize == AlgebraType::VariableBlockSize) ss << "Variable;";
-	else ss << TAlgebra::blockSize << ";";
-
-	return ss.str();
+	return GetAlgebraSuffix(TAlgebra::get_type());
 }
 
 /// returns the algebra-suffix (e.g. "alg=CPU3", "alg=CPUVariable")
@@ -109,6 +89,7 @@ inline std::string GetAlgebraTag(const AlgebraType& algType)
 
 //	add type
 	if(algType.type() == AlgebraType::CPU) ss << "CPU";
+	else if(algType.type() == AlgebraType::CRS) ss << "CRS";
 	else UG_THROW("Unknown algebra type.");
 
 //	add blocktype
@@ -116,6 +97,14 @@ inline std::string GetAlgebraTag(const AlgebraType& algType)
 	else ss << algType.blocksize() << ";";
 
 	return ss.str();
+}
+
+
+/// returns the algebra-suffix (e.g. "alg=CPU3", "alg=CPUVariable")
+template <typename TAlgebra>
+std::string GetAlgebraTag()
+{
+	return GetAlgebraTag(TAlgebra::get_type());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

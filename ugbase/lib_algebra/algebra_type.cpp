@@ -26,7 +26,8 @@ AlgebraType::AlgebraType(const char* type, int blockSize)
 	std::string sType(type);
 
 	if(sType == "CPU") m_type = CPU;
-	else UG_THROW("Type '"<<sType<<"' not reconized. Available: CPU.");
+	else if(sType == "CRS") m_type = CRS;
+	else UG_THROW("Type '"<<sType<<"' not reconized. Available: CPU, CRS.");
 }
 
 AlgebraType::AlgebraType(const char* type)
@@ -35,7 +36,8 @@ AlgebraType::AlgebraType(const char* type)
 	std::string sType(type);
 
 	if(sType == "CPU") m_type = CPU;
-	else UG_THROW("Type '"<<sType<<"' not reconized. Available: CPU.");
+	else if(sType == "CRS") m_type = CRS;
+	else UG_THROW("Type '"<<sType<<"' not reconized. Available: CPU, CRS.");
 }
 
 
@@ -49,6 +51,7 @@ inline std::ostream& operator<<(std::ostream& out,	const AlgebraType& v)
 	switch(v.type())
 	{
 		case AlgebraType::CPU: out << "(CPU, " << ss.str() << ")"; break;
+		case AlgebraType::CRS: out << "(CRS, " << ss.str() << ")"; break;
 		default: out << "(unknown, " << ss.str() << ")";
 	}
 	return out;

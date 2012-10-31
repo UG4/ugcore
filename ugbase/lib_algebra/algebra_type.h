@@ -31,6 +31,7 @@ class AlgebraType
 		enum Type
 		{
 			CPU = 0,
+			CRS = 1
 		};
 
 	///	indicating variable block size

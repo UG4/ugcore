@@ -14,6 +14,9 @@
 #include "cpu_algebra/vector.h"
 #include "cpu_algebra/sparsematrix.h"
 
+#include "crs_algebra/crsvector.h"
+#include "crs_algebra/crssparsematrix.h"
+
 // parallel support
 #ifdef UG_PARALLEL
 	#include "parallelization/parallel_vector.h"
@@ -47,7 +50,30 @@ struct CPUAlgebra
 #endif
 
 	static const int blockSize = 1;
+	static AlgebraType get_type()
+	{
+		return AlgebraType(AlgebraType::CPU, 1);
+	}
 };
+
+struct CRSAlgebra
+{
+#ifdef UG_PARALLEL
+		typedef ParallelMatrix<CRSSparseMatrix<double> > matrix_type;
+		typedef ParallelVector<CRSVector<double> > vector_type;
+#else
+		typedef CRSSparseMatrix<double> matrix_type;
+		typedef CRSVector<double> vector_type;
+#endif
+
+	static const int blockSize = 1;
+	static AlgebraType get_type()
+	{
+		return AlgebraType(AlgebraType::CRS, 1);
+	}
+};
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //   CPU Fixed Block Algebra
@@ -64,7 +90,12 @@ struct CPUBlockAlgebra
 #endif
 
 	static const int blockSize = TBlockSize;
+	static AlgebraType get_type()
+	{
+		return AlgebraType(AlgebraType::CPU, TBlockSize);
+	}
 };
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //   CPU Variable Block Algebra
@@ -81,8 +112,11 @@ struct CPUVariableBlockAlgebra
 #endif
 
 	static const int blockSize = AlgebraType::VariableBlockSize;
+	static AlgebraType get_type()
+	{
+		return AlgebraType(AlgebraType::CPU, AlgebraType::VariableBlockSize);
+	}
 };
 
-} // end namespace ug
-
+}
 #endif /* __H__UG__LIB_ALGEBRA__CPU_ALGEBRA_TYPES__ */
