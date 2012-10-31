@@ -62,10 +62,10 @@ class LU
 					for(typename matrix_type::const_row_iterator it = A.begin_row(r); it != A.end_row(r); ++it)
 					{
 						size_t rr = r*nrOfRows;
-						size_t cc = (*it).iIndex*nrOfRows;
+						size_t cc = it.index()*nrOfRows;
 						for(size_t r2=0; r2<nrOfRows; r2++)
 								for(size_t c2=0; c2<nrOfRows; c2++)
-								  m_mat(rr + r2, cc + c2) = BlockRef((*it).dValue, r2, c2);
+								  m_mat(rr + r2, cc + c2) = BlockRef(it.value(), r2, c2);
 					}
 			}
 			else
@@ -79,8 +79,8 @@ class LU
 					bool bFound;
 					typename matrix_type::const_row_iterator it = A.get_connection(i,i, bFound);
 					UG_ASSERT(bFound, "Matrix has to have entry A(" << i << ", " << i << ")");
-					size_t s = GetRows((*it).dValue);
-					UG_ASSERT(s == GetCols((*it).dValue), "diagonal elements have to be square");
+					size_t s = GetRows(it.value());
+					UG_ASSERT(s == GetCols(it.value()), "diagonal elements have to be square");
 					if(i == 0)
 					blockbegin[i] = m_size;
 					m_size += s;
@@ -92,8 +92,8 @@ class LU
 				for(size_t r=0; r<A.num_rows(); r++)
 					for(typename matrix_type::const_row_iterator it = A.begin_row(r); it != A.end_row(r); ++it)
 					{
-						size_t c = (*it).iIndex;
-						const typename matrix_type::value_type &val = (*it).dValue;
+						size_t c = it.index();
+						const typename matrix_type::value_type &val = it.value();
 						UG_ASSERT(blockbegin[r]+GetRows(val) == blockbegin[r+1], "blocksizes in matrix inconsistent");
 						UG_ASSERT(blockbegin[c]+GetCols(val) == blockbegin[c+1], "blocksizes in matrix inconsistent");
 						for(size_t r2=0; r2 < GetRows(val); r2++)

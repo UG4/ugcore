@@ -74,6 +74,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 		//	Prepare Inverse Matrix
 			matrix_type* A = &mat;
+			typedef typename matrix_type::connection connection;
 			m_L.resize(A->num_rows(), A->num_cols());
 			m_U.resize(A->num_rows(), A->num_cols());
 
@@ -84,7 +85,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 			// init row 0 of U
 			for(typename matrix_type::row_iterator i_it = A->begin_row(0); i_it != A->end_row(0); ++i_it)
-				con.push_back(*i_it);
+				con.push_back(connection(i_it.index(), i_it.value()));
 			m_U.set_matrix_row(0, &con[0], con.size());
 
 			size_t totalentries=0;
@@ -98,7 +99,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				double dmax=0;
 				for(typename matrix_type::row_iterator i_it = A->begin_row(i); i_it != A->end_row(i); ++i_it)
 				{
-					con.push_back(*i_it);
+					con.push_back(connection(i_it.index(), i_it.value()));
 					if(dmax < BlockNorm(i_it.value()))
 						dmax = BlockNorm(i_it.value());
 				}
@@ -139,10 +140,9 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 							// we have a value in U(k, (*k_it).iIndex), but not in A.
 							// check tolerance criteria
 
-							typename matrix_type::connection c;
-							c.iIndex = k_it.index();
-							c.dValue = k_it.value() * d;
-							c.dValue *= -1.0;
+							typename matrix_type::connection 
+								c(k_it.index(), k_it.value() * d * -1.0);
+							
 							if(BlockNorm(c.dValue) > dmax * m_eps)
 							{
 								// insert sorted
