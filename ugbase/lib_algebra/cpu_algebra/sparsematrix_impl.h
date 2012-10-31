@@ -64,8 +64,13 @@ bool SparseMatrix<T>::create(size_t _rows, size_t _cols)
 	memset(pRowEnd, 0, sizeof(connection*)*(rows+1));
 
 	if(rows == 0)
+	{
+		if(iMaxNrOfConnections)
+			delete[] iMaxNrOfConnections;
 		iMaxNrOfConnections = NULL;
-	else {
+	}
+	else
+	{
 		iMaxNrOfConnections = new size_t[rows];
 		UG_ASSERT(iMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*rows);
 		memset(iMaxNrOfConnections, 0, sizeof(size_t)*rows);
