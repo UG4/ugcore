@@ -24,6 +24,7 @@
 #include "lib_algebra/operator/preconditioner/ilu.h"
 #include "lib_algebra/operator/preconditioner/ilut.h"
 #include "lib_algebra/operator/preconditioner/vanka.h"
+#include "lib_algebra/operator/preconditioner/line_smoothers.h"
 
 // solver
 #include "lib_algebra/operator/linear_solver/linear_solver.h"
