@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__LINEAR_SOLVER__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__LINEAR_SOLVER__
 #include <iostream>
-#include <sstream>
+#include <string>
 
 #include "lib_algebra/operator/interface/operator.h"
 #ifdef UG_PARALLEL
@@ -140,14 +140,14 @@ class LinearSolver
 			convergence_check()->set_name(name());
 			convergence_check()->set_symbol('%');
 			if(preconditioner().valid())
-			{
-				std::stringstream ss; ss <<  " (Precond: " << preconditioner()->name() << ")";
-				convergence_check()->set_info(ss.str());
-			}
-			else
-			{
-				convergence_check()->set_info(" (No Preconditioner) ");
-			}
+            {
+                std::string s;
+                if(preconditioner().valid())
+                    s = std::string(" (Precond: ") + preconditioner()->name() + ")";
+                else
+                    s = " (No Preconditioner) ";
+                convergence_check()->set_info(s);
+            }
 		}
 };
 

@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__BICGSTAB__
 
 #include <iostream>
-#include <sstream>
+#include <string>
 
 #include "lib_algebra/operator/interface/operator.h"
 #include "common/profiler/profiler.h"
@@ -305,12 +305,12 @@ class BiCGStab
 			convergence_check()->set_symbol('%');
 
 		//	set preconditioner string
-			std::stringstream ss;
+			std::string s;
 			if(preconditioner().valid())
-				ss <<" (Precond: "<<preconditioner()->name()<<")";
+			  s = std::string(" (Precond: ") + preconditioner()->name() + ")";
 			else
-				ss << " (No Preconditioner) ";
-			convergence_check()->set_info(ss.str());
+				s = " (No Preconditioner) ";
+			convergence_check()->set_info(s);
 		}
 
 	protected:
