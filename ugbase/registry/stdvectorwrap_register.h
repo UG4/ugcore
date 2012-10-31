@@ -16,21 +16,33 @@
 namespace ug{ namespace bridge{
 	
 
-template<typename T>
+template<typename TValueType>
 void RegStdVectorWrap(Registry &registry, std::string grp, const char *pname=NULL)
 {		
 	std::string name;
 	if(pname == NULL)
 	{
 		name = "stdvector_";
-		name.append(ClassNameProvider<T>::name());
+		name.append(ClassNameProvider<TValueType>::name());
 	}
 	else
 		name = pname;
-	registry.add_class_< std_vector_wrap<T> > (name, grp)
-		.add_method("get", &std_vector_wrap<T>::index, "")
-		.add_method("__tostring", &std_vector_wrap<T>::tostring, "")
-		.add_method("size", &std_vector_wrap<T>::size, "");
+	typedef std_vector_wrap<TValueType> T;
+	registry.add_class_< T > (name, grp)
+		.add_constructor()
+		.template add_constructor<void (*)(size_t s)>("size")
+		.template add_constructor<void (*)(size_t s, TValueType)>("size#initVal")
+		.add_method("get", &T::index, "element at position 'index'", "index")
+		.add_method("__tostring", &T::tostring, "")
+		.add_method("size", &T::size, "size")
+	
+		.add_method("resize", static_cast<void (T::*)(size_t)>(&T::resize), "", "size")
+		.add_method("resize", static_cast<void (T::*)(size_t, TValueType)>(&T::resize), "","size#initVal")
+		.add_method("set", &T::set, "", "index#value")
+		.add_method("push_back", &T::push_back, "", "value")
+		.add_method("reserve", &T::reserve, "", "size")
+		.add_method("clear", &T::clear, "", "")
+		;
 }
 
 } }
