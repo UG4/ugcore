@@ -21,8 +21,6 @@ bool CreateFractal_NormalScale(Grid& grid, HangingNodeRefiner_Grid& href,
 		return false;
 	}
 		
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosVRT);
-	
 //	store the old refinement callback of href
 	IRefinementCallback* oldCallback = href.get_refinement_callback();
 	

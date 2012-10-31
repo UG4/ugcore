@@ -535,44 +535,44 @@ base_solve(size_t lev)
 		d.vertical_master_layout().empty()))
 	{
 #endif
+		if(m_vLevData[lev]->num_indices()){
+		//	LIFTING c TO SOLVING AREA
+			m_vLevData[lev]->copy_defect_to_smooth_patch();
 
-	//	LIFTING c TO SOLVING AREA
-		m_vLevData[lev]->copy_defect_to_smooth_patch();
+			GMG_PROFILE_BEGIN(GMG_BaseSolver);
+			sc.set(0.0);
+			if(!m_spBaseSolver->apply(sc, sd))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
+						" base level " << lev << " failed. "
+						"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 
-		GMG_PROFILE_BEGIN(GMG_BaseSolver);
-		sc.set(0.0);
-		if(!m_spBaseSolver->apply(sc, sd))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
-					" base level " << lev << " failed. "
-					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
+				return false;
+			}
 
-			return false;
+		//	*) if baseLevel == surfaceLevel, we need also need the updated defect
+		//	*) if adaptive case, we also need to update the defect, such that on the
+		//	   surface level the defect remains updated
+		//	*) Only for full refinement and real coarser level, we can forget about
+		//	   the defect on the base level, since only the correction is needed
+		//	   on the higher level
+			if(m_baseLev == m_topLev || m_bAdaptive)
+			{
+			//	get smoothing matrix
+				SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat
+					= m_vLevData[lev]->get_smooth_mat();
+
+			//	UPDATE DEFECT
+				spSmoothMat->apply_sub(sd, sc);
+
+			//	copy back to whole grid
+				m_vLevData[lev]->copy_defect_from_smooth_patch(true);
+			}
+
+		//	PROJECT CORRECTION BACK TO WHOLE GRID FOR PROLONGATION
+			m_vLevData[lev]->copy_correction_from_smooth_patch(true);
+			GMG_PROFILE_END();
 		}
-
-	//	*) if baseLevel == surfaceLevel, we need also need the updated defect
-	//	*) if adaptive case, we also need to update the defect, such that on the
-	//	   surface level the defect remains updated
-	//	*) Only for full refinement and real coarser level, we can forget about
-	//	   the defect on the base level, since only the correction is needed
-	//	   on the higher level
-		if(m_baseLev == m_topLev || m_bAdaptive)
-		{
-		//	get smoothing matrix
-			SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat
-				= m_vLevData[lev]->get_smooth_mat();
-
-		//	UPDATE DEFECT
-			spSmoothMat->apply_sub(sd, sc);
-
-		//	copy back to whole grid
-			m_vLevData[lev]->copy_defect_from_smooth_patch(true);
-		}
-
-	//	PROJECT CORRECTION BACK TO WHOLE GRID FOR PROLONGATION
-		m_vLevData[lev]->copy_correction_from_smooth_patch(true);
-		GMG_PROFILE_END();
-
 #ifdef UG_PARALLEL
 		UG_DLOG(LIB_DISC_MULTIGRID, 2, "GMG: BaseSolver done on level "<<lev<<".\n");
 	}
@@ -669,13 +669,6 @@ lmgc(size_t lev)
 				if(!restriction(lev, &restrictionPerformed))
 					return false;
 
-			//todo: It could make sense to call lmgc even if no restriction was
-			//		performed. This could be required in a parallel environment
-			//		where lmgc is applied to an adaptive redistributed grid.
-			//		In that situation an empty level could be located between
-			//		filled ones.
-				if(restrictionPerformed){
-				//	UG_LOG("Before recursion:\n");	log_level_data(lev);
 					if(!lmgc(lev-1))
 					{
 						UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
@@ -683,7 +676,6 @@ lmgc(size_t lev)
 								"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 						return false;
 					}
-				}
 
 			//	UG_LOG("Before prolongation:\n");	log_level_data(lev);
 				if(!prolongation(lev, restrictionPerformed))
@@ -1118,7 +1110,7 @@ init_linear_level_operator()
 	//	to assemble the assemble the coarse grid matrix on the whole grid as
 	//	well
 		if(!m_vLevData[lev]->has_ghosts() ||
-			(lev == m_baseLev && m_bBaseParallel == false))
+			((lev == m_baseLev) && (m_bBaseParallel == false)))
 		{
 		//	init level operator
 			m_pAss->force_regular_grid(true);
