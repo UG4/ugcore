@@ -503,11 +503,11 @@ void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, std::vector<
  * \return if there is a distance long path in graph(A) to an unconnected node, true. otherwise false.
   */
 template<typename T>
-bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
+bool IsCloseToBoundary(const T &A, size_t node, size_t distance)
 {
 	if(distance == 0) return A.is_isolated(node);
 	bool bFound = false;
-	for(typename SparseMatrix<T>::const_row_iterator itA = A.begin_row(node); itA != A.end_row(node) && !bFound; ++itA)
+	for(typename T::const_row_iterator itA = A.begin_row(node); itA != A.end_row(node) && !bFound; ++itA)
 		bFound = IsCloseToBoundary(A, itA.index(), distance-1);
 
 	return bFound;
@@ -525,12 +525,12 @@ bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
  * \param alpha the alpha index
  */
 template <typename T>
-void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
+void SetDirichletRow(T &A, size_t i, size_t alpha)
 {
 	BlockRef(A(i,i), alpha, alpha) = 1.0;
-	for(typename SparseMatrix<T>::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 	{
-		typename SparseMatrix<T>::value_type& block = conn.value();
+		typename T::value_type& block = conn.value();
 		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
 		{
 			if(conn.index() != i) BlockRef(block, alpha, beta) = 0.0;
@@ -549,12 +549,12 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
  * \param i (in) row to set dirichlet, that is A(i,i) = 1.0, A(i,k) = 0.0 for all k != i.
  */
 template <typename T>
-void SetDirichletRow(SparseMatrix<T>& A, size_t i)
+void SetDirichletRow(T& A, size_t i)
 {
 	A(i,i) = 1.0;
-	for(typename SparseMatrix<T>::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 	{
-		typename SparseMatrix<T>::value_type& block = conn.value();
+		typename T::value_type& block = conn.value();
 		if(conn.index() != i) block = 0.0;
 	}
 }
@@ -568,7 +568,7 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i)
  * \param[in] vIndex vector of row indices to set dirichlet, that is A(i,i) = 1.0, A(i,k) = 0.0 for all k != i.
  */
 template <typename T>
-void SetDirichletRow(SparseMatrix<T>& A, const std::vector<size_t> vIndex)
+void SetDirichletRow(T& A, const std::vector<size_t> vIndex)
 {
 	std::vector<size_t>::const_iterator iter = vIndex.begin();
 	std::vector<size_t>::const_iterator iterEnd = vIndex.end();
@@ -579,9 +579,9 @@ void SetDirichletRow(SparseMatrix<T>& A, const std::vector<size_t> vIndex)
 		UG_ASSERT(i < A.num_rows(), "Index to large in index set.");
 
 		A(i,i) = 1.0;
-		for(typename SparseMatrix<T>::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+		for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 		{
-			typename SparseMatrix<T>::value_type& block = conn.value();
+			typename T::value_type& block = conn.value();
 			if(conn.index() != i) block = 0.0;
 		}
 	}
@@ -589,7 +589,7 @@ void SetDirichletRow(SparseMatrix<T>& A, const std::vector<size_t> vIndex)
 
 
 template<typename T, class TOStream>
-void Serialize(TOStream &buf, const SparseMatrix<T> &A)
+void SerializeMatrix(TOStream &buf, const T &A)
 {
 	Serialize(buf, A.num_rows());
 	Serialize(buf, A.num_cols());
@@ -601,7 +601,7 @@ void Serialize(TOStream &buf, const SparseMatrix<T> &A)
 		// serialize number of connections
 		Serialize(buf, num_connections);
 
-		for(typename SparseMatrix<T>::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+		for(typename T::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 		{
 			// serialize connection
 			Serialize(buf, conn.index());
@@ -611,7 +611,7 @@ void Serialize(TOStream &buf, const SparseMatrix<T> &A)
 }
 
 template <typename T, class TIStream>
-void Deserialize(TIStream& buf, SparseMatrix<T> &A)
+void DeserializeMatrix(TIStream& buf, T &A)
 {
 	size_t numRows, numCols, num_connections;
 
@@ -619,7 +619,7 @@ void Deserialize(TIStream& buf, SparseMatrix<T> &A)
 	Deserialize(buf, numCols);
 	A.resize(numRows, numCols);
 
-	std::vector<typename SparseMatrix<T>::connection> con; con.reserve(16);
+	std::vector<typename T::connection> con; con.reserve(16);
 
 	for(size_t i=0; i < A.num_rows; i++)
 	{

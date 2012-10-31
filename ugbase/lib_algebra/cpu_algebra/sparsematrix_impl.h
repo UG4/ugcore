@@ -457,20 +457,16 @@ bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
 //	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 //	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 
-	if(&dest == &v1)
-	{
-		if(alpha1 != 1.0)
-		{
-			if(alpha1 == 0.0)
-				dest.set(0.0);
-			else if(alpha1 != 1.0)
-				dest *= alpha1;
-		}
+	if(&dest == &v1) {
+		if(alpha1 == 0.0)
+			dest.set(0.0);
+		else if(alpha1 != 1.0)
+			dest *= alpha1;
 	}
-	else if(alpha1 != 0.0)
-		VecScaleAssign(dest, alpha1, v1);
-	else
+	else if(alpha1 == 0.0)
 		dest.set(0.0);
+	else
+		VecScaleAssign(dest, alpha1, v1);
 
 	for(size_t i=0; i<rows; i++)
 	{

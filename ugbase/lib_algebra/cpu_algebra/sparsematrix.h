@@ -55,6 +55,10 @@ public:
 		size_t iIndex;		// index to
 		value_type dValue; // smallmatrix value;
 
+		connection() {}
+		connection(size_t i, const value_type &v)
+		: iIndex(i), dValue(v) {}
+		
 		void print(){std::cout << *this;}
 		friend std::ostream &operator<<(std::ostream &output, const connection &c)
 		{
