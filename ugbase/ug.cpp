@@ -141,7 +141,7 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 		}
 		catch(UGError& err)
 		{
-			UG_LOG("ERROR in UGInig: InitBridge failed!\n");
+			UG_LOG("ERROR in UGInit: InitBridge failed!\n");
 		}
 #endif
 
