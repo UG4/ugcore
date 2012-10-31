@@ -195,19 +195,26 @@ UGCMAKE_INTERNAL="-DBUILTIN_BLAS= -DBUILTIN_LAPACK= -DDEBUG_FORMAT="
 
 # create this list with
 # cat $UG4_ROOT/debug/CMakeCache.txt | sed -n 's/^\([^/#][^:]*\):[^I].*/-D\1= \\/p'
+# add -DCMAKE_TOOLCHAIN_FILE= \
 complete -W "\
 -DBLAS= \
 -DBLAS_INCLUDE_PATH= \
 -DBLAS_LIBRARIES= \
+-DBUILD_UGDOCU= \
 -DBUILTIN_BLAS= \
 -DBUILTIN_LAPACK= \
 -DBUILTIN_MPI= \
 -DBiogas= \
--DCMAKE_USE_RELATIVE_PATHS= \
--DCMAKE_VERBOSE_MAKEFILE= \
+-DCMAKE_CXX_COMPILER= \
+-DCMAKE_CXX_FLAGS= \
+-DCMAKE_C_COMPILER= \
+-DCMAKE_C_FLAGS= \
+-DCMAKE_TOOLCHAIN_FILE= \
 -DCOMPILE_INFO= \
 -DCPU= \
 -DCXX11= \
+-DConstantEquation= \
+-DConvectionDiffusion= \
 -DDEBUG= \
 -DDEBUG_FORMAT= \
 -DDEBUG_LOGS= \
@@ -223,7 +230,6 @@ complete -W "\
 -DLAPACK_LIBRARIES= \
 -DLevelSet= \
 -DLinearElastoPlasticity= \
--DLinearElastoPlasticity_LIB_DEPENDS= \
 -DMETIS= \
 -DMembranePotentialMapping= \
 -DNavierStokes= \
@@ -235,7 +241,6 @@ complete -W "\
 -DPCL_DEBUG_BARRIER= \
 -DPOSIX= \
 -DPRECISION= \
--DPROFILE= \
 -DPROFILER= \
 -DPROFILE_BRIDGE= \
 -DPROFILE_PCL= \
@@ -249,13 +254,11 @@ complete -W "\
 -DTETGEN= \
 -DTKDGenerator= \
 -DTemplate= \
--DVoltageDependentChannelsPlugin= \
 -DVoltageGatedChannels= \
 -Damg= \
 -DcalciumDynamics= \
 -Dd3f= \
--Dfile_cmd= \
--Dug4_LIB_DEPENDS= \
+-DinfoFileFound= \
 $CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL"  -o default -o nospace ugcmake
 
 
