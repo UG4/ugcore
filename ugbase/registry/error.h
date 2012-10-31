@@ -44,12 +44,12 @@ struct UGRegistryError : public UGError
 } // end namespace ug
 
 #define UG_THROW_REGISTRY_ERROR(cls,msg) \
-	{std::stringstream ss; ss << msg; \
+	{ug_throw_error(); std::stringstream ss; ss << msg; \
 	throw(ug::bridge::UGRegistryError((cls),ss.str(),\
 	                                                    __FILE__,__LINE__));}
 
 #define UG_THROW_REGISTRY_MSG(msg) \
-	{std::stringstream ss; ss << msg; \
+	{ug_throw_error(); std::stringstream ss; ss << msg; \
 	throw(ug::bridge::UGRegistryError(ss.str(),\
 	                                                    __FILE__,__LINE__));}
 

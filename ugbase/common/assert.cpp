@@ -13,15 +13,66 @@
 #include <execinfo.h>
 #include <cxxabi.h>
 #endif
-#include <string.h>
+#include <string>
+#include <sstream>
+
+using namespace std;
+
+
+
+#ifdef UG_POSIX
+/**
+ * demangles C++ function names like _ZZ12ug_backtracev = ug_backtrace().
+ * also demangles them when they appear "in between", make sure they are
+ * seperated by ' ', '\n' or '\t' and start with _.
+ * @param str mangled string, containing stuff like _ZZ12ug_backtracev
+ * @return the demangled string
+ */
+string demangle(const char *str)
+{
+	stringstream ss;
+	char c, lastc=0x00;
+    string s;
+	int status;
+	for(char c = *str; c != 0x00; c = *(++str))	
+	{
+		// mangled names start with _ . consider only if last sign was space or tab or newline
+		if(c == '_' && (lastc==' ' || lastc == '\n' || lastc == '\t'))
+		{
+			s = "_";
+			// add all characters to the string until space, tab or newline
+			for(c = *(++str); c != 0x00; c = *(++str))			
+			{
+				if(c == ' ' || c == '\n' || c == '\t')
+					break;
+				s += c;
+			}
+			// some compilers add an additional _ in front. skip it.
+			const char *p = s.c_str();
+			if(s.length() > 2 && s[1] == '_') p = p+1;
+			char *realname = abi::__cxa_demangle(p, 0, 0, &status);
+			if(status==0)
+				ss << realname; // demangle successfull
+			else
+				ss << s; // demangling failed, print normal string
+			free(realname);
+		}
+		ss << c;
+		lastc =c;
+	}
+	return ss.str();
+}
+#endif
 
 /*
- * This function is meant to put out some more meaningful assert data.
- * It demangles the C++ function names so you get more a clue
+ * This function is meant to put out some more meaningful debug data.
+ * It prints the call backtrace and Profiler backtrace if available.
+ * It also demangles the C++ function names so you get more a clue
  * what's going on.
  */
-void ug_assert_failed()
+void ug_backtrace()
 {
+	
 #ifdef UG_POSIX
 
 #ifdef UG_PROFILER
@@ -44,28 +95,32 @@ void ug_assert_failed()
 	strings = backtrace_symbols (array, size);
 
 	for (i = 0; i < size; i++)
-	{
-		UG_LOG(i << ":\n");
-		int status;
-		// library(mangledFunction+adress) [address]
-		char *f1=strchr(strings[i], '(');
-		char *f2=strchr(strings[i], '+');
-		if(f1==NULL || f2 == NULL || f1 > f2)
-		{ 	UG_LOG(strings[i] << "\n"); }
-		else
-		{
-			*f1=0x00; *f2=0x00;
-			char *realname = abi::__cxa_demangle(f1+1, 0, 0, &status);
-			if(status==0)
-			{   UG_LOG(strings[i] << "(" << realname << "+" << f2+1 << "\n");}
-			else
-			{	UG_LOG(strings[i] << "(" << f1+1 << "+" << f2+1 << "\n"); }
-			free(realname);
-		}
-	}
+		UG_LOG(i << ":\n" << demangle(strings[i]));
 	free (strings);
 	UG_LOG("\n");
 
 #endif	// UG_POSIX
 
+}
+
+/// put a breakpoint here to break on UG_ASSERT or UG_THROW
+/// b ug_assert_or_error
+void ug_assert_or_error()
+{
+	// intentially left empty
+}
+
+
+/// called whenever UG_ASSERT is called.
+void ug_assert_failed()
+{
+	ug_backtrace();
+	ug_assert_or_error();
+}
+
+/// called whenever UG_THROW or UG_THROW_REGISTRY_ERROR is called.
+void ug_throw_error()
+{
+	//ug_backtrace();
+	ug_assert_or_error();
 }
