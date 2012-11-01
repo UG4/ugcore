@@ -497,7 +497,7 @@ class VRLUserLinker
 				env->SetDoubleArrayRegion(params, i*vrl_traits<TDataIn>::size,
 				                          	  	 (i+1)*vrl_traits<TDataIn>::size, vTmp);
 			}
-			delete vTmp;
+			delete[] vTmp;
 			checkException(env, "CopyParametersToJava: error");
 
 			// copy vector and time
