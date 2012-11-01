@@ -218,16 +218,13 @@ class AssembledMultiGridCycle :
 		bool top_level_required(size_t topLevel);
 
 	///	initializes common part
-		bool init_common(bool nonlinear);
+		bool init_common();
 
 	///	initializes the smoother and base solver
 		bool init_smoother();
 
-	///	initializes the coarse grid matrices for non-linear case
-		bool init_non_linear_level_operator();
-
-	///	initializes the coarse grid matrices for linear case
-		bool init_linear_level_operator();
+	///	initializes the coarse grid matrices
+		bool init_level_operator();
 
 	///	initializes the smoother and base solver
 		bool init_base_solver();

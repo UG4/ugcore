@@ -669,13 +669,13 @@ lmgc(size_t lev)
 				if(!restriction(lev, &restrictionPerformed))
 					return false;
 
-					if(!lmgc(lev-1))
-					{
-						UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
-								" grid cycle on level " << lev-1 << " failed. "
-								"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
-						return false;
-					}
+				if(!lmgc(lev-1))
+				{
+					UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
+							" grid cycle on level " << lev-1 << " failed. "
+							"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
+					return false;
+				}
 
 			//	UG_LOG("Before prolongation:\n");	log_level_data(lev);
 				if(!prolongation(lev, restrictionPerformed))
@@ -797,7 +797,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	GMG_PROFILE_END();
 
 //	init common
-	if(!init_common(true))
+	if(!init_common())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
 				"Cannot init common part.\n");
@@ -859,7 +859,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	GMG_PROFILE_END();
 
 //	init common
-	if(!init_common(false))
+	if(!init_common())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
 				"Cannot init common part.\n");
@@ -889,7 +889,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 template <typename TDomain, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_common(bool nonlinear)
+init_common()
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_common\n");
@@ -988,20 +988,11 @@ init_common(bool nonlinear)
 //	Assemble coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
 	try{
-	if(nonlinear){
-		if(!init_non_linear_level_operator()){
+		if(!init_level_operator()){
 			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
-					"Cannot init (nonlinear) Coarse Grid Operator.\n");
+					"Cannot init Coarse Grid Operator.\n");
 			return false;
 		}
-	}
-	else {
-		if(!init_linear_level_operator()){
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
-					"Cannot init (linear) Coarse Grid Operator.\n");
-			return false;
-		}
-	}
 	} UG_CATCH_THROW("AssembledMultiGridCycle: Initialization of Level Operator "
 					"failed.");
 	GMG_PROFILE_END();
@@ -1049,7 +1040,7 @@ init_common(bool nonlinear)
 template <typename TDomain, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_linear_level_operator()
+init_level_operator()
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_linear_level_operator\n");
@@ -1150,87 +1141,6 @@ init_linear_level_operator()
 
 //	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_linear_level_operator\n");
-	return true;
-}
-
-template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_non_linear_level_operator()
-{
-	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_non_linear_level_operator\n");
-
-// 	Create coarse level operators
-	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
-	{
-	//	skip void level
-		if(m_vLevData[lev]->num_indices() == 0) continue;
-
-	//	in case of full refinement we simply copy the matrix (with correct numbering)
-		if(lev == m_vLevData.size() - 1 && !m_bAdaptive)
-		{
-			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
-			SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
-			SmartPtr<matrix_type> surfMat = m_spSurfaceMat;
-
-			levMat->resize( surfMat->num_rows(), surfMat->num_cols());
-			CopyMatrixByMapping(*levMat, m_vSurfToTopMap, *surfMat);
-
-			GMG_PROFILE_END();
-			continue;
-		}
-
-		GMG_PROFILE_BEGIN(GMG_AssLevelMat);
-	//	set this selector to the assembling, such that only those elements
-	//	will be assembled and force grid to be considered as regular
-		if(m_vLevData[lev]->has_ghosts()) m_pAss->set_selector(&m_NonGhostMarker);
-		else m_pAss->set_selector(NULL);
-		m_pAss->force_regular_grid(true);
-
-	//	init level operator
-		try{
-		m_pAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
-		}
-		UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-					" Cannot init operator for level "<< lev << ".\n");
-
-	//	remove force flag
-		m_pAss->force_regular_grid(false);
-		m_pAss->set_selector(NULL);
-		GMG_PROFILE_END();
-
-	//	if ghosts are present copy the matrix into a new (smaller) one
-		if(m_vLevData[lev]->has_ghosts())
-		{
-			SmartPtr<matrix_type> mat = m_vLevData[lev]->spLevMat;
-			SmartPtr<matrix_type> smoothMat = m_vLevData[lev]->spSmoothMat;
-
-			const size_t numSmoothIndex = m_vLevData[lev]->num_smooth_indices();
-			smoothMat->resize(numSmoothIndex, numSmoothIndex);
-			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapGlobalToPatch, *mat);
-		}
-	}
-
-// 	resize help vectors. It may occure that disc use more than the geometric
-//	dofs and thus the matrix (and vectors) are larger than expected only by the
-//	passed approximation space.
-	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
-	{
-		SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
-
-	//	skip void level
-		if(m_vLevData[lev]->num_indices() == levMat->num_rows()) continue;
-
-		const size_t numIndex = levMat->num_rows();
-		m_vLevData[lev]->u.resize(numIndex);
-		m_vLevData[lev]->c.resize(numIndex);
-		m_vLevData[lev]->d.resize(numIndex);
-		m_vLevData[lev]->t.resize(numIndex);
-	}
-
-//	we're done
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_non_linear_level_operator\n");
 	return true;
 }
 
