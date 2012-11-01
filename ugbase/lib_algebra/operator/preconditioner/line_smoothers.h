@@ -481,14 +481,14 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 //				OrderLex<TDomain>(*m_spApproxSpace,"lr");
 			}
 			if (m_nr_forwardy+m_nr_backwardy+m_nr_forwardz+m_nr_backwardz>0){
-				size_t level=1e+12;
+				size_t level=3289578756;
 				for (size_t i=0;i<m_spApproxSpace->num_levels();i++){
 					if (m_spApproxSpace->level_dof_distribution(i)->num_indices()==xsize){
 						level = i;
 						break;
 					};
 				};
-				if (level==1e+12){
+				if (level==3289578756){
 					return false;
 				}
 				if ((dim>1)&&(m_nr_forwardy+m_nr_backwardy>0)){
@@ -653,7 +653,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 
 		// backward in x direction
 		for (size_t count=0;count<m_nr_backwardx;count++){
-			for	(i=x.size()-1; i>= 0; i--)
+			for	(i=x.size()-1; (int)i>= 0; i--)
 			{
 				s = b[i];
 
@@ -691,7 +691,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 
 		// backward in y direction
 		for (size_t count=0;count<m_nr_backwardy;count++){
-		for (size_t j=m_ind_end-1;j >= 0; j--){
+		for (size_t j=m_ind_end-1;(int)j >= 0; j--){
 			i = indY[j];
 
 			s = b[i];
@@ -727,7 +727,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 
 		// backward in z direction
 		for (size_t count=0;count<m_nr_backwardz;count++){
-		for (size_t j=m_ind_end-1;j >= 0; j--){
+		for (size_t j=m_ind_end-1;(int)j >= 0; j--){
 			i = indZ[j];
 
 			s = b[i];
@@ -827,14 +827,14 @@ class LineVanka : public IPreconditioner<TAlgebra>
 //				OrderLex<TDomain>(*m_spApproxSpace,"lr");
 			}
 			if (m_nr_forwardy+m_nr_backwardy+m_nr_forwardz+m_nr_backwardz>0){
-				size_t level=1e+12;
+				size_t level=3289578756;
 				for (size_t i=0;i<m_spApproxSpace->num_levels();i++){
 					if (m_spApproxSpace->level_dof_distribution(i)->num_indices()==xsize){
 						level = i;
 						break;
 					};
 				};
-				if (level==1e+12){
+				if (level==3289578756){
 					return false;
 				}
 				if ((dim>1)&&(m_nr_forwardy+m_nr_backwardy>0)){
@@ -1015,7 +1015,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		};
 		// backward in x direction
 		for (size_t count=0;count<m_nr_backwardx;count++){
-			for	(i=x.size()-1; i>= 0; i--)
+			for	(i=x.size()-1;(int)i>= 0; i--)
 			{
 				if (A(i,i)==0){ 
 				blocksize=0;
@@ -1088,7 +1088,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 
 		// backward in y direction
 		for (size_t count=0;count<m_nr_backwardy;count++){
-		for (size_t sortedi=m_ind_end-1;sortedi >= 0; sortedi--){
+		for (size_t sortedi=m_ind_end-1;(int)sortedi >= 0; sortedi--){
 			i = indY[sortedi];
 				blocksize=0;
 				for(typename matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) ; ++it){
@@ -1156,7 +1156,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 
 		// backward in z direction
 		for (size_t count=0;count<m_nr_backwardz;count++){
-		for (size_t sortedi=m_ind_end-1;sortedi >= 0; sortedi--){
+		for (size_t sortedi=m_ind_end-1;(int)sortedi >= 0; sortedi--){
 			i = indZ[sortedi];
 				blocksize=0;
 				for(typename matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) ; ++it){
