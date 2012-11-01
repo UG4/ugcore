@@ -257,7 +257,7 @@ void LocalDoFSetProvider::register_set(LFEID id, const ILocalDoFSet& set)
 	try{
 		vCommonSet[set.dim()].add(set);
 	}
-	catch(ug::UGError err)
+	catch(UGError& err)
 	{
 	//	remove set
 		m_mCommonDoFSet.erase(id);
