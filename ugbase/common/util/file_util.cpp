@@ -114,6 +114,7 @@ bool ReadFile(const char* filename, vector<char> &file, bool bText)
 	file.resize(actualFilesize);
 
 	fread(&file[0], 1, filesize, f);
+	fclose(f);
 	if(bText) file[filesize]=0x00;
 	return true;
 }
