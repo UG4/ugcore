@@ -13,6 +13,7 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__LINE_SMOOTHERS__
 
 #include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/interface/operator_iterator.h"
 #include "lib_algebra/cpu_algebra/core_smoothers.h"
 #include "lib_disc/dof_manager/lexorder.h"
 #include "lib_grid/algorithms/attachment_util.h"
