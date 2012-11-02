@@ -31,7 +31,7 @@ using namespace std;
 string demangle(const char *str)
 {
 	stringstream ss;
-	char c, lastc=0x00;
+	char lastc=0x00;
     string s;
 	int status;
 	for(char c = *str; c != 0x00; c = *(++str))	
