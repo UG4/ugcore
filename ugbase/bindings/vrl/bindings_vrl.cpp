@@ -8,6 +8,7 @@
 #include "registry/class.h"
 #include "common/util/path_provider.h"
 #include "bridge/util.h"
+#include "bridge/util_algebra_dependent.h"
 
 #include "common/common.h"
 #include "lib_algebra/operator/convergence_check.h"
