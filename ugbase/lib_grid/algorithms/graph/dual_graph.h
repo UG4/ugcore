@@ -148,8 +148,6 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
  * that first all adjacent nodes of the first node appear, then the
  * adjacent nodes of the second node and so forth.
  *
- * Note that the elements are processed one level after another.
- *
  * Let n be the number of nodes in the graph, m be the number of edges.
  * Then adjacencyMapStructureOut will contain n+1 entries (the last one
  * is a convenience entry), and adjacencyMapOut will contain 2m entries
@@ -294,10 +292,9 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 		mg.detach_from<Elem>(aIndex);
 }
 
+
 ////////////////////////////////////////////////////////////////////////
-/** This method creates a dual graph for the given level only. If pNodeWeights
- * is specified, then it will be filled with the number of children of each
- * element written to the adjacency graph.
+/** This method creates a dual graph for the given level only.
  *
  * The i-th element of the given level will be the i-th node in the generated
  * adjacency structure.
