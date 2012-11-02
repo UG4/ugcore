@@ -228,24 +228,24 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 
 	//	create a weight map for the vertices based on the number of children+1
 	//	for each graph-vertex. This is not necessary, if we're already on the top level
-		idx_t* pVrtWeightMap = NULL;
-		vector<idx_t> vrtWeightMap;
+		idx_t* pVrtSizeMap = NULL;
+		vector<idx_t> vrtSizeMap;
 		if(level < mg.top_level()){
-			vrtWeightMap.reserve(nVrts);
+			vrtSizeMap.reserve(nVrts);
 			for(ElemIter iter = mg.begin<TElem>(level);
 				iter != mg.end<TElem>(level); ++iter)
 			{
-				vrtWeightMap.push_back(mg.num_children_total(*iter) + 1);
+				vrtSizeMap.push_back(mg.num_children_total(*iter) + 1);
 			}
-			assert((int)vrtWeightMap.size() == nVrts);
-			pVrtWeightMap = &vrtWeightMap.front();
+			assert((int)vrtSizeMap.size() == nVrts);
+			pVrtSizeMap = &vrtSizeMap.front();
 		}
 
 		UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
 		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
 											&adjacencyMapStructure.front(),
 											&adjacencyMap.front(),
-											pVrtWeightMap, NULL, NULL,
+											NULL, pVrtSizeMap, NULL,
 											&numParts, NULL, NULL, options,
 											&edgeCut, &partitionMap.front());
 		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
@@ -273,6 +273,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 	//	are sent to the same process... we thus adjust the partition slightly.
 	//todo:	Not all siblings should have to be sent to the same process...
 	//		simply remove the following code block - make sure that surface-view supports this!
+	/*
 		if(level > 0){
 		//	put all children in the subset of the first one.
 			for(ElemIter iter = mg.begin<TElem>(level-1);
@@ -287,7 +288,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 				}
 			}
 		}
-
+	*/
 		for(size_t lvl = level; lvl < mg.top_level(); ++lvl){
 			for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 			{

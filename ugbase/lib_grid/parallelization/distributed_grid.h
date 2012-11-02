@@ -370,7 +370,7 @@ class DistributedGridManager : public GridObserver
 		};
 		
 		typedef std::multimap<size_t, ScheduledElement>	ScheduledElemMap;
-							
+
 	protected:
 		inline ElemInfoVrt& elem_info(VertexBase* ele)	{return m_aaElemInfoVRT[ele];}
 		inline ElemInfoEdge& elem_info(EdgeBase* ele)	{return m_aaElemInfoEDGE[ele];}

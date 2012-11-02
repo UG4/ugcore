@@ -1297,27 +1297,36 @@ init_base_solver()
 	//	vertical layouts are present in addition, we can not gather the vectors
 	//	to on proc. Write a warning an switch to distributed coarse solver
 		vector_type& d = m_vLevData[m_baseLev]->d;
-		if((!d.master_layout().empty() || !d.slave_layout().empty()) &&
-		   (d.vertical_slave_layout().empty() && d.vertical_master_layout().empty()))
-		{
-			UG_LOG("WARNING in 'AssembledMultiGridCycle::init_base_solver': "
-					" Cannot init distributed base solver on level "<< m_baseLev << ":\n"
-					" Base level distributed among processes and no possibility"
-					" of gathering (vert. interfaces) present. But a gathering"
-					" solving is required. Choose gmg:set_parallel_base_solver(true)"
-					" to avoid this warning.\n");
-			m_bBaseParallel = true;
-		}
-		else
-		{
-		//	we init the base solver with the whole grid matrix
-			if(!m_spBaseSolver->init(m_vLevData[m_baseLev]->spLevMat, m_vLevData[m_baseLev]->u))
+	//	the base-solver only operates on normal and vertical-master elements...
+		if(d.vertical_slave_layout().empty()){
+			if((!d.master_layout().empty() || !d.slave_layout().empty()) &&
+			   (d.vertical_slave_layout().empty() && d.vertical_master_layout().empty()))
 			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
-						" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
-				return false;
+			//todo	add a check whether the base-solver supports parallel execution
+			//		and also make sure, that all processes change to parallel execution.
+			//		as soon as this is done, revert UG_THROW to UG_LOG and set m_bBaseParallel
+			//		to true, if the solver supports this...
+				UG_THROW("ERROR in 'AssembledMultiGridCycle::init_base_solver': "
+						" Cannot init distributed base solver on level "<< m_baseLev << ":\n"
+						" Base level distributed among processes and no possibility"
+						" of gathering (vert. interfaces) present. But a gathering"
+						" solving is required. Choose gmg:set_parallel_base_solver(true)"
+						" to avoid this error.\n");
+			//m_bBaseParallel = true;
+			}
+			else
+			{
+			//	we init the base solver with the whole grid matrix
+				if(!m_spBaseSolver->init(m_vLevData[m_baseLev]->spLevMat, m_vLevData[m_baseLev]->u))
+				{
+					UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
+							" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
+					return false;
+				}
 			}
 		}
+	//todo:	it could make sense to communicate here, to make sure that all processes
+	//		do the same thing and that exactly one is executing the serial base solver...
 	}
 
 //	\todo: add a check if base solver can be run in parallel. This needs to
