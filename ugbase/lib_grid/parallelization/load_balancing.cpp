@@ -206,9 +206,32 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 		vector<idx_t> adjacencyMapStructure;
 		vector<idx_t> adjacencyMap;
 
-	//todo	add baseLevel to ConstructDualGraphMG.
-		ConstructDualGraphMGLevel<TElem, idx_t>(adjacencyMapStructure,
-												adjacencyMap, mg, level);
+
+	//	we can optionally use a higher edge weight on siblings.
+	//	currently no big effect. May prove to be useful in the future.
+	//	note - higher memory and processing requirements if enabled.
+		const bool useEdgeWeights = false;
+		const idx_t siblingWeight = 2;
+
+	//	we'll reuse the index later on during assignment of the edge weights
+		typedef Attachment<idx_t> AIndex;
+		AIndex aIndex;
+		vector<TElem*> elems;
+
+		if(useEdgeWeights){
+			mg.attach_to<TElem>(aIndex);
+			Grid::AttachmentAccessor<TElem, AIndex> aaInd;
+			elems.resize(mg.num<TElem>(level));
+
+		//	we also need a vector of elements, so that we can access them by index
+		//	(also for the caclulation of edge weights)
+			ConstructDualGraphMGLevel<TElem, idx_t>(adjacencyMapStructure, adjacencyMap,
+													mg, level, &aIndex, &elems.front());
+		}
+		else{
+			ConstructDualGraphMGLevel<TElem, idx_t>(adjacencyMapStructure, adjacencyMap,
+												mg, level);
+		}
 
 	//	partition the graph using metis
 	//	first define options for the partitioning.
@@ -235,17 +258,39 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 			for(ElemIter iter = mg.begin<TElem>(level);
 				iter != mg.end<TElem>(level); ++iter)
 			{
-				vrtSizeMap.push_back(mg.num_children_total(*iter) + 1);
+				vrtSizeMap.push_back((mg.num_children_total(*iter) + 1));
 			}
 			assert((int)vrtSizeMap.size() == nVrts);
 			pVrtSizeMap = &vrtSizeMap.front();
+		}
+
+	//	we'll also create weights for the edges, since we want to cluster elements,
+	//	which have the same parent (this reduces several problems later on, like
+	//	additional vertical interfaces)
+		idx_t* pEdgeWeights = NULL;
+		vector<idx_t> edgeWeights;
+		if(useEdgeWeights){
+			edgeWeights.reserve(adjacencyMap.size());
+			for(int i_vrt = 0; i_vrt < nVrts; ++i_vrt){
+				int start = adjacencyMapStructure[i_vrt];
+				int end = adjacencyMapStructure[i_vrt + 1];
+
+				GeometricObject* parent = mg.get_parent(elems[i_vrt]);
+				for(int i_edge = start; i_edge < end; ++i_edge){
+					if(parent == mg.get_parent(elems[adjacencyMap[i_edge]]))
+						edgeWeights.push_back(siblingWeight);
+					else
+						edgeWeights.push_back(1);
+				}
+			}
+			pEdgeWeights = &edgeWeights.front();
 		}
 
 		UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
 		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
 											&adjacencyMapStructure.front(),
 											&adjacencyMap.front(),
-											NULL, pVrtSizeMap, NULL,
+											NULL, pVrtSizeMap, pEdgeWeights,
 											&numParts, NULL, NULL, options,
 											&edgeCut, &partitionMap.front());
 		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
@@ -273,7 +318,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 	//	are sent to the same process... we thus adjust the partition slightly.
 	//todo:	Not all siblings should have to be sent to the same process...
 	//		simply remove the following code block - make sure that surface-view supports this!
-	/*
+	//		However, problems with discretizations and solvers would occur
 		if(level > 0){
 		//	put all children in the subset of the first one.
 			for(ElemIter iter = mg.begin<TElem>(level-1);
@@ -288,7 +333,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 				}
 			}
 		}
-	*/
+
 		for(size_t lvl = level; lvl < mg.top_level(); ++lvl){
 			for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 			{
@@ -298,6 +343,10 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 												shPartitionOut.get_subset_index(*iter));
 				}
 			}
+		}
+
+		if(useEdgeWeights){
+			mg.detach_from<TElem>(aIndex);
 		}
 	}
 	else{
