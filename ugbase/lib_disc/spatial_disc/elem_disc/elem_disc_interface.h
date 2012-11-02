@@ -20,6 +20,7 @@
 #include "lib_disc/reference_element/reference_element_traits.h"
 #include "lib_disc/spatial_disc/user_data/data_export.h"
 #include "lib_disc/spatial_disc/user_data/data_import.h"
+#include "common/util/provider.h"
 
 namespace ug{
 
@@ -480,9 +481,6 @@ class IDomainElemDisc : public IElemDisc
 		//	remember approx space
 			m_spApproxSpace = approxSpace;
 
-		//	remember position accessor
-			m_aaPos = m_spApproxSpace->domain()->position_accessor();
-
 		//	invoke callback
 			if(newApproxSpace)
 				approximation_space_changed();
@@ -528,28 +526,17 @@ class IDomainElemDisc : public IElemDisc
 			return *m_spApproxSpace->domain()->subset_handler();
 		}
 
-	///	returns the corner coordinates of an Element in a C++-array
+	///	returns the corner coordinates of an Element in a C-array
 		template<typename TElem>
 		const position_type* element_corners(TElem* elem)
 		{
-			typedef typename reference_element_traits<TElem>::reference_element_type
-							ref_elem_type;
-
-		//	resize corners
-			m_vCornerCoords.resize(ref_elem_type::numCorners);
-
 		//	check domain
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set");
-
-		//	extract corner coordinates
-			for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
-			{
-				VertexBase* vert = elem->vertex(i);
-				m_vCornerCoords[i] = m_aaPos[vert];
-			}
-
-		//	return corner coords
-			return &m_vCornerCoords[0];
+		
+		//	get and update the provider
+			ElemGlobCornerCoords<TDomain, TElem>& co_coord = Provider<ElemGlobCornerCoords<TDomain, TElem> >::get();
+			co_coord.update((m_spApproxSpace->domain()).get(), elem);
+			return co_coord.vGlobalCorner();
 		}
 
 	protected:
@@ -557,12 +544,6 @@ class IDomainElemDisc : public IElemDisc
 		virtual void approximation_space_changed() {}
 
 	protected:
-	///	Position access
-		typename TDomain::position_accessor_type m_aaPos;
-
-	///	Corner Coordinates
-		std::vector<position_type> m_vCornerCoords;
-
 	///	Approximation Space
 		SmartPtr<ApproximationSpace<domain_type> > m_spApproxSpace;
 

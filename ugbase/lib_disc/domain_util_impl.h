@@ -94,6 +94,66 @@ number ElementSize(const TElem& elem, const TDomain& domain)
 	return ElementSize(elem, aaPos);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Class ElemGlobCornerCoords
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/** Gets and keeps the corner coordinates of an element
+ *
+ * This class can be used with the Provider class to get the
+ * corner coordinates of an element in an element loop.
+ */
+template <typename TDomain, typename TElem>
+class ElemGlobCornerCoords
+{
+//	Position type
+	typedef typename TDomain::position_type position_type;
+
+// Reference element type
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
+// The element
+	TElem * elem;
+
+// Array of the vertex coordinates
+	position_type m_vCornerCoord[ref_elem_type::numCorners];
+	
+	public:
+
+// Total number of the corners:
+	static const size_t numCorners = ref_elem_type::numCorners;
+	
+// Get and save the positions of the vertices
+	void update(TDomain *domain, TElem *the_elem, bool forced = false)
+	{
+	//	has the element been changed?
+		if ((! forced) && the_elem == elem) return; // no
+		
+		elem = the_elem;
+		
+	//	get the element accessor
+		const typename TDomain::position_accessor_type &aaPos = domain->position_accessor();
+		
+	//	extract the coordinates
+		for(size_t i = 0; i < numCorners; ++i)
+			m_vCornerCoord[i] = aaPos[the_elem->vertex(i)];
+	};
+
+// Return the element
+	const TElem * Element() {return elem;};
+
+//	Return corner coords as a vector
+	position_type *vGlobalCorner() {return m_vCornerCoord;};
+
+// Return corner coords of one corner
+	position_type &GlobalCorner(size_t i) {return m_vCornerCoord[i];};
+
+// Constructor
+	ElemGlobCornerCoords () : elem(0) {};
+};
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__DOMAIN_UTIL_GENERAL_IMPL__ */
