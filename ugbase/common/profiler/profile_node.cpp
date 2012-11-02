@@ -16,7 +16,10 @@
 #include "common/util/string_util.h"
 #include "profile_node.h"
 #include "common/util/string_util.h"
+#include "common/util/path_provider.h"
 #include <map>
+#include <fstream>
+
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -131,6 +134,48 @@ bool UGProfileNode::valid() const
 }
 
 // private functions
+
+void UGProfileNode::write_node(fstream &s) const
+{
+	if(!valid()) return;
+	
+	/*
+	 * <node>
+	 * name
+	 * group
+	 * file
+	 * line
+	 * hits
+	 * self
+	 * total	 * 
+	 * </node>	 
+	 */
+	
+	s << "<node>\n"
+	  << (zone->name ? zone->name : "") << "\n"
+	  << (zone->groups ? zone->groups : "") << "\n";
+	
+	if(zone->file == NULL) s << "\n";
+	else
+	{
+		const string &ug4root = PathProvider::get_path(ROOT_PATH);
+		if(StartsWith(zone->file, ug4root))
+			s << "$" << (zone->file+ug4root.length()) << "\n";
+	}
+	 s << zone->line << "\n"
+	  << floor(get_avg_entry_count()) << "\n"
+	  << get_avg_self_time() << "\n"
+	  << get_avg_total_time() << "\n";
+			
+	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
+	{
+		p->write_node(s);
+		if(p==get_last_child())
+			break;
+	}
+
+	s << "</node>\n";
+}
 
 
 string UGProfileNode::print_node(double full, size_t offset) const
@@ -324,6 +369,15 @@ bool UGProfileNode::entry_count_sort(const UGProfileNode *a, const UGProfileNode
 	return a->get_avg_entry_count() < b->get_avg_entry_count();
 }
 
+void WriteProfileData(const char *filename)
+{
+	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
+	fstream f(filename, ios::out);
+	f << PathProvider::get_path(ROOT_PATH) << "\n";
+	const Shiny::ProfileNode *node = &Shiny::ProfileManager::instance.rootNode;
+	const UGProfileNode *pnRoot = reinterpret_cast<const UGProfileNode*> (node);
+	pnRoot->write_node(f);
+}
 
 const UGProfileNode *GetProfileNode(const char *name)
 {
@@ -410,6 +464,8 @@ void PrintLUA()
 	}
 }
 
+
+
 #else
 
 
@@ -484,6 +540,11 @@ string UGProfileNode::groups() const
 const UGProfileNode *GetProfileNode(const char *name)
 {
 	return NULL;
+}
+
+void WriteProfileData(const char *filename)
+{
+	return;
 }
 
 bool GetProfilerAvailable()

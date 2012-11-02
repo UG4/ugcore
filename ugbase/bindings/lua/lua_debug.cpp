@@ -362,7 +362,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 					{
 						if(profilingDepth==0)
 						{
-							if(line>0) line--;
+							//if(line>0) line--;
 							pDynamicProfileInformation &pi = pis[source][line];
 							if(pi == NULL)
 							{
@@ -375,7 +375,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 								//const char*p = GetFileLine(source, line).c_str();
 								//strncat(buf, p+strspn(p, " \t"), 254);
 
-								pi = new DynamicProfileInformation(buf, true, "lua", false);
+								pi = new DynamicProfileInformation(buf, true, "lua", false, source, true, line);
 								// UG_LOG(buf);
 							 }
 

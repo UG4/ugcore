@@ -22,15 +22,19 @@
  */
 struct DynamicProfileInformation
 {
-	DynamicProfileInformation(const char*name=NULL, bool bCopyName=false, const char *groups=NULL, bool bCopyGroup=false)
+	DynamicProfileInformation(
+			const char*name=NULL, bool bCopyName=false, 
+			const char *groups=NULL, bool bCopyGroup=false,
+			const char *file=NULL, bool bCopyFile=false, 
+			int line=0)
 	{
-		Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, NULL, NULL,
+		Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, NULL, NULL, NULL, 0,
 				{ { 0, 0 }, { 0, 0 }, { 0, 0 } }};
 		profileInformation = pi;
 		profilerCache =	&Shiny::ProfileNode::_dummy;
 		bCopied = false;
 		bGroupCopied = false;
-		init(name, bCopyName, groups, bCopyGroup);
+		init(name, bCopyName, groups, bCopyGroup, file, bCopyFile, line);
 	}
 	~DynamicProfileInformation()
 	{
@@ -42,7 +46,8 @@ struct DynamicProfileInformation
 		return profileInformation.name != NULL;
 	}
 
-	void init(const char*name=NULL, bool bCopyName=false, const char*groups=NULL, bool bCopyGroup=false)
+	void init(const char*name=NULL, bool bCopyName=false, const char*groups=NULL, bool bCopyGroup=false,
+	const char *file=NULL, bool bCopyFile=false, int line=0)
 	{
 		if(bCopied && profileInformation.name) delete[] profileInformation.name;
 		if(bGroupCopied && profileInformation.groups) delete[] profileInformation.groups;
@@ -60,9 +65,18 @@ struct DynamicProfileInformation
 			bGroupCopied = true;
 			groups = p;
 		}
+		if(bCopyFile)
+		{
+			char *p = new char[strlen(file)+1];
+			strcpy(p, file);
+			bGroupCopied = true;
+			file = p;
+		}
 
 		profileInformation.name = name;
 		profileInformation.groups = groups;
+		profileInformation.file = file;
+		profileInformation.line = line;
 	}
 
 	inline void beginNode()

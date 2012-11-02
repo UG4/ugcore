@@ -65,6 +65,8 @@ namespace Shiny {
 			/* _state = */ ProfileZone::STATE_HIDDEN,
 			/* name = */ "<root>",
 			/* group = */ 0,
+			/* file = */ 0,
+			/* line = */ 0,
 			/* data = */ { { 0, 0 }, { 0, 0 }, { 0, 0 } }
 		},
 		/* _initialized = */ false,

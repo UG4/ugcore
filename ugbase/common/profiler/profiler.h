@@ -56,12 +56,12 @@
 
 
 	/**	Helper makro used in PROFILE_BEGIN and PROFILE_FUNC.*/
-	#define PROFILE_BEGIN_HELPER(id, name, group)			\
+	#define PROFILE_BEGIN_HELPER(id, name, group, file, line)			\
 															\
 		AutoProfileNode	id;								\
 		static Shiny::ProfileZone __ShinyZone_##id = {		\
 			NULL, Shiny::ProfileZone::STATE_HIDDEN, name, \
-			group,	\
+			group, file, line,	\
 			{ { 0, 0 }, { 0, 0 }, { 0, 0 } }				\
 		};													\
 		{													\
@@ -76,7 +76,7 @@
 	 * ends.
 	 */
 	#define PROFILE_BEGIN(name)						\
-			PROFILE_BEGIN_HELPER(apn_##name, #name, NULL)
+			PROFILE_BEGIN_HELPER(apn_##name, #name, NULL, __FILE__, __LINE__)
 
 	/**	Ends profiling of the latest PROFILE_BEGIN section.*/
 	#define PROFILE_END()							\
@@ -84,13 +84,13 @@
 
 	/**	Profiles the whole function*/
 	#define PROFILE_FUNC()										\
-			PROFILE_BEGIN_HELPER(__ShinyFunction, __FUNCTION__, NULL)
+			PROFILE_BEGIN_HELPER(__ShinyFunction, __FUNCTION__, NULL, __FILE__, __LINE__)
 
 	#define PROFILE_BEGIN_GROUP(name, group)					\
-		PROFILE_BEGIN_HELPER(apn_##name, #name, group)
+		PROFILE_BEGIN_HELPER(apn_##name, #name, group, __FILE__, __LINE__)
 
 	#define PROFILE_FUNC_GROUP(group)										\
-			PROFILE_BEGIN_HELPER(__ShinyFunction, __FUNCTION__, group)
+			PROFILE_BEGIN_HELPER(__ShinyFunction, __FUNCTION__, group, __FILE__, __LINE__)
 
 	/**	Performs update on the profiler (call before output)*/
 	#define PROFILER_UPDATE									\

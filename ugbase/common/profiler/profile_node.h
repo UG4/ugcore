@@ -68,6 +68,7 @@ public:
 #if SHINY_PROFILER
 public:
 	void add_nodes(std::vector<const UGProfileNode*> &nodes) const;
+	void write_node(std::fstream &s) const;
 private:
 	std::string print_node(double full, size_t offset=0) const;
 	const UGProfileNode *get_first_child() const;
@@ -80,7 +81,7 @@ private:
 	static void log_header(std::stringstream &s, const char *name);
 	static bool self_time_sort(const UGProfileNode *a, const UGProfileNode *b);
 	static bool total_time_sort(const UGProfileNode *a, const UGProfileNode *b);
-	static bool entry_count_sort(const UGProfileNode *a, const UGProfileNode *b);
+	static bool entry_count_sort(const UGProfileNode *a, const UGProfileNode *b);	
 #endif
 
 	// do NOT add variables or virtual functions here (see above).
@@ -89,7 +90,7 @@ private:
 
 const UGProfileNode *GetProfileNode(const char *name);
 bool GetProfilerAvailable();
-
+void WriteProfileData(const char *filename);
 }
 
 
