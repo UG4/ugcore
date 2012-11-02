@@ -3,9 +3,9 @@
  *
  * \author Martin Rupp
  *
- * \date 04.11.2009
+ * \date 29.10.2012
  *
- * Goethe-Center for Scientific Computing 2009-2010.
+ * Goethe-Center for Scientific Computing 2012
  */
 
 #ifndef __H__UG__CRS_ALGEBRA__SPARSEMATRIX_PRINT__

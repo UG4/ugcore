@@ -347,6 +347,10 @@ endif("${DIM}" STREQUAL "ALL")
 ########################################
 # CPU
 # The cpu option sets defines for C and C++
+if(CRS_MATRIX)
+	add_definitions(-DUG_CRS_1)
+	MESSAGE(STATUS "Info: Using CRS Matrix Algebra.")
+endif(CRS_MATRIX)
 if("${CPU}" STREQUAL "ALL")
 	# todo checks for 4, VAR (-DUG_CPU_4 -DUG_CPU_VAR)!
 	add_definitions(-DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3)

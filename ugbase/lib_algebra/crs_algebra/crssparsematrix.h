@@ -3,9 +3,9 @@
  *
  * \author Martin Rupp
  *
- * \date 26.11.2009
+ * \date 29.10.2012
  *
- * Goethe-Center for Scientific Computing 2009-2010.
+ * Goethe-Center for Scientific Computing 2012
  */
 
 #ifndef __H__UG__CRS_ALGEBRA__SPARSEMATRIX__
@@ -205,7 +205,7 @@ public:
 	const value_type &operator () (size_t r, size_t c)  const
     {
         int j=get_index_const(r, c);
-        UG_ASSERT(j != -1, "");
+        UG_ASSERT(j != -1 && cols[j] == c, "");
         return values[j];
     }
 
@@ -220,7 +220,7 @@ public:
 	value_type &operator() (size_t r, size_t c)
 	{
 		int j=get_index(r, c);
-        UG_ASSERT(j != -1, "");
+        UG_ASSERT(j != -1 && cols[j]==c, "");
         return values[j];
     }
 
@@ -416,7 +416,7 @@ public:
 	friend std::ostream &operator<<(std::ostream &out, const CRSSparseMatrix &m)
 	{
 		out << "CRSSparseMatrix " //<< m.name
-		<< " [ " << m.rows << " x " << m.cols << " ]";
+		<< " [ " << m.num_rows() << " x " << m.num_cols() << " ]";
 		return out;
 	}
 
@@ -470,7 +470,7 @@ protected:
     {
         if(rowStart[r] == -1 || rowStart[r] == rowEnd[r]) return -1;
         size_t index=get_index_internal(r, c);
-        if(index < maxValues && cols[index] == c)
+		if(index < maxValues && cols[index] == c)
             return index;
         else
             return -1;
@@ -498,7 +498,11 @@ protected:
         size_t index=get_index_internal(r, c);
         if(index < maxValues && cols[index] == c)
             return index;
-        assert(index == rowEnd[r] || cols[index] > c);
+        
+		assert(index == rowEnd[r] || cols[index] > c);
+		assert(index == rowStart[r] || cols[index-1] < c);
+		for(int i=rowStart[r]+1; i<rowEnd[r]; i++)
+			assert(cols[i] > cols[i-1]);
         
         if(rowEnd[r] == rowMax[r])
         {
@@ -539,6 +543,9 @@ protected:
         cols[index] = c;
         assert(index >= rowStart[r] && index < rowEnd[r]);
         nnz++;
+		
+		for(int i=rowStart[r]+1; i<rowEnd[r]; i++)
+			assert(cols[i] > cols[i-1]);
         return index;
 	    
     }

@@ -14,8 +14,10 @@
 #include "cpu_algebra/vector.h"
 #include "cpu_algebra/sparsematrix.h"
 
+#ifdef UG_CRS_1
 #include "crs_algebra/crsvector.h"
 #include "crs_algebra/crssparsematrix.h"
+#endif
 
 // parallel support
 #ifdef UG_PARALLEL
@@ -56,6 +58,7 @@ struct CPUAlgebra
 	}
 };
 
+#ifdef UG_CRS_1
 struct CRSAlgebra
 {
 #ifdef UG_PARALLEL
@@ -72,7 +75,7 @@ struct CRSAlgebra
 		return AlgebraType(AlgebraType::CRS, 1);
 	}
 };
-
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////

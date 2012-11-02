@@ -1,8 +1,8 @@
 /*
  *  sparsematrix_impl.hpp
  *
- *  Created by Martin Rupp on 04.11.09.
- *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
+ *  Created by Martin Rupp on 29.10.2012
+ *  2012 G-CSC
  *
  */
 #ifndef __H__UG__CRS_ALGEBRA__SPARSEMATRIX_IMPL__
@@ -15,6 +15,7 @@
 
 #include "lib_algebra/common/operations_vec.h"
 #include "common/profiler/profiler.h"
+#include "crssparsematrix.h"
 #include <vector>
 #include <algorithm>
 
@@ -172,9 +173,8 @@ bool CRSSparseMatrix<T>::set(double a)
 	PROFILE_BEGIN_GROUP(CRSSparseMatrix_set, "algebra CRSSparseMatrix");
 	if(a == 0.0)
 	{
-		for(size_t row=0; row<num_rows(); row++)
-			for(row_iterator it = begin_row(row); it != end_row(row); ++it)
-				it.value() = 0.0;
+		for(size_t i=0; i<maxValues; i++)
+			values[i] = 0.0;
 	}
 	else
 	{
@@ -228,6 +228,7 @@ bool CRSSparseMatrix<T>::set_as_copy_of(const CRSSparseMatrix<T> &B, double scal
 	for(size_t i=0; i < B.num_rows(); i++)
 		for(const_row_iterator it = B.begin_row(i); it != B.end_row(i); ++it)
 			operator()(i, it.index()) = scale*it.value();
+	return true;
 }
 
 
