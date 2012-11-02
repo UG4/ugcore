@@ -716,6 +716,7 @@ void AddLocalVector(TVector& vec, const LocalVector& lvec)
 template <typename TMatrix>
 void AddLocalMatrixToGlobal(TMatrix& mat, const LocalMatrix& lmat)
 {
+	//PROFILE_FUNC_GROUP("algebra")
 	const LocalIndices& rowInd = lmat.get_row_indices();
 	const LocalIndices& colInd = lmat.get_col_indices();
 

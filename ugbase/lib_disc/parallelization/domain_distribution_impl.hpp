@@ -23,7 +23,7 @@ template <typename TDomain>
 static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMap,
 									  int firstAxisToCut)
 {
-
+	PROFILE_FUNC_GROUP("parallelization")
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
 	#ifdef UG_PARALLEL
@@ -108,6 +108,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 										int numCellsX, int numCellsY,
 										bool surfaceOnly)
 {
+	PROFILE_FUNC_GROUP("parallelization")
 //	prepare the partition map and a vertex position attachment accessor
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
@@ -219,6 +220,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 						  int numPartitions, size_t baseLevel,
 						  int hWeight, int vWeight)
 {
+	PROFILE_FUNC_GROUP("parallelization")
 //	prepare the partition map
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
@@ -278,6 +280,7 @@ static bool
 PartitionDomain_LevelBased(TDomain& domain, PartitionMap& partitionMap,
 						  	   int numPartitions, size_t level)
 {
+	PROFILE_FUNC_GROUP("parallelization")
 	//	prepare the partition map
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
@@ -300,6 +303,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 							   PartitionMap& partitionMap,
 							   bool createVerticalInterfaces)
 {
+	PROFILE_FUNC_GROUP("parallelization")
 //todo	Use a process-communicator to restrict communication
 
 	typedef typename TDomain::position_attachment_type	position_attachment_type;
@@ -371,6 +375,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 template <typename TDomain>
 static bool DistributeDomain(TDomain& domainOut)
 {
+	PROFILE_FUNC_GROUP("parallelization")
 #ifdef UG_PARALLEL
 //	typedefs
 	typedef typename TDomain::subset_handler_type subset_handler_type;
@@ -447,6 +452,7 @@ static bool DistributeDomain(TDomain& domainOut)
 template <typename TDomain>
 static bool DistributeDomain(TDomain& domainOut, PartitionMap& partitionMap)
 {
+	PROFILE_FUNC_GROUP("parallelization")
 #ifdef UG_PARALLEL
 //	typedefs
 	typedef typename TDomain::subset_handler_type subset_handler_type;

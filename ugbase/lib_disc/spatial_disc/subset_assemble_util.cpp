@@ -14,6 +14,7 @@ void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
                         std::vector<IElemDisc* > vElemDisc,
                         ConstSmartPtr<ISubsetHandler> pSH)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	resize subset group vector
 	vSSGrp.resize(vElemDisc.size());
 

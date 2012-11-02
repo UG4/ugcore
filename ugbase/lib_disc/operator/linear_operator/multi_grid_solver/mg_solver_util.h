@@ -65,6 +65,7 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
                            const SurfaceView& surfaceView,
                            const int baseLvl = 0)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	type of element iterator
 	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
 
@@ -126,6 +127,7 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
                            const SurfaceView& surfView,
                            const int baseLvl = 0)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
 		UG_THROW("ProjectSurfaceToLevel: Number of level Vectors ("
@@ -163,6 +165,7 @@ void ProjectLevelToSurface(TVector& surfaceVector,
 						   std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
                            const int baseLevel = 0)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	type of element iterator
 	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
 
@@ -226,6 +229,7 @@ void ProjectLevelToSurface(TVector& surfVector,
                            std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
                            const int baseLevel = 0)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	check, that levelFuntions and level DoFDistributions are the same number
 	if(vLevelVector.size() != vLevelDD.size())
 		UG_THROW("ProjectLevelToSurface: Number of level Vectors ("
@@ -311,6 +315,7 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
                             const number scale,
                             const SurfaceView& surfView)
 {
+	PROFILE_FUNC_GROUP("gmg");
 	std::vector<size_t> fineInd, coarseInd;
 
 // 	iterators
@@ -374,6 +379,7 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
                             const number scale,
                             const SurfaceView& surfView)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	forward for all BaseObject types
 	if(ddCoarse->has_indices_on(VERTEX))
 		AddProjectionOfShadows<VertexBase, TVector>
@@ -406,6 +412,7 @@ void SetZeroOnShadowing(TVector& vec,
                         const SurfaceView& surfView,
                         const std::vector<int>* pmapGlobalToPatch = NULL)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	indices
 	std::vector<size_t> ind;
 
@@ -543,6 +550,7 @@ void CopyMatrixByMapping(TMatrix& smallMat,
                          const std::vector<int>& vMap,
                          const TMatrix& origMat)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	check size
 	UG_ASSERT(vMap.size() == origMat.num_rows(), "Size must match.");
 	UG_ASSERT(vMap.size() == origMat.num_cols(), "Size must match.");
@@ -592,6 +600,7 @@ void CopyMatrixByMapping(TMatrix& newMat,
                          const std::vector<size_t>& vMap,
                          const TMatrix& origMat)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	check size
 	UG_ASSERT(vMap.size() <= newMat.num_rows(), "Size must match. Map:"<<vMap.size()<<", mat:"<<newMat.num_rows());
 	UG_ASSERT(vMap.size() <= newMat.num_cols(), "Size must match. Map:"<<vMap.size()<<", mat:"<<newMat.num_cols());

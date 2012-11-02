@@ -8,6 +8,7 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_IMPL__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DOMAIN_DISC_IMPL__
 
+#include "common/profiler/profiler.h"
 #include "domain_disc.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_assemble_util.h"
@@ -70,6 +71,7 @@ void DomainDiscretization<TDomain, TAlgebra>::
 assemble_mass_matrix(matrix_type& M, const vector_type& u,
                      ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -173,6 +175,7 @@ void DomainDiscretization<TDomain, TAlgebra>::
 assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
                           ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -283,6 +286,7 @@ assemble_jacobian(matrix_type& J,
                   const vector_type& u,
                   ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -387,6 +391,7 @@ assemble_defect(vector_type& d,
                 const vector_type& u,
                 ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -485,6 +490,7 @@ void DomainDiscretization<TDomain, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
                 ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -591,6 +597,7 @@ assemble_rhs(vector_type& rhs,
 			const vector_type& u,
 			ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -698,6 +705,7 @@ template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 	update_constraints();
 
 	// NOTE: it is crucial, that dirichlet pp are processed before constraints.
@@ -734,6 +742,7 @@ void DomainDiscretization<TDomain, TAlgebra>::
 prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -817,6 +826,7 @@ assemble_jacobian(matrix_type& J,
                   const number s_a0,
                   ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -924,6 +934,7 @@ assemble_defect(vector_type& d,
                 const std::vector<number>& vScaleStiff,
                 ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -1025,6 +1036,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
                 const std::vector<number>& vScaleStiff,
                 ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -1136,6 +1148,7 @@ assemble_rhs(vector_type& rhs,
              const std::vector<number>& vScaleStiff,
              ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 
@@ -1234,6 +1247,7 @@ template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 adjust_solution(vector_type& u, number time, ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 	update_constraints();
 
 	// NOTE: it is crucial, that dirichlet pp are processed before constraints.
@@ -1264,6 +1278,7 @@ void DomainDiscretization<TDomain, TAlgebra>::
 finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 ConstSmartPtr<TDD> dd)
 {
+	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
 	update_disc_items();
 

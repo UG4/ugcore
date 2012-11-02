@@ -14,7 +14,7 @@
 #define PROFILE_ASS
 #ifdef PROFILE_ASS
 	#define ASS_PROFILE_FUNC()		PROFILE_FUNC()
-	#define ASS_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define ASS_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "discretization")
 	#define ASS_PROFILE_END()		PROFILE_END()
 #else
 	#define ASS_PROFILE_FUNC()

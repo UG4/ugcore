@@ -29,6 +29,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
                                 const TDD& coarseDD, const TDD& fineDD,
 								std::vector<bool>& vIsRestricted)
 {
+	PROFILE_FUNC_GROUP("gmg");
 // 	allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
 		if(fineDD.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
@@ -143,6 +144,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
                                      ConstSmartPtr<TDomain> spDomain,
                                      std::vector<bool>& vIsRestricted)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	dimension
 	const int dim = TDomain::dim;
 
@@ -311,6 +313,7 @@ void StdTransfer<TDomain, TAlgebra>::set_levels(GridLevel coarseLevel, GridLevel
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::init()
 {
+	PROFILE_FUNC_GROUP("gmg");
 	if(!m_spApproxSpace.valid())
 		UG_THROW("StdTransfer<TDomain, TAlgebra>::init: "
 				"Approximation Space not set. Cannot init Projection.");
@@ -358,6 +361,7 @@ template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
 prolongate(vector_type& uFine, const vector_type& uCoarse)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	Check, that operator is initiallized
 	if(!m_bInit)
 		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply:"
@@ -402,6 +406,7 @@ template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
 restrict(vector_type& uCoarse, const vector_type& uFine)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	Check, that operator is initialized
 	if(!m_bInit)
 		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply_transposed:"
@@ -483,6 +488,7 @@ template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
 write_debug(const matrix_type& mat, const char* filename)
 {
+	PROFILE_FUNC_GROUP("debug");
 //	if no debug writer set, we're done
 	if(m_spDebugWriter.invalid()) return;
 

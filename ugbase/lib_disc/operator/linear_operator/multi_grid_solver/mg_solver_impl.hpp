@@ -33,7 +33,7 @@
 #define PROFILE_GMG
 #ifdef PROFILE_GMG
 	#define GMG_PROFILE_FUNC()		PROFILE_FUNC()
-	#define GMG_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define GMG_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "gmg")
 	#define GMG_PROFILE_END()		PROFILE_END()
 #else
 	#define GMG_PROFILE_FUNC()

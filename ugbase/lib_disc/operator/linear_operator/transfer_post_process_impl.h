@@ -51,6 +51,7 @@ template <typename TDomain, typename TAlgebra>
 void AverageComponent<TDomain, TAlgebra>::
 post_process(vector_type& u)
 {
+	PROFILE_FUNC_GROUP("gmg");
 	const int dim = TDomain::dim;
 	const LevelDoFDistribution& dd = *m_spApproxSpace->level_dof_distribution(m_level.level());
 

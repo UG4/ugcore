@@ -25,7 +25,7 @@ template <typename TDD, typename TAlgebra>
 void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
                               const TDD& coarseDD, const TDD& fineDD)
 {
-	PROFILE_FUNC_GROUP("discretization");
+	PROFILE_FUNC_GROUP("gmg");
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
 		if(fineDD.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
@@ -80,7 +80,7 @@ template <int dim, typename TDD, typename TAlgebra>
 void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
                                           const TDD& coarseDD, const TDD& fineDD)
 {
-	PROFILE_FUNC_GROUP("discretization");
+	PROFILE_FUNC_GROUP("gmg");
 // 	get MultiGrid
 	const MultiGrid& grid = coarseDD.multi_grid();
 
@@ -172,6 +172,7 @@ set_levels(GridLevel coarseLevel, GridLevel fineLevel)
 template <typename TDomain, typename TAlgebra>
 void InjectionTransfer<TDomain, TAlgebra>::init()
 {
+	PROFILE_FUNC_GROUP("gmg");
 	if(!m_spApproxSpace.valid())
 		UG_THROW("InjectionTransfer::init: "
 				"Approximation Space not set. Cannot init Projection.");
@@ -214,6 +215,7 @@ template <typename TDomain, typename TAlgebra>
 void InjectionTransfer<TDomain, TAlgebra>::
 prolongate(vector_type& uFine, const vector_type& uCoarse)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	Check, that operator is initiallized
 	if(!m_bInit)
 		UG_THROW("InjectionTransfer::apply:"
@@ -236,6 +238,7 @@ template <typename TDomain, typename TAlgebra>
 void InjectionTransfer<TDomain, TAlgebra>::
 restrict(vector_type& uCoarse, const vector_type& uFine)
 {
+	PROFILE_FUNC_GROUP("gmg");
 //	Check, that operator is initialized
 	if(!m_bInit)
 		UG_THROW("InjectionTransfer::apply_transposed:"
