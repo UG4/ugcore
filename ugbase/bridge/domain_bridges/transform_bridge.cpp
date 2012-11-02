@@ -10,6 +10,7 @@
 // include bridge
 #include "bridge/bridge.h"
 #include "bridge/util.h"
+#include "bridge/util_domain_dependent.h"
 
 #include "lib_disc/domain.h"
 #include "lib_grid/lib_grid.h"

@@ -10,6 +10,7 @@
 // include bridge
 #include "bridge/bridge.h"
 #include "bridge/util.h"
+#include "bridge/util_domain_dependent.h"
 
 #include "common/profiler/profiler.h"
 

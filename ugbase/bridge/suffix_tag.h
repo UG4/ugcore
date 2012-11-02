@@ -57,18 +57,19 @@ std::string GetDomainTag() {return GetDimensionTag<TDomain::dim>();}
 ////////////////////////////////////////////////////////////////////////////////
 
 /// returns the algebra-suffix (e.g. "CPU3", "CPUFlex")
-inline std::string GetAlgebraSuffix(const AlgebraType& algType)
+template<typename TAlgebraTypeType>
+inline std::string GetAlgebraSuffix(const TAlgebraTypeType& algType)
 {
 //	the algebra suffix
 	std::stringstream ss;
 
 //	add type
-	if(algType.type() == AlgebraType::CPU) ss << "CPU";
-	else if(algType.type() == AlgebraType::CRS) ss << "CRS";
+	if(algType.type() == TAlgebraTypeType::CPU) ss << "CPU";
+	else if(algType.type() == TAlgebraTypeType::CRS) ss << "CRS";
 	else UG_THROW("Unknown algebra type.");
 
 //	add blocktype
-	if(algType.blocksize() == AlgebraType::VariableBlockSize) ss << "Variable";
+	if(algType.blocksize() == TAlgebraTypeType::VariableBlockSize) ss << "Variable";
 	else ss << algType.blocksize();
 
 	return ss.str();
@@ -82,18 +83,19 @@ std::string GetAlgebraSuffix()
 }
 
 /// returns the algebra-suffix (e.g. "alg=CPU3", "alg=CPUVariable")
-inline std::string GetAlgebraTag(const AlgebraType& algType)
+template<typename TAlgebraTypeType>
+inline std::string GetAlgebraTag(const TAlgebraTypeType& algType)
 {
 //	the algebra suffix
 	std::stringstream ss; ss << "alg=";
 
 //	add type
-	if(algType.type() == AlgebraType::CPU) ss << "CPU";
-	else if(algType.type() == AlgebraType::CRS) ss << "CRS";
+	if(algType.type() == TAlgebraTypeType::CPU) ss << "CPU";
+	else if(algType.type() == TAlgebraTypeType::CRS) ss << "CRS";
 	else UG_THROW("Unknown algebra type.");
 
 //	add blocktype
-	if(algType.blocksize() == AlgebraType::VariableBlockSize) ss << "Variable;";
+	if(algType.blocksize() == TAlgebraTypeType::VariableBlockSize) ss << "Variable;";
 	else ss << algType.blocksize() << ";";
 
 	return ss.str();
@@ -129,7 +131,8 @@ std::string GetDimensionAlgebraTag()
 	return dimAlgTag;
 }
 /// returns dim tag at runtime (e.g. "dim=3d;alg=CPU1;")
-inline std::string GetDimensionAlgebraTag(int dim, const AlgebraType& algType)
+template<typename TAlgebraTypeType>
+inline std::string GetDimensionAlgebraTag(int dim, const TAlgebraTypeType& algType)
 {
 	std::string dimAlgTag = GetDimensionTag(dim);
 	dimAlgTag.append(GetAlgebraTag(algType));

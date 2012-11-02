@@ -13,6 +13,7 @@
 // include bridge
 #include "bridge/bridge.h"
 #include "bridge/util.h"
+#include "bridge/util_algebra_dependent.h"
 
 // operator interfaces
 #include "lib_algebra/operator/interface/operator.h"

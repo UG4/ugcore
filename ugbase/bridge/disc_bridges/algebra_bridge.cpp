@@ -13,6 +13,7 @@
 // include bridge
 #include "bridge/bridge.h"
 #include "bridge/util.h"
+#include "bridge/util_domain_algebra_dependent.h"
 
 // discretization interfaces
 #include "lib_algebra/operator/matrix_operator_functions.h"

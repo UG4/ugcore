@@ -13,6 +13,7 @@
 // include bridge
 #include "bridge/bridge.h"
 #include "bridge/util.h"
+#include "bridge/util_domain_algebra_dependent.h"
 
 // lib_disc includes
 #include "lib_disc/domain.h"

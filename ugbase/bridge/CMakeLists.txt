@@ -32,6 +32,7 @@ if(buildAlgebra)
 					algebra_bridges/preconditioner_bridge.cpp
 					algebra_bridges/solver_bridge.cpp
 					algebra_bridges/eigensolver_bridge.cpp
+					algebra_bridges/domain_dependent_preconditioner_bridge.cpp
 					
 					disc_bridges/domain_disc_bridge.cpp
 					disc_bridges/interpolate_bridge.cpp
