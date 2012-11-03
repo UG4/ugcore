@@ -4,6 +4,15 @@
 
 /** \page pageUG4ParallelJuGene JuGene
 
+\attention Please note that the BG/P system \em JuGene was replaced by the BG/Q system
+named \em JuQueen in July 2012, see page \subpage pageUG4ParallelJuQueen for some
+instructions to work on this successor of \em JuGene!
+Although with this replacement not only the hardware has changed the following
+informations on \em JuGene might remain of some use (especially some links to
+out-sourced parts of the documentation) and is left here to the careful reader.
+In addition maybe sometime a \ug4 user will have access to another BG/P machine.
+
+
 - \ref secJuGene
 - \ref secAccess_to_JuGenes_login_nodes
 - \ref secConfiguration_of_ug4_for_JuGene
@@ -17,8 +26,8 @@
 <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/JUGENE_node.html">JuGene</a>
 &mdash; the 
 <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/Configuration/Configuration_node.html">72 racks Blue Gene/P</a>
-system at <em>J&uuml;lich Supercomputing Centre (JSC)</em> (FZ J&uuml;lich) in total 
-provides 294.912 cores (288 Ki) and 144 Tbyte RAM.
+(BG/P) system at <em>J&uuml;lich Supercomputing Centre (JSC)</em> (FZ J&uuml;lich)
+in total provides 294.912 cores (288 Ki) and 144 Tbyte RAM.
 The 73.728 compute nodes (CN) each have a quadcore Power 32-bit PC 450 running 
 at 850 MHz, with 2 Gbyte of RAM. 
 
@@ -77,7 +86,7 @@ to this machine first, then to \em JuGene), see \ref secSSHHopping.
 <hr>
 \section secConfiguration_of_ug4_for_JuGene Configuration of ug4 for JuGene
 
-For JuGene you have to "cross compile" and to do so use a specific 
+For \em JuGene you have to "cross compile" and to do so use a specific 
 \ref secCMake_ToolchainFiles.
 Start CMake like this
 \code
