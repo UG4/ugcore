@@ -110,6 +110,14 @@ and your \ug4 is being build. Common options for make are
 to use no more than 4 and to keep an eye on memory consumption.
 There are some files in ug4/ugbase/bridge which need 1 GB RAM when being compiled, 
 so you'll get stuck there. 
+<li> <tt>VERBOSE=1</tt> Do a "verbose" build, i.e., see what happens in detail
+(commands executed and their output which otherwise is suppressed).
+
+With redirection of the output into a file, for later analysis, you would have
+e.g. (Bash syntax):
+\code
+make VERBOSE=1 > static-build_make-verbose-output.txt 2>&1 
+\endcode
 </ul>
 
 If everything went fine, you can move to YOURUG4ROOT/bin and start \ref pageUG4Shell .

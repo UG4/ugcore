@@ -39,5 +39,27 @@ salloc -n <NP> mpirun ugshell $UGARGS
   </li>
 </ul>
 
+<hr>
+<b>Troubleshooting</b>
+<ul>
+  <li>If you encounter an error like the following when submitting your job on
+  \em cekon you might have ignored the general remark in section \ref secGeneral_Notes
+
+\verbatim
+salloc -n 64 ./ugshell -ex ../scripts/laplace.lua -numPreRefs 3 -numRefs 7
+salloc: Granted job allocation 14437
+libibverbs: Warning: RLIMIT_MEMLOCK is 32768 bytes.
+    This will severely limit memory registrations.
+--------------------------------------------------------------------------
+WARNING: There was an error initializing an OpenFabrics device.
+
+  Local host:   cekon.gcsc.uni-frankfurt.de
+  Local device: mthca0
+--------------------------------------------------------------------------
+\endverbatim
+
+  </li>
+</ul>
+
 
 */
