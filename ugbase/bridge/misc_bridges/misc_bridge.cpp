@@ -445,7 +445,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 					"", "bEnable#filename", "Please note that only the filename given at the first call is considered")
 			.add_method("rename_log_file", &LogAssistant::rename_log_file,
 					"", "filename", "Renames previously opened logfile to the name given")
-			.add_method("enabloke_terminal_output", &LogAssistant::enable_terminal_output,
+			.add_method("enable_terminal_output", &LogAssistant::enable_terminal_output,
 					"", "bEnable", "enables or disables terminal output (enabled by default)")
 			.add_method("set_debug_levels", &LogAssistant::set_debug_levels, "", "lev", "sets the debug level of all tags to 'lev'")
 
