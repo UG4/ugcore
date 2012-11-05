@@ -386,8 +386,16 @@ void WriteCompressedProfileData(const char *filename)
 {
 	// compressed:
 	// filedata: file0, file1, file2, file3
-	// zonedata: zone1 {name, fileid, line}, zone2, zone3
-	// nodes: node0 {self, total, children}, node1, node2, node3.
+	// zonedata: zone1 {name, fileid, line}, zone2, zone3	
+    // nodes: node0 {self, total, children}, node1, node2, node3.
+ 
+    // combine file and zone data, so that profile data is
+ * 
+ * // <files>...</files>
+ * <zones><zone id="732"><name>bla</name><group>algebra</group><file>8</file><line>344</line> </zone> ... </zones>
+ * <core id=0>
+ *   <node zoneId=732><self>8734.2</self><total>8333.2</total></node>
+    
 }
 */
 
