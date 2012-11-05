@@ -72,11 +72,11 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 
 	//	reg.add_function("PrintLUA", &PrintLUA, grp);
 
-	reg.add_function("GetProfileNode", &GetProfileNode, grp);
-	reg.add_function("WriteProfileData", &WriteProfileData, grp);
+	reg.add_function("GetProfileNode", &GetProfileNode, grp, "a profile node");
 	reg.add_function("GetProfilerAvailable", &GetProfilerAvailable, grp, "true if profiler available");
 	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, grp, "", "bOutput",
 			"if set to true and profiler available, profile stats are printed at the end of the program. true is default");
+	reg.add_function("WriteProfileData", &WriteProfileData, grp, "", "filename.pdxml", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
 }
 
 
