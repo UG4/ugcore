@@ -70,6 +70,8 @@ environment
 		- \ref pageUG4SSH	
 	- \ref pageDebuggingCPP
 
+- \ref pageTroubleshooting
+
 - Copyrights and Licenses
 	- \subpage pageCopyrights
 	- \subpage pageExternalLibraries

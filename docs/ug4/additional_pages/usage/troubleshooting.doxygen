@@ -4,24 +4,60 @@
 
 /** \page pageTroubleshooting Troubleshooting
 
+- \ref troubleshootingCompiling
+- \ref troubleshootingParallel
+
+
 This file is intended for troubleshooting. Please provide information about as much errors as possible.
 It might be a very stupid error for you, but there's a high chance someone else has the same problem
 and spends hours on solving it.
 
 <hr>
-<b> Descrition: </b>
-Compiling plugin with different configuration
-Plugin initialization shows error
+\section troubleshootingCompiling Compiling
+<hr>
+
+\subsection troubleshootingCompiling1 General Tipps
+<b>Symptoms</b><br>
+You can't compile/link your program.<br>
+<b>Possible Cause</b><br>
+Could be anything. If the problem persists, copy/paste all your console output and email it to someone.<br>
+<b>Solution</b><br>
+If you can't compile your program, it is sometimes a good idea to recompile or relink parts of ug4.
+Try the following:
+<ul>
+<li> Delete contents <tt>ug4/bin/plugins</tt> of directory. Recompile ug4.
+<li> Delete contents of whole <tt>ug4/bin/</tt> directory. Recompile ug4.
+<li> Delete contents of whole <tt>ug4/bin/</tt> directory and reset your build configuration by deleting 
+your build directory (e.g. ug4/debug). You will have to redo a cmake .. and reenter all your cmake parameters like -DDIM and plugins.
+</ul>
+
+
+<hr>
+\subsection troubleshootingCompiling2 Compiling plugin with different configuration Plugin initialization shows error
+<b>Symptoms</b><br>
 \code
 *** glibc detected *** gravtree: corrupted double-linked list: 0x000000001aa0fc50 ***
 \endcode
 <b> Cause </b><br>
-Compiling plugin seperately with different configuration
+Compiling plugin seperately with different configurations<br>
 <b> Solution </b><br>
 Delete contents <tt>ug4/bin/plugins</tt> of directory.
 Use the <tt>-D[pluginname]</tt> option of cmake.
 Recompile ug4.
 
+<hr>
+\section troubleshootingParallel Parallel execution
+
+
+<hr>
+\subsection troubleshootingParallel1 Output appears multiple times
+<b>Symptoms</b><br>
+Parallel output appears multiple times even though -outproc 0 was chosen.
+<b> Possible Cause </b><br>
+ug4 was not compiled with UG_PARALLEL. Try to use PrintBuildConfiguration() in LUA/ugshell or
+enter cmake .. in your build dir. There you should get PARALLEL: ON.
+<b> Solution </b><br>
+Enter cmake -DPARALLEL=ON .. . If you get errors that MPI could not be found, ask someone.
 <hr>
 
 */
