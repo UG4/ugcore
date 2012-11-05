@@ -68,7 +68,7 @@ public:
 #if SHINY_PROFILER
 public:
 	void add_nodes(std::vector<const UGProfileNode*> &nodes) const;
-	void write_node(std::fstream &s) const;
+	void write_node(std::ostream &s) const;
 private:
 	std::string print_node(double full, size_t offset=0) const;
 	const UGProfileNode *get_first_child() const;

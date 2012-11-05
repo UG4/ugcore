@@ -19,6 +19,8 @@
 #include "common/util/path_provider.h"
 #include <map>
 #include <fstream>
+#include "compile_info/compile_info.h"
+#include "pcl/pcl_base.h"
 
 
 #ifdef UG_PARALLEL
@@ -135,7 +137,7 @@ bool UGProfileNode::valid() const
 
 // private functions
 
-void UGProfileNode::write_node(fstream &s) const
+void UGProfileNode::write_node(ostream &s) const
 {
 	if(!valid()) return;
 	
@@ -151,21 +153,31 @@ void UGProfileNode::write_node(fstream &s) const
 	 * </node>	 
 	 */
 	
-	s << "<node>\n"
-	  << (zone->name ? zone->name : "") << "\n"
-	  << (zone->groups ? zone->groups : "") << "\n";
-	
-	if(zone->file == NULL) s << "\n";
-	else
+	s << "<node>\n";
+	if(zone->name)
 	{
+		if(strcmp(zone->name, "<root>") == 0)
+			s << "<name>root</name>\n";
+		else
+			s << "<name>" << zone->name << "</name>\n";
+	}
+	if(zone->groups)
+		s << "<groups>" << zone->groups << "</groups>\n";
+	
+	if(zone->file != NULL)
+	{
+		s << "<file>";
 		const string &ug4root = PathProvider::get_path(ROOT_PATH);
 		if(StartsWith(zone->file, ug4root))
-			s << "$" << (zone->file+ug4root.length()) << "\n";
+			s << "$" << (zone->file+ug4root.length());
+		else
+			s << zone->file;
+		s << "</file>\n<line> " << zone->line << "</line>\n";
 	}
-	 s << zone->line << "\n"
-	  << floor(get_avg_entry_count()) << "\n"
-	  << get_avg_self_time() << "\n"
-	  << get_avg_total_time() << "\n";
+	 
+	s << "<hits>" << floor(get_avg_entry_count()) << "</hits>\n"
+	  << "<self>" << get_avg_self_time() << "</self>\n"
+	  << "<total>" << get_avg_total_time() << "</total>\n";
 			
 	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 	{
@@ -369,14 +381,83 @@ bool UGProfileNode::entry_count_sort(const UGProfileNode *a, const UGProfileNode
 	return a->get_avg_entry_count() < b->get_avg_entry_count();
 }
 
+/*
+void WriteCompressedProfileData(const char *filename)
+{
+	// compressed:
+	// filedata: file0, file1, file2, file3
+	// zonedata: zone1 {name, fileid, line}, zone2, zone3
+	// nodes: node0 {self, total, children}, node1, node2, node3.
+}
+*/
+
 void WriteProfileData(const char *filename)
 {
+	bool bProfileAll = false; // for the moment
+	
 	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
-	fstream f(filename, ios::out);
-	f << PathProvider::get_path(ROOT_PATH) << "\n";
 	const Shiny::ProfileNode *node = &Shiny::ProfileManager::instance.rootNode;
 	const UGProfileNode *pnRoot = reinterpret_cast<const UGProfileNode*> (node);
-	pnRoot->write_node(f);
+#ifdef UG_PARALLEL
+	typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> >
+		IndexLayout;
+
+	pcl::InterfaceCommunicator<IndexLayout> ic;
+	if(pcl::GetProcRank()==0)
+	{
+#endif
+		fstream f(filename, ios::out);
+		f << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>";
+		f << "<!-- ug4 created profile data -->\n";
+		f << "<ProfileData>\n";
+		f << "<AdditionalInfo>\n";
+		f << "<SVNRevision>" << UGSvnRevision() << "</SVNRevision>\n";
+		f << "<BuildHostname>" << UGBuildHost() << "</BuildHostname>\n";
+		f << "<CompileDate>" << UGCompileDate() << "</CompileDate>\n";
+		f << "</AdditionalInfo>\n";
+		f << "<basepath>" << PathProvider::get_path(ROOT_PATH) << "</basepath>\n";
+
+		f << "<core id=\"0\">\n";
+		
+		pnRoot->write_node(f);
+		f << "</core>\n";	
+		
+#ifdef UG_PARALLEL
+		if(bProfileAll)
+		{
+			std::vector<ug::BinaryBuffer> buffers(pcl::GetNumProcesses()-1);
+			for(size_t i=1; i<pcl::GetNumProcesses(); i++)
+				ic.receive_raw(i, buffers[i-1]);
+			ic.communicate();
+
+			for(size_t i=1; i<pcl::GetNumProcesses(); i++)
+			{
+				f << "\n<core id=\"" << i << "\">";
+				string s;
+				Deserialize(buffers[i-1], s);
+				f << s;			
+				f << "\n</core>";
+			}		
+		}
+#endif
+		f << "</ProfileData>\n";
+		
+#ifdef UG_PARALLEL		
+	}	
+	else		
+	{
+		if(bProfileAll)
+		{
+			stringstream ss;
+			pnRoot->write_node(ss);
+			BinaryBuffer buf;
+			Serialize(buf, ss.str());
+			ic.send_raw(0, buf.buffer(), buf.write_pos(), false);
+			ic.communicate();
+		}
+	}	
+#endif	
+	
 }
 
 const UGProfileNode *GetProfileNode(const char *name)
