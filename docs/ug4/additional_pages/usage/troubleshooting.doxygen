@@ -51,12 +51,12 @@ Recompile ug4.
 
 <hr>
 \subsection troubleshootingParallel1 Output appears multiple times
-<b>Symptoms</b><br>
+<br><b>Symptoms</b><br>
 Parallel output appears multiple times even though -outproc 0 was chosen.
-<b> Possible Cause </b><br>
+<br><b> Possible Cause </b><br>
 ug4 was not compiled with UG_PARALLEL. Try to use PrintBuildConfiguration() in LUA/ugshell or
 enter cmake .. in your build dir. There you should get PARALLEL: ON.
-<b> Solution </b><br>
+<br><b> Solution </b><br>
 Enter cmake -DPARALLEL=ON .. . If you get errors that MPI could not be found, ask someone.
 <hr>
 
