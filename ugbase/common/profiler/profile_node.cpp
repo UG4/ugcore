@@ -172,7 +172,7 @@ void UGProfileNode::write_node(ostream &s) const
 			s << "$" << (zone->file+ug4root.length());
 		else
 			s << zone->file;
-		s << "</file>\n<line> " << zone->line << "</line>\n";
+		s << "</file>\n<line>" << zone->line << "</line>\n";
 	}
 	 
 	s << "<hits>" << floor(get_avg_entry_count()) << "</hits>\n"
@@ -214,7 +214,7 @@ string UGProfileNode::print_node(double full, size_t offset) const
 			char file[255];
 			strncpy(file, name, p-name);
 			file[p-name]=0x00;
-			string str = GetFileLine(file, line+1);
+			string str = GetFileLine(file, line);
 			for(size_t i=0; i<str.size(); i++) if(str[i] == '\t') str[i] = ' ';
 			s << "\n";
 			if(offset)	s << setw(offset) << " ";
@@ -415,7 +415,7 @@ void WriteProfileData(const char *filename)
 	{
 #endif
 		fstream f(filename, ios::out);
-		f << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>";
+		f << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
 		f << "<!-- ug4 created profile data -->\n";
 		f << "<ProfileData>\n";
 		f << "<AdditionalInfo>\n";
