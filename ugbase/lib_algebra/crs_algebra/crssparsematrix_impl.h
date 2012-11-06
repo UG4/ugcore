@@ -98,6 +98,7 @@ bool CRSSparseMatrix<T>::axpy(vector_t &dest,
 		const number &beta1, const vector_t &w1) const
 {
 	PROFILE_BEGIN_GROUP(SparseMatrix_axpy, "algebra CRSSparseMatrix");
+	check_fragmentation();
 	if(alpha1 == 0.0)
 	{
 		for(size_t i=0; i < num_rows(); i++)
@@ -143,7 +144,7 @@ bool CRSSparseMatrix<T>::axpy_transposed(vector_t &dest,
 		const number &beta1, const vector_t &w1) const
 {
 	PROFILE_BEGIN_GROUP(CRSSparseMatrix_axpy_transposed, "algebra CRSSparseMatrix");
-	
+	check_fragmentation();
 	if(&dest == &v1) {
 		if(alpha1 == 0.0)
 			dest.set(0.0);
@@ -171,22 +172,16 @@ template<typename T>
 bool CRSSparseMatrix<T>::set(double a)
 {
 	PROFILE_BEGIN_GROUP(CRSSparseMatrix_set, "algebra CRSSparseMatrix");
-	if(a == 0.0)
-	{
-		for(size_t i=0; i<maxValues; i++)
-			values[i] = 0.0;
-	}
-	else
-	{
-		for(size_t row=0; row<num_rows(); row++)
-			for(row_iterator it = begin_row(row); it != end_row(row); ++it)
-			{
-				if(it.index() == row)
-					it.value() = a;
-				else
-					it.value() = 0.0;
-			}
-	}
+	check_fragmentation();
+	for(size_t row=0; row<num_rows(); row++)
+		for(row_iterator it = begin_row(row); it != end_row(row); ++it)
+		{
+			if(it.index() == row)
+				it.value() = a;
+			else
+				it.value() = 0.0;
+		}
+
 	return true;
 }
 

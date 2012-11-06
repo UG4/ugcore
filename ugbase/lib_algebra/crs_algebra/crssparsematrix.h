@@ -34,11 +34,7 @@ public:
 	typedef TValueType value_type;
 	enum {rows_sorted=true};
 
-	typedef SparseMatrix<value_type> this_type;
-	typedef matrixrow<value_type> row_type;
-	typedef matrixrow<value_type> matrixrow_type;
-
-
+	typedef CRSSparseMatrix<value_type> this_type;
 	
 public:
 	struct connection
@@ -160,7 +156,7 @@ public:
 	inline bool is_isolated(size_t i) const;
 
 	bool scale(double d);
-	SparseMatrix<value_type> &operator *= (double d) { scale(d); return *this; }
+	CRSSparseMatrix<value_type> &operator *= (double d) { scale(d); return *this; }
 
 	// submatrix set/get functions
 	//-------------------------------
@@ -205,7 +201,7 @@ public:
 	const value_type &operator () (size_t r, size_t c)  const
     {
         int j=get_index_const(r, c);
-        UG_ASSERT(j != -1 && cols[j] == c, "");
+        UG_ASSERT(j != -1 && cols[j]==c && j >= rowStart[r] && j < rowEnd[r], "");
         return values[j];
     }
 
@@ -220,7 +216,7 @@ public:
 	value_type &operator() (size_t r, size_t c)
 	{
 		int j=get_index(r, c);
-        UG_ASSERT(j != -1 && cols[j]==c, "");
+        UG_ASSERT(j != -1 && cols[j]==c && j >= rowStart[r] && j < rowEnd[r], "");
         return values[j];
     }
 
@@ -496,7 +492,8 @@ protected:
          if(cols[i] == c)
          return i;*/
         size_t index=get_index_internal(r, c);
-        if(index < maxValues && cols[index] == c)
+        if(index < rowEnd[r] 
+				&& index < maxValues && cols[index] == c)
             return index;
         
 		assert(index == rowEnd[r] || cols[index] > c);
@@ -552,7 +549,7 @@ protected:
     void copyToNewSize(size_t newSize)
     {
         //std::cout << "increasing from " << cols.size() << " to " << newSize << "\n";
-        std::vector<double> v(newSize);
+        std::vector<value_type> v(newSize);
         std::vector<int> c(newSize);
         size_t j=0;
         for(size_t r=0; r<num_rows(); r++)
@@ -574,9 +571,15 @@ protected:
         rowStart[num_rows()] = rowEnd[num_rows()-1];
         fragmented = 0;
         maxValues = j;
-        if(bNeedsValues) values = v;
-        cols = c;
+        if(bNeedsValues) std::swap(values, v);
+        std::swap(cols, c);
     }
+	
+	void check_fragmentation() const
+	{
+		if((double)nnz/(double)maxValues < 0.9)
+			(const_cast<this_type*>(this))->defragment();
+	}
 
 	
 protected:
