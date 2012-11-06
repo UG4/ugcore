@@ -183,6 +183,7 @@ class LuaUserFunction
 	public:
 	//	type of base class
 		typedef DataLinker<TData, dim> base_type;
+		using base_type::set_input;
 
 	public:
 	///	constructor

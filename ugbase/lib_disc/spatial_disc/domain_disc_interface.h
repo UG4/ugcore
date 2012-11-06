@@ -33,6 +33,8 @@ namespace ug {
 template <typename TAlgebra>
 class IDomainDiscretization : public IAssemble<TAlgebra>
 {
+	using IAssemble<TAlgebra>::assemble_rhs;
+	
 	public:
 	/// Algebra type
 		typedef TAlgebra algebra_type;
