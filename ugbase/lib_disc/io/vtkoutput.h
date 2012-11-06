@@ -749,6 +749,11 @@ class VTKOutput
 
 
 
+void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<1>& data);
+void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<2>& data);
+void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<3>& data);
+void WriteDataToBase64Stream(VTKFileWriter& File, const float& data);
+
 } // namespace ug
 
 #include "vtkoutput_impl.h"

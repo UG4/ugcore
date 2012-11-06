@@ -8,6 +8,30 @@
 
 namespace ug{
 
+
+void WriteDataToBase64Stream(VTKFileWriter& File, const float& data)
+{
+	File.write_base64_buffered(data);
+}
+void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<1>& data)
+{
+	File.write_base64_buffered((float)data[0]);
+	File.write_base64_buffered((float)0.0f);
+	File.write_base64_buffered((float)0.0f);
+}
+void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<2>& data)
+{
+	File.write_base64_buffered((float)data[0]);
+	File.write_base64_buffered((float)data[1]);
+	File.write_base64_buffered((float)0.0f);
+}
+void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<3>& data)
+{
+	File.write_base64_buffered((float)data[0]);
+	File.write_base64_buffered((float)data[1]);
+	File.write_base64_buffered((float)data[2]);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //	Domain Output
 ////////////////////////////////////////////////////////////////////////////////
