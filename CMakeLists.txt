@@ -21,15 +21,15 @@ if(buildPluginSystem)
 	add_subdirectory(plugins)
 endif(buildPluginSystem)
 
-########################
-if(BUILD_UGDOCU)
-    add_subdirectory(apps/ugdocu)
-endif(BUILD_UGDOCU)
-
 
 ########################
 # ugbase
 add_subdirectory(ugbase)
+
+########################
+if(BUILD_UGDOCU)
+    add_subdirectory(apps/ugdocu)
+endif(BUILD_UGDOCU)
 
 ########################
 if(BUILD_ONE_LIB)
