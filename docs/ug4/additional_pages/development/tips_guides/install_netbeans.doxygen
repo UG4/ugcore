@@ -52,6 +52,19 @@ After the checkout NetBeans will ask you whether to create a new project. Just f
   <li>Project Name: Choose one. \em finish </li>
 </ul>
  ug4 will be built automatically for the first time. You can select Run -> Build Project to build it manually or use the "hammer" symbol.
+<br>
+If you use build flags, you must tell \em Netbeans to recognize them.
+Specially, if you do not use \c UG_PARALLEL, all Parallel Code will not be highlighted but regarded as dead code.
+So, add it to the Environment:
+<ol>
+  <li>Click right on folder \c ug4 -> Choose \em Properties </li>
+  <li>Under <em>Code Assistance</em> -> Subfolder <em>C++ Compiler</em></li>
+  <li>Under Preprocessor Definitions:</li>
+  <li>Fill in \c UG_PARALLEL</li>
+</ol> 
+You might also want to add that for C Code Assistance.
+
+
 
 <hr>
 \section secInstallNetbeansCreateOtherConfigurations Create other configurations
@@ -82,5 +95,6 @@ After the checkout NetBeans will ask you whether to create a new project. Just f
 
 
 \section secInstallNetbeansLUA Netbeans and LUA
- You can try luaSupport or luaTopping. If netbeans is stuck, delete netbeans and reinstall with the dmg (settings will be saved).
+We created an own plugin which provides code completion for the ug4 registry functions/classes: <a href="http://gcsc.uni-frankfurt.de/Members/mrupp/ug4-auto-completion/">Go here (ugIDE)</a> for further details.
+
  */

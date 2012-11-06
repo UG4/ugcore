@@ -188,15 +188,19 @@ So, add it to the Environment:
 \em Lua is the recommended scripting language in \ug4.
 In order to have a more comfortable editing of Lua-Scripts you should install a 
 Plugin.
-We recommend the package \em LuaEclipse.
-This plugin provides editing of Lua scripts with syntax highlight, code 
-completion, compilation errors, code and comment folding.
+We created an own plugin which provides Syntax Highlighting and code completion for
+the ug4 registry functions/classes: Go here <a href="http://gcsc.uni-frankfurt.de/Members/mrupp/ug4-auto-completion/">ugIDE</a> for further details.
+<br><br>
+Available Plugins:
+\note You can only install one plugin at a time.
 
+<ul>
+<li> <a href="http://gcsc.uni-frankfurt.de/Members/mrupp/ug4-auto-completion/">ugIDE</a></li>
+<li> luaEclipse:<br>
 You find a link to the install site under:
 http://luaeclipse.luaforge.net/preview/update-site<br>
 E.g. on MacOSX use:
 http://luaeclipse.luaforge.net/preview/update-site/macosx.carbon/site.xml
-
 <ol>
   <li>Open plugin install panel: \em Help -> <em>Install new Software ...</em></li>
   <li>Insert link above into: <em>Work with: ....</em></li>
@@ -204,10 +208,11 @@ http://luaeclipse.luaforge.net/preview/update-site/macosx.carbon/site.xml
   <li>Accept license agreement</li>
   <li>Finish and restart</li>
 </ol>
-
-A second (not recommended) choice is \em LunarEclispe 
+</li>
+<li>(not recommended) \em LunarEclipse 
 (http://lunareclipse.sourceforge.net/update.html)
-
+</li>
+</ul>
 <hr>
 \section secInstallEclipseSyntaxDoxygen Syntax Highlighting for Doxygen
 
