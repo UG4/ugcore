@@ -201,7 +201,7 @@ inline bool CRSSparseMatrix<T>::is_isolated(size_t i) const
 template<typename T>
 void CRSSparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 {
-	PROFILE_BEGIN_GROUP(CRSSparseMatrix_set_matrix_row, "algebra CRSSparseMatrix");
+	//PROFILE_BEGIN_GROUP(CRSSparseMatrix_set_matrix_row, "algebra CRSSparseMatrix");
 	for(size_t i=0; i<nr; i++)
 		operator()(row, c[i].iIndex) = c[i].dValue;
 }
@@ -209,7 +209,7 @@ void CRSSparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 template<typename T>
 void CRSSparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 {
-	PROFILE_BEGIN_GROUP(CRSSparseMatrix_add_matrix_row, "algebra CRSSparseMatrix");
+	//PROFILE_BEGIN_GROUP(CRSSparseMatrix_add_matrix_row, "algebra CRSSparseMatrix");
 	for(size_t i=0; i<nr; i++)
 		operator()(row, c[i].iIndex) += c[i].dValue;
 }
