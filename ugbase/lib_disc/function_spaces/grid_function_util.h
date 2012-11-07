@@ -314,7 +314,10 @@ public:
 				UG_THROW("DebugWriter: Cannot find grid level");
 			}
 
-			WriteMatrixToConnectionViewer(name, mat, vFinePos, vCoarsePos, dim);
+			if(mat.num_cols() == vFinePos.size())
+				WriteMatrixToConnectionViewer(name, mat, vFinePos, vCoarsePos, dim);
+			else
+				WriteMatrixToConnectionViewer(name, mat, vCoarsePos, vFinePos, dim);
 		}
 	}
 
