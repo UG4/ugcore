@@ -474,7 +474,7 @@ bool FaceAreaRegular(ISelector& sel, TAAPosVRT& aaPos)
 		return false;
 	}
 
-	const GeometricObjectCollection& goc = sel.get_geometric_objects();
+	GeometricObjectCollection goc = sel.get_geometric_objects();
 
 	// check if there are constrained geometric objects -> non-regular
 	if (goc.num<ConstrainedVertex>() >= 1) return false;

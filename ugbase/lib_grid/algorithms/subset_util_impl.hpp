@@ -464,7 +464,7 @@ number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos)
 template <class TAAPosVRT>
 bool FaceAreaRegular(ISubsetHandler& sh, int si, TAAPosVRT& aaPos)
 {
-	const GeometricObjectCollection& goc = sh.get_geometric_objects_in_subset(si);
+	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(si);
 
 	// check if there are constrained geometric objects -> non-regular
 	if (goc.num<ConstrainedVertex>(si) >= 1) return false;
