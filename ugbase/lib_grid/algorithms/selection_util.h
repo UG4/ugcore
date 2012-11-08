@@ -428,11 +428,26 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
  * \param sel: Selector
  * \param aaPos: Position attachment
  *
- * \return \c area sum of convex faces
+ * \return \c number area sum of convex faces
  */
 template <class TAAPosVRT>
 UG_API
 number FaceArea(ISelector& sel, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+//	FaceAreaRegular
+/**
+ * Returns true if the given selection of convex faces is regular.
+ *
+ * \param sel: Selector
+ * \param aaPos: Position attachment
+ *
+ * \return \c bool
+ */
+template <class TAAPosVRT>
+UG_API
+bool FaceAreaRegular(ISelector& sel, TAAPosVRT& aaPos);
+
 
 /**@}*/ // end of doxygen defgroup command
 }// end of namespace

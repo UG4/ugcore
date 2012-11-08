@@ -22,6 +22,7 @@
 #include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
 
 #include "lib_grid/algorithms/subset_util.h"
+#include "lib_grid/algorithms/selection_util.h"
 
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/load_balancing.h"
@@ -159,7 +160,7 @@ static number FaceArea(TDomain& dom, int si, size_t lvl)
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
 
-return FaceArea(*dom.subset_handler(), si, lvl, aaPos);
+	return FaceArea(*dom.subset_handler(), si, lvl, aaPos);
 }
 
 /**
@@ -199,6 +200,22 @@ static number FaceArea(TDomain& dom, ISelector& sel)
 
 	return FaceArea(sel, aaPos);
 }
+
+/**
+ * Return true if the given selected convex faces form a regular mesh
+ *
+ * \param dom domain
+ * \param sel selector
+ *
+ * \return \c bool
+ */
+template <typename TDomain>
+static bool FaceAreaRegular(TDomain& dom, ISelector& sel)
+{
+	UG_ASSERT(TDomain::position_type::Size <= 3, "too many coordinates.");
+	return FaceAreaRegular(sel, dom.position_accessor());
+}
+
 
 namespace bridge{
 namespace Domain{
@@ -294,6 +311,10 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int, size_t)>(&FaceArea<TDomain>), "Area sum#Domaim#Subset index#Grid level", grp);
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int)>(&FaceArea<TDomain>), "Area sum#Domain#Subset index", grp);
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISelector&)>(&FaceArea<TDomain>), "Area sum#Domain#Selector", grp);
+
+
+//  calculate if area convered by faces given by ISelector forms a regular mesh
+	reg.add_function("FaceAreaRegular", static_cast<bool (*)(TDomain&, ISelector&)>(&FaceAreaRegular<TDomain>), "isRegular#Domain#Selector", grp);
 
 
 //	debugging

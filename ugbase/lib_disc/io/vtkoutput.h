@@ -351,6 +351,24 @@ class VTKOutput
 	///	prints the domain to file
 		static void print(const char* filename, Domain<TDim>& domain);
 
+		/**
+		 * Set the write interval.
+		 *
+		 * \param WriteInterval the write interval which is set to m_iWriteInterval
+		 */
+		inline void set_write_interval(size_t WriteInterval) {
+			m_iWriteInterval = WriteInterval;
+		}
+
+		/**
+		 * Get the write interval.
+		 *
+		 * \return \c size_t the write interval m_iWriteInterval (default: 1)
+		 */
+		inline size_t get_write_interval() const {
+			return m_iWriteInterval;
+		}
+
 	/**
 	 * This function writes the subset si of the grid (or the whole grid if
 	 * si < 0) to the file "filename.vtu".
@@ -723,7 +741,8 @@ class VTKOutput
 
 	public:
 	///	default constructor
-		VTKOutput()	: m_bSelectAll(true) {}
+		VTKOutput() : m_bSelectAll(true), m_iWriteInterval(1) {}
+		VTKOutput(size_t WriteInterval)	: m_bSelectAll(true), m_iWriteInterval(WriteInterval) {}
 
 	protected:
 	///	returns true if name for vtk-component is already used
@@ -745,6 +764,9 @@ class VTKOutput
 
 	///	map storing the time points
 		std::map<std::string, std::vector<number> > m_mTimestep;
+
+	private:
+		size_t m_iWriteInterval;
 };
 
 

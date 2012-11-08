@@ -141,6 +141,13 @@ UG_API
 number FaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
+//  FaceAreaRegular
+///	Returns a boolean depending on wether the given FaceArea is a regular grid
+template <class TIterator, class TAAPosVRT>
+UG_API
+bool FaceAreaRegular(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
 ///	Returns the face with the smallest area
 /**
  * Make sure that TIterator::value_type equals Face* and that aaPos operates

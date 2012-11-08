@@ -44,47 +44,50 @@ print(const char* filename, TFunction& u, int step, number time, bool makeConsis
 		if(!u.change_storage_type(PST_CONSISTENT))
 			UG_THROW("VTK::print: Cannot change storage type to consistent.");
 #endif
+	// write an output file for every m_iWriteInterval-th step
+    if ( (step % this->m_iWriteInterval) != 0) {
 
-//	check functions
-	bool bEverywhere = true;
-	for(size_t fct = 0; fct < u.num_fct(); ++fct)
-	{
-	//	check if function is defined everywhere
-		if(!u.is_def_everywhere(fct))
-			bEverywhere = false;
-	}
-
-//	in case that all functions are defined everywhere, we write the grid as
-//	a whole. If not, we must write each subset separately and group the files
-//	later using a *.pvd file.
-	if(bEverywhere)
-	{
-	//	si == -1 indicates whole grid
-		int si = -1;
-
-	//	write whole grid to a single file
-		try{
-			print_subset(filename, u, si, step, time, makeConsistent);
-		}
-		UG_CATCH_THROW("VTK::print: Can not write grid.");
-	}
-	else
-	{
-		// 	loop subsets
-		for(int si = 0; si < u.num_subsets(); ++si)
+	//	check functions
+		bool bEverywhere = true;
+		for(size_t fct = 0; fct < u.num_fct(); ++fct)
 		{
-		//	write each subset to a single file
+		//	check if function is defined everywhere
+			if(!u.is_def_everywhere(fct))
+				bEverywhere = false;
+		}
+
+	//	in case that all functions are defined everywhere, we write the grid as
+	//	a whole. If not, we must write each subset separately and group the files
+	//	later using a *.pvd file.
+		if(bEverywhere)
+		{
+		//	si == -1 indicates whole grid
+			int si = -1;
+
+		//	write whole grid to a single file
 			try{
 				print_subset(filename, u, si, step, time, makeConsistent);
 			}
-			UG_CATCH_THROW("VTK::print: Can not write Subset "<< si << ".");
+			UG_CATCH_THROW("VTK::print: Can not write grid.");
 		}
+		else
+		{
+			// 	loop subsets
+			for(int si = 0; si < u.num_subsets(); ++si)
+			{
+			//	write each subset to a single file
+				try{
+					print_subset(filename, u, si, step, time, makeConsistent);
+				}
+				UG_CATCH_THROW("VTK::print: Can not write Subset "<< si << ".");
+			}
 
-		//	write grouping pvd file
-		try{
-			write_subset_pvd(u.num_subsets(), filename, step, time);
+			//	write grouping pvd file
+			try{
+				write_subset_pvd(u.num_subsets(), filename, step, time);
+			}
+			UG_CATCH_THROW("VTK::print: Can not write pvd file.");
 		}
-		UG_CATCH_THROW("VTK::print: Can not write pvd file.");
 	}
 }
 
