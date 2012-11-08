@@ -356,7 +356,7 @@ class VTKOutput
 		 *
 		 * \param WriteInterval the write interval which is set to m_iWriteInterval
 		 */
-		void set_write_interval(size_t WriteInterval) {
+		inline void set_write_interval(size_t WriteInterval) {
 			m_iWriteInterval = WriteInterval;
 		}
 
@@ -365,7 +365,7 @@ class VTKOutput
 		 *
 		 * \return \c size_t the write interval m_iWriteInterval (default: 1)
 		 */
-		size_t get_write_interval() const {
+		inline size_t get_write_interval() const {
 			return m_iWriteInterval;
 		}
 

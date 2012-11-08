@@ -81,8 +81,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, int, number, bool)>(&T::print))
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, int, number)>(&T::print))
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, bool)>(&T::print))
-			.add_method("print", static_cast<void (T::*)(const char*, function_type&)>(&T::print))
-			.add_method("get_write_interval", static_cast<size_t (T::*)() const>(&T::get_write_interval));
+			.add_method("print", static_cast<void (T::*)(const char*, function_type&)>(&T::print));
 
 		// TODO: registering the below will fail:
 		/*	.add_method("set_write_interval", static_cast<void (T::*)(size_t)>(&T::set_write_interval), "", "write interval", grp)
