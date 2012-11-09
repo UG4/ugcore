@@ -480,20 +480,6 @@ template <class TAAPosVRT>
 UG_API
 number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos);
 
-////////////////////////////////////////////////////////////////////////
-//  FaceAreaRegular
-///	Returns true if the given subset of convex faces is regular.
-/**
- * \param sh subset handler
- * \param si subset index
- * \param aaPos position attachment
- *
- * \return \c bool
- */
-template <class TAAPosVRT>
-UG_API
-number FaceAreaRegular(ISubsetHandler& sh, int si, TAAPosVRT& aaPos);
-
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 

@@ -465,34 +465,6 @@ number FaceArea(ISelector& sel, TAAPosVRT& aaPos)
 	return sum;
 }
 
-template <class TAAPosVRT>
-UG_API
-bool FaceAreaRegular(ISelector& sel, TAAPosVRT& aaPos)
-{
-	if (!sel.grid()) {
-		UG_WARNING("A grid has to be associated with the selector!");
-		return false;
-	}
-
-	GeometricObjectCollection goc = sel.get_geometric_objects();
-
-	// check if there are constrained geometric objects -> non-regular
-	if (goc.num<ConstrainedVertex>() >= 1) return false;
-	if (goc.num<ConstrainedEdge>() >= 1) return false;
-	if (goc.num<ConstrainedTriangle>() >= 1) return false;
-	if (goc.num<ConstrainedQuadrilateral>() >= 1) return false;
-
-	// check is there are constraining geometric objects -> non-regular
-	if (goc.num<ConstrainingEdge>() >= 1) return false;
-	if (goc.num<ConstrainingTriangle>() >= 1) return false;
-	if (goc.num<ConstrainingQuadrilateral>() >= 1) return false;
-
-	// otherwise -> regular
-	return true;
-}
-
-
-
 }// end of namespace
 
 #endif

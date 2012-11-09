@@ -460,29 +460,6 @@ number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos)
 	return sum;
 }
 
-////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
-bool FaceAreaRegular(ISubsetHandler& sh, int si, TAAPosVRT& aaPos)
-{
-	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(si);
-
-	// check if there are constrained geometric objects -> non-regular
-	if (goc.num<ConstrainedVertex>(si) >= 1) return false;
-	if (goc.num<ConstrainedEdge>(si) >= 1) return false;
-	if (goc.num<ConstrainedTriangle>(si) >= 1) return false;
-	if (goc.num<ConstrainedQuadrilateral>(si) >= 1) return false;
-
-	// check is there are constraining geometric objects -> non-regular
-	if (goc.num<ConstrainingEdge>(si) >= 1) return false;
-	if (goc.num<ConstrainingTriangle>(si) >= 1) return false;
-	if (goc.num<ConstrainingQuadrilateral>(si) >= 1) return false;
-
-	// otherwise -> regular
-	return true;
-}
-
-
-
 }//	end of namespace
 
 #endif

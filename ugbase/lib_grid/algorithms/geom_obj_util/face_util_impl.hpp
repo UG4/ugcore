@@ -318,18 +318,6 @@ number FaceArea(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
 
 ////////////////////////////////////////////////////////////////////////
 template <class TIterator, class TAAPosVRT>
-bool FaceAreaRegular(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
-{
-	for (; facesBegin != facesEnd; ++facesBegin)
-		if (*facesBegin->is_constrained() || *facesBegin->is_constraining())
-			return false;
-
-	return true;
-}
-
-
-////////////////////////////////////////////////////////////////////////
-template <class TIterator, class TAAPosVRT>
 Face* FindSmallestFace(TIterator facesBegin, TIterator facesEnd, TAAPosVRT& aaPos)
 {
 	//	if facesBegin equals facesEnd, then the list is empty and we can
