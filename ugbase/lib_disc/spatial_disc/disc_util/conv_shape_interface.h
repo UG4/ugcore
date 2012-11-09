@@ -26,10 +26,11 @@ namespace ug{
  * In the case of d3f for example, one is interested in the evaluation of
  * the convective flux at an integration point
  *
- * conv_flux_{ip} := (\omega \vec{q} \cdot \vec{n})|_{ip}
+ * \f[ conv_flux_{ip} := (\omega \vec{q} \cdot \vec{n})|_{ip} \f]
  *
  * In order to do so, the flux is interpolated by shape functions as:
- * conv_flux_{ip} := \sum_{sh=1}^{n_sh} \phi_{sh}^{conv}|_{ip} \cdot \omega_{sh}
+ * 
+ * \f[ conv_flux_{ip} := \sum_{sh=1}^{n_sh} \phi_{sh}^{conv}|_{ip} \cdot \omega_{sh} \f]
  *
  * The computation of the convective flux does not only depend on the geometry
  * but does also depend on the convection velocity and the Diffusion-Dispersion-

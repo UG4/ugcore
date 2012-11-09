@@ -54,7 +54,7 @@ openmpirun -np 4 ugshell $UGARGS -numPPSD 1 -numRefs 5 -logtofile bla -rlf # wit
 salloc -n  4 mpirun ./ugshell $UGARGS -numPPSD 1 -numRefs 5
 \endverbatim
 !]]--
---[[
+--[[!
 # JuGene:
 #########
 # Interactive - Job lief jedoch nicht mehr (01092011):

@@ -538,7 +538,7 @@ int BinomCoeff(int n, int k);
 ///	reflects a vector at a plane
 /**
  * This method reflects a given vector at a plane specified by n and r0, i.e.
- * the plane P is given such that for all \$f\vec{x} in P\$f it holds that
+ * the plane P is given such that for all \f$ \vec{x} in P \f$ it holds that
  * \f[
  * 	(\vec{x}Ê- \vec{r0}) \cdot \vec{n} = 0.
  * \f]

@@ -107,7 +107,7 @@ std::string getExceptionMessageString(JNIEnv* env, jthrowable ex);
  * @param env JVM environment
  * @param msg custom error message (shown if exception occurs)
  * @param throwCPPException defines whether to throw a C++ exception (default true)
- * @return <code>true</code> if no exception has occured; <code>false> otherwise
+ * @return <code>true</code> if no exception has occured; <code>false</code> otherwise
  */
 bool checkException(JNIEnv* env, std::string msg = "", bool throwCPPException = true);
 

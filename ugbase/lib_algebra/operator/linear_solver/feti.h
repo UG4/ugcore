@@ -478,7 +478,7 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
 /// 'ComputeDifferenceOnDeltaTransposed()': Apply \f$B_{\Delta}^T\f$
 /**
  * This function applies \f$B_{\Delta}^T\f$ to a difference vector \f$d\f$,
- * (lying in the same space as $\lambda$).
+ * (lying in the same space as \f$\lambda\f$).
  * \f$d\f$ is supposed to be stored consistently.
  *
  * For the application of \f$B_{\Delta}\f$ and the chosen scaling factors see
@@ -516,8 +516,8 @@ void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& diff,
  * The underlying matrix must have at least two layouts. The first layout, layout level 0,
  * will be used to describe subdomain *internal* interfaces (i.e. "pure" processor interfaces),
  * all other layouts are used to identify the boundary,
- * layout level 1: \Delta (edges of subdomains),
- * layout level 2: \Pi (vertices of subdomains, a.k.a. "cross points") - will be constructed here,
+ * layout level 1: \f$ \Delta \f$ (edges of subdomains),
+ * layout level 2: \f$ \Pi \f$ (vertices of subdomains, a.k.a. "cross points") - will be constructed here,
  * and the Schur complement is build w.r.t. to these variables.
  */
 template <typename TAlgebra>
@@ -916,13 +916,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 			return true;
 		}
 
-	///	function which applies matrix \f$M^{-1}^{(i)}\f$ to a vector \f$r
+	///	function which applies matrix \f$ M^{-1}^{(i)} \f$ to a vector \f$ r \f$
 	/**
 	 * This function applies matrix \f$M^{-1}^{(i)} := D_{\Delta}^{(i)} B_{\Delta}^{(i)} S_{\Delta}^{(i)} {B_{\Delta}^{(i)}}^T D_{\Delta}^{(i)}\f$
 	 * to a vector \f$r\f$.
 	 *
 	 * \param[in]		r				vector \f$r\f$ living on "Dual layout"
-	 * \param[out]		z				result of application of \f$$M^{-1}\f$
+	 * \param[out]		z				result of application of \f$ M^{-1} \f$
 	 */
 		bool apply_M_inverse(vector_type& z, const vector_type& r);
 

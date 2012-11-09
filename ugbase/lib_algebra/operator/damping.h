@@ -15,13 +15,16 @@ namespace ug{
 
 /**
  * Base class for damping of correction in iterative schemes. An iteration for the
- * solution of a matrix problem A*x = b is given, for example, by
- * 			x = x + c,
- * where c = B*d is some proposed correction.
+ * solution of a matrix problem \f$ A*x = b \f$ is given, for example, by
+ * 
+ * \f[ x = x + c, \f]
+ * 
+ * where \f$ c = B*d \f$ is some proposed correction.
  *
- * The damping class now computes a damping factor \kappa, that is used to
+ * The damping class now computes a damping factor \f$ \kappa \f$, that is used to
  * damp the correction, i.e.,
- * 			x = x + \kappa c.
+ * 
+ * \f[ x = x + \kappa c. \f]
  *
  * In general, the damping may depend on the correction, the (old) defect and
  * the operator A itself.

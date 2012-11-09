@@ -280,7 +280,7 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	Destructor
 		virtual ~ILU(){}
 
-	///	set factor for ILU_{\beta}
+	///	set factor for \f$ ILU_{\beta} \f$
 		void set_beta(double beta) {m_beta = beta;}
 
 	protected:
