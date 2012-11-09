@@ -1,0 +1,8 @@
+/** \page pageUG4CppIntroduction Introduction for C++ Programmers
+
+This page intends to give a starting point for people who want to work with ug4's
+source code. It introduces some of the most important classes and concepts and
+provides links to further documentation.
+
+\ref pageUG4CppIntroduction_Domain shows how ug handles the grid representing a physical model domain.
+*/

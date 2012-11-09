@@ -1,0 +1,95 @@
+/** \page pageUG4CppIntroduction_Domain Introduction to ug4's Domain class
+
+The ug::Domain class holds a grid (ug::MultiGrid), which stores the elements on which
+discretization is performed, a SubsetHandler (ug::MGSubsetHandler), which stores a
+partition of the grid into different subsets, and holds a position attachment,
+which provides coordinates in the vertices of the grid. The domain class is defined
+in ugbase/lib_disc/domain.h
+
+\ref pageLGOverview gives more information on the ug::MultiGrid and related classes.
+
+The domain class is actually a template class, depending on the space-dimension
+and the grid type. While the grid-type for now is fixed to ug::MultiGrid (supports
+adaptivity, mixed element types, parallelization, ...), the dimension is used
+to define the number of coordinates, that the grid's position attachment carries.
+
+A \em Domain defines a couple of types:
+- \em grid_type:	The type of grid on which the domain operates. For now ug::MultiGrid.
+- \em subset_handler_type:	The type of the subset handler which partitions the grid.
+							Currently ug::MGSubsetHandler.
+- \em position_type:	The class which represents vertex-coordinates. This is
+						ug::MathVector<dim>.
+- \em position_attachment_type:	The attachment, which associates the coordinates
+								with the vertices of the grid. This is
+								ug::Attachment<position_type> (== Attachment<MathVector<dim> >)
+- \em positin_accessor_type:	The type of the attachment accessor, with which one
+								can access the coordinates of vertices. This is
+								ug::Grid::VertexAttachmentAccessor<position_attachment_type>.
+
+Furthermore the \em Domain defines the constant \em dim, which simply equals
+the dimension template argument of the domain.
+
+<br>
+Methods which operate on a domain are template methods, most of which simply
+take a template parameter TDomain. In the following we'll develop a simple method
+\em CalculateDomainCenter to demonstrate how the domain class can be used. Note
+that center in this example simply means the average of all vertex positions:
+
+\code
+	namespace ug{
+	
+	template <class TDomain>
+	typename TDomain::position_type
+	CalculateDomainCenter(TDomain& dom)
+	{
+	//	...
+	}
+	
+	}// end of namespace
+\endcode
+
+The method returns a ug::MathVector<1>, ug::MathVector<2>, or ug::MathVector<3>
+(ug::vector1, ug::vector2, or ug::vector3) depending on the domains dimension.
+
+We'll iterate over all vertices of the grid and average their coordinates.
+For this we'll first retrieve the domain's grid and the domain's position
+accessor. We'll then access the vertices in the grid through iterators and
+sum their corrdinates. When this is done, we'll divide the sum through the
+number of grid-vertices to retrieve the center.
+
+\code
+	typename TDomain::grid_type& grid = dom.grid();
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	typename TDomain::position_type center;
+	
+	VecSet(center, 0);
+	
+	if(grid.num<VertexBase>() == 0)
+		return center;
+		
+	for(VertexBaseIterator iter = grid.begin<VertexBase>();
+		iter != grid.end<VertexBase>(); ++iter)
+	{
+		VertexBase* vrt = *iter;
+		VecAdd(center, center, aaPos[vrt]);
+	}
+	
+	VecScale(center, center, 1. / (number)grid.num<VertexBase>());
+	return center;
+\endcode
+
+ug::VecSet, ug::VecAdd and ug::VecScale are thereby methods to perform basic vec-math operations.
+Their first argument is always the target-value, where the result shall be stored.
+They are defined in ugbase/common/math/math_vector_matrix/math_vector_functions.h
+
+aaPos[vrt] returns a TDomain::position_type (vector1, vector2 or vector3)
+
+number is ug4's floating point type and either float (single precision) or double
+(double precision). The floating-point type can be set through a cmake parameter.
+The default is double precision.
+
+
+\ref pageLGOverview gives more information on how to access elements of grids and
+on the different element types them selves.
+
+*/

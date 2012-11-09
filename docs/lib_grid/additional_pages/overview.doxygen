@@ -2,18 +2,15 @@
 //	s.b.reiter@googlemail.com
 //	y09 m09 d14
 
-/** \page pageLGOverview Overview
+/** \page pageLGOverview libGrid - Overview
 
 - \ref secGrid "Grid"
 - \ref secGeomObjs "Geometric Objects"
 - \ref secObjectCreation "Object Creation"
 - \ref secObjectIteration "Object Iteration"
 - \ref secAttachments "Attachments"
+- \ref secNeighborhood "Neighborhood"
 - \ref secTools "Tools"
-- \ref secUtil "Util"
-- \ref secAlgorithms "Algorithms"
-- \ref secFileIO "FileIO"
-
 <br>
 <hr>
 \section secGrid Grid
@@ -45,6 +42,18 @@ For hanging-node support the following objects are introduced:
 	- ug::ConstrainedVertex
 	- ug::ConstrainingEdge. ug::ConstrainingEdge
 	- ug::ConstrainingTriangle, ug::ConstrainingQuadrilateral, ug::ConstrainedTriangle, ug::ConstrainedQuadrilateral
+	
+All geometric objects deriving from EdgeBase, Face or Volume feature methods to
+access the vertices of an element:
+	- ug::Face::num_vertices (the number of vertices / corners of the geometric object)
+	- ug::Face::vertex (returns the i-th vertex of the geometric object)
+	- ug::Face::vertices (returns a list of all vertices of the geometric object)
+
+Furthermore they define methods like
+	- ug::Face::num_sides (tells how many sides the given face has)
+
+Please check the documentation of the different base types.
+
 
 <br>
 <hr>
@@ -55,14 +64,14 @@ Since the Grid class only knows about the basic geometric objects,
 ug::Grid::create<TGeomObj> is a template method, that takes the type
 of the geometric object that is to be created as template argument:
 \code
-using namespace ug;
+using namespace ug;(
 ...
 Grid g;
-/* create vertices */
+// create vertices 
 Vertex* v1 = *g.create<Vertex>();
 Vertex* v2 = *g.create<Vertex>();
 
-/* create an edge */
+// create an edge 
 g.create<Edge>(EdgeDescriptor(v1, v2));
 \endcode
 
@@ -92,8 +101,8 @@ ug::Grid::begin and ug::Grid::end. Both methods are template methods. The templa
 specifies the type of geometric-object over which you want to iterate.
 
 \code
-/* Let g be a grid that already contains some geometric objects */
-/* iterate over all vertices */
+// Let g be a grid that already contains some geometric objects 
+// iterate over all vertices 
 for(VertexBaseIterator iter = g.begin<VertexBase>();
 	iter != g.end<VertexBase>(); ++iter)
 {
@@ -101,7 +110,7 @@ for(VertexBaseIterator iter = g.begin<VertexBase>();
 	...
 }
 
-/* iterate over all faces */
+// iterate over all faces 
 for(FaceIterator iter = g.begin<Face>();
 	iter != g.end<Face>(); ++iter)
 {
@@ -109,7 +118,7 @@ for(FaceIterator iter = g.begin<Face>();
 	...
 }
 
-/* iterate over all triangles */
+// iterate over all triangles 
 for(TriangleIterator iter = g.begin<Triangle>();
 	iter != g.end<Triangle>(); ++iter)
 {
@@ -125,7 +134,7 @@ using namespace ug;
 Grid g;
 SubsetHandler sh(g);	// short for GridSubsetHandler
 ...
-/* iterate over all triangles in subset 0 */
+// iterate over all triangles in subset 0 
 for(TriangleIterator iter = sh.begin<Triangle>(0);
 	iter != sh.end<Triangle>(0); ++iter)
 {
@@ -177,13 +186,13 @@ ug::Face, ug::Volume).
 
 Lets say we wanted to associate an integer with each vertex in a grid g. This could be done as follows:
 \code
-/* we define the attachment type */ 
+// we define the attachment type  
 typedef Attachment<int> AInt;
 
-/* The instance of the attachment-type serves as identifier for the attachment. */
+// The instance of the attachment-type serves as identifier for the attachment. 
 AInt aInt;
 
-/* Let g be an instance of ug::Grid or ug::MultiGrid*/
+// Let g be an instance of ug::Grid or ug::MultiGrid
 g.attach_to_vertices(aInt);
 \endcode
 
@@ -193,11 +202,11 @@ associated with the vertices. If you add or remove vertices, the memory is adjus
 To access the integer-value that is associated with each vertex, an attachment-accessor is required:
 
 \code
-/* a vertex-attachment-accessor for attachments of type AInt */
-/* We want it to operate on the Grid g and on the attachment aInt */ 
+// a vertex-attachment-accessor for attachments of type AInt 
+// We want it to operate on the Grid g and on the attachment aInt  
 Grid::VertexAttachmentAccessor<AInt> aaInt(g, aInt);
 
-/* iterate over all vertices of the grid and assign 12 to the attached integer-value */
+// iterate over all vertices of the grid and assign 12 to the attached integer-value 
 for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
 	aaInt[*iter] = 12;
 \endcode
@@ -211,17 +220,83 @@ Data can be attached to elements of a subset of an ug::GridSubsetHandler or ug::
 ...
 SubsetHandler sh(g);
 ...
-/* attach the integers to all faces in subset 2 */
+// attach the integers to all faces in subset 2 
 sh.attach_to_faces(aInt, 2);
 
-/* access the attachment */
+// access the attachment 
 SubsetHandler::AttachmentAccessor<Face, AInt> aaIntSH2(sh, aInt, 2);
 
-/* Assign values: */
-/* Please note that you may only pass faces to the accessor that are contained in subset 2. */
+// Assign values: 
+// Please note that you may only pass faces to the accessor that are contained in subset 2. 
 for(FaceIterator iter = sh.faces_begin(2); iter != sh.faces_end(2); ++iter)
 	aaIntSH2[*iter] = 17;
 \endcode
+
+<br>
+<hr>
+\section secNeighborhood Neighborhood
+<hr>
+Given a geometric object, there are several methods to access neighbor elements
+in a grid. The most powerful methods in this context is the method
+ug::Grid::associated_elements. It can be used with any combination of
+geometric base objects. E.g., it can be used to retrieve all faces which are
+connected to an edge or all faces, which are connected to a volume element.
+Here is an example, where we retrieve a container with all edges, which are
+connected to a volume element:
+
+\code
+//	Let vol be of type Volume* (or of any derived type) and grid of type Grid&
+//	declare a container in which we'll collect all associated edges of vol
+Grid::edge_traits::secure_container edges;
+
+grid.associated_elements(edges, vol);
+
+//	one could now iterate over the received edges
+for(size_t i = 0; i < edges.size(); ++i){
+	EdgeBase* e = edges[i];
+	//...
+}
+\endcode
+
+The code works for all combinations of VertexBase, EdgeBase, Face and Volume.
+Note however, that the method does not guarantee, that the order of the elements
+in the returned container is the same as the order of the reference element, e.g.,
+when collecting sides of a volume. Since some methods rely on the order, a second
+method exist, which guarantees that the order matches reference elements order:
+ug::Grid::associated_elements_sorted. The method can basically be used as 
+associated_elements, but has the restriction, that the dimension of the elements
+in the returned container has to be lower than the dimension of the element in
+the second argument. Otherwise no order could be defined. Furthermore
+ug::Grid::associated_elements_sorted may be a little slower than 
+ug::Grid::associated_elements. The latter should thus be preferred, if the order
+is not important. 
+
+While those two methods allow to completely access all neighbors in a grid
+(possibly with a little work),
+some conveniance methods exist to, e.g., to retrieve a single side of an element or
+to retrieve all neighbors of the same geometric object type
+(e.g. all faces which are adjacent to a given face). All related methods are listed below.
+
+The main methods to access associated elements, as explained above.
+Note that while those methods can be used to retrieve the vertices of, e.g., a Face,
+the direct way through Face::vertex or Face::vertices should be preferred if possible.
+- ug::Grid::associated_elements
+- ug::Grid::associated_elements_sorted
+ 
+Returns the geometric object given a couple of vertices
+- ug::Grid::get_edge
+- ug::Grid::get_face
+- ug::Grid::get_volume
+- ug::Grid::get_element
+
+Returns the i-th side of a geometric object (use e.g. Face::num_sides to retrieve
+the number of sides of that object).
+- ug::Grid::get_side
+
+Furthermore methods exist to collect, e.g., all faces which are adjacent to a given face
+(same for vertices, edges and volumes):
+- ug::CollectNeighbors
+
 
 <br>
 <hr>
@@ -232,22 +307,5 @@ the Selector and the SubsetHandler.
 	- ug::Selector
 	- ug::GridSubsetHandler, ug::MultiGridSubsetHandler
 
-<br>
-<hr>
-\section secUtil Util
-<hr>
-...
-
-<br>
-<hr>
-\section secAlgorithms Algorithms
-<hr>
-...
-
-<br>
-<hr>
-\section secFileIO FileIO
-<hr>
-...
 
 */

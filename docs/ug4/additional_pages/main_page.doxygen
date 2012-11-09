@@ -53,6 +53,7 @@ environment
 	- \ref pageLuaScript	
 
 - \subpage pageUG4Development
+	- \ref pageUG4CppIntroduction
 	- Central modules of ugbase
 		- \ref pageLAOverview
 		- \ref pageLDIntroduction
