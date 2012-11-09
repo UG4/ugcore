@@ -376,8 +376,7 @@ template <class TGeomBaseObj>
 bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 							 	  	  MultiGrid& mg, int numParts, size_t level)
 {
-	if(mg.num<TGeomBaseObj>() == 0)
-		return true;
+	UG_DLOG(LIB_GRID, 1, "start - PartitionMultiGridLevel_ParmetisKway\n");
 
 #if defined UG_PARMETIS && defined UG_PARALLEL
 	typedef TGeomBaseObj	TElem;
@@ -385,16 +384,25 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 
 	int rootProc = pcl::GetProcRank();
 
-	if(numParts > 1){
+//	first we'll create a communicator for all processes which take part in the
+//	parallel graph generation
+	bool participate = (numParts > 0) && (mg.num<TGeomBaseObj>() != 0);
+
+	pcl::ProcessCommunicator globProcCom;
+	pcl::ProcessCommunicator procCom = globProcCom.create_sub_communicator(participate);
+
+	if(participate){
 	//	here we'll store the dual graph
 		vector<idx_t> adjacencyMapStructure;
 		vector<idx_t> adjacencyMap;
 		vector<idx_t> nodeOffsetMap;
 
-		pcl::ProcessCommunicator procCom;
-		ConstructDualGraphMGLevel<TElem, idx_t>(adjacencyMapStructure,
+		ConstructParallelDualGraphMGLevel<TElem, idx_t>(adjacencyMapStructure,
 												adjacencyMap, nodeOffsetMap,
-												mg, level);
+												mg, level, procCom);
+
+		UG_DLOG(LIB_GRID, 2, "  parallel dual graph #vrts: " << adjacencyMapStructure.size()
+							<< ", #edges: " << adjacencyMap.size() / 2 << "\n");
 
 	//	partition the graph using parmetis
 		idx_t options[3]; options[0] = 0;//default values
@@ -404,7 +412,8 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 		idx_t wgtFlag = 2;//only vertices are weighted
 		idx_t numFlag = 0;
 		vector<idx_t> partitionMap(nVrts);
-
+		vector<real_t> tpwgts(numParts, 1. / (number)numParts);
+		real_t ubvec = 1.05;
 	//	create a weight map for the vertices based on the number of children+1
 	//	for each graph-vertex. This is not necessary, if we're already on the top level
 		idx_t* pVrtSizeMap = NULL;
@@ -427,7 +436,7 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 											&adjacencyMap.front(),
 											pVrtSizeMap, NULL, &wgtFlag,
 											&numFlag, &nConstraints,
-											&numParts, NULL, NULL, options,
+											&numParts, &tpwgts.front(), &ubvec, options,
 											&edgeCut, &partitionMap.front(),
 											&mpiCom);
 		UG_DLOG(LIB_GRID, 1, "PARMETIS DONE\n");
@@ -494,6 +503,8 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 										 mg.end<TGeomBaseObj>(lvl), rootProc);
 		}
 	}
+
+	UG_DLOG(LIB_GRID, 1, "stop - PartitionMultiGridLevel_ParmetisKway\n");
 	return true;
 #else
 	UG_LOG("WARNING in PartitionMultiGrid_MetisKway: METIS is not available in "
@@ -518,6 +529,13 @@ template bool PartitionMultiGridLevel_MetisKway<EdgeBase>(SubsetHandler&,
 template bool PartitionMultiGridLevel_MetisKway<Face>(SubsetHandler&,
 													MultiGrid&, int, size_t);
 template bool PartitionMultiGridLevel_MetisKway<Volume>(SubsetHandler&,
+													MultiGrid&, int, size_t);
+
+template bool PartitionMultiGridLevel_ParmetisKway<EdgeBase>(SubsetHandler&,
+													MultiGrid&, int, size_t);
+template bool PartitionMultiGridLevel_ParmetisKway<Face>(SubsetHandler&,
+													MultiGrid&, int, size_t);
+template bool PartitionMultiGridLevel_ParmetisKway<Volume>(SubsetHandler&,
 													MultiGrid&, int, size_t);
 
 }// end of namespace

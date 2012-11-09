@@ -57,11 +57,7 @@ grid_changed_callback(int, const GridMessage_Adaption* msg)
 		if(msg->adaptive()){
 			if(msg->adaption_ends())
 			{
-				update_local_subset_dim_property();
-				#ifdef UG_PARALLEL
-				update_local_multi_grid();
-				update_global_subset_dim_property();
-				#endif
+				update_domain_info();
 				m_adaptionIsActive = false;
 			}
 		}
@@ -95,6 +91,85 @@ update_local_multi_grid()
 	}
 }
 #endif
+
+
+template <typename TGrid, typename TSubsetHandler>
+void IDomain<TGrid,TSubsetHandler>::
+update_domain_info()
+{
+	TGrid& mg = *m_spGrid;
+	TSubsetHandler& sh = *m_spSH;
+
+	GeometricBaseObject	locElemType;
+	if(mg.template num<Volume>() > 0)
+		locElemType = VOLUME;
+	else if(mg.template num<Face>() > 0)
+		locElemType = FACE;
+	else if(mg.template num<EdgeBase>() > 0)
+		locElemType = EDGE;
+	else
+		locElemType = VERTEX;
+
+
+	update_local_subset_dim_property();
+
+	GeometricBaseObject	elemType;
+	#ifdef UG_PARALLEL
+		pcl::ProcessCommunicator commWorld;
+
+		update_local_multi_grid();
+		update_global_subset_dim_property();
+
+
+		elemType = (GeometricBaseObject) commWorld.allreduce((int)locElemType, PCL_RO_MAX);
+
+	#else
+		elemType = locElemType;
+	#endif
+
+//	the number of levels of the multi-grid and the number of subsets
+//	is now equal on all processes
+	std::vector<int>	locNumElemsOnLvl;
+	locNumElemsOnLvl.reserve(mg.num_levels());
+
+	switch(elemType){
+		case VOLUME:
+			for(size_t i = 0; i < mg.num_levels(); ++i)
+				locNumElemsOnLvl.push_back(mg.template num<Volume>(i));
+			break;
+		case FACE:
+			for(size_t i = 0; i < mg.num_levels(); ++i)
+				locNumElemsOnLvl.push_back(mg.template num<Face>(i));
+			break;
+		case EDGE:
+			for(size_t i = 0; i < mg.num_levels(); ++i)
+				locNumElemsOnLvl.push_back(mg.template num<EdgeBase>(i));
+			break;
+		case VERTEX:
+			for(size_t i = 0; i < mg.num_levels(); ++i)
+				locNumElemsOnLvl.push_back(mg.template num<VertexBase>(i));
+			break;
+		default:
+			UG_THROW("Unknown base object type");
+			break;
+	}
+
+	std::vector<int>	numElemsOnLvl;
+	#ifdef UG_PARALLEL
+		numElemsOnLvl.resize(locNumElemsOnLvl.size());
+		commWorld.allreduce(locNumElemsOnLvl, numElemsOnLvl, PCL_RO_SUM);
+	#else
+		numElemsOnLvl.swap(locNumElemsOnLvl);
+	#endif
+
+	std::vector<int>	subsetDims;
+	subsetDims.reserve(sh.num_subsets());
+	for(int i = 0; i < sh.num_subsets(); ++i)
+		subsetDims.push_back(sh.subset_info(i).get_property("dim").to_int());
+
+	m_domainInfo.set_info(elemType, numElemsOnLvl, subsetDims);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Domain

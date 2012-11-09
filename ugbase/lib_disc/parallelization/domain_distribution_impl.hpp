@@ -286,17 +286,61 @@ PartitionDomain_LevelBased(TDomain& domain, PartitionMap& partitionMap,
 	partitionMap.assign_grid(*pMG);
 	SubsetHandler& shPart = partitionMap.get_partition_handler();
 //	call the actual partitioning routine
-	if(pMG->num<Volume>() > 0)
-		PartitionMultiGridLevel_MetisKway<Volume>(shPart, *pMG, numPartitions, level);
+	switch(domain.domain_info().element_type()){
+		case VOLUME:
+			PartitionMultiGridLevel_MetisKway<Volume>(shPart, *pMG, numPartitions, level);
+			break;
 
-	else if(pMG->num<Face>() > 0)
-		PartitionMultiGridLevel_MetisKway<Face>(shPart, *pMG, numPartitions, level);
+		case FACE:
+			PartitionMultiGridLevel_MetisKway<Face>(shPart, *pMG, numPartitions, level);
+			break;
 
-	else if(pMG->num<EdgeBase>() > 0)
-		PartitionMultiGridLevel_MetisKway<EdgeBase>(shPart, *pMG, numPartitions, level);
+		case EDGE:
+			PartitionMultiGridLevel_MetisKway<EdgeBase>(shPart, *pMG, numPartitions, level);
+			break;
+
+		default:
+			UG_THROW("Partitioning only works for element types EDGE, FACE, and VOLUME!");
+			break;
+	}
 
 	return true;
 }
+
+
+template <typename TDomain>
+static bool
+PartitionDistributedDomain_LevelBased(TDomain& domain, PartitionMap& partitionMap,
+						  	   	   	   	   int numPartitions, size_t level)
+{
+	PROFILE_FUNC_GROUP("parallelization")
+	//	prepare the partition map
+	SmartPtr<MultiGrid> pMG = domain.grid();
+	partitionMap.assign_grid(*pMG);
+	SubsetHandler& shPart = partitionMap.get_partition_handler();
+
+//	call the actual partitioning routine
+	switch(domain.domain_info().element_type()){
+		case VOLUME:
+			PartitionMultiGridLevel_ParmetisKway<Volume>(shPart, *pMG, numPartitions, level);
+			break;
+
+		case FACE:
+			PartitionMultiGridLevel_ParmetisKway<Face>(shPart, *pMG, numPartitions, level);
+			break;
+
+		case EDGE:
+			PartitionMultiGridLevel_ParmetisKway<EdgeBase>(shPart, *pMG, numPartitions, level);
+			break;
+
+		default:
+			UG_THROW("Partitioning only works for element types EDGE, FACE, and VOLUME!");
+			break;
+	}
+
+	return true;
+}
+
 
 template <typename TDomain>
 static bool RedistributeDomain(TDomain& domainOut,

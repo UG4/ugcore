@@ -106,7 +106,7 @@ void ConstructParallelDualGraphMGLevel(
 		nodeOffsetMapOut[i] = numElemsTotal;
 		numElemsTotal += elemCounts[i];
 	}
-	nodeOffsetMapOut[nodeOffsetMapOut.size()] = numElemsTotal;
+	nodeOffsetMapOut[elemCounts.size()] = numElemsTotal;
 	localNodeOffset = nodeOffsetMapOut[procCom.get_local_proc_id()];
 
 //	init the adjacencyMapStructure

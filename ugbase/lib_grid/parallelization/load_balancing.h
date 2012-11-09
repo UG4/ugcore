@@ -126,6 +126,21 @@ template <class TGeomBaseObj>
 bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& mg, int numParts, size_t level);
 
+////////////////////////////////////////////////////////////////////////////////
+///	Partitions the elements in the multi-grid using the PARMETIS library
+/**	This method calls METIS_PartGraphKway. Note that PARMETIS is an external library
+ * developed at Karypis Labs (http://glaros.dtc.umn.edu/gkhome/)
+ *
+ * The method performs parallel load balancing for the elements in the given level. The
+ * elements are weighted according to the number of children each has.
+ * Child elements will then be recursively assigned to the partitions into which
+ * their parents have been assigned, starting from level+1.
+ * Elements below the specified level will be assigned to the local process id.
+ */
+template <class TGeomBaseObj>
+bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
+							 	  	  MultiGrid& mg, int numParts, size_t level);
+
 }//	end of namespace
 
 

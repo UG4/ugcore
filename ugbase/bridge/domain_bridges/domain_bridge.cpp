@@ -251,6 +251,7 @@ static void Domain(Registry& reg, string grp)
 //			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (TDomain::*)()>(&TDomain::subset_handler))
 //			.add_method("grid", static_cast<SmartPtr<MultiGrid> (TDomain::*)()>(&TDomain::grid))
 //			.add_method("get_dim", static_cast<int (TDomain::*)() const>(&TDomain::get_dim))
+			.add_method("empty", &TDomain::empty)
 			.set_construct_as_smart_pointer(true);
 
 		reg.add_class_to_group(name, "Domain", tag);
@@ -298,6 +299,9 @@ static void Domain(Registry& reg, string grp)
 
 	reg.add_function("PartitionDomain_LevelBased",
 					 &PartitionDomain_LevelBased<TDomain>, grp);
+
+	reg.add_function("PartitionDistributedDomain_LevelBased",
+					 &PartitionDistributedDomain_LevelBased<TDomain>, grp);
 
 	reg.add_function("RedistributeDomain",
 					 &RedistributeDomain<TDomain>, grp);

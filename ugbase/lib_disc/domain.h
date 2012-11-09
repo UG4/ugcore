@@ -27,7 +27,34 @@ namespace ug{
 /// \ingroup lib_disc_domain
 /// @{
 
-/// describes physical domain
+///	Describes the contents of a domain.
+/**	In a parallel environment those are the contents of the global distributed domain.
+*/
+class DomainInfo
+{
+	public:
+		inline GeometricBaseObject element_type()	const		{return m_elementType;}
+		inline size_t num_levels() const						{return m_numElemsOnLvl.size();}
+		inline int num_elements_on_level(size_t lvl) const	{return m_numElemsOnLvl[lvl];}
+
+		inline int num_subsets() const
+			{return (int)m_subsetDims.size();}
+		inline int subset_dim(int si) const
+			{return m_subsetDims[si];}
+
+		inline void set_info(GeometricBaseObject elemType,
+								const std::vector<int>& numElemsOnLvl,
+								const std::vector<int>& subsetDims)
+			{m_elementType = elemType; m_numElemsOnLvl = numElemsOnLvl; m_subsetDims = subsetDims;}
+
+	private:
+		GeometricBaseObject	m_elementType;
+		std::vector<int>	m_numElemsOnLvl;
+		std::vector<int>	m_subsetDims;
+};
+
+
+/// describes a physical domain
 /**
  * A Domain collects and exports relevant informations about the
  * physical domain, that is intended to be discretized. It will be used as
@@ -83,6 +110,10 @@ class IDomain
 	///	returns whether the domain may be used for adaptive refinement
 		bool is_adaptive() const		{return m_isAdaptive;}
 
+	///	returns whether the associated grid is empty
+	/**	Note that one vertex is enough to consider the grid as non-empty.*/
+		bool empty() const			{return m_spGrid->num_vertices() == 0;}
+
 	///	updates the subsets dimension property "dim" (integer) locally.
 	/** This method normally only has to be called after the subset-handler
 	 * has been changed. In most cases a call after the domain has been loaded
@@ -93,10 +124,21 @@ class IDomain
 		void update_local_subset_dim_property()	{UpdateMaxDimensionOfSubset(*this->m_spSH, "dim");}
 
 
+	///	returns information on the current domain
+	/**	In a parallel environment, this information relates to the global
+	 * (distributed) domain.*/
+		const DomainInfo& domain_info() const		{return m_domainInfo;}
+
+	///	updates the internal domain-info object.
+	/**	This method is called automatically each time the associated grid has changed.*/
+		void update_domain_info();
+
 	protected:
 		SmartPtr<TGrid> m_spGrid;			///< Grid
 		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
 		MessageHub::SPCallbackId m_spGridAdaptionCallbackID; ///< SmartPointer to grid adaption callback id
+
+		DomainInfo	m_domainInfo;
 
 		bool	m_isAdaptive;
 		bool	m_adaptionIsActive;
