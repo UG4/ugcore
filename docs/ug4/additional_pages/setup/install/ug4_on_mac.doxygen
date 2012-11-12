@@ -70,6 +70,7 @@ Another way is to use the Apple homepage:
 - doxygen : to create this docu locally.
 - gnuplot
 - ParaView
-
 You can install all this with \ref pageUginstall.
+
+If you need fortran/gfortran on Mountain Lion: http://web.mit.edu/mfloyd/www/computing/mac/gfortran/, <tt>sudo ln -s /usr/bin/gfortran-4.2 /usr/bin/gfortran</tt>.
 */
