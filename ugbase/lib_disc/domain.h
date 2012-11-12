@@ -82,8 +82,7 @@ class IDomain
 	/**
 	 * creates an empty domain. Grid and Subset Handler are set up. The
 	 * Distributed Grid Manager is set in the parallel case.
-	 * \param[in]	options		Grid Options (optinal)
-	 */
+	 * \param[in]	options		Grid Options (optinal)*/
 		IDomain(bool isAdaptive = true);
 
 	///	Destructor
@@ -133,6 +132,14 @@ class IDomain
 	/**	This method is called automatically each time the associated grid has changed.*/
 		void update_domain_info();
 
+	///	returns whether the domain can be used for parallel computations
+	/**	If ug was build with support for parallelism, this method will always return true
+	 * and always false, if ug was build for serial environments.*/
+		bool is_parallel()											{return m_spGrid->is_parallel();}
+
+	///	returns Distributed Grid Manager
+		inline DistributedGridManager* distributed_grid_manager()	{return m_spGrid->distributed_grid_manager();}
+
 	protected:
 		SmartPtr<TGrid> m_spGrid;			///< Grid
 		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
@@ -145,15 +152,11 @@ class IDomain
 
 	/**	this callback is called by the message hub, when a grid change has been
 	 * performed. It will call all necessary actions in order to keep the grid
-	 * correct for computations.
-	 */
+	 * correct for computations. */
 		inline void grid_changed_callback(int, const GridMessage_Adaption* msg);
 
 #ifdef UG_PARALLEL
 	public:
-	///	returns Distributed Grid Manager
-		inline DistributedGridManager* distributed_grid_manager(){return m_distGridMgr;}
-
 	///	updates the subsets dimension property "dim" (integer) globally.
 	/** This method normally only has to be called after the subset-handler
 	 * has been changed. In most cases a call after the domain has been loaded
@@ -175,13 +178,8 @@ class IDomain
 	 * will compute the global maximum of levels (involving an allreduce) and
 	 * adapt all local grids to the maximum number by inserting empty levels.
 	 * After this method has been invoked, all local grids will return the same
-	 * number of levels, when invoking num_levels().
-	 */
+	 * number of levels, when invoking num_levels().*/
 		void update_local_multi_grid();
-
-	protected:
-	///	for parallelization only. NULL in serial mode.
-		DistributedGridManager*	m_distGridMgr;	///< Parallel Grid Manager
 #endif
 };
 

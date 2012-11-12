@@ -9,6 +9,11 @@
 #include "common/common.h"
 #include "lib_grid/attachments/attached_list.h"
 
+#ifdef UG_PARALLEL
+#include "lib_grid/parallelization/distributed_grid.h"
+#endif
+
+
 using namespace std;
 
 namespace ug
@@ -102,6 +107,35 @@ void Grid::notify_and_clear_observers_on_grid_destruction(GridObserver* initiato
 
 	while(!m_volumeObservers.empty())
 		unregister_observer(m_volumeObservers.back());
+}
+
+void Grid::
+set_parallel(bool parallel)
+{
+	if(parallel){
+		#ifdef UG_PARALLEL
+			if(!is_parallel()){
+			//	we currently only support parallel mutli-grids, sadly...
+				MultiGrid* mg = dynamic_cast<MultiGrid*>(this);
+				if(mg){
+					m_distGridMgr.reset(new DistributedGridManager);
+					m_distGridMgr->assign(*mg);
+				}
+				else{
+					UG_THROW("Error during Grid::set_parallel: "
+							"The DistributedGridManager can currently only be used to "
+							"parallelize ug::MultiGrid. ug::Grid can currently not be used "
+							"for parallel computations. Sorry.");
+				}
+			}
+		#else
+			UG_THROW("Parallelism can only be activated, if ug was compiled with "
+					"PARALLEL=ON. This is not the case for this application.");
+		#endif
+	}
+	else if(is_parallel()){
+		m_distGridMgr.reset(NULL);
+	}
 }
 
 void Grid::clear()
@@ -292,6 +326,12 @@ void Grid::assign_grid(const Grid& grid)
 					m_faceElementStorage.m_attachmentPipe, vSrcDataIndexFACE);
 	copy_user_attachments(grid.m_volumeElementStorage.m_attachmentPipe,
 					m_volumeElementStorage.m_attachmentPipe, vSrcDataIndexVOL);
+
+//	parallelism
+	if(grid.is_parallel()){
+		set_parallel(true);
+	//todo:	copy interfaces from grid.
+	}
 
 //TODO: notify a grid observer that copying has ended
 }

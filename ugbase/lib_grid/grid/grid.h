@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <list>
+#include <memory>
 #include <boost/function.hpp>
 #include "common/util/message_hub.h"
 #include "common/ug_config.h"
@@ -32,6 +33,13 @@
 
 namespace ug
 {
+
+//	predeclaration of the distributed grid manager, which handles parallelization
+//	of grids. If you want to use it, you have to include
+//	"lib_grid/parallelization/distributed_grid.h"
+class DistributedGridManager;
+
+
 /**
  * \brief Grid, MultiGrid and GeometricObjectCollection are contained in this group
  * \defgroup lib_grid_grid grid
@@ -259,8 +267,44 @@ class UG_API Grid
 		void disable_options(uint options);	///< see set_options for a description of valid parameters.
 		bool option_is_enabled(uint option) const;///< see set_options for a description of valid parameters.
 
+	////////////////////////////////////////////////
+	//	parallelism
+	///	tell the grid whether it will be used in a serial or in a parallel environment.
+	/**	If parallelism is enabled, the grid will internally create a distributed grid
+	 * manager, which will handle horizontal and vertical process interfaces. The
+	 * manager can be queried through the method ug::Grid::distributed_grid_manager.
+	 * If false is passed and a distributed grid manager already existed, it will
+	 * be destroyed.
+	 * parallelism is disabled by default.
+	 * \note	set_parallel(true) may currently only be executed on ug::MultiGrid.
+	 * 			There is currently no parallelization support for plain ug::Grid.
+	 * \note	parallelism may only be activated if ug was compiled with PARALLEL=ON.*/
+		void set_parallel(bool parallel);
+
+	///	returns true if the grid is prepared for parallel computations.
+	/**	If the method returns true, it is also clear, that a distributed grid manager
+	 * exists in the grid. The manager can be queried through ug::Grid::distributed_grid_manager.*/
+		inline bool is_parallel() const;
+
+	///	returns a pointer to the associated distributed grid manager.
+	/**	The method returns NULL, if no distributed grid manager for the given
+	 * grid exists. This should be the case for serial environments or for
+	 * serial grids in parallel environments.
+	 * Use ug::Grid::set_parallel() to enable or disable parallelism in a grid.
+	 * You have to include "lib_grid/parallelization/distributed_grid.h" to access
+	 * methods of a distributed grid manager.
+	 * \{ */
+		inline DistributedGridManager* distributed_grid_manager();
+		inline const DistributedGridManager* distributed_grid_manager() const;
+	/** \} */
+
+	////////////////////////////////////////////////
+	//	clear
+	///	clears the grids geometry and attachments
 		void clear();
+	///	clears the grids geometry. Registered attachments remain.
 		void clear_geometry();
+	///	clears the grids attachments. The geometry remains.
 		void clear_attachments();
 
 	////////////////////////////////////////////////
@@ -1095,7 +1139,8 @@ class UG_API Grid
 		FaceAttachmentAccessor<AMark>	m_aaMarkFACE;
 		VolumeAttachmentAccessor<AMark>	m_aaMarkVOL;
 
-		SPMessageHub m_messageHub;
+		SPMessageHub 							m_messageHub;
+		std::auto_ptr<DistributedGridManager>	m_distGridMgr;
 };
 
 /** \} */

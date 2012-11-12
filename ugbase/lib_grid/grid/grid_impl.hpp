@@ -13,7 +13,27 @@
 
 namespace ug
 {
-//	definition of the template-grid functions
+////////////////////////////////////////////////////////////////////////
+//	parallelism
+bool Grid::
+is_parallel() const
+{
+	return m_distGridMgr.get() != NULL;
+}
+
+DistributedGridManager* Grid::
+distributed_grid_manager()
+{
+	return m_distGridMgr.get();
+}
+
+const DistributedGridManager* Grid::
+distributed_grid_manager() const
+{
+	return m_distGridMgr.get();
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	create functions
 template<class TGeomObj>

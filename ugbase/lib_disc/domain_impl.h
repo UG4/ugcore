@@ -24,10 +24,10 @@ IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
 	m_isAdaptive(isAdaptive),
 	m_adaptionIsActive(false)
 {
-#ifdef UG_PARALLEL
-//	create Distributed Grid Manager
-	m_distGridMgr = new DistributedGridManager(*m_spGrid);
-#endif
+	#ifdef UG_PARALLEL
+	//	the grid has to be prepared for parallelism
+		m_spGrid->set_parallel(true);
+	#endif
 
 //	register function for grid adaption
 	int msgID = GridMessageId_Adaption(message_hub());
@@ -40,9 +40,6 @@ IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
 template <typename TGrid, typename TSubsetHandler>
 IDomain<TGrid,TSubsetHandler>::~IDomain()
 {
-#ifdef UG_PARALLEL
-	if(m_distGridMgr) delete m_distGridMgr;
-#endif
 }
 
 template <typename TGrid, typename TSubsetHandler>
