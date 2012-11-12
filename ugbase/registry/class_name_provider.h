@@ -13,6 +13,7 @@
 #include <typeinfo>
 #include <map>
 #include "common/common.h"
+#include "common/util/smart_pointer.h"
 #include "common/ug_config.h"
 #include "error.h"
 
@@ -134,6 +135,15 @@ const char* GetClassName(){
 template <typename TBase, typename TDerived>
 void* StaticVoidCast(void* DerivVoidPtr);
 
+
+struct UGError_ClassCastFailed : public UGError{
+	UGError_ClassCastFailed(const std::string& from, const std::string& to) :
+		UGError("Class cast failed"), m_from(from), m_to(to)	{}
+
+	std::string m_from;
+	std::string m_to;
+};
+
 ///	provides castings from derived classes to base classes
 class ClassCastProvider
 {
@@ -145,17 +155,45 @@ class ClassCastProvider
 	///	cast a pointer to the desired base class
 	/**
 	 * This method casts a void pointer to a given derived class to the void
-	 * pointer of a base class.
+	 * pointer of a base class. If conversion fails, an exception of type
+	 * UGError_ClassCastFailed is thrown.
 	 *
 	 * \param[in]	pDerivVoid		void pointer to Derived object
 	 * \param[in,out]	node		on entry: class name node corresponding to pDerivVoid
 	 * 								on exit:  class name node corresponding to baseName
 	 * \param[in]		baseName	name of base class the pointer should be casted to
-	 * \returns		void* to base class, NULL if cast not possible
+	 * \returns		void* to base class
 	 */
+	/// \{
 		static void* cast_to_base_class(void* pDerivVoid,
 		                                const ClassNameNode*& node,
 		                                const std::string& baseName);
+		static const void* cast_to_base_class(const void* pDerivVoid,
+		                                      const ClassNameNode*& node,
+		                                      const std::string& baseName);
+	//// \}
+
+	///	casts a void pointer to a concrete class
+	/**
+	 * This method casts a void pointer to a given derived classed and returns it
+	 * as a reinterpreted cast to the type specified by the template argument.
+	 * If conversion fails, an exception of type UGError_ClassCastFailed is thrown.
+	 *
+	 * \param[in]	pDerivVoid		void pointer to Derived object
+	 * \param[in,out]	node		on entry: class name node corresponding to pDerivVoid
+	 * 								on exit:  class name node corresponding to baseName
+	 * \returns		void* to base class
+	 */
+	/// \{
+		template <typename T>
+		static T* cast_to(void* pDerivVoid, const ClassNameNode*& node);
+		template <typename T>
+		static const T* cast_to(const void* pDerivVoid, const ClassNameNode*& node);
+		template <typename T>
+		static SmartPtr<T> cast_to(SmartPtr<void> pDerivVoid, const ClassNameNode*& node);
+		template <typename T>
+		static ConstSmartPtr<T> cast_to(ConstSmartPtr<void> pDerivVoid, const ClassNameNode*& node);
+	///	\}
 
 	protected:
 	//	type of cast pointer

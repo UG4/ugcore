@@ -13,7 +13,6 @@
 #include "common/util/string_util.h"
 #include "compile_info/compile_info.h"
 #include "common/util/crc32.h"
-#include "registry/stdvectorwrap_register.h"
 using namespace std;
 
 namespace ug
@@ -22,24 +21,6 @@ namespace ug
 void PrintLUA();
 namespace bridge
 {
-
-// todo: support enums natively and remove this
-/*template <>
-struct PLStack<LogAssistant::Tags>
-{
-	static void push(ParameterStack& ps)
-	{
-		ps.push_integer();
-	}
-	static void write(ParameterStack& ps, LogAssistant::Tags data, int index)
-	{
-		ps.set_integer(index, data);
-	}
-	static LogAssistant::Tags read(const ParameterStack& ps, int index)
-	{
-		return (LogAssistant::Tags) ps.to_integer(index);
-	}
-};*/
 
 
 uint32 GetLogAssistantTag(const char *s)
@@ -428,14 +409,6 @@ double GetClockS()
 
 void RegisterBridge_Misc(Registry &reg, string parentGroup)
 {
-	{
-		stringstream ss; ss << parentGroup << "/Util/";
-		string grp = ss.str();
-		RegStdVectorWrap<size_t>(reg, grp);
-		RegStdVectorWrap<std::string>(reg, grp);
-		RegStdVectorWrap<double>(reg, grp);
-	}
-	
 
 	{
 		stringstream ss; ss << parentGroup << "/Util/Log";

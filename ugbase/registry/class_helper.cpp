@@ -194,40 +194,49 @@ const IExportedClass *FindClass(Registry &reg, const char* classname)
  * \brief Gets a description of the i-th parameter of a ParameterStack
  * todo: perhaps this function would be better somewhere else like in parameter_stack.cpp
   */
-string ParameterToString(const ParameterStack &par, int i)
+string ParameterToString(const ParameterInfo &par, int i)
 {
-	switch(par.get_type(i))
+	string res = string("");
+	if(par.is_vector(i)) res.append("std::vector<");
+	switch(par.type(i))
 	{
 	default:
-	case PT_UNKNOWN:
-		return string("unknown");
-	case PT_BOOL:
-		return string("bool");
-
-	case PT_INTEGER:
-		return string("integer");
-
-	case PT_NUMBER:
-		return string("number");
-
-	case PT_CSTRING:
-		return string("string");
-
-	case PT_STD_STRING:
-		return string("string");
-
-	case PT_POINTER:
-		return string(par.class_name(i)).append("*");
-
-	case PT_CONST_POINTER:
-		return string("const ").append(par.class_name(i)).append("*");
-
-	case PT_SMART_POINTER:
-		return string("SmartPtr<").append(par.class_name(i)).append(">");
-
-	case PT_CONST_SMART_POINTER:
-		return string("ConstSmartPtr<").append(par.class_name(i)).append(">");
+	case Variant::VT_INVALID:
+		res.append("unknown");
+		break;
+	case Variant::VT_BOOL:
+		res.append("bool");
+		break;
+	case Variant::VT_INT:
+		res.append("integer");
+		break;
+	case Variant::VT_FLOAT:
+		res.append("number");
+		break;
+	case Variant::VT_DOUBLE:
+		res.append("number");
+		break;
+	case Variant::VT_CSTRING:
+		res.append("string");
+		break;
+	case Variant::VT_STDSTRING:
+		res.append("string");
+		break;
+	case Variant::VT_POINTER:
+		res.append(par.class_name(i)).append("*");
+		break;
+	case Variant::VT_CONST_POINTER:
+		res.append("const ").append(par.class_name(i)).append("*");
+		break;
+	case Variant::VT_SMART_POINTER:
+		res.append("SmartPtr<").append(par.class_name(i)).append(">");
+		break;
+	case Variant::VT_CONST_SMART_POINTER:
+		res.append("ConstSmartPtr<").append(par.class_name(i)).append(">");
+		break;
 	}
+	if(par.is_vector(i)) res.append(">");
+	return res;
 }
 
 template<typename T>
@@ -384,12 +393,12 @@ bool PrintClassInfo(Registry &reg, const char *classname)
  *
  * \return true, if the class classname is in a parameter in the ParameterStack par
  */
-bool IsClassInParameters(const ParameterStack &par, const char *classname)
+bool IsClassInParameters(const ParameterInfo &par, const char *classname)
 {
 	int i;
 	for(i=0; i<par.size(); ++i)
 	{
-		if(par.get_type(i) != PT_POINTER && par.get_type(i) != PT_CONST_POINTER)
+		if(par.type(i) != Variant::VT_POINTER && par.type(i) != Variant::VT_CONST_POINTER)
 			continue;
 		if(par.class_name_node(i) != NULL && strcmp(par.class_name(i), classname)==0)
 			break;

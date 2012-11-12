@@ -24,6 +24,7 @@ Registry::Registry()
 	add_class_<float>("c_float");
 	add_class_<double>("c_double");
 	add_class_<char>("c_char");
+	add_class_<const char*>("c_const_char_ptr");
 	add_class_<std::string>("c_string");
 }
 

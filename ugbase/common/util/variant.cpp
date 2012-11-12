@@ -26,6 +26,11 @@ Variant::Variant(int val) :
 	m_type(VT_INT)
 {}
 
+Variant::Variant(size_t val) :
+	m_size_t(val),
+	m_type(VT_SIZE_T)
+{}
+
 Variant::Variant(float val) :
 	m_float(val),
 	m_type(VT_FLOAT)
@@ -51,6 +56,21 @@ Variant::Variant(void* val) :
 	m_type(VT_POINTER)
 {}
 
+Variant::Variant(const void* val) :
+	m_constptr(val),
+	m_type(VT_CONST_POINTER)
+{}
+
+Variant::Variant(const SmartPtr<void>& val) :
+	m_smartptr(new SmartPtr<void>(val)),
+	m_type(VT_SMART_POINTER)
+{}
+
+Variant::Variant(const ConstSmartPtr<void>& val) :
+	m_constsmartptr(new ConstSmartPtr<void>(val)),
+	m_type(VT_CONST_SMART_POINTER)
+{}
+
 
 Variant::Variant(const Variant& v)
 {
@@ -61,14 +81,23 @@ Variant::~Variant()
 {
 	if(m_type == VT_STDSTRING)
 		delete m_stdstring;
+
+	if(m_type == VT_SMART_POINTER)
+		delete m_smartptr;
+	if(m_type == VT_CONST_SMART_POINTER)
+		delete m_constsmartptr;
 }
 
 const Variant& Variant::operator=(const Variant& v)
 {
-//	if the variant encapsulates an std::string, we first have to delete the
-//	old instance
+//	if the variant encapsulates an std::string or a smartptr,
+//	we first have to delete the	old instance
 	if(m_type == VT_STDSTRING)
 		delete m_stdstring;
+	if(m_type == VT_SMART_POINTER)
+		delete m_smartptr;
+	if(m_type == VT_CONST_SMART_POINTER)
+		delete m_constsmartptr;
 
 //	now assign the new value
 	assign_variant(v);
@@ -86,6 +115,9 @@ void Variant::assign_variant(const Variant& v)
 		case VT_INT:
 			m_int = v.m_int;
 			break;
+		case VT_SIZE_T:
+			m_size_t = v.m_size_t;
+			break;
 		case VT_FLOAT:
 			m_float = v.m_float;
 			break;
@@ -102,6 +134,15 @@ void Variant::assign_variant(const Variant& v)
 		case VT_POINTER:
 			m_pointer = v.m_pointer;
 			break;
+		case VT_CONST_POINTER:
+			m_constptr = v.m_constptr;
+			break;
+		case VT_SMART_POINTER:
+			m_smartptr = new SmartPtr<void>(*v.m_smartptr);
+			break;
+		case VT_CONST_SMART_POINTER:
+			m_constsmartptr = new ConstSmartPtr<void>(*v.m_constsmartptr);
+			break;
 		default:
 			break;
 	}
@@ -114,6 +155,7 @@ bool Variant::to_bool() const
 	switch(m_type){
 		case VT_BOOL:	return m_bool;
 		case VT_INT:	return m_int != 0;
+		case VT_SIZE_T:	return m_size_t != 0;
 		case VT_FLOAT:	return m_float != 0;
 		case VT_DOUBLE:	return m_double != 0;
 		default: break;
@@ -129,8 +171,23 @@ int Variant::to_int() const
 	switch(m_type){
 		case VT_BOOL:	return (int)m_bool;
 		case VT_INT:	return m_int;
+		case VT_SIZE_T:	return (int)m_size_t;
 		case VT_FLOAT:	return (int)m_float;
 		case VT_DOUBLE:	return (int)m_double;
+		default: break;
+	}
+
+	UG_THROW("Variant: can't convert " << type_name() << " to int.");
+//	this should never be reached
+	return 0;
+}
+
+size_t Variant::to_size_t() const
+{
+	// note: we only allow save casts, i.e. not int->size_t
+	switch(m_type){
+		case VT_BOOL:	return (size_t)m_bool;
+		case VT_SIZE_T:	return m_size_t;
 		default: break;
 	}
 
@@ -144,6 +201,7 @@ float Variant::to_float() const
 	switch(m_type){
 		case VT_BOOL:	return (float)m_bool;
 		case VT_INT:	return (float)m_int;
+		case VT_SIZE_T:	return (float)m_size_t;
 		case VT_FLOAT:	return m_float;
 		case VT_DOUBLE:	return (float)m_double;
 		default: break;
@@ -154,11 +212,28 @@ float Variant::to_float() const
 	return 0;
 }
 
+number Variant::to_number() const
+{
+	switch(m_type){
+		case VT_BOOL:	return (number)m_bool;
+		case VT_INT:	return (number)m_int;
+		case VT_SIZE_T:	return (number)m_size_t;
+		case VT_FLOAT:	return (number)m_float;
+		case VT_DOUBLE:	return (number)m_double;
+		default: break;
+	}
+
+	UG_THROW("Variant: can't convert " << type_name() << " to number.");
+//	this should never be reached
+	return 0;
+}
+
 double Variant::to_double() const
 {
 	switch(m_type){
 		case VT_BOOL:	return (double)m_bool;
 		case VT_INT:	return (double)m_int;
+		case VT_SIZE_T:	return (double)m_size_t;
 		case VT_FLOAT:	return (double)m_float;
 		case VT_DOUBLE:	return m_double;
 		default: break;
@@ -198,8 +273,30 @@ void* Variant::to_pointer() const
 		return m_pointer;
 
 	UG_THROW("Variant: can't convert " << type_name() << " to pointer.");
-//	this should never be reached
-	return 0;
+}
+
+const void* Variant::to_const_pointer() const
+{
+	if(m_type == VT_CONST_POINTER)
+		return m_constptr;
+
+	UG_THROW("Variant: can't convert " << type_name() << " to const pointer.");
+}
+
+SmartPtr<void> Variant::to_smart_pointer() const
+{
+	if(m_type == VT_SMART_POINTER)
+		return *m_smartptr;
+
+	UG_THROW("Variant: can't convert " << type_name() << " to smart pointer.");
+}
+
+ConstSmartPtr<void> Variant::to_const_smart_pointer() const
+{
+	if(m_type == VT_CONST_SMART_POINTER)
+		return *m_constsmartptr;
+
+	UG_THROW("Variant: can't convert " << type_name() << " to const smart pointer.");
 }
 
 const char* Variant::type_name() const
@@ -207,12 +304,16 @@ const char* Variant::type_name() const
 	switch(m_type){
 		case VT_INVALID:	return "invalid_type";
 		case VT_BOOL:		return "bool";
+		case VT_SIZE_T:		return "size_t";
 		case VT_INT:		return "int";
 		case VT_FLOAT:		return "float";
 		case VT_DOUBLE:		return "double";
 		case VT_CSTRING:	return "cstring";
 		case VT_STDSTRING:	return "stdstring";
 		case VT_POINTER:	return "pointer";
+		case VT_CONST_POINTER:	return "constpointer";
+		case VT_SMART_POINTER:	return "smartpointer";
+		case VT_CONST_SMART_POINTER:	return "constsmartpointer";
 
 		default: return "unknown_type";
 	}

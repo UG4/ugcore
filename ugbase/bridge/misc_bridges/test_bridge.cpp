@@ -227,48 +227,48 @@ class Base0
 {
 	public:
 		virtual ~Base0() {}
-		virtual void virt_print_base0() = 0;
-		void print_base0() {UG_LOG("Base0::print_base0() called.\n");}
+		virtual void virt_print_base0() const = 0;
+		void print_base0() const {UG_LOG("Base0::print_base0() called.\n");}
 };
 
 class Base1
 {
 	public:
 		virtual ~Base1() {}
-		virtual void virt_print_base1() = 0;
-		void print_base1() {UG_LOG("Base1::print_base1() called.\n");}
+		virtual void virt_print_base1() const = 0;
+		void print_base1() const {UG_LOG("Base1::print_base1() called.\n");}
 };
 
 class Base2
 {
 	public:
 		virtual ~Base2() {}
-		virtual void virt_print_base2() = 0;
-		void print_base2() {UG_LOG("Base2::print_base2() called.\n");}
+		virtual void virt_print_base2() const = 0;
+		void print_base2() const {UG_LOG("Base2::print_base2() called.\n");}
 };
 
 class Base3
 {
 	public:
 		virtual ~Base3() {}
-		virtual void virt_print_base3() = 0;
-		void print_base3() {UG_LOG("Base3::print_base3() called.\n");}
+		virtual void virt_print_base3() const = 0;
+		void print_base3() const {UG_LOG("Base3::print_base3() called.\n");}
 };
 
 class Intermediate0 : public Base0, public Base1
 {
 	public:
 		virtual ~Intermediate0() {}
-		virtual void virt_print_intermediate0() = 0;
-		void print_intermediate0() {UG_LOG("Intermediate0::print_intermediate0() called.\n");}
+		virtual void virt_print_intermediate0() const = 0;
+		void print_intermediate0() const {UG_LOG("Intermediate0::print_intermediate0() called.\n");}
 };
 
 class Intermediate1 : public Base2, public Base3
 {
 	public:
 		virtual ~Intermediate1() {}
-		virtual void virt_print_intermediate1() = 0;
-		void print_intermediate1() {UG_LOG("Intermediate1::print_intermediate1() called.\n");}
+		virtual void virt_print_intermediate1() const = 0;
+		void print_intermediate1() const {UG_LOG("Intermediate1::print_intermediate1() called.\n");}
 };
 
 class MultipleDerived : public Intermediate0, public Intermediate1
@@ -277,13 +277,13 @@ class MultipleDerived : public Intermediate0, public Intermediate1
 		virtual ~MultipleDerived() {}
 		void print_mulitple_derived(){UG_LOG("MultipleDerived::print() called\n");}
 
-		virtual void virt_print_intermediate0()	{UG_LOG("MultipleDerived::virt_print_intermediate0() called\n");}
-		virtual void virt_print_intermediate1()	{UG_LOG("MultipleDerived::virt_print_intermediate1() called\n");}
+		virtual void virt_print_intermediate0() const	{UG_LOG("MultipleDerived::virt_print_intermediate0() called\n");}
+		virtual void virt_print_intermediate1() const	{UG_LOG("MultipleDerived::virt_print_intermediate1() called\n");}
 
-		virtual void virt_print_base0()	{UG_LOG("MultipleDerived::virt_print_base0() called\n");}
-		virtual void virt_print_base1()	{UG_LOG("MultipleDerived::virt_print_base1() called\n");}
-		virtual void virt_print_base2()	{UG_LOG("MultipleDerived::virt_print_base2() called\n");}
-		virtual void virt_print_base3()	{UG_LOG("MultipleDerived::virt_print_base3() called\n");}
+		virtual void virt_print_base0() const	{UG_LOG("MultipleDerived::virt_print_base0() called\n");}
+		virtual void virt_print_base1() const	{UG_LOG("MultipleDerived::virt_print_base1() called\n");}
+		virtual void virt_print_base2() const	{UG_LOG("MultipleDerived::virt_print_base2() called\n");}
+		virtual void virt_print_base3() const	{UG_LOG("MultipleDerived::virt_print_base3() called\n");}
 };
 
 SmartPtr<MultipleDerived> SmartMultipleDerivedImpl(){
@@ -465,9 +465,118 @@ class MessageHubTest
 };
 
 
+template <typename T>
+void PrintStdVector(std::vector<T> vec)
+{
+	UG_LOG("std::vector<T> passed: Size is: "<<vec.size()<<"\n");
+	for(size_t i = 0; i < vec.size(); ++i)
+		UG_LOG(i<<": "<<vec[i]<<"\n");
+}
+
+template <typename T>
+void PrintConstStdVectorRef(const std::vector<T>& vec)
+{
+	UG_LOG("const std::vector<T>& passed: Size is: "<<vec.size()<<"\n");
+	for(size_t i = 0; i < vec.size(); ++i)
+		UG_LOG(i<<": "<<vec[i]<<"\n");
+}
+
+template <typename T>
+void PrintStdVectorOfClass(std::vector<T> vec)
+{
+	UG_LOG("std::vector<T> passed: Size is: "<<vec.size()<<"\n");
+	for(size_t i = 0; i < vec.size(); ++i)
+		vec[i]->print();
+}
+
+template <typename T>
+void ConstStdVectorRefOfClass(const std::vector<T>& vec)
+{
+	UG_LOG("const std::vector<T>& passed: Size is: "<<vec.size()<<"\n");
+	for(size_t i = 0; i < vec.size(); ++i)
+		vec[i]->print();
+}
+
+std::vector<std::string> ReturnStdVector_String(){
+	std::vector<std::string> vec;
+	vec.push_back("Entry1");
+	vec.push_back("Entry2");
+	vec.push_back("Entry3");
+	return vec;
+}
+
+const std::vector<std::string>& ReturnConstStdVectorRef_String(){
+	static std::vector<std::string> vec;
+	vec.push_back("Entry1");
+	vec.push_back("Entry2");
+	vec.push_back("Entry3");
+	return vec;
+}
+
+std::vector<std::string>& ReturnStdVectorRef_String(){
+	static std::vector<std::string> vec;
+	vec.push_back("Entry1");
+	vec.push_back("Entry2");
+	vec.push_back("Entry3");
+	return vec;
+}
+
+template <typename T>
+std::vector<T> ReturnStdVector_Number(){
+	std::vector<T> vec;
+	vec.push_back(1.56);
+	vec.push_back(144.87);
+	vec.push_back(99.3);
+	return vec;
+}
+
+template <typename T>
+const std::vector<T>& ReturnConstStdVectorRef_Number(){
+	static std::vector<T> vec;
+	vec.push_back(1.56);
+	vec.push_back(144.87);
+	vec.push_back(99.3);
+	return vec;
+}
+
+template <typename T>
+std::vector<T>& ReturnStdVectorRef_Number(){
+	static std::vector<T> vec;
+	vec.push_back(1.56);
+	vec.push_back(144.87);
+	vec.push_back(99.3);
+	return vec;
+}
+
+template <typename T>
+std::vector<T> ReturnStdVectorOfClass(){
+	std::vector<T> vec;
+	vec.push_back(T(new Derived()));
+	vec.push_back(T(new Base()));
+	vec.push_back(T(new FurtherDerived()));
+	return vec;
+}
+
+template <typename T>
+const std::vector<T>& ReturnConstStdVectorRefOfClass(){
+	static std::vector<T> vec;
+	vec.push_back(new Derived());
+	vec.push_back(new Base());
+	vec.push_back(new FurtherDerived());
+	return vec;
+}
+
+template <typename T>
+std::vector<T>& ReturnStdVectorRefOfClass(){
+	static std::vector<T> vec;
+	vec.push_back(new Derived());
+	vec.push_back(new Base());
+	vec.push_back(new FurtherDerived());
+	return vec;
+}
 
 
-
+void NotAllowedParamPerValue(Piece P){}
 
 void RegisterBridge_Test(Registry& reg, string parentGroup)
 {
@@ -621,6 +730,64 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 		//reg.add_function("Blub%brrr", &NonAllowedFct1);
 		//reg.add_function("5Blubbrrr", &NonAllowedFct2);
 		//reg.add_function("Blub_brr r", &NonAllowedFct3);
+		//reg.add_function("NotAllowedParamPerValue", &NotAllowedParamPerValue);
+
+		reg.add_function("PrintStdVectorBool", &PrintStdVector<bool>, grp);
+		reg.add_function("PrintStdVectorInteger", &PrintStdVector<int>, grp);
+		reg.add_function("PrintStdVectorSize_t", &PrintStdVector<size_t>, grp);
+		reg.add_function("PrintStdVectorNumber", &PrintStdVector<number>, grp);
+		reg.add_function("PrintStdVectorFloat", &PrintStdVector<float>, grp);
+		reg.add_function("PrintStdVectorDouble", &PrintStdVector<double>, grp);
+		reg.add_function("PrintStdVectorChar", &PrintStdVector<const char*>, grp);
+		reg.add_function("PrintStdVectorString", &PrintStdVector<std::string>, grp);
+
+		reg.add_function("PrintConstStdVectorRefBool", &PrintConstStdVectorRef<bool>, grp);
+		reg.add_function("PrintConstStdVectorRefInteger", &PrintConstStdVectorRef<int>, grp);
+		reg.add_function("PrintConstStdVectorRefSize_t", &PrintConstStdVectorRef<size_t>, grp);
+		reg.add_function("PrintConstStdVectorRefNumber", &PrintConstStdVectorRef<number>, grp);
+		reg.add_function("PrintConstStdVectorRefFloat", &PrintConstStdVectorRef<float>, grp);
+		reg.add_function("PrintConstStdVectorRefDouble", &PrintConstStdVectorRef<double>, grp);
+		reg.add_function("PrintConstStdVectorRefChar", &PrintConstStdVectorRef<const char*>, grp);
+		reg.add_function("PrintConstStdVectorRefString", &PrintConstStdVectorRef<std::string>, grp);
+
+		reg.add_function("PrintStdVector_BasePtr", &PrintStdVectorOfClass<Base*>, grp);
+		reg.add_function("PrintStdVector_BaseConstPtr", &PrintStdVectorOfClass<const Base*>, grp);
+		reg.add_function("PrintStdVector_BaseSmartPtr", &PrintStdVectorOfClass<SmartPtr<Base> >, grp);
+		reg.add_function("PrintStdVector_BaseConstSmartPtr", &PrintStdVectorOfClass<ConstSmartPtr<Base> >, grp);
+
+		reg.add_function("PrintConstStdVectorRef_BasePtr", &ConstStdVectorRefOfClass<Base*>, grp);
+		reg.add_function("PrintConstStdVectorRef_BaseConstPtr", &ConstStdVectorRefOfClass<const Base*>, grp);
+		reg.add_function("PrintConstStdVectorRef_BaseSmartPtr", &ConstStdVectorRefOfClass<SmartPtr<Base> >, grp);
+		reg.add_function("PrintConstStdVectorRef_BaseConstSmartPtr", &ConstStdVectorRefOfClass<ConstSmartPtr<Base> >, grp);
+
+		reg.add_function("ReturnConstStdVectorRef_String", &ReturnConstStdVectorRef_String, grp);
+		reg.add_function("ReturnStdVectorRef_String", &ReturnStdVectorRef_String, grp);
+		reg.add_function("ReturnStdVector_String", &ReturnStdVector_String, grp);
+
+		reg.add_function("ReturnConstStdVectorRef_Int", &ReturnConstStdVectorRef_Number<int>, grp);
+		reg.add_function("ReturnStdVectorRef_Int", &ReturnStdVectorRef_Number<int>, grp);
+		reg.add_function("ReturnStdVector_Int", &ReturnStdVector_Number<int>, grp);
+
+		reg.add_function("ReturnConstStdVectorRef_Double", &ReturnConstStdVectorRef_Number<double>, grp);
+		reg.add_function("ReturnStdVectorRef_Double", &ReturnStdVectorRef_Number<double>, grp);
+		reg.add_function("ReturnStdVector_Double", &ReturnStdVector_Number<double>, grp);
+
+		reg.add_function("ReturnConstStdVectorRef_BasePtr", &ReturnConstStdVectorRefOfClass<Base*>, grp);
+		reg.add_function("ReturnStdVectorRef_BasePtr", &ReturnStdVectorRefOfClass<Base*>, grp);
+		reg.add_function("ReturnStdVector_BasePtr", &ReturnStdVectorOfClass<Base*>, grp);
+
+		reg.add_function("ReturnConstStdVectorRef_BaseConstPtr", &ReturnConstStdVectorRefOfClass<const Base*>, grp);
+		reg.add_function("ReturnStdVectorRef_BaseConstPtr", &ReturnStdVectorRefOfClass<const Base*>, grp);
+		reg.add_function("ReturnStdVector_BaseConstPtr", &ReturnStdVectorOfClass<const Base*>, grp);
+
+		reg.add_function("ReturnConstStdVectorRef_BaseSmartPtr", &ReturnConstStdVectorRefOfClass<SmartPtr<Base> >, grp);
+		reg.add_function("ReturnStdVectorRef_BaseSmartPtr", &ReturnStdVectorRefOfClass<SmartPtr<Base> >, grp);
+		reg.add_function("ReturnStdVector_BaseSmartPtr", &ReturnStdVectorOfClass<SmartPtr<Base> >, grp);
+
+		reg.add_function("ReturnConstStdVectorRef_BaseConstSmartPtr", &ReturnConstStdVectorRefOfClass<ConstSmartPtr<Base> >, grp);
+		reg.add_function("ReturnStdVectorRef_BaseConstSmartPtr", &ReturnStdVectorRefOfClass<ConstSmartPtr<Base> >, grp);
+		reg.add_function("ReturnStdVector_BaseConstSmartPtr", &ReturnStdVectorOfClass<ConstSmartPtr<Base> >, grp);
+
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

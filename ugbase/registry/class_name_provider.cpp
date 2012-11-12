@@ -113,8 +113,8 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const std::stri
 		UG_ERR_LOG("ERROR in ClassCastProvider::cast_to_base_class: Request"
 				" to cast from derived class '"<< node->name()<<"' to "
 				" base class '"<<baseName<<"', but no such base class in"
-				" registered class hierarchy.\n");
-		return NULL;
+				" registered class hierarchy.");
+		throw new UGError_ClassCastFailed(node->name(), baseName);
 	}
 
 	void* currPtr = pDerivVoid;
@@ -139,8 +139,8 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const std::stri
 					" Request intermediate cast from derived class '" <<
 					pCurrNode->name() <<"' to direct base class '"
 					<<pBaseClassNode->name()<<"', but no such cast "
-					" function registered.\n");
-			return NULL;
+					" function registered.");
+			throw new UGError_ClassCastFailed(node->name(), baseName);
 		}
 
 	//	get cast function
@@ -162,6 +162,15 @@ cast_to_base_class(void* pDerivVoid, const ClassNameNode*& node, const std::stri
 //	return current pointer
 	return currPtr;
 }
+
+
+const void* ClassCastProvider::
+cast_to_base_class(const void* pDerivVoid, const ClassNameNode*& node, const std::string& baseName)
+{
+	return const_cast<const void*>(cast_to_base_class(const_cast<void*>(pDerivVoid), node, baseName));
+}
+
+
 
 
 std::map<std::pair<const ClassNameNode*, const ClassNameNode*>, void* (*)(void*)>

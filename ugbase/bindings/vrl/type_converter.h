@@ -222,7 +222,7 @@ void* jObject2Pointer(JNIEnv *env, jobject obj);
 void jobjectArray2ParamStack(JNIEnv *env,
 		ug::bridge::Registry* reg,
 		ug::bridge::ParameterStack& paramsOut,
-		const ug::bridge::ParameterStack& paramsTemplate,
+		const ug::bridge::ParameterInfo& paramsTemplate,
 		jobjectArray const& array);
 
 /**
@@ -302,7 +302,7 @@ uint paramClass2ParamType(JNIEnv *env, jobject obj);
  */
 bool compareParamTypes(JNIEnv *env, jobjectArray params,
         ug::bridge::Registry *reg,
-		const ug::bridge::ParameterStack& paramStack);
+		const ug::bridge::ParameterInfo& paramStack);
 
 /**
  * Returns parent classes (super classes) of an exported class.

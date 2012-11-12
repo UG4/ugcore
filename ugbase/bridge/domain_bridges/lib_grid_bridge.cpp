@@ -811,8 +811,10 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_method("add_layer", &ExpandLayersDesc::add_layer)
 			.set_construct_as_smart_pointer(true);
 
-		reg.add_function("ExpandLayers2d", &ExpandFractures2d, grp)
-			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
+		// \todo: this is uncommented, since in conflict with new std::vector
+		//	handling of registry. Should be adapted.
+//		reg.add_function("ExpandLayers2d", &ExpandFractures2d, grp)
+//			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
 			
 	//	Debugging
 		reg.add_function("CheckHangingNodeConsistency", static_cast<bool (*)(MultiGrid&)>(&CheckHangingNodeConsistency), grp);

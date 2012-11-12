@@ -7,682 +7,582 @@
 #include "function_traits.h"
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
-#include "stdvectorwrap.h"
+#include "common/util/variant.h"
 
 #ifndef __H__UG_BRIDGE__PARAMETER_STACK__
 #define __H__UG_BRIDGE__PARAMETER_STACK__
-
-
-#define PUSH_PARAM_TO_STACK(paramVar, val, paramType, clName)	{m_entries[m_numEntries].param.paramVar = (val);\
-																m_entries[m_numEntries].type = (paramType);\
-																m_entries[m_numEntries].pClassNameNode = (clName);\
-																++m_numEntries;}
-
-#define PUSH_STD_STRING_TO_STACK(val, clName)		{m_entries[m_numEntries].param.m_stdString = new std::string(val);\
-													 m_entries[m_numEntries].type = PT_STD_STRING;\
-													 m_entries[m_numEntries].pClassNameNode = (clName);\
-													 ++m_numEntries;}
-
-//	call the constructor and assign the smart-ptr afterwards.
-#define PUSH_SP_TO_STACK(val, clName)				{m_entries[m_numEntries].param.m_smartPtrWrapper = new SmartPtr<void>(val);\
-													 m_entries[m_numEntries].type = PT_SMART_POINTER;\
-													 m_entries[m_numEntries].pClassNameNode = (clName);\
-													 ++m_numEntries;}
-
-//	call the constructor and assign the smart-ptr afterwards.
-#define PUSH_CSP_TO_STACK(val, clName)				{m_entries[m_numEntries].param.m_constSmartPtrWrapper = new ConstSmartPtr<void>(val);\
-													 m_entries[m_numEntries].type = PT_CONST_SMART_POINTER;\
-													 m_entries[m_numEntries].pClassNameNode = (clName);\
-													 ++m_numEntries;}
 
 namespace ug
 {
 namespace bridge
 {
 
+struct ___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____;
 
-struct ERROR_BadIndex{
-	ERROR_BadIndex(int index) : m_index(index)	{}
-	int m_index;
-};
-
-struct ERROR_BadConversion{
-	ERROR_BadConversion(int index, int from, int to) :
-		m_index(index), m_from(from), m_to(to)	{}
-	
-	int	m_index;
-	int m_from;
-	int m_to;
-};
-
-struct ERROR_IncompatibleClasses{
-	ERROR_IncompatibleClasses(int index, const std::string& from, const std::string& to) :
-		m_index(index), m_from(from), m_to(to)	{}
-
-	int	m_index;
-	std::string m_from;
-	std::string m_to;
-};
-
-
-
-static inline int ARRAY_INDEX_TO_STACK_INDEX(int index, int stackSize)
+/// a stack holding parameter infos about a parameter stack
+/**
+ * This class is used to store type informations about the entries in a parameter
+ * list.
+ *
+ * Note that the maximal number of parameters is specified by the constant
+ * PARAMETER_STACK_MAX_SIZE. Please note, that this value should not be
+ * unnecessarily high. The appropriate choice is UG_REGISTRY_MAX_NUM_ARGS,
+ * since the template-method-wrappers can't take any more parameters.
+ *
+ * Supported types are bool, integer, number, const char*, std::string,
+ * reference, pointer and smart-pointer. References and pointers are stored in
+ * a void*. The user is responsible to associate the correct types.
+ */
+class ParameterInfo
 {
-	int nIndex = index;
-	if(nIndex < 0)
-		nIndex = stackSize + nIndex;
-	
-	if(nIndex < 0 || nIndex >= stackSize)
-		throw(ERROR_BadIndex(index));
-	
-	return nIndex;
-}
+	protected:
+	///	maximal number of parameter in a parameter list
+		static const int PARAMETER_STACK_MAX_SIZE = UG_REGISTRY_MAX_NUM_ARGS;
 
+	///	help function to compute correct parameter index
+		static inline int ARRAY_INDEX_TO_STACK_INDEX(int index, int stackSize)
+		{
+			int nIndex = index;
+			if(nIndex < 0)
+				nIndex = stackSize + nIndex;
 
-const int PARAMETER_STACK_MAX_SIZE = UG_REGISTRY_MAX_NUM_ARGS;
+			if(nIndex < 0 || nIndex >= stackSize)
+				UG_THROW("Invalid index "<<nIndex<<" used in Parameter Stack.");
 
-// CAUTION:
-// Type values must not be changed! Bindings rely on the exact values.
-// Append new types at the end and update bindings.
-// If in doubt contact binding developers!
-enum ParameterTypes
-{
-	PT_UNKNOWN = 0,
-	PT_BOOL = 1,
-	PT_INTEGER = 2,
-	PT_NUMBER = 3,
-	PT_CSTRING = 4,
-	PT_STD_STRING = 5,
-	PT_POINTER = 6,
-	PT_CONST_POINTER = 7,
-	PT_SMART_POINTER = 8,
-	PT_CONST_SMART_POINTER = 9
+			return nIndex;
+		}
+
+	public:
+	///	default constructor
+		ParameterInfo() : m_numEntries(0) {}
+
+	////////////////////////////////
+	//	info
+	////////////////////////////////
+
+	///	returns number of parameters in the param stack
+		inline int size() const		{return m_numEntries;}
+
+	///	returns if index is a std::vector
+		inline bool is_vector(int index) const{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+			return m_vEntryType[index].bVector;
+		}
+
+	///	returns ParameterType enum of data type for a stack entry
+		Variant::Type type(int index) const{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+			return m_vEntryType[index].type;
+		}
+
+	///	returns the class name node for an element in the param stack
+		const ClassNameNode* class_name_node(int index) const{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+			if(m_vEntryType[index].pClassNameNode == NULL)
+				UG_THROW("ClassNameNode missing in Parameter stack.");
+			return m_vEntryType[index].pClassNameNode;
+		}
+
+	///	returns the class name for an element in the param stack
+		const char* class_name(int index) const{
+			return class_name_node(index)->name().c_str();
+		}
+
+	///	returns true if a parameter of the stack has been named by user
+		bool parameter_named(int index) const{
+			return class_name_node(index)->named();
+		}
+
+	///////////////////////////////////////////////////////////////////////
+	//	push_type
+	///////////////////////////////////////////////////////////////////////
+	protected:
+		template <typename TType, typename TNode>
+		inline void _push_type(){
+			m_vEntryType[m_numEntries].type = Variant::type<TType>();
+			m_vEntryType[m_numEntries].pClassNameNode = &ClassNameProvider<TNode>::class_name_node();
+			m_vEntryType[m_numEntries].bVector = false;
+			++m_numEntries;
+		}
+
+		template <typename TNative>
+		inline void _push_type(){_push_type<TNative,TNative>();}
+
+		template <typename TType, typename TNode>
+		inline void _push_vector_type(){
+			m_vEntryType[m_numEntries].type = Variant::type<TType>();
+			m_vEntryType[m_numEntries].pClassNameNode = &ClassNameProvider<TNode>::class_name_node();
+			m_vEntryType[m_numEntries].bVector = true;
+			++m_numEntries;
+		}
+
+		template <typename TNative>
+		inline void _push_vector_type(){_push_vector_type<TNative,TNative>();}
+
+		template <typename T>
+		struct PushType{
+			static void push(ParameterInfo* This){
+				___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____();
+			}
+		};
+
+	public:
+	///	pushes a type to the parameter stack
+		template <typename T>
+		inline void push_type(){PushType<T>::push(this);}
+
+	protected:
+	///	structure to store a data entry with additional information
+		struct EntryType{
+			EntryType() :
+				type(Variant::VT_INVALID), pClassNameNode(NULL), bVector(false)
+			{}
+			Variant::Type type;						//<	enum ParameterTypes indicating stored type
+			const ClassNameNode* pClassNameNode; 	//< class name for user defined data
+			bool bVector;							//< boolean if vector data
+		};
+
+	//	This array is of fixed size, since we want to introduce a minimal
+	//	overhead during argument assignment.
+		EntryType m_vEntryType[PARAMETER_STACK_MAX_SIZE];
+
+	///	number of currently stored entries
+		int m_numEntries;
 };
+
+// implementation native types
+template <> struct ParameterInfo::PushType<bool>				{static void push(ParameterInfo* This){This->_push_type<bool>();}};
+template <> struct ParameterInfo::PushType<int>					{static void push(ParameterInfo* This){This->_push_type<int>();}};
+template <> struct ParameterInfo::PushType<size_t>				{static void push(ParameterInfo* This){This->_push_type<size_t>();}};
+template <> struct ParameterInfo::PushType<float>				{static void push(ParameterInfo* This){This->_push_type<float>();}};
+template <> struct ParameterInfo::PushType<double>				{static void push(ParameterInfo* This){This->_push_type<double>();}};
+template <> struct ParameterInfo::PushType<const char*>			{static void push(ParameterInfo* This){This->_push_type<const char*>();}};
+template <> struct ParameterInfo::PushType<std::string>			{static void push(ParameterInfo* This){This->_push_type<std::string>();}};
+template <> struct ParameterInfo::PushType<const std::string&>	{static void push(ParameterInfo* This){This->_push_type<std::string>();}};
+
+// implementation pointers and references to registered types
+template <typename TClass> struct ParameterInfo::PushType<TClass*>				{static void push(ParameterInfo* This){This->_push_type<void*, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<const TClass*>		{static void push(ParameterInfo* This){This->_push_type<const void*, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<TClass&>				{static void push(ParameterInfo* This){This->_push_type<void*, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<const TClass&>			{static void push(ParameterInfo* This){This->_push_type<const void*, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<SmartPtr<TClass> >		{static void push(ParameterInfo* This){This->_push_type<SmartPtr<void>, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<ConstSmartPtr<TClass> >	{static void push(ParameterInfo* This){This->_push_type<ConstSmartPtr<void>, TClass>();}};
+
+// implementation for std::vector, std::vector& and const std::vector&  (native types)
+template <> struct ParameterInfo::PushType<std::vector<bool> >			{static void push(ParameterInfo* This){This->_push_vector_type<bool>();}};
+template <> struct ParameterInfo::PushType<std::vector<int> >			{static void push(ParameterInfo* This){This->_push_vector_type<int>();}};
+template <> struct ParameterInfo::PushType<std::vector<size_t> >		{static void push(ParameterInfo* This){This->_push_vector_type<size_t>();}};
+template <> struct ParameterInfo::PushType<std::vector<float> >			{static void push(ParameterInfo* This){This->_push_vector_type<float>();}};
+template <> struct ParameterInfo::PushType<std::vector<double> >		{static void push(ParameterInfo* This){This->_push_vector_type<double>();}};
+template <> struct ParameterInfo::PushType<std::vector<const char*> >	{static void push(ParameterInfo* This){This->_push_vector_type<const char*>();}};
+template <> struct ParameterInfo::PushType<std::vector<std::string> >	{static void push(ParameterInfo* This){This->_push_vector_type<std::string>();}};
+
+template <> struct ParameterInfo::PushType<std::vector<bool>&>			{static void push(ParameterInfo* This){This->_push_vector_type<bool>();}};
+template <> struct ParameterInfo::PushType<std::vector<int>&>			{static void push(ParameterInfo* This){This->_push_vector_type<int>();}};
+template <> struct ParameterInfo::PushType<std::vector<size_t>&>		{static void push(ParameterInfo* This){This->_push_vector_type<size_t>();}};
+template <> struct ParameterInfo::PushType<std::vector<float>&>			{static void push(ParameterInfo* This){This->_push_vector_type<float>();}};
+template <> struct ParameterInfo::PushType<std::vector<double>&>		{static void push(ParameterInfo* This){This->_push_vector_type<double>();}};
+template <> struct ParameterInfo::PushType<std::vector<const char*>&>	{static void push(ParameterInfo* This){This->_push_vector_type<const char*>();}};
+template <> struct ParameterInfo::PushType<std::vector<std::string>&>	{static void push(ParameterInfo* This){This->_push_vector_type<std::string>();}};
+
+template <> struct ParameterInfo::PushType<const std::vector<bool>&>		{static void push(ParameterInfo* This){This->_push_vector_type<bool>();}};
+template <> struct ParameterInfo::PushType<const std::vector<int>&>			{static void push(ParameterInfo* This){This->_push_vector_type<int>();}};
+template <> struct ParameterInfo::PushType<const std::vector<size_t>&>		{static void push(ParameterInfo* This){This->_push_vector_type<size_t>();}};
+template <> struct ParameterInfo::PushType<const std::vector<float>&>		{static void push(ParameterInfo* This){This->_push_vector_type<float>();}};
+template <> struct ParameterInfo::PushType<const std::vector<double>&>		{static void push(ParameterInfo* This){This->_push_vector_type<double>();}};
+template <> struct ParameterInfo::PushType<const std::vector<const char*>&>	{static void push(ParameterInfo* This){This->_push_vector_type<const char*>();}};
+template <> struct ParameterInfo::PushType<const std::vector<std::string>&>	{static void push(ParameterInfo* This){This->_push_vector_type<std::string>();}};
+
+// implementation for std::vector, std::vector& and const std::vector&  (registered types)
+template <typename TClass> struct ParameterInfo::PushType<std::vector<TClass*> >	{static void push(ParameterInfo* This){This->_push_vector_type<void*, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<std::vector<TClass*>& >	{static void push(ParameterInfo* This){This->_push_vector_type<void*, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<const std::vector<TClass*>&>	{static void push(ParameterInfo* This){This->_push_vector_type<void*, TClass>();}};
+
+template <typename TClass> struct ParameterInfo::PushType<std::vector<const TClass*> >	{static void push(ParameterInfo* This){This->_push_vector_type<const void*, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<std::vector<const TClass*>& >	{static void push(ParameterInfo* This){This->_push_vector_type<const void*, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<const std::vector<const TClass*>&>	{static void push(ParameterInfo* This){This->_push_vector_type<const void*, TClass>();}};
+
+template <typename TClass> struct ParameterInfo::PushType<std::vector<SmartPtr<TClass> > >	{static void push(ParameterInfo* This){This->_push_vector_type<SmartPtr<void>, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<std::vector<SmartPtr<TClass> >& >	{static void push(ParameterInfo* This){This->_push_vector_type<SmartPtr<void>, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<const std::vector<SmartPtr<TClass> >&>	{static void push(ParameterInfo* This){This->_push_vector_type<SmartPtr<void>, TClass>();}};
+
+template <typename TClass> struct ParameterInfo::PushType<std::vector<ConstSmartPtr<TClass> > >	{static void push(ParameterInfo* This){This->_push_vector_type<ConstSmartPtr<void>, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<std::vector<ConstSmartPtr<TClass> >& >	{static void push(ParameterInfo* This){This->_push_vector_type<ConstSmartPtr<void>, TClass>();}};
+template <typename TClass> struct ParameterInfo::PushType<const std::vector<ConstSmartPtr<TClass> >&>	{static void push(ParameterInfo* This){This->_push_vector_type<ConstSmartPtr<void>, TClass>();}};
+
 
 ////////////////////////////////////////////////////////////////////////
 ///	A stack that can hold values together with their type-id.
 /**
  * This class is mainly used as an intermediate parameter storage during
- * calls to ugbridge methods. Its focus is on being leightweight and fast,
- * which makes it a little unflexible at times.
- * Note that the maximal number of parameters is specified by the constant
- * PARAMETER_STACK_MAX_SIZE. This is set to 10 by default. Please note, that
- * this value should not be unnecessarily high. This wouldn't make sense anyway,
- * since the template-method-wrappers can't take any more parameters.
+ * calls to ugbridge methods. Its focus is on being lightweight and fast.
  *
- * Supported types are integer, number, string, reference, pointer and smart-pointer.
- * References and pointers are stored in a void*. The user is responsible to
- * associate the correct types.
- *
- * Use push_* to add new parameters to the stack - * stands for one of
- * the parameters above.
- *
- * Use to_* to retrieve a value.
- *
- * Use set_* to set a value in an existing entry.
+ * Use push() to add new parameters to the stack.
+ * Use to() to retrieve a value.
+ * Use set() to set a value in an existing entry.
  *
  * Indices start with 0. Negative indices can be used to start indexing from
  * the top of the stack.
- *
- * If a bad index is passed, an instance of ERROR_BadIndex is thrown.
- * 
- * If set_* or get_* are performed on wrong types, an instance of
- * ERROR_BadConversion is thrown.
  */
-class ParameterStack
+class ParameterStack : public ParameterInfo
 {
-	public:
-	///	default constructor
-		ParameterStack() :
-			m_numEntries(0), m_bHasSmartPtrs(false), m_bHasStringCopies(false)
-		{}
-		
-	///	destructor
-		~ParameterStack()
-		{
-		//	we have to release all string copies and smart pointers.
-			if(m_bHasStringCopies){
-				for(int i = 0; i < m_numEntries; ++i){
-					if(m_entries[i].type == PT_STD_STRING)
-						delete m_entries[i].param.m_stdString;
-				}
-			}
 
-			if(m_bHasSmartPtrs){
-				for(int i = 0; i < m_numEntries; ++i){
-					if(m_entries[i].type == PT_SMART_POINTER)
-						delete (SmartPtr<void>*)m_entries[i].param.m_smartPtrWrapper;
-					else if(m_entries[i].type == PT_CONST_SMART_POINTER)
-						delete (ConstSmartPtr<void>*)m_entries[i].param.m_constSmartPtrWrapper;
-				}
-			}
-		}
-
-	////////////////////////////////
-	//	info
-	////////////////////////////////
-		inline int size() const		{return m_numEntries;}
-		
-	////////////////////////////////
+	///////////////////////////////////////////////////////////////////////
 	//	push
-	////////////////////////////////
-
-	///	push bool
-		inline void push_bool(bool val = true)
-			{PUSH_PARAM_TO_STACK(m_bool, val, PT_BOOL,
-			  &ClassNameProvider<bool>::class_name_node());}
-
-	///	push integer
-		inline void push_integer(int val = 0)
-			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER,
-			  &ClassNameProvider<int>::class_name_node());}
-
-	///	push a number (double/float)
-		inline void push_number(number val = 0)
-			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER,
-			  &ClassNameProvider<number>::class_name_node());}
-		
-	///	strings are not bufferd.
-		inline void push_cstring(const char* str = "")
-		{
-			PUSH_PARAM_TO_STACK(m_cstring, str, PT_CSTRING,
-								&ClassNameProvider<char>::class_name_node());
+	///////////////////////////////////////////////////////////////////////
+	protected:
+		/**
+		 * pushes a native type or a ptr/smartptr to a registered type to
+		 * the stack. The value is stored in a Variant (thus, ptr are stored
+		 * as void*, const void*, SmartPtr<void>, ConstSmartPtr<void>)
+		 *
+		 * @param val	the parameter to push
+		 */
+		template <typename T>
+		inline void _push_native(const T& val){
+			this->push_type<T>();
+			m_vEntry[m_numEntries-1] = Variant(val);
 		}
 
-		inline void push_std_string(const char* str = "")
-		{
-		//	push a std string to the stack. this performs a copy of the string
-			PUSH_STD_STRING_TO_STACK(str, &ClassNameProvider<char>::class_name_node());
-			m_bHasStringCopies = true;
+		template <typename TPtr, typename TType>
+		inline void _push_pointer(TPtr val){
+			this->push_type<TType>();
+			m_vEntry[m_numEntries-1] = Variant(val);
 		}
 
-		inline void push_std_string(const std::string& str)
-		{
-		//	push a std string to the stack. this performs a copy of the string
-			PUSH_STD_STRING_TO_STACK(str, &ClassNameProvider<char>::class_name_node());
-			m_bHasStringCopies = true;
+		/**
+		 * pushes a native type to a ptr/smartptr. In order to keep track of the
+		 * concrete type of the object, the classNameNode is stored as well
+		 *
+		 * @param val		the value to push
+		 * @param classNameNode		the values classNameNode
+		 * \tparam void-ptr-type (one of void*, const void*, SmartPtr<void>, ConstSmartPtr<void>)
+		 */
+		template <typename T>
+		inline void _push_void_pointer(T val, const ClassNameNode* classNameNode){
+			m_vEntry[m_numEntries] = Variant(val);
+			m_vEntryType[m_numEntries].type = Variant::type<T>();
+			m_vEntryType[m_numEntries].pClassNameNode = classNameNode;
+			m_vEntryType[m_numEntries].bVector = false;
+			++m_numEntries;
 		}
 
-	/// push user defined classes
+		/**
+		 * pushes an std::vector to the stack, holding native type entries.
+		 *
+		 * @param spVec a smart-ptr to the std::vector
+		 */
 		template<class T>
-		inline void push_pointer(T* ptr = NULL)
-			{PUSH_PARAM_TO_STACK(	m_ptr, (void*)ptr, PT_POINTER,
-		                     		&ClassNameProvider<T>::class_name_node());}
-
-		inline void push_pointer(void* ptr, const ClassNameNode* classNameNode)
-			{PUSH_PARAM_TO_STACK(	m_ptr, ptr, PT_POINTER, classNameNode);}
-
-		
-		template<class T>
-		inline void push_smart_pointer_std_vector(const SmartPtr<std::vector<T> >& ptr = SmartPtr<std::vector<T> >(NULL))
-			{PUSH_SP_TO_STACK(ptr, &ClassNameProvider<std_vector_wrap<T> >::class_name_node());
-			m_bHasSmartPtrs = true;}
-			
-		
-	/// user defined classes
-		template<class T>
-		inline void push_const_pointer(const T* ptr = NULL)
-			{PUSH_PARAM_TO_STACK(	m_constPtr, (const void*)ptr, PT_CONST_POINTER,
-			                     	&ClassNameProvider<T>::class_name_node());}
-
-		inline void push_const_pointer(const void* ptr, const ClassNameNode* classNameNode)
-			{PUSH_PARAM_TO_STACK(m_constPtr, ptr, PT_CONST_POINTER, classNameNode);}
-
-	/// SmartPtrs to user defined classes
-		template<class T>
-		inline void push_smart_pointer(const SmartPtr<T>& ptr = SmartPtr<T>(NULL))
-			{PUSH_SP_TO_STACK(ptr, &ClassNameProvider<T>::class_name_node());
-				m_bHasSmartPtrs = true;}
-
-		inline void push_smart_pointer(const SmartPtr<void>& ptr,
-		                               const ClassNameNode* classNameNode)
-			{PUSH_SP_TO_STACK(ptr, classNameNode);
-				m_bHasSmartPtrs = true;}
-
-	/// ConstSmartPtrs to user defined classes
-		template<class T>
-		inline void push_const_smart_pointer(const ConstSmartPtr<T>& ptr = ConstSmartPtr<T>(NULL))
-			{PUSH_CSP_TO_STACK(ptr, &ClassNameProvider<T>::class_name_node());
-				m_bHasSmartPtrs = true;}
-
-		inline void push_const_smart_pointer(const ConstSmartPtr<void>& ptr,
-		                                     const ClassNameNode* classNameNode)
-			{PUSH_CSP_TO_STACK(ptr, classNameNode);
-				m_bHasSmartPtrs = true;}
-
-	////////////////////////////////
-	//	get
-	////////////////////////////////
-
-	///	returns ParameterType enum of data type for a stack entry
-		uint get_type(int index) const
+		inline void _push_vector(SmartPtr<std::vector<T> > spVec)
 		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			return m_entries[index].type;
-		}
-		
-	//\todo: return const std::string&
-	///	returns the class name for an element in the param stack
-		const char* class_name(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			if(m_entries[index].pClassNameNode == NULL)
-				throw(UGError("ClassNameNode missing in Parameter stack."));
-			return (*m_entries[index].pClassNameNode).name().c_str();
+				this->push_type<std::vector<T> >();
+				SmartPtr<void> sp = spVec;
+				m_vEntry[m_numEntries-1] = Variant(sp);
 		}
 
-	///	returns the class name node for an element in the param stack
-		const ClassNameNode* class_name_node(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			if(m_entries[index].pClassNameNode == NULL)
-				throw(UGError("ClassNameNode missing in Parameter stack."));
-			return m_entries[index].pClassNameNode;
+		/**
+		 * pushes an std::vector to the stack, holding ptr/smartptr to
+		 * user-defined (registered) type. Ptrs are casted to void, and in order
+		 * to get the concrete type (for casting back), the ClassNameNode is
+		 * stored.
+		 *
+		 * @param spVec a smart-ptr to the std::vector
+		 * \tparam void-ptr-type (one of void*, const void*, SmartPtr<void>, ConstSmartPtr<void>)
+		 */
+		template <typename TVoid>
+		inline void _push_void_pointer_vector(SmartPtr<std::vector<std::pair<TVoid, const ClassNameNode*> > > spVec,
+		                                      const ClassNameNode* baseNameNode = NULL){
+			SmartPtr<void> sp = spVec;
+			m_vEntry[m_numEntries] = Variant(sp);
+			m_vEntryType[m_numEntries].type = Variant::type<TVoid>();
+			m_vEntryType[m_numEntries].pClassNameNode = baseNameNode;
+			m_vEntryType[m_numEntries].bVector = true;
+			++m_numEntries;
 		}
 
-	///	return element in param stack casted to bool
-		bool to_bool(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+		/**
+		 * pushes an std::vector to the stack, holding ptr/smartptr to
+		 * user-defined (registered) type. Ptrs are casted to void, and in order
+		 * to get the concrete type (for casting back), the ClassNameNode is
+		 * stored.
+		 *
+		 * @param spVec a smart-ptr to the std::vector
+		 */
+		template <typename TVoid, typename TPtr, typename TNode>
+		inline void _push_pointer_vector(const std::vector<TPtr>& vec){
+			SmartPtr<std::vector<std::pair<TVoid, const ClassNameNode*> > > spVec
+				= SmartPtr<std::vector<std::pair<TVoid, const ClassNameNode*> > >(new std::vector<std::pair<TVoid, const ClassNameNode*> >());
 
-			const Entry& e = m_entries[index];
-			if(e.type == PT_BOOL)
-				return e.param.m_bool;
-			else if(e.type == PT_INTEGER)
-				return (bool) e.param.m_int;
-
-			throw(ERROR_BadConversion(index, e.type, PT_BOOL));
-		}
-
-	///	return element in param stack casted to int
-		int to_integer(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			const Entry& e = m_entries[index];
-			if(e.type == PT_INTEGER)
-				return e.param.m_int;
-			else if(e.type == PT_NUMBER)
-				return (int) e.param.m_number;
-			
-			throw(ERROR_BadConversion(index, e.type, PT_INTEGER));
-		}
-
-	///	return element in param stack casted to number (double/float)
-		number to_number(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			const Entry& e = m_entries[index];
-			if(e.type == PT_INTEGER)
-				return (number)e.param.m_int;
-			else if(e.type == PT_NUMBER)
-				return e.param.m_number;
-			
-			throw(ERROR_BadConversion(index, e.type, PT_NUMBER));
-		}
-
-	///	return element in param stack casted to const char*
-		const char* to_cstring(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			const Entry& e = m_entries[index];
-
-			if(e.type == PT_CSTRING)
-				return e.param.m_cstring;
-			else if(e.type == PT_STD_STRING)
-				return e.param.m_stdString->c_str();
-			
-			throw(ERROR_BadConversion(index, e.type, PT_CSTRING));
-		}
-
-	///	return const reference to std::string
-		const std::string& to_std_string(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-
-			const Entry& e = m_entries[index];
-
-			if(e.type == PT_STD_STRING)
-				return *e.param.m_stdString;
-
-			throw(ERROR_BadConversion(index, e.type, PT_STD_STRING));
-		}
-
-	///	return element in param stack casted to user defined type
-		template <class T>
-		T* to_pointer(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			const Entry& e = m_entries[index];
-			if(e.type == PT_POINTER)
-			{
-			//	copy pointer; only copy will be changed
-				const ClassNameNode* pClassNameNode = e.pClassNameNode;
-				void* ptr = ClassCastProvider::cast_to_base_class(
-						e.param.m_ptr, pClassNameNode, ClassNameProvider<T>::name());
-
-				if(ptr != NULL)
-					return reinterpret_cast<T*>(ptr);
-				else
-					throw(ERROR_IncompatibleClasses(index, class_name(index),
-					                                ClassNameProvider<T>::name()));
+			for(size_t i = 0; i < vec.size(); ++i){
+				spVec->push_back(std::pair<TVoid, const ClassNameNode*>(vec[i], &ClassNameProvider<TNode>::class_name_node()));
 			}
-			
-			throw(ERROR_BadConversion(index, e.type, PT_POINTER));
+			_push_void_pointer_vector(spVec, &ClassNameProvider<TNode>::class_name_node());
 		}
 
-	///	return element in param stack casted to void*
-		void* to_pointer(int index) const
-		{
+	public:
+	/// push user defined classes casted to void
+	///	\{
+		inline void push(void* ptr, const ClassNameNode* classNameNode){_push_void_pointer<void*>(ptr, classNameNode);}
+		inline void push(const void* ptr, const ClassNameNode* classNameNode){_push_void_pointer<const void*>(ptr, classNameNode);}
+		inline void push(SmartPtr<void> ptr, const ClassNameNode* classNameNode){_push_void_pointer<SmartPtr<void> >(ptr, classNameNode);}
+		inline void push(ConstSmartPtr<void> ptr, const ClassNameNode* classNameNode){_push_void_pointer<ConstSmartPtr<void> >(ptr, classNameNode);}
+	///	\}
+
+	///	push array type
+	///	\{
+		inline void push(SmartPtr<std::vector<std::pair<void*, const ClassNameNode*> > > spVec){_push_void_pointer_vector<void*>(spVec);}
+		inline void push(SmartPtr<std::vector<std::pair<const void*, const ClassNameNode*> > > spVec){_push_void_pointer_vector<const void*>(spVec);}
+		inline void push(SmartPtr<std::vector<std::pair<SmartPtr<void>, const ClassNameNode*> > > spVec){_push_void_pointer_vector<SmartPtr<void> >(spVec);}
+		inline void push(SmartPtr<std::vector<std::pair<ConstSmartPtr<void>, const ClassNameNode*> > > spVec){_push_void_pointer_vector<ConstSmartPtr<void> >(spVec);}
+	/// \}
+
+	///	push native array type
+	///	\{
+		inline void push(SmartPtr<std::vector<bool> > spVec){_push_vector<bool>(spVec);}
+		inline void push(SmartPtr<std::vector<size_t> > spVec){_push_vector<size_t>(spVec);}
+		inline void push(SmartPtr<std::vector<int> > spVec){_push_vector<int>(spVec);}
+		inline void push(SmartPtr<std::vector<float> > spVec){_push_vector<float>(spVec);}
+		inline void push(SmartPtr<std::vector<double> > spVec){_push_vector<double>(spVec);}
+		inline void push(SmartPtr<std::vector<const char*> > spVec){_push_vector<const char*>(spVec);}
+		inline void push(SmartPtr<std::vector<std::string> > spVec){_push_vector<std::string>(spVec);}
+	/// \}
+
+	protected:
+		template <typename T>
+		struct PushType{
+			static void push(ParameterStack* This, T data){
+				___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____();
+		}};
+
+	public:
+	///	return element in param stack casted to type
+		template <typename T>
+		inline void push(T data) {PushType<T>::push(this, data);}
+
+	///////////////////////////////////////////////////////////////////////
+	//	to
+	///////////////////////////////////////////////////////////////////////
+	protected:
+	///	return element in param stack casted to native type
+		template <typename T>
+		inline T _to_native(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-
-			const Entry& e = m_entries[index];
-			if(e.type == PT_POINTER)
-				return e.param.m_ptr;
-
-			throw(ERROR_BadConversion(index, e.type, PT_POINTER));
+			return m_vEntry[index].to<T>();
 		}
 
-	///	return element in param stack casted to user defined type
-		template <class T>
-		const T* to_const_pointer(int index) const
-		{
+	///	returns element in param stack casted to pointer type
+	/**
+	 * returns the element at index in the stack casted to a pointer type
+	 *
+	 * @param index		the stack index
+	 * @return	the casted pointer
+	 * \tparam	TPtr concrete pointer type
+	 * \tparam	TVoid ptr-type (one of void*, const void*, SmartPtr<void>, ConstSmartPtr<void>)
+	 */
+		template <typename T, typename TPtr, typename TVoid>
+		inline TPtr _to_pointer(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			const Entry& e = m_entries[index];
-			if(e.type == PT_CONST_POINTER)
-			{
-			//	copy pointer; only copy will be changed
-				const ClassNameNode* pClassNameNode = e.pClassNameNode;
-				void* ptr = ClassCastProvider::cast_to_base_class(
-						e.param.m_ptr, pClassNameNode, ClassNameProvider<T>::name());
-
-				if(ptr != NULL)
-					return reinterpret_cast<const T*>(ptr);
-				else
-					throw(ERROR_IncompatibleClasses(index, class_name(index),
-													ClassNameProvider<T>::name()));
-			}
-			
-			throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
+			const ClassNameNode* pClassNameNode = m_vEntryType[index].pClassNameNode;
+			TPtr ptr = ClassCastProvider::cast_to<T>(m_vEntry[index].to<TVoid>(), pClassNameNode);
+			return ptr;
 		}
 
-	///	return element in param stack casted to void*
-		const void* to_const_pointer(int index) const
-		{
+	///	return element in param stack casted to native type vector
+		template <typename T>
+		inline std::vector<T>& _to_native_vector(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-
-			const Entry& e = m_entries[index];
-			if(e.type == PT_CONST_POINTER)
-				return e.param.m_constPtr;
-
-			throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
+			SmartPtr<void> smartPtr = m_vEntry[index].to<SmartPtr<void> >();
+			SmartPtr<std::vector<T> > spVec = smartPtr.cast_reinterpret<std::vector<T>, FreeDelete>();
+			if(spVec.invalid()) UG_THROW("Cannot cast back to std::vector<T> for native type.");
+			return *spVec;
 		}
 
-	///	return element in param stack casted to user defined type in SmartPtr
-	/**	\todo	currently only works for FreePolicy FreeDelete...*/
-		template <class T>
-		SmartPtr<T> to_smart_pointer(int index) const
-		{
+	///	return element in param stack casted to native type vector
+		template <typename T, typename TPtr, typename TVoid>
+		inline std::vector<TPtr>& _to_pointer_vector(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+			SmartPtr<void> smartPtr = m_vEntry[index].to<SmartPtr<void> >();
+			SmartPtr<std::vector<std::pair<TVoid, const ClassNameNode*> > > spVec = smartPtr.cast_reinterpret<std::vector<std::pair<TVoid, const ClassNameNode*> > , FreeDelete>();
+			if(spVec.invalid()) UG_THROW("Cannot cast back to std::vector<T> for native type.");
 
-			const Entry& e = m_entries[index];
-			if(e.type == PT_SMART_POINTER)
-			{
-			//	copy pointer; only copy will be changed
-				const ClassNameNode* pClassNameNode = e.pClassNameNode;
+			SmartPtr<std::vector<TPtr> > sp = SmartPtr<std::vector<TPtr> >(new std::vector<TPtr>());
 
-			//	copy smart pointer
-				SmartPtr<void> smartPtr =  *(e.param.m_smartPtrWrapper);
-
-			//	cast raw pointer
-				void* rawPtr = smartPtr.get();
-
-			// 	cast raw pointer to desired class
-				rawPtr = ClassCastProvider::cast_to_base_class(
-						rawPtr, pClassNameNode, ClassNameProvider<T>::name());
-
-			//	set raw ptr into smart pointer
-				smartPtr.set_impl<T, FreeDelete>(rawPtr);
-
-				if(rawPtr != NULL)
-					return smartPtr.cast_reinterpret<T, FreeDelete>();
-				else
-					throw(ERROR_IncompatibleClasses(index, class_name(index),
-					                                ClassNameProvider<T>::name()));
+			for(size_t i = 0; i < spVec->size(); ++i){
+				sp->push_back(ClassCastProvider::cast_to<T>((*spVec)[i].first, (*spVec)[i].second));
 			}
 
-			throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
+			 const_cast<std::vector<SmartPtr<void> >*>(&m_vStoredSmartPtr)->push_back(sp);
+			return *sp;
 		}
+		std::vector<SmartPtr<void> > m_vStoredSmartPtr;
 
-	///	return element in param stack casted to user defined type in SmartPtr
-		SmartPtr<void> to_smart_pointer(int index) const
-		{
+	///	return element in param stack casted to native type vector
+		template <typename TPtr>
+		inline SmartPtr<std::vector<std::pair<TPtr, const ClassNameNode*> > > _to_void_pointer_vector(int index) const{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+			SmartPtr<void> smartPtr = m_vEntry[index].to<SmartPtr<void> >();
+			SmartPtr<std::vector<std::pair<TPtr, const ClassNameNode*> > > spVec = smartPtr.cast_reinterpret<std::vector<std::pair<TPtr, const ClassNameNode*> > , FreeDelete>();
+			if(spVec.invalid()) UG_THROW("Cannot cast back to std::vector<T> for native type.");
 
-			const Entry& e = m_entries[index];
-			if(e.type == PT_SMART_POINTER)
-				return *e.param.m_smartPtrWrapper;
-
-			throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
+			return spVec;
 		}
 
-	///	return element in param stack casted to user defined type in SmartPtr
-	/**	\todo	currently only works for FreePolicy FreeDelete...*/
-		template <class T>
-		ConstSmartPtr<T> to_const_smart_pointer(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+		template <typename T>
+		struct ToType{
+			static T to(const ParameterStack* This, int index){
+				return ___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____();
+		}};
 
-			const Entry& e = m_entries[index];
-			if(e.type == PT_CONST_SMART_POINTER)
-			{
-			//	copy pointer; only copy will be changed
-				const ClassNameNode* pClassNameNode = e.pClassNameNode;
-
-			//	copy smart pointer
-				ConstSmartPtr<void> smartPtr =  *(e.param.m_constSmartPtrWrapper);
-
-			//	cast raw pointer
-				const void* rawPtrConst = smartPtr.get();
-				void* rawPtr = const_cast<void*>(rawPtrConst);
-
-			// 	cast raw pointer to desired class
-				rawPtr = ClassCastProvider::cast_to_base_class(
-						rawPtr, pClassNameNode, ClassNameProvider<T>::name());
-
-			//	set raw ptr into smart pointer
-				smartPtr.set_impl<T, FreeDelete>(const_cast<const void*>(rawPtr));
-
-				if(rawPtr != NULL)
-					return smartPtr.cast_reinterpret<T, FreeDelete>();
-				else
-					throw(ERROR_IncompatibleClasses(index, class_name(index),
-					                                ClassNameProvider<T>::name()));
-			}
-
-			throw(ERROR_BadConversion(index, e.type, PT_CONST_SMART_POINTER));
-		}
-
-	///	return element in param stack casted to user defined type in SmartPtr
-		ConstSmartPtr<void> to_const_smart_pointer(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-
-			const Entry& e = m_entries[index];
-			if(e.type == PT_CONST_SMART_POINTER)
-				return *e.param.m_constSmartPtrWrapper;
-
-			throw(ERROR_BadConversion(index, e.type, PT_CONST_SMART_POINTER));
-		}
-
-	////////////////////////////////
-	//	set		
-	////////////////////////////////
-
-		void set_bool(int index, bool val)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-
-			Entry& e = m_entries[index];
-			if(e.type == PT_BOOL)
-				e.param.m_bool = val;
-			else if(e.type == PT_INTEGER)
-				e.param.m_int = (bool)val;
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_BOOL));
-		}
-
-		void set_integer(int index, int val)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			Entry& e = m_entries[index];
-			if(e.type == PT_INTEGER)
-				e.param.m_int = val;
-			else if(e.type == PT_NUMBER)
-				e.param.m_number = (number)val;
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_INTEGER));
-		}
-
-		void set_number(int index, number val)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			Entry& e = m_entries[index];
-			if(e.type == PT_INTEGER)
-				e.param.m_int = (int)val;
-			else if(e.type == PT_NUMBER)
-				e.param.m_number = val;
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_NUMBER));
-		}
-
-		void set_cstring(int index, const char* str)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-
-			Entry& e = m_entries[index];
-
-			if(e.type == PT_CSTRING)
-				e.param.m_cstring = str;
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_CSTRING));
-		}
-
-		void set_std_string(int index, const char* str)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-
-			Entry& e = m_entries[index];
-			if(e.type == PT_STD_STRING){
-				*e.param.m_stdString = str;
-			}
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_STD_STRING));
-		}
-
-		void set_std_string(int index, const std::string& str)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			Entry& e = m_entries[index];
-			if(e.type == PT_STD_STRING){
-				*e.param.m_stdString = str;
-			}
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_STD_STRING));
-		}
-
-		template <class T>
-		void set_pointer(int index, T* ptr)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			Entry& e = m_entries[index];
-			if(e.type == PT_POINTER)
-				e.param.m_ptr = (void*)ptr;
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_POINTER));
-		}
-		
-		template <class T>
-		void set_const_pointer(int index, const T* ptr)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			Entry& e = m_entries[index];
-			if(e.type == PT_CONST_POINTER)
-				e.param.m_constPtr = (void*)ptr;
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
-		}
-		
-		template <class T>
-		void set_smart_pointer(int index, const SmartPtr<T>& ptr)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-
-			Entry& e = m_entries[index];
-			if(e.type == PT_SMART_POINTER)
-				*e.param.m_smartPtrWrapper = ptr;
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
-		}
-
-		template <class T>
-		void set_const_smart_pointer(int index, const ConstSmartPtr<T>& ptr)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-
-			Entry& e = m_entries[index];
-			if(e.type == PT_CONST_SMART_POINTER)
-				*e.param.m_constSmartPtrWrapper = ptr;
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_CONST_SMART_POINTER));
-		}
-
-	///	returns true if a parameter of the stack has been named by user
-		bool parameter_named(int index) const
-		{
-			return class_name_node(index)->named();
-		}
+	public:
+	///	return element in param stack casted to type
+		template <typename T>
+		inline T to(int index) const {return ToType<T>::to(this, index);}
 
 	private:
-		union Parameter{
-			bool m_bool;
-			int	m_int;
-			number m_number;
-			const char* m_cstring;
-			std::string* m_stdString;
-			void* m_ptr;
-			const void* m_constPtr;
-			SmartPtr<void>* m_smartPtrWrapper;
-			ConstSmartPtr<void>* m_constSmartPtrWrapper;
-		};
-		
-	///	structure to store a data entry with additional information
-		struct Entry{			
-			Parameter param;  	//< Storage of data (native data or pointer)
-			uint type;			//<	enum ParameterTypes indicating stored type
-			const ClassNameNode* pClassNameNode; //< class name for user defined data
-		};
-
-	//	This array is of fixed size, since we want to introduce a minimal
-	//	overhead during argument assignment.
-		Entry m_entries[PARAMETER_STACK_MAX_SIZE];
-
-	///	number of currently stored entries
-		int m_numEntries;
-
-	//	variables that tell whether m_entries contains string copies or smart pointers
-		bool m_bHasSmartPtrs;
-		bool m_bHasStringCopies;
+	///	fixed size array storing the data for a stack entry
+		Variant m_vEntry[PARAMETER_STACK_MAX_SIZE];
 };
+
+////////////////////////////////////////////////////////////////////////////////
+//	PushType
+////////////////////////////////////////////////////////////////////////////////
+
+// convert to native types
+template <> struct ParameterStack::PushType<bool>			{static void push(ParameterStack* This, bool data)					{This->_push_native<bool>(data);}};
+template <> struct ParameterStack::PushType<int>			{static void push(ParameterStack* This, int data)					{This->_push_native<int>(data);}};
+template <> struct ParameterStack::PushType<size_t>			{static void push(ParameterStack* This, size_t data)				{This->_push_native<size_t>(data);}};
+template <> struct ParameterStack::PushType<float>			{static void push(ParameterStack* This, float data)					{This->_push_native<float>(data);}};
+template <> struct ParameterStack::PushType<double>			{static void push(ParameterStack* This, double data)				{This->_push_native<double>(data);}};
+template <> struct ParameterStack::PushType<const char*>		{static void push(ParameterStack* This, const char* data)		{This->_push_native<const char*>(data);}};
+template <> struct ParameterStack::PushType<std::string>		{static void push(ParameterStack* This, std::string data){This->_push_native<std::string>(data);}};
+template <> struct ParameterStack::PushType<const std::string&>	{static void push(ParameterStack* This, const std::string& data){This->_push_native<std::string>(data);}};
+
+// convert pointers to native types
+template <> struct ParameterStack::PushType<std::vector<bool> >			{static void push(ParameterStack* This, const std::vector<bool>& spVec)			{This->push(SmartPtr<std::vector<bool> >(new std::vector<bool>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<int> >			{static void push(ParameterStack* This, const std::vector<int>& spVec)			{This->push(SmartPtr<std::vector<int> >(new std::vector<int>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<size_t> >		{static void push(ParameterStack* This, const std::vector<size_t>& spVec)		{This->push(SmartPtr<std::vector<size_t> >(new std::vector<size_t>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<float> >		{static void push(ParameterStack* This, const std::vector<float>& spVec)		{This->push(SmartPtr<std::vector<float> >(new std::vector<float>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<double> >		{static void push(ParameterStack* This, const std::vector<double>& spVec)		{This->push(SmartPtr<std::vector<double> >(new std::vector<double>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<const char*> >	{static void push(ParameterStack* This, const std::vector<const char*>& spVec)	{This->push(SmartPtr<std::vector<const char*> >(new std::vector<const char*>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<std::string> >	{static void push(ParameterStack* This, const std::vector<std::string>& spVec)	{This->push(SmartPtr<std::vector<std::string> >(new std::vector<std::string>(spVec)));}};
+
+template <> struct ParameterStack::PushType<std::vector<bool>& >		{static void push(ParameterStack* This, const std::vector<bool>& spVec)			{This->push(SmartPtr<std::vector<bool> >(new std::vector<bool>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<int>& >			{static void push(ParameterStack* This, const std::vector<int>& spVec)			{This->push(SmartPtr<std::vector<int> >(new std::vector<int>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<size_t>& >		{static void push(ParameterStack* This, const std::vector<size_t>& spVec)		{This->push(SmartPtr<std::vector<size_t> >(new std::vector<size_t>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<float>& >		{static void push(ParameterStack* This, const std::vector<float>& spVec)		{This->push(SmartPtr<std::vector<float> >(new std::vector<float>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<double>& >		{static void push(ParameterStack* This, const std::vector<double>& spVec)		{This->push(SmartPtr<std::vector<double> >(new std::vector<double>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<const char*>& >	{static void push(ParameterStack* This, const std::vector<const char*>& spVec)	{This->push(SmartPtr<std::vector<const char*> >(new std::vector<const char*>(spVec)));}};
+template <> struct ParameterStack::PushType<std::vector<std::string>& >	{static void push(ParameterStack* This, const std::vector<std::string>& spVec)	{This->push(SmartPtr<std::vector<std::string> >(new std::vector<std::string>(spVec)));}};
+
+template <> struct ParameterStack::PushType<const std::vector<bool>& >			{static void push(ParameterStack* This, const std::vector<bool>& spVec)			{This->push(SmartPtr<std::vector<bool> >(new std::vector<bool>(spVec)));}};
+template <> struct ParameterStack::PushType<const std::vector<int>& >			{static void push(ParameterStack* This, const std::vector<int>& spVec)			{This->push(SmartPtr<std::vector<int> >(new std::vector<int>(spVec)));}};
+template <> struct ParameterStack::PushType<const std::vector<size_t>& >		{static void push(ParameterStack* This, const std::vector<size_t>& spVec)		{This->push(SmartPtr<std::vector<size_t> >(new std::vector<size_t>(spVec)));}};
+template <> struct ParameterStack::PushType<const std::vector<float>& >			{static void push(ParameterStack* This, const std::vector<float>& spVec)		{This->push(SmartPtr<std::vector<float> >(new std::vector<float>(spVec)));}};
+template <> struct ParameterStack::PushType<const std::vector<double>& >		{static void push(ParameterStack* This, const std::vector<double>& spVec)		{This->push(SmartPtr<std::vector<double> >(new std::vector<double>(spVec)));}};
+template <> struct ParameterStack::PushType<const std::vector<const char*>& >	{static void push(ParameterStack* This, const std::vector<const char*>& spVec)	{This->push(SmartPtr<std::vector<const char*> >(new std::vector<const char*>(spVec)));}};
+template <> struct ParameterStack::PushType<const std::vector<std::string>& >	{static void push(ParameterStack* This, const std::vector<std::string>& spVec)	{This->push(SmartPtr<std::vector<std::string> >(new std::vector<std::string>(spVec)));}};
+
+// convert push concrete pointer types
+template <class T> struct ParameterStack::PushType<T*>					{static void push(ParameterStack* This, T* data)				{This->_push_pointer<void*, T*>(data);}};
+template <class T> struct ParameterStack::PushType<T&>					{static void push(ParameterStack* This, T& data)				{PushType<T*>::push(This, &data);}};
+template <class T> struct ParameterStack::PushType<const T*>			{static void push(ParameterStack* This, const T* data)			{This->_push_pointer<const void*, const T*>(data);}};
+template <class T> struct ParameterStack::PushType<const T&>			{static void push(ParameterStack* This, const T& data)			{PushType<const T*>::push(This, &data);}};
+template <class T> struct ParameterStack::PushType<SmartPtr<T> >		{static void push(ParameterStack* This, SmartPtr<T> data)		{This->_push_pointer<SmartPtr<void> , SmartPtr<T> >(data);}};
+template <class T> struct ParameterStack::PushType<ConstSmartPtr<T> >	{static void push(ParameterStack* This, ConstSmartPtr<T> data)	{This->_push_pointer<ConstSmartPtr<void>, ConstSmartPtr<T> >(data);}};
+
+// convert to std::vector, std::vector& and const std::vector& (registered types)
+template<class T> struct ParameterStack::PushType<std::vector<T*> >		 	{static void push(ParameterStack* This, const std::vector<T*>& data)	{This->_push_pointer_vector<void*, T*, T>(data);}};
+template<class T> struct ParameterStack::PushType<std::vector<T*>& >		{static void push(ParameterStack* This, const std::vector<T*>& data)	{This->_push_pointer_vector<void*, T*, T>(data);}};
+template<class T> struct ParameterStack::PushType<const std::vector<T*>&>	{static void push(ParameterStack* This, const std::vector<T*>& data)	{This->_push_pointer_vector<void*, T*, T>(data);}};
+
+template<class T> struct ParameterStack::PushType<std::vector<const T*> >		{static void push(ParameterStack* This, const std::vector<const T*>& data)	{This->_push_pointer_vector<const void*, const T*, T>(data);}};
+template<class T> struct ParameterStack::PushType<std::vector<const T*>& >		{static void push(ParameterStack* This, const std::vector<const T*>& data)	{This->_push_pointer_vector<const void*, const T*, T>(data);}};
+template<class T> struct ParameterStack::PushType<const std::vector<const T*>&>	{static void push(ParameterStack* This, const std::vector<const T*>& data)	{This->_push_pointer_vector<const void*, const T*, T>(data);}};
+
+template<class T> struct ParameterStack::PushType<std::vector<SmartPtr<T> > >		{static void push(ParameterStack* This, const std::vector<SmartPtr<T> >& data)	{This->_push_pointer_vector<SmartPtr<void>, SmartPtr<T>, T>(data);}};
+template<class T> struct ParameterStack::PushType<std::vector<SmartPtr<T> >& >		{static void push(ParameterStack* This, const std::vector<SmartPtr<T> >& data)	{This->_push_pointer_vector<SmartPtr<void>, SmartPtr<T>, T>(data);}};
+template<class T> struct ParameterStack::PushType<const std::vector<SmartPtr<T> >&>	{static void push(ParameterStack* This, const std::vector<SmartPtr<T> >& data)	{This->_push_pointer_vector<SmartPtr<void>, SmartPtr<T>, T>(data);}};
+
+template<class T> struct ParameterStack::PushType<std::vector<ConstSmartPtr<T> > >		{static void push(ParameterStack* This, const std::vector<ConstSmartPtr<T> >& data)	{This->_push_pointer_vector<ConstSmartPtr<void>, ConstSmartPtr<T>, T>(data);}};
+template<class T> struct ParameterStack::PushType<std::vector<ConstSmartPtr<T> >& >		{static void push(ParameterStack* This, const std::vector<ConstSmartPtr<T> >& data)	{This->_push_pointer_vector<ConstSmartPtr<void>, ConstSmartPtr<T>, T>(data);}};
+template<class T> struct ParameterStack::PushType<const std::vector<ConstSmartPtr<T> >&>{static void push(ParameterStack* This, const std::vector<ConstSmartPtr<T> >& data)	{This->_push_pointer_vector<ConstSmartPtr<void>, ConstSmartPtr<T>, T>(data);}};
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	ToType
+////////////////////////////////////////////////////////////////////////////////
+
+// convert to native types
+template <> struct ParameterStack::ToType<bool>				{static bool to(const ParameterStack* This, int index)					{return This->_to_native<bool>(index);}};
+template <> struct ParameterStack::ToType<int>				{static int to(const ParameterStack* This, int index)					{return This->_to_native<int>(index);}};
+template <> struct ParameterStack::ToType<size_t>			{static size_t to(const ParameterStack* This, int index)				{return This->_to_native<size_t>(index);}};
+template <> struct ParameterStack::ToType<float>			{static float to(const ParameterStack* This, int index)					{return This->_to_native<float>(index);}};
+template <> struct ParameterStack::ToType<double>			{static double to(const ParameterStack* This, int index)				{return This->_to_native<double>(index);}};
+template <> struct ParameterStack::ToType<const char*>		{static const char* to(const ParameterStack* This, int index)			{return This->_to_native<const char*>(index);}};
+template <> struct ParameterStack::ToType<std::string>		{static std::string to(const ParameterStack* This, int index)			{return This->_to_native<std::string>(index);}};
+template <> struct ParameterStack::ToType<const std::string&>{static const std::string& to(const ParameterStack* This, int index)	{return This->_to_native<const std::string&>(index);}};
+
+// convert to void types
+template <> struct ParameterStack::ToType<void*>			{static void* to(const ParameterStack* This, int index)						{return This->_to_native<void*>(index);}};
+template <> struct ParameterStack::ToType<const void*>		{static const void* to(const ParameterStack* This, int index)				{return This->_to_native<const void*>(index);}};
+template <> struct ParameterStack::ToType<SmartPtr<void> >	{static SmartPtr<void> to(const ParameterStack* This, int index)			{return This->_to_native<SmartPtr<void> >(index);}};
+template <> struct ParameterStack::ToType<ConstSmartPtr<void> >	{static ConstSmartPtr<void> to(const ParameterStack* This, int index)	{return This->_to_native<ConstSmartPtr<void> >(index);}};
+
+// convert to concrete pointer types
+template <class T> struct ParameterStack::ToType<T*>				{static T* to(const ParameterStack* This, int index){return This->_to_pointer<T, T*, void*>(index);}};
+template <class T> struct ParameterStack::ToType<T&>				{static T& to(const ParameterStack* This, int index){return *ToType<T*>::to(This, index);}};
+template <class T> struct ParameterStack::ToType<const T*>			{static const T* to(const ParameterStack* This, int index){return This->_to_pointer<T, const T*, const void*>(index);}};
+template <class T> struct ParameterStack::ToType<const T&>			{static const T& to(const ParameterStack* This, int index){return *ToType<const T*>::to(This, index);}};
+template <class T> struct ParameterStack::ToType<SmartPtr<T> >		{static SmartPtr<T> to(const ParameterStack* This, int index){return This->_to_pointer<T, SmartPtr<T>, SmartPtr<void> >(index);}};
+template <class T> struct ParameterStack::ToType<ConstSmartPtr<T> >	{static ConstSmartPtr<T> to(const ParameterStack* This, int index){return This->_to_pointer<T, ConstSmartPtr<T>, ConstSmartPtr<void> >(index);}};
+
+// convert to std::vector, std::vector& and const std::vector& (native types)
+template<> struct ParameterStack::ToType<std::vector<bool> >		{static std::vector<bool> to(const ParameterStack* This, int index)			{return This->_to_native_vector<bool>(index);}};
+template<> struct ParameterStack::ToType<std::vector<int> >			{static std::vector<int> to(const ParameterStack* This, int index)			{return This->_to_native_vector<int>(index);}};
+template<> struct ParameterStack::ToType<std::vector<size_t> >		{static std::vector<size_t> to(const ParameterStack* This, int index)		{return This->_to_native_vector<size_t>(index);}};
+template<> struct ParameterStack::ToType<std::vector<float> >		{static std::vector<float> to(const ParameterStack* This, int index)		{return This->_to_native_vector<float>(index);}};
+template<> struct ParameterStack::ToType<std::vector<double> >		{static std::vector<double> to(const ParameterStack* This, int index)		{return This->_to_native_vector<double>(index);}};
+template<> struct ParameterStack::ToType<std::vector<const char*> >	{static std::vector<const char*> to(const ParameterStack* This, int index)	{return This->_to_native_vector<const char*>(index);}};
+template<> struct ParameterStack::ToType<std::vector<std::string> >	{static std::vector<std::string> to(const ParameterStack* This, int index)	{return This->_to_native_vector<std::string>(index);}};
+
+template<> struct ParameterStack::ToType<std::vector<bool>&>		{static std::vector<bool>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<bool>(index);}};
+template<> struct ParameterStack::ToType<std::vector<int>&>			{static std::vector<int>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<int>(index);}};
+template<> struct ParameterStack::ToType<std::vector<size_t>&>		{static std::vector<size_t>& to(const ParameterStack* This, int index)		{return This->_to_native_vector<size_t>(index);}};
+template<> struct ParameterStack::ToType<std::vector<float>&>		{static std::vector<float>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<float>(index);}};
+template<> struct ParameterStack::ToType<std::vector<double>&>		{static std::vector<double>& to(const ParameterStack* This, int index)		{return This->_to_native_vector<double>(index);}};
+template<> struct ParameterStack::ToType<std::vector<const char*>&>	{static std::vector<const char*>& to(const ParameterStack* This, int index)	{return This->_to_native_vector<const char*>(index);}};
+template<> struct ParameterStack::ToType<std::vector<std::string>&>	{static std::vector<std::string>& to(const ParameterStack* This, int index)	{return This->_to_native_vector<std::string>(index);}};
+
+template<> struct ParameterStack::ToType<const std::vector<bool>&>			{static const std::vector<bool>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<bool>(index);}};
+template<> struct ParameterStack::ToType<const std::vector<int>&>			{static const std::vector<int>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<int>(index);}};
+template<> struct ParameterStack::ToType<const std::vector<size_t>&>		{static const std::vector<size_t>& to(const ParameterStack* This, int index)		{return This->_to_native_vector<size_t>(index);}};
+template<> struct ParameterStack::ToType<const std::vector<float>&>			{static const std::vector<float>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<float>(index);}};
+template<> struct ParameterStack::ToType<const std::vector<double>&>		{static const std::vector<double>& to(const ParameterStack* This, int index)		{return This->_to_native_vector<double>(index);}};
+template<> struct ParameterStack::ToType<const std::vector<const char*>&>	{static const std::vector<const char*>& to(const ParameterStack* This, int index)	{return This->_to_native_vector<const char*>(index);}};
+template<> struct ParameterStack::ToType<const std::vector<std::string>&>	{static const std::vector<std::string>& to(const ParameterStack* This, int index)	{return This->_to_native_vector<std::string>(index);}};
+
+// convert to std::vector, std::vector& and const std::vector& (registered types)
+template<class T> struct ParameterStack::ToType<std::vector<T*> >{static std::vector<T*> to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, T*, void*>(index);}};
+template<class T> struct ParameterStack::ToType<std::vector<T*>& >{static std::vector<T*>& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, T*, void*>(index);}};
+template<class T> struct ParameterStack::ToType<const std::vector<T*>&>{static const std::vector<T*>& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, T*, void*>(index);}};
+
+template<class T> struct ParameterStack::ToType<std::vector<const T*> >{static std::vector<const T*> to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, const T*, const void*>(index);}};
+template<class T> struct ParameterStack::ToType<std::vector<const T*>& >{static std::vector<const T*>& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, const T*, const void*>(index);}};
+template<class T> struct ParameterStack::ToType<const std::vector<const T*>&>{static const std::vector<const T*>& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, const T*, const void*>(index);}};
+
+template<class T> struct ParameterStack::ToType<std::vector<SmartPtr<T> > >{static std::vector<SmartPtr<T> > to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, SmartPtr<T>, SmartPtr<void> >(index);}};
+template<class T> struct ParameterStack::ToType<std::vector<SmartPtr<T> >& >{static std::vector<SmartPtr<T> >& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, SmartPtr<T>, SmartPtr<void> >(index);}};
+template<class T> struct ParameterStack::ToType<const std::vector<SmartPtr<T> >&>{static const std::vector<SmartPtr<T> >& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, SmartPtr<T>, SmartPtr<void> >(index);}};
+
+template<class T> struct ParameterStack::ToType<std::vector<ConstSmartPtr<T> > >{static std::vector<ConstSmartPtr<T> > to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, ConstSmartPtr<T>, ConstSmartPtr<void> >(index);}};
+template<class T> struct ParameterStack::ToType<std::vector<ConstSmartPtr<T> >& >{static std::vector<ConstSmartPtr<T> >& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, ConstSmartPtr<T>, ConstSmartPtr<void> >(index);}};
+template<class T> struct ParameterStack::ToType<const std::vector<ConstSmartPtr<T> >&>{static const std::vector<ConstSmartPtr<T> >& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, ConstSmartPtr<T>, ConstSmartPtr<void> >(index);}};
+
+// convert to std::vector for void pointer (registered types)
+template<> struct ParameterStack::ToType<SmartPtr<std::vector<std::pair<void*, const ClassNameNode*> > > >{static SmartPtr<std::vector<std::pair<void*, const ClassNameNode*> > >  to(const ParameterStack* This, int index){return This->_to_void_pointer_vector<void*>(index);}};
+template<> struct ParameterStack::ToType<SmartPtr<std::vector<std::pair<const void*, const ClassNameNode*> > > >{static SmartPtr<std::vector<std::pair<const void*, const ClassNameNode*> > >  to(const ParameterStack* This, int index){return This->_to_void_pointer_vector<const void*>(index);}};
+template<> struct ParameterStack::ToType<SmartPtr<std::vector<std::pair<SmartPtr<void>, const ClassNameNode*> > > >{static SmartPtr<std::vector<std::pair<SmartPtr<void>, const ClassNameNode*> > >  to(const ParameterStack* This, int index){return This->_to_void_pointer_vector<SmartPtr<void> >(index);}};
+template<> struct ParameterStack::ToType<SmartPtr<std::vector<std::pair<ConstSmartPtr<void>, const ClassNameNode*> > > >{static SmartPtr<std::vector<std::pair<ConstSmartPtr<void>, const ClassNameNode*> > >  to(const ParameterStack* This, int index){return This->_to_void_pointer_vector<ConstSmartPtr<void> >(index);}};
 
 } // end namespace bridge
 } // end namespace ug

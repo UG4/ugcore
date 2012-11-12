@@ -135,7 +135,7 @@ static string GetLuaParametersString(lua_State* L, int offsetToFirstParam = 0)
  * \param badParamOneBased : return value as in LuaStackParams
  * \sa LuaStackToParams
  */
-static string GetTypeMismatchString(const ParameterStack& paramsTemplate,
+static string GetTypeMismatchString(const ParameterInfo& paramsTemplate,
 									lua_State* L, int offsetToFirstParam,
 									int badParamOneBased)
 {
@@ -156,355 +156,539 @@ static string GetTypeMismatchString(const ParameterStack& paramsTemplate,
 	return ss.str();
 }
 
+template <typename T>
+struct LuaParsing;
+
+template <>
+struct LuaParsing<bool>{
+	static bool check(lua_State* L, int index){
+		return lua_isboolean(L, index);
+	}
+	static bool get(lua_State* L, int index){
+		return lua_toboolean(L, index);
+	}
+	static void push(lua_State* L, bool data){
+		return lua_pushboolean(L, (data ? 1 : 0));
+	}
+};
+
+template <>
+struct LuaParsing<int>{
+	static bool check(lua_State* L, int index){
+		return lua_isnumber(L, index);
+	}
+	static int get(lua_State* L, int index){
+		return lua_tointeger(L, index);
+	}
+	static void push(lua_State* L, int data){
+		return lua_pushnumber(L, data);
+	}
+};
+
+template <>
+struct LuaParsing<size_t>{
+	static bool check(lua_State* L, int index){
+		return lua_isnumber(L, index);
+	}
+	static size_t get(lua_State* L, int index){
+		return lua_tointeger(L, index);
+	}
+	static void push(lua_State* L, size_t data){
+		return lua_pushnumber(L, data);
+	}
+};
+
+template <>
+struct LuaParsing<float>{
+	static bool check(lua_State* L, int index){
+		return lua_isnumber(L, index);
+	}
+	static float get(lua_State* L, int index){
+		return lua_tonumber(L, index);
+	}
+	static void push(lua_State* L, float data){
+		return lua_pushnumber(L, data);
+	}
+};
+
+template <>
+struct LuaParsing<double>{
+	static bool check(lua_State* L, int index){
+		return lua_isnumber(L, index);
+	}
+	static double get(lua_State* L, int index){
+		return lua_tonumber(L, index);
+	}
+	static void push(lua_State* L, double data){
+		return lua_pushnumber(L, data);
+	}
+};
+
+template <>
+struct LuaParsing<const char*>{
+	static bool check(lua_State* L, int index){
+		return lua_isstring(L, index);
+	}
+	static const char* get(lua_State* L, int index){
+		return lua_tostring(L, index);
+	}
+	static void push(lua_State* L, const char* data){
+		return lua_pushstring(L, data);
+	}
+};
+
+template <>
+struct LuaParsing<std::string>{
+	static bool check(lua_State* L, int index){
+		return lua_isstring(L, index);
+	}
+	static std::string get(lua_State* L, int index){
+		return std::string(lua_tostring(L, index));
+	}
+	static void push(lua_State* L, std::string data){
+		return lua_pushstring(L, data.c_str());
+	}
+};
+
+template <>
+struct LuaParsing<const std::string&>{
+	static bool check(lua_State* L, int index){
+		return lua_isstring(L, index);
+	}
+	static void push(lua_State* L, const std::string& data){
+		return lua_pushstring(L, data.c_str());
+	}
+};
+
+template <>
+struct LuaParsing<void*>{
+	static bool checkAndGet(std::pair<void*, const ClassNameNode*>& res,
+	                        lua_State* L, int index, const char* baseClassName){
+		if(!lua_isuserdata(L, index)) return false;
+
+		UserDataWrapper* udata =
+			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+
+		if(udata->is_const()) return false;
+
+		//	extract the pointer to the object.
+		//	udata is either a RawUserData or a SmartUserDataWrapper
+		void* obj = NULL;
+		if(udata->is_raw_ptr())
+			obj = static_cast<RawUserDataWrapper*>(udata)->obj;
+		else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION)
+			obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get();
+		else return false;
+
+		//	get the object and its metatable. Make sure that obj can be cast to
+		//	the type that is expected by the paramsTemplate.
+		if(lua_getmetatable(L, index) == 0) return false;
+
+		lua_pushstring(L, "class_name_node");
+		lua_rawget(L, -2);
+		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+		lua_pop(L, 2);
+
+		if(!classNameNode) return false;
+		if(classNameNode->empty()) return false;
+		if(!ClassNameTreeContains(*classNameNode, baseClassName)) return false;
+
+		res.first = obj;
+		res.second = classNameNode;
+
+		return true;
+	}
+
+	static void push(lua_State* L, void* data, const char* className){
+		CreateNewUserData(L, data, className, NULL, false);
+	}
+};
+
+template <>
+struct LuaParsing<const void*>{
+	static bool checkAndGet(std::pair<const void*, const ClassNameNode*>& res,
+	                        lua_State* L, int index, const char* baseClassName){
+		if(!lua_isuserdata(L, index)) return false;
+
+		UserDataWrapper* udata =
+			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+
+		//	extract the pointer to the object.
+		//	udata is either a RawUserData or a SmartUserDataWrapper
+		const void* obj = NULL;
+
+		if(udata->is_raw_ptr())
+			obj = static_cast<RawUserDataWrapper*>(udata)->obj;
+		else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION){
+			//	we have to distinguish between const and non-const smart pointers.
+			if(udata->is_const())
+				obj = static_cast<ConstSmartUserDataWrapper*>(udata)->smartPtr.get();
+			else
+				obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get();
+		}
+		else return false;
+
+		//	get the object and its metatable. Make sure that obj can be cast to
+		//	the type that is expected by the paramsTemplate.
+		if(lua_getmetatable(L, index) == 0) return false;
+
+		lua_pushstring(L, "class_name_node");
+		lua_rawget(L, -2);
+		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+		lua_pop(L, 2);
+
+		if(!classNameNode) return false;
+		if(classNameNode->empty()) return false;
+		if(!ClassNameTreeContains(*classNameNode, baseClassName)) return false;
+
+		res.first = obj;
+		res.second = classNameNode;
+
+		return true;
+	}
+
+	static void push(lua_State* L, const void* data, const char* className){
+	//	we're removing const with a cast. However, it was made sure that
+	//	obj is treated as a const value.
+		CreateNewUserData(L, (void*)data, className, NULL, true);
+	}
+};
+
+template <>
+struct LuaParsing<SmartPtr<void> >{
+	static bool checkAndGet(std::pair<SmartPtr<void>, const ClassNameNode*>& res,
+	                        lua_State* L, int index, const char* baseClassName){
+		if(!lua_isuserdata(L, index)) return false;
+
+		UserDataWrapper* udata =
+			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+
+		if(!udata->is_smart_ptr()) return false;
+		if(udata->is_const()) return false;
+
+		SmartPtr<void>& obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
+
+		if(lua_getmetatable(L, index) == 0) return false;
+		lua_pushstring(L, "class_name_node");
+		lua_rawget(L, -2);
+		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+		lua_pop(L, 2);
+
+		if(!classNameNode) return false;
+		if(classNameNode->empty()) return false;
+		if(!ClassNameTreeContains(*classNameNode, baseClassName)) return false;
+
+		res.first = obj;
+		res.second = classNameNode;
+
+		return true;
+	}
+
+	static void push(lua_State* L, SmartPtr<void> data, const char* className){
+		CreateNewUserData(L, data, className);
+	}
+};
+
+template <>
+struct LuaParsing<ConstSmartPtr<void> >{
+	static bool checkAndGet(std::pair<ConstSmartPtr<void>, const ClassNameNode*>& res,
+	                        lua_State* L, int index, const char* baseClassName){
+		if(!lua_isuserdata(L, index)) return false;
+
+		UserDataWrapper* udata =
+			reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
+
+		if(!udata->is_smart_ptr()) return false;
+
+		ConstSmartPtr<void> obj;
+		if(((UserDataWrapper*)lua_touserdata(L, index))->is_const())
+			obj = ((ConstSmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
+		else
+			obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
+
+		if(lua_getmetatable(L, index) == 0) return false;
+		lua_pushstring(L, "class_name_node");
+		lua_rawget(L, -2);
+		const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
+		lua_pop(L, 2);
+
+		if(!classNameNode) return false;
+		if(classNameNode->empty()) return false;
+		if(!ClassNameTreeContains(*classNameNode, baseClassName)) return false;
+
+		res.first = obj;
+		res.second = classNameNode;
+
+		return true;
+	}
+
+	static void push(lua_State* L, ConstSmartPtr<void> data, const char* className){
+		CreateNewUserData(L, data, className);
+	}
+};
+
+
+template <typename T>
+static bool PushLuaStackEntryToParamStack(ParameterStack& ps, lua_State* L,
+                                          int index, bool bIsVector)
+{
+	if(!bIsVector){
+		if(LuaParsing<T>::check(L, index)){
+			ps.push(LuaParsing<T>::get(L, index));
+		}
+		else return false;
+	}
+	else {
+		if (lua_istable(L, index)){
+			SmartPtr<std::vector<T> > spVec
+							= SmartPtr<std::vector<T> >(new std::vector<T>());
+			lua_pushnil(L);
+			while (lua_next(L, index) != 0) {
+				if(!LuaParsing<T>::check(L, -1)) {
+					lua_pop(L, 1);
+					while (lua_next(L, index) != 0) lua_pop(L, 1);
+					return false;
+				}
+				spVec->push_back(LuaParsing<T>::get(L, -1));
+				lua_pop(L, 1);
+		   }
+		   ps.push(spVec);
+		}
+		else return false;
+	}
+	return true;
+}
+
+template <typename T>
+static bool PushLuaStackPointerEntryToParamStack(ParameterStack& ps, lua_State* L,
+                                                 int index, const char* baseClassName,
+                                                 bool bIsVector)
+{
+	typedef std::pair<T, const ClassNameNode*> result_type;
+
+	result_type res;
+	if(!bIsVector){
+		if(LuaParsing<T>::checkAndGet(res, L, index, baseClassName)){
+			ps.push(res.first, res.second);
+		}
+		else return false;
+	}
+	else {
+		if (lua_istable(L, index)){
+			SmartPtr<std::vector<result_type> > spVec
+				= SmartPtr<std::vector<result_type> >(new std::vector<result_type>());
+			lua_pushnil(L);
+			while (lua_next(L, index) != 0) {
+				if(!LuaParsing<T>::checkAndGet(res, L, -1, baseClassName)) {
+					lua_pop(L, 1);
+					while (lua_next(L, index) != 0) lua_pop(L, 1);
+					return false;
+				}
+				spVec->push_back(res);
+				lua_pop(L, 1);
+		   }
+		   ps.push(spVec);
+		}
+		else return false;
+	}
+	return true;
+}
+
+
 ///	copies parameter values from the lua-stack to a parameter-list.
 /**	\returns	The index of the first bad parameter starting from 1.
  *				Returns 0 if everything went right.
  *				Returns -1 if the number of parameters did not match.
  */
-static int LuaStackToParams(ParameterStack& params,
-							const ParameterStack& paramsTemplate,
+static int LuaStackToParams(ParameterStack& ps,
+							const ParameterInfo& psInfo,
 							lua_State* L,
 							int offsetToFirstParam = 0)
 {
-//	I disabled all output, since we might have overloads (sreiter).
-
 //	make sure that we have the right amount of parameters
 //	if the sizes do not match, return -1.
-	if((lua_gettop(L)) - offsetToFirstParam != (int)paramsTemplate.size())
+	if((lua_gettop(L)) - offsetToFirstParam != (int)psInfo.size())
 		return -1;
 
 //	initialize temporary variables
 	int badParam = 0;
-	// MR: commented out, unused?
-	//bool printDefaultParamErrorMsg = true;	
 	
-//	iterate through the parameter list and copy the value in the associated
-//	stack entry.
-	for(int i = 0; i < paramsTemplate.size(); ++i){
-		int type = paramsTemplate.get_type(i);
-		int index = (int)i + offsetToFirstParam + 1;//stack-indices start with 1
+//	iterate through parameter list and copy the value in the associated stack entry.
+	for(int i = 0; i < psInfo.size(); ++i){
+	//	get type and vectorMode (if bIsVector==true a lua table is expected)
+		int type = psInfo.type(i);
+		bool bIsVector = psInfo.is_vector(i);
 		
-		if(lua_type(L, index) == LUA_TNONE)
-			return (int)i + 1;
+	//	compute stack index, stack-indices start with 1
+		int index = (int)i + offsetToFirstParam + 1;
 
+	//	check for nil
+		if(lua_type(L, index) == LUA_TNONE) return (int)i + 1;
+
+	//	try to read in expected type
 		switch(type){
-			case PT_BOOL:{
-				if(lua_isboolean(L, index))
-					params.push_bool(lua_toboolean(L, index));
-				else badParam = (int)i + 1;
-
-			}break;
-			case PT_INTEGER:{
-				if(lua_isnumber(L, index))
-					params.push_integer(lua_tointeger(L, index));
-				else{
+			case Variant::VT_BOOL:{
+				if(!PushLuaStackEntryToParamStack<bool>(ps, L, index, bIsVector))
 					badParam = (int)i + 1;
-				}
 			}break;
-			case PT_NUMBER:{
-				if(lua_isnumber(L, index)){
-					params.push_number(lua_tonumber(L, index));
-				}
-				else{
+			case Variant::VT_INT:{
+				if(!PushLuaStackEntryToParamStack<int>(ps, L, index, bIsVector))
 					badParam = (int)i + 1;
-				}
 			}break;
-			case PT_CSTRING:{
-				if(lua_isstring(L, index))
-					params.push_cstring(lua_tostring(L, index));
-				else{
+			case Variant::VT_SIZE_T:{
+				if(!PushLuaStackEntryToParamStack<size_t>(ps, L, index, bIsVector))
 					badParam = (int)i + 1;
-				}
 			}break;
-			case PT_STD_STRING:{
-				if(lua_isstring(L, index))
-					params.push_std_string(lua_tostring(L, index));
-				else{
+			case Variant::VT_FLOAT:{
+				if(!PushLuaStackEntryToParamStack<float>(ps, L, index, bIsVector))
 					badParam = (int)i + 1;
-				}
 			}break;
-			case PT_POINTER:{
+			case Variant::VT_DOUBLE:{
+				if(!PushLuaStackEntryToParamStack<double>(ps, L, index, bIsVector))
+					badParam = (int)i + 1;
+			}break;
+			case Variant::VT_CSTRING:{
+				if(!PushLuaStackEntryToParamStack<const char*>(ps, L, index, bIsVector))
+					badParam = (int)i + 1;
+			}break;
+			case Variant::VT_STDSTRING:{
+				if(!PushLuaStackEntryToParamStack<std::string>(ps, L, index, bIsVector))
+					badParam = (int)i + 1;
+			}break;
+			case Variant::VT_POINTER:{
 			//	NOTE that smart-ptrs are implicitly used as normal pointers here.
 			//	This can cause severe problems in regard to reference-counting.
 			//	This behaviour was introduced, since the registry does not
 			//	allow by-value arguments. (Small temporary objects profit from
 			//	this strategy).
-				if(lua_isuserdata(L, index)){
-					void* obj = NULL;
-					UserDataWrapper* udata =
-						reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
-
-					if(udata->is_const()){
-						badParam = (int)i + 1;
-						break;
-					}
-
-				//	extract the pointer to the object.
-				//	udata is either a RawUserData or a SmartUserDataWrapper
-					if(udata->is_raw_ptr())
-						obj = static_cast<RawUserDataWrapper*>(udata)->obj;
-					else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION)
-						obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get();
-					else{
-						badParam = (int)i + 1;
-						break;
-					}
-					
-				//	get the object and its metatable. Make sure that obj can be cast to
-				//	the type that is expected by the paramsTemplate.
-					if(lua_getmetatable(L, index) != 0){
-
-						lua_pushstring(L, "class_name_node");
-						lua_rawget(L, -2);
-						const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
-						lua_pop(L, 2);
-						bool typeMatch = false;
-						if(classNameNode){
-							if(!classNameNode->empty()){
-								if(ClassNameTreeContains(*classNameNode, paramsTemplate.class_name(i)))
-									typeMatch = true;
-							}
-						}
-
-						if(typeMatch)
-							params.push_pointer(obj, classNameNode);
-						else{
-							//printDefaultParamErrorMsg = false;
-							badParam = (int)i + 1;
-						}
-					}
-					else{
-						badParam = (int)i + 1;
-					}
-				}
-				else
-				{
+				if(!PushLuaStackPointerEntryToParamStack<void*>
+					(ps, L, index, psInfo.class_name(i), bIsVector))
 					badParam = (int)i + 1;
-				}
 			}break;
-			case PT_CONST_POINTER:{
+			case Variant::VT_CONST_POINTER:{
 			//	NOTE that smart-ptrs are implicitly used as normal pointers here.
 			//	This can cause severe problems in regard to reference-counting.
 			//	This behaviour was introduced, since the registry does not
 			//	allow by-value arguments. (Small temporary objects profit from
 			//	this strategy).
-				if(lua_isuserdata(L, index)){
-				//	extract the object-pointer from the user-data
-					const void* obj = NULL;
-					UserDataWrapper* udata =
-						reinterpret_cast<UserDataWrapper*>(lua_touserdata(L, index));
-
-					if(udata->is_raw_ptr())
-						obj = static_cast<RawUserDataWrapper*>(udata)->obj;
-					else if(udata->is_smart_ptr() && IMLPICIT_SMART_PTR_TO_PTR_CONVERSION){
-					//	we have to distinguish between const and non-const smart pointers.
-						if(udata->is_const())
-							obj = static_cast<ConstSmartUserDataWrapper*>(udata)->smartPtr.get();
-						else
-							obj = static_cast<SmartUserDataWrapper*>(udata)->smartPtr.get();
-					}
-					else{
-						badParam = (int)i + 1;
-						break;
-					}
-
-				//	get the objects metatable. Make sure that obj can be cast to
-				//	the type that is expected by the paramsTemplate.
-					if(lua_getmetatable(L, index) != 0){
-
-						lua_pushstring(L, "class_name_node");
-						lua_rawget(L, -2);
-						const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
-						lua_pop(L, 2);
-						bool typeMatch = false;
-						if(classNameNode){
-							if(!classNameNode->empty()){
-								if(ClassNameTreeContains(*classNameNode, paramsTemplate.class_name(i)))
-									typeMatch = true;
-							}
-						}
-
-						if(typeMatch)
-							params.push_const_pointer(obj, classNameNode);
-						else{
-							//printDefaultParamErrorMsg = false;
-							badParam = (int)i + 1;
-						}
-					}
-					else{
-						badParam = (int)i + 1;
-					}
-				}
-				else
-				{
+				if(!PushLuaStackPointerEntryToParamStack<const void*>
+					(ps, L, index, psInfo.class_name(i), bIsVector))
 					badParam = (int)i + 1;
-				}
 			}break;
-			case PT_SMART_POINTER:{
-				if(lua_isuserdata(L, index)){
-				//	Check whether this is really a smart pointer
-					if(!((UserDataWrapper*)lua_touserdata(L, index))->is_smart_ptr()){
-						badParam = (int)i + 1;
-						break;
-					}
-
-				//	if the object is a const object, we can't use it here.
-					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const()){
-						badParam = (int)i + 1;
-						break;
-					}
-
-				//	get the object and its metatable. Make sure that obj can be cast to
-				//	the type that is expected by the paramsTemplate.
-					SmartPtr<void>& obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
-					if(lua_getmetatable(L, index) != 0){
-
-						lua_pushstring(L, "class_name_node");
-						lua_rawget(L, -2);
-						const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
-						lua_pop(L, 2);
-						bool typeMatch = false;
-						if(classNameNode){
-							if(!classNameNode->empty()){
-								if(ClassNameTreeContains(*classNameNode, paramsTemplate.class_name(i)))
-									typeMatch = true;
-							}
-						}
-
-						if(typeMatch)
-							params.push_smart_pointer(obj, classNameNode);
-						else{
-							/*bool gotone = false;
-							if(classNameNode){
-								if(!classNameNode->empty()){
-									gotone = true;
-								}
-							}
-							printDefaultParamErrorMsg = false;*/
-							badParam = (int)i + 1;
-						}
-					}
-					else{
-						badParam = (int)i + 1;
-					}
-				}
-				else{
+			case Variant::VT_SMART_POINTER:{
+				if(!PushLuaStackPointerEntryToParamStack<SmartPtr<void> >
+					(ps, L, index, psInfo.class_name(i), bIsVector))
 					badParam = (int)i + 1;
-				}
 			}break;
-			case PT_CONST_SMART_POINTER:{
-				if(lua_isuserdata(L, index)){
-				//	Check whether this is really a smart pointer
-					if(!((UserDataWrapper*)lua_touserdata(L, index))->is_smart_ptr()){
-						badParam = (int)i + 1;
-						break;
-					}
-
-				//	get the object and its metatable. Make sure that obj can be cast to
-				//	the type that is expected by the paramsTemplate.
-					ConstSmartPtr<void> obj;
-					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const())
-						obj = ((ConstSmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
-					else
-						obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
-
-					if(lua_getmetatable(L, index) != 0){
-
-						lua_pushstring(L, "class_name_node");
-						lua_rawget(L, -2);
-						const ClassNameNode* classNameNode = (const ClassNameNode*) lua_touserdata(L, -1);
-						lua_pop(L, 2);
-						bool typeMatch = false;
-						if(classNameNode){
-							if(!classNameNode->empty()){
-								if(ClassNameTreeContains(*classNameNode, paramsTemplate.class_name(i)))
-									typeMatch = true;
-							}
-						}
-
-						if(typeMatch)
-							params.push_const_smart_pointer(obj, classNameNode);
-						else{
-							/*bool gotone = false;
-							if(classNameNode){
-								if(!classNameNode->empty()){
-									gotone = true;
-								}
-							}
-							printDefaultParamErrorMsg = false;*/
-							badParam = (int)i + 1;
-						}
-					}
-					else{
-						badParam = (int)i + 1;
-					}
-				}
-				else{
+			case Variant::VT_CONST_SMART_POINTER:{
+				if(!PushLuaStackPointerEntryToParamStack<ConstSmartPtr<void> >
+					(ps, L, index, psInfo.class_name(i), bIsVector))
 					badParam = (int)i + 1;
-				}
 			}break;
 
 			default:{//	unknown type
 				badParam = (int)i + 1;
 			}break;
 		}
+
+	//	check if param has been read correctly
 		if(badParam)
 			return badParam;
 	}
 		
+//	return result flag
 	return badParam;
 }
 
+template <typename T>
+static void ParamStackEntryToLuaStack(const ParameterStack& ps, lua_State* L,
+                                      int index, bool bIsVector)
+{
+	if(!bIsVector){
+		LuaParsing<T>::push(L, ps.to<T>(index));
+	}
+	else {
+		const std::vector<T>& vec = ps.to<std::vector<T> >(index);
+		lua_createtable(L, vec.size(), 0);
+		int newTable = lua_gettop(L);
+		for(int i=0; i < (int)vec.size(); i++) {
+			LuaParsing<T>::push(L, vec[i]);
+			lua_rawseti(L, newTable, i + 1);
+		}
+	}
+}
+
+template <typename T>
+static void ParamStackPointerEntryToLuaStack(const ParameterStack& ps, lua_State* L,
+                                             int index, bool bIsVector)
+{
+	const char* className = ps.class_name(index);
+	if(!bIsVector){
+		LuaParsing<T>::push(L, ps.to<T>(index), className);
+	}
+	else {
+		SmartPtr<std::vector<std::pair<T, const ClassNameNode*> > > spVec = ps.to<SmartPtr<std::vector<std::pair<T, const ClassNameNode*> > > >(index);
+		lua_createtable(L, spVec->size(), 0);
+		int newTable = lua_gettop(L);
+		for(int i=0; i < (int)spVec->size(); i++) {
+			LuaParsing<T>::push(L, (*spVec)[i].first, (*spVec)[i].second->name().c_str());
+			lua_rawseti(L, newTable, i + 1);
+		}
+	}
+}
 
 
 ///	Pushes the parameter-values to the Lua-Stack.
 /**
  * \returns The number of items pushed to the stack.
  */
-static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
+static int ParamsToLuaStack(const ParameterStack& ps, lua_State* L)
 {
-//	push output parameters to the stack	
-	for(int i = 0; i < params.size(); ++i){
-		int type = params.get_type(i);
+//	push output parameters to the lua stack
+	for(int i = 0; i < ps.size(); ++i){
+		const int type = ps.type(i);
+		const bool bIsVector = ps.is_vector(i);
 		switch(type){
-			case PT_BOOL:{
-				lua_pushboolean(L, (params.to_bool(i)) ? 1 : 0);
+			case Variant::VT_BOOL:{
+				ParamStackEntryToLuaStack<bool>(ps, L, i, bIsVector);
 			}break;
-			case PT_INTEGER:{
-				lua_pushnumber(L, params.to_integer(i));
+			case Variant::VT_INT:{
+				ParamStackEntryToLuaStack<int>(ps, L, i, bIsVector);
 			}break;
-			case PT_NUMBER:{
-				lua_pushnumber(L, params.to_number(i));
+			case Variant::VT_SIZE_T:{
+				ParamStackEntryToLuaStack<size_t>(ps, L, i, bIsVector);
 			}break;
-			case PT_CSTRING:{
-				lua_pushstring(L, params.to_cstring(i));
+			case Variant::VT_FLOAT:{
+				ParamStackEntryToLuaStack<float>(ps, L, i, bIsVector);
 			}break;
-			case PT_STD_STRING:{
-				lua_pushstring(L, params.to_std_string(i).c_str());
+			case Variant::VT_DOUBLE:{
+				ParamStackEntryToLuaStack<double>(ps, L, i, bIsVector);
 			}break;
-			case PT_POINTER:{
-				void* obj = params.to_pointer(i);
-				CreateNewUserData(L, obj, params.class_name(i), NULL, false);
+			case Variant::VT_CSTRING:{
+				ParamStackEntryToLuaStack<const char*>(ps, L, i, bIsVector);
 			}break;
-			case PT_CONST_POINTER:{
-			//	we're removing const with a cast. However, it was made sure that
-			//	obj is treated as a const value.
-				void* obj = (void*)params.to_const_pointer(i);
-				CreateNewUserData(L, obj, params.class_name(i), NULL, true);
+			case Variant::VT_STDSTRING:{
+				ParamStackEntryToLuaStack<std::string>(ps, L, i, bIsVector);
 			}break;
-			case PT_SMART_POINTER:{
-				CreateNewUserData(L, params.to_smart_pointer(i), params.class_name(i));
+			case Variant::VT_POINTER:{
+				ParamStackPointerEntryToLuaStack<void*>(ps, L, i, bIsVector);
 			}break;
-			case PT_CONST_SMART_POINTER:{
-				CreateNewUserData(L, params.to_const_smart_pointer(i), params.class_name(i));
+			case Variant::VT_CONST_POINTER:{
+				ParamStackPointerEntryToLuaStack<const void*>(ps, L, i, bIsVector);
+			}break;
+			case Variant::VT_SMART_POINTER:{
+				ParamStackPointerEntryToLuaStack<SmartPtr<void> >(ps, L, i, bIsVector);
+			}break;
+			case Variant::VT_CONST_SMART_POINTER:{
+				ParamStackPointerEntryToLuaStack<ConstSmartPtr<void> >(ps, L, i, bIsVector);
 			}break;
 			default:{
-				return (int)i;
+				UG_THROW("ParamsToLuaStack: invalid type in ParamStack.")
 			}break;
 		}
 	}
 	
-	return (int)params.size();
+	return (int)ps.size();
 }
 
 
@@ -990,7 +1174,7 @@ static int LuaToStringDefault(lua_State *L)
 	ParameterStack out;
 	char buf[255];
 	sprintf(buf, "%s: %p", c->name().c_str(), c);
-	out.push_std_string(buf);
+	out.push(buf);
 	return ParamsToLuaStack(out, L);
 }
 

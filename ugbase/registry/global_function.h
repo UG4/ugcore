@@ -25,19 +25,6 @@ namespace ug
 namespace bridge
 {
 
-///	Creation of return value
-template <typename TRet>
-struct CreateParameterOutStack {
-	static void create(ParameterStack& stack){
-		CreateParameterStack<TypeList<TRet> >::create(stack);
-}};
-
-///	Creation of void return value (template specialization)
-template <>
-struct CreateParameterOutStack<void>{
-	static void create(ParameterStack& stack){}
-};
-
 ///	Exception throw, if method name has not been given
 struct UG_REGISTRY_ERROR_FunctionOrMethodNameMissing {};
 
@@ -89,14 +76,14 @@ class UG_API ExportedFunctionBase
 		const std::string& help() const {return m_help;}
 
 	/// parameter list for input values
-		const ParameterStack& params_in() const	{return m_paramsIn;}
+		const ParameterInfo& params_in() const	{return m_paramsIn;}
 
 	/// parameter list for input values
-		const ParameterStack& params_out() const {return m_paramsOut;}
+		const ParameterInfo& params_out() const {return m_paramsOut;}
 
 	// todo: we export non-const here, since we can not make ExportedClass<TClass> a friend
 	/// non-const export of param list
-		ParameterStack& params_in() {return m_paramsIn;}
+		ParameterInfo& params_in() {return m_paramsIn;}
 
 	/// returns true if all parameters of the function are correctly declared
 		bool check_consistency(std::string classname = "") const;
@@ -109,7 +96,7 @@ class UG_API ExportedFunctionBase
 		//	Create parameter stack for PARAMETERS
 		////////////////////////////////////////////////
 			typedef typename func_traits<TFunc>::params_type params_type;
-			CreateParameterStack<params_type>::create(m_paramsIn);
+			CreateParameterInfo<params_type>::create(m_paramsIn);
 
 		//	arbitrary choosen minimum number of infos exported
 		//	(If values non given we set them to an empty string)
@@ -127,7 +114,7 @@ class UG_API ExportedFunctionBase
 		//	Create parameter stack for RETURN VALUES
 		////////////////////////////////////////////////
 			typedef typename func_traits<TFunc>::return_type return_type;
-			CreateParameterOutStack<return_type>::create(m_paramsOut);
+			CreateParameterInfoOut<return_type>::create(m_paramsOut);
 
 		//	resize missing infos for return value
 			for(size_t j = m_vRetValInfo.size(); j < MinNumInfos; ++j)
@@ -154,8 +141,8 @@ class UG_API ExportedFunctionBase
 		std::string m_tooltip;
 		std::string m_help;
 
-		ParameterStack m_paramsIn;
-		ParameterStack m_paramsOut;
+		ParameterInfo m_paramsIn;
+		ParameterInfo m_paramsOut;
 };
 
 
@@ -325,13 +312,10 @@ struct FunctionProxy
 		ParameterStackToTypeValueList<params_type> args(in);
 
 	//  apply
-		typedef typename func_traits<TFunc>::return_type return_type;
-		return_type res = func_traits<TFunc>::apply(fp, args);
+		TRet res = func_traits<TFunc>::apply(fp, args);
 
 	//  write result
-		//PushTypeValueToParameterStack(res, out);
-		PLStack<return_type>::push(out);
-		PLStack<return_type>::write(out, res, -1);
+		out.push<TRet>(res);
 	}
 };
 

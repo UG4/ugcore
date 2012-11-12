@@ -250,9 +250,7 @@ struct MethodProxy
 		TRet res = func_traits<TMethod>::apply(mptr, objPtr, args);
 
 	//  write return value
-		//PushTypeValueToParameterStack(res, out);
-		PLStack<TRet>::push(out);
-		PLStack<TRet>::write(out, res, -1);
+		out.push<TRet>(res);
 	}
 };
 
@@ -337,10 +335,10 @@ class UG_API ExportedConstructor
 		const std::string& help() const {return m_help;}
 
 	/// parameter list for input values
-		const ParameterStack& params_in() const	{return m_paramsIn;}
+		const ParameterInfo& params_in() const	{return m_paramsIn;}
 
 	/// non-const export of param list
-		ParameterStack& params_in() {return m_paramsIn;}
+		ParameterInfo& params_in() {return m_paramsIn;}
 
 	/// returns true if all parameters of the function are correctly declared
 		bool check_consistency(std::string classname) const;
@@ -349,7 +347,7 @@ class UG_API ExportedConstructor
 		void create_parameter_stack()
 		{
 			typedef typename func_traits<TFunc>::params_type params_type;
-			CreateParameterStack<params_type>::create(m_paramsIn);
+			CreateParameterInfo<params_type>::create(m_paramsIn);
 
 		//	arbitrary choosen minimum number of infos exported
 		//	(If values non given we set them to an empty string)
@@ -389,7 +387,7 @@ class UG_API ExportedConstructor
 		std::string m_tooltip;
 		std::string m_help;
 
-		ParameterStack m_paramsIn;
+		ParameterInfo m_paramsIn;
 
 #ifdef PROFILE_BRIDGE
 		mutable DynamicProfileInformation m_dpi;

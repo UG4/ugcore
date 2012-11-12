@@ -517,55 +517,61 @@ namespace ug {
 			//	iterate through the parameter list and return corresponding int
 
 			switch (type) {
-				case PT_UNKNOWN:
+				case ug::Variant::VT_INVALID:
 				{
-					UG_LOG("Param " << index << " = PT_UNKNOWN" << std::endl)
+					UG_LOG("Param " << index << " = VT_INVALID" << std::endl)
 				}
 					break;
-				case PT_BOOL:
+				case ug::Variant::VT_BOOL:
 				{
-					UG_LOG("Param " << index << " = PT_BOOL" << std::endl)
+					UG_LOG("Param " << index << " = VT_BOOL" << std::endl)
 				}
 					break;
-				case PT_INTEGER:
+				case ug::Variant::VT_INT:
 				{
-					UG_LOG("Param " << index << " = PT_INTEGER" << std::endl)
+					UG_LOG("Param " << index << " = VT_INT" << std::endl)
 				}
 					break;
-				case PT_NUMBER:
+				case ug::Variant::VT_SIZE_T:
 				{
-					UG_LOG("Param " << index << " = PT_NUMBER" << std::endl)
+					UG_LOG("Param " << index << " = VT_SIZE_T" << std::endl)
 				}
 					break;
-				case PT_CSTRING:
+				case ug::Variant::VT_FLOAT:
+				case ug::Variant::VT_DOUBLE:
 				{
-					UG_LOG("Param " << index << " = PT_CSTRING" << std::endl)
+					UG_LOG("Param " << index << " = VT_NUMBER" << std::endl)
 				}
 					break;
-				case PT_STD_STRING:
+				case ug::Variant::VT_CSTRING:
 				{
-					UG_LOG("Param " << index << " = PT_STD_STRING" << std::endl)
+					UG_LOG("Param " << index << " = VT_CSTRING" << std::endl)
 				}
 					break;
-				case PT_POINTER:
+				case ug::Variant::VT_STDSTRING:
 				{
-					UG_LOG("Param " << index << " = PT_POINTER" << std::endl)
+					UG_LOG("Param " << index << " = VT_STDSTRING" << std::endl)
 				}
 					break;
-				case PT_CONST_POINTER:
+				case ug::Variant::VT_POINTER:
 				{
-					UG_LOG("Param " << index << " = PT_CONST_POINTER" << std::endl)
+					UG_LOG("Param " << index << " = VT_POINTER" << std::endl)
 				}
 					break;
-				case PT_SMART_POINTER:
+				case ug::Variant::VT_CONST_POINTER:
 				{
-					UG_LOG("Param " << index << " = PT_SMART_POINTER" << std::endl)
+					UG_LOG("Param " << index << " = VT_CONST_POINTER" << std::endl)
 				}
 					break;
-				case PT_CONST_SMART_POINTER:
+				case ug::Variant::VT_SMART_POINTER:
+				{
+					UG_LOG("Param " << index << " = VT_SMART_POINTER" << std::endl)
+				}
+					break;
+				case ug::Variant::VT_CONST_SMART_POINTER:
 				{
 					UG_LOG("Param " << index <<
-							" = PT_CONST_SMART_POINTER" << std::endl)
+							" = VT_CONST_SMART_POINTER" << std::endl)
 				}
 					break;
 				default:
@@ -581,54 +587,55 @@ namespace ug {
 			std::string result = "undefined";
 
 			switch (type) {
-			case PT_UNKNOWN:
+			case ug::Variant::VT_INVALID:
 			{
-				result = "PT_UNKNOWN";
+				result = "VT_INVALID";
 			}
 				break;
-			case PT_BOOL:
+			case ug::Variant::VT_BOOL:
 			{
-				result = "PT_BOOL";
+				result = "VT_BOOL";
 			}
 				break;
-			case PT_INTEGER:
+			case ug::Variant::VT_INT:
 			{
-				result = "PT_INTEGER";
+				result = "VT_INT";
 			}
 				break;
-			case PT_NUMBER:
+			case ug::Variant::VT_FLOAT:
+			case ug::Variant::VT_DOUBLE:
 			{
-				result = "PT_NUMBER";
+				result = "VT_NUMBER";
 			}
 				break;
-			case PT_CSTRING:
+			case ug::Variant::VT_CSTRING:
 			{
-				result ="PT_CSTRING";
+				result ="VT_CSTRING";
 			}
 				break;
-			case PT_STD_STRING:
+			case ug::Variant::VT_STDSTRING:
 			{
-				result = "PT_STD_STRING";
+				result = "VT_STD_STRING";
 			}
 				break;
-			case PT_POINTER:
+			case ug::Variant::VT_POINTER:
 			{
-				result = "PT_POINTER";
+				result = "VT_POINTER";
 			}
 				break;
-			case PT_CONST_POINTER:
+			case ug::Variant::VT_CONST_POINTER:
 			{
-				result ="PT_CONST_POINTER";
+				result ="VT_CONST_POINTER";
 			}
 				break;
-			case PT_SMART_POINTER:
+			case ug::Variant::VT_SMART_POINTER:
 			{
-				result = "PT_SMART_POINTER";
+				result = "VT_SMART_POINTER";
 			}
 				break;
-			case PT_CONST_SMART_POINTER:
+			case ug::Variant::VT_CONST_SMART_POINTER:
 			{
-				result = "PT_CONST_SMART_POINTER";
+				result = "VT_CONST_SMART_POINTER";
 			}
 				break;
 			default:
@@ -639,22 +646,22 @@ namespace ug {
 		}
 
 		uint paramClass2ParamType(JNIEnv *env, jobject obj) {
-			int result = ug::bridge::PT_UNKNOWN;
+			int result = ug::Variant::VT_INVALID;
 
 			std::string className = getClassName(env, obj);
 
 			if (className.compare("java.lang.Boolean") == 0) {
-				result = ug::bridge::PT_BOOL;
+				result = ug::Variant::VT_BOOL;
 			} else if (className.compare("java.lang.Integer") == 0) {
-				result = ug::bridge::PT_INTEGER;
+				result = ug::Variant::VT_INT;
 			} else if (className.compare("java.lang.Double") == 0) {
-				result = ug::bridge::PT_NUMBER;
+				result = ug::Variant::VT_DOUBLE;
 			} else if (className.compare("java.lang.String") == 0) {
-				result = ug::bridge::PT_STD_STRING;
+				result = ug::Variant::VT_STDSTRING;
 			} else if (className.compare("edu.gcsc.vrl.ug.Pointer") == 0) {
-				result = ug::bridge::PT_POINTER;
+				result = ug::Variant::VT_POINTER;
 			} else if (className.compare("edu.gcsc.vrl.ug.SmartPointer") == 0) {
-				result = ug::bridge::PT_SMART_POINTER;
+				result = ug::Variant::VT_SMART_POINTER;
 			}
 
 			// What about const pointer?
@@ -669,7 +676,7 @@ namespace ug {
 
 		bool compareParamTypes(JNIEnv *env, jobjectArray params,
 				ug::bridge::Registry *reg,
-				ug::bridge::ParameterStack const& paramStack) {
+				ug::bridge::ParameterInfo const& paramStack) {
 
 			//#ifdef UG_DEBUG
 			//	UG_LOG("\n -- BEGIN COMPARE --\n")
@@ -700,48 +707,48 @@ namespace ug {
 				uint paramType = paramClass2ParamType(env, param);
 
 				// allow non-const * to const *
-				if (paramType == ug::bridge::PT_POINTER &&
-						paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
-					paramType = ug::bridge::PT_CONST_POINTER;
+				if (paramType == ug::Variant::VT_POINTER &&
+						paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
+					paramType = ug::Variant::VT_CONST_POINTER;
 				}
 
 				// allow non-const * to const *
-				if (paramType == ug::bridge::PT_SMART_POINTER &&
-						paramStack.get_type(i) == ug::bridge::PT_CONST_SMART_POINTER) {
-					paramType = ug::bridge::PT_CONST_SMART_POINTER;
+				if (paramType == ug::Variant::VT_SMART_POINTER &&
+						paramStack.type(i) == ug::Variant::VT_CONST_SMART_POINTER) {
+					paramType = ug::Variant::VT_CONST_SMART_POINTER;
 				}
 
 
 				// allow std::string to c string
-				if (paramType == ug::bridge::PT_STD_STRING &&
-						paramStack.get_type(i) == ug::bridge::PT_CSTRING) {
-					paramType = ug::bridge::PT_CSTRING;
+				if (paramType == ug::Variant::VT_STDSTRING &&
+						paramStack.type(i) == ug::Variant::VT_CSTRING) {
+					paramType = ug::Variant::VT_CSTRING;
 				}
 
 
 				// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) 
 				// allow non-const-smart* to non const*
-				if (paramType == ug::bridge::PT_SMART_POINTER &&
-						paramStack.get_type(i) == ug::bridge::PT_POINTER) {
-					paramType = ug::bridge::PT_POINTER;
+				if (paramType == ug::Variant::VT_SMART_POINTER &&
+						paramStack.type(i) == ug::Variant::VT_POINTER) {
+					paramType = ug::Variant::VT_POINTER;
 				}
 
 				// allow non-const-smart* to const*
-				if (paramType == ug::bridge::PT_SMART_POINTER &&
-						paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
-					paramType = ug::bridge::PT_CONST_POINTER;
+				if (paramType == ug::Variant::VT_SMART_POINTER &&
+						paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
+					paramType = ug::Variant::VT_CONST_POINTER;
 				}
 
 				// allow const smart* to const*
-				if (paramType == ug::bridge::PT_CONST_SMART_POINTER &&
-						paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
-					paramType = ug::bridge::PT_CONST_POINTER;
+				if (paramType == ug::Variant::VT_CONST_SMART_POINTER &&
+						paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
+					paramType = ug::Variant::VT_CONST_POINTER;
 				}
 
-				if (paramType != paramStack.get_type(i)) {
+				if (paramType != (uint)paramStack.type(i)) {
 					//#ifdef UG_DEBUG
 					//			UG_LOG("requested by method:\n")
-					//			printParamType(paramStack.get_type(i), i);
+					//			printParamType(paramStack.type(i), i);
 					//			UG_LOG("given as parameter:\n")
 					//			printParamType(paramType, i);
 					//#endif
@@ -787,10 +794,10 @@ namespace ug {
 					ss << ", ";
 				}
 				bool classValue =
-						java_value_type == ug::bridge::PT_CONST_POINTER ||
-						java_value_type == ug::bridge::PT_POINTER ||
-						java_value_type == ug::bridge::PT_SMART_POINTER ||
-						java_value_type == ug::bridge::PT_CONST_SMART_POINTER;
+						java_value_type == ug::Variant::VT_CONST_POINTER ||
+						java_value_type == ug::Variant::VT_POINTER ||
+						java_value_type == ug::Variant::VT_SMART_POINTER ||
+						java_value_type == ug::Variant::VT_CONST_SMART_POINTER;
 
 				if (classValue) {
 					ss << getParamClassName(env,value);
@@ -806,7 +813,7 @@ namespace ug {
 		void jobjectArray2ParamStack(
 				JNIEnv *env, ug::bridge::Registry* reg,
 				ug::bridge::ParameterStack& paramsOut,
-				const ug::bridge::ParameterStack& paramsTemplate,
+				const ug::bridge::ParameterInfo& paramsTemplate,
 				jobjectArray const& array) {
 			using namespace ug::bridge;
 
@@ -814,7 +821,7 @@ namespace ug {
 			//  associated stack entry.
 			for (size_t i = 0; i < (size_t) paramsTemplate.size(); ++i) {
 
-				uint template_value_Type = paramsTemplate.get_type(i);
+				uint template_value_Type = paramsTemplate.type(i);
 
 				jobject value = env->GetObjectArrayElement(array, i);
 
@@ -832,84 +839,87 @@ namespace ug {
 				}
 
 				switch (template_value_Type) {
-					case PT_BOOL:
+					case ug::Variant::VT_BOOL:
 					{
-						paramsOut.push_bool(jObject2Boolean(env, value));
+						paramsOut.push<bool>(jObject2Boolean(env, value));
 					}
 						break;
-					case PT_INTEGER:
+					case ug::Variant::VT_INT:
 					{
-						paramsOut.push_integer(jObject2Int(env, value));
+						paramsOut.push<int>(jObject2Int(env, value));
 					}
 						break;
-					case PT_NUMBER:
+					case ug::Variant::VT_SIZE_T:
 					{
-						paramsOut.push_number(jObject2Double(env, value));
+						paramsOut.push<size_t>((size_t)jObject2Int(env, value));
 					}
 						break;
-					case PT_CSTRING:
+					case ug::Variant::VT_FLOAT:
+					case ug::Variant::VT_DOUBLE:
 					{
-						paramsOut.push_std_string(jObject2String(env, value));
+						paramsOut.push<number>(jObject2Double(env, value));
+					}
+						break;
+					case ug::Variant::VT_CSTRING:
+					{
+						paramsOut.push(jObject2String(env, value));
 					}
 						break;
 
-					case PT_STD_STRING:
+					case ug::Variant::VT_STDSTRING:
 					{
-						paramsOut.push_std_string(jObject2String(env, value));
+						paramsOut.push(jObject2String(env, value));
 					}
 						break;
 
-					case PT_POINTER:
+					case ug::Variant::VT_POINTER:
 					{
 						const ug::bridge::ClassNameNode* node =
 								ug::vrl::invocation::getClassNodePtrByName(reg,
 								jPointerGetName(env, value));
-						paramsOut.push_pointer(jObject2Pointer(env, value), node);
+						paramsOut.push(jObject2Pointer(env, value), node);
 					}
 						break;
-					case PT_CONST_POINTER:
+					case ug::Variant::VT_CONST_POINTER:
 					{
 						const ug::bridge::ClassNameNode* node =
 								ug::vrl::invocation::getClassNodePtrByName(reg,
 								jPointerGetName(env, value));
 
 						// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) 
-						if (java_value_type == PT_CONST_SMART_POINTER) {
-							paramsOut.push_const_pointer(
+						if (java_value_type == ug::Variant::VT_CONST_SMART_POINTER) {
+							paramsOut.push(
 									(void*) jObject2ConstSmartPointer(
 									env, value).get(), node);
-						} else if (java_value_type == PT_SMART_POINTER) {
-							paramsOut.push_const_pointer(
+						} else if (java_value_type == ug::Variant::VT_SMART_POINTER) {
+							paramsOut.push(
 									(void*) jObject2SmartPointer(
 									env, value).get(), node);
 						} else {
-							paramsOut.push_const_pointer(
-									jObject2Pointer(env, value), node);
+							paramsOut.push(jObject2Pointer(env, value), node);
 						}
 
 //						paramsOut.push_const_pointer(
 //								jObject2Pointer(env, value), node);
 					}
 						break;
-					case PT_SMART_POINTER:
+					case ug::Variant::VT_SMART_POINTER:
 					{
 						const ug::bridge::ClassNameNode* node =
 								ug::vrl::invocation::getClassNodePtrByName(reg,
 								jPointerGetName(env, value));
 
-						paramsOut.push_smart_pointer(
-								jObject2SmartPointer(env, value), node);
+						paramsOut.push(jObject2SmartPointer(env, value), node);
 						//				}
 					}
 						break;
-					case PT_CONST_SMART_POINTER:
+					case ug::Variant::VT_CONST_SMART_POINTER:
 					{
 						const ug::bridge::ClassNameNode* node =
 								ug::vrl::invocation::getClassNodePtrByName(reg,
 								jPointerGetName(env, value));
 
-						paramsOut.push_const_smart_pointer(
-								jObject2ConstSmartPointer(env, value), node);
+						paramsOut.push(jObject2ConstSmartPointer(env, value), node);
 					}
 						break;
 				}
@@ -922,54 +932,60 @@ namespace ug {
 			using namespace ug::bridge;
 			//	iterate through the parameter list and copy the value in the
 			//	associated stack entry.
-			int type = params.get_type(index);
+			int type = params.type(index);
 
 			switch (type) {
-				case PT_BOOL:
+				case ug::Variant::VT_BOOL:
 				{
-					return boolean2JObject(env, params.to_bool(index));
+					return boolean2JObject(env, params.to<bool>(index));
 				}
 					break;
-				case PT_INTEGER:
+				case ug::Variant::VT_INT:
 				{
-					return int2JObject(env, params.to_integer(index));
+					return int2JObject(env, params.to<int>(index));
 				}
 					break;
-				case PT_NUMBER:
+				case ug::Variant::VT_SIZE_T:
 				{
-					return double2JObject(env, params.to_number(index));
+					return int2JObject(env, (int)params.to<size_t>(index));
 				}
 					break;
-				case PT_CSTRING:
+				case ug::Variant::VT_FLOAT:
+				case ug::Variant::VT_DOUBLE:
 				{
-					return string2JObject(env, params.to_cstring(index));
+					return double2JObject(env, params.to<number>(index));
 				}
 					break;
-				case PT_STD_STRING:
+				case ug::Variant::VT_CSTRING:
 				{
-					return string2JObject(env, params.to_std_string(index).c_str());
+					return string2JObject(env, params.to<const char*>(index));
 				}
 					break;
-				case PT_POINTER:
+				case ug::Variant::VT_STDSTRING:
 				{
-					return pointer2JObject(env, params.to_pointer(index));
+					return string2JObject(env, params.to<const std::string&>(index).c_str());
 				}
 					break;
-				case PT_CONST_POINTER:
+				case ug::Variant::VT_POINTER:
+				{
+					return pointer2JObject(env, params.to<void*>(index));
+				}
+					break;
+				case ug::Variant::VT_CONST_POINTER:
 				{
 					return pointer2JObject(
-							env, (void*) params.to_const_pointer(index));
+							env, (void*) params.to<const void*>(index));
 				}
 					break;
-				case PT_SMART_POINTER:
+				case ug::Variant::VT_SMART_POINTER:
 				{
-					return smartPointer2JObject(env, params.to_smart_pointer(index));
+					return smartPointer2JObject(env, params.to<SmartPtr<void> >(index));
 				}
 					break;
-				case PT_CONST_SMART_POINTER:
+				case ug::Variant::VT_CONST_SMART_POINTER:
 				{
 					return constSmartPointer2JObject(
-							env, params.to_const_smart_pointer(index));
+							env, params.to<ConstSmartPtr<void> >(index));
 				}
 					break;
 			}
@@ -977,10 +993,10 @@ namespace ug {
 			return jobject();
 		}
 
-		int paramType2Int(const ug::bridge::ParameterStack& params, size_t index) {
+		int paramType2Int(const ug::bridge::ParameterInfo& params, size_t index) {
 			using namespace ug::bridge;
 
-			int type = params.get_type(index);
+			int type = params.type(index);
 
 			return type;
 		}
@@ -993,7 +1009,7 @@ namespace ug {
 			jobjectArray result =
 					env->NewObjectArray(func.num_parameter(), cls, 0);
 
-			const ug::bridge::ParameterStack& params = func.params_in();
+			const ug::bridge::ParameterInfo& params = func.params_in();
 
 			for (size_t i = 0; i < func.num_parameter(); i++) {
 
@@ -1018,10 +1034,10 @@ namespace ug {
 
 
 				// check for emptyness
-				bool pointerType = params.get_type(i) == ug::bridge::PT_CONST_POINTER ||
-						params.get_type(i) == ug::bridge::PT_POINTER ||
-						params.get_type(i) == ug::bridge::PT_SMART_POINTER ||
-						params.get_type(i) == ug::bridge::PT_CONST_SMART_POINTER;
+				bool pointerType = params.type(i) == ug::Variant::VT_CONST_POINTER ||
+						params.type(i) == ug::Variant::VT_POINTER ||
+						params.type(i) == ug::Variant::VT_SMART_POINTER ||
+						params.type(i) == ug::Variant::VT_CONST_SMART_POINTER;
 
 				if (pointerType && strlen(params.class_name(i)) == 0) {
 					std::cerr << func.name() << ", param(" << i << ")==EMPTY" << std::endl;
@@ -1061,7 +1077,7 @@ namespace ug {
 			jobjectArray result =
 					env->NewObjectArray(constructor.num_parameter(), cls, 0);
 
-			const ug::bridge::ParameterStack& params = constructor.params_in();
+			const ug::bridge::ParameterInfo& params = constructor.params_in();
 
 			for (size_t i = 0; i < constructor.num_parameter(); i++) {
 
@@ -1116,7 +1132,7 @@ namespace ug {
 
 			unsigned int i = 0; // C/C++/Java only allow one return value
 
-			const ug::bridge::ParameterStack& params = func.params_out();
+			const ug::bridge::ParameterInfo& params = func.params_out();
 
 			// create instance
 			jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");

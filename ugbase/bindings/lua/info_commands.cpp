@@ -754,7 +754,17 @@ string GetLuaTypeString(lua_State* L, int index)
 	if(lua_isnumber(L, index)) 	str.append("number/");
 	if(lua_isstring(L, index)) str.append("string/");
 
-	if(lua_istable(L, index)) str.append("table/");
+	if(lua_istable(L, index)) {
+		lua_pushnil(L);
+		str.append("{");
+		bool bFirst = true;
+		while (lua_next(L, index) != 0) {
+			if(bFirst) {bFirst = false;} else {str.append(", ");};
+			str.append(GetLuaTypeString(L, -1));
+			lua_pop(L, 1);
+	   }
+		str.append("} (table)/");
+	}
 	if(lua_isthread(L, index)) str.append("thread/");
 	if(lua_isuserdata(L, index))
 	{
