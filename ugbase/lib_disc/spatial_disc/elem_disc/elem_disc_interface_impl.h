@@ -20,7 +20,7 @@ inline void IElemDisc::fast_prepare_timestep_elem(TElem* elem, const LocalVector
 //	cast the method pointer back to the original type
 	typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
 	Func pFunc = reinterpret_cast<Func>(m_vPrepareTimestepElemFct[m_id]);
-	return (this->*(pFunc))(elem, u);
+	(this->*(pFunc))(elem, u);
 }
 
 template <typename TElem>
@@ -29,7 +29,7 @@ inline void IElemDisc::fast_prepare_elem(TElem* elem, const LocalVector& u)
 //	cast the method pointer back to the original type
 	typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
 	Func pFunc = reinterpret_cast<Func>(m_vPrepareElemFct[m_id]);
-	return (this->*(pFunc))(elem, u);
+	(this->*(pFunc))(elem, u);
 }
 
 template <typename TElem>
@@ -38,7 +38,7 @@ inline void IElemDisc::fast_finish_timestep_elem(TElem* elem, const number time,
 //	cast the method pointer back to the original type
 	typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
 	Func pFunc = reinterpret_cast<Func>(m_vFinishTimestepElemFct[m_id]);
-	return (this->*(pFunc))(elem, u);
+	(this->*(pFunc))(elem, u);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
