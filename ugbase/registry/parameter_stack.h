@@ -17,7 +17,6 @@ namespace ug
 namespace bridge
 {
 
-struct ___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____;
 
 /// a stack holding parameter infos about a parameter stack
 /**
@@ -122,7 +121,7 @@ class ParameterInfo
 		template <typename T>
 		struct PushType{
 			static void push(ParameterInfo* This){
-				___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____();
+				T::___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____();
 			}
 		};
 
@@ -351,7 +350,7 @@ class ParameterStack : public ParameterInfo
 		template <typename T>
 		struct PushType{
 			static void push(ParameterStack* This, T data){
-				___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____();
+				T::___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____();
 		}};
 
 	public:
@@ -430,7 +429,7 @@ class ParameterStack : public ParameterInfo
 		template <typename T>
 		struct ToType{
 			static T to(const ParameterStack* This, int index){
-				return ___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____();
+				return T::___UG_REGISTRY_ERROR___FUNCTION_OR_METHOD_PARAMETERS_RESTRICTED_to__NATIVE_TYPES__or__POINTER_resp_SMARTPOINTER_to_registered_types____();
 		}};
 
 	public:
