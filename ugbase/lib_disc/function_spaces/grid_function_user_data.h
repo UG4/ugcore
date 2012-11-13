@@ -219,6 +219,16 @@ class GridFunctionNumberData
 				         <<roid<<", Trial Space: "<<m_lfeID<<", refDim="<<refDim);
 			}
 		}
+		
+		inline void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
+		{
+			const number t = this->time();
+			const int si = this->subset();
+			for(size_t s = 0; s < this->num_series(); ++s)
+				evaluate<dim>(this->values(s), this->ips(s), t, si,
+                  *u, elem, NULL, this->template local_ips<dim>(s),
+                  this->num_ip(s));
+		}
 };
 
 template <typename TGridFunction>
@@ -317,6 +327,16 @@ class GridFunctionVectorData
 			}UG_CATCH_THROW("GridFunctionVectorData: Reference Object: "
 						 <<roid<<", refDim="<<refDim);
 		}
+
+		inline void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
+		{
+			const number t = this->time();
+			const int si = this->subset();
+			for(size_t s = 0; s < this->num_series(); ++s)
+				evaluate<dim>(this->values(s), this->ips(s), t, si,
+                  *u, elem, NULL, this->template local_ips<dim>(s),
+                  this->num_ip(s));
+		};
 };
 
 
