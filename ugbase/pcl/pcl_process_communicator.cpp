@@ -394,7 +394,7 @@ distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
 }
 
 void ProcessCommunicator::
-distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
+distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 				int* recvFromRanks, int numRecvFroms,
 				void* sendBuf, int* sendSegSizes,
 				int* sendToRanks, int numSendTos) const
@@ -420,13 +420,14 @@ distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
 		totalSize += bufferSizes[i];
 	}
 
-	recvBufOut.resize(totalSize);
+	recvBufOut.reserve(totalSize);
 
 //	now exchange the buffers
 	distribute_data(recvBufOut.buffer(), GetDataPtr(bufferSizes),
 					recvFromRanks, numRecvFroms,
 					sendBuf, sendSegSizes,
 					sendToRanks, numSendTos, 3458);
+	recvBufOut.set_write_pos(totalSize);
 }
 
 void ProcessCommunicator::

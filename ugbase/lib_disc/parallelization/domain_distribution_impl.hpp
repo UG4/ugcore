@@ -365,7 +365,9 @@ static bool RedistributeDomain(TDomain& domainOut,
 	bool performDistribution = true;
 
 //	make sure that the number of subsets and target processes match
-	const int numSubs = partitionMap.get_partition_handler().num_subsets();
+//	THIS MAKES NO SENSE FOR PARALLEL REDISTRIBUTION - IT IS CLEAR THAT SOME
+//	PROCS WON'T DELIVER TO ALL PROCS IN THE MAP.
+/*	const int numSubs = partitionMap.get_partition_handler().num_subsets();
 	const int numTargetProcs = (int)partitionMap.num_target_procs();
 	if(numSubs > numTargetProcs){
 		UG_LOG("ERROR in RedistributeDomain: More partitions than target processes.\n");
@@ -375,6 +377,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 		UG_LOG("ERROR in RedistributeDomain: More target processes than partitions.\n");
 		performDistribution = false;
 	}
+*/
 
 //todo:	check whether all target-processes in partitionMap are in the valid range.
 

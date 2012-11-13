@@ -285,7 +285,7 @@ void CreateRedistributionLayouts(
  * 			pProcessMap should thus be removed.
  */
 void SerializeGridAndDistributionLayouts(
-							std::ostream& out, MultiGrid& mg,
+							BinaryBuffer& out, MultiGrid& mg,
 							DistributionVertexLayout& vrtLayout,
 							DistributionEdgeLayout& edgeLayout,
 							DistributionFaceLayout& faceLayout,
@@ -311,14 +311,14 @@ void SerializeGridAndDistributionLayouts(
  * 			pProcessMap should thus be removed.
  */
 template <class TLayout>
-void SerializeDistributionLayoutInterfaces(std::ostream& out, TLayout& layout,
+void SerializeDistributionLayoutInterfaces(BinaryBuffer& out, TLayout& layout,
 											Grid& grid, AInt& aLocalInd);
 
 ////////////////////////////////////////////////////////////////////////
 ///	deserializes a DistributionLayoutInterface.
 template <class TLayout>
 void DeserializeDistributionLayoutInterfaces(TLayout& layout,
-											std::istream& in);
+											BinaryBuffer& in);
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeDistributionLayoutInterfaces
@@ -332,14 +332,14 @@ template <class TGeomObj, class TLayoutMap>
 void DeserializeDistributionLayoutInterfaces(
 									TLayoutMap& layoutMapOut,
 									std::vector<TGeomObj*>& vGeomObjs,
-									std::istream& in);
+									BinaryBuffer& in);
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeGridAndDistributionLayouts
 void DeserializeGridAndDistributionLayouts(
 									MultiGrid& mgOut,
 									GridLayoutMap& gridLayoutOut,
-									std::istream& in);
+									BinaryBuffer& in);
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects all elements in a DistributionLayout into a selector

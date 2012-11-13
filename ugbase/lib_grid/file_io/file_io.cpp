@@ -302,6 +302,80 @@ bool SaveGridToFile(Grid& grid, const char* filename)
 	return false;
 }
 
+bool SaveGridHierarchyTransformed(MultiGrid& mg, ISubsetHandler& sh,
+								  const char* filename, number offset)
+{
+	PROFILE_FUNC_GROUP("grid");
+	APosition aPos;
+//	uses auto-attach
+	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
+
+//	copy the existing position to aPos. We take care of dimension differences.
+//	Note:	if the method was implemented for domains, this could be implemented
+//			in a nicer way.
+	if(mg.has_vertex_attachment(aPosition))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
+	else if(mg.has_vertex_attachment(aPosition2))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition2, aPos);
+	else if(mg.has_vertex_attachment(aPosition1))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition1, aPos);
+
+//	iterate through all vertices and apply an offset depending on their level.
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		for(VertexBaseIterator iter = mg.begin<VertexBase>(lvl);
+			iter != mg.end<VertexBase>(lvl); ++iter)
+		{
+			aaPos[*iter].z += (number)lvl * offset;
+		}
+	}
+
+//	finally save the grid
+	bool writeSuccess = SaveGridToFile(mg, sh, filename, aPos);
+
+//	clean up
+	mg.detach_from_vertices(aPos);
+
+	return writeSuccess;
+}
+
+bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename,
+									  number offset)
+{
+	PROFILE_FUNC_GROUP("grid");
+//	cast away constness
+	SubsetHandler& sh = mg.get_hierarchy_handler();
+
+	APosition aPos;
+//	uses auto-attach
+	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
+
+//	copy the existing position to aPos. We take care of dimension differences.
+//	Note:	if the method was implemented for domains, this could be implemented
+//			in a nicer way.
+	if(mg.has_vertex_attachment(aPosition))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
+	else if(mg.has_vertex_attachment(aPosition2))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition2, aPos);
+	else if(mg.has_vertex_attachment(aPosition1))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition1, aPos);
+
+//	iterate through all vertices and apply an offset depending on their level.
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		for(VertexBaseIterator iter = mg.begin<VertexBase>(lvl);
+			iter != mg.end<VertexBase>(lvl); ++iter)
+		{
+			aaPos[*iter].z += (number)lvl * offset;
+		}
+	}
+
+//	finally save the grid
+	bool writeSuccess = SaveGridToFile(mg, sh, filename, aPos);
+
+//	clean up
+	mg.detach_from_vertices(aPos);
+
+	return writeSuccess;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

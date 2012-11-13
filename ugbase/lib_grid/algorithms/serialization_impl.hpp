@@ -13,28 +13,28 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	DataSerializer
 inline void GridDataSerializationHandler::
-serialize(std::ostream& out, VertexBase* vrt) const
+serialize(BinaryBuffer& out, VertexBase* vrt) const
 {
 	serialize(out, vrt, m_vrtSerializers);
 	serialize(out, vrt, m_gridSerializers);
 }
 
 inline void GridDataSerializationHandler::
-serialize(std::ostream& out, EdgeBase* edge) const
+serialize(BinaryBuffer& out, EdgeBase* edge) const
 {
 	serialize(out, edge, m_edgeSerializers);
 	serialize(out, edge, m_gridSerializers);
 }
 
 inline void GridDataSerializationHandler::
-serialize(std::ostream& out, Face* face) const
+serialize(BinaryBuffer& out, Face* face) const
 {
 	serialize(out, face, m_faceSerializers);
 	serialize(out, face, m_gridSerializers);
 }
 
 inline void GridDataSerializationHandler::
-serialize(std::ostream& out, Volume* vol) const
+serialize(BinaryBuffer& out, Volume* vol) const
 {
 	serialize(out, vol, m_volSerializers);
 	serialize(out, vol, m_gridSerializers);
@@ -42,7 +42,7 @@ serialize(std::ostream& out, Volume* vol) const
 
 template <class TIterator>
 void GridDataSerializationHandler::
-serialize(std::ostream& out, TIterator begin, TIterator end) const
+serialize(BinaryBuffer& out, TIterator begin, TIterator end) const
 {
 	for(TIterator iter = begin; iter != end; ++iter)
 		serialize(out, *iter);
@@ -50,7 +50,7 @@ serialize(std::ostream& out, TIterator begin, TIterator end) const
 
 template<class TGeomObj, class TSerializers>
 void GridDataSerializationHandler::
-serialize(std::ostream& out, TGeomObj* o,
+serialize(BinaryBuffer& out, TGeomObj* o,
 		  TSerializers& serializers) const
 {
 //	This method performs the serialization
@@ -62,28 +62,28 @@ serialize(std::ostream& out, TGeomObj* o,
 
 ////////////////////////////////////////////////////////////////////////
 inline void GridDataSerializationHandler::
-deserialize(std::istream& in, VertexBase* vrt) const
+deserialize(BinaryBuffer& in, VertexBase* vrt) const
 {
 	deserialize(in, vrt, m_vrtSerializers);
 	deserialize(in, vrt, m_gridSerializers);
 }
 
 inline void GridDataSerializationHandler::
-deserialize(std::istream& in, EdgeBase* edge) const
+deserialize(BinaryBuffer& in, EdgeBase* edge) const
 {
 	deserialize(in, edge, m_edgeSerializers);
 	deserialize(in, edge, m_gridSerializers);
 }
 
 inline void GridDataSerializationHandler::
-deserialize(std::istream& in, Face* face) const
+deserialize(BinaryBuffer& in, Face* face) const
 {
 	deserialize(in, face, m_faceSerializers);
 	deserialize(in, face, m_gridSerializers);
 }
 
 inline void GridDataSerializationHandler::
-deserialize(std::istream& in, Volume* vol) const
+deserialize(BinaryBuffer& in, Volume* vol) const
 {
 	deserialize(in, vol, m_volSerializers);
 	deserialize(in, vol, m_gridSerializers);
@@ -91,7 +91,7 @@ deserialize(std::istream& in, Volume* vol) const
 
 template <class TIterator>
 void GridDataSerializationHandler::
-deserialize(std::istream& in, TIterator begin, TIterator end) const
+deserialize(BinaryBuffer& in, TIterator begin, TIterator end) const
 {
 	for(TIterator iter = begin; iter != end; ++iter)
 		deserialize(in, *iter);
@@ -99,7 +99,7 @@ deserialize(std::istream& in, TIterator begin, TIterator end) const
 
 template<class TGeomObj, class TDeserializers>
 void GridDataSerializationHandler::
-deserialize(std::istream& in, TGeomObj* o,
+deserialize(BinaryBuffer& in, TGeomObj* o,
 			TDeserializers& deserializers) const
 {
 //	This method performs the deserialization
@@ -114,7 +114,7 @@ deserialize(std::istream& in, TGeomObj* o,
 //	SerializeAttachment
 template <class TElem, class TAttachment>
 bool SerializeAttachment(Grid& grid, TAttachment& attachment,
-						 std::ostream& out)
+						 BinaryBuffer& out)
 {
 	return SerializeAttachment<TElem, TAttachment>(
 								grid, attachment,
@@ -129,7 +129,7 @@ template <class TElem, class TAttachment>
 bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 						 typename geometry_traits<TElem>::iterator iterBegin,
 						 typename geometry_traits<TElem>::iterator iterEnd,
-						 std::ostream& out)
+						 BinaryBuffer& out)
 {
 	if(!grid.has_attachment<TElem>(attachment))
 		return false;
@@ -162,7 +162,7 @@ bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 //	DeserializeAttachment
 template <class TElem, class TAttachment>
 bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
-						 std::istream& in)
+						 BinaryBuffer& in)
 {
 	return DeserializeAttachment<TElem, TAttachment>(
 					grid, attachment, grid.begin<TElem>(),
@@ -175,7 +175,7 @@ template <class TElem, class TAttachment>
 bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 						 typename geometry_traits<TElem>::iterator iterBegin,
 						 typename geometry_traits<TElem>::iterator iterEnd,
-						 std::istream& in)
+						 BinaryBuffer& in)
 {
 	if(!grid.has_attachment<TElem>(attachment))
 		grid.attach_to<TElem>(attachment);

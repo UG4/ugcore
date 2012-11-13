@@ -257,7 +257,7 @@ class ProcessCommunicator
 	 * 						data shall be sent. Has to have size numSendTos.
 	 * \param numSendTos	Specifies to how many processes data will be sent.
 	 */
-		void distribute_data(ug::BinaryStream& recvBufOut, int* segSizesOut,
+		void distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 							int* recvFromRanks, int numRecvFroms,
 							void* sendBuf, int* sendSegSizes,
 							int* sendToRanks, int numSendTos) const;

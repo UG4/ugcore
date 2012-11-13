@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__SERIALIZATION__
 
 #include <iostream>
+#include "common/util/binary_buffer.h"
 #include "lib_grid/geometric_objects/geometric_objects.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_grid/multi_grid.h"
@@ -50,14 +51,14 @@ class GeomObjDataSerializer
 	///	can be used to write arbitrary info to the file.
 	/**	Make sure to read everything you've written during read_data.
 	 * Default implementation is empty.*/
-		virtual void write_info(std::ostream& out) const {};
+		virtual void write_info(BinaryBuffer& out) const {};
 	///	write data associated with the given object. Pure virtual.
-		virtual void write_data(std::ostream& out, TGeomObj* o) const = 0;
+		virtual void write_data(BinaryBuffer& out, TGeomObj* o) const = 0;
 
 	///	Read the info written during write_info here. Default: empty implementation.
-		virtual void read_info(std::istream& in) const	{};
+		virtual void read_info(BinaryBuffer& in) const	{};
 	///	read data associated with the given object. Pure virtual.
-		virtual void read_data(std::istream& in, TGeomObj* o) const = 0;
+		virtual void read_data(BinaryBuffer& in, TGeomObj* o) const = 0;
 };
 
 typedef GeomObjDataSerializer<VertexBase>	VertexDataSerializer;
@@ -89,20 +90,20 @@ class GridDataSerializer : public virtual VertexDataSerializer,
 	///	can be used to write arbitrary info to the file.
 	/**	Make sure to read everything you've written during read_data.
 	 * Default implementation is empty.*/
-		virtual void write_info(std::ostream& out) const				{}
+		virtual void write_info(BinaryBuffer& out) const				{}
 
 	///	Read the info written during write_info here. Default: empty implementation.
-		virtual void read_info(std::istream& in) const					{}
+		virtual void read_info(BinaryBuffer& in) const					{}
 
-		virtual void write_data(std::ostream& out, VertexBase* o) const	{}
-		virtual void write_data(std::ostream& out, EdgeBase* o) const	{}
-		virtual void write_data(std::ostream& out, Face* o) const		{}
-		virtual void write_data(std::ostream& out, Volume* o) const		{}
+		virtual void write_data(BinaryBuffer& out, VertexBase* o) const	{}
+		virtual void write_data(BinaryBuffer& out, EdgeBase* o) const	{}
+		virtual void write_data(BinaryBuffer& out, Face* o) const		{}
+		virtual void write_data(BinaryBuffer& out, Volume* o) const		{}
 
-		virtual void read_data(std::istream& in, VertexBase* o) const	{}
-		virtual void read_data(std::istream& in, EdgeBase* o) const		{}
-		virtual void read_data(std::istream& in, Face* o) const			{}
-		virtual void read_data(std::istream& in, Volume* o) const		{}
+		virtual void read_data(BinaryBuffer& in, VertexBase* o) const	{}
+		virtual void read_data(BinaryBuffer& in, EdgeBase* o) const		{}
+		virtual void read_data(BinaryBuffer& in, Face* o) const			{}
+		virtual void read_data(BinaryBuffer& in, Volume* o) const		{}
 };
 
 
@@ -139,56 +140,56 @@ class GridDataSerializationHandler
 
 
 	///	calls write_info on all registered serializers
-		void write_infos(std::ostream& out) const;
+		void write_infos(BinaryBuffer& out) const;
 
 	/**	\{
 	 * \brief Serializes data associated with the given object.*/
-		inline void serialize(std::ostream& out, VertexBase* vrt) const;
-		inline void serialize(std::ostream& out, EdgeBase* edge) const;
-		inline void serialize(std::ostream& out, Face* face) const;
-		inline void serialize(std::ostream& out, Volume* vol) const;
+		inline void serialize(BinaryBuffer& out, VertexBase* vrt) const;
+		inline void serialize(BinaryBuffer& out, EdgeBase* edge) const;
+		inline void serialize(BinaryBuffer& out, Face* face) const;
+		inline void serialize(BinaryBuffer& out, Volume* vol) const;
 	/**	\} */
 
 	///	Calls serialize on all elements between begin and end.
 	/**	Make sure that TIterator::value_type is compatible with
 	 * either VertexBase*, EdgeBase*, Face*, Volume*.*/
 		template <class TIterator>
-		void serialize(std::ostream& out, TIterator begin, TIterator end) const;
+		void serialize(BinaryBuffer& out, TIterator begin, TIterator end) const;
 
 
 	///	calls read_info on all registered serializers
-		void read_infos(std::istream& in) const;
+		void read_infos(BinaryBuffer& in) const;
 
 	/**	\{
 	 * \brief Deserializes data associated with the given object.*/
-		inline void deserialize(std::istream& in, VertexBase* vrt) const;
-		inline void deserialize(std::istream& in, EdgeBase* edge) const;
-		inline void deserialize(std::istream& in, Face* face) const;
-		inline void deserialize(std::istream& in, Volume* vol) const;
+		inline void deserialize(BinaryBuffer& in, VertexBase* vrt) const;
+		inline void deserialize(BinaryBuffer& in, EdgeBase* edge) const;
+		inline void deserialize(BinaryBuffer& in, Face* face) const;
+		inline void deserialize(BinaryBuffer& in, Volume* vol) const;
 	/**	\} */
 
 	///	Calls deserialize on all elements between begin and end.
 	/**	Make sure that TIterator::value_type is compatible with
 	 * either VertexBase*, EdgeBase*, Face*, Volume*.*/
 		template <class TIterator>
-		void deserialize(std::istream& in, TIterator begin, TIterator end) const;
+		void deserialize(BinaryBuffer& in, TIterator begin, TIterator end) const;
 
 	private:
 	///	performs serialization on all given serializers.
 		template<class TGeomObj, class TSerializers>
-		void serialize(std::ostream& out, TGeomObj* o,
+		void serialize(BinaryBuffer& out, TGeomObj* o,
 					   TSerializers& serializers) const;
 
 	///	performs deserialization on all given deserializers.
 		template<class TGeomObj, class TDeserializers>
-		void deserialize(std::istream& in, TGeomObj* o,
+		void deserialize(BinaryBuffer& in, TGeomObj* o,
 					   TDeserializers& deserializers) const;
 
 		template<class TSerializers>
-		void write_info(std::ostream& out, TSerializers& serializers) const;
+		void write_info(BinaryBuffer& out, TSerializers& serializers) const;
 
 		template<class TSerializers>
-		void read_info(std::istream& in, TSerializers& serializers) const;
+		void read_info(BinaryBuffer& in, TSerializers& serializers) const;
 
 	private:
 		std::vector<VertexDataSerializer*>	m_vrtSerializers;
@@ -214,10 +215,10 @@ class GeomObjAttachmentSerializer :
 		GeomObjAttachmentSerializer(Grid& g, TAttachment& a) :
 			m_aa(g, a, true)	{}
 
-		virtual void write_data(std::ostream& out, TGeomObj* o) const
+		virtual void write_data(BinaryBuffer& out, TGeomObj* o) const
 		{Serialize(out, m_aa[o]);}
 
-		virtual void read_data(std::istream& in, TGeomObj* o) const
+		virtual void read_data(BinaryBuffer& in, TGeomObj* o) const
 		{Deserialize(in, m_aa[o]);}
 
 	private:
@@ -230,20 +231,20 @@ class SubsetHandlerSerializer : public GridDataSerializer
 		SubsetHandlerSerializer(ISubsetHandler& sh);
 
 	///	writes subset-infos to the stream (subset names and colors)
-		virtual void write_info(std::ostream& out) const;
+		virtual void write_info(BinaryBuffer& out) const;
 
 		///	Read the info written during write_info here. Default: empty implementation.
-		virtual void read_info(std::istream& in) const;
+		virtual void read_info(BinaryBuffer& in) const;
 
-		virtual void write_data(std::ostream& out, VertexBase* o) const;
-		virtual void write_data(std::ostream& out, EdgeBase* o) const;
-		virtual void write_data(std::ostream& out, Face* o) const;
-		virtual void write_data(std::ostream& out, Volume* o) const;
+		virtual void write_data(BinaryBuffer& out, VertexBase* o) const;
+		virtual void write_data(BinaryBuffer& out, EdgeBase* o) const;
+		virtual void write_data(BinaryBuffer& out, Face* o) const;
+		virtual void write_data(BinaryBuffer& out, Volume* o) const;
 
-		virtual void read_data(std::istream& in, VertexBase* o) const;
-		virtual void read_data(std::istream& in, EdgeBase* o) const;
-		virtual void read_data(std::istream& in, Face* o) const;
-		virtual void read_data(std::istream& in, Volume* o) const;
+		virtual void read_data(BinaryBuffer& in, VertexBase* o) const;
+		virtual void read_data(BinaryBuffer& in, EdgeBase* o) const;
+		virtual void read_data(BinaryBuffer& in, Face* o) const;
+		virtual void read_data(BinaryBuffer& in, Volume* o) const;
 
 	private:
 		ISubsetHandler& m_sh;
@@ -279,11 +280,11 @@ class SubsetHandlerSerializer : public GridDataSerializer
  * the respcetive vertices are stored in the pack.
  */
 bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
-						   AInt& aIntVRT, std::ostream& out);
+						   AInt& aIntVRT, BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Writes all grid elements into a binary-stream.
-bool SerializeGridElements(Grid& grid, std::ostream& out);
+bool SerializeGridElements(Grid& grid, BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Writes a part of the grids elements to a binary-stream.
@@ -297,7 +298,7 @@ bool SerializeGridElements(Grid& grid, std::ostream& out);
  * should consider to use the full-featured serialization method.
  */
 bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
-						   std::ostream& out);
+						   BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Creates grid elements from a binary stream
@@ -305,7 +306,7 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
  * This is why you can specify via readGridHeader whether a
  * header should be read (default is true).
  */
-bool DeserializeGridElements(Grid& grid, std::istream& in,
+bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 							bool readGridHeader = true);
 
 
@@ -348,7 +349,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 								GeometricObjectCollection goc,
 								AInt& aIntVRT, AInt& aIntEDGE,
 								AInt& aIntFACE, AInt& aIntVOL,
-								std::ostream& out);
+								BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeMultiGridElements
@@ -367,13 +368,13 @@ bool SerializeMultiGridElements(MultiGrid& mg,
  */
 bool SerializeMultiGridElements(MultiGrid& mg,
 								GeometricObjectCollection goc,
-								std::ostream& out);
+								BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeMultiGridElements
 ///	writes the elements of a MultiGrid to a binary stream.
 bool SerializeMultiGridElements(MultiGrid& mg,
-								std::ostream& out);
+								BinaryBuffer& out);
 								
 ////////////////////////////////////////////////////////////////////////
 ///	Creates multi-grid elements from a binary stream
@@ -383,7 +384,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
  * of the grid in the order they were read.
  * Specifying those vectors does not lead to a performance loss.
  */
-bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
+bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									std::vector<VertexBase*>* pvVrts = NULL,
 									std::vector<EdgeBase*>* pvEdges = NULL,
 									std::vector<Face*>* pvFaces = NULL,
@@ -405,7 +406,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
  */
 template <class TElem, class TAttachment>
 bool SerializeAttachment(Grid& grid, TAttachment& attachment,
-						 std::ostream& out);
+						 BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
 ///	copies attached values to a binary stream.
@@ -419,7 +420,7 @@ template <class TElem, class TAttachment>
 bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 						 typename geometry_traits<TElem>::iterator iterBegin,
 						 typename geometry_traits<TElem>::iterator iterEnd,
-						 std::ostream& out);
+						 BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
 ///	copies attached values from a binary stream
@@ -431,7 +432,7 @@ bool SerializeAttachment(Grid& grid, TAttachment& attachment,
  */
 template <class TElem, class TAttachment>
 bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
-						 std::istream& in);
+						 BinaryBuffer& in);
 
 ////////////////////////////////////////////////////////////////////////
 ///	copies attached values from a binary stream
@@ -445,7 +446,7 @@ template <class TElem, class TAttachment>
 bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 						 typename geometry_traits<TElem>::iterator iterBegin,
 						 typename geometry_traits<TElem>::iterator iterEnd,
-						 std::istream& in);
+						 BinaryBuffer& in);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -456,12 +457,12 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 ///	writes the subset-indices of all elements in the goc to a stream.
 bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
-							std::ostream& out);
+							BinaryBuffer& out);
 							
 ////////////////////////////////////////////////////////////////////////
 ///	writes the subset-indices of all elements in the grid to a stream.
 bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							std::ostream& out);
+							BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
 ///	assigns subset-indices to all elements in the goc from a stream.
@@ -476,7 +477,7 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
  */
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
-							std::istream& in,
+							BinaryBuffer& in,
 							bool readPropertyMap = true);
 
 							
@@ -492,13 +493,13 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
  * compatibility with older binary files, which did not support property maps.
  */
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							std::istream& in,
+							BinaryBuffer& in,
 							bool readPropertyMap = true);
 
 /*
-bool SerializeSelector(Grid& grid, Selector& sel, std::ostream& out);
+bool SerializeSelector(Grid& grid, Selector& sel, BinaryBuffer& out);
 
-bool DeserializeSelector(Grid& grid, Selector& sel, std::istream& in);
+bool DeserializeSelector(Grid& grid, Selector& sel, BinaryBuffer& in);
 */
 
 /**@}*/ // end of doxygen defgroup command

@@ -33,6 +33,22 @@ vector3 GetGeometricObjectCenter(Grid& g, TElem* elem)
 	return vector3(0, 0, 0);
 }
 
+
+template <class TElem>
+int GetGeometricObjectIndex(Grid& g, TElem* elem)
+{
+	typedef typename Grid::traits<TElem>::base_object TBase;
+
+	int counter = 0;
+	for(typename Grid::traits<TBase>::iterator iter = g.begin<TBase>();
+		iter != g.end<TBase>(); ++iter, ++counter)
+	{
+		if(*iter == elem)
+			return counter;
+	}
+	return -1;
+}
+
 }//	end of namespace
 
 #endif

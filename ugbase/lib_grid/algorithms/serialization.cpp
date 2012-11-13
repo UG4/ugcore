@@ -42,7 +42,7 @@ void GridDataSerializationHandler::add(GridDataSerializer* cb)
 
 template<class TSerializers>
 void GridDataSerializationHandler::
-write_info(std::ostream& out, TSerializers& serializers) const
+write_info(BinaryBuffer& out, TSerializers& serializers) const
 {
 	for(size_t i = 0; i < serializers.size(); ++i)
 		serializers[i]->write_info(out);
@@ -50,13 +50,13 @@ write_info(std::ostream& out, TSerializers& serializers) const
 
 template<class TSerializers>
 void GridDataSerializationHandler::
-read_info(std::istream& in, TSerializers& serializers) const
+read_info(BinaryBuffer& in, TSerializers& serializers) const
 {
 	for(size_t i = 0; i < serializers.size(); ++i)
 		serializers[i]->read_info(in);
 }
 
-void GridDataSerializationHandler::write_infos(std::ostream& out) const
+void GridDataSerializationHandler::write_infos(BinaryBuffer& out) const
 {
 	write_info(out, m_vrtSerializers);
 	write_info(out, m_edgeSerializers);
@@ -65,7 +65,7 @@ void GridDataSerializationHandler::write_infos(std::ostream& out) const
 	write_info(out, m_gridSerializers);
 }
 
-void GridDataSerializationHandler::read_infos(std::istream& in) const
+void GridDataSerializationHandler::read_infos(BinaryBuffer& in) const
 {
 	read_info(in, m_vrtSerializers);
 	read_info(in, m_edgeSerializers);
@@ -83,7 +83,7 @@ SubsetHandlerSerializer(ISubsetHandler& sh) :
 }
 
 void SubsetHandlerSerializer::
-write_info(std::ostream& out) const
+write_info(BinaryBuffer& out) const
 {
 //	serialize the subset infos
 	Serialize(out, m_sh.num_subsets());
@@ -96,7 +96,7 @@ write_info(std::ostream& out) const
 }
 
 void SubsetHandlerSerializer::
-read_info(std::istream& in) const
+read_info(BinaryBuffer& in) const
 {
 //	deserialize the subset infos
 	int num;
@@ -111,31 +111,31 @@ read_info(std::istream& in) const
 }
 
 void SubsetHandlerSerializer::
-write_data(std::ostream& out, VertexBase* o) const
+write_data(BinaryBuffer& out, VertexBase* o) const
 {
 	Serialize(out, m_sh.get_subset_index(o));
 }
 
 void SubsetHandlerSerializer::
-write_data(std::ostream& out, EdgeBase* o) const
+write_data(BinaryBuffer& out, EdgeBase* o) const
 {
 	Serialize(out, m_sh.get_subset_index(o));
 }
 
 void SubsetHandlerSerializer::
-write_data(std::ostream& out, Face* o) const
+write_data(BinaryBuffer& out, Face* o) const
 {
 	Serialize(out, m_sh.get_subset_index(o));
 }
 
 void SubsetHandlerSerializer::
-write_data(std::ostream& out, Volume* o) const
+write_data(BinaryBuffer& out, Volume* o) const
 {
 	Serialize(out, m_sh.get_subset_index(o));
 }
 
 void SubsetHandlerSerializer::
-read_data(std::istream& in, VertexBase* o) const
+read_data(BinaryBuffer& in, VertexBase* o) const
 {
 	int si;
 	Deserialize(in, si);
@@ -143,7 +143,7 @@ read_data(std::istream& in, VertexBase* o) const
 }
 
 void SubsetHandlerSerializer::
-read_data(std::istream& in, EdgeBase* o) const
+read_data(BinaryBuffer& in, EdgeBase* o) const
 {
 	int si;
 	Deserialize(in, si);
@@ -151,7 +151,7 @@ read_data(std::istream& in, EdgeBase* o) const
 }
 
 void SubsetHandlerSerializer::
-read_data(std::istream& in, Face* o) const
+read_data(BinaryBuffer& in, Face* o) const
 {
 	int si;
 	Deserialize(in, si);
@@ -159,7 +159,7 @@ read_data(std::istream& in, Face* o) const
 }
 
 void SubsetHandlerSerializer::
-read_data(std::istream& in, Volume* o) const
+read_data(BinaryBuffer& in, Volume* o) const
 {
 	int si;
 	Deserialize(in, si);
@@ -231,7 +231,7 @@ struct GridHeader{
 	uint m_readOptions;
 };
 
-static void WriteGridHeader(const GridHeader& gridHeader, std::ostream& out)
+static void WriteGridHeader(const GridHeader& gridHeader, BinaryBuffer& out)
 {
 //	we use a temporary integer
 //	the header begins
@@ -248,7 +248,7 @@ static void WriteGridHeader(const GridHeader& gridHeader, std::ostream& out)
 	out.write((char*)&t, sizeof(int));
 }
 
-static bool ReadGridHeader(GridHeader& gridHeader, std::istream& in)
+static bool ReadGridHeader(GridHeader& gridHeader, BinaryBuffer& in)
 {
 //	initialize the header to its defaults
 	gridHeader = GridHeader();
@@ -296,7 +296,7 @@ typedef std::pair<byte, int> ParentInfo;
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	SerializeGridElements
-bool SerializeGridElements(Grid& grid, std::ostream& out)
+bool SerializeGridElements(Grid& grid, BinaryBuffer& out)
 {
 //	call SerializeGridElements with the grids goc
 	return SerializeGridElements(grid,
@@ -307,7 +307,7 @@ bool SerializeGridElements(Grid& grid, std::ostream& out)
 ////////////////////////////////////////////////////////////////////////
 //	SerializeGridElements
 bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
-						   std::ostream& out)
+						   BinaryBuffer& out)
 {
 //	create the required int-attachment and call SerializeGridElements.
 	AInt aInt;
@@ -320,7 +320,7 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 ////////////////////////////////////////////////////////////////////////
 //	SerializeGridElements
 bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
-						   AInt& aIntVRT, std::ostream& out)
+						   AInt& aIntVRT, BinaryBuffer& out)
 {	
 //TODO: add volume support
 	assert(grid.has_vertex_attachment(aIntVRT) && "aIntVRT is not attached to the grid");
@@ -536,7 +536,7 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeGridElements
-bool DeserializeGridElements(Grid& grid, std::istream& in,
+bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 							bool readGridHeader)
 {
 //TODO: add volume support
@@ -741,7 +741,7 @@ static void WriteParent(MultiGrid& mg, TElem* pElem,
 						Grid::EdgeAttachmentAccessor<AInt>& aaIntEDGE,
 						Grid::FaceAttachmentAccessor<AInt>& aaIntFACE,
 						Grid::VolumeAttachmentAccessor<AInt>& aaIntVOL,
-						std::ostream& out)
+						BinaryBuffer& out)
 {
 	char type;
 	int index;
@@ -806,7 +806,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 								GeometricObjectCollection mgoc,
 								AInt& aIntVRT, AInt& aIntEDGE,
 								AInt& aIntFACE, AInt& aIntVOL,
-								std::ostream& out)
+								BinaryBuffer& out)
 {
 //TODO: add volume support
 	assert(mg.has_vertex_attachment(aIntVRT) && "aIntVRT is not attached to the grid");
@@ -898,21 +898,16 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				int type = -1;
 				int ind = -1;
 				if(GeometricObject* cobj = v->get_constraining_object()){
-					if(!mg.is_marked(cobj)){
-						UG_LOG("constrainig object not serialized: ");
-						UG_LOG(" lvl: " << mg.get_level(cobj) << ", type: "
-								<< cobj->base_object_id() << endl);
-						UG_LOG("current level: " << iLevel << endl);
-					}
-					assert(mg.is_marked(cobj) && "constraining object has to be serialized already.");
 					type = cobj->base_object_id();
-					switch(type){
-						case EDGE:
-							ind = aaIntEDGE[static_cast<EdgeBase*>(cobj)];
-							break;
-						case FACE:
-							ind = aaIntFACE[static_cast<Face*>(cobj)];
-							break;
+					if(mg.is_marked(cobj)){
+						switch(type){
+							case EDGE:
+								ind = aaIntEDGE[static_cast<EdgeBase*>(cobj)];
+								break;
+							case FACE:
+								ind = aaIntFACE[static_cast<Face*>(cobj)];
+								break;
+						}
 					}
 				}
 
@@ -991,15 +986,16 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				int type = -1;
 				int ind = -1;
 				if(GeometricObject* cobj = e->get_constraining_object()){
-					assert(mg.is_marked(cobj) && "constraining object has to be serialized already.");
-					type = cobj->base_object_id();
-					switch(type){
-						case EDGE:
-							ind = aaIntEDGE[static_cast<EdgeBase*>(cobj)];
-							break;
-						case FACE:
-							ind = aaIntFACE[static_cast<Face*>(cobj)];
-							break;
+					if(mg.is_marked(cobj)){
+						type = cobj->base_object_id();
+						switch(type){
+							case EDGE:
+								ind = aaIntEDGE[static_cast<EdgeBase*>(cobj)];
+								break;
+							case FACE:
+								ind = aaIntFACE[static_cast<Face*>(cobj)];
+								break;
+						}
 					}
 				}
 
@@ -1165,7 +1161,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 //	SerializeMultiGridElements
 bool SerializeMultiGridElements(MultiGrid& mg,
 								GeometricObjectCollection goc,
-								std::ostream& out)
+								BinaryBuffer& out)
 {
 	AInt aInt;
 	mg.attach_to_vertices(aInt);
@@ -1189,7 +1185,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 ////////////////////////////////////////////////////////////////////////
 //	SerializeMultiGridElements
 bool SerializeMultiGridElements(MultiGrid& mg,
-								std::ostream& out)
+								BinaryBuffer& out)
 {
 	return SerializeMultiGridElements(mg,
 						mg.get_geometric_objects(),
@@ -1200,7 +1196,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 static GeometricObject*
-GetParent(std::istream& in, vector<VertexBase*>& vVrts,
+GetParent(BinaryBuffer& in, vector<VertexBase*>& vVrts,
 		vector<EdgeBase*>& vEdges, vector<Face*>& vFaces,
 		vector<Volume*> vVols)
 {
@@ -1230,7 +1226,7 @@ GetParent(std::istream& in, vector<VertexBase*>& vVrts,
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeMultiGridElements
-bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
+bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									std::vector<VertexBase*>* pvVrts,
 									std::vector<EdgeBase*>* pvEdges,
 									std::vector<Face*>* pvFaces,
@@ -1340,19 +1336,21 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							int ind;
 							in.read((char*)&type, sizeof(int));
 							in.read((char*)&ind, sizeof(int));
-							switch(type){
-								case EDGE:
-									assert(ind < (int)vEdges.size());
-									hv->set_constraining_object(vEdges[ind]);
-									if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(vEdges[ind]))
-										ce->add_constrained_object(hv);
-									break;
-								case FACE:
-									assert(ind < (int)vFaces.size());
-									hv->set_constraining_object(vFaces[ind]);
-									if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(vFaces[ind]))
-										cf->add_constrained_object(hv);
-									break;
+							if(ind != -1){
+								switch(type){
+									case EDGE:
+										assert(ind < (int)vEdges.size());
+										hv->set_constraining_object(vEdges[ind]);
+										if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(vEdges[ind]))
+											ce->add_constrained_object(hv);
+										break;
+									case FACE:
+										assert(ind < (int)vFaces.size());
+										hv->set_constraining_object(vFaces[ind]);
+										if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(vFaces[ind]))
+											cf->add_constrained_object(hv);
+										break;
+								}
 							}
 						}
 					}break;
@@ -1408,19 +1406,21 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							int ind;
 							in.read((char*)&type, sizeof(int));
 							in.read((char*)&ind, sizeof(int));
-							switch(type){
-								case EDGE:
-									assert(ind < (int)vEdges.size());
-									e->set_constraining_object(vEdges[ind]);
-									if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(vEdges[ind]))
-										ce->add_constrained_object(e);
-									break;
-								case FACE:
-									assert(ind < (int)vFaces.size());
-									e->set_constraining_object(vFaces[ind]);
-									if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(vFaces[ind]))
-										cf->add_constrained_object(e);
-									break;
+							if(ind != -1){
+								switch(type){
+									case EDGE:
+										assert(ind < (int)vEdges.size());
+										e->set_constraining_object(vEdges[ind]);
+										if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(vEdges[ind]))
+											ce->add_constrained_object(e);
+										break;
+									case FACE:
+										assert(ind < (int)vFaces.size());
+										e->set_constraining_object(vFaces[ind]);
+										if(ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(vFaces[ind]))
+											cf->add_constrained_object(e);
+										break;
+								}
 							}
 						}
 					}break;
@@ -1582,7 +1582,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 template <class TElemIter>
 static
 void WriteSubsetIndicesToStream(TElemIter iterBegin, TElemIter iterEnd,
-								ISubsetHandler& sh, std::ostream& out)
+								ISubsetHandler& sh, BinaryBuffer& out)
 {
 	for(;iterBegin != iterEnd; ++iterBegin)
 	{
@@ -1594,7 +1594,7 @@ void WriteSubsetIndicesToStream(TElemIter iterBegin, TElemIter iterEnd,
 ////////////////////////////////////////////////////////////////////////
 bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
-							std::ostream& out)
+							BinaryBuffer& out)
 {
 //	write a magic number at the beginning and at the end.
 	int magicNumber = 654664;
@@ -1654,7 +1654,7 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 ////////////////////////////////////////////////////////////////////////
 //	SerializeSubsetHandler
 bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							std::ostream& out)
+							BinaryBuffer& out)
 {
 	return SerializeSubsetHandler(grid, sh,
 							grid.get_geometric_objects(),
@@ -1667,7 +1667,7 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 template <class TElemIter>
 static
 void ReadSubsetIndicesFromStream(TElemIter iterBegin, TElemIter iterEnd,
-								ISubsetHandler& sh, std::istream& in)
+								ISubsetHandler& sh, BinaryBuffer& in)
 {
 	for(;iterBegin != iterEnd; ++iterBegin)
 	{
@@ -1681,7 +1681,7 @@ void ReadSubsetIndicesFromStream(TElemIter iterBegin, TElemIter iterEnd,
 //	DeserializeSubsetHandler
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
-							std::istream& in, bool readPropertyMap)
+							BinaryBuffer& in, bool readPropertyMap)
 {
 //	read a magic number at the beginning and at the end.
 	int magicNumber = 654664;
@@ -1760,7 +1760,7 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeSubsetHandler
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							std::istream& in, bool readPropertyMap)
+							BinaryBuffer& in, bool readPropertyMap)
 {
 	return DeserializeSubsetHandler(grid, sh,
 							grid.get_geometric_objects(),

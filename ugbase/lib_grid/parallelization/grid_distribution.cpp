@@ -186,7 +186,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 
 //	we will now fill a binary stream with all the grids.
 //	this stream will receive all the data that is to be sent to other processes.
-	BinaryStream globalStream;
+	BinaryBuffer globalStream;
 //	this vector is required so that we can use distribute-data later on.
 	vector<int>	vBlockSizes;
 //	here we'll store the ids of the receiving processes.
@@ -226,7 +226,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 											  vVolumeLayouts[i], proc);
 
 		//	serialize the parts of the grid that will be send to other processes.
-			int oldSize = globalStream.size();
+			int oldSize = globalStream.write_pos();
 			SerializeGridAndDistributionLayouts(
 									globalStream, mg, vVertexLayouts[i],
 									vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
@@ -247,7 +247,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 			}
 //TODO:		the user should be able to add personal data to those buffers.
 
-			vBlockSizes.push_back((int)(globalStream.size() - oldSize));
+			vBlockSizes.push_back((int)(globalStream.write_pos() - oldSize));
 			vReceiverIDs.push_back(proc);
 		}
 	}
@@ -309,9 +309,9 @@ bool DistributeGrid(MultiGrid& mg, ISubsetHandler& sh,
 
 //	we will now fill a binary stream with all the grids.
 //	this stream will receive the data that has to be copied to the local grid.
-	BinaryStream localStream;
+	BinaryBuffer localStream;
 //	this stream will receive all the data that is to be sent to other processes.
-	BinaryStream globalStream;
+	BinaryBuffer globalStream;
 //	this vector is required so that we can use distribute-data later on.
 	vector<int>	vBlockSizes;
 //	here we'll store the ids of the receiving processes.
@@ -360,7 +360,7 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 		}
 		else
 		{
-			int oldSize = globalStream.size();
+			int oldSize = globalStream.write_pos();
 			SerializeGridAndDistributionLayouts(
 									globalStream, mg, vVertexLayouts[i],
 									vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
@@ -381,7 +381,7 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 			}
 //TODO:		the user should be able to add personal data to those buffers.
 
-			vBlockSizes.push_back((int)(globalStream.size() - oldSize));
+			vBlockSizes.push_back((int)(globalStream.write_pos() - oldSize));
 			vReceiverIDs.push_back(proc);
 		}
 	}
@@ -404,7 +404,7 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 
 //	fill the local grid and subset-handler
 	if(pLocalGridOut && pLocalSHOut &&
-		pLocalGridLayoutMapOut && (localStream.size() > 0))
+		pLocalGridLayoutMapOut && (localStream.write_pos() > 0))
 	{
 		if(!pLocalGridOut->has_vertex_attachment(aPosition))
 			pLocalGridOut->attach_to_vertices(aPosition);
@@ -520,7 +520,7 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 	pcl::ReceiveData(&streamSize, srcProcID, sizeof(int), 38);
 
 //	receive the buffer
-	BinaryStream binaryStream(streamSize);
+	BinaryBuffer binaryStream(streamSize);
 	pcl::ReceiveData(binaryStream.buffer(), srcProcID, streamSize, 39);
 UG_LOG("deserialization begins...\n");
 //	fill the grid and the layout

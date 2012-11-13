@@ -560,9 +560,10 @@ void CreateDistributionLayouts(
 
 //	make sure that the processMap has the right size
 	if(processMap){
-		UG_ASSERT((int)processMap->size() == sh.num_subsets(),
-				  "ProcessMap has to have as many entries as there are partitions");
+		UG_ASSERT((int)processMap->size() >= sh.num_subsets(),
+				  "ProcessMap has to have enough entries for the number of partitions");
 	}
+
 //	resize and clear the layouts
 	vertexLayoutsOut = std::vector<TVertexDistributionLayout>(sh.num_subsets());
 	edgeLayoutsOut = std::vector<TEdgeDistributionLayout>(sh.num_subsets());
@@ -634,6 +635,8 @@ void CreateDistributionLayouts(
 
 			foundSomething = false;
 
+//		THIS CAN CAUSE PROBLEMS WITH THE DISCRETIZATION (VERTICES WITHOUT ELEMENTS)!!!
+// 		BETTER NOT TO DO IT!?!
 		//	we have to make sure that constraining objects are sent to all
 		//	processes to which their constrained objects are sent.
 			for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
@@ -917,7 +920,7 @@ void CreateDistributionLayouts_SplitBaseGrid(
 
 ////////////////////////////////////////////////////////////////////////
 void SerializeGridAndDistributionLayouts(
-								std::ostream& out, MultiGrid& mg,
+								BinaryBuffer& out, MultiGrid& mg,
 								DistributionVertexLayout& vrtLayout,
 								DistributionEdgeLayout& edgeLayout,
 								DistributionFaceLayout& faceLayout,
@@ -980,7 +983,7 @@ FillLayoutWithNodes(TLayout& layout, Grid& grid)
 //	DeserializeGridAndLayouts
 void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 											GridLayoutMap& gridLayoutOut,
-											std::istream& in)
+											BinaryBuffer& in)
 {
 //	read the grid.
 //	we'll need vectors which contain the elements of the grid later on.

@@ -14,7 +14,7 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void SerializeDistributionLayoutInterfaces(std::ostream& out, TLayout& layout,
+void SerializeDistributionLayoutInterfaces(BinaryBuffer& out, TLayout& layout,
 											Grid& grid, AInt& aLocalInd)
 {
 	typedef typename TLayout::NodeType			Node;
@@ -78,7 +78,7 @@ void SerializeDistributionLayoutInterfaces(std::ostream& out, TLayout& layout,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void DeserializeDistributionLayoutInterfaces(TLayout& layout,
-											std::istream& in)
+											BinaryBuffer& in)
 {
 	typedef typename TLayout::ProcPair	ProcPair;
 //	read the source-proc and the number of levels
@@ -130,7 +130,7 @@ template <class TGeomObj, class TLayoutMap>
 void DeserializeDistributionLayoutInterfaces(
 								TLayoutMap& layoutMapOut,
 								std::vector<TGeomObj*>& vGeomObjs,
-								std::istream& in)
+								BinaryBuffer& in)
 {
 //	for conveniance
 	//typedef typename TLayoutMap::mapped_type::Layout	TLayout;

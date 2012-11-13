@@ -418,7 +418,7 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 	//	for each graph-vertex. This is not necessary, if we're already on the top level
 		idx_t* pVrtSizeMap = NULL;
 		vector<idx_t> vrtSizeMap;
-		if(level < mg.top_level()){
+		{
 			vrtSizeMap.reserve(nVrts);
 			for(ElemIter iter = mg.begin<TElem>(level);
 				iter != mg.end<TElem>(level); ++iter)

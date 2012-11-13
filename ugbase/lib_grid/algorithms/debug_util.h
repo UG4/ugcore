@@ -55,6 +55,13 @@ vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem);
 /** \} */
 
 
+///	returns the index of the given element in the given grid.
+/**	Runtime O(n). Returns -1 if the element could not be found.
+ * \note: The all elements of the same base-type are considered during counting.*/
+template <class TElem>
+int GetGeometricObjectIndex(Grid& g, TElem* elem);
+
+
 ///	checks whether all constraining and constrained objects are correctly connected.
 bool CheckHangingNodeConsistency(Grid& g);
 

@@ -89,6 +89,17 @@ UG_API
 bool SaveGridToFile(Grid& grid, const char* filename);
 /** \} */
 
+
+///	Saves a grid hierarchy by offsetting levels along the z-axis.
+/**	\todo:	Support any type of position attachment*/
+bool SaveGridHierarchyTransformed(MultiGrid& mg, ISubsetHandler& sh,
+								  const char* filename, number offset);
+
+///	Saves a grid hierarchy by offsetting levels along the z-axis.
+/**	\todo:	Support any type of position attachment*/
+bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename,
+									  number offset);
+
 };
 
 #endif
