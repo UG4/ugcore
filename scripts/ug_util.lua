@@ -375,16 +375,20 @@ function util.PrintTable(tablePar)
 	util.PrintTableHelper("", tablePar)
 end
 
+
+
 --! pairsSortedByKeys
 --! the normal pairs(table) function returns elements unsorted
 --! this function goes through elements sorted.
 --! see http://www.lua.org/pil/19.3.html
 function pairsSortedByKeys (t, f)
-	local a = {}
-    for n in pairs(t) do table.insert(a, n) end
+    local a = {}
+    for n in pairs(t) do 
+        table.insert(a, n) 
+    end
     table.sort(a, f)
     local i = 0      -- iterator variable
-    local iter = function ()   -- iterator function
+    local function iter()   -- iterator function
     	i = i + 1
         if a[i] == nil then return nil
         else return a[i], t[a[i]]
@@ -404,11 +408,11 @@ function writeln(...)
 end
 
 
-formatf = function(s, ...)
+function formatf(s, ...)
 	return s:format(...)
 end
 
-printf = function(s,...)
+function printf(s,...)
 	print(formatf(...))
 end
 
@@ -508,7 +512,7 @@ function AssertPluginsLoaded(pluginNamesList)
 	for i,v in pairs(pluginNamesList) do
 		if PluginLoaded(v) == false then
 			notLoadedNames=notLoadedNames..v.." "
-			cmakePluginString = cmakePluginString.." -D"..v
+			cmakePluginString = cmakePluginString.." -D"..v.."=ON"
 		end
 	end	
 	if notLoadedNames:len() > 0 then
