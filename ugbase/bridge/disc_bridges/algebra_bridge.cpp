@@ -172,7 +172,7 @@ static void Algebra(Registry& reg, string parentGroup)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AssembledLinearOperator", tag);
 	}
-
+	
 //	NewtonSolver
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
@@ -197,6 +197,10 @@ static void Algebra(Registry& reg, string parentGroup)
 			.add_method("total_linsolver_calls", &T::total_linsolver_calls, "total number of linsolver calls", "")
 			.add_method("total_linsolver_steps", &T::total_linsolver_steps, "total number of linsolver steps", "")
 			.add_method("total_average_linear_steps", &T::total_average_linear_steps, "total average number of linsolver steps per linsolver call", "")
+			.add_method("add_inner_step_update", &T::add_inner_step_update, "data update called before every linsolver step", "")
+			.add_method("clear_inner_step_update", &T::clear_inner_step_update, "clear inner step update", "")
+			.add_method("add_step_update", &T::add_step_update, "data update called before every Newton step", "")
+			.add_method("clear_step_update", &T::clear_step_update, "clear step update", "")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NewtonSolver", tag);
 	}
@@ -326,6 +330,17 @@ static void DomainAlgebra(Registry& reg, string grp)
 	}
 }
 
+static void Common(Registry& reg, string parentgroup)
+{
+	std::string grp = parentgroup; grp.append("/Discretization/Nonlinear");
+	//  INewtonUpdate
+	{
+		typedef INewtonUpdate T;
+		string name = string("INewtonUpdate");
+		reg.add_class_<T>(name, grp);
+	}
+}
+
 }; // end Functionality
 }// end DiscAlgebra
 
@@ -336,6 +351,7 @@ void RegisterBridge_DiscAlgebra(Registry& reg, string grp)
 	try{
 		RegisterAlgebraDependent<Functionality>(reg,grp);
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
+		RegisterCommon<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

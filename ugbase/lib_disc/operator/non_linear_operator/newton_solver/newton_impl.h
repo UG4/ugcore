@@ -137,6 +137,9 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 // 	start convergence check
 	m_spConvCheck->start(m_d);
 
+	for(size_t i = 0; i < m_stepUpdate.size(); ++i)
+		m_stepUpdate[i]->update();
+
 //	loop iteration
 	while(!m_spConvCheck->iteration_ended())
 	{
@@ -149,6 +152,9 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 			return false;
 		}
 		NEWTON_PROFILE_END();
+
+		for(size_t i = 0; i < m_innerStepUpdate.size(); ++i)
+			m_innerStepUpdate[i]->update();
 
 	// 	Compute Jacobian
 		try{

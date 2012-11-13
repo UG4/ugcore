@@ -20,6 +20,13 @@
 
 namespace ug {
 
+// general interface for data updates during Newton process
+class INewtonUpdate
+{
+	public:
+		virtual void update() = 0;
+};
+
 template <typename TAlgebra>
 class NewtonSolver
 	: 	public IOperatorInverse<typename TAlgebra::vector_type>,
@@ -94,6 +101,20 @@ class NewtonSolver
 		// resets average linear solver convergence
 		void clear_average_convergence();
 
+		///	add inner step update (applied before every linear solver step)
+		void add_inner_step_update(SmartPtr<INewtonUpdate > NU)
+			{m_innerStepUpdate.push_back(NU);}
+
+		void clear_inner_step_update(SmartPtr<INewtonUpdate > NU)
+			{m_innerStepUpdate.clear();}
+
+		///	add outer step update (applied before every Newton step)
+		void add_step_update(SmartPtr<INewtonUpdate > NU)
+			{m_stepUpdate.push_back(NU);}
+
+		void clear_step_update(SmartPtr<INewtonUpdate > NU)
+			{m_stepUpdate.clear();}
+
 	private:
 		void allocate_memory(const vector_type& u);
 
@@ -127,6 +148,10 @@ class NewtonSolver
 
 		// LineSearch
 		SmartPtr<ILineSearch<vector_type> > m_spLineSearch;
+
+		// Update
+		std::vector<SmartPtr<INewtonUpdate> > m_innerStepUpdate;
+		std::vector<SmartPtr<INewtonUpdate> > m_stepUpdate;
 
 		vector_type m_d;
 		vector_type m_c;
