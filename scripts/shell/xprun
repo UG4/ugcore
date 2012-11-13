@@ -34,9 +34,11 @@ np=$1
 # $1 = $2 usw.
 shift
 
-runfile=`pwd`/xtermrunfile
+mydir=`pwd`
+runfile=$mydir/xtermrunfile
 # write a little shell script in the file "runfile"
 cat > $runfile << EOF
+cd $mydir
 if [ -z \$OMPI_MCA_ns_nds_num_procs ]; then
  PID=\$OMPI_MCA_orte_ess_vpid
  np=\$OMPI_MCA_orte_ess_num_procs
@@ -51,8 +53,8 @@ $*
 read -p '-- finished. hit any key --'
 EOF
 
-mydir=`dirname ${BASH_SOURCE[0]}`
+scriptDir=`dirname ${BASH_SOURCE[0]}`
 
 chmod +x $runfile
-mpirun -np $np $mydir/xtermrun $runfile
+mpirun -np $np $scriptDir/xtermrun $runfile
 rm $runfile

@@ -17,12 +17,12 @@ dy=0
 charWidthFactor10=62
 charHeightFactor10=141
 
-#if [ "$HOSTNAME" == "braeburn.gcsc.uni-frankfurt.de" ]; then 
+if [ "$HOSTNAME" == "braeburn.gcsc.uni-frankfurt.de" ]; then 
 maxw=1920
 maxh=1200
-dx=1280
+dx=1450
 dy=0
-#fi
+fi
 
 #if [ "$HOSTNAME" == "AG-Queisser-Mac-Pro.local" ]; then 
 #maxw=1920
