@@ -1,3 +1,4 @@
+#!/bin/bash
 LOCAL_INSTALLDIR=$HOME/local
 # LIBRARY_PATH is used by gcc before compilation to search for directories
 #              containing libraries that need to be linked to your program.
@@ -36,8 +37,13 @@ my_setup()
 			
 			echo $LDFLAGS | grep -q $dir/lib
 			if [ $? -ne 0 ] ; then
-				LDFLAGS="-L$dir/lib -L$dir/lib64 $LDFLAGS"
+				LDFLAGS="-L$dir/lib $LDFLAGS"
 			fi
+			echo $LDFLAGS | grep -q $dir/lib64
+			if [ $? -ne 0 ] && [ -e $dir/lib64 ]; then
+				LDFLAGS="-L$dir/lib64 $LDFLAGS"
+			fi
+
 		fi
 		if [ -e $dir/include ]; then
 			if [ -z $C_INCLUDE_PATH ]; then
