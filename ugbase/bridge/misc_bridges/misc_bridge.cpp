@@ -15,9 +15,10 @@
 #include "common/util/crc32.h"
 using namespace std;
 
+void ug_backtrace();
 namespace ug
 {
-
+	
 void PrintLUA();
 namespace bridge
 {
@@ -65,6 +66,8 @@ uint32 GetLogAssistantTag(const char *s)
 */
 
 // DIM:
+
+
 #ifdef UG_DIM_1
 bool IsDefinedUG_DIM_1() { return true; }
 #else
@@ -442,11 +445,20 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 	{
 		stringstream ss; ss << parentGroup << "/Util/Internal";
 		string grp = ss.str();
-		reg.add_function("DefinedUG_DEBUG", &IsDefinedUG_DEBUG, grp, ""); // TODO: only for backward compatibility - remove if not / no longer used!
-		reg.add_function("IsDefinedUG_DEBUG", &IsDefinedUG_DEBUG, grp, "");
+		
 
+		reg.add_function("DefinedUG_DEBUG", &IsDefinedUG_DEBUG, grp, ""); // TODO: only for backward compatibility - remove if not / no longer used!
 		reg.add_function("DefinedUG_ENABLE_DEBUG_LOGS", &IsDefinedUG_ENABLE_DEBUG_LOGS, grp, ""); // TODO: only for backward compatibility - remove if not / no longer used!
-		reg.add_function("IsDefinedUG_ENABLE_DEBUG_LOGS", &IsDefinedUG_ENABLE_DEBUG_LOGS, grp, "");
+		
+#define ADD_DEFINED_FUNC(VAR) reg.add_function("IsDefined"#VAR, IsDefined##VAR, grp)
+		ADD_DEFINED_FUNC(UG_DEBUG);
+		ADD_DEFINED_FUNC(UG_DIM_1);
+		ADD_DEFINED_FUNC(UG_DIM_2);
+		ADD_DEFINED_FUNC(UG_DIM_3);
+		ADD_DEFINED_FUNC(UG_CPU_1);
+		ADD_DEFINED_FUNC(UG_CPU_2);
+		ADD_DEFINED_FUNC(UG_CPU_3);		
+		ADD_DEFINED_FUNC(UG_ENABLE_DEBUG_LOGS);
 
 		reg.add_function("PrintBuildConfiguration", &PrintBuildConfiguration, grp, "");
 		reg.add_function("PrintBuildConfigurationExtended", &PrintBuildConfigurationExtended, grp, "");
@@ -458,6 +470,10 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("GetBuildHostname", &GetBuildHostname, grp);
 
 		reg.add_function("LevenshteinDistance", &LevenshteinDistance, grp);
+		
+		reg.add_function("ug_backtrace", &ug_backtrace, grp);
+		
+		
 	}
 	
 
