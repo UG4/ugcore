@@ -128,7 +128,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 {
 // 	If already update for this element, do nothing
 	if(m_pElem == pElem) return true; else m_pElem = pElem;
-	UG_LOG(" update data for given element \n");
+
 //	refresh local data, if different roid given
 	if(m_roid != pElem->reference_object_id())
 	{
