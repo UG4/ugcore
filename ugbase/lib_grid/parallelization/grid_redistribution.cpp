@@ -743,7 +743,10 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 									"A copy of parent already has to exist!");
 							UG_ASSERT(!mgDest.has_children(aaVrt[static_cast<VertexBase*>(parent)]),
 									"Vertex already has a parent. Index: " <<
-									GetGeometricObjectIndex(mgSrc, *iter));
+									GetGeometricObjectIndex(mgSrc, *iter)
+									<< ", global id of existing child: "
+									<< aaIDVRT[mgDest.get_child_vertex(aaVrt[static_cast<VertexBase*>(parent)])]
+									<< ", global id of current vrt: " << curID);
 
 							nVrt = *mgDest.create_by_cloning(vrt,
 										aaVrt[static_cast<VertexBase*>(parent)]);

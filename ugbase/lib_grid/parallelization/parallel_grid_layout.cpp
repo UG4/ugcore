@@ -16,7 +16,11 @@ unsigned long hash_key<GeomObjID>(const GeomObjID& key)
 	return (unsigned long)(99971 * key.first + key.second * key.second);
 }
 
-
+std::ostream& operator<<(std::ostream& out, const GeomObjID& goId)
+{
+	out << "(" << goId.first << ", " << goId.second << ")";
+	return out;
+}
 
 ///	A helper method for GridLayoutMap::remove_empty_interfaces()
 template <class TGeomObj>

@@ -62,6 +62,8 @@ namespace ug
  */
 typedef std::pair<int, size_t>	GeomObjID;
 
+UG_API std::ostream& operator<<(std::ostream& out, const GeomObjID& goId);
+
 ////////////////////////////////////////////////////////////////////////
 ///	Can be used to construct a GeomObjID from a proc-rank and a local id.
 inline GeomObjID MakeGeomObjID(int procRank, size_t localGeomObjID)
