@@ -324,6 +324,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("step", &T::step, "step", "", "returns the current number of steps")
 			.add_method("reduction", (number (T::*)(size_t) const) &T::reduction, "reduction", "function index",
 					"returns the current relative reduction for a function")
+			.add_method("rate", (number (T::*)(size_t) const) &T::rate, "rate", "function index",
+					"returns the current convergence rate for a function")
+			.add_method("avg_rate", (number (T::*)(size_t) const) &T::avg_rate, "avg_rate", "function index",
+					"returns the averaged convergence rate for a function")
 			.add_method("iteration_ended", &T::iteration_ended)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "CompositeConvCheck", tag);

@@ -63,6 +63,8 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		number defect() const {return m_currentOverallDefect;};
 		int step() const {return m_currentStep;}
 		number reduction() const {return m_currentOverallDefect/m_initialOverallDefect;};
+		number rate() const { UG_THROW("Need to be implemented!");}
+		number avg_rate() const { UG_THROW("Need to be implemented!");}
 
 	/// information about current status for single component
 		number defect(size_t fctIndex) const {return m_currentDefect[fctIndex];};

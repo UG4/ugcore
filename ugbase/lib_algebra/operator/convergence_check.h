@@ -90,6 +90,12 @@ class IConvergenceCheck
 		// returns the current relative reduction
 		virtual number reduction() const = 0;
 
+		// returns the current convergence rate
+		virtual number rate() const = 0;
+
+		// returns the averaged convergence rate
+		virtual number avg_rate() const = 0;
+
 		////////////////
 		// output style
 		////////////////
@@ -156,6 +162,8 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		number defect() const {return m_currentDefect;};
 		number previous_defect() const { return m_lastDefect; }
 		int step() const {return m_currentStep;}
+		number rate() const {return m_currentDefect/m_lastDefect;};
+		number avg_rate() const {return m_sumRates/step();}
 
 		int get_offset() const {return m_offset;}
 		void set_offset(int offset){m_offset = offset;}
@@ -181,6 +189,9 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 
 		// current step
 		int m_currentStep;
+
+		// sum of the convergence rates over all steps
+		number m_sumRates;
 
 	protected:
 		// maximum number of steps to be performed

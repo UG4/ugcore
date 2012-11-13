@@ -161,7 +161,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		NEWTON_PROFILE_BEGIN(NewtonComputeJacobian);
 		m_J->init(u);
 		NEWTON_PROFILE_END();
-		}UG_CATCH_THROW("NewtonSolver::apply: Initalization of Jacobian failed.");
+		}UG_CATCH_THROW("NewtonSolver::apply: Initialization of Jacobian failed.");
 
 	//	Write Jacobian for debug
 		std::string matname("NEWTON_Jacobian");
@@ -178,7 +178,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 			return false;
 		}
 		NEWTON_PROFILE_END();
-		}UG_CATCH_THROW("NewtonSolver::apply: Initalization of Linear Solver failed.");
+		}UG_CATCH_THROW("NewtonSolver::apply: Initialization of Linear Solver failed.");
 
 	// 	Solve Linearized System
 		try{
@@ -196,8 +196,10 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		const int numSteps = m_spLinearSolver->step();
 		if(loopCnt >= (int)m_vTotalLinSolverSteps.size()) m_vTotalLinSolverSteps.resize(loopCnt+1);
 		if(loopCnt >= (int)m_vLinSolverCalls.size()) m_vLinSolverCalls.resize(loopCnt+1, 0);
+		if(loopCnt >= (int)m_vLinSolverRates.size()) m_vLinSolverRates.resize(loopCnt+1, 0);
 		m_vTotalLinSolverSteps[loopCnt] += numSteps;
 		m_vLinSolverCalls[loopCnt] += 1;
+		m_vLinSolverRates[loopCnt] += m_spLinearSolver->convergence_check()->avg_rate();
 
 	// 	Line Search
 		try{
@@ -234,7 +236,8 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 	// 	check convergence
 		m_spConvCheck->update(m_d);
-
+		if(loopCnt-1 >= (int)m_vNonLinSolverRates.size()) m_vNonLinSolverRates.resize(loopCnt, 0);
+		m_vNonLinSolverRates[loopCnt-1] += m_spConvCheck->rate();
 
 	//	write defect for debug
 		std::string name("NEWTON_Defect"); name.append(ext);
@@ -255,8 +258,9 @@ NewtonSolver<TAlgebra>::
 print_average_convergence() const
 {
 	UG_LOG("\nNewton solver convergence history:\n");
-	UG_LOG("Newton Step | Num Calls | Total Lin Iters | Avg Lin Iters \n");
+	UG_LOG("Newton Step | Num Calls | Total Lin Iters | Avg Lin Iters | Avg Nonlin Rates | Avg Lin Rates \n");
 	int allCalls = 0, allSteps = 0;
+	number allLinRates = 0.0, allNonLinRates = 0.0;
 	for(int call = 0; call < (int)m_vLinSolverCalls.size(); ++call)
 	{
 		UG_LOG( " " << std::setw(10) << call+1 << " | ");
@@ -264,13 +268,19 @@ print_average_convergence() const
 		allCalls += m_vLinSolverCalls[call];
 		UG_LOG(std::setw(15) << m_vTotalLinSolverSteps[call] << " | ");
 		allSteps += m_vTotalLinSolverSteps[call];
-		UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << m_vTotalLinSolverSteps[call] / (double)m_vLinSolverCalls[call]);
+		UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << m_vTotalLinSolverSteps[call] / (double)m_vLinSolverCalls[call] << " | ");
+		allNonLinRates += m_vNonLinSolverRates[call];
+		UG_LOG(std::setw(16) << std::setprecision(6) << std::fixed << m_vNonLinSolverRates[call] / (double)m_vLinSolverCalls[call] << " | ");
+		allLinRates += m_vLinSolverRates[call];
+		UG_LOG(std::setw(13) << std::setprecision(6) << std::fixed << m_vLinSolverRates[call] / (double)m_vLinSolverCalls[call]);
 		UG_LOG("\n");
 	}
 	UG_LOG( "        all | ");
 	UG_LOG(std::setw(9) << allCalls << " | ");
 	UG_LOG(std::setw(15) << allSteps << " | ");
-	UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << allSteps / (double)allCalls);
+	UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << allSteps / (double)allCalls << " | ");
+	UG_LOG(std::setw(16) << std::setprecision(6) << std::fixed << allNonLinRates / (double)allCalls << " | ");
+	UG_LOG(std::setw(13) << std::setprecision(6) << std::fixed << allLinRates / (double)allCalls);
 	UG_LOG("\n");
 }
 
@@ -342,6 +352,8 @@ void
 NewtonSolver<TAlgebra>::
 clear_average_convergence()
 {
+	m_vLinSolverRates.clear();
+	m_vNonLinSolverRates.clear();
 	m_vLinSolverCalls.clear();
 	m_vTotalLinSolverSteps.clear();
 }

@@ -173,6 +173,8 @@ class NewtonSolver
 		// convergence history of linear solver
 		std::vector<int> m_vTotalLinSolverSteps;
 		std::vector<int> m_vLinSolverCalls;
+		std::vector<number> m_vNonLinSolverRates;
+		std::vector<number> m_vLinSolverRates;
 };
 
 }
