@@ -145,9 +145,9 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		= ReferenceElementProvider::get<dim>(m_roid);
 
 	//  compute barycenter coordinates
-	globalBary = rRefElem.corner(0);
+	globalBary = vCornerCoords[0];
 	for (size_t j=1;j<rRefElem.num(0);j++){
-	   globalBary+=rRefElem.corner(j);
+	   globalBary+=vCornerCoords[j];
 	}
 	globalBary*=1./(number)rRefElem.num(0);
 
