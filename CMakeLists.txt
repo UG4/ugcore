@@ -31,6 +31,10 @@ if(BUILD_UGDOCU)
     add_subdirectory(apps/ugdocu)
 endif(BUILD_UGDOCU)
 
+IF(BUILD_DOXYDOCU)
+	ADD_SUBDIRECTORY(docs)
+ENDIF(BUILD_DOXYDOCU)
+
 ########################
 if(BUILD_ONE_LIB)
 	get_property(ug4libSources GLOBAL PROPERTY ugSources)
