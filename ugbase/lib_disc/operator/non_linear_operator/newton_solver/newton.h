@@ -25,6 +25,7 @@ class INewtonUpdate
 {
 	public:
 		virtual void update() = 0;
+		virtual ~INewtonUpdate() {};
 };
 
 template <typename TAlgebra>
