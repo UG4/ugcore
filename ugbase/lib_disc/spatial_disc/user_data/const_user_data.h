@@ -203,9 +203,15 @@ class ConstUserNumber
 };
 
 /// constant vector user data
-template <int dim>
+/**
+ * Constant vector user data that can be used in assembling routines.
+ *
+ * \param dim the dimensionality of the vector itself (for ex. 2 for vectors of two components)
+ * \param worldDim the dimensionality of the space embedding the grid (for ex. 3 for 3d PDE problems)
+ */
+template <int dim, int worldDim = dim>
 class ConstUserVector
-	: public StdConstUserData<ConstUserVector<dim>, MathVector<dim>, dim>
+	: public StdConstUserData<ConstUserVector<dim, worldDim>, MathVector<dim>, worldDim>
 {
 	public:
 	///	Constructor
@@ -231,9 +237,16 @@ class ConstUserVector
 };
 
 /// constant matrix user data
-template <int dim>
+/**
+ * Constant matrix user data that can be used in assembling routines.
+ *
+ * \param N the row size of the matrix
+ * \param M the column size of the matrix
+ * \param worldDim the dimensionality of the space embedding the grid (for ex. 3 for 3d PDE problems)
+ */
+template <int N, int M = N, int worldDim = N>
 class ConstUserMatrix
-	: public StdConstUserData<ConstUserMatrix<dim>, MathMatrix<dim, dim>, dim>
+	: public StdConstUserData<ConstUserMatrix<N, M, worldDim>, MathMatrix<N, M>, worldDim>
 {
 	public:
 	///	Constructor
@@ -245,8 +258,8 @@ class ConstUserMatrix
 	///	set diagonal of matrix to a vector
 		void set_diag_tensor(number val)
 		{
-			for(size_t i = 0; i < dim; ++i){
-				for(size_t j = 0; j < dim; ++j){
+			for(size_t i = 0; i < N; ++i){
+				for(size_t j = 0; j < M; ++j){
 					m_Tensor[i][j] = 0;
 				}
 				m_Tensor[i][i] = val;
@@ -256,8 +269,8 @@ class ConstUserMatrix
 	///	sets all entries of the matrix
 		void set_all_entries(number val)
 		{
-			for(size_t i = 0; i < dim; ++i){
-				for(size_t j = 0; j < dim; ++j){
+			for(size_t i = 0; i < N; ++i){
+				for(size_t j = 0; j < M; ++j){
 					m_Tensor[i][j] = val;
 				}
 			}
@@ -270,10 +283,10 @@ class ConstUserMatrix
 		void print() const{UG_LOG("ConstUserMatrix:\n" << m_Tensor << "\n");}
 
 	///	evaluate
-		inline void evaluate (MathMatrix<dim, dim>& value) const{value = m_Tensor;}
+		inline void evaluate (MathMatrix<N, M>& value) const{value = m_Tensor;}
 
 	protected:
-		MathMatrix<dim, dim> m_Tensor;
+		MathMatrix<N, M> m_Tensor;
 };
 
 /// constant tensor user data
