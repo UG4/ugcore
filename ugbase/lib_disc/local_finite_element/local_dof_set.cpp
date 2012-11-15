@@ -10,6 +10,7 @@
 #include "crouzeix-raviart/crouzeix_raviart_local_dof.h"
 #include "piecewise_constant/piecewise_constant_local_dof.h"
 #include "mini/mini_local_dof.h"
+#include "nedelec/nedelec_local_dof.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 
 namespace ug{
@@ -135,6 +136,34 @@ void LocalDoFSetProvider::create_mini_bubble_sets()
 	create_mini_bubble_sets<ReferencePrism>();
 	create_mini_bubble_sets<ReferenceHexahedron>();
 
+}
+
+template <typename TRefElem>
+void LocalDoFSetProvider::create_nedelec_sets()
+{
+//	create nedelec element set
+	NedelecLDS<TRefElem>* setNedelec = new NedelecLDS<TRefElem>();
+
+//	remember created set for delete in destructor
+	m_vCreated.push_back(setNedelec);
+
+//	register the set
+	try{
+		register_set(LFEID(LFEID::PIECEWISE_CONSTANT, 0), *setNedelec);
+	}
+	UG_CATCH_THROW("Unable to register NedelecLDS");
+}
+
+void LocalDoFSetProvider::create_nedelec_sets()
+{
+	create_nedelec_sets<ReferenceVertex>();
+	create_nedelec_sets<ReferenceEdge>();
+	create_nedelec_sets<ReferenceTriangle>();
+	create_nedelec_sets<ReferenceQuadrilateral>();
+	create_nedelec_sets<ReferenceTetrahedron>();
+	create_nedelec_sets<ReferencePyramid>();
+	create_nedelec_sets<ReferencePrism>();
+	create_nedelec_sets<ReferenceHexahedron>();
 }
 
 void LocalDoFSetProvider::create_set(const LFEID& id)

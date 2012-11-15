@@ -200,6 +200,13 @@ class LocalDoFSetProvider {
 	//	creation of piecewise constant set for all reference elements
 		static void create_mini_bubble_sets();
 
+	//	creation of nedelec element set for a reference element
+		template <typename TRefElem>
+		static void create_nedelec_sets();
+
+	//	creation of nedelec element set for all reference elements
+		static void create_nedelec_sets();
+
 	// 	creation of set
 		static void create_set(const LFEID& id);
 

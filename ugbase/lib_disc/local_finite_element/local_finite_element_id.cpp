@@ -28,6 +28,7 @@ std::ostream& operator<<(std::ostream& out,	const LFEID& v)
 		case LFEID::PIECEWISE_CONSTANT: out << "(Piecewise constant, " << ss.str() << ")"; break;
 		case LFEID::DG: out << "(DG, " << ss.str() << ")"; break;
 		case LFEID::MINI: out << "(MINI, " << ss.str() << ")"; break;
+		case LFEID::NEDELEC: out << "(Nedelec, " << ss.str() << ")"; break;
 		case LFEID::USER_DEFINED: out << "(User defined, " << ss.str() << ")"; break;
 		default: out << "(unknown, " << ss.str() << ")";
 	}
@@ -48,6 +49,7 @@ LFEID ConvertStringToLFEID(const char* type, int order)
 	if(typeStr == "piecewise-constant") eType = LFEID::PIECEWISE_CONSTANT;
 	if(typeStr == "mini") eType = LFEID::MINI;
 	if(typeStr == "dg") eType = LFEID::DG;
+	if(typeStr == "nedelec") eType = LFEID::NEDELEC;
 
 	return LFEID(eType, order);
 }
@@ -81,6 +83,10 @@ LFEID ConvertStringToLFEID(const char* type)
 	if(typeStr == "mini"){
 		eType = LFEID::MINI;
 		UG_THROW("Unspecified order for MINI approximation space.\n");
+	}
+	if(typeStr == "nedelec"){
+		eType = LFEID::NEDELEC;
+		order = 1;
 	}
 	return LFEID(eType, order);
 }
