@@ -214,17 +214,27 @@ class ConstUserVector
 	: public StdConstUserData<ConstUserVector<dim, worldDim>, MathVector<dim>, worldDim>
 {
 	public:
-	///	Constructor
+	///	Constructor: no arguments, zero entries
 		ConstUserVector() {set_all_entries(0.0);}
 
-	///	creates user number with value
+	///	Constructor: set all the entries to the given value
 		ConstUserVector(number val) {set_all_entries(val);}
+
+	///	Constructor: initialize with a given std::vector
+		ConstUserVector(const std::vector<number>& val) {set_vector(val);}
 
 	///	set all vector entries
 		void set_all_entries(number val) { m_Vector = val;}
 
 	///	set i'th vector entry
 		void set_entry(size_t i, number val){m_Vector[i] = val;}
+	
+	/// set from a given vector:
+		void set_vector(const std::vector<number>& val)
+		{
+			if(val.size() != dim) UG_THROW("Size mismatch in ConstUserVector");
+			for(size_t i; i < dim; i++) m_Vector[i] = val[i];
+		}
 
 	///	print current setting
 		void print() const {UG_LOG("ConstUserVector:" << m_Vector << "\n");}
