@@ -44,7 +44,7 @@ class Lagrange1D
 
 	protected:
 	/// computes the coefficients for passed interpolation points
-		void compute_coeffs(const size_t i, const std::vector<number> vPos)
+		void compute_coeffs(const size_t i, const std::vector<number>& vPos)
 		{
 		//	start coefficients
 			std::vector<number> vStart(1, 1.0);
