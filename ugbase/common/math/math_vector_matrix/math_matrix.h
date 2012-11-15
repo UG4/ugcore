@@ -213,7 +213,7 @@ class MathMatrix
 		inline value_type& operator() (std::size_t row, std::size_t col)				{UG_ASSERT(row < N && col < M, "Accessing "<<N<<"x"<<M<<"Matrix at entry ("<<row<<","<<col<<")"); return m_data[row][col];}
 		inline const value_type& operator() (std::size_t row, std::size_t col) const	{UG_ASSERT(row < N && col < M, "Accessing "<<N<<"x"<<M<<"Matrix at entry ("<<row<<","<<col<<")"); return m_data[row][col];}
 
-		inline void assign(const MathVector<N, value_type> vec, const std::size_t row) {
+		inline void assign(const MathVector<N, value_type>& vec, const std::size_t row) {
 			assert(vec.Size == N);
 			for(std::size_t j = 0; j < N; j++)
 				m_data[row][j] = vec[j];
