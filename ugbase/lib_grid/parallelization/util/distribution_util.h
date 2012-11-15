@@ -315,6 +315,25 @@ void SerializeDistributionLayoutInterfaces(BinaryBuffer& out, TLayout& layout,
 											Grid& grid, AInt& aLocalInd);
 
 ////////////////////////////////////////////////////////////////////////
+///	Serializes a multigrid and associated distribution layouts togehter with global ids
+void SerializeGridAndRedistributionLayouts(
+								BinaryBuffer& out, MultiGrid& mg,
+								RedistributionVertexLayout& vrtLayout,
+								RedistributionEdgeLayout& edgeLayout,
+								RedistributionFaceLayout& faceLayout,
+								RedistributionVolumeLayout& volLayout,
+								AInt& aLocalIndVRT, AInt& aLocalIndEDGE,
+								AInt& aLocalIndFACE, AInt& aLocalIndVOL,
+								MGSelector* pSel);
+
+////////////////////////////////////////////////////////////////////////
+///	Serializes global ids in the order in which the associated layout was serialized.
+template <class TElem>
+void SerializeGlobalIDs(BinaryBuffer& out, Grid& g,
+						const RedistributionNodeLayout<TElem*>& redistLayout,
+						AInt& aLocalInd);
+
+////////////////////////////////////////////////////////////////////////
 ///	deserializes a DistributionLayoutInterface.
 template <class TLayout>
 void DeserializeDistributionLayoutInterfaces(TLayout& layout,
@@ -335,11 +354,38 @@ void DeserializeDistributionLayoutInterfaces(
 									BinaryBuffer& in);
 
 ////////////////////////////////////////////////////////////////////////
+///	Deserializes a multigrid and associated distribution layouts
+void DeserializeGridAndDistributionLayouts(
+								MultiGrid& mg, BinaryBuffer& in,
+								DistributionVertexLayout& vrtLayout,
+								DistributionEdgeLayout& edgeLayout,
+								DistributionFaceLayout& faceLayout,
+								DistributionVolumeLayout& volLayout);
+
+////////////////////////////////////////////////////////////////////////
+///	Deserializes a multigrid and associated distribution layouts togehter with global ids
+void DeserializeGridAndRedistributionLayouts(
+								MultiGrid& mg, BinaryBuffer& in,
+								RedistributionVertexLayout& vrtLayout,
+								RedistributionEdgeLayout& edgeLayout,
+								RedistributionFaceLayout& faceLayout,
+								RedistributionVolumeLayout& volLayout);
+
+////////////////////////////////////////////////////////////////////////
 //	DeserializeGridAndDistributionLayouts
 void DeserializeGridAndDistributionLayouts(
 									MultiGrid& mgOut,
 									GridLayoutMap& gridLayoutOut,
 									BinaryBuffer& in);
+
+////////////////////////////////////////////////////////////////////////
+///	Serializes global ids which were written with SerializeGlobalIDs.
+/**	Make sure to that the specified layout's node-vec has already been
+ * properly sized.
+ */
+template <class TElem>
+void DeserializeGlobalIDs(RedistributionNodeLayout<TElem*>& redistLayout,
+						  BinaryBuffer& in);
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects all elements in a DistributionLayout into a selector

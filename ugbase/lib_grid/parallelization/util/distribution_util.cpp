@@ -963,21 +963,73 @@ void SerializeGridAndDistributionLayouts(
 
 //	done. Please note that no attachments have been serialized in this method.
 }
-/*
-template <class TGeomObj, class TLayout>
-static
-void
-FillLayoutWithNodes(TLayout& layout, Grid& grid)
-{
-	typedef typename TLayout::NodeType TNode;
-	typedef typename geometry_traits<TGeomObj>::iterator iterator;
-	typename TLayout::NodeVec& nodes = layout.node_vec();
 
-	for(iterator iter = grid.begin<TGeomObj>();
-		iter != grid.end<TGeomObj>(); ++iter)
-		nodes.push_back(*iter);
+////////////////////////////////////////////////////////////////////////
+void SerializeGridAndRedistributionLayouts(
+								BinaryBuffer& out, MultiGrid& mg,
+								RedistributionVertexLayout& vrtLayout,
+								RedistributionEdgeLayout& edgeLayout,
+								RedistributionFaceLayout& faceLayout,
+								RedistributionVolumeLayout& volLayout,
+								AInt& aLocalIndVRT, AInt& aLocalIndEDGE,
+								AInt& aLocalIndFACE, AInt& aLocalIndVOL,
+								MGSelector* pSel)
+{
+//	initialize a selector.
+	MGSelector tmpSel;
+	if(!pSel)
+	{
+		tmpSel.assign_grid(mg);
+		pSel = &tmpSel;
+	}
+
+	SerializeGridAndDistributionLayouts(out, mg, vrtLayout, edgeLayout,
+								faceLayout, volLayout, aLocalIndVRT,
+								aLocalIndEDGE, aLocalIndFACE, aLocalIndVOL, pSel);
+
+//	now serialize the global ids. Consider the order given by the index attachments
+	SerializeGlobalIDs<VertexBase>(out, mg, vrtLayout, aLocalIndVRT);
+	SerializeGlobalIDs<EdgeBase>(out, mg, edgeLayout, aLocalIndEDGE);
+	SerializeGlobalIDs<Face>(out, mg, faceLayout, aLocalIndFACE);
+	SerializeGlobalIDs<Volume>(out, mg, volLayout, aLocalIndVOL);
 }
-*/
+
+
+////////////////////////////////////////////////////////////////////////
+void DeserializeGridAndDistributionLayouts(
+								MultiGrid& mg, BinaryBuffer& in,
+								DistributionVertexLayout& vrtLayout,
+								DistributionEdgeLayout& edgeLayout,
+								DistributionFaceLayout& faceLayout,
+								DistributionVolumeLayout& volLayout)
+{
+	DeserializeMultiGridElements(mg, in, &vrtLayout.node_vec(),
+								&edgeLayout.node_vec(), &faceLayout.node_vec(),
+								&volLayout.node_vec());
+
+	DeserializeDistributionLayoutInterfaces(vrtLayout, in);
+	DeserializeDistributionLayoutInterfaces(edgeLayout, in);
+	DeserializeDistributionLayoutInterfaces(faceLayout, in);
+	DeserializeDistributionLayoutInterfaces(volLayout, in);
+}
+
+////////////////////////////////////////////////////////////////////////
+void DeserializeGridAndRedistributionLayouts(
+								MultiGrid& mg, BinaryBuffer& in,
+								RedistributionVertexLayout& vrtLayout,
+								RedistributionEdgeLayout& edgeLayout,
+								RedistributionFaceLayout& faceLayout,
+								RedistributionVolumeLayout& volLayout)
+{
+	DeserializeGridAndDistributionLayouts(mg, in, vrtLayout, edgeLayout,
+										  faceLayout, volLayout);
+
+	DeserializeGlobalIDs<VertexBase>(vrtLayout, in);
+	DeserializeGlobalIDs<EdgeBase>(edgeLayout, in);
+	DeserializeGlobalIDs<Face>(faceLayout, in);
+	DeserializeGlobalIDs<Volume>(volLayout, in);
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeGridAndLayouts

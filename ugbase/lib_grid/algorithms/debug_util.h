@@ -55,6 +55,12 @@ vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem);
 /** \} */
 
 
+/// Writes level and center of each object together with a custom value to a file
+template <class TElem, class TAValue>
+void WriteDebugValuesToFile(const char* filename, Grid& grid,
+							TAValue& aVal, bool levelWise);
+
+
 ///	returns the index of the given element in the given grid.
 /**	Runtime O(n). Returns -1 if the element could not be found.
  * \note: The all elements of the same base-type are considered during counting.*/

@@ -23,6 +23,7 @@ set(srcCommon	log.cpp
 				util/ostream_util.cpp
 				util/parameter_parsing.cpp
         		util/string_util.cpp
+        		util/table.cpp
 				util/variant.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp

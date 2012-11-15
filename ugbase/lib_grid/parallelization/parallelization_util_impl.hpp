@@ -41,6 +41,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 	CopyPolicy<Layout, AGeomObjID> compolCopy(g, aID);
 
 	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopy);
+	com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopy);
 	com.communicate();
 }
 

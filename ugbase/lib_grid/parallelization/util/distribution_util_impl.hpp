@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <cassert>
+#include "common/serialization.h"
 
 namespace ug
 {
@@ -73,6 +74,50 @@ void SerializeDistributionLayoutInterfaces(BinaryBuffer& out, TLayout& layout,
 			}
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TElem>
+void SerializeGlobalIDs(BinaryBuffer& out, Grid& g,
+						const RedistributionNodeLayout<TElem*>& redistLayout,
+						AInt& aLocalInd)
+{
+	UG_ASSERT(g.has_attachment<TElem>(aLocalInd), "A local index attachment has to exist.");
+	Grid::AttachmentAccessor<TElem, AInt> aaInd(g, aLocalInd);
+
+	const std::vector<GeomObjID>& gIDs = redistLayout.m_globalIDs;
+
+//	serialize the global ids in the correct order
+	typedef typename RedistributionNodeLayout<TElem*>::NodeVec	TNodeVec;
+	const TNodeVec& nodes = redistLayout.node_vec();
+
+//	prepare the buffer
+	size_t startPos = out.write_pos();
+	size_t seqSize = gIDs.size() * sizeof(GeomObjID);
+	out.reserve(startPos + seqSize);
+
+	UG_ASSERT(nodes.size() == gIDs.size(), "a global id has to exist for each node!");
+	for(size_t i = 0; i < nodes.size(); ++i){
+		size_t ind = aaInd[nodes[i]];
+		out.set_write_pos(startPos + ind * sizeof(GeomObjID));
+		Serialize(out, gIDs[i]);
+	}
+
+	out.set_write_pos(startPos + seqSize);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TElem>
+void DeserializeGlobalIDs(RedistributionNodeLayout<TElem*>& redistLayout,
+						  BinaryBuffer& in)
+{
+	std::vector<GeomObjID>& gIDs = redistLayout.m_globalIDs;
+	typedef typename RedistributionNodeLayout<TElem*>::NodeVec	TNodeVec;
+	TNodeVec& nodes = redistLayout.node_vec();
+
+	gIDs.resize(nodes.size());
+	for(size_t i = 0; i < nodes.size(); ++i)
+		Deserialize(in, gIDs[i]);
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -942,27 +942,6 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 			}
 		}
 
-	//	now constraining edges
-		if(mgoc.num<ConstrainingEdge>(iLevel) > 0)
-		{
-			tInt = GOID_CONSTRAINING_EDGE;
-			out.write((char*)&tInt, sizeof(int));
-			tInt = (int)mgoc.num<ConstrainingEdge>(iLevel);
-			out.write((char*)&tInt, sizeof(int));
-
-			for(ConstrainingEdgeIterator iter = mgoc.begin<ConstrainingEdge>(iLevel);
-				iter != mgoc.end<ConstrainingEdge>(iLevel); ++iter)
-			{
-				ConstrainingEdge* e = *iter;
-				mg.mark(e);
-				out.write((char*)&aaIntVRT[e->vertex(0)], sizeof(int));
-				out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
-				aaIntEDGE[*iter] = edgeInd++;
-			//	write the parent
-				WriteParent(mg, e, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
-			}
-		}
-
 	//	now constrained edges
 		if(mgoc.num<ConstrainedEdge>(iLevel) > 0)
 		{
@@ -1001,6 +980,27 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 				out.write((char*)&type, sizeof(int));
 				out.write((char*)&ind, sizeof(int));
+			}
+		}
+
+	//	now constraining edges
+		if(mgoc.num<ConstrainingEdge>(iLevel) > 0)
+		{
+			tInt = GOID_CONSTRAINING_EDGE;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<ConstrainingEdge>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(ConstrainingEdgeIterator iter = mgoc.begin<ConstrainingEdge>(iLevel);
+				iter != mgoc.end<ConstrainingEdge>(iLevel); ++iter)
+			{
+				ConstrainingEdge* e = *iter;
+				mg.mark(e);
+				out.write((char*)&aaIntVRT[e->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
+				aaIntEDGE[*iter] = edgeInd++;
+			//	write the parent
+				WriteParent(mg, e, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
 			}
 		}
 

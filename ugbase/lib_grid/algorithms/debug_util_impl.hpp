@@ -5,8 +5,10 @@
 #ifndef __H__UG__debug_util_impl__
 #define __H__UG__debug_util_impl__
 
+#include <fstream>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "common/util/table.h"
 
 namespace ug
 {
@@ -47,6 +49,58 @@ int GetGeometricObjectIndex(Grid& g, TElem* elem)
 			return counter;
 	}
 	return -1;
+}
+
+template <class TElem, class TAValue>
+void WriteDebugValuesToFile(const char* filename, Grid& grid,
+							TAValue& aVal, bool levelWise)
+{
+	typedef typename Grid::traits<TElem>::base_object TBase;
+
+	std::ofstream out(filename);
+	if(!out)
+		return;
+
+	Grid::AttachmentAccessor<TBase, TAValue> aaVal(grid, aVal);
+
+	Table<std::stringstream> table(grid.num<TElem>() + 1, 3);
+	table(0, 0) << "lvl";	table(0, 1) << "center";	table(0, 2) << "value";
+
+	size_t row = 1;
+	if(levelWise){
+		GeometricObjectCollection goc = grid.get_geometric_objects();
+		for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+			for(typename Grid::traits<TElem>::iterator iter = goc.begin<TElem>(lvl);
+				iter != goc.end<TElem>(lvl); ++iter, ++row)
+			{
+				table(row, 0) << lvl;
+				table(row, 1) << GetGeometricObjectCenter(grid, *iter);
+				table(row, 2) << aaVal[*iter];
+			}
+		}
+	}
+	else if(MultiGrid* pmg = dynamic_cast<MultiGrid*>(&grid)){
+		MultiGrid& mg = *pmg;
+		for(typename Grid::traits<TElem>::iterator iter = grid.begin<TElem>();
+			iter != grid.end<TElem>(); ++iter, ++row)
+		{
+			table(row, 0) << mg.get_level(*iter);
+			table(row, 1) << GetGeometricObjectCenter(grid, *iter);
+			table(row, 2) << aaVal[*iter];
+		}
+	}
+	else{
+		for(typename Grid::traits<TElem>::iterator iter = grid.begin<TElem>();
+			iter != grid.end<TElem>(); ++iter, ++row)
+		{
+			table(row, 0) << 0;
+			table(row, 1) << GetGeometricObjectCenter(grid, *iter);
+			table(row, 2) << aaVal[*iter];
+		}
+	}
+
+	out << table;
+	out.close();
 }
 
 }//	end of namespace

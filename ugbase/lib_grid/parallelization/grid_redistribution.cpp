@@ -15,6 +15,9 @@
 #include "lib_grid/algorithms/debug_util.h"
 #include "lib_grid/file_io/file_io.h"
 
+//	define this flag to enable additional debug output
+//#define LG_REDIST_DEBUG
+
 using namespace std;
 
 namespace ug{
@@ -45,9 +48,10 @@ static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
 
 ////////////////////////////////////////////////////////////////////////////////
 template <class TGeomObj>
-void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
+static void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 					vector<RedistributionNodeLayout<TGeomObj*> >& redistLayouts);
 
+#ifdef LG_REDIST_DEBUG
 ////////////////////////////////////////////////////////////////////////////////
 ///	For debug purposes only!
 /**	Deserializes all grid parts into mg and writes each to a file. Afterwards
@@ -58,6 +62,7 @@ static void PerformDebugDeserialization(const char* filePrefix,
 										vector<int>& recvFromRanks,
 										const GridDataSerializationHandler& deserializer,
 										number zLevelOffset);
+#endif
 
 
 
@@ -133,6 +138,15 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	CreateAndDistributeGlobalIDs<Face>(mg, glm);
 	CreateAndDistributeGlobalIDs<Volume>(mg, glm);
 	PCL_PROFILE_END();
+
+	#ifdef LG_REDIST_DEBUG
+	{
+		UG_LOG("DEBUG: WRITING GLOBAL IDS TO FILE\n");
+		stringstream ss;
+		ss << "global_ids_p" << pcl::GetProcRank() << ".txt";
+		WriteDebugValuesToFile<VertexBase>(ss.str().c_str(), mg, aGeomObjID, false);
+	}
+	#endif
 
 ////////////////////////////////
 //	REDISTRIBITION LAYOUTS
@@ -224,14 +238,8 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	//	write a magic number for debugging purposes
 		out.write((char*)&magicNumber1, sizeof(int));
 
-	//	First we'll serialize the global ids of all distributed elements
-		Serialize(out, vertexLayouts[partInd].m_globalIDs);
-		Serialize(out, edgeLayouts[partInd].m_globalIDs);
-		Serialize(out, faceLayouts[partInd].m_globalIDs);
-		Serialize(out, volumeLayouts[partInd].m_globalIDs);
-
 	//	Now let's serialize the grid and the redistribution layout interfaces
-		SerializeGridAndDistributionLayouts(out, mg, vertexLayouts[partInd],
+		SerializeGridAndRedistributionLayouts(out, mg, vertexLayouts[partInd],
 				edgeLayouts[partInd], faceLayouts[partInd], volumeLayouts[partInd],
 				aLocalInd, aLocalInd, aLocalInd, aLocalInd, &msel);
 
@@ -301,12 +309,11 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	UG_DLOG(LIB_GRID, 2, "redist-RedistributeGrid: Deserialization\n");
 	PCL_PROFILE(redist_DeserializeData);
 
-//	DEBUG ONLY!!!
-	//PerformDebugDeserialization("redist_grid", mg, in, recvFromRanks, deserializer, 0.1);
+	#ifdef LG_REDIST_DEBUG
+		PerformDebugDeserialization("redist_grid", mg, in, recvFromRanks, deserializer, 0.1);
+	#endif
 
-	//UG_LOG("\ndeserializing...\n");
 	DeserializeRedistributedGrid(mg, glm, in, recvFromRanks, deserializer);
-	//UG_LOG("deserialization done\n\n");
 	PCL_PROFILE_END();
 
 ////////////////////////////////
@@ -431,41 +438,22 @@ static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
 					 "Magic number mismatch before deserialization.\n");
 		}
 
-	//	First we'll deserialize the global ids of all distributed elements
-		Deserialize(in, vrtLayout.m_globalIDs);
-		Deserialize(in, edgeLayout.m_globalIDs);
-		Deserialize(in, faceLayout.m_globalIDs);
-		Deserialize(in, volLayout.m_globalIDs);
-
 	//	If only one process sends data, then we can directly deserialize into
 	//	the original multigrid. If not, then we'll serialize into a temporary
-	//	grid and insert the elements into our local grid later on.
+	//	grid and insert the elements into our local grid in a separate function.
 		if(recvFromRanks.size() == 1){
-			DeserializeMultiGridElements(mg, in, &vrtLayout.node_vec(),
-								&edgeLayout.node_vec(), &faceLayout.node_vec(),
-								&volLayout.node_vec());
+			DeserializeGridAndRedistributionLayouts(mg, in, vrtLayout, edgeLayout,
+													faceLayout, volLayout);
 		}
 		else{
 			tmg.clear_geometry();
-			DeserializeMultiGridElements(tmg, in, &vrtLayout.node_vec(),
-								&edgeLayout.node_vec(), &faceLayout.node_vec(),
-								&volLayout.node_vec());
-		}
+			DeserializeGridAndRedistributionLayouts(tmg, in, vrtLayout, edgeLayout,
+													faceLayout, volLayout);
 
-		DeserializeDistributionLayoutInterfaces(vrtLayout, in);
-		DeserializeDistributionLayoutInterfaces(edgeLayout, in);
-		DeserializeDistributionLayoutInterfaces(faceLayout, in);
-		DeserializeDistributionLayoutInterfaces(volLayout, in);
-
-	//	before we'll deserialize the associated data, we'll create the new
-	//	elements in the target grid.
-	//	copy elements - layouts are upadted to the new elements on the fly.
-	//	If only one process sends data then this step is not required.
-		if(recvFromRanks.size() > 1){
+		//	copy elements - layouts are upadted to the new elements on the fly.
 			CopyNewElements(mg, tmg, vrtLayout, edgeLayout, faceLayout, volLayout,
 							aaVrt, aaEdge, aaFace, aaVol);
 		}
-
 
 	//	now deserialize the data associated with the elements in the layouts node-vecs
 	//	first read the infos of all deserializers
@@ -512,7 +500,7 @@ static void DeserializeRedistributedGrid(MultiGrid& mg, GridLayoutMap& glm,
 }
 
 template <class TGeomObj>
-void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
+static void CreateInterfaces(MultiGrid& mg, GridLayoutMap& glm,
 					vector<RedistributionNodeLayout<TGeomObj*> >& redistLayouts)
 {
 	UG_DLOG(LIB_GRID, 1, "redist-start: CreateInterfaces\n");
@@ -740,13 +728,17 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 					switch(type){
 						case VERTEX:
 							UG_ASSERT(aaVrt[static_cast<VertexBase*>(parent)],
-									"A copy of parent already has to exist!");
+									 "A copy of parent vertex already has to exist!");
 							UG_ASSERT(!mgDest.has_children(aaVrt[static_cast<VertexBase*>(parent)]),
-									"Vertex already has a parent. Index: " <<
-									GetGeometricObjectIndex(mgSrc, *iter)
+									"copy of vertex-parent already has a child. Vrt-ind: "
+									<< GetGeometricObjectIndex(mgSrc, *iter)
+									<< ", global id: " << curID
+									<< ", vrt-ind of parent: "
+									<< GetGeometricObjectIndex(mgSrc, static_cast<VertexBase*>(parent))
 									<< ", global id of existing child: "
 									<< aaIDVRT[mgDest.get_child_vertex(aaVrt[static_cast<VertexBase*>(parent)])]
-									<< ", global id of current vrt: " << curID);
+									<< ", global id of parent in dest-grid: "
+									<< aaIDVRT[aaVrt[static_cast<VertexBase*>(parent)]]);
 
 							nVrt = *mgDest.create_by_cloning(vrt,
 										aaVrt[static_cast<VertexBase*>(parent)]);
@@ -789,6 +781,12 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 		{
 			EdgeBase* e = *iter;
 			EdgeBase* ne = NULL;
+
+		//	make sure that mgSrc and vrtLayout are synchronous
+			UG_ASSERT(e == static_cast<EdgeBase*>(edgeLayout.node_vec()[edgeCounter]),
+					"mgSrc and edgeLayout are asynchronous."
+					<< "edgeCounter: " << edgeCounter
+					<< ", edge-index: " << GetGeometricObjectIndex(mgSrc, e));
 
 		//	check whether the object already exists
 			GeomObjID curID = edgeLayout.m_globalIDs[edgeCounter];
@@ -934,7 +932,7 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 	UG_DLOG(LIB_GRID, 1, "redist-stop: CopyNewElements\n");
 }
 
-
+#ifdef LG_REDIST_DEBUG
 ////////////////////////////////////////////////////////////////////////////////
 ///	For debug purposes only!
 /**	Deserializes all grid parts into mg and writes each to a file. Afterwards
@@ -970,24 +968,12 @@ static void PerformDebugDeserialization(const char* filePrefix,
 					 "Magic number mismatch before deserialization.\n");
 		}
 
-	//	First we'll deserialize the global ids of all distributed elements
-		Deserialize(in, vrtLayout.m_globalIDs);
-		Deserialize(in, edgeLayout.m_globalIDs);
-		Deserialize(in, faceLayout.m_globalIDs);
-		Deserialize(in, volLayout.m_globalIDs);
-
 	//	clear the multi grid
 		mg.clear_geometry();
 
 	//	deserialization
-		DeserializeMultiGridElements(mg, in, &vrtLayout.node_vec(),
-							&edgeLayout.node_vec(), &faceLayout.node_vec(),
-							&volLayout.node_vec());
-
-		DeserializeDistributionLayoutInterfaces(vrtLayout, in);
-		DeserializeDistributionLayoutInterfaces(edgeLayout, in);
-		DeserializeDistributionLayoutInterfaces(faceLayout, in);
-		DeserializeDistributionLayoutInterfaces(volLayout, in);
+		DeserializeGridAndRedistributionLayouts(mg, in, vrtLayout, edgeLayout,
+												faceLayout, volLayout);
 
 		deserializer.read_infos(in);
 		deserializer.deserialize(in, vrtLayout.node_vec().begin(),
@@ -1021,5 +1007,6 @@ static void PerformDebugDeserialization(const char* filePrefix,
 
 	UG_DLOG(LIB_GRID, 1, "redist-stop: PerformDebugDeserialization\n");
 }
+#endif
 
 }// end of namespace
