@@ -457,7 +457,7 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
  */
 UG_API
 void UpdateMaxDimensionOfSubset(ISubsetHandler& sh,
-								const std::string propertyName);
+								const std::string& propertyName);
 
 
 ////////////////////////////////////////////////////////////////////////

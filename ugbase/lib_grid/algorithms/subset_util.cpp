@@ -1101,7 +1101,7 @@ template void AssignSidesToSubsets<Face>(ISubsetHandler&, ISelector*);
 template void AssignSidesToSubsets<Volume>(ISubsetHandler&, ISelector*);
 
 void UpdateMaxDimensionOfSubset(ISubsetHandler& sh,
-								const std::string propertyName)
+								const std::string& propertyName)
 {
 	for(int i = 0; i < sh.num_subsets(); ++i){
 		int dim = -1;
