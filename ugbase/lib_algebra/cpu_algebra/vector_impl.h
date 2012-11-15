@@ -262,7 +262,7 @@ inline double Vector<value_type>::norm() const
 }
 
 template<typename TValueType>
-bool CloneVector(Vector<TValueType> &dest, const Vector<TValueType> src)
+bool CloneVector(Vector<TValueType> &dest, const Vector<TValueType>& src)
 {
 	dest.resize(src.size());
 	return true;

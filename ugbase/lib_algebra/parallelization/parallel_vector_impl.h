@@ -307,7 +307,7 @@ inline void VecScaleAdd(ParallelVector<T> &dest,
 ////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename TVector>
-bool CloneVector(ParallelVector<TVector> &dest, const ParallelVector<TVector> src)
+bool CloneVector(ParallelVector<TVector> &dest, const ParallelVector<TVector>& src)
 {
 	CloneVector((TVector&)dest, (TVector&)src);
 	dest.copy_storage_type(src);
