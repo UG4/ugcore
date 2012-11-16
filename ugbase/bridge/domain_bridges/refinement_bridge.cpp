@@ -107,6 +107,65 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// mark face for anisotropic refinement, if it contains edges below given sizeRatio
+/**
+ * @return true, if face has been marked for anisotropic refinement.
+ * This is the case, when one of its edges has been marked for refinement.*/
+template <class TAAPos> bool MarkIfAnisotropic(Face* f, IRefiner* refiner, number sizeRatio, TAAPos& aaPos)
+{
+	bool marked = false;
+	uint num_edges = f->num_edges();
+	vector<EdgeBase*> edges(num_edges);
+	// collect associated edges
+	CollectAssociated(edges, *refiner->grid(), f);
+
+	//	find the shortest edge
+	EdgeBase* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
+	UG_ASSERT(minEdge,
+			"Associated edges of each face have to exist at this point.");
+	number minLen = EdgeLength(minEdge, aaPos);
+
+	//	compare all associated edges of f against minEdge (even minEdge itself,
+	//	if somebody sets edgeRatio to 1 or higher)
+	for (uint i_edge = 0; i_edge < num_edges; ++i_edge) {
+		EdgeBase* e = edges[i_edge];
+		number len = EdgeLength(e, aaPos);
+		//	to avoid division by 0, we only consider edges with a length > 0
+		if(len > 0) {
+			if(minLen / len <= sizeRatio) {
+				//	the edge will be refined
+				refiner->mark(e);
+				marked = true;
+			}
+		}
+	}
+
+	if(marked) {
+		//	if a vertex has been marked, also mark the face, or else just a hanging
+		//	node would be inserted.
+		//	We do not mark other associated objects here since this would
+		//	cause creation of a closure and would also behave differently
+		//	in a parallel environment, compared to a serial environment.
+		//	By using RM_ANISOTROPIC, we avoid that associated edges of
+		//	the marked face will automatically be marked, too.
+		refiner->mark(f, RM_ANISOTROPIC);
+	}
+
+	return marked;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// mark given face for anisotropic refinement, if it contains edges below given sizeRatio
+/**
+ * @return true, if face has been marked for anisotropic refinement.
+ * This is the case, when one of its edges has been marked for refinement.*/
+//template <class TAAPos> bool MarkIfAnisotropic(Volume* v, IRefiner* refiner, number sizeRatio, TAAPos& aaPos)
+//{
+//	SurfaceToVolRatio(v, *refiner->grid(), aaPos);
+//}
+
+////////////////////////////////////////////////////////////////////////////////
 ///	Marks all elements from refinement.
 /**	If used in a parallel environment only elements on the calling procs
  * are marked.
@@ -551,6 +610,103 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 			}
 		}
 	}*/
+}
+
+//template<class TAAPos> number SurfaceToVolRatio(Volume* v, Grid&g, TAAPos& aaPos) {
+//	number vol = pow(CalculateVolume(v, aaPos), 1. / 3);
+//	vector<Face*> faces(v->num_faces());
+//	CollectAssociated(faces,g, v);
+//	number surface = sqrt(FaceArea(faces.begin(), faces.end(), aaPos));
+//	return surface / vol;
+//}
+
+///////
+/**
+ *
+ */
+template <class TDomain>
+void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> refiner,
+												number sizeRatio) {
+	PROFILE_FUNC_GROUP("grid");
+	typedef typename TDomain::position_type 			position_type;
+	typedef typename TDomain::position_accessor_type	position_accessor_type;
+
+//	make sure that the refiner was created for the given domain
+	if(refiner->get_associated_grid() != dom.grid().get()){
+		throw(UGError("ERROR in MarkForRefinement_VerticesInCube: "
+					"Refiner was not created for the specified domain. Aborting."));
+	}
+
+//	access the grid and the position attachment
+	Grid& grid = *refiner->get_associated_grid();
+	position_accessor_type& aaPos = dom.position_accessor();
+	IRefiner& ref = *refiner.get_nonconst();
+
+//	If the grid is a multigrid, we want to avoid marking of elements, which do
+//	have children
+	MultiGrid* pmg = dynamic_cast<MultiGrid*>(&grid);
+
+//	make sure that the grid automatically generates sides for each element
+	if(!grid.option_is_enabled(GRIDOPT_AUTOGENERATE_SIDES)){
+		UG_LOG("WARNING in MarkForRefinement_AnisotropicElements: "
+				"Enabling GRIDOPT_AUTOGENERATE_SIDES.\n");
+		grid.enable_options(GRIDOPT_AUTOGENERATE_SIDES);
+	}
+
+//	we'll store associated edges, faces and volumes in those containers
+	vector<EdgeBase*> edges;
+	vector<Face*> faces;
+	vector<Volume*> volumes;
+
+//	// todo: for each type, define a swell
+//	const number ratioTswell = 0.5;
+//	for(VolumeIterator iter = grid.begin<Volume>(); iter!=grid.end<Volume>(); ++iter)
+//	{
+//		Volume* v = *iter;
+//		number svRatio = SurfaceToVolRatio(*v, grid, aaPos);
+//
+//		switch (v->reference_object_id()) {
+//		case ROID_TETRAHEDRON:
+//			if(std::abs(svRatio - 2.68433) > ratioTswell)
+//				ref.mark(v, RM_ANISOTROPIC);
+//			break;
+//		case ROID_PYRAMID:
+//			if(std::abs(svRatio - 2.67582) > ratioTswell)
+//				ref.mark(v, RM_ANISOTROPIC);
+//			break;
+//		case ROID_PRISM:
+//			if(std::abs(svRatio - 2.59896) > ratioTswell)
+//				ref.mark(v, RM_ANISOTROPIC);
+//			break;
+//		case ROID_HEXAHEDRON:
+//			if(std::abs(svRatio - 2.44949) > ratioTswell)
+//				ref.mark(v, RM_ANISOTROPIC);
+//			break;
+//		}
+//	}
+
+	//	iterate over all faces of the grid.
+	for(FaceIterator iter = grid.begin<Face>();
+		iter != grid.end<Face>(); ++iter)
+	{
+		Face* f = *iter;
+		// ignore faces with children
+		if(pmg && pmg->has_children(f))
+			continue;
+
+		// if faces has been marked, store it for later marking of its neighbours
+		if(MarkIfAnisotropic(f, refiner, sizeRatio, aaPos))
+			faces.push_back(f);
+	}
+
+	// todo: consider another metric for volumetric anisotrophy: like surface to volume ratio
+	// consider a volume anisotropic, if it contains anisotropic faces
+
+	// if a face is marked for anisotropic refinement, also mark associated volumes for AR
+	for(vector<Face*>::iterator iter = faces.begin(); iter != faces.end(); ++iter)
+		CollectVolumes(volumes, grid, *iter, false);
+
+	refiner->mark(volumes.begin(), volumes.end(), RM_ANISOTROPIC);
 }
 
 
