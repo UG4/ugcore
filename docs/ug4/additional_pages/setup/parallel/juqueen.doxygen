@@ -32,9 +32,10 @@ c't, 15/2012, S. 58).
 
 \note (TMP)
 According to the output of \c llbgstatus command and the sketch provided by
-\em llview it looks like the FZJ has chosen to install all those 28 racks
-in one upgrade step (02112012))! Since the machine in this early test phase
-currently is not available we have to be patient ...
+\em llview (see below) it looks like the FZJ has chosen to install all those
+28 racks in one upgrade step (02112012)), but supposedly only 24 racks are
+active in the moment!
+
 
 Each rack contains 2<sup>5</sup> \b node \b cards,
 each consisting of 2<sup>5</sup> \b compute \b cards (or compute nodes - CN's).
@@ -160,9 +161,13 @@ module load cmake
 \endcode
 
 A short introduction to the \em module concept and the <tt>module</tt> command
-is given e.g. the following presentation titled
+is given e.g.
+<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/ModuleEnvironment.html">here</a>.
+<!--
+the following presentation titled
 <a href="http://www2.fz-juelich.de/jsc/datapool/page/4380/JSC-Tools-2011.pdf">Module setup and compiler</a>
 (pre-BG/Q, but referenced from the official BG/Q documentation).
+-->
 
 \note The \em module concept allows for dynamic modification of your shell
 environment but only for the current session. To make those changes persistent
@@ -604,20 +609,88 @@ necessary debugging information is available.
 
 \subsubsection secDebuggingOnJuQueen Debugging on JuQueen
 
+Since November 2012 a parallel debugger, \em TotalView, <!-- and \em DDT are -->
+is (eventually) available on \em JuQueen.
+
+
+<strong>Basic usage of \em TotalView</strong>:
+
+\em TotalView uses X11 for its graphical user interface. Be sure to log in with an X window
+forwarding enabled. This could mean using the <tt>-X</tt> or <tt>-Y</tt> option
+to <tt>ssh</tt>.
+
+<ol>
+<li> Load the appropriate module:
+     \code
+module load UNITE totalview
+     \endcode
+</li>
+
+(UNITE &mdash; "UNIform Integrated Tool Environment" for debugging and performance analysis",
+see <a href="http://apps.fz-juelich.de/unite/index.php/Main_Page">here</a>.)
+
+<li>Use the \c lltv command to start \em TotalView (as said by <tt>module help totalview</tt>):
+\code
+lltv -n 32 : -default_parallel_attach_subset=<n-m> runjob -a --exe <PROGRAM-TO-DEBUG> -n <number> --ranks-per-node <number>
+\endcode
+
+<strong>Example</strong>:
+\code
+lltv -n 16 : -default_parallel_attach_subset=0-15 runjob --np 16 --ranks-per-node 16 --mapping ABCDET --verbose 3 : ./ugshell -ex scaling_tests/modular_scalability_test.lua -dim 2 -grid unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -ds famg -ns famg -numPPSD 4 -numRefs 4
+\endcode
+
+I.e., one can (to the authors experience so far) just add the \c runjob line of
+a batch job definition (as written in a LoadLeveler script; see above) after
+the colon of the \c lltv command to get the corresponding interactive debug job.
+
+The system answers with something like
+\code
+Creating LoadLeveler Job
+Submiting LoadLeveler Interactive Job for TotalView
+ Wait for job juqueen1c1.49410.0 to be started:......
+\endcode
+After the job has started a shell-like window (with black background) appears,
+followed by the TotalView GUI. The shell-like window gets the output of the
+executable to be debugged.
+
+Additionally a popup window with the question "Process runjob is a parallel job.
+Do you want to stop the job now?" is shown which one (obviously) has to answer
+with "NO".
+</li>
+
+<li>TotalView startup actions can be defined on a per user basis in <tt>~/.tvdrc</tt>.
+</li>
+
+\todo
+- Test if the parameter <tt>-default_parallel_attach_subset=0-15</tt> is optional if one want to attach to all MPI processes.
+- Is it possible to shorten a command line as the one in the example by using an environment variable,
+e.g.
+\code
+UGARGS2D="-ex scaling_tests/modular_scalability_test.lua -dim 2 -grid unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -ds famg -ns famg -numPPSD 4"
+lltv -n 16 : -default_parallel_attach_subset=0-15 runjob --np 16 --ranks-per-node 16 --mapping ABCDET --verbose 3 : ./ugshell $UGARGS2D
+\endcode
+First experiences say that no job is started at all (only the black output window shows up shortly),
+but that day (19112912) the author wasn't able to start another debug session even with explicit \ug4 arguments!?
+</ol>
+
+For more information see
+- See ${TV_ROOT}/doc/pdf
+- http://www.roguewave.com/products/totalview.aspx
+
+Additional information (especially for debugging with \em TotalView) might be
+found in
+<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/ParallelDebugging.html">this JuGene (!) specific documentation</a>.
+
+<strong>Basic usage of \em DDT</strong>:
 \note
-According to FZJ support up to now (October 2012) no parallel debugger is available but there
-should be one in the not so far future!
-So, in the moment the following information is only a "placeholder".
-
-On JuQueen the parallel debuggers \em TotalView and \em DDT are available.
-
-Be sure to compile \ug4 as a debug build.
+In the moment (November 2012) \em DDT is \em not available on JuQueen! So, in the
+moment the following instructions about \em DDT (tested on JuGene only!) is meant
+as a "placeholder".
 
 DDT uses X11 for its graphical user interface. Be sure to log in with an X window
 forwarding enabled. This could mean using the <tt>-X</tt> or <tt>-Y</tt> option
 to <tt>ssh</tt>.
 
-<strong>Basic usage of \em DDT</strong>:
 <ol>
 <li> Load the appropriate module:
      \code
@@ -637,7 +710,7 @@ module load UNITE ddt
 
     Wait until the job is launched (you might exercise some patience), DDT will
     catch the focus automatically when resources are available.</li>
-</ol>
+
 The rest should be quite self-explaining.
 
 One can also immediately specify the application to debug and also its parameters
@@ -648,61 +721,35 @@ TODO: As the textfield "Number of nodes (1 procs per node)" says, choosing e.g. 
 brings up a job with only 4 MPI processes - is it also possible to get 4 processes per
 node, as we otherwise get using execution mode "VN" (<tt>-mode VN</tt>)?
 -->
-
-<strong>Basic usage of \em TotalView</strong>:
-<ol>
-<li> Load the appropriate module:
-     \code
-module load UNITE totalview
-     \endcode
-</li>
-<li>Start TotalView by adding the <tt>-tv</tt> flag to your \c llrun call with which
-    you normally would run your executable in interactive mode (see above).</li>
 </ol>
 
-<strong>Example debug sessions</strong>:
-<ol>
-<li>Start a \em DDT debugging session (immediately specifying the executable to debug):
-     \code
+<strong>Example \em DDT session</strong> (directly specifying the executable to
+debug on the command line):
+\code
 ddt
-     \endcode
+\endcode
 
-     Specification of executable and parameters should also work &mdash;
-     parameters are written in the appropriate field, but not recognised ....
-     \code
+Specification of executable and parameters should also work &mdash;
+\code
 ddt ./ugshell_debug -ex ../apps/scaling_tests/modular_scalability_test.lua -numRefs  7
-     \endcode
+\endcode
 
-     The mpirun parameters, e.g. <tt>-mapfile TXYZ -verbose 2</tt> can be placed in
-     the fields accessible after clicking on the "Advanced" button.
-     </li>
-<li>Start a \em TotalView debugging session:
-     \code
-llrun -tv -np 4 -mode VN -mapfile TXYZ -verbose 2 -exe ./ugshell_debug -args "-ex ../apps/scaling_tests/modular_scalability_test.lua -numPreRefs 3 -numRefs  7"
-     \endcode
-     Use the \c llrun option <tt>-w \<hh:mm:ss\></tt> to specify a (hopefully)
-     appropriate wall time to do all your debugging work.</li>
-<!--
-Remark: When executing \c llrun with <tt>-tv</tt> neither the <tt>-exe</tt> nor the <tt>-args</tt>
-argument (see above) was necessary, and also no quotation marks.
--->
-</ol>
+The mpirun parameters, e.g. <tt>-mapfile TXYZ -verbose 2</tt> can be placed in
+the fields accessible after clicking on the "Advanced" button.
+
 
 <!--
 \todo Maybe add some infos about <tt>gdbserver</tt> etc.
 -->
 
-For additional information (especially for debugging with TotalView) see
-http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/ParallelDebugging.html.
-
-\subsubsection secAnalysOfCorefiles Analysis of corefiles
+\subsubsection secAnalysOfCorefiles Analysis of corefiles with the Coreprocessor tool
 If a job crashes normally one or more corefiles are created.
 Corefiles are plain text files (stored in the "Parallel Tools Consortium Lightweight Corefile Format")
 and named like <tt>core.0</tt>, <tt>core.1</tt>, <tt>core.2</tt>, ...
 
 You can analyze those corefiles so that you hopefully are able to find the cause
 of the crash. The appropriate way to accomplish this task on JuQueen is using a
-tool called <tt>coreprocessor.pl</tt>. This is a perl script which provides a X11
+<strong>tool called <tt>coreprocessor.pl</tt></strong>. This is a perl script which provides a X11
 based GUI.
 
 <strong>Usage</strong>:
