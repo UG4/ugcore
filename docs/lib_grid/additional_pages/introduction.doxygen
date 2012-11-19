@@ -36,7 +36,7 @@ This not only improves cache-hits considerably but also allows to add (and remov
 data to the elements of the grid at runtime.
 To avoid performance problems, data is not added to elements one by one, but to all
 elements of the same type (Vertices / Edges / Faces / Volumes) at once.<br>
-Data managment is fully automated. The access to data is simple, typesafe and fast.
+Data management is fully automated. The access to data is simple, typesafe and fast.
 
 libGrid supports both normal and hierarchical grids.
 \sa ug::Grid, ug::MultiGrid

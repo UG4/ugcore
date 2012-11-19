@@ -16,7 +16,7 @@
 \section secGrid Grid
 <hr>
 The central class of libGrid is the Grid class.
-It handles element creation, neighbourhood managment, data-attachments and observers.
+It handles element creation, neighbourhood management, data-attachments and observers.
 The class MultiGrid is derived from Grid, and adds a hierarchical structure to the grids elements.
 	- ug::Grid
 	- ug::MultiGrid

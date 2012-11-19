@@ -15,7 +15,7 @@ It's the only chance we have to keep this guides updated and correct.
 
 
 Before installing manually, you should check if the software is available in your packet manager or
-from your cluster managment tool (e.g. module load).
+from your cluster management tool (e.g. <tt>module load</tt>).
 
 <hr>
 \section secInstallLinuxCMake CMake
