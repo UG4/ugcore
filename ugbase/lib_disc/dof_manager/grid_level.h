@@ -31,7 +31,7 @@ class GridLevel
 		GridLevel(int level) : m_level(level), m_type(SURFACE) {}
 
 	///	constructor
-		GridLevel(int level, std::string type) : m_level(level)
+		GridLevel(int level, const std::string& type) : m_level(level)
 		{
 			if(type == "top") {m_type = LEVEL;}
 			else if(type == "surf") {m_type = SURFACE;}
@@ -67,7 +67,7 @@ inline std::ostream& operator<<(std::ostream& out,	const GridLevel& v)
 	else UG_THROW("type of GridLevel not found.");
 
 	if(v.level() == GridLevel::TOPLEVEL) out << "toplevel)";
-	else out << v.level() << ")";
+	else out << v.level() << ')';
 	return out;
 }
 
