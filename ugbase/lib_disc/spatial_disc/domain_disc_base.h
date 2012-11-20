@@ -200,7 +200,7 @@ class DomainDiscBase
 				UG_THROW("Grid Level not recognized.");
 		}
 
-		virtual	void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl)
+		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl)
 		{
 			if(gl.type() == GridLevel::LEVEL)
 				getImpl().template finish_timestep<LevelDoFDistribution>(vSol, lev_dd(gl));
@@ -209,6 +209,9 @@ class DomainDiscBase
 			else
 				UG_THROW("Grid Level not recognized.");
 		}
+
+		// virtual destructor
+		virtual ~DomainDiscBase() {};
 
 	protected:
 	///	returns the level dof distribution

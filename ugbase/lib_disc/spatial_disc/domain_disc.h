@@ -63,6 +63,8 @@ class DomainDiscretization
 			this->set_approximation_space(pApproxSpace);
 		};
 
+		virtual ~DomainDiscretization() {};
+
 	///////////////////////////
 	// Time independent part
 	///////////////////////////
