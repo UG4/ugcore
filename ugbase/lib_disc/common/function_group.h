@@ -72,7 +72,7 @@ class FunctionGroup
 		void sort();
 
 	/// returns if function group is empty
-		bool empty() {return m_vFunction.empty();}
+		bool empty() const {return m_vFunction.empty();}
 
 	/// number of functions in this group
 		size_t size() const {return num_fct();}
@@ -219,26 +219,26 @@ class FunctionIndexMapping
 inline
 std::ostream& operator<< (std::ostream& outStream, const ug::FunctionIndexMapping& map)
 {
-	outStream << "[" ;
+	outStream << '[';
 	for(size_t i = 0; i < map.num_fct(); ++i)
 	{
 		outStream << map[i];
-		if(i !=  map.num_fct()-1) outStream << ",";
+		if(i !=  map.num_fct()-1) outStream << ',';
 	}
-	outStream << "]";
+	outStream << ']';
 	return outStream;
 }
 
 inline
 std::ostream& operator<< (std::ostream& outStream, const ug::FunctionGroup& grp)
 {
-	outStream << "[" ;
+	outStream << '[';
 	for(size_t i = 0; i < grp.num_fct(); ++i)
 	{
 		outStream << grp[i];
-		if(i !=  grp.num_fct()-1) outStream << ",";
+		if(i !=  grp.num_fct()-1) outStream << ',';
 	}
-	outStream << "]";
+	outStream << ']';
 	return outStream;
 }
 
