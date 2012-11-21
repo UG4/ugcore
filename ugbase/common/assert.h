@@ -41,11 +41,11 @@ UG_API void ug_assert_failed();
 
 #define UG_ASSERT(expr, msg)  {if(!(expr)) \
 								{ \
-									UG_LOG("\n  UG_ASSERT failed:\n"); \
-									UG_LOG("    Condition:   " << UG_TO_STRING(expr) << "\n"); \
-									UG_LOG("    Description: " << msg << "\n"); \
-									UG_LOG("    File:        " << __FILE__ << "\n"); \
-									UG_LOG("    Line:        " << __LINE__ << "\n\n"); \
+									UG_LOG_ALL_PROCS(	"\n  UG_ASSERT failed:\n"\
+														"    Condition:   " << UG_TO_STRING(expr) << "\n"\
+														"    Description: " << msg << "\n"\
+														"    File:        " << __FILE__ << "\n"\
+														"    Line:        " << __LINE__ << "\n\n"); \
 									ug_assert_failed(); \
 									assert(expr);\
 								}}
