@@ -852,19 +852,20 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 
 		//	mark the volume
 			mark(v);
+			//if(ref.get_mark(v) != RM_ANISOTROPIC){
+			//	we have to make sure that all associated edges and faces are marked.
+				CollectEdges(vEdges, grid, v);
+				for(size_t i = 0; i < vEdges.size(); ++i){
+					if(!is_marked(vEdges[i]) && refinement_is_allowed(vEdges[i]))
+						qEdges.push(vEdges[i]);
+				}
 
-		//	we have to make sure that all associated edges and faces are marked.
-			CollectEdges(vEdges, grid, v);
-			for(size_t i = 0; i < vEdges.size(); ++i){
-				if(!is_marked(vEdges[i]) && refinement_is_allowed(vEdges[i]))
-					qEdges.push(vEdges[i]);
-			}
-
-			CollectFaces(vFaces, grid, v);
-			for(size_t i = 0; i < vFaces.size(); ++i){
-				if(!is_marked(vFaces[i]) && refinement_is_allowed(vFaces[i]))
-					qFaces.push(vFaces[i]);
-			}
+				CollectFaces(vFaces, grid, v);
+				for(size_t i = 0; i < vFaces.size(); ++i){
+					if(!is_marked(vFaces[i]) && refinement_is_allowed(vFaces[i]))
+						qFaces.push(vFaces[i]);
+				}
+			//}
 		}
 	}
 	UG_DLOG(LIB_GRID, 1, "    done.\n");
