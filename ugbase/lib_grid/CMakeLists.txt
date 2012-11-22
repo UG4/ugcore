@@ -39,6 +39,8 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/extrusion/extrude.cpp
 					algorithms/extrusion/cylinder_extrusion.cpp
 					algorithms/extrusion/expand_layers.cpp
+					algorithms/refinement/ref_mark_adjusters/std_hnode_adjuster.cpp
+					algorithms/refinement/ref_mark_adjusters/mg_hnode_adjuster.cpp
 					algorithms/refinement/adaptive_regular_mg_refiner.cpp
 					algorithms/refinement/fractured_media_refiner.cpp
 					algorithms/refinement/hanging_node_refiner_base.cpp

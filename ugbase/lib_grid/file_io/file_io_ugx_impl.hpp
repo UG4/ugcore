@@ -7,6 +7,7 @@
 
 #include <sstream>
 #include <cstring>
+#include "lib_grid/algorithms/debug_util.h"
 
 namespace ug
 {
@@ -366,7 +367,9 @@ grid(Grid& gridOut, size_t index,
 				
 				default:
 				{
-					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining element\n");
+					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining vertex"
+							<< " at " << GetGeometricObjectCenter(grid, hv) << "\n");
+					break;
 				}
 			}
 		}
@@ -422,7 +425,9 @@ grid(Grid& gridOut, size_t index,
 				
 				default:
 				{
-					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining element\n");
+					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining edge"
+							<< " at " << GetGeometricObjectCenter(grid, ce) << "\n");
+					break;
 				}
 			}
 		}
@@ -460,7 +465,9 @@ grid(Grid& gridOut, size_t index,
 				
 				default:
 				{
-					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining element\n");
+					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining triangle"
+							<< " at " << GetGeometricObjectCenter(grid, cdf) << "\n");
+					break;
 				}
 			}
 		}
@@ -498,7 +505,9 @@ grid(Grid& gridOut, size_t index,
 				
 				default:
 				{
-					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining element\n");
+					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining quadrilateral"
+							<< " at " << GetGeometricObjectCenter(grid, cdf) << "\n");
+					break;
 				}
 			}
 		}

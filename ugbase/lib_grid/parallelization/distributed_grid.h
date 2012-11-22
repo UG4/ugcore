@@ -111,6 +111,14 @@ class DistributedGridManager : public GridObserver
 	 	template<class TElem>
 		inline bool is_ghost(TElem* elem) const;
 
+	///	returns true if the element is contained in a horizontal interface
+	 	template<class TElem>
+		inline bool is_in_horizontal_interface(TElem* elem) const;
+
+	///	returns true if the element is contained in a vertical interface
+	 	template<class TElem>
+		inline bool is_in_vertical_interface(TElem* elem) const;
+
 	//	element creation
 	///	call this method before you start creating new elements in the associated grid.
 	/** You shouldn't add new interfaces to the associated communication-set

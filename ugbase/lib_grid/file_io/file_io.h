@@ -100,6 +100,12 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, ISubsetHandler& sh,
 bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename,
 									  number offset);
 
+///	Saves the grid-layout of parallel multi-grids
+/**	\todo:	Support any type of position attachment*/
+bool SaveParallelGridLayout(MultiGrid& mg, const char* filename,
+							number offset = 0.1);
+
+
 };
 
 #endif

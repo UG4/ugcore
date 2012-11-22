@@ -141,10 +141,22 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 
 	#ifdef LG_REDIST_DEBUG
 	{
-		UG_LOG("DEBUG: WRITING GLOBAL IDS TO FILE\n");
+		UG_LOG("DEBUG: WRITING GLOBAL VERTEX IDS TO FILE\n");
 		stringstream ss;
-		ss << "global_ids_p" << pcl::GetProcRank() << ".txt";
+		ss << "global_ids_vrt_p" << pcl::GetProcRank() << ".txt";
 		WriteDebugValuesToFile<VertexBase>(ss.str().c_str(), mg, aGeomObjID, false);
+	}
+	{
+		UG_LOG("DEBUG: WRITING GLOBAL EDGE IDS TO FILE\n");
+		stringstream ss;
+		ss << "global_ids_edge_p" << pcl::GetProcRank() << ".txt";
+		WriteDebugValuesToFile<EdgeBase>(ss.str().c_str(), mg, aGeomObjID, false);
+	}
+	{
+		UG_LOG("DEBUG: WRITING GLOBAL FACE IDS TO FILE\n");
+		stringstream ss;
+		ss << "global_ids_face_p" << pcl::GetProcRank() << ".txt";
+		WriteDebugValuesToFile<Face>(ss.str().c_str(), mg, aGeomObjID, false);
 	}
 	#endif
 
@@ -746,10 +758,30 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 						case EDGE:
 							nVrt = *mgDest.create_by_cloning(vrt,
 										aaEdge[static_cast<EdgeBase*>(parent)]);
+							if(nVrt->is_constrained()){
+								ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(
+															aaEdge[static_cast<EdgeBase*>(parent)]);
+								UG_ASSERT(ce, "Parent edge of a constrained vertex has "
+										"to be of type ConstrainingEdge!");
+								ce->add_constrained_object(nVrt);
+								ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(nVrt);
+								UG_ASSERT(hv, "A constrained vertex has to be of type ConstrainedVertex");
+								hv->set_constraining_object(ce);
+							}
 							break;
 						case FACE:
 							nVrt = *mgDest.create_by_cloning(vrt,
 											aaFace[static_cast<Face*>(parent)]);
+							if(nVrt->is_constrained()){
+								ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(
+															aaFace[static_cast<Face*>(parent)]);
+								UG_ASSERT(cf, "Parent face of a constrained vertex has "
+										"to be of type ConstrainingFace!");
+								cf->add_constrained_object(nVrt);
+								ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(nVrt);
+								UG_ASSERT(hv, "A constrained vertex has to be of type ConstrainedVertex");
+								hv->set_constraining_object(cf);
+							}
 							break;
 						case VOLUME:
 							nVrt = *mgDest.create_by_cloning(vrt,
@@ -796,6 +828,16 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 			{
 			//	the edge already exists.
 				ne = *findIter;
+				UG_ASSERT(e->is_constrained() == ne->is_constrained(),
+						 " Existing and new edge should either both be constrained or none."
+						<< " new edge constrained: " << e->is_constrained()
+						<< ", old edge constrained: " << ne->is_constrained()
+						<< ", GlobaID: " << curID);
+				UG_ASSERT(e->is_constraining() == ne->is_constraining(),
+						 " Existing and new edge should either both be constraining or none."
+						<< " new edge constraining: " << e->is_constraining()
+						<< ", old edge constraining: " << ne->is_constraining()
+						<< ", GlobaID: " << curID);
 			}
 			else{
 			//	the edge didn't yet exist. create it.
@@ -808,10 +850,30 @@ static void CopyNewElements(MultiGrid& mgDest, MultiGrid& mgSrc,
 						case EDGE:
 							ne = *mgDest.create_by_cloning(e, ed,
 										aaEdge[static_cast<EdgeBase*>(parent)]);
+							if(ne->is_constrained()){
+								ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(
+															aaEdge[static_cast<EdgeBase*>(parent)]);
+								UG_ASSERT(ce, "Parent edge of a constrained edge has "
+										"to be of type ConstrainingEdge!");
+								ce->add_constrained_object(ne);
+								ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(ne);
+								UG_ASSERT(cde, "A constrained edge has to be of type ConstrainedEdge");
+								cde->set_constraining_object(ce);
+							}
 							break;
 						case FACE:
 							ne = *mgDest.create_by_cloning(e, ed,
 											aaFace[static_cast<Face*>(parent)]);
+							if(ne->is_constrained()){
+								ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(
+															aaFace[static_cast<Face*>(parent)]);
+								UG_ASSERT(cf, "Parent face of a constrained edge has "
+										"to be of type ConstrainingFace!");
+								cf->add_constrained_object(ne);
+								ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(ne);
+								UG_ASSERT(cde, "A constrained edge has to be of type ConstrainedEdge");
+								cde->set_constraining_object(cf);
+							}
 							break;
 						case VOLUME:
 							ne = *mgDest.create_by_cloning(e, ed,

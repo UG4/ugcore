@@ -5,19 +5,80 @@
 #ifndef __H__UG__refmark_adjuster_interface__
 #define __H__UG__refmark_adjuster_interface__
 
+#include "refiner_interface.h"
+#include "common/util/smart_pointer.h"
+
 namespace ug{
 
+///	\addtogroup lib_grid_algorithms_refinement
+///	@{
+
+/**	Used to steer the mark-adjustment process in classes derived from IRefiner.
+ * Instances can be registered at IRefiner and are then used to mark new elements
+ * based on already marked elements. Different specializations can thereby implement
+ * different rules (e.g. for parallel refinement or anisotropic refinement).
+ * The different specialization should be constructed orthogonal to each other,
+ * so that they can be chained.
+ *
+ * The callback-methods 'ref_marks_changed' and 'coarsen_marks_changed' are called
+ * with lists of elements which have been marked since the last adjustment-round.
+ * The callbacks can then use IRefiner::mark to adjust marks as required.
+ * If a callback changes a ref-mark on an element, and returns CONTINUE_IF_MARKED_NEW,
+ * this will automatically trigger a new round of adjustments
+ * (then only considering elements which have been marked in the current round).
+ *
+ * A callback method can also return FORCE_CONTINUE, in which case the a new
+ * adjustment round will be performed even if no new elements were selected. This
+ * can be important for adjusters in a parallel environment.
+ *
+ * Adjustment stops as soon as no adjuster marked any new elements.
+ */
 class IRefMarkAdjuster
 {
 	public:
+		enum AdjustRetVal{
+			CONTINUE_IF_MARKED_NEW = 0,
+			FORCE_CONTINUE = 1
+		};
+
+		IRefMarkAdjuster() :
+			m_nodeDependencyOrder1(true)
+		{}
+
 		virtual ~IRefMarkAdjuster()	{}
 
-		virtual void ref_marks_changed(IRefiner& ref,
-									   const std::vector<VertexBase*>& vrts,
-									   const std::vector<EdgeBase*>& edge,
-									   const std::vector<Face*>& face,
-									   const std::vector<Volume*>& vol);
+		virtual AdjustRetVal ref_marks_changed(IRefiner& ref,
+											const std::vector<VertexBase*>& vrts,
+											const std::vector<EdgeBase*>& edges,
+											const std::vector<Face*>& faces,
+											const std::vector<Volume*>& vols)
+		{return CONTINUE_IF_MARKED_NEW;}
+
+		virtual AdjustRetVal coarsen_marks_changed(IRefiner& ref,
+											const std::vector<VertexBase*>& vrts,
+											const std::vector<EdgeBase*>& edges,
+											const std::vector<Face*>& faces,
+											const std::vector<Volume*>& vols)
+		{return CONTINUE_IF_MARKED_NEW;}
+
+	///	enables or disables node-dependency-order-1.
+	/**	\{
+	 * If enabled, hanging nodes may only depend on non-hanging nodes.
+	 * An edge containing a hanging node thus will not have a hanging-node
+	 * as a corner vertex.
+	 *
+	 * Enabled by default.*/
+		void enable_node_dependency_order_1(bool bEnable)	{m_nodeDependencyOrder1 = bEnable;}
+		bool node_dependency_order_1_enabled()				{return m_nodeDependencyOrder1;}
+	/**	\} */
+
+	private:
+		bool	m_nodeDependencyOrder1;
 };
+
+typedef SmartPtr<IRefMarkAdjuster>	SPIRefMarkAdjuster;
+
+/// @}
 
 }// end of namespace
 

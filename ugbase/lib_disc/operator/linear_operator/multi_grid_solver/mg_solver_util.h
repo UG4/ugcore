@@ -448,9 +448,17 @@ void SetZeroOnShadowing(TVector& vec,
 					UG_ASSERT(ind[i] < mapGlobalToPatch.size(),
 							 "mapGlobalToPatch is too small on level " << dd->grid_level() << "."
 							 << "size: " << mapGlobalToPatch.size() << ", "
-							 << "index: " << ind[i]);
+							 << "index: " << ind[i]
+							 << ", at " << GetGeometricObjectCenter(
+									 *const_cast<MultiGrid*>(surfView.subset_handler()->multi_grid()), vrt)
+							 << ", on level " << surfView.subset_handler()->multi_grid()->get_level(vrt));
 					UG_ASSERT((mapGlobalToPatch[ind[i]] >= 0) && (mapGlobalToPatch[ind[i]] < (int)vec.size()),
-							  "Some problem with mapGlobalToPatch... probably trying to set a ghost to zero?");
+							  "Some problem with mapGlobalToPatch... probably trying to set a ghost to zero? "
+							  << "mapGlobalToPatch[ind[i]] = " << mapGlobalToPatch[ind[i]]
+							  << ", num patch indices " << vec.size()
+							  << ", at " << GetGeometricObjectCenter(
+									  *const_cast<MultiGrid*>(surfView.subset_handler()->multi_grid()), vrt)
+							  << ", on level " << surfView.subset_handler()->multi_grid()->get_level(vrt));
 					vec[mapGlobalToPatch[ind[i]]] = 0.0;
 				}
 			}

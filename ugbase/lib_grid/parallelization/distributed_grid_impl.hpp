@@ -19,6 +19,22 @@ is_interface_element(TElem* elem)
 
 template<class TElem>
 inline bool DistributedGridManager::
+is_in_horizontal_interface(TElem* elem) const
+{
+	byte status = get_status(elem);
+	return 	(status & (ES_H_MASTER | ES_H_SLAVE)) != 0;
+}
+
+template<class TElem>
+inline bool DistributedGridManager::
+is_in_vertical_interface(TElem* elem) const
+{
+	byte status = get_status(elem);
+	return 	(status & (ES_V_MASTER | ES_V_SLAVE)) != 0;
+}
+
+template<class TElem>
+inline bool DistributedGridManager::
 is_ghost(TElem* elem) const
 {
 	byte status = get_status(elem);

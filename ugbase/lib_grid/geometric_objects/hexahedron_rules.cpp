@@ -86,7 +86,6 @@ int Refine(int* newIndsOut, int* newEdgeVrts, bool& newCenterOut, vector3*)
 			for(int i = 0; i < NUM_FACES; ++i){
 				if(!FACE_CONTAINS_EDGE[i][refEdge]){
 					const int* f = FACE_VRT_INDS[i];
-				//	create a prism
 					inds[fi++] = 5;
 					inds[fi++] = f[0];	inds[fi++] = f[1];
 					inds[fi++] = f[2];	inds[fi++] = f[3];

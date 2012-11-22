@@ -688,6 +688,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 						  static_cast<bool (*)(MultiGrid&, const char*, number)>(
 								  &SaveGridHierarchyTransformed),
 						  grp)
+			.add_function("SaveParallelGridLayout", &SaveParallelGridLayout)
 			.add_function("CreateGridObject", &CreateGridObject, grp)
 			.add_function("PrintGridElementNumbers", static_cast<void (*)(MultiGrid&)>(&PrintGridElementNumbers), grp)
 			.add_function("PrintGridElementNumbers", static_cast<void (*)(Grid&)>(&PrintGridElementNumbers), grp);

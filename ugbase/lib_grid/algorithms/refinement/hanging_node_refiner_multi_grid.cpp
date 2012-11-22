@@ -7,6 +7,7 @@
 #include "lib_grid/algorithms/multi_grid_util.h"
 #include "lib_grid/algorithms/selection_util.h"
 #include "hanging_node_refiner_multi_grid.h"
+#include "ref_mark_adjusters/mg_hnode_adjuster.h"
 
 //	Only required for debug saves
 #include "lib_grid/file_io/file_io.h"
@@ -34,7 +35,7 @@ HangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback) :
 	HangingNodeRefinerBase(refCallback),
 	m_pMG(NULL)
 {
-
+	add_ref_mark_adjuster(MGHNodeAdjuster::create());
 }
 
 HangingNodeRefiner_MultiGrid::
@@ -43,6 +44,7 @@ HangingNodeRefiner_MultiGrid(MultiGrid& mg,
 	HangingNodeRefinerBase(refCallback),
 	m_pMG(NULL)
 {
+	add_ref_mark_adjuster(MGHNodeAdjuster::create());
 	set_grid(&mg);
 }
 
@@ -166,51 +168,6 @@ pre_refine()
 				m_refCallback->new_vertex(vrt, *iter);
 		}
 	}
-}
-
-void HangingNodeRefiner_MultiGrid::
-collect_objects_for_refine()
-{
-	UG_DLOG(LIB_GRID, 1, "  collect_objects_for_refine started for multi-grid...\n");
-
-	if(!m_pMG)
-		throw(UGError("HangingNodeRefiner_MultiGrid::collect_objects_for_refine: No grid assigned."));
-
-	MultiGrid& mg = *m_pMG;
-
-//	first call base implementation
-	HangingNodeRefinerBase::collect_objects_for_refine();
-
-//	now select all associated vertices of marked objects,
-//	since we have to create new vertices in the next levels of the hierarchies.
-//	only vertices which do not already have child vertices are selected.
-	for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
-		iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
-	{
-		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
-			if(!mg.has_children((*iter)->vertex(i)))
-				mark((*iter)->vertex(i));
-		}
-	}
-
-	for(FaceIterator iter = m_selMarkedElements.begin<Face>();
-		iter != m_selMarkedElements.end<Face>(); ++iter)
-	{
-		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
-			if(!mg.has_children((*iter)->vertex(i)))
-				mark((*iter)->vertex(i));
-		}
-	}
-
-	for(VolumeIterator iter = m_selMarkedElements.begin<Volume>();
-		iter != m_selMarkedElements.end<Volume>(); ++iter)
-	{
-		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
-			if(!mg.has_children((*iter)->vertex(i)))
-				mark((*iter)->vertex(i));
-		}
-	}
-	UG_DLOG(LIB_GRID, 1, "  mg-collect done...\n");
 }
 
 void HangingNodeRefiner_MultiGrid::

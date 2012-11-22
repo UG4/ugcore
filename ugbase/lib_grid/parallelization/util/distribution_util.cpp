@@ -831,7 +831,7 @@ void CreateDistributionLayouts(
 		CreateVerticalInterfaces(faceLayoutsOut, mg, msel, sh, aInfoVec,
 								copiedFaces, pDistGridMgr, processMap);
 
-	//	now copy missing edges and vertices of newly copied volumes
+	//	now copy missing edges and vertices of newly copied faces
 	//	to the distribution layouts (those elements are already selected...).
 		CopyAssociatedElemsToDistLayouts(edgeLayoutsOut, mg, aInfoVec, copiedFaces);
 		CopyAssociatedElemsToDistLayouts(vertexLayoutsOut, mg, aInfoVec, copiedFaces);
@@ -840,7 +840,7 @@ void CreateDistributionLayouts(
 		CreateVerticalInterfaces(edgeLayoutsOut, mg, msel, sh, aInfoVec,
 								copiedEdges, pDistGridMgr, processMap);
 
-	//	now copy missing edges of newly copied volumes to the distribution layouts.
+	//	now copy missing vertices of newly copied edges to the distribution layouts.
 	//	(those elements are already selected...)
 		CopyAssociatedElemsToDistLayouts(vertexLayoutsOut, mg, aInfoVec, copiedEdges);
 

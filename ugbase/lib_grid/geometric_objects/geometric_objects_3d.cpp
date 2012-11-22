@@ -163,7 +163,6 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 //	the VolumeDescriptor will be used to create new volumes
 	VolumeDescriptor vd;
 
-//	create the elements from the given indices (there should be 2 tets)
 	for(int i = 0; i < numElemInds;){
 		int num = newElemInds[i++];
 		vd.set_num_vertices(num);

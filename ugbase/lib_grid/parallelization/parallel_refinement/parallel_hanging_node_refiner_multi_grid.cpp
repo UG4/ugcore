@@ -198,9 +198,247 @@ collect_objects_for_refine()
 	UG_DLOG(LIB_GRID, 1, "  collect_objects_for_refine done for parallel multi-grid...\n");
 }
 
+
+static void ReplaceByNormal(MultiGrid& mg, VertexBase* v)
+{
+	mg.create_and_replace<Vertex>(v);
+}
+
+static void ReplaceByConstrained(MultiGrid& mg, VertexBase* v)
+{
+	mg.create_and_replace<ConstrainedVertex>(v);
+}
+
+static void ReplaceByConstraining(MultiGrid&, VertexBase*)
+{
+	UG_THROW("Can't convert vertex to constraining-vertex! "
+			"(Constraining vertices don't exist!");
+}
+
+static void ReplaceByNormal(MultiGrid& mg, EdgeBase* e)
+{
+	mg.create_and_replace<Edge>(e);
+}
+
+static void ReplaceByConstrained(MultiGrid& mg, EdgeBase* e)
+{
+	mg.create_and_replace<ConstrainedEdge>(e);
+}
+
+static void ReplaceByConstraining(MultiGrid& mg, EdgeBase* e)
+{
+	mg.create_and_replace<ConstrainingEdge>(e);
+}
+
+static void ReplaceByNormal(MultiGrid& mg, Face* f)
+{
+	if(f->num_vertices() == 3)
+		mg.create_and_replace<Triangle>(f);
+	else{
+		UG_ASSERT(f->num_vertices() == 4,
+				"Only triangles and quatrilaterals currently supported");
+		mg.create_and_replace<Quadrilateral>(f);
+	}
+}
+
+static void ReplaceByConstrained(MultiGrid& mg, Face* f)
+{
+	if(f->num_vertices() == 3)
+		mg.create_and_replace<ConstrainedTriangle>(f);
+	else{
+		UG_ASSERT(f->num_vertices() == 4,
+				"Only triangles and quatrilaterals currently supported");
+		mg.create_and_replace<ConstrainedQuadrilateral>(f);
+	}
+}
+
+static void ReplaceByConstraining(MultiGrid& mg, Face* f)
+{
+	if(f->num_vertices() == 3)
+		mg.create_and_replace<ConstrainingTriangle>(f);
+	else{
+		UG_ASSERT(f->num_vertices() == 4,
+				"Only triangles and quatrilaterals currently supported");
+		mg.create_and_replace<ConstrainingQuadrilateral>(f);
+	}
+}
+
+/**	During collection all elements which change their constrained/constraining type
+ * push their interface index and an indicator for their new type to the buffer.
+ *
+ * During extraction, the local type of the element at a received interface entry
+ * is checked. If the type is different, the element is immediately replaced in
+ * the underlying grid. This should work fine with the distributed grid manager,
+ * which updates interfaces on the fly.
+ *
+ * This ComPol is intended for communication from vertical slaves to vertical
+ * masters only. Changes are only applied to ghost-elements.
+ *
+ * This ComPol may currently only be used for vertices, edges and faces.
+ */
+template <class TLayout>
+class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
+{
+	public:
+		typedef TLayout							Layout;
+		typedef typename Layout::Type			GeomObj;
+		typedef typename Layout::Element		Element;
+		typedef typename Layout::Interface		Interface;
+		typedef typename Interface::iterator	InterfaceIter;
+
+		enum ConversionTypes{
+			CT_IGNORE = 0,
+			CT_TO_NORMAL = 1,
+			CT_TO_CONSTRAINED = 2,
+			CT_TO_CONSTRAINING = 3
+		};
+
+		ComPol_AdjustType(Selector& sel, DistributedGridManager& distGridMgr)
+			 :	m_sel(sel), m_distGridMgr(distGridMgr)
+		{}
+
+		virtual ~ComPol_AdjustType()		{}
+
+		virtual int
+		get_required_buffer_size(Interface& interface)		{return -1;}
+
+	///	writes the selection states of the interface entries
+		virtual bool
+		collect(ug::BinaryBuffer& buff, Interface& interface)
+		{
+		//	search for entries which changed their constrained/constraining status
+			UG_ASSERT(m_distGridMgr.get_assigned_grid(),
+					"The distributed grid manager has to operate on a valid grid!");
+			MultiGrid& mg = *m_distGridMgr.get_assigned_grid();
+
+			int counter = 0;
+			for(InterfaceIter iter = interface.begin();
+				iter != interface.end(); ++iter, ++counter)
+			{
+				byte mark = CT_IGNORE;
+				Element elem = interface.get_element(iter);
+
+			//	if the element is also contained in a horizontal interface, we
+			//	don't have (and indeed must not) convert the element during this
+			//	communication step. We therefore won't send any change message...
+				if(m_distGridMgr.is_in_horizontal_interface(elem))
+					continue;
+
+				if(m_sel.is_selected(elem)){
+					if(elem->is_constraining()){
+						if((m_sel.get_selection_status(elem)
+							& HangingNodeRefinerBase::HNRM_CONSTRAINED) == 0)
+						{
+							mark = CT_TO_NORMAL;
+						}
+					}
+					else if(elem->is_constrained()){
+						if((m_sel.get_selection_status(elem)
+							& HangingNodeRefinerBase::HNRM_CONSTRAINED))
+						{
+							mark = CT_TO_CONSTRAINING;
+						}
+					}
+					else{
+						if((m_sel.get_selection_status(elem)
+							& HangingNodeRefinerBase::HNRM_CONSTRAINED))
+						{
+							mark = CT_TO_CONSTRAINING;
+						}
+					}
+				}
+				else{
+					if(elem->is_constrained()){
+						GeometricObject* go = mg.get_parent(elem);
+						if(go && m_sel.is_selected(go)){
+							if((m_sel.get_selection_status(go)
+								& HangingNodeRefinerBase::HNRM_CONSTRAINED) == 0)
+							{
+								mark = CT_TO_NORMAL;
+							}
+						}
+					}
+				}
+
+				if(mark != CT_IGNORE){
+					buff.write((char*)&counter, sizeof(int));
+					buff.write((char*)&mark, sizeof(byte));
+				}
+			}
+
+			int eof = -1;
+			buff.write((char*)&eof, sizeof(int));
+			return true;
+		}
+
+	///	reads marks from the given stream
+		virtual bool
+		extract(ug::BinaryBuffer& buff, Interface& interface)
+		{
+		//	search for entries which changed their constrained/constraining status
+			UG_ASSERT(m_distGridMgr.get_assigned_grid(),
+					"The distributed grid manager has to operate on a valid grid!");
+			MultiGrid& mg = *m_distGridMgr.get_assigned_grid();
+
+			int counter = 0;
+			InterfaceIter iter = interface.begin();
+			while(1){
+				int index;
+				buff.read((char*)&index, sizeof(int));
+				if(index == -1)
+					break;
+
+				byte mark;
+				buff.read((char*)&mark, sizeof(byte));
+
+				while((counter < index) && (iter != interface.end())){
+					++iter;
+					++counter;
+				}
+
+				if(iter == interface.end()){
+					UG_LOG("WARNING: Unexpectedly reached end of interface\n");
+				}
+
+				Element elem = interface.get_element(iter);
+
+				UG_ASSERT(m_distGridMgr.is_ghost(elem), "Only ghost elements may"
+						" be changed at this point!");
+
+				switch(mark){
+					case CT_TO_NORMAL:
+						if(elem->is_constraining() || elem->is_constrained()){
+							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with normal edge.\n");
+							ReplaceByNormal(mg, elem);
+						}
+						break;
+					case CT_TO_CONSTRAINING:
+						if(!elem->is_constraining()){
+							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with constraining edge.\n");
+							ReplaceByConstraining(mg, elem);
+						}
+						break;
+					case CT_TO_CONSTRAINED:
+						if(!elem->is_constrained()){
+							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with constrained edge.\n");
+							ReplaceByConstrained(mg, elem);
+						}
+						break;
+				}
+			}
+			return true;
+		}
+
+	private:
+		Selector& 				m_sel;
+		DistributedGridManager&	m_distGridMgr;
+};
+
+
 void ParallelHangingNodeRefiner_MultiGrid::
 assign_hnode_marks()
 {
+	UG_DLOG(LIB_GRID, 1, "ParHNodeRef-start: assign_hnode_marks\n");
 //	call base implementation
 	BaseClass::assign_hnode_marks();
 
@@ -233,6 +471,37 @@ assign_hnode_marks()
 
 	m_intfComEDGE.communicate();
 	m_intfComFACE.communicate();
+
+
+//	until now we only communicated hnode-marks over horizontal interfaces.
+//	However, while we won't refine ghosts (vertical masters which do not lie
+//	in any horizontal interface) we have to adjust their type (constrained / constraining)
+//	so that they match the type of their vertical slaves. While this is not really
+//	important for most uses, differing types of ghosts cause problems during
+//	redistribution, which possibly causes issues in methods executed afterwards.
+//	Note: we adjust types of ghosts before refinement here. This is not a problem,
+//	since it only involves replacement, which can be handled by the distributed
+//	grid manager even outside of begin_ordered_element_insertion/end_...
+
+	ComPol_AdjustType<VertexLayout> compolAdjustVRT(BaseClass::m_selMarkedElements,
+													*m_pDistGridMgr);
+	ComPol_AdjustType<EdgeLayout> compolAdjustEDGE(BaseClass::m_selMarkedElements,
+												   *m_pDistGridMgr);
+	ComPol_AdjustType<FaceLayout> compolAdjustFACE(BaseClass::m_selMarkedElements,
+												   *m_pDistGridMgr);
+
+	m_intfComVRT.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER,
+							   compolAdjustVRT);
+	m_intfComEDGE.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER,
+								compolAdjustEDGE);
+	m_intfComFACE.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER,
+								compolAdjustFACE);
+
+	m_intfComVRT.communicate();
+	m_intfComEDGE.communicate();
+	m_intfComFACE.communicate();
+
+	UG_DLOG(LIB_GRID, 1, "ParHNodeRef-stop: assign_hnode_marks\n");
 }
 
 bool

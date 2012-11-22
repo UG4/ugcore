@@ -7,6 +7,8 @@
 #include "lib_grid/algorithms/attachment_util.h"
 #include "common/util/path_provider.h"
 #include "common/util/file_util.h"
+#include "lib_grid/parallelization/distributed_grid.h"
+#include "lib_grid/algorithms/subset_util.h"
 
 using namespace std;
 
@@ -367,6 +369,97 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename,
 			aaPos[*iter].z += (number)lvl * offset;
 		}
 	}
+
+//	finally save the grid
+	bool writeSuccess = SaveGridToFile(mg, sh, filename, aPos);
+
+//	clean up
+	mg.detach_from_vertices(aPos);
+
+	return writeSuccess;
+}
+
+template <class TElem>
+static void AssignSubsetsByInterfaceType(SubsetHandler& sh, MultiGrid& mg)
+{
+	DistributedGridManager* distGridMgr = mg.distributed_grid_manager();
+
+	const int siNormal = 0;
+	const int siHMaster = 1;
+	const int siHSlave = 1 << 1;
+	const int siVMaster = 1 << 2;
+	const int siVSlave = 1 << 3;
+
+	const char* subsetNames[] = {"normal", "hmaster", "hslave", "hslave+hmaster",
+						  "vmaster", "vmaster+hmaster", "vmaster+hslave",
+						  "vmaster+hslave+hmaster", "vslave", "vslave+hmaster",
+						  "vslave+hslave", "vslave+hslave+hmaster",
+						  "vslave+vmaster", "vslave+vmaster+hmaster",
+						  "vslave+vmaster+hslave", "vslave+vmaster+hmaster+hslave"};
+
+	for(int i = 0; i < 16; ++i)
+		sh.subset_info(i).name = subsetNames[i];
+
+	typedef typename Grid::traits<TElem>::iterator TIter;
+	for(TIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
+		int status = ES_NONE;
+
+		#ifdef UG_PARALLEL
+			if(distGridMgr)
+				status = distGridMgr->get_status(*iter);
+		#endif
+
+		int index = siNormal;
+		if(status & ES_H_MASTER)
+			index |= siHMaster;
+		if(status & ES_H_SLAVE)
+			index |= siHSlave;
+		if(status & ES_V_MASTER)
+			index |= siVMaster;
+		if(status & ES_V_SLAVE)
+			index |= siVSlave;
+
+		sh.assign_subset(*iter, index);
+	}
+}
+
+bool SaveParallelGridLayout(MultiGrid& mg, const char* filename, number offset)
+{
+	PROFILE_FUNC_GROUP("grid");
+
+	APosition aPos;
+//	uses auto-attach
+	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
+
+//	copy the existing position to aPos. We take care of dimension differences.
+//	Note:	if the method was implemented for domains, this could be implemented
+//			in a nicer way.
+	if(mg.has_vertex_attachment(aPosition))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
+	else if(mg.has_vertex_attachment(aPosition2))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition2, aPos);
+	else if(mg.has_vertex_attachment(aPosition1))
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition1, aPos);
+
+//	iterate through all vertices and apply an offset depending on their level.
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		for(VertexBaseIterator iter = mg.begin<VertexBase>(lvl);
+			iter != mg.end<VertexBase>(lvl); ++iter)
+		{
+			aaPos[*iter].z += (number)lvl * offset;
+		}
+	}
+
+//	create a subset handler which holds different subsets for the different interface types
+	SubsetHandler sh(mg);
+
+	AssignSubsetsByInterfaceType<VertexBase>(sh, mg);
+	AssignSubsetsByInterfaceType<EdgeBase>(sh, mg);
+	AssignSubsetsByInterfaceType<Face>(sh, mg);
+	AssignSubsetsByInterfaceType<Volume>(sh, mg);
+
+	AssignSubsetColors(sh);
+	EraseEmptySubsets(sh);
 
 //	finally save the grid
 	bool writeSuccess = SaveGridToFile(mg, sh, filename, aPos);

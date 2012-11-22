@@ -382,7 +382,7 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 	typedef TGeomBaseObj	TElem;
 	typedef typename geometry_traits<TGeomBaseObj>::iterator	ElemIter;
 
-	int rootProc = pcl::GetProcRank();
+	int localProc = pcl::GetProcRank();
 
 //	first we'll create a communicator for all processes which take part in the
 //	parallel graph generation
@@ -453,7 +453,7 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 	//	All children in levels above copy their from their parent.
 		for(size_t lvl = 0; lvl < level; ++lvl)
 			for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
-				shPartitionOut.assign_subset(*iter, rootProc);
+				shPartitionOut.assign_subset(*iter, localProc);
 
 		int counter = 0;
 		for(ElemIter iter = mg.begin<TElem>(level); iter != mg.end<TElem>(level); ++iter)
@@ -497,10 +497,10 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 		}
 	}
 	else{
-	//	assign all elements to subset 0.
+	//	assign all elements to the localProc.
 		for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
 			shPartitionOut.assign_subset(mg.begin<TGeomBaseObj>(lvl),
-										 mg.end<TGeomBaseObj>(lvl), rootProc);
+										 mg.end<TGeomBaseObj>(lvl), localProc);
 		}
 	}
 

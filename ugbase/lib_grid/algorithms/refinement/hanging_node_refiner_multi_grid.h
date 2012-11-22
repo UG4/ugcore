@@ -108,12 +108,6 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 *  during construction and destruction.*/
 		void set_grid(MultiGrid* mg);
 
-	///	prepares selection and calls the base implementation
-	/**	Makes sure that no elements with children are selected,
-	 *  Additionally vertices are marked, which have no children but
-	 *  associated elements which are marked for refinement.*/
-		virtual void collect_objects_for_refine();
-
 	///	creates required vertices in higher levels.
 		virtual void pre_refine();
 

@@ -6,9 +6,11 @@
 #define __H__UG__HANGING_NODE_REFINER_BASE__
 
 #include <queue>
+#include <vector>
 #include "lib_grid/lg_base.h"
 #include "refinement_callbacks.h"
 #include "refiner_interface.h"
+#include "ref_mark_adjuster_interface.h"
 
 namespace ug
 {
@@ -63,6 +65,12 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	public:
 		using IRefiner::mark;
 
+	/**	additional mark to RefinementMarks. Used to flag whether an element
+	 * will be refined with constraining.*/
+		enum HNodeRefMarks{
+			HNRM_CONSTRAINED = 128
+		};
+
 	public:
 		HangingNodeRefinerBase(IRefinementCallback* refCallback = NULL);
 		virtual ~HangingNodeRefinerBase();
@@ -78,14 +86,6 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * Enabled by default.*/
 		void enable_node_dependency_order_1(bool bEnable)	{m_nodeDependencyOrder1 = bEnable;}
 		bool node_dependency_order_1_enabled()				{return m_nodeDependencyOrder1;}
-	/**	\} */
-
-	///	tells whether higher dimensional neighbors of an object are automatically refined, too.
-	/**	This is disabled by default. However - in some applications it may be
-	 * desirable.
-	 * \{ */
-		inline void enable_automark_objects_of_higher_dim(bool enable)	{m_automarkHigherDimensionalObjects = enable;}
-		inline bool automark_objects_of_higher_dim_enabled()			{return m_automarkHigherDimensionalObjects;}
 	/**	\} */
 
 		virtual void clear_marks();
@@ -107,6 +107,9 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	/**	\} */
 
 		virtual bool save_marks_to_file(const char* filename);
+
+	///	Add a refmark adjuster, which will be called while marks are adjusted during refinement / coarsening
+		void add_ref_mark_adjuster(SPIRefMarkAdjuster adjuster)		{m_refMarkAdjusters.push_back(adjuster);}
 
 	protected:
 	///	performs refinement on the marked elements.
@@ -132,12 +135,6 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * virtual methods are called, which perform the actual element refinement.
 	 */
 		void perform_refinement();
-
-	/**	additional mark to RefinementMarks. Used to flag whether an element
-	 * will be refined with constraining.*/
-		enum HNodeRefMarks{
-			HNRM_CONSTRAINED = 128
-		};
 
 	///	returns true if an element is marked for hnode refinement.
 		template<class TElem>
@@ -273,30 +270,6 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		template <class TElem>
 		inline bool marked_coarsen(TElem* elem)			{return m_selMarkedElements.get_selection_status(elem) == RM_COARSEN;}
 
-	/**	used during collect_objects_for_refine.
-	 *	unmarked associated elements of the elements between elemsBegin and
-	 *	elemsEnd are pushed to the queue.
-	 *	Please note that a single object may appear multiple times in the queue.
-	 *	\{ */
-		template <class TIterator>
-		void collect_associated_unmarked_edges(
-							std::queue<EdgeBase*>& qEdgesOut, Grid& grid,
-							TIterator elemsBegin, TIterator elemsEnd,
-						 	bool ignoreAnisotropicElements);
-
-		template <class TIterator>
-		void collect_associated_unmarked_faces(
-							std::queue<Face*>& qFacesOut, Grid& grid,
-							TIterator elemsBegin, TIterator elemsEnd,
-							bool ignoreAnisotropicElements);
-
-		template <class TIterator>
-		void collect_associated_unmarked_volumes(
-							std::queue<Volume*>& qVolsOut, Grid& grid,
-							TIterator elemsBegin, TIterator elemsEnd,
-							bool ignoreAnisotropicElements);
-	/** \} */
-
 	///	removes coarsen marks from the selection
 	/**	Note that derived classes are not informed about those deselections!*/
 		template <class TElem>
@@ -311,10 +284,15 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		HangingNodeRefinerBase(const HangingNodeRefinerBase&);
 
 	protected:
-		Selector	m_selMarkedElements;
+		Selector							m_selMarkedElements;
+		std::vector<SPIRefMarkAdjuster>		m_refMarkAdjusters;
 
 	private:
 		Grid*		m_pGrid;
+		std::vector<VertexBase*>	m_newlyMarkedVrts;
+		std::vector<EdgeBase*>		m_newlyMarkedEdges;
+		std::vector<Face*>			m_newlyMarkedFaces;
+		std::vector<Volume*>		m_newlyMarkedVols;
 		bool		m_nodeDependencyOrder1;
 		bool		m_automarkHigherDimensionalObjects;
 		int			m_msgIdAdaption;
