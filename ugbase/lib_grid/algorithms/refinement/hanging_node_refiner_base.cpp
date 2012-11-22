@@ -83,10 +83,10 @@ void HangingNodeRefinerBase::grid_to_be_destroyed(Grid* grid)
 void HangingNodeRefinerBase::clear_marks()
 {
 	m_selMarkedElements.clear();
-	m_newlyMarkedVrts.clear();
-	m_newlyMarkedEdges.clear();
-	m_newlyMarkedFaces.clear();
-	m_newlyMarkedVols.clear();
+	m_newlyMarkedRefVrts.clear();
+	m_newlyMarkedRefEdges.clear();
+	m_newlyMarkedRefFaces.clear();
+	m_newlyMarkedRefVols.clear();
 }
 
 bool HangingNodeRefinerBase::mark(VertexBase* v, RefinementMark refMark)
@@ -95,7 +95,8 @@ bool HangingNodeRefinerBase::mark(VertexBase* v, RefinementMark refMark)
 	if(get_mark(v) != refMark){
 		if(refinement_is_allowed(v)){
 			m_selMarkedElements.select(v, refMark);
-			m_newlyMarkedVrts.push_back(v);
+			if(refMark & (RM_REGULAR | RM_ANISOTROPIC))
+				m_newlyMarkedRefVrts.push_back(v);
 			return true;
 		}
 	}
@@ -108,7 +109,8 @@ bool HangingNodeRefinerBase::mark(EdgeBase* e, RefinementMark refMark)
 	if(get_mark(e) != refMark){
 		if(refinement_is_allowed(e)){
 			m_selMarkedElements.select(e, refMark);
-			m_newlyMarkedEdges.push_back(e);
+			if(refMark & (RM_REGULAR | RM_ANISOTROPIC))
+				m_newlyMarkedRefEdges.push_back(e);
 			return true;
 		}
 	}
@@ -122,7 +124,8 @@ bool HangingNodeRefinerBase::mark(Face* f, RefinementMark refMark)
 	if(get_mark(f) != refMark){
 		if(refinement_is_allowed(f)){
 			m_selMarkedElements.select(f, refMark);
-			m_newlyMarkedFaces.push_back(f);
+			if(refMark & (RM_REGULAR | RM_ANISOTROPIC))
+				m_newlyMarkedRefFaces.push_back(f);
 			return true;
 		}
 	}
@@ -135,7 +138,8 @@ bool HangingNodeRefinerBase::mark(Volume* v, RefinementMark refMark)
 	if(get_mark(v) != refMark){
 		if(refinement_is_allowed(v)){
 			m_selMarkedElements.select(v, refMark);
-			m_newlyMarkedVols.push_back(v);
+			if(refMark & (RM_REGULAR | RM_ANISOTROPIC))
+				m_newlyMarkedRefVols.push_back(v);
 			return true;
 		}
 	}
@@ -232,6 +236,14 @@ bool HangingNodeRefinerBase::save_marks_to_file(const char* filename)
 	return SaveGridToFile(g, sh, filename);
 }
 
+void HangingNodeRefinerBase::
+enable_node_dependency_order_1(bool bEnable)
+{
+	m_nodeDependencyOrder1 = bEnable;
+	for(size_t i = 0; i < m_refMarkAdjusters.size(); ++i){
+		m_refMarkAdjusters[i]->enable_node_dependency_order_1(bEnable);
+	}
+}
 
 void HangingNodeRefinerBase::perform_refinement()
 {
@@ -538,6 +550,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 
 //	build correct selection. see HangingVertexRefiner description.
 //	unmark all elements which are marked for coarsening
+
 	bool removedCoarseMarks = remove_coarsen_marks<VertexBase>();
 	removedCoarseMarks |= remove_coarsen_marks<EdgeBase>();
 	removedCoarseMarks |= remove_coarsen_marks<Face>();
@@ -558,14 +571,14 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 	//	we don't simply pass m_newlyMarkedXXX to the adjusters, since we want to
 	//	record newly marked elements during adjustment. Those newly marked elems
 	//	are then used for the next calls, etc.
-		newlyMarkedVrts.swap(m_newlyMarkedVrts);
-		m_newlyMarkedVrts.clear();
-		newlyMarkedEdges.swap(m_newlyMarkedEdges);
-		m_newlyMarkedEdges.clear();
-		newlyMarkedFaces.swap(m_newlyMarkedFaces);
-		m_newlyMarkedFaces.clear();
-		newlyMarkedVols.swap(m_newlyMarkedVols);
-		m_newlyMarkedVols.clear();
+		newlyMarkedVrts.swap(m_newlyMarkedRefVrts);
+		m_newlyMarkedRefVrts.clear();
+		newlyMarkedEdges.swap(m_newlyMarkedRefEdges);
+		m_newlyMarkedRefEdges.clear();
+		newlyMarkedFaces.swap(m_newlyMarkedRefFaces);
+		m_newlyMarkedRefFaces.clear();
+		newlyMarkedVols.swap(m_newlyMarkedRefVols);
+		m_newlyMarkedRefVols.clear();
 
 	//	call the adjusters
 		bool forceContinue = false;
@@ -580,10 +593,10 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		}
 
 		continueAdjustment = forceContinue
-							|| (!m_newlyMarkedVrts.empty())
-							|| (!m_newlyMarkedEdges.empty())
-							|| (!m_newlyMarkedFaces.empty())
-							|| (!m_newlyMarkedVols.empty());
+							|| (!m_newlyMarkedRefVrts.empty())
+							|| (!m_newlyMarkedRefEdges.empty())
+							|| (!m_newlyMarkedRefFaces.empty())
+							|| (!m_newlyMarkedRefVols.empty());
 	}
 
 	UG_DLOG(LIB_GRID, 1, "hnode_ref-stop: collect_objects_for_refine\n");

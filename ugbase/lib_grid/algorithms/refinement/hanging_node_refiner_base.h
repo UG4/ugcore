@@ -84,7 +84,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * as a corner vertex.
 	 *
 	 * Enabled by default.*/
-		void enable_node_dependency_order_1(bool bEnable)	{m_nodeDependencyOrder1 = bEnable;}
+		void enable_node_dependency_order_1(bool bEnable);
 		bool node_dependency_order_1_enabled()				{return m_nodeDependencyOrder1;}
 	/**	\} */
 
@@ -289,10 +289,17 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	private:
 		Grid*		m_pGrid;
-		std::vector<VertexBase*>	m_newlyMarkedVrts;
-		std::vector<EdgeBase*>		m_newlyMarkedEdges;
-		std::vector<Face*>			m_newlyMarkedFaces;
-		std::vector<Volume*>		m_newlyMarkedVols;
+		std::vector<VertexBase*>	m_newlyMarkedRefVrts;
+		std::vector<EdgeBase*>		m_newlyMarkedRefEdges;
+		std::vector<Face*>			m_newlyMarkedRefFaces;
+		std::vector<Volume*>		m_newlyMarkedRefVols;
+		//todo:	Use the following vectors during coarsening...
+		/*
+		std::vector<VertexBase*>	m_newlyMarkedCoarseVrts;
+		std::vector<EdgeBase*>		m_newlyMarkedCoarseEdges;
+		std::vector<Face*>			m_newlyMarkedCoarseFaces;
+		std::vector<Volume*>		m_newlyMarkedCoarseVols;
+		*/
 		bool		m_nodeDependencyOrder1;
 		bool		m_automarkHigherDimensionalObjects;
 		int			m_msgIdAdaption;

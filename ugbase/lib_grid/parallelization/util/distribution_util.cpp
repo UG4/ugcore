@@ -191,11 +191,10 @@ void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
 			Node node = curNodes[i_node];
 			GeometricObject* parent = mg.get_parent(node);
 
-		//	only consider parents of the same type.
+		//	only consider parents of the same base-type.
 		//	Other parents can be ignored, since we will adjust the selection
 		//	after having executed this method for all object-types.
-		//todo	This only holds true for regular grids...
-			if(parent && !Elem::type_match(parent))
+			if(parent->base_object_id() != Elem::BASE_OBJECT_ID)
 				continue;
 
 			if(!parent || !mg.is_marked(parent))
@@ -497,6 +496,11 @@ static void CopyAssociatedElemsToDistLayouts(std::vector<TDistLayoutDest>& distL
 									MultiGrid& mg, AInfoVec& aInfoVec,
 									vector<pair<TElemSrc*, int> >& copiedSrcElems)
 {
+//todo:	enhance this method. The copied elements should be immediately added to
+//		vertical interfaces, based on their parent.
+//		They furthermore should be deselected, so that they won't be considered
+//		during vertical interface creation for lower-dim elems later on.
+
 	typedef typename TDistLayoutDest::NodeType			NodeDest;
 	typedef typename PtrTypeToGeomObjBaseType<NodeDest>::base_type	ElemDest;
 
