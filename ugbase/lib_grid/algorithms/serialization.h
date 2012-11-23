@@ -214,6 +214,7 @@ class GeomObjAttachmentSerializer :
 	public:
 		GeomObjAttachmentSerializer(Grid& g, TAttachment& a) :
 			m_aa(g, a, true)	{}
+		virtual ~GeomObjAttachmentSerializer() {};
 
 		virtual void write_data(BinaryBuffer& out, TGeomObj* o) const
 		{Serialize(out, m_aa[o]);}
