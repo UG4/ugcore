@@ -209,7 +209,7 @@ class MGDoFDistribution : public GridObserver
 		 * subelements) are extracted and stored in a std::vector. The order of
 		 * the indices is sorted, i.e. the dofs are provided as specified in the
 		 * local dof set of the local finite element trial space.
-		 * If bHang is set to true, also the DoFs on the Constained Objects
+		 * If bHang is set to true, also the DoFs on the Constrained Objects
 		 * belonging to the constraining Subelements are extracted and added at
 		 * the end of the indices.
 		 * If bClear is set to true, the vector is cleared before insertion.
