@@ -43,6 +43,8 @@ struct FluxCond
 	std::vector<size_t> to;
 };
 
+/// struct that holds information about the derivatives of the flux densities
+/// and from where to where the flux occurs
 struct FluxDerivCond
 {
 	// vector of fluxFctDerivValues (wrt fct, flux number)

@@ -70,7 +70,7 @@ ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 							" Call to fluxDensityDerivFct resulted did not succeed.");
 		
 		// scale with volume of BF
-		for(size_t j=0; j<fdc.fluxDeriv.size(); j++)
+		for (size_t j=0; j<fdc.fluxDeriv.size(); j++)
 			for (size_t k=0; k<fdc.fluxDeriv[j].size(); k++)
 				fdc.fluxDeriv[j][k] *= bf.volume();
 		
@@ -79,8 +79,8 @@ ass_JA_elem(LocalMatrix& J, const LocalVector& u)
 		{
 			for (size_t k=0; k<fdc.fluxDeriv[j].size(); k++)
 			{
-				J(fdc.from[k],co,j,co)	+= fdc.fluxDeriv[j][k];
-				J(fdc.to[k],co,j,co)	-= fdc.fluxDeriv[j][k];
+				J(fdc.from[j],co,k,co)	+= fdc.fluxDeriv[j][k];
+				J(fdc.to[j],co,k,co)	-= fdc.fluxDeriv[j][k];
 			}
 		}	
 	}
@@ -114,16 +114,25 @@ ass_dA_elem(LocalVector& d, const LocalVector& u)
 		FluxCond fc;
 		if (!fluxDensityFct(u, co, fc))
 			UG_THROW("FV1InnerBoundaryElemDisc::ass_dA_elem:"
-						" Call to fluxDensityFct resulted did not succeed.");
-				
+						" Call to fluxDensityFct did not succeed.");
+
+		/*if (fc.flux[0] < -1.0e-7)
+		{
+			//const MathVector<dim>& corners = bf.global_corner(co);
+			//std::cout << "flux density: " << fc.flux[0]/bf.volume() << ";   " << corners << std::endl;
+			number caCyt = u(0, co);	// cytosolic Ca2+ concentration
+			number caER = u(1, co);		// ER Ca2+ concentration
+			std::cout << "flux density: " << fc.flux[0] << "   cyt: " << caCyt << "   er: " << caER << std::endl;
+		}*/
+
 		// scale with volume of BF
 		for (size_t j=0; j<fc.flux.size(); j++) fc.flux[j] *= bf.volume();
 		
 		// add to defect
 		for (size_t j=0; j<fc.flux.size(); j++)
 		{
-			d(fc.to[j], co) -= fc.flux[j];
 			d(fc.from[j], co) += fc.flux[j];
+			d(fc.to[j], co) -= fc.flux[j];
 		}
 	}
 }
