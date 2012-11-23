@@ -22,11 +22,11 @@ class MGHNodeAdjuster : public IRefMarkAdjuster
 
 		virtual ~MGHNodeAdjuster()	{}
 
-		virtual AdjustRetVal ref_marks_changed(IRefiner& ref,
-											const std::vector<VertexBase*>& vrts,
-											const std::vector<EdgeBase*>& edges,
-											const std::vector<Face*>& faces,
-											const std::vector<Volume*>& vols);
+		virtual void ref_marks_changed(IRefiner& ref,
+										const std::vector<VertexBase*>& vrts,
+										const std::vector<EdgeBase*>& edges,
+										const std::vector<Face*>& faces,
+										const std::vector<Volume*>& vols);
 };
 
 }// end of namespace

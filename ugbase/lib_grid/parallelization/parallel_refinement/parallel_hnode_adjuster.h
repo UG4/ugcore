@@ -5,7 +5,7 @@
 #ifndef __H__UG__parallel_hnode_adjuster__
 #define __H__UG__parallel_hnode_adjuster__
 
-#include "../ref_mark_adjuster_interface.h"
+#include "lib_grid/algorithms/refinement/ref_mark_adjuster_interface.h"
 #include "../distributed_grid.h"
 #include "pcl/pcl_interface_communicator.h"
 #include "pcl/pcl_process_communicator.h"
@@ -23,11 +23,11 @@ class ParallelHNodeAdjuster : public IRefMarkAdjuster
 
 		virtual ~ParallelHNodeAdjuster()	{}
 
-		virtual AdjustRetVal ref_marks_changed(IRefiner& ref,
-											const std::vector<VertexBase*>& vrts,
-											const std::vector<EdgeBase*>& edges,
-											const std::vector<Face*>& faces,
-											const std::vector<Volume*>& vols);
+		virtual void ref_marks_changed(IRefiner& ref,
+										const std::vector<VertexBase*>& vrts,
+										const std::vector<EdgeBase*>& edges,
+										const std::vector<Face*>& faces,
+										const std::vector<Volume*>& vols);
 
 	private:
 		pcl::ProcessCommunicator m_procCom;

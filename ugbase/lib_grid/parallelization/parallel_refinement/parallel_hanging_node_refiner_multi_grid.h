@@ -36,24 +36,6 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 
 		void set_distributed_grid_manager(DistributedGridManager& distGridMgr);
 
-	///	all marks are cleared and flags are resetted.
-		virtual void clear_marks();
-
-	///	Marks an vertex for refinement.
-		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
-
-	///	Marks an edge for refinement.
-	/**	If interface elements are selected a flag will be checked.*/
-		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
-
-	///	Marks a face for refinement.
-	/**	If interface elements are selected a flag will be checked.*/
-		virtual bool mark(Face* f, RefinementMark refMark = RM_REGULAR);
-
-	///	Marks a volume for refinement.
-	/**	If interface elements are selected a flag will be checked.*/
-		virtual bool mark(Volume* v, RefinementMark refMark = RM_REGULAR);
-
 	/**	If not all processes are involved in refinement,
 	 *	one can set the involved processes here. By default
 	 *	all processes are involved.*/
@@ -69,14 +51,7 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 	///	a callback that allows to deny refinement of special volumes
 		virtual bool refinement_is_allowed(Volume* elem);
 
-	///	prepares selection and calls the base implementation
-	/**	Makes sure that no elements with children are selected,
-	 *  Additionally vertices are marked, which have no children but
-	 *  associated elements which are marked for refinement.
-	 *
-	 *  Parallel communication is performed here to notify
-	 *  neighboring processes about refinement marks.*/
-		virtual void collect_objects_for_refine();
+		virtual bool continue_collect_objects_for_refine(bool continueRequired);
 
 	///	distributes hnode marks
 	/**	Calls the base implementation to assign hnode marks and afterwards
@@ -124,11 +99,6 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 		pcl::InterfaceCommunicator<VertexLayout> m_intfComVRT;
 		pcl::InterfaceCommunicator<EdgeLayout> m_intfComEDGE;
 		pcl::InterfaceCommunicator<FaceLayout> m_intfComFACE;
-
-		bool m_bNewInterfaceVerticesMarked;
-		bool m_bNewInterfaceEdgesMarked;
-		bool m_bNewInterfaceFacesMarked;
-		bool m_bNewInterfaceVolumesMarked;
 };
 
 /// @}

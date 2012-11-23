@@ -31,9 +31,129 @@ void PrintData(int* data, int size)
 /**	The InfoVec will be associated with each element and stores where
  * in which distribution layout the element can be found.
  */
-typedef vector<pair<int, int> > InfoVec;
-typedef Attachment<InfoVec>		AInfoVec;
+typedef vector<pair<int, int> > InterfaceEntries;
+struct DistInfo{
+	DistInfo() : vrtMasterInterface(-1)	{}
+	InterfaceEntries	interfaceEntries;
+	int					vrtMasterInterface;
+};
+typedef Attachment<DistInfo>	ADistInfo;
 
+///	Automatically attaches ADistInfo to all elements of a grid.
+/**	On destruction, the attached dist info attachments are removed again.
+ * You may access the dist-info in an element through the get method.
+ * The get method returns a reference to the attached DistInfo object.
+ *
+ * Make sure that the given grid is valid while the DistInfoSupplier exists.
+ */
+class DistInfoSupplier{
+	public:
+		DistInfoSupplier(Grid& grid) : m_grid(grid)
+		{
+			m_grid.attach_to_all(m_aDistInfo);
+			m_aaDistInfoVRT.access(grid, m_aDistInfo);
+			m_aaDistInfoEDGE.access(grid, m_aDistInfo);
+			m_aaDistInfoFACE.access(grid, m_aDistInfo);
+			m_aaDistInfoVOL.access(grid, m_aDistInfo);
+		}
+
+		~DistInfoSupplier()
+		{
+			m_grid.detach_from_all(m_aDistInfo);
+		}
+
+		DistInfo& get(VertexBase* vrt)	{return m_aaDistInfoVRT[vrt];}
+		DistInfo& get(EdgeBase* edge)		{return m_aaDistInfoEDGE[edge];}
+		DistInfo& get(Face* face)			{return m_aaDistInfoFACE[face];}
+		DistInfo& get(Volume* vol)		{return m_aaDistInfoVOL[vol];}
+		DistInfo& get(GeometricObject* obj)
+		{
+			int objType = obj->base_object_id();
+			switch(objType){
+				case VERTEX:	return get(static_cast<VertexBase*>(obj));
+				case EDGE:		return get(static_cast<EdgeBase*>(obj));
+				case FACE:		return get(static_cast<Face*>(obj));
+				case VOLUME:	return get(static_cast<Volume*>(obj));
+				default:	UG_THROW("Unknown geometric object base type."); break;
+			}
+		}
+
+	private:
+		Grid& 		m_grid;
+		ADistInfo	m_aDistInfo;
+		Grid::AttachmentAccessor<VertexBase, ADistInfo> m_aaDistInfoVRT;
+		Grid::AttachmentAccessor<EdgeBase, ADistInfo> m_aaDistInfoEDGE;
+		Grid::AttachmentAccessor<Face, ADistInfo> m_aaDistInfoFACE;
+		Grid::AttachmentAccessor<Volume, ADistInfo> m_aaDistInfoVOL;
+};
+
+
+///	manages the given layouts.
+/**	Note that internally only references to the layouts specified in the constructor
+ * are stored. Those vectors thus have to stay valid while the DistLayoutSupplier
+ * is in use.
+ */
+template <template <class T> class TDistNodeLayout>
+class DistLayoutSupplier{
+	public:
+		template <class TElem>
+		struct traits{
+			typedef TDistNodeLayout<TElem*>	layout;
+			typedef typename layout::NodeVec			node_vec;
+			typedef typename layout::Interface			interface;
+			typedef typename layout::InterfaceEntry		interface_entry;
+		};
+
+		DistLayoutSupplier(
+							vector<TDistNodeLayout<VertexBase*> >& vertexLayouts,
+							vector<TDistNodeLayout<EdgeBase*> >& edgeLayouts,
+							vector<TDistNodeLayout<Face*> >& faceLayouts,
+							vector<TDistNodeLayout<Volume*> >& volumeLayouts) :
+			m_vertexLayouts(vertexLayouts), m_edgeLayouts(edgeLayouts),
+			m_faceLayouts(faceLayouts), m_volumeLayouts(volumeLayouts)
+		{}
+
+		void clear_and_resize(size_t newSize)
+		{
+			m_vertexLayouts.clear();
+			m_vertexLayouts.resize(newSize);
+			m_edgeLayouts.clear();
+			m_edgeLayouts.resize(newSize);
+			m_faceLayouts.clear();
+			m_faceLayouts.resize(newSize);
+			m_volumeLayouts.clear();
+			m_volumeLayouts.resize(newSize);
+		}
+
+		template <class TElem>
+		typename traits<TElem>::layout&
+		layout(size_t layoutInd)
+		{
+			TElem dummy;
+			return layout(layoutInd, dummy);
+		}
+
+		size_t size() const	{return m_vertexLayouts.size();}
+
+	private:
+		TDistNodeLayout<VertexBase*>& layout(size_t layoutInd, const VertexBase&)
+		{return m_vertexLayouts[layoutInd];}
+
+		TDistNodeLayout<EdgeBase*>& layout(size_t layoutInd, const EdgeBase&)
+		{return m_edgeLayouts[layoutInd];}
+
+		TDistNodeLayout<Face*>& layout(size_t layoutInd, const Face&)
+		{return m_faceLayouts[layoutInd];}
+
+		TDistNodeLayout<Volume*>& layout(size_t layoutInd, const Volume&)
+		{return m_volumeLayouts[layoutInd];}
+
+	private:
+		vector<TDistNodeLayout<VertexBase*> >& m_vertexLayouts;
+		vector<TDistNodeLayout<EdgeBase*> >& m_edgeLayouts;
+		vector<TDistNodeLayout<Face*> >& m_faceLayouts;
+		vector<TDistNodeLayout<Volume*> >& m_volumeLayouts;
+};
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -45,7 +165,7 @@ typedef Attachment<InfoVec>		AInfoVec;
  * layout. For each node that is referenced by multiple layouts,
  * corresponding interface entries are automatically generated.
  *
- * aInfoVec has to be attachmed at all elements.
+ * aDistInfo has to be attachmed at all elements.
  */
 //	Implementation note: Instead of aaInfoVec we previously used
 //	aaFirstProc and aaFirstProcLocalIndex attachments. This resulted in less
@@ -58,7 +178,8 @@ static
 void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 						int layoutIndex,
 						TIterator nodesBegin, TIterator nodesEnd,
-						Grid& grid, AInfoVec& aInfoVec,
+						Grid& grid,
+						DistInfoSupplier& distInfos,
 						std::vector<int>* processMap = NULL,
 						int level = 0,
 						int interfacesOnLevelOnly = -1,
@@ -69,21 +190,18 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 	typedef typename TNodeLayout::NodeType			Node;
 	typedef typename PtrTypeToGeomObjBaseType<Node>::base_type	Elem;
 
-	assert(grid.has_attachment<Elem>(aInfoVec));
-	Grid::AttachmentAccessor<Elem, AInfoVec> aaInfoVec(grid, aInfoVec);
-
 	TNodeLayout& layout = layouts[layoutIndex];
 
 	for(TIterator iter = nodesBegin; iter != nodesEnd; ++iter)
 	{
 		typename TNodeLayout::NodeType node = *iter;
-		InfoVec& infoVec = aaInfoVec[node];
+		InterfaceEntries& intfcEntries = distInfos.get(node).interfaceEntries;
 
-		if(infoVec.empty())
+		if(intfcEntries.empty())
 		{
 		//	the node has been encountered for the first time.
 		//	add it to the layout and the info-vec
-			infoVec.push_back(make_pair(layoutIndex,
+			intfcEntries.push_back(make_pair(layoutIndex,
 										(int)layout.node_vec().size()));
 			layout.node_vec().push_back(node);
 		}
@@ -96,13 +214,13 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 		//	the node has already been added to another layout.
 		//	add it to the new layout and create interface entries
 		//	on both sides.
-			int masterLayoutIndex = infoVec.front().first;
+			int masterLayoutIndex = intfcEntries.front().first;
 			TNodeLayout& masterLayout = layouts[masterLayoutIndex];
 
-			int localMasterID = infoVec.front().second;
+			int localMasterID = intfcEntries.front().second;
 			int localID = (int)layout.node_vec().size();
 
-			infoVec.push_back(make_pair(layoutIndex, localID));
+			intfcEntries.push_back(make_pair(layoutIndex, localID));
 			layout.node_vec().push_back(node);
 
 		//	access the interfaces
@@ -139,14 +257,14 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 ///	Selects all elements whose parents are sent to other processes only.
 /**	This method uses Grid::mark.
  *
- * The method is useful to find all elements to which vertical interfaces shall
+ * The method is useful to find all elements in a layout to which vertical interfaces shall
  * be build. One should use SelectAssociatedGeometricObjects to select all associated
  * lower dimensional elements. Only then all elements for vertical interfaces
  * are selected.
  */
 template <class TDistLayout>
-void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
-					 MGSelector& msel, std::vector<int>* processMap = NULL)
+void SelectNewGhosts(TDistLayout& distLayout, MultiGrid& mg,
+					 MGSelector& msel, DistInfoSupplier& distInfos)
 {
 	typedef typename TDistLayout::NodeVec			NodeVec;
 	typedef typename TDistLayout::NodeType			Node;
@@ -154,106 +272,181 @@ void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
 	typedef typename TDistLayout::InterfaceEntry	InterfaceEntry;
 	typedef typename PtrTypeToGeomObjBaseType<Node>::base_type	Elem;
 
-//	we have to find the local LayoutIndex
-	/*int locProcRank = pcl::GetProcRank();
-	int locLayoutInd = -1;
-	if(processMap){
-		vector<int>& procMap = *processMap;
-		for(size_t i = 0; i < procMap.size(); ++i){
-			if(procMap[i] == locProcRank){
-				locLayoutInd = i;
-				break;
-			}
-		}
-	}
-	else if(locProcRank < (int)distLayouts.size()){
-		locLayoutInd = locProcRank;
-	}*/
-
 	msel.clear<Elem>();
 
-	for(size_t i_layout = 0; i_layout < distLayouts.size(); ++i_layout)
+//	mark all nodes in curLayout
+	mg.begin_marking();
+	MarkNodesInLayout(mg, distLayout);
+
+//	select all nodes, which have no parent in the same layout
+	NodeVec& curNodes = distLayout.node_vec();
+	for(size_t i_node = 0; i_node < curNodes.size(); ++i_node)
 	{
-		TDistLayout& curLayout = distLayouts[i_layout];
+		Node node = curNodes[i_node];
+		if(distInfos.get(node).vrtMasterInterface != -1)
+			continue;
 
-	//	mark all nodes in curLayout
-		mg.begin_marking();
-		MarkNodesInLayout(mg, curLayout);
+		GeometricObject* parent = mg.get_parent(node);
 
-	//	select all nodes, which have no parent in the same layout
-		NodeVec& curNodes = curLayout.node_vec();
-		for(size_t i_node = 0; i_node < curNodes.size(); ++i_node)
-		{
-			Node node = curNodes[i_node];
-			GeometricObject* parent = mg.get_parent(node);
+	//	only consider parents of the same base-type.
+	//	Other parents can be ignored, since we will adjust the selection
+	//	after having executed this method for all object-types.
+		if(parent && (parent->base_object_id() != Elem::BASE_OBJECT_ID))
+			continue;
 
-		//	only consider parents of the same base-type.
-		//	Other parents can be ignored, since we will adjust the selection
-		//	after having executed this method for all object-types.
-			if(parent && (parent->base_object_id() != Elem::BASE_OBJECT_ID))
-				continue;
+		if(!parent || !mg.is_marked(parent))
+			msel.select(node);
+	}
 
-			if(!parent || !mg.is_marked(parent))
-				msel.select(node);
+	mg.end_marking();
+}
+
+///	adds the given element to vertical layouts based on the given distInfos.
+/**	Calls MakeVerticalMaster recursively for sides of elem.*/
+template <template <class T> class TDistNodeLayout, class TElem>
+void MakeVerticalMaster(TElem* elem, MultiGrid& mg,
+						int masterLayoutInd,
+						DistInfoSupplier& distInfos,
+						DistLayoutSupplier<TDistNodeLayout>& distLayouts,
+						std::vector<int>* processMap = NULL)
+{
+	typedef typename DistLayoutSupplier<TDistNodeLayout>::template traits<TElem>::node_vec NodeVec;
+	typedef typename DistLayoutSupplier<TDistNodeLayout>::template traits<TElem>::interface Interface;
+	typedef typename DistLayoutSupplier<TDistNodeLayout>::template traits<TElem>::interface_entry InterfaceEntry;
+
+//	get the interface entries of the current element
+	DistInfo& elemInfo = distInfos.get(elem);
+	InterfaceEntries& intfcEntries = elemInfo.interfaceEntries;
+
+//	get the masters process and entry index
+	int masterEntryInd = -1;
+	for(size_t i = 0; i < intfcEntries.size(); ++i){
+		if(intfcEntries[i].first == masterLayoutInd){
+			masterEntryInd = intfcEntries[i].second;
+			break;
+		}
+	}
+
+	if(masterEntryInd == -1){
+	//	we have to create a new entry in the master-layout
+	//	we want the new entry to be the first in the vector to
+	//	optimize search performance.
+		NodeVec& masterNodes = distLayouts.template layout<TElem>(masterLayoutInd).node_vec();
+		if(!intfcEntries.empty()){
+			intfcEntries.push_back(intfcEntries.front());
+			intfcEntries.front() = make_pair((int)masterLayoutInd,
+									  	  	  (int)masterNodes.size());
+		}
+		else{
+			intfcEntries.push_back(make_pair((int)masterLayoutInd,
+											(int)masterNodes.size()));
 		}
 
-	//	end marking
-		mg.end_marking();
+		masterNodes.push_back(elem);
+		masterEntryInd = (int)masterNodes.size() - 1;
+	}
+
+	int masterProcInd = masterLayoutInd;
+	if(processMap)
+		masterProcInd = (*processMap)[masterLayoutInd];
+
+	size_t lvl = mg.get_level(elem);
+	bool interfaceCreated = false;
+	for(size_t i = 0; i < intfcEntries.size(); ++i){
+		int slaveLayoutInd = intfcEntries[i].first;
+
+		if(slaveLayoutInd == masterLayoutInd)
+			continue;
+
+		int slaveEntryInd = intfcEntries[i].second;
+
+		int slaveProcInd = slaveLayoutInd;
+		if(processMap)
+			slaveProcInd = (*processMap)[slaveLayoutInd];
+
+		Interface& masterInterface = distLayouts.template layout<TElem>(masterLayoutInd).
+										interface(slaveProcInd, lvl);
+
+		Interface& slaveInterface = distLayouts.template layout<TElem>(slaveLayoutInd).
+										interface(masterProcInd, lvl);
+
+		masterInterface.push_back(InterfaceEntry(masterEntryInd, INT_V_MASTER));
+		slaveInterface.push_back(InterfaceEntry(slaveEntryInd, INT_V_SLAVE));
+		interfaceCreated = true;
+	}
+
+	if(interfaceCreated){
+	//	now make sure that master interfaces for children are built accordingly
+		elemInfo.vrtMasterInterface = masterLayoutInd;
+
+		if(TElem::HAS_SIDES){
+			typename Grid::traits<typename TElem::side>::secure_container sides;
+			mg.associated_elements(sides, elem);
+			for(size_t i = 0; i < sides.size(); ++i){
+			//	Attention: Not much is currently done to really assert this. Indeed it probably
+			//	can't even be asserted...
+			//todo:	THINK ABOUT IT...
+				UG_ASSERT((elemInfo.vrtMasterInterface == -1)
+						|| (elemInfo.vrtMasterInterface == masterLayoutInd),
+						"An element may only be made 'vertical master' once.");
+				if(elemInfo.vrtMasterInterface == -1){
+					MakeVerticalMaster(sides[i], mg, masterLayoutInd, distInfos,
+									   distLayouts, processMap);
+				}
+			}
+		}
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////
 /**	Creates vertical interfaces for all selected elements.
  * Make sure to call this method first for volumes, then for faces,
- * edges and vertices. Make sure to copy associated elements of the elements in
- * copiedElemsOut to the corresponding distribution layouts before calling the
- * method for the next element type.
+ * edges and vertices.
  *
  * Elements which already are in vertical interfaces won't be added to new ones.
  *
- * Make sure that aInfoVec is attached to the elements of the grid and that it
+ * Make sure that aDistInfo is attached to all elements of the grid and that it
  * stores (layout / local-index) pairs for each layout in which an element is
  * located.
  *
- * All elements which have been copied to a new layout are pushed to
- * copiedElemsOut. Make sure that all sides, edges and vertices are assigned
- * to the same distribution layouts, too.
+ * pMSel can optionally be passed to the method to avoid temporary allocation of
+ * a new MGSelector.
  */
-template <class TDistLayout>
-bool CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
-						MultiGrid& mg, MGSelector& msel,
-						SubsetHandler& shPart,
-						AInfoVec& aInfoVec,
-						vector<pair<typename TDistLayout::NodeType, int> >& copiedElemsOut,
-						DistributedGridManager* pDistGridMgr = NULL,
-						std::vector<int>* processMap = NULL)
+template <class TElem, template <class T> class TDistNodeLayout>
+bool CreateVerticalInterfaces(DistLayoutSupplier<TDistNodeLayout>& distLayouts,
+								MultiGrid& mg,
+								SubsetHandler& shPart,
+								DistInfoSupplier& distInfos,
+								std::vector<int>* processMap = NULL,
+								MGSelector* pMSel = NULL)
 {
 //	all elements which do not have a parent on their associated proc
 //	have to be added to a vertical interface. An associated
 //	vertical master has to be added in the associated interface somewhere.
+	typedef TDistNodeLayout<TElem*>					TDistLayout;
 	typedef typename TDistLayout::NodeVec			NodeVec;
 	typedef typename TDistLayout::NodeType			Node;
 	typedef typename TDistLayout::Interface			Interface;
 	typedef typename TDistLayout::InterfaceEntry	InterfaceEntry;
 	typedef typename PtrTypeToGeomObjBaseType<Node>::base_type	Elem;
+	typedef typename Grid::traits<Elem>::iterator	ElemIter;
 
-	assert(mg.has_attachment<Volume>(aInfoVec));
-	assert(mg.has_attachment<Face>(aInfoVec));
-	assert(mg.has_attachment<EdgeBase>(aInfoVec));
-	assert(mg.has_attachment<VertexBase>(aInfoVec));
+//	we need a multigrid selector to select ghosts of each layout
+	MGSelector localMSel;
+	if(!pMSel){
+		localMSel.assign_grid(mg);
+		pMSel = &localMSel;
+	}
+	MGSelector& msel = *pMSel;
 
-	Grid::AttachmentAccessor<Elem, AInfoVec> aaInfoVec(mg, aInfoVec);
-
-//	Those accessors are required to access info-vecs of parents of different type.
-	Grid::AttachmentAccessor<Volume, AInfoVec> aaInfoVecVOL(mg, aInfoVec);
-	Grid::AttachmentAccessor<Face, AInfoVec> aaInfoVecFACE(mg, aInfoVec);
-	Grid::AttachmentAccessor<EdgeBase, AInfoVec> aaInfoVecEDGE(mg, aInfoVec);
-	Grid::AttachmentAccessor<VertexBase, AInfoVec> aaInfoVecVRT(mg, aInfoVec);
+	DistributedGridManager* pDistGridMgr = mg.distributed_grid_manager();
 
 //	the base-layout index is used to create ghosts for elements which do not
 //	have a parent at all.
-//	the lowest subset of the highest-dimensional elements in the lowest level
-//	of the grid determines the base layout.
+//	Currently we use the first layout to which elements of highest dimension are
+//	sent. This could surely be improved. If the local process keeps elements of
+//	highest dimension, it might be better to simply choose the local process, since
+//	this would reduce communication during redistribution.
 	int baseLayoutInd = -1;
 
 	if(mg.num<Volume>() > 0){
@@ -292,48 +485,26 @@ bool CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 	if(baseLayoutInd == -1)
 		return false;
 
-	TDistLayout& baseLayout = distLayouts[baseLayoutInd];
-	NodeVec& baseNodes = baseLayout.node_vec();
-/*
-//	DEBUG: print content of baseNodes
-	Grid::VertexAttachmentAccessor<APosition2> aaPos(mg, aPosition2);
-	UG_LOG("baseNodes-before:");
-	for(size_t i = 0; i < baseNodes.size(); ++i){
-		UG_LOG(" " << aaPos[baseNodes[i]])
-	}
-	UG_LOG(endl);
-*/
 //	Now create the interfaces. Iterate over all distLayouts
 	for(size_t i_layout = 0; i_layout < distLayouts.size(); ++i_layout)
 	{
-		int curProcRank = i_layout;
-		if(processMap)
-			curProcRank = processMap->at(i_layout);
+	//	select all new ghosts of the current layout
+		SelectNewGhosts(distLayouts.template layout<Elem>(i_layout), mg, msel, distInfos);
 
-		TDistLayout& curLayout = distLayouts[i_layout];
+	//	find for each selected element the master proc and create interfaces to
+	//	all other procs (given in aaInfoVec).
+		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+			for(ElemIter iter = msel.begin<Elem>(lvl);
+				iter != msel.end<Elem>(lvl); ++iter)
+			{
+				Elem* node = *iter;
 
-	//	we wont access the interfaces directly. Instead we'll cache them
-	//	for efficient reuse
-		Interface* masterInterface = NULL;
-		Interface* curInterface = NULL;
-		int interfaceLevel = -1;
-		int lastMasterLayoutInd = -1;
+			//	if pDistGridMgr is supplied, we first check however whether
+			//	the element is already contained in a vertical interface.
+			//	If so, we wont add it to another one.
+				if(!pDistGridMgr || pDistGridMgr->is_in_vertical_interface(node))
+					continue;
 
-	//	check for each node whether it is selected. If so, we have to create
-	//	an interface entry (if none already exists).
-		NodeVec& curNodes = curLayout.node_vec();
-		for(size_t i_node = 0; i_node < curNodes.size(); ++i_node)
-		{
-			Node node = curNodes[i_node];
-
-		//	if pDistGridMgr is supplied, we first check however whether
-		//	the element is already contained in a vertical interface.
-		//	If so, we wont add it to another one.
-			if(!pDistGridMgr || pDistGridMgr->contains_status(node, INT_V_MASTER)
-			  || pDistGridMgr->contains_status(node, INT_V_SLAVE))
-				continue;
-
-			if(msel.is_selected(node)){
 			//	the element has to be put into a vertical interface. If it
 			//	hasn't got a parent, we'll create an interface to baseLayout.
 			//	If it has a parent, we'll have to create an interface to the
@@ -342,30 +513,15 @@ bool CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 				int masterLocalInd = -1;
 
 			//	info vec of node
-				InfoVec& nivec = aaInfoVec[node];
+				InterfaceEntries& nivec = distInfos.get(node).interfaceEntries;
 			//	pointer to info-vec of parent
-				InfoVec* ppivec = NULL;
+				InterfaceEntries* ppivec = NULL;
 
 				GeometricObject* parent = mg.get_parent(node);
 
 			//	access the parents info vec.
-				if(parent){
-					int parentType = parent->base_object_id();
-					switch(parentType){
-						case VERTEX:
-							ppivec = &aaInfoVecVRT[static_cast<VertexBase*>(parent)];
-							break;
-						case EDGE:
-							ppivec = &aaInfoVecEDGE[static_cast<EdgeBase*>(parent)];
-							break;
-						case FACE:
-							ppivec = &aaInfoVecFACE[static_cast<Face*>(parent)];
-							break;
-						case VOLUME:
-							ppivec = &aaInfoVecVOL[static_cast<Volume*>(parent)];
-							break;
-					}
-				}
+				if(parent)
+					ppivec = &distInfos.get(parent).interfaceEntries;
 
 			//	now find the master-layout-index for the element. If required
 			//	create copies of the elements on processes where a parent lies.
@@ -374,7 +530,8 @@ bool CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 				//	layout as the copy.
 				//	If none can be found, we'll create a copy of elem on the
 				//	first proc on which parent lies and make it a vertical master.
-					InfoVec& pivec = *ppivec;
+					InterfaceEntries& pivec = *ppivec;
+					masterLayoutInd = pivec[0].first;
 
 					for(size_t i_ni = 0; i_ni < nivec.size(); ++i_ni){
 						int tLayoutInd = nivec[i_ni].first;
@@ -389,91 +546,15 @@ bool CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 						if(masterLocalInd != -1)
 							break;
 					}
-
-				//	if we didn't find one, we have to create a copy.
-				//	use the first layout in which parent lies and create the
-				//	copy.
-				//todo: always using the first one can lead to a slight imbalance.
-					if(masterLocalInd == -1){
-						masterLayoutInd = pivec[0].first;
-						NodeVec& masterNodes = distLayouts[masterLayoutInd].node_vec();
-					//	we want the new entry to be the first in the vector to
-					//	optimize search performance.
-						if(!nivec.empty()){
-							nivec.push_back(nivec.front());
-							nivec.front() = make_pair((int)masterLayoutInd,
-													  (int)masterNodes.size());
-						}
-						else{
-							nivec.push_back(make_pair((int)masterLayoutInd,
-														(int)masterNodes.size()));
-						}
-						masterNodes.push_back(node);
-						masterLocalInd = (int)masterNodes.size() - 1;
-
-						copiedElemsOut.push_back(make_pair(node, masterLayoutInd));
-					}
-
 				}
-				else{
-					if(baseLayoutInd == (int)i_layout)
-						continue;
-
+				else
 					masterLayoutInd = baseLayoutInd;
-				//	check whether a copy already lies in base-layout
-				//	if so, assign the local index.
-					for(size_t i = 0; i < nivec.size(); ++i){
-						if(nivec[i].first == baseLayoutInd){
-							masterLocalInd = nivec[i].second;
-							break;
-						}
-					}
 
-					if(masterLocalInd == -1){
-					//	we have to create a new entry in the base-layout
-					//	we want the new entry to be the first in the vector to
-					//	optimize search performance.
-						if(!nivec.empty()){
-							nivec.push_back(nivec.front());
-							nivec.front() = make_pair((int)baseLayoutInd,
-													  (int)baseNodes.size());
-						}
-						else{
-							nivec.push_back(make_pair((int)baseLayoutInd,
-														(int)baseNodes.size()));
-						}
-
-						baseNodes.push_back(node);
-						masterLocalInd = (int)baseNodes.size() - 1;
-						copiedElemsOut.push_back(make_pair(node, baseLayoutInd));
-					}
-				}
-
-			//	if masterLayoutInd and curLayoutInd are the same, there is
-			//	of course nothing to do.
 				if(masterLayoutInd == (int)i_layout)
 					continue;
 
-				int masterProcRank = masterLayoutInd;
-				if(processMap)
-					masterProcRank = processMap->at(masterLayoutInd);
-
-			//	get the level and check whether we have to access the interfaces again
-				int lvl = mg.get_level(node);
-				if((lvl != interfaceLevel)
-					|| (lastMasterLayoutInd != masterLayoutInd))
-				{
-					lastMasterLayoutInd = masterLayoutInd;
-				//	we have to update the interfaces
-					interfaceLevel = lvl;
-					masterInterface = &distLayouts[masterLayoutInd].
-													interface(curProcRank, lvl);
-					curInterface = &curLayout.interface(masterProcRank, lvl);
-				}
-
-			//	insert the node into the interfaces
-				masterInterface->push_back(InterfaceEntry(masterLocalInd, INT_V_MASTER));
-				curInterface->push_back(InterfaceEntry(i_node, INT_V_SLAVE));
+				MakeVerticalMaster<TDistNodeLayout>(node, mg, masterLayoutInd, distInfos,
+								   	   	   	   	    distLayouts, processMap);
 			}
 		}
 	}
@@ -482,66 +563,13 @@ bool CreateVerticalInterfaces(std::vector<TDistLayout>& distLayouts,
 	return true;
 }
 
-///	A helper method that copies associated lower dim elems to required distLayouts.
-/**	This is important since each layout has to contain a complete grid with all
- * vertices, edges and sides...
- * Please check the calling context (shouldn't be many) for more insight.
- */
-template <class TDistLayoutDest, class TElemSrc>
-static void CopyAssociatedElemsToDistLayouts(std::vector<TDistLayoutDest>& distLayouts,
-									MultiGrid& mg, AInfoVec& aInfoVec,
-									vector<pair<TElemSrc*, int> >& copiedSrcElems)
-{
-//todo:	enhance this method. The copied elements should be immediately added to
-//		vertical interfaces, based on their parent.
-//		They furthermore should be deselected, so that they won't be considered
-//		during vertical interface creation for lower-dim elems later on.
-
-	typedef typename TDistLayoutDest::NodeType			NodeDest;
-	typedef typename PtrTypeToGeomObjBaseType<NodeDest>::base_type	ElemDest;
-
-	assert(mg.has_attachment<ElemDest>(aInfoVec));
-	Grid::AttachmentAccessor<ElemDest, AInfoVec> aaInfoVec(mg, aInfoVec);
-
-	vector<ElemDest*> elems;
-
-	for(size_t i_src = 0; i_src < copiedSrcElems.size(); ++i_src){
-		TElemSrc* src = copiedSrcElems[i_src].first;
-		int destLayoutInd = copiedSrcElems[i_src].second;
-		TDistLayoutDest& destLayout = distLayouts[destLayoutInd];
-
-		CollectAssociated(elems, mg, src);
-		for(size_t i_elem = 0; i_elem < elems.size(); ++i_elem){
-			ElemDest* dest = elems[i_elem];
-		//	check whether destLayout already contains dest
-			InfoVec& infoVec = aaInfoVec[dest];
-
-			bool gotOne = false;
-			for(size_t i = 0; i < infoVec.size(); ++i){
-				if(infoVec[i].first == destLayoutInd){
-					gotOne = true;
-					break;
-				}
-			}
-
-			if(!gotOne){
-			//	copy dest to destLayout. Add an entry to infoVec
-				infoVec.push_back(make_pair(destLayoutInd,
-											(int)destLayout.node_vec().size()));
-				destLayout.node_vec().push_back(dest);
-			}
-		}
-	}
-}
-
 ////////////////////////////////////////////////////////////////////////
-template <class TVertexDistributionLayout, class TEdgeDistributionLayout,
-		  class TFaceDistributionLayout, class TVolumeDistributionLayout>
+template <template <class T> class TDistNodeLayout>
 void CreateDistributionLayouts(
-						std::vector<TVertexDistributionLayout>& vertexLayoutsOut,
-						std::vector<TEdgeDistributionLayout>& edgeLayoutsOut,
-						std::vector<TFaceDistributionLayout>& faceLayoutsOut,
-						std::vector<TVolumeDistributionLayout>& volumeLayoutsOut,
+						std::vector<TDistNodeLayout<VertexBase*> >& vertexLayoutsOut,
+						std::vector<TDistNodeLayout<EdgeBase*> >& edgeLayoutsOut,
+						std::vector<TDistNodeLayout<Face*> >& faceLayoutsOut,
+						std::vector<TDistNodeLayout<Volume*> >& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
 						bool distributeGenealogy,
 						bool createVerticalInterfaces,
@@ -565,19 +593,11 @@ void CreateDistributionLayouts(
 	}
 
 //	resize and clear the layouts
-	vertexLayoutsOut = std::vector<TVertexDistributionLayout>(sh.num_subsets());
-	edgeLayoutsOut = std::vector<TEdgeDistributionLayout>(sh.num_subsets());
-	faceLayoutsOut = std::vector<TFaceDistributionLayout>(sh.num_subsets());
-	volumeLayoutsOut = std::vector<TVolumeDistributionLayout>(sh.num_subsets());
+	DistLayoutSupplier<TDistNodeLayout> distLayouts(vertexLayoutsOut, edgeLayoutsOut,
+								   	   	   	   	    faceLayoutsOut, volumeLayoutsOut);
+	distLayouts.clear_and_resize(sh.num_subsets());
 
-//	We attach vectors to all elements, which store where in which layout an
-//	element is located.
-	AInfoVec aInfoVec;
-
-	mg.attach_to_vertices(aInfoVec);
-	mg.attach_to_edges(aInfoVec);
-	mg.attach_to_faces(aInfoVec);
-	mg.attach_to_volumes(aInfoVec);
+	DistInfoSupplier distInfos(mg);
 
 //	iterate through the subsets and and create the packs.
 //	we have to do this in two steps to make sure that all
@@ -591,16 +611,16 @@ void CreateDistributionLayouts(
 	//	by passing -1 we can assert that no interface is accessed.
 		AddNodesToLayout(vertexLayoutsOut, i,
 							sh.begin<VertexBase>(i), sh.end<VertexBase>(i),
-							mg, aInfoVec, processMap, -1);
+							mg, distInfos, processMap, -1);
 		AddNodesToLayout(edgeLayoutsOut, i,
 							sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i),
-							mg, aInfoVec, processMap, -1);
+							mg, distInfos, processMap, -1);
 		AddNodesToLayout(faceLayoutsOut, i,
 							sh.begin<Face>(i), sh.end<Face>(i),
-							mg, aInfoVec, processMap, -1);
+							mg, distInfos, processMap, -1);
 		AddNodesToLayout(volumeLayoutsOut, i,
 							sh.begin<Volume>(i), sh.end<Volume>(i),
-							mg, aInfoVec, processMap, -1);
+							mg, distInfos, processMap, -1);
 	}
 
 //	step 2: add all the associated elements to the distribution groups, which
@@ -786,19 +806,19 @@ void CreateDistributionLayouts(
 		{
 			AddNodesToLayout(vertexLayoutsOut, i,
 								msel.begin<VertexBase>(level), msel.end<VertexBase>(level),
-								mg, aInfoVec, processMap, level,
+								mg, distInfos, processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(edgeLayoutsOut, i,
 								msel.begin<EdgeBase>(level), msel.end<EdgeBase>(level),
-								mg, aInfoVec, processMap, level,
+								mg, distInfos, processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(faceLayoutsOut, i,
 								msel.begin<Face>(level), msel.end<Face>(level),
-								mg, aInfoVec, processMap, level,
+								mg, distInfos, processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 			AddNodesToLayout(volumeLayoutsOut, i,
 								msel.begin<Volume>(level), msel.end<Volume>(level),
-								mg, aInfoVec, processMap, level,
+								mg, distInfos, processMap, level,
 								interfacesOnLevelOnly, pDistGridMgr);
 		}
 	}
@@ -807,74 +827,31 @@ void CreateDistributionLayouts(
 //	are contained in layout i at this point.
 //	we can now use this information to add vertical interfaces
 	if(createVerticalInterfaces){
-		msel.clear();
-		SelectNewGhosts(vertexLayoutsOut, mg, msel, processMap);
-		SelectNewGhosts(edgeLayoutsOut, mg, msel, processMap);
-		SelectNewGhosts(faceLayoutsOut, mg, msel, processMap);
-		SelectNewGhosts(volumeLayoutsOut, mg, msel, processMap);
-
-		SelectAssociatedGeometricObjects(msel);
-
 	//	we'll call higher dim elems first, since lower dim-elems
-	//	may be added to dist-groups during this operation
-		vector<pair<Volume*, int> > copiedVols;
-		CreateVerticalInterfaces(volumeLayoutsOut, mg, msel, sh, aInfoVec,
-								copiedVols, pDistGridMgr, processMap);
-
-	//	now copy missing sides, edges and vertices of newly copied volumes
-	//	to the distribution layouts (those elements are already selected...).
-		CopyAssociatedElemsToDistLayouts(faceLayoutsOut, mg, aInfoVec, copiedVols);
-		CopyAssociatedElemsToDistLayouts(edgeLayoutsOut, mg, aInfoVec, copiedVols);
-		CopyAssociatedElemsToDistLayouts(vertexLayoutsOut, mg, aInfoVec, copiedVols);
-
-		vector<pair<Face*, int> > copiedFaces;
-		CreateVerticalInterfaces(faceLayoutsOut, mg, msel, sh, aInfoVec,
-								copiedFaces, pDistGridMgr, processMap);
-
-	//	now copy missing edges and vertices of newly copied faces
-	//	to the distribution layouts (those elements are already selected...).
-		CopyAssociatedElemsToDistLayouts(edgeLayoutsOut, mg, aInfoVec, copiedFaces);
-		CopyAssociatedElemsToDistLayouts(vertexLayoutsOut, mg, aInfoVec, copiedFaces);
-
-		vector<pair<EdgeBase*, int> > copiedEdges;
-		CreateVerticalInterfaces(edgeLayoutsOut, mg, msel, sh, aInfoVec,
-								copiedEdges, pDistGridMgr, processMap);
-
-	//	now copy missing vertices of newly copied edges to the distribution layouts.
-	//	(those elements are already selected...)
-		CopyAssociatedElemsToDistLayouts(vertexLayoutsOut, mg, aInfoVec, copiedEdges);
-
-		vector<pair<VertexBase*, int> > copiedVrts;
-		CreateVerticalInterfaces(vertexLayoutsOut, mg, msel, sh, aInfoVec,
-								copiedVrts, pDistGridMgr, processMap);
+	//	may be added to dist-groups during those calls
+		CreateVerticalInterfaces<Volume>(distLayouts, mg, sh, distInfos, processMap, &msel);
+		CreateVerticalInterfaces<Face>(distLayouts, mg, sh, distInfos, processMap, &msel);
+		CreateVerticalInterfaces<EdgeBase>(distLayouts, mg, sh, distInfos, processMap, &msel);
+		CreateVerticalInterfaces<VertexBase>(distLayouts, mg, sh, distInfos, processMap, &msel);
 	}
 
 //	The layouts are now complete.
-//	we're done in here.
-
-//	clean up
-	mg.detach_from_vertices(aInfoVec);
-	mg.detach_from_edges(aInfoVec);
-	mg.detach_from_faces(aInfoVec);
-	mg.detach_from_volumes(aInfoVec);
 }
 
 //	explicit template instantiation
-template void CreateDistributionLayouts<DistributionVertexLayout, DistributionEdgeLayout,
-										DistributionFaceLayout, DistributionVolumeLayout>(
-										std::vector<DistributionVertexLayout>&,
-										std::vector<DistributionEdgeLayout>&,
-										std::vector<DistributionFaceLayout>&,
-										std::vector<DistributionVolumeLayout>&,
+template void CreateDistributionLayouts<DistributionNodeLayout>(
+										std::vector<DistributionNodeLayout<VertexBase*> >&,
+										std::vector<DistributionNodeLayout<EdgeBase*> >&,
+										std::vector<DistributionNodeLayout<Face*> >&,
+										std::vector<DistributionNodeLayout<Volume*> >&,
 										MultiGrid&, SubsetHandler&, bool, bool, MGSelector*,
 										DistributedGridManager*, std::vector<int>*);
 
-template void CreateDistributionLayouts<RedistributionVertexLayout, RedistributionEdgeLayout,
-										RedistributionFaceLayout, RedistributionVolumeLayout>(
-										std::vector<RedistributionVertexLayout>&,
-										std::vector<RedistributionEdgeLayout>&,
-										std::vector<RedistributionFaceLayout>&,
-										std::vector<RedistributionVolumeLayout>&,
+template void CreateDistributionLayouts<RedistributionNodeLayout>(
+										std::vector<RedistributionNodeLayout<VertexBase*> >&,
+										std::vector<RedistributionNodeLayout<EdgeBase*> >&,
+										std::vector<RedistributionNodeLayout<Face*> >&,
+										std::vector<RedistributionNodeLayout<Volume*> >&,
 										MultiGrid&, SubsetHandler&, bool, bool, MGSelector*,
 										DistributedGridManager*, std::vector<int>*);
 

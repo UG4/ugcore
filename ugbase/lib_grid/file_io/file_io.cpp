@@ -382,8 +382,6 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename,
 template <class TElem>
 static void AssignSubsetsByInterfaceType(SubsetHandler& sh, MultiGrid& mg)
 {
-	DistributedGridManager* distGridMgr = mg.distributed_grid_manager();
-
 	const int siNormal = 0;
 	const int siHMaster = 1;
 	const int siHSlave = 1 << 1;
@@ -405,6 +403,7 @@ static void AssignSubsetsByInterfaceType(SubsetHandler& sh, MultiGrid& mg)
 		int status = ES_NONE;
 
 		#ifdef UG_PARALLEL
+			DistributedGridManager* distGridMgr = mg.distributed_grid_manager();
 			if(distGridMgr)
 				status = distGridMgr->get_status(*iter);
 		#endif

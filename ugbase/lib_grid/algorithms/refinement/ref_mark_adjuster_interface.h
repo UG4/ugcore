@@ -23,43 +23,34 @@ namespace ug{
  * The callback-methods 'ref_marks_changed' and 'coarsen_marks_changed' are called
  * with lists of elements which have been marked since the last adjustment-round.
  * The callbacks can then use IRefiner::mark to adjust marks as required.
- * If a callback changes a ref-mark on an element, and returns CONTINUE_IF_MARKED_NEW,
+ * If a callback changes a ref-mark on an element,
  * this will automatically trigger a new round of adjustments
  * (then only considering elements which have been marked in the current round).
  *
- * A callback method can also return FORCE_CONTINUE, in which case the a new
- * adjustment round will be performed even if no new elements were selected. This
- * can be important for adjusters in a parallel environment.
- *
- * Adjustment stops as soon as no adjuster marked any new elements.
+ * Adjustment normally stops as soon as no adjuster marked any new elements.
  */
 class IRefMarkAdjuster
 {
 	public:
-		enum AdjustRetVal{
-			CONTINUE_IF_MARKED_NEW = 0,
-			FORCE_CONTINUE = 1
-		};
-
 		IRefMarkAdjuster() :
 			m_nodeDependencyOrder1(true)
 		{}
 
 		virtual ~IRefMarkAdjuster()	{}
 
-		virtual AdjustRetVal ref_marks_changed(IRefiner& ref,
-											const std::vector<VertexBase*>& vrts,
-											const std::vector<EdgeBase*>& edges,
-											const std::vector<Face*>& faces,
-											const std::vector<Volume*>& vols)
-		{return CONTINUE_IF_MARKED_NEW;}
+		virtual void ref_marks_changed(IRefiner& ref,
+										const std::vector<VertexBase*>& vrts,
+										const std::vector<EdgeBase*>& edges,
+										const std::vector<Face*>& faces,
+										const std::vector<Volume*>& vols)
+		{}
 
-		virtual AdjustRetVal coarsen_marks_changed(IRefiner& ref,
-											const std::vector<VertexBase*>& vrts,
-											const std::vector<EdgeBase*>& edges,
-											const std::vector<Face*>& faces,
-											const std::vector<Volume*>& vols)
-		{return CONTINUE_IF_MARKED_NEW;}
+		virtual void coarsen_marks_changed(IRefiner& ref,
+										const std::vector<VertexBase*>& vrts,
+										const std::vector<EdgeBase*>& edges,
+										const std::vector<Face*>& faces,
+										const std::vector<Volume*>& vols)
+		{return;}
 
 	///	enables or disables node-dependency-order-1.
 	/**	\{

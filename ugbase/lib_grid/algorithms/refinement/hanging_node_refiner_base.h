@@ -186,6 +186,13 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 */
 		virtual void collect_objects_for_refine();
 
+	/**	after each iteration in collet_objects_for_refine, this method determines
+	 * whether the iteration shall be continued. Important for parallel refiners.
+	 * The default implementation simply returns the specified value. This is fine
+	 * for serial environments.*/
+		virtual bool continue_collect_objects_for_refine(bool continueRequired)
+		{return continueRequired;}
+
 	/**	This callback is called during execution of the refine() method after
 	 * collect_objects_for_refine has returned. It is responsible to mark
 	 * elements for hnode refinement. That means all elements on which a hanging

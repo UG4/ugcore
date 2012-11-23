@@ -581,22 +581,19 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		m_newlyMarkedRefVols.clear();
 
 	//	call the adjusters
-		bool forceContinue = false;
 		for(size_t i = 0; i < m_refMarkAdjusters.size(); ++i){
-			IRefMarkAdjuster::AdjustRetVal retVal =
-				m_refMarkAdjusters[i]->ref_marks_changed(*this, newlyMarkedVrts,
+			m_refMarkAdjusters[i]->ref_marks_changed(*this, newlyMarkedVrts,
 														newlyMarkedEdges,
 														newlyMarkedFaces,
 														newlyMarkedVols);
-
-			forceContinue |= (retVal == IRefMarkAdjuster::FORCE_CONTINUE);
 		}
 
-		continueAdjustment = forceContinue
-							|| (!m_newlyMarkedRefVrts.empty())
-							|| (!m_newlyMarkedRefEdges.empty())
-							|| (!m_newlyMarkedRefFaces.empty())
-							|| (!m_newlyMarkedRefVols.empty());
+		bool continueRequired =	(!m_newlyMarkedRefVrts.empty())
+							 || (!m_newlyMarkedRefEdges.empty())
+							 || (!m_newlyMarkedRefFaces.empty())
+							 || (!m_newlyMarkedRefVols.empty());
+
+		continueAdjustment = continue_collect_objects_for_refine(continueRequired);
 	}
 
 	UG_DLOG(LIB_GRID, 1, "hnode_ref-stop: collect_objects_for_refine\n");

@@ -7,7 +7,7 @@
 
 namespace ug{
 
-MGHNodeAdjuster::AdjustRetVal MGHNodeAdjuster::
+void MGHNodeAdjuster::
 ref_marks_changed(IRefiner& ref,
 			   	  const std::vector<VertexBase*>& vrts,
 			   	  const std::vector<EdgeBase*>& edges,
@@ -16,13 +16,13 @@ ref_marks_changed(IRefiner& ref,
 {
 	UG_ASSERT(ref.grid(), "A refiner has to operate on a grid, before marks can be adjusted!");
 	if(!ref.grid()){
-		return CONTINUE_IF_MARKED_NEW;
+		return;
 	}
 	
 	MultiGrid* pmg = dynamic_cast<MultiGrid*>(ref.grid());
 	UG_ASSERT(pmg, "MGHNodeAdjuster can only operate on multi-grids, not on standard grids.");
 	if(!pmg)
-		return CONTINUE_IF_MARKED_NEW;
+		return;
 	MultiGrid& mg = *pmg;
 
 //	select all associated vertices of marked objects,
@@ -52,7 +52,5 @@ ref_marks_changed(IRefiner& ref,
 				ref.mark(v->vertex(i));
 		}
 	}
-
-	return CONTINUE_IF_MARKED_NEW;
 }
 }// end of namespace

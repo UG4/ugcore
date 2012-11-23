@@ -208,13 +208,12 @@ typedef RedistributionNodeLayout<Volume*>		RedistributionVolumeLayout;
  * entries will have to be ignored during assignment of distribution-
  * interface entries. Only specify pDistGridMgr for redistribution.
  */
-template <class TVertexDistributionLayout, class TEdgeDistributionLayout,
-		  class TFaceDistributionLayout, class TVolumeDistributionLayout>
+template <template <class T> class TDistNodeLayout>
 void CreateDistributionLayouts(
-						std::vector<TVertexDistributionLayout>& vertexLayoutsOut,
-						std::vector<TEdgeDistributionLayout>& edgeLayoutsOut,
-						std::vector<TFaceDistributionLayout>& faceLayoutsOut,
-						std::vector<TVolumeDistributionLayout>& volumeLayoutsOut,
+						std::vector<TDistNodeLayout<VertexBase*> >& vertexLayoutsOut,
+						std::vector<TDistNodeLayout<EdgeBase*> >& edgeLayoutsOut,
+						std::vector<TDistNodeLayout<Face*> >& faceLayoutsOut,
+						std::vector<TDistNodeLayout<Volume*> >& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
 						bool distributeGenealogy,
 						bool createVerticalInterfaces = false,

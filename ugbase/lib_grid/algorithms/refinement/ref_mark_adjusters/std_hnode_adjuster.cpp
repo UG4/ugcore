@@ -7,7 +7,7 @@
 
 namespace ug{
 
-StdHNodeAdjuster::AdjustRetVal StdHNodeAdjuster::
+void StdHNodeAdjuster::
 ref_marks_changed(IRefiner& ref,
 			   	  const std::vector<VertexBase*>& vrts,
 			   	  const std::vector<EdgeBase*>& edges,
@@ -15,7 +15,7 @@ ref_marks_changed(IRefiner& ref,
 			   	  const std::vector<Volume*>& vols)
 {
 	if(!ref.grid())
-		return CONTINUE_IF_MARKED_NEW;
+		return;
 	Grid& grid = *ref.grid();
 
 	Grid::edge_traits::secure_container		assEdges;
@@ -171,7 +171,5 @@ ref_marks_changed(IRefiner& ref,
 			}
 		}
 	}
-
-	return CONTINUE_IF_MARKED_NEW;
 }
 }// end of namespace
