@@ -55,8 +55,6 @@ bool InitPaths(const char* argv0)
 	//during startup or if UG4_ROOT is defined.
 
 	//	extract the application path.
-	// UG_LOG("argv[0]: " << argv0 << endl);
-
 	char* ug4Root = getenv("UG4_ROOT");
 	const char* pathSep = GetPathSeparator();
 
@@ -116,32 +114,30 @@ bool InitPaths(const char* argv0)
  *	If ug has been compiled for parallel use (UG_PARALLEL is defined)
  *	then this method will internally call pcl::Init.
  */
-//int UGInit(int argc, char* argv[], int parallelOutputProcRank)
 int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 {
 	PROFILE_FUNC();
-//	NOTE: UGInit is currently not called by ug_shell (recheck that!)
+	bool success = true;
 
 	static bool firstCall = true;
 	if (firstCall) {
 		firstCall = false;
 
 #ifdef UG_PARALLEL
-//		pcl::Init(argc, argv);
 		pcl::Init(argcp, argvp);
 		GetLogAssistant().set_output_process(parallelOutputProcRank);
 #endif
 
-	//todo: If initPaths fails, something should be done...
-		InitPaths((*argvp)[0]);
+		success &= InitPaths((*argvp)[0]);
 
 #ifdef UG_BRIDGE
 		try{
-		bridge::InitBridge();
+			bridge::InitBridge();
 		}
 		catch(UGError& err)
 		{
-			UG_LOG("ERROR in UGInit: InitBridge failed!\n");
+			success &= false;
+			UG_LOG("ERROR in UGInit: InitBridge failed!\nError Message: " + err.get_formatted_msg());
 		}
 #endif
 
@@ -151,13 +147,15 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 	#else
 		if(!LoadPlugins(ug::PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))
 		{
+			success &= false;
 			UG_LOG("ERROR in UGInit: LoadPlugins failed!\n");
 		}
 	#endif
 #endif
 	}
 
-	return 0;
+	// convert boolean success == true to int = 0.
+	return !success;
 }
 
 ////////////////////////////////////////////////////////////////////////
