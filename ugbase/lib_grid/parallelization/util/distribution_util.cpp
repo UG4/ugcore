@@ -136,7 +136,7 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 
 
 ////////////////////////////////////////////////////////////////////////
-///	Selects all elements that shall reside on the current process as ghosts
+///	Selects all elements whose parents are sent to other processes only.
 /**	This method uses Grid::mark.
  *
  * The method is useful to find all elements to which vertical interfaces shall
@@ -174,10 +174,6 @@ void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
 
 	for(size_t i_layout = 0; i_layout < distLayouts.size(); ++i_layout)
 	{
-		/*int curProcRank = i_layout;
-		if(processMap)
-			curProcRank = processMap->at(i_layout);*/
-
 		TDistLayout& curLayout = distLayouts[i_layout];
 
 	//	mark all nodes in curLayout
@@ -194,7 +190,7 @@ void SelectNewGhosts(std::vector<TDistLayout>& distLayouts, MultiGrid& mg,
 		//	only consider parents of the same base-type.
 		//	Other parents can be ignored, since we will adjust the selection
 		//	after having executed this method for all object-types.
-			if(parent->base_object_id() != Elem::BASE_OBJECT_ID)
+			if(parent && (parent->base_object_id() != Elem::BASE_OBJECT_ID))
 				continue;
 
 			if(!parent || !mg.is_marked(parent))
