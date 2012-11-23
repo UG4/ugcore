@@ -12,6 +12,7 @@
 #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/common/groups_util.h"
+#include "common/util/string_util.h"
 
 using namespace std;
 
@@ -265,9 +266,7 @@ MGDoFDistribution::
 
 SubsetGroup MGDoFDistribution::subset_grp_by_name(const char* names) const
 {
-	SubsetGroup ssGrp;
-	ConvertStringToSubsetGroup(ssGrp, subset_handler(), names);
-	return ssGrp;
+	return SubsetGroup(subset_handler(), TokenizeString(names));
 }
 
 

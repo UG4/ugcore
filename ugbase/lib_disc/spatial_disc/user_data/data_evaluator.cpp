@@ -49,8 +49,8 @@ void DataEvaluator::extract_fct_groups_and_mappings(const FunctionPattern& fctPa
 	{
 	//	create function group of this elem disc
 		try{
-			ConvertStringToFunctionGroup(m_vElemDiscFctGrp[i], fctPat,
-										 m_vElemDisc[i]->symb_fcts());
+			m_vElemDiscFctGrp[i].set_function_pattern(fctPat);
+			m_vElemDiscFctGrp[i].add(m_vElemDisc[i]->symb_fcts());
 		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
 					"some symbolic Function Name for disc "<<i<<".");
 
@@ -67,12 +67,7 @@ void DataEvaluator::extract_fct_groups_and_mappings(const FunctionPattern& fctPa
 	////////////////////////
 
 	//	check that all functions are defined on chosen subsets
-		SubsetGroup discSubsetGrp;
-		try{
-			ConvertStringToSubsetGroup(discSubsetGrp, fctPat.subset_handler(),
-										 m_vElemDisc[i]->symb_subsets());
-		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
-						"some symbolic Subset Name for disc "<<i<<".");
+		SubsetGroup discSubsetGrp(fctPat.subset_handler(), m_vElemDisc[i]->symb_subsets());
 
 	//	check that all functions are defined on chosen subsets
 		for(size_t fct = 0; fct < m_vElemDiscFctGrp[i].size(); ++fct)

@@ -299,7 +299,7 @@ number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInte
 	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
 	if(subsets != NULL)
 	{
-		ConvertStringToSubsetGroup(ssGrp, subsets);
+		ssGrp.add(TokenizeString(subsets));
 		if(!SameDimensionsInAllSubsets(ssGrp))
 			UG_THROW("IntegrateSubsets: Subsets '"<<subsets<<"' do not have same dimension."
 			         "Can not integrate on subsets of different dimensions.");
@@ -1159,7 +1159,7 @@ number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
 	if(subsets != NULL)
 	{
-		ConvertStringToSubsetGroup(ssGrp, subsets);
+		ssGrp.add(TokenizeString(subsets));
 		if(!SameDimensionsInAllSubsets(ssGrp))
 			UG_THROW("IntegrateSubsets: Subsets '"<<subsets<<"' do not have same dimension."
 					 "Can not integrate on subsets of different dimensions.");
@@ -1350,7 +1350,7 @@ number IntegralNormalComponentOnManifoldSubsets(
 	SubsetGroup innerSSGrp(spGridFct->domain()->subset_handler());
 	if(InnerSubsets != NULL)
 	{
-		ConvertStringToSubsetGroup(innerSSGrp, InnerSubsets);
+		innerSSGrp.add(TokenizeString(InnerSubsets));
 		if(!SameDimensionsInAllSubsets(innerSSGrp))
 			UG_THROW("IntegralNormalComponentOnManifold: Subsets '"<<InnerSubsets<<"' do not have same dimension."
 			         "Can not integrate on subsets of different dimensions.");
@@ -1365,7 +1365,7 @@ number IntegralNormalComponentOnManifoldSubsets(
 //	read subsets
 	SubsetGroup bndSSGrp(spGridFct->domain()->subset_handler());
 	if(BndSubsets != NULL)
-		ConvertStringToSubsetGroup(bndSSGrp, BndSubsets);
+		bndSSGrp.add(TokenizeString(BndSubsets));
 	else
 		UG_THROW("IntegralNormalComponentOnManifold: No boundary subsets passed.");
 
@@ -1532,16 +1532,16 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 				 "Only implemented for Lagrange P1 functions.");
 
 //	read subsets
-	SubsetGroup innerSSGrp; innerSSGrp.set_subset_handler(u.domain()->subset_handler());
+	SubsetGroup innerSSGrp(u.domain()->subset_handler());
 	if(InnerSubset != NULL)
-		ConvertStringToSubsetGroup(innerSSGrp, u.domain()->subset_handler(), InnerSubset);
+		innerSSGrp.add(TokenizeString(InnerSubset));
 	else // add all if no subset specified
 		innerSSGrp.add_all();
 
 //	read bnd subsets
-	SubsetGroup bndSSGrp; bndSSGrp.set_subset_handler(u.domain()->subset_handler());
+	SubsetGroup bndSSGrp(u.domain()->subset_handler());
 	if(InnerSubset != NULL){
-		ConvertStringToSubsetGroup(bndSSGrp, u.domain()->subset_handler(), BndSubset);
+		bndSSGrp.add(TokenizeString(BndSubset));
 	}
 	else{
 		UG_THROW("IntegrateNormalGradientOnManifold: No boundary subsets specified. Aborting.");

@@ -71,7 +71,7 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
 	if(subsets != NULL)
 	{
-		ConvertStringToSubsetGroup(ssGrp, subsets);
+		ssGrp.add(TokenizeString(subsets));
 		if(!SameDimensionsInAllSubsets(ssGrp))
 			UG_THROW("IntegrateDiscFlux: Subsets '"<<subsets<<"' do not have same dimension."
 					 "Can not integrate on subsets of different dimensions.");
@@ -84,11 +84,7 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 	}
 
 //	read functions
-	FunctionGroup fctGrp;
-	try{
-		ConvertStringToFunctionGroup(fctGrp, spGridFct->function_pattern(), pCmps);
-	}
-	UG_CATCH_THROW("IntegrateDiscFlux: Cannot parse functions for p.");
+	FunctionGroup fctGrp(spGridFct->function_pattern(), TokenizeString(pCmps));
 
 //	check if something to do
 	if(fctGrp.size() == 0) return 0;

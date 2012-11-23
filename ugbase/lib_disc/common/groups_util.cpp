@@ -57,53 +57,6 @@ void RemoveLowerDimSubsets(SubsetGroup& subsetGroup)
 }
 
 
-void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
-								const char* subsets, const char separator)
-{
-	ConvertStringToSubsetGroup(subsetGroup, pattern.subset_handler(),
-	                           subsets, separator);
-}
-
-
-void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetHandler> pSH,
-								const char* subsets, const char separator)
-{
-	subsetGroup.set_subset_handler(pSH);
-	ConvertStringToSubsetGroup(subsetGroup, subsets, separator);
-}
-
-void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup,
-								const char* subsets, const char separator)
-{
-	subsetGroup.add(TokenizeTrimString(string(subsets), separator));
-
-}
-
-void ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
-                                	ConstSmartPtr<ISubsetHandler> pSH,
-									const vector<string>& vSS)
-{
-	subsetGroup.set_subset_handler(pSH);
-	subsetGroup.add(vSS);
-}
-
-
-void ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionPattern& pattern,
-									const char* functions, const char separator)
-{
-	functionGroup.set_function_pattern(pattern);
-	functionGroup.add(TokenizeTrimString(string(functions), separator));
-}
-
-void ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
-                                  	const FunctionPattern& pattern,
-									const vector<string>& vFct)
-{
-	functionGroup.set_function_pattern(pattern);
-	functionGroup.add(vFct);
-}
-
-
 void
 CreateFunctionIndexMapping(FunctionIndexMapping& map,
                            const FunctionGroup& grpFromSmall,

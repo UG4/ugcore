@@ -298,8 +298,7 @@ void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunct
 	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
 	if(subsets != NULL)
 	{
-		ConvertStringToSubsetGroup(ssGrp, spGridFct->domain()->subset_handler(), subsets);
-
+		ssGrp.add(TokenizeString(subsets));
 		if(!bAllowManyfoldInterpolation)
 			if(!SameDimensionsInAllSubsets(ssGrp))
 				UG_THROW("Interpolate: Subsets '"<<subsets<<"' do not have same dimension."

@@ -8,6 +8,7 @@
 #include "approximation_space.h"
 #include "lib_disc/domain.h"
 #include "lib_disc/common/groups_util.h"
+#include "common/util/string_util.h"
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
 #endif
@@ -87,9 +88,7 @@ IApproximationSpace::
 
 SubsetGroup IApproximationSpace::subset_grp_by_name(const char* names) const
 {
-	SubsetGroup ssGrp;
-	ConvertStringToSubsetGroup(ssGrp, subset_handler(), names);
-	return ssGrp;
+	return SubsetGroup(subset_handler(), TokenizeString(names));
 }
 
 

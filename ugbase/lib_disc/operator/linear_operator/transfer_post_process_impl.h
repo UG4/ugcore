@@ -38,9 +38,10 @@ void AverageComponent<TDomain, TAlgebra>::init()
 				"Approximation Space not set. Cannot init Projection.");
 
 //	read functions
-	m_fctGrp.clear();
 	try{
-		ConvertStringToFunctionGroup(m_fctGrp, *m_spApproxSpace->function_pattern(), m_symbFct.c_str());
+		m_fctGrp.clear();
+		m_fctGrp.set_function_pattern(*m_spApproxSpace->function_pattern());
+		m_fctGrp.add(TokenizeString(m_symbFct));
 	}
 	UG_CATCH_THROW("AverageComponent: Cannot parse functions for p.");
 

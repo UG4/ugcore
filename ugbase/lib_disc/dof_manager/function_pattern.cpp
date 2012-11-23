@@ -179,9 +179,7 @@ size_t FunctionPattern::fct_id_by_name(const char* name) const
 ///	returns function group by name
 FunctionGroup FunctionPattern::fct_grp_by_name(const char* names) const
 {
-	FunctionGroup fctGrp(*this);
-	ConvertStringToFunctionGroup(fctGrp, *this, names);
-	return fctGrp;
+	return FunctionGroup(*this, TokenizeString(names));
 }
 
 

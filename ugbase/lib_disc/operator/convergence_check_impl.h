@@ -115,7 +115,7 @@ void CompositeConvCheck<TVector, TDomain>::set_functions(const char* functionNam
 	std::vector<std::vector<MultiIndex<2> > > finalIndices(0);
 	std::vector<std::string> finalNames(0);
 	std::vector<bool> used(m_dd->num_fct(), false);
-	for (size_t i = 0; i < m_fctGrp.num_fct(); i++)
+	for (size_t i = 0; i < m_fctGrp.size(); i++)
 	{
 		finalIndices.push_back(m_vvMultiIndex[m_fctGrp[i]]);
 		finalNames.push_back(m_fctName[m_fctGrp[i]]);
@@ -154,10 +154,10 @@ template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::set_minimum_defect(const std::vector<number> minDefect, number minDefectForRest)
 {
 	// check if number of values is correct
-	if (minDefect.size() != m_fctGrp.num_fct())
+	if (minDefect.size() != m_fctGrp.size())
 	{
 		UG_THROW(	"The number of supplied values (" << minDefect.size() << ") does not match the number\n"
-					"of given function names (" << m_fctGrp.num_fct() << "); perhaps you have forgot to call\n"
+					"of given function names (" << m_fctGrp.size() << "); perhaps you have forgot to call\n"
 					"CompositeConvCheck::set_functions prior to this method.");
 	}
 
@@ -165,7 +165,7 @@ void CompositeConvCheck<TVector, TDomain>::set_minimum_defect(const std::vector<
 	m_minDefect = minDefect;
 
 	// set minDefectForRest, if needed
-	if (m_fctGrp.num_fct() < m_dd->num_fct())
+	if (m_fctGrp.size() < m_dd->num_fct())
 		m_minDefect.push_back(minDefectForRest);
 }
 
@@ -174,10 +174,10 @@ template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::set_reduction(const std::vector<number> reduction, number reductionForRest)
 {
 	// check if number of values is correct
-	if (reduction.size() != m_fctGrp.num_fct())
+	if (reduction.size() != m_fctGrp.size())
 	{
 		UG_THROW(	"The number of supplied values (" << reduction.size() << ") does not match the number\n"
-					"of given function names (" << m_fctGrp.num_fct() << "); perhaps you have forgot to call\n"
+					"of given function names (" << m_fctGrp.size() << "); perhaps you have forgot to call\n"
 					"CompositeConvCheck::set_functions prior to this method.");
 	}
 
@@ -185,7 +185,7 @@ void CompositeConvCheck<TVector, TDomain>::set_reduction(const std::vector<numbe
 	m_relReduction = reduction;
 
 	// set reductionForRest, if needed
-	if (m_fctGrp.num_fct() < m_dd->num_fct())
+	if (m_fctGrp.size() < m_dd->num_fct())
 		m_relReduction.push_back(reductionForRest);
 }
 

@@ -11,6 +11,7 @@
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/common/groups_util.h"
+#include "common/util/string_util.h"
 
 #include "user_data.h"
 
@@ -251,7 +252,8 @@ class StdDataExport
 
 		//	create function group of this elem disc
 			try{
-				ConvertStringToFunctionGroup(m_FctGrp, *m_pFctPatt, m_SymbFct.c_str());
+				m_FctGrp.set_function_pattern(*m_pFctPatt);
+				m_FctGrp.add(TokenizeString(m_SymbFct));
 			}UG_CATCH_THROW("StdDataExport: Cannot find  some symbolic function "
 							"name in '"<<m_SymbFct<<"'.");
 

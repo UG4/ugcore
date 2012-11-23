@@ -24,11 +24,8 @@ void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
 //	create subset group for each elem disc
 	for(size_t i = 0; i < vSSGrp.size(); ++i)
 	{
-	//	create subset group for elem disc i
-		try{
-			ConvertStringToSubsetGroup(vSSGrp[i], pSH,
-		                               vElemDisc[i]->symb_subsets());
-		}UG_CATCH_THROW("Cannot find symbolic subset name for IElemDisc "<<i<<".");
+		vSSGrp[i].set_subset_handler(pSH);
+		vSSGrp[i].add(vElemDisc[i]->symb_subsets());
 	}
 
 //	set underlying subsetHandler
