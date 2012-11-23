@@ -91,7 +91,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -195,7 +195,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -306,7 +306,7 @@ assemble_jacobian(matrix_type& J,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -410,7 +410,7 @@ assemble_defect(vector_type& d,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -513,7 +513,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	}UG_CATCH_THROW("DomainDiscretization: Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -616,7 +616,7 @@ assemble_rhs(vector_type& rhs,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -756,7 +756,7 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -849,7 +849,7 @@ assemble_jacobian(matrix_type& J,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -953,7 +953,7 @@ assemble_defect(vector_type& d,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -1060,7 +1060,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -1167,7 +1167,7 @@ assemble_rhs(vector_type& rhs,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];
@@ -1292,7 +1292,7 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
 //	loop subsets
-	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
 	//	get subset
 		const int si = unionSubsets[i];

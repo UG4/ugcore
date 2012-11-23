@@ -16,29 +16,23 @@
 
 namespace ug{
 
-void FunctionPattern::
-add_fct(const char* names, LFEID lfeID, int dim)
+void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID, int dim)
 {
-//	tokenize names
-	std::vector<std::string> vName;
-	TokenizeString(names, vName, ',');
-
 //	add all names
 	for(size_t i = 0; i < vName.size(); ++i)
 	{
-	//	trim string
-		RemoveWhitespaceFromString(vName[i]);
+	//	get string
 		const char* name = vName[i].c_str();
 
 	// 	if already locked, return false
 		if(m_bLocked)
-			UG_THROW("FunctionPattern: Already fixed. Cannot change.\n");
+			UG_THROW("FunctionPattern: Already fixed. Cannot change.");
 
 	//	check that space type has been passed
 		if(lfeID.type() == LFEID::NONE || lfeID.order() < LFEID::ADAPTIV)
 			UG_THROW("FunctionPattern: Specified Local Finite Element Space "
 							<<lfeID<< " is not a valid space. "
-							"[use e.g. (Lagrange, p), (DG, p), ...].\n");
+							"[use e.g. (Lagrange, p), (DG, p), ...].");
 
 	//	if no dimension passed, try to get dimension
 		if(dim == -1) dim = DimensionOfSubsets(*m_spSH);
@@ -51,7 +45,7 @@ add_fct(const char* names, LFEID lfeID, int dim)
 
 	//	if still no dimension available, return false
 		if(dim == -1)
-			UG_THROW("FunctionPattern: Cannot find dimension for new function.\n");
+			UG_THROW("FunctionPattern: Cannot find dimension for new function.");
 
 	//	create temporary subset group
 		SubsetGroup tmpSSGrp;
@@ -60,42 +54,33 @@ add_fct(const char* names, LFEID lfeID, int dim)
 
 	// 	add to function list, everywhere = true, copy SubsetGroup
 		m_vFunction.push_back(Function(name, dim, lfeID, true, tmpSSGrp));
-
-	//	write info
-//		UG_LOG("Info: Added discrete function with symbolic name '"<<name<<"' and "
-//				"local finite element type " <<lfeID<<" on whole domain (dim="<<dim<<").\n");
 	}
 }
 
-void FunctionPattern::add_fct(const char* names, LFEID lfeID,
-                              const SubsetGroup& ssGrp, int dim)
+void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID,
+                          const SubsetGroup& ssGrp, int dim)
 {
-//	tokenize names
-	std::vector<std::string> vName;
-	TokenizeString(names, vName, ',');
-
 //	add all names
 	for(size_t i = 0; i < vName.size(); ++i)
 	{
-	//	trim string
-		RemoveWhitespaceFromString(vName[i]);
+	//	get string
 		const char* name = vName[i].c_str();
 
 	// 	if already locked, return false
 		if(m_bLocked)
-			UG_THROW("FunctionPattern: Already fixed. Cannot change.\n");
+			UG_THROW("FunctionPattern: Already fixed. Cannot change.");
 
 	//	check that space type has been passed
 		if(lfeID.type() == LFEID::NONE || lfeID.order() < LFEID::ADAPTIV)
 			UG_THROW("FunctionPattern: "
 					" Specified Local Finite Element Space "<<lfeID<< " is not "
-					" a valid space. [use e.g. (Lagrange, p), (DG, p), ...].\n");
+					" a valid space. [use e.g. (Lagrange, p), (DG, p), ...].");
 
 	//	check that subset handler are equal
 		if(m_spSH.get() != ssGrp.subset_handler().get())
 			UG_THROW("FunctionPattern: "
 					"SubsetHandler of SubsetGroup does "
-					"not match SubsetHandler of FunctionPattern.\n");
+					"not match SubsetHandler of FunctionPattern.");
 
 	//	if no dimension passed, try to get dimension
 		if(dim == -1) dim = ssGrp.get_local_highest_subset_dimension();
@@ -108,16 +93,12 @@ void FunctionPattern::add_fct(const char* names, LFEID lfeID,
 
 	//	if still no dimension available, return false
 		if(dim == -1)
-			UG_THROW("FunctionPattern: Cannot find dimension for new function.\n");
+			UG_THROW("FunctionPattern: Cannot find dimension for new function.");
 
 	// 	add to function list, everywhere = false, copy SubsetGroup as given
 		m_vFunction.push_back(Function(name, dim, lfeID, false, ssGrp));
 
-	//	write info
-//		UG_LOG("Info: Added discrete function with symbolic name '"<<name<<"' and "
-//				"local finite element type " <<lfeID<<" defined on subsets [");
-
-		for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+		for(size_t i = 0; i < ssGrp.size(); ++i)
 		{
 			if(i>0) UG_LOG(", ");
 			UG_LOG(ssGrp.name(i));
@@ -126,39 +107,63 @@ void FunctionPattern::add_fct(const char* names, LFEID lfeID,
 	}
 }
 
-void FunctionPattern::add_fct(const char* name, LFEID lfeID,
-                              const char* subsets, int dim)
+void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID,
+                          const std::vector<std::string>& vSubset, int dim)
 {
-//	create Function Group
-	SubsetGroup ssGrp;
-
-//	convert string to subset group
-	try{
-		ConvertStringToSubsetGroup(ssGrp, m_spSH, subsets);
-	}UG_CATCH_THROW("FunctionPattern: ERROR while parsing Subsets.");
-
-//	forward request
-	add_fct(name, lfeID, ssGrp, dim);
+	add(vName, lfeID, SubsetGroup(m_spSH, vSubset), dim);
 }
 
-void FunctionPattern::add_fct(const char* name, const char* fetype, int order)
+void FunctionPattern::add(const char* names, LFEID lfeID, int dim)
 {
-//	convert type to LFEID and forward
-	add_fct(name, ConvertStringToLFEID(fetype, order));
+	add(TokenizeTrimString(names), lfeID, dim);
 }
 
-void FunctionPattern::add_fct(const char* name, const char* fetype)
+void FunctionPattern::add(const char* names, LFEID lfeID,
+                          const SubsetGroup& ssGrp, int dim)
 {
-//	convert type to LFEID and forward
-	add_fct(name, ConvertStringToLFEID(fetype));
+	add(TokenizeTrimString(names), lfeID, ssGrp, dim);
 }
 
-void FunctionPattern::add_fct(const char* name, const char* fetype,
-                                        int order, const char* subsets)
+void FunctionPattern::add(const char* names, LFEID lfeID,
+                          const char* subsets, int dim)
 {
-//	convert type to LFEID and forward
-	add_fct(name, ConvertStringToLFEID(fetype, order), subsets);
+	add(TokenizeTrimString(names), lfeID, TokenizeTrimString(subsets), dim);
 }
+
+void FunctionPattern::add(const std::vector<std::string> vName, const char* fetype, int order)
+{
+	add(vName, ConvertStringToLFEID(fetype, order));
+}
+
+void FunctionPattern::add(const std::vector<std::string> vName, const char* fetype)
+{
+	add(vName, ConvertStringToLFEID(fetype));
+}
+
+void FunctionPattern::add(const std::vector<std::string> vName, const char* fetype, int order,
+                          const std::vector<std::string> vSubsets)
+{
+	add(vName, ConvertStringToLFEID(fetype, order), vSubsets);
+}
+
+void FunctionPattern::add(const char* name, const char* fetype, int order)
+{
+	add(name, ConvertStringToLFEID(fetype, order));
+}
+
+void FunctionPattern::add(const char* name, const char* fetype)
+{
+	add(name, ConvertStringToLFEID(fetype));
+}
+
+void FunctionPattern::add(const char* name, const char* fetype,
+                          int order, const char* subsets)
+{
+	add(name, ConvertStringToLFEID(fetype, order), subsets);
+}
+
+
+
 
 size_t FunctionPattern::fct_id_by_name(const char* name) const
 {

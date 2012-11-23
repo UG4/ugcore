@@ -115,7 +115,7 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 	std::vector<number> vValue(fctGrp.size(), 0);
 
 //	loop subsets
-	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	for(size_t i = 0; i < ssGrp.size(); ++i)
 	{
 	//	get subset index
 		const int si = ssGrp[i];

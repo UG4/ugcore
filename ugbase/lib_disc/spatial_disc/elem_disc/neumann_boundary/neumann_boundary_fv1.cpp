@@ -47,7 +47,7 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 						" all contained in ApproximationSpace.");
 
 	//	check that only one function given
-		if(functionGroup.num_fct() != 1)
+		if(functionGroup.size() != 1)
 			UG_THROW("NeumannBoundary:extract_data: Only one function allowed"
 							" per neumann value, but passed: " << vUserData[i].fctName);
 
@@ -74,7 +74,7 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 
 	//	check subsets and add referenze to data to each segment
 		const ISubsetHandler& rSH = *this->function_pattern().subset_handler();
-		for(size_t si = 0; si < vUserData[i].ssGrp.num_subsets(); ++si)
+		for(size_t si = 0; si < vUserData[i].ssGrp.size(); ++si)
 		{
 		//	get subset index
 			const int subsetIndex = vUserData[i].ssGrp[si];
@@ -202,7 +202,7 @@ prepare_element_loop()
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
 	{
-		for(size_t s = 0; s < m_vNumberData[i].ssGrp.num_subsets(); ++s)
+		for(size_t s = 0; s < m_vNumberData[i].ssGrp.size(); ++s)
 		{
 		//	get subset index
 			const int bndSubset = m_vNumberData[i].ssGrp[s];
@@ -268,7 +268,7 @@ finish_element_loop()
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
 	{
-		for(size_t s = 0; s < m_vNumberData[i].ssGrp.num_subsets(); ++s)
+		for(size_t s = 0; s < m_vNumberData[i].ssGrp.size(); ++s)
 		{
 		//	get subset index
 			const int bndSubset = m_vNumberData[i].ssGrp[s];
@@ -336,7 +336,7 @@ ass_rhs_elem(LocalVector& d)
 	for(size_t data = 0; data < m_vNumberData.size(); ++data)
 	{
 		size_t ip = 0;
-		for(size_t s = 0; s < m_vNumberData[data].ssGrp.num_subsets(); ++s)
+		for(size_t s = 0; s < m_vNumberData[data].ssGrp.size(); ++s)
 		{
 		//	get subset index
 			const int bndSubset = m_vNumberData[data].ssGrp[s];
@@ -454,7 +454,7 @@ extract_bip(const TFVGeom<TElem,dim>& geo)
 	typedef typename TFVGeom<TElem, dim>::BF BF;
 	vLocIP.clear();
 	vGloIP.clear();
-	for(size_t s = 0; s < ssGrp.num_subsets(); s++)
+	for(size_t s = 0; s < ssGrp.size(); s++)
 	{
 		const int bndSubset = ssGrp[s];
 		if(geo.num_bf(bndSubset) == 0) continue;
@@ -482,7 +482,7 @@ lin_def_fv1(const LocalVector& u,
 	typedef typename TFVGeom<TElem, dim>::BF BF;
 
 	size_t ip = 0;
-	for(size_t s = 0; s < ssGrp.num_subsets(); ++s)
+	for(size_t s = 0; s < ssGrp.size(); ++s)
 	{
 		const int bndSubset = ssGrp[s];
 		if(geo.num_bf(bndSubset) == 0) continue;

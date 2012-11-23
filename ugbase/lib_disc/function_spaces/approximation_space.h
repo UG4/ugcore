@@ -59,16 +59,29 @@ class IApproximationSpace
 
 	///	adds function using string to indicate finite element type
 		void add_fct(const char* name, const char* type, int order)
-			{m_spFunctionPattern->add_fct(name, type, order);}
+			{m_spFunctionPattern->add(name, type, order);}
 			
 	///	adds function using string to indicate finite element type
 		void add_fct(const char* name, const char* type)
-			{m_spFunctionPattern->add_fct(name, type);}
+			{m_spFunctionPattern->add(name, type);}
 
 	///	adds function using string to indicate finite element type
 		void add_fct(const char* name, const char* type,
-							 int order, const char* subsets)
-			{m_spFunctionPattern->add_fct(name, type, order, subsets);}
+		             int order, const char* subsets)
+			{m_spFunctionPattern->add(name, type, order, subsets);}
+
+	///	adds function using string to indicate finite element type
+		void add_fct(const std::vector<std::string>& vName, const char* type, int order)
+			{m_spFunctionPattern->add(vName, type, order);}
+
+	///	adds function using string to indicate finite element type
+		void add_fct(const std::vector<std::string>& vName, const char* type)
+			{m_spFunctionPattern->add(vName, type);}
+
+	///	adds function using string to indicate finite element type
+		void add_fct(const std::vector<std::string>& vName, const char* type,
+		             int order, const std::vector<std::string>& vSubset)
+			{m_spFunctionPattern->add(vName, type, order, vSubset);}
 
 	/// get underlying subset handler
 		ConstSmartPtr<MGSubsetHandler> subset_handler() const {return m_spMGSH;}

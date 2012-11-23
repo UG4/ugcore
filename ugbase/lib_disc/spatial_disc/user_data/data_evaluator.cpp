@@ -75,9 +75,9 @@ void DataEvaluator::extract_fct_groups_and_mappings(const FunctionPattern& fctPa
 						"some symbolic Subset Name for disc "<<i<<".");
 
 	//	check that all functions are defined on chosen subsets
-		for(size_t fct = 0; fct < m_vElemDiscFctGrp[i].num_fct(); ++fct)
+		for(size_t fct = 0; fct < m_vElemDiscFctGrp[i].size(); ++fct)
 		{
-			for(size_t si = 0; si < discSubsetGrp.num_subsets(); ++si)
+			for(size_t si = 0; si < discSubsetGrp.size(); ++si)
 			{
 				if(!fctPat.is_def_in_subset(m_vElemDiscFctGrp[i][fct], discSubsetGrp[si])){
 					UG_LOG("WARNING in 'DataEvaluator::set_elem_discs': On disc "<<i<<
@@ -89,12 +89,12 @@ void DataEvaluator::extract_fct_groups_and_mappings(const FunctionPattern& fctPa
 		}
 
 	//	check correct number of functions
-		if(m_vElemDiscFctGrp[i].num_fct() != m_vElemDisc[i]->num_fct())
+		if(m_vElemDiscFctGrp[i].size() != m_vElemDisc[i]->num_fct())
 		{
 			std::stringstream ss;
 			ss << "DataEvaluator::set_elem_discs: Elem Disc "<<i<<
 					" requires "<<m_vElemDisc[i]->num_fct()<<" symbolic "
-					"Function Name, but "<<m_vElemDiscFctGrp[i].num_fct()<<" Functions "
+					"Function Name, but "<<m_vElemDiscFctGrp[i].size()<<" Functions "
 					" specified: ";
 			for(size_t f=0; f < m_vElemDisc[i]->symb_fcts().size(); ++f)
 			{
@@ -105,7 +105,7 @@ void DataEvaluator::extract_fct_groups_and_mappings(const FunctionPattern& fctPa
 		}
 
 	//	request assembling for local finite element id
-		std::vector<LFEID> vLfeID(m_vElemDiscFctGrp[i].num_fct());
+		std::vector<LFEID> vLfeID(m_vElemDiscFctGrp[i].size());
 		for(size_t f = 0; f < vLfeID.size(); ++f)
 			vLfeID[f] = m_vElemDiscFctGrp[i].local_finite_element_id(f);
 		if(!(m_vElemDisc[i]->request_finite_element_id(vLfeID)))

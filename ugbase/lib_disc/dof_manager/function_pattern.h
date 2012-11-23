@@ -41,43 +41,77 @@ class FunctionPattern
 	/// get underlying subset handler
 		ConstSmartPtr<ISubsetHandler> subset_handler() const {return m_spSH;}
 
-	/// add a single solution of LocalShapeFunctionSetID to the entire domain
+	/// add single solutions of LocalShapeFunctionSetID to the entire domain
 	/**
-	 * \param[in] 	name		Name of this Single Solution
+	 * \param[in] 	name		name(s) of single solution (comma separated)
 	 * \param[in] 	id			Shape Function set id
 	 * \param[in]	dim			Dimension (optional)
 	 */
-		void add_fct(const char* name, LFEID id, int dim = -1);
+		void add(const std::vector<std::string>& vName, LFEID id, int dim = -1);
 
-	/// add a single solution of LocalShapeFunctionSetID to selected subsets
+	/// add single solutions of LocalShapeFunctionSetID to selected subsets
 	/**
-	 * \param[in] name			Name of this Single Solution
+	 * \param[in] name			name(s) of single solution (comma separated)
 	 * \param[in] id			Shape Function set id
 	 * \param[in] SubsetIndices	SubsetGroup, where solution lives
 	 * \param[in] dim			Dimension
 	 */
-		void add_fct(const char* name, LFEID id,
-		                     const SubsetGroup& SubsetIndices, int dim = -1);
+		void add(const std::vector<std::string>& vName, LFEID id, const SubsetGroup& ssGrp, int dim = -1);
 
-	/// add a single solution of LocalShapeFunctionSetID to selected subsets
+	/// add single solutions of LocalShapeFunctionSetID to selected subsets
 	/**
-	 * \param[in] name			Name of this Single Solution
+	 * \param[in] name			name(s) of single solution (comma separated)
 	 * \param[in] id			Shape Function set id
 	 * \param[in] subsets		Subsets separated by ','
 	 * \param[in] dim			Dimension
 	 */
-		void add_fct(const char* name, LFEID id, const char* subsets,
-		                     int dim = -1);
+		void add(const std::vector<std::string>& vName, LFEID id,
+		         const std::vector<std::string>& vSubset, int dim = -1);
+
+	/// add single solutions of LocalShapeFunctionSetID to the entire domain
+	/**
+	 * \param[in] 	name		name(s) of single solution (comma separated)
+	 * \param[in] 	id			Shape Function set id
+	 * \param[in]	dim			Dimension (optional)
+	 */
+		void add(const char* name, LFEID id, int dim = -1);
+
+	/// add single solutions of LocalShapeFunctionSetID to selected subsets
+	/**
+	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] id			Shape Function set id
+	 * \param[in] SubsetIndices	SubsetGroup, where solution lives
+	 * \param[in] dim			Dimension
+	 */
+		void add(const char* name, LFEID id, const SubsetGroup& ssGrp, int dim = -1);
+
+	/// add single solutions of LocalShapeFunctionSetID to selected subsets
+	/**
+	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] id			Shape Function set id
+	 * \param[in] subsets		Subsets separated by ','
+	 * \param[in] dim			Dimension
+	 */
+		void add(const char* name, LFEID id, const char* subsets, int dim = -1);
 
 	///	adds function using string to indicate finite element type
-		void add_fct(const char* name, const char* type, int order);
-
-		///	adds function using string to indicate finite element type
-		void add_fct(const char* name, const char* type);
+		void add(const std::vector<std::string> vName, const char* type, int order);
 
 	///	adds function using string to indicate finite element type
-		void add_fct(const char* name, const char* type,
-		                     int order, const char* subsets);
+		void add(const std::vector<std::string> vName, const char* type);
+
+	///	adds function using string to indicate finite element type
+		void add(const std::vector<std::string> vName, const char* type, int order,
+		         const std::vector<std::string> vSubsets);
+
+	///	adds function using string to indicate finite element type
+		void add(const char* name, const char* type, int order);
+
+	///	adds function using string to indicate finite element type
+		void add(const char* name, const char* type);
+
+	///	adds function using string to indicate finite element type
+		void add(const char* name, const char* type, int order, const char* subsets);
 
 	///	lock pattern (i.e. can not be changed then)
 		void lock()	{m_bLocked = true;}

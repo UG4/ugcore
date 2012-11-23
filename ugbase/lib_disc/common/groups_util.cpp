@@ -11,12 +11,14 @@
 #include <algorithm>
 #include <limits>
 
+using namespace std;
+
 namespace ug{
 
 bool SameDimensionsInAllSubsets(const SubsetGroup& subsetGroup)
 {
 //	compute maximum
-	int max = std::numeric_limits<int>::min();
+	int max = numeric_limits<int>::min();
 	for(size_t s = 0; s < subsetGroup.size(); ++s)
 		max = std::max(subsetGroup.dim(s), max);
 
@@ -32,7 +34,7 @@ bool SameDimensionsInAllSubsets(const SubsetGroup& subsetGroup)
 void RemoveLowerDimSubsets(SubsetGroup& subsetGroup)
 {
 //	compute maximum
-	int max = std::numeric_limits<int>::min();
+	int max = numeric_limits<int>::min();
 	for(size_t s = 0; s < subsetGroup.size(); ++s)
 		max = std::max(subsetGroup.dim(s), max);
 
@@ -58,9 +60,7 @@ void RemoveLowerDimSubsets(SubsetGroup& subsetGroup)
 void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
 								const char* subsets, const char separator)
 {
-//	forward request
-	ConvertStringToSubsetGroup(subsetGroup,
-	                           pattern.subset_handler(),
+	ConvertStringToSubsetGroup(subsetGroup, pattern.subset_handler(),
 	                           subsets, separator);
 }
 
@@ -68,90 +68,39 @@ void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern&
 void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, ConstSmartPtr<ISubsetHandler> pSH,
 								const char* subsets, const char separator)
 {
-//	set underlying subsethandler Subset Group
 	subsetGroup.set_subset_handler(pSH);
-
-//	forward
 	ConvertStringToSubsetGroup(subsetGroup, subsets, separator);
 }
 
 void ConvertStringToSubsetGroup(SubsetGroup& subsetGroup,
 								const char* subsets, const char separator)
 {
-//	get strings
-	std::string subsetString = std::string(subsets);
+	subsetGroup.add(TokenizeTrimString(string(subsets), separator));
 
-//	tokenize strings and select subsets
-	std::vector<std::string> tokens;
-	TokenizeString(subsetString, tokens, separator);
-
-	for(size_t i = 0; i < tokens.size(); ++i)
-	{
-		RemoveWhitespaceFromString(tokens[i]);
-
-		try{
-			subsetGroup.add(tokens[i].c_str());
-		}UG_CATCH_THROW("Name of subset ('" << tokens[i] <<
-		                "') not found in Subset Handler.");
-	}
 }
 
 void ConvertStringToSubsetGroup(	SubsetGroup& subsetGroup,
                                 	ConstSmartPtr<ISubsetHandler> pSH,
-									const std::vector<std::string>& vSS)
+									const vector<string>& vSS)
 {
-//	create Function Group and Subset Group
 	subsetGroup.set_subset_handler(pSH);
-
-//	tokenize strings and select functions
-	for(size_t i = 0; i < vSS.size(); ++i){
-		try{
-			subsetGroup.add(vSS[i].c_str());
-		}UG_CATCH_THROW("Name of subset ('" << vSS[i] <<
-		                "') not found in Subset Handler.");
-	}
+	subsetGroup.add(vSS);
 }
 
 
 void ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionPattern& pattern,
 									const char* functions, const char separator)
 {
-//	get strings
-	std::string fctString = std::string(functions);
-
-//	create Function Group and Subset Group
 	functionGroup.set_function_pattern(pattern);
-
-//	tokenize strings and select functions
-	std::vector<std::string> tokens;
-	TokenizeString(fctString, tokens, ',');
-
-	for(size_t i = 0; i < tokens.size(); ++i)
-	{
-		RemoveWhitespaceFromString(tokens[i]);
-
-		try{
-			functionGroup.add(tokens[i].c_str());
-		}UG_CATCH_THROW("Name of function ('" << tokens[i] << "') not found in"
-					" Function Pattern.");
-	}
+	functionGroup.add(TokenizeTrimString(string(functions), separator));
 }
 
 void ConvertStringToFunctionGroup(	FunctionGroup& functionGroup,
                                   	const FunctionPattern& pattern,
-									const std::vector<std::string>& vFct)
+									const vector<string>& vFct)
 {
-//	create Function Group and Subset Group
 	functionGroup.set_function_pattern(pattern);
-
-//	tokenize strings and select functions
-	for(size_t i = 0; i < vFct.size(); ++i)
-	{
-		try{
-			functionGroup.add(vFct[i].c_str());
-		}UG_CATCH_THROW("Name of function ('" << vFct[i] << "') not found "
-		                "in Function Pattern.");
-	}
+	functionGroup.add(vFct);
 }
 
 
@@ -170,7 +119,7 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
 				grpToLarge<<". Cannot create Mapping.");
 
 //	loop all functions on grpFrom
-	for(size_t from = 0; from < grpFromSmall.num_fct(); ++from)
+	for(size_t from = 0; from < grpFromSmall.size(); ++from)
 	{
 	//	get unique id of function
 		const size_t uniqueID = grpFromSmall[from];
@@ -198,7 +147,7 @@ CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
 				grpFromLarge<<". Cannot create Mapping.");
 
 //	loop all functions on grpFrom
-	for(size_t to = 0; to < grpToSmall.num_fct(); ++to)
+	for(size_t to = 0; to < grpToSmall.size(); ++to)
 	{
 	//	get unique id of function
 		const size_t uniqueID = grpToSmall[to];
@@ -220,7 +169,7 @@ CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
  * \param[in]		sortFct		flag if group should be sorted after adding
  */
 void CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
-                                 const std::vector<const FunctionGroup*>& vFctGrp,
+                                 const vector<const FunctionGroup*>& vFctGrp,
                                  bool sortFct)
 {
 //	clear group

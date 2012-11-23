@@ -14,13 +14,54 @@
 
 namespace ug{
 
-// help function to tokenize the parameter string
-UG_API void TokenizeString(const std::string& str, std::vector<std::string>& tokens, const char delimiter);
+/// splits the string into parts based on a separating char
+/**
+ * returns the string parts using a separator char in order to indicate parts
+ * @param str			original string
+ * @param vToken		tokenized parts
+ * @param delimiter		char used as separator
+ */
+UG_API void TokenizeString(const std::string& str, std::vector<std::string>& vToken, const char delimiter = ',');
 
-// help function to remove white space from string
+/// splits the string into parts based on a separating char
+/**
+ * returns the string parts using a separator char in order to indicate parts
+ * @param str			original string
+ * @param delimiter		char used as separator
+ * @return tokenized parts
+ */
+UG_API std::vector<std::string> TokenizeString(const std::string& str, const char delimiter = ',');
+
+/// splits the string into parts based on a separating char
+/**
+ * returns the string parts using a separator char in order to indicate parts
+ * @param str			original string
+ * @param delimiter		char used as separator
+ * @return tokenized parts
+ */
+UG_API std::vector<std::string> TokenizeString(const char* str, const char delimiter = ',');
+
+/// splits the string into parts based on a separating char and trims parts
+/**
+ * returns the string parts using a separator char in order to indicate parts and
+ * trims the tokens before returning
+ * @param str			original string
+ * @param delimiter		char used as separator
+ * @return tokenized and trimmed parts
+ */
+UG_API std::vector<std::string> TokenizeTrimString(const std::string& str, const char delimiter = ',');
+
+/**
+ * removes all white space from a string, also within the string
+ * @param string	the string to modify
+ */
 UG_API void RemoveWhitespaceFromString(std::string& string);
 
-// help function to remove whitespace from front and end of string
+/**
+ * removes all white space from the front and end of a string
+ * @param string	the string to modify
+ * @return the modified string
+ */
 UG_API std::string TrimString(const std::string& str);
 
 /// returns the number of digits of an integer (expressed with base 10)

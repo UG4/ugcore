@@ -115,7 +115,7 @@ void CompositeConvCheck<TVector, TDomain>::set_functions(const char* functionNam
 	std::vector<std::vector<MultiIndex<2> > > finalIndices(0);
 	std::vector<std::string> finalNames(0);
 	std::vector<bool> used(m_dd->num_fct(), false);
-	for (size_t i = 0; i < m_fctGrp.num_fct(); i++)
+	for (size_t i = 0; i < m_fctGrp.size(); i++)
 	{
 		finalIndices.push_back(m_vvMultiIndex[m_fctGrp[i]]);
 		finalNames.push_back(m_fctName[m_fctGrp[i]]);
@@ -158,10 +158,10 @@ void CompositeConvCheck<TVector, TDomain>::set_minimum_defect(const char* minDef
 	TokenizeString(minDefect, tokens, ',');
 
 	// check if number of values is correct
-	if (tokens.size() != m_fctGrp.num_fct())
+	if (tokens.size() != m_fctGrp.size())
 	{
 		UG_THROW(	"The number of supplied values (" << tokens.size() << ") does not match the number\n"
-					"of given function names (" << m_fctGrp.num_fct() << "); perhaps you have forgot to call\n"
+					"of given function names (" << m_fctGrp.size() << "); perhaps you have forgot to call\n"
 					"CompositeConvCheck::set_functions prior to this method.");
 	}
 
@@ -176,7 +176,7 @@ void CompositeConvCheck<TVector, TDomain>::set_minimum_defect(const char* minDef
 	}
 
 	// set minDefectForRest, if needed
-	if (m_fctGrp.num_fct() < m_dd->num_fct())
+	if (m_fctGrp.size() < m_dd->num_fct())
 		m_minDefect.push_back(minDefectForRest);
 }
 
@@ -189,10 +189,10 @@ void CompositeConvCheck<TVector, TDomain>::set_reduction(const char* reduction, 
 	TokenizeString(reduction, tokens, ',');
 
 	// check if number of values is correct
-	if (tokens.size() != m_fctGrp.num_fct())
+	if (tokens.size() != m_fctGrp.size())
 	{
 		UG_THROW(	"The number of supplied values (" << tokens.size() << ") does not match the number\n"
-					"of given function names (" << m_fctGrp.num_fct() << "); perhaps you have forgot to call\n"
+					"of given function names (" << m_fctGrp.size() << "); perhaps you have forgot to call\n"
 					"CompositeConvCheck::set_functions prior to this method.");
 	}
 
@@ -207,7 +207,7 @@ void CompositeConvCheck<TVector, TDomain>::set_reduction(const char* reduction, 
 	}
 
 	// set minDefectForRest, if needed
-	if (m_fctGrp.num_fct() < m_dd->num_fct())
+	if (m_fctGrp.size() < m_dd->num_fct())
 		m_relReduction.push_back(reductionForRest);
 }
 

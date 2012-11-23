@@ -20,16 +20,38 @@ void RemoveWhitespaceFromString(std::string& str)
 }
 
 
-// help function to tokenize the parameter string
-void TokenizeString(const string& str, vector<string>& tokens, const char delimiter)
+void TokenizeString(const string& str, vector<string>& vToken, const char delimiter)
 {
-	tokens.clear();
+	vToken.clear();
 	stringstream tokenstream;
 	tokenstream << str;
 	string token;
 
 	while ( getline (tokenstream, token, delimiter ) )
-		tokens.push_back(token);
+		vToken.push_back(token);
+}
+
+vector<string> TokenizeString(const string& str, const char delimiter)
+{
+	vector<string> vToken;
+	TokenizeString(str, vToken, delimiter);
+	return vToken;
+}
+
+vector<string> TokenizeString(const char* str, const char delimiter)
+{
+	vector<string> vToken;
+	TokenizeString(string(str), vToken, delimiter);
+	return vToken;
+}
+
+vector<string> TokenizeTrimString(const string& str, const char delimiter)
+{
+	vector<string> vToken;
+	TokenizeString(str, vToken, delimiter);
+	for(size_t i = 0; i < vToken.size(); ++i)
+		vToken[i] = TrimString(vToken[i]);
+	return vToken;
 }
 
 string TrimString(const string& str)

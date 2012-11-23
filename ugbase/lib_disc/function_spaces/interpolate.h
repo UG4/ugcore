@@ -56,7 +56,7 @@ void InterpolateOnVertices(SmartPtr<UserData<number, TGridFunction::dim> > spInt
 	std::vector<MultiIndex<2> > ind;
 	typename TGridFunction::template dim_traits<0>::const_iterator iterEnd, iter;
 
-	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	for(size_t i = 0; i < ssGrp.size(); ++i)
 	{
 	//	get subset index
 		const int si = ssGrp[i];
@@ -212,7 +212,7 @@ void InterpolateOnElements(SmartPtr<UserData<number, TGridFunction::dim> > spInt
                            const SubsetGroup& ssGrp)
 {
 //	loop subsets
-	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	for(size_t i = 0; i < ssGrp.size(); ++i)
 	{
 	//	get subset index
 		const int si = ssGrp[i];

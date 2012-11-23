@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__COMMON__FUNCTION_GROUP__
 
 #include <vector>
+#include <string>
 
 #include "common/common.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
@@ -21,15 +22,22 @@ class FunctionGroup
 {
 	public:
 	///	Default Constructor
-		FunctionGroup() : m_pFunctionPattern(NULL) {clear();}
+		FunctionGroup();
 
 	///	Constructor setting function pattern
-		FunctionGroup(const FunctionPattern& funcPattern)
-			: m_pFunctionPattern(&funcPattern) {clear();}
+		FunctionGroup(const FunctionPattern& funcPattern);
+
+	///	Constructor setting function pattern and function
+		FunctionGroup(const FunctionPattern& funcPattern, const char* name);
+
+	///	Constructor setting function pattern and function
+		FunctionGroup(const FunctionPattern& funcPattern, const std::string& name);
+
+	///	Constructor setting function pattern and functions
+		FunctionGroup(const FunctionPattern& funcPattern, const std::vector<std::string>& vName);
 
 	/// set underlying function pattern
-		void set_function_pattern(const FunctionPattern& funcPattern)
-			{m_pFunctionPattern = &funcPattern; clear();}
+		void set_function_pattern(const FunctionPattern& funcPattern);
 
 	/// get underlying function pattern
 		const FunctionPattern* function_pattern() const
@@ -38,14 +46,14 @@ class FunctionGroup
 	/// adds a function by id to this group
 		void add(size_t fct);
 
-	/// adds all functions with a given name to this group
-	/** adds all functions with a given name to this group
-	 *
-	 * \param[in]	name	Name of Function(s) to be added
-	 * \return 		true	if at least one function added
-	 * 				false	if no function found with this name
-	 */
+	/// adds function with a given name to this group
 		void add(const char* name);
+
+	/// adds function with a given name to this group
+		void add(const std::string& name);
+
+	/// adds functions with a given names to this group
+		void add(const std::vector<std::string>& name);
 
 	/// adds all functions of a function group
 		void add(const FunctionGroup& fctGroup);
@@ -56,14 +64,14 @@ class FunctionGroup
 	/// removes a function by id from this group
 		void remove(size_t fct);
 
-	/// removes all functions with a given name from this group
-	/** removes all functions with a given name to this group
-	 *
-	 * \param[in]	name	Name of Function(s) to be removed
-	 * \return 		true	if at least one function removed
-	 * 				false	if no function found with this name
-	 */
+	/// removes function with a given name from this group
 		void remove(const char* name);
+
+	/// removes function with a given name from this group
+		void remove(const std::string& name);
+
+	/// removes functions with a given names from this group
+		void remove(const std::vector<std::string>& vName);
 
 	/// clear all subsets
 		void clear() {m_vFunction.clear();}
@@ -75,10 +83,7 @@ class FunctionGroup
 		bool empty() const {return m_vFunction.empty();}
 
 	/// number of functions in this group
-		size_t size() const {return num_fct();}
-
-	/// number of functions in this group
-		size_t num_fct() const {return m_vFunction.size();}
+		size_t size() const {return m_vFunction.size();}
 
 	/// returns the name of a function
 		const char* name(size_t i) const;
@@ -89,7 +94,7 @@ class FunctionGroup
 	/// returns unique function id of a function
 		size_t unique_id(size_t i) const
 		{
-			UG_ASSERT(i < num_fct(), "Invalid function access");
+			UG_ASSERT(i < size(), "Invalid function access");
 			return m_vFunction[i];
 		}
 
@@ -233,10 +238,10 @@ inline
 std::ostream& operator<< (std::ostream& outStream, const ug::FunctionGroup& grp)
 {
 	outStream << '[';
-	for(size_t i = 0; i < grp.num_fct(); ++i)
+	for(size_t i = 0; i < grp.size(); ++i)
 	{
 		outStream << grp[i];
-		if(i !=  grp.num_fct()-1) outStream << ',';
+		if(i !=  grp.size()-1) outStream << ',';
 	}
 	outStream << ']';
 	return outStream;

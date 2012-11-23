@@ -115,7 +115,7 @@ void DirichletBoundary<TDomain, TAlgebra>::
 check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGroup, size_t numFct) const
 {
 //	only number of functions allowed
-	if(functionGroup.num_fct() != numFct)
+	if(functionGroup.size() != numFct)
 		UG_THROW("DirichletBoundary:extract_data:"
 					" Only "<<numFct<<" function(s) allowed in specification of a"
 					" Dirichlet Value, but the following functions given:"
@@ -125,7 +125,7 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 	ConstSmartPtr<ISubsetHandler> pSH = m_spApproxSpace->subset_handler();
 
 // 	loop subsets
-	for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)
+	for(size_t si = 0; si < subsetGroup.size(); ++si)
 	{
 	//	get subset index
 		const int subsetIndex = subsetGroup[si];
@@ -137,7 +137,7 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 							" 0, .. , " << pSH->num_subsets() <<").");
 
 	//	check all functions
-		for(size_t i=0; i < functionGroup.num_fct(); ++i)
+		for(size_t i=0; i < functionGroup.size(); ++i)
 		{
 			const size_t fct = functionGroup[i];
 

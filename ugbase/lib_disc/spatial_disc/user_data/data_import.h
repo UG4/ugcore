@@ -77,7 +77,7 @@ class IDataImport
 		const FunctionGroup& function_group() const{return m_fctGrp;}
 
 	/// number of functions
-		size_t num_fct() const {return m_fctGrp.num_fct();}
+		size_t num_fct() const {return m_fctGrp.size();}
 
 	///	sets the geometric object type
 		virtual void set_roid(ReferenceObjectID id) = 0;

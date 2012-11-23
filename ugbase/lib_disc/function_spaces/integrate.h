@@ -315,7 +315,7 @@ number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInte
 	number value = 0;
 
 //	loop subsets
-	for(size_t i = 0; i < ssGrp.num_subsets(); ++i)
+	for(size_t i = 0; i < ssGrp.size(); ++i)
 	{
 	//	get subset index
 		const int si = ssGrp[i];
@@ -1242,7 +1242,7 @@ number IntegralNormalComponentOnManifoldUsingFV1Geom(TConstIterator iterBegin,
 	DimFV1Geometry<dim> geo;
 
 //	specify, which subsets are boundary
-	for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
+	for(size_t s = 0; s < bndSSGrp.size(); ++s)
 	{
 	//	get subset index
 		const int bndSubset = bndSSGrp[s];
@@ -1270,7 +1270,7 @@ number IntegralNormalComponentOnManifoldUsingFV1Geom(TConstIterator iterBegin,
 					"Cannot update Finite Volume Geometry.");
 
 	//	specify, which subsets are boundary
-		for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
+		for(size_t s = 0; s < bndSSGrp.size(); ++s)
 		{
 		//	get subset index
 			const int bndSubset = bndSSGrp[s];
@@ -1373,7 +1373,7 @@ number IntegralNormalComponentOnManifoldSubsets(
 	number value = 0;
 
 //	loop subsets
-	for(size_t i = 0; i < innerSSGrp.num_subsets(); ++i)
+	for(size_t i = 0; i < innerSSGrp.size(); ++i)
 	{
 	//	get subset index
 		const int si = innerSSGrp[i];
@@ -1551,7 +1551,7 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 	number value = 0;
 
 //	loop subsets
-	for(size_t i = 0; i < innerSSGrp.num_subsets(); ++i)
+	for(size_t i = 0; i < innerSSGrp.size(); ++i)
 	{
 	//	get subset index
 		const int si = innerSSGrp[i];
@@ -1578,7 +1578,7 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 		DimFV1Geometry<dim> geo;
 
 	//	specify, which subsets are boundary
-		for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
+		for(size_t s = 0; s < bndSSGrp.size(); ++s)
 		{
 		//	get subset index
 			const int bndSubset = bndSSGrp[s];
@@ -1610,7 +1610,7 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 			u.multi_indices(elem, fct, ind);
 
 		//	specify, which subsets are boundary
-			for(size_t s = 0; s < bndSSGrp.num_subsets(); ++s)
+			for(size_t s = 0; s < bndSSGrp.size(); ++s)
 			{
 			//	get subset index
 				const int bndSubset = bndSSGrp[s];

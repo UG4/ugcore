@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__COMMON__SUBSET_GROUP__
 
 #include <vector>
+#include <string>
 #include "lib_grid/tools/subset_handler_interface.h"
 
 namespace ug{
@@ -25,10 +26,19 @@ class SubsetGroup
 {
 	public:
 	///	Default Constructor
-		SubsetGroup() : m_pSH(NULL) {clear();}
+		SubsetGroup();
 
 	///	Constructor setting subset handler
-		SubsetGroup(ConstSmartPtr<ISubsetHandler> sh) : m_pSH(sh) {clear();}
+		SubsetGroup(ConstSmartPtr<ISubsetHandler> sh);
+
+	///	Constructor setting subset handler and subsets
+		SubsetGroup(ConstSmartPtr<ISubsetHandler> sh, const char* names);
+
+	///	Constructor setting subset handler and subsets
+		SubsetGroup(ConstSmartPtr<ISubsetHandler> sh, const std::string& names);
+
+	///	Constructor setting subset handler and subsets
+		SubsetGroup(ConstSmartPtr<ISubsetHandler> sh, const std::vector<std::string>& vName);
 
 	/// set an underlying subset handler
 		void set_subset_handler(ConstSmartPtr<ISubsetHandler> sh) {m_pSH = sh; clear();}
@@ -39,12 +49,18 @@ class SubsetGroup
 	/// adds a subset by number to this group
 		void add(int si);
 
+	/// adds subset with a name to this group
+		void add(const char* name);
+
+	/// adds subset with a name to this group
+		void add(const std::string& name);
+
 	/// adds all subset with by name to this group
 	/**
 	 * This function adds all subset with by name to this group.
-	 * \param[in]	name	Name of Subset(s) to be added
+	 * \param[in]	vName	Name of Subset(s) to be added
 	 */
-		void add(const char* name);
+		void add(const std::vector<std::string>& vName);
 
 	/// adds all subsets of another subset to the group
 		void add(const SubsetGroup& ssGroup);
@@ -55,12 +71,18 @@ class SubsetGroup
 	/// removes a subset from this group
 		void remove(int si);
 
-	/// removes all subset with a given name from this group
+	/// removes subset with a given name from this group
+		void remove(const char* name);
+
+	/// removes subset with a given name from this group
+		void remove(const std::string& name);
+
+	/// removes subsets with given names from this group
 	/**
 	 * This function removes all subsets by name from this group
 	 * \param[in]	name	Name of Subset(s) to be removed
 	 */
-		void remove(const char* name);
+		void remove(const std::vector<std::string>& vName);
 
 	/// removes all subsets of another subset from the group
 		void remove(const SubsetGroup& ssGroup);
@@ -72,10 +94,7 @@ class SubsetGroup
 		bool empty() {return m_vSubset.empty();}
 
 	/// number of subsets in this group
-		inline size_t size() const {return num_subsets();}
-
-	/// number of subsets in this group
-		inline size_t num_subsets() const
+		inline size_t size() const
 		{
 			if (!m_pSH.valid()) return 0;
 			return m_vSubset.size();
@@ -85,7 +104,7 @@ class SubsetGroup
 		inline int operator[](size_t i) const
 		{
 			UG_ASSERT(is_init(), "No SubsetHandler set.");
-			UG_ASSERT(i < num_subsets(), "requested subset does not exist.");
+			UG_ASSERT(i < size(), "requested subset does not exist.");
 			return m_vSubset[i];
 		}
 

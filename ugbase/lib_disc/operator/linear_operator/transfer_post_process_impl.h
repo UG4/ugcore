@@ -63,7 +63,7 @@ post_process(vector_type& u)
 	const_iterator iter, iterBegin, iterEnd;
 
 //	check piecewise-constant
-	for(size_t f = 0; f < m_fctGrp.num_fct(); f++)
+	for(size_t f = 0; f < m_fctGrp.size(); f++)
 	{
 		const size_t fct = m_fctGrp[f];
 		if(dd.local_finite_element_id(fct) != LFEID(LFEID::PIECEWISE_CONSTANT, 0))
@@ -71,8 +71,8 @@ post_process(vector_type& u)
 	}
 
 //	compute integral of components
-	std::vector<number> vIntegral(m_fctGrp.num_fct(), 0.0);
-	std::vector<number> vArea(m_fctGrp.num_fct(), 0.0);
+	std::vector<number> vIntegral(m_fctGrp.size(), 0.0);
+	std::vector<number> vArea(m_fctGrp.size(), 0.0);
 	std::vector<MathVector<dim> > vCorner;
 
 //  loop subsets on fine level
@@ -94,7 +94,7 @@ post_process(vector_type& u)
 			const number elemSize = ElementSize<dim>(elem->reference_object_id(), &vCorner[0]);
 
 		//	loop all components
-			for(size_t f = 0; f < m_fctGrp.num_fct(); f++)
+			for(size_t f = 0; f < m_fctGrp.size(); f++)
 			{
 			//	get fct index
 				const size_t fct = m_fctGrp[f];
@@ -128,7 +128,7 @@ post_process(vector_type& u)
 			Element* elem = *iter;
 
 		//	loop all components
-			for(size_t f = 0; f < m_fctGrp.num_fct(); f++)
+			for(size_t f = 0; f < m_fctGrp.size(); f++)
 			{
 			//	get fct index
 				const size_t fct = m_fctGrp[f];
