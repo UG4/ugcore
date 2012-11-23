@@ -66,6 +66,9 @@ class IElemDisc
 	///	sets functions by name list, divided by ','
 		void set_functions(std::string functions);
 
+	/// sets functions by vector of names
+		void set_functions(std::vector<std::string> functions) {m_vFct = functions;};
+
 	///	sets subset(s) by name list, divided by ','
 		void set_subsets(std::string subsets);
 
@@ -75,7 +78,7 @@ class IElemDisc
 	///	returns the symbolic functions
 		const std::vector<std::string>& symb_fcts() const {return m_vFct;}
 
-	/// number of functions this discretization handles
+	/// number of subsets this discretization handles
 		size_t num_subsets() const {return m_vSubset.size();}
 
 	///	returns the symbolic subsets
