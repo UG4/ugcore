@@ -49,6 +49,8 @@ class MultiStepTimeDiscretization
 			  m_pPrevSol(NULL)
 		{}
 
+		virtual ~MultiStepTimeDiscretization(){};
+
 	/// \copydoc ITimeDiscretization::num_prev_steps()
 		virtual size_t num_prev_steps() const {return m_prevSteps;}
 
@@ -153,6 +155,8 @@ class ThetaTimeStep
 			set_theta(1.0);
 			this->m_prevSteps = 1;
 		}
+
+		virtual ~ThetaTimeStep() {};
 
 	///	sets the scheme
 		void set_scheme(const char* scheme) {m_scheme = scheme;}
@@ -273,6 +277,8 @@ class BDF
 		{
 			set_order(order);
 		}
+
+		virtual ~BDF() {};
 
 	///	sets the theta value
 		void set_order(size_t order) {m_order = order; this->m_prevSteps = order;}
