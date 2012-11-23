@@ -107,8 +107,10 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// mark face for anisotropic refinement, if it contains edges below given sizeRatio
+/// marks face for anisotropic refinement, if it contains edges below given sizeRatio
 /**
+ * marks face and for anisotropic refinement, if it contains edges
+ * below given sizeRatio. These edges are also marked.
  * @return true, if face has been marked for anisotropic refinement.
  * This is the case, when one of its edges has been marked for refinement.*/
 template <class TAAPos> bool MarkIfAnisotropic(Face* f, IRefiner* refiner, number sizeRatio, TAAPos& aaPos)
@@ -153,17 +155,6 @@ template <class TAAPos> bool MarkIfAnisotropic(Face* f, IRefiner* refiner, numbe
 
 	return marked;
 }
-
-
-////////////////////////////////////////////////////////////////////////////////
-/// mark given face for anisotropic refinement, if it contains edges below given sizeRatio
-/**
- * @return true, if face has been marked for anisotropic refinement.
- * This is the case, when one of its edges has been marked for refinement.*/
-//template <class TAAPos> bool MarkIfAnisotropic(Volume* v, IRefiner* refiner, number sizeRatio, TAAPos& aaPos)
-//{
-//	SurfaceToVolRatio(v, *refiner->grid(), aaPos);
-//}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all elements from refinement.
@@ -612,21 +603,14 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 	}*/
 }
 
-//template<class TAAPos> number SurfaceToVolRatio(Volume* v, Grid&g, TAAPos& aaPos) {
-//	number vol = pow(CalculateVolume(v, aaPos), 1. / 3);
-//	vector<Face*> faces(v->num_faces());
-//	CollectAssociated(faces,g, v);
-//	number surface = sqrt(FaceArea(faces.begin(), faces.end(), aaPos));
-//	return surface / vol;
-//}
-
 ///////
 /**
  *
  */
 template <class TDomain>
 void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> refiner,
-												number sizeRatio) {
+												number sizeRatio)
+{
 	PROFILE_FUNC_GROUP("grid");
 	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
@@ -640,7 +624,7 @@ void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> ref
 //	access the grid and the position attachment
 	Grid& grid = *refiner->get_associated_grid();
 	position_accessor_type& aaPos = dom.position_accessor();
-	IRefiner& ref = *refiner.get_nonconst();
+	IRefiner* ref = refiner.get_nonconst();
 
 //	If the grid is a multigrid, we want to avoid marking of elements, which do
 //	have children
@@ -657,35 +641,7 @@ void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> ref
 	vector<EdgeBase*> edges;
 	vector<Face*> faces;
 	vector<Volume*> volumes;
-
-//	// todo: for each type, define a swell
-//	const number ratioTswell = 0.5;
-//	for(VolumeIterator iter = grid.begin<Volume>(); iter!=grid.end<Volume>(); ++iter)
-//	{
-//		Volume* v = *iter;
-//		number svRatio = SurfaceToVolRatio(*v, grid, aaPos);
-//
-//		switch (v->reference_object_id()) {
-//		case ROID_TETRAHEDRON:
-//			if(std::abs(svRatio - 2.68433) > ratioTswell)
-//				ref.mark(v, RM_ANISOTROPIC);
-//			break;
-//		case ROID_PYRAMID:
-//			if(std::abs(svRatio - 2.67582) > ratioTswell)
-//				ref.mark(v, RM_ANISOTROPIC);
-//			break;
-//		case ROID_PRISM:
-//			if(std::abs(svRatio - 2.59896) > ratioTswell)
-//				ref.mark(v, RM_ANISOTROPIC);
-//			break;
-//		case ROID_HEXAHEDRON:
-//			if(std::abs(svRatio - 2.44949) > ratioTswell)
-//				ref.mark(v, RM_ANISOTROPIC);
-//			break;
-//		}
-//	}
-
-	//	iterate over all faces of the grid.
+//	iterate over all faces of the grid.
 	for(FaceIterator iter = grid.begin<Face>();
 		iter != grid.end<Face>(); ++iter)
 	{
@@ -695,14 +651,14 @@ void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> ref
 			continue;
 
 		// if faces has been marked, store it for later marking of its neighbours
-		if(MarkIfAnisotropic(f, refiner, sizeRatio, aaPos))
+		if(MarkIfAnisotropic(f, ref, sizeRatio, aaPos))
 			faces.push_back(f);
+		else // fixme: mark for regular refinement should not be needed!
+			refiner->mark(f);
 	}
 
-	// todo: consider another metric for volumetric anisotrophy: like surface to volume ratio
-	// consider a volume anisotropic, if it contains anisotropic faces
-
-	// if a face is marked for anisotropic refinement, also mark associated volumes for AR
+// if a face is marked for anisotropic refinement (AR),
+// also mark associated volumes for AR
 	for(vector<Face*>::iterator iter = faces.begin(); iter != faces.end(); ++iter)
 		CollectVolumes(volumes, grid, *iter, false);
 
@@ -774,7 +730,9 @@ static void Domain(Registry& reg, string grp)
 		.add_function("MarkForRefinement_VerticesInCube",
 				&MarkForRefinement_VerticesInCube<domain_type>, grp)
 		.add_function("MarkForRefinement_AnisotropicElements",
-				&MarkForRefinement_AnisotropicElements<domain_type>, grp);
+				&MarkForRefinement_AnisotropicElements<domain_type>, grp)
+		.add_function("MarkForRefinement_AnisotropicElements2",
+				&MarkForRefinement_AnisotropicElements2<domain_type>, grp);
 }
 
 }; // end Functionality
