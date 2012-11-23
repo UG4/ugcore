@@ -48,8 +48,8 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 
 	///	sets the approximation space
 		void set_functions(const char* functionNames);
-		void set_minimum_defect(const char* minDefect, number minDefectForRest = 1e-10);
-		void set_reduction(const char* reduction, number reductionForRest = 1e-8);
+		void set_minimum_defect(const std::vector<number> minDefect, number minDefectForRest = 1e-10);
+		void set_reduction(const std::vector<number> reduction, number reductionForRest = 1e-8);
 
 	/// defect control
 		void start_defect(number initialDefect);
@@ -63,8 +63,8 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		number defect() const {return m_currentOverallDefect;};
 		int step() const {return m_currentStep;}
 		number reduction() const {return m_currentOverallDefect/m_initialOverallDefect;};
-		number rate() const { UG_THROW("Need to be implemented!");}
-		number avg_rate() const { UG_THROW("Need to be implemented!");}
+		number rate() const {return m_currentOverallDefect/m_lastOverallDefect;}
+		number avg_rate() const {return m_currentOverallDefect/m_initialOverallDefect/m_currentStep;}
 
 	/// information about current status for single component
 		number defect(size_t fctIndex) const {return m_currentDefect[fctIndex];};
@@ -107,6 +107,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 
 		// defect of the previous step
 		std::vector<number> m_lastDefect;
+		number m_lastOverallDefect;
 
 		// current step
 		int m_currentStep;

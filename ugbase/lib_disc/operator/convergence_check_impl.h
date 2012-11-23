@@ -21,7 +21,7 @@ CompositeConvCheck<TVector, TDomain>::
 CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx)
  :	 m_initialDefect(0), m_initialOverallDefect(0.0),
   	 m_currentDefect(0), m_currentOverallDefect(0.0),
- 	 m_lastDefect(0), m_currentStep(0), m_maxSteps(100),
+ 	 m_lastDefect(0), m_lastOverallDefect(0), m_currentStep(0), m_maxSteps(100),
  	 m_minDefect(0),
  	 m_relReduction(0),
 	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
@@ -80,7 +80,7 @@ number CompositeConvCheck<TVector, TDomain>::norm(const TVector& vec, std::vecto
 #ifdef UG_PARALLEL
 
 	// 	make vector d additive unique
-	if (!const_cast<TVector*>(&vec)->change_storage_type(PST_UNIQUE))
+	if (!vec.has_storage_type(PST_UNIQUE) && !const_cast<TVector*>(&vec)->change_storage_type(PST_UNIQUE))
 		UG_THROW("CompositeConvCheck::norm(): Cannot change ParallelStorageType to unique.");
 #endif
 
@@ -115,7 +115,7 @@ void CompositeConvCheck<TVector, TDomain>::set_functions(const char* functionNam
 	std::vector<std::vector<MultiIndex<2> > > finalIndices(0);
 	std::vector<std::string> finalNames(0);
 	std::vector<bool> used(m_dd->num_fct(), false);
-	for (size_t i = 0; i < m_fctGrp.size(); i++)
+	for (size_t i = 0; i < m_fctGrp.num_fct(); i++)
 	{
 		finalIndices.push_back(m_vvMultiIndex[m_fctGrp[i]]);
 		finalNames.push_back(m_fctName[m_fctGrp[i]]);
@@ -151,63 +151,41 @@ void CompositeConvCheck<TVector, TDomain>::set_functions(const char* functionNam
 
 
 template <class TVector, class TDomain>
-void CompositeConvCheck<TVector, TDomain>::set_minimum_defect(const char* minDefect, number minDefectForRest)
+void CompositeConvCheck<TVector, TDomain>::set_minimum_defect(const std::vector<number> minDefect, number minDefectForRest)
 {
-	//	tokenize strings
-	std::vector<std::string> tokens;
-	TokenizeString(minDefect, tokens, ',');
-
 	// check if number of values is correct
-	if (tokens.size() != m_fctGrp.size())
+	if (minDefect.size() != m_fctGrp.num_fct())
 	{
-		UG_THROW(	"The number of supplied values (" << tokens.size() << ") does not match the number\n"
-					"of given function names (" << m_fctGrp.size() << "); perhaps you have forgot to call\n"
+		UG_THROW(	"The number of supplied values (" << minDefect.size() << ") does not match the number\n"
+					"of given function names (" << m_fctGrp.num_fct() << "); perhaps you have forgot to call\n"
 					"CompositeConvCheck::set_functions prior to this method.");
 	}
 
-	// save values as number
-	m_minDefect.clear();
-	for (size_t i = 0; i < tokens.size(); i++)
-	{
-		std::istringstream stm;
-		m_minDefect.push_back(0.0);
-		stm.str(tokens[i]);
-		stm >> m_minDefect.back();
-	}
+	// save values
+	m_minDefect = minDefect;
 
 	// set minDefectForRest, if needed
-	if (m_fctGrp.size() < m_dd->num_fct())
+	if (m_fctGrp.num_fct() < m_dd->num_fct())
 		m_minDefect.push_back(minDefectForRest);
 }
 
 
 template <class TVector, class TDomain>
-void CompositeConvCheck<TVector, TDomain>::set_reduction(const char* reduction, number reductionForRest)
+void CompositeConvCheck<TVector, TDomain>::set_reduction(const std::vector<number> reduction, number reductionForRest)
 {
-	//	tokenize strings
-	std::vector<std::string> tokens;
-	TokenizeString(reduction, tokens, ',');
-
 	// check if number of values is correct
-	if (tokens.size() != m_fctGrp.size())
+	if (reduction.size() != m_fctGrp.num_fct())
 	{
-		UG_THROW(	"The number of supplied values (" << tokens.size() << ") does not match the number\n"
-					"of given function names (" << m_fctGrp.size() << "); perhaps you have forgot to call\n"
+		UG_THROW(	"The number of supplied values (" << reduction.size() << ") does not match the number\n"
+					"of given function names (" << m_fctGrp.num_fct() << "); perhaps you have forgot to call\n"
 					"CompositeConvCheck::set_functions prior to this method.");
 	}
 
-	// save values as number
-	m_relReduction.clear();
-	for (size_t i = 0; i < tokens.size(); i++)
-	{
-		std::istringstream stm;
-		m_relReduction.push_back(0.0);
-		stm.str(tokens[i]);
-		stm >> m_relReduction.back();
-	}
+	// save values
+	m_relReduction = reduction;
 
-	// set minDefectForRest, if needed
-	if (m_fctGrp.size() < m_dd->num_fct())
+	// set reductionForRest, if needed
+	if (m_fctGrp.num_fct() < m_dd->num_fct())
 		m_relReduction.push_back(reductionForRest);
 }
 
@@ -229,13 +207,14 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 	if (m_timeMeas)	m_stopwatch.start();
 
 	m_initialDefect.clear();
+	m_initialOverallDefect = 0.0;
 
 	// calculate the defect's 2-norm for each function
 	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)
 	{
 		number compDefect = norm(vec, m_vvMultiIndex[i]);
 		m_initialDefect.push_back(compDefect);
-		m_initialOverallDefect += m_initialDefect.back()*m_initialDefect.back();
+		m_initialOverallDefect += pow(m_initialDefect.back(),2);
 	}
 	m_initialOverallDefect = sqrt(m_initialOverallDefect);
 	m_currentDefect = m_initialDefect;
@@ -306,8 +285,9 @@ void CompositeConvCheck<TVector, TDomain>::update_defect(number newDefect)
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 {
-	m_currentOverallDefect = 0.0;
+	m_lastOverallDefect = m_currentOverallDefect;
 	m_lastDefect = m_currentDefect;
+	m_currentOverallDefect = 0.0;
 
 	// calculate the defect's 2-norm for each function
 	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)

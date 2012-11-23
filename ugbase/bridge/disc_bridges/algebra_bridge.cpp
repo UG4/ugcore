@@ -315,9 +315,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 					"functions to be evaluated individually as comma-separated list")
 			.add_method("timeMeasurement", &T::timeMeasurement, "", "", "whether to perform a time measurement or not")
 			.add_method("set_maximum_steps", &T::set_maximum_steps, "", "Maximum Steps|default|min=0;value=100")
-			.add_method("set_minimum_defect", (void (T::*)(const char*, number)) &T::set_minimum_defect, "",
+			.add_method("set_minimum_defect", (void (T::*)(const std::vector<number>, number)) &T::set_minimum_defect, "",
 					"minimum defect for defined functions (comma-separated list)#minimum defect for rest|default|min=0D;value=1e-10")
-			.add_method("set_reduction", (void (T::*)(const char*, number)) &T::set_reduction,	"",
+			.add_method("set_reduction", (void (T::*)(const std::vector<number>, number)) &T::set_reduction,	"",
 					"defect reduction for defined functions (comma-separated list)#defect reduction for rest|default|min=0D;value=1e-08")
 			.add_method("set_verbose", &T::set_verbose,	"", "Verbosity")
 			.add_method("defect", (number (T::*)(size_t) const) &T::defect, "defect", "function index", "returns the current defect")
