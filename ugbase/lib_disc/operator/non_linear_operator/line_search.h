@@ -200,7 +200,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 					       best+1 << ", Rate = "<< vRho[best] <<".\n");
 
 				// 	try on line u := u - lambda*p
-					VecScaleAdd(u, 1.0, u, (-1)*lambda*std::pow(m_lambdaReduce, (number)best), p);
+					VecScaleAdd(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, (number)best), p);
 
 				// 	compute new Defect
 					spOp->prepare(d, u);
