@@ -459,6 +459,11 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		ADD_DEFINED_FUNC(UG_CPU_2);
 		ADD_DEFINED_FUNC(UG_CPU_3);		
 		ADD_DEFINED_FUNC(UG_ENABLE_DEBUG_LOGS);
+		ADD_DEFINED_FUNC(LAPACK_AVAILABLE);
+		ADD_DEFINED_FUNC(BLAS_AVAILABLE);
+		ADD_DEFINED_FUNC(UG_METIS);
+		ADD_DEFINED_FUNC(UG_HYPRE);
+		ADD_DEFINED_FUNC(UG_HLIBPRO);
 
 		reg.add_function("PrintBuildConfiguration", &PrintBuildConfiguration, grp, "");
 		reg.add_function("PrintBuildConfigurationExtended", &PrintBuildConfigurationExtended, grp, "");
