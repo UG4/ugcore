@@ -62,11 +62,11 @@ void MultiScalProd(vector_type **px,
 template<typename matrix_type, typename vector_type>
 double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2)
 {
-	pcl::ProcessCommunicator pc;
 
 	vector_type t;
 	CloneVector(t, v1);
 #ifdef UG_PARALLEL
+	pcl::ProcessCommunicator pc;
 	v2.change_storage_type(PST_CONSISTENT);
 #endif
 	A.apply(t, v2);
@@ -84,7 +84,9 @@ void MultiEnergyProd(matrix_type &A,
 			vector_type **px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
+#ifdef UG_PARALLEL
 	pcl::ProcessCommunicator pc;
+#endif
 	UG_ASSERT(n == rA.num_rows() && n == rA.num_cols(), "");
 	vector_type t;
 	CloneVector(t, *px[0]);
@@ -287,7 +289,9 @@ public:
 		std::vector<std::string> testVectorDescription;
 
 		m_spPrecond->init(m_pA);
+#ifdef UG_PARALLEL
 		pcl::ProcessCommunicator pc;
+#endif
 
 		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
 		{
@@ -544,11 +548,12 @@ public:
 				UG_LOG("\n\n");
 			}
 
-
+#ifdef UG_PARALLEL
 			for(size_t i=0; i<iNrOfTestVectors; i++)
 				pTestVectors[i]->change_storage_type(PST_UNIQUE);
 			for(size_t i=0; i<n; i++)
 				px[i]->change_storage_type(PST_UNIQUE);
+#endif
 			// assume r_lambda is sorted
 			std::vector<typename vector_type::value_type> x_tmp(n);
 			for(size_t i=0; i<size; i++)
