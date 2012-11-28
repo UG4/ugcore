@@ -22,12 +22,21 @@ namespace ug {
 class PeriodicBoundaryIdentifier {
 
 public:
-	PeriodicBoundaryIdentifier() : m_pGrid(NULL) {}
+//	PeriodicBoundaryIdentifier() : m_pGrid(NULL) {}
+	~PeriodicBoundaryIdentifier();
 
 	// sets grid and inits group info attachment accessors
 	void set_grid(Grid* g);
 
-	template<class TElem> void identifiy(TElem* e1, TElem* e2);
+	class IIdentifier {
+	public:
+		virtual bool match(VertexBase*, VertexBase*);
+		virtual bool match(EdgeBase*, EdgeBase*);
+		virtual bool match(Face*, Face*);
+		virtual bool match(Volume*, Volume*);
+	};
+
+	template<class TElem> void identifiy(TElem* e1, TElem* e2, IIdentifier* i = NULL);
 	template<class TElem> bool is_periodic(TElem* e) const;
 	template<class TElem> TElem* master(TElem* e) const;
 	template<class TElem> std::vector<TElem*>* slaves(TElem* e) const;
@@ -42,35 +51,24 @@ protected:
 	template <class TElem> class Group {
 	public:
 		Group(TElem* m = NULL) : m_master(m) {}
-		void add_slave(TElem* e) { UG_ASSERT(e != master, "duplicate master!"); m_slaves.push_back(e); }
+		void add_slave(TElem* e) { UG_ASSERT(e != m_master, "duplicate master!"); m_slaves.push_back(e); }
 		std::vector<TElem*>& get_slaves() { return m_slaves; }
 		TElem* m_master;
 	protected:
 		std::vector<TElem*> m_slaves;
 	};
 
-	/**
-	 * wraps a Group pointer for Grid::Attachment
-	 */
-	template <class TElem> class GroupInfo {
-	public:
-		GroupInfo(Group<TElem>* g = NULL) : m_group(g) {}
-		~GroupInfo() { delete m_group; }
-
-		Group<TElem>* m_group;
-	};
-
-	Grid::AttachmentAccessor<VertexBase, Attachment<GroupInfo<VertexBase> > > m_aaGroupInfoVRT;
-	Grid::AttachmentAccessor<EdgeBase, Attachment<GroupInfo<EdgeBase> > > m_aaGroupInfoEDG;
-	Grid::AttachmentAccessor<Face, Attachment<GroupInfo<Face> > > m_aaGroupInfoFCE;
-	Grid::AttachmentAccessor<Volume, Attachment<GroupInfo<Volume> > > m_aaGroupInfoVOL;
+	Grid::AttachmentAccessor<VertexBase, Attachment<Group<VertexBase>* > > m_aaGroupInfoVRT;
+	Grid::AttachmentAccessor<EdgeBase, Attachment<Group<EdgeBase>* > > m_aaGroupInfoEDG;
+	Grid::AttachmentAccessor<Face, Attachment<Group<Face>* > > m_aaGroupInfoFCE;
+	Grid::AttachmentAccessor<Volume, Attachment<Group<Volume>* > > m_aaGroupInfoVOL;
 
 	template <class TElem> void merge_groups(Group<TElem>* g0, Group<TElem>* g1);
 
 	// gets group of given element
 	template <class TElem> Group<TElem>* group(TElem* e) const;
 
-	template <class TElem> void attach_group_info(GroupInfo<TElem>& g, TElem* e);
+	template <class TElem> void set_group(Group<TElem>* g, TElem* e);
 };
 
 /**

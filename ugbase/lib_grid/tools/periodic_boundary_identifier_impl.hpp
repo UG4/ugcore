@@ -16,9 +16,14 @@
 
 namespace ug {
 
+bool PeriodicBoundaryIdentifier::IIdentifier::match(VertexBase* v1, VertexBase* v2) {
+	// todo impl
+}
+
 // initial call with TElem = ug::Volume to assure all associated sub elements are identified
 template<class TElem>
-void PeriodicBoundaryIdentifier::identifiy(TElem* e1, TElem* e2) {
+void PeriodicBoundaryIdentifier::identifiy(TElem* e1, TElem* e2, IIdentifier* identifier)
+{
 
 	typedef typename Grid::traits<typename TElem::side>::secure_container container;
 
@@ -28,24 +33,27 @@ void PeriodicBoundaryIdentifier::identifiy(TElem* e1, TElem* e2) {
 
 	// assign groups
 	if(m1 && !m2) // m1 is master, so e2 will be its slave
-			{
+	{
 		slaves(m1)->push_back(e2);
-	} else if(m2 && !m1) // m2 is master, so e1 will be its slave
-			{
+	}
+	else if(m2 && !m1) // m2 is master, so e1 will be its slave
+	{
 		slaves(m2)->push_back(e1);
-	} else if(m1 && m2) // both are masters, merge them.
-			{
+	}
+	else if(m1 && m2) // both are masters, merge them.
+	{
 		Group<TElem>* g1 = group(e1);
 		Group<TElem>* g2 = group(e2);
 		merge_groups(g1, g2);
-	} else // nobody is master
+	}
+	else // nobody is master
 	{
 		// create new group with e1 as master and e2 as slave
-		GroupInfo<TElem> gi(new Group<TElem>(e1));
-		gi.m_group->add_slave(e2);
+		Group<TElem>* g = new Group<TElem>(e1);
+		g->add_slave(e2);
 
-		attach_group_info(gi, e1);
-		attach_group_info(gi, e2);
+		set_group(g, e1);
+		set_group(g, e2);
 	}
 
 	// while elements have sides recursively identify sub type elements
@@ -57,6 +65,7 @@ void PeriodicBoundaryIdentifier::identifiy(TElem* e1, TElem* e2) {
 		UG_ASSERT(sides1.size() == sides2.size(),
 				"sizes of periodic sub elements do not match!")
 		for (size_t i = 0; i < sides1.size(); ++i) {
+			// fixme use iidentification match stuff
 			identifiy(sides1[i], sides2[i]);
 		}
 	}
@@ -64,13 +73,15 @@ void PeriodicBoundaryIdentifier::identifiy(TElem* e1, TElem* e2) {
 
 // is considered periodic if it is a master or a slave
 template<class TElem>
-bool PeriodicBoundaryIdentifier::is_periodic(TElem* e) const {
+bool PeriodicBoundaryIdentifier::is_periodic(TElem* e) const
+{
 	return group(e) != NULL;
 }
 
 // gets master of e, may be null
 template<class TElem>
-TElem* PeriodicBoundaryIdentifier::master(TElem* e) const {
+TElem* PeriodicBoundaryIdentifier::master(TElem* e) const
+{
 	if(group(e)) {
 		return group(e)->m_master;
 	}
@@ -79,7 +90,8 @@ TElem* PeriodicBoundaryIdentifier::master(TElem* e) const {
 
 // gets slaves of e
 template<class TElem>
-std::vector<TElem*>* PeriodicBoundaryIdentifier::slaves(TElem* e) const {
+std::vector<TElem*>* PeriodicBoundaryIdentifier::slaves(TElem* e) const
+{
 	if(group(e)) {
 		return &group(e)->get_slaves();
 	}
@@ -91,10 +103,8 @@ std::vector<TElem*>* PeriodicBoundaryIdentifier::slaves(TElem* e) const {
  */
 template<class TElem>
 void PeriodicBoundaryIdentifier::merge_groups(Group<TElem>* g0,
-		Group<TElem>* g1) {
-	// overwrite grid info for both groups
-	GroupInfo<TElem> gi(g0);
-
+		Group<TElem>* g1)
+{
 	std::vector<TElem*>& slaves_g0 = g0->get_slaves(), slaves_g1 =
 			g1->get_slaves();
 	typedef typename std::vector<TElem*>::iterator iterator;
@@ -102,11 +112,11 @@ void PeriodicBoundaryIdentifier::merge_groups(Group<TElem>* g0,
 	// insert slaves of g1 at the end of slaves of g0
 	slaves_g0.insert(slaves_g0.end(), slaves_g1.begin(), slaves_g1.end());
 	// insert prior master of g1 to slaves of g0
-	slaves_g0.push_back(g1->m_master);
+	g0->add_slave(g1->m_master);
 
-	// set groupInfo to gi of g0 for all elements of g1
+	// set Group for all elements of g1 to g0
 	for (iterator iter = slaves_g1.begin(); iter != slaves_g1.end(); ++iter) {
-		attach_group_info(gi, *iter);
+		set_group(g0, *iter);
 	}
 
 	delete g1;
@@ -114,83 +124,134 @@ void PeriodicBoundaryIdentifier::merge_groups(Group<TElem>* g0,
 
 template<class TElem>
 PeriodicBoundaryIdentifier::Group<TElem>* PeriodicBoundaryIdentifier::group(
-		TElem* e) const {
+		TElem* e) const
+{
 	UG_THROW("not impled");
 }
 
 template<>
 PeriodicBoundaryIdentifier::Group<VertexBase>* PeriodicBoundaryIdentifier::group(
-		VertexBase* e) const {
-	return m_aaGroupInfoVRT[e].m_group;
+		VertexBase* e) const
+{
+	return m_aaGroupInfoVRT[e];
 }
 
 template<>
 PeriodicBoundaryIdentifier::Group<EdgeBase>* PeriodicBoundaryIdentifier::group(
-		EdgeBase* e) const {
-	return m_aaGroupInfoEDG[e].m_group;
+		EdgeBase* e) const
+{
+	return m_aaGroupInfoEDG[e];
 }
 
 template<>
 PeriodicBoundaryIdentifier::Group<Face>* PeriodicBoundaryIdentifier::group(
-		Face* e) const {
-	return m_aaGroupInfoFCE[e].m_group;
+		Face* e) const
+{
+	return m_aaGroupInfoFCE[e];
 }
 
 template<>
 PeriodicBoundaryIdentifier::Group<Volume>* PeriodicBoundaryIdentifier::group(
-		Volume* e) const {
-	return m_aaGroupInfoVOL[e].m_group;
+		Volume* e) const
+{
+	return m_aaGroupInfoVOL[e];
 }
 
 template<class TElem>
-void PeriodicBoundaryIdentifier::attach_group_info(GroupInfo<TElem>& gi,
-		TElem* e) {
+void PeriodicBoundaryIdentifier::set_group(Group<TElem>* g, TElem* e)
+{
 	UG_THROW("not impled")
 }
 
 template<>
-void PeriodicBoundaryIdentifier::attach_group_info(GroupInfo<VertexBase>& gi,
-		VertexBase* v) {
-	m_aaGroupInfoVRT[v] = gi;
+void PeriodicBoundaryIdentifier::set_group(Group<VertexBase>* g, VertexBase* v)
+{
+	m_aaGroupInfoVRT[v] = g;
 }
 
 template<>
-void PeriodicBoundaryIdentifier::attach_group_info(GroupInfo<EdgeBase>& gi,
-		EdgeBase* e) {
-	m_aaGroupInfoEDG[e] = gi;
+void PeriodicBoundaryIdentifier::set_group(Group<EdgeBase>* g, EdgeBase* e)
+{
+	m_aaGroupInfoEDG[e] = g;
 }
 
 template<>
-void PeriodicBoundaryIdentifier::attach_group_info(GroupInfo<Face>& gi,
-		Face* f) {
-	m_aaGroupInfoFCE[f] = gi;
+void PeriodicBoundaryIdentifier::set_group(Group<Face>* g, Face* f)
+{
+	m_aaGroupInfoFCE[f] = g;
 }
 
 template<>
-void PeriodicBoundaryIdentifier::attach_group_info(GroupInfo<Volume>& gi,
-		Volume* vol) {
-	m_aaGroupInfoVOL[vol] = gi;
+void PeriodicBoundaryIdentifier::set_group(Group<Volume>* g, Volume* vol)
+{
+	m_aaGroupInfoVOL[vol] = g;
 }
 
-void PeriodicBoundaryIdentifier::set_grid(Grid* g) {
-	m_pGrid = g;
-	// group info attachments
-	Attachment<GroupInfo<VertexBase> > aGroupVRT;
-	Attachment<GroupInfo<EdgeBase> > aGroupEDG;
-	Attachment<GroupInfo<Face> > aGroupFCE;
-	Attachment<GroupInfo<Volume> > aGroupVOL;
+void PeriodicBoundaryIdentifier::set_grid(Grid* g)
+{
+	if(g != NULL) m_pGrid = g;
 
-	// access grid with those attachments
-	m_aaGroupInfoVRT.access(*m_pGrid, aGroupVRT);
-	m_aaGroupInfoEDG.access(*m_pGrid, aGroupEDG);
-	m_aaGroupInfoFCE.access(*m_pGrid, aGroupFCE);
-	m_aaGroupInfoVOL.access(*m_pGrid, aGroupVOL);
+	// todo avoid creation here
+	// group attachments
+	Attachment<Group<VertexBase>* > aGroupVRT;
+	Attachment<Group<EdgeBase>* > aGroupEDG;
+	Attachment<Group<Face>* > aGroupFCE;
+	Attachment<Group<Volume>* > aGroupVOL;
+
+	// if grid changes, attach groups
+	if(m_pGrid != NULL && m_pGrid != g) {
+		// access grid with those attachments
+		m_aaGroupInfoVRT.access(*m_pGrid, aGroupVRT);
+		m_aaGroupInfoEDG.access(*m_pGrid, aGroupEDG);
+		m_aaGroupInfoFCE.access(*m_pGrid, aGroupFCE);
+		m_aaGroupInfoVOL.access(*m_pGrid, aGroupVOL);
+	}
+
+	// detach groups
+	if(g == NULL)
+	{
+		m_pGrid->detach_from_vertices(aGroupVRT);
+		m_pGrid->detach_from_edges(aGroupEDG);
+		m_pGrid->detach_from_faces(aGroupFCE);
+		m_pGrid->detach_from_volumes(aGroupVOL);
+	}
+}
+
+PeriodicBoundaryIdentifier::~PeriodicBoundaryIdentifier() {
+	// delete group instances of all masters for all elements
+	for (VertexBaseIterator iter = m_pGrid->begin<VertexBase>();
+			iter != m_pGrid->end<VertexBase>(); ++iter) {
+		if(master(*iter))
+			delete m_aaGroupInfoVRT[*iter];
+	}
+
+	for (EdgeBaseIterator iter = m_pGrid->begin<EdgeBase>();
+			iter != m_pGrid->end <EdgeBase>(); ++iter) {
+		if(master(*iter))
+			delete m_aaGroupInfoEDG[*iter];
+	}
+
+	for (FaceIterator iter = m_pGrid->begin<Face>();
+			iter != m_pGrid->end <Face>(); ++iter) {
+		if(master(*iter))
+			delete m_aaGroupInfoFCE[*iter];
+	}
+
+	for (VolumeIterator iter = m_pGrid->begin<Volume>();
+			iter != m_pGrid->end <Volume>(); ++iter) {
+		if(master(*iter))
+			delete m_aaGroupInfoVOL[*iter];
+	}
+
+	// set grid to NULL to detach groups from grid
+	set_grid(NULL);
 }
 
 // performs geometric ident of periodic elements and master slave
 template<class TDomain>
 void IdentifySubsets(TDomain& dom, PeriodicBoundaryIdentifier& PI, int sInd1,
-		int sInd2) {
+		int sInd2)
+{
 
 	UG_ASSERT(!dom.is_adaptive(), "adaptive domains currently not supported!");
 
