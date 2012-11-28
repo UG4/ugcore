@@ -14,6 +14,7 @@ set(srcUGBridge    	bridge.cpp
 					domain_bridges/refinement_bridge.cpp
 					domain_bridges/selection_bridge.cpp
 					domain_bridges/transform_bridge.cpp
+					domain_bridges/periodic_boundary_bridge.cpp
 					misc_bridges/test_bridge.cpp
 					misc_bridges/profiler_bridge.cpp
 					misc_bridges/util_bridge.cpp
