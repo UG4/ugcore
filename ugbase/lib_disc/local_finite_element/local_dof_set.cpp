@@ -149,7 +149,7 @@ void LocalDoFSetProvider::create_nedelec_sets()
 
 //	register the set
 	try{
-		register_set(LFEID(LFEID::PIECEWISE_CONSTANT, 0), *setNedelec);
+		register_set(LFEID(LFEID::NEDELEC, 1), *setNedelec);
 	}
 	UG_CATCH_THROW("Unable to register NedelecLDS");
 }
@@ -183,6 +183,10 @@ void LocalDoFSetProvider::create_set(const LFEID& id)
 	if(id.type() == LFEID::MINI)
 	{
 		create_mini_bubble_sets();
+	}
+	if(id.type() == LFEID::NEDELEC)
+	{
+		create_nedelec_sets();
 	}
 
 }
