@@ -47,24 +47,9 @@ struct Functionality {
 void RegisterBridge_PeriodicBoundary(Registry& reg, string grp) {
 	grp.append("/Periodic");
 
-	typedef boost::mpl::list<
-#ifdef UG_DIM_2
-	Domain2d
-#endif
-#if defined UG_DIM_2 && defined UG_DIM_3
-	,
-#endif
-#ifdef UG_DIM_3
-	Domain3d
-#endif
-	> CompileDomain2d3dList; // no periodic boundaries for 1d
-
 	try {
 		RegisterCommon<periodicBoundary::Functionality>(reg, grp);
-
-		RegisterDomainDependent<periodicBoundary::Functionality,
-				CompileDomain2d3dList>(reg, grp);
-
+		RegisterDomainDependent<periodicBoundary::Functionality>(reg, grp);
 	} UG_REGISTRY_CATCH_THROW(grp);
 }
 
