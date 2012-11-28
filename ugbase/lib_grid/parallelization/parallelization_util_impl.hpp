@@ -41,7 +41,15 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 	CopyPolicy<Layout, AGeomObjID> compolCopy(g, aID);
 
 	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopy);
-	com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolCopy);
+
+//	we copy data from vertical slaves to vertical masters and not vice versa for
+//	the following reason:
+//	Multiple copies of low dimensional elements may reside in vertical master
+//	interfaces and they do not necessarily have the same global id yet.
+//	Elements in horizontal interfaces, however, already have the same ids yet.
+//	Since all vertical slaves are either unique or in a horizontal interface,
+//	we can simply copy their global ids to vertical master elements.
+	com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolCopy);
 	com.communicate();
 }
 

@@ -707,11 +707,7 @@ void IApproximationSpace::top_surface_level_view_required()
 //	allocate surface view if needed
 	if(!m_spSurfaceView.valid())
 		m_spSurfaceView = SmartPtr<SurfaceView>
-						 (new SurfaceView(m_spMGSH
-#ifdef UG_PARALLEL
-					                              ,m_pDistGridMgr
-#endif
-						                       ));
+						 (new SurfaceView(m_spMGSH));
 
 //	allocate Level DD if needed
 	if(!m_spTopSurfLevView.valid())
@@ -728,11 +724,7 @@ void IApproximationSpace::surface_level_view_required(size_t fromLevel, size_t t
 //	allocate surface view if needed
 	if(!m_spSurfaceView.valid())
 		m_spSurfaceView = SmartPtr<SurfaceView>
-						 (new SurfaceView(m_spMGSH
-#ifdef UG_PARALLEL
-					                              ,m_pDistGridMgr
-#endif
-						                       ));
+						 (new SurfaceView(m_spMGSH));
 
 //	resize level
 	if(m_vSurfLevView.size() < toLevel+1) m_vSurfLevView.resize(toLevel+1, NULL);

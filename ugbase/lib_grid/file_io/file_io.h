@@ -22,6 +22,9 @@
 namespace ug
 {
 
+//	predeclaration of surface view (declared in lib_grid/tools/surface_view.h)
+class SurfaceView;
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	Loads a grid from a file. Position data is written to the specified attachment.
 /**
@@ -105,6 +108,11 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename,
 bool SaveParallelGridLayout(MultiGrid& mg, const char* filename,
 							number offset = 0.1);
 
+
+///	Saves a grid and assigns elements to subsets based on their surface-view-state.
+/**	\todo:	Support any type of position attachment*/
+bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,
+								const char* filename, number offset = 0.1);
 
 };
 

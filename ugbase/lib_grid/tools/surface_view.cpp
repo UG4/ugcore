@@ -97,12 +97,8 @@ void MarkAssociatedSides(BoolMarker& boolMarker)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class TElem>
-void SetSurfaceViewMarks(BoolMarker& boolMarker,
-                         MultiGrid* pMG
-#ifdef UG_PARALLEL
-                         ,DistributedGridManager& distGridMgr
-#endif
-                         )
+void SetSurfaceViewMarks(BoolMarker& boolMarker, MultiGrid* pMG,
+                         DistributedGridManager* distGridMgr)
 {
 //	some typedefs
 	typedef typename geometry_traits<TElem>::iterator ElemIter;
@@ -118,7 +114,7 @@ void SetSurfaceViewMarks(BoolMarker& boolMarker,
 
 		//	check whether the element has children
 #ifdef UG_PARALLEL
-			if(distGridMgr.is_ghost(elem)) continue;
+			if(distGridMgr->is_ghost(elem)) continue;
 #endif
 			if(pMG->has_children(elem)) continue;
 
@@ -128,12 +124,8 @@ void SetSurfaceViewMarks(BoolMarker& boolMarker,
 }
 
 template <class TElem>
-void RemoveSurfaceViewMarks(BoolMarker& boolMarker,
-                            MultiGrid* pMG
-#ifdef UG_PARALLEL
-                            ,DistributedGridManager& distGridMgr
-#endif
-                            )
+void RemoveSurfaceViewMarks(BoolMarker& boolMarker, MultiGrid* pMG,
+                            DistributedGridManager* distGridMgr)
 {
 //	some typedefs
 	typedef typename geometry_traits<TElem>::iterator ElemIter;
@@ -149,7 +141,7 @@ void RemoveSurfaceViewMarks(BoolMarker& boolMarker,
 
 		//	check whether the element has children
 #ifdef UG_PARALLEL
-			if(distGridMgr.is_ghost(elem)) continue;
+			if(distGridMgr->is_ghost(elem)) continue;
 #endif
 			if(pMG->has_children(elem)) continue;
 
@@ -160,26 +152,15 @@ void RemoveSurfaceViewMarks(BoolMarker& boolMarker,
 
 ////////////////////////////////////////////////////////////////////////
 //	Marks shadow elements. m_bMarker only holds elements which are shadows afterwards.
-void MarkShadows(BoolMarker& boolMarker,
-                 MultiGrid* pMG
-#ifdef UG_PARALLEL
-                 ,DistributedGridManager& distGridMgr
-#endif
-				)
+void MarkShadows(BoolMarker& boolMarker, MultiGrid* pMG,
+                 DistributedGridManager* distGridMgr)
 {
 //	Marks all elements, that do not have children and are non-ghosts
 	boolMarker.clear();
-#ifdef UG_PARALLEL
 	SetSurfaceViewMarks<VertexBase>(boolMarker, pMG, distGridMgr);
 	SetSurfaceViewMarks<EdgeBase>(boolMarker, pMG, distGridMgr);
 	SetSurfaceViewMarks<Face>(boolMarker, pMG, distGridMgr);
 	SetSurfaceViewMarks<Volume>(boolMarker, pMG, distGridMgr);
-#else
-	SetSurfaceViewMarks<VertexBase>(boolMarker, pMG);
-	SetSurfaceViewMarks<EdgeBase>(boolMarker, pMG);
-	SetSurfaceViewMarks<Face>(boolMarker, pMG);
-	SetSurfaceViewMarks<Volume>(boolMarker, pMG);
-#endif
 
 //	assign associated elements of lower dimension to the surface view
 	bool assignSidesOnly = true;
@@ -203,17 +184,10 @@ void MarkShadows(BoolMarker& boolMarker,
 		MarkAssociatedLowerDimElems<EdgeBase>(boolMarker);
 	}
 
-#ifdef UG_PARALLEL
 	RemoveSurfaceViewMarks<VertexBase>(boolMarker, pMG, distGridMgr);
 	RemoveSurfaceViewMarks<EdgeBase>(boolMarker, pMG, distGridMgr);
 	RemoveSurfaceViewMarks<Face>(boolMarker, pMG, distGridMgr);
 	RemoveSurfaceViewMarks<Volume>(boolMarker, pMG, distGridMgr);
-#else
-	RemoveSurfaceViewMarks<VertexBase>(boolMarker, pMG);
-	RemoveSurfaceViewMarks<EdgeBase>(boolMarker, pMG);
-	RemoveSurfaceViewMarks<Face>(boolMarker, pMG);
-	RemoveSurfaceViewMarks<Volume>(boolMarker, pMG);
-#endif
 
 #ifdef UG_PARALLEL
 //	for a parallel subset handler we have to copy the subset-indices to
@@ -230,30 +204,30 @@ void MarkShadows(BoolMarker& boolMarker,
 	pcl::InterfaceCommunicator<FaceLayout> comFACE;
 	pcl::InterfaceCommunicator<VolumeLayout> comVOL;
 
-	comVRT.send_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
-	comEDGE.send_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
-	comFACE.send_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
-	comVOL.send_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
+	comVRT.send_data(distGridMgr->grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
+	comEDGE.send_data(distGridMgr->grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
+	comFACE.send_data(distGridMgr->grid_layout_map().get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
+	comVOL.send_data(distGridMgr->grid_layout_map().get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
 
-	comVRT.receive_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
-	comEDGE.receive_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
-	comFACE.receive_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
-	comVOL.receive_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
+	comVRT.receive_data(distGridMgr->grid_layout_map().get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
+	comEDGE.receive_data(distGridMgr->grid_layout_map().get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
+	comFACE.receive_data(distGridMgr->grid_layout_map().get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
+	comVOL.receive_data(distGridMgr->grid_layout_map().get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
 
 	comVRT.communicate();
 	comEDGE.communicate();
 	comFACE.communicate();
 	comVOL.communicate();
 
-	comVRT.send_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
-	comEDGE.send_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
-	comFACE.send_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
-	comVOL.send_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
+	comVRT.send_data(distGridMgr->grid_layout_map().get_layout<VertexBase>(INT_H_MASTER), cpSubsetVRT);
+	comEDGE.send_data(distGridMgr->grid_layout_map().get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
+	comFACE.send_data(distGridMgr->grid_layout_map().get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
+	comVOL.send_data(distGridMgr->grid_layout_map().get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
 
-	comVRT.receive_data(distGridMgr.grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
-	comEDGE.receive_data(distGridMgr.grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
-	comFACE.receive_data(distGridMgr.grid_layout_map().get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
-	comVOL.receive_data(distGridMgr.grid_layout_map().get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
+	comVRT.receive_data(distGridMgr->grid_layout_map().get_layout<VertexBase>(INT_H_SLAVE), cpSubsetVRT);
+	comEDGE.receive_data(distGridMgr->grid_layout_map().get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
+	comFACE.receive_data(distGridMgr->grid_layout_map().get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
+	comVOL.receive_data(distGridMgr->grid_layout_map().get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
 
 	comVRT.communicate();
 	comEDGE.communicate();
@@ -267,16 +241,10 @@ void MarkShadows(BoolMarker& boolMarker,
 ////////////////////////////////////////////////////////////////////////////////
 
 SurfaceView::SurfaceView(SmartPtr<MGSubsetHandler> spMGSH,
-#ifdef UG_PARALLEL
-                         DistributedGridManager* pDistGridMgr,
-#endif
                          bool adaptiveMG) :
 	m_spMGSH(spMGSH),
 	m_adaptiveMG(adaptiveMG),
 	m_pMG(m_spMGSH->multi_grid())
-#ifdef UG_PARALLEL
-	,m_pDistGridMgr(pDistGridMgr)
-#endif
 {
 	UG_ASSERT(m_pMG, "A MultiGrid has to be assigned to the given subset handler");
 
@@ -310,10 +278,10 @@ void SurfaceView::mark_shadows()
 {
 #ifdef UG_PARALLEL
 //	get multigrid
-	MultiGrid* pMG = dynamic_cast<MultiGrid*>(m_pDistGridMgr->get_assigned_grid());
+	MultiGrid* pMG = dynamic_cast<MultiGrid*>(m_spMGSH->multi_grid());
 	if(!pMG) throw(UGError("  Can't create surface-view. A Multigrid is required.\n"));
 
-	MarkShadows(m_Marker, pMG, *m_pDistGridMgr);
+	MarkShadows(m_Marker, pMG, pMG->distributed_grid_manager());
 #else
 	MarkShadows(m_Marker, m_pMG);
 #endif

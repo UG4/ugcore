@@ -116,6 +116,9 @@ bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
  * interfaces directly, but to print associated values. This is useful, if e.g.
  * pointers are stored in the layouts.
  *
+ * If compareValues = true is specified, then all entries supplied by cbToValue
+ * are compared between connected interface entries and mismatches are reported.
+ *
  * The callback-method takes a parameter of type TLayout::Element and has to
  * return a value of type TValue (TValue = TLayout::Element by default).
  */
@@ -123,7 +126,8 @@ template<typename TLayout, typename TValue>
 bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com,
 					TLayout &masterLayout, TLayout &slaveLayout, bool bPrint=false,
 					boost::function<TValue (typename TLayout::Element)> cbToValue
-						= TrivialToValue<typename TLayout::Element>)
+						= TrivialToValue<typename TLayout::Element>,
+					bool compareValues = false)
 {
 	PROFILE_FUNC_GROUP("debug");
 	typedef std::map<int, ug::BinaryBuffer>	BufferMap;
@@ -154,7 +158,9 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 
 	com.communicate();
 
-	bool layout_broken=false;
+	bool layoutBroken=false;
+	bool valueMismatch = false;
+
 	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
 		int pid = masterLayout.proc_id(iter);
@@ -174,7 +180,21 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 			{
 				TValue val1 = cbToValue(interface.get_element(iter2));
 				TValue val2; Deserialize(buffer, val2);
-				if(bPrint) { UG_LOG(" " << std::setw(9) << val1 << " <-> " << val2 << std::endl); }
+				bool mismatch = false;
+				if(compareValues){
+					mismatch = (val1 != val2);
+				}
+
+				if(bPrint){
+					if(mismatch){
+						UG_LOG(" " << std::setw(9) << val1 << " <-> " << val2 << "  --- MISMATCH! ---\n");
+					}
+					else{
+						UG_LOG(" " << std::setw(9) << val1 << " <-> " << val2 << "\n");
+					}
+				}
+
+				valueMismatch |= mismatch;
 			}
 		}
 		while(!buffer.eof())
@@ -187,15 +207,20 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 
 		if(broken)
 		{
-			layout_broken=true;
+			layoutBroken=true;
 			UG_LOG("Interface from processor " << std::setw(4) << pcl::GetProcRank() << " to processor " << std::setw(4) << pid << " is BROKEN!\n");
 
 		}
 	}
 
-	if(layout_broken == true)
+	if(layoutBroken == true)
 	{
 		UG_LOG("One or more interfaces are broken\n");
+		return false;
+	}
+
+	if(valueMismatch){
+		UG_LOG("MISMATCH! Not all values at connected interface elements did match!\n");
 		return false;
 	}
 	return true;
@@ -207,6 +232,9 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
  * specified, then it is used during printing to print values associated with the
  * elements in the layouts instead of printing the elements directly.
  *
+ * If compareValues = true is specified, then all entries supplied by cbToValue
+ * are compared between connected interface entries and mismatches are reported.
+ *
  * The methods returns true if all interfaces match and false if not. The return
  * values are consistent among all processes.
  */
@@ -215,7 +243,8 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
 				TLayout &slaveLayout, bool bPrint=false,
 				boost::function<TValue (typename TLayout::Element)> cbToValue
-					= TrivialToValue<typename TLayout::Element>)
+					= TrivialToValue<typename TLayout::Element>,
+				bool compareValues = false)
 {
 	PROFILE_FUNC_GROUP("debug");
 	if(bPrint)
@@ -236,17 +265,19 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 		return false;
 
 	bool bSuccess = TestSizeOfInterfacesInLayoutsMatch<TLayout, TValue>(com, masterLayout,
-															slaveLayout, bPrint, cbToValue);
+											slaveLayout, bPrint, cbToValue, compareValues);
 	return pcl::AllProcsTrue(bSuccess, processCommunicator);
 }
 
 template<typename TLayout>
 bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
-		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
-				TLayout &slaveLayout, bool bPrint=false)
+				pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
+				TLayout &slaveLayout, bool bPrint=false,
+				bool compareValues = false)
 {
 	return TestLayout<TLayout, typename TLayout::Element>(processCommunicator, com,
-			masterLayout, slaveLayout, bPrint);
+			masterLayout, slaveLayout, bPrint,
+			TrivialToValue<typename TLayout::Element>, compareValues);
 }
 
 template<typename TLayout, typename TValue>

@@ -43,9 +43,6 @@ class SurfaceView
 
 	public:
 		SurfaceView(SmartPtr<MGSubsetHandler> spMGSH,
-#ifdef UG_PARALLEL
-		            DistributedGridManager* pDistGridMgr,
-#endif
 		            bool adaptiveMG = true);
 
 	///	returns underlying subset handler
@@ -285,9 +282,6 @@ class SurfaceView
 		bool						m_adaptiveMG;
 		MultiGrid*					m_pMG;
 		BoolMarker					m_Marker;
-#ifdef UG_PARALLEL
-		DistributedGridManager* 	m_pDistGridMgr;
-#endif
 };
 
 

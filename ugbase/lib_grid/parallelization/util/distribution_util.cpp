@@ -317,6 +317,7 @@ void MakeVerticalMaster(TElem* elem, MultiGrid& mg,
 //	get the interface entries of the current element
 	DistInfo& elemInfo = distInfos.get(elem);
 	InterfaceEntries& intfcEntries = elemInfo.interfaceEntries;
+	NodeVec& masterNodes = distLayouts.template layout<TElem>(masterLayoutInd).node_vec();
 
 //	get the masters process and entry index
 	int masterEntryInd = -1;
@@ -327,23 +328,11 @@ void MakeVerticalMaster(TElem* elem, MultiGrid& mg,
 		}
 	}
 
-	if(masterEntryInd == -1){
-	//	we have to create a new entry in the master-layout
-	//	we want the new entry to be the first in the vector to
-	//	optimize search performance.
-		NodeVec& masterNodes = distLayouts.template layout<TElem>(masterLayoutInd).node_vec();
-		if(!intfcEntries.empty()){
-			intfcEntries.push_back(intfcEntries.front());
-			intfcEntries.front() = make_pair((int)masterLayoutInd,
-									  	  	  (int)masterNodes.size());
-		}
-		else{
-			intfcEntries.push_back(make_pair((int)masterLayoutInd,
-											(int)masterNodes.size()));
-		}
+	bool copyElemToMasterLayout = false;
 
-		masterNodes.push_back(elem);
-		masterEntryInd = (int)masterNodes.size() - 1;
+	if(masterEntryInd == -1){
+		copyElemToMasterLayout = true;
+		masterEntryInd = (int)masterNodes.size();
 	}
 
 	int masterProcInd = masterLayoutInd;
@@ -376,6 +365,22 @@ void MakeVerticalMaster(TElem* elem, MultiGrid& mg,
 	}
 
 	if(interfaceCreated){
+		if(copyElemToMasterLayout){
+		//	we have to create a new entry in the master-layout
+		//	we want the new entry to be the first in the vector to
+		//	optimize search performance.
+			if(!intfcEntries.empty()){
+				intfcEntries.push_back(intfcEntries.front());
+				intfcEntries.front() = make_pair((int)masterLayoutInd,
+												  (int)masterNodes.size());
+			}
+			else{
+				intfcEntries.push_back(make_pair((int)masterLayoutInd,
+												(int)masterNodes.size()));
+			}
+
+			masterNodes.push_back(elem);
+		}
 	//	now make sure that master interfaces for children are built accordingly
 		elemInfo.vrtMasterInterface = masterLayoutInd;
 
@@ -386,10 +391,11 @@ void MakeVerticalMaster(TElem* elem, MultiGrid& mg,
 			//	Attention: Not much is currently done to really assert this. Indeed it probably
 			//	can't even be asserted...
 			//todo:	THINK ABOUT IT...
-				UG_ASSERT((elemInfo.vrtMasterInterface == -1)
-						|| (elemInfo.vrtMasterInterface == masterLayoutInd),
+				DistInfo& sideInfo = distInfos.get(sides[i]);
+				UG_ASSERT((sideInfo.vrtMasterInterface == -1)
+						|| (sideInfo.vrtMasterInterface == masterLayoutInd),
 						"An element may only be made 'vertical master' once.");
-				if(elemInfo.vrtMasterInterface == -1){
+				if(sideInfo.vrtMasterInterface == -1){
 					MakeVerticalMaster(sides[i], mg, masterLayoutInd, distInfos,
 									   distLayouts, processMap);
 				}
@@ -654,9 +660,6 @@ void CreateDistributionLayouts(
 				SelectAssociatedGeometricObjects(msel);
 
 			foundSomething = false;
-
-//		THIS CAN CAUSE PROBLEMS WITH THE DISCRETIZATION (VERTICES WITHOUT ELEMENTS)!!!
-// 		BETTER NOT TO DO IT!?!
 		//	we have to make sure that constraining objects are sent to all
 		//	processes to which their constrained objects are sent.
 			for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){

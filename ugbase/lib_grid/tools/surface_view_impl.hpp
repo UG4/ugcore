@@ -512,7 +512,7 @@ template <class TGeomObj>
 bool SurfaceView::is_ghost(TGeomObj* obj) const
 {
 #ifdef UG_PARALLEL
-	return m_pDistGridMgr->is_ghost(obj);
+	return m_pMG->distributed_grid_manager()->is_ghost(obj);
 #else
 	return false;
 #endif

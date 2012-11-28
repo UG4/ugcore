@@ -11,6 +11,7 @@
 #include "lib_disc/dof_manager/mg_dof_distribution.h"
 #include "lib_disc/dof_manager/level_dof_distribution.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
+#include "lib_grid/tools/surface_view.h"
 #include "grid_function.h"
 
 namespace ug{
