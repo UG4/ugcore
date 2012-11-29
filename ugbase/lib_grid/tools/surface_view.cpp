@@ -276,15 +276,12 @@ bool SurfaceView::is_shadowed(GeometricObject* obj) const
 
 void SurfaceView::mark_shadows()
 {
-#ifdef UG_PARALLEL
 //	get multigrid
 	MultiGrid* pMG = dynamic_cast<MultiGrid*>(m_spMGSH->multi_grid());
 	if(!pMG) throw(UGError("  Can't create surface-view. A Multigrid is required.\n"));
 
 	MarkShadows(m_Marker, pMG, pMG->distributed_grid_manager());
-#else
-	MarkShadows(m_Marker, m_pMG);
-#endif
+
 }
 
 }// end of namespace
