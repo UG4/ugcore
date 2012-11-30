@@ -62,7 +62,7 @@ void ScaleDomain(TDomain& dom, ISelector& sel, const vector3& center,
 	for(size_t i = 0; i < vrts.size(); ++i){
 		pos_t& v = aaPos[vrts[i]];
 
-		for(size_t j = 0; j < pos_t::Size-1; ++j)
+		for(size_t j = 0; j < pos_t::Size; ++j)
 			v[j] = c[j] + (v[j] - c[j]) * s[j];
 	}
 }
