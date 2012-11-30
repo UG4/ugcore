@@ -62,11 +62,126 @@ void ScaleDomain(TDomain& dom, ISelector& sel, const vector3& center,
 	for(size_t i = 0; i < vrts.size(); ++i){
 		pos_t& v = aaPos[vrts[i]];
 
-		for(size_t j = 0; j < pos_t::Size; ++j)
+		for(size_t j = 0; j < pos_t::Size-1; ++j)
 			v[j] = c[j] + (v[j] - c[j]) * s[j];
 	}
 }
 
+template <class TDomain>
+void ScaleDomainSquaredWeighting(TDomain& dom, ISelector& sel, const vector3& center,
+				 const vector3& scale)
+
+{
+	typedef typename TDomain::position_type pos_t;
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+
+	pos_t c, s;
+	VecCopy(c, center, 0);
+	VecCopy(s, scale, 1);
+
+//  prepare data
+	const pos_t& coord = c;
+	vector<VertexBase*> vrts;
+	CollectVerticesTouchingSelection(vrts, sel);
+	const pos_t& vrtPos_0 = aaPos[vrts[0]];
+	number dMax = VecDistance(coord, vrtPos_0);
+
+	for(size_t i = 1; i < vrts.size(); ++i){
+		const pos_t& vrtPos = aaPos[vrts[i]];
+		number dist = VecDistance(coord, vrtPos);
+		if ( dist > dMax )
+				dMax = dist;
+	}
+
+//	perform the scaling
+	for(size_t i = 0; i < vrts.size(); ++i){
+		pos_t& v = aaPos[vrts[i]];
+		const pos_t& vrtPos = aaPos[vrts[i]];
+		number dist = VecDistance(coord, vrtPos);
+		number sqrdWeight = (dist/dMax)*(dist/dMax);
+
+		for(size_t j = 0; j < pos_t::Size-1; ++j)
+			v[j] = c[j] + (v[j] - c[j]) * ((s[j]-1.0)*sqrdWeight + 1.0);
+	}
+}
+
+template <class TDomain>
+void ScaleDomainWeighting(TDomain& dom, ISelector& sel, const vector3& center,
+				 const vector3& scale)
+
+{
+	typedef typename TDomain::position_type pos_t;
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+
+	pos_t c, s;
+	VecCopy(c, center, 0);
+	VecCopy(s, scale, 1);
+
+//  prepare data
+	const pos_t& coord = c;
+	vector<VertexBase*> vrts;
+	CollectVerticesTouchingSelection(vrts, sel);
+	const pos_t& vrtPos_0 = aaPos[vrts[0]];
+	number dMax = VecDistance(coord, vrtPos_0);
+
+	for(size_t i = 1; i < vrts.size(); ++i){
+		const pos_t& vrtPos = aaPos[vrts[i]];
+		number dist = VecDistance(coord, vrtPos);
+		if ( dist > dMax )
+				dMax = dist;
+	}
+
+//	perform the scaling
+	for(size_t i = 0; i < vrts.size(); ++i){
+		pos_t& v = aaPos[vrts[i]];
+		const pos_t& vrtPos = aaPos[vrts[i]];
+		number dist = VecDistance(coord, vrtPos);
+		number weight = (dist/dMax);
+
+		for(size_t j = 0; j < pos_t::Size-1; ++j)
+			v[j] = c[j] + (v[j] - c[j]) * ((s[j]-1.0)*weight + 1.0);
+	}
+}
+
+
+template <class TDomain>
+void ScaleDomainSqrtWeighting(TDomain& dom, ISelector& sel, const vector3& center,
+				 const vector3& scale)
+
+{
+	typedef typename TDomain::position_type pos_t;
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+
+	pos_t c, s;
+	VecCopy(c, center, 0);
+	VecCopy(s, scale, 1);
+
+//  prepare data
+	const pos_t& coord = c;
+	vector<VertexBase*> vrts;
+	CollectVerticesTouchingSelection(vrts, sel);
+	const pos_t& vrtPos_0 = aaPos[vrts[0]];
+	number dMax = VecDistance(coord, vrtPos_0);
+
+	for(size_t i = 1; i < vrts.size(); ++i){
+		const pos_t& vrtPos = aaPos[vrts[i]];
+		number dist = VecDistance(coord, vrtPos);
+		if ( dist > dMax )
+			dMax = dist;
+	}
+
+//	perform the scaling
+	for(size_t i = 0; i < vrts.size(); ++i){
+		pos_t& v = aaPos[vrts[i]];
+		const pos_t& vrtPos = aaPos[vrts[i]];
+		number dist = VecDistance(coord, vrtPos);
+		number weight = sqrt(dist/dMax);
+
+		for(size_t j = 0; j < pos_t::Size-1; ++j)
+			v[j] = c[j] + (v[j] - c[j]) * ((s[j]-1.0)*weight + 1.0);
+
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +212,10 @@ static void Domain(Registry& reg, string grp)
 
 	reg.add_function("TranslateDomain", &TranslateDomain<domain_type>, grp);
 	reg.add_function("ScaleDomain", &ScaleDomain<domain_type>, grp);
+	reg.add_function("ScaleDomainSqrtWeighting", &ScaleDomainSqrtWeighting<domain_type>, grp);
+	reg.add_function("ScaleDomainWeighting", &ScaleDomainWeighting<domain_type>, grp);
+	reg.add_function("ScaleDomainSquaredWeighting", &ScaleDomainSquaredWeighting<domain_type>, grp);
+
 }
 
 }; // end Functionality
