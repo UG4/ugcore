@@ -16,6 +16,14 @@ using namespace std;
 namespace ug {
 namespace bridge {
 namespace periodicBoundary {
+
+void print_all_identifications(PeriodicBoundaryIdentifier& pi) {
+	pi.print_identification<Volume>();
+	pi.print_identification<Face>();
+	pi.print_identification<EdgeBase>();
+	pi.print_identification<VertexBase>();
+}
+
 /**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
@@ -25,6 +33,7 @@ struct Functionality {
 	static void Common(Registry& reg, string grp) {
 		reg.add_class_<PeriodicBoundaryIdentifier>("PeriodicBoundaryIdentifier", grp)
 				.add_constructor();
+		reg.add_function("PrintIdentification", &print_all_identifications, grp);
 	}
 
 	/**

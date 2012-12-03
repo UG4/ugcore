@@ -13,55 +13,82 @@
 #include "lib_disc/domain.h"
 
 #include <vector>
+#include <iostream>
 
 namespace ug {
+
+class IIdentifier {
+public:
+	virtual bool match(VertexBase*, VertexBase*){UG_THROW("not impled");}
+	virtual bool match(EdgeBase*, EdgeBase*){UG_THROW("not impled");}
+	virtual bool match(Face*, Face*){UG_THROW("not impled");}
+	virtual bool match(Volume*, Volume*){UG_THROW("not impled");}
+};
+
+template<class TPosAA> class ParallelShiftIdentifier: public IIdentifier {
+public:
+	virtual bool match(VertexBase*, VertexBase*);
+	virtual bool match(EdgeBase*, EdgeBase*);
+	virtual bool match(Face*, Face*);
+	virtual bool match(Volume*, Volume*);
+
+	typedef typename TPosAA::ValueType AttachmentType;
+	ParallelShiftIdentifier(TPosAA& aa) : m_aaPos(aa) {}
+	void set_shift(AttachmentType& shift) {m_shift = shift;}
+protected:
+	AttachmentType m_shift;
+	TPosAA& m_aaPos;
+	bool equals_shift(AttachmentType& diff);
+};
+
 
 /**
  *
  */
 class PeriodicBoundaryIdentifier {
-
 public:
-//	PeriodicBoundaryIdentifier() : m_pGrid(NULL) {}
+	PeriodicBoundaryIdentifier() : m_pGrid(NULL) {}
 	~PeriodicBoundaryIdentifier();
 
 	// sets grid and inits group info attachment accessors
 	void set_grid(Grid* g);
 
-	class IIdentifier {
-	public:
-		virtual bool match(VertexBase*, VertexBase*);
-		virtual bool match(EdgeBase*, EdgeBase*);
-		virtual bool match(Face*, Face*);
-		virtual bool match(Volume*, Volume*);
-	};
-
 	template<class TElem> void identifiy(TElem* e1, TElem* e2, IIdentifier* i = NULL);
 	template<class TElem> bool is_periodic(TElem* e) const;
 	template<class TElem> TElem* master(TElem* e) const;
-	template<class TElem> std::vector<TElem*>* slaves(TElem* e) const;
+	// todo use Group<TElem>::SlaveContainer as return type
+	template<class TElem> std::list<TElem*>* slaves(TElem* e) const;
 
-protected:
-	// grid instance we operate on, set by set_
-	Grid* m_pGrid;
+	template<class TElem> void print_identification() const;
 
 	/**
 	 * A Group instance holds a master of type TElem and several children.
 	 */
 	template <class TElem> class Group {
 	public:
+		typedef typename std::list<TElem*> SlaveContainer;
+		typedef typename SlaveContainer::iterator SlaveIterator;
+
 		Group(TElem* m = NULL) : m_master(m) {}
-		void add_slave(TElem* e) { UG_ASSERT(e != m_master, "duplicate master!"); m_slaves.push_back(e); }
-		std::vector<TElem*>& get_slaves() { return m_slaves; }
+		~Group() {UG_LOG("group of master " << m_master << " destroyed\n")}
+
+		void add_slave(TElem* e) { UG_ASSERT(e != m_master, "element already master!"); m_slaves.push_back(e); }
+		SlaveContainer& get_slaves() { return m_slaves; }
 		TElem* m_master;
+
 	protected:
-		std::vector<TElem*> m_slaves;
+		SlaveContainer m_slaves;
 	};
 
-	Grid::AttachmentAccessor<VertexBase, Attachment<Group<VertexBase>* > > m_aaGroupInfoVRT;
-	Grid::AttachmentAccessor<EdgeBase, Attachment<Group<EdgeBase>* > > m_aaGroupInfoEDG;
-	Grid::AttachmentAccessor<Face, Attachment<Group<Face>* > > m_aaGroupInfoFCE;
-	Grid::AttachmentAccessor<Volume, Attachment<Group<Volume>* > > m_aaGroupInfoVOL;
+protected:
+	// grid instance we operate on
+	Grid* m_pGrid;
+
+	/// attachment accessors for Groups
+	Grid::AttachmentAccessor<VertexBase, Attachment<Group<VertexBase>* > > m_aaGroupVRT;
+	Grid::AttachmentAccessor<EdgeBase, Attachment<Group<EdgeBase>* > > m_aaGroupEDG;
+	Grid::AttachmentAccessor<Face, Attachment<Group<Face>* > > m_aaGroupFCE;
+	Grid::AttachmentAccessor<Volume, Attachment<Group<Volume>* > > m_aaGroupVOL;
 
 	template <class TElem> void merge_groups(Group<TElem>* g0, Group<TElem>* g1);
 
