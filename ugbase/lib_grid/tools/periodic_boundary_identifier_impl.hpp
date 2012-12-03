@@ -70,37 +70,31 @@ bool ParallelShiftIdentifier<TAAPos>::match(Volume* v1, Volume* v2)
 	return equals_shift(diff);
 }
 
-// initial call with TElem = ug::Volume to assure all associated sub elements are identified
 template<class TElem>
 void PeriodicBoundaryIdentifier::identifiy(TElem* e1, TElem* e2,
 		IIdentifier* identifier)
 {
-	UG_LOG("ident\n")
 	typedef typename Grid::traits<typename TElem::side>::secure_container container;
 
-	// determine master
+	// determine masters
 	TElem* m1 = master(e1);
 	TElem* m2 = master(e2);
 
 	// assign groups
 	if(m1 && !m2) // m1 is master, so e2 will be its slave
 	{
-		UG_LOG("e1 is master, e2 not\n")
 		slaves(m1)->push_back(e2);
 	}
 	else if(m2 && !m1) // m2 is master, so e1 will be its slave
 	{
-		UG_LOG("e2 is master, e1 not\n")
 		slaves(m2)->push_back(e1);
 	}
-	else if(m1 && m2) // both are masters, merge them.
+	else if((m1 && m2) && (m1 != m2)) // both are distinct masters, merge them.
 	{
-		UG_LOG("both are masters\n")
 		merge_groups(group(e1), group(e2));
 	}
 	else // nobody is master
 	{
-		UG_LOG("nobody is master\n")
 		// create new group with e1 as master and e2 as slave
 		Group<TElem>* g = new Group<TElem>(e1);
 		g->add_slave(e2);
@@ -161,15 +155,18 @@ void PeriodicBoundaryIdentifier::print_identification() const
 {
 	typedef typename ElementStorage<TElem>::SectionContainer::iterator Iterator;
 	typedef typename Group<TElem>::SlaveIterator SlaveIter;
-	for (Iterator iter = m_pGrid->begin<TElem>(); iter != m_pGrid->end<TElem>();
-			++iter) {
+
+	for (Iterator elem = m_pGrid->begin<TElem>(); elem != m_pGrid->end<TElem>();
+			++elem) {
 		// log masters and their slaves
-		if(master(*iter)) {
-			Group<TElem>* g = group(*iter);
+		if(master(*elem)) {
+			Group<TElem>* g = group(*elem);
+			UG_ASSERT(g, "group not valid")
 			UG_LOG("group: [master: " << g->m_master << "\tslaves: ");
-			for (SlaveIter i = g->get_slaves().begin();
-					i != g->get_slaves().end(); ++i) {
-				UG_LOG(*i << ", ")
+			for (SlaveIter slave = g->get_slaves().begin();
+					slave != g->get_slaves().end(); ++slave) {
+				TElem* e = *slave;
+				UG_LOG(e << ", ")
 			}
 			UG_LOG(std::endl)
 		}
@@ -183,22 +180,26 @@ template<class TElem>
 void PeriodicBoundaryIdentifier::merge_groups(Group<TElem>* g0,
 		Group<TElem>* g1)
 {
-	UG_LOG("merge called" << std::endl)
+	UG_ASSERT(!g0 || !g1, "groups not valid")
+	UG_ASSERT(g0 !=  g1, "groups are equal")
+
 	typedef typename Group<TElem>::SlaveContainer SlaveContainer;
 	typedef typename Group<TElem>::SlaveIterator SlaveIterator;
 
-	SlaveContainer& slaves_g0 = g0->get_slaves();
 	SlaveContainer& slaves_g1 = g1->get_slaves();
 
 	// insert slaves of g1 at the end of slaves of g0
-	slaves_g0.insert(slaves_g0.end(), slaves_g1.begin(), slaves_g1.end());
-	// insert prior master of g1 to slaves of g0
-	slaves_g0.push_back(g1->m_master);
-
-	// set group pointer to g0 for all slaves of g1
-	for (SlaveIterator iter = slaves_g1.begin(); iter != slaves_g1.end(); ++iter) {
-		set_group(g0, *iter);
+	for(SlaveIterator iter=slaves_g1.begin(); iter!=slaves_g1.end(); ++iter) {
+		TElem* e = *iter;
+		if(e && e != g0->m_master) {
+			g0->add_slave(e);
+			set_group(g0, *iter);
+		}
 	}
+
+	// insert prior master of g1 to slaves of g0
+	g1->add_slave(g1->m_master);
+
 	// remove old group
 	delete g1;
 }
@@ -323,13 +324,16 @@ PeriodicBoundaryIdentifier::~PeriodicBoundaryIdentifier()
 	}
 
 	// set grid to NULL to detach groups from grid
-	set_grid (NULL);
+	set_grid(NULL);
 }
 
+#ifndef NDEBUG
+/**
+ * create all pairs of <master, slave> and insert them into a set to check for duplicates
+ */
 template<class TElem> void test(PeriodicBoundaryIdentifier& PI,
 		GeometricObjectCollection& goc1, GeometricObjectCollection& goc2)
 {
-	UG_LOG("test\n")
 	typedef typename ElementStorage<TElem>::SectionContainer::iterator gocIter;
 	typedef typename std::pair<TElem*, TElem*> master_slave_pair;
 	typedef typename std::set<master_slave_pair> MSSet;
@@ -337,6 +341,7 @@ template<class TElem> void test(PeriodicBoundaryIdentifier& PI,
 
 	typedef typename PeriodicBoundaryIdentifier::Group<TElem>::SlaveContainer SlaveContainer;
 	typedef typename SlaveContainer::iterator SlaveIter;
+
 	// subset 1
 	for (gocIter iter = goc1.begin<TElem>(); iter != goc1.end<TElem>();
 			++iter) {
@@ -353,23 +358,24 @@ template<class TElem> void test(PeriodicBoundaryIdentifier& PI,
 			}
 		}
 	}
+	// subset 1
+	for (gocIter iter = goc2.begin<TElem>(); iter != goc2.end<TElem>();
+			++iter) {
+		UG_ASSERT(PI.is_periodic(*iter), "should be periodic now");
 
-//	// subset 2
-//	for (gocIter iter = goc2.begin<TElem>(); iter != goc2.end<TElem>();
-//			++iter) {
-//		if(PI.master(*iter) == *iter) {
-//			std::vector<TElem*>* slaves = PI.slaves(*iter);
-//			UG_ASSERT(slaves, "master should have slaves")
-//			for (uint i = 0; i < slaves->size(); i++) {
-//				TElem* slave = slaves->at(i);
-//				master_slave_pair p = std::make_pair(*iter, slave);
-//				bool inserted = (s.insert(p)).second;
-//				UG_ASSERT(inserted, "pair already exists");
-//			}
-//		}
-//	}
-
+		if(PI.master(*iter) == *iter) {
+			SlaveContainer* slaves = PI.slaves(*iter);
+			UG_ASSERT(slaves, "master should have slaves")
+			for (SlaveIter i = slaves->begin(); i != slaves->end(); ++i) {
+				TElem* slave = *i;
+				master_slave_pair p = std::make_pair(*iter, slave);
+				bool inserted = (s.insert(p)).second;
+				UG_ASSERT(inserted, "pair already exists");
+			}
+		}
+	}
 }
+#endif
 
 // performs geometric ident of periodic elements and master slave
 template<class TDomain>
@@ -431,17 +437,16 @@ void IdentifySubsets(TDomain& dom, PeriodicBoundaryIdentifier& PI, int sInd1,
 				iter1 != goc1.end<TElem>(lvl); ++iter1) {
 			for (gocIter iter2 = goc2.begin<TElem>(lvl);
 					iter2 != goc2.end<TElem>(lvl); ++iter2) {
-				// fixme this leads to duplicate ident on this element level
 				if(ident.match(*iter1, *iter2)) PI.identifiy(*iter1, *iter2,
 						&ident);
 			}
 		}
 	}
-//#ifdef DEBUG
+#ifndef NDEBUG
 	test<VertexBase>(PI, goc1, goc2);
 	test<EdgeBase>(PI, goc1, goc2);
 	test<Face>(PI, goc1, goc2);
-//#endif
+#endif
 }
 } // end namespace ug
 

@@ -19,10 +19,10 @@ namespace ug {
 
 class IIdentifier {
 public:
-	virtual bool match(VertexBase*, VertexBase*){UG_THROW("not impled");}
-	virtual bool match(EdgeBase*, EdgeBase*){UG_THROW("not impled");}
-	virtual bool match(Face*, Face*){UG_THROW("not impled");}
-	virtual bool match(Volume*, Volume*){UG_THROW("not impled");}
+	virtual bool match(VertexBase*, VertexBase*) = 0;
+	virtual bool match(EdgeBase*, EdgeBase*) = 0;
+	virtual bool match(Face*, Face*) = 0;
+	virtual bool match(Volume*, Volume*) = 0;
 };
 
 template<class TPosAA> class ParallelShiftIdentifier: public IIdentifier {
@@ -70,9 +70,12 @@ public:
 		typedef typename SlaveContainer::iterator SlaveIterator;
 
 		Group(TElem* m = NULL) : m_master(m) {}
-		~Group() {UG_LOG("group of master " << m_master << " destroyed\n")}
 
-		void add_slave(TElem* e) { UG_ASSERT(e != m_master, "element already master!"); m_slaves.push_back(e); }
+		void add_slave(TElem* e) {
+			UG_ASSERT(e, "add_slave: slave not valid");
+			UG_ASSERT(e != m_master, "element already master!");
+			m_slaves.push_back(e); }
+
 		SlaveContainer& get_slaves() { return m_slaves; }
 		TElem* m_master;
 
