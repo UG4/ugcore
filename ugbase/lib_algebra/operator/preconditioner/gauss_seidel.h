@@ -17,6 +17,17 @@
 
 namespace ug{
 
+/// Gauss-Seidel preconditioner for the 'forward' ordering of the dofs
+/**
+ * This class implements the Gauss-Seidel preconditioner (and smoother) for the
+ * 'forward' ordering of the dofs.
+ * References:
+ * <ul>
+ * <li> W. Hackbusch. Iterative solution of large sparse systems of equations. New York: Springer, 1994
+ * </ul>
+ *
+ * \tparam	TAlgebra	Algebra type
+ */
 template <typename TAlgebra>
 class GaussSeidel : public IPreconditioner<TAlgebra>
 {
@@ -114,6 +125,17 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 
 };
 
+/// Gauss-Seidel preconditioner for the 'backward' ordering of the dofs
+/**
+ * This class implements the Gauss-Seidel preconditioner (and smoother) for the
+ * 'backward' ordering of the dofs.
+ * References:
+ * <ul>
+ * <li> W. Hackbusch. Iterative solution of large sparse systems of equations. New York: Springer, 1994
+ * </ul>
+ *
+ * \tparam	TAlgebra	Algebra type
+ */
 template <typename TAlgebra>
 class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 {
@@ -210,6 +232,16 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 #endif
 };
 
+/// Symmetric Gauss-Seidel preconditioner
+/**
+ * This class implements the symmetric Gauss-Seidel preconditioner (and smoother).
+ * References:
+ * <ul>
+ * <li> W. Hackbusch. Iterative solution of large sparse systems of equations. New York: Springer, 1994
+ * </ul>
+ *
+ * \tparam	TAlgebra	Algebra type
+ */
 template <typename TAlgebra>
 class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 {
