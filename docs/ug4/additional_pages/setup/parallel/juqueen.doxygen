@@ -32,9 +32,10 @@ c't, 15/2012, S. 58).
 
 \note (TMP)
 According to the output of \c llbgstatus command and the sketch provided by
-\em llview (see below) it looks like the FZJ has chosen to install all those
-28 racks in one upgrade step (02112012)), but supposedly only 24 racks are
-active in the moment!
+\em llview (see below) it looks like all 28 racks are installed in the last
+upgrade step, but only 24 racks are active in the moment (in \em llview the
+midplanes of those last four racks are labeled with "do", probably meaning
+"down", while the active ones are labeled with "ru" (i.e. "running"))!
 
 
 Each rack contains 2<sup>5</sup> \b node \b cards,
