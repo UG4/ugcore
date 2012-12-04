@@ -2,7 +2,26 @@
 # created by Ingo Heppner
 # Ingo.Heppner@gcsc.uni-frankfurt.de
 #
-# Toolchain file for JuQueen (type IBM Blue Gene/Q) FZ Juelich
+# Toolchain file for JuQueen (type IBM Blue Gene/Q) FZ Juelich.
+#
+# This toolchain file is included in a CMake run by (check with 'cmake --trace')
+# 'Modules/CMakeDetermineSystem.cmake', and (later again) by the - generated -
+# file '<ug4_build_dir>/CMakeFiles/CMakeSystem.cmake'.
+# (Subdirectory 'Modules/' is part of your CMake installation, on JuQueens login
+# nodes: '/usr/local/cmake/share/cmake-2.8/Modules/').
+#
+# Appropriate platform files for the "CMake system name" and compilers chosen
+# here are called later (by 'Modules/CMakeSystemSpecificInformation.cmake'):
+#
+# I.e., for "BlueGeneQ-static" as "CMake system name" the platform file
+# 'Modules/Platform/BlueGeneQ-static.cmake' is included first, which includes
+# 'Modules/Platform/BlueGeneQ-base.cmake'. Afterwards CMake calls
+# 'Modules/Platform/BlueGeneQ-static-GNU-C.cmake' and
+# 'Modules/Platform/BlueGeneQ-static-GNU-CXX.cmake'
+# if GNU compilers are chosen (by 'Modules/CMakeCInformation.cmake' and
+# 'Modules/CMakeCXXInformation.cmake' respectively).
+#
+################################################################################
 #
 # Attention:
 # For this to work a CMake version with platform files for Blue Gene/Q is required!
@@ -21,6 +40,7 @@
 # 'http://www.cmake.org/Bug/bug_relationship_graph.php?bug_id=13512&graph=dependency'
 # (found 03092012), which are copied into the 'Modules/Platform/' directory of
 # a locally installed CMake, version 2.8.9 (installed 03092012).
+#
 ################################################################################
 
 # Important: Setting the "cmake system name" will lead to automatic inclusion of
@@ -50,13 +70,13 @@ set(MPI_C_COMPILER       ${MPI_ROOT}/bin/mpicc)
 set(MPI_CXX_COMPILER     ${MPI_ROOT}/bin/mpicxx)
 set(MPI_Fortran_COMPILER ${MPI_ROOT}/bin/mpif90)
 
-message(STATUS "TMP INFO: Value of 'CMAKE_C_COMPILER'       is: "${CMAKE_C_COMPILER})       # TMP
-message(STATUS "TMP INFO: Value of 'CMAKE_CXX_COMPILER'     is: "${CMAKE_CXX_COMPILER})     # TMP
-message(STATUS "TMP INFO: Value of 'CMAKE_Fortran_COMPILER' is: "${CMAKE_Fortran_COMPILER}) # TMP
+message(STATUS "TMP INFO: Value of '\${CMAKE_C_COMPILER}'       is: "${CMAKE_C_COMPILER})       # TMP
+message(STATUS "TMP INFO: Value of '\${CMAKE_CXX_COMPILER}'     is: "${CMAKE_CXX_COMPILER})     # TMP
+message(STATUS "TMP INFO: Value of '\${CMAKE_Fortran_COMPILER}' is: "${CMAKE_Fortran_COMPILER}) # TMP
 
-message(STATUS "TMP INFO: Value of 'MPI_C_COMPILER'         is: "${MPI_C_COMPILER})       # TMP
-message(STATUS "TMP INFO: Value of 'MPI_CXX_COMPILER'       is: "${MPI_CXX_COMPILER})     # TMP
-message(STATUS "TMP INFO: Value of 'MPI_Fortran_COMPILER'   is: "${MPI_Fortran_COMPILER}) # TMP
+message(STATUS "TMP INFO: Value of '\${MPI_C_COMPILER}'         is: "${MPI_C_COMPILER})         # TMP
+message(STATUS "TMP INFO: Value of '\${MPI_CXX_COMPILER}'       is: "${MPI_CXX_COMPILER})       # TMP
+message(STATUS "TMP INFO: Value of '\${MPI_Fortran_COMPILER}'   is: "${MPI_Fortran_COMPILER})   # TMP
 
 # For debugging purposes
 #include(CMakePrintSystemInformation)
