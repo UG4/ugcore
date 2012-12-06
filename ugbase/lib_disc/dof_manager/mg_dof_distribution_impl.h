@@ -91,6 +91,8 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 	if(m_spMG->has_periodic_boundaries())
 	{
+		if(!m_spMG->periodic_boundary_manager()->is_periodic(obj))
+			goto createIndex;
 		// if obj is master, create an index
 		if(m_spMG->periodic_boundary_manager()->is_master(obj))
 		{
@@ -141,6 +143,8 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	bool master = false;
 	if(m_spMG->has_periodic_boundaries())
 	{
+		if(!m_spMG->periodic_boundary_manager()->is_periodic(obj))
+			goto createIndex;
 		if(m_spMG->periodic_boundary_manager()->is_master(obj))
 		{
 			master = true;
