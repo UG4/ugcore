@@ -268,7 +268,6 @@ class VRLUserLinker
 		static const unsigned int retArrayDim = vrl_traits<TData>::retArrayDim;
 
 		VRLUserLinker() : initialized(false) {}
-		virtual ~VRLUserLinker() {};
 
 		static std::string name()
 		{
@@ -835,8 +834,6 @@ public:
 				<< dim << "D: invokation error:</font>";
 		invocationErrorMsg = stream.str();
 	}
-
-	virtual ~VRLCondUserNumber() {};
 
 	void set_vrl_callback(const char* expression)
 	{
