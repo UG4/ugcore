@@ -8,6 +8,7 @@
 #include "grid_util.h"
 #include "common/common.h"
 #include "lib_grid/attachments/attached_list.h"
+#include "lib_grid/tools/periodic_boundary_manager.h"
 
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"
@@ -136,6 +137,33 @@ set_parallel(bool parallel)
 	else if(is_parallel()){
 		m_distGridMgr.reset(NULL);
 	}
+}
+
+void Grid::set_periodic_boundaries(bool is_periodic)
+{
+	if(is_periodic)
+	{
+		m_PeriodicBndIdent.reset(new PeriodicBoundaryManager());
+		m_PeriodicBndIdent->set_grid(this);
+	}
+	else {
+		m_PeriodicBndIdent.reset(NULL);
+	}
+}
+
+bool Grid::has_periodic_boundaries() const
+{
+	return m_PeriodicBndIdent.get() != NULL;
+}
+
+PeriodicBoundaryManager* Grid::periodic_boundary_manager()
+{
+	return m_PeriodicBndIdent.get();
+}
+
+const PeriodicBoundaryManager* Grid::periodic_boundary_manager() const
+{
+	return m_PeriodicBndIdent.get();
 }
 
 void Grid::clear()

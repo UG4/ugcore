@@ -39,6 +39,10 @@ namespace ug
 //	"lib_grid/parallelization/distributed_grid.h"
 class DistributedGridManager;
 
+//	predeclaration of the periodic boundary identifier, which handles the master/slave
+//  identification of grid elements. If you want to use it, you have to include
+//	"lib_grid/tools/periodic_boundary_identifier.h"
+class PeriodicBoundaryManager;
 
 /**
  * \brief Grid, MultiGrid and GeometricObjectCollection are contained in this group
@@ -296,6 +300,26 @@ class UG_API Grid
 	 * \{ */
 		inline DistributedGridManager* distributed_grid_manager();
 		inline const DistributedGridManager* distributed_grid_manager() const;
+	/** \} */
+
+	////////////////////////////////////////////////
+	//	periodic boundaries
+	/// tell the grid whether it may contain periodic boundaries.
+	/**
+	 * If the grid may contain periodic boundaries, it instantiate a PeriodicBoundaryManager.*/
+		void set_periodic_boundaries(bool);
+	/// returns true, if grid has the possibility to handle periodic boundaries.
+		bool has_periodic_boundaries() const;
+
+	///	returns a pointer to the associated periodic boundary manager.
+	/**	The method returns NULL, if no periodic boundary get_attachment_accessor for the given
+	 * grid exists.
+	 * Use ug::Grid::set_periodic_boundaries() to enable or disable periodic boundaries in a grid.
+	 * You have to include "lib_grid/tools/periodic_boundary_manager.h" to access
+	 * methods of the peridodic boundary manager.
+	 * \{ */
+		PeriodicBoundaryManager* periodic_boundary_manager();
+		const PeriodicBoundaryManager* periodic_boundary_manager() const;
 	/** \} */
 
 	////////////////////////////////////////////////
@@ -1141,6 +1165,7 @@ class UG_API Grid
 
 		SPMessageHub 							m_messageHub;
 		std::auto_ptr<DistributedGridManager>	m_distGridMgr;
+		std::auto_ptr<PeriodicBoundaryManager> m_PeriodicBndIdent;
 };
 
 /** \} */
