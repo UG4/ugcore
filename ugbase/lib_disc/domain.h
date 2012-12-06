@@ -220,6 +220,7 @@ class Domain : public IDomain<TGrid, TSubsetHandler>
 	 * \param[in]	options		Grid Options (optinal)
 	 */
 		Domain(bool isAdaptive = true);
+		virtual ~Domain() {};
 
 	///	World Dimension
 		virtual int get_dim() const {return dim;}
