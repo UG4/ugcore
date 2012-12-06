@@ -50,7 +50,10 @@ struct Functionality {
 	 */
 	template<typename TDomain>
 	static void Domain(Registry& reg, string grp) {
-		reg.add_function("IdentifySubsets", &IdentifySubsets<TDomain>, grp);
+		reg.add_function("IdentifySubsets",
+				static_cast<void(*)(TDomain&, int, int)>(&IdentifySubsets<TDomain>), grp)
+		   .add_function("IdentifySubsets",
+				static_cast<void(*)(TDomain&, const char*, const char*)>(&IdentifySubsets<TDomain>), grp);
 	}
 }; // end Functionality
 

@@ -307,13 +307,35 @@ template<class TElem> void test(PeriodicBoundaryManager& PBM,
 }
 #endif
 
+template <class TDomain>
+void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2) {
+	// get subset handler from domain
+	typedef typename TDomain::subset_handler_type subset_handler_type;
+
+	subset_handler_type& sh = *dom.subset_handler();
+
+	int si1 = sh.get_subset_index(sName1);
+	int si2 = sh.get_subset_index(sName2);
+
+	if(si1 == -1)
+		UG_THROW("given subset name " << sName1 << " does not exist");
+	if(si2 == -1)
+		UG_THROW("given subset name " << sName2 << " does not exist");
+
+	IdentifySubsets(dom, si1, si2);
+}
+
 /// performs geometric ident of periodic elements and master slave
 template<class TDomain>
 void IdentifySubsets(TDomain& dom, int sInd1, int sInd2)
 {
+	if(sInd1 == -1 || sInd2 == -1)
+		return;
+
 	if(!dom.grid()->has_periodic_boundaries())
 	{
-		UG_WARNING("Warning: domain has no periodic boundary manager set.\n");
+		UG_WARNING("Warning: domain has no periodic boundary manager set."
+				   " So creating one now.\n");
 		dom.grid()->set_periodic_boundaries(true);
 	}
 

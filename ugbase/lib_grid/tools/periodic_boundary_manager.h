@@ -29,9 +29,12 @@ public:
 	virtual bool match(Volume*, Volume*) = 0;
 };
 
-///
+/// This class matches geometric elements which are parallel translated.
 /**
- *
+ * Usage: class needs to be instantiated with the position attachment used on the Domain.
+ * Before using any match methods, the translation vector needs to be set with set_shift()
+ * \tparam <TPosAA>{class needs to be instantiated with the
+ * position attachment used on the Domain.}
  */
 template<class TPosAA> class ParallelShiftIdentifier: public IIdentifier {
 public:
@@ -124,12 +127,25 @@ protected:
  * \brief identifies subset 1 with subset 2. If the grid of given domain has no
  * periodic boundary manager attached, one will be created.
  *
- * \param dom
- * \param sInd1
- * \param sInd2
+ * \param dom Domain the periodic boundary should be defined on
+ * \param sInd1 subset index which elements should be identified with elements from
+ * those of sInd2
+ * \param sInd2 \see{sInd1}
  */
 template <class TDomain>
 void IdentifySubsets(TDomain& dom, int sInd1, int sInd2);
+
+/**
+ * \brief identifies subset 1 with subset 2. If the grid of given domain has no
+ * periodic boundary manager attached, one will be created.
+ *
+ * \param dom Domain the periodic boundary should be defined on
+ * \param sName1 subset name which elements should be identified with elements from
+ * those of sName2
+ * \param sName2 \see {sName1}
+ */
+template <class TDomain>
+void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2);
 } // end of namespace ug
 
 // include implementation
