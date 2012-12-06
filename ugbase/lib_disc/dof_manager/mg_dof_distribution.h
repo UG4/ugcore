@@ -69,10 +69,10 @@ struct LevInfoBase
 template <typename TContainer = std::vector<size_t> >
 struct LevInfo : public LevInfoBase
 {
-///	returns if free index avaiable
+///	returns if free index available
 	inline bool free_index_available() const;
 
-///	returns number of free index avaiable
+///	returns number of free index available
 	inline size_t num_free_index() const;
 
 ///	returns a free index

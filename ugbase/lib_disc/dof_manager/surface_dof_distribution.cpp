@@ -20,17 +20,10 @@ SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
                        SmartPtr<MGSubsetHandler> spMGSH,
                        FunctionPattern& fctPatt,
                        SmartPtr<SurfaceLevelView> spSurfLevelView,
-                       int level, bool bGrouped
-#ifdef UG_PARALLEL
-                       , DistributedGridManager* pDistGridMgr
-#endif
-			)
+                       int level, bool bGrouped)
 		:	MGDoFDistribution(spMG, spMGSH, fctPatt, bGrouped),
 		 	m_spSurfLevelView(spSurfLevelView),
 		 	m_level(level)
-#ifdef UG_PARALLEL
-			, m_pDistGridMgr(pDistGridMgr)
-#endif
 {
 	init();
 }
@@ -122,6 +115,7 @@ void SurfaceDoFDistribution::init()
 	if(max_dofs(VOLUME) > 0) init<Volume>();
 
 #ifdef UG_PARALLEL
+	m_pDistGridMgr = m_spMG->distributed_grid_manager();
 	create_layouts_and_communicator();
 #endif
 }

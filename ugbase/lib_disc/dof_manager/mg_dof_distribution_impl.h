@@ -11,6 +11,7 @@
 #include <vector>
 #include <set>
 #include "mg_dof_distribution.h"
+#include "lib_grid/tools/periodic_boundary_manager.h"
 
 namespace ug{
 
@@ -86,13 +87,25 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	if no dofs on this subset for the roid, do nothing
 	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
 
+	bool master = false;
+
+	if(m_spMG->has_periodic_boundaries())
+	{
+		// if obj is master, create an index
+		if(m_spMG->periodic_boundary_manager()->is_master(obj))
+		{
+			master = true;
+			goto createIndex;
+		}
+	} else {
+	createIndex:
 //	compute the number of indices needed on the Geometric object
 	size_t numNewIndex = 1;
 	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
 
 // 	set first available index to the object. The first available index is the
 //	first managed index plus the size of the index set. (If holes are in the
-//	index set, this is not treated here, wholes remain)
+//	index set, this is not treated here, holes remain)
 	obj_index(obj) = li.sizeIndexSet;
 	
 //	the size of the index set has changed. adjust counter
@@ -102,6 +115,19 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	changed. Thus, increase the counters.
 	li.numIndex += numNewIndex;
 	li.vNumIndexOnSubset[si] += numNewIndex;
+	}
+
+	// if obj is a master, assign all its slaves
+	if(master) {
+		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveContainer SlaveContainer;
+		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveIterator SlaveIterator;
+		SlaveContainer& slaves = *m_spMG->periodic_boundary_manager()->slaves(obj);
+		size_t master_index = obj_index(obj);
+		for(SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter)
+		{
+			obj_index(*iter) = master_index;
+		}
+	}
 }
 
 template <typename TBaseObject, typename T>
@@ -112,6 +138,16 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	if no dofs on this subset for the roid, do nothing
 	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
 
+	bool master = false;
+	if(m_spMG->has_periodic_boundaries())
+	{
+		if(m_spMG->periodic_boundary_manager()->is_master(obj))
+		{
+			master = true;
+			goto createIndex;
+		}
+	} else {
+		createIndex:
 //	compute the number of indices needed on the Geometric object
 	size_t numNewIndex = 1;
 	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
@@ -137,6 +173,18 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	changed. Thus, increase the counters.
 	li.numIndex += numNewIndex;
 	li.vNumIndexOnSubset[si] += numNewIndex;
+	}
+
+	if(master) {
+		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveContainer SlaveContainer;
+		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveIterator SlaveIterator;
+		SlaveContainer& slaves = *m_spMG->periodic_boundary_manager()->slaves(obj);
+		size_t master_index = obj_index(obj);
+		for(SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter)
+		{
+			obj_index(*iter) = master_index;
+		}
+	}
 }
 
 template <typename TBaseObject, typename T>
@@ -144,6 +192,7 @@ void MGDoFDistribution::
 defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
            LevInfo<T>& li, std::vector<std::pair<size_t, size_t> >& vReplaced)
 {
+	// todo handle periodic case
 //	get old (current) index
 	const size_t oldIndex = obj_index(obj);
 
@@ -195,6 +244,7 @@ void MGDoFDistribution::
 erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
       LevInfo<T>& li)
 {
+	// todo handle periodic case
 //	if no indices needed, we do nothing
 	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
 

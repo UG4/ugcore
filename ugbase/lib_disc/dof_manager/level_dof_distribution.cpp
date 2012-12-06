@@ -18,15 +18,8 @@ LevelMGDoFDistribution::
 LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
 					   SmartPtr<MGSubsetHandler> spMGSH,
                        FunctionPattern& fctPatt,
-                       bool bGrouped
-#ifdef UG_PARALLEL
-						 , DistributedGridManager* pDistGridMgr
-#endif
-		)
+                       bool bGrouped)
 	:	MGDoFDistribution(spMG, spMGSH, fctPatt, bGrouped)
-#ifdef UG_PARALLEL
-		, m_pDistGridMgr(pDistGridMgr)
-#endif
 {
 	if(num_levels() > 0) level_required(num_levels()-1);
 	init();
@@ -78,6 +71,7 @@ void LevelMGDoFDistribution::init()
 	if(max_dofs(3) > 0) init<Volume>();
 
 #ifdef UG_PARALLEL
+	m_pDistGridMgr = m_spMG->distributed_grid_manager();
 	for(int l = 0; l < num_levels(); ++l)
 		create_layouts_and_communicator(l);
 #endif
@@ -120,7 +114,7 @@ void LevelMGDoFDistribution::create_layouts_and_communicator(int l)
 }
 
 void LevelMGDoFDistribution::create_index_layout(IndexLayout& layout,
-                                                 int keyType,
+												 InterfaceNodeTypes keyType,
                                                  int l)
 {
 //	clear layout
@@ -139,7 +133,7 @@ void LevelMGDoFDistribution::create_index_layout(IndexLayout& layout,
 
 template <typename TBaseElem>
 void LevelMGDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
-                                                      int keyType,
+													  InterfaceNodeTypes keyType,
                                                       int l)
 {
 //	get the grid layout map

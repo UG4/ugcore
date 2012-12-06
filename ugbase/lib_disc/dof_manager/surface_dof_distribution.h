@@ -25,11 +25,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 		                       SmartPtr<MGSubsetHandler> spMGSH,
 		                       FunctionPattern& fctPatt,
 		                       SmartPtr<SurfaceLevelView> spSurfLevelView,
-		                       int level, bool bGrouped
-#ifdef UG_PARALLEL
-		                       , DistributedGridManager* pDistGridMgr
-#endif
-								);
+		                       int level, bool bGrouped);
 
 	///	defragments the index set
 		void defragment();

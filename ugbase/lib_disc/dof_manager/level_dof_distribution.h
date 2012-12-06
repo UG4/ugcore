@@ -22,11 +22,7 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 	///	constructor
 		LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
 		                       SmartPtr<MGSubsetHandler> spMGSH,
-		                       FunctionPattern& fctPatt, bool bGrouped
-#ifdef UG_PARALLEL
-		                     , DistributedGridManager* pDistGridMgr
-#endif
-								);
+		                       FunctionPattern& fctPatt, bool bGrouped);
 
 	///	removes holes in the index set
 	/**
@@ -122,10 +118,10 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 #ifdef UG_PARALLEL
 		void create_layouts_and_communicator(int l);
 
-		void create_index_layout(IndexLayout& layout, int keyType, int l);
+		void create_index_layout(IndexLayout& layout, InterfaceNodeTypes keyType, int l);
 
 		template <typename TBaseElem>
-		void add_indices_from_layouts(IndexLayout& indexLayout, int keyType, int l);
+		void add_indices_from_layouts(IndexLayout& indexLayout, InterfaceNodeTypes keyType, int l);
 
 	protected:
 		DistributedGridManager* m_pDistGridMgr;

@@ -638,11 +638,7 @@ void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
 	if(!m_spLevMGDD.valid()){
 		m_spLevMGDD = SmartPtr<LevelMGDoFDistribution>
 					(new LevelMGDoFDistribution(m_spMG, m_spMGSH, *m_spFunctionPattern,
-					                            m_bGrouped
-#ifdef UG_PARALLEL
-					                              ,m_pDistGridMgr
-#endif
-					));
+					                            m_bGrouped));
 	}
 
 //	resize level
@@ -676,11 +672,7 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 			m_vSurfDD[lvl] = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(m_spMG,
 									m_spMGSH, *m_spFunctionPattern,
-									m_vSurfLevView[lvl], lvl, m_bGrouped
-#ifdef UG_PARALLEL
-					                              ,m_pDistGridMgr
-#endif
-									));
+									m_vSurfLevView[lvl], lvl, m_bGrouped));
 		}
 	}
 }
@@ -694,11 +686,7 @@ void IApproximationSpace::top_surf_dd_required()
 		m_spTopSurfDD = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(
 									m_spMG, m_spMGSH, *m_spFunctionPattern,
-									m_spTopSurfLevView, GridLevel::TOPLEVEL, m_bGrouped
-#ifdef UG_PARALLEL
-					                              ,m_pDistGridMgr
-#endif
-									));
+									m_spTopSurfLevView, GridLevel::TOPLEVEL, m_bGrouped));
 	}
 }
 
