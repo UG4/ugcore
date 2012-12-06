@@ -91,16 +91,16 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 	if(m_spMG->has_periodic_boundaries())
 	{
-		if(!m_spMG->periodic_boundary_manager()->is_periodic(obj))
-			goto createIndex;
-		// if obj is master, create an index
-		if(m_spMG->periodic_boundary_manager()->is_master(obj))
+		PeriodicBoundaryManager pbm = *m_spMG->periodic_boundary_manager();
+		// ignore slaves
+		if(pbm.is_slave(obj))
+			return;
+
+		if(pbm.is_master(obj))
 		{
 			master = true;
-			goto createIndex;
 		}
-	} else {
-	createIndex:
+	}
 //	compute the number of indices needed on the Geometric object
 	size_t numNewIndex = 1;
 	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
@@ -117,7 +117,6 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	changed. Thus, increase the counters.
 	li.numIndex += numNewIndex;
 	li.vNumIndexOnSubset[si] += numNewIndex;
-	}
 
 	// if obj is a master, assign all its slaves
 	if(master) {
@@ -141,17 +140,20 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
 
 	bool master = false;
+
 	if(m_spMG->has_periodic_boundaries())
 	{
-		if(!m_spMG->periodic_boundary_manager()->is_periodic(obj))
-			goto createIndex;
-		if(m_spMG->periodic_boundary_manager()->is_master(obj))
+		PeriodicBoundaryManager pbm = *m_spMG->periodic_boundary_manager();
+		// ignore slaves
+		if(pbm.is_slave(obj))
+			return;
+
+		if(pbm.is_master(obj))
 		{
 			master = true;
-			goto createIndex;
 		}
-	} else {
-		createIndex:
+	}
+
 //	compute the number of indices needed on the Geometric object
 	size_t numNewIndex = 1;
 	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
@@ -177,7 +179,6 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	changed. Thus, increase the counters.
 	li.numIndex += numNewIndex;
 	li.vNumIndexOnSubset[si] += numNewIndex;
-	}
 
 	if(master) {
 		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveContainer SlaveContainer;
