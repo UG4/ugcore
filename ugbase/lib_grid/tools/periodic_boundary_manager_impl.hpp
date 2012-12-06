@@ -9,8 +9,16 @@
 #define PERIODIC_IDENTIFIER_IMPL_HPP_
 
 // include declarations
-#include "periodic_boundary_identifier.h"
+#include "periodic_boundary_manager.h"
 #include "lib_grid/subset_handler.h"
+#ifndef NDEBUG
+	#include "lib_grid/algorithms/debug_util.h"
+#else
+	namespace ug {
+	template <class TElem> TElem* GetGeometricObjectCenter(Grid& g, TElem* elem) {
+		return elem;
+	}}
+#endif
 #include "common/assert.h"
 
 #include <boost/mpl/map.hpp>
@@ -71,7 +79,7 @@ bool ParallelShiftIdentifier<TAAPos>::match(Volume* v1, Volume* v2)
 }
 
 template<class TElem>
-void PeriodicBoundaryIdentifier::identifiy(TElem* e1, TElem* e2,
+void PeriodicBoundaryManager::identifiy(TElem* e1, TElem* e2,
 		IIdentifier* identifier)
 {
 	typedef typename Grid::traits<typename TElem::side>::secure_container container;
@@ -80,27 +88,26 @@ void PeriodicBoundaryIdentifier::identifiy(TElem* e1, TElem* e2,
 	TElem* m1 = master(e1);
 	TElem* m2 = master(e2);
 
-	// assign groups
-	if(m1 && !m2) // m1 is master, so e2 will be its slave
-	{
-		slaves(m1)->push_back(e2);
-	}
-	else if(m2 && !m1) // m2 is master, so e1 will be its slave
-	{
-		slaves(m2)->push_back(e1);
-	}
-	else if((m1 && m2) && (m1 != m2)) // both are distinct masters, merge them.
-	{
-		merge_groups(group(e1), group(e2));
-	}
-	else // nobody is master
-	{
-		// create new group with e1 as master and e2 as slave
+	if (m1 || m2) {
+		//	if m1 == m2, there's nothing to do
+		if (m1 != m2) {
+			if (!m1) { // m2 is master
+				make_slave(group(m2), e1);
+			} else if (!m2) { // m1 is master
+				make_slave(group(m1), e2);
+			} else if(m1 && m2) { // both are distinct masters
+				merge_groups(group(m1), group(m2));
+			} else {
+				UG_THROW("should never get here")
+			}
+		}
+	} else {
+		// create new group with e1 as master
 		Group<TElem>* g = new Group<TElem>(e1);
-		g->add_slave(e2);
-
+		// set group of master
 		set_group(g, e1);
-		set_group(g, e2);
+		// make e2 slave
+		make_slave(g, e2);
 	}
 
 	// while elements have sides, recursively identify sub type elements
@@ -125,14 +132,14 @@ void PeriodicBoundaryIdentifier::identifiy(TElem* e1, TElem* e2,
 
 // is considered periodic if it is a master or a slave
 template<class TElem>
-bool PeriodicBoundaryIdentifier::is_periodic(TElem* e) const
+bool PeriodicBoundaryManager::is_periodic(TElem* e) const
 {
 	return group(e) != NULL;
 }
 
 // gets master of e, may be null
 template<class TElem>
-TElem* PeriodicBoundaryIdentifier::master(TElem* e) const
+TElem* PeriodicBoundaryManager::master(TElem* e) const
 {
 	if(group(e)) {
 		return group(e)->m_master;
@@ -142,7 +149,7 @@ TElem* PeriodicBoundaryIdentifier::master(TElem* e) const
 
 // gets slaves of e
 template<class TElem>
-std::list<TElem*>* PeriodicBoundaryIdentifier::slaves(TElem* e) const
+std::list<TElem*>* PeriodicBoundaryManager::slaves(TElem* e) const
 {
 	if(group(e)) {
 		return &group(e)->get_slaves();
@@ -151,7 +158,7 @@ std::list<TElem*>* PeriodicBoundaryIdentifier::slaves(TElem* e) const
 }
 
 template<class TElem>
-void PeriodicBoundaryIdentifier::print_identification() const
+void PeriodicBoundaryManager::print_identification() const
 {
 	typedef typename ElementStorage<TElem>::SectionContainer::iterator Iterator;
 	typedef typename Group<TElem>::SlaveIterator SlaveIter;
@@ -159,29 +166,37 @@ void PeriodicBoundaryIdentifier::print_identification() const
 	for (Iterator elem = m_pGrid->begin<TElem>(); elem != m_pGrid->end<TElem>();
 			++elem) {
 		// log masters and their slaves
-		if(master(*elem)) {
+		if(master(*elem) == *elem) {
 			Group<TElem>* g = group(*elem);
 			UG_ASSERT(g, "group not valid")
-			UG_LOG("group: [master: " << g->m_master << "\tslaves: ");
+			UG_LOG("group: "<< g << " of " << (*elem)->reference_object_id()
+					<<  "\t[master: " << GetGeometricObjectCenter(*m_pGrid, g->m_master) << "\tslaves: ");
 			for (SlaveIter slave = g->get_slaves().begin();
 					slave != g->get_slaves().end(); ++slave) {
 				TElem* e = *slave;
-				UG_LOG(e << ", ")
+				UG_LOG(GetGeometricObjectCenter(*m_pGrid, e) << ", ")
 			}
 			UG_LOG(std::endl)
 		}
 	}
 }
 
+template <class TElem>
+void PeriodicBoundaryManager::make_slave(Group<TElem>* g, TElem* slave)
+{
+	g->add_slave(slave);
+	set_group(g, slave);
+}
+
 /**
  * merges g1 in g0 and deletes g1 afterwards
  */
 template<class TElem>
-void PeriodicBoundaryIdentifier::merge_groups(Group<TElem>* g0,
+void PeriodicBoundaryManager::merge_groups(Group<TElem>* g0,
 		Group<TElem>* g1)
 {
-	UG_ASSERT(!g0 || !g1, "groups not valid")
-	UG_ASSERT(g0 !=  g1, "groups are equal")
+	UG_ASSERT(g0 && g1, "groups not valid")
+	UG_ASSERT(g0 != g1, "groups are equal")
 
 	typedef typename Group<TElem>::SlaveContainer SlaveContainer;
 	typedef typename Group<TElem>::SlaveIterator SlaveIterator;
@@ -189,149 +204,64 @@ void PeriodicBoundaryIdentifier::merge_groups(Group<TElem>* g0,
 	SlaveContainer& slaves_g1 = g1->get_slaves();
 
 	// insert slaves of g1 at the end of slaves of g0
-	for(SlaveIterator iter=slaves_g1.begin(); iter!=slaves_g1.end(); ++iter) {
+	for (SlaveIterator iter = slaves_g1.begin(); iter != slaves_g1.end();
+			++iter) {
 		TElem* e = *iter;
-		if(e && e != g0->m_master) {
-			g0->add_slave(e);
-			set_group(g0, *iter);
+		if (e && e != g0->m_master) {
+			make_slave(g0, e);
 		}
 	}
 
-	// insert prior master of g1 to slaves of g0
-	g1->add_slave(g1->m_master);
+	// make old master slave of group g1
+	make_slave(g0, g1->m_master);
 
 	// remove old group
 	delete g1;
 }
 
-template<class TElem>
-PeriodicBoundaryIdentifier::Group<TElem>* PeriodicBoundaryIdentifier::group(
-		TElem* e) const
-{
+template <class TElem>
+bool PeriodicBoundaryManager::is_slave(TElem* e) const {
+	if(master(e) != NULL) {
+		return false;
+	}
+
+	return master(e) != e;
+}
+
+template <class TElem>
+bool PeriodicBoundaryManager::is_master(TElem* e) const {
+	if(master(e) == e) {
+		return true;
+	}
+
+	return false;
+}
+
+template <class TElem>
+const Grid::AttachmentAccessor<TElem, Attachment<PeriodicBoundaryManager::Group<TElem>* > >&
+PeriodicBoundaryManager::get_group_accessor() const {
 	UG_THROW("not impled");
 }
 
-template<>
-PeriodicBoundaryIdentifier::Group<VertexBase>* PeriodicBoundaryIdentifier::group(
-		VertexBase* e) const
+template<class TElem>
+PeriodicBoundaryManager::Group<TElem>* PeriodicBoundaryManager::group(
+		TElem* e) const
 {
-	return m_aaGroupVRT[e];
-}
-
-template<>
-PeriodicBoundaryIdentifier::Group<EdgeBase>* PeriodicBoundaryIdentifier::group(
-		EdgeBase* e) const
-{
-	return m_aaGroupEDG[e];
-}
-
-template<>
-PeriodicBoundaryIdentifier::Group<Face>* PeriodicBoundaryIdentifier::group(
-		Face* e) const
-{
-	return m_aaGroupFCE[e];
-}
-
-template<>
-PeriodicBoundaryIdentifier::Group<Volume>* PeriodicBoundaryIdentifier::group(
-		Volume* e) const
-{
-	return m_aaGroupVOL[e];
+	return get_group_accessor<TElem>()[e];
 }
 
 template<class TElem>
-void PeriodicBoundaryIdentifier::set_group(Group<TElem>* g, TElem* e)
+void PeriodicBoundaryManager::set_group(Group<TElem>* g, TElem* e)
 {
-	UG_THROW("not impled")
-}
-
-template<>
-void PeriodicBoundaryIdentifier::set_group(Group<VertexBase>* g, VertexBase* v)
-{
-	m_aaGroupVRT[v] = g;
-}
-
-template<>
-void PeriodicBoundaryIdentifier::set_group(Group<EdgeBase>* g, EdgeBase* e)
-{
-	m_aaGroupEDG[e] = g;
-}
-
-template<>
-void PeriodicBoundaryIdentifier::set_group(Group<Face>* g, Face* f)
-{
-	m_aaGroupFCE[f] = g;
-}
-
-template<>
-void PeriodicBoundaryIdentifier::set_group(Group<Volume>* g, Volume* v)
-{
-	m_aaGroupVOL[v] = g;
-}
-
-void PeriodicBoundaryIdentifier::set_grid(Grid* g)
-{
-	// group attachments
-	Attachment<Group<VertexBase>*> aGroupVRT;
-	Attachment<Group<EdgeBase>*> aGroupEDG;
-	Attachment<Group<Face>*> aGroupFCE;
-	Attachment<Group<Volume>*> aGroupVOL;
-
-	if(g != NULL) {
-		m_pGrid = g;
-
-		m_pGrid->attach_to_vertices_dv(aGroupVRT, NULL);
-		m_pGrid->attach_to_edges_dv(aGroupEDG, NULL);
-		m_pGrid->attach_to_faces_dv(aGroupFCE, NULL);
-		m_pGrid->attach_to_volumes_dv(aGroupVOL, NULL);
-
-		// access grid with those attachments
-		m_aaGroupVRT.access(*m_pGrid, aGroupVRT);
-		m_aaGroupEDG.access(*m_pGrid, aGroupEDG);
-		m_aaGroupFCE.access(*m_pGrid, aGroupFCE);
-		m_aaGroupVOL.access(*m_pGrid, aGroupVOL);
-	}
-
-	// detach groups
-	if(g == NULL) {
-		m_pGrid->detach_from_vertices(aGroupVRT);
-		m_pGrid->detach_from_edges(aGroupEDG);
-		m_pGrid->detach_from_faces(aGroupFCE);
-		m_pGrid->detach_from_volumes(aGroupVOL);
-	}
-}
-
-PeriodicBoundaryIdentifier::~PeriodicBoundaryIdentifier()
-{
-	for (VertexBaseIterator iter = m_pGrid->begin<VertexBase>();
-			iter != m_pGrid->end<VertexBase>(); ++iter) {
-		if (master(*iter)) delete m_aaGroupVRT[*iter];
-	}
-
-	for (EdgeBaseIterator iter = m_pGrid->begin<EdgeBase>();
-			iter != m_pGrid->end<EdgeBase>(); ++iter) {
-		if(master(*iter)) delete m_aaGroupEDG[*iter];
-	}
-
-	for (FaceIterator iter = m_pGrid->begin<Face>();
-			iter != m_pGrid->end<Face>(); ++iter) {
-		if(master(*iter)) delete m_aaGroupFCE[*iter];
-	}
-	// fixme no groups for vols in 3d?
-	for (VolumeIterator iter = m_pGrid->begin<Volume>();
-			iter != m_pGrid->end<Volume>(); ++iter) {
-		if(master(*iter)) delete m_aaGroupVOL[*iter];
-	}
-
-	// set grid to NULL to detach groups from grid
-	set_grid(NULL);
+	const_cast<Grid::AttachmentAccessor<TElem, Attachment<Group<TElem>* > >&>
+		(get_group_accessor<TElem>())[e] = g;
 }
 
 #ifndef NDEBUG
 /**
  * create all pairs of <master, slave> and insert them into a set to check for duplicates
  */
-template<class TElem> void test(PeriodicBoundaryIdentifier& PI,
+template<class TElem> void test(PeriodicBoundaryManager& PBM,
 		GeometricObjectCollection& goc1, GeometricObjectCollection& goc2)
 {
 	typedef typename ElementStorage<TElem>::SectionContainer::iterator gocIter;
@@ -339,16 +269,16 @@ template<class TElem> void test(PeriodicBoundaryIdentifier& PI,
 	typedef typename std::set<master_slave_pair> MSSet;
 	MSSet s;
 
-	typedef typename PeriodicBoundaryIdentifier::Group<TElem>::SlaveContainer SlaveContainer;
+	typedef typename PeriodicBoundaryManager::Group<TElem>::SlaveContainer SlaveContainer;
 	typedef typename SlaveContainer::iterator SlaveIter;
 
 	// subset 1
 	for (gocIter iter = goc1.begin<TElem>(); iter != goc1.end<TElem>();
 			++iter) {
-		UG_ASSERT(PI.is_periodic(*iter), "should be periodic now");
+		UG_ASSERT(PBM.is_periodic(*iter), "should be periodic now");
 
-		if(PI.master(*iter) == *iter) {
-			SlaveContainer* slaves = PI.slaves(*iter);
+		if(PBM.master(*iter) == *iter) {
+			SlaveContainer* slaves = PBM.slaves(*iter);
 			UG_ASSERT(slaves, "master should have slaves")
 			for (SlaveIter i = slaves->begin(); i != slaves->end(); ++i) {
 				TElem* slave = *i;
@@ -361,10 +291,10 @@ template<class TElem> void test(PeriodicBoundaryIdentifier& PI,
 	// subset 1
 	for (gocIter iter = goc2.begin<TElem>(); iter != goc2.end<TElem>();
 			++iter) {
-		UG_ASSERT(PI.is_periodic(*iter), "should be periodic now");
+		UG_ASSERT(PBM.is_periodic(*iter), "should be periodic now");
 
-		if(PI.master(*iter) == *iter) {
-			SlaveContainer* slaves = PI.slaves(*iter);
+		if(PBM.master(*iter) == *iter) {
+			SlaveContainer* slaves = PBM.slaves(*iter);
 			UG_ASSERT(slaves, "master should have slaves")
 			for (SlaveIter i = slaves->begin(); i != slaves->end(); ++i) {
 				TElem* slave = *i;
@@ -377,11 +307,17 @@ template<class TElem> void test(PeriodicBoundaryIdentifier& PI,
 }
 #endif
 
-// performs geometric ident of periodic elements and master slave
+/// performs geometric ident of periodic elements and master slave
 template<class TDomain>
-void IdentifySubsets(TDomain& dom, PeriodicBoundaryIdentifier& PI, int sInd1,
-		int sInd2)
+void IdentifySubsets(TDomain& dom, int sInd1, int sInd2)
 {
+	if(!dom.grid()->has_periodic_boundaries())
+	{
+		UG_WARNING("Warning: domain has no periodic boundary manager set.\n");
+		dom.grid()->set_periodic_boundaries(true);
+	}
+
+	PeriodicBoundaryManager& PI = *dom.grid()->periodic_boundary_manager();
 
 //	UG_ASSERT(!dom.is_adaptive(), "adaptive domains currently not supported!");
 
@@ -398,9 +334,6 @@ void IdentifySubsets(TDomain& dom, PeriodicBoundaryIdentifier& PI, int sInd1,
 
 	ParallelShiftIdentifier<position_accessor_type> ident(aaPos);
 
-	// set grid of periodic identifier
-	PI.set_grid(sh.grid());
-
 	// some vectors
 	position_type c1, c2, shift, diff, error;
 
@@ -408,12 +341,12 @@ void IdentifySubsets(TDomain& dom, PeriodicBoundaryIdentifier& PI, int sInd1,
 	GeometricObjectCollection goc1 = sh.get_geometric_objects_in_subset(sInd1);
 	GeometricObjectCollection goc2 = sh.get_geometric_objects_in_subset(sInd2);
 
-	// map start type of recursion dependant to TDomain
+	// map start type of recursion dependent to TDomain
+	// in 3d start with faces, in 2d with edges, in 1d with vertices
 	namespace mpl = boost::mpl;
 	typedef mpl::map<mpl::pair<Domain1d, VertexBase>,
 			mpl::pair<Domain2d, EdgeBase>, mpl::pair<Domain3d, Face> > m;
 
-	// in 3d start with faces
 	typedef typename mpl::at<m, TDomain>::type TElem;
 	typedef typename ElementStorage<TElem>::SectionContainer::iterator gocIter;
 
