@@ -9,7 +9,7 @@
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
-#include "lib_grid/tools/periodic_boundary_identifier.h"
+#include "lib_grid/tools/periodic_boundary_manager.h"
 
 using namespace std;
 
@@ -17,7 +17,10 @@ namespace ug {
 namespace bridge {
 namespace periodicBoundary {
 
-void print_all_identifications(PeriodicBoundaryIdentifier& pi) {
+void print_all_identifications(Grid& g) {
+	if(!g.has_periodic_boundaries())
+		return;
+	PeriodicBoundaryManager& pi = *g.periodic_boundary_manager();
 	pi.print_identification<Volume>();
 	pi.print_identification<Face>();
 	pi.print_identification<EdgeBase>();
@@ -31,7 +34,7 @@ void print_all_identifications(PeriodicBoundaryIdentifier& pi) {
 struct Functionality {
 
 	static void Common(Registry& reg, string grp) {
-		reg.add_class_<PeriodicBoundaryIdentifier>("PeriodicBoundaryIdentifier", grp)
+		reg.add_class_<PeriodicBoundaryManager>("PeriodicBoundaryManager", grp)
 				.add_constructor();
 		reg.add_function("PrintIdentification", &print_all_identifications, grp);
 	}

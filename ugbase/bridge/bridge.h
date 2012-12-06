@@ -57,6 +57,9 @@ void RegisterBridge_Misc(Registry &reg, std::string grp = UG4_GRP);
 ///	Registers the domain object and related methods
 void RegisterBridge_Domain(Registry& reg, std::string grp = UG4_GRP);
 
+/// Registers periodic boundary identification
+void RegisterBridge_PeriodicBoundary(Registry& reg, std::string grp = UG4_GRP);
+
 ///	Registers refiners and marking methods.
 void RegisterBridge_Refinement(Registry& reg, std::string grp = UG4_GRP);
 
