@@ -19,7 +19,7 @@ namespace ug
 int GetAssociatedInterfaceType(int interfaceType)
 {
 	switch(interfaceType){
-		case INT_H_MASTER:	return INT_H_SLAVE;;
+		case INT_H_MASTER:	return INT_H_SLAVE;
 		case INT_H_SLAVE:	return INT_H_MASTER;
 		case INT_V_MASTER:	return INT_V_SLAVE;
 		case INT_V_SLAVE:	return INT_V_MASTER;
