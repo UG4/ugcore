@@ -615,6 +615,10 @@ void CopyMatrixByMapping(TMatrix& newMat,
 	UG_ASSERT(vMap.size() <= origMat.num_rows(), "Size must match. Map:"<<vMap.size()<<", mat:"<<origMat.num_rows());
 	UG_ASSERT(vMap.size() <= origMat.num_cols(), "Size must match. Map:"<<vMap.size()<<", mat:"<<origMat.num_cols());
 
+	newMat.resize(0,0);
+	newMat.resize(origMat.num_rows(), origMat.num_cols());
+	newMat.set(0.0);
+
 //	type of matrix row iterator
 	typedef typename TMatrix::const_row_iterator const_row_iterator;
 
