@@ -400,7 +400,7 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 //	constraining triangles
 	{
 		typedef ConstrainingTriangle TElem;
-		typedef typename MGSelector::traits<TElem>::iterator TIter;
+		typedef MGSelector::traits<TElem>::iterator TIter; //rp121207: typename MGSelector::traits<TElem>::iterator TIter;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -433,7 +433,7 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 //	constraining quadrilaterals
 	{
 		typedef ConstrainingQuadrilateral TElem;
-		typedef typename MGSelector::traits<TElem>::iterator TIter;
+		typedef MGSelector::traits<TElem>::iterator TIter; //rp121207: typename MGSelector::traits<TElem>::iterator TIter;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -466,7 +466,7 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 //	constraining edges
 	{
 		typedef ConstrainingEdge TElem;
-		typedef typename MGSelector::traits<TElem>::iterator TIter;
+		typedef MGSelector::traits<TElem>::iterator TIter; //rp121207: typename MGSelector::traits<TElem>::iterator TIter;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -499,7 +499,7 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 //	constrained triangles
 	{
 		typedef ConstrainedTriangle TElem;
-		typedef typename MGSelector::traits<TElem>::iterator TIter;
+		typedef MGSelector::traits<TElem>::iterator TIter; //rp121207 typename MGSelector::traits<TElem>::iterator TIter;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -521,7 +521,7 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 //	constrained quadrilaterals
 	{
 		typedef ConstrainedQuadrilateral TElem;
-		typedef typename MGSelector::traits<TElem>::iterator TIter;
+		typedef MGSelector::traits<TElem>::iterator TIter; //rp121207 typename MGSelector::traits<TElem>::iterator TIter;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -543,7 +543,7 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 //	constrained edges
 	{
 		typedef ConstrainedEdge TElem;
-		typedef typename MGSelector::traits<TElem>::iterator TIter;
+		typedef MGSelector::traits<TElem>::iterator TIter; //rp121207 typename MGSelector::traits<TElem>::iterator TIter;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -569,7 +569,7 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 //	constrained vertices
 	{
 		typedef ConstrainedVertex TElem;
-		typedef typename MGSelector::traits<TElem>::iterator TIter;
+		typedef MGSelector::traits<TElem>::iterator TIter; //rp121207 typename MGSelector::traits<TElem>::iterator TIter;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
