@@ -222,10 +222,10 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 				" Operator not initialized.");
 
 //	Some Assertions
-	UG_ASSERT(uFine.size() == m_matrix.num_rows(),
+	UG_ASSERT(uFine.size() >= m_matrix.num_rows(),
 			  "Vector [size= " << uFine.size() << "] and Rows [size= "
 			  << m_matrix.num_rows() <<"] sizes have to match!");
-	UG_ASSERT(uCoarse.size() == m_matrix.num_cols(),	"Vector [size= "
+	UG_ASSERT(uCoarse.size() >= m_matrix.num_cols(),	"Vector [size= "
 			  << uCoarse.size() << "] and Cols [size= " <<
 			  m_matrix.num_cols() <<"] sizes have to match!");
 
@@ -245,10 +245,10 @@ restrict(vector_type& uCoarse, const vector_type& uFine)
 				"Operator not initialized.");
 
 //	Some Assertions
-	UG_ASSERT(uFine.size() == m_matrix.num_cols(),
+	UG_ASSERT(uFine.size() >= m_matrix.num_cols(),
 			  "Vector [size= " << uFine.size() << "] and Cols [size= "
 			  << m_matrix.num_cols() <<"] sizes have to match!");
-	UG_ASSERT(uCoarse.size() == m_matrix.num_rows(),	"Vector [size= "
+	UG_ASSERT(uCoarse.size() >= m_matrix.num_rows(),	"Vector [size= "
 			  << uCoarse.size() << "] and Rows [size= " <<
 			  m_matrix.num_rows() <<"] sizes have to match!");
 
