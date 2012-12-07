@@ -91,7 +91,7 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 	if(m_spMG->has_periodic_boundaries())
 	{
-		PeriodicBoundaryManager pbm = *m_spMG->periodic_boundary_manager();
+		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
 		// ignore slaves
 		if(pbm.is_slave(obj))
 			return;
@@ -143,7 +143,7 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 	if(m_spMG->has_periodic_boundaries())
 	{
-		PeriodicBoundaryManager pbm = *m_spMG->periodic_boundary_manager();
+		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
 		// ignore slaves
 		if(pbm.is_slave(obj))
 			return;

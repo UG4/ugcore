@@ -221,7 +221,7 @@ void PeriodicBoundaryManager::merge_groups(Group<TElem>* g0,
 
 template <class TElem>
 bool PeriodicBoundaryManager::is_slave(TElem* e) const {
-	if(master(e) != NULL) {
+	if(master(e) == NULL) {
 		return false;
 	}
 

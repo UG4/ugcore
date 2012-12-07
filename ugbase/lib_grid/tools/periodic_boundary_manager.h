@@ -100,6 +100,9 @@ public:
 	};
 
 protected:
+	// no copy construction allowed
+	PeriodicBoundaryManager(const PeriodicBoundaryManager&)	{}
+
 	// grid instance we operate on
 	Grid* m_pGrid;
 
