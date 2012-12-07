@@ -64,6 +64,8 @@ typedef std::pair<int, size_t>	GeomObjID;
 
 UG_API std::ostream& operator<<(std::ostream& out, const GeomObjID& goId);
 
+UG_API bool operator<(const GeomObjID& gid1, const GeomObjID& gid2);
+
 ////////////////////////////////////////////////////////////////////////
 ///	Can be used to construct a GeomObjID from a proc-rank and a local id.
 inline GeomObjID MakeGeomObjID(int procRank, size_t localGeomObjID)

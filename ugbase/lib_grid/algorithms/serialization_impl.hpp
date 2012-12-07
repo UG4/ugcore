@@ -62,28 +62,28 @@ serialize(BinaryBuffer& out, TGeomObj* o,
 
 ////////////////////////////////////////////////////////////////////////
 inline void GridDataSerializationHandler::
-deserialize(BinaryBuffer& in, VertexBase* vrt) const
+deserialize(BinaryBuffer& in, VertexBase* vrt)
 {
 	deserialize(in, vrt, m_vrtSerializers);
 	deserialize(in, vrt, m_gridSerializers);
 }
 
 inline void GridDataSerializationHandler::
-deserialize(BinaryBuffer& in, EdgeBase* edge) const
+deserialize(BinaryBuffer& in, EdgeBase* edge)
 {
 	deserialize(in, edge, m_edgeSerializers);
 	deserialize(in, edge, m_gridSerializers);
 }
 
 inline void GridDataSerializationHandler::
-deserialize(BinaryBuffer& in, Face* face) const
+deserialize(BinaryBuffer& in, Face* face)
 {
 	deserialize(in, face, m_faceSerializers);
 	deserialize(in, face, m_gridSerializers);
 }
 
 inline void GridDataSerializationHandler::
-deserialize(BinaryBuffer& in, Volume* vol) const
+deserialize(BinaryBuffer& in, Volume* vol)
 {
 	deserialize(in, vol, m_volSerializers);
 	deserialize(in, vol, m_gridSerializers);
@@ -91,7 +91,7 @@ deserialize(BinaryBuffer& in, Volume* vol) const
 
 template <class TIterator>
 void GridDataSerializationHandler::
-deserialize(BinaryBuffer& in, TIterator begin, TIterator end) const
+deserialize(BinaryBuffer& in, TIterator begin, TIterator end)
 {
 	for(TIterator iter = begin; iter != end; ++iter)
 		deserialize(in, *iter);
@@ -100,7 +100,7 @@ deserialize(BinaryBuffer& in, TIterator begin, TIterator end) const
 template<class TGeomObj, class TDeserializers>
 void GridDataSerializationHandler::
 deserialize(BinaryBuffer& in, TGeomObj* o,
-			TDeserializers& deserializers) const
+			TDeserializers& deserializers)
 {
 //	This method performs the deserialization
 	for(size_t i = 0; i < deserializers.size(); ++i){

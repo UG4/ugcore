@@ -434,11 +434,11 @@ void WriteProfileData(const char *filename)
 		if(bProfileAll)
 		{
 			std::vector<ug::BinaryBuffer> buffers(pcl::GetNumProcesses()-1);
-			for(size_t i=1; i<pcl::GetNumProcesses(); i++)
+			for(int i=1; i<pcl::GetNumProcesses(); i++)
 				ic.receive_raw(i, buffers[i-1]);
 			ic.communicate();
 
-			for(size_t i=1; i<pcl::GetNumProcesses(); i++)
+			for(int i=1; i<pcl::GetNumProcesses(); i++)
 			{
 				f << "\n<core id=\"" << i << "\">";
 				string s;

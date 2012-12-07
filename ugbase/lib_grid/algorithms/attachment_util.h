@@ -19,6 +19,109 @@ namespace ug
  * @{
  */
 
+///	Accesses attachements in different element types at the same time.
+/**	If the same attachment is attached to vertices, edges, faces and volumes of
+ * a grid, then this accessor can be used to access them all at once.
+ */
+template <class TAttachment>
+class MultiElementAttachmentAccessor
+{
+	public:
+		typedef typename TAttachment::ValueType	ValueType;
+		typedef typename attachment_value_traits<ValueType>::reference RefType;
+
+		MultiElementAttachmentAccessor(Grid& g, TAttachment& a, bool vrts = true,
+							bool edges = true, bool faces = true, bool vols = true)
+		{
+			access(g, a, vrts, edges, faces, vols);
+		}
+
+		bool access(Grid& g, TAttachment& a, bool vrts = true, bool edges = true,
+					bool faces = true, bool vols = true)
+		{
+			m_aaVrt.invalidate(); m_aaEdge.invalidate();
+			m_aaFace.invalidate(); m_aaVol.invalidate();
+
+			bool ok = true;
+			if(vrts)
+				ok &= m_aaVrt.access(g, a);
+			if(edges)
+				ok &= m_aaEdge.access(g, a);
+			if(faces)
+				ok &= m_aaFace.access(g, a);
+			if(vols)
+				ok &= m_aaVol.access(g, a);
+			return ok;
+		}
+
+		bool is_valid_vertex_accessor() const		{return m_aaVrt.valid();}
+		bool is_valid_edge_accessor() const			{return m_aaEdge.valid();}
+		bool is_valid_face_accessor() const			{return m_aaFace.valid();}
+		bool is_valid_volume_accessor() const		{return m_aaVol.valid();}
+
+		RefType operator[](VertexBase* e)	{return m_aaVrt[e];}
+		RefType operator[](EdgeBase* e)		{return m_aaEdge[e];}
+		RefType operator[](Face* e)			{return m_aaFace[e];}
+		RefType operator[](Volume* e)		{return m_aaVol[e];}
+		RefType operator[](GeometricObject* e)
+		{
+			switch(e->base_object_id()){
+				case VERTEX: return m_aaVrt[static_cast<VertexBase*>(e)];
+				case EDGE: return m_aaEdge[static_cast<EdgeBase*>(e)];
+				case FACE: return m_aaFace[static_cast<Face*>(e)];
+				case VOLUME: return m_aaVol[static_cast<Volume*>(e)];
+				default: UG_THROW("Unknown element type!"); break;
+			}
+		}
+
+		const RefType operator[](VertexBase* e) const	{return m_aaVrt[e];}
+		const RefType operator[](EdgeBase* e) const		{return m_aaEdge[e];}
+		const RefType operator[](Face* e) const			{return m_aaFace[e];}
+		const RefType operator[](Volume* e) const 		{return m_aaVol[e];}
+		const RefType operator[](GeometricObject* e) const
+		{
+			switch(e->base_object_id()){
+				case VERTEX: return m_aaVrt[static_cast<VertexBase*>(e)];
+				case EDGE: return m_aaEdge[static_cast<EdgeBase*>(e)];
+				case FACE: return m_aaFace[static_cast<Face*>(e)];
+				case VOLUME: return m_aaVol[static_cast<Volume*>(e)];
+				default: UG_THROW("Unknown element type!"); break;
+			}
+		}
+
+	private:
+		Grid::AttachmentAccessor<VertexBase, TAttachment>	m_aaVrt;
+		Grid::AttachmentAccessor<EdgeBase, TAttachment>		m_aaEdge;
+		Grid::AttachmentAccessor<Face, TAttachment>			m_aaFace;
+		Grid::AttachmentAccessor<Volume, TAttachment>		m_aaVol;
+};
+
+
+////////////////////////////////////////////////////////////////////////
+///	Instances can be used as compare operators, e.g., for std::sort.
+/**	Make sure that the specified attachment is attached to the elements of
+ * the given grid and that a < operator is defined for the attached values!
+ */
+template <class TElem, class TAttachment>
+class CompareByAttachment
+{
+	public:
+		CompareByAttachment(Grid& g, TAttachment& aGID)
+		{
+			UG_ASSERT(g.has_attachment<TElem>(aGID),
+					  "Can't compare unattached attachments!");
+			m_aaGID.access(g, aGID);
+		}
+
+		bool operator()(TElem* e1, TElem* e2)
+		{
+			return m_aaGID[e1] < m_aaGID[e2];
+		}
+
+	private:
+		Grid::AttachmentAccessor<TElem, TAttachment>	m_aaGID;
+};
+
 ////////////////////////////////////////////////////////////////////////
 //	SetAttachmentValues
 ///	sets attachment-values for elements between elemsBegin and elemsEnd.

@@ -64,6 +64,7 @@ template <class TVal, class TKey> class Hash
 
 		void add(const TVal& val, const TKey& key)
 		{
+			assert(m_listSize);
 			unsigned long hKey = hash_key(key);
 			m_v[hKey % m_listSize].push_back(HashEntry(hKey, val, key));
 		}
@@ -88,6 +89,8 @@ template <class TVal, class TKey> class Hash
 
 		bool has_entries(const TKey& key) const
 		{
+			if(!m_listSize)
+				return false;
 			unsigned long hKey = hash_key(key);
 			unsigned long hIndex = hKey % m_listSize;
 			return find_next_valid(m_v[hIndex].begin(), key, hIndex) != m_v[hIndex].end();
@@ -95,6 +98,7 @@ template <class TVal, class TKey> class Hash
 
 		TVal& first(const TKey& key)
 		{
+			assert(m_listSize);
 			unsigned long hKey = hash_key(key);
 			unsigned long hIndex = hKey % m_listSize;
 			HashEntryIterator iter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
@@ -104,6 +108,7 @@ template <class TVal, class TKey> class Hash
 
 		const TVal& first(const TKey& key) const
 		{
+			assert(m_listSize);
 			unsigned long hKey = hash_key(key);
 			unsigned long hIndex = hKey % m_listSize;
 			ConstHashEntryIterator iter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
@@ -116,6 +121,8 @@ template <class TVal, class TKey> class Hash
 		{
 			if(clearContainer)
 				entriesOut.clear();
+			if(!m_listSize)
+				return;
 			
 			unsigned long hKey = hash_key(key);
 			unsigned long hIndex = hKey % m_listSize;
@@ -132,9 +139,16 @@ template <class TVal, class TKey> class Hash
 
 		void get_iterators(Iterator& beginOut, Iterator& endOut, const TKey& key)
 		{
-			unsigned long hKey = hash_key(key);
-			unsigned long hIndex = hKey % m_listSize;
-			beginOut.m_entryIter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
+			unsigned long hKey = 0;
+			unsigned long hIndex = 0;
+			if(m_listSize){
+				hKey = hash_key(key);
+				hIndex = hKey % m_listSize;
+				beginOut.m_entryIter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
+			}
+			else
+				beginOut.m_entryIter = m_v[0].end();
+
 			beginOut.m_hashKey = hKey;
 			beginOut.m_hIndex = hIndex;
 			beginOut.m_pHash = this;
@@ -148,9 +162,17 @@ template <class TVal, class TKey> class Hash
 		Iterator begin(const TKey& key)
 		{
 			Iterator iter;
-			unsigned long hKey = hash_key(key);
-			unsigned long hIndex = hKey % m_listSize;
-			iter.m_entryIter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
+			unsigned long hKey = 0;
+			unsigned long hIndex = 0;
+			if(m_listSize){
+				hKey = hash_key(key);
+				hIndex = hKey % m_listSize;
+				iter.m_entryIter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
+			}
+			else
+				iter.m_entryIter = m_v[0].end();
+
+
 			iter.m_hashKey = hKey;
 			iter.m_hIndex = hIndex;
 			iter.m_pHash = this;
@@ -160,8 +182,13 @@ template <class TVal, class TKey> class Hash
 		Iterator end(const TKey& key)
 		{
 			Iterator iter;
-			unsigned long hKey = hash_key(key);
-			unsigned long hIndex = hKey % m_listSize;
+			unsigned long hKey = 0;
+			unsigned long hIndex = 0;
+			if(m_listSize){
+				hKey = hash_key(key);
+				hIndex = hKey % m_listSize;
+			}
+
 			iter.m_entryIter = m_v[hIndex].end();
 			iter.m_hashKey = hKey;
 			iter.m_hIndex = hIndex;
@@ -212,7 +239,10 @@ template <class TVal, class TKey> class Hash
 		void init(unsigned long listSize)
 		{
 			m_listSize = listSize;
-			m_v.resize(listSize);
+			if(listSize == 0)
+				m_v.resize(1);
+			else
+				m_v.resize(listSize);
 		}
 
 		///	returns iter if iter is valid

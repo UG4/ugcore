@@ -22,6 +22,15 @@ std::ostream& operator<<(std::ostream& out, const GeomObjID& goId)
 	return out;
 }
 
+bool operator<(const GeomObjID& gid1, const GeomObjID& gid2)
+{
+	if(gid1.first < gid2.first)
+		return true;
+	if(gid1.first > gid2.first)
+		return false;
+	return gid1.second < gid2.second;
+}
+
 ///	A helper method for GridLayoutMap::remove_empty_interfaces()
 template <class TGeomObj>
 static void RemoveEmptyInterfaces(

@@ -7,10 +7,13 @@
 
 #include <iostream>
 #include "common/util/binary_buffer.h"
+#include "common/serialization.h"
 #include "lib_grid/geometric_objects/geometric_objects.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/common_attachments.h"
+#include "lib_grid/algorithms/attachment_util.h"
+#include "lib_grid/parallelization/parallel_grid_layout.h"
 
 namespace ug
 {
@@ -56,9 +59,9 @@ class GeomObjDataSerializer
 		virtual void write_data(BinaryBuffer& out, TGeomObj* o) const = 0;
 
 	///	Read the info written during write_info here. Default: empty implementation.
-		virtual void read_info(BinaryBuffer& in) const	{};
+		virtual void read_info(BinaryBuffer& in)	{};
 	///	read data associated with the given object. Pure virtual.
-		virtual void read_data(BinaryBuffer& in, TGeomObj* o) const = 0;
+		virtual void read_data(BinaryBuffer& in, TGeomObj* o) = 0;
 };
 
 typedef GeomObjDataSerializer<VertexBase>	VertexDataSerializer;
@@ -93,17 +96,17 @@ class GridDataSerializer : public virtual VertexDataSerializer,
 		virtual void write_info(BinaryBuffer& out) const				{}
 
 	///	Read the info written during write_info here. Default: empty implementation.
-		virtual void read_info(BinaryBuffer& in) const					{}
+		virtual void read_info(BinaryBuffer& in)					{}
 
 		virtual void write_data(BinaryBuffer& out, VertexBase* o) const	{}
 		virtual void write_data(BinaryBuffer& out, EdgeBase* o) const	{}
 		virtual void write_data(BinaryBuffer& out, Face* o) const		{}
 		virtual void write_data(BinaryBuffer& out, Volume* o) const		{}
 
-		virtual void read_data(BinaryBuffer& in, VertexBase* o) const	{}
-		virtual void read_data(BinaryBuffer& in, EdgeBase* o) const		{}
-		virtual void read_data(BinaryBuffer& in, Face* o) const			{}
-		virtual void read_data(BinaryBuffer& in, Volume* o) const		{}
+		virtual void read_data(BinaryBuffer& in, VertexBase* o)	{}
+		virtual void read_data(BinaryBuffer& in, EdgeBase* o)	{}
+		virtual void read_data(BinaryBuffer& in, Face* o)		{}
+		virtual void read_data(BinaryBuffer& in, Volume* o)		{}
 };
 
 
@@ -156,23 +159,28 @@ class GridDataSerializationHandler
 		template <class TIterator>
 		void serialize(BinaryBuffer& out, TIterator begin, TIterator end) const;
 
+	///	Calls serialize on all elements in the given geometric object collection
+		void serialize(BinaryBuffer& out, GeometricObjectCollection goc) const;
 
 	///	calls read_info on all registered serializers
-		void read_infos(BinaryBuffer& in) const;
+		void read_infos(BinaryBuffer& in);
 
 	/**	\{
 	 * \brief Deserializes data associated with the given object.*/
-		inline void deserialize(BinaryBuffer& in, VertexBase* vrt) const;
-		inline void deserialize(BinaryBuffer& in, EdgeBase* edge) const;
-		inline void deserialize(BinaryBuffer& in, Face* face) const;
-		inline void deserialize(BinaryBuffer& in, Volume* vol) const;
+		inline void deserialize(BinaryBuffer& in, VertexBase* vrt);
+		inline void deserialize(BinaryBuffer& in, EdgeBase* edge);
+		inline void deserialize(BinaryBuffer& in, Face* face);
+		inline void deserialize(BinaryBuffer& in, Volume* vol);
 	/**	\} */
 
 	///	Calls deserialize on all elements between begin and end.
 	/**	Make sure that TIterator::value_type is compatible with
 	 * either VertexBase*, EdgeBase*, Face*, Volume*.*/
 		template <class TIterator>
-		void deserialize(BinaryBuffer& in, TIterator begin, TIterator end) const;
+		void deserialize(BinaryBuffer& in, TIterator begin, TIterator end);
+
+	///	Calls deserialize on all elements in the given geometric object collection
+		void deserialize(BinaryBuffer& in, GeometricObjectCollection goc);
 
 	private:
 	///	performs serialization on all given serializers.
@@ -183,13 +191,13 @@ class GridDataSerializationHandler
 	///	performs deserialization on all given deserializers.
 		template<class TGeomObj, class TDeserializers>
 		void deserialize(BinaryBuffer& in, TGeomObj* o,
-					   TDeserializers& deserializers) const;
+					   TDeserializers& deserializers);
 
 		template<class TSerializers>
 		void write_info(BinaryBuffer& out, TSerializers& serializers) const;
 
 		template<class TSerializers>
-		void read_info(BinaryBuffer& in, TSerializers& serializers) const;
+		void read_info(BinaryBuffer& in, TSerializers& serializers);
 
 	private:
 		std::vector<VertexDataSerializer*>	m_vrtSerializers;
@@ -219,7 +227,7 @@ class GeomObjAttachmentSerializer :
 		virtual void write_data(BinaryBuffer& out, TGeomObj* o) const
 		{Serialize(out, m_aa[o]);}
 
-		virtual void read_data(BinaryBuffer& in, TGeomObj* o) const
+		virtual void read_data(BinaryBuffer& in, TGeomObj* o)
 		{Deserialize(in, m_aa[o]);}
 
 	private:
@@ -235,17 +243,17 @@ class SubsetHandlerSerializer : public GridDataSerializer
 		virtual void write_info(BinaryBuffer& out) const;
 
 		///	Read the info written during write_info here. Default: empty implementation.
-		virtual void read_info(BinaryBuffer& in) const;
+		virtual void read_info(BinaryBuffer& in);
 
 		virtual void write_data(BinaryBuffer& out, VertexBase* o) const;
 		virtual void write_data(BinaryBuffer& out, EdgeBase* o) const;
 		virtual void write_data(BinaryBuffer& out, Face* o) const;
 		virtual void write_data(BinaryBuffer& out, Volume* o) const;
 
-		virtual void read_data(BinaryBuffer& in, VertexBase* o) const;
-		virtual void read_data(BinaryBuffer& in, EdgeBase* o) const;
-		virtual void read_data(BinaryBuffer& in, Face* o) const;
-		virtual void read_data(BinaryBuffer& in, Volume* o) const;
+		virtual void read_data(BinaryBuffer& in, VertexBase* o);
+		virtual void read_data(BinaryBuffer& in, EdgeBase* o);
+		virtual void read_data(BinaryBuffer& in, Face* o);
+		virtual void read_data(BinaryBuffer& in, Volume* o);
 
 	private:
 		ISubsetHandler& m_sh;
@@ -337,20 +345,28 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
  * an index in each element of the goc. The initial content of
  * the referenced attachment is ignored.
  *
- * The caller is responsible to attach the aIntVRT attachment to the 
- * to the vertices of the grid before calling this method.
- * The caller is also responsible to detach aIntVRT from the grids
- * vertices when it is no longer required.
+ * The caller is responsible to attach the aInt attachment to the
+ * to the elements of the grid before calling this method.
+ * The caller is also responsible to detach aInt from the grids
+ * elements when it is no longer required.
+ *
+ * Optionally an accessor to global ids in mg can be specified through paaID.
+ * Those ids have to be attached and correctly set before the method is called.
+ * If you specify those ids, they are serialized together with the grid elements.
+ * Make sure to pass a corresponding id-accessor on a call to deserialize.
  *
  * After termination the attachments hold the indices that were
  * assigned to the respective elements - starting from 0 for each
  * element type.
+ *
+ * \todo	add support for constrained/constraining faces
+ * \todo	use ConstVertexArrays instead of virtual functions ...->vertex(...)
  */
 bool SerializeMultiGridElements(MultiGrid& mg,
 								GeometricObjectCollection goc,
-								AInt& aIntVRT, AInt& aIntEDGE,
-								AInt& aIntFACE, AInt& aIntVOL,
-								BinaryBuffer& out);
+								MultiElementAttachmentAccessor<AInt>&	aaInt,
+								BinaryBuffer& out,
+								MultiElementAttachmentAccessor<AGeomObjID>* paaID = NULL);
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeMultiGridElements
@@ -384,12 +400,21 @@ bool SerializeMultiGridElements(MultiGrid& mg,
  * pvFaces or pvVolumes, those vectors will contain the elements
  * of the grid in the order they were read.
  * Specifying those vectors does not lead to a performance loss.
+ *
+ * An accessor to global ids in the grids elements can optionally be specified
+ * through paaID.
+ * If it is specified, the existing grid is automatically merged with the new
+ * elements based on the global ids. The accessor must only be specified if it
+ * was also specified in SerializeMultiGridElements.
+ *
+ * \todo	add support for constrained/constraining faces
  */
 bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									std::vector<VertexBase*>* pvVrts = NULL,
 									std::vector<EdgeBase*>* pvEdges = NULL,
 									std::vector<Face*>* pvFaces = NULL,
-									std::vector<Volume*>* pvVols = NULL);
+									std::vector<Volume*>* pvVols = NULL,
+									MultiElementAttachmentAccessor<AGeomObjID>* paaID = NULL);
 
 
 

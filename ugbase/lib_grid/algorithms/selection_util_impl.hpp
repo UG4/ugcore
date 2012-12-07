@@ -262,6 +262,38 @@ void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
 }
 
 
+template <class TElem, class TSelector>
+void AssignSelectionStateToSides(TSelector& sel, bool recursive)
+{
+	typedef typename TSelector::template traits<TElem>::iterator TIter;
+	typedef typename TElem::side TSide;
+
+	UG_ASSERT(sel.grid(), "A selector has to operate on a grid");
+
+	Grid& g = *sel.grid();
+	typename Grid::traits<TSide>::secure_container sides;
+
+	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl){
+		for(TIter iter = sel.template begin<TElem>(lvl);
+			iter != sel.template end<TElem>(lvl); ++iter)
+		{
+			TElem* e = *iter;
+			ISelector::status_t elemStatus = sel.get_selection_status(e);
+			g.associated_elements(sides, e);
+
+			for(size_t i = 0; i < sides.size(); ++i){
+				ISelector::status_t sideStatus = sel.get_selection_status(sides[i]);
+				sel.select(sides[i], elemStatus | sideStatus);
+			}
+		}
+	}
+
+	if(recursive && TSide::HAS_SIDES){
+		AssignSelectionStateToSides<TSide>(sel, recursive);
+	}
+}
+
+
 template <class TElemIterator>
 void SelectBoundaryElements(ISelector& sel, TElemIterator elemsBegin,
 						 TElemIterator elemsEnd)

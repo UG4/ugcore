@@ -382,8 +382,13 @@ class MultiGrid : public Grid, public GridObserver
 	////////////////////////////////
 	//	CHILD QUANTITIES
 	///	returns the number of children of the given child-type
+	/** \{ */
 		template <class TChild, class TElem>
 		inline size_t num_children(TElem* elem)	const	{return num_children(elem, TChild());}
+
+		template <class TChild>
+		size_t num_children(GeometricObject* elem)	const;
+	/** \} */
 
 	///	returns the total number of children and grand-children.
 	/**	Only children of the same type as the given elements are regarded here.*/
@@ -420,8 +425,13 @@ class MultiGrid : public Grid, public GridObserver
 	////////////////////////////////
 	//	CHILD ACCESS
 	///	returns the i-th child of the given child-type
+	/** \{ */
 		template <class TChild, class TElem>
 		inline TChild* get_child(TElem* elem, size_t ind) const	{return get_child(elem, ind, TChild());}
+
+		template <class TChild>
+		TChild* get_child(GeometricObject* elem, size_t ind) const;
+	/** \} */
 
 	///	Returns the child vertex of the given element or NULL if there is none
 		template <class TElem>

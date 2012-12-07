@@ -7,7 +7,7 @@
 
 #include "parallel_grid_layout.h"
 #include "load_balancing.h"
-#include "grid_distribution.h"
+#include "distribution.h"
 #include "distributed_grid.h"
 
 #include "copy_policy.h"

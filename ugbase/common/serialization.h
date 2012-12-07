@@ -14,34 +14,122 @@
 #include "log.h"
 #include "util/variant.h"
 #include "error.h"
+
 namespace ug
 {
 
+//todo	It would probably be a good idea to replace the generic Serialize and
+//		Deserialize methods with concrete ones, since nasty and hard to trace
+//		bugs could be avoided this way. The following Serialize methods already
+//		implement serialization for common types. A rather big effort for all
+//		the custom types which have to be serialized has to be taken though...
+/*
+template <class TStream>
+void Serialize(TStream& buf, const bool& val)
+{
+	buf.write((char*)&val, sizeof(bool));
+}
 
-///	writes data to a binary stream
-/**	This template method is used in ug when it comes to writing data to
- * a binary stream.
- * In its default implementation, it simply copies the data to the stream.
- * If you want to overload this method for your types, you can simply do
- * so by using template specialization.
- */
-template <class T, class TOStream>
-void Serialize(TOStream& buf, const T& val)
+template <class TStream>
+void Deserialize(TStream& buf, bool& valOut)
+{
+	buf.read((char*)&valOut, sizeof(bool));
+}
+
+template <class TStream>
+void Serialize(TStream& buf, const char& val)
+{
+	buf.write((char*)&val, sizeof(char));
+}
+
+template <class TStream>
+void Deserialize(TStream& buf, char& valOut)
+{
+	buf.read((char*)&valOut, sizeof(char));
+}
+
+template <class TStream>
+void Serialize(TStream& buf, const unsigned char& val)
+{
+	buf.write((char*)&val, sizeof(unsigned char));
+}
+
+template <class TStream>
+void Deserialize(TStream& buf, unsigned char& valOut)
+{
+	buf.read((char*)&valOut, sizeof(unsigned char));
+}
+
+template <class TStream>
+void Serialize(TStream& buf, const int& val)
+{
+	buf.write((char*)&val, sizeof(int));
+}
+
+template <class TStream>
+void Deserialize(TStream& buf, int& valOut)
+{
+	buf.read((char*)&valOut, sizeof(int));
+}
+
+template <class TStream>
+void Serialize(TStream& buf, const unsigned int& val)
+{
+	buf.write((char*)&val, sizeof(unsigned int));
+}
+
+template <class TStream>
+void Deserialize(TStream& buf, unsigned int& valOut)
+{
+	buf.read((char*)&valOut, sizeof(unsigned int));
+}
+
+template <class TStream>
+void Serialize(TStream& buf, const size_t& val)
+{
+	buf.write((char*)&val, sizeof(size_t));
+}
+
+template <class TStream>
+void Deserialize(TStream& buf, size_t& valOut)
+{
+	buf.read((char*)&valOut, sizeof(size_t));
+}
+
+template <class TStream>
+void Serialize(TStream& buf, const float& val)
+{
+	buf.write((char*)&val, sizeof(float));
+}
+
+template <class TStream>
+void Deserialize(TStream& buf, float& valOut)
+{
+	buf.read((char*)&valOut, sizeof(float));
+}
+
+template <class TStream>
+void Serialize(TStream& buf, const double& val)
+{
+	buf.write((char*)&val, sizeof(int));
+}
+
+template <class TStream>
+void Deserialize(TStream& buf, double& valOut)
+{
+	buf.read((char*)&valOut, sizeof(double));
+}
+*/
+
+template <class TStream, class T>
+void Serialize(TStream& buf, const T& val)
 {
 	buf.write((char*)&val, sizeof(T));
 }
 
-///	reads data from a binary stream
-/**	This template method is used in ug when it comes to reading data from
- * a binary stream.
- * In its default implementation, it simply copies the data from the stream.
- * If you want to overload this method for your types, you can simply do
- * so by using template specialization.
- */
-template <class T, class TIStream>
-void Deserialize(TIStream& buf, T& valOut)
+template <class TStream, class T>
+void Deserialize(TStream& buf, T& valOut)
 {
-	assert(!buf.eof() && "End of buf reached.");
 	buf.read((char*)&valOut, sizeof(T));
 }
 
@@ -54,10 +142,21 @@ T Deserialize(TIStream &stream)
 	return t;
 }
 
+///	Catch errors with wrong const identifiers in valOut.
+/** This method isn't implemented on purpose!*/
+template <class TStream, class T>
+void Deserialize(TStream& buf, const T& valOut);
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //	All specializations should be pre-declared here!
 //	This is important, so that the different methods know of each other.
+template <class T1, class T2, class TOStream>
+void Serialize(TOStream& buf, const std::pair<T1, T2>& v);
+
+template <class T1, class T2, class TIStream>
+void Deserialize(TIStream& buf, std::pair<T1, T2>& v);
+
 template <class T, class TOStream>
 void Serialize(TOStream& buf, const std::set<T>& m);
 
@@ -98,6 +197,20 @@ void Deserialize(TIStream& buf, std::map<Key, T>& m);
 
 
 ////////////////////////////////////////////////////////////////////////////////
+template <class T1, class T2, class TOStream>
+void Serialize(TOStream& buf, const std::pair<T1, T2>& v)
+{
+	Serialize(buf, v.first);
+	Serialize(buf, v.second);
+}
+
+template <class T1, class T2, class TIStream>
+void Deserialize(TIStream& buf, std::pair<T1, T2>& v)
+{
+	Deserialize(buf, v.first);
+	Deserialize(buf, v.second);
+}
+
 ///	writes data from a set to a binary stream
 /**	This template method is used in ug when it comes to writing data
  * from a map into a binary stream.
@@ -133,7 +246,7 @@ template <class TOStream>
 void Serialize(TOStream& buf, const std::string& str)
 {
 	size_t len = str.length();
-	Serialize<size_t>(buf, len);
+	Serialize(buf, len);
 	if(len > 0)
 		buf.write(str.c_str(), sizeof(char) * len);
 }
@@ -180,7 +293,7 @@ void Deserialize(TIStream& buf, std::string& str)
 template <class TOStream>
 void Serialize(TOStream& buf, const Variant& v)
 {
-	Serialize<uint32, TOStream>(buf, uint32(v.type()));
+	Serialize(buf, int(v.type()));
 	switch(v.type()){
 		case Variant::VT_INVALID:	break;
 		case Variant::VT_BOOL:		Serialize(buf, v.to_bool()); break;
@@ -204,7 +317,7 @@ void Serialize(TOStream& buf, const Variant& v)
 template <class TIStream>
 void Deserialize(TIStream& buf, Variant& v)
 {
-	uint32 type = Deserialize<uint32, TIStream>(buf);
+	int type = Deserialize<int>(buf);
 	switch(type){
 		case Variant::VT_INVALID:	v = Variant(); break;
 		case Variant::VT_BOOL:		v = Variant(Deserialize<bool>(buf)); break;
@@ -235,7 +348,7 @@ template <class T, class TOStream>
 void Serialize(TOStream& buf, const std::vector<T>& vec)
 {
 	size_t size = vec.size();
-	Serialize<size_t>(buf, size);
+	Serialize(buf, size);
 	for(size_t i = 0; i < size; ++i){
 		Serialize(buf, vec[i]);
 	}
@@ -328,7 +441,7 @@ inline void Deserialize(TIStream& buf, std::vector<bool>::reference boolRef)
 template <class Key, class T, class TOStream>
 void Serialize(TOStream& buf, const std::map<Key, T>& m)
 {
-	Serialize<size_t>(buf, m.size());
+	Serialize(buf, m.size());
 
 	for(typename std::map<Key, T>::const_iterator it = m.begin(); it != m.end(); ++it)
 	{

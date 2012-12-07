@@ -343,9 +343,9 @@ PartitionDistributedDomain_LevelBased(TDomain& domain, PartitionMap& partitionMa
 
 
 template <typename TDomain>
-static bool RedistributeDomain(TDomain& domainOut,
-							   PartitionMap& partitionMap,
-							   bool createVerticalInterfaces)
+static bool DistributeDomain(TDomain& domainOut,
+							 PartitionMap& partitionMap,
+							 bool createVerticalInterfaces)
 {
 	PROFILE_FUNC_GROUP("parallelization")
 //todo	Use a process-communicator to restrict communication
@@ -362,7 +362,7 @@ static bool RedistributeDomain(TDomain& domainOut,
 
 #ifdef UG_PARALLEL
 //	used to check whether all processes are correctly prepared for redistribution
-	bool performDistribution = true;
+	//bool performDistribution = true;
 
 //	make sure that the number of subsets and target processes match
 //	THIS MAKES NO SENSE FOR PARALLEL REDISTRIBUTION - IT IS CLEAR THAT SOME
@@ -383,19 +383,11 @@ static bool RedistributeDomain(TDomain& domainOut,
 
 	PCL_PROFILE(RedistributeDomain);
 
-//	make sure that manager exists
-	DistributedGridManager* pDistGridMgr = domainOut.distributed_grid_manager();
-	if(!pDistGridMgr)
-	{
-		UG_LOG("ERROR in RedistibuteDomain: Domain has to feature a Distributed Grid Manager.\n");
-		performDistribution = false;
-	}
-
 //todo	Use a process-communicator to restrict communication
+/*
 	if(!pcl::AllProcsTrue(performDistribution))
 		return false;
-
-	DistributedGridManager& distGridMgr = *pDistGridMgr;
+*/
 
 //	data serialization
 	GeomObjAttachmentSerializer<VertexBase, position_attachment_type>
@@ -407,171 +399,13 @@ static bool RedistributeDomain(TDomain& domainOut,
 	serializer.add(&shSerializer);
 
 //	now call redistribution
-	RedistributeGrid(distGridMgr, shPart, serializer, serializer,
+	DistributeGrid(*pGrid, shPart, serializer, serializer,
 					 createVerticalInterfaces, &partitionMap.get_target_proc_vec());
 
 	PCL_PROFILE_END();
 #endif
 
 //	in the serial case there's nothing to do.
-	return true;
-}
-
-
-
-template <typename TDomain>
-static bool DistributeDomain(TDomain& domainOut)
-{
-	PROFILE_FUNC_GROUP("parallelization")
-#ifdef UG_PARALLEL
-//	typedefs
-	typedef typename TDomain::subset_handler_type subset_handler_type;
-
-//	get distributed grid manager
-	DistributedGridManager* pDistGridMgr = domainOut.distributed_grid_manager();
-
-//	check that manager exists
-	if(!pDistGridMgr)
-	{
-		UG_LOG("DistibuteDomain: Cannot find Distributed Grid Manager.\n");
-		return false;
-	}
-	DistributedGridManager& distGridMgrOut = *pDistGridMgr;
-
-//	get subset handler
-	SmartPtr<subset_handler_type> pSH = domainOut.subset_handler();
-
-//	get number of processes
-	const int numProcs = pcl::GetNumProcesses();
-	if(numProcs == 1) return true;
-
-//	check, that grid is a multigrid
-	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgrOut.get_assigned_grid());
-	if(pMG == NULL)
-	{
-		UG_LOG("DistibuteDomain: MultiGrid-Domain required in current implementation.\n");
-		return false;
-	}
-	MultiGrid& mg = *pMG;
-
-//	get Grid Layout
-//	GridLayoutMap& glmOut = distGridMgrOut.grid_layout_map();
-
-//	make sure that each grid has a position attachment - even if no data
-//	will be received.
-	typedef typename TDomain::position_attachment_type position_attachment_type;
-	position_attachment_type& domPosition = domainOut.position_attachment();
-	bool tmpPosAttachment = false;
-	if(!mg.has_vertex_attachment(aPosition))
-	{
-	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
-       mg.attach_to_vertices(aPosition);
-       ConvertMathVectorAttachmentValues<VertexBase>(mg, domPosition, aPosition);
-
-       UG_LOG("DistributeDomain: temporarily adding Position Attachment.\n");
-       tmpPosAttachment = true;
-	}
-
-//	AdjustFunctions
-//	FuncAdjustGrid funcAdjustGrid = DefaultAdjustGrid;
-	FuncAdjustGrid funcAdjustGrid = AdjustGrid_AutoAssignSubsetsAndRefine(0,1,0);
-	FuncPartitionGrid funcPartitionGrid = PartitionGrid_Bisection;
-
-//	perform distribution
-	AdjustAndDistributeGrid(distGridMgrOut, *pSH, mg, *pSH, numProcs, true,
-							funcAdjustGrid, funcPartitionGrid);
-
-	if(tmpPosAttachment)
-	{
-	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
-       ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, domPosition);
-       mg.detach_from_vertices(aPosition);
-
-       UG_LOG("DistributeDomain: removing temporary Position Attachment.\n");
- 	}
-
-#endif
-
-//	in serial case: do nothing
-	return true;
-}
-
-template <typename TDomain>
-static bool DistributeDomain(TDomain& domainOut, PartitionMap& partitionMap)
-{
-	PROFILE_FUNC_GROUP("parallelization")
-#ifdef UG_PARALLEL
-//	typedefs
-	typedef typename TDomain::subset_handler_type subset_handler_type;
-
-//	get distributed grid manager
-	DistributedGridManager* pDistGridMgr = domainOut.distributed_grid_manager();
-
-//	check that manager exists
-	if(!pDistGridMgr)
-	{
-		UG_LOG("DistibuteDomain: Cannot find Distributed Grid Manager.\n");
-		return false;
-	}
-	DistributedGridManager& distGridMgrOut = *pDistGridMgr;
-
-//	get subset handler
-	SmartPtr<subset_handler_type> pSH = domainOut.subset_handler();
-
-//	get number of processes
-	const int numProcs = pcl::GetNumProcesses();
-	if(numProcs == 1) return true;
-
-//	check, that grid is a multigrid
-	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgrOut.get_assigned_grid());
-	if(pMG == NULL)
-	{
-		UG_LOG("DistibuteDomain: MultiGrid-Domain required in current implementation.\n");
-		return false;
-	}
-	MultiGrid& mg = *pMG;
-
-//	get Grid Layout
-	GridLayoutMap& glmOut = distGridMgrOut.grid_layout_map();
-
-//	make sure that each grid has a position attachment - even if no data
-//	will be received.
-	typedef typename TDomain::position_attachment_type position_attachment_type;
-	position_attachment_type& domPosition = domainOut.position_attachment();
-	bool tmpPosAttachment = false;
-	if(!mg.has_vertex_attachment(aPosition))
-	{
-	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
-       mg.attach_to_vertices(aPosition);
-       ConvertMathVectorAttachmentValues<VertexBase>(mg, domPosition, aPosition);
-
-       UG_LOG("DistributeDomain: temporarily adding Position Attachment.\n");
-       tmpPosAttachment = true;
-	}
-
-	if(pcl::GetProcRank() == 0){
-		DistributeGrid_KeepSrcGrid(mg, *pSH, glmOut,
-								   partitionMap.get_partition_handler(),
-								   0, false);
-	}
-	else{
-		UG_LOG("receiving grid...\n");
-			ReceiveGrid(mg, *pSH, glmOut, 0, true);
-		UG_LOG("receive done.\n");
-	}
-
-	if(tmpPosAttachment)
-	{
-	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
-       ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, domPosition);
-       mg.detach_from_vertices(aPosition);
-
-       UG_LOG("DistributeDomain: removing temporary Position Attachment.\n");
- 	}
-
-#endif
-
-//	in serial case: do nothing
 	return true;
 }
 

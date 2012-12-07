@@ -294,8 +294,8 @@ class attachment_traits
 
 		typedef void		element_iterator;
 
-		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)					{return element_iterator();}
-		static inline element_iterator elements_end(ElemHandlerPtr pHandler)					{return element_iterator();}
+		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)					{}
+		static inline element_iterator elements_end(ElemHandlerPtr pHandler)					{}
 		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{return INVALID_ATTACHMENT_INDEX;/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, size_t index)	{/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
 };

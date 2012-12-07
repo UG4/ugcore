@@ -2,7 +2,7 @@
 util = util or {}
 
 ug_load_script("util/test_utils.lua")
-ug_load_script("util/partition_maps.lua")
+ug_load_script("util/domain_distribution_util.lua")
 ug_load_script("util/stats_util.lua")
 ug_load_script("util/user_data_util.lua")
 
@@ -90,8 +90,51 @@ function util.CheckSubsets(dom, neededSubsets)
 	return true
 end
 
-
-function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSubsets)
+--! Creates a new domain and loads the specified grid. The method then performs
+--! numPreRefs refinements before it distributes the domain onto the available
+--! processes. The partitioning method can be chosen through distributionMethod.
+--! After distribution the domain is refined until a total of numRefs refinement
+--! steps has been performed (including numPreRefs).
+--! A list of subset-names can be specified. After distribution the methods checks
+--! Whether all processes received the required subsets.
+--! The method returns the created domain.
+--! @note Some paramters are optional. nil is a valid value for each optional parameter.
+--! @return	(Domain) the created domain
+--! @param gridName	(string) The filename of the grid which shall be loaded.
+--!					The grid is searched in a path relative to the current path
+--!					first. If it isn't found there, the path is interpreted as
+--!					an absolute path. If the grid still can't be found, the method
+--!					tries to load it from UG_BASE/data/grids.
+--! @param numRefs	(int) The total number of global refinements
+--! @param numPreRefs	(int) The number of refinements that are performed before
+--!						distribution.
+--! @param neededSubsets	(optional, list of strings) The subsets that are required
+--!							by the simulation. If not all those subsets are present,
+--!							the method aborts. Default is an empty list.
+--! @param distributionMethod	(optional, string) The distribution method.
+--!								Either "bisection" or "metis". Default is "bisection".
+--!								See util.DistributeDomain for more information
+--!								(in UG_BASE/scripts/util/domain_distribution.lua)
+--! @param verticalInterfaces	(optional, bool) Vertical interfaces are required
+--!								by multi-grid solvers. Default is true.
+--!								See util.DistributeDomain for more information
+--!								(in UG_BASE/scripts/util/domain_distribution.lua)
+--! @param numTargetProcs	(optional, int) The number of target processes to which
+--!							the domain shall be distributed. Make sure that the
+--!							number of target processes is not higher than the
+--!							number of elements in the distributionLevel.
+--!							Default is GetNumProcesses()
+--!							See util.DistributeDomain for more information
+--!							(in UG_BASE/scripts/util/domain_distribution.lua)
+--! @param distributionLevel	(optional, int) The level on which the distribution
+--!								is performed. Default is the domains top-level
+--!								after pre-refinement.
+--!								See util.DistributeDomain for more information
+--!								(in UG_BASE/scripts/util/domain_distribution.lua)
+function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
+										neededSubsets, distributionMethod,
+										verticalInterfaces, numTargetProcs,
+										distributionLevel)
 
 	-- create Instance of a Domain
 	local dom = Domain()
@@ -105,9 +148,16 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSub
 		exit();
 	end
 	
+	if numPreRefs > numRefs then
+		numPreRefs = numRefs
+	end
+	
 	-- Create a refiner instance. This is a factory method
 	-- which automatically creates a parallel refiner if required.
-	local refiner = GlobalDomainRefiner(dom)
+	local refiner = nil
+	if numRefs > 0 then
+		refiner = GlobalDomainRefiner(dom)
+	end
 	
 	-- Performing pre-refines
 	for i=1,numPreRefs do
@@ -115,7 +165,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSub
 	end
 	
 	-- Distribute the domain to all involved processes
-	if DistributeDomain(dom) == false then
+	if util.DistributeDomain(dom, distributionMethod) == false then
 		print("Error while Distributing Grid. Aborting.")
 		exit();
 	end
@@ -134,7 +184,9 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs, neededSub
 	end
 	
 	--clean up
-	delete(refiner)
+	if refiner ~= nil then
+		delete(refiner)
+	end
 	
 	-- return the created domain
 	return dom

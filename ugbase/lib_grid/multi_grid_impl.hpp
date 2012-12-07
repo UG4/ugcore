@@ -112,6 +112,31 @@ inline void MultiGrid::level_required(int lvl)
 	}
 }
 
+
+template <class TChild>
+size_t MultiGrid::num_children(GeometricObject* elem) const
+{
+	switch(elem->base_object_id()){
+	case VERTEX:	return num_children<TChild>(static_cast<VertexBase*>(elem));
+	case EDGE:		return num_children<TChild>(static_cast<EdgeBase*>(elem));
+	case FACE:		return num_children<TChild>(static_cast<Face*>(elem));
+	case VOLUME:	return num_children<TChild>(static_cast<Volume*>(elem));
+	}
+	return 0;
+}
+
+template <class TChild>
+TChild* MultiGrid::get_child(GeometricObject* elem, size_t ind) const
+{
+	switch(elem->base_object_id()){
+	case VERTEX:	return get_child<TChild>(static_cast<VertexBase*>(elem), ind);
+	case EDGE:		return get_child<TChild>(static_cast<EdgeBase*>(elem), ind);
+	case FACE:		return get_child<TChild>(static_cast<Face*>(elem), ind);
+	case VOLUME:	return get_child<TChild>(static_cast<Volume*>(elem), ind);
+	}
+	return NULL;
+}
+
 //	info-access
 inline MultiGrid::VertexInfo& MultiGrid::get_info(VertexBase* v)
 {

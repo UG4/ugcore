@@ -118,6 +118,7 @@ void ConstructParallelDualGraphMGLevel(
 	int ind = 0;
 
 //	generate adjacency structure first
+	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 	for(ElemIterator iter = mg.begin<Elem>(level);
 		iter != mg.end<Elem>(level); ++iter, ++ind)
 	{
@@ -130,8 +131,10 @@ void ConstructParallelDualGraphMGLevel(
 		adjacencyMapStructureOut[ind] = adjacencyMapOut.size();
 
 	//	iterate over the neighbours and push adjacent indices to the adjacencyMap
-		for(size_t i = 0; i < vNeighbours.size(); ++i)
-			adjacencyMapOut.push_back(localNodeOffset + aaInd[vNeighbours[i]]);
+		for(size_t i = 0; i < vNeighbours.size(); ++i){
+			if(!distGridMgr.is_ghost(vNeighbours[i]))
+				adjacencyMapOut.push_back(localNodeOffset + aaInd[vNeighbours[i]]);
+		}
 	}
 
 //	add the final element

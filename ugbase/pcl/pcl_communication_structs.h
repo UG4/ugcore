@@ -9,6 +9,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <algorithm>
 #include "common/util/smart_pointer.h"
 #include "common/util/binary_buffer.h"
 
@@ -145,7 +146,15 @@ class BasicInterface
 			swap(m_size, interface.m_size);
 			swap(m_targetProc, interface.m_targetProc);
 		}
-		
+
+	///	sort the entries in this interface.
+		template <class TCompare>
+		void sort(TCompare cmp)
+		{
+			using std::sort;
+			m_elements.sort(cmp);
+		}
+
 	protected:
 		ElemContainer	m_elements;
 		size_t			m_size;
@@ -170,6 +179,14 @@ class OrderedInterface
 
 			TElem	elem;
 			size_t	localID;
+		};
+
+		template <class TElemCmp>
+		struct InterfaceEntryCmp{
+			InterfaceEntryCmp(TElemCmp elemCmp) : m_elemCmp(elemCmp) {}
+			bool operator()(InterfaceEntry const& e1, InterfaceEntry const& e2)
+			{return m_elemCmp(e1.elem, e2.elem);}
+			TElemCmp	m_elemCmp;
 		};
 
 		typedef TContainer<InterfaceEntry, TAlloc<InterfaceEntry> >
@@ -240,6 +257,21 @@ class OrderedInterface
 			swap(m_idCounter, interface.m_idCounter);
 		}
 		
+	///	sort the entries in this interface.
+		template <class TCompare>
+		void sort(TCompare cmp)
+		{
+			using std::sort;
+			InterfaceEntryCmp<TCompare> ieCmp(cmp);
+			m_elements.sort(ieCmp);
+
+		//	we have to reset all local indices
+			m_idCounter = 1;
+			for(iterator iter = m_elements.begin(); iter != m_elements.end(); ++iter)
+				(*iter).localID = m_idCounter++;
+		}
+
+
 	protected:
 	///	returns a free id in each call.
 	/**	Those ids are not necessarily aligned.*/
@@ -451,6 +483,14 @@ class SingleLevelLayout
 			return m_interfaceMap.size();
 		}
 
+	///	sort the entries in all interfaces of this layout
+		template <class TCompare>
+		void sort_interface_entries(TCompare cmp)
+		{
+			for(iterator iter = begin(); iter != end(); ++iter)
+				interface(iter).sort(cmp);
+		}
+
 	private:
 /*
 	///	copy-constructor is not yet implemented
@@ -614,6 +654,14 @@ class MultiLevelLayout
 		inline size_t num_interfaces(size_t level) const
 		{
 			return m_vLayouts[level].size();
+		}
+
+	///	sort the entries in all interfaces of this layout
+		template <class TCompare>
+		void sort_interface_entries(TCompare cmp)
+		{
+			for(size_t lvl = 0; lvl < num_levels(); ++lvl)
+				layout_on_level(lvl).sort_interface_entries(cmp);
 		}
 
 	protected:

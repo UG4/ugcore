@@ -261,18 +261,7 @@ static void Domain(Registry& reg, string grp)
 					"Saves a partition map", "No help");
 
 //	DistributeDomain
-	reg.add_function("DistributeDomain", static_cast<bool (*)(TDomain&)>(
-					 &DistributeDomain<TDomain>), grp);
-
-	reg.add_function("DistributeDomain", static_cast<bool (*)(TDomain&, PartitionMap&)>(
-					 &DistributeDomain<TDomain>), grp);
-
-//	todo: remove this
-	{
-		string name = string("DistributeDomain").append(suffix);
-		reg.add_function(name.c_str(), static_cast<bool (*)(TDomain&)>(
-						 &DistributeDomain<TDomain>), grp);
-	}
+	reg.add_function("DistributeDomain", &DistributeDomain<TDomain>, grp);
 
 	reg.add_function("PartitionDomain_Bisection",
 					 &PartitionDomain_Bisection<TDomain>, grp);
@@ -285,9 +274,6 @@ static void Domain(Registry& reg, string grp)
 
 	reg.add_function("PartitionDistributedDomain_LevelBased",
 					 &PartitionDistributedDomain_LevelBased<TDomain>, grp);
-
-	reg.add_function("RedistributeDomain",
-					 &RedistributeDomain<TDomain>, grp);
 
 //	transform the domain
 	reg.add_function("ScaleDomain", &ScaleDomain<TDomain>, grp);

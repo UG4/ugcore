@@ -4,9 +4,77 @@
 util = util or {}
 
 --[[!
-\file scripts/util/partition_maps.lua
-\brief creates partition maps of different structure
+\file scripts/util/domain_distribution_util.lua
+\brief	creates partition maps of different structure and provides some
+		easy to use domain distribution methods.
 ]]--
+
+
+--!	Distributes the top-level of a domain to the given number of processes.
+--! This method has to be called by all processes with the same parameters!
+--! @note Some paramters are optional. nil is a valid value for each optional parameter.
+--! @return (bool) Returns whether the method was a success
+--! @param dom	(Domain) A valid domain instance.
+--! @param partitioningMethod	(optional string) Choose the partitioning method.
+--!								Valid values are: "bisection", "metis"
+--!								default is "bisection". "metis" is only available,
+--!								if ug has been built with metis support.
+--! @param verticalInterfaces	(optional bool) Trigger creation of vertical interfaces.
+--!								vertical interfaces are required for multi-grid solvers.
+--!								If you're only going to solve on the surface grid,
+--!								vertical interfaces may introduce an unnecessary overhead.
+--!								Default is true
+--! @param numTargetProcs	(optional integer) The number of target processes to which the domain
+--!							will be distributed. This shouldn't be more than
+--!							there are elements in the top-level.
+--!							Default is GetNumProcesses()
+--! @param distributionLevel	(optional integer) Sets the level on which distribution
+--!								is performed. Default is the domains top-level.
+--!								Currently only supported in partitioningMethod "metis".
+function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
+							   numTargetProcs, distributionLevel)
+	local partitionMap = PartitionMap()
+		
+	if partitioningMethod == nil then
+		partitioningMethod = "bisection"
+	end
+	
+	if verticalInterfaces == nil then
+		verticalInterfaces = true
+	end
+	
+	if numTargetProcs == nil then
+		numTargetProcs = GetNumProcesses()
+	end
+	
+	if distributionLevel == nil then
+		distributionLevel = dom:grid():num_levels() - 1
+		if distributionLevel < 0 then
+			distributionLevel = 0
+		end
+	end
+	
+	if partitioningMethod == "bisection" then
+		if distributionLevel < dom:grid():num_levels() - 1 then
+			print("WARNING in util.DistributeDomain: 'bisection' can currently "
+				  .. "only be performed on the top level. Sorry...")
+		end 
+		util.PartitionMapBisection(dom, partitionMap, numTargetProcs)
+	elseif partitioningMethod == "metis" then
+		util.PartitionMapMetis(dom, partitionMap, numTargetProcs, distributionLevel)
+	else
+		print("ERROR in util.DistributeDomain: Unknown partitioning method.")
+		print("  Valid partitioning methods are: 'bisection' and 'metis'")
+		return
+	end
+	
+	local success = DistributeDomain(dom, partitionMap, verticalInterfaces)
+	
+	delete(partitionMap)
+	
+	return success
+end
+
 
 --! create a partition map by performing repeated bisection
 --! This method automatically adds target procs 0, ..., numProcs - 1.

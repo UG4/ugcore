@@ -21,15 +21,17 @@ class ComPol_Subset : public pcl::ICommunicationPolicy<TLayout>
 		typedef typename Interface::iterator	InterfaceIter;
 
 	///	Construct the communication policy with a ug::SubsetHandler.
-	/**	Through the parameters select and deselect one may specify whether
-	 * a process selects and/or deselects elements based on the received
-	 * selection status.*/
-		ComPol_Subset(ISubsetHandler& sel)
-			 :	m_sh(sel)
+	/**	If overwrite is specified, the subset index in the target handler is
+	 * simply overwritten (default is false).*/
+		ComPol_Subset(ISubsetHandler& sel, bool overwrite = false)
+			 :	m_sh(sel), m_overwriteEnabled(overwrite)
 		{}
 
 		virtual int
-		get_required_buffer_size(Interface& interface)		{return interface.size() * sizeof(int);}
+		get_required_buffer_size(Interface& interface)
+		{
+			return interface.size() * sizeof(int);
+		}
 
 	///	writes 1 for selected and 0 for unassigned interface entries
 		virtual bool
@@ -58,12 +60,17 @@ class ComPol_Subset : public pcl::ICommunicationPolicy<TLayout>
 			{
 				Element elem = interface.get_element(iter);
 				buff.read((char*)&nsi, sizeof(int));
-				if(m_sh.get_subset_index(elem) == -1){
+				if(m_overwriteEnabled){
 					m_sh.assign_subset(elem, nsi);
 				}
-				else if(m_sh.get_subset_index(elem) != nsi){
-				//	if the subset indices do not match, we have a problem here.
-					retVal = false;
+				else{
+					if(m_sh.get_subset_index(elem) == -1){
+						m_sh.assign_subset(elem, nsi);
+					}
+					else if(m_sh.get_subset_index(elem) != nsi){
+					//	if the subset indices do not match, we have a problem here.
+						retVal = false;
+					}
 				}
 			}
 			return retVal;
@@ -71,6 +78,7 @@ class ComPol_Subset : public pcl::ICommunicationPolicy<TLayout>
 
 	protected:
 		ISubsetHandler&	m_sh;
+		bool m_overwriteEnabled;
 };
 
 }//	end of namespace

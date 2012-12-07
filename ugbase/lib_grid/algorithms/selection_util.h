@@ -192,6 +192,19 @@ void SelectAssociatedGeometricObjects(MGSelector& msel,
 
 
 ////////////////////////////////////////////////////////////////////////
+///	Assigns the selection state of selected elements to associated sides.
+/**	If recursive is set to true, the method will recursively call itself, to
+ * copy the state to sides of sides and so on.
+ *
+ * The new status of the side will be an or combination of the initial state
+ * of the side and the states of adjacent elements.
+ *
+ * Valid types for TSelector are Selector and MGSelector.
+ */
+template <class TElem, class TSelector>
+void AssignSelectionStateToSides(TSelector& sel, bool recursive);
+
+////////////////////////////////////////////////////////////////////////
 ///	selects elements that lie on the associated grid's boundary
 template <class TElemIterator>
 void SelectBoundaryElements(ISelector& sel, TElemIterator elemsBegin,

@@ -8,7 +8,9 @@
 //	if we're using metis, then include the header now
 #ifdef UG_PARALLEL
 #include "pcl/pcl_base.h"
+#include "pcl/pcl_interface_communicator.h"
 #include "util/parallel_dual_graph.h"
+#include "lib_grid/parallelization/util/compol_subset.h"
 #endif
 
 #ifdef UG_METIS
@@ -459,13 +461,31 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 		for(ElemIter iter = mg.begin<TElem>(level); iter != mg.end<TElem>(level); ++iter)
 			shPartitionOut.assign_subset(*iter, partitionMap[counter++]);
 
+
+
+		typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout	ElemLayout;
+		GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
+		pcl::InterfaceCommunicator<ElemLayout>	com;
+		ComPol_Subset<ElemLayout>	compolSHCopy(shPartitionOut, true);
+
+	//	copy subset indices from vertical slaves to vertical masters,
+	//	since partitioning was only performed on vslaves
+		if(glm.has_layout<TElem>(INT_V_SLAVE))
+			com.send_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(level),
+						  compolSHCopy);
+		if(glm.has_layout<TElem>(INT_V_MASTER))
+			com.receive_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(level),
+							 compolSHCopy);
+		com.communicate();
+
 //todo: make sure that there are no problems at vertical interfaces
 	//	currently there is a restriction in the functionality of the surface view.
 	//	Because of that we have to make sure, that all siblings in the specified level
 	//	are sent to the same process... we thus adjust the partition slightly.
 	//todo:	Not all siblings should have to be sent to the same process...
 	//		simply remove the following code block - make sure that surface-view supports this!
-	//		However, problems with discretizations and solvers would occur
+	//		However, problems with discretizations and solvers would occur.
+	//		If you remove the following block, consider reducing v-communication.
 		if(level > 0){
 		//	put all children in the subset of the first one.
 			for(ElemIter iter = mg.begin<TElem>(level-1);
@@ -481,9 +501,17 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 			}
 		}
 
-	//todo:	copy partitions from vertical masters to slaves on level
 
 		for(size_t lvl = level; lvl < mg.top_level(); ++lvl){
+		//	copy subset indices from vertical masters to vertical slaves
+			if(glm.has_layout<TElem>(INT_V_MASTER))
+				com.send_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl),
+							  compolSHCopy);
+			if(glm.has_layout<TElem>(INT_V_SLAVE))
+				com.receive_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(lvl),
+								 compolSHCopy);
+			com.communicate();
+
 			for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 			{
 				size_t numChildren = mg.num_children<TElem>(*iter);
@@ -492,8 +520,17 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 												shPartitionOut.get_subset_index(*iter));
 				}
 			}
+		}
 
-			//todo:	copy partitions from vertical masters to slaves on lvl
+	//	and a final copy on the top level...
+		if(mg.num_levels() > 1){
+			if(glm.has_layout<TElem>(INT_V_MASTER))
+				com.send_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(mg.top_level()),
+							  compolSHCopy);
+			if(glm.has_layout<TElem>(INT_V_SLAVE))
+				com.receive_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(mg.top_level()),
+								 compolSHCopy);
+			com.communicate();
 		}
 	}
 	else{

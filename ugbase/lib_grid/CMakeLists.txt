@@ -99,8 +99,7 @@ set(srcLibGrid	tools/bool_marker.cpp
 
 if(PARALLEL)
 	# add parallelization
-	set(srcParallelization	parallelization/grid_distribution.cpp
-							parallelization/grid_redistribution.cpp
+	set(srcParallelization	parallelization/distribution.cpp
 							parallelization/distributed_grid.cpp
 							parallelization/parallelization_util.cpp
 							parallelization/parallel_grid_layout.cpp
@@ -108,9 +107,7 @@ if(PARALLEL)
 							parallelization/parallel_refinement/parallel_global_fractured_media_refiner.cpp
 							parallelization/parallel_refinement/parallel_hanging_node_refiner_multi_grid.cpp
 							parallelization/parallel_refinement/parallel_hnode_adjuster.cpp
-							parallelization/util/distribution_util.cpp
-							parallelization/util/parallel_subset_util.cpp
-							parallelization/util/redistribution_util.cpp)	
+							parallelization/util/parallel_subset_util.cpp)
 else(PARALLEL)
 	set(srcParallelization	parallelization/load_balancing.cpp)
 endif(PARALLEL)
