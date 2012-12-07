@@ -109,7 +109,8 @@ if(PARALLEL)
 							parallelization/parallel_refinement/parallel_hnode_adjuster.cpp
 							parallelization/util/parallel_subset_util.cpp)
 else(PARALLEL)
-	set(srcParallelization	parallelization/load_balancing.cpp)
+	set(srcParallelization	parallelization/load_balancing.cpp
+							parallelization/parallel_grid_layout.cpp)
 endif(PARALLEL)
 
 ################################################
