@@ -2,15 +2,15 @@
 // s.b.reiter@gmail.com
 // 07.12.2012 (d,m,y)
 
-#ifndef __H__UG__pcl_layout_util__
-#define __H__UG__pcl_layout_util__
+#ifndef __H__PCL__pcl_layout_util__
+#define __H__PCL__pcl_layout_util__
 
 #include <vector>
 #include "common/util/hash.h"
 #include "pcl_communication_structs.h"
 
 
-namespace ug{
+namespace pcl{
 
 ///	removes all empty interfaces from the given layout.
 template <class TLayout>

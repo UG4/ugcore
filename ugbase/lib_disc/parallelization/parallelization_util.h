@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__PARALLELIZATION__PARALLELIZATION_UTIL__
 #define __H__UG__LIB_DISC__PARALLELIZATION__PARALLELIZATION_UTIL__
 
-
+#include "pcl/pcl_util.h"
 #include "lib_grid/parallelization/parallelization.h"
 #include "lib_grid/parallelization/util/compol_interface_status.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h"
