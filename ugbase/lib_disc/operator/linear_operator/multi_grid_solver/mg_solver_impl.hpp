@@ -361,6 +361,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 prolongation(size_t lev, bool restrictionWasPerformed)
 {
+
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level " << lev << "\n");
 //	Get all needed vectors and operators
@@ -759,6 +760,23 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
 				"Projection not set, although problem nonlinear.\n");
 		return false;
+	}
+
+	// 	resize help vectors. It may occure that disc use more than the geometric
+	//	dofs and thus the matrix (and vectors) are larger than expected only by the
+	//	passed approximation space.
+	const size_t numIndex = m_spSurfaceMat->num_rows();
+	if(m_vLevData[m_topLev]->num_indices() < numIndex){
+		const size_t diff = numIndex - m_vLevData[m_topLev]->num_indices();
+
+		for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
+		{
+			const size_t numIndex = m_vLevData[lev]->num_indices() + diff;
+			m_vLevData[lev]->u.resize(numIndex);
+			m_vLevData[lev]->c.resize(numIndex);
+			m_vLevData[lev]->d.resize(numIndex);
+			m_vLevData[lev]->t.resize(numIndex);
+		}
 	}
 
 //	Create Projection
@@ -1341,6 +1359,8 @@ init_base_solver()
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
 				m_vLevData[m_baseLev]->get_smooth_mat();
 
+		//write_level_debug(*spSmoothMat, "GMG_BaseSolver_Matrix", m_baseLev);
+
 		if(!m_spBaseSolver->init(spSmoothMat, u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
@@ -1385,7 +1405,7 @@ project_level_to_surface(vector_type& surfVec,
 		//	write value
 			surfVec[surfIndex] = topVec[levIndex];
 		}
-		for(size_t surfIndex = m_vSurfToTopMap.size(); surfIndex < topVec.size(); ++surfIndex)
+		for(size_t surfIndex = m_vSurfToTopMap.size(); surfIndex < surfVec.size(); ++surfIndex)
 		{
 		//	write value
 			surfVec[surfIndex] = topVec[surfIndex];
@@ -1438,6 +1458,9 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 //		  of DoFs may differ between surface grid and top level
 	if(!m_bAdaptive){
 		vector_type& topVec = *(vLevelVec[m_topLev]);
+
+	//	UG_LOG("topVec: "<<topVec.size()<<", m_vSurfToTopMap:"<<m_vSurfToTopMap.size()<<"surfVec: "<<surfVec.size()<<"\n");
+
 		for(size_t surfIndex = 0; surfIndex < m_vSurfToTopMap.size(); ++surfIndex)
 		{
 		//	get corresponding level index
@@ -1446,7 +1469,7 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 		//	write value
 			topVec[levIndex] = surfVec[surfIndex];
 		}
-		for(size_t surfIndex = m_vSurfToTopMap.size(); surfIndex < topVec.size(); ++surfIndex)
+		for(size_t surfIndex = m_vSurfToTopMap.size(); surfIndex < surfVec.size(); ++surfIndex)
 		{
 		//	write value
 			topVec[surfIndex] = surfVec[surfIndex];
