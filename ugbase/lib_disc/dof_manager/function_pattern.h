@@ -95,14 +95,14 @@ class FunctionPattern
 		void add(const char* name, LFEID id, const char* subsets, int dim = -1);
 
 	///	adds function using string to indicate finite element type
-		void add(const std::vector<std::string> vName, const char* type, int order);
+		void add(const std::vector<std::string>& vName, const char* type, int order);
 
 	///	adds function using string to indicate finite element type
-		void add(const std::vector<std::string> vName, const char* type);
+		void add(const std::vector<std::string>& vName, const char* type);
 
 	///	adds function using string to indicate finite element type
-		void add(const std::vector<std::string> vName, const char* type, int order,
-		         const std::vector<std::string> vSubsets);
+		void add(const std::vector<std::string>& vName, const char* type, int order,
+		         const std::vector<std::string>& vSubsets);
 
 	///	adds function using string to indicate finite element type
 		void add(const char* name, const char* type, int order);

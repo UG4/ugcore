@@ -130,18 +130,18 @@ void FunctionPattern::add(const char* names, LFEID lfeID,
 	add(TokenizeTrimString(names), lfeID, TokenizeTrimString(subsets), dim);
 }
 
-void FunctionPattern::add(const std::vector<std::string> vName, const char* fetype, int order)
+void FunctionPattern::add(const std::vector<std::string>& vName, const char* fetype, int order)
 {
 	add(vName, ConvertStringToLFEID(fetype, order));
 }
 
-void FunctionPattern::add(const std::vector<std::string> vName, const char* fetype)
+void FunctionPattern::add(const std::vector<std::string>& vName, const char* fetype)
 {
 	add(vName, ConvertStringToLFEID(fetype));
 }
 
-void FunctionPattern::add(const std::vector<std::string> vName, const char* fetype, int order,
-                          const std::vector<std::string> vSubsets)
+void FunctionPattern::add(const std::vector<std::string>& vName, const char* fetype, int order,
+                          const std::vector<std::string>& vSubsets)
 {
 	add(vName, ConvertStringToLFEID(fetype, order), vSubsets);
 }
