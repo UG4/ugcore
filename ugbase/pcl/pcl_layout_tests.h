@@ -43,7 +43,7 @@ inline void PrintPC(const pcl::ProcessCommunicator &processCommunicator)
 #define PRINTPC(com) UG_LOG(__FUNCTION__ << " : " << __LINE__ << "\n"); PrintPC(com)
 ////////////////////////////////////////////////////////////////////////
 //  TestLayoutIsDoubleEnded
-/// tests if masterLayouts proc id's find a match in correspoding slaveLayouts proc ids.
+/// tests if masterLayouts proc id's find a match in corresponding slaveLayouts proc ids.
 /**
  * that is, iff processor P1 has processor P2 in his masterLayout, then processor P2 needs to have P1 in his slaveLayout
  */
@@ -166,7 +166,8 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 		int pid = masterLayout.proc_id(iter);
 		ug::BinaryBuffer &buffer = receiveMap[pid];
 		bool broken=false;
-		if(bPrint) { UG_LOG("Interface processor " << pcl::GetProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n"); }
+		uint64_t numEntries = 0;
+		if(bPrint) { UG_LOG("      Interface processor " << pcl::GetProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n"); }
 		typename TLayout::Interface &interface = masterLayout.interface(iter);
 		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
@@ -174,10 +175,11 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 			{
 				broken =true;
 				TValue value = cbToValue(interface.get_element(iter2));
-				if(bPrint) {	UG_LOG(" " << std::setw(9) << value << " <-> " << "BROKEN!" << std::endl); }
+				if(bPrint) {	UG_LOG("      " << std::setw(9) << value << " <-> " << "BROKEN!" << std::endl); }
 			}
 			else
 			{
+				numEntries++;
 				TValue val1 = cbToValue(interface.get_element(iter2));
 				TValue val2; Deserialize(buffer, val2);
 				bool mismatch = false;
@@ -187,16 +189,18 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 
 				if(bPrint){
 					if(mismatch){
-						UG_LOG(" " << std::setw(9) << val1 << " <-> " << val2 << "  --- MISMATCH! ---\n");
+						UG_LOG("        " << std::setw(9) << val1 << " <-> " << val2 << "  --- MISMATCH! ---\n");
 					}
 					else{
-						UG_LOG(" " << std::setw(9) << val1 << " <-> " << val2 << "\n");
+						UG_LOG("        " << std::setw(9) << val1 << " <-> " << val2 << "\n");
 					}
 				}
 
 				valueMismatch |= mismatch;
 			}
 		}
+                            
+		if(bPrint) { UG_LOG("      In total " << std::setw(9) << numEntries << " entries in this interface." << std::endl); }
 		while(!buffer.eof())
 		{
 			broken = true;
@@ -208,7 +212,7 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 		if(broken)
 		{
 			layoutBroken=true;
-			UG_LOG("Interface from processor " << std::setw(4) << pcl::GetProcRank() << " to processor " << std::setw(4) << pid << " is BROKEN!\n");
+			UG_LOG("      Interface from processor " << std::setw(4) << pcl::GetProcRank() << " to processor " << std::setw(4) << pid << " is BROKEN!\n");
 
 		}
 	}
@@ -249,11 +253,12 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 	PROFILE_FUNC_GROUP("debug");
 	if(bPrint)
 	{
-		UG_LOG("MasterLayout is to processes ");
+		UG_LOG("proc " << std::setw(4) << pcl::GetProcRank() << ":\n");
+		UG_LOG("   MasterLayout is to processes ");
 		for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)	{
 			UG_LOG(" " << std::setw(4) << masterLayout.proc_id(iter) << " ");
 		}
-		UG_LOG("\nSlave Layout is to processes ");
+		UG_LOG("\n   Slave Layout is to processes ");
 		for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter) {
 			UG_LOG(" " << std::setw(4) << slaveLayout.proc_id(iter) << " ");
 		}
