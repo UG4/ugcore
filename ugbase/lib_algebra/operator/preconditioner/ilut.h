@@ -39,7 +39,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	public:
 	//	Constructor
 		ILUTPreconditioner(double eps=1e-6) :
-			m_eps(eps)
+			m_eps(eps), m_info(false)
 		{};
 
 	// 	Clone
@@ -49,6 +49,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			SmartPtr<ILUTPreconditioner<algebra_type> > newInst(new ILUTPreconditioner<algebra_type>(m_eps));
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
+			newInst->set_info(m_info);
 			return newInst;
 		}
 
@@ -62,7 +63,13 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		{
 			m_eps = thresh;
 		}
-
+		
+	///	sets storage information output to true or false
+		void set_info(bool info)
+		{
+			m_info = info;
+		}
+		
 	protected:
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILUTPreconditioner";}
@@ -158,6 +165,16 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 							++j;
 						}
 					}
+					// insert new connections after last connection of row i
+					if (k_it!=m_U.end_row(k)){
+						for (;k_it!=m_U.end_row(k);++k_it){
+							typename matrix_type::connection c(k_it.index(),-k_it.value()*d);
+					        if(BlockNorm(c.dValue) > dmax * m_eps)
+					        {
+					        	con.push_back(c);
+					        }
+					    }
+					};
 				}
 
 				totalentries+=con.size();
@@ -166,10 +183,18 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				// safe L and U
 				m_L.set_matrix_row(i, &con[0], u_part);
 				m_U.set_matrix_row(i, &con[u_part], con.size()-u_part);
+
 			}
 
 			m_L.defragment();
 			m_U.defragment();
+
+			if (m_info==true){
+				UG_LOG("\n	ILUT storage information:\n");
+				UG_LOG("	A nr of connections: " << A->total_num_connections()  << "\n");
+				UG_LOG("	L+U nr of connections: " << m_L.total_num_connections()+m_U.total_num_connections() << "\n");
+				UG_LOG("	Increase factor: " << (float)(m_L.total_num_connections() + m_U.total_num_connections() )/A->total_num_connections() << "\n");
+			}
 
 			return true;
 		}
@@ -187,9 +212,30 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					MatMultAdd(c[i], 1.0, c[i], -1.0, it.value(), c[it.index()] );
 				// lii = 1.0.
 			}
-
 			// U
-			for(size_t i=m_U.num_rows()-1; ; i--)
+			//
+			// last row diagonal U entry might be close to zero with corresponding zero rhs 
+			// when solving Navier Stokes system, therefore handle separately
+			{
+				size_t i=m_U.num_rows()-1;
+				typename matrix_type::row_iterator it = m_U.begin_row(i);
+				UG_ASSERT(it.index() == i, "");
+				block_type &uii = it.value();
+				typename vector_type::value_type s = c[i];
+				// check if close to zero
+				if (BlockNorm(uii)<m_small_lower){
+					// set correction to zero
+					c[i] = 0;
+					if (BlockNorm(s)>m_small_upper){
+						UG_LOG("Warning: zero entry in last row of U with corresponding non-zero rhs entry (" << BlockNorm(s) << ")\n");
+					}
+				} else {
+					// c[i] = s/uii;
+					InverseMatMult(c[i], 1.0, uii, s);
+				}
+			}
+			// handle all other rows
+			for(size_t i=m_U.num_rows()-2; ; i--)
 			{
 				typename matrix_type::row_iterator it = m_U.begin_row(i);
 				UG_ASSERT(it.index() == i, "");
@@ -201,10 +247,10 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					// s -= it.value() * c[it.index()];
 					MatMultAdd(s, 1.0, s, -1.0, it.value(), c[it.index()] );
 
-				// c[i] = s/uii;
-				InverseMatMult(c[i], 1.0, uii, s);
+					// c[i] = s/uii;
+					InverseMatMult(c[i], 1.0, uii, s);
 
-				if(i==0) break;
+					if(i==0) break;
 			}
 
 #ifdef 	UG_PARALLEL
@@ -222,6 +268,9 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		matrix_type m_L;
 		matrix_type m_U;
 		double m_eps;
+		bool m_info;
+		static const number m_small_lower=1e-9;
+		static const number m_small_upper=1e-6;
 };
 
 

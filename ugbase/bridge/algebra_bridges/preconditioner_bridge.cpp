@@ -122,6 +122,8 @@ static void Algebra(Registry& reg, string grp)
 			.add_constructor()
 			.add_method("set_threshold", &T::set_threshold,
 						"", "threshold", "sets threshold of incomplete LU factorisation")
+			.add_method("set_info", &T::set_info,
+						"", "info", "sets storage information output")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILUT", tag);
 	}
