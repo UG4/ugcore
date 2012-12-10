@@ -26,6 +26,7 @@ class IDomainDecompositionInfo
 		virtual int get_num_subdomains() const = 0;
 
 		//virtual int get_num_procs_per_subdomain() const = 0;
+		virtual int get_num_spatial_dimensions() const = 0;
 
 		virtual void get_subdomain_procs(std::vector<int>& procsOut,
 										int subdomIndex) = 0;
@@ -41,6 +42,7 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
     public:
 		StandardDomainDecompositionInfo() :
 			m_num_subdomains(1),
+			m_num_spatial_dimensions(2),
 			m_num_procs_per_subdomain(1)
 			{}
 
@@ -78,6 +80,12 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 
 		int get_num_subdomains() const {return m_num_subdomains;}
 
+		void set_num_spatial_dimensions(int dim) {
+			m_num_spatial_dimensions = dim;
+		}
+
+		int get_num_spatial_dimensions() const {return m_num_spatial_dimensions;}
+
 		//int get_num_procs_per_subdomain() const {return m_num_procs_per_subdomain;}
 
 		virtual void get_subdomain_procs(std::vector<int>& procsOut,
@@ -96,6 +104,9 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 	protected:
 	// 	number of subdomains
 		int m_num_subdomains;
+
+	// 	number of spatial dimensions
+		int m_num_spatial_dimensions;
 
 	// 	number of procs per subdomains
 		//std::vector<int> m_vnum_procs_per_subdomain; // as vector, for variable distribution of processors over subdomains

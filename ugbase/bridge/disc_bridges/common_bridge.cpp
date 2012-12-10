@@ -42,6 +42,8 @@ void RegisterBridge_DiscCommon(Registry& reg, string parentGroup)
 		.add_method("map_proc_id_to_subdomain_id", &T::map_proc_id_to_subdomain_id)
 		.add_method("set_num_subdomains",          &T::set_num_subdomains)
 		.add_method("get_num_subdomains",          &T::get_num_subdomains)
+		.add_method("set_num_spatial_dimensions",  &T::set_num_spatial_dimensions)
+		.add_method("get_num_spatial_dimensions",  &T::get_num_spatial_dimensions)
 		.set_construct_as_smart_pointer(true);
 	}
 #endif
