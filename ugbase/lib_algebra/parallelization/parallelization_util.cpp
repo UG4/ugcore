@@ -38,10 +38,11 @@ template <> struct block_traits<vector<int> >
 	};
 };
 
-void CommunicateConnections(vector<vector<int> >& connectionsOut,
+void CommunicateConnections(vector<vector<int> >& connectionsToProcsOut,
+							vector<vector<int> >& connectionsToSubDomsOut,
 							IndexLayout& masterLayout,
 							IndexLayout& slaveLayout,
-							int highestReferencedIndex)
+							int highestReferencedIndex, pcl::IDomainDecompositionInfo& ddinfo)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	typedef IndexLayout::Interface 	Interface;
@@ -52,8 +53,11 @@ void CommunicateConnections(vector<vector<int> >& connectionsOut,
 	int connectionVecSize = highestReferencedIndex + 1;
 	if(connectionVecSize < 0) connectionVecSize = 0;
 
-	connectionsOut.clear();
-	connectionsOut.resize(connectionVecSize);
+	connectionsToProcsOut.clear();
+	connectionsToProcsOut.resize(connectionVecSize);
+
+	connectionsToSubDomsOut.clear();
+	connectionsToSubDomsOut.resize(connectionVecSize);
 
 	int localProc = pcl::GetProcRank();
 
@@ -69,20 +73,35 @@ void CommunicateConnections(vector<vector<int> >& connectionsOut,
 			eiter != interface.end(); ++eiter)
 		{
 			Element elem = interface.get_element(eiter);
-			vector<int>& cons = connectionsOut[elem];
+			vector<int>& connToProc   = connectionsToProcsOut[elem];
+			vector<int>& connToSubDom = connectionsToSubDomsOut[elem];
 
 		//	the first entry in each connection is the master elements process
-			if(cons.empty())
-				cons.push_back(localProc);
+			if(connToProc.empty())
+				connToProc.push_back(localProc);
 
-		//	now push the slave
-			cons.push_back(targetProc);
+		//	now push the slave elemens process
+			connToProc.push_back(targetProc);
+
+
+		//	the first entry in each connection is the subdomain id of the master elements process
+			if(connToSubDom.empty())
+				connToSubDom.push_back(ddinfo.map_proc_id_to_subdomain_id(localProc));
+
+		//	now push the subdomain id of the target proc (i.e. of the slave element)
+			connToSubDom.push_back(ddinfo.map_proc_id_to_subdomain_id(targetProc));
 		}
 	}
 
-//	now communicate the connections to the slaves
+//	now communicate the connectionsToProcsOut to the slaves
 	pcl::InterfaceCommunicator<IndexLayout> interfaceComm;
-	ComPol_VecCopy<vector<vector<int> > > compolCopy(&connectionsOut);
+	ComPol_VecCopy<vector<vector<int> > > compolCopy(&connectionsToProcsOut);
+	interfaceComm.send_data(masterLayout, compolCopy);
+	interfaceComm.receive_data(slaveLayout, compolCopy);
+	interfaceComm.communicate();
+
+//	... and also the connectionsToSubDomsOut
+	compolCopy.set_vector(&connectionsToSubDomsOut);
 	interfaceComm.send_data(masterLayout, compolCopy);
 	interfaceComm.receive_data(slaveLayout, compolCopy);
 	interfaceComm.communicate();
@@ -460,20 +479,24 @@ void BuildDomainDecompositionLayouts(
 	typedef IndexLayout::iterator	InterfaceIter;
 	typedef Interface::iterator		ElemIter;
 
+//	get spatial dimension
+	int spatialDimension = ddinfo.get_num_spatial_dimensions();
+
 //	the local process and subdomain id
 	int localProcID = pcl::GetProcRank();
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
 
 
 //	first we communicate the connections of each entry to all processes
-	vector<vector<int> > connections;
-	CommunicateConnections(connections, standardMasters, standardSlaves,
-							highestReferencedIndex);
+	vector<vector<int> > connectionsToProcs;
+	std::vector<std::vector<int> > connectionsToSubDoms;
+	CommunicateConnections(connectionsToProcs, connectionsToSubDoms, standardMasters, standardSlaves,
+						   highestReferencedIndex, ddinfo);
 /*
-	for(size_t i = 0; i < connections.size(); ++i){
+	for(size_t i = 0; i < connectionsToProcs.size(); ++i){
 		UG_LOG("con_" << i << ": ");
-		for(size_t j = 0; j < connections[i].size(); ++j){
-			UG_LOG(connections[i][j] << " ");
+		for(size_t j = 0; j < connectionsToProcs[i].size(); ++j){
+			UG_LOG(connectionsToProcs[i][j] << " ");
 		}
 		UG_LOG(endl);
 	}
@@ -483,7 +506,7 @@ void BuildDomainDecompositionLayouts(
 //	* -1 if the element is not connected to another subdomain.
 //	* >= 0 for each element which has a copy in exactly one other subdomain,
 //	* -2 for each element which has a copy in more than one other subdomain,
-	vector<int> flags(connections.size(), -1);
+	vector<int> flags(connectionsToProcs.size(), -1);
 
 //	iterate over all standard master interfaces and fill the vector as
 //	described above for master elements
@@ -511,7 +534,7 @@ void BuildDomainDecompositionLayouts(
 //todo: instead of communicating the master flags, one could use the
 //		connections array to check whether a slave lies on a boundary
 //		between different subdomains.
-	vector<int> masterFlags(connections.size(), -1);
+	vector<int> masterFlags(connectionsToProcs.size(), -1);
 	ComPol_VecCopy<vector<int> > compolCopy(&masterFlags, &flags);
 	InterfaceCommunicator<IndexLayout> com;
 	com.send_data(standardMasters, compolCopy);
@@ -519,7 +542,7 @@ void BuildDomainDecompositionLayouts(
 	com.communicate();
 
 //	now fill the flags vector for slave entries.
-//	here we'll use the connections, since we otherwise wouldn't know all connections.
+//	here we'll use the connectionsToProcs, since we otherwise wouldn't know all connections.
 	for(InterfaceIter iiter = standardSlaves.begin();
 		iiter != standardSlaves.end(); ++iiter)
 	{
@@ -533,19 +556,19 @@ void BuildDomainDecompositionLayouts(
 			//	the master connects multiple subdomains.
 				if(flags[elem] == -1){
 				//	check whether the element is connected to one or to more other subdomains
-					vector<int>& cons = connections[elem];
+					vector<int>& connToProc = connectionsToProcs[elem];
 
 					flags[elem] = masterFlags[elem];
 
 					if((flags[elem] >= 0)){
 					//	check whether the associated master is in another subdomain
 					//	and whether another slave in the same subdomain exists.
-						if(ddinfo.map_proc_id_to_subdomain_id(cons[0]) != localSubdomID){
+						if(ddinfo.map_proc_id_to_subdomain_id(connToProc[0]) != localSubdomID){
 							bool encounteredSelf = false;
-							for(size_t i = 1; i < cons.size(); ++i){
-								if(cons[i] == localProcID)
+							for(size_t i = 1; i < connToProc.size(); ++i){
+								if(connToProc[i] == localProcID)
 									encounteredSelf = true;
-								else if(ddinfo.map_proc_id_to_subdomain_id(cons[i])
+								else if(ddinfo.map_proc_id_to_subdomain_id(connToProc[i])
 									== localSubdomID)
 								{
 								//	at this point we will take care of interface insertion right here.
@@ -554,13 +577,13 @@ void BuildDomainDecompositionLayouts(
 									if(encounteredSelf){
 									//	the elem will be master (note that this if can be encountered
 									//	multiple times).
-										Interface& interface = processMastersOut.interface(cons[i]);
+										Interface& interface = processMastersOut.interface(connToProc[i]);
 										interface.push_back(elem);
 									}
 									else{
-									//	the elem will be slave to cons[i], since this is the first
+									//	the elem will be slave to connToProc[i], since this is the first
 									//	occurence of a process in this subdomain.
-										Interface& interface = processSlavesOut.interface(cons[i]);
+										Interface& interface = processSlavesOut.interface(connToProc[i]);
 										interface.push_back(elem);
 										break;
 									}
@@ -814,8 +837,9 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 	//UG_LOG("\n\n");
 #else
 	// this implementation, using CommunicateConnections, unfortunately does not work at the moment (sorting issue below)
-	std::vector<std::vector<int> > connections;
-	CommunicateConnections(connections,	masterLayout, slaveLayout, A_OL2.num_rows());
+	std::vector<std::vector<int> > connectionsToProcs;
+	std::vector<std::vector<int> > connectionsToSubDoms;
+	CommunicateConnections(connectionsToProcs, connectionsToSubDoms, masterLayout, slaveLayout, A_OL2.num_rows(), ddinfo);
 
 	std::vector<int> pids;
 
@@ -833,7 +857,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 	 * (otherwise we could get A->B: 0,1 and B->A: 1,0) */
 	sort(pids.begin(), pids.end());
 
-		// add first all connections from the lowest master PID
+		// add first all connectionsToProcs from the lowest master PID
 	for(std::vector<int>::iterator masterPIDit = pids.begin(); masterPIDit != pids.end(); ++masterPIDit)
 	{
 		int masterPID = (*masterPIDit);
@@ -842,16 +866,16 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 		// this does not work, since the indices on this node can have a different ordering as on the other processing node
 		// but we need to insert them into the layout like on the other processing node
 		// if you can fix this, you can use this function again
-		for(size_t i=0; i<connections.size(); i++)
+		for(size_t i=0; i<connectionsToProcs.size(); i++)
 		{
-			std::vector<int> &cons = connections[i];
+			std::vector<int> &connToProc = connectionsToProcs[i];
 			size_t index = i;
 			//	the first entry in each connection is the master elements process
-			if(cons.size() <= 1 || cons[0] != masterPID) continue;
+			if(connToProc.size() <= 1 || connToProc[0] != masterPID) continue;
 			//UG_LOG("index " << index << "added to ");
-			for(size_t j=1; j<cons.size(); j++)
+			for(size_t j=1; j<connToProc.size(); j++)
 			{
-				int pid = cons[j];
+				int pid = connToProc[j];
 				if(pid == pcl::GetProcRank()) continue;
 				//UG_LOG(pid << " ");
 				OLCoarseningReceiveLayout.interface(pid).push_back(index);

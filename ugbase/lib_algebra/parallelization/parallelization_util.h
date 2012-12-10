@@ -391,10 +391,11 @@ int GetHighestReferencedIndex(IndexLayout& layout);
  * \todo	The method should probably automatically find the highestReferencedIndex,
  * 			to avoid misuse.
  */
-void CommunicateConnections(std::vector<std::vector<int> >& connectionsOut,
+void CommunicateConnections(std::vector<std::vector<int> >& connectionsToProcsOut,
+							std::vector<std::vector<int> >& connectionsToSubDomsOut,
 							IndexLayout& masterLayout,
 							IndexLayout& slaveLayout,
-							int highestReferencedIndex);
+							int highestReferencedIndex, pcl::IDomainDecompositionInfo& ddinfo);
 
 /**	given a layout which defines relations between neighbours, this method
  * creates a layout which connect the elements in the given layouts with
