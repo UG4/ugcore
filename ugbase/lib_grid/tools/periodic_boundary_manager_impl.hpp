@@ -181,12 +181,133 @@ void PeriodicBoundaryManager::print_identification() const
 	}
 }
 
+template<class TElem, class TParent>
+void PeriodicBoundaryManager::handle_creation(TElem* e,
+		TParent* pParent, bool replacesParent) {
+	// if replacesParent == true, TParent == TElem
+	if (replacesParent) {
+		//	we only have to replace the parent entry.
+		TElem* parent = dynamic_cast<TElem*>(pParent);
+		if (parent) {
+			if (is_periodic(parent)) {
+				// if parent is master, set newly created item as new master
+				if (is_master(parent)) {
+					group(parent)->m_master = e;
+					// set group of e
+					set_group<TElem>(group(parent), e);
+					// reset group of old parent
+					set_group<TElem>(NULL, parent);
+				} else { // slave
+					// make newly created item a slave, since its parent is slave
+					make_slave<TElem>(group(parent), e);
+					set_group<TElem>(NULL, parent);
+				}
+			}
+		} else
+			UG_THROW(
+					"Can't replace an element with an element of another type.");
+		// finished here
+		return;
+	}
+
+	if(pParent) {
+		// if parent is not periodic, where are finished here
+		if(!is_periodic<TParent>(pParent))
+			return;
+
+		// eg. elem => vertex, parent => vertex
+		if(typeid(TElem) == typeid(TParent)) {
+			TElem* parent = dynamic_cast<TElem*>(pParent);
+			Group<TElem>* g = group(parent);
+			UG_ASSERT(g, "group of parent not valid");
+			make_slave(g, e);
+		} else {
+			// so parent is valid and periodic
+			// get children of type TElem of parent
+			uint children = m_pGrid->num_children<TElem>(pParent);
+			UG_ASSERT(children > 0, "parent has no children.")
+			bool child_found = false;
+			for (uint i = 0; i < children; ++i) {
+				TElem* child = m_pGrid->get_child<TElem>(pParent, i);
+				UG_ASSERT(child, "child not valid");
+				Group<TElem>* g = group<TElem>(child);
+				if (g != NULL) {
+					make_slave(g, e);
+					child_found = true;
+					break;
+				}
+			}
+			// fixme this is assertion is always false!
+			UG_ASSERT(child_found, "no periodic child found, which group could be copied.")
+		}
+	} else { // no parent
+		// todo how to determine periodicity?
+		UG_THROW("no parent, case not impled")
+	}
+}
+
+/// handles deletion of element type
+template<class TElem>
+void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
+	if(is_periodic(e)) {
+		if(is_master(e)) {
+			// if e is master, set its replacing element as new master
+			if(replacedBy) {
+				UG_ASSERT(!group(replacedBy), "replacing element is already in group")
+				group(e)->m_master = replacedBy;
+			} else {
+				// todo whole group should be deleted
+				remove_group(group(e));
+			}
+		} else { // slave
+			Group<TElem>* g = group(e);
+			bool removed = remove_slave(e);
+			UG_ASSERT(removed, "slave not removed.")
+
+			if(replacedBy)
+				g->add_slave(replacedBy);
+		}
+	}
+}
+
 template <class TElem>
 void PeriodicBoundaryManager::make_slave(Group<TElem>* g, TElem* slave)
 {
 	g->add_slave(slave);
 	set_group(g, slave);
 }
+
+template <class TElem>
+bool PeriodicBoundaryManager::remove_slave(TElem* e) {
+	if(slaves(e)) {
+		typename Group<TElem>::SlaveContainer& s = *slaves(e);
+		typename Group<TElem>::SlaveIterator pos = std::find(s.begin(), s.end(), e);
+		if(pos != s.end()) {
+			s.erase(pos);
+			set_group<TElem>(group(e), NULL);
+			// todo what if e was the last slave of of group?
+			return true;
+		}
+	}
+	return false;
+}
+
+template <class TElem>
+void PeriodicBoundaryManager::remove_group(Group<TElem>* g) {
+	if(!g)
+		return;
+
+	// reset group pointers of all group members to NULL
+	set_group<TElem>(NULL, g->m_master);
+	typename Group<TElem>::SlaveContainer& s = g->get_slaves();
+	typename Group<TElem>::SlaveIterator iter;
+	for(iter = s.begin(); iter != s.end(); ++iter) {
+		set_group<TElem>(NULL, *iter);
+	}
+
+	delete g;
+}
+
 
 /**
  * merges g1 in g0 and deletes g1 afterwards
@@ -255,6 +376,21 @@ void PeriodicBoundaryManager::set_group(Group<TElem>* g, TElem* e)
 {
 	const_cast<Grid::AttachmentAccessor<TElem, Attachment<Group<TElem>* > >&>
 		(get_group_accessor<TElem>())[e] = g;
+}
+
+template <class TElem>
+void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e, GeometricObject* pParent, bool replacesParent) {
+	if(pParent) {
+		switch(pParent->base_object_id()) {
+		case VERTEX: handle_creation(e, static_cast<VertexBase*>(pParent), replacesParent); break;
+		case EDGE: handle_creation(e, static_cast<EdgeBase*>(pParent), replacesParent); break;
+		case FACE: handle_creation(e, static_cast<Face*>(pParent), replacesParent); break;
+		default:
+			UG_THROW("no handling for parent type: " << pParent->base_object_id())
+		}
+	} else {
+		handle_creation(e, static_cast<VertexBase*>(NULL), replacesParent);
+	}
 }
 
 #ifndef NDEBUG
@@ -329,13 +465,14 @@ void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2) {
 template<class TDomain>
 void IdentifySubsets(TDomain& dom, int sInd1, int sInd2)
 {
-	if(sInd1 == -1 || sInd2 == -1)
+	if(sInd1 == -1 || sInd2 == -1) {
+		UG_LOG("IdentifySubsets: at least one invalid subset given.\n")
 		return;
+	}
 
+	// ensure grid has support for periodic boundaries
 	if(!dom.grid()->has_periodic_boundaries())
 	{
-		UG_WARNING("Warning: domain has no periodic boundary manager set."
-				   " So creating one now.\n");
 		dom.grid()->set_periodic_boundaries(true);
 	}
 
@@ -367,7 +504,8 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2)
 	// in 3d start with faces, in 2d with edges, in 1d with vertices
 	namespace mpl = boost::mpl;
 	typedef mpl::map<mpl::pair<Domain1d, VertexBase>,
-			mpl::pair<Domain2d, EdgeBase>, mpl::pair<Domain3d, Face> > m;
+					  mpl::pair<Domain2d, EdgeBase>,
+					  mpl::pair<Domain3d, Face> > m;
 
 	typedef typename mpl::at<m, TDomain>::type TElem;
 	typedef typename ElementStorage<TElem>::SectionContainer::iterator gocIter;

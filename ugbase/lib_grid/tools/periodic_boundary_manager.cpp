@@ -42,15 +42,21 @@ void PeriodicBoundaryManager::set_grid(Grid* g)
 	Attachment<Group<Face>*> aGroupFCE;
 	Attachment<Group<Volume>*> aGroupVOL;
 
-	// detach groups
+	// detach groups and unregister observer
 	if(m_pGrid) {
 		m_pGrid->detach_from_vertices(aGroupVRT);
 		m_pGrid->detach_from_edges(aGroupEDG);
 		m_pGrid->detach_from_faces(aGroupFCE);
 		m_pGrid->detach_from_volumes(aGroupVOL);
+
+		m_pGrid->unregister_observer(this);
 	}
 
-	m_pGrid = g;
+	m_pGrid = dynamic_cast<MultiGrid*>(g);
+	if(!m_pGrid)
+		UG_THROW("given grid is not a multi grid!")
+
+	// attach groups and register observer
 	if(m_pGrid != NULL) {
 		m_pGrid->attach_to_vertices_dv(aGroupVRT, NULL);
 		m_pGrid->attach_to_edges_dv(aGroupEDG, NULL);
@@ -62,6 +68,10 @@ void PeriodicBoundaryManager::set_grid(Grid* g)
 		m_aaGroupEDG.access(*m_pGrid, aGroupEDG);
 		m_aaGroupFCE.access(*m_pGrid, aGroupFCE);
 		m_aaGroupVOL.access(*m_pGrid, aGroupVOL);
+
+		int options = OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
+				OT_FACE_OBSERVER;
+		m_pGrid->register_observer(this, options);
 	}
 }
 
@@ -89,5 +99,45 @@ PeriodicBoundaryManager::get_group_accessor() const {
 	return m_aaGroupVOL;
 }
 
+template <>
+const Grid::AttachmentAccessor<GeometricObject, Attachment<PeriodicBoundaryManager::Group<GeometricObject>* > >&
+PeriodicBoundaryManager::get_group_accessor() const {
+	UG_THROW("no group accessor for generic base type!");
+}
+
+///// grid observer methods
+void PeriodicBoundaryManager::grid_to_be_destroyed(Grid* grid) {
+	set_grid(NULL);
+}
+
+void PeriodicBoundaryManager::vertex_created(Grid* grid, VertexBase* vrt,
+		GeometricObject* pParent, bool replacesParent) {
+	handle_creation_cast_wrapper(vrt, pParent, replacesParent);
+}
+
+void PeriodicBoundaryManager::edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent,
+		bool replacesParent) {
+	handle_creation_cast_wrapper(e, pParent, replacesParent);
+}
+
+void PeriodicBoundaryManager::face_created(Grid* grid, Face* f, GeometricObject* pParent,
+		bool replacesParent) {
+	handle_creation_cast_wrapper(f, pParent, replacesParent);
+}
+
+void PeriodicBoundaryManager::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
+		VertexBase* replacedBy) {
+	handle_deletion(vrt, replacedBy);
+}
+
+void PeriodicBoundaryManager::edge_to_be_erased(Grid* grid, EdgeBase* e,
+		EdgeBase* replacedBy) {
+	handle_deletion(e, replacedBy);
+}
+
+void PeriodicBoundaryManager::face_to_be_erased(Grid* grid, Face* f,
+		Face* replacedBy) {
+	handle_deletion(f, replacedBy);
+}
 
 } // end of namespace ug

@@ -56,7 +56,7 @@ protected:
 /**
  *
  */
-class PeriodicBoundaryManager {
+class PeriodicBoundaryManager : public GridObserver {
 public:
 	PeriodicBoundaryManager() : m_pGrid(NULL) {}
 	~PeriodicBoundaryManager();
@@ -76,6 +76,32 @@ public:
 	// todo use Group<TElem>::SlaveContainer as return type
 	template<class TElem> std::list<TElem*>* slaves(TElem* e) const;
 	template<class TElem> void print_identification() const;
+
+
+	/// grid observation methods
+	virtual void grid_to_be_destroyed(Grid* grid);
+	virtual void vertex_created(Grid* grid, VertexBase* vrt,
+										GeometricObject* pParent = NULL,
+										bool replacesParent = false);
+
+	virtual void edge_created(Grid* grid, EdgeBase* e,
+								GeometricObject* pParent = NULL,
+								bool replacesParent = false);
+
+	virtual void face_created(Grid* grid, Face* f,
+								GeometricObject* pParent = NULL,
+								bool replacesParent = false);
+
+//	void handle_creation(GeometricObject*);<
+
+	virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
+									 VertexBase* replacedBy = NULL);
+
+	virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
+									 EdgeBase* replacedBy = NULL);
+
+	virtual void face_to_be_erased(Grid* grid, Face* f,
+									 Face* replacedBy = NULL);
 
 	/**
 	 * A Group instance holds a master of type TElem and several children.
@@ -104,7 +130,7 @@ protected:
 	PeriodicBoundaryManager(const PeriodicBoundaryManager&)	{}
 
 	// grid instance we operate on
-	Grid* m_pGrid;
+	MultiGrid* m_pGrid;
 
 	/// attachment accessors for Groups
 	Grid::AttachmentAccessor<VertexBase, Attachment<Group<VertexBase>* > > m_aaGroupVRT;
@@ -113,6 +139,7 @@ protected:
 	Grid::AttachmentAccessor<Volume, Attachment<Group<Volume>* > > m_aaGroupVOL;
 
 	template <class TElem> void make_slave(Group<TElem>* g, TElem* slave);
+	template <class TElem> bool remove_slave(TElem* slave);
 	template <class TElem> void merge_groups(Group<TElem>* g0, Group<TElem>* g1);
 
 	// get typed attachment accessor for group attachment
@@ -124,6 +151,19 @@ protected:
 	template <class TElem> Group<TElem>* group(TElem* e) const;
 	// set group attachment to element e
 	template <class TElem> void set_group(Group<TElem>* g, TElem* e);
+	template <class TElem> void remove_group(Group<TElem>* g);
+
+	/// handles creation of element type
+	template <class TElem, class TParent>
+	void handle_creation(TElem* e, TParent* pParent, bool replacesParent);
+
+	/// handles deletion of element type
+	template <class TElem>
+	void handle_deletion(TElem* e, TElem* replacedBy);
+
+	/// casts parent pointer to exact type before calling handle_creation
+	template <class TElem>
+	void handle_creation_cast_wrapper(TElem* e, GeometricObject* parent, bool replacesParent);
 };
 
 /**
