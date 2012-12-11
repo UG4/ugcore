@@ -63,8 +63,8 @@ class MultiStepTimeDiscretization
 		                               number dt, GridLevel gl);
 
 	///	\copydoc ITimeDiscretization::finish_step_elem()
-		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-		                              number dt, GridLevel gl);
+		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
+		                              GridLevel gl);
 
 		virtual number future_time() const {return m_futureTime;}
 

@@ -810,9 +810,6 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 						" Assembling of elements of Dimension " << dim << " in "
 						" subset "<<si<< " failed.");
 	}
-
-	//hier Dirichlet-Constraints abfragen?
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////

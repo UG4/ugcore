@@ -44,7 +44,7 @@ prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_step_elem, "discretization MultiStepTimeDiscretization");
 //	perform checks
 	if(prevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::prepare_step:"
+		UG_THROW("ThetaTimeStep::prepare_step_elem:"
 						" Number of previous solutions must be at least "<<
 						m_prevSteps <<", but only "<< prevSol->size() << " passed.\n");
 
@@ -228,21 +228,18 @@ assemble_rhs(vector_type& b, const vector_type& u, GridLevel gl)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-                 number dt, GridLevel gl)
+finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
+                 GridLevel gl)
 {
-//	perform checks
-	if(prevSol->size() < m_prevSteps)
-		UG_THROW("ThetaTimeStep::prepare_step:"
-						" Number of previous solutions must be at least "<<
-						m_prevSteps <<", but only "<< prevSol->size() << " passed.\n");
+//	perform checks whether 'currSol' is a solutionTimeSeries only with the new values
+	if(currSol->time(0) != m_futureTime)
+		UG_THROW("ThetaTimeStep::finish_step_elem:"
+				" The solution of the SolutionTimeSeries used in this function"
+				" does not coincide with the current solution! ");
 
-//	remember old values and values of current timestep
-	m_pPrevSol = prevSol;
-
-// 	finish timestep
+	// 	finish timestep using the current solution
 	try{
-		this->m_spDomDisc->finish_timestep(m_pPrevSol, gl);
+		this->m_spDomDisc->finish_timestep(currSol, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot finish timestep.");
 }
 

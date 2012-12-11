@@ -87,23 +87,22 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 		{prepare_step_elem(prevSol, dt, GridLevel());}
 	/// \}
 
-	/// finishes the assembling of Defect/Jacobian for a time step
+	/// finishes a time step and allows to adapt data depending on
+	///	the current solution elementwise
 	/**
-	 *	This function supplies the TimeDiscretization with previous time
-	 *	steps and step size after the assembling routines have been called.
-	 *	A sub-routine at element-level ("finish_timestep_element") is called
-	 *	within this function.
+	 *	This function is called after the assembling routines at the end of a
+	 *	timestep.
+	 *	Within this function "finish_timestep_element" is called which allows
+	 *	modifying data depending on the current solution at element-level.
 	 *
-	 * \param[in] prevSol 	the solution at the previous time steps
-	 * \param[in] dt		size of time step
+	 * \param[in] currSol 	the current solution
 	 * \param[in] dd		DoF Distribution
 	 */
 	///	\{
-		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-									  number dt, GridLevel gl) = 0;
-		void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-		                       number dt)
-		{finish_step_elem(prevSol, dt, GridLevel());}
+		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
+									  GridLevel gl) = 0;
+		void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol)
+		{finish_step_elem(currSol, GridLevel());}
 	///	\}
 
 	///	returns the future time point (i.e. the one that will be computed)
