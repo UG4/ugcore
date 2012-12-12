@@ -90,7 +90,7 @@ my_setup2 gnuplot
 my_setup2 GotoBLAS2
 my_setup2 mpfr
 my_setup2 mpc
-my_setup2 openmpi
+my_setup $LOCAL_INSTALLDIR/openmpi/1.6
 my_setup2 ParaView
 
 
