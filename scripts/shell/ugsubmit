@@ -317,8 +317,8 @@ else
 	HermitWorkspace=0
 	outdir=$outDir/$jobname
 	if [ -d $outdir ]; then
-		outdir=Ômktemp -d $outdir.XXXXXXXXXXÔ
-		mkdir outdir
+		outdir=`mktemp -d $outdir.XXXXXXXXXX`
+		mkdir $outdir
 		#echo "Output directory $outdir already exists. Remove directory or choose other jobname"
 		#exit 0;
 	else
