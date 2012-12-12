@@ -318,9 +318,6 @@ else
 	outdir=$outDir/$jobname
 	if [ -d $outdir ]; then
 		outdir=`mktemp -d $outdir.XXXXXXXXXX`
-		mkdir $outdir
-		#echo "Output directory $outdir already exists. Remove directory or choose other jobname"
-		#exit 0;
 	else
 		mkdir $outdir
 	fi
