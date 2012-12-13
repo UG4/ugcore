@@ -18,11 +18,11 @@ void ug_throw_error();
 // UG Throw / Catch
 ////////////////////////////////////////////////////////////////////////////////
 
-#define UG_THROW(msg)		{ug_throw_error(); std::stringstream ss; ss << msg; \
-							throw(ug::UGError(ss.str(),__FILE__,__LINE__));}
+#define UG_THROW(msg)		{ug_throw_error(); std::stringstream __ss; __ss << msg; \
+							throw(ug::UGError(__ss.str(),__FILE__,__LINE__));}
 
-#define UG_CATCH_THROW(msg)	catch(ug::UGError& err){std::stringstream ss; ss << msg;\
-							  err.push_msg(ss.str(),__FILE__,__LINE__); throw(err);}
+#define UG_CATCH_THROW(msg)	catch(ug::UGError& err){std::stringstream __ss; __ss << msg;\
+							  err.push_msg(__ss.str(),__FILE__,__LINE__); throw(err);}
 
 ////////////////////////////////////////////////////////////////////////////////
 // UG Error
