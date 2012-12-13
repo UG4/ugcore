@@ -23,8 +23,8 @@ Features are:
     Supported element types are vertices, edges, triangles, quadrilaterals, 
     tetrahedrons, hexahedrons, prisms and pyramids. 
 
-  - A parallelization layer based on mpi which allows efficient communication
-    on distrubuted hierarchical graphs.
+  - A parallelization layer based on MPI which allows efficient communication
+    on distributed hierarchical graphs.
     Scalability has been shown for up to 256ki processes &mdash; more to come...
 
   - ug4 extends the lua scripting language, which allows to control the entire
