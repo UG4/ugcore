@@ -618,7 +618,8 @@ is (eventually) available on \em JuQueen.
 
 \em TotalView uses X11 for its graphical user interface. Be sure to log in with an X window
 forwarding enabled. This could mean using the <tt>-X</tt> or <tt>-Y</tt> option
-to <tt>ssh</tt>.
+to <tt>ssh</tt> (on \em all ssh connections if you aren't connected directly
+(cf. ref secSSHHopping)).
 
 <ol>
 <li> Load the appropriate module:
@@ -630,19 +631,33 @@ module load UNITE totalview
 (UNITE &mdash; "UNIform Integrated Tool Environment" for debugging and performance analysis",
 see <a href="http://apps.fz-juelich.de/unite/index.php/Main_Page">here</a>.)
 
-<li>Use the \c lltv command to start \em TotalView (as said by <tt>module help totalview</tt>):
+<li>Use the \c lltv command to start \em TotalView (cf.\ output of  <tt>module help totalview</tt>):
 \code
-lltv -n 32 : -default_parallel_attach_subset=<n-m> runjob -a --exe <PROGRAM-TO-DEBUG> -n <number> --ranks-per-node <number>
+lltv -n <numNodes> : -default_parallel_attach_subset=<rank-range> runjob -a --exe <executable> -np <numProcs> --ranks-per-node <number>
+\endcode
+In the \em Totalview windows appearing as soon as the job has started specify/control
+your parameters, then run your job, as illustrated in the following example.
+
+<!-- parameters '-p' for specifying the number of processes as mentioned in the FZJ docu may not work - not yet tested! -->
+
+This will start the executable <executable> to be debugged on <numNodes> nodes
+utilising <numProcs> processes, attaching \em TotalView to ranks <rank-range>
+(a space separated list of ranks, see documentation).
+</ol>
+
+
+<strong>Example session</strong>:
+<ol>
+<li> Start the debugger:
+\code
+lltv -n 1 : -default_parallel_attach_subset=0-15 runjob -a --np 16 --ranks-per-node 16 --mapping ABCDET --verbose 3 : ./ugshell -ex scaling_tests/modular_scalability_test.lua -dim 2 -grid unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -ds famg -ns famg -numPPSD 4 -numRefs 4
 \endcode
 
-<strong>Example</strong>:
-\code
-lltv -n 16 : -default_parallel_attach_subset=0-15 runjob --np 16 --ranks-per-node 16 --mapping ABCDET --verbose 3 : ./ugshell -ex scaling_tests/modular_scalability_test.lua -dim 2 -grid unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -ds famg -ns famg -numPPSD 4 -numRefs 4
-\endcode
-
-I.e., one can (to the authors experience so far) just add the \c runjob line of
-a batch job definition (as written in a LoadLeveler script; see above) after
-the colon of the \c lltv command to get the corresponding interactive debug job.
+I.e., to get the corresponding interactive debug job one can (to the authors
+experience so far) just add the \c runjob line of a batch job definition
+(as written in a LoadLeveler script; see above) after the colon of the \c lltv
+command <b>PLUS add the option \c -a to the \c runjob command</b>!
+<!-- \todo In der \c runjob man-page steht nix zu einem Parameter \c -a! -->
 
 The system answers with something like
 \code
@@ -650,41 +665,79 @@ Creating LoadLeveler Job
 Submiting LoadLeveler Interactive Job for TotalView
  Wait for job juqueen1c1.49410.0 to be started:......
 \endcode
-After the job has started a shell-like window (with black background) appears,
-followed by the TotalView GUI. The shell-like window gets the output of the
-executable to be debugged.
 
-Additionally a popup window with the question "Process runjob is a parallel job.
-Do you want to stop the job now?" is shown which one (obviously) has to answer
-with "NO".
+Additionally \em TotalView displays three windows (and a few temporary windows)
+after the job has started:
+- a shell-like window titled "totalview" (with black background, which will later
+  display the output of the executable to be debugged),
+- the "root window", titled "TotalView <Version number>" (which will contain the
+  list of attached processes), and (typically a bit later)
+- the "process window", first titled "ProcessWindow", the TotalView GUI (which
+  title later changes to "runjob" and then to something like "runjob<ugshell>.3"
+  in our case), and
+  the (temporary) "startup-parameter" window, titled "Startup Parameters".
+
+Depending on system load / network traffic you will experience some waiting time.
 </li>
 
-<li>TotalView startup actions can be defined on a per user basis in <tt>~/.tvdrc</tt>.
+<li>In the "startup-parameter" window enter at least your \ug4 arguments (or
+  control your arguments given on the command line) in the "Arguments" tag.
+
+  According to the message in the "Parallel" tag do not change anything here.
+  When finished with your input click "OK".
 </li>
 
-\todo
-- Test if the parameter <tt>-default_parallel_attach_subset=0-15</tt> is optional if one want to attach to all MPI processes.
-- Is it possible to shorten a command line as the one in the example by using an environment variable,
+<li>In the TotalView GUI press the "GO" button first.
+
+  Another (dialog) window appears with the question
+  "Process runjob is a parallel job. Do you want to stop the job now?"
+  which one has to answer with "YES" (which is not really intuitive ...).
+
+  Another small window appears showing a progress bar while starting the job
+  ("Loading symbos from shell ...").
+</li>
+
+
+<li>In the TotalView GUI press the "GO" button again to run your executable.
+  Now you can begin your debugging work.
+
+</li>
+</ol>
+\todo Maybe some notes about available "Tools" like the "call graph" would be nice.
+For the moment try yourself and/or see the TotalView docu (links below).
+
+<strong>Additional hints</strong>
+<ul>
+<li>As for batch jobs it is possible to shorten a command line as the one in the example by using an environment variable,
 e.g.
 \code
 UGARGS2D="-ex scaling_tests/modular_scalability_test.lua -dim 2 -grid unit_square_01/unit_square_01_quads_8x8.ugx -lsMaxIter 100 -numPreRefs 3 -lsType feti -ds famg -ns famg -numPPSD 4"
-lltv -n 16 : -default_parallel_attach_subset=0-15 runjob --np 16 --ranks-per-node 16 --mapping ABCDET --verbose 3 : ./ugshell $UGARGS2D
+lltv -n 1 : -default_parallel_attach_subset=0-15 runjob -a --np 16 --ranks-per-node 16 --mapping ABCDET --verbose 3 : ./ugshell $UGARGS2D -numRefs 4
 \endcode
-First experiences say that no job is started at all (only the black output window shows up shortly),
-but that day (19112912) the author wasn't able to start another debug session even with explicit \ug4 arguments!?
-</ol>
+</li>
 
-For more information see
-- See ${TV_ROOT}/doc/pdf
+<li>The parameter <tt>-default_parallel_attach_subset=0-15</tt> is optional if one want to attach to all MPI processes.
+</li>
+
+<li>TotalView startup actions can be defined on a per user basis in <tt>~/.totalview</tt>.
+</li>
+</ul>
+
+Additional information for debugging with \em TotalView on JuQueen might be
+found in
+<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/ParallelDebugging.html">this FZJ short introduction to parallel debugging</a>.
+
+For detailed information see
+- See <code>${TV_ROOT}/doc/pdf/</code> &mdash; this is something like
+  <code>/usr/local/UNITE/packages/totalview/toolworks/totalview.8.11.0-0/doc/pdf/</code>
+  (December 2012).
 - http://www.roguewave.com/products/totalview.aspx
 
-Additional information (especially for debugging with \em TotalView) might be
-found in
-<a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUGENE/UserInfo/ParallelDebugging.html">this JuGene (!) specific documentation</a>.
 
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <strong>Basic usage of \em DDT</strong>:
 \note
-In the moment (November 2012) \em DDT is \em not available on JuQueen! So, in the
+In the moment (December 2012) \em DDT is \em not available on JuQueen! So, in the
 moment the following instructions about \em DDT (tested on JuGene only!) is meant
 as a "placeholder".
 
