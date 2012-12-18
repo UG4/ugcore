@@ -640,8 +640,8 @@ your parameters, then run your job, as illustrated in the following example.
 
 <!-- parameters '-p' for specifying the number of processes as mentioned in the FZJ docu may not work - not yet tested! -->
 
-This will start the executable <executable> to be debugged on <numNodes> nodes
-utilising <numProcs> processes, attaching \em TotalView to ranks <rank-range>
+This will start the executable <tt>\<executable\></tt> to be debugged on <tt>\<numNodes\></tt> nodes
+utilising <tt>\<numProcs\></tt> processes, attaching \em TotalView to ranks <tt>\<rank-range\></tt>
 (a space separated list of ranks, see documentation).
 </ol>
 
