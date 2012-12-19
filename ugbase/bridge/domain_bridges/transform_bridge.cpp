@@ -59,6 +59,9 @@ void ScaleDomain(TDomain& dom, ISelector& sel, const vector3& center,
 	vector<VertexBase*> vrts;
 	CollectVerticesTouchingSelection(vrts, sel);
 
+    if(vrts.empty())
+        return;
+
 	for(size_t i = 0; i < vrts.size(); ++i){
 		pos_t& v = aaPos[vrts[i]];
 
@@ -80,29 +83,29 @@ void ScaleDomainSquaredWeighting(TDomain& dom, ISelector& sel, const vector3& ce
 	VecCopy(s, scale, 1);
 
 //  prepare data
-	const pos_t& coord = c;
 	vector<VertexBase*> vrts;
 	CollectVerticesTouchingSelection(vrts, sel);
-	const pos_t& vrtPos_0 = aaPos[vrts[0]];
-	number dMax = VecDistance(coord, vrtPos_0);
+    if(vrts.empty())
+        return;
 
-	for(size_t i = 1; i < vrts.size(); ++i){
-		const pos_t& vrtPos = aaPos[vrts[i]];
-		number dist = VecDistance(coord, vrtPos);
-		if ( dist > dMax )
-				dMax = dist;
-	}
+    number dMaxSq = -1;
+    for(size_t i = 0; i < vrts.size(); ++i){
+        number distSq = VecDistanceSq(c,  aaPos[vrts[i]]);
+        if( distSq > dMaxSq )
+                dMaxSq = distSq;
+    }
+    number dMax = sqrt(dMaxSq);
 
-//	perform the scaling
-	for(size_t i = 0; i < vrts.size(); ++i){
-		pos_t& v = aaPos[vrts[i]];
-		const pos_t& vrtPos = aaPos[vrts[i]];
-		number dist = VecDistance(coord, vrtPos);
-		number sqrdWeight = (dist/dMax)*(dist/dMax);
+//  perform the scaling
+    for(size_t i = 0; i < vrts.size(); ++i){
+        pos_t& v = aaPos[vrts[i]];
+        number dist = VecDistance(c, v);
+        number sqrdWeight = (dist/dMax)*(dist/dMax);
 
-		for(size_t j = 0; j < pos_t::Size-1; ++j)
-			v[j] = c[j] + (v[j] - c[j]) * ((s[j]-1.0)*sqrdWeight + 1.0);
-	}
+        for(size_t j = 0; j < pos_t::Size; ++j)
+            v[j] = c[j] + (v[j] - c[j]) * ((s[j]-1.0)*sqrdWeight + 1.0);
+    }
+
 }
 
 template <class TDomain>
@@ -118,29 +121,28 @@ void ScaleDomainWeighting(TDomain& dom, ISelector& sel, const vector3& center,
 	VecCopy(s, scale, 1);
 
 //  prepare data
-	const pos_t& coord = c;
 	vector<VertexBase*> vrts;
 	CollectVerticesTouchingSelection(vrts, sel);
-	const pos_t& vrtPos_0 = aaPos[vrts[0]];
-	number dMax = VecDistance(coord, vrtPos_0);
+    if(vrts.empty())
+        return;
 
-	for(size_t i = 1; i < vrts.size(); ++i){
-		const pos_t& vrtPos = aaPos[vrts[i]];
-		number dist = VecDistance(coord, vrtPos);
-		if ( dist > dMax )
-				dMax = dist;
-	}
+    number dMaxSq = -1;
+    for(size_t i = 0; i < vrts.size(); ++i){
+        number distSq = VecDistanceSq(c,  aaPos[vrts[i]]);
+        if( distSq > dMaxSq )
+                dMaxSq = distSq;
+    }
+    number dMax = sqrt(dMaxSq);
 
-//	perform the scaling
-	for(size_t i = 0; i < vrts.size(); ++i){
-		pos_t& v = aaPos[vrts[i]];
-		const pos_t& vrtPos = aaPos[vrts[i]];
-		number dist = VecDistance(coord, vrtPos);
-		number weight = (dist/dMax);
+//  perform the scaling
+    for(size_t i = 0; i < vrts.size(); ++i){
+        pos_t& v = aaPos[vrts[i]];
+        number dist = VecDistance(c, v);
+		number weight = dist/dMax;
 
-		for(size_t j = 0; j < pos_t::Size-1; ++j)
-			v[j] = c[j] + (v[j] - c[j]) * ((s[j]-1.0)*weight + 1.0);
-	}
+        for(size_t j = 0; j < pos_t::Size; ++j)
+            v[j] = c[j] + (v[j] - c[j]) * ((s[j]-1.0)*weight + 1.0);
+    }
 }
 
 
@@ -157,30 +159,29 @@ void ScaleDomainSqrtWeighting(TDomain& dom, ISelector& sel, const vector3& cente
 	VecCopy(s, scale, 1);
 
 //  prepare data
-	const pos_t& coord = c;
 	vector<VertexBase*> vrts;
 	CollectVerticesTouchingSelection(vrts, sel);
-	const pos_t& vrtPos_0 = aaPos[vrts[0]];
-	number dMax = VecDistance(coord, vrtPos_0);
+    if(vrts.empty())
+        return;
 
-	for(size_t i = 1; i < vrts.size(); ++i){
-		const pos_t& vrtPos = aaPos[vrts[i]];
-		number dist = VecDistance(coord, vrtPos);
-		if ( dist > dMax )
-			dMax = dist;
-	}
+    number dMaxSq = -1;
+    for(size_t i = 0; i < vrts.size(); ++i){
+        number distSq = VecDistanceSq(c,  aaPos[vrts[i]]);
+        if( distSq > dMaxSq )
+                dMaxSq = distSq;
+    }
+    number dMax = sqrt(dMaxSq);
 
-//	perform the scaling
-	for(size_t i = 0; i < vrts.size(); ++i){
-		pos_t& v = aaPos[vrts[i]];
-		const pos_t& vrtPos = aaPos[vrts[i]];
-		number dist = VecDistance(coord, vrtPos);
+//  perform the scaling
+    for(size_t i = 0; i < vrts.size(); ++i){
+        pos_t& v = aaPos[vrts[i]];
+        number dist = VecDistance(c, v);
 		number weight = sqrt(dist/dMax);
 
-		for(size_t j = 0; j < pos_t::Size-1; ++j)
-			v[j] = c[j] + (v[j] - c[j]) * ((s[j]-1.0)*weight + 1.0);
+        for(size_t j = 0; j < pos_t::Size; ++j)
+            v[j] = c[j] + (v[j] - c[j]) * ((s[j]-1.0)*weight + 1.0);
+    }
 
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
