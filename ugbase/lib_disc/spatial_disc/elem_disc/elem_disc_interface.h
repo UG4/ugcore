@@ -168,18 +168,30 @@ class IElemDisc
 	 */
 		virtual bool use_hanging() const {return false;}
 
-	///	sets if assembling should be time-dependent
+	///	sets if assembling should be time-dependent and the local time series
 	/**
-	 * This function specifies if the assembling is time-dependent.
+	 * This function specifies if the assembling is time-dependent. If NULL is
+	 * passed, the assembling is assumed to be time-independent. If a local
+	 * time series is passed, this series is used as previous solution.
 	 *
-	 * \param[in]	bTimeDependent	flag if time-dependent
 	 * \param[in]	locTimeSeries	Time series of previous solutions
 	 */
-		void set_time_dependent(bool bTimeDependent,
-		                        const LocalVectorTimeSeries* locTimeSeries = NULL);
+		void set_time_dependent(const LocalVectorTimeSeries& locTimeSeries,
+		        				const std::vector<number>& vScaleMass,
+		        				const std::vector<number>& vScaleStiff);
+
+	///	sets that the assembling is time independent
+		void set_time_independent();
 
 	///	returns if assembling is time-dependent
-		bool is_time_dependent() const {return m_bTimeDependent;}
+		bool is_time_dependent() const {return (m_pLocalVectorTimeSeries != NULL) && !m_bStationaryForced;}
+
+	///	sets that the assembling is always stationary (even in instationary case)
+		void set_stationary(bool bStationaryForced = true) {m_bStationaryForced = bStationaryForced;}
+		void set_stationary() {set_stationary(true);}
+
+	///	returns if assembling is forced to be stationary
+		bool is_stationary() const {return m_bStationaryForced;}
 
 	///	returns if local time series needed by assembling
 	/**
@@ -194,6 +206,9 @@ class IElemDisc
 
 	///	sets the current time point
 		void set_time_point(const size_t timePoint) {m_timePoint = timePoint;}
+
+	///	returns the currently considered time point of the time-disc scheme
+		size_t time_point() const {return m_timePoint;}
 
 	///	returns currently set timepoint
 		number time() const {return m_pLocalVectorTimeSeries->time(m_timePoint);}
@@ -210,6 +225,18 @@ class IElemDisc
 	 */
 		const LocalVectorTimeSeries* local_time_solutions() const
 			{return m_pLocalVectorTimeSeries;}
+
+	///	returns the weight factors of the time-disc scheme
+	///	\{
+		const std::vector<number>& mass_scales() const {return m_vScaleMass;}
+		const std::vector<number>& stiff_scales() const {return m_vScaleStiff;}
+
+		number mass_scale(const size_t timePoint) const {return m_vScaleMass[timePoint];}
+		number stiff_scale(const size_t timePoint) const {return m_vScaleStiff[timePoint];}
+
+		number mass_scale() const {return m_vScaleMass[m_timePoint];}
+		number stiff_scale() const {return m_vScaleStiff[m_timePoint];}
+	///	\}
 
 	/// prepare the timestep
 	/**
@@ -353,14 +380,20 @@ class IElemDisc
 	///	number of functions
 		size_t m_numFct;
 
-	///	flag if time dependent
-		bool m_bTimeDependent;
-
 	///	time point
 		size_t m_timePoint;
 
 	///	list of local vectors for all solutions of the time series
 		const LocalVectorTimeSeries* m_pLocalVectorTimeSeries;
+
+	///	weight factors for time dependent assembling
+	/// \{
+		std::vector<number> m_vScaleMass;
+		std::vector<number> m_vScaleStiff;
+	/// \}
+
+	///	flag if stationary assembling is to be used even in instationary assembling
+		bool m_bStationaryForced;
 
 	private:
 	//	abbreviation for own type

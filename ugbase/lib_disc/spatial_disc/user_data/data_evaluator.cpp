@@ -367,8 +367,9 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 }
 
 
-void DataEvaluator::set_time_dependent(bool bTimeDep,
-                                       LocalVectorTimeSeries* locTimeSeries)
+void DataEvaluator::set_time_dependent(LocalVectorTimeSeries& locTimeSeries,
+                                       const std::vector<number>& vScaleMass,
+                                       const std::vector<number>& vScaleStiff)
 {
 //	reset to false
 	m_bNeedLocTimeSeries = false;
@@ -376,30 +377,36 @@ void DataEvaluator::set_time_dependent(bool bTimeDep,
 		m_vbNeedLocTimeSeries[i] = false;
 
 //	check if time dependent
-	if(bTimeDep)
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
-		if(locTimeSeries == NULL)
-			UG_THROW("Time Dependent Assembling but no time series.");
+	//	checks if local time series is needed.
+		m_vbNeedLocTimeSeries[i] = m_vElemDisc[i]->requests_local_time_series();
+		m_bNeedLocTimeSeries |= m_vbNeedLocTimeSeries[i];
 
-		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-		{
-		//	checks if local time series is needed.
-			m_vbNeedLocTimeSeries[i] = m_vElemDisc[i]->requests_local_time_series();
-			m_bNeedLocTimeSeries |= m_vbNeedLocTimeSeries[i];
-
-		//	sets time dependent flag
-			m_vElemDisc[i]->set_time_dependent(bTimeDep, locTimeSeries);
-		}
-
-		m_pLocTimeSeries = locTimeSeries;
-
-		// NOTE: constant data is not processed.
-		for(size_t i = 0; i < m_vPosData.size(); ++i)
-			m_vPosData[i]->set_times(locTimeSeries->times());
-
-		for(size_t i = 0; i < m_vDependentData.size(); ++i)
-			m_vDependentData[i]->set_times(locTimeSeries->times());
+	//	sets time dependent flag
+		m_vElemDisc[i]->set_time_dependent(locTimeSeries, vScaleMass, vScaleStiff);
 	}
+
+	// NOTE: constant data is not processed.
+	for(size_t i = 0; i < m_vPosData.size(); ++i)
+		m_vPosData[i]->set_times(locTimeSeries.times());
+	for(size_t i = 0; i < m_vDependentData.size(); ++i)
+		m_vDependentData[i]->set_times(locTimeSeries.times());
+
+
+	// remember time series
+	m_pLocTimeSeries = &locTimeSeries;
+}
+
+void DataEvaluator::set_time_dependent(LocalVectorTimeSeries& locTimeSeries)
+{
+	set_time_dependent(locTimeSeries, std::vector<number>(), std::vector<number>());
+}
+
+void DataEvaluator::set_time_independent()
+{
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+		m_vElemDisc[i]->set_time_independent();
 }
 
 void DataEvaluator::set_time_point(const size_t timePoint)

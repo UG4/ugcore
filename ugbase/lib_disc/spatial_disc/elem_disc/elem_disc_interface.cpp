@@ -10,8 +10,8 @@
 namespace ug{
 
 IElemDisc::IElemDisc(const char* functions, const char* subsets)
-	: 	m_bTimeDependent(false), m_timePoint(0),
-	  	m_pLocalVectorTimeSeries(NULL),
+	: 	m_timePoint(0),
+	  	m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
 	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
 	m_vFct.clear();
@@ -22,8 +22,8 @@ IElemDisc::IElemDisc(const char* functions, const char* subsets)
 
 IElemDisc::IElemDisc(const std::vector<std::string>& vFct,
                      const std::vector<std::string>& vSubset)
-	: 	m_bTimeDependent(false), m_timePoint(0),
-		m_pLocalVectorTimeSeries(NULL),
+	: 	m_timePoint(0),
+		m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
 		m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
 	m_vFct = vFct;
@@ -122,11 +122,21 @@ void IElemDisc::set_roid(ReferenceObjectID id)
 	}
 };
 
-void IElemDisc::set_time_dependent(bool bTimeDependent,
-                                   const LocalVectorTimeSeries* locTimeSeries)
+void IElemDisc::set_time_dependent(const LocalVectorTimeSeries& locTimeSeries,
+   		        				const std::vector<number>& vScaleMass,
+   		        				const std::vector<number>& vScaleStiff)
 {
-	m_bTimeDependent = bTimeDependent;
-	m_pLocalVectorTimeSeries = locTimeSeries;
+	m_pLocalVectorTimeSeries = &locTimeSeries;
+	m_vScaleMass = vScaleMass;
+	m_vScaleStiff = vScaleStiff;
+}
+
+
+void IElemDisc::set_time_independent()
+{
+	m_pLocalVectorTimeSeries = NULL;
+	m_vScaleMass.clear();
+	m_vScaleStiff.clear();
 }
 
 } // end namespace ug

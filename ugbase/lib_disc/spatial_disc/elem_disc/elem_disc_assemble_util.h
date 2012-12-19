@@ -80,7 +80,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	{
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(false);
+		Eval.set_time_independent();
 		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
@@ -194,7 +194,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	{
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(false);
+		Eval.set_time_independent();
 		Eval.template prepare_elem_loop<TElem>(true);
 		Eval.set_subset(si);
 	}
@@ -311,7 +311,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.set_time_dependent(locTimeSeries);
 		Eval.set_time_point(0);
 		Eval.template prepare_elem_loop<TElem>(true);
 		Eval.set_subset(si);
@@ -414,7 +414,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	{
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(false);
+		Eval.set_time_independent();
 		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
@@ -536,7 +536,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.set_time_dependent(locTimeSeries);
 		Eval.set_time_point(0);
 		Eval.template prepare_elem_loop<TElem>(true);
 		Eval.set_subset(si);
@@ -681,7 +681,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	{
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(false);
+		Eval.set_time_independent();
 		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
@@ -801,7 +801,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.set_time_dependent(locTimeSeries, vScaleMass, vScaleStiff);
 		Eval.template prepare_elem_loop<TElem>(true);
 		Eval.set_subset(si);
 	}
@@ -944,7 +944,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	{
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(false);
+		Eval.set_time_independent();
 		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
@@ -1062,7 +1062,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.set_time_dependent(locTimeSeries, vScaleMass, vScaleStiff);
 		Eval.template prepare_elem_loop<TElem>(true);
 		Eval.set_subset(si);
 	}
@@ -1264,7 +1264,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	{
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(false);
+		Eval.set_time_independent();
 		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
@@ -1372,7 +1372,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.set_time_dependent(locTimeSeries, vScaleMass, vScaleStiff);
 		Eval.template prepare_elem_loop<TElem>(true);
 		Eval.set_subset(si);
 	}
@@ -1551,7 +1551,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
-		Eval.set_time_dependent(true, &locTimeSeries);
+		Eval.set_time_dependent(locTimeSeries);
 		Eval.set_time_point(0);
 		Eval.template prepare_elem_loop<TElem>(true);
 		Eval.set_subset(si);

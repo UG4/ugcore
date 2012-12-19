@@ -34,8 +34,15 @@ class DataEvaluator
 		void set_subset(const int subset);
 
 	///	sets in all IElemDiscs the time and previous solutions
-		void set_time_dependent(bool bTimeDep,
-		                        LocalVectorTimeSeries* locTimeSeries = NULL);
+	///	\{
+		void set_time_dependent(LocalVectorTimeSeries& locTimeSeries,
+                                const std::vector<number>& vScaleMass,
+                                const std::vector<number>& vScaleStiff);
+		void set_time_dependent(LocalVectorTimeSeries& locTimeSeries);
+	/// \}
+
+	///	sets that the assembling is time independent
+		void set_time_independent();
 
 	///	sets the time point for data evaluation
 		void set_time_point(const size_t timePoint);
@@ -157,7 +164,7 @@ class DataEvaluator
 	///	flag indicating if any elem disc needs local time series
 		bool m_bNeedLocTimeSeries;
 
-	///	local time series
+	///	local time series (non-const since mapping may change)
 		LocalVectorTimeSeries* m_pLocTimeSeries;
 
 	////////////////////////////////
