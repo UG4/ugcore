@@ -298,7 +298,6 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	get current time and vector
-	const number time = vSol->time(0);
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
 
 //	create data evaluator
@@ -309,10 +308,11 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
+		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(true, &locTimeSeries);
-		Eval.set_time(time);
+		Eval.set_time_point(0);
 		Eval.template prepare_elem_loop<TElem>(true);
 		Eval.set_subset(si);
 	}
@@ -338,10 +338,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 
 	//	read local values of time series
 		if(Eval.time_series_needed())
-		{
 			locTimeSeries.read_values(vSol, ind);
-			locTimeSeries.read_times(vSol);
-		}
 
 	// 	prepare element
 		try
@@ -526,7 +523,6 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	get current time and vector
-	const number time = vSol->time(0);
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
 
 //	create data evaluator
@@ -537,10 +533,11 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
+		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(true, &locTimeSeries);
-		Eval.set_time(time);
+		Eval.set_time_point(0);
 		Eval.template prepare_elem_loop<TElem>(true);
 		Eval.set_subset(si);
 	}
@@ -566,10 +563,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 
 	//	read local values of time series
 		if(Eval.time_series_needed())
-		{
 			locTimeSeries.read_values(vSol, ind);
-			locTimeSeries.read_times(vSol);
-		}
 
 	// 	prepare element
 		try
@@ -804,6 +798,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
+		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(true, &locTimeSeries);
@@ -819,9 +814,6 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		UG_THROW("(instationary) AssembleDefect: Time stepping scheme needs at "
 				"least "<<vScaleStiff.size()<<" time steps, but only "<<
 				vSol->size() << " passed.");
-
-//	read time points
-	locTimeSeries.read_times(vSol);
 
 // 	Loop over all elements
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -849,8 +841,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		{
 		//	get local solution at timepoint
 			LocalVector& locU = locTimeSeries.solution(t);
-			const number time = vSol->time(t);
-			Eval.set_time(time);
+			Eval.set_time_point(t);
 
 		// 	prepare element
 			try
@@ -1068,6 +1059,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
+		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(true, &locTimeSeries);
@@ -1075,9 +1067,6 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.set_subset(si);
 	}
 	UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element loop.");
-
-//	get time points
-	locTimeSeries.read_times(vSol);
 
 	if(vScaleMass.size() != vScaleStiff.size())
 		UG_THROW("(instationary) AssembleLinear: s_a and s_m must have same size.");
@@ -1105,8 +1094,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 	//	read local values of time series
 		locTimeSeries.read_values(vSol, ind);
-		number time = vSol->time(0);
-		Eval.set_time(time);
+		Eval.set_time_point(0);
 
 	//	reset element contribution
 		locA = 0.0; locRhs = 0.0;
@@ -1169,8 +1157,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		{
 		//	get local solution at time point
 			LocalVector& locU = locTimeSeries.solution(t);
-			number time = vSol->time(t);
-			Eval.set_time(time);
+			Eval.set_time_point(t);
 
 		// 	prepare element
 			try
@@ -1382,6 +1369,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
+		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(true, &locTimeSeries);
@@ -1389,9 +1377,6 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.set_subset(si);
 	}
 	UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element loop.");
-
-//	get time points
-	locTimeSeries.read_times(vSol);
 
 	if(vScaleMass.size() != vScaleStiff.size())
 		UG_THROW("(instationary) AssembleRhs: s_a and s_m must have same size.");
@@ -1418,8 +1403,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 
 	//	read local values of time series
 		locTimeSeries.read_values(vSol, ind);
-		number time = vSol->time(0);
-		Eval.set_time(time);
+		Eval.set_time_point(0);
 
 	//	reset element contribution
 		locRhs = 0.0;
@@ -1462,8 +1446,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		{
 		//	get local solution at time point
 			LocalVector& locU = locTimeSeries.solution(t);
-			number time = vSol->time(t);
-			Eval.set_time(time);
+			Eval.set_time_point(t);
 
 		// 	prepare element
 			try
@@ -1555,7 +1538,6 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	if(iterBegin == iterEnd) return;
 
 //	get current time and vector
-	const number time = vSol->time(0);
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
 
 //	create data evaluator
@@ -1566,10 +1548,11 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
+		locTimeSeries.read_times(vSol);
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(true, &locTimeSeries);
-		Eval.set_time(time);
+		Eval.set_time_point(0);
 		Eval.template prepare_elem_loop<TElem>(true);
 		Eval.set_subset(si);
 	}
@@ -1595,10 +1578,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 
 	//	read local values of time series
 		if(Eval.time_series_needed())
-		{
 			locTimeSeries.read_values(vSol, ind);
-			locTimeSeries.read_times(vSol);
-		}
 
 	// 	prepare element
 		try
@@ -1617,7 +1597,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	// 	finish timestep
 		try
 		{
-			Eval.finish_timestep_elem(elem, time, locU);
+			Eval.finish_timestep_elem(elem, locTimeSeries.time(0), locU);
 		}
 		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot finish timestep.");
 	}

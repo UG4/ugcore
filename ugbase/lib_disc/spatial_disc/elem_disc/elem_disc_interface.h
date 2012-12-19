@@ -192,11 +192,11 @@ class IElemDisc
 	 */
 		virtual bool requests_local_time_series() {return false;}
 
-	///	sets the time point
-		void set_time(const number time) {m_time = time;}
+	///	sets the current time point
+		void set_time_point(const size_t timePoint) {m_timePoint = timePoint;}
 
 	///	returns currently set timepoint
-		number time() const {return m_time;}
+		number time() const {return m_pLocalVectorTimeSeries->time(m_timePoint);}
 
 	///	returns the local time solutions
 	/**
@@ -357,7 +357,7 @@ class IElemDisc
 		bool m_bTimeDependent;
 
 	///	time point
-		number m_time;
+		size_t m_timePoint;
 
 	///	list of local vectors for all solutions of the time series
 		const LocalVectorTimeSeries* m_pLocalVectorTimeSeries;

@@ -16,7 +16,7 @@ namespace ug{
 //	IUserData
 ////////////////////////////////////////////////////////////////////////////////
 
-inline IUserData::IUserData() : m_locPosDim(-1), m_time(0.0), m_si(-1)
+inline IUserData::IUserData() : m_locPosDim(-1), m_timePoint(0), m_si(-1)
 {
 	m_vNumIP.clear();
 	m_vMayChange.clear();
@@ -31,7 +31,7 @@ inline void IUserData::clear()
 	m_vMayChange.clear();
 	m_locPosDim = -1;
 	m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
-	m_time = 0.0;
+	m_timePoint = 0;
 	m_si = -1;
 }
 

@@ -378,6 +378,9 @@ void DataEvaluator::set_time_dependent(bool bTimeDep,
 //	check if time dependent
 	if(bTimeDep)
 	{
+		if(locTimeSeries == NULL)
+			UG_THROW("Time Dependent Assembling but no time series.");
+
 		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 		{
 		//	checks if local time series is needed.
@@ -387,24 +390,30 @@ void DataEvaluator::set_time_dependent(bool bTimeDep,
 		//	sets time dependent flag
 			m_vElemDisc[i]->set_time_dependent(bTimeDep, locTimeSeries);
 		}
+
 		m_pLocTimeSeries = locTimeSeries;
+
+		// NOTE: constant data is not processed.
+		for(size_t i = 0; i < m_vPosData.size(); ++i)
+			m_vPosData[i]->set_times(locTimeSeries->times());
+
+		for(size_t i = 0; i < m_vDependentData.size(); ++i)
+			m_vDependentData[i]->set_times(locTimeSeries->times());
 	}
 }
 
-void DataEvaluator::set_time(const number time)
+void DataEvaluator::set_time_point(const size_t timePoint)
 {
-	// TODO: Remove explicit time in IElemDiscs. Discs can use
-	//		requests_local_time_series anyway if time is needed explicitly
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-		m_vElemDisc[i]->set_time(time);
+		m_vElemDisc[i]->set_time_point(timePoint);
 
 	// NOTE: constant data is not processed.
 
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
-		m_vPosData[i]->set_time(time);
+		m_vPosData[i]->set_time_point(timePoint);
 
 	for(size_t i = 0; i < m_vDependentData.size(); ++i)
-		m_vDependentData[i]->set_time(time);
+		m_vDependentData[i]->set_time_point(timePoint);
 }
 
 void DataEvaluator::set_subset(const int subset)

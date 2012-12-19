@@ -126,6 +126,9 @@ class LocalVectorTimeSeries
 	///	returns time point i
 		number time(size_t i) const {return m_vTime.at(i);}
 
+	///	returns time points
+		const std::vector<number>& times() const {return m_vTime;}
+
 	///	returns the local vector for the i'th time point
 		const LocalVector& solution(size_t i) const {return m_vLocalVector.at(i);}
 

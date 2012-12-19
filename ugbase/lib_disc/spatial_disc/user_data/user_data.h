@@ -36,10 +36,13 @@ class IUserData
 		int subset() const {return m_si;}
 
 	///	set evaluation time
-		void set_time(number time) {m_time = time;}
+		void set_times(const std::vector<number>& vTime) {m_vTime = vTime;}
+
+	/// sets the current time point
+		void set_time_point(size_t timePoint) {m_timePoint = timePoint;}
 
 	///	get evaluation time
-		number time() const {return m_time;}
+		number time() const {return m_vTime[m_timePoint];}
 
 	///	returns the number of ip series
 		size_t num_series() const {return m_vNumIP.size();}
@@ -182,7 +185,10 @@ class IUserData
 		std::vector<const MathVector<3>*> m_pvLocIP3d;
 
 	///	time for evaluation
-		number m_time;
+		std::vector<number> m_vTime;
+
+	///	current time point
+		size_t m_timePoint;
 
 	///	subset for evaluation
 		int m_si;

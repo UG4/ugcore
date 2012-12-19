@@ -38,7 +38,7 @@ class DataEvaluator
 		                        LocalVectorTimeSeries* locTimeSeries = NULL);
 
 	///	sets the time point for data evaluation
-		void set_time(const number time);
+		void set_time_point(const size_t timePoint);
 
 	///	returns if local time series is really needed for assembling
 		bool time_series_needed() const {return m_bNeedLocTimeSeries;}

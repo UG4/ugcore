@@ -10,7 +10,7 @@
 namespace ug{
 
 IElemDisc::IElemDisc(const char* functions, const char* subsets)
-	: 	m_bTimeDependent(false), m_time(0.0),
+	: 	m_bTimeDependent(false), m_timePoint(0),
 	  	m_pLocalVectorTimeSeries(NULL),
 	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
@@ -22,7 +22,7 @@ IElemDisc::IElemDisc(const char* functions, const char* subsets)
 
 IElemDisc::IElemDisc(const std::vector<std::string>& vFct,
                      const std::vector<std::string>& vSubset)
-	: 	m_bTimeDependent(false), m_time(0.0),
+	: 	m_bTimeDependent(false), m_timePoint(0),
 		m_pLocalVectorTimeSeries(NULL),
 		m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
