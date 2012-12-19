@@ -39,12 +39,11 @@ bool FactorizeILU(Matrix_type &A)
 		{
 			const size_t k = it_k.index();
 			block_type &a_ik = it_k.value();
-			if(BlockNorm(a_ik) < 1e-7)	continue; //Nae: this may be dangerous
-
+		
 			// add row k to row i by A(i, .) -= A(k,.)  A(i,k) / A(k,k)
 			// so that A(i,k) is zero.
 			// safe A(i,k)/A(k,k) in A(i,k)
-			if(fabs(BlockNorm(A(k,k))) < 1e-50)
+			if(fabs(BlockNorm(A(k,k))) < 1e-15*BlockNorm(A(i,k)))
 				UG_THROW("Diag is Zero for k="<<k<<", cannot factorize ILU.");
 
 			a_ik /= A(k,k);
@@ -100,8 +99,6 @@ bool FactorizeILUBeta(Matrix_type &A, number beta)
 			block_type &a_ik = it_ik.value();
 			a_ik /= A(k,k);
 
-			if(BlockNorm(a_ik) < 1e-7)	continue; //Nae: this may be dangerous
-
 			// 2) Contribution to U part:
 			// compute contributions from row k for j=k:N
 			const row_iterator it_kEnd = A.end_row(k);
@@ -155,16 +152,15 @@ bool FactorizeILUSorted(Matrix_type &A)
 		{
 			const size_t k = it_k.index();
 			block_type &a_ik = it_k.value();
-			if(BlockNorm(a_ik) < 1e-7)	continue;
 			block_type &a_kk = A(k,k);
 
 			// add row k to row i by A(i, .) -= A(k,.)  A(i,k) / A(k,k)
 			// so that A(i,k) is zero.
 			// safe A(i,k)/A(k,k) in A(i,k)
-			if(fabs(BlockNorm(a_kk)) < 1e-50)
-				UG_THROW("Diag is Zero for k="<<k<<", cannot factorize ILU.");
-
 			a_ik /= a_kk;
+
+			if(fabs(BlockNorm(A(k,k))) < 1e-15*BlockNorm(A(i,k)))
+				UG_THROW("Diag is Zero for k="<<k<<", cannot factorize ILU.");
 
 			typename Matrix_type::row_iterator it_ij = it_k; // of row i
 			++it_ij; // skip a_ik
