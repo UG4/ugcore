@@ -195,7 +195,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_independent();
-		Eval.template prepare_elem_loop<TElem>(true);
+		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
 	UG_CATCH_THROW("AssembleMassMatrix: Cannot prepare element loop.");
@@ -221,7 +221,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, true, true);
+			Eval.prepare_elem(elem, locU, ind, true);
 		}
 		UG_CATCH_THROW("AssembleMassMatrix: Cannot prepare element.");
 
@@ -313,7 +313,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(locTimeSeries);
 		Eval.set_time_point(0);
-		Eval.template prepare_elem_loop<TElem>(true);
+		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
 	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare element loop.");
@@ -343,7 +343,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, true, true);
+			Eval.prepare_elem(elem, locU, ind, true);
 		}
 		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare element.");
 
@@ -538,7 +538,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(locTimeSeries);
 		Eval.set_time_point(0);
-		Eval.template prepare_elem_loop<TElem>(true);
+		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
 	UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot prepare element loop.");
@@ -568,7 +568,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, true, true);
+			Eval.prepare_elem(elem, locU, ind, true);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot prepare element.");
 
@@ -802,7 +802,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(locTimeSeries, vScaleMass, vScaleStiff);
-		Eval.template prepare_elem_loop<TElem>(true);
+		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
 	UG_CATCH_THROW("(instationary) AssembleDefect: Cannot prepare element loop.");
@@ -846,7 +846,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		// 	prepare element
 			try
 			{
-				Eval.prepare_elem(elem, locU, ind, false, true);
+				Eval.prepare_elem(elem, locU, ind, false);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot prepare element.");
 
@@ -1063,7 +1063,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(locTimeSeries, vScaleMass, vScaleStiff);
-		Eval.template prepare_elem_loop<TElem>(true);
+		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
 	UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element loop.");
@@ -1108,7 +1108,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, false, true);
+			Eval.prepare_elem(elem, locU, ind, false);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element.");
 
@@ -1162,7 +1162,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		// 	prepare element
 			try
 			{
-				Eval.prepare_elem(elem, locU, ind, false, true);
+				Eval.prepare_elem(elem, locU, ind, false);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element.");
 
@@ -1373,7 +1373,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		Eval.set_elem_discs(vElemDisc, dd->function_pattern());
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(locTimeSeries, vScaleMass, vScaleStiff);
-		Eval.template prepare_elem_loop<TElem>(true);
+		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
 	UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element loop.");
@@ -1417,7 +1417,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, false, true);
+			Eval.prepare_elem(elem, locU, ind, false);
 		}
 		UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element.");
 
@@ -1451,7 +1451,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		// 	prepare element
 			try
 			{
-				Eval.prepare_elem(elem, locU, ind, false, true);
+				Eval.prepare_elem(elem, locU, ind, false);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element.");
 
@@ -1553,7 +1553,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		Eval.set_non_regular_grid(bNonRegularGrid);
 		Eval.set_time_dependent(locTimeSeries);
 		Eval.set_time_point(0);
-		Eval.template prepare_elem_loop<TElem>(true);
+		Eval.template prepare_elem_loop<TElem>();
 		Eval.set_subset(si);
 	}
 	UG_CATCH_THROW("(instationary) FinishTimestep: Cannot finish element loop.");
@@ -1583,7 +1583,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, true, true);
+			Eval.prepare_elem(elem, locU, ind, true);
 		}
 		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot prepare element.");
 

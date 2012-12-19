@@ -66,13 +66,13 @@ class DataEvaluator
 
 	///	prepares the element loop for all IElemDiscs
 		template <typename TElem>
-		void prepare_elem_loop(bool bMassPart = false);
+		void prepare_elem_loop();
 
 	///	prepares the element for all IElemDiscs
 		template <typename TElem>
 		void prepare_elem(TElem* elem, LocalVector& u,
 		                  const LocalIndices& ind,
-		                  bool bDeriv = false, bool bMassPart = false);
+		                  bool bDeriv = false);
 
 	///	finishes the element for all time-dependent IElemDiscs
 		template <typename TElem>
@@ -134,7 +134,7 @@ class DataEvaluator
 								   std::vector<SmartPtr<IUserData> >& vTryingToAdd);
 
 	///	extracts imports and userdata from IElemDiscs
-		void extract_imports_and_userdata(bool bMassPart = false);
+		void extract_imports_and_userdata();
 
 	/// computes function groups and mappings between common grp and fct groups
 		void extract_fct_groups_and_mappings(const FunctionPattern& fctPat);

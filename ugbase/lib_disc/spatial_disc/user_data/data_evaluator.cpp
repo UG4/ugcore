@@ -180,7 +180,7 @@ void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEv
 		vTryingToAdd.pop_back();
 }
 
-void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
+void DataEvaluator::extract_imports_and_userdata()
 {
 //	clear imports and userdata
 	clear_extracted_data_and_mappings();
@@ -208,7 +208,7 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 			IDataImport* iimp = &(m_vElemDisc[d]->get_import(i));
 
 		//	skip, if in mass part but no mass part wanted
-			if(!bMassPart && iimp->in_mass_part()) continue;
+			if(!m_vElemDisc[d]->is_time_dependent() && iimp->in_mass_part()) continue;
 
 		//	skip non-given data (no need for evaluation)
 			if(!iimp->data_given()) continue;
@@ -317,7 +317,7 @@ void DataEvaluator::extract_imports_and_userdata(bool bMassPart)
 			IDataImport* iimp = &(m_vElemDisc[d]->get_import(i));
 
 		//	skip, if in mass part but no mass part wanted
-			if(!bMassPart && iimp->in_mass_part()) continue;
+			if(!m_vElemDisc[d]->is_time_dependent() && iimp->in_mass_part()) continue;
 
 		//	skip non-given data (no need for evaluation)
 			if(!iimp->data_given()) continue;

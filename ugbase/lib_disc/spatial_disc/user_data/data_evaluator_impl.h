@@ -36,7 +36,7 @@ prepare_timestep_elem(TElem* elem, LocalVector& u)
 
 template <typename TElem>
 void DataEvaluator::
-prepare_elem_loop(bool bMassPart)
+prepare_elem_loop()
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -57,7 +57,7 @@ prepare_elem_loop(bool bMassPart)
 
 //	extract data imports and userdatas
 	try{
-		extract_imports_and_userdata(bMassPart);
+		extract_imports_and_userdata();
 	}
 	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 					"Cannot extract imports and userdata.");
@@ -96,7 +96,7 @@ prepare_elem_loop(bool bMassPart)
 
 //	extract data imports and userdatas
 	try{
-		extract_imports_and_userdata(bMassPart);
+		extract_imports_and_userdata();
 	}
 	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 					"Cannot extract imports and userdata.");
@@ -110,14 +110,13 @@ prepare_elem_loop(bool bMassPart)
 						" (Stiffness part).");
 	}
 
-	if(bMassPart)
-		for(size_t i = 0; i < m_vMassDataImport.size(); ++i){
-			try{
-				m_vMassDataImport[i]->set_roid(id);
-			}UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: Cannot set "
-							" geometric object type "<<id<<" for Import "<<i<<
-							" (Mass part).");
-		}
+	for(size_t i = 0; i < m_vMassDataImport.size(); ++i){
+		try{
+			m_vMassDataImport[i]->set_roid(id);
+		}UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: Cannot set "
+						" geometric object type "<<id<<" for Import "<<i<<
+						" (Mass part).");
+	}
 
 	for(size_t i = 0; i < m_vDependentData.size(); ++i){
 	//	set geometric type at exports
@@ -143,7 +142,7 @@ prepare_elem_loop(bool bMassPart)
 template <typename TElem>
 void DataEvaluator::
 prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
-             bool bDeriv, bool bMassPart)
+             bool bDeriv)
 {
 // 	prepare element
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
@@ -172,9 +171,8 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 	{
 		for(size_t i = 0; i < m_vStiffDataImport.size(); ++i)
 			m_vStiffDataImport[i]->set_dof_sizes(ind, m_vStiffImpMap[i]);
-		if(bMassPart)
-			for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
-				m_vMassDataImport[i]->set_dof_sizes(ind, m_vMassImpMap[i]);
+		for(size_t i = 0; i < m_vMassDataImport.size(); ++i)
+			m_vMassDataImport[i]->set_dof_sizes(ind, m_vMassImpMap[i]);
 
 		for(size_t i = 0; i < m_vDependentData.size(); ++i)
 			m_vDependentData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
