@@ -84,8 +84,8 @@ inline
 void
 TransposedMatVecMult(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v)
 {
-	assert(vector_t_out::Size == matrix_t::RowSize);
-	assert(vector_t_in::Size == matrix_t::ColSize);
+	assert(vector_t_out::Size == matrix_t::ColSize);
+	assert(vector_t_in::Size == matrix_t::RowSize);
 
 	typedef typename matrix_t::size_type size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
@@ -105,8 +105,8 @@ inline
 void
 TransposedMatVecMultAdd(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v)
 {
-	assert(vector_t_out::Size == matrix_t::RowSize);
-	assert(vector_t_in::Size == matrix_t::ColSize);
+	assert(vector_t_out::Size == matrix_t::ColSize);
+	assert(vector_t_in::Size == matrix_t::RowSize);
 
 	typedef typename matrix_t::size_type size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
