@@ -27,31 +27,20 @@ class DataEvaluator
 {
 	public:
 	///	sets the elem discs to evaluate
-		void set_elem_discs(const std::vector<IElemDisc*>& vElemDisc,
-		                    const FunctionPattern& fctPat);
-
-	///	sets the subset for data evaluation
-		void set_subset(const int subset);
-
-	///	sets in all IElemDiscs the time and previous solutions
-	///	\{
-		void set_time_dependent(LocalVectorTimeSeries& locTimeSeries,
-                                const std::vector<number>& vScaleMass,
-                                const std::vector<number>& vScaleStiff);
-		void set_time_dependent(LocalVectorTimeSeries& locTimeSeries);
-	/// \}
-
-	///	sets that the assembling is time independent
-		void set_time_independent();
+		DataEvaluator(int discPart,
+		              const std::vector<IElemDisc*>& vElemDisc,
+		              const FunctionPattern& fctPat,
+		              const int subset,
+		              const bool bNonRegularGrid,
+		              LocalVectorTimeSeries* locTimeSeries = NULL,
+		              const std::vector<number>* vScaleMass = NULL,
+		              const std::vector<number>* vScaleStiff = NULL);
 
 	///	sets the time point for data evaluation
 		void set_time_point(const size_t timePoint);
 
 	///	returns if local time series is really needed for assembling
 		bool time_series_needed() const {return m_bNeedLocTimeSeries;}
-
-	///	requests in all IElemDisc to use HangingGrid
-		void set_non_regular_grid(bool bNonRegularGrid);
 
 	///	returns if one of the element discs needs hanging dofs
 		bool use_hanging() const {return m_bUseHanging;}
@@ -78,49 +67,39 @@ class DataEvaluator
 		template <typename TElem>
 		void finish_timestep_elem(TElem* elem, const number time, LocalVector& u);
 
-	///	computes all needed data on the element
-		void compute_elem_data(LocalVector& u, GeometricObject* elem, bool bDeriv = false);
-
 	///	compute local stiffness matrix for all IElemDiscs
-		void ass_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem);
+		void add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem);
 
 	///	compute local mass matrix for all IElemDiscs
-		void ass_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem);
+		void add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem);
 
 	///	compute local stiffness defect for all IElemDiscs
-		void ass_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem);
+		void add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem);
 
 	///	compute local mass defect for all IElemDiscs
-		void ass_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem);
+		void add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem);
 
 	///	compute local rhs for all IElemDiscs
-		void ass_rhs_elem(LocalVector& rhs, GeometricObject* elem);
+		void add_rhs_elem(LocalVector& rhs, GeometricObject* elem);
 
 	///	finishes the element loop for all IElemDiscs
 		void finish_elem_loop();
 
-		////////////////////////////////////////////
-		// Coupling
-		////////////////////////////////////////////
-
-	///	computes the linearized defect of imports in stiffness part of all IElemDiscs
-		void compute_lin_defect_JA(LocalVector& u, GeometricObject* elem);
-
-	///	computes the linearized defect of imports in mass part of all IElemDiscs
-		void compute_lin_defect_JM(LocalVector& u, GeometricObject* elem);
+	protected:
+	///	computes all needed data on the element
+		void compute_elem_data(LocalVector& u, GeometricObject* elem, bool bDeriv = false);
 
 	///	adds the contribution due to coupling to local stiffness matrix
-		void add_coupl_JA(LocalMatrix& J);
+		void add_coupl_JA(LocalMatrix& J, LocalVector& u);
 
 	///	adds the contribution due to coupling to local mass matrix
-		void add_coupl_JM(LocalMatrix& J);
+		void add_coupl_JM(LocalMatrix& J, LocalVector& u);
 
-	protected:
 	///	Mapping between local functions of ElemDisc i and common FunctionGroup
 		const FunctionIndexMapping& map(size_t i) const
 		{
-			UG_ASSERT(i < m_vElemDiscMap.size(), "Wrong index");
-			return m_vElemDiscMap[i];
+			UG_ASSERT(i < m_vElemDisc.size(), "Wrong index");
+			return m_vElemDisc[i].map;
 		}
 
 	///	returns common function group of all needed functions
@@ -134,35 +113,37 @@ class DataEvaluator
 								   std::vector<SmartPtr<IUserData> >& vTryingToAdd);
 
 	///	extracts imports and userdata from IElemDiscs
-		void extract_imports_and_userdata();
-
-	/// computes function groups and mappings between common grp and fct groups
-		void extract_fct_groups_and_mappings(const FunctionPattern& fctPat);
+		void extract_imports_and_userdata(int discPart);
 
 	///	clears all requested positions in user data
 		void clear_positions_in_user_data();
 
 	protected:
-	///	current elem discs
-		std::vector<IElemDisc*> m_vElemDisc;
+	///	disc part needed (MASS and/or STIFF and/or RHS)
+		int m_discPart;
+
+	///	struct to store data related to elem disc
+		struct ElemDisc {
+			IElemDisc* elemDisc;
+			FunctionGroup fctGrp;
+			FunctionIndexMapping map;
+			bool needLocTimeSeries;
+		};
+
+	///	elem disc data
+		std::vector<ElemDisc> m_vElemDisc;
 
 	///	common function group (all function of function pattern)
 		FunctionGroup m_commonFctGroup;
 
-	///	function group for all elem discs
-		std::vector<FunctionGroup> m_vElemDiscFctGrp;
-
-	///	Function mapping for each disc
-		std::vector<FunctionIndexMapping> m_vElemDiscMap;
-
 	///	flag if hanging nodes are used
 		bool m_bUseHanging;
 
-	///	flag indicating if elem disc needs local time series
-		std::vector<bool> m_vbNeedLocTimeSeries;
-
 	///	flag indicating if any elem disc needs local time series
 		bool m_bNeedLocTimeSeries;
+
+	///	subset
+		int m_subset;
 
 	///	local time series (non-const since mapping may change)
 		LocalVectorTimeSeries* m_pLocTimeSeries;
@@ -170,31 +151,25 @@ class DataEvaluator
 	////////////////////////////////
 	// 	Data Import
 	////////////////////////////////
-	///	data imports which are connected to non-zero derivative user data in mass part
-		std::vector<IDataImport*> m_vMassDataImport;
-	///	data imports which are connected to non-zero derivative user data in stiffness part
-		std::vector<IDataImport*> m_vStiffDataImport;
+	///	struct to store data related to an import
+		struct Import{
+			Import(IDataImport* _import,
+			       FunctionIndexMapping& _map, FunctionIndexMapping& _connMap) :
+			import(_import), map(_map), connMap(_connMap) {}
 
-	///	Function mapping for import (separated in stiff and mass part)
-		std::vector<FunctionIndexMapping> m_vMassImpMap;
-		std::vector<FunctionIndexMapping> m_vStiffImpMap;
+			IDataImport* import;
+			FunctionIndexMapping map;
+			FunctionIndexMapping connMap;
+		};
 
-	///	Function mapping data connected to the import
-		std::vector<FunctionIndexMapping> m_vMassImpConnMap;
-		std::vector<FunctionIndexMapping> m_vStiffImpConnMap;
+		std::vector<Import> m_vImport[MAX_PART];
 
 	////////////////////////////////
 	// 	UserData
 	////////////////////////////////
-
-	///	constant data
-		std::vector<SmartPtr<IUserData> > m_vConstData;
-
-	///	position dependent data
-		std::vector<SmartPtr<IUserData> > m_vPosData;
-
-	///	dependent data
-		std::vector<SmartPtr<IUserData> > m_vDependentData;
+		std::vector<SmartPtr<IUserData> > m_vConstData;	    //< constant data
+		std::vector<SmartPtr<IUserData> > m_vPosData;       //< position dependent data
+		std::vector<SmartPtr<IUserData> > m_vDependentData; //< dependent data
 		std::vector<FunctionIndexMapping> m_vDependentMap;
 };
 

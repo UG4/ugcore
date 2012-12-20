@@ -175,50 +175,27 @@ void DataImport<TData,dim>::clear_ips()
 }
 
 template <typename TData, int dim>
-void DataImport<TData,dim>::assemble_jacobian(LocalMatrix& J)
+void DataImport<TData,dim>::add_jacobian(LocalMatrix& J, const number scale)
 {
 	UG_ASSERT(m_spDependentUserData.valid(), "No Export set.");
 
-	if(m_bInRhsPart){
-	//	loop integration points
-		for(size_t ip = 0; ip < num_ip(); ++ip)
+//	loop integration points
+	for(size_t ip = 0; ip < num_ip(); ++ip)
+	{
+//	loop all functions
+	for(size_t fct1 = 0; fct1 < num_fct(); ++fct1)
+		for(size_t fct2 = 0; fct2 < m_spDependentUserData->num_fct(); ++fct2)
 		{
-	//	loop all functions
-		for(size_t fct1 = 0; fct1 < num_fct(); ++fct1)
-			for(size_t fct2 = 0; fct2 < m_spDependentUserData->num_fct(); ++fct2)
-			{
-	//	get array of linearized defect and derivative
-		const TData* LinDef = lin_defect(ip, fct1);
-		const TData* Deriv = m_spDependentUserData->deriv(m_seriesID, ip, fct2);
+//	get array of linearized defect and derivative
+	const TData* LinDef = lin_defect(ip, fct1);
+	const TData* Deriv = m_spDependentUserData->deriv(m_seriesID, ip, fct2);
 
-	//	loop shapes of functions
-		for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
-			for(size_t sh2 = 0; sh2 < m_spDependentUserData->num_sh(fct2); ++sh2)
-			{
-				J(fct1, sh1, fct2, sh2) -= LinDef[sh1]*Deriv[sh2];
-			}
-			}
+//	loop shapes of functions
+	for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
+		for(size_t sh2 = 0; sh2 < m_spDependentUserData->num_sh(fct2); ++sh2)
+		{
+			J(fct1, sh1, fct2, sh2) += scale*(LinDef[sh1]*Deriv[sh2]);
 		}
-	}
-	else{
-	//	loop integration points
-		for(size_t ip = 0; ip < num_ip(); ++ip)
-		{
-	//	loop all functions
-		for(size_t fct1 = 0; fct1 < num_fct(); ++fct1)
-			for(size_t fct2 = 0; fct2 < m_spDependentUserData->num_fct(); ++fct2)
-			{
-	//	get array of linearized defect and derivative
-		const TData* LinDef = lin_defect(ip, fct1);
-		const TData* Deriv = m_spDependentUserData->deriv(m_seriesID, ip, fct2);
-
-	//	loop shapes of functions
-		for(size_t sh1 = 0; sh1 < num_sh(fct1); ++sh1)
-			for(size_t sh2 = 0; sh2 < m_spDependentUserData->num_sh(fct2); ++sh2)
-			{
-				J(fct1, sh1, fct2, sh2) += LinDef[sh1]*Deriv[sh2];
-			}
-			}
 		}
 	}
 }

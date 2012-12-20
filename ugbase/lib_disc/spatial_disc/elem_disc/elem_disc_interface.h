@@ -261,7 +261,8 @@ class IElemDisc
 	 * 'set_roid' must have been called to set the elem type.
 	 */
 		void fast_prepare_elem_loop()
-			{(this->*m_vPrepareElemLoopFct[m_id])();}
+		{UG_ASSERT(m_vPrepareElemLoopFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+			(this->*m_vPrepareElemLoopFct[m_id])();}
 
 	///	virtual prepares the loop over all elements of one type
 		virtual void prepare_elem_loop() {}
@@ -291,7 +292,8 @@ class IElemDisc
 	 * 'set_roid' must have been called to set the elem type.
 	 */
 		void fast_finish_elem_loop()
-			{(this->*m_vFinishElemLoopFct[m_id])();}
+		{UG_ASSERT(m_vFinishElemLoopFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+			(this->*m_vFinishElemLoopFct[m_id])();}
 
 	///	virtual postprocesses the loop over all elements of one type
 		virtual void finish_elem_loop() {}
@@ -317,7 +319,8 @@ class IElemDisc
 	 * 'set_roid' must have been called to set the elem type.
 	 */
 		void fast_ass_JA_elem(LocalMatrix& J, const LocalVector& u)
-			{(this->*m_vElemJAFct[m_id])(J, u);}
+		{UG_ASSERT(m_vElemJAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+			(this->*m_vElemJAFct[m_id])(J, u);}
 
 	/// Assembling of Jacobian (Stiffness part)
 		virtual void ass_JA_elem(GeometricObject* elem, LocalMatrix& J, const LocalVector& u) {}
@@ -330,7 +333,8 @@ class IElemDisc
 	 * 'set_roid' must have been called to set the elem type.
 	 */
 		void fast_ass_JM_elem(LocalMatrix& J, const LocalVector& u)
-			{(this->*m_vElemJMFct[m_id])(J, u);}
+		{UG_ASSERT(m_vElemJMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+			(this->*m_vElemJMFct[m_id])(J, u);}
 
 	/// Assembling of Jacobian (Mass part)
 		virtual void ass_JM_elem(GeometricObject* elem, LocalMatrix& J, const LocalVector& u) {}
@@ -343,7 +347,8 @@ class IElemDisc
 	 * 'set_roid' must have been called to set the elem type.
 	 */
 		void fast_ass_dA_elem(LocalVector& d, const LocalVector& u)
-			{(this->*m_vElemdAFct[m_id])(d, u);}
+		{UG_ASSERT(m_vElemdAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+			(this->*m_vElemdAFct[m_id])(d, u);}
 
 	/// virtual Assembling of Defect (Stiffness part)
 		virtual void ass_dA_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
@@ -356,7 +361,8 @@ class IElemDisc
 	 * 'set_roid' must have been called to set the elem type.
 	 */
 		void fast_ass_dM_elem(LocalVector& d, const LocalVector& u)
-			{(this->*m_vElemdMFct[m_id])(d, u);}
+		{UG_ASSERT(m_vElemdMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+			(this->*m_vElemdMFct[m_id])(d, u);}
 
 	/// virtual Assembling of Defect (Mass part)
 		virtual void ass_dM_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
@@ -368,7 +374,8 @@ class IElemDisc
 	 * 'set_roid' must have been called to set the elem type.
 	 */
 		void fast_ass_rhs_elem(LocalVector& rhs)
-			{(this->*m_vElemRHSFct[m_id])(rhs);}
+		{UG_ASSERT(m_vElemRHSFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+			(this->*m_vElemRHSFct[m_id])(rhs);}
 
 	/// virtual Assembling of Right-Hand Side
 		virtual void ass_rhs_elem(GeometricObject* elem, LocalVector& rhs) {}
@@ -448,7 +455,7 @@ class IElemDisc
 	 * assembling routines can be called. Keep in mind, that the elements are
 	 * looped type by type, thus this function has to be called very few times.
 	 */
-		void set_roid(ReferenceObjectID id);
+		void set_roid(ReferenceObjectID id, int discType);
 
 	private:
 	///	flag if fast assemble is used

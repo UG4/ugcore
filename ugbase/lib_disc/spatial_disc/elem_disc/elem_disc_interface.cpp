@@ -111,14 +111,38 @@ SmartPtr<IUserData> IElemDisc::get_export(size_t i)
 	return m_vIExport[i];
 }
 
-void IElemDisc::set_roid(ReferenceObjectID id)
+void IElemDisc::set_roid(ReferenceObjectID roid, int discType)
 {
-	m_id = id;
+	m_id = roid;
 
-	if(id == ROID_UNKNOWN)
+	if(roid == ROID_UNKNOWN)
 	{
 		m_id = ROID_UNKNOWN;
-		UG_THROW("Cannot assemble for RefID: "<<id<<".\n");
+		UG_THROW("Cannot assemble for RefID: "<<roid<<".");
+	}
+
+	if(m_vPrepareElemLoopFct[m_id]==NULL)
+		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid);
+	if(m_vPrepareElemFct[m_id]==NULL)
+		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem' for "<<roid);
+	if(m_vFinishElemLoopFct[m_id]==NULL)
+		UG_THROW("ElemDisc: Missing evaluation method 'finish_elem_loop' for "<<roid);
+
+	if(discType & MASS){
+		if(m_vElemJMFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'ass_JM_elem' for "<<roid);
+		if(m_vElemdMFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'ass_dM_elem' for "<<roid);
+	}
+	if(discType & STIFF){
+		if(m_vElemJAFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'ass_JA_elem' for "<<roid);
+		if(m_vElemdAFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'ass_dA_elem for' "<<roid);
+	}
+	if(discType & RHS){
+		if(m_vElemRHSFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'ass_rhs_elem' for "<<roid);
 	}
 };
 

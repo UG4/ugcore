@@ -19,6 +19,11 @@ class IElemDisc;
 // Data Import
 ////////////////////////////////////////////////////////////////////////////////
 
+enum DiscPart {	MASS = 1 << 0,
+				STIFF = 1 << 1,
+				RHS = 1 << 2,
+				MAX_PART};
+
 /// Base class for data import
 /**
  * An IDataImport is the base class for importing data to ElemDiscs
@@ -28,24 +33,20 @@ class IDataImport
 	public:
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
-			: m_spIUserData(NULL),
-			 m_bInMassPart(false), m_bInRhsPart(false),
+			: m_spIUserData(NULL), m_part(STIFF),
 			 m_bCompLinDefect(compLinDefect)
 		{}
 
 		virtual ~IDataImport()	{}
 
 	///	sets if import is located in mass part (for time dependent problems)
-		void set_mass_part(bool bInMassPart) {m_bInMassPart = bInMassPart;}
-
-	///	returns if import is located in mass part (for time dependent problems)
-		bool in_mass_part() const {return m_bInMassPart;}
+		void set_mass_part(bool bInMassPart) {if(bInMassPart) m_part = MASS;}
 
 	///	sets if import is located in rhs part
-		void set_rhs_part(bool bInRhsPart) {m_bInRhsPart = bInRhsPart;}
+		void set_rhs_part(bool bInRhsPart) {if(bInRhsPart) m_part = RHS;}
 
-	///	returns if import is located in rhs part
-		bool in_rhs_part() const {return m_bInRhsPart;}
+	///	returns if import is located in mass part (for time dependent problems)
+		DiscPart part() const {return m_part;}
 
 	/// returns if data is set
 		virtual bool data_given() const = 0;
@@ -90,7 +91,7 @@ class IDataImport
 		                           const FunctionIndexMapping& map) = 0;
 
 	///	add jacobian entries introduced by this import
-		virtual void assemble_jacobian(LocalMatrix& J) = 0;
+		virtual void add_jacobian(LocalMatrix& J, const number scale) = 0;
 
 	///	removes the positions
 		virtual void clear_ips() = 0;
@@ -103,11 +104,8 @@ class IDataImport
 		FunctionGroup m_fctGrp;
 
 	protected:
-	///	flag to indicate if import is located in mass part
-		bool m_bInMassPart;
-
-	///	flag to indicate if import is located in rhs part
-		bool m_bInRhsPart;
+	///	flag to indicate where import is located
+		DiscPart m_part;
 
 	///	indicates iff lin defect should be computed
 		bool m_bCompLinDefect;
@@ -235,7 +233,7 @@ class DataImport : public IDataImport
 			{check_ip_fct_sh(ip,fct,sh);return m_vvvLinDefect[ip][fct][sh];}
 
 	/// compute jacobian for derivative w.r.t. non-system owned unknowns
-		void assemble_jacobian(LocalMatrix& J);
+		void add_jacobian(LocalMatrix& J, const number scale);
 
 	///	resize lin defect arrays
 		virtual void set_dof_sizes(const LocalIndices& ind,
