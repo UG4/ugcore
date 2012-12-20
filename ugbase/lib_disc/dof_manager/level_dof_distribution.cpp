@@ -317,7 +317,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 	std::vector<Volume*> vVols;
 
 //	Multigrid
-	MultiGrid& rMultiGrid = *const_cast<MultiGrid*>(m_spMGSH->multi_grid());
+	MultiGrid& rMultiGrid = *m_spMGSH->multi_grid();
 
 // 	Iterators
 	typedef typename traits<TBaseElem>::const_iterator const_iterator;
