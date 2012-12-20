@@ -559,7 +559,7 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 	if(!m_interfaceManagementEnabled)
 		return;
 		
-//	if there is no parent, we can immediatly leave.
+//	if there is no parent, we can immediately leave.
 	if(!pParent)
 		return;
 	
