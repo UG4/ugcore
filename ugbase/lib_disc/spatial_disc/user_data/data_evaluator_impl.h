@@ -45,29 +45,10 @@ prepare_elem_loop()
 //	reference object id
 	const ReferenceObjectID id = reference_element_type::REFERENCE_OBJECT_ID;
 
-//	copy function group in import/export of element discs
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-	{
-		for(size_t imp = 0; imp < m_vElemDisc[i].elemDisc->num_imports(); ++imp)
-			m_vElemDisc[i].elemDisc->get_import(imp).set_function_group(m_vElemDisc[i].fctGrp);
-
-		for(size_t exp = 0; exp < m_vElemDisc[i].elemDisc->num_exports(); ++exp)
-			m_vElemDisc[i].elemDisc->get_export(exp)->set_function_group(m_vElemDisc[i].fctGrp);
-	}
-
-//	extract data imports and userdatas
-	try{
-		extract_imports_and_userdata(m_discPart);
-	}
-	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
-					"Cannot extract imports and userdata.");
-
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
-		try{
-			m_vElemDisc[i].elemDisc->set_roid(id, m_discPart);
-		}
+		try{m_vElemDisc[i].elemDisc->set_roid(id, m_discPart);}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 						"Cannot set geometric object type for Disc " << i);
 	}
@@ -77,27 +58,13 @@ prepare_elem_loop()
 // 	prepare loop (elem disc set local ip series here)
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 	{
-		try{
-			m_vElemDisc[i].elemDisc->fast_prepare_elem_loop();
-		}
+		try{m_vElemDisc[i].elemDisc->fast_prepare_elem_loop();}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 						"Cannot prepare element loop.");
 	}
 
-//	copy function group in import/export of element discs
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-	{
-		for(size_t imp = 0; imp < m_vElemDisc[i].elemDisc->num_imports(); ++imp)
-			m_vElemDisc[i].elemDisc->get_import(imp).set_function_group(m_vElemDisc[i].fctGrp);
-
-		for(size_t exp = 0; exp < m_vElemDisc[i].elemDisc->num_exports(); ++exp)
-			m_vElemDisc[i].elemDisc->get_export(exp)->set_function_group(m_vElemDisc[i].fctGrp);
-	}
-
 //	extract data imports and userdatas
-	try{
-		extract_imports_and_userdata(m_discPart);
-	}
+	try{extract_imports_and_userdata(m_discPart);}
 	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 					"Cannot extract imports and userdata.");
 
@@ -118,6 +85,7 @@ prepare_elem_loop()
 						"object type "<<id<<" for Import "<<i<<" (Rhs part).");
 	}
 
+//	set geometric type at dependent data
 	for(size_t i = 0; i < m_vDependentData.size(); ++i){
 		try{m_vDependentData[i]->set_roid(id);}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "

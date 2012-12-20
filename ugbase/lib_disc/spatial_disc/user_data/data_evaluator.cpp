@@ -217,6 +217,16 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 {
 	clear_extracted_data_and_mappings();
 
+//	copy function group in import/export of element discs
+	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	{
+		for(size_t imp = 0; imp < m_vElemDisc[i].elemDisc->num_imports(); ++imp)
+			m_vElemDisc[i].elemDisc->get_import(imp).set_function_group(m_vElemDisc[i].fctGrp);
+
+		for(size_t exp = 0; exp < m_vElemDisc[i].elemDisc->num_exports(); ++exp)
+			m_vElemDisc[i].elemDisc->get_export(exp)->set_function_group(m_vElemDisc[i].fctGrp);
+	}
+
 //	queue for all user data needed
 	std::vector<SmartPtr<IUserData> > vEvalData;
 	std::vector<SmartPtr<IUserData> > vTryingToAdd;
