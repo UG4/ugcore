@@ -40,10 +40,13 @@ class IDataImport
 		virtual ~IDataImport()	{}
 
 	///	sets if import is located in mass part (for time dependent problems)
-		void set_mass_part(bool bInMassPart) {if(bInMassPart) m_part = MASS;}
+		void set_mass_part() {m_part = MASS;}
 
 	///	sets if import is located in rhs part
-		void set_rhs_part(bool bInRhsPart) {if(bInRhsPart) m_part = RHS;}
+		void set_rhs_part() {m_part = RHS;}
+
+	///	sets if import is located in stiff part (default)
+		void set_stiff_part() {m_part = STIFF;}
 
 	///	returns if import is located in mass part (for time dependent problems)
 		DiscPart part() const {return m_part;}

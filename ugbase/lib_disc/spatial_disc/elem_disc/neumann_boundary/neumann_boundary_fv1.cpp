@@ -254,7 +254,7 @@ prepare_element_loop()
 		                                   &NumberData::template lin_def_fv1<TElem, TFVGeom>);
 
 		this->register_import(m_vNumberData[data].import);
-		m_vNumberData[data].import.set_rhs_part(true);
+		m_vNumberData[data].import.set_rhs_part();
 	}
 }
 
