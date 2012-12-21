@@ -19,7 +19,8 @@ class IElemDisc;
 // Data Import
 ////////////////////////////////////////////////////////////////////////////////
 
-enum DiscPart {	MASS = 1 << 0,
+enum DiscPart {	NONE = 0,
+				MASS = 1 << 0,
 				STIFF = 1 << 1,
 				RHS = 1 << 2,
 				MAX_PART};

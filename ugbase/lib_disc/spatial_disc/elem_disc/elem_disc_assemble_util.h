@@ -221,105 +221,6 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Prepare Timestep (instationary)
-////////////////////////////////////////////////////////////////////////////////
-
-/**
- * This function calls the function "prepare_timestep_elem" of one subset for all passed
- * element discretizations.
- *
- * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
- * \param[in]		si				subset index
- * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
- * \param[in]		vSol			current and previous solutions
- * \param[in]		sel				Selector
- */
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
-               	ConstSmartPtr<TDD> dd,
-               	int si, bool bNonRegularGrid,
-                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-            	BoolMarker* sel = NULL)
-{
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
-// 	check if at least on element exist, else return
-	if(iterBegin == iterEnd) return;
-
-//	get current time and vector
-	const typename TAlgebra::vector_type& u = *vSol->solution(0);
-
-//	create local time series
-	LocalVectorTimeSeries locTimeSeries;
-	locTimeSeries.read_times(vSol);
-
-	try
-	{
-	DataEvaluator Eval(MASS | STIFF | RHS,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
-					   &locTimeSeries);
-	Eval.set_time_point(0);
-
-//	prepare element loop
-	Eval.template prepare_elem_loop<TElem>();
-
-//	local algebra
-	LocalIndices ind; LocalVector locU;
-
-// 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
-	{
-	// 	get Element
-		TElem* elem = *iter;
-
-	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
-
-	// 	get global indices
-		dd->indices(elem, ind, Eval.use_hanging());
-
-	// 	adapt local algebra
-		locU.resize(ind);
-
-	// 	read local values of u
-		GetLocalVector(locU, u);
-
-	//	read local values of time series
-		if(Eval.time_series_needed())
-			locTimeSeries.read_values(vSol, ind);
-
-	// 	prepare element
-		try
-		{
-			Eval.prepare_elem(elem, locU, ind, true);
-		}
-		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare element.");
-
-	// 	prepare timestep
-		try
-		{
-			Eval.prepare_timestep_elem(elem, locU);
-		}
-		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare timestep.");
-	}
-
-// 	finish element loop
-	try
-	{
-		Eval.finish_elem_loop();
-	}
-	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot finish element loop.");
-
-	}
-	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot create Data Evaluator.");
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Assemble (stationary) Jacobian
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1340,6 +1241,107 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) AssembleRhs: Cannot create Data Evaluator.");
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Prepare Timestep (instationary)
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * This function calls the function "prepare_timestep_elem" of one subset for all passed
+ * element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in]		vSol			current and previous solutions
+ * \param[in]		sel				Selector
+ */
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+            	BoolMarker* sel = NULL)
+{
+//	get element iterator
+	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dd->template begin<TElem>(si);
+	iterEnd = dd->template end<TElem>(si);
+
+// 	check if at least on element exist, else return
+	if(iterBegin == iterEnd) return;
+
+//	get current time and vector
+	const typename TAlgebra::vector_type& u = *vSol->solution(0);
+
+//	create local time series
+	LocalVectorTimeSeries locTimeSeries;
+	locTimeSeries.read_times(vSol);
+
+	try
+	{
+	DataEvaluator Eval(NONE,
+	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
+					   &locTimeSeries);
+	Eval.set_time_point(0);
+
+//	prepare element loop
+	Eval.template prepare_elem_loop<TElem>();
+
+//	local algebra
+	LocalIndices ind; LocalVector locU;
+
+// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	//	check if elem is skipped from assembling
+		if(sel) if(!sel->is_marked(elem)) continue;
+
+	// 	get global indices
+		dd->indices(elem, ind, Eval.use_hanging());
+
+	// 	adapt local algebra
+		locU.resize(ind);
+
+	// 	read local values of u
+		GetLocalVector(locU, u);
+
+	//	read local values of time series
+		if(Eval.time_series_needed())
+			locTimeSeries.read_values(vSol, ind);
+
+	// 	prepare element
+	//	\TODO: CAN BE REMOVED, IF AND ONLY IF EACH DISC PREPARES ITS DATA ITSELF
+		try
+		{
+			Eval.prepare_elem(elem, locU, ind);
+		}
+		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare element.");
+
+	// 	prepare timestep
+		try
+		{
+			Eval.prepare_timestep_elem(elem, locU);
+		}
+		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare timestep.");
+	}
+
+// 	finish element loop
+	try
+	{
+		Eval.finish_elem_loop();
+	}
+	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot finish element loop.");
+
+	}
+	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot create Data Evaluator.");
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Finish Timestep (instationary)
 ////////////////////////////////////////////////////////////////////////////////
@@ -1381,7 +1383,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(MASS | STIFF | RHS,
+	DataEvaluator Eval(NONE,
 	                   vElemDisc, dd->function_pattern(), si , bNonRegularGrid,
 					   &locTimeSeries);
 	Eval.set_time_point(0);
@@ -1415,9 +1417,10 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 			locTimeSeries.read_values(vSol, ind);
 
 	// 	prepare element
+	//	\TODO: CAN BE REMOVED, IF AND ONLY IF EACH DISC PREPARES ITS DATA ITSELF
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, true);
+			Eval.prepare_elem(elem, locU, ind);
 		}
 		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot prepare element.");
 
