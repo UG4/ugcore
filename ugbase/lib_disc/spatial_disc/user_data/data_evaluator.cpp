@@ -263,10 +263,6 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 	{
 		ElemDisc& disc = m_vElemDisc[PT_ALL][d];
 
-	//	check correct process type
-		if(discPart & MASS)
-			if(disc.elemDisc->is_stationary()) continue;
-
 	//	loop imports
 		for(size_t i = 0; i < disc.elemDisc->num_imports(); ++i)
 		{
@@ -278,6 +274,10 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 
 		//	check part
 			if( !(iimp->part() & discPart) ) continue;
+
+		//	check correct process type
+			if(iimp->part() == MASS)
+				if(disc.elemDisc->is_stationary()) continue;
 
 		//	push export on stack of needed data
 			vTryingToAdd.push_back(iimp->data());
@@ -357,10 +357,6 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 	{
 		ElemDisc& disc = m_vElemDisc[PT_ALL][d];
 
-	//	check correct process type
-		if(discPart & MASS)
-			if(disc.elemDisc->is_stationary()) continue;
-
 	//	loop imports
 		for(size_t i = 0; i < disc.elemDisc->num_imports(); ++i)
 		{
@@ -372,6 +368,10 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 
 		//	check part
 			if( !(iimp->part() & discPart) ) continue;
+
+		//	check correct process type
+			if(iimp->part() == MASS)
+				if(disc.elemDisc->is_stationary()) continue;
 
 		//	done if and only if zero-derivative
 			if(iimp->zero_derivative()) continue;
