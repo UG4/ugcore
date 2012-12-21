@@ -524,27 +524,27 @@ std::vector<std::string>& ReturnStdVectorRef_String(){
 template <typename T>
 std::vector<T> ReturnStdVector_Number(){
 	std::vector<T> vec;
-	vec.push_back(1.56);
-	vec.push_back(144.87);
-	vec.push_back(99.3);
+	vec.push_back((T)1.56);
+	vec.push_back((T)144.87);
+	vec.push_back((T)99.3);
 	return vec;
 }
 
 template <typename T>
 const std::vector<T>& ReturnConstStdVectorRef_Number(){
 	static std::vector<T> vec;
-	vec.push_back(1.56);
-	vec.push_back(144.87);
-	vec.push_back(99.3);
+	vec.push_back((T)1.56);
+	vec.push_back((T)144.87);
+	vec.push_back((T)99.3);
 	return vec;
 }
 
 template <typename T>
 std::vector<T>& ReturnStdVectorRef_Number(){
 	static std::vector<T> vec;
-	vec.push_back(1.56);
-	vec.push_back(144.87);
-	vec.push_back(99.3);
+	vec.push_back((T)1.56);
+	vec.push_back((T)144.87);
+	vec.push_back((T)99.3);
 	return vec;
 }
 
