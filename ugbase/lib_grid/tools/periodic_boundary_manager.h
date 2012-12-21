@@ -43,6 +43,7 @@ public:
 	virtual bool match(Face*, Face*);
 	virtual bool match(Volume*, Volume*);
 
+	virtual ~ParallelShiftIdentifier() {}
 	typedef typename TPosAA::ValueType AttachmentType;
 	ParallelShiftIdentifier(TPosAA& aa) : m_aaPos(aa) {}
 	void set_shift(AttachmentType& shift) {m_shift = shift;}
