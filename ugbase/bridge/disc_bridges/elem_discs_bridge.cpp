@@ -171,7 +171,8 @@ static void Common(Registry& reg, string grp)
 	{
 		string elemGrp = grp; elemGrp.append("/ElemDisc");
 		typedef IElemDisc T;
-		reg.add_class_<T>("IElemDisc", elemGrp);
+		reg.add_class_<T>("IElemDisc", elemGrp)
+			.add_method("set_stationary", static_cast<void (T::*)()>(&T::set_stationary));
 	}
 }
 };

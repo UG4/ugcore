@@ -290,8 +290,10 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot prepare element.");
 
-	// 	Assemble JA
+	//	reset local algebra
 		locJ = 0.0;
+
+	// 	Assemble JA
 		try
 		{
 			Eval.add_JA_elem(locJ, locU, elem);
@@ -399,21 +401,23 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot prepare element.");
 
-	// 	Assemble JA
+	//	reset local algebra
 		locJ = 0.0;
+
+	// 	Assemble JA
 		try
 		{
-			Eval.add_JA_elem(locJ, locU, elem);
+			Eval.add_JA_elem(locJ, locU, elem, PT_INSTATIONARY);
+			locJ *= s_a0;
+
+			Eval.add_JA_elem(locJ, locU, elem, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (A).");
-
-	//	scale stiffness part
-		locJ *= s_a0;
 
 	// 	Assemble JM
 		try
 		{
-			Eval.add_JM_elem(locJ, locU, elem);
+			Eval.add_JM_elem(locJ, locU, elem, PT_INSTATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (M).");
 
@@ -502,8 +506,10 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot prepare element.");
 
-	// 	Assemble A
+	//	reset local algebra
 		locD = 0.0;
+
+	// 	Assemble A
 		try
 		{
 			Eval.add_dA_elem(locD, locU, elem);
@@ -511,14 +517,13 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Defect (A).");
 
 	// 	Assemble rhs
-		tmpLocD = 0.0;
 		try
 		{
+			tmpLocD = 0.0;
 			Eval.add_rhs_elem(tmpLocD, elem);
+			locD.scale_append(-1, tmpLocD);
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Rhs.");
-
-		locD.scale_append(-1, tmpLocD);
 
 	// 	send local to global rhs
 		AddLocalVector(d, locD);
@@ -634,34 +639,40 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot prepare element.");
 
 		// 	Assemble M
-			tmpLocD = 0.0;
 			try
 			{
-				Eval.add_dM_elem(tmpLocD, locU, elem);
+				tmpLocD = 0.0;
+				Eval.add_dM_elem(tmpLocD, locU, elem, PT_INSTATIONARY);
+				locD.scale_append(vScaleMass[t], tmpLocD);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (M).");
 
-			locD.scale_append(vScaleMass[t], tmpLocD);
-
 		// 	Assemble A
-			tmpLocD = 0.0;
 			try
 			{
-				Eval.add_dA_elem(tmpLocD, locU, elem);
+				tmpLocD = 0.0;
+				Eval.add_dA_elem(tmpLocD, locU, elem, PT_INSTATIONARY);
+				locD.scale_append(vScaleStiff[t], tmpLocD);
+
+				if(t == 0)
+					Eval.add_dA_elem(locD, locU, elem, PT_STATIONARY);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (A).");
 
-			locD.scale_append(vScaleStiff[t], tmpLocD);
-
 		// 	Assemble rhs
-			tmpLocD = 0.0;
 			try
 			{
-				Eval.add_rhs_elem(tmpLocD, elem);
+				tmpLocD = 0.0;
+				Eval.add_rhs_elem(tmpLocD, elem, PT_INSTATIONARY);
+				locD.scale_append( -vScaleStiff[t], tmpLocD);
+
+				if(t==0){
+					tmpLocD = 0.0;
+					Eval.add_rhs_elem(tmpLocD, elem, PT_STATIONARY);
+					locD.scale_append( -1.0, tmpLocD);
+				}
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Rhs.");
-
-			locD.scale_append( -vScaleStiff[t], tmpLocD);
 		}
 
 	// 	send local to global rhs
@@ -746,8 +757,11 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot prepare element.");
 
-	// 	Assemble JA
+	//	reset local algebra
 		locA = 0.0;
+		locRhs = 0.0;
+
+	// 	Assemble JA
 		try
 		{
 			Eval.add_JA_elem(locA, locRhs, elem);
@@ -755,7 +769,6 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute Jacobian (A).");
 
 	// 	Assemble rhs
-		locRhs = 0.0;
 		try
 		{
 			Eval.add_rhs_elem(locRhs, elem);
@@ -882,34 +895,35 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element.");
 
 	// 	Assemble JM
-		tmpLocA = 0.0;
 		try
 		{
-			Eval.add_JM_elem(tmpLocA, locU, elem);
+			tmpLocA = 0.0;
+			Eval.add_JM_elem(tmpLocA, locU, elem, PT_INSTATIONARY);
+			locA.scale_append(vScaleMass[0], tmpLocA);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (M).");
 
-		locA.scale_append(vScaleMass[0], tmpLocA);
-
 	// 	Assemble JA
-		tmpLocA = 0.0;
 		try
 		{
-			Eval.add_JA_elem(tmpLocA, locU, elem);
+			tmpLocA = 0.0;
+			Eval.add_JA_elem(tmpLocA, locU, elem, PT_INSTATIONARY);
+			locA.scale_append(vScaleStiff[0], tmpLocA);
+
+			Eval.add_JA_elem(locA, locU, elem, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
 
-		locA.scale_append(vScaleStiff[0], tmpLocA);
-
 	// 	Assemble rhs
-		tmpLocRhs = 0.0;
 		try
 		{
-			Eval.add_rhs_elem(tmpLocRhs, elem);
+			tmpLocRhs = 0.0;
+			Eval.add_rhs_elem(tmpLocRhs, elem, PT_INSTATIONARY);
+			locRhs.scale_append(vScaleStiff[0], tmpLocRhs);
+
+			Eval.add_rhs_elem(locRhs, elem, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
-
-		locRhs.scale_append(vScaleStiff[0], tmpLocRhs);
 
 	///////////////////
 	//	old time steps
@@ -929,34 +943,31 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element.");
 
 		// 	Assemble dM
-			tmpLocRhs = 0.0;
 			try
 			{
-				Eval.add_dM_elem(tmpLocRhs, locU, elem);
+				tmpLocRhs = 0.0;
+				Eval.add_dM_elem(tmpLocRhs, locU, elem, PT_INSTATIONARY);
+				locRhs.scale_append(-vScaleMass[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (M).");
 
-			locRhs.scale_append(-vScaleMass[t], tmpLocRhs);
-
 		// 	Assemble dA
-			tmpLocRhs = 0.0;
 			try
 			{
-				Eval.add_dA_elem(tmpLocRhs, locU, elem);
+				tmpLocRhs = 0.0;
+				Eval.add_dA_elem(tmpLocRhs, locU, elem, PT_INSTATIONARY);
+				locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
 
-			locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
-
 		// 	Assemble rhs
-			tmpLocRhs = 0.0;
 			try
 			{
-				Eval.add_rhs_elem(tmpLocRhs, elem);
+				tmpLocRhs = 0.0;
+				Eval.add_rhs_elem(tmpLocRhs, elem, PT_INSTATIONARY);
+				locRhs.scale_append(vScaleStiff[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
-
-			locRhs.scale_append(vScaleStiff[t], tmpLocRhs);
 		}
 
 	// 	send local to global matrix
@@ -1047,8 +1058,10 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 		UG_CATCH_THROW("AssembleRhs: Cannot prepare element.");
 
-	// 	Assemble rhs
+	//	reset local algebra
 		locRhs = 0.0;
+
+	// 	Assemble rhs
 		try
 		{
 			Eval.add_rhs_elem(locRhs, elem);
@@ -1169,14 +1182,15 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element.");
 
 	// 	Assemble rhs
-		tmpLocRhs = 0.0;
 		try
 		{
-			Eval.add_rhs_elem(tmpLocRhs, elem);
+			tmpLocRhs = 0.0;
+			Eval.add_rhs_elem(tmpLocRhs, elem, PT_INSTATIONARY);
+			locRhs.scale_append(vScaleStiff[0], tmpLocRhs);
+
+			Eval.add_rhs_elem(locRhs, elem, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Rhs.");
-
-		locRhs.scale_append(vScaleStiff[0], tmpLocRhs);
 
 	///////////////////
 	//	old time steps
@@ -1196,34 +1210,31 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element.");
 
 		// 	Assemble dM
-			tmpLocRhs = 0.0;
 			try
 			{
-				Eval.add_dM_elem(tmpLocRhs, locU, elem);
+				tmpLocRhs = 0.0;
+				Eval.add_dM_elem(tmpLocRhs, locU, elem, PT_INSTATIONARY);
+				locRhs.scale_append(-vScaleMass[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Jacobian (M).");
 
-			locRhs.scale_append(-vScaleMass[t], tmpLocRhs);
-
 		// 	Assemble dA
-			tmpLocRhs = 0.0;
 			try
 			{
-				Eval.add_dA_elem(tmpLocRhs, locU, elem);
+				tmpLocRhs = 0.0;
+				Eval.add_dA_elem(tmpLocRhs, locU, elem, PT_INSTATIONARY);
+				locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Jacobian (A).");
 
-			locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
-
 		// 	Assemble rhs
-			tmpLocRhs = 0.0;
 			try
 			{
-				Eval.add_rhs_elem(tmpLocRhs, elem);
+				tmpLocRhs = 0.0;
+				Eval.add_rhs_elem(tmpLocRhs, elem, PT_INSTATIONARY);
+				locRhs.scale_append(vScaleStiff[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Rhs.");
-
-			locRhs.scale_append(vScaleStiff[t], tmpLocRhs);
 		}
 
 	// 	send local to global rhs

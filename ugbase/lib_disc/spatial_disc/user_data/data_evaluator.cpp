@@ -38,15 +38,15 @@ DataEvaluator::DataEvaluator(int discPart,
 
 // handle time dependency
 	if(pLocTimeSeries != NULL && pvScaleMass != NULL && pvScaleStiff != NULL){
-		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
 			vElemDisc[i]->set_time_dependent(*pLocTimeSeries, *pvScaleMass, *pvScaleStiff);
 	}
 	else if(pLocTimeSeries != NULL){
-		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
 			vElemDisc[i]->set_time_dependent(*pLocTimeSeries, std::vector<number>(), std::vector<number>());
 	}
 	else{
-		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
 			vElemDisc[i]->set_time_independent();
 	}
 
@@ -60,27 +60,32 @@ DataEvaluator::DataEvaluator(int discPart,
 	m_commonFctGroup.set_function_pattern(fctPat);
 	m_commonFctGroup.add_all();
 
-	m_vElemDisc.clear();
-	m_vElemDisc.resize(vElemDisc.size());
+	m_vElemDisc[PT_ALL].clear();
+	m_vElemDisc[PT_ALL].resize(vElemDisc.size());
 
 //	create FunctionIndexMapping for each Disc
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
+	//	get elem disc
+		ElemDisc& disc = m_vElemDisc[PT_ALL][i];
+
 	//	store elem disc
-		m_vElemDisc[i].elemDisc = vElemDisc[i];
+		disc.elemDisc = vElemDisc[i];
+
+	//	get type
+		if(disc.elemDisc->is_stationary()) disc.process = PT_STATIONARY;
+		else disc.process = PT_INSTATIONARY;
 
 	//	create function group of this elem disc
 		try{
-			m_vElemDisc[i].fctGrp.set_function_pattern(fctPat);
-			m_vElemDisc[i].fctGrp.add(m_vElemDisc[i].elemDisc->symb_fcts());
+			disc.fctGrp.set_function_pattern(fctPat);
+			disc.fctGrp.add(disc.elemDisc->symb_fcts());
 		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
 					"some symbolic Function Name for disc "<<i<<".");
 
 	//	create a mapping between all functions and the function group of this
 	//	element disc.
-		try{
-			CreateFunctionIndexMapping(m_vElemDisc[i].map, m_vElemDisc[i].fctGrp,
-			                           m_commonFctGroup);
+		try{CreateFunctionIndexMapping(disc.map, disc.fctGrp, m_commonFctGroup);
 		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot create "
 						"Function Index Mapping for disc "<<i<<".");
 
@@ -89,61 +94,58 @@ DataEvaluator::DataEvaluator(int discPart,
 	////////////////////////
 
 	//	check that all functions are defined on chosen subsets
-		SubsetGroup discSubsetGrp(fctPat.subset_handler(), m_vElemDisc[i].elemDisc->symb_subsets());
+		SubsetGroup discSubsetGrp(fctPat.subset_handler(), disc.elemDisc->symb_subsets());
 
 	//	check that all functions are defined on chosen subsets
-		for(size_t fct = 0; fct < m_vElemDisc[i].fctGrp.size(); ++fct)
-		{
-			for(size_t si = 0; si < discSubsetGrp.size(); ++si)
-			{
-				if(!fctPat.is_def_in_subset(m_vElemDisc[i].fctGrp[fct], discSubsetGrp[si])){
+		for(size_t fct = 0; fct < disc.fctGrp.size(); ++fct){
+			for(size_t si = 0; si < discSubsetGrp.size(); ++si){
+				if(!fctPat.is_def_in_subset(disc.fctGrp[fct], discSubsetGrp[si])){
 					UG_LOG("WARNING in 'DataEvaluator::set_elem_discs': On disc "<<i<<
-						   ": symbolic Function "<< m_vElemDisc[i].elemDisc->symb_fcts()[fct]
-					 << " is not defined on subset "<<m_vElemDisc[i].elemDisc->symb_subsets()[si]
+						   ": symbolic Function "<<disc.elemDisc->symb_fcts()[fct]
+					 << " is not defined on subset "<<disc.elemDisc->symb_subsets()[si]
 					 << ". This may be senseful only in particular cases.\n");
 				}
 			}
 		}
 
 	//	check correct number of functions
-		if(m_vElemDisc[i].fctGrp.size() != m_vElemDisc[i].elemDisc->num_fct())
-		{
+		if(disc.fctGrp.size() !=disc.elemDisc->num_fct()){
 			std::stringstream ss;
 			ss << "DataEvaluator::set_elem_discs: Elem Disc "<<i<<
-					" requires "<<m_vElemDisc[i].elemDisc->num_fct()<<" symbolic "
-					"Function Name, but "<<m_vElemDisc[i].fctGrp.size()<<" Functions "
+					" requires "<<disc.elemDisc->num_fct()<<" symbolic "
+					"Function Name, but "<<disc.fctGrp.size()<<" Functions "
 					" specified: ";
-			for(size_t f=0; f < m_vElemDisc[i].elemDisc->symb_fcts().size(); ++f)
+			for(size_t f=0; f < disc.elemDisc->symb_fcts().size(); ++f)
 			{
 				if(f > 0) ss << ", ";
-				ss << vElemDisc[i]->symb_fcts()[f];
+				ss << disc.elemDisc->symb_fcts()[f];
 			}
 			UG_THROW(ss.str());
 		}
 
 	//	request assembling for local finite element id
-		std::vector<LFEID> vLfeID(m_vElemDisc[i].fctGrp.size());
+		std::vector<LFEID> vLfeID(disc.fctGrp.size());
 		for(size_t f = 0; f < vLfeID.size(); ++f)
-			vLfeID[f] = m_vElemDisc[i].fctGrp.local_finite_element_id(f);
-		if(!(m_vElemDisc[i].elemDisc->request_finite_element_id(vLfeID)))
+			vLfeID[f] = disc.fctGrp.local_finite_element_id(f);
+		if(!(disc.elemDisc->request_finite_element_id(vLfeID)))
 		{
 			std::stringstream ss;
 			ss << "DataEvaluator::set_elem_discs: Elem Disc "<<i<<
 				" can not assemble the specified local finite element space set:";
-			for(size_t f=0; f < m_vElemDisc[i].elemDisc->symb_fcts().size(); ++f)
+			for(size_t f=0; f < disc.elemDisc->symb_fcts().size(); ++f)
 			{
-				ss << "  Fct "<<f<<": '"<<m_vElemDisc[i].elemDisc->symb_fcts()[f];
+				ss << "  Fct "<<f<<": '"<<disc.elemDisc->symb_fcts()[f];
 				ss << "' using "<< vLfeID[f];
 			}
 			UG_THROW(ss.str());
 		}
 
 	//	check if time dependent
-		m_vElemDisc[i].needLocTimeSeries = m_vElemDisc[i].elemDisc->requests_local_time_series();
-		m_bNeedLocTimeSeries |= m_vElemDisc[i].needLocTimeSeries;
+		disc.needLocTimeSeries = disc.elemDisc->requests_local_time_series();
+		m_bNeedLocTimeSeries |= disc.needLocTimeSeries;
 
 	//  let disc use non-regular grid assemblings
-		if(!m_vElemDisc[i].elemDisc->request_non_regular_grid(bNonRegularGrid))
+		if(!disc.elemDisc->request_non_regular_grid(bNonRegularGrid))
 		{
 			UG_THROW("DataEvaluator::set_non_regular_grid: "
 					" Elem Disc " << i << " does not support non-regular"
@@ -151,16 +153,30 @@ DataEvaluator::DataEvaluator(int discPart,
 		}
 
 		if(bNonRegularGrid)
-			m_bUseHanging |= m_vElemDisc[i].elemDisc->use_hanging();
+			m_bUseHanging |= disc.elemDisc->use_hanging();
+	}
+
+//	sort elem disc
+	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i){
+		ElemDisc& disc = m_vElemDisc[PT_ALL][i];
+
+		if(disc.process == PT_STATIONARY)
+			m_vElemDisc[PT_STATIONARY].push_back(disc);
+		else if(disc.process == PT_INSTATIONARY)
+			m_vElemDisc[PT_INSTATIONARY].push_back(disc);
+		else
+			UG_THROW("DataEvalutator: Cannot find process type of disc "<<i);
 	}
 
 }
 
 void DataEvaluator::clear_extracted_data_and_mappings()
 {
-	m_vImport[MASS].clear();
-	m_vImport[STIFF].clear();
-	m_vImport[RHS].clear();
+	for(int type = 0; type < MAX_PROCESS; ++type){
+		m_vImport[type][MASS].clear();
+		m_vImport[type][STIFF].clear();
+		m_vImport[type][RHS].clear();
+	}
 
 	m_vConstData.clear();
 	m_vPosData.clear();
@@ -218,13 +234,15 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 	clear_extracted_data_and_mappings();
 
 //	copy function group in import/export of element discs
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t d = 0; d < m_vElemDisc[PT_ALL].size(); ++d)
 	{
-		for(size_t imp = 0; imp < m_vElemDisc[i].elemDisc->num_imports(); ++imp)
-			m_vElemDisc[i].elemDisc->get_import(imp).set_function_group(m_vElemDisc[i].fctGrp);
+		ElemDisc& disc = m_vElemDisc[PT_ALL][d];
 
-		for(size_t exp = 0; exp < m_vElemDisc[i].elemDisc->num_exports(); ++exp)
-			m_vElemDisc[i].elemDisc->get_export(exp)->set_function_group(m_vElemDisc[i].fctGrp);
+		for(size_t imp = 0; imp < disc.elemDisc->num_imports(); ++imp)
+			disc.elemDisc->get_import(imp).set_function_group(disc.fctGrp);
+
+		for(size_t exp = 0; exp < disc.elemDisc->num_exports(); ++exp)
+			disc.elemDisc->get_export(exp)->set_function_group(disc.fctGrp);
 	}
 
 //	queue for all user data needed
@@ -241,17 +259,19 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 //	process). Of coarse, no circle dependency between UserData is allowed.
 
 //	loop elem discs
-	for(size_t d = 0; d < m_vElemDisc.size(); ++d)
+	for(size_t d = 0; d < m_vElemDisc[PT_ALL].size(); ++d)
 	{
+		ElemDisc& disc = m_vElemDisc[PT_ALL][d];
+
 	//	check correct process type
 		if(discPart & MASS)
-			if(m_vElemDisc[d].elemDisc->is_stationary()) continue;
+			if(disc.elemDisc->is_stationary()) continue;
 
 	//	loop imports
-		for(size_t i = 0; i < m_vElemDisc[d].elemDisc->num_imports(); ++i)
+		for(size_t i = 0; i < disc.elemDisc->num_imports(); ++i)
 		{
 		//	get import
-			IDataImport* iimp = &(m_vElemDisc[d].elemDisc->get_import(i));
+			IDataImport* iimp = &(disc.elemDisc->get_import(i));
 
 		//	skip non-given data (no need for evaluation)
 			if(!iimp->data_given()) continue;
@@ -333,17 +353,19 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 //	from and only from the primary variables of its associated IElemDisc.
 
 //	loop elem discs
-	for(size_t d = 0; d < m_vElemDisc.size(); ++d)
+	for(size_t d = 0; d < m_vElemDisc[PT_ALL].size(); ++d)
 	{
+		ElemDisc& disc = m_vElemDisc[PT_ALL][d];
+
 	//	check correct process type
 		if(discPart & MASS)
-			if(m_vElemDisc[d].elemDisc->is_stationary()) continue;
+			if(disc.elemDisc->is_stationary()) continue;
 
 	//	loop imports
-		for(size_t i = 0; i < m_vElemDisc[d].elemDisc->num_imports(); ++i)
+		for(size_t i = 0; i < disc.elemDisc->num_imports(); ++i)
 		{
 		//	get import
-			IDataImport* iimp = &(m_vElemDisc[d].elemDisc->get_import(i));
+			IDataImport* iimp = &(disc.elemDisc->get_import(i));
 
 		//	skip non-given data (no need for evaluation)
 			if(!iimp->data_given()) continue;
@@ -366,7 +388,8 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 			}UG_CATCH_THROW("DataEvaluator: Cannot create Function Index Mapping for DependentData.");
 
 		//	remember Import
-			m_vImport[iimp->part()].push_back(Import(iimp, m_vElemDisc[d].map, map));
+			m_vImport[PT_ALL][iimp->part()].push_back(
+					Import(iimp, m_vElemDisc[PT_ALL][d].map, map, m_vElemDisc[PT_ALL][d].process));
 		}
 	}
 
@@ -385,12 +408,26 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 	for(size_t i = 0; i < m_vDependentData.size(); ++i)
 		m_vDependentData[i]->set_subset(m_subset);
 
+//	sort elem disc
+	for(size_t part = 0; part < MAX_PART; ++part){
+		for(size_t i = 0; i < m_vImport[PT_ALL][part].size(); ++i){
+			Import& imp = m_vImport[PT_ALL][part][i];
+
+			if(imp.process == PT_STATIONARY)
+				m_vImport[PT_STATIONARY][part].push_back(imp);
+			else if(imp.process == PT_INSTATIONARY)
+				m_vImport[PT_INSTATIONARY][part].push_back(imp);
+			else
+				UG_THROW("DataEvalutator: Cannot find process type of disc "<<i);
+		}
+	}
 }
+
 
 void DataEvaluator::set_time_point(const size_t timePoint)
 {
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-		m_vElemDisc[i].elemDisc->set_time_point(timePoint);
+	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+		m_vElemDisc[PT_ALL][i].elemDisc->set_time_point(timePoint);
 
 	// NOTE: constant data is not processed.
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
@@ -432,120 +469,135 @@ void DataEvaluator::compute_elem_data(LocalVector& u, GeometricObject* elem, boo
 	}
 }
 
-void DataEvaluator::add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem)
+void DataEvaluator::add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & STIFF, "Using add_JA_elem, but not STIFF requested.")
 
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
 	{
-	//	access disc functions
-		u.access_by_map(map(i));
-		A.access_by_map(map(i));
+	//	get map
+		const FunctionIndexMapping& map = m_vElemDisc[type][i].map;
 
-		if(m_vElemDisc[i].needLocTimeSeries)
+	//	access disc functions
+		u.access_by_map(map);
+		A.access_by_map(map);
+
+		if(m_vElemDisc[type][i].needLocTimeSeries)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	assemble JA
 		try{
-			m_vElemDisc[i].elemDisc->fast_ass_JA_elem(A, u);
+			m_vElemDisc[type][i].elemDisc->fast_ass_JA_elem(A, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_JA_elem: "
 						"Cannot assemble Jacobian (A) for IElemDisc "<<i);
 	}
 
-	add_coupl_JA(A, u);
+	add_coupl_JA(A, u, type);
 }
 
-void DataEvaluator::add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem)
+void DataEvaluator::add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & MASS, "Using add_JM_elem, but not MASS requested.")
 
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
 	{
-	//	access disc functions
-		u.access_by_map(map(i));
-		M.access_by_map(map(i));
+	//	get map
+		const FunctionIndexMapping& map = m_vElemDisc[type][i].map;
 
-		if(m_vElemDisc[i].needLocTimeSeries)
+	//	access disc functions
+		u.access_by_map(map);
+		M.access_by_map(map);
+
+		if(m_vElemDisc[type][i].needLocTimeSeries)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	assemble JM
 		try{
-			if(!m_vElemDisc[i].elemDisc->is_stationary())
-				m_vElemDisc[i].elemDisc->fast_ass_JM_elem(M, u);
+			if(!m_vElemDisc[type][i].elemDisc->is_stationary())
+				m_vElemDisc[type][i].elemDisc->fast_ass_JM_elem(M, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_JM_elem: "
 						"Cannot assemble Jacobian (M) for IElemDisc "<<i);
 	}
 
-	add_coupl_JM(M, u);
+	add_coupl_JM(M, u, type);
 }
 
-void DataEvaluator::add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem)
+void DataEvaluator::add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & STIFF, "Using add_dA_elem, but not STIFF requested.")
 
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
 	{
-	//	access disc functions
-		u.access_by_map(map(i));
-		d.access_by_map(map(i));
+	//	get map
+		const FunctionIndexMapping& map = m_vElemDisc[type][i].map;
 
-		if(m_vElemDisc[i].needLocTimeSeries)
+	//	access disc functions
+		u.access_by_map(map);
+		d.access_by_map(map);
+
+		if(m_vElemDisc[type][i].needLocTimeSeries)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	assemble dA
 		try{
-			m_vElemDisc[i].elemDisc->fast_ass_dA_elem(d, u);
+			m_vElemDisc[type][i].elemDisc->fast_ass_dA_elem(d, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_dA_elem: "
 						"Cannot assemble Defect (A) for IElemDisc "<<i);
 	}
 }
 
-void DataEvaluator::add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem)
+void DataEvaluator::add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & MASS, "Using add_dM_elem, but not MASS requested.")
 
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
 	{
-	//	access disc functions
-		u.access_by_map(map(i));
-		d.access_by_map(map(i));
+	//	get map
+		const FunctionIndexMapping& map = m_vElemDisc[type][i].map;
 
-		if(m_vElemDisc[i].needLocTimeSeries)
+	//	access disc functions
+		u.access_by_map(map);
+		d.access_by_map(map);
+
+		if(m_vElemDisc[type][i].needLocTimeSeries)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	assemble dM
 		try{
-			if(!m_vElemDisc[i].elemDisc->is_stationary())
-				m_vElemDisc[i].elemDisc->fast_ass_dM_elem(d, u);
+			if(!m_vElemDisc[type][i].elemDisc->is_stationary())
+				m_vElemDisc[type][i].elemDisc->fast_ass_dM_elem(d, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_dM_elem: "
 						"Cannot assemble Defect (M) for IElemDisc "<<i);
 	}
 }
 
-void DataEvaluator::add_rhs_elem(LocalVector& rhs, GeometricObject* elem)
+void DataEvaluator::add_rhs_elem(LocalVector& rhs, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & RHS, "Using add_rhs_elem, but not RHS requested.")
 
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
 	{
-	//	access disc functions
-		rhs.access_by_map(map(i));
+	//	get map
+		const FunctionIndexMapping& map = m_vElemDisc[type][i].map;
 
-		if(m_vElemDisc[i].needLocTimeSeries)
+	//	access disc functions
+		rhs.access_by_map(map);
+
+		if(m_vElemDisc[type][i].needLocTimeSeries)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	assemble rhs
 		try{
-			m_vElemDisc[i].elemDisc->fast_ass_rhs_elem(rhs);
+			m_vElemDisc[type][i].elemDisc->fast_ass_rhs_elem(rhs);
 		}
 		UG_CATCH_THROW("DataEvaluator::ass_rhs_elem: "
 						"Cannot assemble rhs for IElemDisc "<<i);
@@ -554,10 +606,10 @@ void DataEvaluator::add_rhs_elem(LocalVector& rhs, GeometricObject* elem)
 
 void DataEvaluator::finish_elem_loop()
 {
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
 		try{
-			m_vElemDisc[i].elemDisc->fast_finish_elem_loop();
+			m_vElemDisc[PT_ALL][i].elemDisc->fast_finish_elem_loop();
 		}
 		UG_CATCH_THROW("DataEvaluator::finish_element_loop: "
 						"Cannot finish element loop for IElemDisc "<<i);
@@ -574,86 +626,86 @@ void DataEvaluator::clear_positions_in_user_data()
 	for(size_t i = 0; i < m_vDependentData.size(); ++i) m_vDependentData[i]->clear();
 
 //	we remove all ips, since they may have been set in prepare_elem
-	for(size_t d = 0; d < m_vElemDisc.size(); ++d)
-		for(size_t i = 0; i < m_vElemDisc[d].elemDisc->num_imports(); ++i)
-			m_vElemDisc[d].elemDisc->get_import(i).clear_ips();
+	for(size_t d = 0; d < m_vElemDisc[PT_ALL].size(); ++d)
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL][d].elemDisc->num_imports(); ++i)
+			m_vElemDisc[PT_ALL][d].elemDisc->get_import(i).clear_ips();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Coupling
 ///////////////////////////////////////////////////////////////////////////////
 
-void DataEvaluator::add_coupl_JA(LocalMatrix& J, LocalVector& u)
+void DataEvaluator::add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type)
 {
 //	compute linearized defect
-	for(size_t i = 0; i < m_vImport[STIFF].size(); ++i)
+	for(size_t i = 0; i < m_vImport[type][STIFF].size(); ++i)
 	{
 	//	set correct access for import
-		u.access_by_map(m_vImport[STIFF][i].map);
+		u.access_by_map(m_vImport[type][STIFF][i].map);
 
 	//	compute linearization of defect
-		try{m_vImport[STIFF][i].import->compute_lin_defect(u);
+		try{m_vImport[type][STIFF][i].import->compute_lin_defect(u);
 		}UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot compute"
 						" linearized defect for Import " << i <<" (Stiffness part).");
 	}
 //	compute linearized defect
-	for(size_t i = 0; i < m_vImport[RHS].size(); ++i)
+	for(size_t i = 0; i < m_vImport[type][RHS].size(); ++i)
 	{
 	//	set correct access for import
-		u.access_by_map(m_vImport[RHS][i].map);
+		u.access_by_map(m_vImport[type][RHS][i].map);
 
 	//	compute linearization of defect
-		try{m_vImport[RHS][i].import->compute_lin_defect(u);
+		try{m_vImport[type][RHS][i].import->compute_lin_defect(u);
 		}UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot compute"
 						" linearized defect for Import " << i <<" (Rhs part).");
 	}
 
 //	loop all imports located in the stiffness part
-	for(size_t i = 0; i < m_vImport[STIFF].size(); ++i)
+	for(size_t i = 0; i < m_vImport[type][STIFF].size(); ++i)
 	{
 	//	rows are given by import, cols are given by connected data
-		J.access_by_map(m_vImport[STIFF][i].map, m_vImport[STIFF][i].connMap);
+		J.access_by_map(m_vImport[type][STIFF][i].map, m_vImport[type][STIFF][i].connMap);
 
 	//	add off diagonal coupling
-		try{m_vImport[STIFF][i].import->add_jacobian(J, 1.0);}
+		try{m_vImport[type][STIFF][i].import->add_jacobian(J, 1.0);}
 		UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot add couplings.");
 	}
 
 //	loop all imports located in the rhs part
-	for(size_t i = 0; i < m_vImport[RHS].size(); ++i)
+	for(size_t i = 0; i < m_vImport[type][RHS].size(); ++i)
 	{
 	//	rows are given by import, cols are given by connected data
-		J.access_by_map(m_vImport[RHS][i].map, m_vImport[RHS][i].connMap);
+		J.access_by_map(m_vImport[type][RHS][i].map, m_vImport[type][RHS][i].connMap);
 
 	//	add off diagonal coupling
-		try{m_vImport[RHS][i].import->add_jacobian(J, -1.0);}
+		try{m_vImport[type][RHS][i].import->add_jacobian(J, -1.0);}
 		UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot add couplings.");
 	}
 }
 
-void DataEvaluator::add_coupl_JM(LocalMatrix& J, LocalVector& u)
+void DataEvaluator::add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType type)
 {
 //	compute linearized defect
-	for(size_t i = 0; i < m_vImport[MASS].size(); ++i)
+	for(size_t i = 0; i < m_vImport[type][MASS].size(); ++i)
 	{
 	//	set correct access for import
-		u.access_by_map(m_vImport[MASS][i].map);
+		u.access_by_map(m_vImport[type][MASS][i].map);
 
 	//	compute linearization of defect
-		try{m_vImport[MASS][i].import->compute_lin_defect(u);
+		try{m_vImport[type][MASS][i].import->compute_lin_defect(u);
 		}UG_CATCH_THROW("DataEvaluator::add_coupl_JM: Cannot compute"
 						" linearized defect for Import " << i <<" (Mass part).");
 	}
 
 //	loop all imports located in the mass part
-	for(size_t i = 0; i < m_vImport[MASS].size(); ++i)
+	for(size_t i = 0; i < m_vImport[type][MASS].size(); ++i)
 	{
 	//	rows are given by import, cols are given by connected data
-		J.access_by_map(m_vImport[MASS][i].map, m_vImport[MASS][i].connMap);
+		J.access_by_map(m_vImport[type][MASS][i].map, m_vImport[type][MASS][i].connMap);
 
 	//	add off diagonal coupling
 		try{
-			m_vImport[MASS][i].import->add_jacobian(J, 1.0);
+			m_vImport[type][MASS][i].import->add_jacobian(J, 1.0);
 		}
 		UG_CATCH_THROW("DataEvaluator::add_coupl_JM: Cannot add couplings.");
 	}

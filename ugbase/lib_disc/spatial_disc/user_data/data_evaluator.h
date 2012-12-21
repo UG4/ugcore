@@ -14,6 +14,8 @@
 
 namespace ug{
 
+enum ProcessType {PT_ALL=0, PT_STATIONARY, PT_INSTATIONARY, MAX_PROCESS};
+
 /// helper class to evaluate data evaluation for local contributions during assembling
 /**
  * This class is a helper class to facilitate the correct evaluation of data
@@ -68,19 +70,19 @@ class DataEvaluator
 		void finish_timestep_elem(TElem* elem, const number time, LocalVector& u);
 
 	///	compute local stiffness matrix for all IElemDiscs
-		void add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem);
+		void add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
 
 	///	compute local mass matrix for all IElemDiscs
-		void add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem);
+		void add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
 
 	///	compute local stiffness defect for all IElemDiscs
-		void add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem);
+		void add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
 
 	///	compute local mass defect for all IElemDiscs
-		void add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem);
+		void add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
 
 	///	compute local rhs for all IElemDiscs
-		void add_rhs_elem(LocalVector& rhs, GeometricObject* elem);
+		void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, ProcessType type = PT_ALL);
 
 	///	finishes the element loop for all IElemDiscs
 		void finish_elem_loop();
@@ -90,17 +92,10 @@ class DataEvaluator
 		void compute_elem_data(LocalVector& u, GeometricObject* elem, bool bDeriv = false);
 
 	///	adds the contribution due to coupling to local stiffness matrix
-		void add_coupl_JA(LocalMatrix& J, LocalVector& u);
+		void add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type = PT_ALL);
 
 	///	adds the contribution due to coupling to local mass matrix
-		void add_coupl_JM(LocalMatrix& J, LocalVector& u);
-
-	///	Mapping between local functions of ElemDisc i and common FunctionGroup
-		const FunctionIndexMapping& map(size_t i) const
-		{
-			UG_ASSERT(i < m_vElemDisc.size(), "Wrong index");
-			return m_vElemDisc[i].map;
-		}
+		void add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType type = PT_ALL);
 
 	///	returns common function group of all needed functions
 		const FunctionGroup& function_group() const {return m_commonFctGroup;}
@@ -128,10 +123,11 @@ class DataEvaluator
 			FunctionGroup fctGrp;
 			FunctionIndexMapping map;
 			bool needLocTimeSeries;
+			ProcessType process;
 		};
 
 	///	elem disc data
-		std::vector<ElemDisc> m_vElemDisc;
+		std::vector<ElemDisc> m_vElemDisc[MAX_PROCESS];
 
 	///	common function group (all function of function pattern)
 		FunctionGroup m_commonFctGroup;
@@ -154,15 +150,17 @@ class DataEvaluator
 	///	struct to store data related to an import
 		struct Import{
 			Import(IDataImport* _import,
-			       FunctionIndexMapping& _map, FunctionIndexMapping& _connMap) :
-			import(_import), map(_map), connMap(_connMap) {}
+			       FunctionIndexMapping& _map, FunctionIndexMapping& _connMap,
+			       ProcessType _process) :
+			import(_import), map(_map), connMap(_connMap), process(_process) {}
 
 			IDataImport* import;
 			FunctionIndexMapping map;
 			FunctionIndexMapping connMap;
+			ProcessType process;
 		};
 
-		std::vector<Import> m_vImport[MAX_PART];
+		std::vector<Import> m_vImport[MAX_PROCESS][MAX_PART];
 
 	////////////////////////////////
 	// 	UserData

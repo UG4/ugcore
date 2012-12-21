@@ -16,18 +16,21 @@ prepare_timestep_elem(TElem* elem, LocalVector& u)
 {
 
 // 	prepare timestep
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
-	//	access disc functions
-		u.access_by_map(map(i));
+	//	get map
+		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i].map;
 
-		if(m_vElemDisc[i].needLocTimeSeries)
+	//	access disc functions
+		u.access_by_map(map);
+
+		if(m_vElemDisc[PT_ALL][i].needLocTimeSeries)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	prepare timestep for elem disc
 		try{
-			m_vElemDisc[i].elemDisc->fast_prepare_timestep_elem(elem, u);
+			m_vElemDisc[PT_ALL][i].elemDisc->fast_prepare_timestep_elem(elem, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::prepare_timestep_element: "
 						"Cannot prepare timestep on element for IElemDisc "<<i);
@@ -46,9 +49,9 @@ prepare_elem_loop()
 	const ReferenceObjectID id = reference_element_type::REFERENCE_OBJECT_ID;
 
 // 	set elem type in elem disc
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
-		try{m_vElemDisc[i].elemDisc->set_roid(id, m_discPart);}
+		try{m_vElemDisc[PT_ALL][i].elemDisc->set_roid(id, m_discPart);}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 						"Cannot set geometric object type for Disc " << i);
 	}
@@ -56,9 +59,9 @@ prepare_elem_loop()
 	clear_positions_in_user_data();
 
 // 	prepare loop (elem disc set local ip series here)
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
-		try{m_vElemDisc[i].elemDisc->fast_prepare_elem_loop();}
+		try{m_vElemDisc[PT_ALL][i].elemDisc->fast_prepare_elem_loop();}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 						"Cannot prepare element loop.");
 	}
@@ -69,18 +72,18 @@ prepare_elem_loop()
 					"Cannot extract imports and userdata.");
 
 //	set geometric type at imports
-	for(size_t i = 0; i < m_vImport[MASS].size(); ++i){
-		try{m_vImport[MASS][i].import->set_roid(id);}
+	for(size_t i = 0; i < m_vImport[PT_ALL][MASS].size(); ++i){
+		try{m_vImport[PT_ALL][MASS][i].import->set_roid(id);}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: Cannot set  geometric "
 						"object type "<<id<<" for Import "<<i<<" (Mass part).");
 	}
-	for(size_t i = 0; i < m_vImport[STIFF].size(); ++i){
-		try{m_vImport[STIFF][i].import->set_roid(id);}
+	for(size_t i = 0; i < m_vImport[PT_ALL][STIFF].size(); ++i){
+		try{m_vImport[PT_ALL][STIFF][i].import->set_roid(id);}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: Cannot set  geometric "
 						"object type "<<id<<" for Import "<<i<<" (Stiff part).");
 	}
-	for(size_t i = 0; i < m_vImport[RHS].size(); ++i){
-		try{m_vImport[RHS][i].import->set_roid(id);}
+	for(size_t i = 0; i < m_vImport[PT_ALL][RHS].size(); ++i){
+		try{m_vImport[PT_ALL][RHS][i].import->set_roid(id);}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: Cannot set  geometric "
 						"object type "<<id<<" for Import "<<i<<" (Rhs part).");
 	}
@@ -107,18 +110,21 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
              bool bDeriv)
 {
 // 	prepare element
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
-	//	access disc functions
-		u.access_by_map(map(i));
+	//	get map
+		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i].map;
 
-		if(m_vElemDisc[i].needLocTimeSeries)
+	//	access disc functions
+		u.access_by_map(map);
+
+		if(m_vElemDisc[PT_ALL][i].needLocTimeSeries)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	prepare for elem disc
 		try{
-			m_vElemDisc[i].elemDisc->fast_prepare_elem(elem, u);
+			m_vElemDisc[PT_ALL][i].elemDisc->fast_prepare_elem(elem, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::prepare_element: "
 						"Cannot prepare element for IElemDisc "<<i);
@@ -131,12 +137,12 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 //			case for, e.g., the NeumannBoundary element disc.
 	if(bDeriv)
 	{
-		for(size_t i = 0; i < m_vImport[MASS].size(); ++i)
-			m_vImport[MASS][i].import->set_dof_sizes(ind, m_vImport[MASS][i].map);
-		for(size_t i = 0; i < m_vImport[STIFF].size(); ++i)
-			m_vImport[STIFF][i].import->set_dof_sizes(ind, m_vImport[STIFF][i].map);
-		for(size_t i = 0; i < m_vImport[RHS].size(); ++i)
-			m_vImport[RHS][i].import->set_dof_sizes(ind, m_vImport[RHS][i].map);
+		for(size_t i = 0; i < m_vImport[PT_ALL][MASS].size(); ++i)
+			m_vImport[PT_ALL][MASS][i].import->set_dof_sizes(ind, m_vImport[PT_ALL][MASS][i].map);
+		for(size_t i = 0; i < m_vImport[PT_ALL][STIFF].size(); ++i)
+			m_vImport[PT_ALL][STIFF][i].import->set_dof_sizes(ind, m_vImport[PT_ALL][STIFF][i].map);
+		for(size_t i = 0; i < m_vImport[PT_ALL][RHS].size(); ++i)
+			m_vImport[PT_ALL][RHS][i].import->set_dof_sizes(ind, m_vImport[PT_ALL][RHS][i].map);
 
 		for(size_t i = 0; i < m_vDependentData.size(); ++i)
 			m_vDependentData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
@@ -150,18 +156,21 @@ void DataEvaluator::
 finish_timestep_elem(TElem* elem, const number time, LocalVector& u)
 {
 // 	finish timestep
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
-	//	access disc functions
-		u.access_by_map(map(i));
+	//	get map
+		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i].map;
 
-		if(m_vElemDisc[i].needLocTimeSeries)
+	//	access disc functions
+		u.access_by_map(map);
+
+		if(m_vElemDisc[PT_ALL][i].needLocTimeSeries)
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map(i));
+				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	finish timestep for elem disc
 		try{
-			m_vElemDisc[i].elemDisc->fast_finish_timestep_elem(elem, time, u);
+			m_vElemDisc[PT_ALL][i].elemDisc->fast_finish_timestep_elem(elem, time, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::finish_timestep_element: "
 						"Cannot finish timestep on element for IElemDisc "<<i);
