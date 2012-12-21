@@ -237,6 +237,9 @@ void PeriodicBoundaryManager::handle_creation(TElem* e,
 					break;
 				}
 			}
+			if(!child_found) {
+			//...
+			}
 			// fixme this is assertion is always false!
 			UG_ASSERT(child_found, "no periodic child found, which group could be copied.")
 		}
@@ -262,7 +265,8 @@ void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
 		} else { // slave
 			Group<TElem>* g = group(e);
 			bool removed = remove_slave(e);
-			UG_ASSERT(removed, "slave not removed.")
+			if(!removed)
+				UG_THROW("slave not removed");
 
 			if(replacedBy)
 				g->add_slave(replacedBy);
