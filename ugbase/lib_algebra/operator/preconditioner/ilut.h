@@ -269,10 +269,15 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		matrix_type m_U;
 		double m_eps;
 		bool m_info;
-		static const number m_small_lower=1e-9;
-		static const number m_small_upper=1e-6;
+		static const number m_small_lower;
+		static const number m_small_upper;
 };
 
+template <typename TAlgebra>
+const number ILUTPreconditioner<TAlgebra>::m_small_lower = 1e-9;
+
+template <typename TAlgebra>
+const number ILUTPreconditioner<TAlgebra>::m_small_upper = 1e-6;
 
 } // end namespace ug
 
