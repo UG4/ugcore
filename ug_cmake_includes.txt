@@ -83,7 +83,7 @@ set(svnDefault ON)
 set(precisionDefault "double")
 set(precisionOptions "single, double")
 
-# If we run the script the first time, search for MPI to determine the default valuei
+# If we run the script the first time, search for MPI to determine the default value
 if(BUILTIN_MPI)
   set(MPI_FOUND YES)
 else(BUILTIN_MPI)
@@ -202,7 +202,7 @@ message(STATUS "Info: INTERNAL_BOOST:    "${INTERNAL_BOOST}" (options are: ON, O
 message(STATUS "Info: EMBEDDED_PLUGINS   "${EMBEDDED_PLUGINS}" (options are: ON, OFF)")
 message(STATUS "Info: COMPILE_INFO       "${COMPILE_INFO}" (options are: ON, OFF)")
 message(STATUS "")
-message(STATUS "Info: External libraries (set them to the path, which contains the library):")
+message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
 message(STATUS "Info: METIS:    "${METIS})
 message(STATUS "Info: PARMETIS: "${PARMETIS})
 message(STATUS "Info: TETGEN:   "${TETGEN})
@@ -350,24 +350,43 @@ endif("${DIM}" STREQUAL "ALL")
 if(CRS_MATRIX)
 	add_definitions(-DUG_CRS_1)
 	MESSAGE(STATUS "Info: Using CRS Matrix Algebra.")
-endif(CRS_MATRIX)
-if("${CPU}" STREQUAL "ALL")
-	# todo checks for 4, VAR (-DUG_CPU_4 -DUG_CPU_VAR)!
-	add_definitions(-DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3)
-	
-else("${CPU}" STREQUAL "ALL")
-	# CPU is a string of numbers (e.g. "1;2")
-	# loop dims
-	foreach(d ${CPU})
-		# check if dim is valid
-		if(d GREATER 4 OR d LESS 1)
-			message(FATAL_ERROR "ERROR: Cannot build cpu blocksize ${d}. "
-								"Valid options are: "${cpuOptions})
-		endif(d GREATER 4 OR d LESS 1)
-	
-		add_definitions(-DUG_CPU_${d})
-	endforeach(d)
-endif("${CPU}" STREQUAL "ALL")
+
+    if("${CPU}" STREQUAL "ALL")
+        # todo checks for 4, VAR (-DUG_CPU_4 -DUG_CPU_VAR)!
+        add_definitions(-DUG_CRS_1 -DUG_CRS_2 -DUG_CRS_3)
+
+    else("${CPU}" STREQUAL "ALL")
+        # CPU is a string of numbers (e.g. "1;2")
+        # loop dims
+        foreach(d ${CPU})
+            # check if dim is valid
+            if(d GREATER 4 OR d LESS 1)
+                message(FATAL_ERROR "ERROR: Cannot build cpu blocksize ${d}. "
+                                    "Valid options are: "${cpuOptions})
+            endif(d GREATER 4 OR d LESS 1)
+
+            add_definitions(-DUG_CRS_${d})
+        endforeach(d)
+    endif("${CPU}" STREQUAL "ALL")
+else(CRS_MATRIX)
+    if("${CPU}" STREQUAL "ALL")
+        # todo checks for 4, VAR (-DUG_CPU_4 -DUG_CPU_VAR)!
+        add_definitions(-DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3)
+
+    else("${CPU}" STREQUAL "ALL")
+        # CPU is a string of numbers (e.g. "1;2")
+        # loop dims
+        foreach(d ${CPU})
+            # check if dim is valid
+            if(d GREATER 4 OR d LESS 1)
+                message(FATAL_ERROR "ERROR: Cannot build cpu blocksize ${d}. "
+                                    "Valid options are: "${cpuOptions})
+            endif(d GREATER 4 OR d LESS 1)
+
+            add_definitions(-DUG_CPU_${d})
+        endforeach(d)
+    endif("${CPU}" STREQUAL "ALL")
+endif()
 
 ########################################
 # DEBUG
@@ -599,12 +618,13 @@ endif(buildAlgebra)
 ########################################
 # METIS
 if(METIS)
-	find_library(METIS_LIBS NAMES metis PATHS ${METIS}/lib)
+	find_library(METIS_LIBS NAMES metis PATHS ${METIS}/lib ~/local/metis/used/lib)
 	if(METIS_LIBS-NOTFOUND)
 		message(FATAL_ERROR "ERROR: Couldn't find METIS in the specified path.")
 	else(METIS_LIBS-NOTFOUND)
 		add_definitions(-DUG_METIS)
-		include_directories(${METIS}/include)
+		find_path(METIS_INCLUDE_PATH metis.h ${METIS}/include ~/local/metis/used/include)
+		include_directories(${METIS_INCLUDE_PATH})
 		set(linkLibraries ${linkLibraries} ${METIS_LIBS})		
 	endif(METIS_LIBS-NOTFOUND)
 endif(METIS)
@@ -612,16 +632,16 @@ endif(METIS)
 ########################################
 # PARMETIS
 if(PARMETIS)
-	find_library(PARMETIS_LIBS NAMES metis parmetis PATHS ${PARMETIS}/lib)
+	find_library(PARMETIS_LIBS NAMES parmetis PATHS ${PARMETIS}/lib ~/local/parmetis/used/lib)
 	if(PARMETIS_LIBS-NOTFOUND)
 		message(FATAL_ERROR "ERROR: Couldn't find PARMETIS in the specified path.")
 	else(PARMETIS_LIBS-NOTFOUND)
 		add_definitions(-DUG_PARMETIS)
-		include_directories(${PARMETIS}/include)
+		find_path(PARMETIS_INCLUDE_PATH parmetis.h ${PARMETIS}/include ~/local/parmetis/used/include)
+		include_directories(${PARMETIS_INCLUDE_PATH})
 		set(linkLibraries ${linkLibraries} ${PARMETIS_LIBS})		
 	endif(PARMETIS_LIBS-NOTFOUND)
 endif(PARMETIS)
-
 ########################################
 # TETGEN
 if(TETGEN)
@@ -873,6 +893,3 @@ mark_as_advanced(CMAKE_BUILD_TYPE)
 mark_as_advanced(BUILTIN_LAPACK)
 mark_as_advanced(BUILTIN_BLAS)
 mark_as_advanced(BUILTIN_MPI)
-
-
-
