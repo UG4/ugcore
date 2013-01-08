@@ -104,7 +104,7 @@ struct CRSBlockAlgebra
 	typedef ParallelVector<CRSVector<DenseVector<FixedArray1<double, TBlockSize> > > > vector_type;
 #else
 	typedef  CRSSparseMatrix<CRSSparseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > matrix_type;
-	typedef CRSVector<CRSDenseVector<FixedArray1<double, TBlockSize> > > vector_type;
+	typedef CRSVector<DenseVector<FixedArray1<double, TBlockSize> > > vector_type;
 #endif
 
 	static const int blockSize = TBlockSize;
