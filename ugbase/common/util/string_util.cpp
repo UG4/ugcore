@@ -301,18 +301,18 @@ string GetFileLines(const char *filename, size_t fromline, size_t toline, bool i
 	char buf[512];
 	fstream file(filename, ios::in);
 	if(file.is_open() == false) return string("");
-	for(size_t i=0; i<fromline; i++)
+	for(size_t i=0; i<fromline && !file.eof(); i++)
 		file.getline(buf, 512);
 	stringstream ss;
 	if(includeLineNumbers)
 		ss << fromline << "\t";
 	ss << buf;
-	for(; fromline < toline; fromline++)
+	for(; fromline < toline && !file.eof(); fromline++)
 	{
 		file.getline(buf, 512);
 		ss << "\n";
 		if(includeLineNumbers)
-			ss << fromline << "\t";
+			ss << fromline+1 << "\t";
 		ss << buf;
 	}
 	return ss.str();
