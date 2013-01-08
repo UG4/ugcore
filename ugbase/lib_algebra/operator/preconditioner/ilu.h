@@ -12,7 +12,6 @@
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_util.h"
-	#include "lib_algebra/cpu_algebra/sparsematrix_util.h"
 	#include "lib_algebra/parallelization/parallelization_util.h"
 	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #endif
@@ -319,6 +318,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			if (m_beta!=0.0) FactorizeILUBeta(m_ILU, m_beta);
 			else if(matrix_type::rows_sorted) FactorizeILUSorted(m_ILU);
 			else FactorizeILU(m_ILU);
+			m_ILU.defragment();
 
 		//	Debug output of matrices
 			write_debug(m_ILU, "ILU_AfterFactorize");

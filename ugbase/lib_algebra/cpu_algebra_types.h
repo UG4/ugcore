@@ -25,6 +25,7 @@
 	#include "parallelization/parallel_matrix.h"
 #endif
 
+#include "small_algebra/small_algebra.h"
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////

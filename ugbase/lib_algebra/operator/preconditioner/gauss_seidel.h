@@ -9,7 +9,8 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GAUSS_SEIDEL__
 
 #include "lib_algebra/operator/interface/operator.h"
-#include "lib_algebra/cpu_algebra/core_smoothers.h"
+#include "lib_algebra/algebra_common/core_smoothers.h"
+#include "lib_algebra/algebra_common/sparsematrix_util.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"

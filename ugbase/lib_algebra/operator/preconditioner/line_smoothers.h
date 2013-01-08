@@ -14,7 +14,7 @@
 
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/interface/operator_iterator.h"
-#include "lib_algebra/cpu_algebra/core_smoothers.h"
+#include "lib_algebra/algebra_common/core_smoothers.h"
 #include "lib_disc/dof_manager/lexorder.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_disc/common/groups_util.h"
