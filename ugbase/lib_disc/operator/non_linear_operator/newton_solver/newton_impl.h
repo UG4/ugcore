@@ -28,9 +28,64 @@
 namespace ug{
 
 template <typename TAlgebra>
-bool
 NewtonSolver<TAlgebra>::
-init(SmartPtr<IOperator<vector_type> > N)
+NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
+			SmartPtr<IConvergenceCheck<vector_type> > spConvCheck,
+			SmartPtr<ILineSearch<vector_type> > spLineSearch, bool reallocate) :
+			m_spLinearSolver(LinearSolver),
+			m_spConvCheck(spConvCheck),
+			m_spLineSearch(spLineSearch),
+			m_reallocate(reallocate), m_allocated(false),
+			m_dgbCall(0)
+{};
+
+template <typename TAlgebra>
+NewtonSolver<TAlgebra>::
+NewtonSolver() :
+	m_spLinearSolver(NULL),
+	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
+	m_spLineSearch(NULL),
+	m_reallocate(false), m_allocated(false),
+	m_dgbCall(0)
+{};
+
+template <typename TAlgebra>
+NewtonSolver<TAlgebra>::
+NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
+	m_spLinearSolver(NULL),
+	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
+	m_spLineSearch(NULL),
+	m_reallocate(false), m_allocated(false),
+	m_dgbCall(0)
+{
+	init(N);
+};
+
+template <typename TAlgebra>
+NewtonSolver<TAlgebra>::
+NewtonSolver(IAssemble<algebra_type>* pAss) :
+	m_spLinearSolver(NULL),
+	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
+	m_spLineSearch(NULL),
+	m_reallocate(false), m_allocated(false),
+	m_dgbCall(0)
+{
+	m_pAss = pAss;
+	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(*m_pAss));
+};
+
+template <typename TAlgebra>
+void NewtonSolver<TAlgebra>::
+set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
+{
+	m_spConvCheck = spConvCheck;
+	m_spConvCheck->set_offset(3);
+	m_spConvCheck->set_symbol('#');
+	m_spConvCheck->set_name("Newton Solver");
+}
+
+template <typename TAlgebra>
+bool NewtonSolver<TAlgebra>::init(SmartPtr<IOperator<vector_type> > N)
 {
 	NEWTON_PROFILE_BEGIN(NewtonSolver_init);
 	m_N = N.template cast_dynamic<AssembledOperator<TAlgebra> >();
@@ -41,56 +96,12 @@ init(SmartPtr<IOperator<vector_type> > N)
 	return true;
 }
 
-
-template <typename TAlgebra>
-void NewtonSolver<TAlgebra>::allocate_memory(const vector_type& u)
-{
-	NEWTON_PROFILE_BEGIN(NewtonSolver_allocate_memory);
-	// Jacobian
-	m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
-	m_J->set_level(m_N->level());
-
-	if(m_J.invalid()) UG_THROW("NewtonSolver::prepare: Cannot allocate memory.");
-
-	try {
-		m_d.resize(u.size()); m_d = u;
-		m_c.resize(u.size()); m_c = u;
-	}
-	UG_CATCH_THROW("NewtonSolver::prepare: Resize of vectors failed.");
-
-	m_allocated = true;
-}
-
 template <typename TAlgebra>
 bool NewtonSolver<TAlgebra>::prepare(vector_type& u)
 {
-	NEWTON_PROFILE_BEGIN(NewtonSolver_prepare);
-	if(!m_allocated)
-	{
-		try{
-			allocate_memory(u);
-		}
-		UG_CATCH_THROW("NewtonSolver: Cannot allocate memory.");
-	}
-
-//	Check for linear solver
-	if(m_spLinearSolver.invalid())
-		UG_THROW("NewtonSolver::prepare: Linear Solver not set.");
-
-//	Set dirichlet values
-	try{
-		m_N->prepare(m_d, u);
-	}
-	UG_CATCH_THROW("NewtonSolver::prepare: Preapre of Operator failed.");
-
+//	todo: maybe remove this from interface
 	return true;
 }
-
-
-template <typename TAlgebra>
-NewtonSolver<TAlgebra>::~NewtonSolver()
-{}
-
 
 template <typename TAlgebra>
 bool NewtonSolver<TAlgebra>::apply(vector_type& u)
@@ -99,11 +110,27 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 //	increase call count
 	m_dgbCall++;
 
+//	Check for linear solver
+	if(m_spLinearSolver.invalid())
+		UG_THROW("NewtonSolver::apply: Linear Solver not set.");
+
+// Jacobian
+	if(m_J.invalid() || m_J->discretization() != m_pAss) {
+		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
+		m_J->set_level(m_N->level());
+	}
+
 //	resize
 	try{
-	m_d.resize(u.size());
-	m_c.resize(u.size());
+		m_d.resize(u.size()); m_d = u;
+		m_c.resize(u.size()); m_c = u;
 	}UG_CATCH_THROW("NewtonSolver::apply: Resize of Defect/Correction failed.");
+
+//	Set dirichlet values
+	try{
+		m_N->prepare(m_d, u);
+	}
+	UG_CATCH_THROW("NewtonSolver::prepare: Preapre of Operator failed.");
 
 // 	Compute first Defect
 	try{
@@ -253,9 +280,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 }
 
 template <typename TAlgebra>
-void
-NewtonSolver<TAlgebra>::
-print_average_convergence() const
+void NewtonSolver<TAlgebra>::print_average_convergence() const
 {
 	UG_LOG("\nNewton solver convergence history:\n");
 	UG_LOG("Newton Step | Num Calls | Total Lin Iters | Avg Lin Iters | Avg Nonlin Rates | Avg Lin Rates \n");
@@ -285,41 +310,31 @@ print_average_convergence() const
 }
 
 template <typename TAlgebra>
-size_t
-NewtonSolver<TAlgebra>::
-num_newton_steps() const
+size_t NewtonSolver<TAlgebra>::num_newton_steps() const
 {
 	return m_vLinSolverCalls.size();
 }
 
 template <typename TAlgebra>
-int
-NewtonSolver<TAlgebra>::
-num_linsolver_calls(size_t call) const
+int NewtonSolver<TAlgebra>::num_linsolver_calls(size_t call) const
 {
 	return m_vLinSolverCalls[call];
 }
 
 template <typename TAlgebra>
-int
-NewtonSolver<TAlgebra>::
-num_linsolver_steps(size_t call) const
+int NewtonSolver<TAlgebra>::num_linsolver_steps(size_t call) const
 {
 	return m_vTotalLinSolverSteps[call];
 }
 
 template <typename TAlgebra>
-double
-NewtonSolver<TAlgebra>::
-average_linear_steps(size_t call) const
+double NewtonSolver<TAlgebra>::average_linear_steps(size_t call) const
 {
 	return m_vTotalLinSolverSteps[call] / ((double)m_vLinSolverCalls[call]);
 }
 
 template <typename TAlgebra>
-int
-NewtonSolver<TAlgebra>::
-total_linsolver_calls() const
+int NewtonSolver<TAlgebra>::total_linsolver_calls() const
 {
 	int allCalls = 0;
 	for(size_t call = 0; call < m_vLinSolverCalls.size(); ++call)
@@ -328,9 +343,7 @@ total_linsolver_calls() const
 }
 
 template <typename TAlgebra>
-int
-NewtonSolver<TAlgebra>::
-total_linsolver_steps() const
+int NewtonSolver<TAlgebra>::total_linsolver_steps() const
 {
 	int allSteps = 0;
 	for(size_t call = 0; call < m_vLinSolverCalls.size(); ++call)
@@ -339,23 +352,43 @@ total_linsolver_steps() const
 }
 
 template <typename TAlgebra>
-double
-NewtonSolver<TAlgebra>::
-total_average_linear_steps() const
+double NewtonSolver<TAlgebra>::total_average_linear_steps() const
 {
 	return total_linsolver_steps()/((double)total_linsolver_calls());
 }
 
 
 template <typename TAlgebra>
-void
-NewtonSolver<TAlgebra>::
-clear_average_convergence()
+void NewtonSolver<TAlgebra>::clear_average_convergence()
 {
 	m_vLinSolverRates.clear();
 	m_vNonLinSolverRates.clear();
 	m_vLinSolverCalls.clear();
 	m_vTotalLinSolverSteps.clear();
+}
+
+template <typename TAlgebra>
+void NewtonSolver<TAlgebra>::write_debug(const vector_type& vec, const char* filename)
+{
+//	add iter count to name
+	std::string name(filename);
+	char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
+	name.append(ext).append(".vec");
+
+//	write
+	base_writer_type::write_debug(vec, name.c_str());
+}
+
+template <typename TAlgebra>
+void NewtonSolver<TAlgebra>::write_debug(const matrix_type& mat, const char* filename)
+{
+//	add iter count to name
+	std::string name(filename);
+	char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
+	name.append(ext).append(".mat");
+
+//	write
+	base_writer_type::write_debug(mat, name.c_str());
 }
 
 

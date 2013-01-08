@@ -53,6 +53,9 @@ class AssembledLinearOperator :
 	///	sets the discretization to be used
 		void set_discretization(IAssemble<TAlgebra>& ass) {m_pAss = &ass;}
 
+	///	returns the discretization to be used
+		IAssemble<TAlgebra>* discretization() {return m_pAss;}
+
 	///	sets the level used for assembling
 		void set_level(const GridLevel& gl) {m_gridLevel = gl;}
 

@@ -182,6 +182,8 @@ static void Algebra(Registry& reg, string parentGroup)
 		string name = string("NewtonSolver").append(suffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
+			.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
+			.template add_constructor<void (*)(IAssemble<TAlgebra>*)>("AssemblingRoutine")
 			.add_method("set_linear_solver", &T::set_linear_solver, "", "linSolver")
 			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
 			.add_method("set_line_search", &T::set_line_search, "", "lineSeach")
