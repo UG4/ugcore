@@ -28,7 +28,7 @@ InterfaceCommunicator() :
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::
-send_raw(int targetProc, void* pBuff, int bufferSize,
+send_raw(int targetProc, const void* pBuff, int bufferSize,
 	     bool bSizeKnownAtTarget)
 {
 	assert((targetProc == -1) || (targetProc >= 0 && targetProc < pcl::GetNumProcesses()));
@@ -39,7 +39,7 @@ send_raw(int targetProc, void* pBuff, int bufferSize,
 	if(!bSizeKnownAtTarget)
 		buffer.write((char*)&bufferSize, sizeof(int));
 		
-	buffer.write((char*)pBuff, bufferSize);
+	buffer.write((const char*)pBuff, bufferSize);
 	m_bSendBuffersFixed = m_bSendBuffersFixed
 						&& bSizeKnownAtTarget;
 }
@@ -433,10 +433,6 @@ communicate()
 	std::vector<MPI_Request> vSendRequests(numOutStreams);
 	std::vector<MPI_Request> vReceiveRequests(numInStreams);
 	
-//	wait until data has been received
-	std::vector<MPI_Status> vReceiveStates(numInStreams);//TODO: fix spelling!
-	std::vector<MPI_Status> vSendStates(numOutStreams);//TODO: fix spelling!
-
 
 ////////////////////////////////////////////////
 //	determine buffer sizes and communicate them if required.
@@ -535,10 +531,7 @@ communicate()
 	//		instead of waiting for all, one could wait until one has finished and directly
 	//		start copying the data to the local receive buffer. Afterwards on could continue
 	//		by waiting for the next one etc...
-		if(numInStreams)
-			MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
-		if(numOutStreams)
-			MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
+		Waitall(vReceiveRequests, vSendRequests);
 //		PROFILE_END();
 	}
 
@@ -623,10 +616,7 @@ communicate()
 //		start copying the data to the local receive buffer. Afterwards on could continue
 //		by waiting for the next one etc...
 	PCL_PROFILE(pcl_IntCom_MPIWait);
-	if(numInStreams)
-		MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
-	if(numOutStreams)
-		MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
+	Waitall(vReceiveRequests, vSendRequests);
 	PCL_PROFILE_END();
 	PCL_PROFILE_END();
 	

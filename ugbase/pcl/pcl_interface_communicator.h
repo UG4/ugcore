@@ -62,7 +62,7 @@ class InterfaceCommunicator
 	 *	If you're only interested in sending raw data, you should take a
 	 *	look into pcl::ProcessCommunicator::send.
 	 */
-		void send_raw(int targetProc, void* pBuff, int bufferSize,
+		void send_raw(int targetProc, const void* pBuff, int bufferSize,
 					   bool bSizeKnownAtTarget = false);
 
 	///	collects data that will be send during communicate.
