@@ -1,0 +1,3 @@
+#!/bin/bash
+bison -d -y parser.y -o parser.cpp
+flex -o lexer.cpp lexer.l
