@@ -47,10 +47,11 @@ bool CRSSparseMatrix<T>::resize(size_t newRows, size_t newCols)
 
 
 template<typename T>
-bool CRSSparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, double scale)
+bool CRSSparseMatrix<T>::set_as_transpose_of(const CRSSparseMatrix<value_type> &B, double scale)
 {
 	PROFILE_BEGIN_GROUP(CRSSparseMatrix_set_as_transpose_of, "algebra CRSSparseMatrix");
 	resize(B.num_cols(), B.num_rows());
+	set(0.0);
 	/*rowStart.resize(B.num_cols(), 0);
 	rowMax.resize(B.num_cols(), 0);
 	rowEnd.resize(B.num_cols(), 0);
@@ -241,6 +242,55 @@ bool CRSSparseMatrix<T>::scale(double d)
 
 
 
+
+//======================================================================================================
+// submatrix set/get
+
+template<typename T>
+template<typename M>
+void CRSSparseMatrix<T>::add(const M &mat)
+{
+	for(size_t i=0; i < mat.num_rows(); i++)
+	{
+		int r = mat.row_index(i);
+		for(size_t j=0; j < mat.num_cols(); j++)
+		{
+			int c = mat.col_index(j);
+			(*this)(r,c) += mat(i,j);		
+		}		
+	}	
+}
+
+
+template<typename T>
+template<typename M>
+void CRSSparseMatrix<T>::set(const M &mat)
+{
+	for(size_t i=0; i < mat.num_rows(); i++)
+	{
+		int r = mat.row_index(i);
+		for(size_t j=0; j < mat.num_cols(); j++)
+		{
+			int c = mat.col_index(j);
+			(*this)(r,c) = mat(i,j);		
+		}		
+	}	
+}
+
+template<typename T>
+template<typename M>
+void CRSSparseMatrix<T>::get(M &mat) const
+{
+	for(size_t i=0; i < mat.num_rows(); i++)
+	{
+		int r = mat.row_index(i);
+		for(size_t j=0; j < mat.num_cols(); j++)
+		{
+			int c = mat.col_index(j);
+			mat(i,j) = (*this)(r,c);
+		}		
+	}	
+}
 
 
 

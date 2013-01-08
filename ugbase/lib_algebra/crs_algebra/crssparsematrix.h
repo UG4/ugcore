@@ -13,7 +13,7 @@
 
 #include "math.h"
 #include "common/common.h"
-
+#include "../algebra_common/sparsematrix_util.h"
 #include "../common/operations_mat/operations_mat.h"
 
 namespace ug{
@@ -22,10 +22,9 @@ namespace ug{
 ///	@{
 
 
-/** SparseMatrix
+/** CRSSparseMatrix
  *  \brief sparse matrix for big, variable sparse matrices.
  *
- * \sa matrixrow, CreateAsMultiplyOf
  * \param T blocktype
  */
 template<typename TValueType> class CRSSparseMatrix
@@ -91,7 +90,7 @@ public:
 	 * \param scale		an optional scaling
 	 * \return			true on success
 	 */
-	bool set_as_transpose_of(const SparseMatrix<value_type> &B, double scale=1.0);
+	bool set_as_transpose_of(const CRSSparseMatrix<value_type> &B, double scale=1.0);
 
 	/**
 	 * \brief create/recreate this as a copy of SparseMatrix B
@@ -100,7 +99,7 @@ public:
 	 * \return			true on success
 	 */
 	bool set_as_copy_of(const CRSSparseMatrix<value_type> &B, double scale=1.0);
-	SparseMatrix<value_type> &operator = (const SparseMatrix<value_type> &B)
+	CRSSparseMatrix<value_type> &operator = (const CRSSparseMatrix<value_type> &B)
 	{
 		set_as_copy_of(B);
 		return *this;
@@ -194,14 +193,18 @@ public:
 	 * access connection (r, c)
 	 * \param r row
 	 * \param c column
-	 * \note it is assert'ed that connection (r,c) is there
-	 * use operator()(r,c,bConnectionFound) to check.
+	 * \note if connection (r, c) is not there, returns 0.0
 	 * \return SparseMat(r, c)
 	 */
 	const value_type &operator () (size_t r, size_t c)  const
     {
         int j=get_index_const(r, c);
-        UG_ASSERT(j != -1 && cols[j]==c && j >= rowStart[r] && j < rowEnd[r], "");
+		if(j == -1)
+		{
+			static value_type v(0.0);
+			return v;
+		}
+        UG_ASSERT(cols[j]==c && j >= rowStart[r] && j < rowEnd[r], "");
         return values[j];
     }
 
