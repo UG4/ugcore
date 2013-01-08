@@ -198,14 +198,17 @@ public:
 	 * access connection (r, c)
 	 * \param r row
 	 * \param c column
-	 * \note it is assert'ed that connection (r,c) is there
-	 * use operator()(r,c,bConnectionFound) to check.
+	 * \note if connection (r, c) is not there, returns 0.0
 	 * \return SparseMat(r, c)
 	 */
 	const value_type &operator () (size_t r, size_t c)  const
     {
         typename std::map<size_t, TValueType>::const_iterator it = data[r].find(c);
-		UG_ASSERT(it != data[r].end(c), "");
+		if(it != data[r].end(c))
+		{
+			static value_type v(0.0);
+			return v;
+		}
 		return (*it).second;
 		
     }
