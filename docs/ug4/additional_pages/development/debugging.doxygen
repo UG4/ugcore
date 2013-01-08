@@ -10,6 +10,71 @@
 - \ref secDebuggingOutput
 
 <hr>
+
+\section secDebuggingOutput "printf" debugging UG4
+
+We incorporated a logging mechanism into UG4 to faciliate printing messages 
+for test purposes. To enable it, you need to make ug with
+\verbatim
+cmake -DEBUG_LOGS=ON ..
+\endverbatim
+(otherwise all UG_DLOG/IF_DEBUGs will be ignored).
+
+It works like this: In your LUA-Script, you add the line
+\code
+GetLogAssistant():set_debug_level("MAIN", 2)
+\endcode
+
+Now the debug level for the \emph DebugID MAIN is set to 2. Now in the C++ code,
+you can do logging with UG_LOG, using some ostream functionality like in cout:
+\code
+UG_LOG("Hello World " << myInteger << "\n");
+\endcode
+If you want a message to be printed only if the DebugID MAIN is 2, you do
+\code
+UG_DLOG(MAIN, 2, "my debug message");
+\endcode
+There's also a way to control if a block is exectuted or not:
+\code
+IF_DEBUG(MAIN, 3)
+{
+    // do sth.
+}
+\endcode
+By default, UG4 has the following DebugIDs:
+\code
+MAIN, APP, LIB_GRID, LIB_GRID_REFINER, LIB_DISC, LIB_DISC_ASSEMBLE, LIB_DISC_D3F,
+LIB_DISC_MULTIGRID, LIB_DISC_NEWTON, LIB_DISC_LINKER, LIB_DISC_TRANSER, LIB_DISC_DISCRETE_FUNCTION,
+LIB_DISC_OUTPUT, LIB_DISC_OPERATOR_INVERSE, LIB_ALG_LINEAR_OPERATOR, LIB_ALG_LINEAR_SOLVER,
+LIB_ALG_VECTOR, LIB_ALG_MATRIX, LIB_ALG_AMG, LIB_PCL
+\endcode
+For a complete list, use
+\code
+print(GetLogAssistant():get_debug_IDs())
+\endcode
+in your script. You can also add custom debug IDs in the following way: You need to create one
+global object of the class DebugID (in a cpp-file):
+\code
+#include "common/log.h"
+DebugID DID_MYAPP("MYAPP");
+\endcode
+Now you can use it in any C++ file this way
+\code
+#include "common/log.h"
+extern DebugID DID_MYAPP;
+void myFunction()
+{
+    UG_DLOG(DID_MYAPP, 1, "my msg");
+}
+\endcode
+and set the debug level in lua
+\code
+GetLogAssistant():set_debug_level("MYAPP", 1)
+\endcode
+Note the difference between the DebugID object DID_MYAPP and its associated string "MYAPP" - you can use for both the same, 
+of course.
+\sa ug::LogAssistant, UG_LOG, UG_DLOG
+
 \section secDebuggingUG4CPP Debugging UG4 with gdb
 To debug ug4, you have to make
 \verbatim
@@ -83,61 +148,4 @@ If you only need the current LUA execution position, use
 \endcode
 
 
-\section secDebuggingOutput "printf" debugging UG4
-
-We incorporated a logging mechanism into UG4 to faciliate printing messages 
-for test purposes. It works like this: In your LUA-Script, you add the line
-\code
-GetLogAssistant():set_debug_level("MAIN", 2)
-\endcode
-
-Now the debug level for the \emph DebugID MAIN is set to 2. Now in the C++ code,
-you can do logging with UG_LOG, using some ostream functionality like in cout:
-\code
-UG_LOG("Hello World " << myInteger << "\n");
-\endcode
-If you want a message to be printed only if the DebugID MAIN is 2, you do
-\code
-UG_DLOG(MAIN, 2, "my debug message");
-\endcode
-There's also a way to control if a block is exectuted or not:
-\code
-IF_DEBUG(MAIN, 3)
-{
-    // do sth.
-}
-\endcode
-By default, UG4 has the following DebugIDs:
-\code
-MAIN, APP, LIB_GRID, LIB_GRID_REFINER, LIB_DISC, LIB_DISC_ASSEMBLE, LIB_DISC_D3F,
-LIB_DISC_MULTIGRID, LIB_DISC_NEWTON, LIB_DISC_LINKER, LIB_DISC_TRANSER, LIB_DISC_DISCRETE_FUNCTION,
-LIB_DISC_OUTPUT, LIB_DISC_OPERATOR_INVERSE, LIB_ALG_LINEAR_OPERATOR, LIB_ALG_LINEAR_SOLVER,
-LIB_ALG_VECTOR, LIB_ALG_MATRIX, LIB_ALG_AMG, LIB_PCL
-\endcode
-For a complete list, use
-\code
-print(GetLogAssistant():get_debug_IDs())
-\endcode
-in your script. You can also add custom debug IDs in the following way: You need to create one
-global object of the class DebugID (in a cpp-file):
-\code
-#include "common/log.h"
-DebugID DID_MYAPP("MYAPP");
-\endcode
-Now you can use it in any C++ file this way
-\code
-#include "common/log.h"
-extern DebugID DID_MYAPP;
-void myFunction()
-{
-    UG_DLOG(DID_MYAPP, 1, "my msg");
-}
-\endcode
-and set the debug level in lua
-\code
-GetLogAssistant():set_debug_level("MYAPP", 1)
-\endcode
-Note the difference between the DebugID object DID_MYAPP and its associated string "MYAPP" - you can use for both the same, 
-of course.
-\sa ug::LogAssistant, UG_LOG, UG_DLOG
 */
