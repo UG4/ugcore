@@ -37,6 +37,7 @@ using namespace script;
 
 ////////////////////////////////////////////////////////////////////////////////
 // interactive shells
+//#define UG_PROMPT "\e[1mug:>\e[0m"
 #define UG_PROMPT "ug:> "
 
 #if defined(UG_USE_READLINE)
