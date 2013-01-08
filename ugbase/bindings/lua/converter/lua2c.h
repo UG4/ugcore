@@ -15,7 +15,6 @@ namespace ug{
 namespace bridge {
 
 
-template
 class LUA2C
 {
 
