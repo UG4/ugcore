@@ -74,6 +74,12 @@ class StandardLineSearch : public ILineSearch<TVector>
 		  	 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(false), m_offset("")
 			 {};
 
+	///	constructor
+		StandardLineSearch(int maxSteps, number lambdaStart, number lambdaReduce, bool bAcceptBest)
+		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce),
+			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_offset("")
+			 {};
+
 	///	sets maximum number of line search steps
 		void set_maximum_steps(int steps) {m_maxSteps = steps;}
 

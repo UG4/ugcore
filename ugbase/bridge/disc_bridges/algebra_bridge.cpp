@@ -256,6 +256,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		string name = string("StandardLineSearch").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
+			.template add_constructor<void (*)(int, number, number, bool)>()
 			.add_method("set_maximum_steps", &T::set_maximum_steps, "", "steps")
 			.add_method("set_lambda_start", &T::set_lambda_start, "", "start")
 			.add_method("set_reduce_factor", &T::set_reduce_factor, "", "factor")
