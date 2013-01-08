@@ -19,7 +19,7 @@
 #include "parser.hpp"
 #include <iostream>
 
-void yyerror(char *s);
+void yyerror(const char *s);
 namespace ug{
 class pclass;
 }

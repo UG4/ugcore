@@ -36,6 +36,9 @@ using namespace std;
 
 namespace ug
 {
+	namespace bridge{
+		bool RegisterConverter(Registry &reg, const char* parentGroup);
+	}
 
 namespace script
 {
@@ -134,6 +137,7 @@ static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 }
 
 
+
 void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp)
 {
 
@@ -150,6 +154,8 @@ void RegisterDefaultLuaBridge(ug::bridge::Registry* reg, std::string grp)
 	#ifdef UG_ALGEBRA
 //	Register info commands
 	RegisterInfoCommands(*reg, grp.c_str());
+	
+	RegisterConverter(*reg, grp.c_str());
 
 //	Register user functions
 	RegisterLuaUserData(*reg, grp);

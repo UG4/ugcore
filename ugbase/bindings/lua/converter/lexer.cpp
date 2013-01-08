@@ -793,7 +793,7 @@ YY_RULE_SETUP
 #line 27 "lexer.l"
 {
                 yylval.iValue = atof(yytext);
-                return YY_INTEGER;
+                return YY_INTEGER;                
             }
 	YY_BREAK
 case 4:
@@ -1905,5 +1905,7 @@ void yyfree (void * ptr )
 
 int yywrap(void) {
     return 1;
+// remove some warnings
+if(0) { unput(0); yyinput(); }
 }
 

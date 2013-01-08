@@ -13,6 +13,8 @@ using namespace std;
 
 namespace ug{
 namespace bridge {
+    
+DebugID DID_LUA2C("LUA2C");
 
 bool LUA2C::create(const char *functionName)
 {
@@ -35,21 +37,28 @@ bool LUA2C::create(const char *functionName)
 
 	char b[255];
 
-
 	fstream out("lua2c_output.c", fstream::out);		
 
 	out << "#include <math.h>\n";
 	out << "#define true 1\n";
 	out << "#define false 0\n";
 	parser.createC(out);
-    parser.createC(cout);
-	iIn = parser.num_in();
+    
+    iIn = parser.num_in();
 	iOut = parser.num_out();
+    out.close();
+    
+    IF_DEBUG(DID_LUA2C, 1)
+    {    
+        UG_LOG("--[LUA2C]-----------------------------------------------\n");
+        UG_LOG("created C function from LUA function " << functionName << ":\n");
+        UG_LOG(GetFileLines("lua2c_output.c", 1, -1, true) << "\n");        
+		UG_LOG("--[LUA2C]-----------------------------------------------\n");
+    }
 	
-	out.close();
-	//system("cat lua2c_output.c");
 
 	string c1s=string("gcc -O3 -c ") + p + "lua2c_output.c -o " + p + "lua2c_output.o";
+	UG_DLOG(DID_LUA2C, 2, "compiling line: " << c1s);
 	const char *c=c1s.c_str();
 	//UG_LOG(c << "\n");
 	system(c);
@@ -60,6 +69,7 @@ bool LUA2C::create(const char *functionName)
 	strcpy(b, pDyntemplate.c_str());
 	pDyn = p+mktemp(b);
 	string c2s=string("gcc -dynamiclib ") + p+"lua2c_output.o -o " + pDyn.c_str();
+	UG_DLOG(DID_LUA2C, 2, "linking line: " << c2s);
 	const char *c2 = c2s.c_str();
 	//UG_LOG(c2 << "\n");
 	system(c2);	
@@ -80,10 +90,10 @@ LUA2C::~LUA2C()
 {
 	if(libHandle)
 	{
-       	//UG_LOG("removing " << name << "\n");
+       	UG_DLOG(DID_LUA2C, 2, "removing " << name << "\n");
 		dlclose(libHandle);	
 		string s = string("rm ") + pDyn;
-		UG_LOG(s << "\n");
+		UG_DLOG(DID_LUA2C, 2, s << "\n");
 		system(s.c_str());
 	}
 }

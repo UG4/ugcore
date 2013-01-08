@@ -22,6 +22,8 @@ extern "C" {
 #include "lib_disc/spatial_disc/user_data/std_pos_data.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/data_linker.h"
+#include "lua_traits.h"
+#include "bindings/lua/converter/lua2c.h"
 
 namespace ug
 {
@@ -90,6 +92,9 @@ class LuaUserData
 
 	///	reference to lua function
 		int m_callbackRef;
+		
+    /// LUA2C type for compiled LUA code
+		bridge::LUA2C m_luaC;
 
 	///	flag, indicating if created from factory
 		bool m_bFromFactory;
@@ -263,7 +268,7 @@ class LuaUserFunction
 	///	reference to lua function
 		int m_cbValueRef;
 		std::vector<int> m_cbDerivRef;
-
+		
 	///	lua state
 		lua_State*	m_L;
 
@@ -272,6 +277,10 @@ class LuaUserFunction
 	
 	/// flag for position and time data
 		bool m_bPosTimeNeed;
+		
+    /// LUA2C types for compiled LUA code
+		bridge::LUA2C m_luaC;
+		std::vector<bridge::LUA2C > m_luaC_Deriv;
 
 	protected:
 	///	data input
@@ -279,6 +288,7 @@ class LuaUserFunction
 
 	///	data input casted to dependend data
 		std::vector<SmartPtr<DependentUserData<TDataIn, dim> > > m_vpDependData;
+		
 };
 
 

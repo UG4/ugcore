@@ -72,10 +72,36 @@ set(headersLua	externals/lua/lapi.h
 				externals/lua/lvm.h
 				externals/lua/lzio.h)
 
+find_package(BISON)
+find_package(FLEX)
+
+BISON_TARGET(MyParser parser.y parser.cc)
+FLEX_TARGET(MyScanner lexer.l  lexer.cc)
+ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
+
+
+
+# Create target for the parser
+ADD_CUSTOM_TARGET(FooParser echo “Creating parser.c”)
+
+# Create custom command for flex/lex (note the outputs)
+
+
+
 set(srcUGScript		lua_util.cpp
 					info_commands.cpp
 					bindings_lua.cpp
-					lua_debug.cpp)
+					lua_debug.cpp
+					converter/parser.cpp
+					converter/lexer.cpp
+					converter/pclass.cpp
+					converter/converter.cpp
+					converter/parser.y
+					converter/lexer.l
+					converter/parser.cpp
+					converter/lexer.cpp
+					converter/lua2c.cpp)
+
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.

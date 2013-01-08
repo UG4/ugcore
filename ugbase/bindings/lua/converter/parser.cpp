@@ -132,7 +132,7 @@ YY_BUFFER_STATE yy_scan_string (const char *yy_str  );
 
 pclass *globalP;
 
-void yyerror(char *s);
+void yyerror(const char *s);
 
 
 /* Enabling traces.  */
@@ -1858,7 +1858,7 @@ yyreturn:
 
 
 
-void yyerror(char *s)
+void yyerror(const char *s)
 {
 	globalP->err << "error: " << s << "\n";
 }

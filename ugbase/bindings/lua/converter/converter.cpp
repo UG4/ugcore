@@ -12,20 +12,6 @@ namespace bridge {
 
 int convert(const char *functionName)
 {
-	/*LUA2C f;
-	f.create(functionName);
-	if(f.is_valid())
-	{
-		double dOut[1];
-		double dIn[1] = {42};
-		f.f(dOut, dIn);
-		cout << dOut[0] << "\n";
-	}*/
-	
-	//bridge::Registry &reg = GetUGRegistry();
-	//reg.add_function(string(functionName)+"_C", f->f, "");
-	//reg.registry_changed();
-
     pclass parser;
     if(parser.parse_luaFunction(functionName) == false) return 0;
     
@@ -42,16 +28,12 @@ bool RegisterConverter(Registry &reg, const char* parentGroup)
 
 	//try
 	{
-		reg.add_function("convert", &convert, grp.c_str());		
+		reg.add_function("LUA2C_convertC", &convert, grp.c_str());		
 	}
 	//UG_REGISTRY_CATCH_THROW(grp);
 
 	return true;
 }
-
-
-
-
 
 
 }}

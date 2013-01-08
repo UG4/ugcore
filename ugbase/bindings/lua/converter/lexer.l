@@ -26,7 +26,7 @@ number         ({n}|{n}[.]{n}){exp}?
 
 {number}    {
                 yylval.iValue = atof(yytext);
-                return YY_INTEGER;
+                return YY_INTEGER;                
             }
 
 [-()<>=+*/,] {
@@ -65,4 +65,6 @@ number         ({n}|{n}[.]{n}){exp}?
 
 int yywrap(void) {
     return 1;
+// remove some warnings
+if(0) { unput(0); yyinput(); }
 }

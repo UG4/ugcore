@@ -29,6 +29,7 @@ vector<nodeType*> CommaListToVector(nodeType *a)
 		a = a->opr.op[1];
 	}
     v.push_back(a);
+    return v;
 }
 
 int pclass::get_id_for_name(const char*name)
@@ -123,7 +124,6 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
 					if(bOneReturn)
                     {
                         nodeType *a = p->opr.op[0];
-                        int i=0;
                         if(a->type == typeOpr && a->opr.oper == ',')
                         {
                             UG_ASSERT(0, "subfunctions may not return more then one value");
@@ -497,6 +497,7 @@ int pclass::declare(ostream &out)
 		a = a->opr.op[1];
 	}
 	out << "double " << id2variable[a->id.i] << ")";
+    return true;
 }
 
 int pclass::createC_inline(ostream &out)
@@ -515,14 +516,13 @@ int pclass::createC_inline(ostream &out)
 	for(int i=0; i<nodes.size(); i++)
 		createC(nodes[i], out, 1);
 	out << "}\n";
-	return 0;
+	return true;
 }
 
 int pclass::createLUA(ostream &out)
 {
     out << "function " << name << "(";
     nodeType *a = args;
-    int i=0;
 	while(a->type == typeOpr)
 	{
 		out << id2variable[a->opr.op[0]->id.i] << ", ";
@@ -534,6 +534,7 @@ int pclass::createLUA(ostream &out)
 		createLUA(nodes[i], out);
     
     out << "end\n";
+    return true;
 }
 
 nodeType *

@@ -14,6 +14,8 @@ using namespace std;
 
 namespace ug
 {
+	
+bool useLua2C=false;
 
 ///	returns true if callback exists
 bool CheckLuaCallbackName(const char* name)
@@ -53,7 +55,6 @@ void LuaUserNumberNumberFunction::set_lua_callback(const char* luaCallback)
 
 number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
 {
-
 //	push the callback function on the stack
 	lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
 
