@@ -211,7 +211,9 @@ class IElemDisc
 		size_t time_point() const {return m_timePoint;}
 
 	///	returns currently set timepoint
-		number time() const {return m_pLocalVectorTimeSeries->time(m_timePoint);}
+		number time() const {if(m_pLocalVectorTimeSeries)
+								return m_pLocalVectorTimeSeries->time(m_timePoint);
+							else return 0.0;}
 
 	///	returns the local time solutions
 	/**

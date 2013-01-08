@@ -141,7 +141,8 @@ DataEvaluator::DataEvaluator(int discPart,
 		}
 
 	//	check if time dependent
-		disc.needLocTimeSeries = disc.elemDisc->requests_local_time_series();
+		disc.needLocTimeSeries =disc.elemDisc->is_time_dependent() &&
+								disc.elemDisc->requests_local_time_series();
 		m_bNeedLocTimeSeries |= disc.needLocTimeSeries;
 
 	//  let disc use non-regular grid assemblings
