@@ -428,7 +428,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 			.add_method("set_debug_level", static_cast<bool (LogAssistant::*)(const char *, int)>(&LogAssistant::set_debug_level_noninline), "", "tag#lev", "sets the debug level of Tag 'tag' to level 'lev'")
 			.add_method("get_debug_level", static_cast<int (LogAssistant::*)(const char *) const>(&LogAssistant::get_debug_level_noninline), "", "tag#lev", "gets the debug level of Tag 'tag'")
 
-			.add_method("getDebugIDs", &LogAssistant::get_registered_debug_IDs, "debug IDs")
+			.add_method("get_debug_IDs", &LogAssistant::get_registered_debug_IDs, "debug IDs")
 
 			.add_method("set_output_process", &LogAssistant::set_output_process, "", "procRank", "Sets the process which shall output its data.")
 			.add_method("get_output_process", &LogAssistant::get_output_process, "", "", "Returns the process which outputs its data.")
