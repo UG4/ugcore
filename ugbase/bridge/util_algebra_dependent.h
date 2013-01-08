@@ -28,11 +28,41 @@ namespace bridge{
 typedef boost::mpl::list<
 #ifdef UG_CRS_1
 		CRSAlgebra
-#if defined UG_CPU_1 || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
+#if defined UG_CRS_2 || defined UG_CRS_3 || defined UG_CRS_4 || defined UG_CRS_VAR || defined UG_CPU_1 || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
 		,
 #endif
 #endif
+	
 		
+#ifdef UG_CRS_2
+		CRSBlockAlgebra<2>
+#if defined UG_CRS_3 || defined UG_CRS_4 || defined UG_CRS_VAR || defined UG_CPU_1 || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
+		,
+#endif
+#endif
+
+#ifdef UG_CRS_3
+		CRSBlockAlgebra<3>
+#if defined UG_CRS_4 || defined UG_CRS_VAR || defined UG_CPU_1 || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
+		,
+#endif
+#endif
+
+#ifdef UG_CRS_4
+		CRSBlockAlgebra<4>
+#if defined UG_CRS_VAR || defined UG_CPU_1 || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
+		,
+#endif
+#endif
+
+#ifdef UG_CPU_VAR
+		CRSVariableBlockAlgebra
+#if defined UG_CRS_VAR || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
+		,
+#endif
+#endif
+
+	
 #ifdef UG_CPU_1
 		CPUAlgebra
 #if defined UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR

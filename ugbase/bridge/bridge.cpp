@@ -49,26 +49,53 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 	int blocksize = algType.blocksize();
 	if( (blocksize < 0 || blocksize > 4) && blocksize != AlgebraType::VariableBlockSize)
 		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4' and 'variable' are supported.");
+	
+	if(algType.type() == AlgebraType::CPU)
+	{
 #ifndef UG_CPU_1
 	if(blocksize == 1)
-		UG_THROW("ERROR in InitUG: Requested Algebra Blocksize '1x1' is not compiled into binary.");
+		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '1x1' is not compiled into binary.");
 #endif
 #ifndef UG_CPU_2
 	if(blocksize == 2)
-		UG_THROW("ERROR in InitUG: Requested Algebra Blocksize '2x2' is not compiled into binary.");
+		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '2x2' is not compiled into binary.");
 #endif
 #ifndef UG_CPU_3
 	if(blocksize == 3)
-		UG_THROW("ERROR in InitUG: Requested Algebra Blocksize '3x3' is not compiled into binary.");
+		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '3x3' is not compiled into binary.");
 #endif
 #ifndef UG_CPU_4
 	if(blocksize == 4)
-		UG_THROW("ERROR in InitUG: Requested Algebra Blocksize '4x4' is not compiled into binary.");
+		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '4x4' is not compiled into binary.");
 #endif
 #ifndef UG_CPU_VAR
 	if(blocksize == AlgebraType::VariableBlockSize)
-		UG_THROW("ERROR in InitUG: Requested Algebra Blocksize 'variable' is not compiled into binary.");
+		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize 'variable' is not compiled into binary.");
 #endif
+	}
+	else if(algType.type() == AlgebraType::CRS)
+	{
+#ifndef UG_CRS_1
+	if(blocksize == 1)
+		UG_THROW("ERROR in InitUG: Requested Algebra CRS, Blocksize '1x1' is not compiled into binary.");
+#endif
+#ifndef UG_CRS_2
+	if(blocksize == 2)
+		UG_THROW("ERROR in InitUG: Requested Algebra CRS, Blocksize '2x2' is not compiled into binary.");
+#endif
+#ifndef UG_CRS_3
+	if(blocksize == 3)
+		UG_THROW("ERROR in InitUG: Requested Algebra CRS, Blocksize '3x3' is not compiled into binary.");
+#endif
+#ifndef UG_CRS_4
+	if(blocksize == 4)
+		UG_THROW("ERROR in InitUG: Requested Algebra CRS, Blocksize '4x4' is not compiled into binary.");
+#endif
+#ifndef UG_CRS_VAR
+	if(blocksize == AlgebraType::VariableBlockSize)
+		UG_THROW("ERROR in InitUG: Requested Algebra CRS, Blocksize 'variable' is not compiled into binary.");
+#endif
+	}
 
 //	get dim tag
 	std::string dimTag = GetDimensionTag(dim);
