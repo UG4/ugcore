@@ -84,6 +84,13 @@ set(precisionDefault "double")
 set(precisionOptions "single, double")
 
 # If we run the script the first time, search for MPI to determine the default value
+if(LOCAL_OPENMPI)
+    message("local openmpi")
+    set(MPI_C_INCLUDE_PATH "~/local/openmpi/used/include")
+    set(MPI_CXX_INCLUDE_PATH "~/local/openmpi/used/include")
+    set(MPI_C_LIBRARIES "mpi")
+    set(MPI_CXX_LIBRARIES "mpi;mpi_cxx")
+endif(LOCAL_OPENMPI)
 if(BUILTIN_MPI)
   set(MPI_FOUND YES)
 else(BUILTIN_MPI)
@@ -134,6 +141,8 @@ option(EMBEDDED_PLUGINS "Plugin sources are directly included in libug4. No dyna
 option(COMPILE_INFO "Embeds information on compile revision and date. Requires relinking of all involved libraries. Valid options are ON, OFF " ${buildCompileInfo})
 option(POSIX "If enabled and available, some additional functionality may be available. Valid options are ON, OFF " ${posixDefault})
 option(BUILD_UGDOCU "If enabled, every build builds a new completion file for ugIDE" OFF)
+option(CRS_ALGEBRA "Use the CRS Sparse Matrix" OFF)
+option(CPU_ALGEBRA "Use the old CPU Sparse Matrix" ON)
 
 
 ################################################################################
@@ -347,8 +356,7 @@ endif("${DIM}" STREQUAL "ALL")
 ########################################
 # CPU
 # The cpu option sets defines for C and C++
-if(CRS_MATRIX)
-	add_definitions(-DUG_CRS_1)
+if(CRS_ALGEBRA)
 	MESSAGE(STATUS "Info: Using CRS Matrix Algebra.")
 
     if("${CPU}" STREQUAL "ALL")
@@ -368,7 +376,9 @@ if(CRS_MATRIX)
             add_definitions(-DUG_CRS_${d})
         endforeach(d)
     endif("${CPU}" STREQUAL "ALL")
-else(CRS_MATRIX)
+endif()
+if(CPU_ALGEBRA)
+    MESSAGE(STATUS "Info: Using CPU Matrix Algebra.")
     if("${CPU}" STREQUAL "ALL")
         # todo checks for 4, VAR (-DUG_CPU_4 -DUG_CPU_VAR)!
         add_definitions(-DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3)
