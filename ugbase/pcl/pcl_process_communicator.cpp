@@ -289,11 +289,10 @@ send_data(void* pBuffer, int bufferSize, int destProc, int tag) const
 	}
 	
 	MPI_Request request;
-	MPI_Status	status;
 	
 	MPI_Isend(pBuffer, bufferSize, MPI_UNSIGNED_CHAR, destProc, 
 			  tag, m_comm->m_mpiComm, &request);
-	MPI_Wait(&request, &status);
+	pcl::MPI_Wait(&request);
 }
 
 void
@@ -320,10 +319,7 @@ send_data(void* pBuffer, int* pBufferSegSizes,
 	}
 	
 //	wait until data has been received
-	if(numRecProcs > 0){
-		std::vector<MPI_Status> vSendStates(numRecProcs);
-		MPI_Waitall(numRecProcs, &vSendRequests.front(), &vSendStates.front());
-	}
+	Waitall(vSendRequests);
 }
 
 void
@@ -339,12 +335,10 @@ receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag) const
 	}
 	
 	MPI_Request request;
-	MPI_Status	status;
 	
 	MPI_Irecv(pBuffOut, bufferSize, MPI_UNSIGNED_CHAR,	
-					srcProc, tag, m_comm->m_mpiComm, &request);
-					
-	MPI_Wait(&request, &status);
+					srcProc, tag, m_comm->m_mpiComm, &request);					
+	pcl::MPI_Wait(&request);
 }
 
 void ProcessCommunicator::
@@ -387,10 +381,7 @@ distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
 		pBuffer = (byte*)pBuffer + pBufferSegSizes[i];
 	}
 
-	if(numSenderProcs > 0)
-		MPI_Waitall(numSenderProcs, &vReceiveRequests.front(), &vReceiveStates.front());
-	if(numRecvProcs > 0)
-		MPI_Waitall(numRecvProcs, &vSendRequests.front(), &vSendStates.front());
+	Waitall(vReceiveRequests, vSendRequests);	
 }
 
 void ProcessCommunicator::

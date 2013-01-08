@@ -212,10 +212,6 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 	std::vector<MPI_Request> vSendRequests(numOutStreams);
 	std::vector<MPI_Request> vReceiveRequests(numInStreams);
 
-//	wait until data has been received
-	std::vector<MPI_Status> vReceiveStates(numInStreams);
-	std::vector<MPI_Status> vSendStates(numOutStreams);
-
 	int testTag = 744444;//	an arbitrary number
 
 	std::vector<int> vSendBufSizes(numInStreams);
@@ -232,8 +228,7 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 				  &vSendRequests[i]);
 	}
 
-	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
-	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
+	Waitall(vReceiveRequests, vSendRequests);
 
 	bool bSuccess = true;
 	for(size_t i = 0; i < recvFrom.size(); ++i){

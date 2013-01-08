@@ -15,7 +15,9 @@
 #include "mpi.h"
 #include "pcl_base.h"
 #include "common/types.h"
+#include "common/profiler/profiler.h"
 #include "pcl_datatype.h"
+#include <cassert>
 
 namespace pcl
 {
@@ -86,7 +88,71 @@ void DistributeData(ProcID thisProcID, int* pRecProcMap, int numRecProcs,
  */
 void AllReduce(void* sendBuf, void* recBuf, int count, DataType type,
 				ReduceOperation op);
- 
+
+//void StartWait(), StopWait();
+
+inline void MPI_Waitall(int count, MPI_Request *array_of_requests, MPI_Status *array_of_statuses)
+{
+//	StartWait();
+	PROFILE_FUNC_GROUP("mpi");
+	::MPI_Waitall(count, array_of_requests, array_of_statuses);
+//	StopWait();
+}
+
+inline void Waitall(std::vector<MPI_Request> &requests, std::vector<MPI_Status> &statuses)
+{
+//	StartWait();
+	PROFILE_FUNC_GROUP("mpi");
+	assert(requests.size() == statuses.size());
+	pcl::MPI_Waitall(requests.size(), &requests[0], &statuses[0]);
+//	StopWait();
+}
+
+inline void Waitall(std::vector<MPI_Request> &requests)
+{	
+//	StartWait();
+	PROFILE_FUNC_GROUP("mpi");
+	if(requests.size() > 0) 
+		pcl::MPI_Waitall(requests.size(), &requests[0], MPI_STATUSES_IGNORE);
+//	StopWait();
+}
+
+inline void Waitall(std::vector<MPI_Request> &requests, std::vector<MPI_Request> &requests2)
+{	
+//	StartWait();
+	PROFILE_FUNC_GROUP("mpi");
+	if(requests.size() > 0) pcl::MPI_Waitall(requests.size(), &requests[0], MPI_STATUSES_IGNORE);
+	if(requests2.size() > 0) pcl::MPI_Waitall(requests2.size(), &requests2[0], MPI_STATUSES_IGNORE);
+//	StopWait();
+}
+
+inline int MPI_Wait(MPI_Request *request, MPI_Status *status=MPI_STATUS_IGNORE)
+{
+//	StartWait();
+	PROFILE_FUNC_GROUP("mpi");
+	int i=::MPI_Wait(request, status);
+//	StopWait();
+	return i;
+}
+
+
+
+/*inline int Irecv(void *buf, int count, MPI_Datatype datatype, int source,
+                             int tag, MPI_Comm comm, MPI_Request *request)
+{
+	PROFILE_FUNC_GROUP("mpi");
+	return ::MPI_Irecv(buf, count, datatype, source, tag, comm, request);
+}
+
+template<typename T>
+inline int IRecv(T *buf, int count, int source, int tag, MPI_Comm comm, MPI_Request *request)
+{
+	PROFILE_FUNC_GROUP("mpi");
+	return ::MPI_IRecv(buf, count, DataTypeTraits<T>::get_data_type(), source, tag, comm, request);
+}*/
+
+
+
 }//	end of namespace
 
 #endif

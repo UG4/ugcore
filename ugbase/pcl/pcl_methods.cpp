@@ -23,10 +23,9 @@ void SendData(ProcID destProc, void* pBuffer, int bufferSize, int tag)
 	UG_LOG("DEPRECIATED: pcl::SendData\n");
 
 	MPI_Request request;
-	MPI_Status	status;
 	
 	MPI_Isend(pBuffer, bufferSize, MPI_UNSIGNED_CHAR, destProc, tag, MPI_COMM_WORLD, &request);
-	MPI_Wait(&request, &status);
+	pcl::MPI_Wait(&request);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -36,12 +35,11 @@ void ReceiveData(void* pBuffOut, ProcID srcProc, int bufferSize, int tag)
 	UG_LOG("DEPRECIATED: pcl::ReceiveData\n");
 
 	MPI_Request request;
-	MPI_Status	status;
 	
 	MPI_Irecv(pBuffOut, bufferSize, MPI_UNSIGNED_CHAR,
 					srcProc, tag, MPI_COMM_WORLD, &request);
 
-	MPI_Wait(&request, &status);
+	pcl::MPI_Wait(&request);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -65,8 +63,7 @@ void CollectData(ProcID thisProcID, int firstSendProc, int numSendProcs,
 	}
 	
 //	wait until data has been received
-	std::vector<MPI_Status> vReceiveStatii(numSendProcs);//TODO: fix spelling!
-	MPI_Waitall(numSendProcs, &vReceiveRequests[0], &vReceiveStatii[0]);
+	Waitall(vReceiveRequests);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -91,8 +88,7 @@ void DistributeData(ProcID thisProcID, int firstRecProc, int numRecProcs,
 	}
 	
 //	wait until data has been received
-	std::vector<MPI_Status> vSendStatii(numRecProcs);//TODO: fix spelling!
-	MPI_Waitall(numRecProcs, &vSendRequests.front(), &vSendStatii.front());
+	Waitall(vSendRequests);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -111,9 +107,8 @@ void DistributeData(ProcID thisProcID, int* pRecProcMap, int numRecProcs,
 		pBuffer = (byte*)pBuffer + pBufferSegSizes[i];
 	}
 	
-//	wait until data has been received
-	std::vector<MPI_Status> vSendStatii(numRecProcs);//TODO: fix spelling!
-	MPI_Waitall(numRecProcs, &vSendRequests.front(), &vSendStatii.front());
+//	wait until data has been received	
+	Waitall(vSendRequests);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -122,7 +117,6 @@ void AllReduce(void* sendBuf, void* recBuf, int count, DataType type,
 				ReduceOperation op)
 {
 	UG_LOG("DEPRECIATED: pcl::AllReduce\n");
-
 	MPI_Allreduce(sendBuf, recBuf, count, type, op, MPI_COMM_WORLD);
 }
 
