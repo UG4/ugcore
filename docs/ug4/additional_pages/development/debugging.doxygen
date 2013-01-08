@@ -17,7 +17,7 @@
 We incorporated a logging mechanism into UG4 to faciliate printing messages 
 for test purposes. To enable it, you need to make ug with
 \verbatim
-cmake -DEBUG_LOGS=ON ..
+cmake -DDEBUG_LOGS=ON ..
 \endverbatim
 (otherwise all UG_DLOG/IF_DEBUGs will be ignored).
 
