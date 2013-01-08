@@ -17,10 +17,11 @@
 
 #include "common/util/sort_util.h"
 #include "common/util/binary_buffer.h"
+#include "common/serialization.h"
 
 
 ///	serializes data from a vector<bool> into a binary stream
-template <class TOStream>
+/*template <class TOStream>
 void Serialize(TOStream& buf, const std::vector<bool>& vec)
 {
 	size_t size = vec.size();
@@ -68,7 +69,7 @@ void Deserialize(TIStream& buf, std::vector<bool> &vec)
 		for(size_t j=0; j<sm8; j++)
 			vec[s8+j] = (a & (1 << j));
 	}
-}
+}*/
 
 namespace ug
 {

@@ -16,7 +16,7 @@
 //#include "test_layout.h"
 #include "common/util/sort_util.h"
 #include "common/util/binary_buffer.h"
-
+#include "lib_algebra/algebra_common/sparsematrix_util.h"
 #include "parallel_nodes.h"
 
 #include "row_sending_scheme.h"
