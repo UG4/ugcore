@@ -1043,18 +1043,13 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
 	{
 	//	get symb function
-		const std::string& symbNames = m_vSymbFctNodal[sym].first;
+		const std::vector<std::string>& symbNames = m_vSymbFctNodal[sym].first;
 		const std::string& vtkName = m_vSymbFctNodal[sym].second;
 
-	//	tokenize string
-		std::vector<std::string> tokens;
-		TokenizeString(symbNames, tokens, ',');
-		for(size_t i = 0; i < tokens.size(); ++i) tokens[i] = TrimString(tokens[i]);
-
 	//	create function group
-		std::vector<size_t> fctGrp(tokens.size());
-		for(size_t i = 0; i < tokens.size(); ++i)
-			fctGrp[i] = u.fct_id_by_name(tokens[i].c_str());
+		std::vector<size_t> fctGrp(symbNames.size());
+		for(size_t i = 0; i < symbNames.size(); ++i)
+			fctGrp[i] = u.fct_id_by_name(symbNames[i].c_str());
 
 	//	check that all functions are contained in subset
 		bool bContained = true;
@@ -1367,18 +1362,13 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 	for(size_t sym = 0; sym < m_vSymbFctElem.size(); ++sym)
 	{
 	//	get symb function
-		const std::string& symbNames = m_vSymbFctElem[sym].first;
+		const std::vector<std::string>& symbNames = m_vSymbFctElem[sym].first;
 		const std::string& vtkName = m_vSymbFctElem[sym].second;
 
-	//	tokenize string
-		std::vector<std::string> tokens;
-		TokenizeString(symbNames, tokens, ',');
-		for(size_t i = 0; i < tokens.size(); ++i) tokens[i] = TrimString(tokens[i]);
-
 	//	create function group
-		std::vector<size_t> fctGrp(tokens.size());
-		for(size_t i = 0; i < tokens.size(); ++i)
-			fctGrp[i] = u.fct_id_by_name(tokens[i].c_str());
+		std::vector<size_t> fctGrp(symbNames.size());
+		for(size_t i = 0; i < symbNames.size(); ++i)
+			fctGrp[i] = u.fct_id_by_name(symbNames[i].c_str());
 
 	//	check that all functions are contained in subset
 		bool bContained = true;
@@ -1483,18 +1473,13 @@ write_pvtu(TFunction& u, const std::string& filename,
 			for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
 			{
 			//	get symb function
-				const std::string& symbNames = m_vSymbFctNodal[sym].first;
+				const std::vector<std::string>& symbNames = m_vSymbFctNodal[sym].first;
 				const std::string& vtkName = m_vSymbFctNodal[sym].second;
 
-			//	tokenize string
-				std::vector<std::string> tokens;
-				TokenizeString(symbNames, tokens, ',');
-				for(size_t i = 0; i < tokens.size(); ++i) tokens[i] = TrimString(tokens[i]);
-
 			//	create function group
-				std::vector<size_t> fctGrp(tokens.size());
-				for(size_t i = 0; i < tokens.size(); ++i)
-					fctGrp[i] = u.fct_id_by_name(tokens[i].c_str());
+				std::vector<size_t> fctGrp(symbNames.size());
+				for(size_t i = 0; i < symbNames.size(); ++i)
+					fctGrp[i] = u.fct_id_by_name(symbNames[i].c_str());
 
 			//	check that all functions are contained in subset
 				bool bContained = true;
@@ -1540,18 +1525,13 @@ write_pvtu(TFunction& u, const std::string& filename,
 			for(size_t sym = 0; sym < m_vSymbFctElem.size(); ++sym)
 			{
 			//	get symb function
-				const std::string& symbNames = m_vSymbFctElem[sym].first;
+				const std::vector<std::string>& symbNames = m_vSymbFctElem[sym].first;
 				const std::string& vtkName = m_vSymbFctElem[sym].second;
 
-			//	tokenize string
-				std::vector<std::string> tokens;
-				TokenizeString(symbNames, tokens, ',');
-				for(size_t i = 0; i < tokens.size(); ++i) tokens[i] = TrimString(tokens[i]);
-
 			//	create function group
-				std::vector<size_t> fctGrp(tokens.size());
-				for(size_t i = 0; i < tokens.size(); ++i)
-					fctGrp[i] = u.fct_id_by_name(tokens[i].c_str());
+				std::vector<size_t> fctGrp(symbNames.size());
+				for(size_t i = 0; i < symbNames.size(); ++i)
+					fctGrp[i] = u.fct_id_by_name(symbNames[i].c_str());
 
 			//	check that all functions are contained in subset
 				bool bContained = true;

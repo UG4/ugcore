@@ -257,7 +257,10 @@ class VTKOutput
 	 * \param[in]	fctName		symbolic name of component
 	 * \param[in]	name		name that will appear in the vtk file for the data
 	 */
+	/// \{
 		void select_nodal(const char* fctName, const char* name);
+		void select_nodal(const std::vector<std::string>& vFct, const char* name);
+	/// \}
 
 	///	selects a element value of a grid function value to be written
 	/**
@@ -272,7 +275,10 @@ class VTKOutput
 	 * \param[in]	fctName		symbolic name of component
 	 * \param[in]	name		name that will appear in the vtk file for the data
 	 */
+	/// \{
 		void select_element(const char* fctName, const char* name);
+		void select_element(const std::vector<std::string>& vFct, const char* name);
+	/// \}
 
 	///	selects a nodal data value to be written
 	/**
@@ -732,8 +738,8 @@ class VTKOutput
 	protected:
 	///	scheduled components to be printed
 		bool m_bSelectAll;
-		std::vector<std::pair<std::string, std::string> > m_vSymbFctNodal;
-		std::vector<std::pair<std::string, std::string> > m_vSymbFctElem;
+		std::vector<std::pair<std::vector<std::string>, std::string> > m_vSymbFctNodal;
+		std::vector<std::pair<std::vector<std::string>, std::string> > m_vSymbFctElem;
 
 	///	scheduled scalar data to be printed
 		std::vector<std::pair<SmartPtr<UserData<number, TDim> >,std::string> > m_vScalarNodalData;
