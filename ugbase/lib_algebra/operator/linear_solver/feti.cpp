@@ -1854,13 +1854,8 @@ test_layouts(bool bPrint)
 ////////////////////////////////////////////////////////////////////////
 //	template instantiations for all current algebra types.
 
-#ifdef UG_CRS_1
 
-template class LocalSchurComplement<CRSAlgebra>;
-template class PrimalSubassembledMatrixInverse<CRSAlgebra>;
-template class FETISolver<CRSAlgebra>;
 
-#endif
 
 #ifdef UG_CPU_1
 template class LocalSchurComplement<CPUAlgebra>;
@@ -1886,6 +1881,33 @@ template class FETISolver<CPUBlockAlgebra<4> >;
 template class LocalSchurComplement<CPUVariableBlockAlgebra>;
 template class PrimalSubassembledMatrixInverse<CPUVariableBlockAlgebra >;
 template class FETISolver<CPUVariableBlockAlgebra >;
+#endif
+
+
+#ifdef UG_CRS_1
+template class LocalSchurComplement<CRSAlgebra>;
+template class PrimalSubassembledMatrixInverse<CRSAlgebra>;
+template class FETISolver<CRSAlgebra>;
+#endif
+#ifdef UG_CRS_2
+template class LocalSchurComplement<CRSBlockAlgebra<2> >;
+template class PrimalSubassembledMatrixInverse<CRSBlockAlgebra<2> >;
+template class FETISolver<CRSBlockAlgebra<2> >;	
+#endif
+#ifdef UG_CRS_3
+template class LocalSchurComplement<CRSBlockAlgebra<3> >;
+template class PrimalSubassembledMatrixInverse<CRSBlockAlgebra<3> >;
+template class FETISolver<CRSBlockAlgebra<3> >;
+#endif
+#ifdef UG_CRS_4
+template class LocalSchurComplement<CRSBlockAlgebra<4> >;
+template class PrimalSubassembledMatrixInverse<CRSBlockAlgebra<4> >;
+template class FETISolver<CRSBlockAlgebra<4> >;
+#endif
+#ifdef UG_CRS_VAR
+template class LocalSchurComplement<CRSVariableBlockAlgebra>;
+template class PrimalSubassembledMatrixInverse<CRSVariableBlockAlgebra >;
+template class FETISolver<CRSVariableBlockAlgebra >;
 #endif
 };  // end of namespace
 
