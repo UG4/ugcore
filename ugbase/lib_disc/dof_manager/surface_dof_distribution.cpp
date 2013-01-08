@@ -229,13 +229,14 @@ void SurfaceDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 			//	check if element is on surface (i.e. has no children). Shadows are
 			//	not taken into account here, since their indices are already added
 			//	to the interface by the shadowing objects
-				if(multi_grid()->has_children(elem)) {continue;}
+				//if(multi_grid()->has_children(elem)) {continue;}
 
 			//	check if element is a ghost element, i.e. it is a surface element
 			//	but only due to a hierarchical cut of the grid in order to
 			//	refine it further on another process. These cuts lead to so called
 			//	vertical interfaces.
-				if(m_spSurfLevelView->surface_view()->is_ghost(elem)) {continue;}
+				//if(m_spSurfLevelView->surface_view()->is_ghost(elem)) {continue;}
+				if(!m_spSurfLevelView->surface_view()->is_surface_element(elem)) {continue;}
 
 			//	get the algebraic indices on the grid element
 				inner_algebra_indices(elem, vIndex);

@@ -144,16 +144,16 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 
 	//	select associated elements
 		for(size_t i = 0; i < vAssVertex.size(); ++i)
-			if(surfView.is_contained(vAssVertex[i]))
+			if(surfView.is_surface_element(vAssVertex[i]))
 				sel.mark(vAssVertex[i]);
 		for(size_t i = 0; i < vAssEdge.size(); ++i)
-			if(surfView.is_contained(vAssEdge[i]))
+			if(surfView.is_surface_element(vAssEdge[i]))
 				sel.mark(vAssEdge[i]);
 		for(size_t i = 0; i < vAssFace.size(); ++i)
-			if(surfView.is_contained(vAssFace[i]))
+			if(surfView.is_surface_element(vAssFace[i]))
 				sel.mark(vAssFace[i]);
 		for(size_t i = 0; i < vAssVolume.size(); ++i)
-			if(surfView.is_contained(vAssVolume[i]))
+			if(surfView.is_surface_element(vAssVolume[i]))
 				sel.mark(vAssVolume[i]);
 	}
 }
@@ -192,16 +192,16 @@ void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfV
 
 	//	select associated elements
 		for(size_t i = 0; i < vAssVertex.size(); ++i)
-			if(surfView.is_contained(vAssVertex[i]))
+			if(surfView.is_surface_element(vAssVertex[i]))
 				sel.mark(vAssVertex[i]);
 		for(size_t i = 0; i < vAssEdge.size(); ++i)
-			if(surfView.is_contained(vAssEdge[i]))
+			if(surfView.is_surface_element(vAssEdge[i]))
 				sel.mark(vAssEdge[i]);
 		for(size_t i = 0; i < vAssFace.size(); ++i)
-			if(surfView.is_contained(vAssFace[i]))
+			if(surfView.is_surface_element(vAssFace[i]))
 				sel.mark(vAssFace[i]);
 		for(size_t i = 0; i < vAssVolume.size(); ++i)
-			if(surfView.is_contained(vAssVolume[i]))
+			if(surfView.is_surface_element(vAssVolume[i]))
 				sel.mark(vAssVolume[i]);
 	}
 }

@@ -881,7 +881,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			int minVSlaveProc = pcl::GetNumProcesses();
 			bool isVMaster = false;
 			bool isVSlave = false;
-			bool isDummy = false;
+			//bool isDummy = false;
 			//bool isNormal = false;
 			bool createNormalHInterface = false;
 			int numVSlaveProcs = 0;
@@ -906,8 +906,8 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				}
 				if(tpi.interfaceState & (IS_DUMMY)){
 					createNormalHInterface = true;
-					if(tpi.procID == localProcID)
-						isDummy = true;
+//					if(tpi.procID == localProcID)
+//						isDummy = true;
 				}
 				if(tpi.procID < minProc)
 					minProc = tpi.procID;
@@ -927,14 +927,14 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 			//	add entry to vertical interface if necessary
 				if(isVSlave && (tpi.interfaceState & IS_VMASTER)){
-					UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
+					//UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
 					//UG_ASSERT(!isVMaster, "A v-slave element should never also be a v-master");
 					glm.get_layout<TElem>(INT_V_SLAVE).
 						interface(tpi.procID, lvl).push_back(e);
 				}
 
 				if(isVMaster && (tpi.interfaceState & IS_VSLAVE)){
-					UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
+					//UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
 					//UG_ASSERT(!isVSlave, "A v-master element should never also be a v-slave");
 					glm.get_layout<TElem>(INT_V_MASTER).
 						interface(tpi.procID, lvl).push_back(e);

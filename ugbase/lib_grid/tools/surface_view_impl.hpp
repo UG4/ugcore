@@ -33,18 +33,8 @@ SurfaceViewElementIterator(SurfaceView* surfView,
 		if(!increment_section())
 			return;
 
-//	check that current pointer is not to a ghost
-//	if that is the case get next (valid) iterator
-#ifdef UG_PARALLEL
-	if(m_surfView->is_ghost(*m_elemIter)){increment(); return;}
-#endif
-
-//	if element on top level -> fine
-	if(m_lvl == m_topLvl) return;
-
-//	check that current pointer is not to a ghost
-//	if that is the case get next (valid) iterator
-	if(m_surfView->has_children(*m_elemIter)) increment();
+//	m_elemIter has to point to a valid surface view element
+	if(!m_surfView->is_surface_element(*m_elemIter)){increment(); return;}
 }
 
 template <class TElem>
@@ -109,10 +99,6 @@ increment()
 //	we search the next non-shadowed element
 	do
 	{
-#ifdef UG_PARALLEL
-		next:
-#endif
-
 	//	increase iterator
 		++m_elemIter;
 
@@ -144,15 +130,10 @@ increment()
 			}
 		}
 
-	//	check for ghosts
-#ifdef UG_PARALLEL
-		if(m_surfView->is_ghost(*m_elemIter)) goto next;
-#endif
-
 	//	if on top level no shadows can appear
 		if(m_lvl == m_topLvl) return;
 
-	} while(m_surfView->has_children(*m_elemIter));
+	}while(!m_surfView->is_surface_element(*m_elemIter));
 }
 
 template <class TElem>
@@ -216,18 +197,8 @@ ConstSurfaceViewElementIterator(const SurfaceView* surfView,
 		if(!increment_section())
 			return;
 
-//	check that current pointer is not to a ghost
-//	if that is the case get next (valid) iterator
-#ifdef UG_PARALLEL
-	if(m_surfView->is_ghost(*m_elemIter)){increment(); return;}
-#endif
-
-//	if element on top level -> fine
-	if(m_lvl == m_topLvl) return;
-
-//	check that current pointer is not to a ghost
-//	if that is the case get next (valid) iterator
-	if(m_surfView->has_children(*m_elemIter)) increment();
+//	m_elemIter has to point to a valid surface view element
+	if(!m_surfView->is_surface_element(*m_elemIter)){increment(); return;}
 }
 
 template <class TElem>
@@ -279,10 +250,6 @@ increment()
 //	we search the next non-shadowed element
 	do
 	{
-#ifdef UG_PARALLEL
-		next:
-#endif
-
 	//	increase iterator
 		++m_elemIter;
 
@@ -314,15 +281,10 @@ increment()
 			}
 		}
 
-	//	check for ghosts
-#ifdef UG_PARALLEL
-		if(m_surfView->is_ghost(*m_elemIter)) goto next;
-#endif
-
 	//	if on top level no shadows can appear
 		if(m_lvl == m_topLvl) return;
 
-	} while(m_surfView->has_children(*m_elemIter));
+	}while(!m_surfView->is_surface_element(*m_elemIter));
 }
 
 template <class TElem>
@@ -494,28 +456,15 @@ surface_level_end(int lvl) const
 
 
 template <class TGeomObj>
-bool SurfaceView::is_contained(TGeomObj* obj) const
+bool SurfaceView::is_surface_element(TGeomObj* obj) const
 {
-	return !m_pMG->has_children(obj);
+	return surface_state(obj) == ESS_SURFACE;
 }
 
 template <class TGeomObj>
 bool SurfaceView::is_shadowed(TGeomObj* obj) const
 {
-	return m_Marker.is_marked(obj);
-}
-
-template <>
-bool SurfaceView::is_shadowed(GeometricObject* obj) const;
-
-template <class TGeomObj>
-bool SurfaceView::is_ghost(TGeomObj* obj) const
-{
-#ifdef UG_PARALLEL
-	return m_pMG->distributed_grid_manager()->is_ghost(obj);
-#else
-	return false;
-#endif
+	return surface_state(obj) == ESS_SHADOW;
 }
 
 template <class TGeomObj>
@@ -524,10 +473,14 @@ int SurfaceView::get_level(TGeomObj* obj) const
 	return m_pMG->get_level(obj);
 }
 
-template <typename TBaseElem>
-inline bool SurfaceView::has_children(TBaseElem* obj) const
+template <class TElem>
+bool SurfaceView::is_vmaster(TElem* elem) const
 {
-	return m_pMG->has_children(obj);
+	#ifdef UG_PARALLEL
+		return m_distGridMgr->contains_status(elem, ES_V_MASTER);
+	#else
+		return false;
+	#endif
 }
 
 template <typename TBaseElem>
@@ -683,7 +636,7 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 			for(size_t i = 0; i < vCoarseElem.size(); ++i)
 			{
 			//	if shadowed, not in surface view of the requested level
-				if(m_spSV->has_children(vCoarseElem[i])) continue;
+				if(!m_spSV->is_surface_element(vCoarseElem[i])) continue;
 
 			//	else this must be added to adjacend elements
 				vAssElem.push_back(vCoarseElem[i]);

@@ -29,7 +29,9 @@ class MultiElementAttachmentAccessor
 	public:
 		typedef typename TAttachment::ValueType	ValueType;
 		typedef typename attachment_value_traits<ValueType>::reference RefType;
+		typedef typename attachment_value_traits<ValueType>::const_reference ConstRefType;
 
+		MultiElementAttachmentAccessor()	{}
 		MultiElementAttachmentAccessor(Grid& g, TAttachment& a, bool vrts = true,
 							bool edges = true, bool faces = true, bool vols = true)
 		{
@@ -74,11 +76,11 @@ class MultiElementAttachmentAccessor
 			}
 		}
 
-		const RefType operator[](VertexBase* e) const	{return m_aaVrt[e];}
-		const RefType operator[](EdgeBase* e) const		{return m_aaEdge[e];}
-		const RefType operator[](Face* e) const			{return m_aaFace[e];}
-		const RefType operator[](Volume* e) const 		{return m_aaVol[e];}
-		const RefType operator[](GeometricObject* e) const
+		ConstRefType operator[](VertexBase* e) const	{return m_aaVrt[e];}
+		ConstRefType operator[](EdgeBase* e) const		{return m_aaEdge[e];}
+		ConstRefType operator[](Face* e) const			{return m_aaFace[e];}
+		ConstRefType operator[](Volume* e) const 		{return m_aaVol[e];}
+		ConstRefType operator[](GeometricObject* e) const
 		{
 			switch(e->base_object_id()){
 				case VERTEX: return m_aaVrt[static_cast<VertexBase*>(e)];

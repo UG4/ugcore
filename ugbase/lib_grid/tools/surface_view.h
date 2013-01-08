@@ -12,7 +12,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include "lib_grid/multi_grid.h"
 #include "subset_handler_multi_grid.h"
-#include "bool_marker.h"
+#include "lib_grid/algorithms/attachment_util.h"
 
 namespace ug{
 
@@ -34,16 +34,24 @@ class SurfaceView
 		template <class TElem> class SurfaceViewElementIterator;
 		template <class TElem> class ConstSurfaceViewElementIterator;
 
-	public:
 		template <class TElem>
 		struct traits{
 			typedef SurfaceViewElementIterator<TElem>		iterator;
 			typedef ConstSurfaceViewElementIterator<TElem>	const_iterator;
 		};
 
+		enum ElementSurfaceState{
+			ESS_NONE = 0,
+			ESS_SURFACE = 1,
+			ESS_HIDDEN = 1<<1,
+			ESS_SHADOW = ESS_SURFACE | ESS_HIDDEN
+		};
+
 	public:
 		SurfaceView(SmartPtr<MGSubsetHandler> spMGSH,
 		            bool adaptiveMG = true);
+
+		~SurfaceView();
 
 	///	returns underlying subset handler
 		inline SmartPtr<MGSubsetHandler> subset_handler();
@@ -125,26 +133,14 @@ class SurfaceView
 	/**	Retruns true e.g. for unshadowed constrained (hanging) vertices
 	 * \sa SurfaceView::is_shadowed*/
 		template <class TGeomObj>
-		inline bool is_contained(TGeomObj* obj) const;
+		inline bool is_surface_element(TGeomObj* obj) const;
 
 	///	returns if the element is shadowed and thus not contained in the surface view
-	/**	A shadowed element has at least one child, which is also a member of the
-	 * surface view.
-	 * \sa SurfaceView::is_contained*/
+	/**	A shadowed element has a child and at least one adjacent element which is
+	 * a surface element
+	 * \sa SurfaceView::is_surface_element*/
 		template <class TGeomObj>
 		inline bool is_shadowed(TGeomObj* obj) const;
-
-	///	returns if the element is ghost and thus not contained in the surface view
-	/**	Vertical master elements which are not contained in a horizontal interface
-	 * are called ghost elements, since no operations should be executed on them.
-	 * Those operations are instead executed on associated vertical slave elements.
-	 * \sa SurfaceView::is_contained*/
-		template <class TGeomObj>
-		inline bool is_ghost(TGeomObj* obj) const;
-
-	///	returns if an element has children
-		template <typename TBaseElem>
-		inline bool has_children(TBaseElem* elem) const;
 
 	///	returns parent != NULL if copy
 		template <typename TBaseElem>
@@ -158,8 +154,8 @@ class SurfaceView
 		template <typename TBaseElem>
 		inline TBaseElem* child_if_copy(TBaseElem* elem) const;
 
-	///	marks the shadows, must be called after a grid change
-		void mark_shadows();
+	///	refresh_surface_states must be called after a grid change
+		void refresh_surface_states();
 
 	public:
 	///	Iterator to traverse the surface of a multi-grid hierarchy
@@ -278,10 +274,51 @@ class SurfaceView
 		};
 
 	private:
-		SmartPtr<MGSubsetHandler> 	m_spMGSH;
-		bool						m_adaptiveMG;
-		MultiGrid*					m_pMG;
-		BoolMarker					m_Marker;
+	///	returns true if the element is a surface element locally
+	/**	This method disregards possible copies of the given element on other processes.
+	 * The method is used during surface-state computation in refresh_surface_states.
+	 * The method returns false if the given element has children or if it is
+	 * contained in a vertical master interface.*/
+		template <class TElem>
+		bool is_local_surface_view_element(TElem* elem);
+
+	///	only call for elements of highest dimension
+		template <class TElem>
+		void refresh_surface_states();
+
+	///	recursively marks sides and sides of sides as surface or shadow
+	/**	This method is used during refresh_surface_states to assign surface
+	 * states to sides of surface elements.
+	 * Make sure that all elements in lower levels have already been processed!*/
+		template <class TElem, class TSide>
+		void mark_sides_as_surface_or_shadow(TElem* elem);
+
+		template <class TElem>
+		void mark_vmasters_as_unknown();
+
+	///	adjusts surface states in a parallel environment
+		template <class TElem>
+		void adjust_parallel_surface_states();
+
+		template <class TElem>
+		byte surface_state(TElem* elem)	const			{return m_aaElemSurfState[elem];}
+
+		template <class TElem>
+		void set_surface_state(TElem* elem, byte ss)	{m_aaElemSurfState[elem] = ss;}
+
+		template <class TElem>
+		bool has_surface_state(TElem* elem, byte s) const	{return (surface_state(elem) & s) == s;}
+
+		template <class TElem>
+		bool is_vmaster(TElem* elem) const;
+
+	private:
+		SmartPtr<MGSubsetHandler> 		m_spMGSH;
+		bool							m_adaptiveMG;
+		MultiGrid*						m_pMG;
+		DistributedGridManager*			m_distGridMgr;
+		AByte							m_aElemSurfState;
+		MultiElementAttachmentAccessor<AByte> 	m_aaElemSurfState;
 };
 
 

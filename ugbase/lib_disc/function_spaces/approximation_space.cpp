@@ -227,7 +227,7 @@ void IApproximationSpace::defragment()
 	PROFILE_FUNC();
 //	update surface view
 	if(m_spSurfaceView.valid())
-		m_spSurfaceView->mark_shadows();
+		m_spSurfaceView->refresh_surface_states();
 
 //	defragment level dd
 	if(m_spLevMGDD.valid())
