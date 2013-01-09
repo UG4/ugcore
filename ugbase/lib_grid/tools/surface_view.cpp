@@ -7,6 +7,7 @@
 #include "lib_grid/parallelization/util/compol_boolmarker.h"
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_interface_communicator.h"
+	#include "pcl/pcl_process_communicator.h"
 	#include "lib_grid/parallelization/copy_policy.h"
 #endif
 
@@ -96,8 +97,10 @@ refresh_surface_states()
 	else if(m_pMG->num<VertexBase>() > 0)
 		maxElem = VERTEX;
 
-	pcl::ProcessCommunicator pc;
-	maxElem = pc.allreduce(maxElem, PCL_RO_MAX);
+	#ifdef UG_PARALLEL
+		pcl::ProcessCommunicator pc;
+		maxElem = pc.allreduce(maxElem, PCL_RO_MAX);
+	#endif
 
 	switch(maxElem){
 		case VOLUME:
