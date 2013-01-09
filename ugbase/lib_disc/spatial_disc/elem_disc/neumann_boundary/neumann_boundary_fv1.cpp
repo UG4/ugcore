@@ -8,6 +8,7 @@
 #include "neumann_boundary.h"
 #include "neumann_boundary_common.h"
 #include "neumann_boundary_fv1.h"
+#include "neumann_boundary_fvho.h"
 
 namespace ug{
 

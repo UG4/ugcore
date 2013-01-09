@@ -72,7 +72,7 @@ prep_elem_fv1(TElem* elem, const LocalVector& u)
 						"Cannot update Finite Volume Geometry.");
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
-		m_vNumberData[i].template extract_bip<TElem, TFVGeom>(geo);
+		m_vNumberData[i].template extract_bip_fv1<TElem, TFVGeom>(geo);
 }
 
 template<typename TDomain>
@@ -128,6 +128,40 @@ add_rhs_elem_fv1(LocalVector& d)
 				const int co = vBF[i].node_id();
 				d(m_vVectorData[data].locFct, co) -= VecDot(val, vBF[i].normal());
 			}
+		}
+	}
+}
+
+template<typename TDomain>
+template<typename TElem, typename TGeom>
+void NeumannBoundary<TDomain>::
+finish_elem_loop_fv1()
+{
+//	remove subsetIndex from Geometry
+	static TGeom& geo = Provider<TGeom >::get();
+
+
+//	unrequest subset indices as boundary subset. This will force the
+//	creation of boundary subsets when calling geo.update
+
+	for(size_t i = 0; i < m_vNumberData.size(); ++i){
+		for(size_t s = 0; s < m_vNumberData[i].ssGrp.size(); ++s){
+			const int si = m_vNumberData[i].ssGrp[s];
+			geo.remove_boundary_subset(si);
+		}
+	}
+
+	for(size_t i = 0; i < m_vBNDNumberData.size(); ++i){
+		for(size_t s = 0; s < m_vBNDNumberData[i].ssGrp.size(); ++s){
+			const int si = m_vBNDNumberData[i].ssGrp[s];
+			geo.remove_boundary_subset(si);
+		}
+	}
+
+	for(size_t i = 0; i < m_vVectorData.size(); ++i){
+		for(size_t s = 0; s < m_vVectorData[i].ssGrp.size(); ++s){
+			const int si = m_vVectorData[i].ssGrp[s];
+			geo.remove_boundary_subset(si);
 		}
 	}
 }
@@ -203,14 +237,16 @@ void NeumannBoundary<TDomain>::register_fv1_func()
 	typedef this_type T;
 
 	this->enable_fast_ass_elem(true);
+
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop_fv1<TElem, TFVGeom>);
 	this->set_prep_elem_fct(	 id, &T::template prep_elem_fv1<TElem, TFVGeom>);
-	this->set_fsh_elem_loop_fct( id, &T::template finish_elem_loop<TElem, TFVGeom>);
-	this->set_ass_JA_elem_fct(	 id, &T::template add_JA_elem_fv1<TElem, TFVGeom>);
-	this->set_ass_JM_elem_fct(	 id, &T::template add_JM_elem_fv1<TElem, TFVGeom>);
-	this->set_ass_dA_elem_fct(	 id, &T::template add_dA_elem_fv1<TElem, TFVGeom>);
-	this->set_ass_dM_elem_fct(	 id, &T::template add_dM_elem_fv1<TElem, TFVGeom>);
 	this->set_ass_rhs_elem_fct(	 id, &T::template add_rhs_elem_fv1<TElem, TFVGeom>);
+	this->set_fsh_elem_loop_fct( id, &T::template finish_elem_loop_fv1<TElem, TFVGeom>);
+
+	this->set_ass_JA_elem_fct(	 id, &T::template add_JA_elem<TElem, TFVGeom>);
+	this->set_ass_JM_elem_fct(	 id, &T::template add_JM_elem<TElem, TFVGeom>);
+	this->set_ass_dA_elem_fct(	 id, &T::template add_dA_elem<TElem, TFVGeom>);
+	this->set_ass_dM_elem_fct(	 id, &T::template add_dM_elem<TElem, TFVGeom>);
 }
 } // namespace ug
 

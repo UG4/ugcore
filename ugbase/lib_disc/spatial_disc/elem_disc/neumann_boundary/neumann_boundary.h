@@ -31,23 +31,12 @@ class NeumannBoundary
 		typedef NeumannBoundary<TDomain> this_type;
 
 	public:
-	///	Domain type
-		typedef typename base_type::domain_type domain_type;
-
 	///	World dimension
 		static const int dim = base_type::dim;
-
-	///	Position type
-		typedef typename base_type::position_type position_type;
 
 	public:
 	///	default constructor
 		NeumannBoundary(const char* subsets);
-
-	///	adds a lua callback (cond and non-cond)
-#ifdef UG_FOR_LUA
-		void add(const char* name, const char* function, const char* subsets);
-#endif
 
 	///	add a boundary value
 	///	\{
@@ -56,6 +45,9 @@ class NeumannBoundary
 		void add(SmartPtr<UserData<number, dim, bool> > user, const char* function, const char* subsets);
 		void add(SmartPtr<UserData<MathVector<dim>, dim> > user, const char* function, const char* subsets);
 		void add(const std::vector<number>& val, const char* function, const char* subsets);
+#ifdef UG_FOR_LUA
+		void add(const char* name, const char* function, const char* subsets);
+#endif
 	/// \}
 
 	private:
@@ -81,12 +73,20 @@ class NeumannBoundary
 			}
 
 			template<typename TElem, typename TFVGeom>
-			void extract_bip(const TFVGeom& geo);
+			void extract_bip_fv1(const TFVGeom& geo);
+
+			template<typename TElem, typename TFVGeom>
+			void extract_bip_fvho(const TFVGeom& geo);
 
 			template <typename TElem, typename TFVGeom>
 			void lin_def_fv1(const LocalVector& u,
 			                 std::vector<std::vector<number> > vvvLinDef[],
 			                 const size_t nip);
+
+			template <typename TElem, typename TGeomProvider>
+			void lin_def_fvho(const LocalVector& u,
+			                  std::vector<std::vector<number> > vvvLinDef[],
+			                  const size_t nip);
 
 			DataImport<number, dim> import;
 			std::vector<MathVector<dim> > vLocIP;
@@ -125,6 +125,9 @@ class NeumannBoundary
 		virtual void approximation_space_changed() {extract_data();}
 
 	public:
+	///	sets the disc scheme
+		void set_disc_scheme(const char* c_scheme);
+
 	///	 returns the type of elem disc
 		virtual int type() const {return EDT_BND;}
 
@@ -134,37 +137,72 @@ class NeumannBoundary
 	///	switches between non-regular and regular grids
 		virtual bool request_non_regular_grid(bool bNonRegular);
 
+	protected:
+	///	sets the requested assembling routines
+		void set_ass_funcs();
+
+	///	current type of disc scheme
+		std::string m_discScheme;
+
+	///	current order of disc scheme
+		int m_order;
+
+	///	current shape function set
+		LFEID m_lfeID;
+
 	private:
+	///	dummy add methods
+	///	\{
+		template<typename TElem, typename TFVGeom>
+		void add_JA_elem(LocalMatrix& J, const LocalVector& u) {}
+		template<typename TElem, typename TFVGeom>
+		void add_JM_elem(LocalMatrix& J, const LocalVector& u) {}
+		template<typename TElem, typename TFVGeom>
+		void add_dA_elem(LocalVector& d, const LocalVector& u) {}
+		template<typename TElem, typename TFVGeom>
+		void add_dM_elem(LocalVector& d, const LocalVector& u) {}
+	/// \}
+
+	///	assembling functions for fv1
+	///	\{
 		template<typename TElem, typename TFVGeom>
 		void prep_elem_loop_fv1();
-
 		template<typename TElem, typename TFVGeom>
 		void prep_elem_fv1(TElem* elem, const LocalVector& u);
-
 		template<typename TElem, typename TFVGeom>
-		void finish_elem_loop();
-
-		template<typename TElem, typename TFVGeom>
-		void add_JA_elem_fv1(LocalMatrix& J, const LocalVector& u) {}
-
-		template<typename TElem, typename TFVGeom>
-		void add_JM_elem_fv1(LocalMatrix& J, const LocalVector& u) {}
-
-		template<typename TElem, typename TFVGeom>
-		void add_dA_elem_fv1(LocalVector& d, const LocalVector& u) {}
-
-		template<typename TElem, typename TFVGeom>
-		void add_dM_elem_fv1(LocalVector& d, const LocalVector& u) {}
-
+		void finish_elem_loop_fv1();
 		template<typename TElem, typename TFVGeom>
 		void add_rhs_elem_fv1(LocalVector& d);
+	/// \}
+
+	///	assembling functions for fvho
+	///	\{
+		template<typename TElem, typename TGeomProvider>
+		void prep_elem_loop_fvho();
+		template<typename TElem, typename TGeomProvider>
+		void prep_elem_fvho(TElem* elem, const LocalVector& u);
+		template<typename TElem, typename TGeomProvider>
+		void finish_elem_loop_fvho();
+		template<typename TElem, typename TGeomProvider>
+		void add_rhs_elem_fvho(LocalVector& d);
+	/// \}
 
 	private:
+	// 	FV1 Assemblings
 		void register_all_fv1_funcs(bool bHang);
+		template <typename TElem, typename TFVGeom>	void register_fv1_func();
 
-		template <typename TElem, typename TFVGeom>
-		void register_fv1_func();
+	// 	FVHO Assemblings
+		void register_all_fvho_funcs(int order);
+		template<typename TElem, typename TGeomProvider> void register_fvho_func();
 
+	//	helper class holding a geometry
+		template<typename TGeom>
+		struct FlexGeomProvider
+		{
+			typedef TGeom Type;
+			static inline TGeom& get(){static TGeom inst; return inst;}
+		};
 };
 
 } // end namespac ug

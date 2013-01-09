@@ -189,51 +189,13 @@ add(const char* name, const char* function, const char* subsets)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
-// common add methods
-////////////////////////////////////////////////////////////////////////////////
-
-template<typename TDomain>
-template<typename TElem, typename TGeom>
-void NeumannBoundary<TDomain>::
-finish_elem_loop()
-{
-//	remove subsetIndex from Geometry
-	static TGeom& geo = Provider<TGeom >::get();
-
-
-//	unrequest subset indices as boundary subset. This will force the
-//	creation of boundary subsets when calling geo.update
-
-	for(size_t i = 0; i < m_vNumberData.size(); ++i){
-		for(size_t s = 0; s < m_vNumberData[i].ssGrp.size(); ++s){
-			const int si = m_vNumberData[i].ssGrp[s];
-			geo.remove_boundary_subset(si);
-		}
-	}
-
-	for(size_t i = 0; i < m_vBNDNumberData.size(); ++i){
-		for(size_t s = 0; s < m_vBNDNumberData[i].ssGrp.size(); ++s){
-			const int si = m_vBNDNumberData[i].ssGrp[s];
-			geo.remove_boundary_subset(si);
-		}
-	}
-
-	for(size_t i = 0; i < m_vVectorData.size(); ++i){
-		for(size_t s = 0; s < m_vVectorData[i].ssGrp.size(); ++s){
-			const int si = m_vVectorData[i].ssGrp[s];
-			geo.remove_boundary_subset(si);
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Number Data
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void NeumannBoundary<TDomain>::NumberData::
-extract_bip(const TFVGeom& geo)
+extract_bip_fv1(const TFVGeom& geo)
 {
 	typedef typename TFVGeom::BF BF;
 	vLocIP.clear();
@@ -244,8 +206,35 @@ extract_bip(const TFVGeom& geo)
 		const std::vector<BF>& vBF = geo.bf(si);
 		for(size_t i = 0; i < vBF.size(); ++i)
 		{
-			vLocIP.push_back(vBF[i].local_ip());
-			vGloIP.push_back(vBF[i].global_ip());
+			const BF& bf = vBF[i];
+			vLocIP.push_back(bf.local_ip());
+			vGloIP.push_back(bf.global_ip());
+		}
+	}
+
+	import.set_local_ips(&vLocIP[0], vLocIP.size());
+	import.set_global_ips(&vGloIP[0], vGloIP.size());
+}
+
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void NeumannBoundary<TDomain>::NumberData::
+extract_bip_fvho(const TFVGeom& geo)
+{
+	typedef typename TFVGeom::BF BF;
+	vLocIP.clear();
+	vGloIP.clear();
+	for(size_t s = 0; s < this->ssGrp.size(); s++)
+	{
+		const int si = this->ssGrp[s];
+		const std::vector<BF>& vBF = geo.bf(si);
+		for(size_t i = 0; i < vBF.size(); ++i)
+		{
+			const BF& bf = vBF[i];
+			for(size_t ip = 0; ip < bf.num_ip(); ++ip){
+				vLocIP.push_back(bf.local_ip(ip));
+				vGloIP.push_back(bf.global_ip(ip));
+			}
 		}
 	}
 
@@ -261,20 +250,83 @@ template<typename TDomain>
 NeumannBoundary<TDomain>::NeumannBoundary(const char* subsets)
  :IDomainElemDisc<TDomain>("", subsets)
 {
-	register_all_fv1_funcs(false);
+//	set defaults
+	m_order = 1;
+	m_discScheme = "fv1";
+
+//	update assemble functions
+	set_ass_funcs();
 }
 
 
 ///	type of trial space for each function used
 template<typename TDomain>
-bool
-NeumannBoundary<TDomain>::
-request_finite_element_id(const std::vector<LFEID>& vLfeID)
+bool NeumannBoundary<TDomain>::request_finite_element_id(const std::vector<LFEID>& vLfeID)
 {
-//	check that Lagrange 1st order
-	for(size_t i = 0; i < vLfeID.size(); ++i)
-		if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1)) return false;
+//	check that Lagrange space
+	if(vLfeID[0].type() != LFEID::LAGRANGE)
+	{
+		UG_LOG("ERROR in 'NeumannBoundary::request_finite_element_id':"
+			" Lagrange trial space needed.\n");
+		return false;
+	}
+
+//	for fv1 only 1st order
+	if(m_discScheme == "fv1" && vLfeID[0].order() != 1)
+	{
+		UG_LOG("ERROR in 'NeumannBoundary::request_finite_element_id':"
+				" FV1 Scheme only implemented for 1st order.\n");
+		return false;
+	}
+
+//	check that not ADAPTIVE
+	if(vLfeID[0].order() < 1)
+	{
+		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
+				" Adaptive or invalid order not implemented.\n");
+		return false;
+	}
+
+//	remember lfeID;
+	m_lfeID = vLfeID[0];
+
+//	set order
+	m_order = vLfeID[0].order();
+
+//	update assemble functions
+	set_ass_funcs();
+
+//	is supported
 	return true;
+}
+
+template<typename TDomain>
+void NeumannBoundary<TDomain>::set_disc_scheme(const char* c_scheme)
+{
+//	convert to string
+	std::string scheme = c_scheme;
+
+//	check
+	if(scheme != std::string("fv1") &&
+	   scheme != std::string("fv"))
+	{
+		UG_THROW("NeumannBoundary: Only 'fv', 'fv1' supported.");
+	}
+
+//	remember
+	m_discScheme = scheme;
+
+//	update assemble functions
+	set_ass_funcs();
+}
+
+template<typename TDomain>
+void NeumannBoundary<TDomain>::set_ass_funcs()
+{
+//	switch, which assemble functions to use; both supported.
+	if(m_discScheme == "fv1") register_all_fv1_funcs(false);
+	else if(m_discScheme == "fv") register_all_fvho_funcs(m_order);
+	else UG_THROW("NeumannBoundary: Disc Scheme '"<<m_discScheme<<"' not recognized.");
 }
 
 ///	switches between non-regular and regular grids
