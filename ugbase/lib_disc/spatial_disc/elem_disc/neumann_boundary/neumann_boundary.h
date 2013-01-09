@@ -37,6 +37,7 @@ class NeumannBoundary
 	public:
 	///	default constructor
 		NeumannBoundary(const char* subsets);
+		NeumannBoundary(const std::vector<std::string>& vSubset);
 
 	///	add a boundary value
 	///	\{

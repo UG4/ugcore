@@ -258,6 +258,18 @@ NeumannBoundary<TDomain>::NeumannBoundary(const char* subsets)
 	set_ass_funcs();
 }
 
+template<typename TDomain>
+NeumannBoundary<TDomain>::NeumannBoundary(const std::vector<std::string>& vSubset)
+ :IDomainElemDisc<TDomain>(std::vector<std::string>(), vSubset)
+{
+//	set defaults
+	m_order = 1;
+	m_discScheme = "fv1";
+
+//	update assemble functions
+	set_ass_funcs();
+}
+
 
 ///	type of trial space for each function used
 template<typename TDomain>
