@@ -88,10 +88,12 @@ bool LUA2C::create(const char *functionName)
 
 LUA2C::~LUA2C()
 {
+    UG_DLOG(DID_LUA2C, 2, "removing " << name << "\n");		
 	if(libHandle)
-	{
-       	UG_DLOG(DID_LUA2C, 2, "removing " << name << "\n");
-		dlclose(libHandle);	
+	   	dlclose(libHandle);	
+        
+    if(pDyn.size() > 0)
+    {
 		string s = string("rm ") + pDyn;
 		UG_DLOG(DID_LUA2C, 2, s << "\n");
 		system(s.c_str());
