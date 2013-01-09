@@ -476,11 +476,12 @@ static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView
 {
 	const int siSurface = 0;
 	const int siShadow = 1;
-	const int siHidden = 2;
+	const int siShadowing = 2;
+	const int siHidden = 3;
 
-	const char* subsetNames[] = {"surface", "shadow", "not_in_surface"};
+	const char* subsetNames[] = {"surface", "shadow", "shadowing", "not_in_surface"};
 
-	for(int i = 0; i < 3; ++i)
+	for(int i = 0; i < 4; ++i)
 		sh.subset_info(i).name = subsetNames[i];
 
 	typedef typename Grid::traits<TElem>::iterator TIter;
@@ -488,10 +489,12 @@ static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView
 		TElem* e = *iter;
 		int si = siHidden;
 
-		if(sv.is_surface_element(e))
-			si = siSurface;
+		if(sv.is_shadowing(e))
+			si = siShadowing;
 		else if(sv.is_shadowed(e))
 			si = siShadow;
+		else if(sv.is_surface_element(e))
+			si = siSurface;
 
 		sh.assign_subset(e, si);
 	}

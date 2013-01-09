@@ -2014,7 +2014,7 @@ update(size_t lev,
 	for(size_t j = 0; j < vMapGlobalToPatch.size(); ++j)
 	{
 	//	if the index is still negative (i.e. ghost, leave index at -1)
-		if(vMapGlobalToPatch[j] -1) continue;
+		if(vMapGlobalToPatch[j] == -1) continue;
 
 	//	if the index is a non-ghost set the new index
 		vMapGlobalToPatch[j] = vMapPatchToGlobal.size();

@@ -435,9 +435,8 @@ void SetZeroOnShadowing(TVector& vec,
 			//	get vertex
 				TBaseElem* vrt = *iter;
 
-				GeometricObject* parent = surfView.subset_handler()->multi_grid()->get_parent(vrt);
-				if(parent == NULL) continue;
-				if(!surfView.is_shadowed(parent)) continue;
+				if(!surfView.is_shadowing(vrt))
+					continue;
 
 			// 	get global indices
 				dd->inner_algebra_indices(vrt, ind);
@@ -469,9 +468,8 @@ void SetZeroOnShadowing(TVector& vec,
 			//	get vertex
 				TBaseElem* vrt = *iter;
 
-				GeometricObject* parent = surfView.subset_handler()->multi_grid()->get_parent(vrt);
-				if(parent == NULL) continue;
-				if(!surfView.is_shadowed(parent)) continue;
+				if(!surfView.is_shadowing(vrt))
+					continue;
 
 			// 	get global indices
 				dd->inner_algebra_indices(vrt, ind);

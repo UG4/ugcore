@@ -458,13 +458,19 @@ surface_level_end(int lvl) const
 template <class TGeomObj>
 bool SurfaceView::is_surface_element(TGeomObj* obj) const
 {
-	return surface_state(obj) == ESS_SURFACE;
+	return has_surface_state(obj, ESS_SURFACE);
 }
 
 template <class TGeomObj>
 bool SurfaceView::is_shadowed(TGeomObj* obj) const
 {
-	return surface_state(obj) == ESS_SHADOW;
+	return has_surface_state(obj, ESS_SHADOW);
+}
+
+template <class TGeomObj>
+bool SurfaceView::is_shadowing(TGeomObj* obj) const
+{
+	return has_surface_state(obj, ESS_SHADOWING);
 }
 
 template <class TGeomObj>

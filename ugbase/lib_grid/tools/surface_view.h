@@ -44,7 +44,8 @@ class SurfaceView
 			ESS_NONE = 0,
 			ESS_SURFACE = 1,
 			ESS_HIDDEN = 1<<1,
-			ESS_SHADOW = ESS_SURFACE | ESS_HIDDEN
+			ESS_SHADOW = ESS_SURFACE | ESS_HIDDEN,
+			ESS_SHADOWING = 1<<2
 		};
 
 	public:
@@ -131,16 +132,24 @@ class SurfaceView
 
 	///	returns if the element is contained in the surface view
 	/**	Retruns true e.g. for unshadowed constrained (hanging) vertices
-	 * \sa SurfaceView::is_shadowed*/
+	 * \sa SurfaceView::is_shadowed, SurfaceView::is_shadowing*/
 		template <class TGeomObj>
 		inline bool is_surface_element(TGeomObj* obj) const;
 
 	///	returns if the element is shadowed and thus not contained in the surface view
 	/**	A shadowed element has a child and at least one adjacent element which is
 	 * a surface element
-	 * \sa SurfaceView::is_surface_element*/
+	 * \sa SurfaceView::is_surface_element, SurfaceView::is_shadowing*/
 		template <class TGeomObj>
 		inline bool is_shadowed(TGeomObj* obj) const;
+
+	///	returns true if the given element is a shadowing element
+	/**	An element is considered to be shadowing if it is the child of a
+	 * shadowed element. Not that in a distributed grid, this can be true even
+	 * if the element has no parent on the local process.
+	 * \sa SurfaceView::is_shadowed, SurfaceView::is_surface_element*/
+		template <class TGeomObj>
+		inline bool is_shadowing(TGeomObj* obj) const;
 
 	///	returns parent != NULL if copy
 		template <typename TBaseElem>
@@ -294,7 +303,7 @@ class SurfaceView
 		void mark_sides_as_surface_or_shadow(TElem* elem);
 
 		template <class TElem>
-		void mark_vmasters_as_unknown();
+		void mark_shadowing();
 
 	///	adjusts surface states in a parallel environment
 		template <class TElem>

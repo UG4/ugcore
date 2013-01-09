@@ -13,6 +13,7 @@
 namespace ug{
 
 ///	adds marking at extracting side
+//todo:	change to ComPol_AttachmentBinaryOr
 template <class TLayout>
 class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 {
@@ -84,14 +85,35 @@ is_local_surface_view_element(TElem* elem)
 void SurfaceView::
 refresh_surface_states()
 {
-	if(m_pMG->num_volumes() > 0)
-		refresh_surface_states<Volume>();
-	else if(m_pMG->num_faces() > 0)
-		refresh_surface_states<Face>();
-	else if(m_pMG->num_edges() > 0)
-		refresh_surface_states<EdgeBase>();
-	else
-		refresh_surface_states<VertexBase>();
+//todo	we need a global max-dim!!! (empty processes have to do the right thing, too)
+	int maxElem = -1;
+	if(m_pMG->num<Volume>() > 0)
+		maxElem = VOLUME;
+	else if(m_pMG->num<Face>() > 0)
+		maxElem = FACE;
+	else if(m_pMG->num<EdgeBase>() > 0)
+		maxElem = EDGE;
+	else if(m_pMG->num<VertexBase>() > 0)
+		maxElem = VERTEX;
+
+	pcl::ProcessCommunicator pc;
+	maxElem = pc.allreduce(maxElem, PCL_RO_MAX);
+
+	switch(maxElem){
+		case VOLUME:
+			refresh_surface_states<Volume>();
+			break;
+		case FACE:
+			refresh_surface_states<Face>();
+			break;
+		case EDGE:
+			refresh_surface_states<EdgeBase>();
+			break;
+		case VERTEX:
+			refresh_surface_states<VertexBase>();
+			break;
+		default: break;
+	}
 }
 
 template <class TElem>
@@ -130,14 +152,25 @@ refresh_surface_states()
 			}
 		}
 	}
-/*
-//	in a parallel environment, we'll mark all vertical masters as unknown
-	mark_vmasters_as_unknown<VertexBase>();
-	mark_vmasters_as_unknown<EdgeBase>();
-	mark_vmasters_as_unknown<Face>();
-	mark_vmasters_as_unknown<Volume>();
-*/
+
 //	we have to make sure that all copies have the same surface states on all processes
+	adjust_parallel_surface_states<VertexBase>();
+	adjust_parallel_surface_states<EdgeBase>();
+	adjust_parallel_surface_states<Face>();
+	adjust_parallel_surface_states<Volume>();
+
+//	we now have to mark all shadowing elements.
+//	Only low dimensional elements can be shadows.
+//	Perform assignment on higher dimensional elements first, since lower
+//	dimensional elements may shadow higher dimensional elements...
+	if(Face::dim < TElem::dim)
+		mark_shadowing<Face>();
+	if(EdgeBase::dim < TElem::dim)
+		mark_shadowing<EdgeBase>();
+	if(VertexBase::dim < TElem::dim)
+		mark_shadowing<VertexBase>();
+
+//	again we have to make sure that all copies have the same surface states on all processes
 	adjust_parallel_surface_states<VertexBase>();
 	adjust_parallel_surface_states<EdgeBase>();
 	adjust_parallel_surface_states<Face>();
@@ -169,31 +202,27 @@ mark_sides_as_surface_or_shadow(TElem* elem)
 
 template <class TElem>
 void SurfaceView::
-mark_vmasters_as_unknown()
+mark_shadowing()
 {
-/*
-	#ifdef UG_PARALLEL
-		typedef typename GridLayoutMap::Types<TElem>::Layout	Layout;
-		typedef typename Layout::iterator					IntfcIter;
-		typedef typename Layout::Interface					Intfc;
-		typedef typename Intfc::iterator					ElemIter;
+	typedef typename Grid::traits<TElem>::iterator TIter;
 
-		if(m_distGridMgr->grid_layout_map().has_layout<TElem>(INT_V_MASTER)){
-			Layout& layout = m_distGridMgr->grid_layout_map().get_layout<TElem>(INT_V_MASTER);
+	MultiGrid& mg = *m_pMG;
 
-			for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
-				for(IntfcIter iiter = layout.begin(lvl); iiter != layout.end(lvl); ++iiter)
-				{
-					Intfc& intfc = layout.interface(iiter);
-					for(ElemIter eiter = intfc.begin(); eiter != intfc.end(); ++eiter)
-					{
-						set_surface_state(intfc.get_element(eiter), ESS_UNKNOWN);
-					}
-				}
+	for(size_t lvl = 1; lvl < mg.num_levels(); ++lvl){
+		for(TIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
+		{
+			TElem* e = *iter;
+			#ifdef UG_PARALLEL
+				if(m_distGridMgr->is_ghost(e))
+					continue;
+			#endif
+
+			GeometricObject* p = mg.get_parent(e);
+			if(p && is_shadowed(p)){
+				set_surface_state(e, surface_state(e) | ESS_SHADOWING);
 			}
 		}
-	#endif
-*/
+	}
 }
 
 template <class TElem>
