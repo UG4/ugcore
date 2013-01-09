@@ -233,7 +233,7 @@ class ConstUserVector
 		void set_vector(const std::vector<number>& val)
 		{
 			if(val.size() != dim) UG_THROW("Size mismatch in ConstUserVector");
-			for(size_t i; i < dim; i++) m_Vector[i] = val[i];
+			for(size_t i = 0; i < dim; i++) m_Vector[i] = val[i];
 		}
 
 	///	print current setting
