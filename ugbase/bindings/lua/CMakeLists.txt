@@ -72,18 +72,13 @@ set(headersLua	externals/lua/lapi.h
 				externals/lua/lvm.h
 				externals/lua/lzio.h)
 
-find_package(BISON)
-find_package(FLEX)
-
-BISON_TARGET(MyParser parser.y parser.cc)
-FLEX_TARGET(MyScanner lexer.l  lexer.cc)
-ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
-
-
-
+#find_package(BISON)
+#find_package(FLEX)
+#BISON_TARGET(MyParser parser.y parser.cc)
+#FLEX_TARGET(MyScanner lexer.l  lexer.cc)
+#ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
 # Create target for the parser
-ADD_CUSTOM_TARGET(FooParser echo “Creating parser.c”)
-
+#ADD_CUSTOM_TARGET(FooParser echo “Creating parser.c”)
 # Create custom command for flex/lex (note the outputs)
 
 
