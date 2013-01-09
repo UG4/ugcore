@@ -31,11 +31,10 @@ template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
 NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 			SmartPtr<IConvergenceCheck<vector_type> > spConvCheck,
-			SmartPtr<ILineSearch<vector_type> > spLineSearch, bool reallocate) :
+			SmartPtr<ILineSearch<vector_type> > spLineSearch) :
 			m_spLinearSolver(LinearSolver),
 			m_spConvCheck(spConvCheck),
 			m_spLineSearch(spLineSearch),
-			m_reallocate(reallocate), m_allocated(false),
 			m_dgbCall(0)
 {};
 
@@ -45,7 +44,6 @@ NewtonSolver() :
 	m_spLinearSolver(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_spLineSearch(NULL),
-	m_reallocate(false), m_allocated(false),
 	m_dgbCall(0)
 {};
 
@@ -55,7 +53,6 @@ NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
 	m_spLinearSolver(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_spLineSearch(NULL),
-	m_reallocate(false), m_allocated(false),
 	m_dgbCall(0)
 {
 	init(N);
@@ -67,7 +64,6 @@ NewtonSolver(IAssemble<algebra_type>* pAss) :
 	m_spLinearSolver(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_spLineSearch(NULL),
-	m_reallocate(false), m_allocated(false),
 	m_dgbCall(0)
 {
 	m_pAss = pAss;
@@ -114,7 +110,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	if(m_spLinearSolver.invalid())
 		UG_THROW("NewtonSolver::apply: Linear Solver not set.");
 
-// Jacobian
+//	Jacobian
 	if(m_J.invalid() || m_J->discretization() != m_pAss) {
 		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
 		m_J->set_level(m_N->level());
@@ -130,7 +126,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	try{
 		m_N->prepare(m_d, u);
 	}
-	UG_CATCH_THROW("NewtonSolver::prepare: Preapre of Operator failed.");
+	UG_CATCH_THROW("NewtonSolver::prepare: Prepare of Operator failed.");
 
 // 	Compute first Defect
 	try{

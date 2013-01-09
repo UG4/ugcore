@@ -61,7 +61,7 @@ class NewtonSolver
 	///	constructor
 		NewtonSolver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver,
 		             SmartPtr<IConvergenceCheck<vector_type> > spConvCheck,
-		             SmartPtr<ILineSearch<vector_type> > spLineSearch, bool reallocate);
+		             SmartPtr<ILineSearch<vector_type> > spLineSearch);
 
 	///	sets the linear solver
 		void set_linear_solver(SmartPtr<ILinearOperatorInverse<vector_type> > LinearSolver) {m_spLinearSolver = LinearSolver;}
@@ -115,8 +115,6 @@ class NewtonSolver
 			{m_stepUpdate.clear();}
 
 	private:
-		void allocate_memory(const vector_type& u);
-
 	///	help functions for debug output
 	///	\{
 		void write_debug(const vector_type& vec, const char* filename);
@@ -156,10 +154,6 @@ class NewtonSolver
 		number m_lambda_start;
 		number m_lambda_reduce;
 	/// \}
-
-	///	some flags
-		bool m_reallocate;
-		bool m_allocated;
 
 	///	call counter
 		int m_dgbCall;
