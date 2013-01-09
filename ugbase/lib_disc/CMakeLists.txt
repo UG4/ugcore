@@ -61,7 +61,7 @@ set(srcDiscretization	domain_util.cpp
 						spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.cpp
 						
 						spatial_disc/elem_disc/inner_boundary/inner_boundary_fv1.cpp
-						spatial_disc/elem_disc/neumann_boundary/neumann_boundary_fv1.cpp)
+						spatial_disc/elem_disc/neumann_boundary/neumann_boundary.cpp)
 						
 						
 						

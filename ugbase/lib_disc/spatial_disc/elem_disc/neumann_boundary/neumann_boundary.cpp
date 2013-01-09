@@ -1,5 +1,5 @@
 /*
- * neumann_boundary_fv1.cpp
+ * neumann_boundary.cpp
  *
  *  Created on: 14.10.2010
  *      Author: andreasvogel
