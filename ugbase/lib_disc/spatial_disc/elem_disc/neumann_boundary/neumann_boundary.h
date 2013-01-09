@@ -142,7 +142,7 @@ class NeumannBoundary
 		void prep_elem_fv1(TElem* elem, const LocalVector& u);
 
 		template<typename TElem, typename TFVGeom>
-		void finish_elem_loop_fv1();
+		void finish_elem_loop();
 
 		template<typename TElem, typename TFVGeom>
 		void add_JA_elem_fv1(LocalMatrix& J, const LocalVector& u) {}
