@@ -187,12 +187,12 @@ add(const char* name, const char* function, const char* subsets)
 
 
 template<typename TDomain>
-template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+template<typename TElem, typename TFVGeom>
 void NeumannBoundary<TDomain>::
 prep_elem_loop_fv1()
 {
 //	register subsetIndex at Geometry
-	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
+	static TFVGeom& geo = Provider<TFVGeom >::get();
 
 //	request subset indices as boundary subset. This will force the
 //	creation of boundary subsets when calling geo.update
@@ -235,12 +235,12 @@ prep_elem_loop_fv1()
 }
 
 template<typename TDomain>
-template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+template<typename TElem, typename TFVGeom>
 void NeumannBoundary<TDomain>::
 finish_elem_loop_fv1()
 {
 //	remove subsetIndex from Geometry
-	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
+	static TFVGeom& geo = Provider<TFVGeom >::get();
 
 
 //	unrequest subset indices as boundary subset. This will force the
@@ -269,12 +269,12 @@ finish_elem_loop_fv1()
 }
 
 template<typename TDomain>
-template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+template<typename TElem, typename TFVGeom>
 void NeumannBoundary<TDomain>::
 prep_elem_fv1(TElem* elem, const LocalVector& u)
 {
 //  update Geometry for this element
-	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
+	static TFVGeom& geo = Provider<TFVGeom >::get();
 	if(!geo.update(elem,
 	               this->template element_corners<TElem>(elem),
 	               &(this->subset_handler())))
@@ -286,12 +286,12 @@ prep_elem_fv1(TElem* elem, const LocalVector& u)
 }
 
 template<typename TDomain>
-template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+template<typename TElem, typename TFVGeom>
 void NeumannBoundary<TDomain>::
 add_rhs_elem_fv1(LocalVector& d)
 {
-	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
-	typedef typename TFVGeom<TElem, dim>::BF BF;
+	const static TFVGeom& geo = Provider<TFVGeom >::get();
+	typedef typename TFVGeom::BF BF;
 
 //	Number Data
 	for(size_t data = 0; data < m_vNumberData.size(); ++data){
@@ -348,11 +348,11 @@ add_rhs_elem_fv1(LocalVector& d)
 
 
 template<typename TDomain>
-template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+template<typename TElem, typename TFVGeom>
 void NeumannBoundary<TDomain>::NumberData::
-extract_bip(const TFVGeom<TElem,dim>& geo)
+extract_bip(const TFVGeom& geo)
 {
-	typedef typename TFVGeom<TElem, dim>::BF BF;
+	typedef typename TFVGeom::BF BF;
 	vLocIP.clear();
 	vGloIP.clear();
 	for(size_t s = 0; s < this->ssGrp.size(); s++)
@@ -371,15 +371,15 @@ extract_bip(const TFVGeom<TElem,dim>& geo)
 }
 
 template<typename TDomain>
-template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+template<typename TElem, typename TFVGeom>
 void NeumannBoundary<TDomain>::NumberData::
 lin_def_fv1(const LocalVector& u,
             std::vector<std::vector<number> > vvvLinDef[],
             const size_t nip)
 {
 //  get finite volume geometry
-	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
-	typedef typename TFVGeom<TElem, dim>::BF BF;
+	const static TFVGeom& geo = Provider<TFVGeom>::get();
+	typedef typename TFVGeom::BF BF;
 
 	size_t ip = 0;
 	for(size_t s = 0; s < this->ssGrp.size(); ++s)
@@ -440,25 +440,40 @@ request_non_regular_grid(bool bNonRegular)
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
-// register for 1D
-template<typename TDomain>
-void
-NeumannBoundary<TDomain>::
-register_all_fv1_funcs(bool bHang)
+template<>
+void NeumannBoundary<Domain1d>::register_all_fv1_funcs(bool bHang)
 {
-//	get all grid element types in this dimension and below
-	typedef typename domain_traits<dim>::DimElemList ElemList;
+	if(!bHang){
+		register_fv1_func<Edge, FV1Geometry<Edge, dim> >();
+	}
+	else UG_THROW("NeumannBoundary: Hanging Nodes not implemented.");
+}
 
-//	switch assemble functions
-	if(!bHang) boost::mpl::for_each<ElemList>( RegisterFV1<FV1Geometry>(this) );
-	else throw (UGError("Not implemented."));
+template<>
+void NeumannBoundary<Domain2d>::register_all_fv1_funcs(bool bHang)
+{
+	if(!bHang){
+		register_fv1_func<Triangle, FV1Geometry<Triangle, dim> >();
+		register_fv1_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
+	}
+	else UG_THROW("NeumannBoundary: Hanging Nodes not implemented.");
+}
+
+template<>
+void NeumannBoundary<Domain3d>::register_all_fv1_funcs(bool bHang)
+{
+	if(!bHang){
+		register_fv1_func<Tetrahedron, FV1Geometry<Tetrahedron, dim> >();
+		register_fv1_func<Prism, FV1Geometry<Prism, dim> >();
+		register_fv1_func<Pyramid, FV1Geometry<Pyramid, dim> >();
+		register_fv1_func<Hexahedron, FV1Geometry<Hexahedron, dim> >();
+	}
+	else UG_THROW("NeumannBoundary: Hanging Nodes not implemented.");
 }
 
 template<typename TDomain>
-template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
-void
-NeumannBoundary<TDomain>::
-register_fv1_func()
+template<typename TElem, typename TFVGeom>
+void NeumannBoundary<TDomain>::register_fv1_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;

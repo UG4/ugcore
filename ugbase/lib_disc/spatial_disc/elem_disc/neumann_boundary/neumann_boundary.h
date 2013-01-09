@@ -80,10 +80,10 @@ class NeumannBoundary
 				import.set_data(data);
 			}
 
-			template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-			void extract_bip(const TFVGeom<TElem,dim>& geo);
+			template<typename TElem, typename TFVGeom>
+			void extract_bip(const TFVGeom& geo);
 
-			template <typename TElem, template <class Elem, int  Dim> class TFVGeom>
+			template <typename TElem, typename TFVGeom>
 			void lin_def_fv1(const LocalVector& u,
 			                 std::vector<std::vector<number> > vvvLinDef[],
 			                 const size_t nip);
@@ -135,42 +135,34 @@ class NeumannBoundary
 		virtual bool request_non_regular_grid(bool bNonRegular);
 
 	private:
-		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void prep_elem_loop_fv1();
 
-		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void prep_elem_fv1(TElem* elem, const LocalVector& u);
 
-		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void finish_elem_loop_fv1();
 
-		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_JA_elem_fv1(LocalMatrix& J, const LocalVector& u) {}
 
-		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_JM_elem_fv1(LocalMatrix& J, const LocalVector& u) {}
 
-		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_dA_elem_fv1(LocalVector& d, const LocalVector& u) {}
 
-		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_dM_elem_fv1(LocalVector& d, const LocalVector& u) {}
 
-		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
+		template<typename TElem, typename TFVGeom>
 		void add_rhs_elem_fv1(LocalVector& d);
 
 	private:
 		void register_all_fv1_funcs(bool bHang);
 
-		template <template <class Elem, int WorldDim> class TFVGeom>
-		struct RegisterFV1 {
-				RegisterFV1(this_type* pThis) : m_pThis(pThis){}
-				this_type* m_pThis;
-				template< typename TElem > void operator()(TElem&)
-				{m_pThis->register_fv1_func<TElem, TFVGeom>();}
-		};
-
-		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
+		template <typename TElem, typename TFVGeom>
 		void register_fv1_func();
 
 };
