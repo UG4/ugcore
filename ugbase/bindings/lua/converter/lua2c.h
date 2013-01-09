@@ -25,7 +25,7 @@ public:
 	std::string name, pDyn;
 	LUA2C_Function f;
 	
-	LUA2C() { f= NULL; name = "uninitialized"; }
+	LUA2C() { f= NULL; name = "uninitialized"; pDyn = ""; libHandle = NULL;}
 	int iIn, iOut;
 	
 	bool is_valid(int in, int out)
