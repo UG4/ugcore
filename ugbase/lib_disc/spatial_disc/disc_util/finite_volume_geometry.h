@@ -514,33 +514,36 @@ class FV1Geometry : public FVGeometryBase
 		}
 
 	/// number of boundary faces on subset 'subsetIndex'
-		inline size_t num_bf(int subsetIndex) const
+		inline size_t num_bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
+			it = m_mapVectorBF.find(si);
 			if(it == m_mapVectorBF.end()) return 0;
 			else return (*it).second.size();
 		}
 
 	/// returns the boundary face i for subsetIndex
-		inline const BF& bf(int subsetIndex, size_t i) const
+		inline const BF& bf(int si, size_t i) const
 		{
-			UG_ASSERT(i < num_bf(subsetIndex), "Invalid index.");
+			UG_ASSERT(i < num_bf(si), "Invalid index.");
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) UG_THROW("FVGeom: No bnd face for subset"<<si);
 			return (*it).second[i];
 		}
 
 	/// returns reference to vector of boundary faces for subsetIndex
-		inline const std::vector<BF>& bf(int subsetIndex) const
+		inline const std::vector<BF>& bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) return m_vEmptyVectorBF;
 			return (*it).second;
 		}
 
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
+		std::vector<BF> m_vEmptyVectorBF;
 
 	private:
 	///	pointer to current element
@@ -1002,35 +1005,35 @@ class DimFV1Geometry : public FVGeometryBase
 		}
 
 	/// number of boundary faces on subset 'subsetIndex'
-		inline size_t num_bf(int subsetIndex) const
+		inline size_t num_bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
+			it = m_mapVectorBF.find(si);
 			if(it == m_mapVectorBF.end()) return 0;
 			else return (*it).second.size();
 		}
 
 	/// returns the boundary face i for subsetIndex
-		inline const BF& bf(int subsetIndex, size_t i) const
+		inline const BF& bf(int si, size_t i) const
 		{
-			UG_ASSERT(i < num_bf(subsetIndex), "Invalid index.");
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
-			UG_ASSERT(it != m_mapVectorBF.end(), "Bnd Subset Index not requested.")
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) UG_THROW("DimFV1Geom: No BndSubset "<<si);
 			return (*it).second[i];
 		}
 
 	/// returns reference to vector of boundary faces for subsetIndex
-		inline const std::vector<BF>& bf(int subsetIndex) const
+		inline const std::vector<BF>& bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
-			UG_ASSERT(it != m_mapVectorBF.end(), "Bnd Subset Index not requested.")
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) return m_vEmptyVectorBF;
 			return (*it).second;
 		}
 
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
+		std::vector<BF> m_vEmptyVectorBF;
 
 	private:
 	///	pointer to current element
@@ -1615,33 +1618,35 @@ class FVGeometry : public FVGeometryBase
 		}
 
 	/// number of boundary faces on subset 'subsetIndex'
-		inline size_t num_bf(int subsetIndex) const
+		inline size_t num_bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
+			it = m_mapVectorBF.find(si);
 			if(it == m_mapVectorBF.end()) return 0;
 			else return (*it).second.size();
 		}
 
 	/// returns the boundary face i for subsetIndex
-		inline const BF& bf(int subsetIndex, size_t i) const
+		inline const BF& bf(int si, size_t i) const
 		{
-			UG_ASSERT(i < num_bf(subsetIndex), "Invalid index.");
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) UG_THROW("FVGeom: No BndSubset"<<si);
 			return (*it).second[i];
 		}
 
 	/// returns reference to vector of boundary faces for subsetIndex
-		inline const std::vector<BF>& bf(int subsetIndex) const
+		inline const std::vector<BF>& bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) return m_vEmptyVectorBF;
 			return (*it).second;
 		}
 
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
+		std::vector<BF> m_vEmptyVectorBF;
 
 	private:
 	///	pointer to current element
@@ -2168,33 +2173,36 @@ class DimFVGeometry : public FVGeometryBase
 		}
 
 	/// number of boundary faces on subset 'subsetIndex'
-		inline size_t num_bf(int subsetIndex) const
+		inline size_t num_bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
+			it = m_mapVectorBF.find(si);
 			if(it == m_mapVectorBF.end()) return 0;
 			else return (*it).second.size();
 		}
 
 	/// returns the boundary face i for subsetIndex
-		inline const BF& bf(int subsetIndex, size_t i) const
+		inline const BF& bf(int si, size_t i) const
 		{
-			UG_ASSERT(i < num_bf(subsetIndex), "Invalid index.");
+			UG_ASSERT(i < num_bf(si), "Invalid index.");
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) UG_THROW("DimFVGeom: No BndSubset: "<<si);
 			return (*it).second[i];
 		}
 
 	/// returns reference to vector of boundary faces for subsetIndex
-		inline const std::vector<BF>& bf(int subsetIndex) const
+		inline const std::vector<BF>& bf(int si) const
 		{
 			typename std::map<int, std::vector<BF> >::const_iterator it;
-			it = m_mapVectorBF.find(subsetIndex);
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) return m_vEmptyVectorBF;
 			return (*it).second;
 		}
 
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
+		std::vector<BF> m_vEmptyVectorBF;
 
 	private:
 	///	pointer to current element

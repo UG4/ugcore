@@ -72,6 +72,7 @@ static void Domain(Registry& reg, string grp)
 		string name = string("NeumannBoundary").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.template add_constructor<void (*)(const char*)>("Function(s)")
+			.add_method("add", static_cast<void (T::*)(const vector<number>&, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(number, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*, const char*)>(&T::add))

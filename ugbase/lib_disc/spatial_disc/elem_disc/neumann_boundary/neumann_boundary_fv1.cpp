@@ -18,81 +18,68 @@
 namespace ug{
 
 template<typename TDomain>
-template <typename TUserData>
 void NeumannBoundary<TDomain>::
-extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
-             std::vector<TUserData>& vUserData,
-             FunctionGroup& commonFctGrp, std::string& fctNames)
+extract_data(Data& userData, FunctionGroup& commonFctGrp, std::string& fctNames)
 {
-//	clear all extracted data
-	mvUserDataBndSegment.clear();
+//	create Function Group and Subset Group
+	FunctionGroup functionGroup;
 
-//	loop all scheduled data
-	for(size_t i = 0; i < vUserData.size(); ++i)
+//	convert strings
+	try{
+		userData.ssGrp = this->approx_space()->subset_grp_by_name(userData.ssNames.c_str());
+	}UG_CATCH_THROW("NeumannBoundary:extract_data':"
+					" Subsets '"<<userData.ssNames<<"' not"
+					" all contained in ApproximationSpace.");
+
+	try{
+		functionGroup = this->approx_space()->fct_grp_by_name(userData.fctName.c_str());
+	}UG_CATCH_THROW("NeumannBoundary:extract_data':"
+					" Functions '"<<userData.fctName<<"' not"
+					" all contained in ApproximationSpace.");
+
+//	check that only one function given
+	if(functionGroup.size() != 1)
+		UG_THROW("NeumannBoundary:extract_data: Only one function allowed"
+						" per neumann value, but passed: " << userData.fctName);
+
+//	get function
+	const size_t fct = functionGroup[0];
+
+// 	check if function exist
+	if(fct >= this->function_pattern().num_fct())
+		UG_THROW("NeumannBoundary:extract_data: Function "<< fct <<
+					   " does not exist in pattern.");
+
+//	add to common fct group if not already contained
+	if(!commonFctGrp.contains(fct))
 	{
-	//	create Function Group and Subset Group
-		FunctionGroup functionGroup;
+		commonFctGrp.add(fct);
 
-	//	convert strings
-		try{
-			vUserData[i].ssGrp = this->approx_space()->subset_grp_by_name(vUserData[i].ssNames.c_str());
-		}UG_CATCH_THROW("NeumannBoundary:extract_data':"
-						" Subsets '"<<vUserData[i].ssNames<<"' not"
-						" all contained in ApproximationSpace.");
+	//	build string of functions
+		if(!fctNames.empty()) fctNames.append(",");
+		fctNames.append(userData.fctName.c_str());
+	}
 
-		try{
-			functionGroup = this->approx_space()->fct_grp_by_name(vUserData[i].fctName.c_str());
-		}UG_CATCH_THROW("NeumannBoundary:extract_data':"
-						" Functions '"<<vUserData[i].fctName<<"' not"
-						" all contained in ApproximationSpace.");
+//	set local fct id
+	userData.locFct = commonFctGrp.local_index(fct);
 
-	//	check that only one function given
-		if(functionGroup.size() != 1)
-			UG_THROW("NeumannBoundary:extract_data: Only one function allowed"
-							" per neumann value, but passed: " << vUserData[i].fctName);
+//	check subsets and add referenze to data to each segment
+	const ISubsetHandler& rSH = *this->function_pattern().subset_handler();
+	for(size_t s = 0; s < userData.ssGrp.size(); ++s)
+	{
+	//	get subset index
+		const int si = userData.ssGrp[s];
 
-	//	get function
-		const size_t fct = functionGroup[0];
+	// 	check that function is defined for segment
+		if(!this->function_pattern().is_def_in_subset(fct, si))
+			UG_THROW("NeumannBoundary:extract_data: Function "<<fct<<
+						   " not defined on subset "<<si<<".");
 
-	// 	check if function exist
-		if(fct >= this->function_pattern().num_fct())
-			UG_THROW("NeumannBoundary:extract_data: Function "<< fct <<
-			               " does not exist in pattern.");
-
-	//	add to common fct group if not already contained
-		if(!commonFctGrp.contains(fct))
-		{
-			commonFctGrp.add(fct);
-
-		//	build string of functions
-			if(!fctNames.empty()) fctNames.append(",");
-			fctNames.append(vUserData[i].fctName.c_str());
-		}
-
-	//	set local fct id
-		vUserData[i].locFct = commonFctGrp.local_index(fct);
-
-	//	check subsets and add referenze to data to each segment
-		const ISubsetHandler& rSH = *this->function_pattern().subset_handler();
-		for(size_t si = 0; si < vUserData[i].ssGrp.size(); ++si)
-		{
-		//	get subset index
-			const int subsetIndex = vUserData[i].ssGrp[si];
-
-		// 	check that function is defined for segment
-			if(!this->function_pattern().is_def_in_subset(fct, subsetIndex))
-				UG_THROW("NeumannBoundary:extract_data: Function "<<fct<<
-				               " not defined on subset "<<subsetIndex<<".");
-
-		//	check that subsetIndex is valid
-			if(subsetIndex < 0 || subsetIndex >= rSH.num_subsets())
-				UG_THROW("NeumannBoundary:extract_data: Invalid subset "
-						"Index " << subsetIndex <<
-						". (Valid is 0, .. , " << rSH.num_subsets() <<").");
-
-		//	add to segment
-			mvUserDataBndSegment[subsetIndex].push_back(&vUserData[i]);
-		}
+	//	check that subsetIndex is valid
+		if(si < 0 || si >= rSH.num_subsets())
+			UG_THROW("NeumannBoundary:extract_data: Invalid subset "
+					"Index " << si <<
+					". (Valid is 0, .. , " << rSH.num_subsets() <<").");
 	}
 }
 
@@ -101,15 +88,17 @@ void NeumannBoundary<TDomain>::
 extract_data()
 {
 //	a common function group
-	FunctionGroup commonFctGrp;
-	commonFctGrp.set_function_pattern(this->function_pattern());
+	FunctionGroup commonFctGrp(this->function_pattern());
 
 //	string of functions
 	std::string fctNames;
 
-	extract_data(m_mNumberBndSegment, m_vNumberData, commonFctGrp, fctNames);
-	extract_data(m_mBNDNumberBndSegment, m_vBNDNumberData, commonFctGrp, fctNames);
-	extract_data(m_mVectorBndSegment, m_vVectorData, commonFctGrp, fctNames);
+	for(size_t i = 0; i < m_vNumberData.size(); ++i)
+		extract_data(m_vNumberData[i], commonFctGrp, fctNames);
+	for(size_t i = 0; i < m_vBNDNumberData.size(); ++i)
+		extract_data(m_vBNDNumberData[i], commonFctGrp, fctNames);
+	for(size_t i = 0; i < m_vVectorData.size(); ++i)
+		extract_data(m_vVectorData[i], commonFctGrp, fctNames);
 
 //	set name of function
 	this->set_functions(fctNames.c_str());
@@ -120,7 +109,6 @@ void NeumannBoundary<TDomain>::
 add(SmartPtr<UserData<number, dim> > data, const char* function, const char* subsets)
 {
 	m_vNumberData.push_back(NumberData(data, function, subsets));
-
 	if(this->fct_pattern_set()) extract_data();
 }
 
@@ -129,7 +117,6 @@ void NeumannBoundary<TDomain>::
 add(SmartPtr<UserData<number, dim, bool> > user, const char* function, const char* subsets)
 {
 	m_vBNDNumberData.push_back(BNDNumberData(user, function, subsets));
-
 	if(this->fct_pattern_set()) extract_data();
 }
 
@@ -138,7 +125,6 @@ void NeumannBoundary<TDomain>::
 add(SmartPtr<UserData<MathVector<dim>, dim> > user, const char* function, const char* subsets)
 {
 	m_vVectorData.push_back(VectorData(user, function, subsets));
-
 	if(this->fct_pattern_set()) extract_data();
 }
 
@@ -147,6 +133,14 @@ void NeumannBoundary<TDomain>::
 add(number val, const char* function, const char* subsets)
 {
 	SmartPtr<UserData<number, dim> > sp = CreateSmartPtr(new ConstUserNumber<dim>(val));
+	add(sp, function, subsets);
+}
+
+template<typename TDomain>
+void NeumannBoundary<TDomain>::
+add(const std::vector<number>& val, const char* function, const char* subsets)
+{
+	SmartPtr<UserData<MathVector<dim>, dim> > sp = CreateSmartPtr(new ConstUserVector<dim>(val));
 	add(sp, function, subsets);
 }
 
@@ -195,52 +189,34 @@ add(const char* name, const char* function, const char* subsets)
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 void NeumannBoundary<TDomain>::
-prepare_element_loop()
+prep_elem_loop_fv1()
 {
 //	register subsetIndex at Geometry
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
-	for(size_t i = 0; i < m_vNumberData.size(); ++i)
-	{
-		for(size_t s = 0; s < m_vNumberData[i].ssGrp.size(); ++s)
-		{
-		//	get subset index
-			const int bndSubset = m_vNumberData[i].ssGrp[s];
+//	request subset indices as boundary subset. This will force the
+//	creation of boundary subsets when calling geo.update
 
-		//	request this subset index as boundary subset. This will force the
-		//	creation of boundary subsets when calling geo.update
-			geo.add_boundary_subset(bndSubset);
+	for(size_t i = 0; i < m_vNumberData.size(); ++i){
+		for(size_t s = 0; s < m_vNumberData[i].ssGrp.size(); ++s){
+			const int si = m_vNumberData[i].ssGrp[s];
+			geo.add_boundary_subset(si);
+		}
+	}
+	for(size_t i = 0; i < m_vBNDNumberData.size(); ++i){
+		for(size_t s = 0; s < m_vBNDNumberData[i].ssGrp.size(); ++s){
+			const int si = m_vBNDNumberData[i].ssGrp[s];
+			geo.add_boundary_subset(si);
+		}
+	}
+	for(size_t i = 0; i < m_vVectorData.size(); ++i){
+		for(size_t s = 0; s < m_vVectorData[i].ssGrp.size(); ++s){
+			const int si = m_vVectorData[i].ssGrp[s];
+			geo.add_boundary_subset(si);
 		}
 	}
 
-	{
-	typename std::map<int, std::vector<BNDNumberData*> >::const_iterator subsetIter;
-	for(subsetIter = m_mBNDNumberBndSegment.begin();
-			subsetIter != m_mBNDNumberBndSegment.end(); ++subsetIter)
-	{
-	//	get subset index
-		const int bndSubset = (*subsetIter).first;
-
-	//	request this subset index as boundary subset. This will force the
-	//	creation of boundary subsets when calling geo.update
-		geo.add_boundary_subset(bndSubset);
-	}
-	}
-
-	{
-	typename std::map<int, std::vector<VectorData*> >::const_iterator subsetIter;
-	for(subsetIter = m_mVectorBndSegment.begin();
-			subsetIter != m_mVectorBndSegment.end(); ++subsetIter)
-	{
-	//	get subset index
-		const int bndSubset = (*subsetIter).first;
-
-	//	request this subset index as boundary subset. This will force the
-	//	creation of boundary subsets when calling geo.update
-		geo.add_boundary_subset(bndSubset);
-	}
-	}
-
+//	clear imports, since we will set them afterwards
 	this->clear_imports();
 
 	typedef typename NeumannBoundary<TDomain>::NumberData T;
@@ -261,63 +237,48 @@ prepare_element_loop()
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 void NeumannBoundary<TDomain>::
-finish_element_loop()
+finish_elem_loop_fv1()
 {
 //	remove subsetIndex from Geometry
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 
-	for(size_t i = 0; i < m_vNumberData.size(); ++i)
-	{
-		for(size_t s = 0; s < m_vNumberData[i].ssGrp.size(); ++s)
-		{
-		//	get subset index
-			const int bndSubset = m_vNumberData[i].ssGrp[s];
 
-		//	request this subset index as boundary subset. This will force the
-		//	creation of boundary subsets when calling geo.update
-			geo.remove_boundary_subset(bndSubset);
+//	unrequest subset indices as boundary subset. This will force the
+//	creation of boundary subsets when calling geo.update
+
+	for(size_t i = 0; i < m_vNumberData.size(); ++i){
+		for(size_t s = 0; s < m_vNumberData[i].ssGrp.size(); ++s){
+			const int si = m_vNumberData[i].ssGrp[s];
+			geo.remove_boundary_subset(si);
 		}
 	}
 
-	{
-	typename std::map<int, std::vector<BNDNumberData*> >::const_iterator subsetIter;
-	for(subsetIter = m_mBNDNumberBndSegment.begin();
-			subsetIter != m_mBNDNumberBndSegment.end(); ++subsetIter)
-	{
-	//	get subset index
-		const int bndSubset = (*subsetIter).first;
-
-	//	remove requested bnd subset
-		geo.remove_boundary_subset(bndSubset);
-	}
+	for(size_t i = 0; i < m_vBNDNumberData.size(); ++i){
+		for(size_t s = 0; s < m_vBNDNumberData[i].ssGrp.size(); ++s){
+			const int si = m_vBNDNumberData[i].ssGrp[s];
+			geo.remove_boundary_subset(si);
+		}
 	}
 
-	{
-	typename std::map<int, std::vector<VectorData*> >::const_iterator subsetIter;
-	for(subsetIter = m_mVectorBndSegment.begin();
-			subsetIter != m_mVectorBndSegment.end(); ++subsetIter)
-	{
-	//	get subset index
-		const int bndSubset = (*subsetIter).first;
-
-	//	remove requested bnd subset
-		geo.remove_boundary_subset(bndSubset);
-	}
+	for(size_t i = 0; i < m_vVectorData.size(); ++i){
+		for(size_t s = 0; s < m_vVectorData[i].ssGrp.size(); ++s){
+			const int si = m_vVectorData[i].ssGrp[s];
+			geo.remove_boundary_subset(si);
+		}
 	}
 }
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 void NeumannBoundary<TDomain>::
-prepare_element(TElem* elem, const LocalVector& u)
+prep_elem_fv1(TElem* elem, const LocalVector& u)
 {
-//	get corners
-	m_vCornerCoords = this->template element_corners<TElem>(elem);
-
 //  update Geometry for this element
 	static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
-	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-		UG_THROW("NeumannBoundary::prepare_element: "
+	if(!geo.update(elem,
+	               this->template element_corners<TElem>(elem),
+	               &(this->subset_handler())))
+		UG_THROW("NeumannBoundary::prep_elem_fv1: "
 						"Cannot update Finite Volume Geometry.");
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
@@ -327,115 +288,55 @@ prepare_element(TElem* elem, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
 void NeumannBoundary<TDomain>::
-ass_rhs_elem(LocalVector& d)
+add_rhs_elem_fv1(LocalVector& d)
 {
-// 	get finite volume geometry
 	const static TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
 	typedef typename TFVGeom<TElem, dim>::BF BF;
 
-	for(size_t data = 0; data < m_vNumberData.size(); ++data)
-	{
+//	Number Data
+	for(size_t data = 0; data < m_vNumberData.size(); ++data){
 		size_t ip = 0;
-		for(size_t s = 0; s < m_vNumberData[data].ssGrp.size(); ++s)
-		{
-		//	get subset index
-			const int bndSubset = m_vNumberData[data].ssGrp[s];
+		for(size_t s = 0; s < m_vNumberData[data].ssGrp.size(); ++s){
+			const int si = m_vNumberData[data].ssGrp[s];
+			const std::vector<BF>& vBF = geo.bf(si);
 
-			if(geo.num_bf(bndSubset) == 0) continue;
-
-			const std::vector<BF>& vBF = geo.bf(bndSubset);
-
-			for(size_t i = 0; i < vBF.size(); ++i, ++ip)
-			{
-			// 	get associated node
+			for(size_t i = 0; i < vBF.size(); ++i, ++ip){
 				const int co = vBF[i].node_id();
-
-			// 	add to local matrix
 				d(m_vNumberData[data].locFct, co) -= m_vNumberData[data].import[ip]
 				                                    * vBF[i].volume();
 			}
 		}
 	}
 
-// 	loop registered boundary segments
-	if(!m_vBNDNumberData.empty())
-	{
-		typename std::map<int, std::vector<BNDNumberData*> >::const_iterator subsetIter;
-		for(subsetIter = m_mBNDNumberBndSegment.begin(); subsetIter != m_mBNDNumberBndSegment.end(); ++subsetIter)
-		{
-		//	get subset index corresponding to boundary
-			const int bndSubset = (*subsetIter).first;
+//	conditional Number Data
+	for(size_t data = 0; data < m_vBNDNumberData.size(); ++data){
+		for(size_t s = 0; s < m_vBNDNumberData[data].ssGrp.size(); ++s)	{
+			const int si = m_vBNDNumberData[data].ssGrp[s];
+			const std::vector<BF>& vBF = geo.bf(si);
 
-		//	check for boundary faces
-			if(geo.num_bf(bndSubset) == 0) continue;
+			for(size_t i = 0; i < vBF.size(); ++i){
+				number val = 0.0;
+				if(!(*m_vBNDNumberData[data].functor)(val, vBF[i].global_ip(), this->time(), si))
+					continue;
 
-		//	get evaluation function vector
-			const std::vector<BNDNumberData*>& vSegmentData = (*subsetIter).second;
-
-		//	get boundary faces
-			const std::vector<BF>& vBF = geo.bf(bndSubset);
-
-		// 	loop Boundary Faces
-			for(size_t i = 0; i < vBF.size(); ++i)
-			{
-			// get current BF
-				const BF& bf = vBF[i];
-
-			//	loop functions, where neumann bnd is set for this bndSubset
-				for(size_t fct = 0; fct < vSegmentData.size(); ++fct)
-				{
-				// 	get neumann value
-					number val = 0.0;
-					if(!(*vSegmentData[fct]->functor)(val, bf.global_ip(), this->time(), bndSubset))
-						continue;
-
-				// 	get associated node
-					const int co = bf.node_id();
-
-				// 	add to local matrix
-					d(vSegmentData[fct]->locFct, co) -= val * bf.volume();
-				}
+				const int co = vBF[i].node_id();
+				d(m_vBNDNumberData[data].locFct, co) -= val * vBF[i].volume();
 			}
 		}
 	}
 
-// 	loop registered boundary segments
-	if(!m_vVectorData.empty())
-	{
-		typename std::map<int, std::vector<VectorData*> >::const_iterator subsetIter;
-		for(subsetIter = m_mVectorBndSegment.begin(); subsetIter != m_mVectorBndSegment.end(); ++subsetIter)
-		{
-		//	get subset index corresponding to boundary
-			const int bndSubset = (*subsetIter).first;
+// 	vector data
+	for(size_t data = 0; data < m_vVectorData.size(); ++data){
+		for(size_t s = 0; s < m_vVectorData[data].ssGrp.size(); ++s){
+			const int si = m_vVectorData[data].ssGrp[s];
+			const std::vector<BF>& vBF = geo.bf(si);
 
-		//	check for boundary faces
-			if(geo.num_bf(bndSubset) == 0) continue;
+			for(size_t i = 0; i < vBF.size(); ++i){
+				MathVector<dim> val;
+				(*m_vVectorData[data].functor)(val, vBF[i].global_ip(), this->time(), si);
 
-		//	get evaluation function vector
-			const std::vector<VectorData*>& vSegmentData = (*subsetIter).second;
-
-		//	get boundary faces
-			const std::vector<BF>& vBF = geo.bf(bndSubset);
-
-		// 	loop Boundary Faces
-			for(size_t i = 0; i < vBF.size(); ++i)
-			{
-			// get current BF
-				const BF& bf = vBF[i];
-
-			//	loop functions, where neumann bnd is set for this bndSubset
-				for(size_t fct = 0; fct < vSegmentData.size(); ++fct)
-				{
-				// 	get neumann value
-					MathVector<dim> val;
-					(*vSegmentData[fct]->functor)(val, bf.global_ip(), this->time(), bndSubset);
-
-				// 	get associated node
-					const int co = bf.node_id();
-
-				// 	add to local matrix
-					d(vSegmentData[fct]->locFct, co) -= VecDot(val, bf.normal());
-				}
+				const int co = vBF[i].node_id();
+				d(m_vVectorData[data].locFct, co) -= VecDot(val, vBF[i].normal());
 			}
 		}
 	}
@@ -454,11 +355,10 @@ extract_bip(const TFVGeom<TElem,dim>& geo)
 	typedef typename TFVGeom<TElem, dim>::BF BF;
 	vLocIP.clear();
 	vGloIP.clear();
-	for(size_t s = 0; s < ssGrp.size(); s++)
+	for(size_t s = 0; s < this->ssGrp.size(); s++)
 	{
-		const int bndSubset = ssGrp[s];
-		if(geo.num_bf(bndSubset) == 0) continue;
-		const std::vector<BF>& vBF = geo.bf(bndSubset);
+		const int si = this->ssGrp[s];
+		const std::vector<BF>& vBF = geo.bf(si);
 		for(size_t i = 0; i < vBF.size(); ++i)
 		{
 			vLocIP.push_back(vBF[i].local_ip());
@@ -482,18 +382,13 @@ lin_def_fv1(const LocalVector& u,
 	typedef typename TFVGeom<TElem, dim>::BF BF;
 
 	size_t ip = 0;
-	for(size_t s = 0; s < ssGrp.size(); ++s)
+	for(size_t s = 0; s < this->ssGrp.size(); ++s)
 	{
-		const int bndSubset = ssGrp[s];
-		if(geo.num_bf(bndSubset) == 0) continue;
-		const std::vector<BF>& vBF = geo.bf(bndSubset);
-		for(size_t i = 0; i < vBF.size(); ++i)
-		{
-		// 	get associated node
+		const int si = this->ssGrp[s];
+		const std::vector<BF>& vBF = geo.bf(si);
+		for(size_t i = 0; i < vBF.size(); ++i){
 			const int co = vBF[i].node_id();
-
-		// 	set lin defect
-			vvvLinDef[ip][locFct][co] -= vBF[i].volume();
+			vvvLinDef[ip][this->locFct][co] -= vBF[i].volume();
 		}
 	}
 }
@@ -507,8 +402,6 @@ template<typename TDomain>
 NeumannBoundary<TDomain>::NeumannBoundary(const char* subsets)
  :IDomainElemDisc<TDomain>("", subsets)
 {
-	m_mBNDNumberBndSegment.clear();
-	m_mVectorBndSegment.clear();
 	register_all_fv1_funcs(false);
 }
 
@@ -571,14 +464,14 @@ register_fv1_func()
 	typedef this_type T;
 
 	this->enable_fast_ass_elem(true);
-	this->set_prep_elem_loop_fct(id, &T::template prepare_element_loop<TElem, TFVGeom>);
-	this->set_prep_elem_fct(	 id, &T::template prepare_element<TElem, TFVGeom>);
-	this->set_fsh_elem_loop_fct( id, &T::template finish_element_loop<TElem, TFVGeom>);
-	this->set_ass_JA_elem_fct(		 id, &T::template ass_JA_elem<TElem, TFVGeom>);
-	this->set_ass_JM_elem_fct(		 id, &T::template ass_JM_elem<TElem, TFVGeom>);
-	this->set_ass_dA_elem_fct(		 id, &T::template ass_dA_elem<TElem, TFVGeom>);
-	this->set_ass_dM_elem_fct(		 id, &T::template ass_dM_elem<TElem, TFVGeom>);
-	this->set_ass_rhs_elem_fct(	 id, &T::template ass_rhs_elem<TElem, TFVGeom>);
+	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop_fv1<TElem, TFVGeom>);
+	this->set_prep_elem_fct(	 id, &T::template prep_elem_fv1<TElem, TFVGeom>);
+	this->set_fsh_elem_loop_fct( id, &T::template finish_elem_loop_fv1<TElem, TFVGeom>);
+	this->set_ass_JA_elem_fct(	 id, &T::template add_JA_elem_fv1<TElem, TFVGeom>);
+	this->set_ass_JM_elem_fct(	 id, &T::template add_JM_elem_fv1<TElem, TFVGeom>);
+	this->set_ass_dA_elem_fct(	 id, &T::template add_dA_elem_fv1<TElem, TFVGeom>);
+	this->set_ass_dM_elem_fct(	 id, &T::template add_dM_elem_fv1<TElem, TFVGeom>);
+	this->set_ass_rhs_elem_fct(	 id, &T::template add_rhs_elem_fv1<TElem, TFVGeom>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

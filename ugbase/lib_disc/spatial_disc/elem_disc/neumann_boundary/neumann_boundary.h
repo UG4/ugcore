@@ -55,28 +55,27 @@ class NeumannBoundary
 		void add(SmartPtr<UserData<number, dim> > data, const char* function, const char* subsets);
 		void add(SmartPtr<UserData<number, dim, bool> > user, const char* function, const char* subsets);
 		void add(SmartPtr<UserData<MathVector<dim>, dim> > user, const char* function, const char* subsets);
+		void add(const std::vector<number>& val, const char* function, const char* subsets);
 	/// \}
 
 	private:
-	///	Functor, function grouping
-		struct BNDNumberData
+	///	base class for user data
+		struct Data
 		{
-			BNDNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
-			              std::string fctName_, std::string ssName_)
-				: functor(functor_), fctName(fctName_), ssNames(ssName_) {}
-
-			SmartPtr<UserData<number, dim, bool> > functor;
+			Data(std::string fctName_, std::string ssName_)
+							: fctName(fctName_), ssNames(ssName_) {}
 			size_t locFct;
 			std::string fctName;
 			SubsetGroup ssGrp;
 			std::string ssNames;
 		};
 
-		struct NumberData
+	///	Unconditional scalar user data
+		struct NumberData : public Data
 		{
 			NumberData(SmartPtr<UserData<number, dim> > data,
 			           std::string fctName_, std::string ssName_)
-				: fctName(fctName_), ssNames(ssName_)
+				: Data(fctName_, ssName_)
 			{
 				import.set_data(data);
 			}
@@ -92,42 +91,37 @@ class NeumannBoundary
 			DataImport<number, dim> import;
 			std::vector<MathVector<dim> > vLocIP;
 			std::vector<MathVector<dim> > vGloIP;
-			size_t locFct;
-			std::string fctName;
-			SubsetGroup ssGrp;
-			std::string ssNames;
 		};
 
-	///	Functor, function grouping
-		struct VectorData
+	///	Conditional scalar user data
+		struct BNDNumberData : public Data
+		{
+			BNDNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
+						  std::string fctName_, std::string ssName_)
+				: Data(fctName_, ssName_), functor(functor_) {}
+
+			SmartPtr<UserData<number, dim, bool> > functor;
+		};
+
+	///	Unconditional vector user data
+		struct VectorData : public Data
 		{
 			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > functor_,
 			           std::string fctName_, std::string ssName_)
-			: functor(functor_), fctName(fctName_), ssNames(ssName_) {}
+			: Data(fctName_, ssName_), functor(functor_) {}
 
 			SmartPtr<UserData<MathVector<dim>, dim> > functor;
-			size_t locFct;
-			std::string fctName;
-			SubsetGroup ssGrp;
-			std::string ssNames;
 		};
 
 		std::vector<NumberData> m_vNumberData;
-		std::map<int, std::vector<NumberData*> > m_mNumberBndSegment;
-
 		std::vector<BNDNumberData> m_vBNDNumberData;
 		std::vector<VectorData> m_vVectorData;
 
-		std::map<int, std::vector<BNDNumberData*> > m_mBNDNumberBndSegment;
-		std::map<int, std::vector<VectorData*> > m_mVectorBndSegment;
-
-		template <typename TUserData>
-		void extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
-		                  std::vector<TUserData>& vUserData,
-		                  FunctionGroup& commonFctGrp, std::string& fctNames);
-
+	///	method used to extract subsets and function id
 		void extract_data();
+		void extract_data(Data& userData, FunctionGroup& commonFctGrp, std::string& fctNames);
 
+	///	callback invoked, when approximation space is changed
 		virtual void approximation_space_changed() {extract_data();}
 
 	public:
@@ -142,32 +136,28 @@ class NeumannBoundary
 
 	private:
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		void prepare_element_loop();
+		void prep_elem_loop_fv1();
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		void prepare_element(TElem* elem, const LocalVector& u);
+		void prep_elem_fv1(TElem* elem, const LocalVector& u);
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		void finish_element_loop();
+		void finish_elem_loop_fv1();
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		void ass_JA_elem(LocalMatrix& J, const LocalVector& u) {}
+		void add_JA_elem_fv1(LocalMatrix& J, const LocalVector& u) {}
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		void ass_JM_elem(LocalMatrix& J, const LocalVector& u) {}
+		void add_JM_elem_fv1(LocalMatrix& J, const LocalVector& u) {}
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		void ass_dA_elem(LocalVector& d, const LocalVector& u) {}
+		void add_dA_elem_fv1(LocalVector& d, const LocalVector& u) {}
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		void ass_dM_elem(LocalVector& d, const LocalVector& u) {}
+		void add_dM_elem_fv1(LocalVector& d, const LocalVector& u) {}
 
 		template<typename TElem, template <class Elem, int  Dim> class TFVGeom>
-		void ass_rhs_elem(LocalVector& d);
-
-	private:
-	// 	position access
-		const position_type* m_vCornerCoords;
+		void add_rhs_elem_fv1(LocalVector& d);
 
 	private:
 		void register_all_fv1_funcs(bool bHang);
