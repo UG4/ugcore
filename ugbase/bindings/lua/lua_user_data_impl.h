@@ -575,7 +575,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 		double d[20];
 
 	//	read all arguments and push them to the lua stack
-		for(int i = 0; i < dataIn.size(); ++i)
+		for(size_t i = 0; i < dataIn.size(); ++i)
 			d[i] = dataIn[i];
 		if(m_bPosTimeNeed){
 			for(int i=0; i<dim; i++)
@@ -655,7 +655,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 	{
 		double d[25];
 		UG_ASSERT(dim+m_numArgs+1 < 20, m_luaC.name);
-		for(int i=0; i<m_numArgs; i++)
+		for(size_t i=0; i<m_numArgs; i++)
 			d[i] = dataIn[i];
 		if(m_bPosTimeNeed){
 			for(int i=0; i<dim; i++)

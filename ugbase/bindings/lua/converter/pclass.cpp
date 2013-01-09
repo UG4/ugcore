@@ -350,7 +350,7 @@ int pclass::createLUA(nodeType *p, ostream &out)
 }
 void pclass::reduce()
 {
-	for(int i=0; i<nodes.size(); i++)
+	for(size_t i=0; i<nodes.size(); i++)
 		nodes[i] = reduce(nodes[i]);
 }
 
@@ -481,7 +481,7 @@ int pclass::createC(ostream &out)
 	
 			
 	out << "\t// code:\n";
-	for(int i=0; i<nodes.size(); i++)
+	for(size_t i=0; i<nodes.size(); i++)
 		createC(nodes[i], out, 1);
 	out << "}\n";
 	return 0;
@@ -513,7 +513,7 @@ int pclass::createC_inline(ostream &out)
 			out << "\tdouble " << (*it).first << ";\n";
 		
 	out << "\t// code:\n";
-	for(int i=0; i<nodes.size(); i++)
+	for(size_t i=0; i<nodes.size(); i++)
 		createC(nodes[i], out, 1);
 	out << "}\n";
 	return true;
@@ -530,7 +530,7 @@ int pclass::createLUA(ostream &out)
 	}
 	out << id2variable[a->id.i] << ")\n";
     
-	for(int i=0; i<nodes.size(); i++)
+	for(size_t i=0; i<nodes.size(); i++)
 		createLUA(nodes[i], out);
     
     out << "end\n";

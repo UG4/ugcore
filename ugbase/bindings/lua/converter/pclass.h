@@ -123,10 +123,10 @@ public:
 		nodeType *a = args;	
 		while(a->type == typeOpr)
 		{
-			if(a->opr.op[0]->id.i == id) return true;
+			if(a->opr.op[0]->id.i == (int)id) return true;
 			a = a->opr.op[1];
 		}
-		if(a->id.i == id) return true;
+		if(a->id.i == (int)id) return true;
 		return false;
 	}
 

@@ -15,6 +15,7 @@
 // modul intern headers
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
+#include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
 #include "../line_search.h"
 #include "lib_algebra/operator/debug_writer.h"
 
