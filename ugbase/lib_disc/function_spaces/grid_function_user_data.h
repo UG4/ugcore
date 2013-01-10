@@ -452,6 +452,10 @@ class GridFunctionGradientData
  * \brief Retrieve component of gradient of GridFunction
  * \details Helper construct to retrieve specific vector element of the gradient 
  *   of a GridFunction inside loops (e.g. integrals) over that GridFunction.
+ * \code{.lua}
+   -- integrate the second component of the gradient of the GridFunction u
+   Integrate( GridFunctionGradientComponentData(u, "c", 2), u )
+ * \endcode
  */
 template <typename TGridFunction>
 class GridFunctionGradientComponentData
@@ -460,20 +464,20 @@ class GridFunctionGradientComponentData
 	                             GridFunctionGradientComponentData<TGridFunction> >
 {
 	public:
-		//	world dimension of grid function
+		///	World dimension of GridFunction m_spGridFct
 		static const int dim = TGridFunction::dim;
 
 	private:
-		// grid function
+		///	GridFunction to loop over
 		SmartPtr<TGridFunction> m_spGridFct;
 
-		//	component of function
+		///	Component ID of function to be used
 		size_t m_fct;
 		
-		//	component index of gradient to return (0-based)
+		///	Component index of gradient to return (0-based)
 		size_t m_component;
 
-		//	local finite element id
+		///	Local Finite Element ID
 		LFEID m_lfeID;
 
 	public:
@@ -508,6 +512,9 @@ class GridFunctionGradientComponentData
 			m_lfeID = spGridFct->local_finite_element_id( m_fct );
 		};
 
+		/**
+		 * \param[out] vValue Array of the <tt>nip</tt> gradient components
+		 */
 		template <int refDim>
 		inline void evaluate( number vValue[],
 		                      const MathVector<dim> vGlobIP[],
