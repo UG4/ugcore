@@ -89,15 +89,15 @@ update_local_data()
 	for(size_t i = 0; i < m_numSCVF; ++i)
 	{
 		m_vSCVF[i].numSH = TrialSpace.num_sh();
-		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
-		TrialSpace.grads(&(m_vSCVF[i].vLocalGrad[0]), m_vSCVF[i].localIP);
+		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].local_ip());
+		TrialSpace.grads(&(m_vSCVF[i].vLocalGrad[0]), m_vSCVF[i].local_ip());
 	}
 
 	for(size_t i = 0; i < m_numSCV; ++i)
 	{
 		m_vSCV[i].numSH = TrialSpace.num_sh();
-		TrialSpace.shapes(&(m_vSCV[i].vShape[0]), m_vSCV[i].vLocPos[0]);
-		TrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].vLocPos[0]);
+		TrialSpace.shapes(&(m_vSCV[i].vShape[0]), m_vSCV[i].local_ip());
+		TrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].local_ip());
 	}
 
 	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
@@ -475,8 +475,10 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 
 	//  compute barycenter coordinates
 	globalBary = vCornerCoords[0];
+	m_vCo[0] = vCornerCoords[0];
 	for (size_t j=1;j<m_rRefElem.num(0);j++){
 	   globalBary+=vCornerCoords[j];
+	   m_vCo[j] = vCornerCoords[j];
 	}
 	globalBary*=1./(number)m_rRefElem.num(0);
 

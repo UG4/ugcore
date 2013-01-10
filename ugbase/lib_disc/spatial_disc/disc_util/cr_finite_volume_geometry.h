@@ -1012,6 +1012,8 @@ class CRFVGeometry : public CRFVGeometryBase
 		bool update_boundary_faces(GeometricObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
+								   
+		const MathVector<worldDim>* corners() const {return m_vCo;}							
 
 	/// number of SubControlVolumeFaces
 		inline size_t num_scvf() const {return numSCVF;};
@@ -1054,9 +1056,13 @@ class CRFVGeometry : public CRFVGeometryBase
 	//	global and local ips on SCVF
 		MathVector<worldDim> m_vGlobSCVF_IP[numSCVF];
 		MathVector<dim> m_vLocSCVF_IP[numSCVF];
-	// coord of location for unknowns in faces (edge/face barycenter)
+	 // coord of location for unknowns in faces (edge/face barycenter)
 		MathVector<worldDim> m_vGlobUnkCoords[numSCV];
 		MathVector<dim> m_vLocUnkCoords[numSCV];
+		
+		static const size_t numMaxCo = 8;
+	 // corner coordinates
+		MathVector<worldDim> m_vCo[numMaxCo];
 
 	public:
 	/// add subset that is interpreted as boundary subset.
