@@ -26,6 +26,8 @@
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
 #include "lib_disc/operator/non_linear_operator/line_search.h"
 #include "lib_disc/operator/non_linear_operator/newton_solver/newton.h"
+#include "lib_disc/operator/non_linear_operator/nl_gauss_seidel/nl_gauss_seidel.h"
+#include "lib_disc/operator/non_linear_operator/nl_jacobi/nl_jacobi.h"
 #include "lib_disc/operator/convergence_check.h"
 
 using namespace std;
@@ -223,6 +225,25 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "AssembledOperator", tag);
 	}
 
+	//	NonlinearJacobiSolver
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
+		typedef NLJacobiSolver<TAlgebra> T;
+		typedef IOperatorInverse<vector_type> TBase;
+		string name = string("NLJacobiSolver").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor()
+			.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
+			.template add_constructor<void (*)(IAssemble<TAlgebra>*)>("AssemblingRoutine")
+			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
+			.add_method("set_damp", &T::set_damp, "", "setDampingFactor")
+			.add_method("init", &T::init, "success", "op")
+			.add_method("prepare", &T::prepare, "success", "u")
+			.add_method("apply", &T::apply, "success", "u")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "NLJacobiSolver", tag);
+	}
+
 //	some functions
 	{
 		std::string grp = parentGroup; grp.append("/Discretization");
@@ -304,13 +325,17 @@ static void Algebra(Registry& reg, string parentGroup)
 template <typename TDomain, typename TAlgebra>
 static void DomainAlgebra(Registry& reg, string grp)
 {
+	//	typedefs for Vector and Matrix
+	typedef typename TAlgebra::vector_type vector_type;
+	typedef typename TAlgebra::matrix_type matrix_type;
+
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
 	// 	CompositeConvCheck
 	{
-		typedef CompositeConvCheck<typename TAlgebra::vector_type, TDomain> T;
-		typedef IConvergenceCheck<typename TAlgebra::vector_type> TBase;
+		typedef CompositeConvCheck<vector_type, TDomain> T;
+		typedef IConvergenceCheck<vector_type> TBase;
 		string name = string("CompositeConvCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
@@ -334,6 +359,26 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("iteration_ended", &T::iteration_ended)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "CompositeConvCheck", tag);
+	}
+
+	//	NonlinearGaussSeidelSolver
+	{
+		grp.append("/Discretization/Nonlinear");
+		typedef NLGaussSeidelSolver<TDomain, TAlgebra> T;
+		typedef IOperatorInverse<vector_type> TBase;
+		string name = string("NLGaussSeidelSolver").append(suffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_constructor()
+			.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
+			.template add_constructor<void (*)(IAssemble<TAlgebra>*)>("AssemblingRoutine")
+			.add_method("set_approx_space", &T::set_approx_space, "", "approxSpace")
+			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
+			.add_method("set_damp", &T::set_damp, "", "setDampingFactor")
+			.add_method("init", &T::init, "success", "op")
+			.add_method("prepare", &T::prepare, "success", "u")
+			.add_method("apply", &T::apply, "success", "u")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "NLGaussSeidelSolver", tag);
 	}
 }
 
