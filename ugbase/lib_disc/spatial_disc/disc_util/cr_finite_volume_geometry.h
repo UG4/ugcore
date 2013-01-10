@@ -29,32 +29,9 @@
 #include "finite_volume_util.h"
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/domain_util_impl.h"
+#include "finite_volume_geometry.h"
 
 namespace ug{
-
-
-///	a singleton class that returns a new id for each type
-class UniqueCRFVGeomIDProvider{
-	public:
-		static UniqueCRFVGeomIDProvider& inst(){
-			static UniqueCRFVGeomIDProvider instance;
-			return instance;
-		}
-
-		size_t new_id()	{return ++m_id;}
-
-	private:
-		UniqueCRFVGeomIDProvider() : m_id(0)	{}
-		size_t m_id;
-};
-
-///	This method associates a unique unsigned integer value with each type.
-template <class TType>
-size_t GetUniqueCRFVGeomID()
-{
-	static size_t typeID = UniqueCRFVGeomIDProvider::inst().new_id();
-	return typeID;
-}
 
 /* crfv traits */
 
@@ -128,9 +105,6 @@ template <> struct crfv_traits<3, 4>
 	static const size_t maxNumCo = 8;
 };
 
-/// base class for all CRFVGeometries
-class CRFVGeometryBase {};
-
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 // Dim-dependent Finite Volume Geometry
@@ -159,7 +133,7 @@ class CRFVGeometryBase {};
  * \tparam	TWorldDim	(physical) world dimension
  */
 template <int TDim, int TWorldDim = TDim>
-class DimCRFVGeometry : public CRFVGeometryBase
+class DimCRFVGeometry : public FVGeometryBase
 {
 	public:
 	///	used traits
@@ -652,7 +626,7 @@ class DimCRFVGeometry : public CRFVGeometryBase
 ////////////////////////////////////////////////////////////////////////////////
 
 template <	typename TElem, int TWorldDim>
-class CRFVGeometry : public CRFVGeometryBase
+class CRFVGeometry : public FVGeometryBase
 {
 	public:
 	///	type of element
