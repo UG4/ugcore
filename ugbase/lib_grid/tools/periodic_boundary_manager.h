@@ -9,12 +9,10 @@
 #define PERIODIC_IDENTIFIER_H_
 
 #include "lib_grid/grid/grid.h"
+#include "lib_grid/multi_grid.h"
 #include "lib_grid/grid/geometric_base_objects.h"
 
 namespace ug {
-
-// predeclaration of mg
-class MultiGrid;
 
 /// Interface to match periodic geometric elements
 /**
@@ -44,8 +42,7 @@ public:
 	virtual ~ParallelShiftIdentifier() {}
 	typedef typename TPosAA::ValueType AttachmentType;
 	ParallelShiftIdentifier(TPosAA& aa) : m_aaPos(aa) {}
-	void set_shift(AttachmentType& shift) {m_shift = shift;
-		VecScale(m_shift_opposite, m_shift, -1); UG_LOG("shift: " << m_shift << "\n")}
+	void set_shift(AttachmentType& shift) {m_shift = shift; VecScale(m_shift_opposite, m_shift, -1);}
 protected:
 	AttachmentType m_shift;
 	AttachmentType m_shift_opposite;

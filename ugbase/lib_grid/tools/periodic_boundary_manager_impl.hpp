@@ -12,16 +12,17 @@
 #include "periodic_boundary_manager.h"
 #include "lib_grid/subset_handler.h"
 #include "lib_disc/domain.h"
-#include "common/assert.h"
-
-#ifndef NDEBUG
+#ifdef UG_DEBUG
 #include "lib_grid/algorithms/debug_util.h"
 #else
 namespace ug {
 	template <class TElem> TElem* GetGeometricObjectCenter(Grid& g, TElem* elem) {
 		return elem;
 	}
+} // end of namespace ug
 #endif
+
+#include "common/assert.h"
 
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/at.hpp>
@@ -463,7 +464,7 @@ void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
 	}
 }
 
-#ifndef NDEBUG
+#ifdef UG_DEBUG
 /**
  * create all pairs of <master, slave> and insert them into a set to check for duplicates
  */
@@ -597,7 +598,7 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 					iter2 != goc2.end<TElem>(lvl); ++iter2)
 				pbm.match_and_identifiy(*iter1, *iter2, ident);
 	}
-#ifndef NDEBUG
+#ifdef UG_DEBUG
 	test<VertexBase>(pbm, goc1, goc2);
 	test<EdgeBase>(pbm, goc1, goc2);
 	test<Face>(pbm, goc1, goc2);
