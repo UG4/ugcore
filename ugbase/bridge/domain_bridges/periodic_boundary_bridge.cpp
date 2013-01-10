@@ -21,7 +21,6 @@ void print_all_identifications(Grid& g) {
 	if(!g.has_periodic_boundaries())
 		return;
 	PeriodicBoundaryManager& pi = *g.periodic_boundary_manager();
-	pi.print_identification<Volume>();
 	pi.print_identification<Face>();
 	pi.print_identification<EdgeBase>();
 	pi.print_identification<VertexBase>();
