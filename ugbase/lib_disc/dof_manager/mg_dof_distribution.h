@@ -462,7 +462,9 @@ class MGDoFDistribution : public GridObserver
 		bool m_bGrouped;
 
 	///	indication that function is not defined on a subset
-		enum{NOT_DEF_ON_SUBSET = (size_t) -1};
+		enum{NOT_DEF_ON_SUBSET = (size_t) - 1};
+	///	indication that function is not defined on a subset
+		enum{NOT_YET_ASSIGNED = (size_t) - 2};
 
 	/// offset map
 		std::vector<std::vector<size_t> > m_vvvOffsets[NUM_REFERENCE_OBJECTS];
