@@ -208,15 +208,14 @@ evaluate(TData& D, const MathVector<dim>& x, number time, int si) const
 {
     PROFILE_CALLBACK()
 #ifdef USE_LUA2C
-	if(useLua2C && m_luaC.f != NULL)
+	if(useLua2C && m_luaC.is_valid())
 	{
 		double d[dim+1];
 		for(int i=0; i<dim; i++)
 			d[i] = x[i];
-		d[dim] = time;
-		UG_ASSERT(m_luaC.f != NULL, m_luaC.name); //  && m_luaC.iOut == lua_traits<TData>::size, m_luaC.name );
+		d[dim] = time;		
 		double ret[lua_traits<TData>::size+1];
-		m_luaC.f(ret, d);
+		m_luaC.call(ret, d);
 		//TData D2;
 		TRet *t=NULL;
 		lua_traits<TData>::read(D, ret, t);
@@ -492,7 +491,7 @@ void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ..
 {
     PROFILE_CALLBACK();
 #ifdef USE_LUA2C
-	if(useLua2C && m_luaC.f != NULL)
+	if(useLua2C && m_luaC.is_valid())
 	{
 		double d[20];
 		//	get list of arguments
@@ -506,8 +505,9 @@ void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ..
 
 		double ret[lua_traits<TData>::size+1];
 
-		UG_ASSERT(m_luaC.f != NULL && m_luaC.iIn == numArgs && m_luaC.iOut == lua_traits<TData>::size, m_luaC.name );
-		m_luaC.f(ret, d);
+		UG_ASSERT(m_luaC.num_in() == numArgs && m_luaC.num_out() == lua_traits<TData>::size, 
+			m_luaC.name() << ", " << m_luaC.num_in() << " != " << numArgs << " or " << m_luaC.num_out() << " != " << lua_traits<TData>::size);
+		m_luaC.call(ret, d);
 		//TData D2;
 		void *t=NULL;
 		//TData out2;
@@ -570,7 +570,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 {
     PROFILE_CALLBACK();
 #ifdef USE_LUA2C
-	if(useLua2C && m_luaC.f != NULL)
+	if(useLua2C && m_luaC.is_valid())
 	{
 		double d[20];
 
@@ -582,15 +582,15 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
 				d[i+m_numArgs] = x[i];
 			d[dim+m_numArgs]=time;
 			d[dim+m_numArgs+1]=si;
-			UG_ASSERT(dim+m_numArgs+1 < 20, m_luaC.name);
+			UG_ASSERT(dim+m_numArgs+1 < 20, m_luaC.name());
 		}
 
 		double ret[lua_traits<TData>::size];
-		m_luaC.f(ret, d);
+		m_luaC.call(ret, d);
 		//TData D2;
 		void *t=NULL;
 		//TData out2;
-		UG_ASSERT(m_luaC.f != NULL && m_luaC.iOut == lua_traits<TData>::size, m_luaC.name);
+		UG_ASSERT(m_luaC.num_out() == lua_traits<TData>::size, m_luaC.name() << ", " << m_luaC.num_out() << " != " << lua_traits<TData>::size);
 		lua_traits<TData>::read(out, ret, t);
 		return;
 	}
@@ -651,10 +651,11 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 		 	 	 	 	 	 	 	 	 	 	 	 const MathVector<dim>& x, number time, int si, size_t arg) const
 {
 	PROFILE_CALLBACK();
-	if(useLua2C && m_luaC_Deriv[arg].f != NULL)
+	if(useLua2C && m_luaC_Deriv[arg].is_valid()
+		&& dim+m_numArgs+1 < 20 && m_luaC_Deriv[arg].num_out() == lua_traits<TData>::size)
 	{
 		double d[25];
-		UG_ASSERT(dim+m_numArgs+1 < 20, m_luaC.name);
+		UG_ASSERT(dim+m_numArgs+1 < 20, m_luaC.name());
 		for(size_t i=0; i<m_numArgs; i++)
 			d[i] = dataIn[i];
 		if(m_bPosTimeNeed){
@@ -662,11 +663,12 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 				d[i+m_numArgs] = x[i];
 			d[dim+m_numArgs]=time;
 			d[dim+m_numArgs+1]=si;
-			UG_ASSERT(dim+m_numArgs+1 < 20, m_luaC.name);
+			UG_ASSERT(dim+m_numArgs+1 < 20, m_luaC.name());
 		}
-		UG_ASSERT(m_luaC.f != NULL && m_luaC.iOut == lua_traits<TData>::size, m_luaC.name );
+		UG_ASSERT(m_luaC_Deriv[arg].num_out() == lua_traits<TData>::size, 
+			m_luaC_Deriv[arg].name() << " has wrong number of outputs: is " << m_luaC.num_out() << ", needs " << lua_traits<TData>::size);
 		double ret[lua_traits<TData>::size+1];
-		m_luaC_Deriv[arg].f(ret, d);
+		m_luaC_Deriv[arg].call(ret, d);
 		//TData D2;
 		void *t=NULL;
 		//TData out2;

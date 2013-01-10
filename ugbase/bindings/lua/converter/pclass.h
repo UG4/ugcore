@@ -38,13 +38,19 @@ class pclass
 	std::string name;
 	int numOut;
 	nodeType *args;
-    
-    bool bOneReturn;
+
+public:    
+    enum eReturnType
+    {
+        RT_SUBFUNCTION, RT_DIFFUSION, RT_VELOCITY, RT_CALLBACK, RT_DIRICHLET, 
+        RT_SOURCE
+    };
+    eReturnType returnType;
 public:
 	pclass()
 	{
-        bOneReturn = false;
-		numOut = -1;
+        numOut = -1;
+        returnType = RT_CALLBACK;
 		args = NULL;
 	}
 	
@@ -162,7 +168,7 @@ public:
 	}
 
     int add_subfunctions(std::set<std::string> &knownFunctions, std::stringstream &declarations, std::stringstream &definitions);
-    int addfunctionC(std::string name, std::set<std::string> &knownFunctions, std::stringstream &declarations, std::stringstream &definitions);
+    static int addfunctionC(std::string name, std::set<std::string> &knownFunctions, std::stringstream &declarations, std::stringstream &definitions);
     
     void getVar(int i, std::ostream &out);
     int parse_luaFunction(const char *name);
@@ -170,8 +176,11 @@ public:
     int declare(std::ostream &out);
     int createC_inline(std::ostream &out);
     
+    int createRT(nodeType *a, std::ostream &out, const char **rt, int nr, int indent);
+    
+    
 	int	createC(nodeType *p, std::ostream &out, int indent);
-	
+    int createJITSG(std::ostream &out, eReturnType r, std::set<std::string> subfunctions);
 	int	createLUA(nodeType *p, std::ostream &out);
 	void reduce();
 	
@@ -199,6 +208,17 @@ public:
 
 		return p;
 	}
+    
+    /////////////
+	static nodeType *opr0(int i)
+	{
+		nodeType *p;
+		p = new nodeType;
+		p->type = typeOpr;
+		p->opr.oper = i;
+		p->opr.nops = 0;
+		return p;
+	}
 
 	static nodeType *id(int i)
 	{
@@ -224,7 +244,7 @@ public:
 			err << "different return values: was " << numOut << ", now " << i << "\n";
 	}
 
-	nodeType *opr1(int oper, int, nodeType *op)
+	nodeType *opr1(int oper, nodeType *op)
 	{
 		nodeType *p;
 		p = new nodeType;
@@ -249,7 +269,7 @@ public:
 		return p;
 	}
     
-	static nodeType *opr2(int oper, int, nodeType *op1, nodeType *op2)
+	static nodeType *opr2(int oper, nodeType *op1, nodeType *op2)
 	{
 		nodeType *p;
 		p = new nodeType;
@@ -262,12 +282,27 @@ public:
 		p->opr.op[1] = op2;
 		return p;
 	}
+    
+    static nodeType *opr3(int oper, nodeType *op1, nodeType *op2, nodeType *op3)
+	{
+		nodeType *p;
+		p = new nodeType;
+
+		p->type = typeOpr;
+		p->opr.oper = oper;
+		p->opr.nops = 3;
+		p->opr.op = new nodeType*[3];
+		p->opr.op[0] = op1;
+		p->opr.op[1] = op2;
+        p->opr.op[2] = op3;
+		return p;
+	}
 
     nodeType *function(nodeType *op1, nodeType *op2)
     {
 //        std::cout << "local function " << id2variable[op1->id.i] << "\n";
         localFunctions.insert(op1->id.i);
-        return opr2('C', 2, op1, op2);
+        return opr2('C', op1, op2);
     }
 
 	static void freeNode(nodeType *p)

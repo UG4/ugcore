@@ -15,36 +15,42 @@ namespace bridge {
     
 DebugID DID_LUA2C("LUA2C");
 
+string MakeTmpFile(string filename, string extension, bool &bSuccess)
+{
+	bSuccess = true;
+	const char *name = (filename+extension).c_str();
+	if(!FileExists(name)) return name;
+	for(int i=0;i<999999; i++)
+	{
+		stringstream ss;
+		ss << filename << i << extension;
+		name = ss.str().c_str();
+		if(!FileExists(name)) return name;
+	}
+	bSuccess = false;
+}
+
 bool LUA2C::create(const char *functionName)
 {
-	f=NULL;
+	m_f=NULL;
 	pclass parser;	
 	if(parser.parse_luaFunction(functionName) == false) return 0;
 	//parser.reduce();
-
-	char cwd[1024];
-	getcwd(cwd, 1024);
 
 	string p = PathProvider::get_path(ROOT_PATH) + "/bin/lua2c_tmp/";
     
     if(!DirectoryExists(p.c_str()))
         CreateDirectory(p.c_str());
     
-	chdir(p.c_str());
-
-	// /Users/mrupp/NetBeansProjects/test/
-
-	char b[255];
-
-	fstream out("lua2c_output.c", fstream::out);		
+	fstream out((p + "lua2c_output.c").c_str(), fstream::out);		
 
 	out << "#include <math.h>\n";
 	out << "#define true 1\n";
 	out << "#define false 0\n";
 	parser.createC(out);
     
-    iIn = parser.num_in();
-	iOut = parser.num_out();
+    m_iIn = parser.num_in();
+	m_iOut = parser.num_out();
     out.close();
     
     IF_DEBUG(DID_LUA2C, 1)
@@ -62,12 +68,12 @@ bool LUA2C::create(const char *functionName)
 	//UG_LOG(c << "\n");
 	system(c);
 
-
-	name = functionName;
-	string pDyntemplate = string(functionName) + ".dylib_XXXXXX";
-	strcpy(b, pDyntemplate.c_str());
-	pDyn = p+mktemp(b);
-	string c2s=string("gcc -dynamiclib ") + p+"lua2c_output.o -o " + pDyn.c_str();
+	bool bTmpFileSuccess=false;
+	m_name = functionName;
+	
+	m_pDyn = MakeTmpFile(p+string(functionName), ".dylib", bTmpFileSuccess);
+	
+	string c2s=string("gcc -dynamiclib ") + p+"lua2c_output.o -o " + m_pDyn.c_str();
 	UG_DLOG(DID_LUA2C, 2, "linking line: " << c2s);
 	const char *c2 = c2s.c_str();
 	//UG_LOG(c2 << "\n");
@@ -75,25 +81,23 @@ bool LUA2C::create(const char *functionName)
 
 	//UG_LOG("pDyn = " << pDyn << "\n");
 
-	libHandle = OpenLibrary(pDyn.c_str());
+	m_libHandle = OpenLibrary(m_pDyn.c_str());
 
-	if(libHandle!=NULL)
-        f = (LUA2C_Function) GetLibraryProcedure(libHandle, functionName);
+	if(m_libHandle!=NULL)
+        m_f = (LUA2C_Function) GetLibraryProcedure(m_libHandle, functionName);
 	
-	chdir(cwd);
-	//parser.createLUA(cout);	
-	return f != NULL;
+	return m_f != NULL;
 }
 
 LUA2C::~LUA2C()
 {
-    UG_DLOG(DID_LUA2C, 2, "removing " << name << "\n");		
-	if(libHandle)
-	   	CloseLibrary(libHandle);
+    UG_DLOG(DID_LUA2C, 2, "removing " << m_name << "\n");		
+	if(m_libHandle)
+	   	CloseLibrary(m_libHandle);
         
-    if(pDyn.size() > 0)
+    if(m_pDyn.size() > 0)
     {
-		string s = string("rm ") + pDyn;
+		string s = string("rm ") + m_pDyn;
 		UG_DLOG(DID_LUA2C, 2, s << "\n");
 		system(s.c_str());
 	}

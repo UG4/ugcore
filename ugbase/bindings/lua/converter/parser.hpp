@@ -45,20 +45,31 @@
      IF = 261,
      THEN = 262,
      END = 263,
-     LOCAL = 264,
-     MATHSIN = 265,
-     MATHCOS = 266,
-     MATHEXP = 267,
-     FUNCTION = 268,
-     RETURN = 269,
-     ELSE = 270,
-     OR = 271,
-     AND = 272,
-     NE = 273,
-     EQ = 274,
-     LE = 275,
-     GE = 276,
-     UMINUS = 277
+     ELSE = 264,
+     ELSEIF = 265,
+     LOCAL = 266,
+     FUNCTION = 267,
+     RETURN = 268,
+     MATH_SIN = 269,
+     MATH_COS = 270,
+     MATH_EXP = 271,
+     MATH_ABS = 272,
+     MATH_LOG = 273,
+     MATH_LOG10 = 274,
+     MATH_SQRT = 275,
+     MATH_FLOOR = 276,
+     MATH_CEIL = 277,
+     MATH_POW = 278,
+     MATH_MAX = 279,
+     MATH_MIN = 280,
+     MATH_PI = 281,
+     OR = 282,
+     AND = 283,
+     NE = 284,
+     EQ = 285,
+     LE = 286,
+     GE = 287,
+     UMINUS = 288
    };
 #endif
 /* Tokens.  */
@@ -68,20 +79,31 @@
 #define IF 261
 #define THEN 262
 #define END 263
-#define LOCAL 264
-#define MATHSIN 265
-#define MATHCOS 266
-#define MATHEXP 267
-#define FUNCTION 268
-#define RETURN 269
-#define ELSE 270
-#define OR 271
-#define AND 272
-#define NE 273
-#define EQ 274
-#define LE 275
-#define GE 276
-#define UMINUS 277
+#define ELSE 264
+#define ELSEIF 265
+#define LOCAL 266
+#define FUNCTION 267
+#define RETURN 268
+#define MATH_SIN 269
+#define MATH_COS 270
+#define MATH_EXP 271
+#define MATH_ABS 272
+#define MATH_LOG 273
+#define MATH_LOG10 274
+#define MATH_SQRT 275
+#define MATH_FLOOR 276
+#define MATH_CEIL 277
+#define MATH_POW 278
+#define MATH_MAX 279
+#define MATH_MIN 280
+#define MATH_PI 281
+#define OR 282
+#define AND 283
+#define NE 284
+#define EQ 285
+#define LE 286
+#define GE 287
+#define UMINUS 288
 
 
 
@@ -96,7 +118,7 @@ typedef union YYSTYPE
 	const char* pFunction;
 }
 /* Line 1529 of yacc.c.  */
-#line 100 "parser.hpp"
+#line 122 "parser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

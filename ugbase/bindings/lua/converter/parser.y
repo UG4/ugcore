@@ -29,7 +29,11 @@ void yyerror(const char *s);
 
 %token <iValue> YY_INTEGER
 %token <sIndex> VARIABLE
-%token WHILE IF THEN END LOCAL MATHSIN MATHCOS MATHEXP FUNCTION RETURN
+%token WHILE IF THEN END ELSE ELSEIF LOCAL FUNCTION RETURN
+%token MATH_SIN MATH_COS MATH_EXP MATH_ABS MATH_LOG MATH_LOG10 MATH_SQRT
+%token MATH_FLOOR MATH_CEIL MATH_POW 
+%token MATH_MAX MATH_MIN 
+%token MATH_PI 
 %nonassoc ELSE
 
 %left AND OR
@@ -39,7 +43,7 @@ void yyerror(const char *s);
 
 %nonassoc UMINUS
 
-%type <nPtr> stmt expr stmt_list funcstat arguments exprlist arguments2
+%type <nPtr> stmt expr stmt_list funcstat arguments exprlist arguments2 elseblock
 
 %%
 
@@ -54,59 +58,76 @@ func:
 
 stmt:
           expr							{ $$ = $1; }
-		| RETURN exprlist				{ $$ = globalP->opr1('R', 1, $2);}
-		| LOCAL VARIABLE '=' expr		{ $$ = globalP->opr2('=', 2, globalP->id($2), $4); globalP->set_local($2); }
+		| RETURN exprlist				{ $$ = globalP->opr1('R', $2);}
+		| LOCAL VARIABLE '=' expr		{ $$ = globalP->opr2('=', globalP->id($2), $4); globalP->set_local($2); }
 		| LOCAL VARIABLE				{ $$ = NULL; globalP->set_local($2); }        
-		| VARIABLE '=' expr				{ $$ = globalP->opr2('=', 2, globalP->id($1), $3); globalP->assert_local($1); }
-        | IF expr THEN stmt_list END	{ $$ = globalP->opr2(IF, 2, $2, $4); }        
-		;
+		| VARIABLE '=' expr				{ $$ = globalP->opr2('=', globalP->id($1), $3); globalP->assert_local($1); }
+        | IF expr THEN stmt_list elseblock END	{ $$ = globalP->opr3(IF, $2, $4, $5); }        
+        ;
+
+elseblock:
+        ELSEIF expr THEN stmt_list elseblock { $$ = globalP->opr3(ELSEIF, $2, $4, $5); }
+        | ELSE stmt_list                    { $$ = globalP->opr1(ELSE, $2); }
+        |                                   { $$ = NULL; }
+        ;
+
 funcstat:
 		FUNCTION VARIABLE '(' arguments ')' stmt_list END         { globalP->set_name($2); globalP->set_arguments($4); $$ = $6; }
 		;
 
 
 arguments:
-		VARIABLE ',' arguments			{ $$ = globalP->opr2(',', 2, globalP->id($1), $3); }
+		VARIABLE ',' arguments			{ $$ = globalP->opr2(',', globalP->id($1), $3); }
 		| VARIABLE						{ $$ = globalP->id($1); }
 		;
 
 arguments2:
-		expr',' arguments2			{ $$ = globalP->opr2(',', 2, $1, $3); }
+		expr',' arguments2			{ $$ = globalP->opr2(',', $1, $3); }
 		| expr						{ $$ = $1; }
 		;
 
 
 exprlist:
-		expr ',' exprlist			{ $$ = globalP->opr2(',', 2, $1, $3); }
+		expr ',' exprlist			{ $$ = globalP->opr2(',', $1, $3); }
 		| expr						{ $$ = $1; }
 		;
 
 stmt_list:
           stmt                  { $$ = $1; }
-        |  stmt stmt_list { $$ = globalP->opr2(';', 2, $1, $2); }
+        |  stmt stmt_list { $$ = globalP->opr2(';', $1, $2); }
         ;
 
 expr:
-          YY_INTEGER               { $$ = globalP->con($1); }
+          YY_INTEGER               { $$ = globalP->con($1); }          
         | VARIABLE '(' arguments2 ')' { $$ = globalP->function(globalP->id($1), $3); }
         | VARIABLE              { $$ = globalP->id($1); }
-        | '-' expr %prec UMINUS { $$ = globalP->opr1(UMINUS, 1, $2); }
-        | expr '+' expr         { $$ = globalP->opr2('+', 2, $1, $3); }
-        | expr '-' expr         { $$ = globalP->opr2('-', 2, $1, $3); }
-        | expr '*' expr         { $$ = globalP->opr2('*', 2, $1, $3); }
-        | expr '/' expr         { $$ = globalP->opr2('/', 2, $1, $3); }
-        | expr '<' expr         { $$ = globalP->opr2('<', 2, $1, $3); }
-        | expr '>' expr         { $$ = globalP->opr2('>', 2, $1, $3); }
-        | expr GE expr          { $$ = globalP->opr2(GE, 2, $1, $3); }
-        | expr LE expr          { $$ = globalP->opr2(LE, 2, $1, $3); }
-        | expr NE expr          { $$ = globalP->opr2(NE, 2, $1, $3); }
-        | expr EQ expr          { $$ = globalP->opr2(EQ, 2, $1, $3); }
-		| expr AND expr          { $$ = globalP->opr2(AND, 2, $1, $3); }
-		| expr OR expr          { $$ = globalP->opr2(OR, 2, $1, $3); }
+        | '-' expr %prec UMINUS { $$ = globalP->opr1(UMINUS, $2); }
+        | expr '+' expr         { $$ = globalP->opr2('+', $1, $3); }
+        | expr '-' expr         { $$ = globalP->opr2('-', $1, $3); }
+        | expr '*' expr         { $$ = globalP->opr2('*', $1, $3); }
+        | expr '/' expr         { $$ = globalP->opr2('/', $1, $3); }
+        | expr '<' expr         { $$ = globalP->opr2('<', $1, $3); }
+        | expr '>' expr         { $$ = globalP->opr2('>', $1, $3); }
+        | expr GE expr          { $$ = globalP->opr2(GE, $1, $3); }
+        | expr LE expr          { $$ = globalP->opr2(LE, $1, $3); }
+        | expr NE expr          { $$ = globalP->opr2(NE, $1, $3); }
+        | expr EQ expr          { $$ = globalP->opr2(EQ, $1, $3); }
+		| expr AND expr          { $$ = globalP->opr2(AND, $1, $3); }
+		| expr OR expr          { $$ = globalP->opr2(OR, $1, $3); }
         | '(' expr ')'          { $$ = $2; }
-		| MATHCOS '(' expr ')' { $$ = globalP->opr1(MATHCOS, 1, $3); }
-		| MATHSIN '(' expr ')' { $$ = globalP->opr1(MATHSIN, 1, $3); }
-		| MATHEXP '(' expr ')' { $$ = globalP->opr1(MATHEXP, 1, $3); }
+		| MATH_COS '(' expr ')' { $$ = globalP->opr1(MATH_COS, $3); }
+		| MATH_SIN '(' expr ')' { $$ = globalP->opr1(MATH_SIN, $3); }
+		| MATH_EXP '(' expr ')' { $$ = globalP->opr1(MATH_EXP, $3); }
+        | MATH_ABS '(' expr ')' { $$ = globalP->opr1(MATH_ABS, $3); }
+        | MATH_LOG '(' expr ')' { $$ = globalP->opr1(MATH_LOG, $3); }
+        | MATH_LOG10 '(' expr ')' { $$ = globalP->opr1(MATH_LOG10, $3); }
+        | MATH_SQRT '(' expr ')' { $$ = globalP->opr1(MATH_SQRT, $3); }
+        | MATH_FLOOR '(' expr ')' { $$ = globalP->opr1(MATH_FLOOR, $3); }
+        | MATH_CEIL '(' expr ')' { $$ = globalP->opr1(MATH_CEIL, $3); }
+        | MATH_POW '(' expr ',' expr ')' { $$ = globalP->opr2(MATH_CEIL, $3, $5); }
+        | MATH_MIN '(' expr ',' expr ')' { $$ = globalP->opr2(MATH_MIN, $3, $5); }
+        | MATH_MAX '(' expr ',' expr ')' { $$ = globalP->opr2(MATH_MAX, $3, $5); }
+        | MATH_PI                  { $$ = globalP->opr0(MATH_PI); }
         ;
 
 %%

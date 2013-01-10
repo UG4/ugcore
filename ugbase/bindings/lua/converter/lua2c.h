@@ -18,28 +18,54 @@ namespace bridge {
 
 class LUA2C
 {
+	
+private:
 	typedef bool (*LUA2C_Function)(double *, double *) ;
 	
-	DynLibHandle libHandle;
+	DynLibHandle m_libHandle;
+	std::string m_pDyn;;
+	
 
 public:
-	std::string name, pDyn;
-	LUA2C_Function f;
+	std::string m_name;
+	LUA2C_Function m_f;
+	int m_iIn, m_iOut;
 	
-	LUA2C() { f= NULL; name = "uninitialized"; pDyn = ""; libHandle = NULL;}
-	int iIn, iOut;
+	LUA2C()
+	{ 
+		m_f= NULL; 
+		m_name = "uninitialized"; 
+		m_pDyn = ""; 
+		m_libHandle = NULL;
+	}	
 	
-	bool is_valid(int in, int out)
+	int num_in() const
 	{
-		return f != NULL && in == iIn && out == iOut;
+		return m_iIn;
+	}
+	
+	int num_out() const
+	{
+		return m_iOut;
+	}
+	
+	const string &name() const
+	{
+		return m_name;
+	}
+	
+	bool is_valid() const
+	{
+		return m_f != NULL;
 	}
 	
 	bool create(const char *functionName);
 	
-	/*double operator() (double ret[1], double [iDim])
+	inline bool call(double *ret, double *in) const
 	{
-		return f(r, x);
-	}*/
+		UG_ASSERT(m_f != NULL, "function " << m_name << " not valid");
+		return m_f(ret, in);
+	}
 	
 	virtual ~LUA2C();
 };

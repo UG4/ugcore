@@ -3,7 +3,7 @@
 #include "pclass.h"
 #include "parser.hpp"
 using namespace ug;
-void yyerror(char *);
+void yyerror(const char *);
 using namespace ug;
 extern pclass *globalP;
 %}
@@ -43,13 +43,27 @@ number         ({n}|{n}[.]{n}){exp}?
 "local"			return LOCAL;
 "function"		return FUNCTION;
 "return"		return RETURN;
+"else"          return ELSE;
+"elseif"        return ELSEIF;
 
 "and"			return AND;
 "or"			return OR;
 
-"math.cos"		return MATHCOS;
-"math.sin"		return MATHSIN;
-"math.exp"		return MATHEXP;
+"math.cos"		return MATH_COS;
+"math.sin"		return MATH_SIN;
+"math.exp"		return MATH_EXP;
+"math.abs"		return MATH_ABS;
+"math.log"		return MATH_LOG;
+"math.log10"    return MATH_LOG10;
+"math.sqrt"     return MATH_SQRT;
+"math.floor"    return MATH_FLOOR;
+"math.ceil"     return MATH_CEIL;
+
+"math.pow"      return MATH_POW;
+"math.max"      return MATH_MAX;
+"math.min"      return MATH_MIN;
+
+"math.pi"       return MATH_PI;
 
 
 {name}       { 
@@ -59,7 +73,11 @@ number         ({n}|{n}[.]{n}){exp}?
 
 [ \t\n]+        ;       /* ignore whitespace */
 
-.               yyerror("Unknown character");
+.               {
+                    char buf[255];
+                    sprintf(buf, "Unknown character '%s' at line %d", yytext, yyget_lineno());
+                    yyerror(buf);
+                }
 
 %%
 

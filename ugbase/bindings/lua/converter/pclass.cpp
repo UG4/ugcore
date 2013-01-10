@@ -70,6 +70,25 @@ void pclass::getVar(int i, ostream &out)
         }
     }
 }
+
+int pclass::createRT(nodeType *a, ostream &out, const char **rt, int nr, int indent)
+{
+    int i=0;
+    while(a->type == typeOpr && a->opr.oper == ',')
+    {
+        repeat(out, "\t", indent);
+        out << rt[i++] << " = ";
+        createC(a->opr.op[0], out, indent);
+        out << ";\n";
+        a = a->opr.op[1];
+    }
+    repeat(out, "\t", indent);
+    out << rt[i++] << " = ";
+    createC(a, out, indent);
+    out << ";\n";
+    repeat(out, "\t", indent);
+    return true;
+}
 int pclass::createC(nodeType *p, ostream &out, int indent)
 {
 	if (!p) return 0;
@@ -85,17 +104,37 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
 			switch (p->opr.oper)
 			{
 				case IF:
-					repeat(out, "\t", indent);
-					out << "if(";
+                {
+					repeat(out, "\t", indent);			out << "if(";
 					createC(p->opr.op[0], out, 0);
 					out << ")\n";
-					repeat(out, "\t", indent); 
-					out << "{\n";
+					repeat(out, "\t", indent); 			out << "{\n";
 					createC(p->opr.op[1], out, indent+1);
-					repeat(out, "\t", indent); 
-					out << "}\n";
-
-					break;
+					repeat(out, "\t", indent); 			out << "}\n";
+                 
+                    nodeType *a = p->opr.op[2];
+                    while(a != NULL && a->opr.oper == ELSEIF)
+                    {
+                        repeat(out, "\t", indent); 			out << "else if(";
+                        createC(a->opr.op[0], out, 0);
+                        out << ")\n";
+                        repeat(out, "\t", indent); 			out << "{\n";
+                        createC(a->opr.op[1], out, indent+1);
+                        repeat(out, "\t", indent); 			out << "}\n";
+                        a = a->opr.op[2];
+                    }
+                    if(a != NULL)
+                    {
+                        UG_ASSERT(a->opr.oper == ELSE, a->opr.oper);
+                        repeat(out, "\t", indent); 			out << "else\n";
+                        repeat(out, "\t", indent); 			out << "{\n";
+                        createC(a->opr.op[0], out, indent+1);
+                        repeat(out, "\t", indent); 			out << "}\n";
+                    }
+                                
+                    break;
+                }
+                
 				case '=':
                     UG_ASSERT(is_local(p->opr.op[0]->id.i), "global variable " << id2variable[p->opr.op[0]->id.i] << " is read-only");					
 					repeat(out, "\t", indent);
@@ -121,7 +160,7 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
                     
 				case 'R':
 				{
-					if(bOneReturn)
+					if(returnType == RT_SUBFUNCTION)
                     {
                         nodeType *a = p->opr.op[0];
                         if(a->type == typeOpr && a->opr.oper == ',')
@@ -133,7 +172,33 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
                         out << "return ";
                         createC(a, out, indent);
                         out << ";\n";
-                        break;
+                    }
+                    else if(returnType == RT_DIFFUSION)
+                    {
+                        const char *rt[] = {"A11", "A12", "A21", "A22"};
+                        createRT(p->opr.op[0], out, rt, 4, indent);
+                        
+                        out << "\n";
+                        repeat(out, "\t", indent); 
+                        out << "goto diffusionReturn;\n";
+                    }
+                    else if(returnType == RT_VELOCITY)
+                    {
+                        const char *rt[] = {"vx", "vy"};
+                        createRT(p->opr.op[0], out, rt, 2, indent);
+                        
+                        out << "\n";
+                        repeat(out, "\t", indent); 
+                        out << "goto velocityReturn;\n";
+                    }
+                    else if(returnType == RT_DIRICHLET)
+                    {
+                        const char *rt[] = {"f"};
+                        createRT(p->opr.op[0], out, rt, 1, indent);
+                        
+                        out << "\n";
+                        repeat(out, "\t", indent); 
+                        out << "goto dirichletReturn;\n";
                     }
                     else
                     {
@@ -153,30 +218,58 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
                         out << ";\n";
                         repeat(out, "\t", indent);
                         out << "return 1;\n";
-                        break;
                     }
+                    break;
 				}
 				case UMINUS:
 					out << "-(";
 					createC(p->opr.op[0], out, 0);
 					out << ")";
 					break;
+                    
+                case MATH_PI:
+                    out << " MATH_PI ";
+                    break;
 
-				case MATHCOS:
-					out << "cos(";
+				case MATH_COS:
+                case MATH_SIN:
+                case MATH_EXP:
+                case MATH_ABS:
+                case MATH_LOG:
+                case MATH_LOG10:
+                case MATH_SQRT:
+                case MATH_FLOOR:
+                case MATH_CEIL: 
+                    switch (p->opr.oper)
+                    {
+                        case MATH_COS: out << "cos("; break;
+                        case MATH_SIN: out << "sin("; break;
+                        case MATH_EXP: out << "exp("; break;
+                        case MATH_ABS: out << "fabs("; break;
+                        case MATH_LOG: out << "log("; break;
+                        case MATH_LOG10: out << "log10("; break;
+                        case MATH_SQRT: out << "sqrt("; break;
+                        case MATH_FLOOR: out << "floor("; break;
+                        case MATH_CEIL: out << "ceil("; break;
+                    }                        
 					createC(p->opr.op[0], out, 0);
 					out << ")";
 					break;
 
-				case MATHSIN:
-					out << "sin(";
+                case MATH_POW:
+                case MATH_MIN:
+                case MATH_MAX:
+                    switch (p->opr.oper)
+                    {
+                        case MATH_POW: out << "pow("; break;
+                        case MATH_MIN: out << "min("; break;
+                        case MATH_MAX: out << "max("; break;
+                    }
+				
 					createC(p->opr.op[0], out, 0);
-					out << ")";
-					break;
-				case MATHEXP:
-					out << "exp(";
-					createC(p->opr.op[0], out, 0);
-					out << ")";
+					out << ", ";
+                    createC(p->opr.op[1], out, 0);
+                    out << ")";
 					break;
 
 				case ';':
@@ -287,22 +380,46 @@ int pclass::createLUA(nodeType *p, ostream &out)
 					createLUA(p->opr.op[0], out);
 					break;
 
-				case MATHCOS:
-					out << "math.cos(";
+				case MATH_COS:
+                case MATH_SIN:
+                case MATH_EXP:
+                case MATH_ABS:
+                case MATH_LOG:
+                case MATH_LOG10:
+                case MATH_SQRT:
+                case MATH_FLOOR:
+                case MATH_CEIL: 
+                    switch (p->opr.oper)
+                    {
+                        case MATH_COS: out << "math.cos("; break;
+                        case MATH_SIN: out << "math.sin("; break;
+                        case MATH_EXP: out << "math.exp("; break;
+                        case MATH_ABS: out << "math.abs("; break;
+                        case MATH_LOG: out << "math.log("; break;
+                        case MATH_LOG10: out << "math.log10("; break;
+                        case MATH_SQRT: out << "math.sqrt("; break;
+                        case MATH_FLOOR: out << "math.floor("; break;
+                        case MATH_CEIL: out << "math.ceil("; break;
+                    }                        
 					createLUA(p->opr.op[0], out);
 					out << ")";
 					break;
 
-				case MATHSIN:
-					out << "math.sin(";
+                case MATH_POW:
+                case MATH_MIN:
+                case MATH_MAX:
+                    switch (p->opr.oper)
+                    {
+                        case MATH_POW: out << "math.pow("; break;
+                        case MATH_MIN: out << "math.min("; break;
+                        case MATH_MAX: out << "math.max("; break;
+                    }
+				
 					createLUA(p->opr.op[0], out);
-					out << ")";
-					break;
-				case MATHEXP:
-					out << "math.exp(";
-					createLUA(p->opr.op[0], out);
-					out << ")";
-					break;
+					out << ", ";
+                    createLUA(p->opr.op[1], out);
+                    out << ")";
+					break;                    
 
 				case ';':
 					createLUA(p->opr.op[0], out);
@@ -385,7 +502,7 @@ int pclass::parse_luaFunction(const char *functionName)
 	const char *src = ar.source[0]=='@' ? ar.source+1 : ar.source;
 
 	string str = GetFileLines(src, ar.linedefined, ar.lastlinedefined, false);
-	//UG_LOG("The function:\n"<<str<<"\n");
+	UG_LOG("The function:\n"<<str<<"\n");
 
     lua_pop(L, 1);
     
@@ -427,7 +544,7 @@ int pclass::addfunctionC(string name, set<string> &knownFunctions, stringstream 
         return false;
     }
     
-    parser.bOneReturn = true;
+    parser.returnType = RT_SUBFUNCTION;
     
     parser.declare(declarations); declarations << ";\n";
     
@@ -436,6 +553,56 @@ int pclass::addfunctionC(string name, set<string> &knownFunctions, stringstream 
     parser.add_subfunctions(knownFunctions, declarations, definitions);
     
     return true;    
+}
+int pclass::createJITSG(ostream &out, eReturnType r, set<string> subfunctions)
+{	
+    int numRet=0;
+    switch(r)
+    {
+        case RT_DIRICHLET: numRet = 1; break;
+        case RT_SOURCE: numRet = 1; break;
+        case RT_DIFFUSION: numRet = 4; break;
+        case RT_VELOCITY: numRet = 2; break;
+        default: UG_ASSERT(0,"");
+    }
+    if(num_out() != numRet)
+    {
+        UG_LOG("number of return values must be " << numRet << ", not " << num_out() << "\n");
+        return false;
+    }
+    out << "// INSERTED CODE:";	    
+    out << "\n// JITSG Generated Code from LUA function " << name << "\n";	
+    
+    
+    for(set<size_t>::iterator it = localFunctions.begin(); it != localFunctions.end(); ++it)
+        subfunctions.insert(id2variable[*it]);
+    
+    // escape variables
+    //for(map<size_t, string>::iterator it = id2variable.begin(); it != id2variable.end(); ++it)
+	  //  if(is_local((*it).first))
+        //    (*it).second = "_" + (*it).second;
+    // TODO: also escape functions
+    
+    // rename arguments to x, y, t
+    nodeType *a = args;
+    id2variable[a->opr.op[0]->id.i] = "x";
+    a = a->opr.op[1];
+    id2variable[a->opr.op[0]->id.i] = "y";
+    id2variable[a->opr.op[1]->id.i] = "t";
+    
+    //------ local variables --------
+	out << "\t// local variables:\n";
+	for(map<size_t, string>::iterator it = id2variable.begin(); it != id2variable.end(); ++it)
+		if(is_local((*it).first))
+			out << "\tdouble " << (*it).second << ";\n";
+	
+    returnType = r;
+			
+	out << "\t// code:\n";
+	for(int i=0; i<nodes.size(); i++)
+		createC(nodes[i], out, 1);
+	out << "\n// END JITSG Generated Code from LUA function " << name << "\n";
+    out << "diffusionReturn:\n";
 }
 
 int pclass::createC(ostream &out)
@@ -450,7 +617,8 @@ int pclass::createC(ostream &out)
         UG_LOG("add_subfunctions failed.\n");        
         return false;
     }
-        
+     
+    out << "#define MATH_PI 3.1415926535897932384626433832795028841971693\n";
     out << "// inline function declarations\n";
     out << declarations.str() << "\n";
     
@@ -601,7 +769,7 @@ pclass::reduce(nodeType *p)
 					}
 					break;
 
-				case MATHCOS:
+				case MATH_COS:
 					p1 = reduce(p->opr.op[0]);
 					if (p1->type == typeCon)
 					{
@@ -615,7 +783,7 @@ pclass::reduce(nodeType *p)
 					}
 					break;
 
-				case MATHSIN:
+				case MATH_SIN:
 					p1 = reduce(p->opr.op[0]);
 					if (p1->type == typeCon)
 					{
@@ -629,7 +797,7 @@ pclass::reduce(nodeType *p)
 					}
 					break;
 
-				case MATHEXP:
+				case MATH_EXP:
 					p1 = reduce(p->opr.op[0]);
 					if (p1->type == typeCon)
 					{
