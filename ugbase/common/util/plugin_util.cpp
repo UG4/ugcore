@@ -2,14 +2,14 @@
 // s.b.reiter@googlemail.com
 // 12.09.2011 (m,d,y)
 
-#include <dlfcn.h>
 #include <string>
 #include "common/log.h"
-#include "common/util/path_provider.h"
 #include "bridge/bridge.h"
-#include "../file_util.h"
 #include "common/profiler/profiler.h"
-#include "../os_info.h"
+#include "path_provider.h"
+#include "file_util.h"
+#include "os_info.h"
+#include "dynamic_library_util.h"
 
 using namespace std;
 
@@ -80,11 +80,10 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 		string fullPluginName(pluginPath);
 		fullPluginName.append("/").append(files[i]);
 
-		void* libHandle = dlopen(fullPluginName.c_str(), RTLD_LAZY);
+		DynLibHandle libHandle = OpenLibrary(fullPluginName.c_str());
 
 		if(!libHandle){
 			UG_ERR_LOG("PLUGIN-ERROR: Couldn't open plugin " << files[i] << endl);
-			UG_ERR_LOG("Error message: " << dlerror() << endl);
 			UG_ERR_LOG("NOTE: This could be due to incompatible build settings in ugshell and the plugin.\n");
 			bSuccess = false;
 			continue;
@@ -96,12 +95,13 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 		string fctName("InitUGPlugin_");
 		fctName.append(pluginName);
 
-		FctInitPlugin fctInitPlugin = (FctInitPlugin) dlsym(libHandle, fctName.c_str());
+		FctInitPlugin fctInitPlugin =
+				(FctInitPlugin) GetLibraryProcedure(libHandle, fctName.c_str());
 
 		if(!fctInitPlugin){
 			UG_ERR_LOG("PLUGIN-ERROR: Couldn't find entry point " <<  fctName
 					<< " in plugin " << files[i] << endl);
-			dlclose(libHandle);
+			CloseLibrary(libHandle);
 			bSuccess = false;
 			continue;
 		}
@@ -126,11 +126,12 @@ bool UnloadPlugins()
 		std::string fctName("FinalizeUGPlugin");
 		void *libHandle = loadedPlugins[i];
 
-		FctFinalizePlugin fctFinalizePlugin = (FctFinalizePlugin) dlsym(libHandle, fctName.c_str());
+		FctFinalizePlugin fctFinalizePlugin =
+				(FctFinalizePlugin) GetLibraryProcedure(libHandle, fctName.c_str());
 
 		if(fctFinalizePlugin) fctFinalizePlugin();
 
-		dlclose(libHandle);
+		CloseLibrary(libHandle);
 	}
 	loadedPlugins.clear();
 	return true;

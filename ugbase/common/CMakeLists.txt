@@ -22,6 +22,7 @@ set(srcCommon	log.cpp
 				util/message_hub.cpp
 				util/ostream_util.cpp
 				util/parameter_parsing.cpp
+				util/plugin_util.cpp
         		util/string_util.cpp
         		util/table.cpp
 				util/variant.cpp
@@ -56,7 +57,7 @@ if(UNIX AND NOT CYGWIN)
 	set(sources ${sources}	util/os_dependent_impl/file_util_posix.cpp)
 	
 	if(buildPluginSystem)
-		set(sources ${sources}	util/os_dependent_impl/plugin_util_unix.cpp)
+		set(sources ${sources}	util/os_dependent_impl/dynamic_library_util_unix.cpp)
 	endif(buildPluginSystem)
 	
 	if(APPLE)
@@ -69,7 +70,7 @@ elseif(WIN32 OR CYGWIN)
 	set(sources ${sources}	util/os_dependent_impl/os_info_win.cpp)
 	
 	if(buildPluginSystem)
-		set(sources ${sources}	util/os_dependent_impl/plugin_util_win.cpp)
+		set(sources ${sources}	util/os_dependent_impl/dynamic_library_util_unix.cpp)
 	endif(buildPluginSystem)
 	
 	#if(MINGW)

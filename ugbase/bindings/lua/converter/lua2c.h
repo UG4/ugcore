@@ -9,18 +9,19 @@
 #define	LUA2C_H
 
 #include <stdio.h>
-#include <dlfcn.h>
 #include <string>
+#include "common/util/dynamic_library_util.h"
+
 namespace ug{
 namespace bridge {
 
 
 class LUA2C
 {
-
 	typedef bool (*LUA2C_Function)(double *, double *) ;
 	
-	void* libHandle;
+	DynLibHandle libHandle;
+
 public:
 	std::string name, pDyn;
 	LUA2C_Function f;

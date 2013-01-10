@@ -3,7 +3,6 @@
 #include "bindings/lua/lua_util.h"
 #include "bindings/lua/lua_stack_check.h"
 #include "bindings/lua/info_commands.h"
-#include <dlfcn.h>
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,10 +75,10 @@ bool LUA2C::create(const char *functionName)
 
 	//UG_LOG("pDyn = " << pDyn << "\n");
 
-	libHandle = dlopen(pDyn.c_str(), RTLD_LAZY);
+	libHandle = OpenLibrary(pDyn.c_str());
 
 	if(libHandle!=NULL)
-        f = (LUA2C_Function) dlsym(libHandle, functionName);
+        f = (LUA2C_Function) GetLibraryProcedure(libHandle, functionName);
 	
 	chdir(cwd);
 	//parser.createLUA(cout);	
@@ -90,7 +89,7 @@ LUA2C::~LUA2C()
 {
     UG_DLOG(DID_LUA2C, 2, "removing " << name << "\n");		
 	if(libHandle)
-	   	dlclose(libHandle);	
+	   	CloseLibrary(libHandle);
         
     if(pDyn.size() > 0)
     {
