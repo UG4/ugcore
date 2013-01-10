@@ -10,9 +10,11 @@
 
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/grid/geometric_base_objects.h"
-#include "lib_disc/domain.h"
 
 namespace ug {
+
+// predeclaration of mg
+class MultiGrid;
 
 /// Interface to match periodic geometric elements
 /**
@@ -244,6 +246,6 @@ void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2);
 } // end of namespace ug
 
 // include implementation
-#include "periodic_boundary_manager_impl.hpp"
+#include "./periodic_boundary_manager_impl.hpp"
 
 #endif /* PERIODIC_IDENTIFIER_H_ */

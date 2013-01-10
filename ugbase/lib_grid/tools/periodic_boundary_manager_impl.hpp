@@ -11,6 +11,9 @@
 // include declarations
 #include "periodic_boundary_manager.h"
 #include "lib_grid/subset_handler.h"
+#include "lib_disc/domain.h"
+#include "common/assert.h"
+
 #ifndef NDEBUG
 #include "lib_grid/algorithms/debug_util.h"
 #else
@@ -19,7 +22,6 @@ namespace ug {
 		return elem;
 	}
 #endif
-#include "common/assert.h"
 
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/at.hpp>
