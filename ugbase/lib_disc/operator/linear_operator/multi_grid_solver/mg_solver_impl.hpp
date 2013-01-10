@@ -1069,20 +1069,6 @@ init_level_operator()
 	//	skip void level
 		if(m_vLevData[lev]->num_indices() == 0) continue;
 
-	//	in case of full refinement we simply copy the matrix (with correct numbering)
-		if(lev == m_vLevData.size() - 1 && !m_bAdaptive)
-		{
-			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
-			SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
-			SmartPtr<matrix_type> surfMat = m_spSurfaceMat;
-
-			levMat->resize( surfMat->num_rows(), surfMat->num_cols());
-			CopyMatrixByMapping(*levMat, m_vSurfToTopMap, *surfMat);
-
-			GMG_PROFILE_END();
-			continue;
-		}
-
 		GMG_PROFILE_BEGIN(GMG_AssLevelMat);
 	//	if ghosts are present we have to assemble the matrix only on non-ghosts
 	//	for the smoothing matrices
@@ -1113,7 +1099,19 @@ init_level_operator()
 			smoothMat->resize(numSmoothIndex, numSmoothIndex);
 			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapGlobalToPatch, *mat);
 		}
+		else if((lev == m_vLevData.size() - 1) && (!m_bAdaptive))
+		{
+		//	in case of full refinement we simply copy the matrix (with correct numbering)
+			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
+			SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
+			SmartPtr<matrix_type> surfMat = m_spSurfaceMat;
 
+			levMat->resize( surfMat->num_rows(), surfMat->num_cols());
+			CopyMatrixByMapping(*levMat, m_vSurfToTopMap, *surfMat);
+
+			GMG_PROFILE_END();
+			continue;
+		}
 	//	if no ghosts are present we can simply use the whole grid. If the base
 	//	solver is carried out in serial (gathering to some processes), we have
 	//	to assemble the assemble the coarse grid matrix on the whole grid as
