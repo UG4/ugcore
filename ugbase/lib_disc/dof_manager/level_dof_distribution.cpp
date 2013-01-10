@@ -280,15 +280,15 @@ inline void LevelMGDoFDistribution::obj_to_be_erased(TBaseElem* obj,TBaseElem* r
 	      m_vLev[m_spMGSH->get_level(obj)]);
 }
 
-void LevelMGDoFDistribution::vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent, bool replacesParent) {obj_created<VertexBase>(vrt, pParent, replacesParent);}
-void LevelMGDoFDistribution::edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent, bool replacesParent) {obj_created<EdgeBase>(e, pParent, replacesParent);}
-void LevelMGDoFDistribution::face_created(Grid* grid, Face* f, GeometricObject* pParent, bool replacesParent) {obj_created<Face>(f, pParent, replacesParent);}
-void LevelMGDoFDistribution::volume_created(Grid* grid, Volume* vol, GeometricObject* pParent, bool replacesParent) {obj_created<Volume>(vol, pParent, replacesParent);}
+void LevelMGDoFDistribution::vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent, bool replacesParent) {obj_created(vrt, pParent, replacesParent);}
+void LevelMGDoFDistribution::edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent, bool replacesParent) {obj_created(e, pParent, replacesParent);}
+void LevelMGDoFDistribution::face_created(Grid* grid, Face* f, GeometricObject* pParent, bool replacesParent) {obj_created(f, pParent, replacesParent);}
+void LevelMGDoFDistribution::volume_created(Grid* grid, Volume* vol, GeometricObject* pParent, bool replacesParent) {obj_created(vol, pParent, replacesParent);}
 
-void LevelMGDoFDistribution::vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy) {obj_to_be_erased<VertexBase>(vrt, replacedBy);}
-void LevelMGDoFDistribution::edge_to_be_erased(Grid* grid, EdgeBase* e, EdgeBase* replacedBy) {obj_to_be_erased<EdgeBase>(e, replacedBy);}
-void LevelMGDoFDistribution::face_to_be_erased(Grid* grid, Face* f, Face* replacedBy) {obj_to_be_erased<Face>(f, replacedBy);}
-void LevelMGDoFDistribution::volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy) {obj_to_be_erased<Volume>(vol, replacedBy);}
+void LevelMGDoFDistribution::vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy) {obj_to_be_erased(vrt, replacedBy);}
+void LevelMGDoFDistribution::edge_to_be_erased(Grid* grid, EdgeBase* e, EdgeBase* replacedBy) {obj_to_be_erased(e, replacedBy);}
+void LevelMGDoFDistribution::face_to_be_erased(Grid* grid, Face* f, Face* replacedBy) {obj_to_be_erased(f, replacedBy);}
+void LevelMGDoFDistribution::volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy) {obj_to_be_erased(vol, replacedBy);}
 
 ////////////////////////////////////////////////////////////////////////////////
 // LevelDoFDistribution
