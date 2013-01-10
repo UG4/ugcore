@@ -1076,8 +1076,7 @@ init_level_operator()
 		{
 		//	set this selector to the assembling, such that only those elements
 		//	will be assembled and force grid to be considered as regular
-			if(m_vLevData[lev]->has_ghosts()) m_pAss->set_selector(&m_NonGhostMarker);
-			else m_pAss->set_selector(NULL);
+			m_pAss->set_selector(&m_NonGhostMarker);
 			m_pAss->force_regular_grid(true);
 
 		//	init level operator
