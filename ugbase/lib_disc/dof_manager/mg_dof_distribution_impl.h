@@ -214,7 +214,6 @@ void MGDoFDistribution::
 defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
            LevInfo<T>& li, std::vector<std::pair<size_t, size_t> >& vReplaced)
 {
-	UG_THROW("defrag not impled for periodic boundaries.")
 	bool master = false;
 	if(m_spMG->has_periodic_boundaries())
 	{
@@ -258,15 +257,14 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 				typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveContainer SlaveContainer;
 				typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveIterator SlaveIterator;
 				SlaveContainer& slaves = *m_spMG->periodic_boundary_manager()->slaves(obj);
-				size_t master_index = obj_index(obj);
 				for(SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter)
 				{
-					obj_index(*iter) = master_index;
+					obj_index(*iter) = newIndex;
 				}
 			}
 
 		//	remember replacement
-			vReplaced.push_back(std::pair<size_t,size_t>(oldIndex,newIndex));
+			vReplaced.push_back(std::pair<size_t,size_t>(oldIndex, newIndex));
 
 		//	done
 			break;
