@@ -447,6 +447,140 @@ class GridFunctionGradientData
 		}
 };
 
+
+/**
+ * \brief Retrieve component of gradient of GridFunction
+ * \details Helper construct to retrieve specific vector element of the gradient 
+ *   of a GridFunction inside loops (e.g. integrals) over that GridFunction.
+ */
+template <typename TGridFunction>
+class GridFunctionGradientComponentData
+	: public StdGridFunctionData<number,
+	                             TGridFunction::dim,
+	                             GridFunctionGradientComponentData<TGridFunction> >
+{
+	public:
+		//	world dimension of grid function
+		static const int dim = TGridFunction::dim;
+
+	private:
+		// grid function
+		SmartPtr<TGridFunction> m_spGridFct;
+
+		//	component of function
+		size_t m_fct;
+		
+		//	component index of gradient to return (0-based)
+		size_t m_component;
+
+		//	local finite element id
+		LFEID m_lfeID;
+
+	public:
+		/**
+		 * \brief Constructor
+		 * \param[in] spGridFct GridFunction to loop over
+		 * \param[in] cmp Name of the GridFunction's function to calculate gradient of
+		 * \param[in] component Index of gradient vector component to return (1-based)
+		 */
+		GridFunctionGradientComponentData( SmartPtr<TGridFunction> spGridFct, 
+		                                   const char* cmp,
+		                                   size_t component /* 1-based */ )
+			: m_spGridFct( spGridFct )
+		{
+			//	check validity of component index
+			if ( component > static_cast<size_t>(dim) && component > 0 ) {
+				UG_THROW( "GridFunctionGradientComponentData: Requested component index " 
+				          << component << " out of bounds [1," << dim << "]." );
+			}
+			m_component = component - 1;
+
+			//	get function id of name
+			m_fct = spGridFct->fct_id_by_name( cmp );
+
+			//	check that function exists
+			if( m_fct >= spGridFct->num_fct() ) {
+				UG_THROW( "GridFunctionGradientComponentData: Function space does not contain"
+				          " a function with name " << cmp << "." );
+			}
+
+			//	local finite element id
+			m_lfeID = spGridFct->local_finite_element_id( m_fct );
+		};
+
+		template <int refDim>
+		inline void evaluate( number vValue[],
+		                      const MathVector<dim> vGlobIP[],
+		                      number time, int si,
+		                      LocalVector& u,
+		                      GeometricObject* elem,
+		                      const MathVector<dim> vCornerCoords[],
+		                      const MathVector<refDim> vLocIP[],
+		                      const size_t nip,
+		                      const MathMatrix<refDim, dim>* vJT = NULL ) const
+		{
+			//	reference object id
+			const ReferenceObjectID roid = elem->reference_object_id();
+
+			//	get reference element mapping by reference object id
+			std::vector<MathMatrix<refDim, dim> > vJTTmp( nip );
+			if( vJT == NULL ) {
+				try{
+					DimReferenceMapping<refDim, dim>& mapping 
+					  = ReferenceMappingProvider::get< refDim, dim >( roid, vCornerCoords );
+
+					//	compute transformation matrices
+					mapping.jacobian_transposed( &(vJTTmp[0]), vLocIP, nip );
+
+					//	store tmp Gradient
+					vJT = &(vJTTmp[0]);
+				} catch( UGError_ReferenceMappingMissing& ex ) {
+					UG_THROW( "GridFunctionGradientComponentData: " << ex.get_msg() << "." );
+				}
+			}
+
+			//	get trial space
+			try {
+				const LocalShapeFunctionSet<refDim>& rTrialSpace =
+				  LocalShapeFunctionSetProvider::get<refDim>( roid, m_lfeID );
+
+				//	storage for shape function at ip
+				std::vector<MathVector<refDim> > vLocGrad;
+				MathVector<refDim> locGrad;
+				std::vector<MathVector<dim> > vValueVec;
+				vValueVec.resize( nip );
+
+				//	Reference Mapping
+				MathMatrix<dim, refDim> JTInv;
+
+				//	loop ips
+				for( size_t ip = 0; ip < nip; ++ip ) {
+					//	evaluate at shapes at ip
+					rTrialSpace.grads( vLocGrad, vLocIP[ip] );
+
+					//	get multiindices of element
+					std::vector<MultiIndex<2> > ind;
+					m_spGridFct->multi_indices( elem, m_fct, ind );
+
+					//	compute grad at ip
+					VecSet( locGrad, 0.0 );
+					for( size_t sh = 0; sh < vLocGrad.size(); ++sh ) {
+						const number valSH = DoFRef( *m_spGridFct, ind[sh] );
+						VecScaleAppend( locGrad, valSH, vLocGrad[sh] );
+					}
+
+					Inverse( JTInv, vJT[ip] );
+					MatVecMult( vValueVec[ip], JTInv, locGrad );
+
+					vValue[ip] = vValueVec[ip][m_component];
+				}
+			} catch( UGError_LocalShapeFunctionSetNotRegistered& ex ) {
+				UG_THROW( "GridFunctionGradientComponentData: " << ex.get_msg() << ", Reference Object: "
+				          << roid << ", Trial Space: " << m_lfeID << ", refDim=" << refDim );
+			}
+		}
+};
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__GRID_FUNCTION_USER_DATA__ */

@@ -106,6 +106,17 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionGradientData", tag);
 	}
+
+//	GridFunctionGradientComponentData
+	{
+		string name = string("GridFunctionGradientComponentData").append(suffix);
+		typedef GridFunctionGradientComponentData<TFct> T;
+		typedef UserData<number, dim> TBase;
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<TFct>, const char*, size_t)>("GridFunction#Components")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GridFunctionGradientComponentData", tag);
+	}
 }
 
 /**
