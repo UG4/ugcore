@@ -130,19 +130,19 @@ void IElemDisc::set_roid(ReferenceObjectID roid, int discType)
 
 	if(discType & MASS){
 		if(m_vElemJMFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'ass_JM_elem' for "<<roid);
+			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_M_elem' for "<<roid);
 		if(m_vElemdMFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'ass_dM_elem' for "<<roid);
+			UG_THROW("ElemDisc: Missing evaluation method 'add_def_M_elem' for "<<roid);
 	}
 	if(discType & STIFF){
 		if(m_vElemJAFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'ass_JA_elem' for "<<roid);
+			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_A_elem' for "<<roid);
 		if(m_vElemdAFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'ass_dA_elem for' "<<roid);
+			UG_THROW("ElemDisc: Missing evaluation method 'add_def_A_elem for' "<<roid);
 	}
 	if(discType & RHS){
 		if(m_vElemRHSFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'ass_rhs_elem' for "<<roid);
+			UG_THROW("ElemDisc: Missing evaluation method 'add_rhs_elem' for "<<roid);
 	}
 };
 

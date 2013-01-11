@@ -71,7 +71,7 @@ evaluation process, by calling (e.g. in the constructor):
 \endcode
 
 The request of a local integration point series must be done in
-<b> prepare_element_loop() </b>, like e.g.
+<b> prep_elem_loop() </b>, like e.g.
 
 \code
 template<	template <class TElem, int TWorldDim> class TFVGeom,
@@ -79,7 +79,7 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TAlgebra>
 template<typename TElem>
 bool FVConvectionDiffusion<TFVGeom, TDomain, TAlgebra>::
-prepare_element_loop()
+prep_elem_loop()
 {
 //  get reference element type
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -94,7 +94,7 @@ prepare_element_loop()
 }
 \endcode
 
-The request of the global integration points takes place in <b>prepare_element()</b>,
+The request of the global integration points takes place in <b>prep_elem()</b>,
 after the global ips have been updated for the element:
 
 \code
@@ -103,7 +103,7 @@ template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TAlgebra>
 template<typename TElem >
 bool FVConvectionDiffusion<TFVGeom, TDomain, TAlgebra>::
-prepare_element(TElem* elem, const LocalVector& u,
+prep_elem(TElem* elem, const LocalVector& u,
 								const LocalIndices& glob_ind)
 {
 // 	Load corners of this element
@@ -117,7 +117,7 @@ prepare_element(TElem* elem, const LocalVector& u,
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 	if(!geo.update(elem, m_pDomain->subset_handler(), &m_vCornerCoords[0]))
 	{
-		UG_LOG("FVConvectionDiffusion::prepare_element:"
+		UG_LOG("FVConvectionDiffusion::prep_elem:"
 				" Cannot update Finite Volume Geometry.\n"); return false;
 	}
 
@@ -260,7 +260,7 @@ The order of evaluation is as follows.
 	<li> TODO: Skip Exports, that are already scheduled.
 	<li> <b>set_roid(...)</b>: Set geometric object type for 
 		each IElemDisc to indicate which evaluation function must be used
-	<li> <b>prepare_element_loop(...)</b>: Call preparation of element loop for 
+	<li> <b>prep_elem_loop(...)</b>: Call preparation of element loop for 
 		each IElemDisc. Local positions are set for DataImports here.
 	<li> For all DataImports: Set the geometric object type to indicate which
 		evaluation function must be used
@@ -271,7 +271,7 @@ The order of evaluation is as follows.
 	</ol> 
 <li> Loop all elements. For each element do:
 	<ol>
-	<li> <b>prepare_element(...)</b>: Prepare element for each IElemDisc. Here, 
+	<li> <b>prep_elem(...)</b>: Prepare element for each IElemDisc. Here, 
 		the new global ips are computed and set for each IDataImport
 	<li> Compute all user-defined data
 	<li> Compute all exports
@@ -282,7 +282,7 @@ The order of evaluation is as follows.
 	</ol> 
 <li> Post process (after loop over all elements)
 	<ol>
-	<li> <b>finish_element_loop()</b>: Finish element loop for each IElemDisc
+	<li> <b>fsh_elem_loop()</b>: Finish element loop for each IElemDisc
 	</ol>
 </ol>
 

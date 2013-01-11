@@ -140,7 +140,7 @@ class FV1InnerBoundaryElemDisc
 	 * at the data imports.
 	 */
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void prepare_element_loop();
+		void prep_elem_loop();
 
 	///	prepares the element for assembling
 	/**
@@ -149,31 +149,31 @@ class FV1InnerBoundaryElemDisc
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void prepare_element(TElem* elem, const LocalVector& u);
+		void prep_elem(TElem* elem, const LocalVector& u);
 
 	///	finishes the loop over all elements
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void finish_element_loop();
+		void fsh_elem_loop();
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void ass_JA_elem(LocalMatrix& J, const LocalVector& u);
+		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void ass_JM_elem(LocalMatrix& J, const LocalVector& u);
+		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u);
 
 	///	assembles the stiffness part of the local defect
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void ass_dA_elem(LocalVector& d, const LocalVector& u);
+		void add_def_A_elem(LocalVector& d, const LocalVector& u);
 
 	///	assembles the mass part of the local defect
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void ass_dM_elem(LocalVector& d, const LocalVector& u);
+		void add_def_M_elem(LocalVector& d, const LocalVector& u);
 
 	///	assembles the local right hand side
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void ass_rhs_elem(LocalVector& d);
+		void add_rhs_elem(LocalVector& d);
 
 	private:
 		// position access

@@ -30,9 +30,9 @@ DataEvaluator::DataEvaluator(int discPart,
 
 //	currently only fast assembles allowed
 	for(size_t i = 0; i < vElemDisc.size(); ++i){
-		if(!vElemDisc[i]->fast_ass_elem_enabled()){
+		if(!vElemDisc[i]->fast_add_elem_enabled()){
 			UG_THROW("DataEvaluator: currently only fast assemble allowed."
-					 " Please use enable_fast_ass_elem in all IElemDisc.");
+					 " Please use enable_fast_add_elem in all IElemDisc.");
 		}
 	}
 
@@ -489,9 +489,9 @@ void DataEvaluator::add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject*
 
 	//	assemble JA
 		try{
-			m_vElemDisc[type][i].elemDisc->fast_ass_JA_elem(A, u);
+			m_vElemDisc[type][i].elemDisc->fast_add_jac_A_elem(A, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::ass_JA_elem: "
+		UG_CATCH_THROW("DataEvaluator::add_jac_A_elem: "
 						"Cannot assemble Jacobian (A) for IElemDisc "<<i);
 	}
 
@@ -518,9 +518,9 @@ void DataEvaluator::add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject*
 	//	assemble JM
 		try{
 			if(!m_vElemDisc[type][i].elemDisc->is_stationary())
-				m_vElemDisc[type][i].elemDisc->fast_ass_JM_elem(M, u);
+				m_vElemDisc[type][i].elemDisc->fast_add_jac_M_elem(M, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::ass_JM_elem: "
+		UG_CATCH_THROW("DataEvaluator::add_jac_M_elem: "
 						"Cannot assemble Jacobian (M) for IElemDisc "<<i);
 	}
 
@@ -546,9 +546,9 @@ void DataEvaluator::add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject*
 
 	//	assemble dA
 		try{
-			m_vElemDisc[type][i].elemDisc->fast_ass_dA_elem(d, u);
+			m_vElemDisc[type][i].elemDisc->fast_add_def_A_elem(d, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::ass_dA_elem: "
+		UG_CATCH_THROW("DataEvaluator::add_def_A_elem: "
 						"Cannot assemble Defect (A) for IElemDisc "<<i);
 	}
 }
@@ -573,9 +573,9 @@ void DataEvaluator::add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject*
 	//	assemble dM
 		try{
 			if(!m_vElemDisc[type][i].elemDisc->is_stationary())
-				m_vElemDisc[type][i].elemDisc->fast_ass_dM_elem(d, u);
+				m_vElemDisc[type][i].elemDisc->fast_add_def_M_elem(d, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::ass_dM_elem: "
+		UG_CATCH_THROW("DataEvaluator::add_def_M_elem: "
 						"Cannot assemble Defect (M) for IElemDisc "<<i);
 	}
 }
@@ -598,9 +598,9 @@ void DataEvaluator::add_rhs_elem(LocalVector& rhs, GeometricObject* elem, Proces
 
 	//	assemble rhs
 		try{
-			m_vElemDisc[type][i].elemDisc->fast_ass_rhs_elem(rhs);
+			m_vElemDisc[type][i].elemDisc->fast_add_rhs_elem(rhs);
 		}
-		UG_CATCH_THROW("DataEvaluator::ass_rhs_elem: "
+		UG_CATCH_THROW("DataEvaluator::add_rhs_elem: "
 						"Cannot assemble rhs for IElemDisc "<<i);
 	}
 }
@@ -610,9 +610,9 @@ void DataEvaluator::finish_elem_loop()
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
 		try{
-			m_vElemDisc[PT_ALL][i].elemDisc->fast_finish_elem_loop();
+			m_vElemDisc[PT_ALL][i].elemDisc->fast_fsh_elem_loop();
 		}
-		UG_CATCH_THROW("DataEvaluator::finish_element_loop: "
+		UG_CATCH_THROW("DataEvaluator::fsh_elem_loop: "
 						"Cannot finish element loop for IElemDisc "<<i);
 	}
 

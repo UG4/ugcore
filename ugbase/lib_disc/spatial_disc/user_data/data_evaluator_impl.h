@@ -30,7 +30,7 @@ prepare_timestep_elem(TElem* elem, LocalVector& u)
 
 	//	prepare timestep for elem disc
 		try{
-			m_vElemDisc[PT_ALL][i].elemDisc->fast_prepare_timestep_elem(elem, u);
+			m_vElemDisc[PT_ALL][i].elemDisc->fast_prep_timestep_elem(elem, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::prepare_timestep_element: "
 						"Cannot prepare timestep on element for IElemDisc "<<i);
@@ -61,7 +61,7 @@ prepare_elem_loop()
 // 	prepare loop (elem disc set local ip series here)
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
-		try{m_vElemDisc[PT_ALL][i].elemDisc->fast_prepare_elem_loop();}
+		try{m_vElemDisc[PT_ALL][i].elemDisc->fast_prep_elem_loop();}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 						"Cannot prepare element loop.");
 	}
@@ -94,7 +94,7 @@ prepare_elem_loop()
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 						"Cannot set geometric object type for Export " << i);
 		try{m_vDependentData[i]->check_setup();}
-		UG_CATCH_THROW("DataEvaluator::prepare_element: Dependent UserData "<<i<<
+		UG_CATCH_THROW("DataEvaluator::prep_elem: Dependent UserData "<<i<<
 		                " (e.g. Linker or Export) is not ready for evaluation.)");
 	}
 
@@ -124,9 +124,9 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 
 	//	prepare for elem disc
 		try{
-			m_vElemDisc[PT_ALL][i].elemDisc->fast_prepare_elem(elem, u);
+			m_vElemDisc[PT_ALL][i].elemDisc->fast_prep_elem(elem, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::prepare_element: "
+		UG_CATCH_THROW("DataEvaluator::prep_elem: "
 						"Cannot prepare element for IElemDisc "<<i);
 	}
 
@@ -170,7 +170,7 @@ finish_timestep_elem(TElem* elem, const number time, LocalVector& u)
 
 	//	finish timestep for elem disc
 		try{
-			m_vElemDisc[PT_ALL][i].elemDisc->fast_finish_timestep_elem(elem, time, u);
+			m_vElemDisc[PT_ALL][i].elemDisc->fast_fsh_timestep_elem(elem, time, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::finish_timestep_element: "
 						"Cannot finish timestep on element for IElemDisc "<<i);

@@ -15,7 +15,7 @@
 namespace ug{
 
 template <typename TElem>
-inline void IElemDisc::fast_prepare_timestep_elem(TElem* elem, const LocalVector& u)
+inline void IElemDisc::fast_prep_timestep_elem(TElem* elem, const LocalVector& u)
 {
 	UG_ASSERT(m_vPrepareTimestepElemFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 //	cast the method pointer back to the original type
@@ -25,7 +25,7 @@ inline void IElemDisc::fast_prepare_timestep_elem(TElem* elem, const LocalVector
 }
 
 template <typename TElem>
-inline void IElemDisc::fast_prepare_elem(TElem* elem, const LocalVector& u)
+inline void IElemDisc::fast_prep_elem(TElem* elem, const LocalVector& u)
 {
 	UG_ASSERT(m_vPrepareElemFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 //	cast the method pointer back to the original type
@@ -35,7 +35,7 @@ inline void IElemDisc::fast_prepare_elem(TElem* elem, const LocalVector& u)
 }
 
 template <typename TElem>
-inline void IElemDisc::fast_finish_timestep_elem(TElem* elem, const number time, const LocalVector& u)
+inline void IElemDisc::fast_fsh_timestep_elem(TElem* elem, const number time, const LocalVector& u)
 {
 	UG_ASSERT(m_vFinishTimestepElemFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 //	cast the method pointer back to the original type
@@ -51,10 +51,10 @@ inline void IElemDisc::fast_finish_timestep_elem(TElem* elem, const number time,
 template<typename TAssFunc>
 void IElemDisc::set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-	if(!fast_ass_elem_enabled())
+	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
-						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
 	m_vPrepareTimestepElemFct[id] = reinterpret_cast<PrepareTimestepElemFct>(func);
 };
@@ -62,10 +62,10 @@ void IElemDisc::set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 template<typename TAssFunc>
 void IElemDisc::set_prep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-	if(!fast_ass_elem_enabled())
+	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
-						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
 	m_vPrepareElemFct[id] = reinterpret_cast<PrepareElemFct>(func);
 };
@@ -73,10 +73,10 @@ void IElemDisc::set_prep_elem_fct(ReferenceObjectID id, TAssFunc func)
 template<typename TAssFunc>
 void IElemDisc::set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 {
-	if(!fast_ass_elem_enabled())
+	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
-						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
 	m_vPrepareElemLoopFct[id] = static_cast<PrepareElemLoopFct>(func);
 };
@@ -84,65 +84,65 @@ void IElemDisc::set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 template<typename TAssFunc>
 void IElemDisc::set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 {
-	if(!fast_ass_elem_enabled())
+	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
-						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
 	m_vFinishElemLoopFct[id] = static_cast<FinishElemLoopFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::set_ass_JA_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc::set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-	if(!fast_ass_elem_enabled())
+	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
-						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
 	m_vElemJAFct[id] = static_cast<ElemJAFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::set_ass_JM_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc::set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-	if(!fast_ass_elem_enabled())
+	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
-						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
 	m_vElemJMFct[id] = static_cast<ElemJMFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::set_ass_dA_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc::set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-	if(!fast_ass_elem_enabled())
+	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
-						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
 	m_vElemdAFct[id] = static_cast<ElemdAFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::set_ass_dM_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc::set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-	if(!fast_ass_elem_enabled())
+	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
-						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
 	m_vElemdMFct[id] = static_cast<ElemdMFct>(func);
 };
 
 template<typename TAssFunc>
-void IElemDisc::set_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc::set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-	if(!fast_ass_elem_enabled())
+	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
-						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
 	m_vElemRHSFct[id] = static_cast<ElemRHSFct>(func);
 };
@@ -150,10 +150,10 @@ void IElemDisc::set_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func)
 template<typename TAssFunc>
 void IElemDisc::set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
-	if(!fast_ass_elem_enabled())
+	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
-						" use 'enable_fast_ass_elem(true)' in your IElemDisc "
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem-function.");
 	m_vFinishTimestepElemFct[id] = reinterpret_cast<FinishTimestepElemFct>(func);
 };

@@ -249,10 +249,10 @@ class IElemDisc
 	 * 'set_roid' must have been called to set the elem type.
 	 */
 		template <typename TElem>
-		void fast_prepare_timestep_elem(TElem* elem, const LocalVector& u);
+		void fast_prep_timestep_elem(TElem* elem, const LocalVector& u);
 
 	/// prepare the timestep
-		virtual void prepare_timestep_elem(GeometricObject* elem, const LocalVector& u) {}
+		virtual void prep_timestep_elem(GeometricObject* elem, const LocalVector& u) {}
 
 	///	prepares the loop over all elements of one type
 	/**
@@ -262,12 +262,12 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_prepare_elem_loop()
+		void fast_prep_elem_loop()
 		{UG_ASSERT(m_vPrepareElemLoopFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 			(this->*m_vPrepareElemLoopFct[m_id])();}
 
 	///	virtual prepares the loop over all elements of one type
-		virtual void prepare_elem_loop() {}
+		virtual void prep_elem_loop() {}
 
 	///	prepare one elements for assembling
 	/**
@@ -280,10 +280,10 @@ class IElemDisc
 	 * \param[in]		u			The current local solution
 	 */
 		template <typename TElem>
-		void fast_prepare_elem(TElem* elem, const LocalVector& u);
+		void fast_prep_elem(TElem* elem, const LocalVector& u);
 
 	///	virtual prepare one elements for assembling
-		virtual void prepare_elem(GeometricObject* elem, const LocalVector& u) {}
+		virtual void prep_elem(GeometricObject* elem, const LocalVector& u) {}
 
 	///	postprocesses the loop over all elements of one type
 	/**
@@ -293,12 +293,12 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_finish_elem_loop()
+		void fast_fsh_elem_loop()
 		{UG_ASSERT(m_vFinishElemLoopFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 			(this->*m_vFinishElemLoopFct[m_id])();}
 
 	///	virtual postprocesses the loop over all elements of one type
-		virtual void finish_elem_loop() {}
+		virtual void fsh_elem_loop() {}
 
 	/// finish the timestep
 	/**
@@ -308,10 +308,10 @@ class IElemDisc
 	 * 'set_roid' must have been called to set the elem type.
 	 */
 		template <typename TElem>
-		void fast_finish_timestep_elem(TElem* elem, const number time, const LocalVector& u);
+		void fast_fsh_timestep_elem(TElem* elem, const number time, const LocalVector& u);
 
 	/// virtual finish the timestep
-		virtual void finish_timestep_elem(GeometricObject* elem, const number time, const LocalVector& u) {}
+		virtual void fsh_timestep_elem(GeometricObject* elem, const number time, const LocalVector& u) {}
 
 	/// Assembling of Jacobian (Stiffness part)
 	/**
@@ -320,12 +320,12 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_ass_JA_elem(LocalMatrix& J, const LocalVector& u)
+		void fast_add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 		{UG_ASSERT(m_vElemJAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 			(this->*m_vElemJAFct[m_id])(J, u);}
 
 	/// Assembling of Jacobian (Stiffness part)
-		virtual void ass_JA_elem(GeometricObject* elem, LocalMatrix& J, const LocalVector& u) {}
+		virtual void add_jac_A_elem(GeometricObject* elem, LocalMatrix& J, const LocalVector& u) {}
 
 	/// Assembling of Jacobian (Mass part)
 	/**
@@ -334,12 +334,12 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_ass_JM_elem(LocalMatrix& J, const LocalVector& u)
+		void fast_add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 		{UG_ASSERT(m_vElemJMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 			(this->*m_vElemJMFct[m_id])(J, u);}
 
 	/// Assembling of Jacobian (Mass part)
-		virtual void ass_JM_elem(GeometricObject* elem, LocalMatrix& J, const LocalVector& u) {}
+		virtual void add_jac_M_elem(GeometricObject* elem, LocalMatrix& J, const LocalVector& u) {}
 
 	/// Assembling of Defect (Stiffness part)
 	/**
@@ -348,12 +348,12 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_ass_dA_elem(LocalVector& d, const LocalVector& u)
+		void fast_add_def_A_elem(LocalVector& d, const LocalVector& u)
 		{UG_ASSERT(m_vElemdAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 			(this->*m_vElemdAFct[m_id])(d, u);}
 
 	/// virtual Assembling of Defect (Stiffness part)
-		virtual void ass_dA_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
+		virtual void add_def_A_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
 
 	/// Assembling of Defect (Mass part)
 	/**
@@ -362,12 +362,12 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_ass_dM_elem(LocalVector& d, const LocalVector& u)
+		void fast_add_def_M_elem(LocalVector& d, const LocalVector& u)
 		{UG_ASSERT(m_vElemdMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 			(this->*m_vElemdMFct[m_id])(d, u);}
 
 	/// virtual Assembling of Defect (Mass part)
-		virtual void ass_dM_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
+		virtual void add_def_M_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
 
 	/// Assembling of Right-Hand Side
 	/**
@@ -375,12 +375,12 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_ass_rhs_elem(LocalVector& rhs)
+		void fast_add_rhs_elem(LocalVector& rhs)
 		{UG_ASSERT(m_vElemRHSFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 			(this->*m_vElemRHSFct[m_id])(rhs);}
 
 	/// virtual Assembling of Right-Hand Side
-		virtual void ass_rhs_elem(GeometricObject* elem, LocalVector& rhs) {}
+		virtual void add_rhs_elem(GeometricObject* elem, LocalVector& rhs) {}
 
 	/// Virtual destructor
 		virtual ~IElemDisc() {}
@@ -437,18 +437,18 @@ class IElemDisc
 		template <typename TAssFunc> void set_prep_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func);
 
-		template <typename TAssFunc> void set_ass_JA_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_ass_JM_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_ass_dA_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_ass_dM_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_ass_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
 
 	///	sets usage of fast assemble functions
-		void enable_fast_ass_elem(bool bEnable) {m_bFastAssembleEnabled = bEnable;}
+		void enable_fast_add_elem(bool bEnable) {m_bFastAssembleEnabled = bEnable;}
 
 	public:
 	///	returns if fast assembling for elememts is used
-		bool fast_ass_elem_enabled() const {return m_bFastAssembleEnabled;}
+		bool fast_add_elem_enabled() const {return m_bFastAssembleEnabled;}
 
 	/// sets the geometric object type
 	/**

@@ -289,17 +289,17 @@ void NeumannBoundary<TDomain>::register_fvho_func()
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
 
-	this->enable_fast_ass_elem(true);
+	this->enable_fast_add_elem(true);
 
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop_fvho<TElem, TGeomProvider>);
 	this->set_prep_elem_fct(	 id, &T::template prep_elem_fvho<TElem, TGeomProvider>);
-	this->set_ass_rhs_elem_fct(	 id, &T::template add_rhs_elem_fvho<TElem, TGeomProvider>);
+	this->set_add_rhs_elem_fct(	 id, &T::template add_rhs_elem_fvho<TElem, TGeomProvider>);
 	this->set_fsh_elem_loop_fct( id, &T::template finish_elem_loop_fvho<TElem, TGeomProvider>);
 
-	this->set_ass_JA_elem_fct(	 id, &T::template add_JA_elem<TElem, TGeomProvider>);
-	this->set_ass_JM_elem_fct(	 id, &T::template add_JM_elem<TElem, TGeomProvider>);
-	this->set_ass_dA_elem_fct(	 id, &T::template add_dA_elem<TElem, TGeomProvider>);
-	this->set_ass_dM_elem_fct(	 id, &T::template add_dM_elem<TElem, TGeomProvider>);
+	this->set_add_jac_A_elem_fct(	 id, &T::template add_JA_elem<TElem, TGeomProvider>);
+	this->set_add_jac_M_elem_fct(	 id, &T::template add_JM_elem<TElem, TGeomProvider>);
+	this->set_add_def_A_elem_fct(	 id, &T::template add_dA_elem<TElem, TGeomProvider>);
+	this->set_add_def_M_elem_fct(	 id, &T::template add_dM_elem<TElem, TGeomProvider>);
 }
 } // namespace ug
 
