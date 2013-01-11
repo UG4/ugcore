@@ -20,7 +20,10 @@ namespace ug
 
 const number SMALL = 1.0e-12;
 const number SMALL_SQ = SMALL * SMALL;
-const number PI = 3.14159265;
+
+#define _USE_MATH_DEFINES // needed for M_PI macro
+#include <cmath>
+const number PI = M_PI;
 
 ////////////////////////////////////////////////////////////////////////
 //	deg_to_rad
@@ -540,7 +543,7 @@ int BinomCoeff(int n, int k);
  * This method reflects a given vector at a plane specified by n and r0, i.e.
  * the plane P is given such that for all \f$ \vec{x} in P \f$ it holds that
  * \f[
- * 	(\vec{x}Ê- \vec{r0}) \cdot \vec{n} = 0.
+ * 	(\vec{x}ï¿½- \vec{r0}) \cdot \vec{n} = 0.
  * \f]
  *
  * @param vReflectedOut		the reflected vector
