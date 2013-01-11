@@ -59,6 +59,8 @@
 #include "operator/non_linear_operator/assembled_non_linear_operator.h"
 #include "operator/non_linear_operator/line_search.h"
 #include "operator/non_linear_operator/newton_solver/newton.h"
+#include "operator/non_linear_operator/nl_gauss_seidel/nl_gauss_seidel.h"
+#include "operator/non_linear_operator/nl_jacobi/nl_jacobi.h"
 
 // Parallelization
 #ifdef UG_PARALLEL

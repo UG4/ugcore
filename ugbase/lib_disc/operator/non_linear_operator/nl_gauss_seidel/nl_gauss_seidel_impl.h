@@ -113,12 +113,6 @@ bool NLGaussSeidelSolver<TDomain,TAlgebra>::prepare(vector_type& u)
 template <typename TDomain, typename TAlgebra>
 bool NLGaussSeidelSolver<TDomain,TAlgebra>::apply(vector_type& u)
 {
-	/*	TODO: momentan wird zum Lösen der komponentenweisen
-	 * 	nichtlinearen Gleichungen ein skalares Newton-Verfahren benutzt!
-	 * 	Der nichtlineare Gauss-Seidel kann allerdings auch mit anderen Verfahren
-	 * 	(Sekantenverfahren, ect...) zur Lösung dieser Teilprobleme
-	 * 	aufgesetzt werden.-> Verallgemeinerung über set_nonlinear_solver? */
-
 	//	Check for approxSpace
 	if(m_spApproxSpace.invalid())
 		UG_THROW("NLGaussSeidelSolver::apply: Approximation Space not set.");
@@ -152,7 +146,9 @@ bool NLGaussSeidelSolver<TDomain,TAlgebra>::apply(vector_type& u)
 
 	//	get #indices of gridFunction u
 	size_t n_indices = u.size();
-	matrix_type J, J_inv;
+
+	matrix_type &J = m_J->get_matrix();
+	number damp = m_damp;
 
 	//	loop iteration
 	while(!m_spConvCheck->iteration_ended())
@@ -165,37 +161,36 @@ bool NLGaussSeidelSolver<TDomain,TAlgebra>::apply(vector_type& u)
 			return false;
 		}
 
+		// 	TODO: anstatt die ganzen Einträge zu durchlaufen,
+		//	nur die Nachbarschaft einer Komponente nutzen,
+		//	um in der nächsten Iteration m_J und m_d aufzubauen!
+
 		//	loop all DoFs
 		for (size_t i = 0; i < n_indices; i++)
 		{
 			// 	Compute Jacobian J(u) using the updated u-components
+			// TODO: we only need the updated diag here! A more efficient way would be to
+			//	assemble J_ii by collecting the contributions of all elements
+			//	which are associated to i
 			try{
 				m_J->init(u);
 			}UG_CATCH_THROW("NLGaussSeidelSolver::apply: "
 					"Initialization of Jacobian failed.");
 
-			J = m_J->get_matrix();
-			//	copy layouts from parallel matrix J
-			J_inv = J;
-
 			//	get i,i-th block of J: J(i,i)
 			//	depending on the AlgebraType J(i,i) is a 1x1, 2x2, 3x3 Matrix
-			//	invert this block
-			//	TODO: replace this inversion!
-			GetInverse(J_inv(i,i), J(i,i));
-
 			//	m_c_i = m_damp * d_i /J_ii
-			MatMult(m_c[i], m_damp, J_inv(i,i), m_d[i]);
+			InverseMatMult(m_c[i], damp, J(i,i), m_d[i]);
 
 			// 	update i-th block of solution
 			u[i] -= m_c[i];
 
 			// 	Compute d = L(u) using the updated u-blocks
+			//	TODO: replace prepare(m_d,u) & apply(m_d,u)!
+			//	We only need the new m_d due
+			//  to the updated block u_i! (not due to u!)
 			m_N->prepare(m_d, u);
 			m_N->apply(m_d, u);
-
-			// 	TODO: anstatt die ganzen Einträge zu durchlaufen,
-			//	nur die Nachbarschaft einer Komponente in der nächsten Iteration abgrasen!
 		}
 
 		// 	check convergence

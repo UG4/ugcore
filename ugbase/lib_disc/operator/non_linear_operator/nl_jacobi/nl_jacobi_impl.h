@@ -34,6 +34,17 @@
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "nl_jacobi.h"
 
+#define PROFILE_NL_JACOBI
+#ifdef PROFILE_NL_JACOBI
+	#define NL_JACOBI_PROFILE_FUNC()		PROFILE_FUNC_GROUP("NL Jacobi")
+	#define NL_JACOBI_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "NL Jacobi")
+	#define NL_JACOBI_PROFILE_END()		PROFILE_END()
+#else
+	#define NL_JACOBI_PROFILE_FUNC()
+	#define NL_JACOBI_PROFILE_BEGIN(name)
+	#define NL_JACOBI_PROFILE_END()
+#endif
+
 namespace ug{
 
 template <typename TAlgebra>
@@ -84,6 +95,7 @@ bool
 NLJacobiSolver<TAlgebra>::
 init(SmartPtr<IOperator<vector_type> > N)
 {
+	NL_JACOBI_PROFILE_BEGIN(NL_JACOBISolver_init);
 	m_N = N.template cast_dynamic<AssembledOperator<TAlgebra> >();
 	if(m_N.invalid())
 		UG_THROW("NLJacobiSolver: currently only works for AssembledDiscreteOperator.");
@@ -102,7 +114,8 @@ bool NLJacobiSolver<TAlgebra>::prepare(vector_type& u)
 template <typename TAlgebra>
 bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 {
-//	Jacobian
+	NL_JACOBI_PROFILE_BEGIN(NL_JACOBISolver_apply);
+	//	Jacobian
 	if(m_J.invalid() || m_J->discretization() != m_pAss) {
 		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
 		m_J->set_level(m_N->level());
@@ -122,7 +135,9 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 // 	Compute first Defect d = L(u)
 	try{
+		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIComputeDefect1);
 		m_N->apply(m_d, u);
+		NL_JACOBI_PROFILE_END();
 	}UG_CATCH_THROW("NLJacobiSolver::apply: "
 			"Computation of Start-Defect failed.");
 
@@ -131,48 +146,54 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 //	get #indices of gridFunction u
 	size_t n_indices = u.size();
-	matrix_type J, J_inv;
+
+	matrix_type &J = m_J->get_matrix();
+	number damp = m_damp;
 
 //	loop iteration
 	while(!m_spConvCheck->iteration_ended())
 	{
 		// 	set correction c = 0
+		NL_JACOBI_PROFILE_BEGIN(NL_JACOBISetCorretionZero);
 		if(!m_c.set(0.0))
 		{
 			UG_LOG("ERROR in 'NLJacobiSolver::apply':"
 					" Cannot reset correction to zero.\n");
 			return false;
 		}
+		NL_JACOBI_PROFILE_END();
 
-	// 	Compute Jacobian J(u)
+		// 	Compute Jacobian J(u)
+		// TODO: we only need the updated diag here!
+		//	A more efficient way would be to assemble
+		//	J_ii by collecting the contributions of all elements
+		//	which are associated to i
 		try{
+			NL_JACOBI_PROFILE_BEGIN(NL_JACOBIComputeJacobian);
 			m_J->init(u);
+			NL_JACOBI_PROFILE_END();
 		}UG_CATCH_THROW("NLJacobiSolver::apply: "
 				"Initialization of Jacobian failed.");
 
-		J = m_J->get_matrix();
-		//	copy layouts from parallel matrix J
-		J_inv = J;
-
+		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIInvertBlocks);
 		//	loop all DoFs
 		for (size_t i = 0; i < n_indices; i++)
 		{
 			//	get i,i-th block of J: J(i,i)
 			//	depending on the AlgebraType J(i,i) is a 1x1, 2x2, 3x3 Matrix
-			//	invert this block
-			//	TODO: replace this inversion!
-			GetInverse(J_inv(i,i), J(i,i));
-
 			//	m_c_i = m_damp * d_i /J_ii
-			MatMult(m_c[i], m_damp, J_inv(i,i), m_d[i]);
-		}
+			InverseMatMult(m_c[i], damp, J(i,i), m_d[i]);
 
-	// 	update solution
-		u -= m_c;
+			// 	update solution
+			u[i] -= m_c[i];
+		}
+		NL_JACOBI_PROFILE_END();
 
 	// 	compute new Defect
+		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIComputeDefect);
 		m_N->prepare(m_d, u);
 		m_N->apply(m_d, u);
+		NL_JACOBI_PROFILE_END();
 
 	// 	check convergence
 		m_spConvCheck->update(m_d);
