@@ -613,6 +613,7 @@ int pclass::createJITSG(ostream &out, eReturnType r, set<string> &subfunctions)
 		default: UG_ASSERT(0,"?");
 	}    
 	out << ";\n";
+	return true;
 }
 
 int pclass::createC(ostream &out)
