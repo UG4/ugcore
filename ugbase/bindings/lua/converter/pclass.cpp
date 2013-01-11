@@ -191,14 +191,17 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
                         repeat(out, "\t", indent); 
                         out << "goto velocityReturn;\n";
                     }
-                    else if(returnType == RT_DIRICHLET)
+                    else if(returnType == RT_DIRICHLET || returnType == RT_SOURCE)
                     {
                         const char *rt[] = {"f"};
                         createRT(p->opr.op[0], out, rt, 1, indent);
                         
                         out << "\n";
                         repeat(out, "\t", indent); 
-                        out << "goto dirichletReturn;\n";
+						if(returnType == RT_DIRICHLET)
+							out << "goto dirichletReturn;\n";
+						else
+							out << "goto sourceReturn;\n";
                     }
                     else
                     {
@@ -316,7 +319,6 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
 	}
 	return 0;
 }
-
 
 int pclass::createLUA(nodeType *p, ostream &out)
 {
@@ -554,7 +556,7 @@ int pclass::addfunctionC(string name, set<string> &knownFunctions, stringstream 
     
     return true;    
 }
-int pclass::createJITSG(ostream &out, eReturnType r, set<string> subfunctions)
+int pclass::createJITSG(ostream &out, eReturnType r, set<string> &subfunctions)
 {	
     int numRet=0;
     switch(r)
@@ -602,7 +604,15 @@ int pclass::createJITSG(ostream &out, eReturnType r, set<string> subfunctions)
 	for(int i=0; i<nodes.size(); i++)
 		createC(nodes[i], out, 1);
 	out << "\n// END JITSG Generated Code from LUA function " << name << "\n";
-    out << "diffusionReturn:\n";
+	switch(r)
+	{
+		case RT_DIRICHLET: out << "dirichletReturn:\n"; break;
+        case RT_SOURCE: out << "sourceReturn:\n"; break;
+        case RT_DIFFUSION: out << "diffusionReturn:\n"; break;
+        case RT_VELOCITY: out << "velocityReturn:\n"; break;
+		default: UG_ASSERT(0,"?");
+	}    
+	out << ";\n";
 }
 
 int pclass::createC(ostream &out)

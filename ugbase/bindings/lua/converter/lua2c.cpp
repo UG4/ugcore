@@ -28,6 +28,7 @@ string MakeTmpFile(string filename, string extension, bool &bSuccess)
 		if(!FileExists(name)) return name;
 	}
 	bSuccess = false;
+	return "";
 }
 
 bool LUA2C::create(const char *functionName)
@@ -64,9 +65,7 @@ bool LUA2C::create(const char *functionName)
 
 	string c1s=string("gcc -O3 -c ") + p + "lua2c_output.c -o " + p + "lua2c_output.o";
 	UG_DLOG(DID_LUA2C, 2, "compiling line: " << c1s);
-	const char *c=c1s.c_str();
-	//UG_LOG(c << "\n");
-	system(c);
+	system(c1s.c_str());
 
 	bool bTmpFileSuccess=false;
 	m_name = functionName;
@@ -75,11 +74,7 @@ bool LUA2C::create(const char *functionName)
 	
 	string c2s=string("gcc -dynamiclib ") + p+"lua2c_output.o -o " + m_pDyn.c_str();
 	UG_DLOG(DID_LUA2C, 2, "linking line: " << c2s);
-	const char *c2 = c2s.c_str();
-	//UG_LOG(c2 << "\n");
-	system(c2);	
-
-	//UG_LOG("pDyn = " << pDyn << "\n");
+	system(c2s.c_str());	
 
 	m_libHandle = OpenLibrary(m_pDyn.c_str());
 

@@ -144,6 +144,12 @@ option(BUILD_UGDOCU "If enabled, every build builds a new completion file for ug
 option(CRS_ALGEBRA "Use the CRS Sparse Matrix" OFF)
 option(CPU_ALGEBRA "Use the old CPU Sparse Matrix" ON)
 
+if(APPLE)
+	option(USE_LUA2C "Use LUA2C" ON)
+else(APPLE)
+	option(USE_LUA2C "Use LUA2C" OFF)
+endif(APPLE)
+
 
 ################################################################################
 # set default values for pseudo-options
@@ -541,6 +547,12 @@ IF(CXX11)
 	ENDIF()
 ENDIF(CXX11)
 
+########################################
+# LUA2C
+if(USE_LUA2C)
+	message(STATUS "Info: Using LUA2C")
+	add_definitions(-DUSE_LUA2C)
+endif()
 
 ########################################
 # buildAlgebra

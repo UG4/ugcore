@@ -86,8 +86,9 @@ set(headersLua	externals/lua/lapi.h
 set(srcUGScript		lua_util.cpp
 					info_commands.cpp
 					bindings_lua.cpp
-					lua_debug.cpp
-					converter/parser.cpp
+					lua_debug.cpp)
+
+set(srcLUA2C		converter/parser.cpp
 					converter/lexer.cpp
 					converter/pclass.cpp
 					converter/converter.cpp
@@ -104,10 +105,14 @@ if(buildAlgebra)
 	# add the source files
 	set(srcUGScript ${srcUGScript}
 					lua_user_data.cpp)
-
 else(buildAlgebra)
 
 endif(buildAlgebra)
+
+if(USE_LUA2C)
+	set(srcUGScript ${srcUGScript}
+		${srcLUA2C})
+endif()
 
 
 set(Sources ${srcUGScript} ${srcLua})

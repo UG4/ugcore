@@ -895,6 +895,9 @@ bool AssertPluginLoaded(const char *name)
 
 void EnableLUA2C(bool b)
 {
+#ifndef USE_LUA2C
+	UG_LOG("Warning: LUA2C not enabled.\n")
+#endif		
 	useLua2C=b;
 }
 

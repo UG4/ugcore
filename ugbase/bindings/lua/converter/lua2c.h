@@ -23,7 +23,7 @@ private:
 	typedef bool (*LUA2C_Function)(double *, double *) ;
 	
 	DynLibHandle m_libHandle;
-	std::string m_pDyn;;
+	std::string m_pDyn;
 	
 
 public:

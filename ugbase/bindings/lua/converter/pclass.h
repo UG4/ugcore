@@ -180,7 +180,7 @@ public:
     
     
 	int	createC(nodeType *p, std::ostream &out, int indent);
-    int createJITSG(std::ostream &out, eReturnType r, std::set<std::string> subfunctions);
+    int createJITSG(std::ostream &out, eReturnType r, std::set<std::string> &subfunctions);
 	int	createLUA(nodeType *p, std::ostream &out);
 	void reduce();
 	

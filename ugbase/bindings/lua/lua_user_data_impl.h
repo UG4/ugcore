@@ -12,10 +12,6 @@
 #include "lib_disc/spatial_disc/user_data/data_linker_traits.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
-// lua2c is enabled/disabled with EnableLUA2C(true/false) and is by default set
-// to false. this is only for safety.
-#define USE_LUA2C
-
 #if 0
 #define PROFILE_CALLBACK() PROFILE_FUNC_GROUP("luacallback")
 #define PROFILE_CALLBACK_BEGIN(name) PROFILE_BEGIN_GROUP(name, "luacallback")
@@ -385,9 +381,11 @@ LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed)
 	m_L = ug::script::GetDefaultLuaState();
 	m_cbValueRef = LUA_NOREF;
 	m_cbDerivRef.clear();
-	m_luaC_Deriv.clear();
 	m_cbDerivName.clear();
 	set_lua_value_callback(luaCallback, numArgs);
+#ifdef USE_LUA2C
+	m_luaC_Deriv.clear();
+#endif
 }
 
 template <typename TData, int dim, typename TDataIn>
@@ -446,10 +444,13 @@ void LuaUserFunction<TData,dim,TDataIn>::set_lua_value_callback(const char* luaC
 	m_numArgs = numArgs;
 	m_cbDerivName.resize(numArgs);
 	m_cbDerivRef.resize(numArgs, LUA_NOREF);
-	m_luaC_Deriv.resize(numArgs);
 
 //	set num inputs for linker
 	set_num_input(numArgs);
+
+#ifdef USE_LUA2C
+	m_luaC_Deriv.resize(numArgs);
+#endif
 }
 
 
@@ -651,6 +652,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 		 	 	 	 	 	 	 	 	 	 	 	 const MathVector<dim>& x, number time, int si, size_t arg) const
 {
 	PROFILE_CALLBACK();
+#ifdef USE_LUA2C
 	if(useLua2C && m_luaC_Deriv[arg].is_valid()
 		&& dim+m_numArgs+1 < 20 && m_luaC_Deriv[arg].num_out() == lua_traits<TData>::size)
 	{
@@ -676,6 +678,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
 		return;
 	}
 	else
+#endif
 	{
 		UG_ASSERT(dataIn.size() == m_numArgs, "Number of arguments mismatched.");
 		UG_ASSERT(arg < m_numArgs, "Argument does not exist.");
