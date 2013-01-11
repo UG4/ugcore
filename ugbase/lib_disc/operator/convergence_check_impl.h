@@ -355,7 +355,7 @@ bool CompositeConvCheck<TVector, TDomain>::post()
 		red[i]    = reduction(i) < m_relReduction[i];
 	}
 
-	success = allValid && step() < m_maxSteps;
+	success = allValid && step() <= m_maxSteps;
 
 	if (m_verbose)
 	{
