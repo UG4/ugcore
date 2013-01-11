@@ -26,36 +26,9 @@
 #include "lib_disc/local_finite_element/lagrange/lagrangep1.h"
 #include "lib_disc/quadrature/gauss_quad/gauss_quad.h"
 #include "finite_volume_util.h"
+#include "finite_volume_base.h"
 
 namespace ug{
-
-
-///	a singleton class that returns a new id for each type
-class UniqueFVGeomIDProvider{
-	public:
-		static UniqueFVGeomIDProvider& inst(){
-			static UniqueFVGeomIDProvider instance;
-			return instance;
-		}
-
-		size_t new_id()	{return ++m_id;}
-
-	private:
-		UniqueFVGeomIDProvider() : m_id(0)	{}
-		size_t m_id;
-};
-
-///	This method associates a unique unsigned integer value with each type.
-template <class TType>
-size_t GetUniqueFVGeomID()
-{
-	static size_t typeID = UniqueFVGeomIDProvider::inst().new_id();
-	return typeID;
-}
-
-
-/// base class for all FVGeometries
-class FVGeometryBase {};
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -26,10 +26,11 @@
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/local_finite_element/crouzeix-raviart/crouzeix_raviart.h"
 #include "lib_disc/quadrature/gauss_quad/gauss_quad.h"
-#include "finite_volume_util.h"
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/domain_util_impl.h"
-#include "finite_volume_geometry.h"
+
+#include "finite_volume_base.h"
+#include "finite_volume_util.h"
 
 namespace ug{
 
