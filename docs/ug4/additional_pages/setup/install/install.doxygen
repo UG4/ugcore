@@ -4,6 +4,7 @@
 \em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
 It's the only chance we have to keep these guides updated and correct. 
 
+  - \subpage pageAdditionalSoftware "OS-independent (old)"
   - \subpage pageUG4OnLinux
   - \subpage pageUG4OnMac
   - \subpage pageUG4OnWindows

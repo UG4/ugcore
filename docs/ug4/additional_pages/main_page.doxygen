@@ -3,7 +3,7 @@
 \section secAbout About
 
 \ug4 has been written and is still developed at the <em>Goethe Center for 
-Scientific Computing at the University of Frankfurt, Germany </em> 
+Scientific Computing</em> at the <em>University of Frankfurt, Germany </em> 
 (http://www.g-csc.de).
 
 
@@ -19,7 +19,7 @@ environment
 
 
 <hr>
-\section secUserManual User Manual:
+\section secUserManual User Manual
 - Overview
 	- \subpage pageUG4Introduction
 	- \subpage pageUG4Releases
@@ -71,7 +71,7 @@ environment
 		- \ref pageUG4SSH	
 	- \ref pageDebuggingCPP
 
-- \ref pageTroubleshooting
+- \subpage pageTroubleshooting
 
 - Copyrights and Licenses
 	- \subpage pageCopyrights
