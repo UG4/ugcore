@@ -63,13 +63,16 @@
      MATH_MAX = 279,
      MATH_MIN = 280,
      MATH_PI = 281,
-     OR = 282,
-     AND = 283,
-     NE = 284,
-     EQ = 285,
-     LE = 286,
-     GE = 287,
-     UMINUS = 288
+     TK_DO = 282,
+     TK_FOR = 283,
+     TK_BREAK = 284,
+     OR = 285,
+     AND = 286,
+     NE = 287,
+     EQ = 288,
+     LE = 289,
+     GE = 290,
+     UMINUS = 291
    };
 #endif
 /* Tokens.  */
@@ -97,13 +100,16 @@
 #define MATH_MAX 279
 #define MATH_MIN 280
 #define MATH_PI 281
-#define OR 282
-#define AND 283
-#define NE 284
-#define EQ 285
-#define LE 286
-#define GE 287
-#define UMINUS 288
+#define TK_DO 282
+#define TK_FOR 283
+#define TK_BREAK 284
+#define OR 285
+#define AND 286
+#define NE 287
+#define EQ 288
+#define LE 289
+#define GE 290
+#define UMINUS 291
 
 
 
@@ -118,7 +124,7 @@ typedef union YYSTYPE
 	const char* pFunction;
 }
 /* Line 1529 of yacc.c.  */
-#line 122 "parser.hpp"
+#line 128 "parser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

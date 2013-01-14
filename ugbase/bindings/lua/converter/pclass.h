@@ -297,6 +297,23 @@ public:
         p->opr.op[2] = op3;
 		return p;
 	}
+	
+	static nodeType *forOp(nodeType *_var, nodeType *_start, nodeType *_stop, nodeType *_step, nodeType *_expr)
+	{
+		nodeType *p;
+		p = new nodeType;
+
+		p->type = typeOpr;
+		p->opr.oper = TK_FOR;
+		p->opr.nops = 5;
+		p->opr.op = new nodeType*[5];
+		p->opr.op[0] = _var;
+		p->opr.op[1] = _start;
+        p->opr.op[2] = _stop;
+		p->opr.op[3] = _step;
+		p->opr.op[4] = _expr;
+		return p;
+	}
 
     nodeType *function(nodeType *op1, nodeType *op2)
     {

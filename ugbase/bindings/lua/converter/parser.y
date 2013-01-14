@@ -33,7 +33,7 @@ void yyerror(const char *s);
 %token MATH_SIN MATH_COS MATH_EXP MATH_ABS MATH_LOG MATH_LOG10 MATH_SQRT
 %token MATH_FLOOR MATH_CEIL MATH_POW 
 %token MATH_MAX MATH_MIN 
-%token MATH_PI 
+%token MATH_PI TK_DO TK_FOR TK_BREAK
 %nonassoc ELSE
 
 %left AND OR
@@ -43,7 +43,7 @@ void yyerror(const char *s);
 
 %nonassoc UMINUS
 
-%type <nPtr> stmt expr stmt_list funcstat arguments exprlist arguments2 elseblock
+%type <nPtr> stmt expr stmt_list funcstat arguments exprlist arguments2 elseblock forStep
 
 %%
 
@@ -63,7 +63,14 @@ stmt:
 		| LOCAL VARIABLE				{ $$ = NULL; globalP->set_local($2); }        
 		| VARIABLE '=' expr				{ $$ = globalP->opr2('=', globalP->id($1), $3); globalP->assert_local($1); }
         | IF expr THEN stmt_list elseblock END	{ $$ = globalP->opr3(IF, $2, $4, $5); }        
+		| TK_FOR VARIABLE '=' expr ',' expr forStep TK_DO stmt_list END { $$ = globalP->forOp(globalP->id($2), $4, $6, $7, $9); }
+		| TK_BREAK						{ $$ = globalP->opr0(TK_BREAK); }
         ;
+
+forStep:
+		',' expr						{ $$ = $2; }
+		|								{ $$ = globalP->con(1); }
+		;
 
 elseblock:
         ELSEIF expr THEN stmt_list elseblock { $$ = globalP->opr3(ELSEIF, $2, $4, $5); }
@@ -128,6 +135,7 @@ expr:
         | MATH_MIN '(' expr ',' expr ')' { $$ = globalP->opr2(MATH_MIN, $3, $5); }
         | MATH_MAX '(' expr ',' expr ')' { $$ = globalP->opr2(MATH_MAX, $3, $5); }
         | MATH_PI                  { $$ = globalP->opr0(MATH_PI); }
+		
         ;
 
 %%

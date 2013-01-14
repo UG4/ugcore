@@ -145,7 +145,7 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
 					
                 case 'C':
                 {
-                    out << id2variable[p->opr.op[0]->id.i] << "(";
+                    out << "LUA2C_Subfunction_" << id2variable[p->opr.op[0]->id.i] << "(";
                     nodeType *a = p->opr.op[1];
 					while(a->type == typeOpr && a->opr.oper == ',')
 					{
@@ -224,6 +224,34 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
                     }
                     break;
 				}
+				
+				case TK_FOR:
+					repeat(out, "\t", indent);
+					out << "for(";
+					createC(p->opr.op[0], out, 0);
+					out << " = ";
+					createC(p->opr.op[1], out, 0);
+					out << "; ";
+					createC(p->opr.op[0], out, 0);
+					out << " <= ";
+					createC(p->opr.op[2], out, 0);
+					out << "; ";
+					createC(p->opr.op[0], out, 0);
+					out << " += ";
+					createC(p->opr.op[3], out, 0);
+					out << ")\n";
+					repeat(out, "\t", indent);
+					out << "{\n";
+						createC(p->opr.op[4], out, indent+1);
+					repeat(out, "\t", indent);
+					out << "}\n";
+					break;
+					
+				case TK_BREAK:
+					repeat(out, "\t", indent);
+					out << "break;\n";
+					break;
+					
 				case UMINUS:
 					out << "-(";
 					createC(p->opr.op[0], out, 0);
@@ -580,9 +608,9 @@ int pclass::createJITSG(ostream &out, eReturnType r, set<string> &subfunctions)
         subfunctions.insert(id2variable[*it]);
     
     // escape variables
-    //for(map<size_t, string>::iterator it = id2variable.begin(); it != id2variable.end(); ++it)
-	  //  if(is_local((*it).first))
-        //    (*it).second = "_" + (*it).second;
+    for(map<size_t, string>::iterator it = id2variable.begin(); it != id2variable.end(); ++it)
+		if(is_local((*it).first))
+			(*it).second = "_" + (*it).second;
     // TODO: also escape functions
     
     // rename arguments to x, y, t
@@ -668,7 +696,7 @@ int pclass::createC(ostream &out)
 
 int pclass::declare(ostream &out)
 {
-    out << "double " << name << "(";
+    out << "double LUA2C_Subfunction_" << name << "(";
 	nodeType *a = args;
 	while(a->type == typeOpr)
 	{

@@ -37,14 +37,20 @@ number         ({n}|{n}[.]{n}){exp}?
 "<="            return LE;
 "=="            return EQ;
 "~="            return NE;
-"if"            return IF;
-"then"          return THEN;
 "end"			return END;
 "local"			return LOCAL;
 "function"		return FUNCTION;
 "return"		return RETURN;
+
+"if"            return IF;
+"then"          return THEN;
 "else"          return ELSE;
 "elseif"        return ELSEIF;
+
+"for"			return TK_FOR;
+"do"			return TK_DO;
+"break"			return TK_BREAK;
+
 
 "and"			return AND;
 "or"			return OR;
