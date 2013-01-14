@@ -1484,8 +1484,10 @@ class FVGeometry : public FVGeometryBase
 		bool update_local_data();
 
 	/// update Geometry for roid
-		bool update_local(ReferenceObjectID roid, int orderShape,
-		                  int quadOrderSCVF, int quadOrderSCV);
+		bool update_local(ReferenceObjectID roid,
+		                  int orderShape = TOrder,
+		                  int quadOrderSCVF = TQuadOrderSCVF,
+		                  int quadOrderSCV = TQuadOrderSCV);
 
 	/// update data for given element
 		bool update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
@@ -2032,6 +2034,10 @@ class DimFVGeometry : public FVGeometryBase
 	///	update local data
 		bool update_local(ReferenceObjectID roid, int orderShape,
 		                  int quadOrderSCVF, int quadOrderSCV);
+		bool update_local(ReferenceObjectID roid, int orderShape)
+		{
+			return update_local(roid, orderShape, orderShape, orderShape);
+		}
 
 	/// update data for given element
 		bool update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
