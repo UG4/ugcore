@@ -629,7 +629,7 @@ int pclass::createJITSG(ostream &out, eReturnType r, set<string> &subfunctions)
     returnType = r;
 			
 	out << "\t// code:\n";
-	for(int i=0; i<nodes.size(); i++)
+	for(size_t i=0; i<nodes.size(); i++)
 		createC(nodes[i], out, 1);
 	out << "\n// END JITSG Generated Code from LUA function " << name << "\n";
 	switch(r)
