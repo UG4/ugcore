@@ -38,12 +38,11 @@ HFV1Geometry()
 
 
 template <typename TElem, int TWorldDim>
-bool
-HFV1Geometry<TElem, TWorldDim>::
+void HFV1Geometry<TElem, TWorldDim>::
 update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	// If already update for this element, do nothing
-	if(m_pElem == elem) return true;
+	if(m_pElem == elem) return;
 	else m_pElem = elem;
 
 	// get grid
@@ -513,16 +512,12 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 		m_vLocSCVFIP.push_back(rSCVF.local_ip());
 	}
 
-
 //	print();
-	return true;
 }
 
 // debug output
 template <typename TElem, int TWorldDim>
-void
-HFV1Geometry<TElem, TWorldDim>::
-print()
+void HFV1Geometry<TElem, TWorldDim>::print()
 {
 	UG_LOG("\nFVG hanging debug output\n");
 	UG_LOG("LocalCenter=" << m_locMid << ", globalCenter="<<m_gloMid<<"\n");

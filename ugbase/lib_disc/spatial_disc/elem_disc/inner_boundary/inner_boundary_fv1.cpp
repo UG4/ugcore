@@ -42,9 +42,11 @@ prep_elem(TElem* elem, const LocalVector& u)
 
 	// update Geometry for this element
 	TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
-	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-		UG_THROW("FV1InnerBoundaryElemDisc::prep_elem: "
-						"Cannot update Finite Volume Geometry.\n");
+	try{
+		geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler()));
+	}
+	UG_CATCH_THROW("FV1InnerBoundaryElemDisc::prep_elem: "
+						"Cannot update Finite Volume Geometry.");
 }
 
 // assemble stiffness part of Jacobian

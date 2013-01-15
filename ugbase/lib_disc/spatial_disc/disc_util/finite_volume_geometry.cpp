@@ -950,7 +950,7 @@ FV1Geometry()
 }
 
 template <typename TElem, int TWorldDim>
-bool FV1Geometry<TElem, TWorldDim>::
+void FV1Geometry<TElem, TWorldDim>::
 update_local_data()
 {
 // 	set corners of element as local centers of nodes
@@ -1028,18 +1028,15 @@ update_local_data()
 // 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vLocSCVF_IP[i] = scvf(i).local_ip();
-
-	return true;
 }
 
 /// update data for given element
 template <typename TElem, int TWorldDim>
-bool
-FV1Geometry<TElem, TWorldDim>::
+void FV1Geometry<TElem, TWorldDim>::
 update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	if already update for this element, do nothing
-	if(m_pElem == elem) return true; else m_pElem = elem;
+	if(m_pElem == elem) return; else m_pElem = elem;
 
 // 	remember global position of nodes
 	for(size_t i = 0; i < m_rRefElem.num(0); ++i)
@@ -1122,13 +1119,12 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return true;
-	else return update_boundary_faces(elem, vCornerCoords, ish);
+	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	else update_boundary_faces(elem, vCornerCoords, ish);
 }
 
 template <typename TElem, int TWorldDim>
-bool
-FV1Geometry<TElem, TWorldDim>::
+void FV1Geometry<TElem, TWorldDim>::
 update_boundary_faces(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
@@ -1235,8 +1231,6 @@ update_boundary_faces(TElem* elem, const MathVector<worldDim>* vCornerCoords, co
 			}
 		}
 	}
-
-	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1246,8 +1240,7 @@ update_boundary_faces(TElem* elem, const MathVector<worldDim>* vCornerCoords, co
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int TDim, int TWorldDim>
-bool
-DimFV1Geometry<TDim, TWorldDim>::
+void DimFV1Geometry<TDim, TWorldDim>::
 update_local_data()
 {
 //	get reference element
@@ -1323,7 +1316,6 @@ update_local_data()
 	// Shapes and Derivatives
 	/////////////////////////
 
-	try{
 	const LocalShapeFunctionSet<dim>& TrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, 1));
 
@@ -1343,34 +1335,22 @@ update_local_data()
 		TrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].vLocPos[0]);
 	}
 
-	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
 	}
-
-	}catch(UGError_ReferenceElementMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
+	UG_CATCH_THROW("DimFV1Geometry: update failed.");
 
 // 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vLocSCVF_IP[i] = scvf(i).local_ip();
-
-	return true;
 }
 
 
 /// update data for given element
 template <int TDim, int TWorldDim>
-bool
-DimFV1Geometry<TDim, TWorldDim>::
+void DimFV1Geometry<TDim, TWorldDim>::
 update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
-	if(m_pElem == pElem) return true; else m_pElem = pElem;
+	if(m_pElem == pElem) return; else m_pElem = pElem;
 
 //	refresh local data, if different roid given
 	if(m_roid != pElem->reference_object_id())
@@ -1379,7 +1359,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		m_roid = (ReferenceObjectID) pElem->reference_object_id();
 
 	//	update local data
-		if(!update_local_data()) return false;
+		update_local_data();
 	}
 
 //	get reference element
@@ -1418,7 +1398,6 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	}
 
 //	get reference mapping
-	try{
 	DimReferenceMapping<dim, worldDim>& rMapping = ReferenceMappingProvider::get<dim, worldDim>(m_roid);
 	rMapping.update(vCornerCoords);
 
@@ -1470,25 +1449,16 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
-	}catch(UGError_ReferenceElementMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
 	}
-	}catch(UGError_ReferenceMappingMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
+	UG_CATCH_THROW("DimFV1Geometry: update failed.");
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return true;
-	else return update_boundary_faces(pElem, vCornerCoords, ish);
+	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
 template <int TDim, int TWorldDim>
-bool
-DimFV1Geometry<TDim, TWorldDim>::
+void DimFV1Geometry<TDim, TWorldDim>::
 update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
@@ -1524,11 +1494,9 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 	const DimReferenceElement<dim>& rRefElem
 		= ReferenceElementProvider::get<dim>(m_roid);
 
-	try{
 	DimReferenceMapping<dim, worldDim>& rMapping = ReferenceMappingProvider::get<dim, worldDim>(m_roid);
 	rMapping.update(vCornerCoords);
 
-	try{
 	const LocalShapeFunctionSet<dim>& TrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, 1));
 
@@ -1611,24 +1579,8 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		}
 	}
 
-	}catch(UGError_ReferenceElementMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
 	}
-	}catch(UGError_ReferenceMappingMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
-	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
-
-//	done
-	return true;
+	UG_CATCH_THROW("DimFV1Geometry: update failed.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1649,42 +1601,36 @@ FVGeometry()
 }
 
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
-bool FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
 update_local(ReferenceObjectID roid, int orderShape,
                   int quadOrderSCVF, int quadOrderSCV)
 {
 	if(roid != geometry_traits<TElem>::REFERENCE_OBJECT_ID)
 	{
-		UG_LOG("ERROR in 'FVGeometry::update': Geometry only for "
+		UG_THROW("FVGeometry::update: Geometry only for "
 				<<geometry_traits<TElem>::REFERENCE_OBJECT_ID<<", but "
-				<<roid<<" requested.\n");
-		return false;
+				<<roid<<" requested.");
 	}
 	if(orderShape != TOrder)
 	{
-		UG_LOG("ERROR in 'FVGeometry::update': Geometry only for shape order"
-				<<TOrder<<", but "<<orderShape<<" requested.\n");
-		return false;
+		UG_THROW("FVGeometry::update: Geometry only for shape order"
+				<<TOrder<<", but "<<orderShape<<" requested.");
 	}
 	if(quadOrderSCVF > TQuadOrderSCVF)
 	{
-		UG_LOG("ERROR in 'FVGeometry::update': Geometry only for scvf integration order "
-				<< TQuadOrderSCVF<<", but order "<<quadOrderSCVF<<" requested.\n");
-		return false;
+		UG_THROW("FVGeometry::update: Geometry only for scvf integration order "
+				<< TQuadOrderSCVF<<", but order "<<quadOrderSCVF<<" requested.");
 	}
 	if(quadOrderSCV > TQuadOrderSCV)
 	{
-		UG_LOG("ERROR in 'FVGeometry::update': Geometry only for scv integration order "
-				<< TQuadOrderSCV<<", but order "<<quadOrderSCV<<" requested.\n");
-		return false;
+		UG_THROW("FVGeometry::update: Geometry only for scv integration order "
+				<< TQuadOrderSCV<<", but order "<<quadOrderSCV<<" requested.");
 	}
-
-	return true;
 }
 
 
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
-bool FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
 update_local_data()
 {
 //	get reference object id
@@ -1816,19 +1762,16 @@ update_local_data()
 	for(size_t i = 0; i < num_scv(); ++i)
 		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
 			m_vLocSCV_IP[allIP++] = scv(i).local_ip(ip);
-
-	return true;
 }
 
 
 /// update data for given element
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
-bool
-FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
 update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
-	if(m_pElem == pElem) return true; else m_pElem = pElem;
+	if(m_pElem == pElem) return; else m_pElem = pElem;
 
 //	update reference mapping
 	m_rMapping.update(vCornerCoords);
@@ -1927,13 +1870,12 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 			m_vGlobSCV_IP[allIP++] = scv(i).global_ip(ip);
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return true;
-	else return update_boundary_faces(pElem, vCornerCoords, ish);
+	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
-bool
-FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
 update_boundary_faces(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
@@ -2059,8 +2001,6 @@ update_boundary_faces(TElem* pElem, const MathVector<worldDim>* vCornerCoords, c
 			}
 		}
 	}
-
-	return true;
 }
 
 
@@ -2077,7 +2017,7 @@ DimFVGeometry()	: m_pElem(NULL) {}
 
 
 template <int TDim, int TWorldDim>
-bool DimFVGeometry<TDim, TWorldDim>::
+void DimFVGeometry<TDim, TWorldDim>::
 update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quadOrderSCV)
 {
 //	save setting we prepare the local data for
@@ -2150,12 +2090,10 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 
 
 //	get trial space
-	try{
 	const LocalShapeFunctionSet<dim>& rTrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, m_orderShape));
 
 //	request for quadrature rule
-	try{
 	const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
 	const QuadratureRule<dim-1>& rSCVFQuadRule
 			= QuadratureRuleProvider<dim-1>::get_rule(scvfRoid, m_quadOrderSCVF);
@@ -2205,13 +2143,8 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 			map.local_to_global(m_vSCVF[i].vLocalIP[ip], rSCVFQuadRule.point(ip));
 	}
 
-	}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
-		UG_LOG("ERROR in DimFVGeometry::update: " << ex.get_msg() << ".\n");
-		return false;
-	}
 
 //	request for quadrature rule
-	try{
 	const ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
 	const QuadratureRule<dim>& rSCVQuadRule
 			= QuadratureRuleProvider<dim>::get_rule(scvRoid, m_quadOrderSCV);
@@ -2257,11 +2190,6 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 			map.local_to_global(m_vSCV[i].vLocalIP[ip], rSCVQuadRule.point(ip));
 	}
 
-	}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
-		UG_LOG("ERROR in DimFVGeometry::update: " << ex.get_msg() << ".\n");
-		return false;
-	}
-
 	/////////////////////////
 	// Shapes and Derivatives
 	/////////////////////////
@@ -2290,17 +2218,8 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 			rTrialSpace.grads(&(m_vSCV[i].vvLocalGrad[ip][0]), m_vSCV[i].local_ip(ip));
 		}
 
-	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
 	}
-
-	}catch(UGError_ReferenceElementMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
+	UG_CATCH_THROW("DimFV1Geometry: update failed.");
 
 // 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
 	m_vLocSCVF_IP.resize(m_numSCVFIP);
@@ -2317,21 +2236,18 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 	for(size_t i = 0; i < num_scv(); ++i)
 		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
 			m_vLocSCV_IP[allIP++] = scv(i).local_ip(ip);
-
-	return true;
 }
 
 
 /// update data for given element
 template <int TDim, int TWorldDim>
-bool
-DimFVGeometry<TDim, TWorldDim>::
+void DimFVGeometry<TDim, TWorldDim>::
 update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
        int orderShape, int quadOrderSCVF, int quadOrderSCV,
        const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
-	if(m_pElem == pElem) return true; else m_pElem = pElem;
+	if(m_pElem == pElem) return; else m_pElem = pElem;
 
 //	get reference element type
 	ReferenceObjectID roid = (ReferenceObjectID)pElem->reference_object_id();
@@ -2339,8 +2255,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 //	if already prepared for this roid, skip update of local values
 	if(m_roid != roid || orderShape != m_orderShape ||
 	   quadOrderSCVF != m_quadOrderSCVF || quadOrderSCV != m_quadOrderSCV)
-		if(!update_local(roid, orderShape, quadOrderSCVF, quadOrderSCV))
-			return false;
+			update_local(roid, orderShape, quadOrderSCVF, quadOrderSCV);
 
 //	get reference element mapping
 	try{
@@ -2378,7 +2293,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		if(pElem->reference_object_id() != ROID_PYRAMID)
 			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
 	//	special case for pyramid, last scv
-		else throw(UGError("Pyramid Not Implemented"));
+		else UG_THROW("Pyramid Not Implemented");
 	}
 
 	for(size_t i = 0; i < num_scvf(); ++i)
@@ -2393,10 +2308,8 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		rMapping.sqrt_gram_det(&m_vSCV[i].vDetJ[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
 	}
 
-	}catch(UGError_ReferenceMappingMissing& ex){
-		UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
-		return false;
 	}
+	UG_CATCH_THROW("DimFVGeometry: update failed.");
 
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
@@ -2421,13 +2334,12 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 			m_vGlobSCV_IP[allIP++] = scv(i).global_ip(ip);
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return true;
-	else return update_boundary_faces(pElem, vCornerCoords, ish);
+	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
 template <int TDim, int TWorldDim>
-bool
-DimFVGeometry<TDim, TWorldDim>::
+void DimFVGeometry<TDim, TWorldDim>::
 update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
@@ -2464,16 +2376,13 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 	DimReferenceMapping<dim, worldDim>& rMapping
 		= ReferenceMappingProvider::get<dim, worldDim>(m_roid);
 
-	try{
 	const DimReferenceElement<dim>& rRefElem
 		= ReferenceElementProvider::get<dim>(m_roid);
 
-	try{
 	const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
 	const QuadratureRule<dim-1>& rSCVFQuadRule
 			= QuadratureRuleProvider<dim-1>::get_rule(scvfRoid, m_quadOrderSCVF);
 
-	try{
 	const LocalShapeFunctionSet<dim>& rTrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, m_orderShape));
 
@@ -2575,29 +2484,8 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		}
 	}
 
-	}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
-		UG_LOG("ERROR in DimFVGeometry::update: " << ex.get_msg() << ".\n");
-		return false;
 	}
-
-	}catch(UGError_ReferenceMappingMissing& ex){
-		UG_LOG("ERROR in FEGeometry::update: " << ex.get_msg() << ".\n");
-		return false;
-	}
-
-	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
-
-	}catch(UGError_ReferenceElementMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimFV1Geometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
-
-	return true;
+	UG_CATCH_THROW("DimFVGeometry: update failed.");
 }
 
 
@@ -2721,12 +2609,11 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 
 /// update data for given element
 template <typename TElem, int TWorldDim>
-bool
-FV1ManifoldBoundary<TElem, TWorldDim>::
+void FV1ManifoldBoundary<TElem, TWorldDim>::
 update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	// 	If already update for this element, do nothing
-	if (m_pElem == elem) return true;
+	if (m_pElem == elem) return;
 	else m_pElem = elem;
 
 	// 	remember global position of nodes
@@ -2795,8 +2682,6 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 			m_vGlobBFIP.push_back(rBF.global_ip(ip));
 		}
 	}
-
-	return true;
 }
 
 //////////////////////

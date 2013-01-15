@@ -1265,8 +1265,10 @@ number IntegralNormalComponentOnManifoldUsingFV1Geom(TConstIterator iterBegin,
 		CollectCornerCoordinates(vCorner, *pElem, aaPos, true);
 
 	//	compute bf and grads at bip for element
-		if(!geo.update(pElem, &vCorner[0], ish))
-			UG_THROW("IntegralNormalComponentOnManifold: "
+		try{
+			geo.update(pElem, &vCorner[0], ish);
+		}
+		UG_CATCH_THROW("IntegralNormalComponentOnManifold: "
 					"Cannot update Finite Volume Geometry.");
 
 	//	specify, which subsets are boundary
@@ -1601,8 +1603,10 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 			CollectCornerCoordinates(vCorner, *elem, u.domain()->position_accessor(), true);
 
 		//	compute bf and grads at bip for element
-			if(!geo.update(elem, &vCorner[0], u.domain()->subset_handler().get()))
-				UG_THROW("IntegrateNormalGradientOnManifold: "
+			try{
+				geo.update(elem, &vCorner[0], u.domain()->subset_handler().get());
+			}
+			UG_CATCH_THROW("IntegrateNormalGradientOnManifold: "
 						"Cannot update Finite Volume Geometry.");
 
 		//	get fct multi-indeces of element

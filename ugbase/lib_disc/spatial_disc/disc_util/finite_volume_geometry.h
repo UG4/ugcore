@@ -405,14 +405,14 @@ class FV1Geometry : public FVGeometryBase
 		FV1Geometry();
 
 	///	update local data
-		bool update_local_data();
+		void update_local_data();
 
 	/// update data for given element
-		bool update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		bool update_boundary_faces(TElem* elem,
+		void update_boundary_faces(TElem* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -896,14 +896,14 @@ class DimFV1Geometry : public FVGeometryBase
 		DimFV1Geometry() : m_pElem(NULL), m_roid(ROID_UNKNOWN) {};
 
 	///	update local data
-		bool update_local_data();
+		void update_local_data();
 
 	/// update data for given element
-		bool update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		bool update_boundary_faces(GeometricObject* elem,
+		void update_boundary_faces(GeometricObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -1481,20 +1481,20 @@ class FVGeometry : public FVGeometryBase
 		FVGeometry();
 
 	///	update local data
-		bool update_local_data();
+		void update_local_data();
 
 	/// update Geometry for roid
-		bool update_local(ReferenceObjectID roid,
+		void update_local(ReferenceObjectID roid,
 		                  int orderShape = TOrder,
 		                  int quadOrderSCVF = TQuadOrderSCVF,
 		                  int quadOrderSCV = TQuadOrderSCV);
 
 	/// update data for given element
-		bool update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		bool update_boundary_faces(TElem* elem,
+		void update_boundary_faces(TElem* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -2032,28 +2032,28 @@ class DimFVGeometry : public FVGeometryBase
 		DimFVGeometry();
 
 	///	update local data
-		bool update_local(ReferenceObjectID roid, int orderShape,
+		void update_local(ReferenceObjectID roid, int orderShape,
 		                  int quadOrderSCVF, int quadOrderSCV);
-		bool update_local(ReferenceObjectID roid, int orderShape)
+		void update_local(ReferenceObjectID roid, int orderShape)
 		{
-			return update_local(roid, orderShape, orderShape, orderShape);
+			update_local(roid, orderShape, orderShape, orderShape);
 		}
 
 	/// update data for given element
-		bool update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
+		void update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL)
 		{
-			return update(pElem, vCornerCoords,
-			              m_orderShape, m_quadOrderSCVF, m_quadOrderSCV, ish);
+			update(pElem, vCornerCoords,
+			       m_orderShape, m_quadOrderSCVF, m_quadOrderSCV, ish);
 		}
 
 	/// update data for given element
-		bool update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
+		void update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		            int orderShape, int quadOrderSCVF, int quadOrderSCV,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		bool update_boundary_faces(GeometricObject* pElem,
+		void update_boundary_faces(GeometricObject* pElem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -2376,7 +2376,7 @@ class FV1ManifoldBoundary
 		FV1ManifoldBoundary();
 		
 	///	update data for given element
-		bool update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 			
 	/// get vector of corners for current element

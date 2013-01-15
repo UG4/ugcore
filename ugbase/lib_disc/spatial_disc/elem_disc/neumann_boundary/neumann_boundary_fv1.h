@@ -65,10 +65,12 @@ prep_elem_fv1(TElem* elem, const LocalVector& u)
 {
 //  update Geometry for this element
 	static TFVGeom& geo = Provider<TFVGeom >::get();
-	if(!geo.update(elem,
+	try{
+		geo.update(elem,
 	               this->template element_corners<TElem>(elem),
-	               &(this->subset_handler())))
-		UG_THROW("NeumannBoundary::prep_elem_fv1: "
+	               &(this->subset_handler()));
+	}
+	UG_CATCH_THROW("NeumannBoundary::prep_elem_fv1: "
 						"Cannot update Finite Volume Geometry.");
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)

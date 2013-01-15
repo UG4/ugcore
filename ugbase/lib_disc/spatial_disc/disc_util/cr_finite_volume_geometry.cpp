@@ -23,8 +23,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int TDim, int TWorldDim>
-bool
-DimCRFVGeometry<TDim, TWorldDim>::
+void DimCRFVGeometry<TDim, TWorldDim>::
 update_local_data()
 {
 //	get reference element
@@ -80,7 +79,6 @@ update_local_data()
 	// Shapes and Derivatives
 	/////////////////////////
 
-	try{
 	const LocalShapeFunctionSet<dim>& TrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, 1));
 
@@ -100,34 +98,22 @@ update_local_data()
 		TrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].local_ip());
 	}
 
-	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
-	{
-		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
-		return false;
 	}
-
-	}catch(UGError_ReferenceElementMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
+	UG_CATCH_THROW("DimCRFVGeometry: update failed.");
 
 // 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
 	for(size_t i = 0; i < m_numSCVF; ++i)
 		m_vLocSCVF_IP[i] = scvf(i).local_ip();
-
-	return true;
 }
 
 
 /// update data for given element
 template <int TDim, int TWorldDim>
-bool
-DimCRFVGeometry<TDim, TWorldDim>::
+void DimCRFVGeometry<TDim, TWorldDim>::
 update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
-	if(m_pElem == pElem) return true; else m_pElem = pElem;
+	if(m_pElem == pElem) return; else m_pElem = pElem;
 
 //	refresh local data, if different roid given
 	if(m_roid != pElem->reference_object_id())
@@ -136,7 +122,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		m_roid = (ReferenceObjectID) pElem->reference_object_id();
 
 	//	update local data
-		if(!update_local_data()) return false;
+		update_local_data();
 	}
 
 //	get reference element
@@ -184,7 +170,6 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	}
 
 //	get reference mapping
-	try{
 	DimReferenceMapping<dim, worldDim>& rMapping = ReferenceMappingProvider::get<dim, worldDim>(m_roid);
 	rMapping.update(vCornerCoords);
 
@@ -236,25 +221,16 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
-	}catch(UGError_ReferenceElementMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
-		return false;
 	}
-	}catch(UGError_ReferenceMappingMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
+	UG_CATCH_THROW("DimCRFVGeometry: update failed.");
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return true;
-	else return update_boundary_faces(pElem, vCornerCoords, ish);
+	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
 template <int TDim, int TWorldDim>
-bool
-DimCRFVGeometry<TDim, TWorldDim>::
+void DimCRFVGeometry<TDim, TWorldDim>::
 update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
@@ -290,11 +266,9 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 //	const DimReferenceElement<dim>& rRefElem
 	//	= ReferenceElementProvider::get<dim>(m_roid);
 
-	try{
 	DimReferenceMapping<dim, worldDim>& rMapping = ReferenceMappingProvider::get<dim, worldDim>(m_roid);
 	rMapping.update(vCornerCoords);
 
-	try{
 	const LocalShapeFunctionSet<dim>& TrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, 1));
 
@@ -357,24 +331,8 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 		}
 	}
 
-	}catch(UGError_ReferenceElementMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
-		return false;
 	}
-	}catch(UGError_ReferenceMappingMissing& ex)
-	{
-		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
-	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
-	{
-		UG_LOG("ERROR in 'DimCRFVGeometry::update': "<<ex.get_msg()<<"\n");
-		return false;
-	}
-
-//	done
-	return true;
+	UG_CATCH_THROW("DimCRFVGeometry: update failed.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -393,8 +351,7 @@ CRFVGeometry()
 }
 
 template <	typename TElem, int TWorldDim>
-bool
-CRFVGeometry<TElem, TWorldDim>::
+void CRFVGeometry<TElem, TWorldDim>::
 update_local_data()
 {
 //  compute barycenter coordinates
@@ -458,20 +415,16 @@ update_local_data()
 // 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
 	for(size_t i = 0; i < num_scvf(); ++i)
 		m_vLocSCVF_IP[i] = scvf(i).local_ip();
-
-
-	return true;
 }
 
 
 /// update data for given element
 template <	typename TElem, int TWorldDim>
-bool
-CRFVGeometry<TElem, TWorldDim>::
+void CRFVGeometry<TElem, TWorldDim>::
 update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
-	if(m_pElem == pElem) return true; else m_pElem = pElem;
+	if(m_pElem == pElem) return; else m_pElem = pElem;
 
 	//  compute barycenter coordinates
 	globalBary = vCornerCoords[0];
@@ -566,13 +519,12 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
 //	if no boundary subsets required, return
-	if(num_boundary_subsets() == 0 || ish == NULL) return true;
-	else return update_boundary_faces(pElem, vCornerCoords, ish);
+	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
 template <	typename TElem, int TWorldDim>
-bool
-CRFVGeometry<TElem, TWorldDim>::
+void CRFVGeometry<TElem, TWorldDim>::
 update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
@@ -658,9 +610,6 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 			++curr_bf;
 		}
 	}
-
-//	done
-	return true;
 }
 
 //////////////////////

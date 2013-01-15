@@ -483,14 +483,14 @@ class DimCRFVGeometry : public FVGeometryBase
 		DimCRFVGeometry() : m_pElem(NULL), m_roid(ROID_UNKNOWN) {};
 
 	///	update local data
-		bool update_local_data();
+		void update_local_data();
 
 	/// update data for given element
-		bool update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		bool update_boundary_faces(GeometricObject* elem,
+		void update_boundary_faces(GeometricObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -977,14 +977,14 @@ class CRFVGeometry : public FVGeometryBase
 		CRFVGeometry();
 
 	///	update local data
-		bool update_local_data();
+		void update_local_data();
 
 	/// update data for given element
-		bool update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		bool update_boundary_faces(GeometricObject* elem,
+		void update_boundary_faces(GeometricObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 								   
