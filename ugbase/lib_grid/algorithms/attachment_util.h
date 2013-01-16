@@ -112,10 +112,16 @@ class PeriodicAttachmentAccessor
 		typedef typename attachment_value_traits<ValueType>::reference RefType;
 		typedef typename attachment_value_traits<ValueType>::const_reference ConstRefType;
 
-		PeriodicAttachmentAccessor(){}
+		PeriodicAttachmentAccessor() : m_pbm(NULL)	{}
 
-		PeriodicAttachmentAccessor(PeriodicBoundaryManager& pbm){
-			if (pbm) m_pbm = &pbm;
+		PeriodicAttachmentAccessor(Grid& g, TAttachment& a) : m_pbm(NULL)
+		{
+			access(g, a);
+		}
+
+		PeriodicAttachmentAccessor(PeriodicBoundaryManager& pbm)
+		{
+			m_pbm = &pbm;
 		}
 
 		bool access(Grid& g, TAttachment& a)
