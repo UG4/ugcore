@@ -166,6 +166,13 @@ class SurfaceView
 	///	refresh_surface_states must be called after a grid change
 		void refresh_surface_states();
 
+	///	returns an or combination of current surface states
+	/**	Please use the methods is_surface_element, is_shadowed and is_shadowing
+	 * instead of this method.
+	 * The only reason it is publicly accessible is for debugging reasons.*/
+		template <class TElem>
+		byte surface_state(TElem* elem)	const			{return m_aaElemSurfState[elem];}
+
 	public:
 	///	Iterator to traverse the surface of a multi-grid hierarchy
 		template <class TElem>
@@ -308,9 +315,6 @@ class SurfaceView
 	///	adjusts surface states in a parallel environment
 		template <class TElem>
 		void adjust_parallel_surface_states();
-
-		template <class TElem>
-		byte surface_state(TElem* elem)	const			{return m_aaElemSurfState[elem];}
 
 		template <class TElem>
 		void set_surface_state(TElem* elem, byte ss)	{m_aaElemSurfState[elem] = ss;}
