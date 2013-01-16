@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "lib_grid/lg_base.h"
+#include "lib_grid/tools/periodic_boundary_manager.h"
 
 namespace ug
 {
@@ -96,6 +97,48 @@ class MultiElementAttachmentAccessor
 		Grid::AttachmentAccessor<EdgeBase, TAttachment>		m_aaEdge;
 		Grid::AttachmentAccessor<Face, TAttachment>			m_aaFace;
 		Grid::AttachmentAccessor<Volume, TAttachment>		m_aaVol;
+};
+
+///	Accesses attachements with consideration to periodic boundaries
+/**	Slave element redirects to related master element
+ *  also works in case of no periodic boundary conditions
+ *  (but is then probably slower than standard attachment accessor)
+ */
+template <class TElem,class TAttachment>
+class PeriodicAttachmentAccessor
+{
+	public:
+		typedef typename TAttachment::ValueType	ValueType;
+		typedef typename attachment_value_traits<ValueType>::reference RefType;
+		typedef typename attachment_value_traits<ValueType>::const_reference ConstRefType;
+
+		PeriodicAttachmentAccessor(){}
+
+		PeriodicAttachmentAccessor(PeriodicBoundaryManager& pbm){
+			if (pbm) m_pbm = &pbm;
+		}
+
+		bool access(Grid& g, TAttachment& a)
+		{
+			if (m_pbm) m_pbm = g.periodic_boundary_manager();
+			return m_aa.access(g, a);
+		}
+
+		RefType operator[](TElem* e)	{
+			if(m_pbm && m_pbm->is_slave(e))
+				return m_aa[m_pbm->master(e)];
+			return m_aa[e];
+		}
+		
+		ConstRefType operator[](TElem* e) const	{
+			if(m_pbm && m_pbm->is_slave(e))
+				return m_aa[m_pbm->master(e)];
+			return m_aa[e];
+		}
+
+	private:
+		Grid::AttachmentAccessor<TElem, TAttachment>	m_aa;
+		PeriodicBoundaryManager* m_pbm;
 };
 
 
