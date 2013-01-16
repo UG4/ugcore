@@ -1948,7 +1948,7 @@ update(size_t lev,
 
 //	restriction only created if not the same operator
 	if(Prolongation.invalid()) Prolongation = prolongation.clone();
-	if(&projection == &restriction)	Restriction = Prolongation;
+	if(&prolongation == &restriction)	Restriction = Prolongation;
 	else{if(Restriction.invalid()) Restriction = restriction.clone();}
 
 	vProlongationPP.clear();

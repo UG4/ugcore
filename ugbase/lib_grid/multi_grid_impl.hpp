@@ -2,6 +2,7 @@
 //	s.b.reiter@googlemail.com
 //	y09 m09 d10
 
+#include "common/static_assert.h"
 #include "multi_grid.h"
 
 #ifndef __H__LIB_GRID__MULTI_GRID_IMPL__
@@ -137,6 +138,35 @@ TChild* MultiGrid::get_child(GeometricObject* elem, size_t ind) const
 	return NULL;
 }
 
+template <class TElem>
+void MultiGrid::
+clear_child_connections(TElem* parent)
+{
+	if(has_children(parent))
+		get_info(parent).unregister_from_children(*this);
+}
+
+template <class TElem>
+void MultiGrid::
+associate_parent(TElem* elem, GeometricObject* parent)
+{
+	if(elem->base_object_id() > parent->base_object_id()){
+		UG_THROW("Dimension of parent too low.");
+	}
+
+	GeometricObject* oldParent = get_parent(elem);
+	if(oldParent == parent)
+		return;
+
+	if(oldParent)
+		remove_child(oldParent, elem);
+
+	if(parent)
+		add_child(parent, elem);
+
+	set_parent(elem, parent);
+}
+
 //	info-access
 inline MultiGrid::VertexInfo& MultiGrid::get_info(VertexBase* v)
 {
@@ -189,6 +219,40 @@ inline const MultiGrid::VolumeInfo& MultiGrid::get_info(Volume* v) const
 	return emptyInfo;
 }
 
+template <class TParent, class TChild>
+void MultiGrid::add_child(TParent* p, TChild* c)
+{
+	create_child_info(p);
+	get_info(p).add_child(c);
+}
+
+template <class TChild>
+void MultiGrid::add_child(GeometricObject* p, TChild* c)
+{
+	switch(p->base_object_id()){
+	case VERTEX:	add_child(static_cast<VertexBase*>(p), c); break;
+	case EDGE:		add_child(static_cast<EdgeBase*>(p), c); break;
+	case FACE:		add_child(static_cast<Face*>(p), c); break;
+	case VOLUME:	add_child(static_cast<Volume*>(p), c); break;
+	}
+}
+
+template <class TParent, class TChild>
+void MultiGrid::remove_child(TParent* p, TChild* c)
+{
+	get_info(p).remove_child(c);
+}
+
+template <class TChild>
+void MultiGrid::remove_child(GeometricObject* p, TChild* c)
+{
+	switch(p->base_object_id()){
+	case VERTEX:	remove_child(static_cast<VertexBase*>(p), c); break;
+	case EDGE:		remove_child(static_cast<EdgeBase*>(p), c); break;
+	case FACE:		remove_child(static_cast<Face*>(p), c); break;
+	case VOLUME:	remove_child(static_cast<Volume*>(p), c); break;
+	}
+}
 
 template <class TElem, class TParent>
 void MultiGrid::element_created(TElem* elem, TParent* pParent)

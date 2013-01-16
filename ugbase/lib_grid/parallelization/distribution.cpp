@@ -367,6 +367,73 @@ static void WriteDistInfosToTextFile(MultiGrid& mg, DistInfoSupplier& infoSuppli
 	out.close();
 }
 
+template <class TElem>
+static string LocateElement(MultiGrid& mg, TElem* e)
+{
+	stringstream ssLocator;
+	ssLocator << "at " << GetGeometricObjectCenter(mg, e)
+			  << " on level " << mg.get_level(e);
+	return ssLocator.str();
+}
+
+template <class TElem>
+static bool PerformValidityCheck(DistributedGridManager& dgm)
+{
+	typedef typename Grid::traits<TElem>::iterator	TElemIter;
+
+	bool isValid = true;
+
+	UG_LOG("DEBUG: Performing validity check on distributed grid ");
+	switch(TElem::BASE_OBJECT_ID){
+	case VERTEX:	UG_LOG("for vertices:\n"); break;
+	case EDGE:		UG_LOG("for edges:\n"); break;
+	case FACE:		UG_LOG("for faces:\n"); break;
+	case VOLUME:	UG_LOG("for volumes:\n"); break;
+	}
+
+	MultiGrid& mg = *dgm.get_assigned_grid();
+	for(TElemIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter)
+	{
+		TElem* e = *iter;
+	//	Make sure that pure vertical masters (ghosts) do not have children
+		if(dgm.is_ghost(e)){
+			if(mg.has_children(e)){
+				UG_LOG("  Ghost has child " << LocateElement(mg, e) << endl);
+				isValid = false;
+			}
+		}
+	//	Make sure that pure vertical slaves do not have parents
+		else if(dgm.contains_status(e, ES_V_SLAVE)
+				&& (!dgm.is_in_horizontal_interface(e)))
+		{
+			if(mg.get_parent(e)){
+				UG_LOG("  Pure vertical slave has parent " << LocateElement(mg, e) << endl);
+				isValid = false;
+			}
+		}
+	}
+
+	UG_LOG("DEBUG: Validity check done with result ");
+	if(isValid){
+		UG_LOG("SUCCESS\n");
+	}
+	else{
+		UG_LOG("FAIL\n");
+	}
+
+	return isValid;
+}
+
+static bool PerformValidityCheck(DistributedGridManager& dgm)
+{
+	bool isValid = true;
+	isValid &= PerformValidityCheck<VertexBase>(dgm);
+	isValid &= PerformValidityCheck<EdgeBase>(dgm);
+	isValid &= PerformValidityCheck<Face>(dgm);
+	isValid &= PerformValidityCheck<Volume>(dgm);
+	return isValid;
+}
+
 #endif //LG_DISTRIBUTION_DEBUG
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -383,11 +450,13 @@ static void SelectUnselectedSides(MGSelector& msel, TElem* e,
 
 	mg.associated_elements(sides, e);
 	for(size_t i = 0; i < sides.size(); ++i){
-		if(!msel.is_selected(sides[i])){
-			msel.select(sides[i], status);
+		TSide* s = sides[i];
+		//if(!msel.is_selected(sides[i])){
+			ISelector::status_t nstate = status | msel.get_selection_status(s);
+			msel.select(s, nstate);
 			if(TElem::HAS_SIDES)
-				SelectUnselectedSides(msel, sides[i], status);
-		}
+				SelectUnselectedSides(msel, s, nstate);
+		//}
 	}
 }
 
@@ -408,23 +477,26 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 				ConstrainingFace* e = *iter;
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 					VertexBase* cd = e->constrained_vertex(i);
-					if(!msel.is_selected(cd)){
-						msel.select(cd, status);
-					}
+					ISelector::status_t nstate = status | msel.get_selection_status(cd);
+//					if(!msel.is_selected(cd)){
+						msel.select(cd, nstate);
+//					}
 				}
 				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
 					EdgeBase* cd = e->constrained_edge(i);
-					if(!msel.is_selected(cd)){
-						msel.select(cd, status);
-						SelectUnselectedSides(msel, cd, status);
-					}
+					ISelector::status_t nstate = status | msel.get_selection_status(cd);
+//					if(!msel.is_selected(cd)){
+						msel.select(cd, nstate);
+						SelectUnselectedSides(msel, cd, nstate);
+//					}
 				}
 				for(size_t i = 0; i < e->num_constrained_faces(); ++i){
 					Face* cd = e->constrained_face(i);
-					if(!msel.is_selected(cd)){
-						msel.select(cd, status);
-						SelectUnselectedSides(msel, cd, status);
-					}
+					ISelector::status_t nstate = status | msel.get_selection_status(cd);
+//					if(!msel.is_selected(cd)){
+						msel.select(cd, nstate);
+						SelectUnselectedSides(msel, cd, nstate);
+//					}
 				}
 			}
 		}
@@ -441,23 +513,26 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 				ConstrainingFace* e = *iter;
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 					VertexBase* cd = e->constrained_vertex(i);
-					if(!msel.is_selected(cd)){
-						msel.select(cd, status);
-					}
+					ISelector::status_t nstate = status | msel.get_selection_status(cd);
+//					if(!msel.is_selected(cd)){
+						msel.select(cd, nstate);
+//					}
 				}
 				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
 					EdgeBase* cd = e->constrained_edge(i);
-					if(!msel.is_selected(cd)){
-						msel.select(cd, status);
-						SelectUnselectedSides(msel, cd, status);
-					}
+					ISelector::status_t nstate = status | msel.get_selection_status(cd);
+//					if(!msel.is_selected(cd)){
+						msel.select(cd, nstate);
+						SelectUnselectedSides(msel, cd, nstate);
+//					}
 				}
 				for(size_t i = 0; i < e->num_constrained_faces(); ++i){
 					Face* cd = e->constrained_face(i);
-					if(!msel.is_selected(cd)){
-						msel.select(cd, status);
-						SelectUnselectedSides(msel, cd, status);
-					}
+					ISelector::status_t nstate = status | msel.get_selection_status(cd);
+//					if(!msel.is_selected(cd)){
+						msel.select(cd, nstate);
+						SelectUnselectedSides(msel, cd, nstate);
+//					}
 				}
 			}
 		}
@@ -474,16 +549,18 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 				ConstrainingEdge* e = *iter;
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 					VertexBase* cd = e->constrained_vertex(i);
-					if(!msel.is_selected(cd)){
-						msel.select(cd, status);
-					}
+					ISelector::status_t nstate = status | msel.get_selection_status(cd);
+//					if(!msel.is_selected(cd)){
+						msel.select(cd, nstate);
+//					}
 				}
 				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
 					EdgeBase* cd = e->constrained_edge(i);
-					if(!msel.is_selected(cd)){
-						msel.select(cd, status);
-						SelectUnselectedSides(msel, cd, status);
-					}
+					ISelector::status_t nstate = status | msel.get_selection_status(cd);
+//					if(!msel.is_selected(cd)){
+						msel.select(cd, nstate);
+						SelectUnselectedSides(msel, cd, nstate);
+//					}
 				}
 			}
 		}
@@ -506,12 +583,13 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 			{
 				ConstrainedFace* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
+					ISelector::status_t nstate = status | msel.get_selection_status(cg);
 					if(!msel.is_selected(cg)){
-						msel.select(cg, status);
+						msel.select(cg, nstate);
 						UG_ASSERT(dynamic_cast<ConstrainingFace*>(cg),
 								  "constraining object of a face has to be a "
 								  "ConstrainingFace!");
-						SelectUnselectedSides(msel, static_cast<Face*>(cg), status);
+						SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
 					}
 				}
 			}
@@ -528,12 +606,13 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 			{
 				ConstrainedFace* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
+					ISelector::status_t nstate = status | msel.get_selection_status(cg);
 					if(!msel.is_selected(cg)){
-						msel.select(cg, status);
+						msel.select(cg, nstate);
 						UG_ASSERT(dynamic_cast<Face*>(cg),
 								  "constraining object of a face has to be a "
 								  "Face!");
-						SelectUnselectedSides(msel, static_cast<Face*>(cg), status);
+						SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
 					}
 				}
 			}
@@ -550,14 +629,15 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 			{
 				ConstrainedEdge* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
+					ISelector::status_t nstate = status | msel.get_selection_status(cg);
 					if(!msel.is_selected(cg)){
-						msel.select(cg, status);
+						msel.select(cg, nstate);
 						switch(cg->base_object_id()){
 						case EDGE:
-							SelectUnselectedSides(msel, static_cast<EdgeBase*>(cg), status);
+							SelectUnselectedSides(msel, static_cast<EdgeBase*>(cg), nstate);
 							break;
 						case FACE:
-							SelectUnselectedSides(msel, static_cast<Face*>(cg), status);
+							SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
 							break;
 						}
 					}
@@ -576,14 +656,15 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 			{
 				ConstrainedVertex* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
+					ISelector::status_t nstate = status | msel.get_selection_status(cg);
 					if(!msel.is_selected(cg)){
-						msel.select(cg, status);
+						msel.select(cg, nstate);
 						switch(cg->base_object_id()){
 						case EDGE:
-							SelectUnselectedSides(msel, static_cast<EdgeBase*>(cg), status);
+							SelectUnselectedSides(msel, static_cast<EdgeBase*>(cg), nstate);
 							break;
 						case FACE:
-							SelectUnselectedSides(msel, static_cast<Face*>(cg), status);
+							SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
 							break;
 						}
 					}
@@ -920,6 +1001,9 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				createNormalHInterface = true;
 			}
 
+		//	if this condition is fulfilled, some kind of h-interface will be built
+			bool createHInterface = createNormalHInterface || (numVSlaveProcs > 1);
+
 			for(size_t i = 0; i < di.size(); ++i){
 				TargetProcInfo& tpi = di[i];
 				if(tpi.procID == localProcID)
@@ -938,6 +1022,12 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					//UG_ASSERT(!isVSlave, "A v-master element should never also be a v-slave");
 					glm.get_layout<TElem>(INT_V_MASTER).
 						interface(tpi.procID, lvl).push_back(e);
+
+				//	we have to destroy parent-child relations to possibly existing
+				//	children. Those children are now indirectly connected through
+				//	copies on other processes.
+					if(!createHInterface && mg.has_children(e))
+						mg.clear_child_connections(e);
 				}
 
 			//	add entry to horizontal interface if necessary
@@ -1010,6 +1100,10 @@ bool DistributeGrid(MultiGrid& mg,
 
 //	The selector will be of frequent use to speed up some algorithms
 	MGSelector msel(mg);
+
+	#ifdef LG_DISTRIBUTION_DEBUG
+		PerformValidityCheck(distGridMgr);
+	#endif
 
 //	Since we will change huge parts of the underlying grid and the grid-layout-map,
 //	we'll disable auto-insertion of elements in the distributed-grid-manager.
@@ -1239,6 +1333,10 @@ bool DistributeGrid(MultiGrid& mg,
 	PCL_PROFILE_END();
 
 	mg.detach_from_all(aLocalInd);
+
+	#ifdef LG_DISTRIBUTION_DEBUG
+		PerformValidityCheck(distGridMgr);
+	#endif
 
 	UG_DLOG(LIB_GRID, 1, "dist-stop: DistributeGrid\n");
 	return true;

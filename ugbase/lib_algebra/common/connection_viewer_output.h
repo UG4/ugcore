@@ -89,6 +89,129 @@ void WriteMatrixToConnectionViewer(std::string filename, const Matrix_type &A, p
 	}
 }
 
+
+//	NOTE:	The commented version below contains a bug which only occurs in rare situations,
+//			resulting in a matrix output, where one entry has connections to
+//			many other entries. Most presumably a problem with the mappings.
+//			Instead of fixing it, the method was instead replaced by the method below
+//			the commented section, which simplifies the output. Since the version with
+//			the mapping might still be of interest, it remains in a commented form.
+//// WriteMatrixToConnectionViewer
+////--------------------------------------------------
+///**
+// * this version can handle different from and to spaces
+// */
+//template <typename Matrix_type, typename postype>
+//bool WriteMatrixToConnectionViewerMapped(std::string filename,
+//									const Matrix_type &A,
+//									std::vector<postype> &positionsFrom, std::vector<postype> &positionsTo, size_t dimensions)
+//{
+//	PROFILE_FUNC_GROUP("debug");
+//#ifdef UG_PARALLEL
+//	filename = GetParallelName(A, filename);
+//#endif
+//
+//	/*const char * p = strstr(filename, ".mat");
+//	if(p == NULL)
+//	{
+//		UG_LOG("Currently only '.mat' format supported for domains.\n");
+//		return false;
+//	}*/
+//
+//	if(positionsFrom.size() != A.num_cols())
+//	{
+//		UG_LOG("uFrom.size() != A.num_cols() !\n");
+//		return false;
+//	}
+//	if(positionsTo.size() != A.num_rows())
+//	{
+//		UG_LOG("uTo.size() != A.num_rows() !\n");
+//		return false;
+//	}
+//
+//	std::vector<postype> positions;
+//	std::vector<size_t> mapFrom, mapTo;
+//	mapFrom.resize(positionsFrom.size());
+//	mapTo.resize(positionsTo.size());
+//
+//	if(positionsFrom.size() > positionsTo.size())
+//	{
+//		positions.resize(positionsFrom.size());
+//		for(size_t i=0; i<positionsFrom.size(); i++)
+//		{
+//			positions[i] = positionsFrom[i];
+//			mapFrom[i] = i;
+//		}
+//
+//
+//		for(size_t i=0; i<positionsTo.size(); i++)
+//		{
+//			size_t j;
+//			for(j=0; j<positionsFrom.size(); j++)
+//			{
+//				if(positionsTo[i] == positionsFrom[j])
+//					break;
+//			}
+//			mapTo[i] = j;
+//			if(j == positionsFrom.size())
+//				positions.push_back(positionsTo[i]);
+//		}
+//	}
+//	else
+//	{
+//		positions.resize(positionsTo.size());
+//		for(size_t i=0; i<positionsTo.size(); i++)
+//		{
+//			positions[i] = positionsTo[i];
+//			mapTo[i] = i;
+//		}
+//
+//		for(size_t  i=0; i<positionsFrom.size(); i++)
+//		{
+//			size_t j;
+//			for(j=0; j<positionsTo.size(); j++)
+//			{
+//				if(positionsFrom[i] == positionsTo[j])
+//					break;
+//			}
+//			mapFrom[i] = j;
+//			if(j == positionsTo.size())
+//				positions.push_back(positionsFrom[i]);
+//		}
+//	}
+//
+//
+//	std::fstream file(filename.c_str(), std::ios::out);
+//	file << CONNECTION_VIEWER_VERSION << std::endl;
+//	file << dimensions << std::endl;
+//
+//	// write positions
+//	file << positions.size() << std::endl;
+//
+//	if(dimensions == 1)
+//		for(size_t i=0; i < positions.size(); i++)
+//			file << positions[i][0] << " 0.0"  << std::endl;
+//	else if(dimensions == 2)
+//
+//		for(size_t i=0; i < positions.size(); i++)
+//			file << positions[i][0] << " " << positions[i][1] << std::endl;
+//	else
+//		for(size_t i=0; i < positions.size(); i++)
+//		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << std::endl;
+//
+//	file << 1 << std::endl; // show all cons
+//	// write connections
+//	for(size_t i=0; i < A.num_rows(); i++)
+//	{
+//		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+//			if(conn.value() != 0.0)
+//				file << mapTo[i] << " " << mapFrom[conn.index()] << " " << conn.value() <<		std::endl;
+//			else
+//				file << mapTo[i] << " " << mapFrom[conn.index()] << " 0" << std::endl;
+//	}
+//	return true;
+//}
+
 // WriteMatrixToConnectionViewer
 //--------------------------------------------------
 /**
@@ -104,13 +227,6 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 	filename = GetParallelName(A, filename);
 #endif
 
-	/*const char * p = strstr(filename, ".mat");
-	if(p == NULL)
-	{
-		UG_LOG("Currently only '.mat' format supported for domains.\n");
-		return false;
-	}*/
-
 	if(positionsFrom.size() != A.num_cols())
 	{
 		UG_LOG("uFrom.size() != A.num_cols() !\n");
@@ -122,56 +238,7 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 		return false;
 	}
 
-	std::vector<postype> positions;
-	std::vector<size_t> mapFrom, mapTo;
-	mapFrom.resize(positionsFrom.size());
-	mapTo.resize(positionsTo.size());
-
-	if(positionsFrom.size() > positionsTo.size())
-	{
-		positions.resize(positionsFrom.size());
-		for(size_t i=0; i<positionsFrom.size(); i++)
-		{
-			positions[i] = positionsFrom[i];
-			mapFrom[i] = i;
-		}
-
-
-		for(size_t i=0; i<positionsTo.size(); i++)
-		{
-			size_t j;
-			for(j=0; j<positionsFrom.size(); j++)
-			{
-				if(positionsTo[i] == positionsFrom[j])
-					break;
-			}
-			mapTo[i] = j;
-			if(j == positionsFrom.size())
-				positions.push_back(positionsTo[i]);
-		}
-	}
-	else
-	{
-		positions.resize(positionsTo.size());
-		for(size_t i=0; i<positionsTo.size(); i++)
-		{
-			positions[i] = positionsTo[i];
-			mapTo[i] = i;
-		}
-
-		for(size_t  i=0; i<positionsFrom.size(); i++)
-		{
-			size_t j;
-			for(j=0; j<positionsTo.size(); j++)
-			{
-				if(positionsFrom[i] == positionsTo[j])
-					break;
-			}
-			mapFrom[i] = j;
-			if(j == positionsTo.size())
-				positions.push_back(positionsFrom[i]);
-		}
-	}
+	size_t fromOffset = positionsTo.size();
 
 
 	std::fstream file(filename.c_str(), std::ios::out);
@@ -179,18 +246,26 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 	file << dimensions << std::endl;
 
 	// write positions
-	file << positions.size() << std::endl;
+	file << positionsFrom.size() + positionsTo.size() << std::endl;
 
-	if(dimensions == 1)
-		for(size_t i=0; i < positions.size(); i++)
-			file << positions[i][0] << " 0.0"  << std::endl;
-	else if(dimensions == 2)
-
-		for(size_t i=0; i < positions.size(); i++)
-			file << positions[i][0] << " " << positions[i][1] << std::endl;
-	else
-		for(size_t i=0; i < positions.size(); i++)
-		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << std::endl;
+	if(dimensions == 1){
+		for(size_t i=0; i < positionsTo.size(); i++)
+			file << positionsTo[i][0] << " 0.0"  << std::endl;
+		for(size_t i=0; i < positionsFrom.size(); i++)
+			file << positionsFrom[i][0] << " 0.0"  << std::endl;
+	}
+	else if(dimensions == 2){
+		for(size_t i=0; i < positionsTo.size(); i++)
+			file << positionsTo[i][0] << " " << positionsTo[i][1] << std::endl;
+		for(size_t i=0; i < positionsFrom.size(); i++)
+			file << positionsFrom[i][0] << " " << positionsFrom[i][1] << std::endl;
+	}
+	else{
+		for(size_t i=0; i < positionsTo.size(); i++)
+		  file << positionsTo[i][0] << " " << positionsTo[i][1] << " " << positionsTo[i][2] << std::endl;
+		for(size_t i=0; i < positionsFrom.size(); i++)
+		  file << positionsFrom[i][0] << " " << positionsFrom[i][1] << " " << positionsFrom[i][2] << std::endl;
+	}
 
 	file << 1 << std::endl; // show all cons
 	// write connections
@@ -198,13 +273,12 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 	{
 		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			if(conn.value() != 0.0)
-				file << mapTo[i] << " " << mapFrom[conn.index()] << " " << conn.value() <<		std::endl;
+				file << i << " " << conn.index() + fromOffset << " " << conn.value() <<	std::endl;
 			else
-				file << mapTo[i] << " " << mapFrom[conn.index()] << " 0" << std::endl;
+				file << i << " " << conn.index() + fromOffset << " 0" << std::endl;
 	}
 	return true;
 }
-
 
 // WriteVectorToConnectionViewer
 //--------------------------------------------------

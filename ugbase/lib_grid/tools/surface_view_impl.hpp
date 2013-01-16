@@ -458,7 +458,8 @@ surface_level_end(int lvl) const
 template <class TGeomObj>
 bool SurfaceView::is_surface_element(TGeomObj* obj) const
 {
-	return has_surface_state(obj, ESS_SURFACE);
+	byte surfState = surface_state(obj);
+	return (surfState & ESS_SURFACE) && !(surfState & ESS_HIDDEN);
 }
 
 template <class TGeomObj>

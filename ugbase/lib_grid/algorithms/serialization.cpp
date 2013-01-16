@@ -1229,6 +1229,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									std::vector<Volume*>* pvVols,
 									MultiElementAttachmentAccessor<AGeomObjID>* paaID)
 {
+//todo	A parents global id should be serialized and used to identify a parent
+//		if it was not sent along with an element but was already contained on
+//		the target process.
+
 //	if the user specified element-vectors, we will use them.
 //	if not we'll use our own.
 	vector<VertexBase*>	vVrtsTMP;
@@ -1342,6 +1346,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != vrtHash.end(id)){
 									assert(dynamic_cast<Vertex*>(*hiter));
 									vVrts.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 								UG_ASSERT(!(parent && mg.num_children<VertexBase>(parent)),
@@ -1384,6 +1391,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != vrtHash.end(id)){
 									assert(dynamic_cast<ConstrainedVertex*>(*hiter));
 									vVrts.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 							}
@@ -1434,6 +1444,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != edgeHash.end(id)){
 									assert(dynamic_cast<Edge*>(*hiter));
 									vEdges.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 							}
@@ -1464,6 +1477,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != edgeHash.end(id)){
 									assert(dynamic_cast<ConstrainingEdge*>(*hiter));
 									vEdges.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 							}
@@ -1500,6 +1516,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != edgeHash.end(id)){
 									assert(dynamic_cast<ConstrainedEdge*>(*hiter));
 									vEdges.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 							}
@@ -1550,6 +1569,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != faceHash.end(id)){
 									assert(dynamic_cast<Triangle*>(*hiter));
 									vFaces.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 							}
@@ -1585,6 +1607,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != faceHash.end(id)){
 									assert(dynamic_cast<Quadrilateral*>(*hiter));
 									vFaces.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 							}
@@ -1620,6 +1645,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != volHash.end(id)){
 									assert(dynamic_cast<Tetrahedron*>(*hiter));
 									vVols.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 							}
@@ -1661,6 +1689,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != volHash.end(id)){
 									assert(dynamic_cast<Hexahedron*>(*hiter));
 									vVols.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 							}
@@ -1700,6 +1731,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != volHash.end(id)){
 									assert(dynamic_cast<Prism*>(*hiter));
 									vVols.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 							}
@@ -1738,6 +1772,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								if(hiter != volHash.end(id)){
 									assert(dynamic_cast<Pyramid*>(*hiter));
 									vVols.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
 									continue;
 								}
 							}

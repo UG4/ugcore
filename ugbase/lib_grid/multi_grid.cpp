@@ -555,7 +555,7 @@ void MGVertexInfo::unregister_from_children(MultiGrid& mg)
 {
 	if(m_pVrtChild)
 		mg.set_parent(m_pVrtChild, NULL);
-	clear();
+	clear_children();
 }
 
 void MGEdgeInfo::unregister_from_children(MultiGrid& mg)
@@ -564,7 +564,7 @@ void MGEdgeInfo::unregister_from_children(MultiGrid& mg)
 		mg.set_parent(m_pVrtChild, NULL);
 	for(int i = 0; i < m_numEdgeChildren; ++i)
 		mg.set_parent(m_pEdgeChild[i], NULL);
-	clear();
+	clear_children();
 }
 
 void MGFaceInfo::unregister_from_children(MultiGrid& mg)
@@ -575,7 +575,7 @@ void MGFaceInfo::unregister_from_children(MultiGrid& mg)
 		mg.set_parent(m_pEdgeChild[i], NULL);
 	for(int i = 0; i < m_numFaceChildren; ++i)
 		mg.set_parent(m_pFaceChild[i], NULL);
-	clear();
+	clear_children();
 }
 
 void MGVolumeInfo::unregister_from_children(MultiGrid& mg)
@@ -588,7 +588,7 @@ void MGVolumeInfo::unregister_from_children(MultiGrid& mg)
 		mg.set_parent(m_faceChildren[i], NULL);
 	for(size_t i = 0; i < m_volumeChildren.size(); ++i)
 		mg.set_parent(m_volumeChildren[i], NULL);
-	clear();
+	clear_children();
 }
 
 }//	end of namespace
