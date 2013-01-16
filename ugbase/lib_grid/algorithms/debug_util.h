@@ -51,13 +51,6 @@ void PrintAttachmentInfo(Grid& grid);
 template <class TElem>
 vector3 GetGeometricObjectCenter(Grid& g, TElem* elem);
 
-vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem);
-
-template <class TElem>
-vector3 GetGeometricObjectCenter(MultiGrid& g, TElem* elem)
-{
-	return GetGeometricObjectCenter(*static_cast<Grid*>(&g), elem);
-}
 /** \} */
 
 
