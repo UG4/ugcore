@@ -120,7 +120,7 @@ class PeriodicAttachmentAccessor
 
 		bool access(Grid& g, TAttachment& a)
 		{
-			if (m_pbm) m_pbm = g.periodic_boundary_manager();
+			if (!(m_pbm)) m_pbm = g.periodic_boundary_manager();
 			return m_aa.access(g, a);
 		}
 
