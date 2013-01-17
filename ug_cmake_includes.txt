@@ -454,7 +454,7 @@ if(DEBUG_LOGS)
 	add_definitions(-DUG_ENABLE_DEBUG_LOGS)
 endif(DEBUG_LOGS)
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "RELEASE")
+if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
 	# general release cflags
 	add_cxx_flag("-O3")
 
@@ -467,7 +467,7 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "RELEASE")
 
 	# add release definitions
 	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
-elseif(${CMAKE_BUILD_TYPE} STREQUAL "MINSIZEREL")
+elseif(${CMAKE_BUILD_TYPE} STREQUAL "MinSizeRel")
 	add_cxx_flag("-Os -fno-inline -S")
 	# add no debug and no ublas debug def
 	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
@@ -508,17 +508,13 @@ IF(OPENMP)
 	# Please use add_definitions instead. Hope that works in this case, too. sreiter.
   # The linker option '-lgomp' or '-liomp5' can not be added to add_definitions
   # as these are not passed to the link then. But they have to. tklatt.
-	#	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-	#	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 	#	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp")
   IF(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    #ADD_DEFINITIONS(-fopenmp)
     add_cxx_flags("-fopenmp")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp")
     ADD_DEFINITIONS(-DUG_OPENMP)
     MESSAGE(STATUS "Info: Using OpenMP (experimental)")
   ELSEIF(CMAKE_C_COMPILER_ID STREQUAL "Intel" OR CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    #ADD_DEFINITIONS(-openmp)
     add_cxx_flags("-fopenmp")
     SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -liomp5")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -liomp5")
