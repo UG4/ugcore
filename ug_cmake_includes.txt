@@ -19,6 +19,9 @@ if(UG_CMAKE_INCLUDES_INCLUDED)
 endif()
 set(UG_CMAKE_INCLUDES_INCLUDED on)
 
+################################################################################
+# include cmake functions
+include(cmake/compiler_flags.cmake)
 
 ################################################################################
 # include ug header and library path
@@ -231,6 +234,14 @@ message(STATUS "")
 # Options are processed in this section.
 
 ########################################
+# BUILD TYPE
+if(DEBUG)
+    set(CMAKE_BUILD_TYPE "DEBUG")
+else()
+    set(CMAKE_BUILD_TYPE "RELEASE")
+endif(DEBUG)
+
+########################################
 # TARGET
 add_definitions(-DUG_TARGET="${TARGET}") # (dummy) preprocessor directive used for displaying build configuration
 
@@ -405,25 +416,22 @@ if(CPU_ALGEBRA)
 endif()
 
 ########################################
-# DEBUG
-
+# COMPILER specific flags
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
 	# Cray Compiler: add support for gnu extensions
-	add_definitions(-h gnu)
+	add_cxx_flag("-h gnu")
 	# remove warning "The controlling expression is constant"
-	add_definitions(-hnomessage=236)
+	add_cxx_flag("-hnomessage=236")
 else()
-	add_definitions(-Wall)	
+	add_cxx_flag("-Wall")
 endif()
 
-
+########################################
+# DEBUG
 if(DEBUG)
-	
-	if(DEBUG_FORMAT)	
-		add_definitions(${DEBUG_FORMAT})
+	if(DEBUG_FORMAT)
+		add_cxx_flag(${DEBUG_FORMAT})
 		message(STATUS "Info: Debug Information is ${DEBUG_FORMAT}") 
-	else(DEBUG_FORMAT)
-		add_definitions(-g)
 	endif(DEBUG_FORMAT)
 	add_definitions(-DUG_DEBUG)
 	
@@ -440,20 +448,32 @@ if(DEBUG)
 	#if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
 	#	add_definitions(-D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1)
 	#ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
-
-else(DEBUG)
-	add_definitions(-O3)
-	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		add_definitions(-funroll-loops -ftree-vectorize)
-	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
-		add_definitions(-hipa5  -hunroll2)
-	endif()
-	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
 endif(DEBUG)
 
 if(DEBUG_LOGS)
 	add_definitions(-DUG_ENABLE_DEBUG_LOGS)
 endif(DEBUG_LOGS)
+
+if(${CMAKE_BUILD_TYPE} STREQUAL "RELEASE")
+	# general release cflags
+	add_cxx_flag("-O3")
+
+	# compiler specific flags
+	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		add_cxx_flag("-funroll-loops -ftree-vectorize")
+	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
+		add_cxx_flag("-hipa5 -hunroll2")
+	endif()
+
+	# add release definitions
+	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
+elseif(${CMAKE_BUILD_TYPE} STREQUAL "MINSIZEREL")
+	add_cxx_flag("-Os -fno-inline -S")
+	# add no debug and no ublas debug def
+	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
+endif()
+message("-- Info: compiling with cxx flags: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}}")
+
 
 ########################################
 # PROFILER
@@ -481,7 +501,6 @@ if(PCL_DEBUG_BARRIER)
 endif(PCL_DEBUG_BARRIER)
 
 
-
 ########################################
 # OPENMP
 IF(OPENMP)
@@ -493,12 +512,14 @@ IF(OPENMP)
 	#	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 	#	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp")
   IF(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    ADD_DEFINITIONS(-fopenmp)
+    #ADD_DEFINITIONS(-fopenmp)
+    add_cxx_flags("-fopenmp")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp")
     ADD_DEFINITIONS(-DUG_OPENMP)
     MESSAGE(STATUS "Info: Using OpenMP (experimental)")
   ELSEIF(CMAKE_C_COMPILER_ID STREQUAL "Intel" OR CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    ADD_DEFINITIONS(-openmp)
+    #ADD_DEFINITIONS(-openmp)
+    add_cxx_flags("-fopenmp")
     SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -liomp5")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -liomp5")
     ADD_DEFINITIONS(-DUG_OPENMP)
@@ -536,7 +557,8 @@ IF(CXX11)
 		ENDIF()
 
 		IF(CXX11_FLAG)
-			ADD_DEFINITIONS(${CXX11_FLAG} -DUG_CXX11)
+			ADD_DEFINITIONS(-DUG_CXX11)
+			add_cxx_flag(${CXX11_FLAG})
 			MESSAGE(STATUS "Info: C++11 enabled. (flag: ${CXX11_FLAG})")
 		ELSE()
 			SET(CXX11 OFF)
@@ -547,12 +569,6 @@ IF(CXX11)
 	ENDIF()
 ENDIF(CXX11)
 
-########################################
-# LUA2C
-if(USE_LUA2C)
-	message(STATUS "Info: Using LUA2C")
-	add_definitions(-DUSE_LUA2C)
-endif()
 
 ########################################
 # buildAlgebra
@@ -938,3 +954,4 @@ mark_as_advanced(CMAKE_BUILD_TYPE)
 mark_as_advanced(BUILTIN_LAPACK)
 mark_as_advanced(BUILTIN_BLAS)
 mark_as_advanced(BUILTIN_MPI)
+
