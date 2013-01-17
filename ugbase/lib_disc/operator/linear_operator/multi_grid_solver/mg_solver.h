@@ -191,12 +191,12 @@ class AssembledMultiGridCycle :
 	/**	Pass a pointer to a bool variable to restrictionPerformedOut, to find out,
 	 * whether the restriction was performed. The restriction
 	 * won't be performed, if no DoFs are in the level below.*/
-		bool restriction(size_t lev, bool* restrictionPerformedOut);
+		bool restriction(size_t lev);
 
 	///	performs prolongation to the level above
 	/**	We have to let prolongaton know whether the previous restriction
 	 * was performed.*/
-		bool prolongation(size_t lev, bool resumingFromBelow);
+		bool prolongation(size_t lev);
 
 	///	performs postsmoothin
 		bool postsmooth(size_t lev);
@@ -529,10 +529,9 @@ class AssembledMultiGridCycle :
 
 #ifdef UG_PARALLEL
 	/**
-	 *	gathers the vector using vertical interfaces, returns if this proc
-	 *  will still have dofs on the next level (iff has no vertical slaves)
+	 *	gathers the vector using vertical interfaces.
 	 */
-		bool gather_vertical(vector_type& d);
+		void gather_vertical(vector_type& d);
 
 	/**
 	 *	broadcasts the vector using vertical interfaces.

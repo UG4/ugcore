@@ -504,9 +504,10 @@ template <class TElem>
 static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView& sv,
 											MultiGrid& mg)
 {
-	const char* subsetNames[] = {"none", "surface", "hidden", "shadow", "shadowing"};
+	const char* subsetNames[] = {"none", "surface", "hidden", "shadow", "pure-shadowing",
+								 "shadowing"};
 
-	for(int i = 0; i < 5; ++i)
+	for(int i = 0; i < 6; ++i)
 		sh.subset_info(i).name = subsetNames[i];
 
 	typedef typename Grid::traits<TElem>::iterator TIter;
