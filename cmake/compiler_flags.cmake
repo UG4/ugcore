@@ -1,7 +1,8 @@
 function(add_cxx_flag flag)
     if(NOT ${CMAKE_BUILD_TYPE})
-       message(fatalerror, "No build type set. Your cflags would have been ignored.")
-       message(fatalerror, "do not call add_cxx_flag before calling add_cxx_flag")
+       message(WARNING, "No build type set. Your cflags would have been ignored.")
+       message(WARNING, "Do not call add_cxx_flag before set(CMAKE_BUILD_TYPE ...)")
+       return()
     endif()
     
     # reuse initial cflag of build type, if set, once.
