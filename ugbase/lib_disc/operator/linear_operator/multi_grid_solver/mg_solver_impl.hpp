@@ -324,21 +324,23 @@ restriction(size_t lev)
 		write_level_debug(d, "GMG__TestBeforeGather", lev);
 	//	Send vertical slave values to master.
 	//	we have to make sure that d is additive after this operation!
-		gather_on_ghosts(d, m_vLevData[lev]->t, m_vLevData[lev]->vMapGlobalToPatch);
+		gather_vertical(d);
+		SetLayoutValues(&d, d.vertical_slave_layout(), 0);
 
-	//todo:	this can be prepared!
-		vector_type& tmp = m_vLevData[lev]->t;
-		tmp.set(1.0);
-
-	//	set the vector to -1 where vertical masters are present, the set all
-	//	indices back to 1 where the index is also a horizontal master/slave
-		SetLayoutValues(&tmp, d.vertical_slave_layout(), 0);
-		SetLayoutValues(&tmp, d.master_layout(), 1);
-		SetLayoutValues(&tmp, d.slave_layout(), 1);
-
-		for(size_t i = 0; i < d.size(); ++i){
-			d[i] *= tmp[i];
-		}
+//		gather_on_ghosts(d, m_vLevData[lev]->t, m_vLevData[lev]->vMapGlobalToPatch);
+//	//todo:	this can be prepared!
+//		vector_type& tmp = m_vLevData[lev]->t;
+//		tmp.set(1.0);
+//
+//	//	set the vector to -1 where vertical masters are present, the set all
+//	//	indices back to 1 where the index is also a horizontal master/slave
+//		SetLayoutValues(&tmp, d.vertical_slave_layout(), 0);
+//		SetLayoutValues(&tmp, d.master_layout(), 1);
+//		SetLayoutValues(&tmp, d.slave_layout(), 1);
+//
+//		for(size_t i = 0; i < d.size(); ++i){
+//			d[i] *= tmp[i];
+//		}
 
 		write_level_debug(d, "GMG__TestAfterGather", lev);
 	#endif
