@@ -295,6 +295,8 @@ presmooth(size_t lev)
 //	zero.
 	m_vLevData[lev]->copy_defect_from_smooth_patch(true);
 
+//NOTE: Since we do not copy the correction back from the smooth patch, the resulting
+//		correction will be zero in all entries, if ghosts were present on a process.
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level " << lev << "\n");
 	return true;
 }
@@ -317,13 +319,30 @@ restriction(size_t lev)
 	vector_type& cd = m_vLevData[lev-1]->d;
 
 //	## PARALLEL CASE: gather vertical
-//	Send vertical slave values to master and check resuming.
-//	If there are vertical slaves/masters on the coarser level, we now copy
-//	the restricted values of the defect from the slave DoFs to the master
-//	DoFs.
+
 	#ifdef UG_PARALLEL
-		gather_vertical(d);
+		write_level_debug(d, "GMG__TestBeforeGather", lev);
+	//	Send vertical slave values to master.
+	//	we have to make sure that d is additive after this operation!
+		gather_on_ghosts(d, m_vLevData[lev]->t, m_vLevData[lev]->vMapGlobalToPatch);
+
+	//todo:	this can be prepared!
+		vector_type& tmp = m_vLevData[lev]->t;
+		tmp.set(1.0);
+
+	//	set the vector to -1 where vertical masters are present, the set all
+	//	indices back to 1 where the index is also a horizontal master/slave
+		SetLayoutValues(&tmp, d.vertical_slave_layout(), 0);
+		SetLayoutValues(&tmp, d.master_layout(), 1);
+		SetLayoutValues(&tmp, d.slave_layout(), 1);
+
+		for(size_t i = 0; i < d.size(); ++i){
+			d[i] *= tmp[i];
+		}
+
+		write_level_debug(d, "GMG__TestAfterGather", lev);
 	#endif
+
 
 
 //	Now we can restrict the defect from the fine level to the coarser level.
@@ -337,10 +356,13 @@ restriction(size_t lev)
 					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
 		GMG_PROFILE_END();
 
+		write_level_debug(cd, "GMG_Def_RestrictedNoPP", lev-1);
 	//	apply post processes
 		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
 			m_vLevData[lev]->vRestrictionPP[i]->post_process(cd);
+		write_level_debug(cd, "GMG_Def_RestrictedWithPP", lev-1);
 	}
+
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level " << lev << "\n");
 	return true;
 }
@@ -527,7 +549,6 @@ base_solve(size_t lev)
 //	vector defined on whole grid (including ghosts) on this level
 	vector_type& d = m_vLevData[lev]->d;
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 2, "GMG: Start BaseSolver on level "<<lev<<".\n");
 	if( m_bBaseParallel ||
 	   (d.vertical_slave_layout().empty() &&
 		d.vertical_master_layout().empty()))
@@ -572,7 +593,6 @@ base_solve(size_t lev)
 			GMG_PROFILE_END();
 		}
 #ifdef UG_PARALLEL
-		UG_DLOG(LIB_DISC_MULTIGRID, 2, "GMG: BaseSolver done on level "<<lev<<".\n");
 	}
 
 //	CASE b): We gather the processes, solve on one proc and distribute again
@@ -581,17 +601,22 @@ base_solve(size_t lev)
 	//	get whole grid correction
 		vector_type& c = m_vLevData[lev]->c;
 
+		write_level_debug(d, "GMG_Def_BeforeGatherInBaseSolver", lev);
+
 	//	gather the defect
 		gather_vertical(d);
+
+	//	Reset correction
+		c.set(0.0);
 
 	//	check, if this proc continues, else idle
 		if(d.vertical_slave_layout().empty())
 		{
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
-			UG_DLOG(LIB_DISC_MULTIGRID, 2, " GMG: Start BaseSolver on proc 1.\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 2, " GMG: Start serial base solver.\n");
 
-		//	Reset correction
-			c.set(0.0);
+
+			write_level_debug(d, "GMG_Def_BeforeBaseSolver", lev);
 
 		//	compute coarse correction
 			if(!m_spBaseSolver->apply(c, d))
@@ -602,18 +627,22 @@ base_solve(size_t lev)
 
 				return false;
 			}
+			write_level_debug(c, "GMG_Cor_AfterBaseSolver", lev);
 
+//todo: is update defect really useful here?
 		//	update defect
 			if(m_baseLev == m_topLev || m_bAdaptive)
 				m_vLevData[m_baseLev]->spLevMat->apply_sub(d, c);
 			GMG_PROFILE_END();
-			UG_DLOG(LIB_DISC_MULTIGRID, 2, " GMG Base solver done on 1 Proc.\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 2, " GMG serial base solver done.\n");
 		}
+
 
 	//	broadcast the correction
 		broadcast_vertical(c);
 		c.set_storage_type(PST_CONSISTENT);
 
+//todo: is update defect really useful here?
 	//	if baseLevel == surfaceLevel, we need also d
 		if((m_baseLev == m_topLev) || m_bAdaptive)
 		{
@@ -657,6 +686,8 @@ lmgc(size_t lev)
 				if(!presmooth(lev))
 					return false;
 				write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPreSmooth", lev);
+		//NOTE: Since we do not copy the correction back from the smooth patch, the resulting
+		//		correction will be zero in all entries, if ghosts were present on a process.
 				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPreSmooth", lev);
 
 			//	UG_LOG("Before restriction:\n");	log_level_data(lev);
@@ -703,8 +734,6 @@ lmgc(size_t lev)
 	{
 		bool baseSolverSuccess = base_solve(lev);
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << " (base solver executed)\n");
-		write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterBaseSolve", lev);
-		write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterBaseSolve", lev);
 		return baseSolverSuccess;
 	}
 
@@ -1886,6 +1915,101 @@ gather_vertical(vector_type& d)
 
 //	perform communication
 	m_Com.communicate();
+	GMG_PROFILE_END();
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - gather_vertical\n");
+}
+
+template <typename TDomain, typename TAlgebra>
+void
+AssembledMultiGridCycle<TDomain, TAlgebra>::
+gather_vertical_copy(vector_type& d)
+{
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - gather_vertical_copy\n");
+	PROFILE_FUNC_GROUP("gmg");
+
+//	send vertical-slaves -> vertical-masters
+//	one proc may not have both, a vertical-slave- and vertical-master-layout.
+	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
+	ComPol_VecCopy<vector_type> cpVecCopy(&d);
+	if(!d.vertical_slave_layout().empty()){
+//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+//		  " Going down: SENDS vert. dofs.\n");
+
+	//	schedule Sending of DoFs of vertical slaves
+		m_Com.send_data(d.vertical_slave_layout(), cpVecCopy);
+	}
+
+	if(!d.vertical_master_layout().empty()){
+//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+//		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
+
+	//	schedule Receive of DoFs on vertical masters
+		m_Com.receive_data(d.vertical_master_layout(), cpVecCopy);
+	}
+
+//	perform communication
+	m_Com.communicate();
+	GMG_PROFILE_END();
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - gather_vertical_copy\n");
+}
+
+template <typename TDomain, typename TAlgebra>
+void
+AssembledMultiGridCycle<TDomain, TAlgebra>::
+gather_on_ghosts(vector_type& d, vector_type& tmp, vector<int>& mapGlobalToPatch)
+{
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - gather_vertical\n");
+	PROFILE_FUNC_GROUP("gmg");
+
+	UG_ASSERT(d.size() == tmp.size(), "d and tmp have to be of the same size!");
+
+//	send vertical-slaves -> vertical-masters
+//	one proc may not have both, a vertical-slave- and vertical-master-layout.
+	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
+	tmp = d;
+	ComPol_VecAdd<vector_type> cpVecAdd(&tmp);
+	if(!d.vertical_slave_layout().empty()){
+//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+//		  " Going down: SENDS vert. dofs.\n");
+
+	//	schedule Sending of DoFs of vertical slaves
+		m_Com.send_data(d.vertical_slave_layout(), cpVecAdd);
+	}
+
+	if(!d.vertical_master_layout().empty()){
+//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+//		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
+
+	//	schedule Receive of DoFs on vertical masters
+		m_Com.receive_data(d.vertical_master_layout(), cpVecAdd);
+	}
+
+//	perform communication
+	m_Com.communicate();
+
+//	add values from tmp to ghost
+	UG_ASSERT((mapGlobalToPatch.size() == 0) || mapGlobalToPatch.size() == d.size(),
+			"mapGlobalToPatch either has to be empty or of the same size as d");
+
+//	we'll iterate over all vertical masters, since ghosts are a subset of those.
+	typename IndexLayout::iterator intfcIter = d.vertical_master_layout().begin();
+	typename IndexLayout::iterator intfcIterEnd = d.vertical_master_layout().end();
+
+	for(; intfcIter != intfcIterEnd; ++intfcIter){
+		typename IndexLayout::Interface& intfc =
+								d.vertical_master_layout().interface(intfcIter);
+
+		for(typename IndexLayout::Interface::iterator iter = intfc.begin();
+				iter != intfc.end(); ++iter)
+		{
+			const size_t i = intfc.get_element(iter);
+			if(mapGlobalToPatch[i] == -1){
+				d[i] += tmp[i];
+			}
+		}
+	}
 	GMG_PROFILE_END();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - gather_vertical\n");

@@ -188,14 +188,9 @@ class AssembledMultiGridCycle :
 		bool presmooth(size_t lev);
 
 	///	performs restriction on to the level below
-	/**	Pass a pointer to a bool variable to restrictionPerformedOut, to find out,
-	 * whether the restriction was performed. The restriction
-	 * won't be performed, if no DoFs are in the level below.*/
 		bool restriction(size_t lev);
 
 	///	performs prolongation to the level above
-	/**	We have to let prolongaton know whether the previous restriction
-	 * was performed.*/
 		bool prolongation(size_t lev);
 
 	///	performs postsmoothin
@@ -530,8 +525,24 @@ class AssembledMultiGridCycle :
 #ifdef UG_PARALLEL
 	/**
 	 *	gathers the vector using vertical interfaces.
+	 *	Entries are summed at vmasters.
 	 */
 		void gather_vertical(vector_type& d);
+
+	/**
+	 *	gathers the vector using vertical interfaces.
+	 *	Entries are copied from vslaves to vmasters
+	 */
+		void gather_vertical_copy(vector_type& d);
+
+	/**
+	 *	gathers the vector using vertical interfaces.
+	 *	Only ghost values are adjusted. The specified tmp vector is for internal
+	 *	calculations only and has to be of the same size as d!
+	 *	mapGlobalToPatch either has to be empty or of the same size as d.
+	 */
+		void gather_on_ghosts(vector_type& d, vector_type& tmp,
+							  vector<int>& mapGlobalToPatch);
 
 	/**
 	 *	broadcasts the vector using vertical interfaces.

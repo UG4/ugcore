@@ -584,13 +584,13 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 				ConstrainedFace* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
 					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-					if(!msel.is_selected(cg)){
+//					if(!msel.is_selected(cg)){
 						msel.select(cg, nstate);
 						UG_ASSERT(dynamic_cast<ConstrainingFace*>(cg),
 								  "constraining object of a face has to be a "
 								  "ConstrainingFace!");
 						SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
-					}
+//					}
 				}
 			}
 		}
@@ -607,13 +607,13 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 				ConstrainedFace* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
 					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-					if(!msel.is_selected(cg)){
+//					if(!msel.is_selected(cg)){
 						msel.select(cg, nstate);
 						UG_ASSERT(dynamic_cast<Face*>(cg),
 								  "constraining object of a face has to be a "
 								  "Face!");
 						SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
-					}
+//					}
 				}
 			}
 		}
@@ -630,7 +630,7 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 				ConstrainedEdge* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
 					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-					if(!msel.is_selected(cg)){
+//					if(!msel.is_selected(cg)){
 						msel.select(cg, nstate);
 						switch(cg->base_object_id()){
 						case EDGE:
@@ -640,7 +640,7 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 							SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
 							break;
 						}
-					}
+//					}
 				}
 			}
 		}
@@ -657,7 +657,7 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 				ConstrainedVertex* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
 					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-					if(!msel.is_selected(cg)){
+//					if(!msel.is_selected(cg)){
 						msel.select(cg, nstate);
 						switch(cg->base_object_id()){
 						case EDGE:
@@ -667,7 +667,7 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 							SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
 							break;
 						}
-					}
+//					}
 				}
 			}
 		}
