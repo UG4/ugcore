@@ -47,7 +47,7 @@ protected:
 	AttachmentType m_shift;
 	AttachmentType m_shift_opposite;
 	TPosAA& m_aaPos;
-	template<class TElem> bool match_impl(TElem*, TElem*);
+	template<class TElem> bool match_impl(TElem*, TElem*) const;
 };
 
 

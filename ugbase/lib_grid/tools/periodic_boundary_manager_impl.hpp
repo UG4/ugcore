@@ -9,7 +9,7 @@
 #define PERIODIC_IDENTIFIER_IMPL_HPP_
 
 // include declarations
-#include "periodic_boundary_manager.h"
+#include "./periodic_boundary_manager.h"
 #include "lib_grid/subset_handler.h"
 #include "lib_disc/domain.h"
 #include "lib_grid/algorithms/debug_util.h"
@@ -25,17 +25,17 @@ namespace ug {
 
 template <class TAAPos>
 template <class TElem>
-bool ParallelShiftIdentifier<TAAPos>::match_impl(TElem* e1, TElem* e2) {
+bool ParallelShiftIdentifier<TAAPos>::match_impl(TElem* e1, TElem* e2) const {
 	if (e1 == e2)
 		return false;
 
 	AttachmentType c1 = CalculateCenter(e1, m_aaPos), c2 = CalculateCenter(e2,
 			m_aaPos), diff, error;
+	bool result = false;
 
 	VecSubtract(diff, c1, c2);
 	VecSubtract(error, diff, m_shift);
 	number len = VecLengthSq(error);
-	bool result = false;
 	if (std::abs(len) < 10E-8)
 		result = true;
 	else // check for opposite shift
@@ -298,7 +298,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 /// handles deletion of element type
 template <class TElem>
 void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
-	UG_THROW("not tested.")
+//	UG_THROW("not tested.")
 	if (!is_periodic(e))
 		return;
 
@@ -334,11 +334,10 @@ template <class TElem>
 bool PeriodicBoundaryManager::remove_slave(TElem* e) {
 	if (slaves(e)) {
 		typename Group<TElem>::SlaveContainer& s = *slaves(e);
-		typename Group<TElem>::SlaveIterator pos = std::find(s.begin(), s.end(),
-				e);
+		typename Group<TElem>::SlaveIterator pos = std::find(s.begin(), s.end(), e);
 		if (pos != s.end()) {
 			s.erase(pos);
-			set_group<TElem>(group(e), NULL);
+			set_group<TElem>(NULL, e);
 			// todo what if e was the last slave of of group?
 			return true;
 		}
@@ -417,12 +416,14 @@ PeriodicBoundaryManager::Group<TElem>* PeriodicBoundaryManager::group(
 
 template <class TElem>
 void PeriodicBoundaryManager::set_group(Group<TElem>* g, TElem* e) {
+	UG_ASSERT(e, "element not valid for attachment access.")
 	// set group pointer of element e
 	get_group_accessor<TElem>()[e] = g;
 
 	// set periodic status
 	if (g == NULL) {
 		get_periodic_status_accessor<TElem>()[e] = P_NOT_PERIODIC;
+		return;
 	}
 
 	if (g->m_master == e)
@@ -552,8 +553,8 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 			new ParallelShiftIdentifier<position_accessor_type>(aaPos);
 	pbm.set_identifier(ident);
 
-	// c1, c2 center of geometries; shift = shift vector between subsets
-	position_type c1, c2, shift;
+	// shift vector between subsets
+	position_type shift;
 
 	// collect all geometric objects (even for all levels in case of multi grid)
 	GeometricObjectCollection goc1 = sh.get_geometric_objects_in_subset(sInd1);
@@ -570,9 +571,9 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	typedef typename ElementStorage<TElem>::SectionContainer::iterator gocIter;
 
 	// calculate shift vector for top level
-	c1 = CalculateCenter(goc1.begin<TElem>(0), goc1.end<TElem>(0),
+	position_type c1 = CalculateCenter(goc1.begin<TElem>(0), goc1.end<TElem>(0),
 			aaPos);
-	c2 = CalculateCenter(goc2.begin<TElem>(0), goc2.end<TElem>(0),
+	position_type c2 = CalculateCenter(goc2.begin<TElem>(0), goc2.end<TElem>(0),
 			aaPos);
 
 	VecSubtract(shift, c1, c2);
