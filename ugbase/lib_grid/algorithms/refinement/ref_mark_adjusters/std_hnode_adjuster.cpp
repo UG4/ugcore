@@ -2,10 +2,38 @@
 // s.b.reiter@gmail.com
 // 16.11.2012 (d,m,y)
 
-#include "std_hnode_adjuster.h"
+#include "./std_hnode_adjuster.h"
+#include "lib_grid/tools/periodic_boundary_manager.h"
 #include "lib_grid/algorithms/debug_util.h"
 
 namespace ug{
+
+// marks geometric object e for refinement if it is periodic
+template <class TElem>
+static void mark_if_periodic(IRefiner& ref, TElem* e) {
+	if(!ref.grid())
+		return;
+	if(ref.grid()->has_periodic_boundaries())
+		return;
+
+	PeriodicBoundaryManager& pbm = *ref.grid()->periodic_boundary_manager();
+
+	// ensure vertex is periodic
+	if(!pbm.is_periodic(e))
+		return;
+
+	if(pbm.is_master(e))
+	{
+		typedef typename PeriodicBoundaryManager::Group<TElem>::SlaveContainer SlaveContainer;
+		typedef typename PeriodicBoundaryManager::Group<TElem>::SlaveIterator SlaveIterator;
+		SlaveContainer& slaves = *pbm.slaves(e);
+		for (SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter)
+			ref.mark(*iter);
+	}
+	else { // is slave
+		ref.mark(pbm.master(e));
+	}
+}
 
 void StdHNodeAdjuster::
 ref_marks_changed(IRefiner& ref,
@@ -58,7 +86,8 @@ ref_marks_changed(IRefiner& ref,
 		if(node_dependency_order_1_enabled()){
 			for(size_t i = 0; i < 2; ++i){
 				if(e->vertex(i)->is_constrained()){
-					ref.mark(e->vertex(i));
+					VertexBase* v = e->vertex(i);
+					ref.mark(v);
 				}
 			}
 		}
@@ -171,5 +200,25 @@ ref_marks_changed(IRefiner& ref,
 			}
 		}
 	}
+
+////////////////////////////////
+// Periodic boundaries
+	if(!grid.has_periodic_boundaries())
+		return;
+
+// should work, but ref is abstract...
+//	std::for_each(vrts.begin(), vrts.end(),
+//			boost::bind(&mark_if_periodic<VertexBase>, ref, _1));
+
+	for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt)
+		mark_if_periodic(ref, vrts[i_vrt]);
+
+	for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge)
+		mark_if_periodic(ref, edges[i_edge]);
+
+	for(size_t i_face = 0; i_face < faces.size(); ++i_face)
+		mark_if_periodic(ref, faces[i_face]);
+
+	// omit volumes, as these are not meant to be periodic
 }
 }// end of namespace
