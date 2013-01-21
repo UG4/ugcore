@@ -447,9 +447,11 @@ void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
 		case FACE:
 			handle_creation(e, static_cast<Face*>(pParent), replacesParent);
 			break;
+		// ignore volumes, as they are not meant to be periodic
+		case VOLUME:
+			break;
 		default:
-			UG_THROW(
-					"no handling for parent type: " << pParent->base_object_id())
+			UG_THROW("no handling for parent type: " << pParent->base_object_id())
 		}
 	} else {
 		handle_creation(e, static_cast<VertexBase*>(NULL), replacesParent);
