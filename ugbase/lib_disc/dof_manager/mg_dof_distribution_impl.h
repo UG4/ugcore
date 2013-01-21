@@ -87,26 +87,21 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	if no dofs on this subset for the roid, do nothing
 	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
 
-//	indicate, whether this obj is a periodic master
 	bool master = false;
 
 	if(m_spMG->has_periodic_boundaries())
 	{
 		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
-		// if object to be added is a slave, copy its master index
-		if(pbm.is_slave(obj)) {
-			// copy master index, if one exists yet
-			TBaseObject* master_of_obj = pbm.master(obj);
-			if(master_of_obj)
-				obj_index(obj) = obj_index(master_of_obj);
-			else // no master available yet
-				obj_index(obj) = NOT_YET_ASSIGNED;
-
+		// ignore slaves
+		if(pbm.is_slave(obj))
 			return;
-		} else {
+
+		if(pbm.is_master(obj))
+		{
 			master = true;
 		}
 	}
+
 //	compute the number of indices needed on the Geometric object
 	size_t numNewIndex = 1;
 	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
@@ -128,15 +123,11 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	if(master) {
 		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveContainer SlaveContainer;
 		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveIterator SlaveIterator;
-		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
-		SlaveContainer* slaves = pbm.slaves(obj);
-		if(slaves)
+		SlaveContainer& slaves = *m_spMG->periodic_boundary_manager()->slaves(obj);
+		size_t master_index = obj_index(obj);
+		for(SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter)
 		{
-			size_t master_index = obj_index(obj);
-			for(SlaveIterator iter = slaves->begin(); iter != slaves->end(); ++iter)
-			{
-				obj_index(*iter) = master_index;
-			}
+			obj_index(*iter) = master_index;
 		}
 	}
 }
@@ -153,17 +144,10 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 	if(m_spMG->has_periodic_boundaries())
 	{
-		// as parallel refinement is not yet supported, let the use know it...
-		UG_THROW("parallel refinement in conjunction with periodic boundaries are not yet supported.")
-
 		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
 		// ignore slaves
-		if(pbm.is_slave(obj)) {
-			// copy master index, if one exists yet
-			TBaseObject* master = pbm.master(obj);
-			if(master)
-				obj_index(obj) = obj_index(master);
-		}
+		if(pbm.is_slave(obj))
+			return;
 
 		if(pbm.is_master(obj))
 		{
@@ -217,12 +201,12 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	bool master = false;
 	if(m_spMG->has_periodic_boundaries())
 	{
-		// as parallel refinement is not yet supported, let the use know it...
-		UG_THROW("parallel refinement in conjunction with periodic boundaries are not yet supported.")
 		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
 		// ignore slaves
 		if(pbm.is_slave(obj))
+		{
 			return;
+		}
 
 		if(pbm.is_master(obj))
 		{
@@ -251,6 +235,7 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 		{
 		//	set new index
 			obj_index(obj) = newIndex;
+
 		//  if obj is a master, also replace all its slave
 			if(master)
 			{
@@ -294,26 +279,10 @@ erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	if no indices needed, we do nothing
 	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
 
-//	bool master = false;
-
+	// in periodic case simply ignore slaves
 	if(m_spMG->has_periodic_boundaries())
-	{
-		// as parallel refinement is not yet supported, let the use know it...
-		UG_THROW("parallel refinement in conjunction with periodic boundaries are not yet supported.")
-		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
-		// ignore slaves
-		if(pbm.is_slave(obj))
+		if(m_spMG->periodic_boundary_manager()->is_slave(obj))
 			return;
-
-		if(pbm.is_master(obj))
-		{
-//			master = true;
-		} else {
-			return;
-		}
-	}
-
-	// todo is deletion of master index enough?
 
 //	store the index of the object, that will be erased as a available hole of the
 //	index set
