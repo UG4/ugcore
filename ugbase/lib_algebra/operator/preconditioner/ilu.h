@@ -216,7 +216,29 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	typedef typename Matrix_type::const_row_iterator const_row_iterator;
 
 	typename Vector_type::value_type s;
-	for(size_t i = x.size()-1; ; --i)
+	
+	static const number __eps = 1e-8;
+
+	// last row diagonal U entry might be close to zero with corresponding close to zero rhs
+	// when solving Navier Stokes system, therefore handle separately
+	{
+		size_t i=x.size()-1;
+		const_row_iterator it = A.begin_row(i);
+		s = b[i];
+		// check if diagonal entry close to zero
+		if (BlockNorm(A(i,i))<__eps){
+		// set correction to zero
+			x[i] = 0;
+			if (BlockNorm(s)>__eps){
+				UG_LOG("Warning: near-zero diagonal entry in last row of U with corresponding non-near-zero rhs entry (" << BlockNorm(s) << ")\n");
+			}
+		} else {
+			// x[i] = s/A(i,i);
+			InverseMatMult(x[i], 1.0, A(i,i), s);
+		}
+	}
+	// handle all other rows
+	for(size_t i = x.size()-2; ; --i)
 	{
 		s = b[i];
 		for(const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
@@ -377,7 +399,6 @@ class ILU : public IPreconditioner<TAlgebra>
 	/// Factor for ILU-beta
 		number m_beta;
 };
-
 
 } // end namespace ug
 

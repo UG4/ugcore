@@ -223,11 +223,11 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				block_type &uii = it.value();
 				typename vector_type::value_type s = c[i];
 				// check if close to zero
-				if (BlockNorm(uii)<m_small_lower){
+				if (BlockNorm(uii)<m_small){
 					// set correction to zero
 					c[i] = 0;
-					if (BlockNorm(s)>m_small_upper){
-						UG_LOG("Warning: zero entry in last row of U with corresponding non-zero rhs entry (" << BlockNorm(s) << ")\n");
+					if (BlockNorm(s)>m_small){
+						UG_LOG("Warning: near-zero diagonal entry in last row of U with corresponding non-near-zero rhs entry (" << BlockNorm(s) << ")\n");
 					}
 				} else {
 					// c[i] = s/uii;
@@ -269,15 +269,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		matrix_type m_U;
 		double m_eps;
 		bool m_info;
-		static const number m_small_lower;
-		static const number m_small_upper;
+		static const number m_small;
 };
 
+// define constant
 template <typename TAlgebra>
-const number ILUTPreconditioner<TAlgebra>::m_small_lower = 1e-9;
-
-template <typename TAlgebra>
-const number ILUTPreconditioner<TAlgebra>::m_small_upper = 1e-6;
+const number ILUTPreconditioner<TAlgebra>::m_small = 1e-8;
 
 } // end namespace ug
 
