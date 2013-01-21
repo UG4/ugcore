@@ -58,7 +58,7 @@ void PeriodicBoundaryManager::set_grid(Grid* g)
 		m_aaPeriodicStatusEDG.access(*m_pGrid, aPeriodicStatus);
 		m_aaPeriodicStatusFCE.access(*m_pGrid, aPeriodicStatus);
 
-		int options = OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
+		uint options = OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
 				OT_FACE_OBSERVER;
 		m_pGrid->register_observer(this, options);
 	}
