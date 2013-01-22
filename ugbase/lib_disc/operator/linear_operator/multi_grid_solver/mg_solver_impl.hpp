@@ -323,7 +323,8 @@ restriction(size_t lev)
 	#ifdef UG_PARALLEL
 		write_level_debug(d, "GMG__TestBeforeGather", lev);
 	//	Send vertical slave values to master.
-	//	we have to make sure that d is additive after this operation!
+	//	we have to make sure that d is additive after this operation and that it
+	//	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0)
 		gather_vertical(d);
 		SetLayoutValues(&d, d.vertical_slave_layout(), 0);
 
@@ -380,7 +381,7 @@ prolongation(size_t lev)
 
 //	Get vectors defined on whole grid (including ghosts) on this level
 //	denote by: c = Correction, d = Defect, tmp = Help vector
-	//vector_type& d = m_vLevData[lev]->d;
+	vector_type& d = m_vLevData[lev]->d;
 	vector_type& tmp = m_vLevData[lev]->t;
 
 //	get vectors used in smoothing operations. (This is needed if vertical
@@ -415,8 +416,6 @@ prolongation(size_t lev)
 	//	apply post processes
 		for(size_t i = 0; i < m_vLevData[lev]->vProlongationPP.size(); ++i)
 			m_vLevData[lev]->vProlongationPP[i]->post_process(tmp);
-
-		//write_level_debug(tmp, "GMG_LocalCorProlongated", lev);
 	}
 
 //	PARALLEL CASE: Receive values of correction for vertical slaves
@@ -424,7 +423,6 @@ prolongation(size_t lev)
 //	the correction values from the master DoFs to the slave	DoFs.
 	#ifdef UG_PARALLEL
 	broadcast_vertical(tmp);
-	//write_level_debug(tmp, "GMG_GlobalCorProlongated", lev);
 	#endif
 	write_level_debug(tmp, "GMG_Prol_CoarseGridCorr", lev);
 
@@ -440,13 +438,35 @@ prolongation(size_t lev)
 //	m_vLevData[lev]->copy_correction_from_smooth_patch();
 //	write_level_debug(m_vLevData[lev]->c, "GMG__tmp_correction", lev);
 
+//debug
+	//m_vLevData[lev]->copy_defect_from_smooth_patch();
+//	write_level_debug(m_vLevData[lev]->d, "GMG_Prol_BeforeDefUpdate", lev);
+
 //	## UPDATE DEFECT FOR COARSE GRID CORRECTION
+//	due to gathering during restriction, the defect is currently additive so
+//	that v-masters have the whole value and v-slaves are all 0 (in d. sd may differ).
+//	we thus have to transport all values back to v-slaves and have to make sure
+//	that d is additive again.
+	#ifdef UG_PARALLEL
+	//todo:	only necessary if v-interfaces are present on this level (globally)
+		d.change_storage_type(PST_CONSISTENT);
+		broadcast_vertical(d);
+		d.change_storage_type(PST_ADDITIVE);
+	//	we could set v-masters to 0 here, but since they are no longer used, this is
+	//	not strictly necessary.
+
+		m_vLevData[lev]->copy_defect_to_smooth_patch();
+	#endif
+
 //	the correction has changed c := c + t. Thus, we also have to update
 //	the defect d := d - A*t
 	GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
 	spSmoothMat->apply_sub(sd, sTmp);
 	GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
-	//write_level_debug(sd, "GMG_Prol_DefOnlyCoarseCorr", lev);
+
+//debug
+	m_vLevData[lev]->copy_defect_from_smooth_patch();
+	write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
 //	## ADAPTIVE CASE
 	if(m_bAdaptive)
@@ -611,14 +631,13 @@ base_solve(size_t lev)
 	//	Reset correction
 		c.set(0.0);
 
+		write_level_debug(d, "GMG_Def_BeforeBaseSolver", lev);
+
 	//	check, if this proc continues, else idle
 		if(d.vertical_slave_layout().empty())
 		{
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			UG_DLOG(LIB_DISC_MULTIGRID, 2, " GMG: Start serial base solver.\n");
-
-
-			write_level_debug(d, "GMG_Def_BeforeBaseSolver", lev);
 
 		//	compute coarse correction
 			if(!m_spBaseSolver->apply(c, d))
@@ -629,7 +648,6 @@ base_solve(size_t lev)
 
 				return false;
 			}
-			write_level_debug(c, "GMG_Cor_AfterBaseSolver", lev);
 
 //todo: is update defect really useful here?
 		//	update defect
@@ -644,14 +662,18 @@ base_solve(size_t lev)
 		broadcast_vertical(c);
 		c.set_storage_type(PST_CONSISTENT);
 
+		write_level_debug(c, "GMG_Cor_AfterBaseSolver", lev);
+
 //todo: is update defect really useful here?
 	//	if baseLevel == surfaceLevel, we need also d
-		if((m_baseLev == m_topLev) || m_bAdaptive)
+		//if((m_baseLev == m_topLev) || m_bAdaptive)
+		if((m_baseLev == m_topLev))
 		{
 			d.set_storage_type(PST_CONSISTENT);
 			broadcast_vertical(d);
 			d.change_storage_type(PST_ADDITIVE);
 		}
+		write_level_debug(d, "GMG_Def_AfterBaseSolver", lev);
 	}
 #endif
 
@@ -709,12 +731,16 @@ lmgc(size_t lev)
 					return false;
 
 			//	UG_LOG("Before postsmooth:\n");	log_level_data(lev);
+			//	note that the correction and defect at this time is are stored in
+			//	the smooth-vectors only, if v-masters are present...
+				m_vLevData[lev]->copy_defect_from_smooth_patch();
 				write_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePostSmooth", lev);
+				m_vLevData[lev]->copy_correction_from_smooth_patch();
 				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePostSmooth", lev);
 				if(!postsmooth(lev))
 					return false;
-				write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPostSmooth", lev);
-				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPostSmooth", lev);
+//				write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPostSmooth", lev);
+//				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPostSmooth", lev);
 
 			//	UG_LOG("After postsmooth:\n");	log_level_data(lev);
 			}
