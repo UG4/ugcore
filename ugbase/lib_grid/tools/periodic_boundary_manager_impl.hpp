@@ -29,8 +29,8 @@ bool ParallelShiftIdentifier<TAAPos>::match_impl(TElem* e1, TElem* e2) const {
 	if (e1 == e2)
 		return false;
 
-	AttachmentType c1 = CalculateCenter(e1, m_aaPos), c2 = CalculateCenter(e2,
-			m_aaPos), diff, error;
+	AttachmentType c1 = CalculateCenter(e1, m_aaPos),
+			c2 = CalculateCenter(e2, m_aaPos), diff, error;
 	bool result = false;
 
 	VecSubtract(diff, c1, c2);
@@ -111,7 +111,6 @@ void PeriodicBoundaryManager::match_and_identifiy(TElem* e1, TElem* e2,
 		UG_THROW("need an valid identifier.")
 
 	if (m_pIdentifier->match(e1, e2)) {
-		UG_LOG("match_and_ident: match found!!!\n")
 		identifiy(e1, e2, m_pIdentifier.get());
 	}
 }
@@ -149,24 +148,29 @@ void PeriodicBoundaryManager::print_identification() const {
 	for (Iterator elem = m_pGrid->begin<TElem>(); elem != m_pGrid->end<TElem>();
 			++elem) {
 		// log masters and their slaves
-		if (master(*elem) == *elem) {
-			Group<TElem>* g = group(*elem);
-			UG_ASSERT(g, "group not valid")
-			UG_LOG("group of " << (*elem)->reference_object_id() << "\tlevel: " <<
-					m_pGrid->get_level(*elem) << "\tmaster: " <<
-					GetGeometricObjectCenter(*m_pGrid, g->m_master) << "\tslaves: ");
-			for (SlaveIter slave = g->get_slaves().begin();
-					slave != g->get_slaves().end(); ++slave) {
-				TElem* e = *slave;
-				UG_LOG(GetGeometricObjectCenter(*m_pGrid, e) << ", ")
-				UG_ASSERT(m_pGrid->get_level(*elem) == m_pGrid->get_level(e),
-						"wrong level in group")
-			}
-			UG_LOG(std::endl)
+		if (!(master(*elem) == *elem))
+			continue;
+
+		Group<TElem>* g = group(*elem);
+		UG_ASSERT(g, "group not valid")
+		UG_LOG("group of " << (*elem)->reference_object_id() << "\tlevel: " <<
+				m_pGrid->get_level(*elem) << "\tmaster: " <<
+				GetGeometricObjectCenter(*m_pGrid, g->m_master) << "\tslaves: ");
+		for (SlaveIter slave = g->get_slaves().begin();
+				slave != g->get_slaves().end(); ++slave) {
+			TElem* e = *slave;
+			UG_LOG(GetGeometricObjectCenter(*m_pGrid, e) << ", ")
+			UG_ASSERT(m_pGrid->get_level(*elem) == m_pGrid->get_level(e),
+					"wrong level in group")
 		}
+		UG_LOG(std::endl)
 	}
 }
 
+/**
+ * TParent should be only of type VertexBase, EdgeBase, Face.
+ * Volumes are not meant to be periodic.
+ */
 template <class TElem, class TParent>
 void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 		bool replacesParent) {
@@ -212,7 +216,6 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 	Group<TParent>* parentGroup = group<TParent>(pParent);
 
 	if (is_master<TParent>(pParent)) {
-		UG_LOG("parent is master, create group for e\n");
 		// create new group for e, with e as master
 		Group<TElem>* newGroup = new Group<TElem>(e);
 		set_group(newGroup, e);
@@ -298,7 +301,6 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 /// handles deletion of element type
 template <class TElem>
 void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
-//	UG_THROW("not tested.")
 	if (!is_periodic(e))
 		return;
 
@@ -314,8 +316,8 @@ void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
 		}
 	} else { // slave
 		Group<TElem>* g = group(e);
-		bool removed = remove_slave(e);
-		UG_ASSERT(removed, "slave not removed.")
+		if(! remove_slave(e))
+			UG_THROW("slave not removed.")
 
 		if (replacedBy)
 			g->add_slave(replacedBy);
@@ -435,26 +437,25 @@ void PeriodicBoundaryManager::set_group(Group<TElem>* g, TElem* e) {
 template <class TElem>
 void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
 		GeometricObject* pParent, bool replacesParent) {
-	if (pParent) {
-		switch (pParent->base_object_id()) {
-		case VERTEX:
-			handle_creation(e, static_cast<VertexBase*>(pParent),
-					replacesParent);
-			break;
-		case EDGE:
-			handle_creation(e, static_cast<EdgeBase*>(pParent), replacesParent);
-			break;
-		case FACE:
-			handle_creation(e, static_cast<Face*>(pParent), replacesParent);
-			break;
-		// ignore volumes, as they are not meant to be periodic
-		case VOLUME:
-			break;
-		default:
-			UG_THROW("no handling for parent type: " << pParent->base_object_id())
-		}
-	} else {
-		handle_creation(e, static_cast<VertexBase*>(NULL), replacesParent);
+	// we can only identify periodic elements, which have a periodic parent
+	if(!pParent)
+		return;
+
+	switch (pParent->base_object_id()) {
+	case VERTEX:
+		handle_creation(e, static_cast<VertexBase*>(pParent), replacesParent);
+		break;
+	case EDGE:
+		handle_creation(e, static_cast<EdgeBase*>(pParent), replacesParent);
+		break;
+	case FACE:
+		handle_creation(e, static_cast<Face*>(pParent), replacesParent);
+		break;
+	// ignore volumes, as these are not meant to be periodic
+	case VOLUME:
+		break;
+	default:
+		UG_THROW("no handling for parent type: " << pParent->base_object_id())
 	}
 }
 
