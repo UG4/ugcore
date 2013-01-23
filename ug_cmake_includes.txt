@@ -740,7 +740,7 @@ if(CUDA)
 		include_directories(${CUDA_TOOLKIT_INCLUDE})
 		include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
 
-		set(linkLibraries "${linkLibraries} ${CUDA_CUDART_LIBRARY}")   
+		set(linkLibraries "${linkLibraries} ${CUDA_CUDART_LIBRARY} ${CUDA_cublas_LIBRARY}")   
 	else(CUDA_FOUND)
 		message(FATAL_ERROR "Error: Couldn't find CUDA")
 	endif()
