@@ -93,12 +93,11 @@ Fortunately, with SSHFS you can mount filesystems over ssh into your computer.
 It's like having a supercomputer as a USB stick. For that
 
 <ul>
-  <li>MacOS <= 10.6: download 
-    <a href="http://code.google.com/p/macfuse/downloads/list">macfuse</a>.
-    install.<br>
-    MacOS >= 10.7: use OSX Fuse.
+ <li>
+   MacOS >= 10.7: download & install <a href="http://github.com/osxfuse/osxfuse/downloads">OSX Fuse</a> and then <a href="http://github.com/osxfuse/sshfs/downloads">SSHFS</a>.
   </li>
-  <li>install sshfs:
+  <li>MacOS <= 10.6: download & install <a href="http://code.google.com/p/macfuse/downloads/list">macfuse</a>.<br>
+  install sshfs:
     \verbatim
 cd ~/Downloads/
 svn co http://macfuse.googlecode.com/svn/trunk/filesystems/sshfs/binary sshfs-binaries
@@ -107,6 +106,7 @@ sudo cpsshfs-static-leopard /usr/bin/sshfs
     \endverbatim
     For tiger, use <tt>sshfs-static-tiger</tt>.
   </li>
+ 
 </ul>
 
 
