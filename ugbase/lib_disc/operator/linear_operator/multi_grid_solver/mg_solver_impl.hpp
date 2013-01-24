@@ -185,6 +185,12 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - smooth on level " << lev << "\n");
 
+	if(d.size() == 0){
+	//	since no parallel communication takes place in this method, we may
+	//	return immediately, if d is empty.
+		return true;
+	}
+
 // 	smooth nu times
 	for(int i = 0; i < nu; ++i)
 	{
@@ -319,29 +325,15 @@ restriction(size_t lev)
 	vector_type& cd = m_vLevData[lev-1]->d;
 
 //	## PARALLEL CASE: gather vertical
-
 	#ifdef UG_PARALLEL
 		write_level_debug(d, "GMG__TestBeforeGather", lev);
 	//	Send vertical slave values to master.
 	//	we have to make sure that d is additive after this operation and that it
 	//	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0)
-		gather_vertical(d);
-		SetLayoutValues(&d, d.vertical_slave_layout(), 0);
-
-//		gather_on_ghosts(d, m_vLevData[lev]->t, m_vLevData[lev]->vMapGlobalToPatch);
-//	//todo:	this can be prepared!
-//		vector_type& tmp = m_vLevData[lev]->t;
-//		tmp.set(1.0);
-//
-//	//	set the vector to -1 where vertical masters are present, the set all
-//	//	indices back to 1 where the index is also a horizontal master/slave
-//		SetLayoutValues(&tmp, d.vertical_slave_layout(), 0);
-//		SetLayoutValues(&tmp, d.master_layout(), 1);
-//		SetLayoutValues(&tmp, d.slave_layout(), 1);
-//
-//		for(size_t i = 0; i < d.size(); ++i){
-//			d[i] *= tmp[i];
-//		}
+		if(d.size() > 0){
+			gather_vertical(d);
+			SetLayoutValues(&d, d.vertical_slave_layout(), 0);
+		}
 
 		write_level_debug(d, "GMG__TestAfterGather", lev);
 	#endif
@@ -350,7 +342,7 @@ restriction(size_t lev)
 
 //	Now we can restrict the defect from the fine level to the coarser level.
 //	This is done using the transposed prolongation.
-	if(cd.size() > 0){
+	if((cd.size() > 0) && (d.size() > 0)){
 		GMG_PROFILE_BEGIN(GMG_RestrictDefect);
 		try{
 			m_vLevData[lev]->Restriction->restrict(cd, d);
@@ -359,11 +351,11 @@ restriction(size_t lev)
 					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
 		GMG_PROFILE_END();
 
-		write_level_debug(cd, "GMG_Def_RestrictedNoPP", lev-1);
+		//write_level_debug(cd, "GMG_Def_RestrictedNoPP", lev-1);
 	//	apply post processes
 		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
 			m_vLevData[lev]->vRestrictionPP[i]->post_process(cd);
-		write_level_debug(cd, "GMG_Def_RestrictedWithPP", lev-1);
+		//write_level_debug(cd, "GMG_Def_RestrictedWithPP", lev-1);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level " << lev << "\n");
@@ -402,7 +394,7 @@ prolongation(size_t lev)
 		m_vLevData[lev]->get_smooth_mat();
 
 //	## INTERPOLATE CORRECTION
-	if(cc.size() > 0){
+	if((cc.size() > 0) && (tmp.size() > 0)){
 	//	now we can interpolate the coarse grid correction from the coarse level
 	//	to the fine level
 		GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
@@ -431,7 +423,11 @@ prolongation(size_t lev)
 
 // 	## ADD COARSE GRID CORRECTION
 	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
-	sc += sTmp;
+	if(sc.size() > 0){
+	//	if ensures that no incompatible storage types are added in the case of
+	//	empty vectors.
+		sc += sTmp;
+	}
 	GMG_PROFILE_END(); // GMG_AddCoarseGridCorr
 
 //debug
@@ -461,43 +457,57 @@ prolongation(size_t lev)
 //	the correction has changed c := c + t. Thus, we also have to update
 //	the defect d := d - A*t
 	GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
-	spSmoothMat->apply_sub(sd, sTmp);
+	if(sd.size() > 0){
+		spSmoothMat->apply_sub(sd, sTmp);
+	}
 	GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
-
-//debug
-	m_vLevData[lev]->copy_defect_from_smooth_patch();
-	write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
 //	## ADAPTIVE CASE
 	if(m_bAdaptive)
 	{
+	//todo:	coarse grid correction on smooth patch, only?
 	//	in the adaptive case there is a small part of the coarse coupling that
 	//	has not been used to update the defect. In order to ensure, that the
 	//	defect on this level still corresponds to the updated defect, we need
 	//	to add if here. This is done in three steps:
 	//	a) Compute the coarse update of the defect induced by missing coupling
 		cTmp.set(0.0);
-		if(!m_vLevData[lev-1]->CoarseGridContribution.apply(cTmp, cc))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Could not compute"
-					" missing update defect contribution on level "<<lev-1<<".\n");
-			return false;
+		if(cc.size() > 0){
+			if(!m_vLevData[lev-1]->CoarseGridContribution.apply(cTmp, cc))
+			{
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Could not compute"
+						" missing update defect contribution on level "<<lev-1<<".\n");
+				return false;
+			}
 		}
 
-//		write_level_debug(cTmp, "GMG_AdaptiveCoarseGridContribution", lev - 1);
+	//	cTmp is additive but we need a consistent correction
+		cTmp.set_storage_type(PST_ADDITIVE);
+		cTmp.change_storage_type(PST_CONSISTENT);
+
+		write_level_debug(cTmp, "GMG_AdaptiveCoarseGridContribution", lev - 1);
 
 	//	get surface view
 		const SurfaceView& surfView = *m_spApproxSpace->surface_view();
 
 	//	b) interpolate the coarse defect up
-		AddProjectionOfShadows(level_defects(),
-		                       m_spApproxSpace->level_dof_distributions(),
-		                       cTmp, m_vLevData[lev-1]->spLevDD,
-		                       lev -1,
-		                       -1.0,
-		                       surfView);
+	//	since we add a consistent correction, we need a consistent defect to which
+	//	we add the values.
+		m_vLevData[lev]->copy_defect_from_smooth_patch();
+		d.change_storage_type(PST_CONSISTENT);
+		write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
-		//write_level_debug(sd, "GMG_Prol_DefWithAdaptAdding", lev);
+		AddProjectionOfShadows(level_defects(),
+							   m_spApproxSpace->level_dof_distributions(),
+							   cTmp, m_vLevData[lev-1]->spLevDD,
+							   lev -1,
+							   -1.0,
+							   surfView);
+
+		//	copy defect to smooth patch
+		d.change_storage_type(PST_ADDITIVE);
+		m_vLevData[lev]->copy_defect_to_smooth_patch();
+		write_level_debug(d, "GMG_Prol_DefWithAdaptAdding", lev);
 		//write_level_debug(cTmp, "GMG_Prol_CorrAdaptAdding", lev-1);
 	}
 
@@ -576,6 +586,7 @@ base_solve(size_t lev)
 		d.vertical_master_layout().empty()))
 	{
 #endif
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering serial basesolver branch.\n");
 		if(m_vLevData[lev]->num_indices()){
 		//	LIFTING c TO SOLVING AREA
 			m_vLevData[lev]->copy_defect_to_smooth_patch();
@@ -614,12 +625,14 @@ base_solve(size_t lev)
 			m_vLevData[lev]->copy_correction_from_smooth_patch(true);
 			GMG_PROFILE_END();
 		}
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting serial basesolver branch.\n");
 #ifdef UG_PARALLEL
 	}
 
 //	CASE b): We gather the processes, solve on one proc and distribute again
 	else
 	{
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering parallel basesolver branch.\n");
 	//	get whole grid correction
 		vector_type& c = m_vLevData[lev]->c;
 
@@ -637,7 +650,7 @@ base_solve(size_t lev)
 		if(d.vertical_slave_layout().empty())
 		{
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
-			UG_DLOG(LIB_DISC_MULTIGRID, 2, " GMG: Start serial base solver.\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: Start serial base solver.\n");
 
 		//	compute coarse correction
 			if(!m_spBaseSolver->apply(c, d))
@@ -651,17 +664,16 @@ base_solve(size_t lev)
 
 //todo: is update defect really useful here?
 		//	update defect
-			if(m_baseLev == m_topLev || m_bAdaptive)
+			if(m_baseLev == m_topLev)
 				m_vLevData[m_baseLev]->spLevMat->apply_sub(d, c);
 			GMG_PROFILE_END();
-			UG_DLOG(LIB_DISC_MULTIGRID, 2, " GMG serial base solver done.\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG serial base solver done.\n");
 		}
 
 
 	//	broadcast the correction
 		broadcast_vertical(c);
 		c.set_storage_type(PST_CONSISTENT);
-
 		write_level_debug(c, "GMG_Cor_AfterBaseSolver", lev);
 
 //todo: is update defect really useful here?
@@ -673,7 +685,9 @@ base_solve(size_t lev)
 			broadcast_vertical(d);
 			d.change_storage_type(PST_ADDITIVE);
 		}
+
 		write_level_debug(d, "GMG_Def_AfterBaseSolver", lev);
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting parallel basesolver branch.\n");
 	}
 #endif
 
@@ -697,64 +711,51 @@ lmgc(size_t lev)
 //	used as coarse grid correction. Finally a post-smooth is performed.
 	if(lev > m_baseLev)
 	{
-	//	check if dofs on that level. It not, skip level
-		if(m_vLevData[lev]->num_indices() > 0){
+		for(int i = 0; i < m_cycleType; ++i)
+		{
+			m_vLevData[lev]->c.set(0.0); // <<<< only for debug
+		//	UG_LOG("Before presmooth:\n");	log_level_data(lev);
+			write_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePreSmooth", lev);
+			write_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePreSmooth", lev);
+			if(!presmooth(lev))
+				return false;
+			write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPreSmooth", lev);
+	//NOTE: Since we do not copy the correction back from the smooth patch, the resulting
+	//		correction will be zero in all entries, if ghosts were present on a process.
+			write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPreSmooth", lev);
 
+		//	UG_LOG("Before restriction:\n");	log_level_data(lev);
+			if(!restriction(lev))
+				return false;
 
-			for(int i = 0; i < m_cycleType; ++i)
+			if(!lmgc(lev-1))
 			{
-				m_vLevData[lev]->c.set(0.0); // <<<< only for debug
-			//	UG_LOG("Before presmooth:\n");	log_level_data(lev);
-				write_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePreSmooth", lev);
-				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePreSmooth", lev);
-				if(!presmooth(lev))
-					return false;
-				write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPreSmooth", lev);
-		//NOTE: Since we do not copy the correction back from the smooth patch, the resulting
-		//		correction will be zero in all entries, if ghosts were present on a process.
-				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPreSmooth", lev);
-
-			//	UG_LOG("Before restriction:\n");	log_level_data(lev);
-				if(!restriction(lev))
-					return false;
-
-				if(!lmgc(lev-1))
-				{
-					UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
-							" grid cycle on level " << lev-1 << " failed. "
-							"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
-					return false;
-				}
-
-			//	UG_LOG("Before prolongation:\n");	log_level_data(lev);
-				if(!prolongation(lev))
-					return false;
-
-			//	UG_LOG("Before postsmooth:\n");	log_level_data(lev);
-			//	note that the correction and defect at this time is are stored in
-			//	the smooth-vectors only, if v-masters are present...
-				m_vLevData[lev]->copy_defect_from_smooth_patch();
-				write_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePostSmooth", lev);
-				m_vLevData[lev]->copy_correction_from_smooth_patch();
-				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePostSmooth", lev);
-				if(!postsmooth(lev))
-					return false;
-//				write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPostSmooth", lev);
-//				write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPostSmooth", lev);
-
-			//	UG_LOG("After postsmooth:\n");	log_level_data(lev);
+				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
+						" grid cycle on level " << lev-1 << " failed. "
+						"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
+				return false;
 			}
-			UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << "\n");
-			return true;
+
+		//	UG_LOG("Before prolongation:\n");	log_level_data(lev);
+			if(!prolongation(lev))
+				return false;
+
+		//	UG_LOG("Before postsmooth:\n");	log_level_data(lev);
+		//	note that the correction and defect at this time is are stored in
+		//	the smooth-vectors only, if v-masters are present...
+			//m_vLevData[lev]->copy_defect_from_smooth_patch();
+			//write_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePostSmooth", lev);
+			//m_vLevData[lev]->copy_correction_from_smooth_patch();
+			//write_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePostSmooth", lev);
+			if(!postsmooth(lev))
+				return false;
+			write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPostSmooth", lev);
+			write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPostSmooth", lev);
+
+		//	UG_LOG("After postsmooth:\n");	log_level_data(lev);
 		}
-		else{
-			for(int i = 0; i < m_cycleType; ++i){
-				if(!lmgc(lev-1))
-					return false;
-			}
-			UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << " (no dofs on this level)\n");
-			return true;
-		}
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << "\n");
+		return true;
 	}
 
 //	if the base level has been reached, the coarse problem is solved exactly
@@ -2149,8 +2150,14 @@ update(size_t lev,
 	d.resize(numIndex);
 	t.resize(numIndex);
 
+
 //	prepare level operator
 #ifdef UG_PARALLEL
+	if(numIndex == 0){
+	//	default storage types for c and d to avoid incompatible types.
+		c.set_storage_type(PST_CONSISTENT);
+		d.set_storage_type(PST_ADDITIVE);
+	}
 	LevelDoFDistribution* pDD = const_cast<LevelDoFDistribution*>(spLevDD.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(*spLevMat, *pDD);
 #endif
@@ -2244,6 +2251,12 @@ update(size_t lev,
 	sc.resize(numSmoothIndex);
 	sd.resize(numSmoothIndex);
 	st.resize(numSmoothIndex);
+
+	if(numSmoothIndex == 0){
+	//	set default storage types to avoid incompatibilities
+		sc.set_storage_type(PST_CONSISTENT);
+		sd.set_storage_type(PST_ADDITIVE);
+	}
 
 //	** 2. **: We have to create new layouts for the smoothers since on the
 //	smoothing patch the indices are labeled differently.

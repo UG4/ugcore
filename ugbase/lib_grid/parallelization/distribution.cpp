@@ -439,7 +439,7 @@ static bool PerformValidityCheck(DistributedGridManager& dgm)
 ////////////////////////////////////////////////////////////////////////////////
 ///	Recursively selects unselected sides.
 template <class TElem>
-static void SelectUnselectedSides(MGSelector& msel, TElem* e,
+static void SelectAssociatedSides(MGSelector& msel, TElem* e,
 								  ISelector::status_t status = ISelector::SELECTED)
 {
 	UG_ASSERT(msel.multi_grid(), "");
@@ -455,15 +455,16 @@ static void SelectUnselectedSides(MGSelector& msel, TElem* e,
 			ISelector::status_t nstate = status | msel.get_selection_status(s);
 			msel.select(s, nstate);
 			if(TElem::HAS_SIDES)
-				SelectUnselectedSides(msel, s, nstate);
+				SelectAssociatedSides(msel, s, nstate);
 		//}
 	}
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 /**	selects unselected constrained elements of all selected constraining elements
  * and associated unselected low-dim elems.*/
-static void SelectUnselectedConstrainedElements(MGSelector& msel,
+static void SelectAssociatedConstrainedElements(MGSelector& msel,
 								ISelector::status_t status = ISelector::SELECTED)
 {
 //	constraining triangles
@@ -487,7 +488,7 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
 //					if(!msel.is_selected(cd)){
 						msel.select(cd, nstate);
-						SelectUnselectedSides(msel, cd, nstate);
+						SelectAssociatedSides(msel, cd, nstate);
 //					}
 				}
 				for(size_t i = 0; i < e->num_constrained_faces(); ++i){
@@ -495,7 +496,7 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
 //					if(!msel.is_selected(cd)){
 						msel.select(cd, nstate);
-						SelectUnselectedSides(msel, cd, nstate);
+						SelectAssociatedSides(msel, cd, nstate);
 //					}
 				}
 			}
@@ -523,7 +524,7 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
 //					if(!msel.is_selected(cd)){
 						msel.select(cd, nstate);
-						SelectUnselectedSides(msel, cd, nstate);
+						SelectAssociatedSides(msel, cd, nstate);
 //					}
 				}
 				for(size_t i = 0; i < e->num_constrained_faces(); ++i){
@@ -531,7 +532,7 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
 //					if(!msel.is_selected(cd)){
 						msel.select(cd, nstate);
-						SelectUnselectedSides(msel, cd, nstate);
+						SelectAssociatedSides(msel, cd, nstate);
 //					}
 				}
 			}
@@ -559,7 +560,7 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
 //					if(!msel.is_selected(cd)){
 						msel.select(cd, nstate);
-						SelectUnselectedSides(msel, cd, nstate);
+						SelectAssociatedSides(msel, cd, nstate);
 //					}
 				}
 			}
@@ -570,7 +571,7 @@ static void SelectUnselectedConstrainedElements(MGSelector& msel,
 ////////////////////////////////////////////////////////////////////////////////
 /**	selects unselected constraining elements of all selected constrained elements
  * and associated unselected low-dim elems.*/
-static void SelectUnselectedConstrainingElements(MGSelector& msel,
+static void SelectAssociatedConstrainingElements(MGSelector& msel,
 								ISelector::status_t status = ISelector::SELECTED)
 {
 //	constrained triangles
@@ -589,7 +590,7 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 						UG_ASSERT(dynamic_cast<ConstrainingFace*>(cg),
 								  "constraining object of a face has to be a "
 								  "ConstrainingFace!");
-						SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
+						SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
 //					}
 				}
 			}
@@ -612,7 +613,7 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 						UG_ASSERT(dynamic_cast<Face*>(cg),
 								  "constraining object of a face has to be a "
 								  "Face!");
-						SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
+						SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
 //					}
 				}
 			}
@@ -634,10 +635,10 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 						msel.select(cg, nstate);
 						switch(cg->base_object_id()){
 						case EDGE:
-							SelectUnselectedSides(msel, static_cast<EdgeBase*>(cg), nstate);
+							SelectAssociatedSides(msel, static_cast<EdgeBase*>(cg), nstate);
 							break;
 						case FACE:
-							SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
+							SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
 							break;
 						}
 //					}
@@ -661,13 +662,50 @@ static void SelectUnselectedConstrainingElements(MGSelector& msel,
 						msel.select(cg, nstate);
 						switch(cg->base_object_id()){
 						case EDGE:
-							SelectUnselectedSides(msel, static_cast<EdgeBase*>(cg), nstate);
+							SelectAssociatedSides(msel, static_cast<EdgeBase*>(cg), nstate);
 							break;
 						case FACE:
-							SelectUnselectedSides(msel, static_cast<Face*>(cg), nstate);
+							SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
 							break;
 						}
 //					}
+				}
+			}
+		}
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+///	Recursively selects all children of selected vertices
+/**	This method is required, since if a distributed vertex has a child which
+ * is not connected to other distributed elements, then the child wouldn't be selected.
+ * Note that for edges and faces the methods SelectAssociatedConstrainedElements
+ * takes care of this.
+ */
+static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
+								ISelector::status_t status = ISelector::SELECTED)
+{
+	UG_ASSERT(msel.multi_grid(), "The selector has to operate on a grid!");
+	MultiGrid& mg = *msel.multi_grid();
+
+	Grid::edge_traits::secure_container edges;
+
+	for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+		for(MGSelector::traits<VertexBase>::iterator iter = msel.begin<VertexBase>(lvl);
+			iter != msel.end<VertexBase>(lvl); ++iter)
+		{
+			VertexBase* vrt = *iter;
+			VertexBase* child = mg.get_child_vertex(vrt);
+			if(!child)
+				continue;
+
+		//	check whether vrt has an associated edge which does not have children
+			mg.associated_elements(edges, vrt);
+			for(size_t i = 0; i < edges.size(); ++i){
+				if(!mg.has_children(edges[i])){
+					msel.select(child, msel.get_selection_status(child) | status);
+					break;
 				}
 			}
 		}
@@ -850,8 +888,9 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 
 //	select associated constraining elements first, since they may reference
 //	additional unselected constrained elements.
-	SelectUnselectedConstrainingElements(msel, IS_DUMMY);
-	SelectUnselectedConstrainedElements(msel, IS_DUMMY);
+	SelectAssociatedConstrainingElements(msel, IS_DUMMY);
+	SelectAssociatedConstrainedElements(msel, IS_DUMMY);
+	SelectChildrenOfSelectedShadowVertices(msel, IS_DUMMY);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -959,9 +998,11 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 		//	this lowest rank is required to decide, which process a horizontal
 		//	master should reside on
 			int minProc = pcl::GetNumProcesses();
+			int minVMasterProc = pcl::GetNumProcesses();
 			int minVSlaveProc = pcl::GetNumProcesses();
 			bool isVMaster = false;
 			bool isVSlave = false;
+			bool vMasterExists = false;
 			//bool isDummy = false;
 			//bool isNormal = false;
 			bool createNormalHInterface = false;
@@ -969,9 +1010,12 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			for(size_t i = 0; i < di.size(); ++i){
 				TargetProcInfo& tpi = di[i];
 				if(tpi.interfaceState & IS_VMASTER){
+					vMasterExists = true;
 					if(tpi.procID == localProcID){
 						isVMaster = true;
 					}
+					if(tpi.procID < minVMasterProc)
+						minVMasterProc = tpi.procID;
 				}
 				if(tpi.interfaceState & IS_VSLAVE){
 					if(tpi.procID == localProcID)
@@ -994,11 +1038,33 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					minProc = tpi.procID;
 			}
 
+
+		//	in some situations, lower dimensional elements can be marked as a
+		//	vmaster and a vslave at the same time. we will generate the vmaster
+		//	interface on the lowest proc which is marked as vmaster
 			if(isVMaster && isVSlave){
-			//	The element received a copy of a v-slave and a copy of a v-master.
+				if(localProcID == minVMasterProc)
+					isVSlave = false;
+				else
+					isVMaster = false;
+
 			//	adjacent normal full-dimensional elements should thus exist and a
 			//	horizontal interface has to be built.
 				createNormalHInterface = true;
+			}
+			else if((!(isVMaster || isVSlave)) && vMasterExists){
+			//	check whether a copy is vmaster. If this is the case,
+			//	the element itself has to be a vslave.
+			//	This occurs in situations where a low-dim element with copies
+			//	on p1 and p2 (no v-interface) is distributed from p1 to a third process.
+			//	a v-interface on p1 will then be created and
+				isVSlave = true;
+			}
+
+			//	there only may be one v-master copy
+			if(isVMaster && (localProcID != minVMasterProc)){
+				isVMaster = false;
+				isVSlave = true;
 			}
 
 		//	if this condition is fulfilled, some kind of h-interface will be built
@@ -1010,14 +1076,16 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					continue;
 
 			//	add entry to vertical interface if necessary
-				if(isVSlave && (tpi.interfaceState & IS_VMASTER)){
+				//if(isVSlave && (tpi.interfaceState & IS_VMASTER)){
+				if(isVSlave && (tpi.procID == minVMasterProc)){
 					//UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
-					//UG_ASSERT(!isVMaster, "A v-slave element should never also be a v-master");
-					glm.get_layout<TElem>(INT_V_SLAVE).
-						interface(tpi.procID, lvl).push_back(e);
+						glm.get_layout<TElem>(INT_V_SLAVE).
+							interface(tpi.procID, lvl).push_back(e);
 				}
 
-				if(isVMaster && (tpi.interfaceState & IS_VSLAVE)){
+			//	a vmaster creates interface entries to all associated non-vmaster copies
+				//if(isVMaster && (tpi.interfaceState & IS_VSLAVE)){
+				if(isVMaster){
 					//UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
 					//UG_ASSERT(!isVSlave, "A v-master element should never also be a v-slave");
 					glm.get_layout<TElem>(INT_V_MASTER).
