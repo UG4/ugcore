@@ -482,8 +482,10 @@ prolongation(size_t lev)
 		}
 
 	//	cTmp is additive but we need a consistent correction
-		cTmp.set_storage_type(PST_ADDITIVE);
-		cTmp.change_storage_type(PST_CONSISTENT);
+		#ifdef UG_PARALLEL
+			cTmp.set_storage_type(PST_ADDITIVE);
+			cTmp.change_storage_type(PST_CONSISTENT);
+		#endif
 
 		write_level_debug(cTmp, "GMG_AdaptiveCoarseGridContribution", lev - 1);
 
@@ -493,9 +495,11 @@ prolongation(size_t lev)
 	//	b) interpolate the coarse defect up
 	//	since we add a consistent correction, we need a consistent defect to which
 	//	we add the values.
-		m_vLevData[lev]->copy_defect_from_smooth_patch();
-		d.change_storage_type(PST_CONSISTENT);
-		write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
+		#ifdef UG_PARALLEL
+			m_vLevData[lev]->copy_defect_from_smooth_patch();
+			d.change_storage_type(PST_CONSISTENT);
+		#endif
+		//write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
 		AddProjectionOfShadows(level_defects(),
 							   m_spApproxSpace->level_dof_distributions(),
@@ -505,9 +509,11 @@ prolongation(size_t lev)
 							   surfView);
 
 		//	copy defect to smooth patch
-		d.change_storage_type(PST_ADDITIVE);
-		m_vLevData[lev]->copy_defect_to_smooth_patch();
-		write_level_debug(d, "GMG_Prol_DefWithAdaptAdding", lev);
+		#ifdef UG_PARALLEL
+			d.change_storage_type(PST_ADDITIVE);
+			m_vLevData[lev]->copy_defect_to_smooth_patch();
+		#endif
+		write_level_debug(d, "GMG_Def_Prolongated", lev);
 		//write_level_debug(cTmp, "GMG_Prol_CorrAdaptAdding", lev-1);
 	}
 
