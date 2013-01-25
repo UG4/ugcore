@@ -22,7 +22,8 @@ namespace ug {
 
 template <typename TAlgebra>
 class NLJacobiSolver
-	: 	public IOperatorInverse<typename TAlgebra::vector_type>
+	: 	public IOperatorInverse<typename TAlgebra::vector_type>,
+		public DebugWritingObject<TAlgebra>
 {
 	public:
 	///	Algebra type
@@ -33,6 +34,10 @@ class NLJacobiSolver
 
 	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
+
+	protected:
+		typedef DebugWritingObject<TAlgebra> base_writer_type;
+		using base_writer_type::write_debug;
 
 	public:
 	///	constructor setting operator
@@ -60,6 +65,13 @@ class NLJacobiSolver
 		virtual bool apply(vector_type& u);
 
 	private:
+	///	help functions for debug output
+	///	\{
+		void write_debug(const vector_type& vec, const char* filename);
+		void write_debug(const matrix_type& mat, const char* filename);
+	/// \}
+
+	private:
 		SmartPtr<IConvergenceCheck<vector_type> > m_spConvCheck;
 		number m_damp;
 
@@ -69,6 +81,9 @@ class NLJacobiSolver
 		SmartPtr<AssembledOperator<algebra_type> > m_N;
 		SmartPtr<AssembledLinearOperator<algebra_type> > m_J;
 		IAssemble<algebra_type>* m_pAss;
+
+		///	call counter
+		int m_dgbCall;
 };
 
 }

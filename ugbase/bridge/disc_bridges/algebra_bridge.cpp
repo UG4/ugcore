@@ -209,6 +209,26 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_to_group(name, "NewtonSolver", tag);
 	}
 
+	//	NonlinearJacobiSolver
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
+		typedef NLJacobiSolver<TAlgebra> T;
+		typedef IOperatorInverse<vector_type> TBase;
+		typedef DebugWritingObject<TAlgebra> TBase2;
+		string name = string("NLJacobiSolver").append(suffix);
+		reg.add_class_<T, TBase, TBase2>(name, grp)
+			.add_constructor()
+			.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
+			.template add_constructor<void (*)(IAssemble<TAlgebra>*)>("AssemblingRoutine")
+			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
+			.add_method("set_damp", &T::set_damp, "", "setDampingFactor")
+			.add_method("init", &T::init, "success", "op")
+			.add_method("prepare", &T::prepare, "success", "u")
+			.add_method("apply", &T::apply, "success", "u")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "NLJacobiSolver", tag);
+	}
+
 //	AssembledOperator
 	{
 		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
@@ -223,25 +243,6 @@ static void Algebra(Registry& reg, string parentGroup)
 			.add_method("init", &T::init)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AssembledOperator", tag);
-	}
-
-	//	NonlinearJacobiSolver
-	{
-		std::string grp = parentGroup; grp.append("/Discretization/Nonlinear");
-		typedef NLJacobiSolver<TAlgebra> T;
-		typedef IOperatorInverse<vector_type> TBase;
-		string name = string("NLJacobiSolver").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
-			.add_constructor()
-			.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
-			.template add_constructor<void (*)(IAssemble<TAlgebra>*)>("AssemblingRoutine")
-			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
-			.add_method("set_damp", &T::set_damp, "", "setDampingFactor")
-			.add_method("init", &T::init, "success", "op")
-			.add_method("prepare", &T::prepare, "success", "u")
-			.add_method("apply", &T::apply, "success", "u")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "NLJacobiSolver", tag);
 	}
 
 //	some functions
@@ -366,17 +367,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 		grp.append("/Discretization/Nonlinear");
 		typedef NLGaussSeidelSolver<TDomain, TAlgebra> T;
 		typedef IOperatorInverse<vector_type> TBase;
+		typedef DebugWritingObject<TAlgebra> TBase2;
 		string name = string("NLGaussSeidelSolver").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
 			.template add_constructor<void (*)(IAssemble<TAlgebra>*)>("AssemblingRoutine")
-			.add_method("set_approx_space", &T::set_approx_space, "", "approxSpace")
 			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
 			.add_method("set_damp", &T::set_damp, "", "setDampingFactor")
 			.add_method("init", &T::init, "success", "op")
 			.add_method("prepare", &T::prepare, "success", "u")
+			.add_method("preprocess", &T::preprocess, "success", "u")
 			.add_method("apply", &T::apply, "success", "u")
+			.add_method("solve", &T::solve, "success", "u")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NLGaussSeidelSolver", tag);
 	}

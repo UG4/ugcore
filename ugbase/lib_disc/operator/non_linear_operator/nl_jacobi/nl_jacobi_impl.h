@@ -31,7 +31,11 @@
 #ifndef NL_JACOBI_IMPL_H_
 #define NL_JACOBI_IMPL_H_
 
+// extern includes
+#include <iostream>
+
 #include "lib_disc/function_spaces/grid_function_util.h"
+#include "lib_disc/common/local_algebra.h"
 #include "nl_jacobi.h"
 
 #define PROFILE_NL_JACOBI
@@ -51,21 +55,24 @@ template <typename TAlgebra>
 NLJacobiSolver<TAlgebra>::
 NLJacobiSolver(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck) :
 			m_spConvCheck(spConvCheck),
-			m_damp(1.0)
+			m_damp(1.0),
+			m_dgbCall(0)
 {};
 
 template <typename TAlgebra>
 NLJacobiSolver<TAlgebra>::
 NLJacobiSolver() :
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_damp(1.0)
+	m_damp(1.0),
+	m_dgbCall(0)
 {};
 
 template <typename TAlgebra>
 NLJacobiSolver<TAlgebra>::
 NLJacobiSolver(SmartPtr<IOperator<vector_type> > N) :
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_damp(1.0)
+	m_damp(1.0),
+	m_dgbCall(0)
 {
 	init(N);
 };
@@ -111,10 +118,14 @@ bool NLJacobiSolver<TAlgebra>::prepare(vector_type& u)
 	return true;
 }
 
+
 template <typename TAlgebra>
 bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 {
 	NL_JACOBI_PROFILE_BEGIN(NL_JACOBISolver_apply);
+	//	increase call count
+	m_dgbCall++;
+
 	//	Jacobian
 	if(m_J.invalid() || m_J->discretization() != m_pAss) {
 		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
@@ -141,13 +152,21 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 	}UG_CATCH_THROW("NLJacobiSolver::apply: "
 			"Computation of Start-Defect failed.");
 
+//	write start defect for debug
+	int loopCnt = 0;
+	char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+	std::string name("NLJacobi_Defect");
+	name.append(ext);
+	write_debug(m_d, name.c_str());
+	write_debug(u, "NLJacobi_StartSolution");
+
 // 	start convergence check
 	m_spConvCheck->start(m_d);
 
 //	get #indices of gridFunction u
 	size_t n_indices = u.size();
 
-	matrix_type &J = m_J->get_matrix();
+	matrix_type& J = m_J->get_matrix();
 	number damp = m_damp;
 
 //	loop iteration
@@ -164,16 +183,17 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 		NL_JACOBI_PROFILE_END();
 
 		// 	Compute Jacobian J(u)
-		// TODO: we only need the updated diag here!
-		//	A more efficient way would be to assemble
-		//	J_ii by collecting the contributions of all elements
-		//	which are associated to i
 		try{
 			NL_JACOBI_PROFILE_BEGIN(NL_JACOBIComputeJacobian);
 			m_J->init(u);
 			NL_JACOBI_PROFILE_END();
 		}UG_CATCH_THROW("NLJacobiSolver::apply: "
 				"Initialization of Jacobian failed.");
+
+		//	Write Jacobian for debug
+		std::string matname("NLJacobi_Jacobian");
+		matname.append(ext);
+		write_debug(m_J->get_matrix(), matname.c_str());
 
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIInvertBlocks);
 		//	loop all DoFs
@@ -200,6 +220,30 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 	}
 
 	return m_spConvCheck->post();
+}
+
+template <typename TAlgebra>
+void NLJacobiSolver<TAlgebra>::write_debug(const vector_type& vec, const char* filename)
+{
+//	add iter count to name
+	std::string name(filename);
+	char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
+	name.append(ext).append(".vec");
+
+//	write
+	base_writer_type::write_debug(vec, name.c_str());
+}
+
+template <typename TAlgebra>
+void NLJacobiSolver<TAlgebra>::write_debug(const matrix_type& mat, const char* filename)
+{
+//	add iter count to name
+	std::string name(filename);
+	char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
+	name.append(ext).append(".mat");
+
+//	write
+	base_writer_type::write_debug(mat, name.c_str());
 }
 
 }

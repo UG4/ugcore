@@ -11,6 +11,7 @@
 #ifndef NL_GAUSS_SEIDEL_H_
 #define NL_GAUSS_SEIDEL_H_
 
+
 #include "lib_algebra/operator/interface/operator_inverse.h"
 
 // modul intern headers
@@ -21,7 +22,8 @@ namespace ug {
 
 template <typename TDomain, typename TAlgebra>
 class NLGaussSeidelSolver
-	: public IOperatorInverse<typename TAlgebra::vector_type>
+	: public IOperatorInverse<typename TAlgebra::vector_type>,
+	  public DebugWritingObject<TAlgebra>
 {
 	public:
 	///	Algebra type
@@ -33,8 +35,15 @@ class NLGaussSeidelSolver
 	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-	///	Type of approximation space
-		typedef ApproximationSpace<TDomain>	approx_space_type;
+	///	Domain type
+		typedef TDomain domain_type;
+
+	///	GridFunction type
+		typedef GridFunction<domain_type, SurfaceDoFDistribution, algebra_type> gridfunc_type;
+
+	protected:
+		typedef DebugWritingObject<TAlgebra> base_writer_type;
+		using base_writer_type::write_debug;
 
 	public:
 	///	constructor setting operator
@@ -47,10 +56,8 @@ class NLGaussSeidelSolver
 		NLGaussSeidelSolver();
 
 	///	constructor
-		NLGaussSeidelSolver(SmartPtr<approx_space_type> spApproxSpace,
-					SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
+		NLGaussSeidelSolver(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 
-		void set_approx_space(SmartPtr<approx_space_type> spApproxSpace) {m_spApproxSpace = spApproxSpace;}
 		void set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 		void set_damp(number damp) {m_damp = damp;}
 
@@ -60,11 +67,23 @@ class NLGaussSeidelSolver
 		/// prepare Operator
 		virtual bool prepare(vector_type& u);
 
+		/// preprocess
+		bool preprocess(gridfunc_type& u);
+
 		/// apply Operator, i.e. N^{-1}(0) = u
 		virtual bool apply(vector_type& u);
 
+		/// solve
+		bool solve(gridfunc_type& u);
+
 	private:
-		SmartPtr<approx_space_type> m_spApproxSpace;
+	///	help functions for debug output
+	///	\{
+		void write_debug(const vector_type& vec, const char* filename);
+		void write_debug(const matrix_type& mat, const char* filename);
+	/// \}
+
+	private:
 		SmartPtr<IConvergenceCheck<vector_type> > m_spConvCheck;
 		number m_damp;
 
@@ -74,6 +93,12 @@ class NLGaussSeidelSolver
 		SmartPtr<AssembledOperator<algebra_type> > m_N;
 		SmartPtr<AssembledLinearOperator<algebra_type> > m_J;
 		IAssemble<algebra_type>* m_pAss;
+
+		///	call counter
+		int m_dgbCall;
+
+		///	bool marker of diag-DoFs contributions
+		BoolMarker m_vDiagMarker;
 };
 
 }
