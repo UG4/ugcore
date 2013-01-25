@@ -2507,7 +2507,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 
 template <typename TElem, int TWorldDim>
 FV1ManifoldBoundary<TElem, TWorldDim>::
-FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get())
+FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()), m_ssi(-1)
 {
 	// set corners of element as local centers of nodes
 	for (size_t i = 0; i < m_rRefElem.num(0); ++i)
@@ -2612,9 +2612,26 @@ template <typename TElem, int TWorldDim>
 void FV1ManifoldBoundary<TElem, TWorldDim>::
 update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	// 	If already update for this element, do nothing
+	// 	if already update for this element, do nothing
 	if (m_pElem == elem) return;
 	else m_pElem = elem;
+
+	//	store subset index for geometry
+	Grid& grid = *(ish->grid());
+	if (worldDim == 2)
+	{
+		std::vector<EdgeBase*> vEdge;
+		CollectEdgesSorted(vEdge, grid, elem);
+		UG_ASSERT(vEdge.size(),"No edge contained in 1D manifold element!");
+		m_ssi = ish->get_subset_index(vEdge[0]);
+	}
+	if (worldDim == 3)
+	{
+		std::vector<Face*> vFace;
+		CollectFacesSorted(vFace, grid, elem);
+		UG_ASSERT(vFace.size(),"No face contained in 2D manifold element!");
+		m_ssi = ish->get_subset_index(vFace[0]);
+	}
 
 	// 	remember global position of nodes
 	for (size_t i = 0; i < m_rRefElem.num(0); ++i)

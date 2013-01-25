@@ -2400,8 +2400,14 @@ class FV1ManifoldBoundary
 
 	/// returns number of all scvf ips
 		size_t num_bf_local_ips() const {return m_vLocBFIP.size();}
-
 	
+	/// returns subset index
+		int subset_index() const
+		{
+			if (m_ssi != -1) return m_ssi;
+			UG_THROW("Subset index of geometry unknown.")
+		}
+
 	private:
 	// 	pointer to current element
 		TElem* m_pElem;
@@ -2419,7 +2425,8 @@ class FV1ManifoldBoundary
 	// 	Reference Element
 		const ref_elem_type& m_rRefElem;
 
-		
+	//	subset index of the element represented
+		int m_ssi;
 };
 
 }
