@@ -151,12 +151,6 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	std::stringstream ss; ss << "(Linear Solver: " << m_spLinearSolver->name() << ")";
 	m_spConvCheck->set_info(ss.str());
 
-// 	copy pattern
-	try{
-		vector_type s; s.resize(u.size()); s = u;
-	}
-	UG_CATCH_THROW("NewtonSolver::apply: Creation of help vector failed.");
-
 // 	start convergence check
 	m_spConvCheck->start(m_d);
 
