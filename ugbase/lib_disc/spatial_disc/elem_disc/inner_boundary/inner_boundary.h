@@ -125,13 +125,13 @@ class FV1InnerBoundaryElemDisc
 	 *	depending on the unknowns on the boundary;
 	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
 	 */
-		virtual bool fluxDensityFct(const LocalVector& u, size_t node_id, FluxCond& fc) = 0;	/// the flux function
+		virtual bool fluxDensityFct(const LocalVector& u, size_t node_id, const MathVector<dim>& coords, int si, FluxCond& fc) = 0;	/// the flux function
 	
 	/**	This is the flux derivative function defining the flux density derivatives over the boundary
 	 *	depending on the unknowns on the boundary;
 	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
 	 */
-		virtual bool fluxDensityDerivFct(const LocalVector& u, size_t node_id, FluxDerivCond& fdc) = 0;
+		virtual bool fluxDensityDerivFct(const LocalVector& u, size_t node_id, const MathVector<dim>& coords, int si, FluxDerivCond& fdc) = 0;
 	
 	///	prepares the loop over all elements
 	/**

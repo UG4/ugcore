@@ -63,11 +63,13 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 		// get current BF
 		const typename TFVGeom<TElem, dim>::BF& bf = fvgeom.bf(i);
 
-		// get associated node
-		const int co = bf.node_id();
+		// get associated node, coords and subset index
+		const size_t co = bf.node_id();
+		const MathVector<dim>& coords = bf.global_ip(0);
+		int si = fvgeom.subset_index();
 		
 		FluxDerivCond fdc;
-		if (!fluxDensityDerivFct(u, co, fdc))
+		if (!fluxDensityDerivFct(u, co, coords, si, fdc))
 			UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
 							" Call to fluxDensityDerivFct resulted did not succeed.");
 		
@@ -109,12 +111,14 @@ add_def_A_elem(LocalVector& d, const LocalVector& u)
 		// get current BF
 		const typename TFVGeom<TElem, dim>::BF& bf = fvgeom.bf(i);
 		
-		// get associated node
+		// get associated node, coords and subset index
 		const int co = bf.node_id();
+		const MathVector<dim>& coords = bf.global_ip(0);
+		int si = fvgeom.subset_index();
 		
 		// get flux densities in that node
 		FluxCond fc;
-		if (!fluxDensityFct(u, co, fc))
+		if (!fluxDensityFct(u, co, coords, si, fc))
 			UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
 						" Call to fluxDensityFct did not succeed.");
 
