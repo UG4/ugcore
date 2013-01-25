@@ -296,9 +296,9 @@ presmooth(size_t lev)
 	GMG_PROFILE_END();
 
 //	now copy the values of d back to the whole grid, since the restriction
-//	acts on the whole grid. Since we will perform a addition of the vertical
-//	slaves to the vertical masters, we now set the values on the ghosts to
-//	zero.
+//	acts on the whole grid. Since we will perform an addition of the vertical
+//	slaves to the vertical masters, we will thereby set the values on ghosts nodes
+//	to zero.
 	m_vLevData[lev]->copy_defect_from_smooth_patch(true);
 
 //NOTE: Since we do not copy the correction back from the smooth patch, the resulting
@@ -430,29 +430,22 @@ prolongation(size_t lev)
 	}
 	GMG_PROFILE_END(); // GMG_AddCoarseGridCorr
 
-//debug
-//	m_vLevData[lev]->copy_correction_from_smooth_patch();
-//	write_level_debug(m_vLevData[lev]->c, "GMG__tmp_correction", lev);
-
-//debug
-	//m_vLevData[lev]->copy_defect_from_smooth_patch();
-//	write_level_debug(m_vLevData[lev]->d, "GMG_Prol_BeforeDefUpdate", lev);
-
 //	## UPDATE DEFECT FOR COARSE GRID CORRECTION
 //	due to gathering during restriction, the defect is currently additive so
 //	that v-masters have the whole value and v-slaves are all 0 (in d. sd may differ).
 //	we thus have to transport all values back to v-slaves and have to make sure
 //	that d is additive again.
+	//write_level_debug(m_vLevData[lev]->d, "GMG_Prol_BeforeBroadcast", lev);
 	#ifdef UG_PARALLEL
 	//todo:	only necessary if v-interfaces are present on this level (globally)
 		d.change_storage_type(PST_CONSISTENT);
 		broadcast_vertical(d);
 		d.change_storage_type(PST_ADDITIVE);
-	//	we could set v-masters to 0 here, but since they are no longer used, this is
+	//	we could set ghosts to 0 here, but since they are no longer used, this is
 	//	not strictly necessary.
-
 		m_vLevData[lev]->copy_defect_to_smooth_patch();
 	#endif
+	//write_level_debug(m_vLevData[lev]->d, "GMG_Prol_AfterBroadcast", lev);
 
 //	the correction has changed c := c + t. Thus, we also have to update
 //	the defect d := d - A*t
@@ -497,9 +490,10 @@ prolongation(size_t lev)
 	//	we add the values.
 		#ifdef UG_PARALLEL
 			m_vLevData[lev]->copy_defect_from_smooth_patch();
+			write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorrAdditive", lev);
 			d.change_storage_type(PST_CONSISTENT);
 		#endif
-		//write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
+		write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
 		AddProjectionOfShadows(level_defects(),
 							   m_spApproxSpace->level_dof_distributions(),

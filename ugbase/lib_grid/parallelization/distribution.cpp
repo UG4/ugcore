@@ -688,6 +688,7 @@ static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
 {
 	UG_ASSERT(msel.multi_grid(), "The selector has to operate on a grid!");
 	MultiGrid& mg = *msel.multi_grid();
+	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 
 	Grid::edge_traits::secure_container edges;
 
@@ -703,7 +704,7 @@ static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
 		//	check whether vrt has an associated edge which does not have children
 			mg.associated_elements(edges, vrt);
 			for(size_t i = 0; i < edges.size(); ++i){
-				if(!mg.has_children(edges[i])){
+				if(!(distGridMgr.is_ghost(edges[i]) || mg.has_children(edges[i]))){
 					msel.select(child, msel.get_selection_status(child) | status);
 					break;
 				}
@@ -947,8 +948,9 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 #ifdef LG_DISTRIBUTION_DEBUG
 	{
 		stringstream ss;
-		ss << "dist_infos_vrt_before_sync_p" << pcl::GetProcRank() << ".txt";
-		WriteDistInfosToTextFile<VertexBase>(mg, distInfos, ss.str().c_str());
+		ss << "dist_infos_vrt_before_sync_p" << pcl::GetProcRank() << ".ugx";
+		//WriteDistInfosToTextFile<VertexBase>(mg, distInfos, ss.str().c_str());
+		SaveDistInfosToFile(mg, distInfos, ss.str().c_str());
 	}
 #endif
 
@@ -960,8 +962,9 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 #ifdef LG_DISTRIBUTION_DEBUG
 	{
 		stringstream ss;
-		ss << "dist_infos_vrt_after_sync_p" << pcl::GetProcRank() << ".txt";
-		WriteDistInfosToTextFile<VertexBase>(mg, distInfos, ss.str().c_str());
+		ss << "dist_infos_vrt_after_sync_p" << pcl::GetProcRank() << ".ugx";
+		//WriteDistInfosToTextFile<VertexBase>(mg, distInfos, ss.str().c_str());
+		SaveDistInfosToFile(mg, distInfos, ss.str().c_str());
 	}
 #endif
 
@@ -997,9 +1000,12 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 		//	element lies (ignore pure vertical masters)
 		//	this lowest rank is required to decide, which process a horizontal
 		//	master should reside on
+			byte localInterfaceState = 0;
 			int minProc = pcl::GetNumProcesses();
 			int minVMasterProc = pcl::GetNumProcesses();
-			int minVSlaveProc = pcl::GetNumProcesses();
+		//	the lowest proc which holds a v-slave or a normal entry.
+		//	dummies are ignored here, since we don't want them to be h-masters.
+			int minRegularHMasterProc = pcl::GetNumProcesses();
 			bool isVMaster = false;
 			bool isVSlave = false;
 			bool vMasterExists = false;
@@ -1009,6 +1015,9 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			int numVSlaveProcs = 0;
 			for(size_t i = 0; i < di.size(); ++i){
 				TargetProcInfo& tpi = di[i];
+				if(tpi.procID == localProcID)
+					localInterfaceState = tpi.interfaceState;
+
 				if(tpi.interfaceState & IS_VMASTER){
 					vMasterExists = true;
 					if(tpi.procID == localProcID){
@@ -1017,18 +1026,23 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					if(tpi.procID < minVMasterProc)
 						minVMasterProc = tpi.procID;
 				}
+
 				if(tpi.interfaceState & IS_VSLAVE){
 					if(tpi.procID == localProcID)
 						isVSlave = true;
-					if(tpi.procID < minVSlaveProc)
-						minVSlaveProc = tpi.procID;
+					if(tpi.procID < minRegularHMasterProc)
+						minRegularHMasterProc = tpi.procID;
 					++numVSlaveProcs;
 				}
+
 				if(tpi.interfaceState & (IS_NORMAL)){
 					createNormalHInterface = true;
+					if(tpi.procID < minRegularHMasterProc)
+						minRegularHMasterProc = tpi.procID;
 					//if(tpi.procID == localProcID)
 					//	isNormal = true;
 				}
+
 				if(tpi.interfaceState & (IS_DUMMY)){
 					createNormalHInterface = true;
 //					if(tpi.procID == localProcID)
@@ -1100,28 +1114,38 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 			//	add entry to horizontal interface if necessary
 				if(createNormalHInterface){
-					if(localProcID == minProc){
+					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
+					if(localProcID == minRegularHMasterProc){
 					//	horizontal master
-						glm.get_layout<TElem>(INT_H_MASTER).
-							interface(tpi.procID, lvl).push_back(e);
+					//	only build the interface if the process is not a pure
+					//	v-master
+						if(tpi.interfaceState != IS_VMASTER){
+							glm.get_layout<TElem>(INT_H_MASTER).
+								interface(tpi.procID, lvl).push_back(e);
+						}
 					}
-					else if(tpi.procID == minProc){
+					else if(tpi.procID == minRegularHMasterProc){
 					//	horizontal slave
-						glm.get_layout<TElem>(INT_H_SLAVE).
-							interface(tpi.procID, lvl).push_back(e);
+					//	only build the interface if the process is not a pure
+					//	v-master
+						if(localInterfaceState != IS_VMASTER){
+							glm.get_layout<TElem>(INT_H_SLAVE).
+								interface(tpi.procID, lvl).push_back(e);
+						}
 					}
 				}
 				else if(numVSlaveProcs > 1){
+					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
 				//	we still have to build a horizontal interface, this time
 				//	however only between vertical slaves
 					if(tpi.interfaceState & IS_VSLAVE){
 						if(!isVMaster){
-							if(localProcID == minVSlaveProc){
+							if(localProcID == minRegularHMasterProc){
 							//	horizontal master
 								glm.get_layout<TElem>(INT_H_MASTER).
 									interface(tpi.procID, lvl).push_back(e);
 							}
-							else if(tpi.procID == minVSlaveProc){
+							else if(tpi.procID == minRegularHMasterProc){
 							//	horizontal slave
 								glm.get_layout<TElem>(INT_H_SLAVE).
 									interface(tpi.procID, lvl).push_back(e);
