@@ -79,7 +79,6 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	const size_t numIndex = dd->num_indices();
 	M.resize(0,0);
 	M.resize(numIndex, numIndex);
-	M.set(0.0);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -183,7 +182,6 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	const size_t numIndex = dd->num_indices();
 	A.resize(0,0);
 	A.resize(numIndex, numIndex);
-	A.set(0.0);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -294,7 +292,6 @@ assemble_jacobian(matrix_type& J,
 	const size_t numIndex = dd->num_indices();
 	J.resize(0,0);
 	J.resize(numIndex, numIndex);
-	J.set(0.0);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -498,7 +495,6 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	const size_t numIndex = dd->num_indices();
 	mat.resize(0,0);
 	mat.resize(numIndex, numIndex);
-	mat.set(0.0);
 
 	rhs.resize(numIndex);
 	rhs.set(0.0);
@@ -831,7 +827,6 @@ assemble_jacobian(matrix_type& J,
 	const size_t numIndex = dd->num_indices();
 	J.resize(0,0);
 	J.resize(numIndex, numIndex);
-	J.set(0.0);
 
 //	get current time
 	const number time = vSol->time(0);
@@ -1045,7 +1040,6 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	reset matrix to zero and resize
 	mat.resize(0,0);
 	mat.resize(numIndex, numIndex);
-	mat.set(0.0);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
