@@ -726,7 +726,7 @@ endif(HLIBPRO)
 #########################################
 # CUDA
 if(CUDA)
-    if($ENV{HOSTNAME} STREQUAL "tales")
+    if($ENV{HOSTNAME} AND $ENV{HOSTNAME} STREQUAL "tales")
         SET(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-5.0)
     endif()
     
