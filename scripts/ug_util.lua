@@ -499,7 +499,7 @@ function ListUserDataInTable(t, name)
       end
   
 	  if type(v) == "table" then
-		if(n ~= "_G" and n ~= "io" and n ~= "package") then 
+		if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then 
 			ListUserDataInTable(v, name.."["..n.."]")
 		end
   	  end
@@ -516,7 +516,7 @@ function ListUserData()
     
 	    -- userdata in table
 		if type(v) == "table" then
-			if(n ~= "_G" and n ~= "io" and n ~= "package") then 
+			if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then 
 				ListUserDataInTable(_G[n], n)
 			end
 		end
@@ -530,7 +530,7 @@ function FreeUserDataInTable(t)
       end
       
       if type(v) == "table" then
-		if(n ~= "_G" and n ~= "io" and n ~= "package") then
+		if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then
 			FreeUserDataInTable(v)
 		end
   	  end
@@ -547,7 +547,7 @@ function FreeUserData()
       end
       
       if type(v) == "table" then
-		if(n ~= "_G" and n ~= "io" and n ~= "package") then
+		if(n ~= "_G" and n ~= "io" and n ~= "package" and n ~= "gnuplot") then
  	     	FreeUserDataInTable(_G[n])
  	     end
       end
