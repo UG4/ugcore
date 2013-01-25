@@ -310,6 +310,9 @@ class GridFunction
 	/// Initializing Constructor using surface dof distribution
 		GridFunction(SmartPtr<approximation_space_type> approxSpace);
 
+	/// Initializing Constructor using surface dof distribution on a level
+		GridFunction(SmartPtr<approximation_space_type> approxSpace, int level);
+
 	///	checks the algebra
 		void check_algebra();
 

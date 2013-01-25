@@ -411,6 +411,23 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace)
 };
 
 template <typename TDomain, typename TDD, typename TAlgebra>
+GridFunction<TDomain, TDD, TAlgebra>::
+GridFunction(SmartPtr<approximation_space_type> approxSpace, int level)
+	: IDDGridFunction<TDD>(approxSpace->surface_dof_distribution(level)),
+	  m_spDomain(approxSpace->domain())
+{
+	check_algebra();
+	resize_values(num_indices());
+#ifdef UG_PARALLEL
+//	set layouts
+	copy_layouts_into_vector();
+
+//	set storage type
+	this->set_storage_type(PST_UNDEFINED);
+#endif
+};
+
+template <typename TDomain, typename TDD, typename TAlgebra>
 void
 GridFunction<TDomain, TDD, TAlgebra>::check_algebra()
 {

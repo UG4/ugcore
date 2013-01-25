@@ -64,6 +64,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GridFunction").append(suffix);
 		reg.add_class_<TFct, vector_type>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("ApproximationSpace")
+			.template add_constructor<void (*)(SmartPtr<approximation_space_type>, int)>("ApproximationSpace, Level")
 			.add_method("assign", static_cast<void (TFct::*)(const vector_type&)>(&TFct::assign),
 						"Success", "Vector")
 			.add_method("clone", &TFct::clone)
