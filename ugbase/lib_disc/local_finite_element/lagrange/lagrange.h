@@ -332,7 +332,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferenceTriangle::check_position(x);
+			//ReferenceTriangle::check_position(x);
 
 		//	get adjoint barycentric index
 			const size_t i0 = p - ind[0] - ind[1];
@@ -355,7 +355,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		               	   	   	   	   	   const position_type& x) const
 		{
 			check_multi_index(ind);
-			ReferenceTriangle::check_position(x);
+			//ReferenceTriangle::check_position(x);
 
 		//	get adjoint barycentric index and position
 			const size_t i0 = p - ind[0] - ind[1];
@@ -506,7 +506,7 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferenceTriangle::check_position(x);
+			//ReferenceTriangle::check_position(x);
 
 		//	get adjoint barycentric index
 			const size_t i0 = p - ind[0] - ind[1];
@@ -529,7 +529,7 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 		               	   	   	   	   	   const position_type& x) const
 		{
 			check_multi_index(ind);
-			ReferenceTriangle::check_position(x);
+			//ReferenceTriangle::check_position(x);
 
 		//	get adjoint barycentric index and position
 			const int i0 = p - ind[0] - ind[1];
@@ -706,7 +706,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferenceQuadrilateral::check_position(x);
+			//ReferenceQuadrilateral::check_position(x);
 
 			return    m_vPolynom[ ind[0] ].value(x[0])
 					* m_vPolynom[ ind[1] ].value(x[1]);
@@ -723,7 +723,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		               	   	   	const position_type& x) const
 		{
 			check_multi_index(ind);
-			ReferenceQuadrilateral::check_position(x);
+			//ReferenceQuadrilateral::check_position(x);
 
 		//	loop dimensions
 			for(int d = 0; d < dim; ++d)
@@ -848,7 +848,7 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferenceQuadrilateral::check_position(x);
+			//ReferenceQuadrilateral::check_position(x);
 
 			return    m_vPolynom[ ind[0] ].value(x[0])
 					* m_vPolynom[ ind[1] ].value(x[1]);
@@ -865,7 +865,7 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 		               	   	   	const position_type& x) const
 		{
 			check_multi_index(ind);
-			ReferenceQuadrilateral::check_position(x);
+			//ReferenceQuadrilateral::check_position(x);
 
 		//	loop dimensions
 			for(int d = 0; d < dim; ++d)
@@ -1016,7 +1016,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferenceTetrahedron::check_position(x);
+			//ReferenceTetrahedron::check_position(x);
 
 		//	get adjoint barycentric index
 			const size_t i0 = p - ind[0] - ind[1] - ind[2];
@@ -1039,7 +1039,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		               	   	   	   	    const position_type& x) const
 		{
 			check_multi_index(ind);
-			ReferenceTetrahedron::check_position(x);
+			//ReferenceTetrahedron::check_position(x);
 
 		//	get adjoint barycentric index and position
 			const size_t i0 = p - ind[0] - ind[1] - ind[2];
@@ -1218,7 +1218,7 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferenceTetrahedron::check_position(x);
+			//ReferenceTetrahedron::check_position(x);
 
 		//	get adjoint barycentric index
 			const size_t i0 = p - ind[0] - ind[1] - ind[2];
@@ -1241,7 +1241,7 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 		               	   	   	   	    const position_type& x) const
 		{
 			check_multi_index(ind);
-			ReferenceTetrahedron::check_position(x);
+			//ReferenceTetrahedron::check_position(x);
 
 		//	get adjoint barycentric index and position
 			const size_t i0 = p - ind[0] - ind[1] - ind[2];
@@ -1451,7 +1451,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferencePrism::check_position(x);
+			//ReferencePrism::check_position(x);
 
 		//	get adjoint barycentric index
 			const size_t i0 = p - ind[0] - ind[1];
@@ -1476,7 +1476,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		               	   	   	   	   	const position_type& x) const
 		{
 			check_multi_index(ind);
-			ReferencePrism::check_position(x);
+			//ReferencePrism::check_position(x);
 
 		//	get adjoint barycentric index and position
 			const size_t i0 = p - ind[0] - ind[1];
@@ -1644,7 +1644,7 @@ class FlexLagrangeLSFS<ReferencePrism>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferencePrism::check_position(x);
+			//ReferencePrism::check_position(x);
 
 		//	get adjoint barycentric index
 			const size_t i0 = p - ind[0] - ind[1];
@@ -1669,7 +1669,7 @@ class FlexLagrangeLSFS<ReferencePrism>
 		               	   	   	   	   	const position_type& x) const
 		{
 			check_multi_index(ind);
-			ReferencePrism::check_position(x);
+			//ReferencePrism::check_position(x);
 
 		//	get adjoint barycentric index and position
 			const size_t i0 = p - ind[0] - ind[1];
@@ -1895,7 +1895,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferencePyramid::check_position(x);
+			//ReferencePyramid::check_position(x);
 
 		//	forward
 			return shape(index(ind), x);
@@ -2102,7 +2102,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferenceHexahedron::check_position(x);
+			//ReferenceHexahedron::check_position(x);
 
 			return 	  m_vPolynom[ ind[0] ].value(x[0])
 					* m_vPolynom[ ind[1] ].value(x[1])
@@ -2120,7 +2120,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		          	  	  	  	const position_type& x) const
 		{
 			check_multi_index(ind);
-			ReferenceHexahedron::check_position(x);
+			//ReferenceHexahedron::check_position(x);
 
 		//	loop dimensions
 			for(int d = 0; d < dim; ++d)
@@ -2245,7 +2245,7 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 		inline number shape(const MathVector<dim,int>& ind, const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
-			ReferenceHexahedron::check_position(x);
+			//ReferenceHexahedron::check_position(x);
 
 			return 	  m_vPolynom[ ind[0] ].value(x[0])
 					* m_vPolynom[ ind[1] ].value(x[1])
@@ -2263,7 +2263,7 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 		          	  	  	  	const position_type& x) const
 		{
 			check_multi_index(ind);
-			ReferenceHexahedron::check_position(x);
+			//ReferenceHexahedron::check_position(x);
 
 		//	loop dimensions
 			for(int d = 0; d < dim; ++d)
