@@ -798,7 +798,9 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	}
 
 //	get current toplevel
-	if(m_topLev < 0)
+	if(m_topLevExternallySet >= 0)
+		m_topLev = m_topLevExternallySet;
+	else
 		m_topLev = m_spApproxSpace->num_levels() - 1;
 
 //	Allocate memory for given top level
@@ -918,7 +920,9 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	}
 
 //	get current toplevel
-	if(m_topLev < 0)
+	if(m_topLevExternallySet >= 0)
+		m_topLev = m_topLevExternallySet;
+	else
 		m_topLev = m_spApproxSpace->num_levels() - 1;
 
 //	Allocate memory for given top level

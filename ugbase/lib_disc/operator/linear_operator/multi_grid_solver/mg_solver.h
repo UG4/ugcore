@@ -66,7 +66,8 @@ class AssembledMultiGridCycle :
 	/// constructor setting approximation space
 		AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 			m_spSurfaceMat(NULL), m_pAss(NULL), m_spApproxSpace(approxSpace),
-			m_topLev(GridLevel::TOPLEVEL), m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
+			m_topLev(GridLevel::TOPLEVEL), m_topLevExternallySet(GridLevel::TOPLEVEL),
+			m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
 			m_numPreSmooth(2), m_numPostSmooth(2),
 			m_bAdaptive(true),
 			m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
@@ -91,7 +92,7 @@ class AssembledMultiGridCycle :
 		void set_base_level(int baseLevel) {m_baseLev = baseLevel;}
 
 	///	sets the surface level (default is top-surface)
-		void set_surface_level(int topLevel) {m_topLev= topLevel;}
+		void set_surface_level(int topLevel) {m_topLevExternallySet = topLevel;}
 
 	///	sets the base solver that is used
 		void set_base_solver(SmartPtr<ILinearOperatorInverse<vector_type> > baseSolver)
@@ -262,6 +263,7 @@ class AssembledMultiGridCycle :
 	///	top level (i.e. highest level in hierarchy. This is the surface level
 	///	in case of non-adaptive refinement)
 		int m_topLev;
+		int m_topLevExternallySet;
 
 	///	base level (where exact inverse is computed)
 		int m_baseLev;
