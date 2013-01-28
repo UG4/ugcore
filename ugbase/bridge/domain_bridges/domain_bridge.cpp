@@ -240,6 +240,10 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "Domain", tag);
 	}
 
+// 	MaxElementDiameter
+	reg.add_function("MaxElementDiameter", static_cast<number (*)(TDomain&, int)>(
+					 &MaxElementDiameter<TDomain>), grp);
+
 // 	LoadDomain
 	reg.add_function("LoadDomain", static_cast<void (*)(TDomain&, const char*)>(
 					 &LoadDomain<TDomain>), grp,

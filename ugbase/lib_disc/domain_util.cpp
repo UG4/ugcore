@@ -6,7 +6,9 @@
  */
 
 #include "domain_util.h"
+#include "domain_traits.h"
 #include "lib_grid/file_io/file_io.h"
+#include "lib_grid/algorithms/geom_obj_util/misc_util.h"
 
 namespace ug{
 
@@ -74,6 +76,16 @@ void WriteDomainToUGX(const char* filename, const TDomain& domain)
 	}
 }
 
+template <typename TDomain>
+number MaxElementDiameter(TDomain& domain, int level)
+{
+	typedef typename domain_traits<TDomain::dim>::geometric_base_object TElem;
+	return  MaxElementDiameter(*domain.grid(), domain.position_accessor(),
+	                           domain.grid()->template begin<TElem>(level),
+	                           domain.grid()->template end<TElem>(level));
+}
+
+
 template void WriteDomainToUGX<Domain1d>(const char* filename, const Domain1d& domain);
 template void WriteDomainToUGX<Domain2d>(const char* filename, const Domain2d& domain);
 template void WriteDomainToUGX<Domain3d>(const char* filename, const Domain3d& domain);
@@ -89,6 +101,10 @@ template void LoadDomain<Domain3d>(Domain3d& domain, const char* filename, int p
 template void SaveDomain<Domain1d>(Domain1d& domain, const char* filename);
 template void SaveDomain<Domain2d>(Domain2d& domain, const char* filename);
 template void SaveDomain<Domain3d>(Domain3d& domain, const char* filename);
+
+template number MaxElementDiameter<Domain1d>(Domain1d& domain, int level);
+template number MaxElementDiameter<Domain2d>(Domain2d& domain, int level);
+template number MaxElementDiameter<Domain3d>(Domain3d& domain, int level);
 
 } // end namespace ug
 

@@ -154,6 +154,22 @@ class ElemGlobCornerCoords
 	ElemGlobCornerCoords () : elem(0) {};
 };
 
+////////////////////////////////////////////////////////////////////////
+//	ElementDiameter
+////////////////////////////////////////////////////////////////////////
+
+template <typename TElem, typename TDomain>
+number ElementDiameterSq(TElem& elem, TDomain& domain)
+{
+	return ElementDiameterSq(domain.grid(), domain.position_accessor(), &elem);
+}
+
+template <typename TElem, typename TDomain>
+number ElementDiameter(TElem& elem, TDomain& domain)
+{
+	return ElementDiameter(domain.grid(), domain.position_accessor(), &elem);
+}
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__DOMAIN_UTIL_GENERAL_IMPL__ */

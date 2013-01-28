@@ -105,6 +105,21 @@ number ElementSize(const TElem& elem,
 template <typename TElem, typename TDomain>
 number ElementSize(const TElem& elem, const TDomain& domain);
 
+////////////////////////////////////////////////////////////////////////
+//	ElementDiameter
+///	returns the maximal squared distance between to element vertices
+template <typename TElem, typename TDomain>
+number ElementDiameterSq(const TElem& elem, TDomain& domain);
+
+///	returns the maximal distance between to element vertices
+template <typename TElem, typename TDomain>
+number ElementDiameter(const TElem& elem, TDomain& domain);
+
+///	returns the maximal diameter of all elements between iterBegin and iterEnd.
+template <typename TDomain>
+number MaxElementDiameter(TDomain& domain, int level);
+
+
 } // end namespace ug
 
 /// @}

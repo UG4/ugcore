@@ -97,6 +97,25 @@ UG_API
 void EraseElements(Grid& grid, typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd);
 
+////////////////////////////////////////////////////////////////////////
+//	ElementDiameter
+///	returns the maximal squared distance between to element vertices
+template <class TElem, class TAAPos>
+number ElementDiameterSq(Grid& grid,
+                         TAAPos& aaPos,
+					     TElem* elem);
+
+///	returns the maximal distance between to element vertices
+template <class TElem, class TAAPos>
+number ElementDiameter(Grid& grid,
+                       TAAPos& aaPos,
+					   TElem* elem);
+
+///	returns the maximal diameter of all elements between iterBegin and iterEnd.
+template <class TAAPos, class TIterator>
+number MaxElementDiameter(Grid& grid, TAAPos& aaPos,
+                          TIterator iterBegin, TIterator iterEnd);
+
 /// @}				
 }//	end of namespace
 

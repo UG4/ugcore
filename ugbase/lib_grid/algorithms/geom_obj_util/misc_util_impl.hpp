@@ -188,6 +188,42 @@ void AssignIndices(typename geometry_traits<TElem>::iterator iterBegin,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////
+//	ElementDiameter
+template <class TElem, class TAAPos>
+number ElementDiameterSq(Grid& grid,
+                         TAAPos& aaPos,
+					     TElem* elem)
+{
+	PointerConstArray<VertexBase*> vVert;
+	grid.associated_elements(vVert, elem);
+
+	number max = 0.0;
+	for(size_t i = 0; i < vVert.size(); ++i)
+		for(size_t j = i+1; j < vVert.size(); ++j)
+			max = std::max(max, VecDistanceSq(aaPos[vVert[i]], aaPos[vVert[j]]));
+
+	return max;
+}
+
+template <class TElem, class TAAPos>
+number ElementDiameter(Grid& grid,
+                       TAAPos& aaPos,
+					   TElem* elem)
+{
+	return std::sqrt(ElementDiameterSq(grid, aaPos, elem));
+}
+
+template <class TAAPos, class TIterator>
+number MaxElementDiameter(Grid& grid, TAAPos& aaPos,
+                          TIterator iter, TIterator iterEnd)
+{
+	number max = 0.0;
+	for(; iter != iterEnd; ++iter)
+		max = std::max(max, ElementDiameterSq(grid, aaPos, *iter));
+	return std::sqrt(max);
+}
+
 }//	end of namespace
 
 #endif
