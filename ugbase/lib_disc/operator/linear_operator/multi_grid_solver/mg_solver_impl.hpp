@@ -69,7 +69,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 // 	Check if surface level has been chosen correctly
 //	Please note, that the approximation space returns the global number of levels,
 //	i.e. the maximum of levels among all processes.
-	if(m_topLev >= m_spApproxSpace->num_levels())
+	if(m_topLev >= (int)m_spApproxSpace->num_levels())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
 				" SurfaceLevel " << m_topLev << " does not exist.\n");
@@ -709,7 +709,7 @@ lmgc(size_t lev)
 //	perform smoothing, restrict the defect and call the lower level; then,
 //	going up again in the level hierarchy the correction is interpolated and
 //	used as coarse grid correction. Finally a post-smooth is performed.
-	if(lev > m_baseLev)
+	if((int)lev > m_baseLev)
 	{
 		for(int i = 0; i < m_cycleType; ++i)
 		{
@@ -759,7 +759,7 @@ lmgc(size_t lev)
 	}
 
 //	if the base level has been reached, the coarse problem is solved exactly
-	else if(lev == m_baseLev)
+	else if((int)lev == m_baseLev)
 	{
 		bool baseSolverSuccess = base_solve(lev);
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << " (base solver executed)\n");
@@ -798,7 +798,8 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	}
 
 //	get current toplevel
-	m_topLev = m_spApproxSpace->num_levels() - 1;
+	if(m_topLev < 0)
+		m_topLev = m_spApproxSpace->num_levels() - 1;
 
 //	Allocate memory for given top level
 	if(!top_level_required(m_topLev))
@@ -854,7 +855,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 // 	Project solution from surface grid to coarser grid levels
 	GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
-	for(size_t lev = m_topLev; lev != m_baseLev; --lev)
+	for(int lev = m_topLev; lev != m_baseLev; --lev)
 	{
 	//	skip void level
 		if(m_vLevData[lev]->num_indices() == 0 ||
@@ -917,7 +918,8 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	}
 
 //	get current toplevel
-	m_topLev = m_spApproxSpace->num_levels() - 1;
+	if(m_topLev < 0)
+		m_topLev = m_spApproxSpace->num_levels() - 1;
 
 //	Allocate memory for given top level
 	GMG_PROFILE_BEGIN(GMG_CreateLevelStorage);
@@ -1022,7 +1024,7 @@ init_common()
 //todo: Even if there are vrtMasters and m_bFullRefined is false and the top
 //		level matrix can't be copied, an injective SurfToTopLevMapPatchToGlobal might be useful...
 	if(m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices() ==
-		m_spApproxSpace->surface_dof_distribution()->num_indices())
+		m_spApproxSpace->surface_dof_distribution(m_topLev)->num_indices())
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is non adaptive\n");
 		m_bAdaptive = false;
@@ -1051,7 +1053,7 @@ init_common()
 	{
 		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
 		CreateSurfaceToToplevelMap(m_vSurfToTopMap,
-									   m_spApproxSpace->surface_dof_distribution(),
+									   m_spApproxSpace->surface_dof_distribution(m_topLev),
 									   m_spApproxSpace->level_dof_distribution(m_topLev));
 		GMG_PROFILE_END();
 	}
@@ -1169,7 +1171,7 @@ init_level_operator()
 	//	to assemble the assemble the coarse grid matrix on the whole grid as
 	//	well
 		if(!m_vLevData[lev]->has_ghosts() ||
-			((lev == m_baseLev) && (m_bBaseParallel == false)))
+			(((int)lev == m_baseLev) && (m_bBaseParallel == false)))
 		{
 		//	init level operator
 			m_pAss->force_regular_grid(true);
@@ -1437,7 +1439,7 @@ project_level_to_surface(vector_type& surfVec,
 
 //	surface dof distribution
 	ConstSmartPtr<SurfaceDoFDistribution> surfDD =
-								m_spApproxSpace->surface_dof_distribution();
+								m_spApproxSpace->surface_dof_distribution(m_topLev);
 
 //	surface view
 	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
@@ -1492,7 +1494,7 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 
 //	surface dof distribution
 	ConstSmartPtr<SurfaceDoFDistribution> surfDD =
-								m_spApproxSpace->surface_dof_distribution();
+								m_spApproxSpace->surface_dof_distribution(m_topLev);
 
 //	surface view
 	ConstSmartPtr<SurfaceView> surfView = m_spApproxSpace->surface_view();
@@ -1775,7 +1777,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 //	surface dof distribution
 	ConstSmartPtr<SurfaceDoFDistribution> surfDD =
-								m_spApproxSpace->surface_dof_distribution();
+								m_spApproxSpace->surface_dof_distribution(m_topLev);
 
 //	create mappings
 	std::vector<std::vector<int> > vSurfLevelMapping;
@@ -1810,7 +1812,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		else
 		{
 		//	\todo: not use tmp vector here
-			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->surface_dof_distribution()->num_indices());
+			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->surface_dof_distribution(m_topLev)->num_indices());
 			m_pAss->assemble_jacobian(surfMat, tmpVec, surfLevel);
 		}
 
