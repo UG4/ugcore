@@ -798,8 +798,8 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	}
 
 //	get current toplevel
-	if(m_topLevExternallySet >= 0)
-		m_topLev = m_topLevExternallySet;
+	if(m_surfaceLev != GridLevel::TOPLEVEL)
+		m_topLev = m_surfaceLev;
 	else
 		m_topLev = m_spApproxSpace->num_levels() - 1;
 
@@ -920,8 +920,8 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	}
 
 //	get current toplevel
-	if(m_topLevExternallySet >= 0)
-		m_topLev = m_topLevExternallySet;
+	if(m_surfaceLev != GridLevel::TOPLEVEL)
+		m_topLev = m_surfaceLev;
 	else
 		m_topLev = m_spApproxSpace->num_levels() - 1;
 
@@ -1028,7 +1028,7 @@ init_common()
 //todo: Even if there are vrtMasters and m_bFullRefined is false and the top
 //		level matrix can't be copied, an injective SurfToTopLevMapPatchToGlobal might be useful...
 	if(m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices() ==
-		m_spApproxSpace->surface_dof_distribution(m_topLev)->num_indices())
+		m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices())
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is non adaptive\n");
 		m_bAdaptive = false;
@@ -1057,7 +1057,7 @@ init_common()
 	{
 		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
 		CreateSurfaceToToplevelMap(m_vSurfToTopMap,
-									   m_spApproxSpace->surface_dof_distribution(m_topLev),
+									   m_spApproxSpace->surface_dof_distribution(m_surfaceLev),
 									   m_spApproxSpace->level_dof_distribution(m_topLev));
 		GMG_PROFILE_END();
 	}
@@ -1443,7 +1443,7 @@ project_level_to_surface(vector_type& surfVec,
 
 //	surface dof distribution
 	ConstSmartPtr<SurfaceDoFDistribution> surfDD =
-								m_spApproxSpace->surface_dof_distribution(m_topLev);
+								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
 
 //	surface view
 	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
@@ -1498,7 +1498,7 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 
 //	surface dof distribution
 	ConstSmartPtr<SurfaceDoFDistribution> surfDD =
-								m_spApproxSpace->surface_dof_distribution(m_topLev);
+								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
 
 //	surface view
 	ConstSmartPtr<SurfaceView> surfView = m_spApproxSpace->surface_view();
@@ -1781,7 +1781,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 //	surface dof distribution
 	ConstSmartPtr<SurfaceDoFDistribution> surfDD =
-								m_spApproxSpace->surface_dof_distribution(m_topLev);
+								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
 
 //	create mappings
 	std::vector<std::vector<int> > vSurfLevelMapping;
@@ -1816,7 +1816,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		else
 		{
 		//	\todo: not use tmp vector here
-			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->surface_dof_distribution(m_topLev)->num_indices());
+			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices());
 			m_pAss->assemble_jacobian(surfMat, tmpVec, surfLevel);
 		}
 
