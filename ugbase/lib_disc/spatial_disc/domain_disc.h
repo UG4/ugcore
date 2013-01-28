@@ -20,6 +20,7 @@
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "disc_item.h"
 #include "lib_disc/spatial_disc/domain_disc_base.h"
+#include "lib_disc/function_spaces/grid_function.h"
 
 namespace ug {
 
@@ -92,6 +93,33 @@ class DomainDiscretization
 	/// \copydoc IAssemble::adjust_solution()
 		template <typename TDD>
 		void adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd);
+
+	///	wrapper for GridFunction
+	/// \{
+		template <typename TDD>
+		void assemble_jacobian(matrix_type& J, GridFunction<TDomain, TDD, TAlgebra>& u)
+			{assemble_jacobian<TDD>(J, u, u.dof_distribution());}
+
+		template <typename TDD>
+		void assemble_defect(vector_type& d, GridFunction<TDomain, TDD, TAlgebra>& u)
+			{assemble_defect<TDD>(d, u, u.dof_distribution());}
+
+		template <typename TDD>
+		void assemble_linear(matrix_type& A, GridFunction<TDomain, TDD, TAlgebra>& rhs)
+			{assemble_linear<TDD>(A, rhs, rhs.dof_distribution());}
+
+		template <typename TDD>
+		void assemble_rhs(vector_type& rhs, GridFunction<TDomain, TDD, TAlgebra>& u)
+			{assemble_rhs<TDD>(rhs, u, u.dof_distribution());}
+
+		template <typename TDD>
+		void assemble_rhs(GridFunction<TDomain, TDD, TAlgebra>& b)
+			{assemble_rhs<TDD>(b, b.dof_distribution());}
+
+		template <typename TDD>
+		void adjust_solution(GridFunction<TDomain, TDD, TAlgebra>& u)
+			{adjust_solution<TDD>(u, u.dof_distribution());}
+	/// \}
 
 	///////////////////////
 	// Time dependent part

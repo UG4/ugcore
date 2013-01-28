@@ -101,7 +101,7 @@ end
 
 local tmpPath = "./tmp-gnuplot/" -- some tmp path
 local plotImagePath = "./" -- output of data
-local tmpScriptName = "tmp_gnuplot_script" -- name for temporary script
+local tmpScriptName = "tmp_gnuplot_script_" -- name for temporary script
 
 -- filename		output filename
 -- datasource	table of data to be plotted
@@ -117,6 +117,9 @@ function plot(filename, datasource, options)
 	if ( type(options) ~= "table" ) then
 		options = { title = "", xlabel = "", ylabel = "" }
 	end
+	if options.title == nil then options.title = "" end
+	if options.xlabel == nil then options.xlabel = "" end
+	if options.ylabel == nil then options.ylabel = "" end
 
 	-- check output file name
 	if filename ~= nil then
@@ -156,13 +159,14 @@ function plot(filename, datasource, options)
 	end
 
 	-- open a temporary script file
-	local plotScript = io.open(tmpPath..tmpScriptName, "w+")
+	plotScriptName = tmpPath..tmpScriptName..string.gsub(filename, "[./]", "_")..".gnu"
+	local plotScript = io.open(plotScriptName, "w+")
 	if (not plotScript) then
 		os.execute("mkdir " .. tmpPath)
-		plotScript = io.open(tmpPath..tmpScriptName, "w+")
+		plotScript = io.open(plotScriptName, "w+")
 		if (not plotScript) then		
 			io.stderr:write("Gnuplot Error: cannot open output file: '")
-			io.stderr:write(tmpPath..tmpScriptName .. " '\n");
+			io.stderr:write(plotScriptName .. " '\n");
 			return 2
 		end
 	end
@@ -201,7 +205,7 @@ function plot(filename, datasource, options)
 		plotScript:write("set terminal x11 persist raise\n\n")
 	elseif string.find(filename, ".pdf", -4) ~= nil then
 		if options.font == nil then font = "Times-Roman" end
-		plotScript:write("set term pdf font '"..font..","..fontsize.."'\n\n")
+		plotScript:write("set term pdfcairo enhanced font '"..font..","..fontsize.."'\n\n")
 		plotScript:write("set output \"", plotImagePath, filename,"\"\n\n")
 	elseif string.find(filename, ".eps", -4) ~= nil then
 		plotScript:write("set term postscript eps enhanced color font '"..font..","..fontsize.."'\n\n")
@@ -403,7 +407,7 @@ function plot(filename, datasource, options)
 	plotScript:close()
 
 	-- launch gnuplot and run in background
-	os.execute("gnuplot "..tmpPath..tmpScriptName.." --persist &")
+	os.execute("gnuplot "..plotScriptName.." --persist &")
 	return 0
 end
 
@@ -447,6 +451,7 @@ options = {	title =			"Title",
 --			multiplotrows = 5,
 --			multiplotjoined=true,
 --			key = 			true,
+--			logscale = true,
 --			"set some user defined lines to be added to script"
 }
 
@@ -458,3 +463,21 @@ options = {	title =			"Title",
 
 --]]
 
+-- return a new array containing the concatenation of all of its 
+-- parameters. Scaler parameters are included in place, and array 
+-- parameters have their values shallow-copied to the final array.
+-- Note that userdata and function values are treated as scalar.
+function array_concat(...) 
+    local t = {}
+    for n = 1,select("#",...) do
+        local arg = select(n,...)
+        if type(arg)=="table" then
+            for _,v in ipairs(arg) do
+                t[#t+1] = v
+            end
+        else
+            t[#t+1] = arg
+        end
+    end
+    return t
+end
