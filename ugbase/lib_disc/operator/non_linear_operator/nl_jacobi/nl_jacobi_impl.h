@@ -132,10 +132,13 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 		m_J->set_level(m_N->level());
 	}
 
+//	get #indices of gridFunction u
+	const size_t n_indices = u.size();
+
 //	resize
 	try{
-		m_d.resize(u.size()); m_d = u;
-		m_c.resize(u.size()); m_c = u;
+		m_d.resize(n_indices); m_d = u;
+		m_c.resize(n_indices); m_c = u;
 	}UG_CATCH_THROW("NLJacobiSolver::apply: Resize of Defect/Correction failed.");
 
 //	Set dirichlet values
@@ -162,9 +165,6 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 // 	start convergence check
 	m_spConvCheck->start(m_d);
-
-//	get #indices of gridFunction u
-	size_t n_indices = u.size();
 
 	matrix_type& J = m_J->get_matrix();
 	number damp = m_damp;

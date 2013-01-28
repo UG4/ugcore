@@ -25,6 +25,10 @@ class NLGaussSeidelSolver
 	: public IOperatorInverse<typename TAlgebra::vector_type>,
 	  public DebugWritingObject<TAlgebra>
 {
+	private:
+	///	own type
+		typedef NLGaussSeidelSolver<TDomain, TAlgebra> this_type;
+
 	public:
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -38,26 +42,26 @@ class NLGaussSeidelSolver
 	///	Domain type
 		typedef TDomain domain_type;
 
-	///	GridFunction type
-		typedef GridFunction<domain_type, SurfaceDoFDistribution, algebra_type> gridfunc_type;
+	///	Type of approximation space
+		typedef ApproximationSpace<domain_type>	approx_space_type;
+
+	///	base element type of associated domain
+		typedef typename domain_traits<domain_type::dim>::geometric_base_object TBaseElem;
 
 	protected:
 		typedef DebugWritingObject<TAlgebra> base_writer_type;
 		using base_writer_type::write_debug;
 
 	public:
-	///	constructor setting operator
-		NLGaussSeidelSolver(SmartPtr<IOperator<vector_type> > N);
-
-	///	constructor using assembling
-		NLGaussSeidelSolver(IAssemble<algebra_type>* pAss);
-
 	///	default constructor
 		NLGaussSeidelSolver();
 
 	///	constructor
-		NLGaussSeidelSolver(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
+		NLGaussSeidelSolver(SmartPtr<approx_space_type> spApproxSpace,
+					SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 
+		void set_approximation_space(SmartPtr<approx_space_type> spApproxSpace)
+		{m_spApproxSpace = spApproxSpace;}
 		void set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 		void set_damp(number damp) {m_damp = damp;}
 
@@ -67,14 +71,8 @@ class NLGaussSeidelSolver
 		/// prepare Operator
 		virtual bool prepare(vector_type& u);
 
-		/// preprocess
-		bool preprocess(gridfunc_type& u);
-
 		/// apply Operator, i.e. N^{-1}(0) = u
 		virtual bool apply(vector_type& u);
-
-		/// solve
-		bool solve(gridfunc_type& u);
 
 	private:
 	///	help functions for debug output
@@ -84,8 +82,17 @@ class NLGaussSeidelSolver
 	/// \}
 
 	private:
+		///	Approximation Space
+		SmartPtr<approx_space_type> m_spApproxSpace;
+
+		///	DoF distribution pointer
+		ConstSmartPtr<LevelDoFDistribution> m_spLevDD;
+		ConstSmartPtr<SurfaceDoFDistribution> m_spSurfDD;
+
+		/// DoF Distribution used
+		GridLevel m_gridLevel;
+
 		SmartPtr<IConvergenceCheck<vector_type> > m_spConvCheck;
-		number m_damp;
 
 		vector_type m_d;
 		vector_type m_c;
@@ -93,6 +100,8 @@ class NLGaussSeidelSolver
 		SmartPtr<AssembledOperator<algebra_type> > m_N;
 		SmartPtr<AssembledLinearOperator<algebra_type> > m_J;
 		IAssemble<algebra_type>* m_pAss;
+
+		number m_damp;
 
 		///	call counter
 		int m_dgbCall;

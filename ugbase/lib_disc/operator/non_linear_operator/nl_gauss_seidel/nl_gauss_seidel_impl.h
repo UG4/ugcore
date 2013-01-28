@@ -35,6 +35,7 @@
 
 // extern includes
 #include <iostream>
+//#include <list>
 
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/common/local_algebra.h"
@@ -54,41 +55,24 @@
 namespace ug{
 
 template <typename TDomain, typename TAlgebra>
-NLGaussSeidelSolver<TDomain,TAlgebra>::
-NLGaussSeidelSolver(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck) :
+NLGaussSeidelSolver<TDomain, TAlgebra>::
+NLGaussSeidelSolver(SmartPtr<approx_space_type> spApproxSpace,
+			SmartPtr<IConvergenceCheck<vector_type> > spConvCheck) :
+			m_spApproxSpace(spApproxSpace),
 			m_spConvCheck(spConvCheck),
 			m_damp(1.0),
 			m_dgbCall(0)
 {};
 
-// TODO: approxSpace notwendig hier????
-
 template <typename TDomain, typename TAlgebra>
-NLGaussSeidelSolver<TDomain,TAlgebra>::
+NLGaussSeidelSolver<TDomain, TAlgebra>::
 NLGaussSeidelSolver() :
+	m_spApproxSpace(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_damp(1.0),
 	m_dgbCall(0)
 {};
 
-template <typename TDomain, typename TAlgebra>
-NLGaussSeidelSolver<TDomain,TAlgebra>::
-NLGaussSeidelSolver(SmartPtr<IOperator<vector_type> > N) :
-	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_damp(1.0)
-{
-	init(N);
-};
-
-template <typename TDomain, typename TAlgebra>
-NLGaussSeidelSolver<TDomain,TAlgebra>::
-NLGaussSeidelSolver(IAssemble<algebra_type>* pAss) :
-	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_damp(1.0)
-{
-	m_pAss = pAss;
-	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(*m_pAss));
-};
 
 template <typename TDomain, typename TAlgebra>
 void NLGaussSeidelSolver<TDomain, TAlgebra>::
@@ -102,7 +86,7 @@ set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
 
 template <typename TDomain, typename TAlgebra>
 bool
-NLGaussSeidelSolver<TDomain,TAlgebra>::
+NLGaussSeidelSolver<TDomain, TAlgebra>::
 init(SmartPtr<IOperator<vector_type> > N)
 {
 	NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELSolver_init);
@@ -111,28 +95,38 @@ init(SmartPtr<IOperator<vector_type> > N)
 		UG_THROW("NLGaussSeidelSolver: currently only works for AssembledDiscreteOperator.");
 
 	m_pAss = m_N->get_assemble();
+
+	m_gridLevel = m_N->level();
+
+	//	Check for approxSpace
+	if(m_spApproxSpace.invalid())
+		UG_THROW("NLGaussSeidelSolver::prepare: Approximation Space not set.");
+
+	//	set DoF distribution type
+	if(m_gridLevel.type() == GridLevel::LEVEL)
+		m_spLevDD = m_spApproxSpace->level_dof_distribution(m_gridLevel.level());
+	else if (m_gridLevel.type() == GridLevel::SURFACE)
+		m_spSurfDD = m_spApproxSpace->surface_dof_distribution(m_gridLevel.level());
+	else
+		UG_THROW("Grid Level not recognized.");
+
 	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool NLGaussSeidelSolver<TDomain,TAlgebra>::prepare(vector_type& u)
+bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 {
-//	todo: maybe remove this from interface
-
-	//	hier die Nachbarschaft der DoFs bestimmen?!
-	//	d.h. jedem DoF sein geometrisches Objekt zuweisen?! (Ÿber Array)
-	//	muss hier eventuell approxSpace rein?
 	return true;
 }
 
 
-template <typename TDomain, typename TAlgebra>
-bool NLGaussSeidelSolver<TDomain,TAlgebra>::preprocess(gridfunc_type& u)
+/*template <typename TDomain, typename TAlgebra>
+bool NLGaussSeidelSolver<TDomain, TDD, TAlgebra>::preprocess(gridfunc_type& u)
 {
 	//	fill m_DiagMarker by selecting all elements
 	//	which have contributions to the diag
 
-/*	domain_type& dom = *u.domain();
+	domain_type& dom = *u.domain();
 	typename domain_type::grid_type& grid = *dom.grid();
 
 	static const int dim = gridfunc_type::dim;
@@ -257,32 +251,41 @@ bool NLGaussSeidelSolver<TDomain,TAlgebra>::preprocess(gridfunc_type& u)
 
 	}
 
-	UG_LOG("Loop over " << count_elem << "elems in preprocess \n");*/
+	UG_LOG("Loop over " << count_elem << "elems in preprocess \n");
 
 	return true;
-}
+}*/
+
 
 template <typename TDomain, typename TAlgebra>
-bool NLGaussSeidelSolver<TDomain,TAlgebra>::apply(vector_type& u)
+bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 {
-	//	note: in this method the full matrix J is assembled for every DoF.
-	//	see 'NLGaussSeidelSolver::solve' for the variant skipping the elems
-	//	which are not producing contributions to the DoF
-
 	NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELSolver_apply);
 	//	increase call count
 	m_dgbCall++;
 
+	//	Check for approxSpace
+	if(m_spApproxSpace.invalid())
+		UG_THROW("NLGaussSeidelSolver::apply: Approximation Space not set.");
+
+	//	Check for DoF distribution
+	if(m_spLevDD.invalid() && m_spSurfDD.invalid())
+		UG_THROW("NLGaussSeidelSolver::apply: DoFDistribution not set."
+				" 'NLGaussSeidelSolver::init'-call is necessary!");
+
 	//	Jacobian
 	if(m_J.invalid() || m_J->discretization() != m_pAss) {
 		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
-		m_J->set_level(m_N->level());
+		m_J->set_level(m_gridLevel);
 	}
+
+	//	get #indices of gridFunction u
+	const size_t n_indices = u.size();
 
 	//	resize
 	try{
-		m_d.resize(u.size()); m_d = u;
-		m_c.resize(u.size()); m_c = u;
+		m_d.resize(n_indices); m_d = u;
+		m_c.resize(n_indices); m_c = u;
 	}UG_CATCH_THROW("NLGaussSeidelSolver::apply: Resize of Defect/Correction failed.");
 
 	//	Set dirichlet values
@@ -310,129 +313,28 @@ bool NLGaussSeidelSolver<TDomain,TAlgebra>::apply(vector_type& u)
 	// 	start convergence check
 	m_spConvCheck->start(m_d);
 
-	//	get #indices of gridFunction u
-	size_t n_indices = u.size();
-
 	matrix_type& J = m_J->get_matrix();
 	number damp = m_damp;
 
-	//	loop iteration
-	while(!m_spConvCheck->iteration_ended())
-	{
-		// 	set correction c = 0
-		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELSetCorretionZero);
-		if(!m_c.set(0.0))
-		{
-			UG_LOG("ERROR in 'NLGaussSeidelSolver::apply':"
-					" Cannot reset correction to zero.\n");
-			return false;
-		}
-		NL_GAUSSSEIDEL_PROFILE_END();
+	// some vars for BoolMarker
+	TDomain& dom = *m_spApproxSpace->domain();
+	typename TDomain::grid_type& grid = *dom.grid();
 
-		//	loop all DoFs
-		for (size_t i = 0; i < n_indices; i++)
-		{
-			try{
-				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeJacobian);
-				m_J->init(u);
-				NL_GAUSSSEIDEL_PROFILE_END();
-			}UG_CATCH_THROW("NLGaussSeidelSolver::apply: "
-					"Initialization of Jacobian failed.");
+	typedef typename domain_traits<TDomain::dim>::geometric_base_object geometric_base_object;
+	typedef typename TDomain::grid_type::template traits<geometric_base_object>::iterator
+			ElemIter;
 
-			//	Write Jacobian for debug
-			std::string matname("NLGaussSeidel_Jacobian");
-			matname.append(ext);
-			write_debug(m_J->get_matrix(), matname.c_str());
-
-			//	get i,i-th block of J: J(i,i)
-			//	depending on the AlgebraType J(i,i) is a 1x1, 2x2, 3x3 Matrix
-			//	m_c_i = m_damp * d_i /J_ii
-			InverseMatMult(m_c[i], damp, J(i,i), m_d[i]);
-
-			// 	update i-th block of solution
-			u[i] -= m_c[i];
-
-			// 	Compute d = L(u) using the updated u-blocks
-			//	TODO: replace prepare(m_d,u) & apply(m_d,u)!
-			//	We only need the new m_d due
-			//  to the updated block u_i! (not due to u!)
-			NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeDefect);
-			m_N->prepare(m_d, u);
-			m_N->apply(m_d, u);
-			NL_GAUSSSEIDEL_PROFILE_END();
-		}
-
-		// 	check convergence
-		m_spConvCheck->update(m_d);
-	}
-
-	return m_spConvCheck->post();
-}
-
-template <typename TDomain, typename TAlgebra>
-bool NLGaussSeidelSolver<TDomain,TAlgebra>::solve(gridfunc_type& u)
-{
-	NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELSolver_apply);
-	//	increase call count
-	m_dgbCall++;
-
-	//	Jacobian
-	if(m_J.invalid() || m_J->discretization() != m_pAss) {
-		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
-		m_J->set_level(m_N->level());
-	}
-
-	//	resize
-	try{
-		m_d.resize(u.size()); m_d = u;
-		m_c.resize(u.size()); m_c = u;
-	}UG_CATCH_THROW("NLGaussSeidelSolver::apply: Resize of Defect/Correction failed.");
-
-	//	Set dirichlet values
-	try{
-		m_N->prepare(m_d, u);
-	}
-	UG_CATCH_THROW("NLGaussSeidelSolver::apply: Prepare of Operator failed.");
-
-	// 	Compute first Defect d = L(u)
-	try{
-		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeDefect1);
-		m_N->apply(m_d, u);
-		NL_GAUSSSEIDEL_PROFILE_END();
-	}UG_CATCH_THROW("NLGaussSeidelSolver::apply: "
-			"Computation of Start-Defect failed.");
-
-	//	write start defect for debug
-	int loopCnt = 0;
-	char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
-	std::string name("NLGaussSeidel_Defect");
-	name.append(ext);
-	write_debug(m_d, name.c_str());
-	write_debug(u, "NLGaussSeidel_StartSolution");
-
-	// 	start convergence check
-	m_spConvCheck->start(m_d);
-
-	//	get #indices of gridFunction u
-	size_t n_indices = u.size();
-
-	matrix_type& J = m_J->get_matrix();
-	number damp = m_damp;
-
-	// some useful vars for BoolMarker
-	domain_type& dom = *u.domain();
-	typename domain_type::grid_type& grid = *dom.grid();
-
-	static const int dim = gridfunc_type::dim;
-	typedef typename gridfunc_type::template dim_traits<dim>::geometric_base_object geometric_base_object;
-	typedef typename gridfunc_type::template dim_traits<dim>::const_iterator const_iterator;
-
-	const_iterator iter = u.template begin<geometric_base_object>();
-	const_iterator end = u.template end<geometric_base_object>();
+	ElemIter iter;
+	ElemIter iterBegin = grid.template begin<geometric_base_object>();
+	ElemIter iterEnd = grid.template end<geometric_base_object>();
 
 	LocalIndices ind; LocalVector locU;
 
 	m_vDiagMarker.assign_grid(grid);
+
+	//	creating an ElemList
+	//	TODO: use ElemList as a member-variable of NL_GaussSeidel-class?
+	std::list<geometric_base_object> ElemList;
 
 	//	loop iteration
 	while(!m_spConvCheck->iteration_ended())
@@ -457,21 +359,22 @@ bool NLGaussSeidelSolver<TDomain,TAlgebra>::solve(gridfunc_type& u)
 			//	This ElemList should be passed to the assemble_funcs.
 			//	iterBegin and iterEnd must be passed to elem_disc_assemble_util.h!
 
-			// 	some debug
+			// 	some debug-vars
 			size_t count_i = 0;
 			size_t count_noti = 0;
 
-			//	replace iterator to begin
-			iter = u.template begin<geometric_base_object>();
-
-			//	loop over all elements on subset si
-			for(;iter != end; ++iter)
+			//	loop over all elements on grid
+			for(iter = iterBegin; iter != iterEnd; ++iter)
 			{
 				//	get element
 				geometric_base_object* elem = *iter;
 
-				// 	get global indices
-				u.indices(elem, ind);
+				if(m_gridLevel.type() == GridLevel::LEVEL)
+					m_spLevDD->indices(elem, ind);
+				else if (m_gridLevel.type() == GridLevel::SURFACE)
+					m_spSurfDD->indices(elem, ind);
+				else
+					UG_THROW("Grid Level not recognized.");
 
 				// 	adapt local algebra
 				locU.resize(ind);
@@ -496,6 +399,8 @@ bool NLGaussSeidelSolver<TDomain,TAlgebra>::solve(gridfunc_type& u)
 						{
 							m_vDiagMarker.mark(*iter);
 							count_i++;
+							//TODO: push_front oder push_back?
+							//ElemList.push_front(*iter);
 							skip_loop = true;
 							break;
 						}
@@ -503,13 +408,15 @@ bool NLGaussSeidelSolver<TDomain,TAlgebra>::solve(gridfunc_type& u)
 					}
 			} //end(elem)
 
+			//TODO: ElemList needs to be sorted by elem-types (edge,triangle,quad,...)
+
 			//UG_LOG("DoF " << i << " is influenced by " << count_i << " elems \n");
 			//UG_LOG(count_noti << " elems should be skipped \n");
 			m_pAss->set_selector(&m_vDiagMarker);
 
 			try{
 				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeJacobian);
-				m_J->init(u);
+				m_J->init(u); //TODO: pass ElemList here!
 				NL_GAUSSSEIDEL_PROFILE_END();
 			}UG_CATCH_THROW("NLGaussSeidelSolver::apply: "
 					"Initialization of Jacobian failed.");
@@ -546,7 +453,7 @@ bool NLGaussSeidelSolver<TDomain,TAlgebra>::solve(gridfunc_type& u)
 }
 
 template <typename TDomain, typename TAlgebra>
-void NLGaussSeidelSolver<TDomain,TAlgebra>::write_debug(const vector_type& vec, const char* filename)
+void NLGaussSeidelSolver<TDomain, TAlgebra>::write_debug(const vector_type& vec, const char* filename)
 {
 //	add iter count to name
 	std::string name(filename);
@@ -558,7 +465,7 @@ void NLGaussSeidelSolver<TDomain,TAlgebra>::write_debug(const vector_type& vec, 
 }
 
 template <typename TDomain, typename TAlgebra>
-void NLGaussSeidelSolver<TDomain,TAlgebra>::write_debug(const matrix_type& mat, const char* filename)
+void NLGaussSeidelSolver<TDomain, TAlgebra>::write_debug(const matrix_type& mat, const char* filename)
 {
 //	add iter count to name
 	std::string name(filename);

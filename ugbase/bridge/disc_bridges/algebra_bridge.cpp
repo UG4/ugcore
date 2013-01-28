@@ -371,15 +371,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("NLGaussSeidelSolver").append(suffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
-			.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
-			.template add_constructor<void (*)(IAssemble<TAlgebra>*)>("AssemblingRoutine")
+			.add_method("set_approximation_space", &T::set_approximation_space, "", "approxSpace")
 			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
 			.add_method("set_damp", &T::set_damp, "", "setDampingFactor")
 			.add_method("init", &T::init, "success", "op")
 			.add_method("prepare", &T::prepare, "success", "u")
-			.add_method("preprocess", &T::preprocess, "success", "u")
+			//.add_method("preprocess", &T::preprocess, "success", "u")
 			.add_method("apply", &T::apply, "success", "u")
-			.add_method("solve", &T::solve, "success", "u")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NLGaussSeidelSolver", tag);
 	}
