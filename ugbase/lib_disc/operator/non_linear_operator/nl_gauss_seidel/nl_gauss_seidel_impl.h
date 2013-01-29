@@ -3,7 +3,7 @@
  *
  *  Created on: 07.01.2013
  *  (main parts are based on the structure of
- *  	newton_impl.h by Andreas Vogel)
+ *  	newton_impl.h and some ideas of Sebastian Reiter & Andreas Vogel)
  *
  *  Author: raphaelprohl
  *
@@ -113,28 +113,33 @@ init(SmartPtr<IOperator<vector_type> > N)
 	return true;
 }
 
+
 template <typename TDomain, typename TAlgebra>
 bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
-{
-	return true;
-}
-
-
-/*template <typename TDomain, typename TAlgebra>
-bool NLGaussSeidelSolver<TDomain, TDD, TAlgebra>::preprocess(gridfunc_type& u)
 {
 	//	fill m_DiagMarker by selecting all elements
 	//	which have contributions to the diag
 
-	domain_type& dom = *u.domain();
-	typename domain_type::grid_type& grid = *dom.grid();
+	/*//	Check for approxSpace
+	if(m_spApproxSpace.invalid())
+		UG_THROW("NLGaussSeidelSolver::apply: Approximation Space not set.");
 
-	static const int dim = gridfunc_type::dim;
-	typedef typename gridfunc_type::template dim_traits<dim>::geometric_base_object geometric_base_object;
-	typedef typename gridfunc_type::template dim_traits<dim>::const_iterator const_iterator;
+	//	Check for DoF distribution
+	if(m_spLevDD.invalid() && m_spSurfDD.invalid())
+		UG_THROW("NLGaussSeidelSolver::apply: DoFDistribution not set."
+				" 'NLGaussSeidelSolver::init'-call is necessary!");
 
-	const_iterator iter = u.template begin<geometric_base_object>();
-	const_iterator end = u.template end<geometric_base_object>();
+	// some vars for BoolMarker
+	TDomain& dom = *m_spApproxSpace->domain();
+	typename TDomain::grid_type& grid = *dom.grid();
+
+	typedef typename domain_traits<TDomain::dim>::geometric_base_object geometric_base_object;
+	typedef typename TDomain::grid_type::template traits<geometric_base_object>::iterator
+			ElemIter;
+
+	ElemIter iter;
+	ElemIter iterBegin = grid.template begin<geometric_base_object>();
+	ElemIter iterEnd = grid.template end<geometric_base_object>();
 
 	LocalIndices ind; LocalVector locU;
 
@@ -145,16 +150,12 @@ bool NLGaussSeidelSolver<TDomain, TDD, TAlgebra>::preprocess(gridfunc_type& u)
 	UG_LOG("u_size:" << u.size() << "\n");
 
 	//	loop all DoFs
-	for (size_t i = 0; i < u.size(); i++)
-	{
-		m_vDiagMarker[i].assign_grid(grid);
-		m_vDiagMarker[i].clear(); // clear necessary? default = unmark?!
-	}
+	for (size_t i = 0; i < u.size(); i++){m_vDiagMarker[i].assign_grid(grid);}
 
 	size_t count_elem = 0;
 
-	//	loop over all elements on subset si
-	for(;iter != end; ++iter)
+	//	loop over all elements on grid
+	for(iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		//	get element
 		geometric_base_object* elem = *iter;
@@ -190,8 +191,12 @@ bool NLGaussSeidelSolver<TDomain, TDD, TAlgebra>::preprocess(gridfunc_type& u)
 		count_i = 0;
 		count_noti = 0;
 
-		// 	get global indices
-		u.indices(elem, ind);
+		if(m_gridLevel.type() == GridLevel::LEVEL)
+			m_spLevDD->indices(elem, ind);
+		else if (m_gridLevel.type() == GridLevel::SURFACE)
+			m_spSurfDD->indices(elem, ind);
+		else
+			UG_THROW("Grid Level not recognized.");
 
 		// 	adapt local algebra
 		locU.resize(ind);
@@ -199,7 +204,9 @@ bool NLGaussSeidelSolver<TDomain, TDD, TAlgebra>::preprocess(gridfunc_type& u)
 		//	local vector extract -> locU
 		GetLocalVector(locU, u);
 
-		for(size_t fct=0; fct < locU.num_all_fct(); ++fct)
+		bool skip_loop = false;
+
+		for(size_t fct=0; fct < locU.num_all_fct() && !skip_loop; ++fct)
 			for(size_t dof=0; dof < locU.num_all_dof(fct); ++dof)
 			{
 				size_t globIndex = ind.index(fct,dof);
@@ -229,6 +236,9 @@ bool NLGaussSeidelSolver<TDomain, TDD, TAlgebra>::preprocess(gridfunc_type& u)
 					UG_LOG("2-ter index ist markiert!\n");
 				}
 
+				skip_loop = true;
+				break;
+
 			}
 
 		for (size_t i = 0; i < u.size(); i++)
@@ -251,10 +261,10 @@ bool NLGaussSeidelSolver<TDomain, TDD, TAlgebra>::preprocess(gridfunc_type& u)
 
 	}
 
-	UG_LOG("Loop over " << count_elem << "elems in preprocess \n");
+	UG_LOG("Loop over " << count_elem << "elems in preprocess \n");*/
 
 	return true;
-}*/
+}
 
 
 template <typename TDomain, typename TAlgebra>
@@ -330,7 +340,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 	LocalIndices ind; LocalVector locU;
 
-	m_vDiagMarker.assign_grid(grid);
+	m_vElemSelector.assign_grid(grid);
 
 	//	creating an ElemList
 	//	TODO: use ElemList as a member-variable of NL_GaussSeidel-class?
@@ -383,7 +393,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 				GetLocalVector(locU, u);
 
 				bool skip_loop = false;
-				m_vDiagMarker.unmark(*iter);
+				m_vElemSelector.deselect(*iter);
 
 				for(size_t fct=0; fct < locU.num_all_fct() && !skip_loop; ++fct)
 					for(size_t dof=0; dof < locU.num_all_dof(fct); ++dof)
@@ -397,10 +407,8 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 						if (globIndex == i)
 						{
-							m_vDiagMarker.mark(*iter);
 							count_i++;
-							//TODO: push_front oder push_back?
-							//ElemList.push_front(*iter);
+							m_vElemSelector.select(*iter);
 							skip_loop = true;
 							break;
 						}
@@ -412,11 +420,11 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 			//UG_LOG("DoF " << i << " is influenced by " << count_i << " elems \n");
 			//UG_LOG(count_noti << " elems should be skipped \n");
-			m_pAss->set_selector(&m_vDiagMarker);
+			m_pAss->set_selector(&m_vElemSelector);
 
 			try{
 				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeJacobian);
-				m_J->init(u); //TODO: pass ElemList here!
+				m_J->init(u);
 				NL_GAUSSSEIDEL_PROFILE_END();
 			}UG_CATCH_THROW("NLGaussSeidelSolver::apply: "
 					"Initialization of Jacobian failed.");

@@ -3,7 +3,7 @@
  *
  *  Created on: 07.01.2013
  *  (main parts are based on the structure of
- *  	newton.h by Andreas Vogel)
+ *  	newton.h and some ideas of Sebastian Reiter & Andreas Vogel)
  *
  *      Author: raphaelprohl
  */
@@ -44,9 +44,6 @@ class NLGaussSeidelSolver
 
 	///	Type of approximation space
 		typedef ApproximationSpace<domain_type>	approx_space_type;
-
-	///	base element type of associated domain
-		typedef typename domain_traits<domain_type::dim>::geometric_base_object TBaseElem;
 
 	protected:
 		typedef DebugWritingObject<TAlgebra> base_writer_type;
@@ -106,8 +103,8 @@ class NLGaussSeidelSolver
 		///	call counter
 		int m_dgbCall;
 
-		///	bool marker of diag-DoFs contributions
-		BoolMarker m_vDiagMarker;
+		///	selector of elements with contributions to a specific DoF
+		Selector m_vElemSelector;
 };
 
 }
