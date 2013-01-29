@@ -218,6 +218,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("ILinearOperatorInverse").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_method("init", static_cast<bool (T::*)(SmartPtr<ILinearOperator<vector_type> >)>(&T::init))
+			.add_method("init", static_cast<bool (T::*)(SmartPtr<ILinearOperator<vector_type> >,const vector_type&)>(&T::init))
 			.add_method("apply_return_defect", &T::apply_return_defect, "Success", "u#f",
 					"Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u),  f := f - A*u becomes new defect")
 			.add_method("apply", &T::apply, "Success", "u#f", "Solve A*u = f, such that u = A^{-1} f by iterating u := u + B(f - A*u), f remains constant")
