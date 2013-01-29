@@ -33,7 +33,7 @@ function write_data(filename, data, passRows)
 		passRows = true
 	end
 
-	local plainArray, rowSize, columnLenght
+	local plainArray, rowSize, columnLength = nil
 	
 	if not passRows then
 		-- check column sizes
@@ -45,7 +45,8 @@ function write_data(filename, data, passRows)
 			
 			if columnLength == nil then columnLength = #item
 			elseif not(columnLength == #item) then
-				io.stderr:write("Gnuplot Error: Data array of mixed sized columns.\n");
+				io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
+				io.stderr:write("Expected: "..columnLength..", got: "..#item.."\n");
 				return 1						
 			end
 		end
