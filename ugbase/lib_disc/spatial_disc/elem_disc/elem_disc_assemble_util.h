@@ -45,28 +45,27 @@ namespace ug {
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Stiffness matrix
  * \param[in]		u				solution
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
                         	ConstSmartPtr<TDD> dd,
+        					TIterator iterBegin,
+        					TIterator iterEnd,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
                         	const typename TAlgebra::vector_type& u,
-                        	BoolMarker* sel = NULL)
+                        	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
-// 	check if at least on element exist, else return
+	// 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
 	try
@@ -81,13 +80,13 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU; LocalMatrix locA;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -128,6 +127,57 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("AssembleStiffnessMatrix': Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
+                        	ConstSmartPtr<TDD> dd,
+                        	int si, bool bNonRegularGrid,
+                        	typename TAlgebra::matrix_type& A,
+                        	const typename TAlgebra::vector_type& u,
+                        	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	AssembleStiffnessMatrix<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, A, u, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
+                        	ConstSmartPtr<TDD> dd,
+                        	int si, bool bNonRegularGrid,
+                        	typename TAlgebra::matrix_type& A,
+                        	const typename TAlgebra::vector_type& u,
+                        	Selector* sel,
+                        	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		AssembleStiffnessMatrix<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, A, u, mark);
+	}
+	else{
+		AssembleStiffnessMatrix<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, A, u, mark);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Assemble Mass Matrix
 ////////////////////////////////////////////////////////////////////////////////
@@ -136,27 +186,26 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	M				Mass matrix
  * \param[in]		u				solution
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 					ConstSmartPtr<TDD> dd,
+					TIterator iterBegin,
+					TIterator iterEnd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
 					const typename TAlgebra::vector_type& u,
-                	BoolMarker* sel = NULL)
+                	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
@@ -173,13 +222,13 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU; LocalMatrix locM;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -220,6 +269,57 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("AssembleMassMatrix: Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
+					ConstSmartPtr<TDD> dd,
+					int si, bool bNonRegularGrid,
+					typename TAlgebra::matrix_type& M,
+					const typename TAlgebra::vector_type& u,
+                	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	AssembleMassMatrix<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, M, u, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
+					ConstSmartPtr<TDD> dd,
+					int si, bool bNonRegularGrid,
+					typename TAlgebra::matrix_type& M,
+					const typename TAlgebra::vector_type& u,
+					Selector* sel,
+                	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		AssembleMassMatrix<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, M, u, mark);
+	}
+	else{
+		AssembleMassMatrix<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, M, u, mark);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Assemble (stationary) Jacobian
 ////////////////////////////////////////////////////////////////////////////////
@@ -229,27 +329,26 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	J				jacobian
  * \param[in]		u				solution
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					ConstSmartPtr<TDD> dd,
+					TIterator iterBegin,
+					TIterator iterEnd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-                	BoolMarker* sel = NULL)
+                	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
@@ -266,13 +365,13 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -315,6 +414,57 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
+					ConstSmartPtr<TDD> dd,
+					int si, bool bNonRegularGrid,
+					typename TAlgebra::matrix_type& J,
+					const typename TAlgebra::vector_type& u,
+                	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	AssembleJacobian<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, J, u, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
+					ConstSmartPtr<TDD> dd,
+					int si, bool bNonRegularGrid,
+					typename TAlgebra::matrix_type& J,
+					const typename TAlgebra::vector_type& u,
+					Selector* sel,
+                	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		AssembleJacobian<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, J, u, mark);
+	}
+	else{
+		AssembleJacobian<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, J, u, mark);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Assemble (instationary) Jacobian
 ////////////////////////////////////////////////////////////////////////////////
@@ -325,29 +475,28 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * Note, that it is assumed	to have s_m0 == 1
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	J				jacobian
  * \param[in]		vSol			current and previous solutions
  * \param[in]		s_a0			scaling factor for stiffness part
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					ConstSmartPtr<TDD> dd,
+					TIterator iterBegin,
+					TIterator iterEnd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 					number s_a0,
-                	BoolMarker* sel = NULL)
+                	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
@@ -373,13 +522,13 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -436,6 +585,59 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
+					ConstSmartPtr<TDD> dd,
+					int si, bool bNonRegularGrid,
+					typename TAlgebra::matrix_type& J,
+					ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+					number s_a0,
+                	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	AssembleJacobian<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, J, vSol, s_a0, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
+					ConstSmartPtr<TDD> dd,
+					int si, bool bNonRegularGrid,
+					typename TAlgebra::matrix_type& J,
+					ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+					number s_a0,
+					Selector* sel,
+                	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		AssembleJacobian<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, J, vSol, s_a0, mark);
+	}
+	else{
+		AssembleJacobian<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, mark);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Assemble (stationary) Defect
 ////////////////////////////////////////////////////////////////////////////////
@@ -445,28 +647,27 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	d				defect
  * \param[in]		u				solution
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
+				TIterator iterBegin,
+				TIterator iterEnd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u,
-            	BoolMarker* sel = NULL)
+            	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
-// 	check if at least on element exist, else return
+	// 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
 //	prepare for given elem discs
@@ -482,13 +683,13 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU, locD, tmpLocD;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -540,6 +741,57 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(stationary) AssembleDefect: Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::vector_type& d,
+               	const typename TAlgebra::vector_type& u,
+            	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	AssembleDefect<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, d, u, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::vector_type& d,
+               	const typename TAlgebra::vector_type& u,
+               	Selector* sel,
+            	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		AssembleDefect<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, d, u, mark);
+	}
+	else{
+		AssembleDefect<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, d, u, mark);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Assemble (instationary) Defect
 ////////////////////////////////////////////////////////////////////////////////
@@ -549,31 +801,30 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	d				defect
  * \param[in]		vSol			current and previous solutions
  * \param[in]		vScaleMass		scaling factors for mass part
  * \param[in]		vScaleStiff		scaling factors for stiffness part
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
+				TIterator iterBegin,
+				TIterator iterEnd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 				const std::vector<number>& vScaleMass,
 				const std::vector<number>& vScaleStiff,
-            	BoolMarker* sel = NULL)
+            	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
@@ -604,13 +855,13 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locD, tmpLocD;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -690,6 +941,61 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) AssembleDefect: Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::vector_type& d,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+				const std::vector<number>& vScaleMass,
+				const std::vector<number>& vScaleStiff,
+            	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	AssembleDefect<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::vector_type& d,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+				const std::vector<number>& vScaleMass,
+				const std::vector<number>& vScaleStiff,
+				Selector* sel,
+            	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		AssembleDefect<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, mark);
+	}
+	else{
+		AssembleDefect<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, mark);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Assemble (stationary) Linear
 ////////////////////////////////////////////////////////////////////////////////
@@ -699,27 +1005,26 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * for all passed element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Matrix
  * \param[in,out]	rhs				Right-hand side
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD,typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
+				TIterator iterBegin,
+				TIterator iterEnd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-            	BoolMarker* sel = NULL)
+            	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
@@ -736,13 +1041,13 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locRhs; LocalMatrix locA;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -793,6 +1098,57 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(stationary) AssembleLinear: Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::matrix_type& A,
+               	typename TAlgebra::vector_type& rhs,
+            	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	AssembleLinear<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, A, rhs, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::matrix_type& A,
+               	typename TAlgebra::vector_type& rhs,
+               	Selector* sel,
+            	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		AssembleLinear<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, A, rhs, mark);
+	}
+	else{
+		AssembleLinear<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, A, rhs, mark);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Assemble (instationary) Linear
 ////////////////////////////////////////////////////////////////////////////////
@@ -802,7 +1158,9 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * for all passed element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Matrix
@@ -810,25 +1168,22 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vSol			current and previous solutions
  * \param[in]		vScaleMass		scaling factors for mass part
  * \param[in]		vScaleStiff		scaling factors for stiffness part
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
+				TIterator iterBegin,
+				TIterator iterEnd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-            	BoolMarker* sel = NULL)
+            	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
@@ -859,13 +1214,13 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locRhs, tmpLocRhs; LocalMatrix locA, tmpLocA;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -988,6 +1343,63 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) AssembleLinear: Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::matrix_type& A,
+               	typename TAlgebra::vector_type& rhs,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+               	const std::vector<number>& vScaleMass,
+               	const std::vector<number>& vScaleStiff,
+            	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	AssembleLinear<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::matrix_type& A,
+               	typename TAlgebra::vector_type& rhs,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+               	const std::vector<number>& vScaleMass,
+               	const std::vector<number>& vScaleStiff,
+               	Selector* sel,
+            	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		AssembleLinear<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, mark);
+	}
+	else{
+		AssembleLinear<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, mark);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Assemble Rhs
 ////////////////////////////////////////////////////////////////////////////////
@@ -997,27 +1409,26 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * for all passed element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	rhs				Right-hand side
  * \param[in]		u				solution
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
+				TIterator iterBegin,
+				TIterator iterEnd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u,
-            	BoolMarker* sel = NULL)
+            	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
@@ -1034,13 +1445,13 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU, locRhs;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1083,6 +1494,57 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("AssembleRhs: Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::vector_type& rhs,
+               	const typename TAlgebra::vector_type& u,
+            	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	AssembleRhs<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, rhs, u, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::vector_type& rhs,
+               	const typename TAlgebra::vector_type& u,
+               	Selector* sel,
+            	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		AssembleRhs<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, rhs, u, mark);
+	}
+	else{
+		AssembleRhs<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, rhs, u, mark);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Assemble (instationary) Rhs
 ////////////////////////////////////////////////////////////////////////////////
@@ -1092,31 +1554,30 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
  * for all passed element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	rhs				Right-hand side
  * \param[in]		vSol			current and previous solutions
  * \param[in]		vScaleMass		scaling factors for mass part
  * \param[in]		vScaleStiff		scaling factors for stiffness part
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
+				TIterator iterBegin,
+				TIterator iterEnd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-            	BoolMarker* sel = NULL)
+            	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
@@ -1147,13 +1608,13 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locRhs, tmpLocRhs;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1252,6 +1713,60 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) AssembleRhs: Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::vector_type& rhs,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+               	const std::vector<number>& vScaleMass,
+               	const std::vector<number>& vScaleStiff,
+            	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	AssembleRhs<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+               	typename TAlgebra::vector_type& rhs,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+               	const std::vector<number>& vScaleMass,
+               	const std::vector<number>& vScaleStiff,
+               	Selector* sel,
+            	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		AssembleRhs<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, mark);
+	}
+	else{
+		AssembleRhs<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, mark);
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Prepare Timestep (instationary)
@@ -1262,25 +1777,24 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in]		vSol			current and previous solutions
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
+				TIterator iterBegin,
+				TIterator iterEnd,
                	int si, bool bNonRegularGrid,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-            	BoolMarker* sel = NULL)
+            	BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
@@ -1305,13 +1819,13 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1353,6 +1867,55 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot create Data Evaluator.");
 }
 
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+            	BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	PrepareTimestep<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, vSol, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
+               	ConstSmartPtr<TDD> dd,
+               	int si, bool bNonRegularGrid,
+                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+                Selector* sel,
+            	BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		PrepareTimestep<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, vSol, mark);
+	}
+	else{
+		PrepareTimestep<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, vSol, mark);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Finish Timestep (instationary)
 ////////////////////////////////////////////////////////////////////////////////
@@ -1362,25 +1925,24 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
  * element discretizations.
  *
  * \param[in]		vElemDisc		element discretizations
- * \param[in]		dd		DoF Distribution
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in]		vSol			current and previous solutions
- * \param[in]		sel				Selector
+ * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TDD, typename TAlgebra>
+template <typename TElem, typename TDD, typename TAlgebra, typename TIterator>
 void
 FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
                ConstSmartPtr<TDD> dd,
+               TIterator iterBegin,
+			   TIterator iterEnd,
                int si, bool bNonRegularGrid,
                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-               BoolMarker* sel = NULL)
+               BoolMarker* mark = NULL)
 {
-//	get element iterator
-	typename TDD::template traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = dd->template begin<TElem>(si);
-	iterEnd = dd->template end<TElem>(si);
-
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
@@ -1406,13 +1968,13 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	LocalIndices ind; LocalVector locU;
 
 // 	Loop over all elements
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get Element
 		TElem* elem = *iter;
 
 	//	check if elem is skipped from assembling
-		if(sel) if(!sel->is_marked(elem)) continue;
+		if(mark) if(!mark->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1445,6 +2007,55 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 
 	}
 	UG_CATCH_THROW("(instationary) FinishTimestep: Cannot create Data Evaluator");
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
+               ConstSmartPtr<TDD> dd,
+               int si, bool bNonRegularGrid,
+               ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+               BoolMarker* mark = NULL)
+{
+	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+	const_iterator iterBegin = dd->template begin<TElem>(si);
+	const_iterator iterEnd = dd->template end<TElem>(si);
+
+	FinishTimestep<TElem, TDD, TAlgebra>
+		(vElemDisc, dd, iterBegin, iterEnd, si,
+				bNonRegularGrid, vSol, mark);
+}
+
+template <typename TElem, typename TDD, typename TAlgebra>
+void
+FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
+               ConstSmartPtr<TDD> dd,
+               int si, bool bNonRegularGrid,
+               ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
+               Selector* sel,
+               BoolMarker* mark = NULL)
+{
+	if(sel)
+	{
+		const ISubsetHandler& sh = *dd->subset_handler();
+
+		std::vector<TElem*> elems;
+		for(typename Selector::traits<TElem>::iterator iter = sel->begin<TElem>();
+			iter != sel->end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == si)
+				elems.push_back(*iter);
+		}
+
+		FinishTimestep<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			 bNonRegularGrid, vSol, mark);
+	}
+	else{
+		FinishTimestep<TElem,TDD,TAlgebra>
+			(vElemDisc, dd, si, bNonRegularGrid, vSol, mark);
+	}
 }
 
 } // end namespace ug

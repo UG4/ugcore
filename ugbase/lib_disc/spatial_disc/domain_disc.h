@@ -59,7 +59,7 @@ class DomainDiscretization
 		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
 			m_spApproxSpace(pApproxSpace), m_bForceRegGrid(false),
 			m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL),
-			m_pBoolMarker(NULL)
+			m_pBoolMarker(NULL), m_pSelector(NULL)
 		{
 			this->set_approximation_space(pApproxSpace);
 		};
@@ -201,15 +201,27 @@ class DomainDiscretization
 	///	enables boundary elem discs
 		virtual void enable_elem_discs(int bEnableTypes) {m_ElemTypesEnabled = bEnableTypes;}
 
-	///	sets a selector to exlude elements from assembling
+	///	sets a marker to exlude elements from assembling
 	/**
-	 * This methods sets a selector. Only elements that are selected will be
-	 * assembled during assembling process. If no selector is set, this
-	 * corresponds to a selector where all elements have been selected.
+	 * This methods sets a marker. Only elements that are marked will be
+	 * assembled during assembling process. If no marker is set, this
+	 * corresponds to a marker where all elements have been marked.
+	 *
+	 * \param[in]	mark	BoolMarker
+	 */
+	virtual void set_marker(BoolMarker* mark = NULL){m_pBoolMarker = mark;}
+
+	///	sets a selector of elements for assembling
+	/**
+	 * This methods sets an element list. Only elements of this list will be
+	 * assembled during assembling process. Especially the list defines the begin
+	 * and end of the element-iterator in the element assembling-loop.
+	 * If no element list is set, this corresponds to a assembling where the loop is
+	 * carried out over all elements of a subset.
 	 *
 	 * \param[in]	sel		Selector
 	 */
-	virtual void set_selector(BoolMarker* sel = NULL){m_pBoolMarker = sel;}
+	virtual void set_selector(Selector* sel = NULL){m_pSelector = sel;}
 
 	public:
 	/// adds an element discretization to the assembling process
@@ -306,8 +318,10 @@ class DomainDiscretization
 	///	enables the constraints
 		int m_ElemTypesEnabled;
 
-	///	selector used to skip elements
+	///	marker used to skip elements
 		BoolMarker* m_pBoolMarker;
+	///	selector used to set a list of elements for the assembling
+		Selector* 	m_pSelector;
 };
 
 /// @}

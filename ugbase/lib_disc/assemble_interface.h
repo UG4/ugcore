@@ -8,6 +8,7 @@
 #define __H__UG__LIB_DISC__ASSEMBLE__
 
 #include "lib_grid/tools/bool_marker.h"
+#include "lib_grid/tools/selector_grid.h"
 #include "lib_disc/dof_manager/grid_level.h"
 
 namespace ug{
@@ -206,15 +207,27 @@ class IAssemble
 	///	enables boundary elem discs
 		virtual void enable_elem_discs(int TypesEnable) = 0;
 
-	///	sets a selector to exclude elements from assembling
+	///	sets a marker to exclude elements from assembling
 	/**
-	 * This methods sets a selector. Only elements that are selected will be
-	 * assembled during assembling process. If no selector is set, this
-	 * corresponds to a selector where all elements have been selected.
+	 * This method sets a marker. Only elements that are marked will be
+	 * assembled during assembling process. If no marker is set, this
+	 * corresponds to a marker where all elements have been marked.
+	 *
+	 * \param[in]	mark	BoolMarker
+	 */
+		virtual void set_marker(BoolMarker* mark = NULL) = 0;
+
+	///	sets a selector of elements for assembling
+	/**
+	 * This method sets a selector. Only elements of this selector will be
+	 * assembled during assembling process. Especially the selector defines the begin
+	 * and end of the element-iterator in the element assembling-loop.
+	 * If no selector is set, this corresponds to a assembling where the loop is
+	 * carried out over all elements of a given subset.
 	 *
 	 * \param[in]	sel		Selector
 	 */
-		virtual void set_selector(BoolMarker* sel = NULL) = 0;
+		virtual void set_selector(Selector* sel = NULL) = 0;
 
 	///	returns the number of constraints
 		virtual size_t num_constraints() const = 0;

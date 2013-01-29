@@ -376,7 +376,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_damp", &T::set_damp, "", "setDampingFactor")
 			.add_method("init", &T::init, "success", "op")
 			.add_method("prepare", &T::prepare, "success", "u")
-			//.add_method("preprocess", &T::preprocess, "success", "u")
 			.add_method("apply", &T::apply, "success", "u")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NLGaussSeidelSolver", tag);

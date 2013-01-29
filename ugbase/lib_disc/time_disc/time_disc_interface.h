@@ -147,19 +147,33 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 			m_spDomDisc->enable_elem_discs(TypesEnable);
 		}
 
-	///	sets a selector to exclude elements from assembling
+	///	sets a marker to exclude elements from assembling
 	/**
-	 * This methods sets a selector. Only elements that are selected will be
-	 * assembled during assembling process. If no selector is set, this
-	 * corresponds to a selector where all elements have been selected.
+	 * This methods sets a marker. Only elements that are marked will be
+	 * assembled during assembling process. If no marker is set, this
+	 * corresponds to a marker where all elements have been marked.
+	 *
+	 * \param[in]	mark	BoolMarker
+	 */
+		virtual void set_marker(BoolMarker* mark = NULL)
+		{
+			m_pBoolMarker = mark; forward_marker();
+		}
+	///	sets a selector of elements for assembling
+	/**
+	 * This methods sets an element list. Only elements of this list will be
+	 * assembled during assembling process. Especially the list defines the begin
+	 * and end of the element-iterator in the element assembling-loop.
+	 * If no element list is set, this corresponds to a assembling where the loop is
+	 * carried out over all elements of a subset.
 	 *
 	 * \param[in]	sel		Selector
 	 */
-		virtual void set_selector(BoolMarker* sel = NULL)
+		virtual void set_selector(Selector* sel = NULL)
 		{
-			m_pBoolMarker = sel; forward_selector();
+			m_pSelector = sel; forward_selector();
 		}
-
+	
 	///	returns the number of constraint
 		virtual size_t num_constraints() const
 		{
@@ -173,14 +187,20 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 		}
 
 	protected:
+		void forward_marker()
+		{
+			m_spDomDisc->set_marker(m_pBoolMarker);
+		}
+
 		void forward_selector()
 		{
-			m_spDomDisc->set_selector(m_pBoolMarker);
+			m_spDomDisc->set_selector(m_pSelector);
 		}
 
 		SmartPtr<IDomainDiscretization<TAlgebra> > m_spDomDisc; ///< Domain Discretization
 
 		BoolMarker* m_pBoolMarker;
+		Selector* m_pSelector;
 };
 
 /// @}
