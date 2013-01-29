@@ -1135,7 +1135,7 @@ init_level_operator()
 		{
 		//	set this selector to the assembling, such that only those elements
 		//	will be assembled and force grid to be considered as regular
-			m_pAss->set_selector(&m_NonGhostMarker);
+			m_pAss->set_marker(&m_NonGhostMarker);
 			m_pAss->force_regular_grid(true);
 
 		//	init level operator
@@ -1147,7 +1147,7 @@ init_level_operator()
 
 		//	remove force flag
 			m_pAss->force_regular_grid(false);
-			m_pAss->set_selector(NULL);
+			m_pAss->set_marker(NULL);
 
 		//	copy the matrix into a new (smaller) one
 			SmartPtr<matrix_type> mat = m_vLevData[lev]->spLevMat;
@@ -1803,7 +1803,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 	//	now set this selector to the assembling, such that only those elements
 	//	will be assembled
-		m_pAss->set_selector(&sel);
+		m_pAss->set_marker(&sel);
 
 	//	create a surface matrix
 		matrix_type surfMat;
@@ -1825,7 +1825,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		write_surface_debug(surfMat, ss.str().c_str());
 
 	//	remove the selector from the assembling procedure
-		m_pAss->set_selector(NULL);
+		m_pAss->set_marker(NULL);
 
 	//	project
 		try{
