@@ -447,6 +447,18 @@ void Grid::associated_elements(traits<Volume>::secure_container& elemsOut, TElem
 	get_associated(elemsOut, e);
 }
 
+template <class TElem>
+void Grid::get_associated(typename traits<typename TElem::geometric_base_object>
+						  ::secure_container& elems, TElem* e)
+{
+//	we have to retrieve a valid pointer on the element pointer. The only way
+//	to receive it, is to return the pointer to the entry in which e is stored in
+//	the element storage.
+	elems.set_external_array(
+		element_storage<typename TElem::geometric_base_object>().m_sectionContainer.
+			get_container().get_pointer_to_element(e),
+		1);
+}
 
 template <class TElem>
 void Grid::associated_elements_sorted(traits<VertexBase>::secure_container& elemsOut, TElem* e)
@@ -474,7 +486,8 @@ void Grid::associated_elements_sorted(traits<Volume>::secure_container& elemsOut
 
 
 template <class TElem>
-void Grid::get_associated_sorted(typename traits<TElem>::secure_container& elems, TElem* e)
+void Grid::get_associated_sorted(typename traits<typename TElem::geometric_base_object>
+								 ::secure_container& elems, TElem* e)
 {
 //	we have to retrieve a valid pointer on the element pointer. The only way
 //	to receive it, is to return the pointer to the entry in which e is stored in

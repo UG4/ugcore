@@ -1021,25 +1021,25 @@ class UG_API Grid
 												VolumeVertices& vv);
 
 	//	get associated elements
-		void get_associated(SecureVertexContainer& vrts, VertexBase* v);
 		void get_associated(SecureVertexContainer& vrts, EdgeBase* e);
 		void get_associated(SecureVertexContainer& vrts, Face* f);
 		void get_associated(SecureVertexContainer& vrts, Volume* v);
 
 		void get_associated(SecureEdgeContainer& edges, VertexBase* v);
-		void get_associated(SecureEdgeContainer& edges, EdgeBase* e);
 		void get_associated(SecureEdgeContainer& edges, Face* f);
 		void get_associated(SecureEdgeContainer& edges, Volume* v);
 
 		void get_associated(SecureFaceContainer& faces, VertexBase* v);
 		void get_associated(SecureFaceContainer& faces, EdgeBase* e);
-		void get_associated(SecureFaceContainer& faces, Face* f);
 		void get_associated(SecureFaceContainer& faces, Volume* v);
 
 		void get_associated(SecureVolumeContainer& vols, VertexBase* v);
 		void get_associated(SecureVolumeContainer& vols, EdgeBase* e);
 		void get_associated(SecureVolumeContainer& vols, Face* f);
-		void get_associated(SecureVolumeContainer& vols, Volume* v);
+
+		template <class TElem>
+		void get_associated(typename traits<typename TElem::geometric_base_object>
+							::secure_container& elems, TElem* e);
 		
 	/**	this method does not use possibly attached containers and can thus
 	 * be used, when such containers are to be built.*/
@@ -1062,7 +1062,8 @@ class UG_API Grid
 		void get_associated_sorted(SecureVolumeContainer& vols, Face* f);
 
 		template <class TElem>
-		void get_associated_sorted(typename traits<TElem>::secure_container& elems, TElem* e);
+		void get_associated_sorted(typename traits<typename TElem::geometric_base_object>
+								   ::secure_container& elems, TElem* e);
 
 
 	///	helps in copying attachment pipes during assign_grid

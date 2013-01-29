@@ -2579,11 +2579,6 @@ bool Grid::replace_vertex_is_valid(VertexBase* vrtOld, VertexBase* vrtNew)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED VERTICES
-void Grid::get_associated(SecureVertexContainer& vrts, VertexBase* v)
-{
-	vrts.set_external_array(&v, 1);
-}
-
 void Grid::get_associated(SecureVertexContainer& vrts, EdgeBase* e)
 {
 	vrts.set_external_array(e->vertices(), e->num_vertices());
@@ -2623,11 +2618,6 @@ void Grid::get_associated(SecureEdgeContainer& edges, VertexBase* v)
 		edges.clear();
 	else
 		edges.set_external_array(&assEdges.front(), assEdges.size());
-}
-
-void Grid::get_associated(SecureEdgeContainer& edges, EdgeBase* e)
-{
-	edges.set_external_array(&e, 1);
 }
 
 void Grid::get_associated(SecureEdgeContainer& edges, Face* f)
@@ -2759,11 +2749,6 @@ void Grid::get_associated(SecureFaceContainer& faces, EdgeBase* e)
 				faces.push_back(assFaces[i]);
 		}
 	}
-}
-
-void Grid::get_associated(SecureFaceContainer& faces, Face* f)
-{
-	faces.set_external_array(&f, 1);
 }
 
 void Grid::get_associated(SecureFaceContainer& faces, Volume* v)
@@ -2913,11 +2898,6 @@ void Grid::get_associated_vols_raw(SecureVolumeContainer& vols, Face* f)
 			}
 		}
 	}
-}
-
-void Grid::get_associated(SecureVolumeContainer& vols, Volume* v)
-{
-	vols.set_external_array(&v, 1);
 }
 
 
