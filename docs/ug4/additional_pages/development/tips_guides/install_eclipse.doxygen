@@ -264,3 +264,5 @@ you have to use \em File -> \em Import -> <em> Existing Projects into Workspace 
 
 
 */
+// other stuff: http://stackoverflow.com/questions/2707986/eclipse-encoding-macroman-utf8
+// texclipse: http://texlipse.sourceforge.net/manual/installation.html
