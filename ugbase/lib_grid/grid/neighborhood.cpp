@@ -321,7 +321,7 @@ void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
 //	it is not yet marked, we have to push it to vNeighboursOut.
 //	to optimize speed we'll check both valid nbhTypes separately.
 //	the first case indeed is a subcase of the second
-	if(nbhType == NHT_VERTEX_NEIGHBORS)
+	if(nbhType & NHT_VERTEX_NEIGHBORS)
 		for(uint i = 0; i < numVrts; ++i)
 		{
 			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrts[i]);
@@ -337,31 +337,41 @@ void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
 		}
 	else
 	{
-		for(uint i = 0; i < numVrts; ++i)
-		{
-			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrts[i]);
-			for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrts[i]);
-				iter != iterEnd; ++iter)
+	//	count the number of shared vertices with volumes, which are connected by
+	//	at least one vertex. This case handles both face and edge neighborhoods.
+		int minNumSharedVrts = -1;
+		if(nbhType & NHT_FACE_NEIGHBORS)
+			minNumSharedVrts = 3;
+		if(nbhType & NHT_EDGE_NEIGHBORS)
+			minNumSharedVrts = 2;
+
+		if(minNumSharedVrts > 0){
+			for(uint i = 0; i < numVrts; ++i)
 			{
-				Volume* nv = *iter;
-				if(!grid.is_marked(nv))
+				Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrts[i]);
+				for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrts[i]);
+					iter != iterEnd; ++iter)
 				{
-				//	count the marked vertices that are contained by *iter
-				//	if there as many as in nbhTypes, the volume is a neighbour.
-				//	(at least in a regular grid)
-					int counter = 0;
-					size_t numNVrts = nv->num_vertices();
-					Volume::ConstVertexArray nvrts = nv->vertices();
-					for(uint j = 0; j < numNVrts; ++j)
+					Volume* nv = *iter;
+					if(!grid.is_marked(nv))
 					{
-						if(grid.is_marked(nvrts[j]))
+					//	count the marked vertices that are contained by *iter
+					//	if there as many as in nbhTypes, the volume is a neighbour.
+					//	(at least in a regular grid)
+						int counter = 0;
+						size_t numNVrts = nv->num_vertices();
+						Volume::ConstVertexArray nvrts = nv->vertices();
+						for(uint j = 0; j < numNVrts; ++j)
 						{
-							++counter;
-							if(counter >= nbhType)
+							if(grid.is_marked(nvrts[j]))
 							{
-								vNeighborsOut.push_back(nv);
-								grid.mark(nv);
-								break;
+								++counter;
+								if(counter >= minNumSharedVrts)
+								{
+									vNeighborsOut.push_back(nv);
+									grid.mark(nv);
+									break;
+								}
 							}
 						}
 					}
