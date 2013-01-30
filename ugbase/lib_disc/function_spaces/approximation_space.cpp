@@ -24,15 +24,31 @@ namespace ug{
 IApproximationSpace::
 IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
                     SmartPtr<grid_type> spMG,
-                    bool bGroup)
+                    const AlgebraType& algebraType)
 :	 m_spMG(spMG),
  	 m_spMGSH(spMGSH),
  	 m_spFunctionPattern(new FunctionPattern(spMGSH)),
- 	 m_bGrouped(bGroup), m_bAdaptionIsActive(false)
+ 	 m_bAdaptionIsActive(false),
+	 m_algebraType(algebraType)
 #ifdef UG_PARALLEL
 	, m_pDistGridMgr(NULL)
 #endif
 {
+//	get blocksize of algebra
+	const int blockSize = m_algebraType.blocksize();
+
+//	a)	If blocksize fixed and > 1, we need grouping in dof manager. Thus,
+//		the dofmanager hopefully fits (i.e. same number of grouped
+//		dofs everywhere.)
+	if(blockSize > 1) m_bGrouped = true;
+//	b) 	If blocksize flexible, we group
+	else if (blockSize == AlgebraType::VariableBlockSize) m_bGrouped = true;
+//	c)	If blocksize == 1, we do not group. This will allow us to handle
+//		this case for any problem.
+	else if (blockSize == 1) m_bGrouped = false;
+	else
+		UG_THROW("Cannot determine blocksize of Algebra.");
+
 	register_at_adaption_msg_hub();
 }
 
@@ -42,13 +58,14 @@ IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
 	: m_spMG(spMG),
 	  m_spMGSH(spMGSH),
 	  m_spFunctionPattern(new FunctionPattern(spMGSH)),
-	  m_bAdaptionIsActive(false)
+	  m_bAdaptionIsActive(false),
+	  m_algebraType(DefaultAlgebra::get())
 #ifdef UG_PARALLEL
 	, m_pDistGridMgr(NULL)
 #endif
 {
 //	get blocksize of algebra
-	const int blockSize = DefaultAlgebra::get().blocksize();
+	const int blockSize = m_algebraType.blocksize();
 
 //	a)	If blocksize fixed and > 1, we need grouping in dof manager. Thus,
 //		the dofmanager hopefully fits (i.e. same number of grouped
@@ -731,6 +748,22 @@ template <typename TDomain>
 ApproximationSpace<TDomain>::
 ApproximationSpace(SmartPtr<domain_type> domain)
 	: IApproximationSpace(domain->subset_handler(), domain->grid()),
+	  m_spDomain(domain)
+{
+	if(!m_spDomain.valid())
+		UG_THROW("Domain, passed to ApproximationSpace, is invalid.");
+	if(!m_spMGSH.valid())
+		UG_THROW("SubsetHandler, passed to ApproximationSpace, is invalid.");
+
+#ifdef UG_PARALLEL
+	this->set_dist_grid_mgr(domain->distributed_grid_manager());
+#endif
+};
+
+template <typename TDomain>
+ApproximationSpace<TDomain>::
+ApproximationSpace(SmartPtr<domain_type> domain, const AlgebraType& algebraType)
+	: IApproximationSpace(domain->subset_handler(), domain->grid(), algebraType),
 	  m_spDomain(domain)
 {
 	if(!m_spDomain.valid())

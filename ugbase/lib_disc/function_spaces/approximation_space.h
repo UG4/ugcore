@@ -50,7 +50,7 @@ class IApproximationSpace
 	///	Constructor setting the grouping flag
 		IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
 		                    SmartPtr<grid_type>,
-		                    bool bGroup);
+		                    const AlgebraType& algebraType);
 
 	///	Destructor
 		~IApproximationSpace();
@@ -254,6 +254,9 @@ class IApproximationSpace
 		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
 		bool m_bAdaptionIsActive;
 
+	///	suitable algebra type for the index distribution pattern
+		AlgebraType m_algebraType;
+
 #ifdef UG_PARALLEL
 	///	Pointer to GridManager
 		DistributedGridManager* m_pDistGridMgr;
@@ -277,6 +280,9 @@ class ApproximationSpace : public IApproximationSpace
 	public:
 	/// constructor
 		ApproximationSpace(SmartPtr<TDomain> domain);
+
+	/// constructor passing requested algebra type
+		ApproximationSpace(SmartPtr<TDomain> domain, const AlgebraType& algebraType);
 
 	/// Return the domain
 		ConstSmartPtr<TDomain> domain() const {return m_spDomain;}

@@ -146,6 +146,7 @@ static void Domain(Registry& reg, string grp)
 		string name = string("ApproximationSpace").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
+			.template add_constructor<void (*)(SmartPtr<TDomain>, const AlgebraType&)>("Domain, AlgebraType")
 			.add_method("domain", static_cast<SmartPtr<TDomain> (T::*)()>(&T::domain))
 			.add_method("surface_view", static_cast<ConstSmartPtr<SurfaceView> (T::*)() const>(&T::surface_view))
 			.set_construct_as_smart_pointer(true);
