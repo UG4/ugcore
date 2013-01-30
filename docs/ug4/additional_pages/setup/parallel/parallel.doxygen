@@ -20,6 +20,7 @@ Special instructions for the different parallel computers are on separate pages:
 Instructions for password-less login to the different clusters are on the page
 about \ref pageUG4SSH (including \ref secSSHKeys, \ref secSSHHopping, \ref secSSHFS).
 
+ See also \ref pageugsubmit.
 
 <hr>
 \section secGeneral_Notes General Notes

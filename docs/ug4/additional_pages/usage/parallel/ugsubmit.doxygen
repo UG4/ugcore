@@ -12,6 +12,12 @@
 <hr>
 \section secIntroduction Introduction
 <hr>
+ 
+ To use the scripts described here, you have add 
+ \verbatim
+  source YOUR_UG4_PATH/ug4/scripts/shell/ugbash
+ \endverbatim
+ to your .bashrc file. Then open a new console.
 
 \ref secugsubmit , \ref secuginfo and \ref secugcancel are scripts to unify the access to job schedulers over different clusters.<br>
 Supported clusters are <tt> NecNehalem, Hermit, Jugene, mpi, cekon, moab </tt>.<br>

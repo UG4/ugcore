@@ -24,6 +24,7 @@ Be aware that you can also run this if you don't have 4 cores. This might be han
 
 If you have a lot of cores (and sufficient RAM) you can also speed up compiling by using <tt>make -j4</tt>, see \ref secBuildUG4Make.
 
+See also \ref pageugsubmit .
 <hr>
 \section secParallelComputingGeneral General Information about Parallel Computing
 <hr>
