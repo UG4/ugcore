@@ -116,6 +116,33 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
  * Note that this method is best suited for partitions with more than 8 procs.
  * For less than 8 procs metis features other, better suited methods.
  *
+ * All elements in baseLevel and higher levels will be partitioned. elements
+ * below baseLevel will stay where they are and are completely ignored during
+ * load balancing.
+ *
+ * hWeight and vWeight determine, how important it is to keep horizontal
+ * and vertical neighbors on the same process as the element itself.
+ * The bigger hWeight, the more attention is spend to keep neighbors together.
+ * Both parameters have to be > 0. Default is 1.
+ *
+ * weightFct specifies a function that attributes special weights to edges on the
+ * dual graph.
+ *
+ * Valid template arguments are EdgeBase, Face, Volume and derived types.
+ */
+template <class TGeomBaseObj>
+bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
+							 	  MultiGrid& grid, int numParts, size_t baseLevel,
+							 	  boost::function<int (TGeomBaseObj*, TGeomBaseObj*)>& weightFct);
+
+////////////////////////////////////////////////////////////////////////////////
+///	Partitions the elements in the multi-grid using the METIS library
+/**	This method calls METIS_PartGraphKway. Note that METIS is an external library
+ * developed at Karypis Labs (http://glaros.dtc.umn.edu/gkhome/)
+ *
+ * Note that this method is best suited for partitions with more than 8 procs.
+ * For less than 8 procs metis features other, better suited methods.
+ *
  * The method performs load balancing for the elements in the given level. The
  * elements are weighted according to the number of children each has.
  * Child elements will then be recursively assigned to the partitions into which

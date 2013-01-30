@@ -133,10 +133,12 @@ end
 --!								after pre-refinement.
 --!								See util.DistributeDomain for more information
 --!								(in UG_BASE/scripts/util/domain_distribution.lua)
+--! @param wFct 			(optional SmartPtr<EdgeWeighting>) Sets the weighting function for the
+--!							'metisReweigh' partitioning method.
 function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 										neededSubsets, distributionMethod,
 										verticalInterfaces, numTargetProcs,
-										distributionLevel)
+										distributionLevel, wFct)
 
 	-- create Instance of a Domain
 	local dom = Domain()
@@ -167,7 +169,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	end
 	
 	-- Distribute the domain to all involved processes
-	if util.DistributeDomain(dom, distributionMethod) == false then
+	if util.DistributeDomain(dom, distributionMethod, verticalInterfaces, numTargetProcs, distributionLevel, wFct) == false then
 		print("Error while Distributing Grid. Aborting.")
 		exit();
 	end

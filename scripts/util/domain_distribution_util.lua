@@ -31,8 +31,10 @@ util = util or {}
 --! @param distributionLevel	(optional integer) Sets the level on which distribution
 --!								is performed. Default is the domains top-level.
 --!								Currently only supported in partitioningMethod "metis".
+--! @param wFct 			(optional SmartPtr<EdgeWeighting>) Sets the weighting function for the
+--!							'metisReweigh' partitioning method.
 function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
-							   numTargetProcs, distributionLevel)
+							   numTargetProcs, distributionLevel, wFct)
 	local partitionMap = PartitionMap()
 		
 	if partitioningMethod == nil then
@@ -62,6 +64,14 @@ function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 		util.PartitionMapBisection(dom, partitionMap, numTargetProcs)
 	elseif partitioningMethod == "metis" then
 		util.PartitionMapMetis(dom, partitionMap, numTargetProcs, distributionLevel)
+	elseif partitioningMethod == "metisReweigh" then
+		if wFct ~= nil then
+			util.PartitionMapMetisReweigh(dom, partitionMap, numTargetProcs, distributionLevel, wFct)
+		else 
+			print("ERROR in util.DistributeDomain: requested partitionMethod \"metisReweigh\",\
+				   but no weightingFct given.")
+			return
+		end
 	else
 		print("ERROR in util.DistributeDomain: Unknown partitioning method.")
 		print("  Valid partitioning methods are: 'bisection' and 'metis'")
@@ -95,6 +105,18 @@ function util.PartitionMapMetis(dom, partitionMapOut, numProcs, baseLevel)
 	partitionMapOut:clear()
 	partitionMapOut:add_target_procs(0, numProcs)
 	PartitionDomain_MetisKWay(dom, partitionMapOut, numProcs, baseLevel, 1, 1)
+end
+
+--! create a partition map by using metis graph partitioning anf correct
+--! weights of dual graph edges by weighting function.
+--! This only works if Metis is available in the current build.
+--! This method automatically adds target procs 0, ..., numProcs - 1.
+--! It is thus not suited for hierarchical redistribution.
+--! Use PartitionDomain_MetisKWay directly in this case.
+function util.PartitionMapMetisReweigh(dom, partitionMapOut, numProcs, baseLevel, wFct)
+	partitionMapOut:clear()
+	partitionMapOut:add_target_procs(0, numProcs)
+	PartitionDomain_MetisKWay(dom, partitionMapOut, numProcs, baseLevel, wFct)
 end
 
 

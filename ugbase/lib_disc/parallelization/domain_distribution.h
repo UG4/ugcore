@@ -7,6 +7,7 @@
 
 #include "lib_disc/domain.h"
 #include "lib_grid/tools/partition_map.h"
+#include "lib_grid/parallelization/util/edge_weighting_callbacks.h"
 
 namespace ug
 {
@@ -30,6 +31,17 @@ static bool
 PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 						  int numPartitions, size_t baseLevel = 0,
 						  int hWeight = 1, int vWeight = 1);
+
+///	partitions a domain by using graph-based partitioning by METIS
+/** Weights can be chosen for borders between subsets in order to
+ * prevent them from being part of the border of the geometry distribution
+ * onto the available processors.
+ */
+template <typename TDomain>
+static bool
+PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
+						  int numPartitions, size_t baseLevel,
+						  SmartPtr<EdgeWeighting> weightFct);
 
 /// Partitions a domain based on the elements of one level
 /**	The elements are thereby weighted by the number of children they have.

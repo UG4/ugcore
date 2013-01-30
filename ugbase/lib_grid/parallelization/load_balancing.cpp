@@ -187,6 +187,124 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 
 ////////////////////////////////////////////////////////////////////////////////
 template <class TGeomBaseObj>
+bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
+							 	  MultiGrid& mg, int numParts, size_t baseLevel,
+							 	  boost::function<int (TGeomBaseObj*, TGeomBaseObj*)>& weightFct)
+{
+#ifdef UG_METIS
+	typedef TGeomBaseObj	TElem;
+	typedef typename geometry_traits<TGeomBaseObj>::iterator	ElemIter;
+//	only call metis if more than 1 part is required
+	//if(numParts > 1){
+	//	here we'll store the dual graph
+		vector<idx_t> adjacencyMapStructure;
+		vector<idx_t> adjacencyMap;
+		vector<idx_t> edgeWeightMap;
+
+		if (weightFct)
+		{
+			// find out how many elems there are
+			size_t size = 0;
+			for (size_t lvl = baseLevel; lvl < mg.num_levels(); lvl++)
+				size += mg.num<TElem>(lvl);
+
+			// prepare list of all elements
+			TElem** pElemsOut;
+			pElemsOut = new TElem*[size];
+
+			// construct dual graph with standard edge weights
+			ConstructDualGraphMG<TGeomBaseObj, idx_t>(adjacencyMapStructure,
+														adjacencyMap, &edgeWeightMap,
+														mg, baseLevel, 1, 1,
+														NULL, &pElemsOut[0]);
+
+
+			// correct edge weights by calling weightFct for all pairs of TElems
+			// found by ConstructDualGraphMG
+			UG_ASSERT(size+1 == adjacencyMapStructure.size(), "index lengths not matching");
+			TElem* elem1;
+			TElem* elem2;
+			for (size_t el = 0; el < size; el++)
+			{
+				elem1 = pElemsOut[el];
+				for (size_t edgeInd = (size_t) adjacencyMapStructure[el]; edgeInd < (size_t) adjacencyMapStructure[el+1]; edgeInd++)
+				{
+					elem2 = pElemsOut[(size_t) adjacencyMap[edgeInd]];
+					edgeWeightMap[edgeInd] = weightFct(elem1, elem2);
+				}
+			}
+
+			// free memory
+			delete[] pElemsOut;
+		}
+		else
+		{
+		//todo	add baseLevel to ConstructDualGraphMG.
+			ConstructDualGraphMG<TGeomBaseObj, idx_t>(adjacencyMapStructure,
+													  adjacencyMap, &edgeWeightMap,
+													  mg, baseLevel, 1, 1);
+		}
+	if(numParts > 1){
+	//	partition the graph using metis
+	//	first define options for the partitioning.
+		idx_t options[METIS_NOPTIONS];
+		METIS_SetDefaultOptions(options);
+		options[METIS_OPTION_PTYPE] = METIS_PTYPE_KWAY;
+		options[METIS_OPTION_OBJTYPE] = METIS_OBJTYPE_CUT;
+		options[METIS_OPTION_NUMBERING] = 0;
+	  //request contiguous partitions
+		//options[METIS_OPTION_CONTIG] = 1;
+	  //note: using the option METIS_OPTION_DBGLVL could be useful for debugging.
+
+		int nVrts = (int)adjacencyMapStructure.size() - 1;
+		int nConstraints = 1;
+		int edgeCut;
+		vector<idx_t> partitionMap(nVrts);
+
+		UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
+		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
+											&adjacencyMapStructure.front(),
+											&adjacencyMap.front(),
+											NULL, NULL, &edgeWeightMap.front(),
+											&numParts, NULL, NULL, options,
+											&edgeCut, &partitionMap.front());
+		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
+
+		if(metisRet != METIS_OK){
+			UG_DLOG(LIB_GRID, 1, "METIS FAILED\n");
+			return false;
+		}
+
+
+	//	assign the subsets to the subset-handler
+		int counter = 0;
+		for(size_t lvl = baseLevel; lvl < mg.num_levels(); ++lvl){
+			typedef typename geometry_traits<TGeomBaseObj>::iterator iterator;
+			for(iterator iter = mg.begin<TGeomBaseObj>(lvl);
+				iter != mg.end<TGeomBaseObj>(lvl); ++iter)
+			{
+				shPartitionOut.assign_subset(*iter, partitionMap[counter++]);
+			}
+		}
+	}
+	else{
+	//	assign all elements to subset 0.
+		for(size_t lvl = baseLevel; lvl < mg.num_levels(); ++lvl){
+			shPartitionOut.assign_subset(mg.begin<TGeomBaseObj>(lvl),
+										 mg.end<TGeomBaseObj>(lvl), 0);
+		}
+	}
+	return true;
+#else
+	UG_LOG("WARNING in PartitionMultiGrid_MetisKway: METIS is not available in "
+			"the current build. Please consider recompiling with METIS "
+			"support enabled.\n");
+	return false;
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////
+template <class TGeomBaseObj>
 bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& mg, int numParts, size_t level)
 {
@@ -560,6 +678,13 @@ template bool PartitionMultiGrid_MetisKway<Face>(SubsetHandler&, MultiGrid&,
 												 int, size_t, int, int);
 template bool PartitionMultiGrid_MetisKway<Volume>(SubsetHandler&, MultiGrid&,
 												   int, size_t, int, int);
+
+template bool PartitionMultiGrid_MetisKway<EdgeBase>(SubsetHandler&, MultiGrid&, int, size_t,
+													 boost::function<int (EdgeBase*, EdgeBase*)>&);
+template bool PartitionMultiGrid_MetisKway<Face>(SubsetHandler&, MultiGrid&, int, size_t,
+		 	 	 	 	 	 	 	 	 	 	 boost::function<int (Face*, Face*)>&);
+template bool PartitionMultiGrid_MetisKway<Volume>(SubsetHandler&, MultiGrid&, int, size_t,
+												   boost::function<int (Volume*, Volume*)>&);
 
 template bool PartitionMultiGridLevel_MetisKway<EdgeBase>(SubsetHandler&,
 													MultiGrid&, int, size_t);

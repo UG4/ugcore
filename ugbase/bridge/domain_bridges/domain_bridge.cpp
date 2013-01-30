@@ -271,7 +271,9 @@ static void Domain(Registry& reg, string grp)
 					 &PartitionDomain_Bisection<TDomain>, grp);
 
 	reg.add_function("PartitionDomain_MetisKWay",
-					 &PartitionDomain_MetisKWay<TDomain>, grp);
+					 static_cast<bool (*)(TDomain&, PartitionMap&, int, size_t, int, int)>(&PartitionDomain_MetisKWay<TDomain>), grp);
+	reg.add_function("PartitionDomain_MetisKWay",
+					 static_cast<bool (*)(TDomain&, PartitionMap&, int, size_t, SmartPtr<EdgeWeighting>)>(&PartitionDomain_MetisKWay<TDomain>), grp);
 
 	reg.add_function("PartitionDomain_LevelBased",
 					 &PartitionDomain_LevelBased<TDomain>, grp);
