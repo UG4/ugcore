@@ -318,7 +318,7 @@ adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->has_indices_on(VERTEX))
-			adjust_jacobian<VertexBase, TUserData, TDD>(vUserData, si, J, u, dd, time);
+			adjust_jacobian<Vertex, TUserData, TDD>(vUserData, si, J, u, dd, time);
 		if(dd->has_indices_on(EDGE))
 			adjust_jacobian<EdgeBase, TUserData, TDD>(vUserData, si, J, u, dd, time);
 		if(dd->has_indices_on(FACE))
@@ -377,7 +377,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 
 			//	get dof position
 				if(TUserData::isConditional){
-					InnerDoFPosition(vPos, elem, *m_spDomain, lfeID, dim);
+					InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID, dim);
 					UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
 				}
 
@@ -438,7 +438,7 @@ adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->has_indices_on(VERTEX))
-			adjust_defect<VertexBase, TUserData, TDD>(vUserData, si, d, u, dd, time);
+			adjust_defect<Vertex, TUserData, TDD>(vUserData, si, d, u, dd, time);
 		if(dd->has_indices_on(EDGE))
 			adjust_defect<EdgeBase, TUserData, TDD>(vUserData, si, d, u, dd, time);
 		if(dd->has_indices_on(FACE))
@@ -497,7 +497,7 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 
 			//	get dof position
 				if(TUserData::isConditional){
-					InnerDoFPosition(vPos, elem, *m_spDomain, lfeID, dim);
+					InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID, dim);
 					UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch. (multInd.size()="<<
 					          multInd.size()<<", vPos.size()="<<vPos.size()<<")");
 				}
@@ -557,7 +557,7 @@ adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->has_indices_on(VERTEX))
-			adjust_solution<VertexBase, TUserData, TDD>(vUserData, si, u, dd, time);
+			adjust_solution<Vertex, TUserData, TDD>(vUserData, si, u, dd, time);
 		if(dd->has_indices_on(EDGE))
 			adjust_solution<EdgeBase, TUserData, TDD>(vUserData, si, u, dd, time);
 		if(dd->has_indices_on(FACE))
@@ -611,7 +611,7 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 				const int dim = dd->dim(fct);
 
 			//	get dof position
-				InnerDoFPosition(vPos, elem, *m_spDomain, lfeID, dim);
+				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID, dim);
 
 			//	get multi indices
 				dd->inner_multi_indices(elem, fct, multInd);
@@ -673,7 +673,7 @@ adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->has_indices_on(VERTEX))
-			adjust_linear<VertexBase, TUserData, TDD>(vUserData, si, A, b, dd, time);
+			adjust_linear<Vertex, TUserData, TDD>(vUserData, si, A, b, dd, time);
 		if(dd->has_indices_on(EDGE))
 			adjust_linear<EdgeBase, TUserData, TDD>(vUserData, si, A, b, dd, time);
 		if(dd->has_indices_on(FACE))
@@ -728,7 +728,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 				const int dim = dd->dim(fct);
 
 			//	get dof position
-				InnerDoFPosition(vPos, elem, *m_spDomain, lfeID, dim);
+				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID, dim);
 
 			//	get multi indices
 				dd->inner_multi_indices(elem, fct, multInd);
@@ -797,7 +797,7 @@ adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->has_indices_on(VERTEX))
-			adjust_rhs<VertexBase, TUserData, TDD>(vUserData, si, b, u, dd, time);
+			adjust_rhs<Vertex, TUserData, TDD>(vUserData, si, b, u, dd, time);
 		if(dd->has_indices_on(EDGE))
 			adjust_rhs<EdgeBase, TUserData, TDD>(vUserData, si, b, u, dd, time);
 		if(dd->has_indices_on(FACE))
@@ -852,7 +852,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 				const int dim = dd->dim(fct);
 
 			//	get dof position
-				InnerDoFPosition(vPos, elem, *m_spDomain, lfeID, dim);
+				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID, dim);
 
 			//	get multi indices
 				dd->inner_multi_indices(elem, fct, multInd);
