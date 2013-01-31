@@ -64,10 +64,9 @@ class ValueDataExport
 					vValue[ip] += u(_C_, sh) * vShape[sh];
 			}
 
-			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
-				UG_THROW("ValueDataExport: "<< ex.get_msg()<<", Reference Object: "
-				         <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
 			}
+			UG_CATCH_THROW("ValueDataExport: Trial space missing, Reference Object: "
+			               <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
 		}
 
 	///	returns if provided data is continuous over geometric object boundaries
@@ -151,10 +150,9 @@ class GradientDataExport
 				MatVecMult(vValue[ip], JTInv, locGrad);
 			}
 
-			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
-				UG_THROW("GradientDataExport: "<< ex.get_msg()<<", Reference Object: "
-						 <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
 			}
+			UG_CATCH_THROW("GradientDataExport: Trial space missing, Reference Object: "
+						 <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
 		}
 
 	///	returns if provided data is continuous over geometric object boundaries

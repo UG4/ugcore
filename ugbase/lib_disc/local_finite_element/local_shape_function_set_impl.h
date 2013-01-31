@@ -109,7 +109,8 @@ get(ReferenceObjectID roid, LFEID id, bool bCreate)
 			return get<dim>(roid, id, false);
 		}
 
-		throw(UGError_LocalShapeFunctionSetNotRegistered(dim, roid, id));
+		UG_THROW("LocalShapeFunctionSetProvider: Local Shape Function Set not "
+				 "found for "<<roid<<" (dim="<<dim<<") and type = "<<id);
 	}
 
 //	return shape function set

@@ -214,10 +214,10 @@ class GridFunctionNumberData
 				}
 			}
 
-			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
-				UG_THROW("GridFunctionNumberData: "<< ex.get_msg()<<", Reference Object: "
-				         <<roid<<", Trial Space: "<<m_lfeID<<", refDim="<<refDim);
 			}
+			UG_CATCH_THROW("GridFunctionNumberData: Shape Function Set missing for"
+							" Reference Object: "<<roid<<", Trial Space: "
+							<<m_lfeID<<", refDim="<<refDim);
 		}
 		
 		inline void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
@@ -402,9 +402,7 @@ class GridFunctionGradientData
 
 			//	store tmp Gradient
 				vJT = &(vJTTmp[0]);
-				}catch(UGError_ReferenceMappingMissing& ex){
-					UG_THROW("GridFunctionGradientData: " << ex.get_msg() << ".");
-				}
+				}UG_CATCH_THROW("GridFunctionGradientData: failed.");
 			}
 
 		//	get trial space
@@ -440,10 +438,10 @@ class GridFunctionGradientData
 				Inverse(JTInv, vJT[ip]);
 				MatVecMult(vValue[ip], JTInv, locGrad);
 			}
-			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
-				UG_THROW("GridFunctionGradientData: "<< ex.get_msg()<<", Reference Object: "
-				         <<roid<<", Trial Space: "<<m_lfeID<<", refDim="<<refDim);
 			}
+			UG_CATCH_THROW("GridFunctionNumberData: Shape Function Set missing for"
+							" Reference Object: "<<roid<<", Trial Space: "
+							<<m_lfeID<<", refDim="<<refDim);
 		}
 };
 
@@ -541,9 +539,7 @@ class GridFunctionGradientComponentData
 
 					//	store tmp Gradient
 					vJT = &(vJTTmp[0]);
-				} catch( UGError_ReferenceMappingMissing& ex ) {
-					UG_THROW( "GridFunctionGradientComponentData: " << ex.get_msg() << "." );
-				}
+				} UG_CATCH_THROW( "GridFunctionGradientComponentData: failed.");
 			}
 
 			//	get trial space
@@ -581,10 +577,10 @@ class GridFunctionGradientComponentData
 
 					vValue[ip] = vValueVec[ip][m_component];
 				}
-			} catch( UGError_LocalShapeFunctionSetNotRegistered& ex ) {
-				UG_THROW( "GridFunctionGradientComponentData: " << ex.get_msg() << ", Reference Object: "
-				          << roid << ", Trial Space: " << m_lfeID << ", refDim=" << refDim );
 			}
+			UG_CATCH_THROW("GridFunctionNumberData: Shape Function Set missing for"
+					" Reference Object: "<<roid<<", Trial Space: "
+					<<m_lfeID<<", refDim="<<refDim);
 		}
 };
 

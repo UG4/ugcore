@@ -136,20 +136,6 @@ class DimReferenceMapping
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-struct UGError_ReferenceMappingMissing : public UGError
-{
-	UGError_ReferenceMappingMissing(int dim_, int worldDim_, ReferenceObjectID roid_)
-		: UGError(""), dim(dim_), worldDim(worldDim_), roid(roid_)
-	{
-		std::stringstream ss; ss << "ReferenceMapping not found for "<<roid<<
-									" from R^"<<dim<<" to R^"<<worldDim;
-		UGError::push_msg(ss.str());
-	}
-	int dim;
-	int worldDim;
-	ReferenceObjectID roid;
-};
-
 /// class to provide reference mappings
 /**
  *	This class provides references mappings. It is implemented as a Singleton.
@@ -214,7 +200,10 @@ class ReferenceMappingProvider {
 		static DimReferenceMapping<TDim, TWorldDim>& get(ReferenceObjectID roid)
 		{
 			DimReferenceMapping<TDim, TWorldDim>* pMap = inst().get_mapping<TDim, TWorldDim>(roid);
-			if(!pMap) throw(UGError_ReferenceMappingMissing(TDim, TWorldDim, roid));
+			if(!pMap){
+				UG_THROW("ReferenceMappingProvider: ReferenceMapping not found for "
+						<<roid<<" from R^"<<TDim<<" to R^"<<TWorldDim);
+			}
 			else return *pMap;
 		}
 

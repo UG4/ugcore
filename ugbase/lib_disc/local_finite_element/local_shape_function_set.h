@@ -275,22 +275,6 @@ class BaseLocalShapeFunctionSet
 //	Provider for local shape function sets
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Exception thrown when local shape function set not found
-struct UGError_LocalShapeFunctionSetNotRegistered
-	: public UGError
-{
-	UGError_LocalShapeFunctionSetNotRegistered(int dim_, ReferenceObjectID roid_, LFEID lfeid_)
-	: UGError(""), dim(dim_), roid(roid_), lfeid(lfeid_)
-	{
-		std::stringstream ss; ss << "Local Shape Function Set not found for "
-							<<roid<<" (dim="<<dim<<") and type = "<<lfeid;
-		UGError::push_msg(ss.str());
-	}
-	int dim;
-	ReferenceObjectID roid;
-	LFEID lfeid;
-};
-
 // LocalShapeFunctionSetProvider
 /** class to provide local shape function sets
  *

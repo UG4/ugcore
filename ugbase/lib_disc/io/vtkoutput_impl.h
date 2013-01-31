@@ -1303,9 +1303,8 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 			for(size_t i = vFct.size(); i < 3; ++i)
 				File.write_base64_buffered((float) 0.0f);
 	}
-	}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
-		UG_THROW("VTK: " << ex.get_msg());
 	}
+	UG_CATCH_THROW("VTK: Could not find Shape function Set.");
 
 	File.end_base64_buffer<float>();
 }

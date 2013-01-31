@@ -134,23 +134,6 @@ inline bool RegisterQuadratureRuleDim(QuadratureRuleProvider<3>& factory)
 	return bRet;
 }
 
-
-/// Exception thrown when quadrature rule not found
-struct UG_ERROR_QuadratureRuleNotRegistered
-	: public UGError
-{
-		UG_ERROR_QuadratureRuleNotRegistered(int dim_, ReferenceObjectID roid_, size_t order_)
-			: UGError(""), dim(dim_), roid(roid_), order(order_)
-		{
-			std::stringstream ss; ss << "Quadrature Rule not found for "<<roid<<
-										" (dim="<<dim<<") and order "<<order;
-			UGError::push_msg(ss.str());
-		}
-		int dim;
-		ReferenceObjectID roid;
-		size_t order;
-};
-
 /// provides quadrature rules for a reference dimension
 /**
  * This class serves as a provider for quadrature rules. It is templated for a
@@ -185,7 +168,8 @@ class QuadratureRuleProvider
 		{
 		//	check if order or higerh order registered
 			if(order >= m_vRule[roid].size())
-				throw(UG_ERROR_QuadratureRuleNotRegistered(dim, roid, order));
+				UG_THROW("QuadratureRuleProvider: Quadrature Rule not found for "
+						<<roid<<" (dim="<<dim<<") and order "<<order);
 
 		//	look for rule of order or next higher one
 			if(m_vRule[roid][order] == NULL)
@@ -195,7 +179,8 @@ class QuadratureRuleProvider
 				//	return higher order than requested
 					if(m_vRule[roid][i] != NULL) return *m_vRule[roid][i];
 				}
-				throw(UG_ERROR_QuadratureRuleNotRegistered(dim, roid, order));
+				UG_THROW("QuadratureRuleProvider: Quadrature Rule not found for "
+						<<roid<<" (dim="<<dim<<") and order "<<order);
 			}
 
 		//	return correct order

@@ -202,13 +202,12 @@ number Integrate(TConstIterator iterBegin,
 		const QuadratureRule<dim>& rQuadRule
 					= QuadratureRuleProvider<dim>::get_rule(roid, quadOrder);
 
-	//	number of integration points
-		const size_t numIP = rQuadRule.size();
-
 	//	get reference element mapping by reference object id
-		try{
 		DimReferenceMapping<dim, WorldDim>& mapping
 							= ReferenceMappingProvider::get<dim, WorldDim>(roid);
+
+	//	number of integration points
+		const size_t numIP = rQuadRule.size();
 
 	//	get all corner coordinates
 		std::vector<MathVector<WorldDim> > vCorner;
@@ -255,12 +254,7 @@ number Integrate(TConstIterator iterBegin,
 	//	add to global sum
 		integral += intValElem;
 
-		}catch(UG_ERROR_QuadratureRuleNotRegistered& ex){
-			UG_THROW("SumValuesOnElems: " << ex.get_msg() << ".");
-		}
-		}catch(UGError_ReferenceMappingMissing& ex){
-			UG_THROW("SumValuesOnElems: " << ex.get_msg() << ".");
-		}
+		}UG_CATCH_THROW("SumValuesOnElems failed.");
 	} // end elem
 
 //	return the summed integral contributions of all elements
@@ -652,10 +646,8 @@ class L2ErrorIntegrand
 				vValue[ip] *= vValue[ip];
 			}
 
-			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
-			{
-				UG_THROW("L2ErrorIntegrand::evaluate: "<<ex.get_msg());
 			}
+			UG_CATCH_THROW("L2ErrorIntegrand::evaluate: trial space missing.");
 		};
 };
 
@@ -827,10 +819,8 @@ class H1ErrorIntegrand
 				vValue[ip] += VecDistanceSq(approxGradIP, exactGradIP);
 			}
 
-			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
-			{
-				UG_THROW("H1ErrorIntegrand::evaluate: "<<ex.get_msg());
 			}
+			UG_CATCH_THROW("H1ErrorIntegrand::evaluate: trial space missing.");
 		};
 };
 
@@ -969,10 +959,8 @@ class L2FuncIntegrand
 
 			}
 
-			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
-			{
-				UG_THROW("L2FuncIntegrand::values: "<<ex.get_msg());
 			}
+			UG_CATCH_THROW("L2FuncIntegrand::values: trial space missing.");
 		};
 };
 
@@ -1092,10 +1080,8 @@ class StdFuncIntegrand
 
 			}
 
-			}catch(UGError_LocalShapeFunctionSetNotRegistered& ex)
-			{
-				UG_THROW("StdFuncIntegrand::evaluate: "<<ex.get_msg());
 			}
+			UG_CATCH_THROW("StdFuncIntegrand::evaluate: trial space missing.");
 		};
 };
 
