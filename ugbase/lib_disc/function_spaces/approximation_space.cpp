@@ -165,8 +165,8 @@ IApproximationSpace::surface_dof_distributions() const
 	std::vector<ConstSmartPtr<SurfaceDoFDistribution> > vDD;
 	if(num_levels() == 0) return vDD;
 
-	vDD.resize(m_vSurfDD.size());
 	const_cast<IApproximationSpace*>(this)->surf_dd_required(0,num_levels()-1);
+	vDD.resize(m_vSurfDD.size());
 	for(size_t i = 0; i < m_vSurfDD.size(); ++i)
 		vDD[i] = m_vSurfDD[i];
 	return vDD;
@@ -197,8 +197,8 @@ IApproximationSpace::level_dof_distributions() const
 	std::vector<ConstSmartPtr<LevelDoFDistribution> > vDD;
 	if(num_levels() == 0) return vDD;
 
-	vDD.resize(m_vLevDD.size());
 	const_cast<IApproximationSpace*>(this)->level_dd_required(0,num_levels()-1);
+	vDD.resize(m_vLevDD.size());
 	for(size_t i = 0; i < m_vLevDD.size(); ++i)
 		vDD[i] = m_vLevDD[i];
 	return vDD;
