@@ -209,15 +209,13 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 				size += mg.num<TElem>(lvl);
 
 			// prepare list of all elements
-			TElem** pElemsOut;
-			pElemsOut = new TElem*[size];
+			vector<TElem*> elems(size);
 
 			// construct dual graph with standard edge weights
 			ConstructDualGraphMG<TGeomBaseObj, idx_t>(adjacencyMapStructure,
 														adjacencyMap, &edgeWeightMap,
 														mg, baseLevel, 1, 1,
-														NULL, &pElemsOut[0]);
-
+														NULL, &elems.front());
 
 			// correct edge weights by calling weightFct for all pairs of TElems
 			// found by ConstructDualGraphMG
@@ -226,16 +224,13 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 			TElem* elem2;
 			for (size_t el = 0; el < size; el++)
 			{
-				elem1 = pElemsOut[el];
+				elem1 = elems[el];
 				for (size_t edgeInd = (size_t) adjacencyMapStructure[el]; edgeInd < (size_t) adjacencyMapStructure[el+1]; edgeInd++)
 				{
-					elem2 = pElemsOut[(size_t) adjacencyMap[edgeInd]];
+					elem2 = elems[(size_t) adjacencyMap[edgeInd]];
 					edgeWeightMap[edgeInd] = weightFct(elem1, elem2);
 				}
 			}
-
-			// free memory
-			delete[] pElemsOut;
 		}
 		else
 		{

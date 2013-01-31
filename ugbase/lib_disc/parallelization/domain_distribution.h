@@ -7,7 +7,7 @@
 
 #include "lib_disc/domain.h"
 #include "lib_grid/tools/partition_map.h"
-#include "lib_grid/parallelization/util/edge_weighting_callbacks.h"
+#include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 
 namespace ug
 {
@@ -41,7 +41,7 @@ template <typename TDomain>
 static bool
 PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 						  int numPartitions, size_t baseLevel,
-						  SmartPtr<EdgeWeighting> weightFct);
+						  SmartPtr<PartitionWeighting> weightFct);
 
 /// Partitions a domain based on the elements of one level
 /**	The elements are thereby weighted by the number of children they have.

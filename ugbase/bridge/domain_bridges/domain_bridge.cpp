@@ -28,6 +28,8 @@
 	#include "lib_grid/parallelization/parallelization.h"
 #endif
 
+#include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
+
 
 using namespace std;
 
@@ -273,7 +275,7 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("PartitionDomain_MetisKWay",
 					 static_cast<bool (*)(TDomain&, PartitionMap&, int, size_t, int, int)>(&PartitionDomain_MetisKWay<TDomain>), grp);
 	reg.add_function("PartitionDomain_MetisKWay",
-					 static_cast<bool (*)(TDomain&, PartitionMap&, int, size_t, SmartPtr<EdgeWeighting>)>(&PartitionDomain_MetisKWay<TDomain>), grp);
+					 static_cast<bool (*)(TDomain&, PartitionMap&, int, size_t, SmartPtr<PartitionWeighting>)>(&PartitionDomain_MetisKWay<TDomain>), grp);
 
 	reg.add_function("PartitionDomain_LevelBased",
 					 &PartitionDomain_LevelBased<TDomain>, grp);

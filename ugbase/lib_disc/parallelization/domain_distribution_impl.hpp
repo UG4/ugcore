@@ -278,15 +278,15 @@ template <typename TDomain>
 static bool
 PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 						  int numPartitions, size_t baseLevel,
-						  SmartPtr<EdgeWeighting> weightFct)
+						  SmartPtr<PartitionWeighting> weightFct)
 {
 	PROFILE_FUNC_GROUP("parallelization")
 //	prepare the partition map
 	SmartPtr<MultiGrid> pMG = domain.grid();
 	partitionMap.assign_grid(*pMG);
 
-	EdgeWeighting& wFct = *weightFct;
-	wFct.set_subset_handler(domain.subset_handler());
+	PartitionWeighting& wFct = *weightFct;
+	wFct.set_subset_handler(domain.subset_handler().operator->());
 
 #ifdef UG_PARALLEL
 //	we need a process to which elements which are not considered will be send.
@@ -301,6 +301,8 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 	SubsetHandler& shPart = partitionMap.get_partition_handler();
 //	call the actual partitioning routine
 	if(pMG->num<Volume>() > 0){
+		// do not use boost::function<...> f = wFct, since this leads to slicing
+		// of wFct and losing properties of derived objects
 		boost::function<int (Volume*, Volume*)> f = boost::ref(wFct);
 		PartitionMultiGrid_MetisKway<Volume>(shPart, *pMG, numPartitions, baseLevel, f);
 	//	assign all elements below baseLevel to bucketSubset

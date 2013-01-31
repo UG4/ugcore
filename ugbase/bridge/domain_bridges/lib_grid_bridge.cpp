@@ -15,7 +15,7 @@
 //todo: include this in algorithms.h
 #include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
-#include "lib_grid/parallelization/util/edge_weighting_callbacks.h"
+#include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 
 using namespace std;
 
@@ -463,16 +463,17 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 */
-
-		// edge weighting in metis distribution
-		reg.add_class_<EdgeWeighting>("EdgeWeighting", grp);
-		reg.add_class_<InterSubsetEdgeWeighting, EdgeWeighting>("InterSubsetEdgeWeighting", grp)
-				.add_constructor()
-				.add_method("set_indivisible_boundary_between_subsets", &InterSubsetEdgeWeighting::setIndivisibleBndBetweenSubsets)
-				.add_method("set_default_weights", &InterSubsetEdgeWeighting::setDefaultWeights)
-				.set_construct_as_smart_pointer(true);
-
 	#endif
+
+	// partition weighting in metis partitioning
+	reg.add_class_<PartitionWeighting>("PartitionWeighting", grp)
+			.add_constructor()
+			.add_method("set_default_weights", &PartitionWeighting::set_default_weights)
+			.set_construct_as_smart_pointer(true);
+	reg.add_class_<InterSubsetPartitionWeighting, PartitionWeighting>("InterSubsetPartitionWeighting", grp)
+			.add_constructor()
+			.add_method("set_inter_subset_weight", &InterSubsetPartitionWeighting::set_inter_subset_weight)
+			.set_construct_as_smart_pointer(true);
 
 	//	GridObject
 		reg.add_class_<GridObject, Grid>("GridObject", grp)
