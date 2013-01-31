@@ -5,4 +5,5 @@ source code. It introduces some of the most important classes and concepts and
 provides links to further documentation.
 
 \subpage pageUG4CppIntroduction_Domain shows how ug handles the grid representing a physical model domain.
+\subpage pageLGOverview gives a short introduction on how ug's grid class can be used.
 */
