@@ -41,7 +41,8 @@ namespace ug{
  * \tparam	TQuadOrderSCVF	integration order for scvf
  * \tparam	TQuadOrderSCV	integration order for scv
  */
-template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF = TOrder, int TQuadOrderSCV = TOrder>
+template <	int TOrder, typename TElem, int TWorldDim,
+			int TQuadOrderSCVF = TOrder + 1, int TQuadOrderSCV = TOrder + 1>
 class FVGeometry : public FVGeometryBase
 {
 	private:
