@@ -1011,7 +1011,6 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 ////////////////////////////////
 	//	faces
-	//TODO: add support for constrained faces etc...
 		if(mgoc.num<Triangle>(iLevel) > 0)
 		{
 			tInt = GOID_TRIANGLE;
@@ -1055,6 +1054,122 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 			}
 		}
 	
+		if(mgoc.num<ConstrainedTriangle>(iLevel) > 0)
+		{
+			tInt = GOID_CONSTRAINED_TRIANGLE;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<ConstrainedTriangle>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(ConstrainedTriangleIterator iter = mgoc.begin<ConstrainedTriangle>(iLevel);
+				iter != mgoc.end<ConstrainedTriangle>(iLevel); ++iter)
+			{
+				ConstrainedTriangle* e = *iter;
+				mg.mark(e);
+				out.write((char*)&aaInt[e->vertex(0)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(1)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(2)], sizeof(int));
+				aaInt[e] = faceInd++;
+
+			//	write constraining object
+				int ind = -1;
+				if(GeometricObject* cobj = e->get_constraining_object()){
+					if(mg.is_marked(cobj)){
+						UG_ASSERT(cobj->base_object_id() == FACE,
+								  "A constrained face can only be constrained by "
+								  "a constraining face!");
+						if(cobj->base_object_id() == FACE)
+							ind = aaInt[static_cast<Face*>(cobj)];
+					}
+				}
+
+				out.write((char*)&ind, sizeof(int));
+
+				WriteParent(mg, e, aaInt, out);
+				if(paaID)	Serialize(out, (*paaID)[e]);
+			}
+		}
+
+		if(mgoc.num<ConstrainingTriangle>(iLevel) > 0)
+		{
+			tInt = GOID_CONSTRAINING_TRIANGLE;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<ConstrainingTriangle>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(ConstrainingTriangleIterator iter = mgoc.begin<ConstrainingTriangle>(iLevel);
+				iter != mgoc.end<ConstrainingTriangle>(iLevel); ++iter)
+			{
+				ConstrainingTriangle* e = *iter;
+				mg.mark(e);
+				out.write((char*)&aaInt[e->vertex(0)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(1)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(2)], sizeof(int));
+				aaInt[e] = faceInd++;
+				WriteParent(mg, e, aaInt, out);
+				if(paaID)	Serialize(out, (*paaID)[e]);
+			}
+		}
+
+		if(mgoc.num<ConstrainedQuadrilateral>(iLevel) > 0)
+		{
+			tInt = GOID_CONSTRAINED_QUADRILATERAL;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<ConstrainedQuadrilateral>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(ConstrainedQuadrilateralIterator iter = mgoc.begin<ConstrainedQuadrilateral>(iLevel);
+				iter != mgoc.end<ConstrainedQuadrilateral>(iLevel); ++iter)
+			{
+				ConstrainedQuadrilateral* e = *iter;
+				mg.mark(e);
+				out.write((char*)&aaInt[e->vertex(0)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(1)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(2)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(3)], sizeof(int));
+				aaInt[e] = faceInd++;
+
+			//	write constraining object
+				int ind = -1;
+				if(GeometricObject* cobj = e->get_constraining_object()){
+					if(mg.is_marked(cobj)){
+						UG_ASSERT(cobj->base_object_id() == FACE,
+								  "A constrained face can only be constrained by "
+								  "a constraining face!");
+						if(cobj->base_object_id() == FACE)
+							ind = aaInt[static_cast<Face*>(cobj)];
+					}
+				}
+
+				out.write((char*)&ind, sizeof(int));
+
+				WriteParent(mg, e, aaInt, out);
+				if(paaID)	Serialize(out, (*paaID)[e]);
+			}
+		}
+
+		if(mgoc.num<ConstrainingQuadrilateral>(iLevel) > 0)
+		{
+			tInt = GOID_CONSTRAINING_QUADRILATERAL;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<ConstrainingQuadrilateral>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+
+			for(ConstrainingQuadrilateralIterator iter = mgoc.begin<ConstrainingQuadrilateral>(iLevel);
+				iter != mgoc.end<ConstrainingQuadrilateral>(iLevel); ++iter)
+			{
+				ConstrainingQuadrilateral* e = *iter;
+				mg.mark(e);
+				out.write((char*)&aaInt[e->vertex(0)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(1)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(2)], sizeof(int));
+				out.write((char*)&aaInt[e->vertex(3)], sizeof(int));
+				aaInt[e] = faceInd++;
+				WriteParent(mg, e, aaInt, out);
+				if(paaID)	Serialize(out, (*paaID)[e]);
+			}
+		}
+
 ////////////////////////////////
 	//	volumes
 		if(mgoc.num<Tetrahedron>(iLevel) > 0)
@@ -1628,6 +1743,189 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								(*paaID)[q] = id;
 						}
 					}break;
+
+				case GOID_CONSTRAINING_TRIANGLE:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							GeometricObject* parent = GetParent(in, vVrts, vEdges,
+																	vFaces, vVols);
+							if(paaID){
+								Deserialize(in, id);
+								FaceHashIter hiter = faceHash.begin(id);
+								if(hiter != faceHash.end(id)){
+									assert(dynamic_cast<ConstrainingFace*>(*hiter));
+									vFaces.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
+									continue;
+								}
+							}
+
+							ConstrainingFace* e;
+							if(parent)
+								e = *mg.create<ConstrainingTriangle>(
+										TriangleDescriptor(vVrts[i1], vVrts[i2], vVrts[i3]),
+										parent);
+							else
+								e = *mg.create<ConstrainingTriangle>(
+										TriangleDescriptor(vVrts[i1], vVrts[i2], vVrts[i3]),
+										currentLevel);
+							vFaces.push_back(e);
+							if(paaID)
+								(*paaID)[e] = id;
+						}
+					}break;
+
+				case GOID_CONSTRAINED_TRIANGLE:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							int cgInd;
+							in.read((char*)&cgInd, sizeof(int));
+
+							GeometricObject* parent = GetParent(in, vVrts, vEdges,
+																	vFaces, vVols);
+							if(paaID){
+								Deserialize(in, id);
+								FaceHashIter hiter = faceHash.begin(id);
+								if(hiter != faceHash.end(id)){
+									assert(dynamic_cast<ConstrainedFace*>(*hiter));
+									vFaces.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
+									continue;
+								}
+							}
+
+							ConstrainedFace* e;
+							if(parent)
+								e = *mg.create<ConstrainedTriangle>(
+										TriangleDescriptor(vVrts[i1], vVrts[i2], vVrts[i3]),
+										parent);
+							else
+								e = *mg.create<ConstrainedTriangle>(
+										TriangleDescriptor(vVrts[i1], vVrts[i2], vVrts[i3]),
+										currentLevel);
+							vFaces.push_back(e);
+							if(paaID)
+								(*paaID)[e] = id;
+
+							if(cgInd != -1){
+								assert(cgInd < (int)vFaces.size());
+								assert(dynamic_cast<ConstrainingFace*>(vFaces[cgInd]));
+								e->set_constraining_object(vFaces[cgInd]);
+								static_cast<ConstrainingFace*>(vFaces[cgInd])
+												->add_constrained_object(e);
+							}
+						}
+					}break;
+
+				case GOID_CONSTRAINING_QUADRILATERAL:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+							GeometricObject* parent = GetParent(in, vVrts, vEdges,
+																	vFaces, vVols);
+							if(paaID){
+								Deserialize(in, id);
+								FaceHashIter hiter = faceHash.begin(id);
+								if(hiter != faceHash.end(id)){
+									assert(dynamic_cast<ConstrainingFace*>(*hiter));
+									vFaces.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
+									continue;
+								}
+							}
+
+							ConstrainingFace* e;
+							if(parent)
+								e = *mg.create<ConstrainingQuadrilateral>(
+										QuadrilateralDescriptor(vVrts[i1], vVrts[i2],
+																vVrts[i3], vVrts[i4]),
+										parent);
+							else
+								e = *mg.create<ConstrainingQuadrilateral>(
+										QuadrilateralDescriptor(vVrts[i1], vVrts[i2],
+																vVrts[i3], vVrts[i4]),
+										currentLevel);
+
+							vFaces.push_back(e);
+							if(paaID)
+								(*paaID)[e] = id;
+						}
+					}break;
+
+				case GOID_CONSTRAINED_QUADRILATERAL:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+							int cgInd;
+							in.read((char*)&cgInd, sizeof(int));
+
+							GeometricObject* parent = GetParent(in, vVrts, vEdges,
+																	vFaces, vVols);
+							if(paaID){
+								Deserialize(in, id);
+								FaceHashIter hiter = faceHash.begin(id);
+								if(hiter != faceHash.end(id)){
+									assert(dynamic_cast<ConstrainedFace*>(*hiter));
+									vFaces.push_back(*hiter);
+								//	make sure that its parent is registered
+									if(parent && (!mg.get_parent(*hiter)))
+										mg.associate_parent(*hiter, parent);
+									continue;
+								}
+							}
+
+							ConstrainedFace* e;
+							if(parent)
+								e = *mg.create<ConstrainedQuadrilateral>(
+										QuadrilateralDescriptor(vVrts[i1], vVrts[i2],
+																vVrts[i3], vVrts[i4]),
+										parent);
+							else
+								e = *mg.create<ConstrainedQuadrilateral>(
+										QuadrilateralDescriptor(vVrts[i1], vVrts[i2],
+																vVrts[i3], vVrts[i4]),
+										currentLevel);
+
+							vFaces.push_back(e);
+							if(paaID)
+								(*paaID)[e] = id;
+
+							if(cgInd != -1){
+								assert(cgInd < (int)vFaces.size());
+								assert(dynamic_cast<ConstrainingFace*>(vFaces[cgInd]));
+								e->set_constraining_object(vFaces[cgInd]);
+								static_cast<ConstrainingFace*>(vFaces[cgInd])
+												->add_constrained_object(e);
+							}
+						}
+					}break;
+
 				case GOID_TETRAHEDRON:
 					{
 						for(int i = 0; i < numElems; ++i)

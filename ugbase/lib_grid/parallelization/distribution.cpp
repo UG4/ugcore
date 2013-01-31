@@ -14,6 +14,7 @@
 #include "lib_grid/file_io/file_io.h"
 
 //#define LG_DISTRIBUTION_DEBUG
+//#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 3
 
 using namespace std;
 
@@ -259,7 +260,7 @@ static void SaveDistSelectorToFile(MGSelector& msel, const char* filename)
 
 	AssignSubsetColors(sh);
 	EraseEmptySubsets(sh);
-	SaveGridHierarchyTransformed(mg, sh, filename, 0.1);
+	SaveGridHierarchyTransformed(mg, sh, filename, LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -269,60 +270,69 @@ static void SaveDistInfosToFile(MultiGrid& mg, DistInfoSupplier& infoSupplier,
 //	create a subset handler which holds different subsets for the different selection states
 	SubsetHandler sh(mg);
 
-	for(MultiGrid::traits<Volume>::iterator iter = mg.begin<Volume>();
-		iter != mg.end<Volume>(); ++iter)
-	{
-		vector<TargetProcInfo>& infos = infoSupplier.get(*iter);
-		byte state = 0;
-		for(size_t i = 0; i < infos.size(); ++i)
-			state |= infos[i].interfaceState;
-		sh.assign_subset(*iter, state);
+//	write a file for each adressed process
+	for(int pi = 0; pi < pcl::GetNumProcesses(); ++pi){
+		sh.clear();
+
+		for(MultiGrid::traits<Volume>::iterator iter = mg.begin<Volume>();
+			iter != mg.end<Volume>(); ++iter)
+		{
+			vector<TargetProcInfo>& infos = infoSupplier.get(*iter);
+			for(size_t i = 0; i < infos.size(); ++i){
+				if(infos[i].procID == pi)
+					sh.assign_subset(*iter, infos[i].interfaceState);
+			}
+		}
+
+		for(MultiGrid::traits<Face>::iterator iter = mg.begin<Face>();
+			iter != mg.end<Face>(); ++iter)
+		{
+			vector<TargetProcInfo>& infos = infoSupplier.get(*iter);
+			for(size_t i = 0; i < infos.size(); ++i){
+				if(infos[i].procID == pi)
+					sh.assign_subset(*iter, infos[i].interfaceState);
+			}
+		}
+
+		for(MultiGrid::traits<EdgeBase>::iterator iter = mg.begin<EdgeBase>();
+			iter != mg.end<EdgeBase>(); ++iter)
+		{
+			vector<TargetProcInfo>& infos = infoSupplier.get(*iter);
+			for(size_t i = 0; i < infos.size(); ++i){
+				if(infos[i].procID == pi)
+					sh.assign_subset(*iter, infos[i].interfaceState);
+			}
+		}
+
+		for(MultiGrid::traits<VertexBase>::iterator iter = mg.begin<VertexBase>();
+			iter != mg.end<VertexBase>(); ++iter)
+		{
+			vector<TargetProcInfo>& infos = infoSupplier.get(*iter);
+			for(size_t i = 0; i < infos.size(); ++i){
+				if(infos[i].procID == pi)
+					sh.assign_subset(*iter, infos[i].interfaceState);
+			}
+		}
+
+		const char* subsetNames[] = {"unassigned", "normal", "vmaster", "normal+vmaster",
+									 "vslave", "normal+vslave", "vmaster+vslave",
+									 "normal+vmaster+vslave", "dummy", "normal+dummy",
+									 "vmaster+dummy", "normal+vmaster+dummy", "vslave+dummy",
+									 "normal+vslave+dummy", "vmaster+vslave+dummy",
+									 "normal+vmaster+vslave+dummy"};
+
+		UG_ASSERT(sh.num_subsets() <= 16, "Not enough subset names specified in internal list.");
+		for(int i = 0; i < sh.num_subsets(); ++i)
+			sh.subset_info(i).name = subsetNames[i];
+
+		AssignSubsetColors(sh);
+		EraseEmptySubsets(sh);
+		if(sh.num_subsets() > 0){
+			stringstream ss;
+			ss << filename << "_p" << pcl::GetProcRank() << "_for_p" << pi << ".ugx";
+			SaveGridHierarchyTransformed(mg, sh, ss.str().c_str(), LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM);
+		}
 	}
-
-	for(MultiGrid::traits<Face>::iterator iter = mg.begin<Face>();
-		iter != mg.end<Face>(); ++iter)
-	{
-		vector<TargetProcInfo>& infos = infoSupplier.get(*iter);
-		byte state = 0;
-		for(size_t i = 0; i < infos.size(); ++i)
-			state |= infos[i].interfaceState;
-		sh.assign_subset(*iter, state);
-	}
-
-	for(MultiGrid::traits<EdgeBase>::iterator iter = mg.begin<EdgeBase>();
-		iter != mg.end<EdgeBase>(); ++iter)
-	{
-		vector<TargetProcInfo>& infos = infoSupplier.get(*iter);
-		byte state = 0;
-		for(size_t i = 0; i < infos.size(); ++i)
-			state |= infos[i].interfaceState;
-		sh.assign_subset(*iter, state);
-	}
-
-	for(MultiGrid::traits<VertexBase>::iterator iter = mg.begin<VertexBase>();
-		iter != mg.end<VertexBase>(); ++iter)
-	{
-		vector<TargetProcInfo>& infos = infoSupplier.get(*iter);
-		byte state = 0;
-		for(size_t i = 0; i < infos.size(); ++i)
-			state |= infos[i].interfaceState;
-		sh.assign_subset(*iter, state);
-	}
-
-	const char* subsetNames[] = {"unassigned", "normal", "vmaster", "normal+vmaster",
-								 "vslave", "normal+vslave", "vmaster+vslave",
-								 "normal+vmaster+vslave", "dummy", "normal+dummy",
-								 "vmaster+dummy", "normal+vmaster+dummy", "vslave+dummy",
-								 "normal+vslave+dummy", "vmaster+vslave+dummy",
-								 "normal+vmaster+vslave+dummy"};
-
-	UG_ASSERT(sh.num_subsets() <= 16, "Not enough subset names specified in internal list.");
-	for(int i = 0; i < sh.num_subsets(); ++i)
-		sh.subset_info(i).name = subsetNames[i];
-
-	AssignSubsetColors(sh);
-	EraseEmptySubsets(sh);
-	SaveGridHierarchyTransformed(mg, sh, filename, 0.1);
 }
 
 template <class TElem>
@@ -947,10 +957,10 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 
 #ifdef LG_DISTRIBUTION_DEBUG
 	{
-		stringstream ss;
-		ss << "dist_infos_vrt_before_sync_p" << pcl::GetProcRank() << ".ugx";
+		//stringstream ss;
+		//ss << "dist_infos_vrt_before_sync_p" << pcl::GetProcRank() << ".ugx";
 		//WriteDistInfosToTextFile<VertexBase>(mg, distInfos, ss.str().c_str());
-		SaveDistInfosToFile(mg, distInfos, ss.str().c_str());
+		SaveDistInfosToFile(mg, distInfos, "dist_infos_before_sync");
 	}
 #endif
 
@@ -961,10 +971,10 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 
 #ifdef LG_DISTRIBUTION_DEBUG
 	{
-		stringstream ss;
-		ss << "dist_infos_vrt_after_sync_p" << pcl::GetProcRank() << ".ugx";
+		//stringstream ss;
+		//ss << "dist_infos_vrt_after_sync_p" << pcl::GetProcRank() << ".ugx";
 		//WriteDistInfosToTextFile<VertexBase>(mg, distInfos, ss.str().c_str());
-		SaveDistInfosToFile(mg, distInfos, ss.str().c_str());
+		SaveDistInfosToFile(mg, distInfos, "dist_infos_after_sync");
 	}
 #endif
 
@@ -1065,6 +1075,9 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			//	adjacent normal full-dimensional elements should thus exist and a
 			//	horizontal interface has to be built.
 				createNormalHInterface = true;
+
+			//	just a test
+				//createNormalHInterface = false;
 			}
 			else if((!(isVMaster || isVSlave)) && vMasterExists){
 			//	check whether a copy is vmaster. If this is the case,
@@ -1088,6 +1101,9 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				TargetProcInfo& tpi = di[i];
 				if(tpi.procID == localProcID)
 					continue;
+
+				bool tpIsVSlave = (tpi.interfaceState & IS_VSLAVE)
+								  || ((tpi.interfaceState & IS_VMASTER) && (tpi.procID != minVMasterProc));
 
 			//	add entry to vertical interface if necessary
 				//if(isVSlave && (tpi.interfaceState & IS_VMASTER)){
@@ -1119,7 +1135,8 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					//	horizontal master
 					//	only build the interface if the process is not a pure
 					//	v-master
-						if(tpi.interfaceState != IS_VMASTER){
+						//if(tpi.interfaceState != IS_VMASTER){
+						if((tpi.procID != minVMasterProc) || (tpi.interfaceState != IS_VMASTER)){
 							glm.get_layout<TElem>(INT_H_MASTER).
 								interface(tpi.procID, lvl).push_back(e);
 						}
@@ -1128,17 +1145,19 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					//	horizontal slave
 					//	only build the interface if the process is not a pure
 					//	v-master
-						if(localInterfaceState != IS_VMASTER){
+						//if(localInterfaceState != IS_VMASTER){
+						if((localProcID != minVMasterProc) || (localInterfaceState != IS_VMASTER)){
 							glm.get_layout<TElem>(INT_H_SLAVE).
 								interface(tpi.procID, lvl).push_back(e);
 						}
 					}
 				}
+				//else if((localInterfaceState != IS_VMASTER) &&(numVSlaveProcs > 1)){
 				else if(numVSlaveProcs > 1){
 					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
 				//	we still have to build a horizontal interface, this time
 				//	however only between vertical slaves
-					if(tpi.interfaceState & IS_VSLAVE){
+					if(tpIsVSlave){
 						if(!isVMaster){
 							if(localProcID == minRegularHMasterProc){
 							//	horizontal master
@@ -1243,9 +1262,7 @@ bool DistributeGrid(MultiGrid& mg,
 //	DEBUG: output distInfos...
 	#ifdef LG_DISTRIBUTION_DEBUG
 	{
-		stringstream ss;
-		ss << "dist_infos_before_distribution_p_" << pcl::GetProcRank() << ".ugx";
-		SaveDistInfosToFile(mg, distInfos, ss.str().c_str());
+		SaveDistInfosToFile(mg, distInfos, "dist_infos_before_distribution");
 	}
 	#endif
 
@@ -1401,9 +1418,7 @@ bool DistributeGrid(MultiGrid& mg,
 //	DEBUG: output distInfos...
 	#ifdef LG_DISTRIBUTION_DEBUG
 	{
-		stringstream ss;
-		ss << "dist_infos_after_distribution_p_" << pcl::GetProcRank() << ".ugx";
-		SaveDistInfosToFile(mg, distInfos, ss.str().c_str());
+		SaveDistInfosToFile(mg, distInfos, "dist_infos_after_distribution");
 	}
 	#endif
 
