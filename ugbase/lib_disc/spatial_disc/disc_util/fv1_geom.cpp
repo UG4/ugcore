@@ -238,7 +238,7 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 			vMidID[6] = MidID(dim, 0);	// center of element
 			vMidID[7] = MidID(2, rRefElem.id(0, i, 2, 1)); // face 1
 		}
-		else {throw(UGError("Dimension higher that 3 not implemented."));}
+		else {UG_THROW("Dimension higher that 3 not implemented.");}
 	}
 	// pyramid here
 	else

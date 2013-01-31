@@ -208,7 +208,7 @@ const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id, b
 
 		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
 				"Unknown LocalDoFSet for type "<<id<<" requested.\n");
-		throw(UGError("LocalDoFSet for Finite Element Space unknown"));
+		UG_THROW("LocalDoFSet for Finite Element Space unknown");
 	}
 
 //	get vector
@@ -226,7 +226,7 @@ const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id, b
 		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
 				"Unknown LocalDoFSet for type "<<id<<" requested for"
 				" Reference Element type " <<roid<<".\n");
-		throw(UGError("Trial Space type unknown"));
+		UG_THROW("Trial Space type unknown");
 	}
 
 //	return dof set
@@ -249,7 +249,7 @@ const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id, bool bCreat
 
 		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
 				"Unknown LocalDoFSet for type "<<id<<" and dim "<<dim<<" requested.\n");
-		throw(UGError("LocalDoFSet for Finite Element Space unknown"));
+		UG_THROW("LocalDoFSet for Finite Element Space unknown");
 	}
 
 //	get dimension

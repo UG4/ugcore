@@ -715,7 +715,7 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si)
 		case ROID_PYRAMID: type = (char) 14; break;
 		case ROID_PRISM: type = (char) 13; break;
 		case ROID_HEXAHEDRON: type = (char) 12; break;
-		default: throw(UGError("Element Type not known."));
+		default: UG_THROW("Element Type not known.");
 	}
 
 //	get iterators

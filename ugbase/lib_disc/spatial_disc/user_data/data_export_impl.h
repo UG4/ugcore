@@ -50,7 +50,7 @@ set_fct(ReferenceObjectID id, IElemDisc* obj,
 //	store the base object needed for invocation
 	if(m_pObj == NULL) m_pObj = obj;
 	else if(m_pObj != obj)
-		throw(UGError("Exports assume to be used by on object for all functions."));
+		UG_THROW("Exports assume to be used by on object for all functions.");
 }
 
 

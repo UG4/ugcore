@@ -148,7 +148,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObj
 		case FACE:   return InnerDoFPosition(vPos, static_cast<Face*>(elem), domain, lfeID, fctDim);
 		case VOLUME: return InnerDoFPosition(vPos, static_cast<Volume*>(elem), domain, lfeID, fctDim);
 	}
-	throw(UGError("Base Object type not found."));
+	UG_THROW("Base Object type not found.");
 }
 
 template <typename TDomain>
@@ -166,7 +166,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* el
 		case CSEDGE_CONSTRAINED_EDGE: return InnerDoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID, fctDim);
 		case CSEDGE_CONSTRAINING_EDGE:return InnerDoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID, fctDim);
 	}
-	throw(UGError("Edge type not found."));
+	UG_THROW("Edge type not found.");
 }
 
 template <typename TDomain>
@@ -181,7 +181,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, 
 		case CSFACE_CONSTRAINED_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID, fctDim);
 		case CSFACE_CONSTRAINING_QUADRILATERAL: return InnerDoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID, fctDim);
 	}
-	throw(UGError("Face type not found."));
+	UG_THROW("Face type not found.");
 }
 
 template <typename TDomain>
@@ -194,7 +194,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem
 		case CSVOL_PRISM: return InnerDoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID, fctDim);
 		case CSVOL_HEXAHEDRON: return InnerDoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID, fctDim);
 	}
-	throw(UGError("Volume type not found."));
+	UG_THROW("Volume type not found.");
 }
 
 
@@ -324,7 +324,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* 
 		case FACE:   return DoFPosition(vPos, static_cast<Face*>(elem), domain, lfeID, fctDim);
 		case VOLUME: return DoFPosition(vPos, static_cast<Volume*>(elem), domain, lfeID, fctDim);
 	}
-	throw(UGError("Base Object type not found."));
+	UG_THROW("Base Object type not found.");
 }
 
 template <typename TDomain>
@@ -342,7 +342,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, EdgeBase* elem, T
 		case CSEDGE_CONSTRAINED_EDGE: return DoFPosition(vPos, static_cast<ConstrainedEdge*>(elem), domain, lfeID, fctDim);
 		case CSEDGE_CONSTRAINING_EDGE:return DoFPosition(vPos, static_cast<ConstrainingEdge*>(elem), domain, lfeID, fctDim);
 	}
-	throw(UGError("Edge type not found."));
+	UG_THROW("Edge type not found.");
 }
 
 template <typename TDomain>
@@ -357,7 +357,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Face* elem, TDoma
 		case CSFACE_CONSTRAINED_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainedQuadrilateral*>(elem), domain, lfeID, fctDim);
 		case CSFACE_CONSTRAINING_QUADRILATERAL: return DoFPosition(vPos, static_cast<ConstrainingQuadrilateral*>(elem), domain, lfeID, fctDim);
 	}
-	throw(UGError("Face type not found."));
+	UG_THROW("Face type not found.");
 }
 
 template <typename TDomain>
@@ -370,7 +370,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDo
 		case CSVOL_PRISM: return DoFPosition(vPos, static_cast<Prism*>(elem), domain, lfeID, fctDim);
 		case CSVOL_HEXAHEDRON: return DoFPosition(vPos, static_cast<Hexahedron*>(elem), domain, lfeID, fctDim);
 	}
-	throw(UGError("Volume type not found."));
+	UG_THROW("Volume type not found.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

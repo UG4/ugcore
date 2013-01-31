@@ -200,8 +200,8 @@ number ParallelVector<TVector>::dotprod(const this_type& v)
 	{
 		UG_LOG("ERROR in 'ParallelVector::dotprod': "
 				"Parallel storage type of vector not given.\n");
-		throw(UGError("ERROR in ParallelVector::dotprod(): No parallel "
-				"Storage type given."));
+		UG_THROW("ERROR in ParallelVector::dotprod(): No parallel "
+				"Storage type given.");
 	}
 
 //	step 1: Check if good storage type are given (no communication needed)

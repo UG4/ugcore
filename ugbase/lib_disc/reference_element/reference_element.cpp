@@ -126,7 +126,7 @@ ReferenceElementProvider()
 		bRes &= add_elem(Provider<ReferenceHexahedron>::get());
 		bRes &= add_dim_elem<3>(Provider<ReferenceHexahedron>::get());
 
-		if(!bRes) throw(UGError("Error while registering Reference Elements"));
+		if(!bRes) UG_THROW("Error while registering Reference Elements");
 	}
 }
 

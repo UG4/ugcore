@@ -271,7 +271,7 @@ inline void MatMultTransposedDirect(ParallelVector<vector_type> &dest,
 	PROFILE_FUNC_GROUP("algebra");
 	//	check types combinations
 	ug::ParallelStorageType type = GetMultType(A1, w1);
-	if(type == PST_UNDEFINED) throw(UGError("Wrong storage type"));
+	if(type == PST_UNDEFINED) UG_THROW("Wrong storage type");
 
 	MatMultTransposed(dynamic_cast<vector_type&>(dest), beta1, dynamic_cast<const matrix_type&>(A1), dynamic_cast<const vector_type&>(w1));
 

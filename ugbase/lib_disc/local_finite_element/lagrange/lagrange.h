@@ -113,7 +113,7 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return Multi index for index i
@@ -215,7 +215,7 @@ class FlexLagrangeLSFS<ReferenceEdge>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return Multi index for index i
@@ -396,7 +396,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
@@ -570,7 +570,7 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
@@ -754,7 +754,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
@@ -896,7 +896,7 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
@@ -1080,7 +1080,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
@@ -1282,7 +1282,7 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
@@ -1526,7 +1526,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
@@ -1719,7 +1719,7 @@ class FlexLagrangeLSFS<ReferencePrism>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
@@ -1966,7 +1966,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
@@ -2151,7 +2151,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
@@ -2294,7 +2294,7 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 			check_multi_index(ind);
 			for(size_t i=0; i<nsh; ++i)
 				if(multi_index(i) == ind) return i;
-			throw(UGError("Index not found in LagrangeLSFS"));
+			UG_THROW("Index not found in LagrangeLSFS");
 		}
 
 	///	return the index for a multi_index
