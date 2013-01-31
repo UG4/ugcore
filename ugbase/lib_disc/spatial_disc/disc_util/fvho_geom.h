@@ -251,7 +251,7 @@ class FVGeometry : public FVGeometryBase
 				SCV() {};
 
 			/// volume of scv
-				inline number volume() const {return Vol;}
+				//inline number volume() const {return Vol;}
 
 			/// number of corners, that bound the scvf
 				inline size_t num_corners() const {return numCo;}
@@ -272,7 +272,7 @@ class FVGeometry : public FVGeometryBase
 
 			///	weigth of integration point
 				inline number weight(size_t ip) const
-					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip];}
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip]*vDetJMap[ip];}
 
 			/// local integration point of scv
 				inline const MathVector<dim>& local_ip(size_t ip) const
@@ -345,6 +345,7 @@ class FVGeometry : public FVGeometryBase
 				MathVector<worldDim> vvGlobalGrad[nip][nsh]; // global grad at ip
 				MathMatrix<worldDim,dim> vJtInv[nip]; // Jacobian transposed at ip
 				number vDetJ[nip]; // Jacobian det at ip
+				number vDetJMap[nip]; // Jacobian det at ip for scv integral map
 		};
 
 	///	boundary face
@@ -799,7 +800,7 @@ class DimFVGeometry : public FVGeometryBase
 				SCV() {};
 
 			/// volume of scv
-				inline number volume() const {return Vol;}
+				//inline number volume() const {return Vol;}
 
 			/// number of corners, that bound the scvf
 				inline size_t num_corners() const {return numCo;}
@@ -820,7 +821,7 @@ class DimFVGeometry : public FVGeometryBase
 
 			///	weigth of integration point
 				inline number weight(size_t ip) const
-					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip];}
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip]*vDetJMap[ip];}
 
 			/// local integration point of scv
 				inline const MathVector<dim>& local_ip(size_t ip) const
@@ -895,6 +896,7 @@ class DimFVGeometry : public FVGeometryBase
 				std::vector<std::vector<MathVector<worldDim> > > vvGlobalGrad; // global grad at ip (size: nip x nsh)
 				std::vector<MathMatrix<worldDim,dim> > vJtInv; // Jacobian transposed at ip (size: nip)
 				std::vector<number> vDetJ; // Jacobian det at ip (size: nip)
+				std::vector<number> vDetJMap; // Jacobian det at ip (size: nip)
 		};
 
 	///	boundary face

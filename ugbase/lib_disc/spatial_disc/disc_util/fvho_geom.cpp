@@ -1198,6 +1198,13 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 			}
 	}
 
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+		ReferenceMapping<scv_type, dim> map(m_vSCV[i].vGloPos);
+		for(size_t ip = 0; ip < m_rSCVQuadRule.size(); ++ip)
+			m_vSCV[i].vDetJMap[ip] = map.sqrt_gram_det(m_rSCVQuadRule.point(ip));
+	}
+
 //	compute global gradients
 	for(size_t i = 0; i < num_scvf(); ++i)
 		for(size_t ip = 0; ip < scvf(i).num_ip(); ++ip)
@@ -1496,7 +1503,7 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 
 
 //	request for quadrature rule
-	const ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
+	static const ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
 	const QuadratureRule<dim>& rSCVQuadRule
 			= QuadratureRuleProvider<dim>::get_rule(scvRoid, m_quadOrderSCV);
 
@@ -1533,6 +1540,7 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 		m_vSCV[i].vvGlobalGrad.resize(nipSCV);
 		m_vSCV[i].vJtInv.resize(nipSCV);
 		m_vSCV[i].vDetJ.resize(nipSCV);
+		m_vSCV[i].vDetJMap.resize(nipSCV);
 
 		m_vSCV[i].nsh = rTrialSpace.num_sh();
 
@@ -1638,7 +1646,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		rMapping.local_to_global(&m_vSCV[i].vGloPos[0], &m_vSCV[i].vLocPos[0], m_vSCV[i].num_corners());
 
 	//	map local ips of scvf to global
-			rMapping.local_to_global(&m_vSCV[i].vGlobalIP[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
+		rMapping.local_to_global(&m_vSCV[i].vGlobalIP[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
 
 	// 	compute volume of scv
 		if(pElem->reference_object_id() != ROID_PYRAMID)
@@ -1657,6 +1665,16 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 	{
 		rMapping.jacobian_transposed_inverse(&m_vSCV[i].vJtInv[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
 		rMapping.sqrt_gram_det(&m_vSCV[i].vDetJ[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
+	}
+
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+		static const ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
+		const QuadratureRule<dim>& rSCVQuadRule
+				= QuadratureRuleProvider<dim>::get_rule(scvRoid, m_quadOrderSCV);
+		ReferenceMapping<scv_type, worldDim> map(m_vSCV[i].vGloPos);
+		for(size_t ip = 0; ip < rSCVQuadRule.size(); ++ip)
+			m_vSCV[i].vDetJMap[ip] = map.sqrt_gram_det(rSCVQuadRule.point(ip));
 	}
 
 	}
