@@ -21,7 +21,7 @@
 #include "lib_disc/common/multi_index.h"
 #include "lib_disc/reference_element/reference_element.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
-#include "lib_disc/spatial_disc/disc_util/finite_volume_util.h"
+#include "lib_disc/spatial_disc/disc_util/fv_util.h"
 #include "common/util/provider.h"
 
 #ifdef UG_PARALLEL

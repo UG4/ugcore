@@ -1,5 +1,5 @@
 /*
- * cr_finite_volume_geometry.cpp
+ * fvcr_geom.cpp
  *
  *  Created on: 21.06.2012
  *      Author: Christian Wehner
@@ -8,7 +8,7 @@
  */
 
 #include "common/util/provider.h"
-#include "cr_finite_volume_geometry.h"
+#include "fvcr_geom.h"
 #include "lib_disc/reference_element/reference_element.h"
 #include "lib_disc/reference_element/reference_mapping.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"

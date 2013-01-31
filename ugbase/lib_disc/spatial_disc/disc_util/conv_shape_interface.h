@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__DENSITY_DRIVEN_FLOW__FV1__CONV_SHAPE_INTERFACE__
 
 #include "common/common.h"
-#include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
+#include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
 #include "common/util/provider.h"
 
 namespace ug{

@@ -78,12 +78,12 @@
 #include "spatial_disc/domain_disc.h"
 #include "spatial_disc/subset_assemble_util.h"
 
-#include "spatial_disc/disc_util/finite_element_geometry.h"
-#include "spatial_disc/disc_util/finite_volume_geometry.h"
-#include "spatial_disc/disc_util/cr_finite_volume_geometry.h"
-#include "spatial_disc/disc_util/finite_volume_output.h"
-#include "spatial_disc/disc_util/finite_volume_util.h"
-#include "spatial_disc/disc_util/hanging_finite_volume_geometry.h"
+#include "spatial_disc/disc_util/fe_geom.h"
+#include "spatial_disc/disc_util/fv1_geom.h"
+#include "spatial_disc/disc_util/fvcr_geom.h"
+#include "spatial_disc/disc_util/fv_output.h"
+#include "spatial_disc/disc_util/fv_util.h"
+#include "spatial_disc/disc_util/hfv1_geom.h"
 
 #include "spatial_disc/elem_disc/elem_disc_interface.h"
 #include "spatial_disc/elem_disc/elem_disc_assemble_util.h"

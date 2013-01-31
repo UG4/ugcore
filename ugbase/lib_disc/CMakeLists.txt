@@ -53,9 +53,10 @@ set(srcDiscretization	domain_util.cpp
 					
 						spatial_disc/subset_assemble_util.cpp
 						spatial_disc/elem_disc/elem_disc_interface.cpp
-						spatial_disc/disc_util/finite_volume_geometry.cpp
-						spatial_disc/disc_util/cr_finite_volume_geometry.cpp
-						spatial_disc/disc_util/hanging_finite_volume_geometry.cpp
+						spatial_disc/disc_util/fvho_geom.cpp
+						spatial_disc/disc_util/fv1_geom.cpp
+						spatial_disc/disc_util/fvcr_geom.cpp
+						spatial_disc/disc_util/hfv1_geom.cpp
 						spatial_disc/user_data/data_evaluator.cpp
 						
 						spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.cpp

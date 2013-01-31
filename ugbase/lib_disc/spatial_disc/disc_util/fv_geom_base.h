@@ -1,5 +1,5 @@
 /*
- * finite_volume_base.h
+ * fv_geom_base.h
  *
  *  Created on: 11.01.2013
  *      Author: andreasvogel
@@ -10,6 +10,15 @@
 
 
 namespace ug{
+
+/// helper class to store dimension and id of a midpoint of a sub-element
+struct MidID
+{
+		MidID() : dim(0), id(0) {};
+		MidID(size_t dim_, size_t id_) : dim(dim_), id(id_) {};
+		size_t dim;
+		size_t id;
+};
 
 ///	a singleton class that returns a new id for each type
 class UniqueFVGeomIDProvider{

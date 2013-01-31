@@ -1,5 +1,5 @@
 /*
- * finite_volume_util.h
+ * fv_util.h
  *
  *  Created on: 04.09.2010
  *      Author: andreasvogel

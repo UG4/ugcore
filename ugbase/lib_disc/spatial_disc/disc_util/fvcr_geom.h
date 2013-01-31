@@ -1,5 +1,5 @@
 /*
- * cr_finite_volume_geometry.h
+ * fvcr_geom.h
  *
  *  Created on: 21.06.2012
  *      Author: Christian Wehner
@@ -29,8 +29,8 @@
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/domain_util_impl.h"
 
-#include "finite_volume_base.h"
-#include "finite_volume_util.h"
+#include "fv_geom_base.h"
+#include "fv_util.h"
 
 namespace ug{
 

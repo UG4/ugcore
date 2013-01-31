@@ -19,7 +19,7 @@
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 
-#include "lib_disc/spatial_disc/disc_util/finite_volume_output.h"
+#include "lib_disc/spatial_disc/disc_util/fv_output.h"
 
 using namespace std;
 

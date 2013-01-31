@@ -1,12 +1,12 @@
 /*
- * neumann_boundary_fv1.h
+ * neumann_boundary_fvho.h
  *
  *  Created on: 14.10.2010
  *      Author: andreasvogel
  */
 
 #include "neumann_boundary.h"
-#include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
+#include "lib_disc/spatial_disc/disc_util/fvho_geom.h"
 
 namespace ug{
 
@@ -70,7 +70,7 @@ prep_elem_fvho(TElem* elem, const LocalVector& u)
 	               this->template element_corners<TElem>(elem),
 	               &(this->subset_handler()));
 	}
-	UG_CATCH_THROW("NeumannBoundary::prep_elem_fv1: "
+	UG_CATCH_THROW("NeumannBoundary::prep_elem_fvho: "
 						"Cannot update Finite Volume Geometry.");
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)

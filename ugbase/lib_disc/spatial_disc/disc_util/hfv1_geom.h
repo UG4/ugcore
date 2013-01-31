@@ -1,5 +1,5 @@
 /*
- * hanging_finite_volume_geometry.h
+ * hfv1_geom.h
  *
  *  Created on: 08.12.2009
  *      Author: andreasvogel
@@ -18,8 +18,8 @@
 // library intern includes
 #include "lib_disc/reference_element/reference_element.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
-#include "finite_volume_util.h"
-#include "finite_volume_geometry.h"
+#include "fv_util.h"
+#include "fv1_geom.h"
 
 namespace ug{
 

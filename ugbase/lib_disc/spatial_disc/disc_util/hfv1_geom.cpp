@@ -1,11 +1,11 @@
 /*
- * hanging_finite_volume_geometry.cpp
+ * hfv1_geom.cpp
  *
  *  Created on: 31.05.2011
  *      Author: andreasvogel
  */
 
-#include "hanging_finite_volume_geometry.h"
+#include "hfv1_geom.h"
 #include "common/util/provider.h"
 
 namespace ug{

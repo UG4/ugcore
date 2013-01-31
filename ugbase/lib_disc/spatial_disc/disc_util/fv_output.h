@@ -1,5 +1,5 @@
 /*
- * finite_volume_output.h
+ * fv_output.h
  *
  *  Created on: 06.09.2010
  *      Author: andreasvogel
@@ -13,8 +13,8 @@
 #include "lib_disc/domain_util.h"
 
 // finite volume geometry
-#include "finite_volume_geometry.h"
-#include "hanging_finite_volume_geometry.h"
+#include "fv1_geom.h"
+#include "hfv1_geom.h"
 
 namespace ug{
 

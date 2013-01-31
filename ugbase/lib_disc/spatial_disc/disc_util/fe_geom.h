@@ -1,5 +1,5 @@
 /*
- * finite_element_geometry.h
+ * fe_geom.h
  *
  *  Created on: 08.12.2009
  *      Author: andreasvogel
