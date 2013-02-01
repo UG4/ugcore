@@ -267,8 +267,10 @@ static void Domain(Registry& reg, string grp)
 					"Saves a partition map", "No help");
 
 //	Domain Distribution
-	reg.add_function("DistributeDomain", &DistributeDomain<TDomain>, grp);
-	// note that an overload of this method exists, registered in disc_bridges/domain_disc_bridge
+// note that an overload of this method exists, registered in disc_bridges/domain_disc_bridge
+	reg.add_function("DistributeDomain",
+		static_cast<bool (*)(TDomain&, PartitionMap&, bool)>(&DistributeDomain<TDomain>),
+		grp);
 
 //	PartitionDomain
 	reg.add_function("PartitionDomain_Bisection",

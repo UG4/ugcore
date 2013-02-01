@@ -86,7 +86,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	DomainDistribution
 	{
 		typedef ug::GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
-		reg.add_function("DistributeDomain", &DistributeDomain<TDomain, TFct>, grp);
+		reg.add_function("DistributeDomain",
+			static_cast<bool (*)(TDomain&, PartitionMap&, bool, std::vector<SmartPtr<TFct> >)>(
+				&DistributeDomain<TDomain, TFct>),
+			grp);
 		//note that an overload of this method exists, regisdered in domain_bridges/domain_bridge
 	}
 }
