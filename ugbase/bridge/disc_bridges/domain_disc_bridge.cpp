@@ -19,6 +19,7 @@
 #include "lib_disc/domain.h"
 #include "lib_disc/spatial_disc/domain_disc.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
+#include "lib_disc/parallelization/domain_distribution.h"
 
 using namespace std;
 
@@ -80,6 +81,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("IDiscretizationItem").append(suffix);
 		reg.add_class_<T>(name, domDiscGrp);
 		reg.add_class_to_group(name, "IDiscretizationItem", tag);
+	}
+
+//	DomainDistribution
+	{
+		typedef ug::GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
+		reg.add_function("DistributeDomain", &DistributeDomain<TDomain, TFct>, grp);
+		//note that an overload of this method exists, regisdered in domain_bridges/domain_bridge
 	}
 }
 

@@ -41,16 +41,12 @@ class GridMessage_MultiGridChanged : public MessageHub::IMessage
 /**	The associated type is GridMessage_MultiGridChanged.
  * The associated messageIdName is "MultiGridChanged".
  *
- * Note: This method shouldn't be called on a regular basis. Instead the returned
- * message-id should be cached and used directly in calls to the message-hub.
- * The id will be determined on the first call with a given hub and then stay the
- * same in subsequent calls with the same hub.
- *
  * Note: Message-ids are not necessarily the same for different hubs.
  */
 inline int GridMessageId_MultiGridChanged(SPMessageHub hub)
 {
-	return hub->get_message_id<GridMessage_MultiGridChanged>("MultiGridChanged");
+	int id = hub->get_message_id<GridMessage_MultiGridChanged>("MultiGridChanged");
+	return id;
 }
 
 
@@ -119,17 +115,46 @@ class GridMessage_Adaption : public MessageHub::IMessage
 /**	The associated type is GridMessage_Adaption.
  * The associated messageIdName is "GridAdaption".
  *
- * Note: This method shouldn't be called on a regular basis. Instead the returned
- * message-id should be cached and used directly in calls to the message-hub.
- * The id will be determined on the first call with a given hub and then stay the
- * same in subsequent calls with the same hub.
- *
  * Note: Message-ids are not necessarily the same for different hubs.
  */
 inline int GridMessageId_Adaption(SPMessageHub hub)
 {
-	return hub->get_message_id<GridMessage_Adaption>("GridAdaption");
+	static int id = hub->get_message_id<GridMessage_Adaption>("GridAdaption");
+	return id;
 }
+
+
+///	Instances of this class inform about distribution
+enum GridMessageDistributionType{
+	GMDT_NONE,
+	GMDT_DISTRIBUTION_STARTS,
+	GMDT_DISTRIBUTION_STOPS
+};
+
+class GridMessage_Distribution : public MessageHub::IMessage
+{
+	public:
+		GridMessage_Distribution(GridMessageDistributionType msg = GMDT_NONE) :
+			m_msg(msg)	{}
+
+		GridMessageDistributionType msg() const	{return m_msg;}
+
+	private:
+		GridMessageDistributionType	m_msg;
+};
+
+///	Returns the message id for grid distribution messages.
+/**	The associated type is GridMessage_Distribution.
+ * The associated messageIdName is "GridDistribution".
+ *
+ * Note: Message-ids are not necessarily the same for different hubs.
+ */
+inline int GridMessageId_Distribution(SPMessageHub hub)
+{
+	static int id = hub->get_message_id<GridMessage_Distribution>("GridDistribution");
+	return id;
+}
+
 
 }//	end of namespace
 

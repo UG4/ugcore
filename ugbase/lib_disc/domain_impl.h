@@ -34,6 +34,11 @@ IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
 	m_spGridAdaptionCallbackID =
 		message_hub()->register_class_callback(msgID, this,
 		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_changed_callback);
+
+	msgID = GridMessageId_Distribution(message_hub());
+	m_spGridDistributionCallbackID =
+		message_hub()->register_class_callback(msgID, this,
+		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_distributed_callback);
 }
 
 ///	Destructor
@@ -67,6 +72,19 @@ grid_changed_callback(int, const GridMessage_Adaption* msg)
 				"an appropriate message to the associated grids message-hub.");
 	}
 }
+
+template <typename TGrid, typename TSubsetHandler>
+inline
+void IDomain<TGrid,TSubsetHandler>::
+grid_distributed_callback(int, const GridMessage_Distribution* msg)
+{
+	if(msg->msg() == GMDT_DISTRIBUTION_STOPS){
+//todo	update_domain_info may be unnecessary here and other actions may have
+//		to be performed.
+		update_domain_info();
+	}
+}
+
 
 #ifdef UG_PARALLEL
 template <typename TGrid, typename TSubsetHandler>

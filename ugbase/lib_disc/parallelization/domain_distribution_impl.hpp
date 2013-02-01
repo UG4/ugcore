@@ -8,6 +8,7 @@
 #include "domain_distribution.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/parallelization/load_balancing.h"
+#include "common/serialization.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
@@ -462,6 +463,110 @@ static bool DistributeDomain(TDomain& domainOut,
 	GridDataSerializationHandler serializer;
 	serializer.add(&posSerializer);
 	serializer.add(&shSerializer);
+
+//	now call redistribution
+	DistributeGrid(*pGrid, shPart, serializer, serializer,
+					 createVerticalInterfaces, &partitionMap.get_target_proc_vec());
+
+	PCL_PROFILE_END();
+#endif
+
+//	in the serial case there's nothing to do.
+	return true;
+}
+
+#ifdef UG_PARALLEL
+template <class TGridFct>
+class GridFunctionSerializer : public GridDataSerializer
+{
+	public:
+		GridFunctionSerializer() : m_fct(NULL)				{}
+
+		GridFunctionSerializer(TGridFct* fct) : m_fct(fct)	{}
+
+		void set_function(TGridFct* fct)					{m_fct = fct;}
+
+		//virtual void write_info(BinaryBuffer& out) const;
+
+		//virtual void read_info(BinaryBuffer& in);
+
+		virtual void write_data(BinaryBuffer& out, VertexBase* o) const	{write(out, o);}
+		virtual void write_data(BinaryBuffer& out, EdgeBase* o) const	{write(out, o);}
+		virtual void write_data(BinaryBuffer& out, Face* o) const		{write(out, o);}
+		virtual void write_data(BinaryBuffer& out, Volume* o) const		{write(out, o);}
+
+		virtual void read_data(BinaryBuffer& in, VertexBase* o)			{read(in, o);}
+		virtual void read_data(BinaryBuffer& in, EdgeBase* o)			{read(in, o);}
+		virtual void read_data(BinaryBuffer& in, Face* o)				{read(in, o);}
+		virtual void read_data(BinaryBuffer& in, Volume* o)				{read(in, o);}
+
+	private:
+		template <class TElem>
+		void write(BinaryBuffer& out, TElem* e) const
+		{
+			std::vector<size_t>	indices;
+			m_fct->inner_algebra_indices(e, indices);
+
+			for(size_t i = 0; i < indices.size(); ++i){
+				Serialize(out, (*m_fct)[indices[i]]);
+			}
+		}
+
+		template <class TElem>
+		void read(BinaryBuffer& in, TElem* e)
+		{
+			std::vector<size_t>	indices;
+			m_fct->inner_algebra_indices(e, indices);
+
+			for(size_t i = 0; i < indices.size(); ++i){
+				Deserialize(in, (*m_fct)[indices[i]]);
+			}
+		}
+
+	private:
+		TGridFct* m_fct;
+};
+#endif
+
+
+template <typename TDomain, typename TGridFct>
+static bool DistributeDomain(TDomain& domainOut,
+							 PartitionMap& partitionMap,
+							 bool createVerticalInterfaces,
+							 std::vector<SmartPtr<TGridFct> > gridFcts)
+{
+	PROFILE_FUNC_GROUP("parallelization")
+//todo	Use a process-communicator to restrict communication
+
+	typedef typename TDomain::position_attachment_type	position_attachment_type;
+//	make sure that the input is fine
+	typedef typename TDomain::grid_type GridType;
+	typedef typename TDomain::subset_handler_type SubsetHandlerType;
+	SmartPtr<GridType> pGrid = domainOut.grid();
+	SubsetHandler& shPart = partitionMap.get_partition_handler();
+
+	if(shPart.grid() != pGrid.get()){
+		partitionMap.assign_grid(*pGrid);
+	}
+
+#ifdef UG_PARALLEL
+//todo:	check whether all target-processes in partitionMap are in the valid range.
+	PCL_PROFILE(RedistributeDomain);
+
+//	data serialization
+	GeomObjAttachmentSerializer<VertexBase, position_attachment_type>
+		posSerializer(*pGrid, domainOut.position_attachment());
+	SubsetHandlerSerializer shSerializer(*domainOut.subset_handler());
+	std::vector<GridFunctionSerializer<TGridFct> >	gridFuncSerializers(gridFcts.size());
+
+	GridDataSerializationHandler serializer;
+	serializer.add(&posSerializer);
+	serializer.add(&shSerializer);
+
+	for(size_t i = 0; i < gridFcts.size(); ++i){
+		gridFuncSerializers[i].set_function(gridFcts[i].get());
+		serializer.add(&gridFuncSerializers[i]);
+	}
 
 //	now call redistribution
 	DistributeGrid(*pGrid, shPart, serializer, serializer,

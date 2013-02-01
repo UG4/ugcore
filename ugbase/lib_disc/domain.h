@@ -143,7 +143,8 @@ class IDomain
 	protected:
 		SmartPtr<TGrid> m_spGrid;			///< Grid
 		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
-		MessageHub::SPCallbackId m_spGridAdaptionCallbackID; ///< SmartPointer to grid adaption callback id
+		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
+		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
 
 		DomainInfo	m_domainInfo;
 
@@ -154,6 +155,10 @@ class IDomain
 	 * performed. It will call all necessary actions in order to keep the grid
 	 * correct for computations. */
 		inline void grid_changed_callback(int, const GridMessage_Adaption* msg);
+
+	/**	this callback is called by the message hub, when a grid has been distributed
+	 * between different processes.*/
+		inline void grid_distributed_callback(int, const GridMessage_Distribution* msg);
 
 #ifdef UG_PARALLEL
 	public:

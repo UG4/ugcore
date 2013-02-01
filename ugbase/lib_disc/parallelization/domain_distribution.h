@@ -58,6 +58,12 @@ static bool DistributeDomain(TDomain& domainOut,
 							 PartitionMap& partitionMap,
 							 bool createVerticalInterfaces);
 
+template <typename TDomain, typename TGridFct>
+static bool DistributeDomain(TDomain& domainOut,
+							 PartitionMap& partitionMap,
+							 bool createVerticalInterfaces,
+							 std::vector<SmartPtr<TGridFct> > gridFcts);
+
 }//	end of namespace
 
 ////////////////////////////////

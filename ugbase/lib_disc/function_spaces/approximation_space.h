@@ -211,6 +211,10 @@ class IApproximationSpace
 	 */
 		void grid_changed_callback(int, const GridMessage_Adaption* msg);
 
+	/**	this callback is called by the message hub, when a grid has been distributed
+	 */
+		void grid_distributed_callback(int, const GridMessage_Distribution* msg);
+
 	///	sets the distributed grid manager
 #ifdef UG_PARALLEL
 		void set_dist_grid_mgr(DistributedGridManager* pDistGrdMgr) {m_pDistGridMgr = pDistGrdMgr;}
@@ -252,6 +256,8 @@ class IApproximationSpace
 
 	///	message hub id
 		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
+		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
+
 		bool m_bAdaptionIsActive;
 
 	///	suitable algebra type for the index distribution pattern
