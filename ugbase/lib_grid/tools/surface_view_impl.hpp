@@ -33,6 +33,11 @@ SurfaceViewElementIterator(SurfaceView* surfView,
 		if(!increment_section())
 			return;
 
+//	if level and topLevel are equal, no shadows can be present
+//	this line is essential when surface_levels (and not the top_surface) is
+//	considered, since the function below would return false
+	if(m_lvl == m_topLvl) return;
+
 //	m_elemIter has to point to a valid surface view element
 	if(!m_surfView->is_surface_element(*m_elemIter)){increment(); return;}
 }
@@ -196,6 +201,11 @@ ConstSurfaceViewElementIterator(const SurfaceView* surfView,
 	if(m_elemIter == m_iterEndSection)
 		if(!increment_section())
 			return;
+
+//	if level and topLevel are equal, no shadows can be present
+//	this line is essential when surface_levels (and not the top_surface) is
+//	considered, since the function below would return false
+	if(m_lvl == m_topLvl) return;
 
 //	m_elemIter has to point to a valid surface view element
 	if(!m_surfView->is_surface_element(*m_elemIter)){increment(); return;}
