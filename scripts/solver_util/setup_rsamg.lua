@@ -17,7 +17,7 @@ util = util or {}
 --!
 --! example usage:
 --! \code
---! ug_load_script("setup_famg.lua")
+--! ug_load_script("solver_util/setup_rsamg.lua")
 --! precond = util.SetupRSAMGPreconditioner(LU(), GaussSeidel(), GaussSeidel())
 --! \endcode
 --! note that FAMG is a preconditioner, you can use it e.g. in a Linear Solver:
@@ -49,9 +49,13 @@ function util.SetupRSAMGPreconditioner(base, presmoother, postsmoother)
 	amg:set_num_presmooth(5)
 	amg:set_num_postsmooth(5)	
 	amg:set_base_solver(base)
+	--amg:enable_aggressive_coarsening_A(2)
 	
+	amg:set_epsilon_strong(0.1)
 	amg:set_max_nodes_for_base(400)
 	amg:set_max_fill_before_base(0.4)
+	amg:set_prolongation_truncation(1e-2)
+	
 	amg:set_fsmoothing(true)
 	
 	return amg	
