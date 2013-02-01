@@ -423,7 +423,7 @@ ContainsPoint(const VertexBase* v, const vector_t& p,
 {
 	const vector_t& pv = aaPos[v];
 	for(size_t i = 0; i < vector_t::Size; ++i){
-		if(pv[i] != v[i])
+		if(pv[i] != p[i])
 			return false;
 	}
 	return true;
