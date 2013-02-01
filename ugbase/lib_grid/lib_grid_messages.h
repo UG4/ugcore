@@ -45,8 +45,7 @@ class GridMessage_MultiGridChanged : public MessageHub::IMessage
  */
 inline int GridMessageId_MultiGridChanged(SPMessageHub hub)
 {
-	int id = hub->get_message_id<GridMessage_MultiGridChanged>("MultiGridChanged");
-	return id;
+	return hub->get_message_id<GridMessage_MultiGridChanged>("MultiGridChanged");
 }
 
 
@@ -119,8 +118,7 @@ class GridMessage_Adaption : public MessageHub::IMessage
  */
 inline int GridMessageId_Adaption(SPMessageHub hub)
 {
-	static int id = hub->get_message_id<GridMessage_Adaption>("GridAdaption");
-	return id;
+	return hub->get_message_id<GridMessage_Adaption>("GridAdaption");
 }
 
 
@@ -151,8 +149,7 @@ class GridMessage_Distribution : public MessageHub::IMessage
  */
 inline int GridMessageId_Distribution(SPMessageHub hub)
 {
-	static int id = hub->get_message_id<GridMessage_Distribution>("GridDistribution");
-	return id;
+	return hub->get_message_id<GridMessage_Distribution>("GridDistribution");
 }
 
 
