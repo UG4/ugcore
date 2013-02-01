@@ -9,8 +9,14 @@
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__LEVEL_TRANSFER__
 
 #include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
+#include "lib_disc/local_finite_element/local_shape_function_set.h"
 
 namespace ug{
+
+////////////////////////////////////////////////////////////////////////////////
+//	Prolongate
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TDD, typename TAlgebra>
 void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
@@ -29,11 +35,11 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 //	check
 	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
 		UG_THROW("ProlongateP1: Top Level not supported.")
-	if(fineTopLevel != coarseTopLevel + 1)
-		UG_THROW("ProlongateP1: GridFunctions must have one level difference.");
+	if(fineTopLevel < coarseTopLevel)
+		UG_THROW("ProlongateP1: fine level must be >= coarse level.");
 
 //	storage
-	std::vector<size_t> vFineMI, vCoarseMI;
+	std::vector<size_t> vFineIndex, vCoarseIndex;
 
 //	loop elements
 	const_iterator iterEnd = uFine.template end<VertexBase>();
@@ -42,90 +48,104 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 	{
 	//	get vertex
 		VertexBase* vrt = *iter;
+		const int vertexLevel = mg->get_level(vrt);
 
 	//	a) 	if not on the same level as the top level of the fine grid function
+	//		and the coarse grid function is already defined on the level
 	//		we can simply copy the values, since the coarse grid function and
 	//		the fine grid function are covering the identical part here
-		if(mg->get_level(vrt) != fineTopLevel)
+		if(vertexLevel != fineTopLevel && vertexLevel <= coarseTopLevel)
 		{
-			uFine.inner_algebra_indices(vrt, vFineMI);
-			uCoarse.inner_algebra_indices(vrt, vCoarseMI);
+			uFine.inner_algebra_indices(vrt, vFineIndex);
+			uCoarse.inner_algebra_indices(vrt, vCoarseIndex);
 
-			for(size_t i = 0; i < vFineMI.size(); ++i)
-				uFine[ vFineMI[i] ] = uCoarse[ vCoarseMI[i] ];
+			for(size_t i = 0; i < vFineIndex.size(); ++i)
+				uFine[ vFineIndex[i] ] = uCoarse[ vCoarseIndex[i] ];
+
+			continue;
 		}
-		else
-		{
-		//  get parent
-			GeometricObject* parent = mg->get_parent(vrt);
 
+	//  get parent and level where coarse grid function is defined
+		GeometricObject* parent = mg->get_parent(vrt);
+		int parentLevel = mg->get_level(parent);
+		while(parentLevel > coarseTopLevel){
+			parent = mg->get_parent(parent);
+			parentLevel = mg->get_level(parent);
+		}
+
+	//	b) 	if the parent, where the coarse grid function is defined and the
+	//		fine element are only one level separated, we can use an optimized
+	//		interpolation. This case will always apply if the two grid functions
+	//		are only one surface level separated.
+		if(parentLevel == vertexLevel - 1)
+		{
 		//	distinguish type of parent
 			switch(parent->base_object_id())
 			{
 				case ROID_VERTEX:
 				{
 					VertexBase* pParent = static_cast<VertexBase*>(parent);
-					uFine.inner_algebra_indices(vrt, vFineMI);
-					uCoarse.inner_algebra_indices(pParent, vCoarseMI);
+					uFine.inner_algebra_indices(vrt, vFineIndex);
+					uCoarse.inner_algebra_indices(pParent, vCoarseIndex);
 
-					for(size_t i = 0; i < vFineMI.size(); ++i)
-						uFine[ vFineMI[i] ] = uCoarse[ vCoarseMI[i] ];
+					for(size_t i = 0; i < vFineIndex.size(); ++i)
+						uFine[ vFineIndex[i] ] = uCoarse[ vCoarseIndex[i] ];
 				}
 				break;
 				case ROID_EDGE:
 				{
-					uFine.inner_algebra_indices(vrt, vFineMI);
-					for(size_t i = 0; i < vFineMI.size(); ++i)
-						uFine[ vFineMI[i] ] = 0.0;
+					uFine.inner_algebra_indices(vrt, vFineIndex);
+					for(size_t i = 0; i < vFineIndex.size(); ++i)
+						uFine[ vFineIndex[i] ] = 0.0;
 
 					EdgeBase* pParent = static_cast<EdgeBase*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						VertexBase* edgeVrt = pParent->vertex(i);
-						uCoarse.inner_algebra_indices(edgeVrt, vCoarseMI);
+						uCoarse.inner_algebra_indices(edgeVrt, vCoarseIndex);
 
-						for(size_t i = 0; i < vFineMI.size(); ++i)
-							VecScaleAdd(uFine[ vFineMI[i] ],
-							            1.0, uFine[ vFineMI[i] ],
-							            0.5, uCoarse[ vCoarseMI[i] ]);
+						for(size_t i = 0; i < vFineIndex.size(); ++i)
+							VecScaleAdd(uFine[ vFineIndex[i] ],
+										1.0, uFine[ vFineIndex[i] ],
+										0.5, uCoarse[ vCoarseIndex[i] ]);
 					}
 				}
 				break;
 				case ROID_QUADRILATERAL:
 				{
-					uFine.inner_algebra_indices(vrt, vFineMI);
-					for(size_t i = 0; i < vFineMI.size(); ++i)
-						uFine[ vFineMI[i] ] = 0.0;
+					uFine.inner_algebra_indices(vrt, vFineIndex);
+					for(size_t i = 0; i < vFineIndex.size(); ++i)
+						uFine[ vFineIndex[i] ] = 0.0;
 
 					Face* pParent = static_cast<Face*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						VertexBase* faceVrt = pParent->vertex(i);
-						uCoarse.inner_algebra_indices(faceVrt, vCoarseMI);
+						uCoarse.inner_algebra_indices(faceVrt, vCoarseIndex);
 
-						for(size_t i = 0; i < vFineMI.size(); ++i)
-							VecScaleAdd(uFine[ vFineMI[i] ],
-							            1.0, uFine[ vFineMI[i] ],
-							            0.25, uCoarse[ vCoarseMI[i] ]);
+						for(size_t i = 0; i < vFineIndex.size(); ++i)
+							VecScaleAdd(uFine[ vFineIndex[i] ],
+										1.0, uFine[ vFineIndex[i] ],
+										0.25, uCoarse[ vCoarseIndex[i] ]);
 					}
 				}
 				break;
 				case ROID_HEXAHEDRON:
 				{
-					uFine.inner_algebra_indices(vrt, vFineMI);
-					for(size_t i = 0; i < vFineMI.size(); ++i)
-						uFine[ vFineMI[i] ] = 0.0;
+					uFine.inner_algebra_indices(vrt, vFineIndex);
+					for(size_t i = 0; i < vFineIndex.size(); ++i)
+						uFine[ vFineIndex[i] ] = 0.0;
 
 					Volume* pParent = static_cast<Volume*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						VertexBase* hexVrt = pParent->vertex(i);
-						uCoarse.inner_algebra_indices(hexVrt, vCoarseMI);
+						uCoarse.inner_algebra_indices(hexVrt, vCoarseIndex);
 
-						for(size_t i = 0; i < vFineMI.size(); ++i)
-							VecScaleAdd(uFine[ vFineMI[i] ],
-							            1.0, uFine[ vFineMI[i] ],
-							            0.125, uCoarse[ vCoarseMI[i] ]);
+						for(size_t i = 0; i < vFineIndex.size(); ++i)
+							VecScaleAdd(uFine[ vFineIndex[i] ],
+										1.0, uFine[ vFineIndex[i] ],
+										0.125, uCoarse[ vCoarseIndex[i] ]);
 					}
 				}
 				break;
@@ -134,6 +154,156 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 				case ROID_PRISM:
 				case ROID_PYRAMID: /*nothing to do in those cases */ break;
 				default: UG_THROW("Unexpected case appeared.");
+			}
+
+			continue;
+		}
+
+	//	c) 	we must interpolate the values based on the trial space
+		UG_THROW("This case not implemented.");
+	}
+}
+
+
+
+template <typename TDomain, typename TDD, typename TAlgebra>
+void ProlongateElemwise(GridFunction<TDomain, TDD, TAlgebra>& uFine,
+                        GridFunction<TDomain, TDD, TAlgebra>& uCoarse)
+{
+//	dimension
+	const int dim = TDomain::dim;
+
+//  get subsethandler and grid
+	SmartPtr<MultiGrid> mg = uFine.domain()->grid();
+
+//	get top level of gridfunctions
+	const int fineTopLevel = uFine.dof_distribution()->grid_level().level();
+	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
+
+//	check
+	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
+		UG_THROW("ProlongateElemwise: Top Level not supported.")
+	if(fineTopLevel < coarseTopLevel)
+		UG_THROW("ProlongateElemwise: fine level must be >= coarse level.");
+
+//	storage
+	std::vector<MultiIndex<2> > vCoarseMI, vFineMI;
+
+//	vector of local finite element ids
+	SmartPtr<TDD> fineDD = uFine.dof_distribution();
+	std::vector<LFEID> vFineLFEID(fineDD->num_fct());
+	for(size_t fct = 0; fct < fineDD->num_fct(); ++fct)
+		vFineLFEID[fct] = fineDD->local_finite_element_id(fct);
+	SmartPtr<TDD> coarseDD = uCoarse.dof_distribution();
+	std::vector<LFEID> vCoarseLFEID(coarseDD->num_fct());
+	for(size_t fct = 0; fct < coarseDD->num_fct(); ++fct)
+		vCoarseLFEID[fct] = coarseDD->local_finite_element_id(fct);
+
+//	check fct
+	if(vFineLFEID.size() != vCoarseLFEID.size())
+		UG_THROW("ProlongateElemwise: Spaces must contain same number of functions.")
+
+//	get flag if all trial spaces are equal
+	bool bSameLFEID = true;
+	for(size_t fct = 0; fct < vFineLFEID.size(); ++fct){
+		if(vFineLFEID[fct] != vCoarseLFEID[fct])
+			bSameLFEID = false;
+
+		if (vCoarseLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0) ||
+			vFineLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+			UG_THROW("Not implemented.")
+	}
+
+//  iterators
+	typedef typename TDD::template dim_traits<dim>::const_iterator const_iterator;
+	typedef typename TDD::template dim_traits<dim>::geometric_base_object Element;
+	const_iterator iter, iterBegin, iterEnd;
+
+//  loop subsets on coarse level
+	for(int si = 0; si < coarseDD->num_subsets(); ++si)
+	{
+		iterBegin = coarseDD->template begin<Element>(si);
+		iterEnd = coarseDD->template end<Element>(si);
+
+	//  loop elem for coarse level subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	get element
+			Element* coarseElem = *iter;
+
+		//  get children where fine grid function is defined
+			std::vector<Element*> vChild;
+			std::queue<Element*> qElem;
+			qElem.push(coarseElem);
+			while(!qElem.empty()){
+				Element* elem = qElem.front(); qElem.pop();
+				if(mg->get_level(elem) == fineTopLevel || !mg->has_children(elem)){
+					vChild.push_back(elem);
+				} else {
+					for(size_t c = 0; c < mg->num_children<Element,Element>(elem); ++c){
+						qElem.push(mg->get_child<Element,Element>(elem, c));
+					}
+				}
+			}
+
+		//	type of father
+			const ReferenceObjectID coarseROID = coarseElem->reference_object_id();
+
+		//	loop all components
+			for(size_t fct = 0; fct < coarseDD->num_fct(); fct++)
+			{
+			//	check that fct defined on subset
+				if(!coarseDD->is_def_in_subset(fct, si)) continue;
+
+			//  get global indices
+				coarseDD->multi_indices(coarseElem, fct, vCoarseMI);
+
+			//	get local finite element trial spaces
+				const LocalShapeFunctionSet<dim>& lsfs
+					= LocalShapeFunctionSetProvider::get<dim>(coarseROID, vCoarseLFEID[fct]);
+
+			//	get corner coordinates
+				std::vector<MathVector<dim> > vCornerCoarse;
+				CollectCornerCoordinates(vCornerCoarse, *coarseElem, *uFine.domain());
+
+			//	get Reference Mapping
+				DimReferenceMapping<dim, dim>& map
+					= ReferenceMappingProvider::get<dim, dim>(coarseROID, vCornerCoarse);
+
+			//	loop children
+				for(size_t c = 0; c < vChild.size(); ++c)
+				{
+					Element* child = vChild[c];
+
+				//	fine dof indices
+					fineDD->multi_indices(child, fct, vFineMI);
+
+				//	global positions of fine dofs
+					std::vector<MathVector<dim> > vDoFPos, vLocPos;
+					DoFPosition(vDoFPos, child, *uFine.domain(), vFineLFEID[fct], dim);
+
+					UG_ASSERT(vDoFPos.size() == vFineMI.size(), "numDoFPos ("
+							  <<vDoFPos.size()<<") != numDoFs ("<<vFineMI.size()<<").");
+
+				//	get local position of DoF
+					vLocPos.resize(vDoFPos.size());
+					for(size_t ip = 0; ip < vLocPos.size(); ++ip) VecSet(vLocPos[ip], 0.0);
+					map.global_to_local(vLocPos, vDoFPos);
+
+				//	get all shape functions
+					std::vector<std::vector<number> > vvShape;
+
+				//	evaluate coarse shape fct at fine local point
+					lsfs.shapes(vvShape, vLocPos);
+
+					for(size_t ip = 0; ip < vvShape.size(); ++ip){
+						DoFRef(uFine, vFineMI[ip]) = 0.0;
+						for(size_t sh = 0; sh < vvShape[ip].size(); ++sh){
+							DoFRef(uFine, vFineMI[ip]) +=
+									vvShape[ip][sh] * DoFRef(uCoarse, vCoarseMI[sh]);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -152,6 +322,14 @@ void Prolongate(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 	if(&uFine.function_pattern() != &uCoarse.function_pattern())
 		UG_THROW("Prolongate: GridFunctions must have same Function Pattern.");
 
+//	get grid levels
+	const int fineTopLevel = uFine.dof_distribution()->grid_level().level();
+	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
+	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
+		UG_THROW("Prolongate: Top Level not supported.")
+	if(fineTopLevel < coarseTopLevel)
+		UG_THROW("Prolongate: fine level must be >= coarse level.");
+
 //	loop functions
 	bool bOnlyP1Fct = true;
 	for(size_t fct = 0; fct < uFine.num_fct(); ++fct)
@@ -160,12 +338,265 @@ void Prolongate(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 			bOnlyP1Fct = false; break;
 		}
 
-	if(bOnlyP1Fct)
+	if(bOnlyP1Fct &&
+		(fineTopLevel == coarseTopLevel+1 || fineTopLevel == coarseTopLevel)){
 		ProlongateP1(uFine, uCoarse);
-	else
-	{
-		UG_THROW("Prolongate: Only implemented for P1.");
 	}
+	else{
+		ProlongateElemwise(uFine, uCoarse);
+	}
+
+#ifdef UG_PARALLEL
+	uFine.set_storage_type(uCoarse.get_storage_mask());
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	Restrict
+////////////////////////////////////////////////////////////////////////////////
+
+
+template <typename TDomain, typename TDD, typename TAlgebra>
+void RestrictP1(GridFunction<TDomain, TDD, TAlgebra>& uCoarse,
+                GridFunction<TDomain, TDD, TAlgebra>& uFine)
+{
+	typedef GridFunction<TDomain, TDD, TAlgebra> TGridFunction;
+	typedef typename TGridFunction::template traits<VertexBase>::const_iterator const_iterator;
+
+//  get subsethandler and grid
+	SmartPtr<MultiGrid> mg = uFine.domain()->grid();
+
+//	get top level of gridfunctions
+	const int fineTopLevel = uFine.dof_distribution()->grid_level().level();
+	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
+
+//	check
+	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
+		UG_THROW("RestrictP1: Top Level not supported.")
+	if(fineTopLevel < coarseTopLevel)
+		UG_THROW("RestrictP1: fine level must be >= coarse level.");
+
+//	storage
+	std::vector<size_t> vFineIndex, vCoarseIndex;
+
+//	loop elements
+	const_iterator iterEnd = uCoarse.template end<VertexBase>();
+	const_iterator iter = uCoarse.template begin<VertexBase>();
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get vertex
+		VertexBase* coarseVrt = *iter;
+
+	//  get children where fine grid function is defined
+		VertexBase* fineVrt = coarseVrt;
+		while(mg->get_level(fineVrt) != fineTopLevel &&
+				mg->has_children(fineVrt)){
+			fineVrt = mg->get_child<VertexBase,VertexBase>(fineVrt, 0);
+		}
+
+	//	copy values
+		uFine.inner_algebra_indices(fineVrt, vFineIndex);
+		uCoarse.inner_algebra_indices(coarseVrt, vCoarseIndex);
+
+		for(size_t i = 0; i < vFineIndex.size(); ++i)
+			uCoarse[ vCoarseIndex[i] ] = uFine[ vFineIndex[i] ];
+	}
+}
+
+
+
+template <typename TDomain, typename TDD, typename TAlgebra>
+void RestrictElemwise(GridFunction<TDomain, TDD, TAlgebra>& uCoarse,
+                      GridFunction<TDomain, TDD, TAlgebra>& uFine)
+{
+//	dimension
+	const int dim = TDomain::dim;
+	const int locDim = TDomain::dim;
+
+//  get subsethandler and grid
+	SmartPtr<MultiGrid> mg = uFine.domain()->grid();
+
+//	get top level of gridfunctions
+	const int fineTopLevel = uFine.dof_distribution()->grid_level().level();
+	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
+
+//	check
+	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
+		UG_THROW("RestrictElemwise: Top Level not supported.")
+	if(fineTopLevel < coarseTopLevel)
+		UG_THROW("RestrictElemwise: fine level must be >= coarse level.");
+
+//	storage
+	std::vector<MultiIndex<2> > vCoarseMI, vFineMI;
+
+//	vector of local finite element ids
+	SmartPtr<TDD> fineDD = uFine.dof_distribution();
+	std::vector<LFEID> vFineLFEID(fineDD->num_fct());
+	for(size_t fct = 0; fct < fineDD->num_fct(); ++fct)
+		vFineLFEID[fct] = fineDD->local_finite_element_id(fct);
+	SmartPtr<TDD> coarseDD = uCoarse.dof_distribution();
+	std::vector<LFEID> vCoarseLFEID(coarseDD->num_fct());
+	for(size_t fct = 0; fct < coarseDD->num_fct(); ++fct)
+		vCoarseLFEID[fct] = coarseDD->local_finite_element_id(fct);
+
+//	check fct
+	if(vFineLFEID.size() != vCoarseLFEID.size())
+		UG_THROW("RestrictElemwise: Spaces must contain same number of functions.")
+
+//	get flag if all trial spaces are equal
+	bool bSameLFEID = true;
+	for(size_t fct = 0; fct < vFineLFEID.size(); ++fct){
+		if(vFineLFEID[fct] != vCoarseLFEID[fct])
+			bSameLFEID = false;
+
+		if (vCoarseLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0) ||
+			vFineLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+			UG_THROW("Not implemented.")
+	}
+
+//  iterators
+	typedef typename TDD::template dim_traits<locDim>::const_iterator const_iterator;
+	typedef typename TDD::template dim_traits<locDim>::geometric_base_object Element;
+	const_iterator iter, iterBegin, iterEnd;
+
+//  loop subsets on coarse level
+	for(int si = 0; si < coarseDD->num_subsets(); ++si)
+	{
+		iterBegin = coarseDD->template begin<Element>(si);
+		iterEnd = coarseDD->template end<Element>(si);
+
+	//  loop elem for coarse level subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	get element
+			Element* coarseElem = *iter;
+
+		//  get children where fine grid function is defined
+			std::vector<Element*> vFineElem;
+			std::queue<Element*> qElem;
+			qElem.push(coarseElem);
+			while(!qElem.empty()){
+				Element* elem = qElem.front(); qElem.pop();
+				if(mg->get_level(elem) == fineTopLevel || !mg->has_children(elem)){
+					vFineElem.push_back(elem);
+				} else {
+					for(size_t c = 0; c < mg->num_children<Element,Element>(elem); ++c){
+						qElem.push(mg->get_child<Element,Element>(elem, c));
+					}
+				}
+			}
+
+		//	loop all components
+			for(size_t fct = 0; fct < coarseDD->num_fct(); fct++)
+			{
+			//	check that fct defined on subset
+				if(!coarseDD->is_def_in_subset(fct, si)) continue;
+
+			//  get global indices
+				coarseDD->inner_multi_indices(coarseElem, fct, vCoarseMI);
+
+			//	global positions of fine dofs
+				std::vector<MathVector<dim> > vDoFPos;
+				InnerDoFPosition(vDoFPos, coarseElem, *uCoarse.domain(), vCoarseLFEID[fct], dim);
+
+			//	loop dof points
+				for(size_t ip = 0; ip < vDoFPos.size(); ++ip)
+				{
+				//	loop children
+					for(size_t c = 0; c < vFineElem.size(); ++c)
+					{
+						Element* fineElem = vFineElem[c];
+
+						UG_THROW("This part does not work.");
+/*						if(!ContainsPoint(fineElem, vDoFPos[ip], uFine.domain()->position_accessor())){
+							if(c == vFineElem.size()-1)
+								UG_THROW("Restrict: Cannot find child containing dof.");
+							continue;
+						}
+*/
+					//	get corner coordinates
+						std::vector<MathVector<dim> > vCornerFine;
+						CollectCornerCoordinates(vCornerFine, *fineElem, *uFine.domain());
+
+					//	type of child
+						const ReferenceObjectID fineROID = fineElem->reference_object_id();
+
+					//	get local finite element trial spaces
+						const LocalShapeFunctionSet<locDim>& lsfs
+							= LocalShapeFunctionSetProvider::get<locDim>(fineROID, vFineLFEID[fct]);
+
+					//	get Reference Mapping
+						DimReferenceMapping<locDim, dim>& map
+							= ReferenceMappingProvider::get<locDim, dim>(fineROID, vCornerFine);
+
+					//	get local position of DoF
+						MathVector<locDim> vLocPos;
+						VecSet(vLocPos, 0.0);
+						map.global_to_local(vLocPos, vDoFPos[ip]);
+
+					//	fine dof indices
+						fineDD->multi_indices(fineElem, fct, vFineMI);
+
+					//	get all shape functions
+						std::vector<number> vShape;
+
+					//	evaluate coarse shape fct at fine local point
+						lsfs.shapes(vShape, vLocPos);
+
+					//	interpolate
+						DoFRef(uCoarse, vCoarseMI[ip]) = 0.0;
+						for(size_t sh = 0; sh < vShape.size(); ++sh)
+						{
+							DoFRef(uCoarse, vCoarseMI[ip]) +=
+									vShape[sh] * DoFRef(uFine, vFineMI[sh]);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+template <typename TDomain, typename TDD, typename TAlgebra>
+void Restrict(GridFunction<TDomain, TDD, TAlgebra>& uCoarse,
+              GridFunction<TDomain, TDD, TAlgebra>& uFine)
+{
+//	grid functions must be from same Domain
+	if(uCoarse.domain() != uFine.domain())
+		UG_THROW("Restrict: GridFunctions must have same Domain.");
+
+//	grid functions must have same function pattern
+	if(&uCoarse.function_pattern() != &uFine.function_pattern())
+		UG_THROW("Restrict: GridFunctions must have same Function Pattern.");
+
+//	get grid levels
+	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
+	const int fineTopLevel = uFine.dof_distribution()->grid_level().level();
+	if(coarseTopLevel == GridLevel::TOPLEVEL || fineTopLevel == GridLevel::TOPLEVEL)
+		UG_THROW("Restrict: Top Level not supported.")
+	if(coarseTopLevel > fineTopLevel)
+		UG_THROW("Restrict: fine level must be >= coarse level.");
+
+//	loop functions
+	bool bOnlyP1Fct = true;
+	for(size_t fct = 0; fct < uCoarse.num_fct(); ++fct)
+		if(uCoarse.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+		{
+			bOnlyP1Fct = false; break;
+		}
+
+	if(bOnlyP1Fct &&
+		(coarseTopLevel+1 == fineTopLevel || coarseTopLevel == fineTopLevel)){
+		RestrictP1(uCoarse, uFine);
+	}
+	else{
+		UG_THROW("Restrict: Only P1 implemented.")
+	}
+
+#ifdef UG_PARALLEL
+	uCoarse.set_storage_type(uFine.get_storage_mask());
+#endif
 }
 
 } // end namespace ug

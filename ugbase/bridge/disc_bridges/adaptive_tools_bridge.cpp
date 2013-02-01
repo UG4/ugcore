@@ -63,6 +63,12 @@ static void DomainAlgebra(Registry& reg, string grp)
 						 &Prolongate<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
 	}
 
+//	Restrict
+	{
+		reg.add_function("Restrict",
+						 &Restrict<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
+	}
+
 }
 
 /**
