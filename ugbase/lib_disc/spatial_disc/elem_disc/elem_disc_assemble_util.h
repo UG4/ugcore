@@ -1,5 +1,5 @@
 /*
- * assemble_elem_disc.h
+ * elem_disc_assemble_util.h
  *
  *  Created on: 08.07.2010
  *      Author: andreasvogel
@@ -134,28 +134,10 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
                         	const typename TAlgebra::vector_type& u,
-                        	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	AssembleStiffnessMatrix<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, A, u, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
-                        	ConstSmartPtr<TDD> dd,
-                        	int si, bool bNonRegularGrid,
-                        	typename TAlgebra::matrix_type& A,
-                        	const typename TAlgebra::vector_type& u,
                         	Selector* sel,
                         	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -168,13 +150,21 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		AssembleStiffnessMatrix<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, u, mark);
 	}
-	else{
-		AssembleStiffnessMatrix<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, A, u, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		AssembleStiffnessMatrix<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, A, u, mark);
 	}
 }
 
@@ -276,28 +266,10 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
 					const typename TAlgebra::vector_type& u,
-                	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	AssembleMassMatrix<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, M, u, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
-					ConstSmartPtr<TDD> dd,
-					int si, bool bNonRegularGrid,
-					typename TAlgebra::matrix_type& M,
-					const typename TAlgebra::vector_type& u,
 					Selector* sel,
                 	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -310,13 +282,21 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		AssembleMassMatrix<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, M, u, mark);
 	}
-	else{
-		AssembleMassMatrix<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, M, u, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		AssembleMassMatrix<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, M, u, mark);
 	}
 }
 
@@ -421,28 +401,10 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-                	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	AssembleJacobian<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, J, u, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
-					ConstSmartPtr<TDD> dd,
-					int si, bool bNonRegularGrid,
-					typename TAlgebra::matrix_type& J,
-					const typename TAlgebra::vector_type& u,
 					Selector* sel,
                 	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -455,13 +417,21 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		AssembleJacobian<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, J, u, mark);
 	}
-	else{
-		AssembleJacobian<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, J, u, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		AssembleJacobian<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, J, u, mark);
 	}
 }
 
@@ -593,29 +563,10 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					typename TAlgebra::matrix_type& J,
 					ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 					number s_a0,
-                	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	AssembleJacobian<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, J, vSol, s_a0, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
-					ConstSmartPtr<TDD> dd,
-					int si, bool bNonRegularGrid,
-					typename TAlgebra::matrix_type& J,
-					ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-					number s_a0,
 					Selector* sel,
                 	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -628,13 +579,21 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		AssembleJacobian<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, J, vSol, s_a0, mark);
 	}
-	else{
-		AssembleJacobian<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		AssembleJacobian<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, J, vSol, s_a0, mark);
 	}
 }
 
@@ -748,28 +707,10 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u,
-            	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	AssembleDefect<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, d, u, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
-               	ConstSmartPtr<TDD> dd,
-               	int si, bool bNonRegularGrid,
-               	typename TAlgebra::vector_type& d,
-               	const typename TAlgebra::vector_type& u,
                	Selector* sel,
             	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -782,13 +723,21 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		AssembleDefect<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, d, u, mark);
 	}
-	else{
-		AssembleDefect<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, d, u, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		AssembleDefect<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, d, u, mark);
 	}
 }
 
@@ -950,30 +899,10 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 				const std::vector<number>& vScaleMass,
 				const std::vector<number>& vScaleStiff,
-            	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	AssembleDefect<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
-               	ConstSmartPtr<TDD> dd,
-               	int si, bool bNonRegularGrid,
-               	typename TAlgebra::vector_type& d,
-                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-				const std::vector<number>& vScaleMass,
-				const std::vector<number>& vScaleStiff,
 				Selector* sel,
             	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -986,13 +915,21 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		AssembleDefect<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, mark);
 	}
-	else{
-		AssembleDefect<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		AssembleDefect<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, mark);
 	}
 }
 
@@ -1105,28 +1042,10 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-            	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	AssembleLinear<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, A, rhs, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
-               	ConstSmartPtr<TDD> dd,
-               	int si, bool bNonRegularGrid,
-               	typename TAlgebra::matrix_type& A,
-               	typename TAlgebra::vector_type& rhs,
                	Selector* sel,
             	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -1139,13 +1058,21 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		AssembleLinear<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, rhs, mark);
 	}
-	else{
-		AssembleLinear<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, A, rhs, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		AssembleLinear<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, A, rhs, mark);
 	}
 }
 
@@ -1353,31 +1280,10 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-            	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	AssembleLinear<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
-               	ConstSmartPtr<TDD> dd,
-               	int si, bool bNonRegularGrid,
-               	typename TAlgebra::matrix_type& A,
-               	typename TAlgebra::vector_type& rhs,
-                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-               	const std::vector<number>& vScaleMass,
-               	const std::vector<number>& vScaleStiff,
                	Selector* sel,
             	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -1390,13 +1296,21 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		AssembleLinear<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, mark);
 	}
-	else{
-		AssembleLinear<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		AssembleLinear<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, mark);
 	}
 }
 
@@ -1501,28 +1415,10 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u,
-            	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	AssembleRhs<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, rhs, u, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
-               	ConstSmartPtr<TDD> dd,
-               	int si, bool bNonRegularGrid,
-               	typename TAlgebra::vector_type& rhs,
-               	const typename TAlgebra::vector_type& u,
                	Selector* sel,
             	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -1535,13 +1431,21 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		AssembleRhs<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, rhs, u, mark);
 	}
-	else{
-		AssembleRhs<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, rhs, u, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		AssembleRhs<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, rhs, u, mark);
 	}
 }
 
@@ -1722,30 +1626,10 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-            	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	AssembleRhs<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
-               	ConstSmartPtr<TDD> dd,
-               	int si, bool bNonRegularGrid,
-               	typename TAlgebra::vector_type& rhs,
-                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-               	const std::vector<number>& vScaleMass,
-               	const std::vector<number>& vScaleStiff,
                	Selector* sel,
             	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -1758,13 +1642,21 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		AssembleRhs<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, mark);
 	}
-	else{
-		AssembleRhs<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		AssembleRhs<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, mark);
 	}
 }
 
@@ -1873,27 +1765,10 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-            	BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	PrepareTimestep<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, vSol, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
-               	ConstSmartPtr<TDD> dd,
-               	int si, bool bNonRegularGrid,
-                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                 Selector* sel,
             	BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -1906,13 +1781,21 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		PrepareTimestep<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, vSol, mark);
 	}
-	else{
-		PrepareTimestep<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, vSol, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		PrepareTimestep<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, vSol, mark);
 	}
 }
 
@@ -2015,27 +1898,10 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
                ConstSmartPtr<TDD> dd,
                int si, bool bNonRegularGrid,
                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-               BoolMarker* mark = NULL)
-{
-	typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
-
-	const_iterator iterBegin = dd->template begin<TElem>(si);
-	const_iterator iterEnd = dd->template end<TElem>(si);
-
-	FinishTimestep<TElem, TDD, TAlgebra>
-		(vElemDisc, dd, iterBegin, iterEnd, si,
-				bNonRegularGrid, vSol, mark);
-}
-
-template <typename TElem, typename TDD, typename TAlgebra>
-void
-FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
-               ConstSmartPtr<TDD> dd,
-               int si, bool bNonRegularGrid,
-               ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                Selector* sel,
                BoolMarker* mark = NULL)
 {
+	//	check if only some elements are selected
 	if(sel)
 	{
 		const ISubsetHandler& sh = *dd->subset_handler();
@@ -2048,13 +1914,21 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
+		// assembling is carried out only over those elements which are selected
 		FinishTimestep<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, vSol, mark);
 	}
-	else{
-		FinishTimestep<TElem,TDD,TAlgebra>
-			(vElemDisc, dd, si, bNonRegularGrid, vSol, mark);
+	else
+	{
+		typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+
+		const_iterator iterBegin = dd->template begin<TElem>(si);
+		const_iterator iterEnd = dd->template end<TElem>(si);
+
+		FinishTimestep<TElem, TDD, TAlgebra>
+			(vElemDisc, dd, iterBegin, iterEnd, si,
+					bNonRegularGrid, vSol, mark);
 	}
 }
 
