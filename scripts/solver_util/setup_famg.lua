@@ -34,7 +34,7 @@ util = util or {}
 --!
 --! example usage:
 --! \code
---! ug_load_script("setup_famg.lua")
+--! ug_load_script("solver_util/setup_famg.lua")
 --! precond = util.SetupFAMGPrecondition(LU(), GaussSeidel(), GaussSeidel())
 --! \endcode
 --! note that FAMG is a preconditioner, you can use it e.g. in a Linear Solver:
