@@ -563,6 +563,9 @@ class L2ErrorIntegrand
 	///	component of function
 		const size_t m_fct;
 
+	///	fe space
+		const LFEID m_id;
+
 	///  exact solution
 		SmartPtr<UserData<number, worldDim> > m_spExactSolution;
 
@@ -575,6 +578,7 @@ class L2ErrorIntegrand
 		                 SmartPtr<TGridFunction> gridFct, size_t cmp,
 		                 number time)
 		: m_spGridFct(gridFct), m_fct(cmp),
+		  m_id(m_spGridFct->local_finite_element_id(m_fct)),
 		  m_spExactSolution(spExactSol), m_time(time)
 		{};
 
@@ -598,10 +602,7 @@ class L2ErrorIntegrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
-
-			//	local finite element id
-			const LFEID m_id = m_spGridFct->local_finite_element_id(m_fct);
+			const ReferenceObjectID roid = pElem->reference_object_id();
 
 			try{
 		//	get trial space
@@ -612,7 +613,6 @@ class L2ErrorIntegrand
 			const size_t num_sh = rTrialSpace.num_sh();
 
 		//	get multiindices of element
-
 			std::vector<MultiIndex<2> > ind;  // 	aux. index array
 			m_spGridFct->multi_indices(pElem, m_fct, ind);
 
@@ -624,8 +624,6 @@ class L2ErrorIntegrand
 		//	loop all integration points
 			for(size_t ip = 0; ip < numIP; ++ip)
 			{
-				//value[ip] = ipvalueFct(vLocIP[ip], vGlobIP[ip], vJT[ip], ind)
-
 			//	compute exact solution at integration point
 				number exactSolIP;
 				(*m_spExactSolution)(exactSolIP, vGlobIP[ip], m_time, this->subset());
@@ -695,6 +693,185 @@ number L2Error(const char* ExactSol,
 }
 #endif
 
+
+template <typename TGridFunction>
+class L2DiffIntegrand
+	: public StdIntegrand<number, TGridFunction::dim, L2DiffIntegrand<TGridFunction> >
+{
+	public:
+	///	world dimension of grid function
+		static const int worldDim = TGridFunction::dim;
+
+	private:
+		SmartPtr<TGridFunction> m_spFineGridFct;
+		const size_t m_fineFct;
+		const LFEID m_fineLFEID;
+		const int m_fineTopLevel;
+
+		SmartPtr<TGridFunction> m_spCoarseGridFct;
+		const size_t m_coarseFct;
+		const LFEID m_coarseLFEID;
+		const int m_coarseTopLevel;
+
+	///	multigrid
+		SmartPtr<MultiGrid> m_spMG;
+
+	public:
+	/// constructor (1 is fine grid function)
+		L2DiffIntegrand(SmartPtr<TGridFunction> spFineGridFct, size_t fineCmp,
+		                SmartPtr<TGridFunction> spCoarseGridFct, size_t coarseCmp)
+		: m_spFineGridFct(spFineGridFct), m_fineFct(fineCmp),
+		  m_fineLFEID(m_spFineGridFct->local_finite_element_id(m_fineFct)),
+		  m_fineTopLevel(m_spFineGridFct->dof_distribution()->grid_level().level()),
+		  m_spCoarseGridFct(spCoarseGridFct), m_coarseFct(coarseCmp),
+		  m_coarseLFEID(m_spCoarseGridFct->local_finite_element_id(m_coarseFct)),
+		  m_coarseTopLevel(m_spCoarseGridFct->dof_distribution()->grid_level().level()),
+		  m_spMG(m_spFineGridFct->domain()->grid())
+		{};
+
+	///	sets subset
+		virtual void set_subset(int si)
+		{
+			if(!m_spFineGridFct->is_def_in_subset(m_fineFct, si))
+				UG_THROW("L2ErrorIntegrand: Grid function component"
+						<<m_fineFct<<" not defined on subset "<<si);
+			if(!m_spCoarseGridFct->is_def_in_subset(m_coarseFct, si))
+				UG_THROW("L2ErrorIntegrand: Grid function component"
+						<<m_coarseFct<<" not defined on subset "<<si);
+			IIntegrand<number, worldDim>::set_subset(si);
+		}
+
+	/// \copydoc IIntegrand::values
+		template <int elemDim>
+		void evaluate(number vValue[],
+		              const MathVector<worldDim> vFineGlobIP[],
+		              GeometricObject* pFineElem,
+		              const MathVector<worldDim> vCornerCoords[],
+		              const MathVector<elemDim> vFineLocIP[],
+		              const MathMatrix<elemDim, worldDim> vJT[],
+		              const size_t numIP)
+		{
+			typedef typename TGridFunction::template dim_traits<elemDim>::geometric_base_object Element;
+
+			//	get coarse element
+			GeometricObject* pCoarseElem = pFineElem;
+			if(m_coarseTopLevel < m_fineTopLevel){
+				int parentLevel = m_spMG->get_level(pCoarseElem);
+				while(parentLevel > m_coarseTopLevel){
+					pCoarseElem = m_spMG->get_parent(pCoarseElem);
+					parentLevel = m_spMG->get_level(pCoarseElem);
+				}
+			}
+
+		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
+			const ReferenceObjectID fineROID = pFineElem->reference_object_id();
+			const ReferenceObjectID coarseROID = pCoarseElem->reference_object_id();
+
+		//	get corner coordinates
+			std::vector<MathVector<worldDim> > vCornerCoarse;
+			CollectCornerCoordinates(vCornerCoarse, *static_cast<Element*>(pCoarseElem), *m_spCoarseGridFct->domain());
+
+		//	get Reference Mapping
+			DimReferenceMapping<elemDim, worldDim>& map
+				= ReferenceMappingProvider::get<elemDim, worldDim>(coarseROID, vCornerCoarse);
+
+			std::vector<MathVector<elemDim> > vCoarseLocIP;
+			vCoarseLocIP.resize(numIP);
+			for(size_t ip = 0; ip < vCoarseLocIP.size(); ++ip) VecSet(vCoarseLocIP[ip], 0.0);
+			map.global_to_local(&vCoarseLocIP[0], vFineGlobIP, numIP);
+
+			try{
+		//	get trial space
+			const LocalShapeFunctionSet<elemDim>& rFineLSFS =
+					LocalShapeFunctionSetProvider::get<elemDim>(fineROID, m_fineLFEID);
+			const LocalShapeFunctionSet<elemDim>& rCoarseLSFS =
+					LocalShapeFunctionSetProvider::get<elemDim>(coarseROID, m_coarseLFEID);
+
+		//	get multiindices of element
+			std::vector<MultiIndex<2> > vFineMI, vCoarseMI;
+			m_spFineGridFct->multi_indices(pFineElem, m_fineFct, vFineMI);
+			m_spCoarseGridFct->multi_indices(pCoarseElem, m_coarseFct, vCoarseMI);
+
+		//	loop all integration points
+			for(size_t ip = 0; ip < numIP; ++ip)
+			{
+			// 	compute approximated solution at integration point
+				number fineSolIP = 0.0;
+				for(size_t sh = 0; sh < vFineMI.size(); ++sh)
+				{
+				//	get value at shape point (e.g. corner for P1 fct)
+					const number val = DoFRef(*m_spFineGridFct, vFineMI[sh]);
+
+				//	add shape fct at ip * value at shape
+					fineSolIP += val * rFineLSFS.shape(sh, vFineLocIP[ip]);
+				}
+				number coarseSolIP = 0.0;
+				for(size_t sh = 0; sh < vCoarseMI.size(); ++sh)
+				{
+				//	get value at shape point (e.g. corner for P1 fct)
+					const number val = DoFRef(*m_spCoarseGridFct, vCoarseMI[sh]);
+
+				//	add shape fct at ip * value at shape
+					coarseSolIP += val * rCoarseLSFS.shape(sh, vCoarseLocIP[ip]);
+				}
+
+			//	get squared of difference
+				vValue[ip] = (coarseSolIP - fineSolIP);
+				vValue[ip] *= vValue[ip];
+			}
+
+			}
+			UG_CATCH_THROW("L2ErrorIntegrand::evaluate: trial space missing.");
+		};
+};
+
+/// computes the l2 error function between to function
+/**
+ * This function computes the L2-difference between two grid functions that
+ * may be defined on different grids. The element loop is performed over the
+ * finer level.
+ *
+ * \param[in]		spGridFct1	grid function 1
+ * \param[in]		cmp1		symbolic name of component function
+ * \param[in]		spGridFct2	grid function 2
+ * \param[in]		cmp2		symbolic name of component function
+ * \param[in]		quadOrder	order of quadrature rule
+ * \param[in]		subsets		subsets, where to compute
+ * \returns			number 		l2-norm of difference
+ */
+template <typename TGridFunction>
+number L2Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
+               SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
+               int quadOrder, const char* subsets)
+{
+//	get function id of name
+	const size_t fct1 = spGridFct1->fct_id_by_name(cmp1);
+	const size_t fct2 = spGridFct2->fct_id_by_name(cmp2);
+
+//	check that function exists
+	if(fct1 >= spGridFct1->num_fct())
+		UG_THROW("L2Error: Function space does not contain"
+				" a function with name " << cmp1 << ".");
+	if(fct2 >= spGridFct2->num_fct())
+		UG_THROW("L2Error: Function space does not contain"
+				" a function with name " << cmp2 << ".");
+
+//	get top level of gridfunctions
+	const int level1 = spGridFct1->dof_distribution()->grid_level().level();
+	const int level2 = spGridFct2->dof_distribution()->grid_level().level();
+
+//	check
+	if(level1 > level2){
+		SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
+			= CreateSmartPtr(new L2DiffIntegrand<TGridFunction>(spGridFct1, fct1, spGridFct2, fct2));
+		return sqrt(IntegrateSubsets(spIntegrand, spGridFct1, subsets, quadOrder));
+	}else{
+		SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
+			= CreateSmartPtr(new L2DiffIntegrand<TGridFunction>(spGridFct2, fct2, spGridFct1, fct1));
+		return sqrt(IntegrateSubsets(spIntegrand, spGridFct2, subsets, quadOrder));
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // H1 Error Integrand
 ////////////////////////////////////////////////////////////////////////////////
@@ -759,7 +936,7 @@ class H1ErrorIntegrand
 		              const size_t numIP)
 		{
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
-			ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
+			const ReferenceObjectID roid = pElem->reference_object_id();
 
 			try{
 		//	get trial space
