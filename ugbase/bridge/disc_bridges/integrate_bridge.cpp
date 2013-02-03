@@ -88,6 +88,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	H1Error
 	{
+		reg.add_function("H1Error",static_cast<number (*)(SmartPtr<TFct>, const char*, SmartPtr<TFct>, const char*, int, const char*)>(&H1Error<TFct>), grp);
 		reg.add_function("H1Error",static_cast<number (*)(SmartPtr<UserData<number, dim> >, SmartPtr<UserData<MathVector<dim>, dim> >, SmartPtr<TFct>, const char*, number, int, const char*)>(&H1Error<TFct>), grp);
 #ifdef UG_FOR_LUA
 		reg.add_function("H1Error",static_cast<number (*)(const char*, const char*, SmartPtr<TFct>, const char*, number, int, const char*)>(&H1Error<TFct>), grp);
