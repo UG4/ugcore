@@ -60,6 +60,9 @@ class LocalShapeFunctionSet
 	///	type of shape functions
 		virtual LFEID type() const = 0;
 
+	///	returns if space constructs continuous functions
+		virtual bool continuous() const = 0;
+
 	///	Number of DoFs (shapes) on finite element
 		virtual size_t num_sh() const = 0;
 
@@ -184,6 +187,9 @@ class BaseLocalShapeFunctionSet
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline LFEID type() const {return getImpl().type();}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline bool continuous() const {return getImpl().continuous();}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return getImpl().num_sh();}
@@ -319,6 +325,9 @@ class LocalShapeFunctionSetProvider {
 		static std::vector<LocalShapeFunctionSet<dim>*>&
 		get_dynamic_allocated_vector();
 
+	//	returns the continuous information
+		static std::map<LFEID, bool>& get_continuous_map();
+
 	//	creates new set at runtime if available
 		static void dynamically_create_set(ReferenceObjectID roid, LFEID id);
 
@@ -361,6 +370,9 @@ class LocalShapeFunctionSetProvider {
 		template <int dim>
 		static const LocalShapeFunctionSet<dim>& get(ReferenceObjectID roid,
 		                                             LFEID id, bool bCreate = true);
+
+	///returns if a Local Shape Function Set is continuous
+		static bool continuous(const LFEID& id);
 };
 
 } // namespace ug

@@ -56,6 +56,9 @@ class LocalShapeFunctionSetWrapper
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		virtual LFEID type() const {return ImplType::type();}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		virtual bool continuous() const {return ImplType::continuous();}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		virtual size_t num_sh() const {return ImplType::num_sh();}
 
@@ -129,6 +132,30 @@ class LocalShapeFunctionSetWrapper
 ////////////////////////////////////////////////////////////////////////////////
 //	Provider for LocalShapeFunctionSets
 ////////////////////////////////////////////////////////////////////////////////
+
+std::map<LFEID, bool>&
+LocalShapeFunctionSetProvider::get_continuous_map()
+{
+//	get type of map
+	typedef std::map<LFEID, bool> Vec;
+
+//	create static map
+	static Vec sShapeFunctionSetMap;
+
+//	return map
+	return sShapeFunctionSetMap;
+};
+
+bool LocalShapeFunctionSetProvider::continuous(const LFEID& type)
+{
+	std::map<LFEID, bool>& contMap = get_continuous_map();
+	std::map<LFEID, bool>::iterator iter = contMap.find(type);
+	if(iter == contMap.end())
+		UG_THROW("LocalShapeFunctionSetProvider::continuous: no shape function "
+				"set "<<type<<" registered.");
+
+	return (*iter).second;
+}
 
 template <typename TRefElem>
 void LocalShapeFunctionSetProvider::init_standard_sets()

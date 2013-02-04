@@ -63,6 +63,9 @@ class CrouzeixRaviartLSFS<ReferenceEdge>
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, 1);}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return false;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
 
@@ -146,6 +149,9 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, 1);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -241,6 +247,9 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, 1);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -341,6 +350,9 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, 1);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -450,6 +462,9 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, 1);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -572,6 +587,9 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, 1);}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return false;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
 
@@ -686,6 +704,9 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, 1);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}

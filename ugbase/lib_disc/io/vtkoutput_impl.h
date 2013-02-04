@@ -1030,7 +1030,8 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	if(m_bSelectAll)
 		for(size_t fct = 0; fct < u.num_fct(); ++fct)
 			if(!vtk_name_used(u.name(fct).c_str()))
-				select_nodal(u.name(fct).c_str(), u.name(fct).c_str());
+				if(LocalShapeFunctionSetProvider::continuous(u.local_finite_element_id(fct)))
+					select_nodal(u.name(fct).c_str(), u.name(fct).c_str());
 
 //	check if something to do
 	if(m_vSymbFctNodal.empty() && m_vScalarNodalData.empty() && m_vVectorNodalData.empty())
@@ -1350,6 +1351,13 @@ void VTKOutput<TDim>::
 write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& grid,
                          int si, int dim, int numElem)
 {
+//	add all components if 'selectAll' chosen
+	if(m_bSelectAll)
+		for(size_t fct = 0; fct < u.num_fct(); ++fct)
+			if(!vtk_name_used(u.name(fct).c_str()))
+				if(!LocalShapeFunctionSetProvider::continuous(u.local_finite_element_id(fct)))
+					select_element(u.name(fct).c_str(), u.name(fct).c_str());
+
 //	check if something to do
 	if(m_vSymbFctElem.empty() && m_vScalarElemData.empty() && m_vVectorElemData.empty())
 		return;

@@ -78,6 +78,9 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline static size_t num_sh() {return nsh;}
 
@@ -179,6 +182,9 @@ class FlexLagrangeLSFS<ReferenceEdge>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -304,6 +310,9 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline static size_t num_sh() {return nsh;}
@@ -478,6 +487,9 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -679,6 +691,9 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline static size_t num_sh() {return nsh;}
 
@@ -820,6 +835,9 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -988,6 +1006,9 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline static size_t num_sh() {return nsh;}
@@ -1190,6 +1211,9 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -1422,6 +1446,9 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline static size_t num_sh() {return nsh;}
 
@@ -1614,6 +1641,9 @@ class FlexLagrangeLSFS<ReferencePrism>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -1854,6 +1884,9 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline static size_t num_sh() {return nsh;}
 
@@ -2075,6 +2108,9 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, p);}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline static size_t num_sh() {return nsh;}
 
@@ -2217,6 +2253,9 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, p);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}

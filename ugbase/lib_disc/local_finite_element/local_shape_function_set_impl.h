@@ -61,6 +61,16 @@ register_set(LFEID type,
 		UG_THROW("LocalShapeFunctionSetProvider::register_set(): "
 				"Reference type already registered for trial space: "<<type<<" and "
 				" Reference element type "<<roid<<".");
+
+	std::map<LFEID, bool>& contMap = get_continuous_map();
+	if(contMap.find(type) == contMap.end()){
+		contMap.insert(std::map<LFEID, bool>::value_type(type, set.continuous()));
+	}else{
+		if(contMap[type] != set.continuous())
+			UG_THROW("LocalShapeFunctionSetProvider::register_set(): "
+					"Reference type says continuous:"<<set.continuous()<<", but "
+					" other Reference element say"<<contMap[type]<<".");
+	}
 }
 
 
@@ -81,6 +91,9 @@ unregister_set(LFEID id)
 	//	erase element
 		if(!(map.erase(id) == 1)) return false;
 	}
+
+	std::map<LFEID, bool>& contMap = get_continuous_map();
+	if(contMap.erase(id) == 1) return false;
 
 	return true;
 }

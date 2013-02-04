@@ -56,6 +56,9 @@ class LagrangeP1
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, 1);}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const { return nsh;}
 

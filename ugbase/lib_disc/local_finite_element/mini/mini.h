@@ -63,6 +63,9 @@ class MiniBubbleLSFS<ReferenceEdge>
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
 
@@ -149,6 +152,9 @@ class MiniBubbleLSFS<ReferenceTriangle>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -249,6 +255,9 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -356,6 +365,9 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -467,6 +479,9 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
 
@@ -547,6 +562,9 @@ class MiniBubbleLSFS<ReferencePrism>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -630,6 +648,9 @@ class MiniBubbleLSFS<ReferencePyramid>
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
 		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline static bool continuous() {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
