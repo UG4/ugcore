@@ -103,6 +103,8 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	}
 
 //	compute the number of indices needed on the Geometric object
+	UG_ASSERT((int)roid >= 0 && (int)roid < NUM_REFERENCE_OBJECTS, "Invalid subset.")
+	UG_ASSERT(si >= 0 && si < (int)m_vvNumDoFsOnROID[roid].size(), "Invalid subset.")
 	size_t numNewIndex = 1;
 	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
 
@@ -156,6 +158,8 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	}
 
 //	compute the number of indices needed on the Geometric object
+	UG_ASSERT((int)roid >= 0 && (int)roid < NUM_REFERENCE_OBJECTS, "Invalid subset.")
+	UG_ASSERT(si >= 0 && si < (int)m_vvNumDoFsOnROID[roid].size(), "Invalid subset.")
 	size_t numNewIndex = 1;
 	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
 
@@ -290,6 +294,8 @@ erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	if(!bNonContained) return;
 
 //	compute number of indices on the geometric object
+	UG_ASSERT((int)roid >= 0 && (int)roid < NUM_REFERENCE_OBJECTS, "Invalid subset.")
+	UG_ASSERT(si >= 0 && si < (int)m_vvNumDoFsOnROID[roid].size(), "Invalid subset.")
 	size_t numNewIndex = 1;
 	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
 
