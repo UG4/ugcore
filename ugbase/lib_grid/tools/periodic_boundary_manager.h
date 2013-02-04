@@ -112,13 +112,13 @@ public:
 	 * @param e2
 	 * @param i
 	 */
-	template <class TElem> void identifiy(TElem* e1, TElem* e2, IIdentifier* i =
+	template <class TElem> void identify(TElem* e1, TElem* e2, IIdentifier* i =
 			NULL);
 	/**
 	 * performs matching before identification using given IIdentifier or the local
 	 * last used Identifier. Throws exception if no identifier is usable.
 	 */
-	template <class TElem> void match_and_identifiy(TElem* e1, TElem* e2,
+	template <class TElem> void match_and_identify(TElem* e1, TElem* e2,
 			IIdentifier* i = NULL);
 	template <class TElem> bool is_periodic(TElem* e) const;
 	template <class TElem> bool is_slave(TElem*) const;

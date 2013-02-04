@@ -50,7 +50,7 @@ bool ParallelShiftIdentifier<TAAPos>::match_impl(TElem* e1, TElem* e2) const {
 }
 
 template <class TElem>
-void PeriodicBoundaryManager::identifiy(TElem* e1, TElem* e2,
+void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2,
 		IIdentifier* identifier) {
 	typedef typename Grid::traits<typename TElem::side>::secure_container container;
 
@@ -89,7 +89,7 @@ void PeriodicBoundaryManager::identifiy(TElem* e1, TElem* e2,
 			m_pGrid->associated_elements<TElem>(sides2, e2);
 			for (size_t i = 0; i < sides1.size(); ++i) {
 				for (size_t j = 0; j < sides2.size(); ++j) {
-					match_and_identifiy(sides1[i], sides2[j], identifier);
+					match_and_identify(sides1[i], sides2[j], identifier);
 				}
 			}
 		}
@@ -97,12 +97,12 @@ void PeriodicBoundaryManager::identifiy(TElem* e1, TElem* e2,
 }
 
 template <class TElem>
-void PeriodicBoundaryManager::match_and_identifiy(TElem* e1, TElem* e2,
+void PeriodicBoundaryManager::match_and_identify(TElem* e1, TElem* e2,
 		IIdentifier* i) {
 	// try to use given identifier
 	if (i != NULL)
 		if (i->match(e1, e2)) {
-			identifiy(e1, e2, i);
+			identify(e1, e2, i);
 			return;
 		}
 
@@ -111,7 +111,7 @@ void PeriodicBoundaryManager::match_and_identifiy(TElem* e1, TElem* e2,
 		UG_THROW("need an valid identifier.")
 
 	if (m_pIdentifier->match(e1, e2)) {
-		identifiy(e1, e2, m_pIdentifier.get());
+		identify(e1, e2, m_pIdentifier.get());
 	}
 }
 
@@ -591,7 +591,7 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 				iter1 != goc1.end<TElem>(lvl); ++iter1)
 			for (gocIter iter2 = goc2.begin<TElem>(lvl);
 					iter2 != goc2.end<TElem>(lvl); ++iter2)
-				pbm.match_and_identifiy(*iter1, *iter2, ident);
+				pbm.match_and_identify(*iter1, *iter2, ident);
 	}
 #ifdef UG_DEBUG
 	test<VertexBase>(pbm, goc1, goc2);
