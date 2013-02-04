@@ -146,13 +146,24 @@ LocalShapeFunctionSetProvider::get_continuous_map()
 	return sShapeFunctionSetMap;
 };
 
-bool LocalShapeFunctionSetProvider::continuous(const LFEID& type)
+bool LocalShapeFunctionSetProvider::continuous(const LFEID& type, bool bCreate)
 {
 	std::map<LFEID, bool>& contMap = get_continuous_map();
 	std::map<LFEID, bool>::iterator iter = contMap.find(type);
 	if(iter == contMap.end())
+	{
+		if(bCreate)
+		{
+		//	try to create the set
+			dynamically_create_set(type);
+
+		//	next try to return the set
+			return continuous(type, false);
+		}
+
 		UG_THROW("LocalShapeFunctionSetProvider::continuous: no shape function "
 				"set "<<type<<" registered.");
+	}
 
 	return (*iter).second;
 }
@@ -244,6 +255,28 @@ dynamically_create_set(ReferenceObjectID roid, LFEID id)
 			default: UG_THROW("LocalShapeFunctionSetProvider: Roid="<<roid<<" unknown.");
 		}
 
+		}
+		UG_CATCH_THROW("Dynamic Allocation of set failed.");
+	}
+}
+
+void LocalShapeFunctionSetProvider::
+dynamically_create_set(LFEID id)
+{
+//	Lagrange space
+	if(id.type() == LFEID::LAGRANGE)
+	{
+	//	only order >= 1 available
+		if(id.order() < 1) return;
+
+		try{
+	//	switch type
+		init_flex_lagrange<ReferenceEdge>(id.order()); return;
+		init_flex_lagrange<ReferenceTriangle>(id.order()); return;
+		init_flex_lagrange<ReferenceQuadrilateral>(id.order()); return;
+		init_flex_lagrange<ReferenceTetrahedron>(id.order()); return;
+		init_flex_lagrange<ReferencePrism>(id.order()); return;
+		init_flex_lagrange<ReferenceHexahedron>(id.order()); return;
 		}
 		UG_CATCH_THROW("Dynamic Allocation of set failed.");
 	}

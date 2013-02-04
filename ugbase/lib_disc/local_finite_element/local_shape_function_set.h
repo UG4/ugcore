@@ -331,6 +331,9 @@ class LocalShapeFunctionSetProvider {
 	//	creates new set at runtime if available
 		static void dynamically_create_set(ReferenceObjectID roid, LFEID id);
 
+	//	creates new set at runtime if available
+		static void dynamically_create_set(LFEID id);
+
 	public:
 	/// register a local shape function set for a given reference element type
 	/**
@@ -372,7 +375,7 @@ class LocalShapeFunctionSetProvider {
 		                                             LFEID id, bool bCreate = true);
 
 	///returns if a Local Shape Function Set is continuous
-		static bool continuous(const LFEID& id);
+		static bool continuous(const LFEID& id, bool bCreate = true);
 };
 
 } // namespace ug
