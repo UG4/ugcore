@@ -9,7 +9,7 @@
 #define PERIODIC_IDENTIFIER_IMPL_HPP_
 
 // include declarations
-#include "./periodic_boundary_manager.h"
+#include "periodic_boundary_manager.h"
 #include "lib_grid/subset_handler.h"
 #include "lib_disc/domain.h"
 #include "lib_grid/algorithms/debug_util.h"
@@ -50,8 +50,7 @@ bool ParallelShiftIdentifier<TAAPos>::match_impl(TElem* e1, TElem* e2) const {
 }
 
 template <class TElem>
-void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2,
-		IIdentifier* identifier) {
+void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2) {
 	typedef typename Grid::traits<typename TElem::side>::secure_container container;
 
 	// determine masters
@@ -81,37 +80,23 @@ void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2,
 	}
 
 	// while elements have sides, recursively identify sub type elements
-	if (identifier != NULL || m_pIdentifier.get() != NULL) {
-		if (TElem::HAS_SIDES) {
-			container sides1, sides2;
-			// collect sides and identify them
-			m_pGrid->associated_elements<TElem>(sides1, e1);
-			m_pGrid->associated_elements<TElem>(sides2, e2);
-			for (size_t i = 0; i < sides1.size(); ++i) {
-				for (size_t j = 0; j < sides2.size(); ++j) {
-					match_and_identify(sides1[i], sides2[j], identifier);
-				}
+	if (TElem::HAS_SIDES) {
+		container sides1, sides2;
+		// collect sides and identify them
+		m_pGrid->associated_elements<TElem>(sides1, e1);
+		m_pGrid->associated_elements<TElem>(sides2, e2);
+		for (size_t i = 0; i < sides1.size(); ++i) {
+			for (size_t j = 0; j < sides2.size(); ++j) {
+				match_and_identify(sides1[i], sides2[j]);
 			}
 		}
 	}
 }
 
 template <class TElem>
-void PeriodicBoundaryManager::match_and_identify(TElem* e1, TElem* e2,
-		IIdentifier* i) {
-	// try to use given identifier
-	if (i != NULL)
-		if (i->match(e1, e2)) {
-			identify(e1, e2, i);
-			return;
-		}
-
-	// fall back to member identifier
-	if (!m_pIdentifier.get())
-		UG_THROW("need an valid identifier.")
-
-	if (m_pIdentifier->match(e1, e2)) {
-		identify(e1, e2, m_pIdentifier.get());
+void PeriodicBoundaryManager::match_and_identify(TElem* e1, TElem* e2) {
+	if(match_wrapper(e1, e2)) {
+		identify(e1, e2);
 	}
 }
 
@@ -242,7 +227,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 				// all observers have been informed about the creation of the new
 				// vertex). Note that this is no problem for edges or faces, since
 				// associated vertices have been properly initialized at that time.
-				if((e->base_object_id() == VERTEX) || (m_pIdentifier->match(c, e))) {
+				if((e->base_object_id() == VERTEX) || match_wrapper(c, e)) {
 					make_slave(newGroup, c);
 				}
 			}
@@ -272,26 +257,14 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 			// all observers have been informed about the creation of the new
 			// vertex). Note that this is no problem for edges or faces, since
 			// associated vertices have been properly initialized at that time.
-			if((e->base_object_id() == VERTEX) || (m_pIdentifier->match(c, e))) {
+			if((e->base_object_id() == VERTEX) || match_wrapper(c, e)) {
 				make_slave(group(c), e);
 				master_found = true;
 				break;
 			}
 		}
 
-		// ATTENTION: If no master was found e currently can't be recognized as
-		// a slave from other classes, as e.g. the DoF-Manager.
-		// This, however, is important.
-		// One should think about adding a master-/slave- flag and adjusting the
-		// is_master(...) and is_slave(...) member methods. Furthermore it
-		// should be documented, that a slave does not necessarily have a master
-		// during grid adaption.
-		// The add method in the dof-manager has to be adjusted, too. If a new slave
-		// has been created, it should check whether its master already exists and
-		// copy its dof-index from its master in this case. If the master doesn't
-		// exist yet, the pseudo-index -1 should be assigned. The correct index
-		// is then assigned later on during creation of the master, where a
-		// dof-index is assigned to all existing slaves automatically.
+		// wait until a master for e will be known
 		if (!master_found) {
 			get_periodic_status_accessor<TElem>()[e] = P_SLAVE_MASTER_UNKNOWN;
 		}
@@ -322,6 +295,19 @@ void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
 		if (replacedBy)
 			g->add_slave(replacedBy);
 	}
+}
+
+template <class TElem>
+bool PeriodicBoundaryManager::match_wrapper(TElem* e1, TElem* e2) {
+	UG_ASSERT(m_pSH, "subset handler not valid! set it with set_subset_handler"
+			" before usage.")
+	int s1 = m_pSH->get_subset_index(e1),
+		s2 = m_pSH->get_subset_index(e2);
+	// if identifiers for the elements do not match, we are finished in no time
+	if(m_vIdentifier[s1] != m_vIdentifier[s2])
+		return false;
+
+	return m_vIdentifier[s1]->match(e1, e2);
 }
 
 template <class TElem>
@@ -548,13 +534,17 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	typedef typename TDomain::subset_handler_type subset_handler_type;
 
 	subset_handler_type& sh = *dom.subset_handler();
+	pbm.set_subset_handler(&sh);
 
 	// get aaPos from domain
 	position_accessor_type& aaPos = dom.position_accessor();
 
+	// create parallel shift identifier to match subset elements
 	ParallelShiftIdentifier<position_accessor_type>* ident =
 			new ParallelShiftIdentifier<position_accessor_type>(aaPos);
-	pbm.set_identifier(ident);
+	// set identifier for both subsets
+	pbm.set_identifier(ident, sInd1);
+	pbm.set_identifier(ident, sInd2);
 
 	// shift vector between subsets
 	position_type shift;
@@ -582,7 +572,7 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	VecSubtract(shift, c1, c2);
 	ident->set_shift(shift);
 
-	// for each level of multi grid. In case of simple Grid only one iteration
+	// for each level of multi grid. In case of simple grid only one iteration
 	for (size_t lvl = 0; lvl < goc1.num_levels(); lvl++) {
 		// identify corresponding elements for second subset. A element is considered
 		// to have symmetric element in second subset if there exists a shift vector between them.
@@ -591,7 +581,7 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 				iter1 != goc1.end<TElem>(lvl); ++iter1)
 			for (gocIter iter2 = goc2.begin<TElem>(lvl);
 					iter2 != goc2.end<TElem>(lvl); ++iter2)
-				pbm.match_and_identify(*iter1, *iter2, ident);
+				pbm.match_and_identify(*iter1, *iter2);
 	}
 #ifdef UG_DEBUG
 	test<VertexBase>(pbm, goc1, goc2);

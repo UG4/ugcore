@@ -8,6 +8,8 @@
 #ifndef PERIODIC_IDENTIFIER_H_
 #define PERIODIC_IDENTIFIER_H_
 
+#include "common/util/smart_pointer.h"
+
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/grid/geometric_base_objects.h"
@@ -97,11 +99,14 @@ public:
 		P_SLAVE, P_SLAVE_MASTER_UNKNOWN, P_MASTER, P_NOT_PERIODIC
 	};
 
-	PeriodicBoundaryManager() : m_pGrid(NULL), m_pIdentifier(NULL) {}
+	PeriodicBoundaryManager();
 	~PeriodicBoundaryManager();
 
 	// sets grid and inits group info attachment accessors
 	void set_grid(Grid* g);
+
+	// sets the subset handler to use for element lookup
+	void set_subset_handler(ISubsetHandler* sh);
 
 	///
 	/**
@@ -110,16 +115,10 @@ public:
 	 * ascend to the lowest dimension type (vertex) and identifies them.
 	 * @param e1
 	 * @param e2
-	 * @param i
 	 */
-	template <class TElem> void identify(TElem* e1, TElem* e2, IIdentifier* i =
-			NULL);
-	/**
-	 * performs matching before identification using given IIdentifier or the local
-	 * last used Identifier. Throws exception if no identifier is usable.
-	 */
-	template <class TElem> void match_and_identify(TElem* e1, TElem* e2,
-			IIdentifier* i = NULL);
+	template <class TElem> void identify(TElem* e1, TElem* e2);
+
+	template <class TElem> inline void match_and_identify(TElem* e1, TElem* e2);
 	template <class TElem> bool is_periodic(TElem* e) const;
 	template <class TElem> bool is_slave(TElem*) const;
 	template <class TElem> bool is_master(TElem*) const;
@@ -152,7 +151,12 @@ public:
 	virtual void face_to_be_erased(Grid* grid, Face* f,
 									 Face* replacedBy = NULL);
 
-	void set_identifier(IIdentifier*);
+	/**
+	 * sets the identifier instance to use for subset index si
+	 * @param i identifier pointer
+	 * @param si
+	 */
+	void set_identifier(IIdentifier* i, size_t si);
 
 protected:
 	// no copy construction allowed
@@ -161,8 +165,15 @@ protected:
 	/// grid instance we operate on
 	MultiGrid* m_pGrid;
 
-	/// identifier used
-	std::auto_ptr<IIdentifier> m_pIdentifier;
+	/// store subset handler of domain to lookup element subset ids
+	ISubsetHandler* m_pSH;
+
+	/// identifier mapping to subset indices
+	/**
+	 * stores IIdentifier pointers to subset index position to look them up
+	 * in constant time.
+	 */
+	std::vector<SmartPtr<IIdentifier> > m_vIdentifier;
 
 	/// attachment accessors for Groups
 	Grid::AttachmentAccessor<VertexBase, Attachment<Group<VertexBase>* > > m_aaGroupVRT;
@@ -173,6 +184,8 @@ protected:
 	Grid::AttachmentAccessor<VertexBase, Attachment<PeriodicStatus> > m_aaPeriodicStatusVRT;
 	Grid::AttachmentAccessor<EdgeBase, Attachment<PeriodicStatus> > m_aaPeriodicStatusEDG;
 	Grid::AttachmentAccessor<Face, Attachment<PeriodicStatus> > m_aaPeriodicStatusFCE;
+
+	template <class TElem> inline bool match_wrapper(TElem* e1, TElem* e2);
 
 	/// make element e slave of group g
 	template <class TElem> void make_slave(Group<TElem>* g, TElem* e);

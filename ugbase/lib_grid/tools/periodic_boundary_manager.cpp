@@ -8,6 +8,9 @@
 
 namespace ug {
 
+PeriodicBoundaryManager::PeriodicBoundaryManager() :
+				m_pGrid(NULL), m_pSH(NULL) {}
+
 PeriodicBoundaryManager::~PeriodicBoundaryManager()
 {
 	// set grid to NULL to detach groups from grid
@@ -62,6 +65,11 @@ void PeriodicBoundaryManager::set_grid(Grid* g)
 				OT_FACE_OBSERVER;
 		m_pGrid->register_observer(this, options);
 	}
+}
+
+void PeriodicBoundaryManager::set_subset_handler(ISubsetHandler* sh) {
+	m_pSH = sh;
+	m_vIdentifier.resize(m_pSH->num_subsets());
 }
 
 // group accessors
@@ -208,8 +216,9 @@ void PeriodicBoundaryManager::face_to_be_erased(Grid* grid, Face* f,
 	handle_deletion(f, replacedBy);
 }
 
-void PeriodicBoundaryManager::set_identifier(IIdentifier*i) {
-	m_pIdentifier.reset(i);
+void PeriodicBoundaryManager::set_identifier(IIdentifier*i, size_t si) {
+	UG_ASSERT(m_vIdentifier.capacity() >= si, "identifier vector not big enough")
+	m_vIdentifier[si] = SmartPtr<IIdentifier>(i);
 }
 
 } // end of namespace ug
