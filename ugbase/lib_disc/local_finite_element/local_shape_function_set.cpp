@@ -148,7 +148,7 @@ LocalShapeFunctionSetProvider::get_continuous_map()
 
 bool LocalShapeFunctionSetProvider::continuous(const LFEID& type, bool bCreate)
 {
-	std::map<LFEID, bool>& contMap = get_continuous_map();
+	std::map<LFEID, bool>& contMap = inst().get_continuous_map();
 	std::map<LFEID, bool>::iterator iter = contMap.find(type);
 	if(iter == contMap.end())
 	{
