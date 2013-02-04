@@ -104,6 +104,7 @@ public:
 
 	// sets grid and inits group info attachment accessors
 	void set_grid(Grid* g);
+	Grid* get_grid() const;
 
 	// sets the subset handler to use for element lookup
 	void set_subset_handler(ISubsetHandler* sh);
@@ -228,6 +229,52 @@ protected:
 	template <class TElem>
 	void handle_creation_cast_wrapper(TElem* e, GeometricObject* parent, bool replacesParent);
 };
+
+///	Accesses attachements with consideration to periodic boundaries
+/**	Slave element redirects to related master element
+ *  also works in case of no periodic boundary conditions
+ *  (but is then probably slower than standard attachment accessor)
+ */
+template <class TElem,class TAttachment>
+class PeriodicAttachmentAccessor
+{
+	public:
+		typedef typename TAttachment::ValueType	ValueType;
+		typedef typename attachment_value_traits<ValueType>::reference RefType;
+		typedef typename attachment_value_traits<ValueType>::const_reference ConstRefType;
+
+		PeriodicAttachmentAccessor() : m_pbm(NULL)	{}
+
+		PeriodicAttachmentAccessor(Grid& g, TAttachment& a) : m_pbm(NULL)
+		{
+			access(g, a);
+		}
+
+		PeriodicAttachmentAccessor(PeriodicBoundaryManager& pbm) : m_pbm(&pbm) {}
+
+		bool access(Grid& g, TAttachment& a)
+		{
+			if (!(m_pbm)) m_pbm = g.periodic_boundary_manager();
+			return m_aa.access(g, a);
+		}
+
+		RefType operator[](TElem* e)	{
+			if(m_pbm && m_pbm->is_slave(e))
+				return m_aa[m_pbm->master(e)];
+			return m_aa[e];
+		}
+
+		ConstRefType operator[](TElem* e) const	{
+			if(m_pbm && m_pbm->is_slave(e))
+				return m_aa[m_pbm->master(e)];
+			return m_aa[e];
+		}
+
+	private:
+		Grid::AttachmentAccessor<TElem, TAttachment>	m_aa;
+		PeriodicBoundaryManager* m_pbm;
+};
+
 
 /**
  * \brief identifies subset 1 with subset 2. If the grid of given domain has no

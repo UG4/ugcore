@@ -96,6 +96,7 @@ void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2) {
 template <class TElem>
 void PeriodicBoundaryManager::match_and_identify(TElem* e1, TElem* e2) {
 	if(match_wrapper(e1, e2)) {
+		UG_LOG("matches, so identify\n")
 		identify(e1, e2);
 	}
 }
@@ -303,10 +304,26 @@ bool PeriodicBoundaryManager::match_wrapper(TElem* e1, TElem* e2) {
 			" before usage.")
 	int s1 = m_pSH->get_subset_index(e1),
 		s2 = m_pSH->get_subset_index(e2);
-	// if identifiers for the elements do not match, we are finished in no time
-	if(m_vIdentifier[s1] != m_vIdentifier[s2])
+
+//	UG_LOG("subset of e1: " << m_pSH->get_subset_name(s1)
+//			<< "\tsubset of e2: " << m_pSH->get_subset_name(s1) << "\n")
+//	UG_LOG("try to matching " << GetGeometricObjectCenter(*m_pGrid, e1) <<
+//			"\twith\t" << GetGeometricObjectCenter(*m_pGrid, e2) << "\n");
+//	UG_LOG("i1: " << m_vIdentifier[s1].get() << "\ti2: " << m_vIdentifier[s2].get() << "\n" )
+
+	// if elements lie in same subset, they can not geometrically match
+	if(s1 == s2)
 		return false;
 
+	// if identifiers for the elements do not match, we are finished in no time
+	if(m_vIdentifier[s1] != m_vIdentifier[s2]) {
+//		UG_LOG("identifiers do not match\n")
+		return false;
+	}
+
+	// else perform geometric match checking
+	UG_ASSERT(m_vIdentifier[s1].valid(), "identifier for subset " <<
+			m_pSH->get_subset_name(s1) << " not valid.")
 	return m_vIdentifier[s1]->match(e1, e2);
 }
 
@@ -459,17 +476,25 @@ template <class TElem> void test(PeriodicBoundaryManager& PBM,
 	typedef typename PeriodicBoundaryManager::Group<TElem>::SlaveContainer SlaveContainer;
 	typedef typename SlaveContainer::iterator SlaveIter;
 
+	PBM.print_identification<TElem>();
+
 	// subset 1
 	for (gocIter iter = goc1.begin<TElem>(); iter != goc1.end<TElem>();
 			++iter) {
-		UG_ASSERT(PBM.is_periodic(*iter), "should be periodic now");
+		TElem* e = *iter;
+		if(!PBM.is_periodic(e)) {
+			UG_LOG("elem not periodic: " << GetGeometricObjectCenter(*PBM.get_grid(),e)
+					<< "\n")
+		}
+		UG_ASSERT(PBM.is_periodic(e), "item of subset 1 should be periodic now");
 
-		if (PBM.master(*iter) == *iter) {
-			SlaveContainer* slaves = PBM.slaves(*iter);
+		if (PBM.master(e) == e) {
+			SlaveContainer* slaves = PBM.slaves(e);
 			UG_ASSERT(slaves, "master should have slaves")
+			UG_ASSERT(!slaves->empty(), "master should have slaves")
 			for (SlaveIter i = slaves->begin(); i != slaves->end(); ++i) {
 				TElem* slave = *i;
-				master_slave_pair p = std::make_pair(*iter, slave);
+				master_slave_pair p = std::make_pair(e, slave);
 				bool inserted = (s.insert(p)).second;
 				UG_ASSERT(inserted, "pair already exists");
 			}
@@ -478,11 +503,12 @@ template <class TElem> void test(PeriodicBoundaryManager& PBM,
 	// subset 1
 	for (gocIter iter = goc2.begin<TElem>(); iter != goc2.end<TElem>();
 			++iter) {
-		UG_ASSERT(PBM.is_periodic(*iter), "should be periodic now");
+		UG_ASSERT(PBM.is_periodic(*iter), "item of subset 2 should be periodic now");
 
 		if (PBM.master(*iter) == *iter) {
 			SlaveContainer* slaves = PBM.slaves(*iter);
 			UG_ASSERT(slaves, "master should have slaves")
+			UG_ASSERT(!slaves->empty(), "master should have slaves")
 			for (SlaveIter i = slaves->begin(); i != slaves->end(); ++i) {
 				TElem* slave = *i;
 				master_slave_pair p = std::make_pair(*iter, slave);
@@ -524,6 +550,8 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	if (!dom.grid()->has_periodic_boundaries()) {
 		dom.grid()->set_periodic_boundaries(true);
 	}
+
+	// todo perform grid sanity check: e.g. overlapping subsets
 
 	PeriodicBoundaryManager& pbm = *dom.grid()->periodic_boundary_manager();
 

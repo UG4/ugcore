@@ -67,8 +67,13 @@ void PeriodicBoundaryManager::set_grid(Grid* g)
 	}
 }
 
+Grid* PeriodicBoundaryManager::get_grid() const {
+	return m_pGrid;
+}
+
 void PeriodicBoundaryManager::set_subset_handler(ISubsetHandler* sh) {
 	m_pSH = sh;
+	// very small memory overhead buys constant access time in match() methods
 	m_vIdentifier.resize(m_pSH->num_subsets());
 }
 
