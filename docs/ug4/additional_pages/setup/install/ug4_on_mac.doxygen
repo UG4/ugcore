@@ -14,6 +14,8 @@
 \em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.
 It's the only chance we have to keep this guides updated and correct.
 
+\note If you're working at the G-CSC, some software is faster downloaded from our servers. Ask for "software server".
+
 Before installing something on a Mac, make sure things aren't already installed by some other user by checking
 the appropriate commands in the terminal (<tt>gcc --version</tt> and <tt>cmake --version</tt>).
 
@@ -56,7 +58,7 @@ Another way is to use the Apple homepage:
 <ul>
 <li>Create a apple developer ID <a href="https://developer.apple.com/">here</a> (it's free).
 <li>Go to https://developer.apple.com/downloads/index.action, search for "Command Line Tools", pick the appropriate version.
-<li>Install. Now you should have gcc and svn available in the terminal.
+<li>Install. Now you should have gcc and svn (!) available in the terminal.
 </ul> 
  
 \note XCode, installed through the AppStore, will \em not provide you with command line utilities. 
@@ -65,12 +67,16 @@ Another way is to use the Apple homepage:
 <hr>
 \section secInstallMacAdditional Additional Software
 <hr>
+Highly recommended:
+- SVN : Subversion for the terminal (check in terminal if <tt>svn</tt> works, otherwise install). http://www.wandisco.com/subversion/download#osx
+- OpenMPI : for parallel computing. (check if <tt>mpicc</tt> is available). 
+Other:
 - X11 : Window manager used by some programs, not included in MacOS 10.8. http://xquartz.macosforge.org/
-- OpenMPI : for parallel computing. (check if mpicc is available)
 - doxygen : to create this docu locally.
 - gnuplot
 - ParaView
-You can install all this with \ref pageUginstall.
+
+You can install most of this with \ref pageUginstall.
 
 If you need fortran/gfortran on Mountain Lion: http://web.mit.edu/mfloyd/www/computing/mac/gfortran/, <tt>sudo ln -s /usr/bin/gfortran-4.2 /usr/bin/gfortran</tt>.
 */
