@@ -6,8 +6,10 @@
 
 	- \ref secParallelComputingHowto
 	- \ref secParallelComputingGeneral           "General Information about Parallel Computing"
+    - \ref secParallelComputingInputOutput "Input and Output"
 	- \ref secParallelComputingSpecific          "Specific Information about Parallel Computing"
 	- \ref secParallelComputingAvailableMachines "Available Parallel Computers"
+	
 
 <hr>
 \section secParallelComputingHowto Parallel Computing: Howto
@@ -34,6 +36,7 @@ See also \ref pageugsubmit .
 <li>Start with small problems (but still enough prerefinement steps) </li>
 <li>If you have problems, try to find out the smallest processor/refinement number it occures on.
 </ul>
+
 
 <hr>
 \section secParallelComputingDebuggin Debugging
@@ -105,6 +108,37 @@ One core loads the file and broadcasts its contents over the network.
 Logging is also file access. That's why standard setting is outproc = 0. outproc -1 will cause all cores to log.
 This will \em not scale on clusters.
 
+\note When you need to do i/o, think about if you \em really need all cores to do the i/o. If you only need one core to perform a task:
+\code
+if(pcl::GetProcessRank() == 0) { .. some i/o ... }
+\endcode
+and in LUA
+\code
+if GetProcessRank() == 0 then
+ -- some i/o
+end
+\endcode
 In the future we might add some MPI-IO capability but even then all-core-IO needs to be prevented whenever possible.
 
-*/
+<hr> 
+\section secParallelComputingInputOutput Input and Output
+ 
+ When you're starting a lot of jobs, you can get a problem with your output. When you use ugshell like normal, and output data normally, you might overwrite
+ the output data from one job with the output data of another. That's why, if you are using ugsubmit (\ref pageugsubmit) the job information is stored 
+ in a subdirectory of your current directory (or in a subdirectory of the directory you specified with the ugsubmit option -dir) and it's also executed in that subdirectory.
+ Another solution to this problem is to rename your output files accordingly. Please also note that you want to specify an output directory for your results,
+ see this example:
+\code
+outdir = util.GetParam("-outdir", "", "output directory")
+fileext = discName.."_procs"..GetNumProcesses().."_numRefs"..numRefs
+GetLogAssistant():enable_file_output(true, outdir..filename)
+...
+if GetProcessRank() == 0 then
+	util.writeFileStats(stats, outdir.."stats.txt")
+	WriteGridFunctionToVTK(u, outdir.."Solution")
+	WriteProfileData(outdir..filename..".pdxml")	
+end
+ \endcode
+ \note Think about where you save data and where you get data from. Try if your script is also working from other directories.
+  
+ */
