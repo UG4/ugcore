@@ -789,6 +789,13 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	if(m_spSurfaceMat.invalid())
 		UG_THROW("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
 
+	if(!m_spApproxSpace.valid())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
+				"Approximation Space not set.\n");
+		return false;
+	}
+
 //	check that grid given
 	if(m_spApproxSpace->num_levels() == 0)
 	{
@@ -811,6 +818,36 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		return false;
 	}
 
+//	check, if grid is full-refined
+//todo:	make sure that there are no vertical masters in topLevel. Otherwise
+//		the grid can not be considered fully refined.
+//todo: Even if there are vrtMasters and m_bFullRefined is false and the top
+//		level matrix can't be copied, an injective SurfToTopLevMapPatchToGlobal might be useful...
+	if(m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices() ==
+		m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices())
+	{
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is non adaptive\n");
+		m_bAdaptive = false;
+	}
+	else{
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is adaptive: ");
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "#level-dofs: "
+				<< m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices());
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, ", #surface-dofs: "
+				<< m_spApproxSpace->surface_dof_distribution()->num_indices() << "\n");
+		m_bAdaptive = true;
+	}
+
+//	m_bAdaptive should describe whether the global grid is adaptive or not.
+//	Otherwise different paths may be executed during solving, which may lead to
+//	unmatched parallel communication calls.
+//todo:	Eventually the multigrid is only executed on a subset of processes.
+//		A process communicator would thus make sense, which defines this subset.
+//		Use that in the call below.
+	#ifdef UG_PARALLEL
+		m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
+	#endif
+
 	if(!m_spProjectionPrototype.valid())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
@@ -822,7 +859,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	//	dofs and thus the matrix (and vectors) are larger than expected only by the
 	//	passed approximation space.
 	const size_t numIndex = m_spSurfaceMat->num_rows();
-	if(m_vLevData[m_topLev]->num_indices() < numIndex){
+	if(m_vLevData[m_topLev]->num_indices() < numIndex && !m_bAdaptive){
 		const size_t diff = numIndex - m_vLevData[m_topLev]->num_indices();
 
 		for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
@@ -911,6 +948,13 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	if(m_spSurfaceMat.invalid())
 		UG_THROW("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
 
+	if(!m_spApproxSpace.valid())
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
+				"Approximation Space not set.\n");
+		return false;
+	}
+
 //	check that grid given
 	if(m_spApproxSpace->num_levels() == 0)
 	{
@@ -934,6 +978,36 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 		return false;
 	}
 	GMG_PROFILE_END();
+
+//	check, if grid is full-refined
+//todo:	make sure that there are no vertical masters in topLevel. Otherwise
+//		the grid can not be considered fully refined.
+//todo: Even if there are vrtMasters and m_bFullRefined is false and the top
+//		level matrix can't be copied, an injective SurfToTopLevMapPatchToGlobal might be useful...
+	if(m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices() ==
+		m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices())
+	{
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is non adaptive\n");
+		m_bAdaptive = false;
+	}
+	else{
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is adaptive: ");
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "#level-dofs: "
+				<< m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices());
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, ", #surface-dofs: "
+				<< m_spApproxSpace->surface_dof_distribution()->num_indices() << "\n");
+		m_bAdaptive = true;
+	}
+
+//	m_bAdaptive should describe whether the global grid is adaptive or not.
+//	Otherwise different paths may be executed during solving, which may lead to
+//	unmatched parallel communication calls.
+//todo:	Eventually the multigrid is only executed on a subset of processes.
+//		A process communicator would thus make sense, which defines this subset.
+//		Use that in the call below.
+	#ifdef UG_PARALLEL
+		m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
+	#endif
 
 //	init common
 	if(!init_common())
@@ -978,12 +1052,6 @@ init_common()
 				"Discretization not set.\n");
 		return false;
 	}
-	if(!m_spApproxSpace.valid())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Approximation Space not set.\n");
-		return false;
-	}
 	if(m_spBaseSolver.invalid())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
@@ -1022,35 +1090,6 @@ init_common()
 		return false;
 	}
 
-//	check, if grid is full-refined
-//todo:	make sure that there are no vertical masters in topLevel. Otherwise
-//		the grid can not be considered fully refined.
-//todo: Even if there are vrtMasters and m_bFullRefined is false and the top
-//		level matrix can't be copied, an injective SurfToTopLevMapPatchToGlobal might be useful...
-	if(m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices() ==
-		m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices())
-	{
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is non adaptive\n");
-		m_bAdaptive = false;
-	}
-	else{
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is adaptive: ");
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "#level-dofs: "
-				<< m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices());
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, ", #surface-dofs: "
-				<< m_spApproxSpace->surface_dof_distribution()->num_indices() << "\n");
-		m_bAdaptive = true;
-	}
-
-//	m_bAdaptive should describe whether the global grid is adaptive or not.
-//	Otherwise different paths may be executed during solving, which may lead to
-//	unmatched parallel communication calls.
-//todo:	Eventually the multigrid is only executed on a subset of processes.
-//		A process communicator would thus make sense, which defines this subset.
-//		Use that in the call below.
-	#ifdef UG_PARALLEL
-		m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
-	#endif
 
 //	init mapping from surface level to top level in case of full refinement
 	if(!m_bAdaptive)
