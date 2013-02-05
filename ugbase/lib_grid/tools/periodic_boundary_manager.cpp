@@ -9,7 +9,7 @@
 namespace ug {
 
 PeriodicBoundaryManager::PeriodicBoundaryManager() :
-				m_pGrid(NULL), m_pSH(NULL) {}
+				m_pGrid(NULL)/*, m_pSH(NULL)*/ {}
 
 PeriodicBoundaryManager::~PeriodicBoundaryManager()
 {
@@ -71,11 +71,11 @@ Grid* PeriodicBoundaryManager::get_grid() const {
 	return m_pGrid;
 }
 
-void PeriodicBoundaryManager::set_subset_handler(ISubsetHandler* sh) {
-	m_pSH = sh;
-	// very small memory overhead buys constant access time in match() methods
-	m_vIdentifier.resize(m_pSH->num_subsets());
-}
+//void PeriodicBoundaryManager::set_subset_handler(ISubsetHandler* sh) {
+//	m_pSH = sh;
+//	// very small memory overhead buys constant access time in match() methods
+//	m_vIdentifier.resize(m_pSH->num_subsets());
+//}
 
 // group accessors
 template <>
@@ -221,9 +221,9 @@ void PeriodicBoundaryManager::face_to_be_erased(Grid* grid, Face* f,
 	handle_deletion(f, replacedBy);
 }
 
-void PeriodicBoundaryManager::set_identifier(IIdentifier*i, size_t si) {
-	UG_ASSERT(m_vIdentifier.capacity() >= si, "identifier vector not big enough")
-	m_vIdentifier[si] = SmartPtr<IIdentifier>(i);
-}
+//void PeriodicBoundaryManager::set_identifier(SmartPtr<IIdentifier> i, size_t si) {
+//	UG_ASSERT(m_vIdentifier.capacity() >= si, "identifier vector not big enough")
+//	m_vIdentifier[si] = i;
+//}
 
 } // end of namespace ug

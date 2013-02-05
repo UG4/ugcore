@@ -8,7 +8,7 @@
 #ifndef PERIODIC_IDENTIFIER_H_
 #define PERIODIC_IDENTIFIER_H_
 
-#include "common/util/smart_pointer.h"
+//#include "common/util/smart_pointer.h"
 
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/multi_grid.h"
@@ -22,6 +22,7 @@ namespace ug {
  */
 class IIdentifier {
 public:
+	virtual ~IIdentifier() {}
 	virtual bool match(VertexBase*, VertexBase*) = 0;
 	virtual bool match(EdgeBase*, EdgeBase*) = 0;
 	virtual bool match(Face*, Face*) = 0;
@@ -107,7 +108,7 @@ public:
 	Grid* get_grid() const;
 
 	// sets the subset handler to use for element lookup
-	void set_subset_handler(ISubsetHandler* sh);
+//	void set_subset_handler(ISubsetHandler* sh);
 
 	///
 	/**
@@ -116,10 +117,10 @@ public:
 	 * ascend to the lowest dimension type (vertex) and identifies them.
 	 * @param e1
 	 * @param e2
+	 * @param i identifier to use to perform geometrical matching of elements
 	 */
-	template <class TElem> void identify(TElem* e1, TElem* e2);
+	template <class TElem> void identify(TElem* e1, TElem* e2, IIdentifier& i);
 
-	template <class TElem> inline void match_and_identify(TElem* e1, TElem* e2);
 	template <class TElem> bool is_periodic(TElem* e) const;
 	template <class TElem> bool is_slave(TElem*) const;
 	template <class TElem> bool is_master(TElem*) const;
@@ -157,7 +158,7 @@ public:
 	 * @param i identifier pointer
 	 * @param si
 	 */
-	void set_identifier(IIdentifier* i, size_t si);
+//	void set_identifier(SmartPtr<IIdentifier> i, size_t si);
 
 protected:
 	// no copy construction allowed
@@ -167,14 +168,14 @@ protected:
 	MultiGrid* m_pGrid;
 
 	/// store subset handler of domain to lookup element subset ids
-	ISubsetHandler* m_pSH;
+//	ISubsetHandler* m_pSH;
 
 	/// identifier mapping to subset indices
 	/**
 	 * stores IIdentifier pointers to subset index position to look them up
 	 * in constant time.
 	 */
-	std::vector<SmartPtr<IIdentifier> > m_vIdentifier;
+//	std::vector<SmartPtr<IIdentifier> > m_vIdentifier;
 
 	/// attachment accessors for Groups
 	Grid::AttachmentAccessor<VertexBase, Attachment<Group<VertexBase>* > > m_aaGroupVRT;
@@ -185,8 +186,6 @@ protected:
 	Grid::AttachmentAccessor<VertexBase, Attachment<PeriodicStatus> > m_aaPeriodicStatusVRT;
 	Grid::AttachmentAccessor<EdgeBase, Attachment<PeriodicStatus> > m_aaPeriodicStatusEDG;
 	Grid::AttachmentAccessor<Face, Attachment<PeriodicStatus> > m_aaPeriodicStatusFCE;
-
-	template <class TElem> inline bool match_wrapper(TElem* e1, TElem* e2);
 
 	/// make element e slave of group g
 	template <class TElem> void make_slave(Group<TElem>* g, TElem* e);

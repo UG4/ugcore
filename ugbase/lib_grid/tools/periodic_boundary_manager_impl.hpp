@@ -10,7 +10,7 @@
 
 // include declarations
 #include "periodic_boundary_manager.h"
-#include "lib_grid/subset_handler.h"
+//#include "lib_grid/subset_handler.h"
 #include "lib_disc/domain.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "common/assert.h"
@@ -50,8 +50,10 @@ bool ParallelShiftIdentifier<TAAPos>::match_impl(TElem* e1, TElem* e2) const {
 }
 
 template <class TElem>
-void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2) {
-	typedef typename Grid::traits<typename TElem::side>::secure_container container;
+void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2,
+		IIdentifier& ident) {
+	typedef typename
+			Grid::traits<typename TElem::side>::secure_container container;
 
 	// determine masters
 	TElem* m1 = master(e1);
@@ -87,17 +89,11 @@ void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2) {
 		m_pGrid->associated_elements<TElem>(sides2, e2);
 		for (size_t i = 0; i < sides1.size(); ++i) {
 			for (size_t j = 0; j < sides2.size(); ++j) {
-				match_and_identify(sides1[i], sides2[j]);
+				if(ident.match(sides1[i], sides2[j])) {
+					identify(sides1[i], sides2[j], ident);
+				}
 			}
 		}
-	}
-}
-
-template <class TElem>
-void PeriodicBoundaryManager::match_and_identify(TElem* e1, TElem* e2) {
-	if(match_wrapper(e1, e2)) {
-		UG_LOG("matches, so identify\n")
-		identify(e1, e2);
 	}
 }
 
@@ -198,8 +194,18 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 		return;
 	}
 
-	// attention: parentGroup may be null
-	Group<TParent>* parentGroup = group<TParent>(pParent);
+	mg.begin_marking();
+	if(TElem::BASE_OBJECT_ID != VERTEX){
+		Grid::vertex_traits::secure_container vrts;
+		mg.associated_elements(vrts, e);
+		for(size_t i = 0; i < vrts.size(); ++i){
+			Group<VertexBase>* grp = group(vrts[i]);
+			if(!grp)
+				continue;
+			mg.mark(grp->m_master);
+			mg.mark(grp->get_slaves().begin(), grp->get_slaves().end());
+		}
+	}
 
 	if (is_master<TParent>(pParent)) {
 		// create new group for e, with e as master
@@ -228,8 +234,21 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 				// all observers have been informed about the creation of the new
 				// vertex). Note that this is no problem for edges or faces, since
 				// associated vertices have been properly initialized at that time.
-				if((e->base_object_id() == VERTEX) || match_wrapper(c, e)) {
+				if((e->base_object_id() == VERTEX)) {
 					make_slave(newGroup, c);
+				} else {
+					Grid::vertex_traits::secure_container vrts;
+					mg.associated_elements(vrts, c);
+					bool allMarked = true;
+					for(size_t i = 0; i < vrts.size(); ++i){
+						if(!mg.is_marked(vrts[i])){
+							allMarked = false;
+							break;
+						}
+					}
+
+					if(allMarked)
+						make_slave(newGroup, c);
 				}
 			}
 		}
@@ -240,6 +259,10 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 		// be found. We simply leave the new element as it is, since it will
 		// be found as a slave when the associated master will be created later
 		// on (the 'if(is_master...)' case applies then.
+
+		// attention: parentGroup may be null
+		Group<TParent>* parentGroup = group<TParent>(pParent);
+
 		if (parentGroup == NULL) {
 			get_periodic_status_accessor<TElem>()[e] = P_SLAVE_MASTER_UNKNOWN;
 			return;
@@ -258,10 +281,26 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 			// all observers have been informed about the creation of the new
 			// vertex). Note that this is no problem for edges or faces, since
 			// associated vertices have been properly initialized at that time.
-			if((e->base_object_id() == VERTEX) || match_wrapper(c, e)) {
+			if((e->base_object_id() == VERTEX)) {
 				make_slave(group(c), e);
 				master_found = true;
 				break;
+			} else {
+				Grid::vertex_traits::secure_container vrts;
+				mg.associated_elements(vrts, c);
+				bool allMarked = true;
+				for(size_t i = 0; i < vrts.size(); ++i){
+					if(!mg.is_marked(vrts[i])){
+						allMarked = false;
+						break;
+					}
+				}
+
+				if(allMarked){
+					make_slave(group(c), e);
+					master_found = true;
+					break;
+				}
 			}
 		}
 
@@ -270,6 +309,8 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 			get_periodic_status_accessor<TElem>()[e] = P_SLAVE_MASTER_UNKNOWN;
 		}
 	}
+
+	mg.end_marking();
 }
 
 /// handles deletion of element type
@@ -296,35 +337,6 @@ void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
 		if (replacedBy)
 			g->add_slave(replacedBy);
 	}
-}
-
-template <class TElem>
-bool PeriodicBoundaryManager::match_wrapper(TElem* e1, TElem* e2) {
-	UG_ASSERT(m_pSH, "subset handler not valid! set it with set_subset_handler"
-			" before usage.")
-	int s1 = m_pSH->get_subset_index(e1),
-		s2 = m_pSH->get_subset_index(e2);
-
-//	UG_LOG("subset of e1: " << m_pSH->get_subset_name(s1)
-//			<< "\tsubset of e2: " << m_pSH->get_subset_name(s1) << "\n")
-//	UG_LOG("try to matching " << GetGeometricObjectCenter(*m_pGrid, e1) <<
-//			"\twith\t" << GetGeometricObjectCenter(*m_pGrid, e2) << "\n");
-//	UG_LOG("i1: " << m_vIdentifier[s1].get() << "\ti2: " << m_vIdentifier[s2].get() << "\n" )
-
-	// if elements lie in same subset, they can not geometrically match
-	if(s1 == s2)
-		return false;
-
-	// if identifiers for the elements do not match, we are finished in no time
-	if(m_vIdentifier[s1] != m_vIdentifier[s2]) {
-//		UG_LOG("identifiers do not match\n")
-		return false;
-	}
-
-	// else perform geometric match checking
-	UG_ASSERT(m_vIdentifier[s1].valid(), "identifier for subset " <<
-			m_pSH->get_subset_name(s1) << " not valid.")
-	return m_vIdentifier[s1]->match(e1, e2);
 }
 
 template <class TElem>
@@ -551,8 +563,6 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 		dom.grid()->set_periodic_boundaries(true);
 	}
 
-	// todo perform grid sanity check: e.g. overlapping subsets
-
 	PeriodicBoundaryManager& pbm = *dom.grid()->periodic_boundary_manager();
 
 	typedef typename TDomain::position_type position_type;
@@ -562,17 +572,12 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	typedef typename TDomain::subset_handler_type subset_handler_type;
 
 	subset_handler_type& sh = *dom.subset_handler();
-	pbm.set_subset_handler(&sh);
 
 	// get aaPos from domain
 	position_accessor_type& aaPos = dom.position_accessor();
 
 	// create parallel shift identifier to match subset elements
-	ParallelShiftIdentifier<position_accessor_type>* ident =
-			new ParallelShiftIdentifier<position_accessor_type>(aaPos);
-	// set identifier for both subsets
-	pbm.set_identifier(ident, sInd1);
-	pbm.set_identifier(ident, sInd2);
+	ParallelShiftIdentifier<position_accessor_type> ident(aaPos);
 
 	// shift vector between subsets
 	position_type shift;
@@ -598,7 +603,7 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 			aaPos);
 
 	VecSubtract(shift, c1, c2);
-	ident->set_shift(shift);
+	ident.set_shift(shift);
 
 	// for each level of multi grid. In case of simple grid only one iteration
 	for (size_t lvl = 0; lvl < goc1.num_levels(); lvl++) {
@@ -608,8 +613,11 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 		for (gocIter iter1 = goc1.begin<TElem>(lvl);
 				iter1 != goc1.end<TElem>(lvl); ++iter1)
 			for (gocIter iter2 = goc2.begin<TElem>(lvl);
-					iter2 != goc2.end<TElem>(lvl); ++iter2)
-				pbm.match_and_identify(*iter1, *iter2);
+					iter2 != goc2.end<TElem>(lvl); ++iter2) {
+				if(ident.match(*iter1, *iter2)) {
+					pbm.identify(*iter1, *iter2, ident);
+				}
+			}
 	}
 #ifdef UG_DEBUG
 	test<VertexBase>(pbm, goc1, goc2);
