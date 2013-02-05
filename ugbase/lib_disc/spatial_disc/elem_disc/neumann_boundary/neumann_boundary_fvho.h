@@ -17,6 +17,14 @@ prep_elem_loop_fvho()
 {
 //	register subsetIndex at Geometry
 	static typename TGeomProvider::Type& geo = TGeomProvider::get();
+	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
+	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
+
+	try{
+		geo.update_local(roid, m_order);
+	}
+	UG_CATCH_THROW("NeumannBoundary::prep_elem_loop_fvho:"
+						" Cannot update Finite Volume Geometry.");
 
 //	request subset indices as boundary subset. This will force the
 //	creation of boundary subsets when calling geo.update
@@ -92,10 +100,10 @@ add_rhs_elem_fvho(LocalVector& d)
 			const int si = m_vNumberData[data].ssGrp[s];
 			const std::vector<BF>& vBF = geo.bf(si);
 
-			for(size_t b = 0; b < vBF.size(); ++b, ++ip){
+			for(size_t b = 0; b < vBF.size(); ++b){
 				const int co = vBF[b].node_id();
 
-				for(size_t i = 0; i < vBF[b].num_ip(); ++i){
+				for(size_t i = 0; i < vBF[b].num_ip(); ++i, ++ip){
 					d(m_vNumberData[data].locFct, co) -= m_vNumberData[data].import[ip]
 														* vBF[b].volume()
 														* vBF[b].weight(i);

@@ -1265,6 +1265,9 @@ update_boundary_faces(TElem* pElem, const MathVector<worldDim>* vCornerCoords, c
 			vSubsetIndex[i] = ish->get_subset_index(vFaces[i]);
 	}
 
+//	update reference mapping
+	m_rMapping.update(vCornerCoords);
+
 //	loop requested subset
 	typename std::map<int, std::vector<BF> >::iterator it;
 	for (it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); ++it)
@@ -1318,8 +1321,12 @@ update_boundary_faces(TElem* pElem, const MathVector<worldDim>* vCornerCoords, c
 				// 	copy corners of bf
 					CopyCornerByMidID<dim, maxMid>
 						(bf.vLocPos, bf.vMidID, m_vSubElem[se].vvLocMid, BF::numCo);
-					CopyCornerByMidID<worldDim, maxMid>
-						(bf.vGloPos, bf.vMidID, m_vSubElem[se].vvGloMid, BF::numCo);
+//					CopyCornerByMidID<worldDim, maxMid>
+//						(bf.vGloPos, bf.vMidID, m_vSubElem[se].vvGloMid, BF::numCo);
+				// 	compute global corners of bf
+					for(size_t i = 0; i < bf.num_corners(); ++i)
+						m_rMapping.local_to_global(bf.vGloPos[i], bf.vLocPos[i]);
+
 
 				// 	normal on scvf
 					traits::NormalOnSCVF(bf.Normal, bf.vGloPos, m_vSubElem[se].vvGloMid[0]);
@@ -1811,14 +1818,23 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 				// 	copy corners of bf
 					CopyCornerByMidID<dim, maxMid>
 						(bf.vLocPos, bf.vMidID, m_vSubElem[se].vvLocMid, BF::numCo);
-					CopyCornerByMidID<worldDim, maxMid>
-						(bf.vGloPos, bf.vMidID, m_vSubElem[se].vvGloMid, BF::numCo);
+//					CopyCornerByMidID<worldDim, maxMid>
+//						(bf.vGloPos, bf.vMidID, m_vSubElem[se].vvGloMid, BF::numCo);				// 	compute global corners of bf
+					for(size_t i = 0; i < bf.num_corners(); ++i)
+						rMapping.local_to_global(bf.vGloPos[i], bf.vLocPos[i]);
 
 				// 	normal on scvf
 					traits::NormalOnSCVF(bf.Normal, bf.vGloPos, m_vSubElem[se].vvGloMid[0]);
 
+				//	compute volume
+					bf.Vol = VecTwoNorm(bf.Normal);
+
 				//	compute local integration points
 					bf.vWeight = rSCVFQuadRule.weights();
+					bf.nip = rSCVFQuadRule.size();
+					bf.vLocalIP.resize(bf.nip);
+					bf.vGlobalIP.resize(bf.nip);
+
 					ReferenceMapping<scvf_type, dim> map(bf.vLocPos);
 					for(size_t ip = 0; ip < rSCVFQuadRule.size(); ++ip)
 						map.local_to_global(bf.vLocalIP[ip], rSCVFQuadRule.point(ip));
@@ -1827,8 +1843,18 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
 						rMapping.local_to_global(bf.vGlobalIP[ip], bf.vLocalIP[ip]);
 
-				//	compute volume
-					bf.Vol = VecTwoNorm(bf.Normal);
+					bf.nsh = rTrialSpace.num_sh();
+					bf.vvShape.resize(bf.nip);
+					bf.vvLocalGrad.resize(bf.nip);
+					bf.vvGlobalGrad.resize(bf.nip);
+					bf.vJtInv.resize(bf.nip);
+					bf.vDetJ.resize(bf.nip);
+					for(size_t ip = 0; ip < bf.num_ip(); ++ip)
+					{
+						bf.vvShape[ip].resize(bf.nsh);
+						bf.vvLocalGrad[ip].resize(bf.nsh);
+						bf.vvGlobalGrad[ip].resize(bf.nsh);
+					}
 
 				//	compute shapes and gradients
 					for(size_t ip = 0; ip < bf.num_ip(); ++ip)

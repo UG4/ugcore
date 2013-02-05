@@ -80,6 +80,7 @@ static void Domain(Registry& reg, string grp)
 #ifdef UG_FOR_LUA
 			.add_method("add", static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add))
 #endif
+			.add_method("set_disc_scheme", &T::set_disc_scheme)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NeumannBoundary", tag);
 	}
