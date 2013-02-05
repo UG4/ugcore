@@ -228,6 +228,8 @@ class IAssemble
 	 * \param[in]	sel		Selector
 	 */
 		virtual void set_selector(Selector* sel = NULL) = 0;
+	
+		virtual void ass_index(size_t ind, bool index_set = true) = 0;
 
 	///	returns the number of constraints
 		virtual size_t num_constraints() const = 0;

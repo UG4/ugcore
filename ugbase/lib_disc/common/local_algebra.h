@@ -735,6 +735,30 @@ void AddLocalMatrixToGlobal(TMatrix& mat, const LocalMatrix& lmat)
 				}
 }
 
+template <typename TMatrix>
+void AddLocalMatrixToGlobalAtIndex(TMatrix& mat, const LocalMatrix& lmat, const size_t assIndex)
+{
+	//PROFILE_FUNC_GROUP("algebra")
+	const LocalIndices& rowInd = lmat.get_row_indices();
+	const LocalIndices& colInd = lmat.get_col_indices();
+
+	for(size_t fct1=0; fct1 < lmat.num_all_row_fct(); ++fct1)
+		for(size_t fct2=0; fct2 < lmat.num_all_col_fct(); ++fct2)
+			for(size_t dof1=0; dof1 < lmat.num_all_row_dof(fct1); ++dof1)
+				for(size_t dof2=0; dof2 < lmat.num_all_col_dof(fct2); ++dof2)
+				{
+					const size_t rowIndex = rowInd.index(fct1,dof1);
+					const size_t rowComp = rowInd.comp(fct1,dof1);
+					const size_t colIndex = colInd.index(fct2,dof2);
+					const size_t colComp = colInd.comp(fct2,dof2);
+
+					if ((rowIndex == assIndex) && (colIndex == assIndex)){
+						BlockRef(mat(0, 0), rowComp, colComp)
+									+= lmat.value(fct1,dof1,fct2,dof2);
+					}
+				}
+}
+
 
 } // end namespace ug
 
