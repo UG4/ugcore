@@ -11,7 +11,7 @@
 #ifndef NL_GAUSS_SEIDEL_H_
 #define NL_GAUSS_SEIDEL_H_
 
-
+//#include "lib_grid/lg_base.h"
 #include "lib_algebra/operator/interface/operator_inverse.h"
 
 // modul intern headers
@@ -39,11 +39,17 @@ class NLGaussSeidelSolver
 	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	///	Value type
+		typedef typename TAlgebra::vector_type::value_type val_type;
+
 	///	Domain type
 		typedef TDomain domain_type;
 
 	///	Type of approximation space
 		typedef ApproximationSpace<domain_type>	approx_space_type;
+
+	///	Type of geometric base object
+		typedef typename domain_traits<TDomain::dim>::geometric_base_object geometric_base_object;
 
 	protected:
 		typedef DebugWritingObject<TAlgebra> base_writer_type;
@@ -92,7 +98,11 @@ class NLGaussSeidelSolver
 		SmartPtr<IConvergenceCheck<vector_type> > m_spConvCheck;
 
 		vector_type m_d;
-		vector_type m_c;
+
+		vector_type m_c_comp;
+		vector_type m_d_comp;
+		vector_type m_u_comp;
+		matrix_type m_J_comp;
 
 		SmartPtr<AssembledOperator<algebra_type> > m_N;
 		SmartPtr<AssembledLinearOperator<algebra_type> > m_J;
@@ -103,8 +113,25 @@ class NLGaussSeidelSolver
 		///	call counter
 		int m_dgbCall;
 
+		/* TODO: hier alle typen von geometric_base_object zulassen?
+		typedef Attachment<vector<geometric_base_object*> > AElemList; 	//attachment type: attachment of ElemDatas
+		AElemList m_aElemList;						//the instance of the attachment type
+		typedef Grid::VertexAttachmentAccessor<AElemList>	ElemListAccessor;
+		ElemListAccessor m_aaElemList;
+		///	use this method to make sure that all required attachments are attached
+		void attach_attachments()
+		{
+			typename TDomain::grid_type& grid = *this->domain().grid();
+			grid.attach_to_vertices(m_aElemList);
+			m_aaElemList.access(grid, m_aElemList);
+		}*/
+
+		// TODO: hier alle typen von geometric_base_object zulassen?
+		typedef vector<geometric_base_object*> elemList;
+		vector<elemList> m_vElemList;
+
 		///	selector of elements with contributions to a specific DoF
-		Selector m_vElemSelector;
+		Selector m_sel;
 };
 
 }

@@ -95,20 +95,32 @@ init(SmartPtr<IOperator<vector_type> > N)
 		UG_THROW("NLGaussSeidelSolver: currently only works for AssembledDiscreteOperator.");
 
 	m_pAss = m_N->get_assemble();
-
-	m_gridLevel = m_N->level();
+	if(m_pAss == NULL)
+		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 	//	Check for approxSpace
 	if(m_spApproxSpace.invalid())
 		UG_THROW("NLGaussSeidelSolver::prepare: Approximation Space not set.");
 
+	m_gridLevel = m_N->level();
+
 	//	set DoF distribution type
 	if(m_gridLevel.type() == GridLevel::LEVEL)
+	{
 		m_spLevDD = m_spApproxSpace->level_dof_distribution(m_gridLevel.level());
+		//	note: #ftcs needs to be constant over all subsets!!!
+		//m_num_fct = m_spLevDD
+	}
 	else if (m_gridLevel.type() == GridLevel::SURFACE)
 		m_spSurfDD = m_spApproxSpace->surface_dof_distribution(m_gridLevel.level());
 	else
 		UG_THROW("Grid Level not recognized.");
+
+	/*TDomain& dom = *m_spApproxSpace->domain();
+	typename TDomain::grid_type& grid = *dom.grid();
+
+	grid.attach_to_vertices(m_aElemList);
+	m_aaElemList.access(grid, m_aElemList);*/
 
 	return true;
 }
@@ -117,10 +129,11 @@ init(SmartPtr<IOperator<vector_type> > N)
 template <typename TDomain, typename TAlgebra>
 bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 {
-	//	fill m_DiagMarker by selecting all elements
+	//	In this method a elemList is created for every DoF i. These element-list
+	//	incorporate by selecting all elements
 	//	which have contributions to the diag
 
-	/*//	Check for approxSpace
+	//	Check for approxSpace
 	if(m_spApproxSpace.invalid())
 		UG_THROW("NLGaussSeidelSolver::apply: Approximation Space not set.");
 
@@ -137,59 +150,32 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 	typedef typename TDomain::grid_type::template traits<geometric_base_object>::iterator
 			ElemIter;
 
-	ElemIter iter;
 	ElemIter iterBegin = grid.template begin<geometric_base_object>();
 	ElemIter iterEnd = grid.template end<geometric_base_object>();
 
-	LocalIndices ind; LocalVector locU;
+	typedef typename elemList::iterator ListIter;
 
-	//std::vector<BoolMarker>& vDiagMarker = m_vDiagMarker;
+	/* VERSION †BER ATTACHMENT:
+	typename Grid::traits<geometric_base_object>::secure_container elems;
 
-	m_vDiagMarker.resize(u.size());
+	int vtr_count = 0;
 
-	UG_LOG("u_size:" << u.size() << "\n");
+	//	loop over all vertices on grid/multigrid
+	for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
+	{
+		grid.associated_elements(elems, *iter);
+		for(size_t i = 0; i < elems.size(); ++i) m_aaElemList[*iter].push_back(elems[i]);
+	}*/
 
-	//	loop all DoFs
-	for (size_t i = 0; i < u.size(); i++){m_vDiagMarker[i].assign_grid(grid);}
+	LocalVector locU; LocalIndices ind;
 
-	size_t count_elem = 0;
+	m_vElemList.resize(u.size());
 
-	//	loop over all elements on grid
-	for(iter = iterBegin; iter != iterEnd; ++iter)
+	//	loop over all elements on grid/multigrid
+	for(ElemIter elemIter = iterBegin; elemIter != iterEnd; ++elemIter)
 	{
 		//	get element
-		geometric_base_object* elem = *iter;
-
-		size_t count_i = 0;
-		size_t count_noti = 0;
-		for (size_t i = 0; i < u.size(); i++)
-		{
-			// unmark
-			m_vDiagMarker[i].unmark(*iter);
-		}
-
-		if(m_vDiagMarker[1].is_marked(*iter))
-		{
-			UG_LOG("1-ter index ist markiert!\n");
-		}
-
-		for (size_t i = 0; i < u.size(); i++)
-		{
-			if(m_vDiagMarker[i].is_marked(*iter))
-			{
-				count_i++;
-			}
-			else
-			{
-				count_noti++;
-			}
-
-		}
-		UG_LOG("Elem has " << count_i << " marks \n");
-		UG_LOG(count_noti << " unmarks \n");
-
-		count_i = 0;
-		count_noti = 0;
+		geometric_base_object* elem = *elemIter;
 
 		if(m_gridLevel.type() == GridLevel::LEVEL)
 			m_spLevDD->indices(elem, ind);
@@ -201,67 +187,35 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 		// 	adapt local algebra
 		locU.resize(ind);
 
-		//	local vector extract -> locU
-		GetLocalVector(locU, u);
+		//TODO: bool skip_loop = false; ?
+		//for(size_t fct=0; fct < locU.num_all_fct() && !skip_loop; ++fct)
 
-		bool skip_loop = false;
+		bool elem_in_list = false;
 
-		for(size_t fct=0; fct < locU.num_all_fct() && !skip_loop; ++fct)
+		for(size_t fct=0; fct < locU.num_all_fct(); ++fct)
 			for(size_t dof=0; dof < locU.num_all_dof(fct); ++dof)
 			{
 				size_t globIndex = ind.index(fct,dof);
-				//const size_t comp = ind.comp(fct,dof);
-				UG_LOG("index:" << globIndex << "\n");
+				size_t globComp = ind.comp(fct,dof);
+				//UG_LOG("index:" << globIndex << "\n");
+				//UG_LOG("comp:" << globComp << "\n");
 
-				if(m_vDiagMarker.at(1).is_marked(*iter))
-				{
-					UG_LOG("1-ter index ist markiert!\n");
-				}
-				//	mark elem in order to show that it
-				//	has got an effect on globIndex
-				//	(these elems wont be skipped in assembling!)
-				//BoolMarker* p_vDiagMarker = m_vDiagMarker.data();
+				//	check if the globIndex-th elemList incorporates the element *iter
+				for(ListIter listIter = m_vElemList[globIndex].begin();
+						listIter != m_vElemList[globIndex].end(); ++listIter)
+					if (*listIter == *elemIter)
+						elem_in_list = true;
 
-				BoolMarker& vDiagMarkerGlobInd = m_vDiagMarker.at(globIndex);
+				//	only add the element *elemIter to the globIndex-th elemList,
+				//	if the list does not incorporate the element already
+				if (!elem_in_list) m_vElemList[globIndex].push_back(*elemIter);
 
-				vDiagMarkerGlobInd.mark(*iter);
+			} //end (dof)
+	} //end (elem)
 
-				if(m_vDiagMarker.at(1).is_marked(*iter))
-				{
-					UG_LOG("1-ter index ist markiert!\n");
-				}
-
-				if(m_vDiagMarker.at(2).is_marked(*iter))
-				{
-					UG_LOG("2-ter index ist markiert!\n");
-				}
-
-				skip_loop = true;
-				break;
-
-			}
-
-		for (size_t i = 0; i < u.size(); i++)
-		{
-			if(m_vDiagMarker.at(i).is_marked(*iter))
-			{
-				count_i++;
-				UG_LOG("elem has influence on: " << i << "\n");
-			}
-			else
-			{
-				count_noti++;
-			}
-
-		}
-		UG_LOG("Elem has " << count_i << " influences \n");
-		UG_LOG(count_noti << " elems should be skipped \n");
-		count_elem++;
-		UG_LOG("\n");
-
-	}
-
-	UG_LOG("Loop over " << count_elem << "elems in preprocess \n");*/
+	/*//if (m_vElemList[i].size() > 8 )
+	for (size_t i = 0; i < u.size(); i++)
+		UG_LOG(" FŸr DoF " << i << " haben wir " << m_vElemList[i].size() << " Elemente in der Liste \n ");*/
 
 	return true;
 }
@@ -289,13 +243,12 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		m_J->set_level(m_gridLevel);
 	}
 
-	//	get #indices of gridFunction u
-	const size_t n_indices = u.size();
-
 	//	resize
 	try{
-		m_d.resize(n_indices); m_d = u;
-		m_c.resize(n_indices); m_c = u;
+		m_d.resize(u.size()); m_d.copy_layouts(u);
+		m_c_comp.resize(1); m_c_comp.copy_layouts(u);
+		m_u_comp.resize(1); m_u_comp.copy_layouts(u);
+		m_d_comp.resize(1); m_d_comp.copy_layouts(u);
 	}UG_CATCH_THROW("NLGaussSeidelSolver::apply: Resize of Defect/Correction failed.");
 
 	//	Set dirichlet values
@@ -326,6 +279,8 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	matrix_type& J = m_J->get_matrix();
 	number damp = m_damp;
 
+	matrix_type J_block;
+
 	// some vars for BoolMarker
 	TDomain& dom = *m_spApproxSpace->domain();
 	typename TDomain::grid_type& grid = *dom.grid();
@@ -338,20 +293,14 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	ElemIter iterBegin = grid.template begin<geometric_base_object>();
 	ElemIter iterEnd = grid.template end<geometric_base_object>();
 
-	LocalIndices ind; LocalVector locU;
-
-	m_vElemSelector.assign_grid(grid);
-
-	//	creating an ElemList
-	//	TODO: use ElemList as a member-variable of NL_GaussSeidel-class?
-	std::list<geometric_base_object> ElemList;
+	m_sel.assign_grid(grid);
 
 	//	loop iteration
 	while(!m_spConvCheck->iteration_ended())
 	{
 		// 	set correction c = 0
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELSetCorretionZero);
-		if(!m_c.set(0.0))
+		if(!m_c_comp.set(0.0))
 		{
 			UG_LOG("ERROR in 'NLGaussSeidelSolver::apply':"
 					" Cannot reset correction to zero.\n");
@@ -360,71 +309,32 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		NL_GAUSSSEIDEL_PROFILE_END();
 
 		//	loop all DoFs
-		for (size_t i = 0; i < n_indices; i++)
+		for (size_t i = 0; i < u.size(); i++)
 		{
 			// 	Compute Jacobian J(u) using the updated u-components
 
 			//	we only need J(i,i) and d(i) here!
-			//	TODO: for DoF i create an ElemList!
-			//	This ElemList should be passed to the assemble_funcs.
-			//	iterBegin and iterEnd must be passed to elem_disc_assemble_util.h!
+			//	use the i-th ElemList to select those elements
+			//	which are associated to (in the neighborhood of) DoF i!
 
-			// 	some debug-vars
-			size_t count_i = 0;
-			size_t count_noti = 0;
+			m_sel.clear();
+			m_sel.select(m_vElemList[i].begin(), m_vElemList[i].end());
 
-			//	loop over all elements on grid
-			for(iter = iterBegin; iter != iterEnd; ++iter)
-			{
-				//	get element
-				geometric_base_object* elem = *iter;
+			//int nSelElem = m_sel.num<geometric_base_object>();
+			//UG_LOG("for DoF: " << i << " " << nSelElem << " elems are selected\n");
 
-				if(m_gridLevel.type() == GridLevel::LEVEL)
-					m_spLevDD->indices(elem, ind);
-				else if (m_gridLevel.type() == GridLevel::SURFACE)
-					m_spSurfDD->indices(elem, ind);
-				else
-					UG_THROW("Grid Level not recognized.");
+			m_u_comp[0] = u[i];
+			m_d_comp[0] = m_d[i];
+			//m_J_comp[0][0] = J(i,i);
 
-				// 	adapt local algebra
-				locU.resize(ind);
-
-				//	local vector extract -> locU
-				GetLocalVector(locU, u);
-
-				bool skip_loop = false;
-				m_vElemSelector.deselect(*iter);
-
-				for(size_t fct=0; fct < locU.num_all_fct() && !skip_loop; ++fct)
-					for(size_t dof=0; dof < locU.num_all_dof(fct); ++dof)
-					{
-						size_t globIndex = ind.index(fct,dof);
-						//UG_LOG("index:" << globIndex << "\n");
-
-						//	mark elem in order to show that it
-						//	has got an effect on globIndex
-						//	(these elems won't be skipped in assembling!)
-
-						if (globIndex == i)
-						{
-							count_i++;
-							m_vElemSelector.select(*iter);
-							skip_loop = true;
-							break;
-						}
-						else{count_noti++;}
-					}
-			} //end(elem)
-
-			//TODO: ElemList needs to be sorted by elem-types (edge,triangle,quad,...)
-
-			//UG_LOG("DoF " << i << " is influenced by " << count_i << " elems \n");
-			//UG_LOG(count_noti << " elems should be skipped \n");
-			m_pAss->set_selector(&m_vElemSelector);
+			m_pAss->set_selector(&m_sel);
+			//m_pAss->ass_index(i);
 
 			try{
 				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeJacobian);
+				//m_J->init(m_u_comp);
 				m_J->init(u);
+				//m_pAss->assemble_jacobian(J, u, m_gridLevel.level());
 				NL_GAUSSSEIDEL_PROFILE_END();
 			}UG_CATCH_THROW("NLGaussSeidelSolver::apply: "
 					"Initialization of Jacobian failed.");
@@ -437,21 +347,36 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 			//	get i,i-th block of J: J(i,i)
 			//	depending on the AlgebraType J(i,i) is a 1x1, 2x2, 3x3 Matrix
 			//	m_c_i = m_damp * d_i /J_ii
-			InverseMatMult(m_c[i], damp, J(i,i), m_d[i]);
+			//m_J_comp = J(i,i);
+			InverseMatMult(m_c_comp[0], damp, J(i,i) , m_d_comp[0]);
+
+			//UG_LOG("J(" << i << "," << i << "): " << J(i,i) << "\n");
 
 			// 	update i-th block of solution
-			u[i] -= m_c[i];
+			u[i] -= m_c_comp[0];
 
 			m_pAss->set_selector(NULL);
 			// 	Compute d = L(u) using the updated u-blocks
 			//	TODO: replace prepare(m_d,u) & apply(m_d,u)!
 			//	We only need the new m_d due
 			//  to the updated block u_i! (not due to u!)
-			NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
-			m_N->prepare(m_d, u);
-			m_N->apply(m_d, u);
-			NL_GAUSSSEIDEL_PROFILE_END();
+			//m_d[i] = m_d_comp;
+
+
+			//if (i == (n_indices - 1))
+			//{
+				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
+				m_N->prepare(m_d, u);
+				m_N->apply(m_d, u);
+				NL_GAUSSSEIDEL_PROFILE_END();
+				//m_d[i] = d_comp;
+			//}
 		}
+
+		/*NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
+		m_N->prepare(m_d, u);
+		m_N->apply(m_d, u);
+		NL_GAUSSSEIDEL_PROFILE_END();*/
 
 		// 	check convergence
 		m_spConvCheck->update(m_d);
