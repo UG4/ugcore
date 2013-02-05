@@ -140,3 +140,19 @@ OrderCuthillMcKee(approxSpace, true);
 \endcode
 
 */
+
+
+\section secUnitTestsRun Building and running the Testsuite
+
+You are able to use the testsuite locally. To do so you first need build it
+\code
+mkdir build_test
+cd build_test; cmake .. ; make
+
+The testsuite binary will be in the same location as ugshell ($UG4_ROOT/bin).
+
+To run all tests and enable logging to console invoke it with:
+test_suite --console
+
+For more parameters please have a look at the boost 
+<a href="live.boost.org/doc/libs/1_48_0/libs/test/doc/html/utf/user-guide/runtime-config/reference.html">documentation</a>
