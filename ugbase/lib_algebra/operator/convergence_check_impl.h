@@ -159,7 +159,7 @@ bool StdConvCheck<TVector>::post()
 		if (!is_valid_number(m_currentDefect))
 			if(m_verbose)
 			{
-				print_offset(); UG_LOG("Current defect << " << m_currentDefect << " is not a valid number.\n");
+				print_offset(); UG_LOG("Current defect " << m_currentDefect << " is not a valid number.\n");
 			}
 
 		if(step() >= m_maxSteps)
