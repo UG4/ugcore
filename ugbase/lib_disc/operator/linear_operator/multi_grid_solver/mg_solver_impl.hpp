@@ -1770,6 +1770,7 @@ clone()
 	clone->set_restriction(m_spRestrictionPrototype);
 	clone->set_presmoother(m_spPreSmootherPrototype);
 	clone->set_postsmoother(m_spPostSmootherPrototype);
+	clone->set_surface_level(m_surfaceLev);
 
 	for(size_t i = 0; i < m_vspProlongationPostProcess.size(); ++i)
 		clone->add_prolongation_post_process(m_vspProlongationPostProcess[i]);
