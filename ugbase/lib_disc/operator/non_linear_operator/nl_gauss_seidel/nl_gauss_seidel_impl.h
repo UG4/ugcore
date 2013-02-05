@@ -245,10 +245,14 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 	//	resize
 	try{
-		m_d.resize(u.size()); m_d.copy_layouts(u);
-		m_c_comp.resize(1); m_c_comp.copy_layouts(u);
+		m_d.resize(u.size()); m_d = u; //m_d.copy_layouts(u);
+		m_c_comp.resize(u.size()); m_c_comp = u;
+		m_u_comp.resize(u.size()); m_u_comp = u;
+		m_d_comp.resize(u.size()); m_d_comp = u;
+
+		/*m_c_comp.resize(1); m_c_comp.copy_layouts(u);
 		m_u_comp.resize(1); m_u_comp.copy_layouts(u);
-		m_d_comp.resize(1); m_d_comp.copy_layouts(u);
+		m_d_comp.resize(1); m_d_comp.copy_layouts(u);*/
 	}UG_CATCH_THROW("NLGaussSeidelSolver::apply: Resize of Defect/Correction failed.");
 
 	//	Set dirichlet values
