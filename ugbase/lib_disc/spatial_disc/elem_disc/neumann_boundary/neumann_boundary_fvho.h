@@ -98,7 +98,7 @@ add_rhs_elem_fvho(LocalVector& d)
 				for(size_t i = 0; i < vBF[b].num_ip(); ++i){
 					d(m_vNumberData[data].locFct, co) -= m_vNumberData[data].import[ip]
 														* vBF[b].volume()
-														* vBF[b].weight(ip);
+														* vBF[b].weight(i);
 				}
 			}
 		}
