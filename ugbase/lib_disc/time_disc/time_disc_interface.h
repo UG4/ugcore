@@ -18,6 +18,7 @@
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
+#include "lib_disc/spatial_disc/ass_adapter.h"
 
 namespace ug{
 
@@ -157,7 +158,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 */
 		virtual void set_marker(BoolMarker* mark = NULL)
 		{
-			m_pBoolMarker = mark; forward_marker();
+			m_AssAdapter.pBoolMarker = mark; forward_marker();
 		}
 	///	sets a selector of elements for assembling
 	/**
@@ -171,9 +172,14 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 */
 		virtual void set_selector(Selector* sel = NULL)
 		{
-			m_pSelector = sel; forward_selector();
+			m_AssAdapter.pSelector = sel; forward_selector();
 		}
 	
+		virtual void ass_index(size_t ind, bool index_set = true)
+		{
+			m_AssAdapter.assIndex.index = ind; m_AssAdapter.assIndex.index_set = index_set; forward_ass_index();
+		}
+		
 	///	returns the number of constraint
 		virtual size_t num_constraints() const
 		{
@@ -189,18 +195,22 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	protected:
 		void forward_marker()
 		{
-			m_spDomDisc->set_marker(m_pBoolMarker);
+			m_spDomDisc->set_marker(m_AssAdapter.pBoolMarker);
 		}
 
 		void forward_selector()
 		{
-			m_spDomDisc->set_selector(m_pSelector);
+			m_spDomDisc->set_selector(m_AssAdapter.pSelector);
 		}
 
+		void forward_ass_index()
+		{
+			m_spDomDisc->ass_index(m_AssAdapter.assIndex.index, m_AssAdapter.assIndex.index_set);
+		}
+		
 		SmartPtr<IDomainDiscretization<TAlgebra> > m_spDomDisc; ///< Domain Discretization
 
-		BoolMarker* m_pBoolMarker;
-		Selector* m_pSelector;
+		AssAdapter m_AssAdapter;
 };
 
 /// @}

@@ -21,6 +21,7 @@
 #include "disc_item.h"
 #include "lib_disc/spatial_disc/domain_disc_base.h"
 #include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/spatial_disc/ass_adapter.h"
 
 namespace ug {
 
@@ -30,8 +31,8 @@ namespace ug {
 /// domain discretization implementing the interface
 /**
  * This class is an implementation of the IDomainDiscretization interface. It
- * is designed to simply group several discreizations on different subsets and
- * perform element based assemblings and costraints in the same order.
+ * is designed to simply group several discretizations on different subsets and
+ * perform element based assemblings and constraints in the same order.
  */
 template <typename TDomain, typename TAlgebra>
 class DomainDiscretization
@@ -59,9 +60,13 @@ class DomainDiscretization
 		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
 			m_spApproxSpace(pApproxSpace), m_bForceRegGrid(false),
 			m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL),
-			m_pBoolMarker(NULL), m_pSelector(NULL)
+			m_AssAdapter()
 		{
 			this->set_approximation_space(pApproxSpace);
+			
+			m_AssAdapter.pBoolMarker = NULL;
+			m_AssAdapter.pSelector = NULL;
+			m_AssAdapter.assIndex.index_set = false;
 		};
 
 		virtual ~DomainDiscretization() {};
@@ -201,7 +206,7 @@ class DomainDiscretization
 	///	enables boundary elem discs
 		virtual void enable_elem_discs(int bEnableTypes) {m_ElemTypesEnabled = bEnableTypes;}
 
-	///	sets a marker to exlude elements from assembling
+	///	sets a marker to exclude elements from assembling
 	/**
 	 * This methods sets a marker. Only elements that are marked will be
 	 * assembled during assembling process. If no marker is set, this
@@ -209,7 +214,7 @@ class DomainDiscretization
 	 *
 	 * \param[in]	mark	BoolMarker
 	 */
-	virtual void set_marker(BoolMarker* mark = NULL){m_pBoolMarker = mark;}
+	virtual void set_marker(BoolMarker* mark = NULL){m_AssAdapter.pBoolMarker = mark;}
 
 	///	sets a selector of elements for assembling
 	/**
@@ -221,8 +226,14 @@ class DomainDiscretization
 	 *
 	 * \param[in]	sel		Selector
 	 */
-	virtual void set_selector(Selector* sel = NULL){m_pSelector = sel;}
+	virtual void set_selector(Selector* sel = NULL){m_AssAdapter.pSelector = sel;}
 
+
+	virtual void ass_index(size_t ind, bool index_set = true)
+	{
+		m_AssAdapter.assIndex.index = ind; m_AssAdapter.assIndex.index_set = index_set;
+	}
+	
 	public:
 	/// adds an element discretization to the assembling process
 	/**
@@ -317,11 +328,8 @@ class DomainDiscretization
 
 	///	enables the constraints
 		int m_ElemTypesEnabled;
-
-	///	marker used to skip elements
-		BoolMarker* m_pBoolMarker;
-	///	selector used to set a list of elements for the assembling
-		Selector* 	m_pSelector;
+		
+		AssAdapter m_AssAdapter;
 };
 
 /// @}
