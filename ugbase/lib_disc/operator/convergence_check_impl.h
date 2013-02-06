@@ -257,15 +257,15 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 		}
 
 	//	start iteration output
-		print_offset(); UG_LOG("  Iter      Defect           Rate         Reduction        Required      Function\n");
+		print_offset(); UG_LOG("  Iter      Defect         Required          Rate         Reduction        Required      Function\n");
 
 		print_offset(); UG_LOG(std::setw(4) << step() << ":    "
-								<< std::scientific << defect(0) <<  "      --------        -------       "
+								<< std::scientific << defect(0) <<  "    "<< m_minDefect[0]<<"      --------        -------       "
 								<< m_relReduction[0] << "    " << std::setw(0) << fctName(0) << "\n");
 		for (size_t i = 1; i < m_fctName.size(); i++)
 		{
 			print_offset(); UG_LOG("         "
-									<< std::scientific << defect(i) <<  "      --------        -------       "
+									<< std::scientific << defect(i) <<  "    "<< m_minDefect[i]<<"      --------        -------       "
 									<< m_relReduction[i] << "    " << fctName(i) << "\n");
 		}
 	}
@@ -303,12 +303,12 @@ void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 	if (m_verbose)
 	{
 		print_offset(); UG_LOG(std::setw(4) << step() << ":    "
-										<< std::scientific << defect(0) << "    " << defect(0)/previousDefect(0)
+										<< std::scientific << defect(0) <<  "    "<< m_minDefect[0]<< "    " << defect(0)/previousDefect(0)
 										<< "    " << reduction(0) << "    "
 										<< m_relReduction[0] << "    " << std::setw(0) << fctName(0) << "\n");
 		for (size_t i = 1; i < m_fctName.size(); i++)
 		{
-			print_offset(); UG_LOG("         " << std::scientific << defect(i) << "    " << defect(i)/previousDefect(i)
+			print_offset(); UG_LOG("         " << std::scientific << defect(i) <<  "    "<< m_minDefect[i]<< "    " << defect(i)/previousDefect(i)
 								<< "    " << reduction(i) << "    "
 								<< m_relReduction[i] << "    " << fctName(i) << "\n");
 		}
@@ -351,9 +351,15 @@ bool CompositeConvCheck<TVector, TDomain>::post()
 			valid[i] = false;
 			allValid = false;
 		}
+
+
+
 		if (	!(minDef[i] = defect(i) < m_minDefect[i])
 			&& 	!(red[i] = reduction(i) < m_relReduction[i]))
+		{
 		success = false;
+
+		}
 	}
 
 	success &= allValid && step() <= m_maxSteps;
