@@ -896,7 +896,7 @@ bool AssertPluginLoaded(const char *name)
 void EnableLUA2C(bool b)
 {
 #ifndef USE_LUA2C
-	UG_LOG("Warning: LUA2C not enabled.\n")
+	UG_LOG("Warning: LUA2C not enabled. Enable with \"cmake -DUSE_LUA2C=ON ..\"\n")
 #endif		
 	useLua2C=b;
 }
