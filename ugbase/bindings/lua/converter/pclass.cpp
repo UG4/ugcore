@@ -154,7 +154,7 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
 						a = a->opr.op[1];
 					}
 					createC(a, out, indent);
-					out << ");\n";     
+					out << ")\n";     
                     break;
                 }
                     
@@ -532,7 +532,7 @@ int pclass::parse_luaFunction(const char *functionName)
 	const char *src = ar.source[0]=='@' ? ar.source+1 : ar.source;
 
 	string str = GetFileLines(src, ar.linedefined, ar.lastlinedefined, false);
-	UG_LOG("The function:\n"<<str<<"\n");
+	//UG_DLOG("The function:\n"<<str<<"\n");
 
     lua_pop(L, 1);
     

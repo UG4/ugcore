@@ -206,10 +206,11 @@ evaluate(TData& D, const MathVector<dim>& x, number time, int si) const
 #ifdef USE_LUA2C
 	if(useLua2C && m_luaC.is_valid())
 	{
-		double d[dim+1];
+		double d[dim+2];
 		for(int i=0; i<dim; i++)
 			d[i] = x[i];
-		d[dim] = time;		
+		d[dim] = time;	
+		d[dim+1] = si;	
 		double ret[lua_traits<TData>::size+1];
 		m_luaC.call(ret, d);
 		//TData D2;
