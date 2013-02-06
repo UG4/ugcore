@@ -389,15 +389,8 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 						if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 					}
 
-					if(base_type::m_AssIndex.index_set)
-					{
-						if(base_type::m_AssIndex.index == multInd[j][0])
-							BlockRef(J(0,0), multInd[j][1], multInd[j][1]) = 1.0;
-					}
-					else{
-						//	set dirichlet row
-						SetDirichletRow(J, multInd[j][0], multInd[j][1]);
-					}
+				//	set dirichlet row
+					SetDirichletRow(J, multInd[j][0], multInd[j][1]);
 				}
 			}
 		}

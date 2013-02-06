@@ -12,8 +12,6 @@
 #include "lib_disc/dof_manager/level_dof_distribution.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
 
-#include "lib_disc/spatial_disc/ass_adapter.h"
-
 namespace ug{
 
 template <typename TDomain, typename TAlgebra, typename TImpl>
@@ -44,11 +42,6 @@ class ConstraintBase
 		SmartPtr<ApproximationSpace<domain_type> > approximation_space()
 		{
 			return m_spApproxSpace;
-		}
-
-		virtual void set_ass_index(size_t ind, bool index_set = true)
-		{
-			m_AssIndex.index = ind; m_AssIndex.index_set = index_set;
 		}
 
 	///	adapts jacobian to enforce constraints
@@ -137,8 +130,6 @@ class ConstraintBase
 	protected:
 	///	Approximation Space
 		SmartPtr<ApproximationSpace<domain_type> > m_spApproxSpace;
-	///	Assemble index
-		AssIndex m_AssIndex;
 };
 
 
