@@ -245,6 +245,7 @@ endif(DEBUG)
 # TARGET
 add_definitions(-DUG_TARGET="${TARGET}") # (dummy) preprocessor directive used for displaying build configuration
 
+
 # The target option enables specific build variables
 if("${TARGET}" STREQUAL "ugshell")
 	set(buildUGShell ON)
@@ -771,6 +772,13 @@ if(OpenCL)
 		endif(OPENCL_FOUND)
 	ENDIF(APPLE)
 endif(OpenCL)
+
+#########################################
+if(USE_LUA2C)
+	MESSAGE(STATUS "Info: Using LUA2C")
+	add_definitions(-DUSE_LUA2C)
+endif(USE_LUA2C)
+
 
 ################################################################################
 # find and collect required libraries
