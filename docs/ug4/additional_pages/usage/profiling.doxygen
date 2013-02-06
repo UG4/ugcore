@@ -6,10 +6,10 @@
 /** \page pageUG4Profiling Profiling ug4
 
 - \ref secEnableProfiling
-- \ref secScriptProfiling
 - \ref secProfilingRegistry
 - \ref secProfilingYourCode
 - \ref secProfilingCPPExample
+- \ref secScriptProfiling
 
 For any questions, contact martin.rupp@gcsc.uni-frankfurt.de or 
 sebastian.reiter@gcsc.uni-frankfurt.de .
@@ -46,89 +46,12 @@ at the beginning of your script. With this, profiler statistics are output at th
     <tt>ugshell</tt>, there you will see the total call tree (from main on)
     and a flat list with timings.
 
-<hr>
-\section secScriptProfiling More Profiling Control in the Script
-Printing the whole call tree at the end of the execution can be pretty much information, and that is why there is also a
-direct way of accessing timing information for a specific Profiler Node
-(Profiler Nodes are all nodes which got created with <tt>PROFILE_BEGIN</tt> or <tt>PROFILE_FUNC</tt>, see \ref secProfilingYourCode).
-
-\warning If a part of code never got executed, the profiler nodes in there do not exist.
-
+ For a more visual output you can add
 \code
-UGProfileNode *GetProfileNode(const char *str);
-\endcode
-Example usage is
-\code
-print(GetProfileNode("main"):call_tree())
+WriteProfileData("pd.pdxml")
 \endcode
 
-The <tt>UGProfilerNode</tt> has the following functions:
-    \code
-class UGProfilerNode
-{
-  double get_avg_entry_count() const;                         // number of entries in this profiler node
-  double get_avg_self_time_ms() const;                        // time in milliseconds spend in this node excluding subnodes
-  double get_avg_total_time_ms() const;                       // time in milliseconds spend in this node including subnodes
-  string call_tree(double dMarginal=0.0) const;               // returns string with call tree
-  string child_self_time_sorted(double dMarginal=0.0) const;  // string with sorted childs (sorted by self time)
-  string total_time_sorted(double dMarginal=0.0) const;       // string with sorted childs (sorted by total time)
-  string entry_count_sorted(double dMarginal=0.0) const;      // string with sorted childs (sorted by entry count)
-  string groups() const;									  // lists time spent in groups
-  bool is_valid() const;                                      // true if this is a valid node (i.e. != NULL)
-}
-    \endcode
-\attention If <tt>dMarginal != 0.0</tt>, only nodes which account for
-    more than <tt>dMarginal*100 % of the total time</tt> are part of the output.
-    So if you want to print the call tree, and want to display only nodes which
-    account for more than 3% of the total time, you can write
-\code
-GetProfileNode("main"):call_tree(0.03)
-\endcode
-
-For nodes other than "main", you should check that the profile node could be found.
-It's also a good idea to check if the profiler is available - otherwise every GetProfileNode(...):is_valid() = false. For this you use
-<tt>GetProfilerAvailable() == true</tt>.
-
-
-
-Here's an example to view detailed information about ALS_ApplyLinearSolver without having to look at the whole call tree of main.
-\code
-if GetProfilerAvailable() == true then
-  pn = GetProfileNode("ALS_ApplyLinearSolver")
-  if pn:is_valid() then   -- check if node is valid
-
-    print("Called MyFunction "..pn:get_avg_entry_count().." times.")
-    print("Spend "..pn:get_avg_self_time_ms().." ms for ALS_ApplyLinearSolver alone (without child nodes).")
-    print("Spend "..pn:get_avg_total_time_ms().." ms in ALS_ApplyLinearSolver altogether.\n")
-    print("ALS_ApplyLinearSolver call tree")
-    print(pn:call_tree())
-    print("ALS_ApplyLinearSolver call list self time sorted")
-    print(pn:child_self_time_sorted())
-    print("ALS_ApplyLinearSolver call list total time sorted")
-    print(pn:total_time_sorted())
-    print("ALS_ApplyLinearSolver call list entry count sorted")
-    print(pn:entry_count_sorted())
-  else
-    print("ALS_ApplyLinearSolver is not known to the profiler.")
-  end
-else
-  print("Profiler not available.")
-end
-\endcode
-
-\note You can also write the strings returned by e.g. call_tree to a file. Remember to add some <tt>if pcl:GetProcRank() == 0 then</tt> to prevent all processors from writing.
-
-Another way of profiling is
-\code
-print(GetProfileNodes("main"):groups())
-\endcode
-This will list the time spent in different groups, for example <tt>mpirun -np 4 ./ugshell -ex conv_diff/laplace.lua -numRefs 8</tt> will give you
-\verbatim
-algebra             3.90574 s  max: 3.96512 s  min: 3.90574 s  diff: 59.3775 ms (1.4975 %)
-debug               21.6    us max: 21.6    us min: 14.4    us diff: 7.2     us (33.3333 %)
-parallelization     8.0802  ms max: 8.1243  ms min: 8.0613  ms diff: 63      us (0.775451 %)
-\endverbatim
-This will give you also <em>parallel</em> information, and you can check if some cores spend more time in some group than others (shown in diff).
+At the end of your script. For viewing that file, download the <a href="http://gcsc.uni-frankfurt.de/Members/mrupp/shinyviewer/shinyprofileviewer">ShinyProfileViewer</a>.
 
 <hr>
 \section secProfilingRegistry Profiling Registry
@@ -434,5 +357,89 @@ FunctionA_bad_in_loop                              2e+06 382.15 ms   52% 382.15 
     \ref pageUG4ScalabilityTests .
   </li>
 </ul>
+
+<hr>
+\section secScriptProfiling More Profiling Control in the Script
+Printing the whole call tree at the end of the execution can be pretty much information, and that is why there is also a
+direct way of accessing timing information for a specific Profiler Node
+(Profiler Nodes are all nodes which got created with <tt>PROFILE_BEGIN</tt> or <tt>PROFILE_FUNC</tt>, see \ref secProfilingYourCode).
+
+\warning If a part of code never got executed, the profiler nodes in there do not exist.
+
+\code
+UGProfileNode *GetProfileNode(const char *str);
+\endcode
+Example usage is
+\code
+print(GetProfileNode("main"):call_tree())
+\endcode
+
+The <tt>UGProfilerNode</tt> has the following functions:
+    \code
+class UGProfilerNode
+{
+  double get_avg_entry_count() const;                         // number of entries in this profiler node
+  double get_avg_self_time_ms() const;                        // time in milliseconds spend in this node excluding subnodes
+  double get_avg_total_time_ms() const;                       // time in milliseconds spend in this node including subnodes
+  string call_tree(double dMarginal=0.0) const;               // returns string with call tree
+  string child_self_time_sorted(double dMarginal=0.0) const;  // string with sorted childs (sorted by self time)
+  string total_time_sorted(double dMarginal=0.0) const;       // string with sorted childs (sorted by total time)
+  string entry_count_sorted(double dMarginal=0.0) const;      // string with sorted childs (sorted by entry count)
+  string groups() const;									  // lists time spent in groups
+  bool is_valid() const;                                      // true if this is a valid node (i.e. != NULL)
+}
+    \endcode
+\attention If <tt>dMarginal != 0.0</tt>, only nodes which account for
+    more than <tt>dMarginal*100 % of the total time</tt> are part of the output.
+    So if you want to print the call tree, and want to display only nodes which
+    account for more than 3% of the total time, you can write
+\code
+GetProfileNode("main"):call_tree(0.03)
+\endcode
+
+For nodes other than "main", you should check that the profile node could be found.
+It's also a good idea to check if the profiler is available - otherwise every GetProfileNode(...):is_valid() = false. For this you use
+<tt>GetProfilerAvailable() == true</tt>.
+
+
+
+Here's an example to view detailed information about ALS_ApplyLinearSolver without having to look at the whole call tree of main.
+\code
+if GetProfilerAvailable() == true then
+  pn = GetProfileNode("ALS_ApplyLinearSolver")
+  if pn:is_valid() then   -- check if node is valid
+
+    print("Called MyFunction "..pn:get_avg_entry_count().." times.")
+    print("Spend "..pn:get_avg_self_time_ms().." ms for ALS_ApplyLinearSolver alone (without child nodes).")
+    print("Spend "..pn:get_avg_total_time_ms().." ms in ALS_ApplyLinearSolver altogether.\n")
+    print("ALS_ApplyLinearSolver call tree")
+    print(pn:call_tree())
+    print("ALS_ApplyLinearSolver call list self time sorted")
+    print(pn:child_self_time_sorted())
+    print("ALS_ApplyLinearSolver call list total time sorted")
+    print(pn:total_time_sorted())
+    print("ALS_ApplyLinearSolver call list entry count sorted")
+    print(pn:entry_count_sorted())
+  else
+    print("ALS_ApplyLinearSolver is not known to the profiler.")
+  end
+else
+  print("Profiler not available.")
+end
+\endcode
+
+\note You can also write the strings returned by e.g. call_tree to a file. Remember to add some <tt>if pcl:GetProcRank() == 0 then</tt> to prevent all processors from writing.
+
+Another way of profiling is
+\code
+print(GetProfileNodes("main"):groups())
+\endcode
+This will list the time spent in different groups, for example <tt>mpirun -np 4 ./ugshell -ex conv_diff/laplace.lua -numRefs 8</tt> will give you
+\verbatim
+algebra             3.90574 s  max: 3.96512 s  min: 3.90574 s  diff: 59.3775 ms (1.4975 %)
+debug               21.6    us max: 21.6    us min: 14.4    us diff: 7.2     us (33.3333 %)
+parallelization     8.0802  ms max: 8.1243  ms min: 8.0613  ms diff: 63      us (0.775451 %)
+\endverbatim
+This will give you also <em>parallel</em> information, and you can check if some cores spend more time in some group than others (shown in diff).
 
 */
