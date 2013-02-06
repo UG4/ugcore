@@ -54,7 +54,7 @@ bool LUA2C::create(const char *functionName)
 	m_pDyn = MakeTmpFile(p+string(functionName), ".dylib", bTmpFileSuccess);
 	
 	string c2s=string("gcc -dynamiclib ") + p+"lua2c_output.o -o " + m_pDyn.c_str();
-	UG_DLOG(DID_LUA2C, 2, "linking line: " << c2s << "\n);
+	UG_DLOG(DID_LUA2C, 2, "linking line: " << c2s << "\n");
 	system(c2s.c_str());	
 
 	m_libHandle = OpenLibrary(m_pDyn.c_str());
