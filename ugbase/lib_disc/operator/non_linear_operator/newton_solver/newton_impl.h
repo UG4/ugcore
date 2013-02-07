@@ -118,8 +118,10 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 //	resize
 	try{
-		m_d.resize(u.size()); m_d = u;
-		m_c.resize(u.size()); m_c = u;
+		m_d.resize(u.size()); m_c.resize(u.size());
+		#ifdef UG_PARALLEL
+			m_d.copy_layouts(u); m_c.copy_layouts(u);
+		#endif
 	}UG_CATCH_THROW("NewtonSolver::apply: Resize of Defect/Correction failed.");
 
 //	Set dirichlet values
