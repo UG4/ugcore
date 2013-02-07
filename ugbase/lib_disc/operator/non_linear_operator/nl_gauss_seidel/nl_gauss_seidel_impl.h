@@ -196,7 +196,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 			for(size_t dof=0; dof < locU.num_all_dof(fct); ++dof)
 			{
 				size_t globIndex = ind.index(fct,dof);
-				size_t globComp = ind.comp(fct,dof);
+//				size_t globComp = ind.comp(fct,dof);
 				//UG_LOG("index:" << globIndex << "\n");
 				//UG_LOG("comp:" << globComp << "\n");
 
@@ -228,7 +228,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	//	increase call count
 	m_dgbCall++;
 
-	//	Check for approxSpace
+	//	Check for approxSpac
 	if(m_spApproxSpace.invalid())
 		UG_THROW("NLGaussSeidelSolver::apply: Approximation Space not set.");
 
@@ -245,14 +245,12 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 	//	resize
 	try{
-		m_d.resize(u.size()); m_d = u; //m_d.copy_layouts(u);
-		m_c_comp.resize(u.size()); m_c_comp = u;
-		m_u_comp.resize(u.size()); m_u_comp = u;
-		m_d_comp.resize(u.size()); m_d_comp = u;
-
-		/*m_c_comp.resize(1); m_c_comp.copy_layouts(u);
-		m_u_comp.resize(1); m_u_comp.copy_layouts(u);
-		m_d_comp.resize(1); m_d_comp.copy_layouts(u);*/
+		m_d.resize(u.size()); m_c_comp.resize(1);
+		m_u_comp.resize(1); m_d_comp.resize(1);
+		#ifdef UG_PARALLEL
+			m_d.copy_layouts(u); m_c_comp.copy_layouts(u);
+			m_u_comp.copy_layouts(u); m_d_comp.copy_layouts(u);
+		#endif
 	}UG_CATCH_THROW("NLGaussSeidelSolver::apply: Resize of Defect/Correction failed.");
 
 	//	Set dirichlet values
@@ -289,14 +287,6 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	TDomain& dom = *m_spApproxSpace->domain();
 	typename TDomain::grid_type& grid = *dom.grid();
 
-	typedef typename domain_traits<TDomain::dim>::geometric_base_object geometric_base_object;
-	typedef typename TDomain::grid_type::template traits<geometric_base_object>::iterator
-			ElemIter;
-
-	ElemIter iter;
-	ElemIter iterBegin = grid.template begin<geometric_base_object>();
-	ElemIter iterEnd = grid.template end<geometric_base_object>();
-
 	m_sel.assign_grid(grid);
 
 	//	loop iteration
@@ -332,7 +322,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 			//m_J_comp[0][0] = J(i,i);
 
 			m_pAss->set_selector(&m_sel);
-			//m_pAss->ass_index(i);
+			m_pAss->ass_index(i);
 
 			try{
 				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeJacobian);
