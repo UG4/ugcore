@@ -782,6 +782,14 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 	try{
 
+	SmartPtr<AssembledLinearOperator<TAlgebra> > spALO =
+			J.template cast_dynamic<AssembledLinearOperator<TAlgebra> >();
+	if(spALO.valid()){
+		if(m_pAss == NULL){
+			m_pAss = spALO->discretization();
+		}
+	}
+
 // 	Cast Operator
 	m_spSurfaceMat = J.template cast_dynamic<matrix_type>();
 
@@ -940,6 +948,14 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init(L)\n");
 
 	try{
+
+	SmartPtr<AssembledLinearOperator<TAlgebra> > spALO =
+			L.template cast_dynamic<AssembledLinearOperator<TAlgebra> >();
+	if(spALO.valid()){
+		if(m_pAss == NULL){
+			m_pAss = spALO->discretization();
+		}
+	}
 
 // 	Cast Operator
 	m_spSurfaceMat = L.template cast_dynamic<matrix_type>();
