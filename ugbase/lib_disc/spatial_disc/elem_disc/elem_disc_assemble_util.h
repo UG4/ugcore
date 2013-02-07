@@ -893,6 +893,42 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (A).");
 
+			// NEW: explicit reaction
+			// only point where implementation
+			// has to be improved for higher time orders
+			// in time-solver!!!
+
+
+			// vScaleStiff[t] sind die s_a  d.h. wenn wir die 
+			// vScaleStiff[0] zu s_a = tau haben dann  
+			// haben wir die Zeitschrittweite
+			// wenn wir in niedrigster t-Ordnung eine Null haben
+			// dann sind die s_{a,1} null 
+			// und dann muessen die expliziten Reaktionsterme 
+			// kuenstlich 
+			// hinzugefuegt werden, 
+			// Frage woher bekommt man tau wenn sa = 0 ist?????
+			// man muss vermutlich fuer t = 1 dann s_a,0 abfragen 
+ 
+			// start new central function		       
+#if 0
+
+			if( t == 1 ) // only valid at lowest timediscreti order
+			{
+          		   // 	   Assemble A expliziter Anteil
+			   tmpLocD = 0.0;
+			   try
+			   {
+			     Eval.add_dA_elem_explicit(tmpLocD, locU, elem, PT_INSTATIONARY);
+			   }
+			   UG_CATCH_THROW("(instationary) AssembleDefect explizit: Cannot compute Defect (A).");
+
+			   locD.scale_append(vScaleStiff[0], tmpLocD);
+			}
+#endif
+
+			// end new central function which has to be improved
+
 		// 	Assemble rhs
 			try
 			{

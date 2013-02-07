@@ -553,6 +553,40 @@ void DataEvaluator::add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject*
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////
+
+// NEW: explicit reaction function
+
+  // explicit terms for reaction explicit
+
+void DataEvaluator::add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
+{
+	UG_ASSERT(m_discPart & STIFF, "Using add_dA_elem, but not STIFF requested.")
+
+	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
+	{
+	//	get map
+		const FunctionIndexMapping& map = m_vElemDisc[type][i].map;
+
+	//	access disc functions
+		u.access_by_map(map);
+		d.access_by_map(map);
+
+		if(m_vElemDisc[type][i].needLocTimeSeries)
+			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
+				m_pLocTimeSeries->solution(t).access_by_map(map);
+
+	//	assemble dA
+		try{
+			m_vElemDisc[type][i].elemDisc->fast_add_def_A_elem_explicit(d, u);
+		}
+		UG_CATCH_THROW("DataEvaluator::add_def_A_elem_explicit: "
+						"Cannot assemble Defect (A) for IElemDisc "<<i);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
 void DataEvaluator::add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & MASS, "Using add_dM_elem, but not MASS requested.")
