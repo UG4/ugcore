@@ -64,7 +64,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
                         	const typename TAlgebra::vector_type& u,
-                        	AssAdapter& assAdapt = NULL)
+                        	AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -138,7 +138,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
                         	const typename TAlgebra::vector_type& u,
-                        	AssAdapter& assAdapt = NULL)
+                        	AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -199,7 +199,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
 					const typename TAlgebra::vector_type& u,
-					AssAdapter& assAdapt = NULL)
+					AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -274,7 +274,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
 					const typename TAlgebra::vector_type& u,
-					AssAdapter& assAdapt = NULL)
+					AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -336,7 +336,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-					AssAdapter& assAdapt = NULL)
+					AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -413,7 +413,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-					AssAdapter& assAdapt = NULL)
+					AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -478,7 +478,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					typename TAlgebra::matrix_type& J,
 					ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 					number s_a0,
-					AssAdapter& assAdapt = NULL)
+					AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -589,7 +589,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 					typename TAlgebra::matrix_type& J,
 					ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 					number s_a0,
-					AssAdapter& assAdapt = NULL)
+					AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -651,7 +651,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u,
-               	AssAdapter& assAdapt = NULL)
+               	AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -737,7 +737,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u,
-               	AssAdapter& assAdapt = NULL)
+               	AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -803,7 +803,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 				const std::vector<number>& vScaleMass,
 				const std::vector<number>& vScaleStiff,
-				AssAdapter& assAdapt = NULL)
+				AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -933,7 +933,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 				const std::vector<number>& vScaleMass,
 				const std::vector<number>& vScaleStiff,
-				AssAdapter& assAdapt = NULL)
+				AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -995,7 +995,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-               	AssAdapter& assAdapt = NULL)
+               	AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1080,7 +1080,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-               	AssAdapter& assAdapt = NULL)
+               	AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -1148,7 +1148,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-               	AssAdapter& assAdapt = NULL)
+               	AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1322,7 +1322,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-               	AssAdapter& assAdapt = NULL)
+               	AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -1384,7 +1384,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u,
-               	AssAdapter& assAdapt = NULL)
+               	AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1461,7 +1461,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u,
-               	AssAdapter& assAdapt = NULL)
+               	AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -1527,7 +1527,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-               	AssAdapter& assAdapt = NULL)
+               	AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1676,7 +1676,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-               	AssAdapter& assAdapt = NULL)
+               	AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -1736,7 +1736,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 				TIterator iterEnd,
                	int si, bool bNonRegularGrid,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-                AssAdapter& assAdapt = NULL)
+                AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1819,7 +1819,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
                	ConstSmartPtr<TDD> dd,
                	int si, bool bNonRegularGrid,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-                AssAdapter& assAdapt = NULL)
+                AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
@@ -1879,7 +1879,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 			   TIterator iterEnd,
                int si, bool bNonRegularGrid,
                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-               AssAdapter& assAdapt = NULL)
+               AssAdapter& assAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1956,7 +1956,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
                ConstSmartPtr<TDD> dd,
                int si, bool bNonRegularGrid,
                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-               AssAdapter& assAdapt = NULL)
+               AssAdapter& assAdapt)
 {
 	//	check if only some elements are selected
 	if(assAdapt.pSelector)
