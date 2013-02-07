@@ -119,6 +119,22 @@ bool ReadFile(const char* filename, vector<char> &file, bool bText)
 	return true;
 }
 
+string MakeTmpFile(const string &filename, const string &extension, bool &bSuccess)
+{
+	bSuccess = true;
+	const char *name = (filename+extension).c_str();
+	if(!FileExists(name)) return name;
+	for(int i=0;i<999999; i++)
+	{
+		stringstream ss;
+		ss << filename << i << extension;
+		name = ss.str().c_str();
+		if(!FileExists(name)) return name;
+	}	
+	bSuccess = false;
+	return "";
+}
+
 } // namespace ug
 
 // EOF

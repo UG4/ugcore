@@ -123,6 +123,15 @@ UG_API std::string GetTmpPath();
 UG_API bool ReadFile(const char* filename, vector<char> &file, bool bText);
 
 
+/**
+ * \param filename filename including path (e.g. /Users/horst/file1)
+ * \param extension the extension to be added to the file e.g. txt
+ * \param bSuccess true if successful, false otherwise
+ * \return filenameXXXXXX.extension, where XXXXXX is some number between 1 and 999999,
+ *			so that the file doesn't exist yet.
+ */
+UG_API std::string MakeTmpFile(const std::string &filename, const std::string &extension, 
+		bool &bSuccess);
 } // namespace ug
 
 #endif // __H__UG__FILE_UTIL__
