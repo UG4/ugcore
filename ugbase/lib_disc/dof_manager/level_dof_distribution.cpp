@@ -63,7 +63,7 @@ void LevelMGDoFDistribution::init()
 
 void LevelMGDoFDistribution::init()
 {
-	level_required(num_levels());
+	level_required(num_levels() - 1);
 
 	if(max_dofs(0) > 0) init<VertexBase>();
 	if(max_dofs(1) > 0) init<EdgeBase>();
@@ -75,6 +75,26 @@ void LevelMGDoFDistribution::init()
 	for(int l = 0; l < num_levels(); ++l)
 		create_layouts_and_communicator(l);
 #endif
+}
+
+void LevelMGDoFDistribution::redistribute_dofs()
+{
+	for(int l = 0; l < num_levels(); ++l)
+		lev_info(l).clear_all();
+
+	init();
+
+	for(int l = 0; l < num_levels(); ++l){
+		if(m_managingDoFDists[l])
+			m_managingDoFDists[l]->resize_values(num_indices(l));
+	}
+}
+
+void LevelMGDoFDistribution::
+register_managing_dof_distribution(ManagingDoFDistribution* mdd, int lvl)
+{
+	level_required(lvl);
+	m_managingDoFDists[lvl] = mdd;
 }
 
 #ifdef UG_PARALLEL
@@ -259,6 +279,9 @@ template <typename TBaseElem>
 inline void LevelMGDoFDistribution::obj_created(TBaseElem* obj, GeometricObject* pParent,
                         bool replacesParent)
 {
+	if(is_frozen())
+		return;
+
 //	check level
 	const int lev = m_spMGSH->get_level(obj);
 	level_required(lev);
@@ -273,6 +296,9 @@ inline void LevelMGDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 template <typename TBaseElem>
 inline void LevelMGDoFDistribution::obj_to_be_erased(TBaseElem* obj,TBaseElem* replacedBy)
 {
+	if(is_frozen())
+		return;
+
 //	add indices
 	erase(obj,
 	      obj->reference_object_id(),
@@ -300,8 +326,15 @@ LevelDoFDistribution(SmartPtr<LevelMGDoFDistribution> spLevMGDD,
 	: 	DoFDistributionBase(spLevMGDD, level),
 		m_spMGDD(spLevMGDD), m_spMGSH(spMGSH),
 		m_rMultiGrid(*m_spMGSH->multi_grid())
-{};
+{
+	spLevMGDD->register_managing_dof_distribution(this, level);
+};
 
+LevelDoFDistribution::
+~LevelDoFDistribution()
+{
+	m_spMGDD->register_managing_dof_distribution(NULL, m_level);
+}
 
 template <typename TBaseElem>
 void LevelDoFDistribution::
@@ -451,6 +484,7 @@ void LevelMGDoFDistribution::level_required(int level)
 
 //	resize info vector
 	m_vLev.resize(level+1);
+	m_managingDoFDists.resize(level+1, NULL);
 
 //	adjust subsets
 	for(size_t l = 0; l < m_vLev.size(); ++l)

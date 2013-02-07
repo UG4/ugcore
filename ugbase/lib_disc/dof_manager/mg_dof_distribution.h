@@ -63,6 +63,23 @@ struct LevInfoBase
 
 ///	communicator
 	pcl::InterfaceCommunicator<IndexLayout> communicator;
+
+///	clears the struct
+	void clear()
+	{
+		masterLayout.clear();			slaveLayout.clear();
+		verticalMasterLayout.clear();	verticalSlaveLayout.clear();
+		numIndex = sizeIndexSet = 0;
+		vNumIndexOnSubset.clear();
+	}
+
+#else
+	///	clears the struct
+	void clear()
+	{
+		numIndex = sizeIndexSet = 0;
+		vNumIndexOnSubset.clear();
+	}
 #endif
 };
 
@@ -101,6 +118,35 @@ class MGDoFDistribution : public GridObserver
 		                  bool bGrouped);
 
 		~MGDoFDistribution();
+
+	///	Enable / disable automatic creation of new DoFs
+	/**	Normally a dof distribution automatically creates new dofs when a new
+	 * element is created in the associated grid. However, there are situations,
+	 * in which this behavior is not desirable.
+	 * E.g., when the associated grid is loaded afresh or if the associated grid
+	 * is distributed to other processes (and thus created afresh again), one
+	 * currently should freeze the distribution before loading takes place and
+	 * unfreeze it afterwards. When unfreezing the dof-distribution, dofs
+	 * are automatically refreshed for all elements. This is rather costly,
+	 * so only freeze the dof distribution if it is really necessary.
+	 * Associated vectors are resized after this refresh. The refresh is performed
+	 * through a call to redistribute_dofs.
+	 *
+	 * \note	The dof-distribution freezes itself, whenever it receives a grid-
+	 * 			message of the type GridMessage_Creation with the state
+	 * 			GMCT_CREATION_STARTS. It unfreezes itself when it receives the
+	 * 			message with the state GMCT_CREATION_STOPS.*/
+		void freeze(bool bFreeze);
+
+	///	returns true if the dof distribution is currently frozen.
+		bool is_frozen() const						{return m_frozen;}
+
+	///	redistributes all dofs
+	/**	This method is automatically called, whenever the dof-distribution
+	 * is unfrozen.
+	 * \note	The method is pure virtual and implemented by derived classes.*/
+		virtual void redistribute_dofs() = 0;
+
 
 		///	returns the multigrid
 		SmartPtr<MultiGrid> multi_grid() {return m_spMG;}
@@ -306,6 +352,8 @@ class MGDoFDistribution : public GridObserver
 		TBaseElem* child_if_copy(TBaseElem* elem) const;
 
 	protected:
+		void grid_creation_callback(const GridMessage_Creation& msg);
+
 		///	returns the offset for reference element, subset and function
 		size_t offset(const ReferenceObjectID roid, const int si, const size_t fct) const {return m_vvvOffsets[roid][si][fct];}
 
@@ -460,6 +508,9 @@ class MGDoFDistribution : public GridObserver
 	protected:
 	///	grouping
 		bool m_bGrouped;
+		bool m_frozen;
+
+		MessageHub::SPCallbackId	m_callbackId_GridCreation;
 
 	///	indication that function is not defined on a subset
 		enum{NOT_DEF_ON_SUBSET = (size_t) - 1};
@@ -578,6 +629,7 @@ struct LevInfo<std::vector<size_t> > : public LevInfoBase
 
 ///	clear container
 	void clear() {vFreeIndex.clear();}
+	void clear_all() {clear(); LevInfoBase::clear();}
 
 	protected:
 	std::vector<size_t> vFreeIndex;
@@ -628,6 +680,7 @@ struct LevInfo<std::set<size_t> > : public LevInfoBase
 
 ///	clear container
 	void clear() {vFreeIndex.clear();}
+	void clear_all() {clear(); LevInfoBase::clear();}
 
 	protected:
 	std::set<size_t> vFreeIndex;

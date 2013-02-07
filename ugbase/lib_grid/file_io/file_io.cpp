@@ -132,22 +132,29 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 	}
 
 
+	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STARTS));
+
 //	Now perform the actual loading.
 //	first all load methods, which do accept template position types are
 //	handled. Then all those which only work with 3d position types are processed.
+	bool retVal = false;
 	if(tfile.find(".ugx") != string::npos){
 		if(psh)
-			return LoadGridFromUGX(grid, *psh, tfile.c_str(), aPos);
+			retVal = LoadGridFromUGX(grid, *psh, tfile.c_str(), aPos);
 		else{
 		//	we have to create a temporary subset handler, since
 			SubsetHandler shTmp(grid);
-			return LoadGridFromUGX(grid, shTmp, tfile.c_str(), aPos);
+			retVal = LoadGridFromUGX(grid, shTmp, tfile.c_str(), aPos);
 		}
 	}
 	else{
 	//	now we'll handle those methods, which only support 3d position types.
-		return LoadGrid3d(grid, psh, tfile.c_str(), aPos);
+		retVal = LoadGrid3d(grid, psh, tfile.c_str(), aPos);
 	}
+
+	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS));
+
+	return retVal;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

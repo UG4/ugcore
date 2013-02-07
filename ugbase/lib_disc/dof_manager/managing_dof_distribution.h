@@ -12,9 +12,12 @@ namespace ug{
 
 ///	predeclaration
 class IGridFunction;
+class LevelMGDoFDistribution;
 
 class ManagingDoFDistribution
 {
+	friend class LevelMGDoFDistribution;
+
 	public:
 	///	registers a grid function for adaptation management
 		void manage_grid_function(IGridFunction& gridFct);

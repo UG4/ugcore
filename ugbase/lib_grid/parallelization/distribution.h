@@ -23,6 +23,12 @@ namespace ug{
  * dimension of the given grid. Elements of lower dimension are simply sent
  * alongside those highest dimensional elements.
  *
+ * The method posts the following messages to the message hub of the specified grid:
+ * 	- GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS) at the start of the method
+ * 	- GridMessage_Creation(GMCT_CREATION_STARTS) before the local grid is cleared
+ * 	- GridMessage_Creation(GMCT_CREATION_STOPS) after the local grid has been rebuilt completely
+ * 	- GridMessage_Distribution(GMDT_DISTRIBUTION_STOPS) when the method is done.
+ *
  * \note	??? The partition map shPartition has to fulfill the following requirement:
  * 			All siblings (all children of a parent) have to be in a common subset
  * 			(not necessarily the subset of their parent). ???

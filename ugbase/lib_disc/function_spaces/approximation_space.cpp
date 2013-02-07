@@ -116,10 +116,6 @@ void IApproximationSpace::register_at_adaption_msg_hub()
 	m_spGridAdaptionCallbackID =
 		msgHub->register_class_callback(this,
 		&ug::IApproximationSpace::grid_changed_callback);
-
-	m_spGridDistributionCallbackID =
-		msgHub->register_class_callback(this,
-		&ug::IApproximationSpace::grid_distributed_callback);
 }
 
 void IApproximationSpace::
@@ -144,13 +140,6 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 				"You may use IRefiner::grid_adaption_begins() or schedule "
 				"an appropriate message to the associated grids message-hub.");
 	}
-}
-
-void IApproximationSpace::
-grid_distributed_callback(const GridMessage_Distribution& msg)
-{
-	if(msg.msg() == GMDT_DISTRIBUTION_STOPS)
-		defragment();
 }
 
 bool IApproximationSpace::levels_enabled() const

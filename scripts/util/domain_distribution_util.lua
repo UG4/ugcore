@@ -35,6 +35,10 @@ util = util or {}
 --!							'metisReweigh' partitioning method.
 function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 							   numTargetProcs, distributionLevel, wFct)
+	if GetNumProcesses() == 1 then
+		return
+	end
+	
 	local partitionMap = PartitionMap()
 		
 	if partitioningMethod == nil then

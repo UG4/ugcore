@@ -35,6 +35,10 @@ class SurfaceView;
  * to the following additional places:
  * 	- PathProvider::get_current_path()
  * 	- PathProvider::get_path(GRID_PATH)
+ *
+ * The method posts the following messages at the message hub of the given grid:
+ * 	- GridMessage_Creation(GMCT_CREATION_STARTS)
+ * 	- GridMessage_Creation(GMCT_CREATION_STOPS)
  * \{
  */
 template <class TAPos>
@@ -55,6 +59,9 @@ bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos);
  * 	- PathProvider::get_current_path()
  * 	- PathProvider::get_path(GRID_PATH)
  *
+ * The method posts the following messages at the message hub of the given grid:
+ * 	- GridMessage_Creation(GMCT_CREATION_STARTS)
+ * 	- GridMessage_Creation(GMCT_CREATION_STOPS)
  * \{ */
 UG_API
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename);

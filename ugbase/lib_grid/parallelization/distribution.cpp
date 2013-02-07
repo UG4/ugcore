@@ -1371,6 +1371,9 @@ bool DistributeGrid(MultiGrid& mg,
 ////////////////////////////////
 //	INTERMEDIATE CLEANUP
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Intermediate cleanup\n");
+
+	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STARTS));
+
 	PCL_PROFILE(dist_ClearLocalGrid);
 //	we'll erase everything and deserialize even the local grid from stream
 	mg.clear_geometry();
@@ -1451,6 +1454,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution stops\n");
 
+	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STOPS));
 	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STOPS));
 
 	UG_DLOG(LIB_GRID, 1, "dist-stop: DistributeGrid\n");

@@ -35,6 +35,15 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 	 */
 		void defragment(std::vector<std::pair<size_t,size_t> >& vReplaced, int lev);
 
+	///	redistributes all dofs. Resizes associated level vectors afterwards.
+		virtual void redistribute_dofs();
+
+	///	register a ManagingDoFDistribution for a given level
+	/**	Those dof-distributions will be informed, whenever redistribute_dofs is
+	 * executed.
+	 * This method is e.g. used by LevelDoFDistribution.*/
+		void register_managing_dof_distribution(ManagingDoFDistribution* mdd, int lvl);
+
 	protected:
 	///	initializes the indices
 		void init();
@@ -114,6 +123,7 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 		LevInfo<>& lev_info(int lev) {return m_vLev[lev];}
 		const LevInfo<>& lev_info(int lev) const {return m_vLev[lev];}
 
+		std::vector<ManagingDoFDistribution*>	m_managingDoFDists;
 
 #ifdef UG_PARALLEL
 		void create_layouts_and_communicator(int l);
@@ -263,6 +273,7 @@ class DoFDistributionBase
 		int m_level;
 };
 
+
 class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistribution
 {
 	public:
@@ -287,6 +298,8 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 		LevelDoFDistribution(SmartPtr<LevelMGDoFDistribution> spLevMGDD,
 		                     SmartPtr<MGSubsetHandler> spMGSH,
 		                     int level);
+
+		virtual ~LevelDoFDistribution();
 
 	///	returns grid level
 		GridLevel grid_level() const {return GridLevel(m_level, GridLevel::LEVEL);}
@@ -349,10 +362,6 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 
 	///	removes wholes in index set
 		void defragment();
-
-		///////////////////////////////////////
-		// Index Access
-		///////////////////////////////////////
 
 	protected:
 		template <typename TBaseElem>

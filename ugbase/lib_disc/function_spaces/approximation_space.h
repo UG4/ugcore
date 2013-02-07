@@ -211,10 +211,6 @@ class IApproximationSpace
 	 */
 		void grid_changed_callback(const GridMessage_Adaption& msg);
 
-	/**	this callback is called by the message hub, when a grid has been distributed
-	 */
-		void grid_distributed_callback(const GridMessage_Distribution& msg);
-
 	///	sets the distributed grid manager
 #ifdef UG_PARALLEL
 		void set_dist_grid_mgr(DistributedGridManager* pDistGrdMgr) {m_pDistGridMgr = pDistGrdMgr;}

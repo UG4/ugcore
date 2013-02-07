@@ -120,6 +120,17 @@ void SurfaceDoFDistribution::init()
 #endif
 }
 
+void SurfaceDoFDistribution::redistribute_dofs()
+{
+	m_levInfo.clear_all();
+	m_sFreeIndex.clear();
+
+	m_spSurfLevelView->refresh_surface_states();
+	init();
+
+	resize_values(num_indices());
+}
+
 #ifdef UG_PARALLEL
 void SurfaceDoFDistribution::create_layouts_and_communicator()
 {
@@ -342,6 +353,9 @@ template <typename TBaseElem>
 inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject* pParent,
                         bool replacesParent)
 {
+	if(is_frozen())
+		return;
+
 	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
 
 //	case 1: if replacesParent == true, only an obj (e.g. HangingVertex)
@@ -387,6 +401,9 @@ template <typename TBaseElem>
 inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
                              TBaseElem* replacedBy)
 {
+	if(is_frozen())
+		return;
+
 	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
 
 //	case 1: Only replacement. Just copy indices from one obj to the other

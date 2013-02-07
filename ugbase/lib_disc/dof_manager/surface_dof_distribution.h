@@ -30,6 +30,9 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 	///	defragments the index set
 		void defragment();
 
+	///	redistributes all dofs and resizes associated vectors afterwards.
+		virtual void redistribute_dofs();
+
 	///	returns all indices of the element
 	///	\{
 		void indices(GeometricObject* elem, LocalIndices& ind, bool bHang = false) const{base_type::indices(elem, ind, bHang);}

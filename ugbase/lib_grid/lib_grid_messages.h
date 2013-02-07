@@ -119,6 +119,25 @@ class GridMessage_Distribution : public MessageHub::IMessage
 };
 
 
+///	Instances of this class inform about grid creation (e.g. during load or distribution)
+enum GridMessageCreationType{
+	GMCT_NONE,
+	GMCT_CREATION_STARTS,
+	GMCT_CREATION_STOPS
+};
+
+class GridMessage_Creation : public MessageHub::IMessage
+{
+	public:
+		GridMessage_Creation(GridMessageCreationType msg = GMCT_NONE) :
+			m_msg(msg)	{}
+
+		GridMessageCreationType msg() const	{return m_msg;}
+
+	private:
+		GridMessageCreationType	m_msg;
+};
+
 }//	end of namespace
 
 #endif
