@@ -28,6 +28,8 @@ function util.SolveNonlinearTimeProblem(
 	local solTimeSeries = SolutionTimeSeries()
 	solTimeSeries:push(u:clone(), time)
 	
+	newtonSolver:init(AssembledOperator(timeDisc))
+	
 	while time < endTime do
 		step = step + 1
 		print("++++++ TIMESTEP "..step.." BEGIN (current time: " .. time .. ") ++++++");
@@ -119,7 +121,7 @@ function util.SolveLinearTimeProblem(
 	solTimeSeries:push(u:clone(), time)
 
 	-- matrix and vectors
-	local A = MatrixOperator()
+	local A = AssembledLinearOperator(timeDisc)
 	local b = u:clone()
 
 	local assembled_dt = nil
