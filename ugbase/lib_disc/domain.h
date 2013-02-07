@@ -154,11 +154,11 @@ class IDomain
 	/**	this callback is called by the message hub, when a grid change has been
 	 * performed. It will call all necessary actions in order to keep the grid
 	 * correct for computations. */
-		inline void grid_changed_callback(int, const GridMessage_Adaption* msg);
+		inline void grid_changed_callback(const GridMessage_Adaption& msg);
 
 	/**	this callback is called by the message hub, when a grid has been distributed
 	 * between different processes.*/
-		inline void grid_distributed_callback(int, const GridMessage_Distribution* msg);
+		inline void grid_distributed_callback(const GridMessage_Distribution& msg);
 
 #ifdef UG_PARALLEL
 	public:

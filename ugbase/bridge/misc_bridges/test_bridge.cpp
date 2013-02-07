@@ -428,8 +428,8 @@ class TestMessage : public MessageHub::IMessage
 		string	m_strMsg;
 };
 
-void TestMsgCallback(int msgId, const TestMessage* msg){
-	UG_LOG("Callback func received message: " << msg->m_strMsg << "\n");
+void TestMsgCallback(const TestMessage& msg){
+	UG_LOG("Callback func received message: " << msg.m_strMsg << "\n");
 }
 
 
@@ -438,29 +438,26 @@ class MessageHubTest
 	public:
 		MessageHubTest(){
 			m_msgHub = SPMessageHub(new MessageHub());
-			m_msgId = m_msgHub->get_message_id<TestMessage>("TestMsgId");
-
-			m_callbackId = m_msgHub->register_class_callback(m_msgId, this,
+			m_callbackId = m_msgHub->register_class_callback(this,
 										  &ug::bridge::MessageHubTest::callback);
 
-			m_msgHub->register_function_callback(m_msgId, &ug::bridge::TestMsgCallback);
+			m_msgHub->register_function_callback(&ug::bridge::TestMsgCallback);
 		}
 
-		void callback(int msgId, const TestMessage* msg){
-			UG_LOG("Received message: " << msg->m_strMsg << "\n");
+		void callback(const TestMessage& msg){
+			UG_LOG("Received message: " << msg.m_strMsg << "\n");
 		}
 
 		void post_message(const char* message){
 			if(m_msgHub.valid()){
 				TestMessage msg;
 				msg.m_strMsg = message;
-				m_msgHub->post_message(m_msgId, msg);
+				m_msgHub->post_message(msg);
 			}
 		}
 
 	protected:
 		SPMessageHub	m_msgHub;
-		int m_msgId;
 		MessageHub::SPCallbackId m_callbackId;
 };
 

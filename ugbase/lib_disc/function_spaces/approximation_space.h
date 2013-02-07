@@ -209,11 +209,11 @@ class IApproximationSpace
 	 * performed. It will call all necessary actions in order to keep the grid
 	 * correct for computations.
 	 */
-		void grid_changed_callback(int, const GridMessage_Adaption* msg);
+		void grid_changed_callback(const GridMessage_Adaption& msg);
 
 	/**	this callback is called by the message hub, when a grid has been distributed
 	 */
-		void grid_distributed_callback(int, const GridMessage_Distribution* msg);
+		void grid_distributed_callback(const GridMessage_Distribution& msg);
 
 	///	sets the distributed grid manager
 #ifdef UG_PARALLEL

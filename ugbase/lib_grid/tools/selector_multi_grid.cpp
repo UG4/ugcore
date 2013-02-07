@@ -77,7 +77,6 @@ void MGSelector::assign_grid(MultiGrid* grid)
 			enable_element_support(elementSupport);
 		//	register the callback
 			m_callbackId = m_pMultiGrid->message_hub()->register_class_callback(
-								GridMessageId_MultiGridChanged(m_pMultiGrid->message_hub()),
 								this, &ug::MGSelector::multigrid_changed);
 			level_required(m_pMultiGrid->num_levels());
 		}
@@ -303,10 +302,10 @@ void MGSelector::grid_to_be_destroyed(Grid* grid)
 }
 
 void MGSelector::
-multigrid_changed(int msgId, const GridMessage_MultiGridChanged* gm)
+multigrid_changed(const GridMessage_MultiGridChanged& gm)
 {
-	if(gm->message_type() == GMMGCT_LEVEL_ADDED)
-		level_required(gm->num_levels_in_grid() - 1);
+	if(gm.message_type() == GMMGCT_LEVEL_ADDED)
+		level_required(gm.num_levels_in_grid() - 1);
 }
 
 }//	end of namespace

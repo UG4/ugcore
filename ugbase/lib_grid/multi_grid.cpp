@@ -71,9 +71,6 @@ void MultiGrid::init()
 	m_aaParentFACE.access(*this, m_aParent);
 	m_aaVolInf.access(*this, m_aVolumeInfo);
 	m_aaParentVOL.access(*this, m_aParent);
-
-//	message id
-	m_msgId = GridMessageId_MultiGridChanged(message_hub());
 }
 
 void MultiGrid::create_levels(int numLevels)
@@ -82,7 +79,7 @@ void MultiGrid::create_levels(int numLevels)
 	//	inform the hierarchy handler, that one level has to be added
 		m_hierarchy.subset_required(num_levels());
 	//	send a message, that a new level has been created
-		message_hub()->post_message(m_msgId,
+		message_hub()->post_message(
 				GridMessage_MultiGridChanged(GMMGCT_LEVEL_ADDED, num_levels()));
 	}
 }

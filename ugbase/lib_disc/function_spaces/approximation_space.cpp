@@ -113,26 +113,24 @@ void IApproximationSpace::register_at_adaption_msg_hub()
 {
 //	register function for grid adaption
 	SPMessageHub msgHub = m_spMGSH->multi_grid()->message_hub();
-	int msgID = GridMessageId_Adaption(msgHub);
 	m_spGridAdaptionCallbackID =
-		msgHub->register_class_callback(msgID, this,
+		msgHub->register_class_callback(this,
 		&ug::IApproximationSpace::grid_changed_callback);
 
-	msgID = GridMessageId_Distribution(msgHub);
 	m_spGridDistributionCallbackID =
-		msgHub->register_class_callback(msgID, this,
+		msgHub->register_class_callback(this,
 		&ug::IApproximationSpace::grid_distributed_callback);
 }
 
 void IApproximationSpace::
-grid_changed_callback(int, const GridMessage_Adaption* msg)
+grid_changed_callback(const GridMessage_Adaption& msg)
 {
-	if(msg->adaption_begins())
+	if(msg.adaption_begins())
 		m_bAdaptionIsActive = true;
 
 	else if(m_bAdaptionIsActive){
-		if(msg->adaptive()){
-			if(msg->adaption_ends())
+		if(msg.adaptive()){
+			if(msg.adaption_ends())
 			{
 				defragment();
 				m_bAdaptionIsActive = false;
@@ -149,9 +147,9 @@ grid_changed_callback(int, const GridMessage_Adaption* msg)
 }
 
 void IApproximationSpace::
-grid_distributed_callback(int, const GridMessage_Distribution* msg)
+grid_distributed_callback(const GridMessage_Distribution& msg)
 {
-	if(msg->msg() == GMDT_DISTRIBUTION_STOPS)
+	if(msg.msg() == GMDT_DISTRIBUTION_STOPS)
 		defragment();
 }
 

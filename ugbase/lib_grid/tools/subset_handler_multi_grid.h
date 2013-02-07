@@ -330,7 +330,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		section_container(int si, int lvl) const;
 
 	///	callback for multigrid messages
-		void multigrid_changed(int msgId, const GridMessage_MultiGridChanged* gm);
+		void multigrid_changed(const GridMessage_MultiGridChanged& gm);
 
 	protected:
 		MultiGrid*		m_pMG;

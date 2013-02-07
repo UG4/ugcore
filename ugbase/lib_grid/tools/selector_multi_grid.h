@@ -282,7 +282,7 @@ class UG_API MGSelector : public ISelector
 	/**	\}	*/
 
 	///	callback for multigrid messages
-		void multigrid_changed(int msgId, const GridMessage_MultiGridChanged* gm);
+		void multigrid_changed(const GridMessage_MultiGridChanged& gm);
 
 	private:
 		MGSelector(const MGSelector& sel){};///<	Copy Constructor not yet implemented!

@@ -26,17 +26,12 @@ typedef SmartPtr<MessageHub> SPMessageHub;
 ///	Allows to register callbacks and post messages to those callbacks.
 /**
  * The MessageHub provides a flexible way to register callbacks for a given
- * message-id, which can be called through the MessageHub::post_message method.
- * Multiple callbacks can be registered for each message-id.
- *
- * With each message-id a message-type is associated. All callbacks for this
- * message-id have to operate on this associated message type. The message-type
- * has to be a derivate of MessageHub::IMessage.
+ * message-type, which can be called through the MessageHub::post_message method.
  *
  * Functions and member-functions of arbitrary classes can both be used as a
  * callback. Callback functions and methods have to have the following signature:
  *
- * void (*)(int, const TMsg*)
+ * void (*)(const TMsg&)
  *
  * where the message-type TMsg is derived from MessageHub::IMessage.
  * They can be registered through the register_callback methods.
@@ -59,7 +54,7 @@ class MessageHub
 
 	private:
 	//	private type definitions
-		typedef boost::function<void (int, const IMessage*)> Callback;
+		typedef boost::function<void (const IMessage&)> Callback;
 
 	///	The CallbackEntry holds the actual callback and the associated callback-id.
 	/**	If a MessageHub is destroyed before all callbacks are unregistered, this
@@ -74,9 +69,7 @@ class MessageHub
 
 		typedef std::list<CallbackEntry>	CallbackEntryList;
 		typedef CallbackEntryList::iterator	CallbackEntryIterator;
-		typedef std::map<std::string, int> 	IdMap;
-		typedef std::vector<CallbackEntryList*>	CallbackTable;
-		typedef std::vector<size_t>			TypeIdVec;
+		typedef std::map<size_t, CallbackEntryList>	CallbackMap;
 
 	public:
 	///	Error codes which give information on the error-reason
@@ -128,13 +121,12 @@ class MessageHub
 				void set_auto_free(bool autoFree)	{m_autoFree = autoFree;}
 
 			private:
-				CallbackId(MessageHub* hub, int msgId,
-						   CallbackEntryIterator callbackEntryIter,
-						   bool autoFree);
+				CallbackId(MessageHub* hub, size_t msgTypeId,
+						   CallbackEntryIterator callbackEntryIter, bool autoFree);
 
 				MessageHub*				m_hub;
-				int 					m_msgId;
 			///	Make sure to only access the iterator while m_hub != NULL.
+				size_t					m_msgTypeId;
 				CallbackEntryIterator	m_callbackEntryIter;
 				bool					m_autoFree;
 		};
@@ -145,74 +137,39 @@ class MessageHub
 		MessageHub();
 		~MessageHub();
 
-	///	returns a unique message id for the specified name
-	/**	On the first call, a new id is generated and registered with the given
-	 * name. The specified type is also registered with this message id and
-	 * can't be changed later on.
-	 * Call this method like this, given an instance of MessageHub:
+	///	registers a function callback given a message-type.
+	/** The callback has to be of the type
 	 *
-	 * int myId = messageHub.get_message_id<MyMsgType>("MyMessage");
-	 *
-	 * MyMsgType hereby has to be a type derived from MessageHub::IMessage.
-	 *
-	 * If the same message-name is registered twice with different message types,
-	 * then an instance of MessageHub::Error is thrown (derives from UGError).
-	 */
-		template <class TMsg>
-		int get_message_id(const char* messageIdName);
-
-	///	registers a callback given a message-id.
-	/**	Make sure to only pass msgIds which were retrieved through get_message_id
-	 * before. Also be sure to use the correct msg-type, which was registered with
-	 * the given message-id.
-	 *
-	 * The callback has to be of the type
-	 *
-	 * void (*FuncCallback)(int, const TMsg*)
+	 * void (*FuncCallback)(const TMsg&)
 	 *
 	 * where TMsg is a type derived from MessageHub::IMessage.
 	 *
 	 * The method returns a smart-pointer to a callback-identifier.
 	 * The auto-free property is disabled for the returned callback-id by default.
 	 * Note that this behavior differs from the similar register_class_callback
-	 * method for class-methods.
-	 *
-	 * If the message-id was not registered or if it was registered with a
-	 * different type, then an instance of MessageHub::Error is thrown
-	 * (derives from UGError).
-	 */
+	 * method for class-methods.*/
 		template <class TMsg>
-		SPCallbackId register_function_callback(int msgId,
-											   void (*callback)(int, const TMsg*),
+		SPCallbackId register_function_callback(void (*callback)(const TMsg&),
 											   bool autoFree = false);
 
-	///	registers a callback given a message-id.
-	/**	Make sure to only pass msgIds which were retrieved through get_message_id
-	 * before. Also be sure to use the correct msg-type, which was registered with
-	 * the given message-id.
+	///	registers a method callback given a message-type.
+	/** The callback has to be of the type
 	 *
-	 * The callback has to be of the type
-	 *
-	 * void (TClass::*ClassCallback)(int, const TMsg*)
+	 * void (TClass::*ClassCallback)(const TMsg&)
 	 *
 	 * where TClass is the class whose member function is registered as callback
 	 * and TMsg a type derived from MessageHub::IMessage.
 	 *
 	 * The method returns a smart-pointer to a callback-identifier. When the
 	 * instance is deleted, the callback is unregistered by default.
-	 * Note that this behavior differs from the similar register__function_callback
+	 * Note that this behavior differs from the similar register_function_callback
 	 * method for function pointers.
 	 * It's a good idea to store the smart-pointer as a member in the class from
 	 * which you register the callback (if it is registered from a class at all).
-	 * You then won't have to deal with unregistration manually.
-	 *
-	 * If the message-id was not registered or if it was registered with a
-	 * different type, then an instance of MessageHub::Error is thrown
-	 * (derives from UGError).
-	 */
+	 * You then won't have to deal with unregistration manually.*/
 		template <class TMsg, class TClass>
-		SPCallbackId register_class_callback(int msgId, TClass* cls,
-										   void (TClass::*callback)(int, const TMsg*),
+		SPCallbackId register_class_callback(TClass* cls,
+										   void (TClass::*callback)(const TMsg&),
 										   bool autoFree = true);
 
 	///	Call this method to explicitly unregister a callback.
@@ -225,13 +182,9 @@ class MessageHub
 	 */
 		void unregister_callback(SPCallbackId cbId);
 
-	///	Posts a message to all callbacks which are registered with the given msgId
-	/**	Make sure to only pass msgIds which were retrieved through get_message_id
-	 * before. Also be sure to use the correct msg-type, which was registered with
-	 * the given message-id.
-	 */
+	///	Posts a message to all callbacks which are registered for the given message tpye
 		template <class TMsg>
-		void post_message(int msgId, const TMsg& msg);
+		void post_message(const TMsg& msg);
 
 	private:
 	///	registers a callback given a message-id.
@@ -241,7 +194,7 @@ class MessageHub
 	 *
 	 * The callback has to be of the type
 	 *
-	 * boost::function<void (int, const IMessage*)>
+	 * boost::function<void (const IMessage&)>
 	 *
 	 * The method returns a smart-pointer to an callback-identifier.
 	 *
@@ -250,18 +203,15 @@ class MessageHub
 	 * (derives from UGError).
 	 */
 		template <class TMsg>
-		SPCallbackId register_callback_impl(int msgId,
-							   boost::function<void (int, const IMessage*)> callback,
+		SPCallbackId register_callback_impl(
+							   boost::function<void (const IMessage&)> callback,
 							   bool autoFree);
 
 	///	performs unregistration of the given callback
 		void unregister_callback_impl(CallbackId* cbId);
 
 	private:
-		IdMap			m_idMap;
-		CallbackTable	m_callbackTable;///< given a msg-id, this vec returns the associated callbacks
-		TypeIdVec		m_msgTypeIds;///< given a msg-id, this vec returns the msg-type-id
-		int				m_highestMsgId;
+		CallbackMap	m_callbackMap;///< given a msg-type-id, this map returns a list of associated callbacks
 };
 
 }//	end of namespace

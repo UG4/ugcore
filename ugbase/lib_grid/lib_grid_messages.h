@@ -37,17 +37,6 @@ class GridMessage_MultiGridChanged : public MessageHub::IMessage
 		int		m_numLevels;
 };
 
-///	Returns the message id for grid adaption messages.
-/**	The associated type is GridMessage_MultiGridChanged.
- * The associated messageIdName is "MultiGridChanged".
- *
- * Note: Message-ids are not necessarily the same for different hubs.
- */
-inline int GridMessageId_MultiGridChanged(SPMessageHub hub)
-{
-	return hub->get_message_id<GridMessage_MultiGridChanged>("MultiGridChanged");
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	constants which indicate the adaption type in a grid refinement message.
@@ -110,18 +99,6 @@ class GridMessage_Adaption : public MessageHub::IMessage
 };
 
 
-///	Returns the message id for grid adaption messages.
-/**	The associated type is GridMessage_Adaption.
- * The associated messageIdName is "GridAdaption".
- *
- * Note: Message-ids are not necessarily the same for different hubs.
- */
-inline int GridMessageId_Adaption(SPMessageHub hub)
-{
-	return hub->get_message_id<GridMessage_Adaption>("GridAdaption");
-}
-
-
 ///	Instances of this class inform about distribution
 enum GridMessageDistributionType{
 	GMDT_NONE,
@@ -140,17 +117,6 @@ class GridMessage_Distribution : public MessageHub::IMessage
 	private:
 		GridMessageDistributionType	m_msg;
 };
-
-///	Returns the message id for grid distribution messages.
-/**	The associated type is GridMessage_Distribution.
- * The associated messageIdName is "GridDistribution".
- *
- * Note: Message-ids are not necessarily the same for different hubs.
- */
-inline int GridMessageId_Distribution(SPMessageHub hub)
-{
-	return hub->get_message_id<GridMessage_Distribution>("GridDistribution");
-}
 
 
 }//	end of namespace

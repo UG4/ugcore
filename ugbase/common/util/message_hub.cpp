@@ -16,11 +16,10 @@ CallbackEntry(const Callback& cb, CallbackId* cbId) :
 }
 
 MessageHub::CallbackId::
-CallbackId(MessageHub* hub, int msgId,
-		   CallbackEntryIterator callbackEntryIter,
-		   bool autoFree) :
+CallbackId(MessageHub* hub, size_t msgTypeId,
+		   CallbackEntryIterator callbackEntryIter, bool autoFree) :
 	m_hub(hub),
-	m_msgId(msgId),
+	m_msgTypeId(msgTypeId),
 	m_callbackEntryIter(callbackEntryIter),
 	m_autoFree(autoFree)
 {
@@ -44,8 +43,7 @@ MessageHub::CallbackId::~CallbackId()
 
 ////////////////////////////////////////////////////////////////////////////////
 //	MessageHub implementation
-MessageHub::MessageHub() :
-	m_highestMsgId(0)
+MessageHub::MessageHub()
 {
 }
 
@@ -53,20 +51,17 @@ MessageHub::~MessageHub()
 {
 //	we have to make sure to invalidate all associated callback-ids.
 //	All entry-lists have to be deleted
-	for(CallbackTable::iterator i_table = m_callbackTable.begin();
-		i_table != m_callbackTable.end(); ++i_table)
+	for(CallbackMap::iterator i_table = m_callbackMap.begin();
+		i_table != m_callbackMap.end(); ++i_table)
 	{
-		CallbackEntryList* entryList = *i_table;
-		for(CallbackEntryList::iterator i_entry = entryList->begin();
-			i_entry != entryList->end(); ++i_entry)
+		CallbackEntryList& entryList = i_table->second;
+		for(CallbackEntryList::iterator i_entry = entryList.begin();
+			i_entry != entryList.end(); ++i_entry)
 		{
 		//	if the associated callback-id is valid, then set its hub to NULL
 			if(i_entry->m_callbackId != NULL)
 				i_entry->m_callbackId->m_hub = NULL;
 		}
-
-	//	the entry-list can now be deleted.
-		delete entryList;
 	}
 }
 
@@ -86,10 +81,8 @@ unregister_callback_impl(MessageHub::CallbackId* cbId)
 	}
 
 	UG_ASSERT(cbId->m_hub == this, "Wrong MessageHub");
-	UG_ASSERT((cbId->m_msgId >= 0) && (cbId->m_msgId < m_highestMsgId),
-			  "Bad message id");
 
-	CallbackEntryList& callbacks = *m_callbackTable[cbId->m_msgId];
+	CallbackEntryList& callbacks = m_callbackMap[cbId->m_msgTypeId];
 
 //	clear the entry
 	callbacks.erase(cbId->m_callbackEntryIter);

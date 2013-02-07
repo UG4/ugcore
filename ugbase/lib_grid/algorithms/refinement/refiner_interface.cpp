@@ -16,11 +16,9 @@ void IRefiner::adaption_begins()
 
 //	we'll schedule an adaption-begins message
 	if(adaptivity_supported())
-		m_messageHub->post_message(m_msgIdAdaption,
-				GridMessage_Adaption(GMAT_HNODE_ADAPTION_BEGINS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_ADAPTION_BEGINS));
 	else
-		m_messageHub->post_message(m_msgIdAdaption,
-				GridMessage_Adaption(GMAT_GLOBAL_ADAPTION_BEGINS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_ADAPTION_BEGINS));
 
 	m_adaptionIsActive = true;
 }
@@ -33,11 +31,9 @@ void IRefiner::adaption_ends()
 	}
 
 	if(adaptivity_supported())
-		m_messageHub->post_message(m_msgIdAdaption,
-				GridMessage_Adaption(GMAT_HNODE_ADAPTION_ENDS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_ADAPTION_ENDS));
 	else
-		m_messageHub->post_message(m_msgIdAdaption,
-				GridMessage_Adaption(GMAT_GLOBAL_ADAPTION_ENDS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_ADAPTION_ENDS));
 
 	m_adaptionIsActive = false;
 }
@@ -58,22 +54,18 @@ void IRefiner::refine()
 
 //	now post a message, which informs that refinement begins
 	if(adaptivity_supported())
-		m_messageHub->post_message(m_msgIdAdaption,
-					GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS));
 	else
-		m_messageHub->post_message(m_msgIdAdaption,
-					GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS));
 
 //	now perform refinement
 	perform_refinement();
 
 //	post a message that refinement has been finished
 	if(adaptivity_supported())
-		m_messageHub->post_message(m_msgIdAdaption,
-					GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS));
 	else
-		m_messageHub->post_message(m_msgIdAdaption,
-					GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS));
 
 //	and finally - if we posted an adaption-begins message, then we'll post
 //	an adaption ends message, too.
@@ -102,22 +94,18 @@ bool IRefiner::coarsen()
 
 //	now post a message, which informs that coarsening begins
 	if(adaptivity_supported())
-		m_messageHub->post_message(m_msgIdAdaption,
-					GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS));
 	else
-		m_messageHub->post_message(m_msgIdAdaption,
-					GridMessage_Adaption(GMAT_GLOBAL_COARSENING_BEGINS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_COARSENING_BEGINS));
 
 //	now perform coarsening
 	bool retVal = perform_coarsening();
 
 //	post a message that coarsening has been finished
 	if(adaptivity_supported())
-		m_messageHub->post_message(m_msgIdAdaption,
-					GridMessage_Adaption(GMAT_HNODE_COARSENING_ENDS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_ENDS));
 	else
-		m_messageHub->post_message(m_msgIdAdaption,
-					GridMessage_Adaption(GMAT_GLOBAL_COARSENING_ENDS));
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_COARSENING_ENDS));
 
 //	and finally - if we posted an adaption-begins message, then we'll post
 //	an adaption ends message, too.
@@ -132,7 +120,6 @@ bool IRefiner::coarsen()
 void IRefiner::set_message_hub(SPMessageHub msgHub)
 {
 	m_messageHub = msgHub;
-	m_msgIdAdaption = GridMessageId_Adaption(m_messageHub);
 }
 
 void IRefiner::set_adjusted_marks_debug_filename(const char* filename)

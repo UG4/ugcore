@@ -487,9 +487,6 @@ class MultiGrid : public Grid, public GridObserver
 		SubsetHandler	m_hierarchy;
 		bool m_bHierarchicalInsertion;
 
-	//	message-id for changed-messages
-		int			m_msgId;
-
 	//	parent attachment
 		AParent		m_aParent;
 

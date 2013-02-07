@@ -1208,8 +1208,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution starts\n");
 	SPMessageHub msgHub = mg.message_hub();
-	msgHub->post_message(GridMessageId_Distribution(msgHub),
-				GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS));
+	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS));
 
 	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 	GridLayoutMap& glm = distGridMgr.grid_layout_map();
@@ -1452,8 +1451,8 @@ bool DistributeGrid(MultiGrid& mg,
 
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution stops\n");
 
-	msgHub->post_message(GridMessageId_Distribution(msgHub),
-				GridMessage_Distribution(GMDT_DISTRIBUTION_STOPS));
+	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STOPS));
+
 	UG_DLOG(LIB_GRID, 1, "dist-stop: DistributeGrid\n");
 	return true;
 }
