@@ -207,9 +207,13 @@ class IApproximationSpace
 
 	/**	this callback is called by the message hub, when a grid change has been
 	 * performed. It will call all necessary actions in order to keep the grid
-	 * correct for computations.
-	 */
+	 * correct for computations.*/
 		void grid_changed_callback(const GridMessage_Adaption& msg);
+
+	/**	This callback is called when the GridMessage_Creation was emitted.
+	 * It refreshes the associated surface view and freezes / unfreezes associated
+	 * dof-managers.*/
+		void grid_creation_callback(const GridMessage_Creation& msg);
 
 	///	sets the distributed grid manager
 #ifdef UG_PARALLEL
@@ -252,7 +256,7 @@ class IApproximationSpace
 
 	///	message hub id
 		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
-		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
+		MessageHub::SPCallbackId m_spGridCreationCallbackID;
 
 		bool m_bAdaptionIsActive;
 

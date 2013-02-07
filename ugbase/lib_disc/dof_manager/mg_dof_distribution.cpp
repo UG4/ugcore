@@ -252,8 +252,6 @@ MGDoFDistribution(SmartPtr<MultiGrid> spMG,
 	  m_rFctPatt(fctPatt),
 	  m_rMultiGrid(*m_spMG)
 {
-	m_callbackId_GridCreation = m_spMG->message_hub()->register_class_callback(
-								this, &MGDoFDistribution::grid_creation_callback);
 	check_subsets();
 	create_offsets();
 	init_attachments();
@@ -280,17 +278,6 @@ void MGDoFDistribution::freeze(bool bFreeze)
 SubsetGroup MGDoFDistribution::subset_grp_by_name(const char* names) const
 {
 	return SubsetGroup(subset_handler(), TokenizeString(names));
-}
-
-void MGDoFDistribution::grid_creation_callback(const GridMessage_Creation& msg)
-{
-	if(msg.msg() == GMCT_CREATION_STARTS){
-		freeze(true);
-	}
-	else if(msg.msg() == GMCT_CREATION_STOPS){
-		if(is_frozen())
-			freeze(false);
-	}
 }
 
 void MGDoFDistribution::create_offsets(ReferenceObjectID roid)

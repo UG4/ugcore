@@ -130,12 +130,7 @@ class MGDoFDistribution : public GridObserver
 	 * are automatically refreshed for all elements. This is rather costly,
 	 * so only freeze the dof distribution if it is really necessary.
 	 * Associated vectors are resized after this refresh. The refresh is performed
-	 * through a call to redistribute_dofs.
-	 *
-	 * \note	The dof-distribution freezes itself, whenever it receives a grid-
-	 * 			message of the type GridMessage_Creation with the state
-	 * 			GMCT_CREATION_STARTS. It unfreezes itself when it receives the
-	 * 			message with the state GMCT_CREATION_STOPS.*/
+	 * through a call to redistribute_dofs.*/
 		void freeze(bool bFreeze);
 
 	///	returns true if the dof distribution is currently frozen.
@@ -352,8 +347,6 @@ class MGDoFDistribution : public GridObserver
 		TBaseElem* child_if_copy(TBaseElem* elem) const;
 
 	protected:
-		void grid_creation_callback(const GridMessage_Creation& msg);
-
 		///	returns the offset for reference element, subset and function
 		size_t offset(const ReferenceObjectID roid, const int si, const size_t fct) const {return m_vvvOffsets[roid][si][fct];}
 

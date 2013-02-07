@@ -125,7 +125,6 @@ void SurfaceDoFDistribution::redistribute_dofs()
 	m_levInfo.clear_all();
 	m_sFreeIndex.clear();
 
-	m_spSurfLevelView->refresh_surface_states();
 	init();
 
 	resize_values(num_indices());

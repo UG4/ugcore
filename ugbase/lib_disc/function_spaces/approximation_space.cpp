@@ -116,6 +116,10 @@ void IApproximationSpace::register_at_adaption_msg_hub()
 	m_spGridAdaptionCallbackID =
 		msgHub->register_class_callback(this,
 		&ug::IApproximationSpace::grid_changed_callback);
+
+	m_spGridCreationCallbackID =
+		msgHub->register_class_callback(this,
+		&ug::IApproximationSpace::grid_creation_callback);
 }
 
 void IApproximationSpace::
@@ -139,6 +143,39 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 				" space has to be informed that grid-adaption shall begin. "
 				"You may use IRefiner::grid_adaption_begins() or schedule "
 				"an appropriate message to the associated grids message-hub.");
+	}
+}
+
+void IApproximationSpace::grid_creation_callback(const GridMessage_Creation& msg)
+{
+	bool freeze = false;
+	bool performSomething = false;
+
+	if(msg.msg() == GMCT_CREATION_STARTS){
+		freeze = true;
+		performSomething = true;
+	}
+	else if(msg.msg() == GMCT_CREATION_STOPS){
+		freeze = false;
+		performSomething = true;
+	//	refresh the surface view
+		if(m_spSurfaceView.valid())
+			m_spSurfaceView->refresh_surface_states();
+	}
+
+//	freeze / unfreeze all associated dof managers
+	if(performSomething){
+		if(m_spLevMGDD.valid())
+			m_spLevMGDD->freeze(freeze);
+		if(m_spTopSurfDD.valid())
+			m_spTopSurfDD->freeze(freeze);
+
+		for(size_t i = 0; i < m_vSurfDD.size(); ++i){
+			if(m_vSurfDD[i].valid())
+				m_vSurfDD[i]->freeze(freeze);
+		}
+
+	//	levelDDs are already handled since they all share m_spLevMGDD
 	}
 }
 
