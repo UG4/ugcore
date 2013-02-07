@@ -7,6 +7,7 @@ ug_load_script("util/stats_util.lua")
 ug_load_script("util/user_data_util.lua")
 ug_load_script("util/gnuplot.lua")
 ug_load_script("util/table_util.lua")
+ug_load_script("util/time_step_util.lua")
 
 --! returns the standard path at which grids are stored
 function util.GetGridPath()
