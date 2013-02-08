@@ -17,17 +17,10 @@
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
 #include "lib_disc/operator/linear_operator/assembled_linear_operator.h"
 #include "../line_search.h"
+#include "newton_update_interface.h"
 #include "lib_algebra/operator/debug_writer.h"
 
 namespace ug {
-
-/// general interface for data updates during Newton process
-class INewtonUpdate
-{
-	public:
-		virtual void update() = 0;
-		virtual ~INewtonUpdate() {};
-};
 
 /// Newton solver for assembling based discretizations
 template <typename TAlgebra>
