@@ -621,6 +621,7 @@ add_transfer(SmartPtr<ILocalTransferAlgebra<TAlgebra> > transfer)
 	IDDGridFunction<TDD>::add_transfer(transfer);
 }
 
+#ifdef UG_PARALLEL
 template <typename TDomain, typename TDD, typename TAlgebra>
 void GridFunction<TDomain, TDD, TAlgebra>::copy_layouts_into_vector()
 {
@@ -641,6 +642,7 @@ void GridFunction<TDomain, TDD, TAlgebra>::copy_storage_type(const this_type& v)
 {
 	vector_type::copy_storage_type(v);
 }
+#endif
 
 } // end namespace ug
 
