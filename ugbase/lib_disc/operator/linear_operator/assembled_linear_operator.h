@@ -59,6 +59,9 @@ class AssembledLinearOperator :
 	///	sets the level used for assembling
 		void set_level(const GridLevel& gl) {m_gridLevel = gl;}
 
+	///	returns the level
+		const GridLevel& level() const {return m_gridLevel;}
+
 	///	initializes the operator that may depend on the current solution
 		virtual void init(const vector_type& u);
 

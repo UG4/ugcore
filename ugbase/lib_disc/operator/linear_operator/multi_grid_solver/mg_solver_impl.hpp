@@ -813,10 +813,14 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	}
 
 //	get current toplevel
-	if(m_surfaceLev != GridLevel::TOPLEVEL)
-		m_topLev = m_surfaceLev;
-	else
-		m_topLev = m_spApproxSpace->num_levels() - 1;
+	const GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra>* pSol =
+		dynamic_cast<const GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra>*>(&u);
+	if(pSol){
+		m_surfaceLev = pSol->dof_distribution()->grid_level().level();
+	}
+
+	if(m_surfaceLev != GridLevel::TOPLEVEL) m_topLev = m_surfaceLev;
+	else m_topLev = m_spApproxSpace->num_levels() - 1;
 
 //	Allocate memory for given top level
 	if(!top_level_required(m_topLev))
@@ -878,6 +882,16 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 			m_vLevData[lev]->d.resize(numIndex);
 			m_vLevData[lev]->t.resize(numIndex);
 		}
+	}
+
+//	init mapping from surface level to top level in case of full refinement
+	if(!m_bAdaptive)
+	{
+		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
+		CreateSurfaceToToplevelMap(m_vSurfToTopMap,
+									   m_spApproxSpace->surface_dof_distribution(m_surfaceLev),
+									   m_spApproxSpace->level_dof_distribution(m_topLev));
+		GMG_PROFILE_END();
 	}
 
 //	Create Projection
@@ -980,10 +994,8 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	}
 
 //	get current toplevel
-	if(m_surfaceLev != GridLevel::TOPLEVEL)
-		m_topLev = m_surfaceLev;
-	else
-		m_topLev = m_spApproxSpace->num_levels() - 1;
+	if(m_surfaceLev != GridLevel::TOPLEVEL) m_topLev = m_surfaceLev;
+	else m_topLev = m_spApproxSpace->num_levels() - 1;
 
 //	Allocate memory for given top level
 	GMG_PROFILE_BEGIN(GMG_CreateLevelStorage);
@@ -1024,6 +1036,16 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	#ifdef UG_PARALLEL
 		m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
 	#endif
+
+//	init mapping from surface level to top level in case of full refinement
+	if(!m_bAdaptive)
+	{
+		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
+		CreateSurfaceToToplevelMap(m_vSurfToTopMap,
+									   m_spApproxSpace->surface_dof_distribution(m_surfaceLev),
+									   m_spApproxSpace->level_dof_distribution(m_topLev));
+		GMG_PROFILE_END();
+	}
 
 //	init common
 	if(!init_common())
@@ -1104,17 +1126,6 @@ init_common()
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
 				"Base Level can not be greater than surface level.\n");
 		return false;
-	}
-
-
-//	init mapping from surface level to top level in case of full refinement
-	if(!m_bAdaptive)
-	{
-		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
-		CreateSurfaceToToplevelMap(m_vSurfToTopMap,
-									   m_spApproxSpace->surface_dof_distribution(m_surfaceLev),
-									   m_spApproxSpace->level_dof_distribution(m_topLev));
-		GMG_PROFILE_END();
 	}
 
 //	Assemble coarse grid operators

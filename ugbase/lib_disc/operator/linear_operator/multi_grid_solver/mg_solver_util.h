@@ -129,10 +129,10 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	check, that levelFuntions and level DoFDistributions are the same number
-	if(vLevelVector.size() != vLevelDD.size())
+	if(vLevelVector.size() > vLevelDD.size())
 		UG_THROW("ProjectSurfaceToLevel: Number of level Vectors ("
-				<< vLevelVector.size() <<") and level DoF Distributions ("
-				<< vLevelDD.size() << ") does not match. Aborting.\n");
+				<< vLevelVector.size() <<") greater that level DoF Distributions ("
+				<< vLevelDD.size() << "). Aborting.\n");
 
 //	forward for all BaseObject types
 	if(surfDD->has_indices_on(VERTEX))
@@ -231,10 +231,10 @@ void ProjectLevelToSurface(TVector& surfVector,
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	check, that levelFuntions and level DoFDistributions are the same number
-	if(vLevelVector.size() != vLevelDD.size())
+	if(vLevelVector.size() > vLevelDD.size())
 		UG_THROW("ProjectLevelToSurface: Number of level Vectors ("
-				<< vLevelVector.size() <<") and level DoF Distributions ("
-				<< vLevelDD.size() << ") does not match. Aborting.\n");
+				<< vLevelVector.size() <<") greater than DoF Distributions ("
+				<< vLevelDD.size() << "). Aborting.\n");
 
 //	forward for all BaseObject types
 	if(surfDD->has_indices_on(VERTEX))
