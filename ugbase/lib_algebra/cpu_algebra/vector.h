@@ -52,6 +52,14 @@ public:
 	bool create(size_t _length);
 	//! create as a copy of other vector
 	bool create(const Vector &v);
+	
+	//! clone the vector (i.e. create a new one basing on the derived class)
+	/**
+	 * This should be used instead of the copy constructor at the places
+	 * where the additional information stored in the object of the derived
+	 * class (like the geometry or the topology of the grid) should be kept.
+	 */
+	virtual SmartPtr<Vector> virtual_clone();
 
 	//! resize vector
 	bool resize(size_t new_length, bool bCopyValues=true);
