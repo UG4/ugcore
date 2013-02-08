@@ -131,10 +131,19 @@ class SurfaceView
 		inline int get_level(TGeomObj* obj) const;
 
 	///	returns if the element is contained in the surface view
-	/**	Retruns true e.g. for unshadowed constrained (hanging) vertices
-	 * \sa SurfaceView::is_shadowed, SurfaceView::is_shadowing*/
+	/**	Retruns true e.g. for unshadowed constrained (hanging) vertices.
+	 * A top-level may optionally be specified. True is returned for all elements
+	 * in the top level, as long as they aren't ghosts. If you specify a topLevel < 0,
+	 * the topLevel parameter will be ignored and the method behaves as if no topLevel
+	 * was specified.
+	 * \sa SurfaceView::is_shadowed, SurfaceView::is_shadowing
+	 * \{ */
 		template <class TGeomObj>
 		inline bool is_surface_element(TGeomObj* obj) const;
+
+		template <class TGeomObj>
+		inline bool is_surface_element(TGeomObj* obj, int topLevel) const;
+	/** \} */
 
 	///	returns if the element is shadowed and thus not contained in the surface view
 	/**	A shadowed element has a child and at least one adjacent element which is

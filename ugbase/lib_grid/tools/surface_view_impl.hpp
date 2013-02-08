@@ -33,13 +33,8 @@ SurfaceViewElementIterator(SurfaceView* surfView,
 		if(!increment_section())
 			return;
 
-//	if level and topLevel are equal, no shadows can be present
-//	this line is essential when surface_levels (and not the top_surface) is
-//	considered, since the function below would return false
-	if(m_lvl == m_topLvl) return;
-
 //	m_elemIter has to point to a valid surface view element
-	if(!m_surfView->is_surface_element(*m_elemIter)){increment(); return;}
+	if(!m_surfView->is_surface_element(*m_elemIter, m_topLvl)){increment(); return;}
 }
 
 template <class TElem>
@@ -134,11 +129,7 @@ increment()
 				return;
 			}
 		}
-
-	//	if on top level no shadows can appear
-		if(m_lvl == m_topLvl) return;
-
-	}while(!m_surfView->is_surface_element(*m_elemIter));
+	}while(!m_surfView->is_surface_element(*m_elemIter, m_topLvl));
 }
 
 template <class TElem>
@@ -202,13 +193,8 @@ ConstSurfaceViewElementIterator(const SurfaceView* surfView,
 		if(!increment_section())
 			return;
 
-//	if level and topLevel are equal, no shadows can be present
-//	this line is essential when surface_levels (and not the top_surface) is
-//	considered, since the function below would return false
-	if(m_lvl == m_topLvl) return;
-
 //	m_elemIter has to point to a valid surface view element
-	if(!m_surfView->is_surface_element(*m_elemIter)){increment(); return;}
+	if(!m_surfView->is_surface_element(*m_elemIter, m_topLvl)){increment(); return;}
 }
 
 template <class TElem>
@@ -290,11 +276,7 @@ increment()
 				return;
 			}
 		}
-
-	//	if on top level no shadows can appear
-		if(m_lvl == m_topLvl) return;
-
-	}while(!m_surfView->is_surface_element(*m_elemIter));
+	}while(!m_surfView->is_surface_element(*m_elemIter, m_topLvl));
 }
 
 template <class TElem>
@@ -470,6 +452,17 @@ bool SurfaceView::is_surface_element(TGeomObj* obj) const
 {
 	byte surfState = surface_state(obj);
 	return (surfState & ESS_SURFACE) && !(surfState & ESS_HIDDEN);
+}
+
+template <class TGeomObj>
+bool SurfaceView::is_surface_element(TGeomObj* obj, int topLevel) const
+{
+	int lvl = get_level(obj);
+	if(lvl == topLevel)
+		return !m_distGridMgr->is_ghost(obj);
+	else if((topLevel > -1) && (lvl > topLevel))
+		return false;
+	return is_surface_element(obj);
 }
 
 template <class TGeomObj>
@@ -653,9 +646,11 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 			for(size_t i = 0; i < vCoarseElem.size(); ++i)
 			{
 			//	if shadowed, not in surface view of the requested level
+			//todo:	it could make sense to pass the level of this SurfaceLevelView
+			//		to the is_surface_element method.
 				if(!m_spSV->is_surface_element(vCoarseElem[i])) continue;
 
-			//	else this must be added to adjacend elements
+			//	else this must be added to adjacent elements
 				vAssElem.push_back(vCoarseElem[i]);
 			}
 		}
