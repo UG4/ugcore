@@ -5,6 +5,7 @@
 #include "parallel_hanging_node_refiner_multi_grid.h"
 #include "../util/compol_selection.h"
 #include "parallel_hnode_adjuster.h"
+#include "lib_grid/algorithms/debug_util.h"
 
 namespace ug{
 
@@ -169,12 +170,6 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 				byte mark = CT_IGNORE;
 				Element elem = interface.get_element(iter);
 
-			//	if the element is also contained in a horizontal interface, we
-			//	don't have (and indeed must not) convert the element during this
-			//	communication step. We therefore won't send any change message...
-				if(m_distGridMgr.is_in_horizontal_interface(elem))
-					continue;
-
 				if(m_sel.is_selected(elem)){
 					if(elem->is_constraining()){
 						if((m_sel.get_selection_status(elem)
@@ -253,25 +248,31 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 
 				Element elem = interface.get_element(iter);
 
-				UG_ASSERT(m_distGridMgr.is_ghost(elem), "Only ghost elements may"
-						" be changed at this point!");
+			//	if the element is also contained in a horizontal interface, we
+			//	don't have (and indeed must not) convert the element during this
+			//	communication step.
+				if(m_distGridMgr.is_in_horizontal_interface(elem))
+					continue;
 
 				switch(mark){
 					case CT_TO_NORMAL:
 						if(elem->is_constraining() || elem->is_constrained()){
-							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with normal edge.\n");
+							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with normal element at "
+									<< GetGeometricObjectCenter(mg, elem) << ".\n");
 							ReplaceByNormal(mg, elem);
 						}
 						break;
 					case CT_TO_CONSTRAINING:
 						if(!elem->is_constraining()){
-							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with constraining edge.\n");
+							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with constraining element at "
+									<< GetGeometricObjectCenter(mg, elem) << ".\n");
 							ReplaceByConstraining(mg, elem);
 						}
 						break;
 					case CT_TO_CONSTRAINED:
 						if(!elem->is_constrained()){
-							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with constrained edge.\n");
+							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with constrained element at "
+									<< GetGeometricObjectCenter(mg, elem) << ".\n");
 							ReplaceByConstrained(mg, elem);
 						}
 						break;

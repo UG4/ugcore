@@ -171,6 +171,16 @@ pre_refine()
 }
 
 void HangingNodeRefiner_MultiGrid::
+refine_constraining_edge(ConstrainingEdge* cge)
+{
+//	call base implementation to perform refinement
+	HangingNodeRefinerBase::refine_constraining_edge(cge);
+
+//	the constrained edge is now a normal edge
+	m_pMG->create_and_replace<Edge>(cge);
+}
+
+void HangingNodeRefiner_MultiGrid::
 refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 {
 //	collect child corners
@@ -256,15 +266,6 @@ set_center_vertex(Face* f, VertexBase* v)
 	UG_ASSERT(m_pMG->get_child_vertex(f) == v, "child/vertex mismatch.");
 }
 
-void HangingNodeRefiner_MultiGrid::
-refine_constraining_edge(ConstrainingEdge* cge)
-{
-//	call base implementation to perform refinement
-	HangingNodeRefinerBase::refine_constraining_edge(cge);
-
-//	the constrained edge is now a normal edge
-	m_pMG->create_and_replace<Edge>(cge);
-}
 
 /*
 template <class TElem>

@@ -63,13 +63,10 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 				if(val > curVal){
 					if(val & RM_COARSEN)
 						m_ref.mark(elem, RM_COARSEN);
-					else if(val & RM_ANISOTROPIC)
+					if(val & RM_ANISOTROPIC)
 						m_ref.mark(elem, RM_ANISOTROPIC);
-					else if(val & RM_REGULAR)
+					if(val & RM_REGULAR)
 						m_ref.mark(elem, RM_REGULAR);
-					else{
-						UG_THROW("Unknown refinement mark.");
-					}
 				}
 			}
 			return true;

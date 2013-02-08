@@ -126,10 +126,14 @@ vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem)
 
 //	the following define is only used by the CheckHangingNodeConsistency methods
 //	and is highly specialized for them.
-#define FAILED_CHECK(elem, msg)	{UG_ERR_LOG("CheckHangingNodeConsistency: " << msg << endl);\
-								UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, elem) << endl);\
-								isConsistent = false;\
-								continue;}
+#define FAILED_CHECK(elem, msg)\
+	{UG_ERR_LOG("CheckHangingNodeConsistency: " << msg << endl);\
+	 UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, elem));\
+	 if(MultiGrid* mg = dynamic_cast<MultiGrid*>(&g))\
+		{UG_ERR_LOG(" on level " << mg->get_level(elem));}\
+	 UG_ERR_LOG(endl);\
+	 isConsistent = false;\
+	}//continue;}
 
 
 bool CheckHangingNodeConsistency(Grid& g)
@@ -240,7 +244,25 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 {
 	Grid& g = mg;
 	bool isConsistent = CheckHangingNodeConsistency(g);
-UG_LOG("1\n");
+
+//	iterate over all hanging nodes and check whether the associated parent
+//	matches the constraining object. Other checks have already been performed!
+	for(Grid::traits<ConstrainedVertex>::iterator iter = g.begin<ConstrainedVertex>();
+		iter != g.end<ConstrainedVertex>(); ++iter)
+	{
+		ConstrainedVertex* hnode = *iter;
+		GeometricObject* co = hnode->get_constraining_object();
+		GeometricObject* parent = mg.get_parent(hnode);
+
+		if(co != parent){
+			FAILED_CHECK(hnode, "Hanging Vertex: Constraining object and parent do not match!");
+		}
+
+		if(co && ((mg.get_level(co) + 1) != mg.get_level(hnode))){
+			FAILED_CHECK(hnode, "Hanging Vertex has to be one level higher than its constraining object!");
+		}
+	}
+
 //	iterate over all edges if an edge has children, then collect its ass. faces.
 //	If not all such faces have children, then the edge has to be a constraining
 //	edge and its children have to be constrained.
@@ -249,12 +271,25 @@ UG_LOG("1\n");
 		iter != mg.end<EdgeBase>(); ++iter)
 	{
 		EdgeBase* e = *iter;
+
+		if(mg.get_parent(e) && (mg.get_level(mg.get_parent(e)) + 1 != mg.get_level(e))){
+			FAILED_CHECK(e, "Edge and parent are not in consecutive levels!");
+		}
+
+		for(size_t i = 0; i < 2; ++i){
+			if(mg.get_level(e) != mg.get_level(e->vertex(i))){
+				FAILED_CHECK(e, "Edge-Vertex is not on the same level as the edge itself!");
+				UG_ERR_LOG("  Vertex at " << GetGeometricObjectCenter(mg, e->vertex(i))
+							<< " on level " << mg.get_level(e->vertex(i)) << endl);
+			}
+		}
+
 		if(mg.has_children<EdgeBase>(e)){
 		//	e may not be a constrained edge
 			if(e->is_constrained()){
 				FAILED_CHECK(e, "Constrained Edge may not have children!");
 			}
-
+/*
 		//	check whether all ass. faces have children.
 			bool allNbrsAreParents= true;
 			bool hasConstrainingNbrFaces = false;
@@ -265,17 +300,18 @@ UG_LOG("1\n");
 				if(faces[i]->is_constraining())
 					hasConstrainingNbrFaces = true;
 			}
-			
+*/
 
 		//	depending whether e is constrained or normal, either all nbrs
 		//	or only some have to have children.
 			if(e->is_constraining()){
+				/* This causes false positives for distributed grids!
 				if(allNbrsAreParents && (!hasConstrainingNbrFaces)){
 				//	e should be a normal edge
 					FAILED_CHECK(e, "At least one neighbor face of a"
 								 " constraining edge should not have children!");
 				}
-				else{
+				else{*/
 				//	make sure that e has two constrained edge-children and a
 				//	constrained vertex child.
 					ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(e);
@@ -303,7 +339,7 @@ UG_LOG("1\n");
 										 "edge has to be a hangingVertex!");
 						}
 					}
-				}
+				//}
 			}
 			else{
 			//	e is not constraining

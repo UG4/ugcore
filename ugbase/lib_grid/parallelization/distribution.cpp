@@ -473,7 +473,9 @@ static void SelectAssociatedSides(MGSelector& msel, TElem* e,
 
 ////////////////////////////////////////////////////////////////////////////////
 /**	selects unselected constrained elements of all selected constraining elements
- * and associated unselected low-dim elems.*/
+ * and associated unselected low-dim elems. An exception is made for constraining
+ * elements which are pure vertical masters. Associated constrained elements won't
+ * be selected in this case, since pure vertical masters mustn't have children.*/
 static void SelectAssociatedConstrainedElements(MGSelector& msel,
 								ISelector::status_t status = ISelector::SELECTED)
 {
@@ -486,6 +488,10 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 				iter != msel.end<TElem>(lvl); ++iter)
 			{
 				ConstrainingFace* e = *iter;
+			//	we won't select constrained elements of pure v-masters!
+				if(msel.get_selection_status(e) == IS_VMASTER)
+					continue;
+
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 					VertexBase* cd = e->constrained_vertex(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
@@ -522,6 +528,10 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 				iter != msel.end<TElem>(lvl); ++iter)
 			{
 				ConstrainingFace* e = *iter;
+			//	we won't select constrained elements of pure v-masters!
+				if(msel.get_selection_status(e) == IS_VMASTER)
+					continue;
+
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 					VertexBase* cd = e->constrained_vertex(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
@@ -558,6 +568,10 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 				iter != msel.end<TElem>(lvl); ++iter)
 			{
 				ConstrainingEdge* e = *iter;
+			//	we won't select constrained elements of pure v-masters!
+				if(msel.get_selection_status(e) == IS_VMASTER)
+					continue;
+
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 					VertexBase* cd = e->constrained_vertex(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
@@ -692,6 +706,8 @@ static void SelectAssociatedConstrainingElements(MGSelector& msel,
  * is not connected to other distributed elements, then the child wouldn't be selected.
  * Note that for edges and faces the methods SelectAssociatedConstrainedElements
  * takes care of this.
+ * Children of pure vertical masters won't be selected, since those mustn't have
+ * children.
  */
 static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
 								ISelector::status_t status = ISelector::SELECTED)
@@ -707,6 +723,9 @@ static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
 			iter != msel.end<VertexBase>(lvl); ++iter)
 		{
 			VertexBase* vrt = *iter;
+			if(msel.get_selection_status(vrt) == IS_VMASTER)
+				continue;
+
 			VertexBase* child = mg.get_child_vertex(vrt);
 			if(!child)
 				continue;

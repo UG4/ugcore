@@ -290,15 +290,8 @@ template <class TElem, class TParent>
 void MultiGrid::element_created(TElem* elem, TParent* pParent,
 								TElem* pReplaceMe)
 {
-//	if hierarchical_insertion is enabled, the element will be put
-//	into the next higher level of pParents level.
-
-	int level = 0;
-	if(pParent)
-	{
-	//	the element is inserted into a new layer.
-		level = get_level(pParent) + 1;
-	}
+	UG_ASSERT(pReplaceMe, "Only call this method with a valid element which shall be replaced.");
+	int level = get_level(pReplaceMe);
 
 //	register parent and child
 	set_parent(elem, pParent);
