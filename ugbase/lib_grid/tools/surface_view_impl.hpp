@@ -458,8 +458,13 @@ template <class TGeomObj>
 bool SurfaceView::is_surface_element(TGeomObj* obj, int topLevel) const
 {
 	int lvl = get_level(obj);
-	if(lvl == topLevel)
-		return !m_distGridMgr->is_ghost(obj);
+	if(lvl == topLevel){
+		#ifdef UG_PARALLEL
+			return !m_distGridMgr->is_ghost(obj);
+		#else
+			return true;
+		#endif
+	}
 	else if((topLevel > -1) && (lvl > topLevel))
 		return false;
 	return is_surface_element(obj);
