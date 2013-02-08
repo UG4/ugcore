@@ -326,7 +326,7 @@ class GridFunction
 		SmartPtr<this_type> clone(){return SmartPtr<this_type>(new this_type(*this));}
 	
 	/// virtual clone from the vector class
-		SmartPtr<vector_type> virtual_clone(){return SmartPtr<vector_type>((vector_type*) new this_type(*this));}
+		//SmartPtr<vector_type> virtual_clone(){return SmartPtr<vector_type>((vector_type*) new this_type(*this));}
 
 	/// copies the GridFunction v, except that the values are copied.
 		virtual void clone_pattern(const this_type& v);

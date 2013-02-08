@@ -59,7 +59,7 @@ public:
 	 * where the additional information stored in the object of the derived
 	 * class (like the geometry or the topology of the grid) should be kept.
 	 */
-	virtual SmartPtr<Vector> virtual_clone();
+	//virtual SmartPtr<Vector> virtual_clone();
 
 	//! resize vector
 	bool resize(size_t new_length, bool bCopyValues=true);

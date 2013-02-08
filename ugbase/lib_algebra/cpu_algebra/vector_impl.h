@@ -141,13 +141,13 @@ bool Vector<value_type>::create(size_t _length)
 	return true;
 }
 
-
+/*
 template<typename value_type>
 SmartPtr<Vector<value_type> > Vector<value_type>::virtual_clone()
 {
 	return SmartPtr<Vector<value_type> >(new Vector<value_type>(size()));
 }
-
+*/
 
 template<typename value_type>
 bool Vector<value_type>::resize(size_t new_length, bool bCopyValues)
