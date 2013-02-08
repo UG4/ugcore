@@ -335,7 +335,6 @@ class ILU : public IPreconditioner<TAlgebra>
 		//	resize help vector
 			m_h.resize(mat.num_cols());
 
-
 		// 	Compute ILU Factorization
 			if (m_beta!=0.0) FactorizeILUBeta(m_ILU, m_beta);
 			else if(matrix_type::rows_sorted) FactorizeILUSorted(m_ILU);
@@ -359,11 +358,11 @@ class ILU : public IPreconditioner<TAlgebra>
 			static bool first = true;
 
 		//	make defect unique
-			vector_type dhelp; dhelp.resize(d.size()); dhelp = d;
-			dhelp.change_storage_type(PST_UNIQUE);
+			SmartPtr<vector_type> spDtmp = d.clone();
+			spDtmp->change_storage_type(PST_UNIQUE);
 
 		// 	apply iterator: c = LU^{-1}*d
-			invert_L(m_ILU, m_h, dhelp); // h := L^-1 d
+			invert_L(m_ILU, m_h, *spDtmp); // h := L^-1 d
 			invert_U(m_ILU, c, m_h); // c := U^-1 h = (LU)^-1 d
 
 		//	write debug

@@ -77,15 +77,13 @@ class BiCGStab
 		// 	build defect:  b := b - A*x
 			linear_operator()->apply_sub(b, x);
 
-			// create start r_0^* vector
-		//	todo: 	It would be sufficient to copy only the pattern and
-		//			without initializing
-			vector_type r; r.create(b.size()); r = b;
-			vector_type p; p.create(b.size()); p = b;
-			vector_type v; v.create(b.size()); v = b;
-			vector_type t; t.create(b.size()); t = b;
-			vector_type s; s.create(b.size()); s = b;
-			vector_type q; q.create(x.size()); q = x;
+		// 	create vectors
+			SmartPtr<vector_type> spR = b.clone_without_values(); vector_type& r = *spR;
+			SmartPtr<vector_type> spP = b.clone_without_values(); vector_type& p = *spP;
+			SmartPtr<vector_type> spV = b.clone_without_values(); vector_type& v = *spV;
+			SmartPtr<vector_type> spT = b.clone_without_values(); vector_type& t = *spT;
+			SmartPtr<vector_type> spS = b.clone_without_values(); vector_type& s = *spS;
+			SmartPtr<vector_type> spQ = x.clone_without_values(); vector_type& q = *spQ;
 
 		//	prepare convergence check
 			prepare_conv_check();

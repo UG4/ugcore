@@ -64,10 +64,9 @@ class LinearSolver
 			LS_PROFILE_END(); //LS_BuildDefect
 
 		// 	create correction
-		// 	todo: 	it would be sufficient to only copy the pattern (and parallel constructor)
-		//			without initializing the values
 			LS_PROFILE_BEGIN(LS_CreateCorrection);
-			vector_type c; c.create(x.size()); c = x;
+			SmartPtr<vector_type> spC = x.clone_without_values();
+			vector_type& c = *spC;
 			LS_PROFILE_END();
 
 			LS_PROFILE_BEGIN(LS_ComputeStartDefect);

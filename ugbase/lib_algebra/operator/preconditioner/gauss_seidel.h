@@ -98,13 +98,11 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
-				//	make defect unique
-				// todo: change that copying
-				vector_type dhelp;
-				dhelp.resize(d.size()); dhelp = d;
-				dhelp.change_storage_type(PST_UNIQUE);
+			//	make defect unique
+				SmartPtr<vector_type> spDtmp = d.clone();
+				spDtmp->change_storage_type(PST_UNIQUE);
 
-				if(!gs_step_LL(m_A, c, dhelp)) return false;
+				if(!gs_step_LL(m_A, c, *spDtmp)) return false;
 				c.set_storage_type(PST_UNIQUE);
 				return true;
 			}

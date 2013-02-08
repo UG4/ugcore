@@ -136,12 +136,6 @@ class NewtonSolver
 		std::vector<SmartPtr<INewtonUpdate> > m_innerStepUpdate;
 		std::vector<SmartPtr<INewtonUpdate> > m_stepUpdate;
 
-	///	help vectors
-	/// \{
-		vector_type m_d;
-		vector_type m_c;
-	///Ê\}
-
 	///	assembling routine
 		SmartPtr<AssembledOperator<algebra_type> > m_N;
 	///	jacobi operator

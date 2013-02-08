@@ -66,7 +66,7 @@ class ParallelVector : public TVector
 						IndexLayout& verticalSlaveLayout,
 						IndexLayout& verticalMasterLayout)
 		: TVector(), m_type(PST_UNDEFINED),
-		  	m_pSlaveLayout(NULL), m_pMasterLayout(NULL),
+		  	m_pSlaveLayout(&slaveLayout), m_pMasterLayout(&masterLayout),
 			m_pVerticalSlaveLayout(&verticalSlaveLayout),
 			m_pVerticalMasterLayout(&verticalMasterLayout),
 			m_pCommunicator(NULL)
@@ -302,7 +302,21 @@ class ParallelVector : public TVector
 			m_pCommunicator = v.m_pCommunicator;
 			m_processCommunicator = v.m_processCommunicator;
 		}
+
+	/// clones the vector (deep-copy) including values
+		SmartPtr<this_type> clone() const;
+
+	/// clones the vector (deep-copy) excluding values
+		SmartPtr<this_type> clone_without_values() const;
+
+
 	protected:
+		/// virtual clone using covariant return type
+		virtual this_type* virtual_clone() const;
+
+		/// virtual clone using covariant return type excluding values
+		virtual this_type* virtual_clone_without_values() const;
+
 	private:
 	// 	type of storage  (i.e. consistent, additiv, additiv unique)
 	//	holds or-combiation of constants enumerated in ug::ParallelStorageType.

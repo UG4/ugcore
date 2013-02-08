@@ -12,12 +12,9 @@
 #include "lib_disc/dof_manager/function_pattern.h"
 #include "lib_disc/common/local_algebra.h"
 #include "local_transfer_interface.h"
+#include "approximation_space.h"
 
 namespace ug{
-
-// predeclaration
-template <typename TDomain>
-class ApproximationSpace;
 
 /// Base class for all Grid Functions
 /**
@@ -302,16 +299,24 @@ class GridFunction
 	public:
 		using IDDGridFunction<TDD>::num_indices;
 
+
+	protected:
+	/// virtual clone using covariant return type
+		virtual this_type* virtual_clone() const {return new this_type(*this);}
+
+	/// virtual clone using covariant return type excluding values
+		virtual this_type* virtual_clone_without_values() const;
+
 	public:
 	/// Initializing Constructor
-		GridFunction(SmartPtr<approximation_space_type> approxSpace,
+		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace,
 		             SmartPtr<TDD> spDoFDistr);
 
 	/// Initializing Constructor using surface dof distribution
-		GridFunction(SmartPtr<approximation_space_type> approxSpace);
+		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
 	/// Initializing Constructor using surface dof distribution on a level
-		GridFunction(SmartPtr<approximation_space_type> approxSpace, int level);
+		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace, int level);
 
 	///	checks the algebra
 		void check_algebra();
@@ -322,11 +327,11 @@ class GridFunction
 	///	assigns another grid function
 		this_type& operator=(const this_type& v) {assign(v); return *this;}
 
-	/// clone
-		SmartPtr<this_type> clone(){return SmartPtr<this_type>(new this_type(*this));}
-	
-	/// virtual clone from the vector class
-		//SmartPtr<vector_type> virtual_clone(){return SmartPtr<vector_type>((vector_type*) new this_type(*this));}
+	/// clone including values
+		SmartPtr<this_type> clone() const {return SmartPtr<this_type>(this->virtual_clone());}
+
+	/// clone excluding values
+		SmartPtr<this_type> clone_without_values() const {return SmartPtr<this_type>(this->virtual_clone_without_values());}
 
 	/// copies the GridFunction v, except that the values are copied.
 		virtual void clone_pattern(const this_type& v);
@@ -351,10 +356,16 @@ class GridFunction
 		virtual ~GridFunction() {}
 
 	///	returns domain
-		SmartPtr<domain_type> domain() {return m_spDomain;}
+		SmartPtr<TDomain> domain() {return m_spApproxSpace->domain();}
 
 	///	returns const domain
-		ConstSmartPtr<domain_type> domain() const {return m_spDomain;}
+		ConstSmartPtr<TDomain> domain() const {return m_spApproxSpace->domain();}
+
+	///	returns approx space
+		SmartPtr<ApproximationSpace<TDomain> > approx_space() {return m_spApproxSpace;}
+
+	///	returns const domain
+		ConstSmartPtr<ApproximationSpace<TDomain> > approx_space() const {return m_spApproxSpace;}
 
 	/// access dof values
 		inline number get_dof_value(size_t i, size_t comp) const
@@ -374,30 +385,15 @@ class GridFunction
 
 	protected:
 	/// Approximation Space
-		SmartPtr<domain_type> m_spDomain;
+		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 #ifdef UG_PARALLEL
 	protected:
 	///	copies references of the layouts from the underlying dof distribution into the vector
-		void copy_layouts_into_vector()
-		{
-		//	copy all horizontal layouts (for all domain decomps)
-			vector_type::set_layouts(this->m_spDD->master_layout(), this->m_spDD->slave_layout());
-
-		//	copy vertical layouts
-			vector_type::set_vertical_layouts(this->m_spDD->vertical_master_layout(),
-			                                  this->m_spDD->vertical_slave_layout());
-
-		//	copy communicator
-			vector_type::set_communicator(this->m_spDD->communicator());
-			vector_type::set_process_communicator(this->m_spDD->process_communicator());
-		}
+		void copy_layouts_into_vector();
 
 	/// copies the storage type from another vector
-		void copy_storage_type(const this_type& v)
-		{
-			vector_type::copy_storage_type(v);
-		}
+		void copy_storage_type(const this_type& v);
 #endif
 };
 

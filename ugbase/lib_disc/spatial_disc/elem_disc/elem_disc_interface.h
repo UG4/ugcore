@@ -21,6 +21,7 @@
 #include "lib_disc/spatial_disc/user_data/data_export.h"
 #include "lib_disc/spatial_disc/user_data/data_import.h"
 #include "common/util/provider.h"
+#include "lib_disc/domain_util.h"
 
 namespace ug{
 

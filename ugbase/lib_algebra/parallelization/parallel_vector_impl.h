@@ -315,6 +315,34 @@ bool CloneVector(ParallelVector<TVector> &dest, const ParallelVector<TVector>& s
 	return true;
 }
 
+template<typename TVector>
+ParallelVector<TVector>* ParallelVector<TVector>::virtual_clone() const
+{
+	ParallelVector<TVector>* pVec = new ParallelVector<TVector>();
+	*pVec = *this;
+	return pVec;
+}
+
+template<typename TVector>
+SmartPtr<ParallelVector<TVector> > ParallelVector<TVector>::clone() const
+{
+	return SmartPtr<ParallelVector<TVector> >(this->virtual_clone());
+}
+
+template<typename TVector>
+ParallelVector<TVector>* ParallelVector<TVector>::virtual_clone_without_values() const
+{
+	ParallelVector<TVector>* pVec = new ParallelVector<TVector>(this->size());
+	pVec->copy_storage_type(*this); pVec->copy_layouts(*this);
+	return pVec;
+}
+
+template<typename TVector>
+SmartPtr<ParallelVector<TVector> > ParallelVector<TVector>::clone_without_values() const
+{
+	return SmartPtr<ParallelVector<TVector> >(this->virtual_clone_without_values());
+}
+
 
 
 } // end namespace ug

@@ -82,11 +82,9 @@ class CG
 			linear_operator()->apply_sub(r, x);
 
 		// 	create help vector (h will be consistent r)
-		//	todo: 	It would be sufficient to copy only the pattern and
-		//			without initializing, but in parallel we have to copy communicators
-			vector_type q; q.create(r.size()); q = r;
-			vector_type z; z.create(x.size()); z = x;
-			vector_type p; p.create(x.size()); p = x;
+			SmartPtr<vector_type> spQ = r.clone_without_values(); vector_type& q = *spQ;
+			SmartPtr<vector_type> spZ = x.clone_without_values(); vector_type& z = *spZ;
+			SmartPtr<vector_type> spP = x.clone_without_values(); vector_type& p = *spP;
 
 		// 	Preconditioning
 			if(preconditioner().valid())

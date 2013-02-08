@@ -116,24 +116,20 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		m_J->set_level(m_N->level());
 	}
 
-//	resize
-	try{
-		m_d.resize(u.size()); m_c.resize(u.size());
-		#ifdef UG_PARALLEL
-			m_d.copy_layouts(u); m_c.copy_layouts(u);
-		#endif
-	}UG_CATCH_THROW("NewtonSolver::apply: Resize of Defect/Correction failed.");
+//	create tmp vectors
+	SmartPtr<vector_type> spD = u.clone_without_values();
+	SmartPtr<vector_type> spC = u.clone_without_values();
 
 //	Set dirichlet values
 	try{
-		m_N->prepare(m_d, u);
+		m_N->prepare(*spD, u);
 	}
 	UG_CATCH_THROW("NewtonSolver::prepare: Prepare of Operator failed.");
 
 // 	Compute first Defect
 	try{
 	NEWTON_PROFILE_BEGIN(NewtonComputeDefect1);
-	m_N->apply(m_d, u);
+	m_N->apply(*spD, u);
 	NEWTON_PROFILE_END();
 	}UG_CATCH_THROW("NewtonSolver::apply: Computation of Start-Defect failed.");
 
@@ -142,7 +138,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
 	std::string name("NEWTON_Defect");
 	name.append(ext);
-	write_debug(m_d, name.c_str());
+	write_debug(*spD, name.c_str());
 	write_debug(u, "NEWTON_StartSolution");
 
 // 	increase offset of output for linear solver
@@ -154,7 +150,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	m_spConvCheck->set_info(ss.str());
 
 // 	start convergence check
-	m_spConvCheck->start(m_d);
+	m_spConvCheck->start(*spD);
 
 	for(size_t i = 0; i < m_stepUpdate.size(); ++i)
 		m_stepUpdate[i]->update();
@@ -164,7 +160,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	{
 	// 	set c = 0
 		NEWTON_PROFILE_BEGIN(NewtonSetCorretionZero);
-		if(!m_c.set(0.0))
+		if(!spC->set(0.0))
 		{
 			UG_LOG("ERROR in 'NewtonSolver::apply':"
 					" Cannot reset correction to zero.\n");
@@ -202,7 +198,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	// 	Solve Linearized System
 		try{
 		NEWTON_PROFILE_BEGIN(NewtonApplyLinSolver);
-		if(!m_spLinearSolver->apply(m_c, m_d))
+		if(!m_spLinearSolver->apply(*spC, *spD))
 		{
 			UG_LOG("ERROR in 'NewtonSolver::apply': Cannot apply Inverse Linear "
 					"Operator for Jacobi-Operator.\n");
@@ -226,7 +222,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		{
 			m_spLineSearch->set_offset("   #  ");
 			NEWTON_PROFILE_BEGIN(NewtonLineSearch);
-			if(!m_spLineSearch->search(m_N, u, m_c, m_d, m_spConvCheck->defect()))
+			if(!m_spLineSearch->search(m_N, u, *spC, *spD, m_spConvCheck->defect()))
 			{
 				UG_LOG("ERROR in 'NewtonSolver::apply': "
 						"Newton Solver did not converge.\n");
@@ -238,12 +234,12 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		else
 		{
 		// 	update solution
-			u -= m_c;
+			u -= *spC;
 
 		// 	compute new Defect
 			NEWTON_PROFILE_BEGIN(NewtonComputeDefect);
-			m_N->prepare(m_d, u);
-			m_N->apply(m_d, u);
+			m_N->prepare(*spD, u);
+			m_N->apply(*spD, u);
 			NEWTON_PROFILE_END();
 		}
 		}UG_CATCH_THROW("NewtonSolver::apply: Line Search update failed.");
@@ -254,15 +250,15 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		sprintf(ext, "_iter%03d", loopCnt);
 
 	// 	check convergence
-		m_spConvCheck->update(m_d);
+		m_spConvCheck->update(*spD);
 		if(loopCnt-1 >= (int)m_vNonLinSolverRates.size()) m_vNonLinSolverRates.resize(loopCnt, 0);
 		m_vNonLinSolverRates[loopCnt-1] += m_spConvCheck->rate();
 
 	//	write defect for debug
 		std::string name("NEWTON_Defect"); name.append(ext);
-		write_debug(m_d, name.c_str());
+		write_debug(*spD, name.c_str());
 		std::string name2("NEWTON_Correction"); name2.append(ext);
-		write_debug(m_c, name2.c_str());
+		write_debug(*spC, name2.c_str());
 	}
 
 	// reset offset of output for linear solver to previous value

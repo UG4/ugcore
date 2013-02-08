@@ -12,6 +12,7 @@
 
 #include "../common/template_expressions.h"
 #include "../common/operations.h"
+#include "common/util/smart_pointer.h"
 #include <vector>
 
 namespace ug{
@@ -37,7 +38,7 @@ public:
 	//! constructor with length
 	Vector(size_t _length);
 
-	//! destructor
+	//! virtual destructor
 	virtual ~Vector();
 
 	Vector(const vector_type & v)
@@ -53,13 +54,11 @@ public:
 	//! create as a copy of other vector
 	bool create(const Vector &v);
 	
-	//! clone the vector (i.e. create a new one basing on the derived class)
-	/**
-	 * This should be used instead of the copy constructor at the places
-	 * where the additional information stored in the object of the derived
-	 * class (like the geometry or the topology of the grid) should be kept.
-	 */
-	//virtual SmartPtr<Vector> virtual_clone();
+	//! clones the vector (deep-copy) including values
+	SmartPtr<vector_type> clone() const;
+
+	//! clones the vector (deep-copy) excluding values
+	SmartPtr<vector_type> clone_without_values() const;
 
 	//! resize vector
 	bool resize(size_t new_length, bool bCopyValues=true);
@@ -147,6 +146,22 @@ public:
 	value_type *begin() { return values + begin_index(); }
 	value_type *end() { return values + end_index(); }*/
 
+protected:
+	//! virtual clone using covariant return type
+	/**
+	 * This should be used instead of the copy constructor at the places
+	 * where the additional information stored in the object of the derived
+	 * class (like the geometry or the topology of the grid) should be kept.
+	 */
+	virtual vector_type* virtual_clone() const;
+
+	//! virtual clone using covariant return type excluding values
+	/**
+	 * This should be used instead of the copy constructor at the places
+	 * where the additional information stored in the object of the derived
+	 * class (like the geometry or the topology of the grid) should be kept.
+	 */
+	virtual vector_type* virtual_clone_without_values() const;
 
 private:
 	bool destroy();

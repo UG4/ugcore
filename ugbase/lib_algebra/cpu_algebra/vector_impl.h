@@ -141,13 +141,31 @@ bool Vector<value_type>::create(size_t _length)
 	return true;
 }
 
-/*
+
 template<typename value_type>
-SmartPtr<Vector<value_type> > Vector<value_type>::virtual_clone()
+Vector<value_type>* Vector<value_type>::virtual_clone() const
 {
-	return SmartPtr<Vector<value_type> >(new Vector<value_type>(size()));
+	return new Vector<value_type>(*this);
 }
-*/
+
+template<typename value_type>
+SmartPtr<Vector<value_type> > Vector<value_type>::clone() const
+{
+	return SmartPtr<Vector<value_type> >(this->virtual_clone());
+}
+
+template<typename value_type>
+Vector<value_type>* Vector<value_type>::virtual_clone_without_values() const
+{
+	return new Vector<value_type>(this->length);
+}
+
+template<typename value_type>
+SmartPtr<Vector<value_type> > Vector<value_type>::clone_without_values() const
+{
+	return SmartPtr<Vector<value_type> >(this->virtual_clone_without_values());
+}
+
 
 template<typename value_type>
 bool Vector<value_type>::resize(size_t new_length, bool bCopyValues)
