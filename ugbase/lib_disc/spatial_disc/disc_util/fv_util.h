@@ -140,7 +140,8 @@ struct fv1_traits_ReferenceFace3d : public fv1_traits_ReferenceFace
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 							 const MathVector<3>* vSCVFCorner,
 							 const MathVector<3>* vElemCorner)
-		{UG_THROW("Not implemented");}
+		/*{UG_THROW("Not implemented");}*/
+		{ElementNormal<ReferenceQuadrilateral,3>(outNormal, vSCVFCorner);}	// mbreit: is that correct?
 };
 
 template <> struct fv1_traits<ReferenceTriangle, 2> : public fv1_traits_ReferenceFace2d{};
