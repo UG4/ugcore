@@ -1223,16 +1223,16 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 		}
 	}
 	
-	// set local integration points
+	// set global integration points
 	for (size_t i = 0; i < num_bf(); ++i)
 	{
 		// copy global corners of bf
 		copy_global_corners(m_vBF[i]);
 		
 		if (dim == 1) // Edge
-			{AveragePositions(m_vBF[i].localIP, m_vBF[i].vLocPos, 2);}
+			{AveragePositions(m_vBF[i].globalIP, m_vBF[i].vGloPos, 2);}
 		else if (dim == 2)	// Quadrilateral
-			{AveragePositions(m_vBF[i].localIP, m_vBF[i].vLocPos, 4);}
+			{AveragePositions(m_vBF[i].globalIP, m_vBF[i].vGloPos, 4);}
 		else {UG_ASSERT(0, "Dimension higher than 2 not implemented.");}
 	}
 	
