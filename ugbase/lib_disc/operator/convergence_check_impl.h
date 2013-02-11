@@ -302,13 +302,17 @@ void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 
 	if (m_verbose)
 	{
+		double pDefect = previousDefect(0);
+		if (pDefect==0) pDefect=1.0;
 		print_offset(); UG_LOG(std::setw(4) << step() << ":    "
-										<< std::scientific << defect(0) <<  "    "<< m_minDefect[0]<< "    " << defect(0)/previousDefect(0)
+										<< std::scientific << defect(0) <<  "    "<< m_minDefect[0]<< "    " << defect(0)/pDefect
 										<< "    " << reduction(0) << "    "
 										<< m_relReduction[0] << "    " << std::setw(0) << fctName(0) << "\n");
 		for (size_t i = 1; i < m_fctName.size(); i++)
 		{
-			print_offset(); UG_LOG("         " << std::scientific << defect(i) <<  "    "<< m_minDefect[i]<< "    " << defect(i)/previousDefect(i)
+			double pDefect = previousDefect(i);
+			if (pDefect==0) pDefect=1.0;
+			print_offset(); UG_LOG("         " << std::scientific << defect(i) <<  "    "<< m_minDefect[i]<< "    " << defect(i)/pDefect
 								<< "    " << reduction(i) << "    "
 								<< m_relReduction[i] << "    " << fctName(i) << "\n");
 		}
