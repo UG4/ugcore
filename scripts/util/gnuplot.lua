@@ -2,6 +2,30 @@
 -- called using gnuplot.xxx.)
 module( "gnuplot", package.seeall )
 
+function getArraySizes(t)
+
+	local min = 1e1000
+	local max = 0
+	
+	for k, v in pairs(t) do
+		if type(k) == "number" and math.floor(k)==k and v ~= nil then
+			min = math.min(min, k)
+			max = math.max(max, k)
+		end
+	end
+	
+	if max == 0 and min == 1e1000 then return 0,-1 end
+	
+	local conseqMax = 0
+	for i = min, max do
+		if t[i] ~= nil then
+			conseqMax = i
+		end
+	end
+
+	return min, conseqMax
+end
+
 -- writes the passed data array to file
 --
 -- filename			the output file
@@ -33,7 +57,9 @@ function write_data(filename, data, passRows)
 		passRows = true
 	end
 
-	local plainArray, rowSize, columnLength = nil
+	local plainArray, rowSize
+	local minRow = nil
+	local maxRow = nil 
 	
 	if not passRows then
 		-- check column sizes
@@ -43,16 +69,23 @@ function write_data(filename, data, passRows)
 				return 1						
 			end
 			
-			if columnLength == nil then columnLength = #item
-			elseif not(columnLength == #item) then
+			local min, max = getArraySizes(item)
+			if minRow == nil then minRow = min
+			elseif minRow ~= min then
 				io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
-				io.stderr:write("Expected: "..columnLength..", got: "..#item.."\n");
+				io.stderr:write("Expected min row: "..minRow..", got: "..min.."\n");
+				return 1						
+			end
+			if maxRow == nil then maxRow = max
+			elseif maxRow ~= max then
+				io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
+				io.stderr:write("Expected max row: "..maxRow..", got: "..max.."\n");
 				return 1						
 			end
 		end
 		
 		-- write column
-		for i = 1,columnLength do
+		for i = minRow,maxRow do
 			for j = 1,#data do
 				file:write(data[j][i], " ")
 			end

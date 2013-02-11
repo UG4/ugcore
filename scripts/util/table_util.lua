@@ -1,5 +1,29 @@
 table = table or {}
 
+function table.getArraySizes(t)
+
+	local min = 1e1000
+	local max = 0
+	
+	for k, v in pairs(t) do
+		if type(k) == "number" and math.floor(k)==k and v ~= nil then
+			min = math.min(min, k)
+			max = math.max(max, k)
+		end
+	end
+	
+	if max == 0 then return 0,0 end
+	
+	local conseqMax = 0
+	for i = min, max do
+		if t[i] ~= nil then
+			conseqMax = i
+		end
+	end
+
+	return min, conseqMax
+end
+
 function table.print(data, style)
 
 	local title = style.title
@@ -11,13 +35,16 @@ function table.print(data, style)
 
 
 	local numCols = #data
-	local numRows = 0
+	local maxRows = 0
+	local minRows = 1e1000
 	local maxSize = {}
 	for col = 1,numCols do
-		numRows = math.max(numRows, #data[col])
+		local minRow, maxRow = table.getArraySizes(data[col])
+		minRows = math.min(minRows, minRow)
+		maxRows = math.max(maxRows, maxRow)		
 		
 		maxSize[col] = 0
-		for row = 1, #data[col] do
+		for row = minRow, maxRow do
 			local s = data[col][row];
 			if format ~= nil and format[col] ~= nil 
 			   and s ~= nil and type(s) == "number" then 
@@ -26,6 +53,8 @@ function table.print(data, style)
 			maxSize[col] = math.max(maxSize[col], #tostring(s))
 		end
 	end
+	
+	print("min: "..minRows..", max: "..maxRows)
 	
 	if title ~= nil then
 		local vsize = 0
@@ -45,7 +74,7 @@ function table.print(data, style)
 		end
 	end
 	
-	for row = 1, numRows do
+	for row = minRows, maxRows do
 		for col = 1, numCols do
 			local s = data[col][row];
 			if format ~= nil and format[col] ~= nil 
