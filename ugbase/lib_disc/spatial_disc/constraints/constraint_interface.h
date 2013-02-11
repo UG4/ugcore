@@ -108,6 +108,9 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 	public:
 	///	sets the approximation space
 		virtual void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace) = 0;
+	///	sets the index for which the assemble operators should be build up
+		virtual void set_ass_index() = 0;
+		virtual void set_ass_index(size_t ind, bool index_set = true) = 0;
 
 };
 

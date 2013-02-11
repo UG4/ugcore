@@ -229,6 +229,16 @@ class IAssemble
 	 */
 		virtual void set_selector(Selector* sel = NULL) = 0;
 
+	///	sets an index for which the assembling should be carried out
+	/**
+	 * This methods sets a boolean if an index-wise assemble routine should be used.
+	 * This proceeding is e.g. useful for a nonlinear Gauss-Seidel or nonlinear
+	 * Jacobi solver. The specific index is passed to the domain discretization.
+	 *
+	 * \param[in]	ind			size_t
+	 * \param[in]	index_set	bool
+	 */
+		virtual void ass_index() = 0;
 		virtual void ass_index(size_t ind, bool index_set = true) = 0;
 
 	///	returns the number of constraints

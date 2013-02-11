@@ -269,6 +269,10 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
               ConstSmartPtr<TDD> dd, number time)
 {
+	if(this->m_AssIndex.index_set)
+		UG_THROW("index-wise assemble routine is not "
+				"yet implemented for SymP1Constraints \n");
+
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
@@ -312,6 +316,10 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_rhs(vector_type& rhs, const vector_type& u,
            ConstSmartPtr<TDD> dd, number time)
 {
+	if(this->m_AssIndex.index_set)
+		UG_THROW("index-wise assemble routine is not "
+				"yet implemented for SymP1Constraints \n");
+
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
@@ -354,6 +362,10 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u,
                 ConstSmartPtr<TDD> dd, number time)
 {
+	if(this->m_AssIndex.index_set)
+		UG_THROW("index-wise assemble routine is not "
+				"yet implemented for SymP1Constraints \n");
+
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
@@ -399,6 +411,10 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
               ConstSmartPtr<TDD> dd, number time)
 {
+	if(this->m_AssIndex.index_set)
+		UG_THROW("index-wise assemble routine is not "
+				"yet implemented for SymP1Constraints \n");
+
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
@@ -447,6 +463,10 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
                 number time)
 {
+	if(this->m_AssIndex.index_set)
+		UG_THROW("index-wise assemble routine is not "
+				"yet implemented for SymP1Constraints \n");
+
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
@@ -553,6 +573,10 @@ OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
               ConstSmartPtr<TDD> dd, number time)
 {
+	if(this->m_AssIndex.index_set)
+		UG_THROW("index-wise assemble routine is not "
+				"yet implemented for OneSideP1Constraints \n");
+
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
@@ -602,6 +626,10 @@ OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_rhs(vector_type& rhs, const vector_type& u,
            ConstSmartPtr<TDD> dd, number time)
 {
+	if(this->m_AssIndex.index_set)
+		UG_THROW("index-wise assemble routine is not "
+				"yet implemented for OneSideP1Constraints \n");
+
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
@@ -650,6 +678,10 @@ OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u,
                 ConstSmartPtr<TDD> dd, number time)
 {
+	if(this->m_AssIndex.index_set)
+		UG_THROW("index-wise assemble routine is not "
+				"yet implemented for OneSideP1Constraints \n");
+
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
@@ -701,6 +733,10 @@ OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
               ConstSmartPtr<TDD> dd, number time)
 {
+	if(this->m_AssIndex.index_set)
+		UG_THROW("index-wise assemble routine is not "
+				"yet implemented for OneSideP1Constraints \n");
+
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
@@ -755,6 +791,10 @@ OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
                 number time)
 {
+	if(this->m_AssIndex.index_set)
+		UG_THROW("index-wise assemble routine is not "
+				"yet implemented for OneSideP1Constraints \n");
+
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;

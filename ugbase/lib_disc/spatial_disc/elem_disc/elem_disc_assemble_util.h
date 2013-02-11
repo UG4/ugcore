@@ -71,6 +71,10 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
+// 	check if assemble routine should be called only with respect to one index
+	size_t assInd;
+	if (assAdapt.assIndex.index_set)
+		assInd = assAdapt.assIndex.index;
 
 	try
 	{
@@ -116,8 +120,16 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot compute Jacobian (A).");
 
-	// 	send local to global matrix
-		AddLocalMatrixToGlobal(A, locA);
+	// send local to global matrix
+		if (assAdapt.assIndex.index_set){
+			 /* the global matrix is only set up with respect
+			  *	to one global index 'assInd' -> A is a (block,block)-matrix
+			  *	at one index/DoF */
+			AddLocalMatrixToGlobalAtIndex(A, locA, assInd);
+		}
+		else{
+			AddLocalMatrixToGlobal(A, locA);
+		}
 	}
 
 // 	finish element loop
@@ -154,7 +166,8 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		AssembleStiffnessMatrix<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, u, assAdapt);
@@ -206,6 +219,10 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
+// 	check if assemble routine should be called only with respect to one index
+	size_t assInd;
+	if (assAdapt.assIndex.index_set)
+		assInd = assAdapt.assIndex.index;
 
 //	prepare for given elem discs
 	try
@@ -252,8 +269,16 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 		UG_CATCH_THROW("AssembleMassMatrix: Cannot compute Jacobian (M).");
 
-	// 	send local to global matrix
-		AddLocalMatrixToGlobal(M, locM);
+	// send local to global matrix
+		if (assAdapt.assIndex.index_set){
+			 /* the global matrix is only set up with respect
+			  *	to one global index 'assInd' -> M is a (block,block)-matrix
+			  *	at one index/DoF */
+			AddLocalMatrixToGlobalAtIndex(M, locM, assInd);
+		}
+		else{
+			AddLocalMatrixToGlobal(M, locM);
+		}
 	}
 
 // 	finish element loop
@@ -290,7 +315,8 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		AssembleMassMatrix<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, M, u, assAdapt);
@@ -343,6 +369,10 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
+// 	check if assemble routine should be called only with respect to one index
+	size_t assInd;
+	if (assAdapt.assIndex.index_set)
+		assInd = assAdapt.assIndex.index;
 
 //	prepare for given elem discs
 	try
@@ -391,8 +421,16 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute Jacobian (A).");
 
-	// 	send local to global matrix
-		AddLocalMatrixToGlobal(J, locJ);
+	// send local to global matrix
+		if (assAdapt.assIndex.index_set){
+			 /* the global matrix is only set up with respect
+			  *	to one global index 'assInd' -> J is a (block,block)-matrix
+			  *	at one index/DoF */
+			AddLocalMatrixToGlobalAtIndex(J, locJ, assInd);
+		}
+		else{
+			AddLocalMatrixToGlobal(J, locJ);
+		}
 	}
 
 // 	finish element loop
@@ -429,7 +467,8 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		AssembleJacobian<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, J, u, assAdapt);
@@ -485,10 +524,10 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
-// 	assemble only with respect to one indice
-	/*bool index_set = assAdapt.assIndex.index_set;
+// 	check if assemble routine should be called only with respect to one index
 	size_t assInd;
-	if (index_set) assInd = assAdapt.assIndex.index;*/
+	if (assAdapt.assIndex.index_set)
+		assInd = assAdapt.assIndex.index;
 
 //	get current time and vector
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
@@ -511,6 +550,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 //	local algebra
 	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
 
+	EL_PROFILE_BEGIN(Elem_AssembleJacobian);
 // 	Loop over all elements
 	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
@@ -543,7 +583,8 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	//	reset local algebra
 		locJ = 0.0;
 
-	// 	Assemble JA
+		EL_PROFILE_BEGIN(Elem_add_JA);
+		// 	Assemble JA
 		try
 		{
 			Eval.add_JA_elem(locJ, locU, elem, PT_INSTATIONARY);
@@ -552,6 +593,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 			Eval.add_JA_elem(locJ, locU, elem, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (A).");
+		EL_PROFILE_END();
 
 	// 	Assemble JM
 		try
@@ -561,14 +603,18 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (M).");
 
 	// send local to global matrix
-		AddLocalMatrixToGlobal(J, locJ);
-		/*if (!index_set){ AddLocalMatrixToGlobal(J, locJ);}
-		else
-			AddLocalMatrixToGlobalAtIndex(J, locJ, assInd);*/
-		/* 	the global matrix is only set up with respect
-						 *	to one global index 'assInd' -> J is a (block,block)-matrix
-						 * at one index/DoF */
+		if (assAdapt.assIndex.index_set){
+			 /* the global matrix is only set up with respect
+			  *	to one global index 'assInd' -> J is a (block,block)-matrix
+			  *	at one index/DoF */
+			AddLocalMatrixToGlobalAtIndex(J, locJ, assInd);
+		}
+		else{
+			AddLocalMatrixToGlobal(J, locJ);
+		}
+
 	}
+	EL_PROFILE_END();
 
 // 	finish element loop
 	try
@@ -604,8 +650,10 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 			if(sh.get_subset_index(*iter) == si)
 				elems.push_back(*iter);
 		}
+		//UG_LOG(elems.size() << "Elemente in Subset" << si << "ausgewŠhlt (assJac) \n");
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		AssembleJacobian<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, J, vSol, s_a0, assAdapt);
@@ -658,6 +706,10 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
+// 	check if assemble routine should be called only with respect to one index
+	size_t assInd;
+	if (assAdapt.assIndex.index_set)
+		assInd = assAdapt.assIndex.index;
 
 //	prepare for given elem discs
 	try
@@ -716,7 +768,15 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Rhs.");
 
 	// 	send local to global rhs
-		AddLocalVector(d, locD);
+		if (assAdapt.assIndex.index_set){
+			 /* the global vector is only set up with respect
+			  *	to one global index 'assInd' -> d is a (block)-vector
+			  *	at one index/DoF */
+			AddLocalVectorAtIndex(d, locD, assInd);
+		}
+		else{
+			AddLocalVector(d, locD);
+		}
 	}
 
 // 	finish element loop
@@ -753,7 +813,8 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		AssembleDefect<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, d, u, assAdapt);
@@ -810,6 +871,10 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
+// 	check if assemble routine should be called only with respect to one index
+	size_t assInd;
+	if (assAdapt.assIndex.index_set)
+		assInd = assAdapt.assIndex.index;
 
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
@@ -946,7 +1011,15 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 
 	// 	send local to global rhs
-		AddLocalVector(d, locD);
+		if (assAdapt.assIndex.index_set){
+			 /* the global vector is only set up with respect
+			  *	to one global index 'assInd' -> d is a (block)-vector
+			  *	at one index/DoF */
+			AddLocalVectorAtIndex(d, locD, assInd);
+		}
+		else{
+			AddLocalVector(d, locD);
+		}
 	}
 
 // 	finish element loop
@@ -984,8 +1057,10 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 			if(sh.get_subset_index(*iter) == si)
 				elems.push_back(*iter);
 		}
+		//UG_LOG(elems.size() << "Elemente in Subset" << si << "ausgewŠhlt (assDef) \n");
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		AssembleDefect<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, assAdapt);
@@ -1038,6 +1113,10 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
+// 	check if assemble routine should be called only with respect to one index
+	size_t assInd;
+	if (assAdapt.assIndex.index_set)
+		assInd = assAdapt.assIndex.index;
 
 //	prepare for given elem discs
 	try
@@ -1091,11 +1170,18 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute Rhs.");
 
-	// 	send local to global matrix
-		AddLocalMatrixToGlobal(A, locA);
-
-	// 	send local to global rhs
-		AddLocalVector(rhs, locRhs);
+	// 	send local to global matrix & rhs
+		if (assAdapt.assIndex.index_set){
+			 /* the global vector/matrix is only set up with respect
+			  *	to one global index 'assInd' -> rhs/A is a (block)-vector/(block,block)-matrix
+			  *	at one index/DoF */
+			AddLocalMatrixToGlobalAtIndex(A, locA, assInd);
+			AddLocalVectorAtIndex(rhs, locRhs, assInd);
+		}
+		else{
+			AddLocalMatrixToGlobal(A, locA);
+			AddLocalVector(rhs, locRhs);
+		}
 	}
 
 // 	finish element loop
@@ -1132,7 +1218,8 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		AssembleLinear<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, rhs, assAdapt);
@@ -1191,6 +1278,10 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
+// 	check if assemble routine should be called only with respect to one index
+	size_t assInd;
+	if (assAdapt.assIndex.index_set)
+		assInd = assAdapt.assIndex.index;
 
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
@@ -1330,11 +1421,18 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
 		}
 
-	// 	send local to global matrix
-		AddLocalMatrixToGlobal(A, locA);
-
-	// 	send local to global rhs
-		AddLocalVector(rhs, locRhs);
+		// 	send local to global matrix & rhs
+			if (assAdapt.assIndex.index_set){
+				 /* the global vector/matrix is only set up with respect
+				  *	to one global index 'assInd' -> rhs/A is a (block)-vector/(block,block)-matrix
+				  *	at one index/DoF */
+				AddLocalMatrixToGlobalAtIndex(A, locA, assInd);
+				AddLocalVectorAtIndex(rhs, locRhs, assInd);
+			}
+			else{
+				AddLocalMatrixToGlobal(A, locA);
+				AddLocalVector(rhs, locRhs);
+			}
 	}
 
 // 	finish element loop
@@ -1374,7 +1472,8 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		AssembleLinear<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
@@ -1427,6 +1526,10 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
+// 	check if assemble routine should be called only with respect to one index
+	size_t assInd;
+	if (assAdapt.assIndex.index_set)
+		assInd = assAdapt.assIndex.index;
 
 //	prepare for given elem discs
 	try
@@ -1476,7 +1579,15 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 		UG_CATCH_THROW("AssembleRhs: Cannot compute Rhs.");
 
 	// 	send local to global rhs
-		AddLocalVector(rhs, locRhs);
+		if (assAdapt.assIndex.index_set){
+			 /* the global vector is only set up with respect
+			  *	to one global index 'assInd' -> rhs is a (block)-vector
+			  *	at one index/DoF */
+			AddLocalVectorAtIndex(rhs, locRhs, assInd);
+		}
+		else{
+			AddLocalVector(rhs, locRhs);
+		}
 	}
 
 // 	finish element loop
@@ -1513,7 +1624,8 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		AssembleRhs<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, rhs, u, assAdapt);
@@ -1570,6 +1682,10 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
+// 	check if assemble routine should be called only with respect to one index
+	size_t assInd;
+	if (assAdapt.assIndex.index_set)
+		assInd = assAdapt.assIndex.index;
 
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
@@ -1688,8 +1804,16 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Rhs.");
 		}
 
-	// 	send local to global rhs
-		AddLocalVector(rhs, locRhs);
+		// 	send local to global rhs
+			if (assAdapt.assIndex.index_set){
+				 /* the global vector is only set up with respect
+				  *	to one global index 'assInd' -> rhs is a (block)-vector
+				  *	at one index/DoF */
+				AddLocalVectorAtIndex(rhs, locRhs, assInd);
+			}
+			else{
+				AddLocalVector(rhs, locRhs);
+			}
 	}
 
 // 	finish element loop
@@ -1728,7 +1852,8 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		AssembleRhs<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
@@ -1871,7 +1996,8 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		PrepareTimestep<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, vSol, assAdapt);
@@ -2008,7 +2134,8 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 				elems.push_back(*iter);
 		}
 
-		// assembling is carried out only over those elements which are selected
+		//	assembling is carried out only over those elements
+		//	which are selected and in subset si
 		FinishTimestep<TElem,TDD,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, vSol, assAdapt);

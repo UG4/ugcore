@@ -11,6 +11,7 @@
 #include "constraint_interface.h"
 #include "lib_disc/dof_manager/level_dof_distribution.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
+#include "lib_disc/spatial_disc/ass_adapter.h"
 
 namespace ug{
 
@@ -44,6 +45,14 @@ class ConstraintBase
 			return m_spApproxSpace;
 		}
 
+	///	sets the assemble index for index-wise assemble routine
+		virtual void set_ass_index(){set_ass_index(0.0, false);}
+		virtual void set_ass_index(size_t ind, bool index_set = true)
+		{
+			m_AssIndex.index_set = index_set;
+			m_AssIndex.index = ind;
+		}
+		
 	///	adapts jacobian to enforce constraints
 		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                             GridLevel gl, number time = 0.0)
@@ -130,6 +139,9 @@ class ConstraintBase
 	protected:
 	///	Approximation Space
 		SmartPtr<ApproximationSpace<domain_type> > m_spApproxSpace;
+
+	///	Assemble index
+		AssIndex m_AssIndex;
 };
 
 

@@ -56,7 +56,11 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 */
 		ITimeDiscretization(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
 			: m_spDomDisc(spDD)
-		{}
+		{
+			m_AssAdapter.pBoolMarker = NULL;
+			m_AssAdapter.pSelector = NULL;
+			m_AssAdapter.assIndex.index_set = false;
+		}
 
 	/// prepares the assembling of Defect/Jacobian for a time step
 	/**
@@ -174,7 +178,16 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 		{
 			m_AssAdapter.pSelector = sel; forward_selector();
 		}
-	
+	///	sets an index for which the assembling should be carried out
+	/**
+	 * This methods sets a boolean if an index-wise assemble routine should be used.
+	 * This proceeding is e.g. useful for a nonlinear Gauss-Seidel or nonlinear
+	 * Jacobi solver. The specific index is passed.
+	 *
+	 * \param[in]	ind			size_t
+	 * \param[in]	index_set	bool
+	 */
+		virtual void ass_index(){ ass_index(0.0, false);}
 		virtual void ass_index(size_t ind, bool index_set = true)
 		{
 			m_AssAdapter.assIndex.index = ind; m_AssAdapter.assIndex.index_set = index_set; forward_ass_index();
@@ -210,6 +223,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 		
 		SmartPtr<IDomainDiscretization<TAlgebra> > m_spDomDisc; ///< Domain Discretization
 
+		///	this object provides tools to adapt the assemble routine
 		AssAdapter m_AssAdapter;
 };
 

@@ -713,6 +713,24 @@ void AddLocalVector(TVector& vec, const LocalVector& lvec)
 		}
 }
 
+template <typename TVector>
+void AddLocalVectorAtIndex(TVector& vec, const LocalVector& lvec, const size_t assIndex)
+{
+	const LocalIndices& ind = lvec.get_indices();
+
+	for(size_t fct=0; fct < lvec.num_all_fct(); ++fct)
+		for(size_t dof=0; dof < lvec.num_all_dof(fct); ++dof)
+		{
+			const size_t index = ind.index(fct,dof);
+			if (index == assIndex)
+			{
+				const size_t comp = ind.comp(fct,dof);
+				BlockRef(vec[0], comp) += lvec.value(fct,dof);
+			}
+
+		}
+}
+
 template <typename TMatrix>
 void AddLocalMatrixToGlobal(TMatrix& mat, const LocalMatrix& lmat)
 {
@@ -735,6 +753,34 @@ void AddLocalMatrixToGlobal(TMatrix& mat, const LocalMatrix& lmat)
 				}
 }
 
+template <typename TMatrix>
+void AddLocalMatrixToGlobalAtIndex(TMatrix& mat, const LocalMatrix& lmat, const size_t assIndex)
+{
+	//PROFILE_FUNC_GROUP("algebra")
+	const LocalIndices& rowInd = lmat.get_row_indices();
+	const LocalIndices& colInd = lmat.get_col_indices();
+
+	for(size_t fct1=0; fct1 < lmat.num_all_row_fct(); ++fct1)
+		for(size_t dof1=0; dof1 < lmat.num_all_row_dof(fct1); ++dof1)
+		{
+			const size_t rowIndex = rowInd.index(fct1,dof1);
+			if (rowIndex != assIndex)
+				continue;
+
+			const size_t rowComp = rowInd.comp(fct1,dof1);
+			for(size_t fct2=0; fct2 < lmat.num_all_col_fct(); ++fct2)
+				for(size_t dof2=0; dof2 < lmat.num_all_col_dof(fct2); ++dof2)
+				{
+					const size_t colIndex = colInd.index(fct2,dof2);
+					if (colIndex == assIndex)
+					{
+						const size_t colComp = colInd.comp(fct2,dof2);
+						BlockRef(mat(0, 0), rowComp, colComp)
+									+= lmat.value(fct1,dof1,fct2,dof2);
+					}
+				}
+		}
+}
 
 } // end namespace ug
 

@@ -75,9 +75,12 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd->num_indices();
 	M.resize(0,0);
-	M.resize(numIndex, numIndex);
+	if (m_AssAdapter.assIndex.index_set){M.resize(1, 1);}
+	else{
+		const size_t numIndex = dd->num_indices();
+		M.resize(numIndex, numIndex);
+	}
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -150,7 +153,13 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_jacobian(M, u, dd->grid_level());
+			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_mass_matrix:"
 					" Cannot execute post process.");
@@ -178,9 +187,12 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd->num_indices();
 	A.resize(0,0);
-	A.resize(numIndex, numIndex);
+	if (m_AssAdapter.assIndex.index_set){A.resize(1, 1);}
+	else{
+		const size_t numIndex = dd->num_indices();
+		A.resize(numIndex, numIndex);
+	}
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -253,7 +265,13 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_jacobian(A, u, dd->grid_level());
+			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_stiffness_matrix:"
 					" Cannot execute post process.");
@@ -288,9 +306,12 @@ assemble_jacobian(matrix_type& J,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd->num_indices();
 	J.resize(0,0);
-	J.resize(numIndex, numIndex);
+	if (m_AssAdapter.assIndex.index_set){J.resize(1, 1);}
+	else{
+		const size_t numIndex = dd->num_indices();
+		J.resize(numIndex, numIndex);
+	}
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -363,7 +384,13 @@ assemble_jacobian(matrix_type& J,
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_jacobian(J, u, dd->grid_level());
+			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_jacobian:"
 					" Cannot execute post process.");
@@ -392,8 +419,11 @@ assemble_defect(vector_type& d,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd->num_indices();
-	d.resize(numIndex);
+	if (m_AssAdapter.assIndex.index_set){d.resize(1);}
+	else{
+		const size_t numIndex = dd->num_indices();
+		d.resize(numIndex);
+	}
 	d.set(0.0);
 
 //	Union of Subsets
@@ -467,7 +497,13 @@ assemble_defect(vector_type& d,
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_defect(d, u, dd->grid_level());
+			}
 	}
 	} UG_CATCH_THROW("Cannot adjust defect.");
 
@@ -491,11 +527,13 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd->num_indices();
 	mat.resize(0,0);
-	mat.resize(numIndex, numIndex);
-
-	rhs.resize(numIndex);
+	if (m_AssAdapter.assIndex.index_set){mat.resize(1, 1); rhs.resize(1);}
+	else{
+		const size_t numIndex = dd->num_indices();
+		mat.resize(numIndex, numIndex);
+		rhs.resize(numIndex);
+	}
 	rhs.set(0.0);
 
 //	Union of Subsets
@@ -569,7 +607,13 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_linear(mat, rhs, dd->grid_level());
+			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_linear: Cannot post process.");
 
@@ -597,8 +641,11 @@ assemble_rhs(vector_type& rhs,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd->num_indices();
-	rhs.resize(numIndex);
+	if (m_AssAdapter.assIndex.index_set){rhs.resize(1);}
+	else{
+		const size_t numIndex = dd->num_indices();
+		rhs.resize(numIndex);
+	}
 	rhs.set(0.0);
 
 //	Union of Subsets
@@ -672,7 +719,13 @@ assemble_rhs(vector_type& rhs,
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index, true);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_rhs(rhs, u, dd->grid_level());
+			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_rhs:"
 					" Cannot execute post process.");
@@ -709,6 +762,9 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd)
 	vType[0] = CT_DIRICHLET;
 	vType[1] = CT_CONSTRAINTS;
 
+	// if assembling is carried out at one DoF only, u needs to be resized
+	if (m_AssAdapter.assIndex.index_set) u.resize(1);
+
 	try{
 //	constraints
 	for(size_t i = 0; i < vType.size(); ++i){
@@ -716,7 +772,13 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd)
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_solution(u, dd->grid_level());
+			}
 	}
 
 	} UG_CATCH_THROW("Cannot adjust solution.");
@@ -825,14 +887,11 @@ assemble_jacobian(matrix_type& J,
 
 //	reset matrix to zero and resize
 	J.resize(0,0);
-	const size_t numIndex = dd->num_indices();
-	J.resize(numIndex, numIndex);
-
-	/*if (m_AssAdapter.assIndex.index_set){J.resize(1, 1);}
+	if (m_AssAdapter.assIndex.index_set){J.resize(1, 1);}
 	else{
 		const size_t numIndex = dd->num_indices();
 		J.resize(numIndex, numIndex);
-	}*/
+	}
 
 //	get current time
 	const number time = vSol->time(0);
@@ -908,16 +967,16 @@ assemble_jacobian(matrix_type& J,
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_jacobian(J, *vSol->solution(0), dd->grid_level(), time);
+			}
 	}
 	}UG_CATCH_THROW("Cannot adjust jacobian.");
 
-	/*if(m_vConstraint[i]->type() & type)
-	{
-		if (m_AssAdapter.assIndex.index_set)
-			m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
-		m_vConstraint[i]->adjust_jacobian(J, *vSol->solution(0), dd->grid_level(), time);
-	}*/
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
@@ -944,8 +1003,11 @@ assemble_defect(vector_type& d,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd->num_indices();
-	d.resize(numIndex);
+	if (m_AssAdapter.assIndex.index_set){d.resize(1);}
+	else{
+		const size_t numIndex = dd->num_indices();
+		d.resize(numIndex);
+	}
 	d.set(0.0);
 
 //	Union of Subsets
@@ -1019,7 +1081,13 @@ assemble_defect(vector_type& d,
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_defect(d, *vSol->solution(0), dd->grid_level(), vSol->time(0));
+			}
 	}
 	} UG_CATCH_THROW("Cannot adjust defect.");
 
@@ -1046,13 +1114,14 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd->num_indices();
-	rhs.resize(numIndex);
-	rhs.set(0.0);
-
-//	reset matrix to zero and resize
 	mat.resize(0,0);
-	mat.resize(numIndex, numIndex);
+	if (m_AssAdapter.assIndex.index_set){mat.resize(1,1); rhs.resize(1);}
+	else{
+		const size_t numIndex = dd->num_indices();
+		mat.resize(numIndex, numIndex);
+		rhs.resize(numIndex);
+	}
+	rhs.set(0.0);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1126,7 +1195,13 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_linear(mat, rhs, dd->grid_level(), vSol->time(0));
+			}
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");
 
@@ -1157,8 +1232,11 @@ assemble_rhs(vector_type& rhs,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	const size_t numIndex = dd->num_indices();
-	rhs.resize(numIndex);
+	if (m_AssAdapter.assIndex.index_set){rhs.resize(1);}
+	else{
+		const size_t numIndex = dd->num_indices();
+		rhs.resize(numIndex);
+	}
 	rhs.set(0.0);
 
 //	Union of Subsets
@@ -1233,7 +1311,13 @@ assemble_rhs(vector_type& rhs,
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd->grid_level(), vSol->time(0));
+			}
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");
 
@@ -1260,6 +1344,9 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<TDD> dd)
 	vType[0] = CT_DIRICHLET;
 	vType[1] = CT_CONSTRAINTS;
 
+	// if assembling is carried out at one DoF only, u needs to be resized
+	if (m_AssAdapter.assIndex.index_set) u.resize(1);
+
 	try{
 
 //	constraints
@@ -1268,7 +1355,13 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<TDD> dd)
 		if(!(type & m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
+			{
+				//	forward to ConstraintInterface if assembling is carried out at one DoF only
+				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+					else m_vConstraint[i]->set_ass_index();
+
 				m_vConstraint[i]->adjust_solution(u, dd->grid_level(), time);
+			}
 	}
 	} UG_CATCH_THROW(" Cannot adjust solution.");
 }

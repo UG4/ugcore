@@ -226,9 +226,19 @@ class DomainDiscretization
 	 *
 	 * \param[in]	sel		Selector
 	 */
-	virtual void set_selector(Selector* sel = NULL){m_AssAdapter.pSelector = sel;}
+	virtual void set_selector(Selector* sel = NULL){
+		m_AssAdapter.pSelector = sel;}
 
-
+	///	sets an index for which the assembling should be carried out
+	/**
+	 * This methods sets a boolean if an index-wise assemble routine should be used.
+	 * This proceeding is e.g. useful for a nonlinear Gauss-Seidel or nonlinear
+	 * Jacobi solver. The specific index is passed to the domain discretization.
+	 *
+	 * \param[in]	ind			size_t
+	 * \param[in]	index_set	bool
+	 */
+	virtual void ass_index(){ ass_index(0.0, false);}
 	virtual void ass_index(size_t ind, bool index_set = true)
 	{
 		m_AssAdapter.assIndex.index = ind; m_AssAdapter.assIndex.index_set = index_set;
@@ -329,6 +339,7 @@ class DomainDiscretization
 	///	enables the constraints
 		int m_ElemTypesEnabled;
 		
+	///	this object provides tools to adapt the assemble routine
 		AssAdapter m_AssAdapter;
 };
 

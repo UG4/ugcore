@@ -98,14 +98,11 @@ class NLGaussSeidelSolver
 		SmartPtr<IConvergenceCheck<vector_type> > m_spConvCheck;
 
 		vector_type m_d;
-
-		vector_type m_c_comp;
-		vector_type m_d_comp;
-		vector_type m_u_comp;
-		matrix_type m_J_comp;
+		vector_type m_d_block;
+		vector_type m_c_block;
 
 		SmartPtr<AssembledOperator<algebra_type> > m_N;
-		SmartPtr<AssembledLinearOperator<algebra_type> > m_J;
+		SmartPtr<AssembledLinearOperator<algebra_type> > m_J_block;
 		IAssemble<algebra_type>* m_pAss;
 
 		number m_damp;

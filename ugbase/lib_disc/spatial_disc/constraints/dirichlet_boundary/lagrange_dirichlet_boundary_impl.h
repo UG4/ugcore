@@ -271,8 +271,15 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 				const size_t index = multInd[0][0];
 				const size_t alpha = multInd[0][1];
 
-			//	set dirichlet row
-				SetDirichletRow(mat, index, alpha);
+			// 	check if assembling has been carried out with respect to one index only.
+			//	For that case the matrix has been resized to a block-matrix at one DoF.
+				if(this->m_AssIndex.index_set){
+					SetDirichletIndex(mat, index, alpha, this->m_AssIndex.index);
+				}
+				else{
+					SetDirichletRow(mat, index, alpha);
+				}
+
 			}
 		}
 	}
@@ -339,7 +346,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
                 matrix_type& J, const vector_type& u,
            	    ConstSmartPtr<TDD> dd, number time)
 {
-//	create Multiindex
+	//	create Multiindex
 	std::vector<MultiIndex<2> >  multInd;
 
 //	dummy for readin
@@ -390,8 +397,15 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 						if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 					}
 
-				//	set dirichlet row
-					SetDirichletRow(J, multInd[j][0], multInd[j][1]);
+				// 	check if assembling has been carried out with respect to one index only.
+				//	For that case the matrix has been resized to a block-matrix at one DoF.
+					if(this->m_AssIndex.index_set){
+						SetDirichletIndex(J, multInd[j][0], multInd[j][1], this->m_AssIndex.index);
+					}
+					else{
+						SetDirichletRow(J, multInd[j][0], multInd[j][1]);
+					}
+
 				}
 			}
 		}
@@ -511,8 +525,18 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 						if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 					}
 
-				//	set zero for dirichlet values
-					BlockRef(d[multInd[j][0]], multInd[j][1]) = 0.0;
+				// 	check if assembling has been carried out with respect to one index only.
+				//	For that case the defect vector has been resized to a block-vector
+				//	at one DoF.
+					if(this->m_AssIndex.index_set){
+						if (multInd[j][0] == this->m_AssIndex.index){
+							BlockRef(d[0], multInd[j][1]) = 0.0;
+						}
+					}
+					else{
+						//	set zero for dirichlet values
+						BlockRef(d[multInd[j][0]], multInd[j][1]) = 0.0;
+					}
 				}
 			}
 		}
@@ -625,8 +649,18 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 				//  get dirichlet value
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
-				//	set zero for dirichlet values
-					BlockRef(u[multInd[j][0]], multInd[j][1]) = val[f];
+				// 	check if assembling has been carried out with respect to one index only.
+				//	For that case the solution vector u has been resized
+				//	to a block-vector at one DoF.
+					if(this->m_AssIndex.index_set){
+						if (multInd[j][0] == this->m_AssIndex.index){
+							BlockRef(u[0], multInd[j][1]) = val[f];
+						}
+					}
+					else{
+						//	set zero for dirichlet values
+						BlockRef(u[multInd[j][0]], multInd[j][1]) = val[f];
+					}
 				}
 			}
 		}
@@ -746,11 +780,20 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 					const size_t index = multInd[j][0];
 					const size_t alpha = multInd[j][1];
 
-				//	set dirichlet row
-					SetDirichletRow(A, index, alpha);
-
-				//	set dirichlet value in rhs
-					BlockRef(b[index], alpha) = val[f];
+				// 	check if assembling has been carried out with respect to one index only.
+				//	For that case the matrix has been resized to a block-matrix at one DoF.
+					if(this->m_AssIndex.index_set)
+					{
+						SetDirichletIndex(A, index, alpha, this->m_AssIndex.index);
+						if(index == this->m_AssIndex.index)
+							BlockRef(b[0], alpha) = val[f];
+					}
+					else{
+						//	set dirichlet row
+							SetDirichletRow(A, index, alpha);
+						//	set dirichlet value in rhs
+							BlockRef(b[index], alpha) = val[f];
+					}
 				}
 			}
 		}
@@ -869,8 +912,16 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 					const size_t index = multInd[j][0];
 					const size_t alpha = multInd[j][1];
 
-				//	set dirichlet value in rhs
-					BlockRef(b[index], alpha) = val[f];
+				// 	check if assembling has been carried out with respect to one index only.
+				//	For that case the matrix has been resized to a block-matrix at one DoF.
+					if(this->m_AssIndex.index_set){
+						if (index == this->m_AssIndex.index)
+							BlockRef(b[0], alpha) = val[f];
+					}
+					else{
+						BlockRef(b[index], alpha) = val[f];
+					}
+
 				}
 			}
 		}

@@ -14,10 +14,15 @@
 namespace ug{
 
 struct AssIndex{
+
+	///	should assemble be index-wise
 	bool index_set;
-	size_t index; //TODO: ist der index Ÿberhaupt notwendig???
+
+	///	current index
+	size_t index;
 };
 
+// AssAdapter combines tools to adapt the assemble routine
 struct AssAdapter{
 
 	///	marker used to skip elements
@@ -26,8 +31,7 @@ struct AssAdapter{
 	///	selector used to set a list of elements for the assembling
 	Selector* 	pSelector;
 
-	///	one specific index for which the assemble quantities
-	/// (defect, jacobian, ...) are build up
+	///	object for index-wise assemble routine
 	AssIndex assIndex;
 };
 
