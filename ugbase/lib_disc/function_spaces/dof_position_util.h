@@ -25,7 +25,8 @@ namespace ug {
  */
 template<typename TDomain, typename TDD>
 void ExtractPositions(ConstSmartPtr<TDomain> domain, ConstSmartPtr<TDD> dd,
-                      std::vector<MathVector<TDomain::dim> >& vPos);
+                      std::vector<MathVector<TDomain::dim> >& vPos,
+                      const std::vector<int>* pvMapGlobalToPatch = NULL);
 
 /**
  * extracts the positions of the degrees of freedom and stores them into the

@@ -572,6 +572,28 @@ class AssembledMultiGridCycle :
 		}
 
 	protected:
+	///	writes debug output for a level vector only on smooth path
+	/**
+	 * This method writes the level vector to a debug file, if a debug writer
+	 * has been set.
+	 *
+	 * \param[in]		vec			Level Vector to write for debug purpose
+	 * \param[in]		filename	Filename
+	 * \param[in]		level		grid level corresponding to the vector
+	 */
+		void write_smooth_level_debug(const vector_type& vec, const char* filename, size_t lev);
+
+	///	writes debug output for a level matrix only on smooth path
+	/**
+	 * This method writes the level matrix to a debug file, if a debug writer
+	 * has been set.
+	 *
+	 * \param[in]		mat			Level Matrix to write for debug purpose
+	 * \param[in]		filename	Filename
+	 * \param[in]		level		grid level corresponding to the matrix
+	 */
+		void write_smooth_level_debug(const matrix_type& mat, const char* filename, size_t lev);
+
 	///	writes debug output for a level vector
 	/**
 	 * This method writes the level vector to a debug file, if a debug writer

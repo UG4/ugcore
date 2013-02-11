@@ -217,7 +217,7 @@ public:
 	GridFunctionDebugWriter(
 			SmartPtr<ApproximationSpace<TDomain> > spApproxSpace) :
 			m_baseDir("."), m_spApproxSpace(spApproxSpace), bConnViewerOut(
-					true), bVTKOut(true), m_printConsistent(true) {
+					true), bVTKOut(true), m_printConsistent(true), m_pvMapGlobalToPatch(NULL) {
 		reset();
 	}
 
@@ -237,6 +237,11 @@ public:
 	///	sets to toplevel on surface
 	void reset() {
 		set_grid_level(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE));
+		m_pvMapGlobalToPatch = NULL;
+	}
+
+	void set_map_global_to_patch(const std::vector<int>* pvMapGlobalToPatch){
+		m_pvMapGlobalToPatch = pvMapGlobalToPatch;
 	}
 
 	/// set the base directory for output files (.vec and .mat)
@@ -295,6 +300,10 @@ public:
 			WriteMatrixToConnectionViewer(name.c_str(), mat, &vPos[0], dim);
 		}
 		else{
+			if(m_pvMapGlobalToPatch){
+				UG_LOG("Cannot write on different levels using MapGlobalToPatch. Skipping.\n");
+				return;
+			}
 			extract_positions(m_gridLevel);
 			std::vector<MathVector<dim> >& vFinePos =
 					this->template get_positions<dim>();
@@ -334,12 +343,12 @@ protected:
 			ExtractPositions<TDomain, SurfaceDoFDistribution>(
 					m_spApproxSpace->domain(),
 					m_spApproxSpace->surface_dof_distribution(
-							gridLevel.level()), vPos);
+							gridLevel.level()), vPos, m_pvMapGlobalToPatch);
 		} else if (gridLevel.type() == GridLevel::LEVEL) {
 			ExtractPositions<TDomain, LevelDoFDistribution>(
 					m_spApproxSpace->domain(),
 					m_spApproxSpace->level_dof_distribution(gridLevel.level()),
-					vPos);
+					vPos, m_pvMapGlobalToPatch);
 		} else {
 			UG_THROW("Cannot find grid level");
 		}
@@ -374,6 +383,11 @@ protected:
 	void write_vector_to_vtk(const vector_type& vec, const char* filename) {
 		//	check name
 		std::string name(m_baseDir); name.append("/").append(filename);
+
+		if(m_pvMapGlobalToPatch){
+			UG_LOG("Cannot write to vtk using MapGlobalToPatch. Skipping.\n");
+			return;
+		}
 
 		if (!FileExists(m_baseDir.c_str())) {
 			UG_WARNING("GridFunctionDebugWriter::write_vector_to_vtk: directory "
@@ -423,6 +437,8 @@ protected:
 	//	current grid level
 	GridLevel m_gridLevel, m_coarseGridLevel;
 
+	//	mapping to smaller index set (-1 indicates dropping)
+	const std::vector<int>* m_pvMapGlobalToPatch;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

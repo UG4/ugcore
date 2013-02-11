@@ -19,7 +19,8 @@ namespace ug{
 template <typename TDomain, typename TDD>
 void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
                             ConstSmartPtr<TDD> dd,
-                            std::vector<MathVector<TDomain::dim> >& vPos)
+                            std::vector<MathVector<TDomain::dim> >& vPos,
+                            const std::vector<int>* pvMapGlobalToPatch)
 {
 //	get position accessor
 	const typename TDomain::position_accessor_type& aaPos = domain->position_accessor();
@@ -46,7 +47,11 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 	//	write position
 		for(size_t i = 0; i < ind.size(); ++i)
 		{
-			const size_t index = ind[i];
+			size_t index = ind[i];
+			if(pvMapGlobalToPatch){
+				if((*pvMapGlobalToPatch)[index] < 0) continue;
+				index = (*pvMapGlobalToPatch)[index];
+			}
 			vPos[index] = aaPos[v];
 		}
 	}
@@ -55,7 +60,8 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 template <typename TDomain, typename TDD, typename TBaseElem>
 void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
                           ConstSmartPtr<TDD> dd,
-                          std::vector<MathVector<TDomain::dim> >& vPos)
+                          std::vector<MathVector<TDomain::dim> >& vPos,
+                          const std::vector<int>* pvMapGlobalToPatch)
 {
 	typename TDD::template traits<TBaseElem>::const_iterator iter, iterEnd;
 
@@ -99,7 +105,11 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 			//	write position
 				for(size_t sh = 0; sh < ind.size(); ++sh)
 				{
-					const size_t index = ind[sh][0];
+					size_t index = ind[sh][0];
+					if(pvMapGlobalToPatch){
+						if((*pvMapGlobalToPatch)[index] < 0) continue;
+						index = (*pvMapGlobalToPatch)[index];
+					}
 					vPos[index] = vElemPos[sh];
 				}
 			}
@@ -110,7 +120,8 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 template <typename TDomain, typename TDD>
 void ExtractPositions(ConstSmartPtr<TDomain> domain,
                       ConstSmartPtr<TDD> dd,
-                      std::vector<MathVector<TDomain::dim> >& vPos)
+                      std::vector<MathVector<TDomain::dim> >& vPos,
+                      const std::vector<int>* pvMapGlobalToPatch)
 {
 //	number of total dofs
 	int nr = dd->num_indices();
@@ -119,19 +130,19 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
 	vPos.resize(nr);
 
 //	extract for all element types
-	if(dd->max_dofs(VERTEX)) ExtractPositionsVertex<TDomain, TDD>(domain, dd, vPos);
-	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, TDD, EdgeBase>(domain, dd, vPos);
-	if(dd->max_dofs(FACE)) ExtractPositionsElem<TDomain, TDD, Face>(domain, dd, vPos);
-	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, TDD, Volume>(domain, dd, vPos);
+	if(dd->max_dofs(VERTEX)) ExtractPositionsVertex<TDomain, TDD>(domain, dd, vPos, pvMapGlobalToPatch);
+	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, TDD, EdgeBase>(domain, dd, vPos, pvMapGlobalToPatch);
+	if(dd->max_dofs(FACE)) ExtractPositionsElem<TDomain, TDD, Face>(domain, dd, vPos, pvMapGlobalToPatch);
+	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, TDD, Volume>(domain, dd, vPos, pvMapGlobalToPatch);
 }
 
-template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<LevelDoFDistribution> dd, std::vector<MathVector<Domain1d::dim> >& vPos);
-template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<LevelDoFDistribution> dd, std::vector<MathVector<Domain2d::dim> >& vPos);
-template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<LevelDoFDistribution> dd, std::vector<MathVector<Domain3d::dim> >& vPos);
+template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<LevelDoFDistribution> dd, std::vector<MathVector<Domain1d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<LevelDoFDistribution> dd, std::vector<MathVector<Domain2d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<LevelDoFDistribution> dd, std::vector<MathVector<Domain3d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
 
-template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<SurfaceDoFDistribution> dd, std::vector<MathVector<Domain1d::dim> >& vPos);
-template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<SurfaceDoFDistribution> dd, std::vector<MathVector<Domain2d::dim> >& vPos);
-template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<SurfaceDoFDistribution> dd, std::vector<MathVector<Domain3d::dim> >& vPos);
+template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<SurfaceDoFDistribution> dd, std::vector<MathVector<Domain1d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<SurfaceDoFDistribution> dd, std::vector<MathVector<Domain2d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<SurfaceDoFDistribution> dd, std::vector<MathVector<Domain3d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Extract (Positions, Index) Pairs

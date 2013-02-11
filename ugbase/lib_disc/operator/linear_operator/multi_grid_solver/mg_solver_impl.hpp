@@ -1617,6 +1617,68 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 template <typename TDomain, typename TAlgebra>
 void
 AssembledMultiGridCycle<TDomain, TAlgebra>::
+write_smooth_level_debug(const vector_type& vec, const char* filename, size_t lev)
+{
+	PROFILE_FUNC_GROUP("debug");
+//	if no debug writer set, we're done
+	if(m_spDebugWriter.invalid()) return;
+
+//	cast dbg writer
+	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
+			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
+
+//	set grid function
+	if(dbgWriter.invalid()) UG_THROW("Cannot write debug vector on level");
+
+//	add iter count to name
+	std::string name(filename);
+	char ext[20]; sprintf(ext, "_lev%03d_iter%03d.vec", (int)lev, m_dbgIterCnt);
+	name.append(ext);
+
+//	write
+	GridLevel gridLev = dbgWriter->grid_level();
+	dbgWriter->set_grid_level(GridLevel(lev,GridLevel::LEVEL));
+	if(m_vLevData[lev]->has_ghosts())
+		dbgWriter->set_map_global_to_patch(&m_vLevData[lev]->vMapGlobalToPatch);
+	dbgWriter->write_vector(vec, name.c_str());
+	dbgWriter->set_grid_level(gridLev);
+	dbgWriter->set_map_global_to_patch(NULL);
+}
+
+template <typename TDomain, typename TAlgebra>
+void
+AssembledMultiGridCycle<TDomain, TAlgebra>::
+write_smooth_level_debug(const matrix_type& mat, const char* filename, size_t lev)
+{
+	PROFILE_FUNC_GROUP("debug");
+//	if no debug writer set, we're done
+	if(m_spDebugWriter.invalid()) return;
+
+//	cast dbg writer
+	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
+			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
+
+//	set grid function
+	if(dbgWriter.invalid()) UG_THROW("Cannot write debug matrix on level");
+
+//	add iter count to name
+	std::string name(filename);
+	char ext[20]; sprintf(ext, "_lev%03d_iter%03d.mat", (int)lev, m_dbgIterCnt);
+	name.append(ext);
+
+//	write
+	GridLevel gridLev = dbgWriter->grid_level();
+	dbgWriter->set_grid_level(GridLevel(lev,GridLevel::LEVEL));
+	if(m_vLevData[lev]->has_ghosts())
+		dbgWriter->set_map_global_to_patch(&m_vLevData[lev]->vMapGlobalToPatch);
+	dbgWriter->write_matrix(mat, name.c_str());
+	dbgWriter->set_grid_level(gridLev);
+	dbgWriter->set_map_global_to_patch(NULL);
+}
+
+template <typename TDomain, typename TAlgebra>
+void
+AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_level_debug(const vector_type& vec, const char* filename, size_t lev)
 {
 	PROFILE_FUNC_GROUP("debug");
