@@ -68,26 +68,6 @@ NLJacobiSolver() :
 {};
 
 template <typename TAlgebra>
-NLJacobiSolver<TAlgebra>::
-NLJacobiSolver(SmartPtr<IOperator<vector_type> > N) :
-	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_damp(1.0),
-	m_dgbCall(0)
-{
-	init(N);
-};
-
-template <typename TAlgebra>
-NLJacobiSolver<TAlgebra>::
-NLJacobiSolver(IAssemble<algebra_type>* pAss) :
-	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
-	m_damp(1.0)
-{
-	m_pAss = pAss;
-	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(*m_pAss));
-};
-
-template <typename TAlgebra>
 void NLJacobiSolver<TAlgebra>::
 set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
 {
@@ -108,13 +88,15 @@ init(SmartPtr<IOperator<vector_type> > N)
 		UG_THROW("NLJacobiSolver: currently only works for AssembledDiscreteOperator.");
 
 	m_pAss = m_N->get_assemble();
+	if(m_pAss == NULL)
+		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
+
 	return true;
 }
 
 template <typename TAlgebra>
 bool NLJacobiSolver<TAlgebra>::prepare(vector_type& u)
 {
-	//	todo: maybe remove this from interface
 	return true;
 }
 
@@ -132,13 +114,12 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 		m_J->set_level(m_N->level());
 	}
 
-//	get #indices of gridFunction u
-	const size_t n_indices = u.size();
-
 //	resize
 	try{
-		m_d.resize(n_indices); m_d = u;
-		m_c.resize(n_indices); m_c = u;
+		m_d.resize(u.size()); m_c.resize(u.size());
+		#ifdef UG_PARALLEL
+			m_d.copy_layouts(u); m_c.copy_layouts(u);
+		#endif
 	}UG_CATCH_THROW("NLJacobiSolver::apply: Resize of Defect/Correction failed.");
 
 //	Set dirichlet values
@@ -167,7 +148,6 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 	m_spConvCheck->start(m_d);
 
 	matrix_type& J = m_J->get_matrix();
-	number damp = m_damp;
 
 //	loop iteration
 	while(!m_spConvCheck->iteration_ended())
@@ -197,12 +177,12 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIInvertBlocks);
 		//	loop all DoFs
-		for (size_t i = 0; i < n_indices; i++)
+		for (size_t i = 0; i < u.size(); i++)
 		{
 			//	get i,i-th block of J: J(i,i)
 			//	depending on the AlgebraType J(i,i) is a 1x1, 2x2, 3x3 Matrix
 			//	m_c_i = m_damp * d_i /J_ii
-			InverseMatMult(m_c[i], damp, J(i,i), m_d[i]);
+			InverseMatMult(m_c[i], m_damp, J(i,i), m_d[i]);
 
 			// 	update solution
 			u[i] -= m_c[i];
@@ -215,8 +195,16 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 		m_N->apply(m_d, u);
 		NL_JACOBI_PROFILE_END();
 
+	//	update counter
+		loopCnt++;
+		sprintf(ext, "_iter%03d", loopCnt);
+
 	// 	check convergence
 		m_spConvCheck->update(m_d);
+
+	//	write defect for debug
+		std::string name("NLJacobi_Defect"); name.append(ext);
+		write_debug(m_d, name.c_str());
 	}
 
 	return m_spConvCheck->post();

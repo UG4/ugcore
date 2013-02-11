@@ -16,6 +16,7 @@
 #include "bridge/util_domain_algebra_dependent.h"
 
 // discretization interfaces
+#include "lib_algebra/operator/convergence_check.h"
 #include "lib_algebra/operator/matrix_operator_functions.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
@@ -218,8 +219,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		string name = string("NLJacobiSolver").append(suffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
-			.template add_constructor<void (*)(SmartPtr<IOperator<vector_type> >)>("Operator")
-			.template add_constructor<void (*)(IAssemble<TAlgebra>*)>("AssemblingRoutine")
+			.template add_constructor<void (*)(SmartPtr<IConvergenceCheck<vector_type> >)>("ConvCheck")
 			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
 			.add_method("set_damp", &T::set_damp, "", "setDampingFactor")
 			.add_method("init", &T::init, "success", "op")
@@ -371,6 +371,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("NLGaussSeidelSolver").append(suffix);
 		reg.add_class_<T, TBase, TBase2>(name, grp)
 			.add_constructor()
+			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >,
+				SmartPtr<IConvergenceCheck<vector_type> >)> ("ApproxSpaceConvCheck")
 			.add_method("set_approximation_space", &T::set_approximation_space, "", "approxSpace")
 			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
 			.add_method("set_damp", &T::set_damp, "", "setDampingFactor")

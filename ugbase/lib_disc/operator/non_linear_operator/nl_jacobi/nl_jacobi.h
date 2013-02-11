@@ -40,12 +40,6 @@ class NLJacobiSolver
 		using base_writer_type::write_debug;
 
 	public:
-	///	constructor setting operator
-		NLJacobiSolver(SmartPtr<IOperator<vector_type> > N);
-
-	///	constructor using assembling
-		NLJacobiSolver(IAssemble<algebra_type>* pAss);
-
 	///	default constructor
 		NLJacobiSolver();
 
