@@ -1074,8 +1074,12 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 				if(tpi.interfaceState & (IS_DUMMY)){
 					createNormalHInterface = true;
-//					if(tpi.procID == localProcID)
-//						isDummy = true;
+
+				//	if you want to have dummies, which are h-masters, then
+				//	remove the following lines
+					if(tpi.procID < minRegularHMasterProc)
+						minRegularHMasterProc = tpi.procID;
+
 				}
 				if(tpi.procID < minProc)
 					minProc = tpi.procID;
