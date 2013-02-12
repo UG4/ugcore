@@ -224,6 +224,10 @@ function __ug__UserNumber_pow(l, r)
 				error("Error in '^': base must be a number-UserData.")
 			end
 		end
+		
+		if r < 0 then
+			error("Error in '^': Currently exponent must be positive.")
+		end
 	
 		-- case 1
 		if r == 1 then return l end
