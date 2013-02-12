@@ -44,7 +44,7 @@ PATH=$PATH:$UG4_ROOT/scripts/shell:$UG4_ROOT/bin
 export PATH
 
 # add ugcomplete and cdug (for bash only)
-SHELLTYPE=`ps -hp $$`
+SHELLTYPE=`ps -o comm="" -p $$`
 case "$SHELLTYPE" in
 	*bash*) source $UG4_ROOT/scripts/shell/ugcomplete
 	;;
