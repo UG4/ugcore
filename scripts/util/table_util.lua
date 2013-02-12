@@ -54,8 +54,6 @@ function table.print(data, style)
 		end
 	end
 	
-	print("min: "..minRows..", max: "..maxRows)
-	
 	if title ~= nil then
 		local vsize = 0
 		for col = 1, #title do
