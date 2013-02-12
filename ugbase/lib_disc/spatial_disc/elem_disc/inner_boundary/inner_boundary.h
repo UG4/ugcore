@@ -34,30 +34,30 @@
 namespace ug
 {
 
-/// struct that holds information about the flux densities and from where to where the flux occurs
-struct FluxCond
-{
-	// vector of fluxFctValues
-	std::vector<number> flux;
-	std::vector<size_t> from;
-	std::vector<size_t> to;
-};
-
-/// struct that holds information about the derivatives of the flux densities
-/// and from where to where the flux occurs
-struct FluxDerivCond
-{
-	// vector of fluxFctDerivValues (wrt fct, flux number)
-	std::vector<std::vector<number> > fluxDeriv;
-	std::vector<size_t> from;
-	std::vector<size_t> to;
-};
-
-
 template<typename TDomain>
 class FV1InnerBoundaryElemDisc
 : public IDomainElemDisc<TDomain>
 {
+	public:
+		/// struct that holds information about the flux densities and from where to where the flux occurs
+		struct FluxCond
+		{
+			// vector of fluxFctValues
+			std::vector<number> flux;
+			std::vector<size_t> from;
+			std::vector<size_t> to;
+		};
+
+		/// struct that holds information about the derivatives of the flux densities
+		/// and from where to where the flux occurs
+		struct FluxDerivCond
+		{
+			// vector of fluxFctDerivValues (wrt fct, flux number)
+			std::vector<std::vector<number> > fluxDeriv;
+			std::vector<size_t> from;
+			std::vector<size_t> to;
+		};
+
 	private:
 	///	Base class type
 		typedef IDomainElemDisc<TDomain> base_type;
@@ -125,13 +125,13 @@ class FV1InnerBoundaryElemDisc
 	 *	depending on the unknowns on the boundary;
 	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
 	 */
-		virtual bool fluxDensityFct(const LocalVector& u, size_t node_id, const MathVector<dim>& coords, int si, FluxCond& fc) = 0;	/// the flux function
+		virtual bool fluxDensityFct(const LocalVector& u, size_t node_id, int si, FluxCond& fc) = 0;
 	
 	/**	This is the flux derivative function defining the flux density derivatives over the boundary
 	 *	depending on the unknowns on the boundary;
 	 *	shall be defined in a specialized class that is derived from FV1InnerBoundaryElemDisc.
 	 */
-		virtual bool fluxDensityDerivFct(const LocalVector& u, size_t node_id, const MathVector<dim>& coords, int si, FluxDerivCond& fdc) = 0;
+		virtual bool fluxDensityDerivFct(const LocalVector& u, size_t node_id, int si, FluxDerivCond& fdc) = 0;
 	
 	///	prepares the loop over all elements
 	/**
@@ -175,9 +175,10 @@ class FV1InnerBoundaryElemDisc
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 		void add_rhs_elem(LocalVector& d);
 
-	private:
+	protected:
 		// position access
 		const position_type* m_vCornerCoords;
+		std::vector<VertexBase*> m_vVertices;
 
 	private:
 		void register_all_fv1_funcs();

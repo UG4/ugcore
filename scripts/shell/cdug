@@ -19,5 +19,7 @@ cdug_complete() {
   	done < <(compgen -f -- "$UG4_ROOT/$word")  
 }
 
-
-complete -F cdug_complete -o nospace cdug
+SHELLTYPE=`ps -hp $$`
+if [[ "$SHELLTYPE" = *bash* ]]; then
+	complete -F cdug_complete -o nospace cdug
+fi

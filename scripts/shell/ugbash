@@ -40,11 +40,15 @@ fi
 export UG4_ROOT
 
 # add scripts/shell to path
-PATH=$PATH:$UG4_ROOT/scripts/shell/:$UG4_ROOT/bin/
+PATH=$PATH:$UG4_ROOT/scripts/shell:$UG4_ROOT/bin
 export PATH
 
-# add ugcomplete and cdug
-source $UG4_ROOT/scripts/shell/ugcomplete
+# add ugcomplete and cdug (for bash only)
+SHELLTYPE=`ps -hp $$`
+case "$SHELLTYPE" in
+	*bash*) source $UG4_ROOT/scripts/shell/ugcomplete
+	;;
+esac
 source $UG4_ROOT/scripts/shell/cdug
 
 # make bash scripts executable

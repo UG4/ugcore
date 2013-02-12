@@ -37,8 +37,13 @@ template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
 prep_elem(TElem* elem, const LocalVector& u)
 {
-//	get corners
+	// get corners
 	m_vCornerCoords = this->template element_corners<TElem>(elem);
+
+	// get vertices
+	m_vVertices.clear();
+	const size_t numVertex = elem->num_vertices();
+	for(size_t i = 0; i < numVertex; ++i) m_vVertices.push_back(elem->vertex(i));
 
 	// update Geometry for this element
 	TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
@@ -65,11 +70,10 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 
 		// get associated node, coords and subset index
 		const size_t co = bf.node_id();
-		const MathVector<dim>& coords = bf.global_ip(0);
 		int si = fvgeom.subset_index();
 		
 		FluxDerivCond fdc;
-		if (!fluxDensityDerivFct(u, co, coords, si, fdc))
+		if (!fluxDensityDerivFct(u, co, si, fdc))
 			UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
 							" Call to fluxDensityDerivFct resulted did not succeed.");
 		
@@ -113,12 +117,11 @@ add_def_A_elem(LocalVector& d, const LocalVector& u)
 		
 		// get associated node, coords and subset index
 		const int co = bf.node_id();
-		const MathVector<dim>& coords = bf.global_ip(0);
 		int si = fvgeom.subset_index();
 		
 		// get flux densities in that node
 		FluxCond fc;
-		if (!fluxDensityFct(u, co, coords, si, fc))
+		if (!fluxDensityFct(u, co, si, fc))
 			UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
 						" Call to fluxDensityFct did not succeed.");
 
