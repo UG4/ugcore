@@ -679,7 +679,7 @@ base_solve(size_t lev)
 //todo: is update defect really useful here?
 	//	if baseLevel == surfaceLevel, we need also d
 		//if((m_baseLev == m_topLev) || m_bAdaptive)
-		if((m_baseLev == m_topLev))
+		if(m_baseLev == m_topLev)
 		{
 			d.set_storage_type(PST_CONSISTENT);
 			broadcast_vertical(d);
