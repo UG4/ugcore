@@ -238,7 +238,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 	//	Set dirichlet values
 	try{
-		m_N->prepare(m_d, u);
+		m_N->prepare(u);
 	}
 	UG_CATCH_THROW("NLGaussSeidelSolver::apply: Prepare of Operator failed.");
 
@@ -321,7 +321,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		m_pAss->ass_index();
 
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
-		m_N->prepare(m_d, u);
+		m_N->prepare(u);
 		m_N->apply(m_d, u);
 		NL_GAUSSSEIDEL_PROFILE_END();
 

@@ -122,7 +122,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 //	Set dirichlet values
 	try{
-		m_N->prepare(*spD, u);
+		m_N->prepare(u);
 	}
 	UG_CATCH_THROW("NewtonSolver::prepare: Prepare of Operator failed.");
 
@@ -238,7 +238,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 		// 	compute new Defect
 			NEWTON_PROFILE_BEGIN(NewtonComputeDefect);
-			m_N->prepare(*spD, u);
+			m_N->prepare(u);
 			m_N->apply(*spD, u);
 			NEWTON_PROFILE_END();
 		}

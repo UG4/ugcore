@@ -82,10 +82,9 @@ class IOperator
 	 * the functions used here.
 	 *
 	 * \param[in]	u		domain function
-	 * \param[out]	d		codomain function
 	 * \returns 	bool	flag if preparation successful
 	 */
-		virtual void prepare(Y& d, X& u) = 0;
+		virtual void prepare(X& u) = 0;
 
 	///	computes the nonlinear mapping d := N(u)
 	/**
@@ -178,7 +177,7 @@ class ILinearOperator : public IOperator<X,Y>
 		virtual void init() = 0;
 
 	///	default implementation for IOperator interface
-		virtual void prepare(Y& d, X& u) {}
+		virtual void prepare(X& u) {}
 
 	// 	applies the operator
 	/**

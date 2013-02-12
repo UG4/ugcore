@@ -145,7 +145,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 				VecScaleAdd(u, 1.0, u, (-1)*lambda, p);
 
 			// 	compute new Defect
-				spOp->prepare(d, u);
+				spOp->prepare(u);
 				spOp->apply(d, u);
 
 			//	compute new Residuum
@@ -209,7 +209,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 					VecScaleAdd(u, 1.0, s, (-1)*m_lambdaStart*std::pow(m_lambdaReduce, (number)best), p);
 
 				// 	compute new Defect
-					spOp->prepare(d, u);
+					spOp->prepare(u);
 					spOp->apply(d, u);
 
 					// compute new Residuum

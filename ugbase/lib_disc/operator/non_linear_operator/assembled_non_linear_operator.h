@@ -47,7 +47,7 @@ public:
 		virtual void init() {}
 
 	///	Prepare for apply
-		virtual void prepare(vector_type& d, vector_type& u);
+		virtual void prepare(vector_type& u);
 
 	/// Compute d = L(u)
 		virtual void apply(vector_type& d, const vector_type& u);

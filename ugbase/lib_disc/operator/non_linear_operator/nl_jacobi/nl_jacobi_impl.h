@@ -124,7 +124,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 //	Set dirichlet values
 	try{
-		m_N->prepare(m_d, u);
+		m_N->prepare(u);
 	}
 	UG_CATCH_THROW("NLJacobiSolver::apply: Prepare of Operator failed.");
 
@@ -191,7 +191,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 	// 	compute new Defect
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIComputeDefect);
-		m_N->prepare(m_d, u);
+		m_N->prepare(u);
 		m_N->apply(m_d, u);
 		NL_JACOBI_PROFILE_END();
 

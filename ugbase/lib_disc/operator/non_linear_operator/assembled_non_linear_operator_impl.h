@@ -15,7 +15,7 @@ namespace ug{
 //	Prepare functions
 template <typename TAlgebra>
 void
-AssembledOperator<TAlgebra>::prepare(vector_type& dOut, vector_type& uIn)
+AssembledOperator<TAlgebra>::prepare(vector_type& uIn)
 {
 	PROFILE_BEGIN_GROUP(AssembledOperator_prepare, "discretization");
 	if(m_pAss == NULL)
