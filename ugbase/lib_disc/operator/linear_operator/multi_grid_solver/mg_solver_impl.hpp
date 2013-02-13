@@ -351,11 +351,11 @@ restriction(size_t lev)
 					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
 		GMG_PROFILE_END();
 
-		//write_level_debug(cd, "GMG_Def_RestrictedNoPP", lev-1);
+		write_level_debug(cd, "GMG_Def_RestrictedNoPP", lev-1);
 	//	apply post processes
 		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
 			m_vLevData[lev]->vRestrictionPP[i]->post_process(cd);
-		//write_level_debug(cd, "GMG_Def_RestrictedWithPP", lev-1);
+		write_level_debug(cd, "GMG_Def_RestrictedWithPP", lev-1);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level " << lev << "\n");
@@ -591,6 +591,7 @@ base_solve(size_t lev)
 		//	LIFTING c TO SOLVING AREA
 			m_vLevData[lev]->copy_defect_to_smooth_patch();
 
+			write_level_debug(d, "GMG_Def_BeforeBaseSolver", lev);
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			sc.set(0.0);
 			if(!m_spBaseSolver->apply(sc, sd))
@@ -720,8 +721,6 @@ lmgc(size_t lev)
 			if(!presmooth(lev))
 				return false;
 			write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPreSmooth", lev);
-	//NOTE: Since we do not copy the correction back from the smooth patch, the resulting
-	//		correction will be zero in all entries, if ghosts were present on a process.
 			write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPreSmooth", lev);
 
 		//	UG_LOG("Before restriction:\n");	log_level_data(lev);
@@ -743,14 +742,12 @@ lmgc(size_t lev)
 		//	UG_LOG("Before postsmooth:\n");	log_level_data(lev);
 		//	note that the correction and defect at this time is are stored in
 		//	the smooth-vectors only, if v-masters are present...
-			//m_vLevData[lev]->copy_defect_from_smooth_patch();
-			//write_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePostSmooth", lev);
-			//m_vLevData[lev]->copy_correction_from_smooth_patch();
-			//write_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePostSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePostSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePostSmooth", lev);
 			if(!postsmooth(lev))
 				return false;
-			write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPostSmooth", lev);
-			write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPostSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPostSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPostSmooth", lev);
 
 		//	UG_LOG("After postsmooth:\n");	log_level_data(lev);
 		}
@@ -1141,8 +1138,12 @@ init_common()
 	GMG_PROFILE_END();
 
 //	write computed level matrices for debug purpose
-	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
-		write_level_debug(*m_vLevData[lev]->spLevMat, "LevelMatrix", lev);
+	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev){
+		if(!m_vLevData[lev]->has_ghosts())
+			write_level_debug(*m_vLevData[lev]->spLevMat, "LevelMatrix", lev);
+		else
+			write_smooth_level_debug(*m_vLevData[lev]->spSmoothMat, "LevelMatrix", lev);
+	}
 
 //	Init smoother for coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_InitSmoother);
@@ -1220,6 +1221,7 @@ init_level_operator()
 			SmartPtr<matrix_type> smoothMat = m_vLevData[lev]->spSmoothMat;
 
 			const size_t numSmoothIndex = m_vLevData[lev]->num_smooth_indices();
+			smoothMat->resize(0, 0);// clear!
 			smoothMat->resize(numSmoothIndex, numSmoothIndex);
 			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapGlobalToPatch, *mat);
 		}
@@ -2308,6 +2310,20 @@ update(size_t lev,
 	if(Prolongation.invalid()) Prolongation = prolongation.clone();
 	if(&prolongation == &restriction)	Restriction = Prolongation;
 	else{if(Restriction.invalid()) Restriction = restriction.clone();}
+
+
+//	The following version of the code above should be used if a varying smoother
+//	should be supported
+/*	PreSmoother = presmoother.clone();
+	if(&postsmoother == &presmoother) PostSmoother = PreSmoother;
+	else PostSmoother = postsmoother.clone();
+
+	Projection = projection.clone();
+
+//	restriction only created if not the same operator
+	Prolongation = prolongation.clone();
+	if(&prolongation == &restriction)	Restriction = Prolongation;
+	else Restriction = restriction.clone();*/
 
 	vProlongationPP.clear();
 	for(size_t i = 0; i < vprolongationPP.size(); ++i)

@@ -79,8 +79,10 @@ void LevelMGDoFDistribution::init()
 
 void LevelMGDoFDistribution::redistribute_dofs()
 {
-	for(int l = 0; l < num_levels(); ++l)
+	for(int l = 0; l < num_levels(); ++l){
 		lev_info(l).clear_all();
+		lev_info(l).vNumIndexOnSubset.resize(num_subsets(), 0);
+	}
 
 	init();
 

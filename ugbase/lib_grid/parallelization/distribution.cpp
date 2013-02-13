@@ -14,7 +14,7 @@
 #include "lib_grid/file_io/file_io.h"
 
 //#define LG_DISTRIBUTION_DEBUG
-//#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 3
+//#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 0.1
 
 using namespace std;
 
@@ -25,18 +25,20 @@ enum InterfaceStates{
 	IS_NORMAL = 1,
 	IS_VMASTER = 1<<1,
 	IS_VSLAVE = 1<<2,
-	IS_DUMMY = 1<<3
+	IS_DUMMY = 1<<3,
+	//IS_OLD_VSLAVE = 1<<4 | IS_VSLAVE	//normally only used temporarily
 };
 
 
 struct TargetProcInfo
 {
-	TargetProcInfo()	{}
-	TargetProcInfo(int pID, byte intfcState) :
-		procID(pID), interfaceState(intfcState) {}
+	TargetProcInfo() {}// : vMasterProc(-1)	{}
+	TargetProcInfo(int pID, byte intfcState) ://, int vMasterPrc = -1) :
+		procID(pID), interfaceState(intfcState) {}//, vMasterProc(vMasterPrc) {}
 
 	int procID;
 	byte interfaceState; // or-combinations of constants from InterfaceStates
+	//int vMasterProc; // only used if interfaceState contains a IS_VSLAVE.
 };
 
 typedef Attachment<vector<TargetProcInfo> >	ADistInfo;
@@ -159,6 +161,15 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 							if(procID == tpInfoDest[i].procID){
 								tpInfoDest[i].interfaceState
 												|= tpInfo[i_src].interfaceState;
+								/*if(tpInfoDest[i].vMasterProc == -1)
+									tpInfoDest[i].vMasterProc = tpInfo[i_src].vMasterProc;
+								else{
+									UG_ASSERT((tpInfo[i_src].vMasterProc == -1)
+											|| (tpInfoDest[i].vMasterProc
+												== tpInfo[i_src].vMasterProc),
+											"A slave can only have a master on one process!");
+								}*/
+
 								gotOne = true;
 								break;
 							}
@@ -479,6 +490,8 @@ static void SelectAssociatedSides(MGSelector& msel, TElem* e,
 static void SelectAssociatedConstrainedElements(MGSelector& msel,
 								ISelector::status_t status = ISelector::SELECTED)
 {
+	const bool selectAll = true;
+
 //	constraining triangles
 	{
 		typedef ConstrainingTriangle TElem;
@@ -495,25 +508,25 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 					VertexBase* cd = e->constrained_vertex(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
-//					if(!msel.is_selected(cd)){
+					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
-//					}
+					}
 				}
 				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
 					EdgeBase* cd = e->constrained_edge(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
-//					if(!msel.is_selected(cd)){
+					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
 						SelectAssociatedSides(msel, cd, nstate);
-//					}
+					}
 				}
 				for(size_t i = 0; i < e->num_constrained_faces(); ++i){
 					Face* cd = e->constrained_face(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
-//					if(!msel.is_selected(cd)){
+					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
 						SelectAssociatedSides(msel, cd, nstate);
-//					}
+					}
 				}
 			}
 		}
@@ -535,25 +548,25 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 					VertexBase* cd = e->constrained_vertex(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
-//					if(!msel.is_selected(cd)){
+					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
-//					}
+					}
 				}
 				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
 					EdgeBase* cd = e->constrained_edge(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
-//					if(!msel.is_selected(cd)){
+					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
 						SelectAssociatedSides(msel, cd, nstate);
-//					}
+					}
 				}
 				for(size_t i = 0; i < e->num_constrained_faces(); ++i){
 					Face* cd = e->constrained_face(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
-//					if(!msel.is_selected(cd)){
+					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
 						SelectAssociatedSides(msel, cd, nstate);
-//					}
+					}
 				}
 			}
 		}
@@ -575,17 +588,17 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 				for(size_t i = 0; i < e->num_constrained_vertices(); ++i){
 					VertexBase* cd = e->constrained_vertex(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
-//					if(!msel.is_selected(cd)){
+					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
-//					}
+					}
 				}
 				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
 					EdgeBase* cd = e->constrained_edge(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
-//					if(!msel.is_selected(cd)){
+					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
 						SelectAssociatedSides(msel, cd, nstate);
-//					}
+					}
 				}
 			}
 		}
@@ -598,6 +611,8 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 static void SelectAssociatedConstrainingElements(MGSelector& msel,
 								ISelector::status_t status = ISelector::SELECTED)
 {
+	const bool selectAll = true;
+
 //	constrained triangles
 	{
 		typedef ConstrainedTriangle TElem;
@@ -608,14 +623,18 @@ static void SelectAssociatedConstrainingElements(MGSelector& msel,
 			{
 				ConstrainedFace* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
+				//	we won't select pure v-masters!
+//					if(msel.get_selection_status(cg) == IS_VMASTER)
+//						continue;
+
 					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-//					if(!msel.is_selected(cg)){
+					if(selectAll || !msel.is_selected(cg)){
 						msel.select(cg, nstate);
 						UG_ASSERT(dynamic_cast<ConstrainingFace*>(cg),
 								  "constraining object of a face has to be a "
 								  "ConstrainingFace!");
 						SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
-//					}
+					}
 				}
 			}
 		}
@@ -631,14 +650,18 @@ static void SelectAssociatedConstrainingElements(MGSelector& msel,
 			{
 				ConstrainedFace* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
+				//	we won't select pure v-masters!
+//					if(msel.get_selection_status(cg) == IS_VMASTER)
+//						continue;
+
 					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-//					if(!msel.is_selected(cg)){
+					if(selectAll || !msel.is_selected(cg)){
 						msel.select(cg, nstate);
 						UG_ASSERT(dynamic_cast<Face*>(cg),
 								  "constraining object of a face has to be a "
 								  "Face!");
 						SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
-//					}
+					}
 				}
 			}
 		}
@@ -654,8 +677,12 @@ static void SelectAssociatedConstrainingElements(MGSelector& msel,
 			{
 				ConstrainedEdge* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
+				//	we won't select pure v-masters!
+//					if(msel.get_selection_status(cg) == IS_VMASTER)
+//						continue;
+
 					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-//					if(!msel.is_selected(cg)){
+					if(selectAll || !msel.is_selected(cg)){
 						msel.select(cg, nstate);
 						switch(cg->base_object_id()){
 						case EDGE:
@@ -665,7 +692,7 @@ static void SelectAssociatedConstrainingElements(MGSelector& msel,
 							SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
 							break;
 						}
-//					}
+					}
 				}
 			}
 		}
@@ -681,8 +708,12 @@ static void SelectAssociatedConstrainingElements(MGSelector& msel,
 			{
 				ConstrainedVertex* e = *iter;
 				if(GeometricObject* cg = e->get_constraining_object()){
+				//	we won't select pure v-masters!
+//					if(msel.get_selection_status(cg) == IS_VMASTER)
+//						continue;
+
 					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-//					if(!msel.is_selected(cg)){
+					if(selectAll || !msel.is_selected(cg)){
 						msel.select(cg, nstate);
 						switch(cg->base_object_id()){
 						case EDGE:
@@ -692,7 +723,7 @@ static void SelectAssociatedConstrainingElements(MGSelector& msel,
 							SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
 							break;
 						}
-//					}
+					}
 				}
 			}
 		}
@@ -798,7 +829,7 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
 			}
 			else{
 				if(distGridMgr.contains_status(e, ES_V_SLAVE))
-					msel.select(e, IS_VSLAVE);
+					msel.select(e, IS_VSLAVE);//IS_OLD_VSLAVE);
 			}
 		}
 	}
@@ -930,13 +961,32 @@ static void AddTargetProcToDistInfos(MGSelector& msel,
 {
 	typedef typename Grid::traits<TElem>::iterator	TElemIter;
 
+	//MultiGrid& mg = *msel.multi_grid();
+	//DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+
 	for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 		for(TElemIter iter = msel.begin<TElem>(lvl);
 			iter != msel.end<TElem>(lvl); ++iter)
 		{
 			TElem* e = *iter;
+			byte selState = msel.get_selection_status(e);
+
+		//	we have to do a little work for vslaves, since their associated master
+		//	procs have to be determined. For normal VSlaves, this is the local proc.
+		//	for old vslaves, we temporarily insert their old vmaster process.
+		//	after synchronization this has to be resolved to the new position of that
+		//	vmaster.
+			/*int vMasterProc = -1;
+			if((selState & IS_VSLAVE))
+				if((selState & IS_OLD_VSLAVE) == IS_OLD_VSLAVE){
+
+				}
+				else
+					vMasterProc = pcl::GetProcRank();
+			}*/
+
 			distInfos.get(e).push_back(
-					TargetProcInfo(targetProc, msel.get_selection_status(e)));
+					TargetProcInfo(targetProc, selState));//, vMasterProc));
 		}
 	}
 }
@@ -1111,11 +1161,15 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				isVSlave = true;
 			}
 
+			/*
 			//	there only may be one v-master copy
+			//bool wasVMaster = false;
 			if(isVMaster && (localProcID != minVMasterProc)){
 				isVMaster = false;
+				//wasVMaster = true;
 				isVSlave = true;
 			}
+			*/
 
 		//	if this condition is fulfilled, some kind of h-interface will be built
 			bool createHInterface = createNormalHInterface || (numVSlaveProcs > 1);
@@ -1125,20 +1179,33 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				if(tpi.procID == localProcID)
 					continue;
 
-				bool tpIsVSlave = (tpi.interfaceState & IS_VSLAVE)
-								  || ((tpi.interfaceState & IS_VMASTER) && (tpi.procID != minVMasterProc));
+				//bool tpWasVMaster = ((tpi.interfaceState & IS_VMASTER) && (tpi.procID != minVMasterProc));
+				//bool tpIsVSlave = (tpi.interfaceState & IS_VSLAVE) || tpWasVMaster;
+
+				bool tpIsVMaster = (tpi.interfaceState & IS_VMASTER);
+				bool tpIsVSlave = (tpi.interfaceState & IS_VSLAVE);
+
+				if(tpIsVMaster && tpIsVSlave){
+					if(tpi.procID == minVMasterProc)
+						tpIsVSlave = false;
+					else
+						tpIsVMaster = false;
+				}
+				else if((!(tpIsVMaster || tpIsVSlave)) && vMasterExists){
+					tpIsVSlave = true;
+				}
+
 
 			//	add entry to vertical interface if necessary
-				//if(isVSlave && (tpi.interfaceState & IS_VMASTER)){
-				if(isVSlave && (tpi.procID == minVMasterProc)){
+				//if(isVSlave && (tpi.procID == minVMasterProc)){
+				if(isVSlave && tpIsVMaster){
 					//UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
 						glm.get_layout<TElem>(INT_V_SLAVE).
 							interface(tpi.procID, lvl).push_back(e);
 				}
 
-			//	a vmaster creates interface entries to all associated non-vmaster copies
-				//if(isVMaster && (tpi.interfaceState & IS_VSLAVE)){
-				if(isVMaster){
+				//if(isVMaster){ //(a vmaster creates interface entries to all associated non-vmaster copies)
+				if(isVMaster && tpIsVSlave){
 					//UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
 					//UG_ASSERT(!isVSlave, "A v-master element should never also be a v-slave");
 					glm.get_layout<TElem>(INT_V_MASTER).
@@ -1154,12 +1221,15 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			//	add entry to horizontal interface if necessary
 				if(createNormalHInterface){
 					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
+
+				//	check whether the target process would also create a normal h interface
 					if(localProcID == minRegularHMasterProc){
 					//	horizontal master
 					//	only build the interface if the process is not a pure
 					//	v-master
 						//if(tpi.interfaceState != IS_VMASTER){
-						if((tpi.procID != minVMasterProc) || (tpi.interfaceState != IS_VMASTER)){
+						//if((tpi.procID != minVMasterProc) || (tpi.interfaceState != IS_VMASTER)){
+						if(tpi.interfaceState != IS_VMASTER){
 							glm.get_layout<TElem>(INT_H_MASTER).
 								interface(tpi.procID, lvl).push_back(e);
 						}
@@ -1169,7 +1239,8 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					//	only build the interface if the process is not a pure
 					//	v-master
 						//if(localInterfaceState != IS_VMASTER){
-						if((localProcID != minVMasterProc) || (localInterfaceState != IS_VMASTER)){
+						//if((localProcID != minVMasterProc) || (localInterfaceState != IS_VMASTER)){
+						if(localInterfaceState != IS_VMASTER){
 							glm.get_layout<TElem>(INT_H_SLAVE).
 								interface(tpi.procID, lvl).push_back(e);
 						}
@@ -1180,19 +1251,24 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
 				//	we still have to build a horizontal interface, this time
 				//	however only between vertical slaves
-					if(tpIsVSlave){
-						if(!isVMaster){
-							if(localProcID == minRegularHMasterProc){
-							//	horizontal master
-								glm.get_layout<TElem>(INT_H_MASTER).
-									interface(tpi.procID, lvl).push_back(e);
-							}
-							else if(tpi.procID == minRegularHMasterProc){
-							//	horizontal slave
-								glm.get_layout<TElem>(INT_H_SLAVE).
-									interface(tpi.procID, lvl).push_back(e);
-							}
+//					if(tpIsVSlave && (!tpWasVMaster)){
+//						if(!(isVMaster || wasVMaster)){
+					if(isVSlave && tpIsVSlave){
+//					if(tpIsVSlave){
+//						if(!(isVMaster)){
+
+						if(localProcID == minRegularHMasterProc){
+						//	horizontal master
+							glm.get_layout<TElem>(INT_H_MASTER).
+								interface(tpi.procID, lvl).push_back(e);
 						}
+						else if(tpi.procID == minRegularHMasterProc){
+						//	horizontal slave
+							glm.get_layout<TElem>(INT_H_SLAVE).
+								interface(tpi.procID, lvl).push_back(e);
+						}
+
+//						}
 					}
 				}
 			}
