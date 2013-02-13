@@ -591,7 +591,10 @@ base_solve(size_t lev)
 		//	LIFTING c TO SOLVING AREA
 			m_vLevData[lev]->copy_defect_to_smooth_patch();
 
-			write_level_debug(d, "GMG_Def_BeforeBaseSolver", lev);
+			#ifdef UG_PARALLEL
+				write_level_debug(d, "GMG_Def_BeforeBaseSolver", lev);
+			#endif
+
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			sc.set(0.0);
 			if(!m_spBaseSolver->apply(sc, sd))
