@@ -1947,14 +1947,6 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		if(Eval.time_series_needed())
 			locTimeSeries.read_values(vSol, ind);
 
-	// 	prepare element
-	//	\TODO: CAN BE REMOVED, IF AND ONLY IF EACH DISC PREPARES ITS DATA ITSELF
-		try
-		{
-			Eval.prepare_elem(elem, locU, ind);
-		}
-		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare element.");
-
 	// 	prepare timestep
 		try
 		{
@@ -1962,13 +1954,6 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 		}
 		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare timestep.");
 	}
-
-// 	finish element loop
-	try
-	{
-		Eval.finish_elem_loop();
-	}
-	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot finish element loop.");
 
 	}
 	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot create Data Evaluator.");
@@ -2091,14 +2076,6 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	//	read local values of time series
 		if(Eval.time_series_needed())
 			locTimeSeries.read_values(vSol, ind);
-
-	// 	prepare element
-	//	\TODO: CAN BE REMOVED, IF AND ONLY IF EACH DISC PREPARES ITS DATA ITSELF
-		try
-		{
-			Eval.prepare_elem(elem, locU, ind);
-		}
-		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot prepare element.");
 
 	// 	finish timestep
 		try
