@@ -26,19 +26,17 @@ enum InterfaceStates{
 	IS_VMASTER = 1<<1,
 	IS_VSLAVE = 1<<2,
 	IS_DUMMY = 1<<3,
-	//IS_OLD_VSLAVE = 1<<4 | IS_VSLAVE	//normally only used temporarily
 };
 
 
 struct TargetProcInfo
 {
-	TargetProcInfo() {}// : vMasterProc(-1)	{}
-	TargetProcInfo(int pID, byte intfcState) ://, int vMasterPrc = -1) :
-		procID(pID), interfaceState(intfcState) {}//, vMasterProc(vMasterPrc) {}
+	TargetProcInfo() {}
+	TargetProcInfo(int pID, byte intfcState) :
+		procID(pID), interfaceState(intfcState) {}
 
 	int procID;
 	byte interfaceState; // or-combinations of constants from InterfaceStates
-	//int vMasterProc; // only used if interfaceState contains a IS_VSLAVE.
 };
 
 typedef Attachment<vector<TargetProcInfo> >	ADistInfo;
@@ -161,14 +159,6 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 							if(procID == tpInfoDest[i].procID){
 								tpInfoDest[i].interfaceState
 												|= tpInfo[i_src].interfaceState;
-								/*if(tpInfoDest[i].vMasterProc == -1)
-									tpInfoDest[i].vMasterProc = tpInfo[i_src].vMasterProc;
-								else{
-									UG_ASSERT((tpInfo[i_src].vMasterProc == -1)
-											|| (tpInfoDest[i].vMasterProc
-												== tpInfo[i_src].vMasterProc),
-											"A slave can only have a master on one process!");
-								}*/
 
 								gotOne = true;
 								break;
@@ -829,7 +819,7 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
 			}
 			else{
 				if(distGridMgr.contains_status(e, ES_V_SLAVE))
-					msel.select(e, IS_VSLAVE);//IS_OLD_VSLAVE);
+					msel.select(e, IS_VSLAVE);
 			}
 		}
 	}
@@ -961,8 +951,6 @@ static void AddTargetProcToDistInfos(MGSelector& msel,
 {
 	typedef typename Grid::traits<TElem>::iterator	TElemIter;
 
-	//MultiGrid& mg = *msel.multi_grid();
-	//DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 
 	for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 		for(TElemIter iter = msel.begin<TElem>(lvl);
@@ -971,22 +959,8 @@ static void AddTargetProcToDistInfos(MGSelector& msel,
 			TElem* e = *iter;
 			byte selState = msel.get_selection_status(e);
 
-		//	we have to do a little work for vslaves, since their associated master
-		//	procs have to be determined. For normal VSlaves, this is the local proc.
-		//	for old vslaves, we temporarily insert their old vmaster process.
-		//	after synchronization this has to be resolved to the new position of that
-		//	vmaster.
-			/*int vMasterProc = -1;
-			if((selState & IS_VSLAVE))
-				if((selState & IS_OLD_VSLAVE) == IS_OLD_VSLAVE){
-
-				}
-				else
-					vMasterProc = pcl::GetProcRank();
-			}*/
-
 			distInfos.get(e).push_back(
-					TargetProcInfo(targetProc, selState));//, vMasterProc));
+					TargetProcInfo(targetProc, selState));
 		}
 	}
 }
@@ -1091,6 +1065,8 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			//bool isDummy = false;
 			//bool isNormal = false;
 			bool createNormalHInterface = false;
+//			bool forceHInterface = false;
+
 			int numVSlaveProcs = 0;
 			for(size_t i = 0; i < di.size(); ++i){
 				TargetProcInfo& tpi = di[i];
@@ -1098,6 +1074,13 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					localInterfaceState = tpi.interfaceState;
 
 				if(tpi.interfaceState & IS_VMASTER){
+				//	if there is more than one vmaster, then we have to build
+				//	h interfaces
+//					if(vMasterExists){
+//						createNormalHInterface = true;
+//						forceHInterface = true;
+//					}
+
 					vMasterExists = true;
 					if(tpi.procID == localProcID){
 						isVMaster = true;
@@ -1147,13 +1130,10 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 			//	adjacent normal full-dimensional elements should thus exist and a
 			//	horizontal interface has to be built.
-				createNormalHInterface = true;
-
-			//	just a test
-				//createNormalHInterface = false;
+				//createNormalHInterface = true;
 			}
 			else if((!(isVMaster || isVSlave)) && vMasterExists){
-			//	check whether a copy is vmaster. If this is the case,
+			//	check whether a vmaster copy exists. If this is the case,
 			//	the element itself has to be a vslave.
 			//	This occurs in situations where a low-dim element with copies
 			//	on p1 and p2 (no v-interface) is distributed from p1 to a third process.
@@ -1161,26 +1141,19 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				isVSlave = true;
 			}
 
-			/*
-			//	there only may be one v-master copy
-			//bool wasVMaster = false;
+		//	there only may be one v-master copy
 			if(isVMaster && (localProcID != minVMasterProc)){
 				isVMaster = false;
-				//wasVMaster = true;
 				isVSlave = true;
 			}
-			*/
 
 		//	if this condition is fulfilled, some kind of h-interface will be built
-			bool createHInterface = createNormalHInterface || (numVSlaveProcs > 1);
+			//bool createHInterface = createNormalHInterface || (numVSlaveProcs > 1);
 
 			for(size_t i = 0; i < di.size(); ++i){
 				TargetProcInfo& tpi = di[i];
 				if(tpi.procID == localProcID)
 					continue;
-
-				//bool tpWasVMaster = ((tpi.interfaceState & IS_VMASTER) && (tpi.procID != minVMasterProc));
-				//bool tpIsVSlave = (tpi.interfaceState & IS_VSLAVE) || tpWasVMaster;
 
 				bool tpIsVMaster = (tpi.interfaceState & IS_VMASTER);
 				bool tpIsVSlave = (tpi.interfaceState & IS_VSLAVE);
@@ -1195,6 +1168,12 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					tpIsVSlave = true;
 				}
 
+				if(tpIsVMaster && (tpi.procID != minVMasterProc)){
+					tpIsVMaster = false;
+					tpIsVSlave = true;
+				}
+
+				bool interfaceCreated = false;
 
 			//	add entry to vertical interface if necessary
 				//if(isVSlave && (tpi.procID == minVMasterProc)){
@@ -1203,9 +1182,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 						glm.get_layout<TElem>(INT_V_SLAVE).
 							interface(tpi.procID, lvl).push_back(e);
 				}
-
-				//if(isVMaster){ //(a vmaster creates interface entries to all associated non-vmaster copies)
-				if(isVMaster && tpIsVSlave){
+				else if(isVMaster && tpIsVSlave){
 					//UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
 					//UG_ASSERT(!isVSlave, "A v-master element should never also be a v-slave");
 					glm.get_layout<TElem>(INT_V_MASTER).
@@ -1214,12 +1191,39 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				//	we have to destroy parent-child relations to possibly existing
 				//	children. Those children are now indirectly connected through
 				//	copies on other processes.
-					if(!createHInterface && mg.has_children(e))
+					//if(!createHInterface && mg.has_children(e))
+					if(!createNormalHInterface && mg.has_children(e))
 						mg.clear_child_connections(e);
 				}
+				else if(isVSlave && tpIsVSlave){
+					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
+				//	we still have to build a horizontal interface, this time
+				//	however only between vertical slaves
+//					if(tpIsVSlave && (!tpWasVMaster)){
+//						if(!(isVMaster || wasVMaster)){
+//					if(isVSlave && tpIsVSlave){
+//					if(tpIsVSlave){
+//						if(!(isVMaster)){
 
-			//	add entry to horizontal interface if necessary
-				if(createNormalHInterface){
+					if(localProcID == minRegularHMasterProc){
+					//	horizontal master
+						glm.get_layout<TElem>(INT_H_MASTER).
+							interface(tpi.procID, lvl).push_back(e);
+						interfaceCreated = true;
+					}
+					else if(tpi.procID == minRegularHMasterProc){
+					//	horizontal slave
+						interfaceCreated = true;
+						glm.get_layout<TElem>(INT_H_SLAVE).
+							interface(tpi.procID, lvl).push_back(e);
+					}
+
+//						}
+//					}
+				}
+
+				//	add entry to horizontal interface if necessary
+				if(!interfaceCreated && createNormalHInterface){
 					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
 
 				//	check whether the target process would also create a normal h interface
@@ -1227,9 +1231,9 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					//	horizontal master
 					//	only build the interface if the process is not a pure
 					//	v-master
-						//if(tpi.interfaceState != IS_VMASTER){
-						//if((tpi.procID != minVMasterProc) || (tpi.interfaceState != IS_VMASTER)){
 						if(tpi.interfaceState != IS_VMASTER){
+						//if((tpi.procID != minVMasterProc) || (tpi.interfaceState != IS_VMASTER)){
+						//if(forceHInterface || (tpi.interfaceState != IS_VMASTER)){
 							glm.get_layout<TElem>(INT_H_MASTER).
 								interface(tpi.procID, lvl).push_back(e);
 						}
@@ -1238,39 +1242,16 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					//	horizontal slave
 					//	only build the interface if the process is not a pure
 					//	v-master
-						//if(localInterfaceState != IS_VMASTER){
-						//if((localProcID != minVMasterProc) || (localInterfaceState != IS_VMASTER)){
 						if(localInterfaceState != IS_VMASTER){
+						//if((localProcID != minVMasterProc) || (localInterfaceState != IS_VMASTER)){
+						//if(forceHInterface || (localInterfaceState != IS_VMASTER)){
 							glm.get_layout<TElem>(INT_H_SLAVE).
 								interface(tpi.procID, lvl).push_back(e);
 						}
 					}
 				}
 				//else if((localInterfaceState != IS_VMASTER) &&(numVSlaveProcs > 1)){
-				else if(numVSlaveProcs > 1){
-					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
-				//	we still have to build a horizontal interface, this time
-				//	however only between vertical slaves
-//					if(tpIsVSlave && (!tpWasVMaster)){
-//						if(!(isVMaster || wasVMaster)){
-					if(isVSlave && tpIsVSlave){
-//					if(tpIsVSlave){
-//						if(!(isVMaster)){
-
-						if(localProcID == minRegularHMasterProc){
-						//	horizontal master
-							glm.get_layout<TElem>(INT_H_MASTER).
-								interface(tpi.procID, lvl).push_back(e);
-						}
-						else if(tpi.procID == minRegularHMasterProc){
-						//	horizontal slave
-							glm.get_layout<TElem>(INT_H_SLAVE).
-								interface(tpi.procID, lvl).push_back(e);
-						}
-
-//						}
-					}
-				}
+				//else if(numVSlaveProcs > 1){
 			}
 		}
 	}
