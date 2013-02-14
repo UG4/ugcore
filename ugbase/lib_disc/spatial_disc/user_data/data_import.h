@@ -23,6 +23,7 @@ enum DiscPart {	NONE = 0,
 				MASS = 1 << 0,
 				STIFF = 1 << 1,
 				RHS = 1 << 2,
+				EXPL = 1 << 3,
 				MAX_PART};
 
 /// Base class for data import
@@ -39,6 +40,15 @@ class IDataImport
 		{}
 
 		virtual ~IDataImport()	{}
+
+	///	sets part of import
+		void set_part(DiscPart part) {m_part = part;}
+
+	///	set to no part
+		void set_none_part() {m_part = NONE;}
+
+	///	set to explicit part
+		void set_expl_part() {m_part = EXPL;}
 
 	///	sets if import is located in mass part (for time dependent problems)
 		void set_mass_part() {m_part = MASS;}
