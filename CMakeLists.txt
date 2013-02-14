@@ -21,6 +21,11 @@ if(buildPluginSystem)
 	add_subdirectory(plugins)
 endif(buildPluginSystem)
 
+########################
+# compile metis
+if(buildMetis)
+	add_subdirectory(externals/metis-5.0.2)
+endif(buildMetis)
 
 ########################
 # ugbase
