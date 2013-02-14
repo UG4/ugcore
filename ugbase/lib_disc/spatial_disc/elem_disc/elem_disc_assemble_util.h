@@ -976,9 +976,9 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 			// man muss vermutlich fuer t = 1 dann s_a,0 abfragen 
  
 			// start new central function		       
-#if 0
 
-			if( t == 1 ) // only valid at lowest timediscreti order
+
+			if( t == 1 ) // only valid at lowest timediscretization order
 			{
           		   // 	   Assemble A expliziter Anteil
 			   tmpLocD = 0.0;
@@ -988,11 +988,10 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 			   }
 			   UG_CATCH_THROW("(instationary) AssembleDefect explizit: Cannot compute Defect (A).");
 
-			   UG_ASSERT(vScaleStiff.size() == 1, "Only one step method supoorted.");
+			   //UG_ASSERT(vScaleStiff.size() == 1, "Only one step method supoorted.");
 			   const number dt = vSol->time(0)-vSol->time(1);
 			   locD.scale_append(dt, tmpLocD);
 			}
-#endif
 
 			// end new central function which has to be improved
 

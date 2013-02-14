@@ -365,7 +365,7 @@ class IElemDisc
 		virtual void add_def_A_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
 
 	// NEW: explicit reaction
-        // explicit defect for reaction
+        // explicit defect for reaction and source
 		virtual void add_def_A_elem_explicit(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
 
 	/// Assembling of Defect (Mass part)
@@ -453,7 +453,7 @@ class IElemDisc
 		template <typename TAssFunc> void set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func);
-		// NEW: explicit reaction
+		// NEW: explicit reaction and source
 		template <typename TAssFunc> void set_add_def_A_elem_fct_explicit(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);

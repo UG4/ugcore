@@ -13,6 +13,7 @@
 #include "lib_disc/spatial_disc/user_data/data_linker.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/scale_add_linker.h"
+#include "lib_disc/spatial_disc/user_data/inverse_linker.h"
 
 using namespace std;
 
@@ -494,6 +495,9 @@ void RegisterUserDataType(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, string("ScaleAddLinker").append(type), dimTag);
 	}
+
+
+
 }
 
 namespace UserDataBridge{
@@ -587,6 +591,24 @@ static void Dimension(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);
 	}
+	//	InverseLinker"Type"
+		{
+			typedef InverseLinker<dim> T;
+			typedef DataLinker<number,dim> TBase;
+
+				string name = string("InverseLinker").append(dimSuffix);
+				reg.add_class_<T,TBase>(name, grp)
+				.add_method("divide", static_cast<void (T::*)(SmartPtr<UserData<number,dim> > , SmartPtr<UserData<number,dim> >)>(&T::divide))
+				.add_method("divide", static_cast<void (T::*)(number , SmartPtr<UserData<number,dim> >)>(&T::divide))
+				.add_method("divide", static_cast<void (T::*)(SmartPtr<UserData<number,dim> > , number)>(&T::divide))
+				.add_method("divide", static_cast<void (T::*)(number,number)>(&T::divide))
+				.add_constructor()
+				.template add_constructor<void (*)(const InverseLinker<dim>&)>()
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, string("InverseLinker"), dimTag);
+
+		}
+
 }
 
 /**
