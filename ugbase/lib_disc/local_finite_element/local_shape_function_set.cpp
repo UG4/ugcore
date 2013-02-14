@@ -13,6 +13,7 @@
 #include "crouzeix-raviart/crouzeix_raviart.h"
 #include "piecewise_constant/piecewise_constant.h"
 #include "mini/mini.h"
+#include "nedelec/nedelec.h"
 
 
 namespace ug{
@@ -211,6 +212,11 @@ void LocalShapeFunctionSetProvider::init_standard_sets()
 	static LocalShapeFunctionSetWrapper<MiniBubbleLSFS<TRefElem> > sSetMiniBubble;
 	LFEID typeMB(LFEID::MINI, 1);
 	register_set(typeMB, roid, sSetMiniBubble);
+
+//	insert into map: Nedelec element
+	static LocalShapeFunctionSetWrapper<NedelecLSFS<TRefElem> > sSetNedelec;
+	LFEID typeNedelec(LFEID::NEDELEC, 1);
+	register_set(typeNedelec, roid, sSetNedelec);
 
 }
 

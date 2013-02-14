@@ -316,14 +316,18 @@ class LocalShapeFunctionSetProvider {
 		static void init_flex_lagrange(size_t order);
 
 	// 	return a map of element_trial_spaces
-		template <int dim>
-		static std::map<LFEID, const LocalShapeFunctionSet<dim>* >*
+		template <int dim, typename t_shape, typename t_grad>
+		static std::map<LFEID, const LocalShapeFunctionSet<dim, t_shape, t_grad>* >*
 		get_map();
 
 	//	vector of dynamically created spaces
+		template <int dim, typename t_shape, typename t_grad>
+		static std::vector<LocalShapeFunctionSet<dim, t_shape, t_grad>*>&
+		get_dynamic_allocated_vector();
 		template <int dim>
 		static std::vector<LocalShapeFunctionSet<dim>*>&
-		get_dynamic_allocated_vector();
+		get_dynamic_allocated_vector()
+			{return get_dynamic_allocated_vector<dim, number, MathVector<dim> > ();};
 
 	//	returns the continuous information
 		static std::map<LFEID, bool>& get_continuous_map();
@@ -344,10 +348,10 @@ class LocalShapeFunctionSetProvider {
 	 * \param[in]		roid	Reference Object id
 	 * \param[in]		set		Local Shape Function Set to register
 	 */
-		template <int dim>
+		template <int dim, typename t_shape, typename t_grad>
 		static void	register_set(LFEID id,
 		           	             const ReferenceObjectID roid,
-		           	             const LocalShapeFunctionSet<dim>& set);
+		           	             const LocalShapeFunctionSet<dim, t_shape, t_grad>& set);
 
 	/// unregister a local shape function set for a given reference element type
 	/**
@@ -357,7 +361,7 @@ class LocalShapeFunctionSetProvider {
 	 * \param[in]		id 		Identifier for local shape function set
 	 * \return			bool	true iff removal successful
 	 */
-		template <int dim>
+		template <int dim, typename t_shape, typename t_grad>
 		static bool unregister_set(LFEID id);
 
 	///	returns the Local Shape Function Set
@@ -370,9 +374,15 @@ class LocalShapeFunctionSetProvider {
 	 * \param[in]	id		Identifier for local shape function set
 	 * \return 		set		A const reference to the shape function set
 	 */
+	///\{
+		template <int dim, typename t_shape, typename t_grad>
+		static const LocalShapeFunctionSet<dim, t_shape, t_grad>& get(ReferenceObjectID roid,
+		                                             LFEID id, bool bCreate = true);
 		template <int dim>
 		static const LocalShapeFunctionSet<dim>& get(ReferenceObjectID roid,
-		                                             LFEID id, bool bCreate = true);
+		                                             LFEID id, bool bCreate = true)
+			{return get<dim,number,MathVector<dim> >(roid, id, bCreate);};
+	///\}
 
 	///returns if a Local Shape Function Set is continuous
 		static bool continuous(const LFEID& id, bool bCreate = true);

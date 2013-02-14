@@ -91,6 +91,6 @@ class NedelecLDS : public ILocalDoFSet
 		std::vector<LocalDoF> m_vLocalDoF;
 };
 
-} //namespace ug
+} // namespace ug
 
 #endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__WHITNEY__LAGRANGE_LOCAL_DOF__ */
