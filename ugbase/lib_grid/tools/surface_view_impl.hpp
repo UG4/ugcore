@@ -8,9 +8,7 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 //	implementation of SurfaceViewElementIterator
-////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class TElem>
@@ -18,15 +16,17 @@ SurfaceView::SurfaceViewElementIterator<TElem>::
 SurfaceViewElementIterator(SurfaceView* surfView,
                            int fromSubset, int toSubset,
                            int startLvl, int topLvl,
-                           typename geometry_traits<TElem>::iterator elemIter) :
+                           bool start, bool withGhosts) :
 	m_fromSI(fromSubset),
 	m_toSI(toSubset),
 	m_si(m_fromSI),
 	m_lvl(startLvl),
 	m_topLvl(topLvl),
-	m_elemIter(elemIter),
+	m_elemIter(start ? surfView->subset_handler()->begin<TElem>(m_si, m_lvl)
+					 : surfView->subset_handler()->end<TElem>(m_toSI, m_topLvl)),
 	m_iterEndSection(surfView->subset_handler()->end<TElem>(m_si, m_lvl)),
-	m_surfView(surfView)
+	m_surfView(surfView),
+	m_bWithGhosts(withGhosts)
 {
 //	if at end of section -> increase until next non-empty section
 	if(m_elemIter == m_iterEndSection)
@@ -34,7 +34,7 @@ SurfaceViewElementIterator(SurfaceView* surfView,
 			return;
 
 //	m_elemIter has to point to a valid surface view element
-	if(!m_surfView->is_surface_element(*m_elemIter, m_topLvl)){increment(); return;}
+	if(!is_contained(*m_elemIter)){increment(); return;}
 }
 
 template <class TElem>
@@ -129,7 +129,7 @@ increment()
 				return;
 			}
 		}
-	}while(!m_surfView->is_surface_element(*m_elemIter, m_topLvl));
+	}while(!is_contained(*m_elemIter));
 }
 
 template <class TElem>
@@ -140,12 +140,30 @@ dereference() const
 	return *m_elemIter;
 }
 
+template <class TElem>
+template <class TGeomObj>
+bool SurfaceView::SurfaceViewElementIterator<TElem>::
+is_contained(TGeomObj* obj) const
+{
+	UG_ASSERT(m_surfView->get_level(obj) == m_lvl, "Wrong level");
 
-////////////////////////////////////////////////////////////////////////////////
+	if(m_lvl == m_topLvl){
+#ifdef UG_PARALLEL
+		if(m_bWithGhosts) return true;
+		else return !m_surfView->is_ghost(obj);
+#else
+		return true;
+#endif
+	}
+
+	return m_surfView->is_surface_element(obj);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //	implementation of ConstSurfaceViewElementIterator
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+
 template <class TElem>
 SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 ConstSurfaceViewElementIterator(const SurfaceView::SurfaceViewElementIterator<TElem>& iter)
@@ -158,6 +176,7 @@ ConstSurfaceViewElementIterator(const SurfaceView::SurfaceViewElementIterator<TE
 	m_elemIter = iter.m_elemIter;
 	m_iterEndSection = iter.m_iterEndSection;
 	m_surfView = iter.m_surfView;
+	m_bWithGhosts = iter.m_bWithGhosts;
 }
 
 template <class TElem>
@@ -170,7 +189,8 @@ ConstSurfaceViewElementIterator() :
 	m_topLvl(0),
 	m_elemIter(),
 	m_iterEndSection(),
-	m_surfView(NULL)
+	m_surfView(NULL),
+	m_bWithGhosts(false)
 {}
 
 template <class TElem>
@@ -178,15 +198,17 @@ SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 ConstSurfaceViewElementIterator(const SurfaceView* surfView,
                                 int fromSubset, int toSubset,
                                 int startLvl, int topLvl,
-                                typename geometry_traits<TElem>::const_iterator elemIter) :
+                                bool start, bool withGhosts) :
 	m_fromSI(fromSubset),
 	m_toSI(toSubset),
 	m_si(m_fromSI),
 	m_lvl(startLvl),
 	m_topLvl(topLvl),
-	m_elemIter(elemIter),
+	m_elemIter(start ? surfView->subset_handler()->begin<TElem>(m_si, m_lvl)
+					 : surfView->subset_handler()->end<TElem>(m_toSI, m_topLvl)),
 	m_iterEndSection(surfView->subset_handler()->end<TElem>(m_si, m_lvl)),
-	m_surfView(surfView)
+	m_surfView(surfView),
+	m_bWithGhosts(withGhosts)
 {
 //	if at end of section -> increase until next non-empty section
 	if(m_elemIter == m_iterEndSection)
@@ -194,7 +216,7 @@ ConstSurfaceViewElementIterator(const SurfaceView* surfView,
 			return;
 
 //	m_elemIter has to point to a valid surface view element
-	if(!m_surfView->is_surface_element(*m_elemIter, m_topLvl)){increment(); return;}
+	if(!is_contained(*m_elemIter)){increment(); return;}
 }
 
 template <class TElem>
@@ -276,7 +298,7 @@ increment()
 				return;
 			}
 		}
-	}while(!m_surfView->is_surface_element(*m_elemIter, m_topLvl));
+	}while(!is_contained(*m_elemIter));
 }
 
 template <class TElem>
@@ -287,12 +309,30 @@ dereference() const
 	return *m_elemIter;
 }
 
+template <class TElem>
+template <class TGeomObj>
+bool SurfaceView::ConstSurfaceViewElementIterator<TElem>::
+is_contained(TGeomObj* obj) const
+{
+	UG_ASSERT(m_surfView->get_level(obj) == m_lvl, "Wrong level");
 
-////////////////////////////////////////////////////////////////////////////////
+	if(m_lvl == m_topLvl){
+#ifdef UG_PARALLEL
+		if(m_bWithGhosts) return true;
+		else return !m_surfView->is_ghost(obj);
+#else
+		return true;
+#endif
+	}
+
+	return m_surfView->is_surface_element(obj);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //	implementation of SurfaceView
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+
 SmartPtr<MGSubsetHandler> SurfaceView::subset_handler()
 {
 	return m_spMGSH;
@@ -308,144 +348,185 @@ bool SurfaceView::is_adaptive() const
 	return m_adaptiveMG;
 }
 
-template <class TElem>
-typename SurfaceView::traits<TElem>::iterator SurfaceView::
-begin(int si)
-{
-	return surface_level_begin<TElem>(si, m_spMGSH->num_levels() - 1);
-}
+////////////////////////////////////////////////////////////////////////////////
+//	surface iterators
+////////////////////////////////////////////////////////////////////////////////
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
-end(int si)
+surface_begin(int si, int lvl, bool withGhosts)
 {
-	return surface_level_end<TElem>(si, m_spMGSH->num_levels() - 1);
-}
+	if(lvl == TOPLEVEL)
+		lvl = m_spMGSH->num_levels() - 1;
 
-template <class TElem>
-typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-begin(int si) const
-{
-	return surface_level_begin<TElem>(si, m_spMGSH->num_levels() - 1);
-}
-
-template <class TElem>
-typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-end(int si) const
-{
-	return surface_level_end<TElem>(si, m_spMGSH->num_levels() - 1);
-}
-
-template <class TElem>
-typename SurfaceView::traits<TElem>::iterator SurfaceView::
-begin()
-{
-	return surface_level_begin<TElem>(m_spMGSH->num_levels() - 1);
-}
-
-template <class TElem>
-typename SurfaceView::traits<TElem>::iterator SurfaceView::
-end()
-{
-	return surface_level_end<TElem>(m_spMGSH->num_levels() - 1);
-}
-
-template <class TElem>
-typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-begin() const
-{
-	return surface_level_begin<TElem>(m_spMGSH->num_levels() - 1);
-}
-
-template <class TElem>
-typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-end() const
-{
-	return surface_level_end<TElem>(m_spMGSH->num_levels() - 1);
-}
-
-template <class TElem>
-typename SurfaceView::traits<TElem>::iterator SurfaceView::
-surface_level_begin(int si, int lvl)
-{
 	if(is_adaptive())
-		return typename traits<TElem>::iterator(this, si, si, 0, lvl,
-										m_spMGSH->begin<TElem>(si, 0));
+		return typename traits<TElem>::iterator(this, si, si, 0, lvl, true, withGhosts);
 	else
-		return typename traits<TElem>::iterator(this, si, si, lvl, lvl,
-											 	 m_spMGSH->begin<TElem>(si, lvl));
+		return typename traits<TElem>::iterator(this, si, si, lvl, lvl, true, withGhosts);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
-surface_level_end(int si, int lvl)
+surface_end(int si, int lvl, bool withGhosts)
 {
-	return typename traits<TElem>::iterator(this, si, si, lvl, lvl,
-										 	 m_spMGSH->end<TElem>(si, lvl));
+	if(lvl == TOPLEVEL)
+		lvl = m_spMGSH->num_levels() - 1;
+
+	return typename traits<TElem>::iterator(this, si, si, lvl, lvl, false, withGhosts);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-surface_level_begin(int si, int lvl) const
+surface_begin(int si, int lvl, bool withGhosts) const
 {
+	if(lvl == TOPLEVEL)
+		lvl = m_spMGSH->num_levels() - 1;
+
 	if(is_adaptive())
-		return typename traits<TElem>::const_iterator(this, si, si, 0, lvl,
-											subset_handler()->begin<TElem>(si, 0));
+		return typename traits<TElem>::const_iterator(this, si, si, 0, lvl, true, withGhosts);
 	else
-		return typename traits<TElem>::const_iterator(this, si, si, lvl, lvl,
-											subset_handler()->begin<TElem>(si, lvl));
+		return typename traits<TElem>::const_iterator(this, si, si, lvl, lvl, true, withGhosts);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-surface_level_end(int si, int lvl) const
+surface_end(int si, int lvl, bool withGhosts) const
 {
-	return typename traits<TElem>::const_iterator(this, si, si, lvl, lvl,
-											subset_handler()->end<TElem>(si, lvl));
+	if(lvl == TOPLEVEL)
+		lvl = m_spMGSH->num_levels() - 1;
+
+	return typename traits<TElem>::const_iterator(this, si, si, lvl, lvl, false, withGhosts);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
-surface_level_begin(int lvl)
+surface_begin(int lvl, bool withGhosts)
 {
-	if(is_adaptive())
-		return typename traits<TElem>::iterator(this, 0, m_spMGSH->num_subsets()-1, 0, lvl,
-										m_spMGSH->begin<TElem>(0, 0));
-	else
-		return typename traits<TElem>::iterator(this, 0, m_spMGSH->num_subsets()-1, lvl, lvl,
-											 	 m_spMGSH->begin<TElem>(0, lvl));
-}
+	if(lvl == TOPLEVEL)
+		lvl = m_spMGSH->num_levels() - 1;
 
-template <class TElem>
-typename SurfaceView::traits<TElem>::iterator SurfaceView::
-surface_level_end(int lvl)
-{
 	const int si =  m_spMGSH->num_subsets()-1;
-	return typename traits<TElem>::iterator(this, si, si, lvl, lvl,
-										 	 m_spMGSH->end<TElem>(si, lvl));
-}
-
-template <class TElem>
-typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-surface_level_begin(int lvl) const
-{
 	if(is_adaptive())
-		return typename traits<TElem>::const_iterator(this, 0, m_spMGSH->num_subsets()-1, 0, lvl,
-											subset_handler()->begin<TElem>(0, 0));
+		return typename traits<TElem>::iterator(this, 0, si, 0, lvl, true, withGhosts);
 	else
-		return typename traits<TElem>::const_iterator(this, 0, m_spMGSH->num_subsets()-1, lvl, lvl,
-											subset_handler()->begin<TElem>(0, lvl));
+		return typename traits<TElem>::iterator(this, 0, si, lvl, lvl, true, withGhosts);
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::iterator SurfaceView::
+surface_end(int lvl, bool withGhosts)
+{
+	if(lvl == TOPLEVEL)
+		lvl = m_spMGSH->num_levels() - 1;
+
+	const int si =  m_spMGSH->num_subsets()-1;
+	return typename traits<TElem>::iterator(this, si, si, lvl, lvl, false, withGhosts);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-surface_level_end(int lvl) const
+surface_begin(int lvl, bool withGhosts) const
 {
+	if(lvl == TOPLEVEL)
+		lvl = m_spMGSH->num_levels() - 1;
+
 	const int si =  m_spMGSH->num_subsets()-1;
-	return typename traits<TElem>::const_iterator(this, si, si, lvl, lvl,
-											subset_handler()->end<TElem>(si, lvl));
+	if(is_adaptive())
+		return typename traits<TElem>::const_iterator(this, 0, si, 0, lvl, true, withGhosts);
+	else
+		return typename traits<TElem>::const_iterator(this, 0, si, lvl, lvl, true, withGhosts);
 }
 
+template <class TElem>
+typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
+surface_end(int lvl, bool withGhosts) const
+{
+	if(lvl == TOPLEVEL)
+		lvl = m_spMGSH->num_levels() - 1;
+
+	const int si =  m_spMGSH->num_subsets()-1;
+	return typename traits<TElem>::const_iterator(this, si, si, lvl, lvl, false, withGhosts);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	level iterators
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::iterator SurfaceView::
+level_begin(int si, int lvl, bool withGhosts)
+{
+	UG_ASSERT(lvl >= 0 && lvl < (int)m_spMGSH->num_levels(), "Invalid level: "<<lvl);
+	UG_ASSERT(si >= 0 && si < m_spMGSH->num_subsets(), "Invalid subset: "<<si);
+	return typename traits<TElem>::iterator(this, si, si, lvl, lvl, true, withGhosts);
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::iterator SurfaceView::
+level_end(int si, int lvl, bool withGhosts)
+{
+	UG_ASSERT(lvl >= 0 && lvl < (int)m_spMGSH->num_levels(), "Invalid level: "<<lvl);
+	UG_ASSERT(si >= 0 && si < m_spMGSH->num_subsets(), "Invalid subset: "<<si);
+	return typename traits<TElem>::iterator(this, si, si, lvl, lvl, false, withGhosts);
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
+level_begin(int si, int lvl, bool withGhosts) const
+{
+	UG_ASSERT(lvl >= 0 && lvl < (int)m_spMGSH->num_levels(), "Invalid level: "<<lvl);
+	UG_ASSERT(si >= 0 && si < m_spMGSH->num_subsets(), "Invalid subset: "<<si);
+	return typename traits<TElem>::const_iterator(this, si, si, lvl, lvl, true, withGhosts);
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
+level_end(int si, int lvl, bool withGhosts) const
+{
+	UG_ASSERT(lvl >= 0 && lvl < (int)m_spMGSH->num_levels(), "Invalid level: "<<lvl);
+	UG_ASSERT(si >= 0 && si < m_spMGSH->num_subsets(), "Invalid subset: "<<si);
+	return typename traits<TElem>::const_iterator(this, si, si, lvl, lvl, false, withGhosts);
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::iterator SurfaceView::
+level_begin(int lvl, bool withGhosts)
+{
+	UG_ASSERT(lvl >= 0 && lvl < (int)m_spMGSH->num_levels(), "Invalid level: "<<lvl);
+	const int si =  m_spMGSH->num_subsets()-1;
+	return typename traits<TElem>::iterator(this, 0, si, lvl, lvl, true, withGhosts);
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::iterator SurfaceView::
+level_end(int lvl, bool withGhosts)
+{
+	UG_ASSERT(lvl >= 0 && lvl < (int)m_spMGSH->num_levels(), "Invalid level: "<<lvl);
+	const int si =  m_spMGSH->num_subsets()-1;
+	return typename traits<TElem>::iterator(this, si, si, lvl, lvl, false, withGhosts);
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
+level_begin(int lvl, bool withGhosts) const
+{
+	UG_ASSERT(lvl >= 0 && lvl < (int)m_spMGSH->num_levels(), "Invalid level: "<<lvl);
+	const int si =  m_spMGSH->num_subsets()-1;
+	return typename traits<TElem>::const_iterator(this, 0, si, lvl, lvl, true, withGhosts);
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
+level_end(int lvl, bool withGhosts) const
+{
+	UG_ASSERT(lvl >= 0 && lvl < (int)m_spMGSH->num_levels(), "Invalid level: "<<lvl);
+	const int si =  m_spMGSH->num_subsets()-1;
+	return typename traits<TElem>::const_iterator(this, si, si, lvl, lvl, false, withGhosts);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	util fct
+////////////////////////////////////////////////////////////////////////////////
 
 template <class TGeomObj>
 bool SurfaceView::is_surface_element(TGeomObj* obj) const
@@ -468,6 +549,16 @@ bool SurfaceView::is_surface_element(TGeomObj* obj, int topLevel) const
 	else if((topLevel > -1) && (lvl > topLevel))
 		return false;
 	return is_surface_element(obj);
+}
+
+template <class TGeomObj>
+bool SurfaceView::is_ghost(TGeomObj* obj) const
+{
+#ifdef UG_PARALLEL
+	return m_distGridMgr->is_ghost(obj);
+#else
+	return false;
+#endif
 }
 
 template <class TGeomObj>
@@ -523,137 +614,36 @@ TBaseElem* SurfaceView::child_if_copy(TBaseElem* elem) const
 	return m_pMG->get_child<TBaseElem>(elem, 0);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-//	implementation of SurfaceLevelView
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-template <class TElem>
-typename SurfaceLevelView::traits<TElem>::iterator
-SurfaceLevelView::
-begin()
-{
-	if(m_topLvl == SLV_TOPLEVEL)
-		return m_spSV->surface_level_begin<TElem>(m_spSV->subset_handler()->num_levels() - 1);
-	else
-		return m_spSV->surface_level_begin<TElem>(m_topLvl);
-}
-
-template <class TElem>
-typename SurfaceLevelView::traits<TElem>::iterator
-SurfaceLevelView::
-end()
-{
-	if(m_topLvl == SLV_TOPLEVEL)
-		return m_spSV->surface_level_end<TElem>(m_spSV->subset_handler()->num_levels() - 1);
-	else
-		return m_spSV->surface_level_end<TElem>(m_topLvl);
-}
-
-template <class TElem>
-typename SurfaceLevelView::traits<TElem>::const_iterator
-SurfaceLevelView::
-begin() const
-{
-	if(m_topLvl == SLV_TOPLEVEL)
-		return m_spSV->surface_level_begin<TElem>(m_spSV->subset_handler()->num_levels() - 1);
-	else
-		return m_spSV->surface_level_begin<TElem>(m_topLvl);
-}
-
-template <class TElem>
-typename SurfaceLevelView::traits<TElem>::const_iterator
-SurfaceLevelView::
-end() const
-{
-	if(m_topLvl == SLV_TOPLEVEL)
-		return m_spSV->surface_level_end<TElem>(m_spSV->subset_handler()->num_levels() - 1);
-	else
-		return m_spSV->surface_level_end<TElem>(m_topLvl);
-}
-
-
-template <class TElem>
-typename SurfaceLevelView::traits<TElem>::iterator
-SurfaceLevelView::
-begin(int si)
-{
-	if(m_topLvl == SLV_TOPLEVEL)
-		return m_spSV->surface_level_begin<TElem>(si,
-										m_spSV->subset_handler()->num_levels() - 1);
-	else
-		return m_spSV->surface_level_begin<TElem>(si, m_topLvl);
-}
-
-template <class TElem>
-typename SurfaceLevelView::traits<TElem>::iterator
-SurfaceLevelView::
-end(int si)
-{
-	if(m_topLvl == SLV_TOPLEVEL)
-		return m_spSV->surface_level_end<TElem>(si,
-										m_spSV->subset_handler()->num_levels() - 1);
-	else
-		return m_spSV->surface_level_end<TElem>(si, m_topLvl);
-}
-
-template <class TElem>
-typename SurfaceLevelView::traits<TElem>::const_iterator
-SurfaceLevelView::
-begin(int si) const
-{
-	if(m_topLvl == SLV_TOPLEVEL)
-		return m_spSV->surface_level_begin<TElem>(si,
-										m_spSV->subset_handler()->num_levels() - 1);
-	else
-		return m_spSV->surface_level_begin<TElem>(si, m_topLvl);
-}
-
-template <class TElem>
-typename SurfaceLevelView::traits<TElem>::const_iterator
-SurfaceLevelView::
-end(int si) const
-{
-	if(m_topLvl == SLV_TOPLEVEL)
-		return m_spSV->surface_level_end<TElem>(si,
-										m_spSV->subset_handler()->num_levels() - 1);
-	else
-		return m_spSV->surface_level_end<TElem>(si, m_topLvl);
-}
-
-
 template <typename TElem, typename TBaseElem>
-void SurfaceLevelView::
+void SurfaceView::
 collect_associated(std::vector<TBaseElem*>& vAssElem,
                    TElem* elem, bool clearContainer) const
 {
 	if(clearContainer) vAssElem.clear();
 
-	MultiGrid& multiGrid = *const_cast<MultiGrid*>(m_spSV->subset_handler()->multi_grid());
-
 //	collect associated on this level
-	CollectAssociated(vAssElem, multiGrid, elem, false);
+	CollectAssociated(vAssElem, *m_pMG, elem, false);
 
 //	if at border of a level grid, there may be connections of the "shadow" element
 //	to surface elements on the coarser level. These must be taken into account.
 
-	if(m_spSV->is_adaptive())
+	if(is_adaptive())
 	{
 	//	get parent
-		TElem* parent = m_spSV->parent_if_copy(elem);
+		TElem* parent = parent_if_copy(elem);
 
 	//	Get connected elements
 		if(parent != NULL)
 		{
 			std::vector<TBaseElem*> vCoarseElem;
-			CollectAssociated(vCoarseElem, multiGrid, parent, true);
+			CollectAssociated(vCoarseElem, *m_pMG, parent, true);
 
 			for(size_t i = 0; i < vCoarseElem.size(); ++i)
 			{
 			//	if shadowed, not in surface view of the requested level
 			//todo:	it could make sense to pass the level of this SurfaceLevelView
 			//		to the is_surface_element method.
-				if(!m_spSV->is_surface_element(vCoarseElem[i])) continue;
+				if(!is_surface_element(vCoarseElem[i])) continue;
 
 			//	else this must be added to adjacent elements
 				vAssElem.push_back(vCoarseElem[i]);
@@ -661,6 +651,7 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 		}
 	}
 }
+
 
 }//	end of namespace
 

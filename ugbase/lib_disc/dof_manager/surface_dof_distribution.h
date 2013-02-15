@@ -24,7 +24,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 		SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
 		                       SmartPtr<MGSubsetHandler> spMGSH,
 		                       FunctionPattern& fctPatt,
-		                       SmartPtr<SurfaceLevelView> spSurfLevelView,
+		                       SmartPtr<SurfaceView> spSurfView,
 		                       int level, bool bGrouped);
 
 	///	defragments the index set
@@ -136,16 +136,16 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 		struct traits
 		{
 			typedef TElem geometric_object;
-			typedef typename SurfaceLevelView::traits<TElem>::iterator iterator;
-			typedef typename SurfaceLevelView::traits<TElem>::const_iterator const_iterator;
+			typedef typename SurfaceView::traits<TElem>::iterator iterator;
+			typedef typename SurfaceView::traits<TElem>::const_iterator const_iterator;
 		};
 
 		template <int dim>
 		struct dim_traits
 		{
 			typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-			typedef typename SurfaceLevelView::traits<geometric_base_object>::iterator iterator;
-			typedef typename SurfaceLevelView::traits<geometric_base_object>::const_iterator const_iterator;
+			typedef typename SurfaceView::traits<geometric_base_object>::iterator iterator;
+			typedef typename SurfaceView::traits<geometric_base_object>::const_iterator const_iterator;
 		};
 
 	public:
@@ -159,34 +159,34 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 	/// iterator for elements where dofs are defined
 	/// \{
 		template <typename TElem>
-		typename traits<TElem>::iterator begin() {return m_spSurfLevelView->begin<TElem>();}
+		typename traits<TElem>::iterator begin() {return m_spSurfView->surface_begin<TElem>(m_level, false);}
 
 		template <typename TElem>
-		typename traits<TElem>::iterator end() {return m_spSurfLevelView->end<TElem>();}
+		typename traits<TElem>::iterator end() {return m_spSurfView->surface_end<TElem>(m_level, false);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator begin() const {return m_spSurfLevelView->begin<TElem>();}
+		typename traits<TElem>::const_iterator begin() const {return m_spSurfView->surface_begin<TElem>(m_level, false);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator end() const {return m_spSurfLevelView->end<TElem>();}
+		typename traits<TElem>::const_iterator end() const {return m_spSurfView->surface_end<TElem>(m_level, false);}
 	///	\}
 
 	/// number of subsets where dofs are defined
-		int num_subsets() const {return m_spSurfLevelView->num_subsets();}
+		int num_subsets() const {return m_spSurfView->num_subsets();}
 
 	/// iterator for elements where dofs are defined
 	/// \{
 		template <typename TElem>
-		typename traits<TElem>::iterator begin(int si) {return m_spSurfLevelView->begin<TElem>(si);}
+		typename traits<TElem>::iterator begin(int si) {return m_spSurfView->surface_begin<TElem>(si, m_level, false);}
 
 		template <typename TElem>
-		typename traits<TElem>::iterator end(int si) {return m_spSurfLevelView->end<TElem>(si);}
+		typename traits<TElem>::iterator end(int si) {return m_spSurfView->surface_end<TElem>(si, m_level, false);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator begin(int si) const {return m_spSurfLevelView->begin<TElem>(si);}
+		typename traits<TElem>::const_iterator begin(int si) const {return m_spSurfView->surface_begin<TElem>(si, m_level, false);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator end(int si) const {return m_spSurfLevelView->end<TElem>(si);}
+		typename traits<TElem>::const_iterator end(int si) const {return m_spSurfView->surface_end<TElem>(si, m_level, false);}
 	///	\}
 
 		///////////////////////////////////////
@@ -227,7 +227,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 
 	protected:
 	///	MultiGrid Subset Handler
-		SmartPtr<SurfaceLevelView> m_spSurfLevelView;
+		SmartPtr<SurfaceView> m_spSurfView;
 
 	///	DoF Info
 		LevInfo<std::set<size_t> > m_levInfo;

@@ -94,8 +94,8 @@ void ConstructGridOfSCVF(ISubsetHandler& shOut,
 
 	// iterators for primary grid
 	typename SurfaceView::traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = surfView.begin<TElem>();
-	iterEnd = surfView.end<TElem>();
+	iterBegin = surfView.surface_begin<TElem>();
+	iterEnd = surfView.surface_end<TElem>();
 
 	// corners of element
 	std::vector<MathVector<TWorldDim> > vCornerCoords;
@@ -280,8 +280,8 @@ void ConstructGridOfSCV(ISubsetHandler& shOut, const SurfaceView& surfView,
 
 	// iterators for primary grid
 	typename SurfaceView::traits<TElem>::const_iterator iter, iterBegin, iterEnd;
-	iterBegin = surfView.begin<TElem>();
-	iterEnd = surfView.end<TElem>();
+	iterBegin = surfView.surface_begin<TElem>();
+	iterEnd = surfView.surface_end<TElem>();
 
 	// corners of element
 	std::vector<MathVector<TWorldDim> > vCornerCoords;

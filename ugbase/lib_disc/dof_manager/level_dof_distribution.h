@@ -281,22 +281,22 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 		struct traits
 		{
 			typedef TElem geometric_object;
-			typedef typename geometry_traits<TElem>::iterator iterator;
-			typedef typename geometry_traits<TElem>::const_iterator const_iterator;
+			typedef typename SurfaceView::traits<TElem>::iterator iterator;
+			typedef typename SurfaceView::traits<TElem>::const_iterator const_iterator;
 		};
 
 		template <int dim>
 		struct dim_traits
 		{
 			typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-			typedef typename geometry_traits<geometric_base_object>::iterator iterator;
-			typedef typename geometry_traits<geometric_base_object>::const_iterator const_iterator;
+			typedef typename SurfaceView::traits<geometric_base_object>::iterator iterator;
+			typedef typename SurfaceView::traits<geometric_base_object>::const_iterator const_iterator;
 		};
 
 	public:
 	///	constructor
 		LevelDoFDistribution(SmartPtr<LevelMGDoFDistribution> spLevMGDD,
-		                     SmartPtr<MGSubsetHandler> spMGSH,
+		                     SmartPtr<SurfaceView> spSurfView,
 		                     int level);
 
 		virtual ~LevelDoFDistribution();
@@ -304,8 +304,8 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 	///	returns grid level
 		GridLevel grid_level() const {return GridLevel(m_level, GridLevel::LEVEL);}
 
-	///	returns the multi grid
-		const MultiGrid& multi_grid() const {return m_rMultiGrid;}
+	///	returns multigrid
+		const MultiGrid& multi_grid() const {return *m_spSurfView->subset_handler()->multi_grid();}
 
 		///////////////////////////////////////
 		// Element Access
@@ -314,34 +314,34 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 	/// iterator for elements where dofs are defined
 	/// \{
 		template <typename TElem>
-		typename traits<TElem>::iterator begin() {return m_rMultiGrid.begin<TElem>(m_level);}
+		typename traits<TElem>::iterator begin() {return m_spSurfView->level_begin<TElem>(m_level, true);}
 
 		template <typename TElem>
-		typename traits<TElem>::iterator end() {return m_rMultiGrid.end<TElem>(m_level);}
+		typename traits<TElem>::iterator end() {return m_spSurfView->level_end<TElem>(m_level, true);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator begin() const {return m_rMultiGrid.begin<TElem>(m_level);}
+		typename traits<TElem>::const_iterator begin() const {return m_spSurfView->level_begin<TElem>(m_level, true);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator end() const {return m_rMultiGrid.end<TElem>(m_level);}
+		typename traits<TElem>::const_iterator end() const {return m_spSurfView->level_end<TElem>(m_level, true);}
 	///	\}
 
 	/// number of subsets where dofs are defined
-		int num_subsets() const {return m_spMGSH->num_subsets();}
+		int num_subsets() const {return m_spSurfView->num_subsets();}
 
 	/// iterator for elements where dofs are defined
 	/// \{
 		template <typename TElem>
-		typename traits<TElem>::iterator begin(int si) {return m_spMGSH->begin<TElem>(si, m_level);}
+		typename traits<TElem>::iterator begin(int si) {return m_spSurfView->level_begin<TElem>(si, m_level, true);}
 
 		template <typename TElem>
-		typename traits<TElem>::iterator end(int si) {return m_spMGSH->end<TElem>(si, m_level);}
+		typename traits<TElem>::iterator end(int si) {return m_spSurfView->level_end<TElem>(si, m_level, true);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator begin(int si) const {return m_spMGSH->begin<TElem>(si, m_level);}
+		typename traits<TElem>::const_iterator begin(int si) const {return m_spSurfView->level_begin<TElem>(si, m_level, true);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator end(int si) const {return m_spMGSH->end<TElem>(si, m_level);}
+		typename traits<TElem>::const_iterator end(int si) const {return m_spSurfView->level_end<TElem>(si, m_level, true);}
 	///	\}
 
 		///////////////////////////////////////
@@ -416,10 +416,7 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 		SmartPtr<LevelMGDoFDistribution> m_spMGDD;
 
 	///	MultiGrid Subset Handler
-		SmartPtr<MGSubsetHandler> m_spMGSH;
-
-	///	associated MultiGrid
-		MultiGrid& m_rMultiGrid;
+		SmartPtr<SurfaceView> m_spSurfView;
 };
 
 } // end namespace ug

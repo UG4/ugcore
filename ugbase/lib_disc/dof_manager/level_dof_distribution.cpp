@@ -323,11 +323,10 @@ void LevelMGDoFDistribution::volume_to_be_erased(Grid* grid, Volume* vol, Volume
 ////////////////////////////////////////////////////////////////////////////////
 LevelDoFDistribution::
 LevelDoFDistribution(SmartPtr<LevelMGDoFDistribution> spLevMGDD,
-                     SmartPtr<MGSubsetHandler> spMGSH,
+                     SmartPtr<SurfaceView> spSurfView,
                      int level)
 	: 	DoFDistributionBase(spLevMGDD, level),
-		m_spMGDD(spLevMGDD), m_spMGSH(spMGSH),
-		m_rMultiGrid(*m_spMGSH->multi_grid())
+		m_spMGDD(spLevMGDD), m_spSurfView(spSurfView)
 {
 	spLevMGDD->register_managing_dof_distribution(this, level);
 };
@@ -352,7 +351,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 	std::vector<Volume*> vVols;
 
 //	Multigrid
-	MultiGrid& rMultiGrid = *const_cast<MultiGrid*>(m_spMGSH->multi_grid());
+	MultiGrid& rMultiGrid = *const_cast<MultiGrid*>(&multi_grid());
 
 // 	Iterators
 	typedef typename traits<TBaseElem>::const_iterator const_iterator;

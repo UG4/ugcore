@@ -184,11 +184,8 @@ class IApproximationSpace
 	///	creates surface DoFDistribution if needed
 		void top_surf_dd_required();
 
-	///	creates the surface view and the surface level views requested
-		void surface_level_view_required(size_t fromLevel, size_t toLevel);
-
-	///	creates the surface view and the surface level views requested
-		void top_surface_level_view_required();
+	///	creates surface SurfaceView if needed
+		void surface_view_required();
 
 	protected:
 	///	print info about local dof statistic for a DoFDistribution
@@ -247,12 +244,6 @@ class IApproximationSpace
 
 	///	Surface View
 		SmartPtr<SurfaceView> m_spSurfaceView;
-
-	///	all Surface Level Views
-		std::vector<SmartPtr<SurfaceLevelView> > m_vSurfLevView;
-
-	///	top surface level view
-		SmartPtr<SurfaceLevelView> m_spTopSurfLevView;
 
 	///	message hub id
 		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;

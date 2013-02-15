@@ -274,13 +274,4 @@ SurfaceView::~SurfaceView()
 	m_pMG->detach_from_all(m_aElemSurfState);
 }
 
-
-
-SurfaceLevelView::
-SurfaceLevelView(SmartPtr<SurfaceView> spSV, int topLvl) :
-	m_spSV(spSV),
-	m_topLvl(topLvl)
-{
-}
-
 }// end of namespace

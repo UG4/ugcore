@@ -94,11 +94,6 @@ IApproximationSpace::
 	if(m_spLevMGDD.valid())
 		m_spLevMGDD = SmartPtr<LevelMGDoFDistribution>(NULL);
 
-	m_vSurfLevView.clear();
-
-	if(m_spTopSurfLevView.valid())
-		m_spTopSurfLevView = SmartPtr<SurfaceLevelView>(NULL);
-
 	if(m_spSurfaceView.valid())
 		m_spSurfaceView = SmartPtr<SurfaceView>(NULL);
 }
@@ -697,12 +692,14 @@ void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
 //	resize level
 	if(m_vLevDD.size() < toLevel+1) m_vLevDD.resize(toLevel+1, NULL);
 
+	surface_view_required();
+
 //	allocate Level DD if needed
 	for(size_t lvl = fromLevel; lvl <= toLevel; ++lvl)
 	{
 		if(!m_vLevDD[lvl].valid()){
 			m_vLevDD[lvl] = SmartPtr<LevelDoFDistribution>
-							(new LevelDoFDistribution(m_spLevMGDD, m_spMGSH, lvl));
+							(new LevelDoFDistribution(m_spLevMGDD, m_spSurfaceView, lvl));
 		}
 	}
 }
@@ -716,7 +713,7 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 //	resize level
 	if(m_vSurfDD.size() < toLevel+1) m_vSurfDD.resize(toLevel+1, NULL);
 
-	surface_level_view_required(fromLevel, toLevel);
+	surface_view_required();
 
 //	allocate Level DD if needed
 	for(size_t lvl = fromLevel; lvl <= toLevel; ++lvl)
@@ -725,58 +722,29 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 			m_vSurfDD[lvl] = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(m_spMG,
 									m_spMGSH, *m_spFunctionPattern,
-									m_vSurfLevView[lvl], lvl, m_bGrouped));
+									m_spSurfaceView, lvl, m_bGrouped));
 		}
 	}
 }
 
 void IApproximationSpace::top_surf_dd_required()
 {
-	top_surface_level_view_required();
-
+	surface_view_required();
+						 
 //	allocate Level DD if needed
 	if(!m_spTopSurfDD.valid()){
 		m_spTopSurfDD = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(
 									m_spMG, m_spMGSH, *m_spFunctionPattern,
-									m_spTopSurfLevView, GridLevel::TOPLEVEL, m_bGrouped));
+									m_spSurfaceView, GridLevel::TOPLEVEL, m_bGrouped));
 	}
 }
 
-void IApproximationSpace::top_surface_level_view_required()
+void IApproximationSpace::surface_view_required()
 {
 //	allocate surface view if needed
 	if(!m_spSurfaceView.valid())
-		m_spSurfaceView = SmartPtr<SurfaceView>
-						 (new SurfaceView(m_spMGSH));
-
-//	allocate Level DD if needed
-	if(!m_spTopSurfLevView.valid())
-		m_spTopSurfLevView = SmartPtr<SurfaceLevelView>
-							(new SurfaceLevelView(m_spSurfaceView, GridLevel::TOPLEVEL));
-}
-
-void IApproximationSpace::surface_level_view_required(size_t fromLevel, size_t toLevel)
-{
-//	check correct arguments
-	if(fromLevel > toLevel)
-		UG_THROW("fromLevel must be smaller than toLevel");
-
-//	allocate surface view if needed
-	if(!m_spSurfaceView.valid())
-		m_spSurfaceView = SmartPtr<SurfaceView>
-						 (new SurfaceView(m_spMGSH));
-
-//	resize level
-	if(m_vSurfLevView.size() < toLevel+1) m_vSurfLevView.resize(toLevel+1, NULL);
-
-//	allocate Level DD if needed
-	for(size_t lvl = fromLevel; lvl <= toLevel; ++lvl)
-	{
-		if(!m_vSurfLevView[lvl].valid())
-			m_vSurfLevView[lvl] = SmartPtr<SurfaceLevelView>
-							(new SurfaceLevelView(m_spSurfaceView, lvl));
-	}
+		m_spSurfaceView = SmartPtr<SurfaceView>(new SurfaceView(m_spMGSH));
 }
 
 

@@ -23,7 +23,7 @@ namespace ug{
 /**	The surface of a multi-grid hierarchy consists of all elements, which
  * do not have children.
  * The surface view allows to iterate over the subsets of such a surface.
- * The surface_level_begin(...) and surface_level_end(...) methods even allow
+ * The surface_begin(...) and surface_end(...) methods even allow
  * to ignore all levels above a specified level, resulting in a new surface-view
  * in which only surface elements up to the specified level and the elements in
  * the specified level are regarded as surface-view-elements.
@@ -31,6 +31,8 @@ namespace ug{
 class SurfaceView
 {
 	public:
+		enum{TOPLEVEL = -1};
+
 		template <class TElem> class SurfaceViewElementIterator;
 		template <class TElem> class ConstSurfaceViewElementIterator;
 
@@ -66,64 +68,81 @@ class SurfaceView
 	///	number of subsets
 		int num_subsets() const {return m_spMGSH->num_subsets();}
 
-	///	iterators over whole surface grid of toplevel
-	///	\{
-		template <class TElem>
-		typename traits<TElem>::iterator	begin();
-
-		template <class TElem>
-		typename traits<TElem>::iterator	end();
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator	begin() const;
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator	end() const;
-	///	\}
-
-	///	iterators over subset of surface grid of toplevel
-	///	\{
-		template <class TElem>
-		typename traits<TElem>::iterator	begin(int si);
-
-		template <class TElem>
-		typename traits<TElem>::iterator	end(int si);
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator	begin(int si) const;
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator	end(int si) const;
-	/// \}
 
 	///	iterators over whole surface grid w.r.t to level 'lvl'
 	///	\{
 		template <class TElem>
-		typename traits<TElem>::iterator	surface_level_begin(int lvl);
+		typename traits<TElem>::iterator
+		surface_begin(int lvl = TOPLEVEL, bool withGhosts = false);
 
 		template <class TElem>
-		typename traits<TElem>::iterator	surface_level_end(int lvl);
+		typename traits<TElem>::iterator
+		surface_end(int lvl = TOPLEVEL, bool withGhosts = false);
 
 		template <class TElem>
-		typename traits<TElem>::const_iterator	surface_level_begin(int lvl) const;
+		typename traits<TElem>::const_iterator
+		surface_begin(int lvl = TOPLEVEL, bool withGhosts = false) const;
 
 		template <class TElem>
-		typename traits<TElem>::const_iterator	surface_level_end(int lvl) const;
+		typename traits<TElem>::const_iterator
+		surface_end(int lvl = TOPLEVEL, bool withGhosts = false) const;
 	///	\}
 
 	///	iterators over subset of surface grid w.r.t to level 'lvl
 	///	 \{
 		template <class TElem>
-		typename traits<TElem>::iterator	surface_level_begin(int si, int lvl);
+		typename traits<TElem>::iterator
+		surface_begin(int si, int lvl = TOPLEVEL, bool withGhosts = false);
 
 		template <class TElem>
-		typename traits<TElem>::iterator	surface_level_end(int si, int lvl);
+		typename traits<TElem>::iterator
+		surface_end(int si, int lvl = TOPLEVEL, bool withGhosts = false);
 
 		template <class TElem>
-		typename traits<TElem>::const_iterator	surface_level_begin(int si, int lvl) const;
+		typename traits<TElem>::const_iterator
+		surface_begin(int si, int lvl = TOPLEVEL, bool withGhosts = false) const;
 
 		template <class TElem>
-		typename traits<TElem>::const_iterator	surface_level_end(int si, int lvl) const;
+		typename traits<TElem>::const_iterator
+		surface_end(int si, int lvl = TOPLEVEL, bool withGhosts = false) const;
+	///	\}
+
+	///	iterators over whole level grid w.r.t to level 'lvl'
+	///	\{
+		template <class TElem>
+		typename traits<TElem>::iterator
+		level_begin(int lvl, bool withGhosts = false);
+
+		template <class TElem>
+		typename traits<TElem>::iterator
+		level_end(int lvl, bool withGhosts = false);
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator
+		level_begin(int lvl, bool withGhosts = false) const;
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator
+		level_end(int lvl, bool withGhosts = false) const;
+	///	\}
+
+	///	iterators over subset of level grid w.r.t to level 'lvl
+	///	 \{
+		template <class TElem>
+		typename traits<TElem>::iterator
+		level_begin(int si, int lvl, bool withGhosts = false);
+
+		template <class TElem>
+		typename traits<TElem>::iterator
+		level_end(int si, int lvl, bool withGhosts = false);
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator
+		level_begin(int si, int lvl, bool withGhosts = false) const;
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator
+		level_end(int si, int lvl, bool withGhosts = false) const;
 	///	\}
 
 	///	returns the level in grid hierarchy of an element in the surface
@@ -144,6 +163,11 @@ class SurfaceView
 		template <class TGeomObj>
 		inline bool is_surface_element(TGeomObj* obj, int topLevel) const;
 	/** \} */
+
+	///	returns if the element is ghost
+	/**	ghost elements are vertical masters that are in no other interfaces.*/
+		template <class TGeomObj>
+		inline bool is_ghost(TGeomObj* obj) const;
 
 	///	returns if the element is shadowed and thus not contained in the surface view
 	/**	A shadowed element has a child and at least one adjacent element which is
@@ -182,12 +206,15 @@ class SurfaceView
 		template <class TElem>
 		byte surface_state(TElem* elem)	const			{return m_aaElemSurfState[elem];}
 
+	///	returns the adjacend elements w.r.t. the surface view
+		template <typename TElem, typename TBaseElem>
+		void collect_associated(std::vector<TBaseElem*>& vAssElem,
+								TElem* elem, bool clearContainer = true) const;
+
 	public:
 	///	Iterator to traverse the surface of a multi-grid hierarchy
 		template <class TElem>
 		class SurfaceViewElementIterator
-//			: public boost::iterator_facade<SurfaceViewElementIterator<TElem>, TElem*,
-//											boost::forward_traversal_tag>
 		{
 			public:
 				SurfaceViewElementIterator();
@@ -202,7 +229,7 @@ class SurfaceView
 				SurfaceViewElementIterator(SurfaceView* surfView,
 				                           int fromSubset, int toSubset,
 				                           int startLvl, int topLvl,
-				                           typename geometry_traits<TElem>::iterator elemIter);
+				                           bool start, bool withGhosts);
 
 			public:
 				this_type operator ++()	{increment(); return *this;}
@@ -218,6 +245,10 @@ class SurfaceView
 
 				inline bool equal(SurfaceViewElementIterator<TElem> const& other) const;
 
+			///	returns if valid element, i.e. contained in iterator loop
+				template <class TGeomObj>
+				inline bool is_contained(TGeomObj* obj) const;
+
 			///	returns next valid iterator
 				void increment();
 
@@ -228,8 +259,6 @@ class SurfaceView
 				inline TValue dereference() const;
 
 			private:
-			// \todo: Maybe it would be convenient to drop some of those variabes
-			//		  below to save copy-time when an iterator is copied.
 				int m_fromSI;
 				int m_toSI;
 				int m_si;
@@ -238,13 +267,12 @@ class SurfaceView
 				typename geometry_traits<TElem>::iterator m_elemIter;
 				typename geometry_traits<TElem>::iterator m_iterEndSection;
 				SurfaceView* m_surfView;
+				bool m_bWithGhosts;
 		};
 
 	///	Const iterator to traverse the surface of a multi-grid hierarchy
 		template <class TElem>
 		class ConstSurfaceViewElementIterator
-//			: public boost::iterator_facade<ConstSurfaceViewElementIterator<TElem>, /*const*/ TElem*,
-//											boost::forward_traversal_tag>
 		{
 			public:
 				ConstSurfaceViewElementIterator();
@@ -262,7 +290,7 @@ class SurfaceView
 				ConstSurfaceViewElementIterator(const SurfaceView* surfView,
 				                                int fromSubset, int toSubset,
 				                                int startLvl, int topLvl,
-				                                typename geometry_traits<TElem>::const_iterator elemIter);
+				                                bool start, bool withGhosts);
 
 			public:
 				this_type operator ++()	{increment(); return *this;}
@@ -277,6 +305,10 @@ class SurfaceView
 				friend class boost::iterator_core_access;
 
 				inline bool equal(ConstSurfaceViewElementIterator<TElem> const& other) const;
+
+			///	returns if valid element, i.e. contained in iterator loop
+				template <class TGeomObj>
+				inline bool is_contained(TGeomObj* obj) const;
 
 			///	returns next valid iterator
 				void increment();
@@ -296,7 +328,8 @@ class SurfaceView
 				typename geometry_traits<TElem>::const_iterator m_elemIter;
 				typename geometry_traits<TElem>::const_iterator m_iterEndSection;
 				const SurfaceView* m_surfView;
-		};
+				bool m_bWithGhosts;
+			};
 
 	private:
 	///	returns true if the element is a surface element locally
@@ -341,81 +374,6 @@ class SurfaceView
 		DistributedGridManager*			m_distGridMgr;
 		AByte							m_aElemSurfState;
 		MultiElementAttachmentAccessor<AByte> 	m_aaElemSurfState;
-};
-
-
-///	Represents a surface-level view of a given multi-grid hierarchy
-/**	The SurfaceLevelView allows to iterate over all subsets of a given
- * surface level. A surface level therby consists exactly of all surface elements
- * up to the specified level and of all the elements in the specified level.
- *
- * A SurfaceLevelView is always constructed for a given SurfaceView. If you
- * pass the constant SLV_TOPLEVEL instead of a concrete level during construction,
- * then the SurfaceLevelView will always represent the topmost surface-level of
- * the associated multi-grid hierarchy.
- */
-class SurfaceLevelView
-{
-	public:
-		template <class TElem>
-		struct traits{
-			typedef SurfaceView::SurfaceViewElementIterator<TElem>		iterator;
-			typedef SurfaceView::ConstSurfaceViewElementIterator<TElem>	const_iterator;
-		};
-
-		enum{SLV_TOPLEVEL = -1};
-
-	public:
-		SurfaceLevelView(SmartPtr<SurfaceView> spSV, int topLvl = SLV_TOPLEVEL);
-
-	///	number of subsets
-		int num_subsets() const {return m_spSV->num_subsets();}
-
-	///	retruns surface view
-		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSV;}
-
-	///	returns the level in grid hierarchy of an element in the surface
-		template <class TGeomObj>
-		inline int get_level(TGeomObj* obj) const {return m_spSV->get_level(obj);}
-
-	///	returns the adjacend elements
-		template <typename TElem, typename TBaseElem>
-		void collect_associated(std::vector<TBaseElem*>& vAssElem,
-		                        TElem* elem, bool clearContainer = true) const;
-
-	///	iterator over whole grid
-	///	\{
-		template <class TElem>
-		typename traits<TElem>::iterator	begin();
-
-		template <class TElem>
-		typename traits<TElem>::iterator	end();
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator	begin() const;
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator	end() const;
-	///	\}
-
-	///	iterator over subset of grid
-	///	\{
-		template <class TElem>
-		typename traits<TElem>::iterator	begin(int si);
-
-		template <class TElem>
-		typename traits<TElem>::iterator	end(int si);
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator	begin(int si) const;
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator	end(int si) const;
-	/// \}
-
-	private:
-		SmartPtr<SurfaceView>	m_spSV;
-		int						m_topLvl;
 };
 
 /** \} */

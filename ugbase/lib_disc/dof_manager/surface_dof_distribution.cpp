@@ -19,10 +19,10 @@ SurfaceDoFDistribution::
 SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
                        SmartPtr<MGSubsetHandler> spMGSH,
                        FunctionPattern& fctPatt,
-                       SmartPtr<SurfaceLevelView> spSurfLevelView,
+                       SmartPtr<SurfaceView> spSurfView,
                        int level, bool bGrouped)
 		:	MGDoFDistribution(spMG, spMGSH, fctPatt, bGrouped),
-		 	m_spSurfLevelView(spSurfLevelView),
+		 	m_spSurfView(spSurfView),
 		 	m_level(level)
 {
 	init();
@@ -245,8 +245,8 @@ void SurfaceDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 			//	but only due to a hierarchical cut of the grid in order to
 			//	refine it further on another process. These cuts lead to so called
 			//	vertical interfaces.
-				//if(m_spSurfLevelView->surface_view()->is_ghost(elem)) {continue;}
-				if(!m_spSurfLevelView->surface_view()->is_surface_element(elem)) {continue;}
+				//if(m_spSurfView->is_ghost(elem)) {continue;}
+				if(!m_spSurfView->is_surface_element(elem)) {continue;}
 
 			//	get the algebraic indices on the grid element
 				inner_algebra_indices(elem, vIndex);
@@ -473,19 +473,19 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 
 	//	Get connected elements
 		if(dim >= VERTEX && max_dofs(VERTEX) > 0) {
-			m_spSurfLevelView->collect_associated(vVrts, elem);
+			m_spSurfView->collect_associated(vVrts, elem);
 			changable_indices<VertexBase>(vIndex, vVrts);
 		}
 		if(dim >= EDGE   && max_dofs(EDGE) > 0)	{
-			m_spSurfLevelView->collect_associated(vEdges, elem);
+			m_spSurfView->collect_associated(vEdges, elem);
 			changable_indices<EdgeBase>(vIndex, vEdges);
 		}
 		if(dim >= FACE   && max_dofs(FACE) > 0)	{
-			m_spSurfLevelView->collect_associated(vFaces, elem);
+			m_spSurfView->collect_associated(vFaces, elem);
 			changable_indices<Face>(vIndex, vFaces);
 		}
 		if(dim >= VOLUME && max_dofs(VOLUME) > 0) {
-			m_spSurfLevelView->collect_associated(vVols, elem);
+			m_spSurfView->collect_associated(vVols, elem);
 			changable_indices<Volume>(vIndex, vVols);
 		}
 

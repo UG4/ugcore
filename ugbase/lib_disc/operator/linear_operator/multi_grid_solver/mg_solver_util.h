@@ -522,11 +522,11 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
                                               int level);
 
 #ifdef UG_PARALLEL
-template <typename TElemBase>
+template <typename TElemBase, typename TIter>
 void SelectNonGhosts(BoolMarker& sel,
                      DistributedGridManager& dstGrMgr,
-                     typename geometry_traits<TElemBase>::iterator iter,
-                     typename geometry_traits<TElemBase>::iterator iterEnd)
+                     TIter iter,
+                     TIter iterEnd)
 {
 //	loop all base elems
 	for(; iter != iterEnd; ++iter)

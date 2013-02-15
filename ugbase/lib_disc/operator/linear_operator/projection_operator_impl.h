@@ -47,7 +47,7 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	std::vector<size_t> coarseInd, fineInd;
 
 // 	Vertex iterators
-	typedef typename TDD::template traits<VertexBase>::const_iterator const_iterator;
+	typedef typename TDD::template traits<Vertex>::const_iterator const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
 	iterBegin = fineDD.template begin<Vertex>();
