@@ -18,6 +18,7 @@ IElemDisc::IElemDisc(const char* functions, const char* subsets)
 	m_vSubset.clear();
 	if(functions) set_functions(functions);
 	if(subsets) set_subsets(subsets);
+	clear_add_fct();
 }
 
 IElemDisc::IElemDisc(const std::vector<std::string>& vFct,
@@ -28,6 +29,28 @@ IElemDisc::IElemDisc(const std::vector<std::string>& vFct,
 {
 	m_vFct = vFct;
 	m_vSubset = vSubset;
+}
+
+void IElemDisc::clear_add_fct()
+{
+	for(size_t i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
+	{
+		m_vPrepareTimestepElemFct[i] = NULL;
+		m_vFinishTimestepElemFct[i] = NULL;
+
+		m_vPrepareElemLoopFct[i] = NULL;
+		m_vPrepareElemFct[i] = NULL;
+		m_vFinishElemLoopFct[i] = NULL;
+
+		m_vElemJAFct[i] = NULL;
+		m_vElemJMFct[i] = NULL;
+
+		m_vElemdAFct[i] = NULL;
+		m_vElemdAFct_explicit[i] = NULL;
+		m_vElemdMFct[i] = NULL;
+
+		m_vElemRHSFct[i] = NULL;
+	}
 }
 
 

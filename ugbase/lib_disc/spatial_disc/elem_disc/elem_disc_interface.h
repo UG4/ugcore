@@ -461,6 +461,9 @@ class IElemDisc
 	///	sets usage of fast assemble functions
 		void enable_fast_add_elem(bool bEnable) {m_bFastAssembleEnabled = bEnable;}
 
+	///	sets all assemble functions to NULL
+		void clear_add_fct();
+
 	public:
 	///	returns if fast assembling for elememts is used
 		bool fast_add_elem_enabled() const {return m_bFastAssembleEnabled;}
