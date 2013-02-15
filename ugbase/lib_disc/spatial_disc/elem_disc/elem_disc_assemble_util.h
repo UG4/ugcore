@@ -892,7 +892,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(MASS | STIFF | RHS,
+	DataEvaluator Eval(MASS | STIFF | RHS | EXPL,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
 	                   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
