@@ -582,7 +582,9 @@ adjust_defect(vector_type& d, const vector_type& u,
 	std::vector<size_t>  constrainedInd;
 	std::vector<VertexBase*> vConstrainingVrt;
 
+#ifdef UG_PARALLEL
 	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+#endif
 
 //	get begin end of hanging vertices
 	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
@@ -635,7 +637,9 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 	std::vector<size_t>  constrainedInd;
 	std::vector<VertexBase*> vConstrainingVrt;
 
+#ifdef UG_PARALLEL
 	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+#endif
 
 //	get begin end of hanging vertices
 	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
@@ -687,7 +691,9 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 	std::vector<size_t>  constrainedInd;
 	std::vector<VertexBase*> vConstrainingVrt;
 
+#ifdef UG_PARALLEL
 	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+#endif
 
 //	get begin end of hanging vertices
 	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
@@ -742,7 +748,9 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<size_t>  constrainedInd;
 	std::vector<VertexBase*> vConstrainingVrt;
 
+#ifdef UG_PARALLEL
 	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+#endif
 
 //	get begin end of hanging vertices
 	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
