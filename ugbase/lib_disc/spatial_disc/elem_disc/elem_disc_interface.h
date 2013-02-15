@@ -354,11 +354,11 @@ class IElemDisc
 			(this->*m_vElemdAFct[m_id])(d, u);}
 
 		// NEW: explicit reaction
-   	        void fast_add_def_A_elem_explicit(LocalVector& d, const LocalVector& u)
-			{
-                          UG_ASSERT(this->m_vElemdAFct_explicit[m_id] != NULL, "Fast-Assemble Method missing. expl");
-                        (this->*m_vElemdAFct_explicit[m_id])(d, u);
-                        }
+   	    void fast_add_def_A_elem_explicit(LocalVector& d, const LocalVector& u)
+   	    {
+   	    	if(this->m_vElemdAFct_explicit[m_id] != NULL)
+   	    		(this->*m_vElemdAFct_explicit[m_id])(d, u);
+   	    }
 
 
 	/// virtual Assembling of Defect (Stiffness part)
