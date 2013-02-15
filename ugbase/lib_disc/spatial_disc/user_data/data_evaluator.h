@@ -78,7 +78,6 @@ class DataEvaluator
 	///	compute local stiffness defect for all IElemDiscs
 		void add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
 
-		// NEW: explicit reaction
 	///	compute local stiffness defect for all IElemDiscs explicit
 		void add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
 

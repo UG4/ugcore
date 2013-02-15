@@ -555,13 +555,11 @@ void DataEvaluator::add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject*
 
 /////////////////////////////////////////////////////////////////////////////
 
-// NEW: explicit reaction function
-
-  // explicit terms for reaction explicit
+// explicit terms for reaction, reaction_rate, source explicit
 
 void DataEvaluator::add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
-	UG_ASSERT(m_discPart & STIFF, "Using add_dA_elem, but not STIFF requested.")
+	UG_ASSERT(m_discPart & EXPL, "Using add_dA_elem, but not EXPL requested.")
 
 	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
 	{
