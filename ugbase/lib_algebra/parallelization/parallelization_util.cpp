@@ -479,9 +479,6 @@ void BuildDomainDecompositionLayouts(
 	typedef IndexLayout::iterator	InterfaceIter;
 	typedef Interface::iterator		ElemIter;
 
-//	get spatial dimension
-	int spatialDimension = ddinfo.get_num_spatial_dimensions();
-
 //	the local process and subdomain id
 	int localProcID = pcl::GetProcRank();
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
