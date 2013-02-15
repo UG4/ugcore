@@ -8,6 +8,7 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__APPROXIMATION_SPACE__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__APPROXIMATION_SPACE__
 
+#include "lib_disc/dof_manager/dof_distribution_info.h"
 #include "lib_disc/dof_manager/mg_dof_distribution.h"
 #include "lib_disc/dof_manager/level_dof_distribution.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
@@ -33,7 +34,7 @@ namespace ug{
  *  		However for a locally/adaptively refined MultiGrid the level grid
  *  		solution is only living on a part of the domain)
  */
-class IApproximationSpace
+class IApproximationSpace : public DoFDistributionInfo
 {
 	public:
 	///	Type of Subset Handler
@@ -55,64 +56,15 @@ class IApproximationSpace
 	///	Destructor
 		~IApproximationSpace();
 
-	///	clears all functions
-		void clear() {m_spFunctionPattern->clear();}
-
-	///	adds function using string to indicate finite element type
-		void add_fct(const char* name, const char* type, int order)
-			{m_spFunctionPattern->add(name, type, order);}
-			
-	///	adds function using string to indicate finite element type
-		void add_fct(const char* name, const char* type)
-			{m_spFunctionPattern->add(name, type);}
-
-	///	adds function using string to indicate finite element type
-		void add_fct(const char* name, const char* type,
-		             int order, const char* subsets)
-			{m_spFunctionPattern->add(name, type, order, subsets);}
-
-	///	adds function using string to indicate finite element type
-		void add_fct(const std::vector<std::string>& vName, const char* type, int order)
-			{m_spFunctionPattern->add(vName, type, order);}
-
-	///	adds function using string to indicate finite element type
-		void add_fct(const std::vector<std::string>& vName, const char* type)
-			{m_spFunctionPattern->add(vName, type);}
-
-	///	adds function using string to indicate finite element type
-		void add_fct(const std::vector<std::string>& vName, const char* type,
-		             int order, const std::vector<std::string>& vSubset)
-			{m_spFunctionPattern->add(vName, type, order, vSubset);}
-
 	/// get underlying subset handler
 		ConstSmartPtr<MGSubsetHandler> subset_handler() const {return m_spMGSH;}
-
-	///	returns the function pattern
-		ConstSmartPtr<FunctionPattern> function_pattern() const {return m_spFunctionPattern;}
-
-	/// number of discrete functions this dof distributor handles
-		size_t num_fct() const {return m_spFunctionPattern->num_fct();}
-
-	/// returns the name of a discrete function
-		const char* name(size_t fct) const {return m_spFunctionPattern->name(fct);}
-
-	/// returns the dimension in which solution lives
-		int dim(size_t fct) const {return m_spFunctionPattern->dim(fct);}
-
-	///	returns subset group by name
-		SubsetGroup subset_grp_by_name(const char* names) const;
-
-	/// returns fct id by name
-		size_t fct_id_by_name(const char* name) const{return m_spFunctionPattern->fct_id_by_name(name);}
-
-	///	returns function group by name
-		FunctionGroup fct_grp_by_name(const char* names) const {return m_spFunctionPattern->fct_grp_by_name(names);}
 
 	///	returns the number of level
 		size_t num_levels() const {return m_spMGSH->num_levels();}
 
 	///	returns if dofs are grouped
 		bool grouped() const {return m_bGrouped;}
+
 
 	///	returns the level dof distributions
 		std::vector<ConstSmartPtr<SurfaceDoFDistribution> >	surface_dof_distributions() const;
@@ -135,6 +87,7 @@ class IApproximationSpace
 	///	returns the level dof distribution
 		ConstSmartPtr<LevelDoFDistribution> level_dof_distribution(int level) const;
 
+
 	///	prints statistic about DoF Distribution
 		void print_statistic(int verboseLev = 1) const;
 
@@ -147,11 +100,6 @@ class IApproximationSpace
 	///	prints statistic on layouts
 		void print_layout_statistic() const {print_layout_statistic(1);}
 
-	///	prints statistic on local dof distribution
-		void print_local_dof_statistic(int verboseLev = 1) const;
-
-	///	prints statistic on local dof distribution
-		void print_local_dof_statistic() const {print_local_dof_statistic(1);}
 
 	///	initializes all level dof distributions
 		void init_levels();
@@ -162,6 +110,7 @@ class IApproximationSpace
 	///	initializes all top surface dof distributions
 		void init_top_surface();
 
+
 	///	returns if levels are enabled
 		bool levels_enabled() const;
 
@@ -170,6 +119,7 @@ class IApproximationSpace
 
 	///	returns if surfaces are enabled
 		bool surfaces_enabled() const;
+
 
 	///	defragments the index set of the DoF Distribution
 		void defragment();
@@ -187,10 +137,10 @@ class IApproximationSpace
 	///	creates surface SurfaceView if needed
 		void surface_view_required();
 
-	protected:
-	///	print info about local dof statistic for a DoFDistribution
-		void print_local_dof_statistic(ConstSmartPtr<MGDoFDistribution> dd, int verboseLev) const;
+	///	create dof distribution info
+		void dof_distribution_info_required();
 
+	protected:
 	///	prints number of dofs
 		template <typename TDD>
 		void print_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const;
@@ -223,9 +173,6 @@ class IApproximationSpace
 
 	/// subsethandler, where elements are stored
 		SmartPtr<MGSubsetHandler> m_spMGSH;
-
-	///	function pattern
-		SmartPtr<FunctionPattern> m_spFunctionPattern;
 
 	///	flag if DoFs should be grouped
 		bool m_bGrouped;

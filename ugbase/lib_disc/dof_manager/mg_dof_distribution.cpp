@@ -243,17 +243,16 @@ void ComputeOrientationOffset<Face>
 MGDoFDistribution::
 MGDoFDistribution(SmartPtr<MultiGrid> spMG,
                   SmartPtr<MGSubsetHandler> spMGSH,
-                  FunctionPattern& fctPatt,
+				  const DoFDistributionInfo& rDDInfo,
                   bool bGrouped)
-	: m_bGrouped(bGrouped),
+	: DoFDistributionInfoProvider(rDDInfo),
+      m_bGrouped(bGrouped),
 	  m_frozen(false),
 	  m_spMG(spMG),
-	  m_spMGSH(spMGSH),
-	  m_rFctPatt(fctPatt),
-	  m_rMultiGrid(*m_spMG)
+	  m_pMG(spMG.get()),
+	  m_spMGSH(spMGSH)
 {
 	check_subsets();
-	create_offsets();
 	init_attachments();
 	register_observer();
 };
@@ -273,155 +272,6 @@ void MGDoFDistribution::freeze(bool bFreeze)
 	}
 	else
 		m_frozen = bFreeze;
-}
-
-SubsetGroup MGDoFDistribution::subset_grp_by_name(const char* names) const
-{
-	return SubsetGroup(subset_handler(), TokenizeString(names));
-}
-
-void MGDoFDistribution::create_offsets(ReferenceObjectID roid)
-{
-// 	loop subsets
-	for(int si = 0; si < num_subsets(); ++si)
-	{
-	// 	counter
-		size_t count = 0;
-
-	//	reset
-		m_vvNumDoFsOnROID[roid][si] = 0;
-
-	//	loop functions
-		for(size_t fct = 0; fct < m_rFctPatt.num_fct(); ++fct)
-		{
-		//	reset to not defined (initially)
-			m_vvvOffsets[roid][si][fct] = NOT_DEF_ON_SUBSET;
-
-		//	if function is not defined, we leave the offset as invalid.
-			if(!is_def_in_subset(fct, si))	continue;
-
-		//	get dimension of subset
-			int dim = m_rFctPatt.dim(fct);
-
-		//	check dimension
-			if(dim < 0) UG_THROW("Dimension of function "<<fct<<" is not valid."
-			                     " This may indicate, that the subset is empty, "
-			                     " or empty on some process and the subset "
-			                     "dimensions have not been computed correctly "
-			                     " in parallel.");
-
-		//	get local shape function id
-			LFEID lfeID = m_rFctPatt.local_finite_element_id(fct);
-
-		//	get trial space
-			const CommonLocalDoFSet& clds = LocalDoFSetProvider::get(dim, lfeID);
-
-		//	get number of DoFs on the reference element need for the space
-			const int numDoF = clds.num_dof(roid);
-
-		//	overwrite max dim with dofs (if subset has that dimension)
-			if(m_rFctPatt.dim_subset(si) > ReferenceElementDimension((ReferenceObjectID)roid))
-				m_vMaxDimToOrderDoFs[fct] = ReferenceElementDimension((ReferenceObjectID)roid);
-
-		//	check that numDoFs specified by this roid
-			if(numDoF == -1) continue;
-
-		//	set offset for each function defined in the subset
-			m_vvvOffsets[roid][si][fct] = count;
-
-		//	increase number of DoFs per type on this subset
-			m_vvNumDoFsOnROID[roid][si] += numDoF;
-
-		//	increase the count
-			count += numDoF;
-		}
-	}
-}
-
-void MGDoFDistribution::create_offsets()
-{
-//	function infos
-	m_vMaxDimToOrderDoFs.resize(num_fct(), 0);
-	m_vvFctDefInSubset.resize(num_fct());
-	m_vNumDoFOnSubelem.resize(num_fct());
-	m_vLFEID.resize(num_fct());
-	for(size_t fct = 0; fct < num_fct(); ++fct)
-	{
-	//	get local shape function id
-		m_vLFEID[fct] = m_rFctPatt.local_finite_element_id(fct);
-
-		m_vvFctDefInSubset[fct].resize(num_subsets(), false);
-		for(int si = 0; si < num_subsets(); ++si)
-		{
-			m_vvFctDefInSubset[fct][si] = m_rFctPatt.is_def_in_subset(fct,si);
-		}
-
-		for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
-		{
-			m_vLocalDoFSet[roid].resize(num_fct());
-
-		//	remember local dof set
-			m_vLocalDoFSet[roid][fct] = & LocalDoFSetProvider::get((ReferenceObjectID)roid, m_vLFEID[fct]);
-
-			const CommonLocalDoFSet& lds = LocalDoFSetProvider::get(m_rFctPatt.dim(fct), m_vLFEID[fct]);
-
-			for(int subRoid=ROID_VERTEX; subRoid < NUM_REFERENCE_OBJECTS; ++subRoid)
-			{
-			//	get number of DoFs in this sub-geometric object
-//				m_vNumDoFOnSubelem[fct](roid,subRoid) = m_vLocalDoFSet[roid][fct]->num_dof((ReferenceObjectID)subRoid);
-				m_vNumDoFOnSubelem[fct](roid,subRoid) = lds.num_dof((ReferenceObjectID)subRoid);
-			}
-		}
-	}
-
-//	loop all reference element to resize the arrays
-	for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
-	{
-	//	clear offsets
-		m_vvvOffsets[roid].clear();
-		m_vvNumDoFsOnROID[roid].clear();
-
-	//	resize for all subsets
-		m_vvvOffsets[roid].resize(num_subsets());
-		m_vvNumDoFsOnROID[roid].resize(num_subsets(), 0);
-
-	//	resize for each function
-		for(int si = 0; si < num_subsets(); ++si)
-			m_vvvOffsets[roid][si].resize(m_rFctPatt.num_fct());
-	}
-
-//	loop all reference element, but not vertices (no disc there)
-	for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
-		create_offsets((ReferenceObjectID) roid);
-
-//	reset dimension maximum
-	for(size_t d=0; d < NUM_GEOMETRIC_BASE_OBJECTS; ++d)
-	{
-		m_vMaxDoFsInDim[d] = 0;
-		m_vvMaxDoFsInDimPerSubset[d].resize(num_subsets(), 0);
-	}
-
-//	get max number of dofs per roid
-	for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
-	{
-	//	lets find out the maximum number of DoFs for objects in dimension
-		const int d = ReferenceElementDimension((ReferenceObjectID)roid);
-
-	// 	lets find out the maximum number for a type on all subsets
-		m_vMaxDoFsOnROID[roid] = 0;
-		for(int si = 0; si < num_subsets(); ++si)
-		{
-			m_vMaxDoFsOnROID[roid] = std::max(m_vMaxDoFsOnROID[roid],
-											  m_vvNumDoFsOnROID[roid][si]);
-
-			m_vvMaxDoFsInDimPerSubset[d][si] = std::max(m_vvMaxDoFsInDimPerSubset[d][si],
-			                                            m_vvNumDoFsOnROID[roid][si]);
-		}
-
-	//	compute maximum per dim objects
-		m_vMaxDoFsInDim[d] = std::max(m_vMaxDoFsInDim[d],
-		                              m_vMaxDoFsOnROID[roid]);
-	}
 }
 
 void MGDoFDistribution::check_subsets()
@@ -450,59 +300,6 @@ void MGDoFDistribution::check_subsets()
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
 			   " is not possible, aborting.");
-}
-
-void MGDoFDistribution::print_local_dof_statistic(int verboseLev) const
-{
-//	write info for subset/fct -> localFEId info
-	UG_LOG("\n\t\t\t Subsets\n");
-	UG_LOG(" "<<setw(14)<<"Function"<<" |");
-	for(int si = 0; si < num_subsets(); ++si)
-		UG_LOG(setw(11)<<si<<setw(8)<<" "<<"|")
-	UG_LOG("\n");
-	for(size_t fct = 0; fct < num_fct(); ++fct)
-	{
-		UG_LOG(" "<<setw(14)<<m_rFctPatt.name(fct)<<" |");
-		for(int si = 0; si < num_subsets(); ++si)
-		{
-			if(!is_def_in_subset(fct,si))
-				 {UG_LOG(setw(8)<<"---"<<setw(8)<<" "<<"|");}
-			else {UG_LOG(setw(16)<<m_rFctPatt.local_finite_element_id(fct)<<" |");}
-		}
-		UG_LOG("\n");
-	}
-
-//	write info about DoFs on ROID
-	UG_LOG("\n");
-	UG_LOG("                  | "<<"        "<<"  |  Subsets \n");
-	UG_LOG(" ReferenceElement |");
-	UG_LOG("   "<<setw(4)<<"max"<<"    |");
-	for(int si = 0; si < num_subsets(); ++si)
-		UG_LOG("   "<<setw(4)<<si<<"    |");
-	UG_LOG("\n")
-	UG_LOG("-------------------");
-	for(int si = 0; si <= num_subsets(); ++si)
-		UG_LOG("-------------");
-	UG_LOG("\n")
-
-	for(int i=ROID_VERTEX; i < NUM_REFERENCE_OBJECTS; ++i)
-	{
-		ReferenceObjectID roid = (ReferenceObjectID) i;
-
-		UG_LOG(" " << setw(16) << roid << " |");
-		UG_LOG("   "<<setw(4) << m_vMaxDoFsOnROID[roid] << "    |");
-		for(int si = 0; si < num_subsets(); ++si)
-			UG_LOG("   "<<setw(4) << m_vvNumDoFsOnROID[roid][si] << "    |");
-
-		UG_LOG("\n");
-	}
-	for(int d = 0; d < NUM_GEOMETRIC_BASE_OBJECTS; ++d)
-	{
-		UG_LOG(setw(14) << " all " <<setw(2)<< d << "d |");
-		UG_LOG("   "<<setw(4) << m_vMaxDoFsInDim[d] << "    |");
-		UG_LOG("\n");
-	}
-	UG_LOG("\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -590,25 +387,25 @@ size_t MGDoFDistribution::algebra_indices(TBaseElem* elem,
 	{
 		//std::vector<VertexBase*> vElem;
 		Grid::SecureVertexContainer vElem;
-		m_rMultiGrid.associated_elements(vElem, elem);		
+		m_pMG->associated_elements(vElem, elem);
 		extract_inner_algebra_indices<VertexBase>(vElem, ind);
 	}
 	if(dim >= EDGE && max_dofs(EDGE) > 0)
 	{
 		Grid::SecureEdgeContainer vElem;
-		m_rMultiGrid.associated_elements(vElem, elem);
+		m_pMG->associated_elements(vElem, elem);
 		extract_inner_algebra_indices<EdgeBase>(vElem, ind);
 	}
 	if(dim >= FACE && max_dofs(FACE) > 0)
 	{
 		Grid::SecureFaceContainer vElem;
-		m_rMultiGrid.associated_elements(vElem, elem);
+		m_pMG->associated_elements(vElem, elem);
 		extract_inner_algebra_indices<Face>(vElem, ind);
 	}
 	if(dim >= VOLUME && max_dofs(VOLUME) > 0)
 	{
 		Grid::SecureVolumeContainer vElem;
-		m_rMultiGrid.associated_elements(vElem, elem);
+		m_pMG->associated_elements(vElem, elem);
 		extract_inner_algebra_indices<Volume>(vElem, ind);
 	}
 
@@ -648,13 +445,13 @@ multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 		const size_t numDoFsOnSub = num_dofs(fct, roid, subRoid);
 
 	//	a) Orientation required
-		if(d <= m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
+		if(d <= max_dim_to_order_dofs(fct) && numDoFsOnSub > 1)
 		{
 			std::vector<size_t> vOrientOffset(numDoFsOnSub);
 
 		//	get the orientation for this subelement
 			ComputeOrientationOffset<TSubBaseElem>
-				(vOrientOffset, m_vLFEID[fct].order(),
+				(vOrientOffset, local_finite_element_id(fct).order(),
 				 ReferenceElementProvider::get(roid),
 				 	 i, numDoFsOnSub, vCorner);
 
@@ -730,15 +527,15 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 	if(numDoFsOnSub == 0) return ind.size();
 
 //	a) Orientation required:
-	if(d <= m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
+	if(d <= max_dim_to_order_dofs(fct) && numDoFsOnSub > 1)
 	{
 	//	get corners
 		Grid::SecureVertexContainer vCorner;
-		m_rMultiGrid.associated_elements(vCorner, elem);
+		m_pMG->associated_elements(vCorner, elem);
 	//	get the orientation for this
 		std::vector<size_t> vOrientOffset(numDoFsOnSub);
 		ComputeOrientationOffset<TBaseElem>
-			(vOrientOffset, m_vLFEID[fct].order(),
+			(vOrientOffset, local_finite_element_id(fct).order(),
 			 ReferenceElementProvider::get(roid),
 			 0, numDoFsOnSub, vCorner);
 
@@ -802,7 +599,7 @@ size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
 
 //	get all sub-elements and add indices on those
 	Grid::SecureVertexContainer vCorner;
-	m_rMultiGrid.associated_elements_sorted(vCorner, elem);
+	m_pMG->associated_elements_sorted(vCorner, elem);
 	if(max_dofs(VERTEX) > 0)
 	{
 		multi_indices<TBaseElem, VertexBase>(elem, roid, fct, ind, vCorner, vCorner, bHang);
@@ -810,19 +607,19 @@ size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
 	if(dim >= EDGE && max_dofs(EDGE) > 0)
 	{
 		Grid::SecureEdgeContainer vElem;
-		m_rMultiGrid.associated_elements_sorted(vElem, elem);
+		m_pMG->associated_elements_sorted(vElem, elem);
 		multi_indices<TBaseElem, EdgeBase>(elem, roid, fct, ind, vElem, vCorner, bHang);
 	}
 	if(dim >= FACE && max_dofs(FACE) > 0)
 	{
 		Grid::SecureFaceContainer vElem;
-		m_rMultiGrid.associated_elements_sorted(vElem, elem);
+		m_pMG->associated_elements_sorted(vElem, elem);
 		multi_indices<TBaseElem, Face>(elem, roid, fct, ind, vElem, vCorner, bHang);
 	}
 	if(dim >= VOLUME && max_dofs(VOLUME) > 0)
 	{
 		Grid::SecureVolumeContainer vElem;
-		m_rMultiGrid.associated_elements_sorted(vElem, elem);
+		m_pMG->associated_elements_sorted(vElem, elem);
 		multi_indices<TBaseElem, Volume>(elem, roid, fct, ind, vElem, vCorner, bHang);
 	}
 
@@ -924,7 +721,7 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 		//		This is also not needed for the highest dimension of a finite
 		//		element, since the dofs on this geometric object must not be
 		//		identified with other dofs.
-			if(d <= m_vMaxDimToOrderDoFs[fct] && numDoFsOnSub > 1)
+			if(d <= max_dim_to_order_dofs(fct) && numDoFsOnSub > 1)
 			{
 			//	vector storing the computed offsets. If in correct order,
 			//	this would be: [0, 1, 2, ...]. But this is usually not the
@@ -932,7 +729,7 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 				std::vector<size_t> vOrientOffset(numDoFsOnSub);
 
 				ComputeOrientationOffset<TSubBaseElem>
-					(vOrientOffset, m_vLFEID[fct].order(),
+					(vOrientOffset, local_finite_element_id(fct).order(),
 					 ReferenceElementProvider::get(roid),
 					 i, numDoFsOnSub, vCorner);
 
@@ -1051,7 +848,7 @@ void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) 
 
 //	get all sub-elements and add indices on those
 	Grid::SecureVertexContainer vCorner;
-	m_rMultiGrid.associated_elements_sorted(vCorner, elem);
+	m_pMG->associated_elements_sorted(vCorner, elem);
 
 //	storage for (maybe needed) subelements
 	Grid::SecureEdgeContainer vEdge;
@@ -1060,11 +857,11 @@ void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) 
 
 //	collect elements, if needed
 	if(dim >= EDGE)
-		if(max_dofs(EDGE) > 0 || bHang) m_rMultiGrid.associated_elements_sorted(vEdge, elem);
+		if(max_dofs(EDGE) > 0 || bHang) m_pMG->associated_elements_sorted(vEdge, elem);
 	if(dim >= FACE)
-		if(max_dofs(FACE) > 0 || bHang) m_rMultiGrid.associated_elements_sorted(vFace, elem);
+		if(max_dofs(FACE) > 0 || bHang) m_pMG->associated_elements_sorted(vFace, elem);
 	if(dim >= VOLUME)
-		if(max_dofs(VOLUME) > 0 || bHang) m_rMultiGrid.associated_elements_sorted(vVol, elem);
+		if(max_dofs(VOLUME) > 0 || bHang) m_pMG->associated_elements_sorted(vVol, elem);
 
 //	get reference object id
 	const ReferenceObjectID roid = elem->reference_object_id();
@@ -1124,21 +921,21 @@ changable_indices(std::vector<size_t>& vIndex,
 void MGDoFDistribution::init_attachments()
 {
 //	attach DoFs to vertices
-	if(m_vMaxDoFsInDim[VERTEX] > 0) {
+	if(max_dofs(VERTEX)) {
 		multi_grid()->attach_to<VertexBase>(m_aIndex);
-		m_aaIndexVRT.access(m_rMultiGrid, m_aIndex);
+		m_aaIndexVRT.access(*m_pMG, m_aIndex);
 	}
-	if(m_vMaxDoFsInDim[EDGE] > 0) {
+	if(max_dofs(EDGE)) {
 		multi_grid()->attach_to<EdgeBase>(m_aIndex);
-		m_aaIndexEDGE.access(m_rMultiGrid, m_aIndex);
+		m_aaIndexEDGE.access(*m_pMG, m_aIndex);
 	}
-	if(m_vMaxDoFsInDim[FACE] > 0) {
+	if(max_dofs(FACE)) {
 		multi_grid()->attach_to<Face>(m_aIndex);
-		m_aaIndexFACE.access(m_rMultiGrid, m_aIndex);
+		m_aaIndexFACE.access(*m_pMG, m_aIndex);
 	}
-	if(m_vMaxDoFsInDim[VOLUME] > 0) {
+	if(max_dofs(VOLUME)) {
 		multi_grid()->attach_to<Volume>(m_aIndex);
-		m_aaIndexVOL.access(m_rMultiGrid, m_aIndex);
+		m_aaIndexVOL.access(*m_pMG, m_aIndex);
 	}
 }
 

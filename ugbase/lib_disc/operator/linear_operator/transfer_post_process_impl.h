@@ -40,7 +40,7 @@ void AverageComponent<TDomain, TAlgebra>::init()
 //	read functions
 	try{
 		m_fctGrp.clear();
-		m_fctGrp.set_function_pattern(*m_spApproxSpace->function_pattern());
+		m_fctGrp.set_function_pattern(*m_spApproxSpace);
 		m_fctGrp.add(TokenizeString(m_symbFct));
 	}
 	UG_CATCH_THROW("AverageComponent: Cannot parse functions for p.");

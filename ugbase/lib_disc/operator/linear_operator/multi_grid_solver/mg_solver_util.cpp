@@ -73,13 +73,13 @@ void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 	vMap.resize(surfDD->num_indices(), 10000555);
 
 // 	add dofs on elements
-	if(surfDD->has_indices_on(VERTEX))
+	if(surfDD->max_dofs(VERTEX))
 		CreateSurfaceToToplevelMap<VertexBase>(vMap, surfDD, topDD);
-	if(surfDD->has_indices_on(EDGE))
+	if(surfDD->max_dofs(EDGE))
 		CreateSurfaceToToplevelMap<EdgeBase>(vMap, surfDD, topDD);
-	if(surfDD->has_indices_on(FACE))
+	if(surfDD->max_dofs(FACE))
 		CreateSurfaceToToplevelMap<Face>(vMap, surfDD, topDD);
-	if(surfDD->has_indices_on(VOLUME))
+	if(surfDD->max_dofs(VOLUME))
 		CreateSurfaceToToplevelMap<Volume>(vMap, surfDD, topDD);
 }
 

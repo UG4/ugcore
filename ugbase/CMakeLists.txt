@@ -44,12 +44,6 @@ if(buildRegistry)
 endif(buildRegistry)
 
 ########################
-# bridge
-if(buildBridge)
-	add_subdirectory(bridge)
-endif(buildBridge)
-
-########################
 # bindings
 if(buildBindings)
 	add_subdirectory(bindings/lua)
@@ -76,6 +70,12 @@ endif(buildDisc)
 if(PARALLEL)
 	add_subdirectory(pcl)
 endif(PARALLEL)
+
+########################
+# bridge
+if(buildBridge)
+	add_subdirectory(bridge)
+endif(buildBridge)
 
 ########################
 # ug4 shell

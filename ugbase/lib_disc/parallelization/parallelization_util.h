@@ -147,28 +147,28 @@ bool CreateLevelIndexLayout(	IndexLayout& layoutOut,
 	bool bRetVal = true;
 
 // 	add dofs on elements
-	if(dofDistr.has_indices_on(VERTEX))
+	if(dofDistr.max_dofs(VERTEX))
 		if(layoutMap.has_layout<VertexBase>(keyType))
 		{
 			bRetVal &= AddEntriesToLevelIndexLayout(layoutOut, dofDistr,
 									layoutMap.get_layout<VertexBase>(keyType).layout_on_level(level));
 		}
 
-	if(dofDistr.has_indices_on(EDGE))
+	if(dofDistr.max_dofs(EDGE))
 		if(layoutMap.has_layout<EdgeBase>(keyType))
 		{
 			bRetVal &= AddEntriesToLevelIndexLayout(layoutOut, dofDistr,
 									layoutMap.get_layout<EdgeBase>(keyType).layout_on_level(level));
 		}
 
-	if(dofDistr.has_indices_on(FACE))
+	if(dofDistr.max_dofs(FACE))
 		if(layoutMap.has_layout<Face>(keyType))
 		{
 			bRetVal &= AddEntriesToLevelIndexLayout(layoutOut, dofDistr,
 									layoutMap.get_layout<Face>(keyType).layout_on_level(level));
 		}
 
-	if(dofDistr.has_indices_on(VOLUME))
+	if(dofDistr.max_dofs(VOLUME))
 		if(layoutMap.has_layout<Volume>(keyType))
 		{
 			bRetVal &= AddEntriesToLevelIndexLayout(layoutOut, dofDistr,
@@ -283,7 +283,7 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
 	bool bRetVal = true;
 
 // 	add dofs on elements
-	if(dofDistr.has_indices_on(VERTEX))
+	if(dofDistr.max_dofs(VERTEX))
 		for(size_t level = 0; level < layoutMap.get_layout<VertexBase>(keyType).num_levels(); ++level)
 			if(layoutMap.has_layout<VertexBase>(keyType))
 			{
@@ -291,7 +291,7 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
 										layoutMap.get_layout<VertexBase>(keyType).layout_on_level(level), mg, dGrMgr);
 			}
 
-	if(dofDistr.has_indices_on(EDGE))
+	if(dofDistr.max_dofs(EDGE))
 		for(size_t level = 0; level < layoutMap.get_layout<EdgeBase>(keyType).num_levels(); ++level)
 			if(layoutMap.has_layout<EdgeBase>(keyType))
 			{
@@ -299,7 +299,7 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
 										layoutMap.get_layout<EdgeBase>(keyType).layout_on_level(level), mg, dGrMgr);
 			}
 
-	if(dofDistr.has_indices_on(FACE))
+	if(dofDistr.max_dofs(FACE))
 		for(size_t level = 0; level < layoutMap.get_layout<Face>(keyType).num_levels(); ++level)
 			if(layoutMap.has_layout<Face>(keyType))
 			{
@@ -307,7 +307,7 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
 										layoutMap.get_layout<Face>(keyType).layout_on_level(level), mg, dGrMgr);
 			}
 
-	if(dofDistr.has_indices_on(VOLUME))
+	if(dofDistr.max_dofs(VOLUME))
 		for(size_t level = 0; level < layoutMap.get_layout<Volume>(keyType).num_levels(); ++level)
 			if(layoutMap.has_layout<Volume>(keyType))
 			{

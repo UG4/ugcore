@@ -22,7 +22,8 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 	///	constructor
 		LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
 		                       SmartPtr<MGSubsetHandler> spMGSH,
-		                       FunctionPattern& fctPatt, bool bGrouped);
+							   const DoFDistributionInfo& rDDInfo,
+		                       bool bGrouped);
 
 	///	removes holes in the index set
 	/**
@@ -138,143 +139,10 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 #endif
 };
 
-class DoFDistributionBase
-{
-	public:
-	///	type of multiindices
-		typedef MGDoFDistribution::multi_index_type multi_index_type;
-
-	public:
-		DoFDistributionBase(SmartPtr<MGDoFDistribution> mgDD, int level)
-			: m_spMGDD(mgDD), m_level(level)
-		{}
-
-		virtual ~DoFDistributionBase() {}
-
-	///	returns if dofs are grouped
-		bool grouped() const {return m_spMGDD->grouped();}
-
-	///	returns blocksize
-		std::string blocksize() const {return m_spMGDD->blocksize();}
-
-	/// returns the maximum number of dofs on grid objects in a dimension on a subset
-		size_t max_dofs(const int dim, const int si) const {return m_spMGDD->max_dofs(dim,si);}
-
-	/// return the maximum number of dofs on grid objects in a dimension
-		size_t max_dofs(const int dim) const {return m_spMGDD->max_dofs(dim);}
-
-	///	returns the maximum number of dofs on a Reference Object
-		size_t num_dofs(const ReferenceObjectID roid, const int si) const {return m_spMGDD->num_dofs(roid,si);}
-
-	///	returns the number of dofs on a subelement of an element
-		size_t num_dofs(size_t fct, const ReferenceObjectID roid, const ReferenceObjectID subRoid) const {return m_spMGDD->num_dofs(fct,roid, subRoid);}
-
-	///	returns function pattern
-		const FunctionPattern& function_pattern() const {return m_spMGDD->function_pattern();}
-
-	/// number of discrete functions
-		size_t num_fct() const {return m_spMGDD->num_fct();}
-
-	/// number of discrete functions on subset si
-		size_t num_fct(int si) const {return m_spMGDD->num_fct(si);}
-
-	/// returns the trial space of the discrete function fct
-		LFEID local_finite_element_id(size_t fct) const
-			{return m_spMGDD->local_finite_element_id(fct);}
-
-	///	returns subset group by name
-		SubsetGroup subset_grp_by_name(const char* names) const {return m_spMGDD->subset_grp_by_name(names);}
-
-	/// returns fct id by name
-		size_t fct_id_by_name(const char* name) const{return m_spMGDD->fct_id_by_name(name);}
-
-	///	return function group of names
-		FunctionGroup fct_grp_by_name(const char* names) const {return m_spMGDD->fct_grp_by_name(names);}
-
-	/// returns the name of the discrete function nr_fct
-		std::string name(size_t fct) const {return m_spMGDD->name(fct);}
-
-	/// returns the dimension in which solution lives
-		int dim(size_t fct) const {return m_spMGDD->dim(fct);}
-
-	///	returns dimension of subset
-		int dim_subset(int si) const {return m_spMGDD->dim_subset(si);}
-
-	///	returns the subset name
-		std::string	subset_name(size_t si) const {return m_spMGDD->subset_name(si);}
-
-	/// returns true if the discrete function nr_fct is defined on subset s
-		bool is_def_in_subset(size_t fct, int si) const {return m_spMGDD->is_def_in_subset(fct, si);}
-
-	/// returns true if the discrete function nr_fct is defined everywhere
-		bool is_def_everywhere(size_t fct) const {return m_spMGDD->is_def_everywhere(fct);}
-
-	///	returns if indices are defined on a geometric object
-		bool has_indices_on(GeometricBaseObject gbo) const {return m_spMGDD->has_indices_on(gbo);}
-
-	///	returns if indices are defined on a reference object
-		bool has_indices_on(ReferenceObjectID roid) const {return m_spMGDD->has_indices_on(roid);}
-
-	///	returns the subset handler
-		ConstSmartPtr<ISubsetHandler> subset_handler() const {return m_spMGDD->subset_handler();}
-
-	///	returns the adjacency graph (if available)
-		virtual bool get_connections(std::vector<std::vector<size_t> >& vvConnection) const = 0;
-
-	///	renames the indices
-		virtual void permute_indices(const std::vector<size_t>& vIndNew) = 0;
 
 
-	///	returns all indices of the element
-	///	\{
-		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-	/// \}
-
-	/// get multi indices (Element + Closure of Element)
-	/// \{
-		size_t multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-		size_t multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-		size_t multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-		size_t multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-	/// \}
-
-	/// get multi indices (only inner part of Element)
-	/// \{
-		size_t inner_multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-	/// \}
-
-	/// get algebra indices (Element + Closure of Element)
-	/// \{
-		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-		size_t algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-		size_t algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-		size_t algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-	/// \}
-
-	/// get algebra indices (only inner part of Element)
-	/// \{
-		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-	/// \}
-
-	protected:
-	///	underlying multigrid dof distribution
-		SmartPtr<MGDoFDistribution> m_spMGDD;
-
-	///	level of multigrid dof distribution
-		int m_level;
-};
-
-
-class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistribution
+class LevelDoFDistribution : public DoFDistributionInfoProvider,
+							 public ManagingDoFDistribution
 {
 	public:
 		template <typename TElem>
@@ -307,6 +175,13 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 	///	returns multigrid
 		const MultiGrid& multi_grid() const {return *m_spSurfView->subset_handler()->multi_grid();}
 
+
+	///	returns if dofs are grouped
+		bool grouped() const {return m_spMGDD->grouped();}
+
+	///	returns blocksize
+		std::string blocksize() const {return m_spMGDD->blocksize();}
+
 		///////////////////////////////////////
 		// Element Access
 		///////////////////////////////////////
@@ -325,9 +200,6 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 		template <typename TElem>
 		typename traits<TElem>::const_iterator end() const {return m_spSurfView->level_end<TElem>(m_level, true);}
 	///	\}
-
-	/// number of subsets where dofs are defined
-		int num_subsets() const {return m_spSurfView->num_subsets();}
 
 	/// iterator for elements where dofs are defined
 	/// \{
@@ -411,7 +283,55 @@ class LevelDoFDistribution : public DoFDistributionBase, public ManagingDoFDistr
 	/// \}
 #endif
 
+	public:
+	///	type of multiindices
+		typedef MGDoFDistribution::multi_index_type multi_index_type;
+
+
+	///	returns all indices of the element
+	///	\{
+		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
+		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
+		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
+		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
+	/// \}
+
+	/// get multi indices (Element + Closure of Element)
+	/// \{
+		size_t multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
+		size_t multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
+		size_t multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
+		size_t multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
+	/// \}
+
+	/// get multi indices (only inner part of Element)
+	/// \{
+		size_t inner_multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
+	/// \}
+
+	/// get algebra indices (Element + Closure of Element)
+	/// \{
+		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
+		size_t algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
+		size_t algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
+		size_t algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
+	/// \}
+
+	/// get algebra indices (only inner part of Element)
+	/// \{
+		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
+		size_t inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
+		size_t inner_algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
+		size_t inner_algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
+	/// \}
+
 	protected:
+	///	level of multigrid dof distribution
+		int m_level;
+
 	///	MultiGrid Level DoF Distribution
 		SmartPtr<LevelMGDoFDistribution> m_spMGDD;
 

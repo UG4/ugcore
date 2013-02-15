@@ -143,12 +143,12 @@ check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGro
 			const size_t fct = functionGroup[i];
 
 		// 	check if function exist
-			if(fct >= m_spApproxSpace->function_pattern()->num_fct())
+			if(fct >= m_spApproxSpace->num_fct())
 				UG_THROW("DirichletBoundary:extract_data:"
 							" Function "<< fct << " does not exist in pattern.");
 
 		// 	check that function is defined for segment
-			if(!m_spApproxSpace->function_pattern()->is_def_in_subset(fct, subsetIndex))
+			if(!m_spApproxSpace->is_def_in_subset(fct, subsetIndex))
 				UG_THROW("DirichletBoundary:extract_data:"
 								" Function "<<fct<<" not defined on subset "<<subsetIndex);
 		}
@@ -325,13 +325,13 @@ adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
 	//	adapt jacobian for dofs in each base element type
 		try
 		{
-		if(dd->has_indices_on(VERTEX))
+		if(dd->max_dofs(VERTEX))
 			adjust_jacobian<Vertex, TUserData, TDD>(vUserData, si, J, u, dd, time);
-		if(dd->has_indices_on(EDGE))
+		if(dd->max_dofs(EDGE))
 			adjust_jacobian<EdgeBase, TUserData, TDD>(vUserData, si, J, u, dd, time);
-		if(dd->has_indices_on(FACE))
+		if(dd->max_dofs(FACE))
 			adjust_jacobian<Face, TUserData, TDD>(vUserData, si, J, u, dd, time);
-		if(dd->has_indices_on(VOLUME))
+		if(dd->max_dofs(VOLUME))
 			adjust_jacobian<Volume, TUserData, TDD>(vUserData, si, J, u, dd, time);
 		}
 		UG_CATCH_THROW("DirichletBoundary::adjust_jacobian:"
@@ -452,13 +452,13 @@ adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
 	//	adapt jacobian for dofs in each base element type
 		try
 		{
-		if(dd->has_indices_on(VERTEX))
+		if(dd->max_dofs(VERTEX))
 			adjust_defect<Vertex, TUserData, TDD>(vUserData, si, d, u, dd, time);
-		if(dd->has_indices_on(EDGE))
+		if(dd->max_dofs(EDGE))
 			adjust_defect<EdgeBase, TUserData, TDD>(vUserData, si, d, u, dd, time);
-		if(dd->has_indices_on(FACE))
+		if(dd->max_dofs(FACE))
 			adjust_defect<Face, TUserData, TDD>(vUserData, si, d, u, dd, time);
-		if(dd->has_indices_on(VOLUME))
+		if(dd->max_dofs(VOLUME))
 			adjust_defect<Volume, TUserData, TDD>(vUserData, si, d, u, dd, time);
 		}
 		UG_CATCH_THROW("DirichletBoundary::adjust_defect:"
@@ -581,13 +581,13 @@ adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
 	//	adapt jacobian for dofs in each base element type
 		try
 		{
-		if(dd->has_indices_on(VERTEX))
+		if(dd->max_dofs(VERTEX))
 			adjust_solution<Vertex, TUserData, TDD>(vUserData, si, u, dd, time);
-		if(dd->has_indices_on(EDGE))
+		if(dd->max_dofs(EDGE))
 			adjust_solution<EdgeBase, TUserData, TDD>(vUserData, si, u, dd, time);
-		if(dd->has_indices_on(FACE))
+		if(dd->max_dofs(FACE))
 			adjust_solution<Face, TUserData, TDD>(vUserData, si, u, dd, time);
-		if(dd->has_indices_on(VOLUME))
+		if(dd->max_dofs(VOLUME))
 			adjust_solution<Volume, TUserData, TDD>(vUserData, si, u, dd, time);
 		}
 		UG_CATCH_THROW("DirichletBoundary::adjust_solution:"
@@ -707,13 +707,13 @@ adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
 	//	adapt jacobian for dofs in each base element type
 		try
 		{
-		if(dd->has_indices_on(VERTEX))
+		if(dd->max_dofs(VERTEX))
 			adjust_linear<Vertex, TUserData, TDD>(vUserData, si, A, b, dd, time);
-		if(dd->has_indices_on(EDGE))
+		if(dd->max_dofs(EDGE))
 			adjust_linear<EdgeBase, TUserData, TDD>(vUserData, si, A, b, dd, time);
-		if(dd->has_indices_on(FACE))
+		if(dd->max_dofs(FACE))
 			adjust_linear<Face, TUserData, TDD>(vUserData, si, A, b, dd, time);
-		if(dd->has_indices_on(VOLUME))
+		if(dd->max_dofs(VOLUME))
 			adjust_linear<Volume, TUserData, TDD>(vUserData, si, A, b, dd, time);
 		}
 		UG_CATCH_THROW("DirichletBoundary::adjust_linear:"
@@ -840,13 +840,13 @@ adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
 	//	adapt jacobian for dofs in each base element type
 		try
 		{
-		if(dd->has_indices_on(VERTEX))
+		if(dd->max_dofs(VERTEX))
 			adjust_rhs<Vertex, TUserData, TDD>(vUserData, si, b, u, dd, time);
-		if(dd->has_indices_on(EDGE))
+		if(dd->max_dofs(EDGE))
 			adjust_rhs<EdgeBase, TUserData, TDD>(vUserData, si, b, u, dd, time);
-		if(dd->has_indices_on(FACE))
+		if(dd->max_dofs(FACE))
 			adjust_rhs<Face, TUserData, TDD>(vUserData, si, b, u, dd, time);
-		if(dd->has_indices_on(VOLUME))
+		if(dd->max_dofs(VOLUME))
 			adjust_rhs<Volume, TUserData, TDD>(vUserData, si, b, u, dd, time);
 		}
 		UG_CATCH_THROW("DirichletBoundary::adjust_rhs:"

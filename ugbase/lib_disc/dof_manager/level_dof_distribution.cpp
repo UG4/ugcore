@@ -17,9 +17,9 @@ namespace ug{
 LevelMGDoFDistribution::
 LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
 					   SmartPtr<MGSubsetHandler> spMGSH,
-                       FunctionPattern& fctPatt,
+					   const DoFDistributionInfo& rDDInfo,
                        bool bGrouped)
-	:	MGDoFDistribution(spMG, spMGSH, fctPatt, bGrouped)
+	:	MGDoFDistribution(spMG, spMGSH, rDDInfo, bGrouped)
 {
 	if(num_levels() > 0) level_required(num_levels()-1);
 	init();
@@ -143,10 +143,10 @@ void LevelMGDoFDistribution::create_index_layout(IndexLayout& layout,
 	layout.clear();
 
 //	add the index from grid layouts
-	if(has_indices_on(VERTEX)) add_indices_from_layouts<VertexBase>(layout, keyType, l);
-	if(has_indices_on(EDGE))   add_indices_from_layouts<EdgeBase>(layout, keyType, l);
-	if(has_indices_on(FACE))   add_indices_from_layouts<Face>(layout, keyType, l);
-	if(has_indices_on(VOLUME)) add_indices_from_layouts<Volume>(layout, keyType, l);
+	if(max_dofs(VERTEX)) add_indices_from_layouts<VertexBase>(layout, keyType, l);
+	if(max_dofs(EDGE))   add_indices_from_layouts<EdgeBase>(layout, keyType, l);
+	if(max_dofs(FACE))   add_indices_from_layouts<Face>(layout, keyType, l);
+	if(max_dofs(VOLUME)) add_indices_from_layouts<Volume>(layout, keyType, l);
 
 //	touching an interface means creation. Thus we remove the empty interfaces
 //	to avoid storage, communication (should not happen any longer) etc...
@@ -325,8 +325,8 @@ LevelDoFDistribution::
 LevelDoFDistribution(SmartPtr<LevelMGDoFDistribution> spLevMGDD,
                      SmartPtr<SurfaceView> spSurfView,
                      int level)
-	: 	DoFDistributionBase(spLevMGDD, level),
-		m_spMGDD(spLevMGDD), m_spSurfView(spSurfView)
+	: 	DoFDistributionInfoProvider(spLevMGDD->dof_distribution_info()),
+		m_level(level), m_spMGDD(spLevMGDD), m_spSurfView(spSurfView)
 {
 	spLevMGDD->register_managing_dof_distribution(this, level);
 };
@@ -422,18 +422,17 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 		size_t numDoFs = 0;
 		for(int si = 0; si < num_subsets(); ++si)
 			for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
-		{
-			const ReferenceObjectID roid = (ReferenceObjectID) i;
-			if(num_dofs(roid,si) == 0) continue;
-			if(numDoFs == 0) {numDoFs = num_dofs(roid,si); continue;}
-			if(num_dofs(roid,si) != numDoFs)
 			{
-				UG_LOG("ERROR in 'get_connections':"
-						" Currently only implemented iff same number of DoFs on"
-						" all geometric objects in all subsets.\n");
-				return false;
+				const ReferenceObjectID roid = (ReferenceObjectID) i;
+				if(num_dofs(roid,si) == 0) continue;
+				if(numDoFs == 0) {numDoFs = num_dofs(roid,si); continue;}
+				if(num_dofs(roid,si) != numDoFs)
+					UG_THROW("LevelDoFDistribution::get_connections: "
+							"Currently only implemented iff same number of DoFs on"
+							" all geometric objects in all subsets: \n"
+							"num_dofs("<<roid<<","<<si<<")="<<num_dofs(roid,si)<<
+							", but previously found "<<numDoFs);
 			}
-		}
 	}
 
 //	clear neighbors

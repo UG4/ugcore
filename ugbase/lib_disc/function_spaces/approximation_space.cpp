@@ -25,9 +25,9 @@ IApproximationSpace::
 IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
                     SmartPtr<grid_type> spMG,
                     const AlgebraType& algebraType)
-:	 m_spMG(spMG),
+:	 DoFDistributionInfo(spMGSH),
+     m_spMG(spMG),
  	 m_spMGSH(spMGSH),
- 	 m_spFunctionPattern(new FunctionPattern(spMGSH)),
  	 m_bAdaptionIsActive(false),
 	 m_algebraType(algebraType)
 #ifdef UG_PARALLEL
@@ -55,9 +55,9 @@ IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
 IApproximationSpace::
 IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
                     SmartPtr<grid_type> spMG)
-	: m_spMG(spMG),
+	: DoFDistributionInfo(spMGSH),
+	  m_spMG(spMG),
 	  m_spMGSH(spMGSH),
-	  m_spFunctionPattern(new FunctionPattern(spMGSH)),
 	  m_bAdaptionIsActive(false),
 	  m_algebraType(DefaultAlgebra::get())
 #ifdef UG_PARALLEL
@@ -96,11 +96,6 @@ IApproximationSpace::
 
 	if(m_spSurfaceView.valid())
 		m_spSurfaceView = SmartPtr<SurfaceView>(NULL);
-}
-
-SubsetGroup IApproximationSpace::subset_grp_by_name(const char* names) const
-{
-	return SubsetGroup(subset_handler(), TokenizeString(names));
 }
 
 
@@ -557,74 +552,6 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 #endif
 }
 
-void IApproximationSpace::
-print_local_dof_statistic(ConstSmartPtr<MGDoFDistribution> dd, int verboseLev) const
-{
-//	Subset informations
-	UG_LOG(dd->num_subsets() << " Subset(s) used (Subset Name, dim): ");
-	for(int si = 0; si < dd->num_subsets(); ++si)
-	{
-		if(si > 0) UG_LOG(", ");
-		UG_LOG("(" << dd->subset_name(si) << ", " << dd->dim_subset(si) << ")");
-	}
-	UG_LOG("\n");
-
-//	Function informations
-	UG_LOG(dd->num_fct() << " Function(s) defined (Symbolic Name, dim): ");
-	for(size_t fct = 0; fct < dd->num_fct(); ++fct)
-	{
-		if(fct > 0) UG_LOG(", ");
-		UG_LOG("(" << dd->name(fct) << ", " << dd->dim(fct) << ")");
-	}
-	UG_LOG("\n");
-
-//	print subsets of functions
-	if(verboseLev >= 2)
-	{
-		UG_LOG("Function definition on subsets: \n");
-		for(size_t fct = 0; fct < dd->num_fct(); ++fct)
-		{
-			UG_LOG("   "<<dd->name(fct) << ": ");
-			if(dd->is_def_everywhere(fct)) UG_LOG("[everywhere] ");
-			bool bFirst = true;
-			for(int si = 0; si < dd->num_subsets(); ++si)
-			{
-				if(bFirst) bFirst = false; else UG_LOG(", ");
-				if(!dd->is_def_in_subset(fct, si)) continue;
-				UG_LOG(dd->subset_name(si));
-			}
-		}
-		UG_LOG("\n");
-	}
-
-//	print info of dofdistribution
-	dd->print_local_dof_statistic(verboseLev);
-}
-
-void IApproximationSpace::print_local_dof_statistic(int verboseLev) const
-{
-	UG_LOG("\nLocal DoF Statistic for DoFDistribution:");
-	UG_LOG("\n-----------------------------------------------\n");
-
-	if(m_spLevMGDD.valid())
-	{
-		print_local_dof_statistic(m_spLevMGDD, verboseLev);
-		return;
-	}
-	if(!m_vSurfDD.empty())
-	{
-		print_local_dof_statistic(m_vSurfDD[0], verboseLev);
-		return;
-	}
-	if(m_spTopSurfDD.valid())
-	{
-		print_local_dof_statistic(m_spTopSurfDD, verboseLev);
-		return;
-	}
-
-	UG_LOG(" not avaible .\n");
-}
-
 #ifdef UG_PARALLEL
 template <typename TDD>
 static void PrintLayoutStatistic(ConstSmartPtr<TDD> dd)
@@ -682,10 +609,12 @@ void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
 		UG_THROW("Required Level "<<toLevel<<", but only "<<
 					   this->num_levels()<<" in the MultiGrid.");
 
+	dof_distribution_info_required();
+
 //	if not yet MGLevelDD allocated
 	if(!m_spLevMGDD.valid()){
 		m_spLevMGDD = SmartPtr<LevelMGDoFDistribution>
-					(new LevelMGDoFDistribution(m_spMG, m_spMGSH, *m_spFunctionPattern,
+					(new LevelMGDoFDistribution(m_spMG, m_spMGSH, *this,
 					                            m_bGrouped));
 	}
 
@@ -713,6 +642,7 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 //	resize level
 	if(m_vSurfDD.size() < toLevel+1) m_vSurfDD.resize(toLevel+1, NULL);
 
+	dof_distribution_info_required();
 	surface_view_required();
 
 //	allocate Level DD if needed
@@ -720,8 +650,7 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 	{
 		if(!m_vSurfDD[lvl].valid()){
 			m_vSurfDD[lvl] = SmartPtr<SurfaceDoFDistribution>
-							(new SurfaceDoFDistribution(m_spMG,
-									m_spMGSH, *m_spFunctionPattern,
+							(new SurfaceDoFDistribution(m_spMG, m_spMGSH, *this,
 									m_spSurfaceView, lvl, m_bGrouped));
 		}
 	}
@@ -729,13 +658,14 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 
 void IApproximationSpace::top_surf_dd_required()
 {
+	dof_distribution_info_required();
 	surface_view_required();
 						 
 //	allocate Level DD if needed
 	if(!m_spTopSurfDD.valid()){
 		m_spTopSurfDD = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(
-									m_spMG, m_spMGSH, *m_spFunctionPattern,
+									m_spMG, m_spMGSH, *this,
 									m_spSurfaceView, GridLevel::TOPLEVEL, m_bGrouped));
 	}
 }
@@ -745,6 +675,11 @@ void IApproximationSpace::surface_view_required()
 //	allocate surface view if needed
 	if(!m_spSurfaceView.valid())
 		m_spSurfaceView = SmartPtr<SurfaceView>(new SurfaceView(m_spMGSH));
+}
+
+void IApproximationSpace::dof_distribution_info_required()
+{
+	DoFDistributionInfo::init();
 }
 
 

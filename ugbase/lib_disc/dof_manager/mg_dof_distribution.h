@@ -15,6 +15,7 @@
 #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/dof_manager/grid_level.h"
+#include "dof_distribution_info.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl_base.h"
@@ -105,7 +106,7 @@ struct LevInfo : public LevInfoBase
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-class MGDoFDistribution : public GridObserver
+class MGDoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 {
 	public:
 	//	type of multi index
@@ -114,7 +115,7 @@ class MGDoFDistribution : public GridObserver
 	public:
 		MGDoFDistribution(SmartPtr<MultiGrid> spMG,
 						  SmartPtr<MGSubsetHandler> spMGSH,
-		                  FunctionPattern& fctPatt,
+						  const DoFDistributionInfo& rDDInfo,
 		                  bool bGrouped);
 
 		~MGDoFDistribution();
@@ -147,48 +148,6 @@ class MGDoFDistribution : public GridObserver
 		SmartPtr<MultiGrid> multi_grid() {return m_spMG;}
 		ConstSmartPtr<MultiGrid> multi_grid() const {return m_spMG;}
 
-		///	returns the subset handler
-		ConstSmartPtr<ISubsetHandler> subset_handler() const {return m_spMGSH;}
-
-		///	returns function pattern
-		const FunctionPattern& function_pattern() const {return m_rFctPatt;}
-
-		/// number of discrete functions on subset si
-		size_t num_fct() const {return m_rFctPatt.num_fct();}
-
-		/// number of discrete functions on subset si
-		size_t num_fct(int si) const {return m_rFctPatt.num_fct(si);}
-
-		/// returns the name of the discrete function nr_fct
-		std::string name(size_t fct) const {return m_rFctPatt.name(fct);}
-
-		/// returns the dimension in which solution lives
-		int dim(size_t fct) const {return m_rFctPatt.dim(fct);}
-
-		///	returns dimension of subset
-		int dim_subset(int si) const {return m_rFctPatt.dim_subset(si);}
-
-		///	returns subset name
-		std::string subset_name(int si) const {return m_rFctPatt.subset_name(si);}
-
-		///	returns the local finite element id of a function
-		const LFEID& local_finite_element_id(size_t fct) const {return m_vLFEID[fct];}
-
-		///	returns subset group by name
-		SubsetGroup subset_grp_by_name(const char* names) const;
-
-		/// returns fct id by name
-		size_t fct_id_by_name(const char* name) const{return m_rFctPatt.fct_id_by_name(name);}
-
-		///	returns a function group to a string of functions
-		FunctionGroup fct_grp_by_name(const char* names) const {return m_rFctPatt.fct_grp_by_name(names);}
-
-		///	retruns if a function is defined on a subset
-		//	\todo cache
-		bool is_def_in_subset(size_t fct, int si) const {return m_rFctPatt.is_def_in_subset(fct, si);}
-
-		/// returns true if the discrete function nr_fct is defined everywhere
-		bool is_def_everywhere(size_t fct) const {return m_rFctPatt.is_def_everywhere(fct);}
 
 		///	returns if dofs are grouped
 		bool grouped() const {return m_bGrouped;}
@@ -196,32 +155,10 @@ class MGDoFDistribution : public GridObserver
 		///	returns blocksize
 		std::string blocksize() const {return "?";}
 
-		/// returns the maximum number of dofs on grid objects in a dimension on a subset
-		size_t max_dofs(const int dim, const int si) const {return m_vvMaxDoFsInDimPerSubset[dim][si];}
-
-		/// return the maximum number of dofs on grid objects in a dimension
-		size_t max_dofs(const int dim) const {return m_vMaxDoFsInDim[dim];}
-
-		///	returns the maximum number of dofs on a Reference Object
-		size_t num_dofs(const ReferenceObjectID roid, const int si) const {return m_vvNumDoFsOnROID[roid][si];}
-
-		///	returns the number of dofs on a subelement of an element
-		size_t num_dofs(size_t fct, const ReferenceObjectID roid, const ReferenceObjectID subRoid) const {return m_vNumDoFOnSubelem[fct](roid, subRoid);}
-
-		///	returns number of subsets
-		inline int num_subsets() const {return m_spMGSH->num_subsets();}
 
 		/// returns number of levels
 		inline int num_levels() const {return m_spMGSH->num_levels();}
 
-		///	returns if indices are defined on a geometric object
-		bool has_indices_on(GeometricBaseObject gbo) const {return m_vMaxDoFsInDim[gbo] > 0;}
-
-		///	returns if indices are defined on a reference object
-		bool has_indices_on(ReferenceObjectID roid) const {return m_vMaxDoFsOnROID[roid] > 0;}
-
-		///	prints informations
-		void print_local_dof_statistic(int verboseLev) const;
 
 		/// writes the local finite element ids to LocalIndeces
 		void local_finite_element_ids(LocalIndices& ind) const;
@@ -347,9 +284,6 @@ class MGDoFDistribution : public GridObserver
 		TBaseElem* child_if_copy(TBaseElem* elem) const;
 
 	protected:
-		///	returns the offset for reference element, subset and function
-		size_t offset(const ReferenceObjectID roid, const int si, const size_t fct) const {return m_vvvOffsets[roid][si][fct];}
-
 		///	extracts the indices of the vertices
 		template<typename TBaseElem>
 		void indices_on_vertex(TBaseElem* elem, const ReferenceObjectID roid,
@@ -464,10 +398,6 @@ class MGDoFDistribution : public GridObserver
 		///	checks that subset assigment is ok
 		void check_subsets();
 
-		/// creates offset arrays
-		void create_offsets(ReferenceObjectID roid);
-		void create_offsets();
-
 		/// initializes the attachments
 		void init_attachments();
 
@@ -510,47 +440,12 @@ class MGDoFDistribution : public GridObserver
 	///	indication that function is not defined on a subset
 		enum{NOT_YET_ASSIGNED = (size_t) - 2};
 
-	/// offset map
-		std::vector<std::vector<size_t> > m_vvvOffsets[NUM_REFERENCE_OBJECTS];
-
-	///	number of DoFs on a reference element type on a subset
-		std::vector<size_t> m_vvNumDoFsOnROID[NUM_REFERENCE_OBJECTS];
-
-	///	maximum number of DoFs on a reference type
-		size_t m_vMaxDoFsOnROID[NUM_REFERENCE_OBJECTS];
-
-	///	maximum number of DoFs on geometric objects in a dimension
-		size_t m_vMaxDoFsInDim[NUM_GEOMETRIC_BASE_OBJECTS];
-
-	///	maximum number of DoFs on geometric objects in a dimension per subset
-		std::vector<size_t> m_vvMaxDoFsInDimPerSubset[NUM_GEOMETRIC_BASE_OBJECTS];
-
-	///	local finite element id
-		std::vector<LFEID> m_vLFEID;
-
-	///	local dof sets
-		std::vector<const ILocalDoFSet*> m_vLocalDoFSet[NUM_REFERENCE_OBJECTS];
-
-	///	maximum dimensions where dofs must be ordered
-		std::vector<int> m_vMaxDimToOrderDoFs;
-
-	///	number Dofs for local DoF set and subelement of element
-		std::vector<MathMatrix<NUM_REFERENCE_OBJECTS,NUM_REFERENCE_OBJECTS, int> > m_vNumDoFOnSubelem;
-
-	///	definition of function on subset
-		std::vector<std::vector<bool> > m_vvFctDefInSubset;
-
 	///	Multi Grid
 		SmartPtr<MultiGrid> m_spMG;
+		MultiGrid* m_pMG;
 
 	///	Subset Handler
 		SmartPtr<MGSubsetHandler> m_spMGSH;
-
-	///	Function Pattern
-		FunctionPattern& m_rFctPatt;
-
-	///	cached multigrid
-		MultiGrid& m_rMultiGrid;
 
 	///	Attachment type
 		typedef ug::Attachment<size_t> ADoF;

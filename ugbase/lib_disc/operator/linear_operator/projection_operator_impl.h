@@ -181,8 +181,8 @@ void InjectionTransfer<TDomain, TAlgebra>::init()
 
 // 	check only lagrange P1 functions
 	bool P1LagrangeOnly = true;
-	for(size_t fct = 0; fct < m_spApproxSpace->function_pattern()->num_fct(); ++fct)
-		if(m_spApproxSpace->function_pattern()->local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+	for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
+		if(m_spApproxSpace->local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
 			P1LagrangeOnly = false;
 
 	try{

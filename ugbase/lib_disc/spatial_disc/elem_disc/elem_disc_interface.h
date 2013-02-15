@@ -569,7 +569,7 @@ class IDomainElemDisc : public IElemDisc
 		}
 
 	///	returns the function pattern
-		const FunctionPattern& function_pattern() const {return *m_spApproxSpace->function_pattern();}
+		const FunctionPattern& function_pattern() const {return *m_spApproxSpace;}
 
 	///	returns if function pattern set
 		bool fct_pattern_set() const {return m_spApproxSpace.valid();}

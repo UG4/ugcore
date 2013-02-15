@@ -44,12 +44,13 @@ LFEID ConvertStringToLFEID(const char* type, int order)
 
 //	compare
 	LFEID::SpaceType eType = LFEID::NONE;
-	if(typeStr == "lagrange") eType = LFEID::LAGRANGE;
-	if(typeStr == "crouzeix-raviart") eType = LFEID::CROUZEIX_RAVIART;
-	if(typeStr == "piecewise-constant") eType = LFEID::PIECEWISE_CONSTANT;
-	if(typeStr == "mini") eType = LFEID::MINI;
-	if(typeStr == "dg") eType = LFEID::DG;
-	if(typeStr == "nedelec") eType = LFEID::NEDELEC;
+		 if(typeStr == "lagrange") eType = LFEID::LAGRANGE;
+	else if(typeStr == "crouzeix-raviart") eType = LFEID::CROUZEIX_RAVIART;
+	else if(typeStr == "piecewise-constant") eType = LFEID::PIECEWISE_CONSTANT;
+	else if(typeStr == "mini") eType = LFEID::MINI;
+	else if(typeStr == "dg") eType = LFEID::DG;
+	else if(typeStr == "nedelec") eType = LFEID::NEDELEC;
+	else UG_THROW("Cannot find local finite element space: "<<type<<", "<<order);
 
 	return LFEID(eType, order);
 }
@@ -68,26 +69,28 @@ LFEID ConvertStringToLFEID(const char* type)
 		eType = LFEID::LAGRANGE;
 		order = 1;
 	}
-	if(typeStr == "crouzeix-raviart"){
+	else if(typeStr == "crouzeix-raviart"){
 		eType = LFEID::CROUZEIX_RAVIART;
 		order = 1;
 	}
-	if(typeStr == "piecewise-constant"){
+	else if(typeStr == "piecewise-constant"){
 		eType = LFEID::PIECEWISE_CONSTANT;
 		order = 0;
 	}
-	if(typeStr == "dg"){
+	else if(typeStr == "dg"){
 		// eType = LFEID::DG;
 		UG_THROW("Unspecified order for DG approximation space.\n");
 	}
-	if(typeStr == "mini"){
+	else if(typeStr == "mini"){
 		eType = LFEID::MINI;
 		UG_THROW("Unspecified order for MINI approximation space.\n");
 	}
-	if(typeStr == "nedelec"){
+	else if(typeStr == "nedelec"){
 		eType = LFEID::NEDELEC;
 		order = 1;
 	}
+	else UG_THROW("Cannot find local finite element space: "<<type);
+
 	return LFEID(eType, order);
 }
 

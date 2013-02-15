@@ -111,13 +111,13 @@ inline void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLev
 	for(size_t lev = 0; lev < vSurfLevelMapping.size(); ++lev)
 		vSurfLevelMapping[lev].resize(surfDD->num_indices(), -1);
 
-	if(surfDD->has_indices_on(VERTEX))
+	if(surfDD->max_dofs(VERTEX))
 		CreateSurfaceToLevelMapping<VertexBase>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
-	if(surfDD->has_indices_on(EDGE))
+	if(surfDD->max_dofs(EDGE))
 		CreateSurfaceToLevelMapping<EdgeBase>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
-	if(surfDD->has_indices_on(FACE))
+	if(surfDD->max_dofs(FACE))
 		CreateSurfaceToLevelMapping<Face>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
-	if(surfDD->has_indices_on(VOLUME))
+	if(surfDD->max_dofs(VOLUME))
 		CreateSurfaceToLevelMapping<Volume>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
 }
 

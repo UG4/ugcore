@@ -85,7 +85,7 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
     LevInfo<T>& li)
 {
 //	if no dofs on this subset for the roid, do nothing
-	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
+	if(num_dofs(roid,si) == 0) return;
 
 	bool master = false;
 
@@ -103,10 +103,8 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	}
 
 //	compute the number of indices needed on the Geometric object
-	UG_ASSERT((int)roid >= 0 && (int)roid < NUM_REFERENCE_OBJECTS, "Invalid subset.")
-	UG_ASSERT(si >= 0 && si < (int)m_vvNumDoFsOnROID[roid].size(), "Invalid subset.")
 	size_t numNewIndex = 1;
-	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
+	if(!m_bGrouped) numNewIndex = num_dofs(roid,si);
 
 // 	set first available index to the object. The first available index is the
 //	first managed index plus the size of the index set. (If holes are in the
@@ -140,7 +138,7 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
               LevInfo<T>& li)
 {
 //	if no dofs on this subset for the roid, do nothing
-	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
+	if(num_dofs(roid,si) == 0) return;
 
 	bool master = false;
 
@@ -158,10 +156,8 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	}
 
 //	compute the number of indices needed on the Geometric object
-	UG_ASSERT((int)roid >= 0 && (int)roid < NUM_REFERENCE_OBJECTS, "Invalid subset.")
-	UG_ASSERT(si >= 0 && si < (int)m_vvNumDoFsOnROID[roid].size(), "Invalid subset.")
 	size_t numNewIndex = 1;
-	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
+	if(!m_bGrouped) numNewIndex = num_dofs(roid,si);
 
 //	a) 	if no holes are in the index set,
 	if(li.free_index_available())
@@ -268,7 +264,7 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 //	compute the number of indices needed on the Geometric object
 	size_t numNewIndex = 1;
-	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
+	if(!m_bGrouped) numNewIndex = num_dofs(roid,si);
 
 //	number of Indices stays the same, but size of index set is changed.
 	li.sizeIndexSet -= numNewIndex;
@@ -281,7 +277,7 @@ erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
       LevInfo<T>& li)
 {
 //	if no indices needed, we do nothing
-	if(m_vvNumDoFsOnROID[roid][si] == 0) return;
+	if(num_dofs(roid,si) == 0) return;
 
 	// in periodic case simply ignore slaves
 	if(m_spMG->has_periodic_boundaries())
@@ -294,10 +290,8 @@ erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	if(!bNonContained) return;
 
 //	compute number of indices on the geometric object
-	UG_ASSERT((int)roid >= 0 && (int)roid < NUM_REFERENCE_OBJECTS, "Invalid subset.")
-	UG_ASSERT(si >= 0 && si < (int)m_vvNumDoFsOnROID[roid].size(), "Invalid subset.")
 	size_t numNewIndex = 1;
-	if(!m_bGrouped) numNewIndex = m_vvNumDoFsOnROID[roid][si];
+	if(!m_bGrouped) numNewIndex = num_dofs(roid,si);
 
 //	number of managed indices has changed, thus decrease counter. Note, that the
 //	size of the index set remains unchanged.

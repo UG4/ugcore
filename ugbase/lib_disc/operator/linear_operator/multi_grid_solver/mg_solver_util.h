@@ -135,16 +135,16 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 				<< vLevelDD.size() << "). Aborting.\n");
 
 //	forward for all BaseObject types
-	if(surfDD->has_indices_on(VERTEX))
+	if(surfDD->max_dofs(VERTEX))
 		ProjectSurfaceToLevel<VertexBase, TVector>
 					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
-	if(surfDD->has_indices_on(EDGE))
+	if(surfDD->max_dofs(EDGE))
 		ProjectSurfaceToLevel<EdgeBase, TVector>
 					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
-	if(surfDD->has_indices_on(FACE))
+	if(surfDD->max_dofs(FACE))
 		ProjectSurfaceToLevel<Face, TVector>
 					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
-	if(surfDD->has_indices_on(VOLUME))
+	if(surfDD->max_dofs(VOLUME))
 		ProjectSurfaceToLevel<Volume, TVector>
 					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
 
@@ -237,16 +237,16 @@ void ProjectLevelToSurface(TVector& surfVector,
 				<< vLevelDD.size() << "). Aborting.\n");
 
 //	forward for all BaseObject types
-	if(surfDD->has_indices_on(VERTEX))
+	if(surfDD->max_dofs(VERTEX))
 		ProjectLevelToSurface<VertexBase, TVector>
 					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-	if(surfDD->has_indices_on(EDGE))
+	if(surfDD->max_dofs(EDGE))
 		ProjectLevelToSurface<EdgeBase, TVector>
 					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-	if(surfDD->has_indices_on(FACE))
+	if(surfDD->max_dofs(FACE))
 		ProjectLevelToSurface<Face, TVector>
 					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-	if(surfDD->has_indices_on(VOLUME))
+	if(surfDD->max_dofs(VOLUME))
 		ProjectLevelToSurface<Volume, TVector>
 					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
 
@@ -381,16 +381,16 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	forward for all BaseObject types
-	if(ddCoarse->has_indices_on(VERTEX))
+	if(ddCoarse->max_dofs(VERTEX))
 		AddProjectionOfShadows<VertexBase, TVector>
 					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
-	if(ddCoarse->has_indices_on(EDGE))
+	if(ddCoarse->max_dofs(EDGE))
 		AddProjectionOfShadows<EdgeBase, TVector>
 					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
-	if(ddCoarse->has_indices_on(FACE))
+	if(ddCoarse->max_dofs(FACE))
 		AddProjectionOfShadows<Face, TVector>
 					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
-	if(ddCoarse->has_indices_on(VOLUME))
+	if(ddCoarse->max_dofs(VOLUME))
 		AddProjectionOfShadows<Volume, TVector>
 					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
 }
@@ -499,13 +499,13 @@ void SetZeroOnShadowing(TVector& vec,
                         const std::vector<int>* pmapGlobalToPatch = NULL)
 {
 //	forward for all BaseObject types
-	if(dd->has_indices_on(VERTEX))
+	if(dd->max_dofs(VERTEX))
 		SetZeroOnShadowing<VertexBase, TVector>(vec, dd, surfView, pmapGlobalToPatch);
-	if(dd->has_indices_on(EDGE))
+	if(dd->max_dofs(EDGE))
 		SetZeroOnShadowing<EdgeBase, TVector>(vec, dd, surfView, pmapGlobalToPatch);
-	if(dd->has_indices_on(FACE))
+	if(dd->max_dofs(FACE))
 		SetZeroOnShadowing<Face, TVector>(vec, dd, surfView, pmapGlobalToPatch);
-	if(dd->has_indices_on(VOLUME))
+	if(dd->max_dofs(VOLUME))
 		SetZeroOnShadowing<Volume, TVector>(vec, dd, surfView, pmapGlobalToPatch);
 }
 

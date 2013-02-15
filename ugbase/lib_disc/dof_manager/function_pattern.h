@@ -15,6 +15,7 @@
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_disc/common/subset_util.h"
 #include "lib_disc/common/subset_group.h"
+#include "common/util/string_util.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 
 namespace ug{
@@ -129,6 +130,11 @@ class FunctionPattern
 	///	number of subsets
 		int num_subsets() const {return m_spSH->num_subsets();}
 
+		SubsetGroup subset_grp_by_name(const char* names) const
+		{
+			return SubsetGroup(subset_handler(), TokenizeString(names));
+		}
+
 	///	dimension of subset
 		int dim_subset(int si) const {return DimensionOfSubset(*m_spSH, si);}
 
@@ -150,11 +156,14 @@ class FunctionPattern
 		}
 
 	/// returns the trial space of a discrete function
-		LFEID local_finite_element_id(size_t fct) const
+	/// \{
+		const LFEID& local_finite_element_id(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
 			return m_vFunction[fct].id;
 		}
+		const LFEID& lfeid(size_t fct) const {return local_finite_element_id(fct);}
+	/// \}
 
 	/// returns the name of a discrete function
 		const char* name(size_t fct) const

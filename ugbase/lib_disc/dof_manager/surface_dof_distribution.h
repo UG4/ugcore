@@ -23,7 +23,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 	///	constructor
 		SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
 		                       SmartPtr<MGSubsetHandler> spMGSH,
-		                       FunctionPattern& fctPatt,
+ 							   const DoFDistributionInfo& rDDInfo,
 		                       SmartPtr<SurfaceView> spSurfView,
 		                       int level, bool bGrouped);
 
@@ -170,9 +170,6 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 		template <typename TElem>
 		typename traits<TElem>::const_iterator end() const {return m_spSurfView->surface_end<TElem>(m_level, false);}
 	///	\}
-
-	/// number of subsets where dofs are defined
-		int num_subsets() const {return m_spSurfView->num_subsets();}
 
 	/// iterator for elements where dofs are defined
 	/// \{
