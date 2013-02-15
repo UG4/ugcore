@@ -127,7 +127,7 @@ void IElemDisc::set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func)
 
 /////////////////////////////////////////////////////////////////////////////
 
-// NEW: explicit reaction
+//explicit reaction, reaction_rate and source
 
 template<typename TAssFunc>
 void IElemDisc::set_add_def_A_elem_fct_explicit(ReferenceObjectID id, TAssFunc func)

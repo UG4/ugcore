@@ -353,7 +353,7 @@ class IElemDisc
 		{UG_ASSERT(m_vElemdAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 			(this->*m_vElemdAFct[m_id])(d, u);}
 
-		// NEW: explicit reaction
+		// explicit reaction, reaction_rate and source
    	    void fast_add_def_A_elem_explicit(LocalVector& d, const LocalVector& u)
    	    {
    	    	if(this->m_vElemdAFct_explicit[m_id] != NULL)
@@ -364,8 +364,7 @@ class IElemDisc
 	/// virtual Assembling of Defect (Stiffness part)
 		virtual void add_def_A_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
 
-	// NEW: explicit reaction
-        // explicit defect for reaction and source
+        // explicit defect for reaction, reaction_rate and source
 		virtual void add_def_A_elem_explicit(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
 
 	/// Assembling of Defect (Mass part)
@@ -453,7 +452,6 @@ class IElemDisc
 		template <typename TAssFunc> void set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func);
-		// NEW: explicit reaction and source
 		template <typename TAssFunc> void set_add_def_A_elem_fct_explicit(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
