@@ -15,14 +15,9 @@ namespace pcl
 void Init(int *argcp, char ***argvp)
 {
 	PCL_PROFILE(MPI_Init);
-	// ensure that Init() gets only called once per process
-	static bool first_run = true;
-	if(first_run) {
-		//	init mpi
-		MPI_Init(argcp, argvp);
-		SetMPIErrHandler();
-		first_run = false;
-	}
+	//	init mpi
+	MPI_Init(argcp, argvp);
+	SetMPIErrHandler();
 }
 
 ////////////////////////////////////////////////////////////////////////
