@@ -142,6 +142,7 @@ util.GetPreconditioner = util.CreateFancyFunction(
 		{"name"},
 		{"jac_damp", 0.6},
 		{"gmg_approxSpace"},
+		{"gmg_disc"},
 		{"gmg_base", "lu"},
 		{"gmg_baseLevel", 0},
 		{"gmg_parallelBase", false},
@@ -150,13 +151,13 @@ util.GetPreconditioner = util.CreateFancyFunction(
 		{"gmg_numPreSmooth", 2},
 		{"gmg_numPostSmooth", 2}
 	},
-	function( name, jac_damp, gmg_approxSpace, gmg_base, gmg_baseLevel, gmg_parallelBase, gmg_smoother, gmg_cycleType, gmg_numPreSmooth, gmg_numPostSmooth )
+	function( name, jac_damp, gmg_approxSpace, gmg_disc, gmg_base, gmg_baseLevel, gmg_parallelBase, gmg_smoother, gmg_cycleType, gmg_numPreSmooth, gmg_numPostSmooth )
 		if not name then
 			print( "Specifying the name of the preconditioner is mandatory. Aborting." )
 			exit()
 		end
 		
-		print( "DBG >> Calling util.GetPreconditioner with name="..name )
+-- 		print( "DBG >> Calling util.GetPreconditioner with name="..name )
 		
 		if name == "jac" then
 			jac = Jacobi()
@@ -176,9 +177,14 @@ util.GetPreconditioner = util.CreateFancyFunction(
 				print( "Approximation space must be defined. Aborting." )
 				exit()
 			end
+			if not gmg_disc then
+				print( "WARNING: Not specifying the discretization may cause errors. Use 'gmg_disc'." )
+			end
 			
 			-- get base solver
 			if type(gmg_base) == "table" then
+-- 				print( "DBG >>   GMG Base Solver from table:" )
+-- 				util.PrintTable(gmg_base)
 				baseSolver = util.GetSolver( gmg_base )
 			elseif type(gmg_base) == "string" then
 				baseSolver = util.GetSolver( { name = gmg_base } )
@@ -188,6 +194,8 @@ util.GetPreconditioner = util.CreateFancyFunction(
 			
 			-- get Smoother
 			if type(gmg_smoother) == "table" then
+-- 				print( "DBG >>   GMG Smoother from table:" )
+-- 				util.PrintTable(gmg_smoother)
 				smoother = util.GetPreconditioner( gmg_smoother )
 			elseif type(gmg_smoother) == "string" then
 				smoother = util.GetPreconditioner( { name = gmg_smoother } )
@@ -197,6 +205,7 @@ util.GetPreconditioner = util.CreateFancyFunction(
 			
 			-- Geometric Multi-Grid
 			gmg = GeometricMultiGrid( gmg_approxSpace )
+			if gmg_disc then gmg:set_discretization( gmg_disc ) end
 			gmg:set_base_level( gmg_baseLevel )
 			gmg:set_parallel_base_solver( gmg_parallelBase )
 			gmg:set_base_solver( baseSolver )
@@ -223,7 +232,7 @@ util.GetConvCheck = util.CreateFancyFunction(
 		{"minDef", 1e-7}
 	},
 	function( default, maxSteps, reduction, minDef )
-		print( "DBG >> Call util.GetConvCheck with maxSteps="..maxSteps..", reduction="..reduction..", minDef="..minDef )
+-- 		print( "DBG >> Calling util.GetConvCheck with maxSteps="..maxSteps..", reduction="..reduction..", minDef="..minDef )
 		
 		convCheck = ConvCheck()
 		convCheck:set_maximum_steps( maxSteps )
@@ -248,10 +257,12 @@ util.GetSolver = util.CreateFancyFunction(
 			exit()
 		end
 		
-		print( "DBG >> Calling util.GetSolver with name="..name )
+-- 		print( "DBG >> Calling util.GetSolver with name="..name )
 		
 		-- get preconditioner
 		if type(precond) == "table" then
+-- 			print( "DBG >>   Preconditioner from table:" )
+-- 			util.PrintTable(precond)
 			precondObj = util.GetPreconditioner( precond )
 		elseif type(precond) == "string" then
 			precondObj = util.GetPreconditioner( { name = precond } )
@@ -261,26 +272,31 @@ util.GetSolver = util.CreateFancyFunction(
 		
 		-- get convergence check
 		if convCheck == "default" then
-			convCheck = util.GetConvCheck( { default = true } )
+			convCheckObj = util.GetConvCheck( { default = true } )
 		elseif type(convCheck) == "table" then
+-- 			print( "DBG >>   ConvergenceCheck from table:" )
+-- 			util.PrintTable(convCheck)
 			convCheckObj = util.GetConvCheck( convCheck )
 		else
 			convCheckObj = convCheck
 		end
 		
 		if name == "linear" then
+-- 			print( "DBG >>   Creating linear solver" )
 			linSolver = LinearSolver()
 			linSolver:set_preconditioner( precondObj )
 			linSolver:set_convergence_check( convCheckObj )
 			return linSolver
 
 		elseif name == "bicgstab" then
+-- 			print( "DBG >>   Creating BiCGStab solver" )
 			bicgstab = BiCGStab()
 			bicgstab:set_preconditioner( precondObj )
 			bicgstab:set_convergence_check( convCheckObj )
 			return bicgstab
 
 		elseif name == "lu" then
+-- 			print( "DBG >>   Creating LU solver" )
 			return LU()
 		end
 	end
