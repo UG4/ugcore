@@ -14,7 +14,7 @@
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/common/local_algebra.h"
-#include "lib_disc/dof_manager/grid_level.h"
+#include "lib_grid/tools/grid_level.h"
 #include "dof_distribution_info.h"
 
 #ifdef UG_PARALLEL

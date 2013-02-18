@@ -9,7 +9,7 @@
 
 #include "lib_grid/tools/bool_marker.h"
 #include "lib_grid/tools/selector_grid.h"
-#include "lib_disc/dof_manager/grid_level.h"
+#include "lib_grid/tools/grid_level.h"
 
 namespace ug{
 

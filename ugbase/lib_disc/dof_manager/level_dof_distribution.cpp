@@ -88,7 +88,7 @@ void LevelMGDoFDistribution::redistribute_dofs()
 
 	for(int l = 0; l < num_levels(); ++l){
 		if(m_managingDoFDists[l])
-			m_managingDoFDists[l]->resize_values(num_indices(l));
+			m_managingDoFDists[l]->resize_values(num_indices(GridLevel(l, GridLevel::LEVEL, true)));
 	}
 }
 
@@ -114,11 +114,11 @@ void LevelMGDoFDistribution::create_layouts_and_communicator(int l)
 //	the subcommunicator.
 
 // 	choose if this process participates
-	bool participate = !commWorld.empty() && (num_indices(l) > 0);
+	bool participate = !commWorld.empty() && (num_indices(GridLevel(l, GridLevel::LEVEL, true)) > 0);
 
 	UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 					  ": Participate = "<< participate <<
-					  " for level "<<l<<" (num_indices="<<num_indices(l)<<
+					  " for level "<<l<<" (num_indices="<<num_indices(GridLevel(l, GridLevel::LEVEL, true))<<
 					  ",!empty=" << !commWorld.empty() << ").\n");
 
 //	create process communicator for interprocess layouts
@@ -326,7 +326,8 @@ LevelDoFDistribution(SmartPtr<LevelMGDoFDistribution> spLevMGDD,
                      SmartPtr<SurfaceView> spSurfView,
                      int level)
 	: 	DoFDistributionInfoProvider(spLevMGDD->dof_distribution_info()),
-		m_level(level), m_spMGDD(spLevMGDD), m_spSurfView(spSurfView)
+	  	DoFDistribution(spLevMGDD, spSurfView, GridLevel(level, GridLevel::LEVEL, true)),
+		m_spMGDD(spLevMGDD), m_spSurfView(spSurfView)
 {
 	spLevMGDD->register_managing_dof_distribution(this, level);
 };
@@ -334,7 +335,7 @@ LevelDoFDistribution(SmartPtr<LevelMGDoFDistribution> spLevMGDD,
 LevelDoFDistribution::
 ~LevelDoFDistribution()
 {
-	m_spMGDD->register_managing_dof_distribution(NULL, m_level);
+	m_spMGDD->register_managing_dof_distribution(NULL, grid_level().level());
 }
 
 template <typename TBaseElem>
@@ -500,9 +501,9 @@ void LevelMGDoFDistribution::level_required(int level)
 void LevelDoFDistribution::
 permute_indices(const std::vector<size_t>& vIndNew)
 {
-	m_spMGDD->permute_indices(vIndNew, m_level);
+	m_spMGDD->permute_indices(vIndNew, grid_level().level());
 #ifdef UG_PARALLEL
-	m_spMGDD->create_layouts_and_communicator(m_level);
+	m_spMGDD->create_layouts_and_communicator(grid_level().level());
 #endif
 
 //	permute values in managed grid functions
@@ -514,7 +515,7 @@ defragment()
 {
 //	defragment
 	std::vector<std::pair<size_t,size_t> > vReplaced;
-	m_spMGDD->defragment(vReplaced, m_level);
+	m_spMGDD->defragment(vReplaced, grid_level().level());
 
 //	adapt managed vectors
 	if(!vReplaced.empty())
@@ -524,7 +525,7 @@ defragment()
 	resize_values(num_indices());
 
 #ifdef UG_PARALLEL
-	m_spMGDD->create_layouts_and_communicator(m_level);
+	m_spMGDD->create_layouts_and_communicator(grid_level().level());
 #endif
 }
 

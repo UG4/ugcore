@@ -9,6 +9,7 @@
 #define LEVEL_DOF_DISTRIBUTION_H_
 
 #include "mg_dof_distribution.h"
+#include "dof_distribution.h"
 #include "managing_dof_distribution.h"
 #include "lib_disc/domain_traits.h"
 
@@ -103,10 +104,16 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 
 	protected:
 		///	returns the number of indices on whole level
-		size_t num_indices(const int lev) const {return m_vLev[lev].numIndex;}
+		size_t num_indices(const GridLevel& gl) const {
+			UG_ASSERT(gl.type() == GridLevel::LEVEL, "Not level.");
+			return m_vLev[gl.level()].numIndex;
+		}
 
 		///	returns the number of indices on a level and a subset
-		size_t num_indices(const int lev, const int si) const {return m_vLev[lev].vNumIndexOnSubset[si];}
+		size_t num_indices(const GridLevel& gl, const int si) const {
+			UG_ASSERT(gl.type() == GridLevel::LEVEL, "Not level.");
+			return m_vLev[gl.level()].vNumIndexOnSubset[si];
+		}
 
 		///	permutes the indices on a grid level
 		void permute_indices(const std::vector<size_t>& vNewInd, int lev);
@@ -142,25 +149,9 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 
 
 class LevelDoFDistribution : public DoFDistributionInfoProvider,
-							 public ManagingDoFDistribution
+							 public ManagingDoFDistribution,
+							 public DoFDistribution
 {
-	public:
-		template <typename TElem>
-		struct traits
-		{
-			typedef TElem geometric_object;
-			typedef typename SurfaceView::traits<TElem>::iterator iterator;
-			typedef typename SurfaceView::traits<TElem>::const_iterator const_iterator;
-		};
-
-		template <int dim>
-		struct dim_traits
-		{
-			typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-			typedef typename SurfaceView::traits<geometric_base_object>::iterator iterator;
-			typedef typename SurfaceView::traits<geometric_base_object>::const_iterator const_iterator;
-		};
-
 	public:
 	///	constructor
 		LevelDoFDistribution(SmartPtr<LevelMGDoFDistribution> spLevMGDD,
@@ -169,62 +160,19 @@ class LevelDoFDistribution : public DoFDistributionInfoProvider,
 
 		virtual ~LevelDoFDistribution();
 
-	///	returns grid level
-		GridLevel grid_level() const {return GridLevel(m_level, GridLevel::LEVEL);}
-
 	///	returns multigrid
 		const MultiGrid& multi_grid() const {return *m_spSurfView->subset_handler()->multi_grid();}
 
-
-	///	returns if dofs are grouped
-		bool grouped() const {return m_spMGDD->grouped();}
-
-	///	returns blocksize
-		std::string blocksize() const {return m_spMGDD->blocksize();}
-
-		///////////////////////////////////////
-		// Element Access
-		///////////////////////////////////////
-
-	/// iterator for elements where dofs are defined
-	/// \{
-		template <typename TElem>
-		typename traits<TElem>::iterator begin() {return m_spSurfView->level_begin<TElem>(m_level, true);}
-
-		template <typename TElem>
-		typename traits<TElem>::iterator end() {return m_spSurfView->level_end<TElem>(m_level, true);}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator begin() const {return m_spSurfView->level_begin<TElem>(m_level, true);}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator end() const {return m_spSurfView->level_end<TElem>(m_level, true);}
-	///	\}
-
-	/// iterator for elements where dofs are defined
-	/// \{
-		template <typename TElem>
-		typename traits<TElem>::iterator begin(int si) {return m_spSurfView->level_begin<TElem>(si, m_level, true);}
-
-		template <typename TElem>
-		typename traits<TElem>::iterator end(int si) {return m_spSurfView->level_end<TElem>(si, m_level, true);}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator begin(int si) const {return m_spSurfView->level_begin<TElem>(si, m_level, true);}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator end(int si) const {return m_spSurfView->level_end<TElem>(si, m_level, true);}
-	///	\}
 
 		///////////////////////////////////////
 		// Index Access
 		///////////////////////////////////////
 
 	/// return the number of dofs distributed
-		size_t num_indices() const {return m_spMGDD->num_indices(m_level);}
+		size_t num_indices() const {return m_spMGDD->num_indices(grid_level());}
 
 	/// return the number of dofs distributed on subset si
-		size_t num_indices(int si) const {return m_spMGDD->num_indices(m_level, si);}
+		size_t num_indices(int si) const {return m_spMGDD->num_indices(grid_level(), si);}
 
 	///	returns adjacency graph if available
 		virtual bool get_connections(std::vector<std::vector<size_t> >& vvConnection) const;
@@ -239,8 +187,8 @@ class LevelDoFDistribution : public DoFDistributionInfoProvider,
 		template <typename TBaseElem>
 		void get_connections(std::vector<std::vector<size_t> >& vvConnection) const;
 
-		LevInfo<>& lev_info() {return m_spMGDD->lev_info(m_level);}
-		const LevInfo<>& lev_info() const {return m_spMGDD->lev_info(m_level);}
+		LevInfo<>& lev_info() {return m_spMGDD->lev_info(grid_level().level());}
+		const LevInfo<>& lev_info() const {return m_spMGDD->lev_info(grid_level().level());}
 
 #ifdef UG_PARALLEL
 	public:
@@ -283,55 +231,8 @@ class LevelDoFDistribution : public DoFDistributionInfoProvider,
 	/// \}
 #endif
 
-	public:
-	///	type of multiindices
-		typedef MGDoFDistribution::multi_index_type multi_index_type;
-
-
-	///	returns all indices of the element
-	///	\{
-		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-	/// \}
-
-	/// get multi indices (Element + Closure of Element)
-	/// \{
-		size_t multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-		size_t multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-		size_t multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-		size_t multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-	/// \}
-
-	/// get multi indices (only inner part of Element)
-	/// \{
-		size_t inner_multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-	/// \}
-
-	/// get algebra indices (Element + Closure of Element)
-	/// \{
-		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-		size_t algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-		size_t algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-		size_t algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-	/// \}
-
-	/// get algebra indices (only inner part of Element)
-	/// \{
-		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-	/// \}
 
 	protected:
-	///	level of multigrid dof distribution
-		int m_level;
-
 	///	MultiGrid Level DoF Distribution
 		SmartPtr<LevelMGDoFDistribution> m_spMGDD;
 

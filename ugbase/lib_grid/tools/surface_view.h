@@ -11,6 +11,7 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 #include "lib_grid/multi_grid.h"
+#include "lib_grid/tools/grid_level.h"
 #include "subset_handler_multi_grid.h"
 #include "lib_grid/algorithms/attachment_util.h"
 
@@ -67,6 +68,33 @@ class SurfaceView
 
 	///	number of subsets
 		int num_subsets() const {return m_spMGSH->num_subsets();}
+
+	///	iterators of grid level
+	///	\{
+		template <class TElem>
+		typename traits<TElem>::iterator begin(int si, const GridLevel& gl);
+
+		template <class TElem>
+		typename traits<TElem>::iterator end(int si, const GridLevel& gl);
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator begin(int si, const GridLevel& gl) const;
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator end(int si, const GridLevel& gl) const;
+
+		template <class TElem>
+		typename traits<TElem>::iterator begin(const GridLevel& gl);
+
+		template <class TElem>
+		typename traits<TElem>::iterator end(const GridLevel& gl);
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator begin(const GridLevel& gl) const;
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator end(const GridLevel& gl) const;
+	///	\}
 
 
 	///	iterators over whole surface grid w.r.t to level 'lvl'

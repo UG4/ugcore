@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef GRID_LEVEL_H_
-#define GRID_LEVEL_H_
+#ifndef __H__UG__LIB_GRID__TOOLS__GRID_LEVEL__
+#define __H__UG__LIB_GRID__TOOLS__GRID_LEVEL__
 
 
 namespace ug{
@@ -22,16 +22,21 @@ class GridLevel
 
 	public:
 	///	constructor creation surface grid
-		GridLevel() : m_level(TOPLEVEL), m_type(SURFACE) {}
+		GridLevel() : m_level(TOPLEVEL), m_type(SURFACE), m_bWithGhosts(false) {}
 
 	///	constructor
-		GridLevel(int level, ViewType type) : m_level(level), m_type(type) {}
+		GridLevel(int level, ViewType type, bool bWithGhosts = false)
+			: m_level(level), m_type(type), m_bWithGhosts(bWithGhosts)
+		{}
 
 	///	constructor
-		GridLevel(int level) : m_level(level), m_type(SURFACE) {}
+		GridLevel(int level)
+			: m_level(level), m_type(SURFACE), m_bWithGhosts(false)
+		{}
 
 	///	constructor
-		GridLevel(int level, const std::string& type) : m_level(level)
+		GridLevel(int level, const std::string& type)
+			: m_level(level), m_bWithGhosts(false)
 		{
 			if(type == "top") {m_type = LEVEL;}
 			else if(type == "surf") {m_type = SURFACE;}
@@ -44,9 +49,13 @@ class GridLevel
 	///	returns the type
 		ViewType type() const {return m_type;}
 
+	///	returns if ghosts are considered as part of the level
+		bool with_ghosts() const {return m_bWithGhosts;}
+
 	///	operator ==
 		bool operator==(const GridLevel& rhs) const {
-			return (this->level() == rhs.level() && this->type() == rhs.type());
+			return (this->level() == rhs.level() && this->type() == rhs.type()
+					&& this->with_ghosts() == rhs.with_ghosts());
 		}
 
 	///	operator !=
@@ -57,6 +66,7 @@ class GridLevel
 	protected:
 		int m_level; ///< the grid level
 		ViewType m_type;	 ///< type (i.e. surface or level view)
+		bool m_bWithGhosts;	///< with ghosts (only senseful in parallel)
 };
 
 /// writes to the output stream
@@ -74,4 +84,4 @@ inline std::ostream& operator<<(std::ostream& out,	const GridLevel& v)
 
 } // end namespace ug
 
-#endif /* GRID_LEVEL_H_ */
+#endif /* __H__UG__LIB_GRID__TOOLS__GRID_LEVEL__ */

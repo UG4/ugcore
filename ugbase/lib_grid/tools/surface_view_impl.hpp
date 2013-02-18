@@ -525,6 +525,106 @@ level_end(int lvl, bool withGhosts) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//	grid level iterators
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::iterator SurfaceView::
+begin(int si, const GridLevel& gl)
+{
+	if(gl.type() == GridLevel::SURFACE){
+		return surface_begin<TElem>(si, gl.level(), gl.with_ghosts());
+	}else if(gl.type() == GridLevel::LEVEL){
+		return level_begin<TElem>(si, gl.level(), gl.with_ghosts());
+	}
+	else UG_THROW("Cannot find level type.");
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::iterator SurfaceView::
+end(int si, const GridLevel& gl)
+{
+	if(gl.type() == GridLevel::SURFACE){
+		return surface_end<TElem>(si, gl.level(), gl.with_ghosts());
+	}else if(gl.type() == GridLevel::LEVEL){
+		return level_end<TElem>(si, gl.level(), gl.with_ghosts());
+	}
+	else UG_THROW("Cannot find level type.");
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
+begin(int si, const GridLevel& gl) const
+{
+	if(gl.type() == GridLevel::SURFACE){
+		return surface_begin<TElem>(si, gl.level(), gl.with_ghosts());
+	}else if(gl.type() == GridLevel::LEVEL){
+		return level_begin<TElem>(si, gl.level(), gl.with_ghosts());
+	}
+	else UG_THROW("Cannot find level type.");
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
+end(int si, const GridLevel& gl) const
+{
+	if(gl.type() == GridLevel::SURFACE){
+		return surface_end<TElem>(si, gl.level(), gl.with_ghosts());
+	}else if(gl.type() == GridLevel::LEVEL){
+		return level_end<TElem>(si, gl.level(), gl.with_ghosts());
+	}
+	else UG_THROW("Cannot find level type.");
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::iterator SurfaceView::
+begin(const GridLevel& gl)
+{
+	if(gl.type() == GridLevel::SURFACE){
+		return surface_begin<TElem>(gl.level(), gl.with_ghosts());
+	}else if(gl.type() == GridLevel::LEVEL){
+		return level_begin<TElem>(gl.level(), gl.with_ghosts());
+	}
+	else UG_THROW("Cannot find level type.");
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::iterator SurfaceView::
+end(const GridLevel& gl)
+{
+	if(gl.type() == GridLevel::SURFACE){
+		return surface_end<TElem>(gl.level(), gl.with_ghosts());
+	}else if(gl.type() == GridLevel::LEVEL){
+		return level_end<TElem>(gl.level(), gl.with_ghosts());
+	}
+	else UG_THROW("Cannot find level type.");
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
+begin(const GridLevel& gl) const
+{
+	if(gl.type() == GridLevel::SURFACE){
+		return surface_begin<TElem>(gl.level(), gl.with_ghosts());
+	}else if(gl.type() == GridLevel::LEVEL){
+		return level_begin<TElem>(gl.level(), gl.with_ghosts());
+	}
+	else UG_THROW("Cannot find level type.");
+}
+
+template <class TElem>
+typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
+end(const GridLevel& gl) const
+{
+	if(gl.type() == GridLevel::SURFACE){
+		return surface_end<TElem>(gl.level(), gl.with_ghosts());
+	}else if(gl.type() == GridLevel::LEVEL){
+		return level_end<TElem>(gl.level(), gl.with_ghosts());
+	}
+	else UG_THROW("Cannot find level type.");
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //	util fct
 ////////////////////////////////////////////////////////////////////////////////
 
