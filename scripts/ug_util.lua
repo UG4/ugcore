@@ -424,7 +424,13 @@ function util.PrintTableHelper(indexPar, valuePar)
 		util.PrintTableHelperIntend = string.sub(util.PrintTableHelperIntend, 3)
 		print(util.PrintTableHelperIntend .. "}")
 	else
-		print(util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. valuePar)
+		if type(valuePar) == "string" or type(valuePar) == "number" then
+			print(util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. valuePar )
+		elseif type(valuePar) == "boolean" then
+			print(util.PrintTableHelperIntend .. tostring(indexPar) .. " = " .. tostring(valuePar) )
+		else
+			print(util.PrintTableHelperIntend .. "type(" .. tostring(indexPar) .. ") = " .. type(valuePar) )
+		end
 	end
 end
 
