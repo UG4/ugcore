@@ -107,7 +107,7 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 		for(int i = 0; i < globMaxLevel; ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
 			bSuccess &= pcl::TestLayout<VrtLevelLayout, TValue>(procCom, comVrt, masterLayout.layout_on_level(i),
-											slaveLayout.layout_on_level(i), true, toPosVrt, true);
+											slaveLayout.layout_on_level(i), false, toPosVrt, true);
 		}
 	}
 
@@ -122,7 +122,7 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 		for(int i = 0; i < globMaxLevel; ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
 			bSuccess &= pcl::TestLayout<VrtLevelLayout, TValue>(procCom, comVrt, masterLayout.layout_on_level(i),
-											slaveLayout.layout_on_level(i), true, toPosVrt, true);
+											slaveLayout.layout_on_level(i), false, toPosVrt, true);
 		}
 	}
 
@@ -144,7 +144,7 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 		for(int i = 0; i < globMaxLevel; ++i){
 			UG_LOG("Testing EdgeLayout on level " << i << ":" << endl);
 			bSuccess &= pcl::TestLayout<EdgeLevelLayout, TValue>(procCom, comEdge, masterLayout.layout_on_level(i),
-											slaveLayout.layout_on_level(i), true, toPosEdge, true);
+											slaveLayout.layout_on_level(i), false, toPosEdge, true);
 		}
 	}
 
@@ -159,7 +159,7 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 		for(int i = 0; i < globMaxLevel; ++i){
 			UG_LOG("Testing EdgeLayout on level " << i << ":" << endl);
 			bSuccess &= pcl::TestLayout<EdgeLevelLayout, TValue>(procCom, comEdge, masterLayout.layout_on_level(i),
-											slaveLayout.layout_on_level(i), true, toPosEdge, true);
+											slaveLayout.layout_on_level(i), false, toPosEdge, true);
 		}
 	}
 

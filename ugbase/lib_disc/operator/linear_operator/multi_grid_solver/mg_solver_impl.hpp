@@ -412,9 +412,12 @@ prolongation(size_t lev)
 
 //	PARALLEL CASE: Receive values of correction for vertical slaves
 //	If there are vertical slaves/masters on the coarser level, we now copy
-//	the correction values from the master DoFs to the slave	DoFs.
+//	the correction values from the v-master DoFs to the v-slave	DoFs.
+//	since dummies may exist, we'll copy the broadcasted correction to h-slave
+//	interfaces (dummies are always h-slaves)
 	#ifdef UG_PARALLEL
-	broadcast_vertical(tmp);
+		broadcast_vertical(tmp);
+		//copy_to_horizontal_slaves(tmp);
 	#endif
 	write_level_debug(tmp, "GMG_Prol_CoarseGridCorr", lev);
 
@@ -435,7 +438,7 @@ prolongation(size_t lev)
 //	that v-masters have the whole value and v-slaves are all 0 (in d. sd may differ).
 //	we thus have to transport all values back to v-slaves and have to make sure
 //	that d is additive again.
-	//write_level_debug(m_vLevData[lev]->d, "GMG_Prol_BeforeBroadcast", lev);
+	write_level_debug(m_vLevData[lev]->d, "GMG_Prol_BeforeBroadcast", lev);
 	#ifdef UG_PARALLEL
 	//todo:	only necessary if v-interfaces are present on this level (globally)
 		d.change_storage_type(PST_CONSISTENT);
@@ -445,7 +448,7 @@ prolongation(size_t lev)
 	//	not strictly necessary.
 		m_vLevData[lev]->copy_defect_to_smooth_patch();
 	#endif
-	//write_level_debug(m_vLevData[lev]->d, "GMG_Prol_AfterBroadcast", lev);
+	write_smooth_level_debug(sd, "GMG_Def_Prol_BeforeUpdate", lev);
 
 //	the correction has changed c := c + t. Thus, we also have to update
 //	the defect d := d - A*t
@@ -507,7 +510,7 @@ prolongation(size_t lev)
 			d.change_storage_type(PST_ADDITIVE);
 			m_vLevData[lev]->copy_defect_to_smooth_patch();
 		#endif
-		write_level_debug(d, "GMG_Def_Prolongated", lev);
+		write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_Prolongated", lev);
 		//write_level_debug(cTmp, "GMG_Prol_CorrAdaptAdding", lev-1);
 	}
 
@@ -535,6 +538,10 @@ postsmooth(size_t lev)
 
 
 // 	## POST-SMOOTHING
+//	before we smooth, we want to make sure that sd is additive unique. This
+//	results in dummies having value 0.
+	//sd.change_storage_type(PST_UNIQUE);
+
 //	We smooth the updated defect again. This means that we compute a
 //	correction c, such that the defect is "smoother".
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
@@ -623,10 +630,14 @@ base_solve(size_t lev)
 
 			//	copy back to whole grid
 				m_vLevData[lev]->copy_defect_from_smooth_patch(true);
+				#ifdef UG_PARALLEL
+					write_level_debug(d, "GMG_Def_AfterBaseSolver", lev);
+				#endif
 			}
 
 		//	PROJECT CORRECTION BACK TO WHOLE GRID FOR PROLONGATION
 			m_vLevData[lev]->copy_correction_from_smooth_patch(true);
+			write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterBaseSolver", lev);
 			GMG_PROFILE_END();
 		}
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting serial basesolver branch.\n");
@@ -688,9 +699,9 @@ base_solve(size_t lev)
 			d.set_storage_type(PST_CONSISTENT);
 			broadcast_vertical(d);
 			d.change_storage_type(PST_ADDITIVE);
+			write_level_debug(d, "GMG_Def_AfterBaseSolver", lev);
 		}
 
-		write_level_debug(d, "GMG_Def_AfterBaseSolver", lev);
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting parallel basesolver branch.\n");
 	}
 #endif
@@ -719,12 +730,12 @@ lmgc(size_t lev)
 		{
 			m_vLevData[lev]->c.set(0.0); // <<<< only for debug
 		//	UG_LOG("Before presmooth:\n");	log_level_data(lev);
-			write_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePreSmooth", lev);
-			write_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePreSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_BeforePreSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_BeforePreSmooth", lev);
 			if(!presmooth(lev))
 				return false;
-			write_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPreSmooth", lev);
-			write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPreSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_AfterPreSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_AfterPreSmooth", lev);
 
 		//	UG_LOG("Before restriction:\n");	log_level_data(lev);
 			if(!restriction(lev))
@@ -745,12 +756,12 @@ lmgc(size_t lev)
 		//	UG_LOG("Before postsmooth:\n");	log_level_data(lev);
 		//	note that the correction and defect at this time is are stored in
 		//	the smooth-vectors only, if v-masters are present...
-			write_smooth_level_debug(m_vLevData[lev]->d, "GMG_Def_BeforePostSmooth", lev);
-			write_smooth_level_debug(m_vLevData[lev]->c, "GMG_Cor_BeforePostSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_BeforePostSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_BeforePostSmooth", lev);
 			if(!postsmooth(lev))
 				return false;
-			write_smooth_level_debug(m_vLevData[lev]->d, "GMG_Def_AfterPostSmooth", lev);
-			write_smooth_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterPostSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_AfterPostSmooth", lev);
+			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_AfterPostSmooth", lev);
 
 		//	UG_LOG("After postsmooth:\n");	log_level_data(lev);
 		}
@@ -2065,21 +2076,61 @@ gather_vertical(vector_type& d)
 //	send vertical-slaves -> vertical-masters
 //	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
-	ComPol_VecAdd<vector_type> cpVecAdd(&d);
+
 	if(!d.vertical_slave_layout().empty()){
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		  " Going down: SENDS vert. dofs.\n");
 
-	//	schedule Sending of DoFs of vertical slaves
-		m_Com.send_data(d.vertical_slave_layout(), cpVecAdd);
+	//	there may be v-slaves with multiple v-masters. We only want to send
+	//	a fraction to each master, to keep d additive.
+	//	count number of occurrances in v-interfaces
+		bool multiOccurance = false;
+		vector_type occurence;
+		IndexLayout& layout = d.vertical_slave_layout();
+
+		if(layout.num_interfaces() > 1){
+			occurence.resize(d.size());
+			occurence.set(0);
+			occurence.copy_storage_type(d);
+			for(IndexLayout::iterator iiter = layout.begin();
+				iiter != layout.end(); ++iiter)
+			{
+				IndexLayout::Interface& itfc = layout.interface(iiter);
+				for(IndexLayout::Interface::iterator iter = itfc.begin();
+					iter != itfc.end(); ++iter)
+				{
+					IndexLayout::Interface::Element& index = itfc.get_element(iter);
+
+					occurence[index] += 1;
+					if(occurence[index] > 1)
+						multiOccurance = true;
+				}
+			}
+
+		}
+		if(multiOccurance){
+		//	we'll copy adjusted values from d to the occurances vector
+			for(size_t i = 0; i < occurence.size(); ++i){
+				if(occurence[i] > 0) // others can be ignored since not communicated anyways
+					occurence[i] = d[i] / occurence[i];
+			}
+			ComPol_VecAdd<vector_type> cpVecAdd(&occurence);
+			m_Com.send_data(d.vertical_slave_layout(), cpVecAdd);
+		}
+		else{
+		//	schedule Sending of DoFs of vertical slaves
+			ComPol_VecAdd<vector_type> cpVecAdd(&d);
+			m_Com.send_data(d.vertical_slave_layout(), cpVecAdd);
+		}
 	}
 
+	ComPol_VecAdd<vector_type> cpVecAddRcv(&d); // has to exist until communicate was executed
 	if(!d.vertical_master_layout().empty()){
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
 
 	//	schedule Receive of DoFs on vertical masters
-		m_Com.receive_data(d.vertical_master_layout(), cpVecAdd);
+		m_Com.receive_data(d.vertical_master_layout(), cpVecAddRcv);
 	}
 
 //	perform communication
@@ -2218,6 +2269,30 @@ broadcast_vertical(vector_type& t)
 	GMG_PROFILE_END();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - broadcast_vertical\n");
 }
+
+template <typename TDomain, typename TAlgebra>
+void
+AssembledMultiGridCycle<TDomain, TAlgebra>::
+copy_to_horizontal_slaves(vector_type& c)
+{
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_horizontal_slaves\n");
+	PROFILE_FUNC_GROUP("gmg");
+//	send vertical-masters -> vertical-slaves
+//	one proc may not have both, a vertical-slave- and vertical-master-layout.
+	GMG_PROFILE_BEGIN(GMG_CopyToHorizontalSlaves);
+	ComPol_VecCopy<vector_type> cpVecCopy(&c);
+	if(!c.slave_layout().empty())
+		m_Com.receive_data(c.slave_layout(), cpVecCopy);
+
+	if(!c.master_layout().empty())
+		m_Com.send_data(c.master_layout(), cpVecCopy);
+
+//	communicate
+	m_Com.communicate();
+	GMG_PROFILE_END();
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_horizontal_slaves\n");
+}
+
 #endif
 
 template <typename TDomain, typename TAlgebra>

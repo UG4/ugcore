@@ -26,6 +26,7 @@ enum InterfaceStates{
 	IS_VMASTER = 1<<1,
 	IS_VSLAVE = 1<<2,
 	IS_DUMMY = 1<<3,
+	HAS_PARENT = 1<<4 // only used for dummies currently
 };
 
 
@@ -203,6 +204,13 @@ static void SynchronizeDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
 
 	compolSync.enable_merge(false);
 	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolSync);
+	com.communicate();
+
+//	if an element is a mulit-v-master, all v-master copies are connected to
+//	all v-slave copies. However, multi-v-masters are not connected with one another
+//	through h-interfaces. That's a pitty and requires this triple communication
+	compolSync.enable_merge(true);
+	com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolSync);
 	com.communicate();
 
 	compolSync.enable_merge(true);
@@ -940,8 +948,8 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 //	select associated constraining elements first, since they may reference
 //	additional unselected constrained elements.
 	SelectAssociatedConstrainingElements(msel, IS_DUMMY);
-	SelectAssociatedConstrainedElements(msel, IS_DUMMY);
-	SelectChildrenOfSelectedShadowVertices(msel, IS_DUMMY);
+	SelectAssociatedConstrainedElements(msel, IS_DUMMY | HAS_PARENT);
+	SelectChildrenOfSelectedShadowVertices(msel, IS_DUMMY | HAS_PARENT);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1056,12 +1064,17 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			byte localInterfaceState = 0;
 			int minProc = pcl::GetNumProcesses();
 			int minVMasterProc = pcl::GetNumProcesses();
+			int minNormalProc = pcl::GetNumProcesses();
 		//	the lowest proc which holds a v-slave or a normal entry.
 		//	dummies are ignored here, since we don't want them to be h-masters.
 			int minRegularHMasterProc = pcl::GetNumProcesses();
 			bool isVMaster = false;
 			bool isVSlave = false;
+			bool isNormal = false;
+			bool isDummy = false;
+
 			bool vMasterExists = false;
+			bool dummyExists = false;
 			//bool isDummy = false;
 			//bool isNormal = false;
 			bool createNormalHInterface = false;
@@ -1099,25 +1112,29 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 				if(tpi.interfaceState & (IS_NORMAL)){
 					createNormalHInterface = true;
-					if(tpi.procID < minRegularHMasterProc)
+					if(tpi.procID < minRegularHMasterProc){
 						minRegularHMasterProc = tpi.procID;
-					//if(tpi.procID == localProcID)
-					//	isNormal = true;
+						minNormalProc = tpi.procID;
+					}
+					if(tpi.procID == localProcID)
+						isNormal = true;
 				}
 
 				if(tpi.interfaceState & (IS_DUMMY)){
 					createNormalHInterface = true;
+					dummyExists = true;
+					if(tpi.procID == localProcID)
+						isDummy = true;
 
-				//	if you want to have dummies, which are h-masters, then
+				//	if you don't want to have dummies, which are h-masters, then
 				//	remove the following lines
-					if(tpi.procID < minRegularHMasterProc)
-						minRegularHMasterProc = tpi.procID;
+//					if(tpi.procID < minRegularHMasterProc)
+//						minRegularHMasterProc = tpi.procID;
 
 				}
 				if(tpi.procID < minProc)
 					minProc = tpi.procID;
 			}
-
 
 		//	in some situations, lower dimensional elements can be marked as a
 		//	vmaster and a vslave at the same time. we will generate the vmaster
@@ -1130,7 +1147,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 			//	adjacent normal full-dimensional elements should thus exist and a
 			//	horizontal interface has to be built.
-				//createNormalHInterface = true;
+				createNormalHInterface = true;
 			}
 			else if((!(isVMaster || isVSlave)) && vMasterExists){
 			//	check whether a vmaster copy exists. If this is the case,
@@ -1141,11 +1158,15 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				isVSlave = true;
 			}
 
+		//	dummies are only required where no normal or slave state is set
+			if(isDummy && (isNormal || isVSlave))
+				isDummy = false;
+
 		//	there only may be one v-master copy
-			if(isVMaster && (localProcID != minVMasterProc)){
-				isVMaster = false;
-				isVSlave = true;
-			}
+//			if(isVMaster && (localProcID != minVMasterProc)){
+//				isVMaster = false;
+//				isVSlave = true;
+//			}
 
 		//	if this condition is fulfilled, some kind of h-interface will be built
 			//bool createHInterface = createNormalHInterface || (numVSlaveProcs > 1);
@@ -1157,34 +1178,38 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 				bool tpIsVMaster = (tpi.interfaceState & IS_VMASTER);
 				bool tpIsVSlave = (tpi.interfaceState & IS_VSLAVE);
+				bool tpIsNormal = (tpi.interfaceState & IS_NORMAL);
+				bool tpiIsDummy = (tpi.interfaceState & IS_DUMMY);
+
 
 				if(tpIsVMaster && tpIsVSlave){
 					if(tpi.procID == minVMasterProc)
 						tpIsVSlave = false;
 					else
 						tpIsVMaster = false;
+
+					createNormalHInterface = true;
 				}
 				else if((!(tpIsVMaster || tpIsVSlave)) && vMasterExists){
 					tpIsVSlave = true;
 				}
 
-				if(tpIsVMaster && (tpi.procID != minVMasterProc)){
-					tpIsVMaster = false;
-					tpIsVSlave = true;
-				}
+				if(tpiIsDummy && (tpIsNormal || tpIsVSlave))
+					tpiIsDummy = false;
+//				if(tpIsVMaster && (tpi.procID != minVMasterProc)){
+//					tpIsVMaster = false;
+//					tpIsVSlave = true;
+//				}
 
 				bool interfaceCreated = false;
 
 			//	add entry to vertical interface if necessary
 				//if(isVSlave && (tpi.procID == minVMasterProc)){
 				if(isVSlave && tpIsVMaster){
-					//UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
-						glm.get_layout<TElem>(INT_V_SLAVE).
-							interface(tpi.procID, lvl).push_back(e);
+					glm.get_layout<TElem>(INT_V_SLAVE).
+						interface(tpi.procID, lvl).push_back(e);
 				}
 				else if(isVMaster && tpIsVSlave){
-					//UG_ASSERT(!isDummy, "A dummy element should never lie in a v-interface");
-					//UG_ASSERT(!isVSlave, "A v-master element should never also be a v-slave");
 					glm.get_layout<TElem>(INT_V_MASTER).
 						interface(tpi.procID, lvl).push_back(e);
 
@@ -1207,9 +1232,9 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 					if(localProcID == minRegularHMasterProc){
 					//	horizontal master
+						interfaceCreated = true;
 						glm.get_layout<TElem>(INT_H_MASTER).
 							interface(tpi.procID, lvl).push_back(e);
-						interfaceCreated = true;
 					}
 					else if(tpi.procID == minRegularHMasterProc){
 					//	horizontal slave
@@ -1222,7 +1247,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 //					}
 				}
 
-				//	add entry to horizontal interface if necessary
+			//	add entry to horizontal interface if necessary
 				if(!interfaceCreated && createNormalHInterface){
 					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
 
@@ -1250,8 +1275,26 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 						}
 					}
 				}
-				//else if((localInterfaceState != IS_VMASTER) &&(numVSlaveProcs > 1)){
-				//else if(numVSlaveProcs > 1){
+
+			//	finally we have to make sure, that dummies which do not have a parent
+			//	are v-slaves.
+				if(dummyExists && (!vMasterExists)){
+				//	the lowest normal process will be transformed to a v-master
+					UG_ASSERT(minNormalProc < pcl::GetNumProcesses(), "invalid minNormalProc!");
+
+					if(isDummy && (!(localInterfaceState & HAS_PARENT))
+						&& (tpi.procID == minNormalProc))
+					{
+						glm.get_layout<TElem>(INT_V_SLAVE).
+								interface(tpi.procID, lvl).push_back(e);
+					}
+					else if(tpiIsDummy && (!(tpi.interfaceState & HAS_PARENT))
+							&& (localProcID == minNormalProc))
+					{
+						glm.get_layout<TElem>(INT_V_MASTER).
+								interface(tpi.procID, lvl).push_back(e);
+					}
+				}
 			}
 		}
 	}

@@ -554,6 +554,9 @@ class AssembledMultiGridCycle :
 	 */
 		void broadcast_vertical(vector_type& t);
 
+	///	copies values from h-masters to h-slaves
+		void copy_to_horizontal_slaves(vector_type& c);
+
 	/// communicator
 		pcl::InterfaceCommunicator<IndexLayout> m_Com;
 #endif

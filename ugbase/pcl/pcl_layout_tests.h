@@ -175,7 +175,7 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 			{
 				broken =true;
 				TValue value = cbToValue(interface.get_element(iter2));
-				if(bPrint) {	UG_LOG("      " << std::setw(9) << value << " <-> " << "BROKEN!" << std::endl); }
+				UG_LOG("      " << std::setw(9) << value << " <-> " << "BROKEN!" << std::endl);
 			}
 			else
 			{
@@ -187,13 +187,12 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 					mismatch = (val1 != val2);
 				}
 
-				if(bPrint){
-					if(mismatch){
-						UG_LOG("        " << std::setw(9) << val1 << " <-> " << val2 << "  --- MISMATCH! ---\n");
-					}
-					else{
-						UG_LOG("        " << std::setw(9) << val1 << " <-> " << val2 << "\n");
-					}
+				if(mismatch){
+					UG_LOG("        " << std::setw(9) << val1 << " <-> " << val2 << "  --- MISMATCH! ---"
+							<< " (interface to proc " << pid << ")" << std::endl);
+				}
+				else if(bPrint){
+					UG_LOG("        " << std::setw(9) << val1 << " <-> " << val2 << "\n");
 				}
 
 				valueMismatch |= mismatch;
@@ -206,7 +205,8 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 			broken = true;
 			TValue value; Deserialize(buffer, value);
 
-			if(bPrint) { UG_LOG(" BROKEN! -> " << std::setw(9) << value << std::endl); }
+			UG_LOG(" BROKEN! -> " << std::setw(9) << value
+					<< " (interface to proc " << pid << ")" << std::endl);
 		}
 
 		if(broken)
