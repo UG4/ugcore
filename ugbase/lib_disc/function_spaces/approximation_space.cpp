@@ -332,7 +332,7 @@ print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 {
 #ifdef UG_PARALLEL
 //	Get Process communicator;
-	const pcl::ProcessCommunicator& pCom = dd->process_communicator();
+	const pcl::ProcessCommunicator& pCom = dd->layouts().proc_comm();
 
 //	hack since pcl does not support much constness
 	TDD* nonconstDD = const_cast<TDD*>(dd.get());
@@ -346,14 +346,14 @@ print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 //				number of DoFs by counting. If there are vert. master dofs
 //				we need to remove doubles when counting.
 	int numMasterDoF;
-	if(NumIndices(dd->vertical_master_layout()) > 0)
+	if(NumIndices(dd->layouts().vertical_master()) > 0)
 	{
 	//	create vector of vertical masters and horiz. slaves, since those are
 	//	not reguarded as masters on the dd. All others are masters. (Especially,
 	//	also vertical slaves are masters w.r.t. computing like smoothing !!)
 		std::vector<IndexLayout::Element> vIndex;
-		CollectElements(vIndex, nonconstDD->vertical_master_layout());
-		CollectElements(vIndex, nonconstDD->slave_layout(), false);
+		CollectElements(vIndex, nonconstDD->layouts().vertical_master());
+		CollectElements(vIndex, nonconstDD->layouts().slave(), false);
 
 	//	sort vector and remove doubles
 		std::sort(vIndex.begin(), vIndex.end());
@@ -363,7 +363,7 @@ print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 	//	now remove all horizontal masters, since they are still master though
 	//	in the vert master interface
 		std::vector<IndexLayout::Element> vIndex2;
-		CollectElements(vIndex2, nonconstDD->master_layout());
+		CollectElements(vIndex2, nonconstDD->layouts().master());
 		for(size_t i = 0; i < vIndex2.size(); ++i)
 			vIndex.erase(std::remove(vIndex.begin(), vIndex.end(), vIndex2[i]),
 			             vIndex.end());
@@ -374,7 +374,7 @@ print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
 	else
 	{
 	//	easy case: only subtract masters from slaves
-		numMasterDoF = dd->num_indices() - NumIndices(dd->slave_layout());
+		numMasterDoF = dd->num_indices() - NumIndices(dd->layouts().slave());
 	}
 
 //	global and local values
@@ -556,10 +556,10 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 template <typename TDD>
 static void PrintLayoutStatistic(ConstSmartPtr<TDD> dd)
 {
-	UG_LOG(std::setw(8) << NumIndices(dd->master_layout()) <<" | ");
-	UG_LOG(std::setw(8) << NumIndices(dd->slave_layout()) <<" | ");
-	UG_LOG(std::setw(12) << NumIndices(dd->vertical_master_layout()) <<" | ");
-	UG_LOG(std::setw(12) << NumIndices(dd->vertical_slave_layout()));
+	UG_LOG(std::setw(8) << NumIndices(dd->layouts().master()) <<" | ");
+	UG_LOG(std::setw(8) << NumIndices(dd->layouts().slave()) <<" | ");
+	UG_LOG(std::setw(12) << NumIndices(dd->layouts().vertical_master()) <<" | ");
+	UG_LOG(std::setw(12) << NumIndices(dd->layouts().vertical_slave()));
 }
 #endif
 

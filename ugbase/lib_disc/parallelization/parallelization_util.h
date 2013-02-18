@@ -334,10 +334,10 @@ template <typename TMatrix, typename TDD>
 void CopyLayoutsAndCommunicatorIntoMatrix(ParallelMatrix<TMatrix>& mat,
                                           TDD& dd)
 {
-	mat.set_layouts(dd.master_layout(), dd.slave_layout());
+	mat.set_layouts(dd.layouts().master(), dd.layouts().slave());
 
-	mat.set_communicator(dd.communicator());
-	mat.set_process_communicator(dd.process_communicator());
+	mat.set_communicator(dd.layouts().comm());
+	mat.set_process_communicator(dd.layouts().proc_comm());
 }
 
 /// copies all needed parallel informations into a parallel vector
@@ -355,15 +355,15 @@ void CopyLayoutsAndCommunicatorIntoVector(ParallelVector<TVector>& vec,
                                           TDD& dd)
 {
 	//	copy all horizontal layouts (for all domain decomps)
-		vec.set_layouts(dd.master_layout(), dd.slave_layout());
+		vec.set_layouts(dd.layouts().master(), dd.layouts().slave());
 
 	//	copy vertical layouts
-		vec.set_vertical_layouts(dd.vertical_master_layout(),
-		                         dd.vertical_slave_layout());
+		vec.set_vertical_layouts(dd.layouts().vertical_master(),
+		                         dd.layouts().vertical_slave());
 
 	//	copy communicator
-		vec.set_communicator(dd.communicator());
-		vec.set_process_communicator(dd.process_communicator());
+		vec.set_communicator(dd.layouts().comm());
+		vec.set_process_communicator(dd.layouts().proc_comm());
 }
 
 

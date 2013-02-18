@@ -192,45 +192,14 @@ class LevelDoFDistribution : public DoFDistributionInfoProvider,
 
 #ifdef UG_PARALLEL
 	public:
-	/// returns the horizontal slave/master index layout
-	/// \{
-		const IndexLayout& master_layout() const {return lev_info().masterLayout;}
-		const IndexLayout& slave_layout() const {return lev_info().slaveLayout;}
-	/// \}
-
-	/// returns the vertical slave/master index layout
-	/// \{
-		const IndexLayout& vertical_master_layout() const {return lev_info().verticalMasterLayout;}
-		const IndexLayout& vertical_slave_layout() const {return lev_info().verticalSlaveLayout;}
-	/// \}
-
-	///	returns communicator
-	/// \{
-		const pcl::InterfaceCommunicator<IndexLayout>& communicator() const  {return lev_info().communicator;}
-		const pcl::ProcessCommunicator& process_communicator() const {return lev_info().processCommunicator;}
-	/// \}
+	///	returns the algebra layouts
+		const AlgebraLayouts& layouts() const {return lev_info().algebraLayouts;}
 
 	// \TODO: Non-const access should be private or be removed
 	public:
-	/// returns the horizontal slave/master index layout
-	/// \{
-		IndexLayout& master_layout(){return lev_info().masterLayout;}
-		IndexLayout& slave_layout()	{return lev_info().slaveLayout;}
-	/// \}
-
-	/// returns the vertical slave/master index layout
-	/// \{
-		IndexLayout& vertical_master_layout() {return lev_info().verticalMasterLayout;}
-		IndexLayout& vertical_slave_layout()  {return lev_info().verticalSlaveLayout;}
-	/// \}
-
-	///	returns communicator
-	/// \{
-		pcl::InterfaceCommunicator<IndexLayout>& communicator() {return lev_info().communicator;}
-		pcl::ProcessCommunicator& process_communicator()	{return lev_info().processCommunicator;}
-	/// \}
+	///	returns the algebra layouts
+		AlgebraLayouts& layouts() {return lev_info().algebraLayouts;}
 #endif
-
 
 	protected:
 	///	MultiGrid Level DoF Distribution

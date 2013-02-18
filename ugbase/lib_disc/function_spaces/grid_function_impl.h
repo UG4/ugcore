@@ -626,15 +626,15 @@ template <typename TDomain, typename TDD, typename TAlgebra>
 void GridFunction<TDomain, TDD, TAlgebra>::copy_layouts_into_vector()
 {
 //	copy all horizontal layouts (for all domain decomps)
-	vector_type::set_layouts(this->m_spDD->master_layout(), this->m_spDD->slave_layout());
+	vector_type::set_layouts(this->m_spDD->layouts().master(), this->m_spDD->layouts().slave());
 
 //	copy vertical layouts
-	vector_type::set_vertical_layouts(this->m_spDD->vertical_master_layout(),
-	                                  this->m_spDD->vertical_slave_layout());
+	vector_type::set_vertical_layouts(this->m_spDD->layouts().vertical_master(),
+	                                  this->m_spDD->layouts().vertical_slave());
 
 //	copy communicator
-	vector_type::set_communicator(this->m_spDD->communicator());
-	vector_type::set_process_communicator(this->m_spDD->process_communicator());
+	vector_type::set_communicator(this->m_spDD->layouts().comm());
+	vector_type::set_process_communicator(this->m_spDD->layouts().proc_comm());
 }
 
 template <typename TDomain, typename TDD, typename TAlgebra>

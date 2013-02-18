@@ -123,16 +123,16 @@ void LevelMGDoFDistribution::create_layouts_and_communicator(int l)
 
 //	create process communicator for interprocess layouts
 	level_required(l);
-	lev_info(l).processCommunicator	= commWorld.create_sub_communicator(participate);
+	lev_info(l).layouts().proc_comm() = commWorld.create_sub_communicator(participate);
 
 //  -----------------------------------
 //	CREATE INDEX LAYOUTS ON LEVEL
 //  -----------------------------------
 
-	create_index_layout(lev_info(l).masterLayout, INT_H_MASTER, l);
-	create_index_layout(lev_info(l).slaveLayout, INT_H_SLAVE, l);
-	create_index_layout(lev_info(l).verticalMasterLayout, INT_V_MASTER, l);
-	create_index_layout(lev_info(l).verticalSlaveLayout, INT_V_SLAVE, l);
+	create_index_layout(lev_info(l).layouts().master(), INT_H_MASTER, l);
+	create_index_layout(lev_info(l).layouts().slave(), INT_H_SLAVE, l);
+	create_index_layout(lev_info(l).layouts().vertical_master(), INT_V_MASTER, l);
+	create_index_layout(lev_info(l).layouts().vertical_slave(), INT_V_SLAVE, l);
 }
 
 void LevelMGDoFDistribution::create_index_layout(IndexLayout& layout,

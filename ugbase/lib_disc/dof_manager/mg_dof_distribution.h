@@ -16,18 +16,12 @@
 #include "lib_disc/common/local_algebra.h"
 #include "lib_grid/tools/grid_level.h"
 #include "dof_distribution_info.h"
-
-#ifdef UG_PARALLEL
-#include "pcl/pcl_base.h"
-#include "lib_algebra/parallelization/parallel_index_layout.h"
-#endif
+#include "lib_algebra/parallelization/algebra_layouts.h"
 
 namespace ug{
 
 ///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 // Lev Info
-///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
 struct LevInfoBase
@@ -47,41 +41,25 @@ struct LevInfoBase
 
 #ifdef UG_PARALLEL
 	public:
-///	(horizontal) master index layout
-	IndexLayout masterLayout;
+///	algebra layouts
+	AlgebraLayouts algebraLayouts;
 
-///	(horizontal) slave index layout
-	IndexLayout slaveLayout;
-
-///	vertical master index layout
-	IndexLayout verticalMasterLayout;
-
-///	vertical slave index layout
-	IndexLayout verticalSlaveLayout;
-
-///	process communicator
-	pcl::ProcessCommunicator processCommunicator;
-
-///	communicator
-	pcl::InterfaceCommunicator<IndexLayout> communicator;
+///	returns algebra layouts
+///	\{
+	const AlgebraLayouts& layouts() const 	{return algebraLayouts;}
+	AlgebraLayouts& layouts() 				{return algebraLayouts;}
+///	\}
+#endif
 
 ///	clears the struct
 	void clear()
 	{
-		masterLayout.clear();			slaveLayout.clear();
-		verticalMasterLayout.clear();	verticalSlaveLayout.clear();
-		numIndex = sizeIndexSet = 0;
-		vNumIndexOnSubset.clear();
-	}
-
-#else
-	///	clears the struct
-	void clear()
-	{
-		numIndex = sizeIndexSet = 0;
-		vNumIndexOnSubset.clear();
-	}
+#ifdef UG_PARALLEL
+		algebraLayouts.clear();
 #endif
+		numIndex = sizeIndexSet = 0;
+		vNumIndexOnSubset.clear();
+	}
 };
 
 template <typename TContainer = std::vector<size_t> >
@@ -101,9 +79,7 @@ struct LevInfo : public LevInfoBase
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 // MGDoFDistribution
-///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
 class MGDoFDistribution : public DoFDistributionInfoProvider, public GridObserver
@@ -470,9 +446,7 @@ class MGDoFDistribution : public DoFDistributionInfoProvider, public GridObserve
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 // Lev Info
-///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>

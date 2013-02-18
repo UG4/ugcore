@@ -148,18 +148,18 @@ void SurfaceDoFDistribution::create_layouts_and_communicator()
 	bool participate = !commWorld.empty() && (num_indices() > 0);
 
 //	create process communicator for interprocess layouts
-	lev_info().processCommunicator	= commWorld.create_sub_communicator(participate);
+	lev_info().layouts().proc_comm() = commWorld.create_sub_communicator(participate);
 
 //  -----------------------------------
 //	CREATE INDEX LAYOUTS ON LEVEL
 //  -----------------------------------
 
-	create_index_layout(lev_info().masterLayout, INT_H_MASTER);
-	create_index_layout(lev_info().slaveLayout, INT_H_SLAVE);
+	create_index_layout(lev_info().layouts().master(), INT_H_MASTER);
+	create_index_layout(lev_info().layouts().slave(), INT_H_SLAVE);
 
 //	no vertical layouts in surface dof distribution
-	lev_info().verticalMasterLayout.clear();
-	lev_info().verticalSlaveLayout.clear();
+	lev_info().layouts().vertical_master().clear();
+	lev_info().layouts().vertical_slave().clear();
 }
 
 void SurfaceDoFDistribution::create_index_layout(IndexLayout& layout,

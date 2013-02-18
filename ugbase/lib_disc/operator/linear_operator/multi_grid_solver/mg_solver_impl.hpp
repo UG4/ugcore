@@ -2358,7 +2358,7 @@ update(size_t lev,
 
 //	if no vertical masters, there can be no ghost and we're ready. By ghosts
 //	we denote vertical masters, that are not horizontal master/slave
-	if(spLevDD->vertical_master_layout().empty())
+	if(spLevDD->layouts().vertical_master().empty())
 	{
 		m_numSmoothIndices = numIndex;
 		return;
@@ -2375,9 +2375,9 @@ update(size_t lev,
 
 //	set the vector to -1 where vertical masters are present, the set all
 //	indices back to 1 where the index is also a horizontal master/slave
-	SetLayoutValues(&vMapGlobalToPatch, spLevDD->vertical_master_layout(), -1);
-	SetLayoutValues(&vMapGlobalToPatch, spLevDD->master_layout(), 1);
-	SetLayoutValues(&vMapGlobalToPatch, spLevDD->slave_layout(), 1);
+	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts().vertical_master(), -1);
+	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts().master(), 1);
+	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts().slave(), 1);
 
 //	now we create the two mapping:
 //	vMapGlobalToPatch: mapping (whole grid index -> patch index): the non-ghost indices
@@ -2415,8 +2415,8 @@ update(size_t lev,
 //	** 2. **: We have to create new layouts for the smoothers since on the
 //	smoothing patch the indices are labeled differently.
 //	copy layouts
-	SmoothMasterLayout = spLevDD->master_layout();
-	SmoothSlaveLayout = spLevDD->slave_layout();
+	SmoothMasterLayout = spLevDD->layouts().master();
+	SmoothSlaveLayout = spLevDD->layouts().slave();
 
 //	Replace indices in the layout with the smaller (smoothing patch) indices
 	ReplaceIndicesInLayout(SmoothMasterLayout, vMapGlobalToPatch);
@@ -2427,20 +2427,20 @@ update(size_t lev,
 	su.set_layouts(SmoothMasterLayout, SmoothSlaveLayout);
 	sd.set_layouts(SmoothMasterLayout, SmoothSlaveLayout);
 	st.set_layouts(SmoothMasterLayout, SmoothSlaveLayout);
-	sc.set_communicator(spLevDD->communicator());
-	su.set_communicator(spLevDD->communicator());
-	sd.set_communicator(spLevDD->communicator());
-	st.set_communicator(spLevDD->communicator());
-	sc.set_process_communicator(spLevDD->process_communicator());
-	su.set_process_communicator(spLevDD->process_communicator());
-	sd.set_process_communicator(spLevDD->process_communicator());
-	st.set_process_communicator(spLevDD->process_communicator());
+	sc.set_communicator(spLevDD->layouts().comm());
+	su.set_communicator(spLevDD->layouts().comm());
+	sd.set_communicator(spLevDD->layouts().comm());
+	st.set_communicator(spLevDD->layouts().comm());
+	sc.set_process_communicator(spLevDD->layouts().proc_comm());
+	su.set_process_communicator(spLevDD->layouts().proc_comm());
+	sd.set_process_communicator(spLevDD->layouts().proc_comm());
+	st.set_process_communicator(spLevDD->layouts().proc_comm());
 
 //	set the layouts in the smooth matrix
 	spSmoothMat->set_master_layout(SmoothMasterLayout);
 	spSmoothMat->set_slave_layout(SmoothSlaveLayout);
-	spSmoothMat->set_communicator(spLevDD->communicator());
-	spSmoothMat->set_process_communicator(spLevDD->process_communicator());
+	spSmoothMat->set_communicator(spLevDD->layouts().comm());
+	spSmoothMat->set_process_communicator(spLevDD->layouts().proc_comm());
 
 //	** 3. **: Since smoothing is only performed on non-ghost elements, the
 //	corresoding operator must be assembled only on those elements. So we
