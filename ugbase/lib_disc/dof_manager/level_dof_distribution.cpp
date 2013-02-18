@@ -88,7 +88,7 @@ void LevelMGDoFDistribution::redistribute_dofs()
 
 	for(int l = 0; l < num_levels(); ++l){
 		if(m_managingDoFDists[l])
-			m_managingDoFDists[l]->resize_values(num_indices(GridLevel(l, GridLevel::LEVEL, true)));
+			m_managingDoFDists[l]->resize_values(num_indices(l));
 	}
 }
 
@@ -114,11 +114,11 @@ void LevelMGDoFDistribution::create_layouts_and_communicator(int l)
 //	the subcommunicator.
 
 // 	choose if this process participates
-	bool participate = !commWorld.empty() && (num_indices(GridLevel(l, GridLevel::LEVEL, true)) > 0);
+	bool participate = !commWorld.empty() && (num_indices(l) > 0);
 
 	UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 					  ": Participate = "<< participate <<
-					  " for level "<<l<<" (num_indices="<<num_indices(GridLevel(l, GridLevel::LEVEL, true))<<
+					  " for level "<<l<<" (num_indices="<<num_indices(l)<<
 					  ",!empty=" << !commWorld.empty() << ").\n");
 
 //	create process communicator for interprocess layouts
@@ -352,7 +352,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 	std::vector<Volume*> vVols;
 
 //	Multigrid
-	MultiGrid& rMultiGrid = *const_cast<MultiGrid*>(&multi_grid());
+	MultiGrid& rMultiGrid = *const_cast<MultiGrid*>(&(*m_spMGDD->multi_grid()));
 
 // 	Iterators
 	typedef typename traits<TBaseElem>::const_iterator const_iterator;

@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef LEVEL_DOF_DISTRIBUTION_H_
-#define LEVEL_DOF_DISTRIBUTION_H_
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__LEVEL_DOF_DISTRIBUTION__
+#define __H__UG__LIB_DISC__DOF_MANAGER__LEVEL_DOF_DISTRIBUTION__
 
 #include "mg_dof_distribution.h"
 #include "dof_distribution.h"
@@ -104,15 +104,13 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 
 	protected:
 		///	returns the number of indices on whole level
-		size_t num_indices(const GridLevel& gl) const {
-			UG_ASSERT(gl.type() == GridLevel::LEVEL, "Not level.");
-			return m_vLev[gl.level()].numIndex;
+		size_t num_indices(const int lev) const {
+			return m_vLev[lev].numIndex;
 		}
 
 		///	returns the number of indices on a level and a subset
-		size_t num_indices(const GridLevel& gl, const int si) const {
-			UG_ASSERT(gl.type() == GridLevel::LEVEL, "Not level.");
-			return m_vLev[gl.level()].vNumIndexOnSubset[si];
+		size_t num_indices(const int lev, const int si) const {
+			return m_vLev[lev].vNumIndexOnSubset[si];
 		}
 
 		///	permutes the indices on a grid level
@@ -134,6 +132,12 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 		std::vector<ManagingDoFDistribution*>	m_managingDoFDists;
 
 #ifdef UG_PARALLEL
+	///	returns the algebra layouts
+		const AlgebraLayouts& layouts(const int lev) const {return lev_info(lev).algebraLayouts;}
+
+	///	returns the algebra layouts
+		AlgebraLayouts& layouts(const int lev) {return lev_info(lev).algebraLayouts;}
+
 		void create_layouts_and_communicator(int l);
 
 		void create_index_layout(IndexLayout& layout, InterfaceNodeTypes keyType, int l);
@@ -160,46 +164,35 @@ class LevelDoFDistribution : public DoFDistributionInfoProvider,
 
 		virtual ~LevelDoFDistribution();
 
-	///	returns multigrid
-		const MultiGrid& multi_grid() const {return *m_spSurfView->subset_handler()->multi_grid();}
-
-
-		///////////////////////////////////////
-		// Index Access
-		///////////////////////////////////////
-
 	/// return the number of dofs distributed
-		size_t num_indices() const {return m_spMGDD->num_indices(grid_level());}
+		size_t num_indices() const {return m_spMGDD->num_indices(grid_level().level());}
 
 	/// return the number of dofs distributed on subset si
-		size_t num_indices(int si) const {return m_spMGDD->num_indices(grid_level(), si);}
+		size_t num_indices(int si) const {return m_spMGDD->num_indices(grid_level().level(), si);}
 
 	///	returns adjacency graph if available
-		virtual bool get_connections(std::vector<std::vector<size_t> >& vvConnection) const;
+		bool get_connections(std::vector<std::vector<size_t> >& vvConnection) const;
 
 	///	renames the indices
-		virtual void permute_indices(const std::vector<size_t>& vIndNew);
+		void permute_indices(const std::vector<size_t>& vIndNew);
 
 	///	removes wholes in index set
 		void defragment();
 
-	protected:
-		template <typename TBaseElem>
-		void get_connections(std::vector<std::vector<size_t> >& vvConnection) const;
-
-		LevInfo<>& lev_info() {return m_spMGDD->lev_info(grid_level().level());}
-		const LevInfo<>& lev_info() const {return m_spMGDD->lev_info(grid_level().level());}
-
 #ifdef UG_PARALLEL
 	public:
 	///	returns the algebra layouts
-		const AlgebraLayouts& layouts() const {return lev_info().algebraLayouts;}
+		const AlgebraLayouts& layouts() const {return m_spMGDD->layouts(grid_level().level());}
 
 	// \TODO: Non-const access should be private or be removed
 	public:
 	///	returns the algebra layouts
-		AlgebraLayouts& layouts() {return lev_info().algebraLayouts;}
+		AlgebraLayouts& layouts() {return m_spMGDD->layouts(grid_level().level());}
 #endif
+
+	protected:
+		template <typename TBaseElem>
+		void get_connections(std::vector<std::vector<size_t> >& vvConnection) const;
 
 	protected:
 	///	MultiGrid Level DoF Distribution
@@ -211,4 +204,4 @@ class LevelDoFDistribution : public DoFDistributionInfoProvider,
 
 } // end namespace ug
 
-#endif /* LEVEL_DOF_DISTRIBUTION_H_ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__LEVEL_DOF_DISTRIBUTION__ */

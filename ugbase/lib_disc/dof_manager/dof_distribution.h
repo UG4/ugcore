@@ -25,6 +25,12 @@ class DoFDistribution
 			: m_spMGDD(spMGDD), m_spSurfView(spSurfView), m_level(level)
 		{}
 
+	///	returns the surface view
+		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfView;}
+
+	///	returns the multi grid
+		const MultiGrid& multi_grid() const {return *m_spSurfView->subset_handler()->multi_grid();}
+
 	///	returns grid level
 		const GridLevel& grid_level() const {return m_level;}
 
