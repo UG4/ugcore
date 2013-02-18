@@ -442,6 +442,7 @@ prolongation(size_t lev)
 //	we thus have to transport all values back to v-slaves and have to make sure
 //	that d is additive again.
 	write_level_debug(m_vLevData[lev]->d, "GMG_Prol_BeforeBroadcast", lev);
+	write_smooth_level_debug(sd, "GMG_Def_Prol_BeforeBroadcastSmooth", lev);
 	#ifdef UG_PARALLEL
 	//todo:	only necessary if v-interfaces are present on this level (globally)
 		d.change_storage_type(PST_CONSISTENT);
@@ -2116,7 +2117,7 @@ gather_vertical(vector_type& d)
 		//	we'll copy adjusted values from d to the occurances vector
 			for(size_t i = 0; i < occurence.size(); ++i){
 				if(occurence[i] > 0) // others can be ignored since not communicated anyways
-					tmp_d[i] = d[i] / occurence[i];
+					tmp_d[i] = d[i] * (1./occurence[i]);
 			}
 			ComPol_VecAdd<vector_type> cpVecAdd(&tmp_d);
 			m_Com.send_data(d.vertical_slave_layout(), cpVecAdd);
