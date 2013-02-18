@@ -50,7 +50,7 @@ class PathProvider
 	 * 					or a used defined constant starting from
 	 * 					MAX_PATH_CONSTANT + 1.
 	 */
-		static inline void set_path(int pathType, const std::string& path)
+		static inline void set_path(PathTypes pathType, const std::string& path)
 		{inst().m_map[pathType] = path;}
 
 	///	returns the path associated with the given constant.
@@ -59,7 +59,7 @@ class PathProvider
 	 * 					or a used defined constant starting from
 	 * 					MAX_PATH_CONSTANT + 1.
 	 */
-		static inline const std::string& get_path(int pathType)
+		static inline const std::string& get_path(PathTypes pathType)
 		{return inst().m_map[pathType];}
 
 	///	returns true, if the path associated with the given constant exists.
@@ -68,7 +68,7 @@ class PathProvider
 	 * 					or a used defined constant starting from
 	 * 					MAX_PATH_CONSTANT + 1.
 	 */
-		static inline bool has_path(int pathType)
+		static inline bool has_path(PathTypes pathType)
 		{return inst().m_map.find(pathType) != inst().m_map.end();}
 
 	///	returns the current path
@@ -78,7 +78,7 @@ class PathProvider
 	 * \param defPath	(optional) If the stack is empty, the path associated with
 	 * 					defPath is returned. By default defPath is set to APP_PATH.
 	 */
-		static inline const std::string& get_current_path(int defPath = APP_PATH)
+		static inline const std::string& get_current_path(PathTypes defPath = APP_PATH)
 		{
 			if(inst().m_curPaths.empty())
 				return get_path(defPath);
@@ -118,7 +118,7 @@ class PathProvider
 	 * @param absoluteFilename (out) absolute filename
 	 * @return true if file exists relative to current path
 	 */
-		static inline bool get_filename_relative_to_path(int pathType, const std::string &relativeFilename, std::string &absoluteFilename)
+		static inline bool get_filename_relative_to_path(PathTypes pathType, const std::string &relativeFilename, std::string &absoluteFilename)
 		{
 			if(inst().has_path(pathType) == false) return false;
 			absoluteFilename = inst().get_path(pathType) + "/" + relativeFilename;
@@ -136,7 +136,7 @@ class PathProvider
 		}
 
 	private:
-		std::map<int, std::string>	m_map;
+		std::map<PathTypes, std::string>	m_map;
 		std::stack<std::string>		m_curPaths;
 };
 
