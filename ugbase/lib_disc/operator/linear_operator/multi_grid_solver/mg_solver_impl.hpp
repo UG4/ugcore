@@ -373,7 +373,10 @@ prolongation(size_t lev)
 
 //	Get vectors defined on whole grid (including ghosts) on this level
 //	denote by: c = Correction, d = Defect, tmp = Help vector
-	vector_type& d = m_vLevData[lev]->d;
+	#ifdef UG_PARALLEL
+		vector_type& d = m_vLevData[lev]->d;
+	#endif
+
 	vector_type& tmp = m_vLevData[lev]->t;
 
 //	get vectors used in smoothing operations. (This is needed if vertical
@@ -2085,13 +2088,11 @@ gather_vertical(vector_type& d)
 	//	a fraction to each master, to keep d additive.
 	//	count number of occurrances in v-interfaces
 		bool multiOccurance = false;
-		vector_type occurence;
+		std::vector<number> occurence;
 		IndexLayout& layout = d.vertical_slave_layout();
 
 		if(layout.num_interfaces() > 1){
-			occurence.resize(d.size());
-			occurence.set(0);
-			occurence.copy_storage_type(d);
+			occurence.resize(d.size(), 0);
 			for(IndexLayout::iterator iiter = layout.begin();
 				iiter != layout.end(); ++iiter)
 			{
@@ -2109,12 +2110,15 @@ gather_vertical(vector_type& d)
 
 		}
 		if(multiOccurance){
+		//todo: avoid copy tmp_d if possible.
+			vector_type tmp_d(d.size());
+			tmp_d.copy_storage_type(d);
 		//	we'll copy adjusted values from d to the occurances vector
 			for(size_t i = 0; i < occurence.size(); ++i){
 				if(occurence[i] > 0) // others can be ignored since not communicated anyways
-					occurence[i] = d[i] / occurence[i];
+					tmp_d[i] = d[i] / occurence[i];
 			}
-			ComPol_VecAdd<vector_type> cpVecAdd(&occurence);
+			ComPol_VecAdd<vector_type> cpVecAdd(&tmp_d);
 			m_Com.send_data(d.vertical_slave_layout(), cpVecAdd);
 		}
 		else{
