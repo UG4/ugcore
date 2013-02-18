@@ -36,7 +36,6 @@ using namespace std;
 
 namespace ug
 {
-	extern bool useLua2C;
 	extern bool PluginLoaded(const std::string &name);
 
 namespace bridge
@@ -57,7 +56,7 @@ string GetFileLinesLUA(const char *filename, size_t fromline, size_t toline)
 	fstream file(filename, ios::in);
 	if(file.is_open() == false) return string("");
 	stringstream *pss = NULL;
-	for(size_t i=0; i<fromline-1 && !file.eof(); i++)
+	for(size_t i=0; i<fromline-1; i++)
 	{
 		file.getline(buf, 512);
 		if(strncmp(buf+strspn(buf, "\t "), "--", 2)==0)
@@ -70,7 +69,7 @@ string GetFileLinesLUA(const char *filename, size_t fromline, size_t toline)
 	}
 	stringstream ss;
 	if(pss != NULL) ss << "\n" << pss->str() << "\n";
-	for(; fromline <= toline && !file.eof(); fromline++)
+	for(; fromline <= toline; fromline++)
 	{
 		file.getline(buf, 512);
 		ss << fromline << "\t" << buf << "\n";
@@ -893,14 +892,6 @@ bool AssertPluginLoaded(const char *name)
 	return true;
 }
 
-void EnableLUA2C(bool b)
-{
-#ifndef USE_LUA2C
-	UG_LOG("Warning: LUA2C not enabled. Enable with \"cmake -DUSE_LUA2C=ON ..\"\n")
-#endif		
-	useLua2C=b;
-}
-
 bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 {
 	stringstream grpSS; grpSS << parentGroup << "/Info";
@@ -923,7 +914,6 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 		reg.add_function("HasClassGroup", &ScriptHasClassGroup, grp.c_str());
 		reg.add_function("PluginLoaded", &PluginLoaded, grp.c_str());		
 		reg.add_function("AssertPluginLoaded", &AssertPluginLoaded, grp.c_str());		
-		reg.add_function("EnableLUA2C", &EnableLUA2C, grp.c_str());		
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 

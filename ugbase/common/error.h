@@ -78,6 +78,16 @@ class UGError
 	///	returns the line where a message occured
 		unsigned long get_line(size_t i) const{return m_vLine.at(i);}
 
+		std::string get_stacktrace() const
+		{
+			std::stringstream ss;
+			for(size_t i = 0; i < num_msg(); ++i)
+			{
+				ss << get_file(i) << ':' << get_line(i) << " : " << get_msg(i) << '\n';
+			}
+			return ss.str();
+		}
+
 	protected:
 		std::vector<std::string> m_vMsg; //< Message stack
 		std::vector<std::string> m_vFile; //< File stack

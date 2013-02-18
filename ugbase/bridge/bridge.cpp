@@ -24,8 +24,7 @@ const char* UG4_GRP = "/ug4";
 
 Registry & GetUGRegistry()
 {
-	static Registry ugReg;
-	return ugReg;
+	return Registry::get_instance();
 }
 
 /// calls RegisterStandardInterfaces and LoadPlugins if UG_PLUGINS is defined
@@ -45,7 +44,7 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 {
 	PROFILE_FUNC();
 //	get tag of algebra type
-	std::string algTag = GetAlgebraTag(algType);
+	const std::string& algTag = GetAlgebraTag(algType);
 	int blocksize = algType.blocksize();
 	if( (blocksize < 0 || blocksize > 4) && blocksize != AlgebraType::VariableBlockSize)
 		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4' and 'variable' are supported.");
@@ -119,10 +118,11 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 //	iterate over all groups in the registry and check how many tags they contain
 //	then find out if a class matches exactly this number of tags for the given
 //	tag set.
-	for(size_t i_grp = 0; i_grp < reg.num_class_groups(); ++i_grp)
+	for(Registry::ClassGroupIter i = reg.classes_group_begin();
+			i != reg.classes_group_end(); ++i)
 	{
 	//	get class group
-		ClassGroupDesc* grp = reg.get_class_group(i_grp);
+		ClassGroupDesc* grp = (*i).second;
 
 	//	count how many tags are contained in tag string
 		int numTag = -1;
