@@ -119,10 +119,10 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 //	iterate over all groups in the registry and check how many tags they contain
 //	then find out if a class matches exactly this number of tags for the given
 //	tag set.
-	for(size_t i = 0; i < reg.num_class_groups(); ++i)
+	for(size_t i_grp = 0; i_grp < reg.num_class_groups(); ++i_grp)
 	{
 	//	get class group
-		ClassGroupDesc* grp = reg.get_class_group(i);
+		ClassGroupDesc* grp = reg.get_class_group(i_grp);
 
 	//	count how many tags are contained in tag string
 		int numTag = -1;
