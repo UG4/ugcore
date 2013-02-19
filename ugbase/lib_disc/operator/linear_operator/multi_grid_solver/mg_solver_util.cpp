@@ -17,12 +17,12 @@ namespace ug{
 /// creates a mapping levIndex = vMap[surfIndex];
 template <typename TElem>
 static void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
-                                       ConstSmartPtr<SurfaceDoFDistribution> surfDD,
-                                       ConstSmartPtr<LevelDoFDistribution> topDD)
+                                       ConstSmartPtr<DoFDistribution> surfDD,
+                                       ConstSmartPtr<DoFDistribution> topDD)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	type of element iterator
-	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
+	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
 
 //	vector of indices
 	std::vector<size_t> surfaceInd, levelInd;
@@ -59,8 +59,8 @@ static void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 }
 
 void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
-                                ConstSmartPtr<SurfaceDoFDistribution> surfDD,
-                                ConstSmartPtr<LevelDoFDistribution> topDD)
+                                ConstSmartPtr<DoFDistribution> surfDD,
+                                ConstSmartPtr<DoFDistribution> topDD)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	check full refinement

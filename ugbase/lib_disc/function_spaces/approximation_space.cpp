@@ -185,10 +185,10 @@ bool IApproximationSpace::surfaces_enabled() const
 }
 
 
-std::vector<ConstSmartPtr<SurfaceDoFDistribution> >
+std::vector<ConstSmartPtr<DoFDistribution> >
 IApproximationSpace::surface_dof_distributions() const
 {
-	std::vector<ConstSmartPtr<SurfaceDoFDistribution> > vDD;
+	std::vector<ConstSmartPtr<DoFDistribution> > vDD;
 	if(num_levels() == 0) return vDD;
 
 	const_cast<IApproximationSpace*>(this)->surf_dd_required(0,num_levels()-1);
@@ -198,7 +198,7 @@ IApproximationSpace::surface_dof_distributions() const
 	return vDD;
 }
 
-SmartPtr<SurfaceDoFDistribution>
+SmartPtr<DoFDistribution>
 IApproximationSpace::surface_dof_distribution(int level)
 {
 	if(level != GridLevel::TOPLEVEL){
@@ -211,16 +211,16 @@ IApproximationSpace::surface_dof_distribution(int level)
 	}
 }
 
-ConstSmartPtr<SurfaceDoFDistribution>
+ConstSmartPtr<DoFDistribution>
 IApproximationSpace::surface_dof_distribution(int level) const
 {
 	return const_cast<IApproximationSpace*>(this)->surface_dof_distribution(level);
 }
 
-std::vector<ConstSmartPtr<LevelDoFDistribution> >
+std::vector<ConstSmartPtr<DoFDistribution> >
 IApproximationSpace::level_dof_distributions() const
 {
-	std::vector<ConstSmartPtr<LevelDoFDistribution> > vDD;
+	std::vector<ConstSmartPtr<DoFDistribution> > vDD;
 	if(num_levels() == 0) return vDD;
 
 	const_cast<IApproximationSpace*>(this)->level_dd_required(0,num_levels()-1);
@@ -230,17 +230,40 @@ IApproximationSpace::level_dof_distributions() const
 	return vDD;
 }
 
-SmartPtr<LevelDoFDistribution>
+SmartPtr<DoFDistribution>
 IApproximationSpace::level_dof_distribution(int level)
 {
 	level_dd_required(level,level); return m_vLevDD[level];
 }
 
-ConstSmartPtr<LevelDoFDistribution>
+ConstSmartPtr<DoFDistribution>
 IApproximationSpace::level_dof_distribution(int level) const
 {
 	const_cast<IApproximationSpace*>(this)->level_dd_required(level,level);
 	return m_vLevDD[level];
+}
+
+
+SmartPtr<DoFDistribution>
+IApproximationSpace::dof_distribution(const GridLevel& gl)
+{
+	if(gl.type() == GridLevel::LEVEL)
+		return level_dof_distribution(gl.level());
+	else if (gl.type() == GridLevel::SURFACE)
+		return surface_dof_distribution(gl.level());
+	else
+		UG_THROW("Invalid Grid Level requested: "<<gl);
+}
+
+ConstSmartPtr<DoFDistribution>
+IApproximationSpace::dof_distribution(const GridLevel& gl) const
+{
+	if(gl.type() == GridLevel::LEVEL)
+		return level_dof_distribution(gl.level());
+	else if (gl.type() == GridLevel::SURFACE)
+		return surface_dof_distribution(gl.level());
+	else
+		UG_THROW("Invalid Grid Level requested: "<<gl);
 }
 
 void IApproximationSpace::init_levels()
@@ -288,10 +311,8 @@ void IApproximationSpace::defragment()
 		if(m_vSurfDD[lev].valid()) m_vSurfDD[lev]->defragment();
 }
 
-template <typename TDD>
-void
-IApproximationSpace::
-print_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
+void IApproximationSpace::
+print_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) const
 {
 //	Total number of DoFs
 	UG_LOG(std::setw(10) << ConvertNumber(dd->num_indices(),10,6) << " | ");
@@ -326,16 +347,15 @@ static size_t NumIndices(const IndexLayout& Layout)
 }
 #endif
 
-template <typename TDD>
 void IApproximationSpace::
-print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const
+print_parallel_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) const
 {
 #ifdef UG_PARALLEL
 //	Get Process communicator;
 	const pcl::ProcessCommunicator& pCom = dd->layouts().proc_comm();
 
 //	hack since pcl does not support much constness
-	TDD* nonconstDD = const_cast<TDD*>(dd.get());
+	DoFDistribution* nonconstDD = const_cast<DoFDistribution*>(dd.get());
 
 //	compute local dof numbers of all masters; this the number of all dofs
 //	minus the number of all slave dofs (double counting of slaves can not
@@ -553,8 +573,7 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 }
 
 #ifdef UG_PARALLEL
-template <typename TDD>
-static void PrintLayoutStatistic(ConstSmartPtr<TDD> dd)
+static void PrintLayoutStatistic(ConstSmartPtr<DoFDistribution> dd)
 {
 	UG_LOG(std::setw(8) << NumIndices(dd->layouts().master()) <<" | ");
 	UG_LOG(std::setw(8) << NumIndices(dd->layouts().slave()) <<" | ");

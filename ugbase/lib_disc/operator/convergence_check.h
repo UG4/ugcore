@@ -143,7 +143,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		std::vector<std::vector<MultiIndex<2> > > m_vvMultiIndex;
 		std::vector<std::string> m_fctName;
 		FunctionGroup m_fctGrp;
-		ConstSmartPtr<SurfaceDoFDistribution> m_dd;
+		ConstSmartPtr<DoFDistribution> m_dd;
 };
 
 } // end namespace ug

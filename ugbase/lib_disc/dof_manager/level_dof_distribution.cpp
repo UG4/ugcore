@@ -19,7 +19,8 @@ LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
 					   SmartPtr<MGSubsetHandler> spMGSH,
 					   const DoFDistributionInfo& rDDInfo,
                        bool bGrouped)
-	:	MGDoFDistribution(spMG, spMGSH, rDDInfo, bGrouped)
+	:	DoFDistributionInfoProvider(rDDInfo),
+	 	MGDoFDistribution(spMG, spMGSH, rDDInfo, bGrouped)
 {
 	if(num_levels() > 0) level_required(num_levels()-1);
 	init();
@@ -326,7 +327,7 @@ LevelDoFDistribution(SmartPtr<LevelMGDoFDistribution> spLevMGDD,
                      SmartPtr<SurfaceView> spSurfView,
                      int level)
 	: 	DoFDistributionInfoProvider(spLevMGDD->dof_distribution_info()),
-	  	DoFDistribution(spLevMGDD, spSurfView, GridLevel(level, GridLevel::LEVEL, true)),
+	 	DoFDistribution(*spLevMGDD, spSurfView, GridLevel(level, GridLevel::LEVEL, true)),
 		m_spMGDD(spLevMGDD), m_spSurfView(spSurfView)
 {
 	spLevMGDD->register_managing_dof_distribution(this, level);

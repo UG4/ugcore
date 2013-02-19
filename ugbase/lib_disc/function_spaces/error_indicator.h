@@ -240,16 +240,16 @@ void MarkElements(MultiGrid::AttachmentAccessor<typename TFunction::element_type
 	UG_LOG("  +++ Marked for coarsening: " << numMarkedCoarse << " Elements.\n");
 }
 
-template <typename TDomain, typename TDD, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void MarkForAdaption_GradientIndicator(IRefiner& refiner,
-                                         GridFunction<TDomain, TDD, TAlgebra>& u,
-                                         const char* fctName,
-                                         number TOL,
-                                         number refineFrac, number coarseFrac,
-                                         int maxLevel)
+                                       GridFunction<TDomain, TAlgebra>& u,
+                                       const char* fctName,
+                                       number TOL,
+                                       number refineFrac, number coarseFrac,
+                                       int maxLevel)
 {
 //	types
-	typedef GridFunction<TDomain, TDD, TAlgebra> TFunction;
+	typedef GridFunction<TDomain, TAlgebra> TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_type;
 	typedef typename TFunction::element_type element_type;
 

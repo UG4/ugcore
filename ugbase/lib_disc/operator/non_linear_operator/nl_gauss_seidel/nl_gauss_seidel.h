@@ -89,8 +89,8 @@ class NLGaussSeidelSolver
 		SmartPtr<approx_space_type> m_spApproxSpace;
 
 		///	DoF distribution pointer
-		ConstSmartPtr<LevelDoFDistribution> m_spLevDD;
-		ConstSmartPtr<SurfaceDoFDistribution> m_spSurfDD;
+		ConstSmartPtr<DoFDistribution> m_spLevDD;
+		ConstSmartPtr<DoFDistribution> m_spSurfDD;
 
 		/// DoF Distribution used
 		GridLevel m_gridLevel;

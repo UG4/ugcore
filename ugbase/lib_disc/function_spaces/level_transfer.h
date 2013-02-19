@@ -18,11 +18,11 @@ namespace ug{
 //	Prolongate
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
-                  GridFunction<TDomain, TDD, TAlgebra>& uCoarse)
+template <typename TDomain, typename TAlgebra>
+void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
+                  GridFunction<TDomain, TAlgebra>& uCoarse)
 {
-	typedef GridFunction<TDomain, TDD, TAlgebra> TGridFunction;
+	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 	typedef typename TGridFunction::template traits<VertexBase>::const_iterator const_iterator;
 
 //  get subsethandler and grid
@@ -166,9 +166,9 @@ void ProlongateP1(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 
 
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-void ProlongateElemwise(GridFunction<TDomain, TDD, TAlgebra>& uFine,
-                        GridFunction<TDomain, TDD, TAlgebra>& uCoarse)
+template <typename TDomain, typename TAlgebra>
+void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
+                        GridFunction<TDomain, TAlgebra>& uCoarse)
 {
 //	dimension
 	const int dim = TDomain::dim;
@@ -190,11 +190,11 @@ void ProlongateElemwise(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 	std::vector<MultiIndex<2> > vCoarseMI, vFineMI;
 
 //	vector of local finite element ids
-	SmartPtr<TDD> fineDD = uFine.dof_distribution();
+	SmartPtr<DoFDistribution> fineDD = uFine.dof_distribution();
 	std::vector<LFEID> vFineLFEID(fineDD->num_fct());
 	for(size_t fct = 0; fct < fineDD->num_fct(); ++fct)
 		vFineLFEID[fct] = fineDD->local_finite_element_id(fct);
-	SmartPtr<TDD> coarseDD = uCoarse.dof_distribution();
+	SmartPtr<DoFDistribution> coarseDD = uCoarse.dof_distribution();
 	std::vector<LFEID> vCoarseLFEID(coarseDD->num_fct());
 	for(size_t fct = 0; fct < coarseDD->num_fct(); ++fct)
 		vCoarseLFEID[fct] = coarseDD->local_finite_element_id(fct);
@@ -215,8 +215,8 @@ void ProlongateElemwise(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 	}
 
 //  iterators
-	typedef typename TDD::template dim_traits<dim>::const_iterator const_iterator;
-	typedef typename TDD::template dim_traits<dim>::geometric_base_object Element;
+	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
+	typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object Element;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on coarse level
@@ -310,9 +310,9 @@ void ProlongateElemwise(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 }
 
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-void Prolongate(GridFunction<TDomain, TDD, TAlgebra>& uFine,
-                GridFunction<TDomain, TDD, TAlgebra>& uCoarse)
+template <typename TDomain, typename TAlgebra>
+void Prolongate(GridFunction<TDomain, TAlgebra>& uFine,
+                GridFunction<TDomain, TAlgebra>& uCoarse)
 {
 //	grid functions must be from same Domain
 	if(uFine.domain() != uCoarse.domain())
@@ -356,11 +356,11 @@ void Prolongate(GridFunction<TDomain, TDD, TAlgebra>& uFine,
 ////////////////////////////////////////////////////////////////////////////////
 
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-void RestrictP1(GridFunction<TDomain, TDD, TAlgebra>& uCoarse,
-                GridFunction<TDomain, TDD, TAlgebra>& uFine)
+template <typename TDomain, typename TAlgebra>
+void RestrictP1(GridFunction<TDomain, TAlgebra>& uCoarse,
+                GridFunction<TDomain,  TAlgebra>& uFine)
 {
-	typedef GridFunction<TDomain, TDD, TAlgebra> TGridFunction;
+	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 	typedef typename TGridFunction::template traits<VertexBase>::const_iterator const_iterator;
 
 //  get subsethandler and grid
@@ -405,9 +405,9 @@ void RestrictP1(GridFunction<TDomain, TDD, TAlgebra>& uCoarse,
 
 
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-void RestrictElemwise(GridFunction<TDomain, TDD, TAlgebra>& uCoarse,
-                      GridFunction<TDomain, TDD, TAlgebra>& uFine)
+template <typename TDomain, typename TAlgebra>
+void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
+                      GridFunction<TDomain, TAlgebra>& uFine)
 {
 //	dimension
 	const int dim = TDomain::dim;
@@ -430,11 +430,11 @@ void RestrictElemwise(GridFunction<TDomain, TDD, TAlgebra>& uCoarse,
 	std::vector<MultiIndex<2> > vCoarseMI, vFineMI;
 
 //	vector of local finite element ids
-	SmartPtr<TDD> fineDD = uFine.dof_distribution();
+	SmartPtr<DoFDistribution> fineDD = uFine.dof_distribution();
 	std::vector<LFEID> vFineLFEID(fineDD->num_fct());
 	for(size_t fct = 0; fct < fineDD->num_fct(); ++fct)
 		vFineLFEID[fct] = fineDD->local_finite_element_id(fct);
-	SmartPtr<TDD> coarseDD = uCoarse.dof_distribution();
+	SmartPtr<DoFDistribution> coarseDD = uCoarse.dof_distribution();
 	std::vector<LFEID> vCoarseLFEID(coarseDD->num_fct());
 	for(size_t fct = 0; fct < coarseDD->num_fct(); ++fct)
 		vCoarseLFEID[fct] = coarseDD->local_finite_element_id(fct);
@@ -455,8 +455,8 @@ void RestrictElemwise(GridFunction<TDomain, TDD, TAlgebra>& uCoarse,
 	}
 
 //  iterators
-	typedef typename TDD::template dim_traits<locDim>::const_iterator const_iterator;
-	typedef typename TDD::template dim_traits<locDim>::geometric_base_object Element;
+	typedef typename DoFDistribution::dim_traits<locDim>::const_iterator const_iterator;
+	typedef typename DoFDistribution::dim_traits<locDim>::geometric_base_object Element;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on coarse level
@@ -558,9 +558,9 @@ void RestrictElemwise(GridFunction<TDomain, TDD, TAlgebra>& uCoarse,
 }
 
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-void Restrict(GridFunction<TDomain, TDD, TAlgebra>& uCoarse,
-              GridFunction<TDomain, TDD, TAlgebra>& uFine)
+template <typename TDomain, typename TAlgebra>
+void Restrict(GridFunction<TDomain, TAlgebra>& uCoarse,
+              GridFunction<TDomain, TAlgebra>& uFine)
 {
 //	grid functions must be from same Domain
 	if(uCoarse.domain() != uFine.domain())

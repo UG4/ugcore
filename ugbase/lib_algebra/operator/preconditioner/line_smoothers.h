@@ -83,9 +83,9 @@ void ComputeDirectionYOrder(std::vector<std::pair<MathVector<dim>, size_t> >& vP
 	};
 }
 
-template <typename TDD, typename TDomain>
-void OrderDirectionYForDofDist(SmartPtr<TDD> dd,
-                        ConstSmartPtr<TDomain> domain,std::vector<size_t>& indY)
+template <typename TDomain>
+void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
+							   ConstSmartPtr<TDomain> domain,std::vector<size_t>& indY)
 {
 	//	Lex Ordering is only possible in this cases:
 	//	b) Same number of DoFs on each geometric object (or no DoFs on object)
@@ -159,7 +159,7 @@ void OrderDirectionYForDofDist(SmartPtr<TDD> dd,
 	//	a) we can order globally
 		if(bEqualNumDoFOnEachGeomObj)
 		{
-			ExtractPositions<TDomain, TDD>(domain, dd, vPositions);
+			ExtractPositions(domain, dd, vPositions);
 
 			ComputeDirectionYOrder<TDomain::dim>(vPositions, indY);
 		}
@@ -173,7 +173,7 @@ void OrderDirectionYForDofDist(SmartPtr<TDD> dd,
 					continue;
 				}
 
-				ExtractPositions<TDomain, TDD>(domain, dd, fct, vPositions);
+				ExtractPositions(domain, dd, fct, vPositions);
 
 				ComputeDirectionYOrder<TDomain::dim>(vPositions, indY);
 			}
@@ -238,8 +238,8 @@ void ComputeDirectionZOrder(std::vector<std::pair<MathVector<dim>, size_t> >& vP
 	};
 }
 
-template <typename TDD, typename TDomain>
-void OrderDirectionZForDofDist(SmartPtr<TDD> dd,
+template <typename TDomain>
+void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
                         ConstSmartPtr<TDomain> domain,std::vector<size_t>& indZ)
 {
 	//	Lex Ordering is only possible in this cases:
@@ -314,7 +314,7 @@ void OrderDirectionZForDofDist(SmartPtr<TDD> dd,
 	//	a) we can order globally
 		if(bEqualNumDoFOnEachGeomObj)
 		{
-			ExtractPositions<TDomain, TDD>(domain, dd, vPositions);
+			ExtractPositions(domain, dd, vPositions);
 
 		//	get mapping: old -> new index
 			ComputeDirectionZOrder<TDomain::dim>(vPositions, indZ);
@@ -329,7 +329,7 @@ void OrderDirectionZForDofDist(SmartPtr<TDD> dd,
 					continue;
 				}
 
-				ExtractPositions<TDomain, TDD>(domain, dd, fct, vPositions);
+				ExtractPositions(domain, dd, fct, vPositions);
 
 			//	get mapping: old -> new index
 				ComputeDirectionZOrder<TDomain::dim>(vPositions, indZ);
@@ -338,11 +338,11 @@ void OrderDirectionZForDofDist(SmartPtr<TDD> dd,
 };
 
 
-template <typename TDomain, typename TDD, typename TBaseElem>
+template <typename TDomain, typename TBaseElem>
 void collectStretchedElementIndices(ConstSmartPtr<TDomain> domain,
-                          ConstSmartPtr<TDD> dd,
+                          ConstSmartPtr<DoFDistribution> dd,
                           std::vector<size_t>& indarray,number alpha){
-	typename TDD::template traits<TBaseElem>::const_iterator iter, iterEnd;
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
 //	vector for positions
 	std::vector<MathVector<TDomain::dim> > vElemPos;
 
@@ -493,10 +493,10 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 					return false;
 				}
 				if ((dim>1)&&(m_nr_forwardy+m_nr_backwardy>0)){
-					OrderDirectionYForDofDist<LevelDoFDistribution, TDomain>(m_spApproxSpace->level_dof_distribution(level), m_spApproxSpace->domain(),indY);
+					OrderDirectionYForDofDist<TDomain>(m_spApproxSpace->level_dof_distribution(level), m_spApproxSpace->domain(),indY);
 				}
 				if ((dim>2)&&(m_nr_forwardz+m_nr_backwardz>0)){
-					OrderDirectionZForDofDist<LevelDoFDistribution, TDomain>(m_spApproxSpace->level_dof_distribution(level), m_spApproxSpace->domain(),indZ);
+					OrderDirectionZForDofDist<TDomain>(m_spApproxSpace->level_dof_distribution(level), m_spApproxSpace->domain(),indZ);
 				}
 			};
 			m_ind_end = indY.size();
@@ -839,10 +839,10 @@ class LineVanka : public IPreconditioner<TAlgebra>
 					return false;
 				}
 				if ((dim>1)&&(m_nr_forwardy+m_nr_backwardy>0)){
-					OrderDirectionYForDofDist<LevelDoFDistribution, TDomain>(m_spApproxSpace->level_dof_distribution(level), m_spApproxSpace->domain(),indY);
+					OrderDirectionYForDofDist<TDomain>(m_spApproxSpace->level_dof_distribution(level), m_spApproxSpace->domain(),indY);
 				}
 				if ((dim>2)&&(m_nr_forwardz+m_nr_backwardz>0)){
-					OrderDirectionZForDofDist<LevelDoFDistribution, TDomain>(m_spApproxSpace->level_dof_distribution(level), m_spApproxSpace->domain(),indZ);
+					OrderDirectionZForDofDist<TDomain>(m_spApproxSpace->level_dof_distribution(level), m_spApproxSpace->domain(),indZ);
 				}
 			};
 			m_ind_end = indY.size();

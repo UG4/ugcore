@@ -50,7 +50,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	typedef
 	static const int dim = TDomain::dim;
-	typedef ug::GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
+	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
 
 //	Interpolate
 	{

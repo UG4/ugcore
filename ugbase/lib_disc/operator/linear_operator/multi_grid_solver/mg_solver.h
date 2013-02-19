@@ -323,7 +323,7 @@ class AssembledMultiGridCycle :
 
 		//	prepares the grid level data for appication
 			void update(size_t lev,
-			            SmartPtr<LevelDoFDistribution> levelDD,
+			            SmartPtr<DoFDistribution> levelDD,
 			            SmartPtr<ApproximationSpace<TDomain> > approxSpace,
 			            assemble_type& ass,
 			            ILinearIterator<vector_type>& presmoother,
@@ -410,7 +410,7 @@ class AssembledMultiGridCycle :
 
 			public:
 		//	level DoF Distribution
-			SmartPtr<LevelDoFDistribution> spLevDD;
+			SmartPtr<DoFDistribution> spLevDD;
 
 		//	Approximation Space
 			SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;

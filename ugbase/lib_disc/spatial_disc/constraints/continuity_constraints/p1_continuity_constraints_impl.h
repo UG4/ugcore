@@ -263,11 +263,10 @@ void SplitAddRhs_OneSide(TVector& rhs,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void
 SymP1Constraints<TDomain,TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
-              ConstSmartPtr<TDD> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	if(this->m_AssIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
@@ -279,9 +278,9 @@ adjust_defect(vector_type& d, const vector_type& u,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<ConstrainedVertex>();
-	iterEnd = dd->template end<ConstrainedVertex>();
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
@@ -310,11 +309,10 @@ adjust_defect(vector_type& d, const vector_type& u,
 
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void
 SymP1Constraints<TDomain,TAlgebra>::
 adjust_rhs(vector_type& rhs, const vector_type& u,
-           ConstSmartPtr<TDD> dd, number time)
+           ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	if(this->m_AssIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
@@ -326,9 +324,9 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<ConstrainedVertex>();
-	iterEnd = dd->template end<ConstrainedVertex>();
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
@@ -356,11 +354,10 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void
 SymP1Constraints<TDomain,TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u,
-                ConstSmartPtr<TDD> dd, number time)
+                ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	if(this->m_AssIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
@@ -372,9 +369,9 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<ConstrainedVertex>();
-	iterEnd = dd->template end<ConstrainedVertex>();
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
@@ -405,11 +402,10 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void
 SymP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
-              ConstSmartPtr<TDD> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	if(this->m_AssIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
@@ -421,9 +417,9 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<ConstrainedVertex>();
-	iterEnd = dd->template end<ConstrainedVertex>();
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
@@ -457,10 +453,9 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void
 SymP1Constraints<TDomain,TAlgebra>::
-adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
+adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
                 number time)
 {
 	if(this->m_AssIndex.index_set)
@@ -473,9 +468,9 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<ConstrainedVertex>();
-	iterEnd = dd->template end<ConstrainedVertex>();
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
 
 //	loop constraining edges
 	for(; iter != iterEnd; ++iter)
@@ -567,11 +562,10 @@ inline bool SortVertexPos<3>::operator() (VertexBase* vrt1, VertexBase* vrt2)
 
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
-              ConstSmartPtr<TDD> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	if(this->m_AssIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
@@ -583,13 +577,13 @@ adjust_defect(vector_type& d, const vector_type& u,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
-	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+	SortVertexPos<TDomain::dim> sortVertexPos(this->approximation_space()->domain());
 #endif
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<ConstrainedVertex>();
-	iterEnd = dd->template end<ConstrainedVertex>();
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
@@ -622,11 +616,10 @@ adjust_defect(vector_type& d, const vector_type& u,
 
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_rhs(vector_type& rhs, const vector_type& u,
-           ConstSmartPtr<TDD> dd, number time)
+           ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	if(this->m_AssIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
@@ -638,13 +631,13 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
-	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+	SortVertexPos<TDomain::dim> sortVertexPos(this->approximation_space()->domain());
 #endif
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<ConstrainedVertex>();
-	iterEnd = dd->template end<ConstrainedVertex>();
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
@@ -676,11 +669,10 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u,
-                ConstSmartPtr<TDD> dd, number time)
+                ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	if(this->m_AssIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
@@ -692,13 +684,13 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
-	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+	SortVertexPos<TDomain::dim> sortVertexPos(this->approximation_space()->domain());
 #endif
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<ConstrainedVertex>();
-	iterEnd = dd->template end<ConstrainedVertex>();
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
 
 //	loop constrained vertices
 	for(; iter != iterEnd; ++iter)
@@ -733,11 +725,10 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
-              ConstSmartPtr<TDD> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	if(this->m_AssIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
@@ -749,13 +740,13 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
-	SortVertexPos<TDomain::dim> sortVertexPos(approximation_space()->domain());
+	SortVertexPos<TDomain::dim> sortVertexPos(this->approximation_space()->domain());
 #endif
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<ConstrainedVertex>();
-	iterEnd = dd->template end<ConstrainedVertex>();
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
 
 //	loop constraining edges
 	for(; iter != iterEnd; ++iter)
@@ -793,10 +784,9 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
-adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
+adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
                 number time)
 {
 	if(this->m_AssIndex.index_set)
@@ -809,9 +799,9 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
 	std::vector<VertexBase*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
-	typename TDD::template traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->template begin<ConstrainedVertex>();
-	iterEnd = dd->template end<ConstrainedVertex>();
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
 
 //	loop constraining edges
 	for(; iter != iterEnd; ++iter)

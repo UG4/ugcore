@@ -24,9 +24,9 @@ namespace ug{
  * \param[in]	coarseLevel		Coarse Level index
  * \param[in]	fineLevel		Fine Level index
  */
-template <typename TDD, typename TAlgebra>
+template <typename TAlgebra>
 void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
-                                const TDD& coarseDD, const TDD& fineDD,
+                                const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
 								std::vector<bool>& vIsRestricted)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -58,7 +58,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	std::vector<MultiIndex<2> > coarseMultInd, fineMultInd;
 
 //  iterators
-	typedef typename TDD::template traits<VertexBase>::const_iterator const_iterator;
+	typedef DoFDistribution::traits<VertexBase>::const_iterator const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on fine level
@@ -138,9 +138,9 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 }
 
 
-template <typename TDomain, typename TDD, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
-                                     const TDD& coarseDD, const TDD& fineDD,
+                                     const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
                                      ConstSmartPtr<TDomain> spDomain,
                                      std::vector<bool>& vIsRestricted)
 {
@@ -176,8 +176,8 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 		vLFEID[fct] = fineDD.local_finite_element_id(fct);
 
 //  iterators
-	typedef typename TDD::template dim_traits<dim>::const_iterator const_iterator;
-	typedef typename TDD::template dim_traits<dim>::geometric_base_object Element;
+	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
+	typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object Element;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on fine level
@@ -329,7 +329,7 @@ void StdTransfer<TDomain, TAlgebra>::init()
 	try{
 		if(P1LagrangeOnly)
 		{
-			AssembleStdProlongationForP1Lagrange<LevelDoFDistribution, TAlgebra>
+			AssembleStdProlongationForP1Lagrange<TAlgebra>
 			(m_matrix,
 			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
 			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),
@@ -337,7 +337,7 @@ void StdTransfer<TDomain, TAlgebra>::init()
 		}
 		else
 		{
-			AssembleStdProlongationElementwise<TDomain, LevelDoFDistribution, TAlgebra>
+			AssembleStdProlongationElementwise<TDomain, TAlgebra>
 			(m_matrix,
 			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
 			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),

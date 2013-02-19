@@ -21,49 +21,14 @@ SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
 					   const DoFDistributionInfo& rDDInfo,
                        SmartPtr<SurfaceView> spSurfView,
                        int level, bool bGrouped)
-		:	MGDoFDistribution(spMG, spMGSH, rDDInfo, bGrouped),
+		:	DoFDistributionInfoProvider(rDDInfo),
+		 	MGDoFDistribution(spMG, spMGSH, rDDInfo, bGrouped),
+		 	DoFDistribution(*this, spSurfView, GridLevel(level, GridLevel::SURFACE, false)),
 		 	m_spSurfView(spSurfView),
 		 	m_level(level)
 {
 	init();
 }
-
-void SurfaceDoFDistribution::add_transfer(SmartPtr<ILocalTransfer> spTransfer)
-{
-	for(int gbo = 0; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo)
-	{
-		if(spTransfer->prolongation_needed((GeometricBaseObject)gbo))
-			m_vProlongation[gbo].push_back(spTransfer);
-
-		if(spTransfer->restriction_needed((GeometricBaseObject)gbo))
-			m_vRestriction[gbo].push_back(spTransfer);
-	}
-}
-
-void SurfaceDoFDistribution::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
-{
-	for(int gbo = 0; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo)
-	{
-		m_vProlongation[gbo].erase(std::remove(m_vProlongation[gbo].begin(),
-		                                       m_vProlongation[gbo].end(),
-		                                       spTransfer),
-		                                       m_vProlongation[gbo].end());
-		m_vRestriction[gbo].erase(std::remove(m_vRestriction[gbo].begin(),
-		                                      m_vRestriction[gbo].end(),
-		                                       spTransfer),
-		                                       m_vRestriction[gbo].end());
-	}
-}
-
-void SurfaceDoFDistribution::clear_transfers()
-{
-	for(int gbo = 0; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo)
-	{
-		m_vProlongation[gbo].clear();
-		m_vRestriction[gbo].clear();
-	}
-}
-
 
 
 template <typename TBaseElem>
@@ -249,7 +214,7 @@ void SurfaceDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 				if(!m_spSurfView->is_surface_element(elem)) {continue;}
 
 			//	get the algebraic indices on the grid element
-				inner_algebra_indices(elem, vIndex);
+				MGDoFDistribution::inner_algebra_indices(elem, vIndex);
 
 			//	add the indices to the interface
 				for(size_t i = 0; i < vIndex.size(); ++i)
@@ -522,7 +487,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 
 //	check that in all subsets same number of functions and at least one
 //	if this is not the case for non-grouped DoFs, we cannot allow reordering
-	if(!grouped())
+	if(!MGDoFDistribution::grouped())
 	{
 		size_t numDoFs = 0;
 		for(int si = 0; si < num_subsets(); ++si)

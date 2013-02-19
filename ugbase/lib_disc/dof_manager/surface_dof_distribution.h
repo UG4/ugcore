@@ -5,20 +5,19 @@
  *      Author: andreasvogel
  */
 
-#ifndef SURFACE_DOF_DISTRIBUTION_H_
-#define SURFACE_DOF_DISTRIBUTION_H_
+#ifndef __H__UG__LIB_DISC__DOF_MANAGER__SURFACE_DOF_DISTRIBUTION__
+#define __H__UG__LIB_DISC__DOF_MANAGER__SURFACE_DOF_DISTRIBUTION__
 
+#include "dof_distribution.h"
 #include "mg_dof_distribution.h"
 #include "managing_dof_distribution.h"
 #include "lib_disc/domain_traits.h"
-#include "lib_disc/function_spaces/local_transfer_interface.h"
 
 namespace ug{
 
-class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistribution
+class SurfaceDoFDistribution : public MGDoFDistribution,
+							   public DoFDistribution
 {
-	typedef MGDoFDistribution base_type;
-
 	public:
 	///	constructor
 		SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
@@ -32,48 +31,6 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 
 	///	redistributes all dofs and resizes associated vectors afterwards.
 		virtual void redistribute_dofs();
-
-	///	returns all indices of the element
-	///	\{
-		void indices(GeometricObject* elem, LocalIndices& ind, bool bHang = false) const{base_type::indices(elem, ind, bHang);}
-		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const{base_type::indices(elem, ind, bHang);}
-		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const{base_type::indices(elem, ind, bHang);}
-		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const{base_type::indices(elem, ind, bHang);}
-		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const{base_type::indices(elem, ind, bHang);}
-	/// \}
-
-	/// get multi indices (Element + Closure of Element)
-	/// \{
-		size_t multi_indices(GeometricObject* elem, size_t fct, std::vector<multi_index_type>& ind) const{return base_type::multi_indices(elem, fct, ind);}
-		size_t multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return base_type::multi_indices(elem, fct, ind);}
-		size_t multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return base_type::multi_indices(elem, fct, ind);}
-		size_t multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return base_type::multi_indices(elem, fct, ind);}
-		size_t multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return base_type::multi_indices(elem, fct, ind);}
-	/// \}
-
-	/// get multi indices (only inner part of Element)
-	/// \{
-		size_t inner_multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return base_type::inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return base_type::inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return base_type::inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return base_type::inner_multi_indices(elem, fct, ind);}
-	/// \}
-
-	/// get algebra indices (Element + Closure of Element)
-	/// \{
-		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return base_type::algebra_indices(elem, ind);}
-		size_t algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return base_type::algebra_indices(elem, ind);}
-		size_t algebra_indices(Face* elem, std::vector<size_t>& ind) const{return base_type::algebra_indices(elem, ind);}
-		size_t algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return base_type::algebra_indices(elem, ind);}
-	/// \}
-
-	/// get algebra indices (only inner part of Element)
-	/// \{
-		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return base_type::inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return base_type::inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(Face* elem, std::vector<size_t>& ind) const{return base_type::inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return base_type::inner_algebra_indices(elem,ind);}
-	/// \}
 
 	protected:
 	///	initializes the indices
@@ -131,64 +88,6 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy = NULL);
 		/// \}
 
-	public:
-		template <typename TElem>
-		struct traits
-		{
-			typedef TElem geometric_object;
-			typedef typename SurfaceView::traits<TElem>::iterator iterator;
-			typedef typename SurfaceView::traits<TElem>::const_iterator const_iterator;
-		};
-
-		template <int dim>
-		struct dim_traits
-		{
-			typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-			typedef typename SurfaceView::traits<geometric_base_object>::iterator iterator;
-			typedef typename SurfaceView::traits<geometric_base_object>::const_iterator const_iterator;
-		};
-
-	public:
-	///	returns grid level
-		GridLevel grid_level() const {return GridLevel(m_level, GridLevel::SURFACE);}
-
-		///////////////////////////////////////
-		// Element Access
-		///////////////////////////////////////
-
-	/// iterator for elements where dofs are defined
-	/// \{
-		template <typename TElem>
-		typename traits<TElem>::iterator begin() {return m_spSurfView->surface_begin<TElem>(m_level, false);}
-
-		template <typename TElem>
-		typename traits<TElem>::iterator end() {return m_spSurfView->surface_end<TElem>(m_level, false);}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator begin() const {return m_spSurfView->surface_begin<TElem>(m_level, false);}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator end() const {return m_spSurfView->surface_end<TElem>(m_level, false);}
-	///	\}
-
-	/// iterator for elements where dofs are defined
-	/// \{
-		template <typename TElem>
-		typename traits<TElem>::iterator begin(int si) {return m_spSurfView->surface_begin<TElem>(si, m_level, false);}
-
-		template <typename TElem>
-		typename traits<TElem>::iterator end(int si) {return m_spSurfView->surface_end<TElem>(si, m_level, false);}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator begin(int si) const {return m_spSurfView->surface_begin<TElem>(si, m_level, false);}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator end(int si) const {return m_spSurfView->surface_end<TElem>(si, m_level, false);}
-	///	\}
-
-		///////////////////////////////////////
-		// Index Access
-		///////////////////////////////////////
 
 	/// return the number of dofs distributed
 		size_t num_indices() const {return lev_info().numIndex;}
@@ -201,15 +100,6 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 
 	///	renames the indices
 		void permute_indices(const std::vector<size_t>& vIndNew);
-
-	///	add a transfer callback
-		void add_transfer(SmartPtr<ILocalTransfer> transfer);
-
-	///	add a transfer callback
-		void remove_transfer(SmartPtr<ILocalTransfer> transfer);
-
-	///	add a transfer callback
-		void clear_transfers();
 
 	protected:
 		/// permutes the indices for an base element type
@@ -234,10 +124,6 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 
 	///	set of invalid indices, still contained in index set
 		std::set<size_t> m_sFreeIndex;
-
-	///	list of prolongations
-		std::vector<SmartPtr<ILocalTransfer> >m_vProlongation[NUM_GEOMETRIC_BASE_OBJECTS];
-		std::vector<SmartPtr<ILocalTransfer> >m_vRestriction[NUM_GEOMETRIC_BASE_OBJECTS];
 
 	protected:
 #ifdef UG_PARALLEL
@@ -267,4 +153,4 @@ class SurfaceDoFDistribution : public MGDoFDistribution, public ManagingDoFDistr
 
 } // end namespace ug
 
-#endif /* SURFACE_DOF_DISTRIBUTION_H_ */
+#endif /* __H__UG__LIB_DISC__DOF_MANAGER__SURFACE_DOF_DISTRIBUTION__ */

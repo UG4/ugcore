@@ -56,6 +56,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		 * \param[in]	dd	DoF Distribution
 		 */
 		virtual void assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl) = 0;
+		virtual void assemble_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// assembles Defect
 		/**
@@ -66,6 +67,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		 * \param[in]	dd	DoF Distribution
 		 */
 		virtual void assemble_defect(vector_type& d, const vector_type& u, GridLevel gl) = 0;
+		virtual void assemble_defect(vector_type& d, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// Assembles Matrix and Right-Hand-Side for a linear problem
 		/**
@@ -76,6 +78,15 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		 * \param[in]	dd	DoF Distribution
 		 */
 		virtual void assemble_linear(matrix_type& A, vector_type& b, GridLevel gl) = 0;
+		virtual void assemble_linear(matrix_type& A, vector_type& b, ConstSmartPtr<DoFDistribution> dd) = 0;
+
+		/// assembles the rhs
+		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, GridLevel gl) = 0;
+		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
+
+		/// assembles the rhs
+		virtual void assemble_rhs(vector_type& b, GridLevel gl) = 0;
+		virtual void assemble_rhs(vector_type& b, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// sets dirichlet values in solution vector
 		/**
@@ -86,6 +97,15 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		 * \param[in]	dd	DoF Distribution
 		 */
 		virtual void adjust_solution(vector_type& u, GridLevel gl) = 0;
+		virtual void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
+
+		/// assembles the mass matrix
+		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u, GridLevel gl) = 0;
+		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
+
+		/// assembles the stiffness matrix
+		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u, GridLevel gl) = 0;
+		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 
 	public:
@@ -97,6 +117,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  dd 			DoF Distribution
 	 */
 	virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl) = 0;
+	virtual void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	prepares timestep on surface level
 	void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
@@ -114,6 +135,10 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		virtual void assemble_jacobian(matrix_type& J,
 		                               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                               const number s_a, GridLevel gl) = 0;
+		virtual void assemble_jacobian(matrix_type& J,
+		                               ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+		                               const number s_a0,
+		                               ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	assembles jacobian on surface level
 		void assemble_jacobian(matrix_type& J,
@@ -137,6 +162,11 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		       	                     const std::vector<number>& vScaleMass,
 		       	                     const std::vector<number>& vScaleStiff,
 		       	                     GridLevel gl) = 0;
+		virtual void assemble_defect(vector_type& d,
+		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+		                             const std::vector<number>& vScaleMass,
+		                             const std::vector<number>& vScaleStiff,
+		                             ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	assembles defect on surface level
 		void assemble_defect(vector_type& d,
@@ -161,6 +191,11 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		                             const std::vector<number>& vScaleMass,
 		                             const std::vector<number>& vScaleStiff,
 		                             GridLevel gl) = 0;
+		virtual void assemble_linear(matrix_type& A, vector_type& b,
+									 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+									 const std::vector<number>& vScaleMass,
+									 const std::vector<number>& vScaleStiff,
+									 ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	assembles linear on surface level
 		void assemble_linear(matrix_type& A, vector_type& b,
@@ -184,6 +219,11 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 									 const std::vector<number>& vScaleMass,
 									 const std::vector<number>& vScaleStiff,
 									 GridLevel gl) = 0;
+		virtual void assemble_rhs(	 vector_type& b,
+									 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+									 const std::vector<number>& vScaleMass,
+									 const std::vector<number>& vScaleStiff,
+									 ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	assembles rhs on surface level
 		void assemble_rhs(vector_type& b,
@@ -202,6 +242,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  dd 		DoF Distribution
 	 */
 		virtual void adjust_solution(vector_type& u, number time, GridLevel gl) = 0;
+		virtual void adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	adjust solution on surface level
 		void adjust_solution(vector_type& u, number time)
@@ -215,6 +256,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]  dd 			DoF Distribution
 	 */
 		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, GridLevel gl) = 0;
+		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	prepares timestep on surface level
 		void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)

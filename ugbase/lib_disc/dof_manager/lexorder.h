@@ -22,8 +22,8 @@ void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
                                std::vector<std::pair<MathVector<dim>, size_t> >& vPos);
 
 /// orders the dof distribution using Cuthill-McKee
-template <typename TDD, typename TDomain>
-void OrderLexForDofDist(SmartPtr<TDD> dd,
+template <typename TDomain>
+void OrderLexForDofDist(SmartPtr<DoFDistribution> dd,
                         ConstSmartPtr<TDomain> domain)
 {
 //	Lex Ordering is only possible in this cases:
@@ -98,7 +98,7 @@ void OrderLexForDofDist(SmartPtr<TDD> dd,
 //	a) we can order globally
 	if(bEqualNumDoFOnEachGeomObj)
 	{
-		ExtractPositions<TDomain, TDD>(domain, dd, vPositions);
+		ExtractPositions(domain, dd, vPositions);
 
 	//	get mapping: old -> new index
 		std::vector<size_t> vNewIndex(dd->num_indices());
@@ -117,7 +117,7 @@ void OrderLexForDofDist(SmartPtr<TDD> dd,
 				continue;
 			}
 
-			ExtractPositions<TDomain, TDD>(domain, dd, fct, vPositions);
+			ExtractPositions(domain, dd, fct, vPositions);
 
 		//	get mapping: old -> new index
 			std::vector<size_t> vNewIndex(dd->num_indices());
@@ -142,11 +142,11 @@ void OrderLex(ApproximationSpace<TDomain>& approxSpace,
 	//	order levels
 	if(approxSpace.levels_enabled())
 		for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
-			OrderLexForDofDist<LevelDoFDistribution, TDomain>(approxSpace.level_dof_distribution(lev), approxSpace.domain());
+			OrderLexForDofDist<TDomain>(approxSpace.level_dof_distribution(lev), approxSpace.domain());
 
 	//	order surface
 	if(approxSpace.top_surface_enabled())
-		OrderLexForDofDist<SurfaceDoFDistribution, TDomain>(approxSpace.surface_dof_distribution(), approxSpace.domain());
+		OrderLexForDofDist<TDomain>(approxSpace.surface_dof_distribution(), approxSpace.domain());
 }
 
 } // end namespace ug

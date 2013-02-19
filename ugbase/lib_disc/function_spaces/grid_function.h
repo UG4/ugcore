@@ -68,37 +68,30 @@ class IGridFunction
 	 */
 		virtual void resize_values(size_t s, number defaultValue = 0.0) = 0;
 
-	///	Destructor
-		virtual ~IGridFunction() {}
-};
-
-template <typename TDD>
-class IDDGridFunction : public IGridFunction
-{
 	public:
 	///	iterator traits
 		template <typename TElem>
 		struct traits
 		{
-			typedef typename TDD::template traits<TElem>::geometric_object geometric_object;
-			typedef typename TDD::template traits<TElem>::iterator iterator;
-			typedef typename TDD::template traits<TElem>::const_iterator const_iterator;
+			typedef typename DoFDistribution::traits<TElem>::geometric_object geometric_object;
+			typedef typename DoFDistribution::traits<TElem>::iterator iterator;
+			typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 		};
 
 		template <int dim>
 		struct dim_traits
 		{
-			typedef typename TDD::template dim_traits<dim>::geometric_base_object geometric_base_object;
-			typedef typename TDD::template dim_traits<dim>::iterator iterator;
-			typedef typename TDD::template dim_traits<dim>::const_iterator const_iterator;
+			typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object geometric_base_object;
+			typedef typename DoFDistribution::dim_traits<dim>::iterator iterator;
+			typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
 		};
 
 	///	type of multi indices
-		typedef typename TDD::multi_index_type multi_index_type;
+		typedef DoFDistribution::multi_index_type multi_index_type;
 
 	public:
 	///	constructor
-		IDDGridFunction(SmartPtr<TDD> spDoFDistribution)
+		IGridFunction(SmartPtr<DoFDistribution> spDoFDistribution)
 			: m_spDD(spDoFDistribution)
 		{
 			if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
@@ -106,16 +99,16 @@ class IDDGridFunction : public IGridFunction
 		}
 
 	///	destructor
-		~IDDGridFunction()
+		virtual ~IGridFunction()
 		{
 			m_spDD->unmanage_grid_function(*this);
 		}
 
 	///	returns dof distribution
-		SmartPtr<TDD> dof_distribution() {return m_spDD;}
+		SmartPtr<DoFDistribution> dof_distribution() {return m_spDD;}
 
 	///	returns dof distribution
-		ConstSmartPtr<TDD> dof_distribution() const {return m_spDD;}
+		ConstSmartPtr<DoFDistribution> dof_distribution() const {return m_spDD;}
 
 	/// number of discrete functions
 		size_t num_fct() const {return m_spDD->num_fct();}
@@ -229,7 +222,7 @@ class IDDGridFunction : public IGridFunction
 
 	protected:
 	///	DoF Distribution this GridFunction relies on
-		SmartPtr<TDD> m_spDD;
+		SmartPtr<DoFDistribution> m_spDD;
 
 	///	registered transfers
 		std::vector<SmartPtr<ILocalTransfer> > m_vTransfer;
@@ -244,17 +237,16 @@ class IDDGridFunction : public IGridFunction
  * grid elements and DoFs is provided.
  *
  * \tparam 	TDomain				domain type
- * \tparam	TDD					dof distribution type
  * \tparam	TAlgebra			algebra type
  */
-template <typename TDomain, typename TDD, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class GridFunction
 	: 	public TAlgebra::vector_type,
-	  	public IDDGridFunction<TDD>
+	  	public IGridFunction
 {
 	public:
 	///	This type
-		typedef GridFunction<TDomain, TDD, TAlgebra> this_type;
+		typedef GridFunction<TDomain, TAlgebra> this_type;
 
 	///	Type of Approximation space
 		typedef ApproximationSpace<TDomain> approximation_space_type;
@@ -271,34 +263,26 @@ class GridFunction
 	///	Vector type used to store dof values
 		typedef typename algebra_type::vector_type vector_type;
 
-	///	Type of DoFDistribution
-		typedef TDD dof_distribution_type;
-
 	public:
 		template <typename TElem>
 		struct traits
 		{
-			typedef typename IDDGridFunction<TDD>::template traits<TElem>::geometric_object geometric_object;
-			typedef typename IDDGridFunction<TDD>::template traits<TElem>::iterator iterator;
-			typedef typename IDDGridFunction<TDD>::template traits<TElem>::const_iterator const_iterator;
+			typedef typename IGridFunction::traits<TElem>::geometric_object geometric_object;
+			typedef typename IGridFunction::traits<TElem>::iterator iterator;
+			typedef typename IGridFunction::traits<TElem>::const_iterator const_iterator;
 		};
 
 		template <int dim>
 		struct dim_traits
 		{
-			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::geometric_base_object geometric_base_object;
-			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::iterator iterator;
-			typedef typename IDDGridFunction<TDD>::template dim_traits<dim>::const_iterator const_iterator;
+			typedef typename IGridFunction::dim_traits<dim>::geometric_base_object geometric_base_object;
+			typedef typename IGridFunction::dim_traits<dim>::iterator iterator;
+			typedef typename IGridFunction::dim_traits<dim>::const_iterator const_iterator;
 		};
 
 		typedef typename dim_traits<dim>::geometric_base_object element_type;
 		typedef typename dim_traits<dim>::iterator element_iterator;
 		typedef typename dim_traits<dim>::const_iterator const_element_iterator;
-
-
-	public:
-		using IDDGridFunction<TDD>::num_indices;
-
 
 	protected:
 	/// virtual clone using covariant return type
@@ -310,7 +294,7 @@ class GridFunction
 	public:
 	/// Initializing Constructor
 		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace,
-		             SmartPtr<TDD> spDoFDistr);
+		             SmartPtr<DoFDistribution> spDoFDistr);
 
 	/// Initializing Constructor using surface dof distribution
 		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
@@ -322,7 +306,7 @@ class GridFunction
 		void check_algebra();
 
 	/// Copy constructor
-		GridFunction(const this_type& v) : IDDGridFunction<TDD>(v) {assign(v);}
+		GridFunction(const this_type& v) : IGridFunction(v) {assign(v);}
 
 	///	assigns another grid function
 		this_type& operator=(const this_type& v) {assign(v); return *this;}
@@ -397,17 +381,17 @@ class GridFunction
 #endif
 };
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-const typename TAlgebra::vector_type &getVector(const GridFunction<TDomain, TDD, TAlgebra> &t)
+template <typename TDomain, typename TAlgebra>
+const typename TAlgebra::vector_type &getVector(const GridFunction<TDomain, TAlgebra> &t)
 {
-	return *dynamic_cast<const GridFunction<TDomain, TDD, TAlgebra>*>(&t);
+	return *dynamic_cast<const GridFunction<TDomain, TAlgebra>*>(&t);
 }
 
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-inline std::ostream& operator<< (std::ostream& outStream, const GridFunction<TDomain, TDD, TAlgebra>& v)
+template <typename TDomain, typename TAlgebra>
+inline std::ostream& operator<< (std::ostream& outStream, const GridFunction<TDomain, TAlgebra>& v)
 {
-	outStream << *dynamic_cast<const GridFunction<TDomain, TDD, TAlgebra>*>(&v);
+	outStream << *dynamic_cast<const GridFunction<TDomain, TAlgebra>*>(&v);
 	return outStream;
 }
 

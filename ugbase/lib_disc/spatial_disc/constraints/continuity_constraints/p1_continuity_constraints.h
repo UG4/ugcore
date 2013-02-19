@@ -9,8 +9,8 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__CONSTRAINTS__CONTINUITY_CONSTRAINTS__P1_CONTINUITY_CONSTRAINTS__
 
 #include "lib_disc/assemble_interface.h"
+#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
-#include "lib_disc/spatial_disc/constraints/constraint_base.h"
 
 namespace ug {
 
@@ -22,8 +22,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 
 template <typename TDomain, typename TAlgebra>
 class SymP1Constraints
-	: public ConstraintBase<TDomain, TAlgebra,
-	  	  	  	  	  	  	  SymP1Constraints<TDomain, TAlgebra> >
+	: public IDomainConstraint<TDomain, TAlgebra>
 {
 	public:
 	// 	Algebra type
@@ -38,33 +37,27 @@ class SymP1Constraints
 	public:
 		virtual int type() const {return CT_CONSTRAINTS;}
 
-		template <typename TDD>
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
-		                     ConstSmartPtr<TDD> dd, number time = 0.0);
+		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
-		template <typename TDD>
 		void adjust_defect(vector_type& d, const vector_type& u,
-		                   ConstSmartPtr<TDD> dd, number time = 0.0);
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
-		template <typename TDD>
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
-		                ConstSmartPtr<TDD> dd, number time = 0.0);
+		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
-		template <typename TDD>
 		void adjust_linear(matrix_type& mat, vector_type& rhs,
-		                   ConstSmartPtr<TDD> dd, number time);
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
-		template <typename TDD>
-		void adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
-		                     number time);
+		void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
+		                     number time = 0.0);
 };
 
 
 
 template <typename TDomain, typename TAlgebra>
 class OneSideP1Constraints
-	: public ConstraintBase<TDomain, TAlgebra,
-	  	  	  	  	  	  OneSideP1Constraints<TDomain, TAlgebra> >
+	: public IDomainConstraint<TDomain, TAlgebra>
 {
 	public:
 	// 	Algebra type
@@ -77,33 +70,25 @@ class OneSideP1Constraints
 		typedef typename algebra_type::vector_type vector_type;
 
 	protected:
-		typedef ConstraintBase<TDomain, TAlgebra,
-  	  	  	  	  OneSideP1Constraints<TDomain, TAlgebra> > base_type;
-
-		using base_type::approximation_space;
+		typedef IDomainConstraint<TDomain, TAlgebra> base_type;
 
 	public:
 		virtual int type() const {return CT_CONSTRAINTS;}
 
-		template <typename TDD>
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
-		                     ConstSmartPtr<TDD> dd, number time = 0.0);
+		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
-		template <typename TDD>
 		void adjust_defect(vector_type& d, const vector_type& u,
-		                   ConstSmartPtr<TDD> dd, number time = 0.0);
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
-		template <typename TDD>
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
-		                ConstSmartPtr<TDD> dd, number time = 0.0);
+		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
-		template <typename TDD>
 		void adjust_linear(matrix_type& mat, vector_type& rhs,
-		                   ConstSmartPtr<TDD> dd, number time);
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
-		template <typename TDD>
-		void adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd,
-		                     number time);
+		void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
+		                     number time = 0.0);
 };
 
 }; // namespace ug

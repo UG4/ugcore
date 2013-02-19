@@ -32,8 +32,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               bool bReverse = true);
 
 /// orders the dof distribution using Cuthill-McKee
-template <typename TDD>
-void OrderCuthillMcKee(TDD& dofDistr,
+inline void OrderCuthillMcKee(DoFDistribution& dofDistr,
                        bool bReverse)
 {
 	PROFILE_FUNC();

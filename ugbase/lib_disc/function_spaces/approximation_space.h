@@ -67,25 +67,31 @@ class IApproximationSpace : public DoFDistributionInfo
 
 
 	///	returns the level dof distributions
-		std::vector<ConstSmartPtr<SurfaceDoFDistribution> >	surface_dof_distributions() const;
+		std::vector<ConstSmartPtr<DoFDistribution> >	surface_dof_distributions() const;
 
 	///	returns the level dof distribution
-		SmartPtr<SurfaceDoFDistribution> surface_dof_distribution(int level = GridLevel::TOPLEVEL);
+		SmartPtr<DoFDistribution> surface_dof_distribution(int level = GridLevel::TOPLEVEL);
 
 	///	returns the level dof distribution
-		ConstSmartPtr<SurfaceDoFDistribution> surface_dof_distribution(int level = GridLevel::TOPLEVEL) const;
+		ConstSmartPtr<DoFDistribution> surface_dof_distribution(int level = GridLevel::TOPLEVEL) const;
 
 	///	returns the surface view
 		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfaceView;}
 
 	///	returns the level dof distributions
-		std::vector<ConstSmartPtr<LevelDoFDistribution> > level_dof_distributions() const;
+		std::vector<ConstSmartPtr<DoFDistribution> > level_dof_distributions() const;
 
 	///	returns the level dof distribution
-		SmartPtr<LevelDoFDistribution> level_dof_distribution(int level);
+		SmartPtr<DoFDistribution> level_dof_distribution(int level);
 
 	///	returns the level dof distribution
-		ConstSmartPtr<LevelDoFDistribution> level_dof_distribution(int level) const;
+		ConstSmartPtr<DoFDistribution> level_dof_distribution(int level) const;
+
+	///	returns dof distribution for a level
+		SmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl);
+
+	///	returns dof distribution for a level
+		ConstSmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl) const;
 
 
 	///	prints statistic about DoF Distribution
@@ -142,12 +148,10 @@ class IApproximationSpace : public DoFDistributionInfo
 
 	protected:
 	///	prints number of dofs
-		template <typename TDD>
-		void print_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const;
+		void print_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) const;
 
 	///	prints statistic about DoF Distribution
-		template <typename TDD>
-		void print_parallel_statistic(ConstSmartPtr<TDD> dd, int verboseLev) const;
+		void print_parallel_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) const;
 
 	///	registers at message hub for grid adaption
 		void register_at_adaption_msg_hub();

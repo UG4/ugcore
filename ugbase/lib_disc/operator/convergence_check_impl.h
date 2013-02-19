@@ -48,7 +48,7 @@ template <typename TBaseElem>
 void CompositeConvCheck<TVector, TDomain>::
 extract_multi_indices()
 {
-	typename SurfaceDoFDistribution::template traits<TBaseElem>::const_iterator iter, iterBegin, iterEnd;
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterBegin, iterEnd;
 
 	//	get element iterator for current subset
 	iterBegin = m_dd->template begin<TBaseElem>();

@@ -65,10 +65,9 @@ void DomainDiscretization<TDomain, TAlgebra>::update_disc_items()
 // Mass Matrix
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_mass_matrix(matrix_type& M, const vector_type& u,
-                     ConstSmartPtr<TDD> dd)
+                     ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -118,23 +117,23 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			AssembleMassMatrix<Edge,TDD,TAlgebra>
+			AssembleMassMatrix<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			break;
 		case 2:
-			AssembleMassMatrix<Triangle,TDD,TAlgebra>
+			AssembleMassMatrix<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
-			AssembleMassMatrix<Quadrilateral,TDD,TAlgebra>
+			AssembleMassMatrix<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			break;
 		case 3:
-			AssembleMassMatrix<Tetrahedron,TDD,TAlgebra>
+			AssembleMassMatrix<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
-			AssembleMassMatrix<Pyramid,TDD,TAlgebra>
+			AssembleMassMatrix<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
-			AssembleMassMatrix<Prism,TDD,TAlgebra>
+			AssembleMassMatrix<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
-			AssembleMassMatrix<Hexahedron,TDD,TAlgebra>
+			AssembleMassMatrix<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			break;
 		default:
@@ -167,7 +166,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	M.set_storage_type(PST_ADDITIVE);
-	TDD* pDD = const_cast<TDD*>(dd.get());
+	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(M, *pDD);
 #endif
 }
@@ -177,10 +176,9 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
-                          ConstSmartPtr<TDD> dd)
+                          ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -230,23 +228,23 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			AssembleStiffnessMatrix<Edge,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			break;
 		case 2:
-			AssembleStiffnessMatrix<Triangle,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
-			AssembleStiffnessMatrix<Quadrilateral,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			break;
 		case 3:
-			AssembleStiffnessMatrix<Tetrahedron,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
-			AssembleStiffnessMatrix<Pyramid,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
-			AssembleStiffnessMatrix<Prism,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
-			AssembleStiffnessMatrix<Hexahedron,TDD,TAlgebra>
+			AssembleStiffnessMatrix<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			break;
 		default:
@@ -279,7 +277,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	A.set_storage_type(PST_ADDITIVE);
-	TDD* pDD = const_cast<TDD*>(dd.get());
+	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(A, *pDD);
 #endif
 }
@@ -295,11 +293,10 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 // Jacobian (stationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_jacobian(matrix_type& J,
                   const vector_type& u,
-                  ConstSmartPtr<TDD> dd)
+                  ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -349,23 +346,23 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 1:
-			AssembleJacobian<Edge,TDD,TAlgebra>
+			AssembleJacobian<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
 			break;
 		case 2:
-			AssembleJacobian<Triangle,TDD,TAlgebra>
+			AssembleJacobian<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
-			AssembleJacobian<Quadrilateral,TDD,TAlgebra>
+			AssembleJacobian<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
 			break;
 		case 3:
-			AssembleJacobian<Tetrahedron,TDD,TAlgebra>
+			AssembleJacobian<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
-			AssembleJacobian<Pyramid,TDD,TAlgebra>
+			AssembleJacobian<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
-			AssembleJacobian<Prism,TDD,TAlgebra>
+			AssembleJacobian<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
-			AssembleJacobian<Hexahedron,TDD,TAlgebra>
+			AssembleJacobian<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
 			break;
 		default:
@@ -398,7 +395,7 @@ assemble_jacobian(matrix_type& J,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
-	TDD* pDD = const_cast<TDD*>(dd.get());
+	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(J, *pDD);
 #endif
 }
@@ -408,11 +405,10 @@ assemble_jacobian(matrix_type& J,
 // Defect (stationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_defect(vector_type& d,
                 const vector_type& u,
-                ConstSmartPtr<TDD> dd)
+                ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -462,23 +458,23 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 1:
-			AssembleDefect<Edge,TDD,TAlgebra>
+			AssembleDefect<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
 			break;
 		case 2:
-			AssembleDefect<Triangle,TDD,TAlgebra>
+			AssembleDefect<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
-			AssembleDefect<Quadrilateral,TDD,TAlgebra>
+			AssembleDefect<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
 			break;
 		case 3:
-			AssembleDefect<Tetrahedron,TDD,TAlgebra>
+			AssembleDefect<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
-			AssembleDefect<Pyramid,TDD,TAlgebra>
+			AssembleDefect<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
-			AssembleDefect<Prism,TDD,TAlgebra>
+			AssembleDefect<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
-			AssembleDefect<Hexahedron,TDD,TAlgebra>
+			AssembleDefect<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
 			break;
 		default:
@@ -517,10 +513,9 @@ assemble_defect(vector_type& d,
 // Matrix and RHS (stationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
-                ConstSmartPtr<TDD> dd)
+                ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -572,23 +567,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleLinear<Edge,TDD,TAlgebra>
+			AssembleLinear<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			break;
 		case 2:
-			AssembleLinear<Triangle,TDD,TAlgebra>
+			AssembleLinear<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
-			AssembleLinear<Quadrilateral,TDD,TAlgebra>
+			AssembleLinear<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			break;
 		case 3:
-			AssembleLinear<Tetrahedron,TDD,TAlgebra>
+			AssembleLinear<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
-			AssembleLinear<Pyramid,TDD,TAlgebra>
+			AssembleLinear<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
-			AssembleLinear<Prism,TDD,TAlgebra>
+			AssembleLinear<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
-			AssembleLinear<Hexahedron,TDD,TAlgebra>
+			AssembleLinear<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			break;
 		default:
@@ -620,7 +615,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	mat.set_storage_type(PST_ADDITIVE);
-	TDD* pDD = const_cast<TDD*>(dd.get());
+	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(mat, *pDD);
 	rhs.set_storage_type(PST_ADDITIVE);
 #endif
@@ -630,11 +625,10 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 // RHS (stationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_rhs(vector_type& rhs,
 			const vector_type& u,
-			ConstSmartPtr<TDD> dd)
+			ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -684,23 +678,23 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleRhs<Edge,TDD,TAlgebra>
+			AssembleRhs<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			break;
 		case 2:
-			AssembleRhs<Triangle,TDD,TAlgebra>
+			AssembleRhs<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
-			AssembleRhs<Quadrilateral,TDD,TAlgebra>
+			AssembleRhs<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			break;
 		case 3:
-			AssembleRhs<Tetrahedron,TDD,TAlgebra>
+			AssembleRhs<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
-			AssembleRhs<Pyramid,TDD,TAlgebra>
+			AssembleRhs<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
-			AssembleRhs<Prism,TDD,TAlgebra>
+			AssembleRhs<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
-			AssembleRhs<Hexahedron,TDD,TAlgebra>
+			AssembleRhs<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			break;
 		default:
@@ -737,10 +731,9 @@ assemble_rhs(vector_type& rhs,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_rhs(vector_type& rhs,
-			ConstSmartPtr<TDD> dd)
+			ConstSmartPtr<DoFDistribution> dd)
 {
 	assemble_rhs(rhs, rhs, dd);
 }
@@ -749,9 +742,8 @@ assemble_rhs(vector_type& rhs,
 // set constraints (stationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
-adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd)
+adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 	update_constraints();
@@ -794,10 +786,9 @@ adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd)
 // Prepare Timestep (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-                ConstSmartPtr<TDD> dd)
+                ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -839,23 +830,23 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 1:
-			PrepareTimestep<Edge,TDD,TAlgebra>
+			PrepareTimestep<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 2:
-			PrepareTimestep<Triangle,TDD,TAlgebra>
+			PrepareTimestep<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			PrepareTimestep<Quadrilateral,TDD,TAlgebra>
+			PrepareTimestep<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 3:
-			PrepareTimestep<Tetrahedron,TDD,TAlgebra>
+			PrepareTimestep<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			PrepareTimestep<Pyramid,TDD,TAlgebra>
+			PrepareTimestep<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			PrepareTimestep<Prism,TDD,TAlgebra>
+			PrepareTimestep<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			PrepareTimestep<Hexahedron,TDD,TAlgebra>
+			PrepareTimestep<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		default:
@@ -874,12 +865,11 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 // Jacobian (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_jacobian(matrix_type& J,
                   ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                   const number s_a0,
-                  ConstSmartPtr<TDD> dd)
+                  ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -932,23 +922,23 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 1:
-			AssembleJacobian<Edge,TDD,TAlgebra>
+			AssembleJacobian<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
 			break;
 		case 2:
-			AssembleJacobian<Triangle,TDD,TAlgebra>
+			AssembleJacobian<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
-			AssembleJacobian<Quadrilateral,TDD,TAlgebra>
+			AssembleJacobian<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
 			break;
 		case 3:
-			AssembleJacobian<Tetrahedron,TDD,TAlgebra>
+			AssembleJacobian<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
-			AssembleJacobian<Pyramid,TDD,TAlgebra>
+			AssembleJacobian<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
-			AssembleJacobian<Prism,TDD,TAlgebra>
+			AssembleJacobian<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
-			AssembleJacobian<Hexahedron,TDD,TAlgebra>
+			AssembleJacobian<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
 			break;
 		default:
@@ -980,7 +970,7 @@ assemble_jacobian(matrix_type& J,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
-	TDD* pDD = const_cast<TDD*>(dd.get());
+	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(J, *pDD);
 #endif
 }
@@ -990,13 +980,12 @@ assemble_jacobian(matrix_type& J,
 // Defect (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_defect(vector_type& d,
                 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 const std::vector<number>& vScaleMass,
                 const std::vector<number>& vScaleStiff,
-                ConstSmartPtr<TDD> dd)
+                ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -1046,23 +1035,23 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 1:
-			AssembleDefect<Edge,TDD,TAlgebra>
+			AssembleDefect<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 2:
-			AssembleDefect<Triangle,TDD,TAlgebra>
+			AssembleDefect<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleDefect<Quadrilateral,TDD,TAlgebra>
+			AssembleDefect<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 3:
-			AssembleDefect<Tetrahedron,TDD,TAlgebra>
+			AssembleDefect<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleDefect<Pyramid,TDD,TAlgebra>
+			AssembleDefect<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleDefect<Prism,TDD,TAlgebra>
+			AssembleDefect<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleDefect<Hexahedron,TDD,TAlgebra>
+			AssembleDefect<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		default:
@@ -1101,13 +1090,12 @@ assemble_defect(vector_type& d,
 // Matrix and RHS (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs,
                 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
                 const std::vector<number>& vScaleMass,
                 const std::vector<number>& vScaleStiff,
-                ConstSmartPtr<TDD> dd)
+                ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -1159,23 +1147,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleLinear<Edge,TDD,TAlgebra>
+			AssembleLinear<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 2:
-			AssembleLinear<Triangle,TDD,TAlgebra>
+			AssembleLinear<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleLinear<Quadrilateral,TDD,TAlgebra>
+			AssembleLinear<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 3:
-			AssembleLinear<Tetrahedron,TDD,TAlgebra>
+			AssembleLinear<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleLinear<Pyramid,TDD,TAlgebra>
+			AssembleLinear<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleLinear<Prism,TDD,TAlgebra>
+			AssembleLinear<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleLinear<Hexahedron,TDD,TAlgebra>
+			AssembleLinear<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		default:
@@ -1208,7 +1196,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	mat.set_storage_type(PST_ADDITIVE);
-	TDD* pDD = const_cast<TDD*>(dd.get());
+	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(mat, *pDD);
 
 	rhs.set_storage_type(PST_ADDITIVE);
@@ -1219,13 +1207,12 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 // RHS (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 assemble_rhs(vector_type& rhs,
              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
              const std::vector<number>& vScaleMass,
              const std::vector<number>& vScaleStiff,
-             ConstSmartPtr<TDD> dd)
+             ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -1275,23 +1262,23 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleRhs<Edge,TDD,TAlgebra>
+			AssembleRhs<Edge,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 2:
-			AssembleRhs<Triangle,TDD,TAlgebra>
+			AssembleRhs<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleRhs<Quadrilateral,TDD,TAlgebra>
+			AssembleRhs<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 3:
-			AssembleRhs<Tetrahedron,TDD,TAlgebra>
+			AssembleRhs<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleRhs<Pyramid,TDD,TAlgebra>
+			AssembleRhs<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleRhs<Prism,TDD,TAlgebra>
+			AssembleRhs<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleRhs<Hexahedron,TDD,TAlgebra>
+			AssembleRhs<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		default:
@@ -1331,9 +1318,8 @@ assemble_rhs(vector_type& rhs,
 // set constraint values (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
-adjust_solution(vector_type& u, number time, ConstSmartPtr<TDD> dd)
+adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 	update_constraints();
@@ -1370,10 +1356,9 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<TDD> dd)
 // Finish Timestep (instationary)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DomainDiscretization<TDomain, TAlgebra>::
 finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-                ConstSmartPtr<TDD> dd)
+                ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
 //	update the elem discs
@@ -1415,23 +1400,23 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 1:
-			FinishTimestep<Edge, TDD, TAlgebra>
+			FinishTimestep<Edge,  TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 2:
-			FinishTimestep<Triangle,TDD,TAlgebra>
+			FinishTimestep<Triangle,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			FinishTimestep<Quadrilateral,TDD,TAlgebra>
+			FinishTimestep<Quadrilateral,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 3:
-			FinishTimestep<Tetrahedron,TDD,TAlgebra>
+			FinishTimestep<Tetrahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			FinishTimestep<Pyramid,TDD,TAlgebra>
+			FinishTimestep<Pyramid,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			FinishTimestep<Prism,TDD,TAlgebra>
+			FinishTimestep<Prism,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			FinishTimestep<Hexahedron,TDD,TAlgebra>
+			FinishTimestep<Hexahedron,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		default:

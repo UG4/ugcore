@@ -54,7 +54,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef ApproximationSpace<TDomain> approximation_space_type;
-	typedef ug::GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
+	typedef ug::GridFunction<TDomain, TAlgebra> TFct;
 
 //	group string
 	grp.append("/ApproximationSpace");

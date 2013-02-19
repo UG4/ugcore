@@ -8,13 +8,10 @@
 #ifndef __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_DISTRIBUTION__
 #define __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_DISTRIBUTION__
 
-#include "lib_grid/tools/surface_view.h"
 #include "function_pattern.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
-#include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/common/local_algebra.h"
-#include "lib_grid/tools/grid_level.h"
 #include "dof_distribution_info.h"
 #include "lib_algebra/parallelization/algebra_layouts.h"
 
@@ -82,7 +79,7 @@ struct LevInfo : public LevInfoBase
 // MGDoFDistribution
 ///////////////////////////////////////////////////////////////////////////////
 
-class MGDoFDistribution : public DoFDistributionInfoProvider, public GridObserver
+class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public GridObserver
 {
 	public:
 	//	type of multi index
@@ -550,8 +547,5 @@ struct LevInfo<std::set<size_t> > : public LevInfoBase
 
 } // end namespace ug
 
-//#include "mg_dof_distribution_impl.h"
-#include "level_dof_distribution.h"
-#include "surface_dof_distribution.h"
 
 #endif /* __H__UG__LIB_DISC__DOF_MANAGER__MG_DOF_DISTRIBUTION__ */

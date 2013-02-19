@@ -48,7 +48,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 {
 //	typedef
 	static const int dim = TDomain::dim;
-	typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
+	typedef GridFunction<TDomain, TAlgebra> TFct;
 
 //	Integral
 	{

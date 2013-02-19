@@ -11,6 +11,7 @@
 #include "common/common.h"
 #include "common/math/ugmath.h"
 #include "common/util/smart_pointer.h"
+#include "lib_disc/dof_manager/dof_distribution.h"
 
 namespace ug {
 
@@ -23,8 +24,8 @@ namespace ug {
  * @param dd			the dof distribution
  * @param vPos			the array of positions (to be filled)
  */
-template<typename TDomain, typename TDD>
-void ExtractPositions(ConstSmartPtr<TDomain> domain, ConstSmartPtr<TDD> dd,
+template<typename TDomain>
+void ExtractPositions(ConstSmartPtr<TDomain> domain, ConstSmartPtr<DoFDistribution> dd,
                       std::vector<MathVector<TDomain::dim> >& vPos,
                       const std::vector<int>* pvMapGlobalToPatch = NULL);
 
@@ -40,12 +41,7 @@ template<typename TFunction>
 void ExtractPositions(const TFunction &u,
                       std::vector<MathVector<TFunction::domain_type::dim> >& vPos)
 {
-	typedef typename TFunction::domain_type domain_type;
-	typedef typename TFunction::dof_distribution_type dof_distribution_type;
-
-	ExtractPositions<domain_type, dof_distribution_type>(u.domain(),
-	                                                     u.dof_distribution(),
-	                                                     vPos);
+	ExtractPositions(u.domain(),u.dof_distribution(), vPos);
 }
 
 /**
@@ -57,9 +53,9 @@ void ExtractPositions(const TFunction &u,
  * @param dd			the dof distribution
  * @param vPos			the array of positions (to be filled)
  */
-template <typename TDomain, typename TDD>
+template <typename TDomain>
 void ExtractPositions(ConstSmartPtr<TDomain> domain,
-                      ConstSmartPtr<TDD> dd,
+                      ConstSmartPtr<DoFDistribution> dd,
                       std::vector<std::pair<MathVector<TDomain::dim>, size_t> >& vPosPair);
 
 /**
@@ -73,9 +69,9 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
  * @param fct			the component of the trial space
  * @param vPos			the array of positions (to be filled)
  */
-template <typename TDomain, typename TDD>
+template <typename TDomain>
 void ExtractPositions(ConstSmartPtr<TDomain> domain,
-                      ConstSmartPtr<TDD> dd,
+                      ConstSmartPtr<DoFDistribution> dd,
                       const size_t fct,
                       std::vector<std::pair<MathVector<TDomain::dim>, size_t> >& vPosPair);
 

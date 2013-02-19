@@ -8,8 +8,8 @@
 #ifndef __H__UG__LIB_DISC__DOF_MANAGER__LEVEL_DOF_DISTRIBUTION__
 #define __H__UG__LIB_DISC__DOF_MANAGER__LEVEL_DOF_DISTRIBUTION__
 
-#include "mg_dof_distribution.h"
 #include "dof_distribution.h"
+#include "mg_dof_distribution.h"
 #include "managing_dof_distribution.h"
 #include "lib_disc/domain_traits.h"
 
@@ -152,9 +152,7 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 
 
 
-class LevelDoFDistribution : public DoFDistributionInfoProvider,
-							 public ManagingDoFDistribution,
-							 public DoFDistribution
+class LevelDoFDistribution :  public DoFDistribution
 {
 	public:
 	///	constructor

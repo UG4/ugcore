@@ -11,18 +11,22 @@
 #include "lib_grid/tools/surface_view.h"
 #include "lib_disc/domain_traits.h"
 #include "mg_dof_distribution.h"
+#include "managing_dof_distribution.h"
+#include "lib_disc/function_spaces/local_transfer_interface.h"
 
 namespace ug{
 
 
-class DoFDistribution
+class DoFDistribution : virtual public DoFDistributionInfoProvider,
+						public ManagingDoFDistribution
 {
 	public:
 	///	constructor
-		DoFDistribution(SmartPtr<MGDoFDistribution> spMGDD,
+		DoFDistribution(MGDoFDistribution& rMGDD,
 		                SmartPtr<SurfaceView> spSurfView,
 		                const GridLevel& level)
-			: m_spMGDD(spMGDD), m_spSurfView(spSurfView), m_level(level)
+			: DoFDistributionInfoProvider(rMGDD.dof_distribution_info()),
+			  m_rMGDD(rMGDD), m_spSurfView(spSurfView), m_level(level)
 		{}
 
 	///	returns the surface view
@@ -35,10 +39,22 @@ class DoFDistribution
 		const GridLevel& grid_level() const {return m_level;}
 
 		///	returns if dofs are grouped
-		bool grouped() const {return m_spMGDD->grouped();}
+		bool grouped() const {return m_rMGDD.grouped();}
 
 		///	returns blocksize
-		std::string blocksize() const {return m_spMGDD->blocksize();}
+		std::string blocksize() const {return m_rMGDD.blocksize();}
+
+		/// return the number of dofs distributed
+		virtual size_t num_indices() const = 0;
+
+		/// return the number of dofs distributed on subset si
+		virtual size_t num_indices(int si) const = 0;
+
+		/// returns the connections
+		virtual bool get_connections(std::vector<std::vector<size_t> >& vvConnection) const = 0;
+
+		///	renames the indices
+		virtual void permute_indices(const std::vector<size_t>& vIndNew) = 0;
 
 	public:
 		template <typename TElem>
@@ -93,47 +109,77 @@ class DoFDistribution
 
 	///	returns all indices of the element
 	///	\{
-		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
-		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const{m_spMGDD->indices(elem, ind, bHang);}
+		void indices(GeometricObject* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem, ind, bHang);}
+		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem, ind, bHang);}
+		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem, ind, bHang);}
+		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem, ind, bHang);}
+		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem, ind, bHang);}
 	/// \}
 
 	/// get multi indices (Element + Closure of Element)
 	/// \{
-		size_t multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-		size_t multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-		size_t multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
-		size_t multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->multi_indices(elem, fct, ind);}
+		size_t multi_indices(GeometricObject* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.multi_indices(elem, fct, ind);}
+		size_t multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.multi_indices(elem, fct, ind);}
+		size_t multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.multi_indices(elem, fct, ind);}
+		size_t multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.multi_indices(elem, fct, ind);}
+		size_t multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.multi_indices(elem, fct, ind);}
 	/// \}
 
 	/// get multi indices (only inner part of Element)
 	/// \{
-		size_t inner_multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_spMGDD->inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(GeometricObject* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.inner_multi_indices(elem, fct, ind);}
 	/// \}
 
 	/// get algebra indices (Element + Closure of Element)
 	/// \{
-		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-		size_t algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-		size_t algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
-		size_t algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_spMGDD->algebra_indices(elem, ind);}
+		size_t algebra_indices(GeometricObject* elem, std::vector<size_t>& ind) const{return m_rMGDD.algebra_indices(elem, ind);}
+		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_rMGDD.algebra_indices(elem, ind);}
+		size_t algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_rMGDD.algebra_indices(elem, ind);}
+		size_t algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_rMGDD.algebra_indices(elem, ind);}
+		size_t algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_rMGDD.algebra_indices(elem, ind);}
 	/// \}
 
 	/// get algebra indices (only inner part of Element)
 	/// \{
-		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_spMGDD->inner_algebra_indices(elem,ind);}
+		size_t inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind) const{return m_rMGDD.inner_algebra_indices(elem,ind);}
+		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_rMGDD.inner_algebra_indices(elem,ind);}
+		size_t inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_rMGDD.inner_algebra_indices(elem,ind);}
+		size_t inner_algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_rMGDD.inner_algebra_indices(elem,ind);}
+		size_t inner_algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_rMGDD.inner_algebra_indices(elem,ind);}
 	/// \}
+
+#ifdef UG_PARALLEL
+	public:
+	///	returns the algebra layouts
+		virtual const AlgebraLayouts& layouts() const = 0;
+
+	public:
+	///	returns the algebra layouts
+		virtual AlgebraLayouts& layouts() = 0;
+#endif
+
+	public:
+	///	add a transfer callback
+		void add_transfer(SmartPtr<ILocalTransfer> transfer);
+
+	///	add a transfer callback
+		void remove_transfer(SmartPtr<ILocalTransfer> transfer);
+
+	///	add a transfer callback
+		void clear_transfers();
+
+	protected:
+	///	list of prolongations
+		std::vector<SmartPtr<ILocalTransfer> >m_vProlongation[NUM_GEOMETRIC_BASE_OBJECTS];
+		std::vector<SmartPtr<ILocalTransfer> >m_vRestriction[NUM_GEOMETRIC_BASE_OBJECTS];
 
 	protected:
 	///	MultiGrid Level DoF Distribution
-		SmartPtr<MGDoFDistribution> m_spMGDD;
+		MGDoFDistribution& m_rMGDD;
 
 	///	MultiGrid Subset Handler
 		SmartPtr<SurfaceView> m_spSurfView;

@@ -76,54 +76,42 @@ class DomainDiscretization
 	///////////////////////////
 
 	/// \copydoc IAssemble::assemble_jacobian()
-		template <typename TDD>
-		void assemble_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<TDD> dd);
+		void assemble_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<DoFDistribution> dd);
 
 	/// \copydoc IAssemble::assemble_defect()
-		template <typename TDD>
-		void assemble_defect(vector_type& d, const vector_type& u, ConstSmartPtr<TDD> dd);
+		void assemble_defect(vector_type& d, const vector_type& u, ConstSmartPtr<DoFDistribution> dd);
 
 	/// \copydoc IAssemble::assemble_linear()
-		template <typename TDD>
-		void assemble_linear(matrix_type& A, vector_type& b, ConstSmartPtr<TDD> dd);
+		void assemble_linear(matrix_type& A, vector_type& b, ConstSmartPtr<DoFDistribution> dd);
 
 	/// assembles the stiffness matrix
-		template <typename TDD>
-		void assemble_rhs(vector_type& rhs, const vector_type& u, ConstSmartPtr<TDD> dd);
+		void assemble_rhs(vector_type& rhs, const vector_type& u, ConstSmartPtr<DoFDistribution> dd);
 
 	/// \copydoc IAssemble::assemble_rhs()
-		template <typename TDD>
-		void assemble_rhs(vector_type& b, ConstSmartPtr<TDD> dd);
+		void assemble_rhs(vector_type& b, ConstSmartPtr<DoFDistribution> dd);
 
 	/// \copydoc IAssemble::adjust_solution()
-		template <typename TDD>
-		void adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd);
+		void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd);
 
 	///	wrapper for GridFunction
 	/// \{
-		template <typename TDD>
-		void assemble_jacobian(matrix_type& J, GridFunction<TDomain, TDD, TAlgebra>& u)
-			{assemble_jacobian<TDD>(J, u, u.dof_distribution());}
+		void assemble_jacobian(matrix_type& J, GridFunction<TDomain, TAlgebra>& u)
+			{assemble_jacobian(J, u, u.dof_distribution());}
 
-		template <typename TDD>
-		void assemble_defect(vector_type& d, GridFunction<TDomain, TDD, TAlgebra>& u)
-			{assemble_defect<TDD>(d, u, u.dof_distribution());}
+		void assemble_defect(vector_type& d, GridFunction<TDomain, TAlgebra>& u)
+			{assemble_defect(d, u, u.dof_distribution());}
 
-		template <typename TDD>
-		void assemble_linear(matrix_type& A, GridFunction<TDomain, TDD, TAlgebra>& rhs)
-			{assemble_linear<TDD>(A, rhs, rhs.dof_distribution());}
+		void assemble_linear(matrix_type& A, GridFunction<TDomain, TAlgebra>& rhs)
+			{assemble_linear(A, rhs, rhs.dof_distribution());}
 
-		template <typename TDD>
-		void assemble_rhs(vector_type& rhs, GridFunction<TDomain, TDD, TAlgebra>& u)
-			{assemble_rhs<TDD>(rhs, u, u.dof_distribution());}
+		void assemble_rhs(vector_type& rhs, GridFunction<TDomain, TAlgebra>& u)
+			{assemble_rhs(rhs, u, u.dof_distribution());}
 
-		template <typename TDD>
-		void assemble_rhs(GridFunction<TDomain, TDD, TAlgebra>& b)
-			{assemble_rhs<TDD>(b, b.dof_distribution());}
+		void assemble_rhs(GridFunction<TDomain, TAlgebra>& b)
+			{assemble_rhs(b, b.dof_distribution());}
 
-		template <typename TDD>
-		void adjust_solution(GridFunction<TDomain, TDD, TAlgebra>& u)
-			{adjust_solution<TDD>(u, u.dof_distribution());}
+		void adjust_solution(GridFunction<TDomain, TAlgebra>& u)
+			{adjust_solution(u, u.dof_distribution());}
 	/// \}
 
 	///////////////////////
@@ -131,64 +119,55 @@ class DomainDiscretization
 	///////////////////////
 
 	/// \copydoc IDomainDiscretization::prepare_timestep()
-		template <typename TDD>
 		void prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-		                      ConstSmartPtr<TDD> dd);
+		                      ConstSmartPtr<DoFDistribution> dd);
 
 	/// \copydoc IDomainDiscretization::assemble_jacobian()
-		template <typename TDD>
 		void assemble_jacobian(matrix_type& J,
 		                       ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                       const number s_a0,
-		                       ConstSmartPtr<TDD> dd);
+		                       ConstSmartPtr<DoFDistribution> dd);
 
 	/// \copydoc IDomainDiscretization::assemble_defect()
-		template <typename TDD>
 		void assemble_defect(vector_type& d,
 		                     ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff,
-		                     ConstSmartPtr<TDD> dd);
+		                     ConstSmartPtr<DoFDistribution> dd);
 
 	/// \copydoc IDomainDiscretization::assemble_linear()
-		template <typename TDD>
 		void assemble_linear(matrix_type& A, vector_type& b,
 		                     ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		                     const std::vector<number>& vScaleMass,
 		                     const std::vector<number>& vScaleStiff,
-		                     ConstSmartPtr<TDD> dd);
+		                     ConstSmartPtr<DoFDistribution> dd);
 
 	/// \copydoc IDomainDiscretization::assemble_rhs()
-		template <typename TDD>
 		void assemble_rhs(	 vector_type& b,
 							 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 							 const std::vector<number>& vScaleMass,
 							 const std::vector<number>& vScaleStiff,
-							 ConstSmartPtr<TDD> dd);
+							 ConstSmartPtr<DoFDistribution> dd);
 
 	/// \copydoc IDomainDiscretization::adjust_solution()
-		template <typename TDD>
 		void adjust_solution(vector_type& u, number time,
-		                       ConstSmartPtr<TDD> dd);
+		                       ConstSmartPtr<DoFDistribution> dd);
 
 	/// \copydoc IDomainDiscretization::finish_timestep()
-		template <typename TDD>
 		void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
-							 ConstSmartPtr<TDD> dd);
+							 ConstSmartPtr<DoFDistribution> dd);
 
 	///////////////////////////
 	// Mass and Stiffness Matrix
 	///////////////////////////
 
 	/// assembles the mass matrix
-		template <typename TDD>
 		void assemble_mass_matrix(matrix_type& M, const vector_type& u,
-		                          ConstSmartPtr<TDD> dd);
+		                          ConstSmartPtr<DoFDistribution> dd);
 
 	/// assembles the stiffness matrix
-		template <typename TDD>
 		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
-		                               ConstSmartPtr<TDD> dd);
+		                               ConstSmartPtr<DoFDistribution> dd);
 
 	public:
 	/// forces the assembling to consider the grid as regular

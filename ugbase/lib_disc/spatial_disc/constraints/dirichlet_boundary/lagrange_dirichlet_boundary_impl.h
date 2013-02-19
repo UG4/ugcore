@@ -223,9 +223,8 @@ extract_data()
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DirichletBoundary<TDomain, TAlgebra>::
-assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
+assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	extract_data();
 
@@ -236,8 +235,8 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 		int si = (*iter).first;
 		const std::vector<CondNumberData*>& userData = (*iter).second;
 
-		typename TDD::template traits<VertexBase>::const_iterator iterBegin 	= dd->template begin<VertexBase>(si);
-		typename TDD::template traits<VertexBase>::const_iterator iterEnd 	= dd->template end<VertexBase>(si);
+		DoFDistribution::traits<VertexBase>::const_iterator iterBegin 	= dd->begin<VertexBase>(si);
+		DoFDistribution::traits<VertexBase>::const_iterator iterEnd 	= dd->end<VertexBase>(si);
 
 	//	create Multiindex
 		std::vector<MultiIndex<2> >  multInd;
@@ -247,7 +246,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 		position_type corner;
 
 	//	loop vertices
-		for(typename TDD::template traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
+		for(DoFDistribution::traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
 		{
 		//	get vertex
 			VertexBase* vertex = *iter;
@@ -291,26 +290,25 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DirichletBoundary<TDomain, TAlgebra>::
-adjust_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<TDD> dd, number time)
+adjust_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	extract_data();
 
-	adjust_jacobian<CondNumberData, TDD>(m_mBNDNumberBndSegment, J, u, dd, time);
-	adjust_jacobian<NumberData, TDD>(m_mNumberBndSegment, J, u, dd, time);
-	adjust_jacobian<ConstNumberData, TDD>(m_mConstNumberBndSegment, J, u, dd, time);
+	adjust_jacobian<CondNumberData>(m_mBNDNumberBndSegment, J, u, dd, time);
+	adjust_jacobian<NumberData>(m_mNumberBndSegment, J, u, dd, time);
+	adjust_jacobian<ConstNumberData>(m_mConstNumberBndSegment, J, u, dd, time);
 
-	adjust_jacobian<VectorData, TDD>(m_mVectorBndSegment, J, u, dd, time);
+	adjust_jacobian<VectorData>(m_mVectorBndSegment, J, u, dd, time);
 }
 
 
 template <typename TDomain, typename TAlgebra>
-template <typename TUserData, typename TDD>
+template <typename TUserData>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
                 matrix_type& J, const vector_type& u,
-           	    ConstSmartPtr<TDD> dd, number time)
+           	    ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	loop boundary subsets
 	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
@@ -326,13 +324,13 @@ adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->max_dofs(VERTEX))
-			adjust_jacobian<Vertex, TUserData, TDD>(vUserData, si, J, u, dd, time);
+			adjust_jacobian<Vertex, TUserData>(vUserData, si, J, u, dd, time);
 		if(dd->max_dofs(EDGE))
-			adjust_jacobian<EdgeBase, TUserData, TDD>(vUserData, si, J, u, dd, time);
+			adjust_jacobian<EdgeBase, TUserData>(vUserData, si, J, u, dd, time);
 		if(dd->max_dofs(FACE))
-			adjust_jacobian<Face, TUserData, TDD>(vUserData, si, J, u, dd, time);
+			adjust_jacobian<Face, TUserData>(vUserData, si, J, u, dd, time);
 		if(dd->max_dofs(VOLUME))
-			adjust_jacobian<Volume, TUserData, TDD>(vUserData, si, J, u, dd, time);
+			adjust_jacobian<Volume, TUserData>(vUserData, si, J, u, dd, time);
 		}
 		UG_CATCH_THROW("DirichletBoundary::adjust_jacobian:"
 						" While calling 'adapt_jacobian' for TUserData, aborting.");
@@ -340,11 +338,11 @@ adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TBaseElem, typename TUserData, typename TDD>
+template <typename TBaseElem, typename TUserData>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
                 matrix_type& J, const vector_type& u,
-           	    ConstSmartPtr<TDD> dd, number time)
+           	    ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	//	create Multiindex
 	std::vector<MultiIndex<2> >  multInd;
@@ -356,9 +354,9 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 	std::vector<position_type> vPos;
 
 //	iterators
-	typename TDD::template traits<TBaseElem>::const_iterator iter, iterEnd;
-	iter = dd->template begin<TBaseElem>(si);
-	iterEnd = dd->template end<TBaseElem>(si);
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd->begin<TBaseElem>(si);
+	iterEnd = dd->end<TBaseElem>(si);
 
 //	loop elements
 	for( ; iter != iterEnd; iter++)
@@ -417,27 +415,26 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
-              ConstSmartPtr<TDD> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	extract_data();
 
-	adjust_defect<CondNumberData, TDD>(m_mBNDNumberBndSegment, d, u, dd, time);
-	adjust_defect<NumberData, TDD>(m_mNumberBndSegment, d, u, dd, time);
-	adjust_defect<ConstNumberData, TDD>(m_mConstNumberBndSegment, d, u, dd, time);
+	adjust_defect<CondNumberData>(m_mBNDNumberBndSegment, d, u, dd, time);
+	adjust_defect<NumberData>(m_mNumberBndSegment, d, u, dd, time);
+	adjust_defect<ConstNumberData>(m_mConstNumberBndSegment, d, u, dd, time);
 
-	adjust_defect<VectorData, TDD>(m_mVectorBndSegment, d, u, dd, time);
+	adjust_defect<VectorData>(m_mVectorBndSegment, d, u, dd, time);
 }
 
 
 template <typename TDomain, typename TAlgebra>
-template <typename TUserData, typename TDD>
+template <typename TUserData>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
                vector_type& d, const vector_type& u,
-               ConstSmartPtr<TDD> dd, number time)
+               ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	loop boundary subsets
 	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
@@ -453,13 +450,13 @@ adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->max_dofs(VERTEX))
-			adjust_defect<Vertex, TUserData, TDD>(vUserData, si, d, u, dd, time);
+			adjust_defect<Vertex, TUserData>(vUserData, si, d, u, dd, time);
 		if(dd->max_dofs(EDGE))
-			adjust_defect<EdgeBase, TUserData, TDD>(vUserData, si, d, u, dd, time);
+			adjust_defect<EdgeBase, TUserData>(vUserData, si, d, u, dd, time);
 		if(dd->max_dofs(FACE))
-			adjust_defect<Face, TUserData, TDD>(vUserData, si, d, u, dd, time);
+			adjust_defect<Face, TUserData>(vUserData, si, d, u, dd, time);
 		if(dd->max_dofs(VOLUME))
-			adjust_defect<Volume, TUserData, TDD>(vUserData, si, d, u, dd, time);
+			adjust_defect<Volume, TUserData>(vUserData, si, d, u, dd, time);
 		}
 		UG_CATCH_THROW("DirichletBoundary::adjust_defect:"
 						" While calling 'adjust_defect' for TUserData, aborting.");
@@ -467,11 +464,11 @@ adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TBaseElem, typename TUserData, typename TDD>
+template <typename TBaseElem, typename TUserData>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_defect(const std::vector<TUserData*>& vUserData, int si,
               vector_type& d, const vector_type& u,
-              ConstSmartPtr<TDD> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
 	std::vector<MultiIndex<2> >  multInd;
@@ -483,9 +480,9 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 	std::vector<position_type> vPos;
 
 //	iterators
-	typename TDD::template traits<TBaseElem>::const_iterator iter, iterEnd;
-	iter = dd->template begin<TBaseElem>(si);
-	iterEnd = dd->template end<TBaseElem>(si);
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd->begin<TBaseElem>(si);
+	iterEnd = dd->end<TBaseElem>(si);
 
 //	loop elements
 	for( ; iter != iterEnd; iter++)
@@ -548,25 +545,24 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DirichletBoundary<TDomain, TAlgebra>::
-adjust_solution(vector_type& u, ConstSmartPtr<TDD> dd, number time)
+adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	extract_data();
 
-	adjust_solution<CondNumberData, TDD>(m_mBNDNumberBndSegment, u, dd, time);
-	adjust_solution<NumberData, TDD>(m_mNumberBndSegment, u, dd, time);
-	adjust_solution<ConstNumberData, TDD>(m_mConstNumberBndSegment, u, dd, time);
+	adjust_solution<CondNumberData>(m_mBNDNumberBndSegment, u, dd, time);
+	adjust_solution<NumberData>(m_mNumberBndSegment, u, dd, time);
+	adjust_solution<ConstNumberData>(m_mConstNumberBndSegment, u, dd, time);
 
-	adjust_solution<VectorData, TDD>(m_mVectorBndSegment, u, dd, time);
+	adjust_solution<VectorData>(m_mVectorBndSegment, u, dd, time);
 }
 
 
 template <typename TDomain, typename TAlgebra>
-template <typename TUserData, typename TDD>
+template <typename TUserData>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
-                vector_type& u, ConstSmartPtr<TDD> dd, number time)
+                vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	loop boundary subsets
 	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
@@ -582,13 +578,13 @@ adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->max_dofs(VERTEX))
-			adjust_solution<Vertex, TUserData, TDD>(vUserData, si, u, dd, time);
+			adjust_solution<Vertex, TUserData>(vUserData, si, u, dd, time);
 		if(dd->max_dofs(EDGE))
-			adjust_solution<EdgeBase, TUserData, TDD>(vUserData, si, u, dd, time);
+			adjust_solution<EdgeBase, TUserData>(vUserData, si, u, dd, time);
 		if(dd->max_dofs(FACE))
-			adjust_solution<Face, TUserData, TDD>(vUserData, si, u, dd, time);
+			adjust_solution<Face, TUserData>(vUserData, si, u, dd, time);
 		if(dd->max_dofs(VOLUME))
-			adjust_solution<Volume, TUserData, TDD>(vUserData, si, u, dd, time);
+			adjust_solution<Volume, TUserData>(vUserData, si, u, dd, time);
 		}
 		UG_CATCH_THROW("DirichletBoundary::adjust_solution:"
 						" While calling 'adjust_solution' for TUserData, aborting.");
@@ -596,10 +592,10 @@ adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TBaseElem, typename TUserData, typename TDD>
+template <typename TBaseElem, typename TUserData>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_solution(const std::vector<TUserData*>& vUserData, int si,
-                vector_type& u, ConstSmartPtr<TDD> dd, number time)
+                vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
 	std::vector<MultiIndex<2> >  multInd;
@@ -611,9 +607,9 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 	std::vector<position_type> vPos;
 
 //	iterators
-	typename TDD::template traits<TBaseElem>::const_iterator iter, iterEnd;
-	iter = dd->template begin<TBaseElem>(si);
-	iterEnd = dd->template end<TBaseElem>(si);
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd->begin<TBaseElem>(si);
+	iterEnd = dd->end<TBaseElem>(si);
 
 //	loop elements
 	for( ; iter != iterEnd; iter++)
@@ -672,27 +668,26 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_linear(matrix_type& A, vector_type& b,
-              ConstSmartPtr<TDD> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	extract_data();
 
-	adjust_linear<CondNumberData, TDD>(m_mBNDNumberBndSegment, A, b, dd, time);
-	adjust_linear<NumberData, TDD>(m_mNumberBndSegment, A, b, dd, time);
-	adjust_linear<ConstNumberData, TDD>(m_mConstNumberBndSegment, A, b, dd, time);
+	adjust_linear<CondNumberData>(m_mBNDNumberBndSegment, A, b, dd, time);
+	adjust_linear<NumberData>(m_mNumberBndSegment, A, b, dd, time);
+	adjust_linear<ConstNumberData>(m_mConstNumberBndSegment, A, b, dd, time);
 
-	adjust_linear<VectorData, TDD>(m_mVectorBndSegment, A, b, dd, time);
+	adjust_linear<VectorData>(m_mVectorBndSegment, A, b, dd, time);
 }
 
 
 template <typename TDomain, typename TAlgebra>
-template <typename TUserData, typename TDD>
+template <typename TUserData>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
               matrix_type& A, vector_type& b,
-           	  ConstSmartPtr<TDD> dd, number time)
+           	  ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	loop boundary subsets
 	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
@@ -708,13 +703,13 @@ adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->max_dofs(VERTEX))
-			adjust_linear<Vertex, TUserData, TDD>(vUserData, si, A, b, dd, time);
+			adjust_linear<Vertex, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd->max_dofs(EDGE))
-			adjust_linear<EdgeBase, TUserData, TDD>(vUserData, si, A, b, dd, time);
+			adjust_linear<EdgeBase, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd->max_dofs(FACE))
-			adjust_linear<Face, TUserData, TDD>(vUserData, si, A, b, dd, time);
+			adjust_linear<Face, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd->max_dofs(VOLUME))
-			adjust_linear<Volume, TUserData, TDD>(vUserData, si, A, b, dd, time);
+			adjust_linear<Volume, TUserData>(vUserData, si, A, b, dd, time);
 		}
 		UG_CATCH_THROW("DirichletBoundary::adjust_linear:"
 						" While calling 'adjust_linear' for TUserData, aborting.");
@@ -722,11 +717,11 @@ adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TBaseElem, typename TUserData, typename TDD>
+template <typename TBaseElem, typename TUserData>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_linear(const std::vector<TUserData*>& vUserData, int si,
               matrix_type& A, vector_type& b,
-              ConstSmartPtr<TDD> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
 	std::vector<MultiIndex<2> >  multInd;
@@ -738,9 +733,9 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 	std::vector<position_type> vPos;
 
 //	iterators
-	typename TDD::template traits<TBaseElem>::const_iterator iter, iterEnd;
-	iter = dd->template begin<TBaseElem>(si);
-	iterEnd = dd->template end<TBaseElem>(si);
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd->begin<TBaseElem>(si);
+	iterEnd = dd->end<TBaseElem>(si);
 
 //	loop elements
 	for( ; iter != iterEnd; iter++)
@@ -805,27 +800,26 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-template <typename TDD>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_rhs(vector_type& b, const vector_type& u,
-           ConstSmartPtr<TDD> dd, number time)
+           ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	extract_data();
 
-	adjust_rhs<CondNumberData, TDD>(m_mBNDNumberBndSegment, b, u, dd, time);
-	adjust_rhs<NumberData, TDD>(m_mNumberBndSegment, b, u, dd, time);
-	adjust_rhs<ConstNumberData, TDD>(m_mConstNumberBndSegment, b, u, dd, time);
+	adjust_rhs<CondNumberData>(m_mBNDNumberBndSegment, b, u, dd, time);
+	adjust_rhs<NumberData>(m_mNumberBndSegment, b, u, dd, time);
+	adjust_rhs<ConstNumberData>(m_mConstNumberBndSegment, b, u, dd, time);
 
-	adjust_rhs<VectorData, TDD>(m_mVectorBndSegment, b, u, dd, time);
+	adjust_rhs<VectorData>(m_mVectorBndSegment, b, u, dd, time);
 }
 
 
 template <typename TDomain, typename TAlgebra>
-template <typename TUserData, typename TDD>
+template <typename TUserData>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
            vector_type& b, const vector_type& u,
-           ConstSmartPtr<TDD> dd, number time)
+           ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	loop boundary subsets
 	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
@@ -841,13 +835,13 @@ adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->max_dofs(VERTEX))
-			adjust_rhs<Vertex, TUserData, TDD>(vUserData, si, b, u, dd, time);
+			adjust_rhs<Vertex, TUserData>(vUserData, si, b, u, dd, time);
 		if(dd->max_dofs(EDGE))
-			adjust_rhs<EdgeBase, TUserData, TDD>(vUserData, si, b, u, dd, time);
+			adjust_rhs<EdgeBase, TUserData>(vUserData, si, b, u, dd, time);
 		if(dd->max_dofs(FACE))
-			adjust_rhs<Face, TUserData, TDD>(vUserData, si, b, u, dd, time);
+			adjust_rhs<Face, TUserData>(vUserData, si, b, u, dd, time);
 		if(dd->max_dofs(VOLUME))
-			adjust_rhs<Volume, TUserData, TDD>(vUserData, si, b, u, dd, time);
+			adjust_rhs<Volume, TUserData>(vUserData, si, b, u, dd, time);
 		}
 		UG_CATCH_THROW("DirichletBoundary::adjust_rhs:"
 						" While calling 'adjust_rhs' for TUserData, aborting.");
@@ -855,11 +849,11 @@ adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
 }
 
 template <typename TDomain, typename TAlgebra>
-template <typename TBaseElem, typename TUserData, typename TDD>
+template <typename TBaseElem, typename TUserData>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
            vector_type& b, const vector_type& u,
-           ConstSmartPtr<TDD> dd, number time)
+           ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
 	std::vector<MultiIndex<2> >  multInd;
@@ -871,9 +865,9 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 	std::vector<position_type> vPos;
 
 //	iterators
-	typename TDD::template traits<TBaseElem>::const_iterator iter, iterEnd;
-	iter = dd->template begin<TBaseElem>(si);
-	iterEnd = dd->template end<TBaseElem>(si);
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = dd->begin<TBaseElem>(si);
+	iterEnd = dd->end<TBaseElem>(si);
 
 //	loop elements
 	for( ; iter != iterEnd; iter++)

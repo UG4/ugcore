@@ -33,8 +33,8 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
-                                ConstSmartPtr<SurfaceDoFDistribution> surfDD,
-                                ConstSmartPtr<LevelDoFDistribution> topDD);
+                                ConstSmartPtr<DoFDistribution> surfDD,
+                                ConstSmartPtr<DoFDistribution> topDD);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Projections
@@ -59,15 +59,15 @@ void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
  */
 template <typename TElem, typename TVector>
 void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
-                           std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
+                           std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD,
                            const TVector& surfaceVector,
-                           ConstSmartPtr<SurfaceDoFDistribution> surfaceDD,
+                           ConstSmartPtr<DoFDistribution> surfaceDD,
                            const SurfaceView& surfaceView,
                            const int baseLvl = 0)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	type of element iterator
-	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
+	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
 
 //	vector of indices
 	std::vector<size_t> surfaceInd, levelInd;
@@ -121,9 +121,9 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 /// projects surface function to level functions
 template <typename TVector>
 void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
-                           std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
+                           std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD,
                            const TVector& surfVector,
-                           ConstSmartPtr<SurfaceDoFDistribution> surfDD,
+                           ConstSmartPtr<DoFDistribution> surfDD,
                            const SurfaceView& surfView,
                            const int baseLvl = 0)
 {
@@ -159,15 +159,15 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 /// projects surface function to level functions
 template <typename TElem, typename TVector>
 void ProjectLevelToSurface(TVector& surfaceVector,
-                           ConstSmartPtr<SurfaceDoFDistribution> surfaceDD,
+                           ConstSmartPtr<DoFDistribution> surfaceDD,
                            const SurfaceView& surfaceView,
 						   const std::vector<const TVector*>& vLevelVector,
-						   std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
+						   std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD,
                            const int baseLevel = 0)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	type of element iterator
-	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
+	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
 
 //	vector of indices
 	std::vector<size_t> surfaceInd, levelInd;
@@ -223,10 +223,10 @@ void ProjectLevelToSurface(TVector& surfaceVector,
 /// projects surface function to level functions
 template <typename TVector>
 void ProjectLevelToSurface(TVector& surfVector,
-                           ConstSmartPtr<SurfaceDoFDistribution> surfDD,
+                           ConstSmartPtr<DoFDistribution> surfDD,
                            const SurfaceView& surfView,
                            const std::vector<const TVector*>& vLevelVector,
-                           std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD,
+                           std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD,
                            const int baseLevel = 0)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -308,9 +308,9 @@ void ProjectLevelToSurface(TVector& surfVector,
  */
 template <typename TBaseElem, typename TVector>
 void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
-                            std::vector<ConstSmartPtr<LevelDoFDistribution> > vDDFine,
+                            std::vector<ConstSmartPtr<DoFDistribution> > vDDFine,
                             const TVector& coarseVec,
-                            ConstSmartPtr<LevelDoFDistribution> ddCoarse,
+                            ConstSmartPtr<DoFDistribution> ddCoarse,
                             const int level,
                             const number scale,
                             const SurfaceView& surfView)
@@ -319,7 +319,7 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
 	std::vector<size_t> fineInd, coarseInd;
 
 // 	iterators
-	typedef typename LevelDoFDistribution::traits<TBaseElem>::const_iterator const_iterator;
+	typedef typename DoFDistribution::traits<TBaseElem>::const_iterator const_iterator;
 	const_iterator iter, iterEnd;
 
 // 	loop subsets of fine level
@@ -372,9 +372,9 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
 
 template <typename TVector>
 void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
-                            std::vector<ConstSmartPtr<LevelDoFDistribution> > vDDFine,
+                            std::vector<ConstSmartPtr<DoFDistribution> > vDDFine,
                             const TVector& coarseVec,
-                            ConstSmartPtr<LevelDoFDistribution> ddCoarse,
+                            ConstSmartPtr<DoFDistribution> ddCoarse,
                             const int level,
                             const number scale,
                             const SurfaceView& surfView)
@@ -408,7 +408,7 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
  */
 template <typename TBaseElem, typename TVector>
 void SetZeroOnShadowing(TVector& vec,
-                        ConstSmartPtr<LevelDoFDistribution> dd,
+                        ConstSmartPtr<DoFDistribution> dd,
                         const SurfaceView& surfView,
                         const std::vector<int>* pmapGlobalToPatch = NULL)
 {
@@ -417,7 +417,7 @@ void SetZeroOnShadowing(TVector& vec,
 	std::vector<size_t> ind;
 
 // 	Vertex iterators
-	typedef typename LevelDoFDistribution::traits<TBaseElem>::const_iterator const_iterator;
+	typedef typename DoFDistribution::traits<TBaseElem>::const_iterator const_iterator;
 	const_iterator iter, iterEnd;
 
 // 	loop subsets of fine level
@@ -494,7 +494,7 @@ void SetZeroOnShadowing(TVector& vec,
  */
 template <typename TVector>
 void SetZeroOnShadowing(TVector& vec,
-                        ConstSmartPtr<LevelDoFDistribution> dd,
+                        ConstSmartPtr<DoFDistribution> dd,
                         const SurfaceView& surfView,
                         const std::vector<int>* pmapGlobalToPatch = NULL)
 {

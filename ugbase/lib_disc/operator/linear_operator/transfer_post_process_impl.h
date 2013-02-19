@@ -54,13 +54,13 @@ post_process(vector_type& u)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	const int dim = TDomain::dim;
-	const LevelDoFDistribution& dd = *m_spApproxSpace->level_dof_distribution(m_level.level());
+	const DoFDistribution& dd = *m_spApproxSpace->level_dof_distribution(m_level.level());
 
 	std::vector<MultiIndex<2> > vMultInd;
 
 //  iterators
-	typedef typename LevelDoFDistribution::template dim_traits<dim>::const_iterator const_iterator;
-	typedef typename LevelDoFDistribution::template dim_traits<dim>::geometric_base_object Element;
+	typedef typename DoFDistribution::template dim_traits<dim>::const_iterator const_iterator;
+	typedef typename DoFDistribution::template dim_traits<dim>::geometric_base_object Element;
 	const_iterator iter, iterBegin, iterEnd;
 
 //	check piecewise-constant

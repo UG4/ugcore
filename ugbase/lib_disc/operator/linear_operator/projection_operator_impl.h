@@ -21,9 +21,10 @@ namespace ug{
  * \param[in]	coarseLevel		Coarse Level index
  * \param[in]	fineLevel		Fine Level index
  */
-template <typename TDD, typename TAlgebra>
+template <typename TAlgebra>
 void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
-                              const TDD& coarseDD, const TDD& fineDD)
+                                    const DoFDistribution& coarseDD,
+                                    const DoFDistribution& fineDD)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //  Allow only lagrange P1 functions
@@ -47,7 +48,7 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	std::vector<size_t> coarseInd, fineInd;
 
 // 	Vertex iterators
-	typedef typename TDD::template traits<Vertex>::const_iterator const_iterator;
+	typedef DoFDistribution::traits<Vertex>::const_iterator const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
 	iterBegin = fineDD.template begin<Vertex>();
@@ -76,9 +77,10 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	}
 }
 
-template <int dim, typename TDD, typename TAlgebra>
+template <int dim, typename TAlgebra>
 void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
-                                          const TDD& coarseDD, const TDD& fineDD)
+                                          const DoFDistribution& coarseDD,
+                                          const DoFDistribution& fineDD)
 {
 	PROFILE_FUNC_GROUP("gmg");
 // 	get MultiGrid
@@ -96,8 +98,8 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 	std::vector<size_t> coarseInd, fineInd;
 
 // 	Vertex iterators
-	typedef typename TDD::template dim_traits<dim>::const_iterator const_iterator;
-	typedef typename TDD::template dim_traits<dim>::geometric_base_object Element;
+	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
+	typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object Element;
 	const_iterator iter, iterBegin, iterEnd;
 
 	iterBegin = coarseDD.template begin<Element>();
@@ -128,14 +130,15 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 	}
 }
 
-template <typename TDD, typename TAlgebra>
+template <typename TAlgebra>
 void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
-                              const TDD& coarseDD, const TDD& fineDD)
+                                          const DoFDistribution& coarseDD,
+                                          const DoFDistribution& fineDD)
 {
-	if(coarseDD.max_dofs(VERTEX)) AssembleInjectionByAverageOfChildren<0, TDD, TAlgebra>(mat, coarseDD, fineDD);
-	if(coarseDD.max_dofs(EDGE)) AssembleInjectionByAverageOfChildren<1, TDD, TAlgebra>(mat, coarseDD, fineDD);
-	if(coarseDD.max_dofs(FACE)) AssembleInjectionByAverageOfChildren<2, TDD, TAlgebra>(mat, coarseDD, fineDD);
-	if(coarseDD.max_dofs(VOLUME)) AssembleInjectionByAverageOfChildren<3, TDD, TAlgebra>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(VERTEX)) AssembleInjectionByAverageOfChildren<0, TAlgebra>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(EDGE)) AssembleInjectionByAverageOfChildren<1, TAlgebra>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(FACE)) AssembleInjectionByAverageOfChildren<2, TAlgebra>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(VOLUME)) AssembleInjectionByAverageOfChildren<3, TAlgebra>(mat, coarseDD, fineDD);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -188,14 +191,14 @@ void InjectionTransfer<TDomain, TAlgebra>::init()
 	try{
 		if(P1LagrangeOnly)
 		{
-			AssembleInjectionForP1Lagrange<LevelDoFDistribution, algebra_type>
+			AssembleInjectionForP1Lagrange<TAlgebra>
 			(m_matrix,
 			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
 			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()));
 		}
 		else
 		{
-			AssembleInjectionByAverageOfChildren<LevelDoFDistribution, algebra_type>
+			AssembleInjectionByAverageOfChildren<TAlgebra>
 			(m_matrix,
 			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
 			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()));

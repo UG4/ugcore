@@ -832,8 +832,8 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	}
 
 //	get current toplevel
-	const GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra>* pSol =
-		dynamic_cast<const GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra>*>(&u);
+	const GridFunction<TDomain, TAlgebra>* pSol =
+		dynamic_cast<const GridFunction<TDomain, TAlgebra>*>(&u);
 	if(pSol){
 		m_surfaceLev = pSol->dof_distribution()->grid_level().level();
 	}
@@ -1528,11 +1528,11 @@ project_level_to_surface(vector_type& surfVec,
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	level dof distributions
-	std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD =
+	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD =
 								m_spApproxSpace->level_dof_distributions();
 
 //	surface dof distribution
-	ConstSmartPtr<SurfaceDoFDistribution> surfDD =
+	ConstSmartPtr<DoFDistribution> surfDD =
 								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
 
 //	surface view
@@ -1583,11 +1583,11 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start project_surface_to_level\n");
 
 //	level dof distributions
-	std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD =
+	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD =
 								m_spApproxSpace->level_dof_distributions();
 
 //	surface dof distribution
-	ConstSmartPtr<SurfaceDoFDistribution> surfDD =
+	ConstSmartPtr<DoFDistribution> surfDD =
 								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
 
 //	surface view
@@ -1916,7 +1916,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 	{
 	//	get dof distributions on levels
-		ConstSmartPtr<LevelDoFDistribution> dd
+		ConstSmartPtr<DoFDistribution> dd
 							= m_spApproxSpace->level_dof_distribution(lev);
 
 	//	resize the matrix
@@ -1929,11 +1929,11 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 ///////////////////////////////////////
 
 //	level dof distributions
-	std::vector<ConstSmartPtr<LevelDoFDistribution> > vLevelDD =
+	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD =
 								m_spApproxSpace->level_dof_distributions();
 
 //	surface dof distribution
-	ConstSmartPtr<SurfaceDoFDistribution> surfDD =
+	ConstSmartPtr<DoFDistribution> surfDD =
 								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
 
 //	create mappings
@@ -2350,7 +2350,7 @@ void
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 LevData::
 update(size_t lev,
-       SmartPtr<LevelDoFDistribution> levDD,
+       SmartPtr<DoFDistribution> levDD,
        SmartPtr<ApproximationSpace<TDomain> > approxSpace,
        assemble_type& ass,
        ILinearIterator<vector_type>& presmoother,
@@ -2382,7 +2382,7 @@ update(size_t lev,
 		c.set_storage_type(PST_CONSISTENT);
 		d.set_storage_type(PST_ADDITIVE);
 	}
-	LevelDoFDistribution* pDD = const_cast<LevelDoFDistribution*>(spLevDD.get());
+	DoFDistribution* pDD = const_cast<DoFDistribution*>(spLevDD.get());
 	CopyLayoutsAndCommunicatorIntoMatrix(*spLevMat, *pDD);
 #endif
 

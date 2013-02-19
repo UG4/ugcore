@@ -15,7 +15,7 @@
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 
-#include "lib_disc/spatial_disc/constraints/constraint_base.h"
+#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 
 #include <map>
 #include <vector>
@@ -24,13 +24,11 @@ namespace ug{
 
 template <	typename TDomain, typename TAlgebra>
 class DirichletBoundary
-	: public ConstraintBase<TDomain, TAlgebra,
-	  	  	  	  	  	  	DirichletBoundary<TDomain, TAlgebra> >
+	: public IDomainConstraint<TDomain, TAlgebra>
 {
 	public:
 	///	Base Type
-		typedef ConstraintBase<TDomain, TAlgebra,
-	  	  	  	  	DirichletBoundary<TDomain, TAlgebra> > base_type;
+		typedef IDomainConstraint<TDomain, TAlgebra> base_type;
 
 	///	Type of domain
 		typedef TDomain domain_type;
@@ -96,8 +94,7 @@ class DirichletBoundary
 	 *
 	 * If Mr. Vogel decides that this is nonsense, he may of course remove it!!!
 	 */
-		template <typename TDD>
-		void assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<TDD> dd, number time = 0.0);
+		void assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
 	public:
 	///////////////////////////////
@@ -105,29 +102,24 @@ class DirichletBoundary
 	///////////////////////////////
 
 	/// sets a unity row for all dirichlet indices
-		template <typename TDD>
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
-		                     ConstSmartPtr<TDD> dd, number time = 0.0);
+		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
 	/// sets a zero value in the defect for all dirichlet indices
-		template <typename TDD>
 		void adjust_defect(vector_type& d, const vector_type& u,
-		                   ConstSmartPtr<TDD> dd, number time = 0.0);
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
 	/// sets the dirichlet value in the solution for all dirichlet indices
-		template <typename TDD>
 		void adjust_solution(vector_type& u,
-		                     ConstSmartPtr<TDD> dd, number time = 0.0);
+		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
 	///	sets unity rows in A and dirichlet values in right-hand side b
-		template <typename TDD>
 		void adjust_linear(matrix_type& A, vector_type& b,
-		                   ConstSmartPtr<TDD> dd, number time = 0.0);
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
 	///	sets the dirichlet value in the right-hand side
-		template <typename TDD>
 		void adjust_rhs(vector_type& b, const vector_type& u,
-		                ConstSmartPtr<TDD> dd, number time = 0.0);
+		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
 	///	returns the type of the constraints
 		virtual int type() const {return CT_DIRICHLET;}
@@ -142,53 +134,53 @@ class DirichletBoundary
 		void extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 		                  std::vector<TScheduledUserData>& vUserData);
 
-		template <typename TUserData, typename TDD>
+		template <typename TUserData>
 		void adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                     matrix_type& J, const vector_type& u,
-		                     ConstSmartPtr<TDD> dd, number time);
+		                     ConstSmartPtr<DoFDistribution> dd, number time);
 
-		template <typename TBaseElem, typename TUserData, typename TDD>
+		template <typename TBaseElem, typename TUserData>
 		void adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 		                     matrix_type& J, const vector_type& u,
-		                     ConstSmartPtr<TDD> dd, number time);
+		                     ConstSmartPtr<DoFDistribution> dd, number time);
 
-		template <typename TUserData, typename TDD>
+		template <typename TUserData>
 		void adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                   vector_type& d, const vector_type& u,
-		                   ConstSmartPtr<TDD> dd, number time);
+		                   ConstSmartPtr<DoFDistribution> dd, number time);
 
-		template <typename TBaseElem, typename TUserData, typename TDD>
+		template <typename TBaseElem, typename TUserData>
 		void adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 		                   vector_type& d, const vector_type& u,
-		                   ConstSmartPtr<TDD> dd, number time);
+		                   ConstSmartPtr<DoFDistribution> dd, number time);
 
-		template <typename TUserData, typename TDD>
+		template <typename TUserData>
 		void adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
-		                     vector_type& u, ConstSmartPtr<TDD> dd, number time);
+		                     vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time);
 
-		template <typename TBaseElem, typename TUserData, typename TDD>
+		template <typename TBaseElem, typename TUserData>
 		void adjust_solution(const std::vector<TUserData*>& vUserData, int si,
-		                     vector_type& u, ConstSmartPtr<TDD> dd, number time);
+		                     vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time);
 
-		template <typename TUserData, typename TDD>
+		template <typename TUserData>
 		void adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                   matrix_type& A, vector_type& b,
-		                   ConstSmartPtr<TDD> dd, number time);
+		                   ConstSmartPtr<DoFDistribution> dd, number time);
 
-		template <typename TBaseElem, typename TUserData, typename TDD>
+		template <typename TBaseElem, typename TUserData>
 		void adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 		                   matrix_type& A, vector_type& b,
-		                   ConstSmartPtr<TDD> dd, number time);
+		                   ConstSmartPtr<DoFDistribution> dd, number time);
 
-		template <typename TUserData, typename TDD>
+		template <typename TUserData>
 		void adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		                vector_type& b, const vector_type& u,
-		                ConstSmartPtr<TDD> dd, number time);
+		                ConstSmartPtr<DoFDistribution> dd, number time);
 
-		template <typename TBaseElem, typename TUserData, typename TDD>
+		template <typename TBaseElem, typename TUserData>
 		void adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 		                vector_type& b, const vector_type& u,
-		                ConstSmartPtr<TDD> dd, number time);
+		                ConstSmartPtr<DoFDistribution> dd, number time);
 
 	protected:
 	///	grouping for subset and non-conditional data

@@ -12,40 +12,19 @@
 namespace ug{
 
 
-template <>
-void IDDGridFunction<SurfaceDoFDistribution>::add_transfer(SmartPtr<ILocalTransfer> spTransfer)
+void IGridFunction::add_transfer(SmartPtr<ILocalTransfer> spTransfer)
 {
 	m_spDD->add_transfer(spTransfer);
 }
 
-template <>
-void IDDGridFunction<SurfaceDoFDistribution>::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
+void IGridFunction::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
 {
 	m_spDD->remove_transfer(spTransfer);
 }
 
-template <>
-void IDDGridFunction<SurfaceDoFDistribution>::clear_transfers()
+void IGridFunction::clear_transfers()
 {
 	m_spDD->clear_transfers();
 }
-
-template <>
-void IDDGridFunction<LevelDoFDistribution>::add_transfer(SmartPtr<ILocalTransfer> transfer)
-{
-	UG_THROW("No Transfer operations for Level DoF Distributions.");
-}
-template <>
-void IDDGridFunction<LevelDoFDistribution>::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
-{
-	UG_THROW("No Transfer operations for Level DoF Distributions.");
-}
-
-template <>
-void IDDGridFunction<LevelDoFDistribution>::clear_transfers()
-{
-	UG_THROW("No Transfer operations for Level DoF Distributions.");
-}
-
 
 } // end namespace ug

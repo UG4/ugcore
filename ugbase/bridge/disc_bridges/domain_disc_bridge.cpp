@@ -20,6 +20,7 @@
 #include "lib_disc/spatial_disc/domain_disc.h"
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
 #include "lib_disc/parallelization/domain_distribution.h"
+#include "lib_disc/function_spaces/grid_function.h"
 
 using namespace std;
 
@@ -67,10 +68,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IDomainElemDisc<TDomain> >)>(&T::add), "", "Element Discretization")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<IDiscretizationItem<TDomain, TAlgebra> >)>(&T::add), "", "DiscItem")
 			.add_method("force_regular_grid", &T::force_regular_grid)
-			.add_method("assemble_linear", static_cast<void (T::*)(typename TAlgebra::matrix_type&, GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra>&)>(&T::template assemble_linear<SurfaceDoFDistribution>))
-			.add_method("assemble_rhs", static_cast<void (T::*)(typename TAlgebra::vector_type&, GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra>&)>(&T::template assemble_rhs<SurfaceDoFDistribution>))
-			.add_method("assemble_rhs", static_cast<void (T::*)(GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra>&)>(&T::template assemble_rhs<SurfaceDoFDistribution>))
-			.add_method("adjust_solution", static_cast<void (T::*)(GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra>&)>(&T::template adjust_solution<SurfaceDoFDistribution>))
+			.add_method("assemble_linear", static_cast<void (T::*)(typename TAlgebra::matrix_type&, GridFunction<TDomain, TAlgebra>&)>(&T::assemble_linear))
+			.add_method("assemble_rhs", static_cast<void (T::*)(typename TAlgebra::vector_type&, GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
+			.add_method("assemble_rhs", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
+			.add_method("adjust_solution", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::adjust_solution))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DomainDiscretization", tag);
 	}
@@ -85,7 +86,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	DomainDistribution
 	{
-		typedef ug::GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TFct;
+		typedef ug::GridFunction<TDomain, TAlgebra> TFct;
 		reg.add_function("DistributeDomain",
 			static_cast<bool (*)(TDomain&, PartitionMap&, bool, std::vector<SmartPtr<TFct> >)>(
 				&DistributeDomain<TDomain, TFct>),

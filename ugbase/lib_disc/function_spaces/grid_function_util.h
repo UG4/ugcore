@@ -309,19 +309,9 @@ public:
 					this->template get_positions<dim>();
 			std::vector<MathVector<dim> > vCoarsePos;
 
-			if (m_coarseGridLevel.type() == GridLevel::SURFACE) {
-				ExtractPositions<TDomain, SurfaceDoFDistribution>(
-						m_spApproxSpace->domain(),
-						m_spApproxSpace->surface_dof_distribution(
-								m_coarseGridLevel.level()), vCoarsePos);
-			} else if (m_coarseGridLevel.type() == GridLevel::LEVEL) {
-				ExtractPositions<TDomain, LevelDoFDistribution>(
-						m_spApproxSpace->domain(),
-						m_spApproxSpace->level_dof_distribution(m_coarseGridLevel.level()),
-						vCoarsePos);
-			} else {
-				UG_THROW("DebugWriter: Cannot find grid level");
-			}
+			ExtractPositions<TDomain>(m_spApproxSpace->domain(),
+			                 m_spApproxSpace->dof_distribution(m_coarseGridLevel),
+			                 vCoarsePos);
 
 			if(mat.num_cols() == vFinePos.size())
 				WriteMatrixToConnectionViewer(name, mat, vFinePos, vCoarsePos, dim);
@@ -338,20 +328,10 @@ protected:
 				this->template get_positions<dim>();
 
 		vPos.clear();
-
-		if (gridLevel.type() == GridLevel::SURFACE) {
-			ExtractPositions<TDomain, SurfaceDoFDistribution>(
-					m_spApproxSpace->domain(),
-					m_spApproxSpace->surface_dof_distribution(
-							gridLevel.level()), vPos, m_pvMapGlobalToPatch);
-		} else if (gridLevel.type() == GridLevel::LEVEL) {
-			ExtractPositions<TDomain, LevelDoFDistribution>(
-					m_spApproxSpace->domain(),
-					m_spApproxSpace->level_dof_distribution(gridLevel.level()),
-					vPos, m_pvMapGlobalToPatch);
-		} else {
-			UG_THROW("Cannot find grid level");
-		}
+		ExtractPositions<TDomain>(
+				m_spApproxSpace->domain(),
+				m_spApproxSpace->dof_distribution(gridLevel),
+				vPos, m_pvMapGlobalToPatch);
 	}
 
 	///	write vector
@@ -398,7 +378,7 @@ protected:
 		}
 
 		if (m_gridLevel.type() == GridLevel::LEVEL) {
-			typedef GridFunction<TDomain, LevelDoFDistribution, TAlgebra> TGridFunction;
+			typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 			TGridFunction vtkFunc(
 					m_spApproxSpace,
 					m_spApproxSpace->level_dof_distribution(
@@ -408,7 +388,7 @@ protected:
 			VTKOutput<dim> out;
 			out.print(filename, vtkFunc, m_printConsistent);
 		} else if (m_gridLevel.type() == GridLevel::SURFACE) {
-			typedef GridFunction<TDomain, SurfaceDoFDistribution, TAlgebra> TGridFunction;
+			typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 			TGridFunction vtkFunc(
 					m_spApproxSpace,
 					m_spApproxSpace->surface_dof_distribution(

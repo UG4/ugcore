@@ -14,6 +14,9 @@
 // intern headers
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/common/local_algebra.h"
+#include "lib_disc/spatial_disc/ass_adapter.h"
+#include "lib_disc/dof_manager/dof_distribution.h"
+#include "lib_disc/function_spaces/approximation_space.h"
 
 namespace ug{
 
@@ -61,24 +64,45 @@ class IConstraint
 
 	public:
 	///	adapts jacobian to enforce constraints
+	/// \{
 		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                             GridLevel gl, number time = 0.0) = 0;
+		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
+		                             ConstSmartPtr<DoFDistribution> dd, number time = 0.0) = 0;
+	/// \}
 
 	///	adapts defect to enforce constraints
+	/// \{
 		virtual void adjust_defect(vector_type& d, const vector_type& u,
 		                           GridLevel gl, number time = 0.0) = 0;
+		virtual void adjust_defect(vector_type& d, const vector_type& u,
+		                           ConstSmartPtr<DoFDistribution> dd, number time = 0.0) = 0;
+	/// \}
 
 	///	adapts matrix and rhs (linear case) to enforce constraints
+	/// \{
 		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
 		                           GridLevel gl, number time = 0.0) = 0;
+		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
+		                           ConstSmartPtr<DoFDistribution> dd, number time = 0.0)  = 0;
+	/// \}
 
 	///	adapts a rhs to enforce constraints
+	/// \{
 		virtual void adjust_rhs(vector_type& rhs, const vector_type& u,
 		                        GridLevel gl, number time = 0.0) = 0;
+		virtual void adjust_rhs(vector_type& rhs, const vector_type& u,
+		                        ConstSmartPtr<DoFDistribution> dd, number time = 0.0)  = 0;
+	/// \}
 
 	///	sets the constraints in a solution vector
+	/// \{
 		virtual void adjust_solution(vector_type& u, GridLevel gl,
 		                             number time = 0.0) = 0;
+		virtual void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
+		                             number time = 0.0)  = 0;
+	/// \}
+
 
 	///	sets the constraints in a solution vector
 		virtual void adjust_restriction(vector_type& uCoarse, GridLevel coarseLvl,
@@ -88,15 +112,13 @@ class IConstraint
 		virtual void adjust_prolongation(vector_type& uFine, GridLevel fineLvl,
 										const vector_type& uCoarse, GridLevel coarseLvl) {};
 
+
 	///	returns the type of constraints
 		virtual int type() const = 0;
 
 	///	virtual destructor
 		virtual ~IConstraint() {};
 };
-
-// predeclaration
-template <typename TDomain> class ApproximationSpace;
 
 template <typename TDomain, typename TAlgebra>
 class IDomainConstraint : public IConstraint<TAlgebra>
@@ -105,13 +127,100 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 	///	Domain Type
 		typedef TDomain domain_type;
 
+	///	Algebra type
+		typedef TAlgebra algebra_type;
+
+	///	Type of algebra matrix
+		typedef typename algebra_type::matrix_type matrix_type;
+
+	///	Type of algebra vector
+		typedef typename algebra_type::vector_type vector_type;
+
+	public:
+		using IConstraint<TAlgebra>::adjust_jacobian;
+		using IConstraint<TAlgebra>::adjust_defect;
+		using IConstraint<TAlgebra>::adjust_linear;
+		using IConstraint<TAlgebra>::adjust_rhs;
+		using IConstraint<TAlgebra>::adjust_solution;
+
 	public:
 	///	sets the approximation space
-		virtual void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace) = 0;
-	///	sets the index for which the assemble operators should be build up
-		virtual void set_ass_index() = 0;
-		virtual void set_ass_index(size_t ind, bool index_set = true) = 0;
+		virtual void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
+		{
+			m_spApproxSpace = approxSpace;
+		}
 
+	///	returns approximation space
+		SmartPtr<ApproximationSpace<TDomain> > approximation_space()
+		{
+			return m_spApproxSpace;
+		}
+
+	///	returns approximation space
+		ConstSmartPtr<ApproximationSpace<TDomain> > approximation_space() const
+		{
+			return m_spApproxSpace;
+		}
+
+	///	sets the assemble index for index-wise assemble routine
+		virtual void set_ass_index(){set_ass_index(0.0, false);}
+		virtual void set_ass_index(size_t ind, bool index_set = true)
+		{
+			m_AssIndex.index_set = index_set;
+			m_AssIndex.index = ind;
+		}
+
+	///	adapts jacobian to enforce constraints
+		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
+									 GridLevel gl, number time = 0.0)
+		{
+			this->adjust_jacobian(J, u, dd(gl), time);
+		}
+
+	///	adapts defect to enforce constraints
+		virtual void adjust_defect(vector_type& d, const vector_type& u,
+								   GridLevel gl, number time = 0.0)
+		{
+			this->adjust_defect(d, u, dd(gl), time);
+		}
+
+	///	adapts matrix and rhs (linear case) to enforce constraints
+		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
+								   GridLevel gl, number time = 0.0)
+		{
+			this->adjust_linear(mat, rhs, dd(gl), time);
+		}
+
+	///	adapts a rhs to enforce constraints
+		virtual void adjust_rhs(vector_type& rhs, const vector_type& u,
+								GridLevel gl, number time = 0.0)
+		{
+			this->adjust_rhs(rhs, u, dd(gl), time);
+		}
+
+	///	sets the constraints in a solution vector
+		virtual void adjust_solution(vector_type& u, GridLevel gl,
+									 number time = 0.0)
+		{
+			this->adjust_solution(u, dd(gl), time);
+		}
+
+	///	returns the type of constraints
+		virtual int type() const = 0;
+
+	protected:
+	///	returns the level dof distribution
+		ConstSmartPtr<DoFDistribution> dd(const GridLevel& gl) const
+		{
+			return m_spApproxSpace->dof_distribution(gl);
+		}
+
+	protected:
+	///	Approximation Space
+		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+
+	///	Assemble index
+		AssIndex m_AssIndex;
 };
 
 } // end namespace ug

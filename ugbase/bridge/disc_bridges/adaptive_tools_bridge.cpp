@@ -54,19 +54,17 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		string grp("ug4/Refinement/");
 		reg.add_function("MarkForAdaption_GradientIndicator",
-						 &MarkForAdaption_GradientIndicator<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
+						 &MarkForAdaption_GradientIndicator<TDomain, TAlgebra>, grp);
 	}
 
 //	Prolongate
 	{
-		reg.add_function("Prolongate",
-						 &Prolongate<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
+		reg.add_function("Prolongate", &Prolongate<TDomain, TAlgebra>, grp);
 	}
 
 //	Restrict
 	{
-		reg.add_function("Restrict",
-						 &Restrict<TDomain, SurfaceDoFDistribution, TAlgebra>, grp);
+		reg.add_function("Restrict", &Restrict<TDomain, TAlgebra>, grp);
 	}
 
 }

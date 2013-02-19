@@ -14,12 +14,12 @@ namespace ug{
 /// projects surface function to level functions
 template <typename TElem>
 void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMapping,
-                                 const std::vector<ConstSmartPtr<LevelDoFDistribution> >& vLevelDD,
-                                 ConstSmartPtr<SurfaceDoFDistribution> surfaceDD,
+                                 const std::vector<ConstSmartPtr<DoFDistribution> >& vLevelDD,
+                                 ConstSmartPtr<DoFDistribution> surfaceDD,
                                  const SurfaceView& surfaceView)
 {
 //	type of element iterator
-	typedef typename SurfaceDoFDistribution::traits<TElem>::const_iterator iter_type;
+	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
 
 //	iterators for subset
 	iter_type iter = surfaceDD->begin<TElem>();
@@ -101,8 +101,8 @@ void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMappi
 
 /// creates a mapping of indices from the surface dof distribution to the level dof distribution
 inline void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMapping,
-                                        const std::vector<ConstSmartPtr<LevelDoFDistribution> >& vLevelDD,
-                                        ConstSmartPtr<SurfaceDoFDistribution> surfDD,
+                                        const std::vector<ConstSmartPtr<DoFDistribution> >& vLevelDD,
+                                        ConstSmartPtr<DoFDistribution> surfDD,
                                         const SurfaceView& surfView)
 {
 //	resize the mapping

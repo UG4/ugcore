@@ -376,11 +376,11 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDo
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-GridFunction<TDomain, TDD, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+GridFunction<TDomain, TAlgebra>::
 GridFunction(SmartPtr<approximation_space_type> approxSpace,
-             SmartPtr<TDD> spDoFDistr)
- : IDDGridFunction<TDD>(spDoFDistr), m_spApproxSpace(approxSpace)
+             SmartPtr<DoFDistribution> spDoFDistr)
+ : IGridFunction(spDoFDistr), m_spApproxSpace(approxSpace)
 {
 	check_algebra();
 	resize_values(num_indices());
@@ -393,10 +393,10 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace,
 #endif
 };
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-GridFunction<TDomain, TDD, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+GridFunction<TDomain, TAlgebra>::
 GridFunction(SmartPtr<approximation_space_type> approxSpace)
-	: IDDGridFunction<TDD>(approxSpace->surface_dof_distribution()),
+	: IGridFunction(approxSpace->surface_dof_distribution()),
 	  m_spApproxSpace(approxSpace)
 {
 	check_algebra();
@@ -410,10 +410,10 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace)
 #endif
 };
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-GridFunction<TDomain, TDD, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+GridFunction<TDomain, TAlgebra>::
 GridFunction(SmartPtr<approximation_space_type> approxSpace, int level)
-	: IDDGridFunction<TDD>(approxSpace->surface_dof_distribution(level)),
+	: IGridFunction(approxSpace->surface_dof_distribution(level)),
 	  m_spApproxSpace(approxSpace)
 {
 	check_algebra();
@@ -427,9 +427,9 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace, int level)
 #endif
 };
 
-template <typename TDomain, typename TDD, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-GridFunction<TDomain, TDD, TAlgebra>::check_algebra()
+GridFunction<TDomain, TAlgebra>::check_algebra()
 {
 //	get blocksize of algebra
 	const int blockSize = algebra_type::blockSize;
@@ -453,10 +453,10 @@ GridFunction<TDomain, TDD, TAlgebra>::check_algebra()
 	}
 }
 
-template <typename TDomain, typename TDD, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 template <typename TElem>
 bool
-GridFunction<TDomain, TDD, TAlgebra>::
+GridFunction<TDomain, TAlgebra>::
 dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
 {
 	return DoFPosition(vPos, elem, *domain(),
@@ -464,10 +464,10 @@ dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) cons
 	                   this->dim(fct));
 };
 
-template <typename TDomain, typename TDD, typename TAlgebra>
+template <typename TDomain,typename TAlgebra>
 template <typename TElem>
 bool
-GridFunction<TDomain, TDD, TAlgebra>::
+GridFunction<TDomain, TAlgebra>::
 inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
 {
 	return InnerDoFPosition(vPos, elem, *domain(),
@@ -475,9 +475,9 @@ inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos
 	                        this->dim(fct));
 };
 
-template <typename TDomain, typename TDD, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-GridFunction<TDomain, TDD, TAlgebra>::
+GridFunction<TDomain, TAlgebra>::
 clone_pattern(const this_type& v)
 {
 // 	copy approximation space
@@ -498,9 +498,9 @@ clone_pattern(const this_type& v)
 #endif
 };
 
-template <typename TDomain, typename TDD, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-GridFunction<TDomain, TDD, TAlgebra>::
+GridFunction<TDomain, TAlgebra>::
 resize_values(size_t s, number defaultValue)
 {
 //	remember old values
@@ -514,9 +514,9 @@ resize_values(size_t s, number defaultValue)
 		this->operator[](i) = defaultValue;
 }
 
-template <typename TDomain, typename TDD, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-GridFunction<TDomain, TDD, TAlgebra>::
+GridFunction<TDomain, TAlgebra>::
 permute_values(const std::vector<size_t>& vIndNew)
 {
 //	check sizes
@@ -540,9 +540,9 @@ permute_values(const std::vector<size_t>& vIndNew)
 	this->assign(vecTmp);
 }
 
-template <typename TDomain, typename TDD, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-GridFunction<TDomain, TDD, TAlgebra>::
+GridFunction<TDomain, TAlgebra>::
 copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,bool bDisjunct)
 {
 //	disjunct case
@@ -555,8 +555,8 @@ copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,bool bDisju
 	else UG_THROW("Not implemented.");
 }
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-void GridFunction<TDomain, TDD, TAlgebra>::assign(const vector_type& v)
+template <typename TDomain, typename TAlgebra>
+void GridFunction<TDomain, TAlgebra>::assign(const vector_type& v)
 {
 //	check size
 	if(v.size() != vector_type::size())
@@ -574,8 +574,8 @@ void GridFunction<TDomain, TDD, TAlgebra>::assign(const vector_type& v)
 #endif
 }
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-void GridFunction<TDomain, TDD, TAlgebra>::assign(const this_type& v)
+template <typename TDomain, typename TAlgebra>
+void GridFunction<TDomain, TAlgebra>::assign(const this_type& v)
 {
 // 	copy approximation space
 	m_spApproxSpace = v.m_spApproxSpace;
@@ -598,12 +598,12 @@ void GridFunction<TDomain, TDD, TAlgebra>::assign(const this_type& v)
 #endif
 }
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-GridFunction<TDomain, TDD, TAlgebra>*
-GridFunction<TDomain, TDD, TAlgebra>::virtual_clone_without_values() const
+template <typename TDomain, typename TAlgebra>
+GridFunction<TDomain, TAlgebra>*
+GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
 {
-	GridFunction<TDomain, TDD, TAlgebra>* v
-		= new GridFunction<TDomain, TDD, TAlgebra>(m_spApproxSpace, this->m_spDD);
+	GridFunction<TDomain, TAlgebra>* v
+		= new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, this->m_spDD);
 	v->resize_values(this->num_indices());
 #ifdef UG_PARALLEL
 	v->copy_layouts_into_vector();
@@ -613,17 +613,17 @@ GridFunction<TDomain, TDD, TAlgebra>::virtual_clone_without_values() const
 }
 
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-void GridFunction<TDomain, TDD, TAlgebra>::
+template <typename TDomain, typename TAlgebra>
+void GridFunction<TDomain, TAlgebra>::
 add_transfer(SmartPtr<ILocalTransferAlgebra<TAlgebra> > transfer)
 {
 	transfer->set_vector(this);
-	IDDGridFunction<TDD>::add_transfer(transfer);
+	IGridFunction::add_transfer(transfer);
 }
 
 #ifdef UG_PARALLEL
-template <typename TDomain, typename TDD, typename TAlgebra>
-void GridFunction<TDomain, TDD, TAlgebra>::copy_layouts_into_vector()
+template <typename TDomain, typename TAlgebra>
+void GridFunction<TDomain, TAlgebra>::copy_layouts_into_vector()
 {
 //	copy all horizontal layouts (for all domain decomps)
 	vector_type::set_layouts(this->m_spDD->layouts().master(), this->m_spDD->layouts().slave());
@@ -637,8 +637,8 @@ void GridFunction<TDomain, TDD, TAlgebra>::copy_layouts_into_vector()
 	vector_type::set_process_communicator(this->m_spDD->layouts().proc_comm());
 }
 
-template <typename TDomain, typename TDD, typename TAlgebra>
-void GridFunction<TDomain, TDD, TAlgebra>::copy_storage_type(const this_type& v)
+template <typename TDomain, typename TAlgebra>
+void GridFunction<TDomain, TAlgebra>::copy_storage_type(const this_type& v)
 {
 	vector_type::copy_storage_type(v);
 }
