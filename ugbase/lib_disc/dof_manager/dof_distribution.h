@@ -29,6 +29,9 @@ class DoFDistribution : virtual public DoFDistributionInfoProvider,
 			  m_rMGDD(rMGDD), m_spSurfView(spSurfView), m_level(level)
 		{}
 
+	/// destructor
+		virtual ~DoFDistribution() {}
+
 	///	returns the surface view
 		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfView;}
 
