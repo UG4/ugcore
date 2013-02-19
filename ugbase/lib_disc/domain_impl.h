@@ -172,7 +172,7 @@ update_domain_info()
 		numElemsOnLvl.resize(locNumElemsOnLvl.size());
 		commWorld.allreduce(locNumElemsOnLvl, numElemsOnLvl, PCL_RO_SUM);
 	#else
-		numElemsOnLvl.swap(locNumElemsOnLvl);
+		numElemsOnLvl = locNumElemsOnLvl;
 	#endif
 
 	std::vector<int>	subsetDims;
@@ -180,9 +180,71 @@ update_domain_info()
 	for(int i = 0; i < sh.num_subsets(); ++i)
 		subsetDims.push_back(sh.subset_info(i).get_property("dim").to_int());
 
-	m_domainInfo.set_info(elemType, numElemsOnLvl, subsetDims);
+
+	std::vector<int> numLocalGhosts;
+	#ifdef UG_PARALLEL
+		DistributedGridManager& dgm = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+		switch(elemType){
+			case VOLUME:
+				count_ghosts<Volume>(numLocalGhosts);
+				break;
+			case FACE:
+				count_ghosts<Face>(numLocalGhosts);
+				break;
+			case EDGE:
+				count_ghosts<EdgeBase>(numLocalGhosts);
+				break;
+			case VERTEX:
+				count_ghosts<VertexBase>(numLocalGhosts);
+				break;
+			default:
+				UG_THROW("Unknown base object type");
+				break;
+		}
+	#else
+		numLocalGhosts.resize(mg.num_levels(), 0);
+	#endif
+	m_domainInfo.set_info(elemType, numElemsOnLvl, locNumElemsOnLvl, numLocalGhosts, subsetDims);
 }
 
+#ifdef UG_PARALLEL
+template <typename TGrid, typename TSubsetHandler>
+template <class TElem>
+void IDomain<TGrid,TSubsetHandler>::
+count_ghosts(std::vector<int>& numGhostsOnLvlOut)
+{
+	TGrid& mg = *m_spGrid;
+	DistributedGridManager& dgm = *mg.distributed_grid_manager();
+	GridLayoutMap& glm = dgm.grid_layout_map();
+
+	numGhostsOnLvlOut.clear();
+	numGhostsOnLvlOut.resize(mg.num_levels(), 0);
+
+	if(glm.has_layout<TElem>(INT_V_MASTER)){
+		typedef typename GridLayoutMap::Types<TElem>::Layout Layout;
+		typedef typename GridLayoutMap::Types<TElem>::Interface Interface;
+		Layout& layout = glm.get_layout<TElem>(INT_V_MASTER);
+		for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
+			if(lvl >= mg.num_levels())
+				break;
+
+			typename Layout::LevelLayout& lvlLayout = layout.layout_on_level(lvl);
+			for(typename Layout::LevelLayout::iterator iiter = lvlLayout.begin();
+				iiter != lvlLayout.end(); ++iiter)
+			{
+				Interface& intfc = lvlLayout.interface(iiter);
+				for(typename Interface::iterator eiter = intfc.begin();
+					eiter != intfc.end(); ++eiter)
+				{
+					if(dgm.is_ghost(intfc.get_element(eiter)))
+						++numGhostsOnLvlOut[lvl];
+				}
+			}
+		}
+	}
+}
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Domain

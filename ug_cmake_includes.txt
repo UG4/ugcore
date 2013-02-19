@@ -227,7 +227,6 @@ message(STATUS "Info: EMBEDDED_PLUGINS   "${EMBEDDED_PLUGINS}" (options are: ON,
 message(STATUS "Info: COMPILE_INFO       "${COMPILE_INFO}" (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
-message(STATUS "Info: PARMETIS: "${PARMETIS})
 message(STATUS "Info: TETGEN:   "${TETGEN})
 message(STATUS "Info: HYPRE:    "${HYPRE})
 message(STATUS "Info: HLIBPRO:  "${HLIBPRO})
@@ -672,20 +671,6 @@ if(PARMETIS)
 	set(buildParmetis ON)
 	set(linkLibraries ${linkLibraries} parmetis)
 endif(PARMETIS)
-
-########################################
-# PARMETIS
-#if(PARMETIS)
-#	find_library(PARMETIS_LIBS NAMES parmetis PATHS ${PARMETIS}/lib ~/local/parmetis/used/lib)
-#	if(PARMETIS_LIBS-NOTFOUND)
-#		message(FATAL_ERROR "ERROR: Couldn't find PARMETIS in the specified path.")
-#	else(PARMETIS_LIBS-NOTFOUND)
-#		add_definitions(-DUG_PARMETIS)
-#		find_path(PARMETIS_INCLUDE_PATH parmetis.h ${PARMETIS}/include ~/local/parmetis/used/include)
-#		include_directories(${PARMETIS_INCLUDE_PATH})
-#		set(linkLibraries ${linkLibraries} ${PARMETIS_LIBS})
-#	endif(PARMETIS_LIBS-NOTFOUND)
-#endif(PARMETIS)
 
 ########################################
 # TETGEN

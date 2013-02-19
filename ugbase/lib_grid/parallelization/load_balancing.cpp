@@ -499,159 +499,148 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 
 	int localProc = pcl::GetProcRank();
 
-//	first we'll create a communicator for all processes which take part in the
-//	parallel graph generation
-	bool participate = (numParts > 0) && (mg.num<TGeomBaseObj>() != 0);
+	pcl::ProcessCommunicator procCom;
 
-	pcl::ProcessCommunicator globProcCom;
-	pcl::ProcessCommunicator procCom = globProcCom.create_sub_communicator(participate);
+//	here we'll store the dual graph
+	vector<idx_t> adjacencyMapStructure;
+	vector<idx_t> adjacencyMap;
+	vector<idx_t> nodeOffsetMap;
 
-	if(participate){
-	//	here we'll store the dual graph
-		vector<idx_t> adjacencyMapStructure;
-		vector<idx_t> adjacencyMap;
-		vector<idx_t> nodeOffsetMap;
+	ConstructParallelDualGraphMGLevel<TElem, idx_t>(adjacencyMapStructure,
+											adjacencyMap, nodeOffsetMap,
+											mg, level, procCom);
 
-		ConstructParallelDualGraphMGLevel<TElem, idx_t>(adjacencyMapStructure,
-												adjacencyMap, nodeOffsetMap,
-												mg, level, procCom);
+	UG_DLOG(LIB_GRID, 2, "  parallel dual graph #vrts: " << (int)adjacencyMapStructure.size() - 1
+						<< ", #edges: " << adjacencyMap.size() / 2 << "\n");
 
-		UG_DLOG(LIB_GRID, 2, "  parallel dual graph #vrts: " << adjacencyMapStructure.size()
-							<< ", #edges: " << adjacencyMap.size() / 2 << "\n");
+	if(!pcl::AllProcsTrue(adjacencyMap.size() > 1)){
+		UG_THROW("ParMetis may only be executed if all processes contain non-ghost elements"
+				" on the given level (at least two neighboring).")
+	}
 
-	//	partition the graph using parmetis
-		idx_t options[3]; options[0] = 0;//default values
-		idx_t nVrts = (idx_t)adjacencyMapStructure.size() - 1;
-		idx_t nConstraints = 1;
-		idx_t edgeCut;
-		idx_t wgtFlag = 2;//only vertices are weighted
-		idx_t numFlag = 0;
-		vector<idx_t> partitionMap(nVrts);
-		vector<real_t> tpwgts(numParts, 1. / (number)numParts);
-		real_t ubvec = 1.05;
-	//	create a weight map for the vertices based on the number of children+1
-	//	for each graph-vertex. This is not necessary, if we're already on the top level
-		idx_t* pVrtSizeMap = NULL;
-		vector<idx_t> vrtSizeMap;
+//	partition the graph using parmetis
+	idx_t options[3]; options[0] = 0;//default values
+	idx_t nVrts = (idx_t)adjacencyMapStructure.size() - 1;
+	idx_t nConstraints = 1;
+	idx_t edgeCut;
+	idx_t wgtFlag = 2;//only vertices are weighted
+	idx_t numFlag = 0;
+	vector<idx_t> partitionMap(nVrts);
+	vector<real_t> tpwgts(numParts, 1. / (number)numParts);
+	real_t ubvec = 1.05;
+//	create a weight map for the vertices based on the number of children+1
+//	for each graph-vertex. This is not necessary, if we're already on the top level
+	idx_t* pVrtSizeMap = NULL;
+	vector<idx_t> vrtSizeMap;
+	{
+		vrtSizeMap.reserve(nVrts);
+		for(ElemIter iter = mg.begin<TElem>(level);
+			iter != mg.end<TElem>(level); ++iter)
 		{
-			vrtSizeMap.reserve(nVrts);
-			for(ElemIter iter = mg.begin<TElem>(level);
-				iter != mg.end<TElem>(level); ++iter)
-			{
-				vrtSizeMap.push_back((mg.num_children_total(*iter) + 1));
+			vrtSizeMap.push_back((mg.num_children_total(*iter) + 1));
+		}
+		assert((int)vrtSizeMap.size() == nVrts);
+		pVrtSizeMap = &vrtSizeMap.front();
+	}
+
+	UG_DLOG(LIB_GRID, 1, "CALLING PARMETIS\n");
+	MPI_Comm mpiCom = procCom.get_mpi_communicator();
+	int metisRet =	ParMETIS_V3_PartKway(&nodeOffsetMap.front(),
+										&adjacencyMapStructure.front(),
+										&adjacencyMap.front(),
+										pVrtSizeMap, NULL, &wgtFlag,
+										&numFlag, &nConstraints,
+										&numParts, &tpwgts.front(), &ubvec, options,
+										&edgeCut, &partitionMap.front(),
+										&mpiCom);
+	UG_DLOG(LIB_GRID, 1, "PARMETIS DONE\n");
+
+	if(metisRet != METIS_OK){
+		UG_THROW("PARMETIS FAILED on process " << localProc);
+	}
+
+//	assign the subsets to the subset-handler
+//	all subsets below the specified level go to the rootProc.
+//	The ones on the specified level go as METIS assigned them.
+//	All children in levels above copy their from their parent.
+	for(size_t lvl = 0; lvl < level; ++lvl)
+		for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
+			shPartitionOut.assign_subset(*iter, localProc);
+
+	int counter = 0;
+	for(ElemIter iter = mg.begin<TElem>(level); iter != mg.end<TElem>(level); ++iter)
+		shPartitionOut.assign_subset(*iter, partitionMap[counter++]);
+
+
+
+	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout	ElemLayout;
+	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
+	pcl::InterfaceCommunicator<ElemLayout>	com;
+	ComPol_Subset<ElemLayout>	compolSHCopy(shPartitionOut, true);
+
+//	copy subset indices from vertical slaves to vertical masters,
+//	since partitioning was only performed on vslaves
+	if(glm.has_layout<TElem>(INT_V_SLAVE))
+		com.send_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(level),
+					  compolSHCopy);
+	if(glm.has_layout<TElem>(INT_V_MASTER))
+		com.receive_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(level),
+						 compolSHCopy);
+	com.communicate();
+
+//todo: make sure that there are no problems at vertical interfaces
+//	currently there is a restriction in the functionality of the surface view.
+//	Because of that we have to make sure, that all siblings in the specified level
+//	are sent to the same process... we thus adjust the partition slightly.
+//todo:	Not all siblings should have to be sent to the same process...
+//		simply remove the following code block - make sure that surface-view supports this!
+//		However, problems with discretizations and solvers would occur.
+//		If you remove the following block, consider reducing v-communication.
+	if(level > 0){
+	//	put all children in the subset of the first one.
+		for(ElemIter iter = mg.begin<TElem>(level-1);
+			iter != mg.end<TElem>(level-1); ++iter)
+		{
+			TElem* e = *iter;
+			size_t numChildren = mg.num_children<TElem>(e);
+			if(numChildren > 1){
+				int partition = shPartitionOut.get_subset_index(mg.get_child<TElem>(e, 0));
+				for(size_t i = 1; i < numChildren; ++i)
+					shPartitionOut.assign_subset(mg.get_child<TElem>(e, i), partition);
 			}
-			assert((int)vrtSizeMap.size() == nVrts);
-			pVrtSizeMap = &vrtSizeMap.front();
 		}
-
-		UG_DLOG(LIB_GRID, 1, "CALLING PARMETIS\n");
-		MPI_Comm mpiCom = procCom.get_mpi_communicator();
-		int metisRet =	ParMETIS_V3_PartKway(&nodeOffsetMap.front(),
-											&adjacencyMapStructure.front(),
-											&adjacencyMap.front(),
-											pVrtSizeMap, NULL, &wgtFlag,
-											&numFlag, &nConstraints,
-											&numParts, &tpwgts.front(), &ubvec, options,
-											&edgeCut, &partitionMap.front(),
-											&mpiCom);
-		UG_DLOG(LIB_GRID, 1, "PARMETIS DONE\n");
-
-		if(metisRet != METIS_OK){
-			UG_DLOG(LIB_GRID, 1, "PARMETIS FAILED\n");
-			return false;
-		}
+	}
 
 
-	//	assign the subsets to the subset-handler
-	//	all subsets below the specified level go to the rootProc.
-	//	The ones on the specified level go as METIS assigned them.
-	//	All children in levels above copy their from their parent.
-		for(size_t lvl = 0; lvl < level; ++lvl)
-			for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
-				shPartitionOut.assign_subset(*iter, localProc);
-
-		int counter = 0;
-		for(ElemIter iter = mg.begin<TElem>(level); iter != mg.end<TElem>(level); ++iter)
-			shPartitionOut.assign_subset(*iter, partitionMap[counter++]);
-
-
-
-		typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout	ElemLayout;
-		GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
-		pcl::InterfaceCommunicator<ElemLayout>	com;
-		ComPol_Subset<ElemLayout>	compolSHCopy(shPartitionOut, true);
-
-	//	copy subset indices from vertical slaves to vertical masters,
-	//	since partitioning was only performed on vslaves
-		if(glm.has_layout<TElem>(INT_V_SLAVE))
-			com.send_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(level),
-						  compolSHCopy);
+	for(size_t lvl = level; lvl < mg.top_level(); ++lvl){
+	//	copy subset indices from vertical masters to vertical slaves
 		if(glm.has_layout<TElem>(INT_V_MASTER))
-			com.receive_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(level),
+			com.send_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl),
+						  compolSHCopy);
+		if(glm.has_layout<TElem>(INT_V_SLAVE))
+			com.receive_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(lvl),
 							 compolSHCopy);
 		com.communicate();
 
-//todo: make sure that there are no problems at vertical interfaces
-	//	currently there is a restriction in the functionality of the surface view.
-	//	Because of that we have to make sure, that all siblings in the specified level
-	//	are sent to the same process... we thus adjust the partition slightly.
-	//todo:	Not all siblings should have to be sent to the same process...
-	//		simply remove the following code block - make sure that surface-view supports this!
-	//		However, problems with discretizations and solvers would occur.
-	//		If you remove the following block, consider reducing v-communication.
-		if(level > 0){
-		//	put all children in the subset of the first one.
-			for(ElemIter iter = mg.begin<TElem>(level-1);
-				iter != mg.end<TElem>(level-1); ++iter)
-			{
-				TElem* e = *iter;
-				size_t numChildren = mg.num_children<TElem>(e);
-				if(numChildren > 1){
-					int partition = shPartitionOut.get_subset_index(mg.get_child<TElem>(e, 0));
-					for(size_t i = 1; i < numChildren; ++i)
-						shPartitionOut.assign_subset(mg.get_child<TElem>(e, i), partition);
-				}
+		for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
+		{
+			size_t numChildren = mg.num_children<TElem>(*iter);
+			for(size_t i = 0; i < numChildren; ++i){
+				shPartitionOut.assign_subset(mg.get_child<TElem>(*iter, i),
+											shPartitionOut.get_subset_index(*iter));
 			}
-		}
-
-
-		for(size_t lvl = level; lvl < mg.top_level(); ++lvl){
-		//	copy subset indices from vertical masters to vertical slaves
-			if(glm.has_layout<TElem>(INT_V_MASTER))
-				com.send_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl),
-							  compolSHCopy);
-			if(glm.has_layout<TElem>(INT_V_SLAVE))
-				com.receive_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(lvl),
-								 compolSHCopy);
-			com.communicate();
-
-			for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
-			{
-				size_t numChildren = mg.num_children<TElem>(*iter);
-				for(size_t i = 0; i < numChildren; ++i){
-					shPartitionOut.assign_subset(mg.get_child<TElem>(*iter, i),
-												shPartitionOut.get_subset_index(*iter));
-				}
-			}
-		}
-
-	//	and a final copy on the top level...
-		if(mg.num_levels() > 1){
-			if(glm.has_layout<TElem>(INT_V_MASTER))
-				com.send_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(mg.top_level()),
-							  compolSHCopy);
-			if(glm.has_layout<TElem>(INT_V_SLAVE))
-				com.receive_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(mg.top_level()),
-								 compolSHCopy);
-			com.communicate();
 		}
 	}
-	else{
-	//	assign all elements to the localProc.
-		for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
-			shPartitionOut.assign_subset(mg.begin<TGeomBaseObj>(lvl),
-										 mg.end<TGeomBaseObj>(lvl), localProc);
-		}
+
+//	and a final copy on the top level...
+	if(mg.num_levels() > 1){
+		if(glm.has_layout<TElem>(INT_V_MASTER))
+			com.send_data(glm.get_layout<TElem>(INT_V_MASTER).layout_on_level(mg.top_level()),
+						  compolSHCopy);
+		if(glm.has_layout<TElem>(INT_V_SLAVE))
+			com.receive_data(glm.get_layout<TElem>(INT_V_SLAVE).layout_on_level(mg.top_level()),
+							 compolSHCopy);
+		com.communicate();
 	}
 
 	UG_DLOG(LIB_GRID, 1, "stop - PartitionMultiGridLevel_ParmetisKway\n");

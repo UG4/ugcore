@@ -33,9 +33,11 @@ namespace ug{
 class DomainInfo
 {
 	public:
-		inline GeometricBaseObject element_type()	const		{return m_elementType;}
-		inline size_t num_levels() const						{return m_numElemsOnLvl.size();}
-		inline int num_elements_on_level(size_t lvl) const	{return m_numElemsOnLvl[lvl];}
+		inline GeometricBaseObject element_type()	const			{return m_elementType;}
+		inline size_t num_levels() const							{return m_numElems.size();}
+		inline int num_elements_on_level(size_t lvl) const			{return m_numElems[lvl];}
+		inline int num_local_elements_on_level(size_t lvl) const	{return m_numLocalElems[lvl];}
+		inline int num_local_ghosts_on_level(size_t lvl) const		{return m_numLocalGhosts[lvl];}
 
 		inline int num_subsets() const
 			{return (int)m_subsetDims.size();}
@@ -43,13 +45,19 @@ class DomainInfo
 			{return m_subsetDims[si];}
 
 		inline void set_info(GeometricBaseObject elemType,
-								const std::vector<int>& numElemsOnLvl,
+								const std::vector<int>& numElems,
+								const std::vector<int>& numLocalElems,
+								const std::vector<int>& numLocalGhosts,
 								const std::vector<int>& subsetDims)
-			{m_elementType = elemType; m_numElemsOnLvl = numElemsOnLvl; m_subsetDims = subsetDims;}
+			{m_elementType = elemType; m_numElems = numElems;
+			 m_numLocalElems = numLocalElems; m_numLocalGhosts = numLocalGhosts;
+			 m_subsetDims = subsetDims;}
 
 	private:
 		GeometricBaseObject	m_elementType;
-		std::vector<int>	m_numElemsOnLvl;
+		std::vector<int>	m_numElems;
+		std::vector<int>	m_numLocalElems;
+		std::vector<int>	m_numLocalGhosts;
 		std::vector<int>	m_subsetDims;
 };
 
@@ -185,6 +193,11 @@ class IDomain
 	 * After this method has been invoked, all local grids will return the same
 	 * number of levels, when invoking num_levels().*/
 		void update_local_multi_grid();
+
+	/**	make sure that elements of the given type are contained in at most one
+	 * vmaster interface. This is always the case for highest dimensional elements.*/
+		template <class TElem>
+		void count_ghosts(std::vector<int>& numGhostsOnLvlOut);
 #endif
 };
 

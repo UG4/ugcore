@@ -297,7 +297,6 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int)>(&FaceArea<TDomain>), "Area sum#Domain#Subset index", grp);
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISelector&)>(&FaceArea<TDomain>), "Area sum#Domain#Selector", grp);
 
-
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);
 
@@ -314,6 +313,19 @@ static void Domain(Registry& reg, string grp)
  */
 static void Common(Registry& reg, string grp)
 {
+//	DomainInfo
+	{
+		reg.add_class_<DomainInfo>("DomainInfo", grp)
+			.add_constructor()
+			.add_method("num_levels", &DomainInfo::num_levels)
+			.add_method("num_elements_on_level", &DomainInfo::num_elements_on_level)
+			.add_method("num_local_elements_on_level", &DomainInfo::num_local_elements_on_level)
+			.add_method("num_local_ghosts_on_level", &DomainInfo::num_local_ghosts_on_level)
+			.add_method("num_subsets", &DomainInfo::num_subsets)
+			.add_method("subset_dim", &DomainInfo::subset_dim)
+			.set_construct_as_smart_pointer(true);
+	}
+
 //	IDomain
 	{
 		typedef IDomain<> T;
@@ -321,6 +333,7 @@ static void Common(Registry& reg, string grp)
 			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (T::*)()>(&T::subset_handler))
 			.add_method("grid", static_cast<SmartPtr<MultiGrid> (T::*)()>(&T::grid))
 			.add_method("get_dim", static_cast<int (T::*)() const>(&T::get_dim))
+			.add_method("domain_info", &T::domain_info)
 			.set_construct_as_smart_pointer(true);
 	}
 
