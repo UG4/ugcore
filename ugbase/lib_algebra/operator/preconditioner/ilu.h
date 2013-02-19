@@ -223,7 +223,6 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	// when solving Navier Stokes system, therefore handle separately
 	{
 		size_t i=x.size()-1;
-		const_row_iterator it = A.begin_row(i);
 		s = b[i];
 		// check if diagonal entry close to zero
 		if (BlockNorm(A(i,i))<__eps){
