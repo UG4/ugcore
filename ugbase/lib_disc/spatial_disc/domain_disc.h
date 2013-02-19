@@ -35,9 +35,7 @@ namespace ug {
  * perform element based assemblings and constraints in the same order.
  */
 template <typename TDomain, typename TAlgebra>
-class DomainDiscretization
- :	public DomainDiscBase<TDomain,TAlgebra,
-  							DomainDiscretization<TDomain, TAlgebra> >
+class DomainDiscretization : public DomainDiscBase<TDomain,TAlgebra>
 {
 	public:
 	///	Type of Domain

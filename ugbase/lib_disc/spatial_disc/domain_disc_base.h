@@ -12,9 +12,8 @@
 
 namespace ug{
 
-template <typename TDomain, typename TAlgebra, typename TImpl>
-class DomainDiscBase
-	: 	public IDomainDiscretization<TAlgebra>
+template <typename TDomain, typename TAlgebra>
+class DomainDiscBase : public IDomainDiscretization<TAlgebra>
 {
 	public:
 	///	Domain Type
