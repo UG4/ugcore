@@ -431,21 +431,23 @@ private:
 	
 	
     
-    void assureValuesSize(int s)
+    void assureValuesSize(size_t s)
     {
         if(s < cols.size()) return;
-        int newSize = nnz*2;
+        size_t newSize = nnz*2;
         if(newSize < s) newSize = s;
         copyToNewSize(newSize);
         
     }
- size_t get_nnz() const { return nnz; }
+	size_t get_nnz() const { return nnz; }
 
 protected:
-	int get_index_internal(size_t row, size_t col) const
+	int get_index_internal(size_t row, int col) const
     {
         assert(rowStart[row] != -1);
-        int l = rowStart[row], r = rowEnd[row], mid=0;
+        int l = rowStart[row];
+		int r = rowEnd[row];
+		int mid=0;
         while(l < r)
         {
             mid = (l+r)/2;
@@ -562,7 +564,7 @@ protected:
 			else
 			{
 				size_t start=j;
-				for(size_t k=rowStart[r]; k<rowEnd[r]; k++, j++)
+				for(int k=rowStart[r]; k<rowEnd[r]; k++, j++)
 				{
 					if(bNeedsValues) v[j] = values[k];
 					c[j] = cols[k];
@@ -591,7 +593,7 @@ protected:
     std::vector<int> rowMax;
     std::vector<int> cols;
     size_t fragmented;
-    int nnz;
+    size_t nnz;
     bool bNeedsValues;
     
     std::vector<value_type> values;

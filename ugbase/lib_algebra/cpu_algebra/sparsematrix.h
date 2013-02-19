@@ -592,7 +592,7 @@ inline void MatMultTransposedAdd(vector_t &dest,
 
 //#include "matrixrow.h"
 #include "sparsematrix_impl.h"
-#include "sparsematrix_util.h"
+#include "../algebra_common/sparsematrix_util.h"
 #include "sparsematrix_print.h"
 
 #endif
