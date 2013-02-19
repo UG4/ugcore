@@ -356,14 +356,9 @@ bool CompositeConvCheck<TVector, TDomain>::post()
 			allValid = false;
 		}
 
-
-
-		if (	!(minDef[i] = defect(i) < m_minDefect[i])
-			&& 	!(red[i] = reduction(i) < m_relReduction[i]))
-		{
-		success = false;
-
-		}
+		minDef[i] = defect(i) < m_minDefect[i];
+		red[i] = reduction(i) < m_relReduction[i];
+		if ( !minDef[i]	&& !red[i]) success = false;
 	}
 
 	success &= allValid && step() <= m_maxSteps;
