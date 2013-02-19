@@ -370,7 +370,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 			const size_t i0 = p - ind[0] - ind[1];
 			const number x0 = 1.0 - x[0] - x[1];
 
-			UG_ASSERT(i0 <= (int)p && i0 >= 0, "Wrong Multiindex.");
+			UG_ASSERT(i0 <= (int)p, "Wrong Multiindex.");
 			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
 
 		//	loop dimensions
@@ -1066,7 +1066,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 			const size_t i0 = p - ind[0] - ind[1] - ind[2];
 			const number x0 = 1 - x[0] - x[1] - x[2];
 
-			UG_ASSERT(i0 <= p && i0 >= 0, "Wrong Multiindex.");
+			UG_ASSERT(i0 <= p, "Wrong Multiindex.");
 			UG_ASSERT(x0 <= 1.0 && x0 >= 0.0, "Wrong Position.");
 
 		//	loop dimensions
