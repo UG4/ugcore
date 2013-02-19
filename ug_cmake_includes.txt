@@ -52,6 +52,7 @@ set(buildBindings OFF)
 set(buildRegistry OFF)
 set(buildCompileInfo ON)
 set(buildMetis OFF)
+set(buildParmetis OFF)
 
 # Here we'll store libs, if we find and need them
 set(linkLibraries)
@@ -136,6 +137,7 @@ option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid optio
 option(LAPACK "Lapack won't be used, even if available. Valid options are ON, OFF" ${lapackDefault})
 option(BLAS "Blas won't be used, even if available. Valid options are ON, OFF" ${blasDefault})
 option(METIS "Embeds the Metis library into UG. Valid options are ON, OFF" OFF)
+option(PARMETIS "Embeds the Parmetis library for non commercial use. Valid options are ON, OFF" OFF)
 option(INTERNAL_BOOST "If enabled, the boost version found in the externals directory will be used. Valid options are ON, OFF" ${internalBoostDefault})
 option(BUILTIN_BLAS "BLAS is built into compiler" OFF)
 option(BUILTIN_LAPACK "LAPACK is built into compiler" OFF)
@@ -219,6 +221,7 @@ message(STATUS "Info: PROFILE_BRIDGE:    "${PROFILE_BRIDGE}" (options are: ON, O
 message(STATUS "Info: LAPACK:            "${LAPACK}" (options are: ON, OFF)")
 message(STATUS "Info: BLAS:              "${BLAS}" (options are: ON, OFF)")
 message(STATUS "Info: METIS:             "${METIS}" (options are: ON, OFF)")
+message(STATUS "Info: PARMETIS:          "${PARMETIS}" (options are: ON, OFF)")
 message(STATUS "Info: INTERNAL_BOOST:    "${INTERNAL_BOOST}" (options are: ON, OFF)")
 message(STATUS "Info: EMBEDDED_PLUGINS   "${EMBEDDED_PLUGINS}" (options are: ON, OFF)")
 message(STATUS "Info: COMPILE_INFO       "${COMPILE_INFO}" (options are: ON, OFF)")
@@ -654,26 +657,36 @@ endif(buildAlgebra)
 
 ########################################
 # METIS
-if(METIS)
+if(METIS OR PARMETIS)
 	add_definitions(-DUG_METIS)
 	include_directories(${UG_ROOT_PATH}/externals/metis-5.0.2/include)
 	set(buildMetis ON)
 	set(linkLibraries ${linkLibraries} metis)
-endif(METIS)
+endif(METIS OR PARMETIS)
 
 ########################################
 # PARMETIS
 if(PARMETIS)
-	find_library(PARMETIS_LIBS NAMES parmetis PATHS ${PARMETIS}/lib ~/local/parmetis/used/lib)
-	if(PARMETIS_LIBS-NOTFOUND)
-		message(FATAL_ERROR "ERROR: Couldn't find PARMETIS in the specified path.")
-	else(PARMETIS_LIBS-NOTFOUND)
-		add_definitions(-DUG_PARMETIS)
-		find_path(PARMETIS_INCLUDE_PATH parmetis.h ${PARMETIS}/include ~/local/parmetis/used/include)
-		include_directories(${PARMETIS_INCLUDE_PATH})
-		set(linkLibraries ${linkLibraries} ${PARMETIS_LIBS})		
-	endif(PARMETIS_LIBS-NOTFOUND)
+	add_definitions(-DUG_PARMETIS)
+	include_directories(${UG_ROOT_PATH}/externals/parmetis-4.0.2/include)
+	set(buildParmetis ON)
+	set(linkLibraries ${linkLibraries} parmetis)
 endif(PARMETIS)
+
+########################################
+# PARMETIS
+#if(PARMETIS)
+#	find_library(PARMETIS_LIBS NAMES parmetis PATHS ${PARMETIS}/lib ~/local/parmetis/used/lib)
+#	if(PARMETIS_LIBS-NOTFOUND)
+#		message(FATAL_ERROR "ERROR: Couldn't find PARMETIS in the specified path.")
+#	else(PARMETIS_LIBS-NOTFOUND)
+#		add_definitions(-DUG_PARMETIS)
+#		find_path(PARMETIS_INCLUDE_PATH parmetis.h ${PARMETIS}/include ~/local/parmetis/used/include)
+#		include_directories(${PARMETIS_INCLUDE_PATH})
+#		set(linkLibraries ${linkLibraries} ${PARMETIS_LIBS})
+#	endif(PARMETIS_LIBS-NOTFOUND)
+#endif(PARMETIS)
+
 ########################################
 # TETGEN
 if(TETGEN)
@@ -953,8 +966,6 @@ set(PRECISION ${PRECISION} CACHE STRING "Set the precision of the number type. V
 
 # the following options too are pseudo cmake-options. However, they should
 # contains pathes, if set.
-set(METIS ${METIS} CACHE PATH "Sets the path in which metis shall be searched.")
-set(PARMETIS ${PARMETIS} CACHE PATH "Sets the path in which parmetis shall be searched.")
 set(TETGEN ${TETGEN} CACHE PATH "Sets the path in which tetgen shall be searched.")
 set(HYPRE ${HYPRE} CACHE PATH "Sets the path in which hypre shall be searched.")
 set(HLIBPRO ${HLIBPRO} CACHE PATH "Sets the path in which hlibpro shall be searched.")

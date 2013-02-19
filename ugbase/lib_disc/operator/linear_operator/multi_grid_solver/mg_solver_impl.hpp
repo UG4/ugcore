@@ -745,6 +745,8 @@ lmgc(size_t lev)
 			if(!restriction(lev))
 				return false;
 
+			write_level_debug(m_vLevData[lev]->d, "GMG__TestDefectBeforeLMGCRecursion", lev);
+
 			if(!lmgc(lev-1))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
@@ -752,6 +754,8 @@ lmgc(size_t lev)
 						"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 				return false;
 			}
+
+			write_level_debug(m_vLevData[lev]->d, "GMG__TestDefectAfterLMGCRecursion", lev);
 
 		//	UG_LOG("Before prolongation:\n");	log_level_data(lev);
 			if(!prolongation(lev))
