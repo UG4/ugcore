@@ -29,7 +29,7 @@ void SetLagrangeVertexMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 	//	set multi index
 		for(int d = 0; d<dim; ++d)
 		{
-			UG_ASSERT(p*vCo[i][d] >= 0,
+			UG_ASSERT(((long)p)*vCo[i][d] >= 0,
 			          "Wrong multi index m["<<d<<"]="<<p*vCo[i][d]);
 			vMultiIndex[index][d] = p*vCo[i][d];
 		}
@@ -164,10 +164,6 @@ void SetLagrangeVolumeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 			for(size_t m1 = 1; m1 < p-m2; ++m1)
 				for(size_t m0 = 1; m0 < p-m2-m1; ++m0)
 				{
-					UG_ASSERT(m0 >= 0, "Wrong multi index m0="<<m0);
-					UG_ASSERT(m1 >= 0, "Wrong multi index m1="<<m1);
-					UG_ASSERT(m2 >= 0, "Wrong multi index m2="<<m2);
-
 				//	use regular mapping for inner DoFs
 					vMultiIndex[index][0] = m0;
 					vMultiIndex[index][1] = m1;
@@ -184,10 +180,6 @@ void SetLagrangeVolumeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 			for(size_t m1 = 1; m1 < p; ++m1)
 				for(size_t m0 = 1; m0 < p-m1; ++m0)
 				{
-					UG_ASSERT(m0 >= 0, "Wrong multi index m0="<<m0);
-					UG_ASSERT(m1 >= 0, "Wrong multi index m1="<<m1);
-					UG_ASSERT(m2 >= 0, "Wrong multi index m2="<<m2);
-
 				//	use regular mapping for inner DoFs
 					vMultiIndex[index][0] = m0;
 					vMultiIndex[index][1] = m1;
@@ -200,10 +192,6 @@ void SetLagrangeVolumeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 			for(size_t m1 = 1; m1 < p; ++m1)
 				for(size_t m0 = 1; m0 < p; ++m0)
 				{
-					UG_ASSERT(m0 >= 0, "Wrong multi index m0="<<m0);
-					UG_ASSERT(m1 >= 0, "Wrong multi index m1="<<m1);
-					UG_ASSERT(m2 >= 0, "Wrong multi index m2="<<m2);
-
 				//	use regular mapping for inner DoFs
 					vMultiIndex[index][0] = m0;
 					vMultiIndex[index][1] = m1;
