@@ -444,12 +444,9 @@ prolongation(size_t lev)
 	write_level_debug(m_vLevData[lev]->d, "GMG_Prol_BeforeBroadcast", lev);
 	write_smooth_level_debug(sd, "GMG_Def_Prol_BeforeBroadcastSmooth", lev);
 	#ifdef UG_PARALLEL
-	//todo:	only necessary if v-interfaces are present on this level (globally)
-		d.change_storage_type(PST_CONSISTENT);
-		broadcast_vertical(d);
-		d.change_storage_type(PST_ADDITIVE);
-	//	we could set ghosts to 0 here, but since they are no longer used, this is
-	//	not strictly necessary.
+		broadcast_vertical_add(d);
+		SetLayoutValues(&d, d.vertical_master_layout(), 0);
+
 		m_vLevData[lev]->copy_defect_to_smooth_patch();
 	#endif
 	write_smooth_level_debug(sd, "GMG_Def_Prol_BeforeUpdate", lev);
@@ -484,7 +481,7 @@ prolongation(size_t lev)
 	//	cTmp is additive but we need a consistent correction
 		#ifdef UG_PARALLEL
 			cTmp.set_storage_type(PST_ADDITIVE);
-			cTmp.change_storage_type(PST_CONSISTENT);
+			//cTmp.change_storage_type(PST_CONSISTENT);
 		#endif
 
 		write_level_debug(cTmp, "GMG_AdaptiveCoarseGridContribution", lev - 1);
@@ -498,7 +495,7 @@ prolongation(size_t lev)
 		#ifdef UG_PARALLEL
 			m_vLevData[lev]->copy_defect_from_smooth_patch();
 			write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorrAdditive", lev);
-			d.change_storage_type(PST_CONSISTENT);
+			//d.change_storage_type(PST_CONSISTENT);
 		#endif
 		write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
@@ -511,7 +508,7 @@ prolongation(size_t lev)
 
 		//	copy defect to smooth patch
 		#ifdef UG_PARALLEL
-			d.change_storage_type(PST_ADDITIVE);
+			//d.change_storage_type(PST_ADDITIVE);
 			m_vLevData[lev]->copy_defect_to_smooth_patch();
 		#endif
 		write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_Prolongated", lev);
@@ -2275,6 +2272,84 @@ broadcast_vertical(vector_type& t)
 
 //	communicate
 	m_Com.communicate();
+	GMG_PROFILE_END();
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - broadcast_vertical\n");
+}
+
+template <typename TDomain, typename TAlgebra>
+void
+AssembledMultiGridCycle<TDomain, TAlgebra>::
+broadcast_vertical_add(vector_type& d)
+{
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - broadcast_vertical\n");
+	PROFILE_FUNC_GROUP("gmg");
+//	send vertical-masters -> vertical-slaves
+//	one proc may not have both, a vertical-slave- and vertical-master-layout.
+	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
+
+//	deadly v-interfaces of crossing death make the resulting defect consistent
+//	so that we have to transform it to additive unique
+	if(!d.vertical_master_layout().empty()){
+//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+//		  " Going down: SENDS vert. dofs.\n");
+
+	//	there may be v-slaves with multiple v-masters. We only want to send
+	//	a fraction to each master, to keep d additive.
+	//	count number of occurrances in v-interfaces
+		bool multiOccurance = false;
+		std::vector<number> occurence;
+		IndexLayout& layout = d.vertical_master_layout();
+
+		if(layout.num_interfaces() > 1){
+			occurence.resize(d.size(), 0);
+			for(IndexLayout::iterator iiter = layout.begin();
+				iiter != layout.end(); ++iiter)
+			{
+				IndexLayout::Interface& itfc = layout.interface(iiter);
+				for(IndexLayout::Interface::iterator iter = itfc.begin();
+					iter != itfc.end(); ++iter)
+				{
+					IndexLayout::Interface::Element& index = itfc.get_element(iter);
+
+					occurence[index] += 1;
+					if(occurence[index] > 1)
+						multiOccurance = true;
+				}
+			}
+
+		}
+		if(multiOccurance){
+		//todo: avoid copy tmp_d if possible.
+			vector_type tmp_d(d.size());
+			tmp_d.copy_storage_type(d);
+		//	we'll copy adjusted values from d to the occurances vector
+			for(size_t i = 0; i < occurence.size(); ++i){
+				if(occurence[i] > 0) // others can be ignored since not communicated anyways
+					tmp_d[i] = d[i] * (1./occurence[i]);
+			}
+			ComPol_VecAdd<vector_type> cpVecAdd(&tmp_d);
+			m_Com.send_data(d.vertical_master_layout(), cpVecAdd);
+		}
+		else{
+		//	schedule Sending of DoFs of vertical slaves
+			ComPol_VecAdd<vector_type> cpVecAdd(&d);
+			m_Com.send_data(d.vertical_master_layout(), cpVecAdd);
+		}
+	}
+
+	ComPol_VecAdd<vector_type> cpVecAdd(&d);
+	if(!d.vertical_slave_layout().empty())
+	{
+//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+//		 " Going up: WAITS FOR RECIEVE of vert. dofs.\n");
+
+	//	schedule slaves to receive correction
+		m_Com.receive_data(d.vertical_slave_layout(), cpVecAdd);
+	}
+
+//	communicate
+	m_Com.communicate();
+
 	GMG_PROFILE_END();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - broadcast_vertical\n");
 }
