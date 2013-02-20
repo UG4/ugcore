@@ -18,6 +18,7 @@
 // discretization interfaces
 #include "lib_algebra/operator/convergence_check.h"
 #include "lib_algebra/operator/matrix_operator_functions.h"
+#include "lib_disc/active_set/active_set.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
@@ -94,7 +95,9 @@ static void Algebra(Registry& reg, string parentGroup)
 					"", "rhs#u", "assembles right-hand side on surface grid")
 			.add_method("assemble_rhs", static_cast<void (T::*)(vector_type&)>(&T::assemble_rhs),
 					"", "rhs", "assembles right-hand side on surface grid for linear case")
-			.add_method("adjust_solution", static_cast<void (T::*)(vector_type&)>(&T::adjust_solution));
+			.add_method("adjust_solution", static_cast<void (T::*)(vector_type&)>(&T::adjust_solution))
+			.add_method("adjust_matrix_rhs", static_cast<void (T::*)(matrix_type&, vector_type&,
+					std::vector<size_t>&, vector_type&)>(&T::adjust_matrix_rhs));
 		reg.add_class_to_group(name, "IAssemble", tag);
 	}
 
@@ -333,6 +336,22 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
+	//	ActiveSet
+	{
+		typedef ActiveSet<TDomain, TAlgebra> T;
+		string name = string("ActiveSet").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.add_constructor()
+			.add_method("set_constraint", &T::set_constraint, "", "setConstraint")
+			.add_method("prepare", &T::prepare, "", "prepare")
+			.add_method("active_index", &T::active_index, "", "is index active or not, stores activeSetList")
+			.add_method("comp_lambda", &T::comp_lambda, "", "complementary function computed")
+			.add_method("get_activeSet", &T::get_activeSet, "", "")
+			.add_method("check_conv", &T::check_conv, "", "activeIndexSet changed or not")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ActiveSet", tag);
+	}
+
 	// 	CompositeConvCheck
 	{
 		typedef CompositeConvCheck<vector_type, TDomain> T;
@@ -376,6 +395,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_approximation_space", &T::set_approximation_space, "", "approxSpace")
 			.add_method("set_convergence_check", &T::set_convergence_check, "", "convCheck")
 			.add_method("set_damp", &T::set_damp, "", "setDampingFactor")
+			//.add_method("set_obstacle_constraint", &T::set_obstacle_constraint, "", "setObsConstraint")
 			.add_method("init", &T::init, "success", "op")
 			.add_method("prepare", &T::prepare, "success", "u")
 			.add_method("apply", &T::apply, "success", "u")
