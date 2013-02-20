@@ -81,6 +81,9 @@ class MultiStepTimeDiscretization
 
 		void adjust_solution(vector_type& u, GridLevel gl);
 
+		void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
+				std::vector<size_t>& indexList, vector_type& val, GridLevel gl);
+
 	protected:
 	///	updates the scaling factors, returns the future time
 		virtual number update_scaling(std::vector<number>& vSM,

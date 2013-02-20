@@ -130,10 +130,22 @@ void MultiStepTimeDiscretization<TAlgebra>::
 adjust_solution(vector_type& u, GridLevel gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_adjust_solution, "discretization MultiStepTimeDiscretization");
-//	assemble solution
+//	adjust solution
 	try{
 		this->m_spDomDisc->adjust_solution(u, m_futureTime, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot adjust solution.");
+}
+
+template <typename TAlgebra>
+void MultiStepTimeDiscretization<TAlgebra>::
+adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& indexList,
+		vector_type& val, GridLevel gl)
+{
+	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_adjust_matrix_rhs, "discretization MultiStepTimeDiscretization");
+//	adjust matrix & rhs
+	try{
+		this->m_spDomDisc->adjust_matrix_rhs(mat, rhs, indexList, val, m_futureTime, gl);
+	}UG_CATCH_THROW("ThetaTimeStep: Cannot adjust matrix and rhs.");
 }
 
 template <typename TAlgebra>

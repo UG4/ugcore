@@ -99,7 +99,7 @@ class IAssemble
 		 *
 		 * \param[out] 	J 	Jacobian J(u) matrix to be filled
 		 * \param[in]  	u 	Current iterate
-		 * \param[in]	dd	DoF Distribution
+		 * \param[in]	gl	Grid Level
 		 */
 		virtual void assemble_jacobian(matrix_type& J, const vector_type& u,
 		                               GridLevel gl) = 0;
@@ -114,7 +114,7 @@ class IAssemble
 		 *
 		 * \param[out] 	d 	Defect d(u) to be filled
 		 * \param[in] 	u 	Current iterate
-		 * \param[in]	dd	DoF Distribution
+		 * \param[in]	gl	Grid Level
 		 */
 		virtual void assemble_defect(vector_type& d, const vector_type& u,
 		                             GridLevel gl) = 0;
@@ -129,7 +129,7 @@ class IAssemble
 		 *
 		 * \param[out] 	A 	Mass-/Stiffness- Matrix
 		 * \param[out] 	b 	Right-Hand-Side
-		 * \param[in]	dd	DoF Distribution
+		 * \param[in]	gl	Grid Level
 		 */
 		virtual void assemble_linear(matrix_type& A, vector_type& b,
 		                             GridLevel gl) = 0;
@@ -151,7 +151,7 @@ class IAssemble
 		 * Assembles Right-Hand-Side for a linear problem
 		 *
 		 * \param[out] 	b 	Right-Hand-Side
-		 * \param[in]	dd	DoF Distribution
+		 * \param[in]	gl	Grid Level
 		 */
 		virtual void assemble_rhs(vector_type& b, GridLevel gl) = 0;
 
@@ -165,14 +165,35 @@ class IAssemble
 		 * are dirichlet
 		 *
 		 * \param[out] 	u	Numerical Solution
-		 * \param[in]	dd	DoF Distribution
+		 * \param[in]	gl	Grid Level
 		 */
 		virtual void adjust_solution(vector_type& u,
 		                             GridLevel gl) = 0;
 
-	/// adjust solution on surface grid
+		/// adjust solution on surface grid
 		void adjust_solution(vector_type& u)
 			{adjust_solution(u, GridLevel());}
+
+		/// sets dirichlet rows and values in matrix resp. right hand side vector
+		/**
+		 * For a given set of indices, 'indexList', the matrix rows corresponding to these
+		 * indices are set to identity (Dirichlet-row) and the entries of the right-hand-side
+		 * vector are set to the Dirichlet-values
+		 *
+		 * \param[out] 	mat			Mass-/Stiffness- Matrix
+		 * \param[out] 	rhs			Right-Hand-Side
+		 * \param[in]	indexList	Index List
+		 * \param[in]	val			Dirichlet values
+		 * \param[in]	gl			Grid Level
+		 */
+		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
+		                             std::vector<size_t>& indexList, vector_type& val,
+		                             GridLevel gl) = 0;
+
+		/// adjust solution on surface grid
+		void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
+				std::vector<size_t>& indexList, vector_type& val)
+			{adjust_matrix_rhs(mat, rhs, indexList, val, GridLevel());}
 
 	///	assembles mass matrix
 		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u,

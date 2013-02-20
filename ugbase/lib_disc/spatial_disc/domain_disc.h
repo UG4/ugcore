@@ -101,6 +101,15 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		virtual void adjust_solution(vector_type& u, GridLevel gl)
 		{adjust_solution(u, dd(gl));}
 
+	/// \copydoc IAssemble::adjust_matrix_rhs()
+		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
+				std::vector<size_t>& indexList, vector_type& val,
+				ConstSmartPtr<DoFDistribution> dd);
+		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
+				std::vector<size_t>& indexList, vector_type& val,
+				GridLevel gl)
+		{adjust_matrix_rhs(mat,rhs,indexList,val,dd(gl));}
+
 	///	wrapper for GridFunction
 	/// \{
 		void assemble_jacobian(matrix_type& J, GridFunction<TDomain, TAlgebra>& u)
@@ -120,6 +129,11 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 
 		void adjust_solution(GridFunction<TDomain, TAlgebra>& u)
 		{adjust_solution(u, u.dof_distribution());}
+
+		void adjust_matrix_rhs(matrix_type& mat, GridFunction<TDomain, TAlgebra>& rhs,
+				std::vector<size_t>& indexList, vector_type& val)
+			{adjust_matrix_rhs(mat, rhs, indexList, val, rhs.dof_distribution());}
+
 	/// \}
 
 	///////////////////////
@@ -185,6 +199,15 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		virtual void adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd);
 		virtual void adjust_solution(vector_type& u, number time, GridLevel gl)
 		{adjust_solution(u, time, dd(gl));}
+
+	/// \copydoc IDomainDiscretization::adjust_matrix_rhs()
+		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
+							 std::vector<size_t>& indexList, vector_type& val,
+							 number time, ConstSmartPtr<DoFDistribution> dd);
+		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
+							 std::vector<size_t>& indexList, vector_type& val,
+							 number time, GridLevel gl)
+		{adjust_matrix_rhs(mat,rhs,indexList,val,time,dd(gl));}
 
 	/// \copydoc IDomainDiscretization::finish_timestep()
 		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd);

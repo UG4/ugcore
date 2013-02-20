@@ -776,6 +776,33 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 	} UG_CATCH_THROW("Cannot adjust solution.");
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// set Dirichlet matrix-rows resp. Dirichlet values (stationary)
+///////////////////////////////////////////////////////////////////////////////
+template <typename TDomain, typename TAlgebra>
+void DomainDiscretization<TDomain, TAlgebra>::
+adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& indexList,
+		vector_type& val, ConstSmartPtr<DoFDistribution> dd)
+{
+	std::vector<size_t>::iterator iter;
+
+	for (iter = indexList.begin(); iter < indexList.end(); ++iter)
+	{
+		//UG_LOG("List-Index: " << *iter << "\n");
+
+		//	loop functions
+		for (size_t alpha = 0; alpha < dd->num_fct(); alpha++)
+		{
+			//	set dirichlet row
+			SetDirichletRow(mat, *iter, alpha);
+			//	set dirichlet value in rhs
+			//	TODO: use val-vector here to set the dirichlet values
+			BlockRef(rhs[*iter], alpha) = 0.0;
+		}
+
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 //  Time Dependent (instationary)
@@ -1350,6 +1377,33 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 			}
 	}
 	} UG_CATCH_THROW(" Cannot adjust solution.");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// set Dirichlet matrix-rows resp. Dirichlet values (instationary)
+///////////////////////////////////////////////////////////////////////////////
+template <typename TDomain, typename TAlgebra>
+void DomainDiscretization<TDomain, TAlgebra>::
+adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& indexList,
+		vector_type& val, number time, ConstSmartPtr<DoFDistribution> dd)
+{
+	//	TODO: is the time-variable necessary here? Or is it possible to use
+	//	the stationary version solely?
+	std::vector<size_t>::iterator iter;
+
+	for (iter = indexList.begin(); iter < indexList.end(); ++iter)
+	{
+		//	loop functions
+		for (size_t alpha = 0; alpha < dd->num_fct(); alpha++)
+		{
+			//	set dirichlet row
+			SetDirichletRow(mat, *iter, alpha);
+			//	set dirichlet value in rhs
+			//	TODO: use val-vector here to set the dirichlet values
+			BlockRef(rhs[*iter], alpha) = 0.0;
+		}
+
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
