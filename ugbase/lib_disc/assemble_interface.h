@@ -101,12 +101,9 @@ class IAssemble
 		 * \param[in]  	u 	Current iterate
 		 * \param[in]	gl	Grid Level
 		 */
-		virtual void assemble_jacobian(matrix_type& J, const vector_type& u,
-		                               GridLevel gl) = 0;
-
-		///	assembles jacobian on surface grid
+		virtual void assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl) = 0;
 		void assemble_jacobian(matrix_type& J, const vector_type& u)
-			{assemble_jacobian(J,u,GridLevel());}
+		{assemble_jacobian(J,u,GridLevel());}
 
 		/// assembles Defect
 		/**
@@ -116,12 +113,9 @@ class IAssemble
 		 * \param[in] 	u 	Current iterate
 		 * \param[in]	gl	Grid Level
 		 */
-		virtual void assemble_defect(vector_type& d, const vector_type& u,
-		                             GridLevel gl) = 0;
-
-		/// assembles jacobian on surface grid
+		virtual void assemble_defect(vector_type& d, const vector_type& u, GridLevel gl) = 0;
 		void assemble_defect(vector_type& d, const vector_type& u)
-			{assemble_defect(d,u, GridLevel());}
+		{assemble_defect(d,u, GridLevel());}
 
 		/// Assembles Matrix and Right-Hand-Side for a linear problem
 		/**
@@ -131,20 +125,14 @@ class IAssemble
 		 * \param[out] 	b 	Right-Hand-Side
 		 * \param[in]	gl	Grid Level
 		 */
-		virtual void assemble_linear(matrix_type& A, vector_type& b,
-		                             GridLevel gl) = 0;
-
-		/// assembles linear on the surface grid
+		virtual void assemble_linear(matrix_type& A, vector_type& b, GridLevel gl) = 0;
 		void assemble_linear(matrix_type& A, vector_type& b)
-			{assemble_linear(A,b, GridLevel());}
+		{assemble_linear(A,b, GridLevel());}
 
 	///	assembles rhs
-		virtual void assemble_rhs(vector_type& rhs, const vector_type& u,
-								   GridLevel gl) = 0;
-
-	///	assembles rhs on surface grid
+		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, GridLevel gl) = 0;
 		virtual void assemble_rhs(vector_type& rhs, const vector_type& u)
-			{assemble_rhs(rhs, u, GridLevel());}
+		{assemble_rhs(rhs, u, GridLevel());}
 
 		/// Assembles Right-Hand-Side for a linear problem
 		/**
@@ -154,10 +142,8 @@ class IAssemble
 		 * \param[in]	gl	Grid Level
 		 */
 		virtual void assemble_rhs(vector_type& b, GridLevel gl) = 0;
-
-		/// assembles linear on the surface grid
 		void assemble_rhs(vector_type& b)
-			{assemble_rhs(b, GridLevel());}
+		{assemble_rhs(b, GridLevel());}
 
 		/// sets dirichlet values in solution vector
 		/**
@@ -167,12 +153,9 @@ class IAssemble
 		 * \param[out] 	u	Numerical Solution
 		 * \param[in]	gl	Grid Level
 		 */
-		virtual void adjust_solution(vector_type& u,
-		                             GridLevel gl) = 0;
-
-		/// adjust solution on surface grid
+		virtual void adjust_solution(vector_type& u, GridLevel gl) = 0;
 		void adjust_solution(vector_type& u)
-			{adjust_solution(u, GridLevel());}
+		{adjust_solution(u, GridLevel());}
 
 		/// sets dirichlet rows and values in matrix resp. right hand side vector
 		/**
@@ -192,26 +175,20 @@ class IAssemble
 
 		/// adjust solution on surface grid
 		void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-				std::vector<size_t>& indexList, vector_type& val)
-			{adjust_matrix_rhs(mat, rhs, indexList, val, GridLevel());}
+		                       std::vector<size_t>& indexList, vector_type& val)
+		{adjust_matrix_rhs(mat, rhs, indexList, val, GridLevel());}
 
 	///	assembles mass matrix
-		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u,
-		                               GridLevel gl)
+		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u, GridLevel gl)
 		{UG_THROW("IAssemble: assemble_mass_matrix not implemented.");}
-
-	///	assembles mass matrix on surface grid
 		void assemble_mass_matrix(matrix_type& M, const vector_type& u)
-			{assemble_mass_matrix(M,u,GridLevel());}
+		{assemble_mass_matrix(M,u,GridLevel());}
 
 	///	assembles stiffness matrix
-		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
-		                                       GridLevel gl)
+		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u, GridLevel gl)
 		{UG_THROW("IAssemble: assemble_stiffness_matrix not implemented.");}
-
-	///	assembles stiffness matrix on surface grid
 		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
-			{assemble_stiffness_matrix(A,u,GridLevel());}
+		{assemble_stiffness_matrix(A,u,GridLevel());}
 
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce) = 0;
