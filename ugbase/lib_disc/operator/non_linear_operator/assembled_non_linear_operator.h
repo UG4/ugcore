@@ -34,6 +34,10 @@ public:
 		AssembledOperator(IAssemble<TAlgebra>& ass)
 			: m_pAss(&ass), m_gridLevel(){};
 
+	///	constructor
+		AssembledOperator(IAssemble<TAlgebra>& ass, const GridLevel& gl)
+			: m_pAss(&ass), m_gridLevel(gl) {};
+
 	///	sets discretization for assembling
 		void set_discretization(IAssemble<TAlgebra>& ass) {m_pAss = &ass;}
 

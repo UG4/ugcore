@@ -71,6 +71,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("add_transfer", &TFct::add_transfer)
 			.add_method("remove_transfer", &TFct::remove_transfer)
 			.add_method("clear_transfers", &TFct::clear_transfers)
+			.add_method("grid_level", &TFct::grid_level)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunction", tag);
 	}

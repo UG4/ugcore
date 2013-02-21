@@ -50,6 +50,10 @@ class AssembledLinearOperator :
 	///	Constructor
 		AssembledLinearOperator(IAssemble<TAlgebra>& ass) : m_pAss(&ass) {};
 
+	///	Constructor
+		AssembledLinearOperator(IAssemble<TAlgebra>& ass, const GridLevel& gl)
+			: m_pAss(&ass), m_gridLevel(gl) {};
+
 	///	sets the discretization to be used
 		void set_discretization(IAssemble<TAlgebra>& ass) {m_pAss = &ass;}
 

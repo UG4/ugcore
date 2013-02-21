@@ -110,6 +110,9 @@ class IGridFunction
 	///	returns dof distribution
 		ConstSmartPtr<DoFDistribution> dof_distribution() const {return m_spDD;}
 
+	///	returns the grid level
+		const GridLevel& grid_level() {return m_spDD->grid_level();}
+
 	/// number of discrete functions
 		size_t num_fct() const {return m_spDD->num_fct();}
 

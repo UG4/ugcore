@@ -110,7 +110,7 @@ function util.SolveNonlinearTimeProblem(
 	solTimeSeries:push(u:clone(), time)
 
 	-- update newtonSolver	
-	newtonSolver:init(AssembledOperator(timeDisc))
+	newtonSolver:init(AssembledOperator(timeDisc, u:grid_level()))
 
 	-- store old solution (used for reinit in multistep)
 	local uOld
@@ -256,7 +256,7 @@ function util.SolveLinearTimeProblem(
 	solTimeSeries:push(u:clone(), time)
 
 	-- matrix and vectors
-	local A = AssembledLinearOperator(timeDisc)
+	local A = AssembledLinearOperator(timeDisc, u:grid_level())
 	local b = u:clone()
 
 	-- set order for bdf to 1 (initially)
@@ -284,7 +284,7 @@ function util.SolveLinearTimeProblem(
 				print("++++++ Assembling Matrix/Rhs for step size "..currdt); 
 				timeDisc:prepare_step(solTimeSeries, currdt)
 				timeDisc:assemble_linear(A, b)
-				linSolver:init(A)
+				linSolver:init(A, u)
 				assembled_dt = currdt
 			else
 				timeDisc:assemble_rhs(b)

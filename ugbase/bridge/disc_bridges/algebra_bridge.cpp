@@ -171,10 +171,12 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(IAssemble<TAlgebra>&)>("Assembling Routine")
+			.template add_constructor<void (*)(IAssemble<TAlgebra>&, const GridLevel&)>("AssemblingRoutine, GridLevel")
 			.add_method("set_discretization", &T::set_discretization)
 			.add_method("set_level", &T::set_level)
 			.add_method("set_dirichlet_values", &T::set_dirichlet_values)
 			.add_method("init_op_and_rhs", &T::init_op_and_rhs)
+			.add_method("level", &T::level)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AssembledLinearOperator", tag);
 	}
@@ -240,9 +242,11 @@ static void Algebra(Registry& reg, string parentGroup)
 		string name = string("AssembledOperator").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.template add_constructor<void (*)(IAssemble<TAlgebra>&)>("Assembling Routine")
+			.template add_constructor<void (*)(IAssemble<TAlgebra>&)>("AssemblingRoutine")
+			.template add_constructor<void (*)(IAssemble<TAlgebra>&, const GridLevel&)>("AssemblingRoutine, GridLevel")
 			.add_method("set_discretization", &T::set_discretization, "", "ass")
 			.add_method("set_level", &T::set_level, "", "gridLevel")
+			.add_method("level", &T::level, "gridLevel", "")
 			.add_method("init", &T::init)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AssembledOperator", tag);
