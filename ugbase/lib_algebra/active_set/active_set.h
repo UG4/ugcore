@@ -10,21 +10,10 @@
 
 namespace ug {
 
-//	TODO: maybe the dependency on TDomain could be removed.
-//	In that case move the class in lib_algebra!
-template <typename TDomain, typename TAlgebra>
+template <typename TAlgebra>
 class ActiveSet
 {
 	public:
-	///	Type of domain
-		typedef TDomain domain_type;
-
-	///	world Dimension
-		static const int dim = domain_type::dim;
-
-	///	Type of position coordinates (e.g. position_type)
-		typedef typename domain_type::position_type position_type;
-
 	///	Type of algebra
 		typedef TAlgebra algebra_type;
 
@@ -53,19 +42,15 @@ class ActiveSet
 
 		vector<size_t> get_activeSet() { return m_vActiveSet;};
 
-		//SmartPtr<vector_type> get_constraint() { return m_spConsVec;};
-
-		bool check_conv();
+		bool check_conv(vector_type& u, size_t step);
 
 	private:
-		//	smart pointer to a vector describing a constraint
-		//SmartPtr<vector_type> m_spConsVec;
+		// vector describing a constraint
 		vector_type m_ConsVec;
 		bool m_bCons;
 
 		//	vector remembering the active set of DoFs
 		vector<size_t> m_vActiveSet;
-		vector<size_t> m_vInactiveSet;
 		vector<size_t> m_vActiveSetOld;
 };
 

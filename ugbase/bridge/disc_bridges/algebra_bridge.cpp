@@ -18,7 +18,6 @@
 // discretization interfaces
 #include "lib_algebra/operator/convergence_check.h"
 #include "lib_algebra/operator/matrix_operator_functions.h"
-#include "lib_disc/active_set/active_set.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
@@ -339,22 +338,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
-
-	//	ActiveSet
-	{
-		typedef ActiveSet<TDomain, TAlgebra> T;
-		string name = string("ActiveSet").append(suffix);
-		reg.add_class_<T>(name, grp)
-			.add_constructor()
-			.add_method("set_constraint", &T::set_constraint, "", "setConstraint")
-			.add_method("prepare", &T::prepare, "", "prepare")
-			.add_method("active_index", &T::active_index, "", "is index active or not, stores activeSetList")
-			.add_method("comp_lambda", &T::comp_lambda, "", "complementary function computed")
-			.add_method("get_activeSet", &T::get_activeSet, "", "")
-			.add_method("check_conv", &T::check_conv, "", "activeIndexSet changed or not")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ActiveSet", tag);
-	}
 
 	// 	CompositeConvCheck
 	{
