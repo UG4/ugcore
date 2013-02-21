@@ -1100,24 +1100,6 @@ template void AssignSidesToSubsets<EdgeBase>(ISubsetHandler&, ISelector*);
 template void AssignSidesToSubsets<Face>(ISubsetHandler&, ISelector*);
 template void AssignSidesToSubsets<Volume>(ISubsetHandler&, ISelector*);
 
-void UpdateMaxDimensionOfSubset(ISubsetHandler& sh,
-								const std::string& propertyName)
-{
-	for(int i = 0; i < sh.num_subsets(); ++i){
-		int dim = -1;
-		if(sh.contains_volumes(i))
-			dim = 3;
-		else if(sh.contains_faces(i))
-			dim = 2;
-		else if(sh.contains_edges(i))
-			dim = 1;
-		else if(sh.contains_vertices(i))
-			dim = 0;
-
-		sh.subset_info(i).set_property(propertyName, dim);
-	}
-}
-
 
 void AssignSubsetsByElementType(ISubsetHandler& sh)
 {

@@ -15,9 +15,6 @@
 #include "parallel_refinement/parallel_refinement.h"
 #include "parallelization_util.h"
 
-#include "util/parallel_subset_util.h"
-
-
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	some doxygen group definitions for various parallelization subgroups follow

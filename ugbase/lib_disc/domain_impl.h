@@ -9,6 +9,12 @@
 #define __H__UG__LIB_DISC__DOMAIN_IMPL__
 
 #include "domain.h"
+#include "common/serialization.h"
+
+#ifdef UG_PARALLEL
+#include "pcl/pcl_process_communicator.h"
+#endif
+
 
 namespace ug{
 
@@ -44,6 +50,59 @@ template <typename TGrid, typename TSubsetHandler>
 IDomain<TGrid,TSubsetHandler>::~IDomain()
 {
 }
+
+
+template <typename TGrid, typename TSubsetHandler>
+void IDomain<TGrid,TSubsetHandler>::
+update_subset_infos(int rootProc)
+{
+	TSubsetHandler& sh = *m_spSH;
+	for(int i = 0; i < sh.num_subsets(); ++i){
+		int dim = -1;
+		if(sh.contains_volumes(i))
+			dim = 3;
+		else if(sh.contains_faces(i))
+			dim = 2;
+		else if(sh.contains_edges(i))
+			dim = 1;
+		else if(sh.contains_vertices(i))
+			dim = 0;
+
+		sh.subset_info(i).set_property("dim", dim);
+	}
+
+#ifdef UG_PARALLEL
+	pcl::ProcessCommunicator procCom;
+
+//	prepare the subset-info package, send it to all procs and extract the info again.
+	BinaryBuffer buf;
+	if(pcl::GetProcRank() == rootProc){
+		Serialize(buf, sh.num_subsets());
+		for(int i = 0; i < sh.num_subsets(); ++i){
+			Serialize(buf, sh.subset_info(i).name);
+			Serialize(buf, sh.subset_info(i).get_property("dim").to_int());
+		}
+	}
+
+	procCom.broadcast(buf, rootProc);
+
+	if(pcl::GetProcRank() != rootProc){
+		int numSubsets;
+		Deserialize(buf, numSubsets);
+		if(numSubsets > 0)
+			sh.subset_required(numSubsets - 1);
+
+		for(int i = 0; i < numSubsets; ++i){
+			Deserialize(buf, sh.subset_info(i).name);
+			int dim;
+			Deserialize(buf, dim);
+			sh.subset_info(i).set_property("dim", dim);
+		}
+	}
+#endif
+
+}
+
 
 template <typename TGrid, typename TSubsetHandler>
 inline
@@ -84,28 +143,6 @@ grid_distributed_callback(const GridMessage_Distribution& msg)
 }
 
 
-#ifdef UG_PARALLEL
-template <typename TGrid, typename TSubsetHandler>
-void IDomain<TGrid,TSubsetHandler>::
-update_local_multi_grid()
-{
-//	proc local number of level
-	int numLevLocal = m_spGrid->num_levels();
-
-//	storage for global number of levels
-	int numLevGlobal;
-
-	pcl::ProcessCommunicator commWorld;
-	commWorld.allreduce(&numLevLocal, &numLevGlobal, 1, PCL_DT_INT, PCL_RO_MAX);
-
-	if(numLevGlobal > 0){
-		m_spGrid->level_required(numLevGlobal-1);
-		m_spSH->level_required(numLevGlobal-1);
-	}
-}
-#endif
-
-
 template <typename TGrid, typename TSubsetHandler>
 void IDomain<TGrid,TSubsetHandler>::
 update_domain_info()
@@ -123,25 +160,27 @@ update_domain_info()
 	else
 		locElemType = VERTEX;
 
-
-	update_local_subset_dim_property();
-
 	GeometricBaseObject	elemType;
 	#ifdef UG_PARALLEL
 		pcl::ProcessCommunicator commWorld;
 
-		update_local_multi_grid();
-		update_global_subset_dim_property();
+	//	all processes should have the same number of grid levels
+		int numLevLocal = m_spGrid->num_levels();
+		int numLevGlobal;
+		commWorld.allreduce(&numLevLocal, &numLevGlobal, 1, PCL_DT_INT, PCL_RO_MAX);
 
+		if(numLevGlobal > 0){
+			m_spGrid->level_required(numLevGlobal-1);
+			m_spSH->level_required(numLevGlobal-1);
+		}
 
+	//	communicate the element type of highest dimension present in the global grid.
 		elemType = (GeometricBaseObject) commWorld.allreduce((int)locElemType, PCL_RO_MAX);
-
 	#else
 		elemType = locElemType;
 	#endif
 
-//	the number of levels of the multi-grid and the number of subsets
-//	is now equal on all processes
+//	the number of levels of the multi-grid is now equal on all processes
 	std::vector<int>	locNumElemsOnLvl;
 	locNumElemsOnLvl.reserve(mg.num_levels());
 
@@ -183,8 +222,6 @@ update_domain_info()
 
 	std::vector<int> numLocalGhosts;
 	#ifdef UG_PARALLEL
-		DistributedGridManager& dgm = *mg.distributed_grid_manager();
-		GridLayoutMap& glm = dgm.grid_layout_map();
 		switch(elemType){
 			case VOLUME:
 				count_ghosts<Volume>(numLocalGhosts);

@@ -22,16 +22,20 @@ void LoadDomain(TDomain& domain, const char* filename)
 template <typename TDomain>
 void LoadDomain(TDomain& domain, const char* filename, int procId)
 {
+	bool performLoad = true;
 #ifdef UG_PARALLEL
 	if((procId >= 0 ) && (pcl::GetProcRank() != procId))
-		return;
+		performLoad = false;
 #endif
 
-	if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
-						 filename, domain.position_attachment()))
-		UG_THROW("LoadDomain: Could not load file: "<<filename);
+	if(performLoad){
+		if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
+							 filename, domain.position_attachment()))
+			UG_THROW("LoadDomain: Could not load file: "<<filename);
+	}
 
-	domain.update_local_subset_dim_property();
+	if(procId >= 0 )
+		domain.update_subset_infos(procId);
 }
 
 

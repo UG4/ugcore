@@ -3,7 +3,6 @@
 //	y10 m07 d06
 
 #include <vector>
-#include <cassert>
 #include "pcl_methods.h"
 #include "common/util/smart_pointer.h"
 #include "pcl_process_communicator.h"
@@ -197,7 +196,7 @@ allreduce(const void* sendBuf, void* recBuf, int count,
 {
 	PCL_PROFILE(pcl_ProcCom_allreduce);
 
-	assert(!empty() &&
+	UG_ASSERT(!empty(),
 			"ERROR in ProcessCommunicator::allreduce: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
@@ -213,7 +212,7 @@ gather(const void* sendBuf, int sendCount, DataType sendType,
 {
 	PCL_PROFILE(pcl_ProcCom_gather);
 
-	assert(!empty() &&
+	UG_ASSERT(!empty(),
 			"ERROR in ProcessCommunicator::gather: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::gather: empty communicator.\n");
@@ -231,7 +230,7 @@ gatherv(const void* sendBuf, int sendCount, DataType sendType,
 {
 	PCL_PROFILE(pcl_ProcCom_gatherv);
 
-	assert(!empty() &&
+	UG_ASSERT(!empty(),
 			"ERROR in ProcessCommunicator::gather: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::gather: empty communicator.\n");
@@ -248,7 +247,7 @@ allgather(const void* sendBuf, int sendCount, DataType sendType,
 {
 	PCL_PROFILE(pcl_ProcCom_allgather);
 
-	assert(!empty() &&
+	UG_ASSERT(!empty(),
 			"ERROR in ProcessCommunicator::allgather: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::allgather: empty communicator.\n");
@@ -266,7 +265,7 @@ allgatherv(const void* sendBuf, int sendCount, DataType sendType,
 {
 	PCL_PROFILE(pcl_ProcCom_allgatherv);
 
-	assert(!empty() &&
+	UG_ASSERT(!empty(),
 			"ERROR in ProcessCommunicator::allgatherv: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::allgatherv: empty communicator.\n");
@@ -282,7 +281,7 @@ send_data(void* pBuffer, int bufferSize, int destProc, int tag) const
 {
 	PCL_PROFILE(pcl_ProcCom_send_data);
 
-	assert(!empty() &&
+	UG_ASSERT(!empty(),
 			"ERROR in ProcessCommunicator::send_data: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::send_data: empty communicator.\n");
@@ -302,7 +301,7 @@ send_data(void* pBuffer, int* pBufferSegSizes,
 {
 	PCL_PROFILE(pcl_ProcCom_send_data__to_many);
 
-	assert(!empty() &&
+	UG_ASSERT(!empty(),
 			"ERROR in ProcessCommunicator::send_data: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::send_data: empty communicator.\n");
@@ -328,7 +327,7 @@ receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag) const
 {
 	PCL_PROFILE(pcl_ProcCom_recv_data);
 
-	assert(!empty() &&
+	UG_ASSERT(!empty(),
 			"ERROR in ProcessCommunicator::receive_data: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::receive_data: empty communicator.\n");
@@ -349,7 +348,7 @@ distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
 {
 	PCL_PROFILE(pcl_ProcCom_distribute_data);
 
-	assert(!empty() &&
+	UG_ASSERT(!empty(),
 			"ERROR in ProcessCommunicator::distribute_data: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::distribute_data: empty communicator.\n");

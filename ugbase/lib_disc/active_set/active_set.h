@@ -71,6 +71,6 @@ class ActiveSet
 
 } // namespace ug
 
-#include "active_set_impl.h";
+#include "active_set_impl.h"
 
 #endif /* ACTIVE_SET_H_ */

@@ -12,7 +12,6 @@
 
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"
-#include "lib_grid/parallelization/util/parallel_subset_util.h"
 #endif
 
 namespace ug{
@@ -121,15 +120,8 @@ class IDomain
 	/**	Note that one vertex is enough to consider the grid as non-empty.*/
 		bool empty() const			{return m_spGrid->num_vertices() == 0;}
 
-	///	updates the subsets dimension property "dim" (integer) locally.
-	/** This method normally only has to be called after the subset-handler
-	 * has been changed. In most cases a call after the domain has been loaded
-	 * should be enough. This is done automatically by e.g. LoadDomain.
-	 *
-	 * \todo	calling this method after coarsening could be useful.
-	 * 			Think about registering a callback at the message-hub.*/
-		void update_local_subset_dim_property()	{UpdateMaxDimensionOfSubset(*this->m_spSH, "dim");}
-
+	///	updates and broadcasts subset names and dimensions from the given rootProc to all other processes.
+		void update_subset_infos(int rootProc);
 
 	///	returns information on the current domain
 	/**	In a parallel environment, this information relates to the global
@@ -169,31 +161,7 @@ class IDomain
 		inline void grid_distributed_callback(const GridMessage_Distribution& msg);
 
 #ifdef UG_PARALLEL
-	public:
-	///	updates the subsets dimension property "dim" (integer) globally.
-	/** This method normally only has to be called after the subset-handler
-	 * has been changed. In most cases a call after the domain has been loaded
-	 * should be enough. This is done automatically by e.g. LoadDomain.
-	 *
-	 * You may optionally specify a process communicator, which will be used
-	 * to perform the communication involved.
-	 *
-	 * \todo	calling this method after coarsening could be useful.
-	 * 			Think about registering a callback at the message-hub.*/
-		void update_global_subset_dim_property(pcl::ProcessCommunicator procCom =
-													pcl::ProcessCommunicator())
-		{UpdateGlobalMaxDimensionOfSubset(*this->m_spSH, "dim", procCom);}
-
 	protected:
-	///	updates the number of levels on each block to global maximum
-	/**	This method must be invoked when the grid has been changed and there
-	 * might be diffent numbers of levels on different processors. This method
-	 * will compute the global maximum of levels (involving an allreduce) and
-	 * adapt all local grids to the maximum number by inserting empty levels.
-	 * After this method has been invoked, all local grids will return the same
-	 * number of levels, when invoking num_levels().*/
-		void update_local_multi_grid();
-
 	/**	make sure that elements of the given type are contained in at most one
 	 * vmaster interface. This is always the case for highest dimensional elements.*/
 		template <class TElem>

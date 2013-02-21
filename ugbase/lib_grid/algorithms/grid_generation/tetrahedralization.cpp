@@ -17,7 +17,7 @@ namespace ug
 {
 
 static bool PerformTetrahedralization(Grid& grid,
-										SubsetHandler* pSH,
+										ISubsetHandler* pSH,
 										number quality,
 										bool preserveBnds,
 										bool preserveAll,
@@ -449,7 +449,7 @@ bool Tetrahedralize(Grid& grid, number quality, bool preserveBnds,
 									preserveAll, aPos);
 }
 
-bool Tetrahedralize(Grid& grid, SubsetHandler& sh, number quality,
+bool Tetrahedralize(Grid& grid, ISubsetHandler& sh, number quality,
 					bool preserveBnds, bool preserveAll, APosition& aPos)
 {
 	return PerformTetrahedralization(grid, &sh, quality, preserveBnds,

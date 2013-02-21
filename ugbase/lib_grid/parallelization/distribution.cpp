@@ -1396,9 +1396,18 @@ bool DistributeGrid(MultiGrid& mg,
 ////////////////////////////////
 //	COMMUNICATE INVOLVED PROCESSES
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: CommunicateInvolvedProcesses\n");
+	UG_LOG("num subsets in shPartition: " << shPartition.num_subsets() << endl);
+	if(processMap){
+		UG_LOG("num subsets in processMap: " << processMap->size() << endl);
+	}
+
 //	each process has to know with which other processes it
 //	has to communicate.
 	vector<int> sendToRanks, recvFromRanks, sendPartitionInds;
+
+	if(processMap && (shPartition.num_subsets() > (int)processMap->size())){
+		UG_THROW("process-map is too small for the given number of partitions!");
+	}
 
 //	for each subset which is not emtpy we'll have to send data to
 //	the associated process.
@@ -1418,6 +1427,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 ////////////////////////////////
 //	SERIALIZE THE GRID, THE GLOBAL IDS AND THE DISTRIBUTION INFOS.
+	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Serialization\n");
 	AInt aLocalInd;
 	mg.attach_to_all(aLocalInd);
 	MultiElementAttachmentAccessor<AInt> aaInt(mg, aLocalInd);

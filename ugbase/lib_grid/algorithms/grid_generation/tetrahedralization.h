@@ -31,7 +31,7 @@ bool Tetrahedralize(Grid& grid, number quality = 5,
 					bool preserveAll = false,
 					APosition& aPos = aPosition);
 
-bool Tetrahedralize(Grid& grid, SubsetHandler& sh,
+bool Tetrahedralize(Grid& grid, ISubsetHandler& sh,
 					number quality = 5,
 					bool preserveBnds = false,
 					bool preserveAll = false,

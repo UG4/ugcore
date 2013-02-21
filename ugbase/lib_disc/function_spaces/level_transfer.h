@@ -204,10 +204,10 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 		UG_THROW("ProlongateElemwise: Spaces must contain same number of functions.")
 
 //	get flag if all trial spaces are equal
-	bool bSameLFEID = true;
+//	bool bSameLFEID = true;
 	for(size_t fct = 0; fct < vFineLFEID.size(); ++fct){
-		if(vFineLFEID[fct] != vCoarseLFEID[fct])
-			bSameLFEID = false;
+//		if(vFineLFEID[fct] != vCoarseLFEID[fct])
+//			bSameLFEID = false;
 
 		if (vCoarseLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0) ||
 			vFineLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0))

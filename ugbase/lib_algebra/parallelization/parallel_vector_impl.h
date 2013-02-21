@@ -183,7 +183,11 @@ number ParallelVector<TVector>::norm() const
 
 // 	step 3: sum squared local norms
 	PARVEC_PROFILE_BEGIN(ParVec_norm_allreduce);
-	double tNormGlobal = m_processCommunicator.allreduce(tNormLocal, PCL_RO_SUM);
+	double tNormGlobal;
+	if(m_processCommunicator.empty())
+		tNormGlobal = tNormLocal;
+	else
+		tNormGlobal = m_processCommunicator.allreduce(tNormLocal, PCL_RO_SUM);
 	PARVEC_PROFILE_END();
 
 // 	step 4: return global norm ( = square root of summed squared local norms)
@@ -238,8 +242,11 @@ number ParallelVector<TVector>::dotprod(const this_type& v)
 	double tSumGlobal;
 
 // 	step 4: sum global contributions
-	m_processCommunicator.allreduce(&tSumLocal, &tSumGlobal, 1,
-									PCL_DT_DOUBLE, PCL_RO_SUM);
+	if(m_processCommunicator.empty())
+		tSumGlobal = tSumLocal;
+	else
+		m_processCommunicator.allreduce(&tSumLocal, &tSumGlobal, 1,
+										PCL_DT_DOUBLE, PCL_RO_SUM);
 
 // 	step 5: return result
 	return tSumGlobal;

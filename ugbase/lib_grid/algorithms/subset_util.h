@@ -448,18 +448,6 @@ template <class TSubsetHandler>
 void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 								bool preserveExistingSubsets);
 
-
-////////////////////////////////////////////////////////////////////////
-///	Gathers the dimension of each subset
-/**	Stores the max-dimension of each subset in the specified subset-property.
- *
- * The dimension is set to -1, if the subset does not contain any elements at all.
- */
-UG_API
-void UpdateMaxDimensionOfSubset(ISubsetHandler& sh,
-								const std::string& propertyName);
-
-
 ////////////////////////////////////////////////////////////////////////
 ///	Assigns subset depending on the element type
 UG_API

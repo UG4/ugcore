@@ -498,8 +498,7 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 	typedef typename geometry_traits<TGeomBaseObj>::iterator	ElemIter;
 
 	int localProc = pcl::GetProcRank();
-
-	pcl::ProcessCommunicator procCom;
+	pcl::ProcessCommunicator procComWorld;
 
 //	here we'll store the dual graph
 	vector<idx_t> adjacencyMapStructure;
@@ -508,15 +507,17 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 
 	ConstructParallelDualGraphMGLevel<TElem, idx_t>(adjacencyMapStructure,
 											adjacencyMap, nodeOffsetMap,
-											mg, level, procCom);
+											mg, level, procComWorld);
 
 	UG_DLOG(LIB_GRID, 2, "  parallel dual graph #vrts: " << (int)adjacencyMapStructure.size() - 1
 						<< ", #edges: " << adjacencyMap.size() / 2 << "\n");
 
-	if(!pcl::AllProcsTrue(adjacencyMap.size() > 1)){
+	pcl::ProcessCommunicator procCom = procComWorld.create_sub_communicator(adjacencyMap.size() > 1);
+
+	/*if(!pcl::AllProcsTrue(adjacencyMap.size() > 1)){
 		UG_THROW("ParMetis may only be executed if all processes contain non-ghost elements"
 				" on the given level (at least two neighboring).")
-	}
+	}*/
 
 //	partition the graph using parmetis
 	idx_t options[3]; options[0] = 0;//default values
@@ -543,20 +544,22 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 		pVrtSizeMap = &vrtSizeMap.front();
 	}
 
-	UG_DLOG(LIB_GRID, 1, "CALLING PARMETIS\n");
-	MPI_Comm mpiCom = procCom.get_mpi_communicator();
-	int metisRet =	ParMETIS_V3_PartKway(&nodeOffsetMap.front(),
-										&adjacencyMapStructure.front(),
-										&adjacencyMap.front(),
-										pVrtSizeMap, NULL, &wgtFlag,
-										&numFlag, &nConstraints,
-										&numParts, &tpwgts.front(), &ubvec, options,
-										&edgeCut, &partitionMap.front(),
-										&mpiCom);
-	UG_DLOG(LIB_GRID, 1, "PARMETIS DONE\n");
+	if(!procCom.empty()){
+		UG_DLOG(LIB_GRID, 1, "CALLING PARMETIS\n");
+		MPI_Comm mpiCom = procCom.get_mpi_communicator();
+		int metisRet =	ParMETIS_V3_PartKway(&nodeOffsetMap.front(),
+											&adjacencyMapStructure.front(),
+											&adjacencyMap.front(),
+											pVrtSizeMap, NULL, &wgtFlag,
+											&numFlag, &nConstraints,
+											&numParts, &tpwgts.front(), &ubvec, options,
+											&edgeCut, &partitionMap.front(),
+											&mpiCom);
+		UG_DLOG(LIB_GRID, 1, "PARMETIS DONE\n");
 
-	if(metisRet != METIS_OK){
-		UG_THROW("PARMETIS FAILED on process " << localProc);
+		if(metisRet != METIS_OK){
+			UG_THROW("PARMETIS FAILED on process " << localProc);
+		}
 	}
 
 //	assign the subsets to the subset-handler
