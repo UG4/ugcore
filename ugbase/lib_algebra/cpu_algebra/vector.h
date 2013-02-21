@@ -35,22 +35,22 @@ public:
 	//! constructor
 	Vector();
 
-	//! constructor with length
-	Vector(size_t _length);
+	//! constructor with size
+	Vector(size_t size);
 
 	//! virtual destructor
 	virtual ~Vector();
 
 	Vector(const vector_type & v)
 	{
-		length = 0; values = NULL;
-		create(v.length);
+		m_size = 0; values = NULL;
+		create(v.m_size);
 		operator =(v);
 	}
 
 public:
-	//! create a vector with specific length
-	bool create(size_t _length);
+	//! create a vector with specific size
+	bool create(size_t size);
 	//! create as a copy of other vector
 	bool create(const Vector &v);
 	
@@ -60,8 +60,26 @@ public:
 	//! clones the vector (deep-copy) excluding values
 	SmartPtr<vector_type> clone_without_values() const;
 
-	//! resize vector
-	bool resize(size_t new_length, bool bCopyValues=true);
+	//! resize vector.
+	//! if bigger than capacity, new capacity is newSize+oldSize/2
+	//! so growth factor is 1.5 (this is to keep memory overhead small)
+	//! \see also https://github.com/facebook/folly/blob/master/folly/docs/FBVector.md
+	bool resize(size_t newSize, bool bCopyValues=true);	
+	
+	//! resize the vector to be EXACTLY newSize big (no overhead)
+	bool resize_exactly(size_t newSize, bool bCopyValues=true);	
+	
+	//! reserve will allocate EXACTLY newCapacity
+	//! assertion if newCapacity < size
+	bool reserve_exactly(size_t newCapacity, bool bCopyValues);
+	
+	//! reserve capacity in vector.
+	//! if bigger than capacity, new capacity is newCapacity+oldCapacity/2
+	bool reserve(size_t newCapacity, bool bCopyValues=true);
+	size_t capacity()
+	{
+		return m_capacity;
+	}
 
 	//! access element i of the vector
 	inline value_type &operator [] (size_t i);
@@ -119,10 +137,7 @@ public:
 	//! return sqrt(sum values[i]^2) (euclidian norm)
 	inline double norm() const;
 
-	//! printofile: posx posy value
-	void printtofile(const char *filename);
-
-	size_t size() const { return length; }
+	size_t size() const { return m_size; }
 
 
 public: // output functions
@@ -133,7 +148,7 @@ public: // output functions
 	//! ostream << operator
 	friend std::ostream &operator<<(std::ostream &output, const Vector &v)
 	{
-		output << "Vector " <<  "[" << v.length << "]";
+		output << "Vector " <<  "[" << v.m_size << "]";
 		return output;
 	}
 
@@ -166,8 +181,9 @@ protected:
 private:
 	bool destroy();
 
-	size_t length;				///< length of the vector (vector is from 0..length-1)
-	value_type *values;		///< array where the values are stored, size length
+	size_t m_size;			///< size of the vector (vector is from 0..size-1)
+	size_t m_capacity;		///< size of the vector (vector is from 0..size-1)
+	value_type *values;		///< array where the values are stored, size m_size
 
 	//mutable vector_mode dist_mode;
 };

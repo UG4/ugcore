@@ -12,7 +12,8 @@
 #include <fstream>
 #include <algorithm>
 #include "algebra_misc.h"
-#include "common/math/ugmath.h" // for urand
+#include "common/math/ugmath.h"
+#include "vector.h" // for urand
 
 #define prefetchReadWrite(a)
 
@@ -20,14 +21,14 @@ namespace ug{
 template<typename value_type>
 inline value_type &Vector<value_type>::operator [] (size_t i)
 {
-	UG_ASSERT(i < length, *this << ": tried to access element " << i);
+	UG_ASSERT(i < m_size, *this << ": tried to access element " << i);
 	return values[i];
 }
 
 template<typename value_type>
 inline const value_type &Vector<value_type>::operator [] (size_t i) const
 {
-	UG_ASSERT(i < length, *this << ": tried to access element " << i);
+	UG_ASSERT(i < m_size, *this << ": tried to access element " << i);
 	return values[i];
 }
 
@@ -36,8 +37,8 @@ inline const value_type &Vector<value_type>::operator [] (size_t i) const
 /*inline double Vector<value_type>::energynorm2(const SparseMatrix &A) const
 {
 	double sum=0;
-	for(size_t i=0; i<length; i++)	sum += (A[i] * (*this)) * values[i];
-	//FOR_UNROLL_FWD(i, 0, length, UNROLL, sum += A[i] * (*this) * values[i]);
+	for(size_t i=0; i<m_size; i++)	sum += (A[i] * (*this)) * values[i];
+	//FOR_UNROLL_FWD(i, 0, m_size, UNROLL, sum += A[i] * (*this) * values[i]);
 	return sum;
 }*/
 
@@ -45,10 +46,10 @@ inline const value_type &Vector<value_type>::operator [] (size_t i) const
 template<typename value_type>
 inline double Vector<value_type>::dotprod(const Vector &w) //const
 {
-	UG_ASSERT(length == w.length,  *this << " has not same length as " << w);
+	UG_ASSERT(m_size == w.m_size,  *this << " has not same size as " << w);
 
 	double sum=0;
-	for(size_t i=0; i<length; i++)	sum += VecProd(values[i], w[i]);
+	for(size_t i=0; i<m_size; i++)	sum += VecProd(values[i], w[i]);
 	return sum;
 }
 
@@ -56,7 +57,7 @@ inline double Vector<value_type>::dotprod(const Vector &w) //const
 template<typename value_type>
 inline double Vector<value_type>::operator = (double d)
 {
-	for(size_t i=0; i<length; i++)
+	for(size_t i=0; i<m_size; i++)
 		values[i] = d;
 	return d;
 }
@@ -75,7 +76,7 @@ template<typename value_type>
 inline void Vector<value_type>::operator = (const vector_type &v)
 {
 	resize(v.size());
-	for(size_t i=0; i<length; i++)
+	for(size_t i=0; i<m_size; i++)
 		values[i] = v[i];
 }
 
@@ -83,7 +84,7 @@ template<typename value_type>
 inline void Vector<value_type>::operator += (const vector_type &v)
 {
 	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
-	for(size_t i=0; i<length; i++)
+	for(size_t i=0; i<m_size; i++)
 		values[i] += v[i];
 }
 
@@ -91,7 +92,7 @@ template<typename value_type>
 inline void Vector<value_type>::operator -= (const vector_type &v)
 {
 	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
-	for(size_t i=0; i<length; i++)
+	for(size_t i=0; i<m_size; i++)
 		values[i] -= v[i];
 }
 
@@ -99,16 +100,16 @@ inline void Vector<value_type>::operator -= (const vector_type &v)
 
 
 template<typename value_type>
-Vector<value_type>::Vector () : length(0), values(NULL)
+Vector<value_type>::Vector () : m_size(0), m_capacity(0), values(NULL)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
 }
 
 template<typename value_type>
-Vector<value_type>::Vector(size_t _length) : length(0), values(NULL)
+Vector<value_type>::Vector(size_t size) : m_size(0), m_capacity(0), values(NULL)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
-	create(_length);
+	create(size);
 }
 
 template<typename value_type>
@@ -125,18 +126,19 @@ bool Vector<value_type>::destroy()
 		delete [] values;
 		values = NULL;
 	}
-	length = 0;
+	m_size = 0;
 	return true;
 }
 
 
 template<typename value_type>
-bool Vector<value_type>::create(size_t _length)
+bool Vector<value_type>::create(size_t size)
 {
-	if(length == _length) return true;
+	if(m_size == size) return true;
 	destroy();
-	length = _length;
-	values = new value_type[length];
+	m_size = size;
+	values = new value_type[size];
+	m_capacity = size;
 
 	return true;
 }
@@ -157,7 +159,7 @@ SmartPtr<Vector<value_type> > Vector<value_type>::clone() const
 template<typename value_type>
 Vector<value_type>* Vector<value_type>::virtual_clone_without_values() const
 {
-	return new Vector<value_type>(this->length);
+	return new Vector<value_type>(this->m_size);
 }
 
 template<typename value_type>
@@ -166,23 +168,50 @@ SmartPtr<Vector<value_type> > Vector<value_type>::clone_without_values() const
 	return SmartPtr<Vector<value_type> >(this->virtual_clone_without_values());
 }
 
-
 template<typename value_type>
-bool Vector<value_type>::resize(size_t new_length, bool bCopyValues)
+bool Vector<value_type>::reserve_exactly(size_t newCapacity, bool bCopyValues)
 {
-	if(new_length == length) return true;
-	value_type *new_values = new value_type[new_length];
+	UG_ASSERT(newCapacity >= m_size, "use resize, then reserve_exactly");
+	value_type *new_values = new value_type[newCapacity];	
 	// we cannot use memcpy here bcs of variable blocks.
 	if(values != NULL && bCopyValues)
 	{
-		size_t minlen = std::min(new_length, length);
-		for(size_t i=0; i<minlen; i++)
+		for(size_t i=0; i<m_size; i++)
 			std::swap(new_values[i], values[i]);
+		for(size_t i=m_size; i<newCapacity; i++)
+			new_values[i] = 0.0;
 	}
-	destroy();
+	if(values) delete [] values;
 	values = new_values;
-	length = new_length;
+	m_capacity = newCapacity;
+}
 
+
+template<typename value_type>
+bool Vector<value_type>::reserve(size_t newCapacity, bool bCopyValues)
+{
+	if(newCapacity <= m_capacity) return true;
+	return reserve_exactly(newCapacity + m_capacity/2, bCopyValues);
+}
+
+template<typename value_type>
+bool Vector<value_type>::resize(size_t newSize, bool bCopyValues)
+{
+	if(newSize > m_capacity)
+	{
+		size_t newCapacity = m_size/2 + newSize;
+		reserve_exactly(newCapacity, true);
+	}
+	m_size = newSize;
+	return true;
+}
+
+template<typename value_type>
+bool Vector<value_type>::resize_exactly(size_t newSize, bool bCopyValues)
+{
+	if(newSize != m_size)
+		reserve_exactly(newSize, true);
+	m_size = newSize;
 	return true;
 }
 
@@ -191,12 +220,13 @@ bool Vector<value_type>::resize(size_t new_length, bool bCopyValues)
 template<typename value_type>
 bool Vector<value_type>::create(const Vector &v)
 {
-	UG_ASSERT(length == 0, *this << " already created");
-	length = v.length;
-	values = new value_type[length];
+	UG_ASSERT(m_size == 0, *this << " already created");
+	m_size = v.m_size;
+	values = new value_type[m_size];
+	m_capacity = m_size;
 
 	// we cannot use memcpy here bcs of variable blocks.
-	for(size_t i=0; i<length; i++)
+	for(size_t i=0; i<m_size; i++)
 		values[i] = v.values[i];
 
 	return true;
@@ -209,8 +239,8 @@ void Vector<value_type>::print(const char * const text) const
 {
 
 	if(text) std::cout << " == " << text;
-	std::cout << " length: " << length << " =================" << std::endl;
-	for(size_t i=0; i<length; i++)
+	std::cout << " size: " << m_size << " =================" << std::endl;
+	for(size_t i=0; i<m_size; i++)
 		//cout << values[i] << " ";
 		std::cout << i << ": " << values[i] << std::endl;
 	std::cout << std::endl;
