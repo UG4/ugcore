@@ -461,13 +461,13 @@ if(DEBUG)
 else(DEBUG)
 	# add release definitions
 	add_definitions(-DBOOST_UBLAS_NDEBUG)
-	
-	if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+	if(NOT CMAKE_BUILD_TYPE)
+		# if DEBUG=OFF also add standard cmake release flags (-O3 -DNDEBUG)
+		add_cxx_flag(${CMAKE_CXX_FLAGS_RELEASE})
+	elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 		message(WARNING "Build type set to Debug, but DEBUG=OFF. Leads to strange cflags!")
 	endif()
 
-	# for release also standard cmake release flags (-O3 -DNDEBUG)
-	add_cxx_flag(${CMAKE_CXX_FLAGS_RELEASE})
 	# compiler specific release flags
 	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 		add_cxx_flag("-funroll-loops -ftree-vectorize")
