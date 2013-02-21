@@ -15,7 +15,7 @@
 # Make sure code is only executed once.
 # (no indent here, since it affects the whole file)
 if(UG_CMAKE_INCLUDES_INCLUDED)
-    return()
+	return()
 endif()
 set(UG_CMAKE_INCLUDES_INCLUDED on)
 
@@ -29,7 +29,8 @@ link_directories(${UG_ROOT_PATH}/lib)
 # include cmake functions
 set(CMAKE_MODULE_PATH ${UG_ROOT_PATH}/cmake)
 include(compiler_flags)
-
+# reset flags, because of maybe switched DEBUG option
+reset_cxx_flags()
 
 ################################################################################
 # We want the code to be built into one library (except the plugins, of course)
@@ -90,19 +91,19 @@ set(precisionOptions "single, double")
 
 # If we run the script the first time, search for MPI to determine the default value
 if(LOCAL_OPENMPI)
-    message("local openmpi")
-    set(MPI_C_INCLUDE_PATH "~/local/openmpi/used/include")
-    set(MPI_CXX_INCLUDE_PATH "~/local/openmpi/used/include")
-    set(MPI_C_LIBRARIES "mpi")
-    set(MPI_CXX_LIBRARIES "mpi;mpi_cxx")
+	message("local openmpi")
+	set(MPI_C_INCLUDE_PATH "~/local/openmpi/used/include")
+	set(MPI_CXX_INCLUDE_PATH "~/local/openmpi/used/include")
+	set(MPI_C_LIBRARIES "mpi")
+	set(MPI_CXX_LIBRARIES "mpi;mpi_cxx")
 endif(LOCAL_OPENMPI)
 if(BUILTIN_MPI)
-  set(MPI_FOUND YES)
+	set(MPI_FOUND YES)
 else(BUILTIN_MPI)
- if(NOT mpiHasBeenSearched)
-	find_package(MPI)
-	set(mpiHasBeenSearched ON CACHE BOOL "This var is set to true after mpi has been searched the first time.")
-  endif(NOT mpiHasBeenSearched)
+	if(NOT mpiHasBeenSearched)
+		find_package(MPI)
+		set(mpiHasBeenSearched ON CACHE BOOL "This var is set to true after mpi has been searched the first time.")
+	endif(NOT mpiHasBeenSearched)
 endif(BUILTIN_MPI)
 
 
@@ -236,14 +237,6 @@ message(STATUS "")
 
 ################################################################################
 # Options are processed in this section.
-
-########################################
-# BUILD TYPE
-if(DEBUG)
-    set(CMAKE_BUILD_TYPE "DEBUG")
-else()
-    set(CMAKE_BUILD_TYPE "RELEASE")
-endif(DEBUG)
 
 ########################################
 # TARGET
@@ -433,12 +426,24 @@ endif()
 
 ########################################
 # DEBUG
+########################################
 if(DEBUG)
-	if(DEBUG_FORMAT)
-		add_cxx_flag(${DEBUG_FORMAT})
-		message(STATUS "Info: Debug Information is ${DEBUG_FORMAT}") 
-	endif(DEBUG_FORMAT)
 	add_definitions(-DUG_DEBUG)
+	# if no build type set, add default debug flags
+	if("${CMAKE_BUILD_TYPE}" STREQUAL "None" OR
+		"${CMAKE_BUILD_TYPE}" STREQUAL "")
+		# use cmake standard flags for debug builds (-g)
+		add_cxx_flag(${CMAKE_CXX_FLAGS_DEBUG})
+		# if user specified additional debug flags add them
+		if(DEBUG_FORMAT)
+			add_cxx_flag(${DEBUG_FORMAT})
+			message(STATUS "Info: Debug Information is ${DEBUG_FORMAT}") 
+		endif(DEBUG_FORMAT)
+	elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+		message(WARNING "Build type set to Release, but DEBUG build wanted.")
+	elseif("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
+		message(WARNING "Build type set to MinSizeRel, but DEBUG build wanted.")
+	endif()
 	
 	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
 	# however, GLIBCXX_DEBUG and strstream don't work together on mac (bug: http://bit.ly/cH78bC). 
@@ -453,33 +458,35 @@ if(DEBUG)
 	#if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
 	#	add_definitions(-D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1)
 	#ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
+else(DEBUG)
+	# add release definitions
+	add_definitions(-DBOOST_UBLAS_NDEBUG)
+	
+	if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+		message(WARNING "Build type set to Debug, but DEBUG=OFF. Leads to strange cflags!")
+	endif()
+
+	# for release also standard cmake release flags (-O3 -DNDEBUG)
+	add_cxx_flag(${CMAKE_CXX_FLAGS_RELEASE})
+	# compiler specific release flags
+	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		add_cxx_flag("-funroll-loops -ftree-vectorize")
+	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
+		add_cxx_flag("-hipa5 -hunroll2")
+	endif()
 endif(DEBUG)
 
 if(DEBUG_LOGS)
 	add_definitions(-DUG_ENABLE_DEBUG_LOGS)
 endif(DEBUG_LOGS)
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-	# general release cflags
-	add_cxx_flag("-O3")
-
-	# compiler specific flags
-	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		add_cxx_flag("-funroll-loops -ftree-vectorize")
-	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
-		add_cxx_flag("-hipa5 -hunroll2")
-	endif()
-
-	# add release definitions
-	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
-elseif(${CMAKE_BUILD_TYPE} STREQUAL "MinSizeRel")
-	add_cxx_flag("-Os -fno-inline -S")
-	# add no debug and no ublas debug def
-	add_definitions(-DNDEBUG -DBOOST_UBLAS_NDEBUG)
+# if build type is set print own cflags and flags from build type 
+if(CMAKE_BUILD_TYPE)
+	string(TOUPPER ${CMAKE_BUILD_TYPE} bt_upper)
+	message(STATUS "Info: compiling with cxx flags: ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${bt_upper}}")
+else()
+	message(STATUS "Info: compiling with cxx flags: ${CMAKE_CXX_FLAGS}")
 endif()
-message("-- Info: compiling with cxx flags: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}}")
-
-
 ########################################
 # PROFILER
 if(PROFILER)
@@ -526,9 +533,9 @@ IF(OPENMP)
     ADD_DEFINITIONS(-DUG_OPENMP)
     MESSAGE(STATUS "Info: Using OpenMP (experimental)")
   ELSEIF(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    MESSAGE(WARNING "Warning: Clang does not support OpenMP yet.")
+    MESSAGE(WARNING "Clang does not support OpenMP yet.")
   ELSE()
-    MESSAGE(WARNING "Warning: Don't know compiler type, thus don't know how to enable OpenMP")
+    MESSAGE(WARNING "Don't know compiler type, thus don't know how to enable OpenMP")
   ENDIF()
 ENDIF(OPENMP)
 
@@ -971,7 +978,9 @@ mark_as_advanced(libReadline)
 mark_as_advanced(mpiHasBeenSearched)
 mark_as_advanced(BLAS_INCLUDE_PATH)
 mark_as_advanced(BLAS_LIBRARIES)
-mark_as_advanced(CMAKE_BUILD_TYPE)
+#mark_as_advanced(CMAKE_BUILD_TYPE)
+mark_as_advanced(CMAKE_CXX_FLAGS)
+mark_as_advanced(CMAKE_C_FLAGS)
 
 mark_as_advanced(BUILTIN_LAPACK)
 mark_as_advanced(BUILTIN_BLAS)
