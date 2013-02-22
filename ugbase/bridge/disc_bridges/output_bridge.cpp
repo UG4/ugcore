@@ -155,9 +155,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 	}
 
 // SaveMatrixToMTX
-	{
-		reg.add_function( "SaveMatrixToMTX", &SaveMatrixToMTX<function_type>, grp );
-	}
+// TODO not working yet ...
+// 	{
+// 		reg.add_function( "SaveMatrixToMTX", &SaveMatrixToMTX<function_type>, grp );
+// 	}
 
 //	SaveVectorForConnectionViewer
 	{
