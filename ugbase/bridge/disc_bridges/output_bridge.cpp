@@ -154,6 +154,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 						 &SaveMatrixForConnectionViewer<function_type>, grp);
 	}
 
+// SaveMatrixToMTX
+	{
+		reg.add_function( "SaveMatrixToMTX", &SaveMatrixToMTX<function_type>, grp );
+	}
+
 //	SaveVectorForConnectionViewer
 	{
 		typedef MatrixOperator<matrix_type,	vector_type> matOp;

@@ -20,6 +20,7 @@
 #include "lib_disc/dof_manager/mg_dof_distribution.h"
 #include <vector>
 #include <string>
+#include "lib_algebra/common/matrixio/matrix_io.h"
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "lib_algebra/common/csv_gnuplot_output.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
@@ -65,6 +66,36 @@ void SaveMatrixForConnectionViewer(
 	PROFILE_FUNC();
 //	forward
 	WriteMatrixToConnectionViewer(filename, A.get_matrix(), u);
+}
+
+/**
+ * \brief Save the assembled matrix of a matrix operator to MatrixMarket format
+ * 
+ * \param[in] filename name of the file; must end on '<tt>.mtx</tt>'
+ * \param[in] A matrix operator of with \c CPUAlgebra matrix
+ * \param[in] comment optional comment for the header of the MTX file
+ * 
+ * \note Until now only CPUAlgebra matrices are supported.
+ */
+// TODO extend MatrixIO to support other than CPUAlgebra
+template<typename TGridFunction>
+void SaveMatrixToMTX( const char *filename,
+		MatrixOperator< CPUAlgebra::matrix_type, CPUAlgebra::vector_type >& A,
+		std::string comment="%Generated with ug4." ) {
+	PROFILE_FUNC();
+
+	// check name
+	if ( !FileTypeIs( filename, ".mtx" ) ) {
+		UG_THROW( "Please use '.mtx' as file extension for MatrixMarket exchange files."
+		          " (Filename is '" << filename << "')");
+	}
+	
+	// automatically detect the file mode to use
+	MatrixIO::OpenMode openMode = (FileExists( filename )) ? MatrixIO::EXISTING : MatrixIO::NEW;
+	
+	// create MatrixIO object for handling the export
+	MatrixIOMtx mtx( filename, openMode );
+	mtx.write_from( A.get_matrix(), comment );
 }
 
 template<class TFunction>

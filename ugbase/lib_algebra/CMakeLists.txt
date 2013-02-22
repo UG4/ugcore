@@ -23,6 +23,7 @@ set(src_Algebra)
 set(src_Algebra	 ${src_Algebra}
 	algebra_type.cpp
 	 )
+add_subdirectory(common/matrixio)
 
 if(PARALLEL)
 	# add parallelization
