@@ -41,12 +41,10 @@ void WriteMatrixToConnectionViewer(const char *filename,
 
 	PROFILE_FUNC();
 //	check name
-	std::string name(filename);
-	size_t iExtPos = name.find_last_of(".");
-	if (iExtPos == std::string::npos
-			|| name.substr(iExtPos).compare(".mat") != 0)
-		UG_THROW("Only '.mat' format supported for matrices, but"
-		" filename is '"<<name<<"'.");
+	if ( !FileTypeIs( filename, ".mat") ) {
+		UG_THROW( "Only '.mat' format supported for matrices, but"
+		          " filename is '" << filename << "'." );
+	}
 
 //	position array
 	const static int dim = TFunction::domain_type::dim;
@@ -54,7 +52,7 @@ void WriteMatrixToConnectionViewer(const char *filename,
 	ExtractPositions(u, vPos);
 
 // 	write matrix
-	WriteMatrixToConnectionViewer(name.c_str(), A, &vPos[0], dim);
+	WriteMatrixToConnectionViewer( filename, A, &vPos[0], dim );
 }
 
 template<typename TGridFunction>
@@ -87,7 +85,7 @@ void SaveMatrixToMTX( const char *filename,
 	// check name
 	if ( !FileTypeIs( filename, ".mtx" ) ) {
 		UG_THROW( "Please use '.mtx' as file extension for MatrixMarket exchange files."
-		          " (Filename is '" << filename << "')");
+		          " (Filename is '" << filename << "')" );
 	}
 	
 	// automatically detect the file mode to use
@@ -104,12 +102,10 @@ void WriteVectorToConnectionViewer(const char *filename,
 		const TFunction &u) {
 	PROFILE_FUNC();
 //	check name
-	std::string name(filename);
-	size_t iExtPos = name.find_last_of(".");
-	if (iExtPos == std::string::npos
-			|| name.substr(iExtPos).compare(".vec") != 0)
-		UG_THROW("Only '.vec' format supported for vectors, but"
-		" filename is '"<<name<<"'.");
+	if ( !FileTypeIs( filename, ".vec") ) {
+		UG_THROW( "Only '.vec' format supported for vectors, but"
+		          " filename is '" << filename << "'." );
+	}
 
 // 	get positions of vertices
 	const static int dim = TFunction::domain_type::dim;
@@ -117,7 +113,7 @@ void WriteVectorToConnectionViewer(const char *filename,
 	ExtractPositions(u, vPos);
 
 //	write vector
-	WriteVectorToConnectionViewer(name.c_str(), b, &vPos[0], dim);
+	WriteVectorToConnectionViewer( filename, b, &vPos[0], dim );
 }
 
 template<class TFunction>
@@ -132,19 +128,16 @@ void WriteVectorToConnectionViewer(
 	const static int dim = TFunction::domain_type::dim;
 
 //	check name
-
-	std::string name(filename);
-	size_t iExtPos = name.find_last_of(".");
-	if (iExtPos == std::string::npos || name.substr(iExtPos).compare(".vec") != 0)
-		UG_THROW("Only '.vec' format supported for vectors.");
+	if ( !FileTypeIs( filename, ".vec") ) {
+		UG_THROW( "Only '.vec' format supported for vectors." );
+	}
 
 // 	get positions of vertices
 	std::vector<MathVector<dim> > positions;
 	ExtractPositions(u, positions);
 
 //	write vector
-	WriteVectorToConnectionViewer(name.c_str(), A, b, &positions[0], dim,
-			pCompareVec);
+	WriteVectorToConnectionViewer( filename, A, b, &positions[0], dim, pCompareVec );
 }
 
 template<typename TGridFunction>
@@ -185,11 +178,9 @@ void WriteVectorCSV(const char *filename,
 	const static int dim = TFunction::domain_type::dim;
 
 //	check name
-	std::string name(filename);
-	size_t iExtPos = name.find_last_of(".");
-	if (iExtPos == std::string::npos
-			|| name.substr(iExtPos).compare(".csv") != 0) {
-		UG_THROW("Only '.csv' format supported for vectors.");
+	if ( !FileTypeIs( filename, ".csv") ) {
+		UG_THROW( "Only '.csv' format supported for vectors, but"
+		          " filename is '" << filename << "'." );
 	}
 
 //	extended filename
@@ -207,7 +198,7 @@ void WriteVectorCSV(const char *filename,
 	ExtractPositions(u, positions);
 
 //	write vector
-	WriteVectorCSV(name.c_str(), b, &positions[0], dim);
+	WriteVectorCSV( filename, b, &positions[0], dim );
 }
 
 template<typename TGridFunction>
@@ -314,11 +305,10 @@ public:
 			name = "./"; name.append(filename);
 		}
 
-		size_t iExtPos = name.find_last_of(".");
-		if (iExtPos == std::string::npos
-				|| name.substr(iExtPos).compare(".mat") != 0)
-			UG_THROW("Only '.mat' format supported for matrices, but"
-			" filename is '"<<name<<"'.");
+		if ( !FileTypeIs( filename, ".mat" ) ) {
+			UG_THROW( "Only '.mat' format supported for matrices, but"
+			          " filename is '" << filename << "'." );
+		}
 
 		//	write to file
 		if(m_gridLevel == m_coarseGridLevel){
@@ -378,11 +368,10 @@ protected:
 			name = "./"; name.append(filename);
 		}
 
-		size_t iExtPos = name.find_last_of(".");
-		if (iExtPos == std::string::npos
-				|| name.substr(iExtPos).compare(".vec") != 0)
-			UG_THROW("Only '.vec' format supported for vectors, but"
-			" filename is '"<<name<<"'.");
+		if ( !FileTypeIs( filename, ".vec" ) ) {
+			UG_THROW( "Only '.vec' format supported for vectors, but"
+			          " filename is '" << name << "'.");
+		}
 
 		//	write
 		extract_positions(m_gridLevel);

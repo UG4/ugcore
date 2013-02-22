@@ -10,6 +10,7 @@
 
 #include "debug_writer.h"
 #include "lib_algebra/common/connection_viewer_output.h"
+#include "common/util/file_util.h"
 
 namespace ug{
 
@@ -94,15 +95,14 @@ class AlgebraDebugWriter
 						" Number of positions does not match.\n");
 
 		//	check name
-			std::string name(filename);
-			size_t iExtPos = name.find_last_of(".");
-			if(iExtPos == std::string::npos || name.substr(iExtPos).compare(".mat") != 0)
-				UG_THROW("Only '.mat' format supported for matrices, but"
-								" filename is '"<<name<<"'.");
+			if( !FileTypeIs( filename, ".mat" ) ) {
+				UG_THROW( "Only '.mat' format supported for matrices, but"
+				          " filename is '" << filename << "'.");
+			}
 
 		//	write to file
 			WriteMatrixToConnectionViewer<matrix_type, position_type>
-				(name.c_str(), mat, m_pPositions, dim);
+				( filename, mat, m_pPositions, dim);
 		}
 
 	protected:
