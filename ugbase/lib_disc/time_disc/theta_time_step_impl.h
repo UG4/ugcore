@@ -39,7 +39,7 @@ prepare_step(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-                  number dt, GridLevel gl)
+                  number dt, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_step_elem, "discretization MultiStepTimeDiscretization");
 //	perform checks
@@ -67,7 +67,7 @@ prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl)
+assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_jacobian, "discretization MultiStepTimeDiscretization");
 //	perform checks
@@ -97,7 +97,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-assemble_defect(vector_type& d, const vector_type& u, GridLevel gl)
+assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_defect, "discretization MultiStepTimeDiscretization");
 //	perform checks
@@ -127,7 +127,7 @@ assemble_defect(vector_type& d, const vector_type& u, GridLevel gl)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-adjust_solution(vector_type& u, GridLevel gl)
+adjust_solution(vector_type& u, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_adjust_solution, "discretization MultiStepTimeDiscretization");
 //	adjust solution
@@ -139,7 +139,7 @@ adjust_solution(vector_type& u, GridLevel gl)
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& indexList,
-		vector_type& val, GridLevel gl)
+		vector_type& val, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_adjust_matrix_rhs, "discretization MultiStepTimeDiscretization");
 //	adjust matrix & rhs
@@ -150,7 +150,7 @@ adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& index
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-assemble_linear(matrix_type& A, vector_type& b, GridLevel gl)
+assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_linear, "discretization MultiStepTimeDiscretization");
 //	perform checks
@@ -180,7 +180,7 @@ assemble_linear(matrix_type& A, vector_type& b, GridLevel gl)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-assemble_rhs(vector_type& b, GridLevel gl)
+assemble_rhs(vector_type& b, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_rhs, "discretization MultiStepTimeDiscretization");
 //	perform checks
@@ -210,7 +210,7 @@ assemble_rhs(vector_type& b, GridLevel gl)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-assemble_rhs(vector_type& b, const vector_type& u, GridLevel gl)
+assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_rhs, "discretization MultiStepTimeDiscretization");
 //	perform checks
@@ -241,7 +241,7 @@ assemble_rhs(vector_type& b, const vector_type& u, GridLevel gl)
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
 finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
-                 GridLevel gl)
+                 const GridLevel& gl)
 {
 //	perform checks whether 'currSol' is a solutionTimeSeries only with the new values
 	if(currSol->time(0) != m_futureTime)

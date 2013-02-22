@@ -254,9 +254,10 @@ function util.SolveLinearTimeProblem(
 	-- store grid function in vector of  old solutions
 	local solTimeSeries = SolutionTimeSeries()
 	solTimeSeries:push(u:clone(), time)
+	local gl = u:grid_level()
 
 	-- matrix and vectors
-	local A = AssembledLinearOperator(timeDisc, u:grid_level())
+	local A = AssembledLinearOperator(timeDisc, gl)
 	local b = u:clone()
 
 	-- set order for bdf to 1 (initially)
@@ -283,11 +284,11 @@ function util.SolveLinearTimeProblem(
 			if not(currdt == assembled_dt) then 
 				print("++++++ Assembling Matrix/Rhs for step size "..currdt); 
 				timeDisc:prepare_step(solTimeSeries, currdt)
-				timeDisc:assemble_linear(A, b)
+				timeDisc:assemble_linear(A, b, gl)
 				linSolver:init(A, u)
 				assembled_dt = currdt
 			else
-				timeDisc:assemble_rhs(b)
+				timeDisc:assemble_rhs(b, gl)
 			end
 			
 			-- apply linear solver

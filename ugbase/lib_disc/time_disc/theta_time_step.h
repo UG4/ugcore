@@ -60,29 +60,29 @@ class MultiStepTimeDiscretization
 
 	///	\copydoc ITimeDiscretization::prepare_step_elem()
 		virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-		                               number dt, GridLevel gl);
+		                               number dt, const GridLevel& gl);
 
 	///	\copydoc ITimeDiscretization::finish_step_elem()
 		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
-		                              GridLevel gl);
+		                              const GridLevel& gl);
 
 		virtual number future_time() const {return m_futureTime;}
 
 	public:
-		void assemble_jacobian(matrix_type& J, const vector_type& u, GridLevel gl);
+		void assemble_jacobian(matrix_type& J, const vector_type& u, const GridLevel& gl);
 
-		void assemble_defect(vector_type& d, const vector_type& u, GridLevel gl);
+		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl);
 
-		void assemble_linear(matrix_type& A, vector_type& b, GridLevel gl);
+		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl);
 
-		void assemble_rhs(vector_type& b, const vector_type& u, GridLevel gl);
+		void assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl);
 
-		void assemble_rhs(vector_type& b, GridLevel gl);
+		void assemble_rhs(vector_type& b, const GridLevel& gl);
 
-		void adjust_solution(vector_type& u, GridLevel gl);
+		void adjust_solution(vector_type& u, const GridLevel& gl);
 
 		void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-				std::vector<size_t>& indexList, vector_type& val, GridLevel gl);
+				std::vector<size_t>& indexList, vector_type& val, const GridLevel& gl);
 
 	protected:
 	///	updates the scaling factors, returns the future time

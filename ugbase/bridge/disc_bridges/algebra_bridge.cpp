@@ -80,23 +80,20 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef IAssemble<TAlgebra> T;
 		string name = string("IAssemble").append(suffix);
 		reg.add_class_<T>(name, grp)
-			.add_method("assemble_jacobian", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_jacobian),
-					"", "J(u)#u", "assembles jacobian on surface grid")
-			.add_method("assemble_defect", static_cast<void (T::*)(vector_type&, const vector_type&)>(&T::assemble_defect),
-					"", "d(u)#u", "Assembles Defect at a given Solution u.")
-			.add_method("assemble_linear", static_cast<void (T::*)(matrix_type&, vector_type&)>(&T::assemble_linear),
-					"", "A#b", "Assembles Matrix and rhs on surface grid.")
-			.add_method("assemble_stiffness_matrix", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_stiffness_matrix),
-					"", "A#u", "assembles stiffness matrix on surface grid")
-			.add_method("assemble_mass_matrix", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_mass_matrix),
-					"", "M#u", "assembles mass matrix on surface grid")
-			.add_method("assemble_rhs", static_cast<void (T::*)(vector_type&, const vector_type&)>(&T::assemble_rhs),
-					"", "rhs#u", "assembles right-hand side on surface grid")
-			.add_method("assemble_rhs", static_cast<void (T::*)(vector_type&)>(&T::assemble_rhs),
-					"", "rhs", "assembles right-hand side on surface grid for linear case")
+			.add_method("assemble_jacobian", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_jacobian),"", "J(u)#u", "assembles jacobian on surface grid")
+			.add_method("assemble_jacobian", static_cast<void (T::*)(matrix_type&, const vector_type&, const GridLevel&)>(&T::assemble_jacobian),"", "J(u)#u#GridLevel", "assembles jacobian on grid level")
+			.add_method("assemble_defect", static_cast<void (T::*)(vector_type&, const vector_type&)>(&T::assemble_defect),"", "d(u)#u", "Assembles Defect on surface grid.")
+			.add_method("assemble_defect", static_cast<void (T::*)(vector_type&, const vector_type&, const GridLevel&)>(&T::assemble_defect),"", "d(u)#u#GridLevel", "Assembles Defect on grid level")
+			.add_method("assemble_linear", static_cast<void (T::*)(matrix_type&, vector_type&)>(&T::assemble_linear),"", "A#b", "Assembles Matrix and rhs on surface grid.")
+			.add_method("assemble_linear", static_cast<void (T::*)(matrix_type&, vector_type&, const GridLevel&)>(&T::assemble_linear),"", "A#b#GridLevel", "Assembles Matrix and rhs on grid level.")
+			.add_method("assemble_rhs", static_cast<void (T::*)(vector_type&, const vector_type&)>(&T::assemble_rhs),"", "rhs#u", "assembles right-hand side on surface grid")
+			.add_method("assemble_rhs", static_cast<void (T::*)(vector_type&, const vector_type&, const GridLevel&)>(&T::assemble_rhs),"", "rhs#u#GridLevel", "assembles right-hand side on grid level")
+			.add_method("assemble_rhs", static_cast<void (T::*)(vector_type&)>(&T::assemble_rhs),"", "rhs#GridLevel", "assembles right-hand side on surface grid for linear case")
+			.add_method("assemble_rhs", static_cast<void (T::*)(vector_type&, const GridLevel&)>(&T::assemble_rhs),"", "rhs", "assembles right-hand side on grid level for linear case")
+			.add_method("assemble_stiffness_matrix", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_stiffness_matrix),"", "A#u", "assembles stiffness matrix on surface grid")
+			.add_method("assemble_mass_matrix", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_mass_matrix),"", "M#u", "assembles mass matrix on surface grid")
 			.add_method("adjust_solution", static_cast<void (T::*)(vector_type&)>(&T::adjust_solution))
-			.add_method("adjust_matrix_rhs", static_cast<void (T::*)(matrix_type&, vector_type&,
-					std::vector<size_t>&, vector_type&)>(&T::adjust_matrix_rhs));
+			.add_method("adjust_matrix_rhs", static_cast<void (T::*)(matrix_type&, vector_type&,std::vector<size_t>&, vector_type&)>(&T::adjust_matrix_rhs));
 		reg.add_class_to_group(name, "IAssemble", tag);
 	}
 

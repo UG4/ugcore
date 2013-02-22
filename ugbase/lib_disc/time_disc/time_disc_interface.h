@@ -86,7 +86,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 */
 	/// \{
 		virtual void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
-		                               number dt, GridLevel gl) = 0;
+		                               number dt, const GridLevel& gl) = 0;
 		void prepare_step_elem(SmartPtr<VectorTimeSeries<vector_type> > prevSol,
 		                       number dt)
 		{prepare_step_elem(prevSol, dt, GridLevel());}
@@ -105,7 +105,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 */
 	///	\{
 		virtual void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol,
-									  GridLevel gl) = 0;
+									  const GridLevel& gl) = 0;
 		void finish_step_elem(SmartPtr<VectorTimeSeries<vector_type> > currSol)
 		{finish_step_elem(currSol, GridLevel());}
 	///	\}
@@ -125,30 +125,40 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	/// forces the assembling to consider the grid as regular
 		virtual void force_regular_grid(bool bForce)
 		{
+			if(m_spDomDisc.invalid())
+				UG_THROW("ITimeDiscretization: DomainDisc not set!")
 			m_spDomDisc->force_regular_grid(bForce);
 		}
 
 	///	returns type of constraints enabled
 		virtual int constraints_enabled() const
 		{
+			if(m_spDomDisc.invalid())
+				UG_THROW("ITimeDiscretization: DomainDisc not set!")
 			return m_spDomDisc->constraints_enabled();
 		}
 
 	///	enables constraints
 		virtual void enable_constraints(int TypesEnable)
 		{
+			if(m_spDomDisc.invalid())
+				UG_THROW("ITimeDiscretization: DomainDisc not set!")
 			m_spDomDisc->enable_constraints(TypesEnable);
 		}
 
 	///	returns type of boundary elem discs enabled
 		virtual int elem_discs_enabled() const
 		{
+			if(m_spDomDisc.invalid())
+				UG_THROW("ITimeDiscretization: DomainDisc not set!")
 			return m_spDomDisc->elem_discs_enabled();
 		}
 
 	///	enables boundary elem discs
 		virtual void enable_elem_discs(int TypesEnable)
 		{
+			if(m_spDomDisc.invalid())
+				UG_THROW("ITimeDiscretization: DomainDisc not set!")
 			m_spDomDisc->enable_elem_discs(TypesEnable);
 		}
 
