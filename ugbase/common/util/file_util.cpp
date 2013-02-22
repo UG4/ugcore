@@ -45,6 +45,14 @@ UG_API size_t FileSize( const char *filename )
   return length;
 }
 
+bool FileTypeIs( const char* filename, const char* extension )
+{
+	PROFILE_FUNC();
+	std::string name( filename );
+	size_t iExtPos = name.find_last_of(".");
+	return ( iExtPos != std::string::npos && name.substr(iExtPos).compare(extension) == 0 );
+}
+
 UG_API bool FileCompare( const char *file1, const char *file2 )
 {
   PROFILE_FUNC();

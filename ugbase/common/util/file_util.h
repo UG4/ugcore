@@ -73,8 +73,16 @@ UG_API bool FileExists( const char *filename );
  * \throws std::runtime_error if the specified file does not exist or could not
  *                            be opened for reading.
  */
-
 UG_API size_t FileSize( const char *filename );
+
+/**
+ * \brief Check filename extension
+ * 
+ * \param[in] filename path and anme of the file
+ * \param[in] extension desired file extension (including leading dot)
+ * \return \c true if \c filename has given extension, \c false otherwise
+ */
+UG_API bool FileTypeIs( const char *filename, const char *extension );
 
 /**
  * \brief Creates a directory
