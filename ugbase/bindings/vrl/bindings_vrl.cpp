@@ -30,7 +30,7 @@
 #include "playground.h"
 #include "threading.h"
 
-#include "bindings/lua/externals/lua/lstate.h"
+//#include "bindings/lua/externals/lua/lstate.h"
 #include "basicTest.h"
 
 namespace ug {
