@@ -801,9 +801,9 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	SmartPtr<AssembledLinearOperator<TAlgebra> > spALO =
 			J.template cast_dynamic<AssembledLinearOperator<TAlgebra> >();
 	if(spALO.valid()){
-		if(m_pAss == NULL){
+//		if(m_pAss == NULL){
 			m_pAss = spALO->discretization();
-		}
+//		}
 	}
 
 // 	Cast Operator
@@ -982,9 +982,9 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	SmartPtr<AssembledLinearOperator<TAlgebra> > spALO =
 			L.template cast_dynamic<AssembledLinearOperator<TAlgebra> >();
 	if(spALO.valid()){
-		if(m_pAss == NULL){
+//		if(m_pAss == NULL){
 			m_pAss = spALO->discretization();
-		}
+//		}
 	}
 
 // 	Cast Operator
