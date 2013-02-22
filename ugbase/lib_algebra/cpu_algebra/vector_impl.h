@@ -184,6 +184,7 @@ bool Vector<value_type>::reserve_exactly(size_t newCapacity, bool bCopyValues)
 	if(values) delete [] values;
 	values = new_values;
 	m_capacity = newCapacity;
+	return true;
 }
 
 

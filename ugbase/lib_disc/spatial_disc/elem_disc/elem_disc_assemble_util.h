@@ -72,7 +72,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
 // 	check if assemble routine should be called only with respect to one index
-	size_t assInd;
+	size_t assInd = 0;
 	if (assAdapt.assIndex.index_set)
 		assInd = assAdapt.assIndex.index;
 
@@ -220,7 +220,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
 // 	check if assemble routine should be called only with respect to one index
-	size_t assInd;
+	size_t assInd = 0;
 	if (assAdapt.assIndex.index_set)
 		assInd = assAdapt.assIndex.index;
 
@@ -370,7 +370,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
 // 	check if assemble routine should be called only with respect to one index
-	size_t assInd;
+	size_t assInd = 0;
 	if (assAdapt.assIndex.index_set)
 		assInd = assAdapt.assIndex.index;
 
@@ -525,7 +525,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
 // 	check if assemble routine should be called only with respect to one index
-	size_t assInd;
+	size_t assInd = 0;
 	if (assAdapt.assIndex.index_set)
 		assInd = assAdapt.assIndex.index;
 
@@ -650,7 +650,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 			if(sh.get_subset_index(*iter) == si)
 				elems.push_back(*iter);
 		}
-		//UG_LOG(elems.size() << "Elemente in Subset" << si << "ausgewŠhlt (assJac) \n");
+		//UG_LOG(elems.size() << "Elemente in Subset" << si << "ausgewï¿½hlt (assJac) \n");
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
@@ -707,7 +707,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
 // 	check if assemble routine should be called only with respect to one index
-	size_t assInd;
+	size_t assInd = 0;
 	if (assAdapt.assIndex.index_set)
 		assInd = assAdapt.assIndex.index;
 
@@ -872,7 +872,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
 // 	check if assemble routine should be called only with respect to one index
-	size_t assInd;
+	size_t assInd = 0;
 	if (assAdapt.assIndex.index_set)
 		assInd = assAdapt.assIndex.index;
 
@@ -1039,7 +1039,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 			if(sh.get_subset_index(*iter) == si)
 				elems.push_back(*iter);
 		}
-		//UG_LOG(elems.size() << "Elemente in Subset" << si << "ausgewŠhlt (assDef) \n");
+		//UG_LOG(elems.size() << "Elemente in Subset" << si << "ausgewï¿½hlt (assDef) \n");
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
@@ -1096,7 +1096,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
 // 	check if assemble routine should be called only with respect to one index
-	size_t assInd;
+	size_t assInd = 0;
 	if (assAdapt.assIndex.index_set)
 		assInd = assAdapt.assIndex.index;
 
@@ -1261,7 +1261,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
 // 	check if assemble routine should be called only with respect to one index
-	size_t assInd;
+	size_t assInd = 0;
 	if (assAdapt.assIndex.index_set)
 		assInd = assAdapt.assIndex.index;
 
@@ -1509,7 +1509,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
 // 	check if assemble routine should be called only with respect to one index
-	size_t assInd;
+	size_t assInd = 0;
 	if (assAdapt.assIndex.index_set)
 		assInd = assAdapt.assIndex.index;
 
@@ -1665,7 +1665,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 // 	get marker
 	BoolMarker* mark = assAdapt.pBoolMarker;
 // 	check if assemble routine should be called only with respect to one index
-	size_t assInd;
+	size_t assInd = 0;
 	if (assAdapt.assIndex.index_set)
 		assInd = assAdapt.assIndex.index;
 
