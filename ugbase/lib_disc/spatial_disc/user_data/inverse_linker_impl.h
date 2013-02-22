@@ -101,6 +101,8 @@ evaluate (number& value,
 	{
 		(*m_vpDivisorData[c])(valDivisor, globIP, time, si);
 		(*m_vpDividendData[c])(valDividend, globIP, time, si);
+		UG_ASSERT(valDivisor!=0, "DIVISOR IS 0");
+
 		value *= valDividend/valDivisor;
 	}
 }
@@ -129,7 +131,7 @@ evaluate (number& value,
 	{
 		(*m_vpDivisorData[c])(valDivisor, globIP, time, si, u, elem, vCornerCoords, locIP);
 		(*m_vpDividendData[c])(valDividend, globIP, time, si, u, elem, vCornerCoords, locIP);
-
+		UG_ASSERT(valDivisor!=0, "DIVISOR IS 0");
 		value *= valDividend/valDivisor;
 	}
 }
@@ -184,6 +186,7 @@ compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 		//	add contribution of each summand
 			for(size_t c = 0; c < m_vpDivisorData.size(); ++c)
 			{
+				UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
 				this->value(s, ip) *= dividend_value(c,s,ip)/divisor_value(c,s,ip);
 			}
 		}
@@ -216,7 +219,13 @@ compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 					//	loop dofs
 						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 						{
-							this->deriv(s, ip, commonFct, sh) += this->value(s,ip) / (dividend_value(c,s,ip)/divisor_value(c,s,ip))*(-1.0)*(dividend_value(c,s,ip))/divisor_value(c,s,ip)/divisor_value(c,s,ip)*divisor_deriv(c, s, ip, fct, sh);
+							if(dividend_value(c,s,ip)!=0)
+							{
+								UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
+								this->deriv(s, ip, commonFct, sh) += this->value(s,ip) / (dividend_value(c,s,ip)/divisor_value(c,s,ip))*(-1.0)*(dividend_value(c,s,ip))/divisor_value(c,s,ip)/divisor_value(c,s,ip)*divisor_deriv(c, s, ip, fct, sh);
+							}
+							else
+								this->deriv(s, ip, commonFct, sh) += 0;
 							 //        input_deriv(c, s, ip, fct, sh),
 							 //        scale_value(c, s, ip));
 						}
@@ -239,9 +248,15 @@ compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 					//	loop dofs
 						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 						{
+							if(dividend_value(c,s,ip)!=0)
+							{
+								UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
+								this->deriv(s, ip, commonFct, sh) += this->value(s,ip) / (dividend_value(c,s,ip)/divisor_value(c,s,ip))*dividend_deriv(c, s, ip, fct, sh)/divisor_value(c,s,ip);
+							}
+							else
+								this->deriv(s, ip, commonFct, sh) += 0;
 
-							this->deriv(s, ip, commonFct, sh) += this->value(s,ip) / (dividend_value(c,s,ip)/divisor_value(c,s,ip))*dividend_deriv(c, s, ip, fct, sh)/divisor_value(c,s,ip);
-							//linker_traits<TData, TDataScale>::
+								//linker_traits<TData, TDataScale>::
 							//mult_add(this->deriv(s, ip, commonFct, sh),
 							//		 input_value(c, s, ip),
 							//		 scale_deriv(c, s, ip, fct, sh));
