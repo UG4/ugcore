@@ -53,9 +53,6 @@ class AssembledMultiGridCycle :
 	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-	///	type of assembling
-		typedef IAssemble<TAlgebra> assemble_type;
-
 	///	Vector type
 		typedef typename algebra_type::vector_type vector_type;
 
@@ -65,7 +62,7 @@ class AssembledMultiGridCycle :
 	public:
 	/// constructor setting approximation space
 		AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
-			m_spSurfaceMat(NULL), m_pAss(NULL), m_spApproxSpace(approxSpace),
+			m_spSurfaceMat(NULL), m_spAss(NULL), m_spApproxSpace(approxSpace),
 			m_topLev(GridLevel::TOPLEVEL), m_surfaceLev(GridLevel::TOPLEVEL),
 			m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
 			m_numPreSmooth(2), m_numPostSmooth(2),
@@ -85,8 +82,8 @@ class AssembledMultiGridCycle :
 	///////////////////////////////////////////////////////////////////////////
 
 	/// sets the assembling procedure that is used to compute coarse grid matrices
-		void set_discretization(assemble_type& ass)
-			{m_pAss = &ass;}
+		void set_discretization(SmartPtr<IAssemble<TAlgebra> > spAss)
+			{m_spAss = spAss;}
 
 	///	sets the level where exact solving is performed in the mg cycle
 		void set_base_level(int baseLevel) {m_baseLev = baseLevel;}
@@ -255,7 +252,7 @@ class AssembledMultiGridCycle :
 		SmartPtr<matrix_type> m_spSurfaceMat;
 
 	///	assembling routine for coarse grid matrices
-		assemble_type* m_pAss;
+		SmartPtr<IAssemble<TAlgebra> > m_spAss;
 
 	///	approximation space for level and surface grid
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
@@ -325,7 +322,7 @@ class AssembledMultiGridCycle :
 			void update(size_t lev,
 			            SmartPtr<DoFDistribution> levelDD,
 			            SmartPtr<ApproximationSpace<TDomain> > approxSpace,
-			            assemble_type& ass,
+			            SmartPtr<IAssemble<TAlgebra> > spAss,
 			            ILinearIterator<vector_type>& presmoother,
 			            ILinearIterator<vector_type>& postsmoother,
 			            ITransferOperator<TAlgebra>& projection,

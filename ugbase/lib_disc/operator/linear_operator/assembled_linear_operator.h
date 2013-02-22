@@ -45,20 +45,20 @@ class AssembledLinearOperator :
 
 	public:
 	///	Default Constructor
-		AssembledLinearOperator() :	m_pAss(NULL) {};
+		AssembledLinearOperator() :	m_spAss(NULL) {};
 
 	///	Constructor
-		AssembledLinearOperator(IAssemble<TAlgebra>& ass) : m_pAss(&ass) {};
+		AssembledLinearOperator(SmartPtr<IAssemble<TAlgebra> > ass) : m_spAss(ass) {};
 
 	///	Constructor
-		AssembledLinearOperator(IAssemble<TAlgebra>& ass, const GridLevel& gl)
-			: m_pAss(&ass), m_gridLevel(gl) {};
+		AssembledLinearOperator(SmartPtr<IAssemble<TAlgebra> > ass, const GridLevel& gl)
+			: m_spAss(ass), m_gridLevel(gl) {};
 
 	///	sets the discretization to be used
-		void set_discretization(IAssemble<TAlgebra>& ass) {m_pAss = &ass;}
+		void set_discretization(SmartPtr<IAssemble<TAlgebra> > ass) {m_spAss = ass;}
 
 	///	returns the discretization to be used
-		IAssemble<TAlgebra>* discretization() {return m_pAss;}
+		SmartPtr<IAssemble<TAlgebra> > discretization() {return m_spAss;}
 
 	///	sets the level used for assembling
 		void set_level(const GridLevel& gl) {m_gridLevel = gl;}
@@ -86,14 +86,14 @@ class AssembledLinearOperator :
 
 	/// forces the disc to consider the grid as regular
 		void force_regular_grid(bool bForce)
-			{if(m_pAss != NULL) m_pAss->force_regular_grid(bForce);}
+			{if(m_spAss.valid()) m_spAss->force_regular_grid(bForce);}
 
 	///	Destructor
 		virtual ~AssembledLinearOperator() {};
 
 	protected:
 	// 	assembling procedure
-		IAssemble<TAlgebra>* m_pAss;
+		SmartPtr<IAssemble<TAlgebra> > m_spAss;
 
 	// 	DoF Distribution used
 		GridLevel m_gridLevel;

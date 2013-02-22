@@ -60,14 +60,14 @@ NewtonSolver(SmartPtr<IOperator<vector_type> > N) :
 
 template <typename TAlgebra>
 NewtonSolver<TAlgebra>::
-NewtonSolver(IAssemble<algebra_type>* pAss) :
+NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss) :
 	m_spLinearSolver(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_spLineSearch(NULL),
 	m_dgbCall(0)
 {
-	m_pAss = pAss;
-	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(*m_pAss));
+	m_spAss = spAss;
+	m_N = SmartPtr<AssembledOperator<TAlgebra> >(new AssembledOperator<TAlgebra>(m_spAss));
 };
 
 template <typename TAlgebra>
@@ -88,7 +88,7 @@ bool NewtonSolver<TAlgebra>::init(SmartPtr<IOperator<vector_type> > N)
 	if(m_N.invalid())
 		UG_THROW("NewtonSolver: currently only works for AssembledDiscreteOperator.");
 
-	m_pAss = m_N->get_assemble();
+	m_spAss = m_N->discretization();
 	return true;
 }
 
@@ -111,8 +111,8 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		UG_THROW("NewtonSolver::apply: Linear Solver not set.");
 
 //	Jacobian
-	if(m_J.invalid() || m_J->discretization() != m_pAss) {
-		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
+	if(m_J.invalid() || m_J->discretization() != m_spAss) {
+		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
 		m_J->set_level(m_N->level());
 	}
 

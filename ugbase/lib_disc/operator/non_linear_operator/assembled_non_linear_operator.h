@@ -28,18 +28,18 @@ public:
 	public:
 	///	default constructor
 		AssembledOperator()
-			: m_pAss(NULL), m_gridLevel() {};
+			: m_spAss(NULL), m_gridLevel() {};
 
 	///	constructor
-		AssembledOperator(IAssemble<TAlgebra>& ass)
-			: m_pAss(&ass), m_gridLevel(){};
+		AssembledOperator(SmartPtr<IAssemble<TAlgebra> > ass)
+			: m_spAss(ass), m_gridLevel(){};
 
 	///	constructor
-		AssembledOperator(IAssemble<TAlgebra>& ass, const GridLevel& gl)
-			: m_pAss(&ass), m_gridLevel(gl) {};
+		AssembledOperator(SmartPtr<IAssemble<TAlgebra> > ass, const GridLevel& gl)
+			: m_spAss(ass), m_gridLevel(gl) {};
 
 	///	sets discretization for assembling
-		void set_discretization(IAssemble<TAlgebra>& ass) {m_pAss = &ass;}
+		void set_discretization(SmartPtr<IAssemble<TAlgebra> > ass) {m_spAss = ass;}
 
 	///	sets the level used for assembling
 		void set_level(const GridLevel& gl) {m_gridLevel = gl;}
@@ -57,11 +57,11 @@ public:
 		virtual void apply(vector_type& d, const vector_type& u);
 
 	/// return assembling
-		IAssemble<TAlgebra>* get_assemble() {return m_pAss;}
+		SmartPtr<IAssemble<TAlgebra> > discretization() {return m_spAss;}
 
 	protected:
 	///	assembling procedure
-		IAssemble<TAlgebra>* m_pAss;
+		SmartPtr<IAssemble<TAlgebra> > m_spAss;
 
 	///	used grid level
 		GridLevel m_gridLevel;

@@ -802,7 +802,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 			J.template cast_dynamic<AssembledLinearOperator<TAlgebra> >();
 	if(spALO.valid()){
 //		if(m_pAss == NULL){
-			m_pAss = spALO->discretization();
+			m_spAss = spALO->discretization();
 //		}
 	}
 
@@ -983,7 +983,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 			L.template cast_dynamic<AssembledLinearOperator<TAlgebra> >();
 	if(spALO.valid()){
 //		if(m_pAss == NULL){
-			m_pAss = spALO->discretization();
+			m_spAss = spALO->discretization();
 //		}
 	}
 
@@ -1100,7 +1100,7 @@ init_common()
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_common\n");
 
 //	Perform some checks:
-	if(m_pAss == NULL)
+	if(m_spAss.invalid())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
 				"Discretization not set.\n");
@@ -1221,19 +1221,19 @@ init_level_operator()
 		{
 		//	set this selector to the assembling, such that only those elements
 		//	will be assembled and force grid to be considered as regular
-			m_pAss->set_marker(&m_NonGhostMarker);
-			m_pAss->force_regular_grid(true);
+			m_spAss->set_marker(&m_NonGhostMarker);
+			m_spAss->force_regular_grid(true);
 
 		//	init level operator
 			try{
-			m_pAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
+			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
 			}
 			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
 
 		//	remove force flag
-			m_pAss->force_regular_grid(false);
-			m_pAss->set_marker(NULL);
+			m_spAss->force_regular_grid(false);
+			m_spAss->set_marker(NULL);
 
 		//	copy the matrix into a new (smaller) one
 			SmartPtr<matrix_type> mat = m_vLevData[lev]->spLevMat;
@@ -1265,13 +1265,13 @@ init_level_operator()
 			(((int)lev == m_baseLev) && (m_bBaseParallel == false)))
 		{
 		//	init level operator
-			m_pAss->force_regular_grid(true);
+			m_spAss->force_regular_grid(true);
 			try{
-			m_pAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
+			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
 			}
 			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
-			m_pAss->force_regular_grid(false);
+			m_spAss->force_regular_grid(false);
 		}
 	//	else we can forget about the whole-level matrix, since the needed
 	//	smoothing matrix is stored in SmoothMat
@@ -1334,15 +1334,15 @@ init_transfer()
 
 	//	add all dirichlet post processes
 		m_vLevData[lev]->Prolongation->clear_constraints();
-		for(size_t i = 0; i < m_pAss->num_constraints(); ++i){
-			SmartPtr<IConstraint<TAlgebra> > pp = m_pAss->constraint(i);
+		for(size_t i = 0; i < m_spAss->num_constraints(); ++i){
+			SmartPtr<IConstraint<TAlgebra> > pp = m_spAss->constraint(i);
 			m_vLevData[lev]->Prolongation->add_constraint(pp);
 		}
 
 		if(!bOneOperator){
 			m_vLevData[lev]->Restriction->clear_constraints();
-			for(size_t i = 0; i < m_pAss->num_constraints(); ++i){
-				SmartPtr<IConstraint<TAlgebra> > pp = m_pAss->constraint(i);
+			for(size_t i = 0; i < m_spAss->num_constraints(); ++i){
+				SmartPtr<IConstraint<TAlgebra> > pp = m_spAss->constraint(i);
 				m_vLevData[lev]->Restriction->add_constraint(pp);
 			}
 		}
@@ -1872,7 +1872,7 @@ clone()
 	clone->set_base_solver(m_spBaseSolver);
 	clone->set_cycle_type(m_cycleType);
 	clone->set_debug(m_spDebugWriter);
-	clone->set_discretization(*m_pAss);
+	clone->set_discretization(m_spAss);
 	clone->set_num_postsmooth(m_numPostSmooth);
 	clone->set_num_presmooth(m_numPreSmooth);
 	clone->set_projection(m_spProjectionPrototype);
@@ -1953,7 +1953,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 	//	now set this selector to the assembling, such that only those elements
 	//	will be assembled
-		m_pAss->set_marker(&sel);
+		m_spAss->set_marker(&sel);
 
 	//	create a surface matrix
 		matrix_type surfMat;
@@ -1962,12 +1962,12 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 	//	assemble the surface jacobian only for selected elements
 		if(u)
-			m_pAss->assemble_jacobian(surfMat, *u, surfLevel);
+			m_spAss->assemble_jacobian(surfMat, *u, surfLevel);
 		else
 		{
 		//	\todo: not use tmp vector here
 			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices());
-			m_pAss->assemble_jacobian(surfMat, tmpVec, surfLevel);
+			m_spAss->assemble_jacobian(surfMat, tmpVec, surfLevel);
 		}
 
 	//	write matrix for debug purpose
@@ -1975,7 +1975,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		write_surface_debug(surfMat, ss.str().c_str());
 
 	//	remove the selector from the assembling procedure
-		m_pAss->set_marker(NULL);
+		m_spAss->set_marker(NULL);
 
 	//	project
 		try{
@@ -2405,7 +2405,7 @@ top_level_required(size_t topLevel)
 		m_vLevData[lev]->update(lev,
 		                       m_spApproxSpace->level_dof_distribution(lev),
 		                       m_spApproxSpace,
-		                       *m_pAss,
+		                       m_spAss,
 		                       *m_spPreSmootherPrototype,
 		                       *m_spPostSmootherPrototype,
 		                       *m_spProjectionPrototype,
@@ -2427,7 +2427,7 @@ LevData::
 update(size_t lev,
        SmartPtr<DoFDistribution> levDD,
        SmartPtr<ApproximationSpace<TDomain> > approxSpace,
-       assemble_type& ass,
+       SmartPtr<IAssemble<TAlgebra> > spAss,
        ILinearIterator<vector_type>& presmoother,
        ILinearIterator<vector_type>& postsmoother,
        ITransferOperator<TAlgebra>& projection,

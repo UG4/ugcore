@@ -28,12 +28,12 @@ template <typename TAlgebra>
 void
 AssembledLinearOperator<TAlgebra>::init(const vector_type& u)
 {
-	if(m_pAss == NULL)
+	if(m_spAss.invalid())
 		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 //	assemble matrix (depending on u, i.e. J(u))
 	try{
-		m_pAss->assemble_jacobian(*this, u, m_gridLevel);
+		m_spAss->assemble_jacobian(*this, u, m_gridLevel);
 	}
 	UG_CATCH_THROW("AssembledLinearOperator: Cannot assemble Jacobi matrix.");
 }
@@ -43,7 +43,7 @@ template <typename TAlgebra>
 void
 AssembledLinearOperator<TAlgebra>::init()
 {
-	if(m_pAss == NULL)
+	if(m_spAss.invalid())
 		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 //	create vector dummy
@@ -51,10 +51,9 @@ AssembledLinearOperator<TAlgebra>::init()
 
 //	assemble only matrix
 	try{
-		m_pAss->assemble_linear(*this, dummy, m_gridLevel);
+		m_spAss->assemble_linear(*this, dummy, m_gridLevel);
 	}
-	UG_CATCH_THROW("ERROR in AssembledLinearOperator::init:"
-				" Cannot assemble Matrix.\n");
+	UG_CATCH_THROW("AssembledLinearOperator::init: Cannot assemble Matrix.");
 }
 
 //	Initialize the operator
@@ -64,15 +63,15 @@ AssembledLinearOperator<TAlgebra>::init_op_and_rhs(vector_type& b)
 {
 //	todo: check that assembling is linear
 
-	if(m_pAss == NULL)
+	if(m_spAss.invalid())
 		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 //	assemble matrix and rhs in one loop
 	try{
-		m_pAss->assemble_linear(*this, b, m_gridLevel);
+		m_spAss->assemble_linear(*this, b, m_gridLevel);
 	}
 	UG_CATCH_THROW("AssembledLinearOperator::init_op_and_rhs:"
-						" Cannot assemble Matrix and Rhs.\n");
+						" Cannot assemble Matrix and Rhs.");
 }
 
 template <typename TAlgebra>
@@ -86,10 +85,10 @@ AssembledLinearOperator<TAlgebra>::apply(vector_type& d, const vector_type& c)
 
 //	perform check of sizes
 	if(c.size() != this->num_cols() || d.size() != this->num_rows())
-		UG_THROW("ERROR in 'AssembledLinearOperator::apply': Size of matrix A ["<<
+		UG_THROW("AssembledLinearOperator::apply: Size of matrix A ["<<
 		        this->num_rows() << " x " << this->num_cols() << "] must match the "
 		        "sizes of vectors x ["<<c.size()<<"], b ["<<d.size()<<"] for the "
-		        " operation b = A*x. Maybe the operator is not initialized ?\n");
+		        " operation b = A*x. Maybe the operator is not initialized ?");
 
 //	Apply Matrix
 	base_type::apply(d, c);
@@ -109,10 +108,10 @@ AssembledLinearOperator<TAlgebra>::apply_sub(vector_type& d, const vector_type& 
 
 //	check sizes
 	if(c.size() != this->num_cols() || d.size() != this->num_rows())
-		UG_THROW("ERROR in AssembledLinearOperator::apply_sub: Size of matrix A ["<<
+		UG_THROW("AssembledLinearOperator::apply_sub: Size of matrix A ["<<
 		        this->num_rows() << " x " << this->num_cols() << "] must match the "
 		        "sizes of vectors x ["<<c.size()<<"], b ["<<d.size()<<"] for the "
-		        " operation b -= A*x. Maybe the operator is not initialized ?\n");
+		        " operation b -= A*x. Maybe the operator is not initialized ?");
 
 //	Apply Matrix
 	base_type::matmul_minus(d,c);
@@ -123,15 +122,15 @@ template <typename TAlgebra>
 void AssembledLinearOperator<TAlgebra>::set_dirichlet_values(vector_type& u)
 {
 //	checks
-	if(m_pAss == NULL)
+	if(m_spAss.invalid())
 		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 //	set dirichlet values etc.
 	try{
-		m_pAss->adjust_solution(u, m_gridLevel);
+		m_spAss->adjust_solution(u, m_gridLevel);
 	}
 	UG_CATCH_THROW("AssembledLinearOperator::set_dirichlet_values:"
-				" Cannot assemble solution.\n");
+				" Cannot assemble solution.");
 }
 
 ///////////////////////////////////////////////////////////////////////////////

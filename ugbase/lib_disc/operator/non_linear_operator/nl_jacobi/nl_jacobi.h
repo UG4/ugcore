@@ -74,7 +74,7 @@ class NLJacobiSolver
 
 		SmartPtr<AssembledOperator<algebra_type> > m_N;
 		SmartPtr<AssembledLinearOperator<algebra_type> > m_J;
-		IAssemble<algebra_type>* m_pAss;
+		SmartPtr<IAssemble<TAlgebra> > m_spAss;
 
 		///	call counter
 		int m_dgbCall;

@@ -87,8 +87,8 @@ init(SmartPtr<IOperator<vector_type> > N)
 	if(m_N.invalid())
 		UG_THROW("NLJacobiSolver: currently only works for AssembledDiscreteOperator.");
 
-	m_pAss = m_N->get_assemble();
-	if(m_pAss == NULL)
+	m_spAss = m_N->discretization();
+	if(m_spAss.invalid())
 		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 	return true;
@@ -109,8 +109,8 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 	m_dgbCall++;
 
 	//	Jacobian
-	if(m_J.invalid() || m_J->discretization() != m_pAss) {
-		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
+	if(m_J.invalid() || m_J->discretization() != m_spAss) {
+		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
 		m_J->set_level(m_N->level());
 	}
 

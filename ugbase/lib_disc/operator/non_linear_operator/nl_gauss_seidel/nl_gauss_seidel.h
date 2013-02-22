@@ -103,7 +103,7 @@ class NLGaussSeidelSolver
 
 		SmartPtr<AssembledOperator<algebra_type> > m_N;
 		SmartPtr<AssembledLinearOperator<algebra_type> > m_J_block;
-		IAssemble<algebra_type>* m_pAss;
+		SmartPtr<IAssemble<TAlgebra> > m_spAss;
 
 		number m_damp;
 

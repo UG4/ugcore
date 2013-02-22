@@ -47,7 +47,7 @@ class NewtonSolver
 		NewtonSolver(SmartPtr<IOperator<vector_type> > N);
 
 	///	constructor using assembling
-		NewtonSolver(IAssemble<algebra_type>* pAss);
+		NewtonSolver(SmartPtr<IAssemble<TAlgebra> > spAss);
 
 	///	default constructor
 		NewtonSolver();
@@ -134,7 +134,7 @@ class NewtonSolver
 	///	jacobi operator
 		SmartPtr<AssembledLinearOperator<algebra_type> > m_J;
 	///	assembling
-		IAssemble<algebra_type>* m_pAss;
+		SmartPtr<IAssemble<TAlgebra> > m_spAss;
 
 	/// line search parameters
 	/// \{

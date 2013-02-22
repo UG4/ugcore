@@ -93,8 +93,8 @@ init(SmartPtr<IOperator<vector_type> > N)
 	if(m_N.invalid())
 		UG_THROW("NLGaussSeidelSolver: currently only works for AssembledDiscreteOperator.");
 
-	m_pAss = m_N->get_assemble();
-	if(m_pAss == NULL)
+	m_spAss = m_N->discretization();
+	if(m_spAss.invalid())
 		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 	//	Check for approxSpace
@@ -223,8 +223,8 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 				" 'NLGaussSeidelSolver::init'-call is necessary!");
 
 	//	Jacobian
-	if(m_J_block.invalid() || m_J_block->discretization() != m_pAss) {
-		m_J_block = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(*m_pAss));
+	if(m_J_block.invalid() || m_J_block->discretization() != m_spAss) {
+		m_J_block = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
 		m_J_block->set_level(m_gridLevel);
 	}
 
@@ -283,9 +283,9 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 			//	by passing the selector to the assembling the assemble operators
 			//	are build up only by looping over the elements which has been selected
-			m_pAss->set_selector(&m_sel);
+			m_spAss->set_selector(&m_sel);
 			//	assemble only with respect to DoF i (causes resizing of matrices/vectors)
-			m_pAss->ass_index(i);
+			m_spAss->ass_index(i);
 
 			try{
 				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeJacobian);
@@ -317,8 +317,8 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		}
 
 		//	set selector and ass_index to NULL
-		m_pAss->set_selector();
-		m_pAss->ass_index();
+		m_spAss->set_selector();
+		m_spAss->ass_index();
 
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
 		m_N->prepare(u);
