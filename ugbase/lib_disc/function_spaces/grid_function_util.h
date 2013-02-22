@@ -186,6 +186,8 @@ void WriteVectorCSV(const char *filename,
 //	extended filename
 //	add p000X extension in parallel
 #ifdef UG_PARALLEL
+	std::string name(filename);
+	size_t iExtPos = name.find_last_of(".");
 	name.resize(iExtPos);
 	int rank = pcl::GetProcRank();
 	char ext[20];
