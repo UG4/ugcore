@@ -163,7 +163,7 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		}
 
 	///	sets the assemble index for index-wise assemble routine
-		virtual void set_ass_index(){set_ass_index(0.0, false);}
+		virtual void set_ass_index(){set_ass_index(0, false);}
 		virtual void set_ass_index(size_t ind, bool index_set = true)
 		{
 			m_AssIndex.index_set = index_set;

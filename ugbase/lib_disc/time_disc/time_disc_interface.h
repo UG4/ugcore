@@ -197,7 +197,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]	ind			size_t
 	 * \param[in]	index_set	bool
 	 */
-		virtual void ass_index(){ ass_index(0.0, false);}
+		virtual void ass_index(){ ass_index(0, false);}
 		virtual void ass_index(size_t ind, bool index_set = true)
 		{
 			m_AssAdapter.assIndex.index = ind; m_AssAdapter.assIndex.index_set = index_set; forward_ass_index();
