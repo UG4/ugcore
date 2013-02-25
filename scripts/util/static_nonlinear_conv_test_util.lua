@@ -33,8 +33,10 @@ local newtonSolver = createSolver(approxSpace)
 
 local l2exact = {}
 local l2diff = {}
+local l2levdiff = {}
 local h1exact = {}
 local h1diff = {}
+local h1levdiff = {}
 local numDoFs = {}
 local u = {}
 
@@ -91,16 +93,22 @@ for lev = maxLev, minLev, -1 do
 	if exactSol ~= nil then	l2exact[lev] = L2Error(exactSol, u[lev], "c", 0.0, quadOrder)
 	else l2exact[lev] = 0.0; end
 	l2diff[lev] = L2Error(u[maxLev], "c", u[lev], "c", quadOrder)
+	if lev > minLev then l2levdiff[lev] = L2Error(u[lev], "c", u[lev-1], "c", quadOrder)
+	else l2levdiff[lev] = 0.0 end
 	
 	if exactSol ~= nil and exactGrad ~= nil then h1exact[lev] = H1Error(exactSol, exactGrad, u[lev], "c", 0.0, quadOrder, "Inner")
 	else h1exact[lev] = 0.0 end
 	h1diff[lev] = H1Error(u[maxLev], "c", u[lev], "c", quadOrder)
+	if lev > minLev then h1levdiff[lev] = H1Error(u[lev], "c", u[lev-1], "c", quadOrder)
+	else h1levdiff[lev] = 0.0 end
 	
 	numDoFs[lev] = u[lev]:size()
-	write(">> L2-Error on Level "..lev.." is "..string.format("%.3e", l2exact[lev]) .."\n");
-	write(">> L2-Diff  on Level "..lev.." is "..string.format("%.3e", l2diff[lev]) .."\n");
-	write(">> H1-Error on Level "..lev.." is "..string.format("%.3e", h1exact[lev]) .."\n");
-	write(">> H1-Diff  on Level "..lev.." is "..string.format("%.3e", h1diff[lev]) .."\n");
+	write(">> L2 l-exact on Level "..lev.." is "..string.format("%.3e", l2exact[lev]) .."\n");
+	write(">> L2 l-lmax  on Level "..lev.." is "..string.format("%.3e", l2diff[lev]) .."\n");
+	write(">> L2 l-(l-1) on Level "..lev.." is "..string.format("%.3e", l2levdiff[lev]) .."\n");
+	write(">> H1 l-exact on Level "..lev.." is "..string.format("%.3e", h1exact[lev]) .."\n");
+	write(">> H1 l-lmax  on Level "..lev.." is "..string.format("%.3e", h1diff[lev]) .."\n");
+	write(">> H1 l-(l-1) on Level "..lev.." is "..string.format("%.3e", h1levdiff[lev]) .."\n");
 	write(">> #DoF     on Level "..lev.." is "..numDoFs[lev] .."\n");
 	
 	-- 6. write solution
@@ -108,7 +116,7 @@ for lev = maxLev, minLev, -1 do
 	write(">> Solution written to: "..solPath.."sol_"..discType..p.."_l"..lev.."\n");	
 end
 
-return l2exact, l2diff, h1exact, h1diff, numDoFs
+return l2exact, l2diff, l2levdiff, h1exact, h1diff, h1levdiff, numDoFs
 end
 
 
@@ -164,7 +172,7 @@ function util.computeNonlinearStaticConvRates(dom, createApproxSpace, createDoma
 				h[lev] = MaxElementDiameter(dom, lev)
 			end
 			
-			local l2exact, l2diff, h1exact, h1diff, numDoFs
+			local l2exact, l2diff, l2levdiff, h1exact, h1diff, h1levdiff, numDoFs
 				 = util.computeNonlinearStaticConvRatesForSpace(
 				 		dom, maxLev, minLev, discType, p, 
 				 		exactSol, exactGrad,
@@ -180,6 +188,10 @@ function util.computeNonlinearStaticConvRates(dom, createApproxSpace, createDoma
 			local h1difffac = {};
 			local l2diffrate = {};
 			local h1diffrate = {};
+			local l2levdifffac = {};
+			local h1levdifffac = {};
+			local l2levdiffrate = {};
+			local h1levdiffrate = {};
 			local level = {};
 
 			l2exactfac[minLev] = "--"
@@ -190,6 +202,14 @@ function util.computeNonlinearStaticConvRates(dom, createApproxSpace, createDoma
 			h1difffac[minLev] = "--"
 			l2diffrate[minLev] = "--"
 			h1diffrate[minLev] = "--"
+			l2levdifffac[minLev] = "--"
+			h1levdifffac[minLev] = "--"
+			l2levdiffrate[minLev] = "--"
+			h1levdiffrate[minLev] = "--"
+			l2levdifffac[minLev+1] = "--"
+			h1levdifffac[minLev+1] = "--"
+			l2levdiffrate[minLev+1] = "--"
+			h1levdiffrate[minLev+1] = "--"
 			level[minLev] = minLev
 	
 			for lev = minLev+1, maxLev do
@@ -206,16 +226,33 @@ function util.computeNonlinearStaticConvRates(dom, createApproxSpace, createDoma
 				l2diffrate[lev] = math.log(l2difffac[lev]) / math.log(2)
 				h1diffrate[lev] = math.log(h1difffac[lev]) / math.log(2)
 			end
+			
+			for lev = minLev+2 ,maxLev do
+				l2levdifffac[lev] = l2levdiff[lev-1]/l2levdiff[lev]
+				h1levdifffac[lev] = h1levdiff[lev-1]/h1levdiff[lev]
+				l2levdiffrate[lev] = math.log(l2levdifffac[lev]) / math.log(2)
+				h1levdiffrate[lev] = math.log(h1levdifffac[lev]) / math.log(2)
+			end
+			
+				l2levdiff[minLev] = "---"
+				h1levdiff[minLev] = "---"
 				l2difffac[maxLev] = "--"
 				h1difffac[maxLev] = "--"
 				l2diffrate[maxLev] = "--"
 				h1diffrate[maxLev] = "--"
 	
 			-- write data to screen
-			table.print({level, h, numDoFs, l2diff, l2diffrate, l2exact, l2exactrate, h1diff, h1diffrate, h1exact, h1exactrate}, 
-						{title = {"L", "h", "#DoFs", "L2 Diff", "rate", "L2 Exact", "rate", "H1 Diff", "rate", "H1 Exact", "rate"}, 
+			if exactGrad ~= nil and exactSol ~= nil then
+			table.print({level, h, numDoFs, l2diff, l2diffrate, l2levdiff, l2levdiffrate, l2exact, l2exactrate, h1diff, h1diffrate, h1levdiff, h1levdiffrate, h1exact, h1exactrate}, 
+						{title = {"L", "h", "#DoFs", "L2 l-lmax", "rate", "L2 l-(l-1)", "rate", "L2 l-exact", "rate", "H1 l-lmax", "rate", "H1 l-(l-1)", "rate","H1 l-exact", "rate"}, 
+						 format = {"%d", "%.2e", "%d", "%.2e", "%.3f", "%.2e", "%.3f", "%.2e", "%.3f", "%.2e", "%.3f", "%.2e", "%.3f", "%.2e", "%.3f"},
+						 hline = true, vline = true})
+			else
+			table.print({level, h, numDoFs, l2diff, l2diffrate, l2levdiff, l2levdiffrate, h1diff, h1diffrate, h1levdiff, h1levdiffrate}, 
+						{title = {"L", "h", "#DoFs", "L2 l-lmax", "rate", "L2 l-(l-1)", "rate", "H1 l-lmax", "rate", "H1 l-(l-1)", "rate",}, 
 						 format = {"%d", "%.2e", "%d", "%.2e", "%.3f", "%.2e", "%.3f", "%.2e", "%.3f", "%.2e", "%.3f"},
 						 hline = true, vline = true})
+			end
 			
 			-- write data to file
 			gnuplot.write_data(dataPath.."error_"..discType..p..".dat", {numDoFs, l2diff, h1diff})
