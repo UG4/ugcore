@@ -60,37 +60,72 @@ function write_data(filename, data, passRows)
 	local plainArray, rowSize
 	local minRow = nil
 	local maxRow = nil 
+	local bHasMatrixData = false
 	
 	if not passRows then
-		-- check column sizes
 		for i, item in ipairs(data) do
 			if not(type(item) == "table") then
 				io.stderr:write("Gnuplot Error: Data array must contain only tables.\n");
 				return 1						
 			end
-			
-			local min, max = getArraySizes(item)
-			if minRow == nil then minRow = min
-			elseif minRow ~= min then
-				io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
-				io.stderr:write("Expected min row: "..minRow..", got: "..min.."\n");
-				return 1						
+		end
+
+		for i = 1, #data do
+			if type(data[i][1]) == "table" then
+				bHasMatrixData = true		
 			end
-			if maxRow == nil then maxRow = max
-			elseif maxRow ~= max then
-				io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
-				io.stderr:write("Expected max row: "..maxRow..", got: "..max.."\n");
-				return 1						
+		end
+		
+		-- check column sizes
+		if bHasMatrixData == false then
+			for i, item in ipairs(data) do
+				local min, max = getArraySizes(item)
+				if minRow == nil then minRow = min
+				elseif minRow ~= min then
+					io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
+					io.stderr:write("Expected min row: "..minRow..", got: "..min.."\n");
+					return 1						
+				end
+				if maxRow == nil then maxRow = max
+				elseif maxRow ~= max then
+					io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
+					io.stderr:write("Expected max row: "..maxRow..", got: "..max.."\n");
+					return 1						
+				end
 			end
 		end
 		
 		-- write column
-		for i = minRow,maxRow do
-			for j = 1,#data do
-				file:write(data[j][i], " ")
+		if bHasMatrixData == false then
+			for i = minRow,maxRow do
+				for j = 1,#data do
+					file:write(data[j][i], " ")
+				end
+				file:write("\n")
+			end		
+		else
+			if type(data[1][1]) == "table" or type(data[2][1]) == "table" then
+				io.stderr:write("Gnuplot: Format for matrix data: x, y, data");
+				return 1						
+			end			
+			for i = 3,#data do
+				if type(data[i][1]) ~= "table" then
+					io.stderr:write("Gnuplot: Format for matrix data: x, y, data");
+					return 1						
+				end			
 			end
-			file:write("\n")
-		end		
+			
+			for i = 1, #data[1] do
+				for j = 1, #data[2] do
+					file:write(data[1][i], " ", data[2][j], " ")					
+					for k = 3,#data do
+						file:write(data[k][i][j], " ")		
+					end
+					file:write("\n")
+				end
+				file:write("\n")
+			end
+		end
 	else
 		for i, item in ipairs(data) do
 			if type(item) == "table" then
@@ -147,13 +182,48 @@ function plot(filename, datasource, options)
 		exit();
 	end
 
+	-- check for 2d or 3d data
+	local is3d = nil
+	for i, source in ipairs(datasource) do
+
+		if ( #source ~= 0 ) then -- use default 
+			if ( #source == 2 ) then
+				if options.is3d ~= nil and options.is3d == true then
+					io.stderr:write("Gnuplot Error: Explict 3d data request, but 2d data given.\n"); exit();
+				end
+				if is3d ~= nil and is3d == true then 
+					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+				else is3d = false 
+				end
+			elseif ( #source == 3 ) then  
+				if options.is3d ~= nil and options.is3d == false then
+					io.stderr:write("Gnuplot Error: Explict 2d data request, but 3d data given.\n"); exit();
+				end
+				if is3d ~= nil and is3d == false then 
+					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+				else is3d = true 
+				end			
+			else io.stderr:write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n");
+				 exit();
+			end		
+		end
+	end
+	if options.is3d == nil then 
+		if is3d ~= nil then 
+			options.is3d = is3d
+		else 
+			options.is3d = false 
+		end
+	end
+	
 	-- select sensible defaults
 	if ( type(options) ~= "table" ) then
-		options = { title = "", xlabel = "", ylabel = "" }
+		options = { title = "", xlabel = "", ylabel = "", zlabel = ""}
 	end
 	if options.title == nil then options.title = "" end
 	if options.xlabel == nil then options.xlabel = "" end
 	if options.ylabel == nil then options.ylabel = "" end
+	if options.zlabel == nil then options.zlabel = "" end
 
 	-- check output file name
 	if filename ~= nil then
@@ -182,6 +252,14 @@ function plot(filename, datasource, options)
 					options.range.yrange = {options.range[3], options.range[4]}
 				elseif type(options.range[2]) == "table" then
 					options.range.yrange = options.range[2] 
+				end
+			end
+			if options.range.zrange == nil then 
+				if type(options.range[5]) == "number" and
+				   type(options.range[6]) == "number" then
+					options.range.zrange = {options.range[5], options.range[6]}
+				elseif type(options.range[3]) == "table" then
+					options.range.zrange = options.range[3] 
 				end
 			end
 		else
@@ -260,7 +338,10 @@ function plot(filename, datasource, options)
 	plotScript:write("set title '"..options.title.."' textcolor lt 2\n")
 	plotScript:write("set xlabel '"..options.xlabel.."'\n")
 	plotScript:write("set ylabel '"..options.ylabel.."'\n\n")
-
+	if options.is3d == true then
+	plotScript:write("set zlabel '"..options.zlabel.."'\n\n")
+	end
+	
 	-- write timestamp
 	if options.timestamp then
 		if type(options.timestamp) == "string" then
@@ -281,7 +362,9 @@ function plot(filename, datasource, options)
 
 	-- enable grid
 	if options.grid == true then
-		plotScript:write("set grid xtics ytics back\n"); 
+		if options.is3d == false then plotScript:write("set grid xtics ytics back\n"); 
+		else plotScript:write("set grid xtics ytics ztics back\n"); 
+		end
 	end
 
 	-- locscale
@@ -295,7 +378,14 @@ function plot(filename, datasource, options)
 	else
 		plotScript:write("unset logscale y\n");
 	end
-
+	if options.is3d == true then
+	if options.logscale == true or options.zlogscale == true then
+		plotScript:write("set logscale z\n"); 
+	else
+		plotScript:write("unset logscale z\n");
+	end
+	end
+	
 	-- write additional options, passed as strings
 	for i, source in ipairs(options) do
 		if source and type(source) == "string" then
@@ -320,6 +410,9 @@ function plot(filename, datasource, options)
 	if options.range.yrange ~= nil then
 		plotScript:write ("set yrange ["..options.range.yrange[1]..":"..options.range.yrange[2].."]\n")
 	end
+	if options.range.zrange ~= nil then
+		plotScript:write ("set zrange ["..options.range.zrange[1]..":"..options.range.zrange[2].."]\n")
+	end
 	
 
 	-- loop data sets
@@ -327,21 +420,24 @@ function plot(filename, datasource, options)
 	
 		-- get the data column mapping
 		local map = "";
-		if ( #source > 1 ) then
-			for i in ipairs(source) do
-				if ( source[i] ) then
-					map = map..source[i]
-					if ( source[i+1] ) then
-						map = map..":"
-					end
-				end
-			end
+		if options.is3d == false and #source == 2 then
+			map = source[1]..":"..source[2]
+		elseif options.is3d == true and #source == 3 then
+			map = source[1]..":"..source[2]..":"..source[3]
 		else
-			map = "1:2"
+			if options.is3d == false then map = "1:2"
+			else map = "1:2:3"
+			end
 		end
 
 		-- determine the plot type - data source table has priority
-		local style = "linespoints"
+		if options.is3d == true then
+			plotScript:write("set surface\n") 
+			plotScript:write("unset contour\n") 
+			local style = "points"
+		else
+			local style = "linespoints"
+		end
 		if source.style then
 			style = source.style
 		end
@@ -407,7 +503,9 @@ function plot(filename, datasource, options)
 
 		-- build up the plot command, layer by layer in non-multiplotmode
 		if (i == 1 or multiplot == true) then 	
-			plotScript:write ("plot  \\\n");
+			if options.is3d == false then 
+				 plotScript:write ("plot  \\\n");
+			else plotScript:write ("splot  \\\n"); end
 		else 				
 			plotScript:write(", \\\n");	
 		end
