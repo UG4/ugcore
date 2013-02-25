@@ -14,6 +14,7 @@
 #include "common/assert.h"
 #include "common/error.h"
 #include "common/log.h"
+#include "common/profiler/profiler.h"
 
 namespace ug {
 	
@@ -44,9 +45,12 @@ namespace ug {
 				m_inBuffer( new char[INPUT_BUFFER_SIZE] ),
 				m_inBufferSize(0)
 			{
+				PROFILE_FUNC()
 				m_fStream.open( filename, std::ios_base::out | std::ios_base::trunc );
 				if (!m_fStream.is_open() ) {
-					UG_THROW( "Base64FileWriter: Can not open output file: " << filename );
+					UG_THROW( "Could not open output file: " << filename );
+				} else if(! m_fStream.good()) {
+					UG_THROW( "Can not write to output file: " << filename );
 				}
 			}
 			
@@ -62,8 +66,9 @@ namespace ug {
 			 */
 			template <typename T>
 			Base64FileWriter& operator<<( const T& value ) {
+				PROFILE_FUNC()
 				UG_ASSERT( ( m_fStream.good() && m_fStream.is_open() ), 
-				           "Base64FileWriter: File stream is not open." );
+				           "File stream is not open." );
 				
 				if ( m_currFormat == base64 ) {
 					// we should know how big the data is
@@ -82,7 +87,7 @@ namespace ug {
 					m_fStream << value;
 					
 				} else {
-					UG_THROW( "Base64FileWriter: Output format mode not set." );
+					UG_THROW( "Output format mode not set." );
 				}
 				return *this;
 			}
@@ -90,6 +95,7 @@ namespace ug {
 			/**
 			 */
 			Base64FileWriter& operator<<( const fmtflag format ) {
+				PROFILE_FUNC()
 				if ( format != m_currFormat && format == normal ) {
 					// base64 encoded stream should end here
 					// thus, fill the rest of the buffer with zero-bytes until
@@ -100,7 +106,7 @@ namespace ug {
 				}
 				return *this;
 			}
-			
+
 			void close()
 			{
 				m_fStream.close();
@@ -139,6 +145,7 @@ namespace ug {
 			 */
 			void flushInputBuffer()
 			{
+				PROFILE_FUNC()
 				// encode as many triplets as there are in our input buffer
 				while ( m_inBufferSize >= ENCODE_TRIPLET_SIZE ) {
 					char out[ENCODE_TRIPLET_SIZE];
