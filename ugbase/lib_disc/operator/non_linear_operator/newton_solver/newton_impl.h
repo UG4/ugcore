@@ -113,8 +113,8 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 //	Jacobian
 	if(m_J.invalid() || m_J->discretization() != m_spAss) {
 		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
-		m_J->set_level(m_N->level());
 	}
+	m_J->set_level(m_N->level());
 
 //	create tmp vectors
 	SmartPtr<vector_type> spD = u.clone_without_values();
