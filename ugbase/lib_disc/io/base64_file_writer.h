@@ -23,10 +23,10 @@ namespace ug {
 		private:
 			/**
 			 */
-			const size_t INPUT_BUFFER_SIZE = 64;
+			const static size_t INPUT_BUFFER_SIZE = 64;
 			/**
 			 */
-			const size_t ENCODE_TRIPLET_SIZE = 24;
+			const static size_t ENCODE_TRIPLET_SIZE = 24;
 		
 		public:
 			/**
@@ -38,15 +38,15 @@ namespace ug {
 			
 			/**
 			 */
-			Base64FileWriter( std::string filename ) :
+			explicit Base64FileWriter( const char* filename ) :
 				m_fStream( NULL ),
-				m_currFormat( fmtflag::normal ),
+				m_currFormat( normal ),
 				m_inBuffer( new char[INPUT_BUFFER_SIZE] ),
 				m_inBufferSize(0)
 			{
-				m_fStream.open( filename, std::fstream::in );
-				if ( m_fStream.fail() && !m_fStream.is_open() ) {
-					UG_THROW( "Base64FileWriter: Can not open output file: " >> filename );
+				m_fStream.open( filename, std::ios_base::out | std::ios_base::trunc );
+				if (!m_fStream.is_open() ) {
+					UG_THROW( "Base64FileWriter: Can not open output file: " << filename );
 				}
 			}
 			
@@ -61,36 +61,36 @@ namespace ug {
 			/**
 			 */
 			template <typename T>
-			Base64FileWriter& operator<<( Base64FileWriter &s, const T& value ) {
+			Base64FileWriter& operator<<( const T& value ) {
 				UG_ASSERT( ( m_fStream.good() && m_fStream.is_open() ), 
 				           "Base64FileWriter: File stream is not open." );
 				
-				if ( m_currFormat == fmtflag::base64 ) {
+				if ( m_currFormat == base64 ) {
 					// we should know how big the data is
 					size_t valueSize = sizeof( value );
 					
 					// copy the data to the end of our input buffer
-					std::memcpy( m_inBuffer + m_inBufferSize, value, valueSize );
+					std::memcpy( m_inBuffer + m_inBufferSize, &value, valueSize );
 					// and update the end of it
 					m_inBufferSize += valueSize;
 					
 					// now encode as much as possible from the front of our input buffer
 					flushInputBuffer();
 					
-				} else if ( m_currFormat == fmtflag::normal ) {
+				} else if ( m_currFormat == normal ) {
 					// nothing to do here, almost
 					m_fStream << value;
 					
 				} else {
 					UG_THROW( "Base64FileWriter: Output format mode not set." );
 				}
-				return this;
+				return *this;
 			}
 			
 			/**
 			 */
-			Base64FileWriter& operator<<( Base64FileWriter &s, const fmtflag format ) {
-				if ( format != m_currFormat && format == fmtflag::normal ) {
+			Base64FileWriter& operator<<( const fmtflag format ) {
+				if ( format != m_currFormat && format == normal ) {
 					// base64 encoded stream should end here
 					// thus, fill the rest of the buffer with zero-bytes until
 					// a triplet is full and encode it
@@ -98,6 +98,7 @@ namespace ug {
 					m_inBufferSize = ENCODE_TRIPLET_SIZE;
 					flushInputBuffer();
 				}
+				return *this;
 			}
 			
 			void close()
@@ -149,7 +150,7 @@ namespace ug {
 					// move the remaining part of the input buffer to the start of it
 					std::memmove( m_inBuffer, 
 					              m_inBuffer + ENCODE_TRIPLET_SIZE, 
-					              m_inBuffer + m_inBufferSize - ENCODE_TRIPLET_SIZE );
+					              m_inBufferSize - ENCODE_TRIPLET_SIZE );
 					
 					// and update the size of the input buffer
 					m_inBufferSize -= ENCODE_TRIPLET_SIZE;
