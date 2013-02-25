@@ -288,6 +288,7 @@ function util.SolveLinearTimeProblem(
 				linSolver:init(A, u)
 				assembled_dt = currdt
 			else
+				timeDisc:prepare_step(solTimeSeries, currdt)
 				timeDisc:assemble_rhs(b, gl)
 			end
 			
