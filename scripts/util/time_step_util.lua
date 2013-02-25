@@ -203,6 +203,8 @@ function util.SolveNonlinearTimeProblem(
 	
 		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++");
 	end
+	
+	if not (out==nil) then out:write_time_pvd(filename, u) end
 end
 
 
@@ -328,4 +330,6 @@ function util.SolveLinearTimeProblem(
 			
 		print("++++++ TIMESTEP "..step.." END   (current time: " .. time .. ") ++++++");
 	end
+	
+	if not (out==nil) then out:write_time_pvd(filename, u) end
 end
