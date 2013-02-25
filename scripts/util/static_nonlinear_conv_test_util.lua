@@ -77,12 +77,12 @@ for lev = minLev, maxLev do
 		 print ("Newton solver apply failed."); exit();
 	end
 	write(">> Newton Solver done.\n")
-	WriteGridFunctionToVTK(u[lev], "SolutionHenry"..lev)
+	--WriteGridFunctionToVTK(u[lev], "Sol"..lev)
 	
 	if lev < maxLev then	
 		Prolongate(u[lev+1], u[lev]);
 		write(">> Solution interpolated as start value for finer level.\n")
-		--WriteGridFunctionToVTK(u[lev+1], "SolutionHenryProl"..lev+1)
+		--WriteGridFunctionToVTK(u[lev+1], "Sol"..lev+1)
 	end
 end
 	
