@@ -25,6 +25,8 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 	typedef typename TGridFunction::template traits<VertexBase>::const_iterator const_iterator;
 
+	UG_LOG("FOUND ProlongateP1\n")
+
 //  get subsethandler and grid
 	SmartPtr<MultiGrid> mg = uFine.domain()->grid();
 
@@ -67,6 +69,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 
 	//  get parent and level where coarse grid function is defined
 		GeometricObject* parent = mg->get_parent(vrt);
+		const ReferenceObjectID parentBaseObjectID = parent->reference_object_id();
 		int parentLevel = mg->get_level(parent);
 		while(parentLevel > coarseTopLevel){
 			parent = mg->get_parent(parent);
@@ -80,7 +83,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 		if(parentLevel == vertexLevel - 1)
 		{
 		//	distinguish type of parent
-			switch(parent->base_object_id())
+			switch(parentBaseObjectID)
 			{
 				case ROID_VERTEX:
 				{
