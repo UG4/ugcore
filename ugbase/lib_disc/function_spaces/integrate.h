@@ -681,6 +681,15 @@ number L2Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
 	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
 }
 
+template <typename TGridFunction>
+number L2Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
+               SmartPtr<TGridFunction> spGridFct, const char* cmp,
+               number time, int quadOrder)
+{
+	return L2Error(spExactSol, spGridFct, cmp, time, quadOrder, NULL);
+}
+
+
 #ifdef UG_FOR_LUA
 template <typename TGridFunction>
 number L2Error(const char* ExactSol,
@@ -690,6 +699,14 @@ number L2Error(const char* ExactSol,
 	SmartPtr<UserData<number, TGridFunction::dim> > spExactSol
 	 = CreateSmartPtr(new LuaUserData<number, TGridFunction::domain_type::dim>(ExactSol));
 	return L2Error(spExactSol, spGridFct, cmp, time, quadOrder, subsets);
+}
+
+template <typename TGridFunction>
+number L2Error(const char* ExactSol,
+               SmartPtr<TGridFunction> spGridFct, const char* cmp,
+               number time, int quadOrder)
+{
+	return L2Error(ExactSol, spGridFct, cmp, time, quadOrder, NULL);
 }
 #endif
 
@@ -879,6 +896,15 @@ number L2Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
 	}
 }
 
+template <typename TGridFunction>
+number L2Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
+               SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
+               int quadOrder)
+{
+	return L2Error(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // H1 Error Integrand
 ////////////////////////////////////////////////////////////////////////////////
@@ -1042,6 +1068,15 @@ number H1Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
 	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
 }
 
+template <typename TGridFunction>
+number H1Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
+               SmartPtr<UserData<MathVector<TGridFunction::dim>, TGridFunction::dim> > spExactGrad,
+			   SmartPtr<TGridFunction> spGridFct, const char* cmp,
+			   number time, int quadOrder)
+{
+	return H1Error(spExactSol, spExactGrad, spGridFct, cmp, time, quadOrder, NULL);
+}
+
 #ifdef UG_FOR_LUA
 template <typename TGridFunction>
 number H1Error(const char* ExactSol, const char* ExactGrad,
@@ -1054,6 +1089,14 @@ number H1Error(const char* ExactSol, const char* ExactGrad,
 	SmartPtr<UserData<MathVector<dim>, dim> > spExactGrad
 	 = CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(ExactGrad));
 	return H1Error(spExactSol, spExactGrad, spGridFct, cmp, time, quadOrder, subsets);
+}
+
+template <typename TGridFunction>
+number H1Error(const char* ExactSol, const char* ExactGrad,
+			   SmartPtr<TGridFunction> spGridFct, const char* cmp,
+			   number time, int quadOrder)
+{
+	return H1Error(ExactSol, ExactGrad, spGridFct, cmp, time, quadOrder, NULL);
 }
 #endif
 
@@ -1258,6 +1301,14 @@ number H1Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
 			= CreateSmartPtr(new H1DiffIntegrand<TGridFunction>(spGridFct2, fct2, spGridFct1, fct1));
 		return sqrt(IntegrateSubsets(spIntegrand, spGridFct2, subsets, quadOrder));
 	}
+}
+
+template <typename TGridFunction>
+number H1Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
+               SmartPtr<TGridFunction> spGridFct2, const char* cmp2,
+               int quadOrder)
+{
+	return H1Error(spGridFct1, cmp1, spGridFct2, cmp2, quadOrder, NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
