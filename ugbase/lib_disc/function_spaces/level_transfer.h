@@ -25,8 +25,6 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 	typedef typename TGridFunction::template traits<VertexBase>::const_iterator const_iterator;
 
-	UG_LOG("FOUND ProlongateP1\n")
-
 //  get subsethandler and grid
 	SmartPtr<MultiGrid> mg = uFine.domain()->grid();
 
