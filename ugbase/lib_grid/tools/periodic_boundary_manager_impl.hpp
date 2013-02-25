@@ -15,8 +15,8 @@
 #include "lib_grid/algorithms/debug_util.h"
 #include "common/assert.h"
 
-//#include <boost/mpl/map.hpp>
-//#include <boost/mpl/at.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/at.hpp>
 
 #include <algorithm>
 #include <set>
@@ -588,13 +588,12 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 
 	// map start type of recursion dependent to TDomain
 	// in 3d start with faces, in 2d with edges, in 1d with vertices
-	/*namespace mpl = boost::mpl;
+	namespace mpl = boost::mpl;
 	typedef		mpl::map<mpl::pair<Domain1d, VertexBase>,
 						 mpl::pair<Domain2d, EdgeBase>,
 						 mpl::pair<Domain3d, Face> > m;
 
-	typedef typename mpl::at<m, TDomain>::type TElem; */
-	typedef EdgeBase TElem;
+	typedef typename mpl::at<m, TDomain>::type TElem;
 	typedef typename ElementStorage<TElem>::SectionContainer::iterator gocIter;
 
 	// calculate shift vector for top level
