@@ -156,6 +156,10 @@ void MatrixIOMtx::write_from( CPUAlgebra::matrix_type &matrix, string comment )
   
   // add a comment if it's not empty
   if ( !comment.empty() ) {
+    if ( comment.find_first_of( '%' ) != 0 ) {
+      UG_WARNING( "Given comment did not start with '%'. Prepending it to make it valid." );
+      comment.insert( 0, "%" );
+    }
     m_matFileStream << comment << "\n";
   }
   
