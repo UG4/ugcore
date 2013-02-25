@@ -154,12 +154,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 						 &SaveMatrixForConnectionViewer<function_type>, grp);
 	}
 
-// SaveMatrixToMTX
-// TODO not working yet ...
-// 	{
-// 		reg.add_function( "SaveMatrixToMTX", &SaveMatrixToMTX<function_type>, grp );
-// 	}
-
 //	SaveVectorForConnectionViewer
 	{
 		typedef MatrixOperator<matrix_type,	vector_type> matOp;
@@ -175,7 +169,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 						 &SaveVectorCSV<function_type>, grp);
 	}
 }
-
 
 /**
  * Function called for the registration of Dimension dependent parts.
@@ -225,6 +218,12 @@ static void Dimension(Registry& reg, string grp)
  */
 static void Common(Registry& reg, string grp)
 {
+// SaveMatrixToMTX
+	{
+		typedef MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type> matOp;
+// 		reg.add_function( "SaveMatrixToMTX", static_cast<void (*)(const char*, matOp&)>(&SaveMatrixToMTX), grp );
+		reg.add_function( "SaveMatrixToMTX", static_cast<void (*)(const char*, matOp&, std::string)>(&SaveMatrixToMTX), grp );
+	}
 }
 
 }; // end Functionality

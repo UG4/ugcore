@@ -76,8 +76,7 @@ void SaveMatrixForConnectionViewer(
  * \note Until now only CPUAlgebra matrices are supported.
  */
 // TODO extend MatrixIO to support other than CPUAlgebra
-template<typename TGridFunction>
-void SaveMatrixToMTX( const char *filename,
+inline void SaveMatrixToMTX( const char *filename,
 		MatrixOperator< CPUAlgebra::matrix_type, CPUAlgebra::vector_type >& A,
 		std::string comment="%Generated with ug4." ) {
 	PROFILE_FUNC();
