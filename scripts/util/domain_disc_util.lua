@@ -27,6 +27,8 @@ end
 --! @param discType (String) discretizatin scheme 
 function ConstantEquation(fcts, subsets, discType)
 	if 		discType == "fv1"  then return ConstantEquationFV1(fcts, subsets)
+	elseif  discType == "fe"   then return ConstantEquationFE(fcts, subsets)
+	elseif  discType == "fv"   then return ConstantEquationFV(fcts, subsets)
 	else 
 		print("ConstantEquation: no disc type '"..discType.."' available. Aborting")
 		exit();
