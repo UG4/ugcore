@@ -244,6 +244,8 @@ Therefore two actions need to be taken in \em Eclipse:
  - search a file in the tabs: Apple+E (Mac)
  - search a symbol (e.g. function) in the current file: Apple+O
  - You can change key mappings under Eclipse -> Properties, General -> Keys. (e.g. next Tab, previous Tab)
+ - Other recommended plugins are <a href="http://marketplace.eclipse.org/content/cmake-editor">CMake plugin</a> (install site http://cmakeed.sourceforge.net/eclipse/), 
+  <a href="http://texlipse.sourceforge.net/screenshots/">TeXclipse</a> (install site http://texlipse.sourceforge.net).
 
 <hr>
 \section secUG4ProjectInEclipse Create an UG4 project from exisiting source in Eclipse
@@ -265,6 +267,9 @@ If you want to use this project in another eclipse (like another version or on a
 you have to use \em File -> \em Import -> <em> Existing Projects into Workspace </em>.
 
 
+ 
+
+ * 
 */
 // other stuff: http://stackoverflow.com/questions/2707986/eclipse-encoding-macroman-utf8
 // texclipse: http://texlipse.sourceforge.net/manual/installation.html
