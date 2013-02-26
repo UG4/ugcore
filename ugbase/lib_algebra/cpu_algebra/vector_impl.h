@@ -169,7 +169,7 @@ SmartPtr<Vector<value_type> > Vector<value_type>::clone_without_values() const
 }
 
 template<typename value_type>
-bool Vector<value_type>::reserve_exactly(size_t newCapacity, bool bCopyValues)
+void Vector<value_type>::reserve_exactly(size_t newCapacity, bool bCopyValues)
 {
 	UG_ASSERT(newCapacity >= m_size, "use resize, then reserve_exactly");
 	value_type *new_values = new value_type[newCapacity];	
@@ -184,19 +184,18 @@ bool Vector<value_type>::reserve_exactly(size_t newCapacity, bool bCopyValues)
 	if(values) delete [] values;
 	values = new_values;
 	m_capacity = newCapacity;
-	return true;
 }
 
 
 template<typename value_type>
-bool Vector<value_type>::reserve(size_t newCapacity, bool bCopyValues)
+void Vector<value_type>::reserve_sloppy(size_t newCapacity, bool bCopyValues)
 {
-	if(newCapacity <= m_capacity) return true;
-	return reserve_exactly(newCapacity + m_capacity/2, bCopyValues);
+	if(newCapacity <= m_capacity) return;
+	reserve_exactly(newCapacity + m_capacity/2, bCopyValues);
 }
 
 template<typename value_type>
-bool Vector<value_type>::resize(size_t newSize, bool bCopyValues)
+void Vector<value_type>::resize_sloppy(size_t newSize, bool bCopyValues)
 {
 	if(newSize > m_capacity)
 	{
@@ -204,16 +203,14 @@ bool Vector<value_type>::resize(size_t newSize, bool bCopyValues)
 		reserve_exactly(newCapacity, true);
 	}
 	m_size = newSize;
-	return true;
 }
 
 template<typename value_type>
-bool Vector<value_type>::resize_exactly(size_t newSize, bool bCopyValues)
+void Vector<value_type>::resize_exactly(size_t newSize, bool bCopyValues)
 {
-	if(newSize != m_size)
+	if(newSize > m_capacity)
 		reserve_exactly(newSize, true);
 	m_size = newSize;
-	return true;
 }
 
 

@@ -64,18 +64,29 @@ public:
 	//! if bigger than capacity, new capacity is newSize+oldSize/2
 	//! so growth factor is 1.5 (this is to keep memory overhead small)
 	//! \see also https://github.com/facebook/folly/blob/master/folly/docs/FBVector.md
-	bool resize(size_t newSize, bool bCopyValues=true);	
+	void resize_sloppy(size_t newSize, bool bCopyValues=true);	
 	
 	//! resize the vector to be EXACTLY newSize big (no overhead)
-	bool resize_exactly(size_t newSize, bool bCopyValues=true);	
+	void resize_exactly(size_t newSize, bool bCopyValues=true);	
 	
 	//! reserve will allocate EXACTLY newCapacity
 	//! assertion if newCapacity < size
-	bool reserve_exactly(size_t newCapacity, bool bCopyValues);
+	void reserve_exactly(size_t newCapacity, bool bCopyValues);
 	
 	//! reserve capacity in vector.
 	//! if bigger than capacity, new capacity is newCapacity+oldCapacity/2
-	bool reserve(size_t newCapacity, bool bCopyValues=true);
+	void reserve_sloppy(size_t newCapacity, bool bCopyValues=true);
+	
+	void resize(size_t newSize, bool bCopyValues=true)
+	{
+		resize_exactly(newSize, bCopyValues);
+	}
+	void reserve(size_t newCapacity, bool bCopyValues=true)
+	{
+		reserve_exactly(newCapacity, bCopyValues);
+	}
+	
+	
 	size_t capacity()
 	{
 		return m_capacity;
