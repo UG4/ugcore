@@ -281,7 +281,7 @@ doxygen doxy_config_ug4.txt
 If you only want to build the documentation (without source code docu), you can do this in
 the subdir ug4/docs with
 \code
-doxygen doxy_config_no_ugbase.txt
+doxygen doxy_config_additional.txt
 \endcode
 
 Opening of e.g. the main page of the \ug4 documentation in a browser
@@ -289,6 +289,4 @@ Opening of e.g. the main page of the \ug4 documentation in a browser
 \code
 open docs/ug4/html/index.html
 \endcode
-
-
 */
