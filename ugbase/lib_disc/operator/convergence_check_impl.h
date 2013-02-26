@@ -26,8 +26,11 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx)
  	 m_relReduction(0),
 	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
 	 m_timeMeas(true),
-	 m_dd(NULL)
+	 m_dd(NULL),
+	 m_lvl(GridLevel::TOPLEVEL),
+	 m_bfunctionsSet(false)
 {
+	m_spApprox = approx;
 	m_dd = approx->surface_dof_distribution();
 
 	// compute indices for faster access later
@@ -101,6 +104,29 @@ number CompositeConvCheck<TVector, TDomain>::norm(const TVector& vec, std::vecto
 }
 
 
+template <class TVector, class TDomain>
+void CompositeConvCheck<TVector, TDomain>::set_level(int level)
+{
+	// level must be set before chosing functions
+	if (m_bfunctionsSet) UG_THROW("Level must be set before functions are!");
+	m_lvl = level;
+
+	// repeat construction actions, now with correct level
+	m_dd = m_spApprox->surface_dof_distribution(level);
+
+	// compute indices for faster access later
+	m_vvMultiIndex.clear();
+	m_vvMultiIndex.resize(m_dd->num_fct());
+	if(m_dd->max_dofs(VERTEX)) extract_multi_indices<VertexBase>();
+	if(m_dd->max_dofs(FACE)) extract_multi_indices<EdgeBase>();
+	if(m_dd->max_dofs(EDGE)) extract_multi_indices<Face>();
+	if(m_dd->max_dofs(VOLUME)) extract_multi_indices<Volume>();
+
+	// store function name
+	for (size_t fi = 0; fi < m_dd->num_fct(); fi++)
+		m_fctName.push_back(m_dd->function_pattern().name(fi));
+}
+
 
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::set_functions(const char* functionNames)
@@ -147,6 +173,8 @@ void CompositeConvCheck<TVector, TDomain>::set_functions(const char* functionNam
 
 	m_vvMultiIndex = finalIndices;
 	m_fctName = finalNames;
+
+	m_bfunctionsSet = true;
 }
 
 
@@ -203,6 +231,16 @@ void CompositeConvCheck<TVector, TDomain>::start_defect(number initialDefect)
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 {
+	// assert correct number of dofs
+	size_t ndofs = 0;
+	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)	ndofs += m_vvMultiIndex[i].size();
+	if (vec.size() != ndofs)
+	{
+		UG_THROW("Number of dofs in CompositeConvCheck does not match"
+		"number of dofs given in vector from algorithm (" << ndofs << ", but " << vec.size() << " given).\n"
+		"Make sure that you set the right grid level via set_level().")
+	}
+
 	// start time measurement
 	if (m_timeMeas)	m_stopwatch.start();
 
@@ -285,6 +323,16 @@ void CompositeConvCheck<TVector, TDomain>::update_defect(number newDefect)
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 {
+	// assert correct number of dofs
+	size_t ndofs = 0;
+	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)	ndofs += m_vvMultiIndex[i].size();
+	if (vec.size() != ndofs)
+	{
+		UG_THROW("Number of dofs in CompositeConvCheck does not match"
+		"number of dofs given in vector from algorithm (" << ndofs << ", but " << vec.size() << " given).\n"
+		"Make sure that you set the right grid level via set_level().")
+	}
+
 	m_lastOverallDefect = m_currentOverallDefect;
 	m_lastDefect = m_currentDefect;
 	m_currentOverallDefect = 0.0;

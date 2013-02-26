@@ -46,6 +46,9 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 	/// sets maximum number of iteration steps
 		void set_maximum_steps(int maxSteps) {m_maxSteps = maxSteps;}
 
+	/// set level of grid, where defect vectors come from
+		void set_level(int level);
+
 	///	sets the approximation space
 		void set_functions(const char* functionNames);
 		void set_minimum_defect(const std::vector<number> minDefect, number minDefectForRest = 1e-10);
@@ -138,12 +141,15 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		std::string m_info;
 
 	private:
+		SmartPtr<ApproximationSpace<TDomain> > m_spApprox;
 		bool m_timeMeas;
 		Stopwatch m_stopwatch;
 		std::vector<std::vector<MultiIndex<2> > > m_vvMultiIndex;
 		std::vector<std::string> m_fctName;
 		FunctionGroup m_fctGrp;
 		ConstSmartPtr<DoFDistribution> m_dd;
+		int m_lvl;
+		bool m_bfunctionsSet;
 };
 
 } // end namespace ug

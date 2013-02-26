@@ -344,6 +344,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("CompositeConvCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
+			.add_method("set_level", (void (T::*)(int)) &T::set_level, "grid level where defect vectors come from")
 			.add_method("set_functions", (void (T::*)(const char*)) &T::set_functions, "",
 					"functions to be evaluated individually as comma-separated list")
 			.add_method("timeMeasurement", &T::timeMeasurement, "", "", "whether to perform a time measurement or not")
