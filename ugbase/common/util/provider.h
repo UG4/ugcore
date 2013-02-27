@@ -37,7 +37,7 @@ class Provider
 		static std::vector<TClass*> m_vClass;
 
 		/// returns class based on identifier
-		static TClass& get_class(size_t p) {
+		static TClass& get_class(typename std::vector<TClass*>::size_type p) {
 			if(p >= m_vClass.size()){
 				m_vClass.resize(p+1, NULL);
 			}
@@ -49,7 +49,7 @@ class Provider
 
 		/// clears all instances
 		static void clear_classes(){
-			for(size_t i = 0; m_vClass.size(); ++i)
+			for(typename std::vector<TClass*>::size_type i = 0; m_vClass.size(); ++i)
 				if(m_vClass[i])
 					delete m_vClass[i];
 
@@ -61,7 +61,7 @@ class Provider
 		typedef TClass Type;
 
 		///	returns a singleton based on the identifier
-		static inline TClass& get(size_t p){
+		static inline TClass& get(typename std::vector<TClass*>::size_type p){
 			return inst().get_class(p);
 		}
 
