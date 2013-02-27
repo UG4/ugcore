@@ -9,6 +9,7 @@
 #define __H__COMMON__UTIL__PROVIDER__
 
 #include <vector>
+#include <cstddef>
 
 namespace ug{
 
