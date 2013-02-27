@@ -112,9 +112,15 @@ class HFV1Geometry : public FVGeometryBase{
 				inline const MathVector<dim>& local_grad(size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid ip index"); return localGrad[sh];}
 
+			/// vector of local gradients in ip point
+				inline const MathVector<dim>* local_grad_vector() const {return &localGrad[0];}
+
 			/// value of global gradient of shape function i in integration point
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid ip index"); return globalGrad[sh];}
+
+			/// vector of global gradients in ip point
+				inline const MathVector<worldDim>* global_grad_vector() const {return &globalGrad[0];}
 
 			/// number of corners, that bound the scvf
 				inline size_t num_corners() const {return m_numCorners;}
