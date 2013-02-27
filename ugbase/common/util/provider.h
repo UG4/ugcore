@@ -61,8 +61,14 @@ class Provider
 		typedef TClass Type;
 
 		///	returns a singleton based on the identifier
-		static inline TClass& get(size_t p = 1){
+		static inline TClass& get(size_t p){
 			return inst().get_class(p);
+		}
+
+		///	returns a singleton based on the identifier
+		static inline TClass& get(){
+			static TClass inst;
+			return inst;
 		}
 
 		///	clears all singletons
