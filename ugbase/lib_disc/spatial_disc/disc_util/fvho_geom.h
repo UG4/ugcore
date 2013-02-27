@@ -1024,7 +1024,7 @@ class DimFVGeometry : public FVGeometryBase
 		                  int quadOrderSCVF, int quadOrderSCV);
 		void update_local(ReferenceObjectID roid, int orderShape)
 		{
-			update_local(roid, orderShape, orderShape, orderShape);
+			update_local(roid, orderShape, orderShape + 1, orderShape + 1);
 		}
 
 	/// update data for given element
