@@ -34,3 +34,16 @@ function ConstantEquation(fcts, subsets, discType)
 		exit();
 	end
 end
+
+--!	Returns a DensityDrivenFlow Element-Disc of the requested type
+--! @return Returns the domain discreatization
+--! @param fcts (String) names of symbolic functions 
+--! @param subsets (String) names of symbolic subsets 
+--! @param discType (String) discretizatin scheme 
+function DensityDrivenFlow(fcts, subsets, discType)
+	if 		discType == "fv1"  then return DensityDrivenFlowFV1(fcts, subsets)
+	else 
+		print("DensityDrivenFlow: no disc type '"..discType.."' available. Aborting")
+		exit();
+	end
+end
